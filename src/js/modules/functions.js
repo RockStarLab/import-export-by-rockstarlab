@@ -223,7 +223,7 @@ const FunctionsModule = {
 					<td colspan="7" style="text-align:center; padding:40px;">
 						<div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
 							<span class="dashicons dashicons-info" style="font-size:48px; opacity:0.3;"></span>
-							<p style="margin:0; color:#666;">
+							<p style="margin:23px 0 0 0; color:#666;">
 								${
 									window.aieData?.i18n?.no_functions ||
 									'No functions found. Create your first function or browse the library.'

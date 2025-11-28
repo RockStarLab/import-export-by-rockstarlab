@@ -280,7 +280,7 @@
 							for ( r.method = a, r.arg = i; ;  ) {
 								var c = r.delegate;
 								if ( c ) {
-									var s = Q( c, r );
+									var s = P( c, r );
 									if ( s ) {
 										if ( s === g ) continue;
 										return s;
@@ -310,7 +310,7 @@
 							}
 						};
 					}
-					function Q( e, n ) {
+					function P( e, n ) {
 						var r = n.method,
 							o = e.iterator[ r ];
 						if ( o === t )
@@ -320,7 +320,7 @@
 									e.iterator.return &&
 									( ( n.method = 'return' ),
 									( n.arg = t ),
-									Q( e, n ),
+									P( e, n ),
 									'throw' === n.method ) ) ||
 									( 'return' !== r &&
 										( ( n.method = 'throw' ),
@@ -357,7 +357,7 @@
 							  ( n.delegate = null ),
 							  g );
 					}
-					function P( t ) {
+					function Q( t ) {
 						var e = { tryLoc: t[ 0 ] };
 						1 in t && ( e.catchLoc = t[ 1 ] ),
 							2 in t &&
@@ -373,7 +373,7 @@
 					}
 					function O( t ) {
 						( this.tryEntries = [ { tryLoc: 'root' } ] ),
-							t.forEach( P, this ),
+							t.forEach( Q, this ),
 							this.reset( ! 0 );
 					}
 					function C( e ) {
@@ -1076,7 +1076,7 @@
 										} );
 							else
 								e.innerHTML =
-									'\n\t\t\t\t<div class="aie-no-snippets">\n\t\t\t\t\t<span class="dashicons dashicons-info"></span>\n\t\t\t\t\t<p>'.concat(
+									'\n\t\t\t\t<div class="aie-no-snippets">\n\t\t\t\t\t<span class="dashicons dashicons-info" style="width: auto; height: auto;"></span>\n\t\t\t\t\t<p>'.concat(
 										( null === ( n = window.aieData ) ||
 										void 0 === n ||
 										null === ( n = n.i18n ) ||
@@ -1234,42 +1234,59 @@
 							var n = document.getElementById(
 								'aie-snippet-preview-modal'
 							);
-							n &&
-								( ( n.querySelector(
+							if ( n ) {
+								( n.querySelector(
 									'.aie-snippet-title'
 								).textContent = e.name ),
-								( n.querySelector(
-									'.aie-snippet-description'
-								).textContent = e.description ),
-								( n.querySelector(
-									'.aie-snippet-category'
-								).textContent = this.getCategoryLabel(
-									e.category
-								) ),
-								( n.querySelector(
-									'.aie-snippet-code'
-								).textContent = e.code ),
-								e.tags && e.tags.length > 0
-									? ( n.querySelector(
-											'.aie-snippet-tags'
-									  ).textContent = e.tags.join( ', ' ) )
-									: ( n.querySelector(
-											'.aie-snippet-tags'
-									  ).textContent = 'None' ),
-								e.example &&
-									( ( n.querySelector(
-										'.aie-example-input-value'
-									).textContent =
-										void 0 !== e.example.input
-											? e.example.input
-											: 'N/A' ),
 									( n.querySelector(
-										'.aie-example-output-value'
-									).textContent =
-										void 0 !== e.example.output
-											? e.example.output
-											: 'N/A' ) ),
-								( n.style.display = 'flex' ) );
+										'.aie-snippet-description'
+									).textContent = e.description ),
+									( n.querySelector(
+										'.aie-snippet-category'
+									).textContent = this.getCategoryLabel(
+										e.category
+									) ),
+									( n.querySelector(
+										'.aie-snippet-code'
+									).textContent = e.code ),
+									e.tags && e.tags.length > 0
+										? ( n.querySelector(
+												'.aie-snippet-tags'
+										  ).textContent = e.tags.join( ', ' ) )
+										: ( n.querySelector(
+												'.aie-snippet-tags'
+										  ).textContent = 'None' ),
+									e.example &&
+										( ( n.querySelector(
+											'.aie-example-input-value'
+										).textContent =
+											void 0 !== e.example.input
+												? e.example.input
+												: 'N/A' ),
+										( n.querySelector(
+											'.aie-example-output-value'
+										).textContent =
+											void 0 !== e.example.output
+												? e.example.output
+												: 'N/A' ) );
+								var r = n.querySelector( '.aie-use-snippet' );
+								if ( r ) {
+									var o,
+										a =
+											( null === ( o = window.aieData ) ||
+											void 0 === o
+												? void 0
+												: o.currentPage ) || '';
+									r.style.display = [
+										'wp-advanced-import-export',
+										'wp-aie-export',
+										'wp-aie-content-sync',
+									].includes( a )
+										? ''
+										: 'none';
+								}
+								n.style.display = 'flex';
+							}
 						}
 					},
 					importSnippet: function ( n ) {
@@ -1622,7 +1639,7 @@
 							for ( r.method = a, r.arg = i; ;  ) {
 								var c = r.delegate;
 								if ( c ) {
-									var s = Q( c, r );
+									var s = P( c, r );
 									if ( s ) {
 										if ( s === g ) continue;
 										return s;
@@ -1652,7 +1669,7 @@
 							}
 						};
 					}
-					function Q( e, n ) {
+					function P( e, n ) {
 						var r = n.method,
 							o = e.iterator[ r ];
 						if ( o === t )
@@ -1662,7 +1679,7 @@
 									e.iterator.return &&
 									( ( n.method = 'return' ),
 									( n.arg = t ),
-									Q( e, n ),
+									P( e, n ),
 									'throw' === n.method ) ) ||
 									( 'return' !== r &&
 										( ( n.method = 'throw' ),
@@ -1699,7 +1716,7 @@
 							  ( n.delegate = null ),
 							  g );
 					}
-					function P( t ) {
+					function Q( t ) {
 						var e = { tryLoc: t[ 0 ] };
 						1 in t && ( e.catchLoc = t[ 1 ] ),
 							2 in t &&
@@ -1715,7 +1732,7 @@
 					}
 					function O( t ) {
 						( this.tryEntries = [ { tryLoc: 'root' } ] ),
-							t.forEach( P, this ),
+							t.forEach( Q, this ),
 							this.reset( ! 0 );
 					}
 					function C( e ) {
@@ -2442,7 +2459,7 @@
 											);
 										} ) )
 								: ( o.innerHTML =
-										'\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan="7" style="text-align:center; padding:40px;">\n\t\t\t\t\t\t<div style="display:flex; flex-direction:column; align-items:center; gap:10px;">\n\t\t\t\t\t\t\t<span class="dashicons dashicons-info" style="font-size:48px; opacity:0.3;"></span>\n\t\t\t\t\t\t\t<p style="margin:0; color:#666;">\n\t\t\t\t\t\t\t\t'.concat(
+										'\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan="7" style="text-align:center; padding:40px;">\n\t\t\t\t\t\t<div style="display:flex; flex-direction:column; align-items:center; gap:10px;">\n\t\t\t\t\t\t\t<span class="dashicons dashicons-info" style="font-size:48px; opacity:0.3;"></span>\n\t\t\t\t\t\t\t<p style="margin:23px 0 0 0; color:#666;">\n\t\t\t\t\t\t\t\t'.concat(
 											( null === ( e = window.aieData ) ||
 											void 0 === e ||
 											null === ( e = e.i18n ) ||
@@ -3679,7 +3696,7 @@
 							for ( r.method = a, r.arg = i; ;  ) {
 								var c = r.delegate;
 								if ( c ) {
-									var s = Q( c, r );
+									var s = P( c, r );
 									if ( s ) {
 										if ( s === y ) continue;
 										return s;
@@ -3709,7 +3726,7 @@
 							}
 						};
 					}
-					function Q( e, n ) {
+					function P( e, n ) {
 						var r = n.method,
 							o = e.iterator[ r ];
 						if ( o === t )
@@ -3719,7 +3736,7 @@
 									e.iterator.return &&
 									( ( n.method = 'return' ),
 									( n.arg = t ),
-									Q( e, n ),
+									P( e, n ),
 									'throw' === n.method ) ) ||
 									( 'return' !== r &&
 										( ( n.method = 'throw' ),
@@ -3756,7 +3773,7 @@
 							  ( n.delegate = null ),
 							  y );
 					}
-					function P( t ) {
+					function Q( t ) {
 						var e = { tryLoc: t[ 0 ] };
 						1 in t && ( e.catchLoc = t[ 1 ] ),
 							2 in t &&
@@ -3772,7 +3789,7 @@
 					}
 					function O( t ) {
 						( this.tryEntries = [ { tryLoc: 'root' } ] ),
-							t.forEach( P, this ),
+							t.forEach( Q, this ),
 							this.reset( ! 0 );
 					}
 					function C( e ) {
@@ -4866,8 +4883,8 @@
 						I( t )
 					);
 				}
-				function Q() {
-					Q = function () {
+				function P() {
+					P = function () {
 						return e;
 					};
 					var t,
@@ -5067,7 +5084,7 @@
 							  ( n.delegate = null ),
 							  y );
 					}
-					function P( t ) {
+					function Q( t ) {
 						var e = { tryLoc: t[ 0 ] };
 						1 in t && ( e.catchLoc = t[ 1 ] ),
 							2 in t &&
@@ -5083,7 +5100,7 @@
 					}
 					function O( t ) {
 						( this.tryEntries = [ { tryLoc: 'root' } ] ),
-							t.forEach( P, this ),
+							t.forEach( Q, this ),
 							this.reset( ! 0 );
 					}
 					function C( e ) {
@@ -5349,7 +5366,7 @@
 						e
 					);
 				}
-				function P( t, e, n, r, o, a, i ) {
+				function Q( t, e, n, r, o, a, i ) {
 					try {
 						var c = t[ a ]( i ),
 							s = c.value;
@@ -5365,10 +5382,10 @@
 						return new Promise( function ( r, o ) {
 							var a = t.apply( e, n );
 							function i( t ) {
-								P( a, r, o, i, c, 'next', t );
+								Q( a, r, o, i, c, 'next', t );
 							}
 							function c( t ) {
-								P( a, r, o, i, c, 'throw', t );
+								Q( a, r, o, i, c, 'throw', t );
 							}
 							i( void 0 );
 						} );
@@ -5498,9 +5515,9 @@
 					refreshCount: function () {
 						var t = this;
 						return F(
-							Q().mark( function e() {
+							P().mark( function e() {
 								var n, r, o, a;
-								return Q().wrap(
+								return P().wrap(
 									function ( e ) {
 										for (;;)
 											switch ( ( e.prev = e.next ) ) {
@@ -5639,9 +5656,9 @@
 					startExport: function () {
 						var t = this;
 						return F(
-							Q().mark( function e() {
+							P().mark( function e() {
 								var n, r, o;
-								return Q().wrap(
+								return P().wrap(
 									function ( e ) {
 										for (;;)
 											switch ( ( e.prev = e.next ) ) {
@@ -5752,9 +5769,9 @@
 					updateProgress: function () {
 						var t = this;
 						return F(
-							Q().mark( function e() {
+							P().mark( function e() {
 								var n;
-								return Q().wrap(
+								return P().wrap(
 									function ( e ) {
 										for (;;)
 											switch ( ( e.prev = e.next ) ) {
@@ -5838,9 +5855,9 @@
 					downloadFile: function () {
 						var t = this;
 						return F(
-							Q().mark( function e() {
+							P().mark( function e() {
 								var n;
-								return Q().wrap(
+								return P().wrap(
 									function ( e ) {
 										for (;;)
 											switch ( ( e.prev = e.next ) ) {
@@ -5884,8 +5901,8 @@
 					cancelExport: function () {
 						var t = this;
 						return F(
-							Q().mark( function e() {
-								return Q().wrap(
+							P().mark( function e() {
+								return P().wrap(
 									function ( e ) {
 										for (;;)
 											switch ( ( e.prev = e.next ) ) {

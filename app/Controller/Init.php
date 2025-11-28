@@ -135,10 +135,11 @@ class Init {
 			'wp-advanced-import-export-scripts',
 			'aieData',
 			array(
-				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
-				'nonce'     => wp_create_nonce( 'aie_nonce' ),
-				'pluginUrl' => plugins_url( '', WP_AIE_FILE ),
-				'i18n'      => array(
+				'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
+				'nonce'       => wp_create_nonce( 'aie_nonce' ),
+				'pluginUrl'   => plugins_url( '', WP_AIE_FILE ),
+				'currentPage' => isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '',
+				'i18n'        => array(
 					'skip'            => __( 'Skip', 'wp-aie' ),
 					'uploading'       => __( 'Uploading...', 'wp-aie' ),
 					'processing'      => __( 'Processing...', 'wp-aie' ),
