@@ -43,7 +43,7 @@ class database_migration {
             return;
         }
         
-        // 1. Jobs table - история импорта/экспорта
+        // 1. Jobs table - import/export history
         $sql_jobs = "CREATE TABLE {$prefix}aie_jobs (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             user_id BIGINT(20) UNSIGNED NOT NULL,
@@ -67,7 +67,7 @@ class database_migration {
             INDEX created_at_idx (created_at)
         ) ENGINE=InnoDB $charset_collate;";
         
-        // 2. Logs table - логи выполнения
+        // 2. Logs table - execution logs
         $sql_logs = "CREATE TABLE {$prefix}aie_logs (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             job_id BIGINT(20) UNSIGNED NOT NULL,
@@ -80,7 +80,7 @@ class database_migration {
             INDEX created_at_idx (created_at)
         ) ENGINE=InnoDB $charset_collate;";
         
-        // 3. Field Maps table - сохраненные пресеты маппинга
+        // 3. Field Maps table - saved mapping presets
         $sql_field_maps = "CREATE TABLE {$prefix}aie_field_maps (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
@@ -92,7 +92,7 @@ class database_migration {
             INDEX data_type_idx (data_type)
         ) ENGINE=InnoDB $charset_collate;";
         
-        // 4. Custom Functions table - пользовательские функции
+        // 4. Custom Functions table - user-defined functions
         $sql_custom_functions = "CREATE TABLE {$prefix}aie_custom_functions (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(100) NOT NULL UNIQUE,
@@ -113,7 +113,7 @@ class database_migration {
             INDEX source_idx (source)
         ) ENGINE=InnoDB $charset_collate;";
         
-        // 5. Media Sync table - синхронизация медиа папок
+        // 5. Media Sync table - media folder synchronization
         $sql_media_sync = "CREATE TABLE {$prefix}aie_media_sync (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             job_id BIGINT(20) UNSIGNED NOT NULL,
@@ -133,7 +133,7 @@ class database_migration {
             INDEX status_idx (status)
         ) ENGINE=InnoDB $charset_collate;";
         
-        // 6. Site Connections table - подключения между сайтами
+        // 6. Site Connections table - site-to-site connections
         $sql_site_connections = "CREATE TABLE {$prefix}aie_site_connections (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
@@ -151,7 +151,7 @@ class database_migration {
             INDEX created_by_idx (created_by)
         ) ENGINE=InnoDB $charset_collate;";
         
-        // 7. Content Sync table - история синхронизации контента
+        // 7. Content Sync table - content synchronization history
         $sql_content_sync = "CREATE TABLE {$prefix}aie_content_sync (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             job_id BIGINT(20) UNSIGNED NOT NULL,
@@ -170,7 +170,7 @@ class database_migration {
             INDEX remote_id_idx (remote_id)
         ) ENGINE=InnoDB $charset_collate;";
         
-        // 8. API Keys table - API ключи для входящих подключений
+        // 8. API Keys table - API keys for incoming connections
         $sql_api_keys = "CREATE TABLE {$prefix}aie_api_keys (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
