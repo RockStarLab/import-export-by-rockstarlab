@@ -658,25 +658,41 @@ const FunctionsModule = {
 	},
 
 	/**
-	 * Normalize PHP code - ensure it starts with <?php
+	 * Normalize PHP code - ensure it starts with <?php and wrap in function if needed
 	 */
 	normalizePhpCode( code ) {
 		if ( ! code || ! code.trim() ) {
 			return code;
 		}
 
-		const trimmedCode = code.trim();
+		let trimmedCode = code.trim();
 
 		// Check if code already starts with <?php or <?
 		if (
 			trimmedCode.startsWith( '<?php' ) ||
 			trimmedCode.startsWith( '<?' )
 		) {
-			return code;
+			// Remove PHP tags for further processing
+			trimmedCode = trimmedCode
+				.replace( /^<\?php\s*/i, '' )
+				.replace( /^<\?\s*/, '' );
 		}
 
-		// Add <?php at the beginning
-		return '<?php\n' + code;
+		// Check if code is already a complete function
+		const isFunctionDefinition = /^function\s+\w+\s*\(/i.test(
+			trimmedCode
+		);
+
+		if ( isFunctionDefinition ) {
+			// Just add PHP tag
+			return '<?php\n' + trimmedCode;
+		}
+
+		// Wrap simple expressions/statements in a function
+		return `<?php
+function transform_value( $value, $args = array() ) {
+	${ trimmedCode }
+}`;
 	},
 
 	/**

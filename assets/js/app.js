@@ -3233,9 +3233,19 @@
 					normalizePhpCode: function ( t ) {
 						if ( ! t || ! t.trim() ) return t;
 						var e = t.trim();
-						return e.startsWith( '<?php' ) || e.startsWith( '<?' )
-							? t
-							: '<?php\n' + t;
+						return (
+							( e.startsWith( '<?php' ) ||
+								e.startsWith( '<?' ) ) &&
+								( e = e
+									.replace( /^<\?php\s*/i, '' )
+									.replace( /^<\?\s*/, '' ) ),
+							/^function\s+\w+\s*\(/i.test( e )
+								? '<?php\n' + e
+								: '<?php\nfunction transform_value( $value, $args = array() ) {\n\t'.concat(
+										e,
+										'\n}'
+								  )
+						);
 					},
 					getSourceBadge: function ( t ) {
 						return t.startsWith( 'library:' )
