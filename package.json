@@ -11,7 +11,7 @@
     "hot": "mix watch --hot",
     "prod": "mix --production",
     "watch-prod": "mix --production -- --watch --progress",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "author": "",
   "license": "ISC",
