@@ -21,40 +21,18 @@ define( 'WP_AIE_PATH', trailingslashit( plugin_dir_path( WP_AIE_FILE )));
 define( 'WP_AIE_URL', plugins_url( '/', WP_AIE_FILE));
 define( 'WP_AIE_VERSION', '1.0.0' );
 
-// Autoloader - supports both WP_AIE\ and AIE\ namespaces
+// Autoloader - WP_AIE namespace only
 spl_autoload_register( function( $class) {
 
-	// Support WP_AIE\ namespace (legacy compatibility)
-	$prefix_wp = 'WP_AIE\\';
+	$prefix = 'WP_AIE\\';
 	$base_dir = WP_AIE_PATH . 'app/';
 
-	if( strncmp( $prefix_wp, $class, strlen( $prefix_wp ) ) === 0 ) {
-		$relative_class = substr( $class, strlen( $prefix_wp ) );
+	if( strncmp( $prefix, $class, strlen( $prefix ) ) === 0 ) {
+		$relative_class = substr( $class, strlen( $prefix ) );
 		$file = $base_dir . str_replace( '\\', '/', $relative_class) . '.php';
 		
 		if( file_exists( $file ) ) {
 			require $file;
-			return;
-		}
-	}
-	
-	// Support AIE\ namespace (new architecture)
-	$prefix_aie = 'AIE\\';
-	
-	if( strncmp( $prefix_aie, $class, strlen( $prefix_aie ) ) === 0 ) {
-		$relative_class = substr( $class, strlen( $prefix_aie ) );
-		
-		// Convert namespace to directory path
-		// AIE\Controller\Export_Wizard_Controller -> app/controller/export_wizard_controller.php
-		// AIE\Exporter\Post_Exporter -> app/exporter/post_exporter.php
-		// AIE\Format\CSV_Writer -> app/format/csv_writer.php
-		$path = str_replace( '\\', '/', $relative_class );
-		$path = strtolower( $path ); // Convert to lowercase for file names
-		$file = $base_dir . $path . '.php';
-		
-		if( file_exists( $file ) ) {
-			require $file;
-			return;
 		}
 	}
 
