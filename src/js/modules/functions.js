@@ -160,20 +160,20 @@ const FunctionsModule = {
 			<tr class="aie-loading-row">
 				<td colspan="7" style="text-align:center;">
 					<span class="spinner is-active"></span>
-					${ window.wpAieData?.i18n?.loading || 'Loading...' }
+					${ window.aieData?.i18n?.loading || 'Loading...' }
 				</td>
 			</tr>
 		`;
 
 		try {
-			const response = await fetch( window.ajaxurl, {
+			const response = await fetch( window.aieData.ajaxUrl, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
 				},
 				body: new URLSearchParams( {
 					action: 'aie_functions_get_all',
-					nonce: window.wpAieData?.nonce || '',
+					nonce: window.aieData?.nonce || '',
 					status: this.filters.status,
 					category: this.filters.category,
 					search: this.filters.search,
@@ -224,7 +224,7 @@ const FunctionsModule = {
 						<span class="dashicons dashicons-info" style="font-size:48px; opacity:0.3;"></span>
 						<p style="margin-top:10px; color:#666;">
 							${
-								window.wpAieData?.i18n?.no_functions ||
+								window.aieData?.i18n?.no_functions ||
 								'No functions found. Create your first function or browse the library.'
 							}
 						</p>
@@ -289,7 +289,7 @@ const FunctionsModule = {
 			btn.addEventListener( 'click', async ( e ) => {
 				const id = e.currentTarget.dataset.id;
 				const confirmed = await confirmDialog(
-					window.wpAieData?.i18n?.confirm_delete ||
+					window.aieData?.i18n?.confirm_delete ||
 						'Are you sure you want to delete this function?'
 				);
 				if ( confirmed ) {
@@ -353,17 +353,17 @@ const FunctionsModule = {
 		if ( functionId ) {
 			// Edit mode - load function data
 			title.textContent =
-				window.wpAieData?.i18n?.edit_function || 'Edit Function';
+				window.aieData?.i18n?.edit_function || 'Edit Function';
 
 			try {
-				const response = await fetch( window.ajaxurl, {
+				const response = await fetch( window.aieData.ajaxUrl, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/x-www-form-urlencoded',
 					},
 					body: new URLSearchParams( {
 						action: 'aie_functions_get',
-						nonce: window.wpAieData?.nonce || '',
+						nonce: window.aieData?.nonce || '',
 						id: functionId,
 					} ),
 				} );
@@ -396,7 +396,7 @@ const FunctionsModule = {
 		} else {
 			// Create mode
 			title.textContent =
-				window.wpAieData?.i18n?.new_function || 'New Function';
+				window.aieData?.i18n?.new_function || 'New Function';
 		}
 
 		modal.style.display = 'flex';
@@ -426,7 +426,7 @@ const FunctionsModule = {
 			action: functionId
 				? 'aie_functions_update'
 				: 'aie_functions_create',
-			nonce: window.wpAieData?.nonce || '',
+			nonce: window.aieData?.nonce || '',
 			name: document.getElementById( 'aie-function-name' ).value,
 			description: document.getElementById( 'aie-function-description' )
 				.value,
@@ -440,7 +440,7 @@ const FunctionsModule = {
 		}
 
 		try {
-			const response = await fetch( window.ajaxurl, {
+			const response = await fetch( window.aieData.ajaxUrl, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
@@ -457,7 +457,7 @@ const FunctionsModule = {
 			}
 
 			showNotice(
-				window.wpAieData?.i18n?.function_saved ||
+				window.aieData?.i18n?.function_saved ||
 					'Function saved successfully'
 			);
 			this.closeModal(
@@ -475,14 +475,14 @@ const FunctionsModule = {
 	 */
 	async deleteFunction( functionId ) {
 		try {
-			const response = await fetch( window.ajaxurl, {
+			const response = await fetch( window.aieData.ajaxUrl, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
 				},
 				body: new URLSearchParams( {
 					action: 'aie_functions_delete',
-					nonce: window.wpAieData?.nonce || '',
+					nonce: window.aieData?.nonce || '',
 					id: functionId,
 				} ),
 			} );
@@ -496,7 +496,7 @@ const FunctionsModule = {
 			}
 
 			showNotice(
-				window.wpAieData?.i18n?.function_deleted ||
+				window.aieData?.i18n?.function_deleted ||
 					'Function deleted successfully'
 			);
 			this.loadFunctions();
@@ -520,14 +520,14 @@ const FunctionsModule = {
 		}
 
 		try {
-			const response = await fetch( window.ajaxurl, {
+			const response = await fetch( window.aieData.ajaxUrl, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
 				},
 				body: new URLSearchParams( {
 					action: 'aie_functions_test',
-					nonce: window.wpAieData?.nonce || '',
+					nonce: window.aieData?.nonce || '',
 					code: code,
 					value: testValue,
 				} ),

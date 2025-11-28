@@ -99,19 +99,19 @@ const FunctionLibrary = {
 		grid.innerHTML = `
 			<div class="aie-loading-snippets">
 				<span class="spinner is-active"></span>
-				<p>${ window.wpAieData?.i18n?.loading || 'Loading snippets...' }</p>
+				<p>${ window.aieData?.i18n?.loading || 'Loading snippets...' }</p>
 			</div>
 		`;
 
 		try {
-			const response = await fetch( window.ajaxurl, {
+			const response = await fetch( window.aieData.ajaxUrl, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
 				},
 				body: new URLSearchParams( {
 					action: 'aie_functions_get_snippets',
-					nonce: window.wpAieData?.nonce || '',
+					nonce: window.aieData?.nonce || '',
 					category: category,
 				} ),
 			} );
@@ -157,7 +157,7 @@ const FunctionLibrary = {
 			}" data-category="">
 				<span class="dashicons dashicons-category"></span>
 				<span class="aie-category-name">${
-					window.wpAieData?.i18n?.all_snippets || 'All Snippets'
+					window.aieData?.i18n?.all_snippets || 'All Snippets'
 				}</span>
 				<span class="aie-category-count">${ totalSnippets }</span>
 			</li>
@@ -205,7 +205,7 @@ const FunctionLibrary = {
 			grid.innerHTML = `
 				<div class="aie-no-snippets">
 					<span class="dashicons dashicons-info"></span>
-					<p>${ window.wpAieData?.i18n?.no_snippets || 'No snippets found' }</p>
+					<p>${ window.aieData?.i18n?.no_snippets || 'No snippets found' }</p>
 				</div>
 			`;
 			return;
@@ -241,11 +241,11 @@ const FunctionLibrary = {
 				<div class="aie-snippet-actions">
 					<button type="button" class="button button-small aie-preview-snippet" data-snippet-key="${ key }">
 						<span class="dashicons dashicons-visibility"></span>
-						${ window.wpAieData?.i18n?.preview || 'Preview' }
+						${ window.aieData?.i18n?.preview || 'Preview' }
 					</button>
 					<button type="button" class="button button-primary button-small aie-quick-import" data-snippet-key="${ key }">
 						<span class="dashicons dashicons-plus"></span>
-						${ window.wpAieData?.i18n?.use || 'Use' }
+						${ window.aieData?.i18n?.use || 'Use' }
 					</button>
 				</div>
 			</div>
@@ -305,19 +305,19 @@ const FunctionLibrary = {
 		grid.innerHTML = `
 			<div class="aie-loading-snippets">
 				<span class="spinner is-active"></span>
-				<p>${ window.wpAieData?.i18n?.searching || 'Searching...' }</p>
+				<p>${ window.aieData?.i18n?.searching || 'Searching...' }</p>
 			</div>
 		`;
 
 		try {
-			const response = await fetch( window.ajaxurl, {
+			const response = await fetch( window.aieData.ajaxUrl, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
 				},
 				body: new URLSearchParams( {
 					action: 'aie_functions_search',
-					nonce: window.wpAieData?.nonce || '',
+					nonce: window.aieData?.nonce || '',
 					query: query,
 				} ),
 			} );
@@ -436,14 +436,14 @@ const FunctionLibrary = {
 		} else {
 			// Import directly
 			try {
-				const response = await fetch( window.ajaxurl, {
+				const response = await fetch( window.aieData.ajaxUrl, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/x-www-form-urlencoded',
 					},
 					body: new URLSearchParams( {
 						action: 'aie_functions_import',
-						nonce: window.wpAieData?.nonce || '',
+						nonce: window.aieData?.nonce || '',
 						snippet_key: snippetKey,
 					} ),
 				} );
@@ -455,7 +455,7 @@ const FunctionLibrary = {
 				}
 
 				showNotice(
-					window.wpAieData?.i18n?.snippet_imported ||
+					window.aieData?.i18n?.snippet_imported ||
 						'Snippet imported successfully'
 				);
 

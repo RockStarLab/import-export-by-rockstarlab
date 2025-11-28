@@ -173,7 +173,7 @@
 						s = i.iterator || '@@iterator',
 						u = i.asyncIterator || '@@asyncIterator',
 						l = i.toStringTag || '@@toStringTag';
-					function p( t, e, n ) {
+					function d( t, e, n ) {
 						return (
 							Object.defineProperty( t, e, {
 								value: n,
@@ -185,13 +185,13 @@
 						);
 					}
 					try {
-						p( {}, '' );
+						d( {}, '' );
 					} catch ( t ) {
-						p = function ( t, e, n ) {
+						d = function ( t, e, n ) {
 							return ( t[ e ] = n );
 						};
 					}
-					function d( t, e, n, r ) {
+					function p( t, e, n, r ) {
 						var o = e && e.prototype instanceof w ? e : w,
 							i = Object.create( o.prototype ),
 							c = new O( r || [] );
@@ -204,7 +204,7 @@
 							return { type: 'throw', arg: t };
 						}
 					}
-					e.wrap = d;
+					e.wrap = p;
 					var h = 'suspendedStart',
 						v = 'suspendedYield',
 						y = 'executing',
@@ -214,7 +214,7 @@
 					function b() {}
 					function x() {}
 					var j = {};
-					p( j, s, function () {
+					d( j, s, function () {
 						return this;
 					} );
 					var E = Object.getPrototypeOf,
@@ -223,7 +223,7 @@
 					var _ = ( x.prototype = w.prototype = Object.create( j ) );
 					function L( t ) {
 						[ 'next', 'throw', 'return' ].forEach( function ( e ) {
-							p( t, e, function ( t ) {
+							d( t, e, function ( t ) {
 								return this._invoke( e, t );
 							} );
 						} );
@@ -233,11 +233,11 @@
 							var u = f( t[ a ], t, i );
 							if ( 'throw' !== u.type ) {
 								var l = u.arg,
-									p = l.value;
-								return p &&
-									'object' == o( p ) &&
-									r.call( p, '__await' )
-									? e.resolve( p.__await ).then(
+									d = l.value;
+								return d &&
+									'object' == o( d ) &&
+									r.call( d, '__await' )
+									? e.resolve( d.__await ).then(
 											function ( t ) {
 												n( 'next', t, c, s );
 											},
@@ -245,7 +245,7 @@
 												n( 'throw', t, c, s );
 											}
 									  )
-									: e.resolve( p ).then(
+									: e.resolve( d ).then(
 											function ( t ) {
 												( l.value = t ), c( l );
 											},
@@ -404,7 +404,7 @@
 						( b.prototype = x ),
 						a( _, 'constructor', { value: x, configurable: ! 0 } ),
 						a( x, 'constructor', { value: b, configurable: ! 0 } ),
-						( b.displayName = p( x, l, 'GeneratorFunction' ) ),
+						( b.displayName = d( x, l, 'GeneratorFunction' ) ),
 						( e.isGeneratorFunction = function ( t ) {
 							var e = 'function' == typeof t && t.constructor;
 							return (
@@ -419,7 +419,7 @@
 								Object.setPrototypeOf
 									? Object.setPrototypeOf( t, x )
 									: ( ( t.__proto__ = x ),
-									  p( t, l, 'GeneratorFunction' ) ),
+									  d( t, l, 'GeneratorFunction' ) ),
 								( t.prototype = Object.create( _ ) ),
 								t
 							);
@@ -428,13 +428,13 @@
 							return { __await: t };
 						} ),
 						L( k.prototype ),
-						p( k.prototype, u, function () {
+						d( k.prototype, u, function () {
 							return this;
 						} ),
 						( e.AsyncIterator = k ),
 						( e.async = function ( t, n, r, o, a ) {
 							void 0 === a && ( a = Promise );
-							var i = new k( d( t, n, r, o ), a );
+							var i = new k( p( t, n, r, o ), a );
 							return e.isGeneratorFunction( n )
 								? i
 								: i.next().then( function ( t ) {
@@ -442,11 +442,11 @@
 								  } );
 						} ),
 						L( _ ),
-						p( _, l, 'Generator' ),
-						p( _, s, function () {
+						d( _, l, 'Generator' ),
+						d( _, s, function () {
 							return this;
 						} ),
-						p( _, 'toString', function () {
+						d( _, 'toString', function () {
 							return '[object Generator]';
 						} ),
 						( e.keys = function ( t ) {
@@ -797,7 +797,7 @@
 															'\n\t\t\t<div class="aie-loading-snippets">\n\t\t\t\t<span class="spinner is-active"></span>\n\t\t\t\t<p>'.concat(
 																( null ===
 																	( r =
-																		window.wpAieData ) ||
+																		window.aieData ) ||
 																void 0 === r ||
 																null ===
 																	( r =
@@ -810,28 +810,33 @@
 															) ),
 														( n.prev = 5 ),
 														( n.next = 8 ),
-														fetch( window.ajaxurl, {
-															method: 'POST',
-															headers: {
-																'Content-Type':
-																	'application/x-www-form-urlencoded',
-															},
-															body: new URLSearchParams(
-																{
-																	action: 'aie_functions_get_snippets',
-																	nonce:
-																		( null ===
-																			( i =
-																				window.wpAieData ) ||
-																		void 0 ===
-																			i
-																			? void 0
-																			: i.nonce ) ||
-																		'',
-																	category: o,
-																}
-															),
-														} )
+														fetch(
+															window.aieData
+																.ajaxUrl,
+															{
+																method: 'POST',
+																headers: {
+																	'Content-Type':
+																		'application/x-www-form-urlencoded',
+																},
+																body: new URLSearchParams(
+																	{
+																		action: 'aie_functions_get_snippets',
+																		nonce:
+																			( null ===
+																				( i =
+																					window.aieData ) ||
+																			void 0 ===
+																				i
+																				? void 0
+																				: i.nonce ) ||
+																			'',
+																		category:
+																			o,
+																	}
+																),
+															}
+														)
 													);
 												case 8:
 													return (
@@ -904,7 +909,7 @@
 										'" data-category="">\n\t\t\t\t<span class="dashicons dashicons-category"></span>\n\t\t\t\t<span class="aie-category-name">'
 									)
 									.concat(
-										( null === ( t = window.wpAieData ) ||
+										( null === ( t = window.aieData ) ||
 										void 0 === t ||
 										null === ( t = t.i18n ) ||
 										void 0 === t
@@ -1017,7 +1022,7 @@
 											)
 											.concat(
 												( null ===
-													( n = window.wpAieData ) ||
+													( n = window.aieData ) ||
 												void 0 === n ||
 												null === ( n = n.i18n ) ||
 												void 0 === n
@@ -1031,7 +1036,7 @@
 											)
 											.concat(
 												( null ===
-													( r = window.wpAieData ) ||
+													( r = window.aieData ) ||
 												void 0 === r ||
 												null === ( r = r.i18n ) ||
 												void 0 === r
@@ -1072,7 +1077,7 @@
 							else
 								e.innerHTML =
 									'\n\t\t\t\t<div class="aie-no-snippets">\n\t\t\t\t\t<span class="dashicons dashicons-info"></span>\n\t\t\t\t\t<p>'.concat(
-										( null === ( n = window.wpAieData ) ||
+										( null === ( n = window.aieData ) ||
 										void 0 === n ||
 										null === ( n = n.i18n ) ||
 										void 0 === n
@@ -1099,7 +1104,7 @@
 						var n = this;
 						return u(
 							c().mark( function r() {
-								var o, a, i, s, u, l, p;
+								var o, a, i, s, u, l, d;
 								return c().wrap(
 									function ( r ) {
 										for (;;)
@@ -1130,7 +1135,7 @@
 															'\n\t\t\t<div class="aie-loading-snippets">\n\t\t\t\t<span class="spinner is-active"></span>\n\t\t\t\t<p>'.concat(
 																( null ===
 																	( o =
-																		window.wpAieData ) ||
+																		window.aieData ) ||
 																void 0 === o ||
 																null ===
 																	( o =
@@ -1143,28 +1148,32 @@
 															) ),
 														( r.prev = 7 ),
 														( r.next = 10 ),
-														fetch( window.ajaxurl, {
-															method: 'POST',
-															headers: {
-																'Content-Type':
-																	'application/x-www-form-urlencoded',
-															},
-															body: new URLSearchParams(
-																{
-																	action: 'aie_functions_search',
-																	nonce:
-																		( null ===
-																			( i =
-																				window.wpAieData ) ||
-																		void 0 ===
-																			i
-																			? void 0
-																			: i.nonce ) ||
-																		'',
-																	query: t,
-																}
-															),
-														} )
+														fetch(
+															window.aieData
+																.ajaxUrl,
+															{
+																method: 'POST',
+																headers: {
+																	'Content-Type':
+																		'application/x-www-form-urlencoded',
+																},
+																body: new URLSearchParams(
+																	{
+																		action: 'aie_functions_search',
+																		nonce:
+																			( null ===
+																				( i =
+																					window.aieData ) ||
+																			void 0 ===
+																				i
+																				? void 0
+																				: i.nonce ) ||
+																			'',
+																		query: t,
+																	}
+																),
+															}
+														)
 													);
 												case 10:
 													return (
@@ -1188,14 +1197,14 @@
 															'Search failed'
 													);
 												case 16:
-													( p = n.allSnippets ),
+													( d = n.allSnippets ),
 														( n.allSnippets =
 															u.data.snippets ||
 															{} ),
 														( n.currentCategory =
 															'' ),
 														n.renderSnippets(),
-														( n.allSnippets = p ),
+														( n.allSnippets = d ),
 														( r.next = 27 );
 													break;
 												case 23:
@@ -1268,7 +1277,7 @@
 							o = this;
 						return u(
 							c().mark( function a() {
-								var i, s, u, l, p, d, f, h, v, y, m, g;
+								var i, s, u, l, d, p, f, h, v, y, m, g;
 								return c().wrap(
 									function ( a ) {
 										for (;;)
@@ -1309,7 +1318,7 @@
 																'none' ),
 														( document.body.style.overflow =
 															'' ),
-														( p =
+														( d =
 															document.getElementById(
 																'aie-function-editor-modal'
 															) ) &&
@@ -1338,7 +1347,7 @@
 																'.aie-modal-title'
 															).textContent =
 																'Customize Function' ),
-															( p.style.display =
+															( d.style.display =
 																'flex' ),
 															( document.body.style.overflow =
 																'hidden' ) ),
@@ -1348,29 +1357,33 @@
 													return (
 														( a.prev = 14 ),
 														( a.next = 17 ),
-														fetch( window.ajaxurl, {
-															method: 'POST',
-															headers: {
-																'Content-Type':
-																	'application/x-www-form-urlencoded',
-															},
-															body: new URLSearchParams(
-																{
-																	action: 'aie_functions_import',
-																	nonce:
-																		( null ===
-																			( d =
-																				window.wpAieData ) ||
-																		void 0 ===
-																			d
-																			? void 0
-																			: d.nonce ) ||
-																		'',
-																	snippet_key:
-																		n,
-																}
-															),
-														} )
+														fetch(
+															window.aieData
+																.ajaxUrl,
+															{
+																method: 'POST',
+																headers: {
+																	'Content-Type':
+																		'application/x-www-form-urlencoded',
+																},
+																body: new URLSearchParams(
+																	{
+																		action: 'aie_functions_import',
+																		nonce:
+																			( null ===
+																				( p =
+																					window.aieData ) ||
+																			void 0 ===
+																				p
+																				? void 0
+																				: p.nonce ) ||
+																			'',
+																		snippet_key:
+																			n,
+																	}
+																),
+															}
+														)
 													);
 												case 17:
 													return (
@@ -1397,7 +1410,7 @@
 													t(
 														( null ===
 															( f =
-																window.wpAieData ) ||
+																window.aieData ) ||
 														void 0 === f ||
 														null ===
 															( f = f.i18n ) ||
@@ -1466,9 +1479,9 @@
 						return ( e.textContent = t ), e.innerHTML;
 					},
 				};
-				function p( t ) {
+				function d( t ) {
 					return (
-						( p =
+						( d =
 							'function' == typeof Symbol &&
 							'symbol' == typeof Symbol.iterator
 								? function ( t ) {
@@ -1482,11 +1495,11 @@
 											? 'symbol'
 											: typeof t;
 								  } ),
-						p( t )
+						d( t )
 					);
 				}
-				function d() {
-					d = function () {
+				function p() {
+					p = function () {
 						return e;
 					};
 					var t,
@@ -1564,7 +1577,7 @@
 								var u = s.arg,
 									l = u.value;
 								return l &&
-									'object' == p( l ) &&
+									'object' == d( l ) &&
 									r.call( l, '__await' )
 									? e.resolve( l.__await ).then(
 											function ( t ) {
@@ -1727,7 +1740,7 @@
 								return ( a.next = a );
 							}
 						}
-						throw new TypeError( p( e ) + ' is not iterable' );
+						throw new TypeError( d( e ) + ' is not iterable' );
 					}
 					return (
 						( b.prototype = x ),
@@ -2016,8 +2029,8 @@
 							c,
 							s,
 							u,
-							p,
-							d = this;
+							d,
+							p = this;
 						null ===
 							( t =
 								document.querySelector(
@@ -2025,7 +2038,7 @@
 								) ) ||
 							void 0 === t ||
 							t.addEventListener( 'click', function () {
-								d.openEditorModal();
+								p.openEditorModal();
 							} ),
 							null ===
 								( e = document.querySelector(
@@ -2042,9 +2055,9 @@
 									) ) ||
 								void 0 === n ||
 								n.addEventListener( 'change', function ( t ) {
-									( d.filters.status = t.target.value ),
-										( d.currentPage = 1 ),
-										d.loadFunctions();
+									( p.filters.status = t.target.value ),
+										( p.currentPage = 1 ),
+										p.loadFunctions();
 								} ),
 							null ===
 								( r = document.getElementById(
@@ -2052,9 +2065,9 @@
 								) ) ||
 								void 0 === r ||
 								r.addEventListener( 'change', function ( t ) {
-									( d.filters.category = t.target.value ),
-										( d.currentPage = 1 ),
-										d.loadFunctions();
+									( p.filters.category = t.target.value ),
+										( p.currentPage = 1 ),
+										p.loadFunctions();
 								} ),
 							null ===
 								( o =
@@ -2063,12 +2076,12 @@
 									) ) ||
 								void 0 === o ||
 								o.addEventListener( 'input', function ( t ) {
-									clearTimeout( p ),
-										( p = setTimeout( function () {
-											( d.filters.search =
+									clearTimeout( d ),
+										( d = setTimeout( function () {
+											( p.filters.search =
 												t.target.value ),
-												( d.currentPage = 1 ),
-												d.loadFunctions();
+												( p.currentPage = 1 ),
+												p.loadFunctions();
 										}, 500 ) );
 								} ),
 							null ===
@@ -2078,7 +2091,7 @@
 									) ) ||
 								void 0 === a ||
 								a.addEventListener( 'click', function () {
-									d.clearFilters();
+									p.clearFilters();
 								} ),
 							null ===
 								( i =
@@ -2087,8 +2100,8 @@
 									) ) ||
 								void 0 === i ||
 								i.addEventListener( 'click', function () {
-									d.currentPage > 1 &&
-										( d.currentPage--, d.loadFunctions() );
+									p.currentPage > 1 &&
+										( p.currentPage--, p.loadFunctions() );
 								} ),
 							null ===
 								( c =
@@ -2097,8 +2110,8 @@
 									) ) ||
 								void 0 === c ||
 								c.addEventListener( 'click', function () {
-									d.currentPage < d.totalPages &&
-										( d.currentPage++, d.loadFunctions() );
+									p.currentPage < p.totalPages &&
+										( p.currentPage++, p.loadFunctions() );
 								} ),
 							document
 								.querySelectorAll(
@@ -2112,7 +2125,7 @@
 												t.target.closest(
 													'.aie-modal'
 												);
-											e && d.closeModal( e );
+											e && p.closeModal( e );
 										}
 									);
 								} ),
@@ -2123,7 +2136,7 @@
 									) ) ||
 								void 0 === s ||
 								s.addEventListener( 'click', function () {
-									d.saveFunction();
+									p.saveFunction();
 								} ),
 							null ===
 								( u =
@@ -2132,7 +2145,7 @@
 									) ) ||
 								void 0 === u ||
 								u.addEventListener( 'click', function () {
-									d.testFunction();
+									p.testFunction();
 								} ),
 							document
 								.querySelectorAll( '.aie-modal-backdrop' )
@@ -2144,7 +2157,7 @@
 												t.target.closest(
 													'.aie-modal'
 												);
-											e && d.closeModal( e );
+											e && p.closeModal( e );
 										}
 									);
 								} );
@@ -2152,9 +2165,9 @@
 					loadFunctions: function () {
 						var t = this;
 						return h(
-							d().mark( function e() {
+							p().mark( function e() {
 								var n, r, o, a, i, c;
-								return d().wrap(
+								return p().wrap(
 									function ( e ) {
 										for (;;)
 											switch ( ( e.prev = e.next ) ) {
@@ -2175,7 +2188,7 @@
 															'\n\t\t\t<tr class="aie-loading-row">\n\t\t\t\t<td colspan="7" style="text-align:center;">\n\t\t\t\t\t<span class="spinner is-active"></span>\n\t\t\t\t\t'.concat(
 																( null ===
 																	( n =
-																		window.wpAieData ) ||
+																		window.aieData ) ||
 																void 0 === n ||
 																null ===
 																	( n =
@@ -2188,40 +2201,44 @@
 															) ),
 														( e.prev = 4 ),
 														( e.next = 7 ),
-														fetch( window.ajaxurl, {
-															method: 'POST',
-															headers: {
-																'Content-Type':
-																	'application/x-www-form-urlencoded',
-															},
-															body: new URLSearchParams(
-																{
-																	action: 'aie_functions_get_all',
-																	nonce:
-																		( null ===
-																			( o =
-																				window.wpAieData ) ||
-																		void 0 ===
-																			o
-																			? void 0
-																			: o.nonce ) ||
-																		'',
-																	status: t
-																		.filters
-																		.status,
-																	category:
-																		t
+														fetch(
+															window.aieData
+																.ajaxUrl,
+															{
+																method: 'POST',
+																headers: {
+																	'Content-Type':
+																		'application/x-www-form-urlencoded',
+																},
+																body: new URLSearchParams(
+																	{
+																		action: 'aie_functions_get_all',
+																		nonce:
+																			( null ===
+																				( o =
+																					window.aieData ) ||
+																			void 0 ===
+																				o
+																				? void 0
+																				: o.nonce ) ||
+																			'',
+																		status: t
 																			.filters
-																			.category,
-																	search: t
-																		.filters
-																		.search,
-																	page: t.currentPage,
-																	per_page:
-																		t.perPage,
-																}
-															),
-														} )
+																			.status,
+																		category:
+																			t
+																				.filters
+																				.category,
+																		search: t
+																			.filters
+																			.search,
+																		page: t.currentPage,
+																		per_page:
+																			t.perPage,
+																	}
+																),
+															}
+														)
 													);
 												case 7:
 													return (
@@ -2364,10 +2381,10 @@
 												'click',
 												( function () {
 													var t = h(
-														d().mark(
+														p().mark(
 															function t( e ) {
 																var o, a;
-																return d().wrap(
+																return p().wrap(
 																	function (
 																		t
 																	) {
@@ -2387,7 +2404,7 @@
 																						n(
 																							( null ===
 																								( o =
-																									window.wpAieData ) ||
+																									window.aieData ) ||
 																							void 0 ===
 																								o ||
 																							null ===
@@ -2426,8 +2443,7 @@
 										} ) )
 								: ( o.innerHTML =
 										'\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan="7" style="text-align:center; padding:40px;">\n\t\t\t\t\t\t<span class="dashicons dashicons-info" style="font-size:48px; opacity:0.3;"></span>\n\t\t\t\t\t\t<p style="margin-top:10px; color:#666;">\n\t\t\t\t\t\t\t'.concat(
-											( null ===
-												( e = window.wpAieData ) ||
+											( null === ( e = window.aieData ) ||
 											void 0 === e ||
 											null === ( e = e.i18n ) ||
 											void 0 === e
@@ -2468,9 +2484,9 @@
 					openEditorModal: function () {
 						var t = arguments;
 						return h(
-							d().mark( function n() {
-								var r, o, a, i, c, s, u, l, p, f, h;
-								return d().wrap(
+							p().mark( function n() {
+								var r, o, a, i, c, s, u, l, d, f, h;
+								return p().wrap(
 									function ( n ) {
 										for (;;)
 											switch ( ( n.prev = n.next ) ) {
@@ -2518,7 +2534,7 @@
 														( a.textContent =
 															( null ===
 																( c =
-																	window.wpAieData ) ||
+																	window.aieData ) ||
 															void 0 === c ||
 															null ===
 																( c =
@@ -2529,28 +2545,32 @@
 															'Edit Function' ),
 														( n.prev = 11 ),
 														( n.next = 14 ),
-														fetch( window.ajaxurl, {
-															method: 'POST',
-															headers: {
-																'Content-Type':
-																	'application/x-www-form-urlencoded',
-															},
-															body: new URLSearchParams(
-																{
-																	action: 'aie_functions_get',
-																	nonce:
-																		( null ===
-																			( s =
-																				window.wpAieData ) ||
-																		void 0 ===
-																			s
-																			? void 0
-																			: s.nonce ) ||
-																		'',
-																	id: r,
-																}
-															),
-														} )
+														fetch(
+															window.aieData
+																.ajaxUrl,
+															{
+																method: 'POST',
+																headers: {
+																	'Content-Type':
+																		'application/x-www-form-urlencoded',
+																},
+																body: new URLSearchParams(
+																	{
+																		action: 'aie_functions_get',
+																		nonce:
+																			( null ===
+																				( s =
+																					window.aieData ) ||
+																			void 0 ===
+																				s
+																				? void 0
+																				: s.nonce ) ||
+																			'',
+																		id: r,
+																	}
+																),
+															}
+														)
 													);
 												case 14:
 													return (
@@ -2567,10 +2587,10 @@
 													}
 													throw new Error(
 														( null ===
-															( p = l.data ) ||
-														void 0 === p
+															( d = l.data ) ||
+														void 0 === d
 															? void 0
-															: p.message ) ||
+															: d.message ) ||
 															'Failed to load function'
 													);
 												case 20:
@@ -2616,7 +2636,7 @@
 													a.textContent =
 														( null ===
 															( h =
-																window.wpAieData ) ||
+																window.aieData ) ||
 														void 0 === h ||
 														null ===
 															( h = h.i18n ) ||
@@ -2648,9 +2668,9 @@
 					saveFunction: function () {
 						var n = this;
 						return h(
-							d().mark( function r() {
-								var o, a, i, c, s, u, l, p;
-								return d().wrap(
+							p().mark( function r() {
+								var o, a, i, c, s, u, l, d;
+								return p().wrap(
 									function ( r ) {
 										for (;;)
 											switch ( ( r.prev = r.next ) ) {
@@ -2681,7 +2701,7 @@
 															nonce:
 																( null ===
 																	( o =
-																		window.wpAieData ) ||
+																		window.aieData ) ||
 																void 0 === o
 																	? void 0
 																	: o.nonce ) ||
@@ -2707,16 +2727,20 @@
 														i && ( c.id = i ),
 														( r.prev = 7 ),
 														( r.next = 10 ),
-														fetch( window.ajaxurl, {
-															method: 'POST',
-															headers: {
-																'Content-Type':
-																	'application/x-www-form-urlencoded',
-															},
-															body: new URLSearchParams(
-																c
-															),
-														} )
+														fetch(
+															window.aieData
+																.ajaxUrl,
+															{
+																method: 'POST',
+																headers: {
+																	'Content-Type':
+																		'application/x-www-form-urlencoded',
+																},
+																body: new URLSearchParams(
+																	c
+																),
+															}
+														)
 													);
 												case 10:
 													return (
@@ -2733,17 +2757,17 @@
 													}
 													throw new Error(
 														( null ===
-															( p = l.data ) ||
-														void 0 === p
+															( d = l.data ) ||
+														void 0 === d
 															? void 0
-															: p.message ) ||
+															: d.message ) ||
 															'Failed to save function'
 													);
 												case 16:
 													t(
 														( null ===
 															( s =
-																window.wpAieData ) ||
+																window.aieData ) ||
 														void 0 === s ||
 														null ===
 															( s = s.i18n ) ||
@@ -2783,9 +2807,9 @@
 					deleteFunction: function ( n ) {
 						var r = this;
 						return h(
-							d().mark( function o() {
+							p().mark( function o() {
 								var a, i, c, s, u;
-								return d().wrap(
+								return p().wrap(
 									function ( o ) {
 										for (;;)
 											switch ( ( o.prev = o.next ) ) {
@@ -2793,28 +2817,32 @@
 													return (
 														( o.prev = 0 ),
 														( o.next = 3 ),
-														fetch( window.ajaxurl, {
-															method: 'POST',
-															headers: {
-																'Content-Type':
-																	'application/x-www-form-urlencoded',
-															},
-															body: new URLSearchParams(
-																{
-																	action: 'aie_functions_delete',
-																	nonce:
-																		( null ===
-																			( a =
-																				window.wpAieData ) ||
-																		void 0 ===
-																			a
-																			? void 0
-																			: a.nonce ) ||
-																		'',
-																	id: n,
-																}
-															),
-														} )
+														fetch(
+															window.aieData
+																.ajaxUrl,
+															{
+																method: 'POST',
+																headers: {
+																	'Content-Type':
+																		'application/x-www-form-urlencoded',
+																},
+																body: new URLSearchParams(
+																	{
+																		action: 'aie_functions_delete',
+																		nonce:
+																			( null ===
+																				( a =
+																					window.aieData ) ||
+																			void 0 ===
+																				a
+																				? void 0
+																				: a.nonce ) ||
+																			'',
+																		id: n,
+																	}
+																),
+															}
+														)
 													);
 												case 3:
 													return (
@@ -2841,7 +2869,7 @@
 													t(
 														( null ===
 															( i =
-																window.wpAieData ) ||
+																window.aieData ) ||
 														void 0 === i ||
 														null ===
 															( i = i.i18n ) ||
@@ -2875,9 +2903,9 @@
 					},
 					testFunction: function () {
 						return h(
-							d().mark( function t() {
+							p().mark( function t() {
 								var n, r, o, a, i, c, s;
-								return d().wrap(
+								return p().wrap(
 									function ( t ) {
 										for (;;)
 											switch ( ( t.prev = t.next ) ) {
@@ -2910,29 +2938,33 @@
 													return (
 														( t.prev = 6 ),
 														( t.next = 9 ),
-														fetch( window.ajaxurl, {
-															method: 'POST',
-															headers: {
-																'Content-Type':
-																	'application/x-www-form-urlencoded',
-															},
-															body: new URLSearchParams(
-																{
-																	action: 'aie_functions_test',
-																	nonce:
-																		( null ===
-																			( a =
-																				window.wpAieData ) ||
-																		void 0 ===
-																			a
-																			? void 0
-																			: a.nonce ) ||
-																		'',
-																	code: n,
-																	value: r,
-																}
-															),
-														} )
+														fetch(
+															window.aieData
+																.ajaxUrl,
+															{
+																method: 'POST',
+																headers: {
+																	'Content-Type':
+																		'application/x-www-form-urlencoded',
+																},
+																body: new URLSearchParams(
+																	{
+																		action: 'aie_functions_test',
+																		nonce:
+																			( null ===
+																				( a =
+																					window.aieData ) ||
+																			void 0 ===
+																				a
+																				? void 0
+																				: a.nonce ) ||
+																			'',
+																		code: n,
+																		value: r,
+																	}
+																),
+															}
+														)
 													);
 												case 9:
 													return (
@@ -3564,7 +3596,7 @@
 							c = new O( r || [] );
 						return o( i, '_invoke', { value: I( t, n, c ) } ), i;
 					}
-					function p( t, e, n ) {
+					function d( t, e, n ) {
 						try {
 							return { type: 'normal', arg: t.call( e, n ) };
 						} catch ( t ) {
@@ -3572,7 +3604,7 @@
 						}
 					}
 					e.wrap = l;
-					var d = 'suspendedStart',
+					var p = 'suspendedStart',
 						f = 'suspendedYield',
 						h = 'executing',
 						v = 'completed',
@@ -3597,7 +3629,7 @@
 					}
 					function k( t, e ) {
 						function n( o, a, i, c ) {
-							var s = p( t[ o ], t, a );
+							var s = d( t[ o ], t, a );
 							if ( 'throw' !== s.type ) {
 								var u = s.arg,
 									l = u.value;
@@ -3636,7 +3668,7 @@
 						} );
 					}
 					function I( e, n, r ) {
-						var o = d;
+						var o = p;
 						return function ( a, i ) {
 							if ( o === h )
 								throw Error( 'Generator is already running' );
@@ -3656,13 +3688,13 @@
 								if ( 'next' === r.method )
 									r.sent = r._sent = r.arg;
 								else if ( 'throw' === r.method ) {
-									if ( o === d ) throw ( ( o = v ), r.arg );
+									if ( o === p ) throw ( ( o = v ), r.arg );
 									r.dispatchException( r.arg );
 								} else
 									'return' === r.method &&
 										r.abrupt( 'return', r.arg );
 								o = h;
-								var u = p( e, n, r );
+								var u = d( e, n, r );
 								if ( 'normal' === u.type ) {
 									if (
 										( ( o = r.done ? v : f ), u.arg === y )
@@ -3698,7 +3730,7 @@
 										) ) ) ),
 								y
 							);
-						var a = p( o, e.iterator, n.arg );
+						var a = d( o, e.iterator, n.arg );
 						if ( 'throw' === a.type )
 							return (
 								( n.method = 'throw' ),
@@ -4875,7 +4907,7 @@
 							c = new O( r || [] );
 						return o( i, '_invoke', { value: L( t, n, c ) } ), i;
 					}
-					function p( t, e, n ) {
+					function d( t, e, n ) {
 						try {
 							return { type: 'normal', arg: t.call( e, n ) };
 						} catch ( t ) {
@@ -4883,7 +4915,7 @@
 						}
 					}
 					e.wrap = l;
-					var d = 'suspendedStart',
+					var p = 'suspendedStart',
 						f = 'suspendedYield',
 						h = 'executing',
 						v = 'completed',
@@ -4908,7 +4940,7 @@
 					}
 					function _( t, e ) {
 						function n( o, a, i, c ) {
-							var s = p( t[ o ], t, a );
+							var s = d( t[ o ], t, a );
 							if ( 'throw' !== s.type ) {
 								var u = s.arg,
 									l = u.value;
@@ -4947,7 +4979,7 @@
 						} );
 					}
 					function L( e, n, r ) {
-						var o = d;
+						var o = p;
 						return function ( a, i ) {
 							if ( o === h )
 								throw Error( 'Generator is already running' );
@@ -4967,13 +4999,13 @@
 								if ( 'next' === r.method )
 									r.sent = r._sent = r.arg;
 								else if ( 'throw' === r.method ) {
-									if ( o === d ) throw ( ( o = v ), r.arg );
+									if ( o === p ) throw ( ( o = v ), r.arg );
 									r.dispatchException( r.arg );
 								} else
 									'return' === r.method &&
 										r.abrupt( 'return', r.arg );
 								o = h;
-								var u = p( e, n, r );
+								var u = d( e, n, r );
 								if ( 'normal' === u.type ) {
 									if (
 										( ( o = r.done ? v : f ), u.arg === y )
@@ -5009,7 +5041,7 @@
 										) ) ) ),
 								y
 							);
-						var a = p( o, e.iterator, n.arg );
+						var a = d( o, e.iterator, n.arg );
 						if ( 'throw' === a.type )
 							return (
 								( n.method = 'throw' ),

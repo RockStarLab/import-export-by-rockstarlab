@@ -7,6 +7,15 @@
 	.description {
 		margin-bottom: 20px;
 	}
+
+	// Fix icon alignment in page title action buttons
+	.page-title-action {
+		.dashicons {
+			vertical-align: middle;
+			margin-right: 4px;
+			line-height: 1;
+		}
+	}
 }
 
 // Filter controls
