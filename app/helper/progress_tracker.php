@@ -1,35 +1,86 @@
 <?php
-namespace WP_AIE\helper;
+/**
+ * Progress Tracker Helper
+ * 
+ * Facade for job progress tracking operations.
+ * Provides convenient static methods for updating job progress and status.
+ * 
+ * @package WP_AIE\Helper
+ */
 
-use WP_AIE\model\job;
-use WP_AIE\model\log;
+namespace WP_AIE\helper;
 
 class progress_tracker {
 
-public static function update_progress( $job_id, $total, $processed, $success, $failed ) {
-return job::update_progress( $job_id, $total, $processed, $success, $failed );
-}
+	/**
+	 * Update job progress with item counts
+	 * 
+	 * @param int $job_id   Job ID to update
+	 * @param int $total    Total number of items
+	 * @param int $processed Number of items processed
+	 * @param int $success  Number of successful items
+	 * @param int $failed   Number of failed items
+	 * @return int|WP_Error Number of rows affected or WP_Error
+	 */
+	public static function update_progress( $job_id, $total, $processed, $success, $failed ) {
+		return WP_AIE()->model->job->update_progress( $job_id, $total, $processed, $success, $failed );
+	}
 
-public static function increment( $job_id, $success = true ) {
-return job::increment( $job_id, $success );
-}
+	/**
+	 * Increment processed item counter
+	 * 
+	 * @param int  $job_id  Job ID to increment
+	 * @param bool $success Whether the item was successful
+	 * @return int|WP_Error|false Number of rows affected or false
+	 */
+	public static function increment( $job_id, $success = true ) {
+		return WP_AIE()->model->job->increment( $job_id, $success );
+	}
 
-public static function get_progress( $job_id ) {
-return job::get_progress( $job_id );
-}
+	/**
+	 * Get current progress information
+	 * 
+	 * @param int $job_id Job ID to get progress for
+	 * @return array|null Progress information array or null
+	 */
+	public static function get_progress( $job_id ) {
+		return WP_AIE()->model->job->get_progress( $job_id );
+	}
 
-public static function mark_complete( $job_id, $success = true ) {
-return $success ? job::mark_completed( $job_id ) : job::mark_failed( $job_id );
-}
+	/**
+	 * Mark job as complete or failed
+	 * 
+	 * @param int  $job_id  Job ID to mark
+	 * @param bool $success Whether completed successfully
+	 * @return int|WP_Error Number of rows affected or WP_Error
+	 */
+	public static function mark_complete( $job_id, $success = true ) {
+		return $success 
+			? WP_AIE()->model->job->mark_completed( $job_id ) 
+			: WP_AIE()->model->job->mark_failed( $job_id );
+	}
 
-public static function mark_running( $job_id ) {
-return job::mark_running( $job_id );
-}
+	/**
+	 * Mark job as running/processing
+	 * 
+	 * @param int $job_id Job ID to mark as running
+	 * @return int|WP_Error Number of rows affected or WP_Error
+	 */
+	public static function mark_running( $job_id ) {
+		return WP_AIE()->model->job->mark_running( $job_id );
+	}
 
-public static function mark_failed( $job_id, $error_message = '' ) {
-if ( $error_message ) {
-log::error( $job_id, $error_message );
-}
-return job::mark_failed( $job_id );
-}
+	/**
+	 * Mark job as failed and optionally log error
+	 * 
+	 * @param int    $job_id       Job ID to mark as failed
+	 * @param string $error_message Optional. Error message to log
+	 * @return int|WP_Error Number of rows affected or WP_Error
+	 */
+	public static function mark_failed( $job_id, $error_message = '' ) {
+		if ( $error_message ) {
+			WP_AIE()->model->log->error( $job_id, $error_message );
+		}
+		return WP_AIE()->model->job->mark_failed( $job_id );
+	}
 }
