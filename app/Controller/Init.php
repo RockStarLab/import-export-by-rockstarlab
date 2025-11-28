@@ -35,21 +35,31 @@ class Init {
 	private $job_controller;
 
 	/**
+	 * Cron Manager
+	 *
+	 * @var \WP_AIE\Model\Queue\Cron_Manager
+	 */
+	private $cron_manager;
+
+	/**
 	 * Constructor
 	 **/
 	function __construct() {
 
 		// load plugin translations
-		add_action( 'init', [ $this, 'load_translations' ] );
+		add_action( 'init', array( $this, 'load_translations' ) );
 
 		// load admin scripts and styles
-		add_action( 'admin_enqueue_scripts', [ $this, 'load_admin_assets' ] );
+		add_action( 'admin_enqueue_scripts', array( $this, 'load_admin_assets' ) );
 
 		// add settings pages
-		add_action( 'admin_menu', [ $this, 'add_settings_pages' ] );
+		add_action( 'admin_menu', array( $this, 'add_settings_pages' ) );
 
 		// Initialize AJAX controllers
-		add_action( 'init', [ $this, 'init_controllers' ] );
+		add_action( 'init', array( $this, 'init_controllers' ) );
+
+		// Initialize cron manager
+		add_action( 'init', array( $this, 'init_cron_manager' ) );
 	}
 
 	/**
@@ -67,6 +77,14 @@ class Init {
 	}
 
 	/**
+	 * Initialize Cron Manager
+	 */
+	function init_cron_manager() {
+		$this->cron_manager = new \WP_AIE\Model\Queue\Cron_Manager();
+		$this->cron_manager->init();
+	}
+
+	/**
 	 * Load plugin translations
 	 */
 	function load_translations() {
@@ -81,12 +99,12 @@ class Init {
 
 		if ( ! in_array(
 			$admin_page,
-			[
+			array(
 				'toplevel_page_wp-aie-import',
 				'import-export-pro_page_wp-aie-export',
 				'import-export-pro_page_wp-aie-media-sync',
 				'import-export-pro_page_wp-aie-functions',
-			]
+			)
 		) ) {
 			return;
 		}
@@ -94,11 +112,11 @@ class Init {
 		wp_enqueue_script(
 			'wp-advanced-import-export-scripts',
 			plugins_url( 'assets/js/app.js', WP_AIE_FILE ),
-			[ 'jquery' ],
+			array( 'jquery' ),
 			'1.0.1',
-			[
+			array(
 				'in_footer' => true,
-			]
+			)
 		);
 
 		wp_enqueue_style(
@@ -119,7 +137,7 @@ class Init {
 			__( 'Advanced Import Export', 'wp-advanced-import-export' ),
 			'manage_options',
 			'wp-advanced-import-export',
-			[ $this, 'display_settings_import_page' ],
+			array( $this, 'display_settings_import_page' ),
 			'dashicons-update-alt',
 			99,
 		);
@@ -130,7 +148,7 @@ class Init {
 			__( 'Import', 'wp-advanced-import-export' ),
 			'manage_options',
 			'wp-advanced-import-export',
-			[ $this, 'display_settings_import_page' ]
+			array( $this, 'display_settings_import_page' )
 		);
 
 		add_submenu_page(
@@ -139,7 +157,7 @@ class Init {
 			__( 'Export', 'wp-advanced-import-export' ),
 			'manage_options',
 			'wp-aie-export',
-			[ $this, 'display_settings_export_page' ]
+			array( $this, 'display_settings_export_page' )
 		);
 
 		add_submenu_page(
@@ -148,7 +166,7 @@ class Init {
 			__( 'Content Sync', 'wp-advanced-import-export' ),
 			'manage_options',
 			'wp-aie-content-sync',
-			[ $this, 'display_content_sync_page' ]
+			array( $this, 'display_content_sync_page' )
 		);
 
 		add_submenu_page(
@@ -157,7 +175,7 @@ class Init {
 			__( 'Media Sync', 'wp-advanced-import-export' ),
 			'manage_options',
 			'wp-aie-media-sync',
-			[ $this, 'display_media_sync_page' ]
+			array( $this, 'display_media_sync_page' )
 		);
 
 		add_submenu_page(
@@ -166,7 +184,7 @@ class Init {
 			__( 'Functions', 'wp-advanced-import-export' ),
 			'manage_options',
 			'wp-aie-functions',
-			[ $this, 'display_settings_functions_page' ]
+			array( $this, 'display_settings_functions_page' )
 		);
 	}
 
