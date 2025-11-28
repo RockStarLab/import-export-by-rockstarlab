@@ -51,7 +51,6 @@
 					var n = document.createElement( 'div' );
 					( n.className =
 						'notice notice-error is-dismissible aie-modal-error' ),
-						( n.style.margin = '10px 0' ),
 						( n.innerHTML = '<p>'.concat( o( t ), '</p>' ) );
 					var r =
 						e.querySelector( '.aie-modal-content' ) ||
@@ -227,7 +226,7 @@
 						var a = e && e.prototype instanceof w ? e : w,
 							i = Object.create( a.prototype ),
 							c = new F( r || [] );
-						return o( i, '_invoke', { value: I( t, n, c ) } ), i;
+						return o( i, '_invoke', { value: P( t, n, c ) } ), i;
 					}
 					function f( t, e, n ) {
 						try {
@@ -300,7 +299,7 @@
 							},
 						} );
 					}
-					function I( e, n, r ) {
+					function P( e, n, r ) {
 						var o = h;
 						return function ( a, i ) {
 							if ( o === y )
@@ -312,7 +311,7 @@
 							for ( r.method = a, r.arg = i; ;  ) {
 								var c = r.delegate;
 								if ( c ) {
-									var s = P( c, r );
+									var s = I( c, r );
 									if ( s ) {
 										if ( s === g ) continue;
 										return s;
@@ -342,7 +341,7 @@
 							}
 						};
 					}
-					function P( e, n ) {
+					function I( e, n ) {
 						var r = n.method,
 							o = e.iterator[ r ];
 						if ( o === t )
@@ -352,7 +351,7 @@
 									e.iterator.return &&
 									( ( n.method = 'return' ),
 									( n.arg = t ),
-									P( e, n ),
+									I( e, n ),
 									'throw' === n.method ) ) ||
 									( 'return' !== r &&
 										( ( n.method = 'throw' ),
@@ -1608,7 +1607,7 @@
 						var a = e && e.prototype instanceof w ? e : w,
 							i = Object.create( a.prototype ),
 							c = new F( r || [] );
-						return o( i, '_invoke', { value: I( t, n, c ) } ), i;
+						return o( i, '_invoke', { value: P( t, n, c ) } ), i;
 					}
 					function d( t, e, n ) {
 						try {
@@ -1681,7 +1680,7 @@
 							},
 						} );
 					}
-					function I( e, n, r ) {
+					function P( e, n, r ) {
 						var o = h;
 						return function ( a, i ) {
 							if ( o === y )
@@ -1693,7 +1692,7 @@
 							for ( r.method = a, r.arg = i; ;  ) {
 								var c = r.delegate;
 								if ( c ) {
-									var s = P( c, r );
+									var s = I( c, r );
 									if ( s ) {
 										if ( s === g ) continue;
 										return s;
@@ -1723,7 +1722,7 @@
 							}
 						};
 					}
-					function P( e, n ) {
+					function I( e, n ) {
 						var r = n.method,
 							o = e.iterator[ r ];
 						if ( o === t )
@@ -1733,7 +1732,7 @@
 									e.iterator.return &&
 									( ( n.method = 'return' ),
 									( n.arg = t ),
-									P( e, n ),
+									I( e, n ),
 									'throw' === n.method ) ) ||
 									( 'return' !== r &&
 										( ( n.method = 'throw' ),
@@ -2809,6 +2808,10 @@
 																.codemirror &&
 															( c =
 																r.codeEditor.codemirror.getValue() ),
+														( c =
+															r.normalizePhpCode(
+																c
+															) ),
 														( s =
 															document.getElementById(
 																'aie-function-id'
@@ -2842,8 +2845,8 @@
 															).value,
 														} ),
 														s && ( u.id = s ),
-														( o.prev = 9 ),
-														( o.next = 12 ),
+														( o.prev = 10 ),
+														( o.next = 13 ),
 														fetch(
 															window.aieData
 																.ajaxUrl,
@@ -2859,17 +2862,17 @@
 															}
 														)
 													);
-												case 12:
+												case 13:
 													return (
 														( d = o.sent ),
-														( o.next = 15 ),
+														( o.next = 16 ),
 														d.json()
 													);
-												case 15:
+												case 16:
 													if (
 														( p = o.sent ).success
 													) {
-														o.next = 18;
+														o.next = 19;
 														break;
 													}
 													throw new Error(
@@ -2880,7 +2883,7 @@
 															: h.message ) ||
 															'Failed to save function'
 													);
-												case 18:
+												case 19:
 													t(
 														( null ===
 															( l =
@@ -2899,11 +2902,12 @@
 															)
 														),
 														r.loadFunctions(),
-														( o.next = 28 );
+														( o.next = 29 );
 													break;
-												case 23:
-													( o.prev = 23 ),
-														( o.t0 = o.catch( 9 ) ),
+												case 24:
+													( o.prev = 24 ),
+														( o.t0 =
+															o.catch( 10 ) ),
 														console.error(
 															'Error saving function:',
 															o.t0
@@ -2920,14 +2924,14 @@
 																	v
 															  )
 															: e( o.t0.message );
-												case 28:
+												case 29:
 												case 'end':
 													return o.stop();
 											}
 									},
 									o,
 									null,
-									[ [ 9, 23 ] ]
+									[ [ 10, 24 ] ]
 								);
 							} )
 						)();
@@ -3092,8 +3096,12 @@
 													);
 												case 13:
 													return (
-														( r.prev = 13 ),
-														( r.next = 16 ),
+														( o =
+															t.normalizePhpCode(
+																o
+															) ),
+														( r.prev = 14 ),
+														( r.next = 17 ),
 														fetch(
 															window.aieData
 																.ajaxUrl,
@@ -3122,17 +3130,17 @@
 															}
 														)
 													);
-												case 16:
+												case 17:
 													return (
 														( l = r.sent ),
-														( r.next = 19 ),
+														( r.next = 20 ),
 														l.json()
 													);
-												case 19:
+												case 20:
 													if (
 														( d = r.sent ).success
 													) {
-														r.next = 22;
+														r.next = 23;
 														break;
 													}
 													throw new Error(
@@ -3143,7 +3151,7 @@
 															: p.message ) ||
 															'Test failed'
 													);
-												case 22:
+												case 23:
 													( document.querySelector(
 														'.aie-test-input'
 													).textContent =
@@ -3159,12 +3167,12 @@
 																: '' ),
 														( c.style.display =
 															'block' ),
-														( r.next = 31 );
+														( r.next = 32 );
 													break;
-												case 27:
-													( r.prev = 27 ),
+												case 28:
+													( r.prev = 28 ),
 														( r.t0 =
-															r.catch( 13 ) ),
+															r.catch( 14 ) ),
 														console.error(
 															'Error testing function:',
 															r.t0
@@ -3178,14 +3186,14 @@
 																	s
 															  )
 															: e( r.t0.message );
-												case 31:
+												case 32:
 												case 'end':
 													return r.stop();
 											}
 									},
 									r,
 									null,
-									[ [ 13, 27 ] ]
+									[ [ 14, 28 ] ]
 								);
 							} )
 						)();
@@ -3221,6 +3229,13 @@
 								custom: 'Custom',
 							}[ t ] || t
 						);
+					},
+					normalizePhpCode: function ( t ) {
+						if ( ! t || ! t.trim() ) return t;
+						var e = t.trim();
+						return e.startsWith( '<?php' ) || e.startsWith( '<?' )
+							? t
+							: '<?php\n' + t;
 					},
 					getSourceBadge: function ( t ) {
 						return t.startsWith( 'library:' )
@@ -3759,7 +3774,7 @@
 						var a = e && e.prototype instanceof m ? e : m,
 							i = Object.create( a.prototype ),
 							c = new F( r || [] );
-						return o( i, '_invoke', { value: I( t, n, c ) } ), i;
+						return o( i, '_invoke', { value: P( t, n, c ) } ), i;
 					}
 					function d( t, e, n ) {
 						try {
@@ -3832,7 +3847,7 @@
 							},
 						} );
 					}
-					function I( e, n, r ) {
+					function P( e, n, r ) {
 						var o = p;
 						return function ( a, i ) {
 							if ( o === h )
@@ -3844,7 +3859,7 @@
 							for ( r.method = a, r.arg = i; ;  ) {
 								var c = r.delegate;
 								if ( c ) {
-									var s = P( c, r );
+									var s = I( c, r );
 									if ( s ) {
 										if ( s === y ) continue;
 										return s;
@@ -3874,7 +3889,7 @@
 							}
 						};
 					}
-					function P( e, n ) {
+					function I( e, n ) {
 						var r = n.method,
 							o = e.iterator[ r ];
 						if ( o === t )
@@ -3884,7 +3899,7 @@
 									e.iterator.return &&
 									( ( n.method = 'return' ),
 									( n.arg = t ),
-									P( e, n ),
+									I( e, n ),
 									'throw' === n.method ) ) ||
 									( 'return' !== r &&
 										( ( n.method = 'throw' ),
@@ -4228,7 +4243,7 @@
 						} );
 					};
 				}
-				const I = {
+				const P = {
 					currentStep: 1,
 					totalSteps: 6,
 					uploadedFile: null,
@@ -5012,9 +5027,9 @@
 							this.showStep( 1 );
 					},
 				};
-				function P( t ) {
+				function I( t ) {
 					return (
-						( P =
+						( I =
 							'function' == typeof Symbol &&
 							'symbol' == typeof Symbol.iterator
 								? function ( t ) {
@@ -5028,7 +5043,7 @@
 											? 'symbol'
 											: typeof t;
 								  } ),
-						P( t )
+						I( t )
 					);
 				}
 				function Q() {
@@ -5110,7 +5125,7 @@
 								var u = s.arg,
 									l = u.value;
 								return l &&
-									'object' == P( l ) &&
+									'object' == I( l ) &&
 									r.call( l, '__await' )
 									? e.resolve( l.__await ).then(
 											function ( t ) {
@@ -5232,7 +5247,7 @@
 							  ( n.delegate = null ),
 							  y );
 					}
-					function I( t ) {
+					function P( t ) {
 						var e = { tryLoc: t[ 0 ] };
 						1 in t && ( e.catchLoc = t[ 1 ] ),
 							2 in t &&
@@ -5248,7 +5263,7 @@
 					}
 					function F( t ) {
 						( this.tryEntries = [ { tryLoc: 'root' } ] ),
-							t.forEach( I, this ),
+							t.forEach( P, this ),
 							this.reset( ! 0 );
 					}
 					function O( e ) {
@@ -5273,7 +5288,7 @@
 								return ( a.next = a );
 							}
 						}
-						throw new TypeError( P( e ) + ' is not iterable' );
+						throw new TypeError( I( e ) + ' is not iterable' );
 					}
 					return (
 						( g.prototype = w ),
@@ -6118,7 +6133,7 @@
 					},
 				};
 				jQuery( document ).ready( function ( t ) {
-					I.init(), O.init(), m.init();
+					P.init(), O.init(), m.init();
 				} );
 			},
 			205: () => {},
