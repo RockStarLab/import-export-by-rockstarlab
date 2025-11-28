@@ -10,7 +10,14 @@
 
 namespace WP_AIE\helper;
 
-class data_transformer {
+/**
+ * Data Transformer Helper Class
+ *
+ * Provides data sanitization, validation, and transformation utilities.
+ *
+ * @package WP_AIE\Helper
+ */
+class Data_Transformer {
 
 	/**
 	 * Sanitize data based on type

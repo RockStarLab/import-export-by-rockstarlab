@@ -1,20 +1,27 @@
 <?php
 /**
  * Logger Helper
- * 
+ *
  * Facade for logging operations.
  * Provides convenient static methods for logging job events.
- * 
+ *
  * @package WP_AIE\Helper
  */
 
 namespace WP_AIE\helper;
 
-class logger {
+/**
+ * Logger Helper Class
+ *
+ * Facade for logging operations.
+ *
+ * @package WP_AIE\Helper
+ */
+class Logger {
 
 	/**
 	 * Log an info-level message
-	 * 
+	 *
 	 * @param int    $job_id  Job ID this log belongs to
 	 * @param string $message Info message text
 	 * @param array  $data    Optional. Additional data to store
@@ -26,7 +33,7 @@ class logger {
 
 	/**
 	 * Log a warning-level message
-	 * 
+	 *
 	 * @param int    $job_id  Job ID this log belongs to
 	 * @param string $message Warning message text
 	 * @param array  $data    Optional. Additional data to store
@@ -38,7 +45,7 @@ class logger {
 
 	/**
 	 * Log an error-level message
-	 * 
+	 *
 	 * @param int    $job_id  Job ID this log belongs to
 	 * @param string $message Error message text
 	 * @param array  $data    Optional. Additional error details
@@ -50,7 +57,7 @@ class logger {
 
 	/**
 	 * Get all log entries for a specific job
-	 * 
+	 *
 	 * @param int         $job_id Job ID to get logs for
 	 * @param string|null $level  Optional. Filter by level: info, warning, error
 	 * @return array Array of log records
@@ -61,7 +68,7 @@ class logger {
 
 	/**
 	 * Clear all log entries for a specific job
-	 * 
+	 *
 	 * @param int $job_id Job ID to clear logs for
 	 * @return int|false Number of rows deleted or false on failure
 	 */
