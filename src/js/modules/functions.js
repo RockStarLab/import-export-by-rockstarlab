@@ -463,6 +463,9 @@ const FunctionsModule = {
 			code = this.codeEditor.codemirror.getValue();
 		}
 
+		// Normalize PHP code (add <?php if missing)
+		code = this.normalizePhpCode( code );
+
 		const functionId = document.getElementById( 'aie-function-id' ).value;
 		const functionData = {
 			action: functionId
@@ -586,6 +589,9 @@ const FunctionsModule = {
 			return;
 		}
 
+		// Normalize PHP code (add <?php if missing)
+		code = this.normalizePhpCode( code );
+
 		try {
 			const response = await fetch( window.aieData.ajaxUrl, {
 				method: 'POST',
@@ -649,6 +655,28 @@ const FunctionsModule = {
 			custom: 'Custom',
 		};
 		return labels[ category ] || category;
+	},
+
+	/**
+	 * Normalize PHP code - ensure it starts with <?php
+	 */
+	normalizePhpCode( code ) {
+		if ( ! code || ! code.trim() ) {
+			return code;
+		}
+
+		const trimmedCode = code.trim();
+
+		// Check if code already starts with <?php or <?
+		if (
+			trimmedCode.startsWith( '<?php' ) ||
+			trimmedCode.startsWith( '<?' )
+		) {
+			return code;
+		}
+
+		// Add <?php at the beginning
+		return '<?php\n' + code;
 	},
 
 	/**

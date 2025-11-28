@@ -70,7 +70,6 @@ export function showModalError( message, modalElement ) {
 	// Create error notice
 	const notice = document.createElement( 'div' );
 	notice.className = 'notice notice-error is-dismissible aie-modal-error';
-	notice.style.margin = '10px 0';
 	notice.innerHTML = `<p>${ escapeHtml( message ) }</p>`;
 
 	// Find modal content area
