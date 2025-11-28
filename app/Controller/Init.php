@@ -35,6 +35,13 @@ class Init {
 	private $job_controller;
 
 	/**
+	 * Functions Controller
+	 *
+	 * @var Functions_Controller
+	 */
+	private $functions_controller;
+
+	/**
 	 * Cron Manager
 	 *
 	 * @var \WP_AIE\Model\Queue\Cron_Manager
@@ -74,6 +81,9 @@ class Init {
 
 		$this->job_controller = new Job_Controller();
 		$this->job_controller->init();
+
+		$this->functions_controller = new Functions_Controller();
+		$this->functions_controller->init();
 	}
 
 	/**
