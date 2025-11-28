@@ -1,4 +1,4 @@
-import functions from './modules/functions';
+import FunctionsModule from './modules/functions';
 import ImportModule from './modules/import';
 import ExportModule from './modules/export';
 
@@ -10,8 +10,6 @@ jQuery( document ).ready( function ( $ ) {
 	// Initialize export module
 	ExportModule.init();
 
-	// Initialize functions module (if exists)
-	if ( typeof functions.init === 'function' ) {
-		functions.init();
-	}
+	// Initialize functions module
+	FunctionsModule.init();
 } );
