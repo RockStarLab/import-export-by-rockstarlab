@@ -119,6 +119,31 @@ class Init {
 			)
 		);
 
+		// Localize script with AJAX data
+		wp_localize_script(
+			'wp-advanced-import-export-scripts',
+			'aieData',
+			array(
+				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
+				'nonce'     => wp_create_nonce( 'aie_nonce' ),
+				'pluginUrl' => plugins_url( '', WP_AIE_FILE ),
+				'i18n'      => array(
+					'skip'            => __( 'Skip', 'wp-aie' ),
+					'uploading'       => __( 'Uploading...', 'wp-aie' ),
+					'processing'      => __( 'Processing...', 'wp-aie' ),
+					'completed'       => __( 'Completed', 'wp-aie' ),
+					'failed'          => __( 'Failed', 'wp-aie' ),
+					'confirmCancel'   => __( 'Are you sure you want to cancel?', 'wp-aie' ),
+					'errorOccurred'   => __( 'An error occurred', 'wp-aie' ),
+					'fileTooLarge'    => __( 'File size exceeds maximum allowed', 'wp-aie' ),
+					'invalidFileType' => __( 'Invalid file type', 'wp-aie' ),
+					'selectFile'      => __( 'Please select a file', 'wp-aie' ),
+					'selectFields'    => __( 'Please select at least one field', 'wp-aie' ),
+					'mapFields'       => __( 'Please map at least one field', 'wp-aie' ),
+				),
+			)
+		);
+
 		wp_enqueue_style(
 			'wp-advanced-import-export-styles',
 			plugins_url( 'assets/css/app.css', WP_AIE_FILE ),
