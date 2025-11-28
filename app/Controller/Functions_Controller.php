@@ -49,7 +49,7 @@ class Functions_Controller extends Base_Controller {
 	 * Get all functions
 	 */
 	public function get_all_functions() {
-		$verify = $this->verify_request( 'functions_get_all' );
+		$verify = $this->verify_request( 'nonce' );
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -100,7 +100,7 @@ class Functions_Controller extends Base_Controller {
 	 * Get single function
 	 */
 	public function get_function() {
-		$verify = $this->verify_request( 'functions_get' );
+		$verify = $this->verify_request( 'nonce' );
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -125,7 +125,7 @@ class Functions_Controller extends Base_Controller {
 	 * Create new function
 	 */
 	public function create_function() {
-		$verify = $this->verify_request( 'functions_create' );
+		$verify = $this->verify_request( 'nonce' );
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -170,7 +170,7 @@ class Functions_Controller extends Base_Controller {
 	 * Update existing function
 	 */
 	public function update_function() {
-		$verify = $this->verify_request( 'functions_update' );
+		$verify = $this->verify_request( 'nonce' );
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -239,7 +239,7 @@ class Functions_Controller extends Base_Controller {
 	 * Delete function
 	 */
 	public function delete_function() {
-		$verify = $this->verify_request( 'functions_delete' );
+		$verify = $this->verify_request( 'nonce' );
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -274,7 +274,7 @@ class Functions_Controller extends Base_Controller {
 	 * Test function with sample value
 	 */
 	public function test_function() {
-		$verify = $this->verify_request( 'functions_test' );
+		$verify = $this->verify_request( 'nonce' );
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -305,7 +305,7 @@ class Functions_Controller extends Base_Controller {
 	 * Get all snippets from library
 	 */
 	public function get_snippets() {
-		$verify = $this->verify_request( 'functions_get_snippets' );
+		$verify = $this->verify_request( 'nonce' );
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -333,7 +333,7 @@ class Functions_Controller extends Base_Controller {
 	 * Search snippets
 	 */
 	public function search_snippets() {
-		$verify = $this->verify_request( 'functions_search' );
+		$verify = $this->verify_request( 'nonce' );
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -359,7 +359,7 @@ class Functions_Controller extends Base_Controller {
 	 * Import snippet as function
 	 */
 	public function import_snippet() {
-		$verify = $this->verify_request( 'functions_import' );
+		$verify = $this->verify_request( 'nonce' );
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
