@@ -46,7 +46,6 @@ class Custom_Function extends Model {
 	 * Constructor
 	 */
 	public function __construct() {
-		parent::__construct();
 		$this->executor = new Function_Executor();
 		$this->logger   = new Logger();
 	}
