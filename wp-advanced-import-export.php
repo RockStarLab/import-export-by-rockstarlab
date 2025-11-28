@@ -19,24 +19,43 @@ defined( 'ABSPATH') or exit;
 define( 'WP_AIE_FILE', __FILE__);
 define( 'WP_AIE_PATH', trailingslashit( plugin_dir_path( WP_AIE_FILE )));
 define( 'WP_AIE_URL', plugins_url( '/', WP_AIE_FILE));
+define( 'WP_AIE_VERSION', '1.0.0' );
 
-// Autoloader
+// Autoloader - supports both WP_AIE\ and AIE\ namespaces
 spl_autoload_register( function( $class) {
 
-	$prefix = 'WP_AIE\\';
+	// Support WP_AIE\ namespace (legacy compatibility)
+	$prefix_wp = 'WP_AIE\\';
 	$base_dir = WP_AIE_PATH . 'app/';
 
-	$len = strlen( $prefix);
-
-	if( strncmp( $prefix, $class, $len) !== 0) {
-		return;
+	if( strncmp( $prefix_wp, $class, strlen( $prefix_wp ) ) === 0 ) {
+		$relative_class = substr( $class, strlen( $prefix_wp ) );
+		$file = $base_dir . str_replace( '\\', '/', $relative_class) . '.php';
+		
+		if( file_exists( $file ) ) {
+			require $file;
+			return;
+		}
 	}
-
-	$relative_class = substr( $class, $len);
-	$file = $base_dir . str_replace( '\\', '/', $relative_class) . '.php';
-
-	if( file_exists( $file)) {
-		require $file;
+	
+	// Support AIE\ namespace (new architecture)
+	$prefix_aie = 'AIE\\';
+	
+	if( strncmp( $prefix_aie, $class, strlen( $prefix_aie ) ) === 0 ) {
+		$relative_class = substr( $class, strlen( $prefix_aie ) );
+		
+		// Convert namespace to directory path
+		// AIE\Controller\Export_Wizard_Controller -> app/controller/export_wizard_controller.php
+		// AIE\Exporter\Post_Exporter -> app/exporter/post_exporter.php
+		// AIE\Format\CSV_Writer -> app/format/csv_writer.php
+		$path = str_replace( '\\', '/', $relative_class );
+		$path = strtolower( $path ); // Convert to lowercase for file names
+		$file = $base_dir . $path . '.php';
+		
+		if( file_exists( $file ) ) {
+			require $file;
+			return;
+		}
 	}
 
 });
@@ -90,4 +109,10 @@ if ( ! function_exists( 'waie_fs' ) ) {
 // Run the plugin
 WP_AIE()->run();
 
+// Activation hook - create database tables
+register_activation_hook( WP_AIE_FILE, function() {
+	\WP_AIE\helper\database_migration::create_tables();
+});
+
+// Deactivation hook - cleanup
 register_deactivation_hook( WP_AIE_FILE, [ '\WP_AIE\app', 'deactivate_cleanup' ] );
