@@ -10,7 +10,7 @@
  * @package WP_AIE\Model
  */
 
-namespace WP_AIE\model;
+namespace WP_AIE\Model;
 
 /**
  * Job Model Class

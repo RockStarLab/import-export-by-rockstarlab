@@ -8,7 +8,7 @@
  * @package WP_AIE\Helper
  */
 
-namespace WP_AIE\helper;
+namespace WP_AIE\Helper;
 
 /**
  * Data Transformer Helper Class

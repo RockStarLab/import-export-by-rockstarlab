@@ -1,6 +1,6 @@
 <?php
 
-namespace WP_AIE\controller;
+namespace WP_AIE\Controller;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -136,34 +136,34 @@ class Init {
 	 * Display Import Settings Page
 	 */
 	function display_settings_import_page() {
-		WP_AIE()->view->load( 'settings/import' );
+		WP_AIE()->View->load( 'settings/import' );
 	}
 
 	/**
 	 * Display Export Settings Page
 	 */
 	function display_settings_export_page() {
-		WP_AIE()->view->load( 'settings/export' );
+		WP_AIE()->View->load( 'settings/export' );
 	}
 
 	/**
 	 * Display Content Sync Settings Page
 	 */
 	function display_content_sync_page() {
-		WP_AIE()->view->load( 'settings/content_sync' );
+		WP_AIE()->View->load( 'settings/content_sync' );
 	}
 
 	/**
 	 * Display Media Sync Settings Page
 	 */
 	function display_media_sync_page() {
-		WP_AIE()->view->load( 'settings/media_sync' );
+		WP_AIE()->View->load( 'settings/media_sync' );
 	}
 
 	/**
 	 * Display "Functions" admin page
 	 */
 	function display_settings_functions_page() {
-		WP_AIE()->view->load( 'settings/functions' );
+		WP_AIE()->View->load( 'settings/functions' );
 	}
 }

@@ -8,7 +8,7 @@
  * @package WP_AIE\Helper
  */
 
-namespace WP_AIE\helper;
+namespace WP_AIE\Helper;
 
 /**
  * Progress Tracker Helper Class
@@ -30,7 +30,7 @@ class Progress_Tracker {
 	 * @return int|WP_Error Number of rows affected or WP_Error
 	 */
 	public static function update_progress( $job_id, $total, $processed, $success, $failed ) {
-		return WP_AIE()->model->job->update_progress( $job_id, $total, $processed, $success, $failed );
+		return WP_AIE()->Model->Job->update_progress( $job_id, $total, $processed, $success, $failed );
 	}
 
 	/**
@@ -41,7 +41,7 @@ class Progress_Tracker {
 	 * @return int|WP_Error|false Number of rows affected or false
 	 */
 	public static function increment( $job_id, $success = true ) {
-		return WP_AIE()->model->job->increment( $job_id, $success );
+		return WP_AIE()->Model->Job->increment( $job_id, $success );
 	}
 
 	/**
@@ -51,7 +51,7 @@ class Progress_Tracker {
 	 * @return array|null Progress information array or null
 	 */
 	public static function get_progress( $job_id ) {
-		return WP_AIE()->model->job->get_progress( $job_id );
+		return WP_AIE()->Model->Job->get_progress( $job_id );
 	}
 
 	/**
@@ -63,8 +63,8 @@ class Progress_Tracker {
 	 */
 	public static function mark_complete( $job_id, $success = true ) {
 		return $success
-			? WP_AIE()->model->job->mark_completed( $job_id )
-			: WP_AIE()->model->job->mark_failed( $job_id );
+			? WP_AIE()->Model->Job->mark_completed( $job_id )
+			: WP_AIE()->Model->Job->mark_failed( $job_id );
 	}
 
 	/**
@@ -74,7 +74,7 @@ class Progress_Tracker {
 	 * @return int|WP_Error Number of rows affected or WP_Error
 	 */
 	public static function mark_running( $job_id ) {
-		return WP_AIE()->model->job->mark_running( $job_id );
+		return WP_AIE()->Model->Job->mark_running( $job_id );
 	}
 
 	/**
@@ -86,8 +86,8 @@ class Progress_Tracker {
 	 */
 	public static function mark_failed( $job_id, $error_message = '' ) {
 		if ( $error_message ) {
-			WP_AIE()->model->log->error( $job_id, $error_message );
+			WP_AIE()->Model->Log->error( $job_id, $error_message );
 		}
-		return WP_AIE()->model->job->mark_failed( $job_id );
+		return WP_AIE()->Model->Job->mark_failed( $job_id );
 	}
 }

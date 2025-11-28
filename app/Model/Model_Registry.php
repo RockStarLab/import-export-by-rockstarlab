@@ -8,7 +8,7 @@
  * @package WP_AIE\Model
  */
 
-namespace WP_AIE\model;
+namespace WP_AIE\Model;
 
 /**
  * Model Registry Class
@@ -48,7 +48,7 @@ class Model_Registry {
 			return $this->models[ $name ];
 		}
 
-		$class = "WP_AIE\\model\\{$name}";
+		$class = "WP_AIE\\Model\\{$name}";
 		if ( class_exists( $class ) ) {
 			$this->models[ $name ] = new $class();
 			return $this->models[ $name ];

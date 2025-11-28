@@ -94,7 +94,7 @@ WP_AIE()->run();
 register_activation_hook(
 	WP_AIE_FILE,
 	function () {
-		\WP_AIE\helper\Database_Migration::create_tables();
+		\WP_AIE\Helper\Database_Migration::create_tables();
 	}
 );
 
