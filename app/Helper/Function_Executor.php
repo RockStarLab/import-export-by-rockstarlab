@@ -292,9 +292,22 @@ class Function_Executor {
 			);
 		}
 
+		// Remove PHP tags for validation (they will be added later)
+		$clean_code = preg_replace( '/<\?php\s*/', '', $code );
+		$clean_code = preg_replace( '/<\?\s*/', '', $clean_code );
+		$clean_code = preg_replace( '/\?>/', '', $clean_code );
+		$clean_code = trim( $clean_code );
+
+		if ( empty( $clean_code ) ) {
+			return new \WP_Error(
+				'empty_code',
+				__( 'Function code cannot be empty', 'wp-aie' )
+			);
+		}
+
 		// Check for blacklisted patterns
 		foreach ( $this->blacklist_patterns as $pattern ) {
-			if ( preg_match( $pattern, $code ) ) {
+			if ( preg_match( $pattern, $clean_code ) ) {
 				return new \WP_Error(
 					'dangerous_code',
 					__( 'Function contains dangerous or disallowed PHP constructs', 'wp-aie' )
@@ -302,32 +315,33 @@ class Function_Executor {
 			}
 		}
 
-		// Check for PHP opening/closing tags (not allowed)
-		if ( preg_match( '/<\?php|<\?|\?>/', $code ) ) {
-			return new \WP_Error(
-				'invalid_syntax',
-				__( 'Function code should not contain PHP opening/closing tags', 'wp-aie' )
-			);
-		}
+		// Try to parse the code (syntax check using token_get_all)
+		$test_code = '<?php ' . $clean_code;
 
-		// Check if code ends with semicolon or return statement
-		$trimmed = trim( $code );
-		if ( ! preg_match( '/[;}]$/', $trimmed ) && ! preg_match( '/^return\s+/', $trimmed ) ) {
-			return new \WP_Error(
-				'invalid_syntax',
-				__( 'Function code must end with semicolon or contain a return statement', 'wp-aie' )
-			);
-		}
-
-		// Try to parse the code (syntax check)
-		$test_code = '<?php ' . $code . ' ?>';
-		$tokens    = @token_get_all( $test_code ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		// Suppress errors during parsing
+		$old_error_level = error_reporting( 0 );
+		$tokens          = @token_get_all( $test_code ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		error_reporting( $old_error_level );
 
 		if ( false === $tokens ) {
 			return new \WP_Error(
 				'parse_error',
 				__( 'Function code contains syntax errors', 'wp-aie' )
 			);
+		}
+
+		// Additional check: look for T_ERROR tokens which indicate syntax issues
+		foreach ( $tokens as $token ) {
+			if ( is_array( $token ) && defined( 'T_ERROR' ) && T_ERROR === $token[0] ) {
+				return new \WP_Error(
+					'parse_error',
+					sprintf(
+						/* translators: %s: Error token */
+						__( 'Syntax error near: %s', 'wp-aie' ),
+						$token[1]
+					)
+				);
+			}
 		}
 
 		return true;

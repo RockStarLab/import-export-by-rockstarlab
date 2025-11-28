@@ -28,7 +28,7 @@ class Logger {
 	 * @param array  $data    Optional. Additional data to store
 	 * @return int|WP_Error Created log ID on success, WP_Error on failure
 	 */
-	public static function log( $job_id, $level, $message, $data = [] ) {
+	public static function log( $job_id, $level, $message, $data = array() ) {
 		switch ( $level ) {
 			case 'warning':
 				return self::warning( $job_id, $message, $data );
@@ -48,7 +48,7 @@ class Logger {
 	 * @param array  $data    Optional. Additional data to store
 	 * @return int|WP_Error Created log ID on success, WP_Error on failure
 	 */
-	public static function info( $job_id, $message, $data = [] ) {
+	public static function info( $job_id, $message, $data = array() ) {
 		return WP_AIE()->Model->Log->info( $job_id, $message, $data );
 	}
 
@@ -60,7 +60,7 @@ class Logger {
 	 * @param array  $data    Optional. Additional data to store
 	 * @return int|WP_Error Created log ID on success, WP_Error on failure
 	 */
-	public static function warning( $job_id, $message, $data = [] ) {
+	public static function warning( $job_id, $message, $data = array() ) {
 		return WP_AIE()->Model->Log->warning( $job_id, $message, $data );
 	}
 
@@ -72,7 +72,7 @@ class Logger {
 	 * @param array  $data    Optional. Additional error details
 	 * @return int|WP_Error Created log ID on success, WP_Error on failure
 	 */
-	public static function error( $job_id, $message, $data = [] ) {
+	public static function error( $job_id, $message, $data = array() ) {
 		return WP_AIE()->Model->Log->error( $job_id, $message, $data );
 	}
 

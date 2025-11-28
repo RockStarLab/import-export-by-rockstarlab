@@ -152,8 +152,12 @@ class Functions_Controller extends Base_Controller {
 			]
 		);
 
+		if ( is_wp_error( $function_id ) ) {
+			$this->send_error( $function_id->get_error_message() );
+		}
+
 		if ( ! $function_id ) {
-			$this->send_error( __( 'Failed to create function. Please check code for errors.', 'wp-aie' ) );
+			$this->send_error( __( 'Failed to create function', 'wp-aie' ) );
 		}
 
 		$function = $model->get( $function_id );
@@ -221,8 +225,12 @@ class Functions_Controller extends Base_Controller {
 
 		$result = $model->update( $function_id, $update_data );
 
+		if ( is_wp_error( $result ) ) {
+			$this->send_error( $result->get_error_message() );
+		}
+
 		if ( ! $result ) {
-			$this->send_error( __( 'Failed to update function. Please check code for errors.', 'wp-aie' ) );
+			$this->send_error( __( 'Failed to update function', 'wp-aie' ) );
 		}
 
 		$function = $model->get( $function_id );
