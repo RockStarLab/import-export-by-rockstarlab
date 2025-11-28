@@ -41,6 +41,60 @@ defined( 'ABSPATH' ) || exit;
 					</label>
 
 					<label class="aie-content-type">
+						<input type="radio" name="content_type" value="woo_product" disabled>
+						<div class="aie-content-type-card aie-disabled">
+							<span class="dashicons dashicons-products"></span>
+							<h3><?php esc_html_e( 'WooCommerce Products', 'wp-aie' ); ?></h3>
+							<p><?php esc_html_e( 'Premium feature', 'wp-aie' ); ?></p>
+						</div>
+					</label>
+
+					<label class="aie-content-type">
+						<input type="radio" name="content_type" value="woo_order" disabled>
+						<div class="aie-content-type-card aie-disabled">
+							<span class="dashicons dashicons-cart"></span>
+							<h3><?php esc_html_e( 'WooCommerce Orders', 'wp-aie' ); ?></h3>
+							<p><?php esc_html_e( 'Premium feature', 'wp-aie' ); ?></p>
+						</div>
+					</label>
+
+					<label class="aie-content-type">
+						<input type="radio" name="content_type" value="woo_coupon" disabled>
+						<div class="aie-content-type-card aie-disabled">
+							<span class="dashicons dashicons-tickets-alt"></span>
+							<h3><?php esc_html_e( 'WooCommerce Coupons', 'wp-aie' ); ?></h3>
+							<p><?php esc_html_e( 'Premium feature', 'wp-aie' ); ?></p>
+						</div>
+					</label>
+
+					<label class="aie-content-type">
+						<input type="radio" name="content_type" value="woo_attribute" disabled>
+						<div class="aie-content-type-card aie-disabled">
+							<span class="dashicons dashicons-tag"></span>
+							<h3><?php esc_html_e( 'WooCommerce Attributes', 'wp-aie' ); ?></h3>
+							<p><?php esc_html_e( 'Premium feature', 'wp-aie' ); ?></p>
+						</div>
+					</label>
+
+					<label class="aie-content-type">
+						<input type="radio" name="content_type" value="custom_table" disabled>
+						<div class="aie-content-type-card aie-disabled">
+							<span class="dashicons dashicons-database"></span>
+							<h3><?php esc_html_e( 'Custom MySQL Table', 'wp-aie' ); ?></h3>
+							<p><?php esc_html_e( 'Premium feature', 'wp-aie' ); ?></p>
+						</div>
+					</label>
+
+					<label class="aie-content-type">
+						<input type="radio" name="content_type" value="menu" disabled>
+						<div class="aie-content-type-card aie-disabled">
+							<span class="dashicons dashicons-menu"></span>
+							<h3><?php esc_html_e( 'Menus', 'wp-aie' ); ?></h3>
+							<p><?php esc_html_e( 'Coming soon...', 'wp-aie' ); ?></p>
+						</div>
+					</label>
+
+					<label class="aie-content-type">
 						<input type="radio" name="content_type" value="user" disabled>
 						<div class="aie-content-type-card aie-disabled">
 							<span class="dashicons dashicons-admin-users"></span>
@@ -499,7 +553,7 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 
 				<div class="aie-export-results" style="display:none;">
-					<div class="notice notice-success">
+					<div class="notice notice-success" style="display:none;">
 						<h3><?php esc_html_e( 'Export Completed!', 'wp-aie' ); ?></h3>
 						<ul class="aie-results-list">
 							<li>
@@ -515,10 +569,12 @@ defined( 'ABSPATH' ) || exit;
 								<strong class="aie-result-duration">0s</strong>
 							</li>
 						</ul>
-						<button type="button" class="button button-primary button-large aie-download-file">
-							<span class="dashicons dashicons-download"></span>
-							<?php esc_html_e( 'Download Export File', 'wp-aie' ); ?>
-						</button>
+						<p>
+							<button type="button" class="button button-primary button-large aie-download-file">
+								<span class="dashicons dashicons-download"></span>
+								<?php esc_html_e( 'Download Export File', 'wp-aie' ); ?>
+							</button>
+						</p>
 					</div>
 				</div>
 
