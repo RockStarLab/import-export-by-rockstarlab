@@ -4,6 +4,10 @@
 
 @import "vars";
 
+// Admin pages
+@import "admin/functions";
+@import "admin/function_library";
+
 // Wizard Container
 .wp-advanced-import-export {
 	max-width: 1200px;

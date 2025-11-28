@@ -3,11 +3,57 @@
 	'use strict';
 	var t,
 		e = {
-			463: () => {
-				const t = jQuery( function ( t ) {} );
+			673: () => {
+				function t( t ) {
+					var e = document.createElement( 'div' );
+					( e.className = 'notice notice-success is-dismissible' ),
+						( e.innerHTML = '<p>'.concat( r( t ), '</p>' ) );
+					var n = document.querySelector( '.wrap' ) || document.body;
+					n.insertBefore( e, n.firstChild ),
+						setTimeout( function () {
+							e.remove();
+						}, 5e3 );
+					var o = document.createElement( 'button' );
+					( o.type = 'button' ),
+						( o.className = 'notice-dismiss' ),
+						( o.innerHTML =
+							'<span class="screen-reader-text">Dismiss this notice.</span>' ),
+						o.addEventListener( 'click', function () {
+							e.remove();
+						} ),
+						e.appendChild( o );
+				}
 				function e( t ) {
+					var e = document.createElement( 'div' );
+					( e.className = 'notice notice-error is-dismissible' ),
+						( e.innerHTML = '<p>'.concat( r( t ), '</p>' ) );
+					var n = document.querySelector( '.wrap' ) || document.body;
+					n.insertBefore( e, n.firstChild ),
+						setTimeout( function () {
+							e.remove();
+						}, 1e4 );
+					var o = document.createElement( 'button' );
+					( o.type = 'button' ),
+						( o.className = 'notice-dismiss' ),
+						( o.innerHTML =
+							'<span class="screen-reader-text">Dismiss this notice.</span>' ),
+						o.addEventListener( 'click', function () {
+							e.remove();
+						} ),
+						e.appendChild( o );
+				}
+				function n( t ) {
+					return new Promise( function ( e ) {
+						e( confirm( t ) );
+					} );
+				}
+				function r( t ) {
+					var e = document.createElement( 'div' );
+					return ( e.textContent = t ), e.innerHTML;
+				}
+				function o( t ) {
 					return (
-						( e =
+						( o =
 							'function' == typeof Symbol &&
 							'symbol' == typeof Symbol.iterator
 								? function ( t ) {
@@ -21,493 +67,116 @@
 											? 'symbol'
 											: typeof t;
 								  } ),
-						e( t )
+						o( t )
 					);
 				}
-				function r( t, e ) {
-					var r =
-						( 'undefined' != typeof Symbol &&
-							t[ Symbol.iterator ] ) ||
-						t[ '@@iterator' ];
-					if ( ! r ) {
-						if (
-							Array.isArray( t ) ||
-							( r = ( function ( t, e ) {
-								if ( t ) {
-									if ( 'string' == typeof t )
-										return n( t, e );
-									var r = {}.toString
-										.call( t )
-										.slice( 8, -1 );
-									return (
-										'Object' === r &&
-											t.constructor &&
-											( r = t.constructor.name ),
-										'Map' === r || 'Set' === r
-											? Array.from( t )
-											: 'Arguments' === r ||
-											  /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(
-													r
-											  )
-											? n( t, e )
-											: void 0
-									);
+				function a( t, e ) {
+					return (
+						( function ( t ) {
+							if ( Array.isArray( t ) ) return t;
+						} )( t ) ||
+						( function ( t, e ) {
+							var n =
+								null == t
+									? null
+									: ( 'undefined' != typeof Symbol &&
+											t[ Symbol.iterator ] ) ||
+									  t[ '@@iterator' ];
+							if ( null != n ) {
+								var r,
+									o,
+									a,
+									i,
+									c = [],
+									s = ! 0,
+									u = ! 1;
+								try {
+									if (
+										( ( a = ( n = n.call( t ) ).next ),
+										0 === e )
+									) {
+										if ( Object( n ) !== n ) return;
+										s = ! 1;
+									} else
+										for (
+											;
+											! ( s = ( r = a.call( n ) )
+												.done ) &&
+											( c.push( r.value ),
+											c.length !== e );
+											s = ! 0
+										);
+								} catch ( t ) {
+									( u = ! 0 ), ( o = t );
+								} finally {
+									try {
+										if (
+											! s &&
+											null != n.return &&
+											( ( i = n.return() ),
+											Object( i ) !== i )
+										)
+											return;
+									} finally {
+										if ( u ) throw o;
+									}
 								}
-							} )( t ) ) ||
-							( e && t && 'number' == typeof t.length )
-						) {
-							r && ( t = r );
-							var o = 0,
-								a = function () {};
-							return {
-								s: a,
-								n: function () {
-									return o >= t.length
-										? { done: ! 0 }
-										: { done: ! 1, value: t[ o++ ] };
-								},
-								e: function ( t ) {
-									throw t;
-								},
-								f: a,
-							};
-						}
-						throw new TypeError(
-							'Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.'
-						);
-					}
-					var i,
-						c = ! 0,
-						s = ! 1;
-					return {
-						s: function () {
-							r = r.call( t );
-						},
-						n: function () {
-							var t = r.next();
-							return ( c = t.done ), t;
-						},
-						e: function ( t ) {
-							( s = ! 0 ), ( i = t );
-						},
-						f: function () {
-							try {
-								c || null == r.return || r.return();
-							} finally {
-								if ( s ) throw i;
+								return c;
 							}
-						},
-					};
+						} )( t, e ) ||
+						( function ( t, e ) {
+							if ( t ) {
+								if ( 'string' == typeof t ) return i( t, e );
+								var n = {}.toString.call( t ).slice( 8, -1 );
+								return (
+									'Object' === n &&
+										t.constructor &&
+										( n = t.constructor.name ),
+									'Map' === n || 'Set' === n
+										? Array.from( t )
+										: 'Arguments' === n ||
+										  /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(
+												n
+										  )
+										? i( t, e )
+										: void 0
+								);
+							}
+						} )( t, e ) ||
+						( function () {
+							throw new TypeError(
+								'Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.'
+							);
+						} )()
+					);
 				}
-				function n( t, e ) {
+				function i( t, e ) {
 					( null == e || e > t.length ) && ( e = t.length );
-					for ( var r = 0, n = Array( e ); r < e; r++ )
-						n[ r ] = t[ r ];
-					return n;
-				}
-				function o( t, e ) {
-					var r = Object.keys( t );
-					if ( Object.getOwnPropertySymbols ) {
-						var n = Object.getOwnPropertySymbols( t );
-						e &&
-							( n = n.filter( function ( e ) {
-								return Object.getOwnPropertyDescriptor( t, e )
-									.enumerable;
-							} ) ),
-							r.push.apply( r, n );
-					}
+					for ( var n = 0, r = Array( e ); n < e; n++ )
+						r[ n ] = t[ n ];
 					return r;
 				}
-				function a( t, r, n ) {
-					return (
-						( r = ( function ( t ) {
-							var r = ( function ( t, r ) {
-								if ( 'object' != e( t ) || ! t ) return t;
-								var n = t[ Symbol.toPrimitive ];
-								if ( void 0 !== n ) {
-									var o = n.call( t, r || 'default' );
-									if ( 'object' != e( o ) ) return o;
-									throw new TypeError(
-										'@@toPrimitive must return a primitive value.'
-									);
-								}
-								return ( 'string' === r ? String : Number )(
-									t
-								);
-							} )( t, 'string' );
-							return 'symbol' == e( r ) ? r : r + '';
-						} )( r ) ) in t
-							? Object.defineProperty( t, r, {
-									value: n,
-									enumerable: ! 0,
-									configurable: ! 0,
-									writable: ! 0,
-							  } )
-							: ( t[ r ] = n ),
-						t
-					);
-				}
-				const i = {
-					ajax: function ( t ) {
-						var e =
-								arguments.length > 1 &&
-								void 0 !== arguments[ 1 ]
-									? arguments[ 1 ]
-									: {},
-							r =
-								arguments.length > 2 &&
-								void 0 !== arguments[ 2 ]
-									? arguments[ 2 ]
-									: 'POST';
-						return new Promise( function ( n, i ) {
-							var c,
-								s,
-								u = ( function ( t ) {
-									for (
-										var e = 1;
-										e < arguments.length;
-										e++
-									) {
-										var r =
-											null != arguments[ e ]
-												? arguments[ e ]
-												: {};
-										e % 2
-											? o( Object( r ), ! 0 ).forEach(
-													function ( e ) {
-														a( t, e, r[ e ] );
-													}
-											  )
-											: Object.getOwnPropertyDescriptors
-											? Object.defineProperties(
-													t,
-													Object.getOwnPropertyDescriptors(
-														r
-													)
-											  )
-											: o( Object( r ) ).forEach(
-													function ( e ) {
-														Object.defineProperty(
-															t,
-															e,
-															Object.getOwnPropertyDescriptor(
-																r,
-																e
-															)
-														);
-													}
-											  );
-									}
-									return t;
-								} )(
-									{
-										action: t,
-										nonce:
-											( null === ( c = window.aieData ) ||
-											void 0 === c
-												? void 0
-												: c.nonce ) || '',
-									},
-									e
-								);
-							jQuery
-								.ajax( {
-									url:
-										( null === ( s = window.aieData ) ||
-										void 0 === s
-											? void 0
-											: s.ajaxUrl ) ||
-										'/wp-admin/admin-ajax.php',
-									type: r,
-									data: u,
-									dataType: 'json',
-								} )
-								.done( function ( t ) {
-									var e;
-									t.success
-										? n( t.data || t )
-										: i(
-												( null === ( e = t.data ) ||
-												void 0 === e
-													? void 0
-													: e.message ) ||
-													'Request failed'
-										  );
-								} )
-								.fail( function ( t, e, r ) {
-									i(
-										'AJAX Error: '
-											.concat( e, ' - ' )
-											.concat( r )
-									);
-								} );
-						} );
-					},
-					formatFileSize: function ( t ) {
-						if ( 0 === t ) return '0 Bytes';
-						var e = Math.floor( Math.log( t ) / Math.log( 1024 ) );
-						return (
-							Math.round( ( t / Math.pow( 1024, e ) ) * 100 ) /
-								100 +
-							' ' +
-							[ 'Bytes', 'KB', 'MB', 'GB' ][ e ]
-						);
-					},
-					formatDuration: function ( t ) {
-						if ( t < 60 ) return Math.round( t ) + 's';
-						var e = Math.floor( t / 60 ),
-							r = Math.round( t % 60 );
-						if ( e < 60 )
-							return ''.concat( e, 'm ' ).concat( r, 's' );
-						var n = Math.floor( e / 60 ),
-							o = e % 60;
-						return ''.concat( n, 'h ' ).concat( o, 'm' );
-					},
-					debounce: function ( t ) {
-						var e,
-							r =
-								arguments.length > 1 &&
-								void 0 !== arguments[ 1 ]
-									? arguments[ 1 ]
-									: 300;
-						return function () {
-							for (
-								var n = arguments.length,
-									o = new Array( n ),
-									a = 0;
-								a < n;
-								a++
-							)
-								o[ a ] = arguments[ a ];
-							var i = this;
-							clearTimeout( e ),
-								( e = setTimeout( function () {
-									return t.apply( i, o );
-								}, r ) );
-						};
-					},
-					showNotice: function ( t ) {
-						var e = 'notice notice-'.concat(
-								arguments.length > 1 &&
-									void 0 !== arguments[ 1 ]
-									? arguments[ 1 ]
-									: 'info',
-								' is-dismissible'
-							),
-							r = '\n\t\t\t<div class="'
-								.concat( e, '">\n\t\t\t\t<p>' )
-								.concat(
-									t,
-									'</p>\n\t\t\t\t<button type="button" class="notice-dismiss">\n\t\t\t\t\t<span class="screen-reader-text">Dismiss this notice.</span>\n\t\t\t\t</button>\n\t\t\t</div>\n\t\t'
-								),
-							n = jQuery( r );
-						jQuery( '.wrap > h1' ).after( n ),
-							setTimeout( function () {
-								n.fadeOut( function () {
-									return n.remove();
-								} );
-							}, 5e3 ),
-							n.on( 'click', '.notice-dismiss', function () {
-								n.fadeOut( function () {
-									return n.remove();
-								} );
-							} );
-					},
-					validateFile: function ( t ) {
-						var e =
-								arguments.length > 1 &&
-								void 0 !== arguments[ 1 ]
-									? arguments[ 1 ]
-									: [],
-							r =
-								arguments.length > 2 &&
-								void 0 !== arguments[ 2 ]
-									? arguments[ 2 ]
-									: 52428800,
-							n = [];
-						if (
-							( t.size > r &&
-								n.push(
-									'File size ('
-										.concat(
-											this.formatFileSize( t.size ),
-											') exceeds maximum allowed size ('
-										)
-										.concat( this.formatFileSize( r ), ')' )
-								),
-							e.length > 0 )
-						) {
-							var o = t.name.split( '.' ).pop().toLowerCase();
-							e.some( function ( e ) {
-								return e.startsWith( '.' )
-									? e.substring( 1 ) === o
-									: t.type === e;
-							} ) ||
-								n.push(
-									'File type .'
-										.concat(
-											o,
-											' is not allowed. Allowed types: '
-										)
-										.concat( e.join( ', ' ) )
-								);
-						}
-						return { valid: 0 === n.length, errors: n };
-					},
-					parseCSV: function ( t ) {
-						var e,
-							n =
-								arguments.length > 1 &&
-								void 0 !== arguments[ 1 ]
-									? arguments[ 1 ]
-									: ',',
-							o = [],
-							a = r( t.split( '\n' ) );
-						try {
-							for ( a.s(); ! ( e = a.n() ).done;  ) {
-								var i = e.value;
-								if ( '' !== i.trim() ) {
-									for (
-										var c = [], s = '', u = ! 1, l = 0;
-										l < i.length;
-										l++
-									) {
-										var p = i[ l ];
-										'"' === p
-											? ( u = ! u )
-											: p !== n || u
-											? ( s += p )
-											: ( c.push( s.trim() ),
-											  ( s = '' ) );
-									}
-									c.push( s.trim() ), o.push( c );
-								}
-							}
-						} catch ( t ) {
-							a.e( t );
-						} finally {
-							a.f();
-						}
-						return o;
-					},
-					escapeHtml: function ( t ) {
-						var e = document.createElement( 'div' );
-						return ( e.textContent = t ), e.innerHTML;
-					},
-					getUrlParameter: function ( t ) {
-						return new URLSearchParams(
-							window.location.search
-						).get( t );
-					},
-					downloadFile: function ( t, e ) {
-						var r = document.createElement( 'a' );
-						( r.href = t ),
-							( r.download = e || 'export.csv' ),
-							document.body.appendChild( r ),
-							r.click(),
-							document.body.removeChild( r );
-					},
-					generateUUID: function () {
-						return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
-							/[xy]/g,
-							function ( t ) {
-								var e = ( 16 * Math.random() ) | 0;
-								return (
-									'x' === t ? e : ( 3 & e ) | 8
-								).toString( 16 );
-							}
-						);
-					},
-					createProgressBar: function () {
-						return jQuery(
-							'\n\t\t\t<div class="aie-progress-container">\n\t\t\t\t<div class="aie-progress-bar">\n\t\t\t\t\t<div class="aie-progress-bar-fill" style="width: 0%;"></div>\n\t\t\t\t</div>\n\t\t\t\t<div class="aie-progress-stats">\n\t\t\t\t\t<div class="aie-progress-percentage">0%</div>\n\t\t\t\t\t<div class="aie-progress-details">\n\t\t\t\t\t\t<span class="aie-processed">0</span> / <span class="aie-total">0</span> items\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t'
-						);
-					},
-					updateProgressBar: function ( t, e ) {
-						var r = e.percentage || 0,
-							n = e.processed || 0,
-							o = e.total || 0;
-						t
-							.find( '.aie-progress-bar-fill' )
-							.css( 'width', r + '%' ),
-							t
-								.find( '.aie-progress-percentage' )
-								.text( Math.round( r ) + '%' ),
-							t.find( '.aie-processed' ).text( n ),
-							t.find( '.aie-total' ).text( o ),
-							e.estimates &&
-								( e.estimates.elapsed_formatted &&
-									t
-										.find( '.aie-elapsed-time' )
-										.text( e.estimates.elapsed_formatted ),
-								e.estimates.remaining_formatted &&
-									t
-										.find( '.aie-remaining-time' )
-										.text(
-											e.estimates.remaining_formatted
-										),
-								e.estimates.items_per_second &&
-									t
-										.find( '.aie-items-per-second' )
-										.text(
-											e.estimates.items_per_second.toFixed(
-												1
-											) + ' items/s'
-										) );
-					},
-					handleError: function ( t ) {
-						var e =
-							arguments.length > 1 && void 0 !== arguments[ 1 ]
-								? arguments[ 1 ]
-								: '';
-						console.error(
-							'AIE Error'.concat( e ? ' (' + e + ')' : '', ':' ),
-							t
-						);
-						var r = t.message || t.toString();
-						this.showNotice( r, 'error' );
-					},
-				};
-				function c( t ) {
-					return (
-						( c =
-							'function' == typeof Symbol &&
-							'symbol' == typeof Symbol.iterator
-								? function ( t ) {
-										return typeof t;
-								  }
-								: function ( t ) {
-										return t &&
-											'function' == typeof Symbol &&
-											t.constructor === Symbol &&
-											t !== Symbol.prototype
-											? 'symbol'
-											: typeof t;
-								  } ),
-						c( t )
-					);
-				}
-				function s() {
-					s = function () {
+				function c() {
+					c = function () {
 						return e;
 					};
 					var t,
 						e = {},
-						r = Object.prototype,
-						n = r.hasOwnProperty,
-						o =
+						n = Object.prototype,
+						r = n.hasOwnProperty,
+						a =
 							Object.defineProperty ||
-							function ( t, e, r ) {
-								t[ e ] = r.value;
+							function ( t, e, n ) {
+								t[ e ] = n.value;
 							},
-						a = 'function' == typeof Symbol ? Symbol : {},
-						i = a.iterator || '@@iterator',
-						u = a.asyncIterator || '@@asyncIterator',
-						l = a.toStringTag || '@@toStringTag';
-					function p( t, e, r ) {
+						i = 'function' == typeof Symbol ? Symbol : {},
+						s = i.iterator || '@@iterator',
+						u = i.asyncIterator || '@@asyncIterator',
+						l = i.toStringTag || '@@toStringTag';
+					function p( t, e, n ) {
 						return (
 							Object.defineProperty( t, e, {
-								value: r,
+								value: n,
 								enumerable: ! 0,
 								configurable: ! 0,
 								writable: ! 0,
@@ -518,88 +187,88 @@
 					try {
 						p( {}, '' );
 					} catch ( t ) {
-						p = function ( t, e, r ) {
-							return ( t[ e ] = r );
+						p = function ( t, e, n ) {
+							return ( t[ e ] = n );
 						};
 					}
-					function f( t, e, r, n ) {
-						var a = e && e.prototype instanceof w ? e : w,
-							i = Object.create( a.prototype ),
-							c = new C( n || [] );
-						return o( i, '_invoke', { value: F( t, r, c ) } ), i;
+					function d( t, e, n, r ) {
+						var o = e && e.prototype instanceof w ? e : w,
+							i = Object.create( o.prototype ),
+							c = new O( r || [] );
+						return a( i, '_invoke', { value: I( t, n, c ) } ), i;
 					}
-					function d( t, e, r ) {
+					function f( t, e, n ) {
 						try {
-							return { type: 'normal', arg: t.call( e, r ) };
+							return { type: 'normal', arg: t.call( e, n ) };
 						} catch ( t ) {
 							return { type: 'throw', arg: t };
 						}
 					}
-					e.wrap = f;
+					e.wrap = d;
 					var h = 'suspendedStart',
 						v = 'suspendedYield',
 						y = 'executing',
 						m = 'completed',
 						g = {};
 					function w() {}
+					function b() {}
 					function x() {}
-					function j() {}
-					var b = {};
-					p( b, i, function () {
+					var j = {};
+					p( j, s, function () {
 						return this;
 					} );
-					var _ = Object.getPrototypeOf,
-						Q = _ && _( _( P( [] ) ) );
-					Q && Q !== r && n.call( Q, i ) && ( b = Q );
-					var S = ( j.prototype = w.prototype = Object.create( b ) );
-					function k( t ) {
+					var E = Object.getPrototypeOf,
+						S = E && E( E( C( [] ) ) );
+					S && S !== n && r.call( S, s ) && ( j = S );
+					var _ = ( x.prototype = w.prototype = Object.create( j ) );
+					function L( t ) {
 						[ 'next', 'throw', 'return' ].forEach( function ( e ) {
 							p( t, e, function ( t ) {
 								return this._invoke( e, t );
 							} );
 						} );
 					}
-					function E( t, e ) {
-						function r( o, a, i, s ) {
-							var u = d( t[ o ], t, a );
+					function k( t, e ) {
+						function n( a, i, c, s ) {
+							var u = f( t[ a ], t, i );
 							if ( 'throw' !== u.type ) {
 								var l = u.arg,
 									p = l.value;
 								return p &&
-									'object' == c( p ) &&
-									n.call( p, '__await' )
+									'object' == o( p ) &&
+									r.call( p, '__await' )
 									? e.resolve( p.__await ).then(
 											function ( t ) {
-												r( 'next', t, i, s );
+												n( 'next', t, c, s );
 											},
 											function ( t ) {
-												r( 'throw', t, i, s );
+												n( 'throw', t, c, s );
 											}
 									  )
 									: e.resolve( p ).then(
 											function ( t ) {
-												( l.value = t ), i( l );
+												( l.value = t ), c( l );
 											},
 											function ( t ) {
-												return r( 'throw', t, i, s );
+												return n( 'throw', t, c, s );
 											}
 									  );
 							}
 							s( u.arg );
 						}
-						var a;
-						o( this, '_invoke', {
-							value: function ( t, n ) {
+						var i;
+						a( this, '_invoke', {
+							value: function ( t, r ) {
 								function o() {
 									return new e( function ( e, o ) {
-										r( t, n, e, o );
+										n( t, r, e, o );
 									} );
 								}
-								return ( a = a ? a.then( o, o ) : o() );
+								return ( i = i ? i.then( o, o ) : o() );
 							},
 						} );
 					}
-					function F( e, r, n ) {
+					function I( e, n, r ) {
 						var o = h;
 						return function ( a, i ) {
 							if ( o === y )
@@ -608,87 +277,87 @@
 								if ( 'throw' === a ) throw i;
 								return { value: t, done: ! 0 };
 							}
-							for ( n.method = a, n.arg = i; ;  ) {
-								var c = n.delegate;
+							for ( r.method = a, r.arg = i; ;  ) {
+								var c = r.delegate;
 								if ( c ) {
-									var s = L( c, n );
+									var s = Q( c, r );
 									if ( s ) {
 										if ( s === g ) continue;
 										return s;
 									}
 								}
-								if ( 'next' === n.method )
-									n.sent = n._sent = n.arg;
-								else if ( 'throw' === n.method ) {
-									if ( o === h ) throw ( ( o = m ), n.arg );
-									n.dispatchException( n.arg );
+								if ( 'next' === r.method )
+									r.sent = r._sent = r.arg;
+								else if ( 'throw' === r.method ) {
+									if ( o === h ) throw ( ( o = m ), r.arg );
+									r.dispatchException( r.arg );
 								} else
-									'return' === n.method &&
-										n.abrupt( 'return', n.arg );
+									'return' === r.method &&
+										r.abrupt( 'return', r.arg );
 								o = y;
-								var u = d( e, r, n );
+								var u = f( e, n, r );
 								if ( 'normal' === u.type ) {
 									if (
-										( ( o = n.done ? m : v ), u.arg === g )
+										( ( o = r.done ? m : v ), u.arg === g )
 									)
 										continue;
-									return { value: u.arg, done: n.done };
+									return { value: u.arg, done: r.done };
 								}
 								'throw' === u.type &&
 									( ( o = m ),
-									( n.method = 'throw' ),
-									( n.arg = u.arg ) );
+									( r.method = 'throw' ),
+									( r.arg = u.arg ) );
 							}
 						};
 					}
-					function L( e, r ) {
-						var n = r.method,
-							o = e.iterator[ n ];
+					function Q( e, n ) {
+						var r = n.method,
+							o = e.iterator[ r ];
 						if ( o === t )
 							return (
-								( r.delegate = null ),
-								( 'throw' === n &&
+								( n.delegate = null ),
+								( 'throw' === r &&
 									e.iterator.return &&
-									( ( r.method = 'return' ),
-									( r.arg = t ),
-									L( e, r ),
-									'throw' === r.method ) ) ||
-									( 'return' !== n &&
-										( ( r.method = 'throw' ),
-										( r.arg = new TypeError(
+									( ( n.method = 'return' ),
+									( n.arg = t ),
+									Q( e, n ),
+									'throw' === n.method ) ) ||
+									( 'return' !== r &&
+										( ( n.method = 'throw' ),
+										( n.arg = new TypeError(
 											"The iterator does not provide a '" +
-												n +
+												r +
 												"' method"
 										) ) ) ),
 								g
 							);
-						var a = d( o, e.iterator, r.arg );
+						var a = f( o, e.iterator, n.arg );
 						if ( 'throw' === a.type )
 							return (
-								( r.method = 'throw' ),
-								( r.arg = a.arg ),
-								( r.delegate = null ),
+								( n.method = 'throw' ),
+								( n.arg = a.arg ),
+								( n.delegate = null ),
 								g
 							);
 						var i = a.arg;
 						return i
 							? i.done
-								? ( ( r[ e.resultName ] = i.value ),
-								  ( r.next = e.nextLoc ),
-								  'return' !== r.method &&
-										( ( r.method = 'next' ),
-										( r.arg = t ) ),
-								  ( r.delegate = null ),
+								? ( ( n[ e.resultName ] = i.value ),
+								  ( n.next = e.nextLoc ),
+								  'return' !== n.method &&
+										( ( n.method = 'next' ),
+										( n.arg = t ) ),
+								  ( n.delegate = null ),
 								  g )
 								: i
-							: ( ( r.method = 'throw' ),
-							  ( r.arg = new TypeError(
+							: ( ( n.method = 'throw' ),
+							  ( n.arg = new TypeError(
 									'iterator result is not an object'
 							  ) ),
-							  ( r.delegate = null ),
+							  ( n.delegate = null ),
 							  g );
 					}
-					function O( t ) {
+					function P( t ) {
 						var e = { tryLoc: t[ 0 ] };
 						1 in t && ( e.catchLoc = t[ 1 ] ),
 							2 in t &&
@@ -696,51 +365,51 @@
 								( e.afterLoc = t[ 3 ] ) ),
 							this.tryEntries.push( e );
 					}
-					function I( t ) {
+					function F( t ) {
 						var e = t.completion || {};
 						( e.type = 'normal' ),
 							delete e.arg,
 							( t.completion = e );
 					}
-					function C( t ) {
+					function O( t ) {
 						( this.tryEntries = [ { tryLoc: 'root' } ] ),
-							t.forEach( O, this ),
+							t.forEach( P, this ),
 							this.reset( ! 0 );
 					}
-					function P( e ) {
+					function C( e ) {
 						if ( e || '' === e ) {
-							var r = e[ i ];
-							if ( r ) return r.call( e );
+							var n = e[ s ];
+							if ( n ) return n.call( e );
 							if ( 'function' == typeof e.next ) return e;
 							if ( ! isNaN( e.length ) ) {
-								var o = -1,
-									a = function r() {
-										for ( ; ++o < e.length;  )
-											if ( n.call( e, o ) )
+								var a = -1,
+									i = function n() {
+										for ( ; ++a < e.length;  )
+											if ( r.call( e, a ) )
 												return (
-													( r.value = e[ o ] ),
-													( r.done = ! 1 ),
-													r
+													( n.value = e[ a ] ),
+													( n.done = ! 1 ),
+													n
 												);
 										return (
-											( r.value = t ), ( r.done = ! 0 ), r
+											( n.value = t ), ( n.done = ! 0 ), n
 										);
 									};
-								return ( a.next = a );
+								return ( i.next = i );
 							}
 						}
-						throw new TypeError( c( e ) + ' is not iterable' );
+						throw new TypeError( o( e ) + ' is not iterable' );
 					}
 					return (
-						( x.prototype = j ),
-						o( S, 'constructor', { value: j, configurable: ! 0 } ),
-						o( j, 'constructor', { value: x, configurable: ! 0 } ),
-						( x.displayName = p( j, l, 'GeneratorFunction' ) ),
+						( b.prototype = x ),
+						a( _, 'constructor', { value: x, configurable: ! 0 } ),
+						a( x, 'constructor', { value: b, configurable: ! 0 } ),
+						( b.displayName = p( x, l, 'GeneratorFunction' ) ),
 						( e.isGeneratorFunction = function ( t ) {
 							var e = 'function' == typeof t && t.constructor;
 							return (
 								!! e &&
-								( e === x ||
+								( e === b ||
 									'GeneratorFunction' ===
 										( e.displayName || e.name ) )
 							);
@@ -748,50 +417,50 @@
 						( e.mark = function ( t ) {
 							return (
 								Object.setPrototypeOf
-									? Object.setPrototypeOf( t, j )
-									: ( ( t.__proto__ = j ),
+									? Object.setPrototypeOf( t, x )
+									: ( ( t.__proto__ = x ),
 									  p( t, l, 'GeneratorFunction' ) ),
-								( t.prototype = Object.create( S ) ),
+								( t.prototype = Object.create( _ ) ),
 								t
 							);
 						} ),
 						( e.awrap = function ( t ) {
 							return { __await: t };
 						} ),
-						k( E.prototype ),
-						p( E.prototype, u, function () {
+						L( k.prototype ),
+						p( k.prototype, u, function () {
 							return this;
 						} ),
-						( e.AsyncIterator = E ),
-						( e.async = function ( t, r, n, o, a ) {
+						( e.AsyncIterator = k ),
+						( e.async = function ( t, n, r, o, a ) {
 							void 0 === a && ( a = Promise );
-							var i = new E( f( t, r, n, o ), a );
-							return e.isGeneratorFunction( r )
+							var i = new k( d( t, n, r, o ), a );
+							return e.isGeneratorFunction( n )
 								? i
 								: i.next().then( function ( t ) {
 										return t.done ? t.value : i.next();
 								  } );
 						} ),
-						k( S ),
-						p( S, l, 'Generator' ),
-						p( S, i, function () {
+						L( _ ),
+						p( _, l, 'Generator' ),
+						p( _, s, function () {
 							return this;
 						} ),
-						p( S, 'toString', function () {
+						p( _, 'toString', function () {
 							return '[object Generator]';
 						} ),
 						( e.keys = function ( t ) {
 							var e = Object( t ),
-								r = [];
-							for ( var n in e ) r.push( n );
+								n = [];
+							for ( var r in e ) n.push( r );
 							return (
-								r.reverse(),
+								n.reverse(),
 								function t() {
-									for ( ; r.length;  ) {
-										var n = r.pop();
-										if ( n in e )
+									for ( ; n.length;  ) {
+										var r = n.pop();
+										if ( r in e )
 											return (
-												( t.value = n ),
+												( t.value = r ),
 												( t.done = ! 1 ),
 												t
 											);
@@ -800,9 +469,9 @@
 								}
 							);
 						} ),
-						( e.values = P ),
-						( C.prototype = {
-							constructor: C,
+						( e.values = C ),
+						( O.prototype = {
+							constructor: O,
 							reset: function ( e ) {
 								if (
 									( ( this.prev = 0 ),
@@ -812,14 +481,14 @@
 									( this.delegate = null ),
 									( this.method = 'next' ),
 									( this.arg = t ),
-									this.tryEntries.forEach( I ),
+									this.tryEntries.forEach( F ),
 									! e )
 								)
-									for ( var r in this )
-										't' === r.charAt( 0 ) &&
-											n.call( this, r ) &&
-											! isNaN( +r.slice( 1 ) ) &&
-											( this[ r ] = t );
+									for ( var n in this )
+										't' === n.charAt( 0 ) &&
+											r.call( this, n ) &&
+											! isNaN( +n.slice( 1 ) ) &&
+											( this[ n ] = t );
 							},
 							stop: function () {
 								this.done = ! 0;
@@ -829,15 +498,15 @@
 							},
 							dispatchException: function ( e ) {
 								if ( this.done ) throw e;
-								var r = this;
-								function o( n, o ) {
+								var n = this;
+								function o( r, o ) {
 									return (
 										( c.type = 'throw' ),
 										( c.arg = e ),
-										( r.next = n ),
+										( n.next = r ),
 										o &&
-											( ( r.method = 'next' ),
-											( r.arg = t ) ),
+											( ( n.method = 'next' ),
+											( n.arg = t ) ),
 										!! o
 									);
 								}
@@ -851,8 +520,8 @@
 									if ( 'root' === i.tryLoc )
 										return o( 'end' );
 									if ( i.tryLoc <= this.prev ) {
-										var s = n.call( i, 'catchLoc' ),
-											u = n.call( i, 'finallyLoc' );
+										var s = r.call( i, 'catchLoc' ),
+											u = r.call( i, 'finallyLoc' );
 										if ( s && u ) {
 											if ( this.prev < i.catchLoc )
 												return o( i.catchLoc, ! 0 );
@@ -874,14 +543,14 @@
 							},
 							abrupt: function ( t, e ) {
 								for (
-									var r = this.tryEntries.length - 1;
-									r >= 0;
-									--r
+									var n = this.tryEntries.length - 1;
+									n >= 0;
+									--n
 								) {
-									var o = this.tryEntries[ r ];
+									var o = this.tryEntries[ n ];
 									if (
 										o.tryLoc <= this.prev &&
-										n.call( o, 'finallyLoc' ) &&
+										r.call( o, 'finallyLoc' ) &&
 										this.prev < o.finallyLoc
 									) {
 										var a = o;
@@ -925,14 +594,14 @@
 									e >= 0;
 									--e
 								) {
-									var r = this.tryEntries[ e ];
-									if ( r.finallyLoc === t )
+									var n = this.tryEntries[ e ];
+									if ( n.finallyLoc === t )
 										return (
 											this.complete(
-												r.completion,
-												r.afterLoc
+												n.completion,
+												n.afterLoc
 											),
-											I( r ),
+											F( n ),
 											g
 										);
 								}
@@ -943,24 +612,24 @@
 									e >= 0;
 									--e
 								) {
-									var r = this.tryEntries[ e ];
-									if ( r.tryLoc === t ) {
-										var n = r.completion;
-										if ( 'throw' === n.type ) {
-											var o = n.arg;
-											I( r );
+									var n = this.tryEntries[ e ];
+									if ( n.tryLoc === t ) {
+										var r = n.completion;
+										if ( 'throw' === r.type ) {
+											var o = r.arg;
+											F( n );
 										}
 										return o;
 									}
 								}
 								throw Error( 'illegal catch attempt' );
 							},
-							delegateYield: function ( e, r, n ) {
+							delegateYield: function ( e, n, r ) {
 								return (
 									( this.delegate = {
-										iterator: P( e ),
-										resultName: r,
-										nextLoc: n,
+										iterator: C( e ),
+										resultName: n,
+										nextLoc: r,
 									} ),
 									'next' === this.method && ( this.arg = t ),
 									g
@@ -970,32 +639,3399 @@
 						e
 					);
 				}
-				function u( t, e, r, n, o, a, i ) {
+				function s( t, e, n, r, o, a, i ) {
 					try {
 						var c = t[ a ]( i ),
 							s = c.value;
 					} catch ( t ) {
-						return void r( t );
+						return void n( t );
 					}
-					c.done ? e( s ) : Promise.resolve( s ).then( n, o );
+					c.done ? e( s ) : Promise.resolve( s ).then( r, o );
 				}
-				function l( t ) {
+				function u( t ) {
 					return function () {
 						var e = this,
-							r = arguments;
-						return new Promise( function ( n, o ) {
-							var a = t.apply( e, r );
+							n = arguments;
+						return new Promise( function ( r, o ) {
+							var a = t.apply( e, n );
 							function i( t ) {
-								u( a, n, o, i, c, 'next', t );
+								s( a, r, o, i, c, 'next', t );
 							}
 							function c( t ) {
-								u( a, n, o, i, c, 'throw', t );
+								s( a, r, o, i, c, 'throw', t );
 							}
 							i( void 0 );
 						} );
 					};
 				}
-				const p = {
+				const l = {
+					functionsModule: null,
+					allSnippets: {},
+					categories: {},
+					currentCategory: '',
+					currentSnippet: null,
+					init: function ( t ) {
+						this.functionsModule = t;
+					},
+					openLibrary: function () {
+						var t = this;
+						return u(
+							c().mark( function e() {
+								var n;
+								return c().wrap( function ( e ) {
+									for (;;)
+										switch ( ( e.prev = e.next ) ) {
+											case 0:
+												if (
+													( n =
+														document.getElementById(
+															'aie-snippets-library-modal'
+														) )
+												) {
+													e.next = 3;
+													break;
+												}
+												return e.abrupt( 'return' );
+											case 3:
+												if (
+													( ( n.style.display =
+														'flex' ),
+													( document.body.style.overflow =
+														'hidden' ),
+													0 !==
+														Object.keys(
+															t.allSnippets
+														).length )
+												) {
+													e.next = 10;
+													break;
+												}
+												return (
+													( e.next = 8 ),
+													t.loadSnippets()
+												);
+											case 8:
+												e.next = 11;
+												break;
+											case 10:
+												t.renderSnippets();
+											case 11:
+												t.bindLibraryEvents();
+											case 12:
+											case 'end':
+												return e.stop();
+										}
+								}, e );
+							} )
+						)();
+					},
+					bindLibraryEvents: function () {
+						var t = this;
+						document
+							.querySelectorAll( '.aie-category-item' )
+							.forEach( function ( e ) {
+								e.addEventListener( 'click', function ( e ) {
+									var n = e.currentTarget.dataset.category;
+									t.filterByCategory( n );
+								} );
+							} );
+						var e,
+							n = document.getElementById( 'aie-snippet-search' );
+						n &&
+							n.addEventListener( 'input', function ( n ) {
+								clearTimeout( e ),
+									( e = setTimeout( function () {
+										t.searchSnippets( n.target.value );
+									}, 300 ) );
+							} );
+						var r,
+							o,
+							a = document.getElementById(
+								'aie-snippet-preview-modal'
+							);
+						a &&
+							( null ===
+								( r = a.querySelector( '.aie-use-snippet' ) ) ||
+								void 0 === r ||
+								r.addEventListener( 'click', function () {
+									t.importSnippet( t.currentSnippet, ! 1 );
+								} ),
+							null ===
+								( o = a.querySelector(
+									'.aie-customize-snippet'
+								) ) ||
+								void 0 === o ||
+								o.addEventListener( 'click', function () {
+									t.importSnippet( t.currentSnippet, ! 0 );
+								} ) );
+					},
+					loadSnippets: function () {
+						var t = arguments,
+							e = this;
+						return u(
+							c().mark( function n() {
+								var r, o, a, i, s, u, l;
+								return c().wrap(
+									function ( n ) {
+										for (;;)
+											switch ( ( n.prev = n.next ) ) {
+												case 0:
+													if (
+														( ( o =
+															t.length > 0 &&
+															void 0 !== t[ 0 ]
+																? t[ 0 ]
+																: '' ),
+														( a =
+															document.getElementById(
+																'aie-snippets-grid'
+															) ) )
+													) {
+														n.next = 4;
+														break;
+													}
+													return n.abrupt( 'return' );
+												case 4:
+													return (
+														( a.innerHTML =
+															'\n\t\t\t<div class="aie-loading-snippets">\n\t\t\t\t<span class="spinner is-active"></span>\n\t\t\t\t<p>'.concat(
+																( null ===
+																	( r =
+																		window.wpAieData ) ||
+																void 0 === r ||
+																null ===
+																	( r =
+																		r.i18n ) ||
+																void 0 === r
+																	? void 0
+																	: r.loading ) ||
+																	'Loading snippets...',
+																'</p>\n\t\t\t</div>\n\t\t'
+															) ),
+														( n.prev = 5 ),
+														( n.next = 8 ),
+														fetch( window.ajaxurl, {
+															method: 'POST',
+															headers: {
+																'Content-Type':
+																	'application/x-www-form-urlencoded',
+															},
+															body: new URLSearchParams(
+																{
+																	action: 'aie_functions_get_snippets',
+																	nonce:
+																		( null ===
+																			( i =
+																				window.wpAieData ) ||
+																		void 0 ===
+																			i
+																			? void 0
+																			: i.nonce ) ||
+																		'',
+																	category: o,
+																}
+															),
+														} )
+													);
+												case 8:
+													return (
+														( s = n.sent ),
+														( n.next = 11 ),
+														s.json()
+													);
+												case 11:
+													if (
+														( u = n.sent ).success
+													) {
+														n.next = 14;
+														break;
+													}
+													throw new Error(
+														( null ===
+															( l = u.data ) ||
+														void 0 === l
+															? void 0
+															: l.message ) ||
+															'Failed to load snippets'
+													);
+												case 14:
+													( e.allSnippets =
+														u.data.snippets || {} ),
+														( e.categories =
+															u.data.categories ||
+															{} ),
+														e.renderCategories(),
+														e.renderSnippets(),
+														( n.next = 24 );
+													break;
+												case 20:
+													( n.prev = 20 ),
+														( n.t0 = n.catch( 5 ) ),
+														console.error(
+															'Error loading snippets:',
+															n.t0
+														),
+														( a.innerHTML =
+															'\n\t\t\t\t<div class="aie-error-message">\n\t\t\t\t\t<span class="dashicons dashicons-warning"></span>\n\t\t\t\t\t<p>'.concat(
+																n.t0.message,
+																'</p>\n\t\t\t\t</div>\n\t\t\t'
+															) );
+												case 24:
+												case 'end':
+													return n.stop();
+											}
+									},
+									n,
+									null,
+									[ [ 5, 20 ] ]
+								);
+							} )
+						)();
+					},
+					renderCategories: function () {
+						var t,
+							e = this,
+							n = document.getElementById(
+								'aie-categories-list'
+							);
+						if ( n ) {
+							var r = Object.keys( this.allSnippets ).length,
+								o = '\n\t\t\t<li class="aie-category-item '
+									.concat(
+										'' === this.currentCategory
+											? 'active'
+											: '',
+										'" data-category="">\n\t\t\t\t<span class="dashicons dashicons-category"></span>\n\t\t\t\t<span class="aie-category-name">'
+									)
+									.concat(
+										( null === ( t = window.wpAieData ) ||
+										void 0 === t ||
+										null === ( t = t.i18n ) ||
+										void 0 === t
+											? void 0
+											: t.all_snippets ) ||
+											'All Snippets',
+										'</span>\n\t\t\t\t<span class="aie-category-count">'
+									)
+									.concat( r, '</span>\n\t\t\t</li>\n\t\t' );
+							Object.entries( this.categories ).forEach(
+								function ( t ) {
+									var n = a( t, 2 ),
+										r = n[ 0 ],
+										i = n[ 1 ],
+										c = Object.values(
+											e.allSnippets
+										).filter( function ( t ) {
+											return t.category === r;
+										} ).length,
+										s = e.currentCategory === r;
+									o +=
+										'\n\t\t\t\t<li class="aie-category-item '
+											.concat(
+												s ? 'active' : '',
+												'" data-category="'
+											)
+											.concat(
+												r,
+												'">\n\t\t\t\t\t<span class="dashicons dashicons-'
+											)
+											.concat(
+												i.icon,
+												'"></span>\n\t\t\t\t\t<span class="aie-category-name">'
+											)
+											.concat(
+												i.name,
+												'</span>\n\t\t\t\t\t<span class="aie-category-count">'
+											)
+											.concat(
+												c,
+												'</span>\n\t\t\t\t</li>\n\t\t\t'
+											);
+								}
+							),
+								( n.innerHTML = o );
+						}
+					},
+					renderSnippets: function () {
+						var t = this,
+							e = document.getElementById( 'aie-snippets-grid' );
+						if ( e ) {
+							var n,
+								r = Object.entries( this.allSnippets );
+							if (
+								( this.currentCategory &&
+									( r = r.filter( function ( e ) {
+										return (
+											a( e, 2 )[ 1 ].category ===
+											t.currentCategory
+										);
+									} ) ),
+								0 !== r.length )
+							)
+								( e.innerHTML = r
+									.map( function ( e ) {
+										var n,
+											r,
+											o = a( e, 2 ),
+											i = o[ 0 ],
+											c = o[ 1 ];
+										return '\n\t\t\t<div class="aie-snippet-card" data-snippet-key="'
+											.concat(
+												i,
+												'">\n\t\t\t\t<div class="aie-snippet-header">\n\t\t\t\t\t<h3 class="aie-snippet-name">'
+											)
+											.concat(
+												t.escapeHtml( c.name ),
+												'</h3>\n\t\t\t\t\t<span class="aie-snippet-category-badge">'
+											)
+											.concat(
+												t.getCategoryLabel(
+													c.category
+												),
+												'</span>\n\t\t\t\t</div>\n\t\t\t\t<p class="aie-snippet-description">'
+											)
+											.concat(
+												t.escapeHtml( c.description ),
+												'</p>\n\t\t\t\t<div class="aie-snippet-tags">\n\t\t\t\t\t'
+											)
+											.concat(
+												c.tags
+													? c.tags
+															.map(
+																function ( e ) {
+																	return '<span class="aie-tag">'.concat(
+																		t.escapeHtml(
+																			e
+																		),
+																		'</span>'
+																	);
+																}
+															)
+															.join( '' )
+													: '',
+												'\n\t\t\t\t</div>\n\t\t\t\t<div class="aie-snippet-actions">\n\t\t\t\t\t<button type="button" class="button button-small aie-preview-snippet" data-snippet-key="'
+											)
+											.concat(
+												i,
+												'">\n\t\t\t\t\t\t<span class="dashicons dashicons-visibility"></span>\n\t\t\t\t\t\t'
+											)
+											.concat(
+												( null ===
+													( n = window.wpAieData ) ||
+												void 0 === n ||
+												null === ( n = n.i18n ) ||
+												void 0 === n
+													? void 0
+													: n.preview ) || 'Preview',
+												'\n\t\t\t\t\t</button>\n\t\t\t\t\t<button type="button" class="button button-primary button-small aie-quick-import" data-snippet-key="'
+											)
+											.concat(
+												i,
+												'">\n\t\t\t\t\t\t<span class="dashicons dashicons-plus"></span>\n\t\t\t\t\t\t'
+											)
+											.concat(
+												( null ===
+													( r = window.wpAieData ) ||
+												void 0 === r ||
+												null === ( r = r.i18n ) ||
+												void 0 === r
+													? void 0
+													: r.use ) || 'Use',
+												'\n\t\t\t\t\t</button>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t'
+											);
+									} )
+									.join( '' ) ),
+									e
+										.querySelectorAll(
+											'.aie-preview-snippet'
+										)
+										.forEach( function ( e ) {
+											e.addEventListener(
+												'click',
+												function ( e ) {
+													var n =
+														e.currentTarget.dataset
+															.snippetKey;
+													t.previewSnippet( n );
+												}
+											);
+										} ),
+									e
+										.querySelectorAll( '.aie-quick-import' )
+										.forEach( function ( e ) {
+											e.addEventListener(
+												'click',
+												function ( e ) {
+													var n =
+														e.currentTarget.dataset
+															.snippetKey;
+													t.importSnippet( n, ! 1 );
+												}
+											);
+										} );
+							else
+								e.innerHTML =
+									'\n\t\t\t\t<div class="aie-no-snippets">\n\t\t\t\t\t<span class="dashicons dashicons-info"></span>\n\t\t\t\t\t<p>'.concat(
+										( null === ( n = window.wpAieData ) ||
+										void 0 === n ||
+										null === ( n = n.i18n ) ||
+										void 0 === n
+											? void 0
+											: n.no_snippets ) ||
+											'No snippets found',
+										'</p>\n\t\t\t\t</div>\n\t\t\t'
+									);
+						}
+					},
+					filterByCategory: function ( t ) {
+						( this.currentCategory = t ),
+							document
+								.querySelectorAll( '.aie-category-item' )
+								.forEach( function ( e ) {
+									e.classList.toggle(
+										'active',
+										e.dataset.category === t
+									);
+								} ),
+							this.renderSnippets();
+					},
+					searchSnippets: function ( t ) {
+						var n = this;
+						return u(
+							c().mark( function r() {
+								var o, a, i, s, u, l, p;
+								return c().wrap(
+									function ( r ) {
+										for (;;)
+											switch ( ( r.prev = r.next ) ) {
+												case 0:
+													if (
+														( a =
+															document.getElementById(
+																'aie-snippets-grid'
+															) )
+													) {
+														r.next = 3;
+														break;
+													}
+													return r.abrupt( 'return' );
+												case 3:
+													if ( t.trim() ) {
+														r.next = 6;
+														break;
+													}
+													return (
+														n.renderSnippets(),
+														r.abrupt( 'return' )
+													);
+												case 6:
+													return (
+														( a.innerHTML =
+															'\n\t\t\t<div class="aie-loading-snippets">\n\t\t\t\t<span class="spinner is-active"></span>\n\t\t\t\t<p>'.concat(
+																( null ===
+																	( o =
+																		window.wpAieData ) ||
+																void 0 === o ||
+																null ===
+																	( o =
+																		o.i18n ) ||
+																void 0 === o
+																	? void 0
+																	: o.searching ) ||
+																	'Searching...',
+																'</p>\n\t\t\t</div>\n\t\t'
+															) ),
+														( r.prev = 7 ),
+														( r.next = 10 ),
+														fetch( window.ajaxurl, {
+															method: 'POST',
+															headers: {
+																'Content-Type':
+																	'application/x-www-form-urlencoded',
+															},
+															body: new URLSearchParams(
+																{
+																	action: 'aie_functions_search',
+																	nonce:
+																		( null ===
+																			( i =
+																				window.wpAieData ) ||
+																		void 0 ===
+																			i
+																			? void 0
+																			: i.nonce ) ||
+																		'',
+																	query: t,
+																}
+															),
+														} )
+													);
+												case 10:
+													return (
+														( s = r.sent ),
+														( r.next = 13 ),
+														s.json()
+													);
+												case 13:
+													if (
+														( u = r.sent ).success
+													) {
+														r.next = 16;
+														break;
+													}
+													throw new Error(
+														( null ===
+															( l = u.data ) ||
+														void 0 === l
+															? void 0
+															: l.message ) ||
+															'Search failed'
+													);
+												case 16:
+													( p = n.allSnippets ),
+														( n.allSnippets =
+															u.data.snippets ||
+															{} ),
+														( n.currentCategory =
+															'' ),
+														n.renderSnippets(),
+														( n.allSnippets = p ),
+														( r.next = 27 );
+													break;
+												case 23:
+													( r.prev = 23 ),
+														( r.t0 = r.catch( 7 ) ),
+														console.error(
+															'Error searching snippets:',
+															r.t0
+														),
+														e( r.t0.message );
+												case 27:
+												case 'end':
+													return r.stop();
+											}
+									},
+									r,
+									null,
+									[ [ 7, 23 ] ]
+								);
+							} )
+						)();
+					},
+					previewSnippet: function ( t ) {
+						var e = this.allSnippets[ t ];
+						if ( e ) {
+							this.currentSnippet = t;
+							var n = document.getElementById(
+								'aie-snippet-preview-modal'
+							);
+							n &&
+								( ( n.querySelector(
+									'.aie-snippet-title'
+								).textContent = e.name ),
+								( n.querySelector(
+									'.aie-snippet-description'
+								).textContent = e.description ),
+								( n.querySelector(
+									'.aie-snippet-category'
+								).textContent = this.getCategoryLabel(
+									e.category
+								) ),
+								( n.querySelector(
+									'.aie-snippet-code'
+								).textContent = e.code ),
+								e.tags && e.tags.length > 0
+									? ( n.querySelector(
+											'.aie-snippet-tags'
+									  ).textContent = e.tags.join( ', ' ) )
+									: ( n.querySelector(
+											'.aie-snippet-tags'
+									  ).textContent = 'None' ),
+								e.example &&
+									( ( n.querySelector(
+										'.aie-example-input-value'
+									).textContent =
+										void 0 !== e.example.input
+											? e.example.input
+											: 'N/A' ),
+									( n.querySelector(
+										'.aie-example-output-value'
+									).textContent =
+										void 0 !== e.example.output
+											? e.example.output
+											: 'N/A' ) ),
+								( n.style.display = 'flex' ) );
+						}
+					},
+					importSnippet: function ( n ) {
+						var r = arguments,
+							o = this;
+						return u(
+							c().mark( function a() {
+								var i, s, u, l, p, d, f, h, v, y, m, g;
+								return c().wrap(
+									function ( a ) {
+										for (;;)
+											switch ( ( a.prev = a.next ) ) {
+												case 0:
+													if (
+														( ( i =
+															r.length > 1 &&
+															void 0 !== r[ 1 ] &&
+															r[ 1 ] ),
+														( s =
+															o.allSnippets[
+																n
+															] ) )
+													) {
+														a.next = 4;
+														break;
+													}
+													return a.abrupt( 'return' );
+												case 4:
+													if ( ! i ) {
+														a.next = 14;
+														break;
+													}
+													( u =
+														document.getElementById(
+															'aie-snippets-library-modal'
+														) ),
+														( l =
+															document.getElementById(
+																'aie-snippet-preview-modal'
+															) ),
+														u &&
+															( u.style.display =
+																'none' ),
+														l &&
+															( l.style.display =
+																'none' ),
+														( document.body.style.overflow =
+															'' ),
+														( p =
+															document.getElementById(
+																'aie-function-editor-modal'
+															) ) &&
+															( ( document.getElementById(
+																'aie-function-id'
+															).value = '' ),
+															( document.getElementById(
+																'aie-function-name'
+															).value = s.name ),
+															( document.getElementById(
+																'aie-function-description'
+															).value =
+																s.description ),
+															( document.getElementById(
+																'aie-function-category'
+															).value =
+																s.category ),
+															( document.getElementById(
+																'aie-function-code'
+															).value = s.code ),
+															( document.getElementById(
+																'aie-function-status'
+															).value =
+																'active' ),
+															( document.querySelector(
+																'.aie-modal-title'
+															).textContent =
+																'Customize Function' ),
+															( p.style.display =
+																'flex' ),
+															( document.body.style.overflow =
+																'hidden' ) ),
+														( a.next = 36 );
+													break;
+												case 14:
+													return (
+														( a.prev = 14 ),
+														( a.next = 17 ),
+														fetch( window.ajaxurl, {
+															method: 'POST',
+															headers: {
+																'Content-Type':
+																	'application/x-www-form-urlencoded',
+															},
+															body: new URLSearchParams(
+																{
+																	action: 'aie_functions_import',
+																	nonce:
+																		( null ===
+																			( d =
+																				window.wpAieData ) ||
+																		void 0 ===
+																			d
+																			? void 0
+																			: d.nonce ) ||
+																		'',
+																	snippet_key:
+																		n,
+																}
+															),
+														} )
+													);
+												case 17:
+													return (
+														( h = a.sent ),
+														( a.next = 20 ),
+														h.json()
+													);
+												case 20:
+													if (
+														( v = a.sent ).success
+													) {
+														a.next = 23;
+														break;
+													}
+													throw new Error(
+														( null ===
+															( y = v.data ) ||
+														void 0 === y
+															? void 0
+															: y.message ) ||
+															'Import failed'
+													);
+												case 23:
+													t(
+														( null ===
+															( f =
+																window.wpAieData ) ||
+														void 0 === f ||
+														null ===
+															( f = f.i18n ) ||
+														void 0 === f
+															? void 0
+															: f.snippet_imported ) ||
+															'Snippet imported successfully'
+													),
+														( m =
+															document.getElementById(
+																'aie-snippets-library-modal'
+															) ),
+														( g =
+															document.getElementById(
+																'aie-snippet-preview-modal'
+															) ),
+														m &&
+															( m.style.display =
+																'none' ),
+														g &&
+															( g.style.display =
+																'none' ),
+														( document.body.style.overflow =
+															'' ),
+														o.functionsModule &&
+															o.functionsModule.loadFunctions(),
+														( a.next = 36 );
+													break;
+												case 32:
+													( a.prev = 32 ),
+														( a.t0 =
+															a.catch( 14 ) ),
+														console.error(
+															'Error importing snippet:',
+															a.t0
+														),
+														e( a.t0.message );
+												case 36:
+												case 'end':
+													return a.stop();
+											}
+									},
+									a,
+									null,
+									[ [ 14, 32 ] ]
+								);
+							} )
+						)();
+					},
+					getCategoryLabel: function ( t ) {
+						return (
+							{
+								string: 'String Operations',
+								date: 'Date & Time',
+								numeric: 'Numeric Operations',
+								html: 'HTML Operations',
+								wordpress: 'WordPress',
+								validation: 'Validation',
+								advanced: 'Advanced',
+								custom: 'Custom',
+							}[ t ] || t
+						);
+					},
+					escapeHtml: function ( t ) {
+						var e = document.createElement( 'div' );
+						return ( e.textContent = t ), e.innerHTML;
+					},
+				};
+				function p( t ) {
+					return (
+						( p =
+							'function' == typeof Symbol &&
+							'symbol' == typeof Symbol.iterator
+								? function ( t ) {
+										return typeof t;
+								  }
+								: function ( t ) {
+										return t &&
+											'function' == typeof Symbol &&
+											t.constructor === Symbol &&
+											t !== Symbol.prototype
+											? 'symbol'
+											: typeof t;
+								  } ),
+						p( t )
+					);
+				}
+				function d() {
+					d = function () {
+						return e;
+					};
+					var t,
+						e = {},
+						n = Object.prototype,
+						r = n.hasOwnProperty,
+						o =
+							Object.defineProperty ||
+							function ( t, e, n ) {
+								t[ e ] = n.value;
+							},
+						a = 'function' == typeof Symbol ? Symbol : {},
+						i = a.iterator || '@@iterator',
+						c = a.asyncIterator || '@@asyncIterator',
+						s = a.toStringTag || '@@toStringTag';
+					function u( t, e, n ) {
+						return (
+							Object.defineProperty( t, e, {
+								value: n,
+								enumerable: ! 0,
+								configurable: ! 0,
+								writable: ! 0,
+							} ),
+							t[ e ]
+						);
+					}
+					try {
+						u( {}, '' );
+					} catch ( t ) {
+						u = function ( t, e, n ) {
+							return ( t[ e ] = n );
+						};
+					}
+					function l( t, e, n, r ) {
+						var a = e && e.prototype instanceof w ? e : w,
+							i = Object.create( a.prototype ),
+							c = new O( r || [] );
+						return o( i, '_invoke', { value: I( t, n, c ) } ), i;
+					}
+					function f( t, e, n ) {
+						try {
+							return { type: 'normal', arg: t.call( e, n ) };
+						} catch ( t ) {
+							return { type: 'throw', arg: t };
+						}
+					}
+					e.wrap = l;
+					var h = 'suspendedStart',
+						v = 'suspendedYield',
+						y = 'executing',
+						m = 'completed',
+						g = {};
+					function w() {}
+					function b() {}
+					function x() {}
+					var j = {};
+					u( j, i, function () {
+						return this;
+					} );
+					var E = Object.getPrototypeOf,
+						S = E && E( E( C( [] ) ) );
+					S && S !== n && r.call( S, i ) && ( j = S );
+					var _ = ( x.prototype = w.prototype = Object.create( j ) );
+					function L( t ) {
+						[ 'next', 'throw', 'return' ].forEach( function ( e ) {
+							u( t, e, function ( t ) {
+								return this._invoke( e, t );
+							} );
+						} );
+					}
+					function k( t, e ) {
+						function n( o, a, i, c ) {
+							var s = f( t[ o ], t, a );
+							if ( 'throw' !== s.type ) {
+								var u = s.arg,
+									l = u.value;
+								return l &&
+									'object' == p( l ) &&
+									r.call( l, '__await' )
+									? e.resolve( l.__await ).then(
+											function ( t ) {
+												n( 'next', t, i, c );
+											},
+											function ( t ) {
+												n( 'throw', t, i, c );
+											}
+									  )
+									: e.resolve( l ).then(
+											function ( t ) {
+												( u.value = t ), i( u );
+											},
+											function ( t ) {
+												return n( 'throw', t, i, c );
+											}
+									  );
+							}
+							c( s.arg );
+						}
+						var a;
+						o( this, '_invoke', {
+							value: function ( t, r ) {
+								function o() {
+									return new e( function ( e, o ) {
+										n( t, r, e, o );
+									} );
+								}
+								return ( a = a ? a.then( o, o ) : o() );
+							},
+						} );
+					}
+					function I( e, n, r ) {
+						var o = h;
+						return function ( a, i ) {
+							if ( o === y )
+								throw Error( 'Generator is already running' );
+							if ( o === m ) {
+								if ( 'throw' === a ) throw i;
+								return { value: t, done: ! 0 };
+							}
+							for ( r.method = a, r.arg = i; ;  ) {
+								var c = r.delegate;
+								if ( c ) {
+									var s = Q( c, r );
+									if ( s ) {
+										if ( s === g ) continue;
+										return s;
+									}
+								}
+								if ( 'next' === r.method )
+									r.sent = r._sent = r.arg;
+								else if ( 'throw' === r.method ) {
+									if ( o === h ) throw ( ( o = m ), r.arg );
+									r.dispatchException( r.arg );
+								} else
+									'return' === r.method &&
+										r.abrupt( 'return', r.arg );
+								o = y;
+								var u = f( e, n, r );
+								if ( 'normal' === u.type ) {
+									if (
+										( ( o = r.done ? m : v ), u.arg === g )
+									)
+										continue;
+									return { value: u.arg, done: r.done };
+								}
+								'throw' === u.type &&
+									( ( o = m ),
+									( r.method = 'throw' ),
+									( r.arg = u.arg ) );
+							}
+						};
+					}
+					function Q( e, n ) {
+						var r = n.method,
+							o = e.iterator[ r ];
+						if ( o === t )
+							return (
+								( n.delegate = null ),
+								( 'throw' === r &&
+									e.iterator.return &&
+									( ( n.method = 'return' ),
+									( n.arg = t ),
+									Q( e, n ),
+									'throw' === n.method ) ) ||
+									( 'return' !== r &&
+										( ( n.method = 'throw' ),
+										( n.arg = new TypeError(
+											"The iterator does not provide a '" +
+												r +
+												"' method"
+										) ) ) ),
+								g
+							);
+						var a = f( o, e.iterator, n.arg );
+						if ( 'throw' === a.type )
+							return (
+								( n.method = 'throw' ),
+								( n.arg = a.arg ),
+								( n.delegate = null ),
+								g
+							);
+						var i = a.arg;
+						return i
+							? i.done
+								? ( ( n[ e.resultName ] = i.value ),
+								  ( n.next = e.nextLoc ),
+								  'return' !== n.method &&
+										( ( n.method = 'next' ),
+										( n.arg = t ) ),
+								  ( n.delegate = null ),
+								  g )
+								: i
+							: ( ( n.method = 'throw' ),
+							  ( n.arg = new TypeError(
+									'iterator result is not an object'
+							  ) ),
+							  ( n.delegate = null ),
+							  g );
+					}
+					function P( t ) {
+						var e = { tryLoc: t[ 0 ] };
+						1 in t && ( e.catchLoc = t[ 1 ] ),
+							2 in t &&
+								( ( e.finallyLoc = t[ 2 ] ),
+								( e.afterLoc = t[ 3 ] ) ),
+							this.tryEntries.push( e );
+					}
+					function F( t ) {
+						var e = t.completion || {};
+						( e.type = 'normal' ),
+							delete e.arg,
+							( t.completion = e );
+					}
+					function O( t ) {
+						( this.tryEntries = [ { tryLoc: 'root' } ] ),
+							t.forEach( P, this ),
+							this.reset( ! 0 );
+					}
+					function C( e ) {
+						if ( e || '' === e ) {
+							var n = e[ i ];
+							if ( n ) return n.call( e );
+							if ( 'function' == typeof e.next ) return e;
+							if ( ! isNaN( e.length ) ) {
+								var o = -1,
+									a = function n() {
+										for ( ; ++o < e.length;  )
+											if ( r.call( e, o ) )
+												return (
+													( n.value = e[ o ] ),
+													( n.done = ! 1 ),
+													n
+												);
+										return (
+											( n.value = t ), ( n.done = ! 0 ), n
+										);
+									};
+								return ( a.next = a );
+							}
+						}
+						throw new TypeError( p( e ) + ' is not iterable' );
+					}
+					return (
+						( b.prototype = x ),
+						o( _, 'constructor', { value: x, configurable: ! 0 } ),
+						o( x, 'constructor', { value: b, configurable: ! 0 } ),
+						( b.displayName = u( x, s, 'GeneratorFunction' ) ),
+						( e.isGeneratorFunction = function ( t ) {
+							var e = 'function' == typeof t && t.constructor;
+							return (
+								!! e &&
+								( e === b ||
+									'GeneratorFunction' ===
+										( e.displayName || e.name ) )
+							);
+						} ),
+						( e.mark = function ( t ) {
+							return (
+								Object.setPrototypeOf
+									? Object.setPrototypeOf( t, x )
+									: ( ( t.__proto__ = x ),
+									  u( t, s, 'GeneratorFunction' ) ),
+								( t.prototype = Object.create( _ ) ),
+								t
+							);
+						} ),
+						( e.awrap = function ( t ) {
+							return { __await: t };
+						} ),
+						L( k.prototype ),
+						u( k.prototype, c, function () {
+							return this;
+						} ),
+						( e.AsyncIterator = k ),
+						( e.async = function ( t, n, r, o, a ) {
+							void 0 === a && ( a = Promise );
+							var i = new k( l( t, n, r, o ), a );
+							return e.isGeneratorFunction( n )
+								? i
+								: i.next().then( function ( t ) {
+										return t.done ? t.value : i.next();
+								  } );
+						} ),
+						L( _ ),
+						u( _, s, 'Generator' ),
+						u( _, i, function () {
+							return this;
+						} ),
+						u( _, 'toString', function () {
+							return '[object Generator]';
+						} ),
+						( e.keys = function ( t ) {
+							var e = Object( t ),
+								n = [];
+							for ( var r in e ) n.push( r );
+							return (
+								n.reverse(),
+								function t() {
+									for ( ; n.length;  ) {
+										var r = n.pop();
+										if ( r in e )
+											return (
+												( t.value = r ),
+												( t.done = ! 1 ),
+												t
+											);
+									}
+									return ( t.done = ! 0 ), t;
+								}
+							);
+						} ),
+						( e.values = C ),
+						( O.prototype = {
+							constructor: O,
+							reset: function ( e ) {
+								if (
+									( ( this.prev = 0 ),
+									( this.next = 0 ),
+									( this.sent = this._sent = t ),
+									( this.done = ! 1 ),
+									( this.delegate = null ),
+									( this.method = 'next' ),
+									( this.arg = t ),
+									this.tryEntries.forEach( F ),
+									! e )
+								)
+									for ( var n in this )
+										't' === n.charAt( 0 ) &&
+											r.call( this, n ) &&
+											! isNaN( +n.slice( 1 ) ) &&
+											( this[ n ] = t );
+							},
+							stop: function () {
+								this.done = ! 0;
+								var t = this.tryEntries[ 0 ].completion;
+								if ( 'throw' === t.type ) throw t.arg;
+								return this.rval;
+							},
+							dispatchException: function ( e ) {
+								if ( this.done ) throw e;
+								var n = this;
+								function o( r, o ) {
+									return (
+										( c.type = 'throw' ),
+										( c.arg = e ),
+										( n.next = r ),
+										o &&
+											( ( n.method = 'next' ),
+											( n.arg = t ) ),
+										!! o
+									);
+								}
+								for (
+									var a = this.tryEntries.length - 1;
+									a >= 0;
+									--a
+								) {
+									var i = this.tryEntries[ a ],
+										c = i.completion;
+									if ( 'root' === i.tryLoc )
+										return o( 'end' );
+									if ( i.tryLoc <= this.prev ) {
+										var s = r.call( i, 'catchLoc' ),
+											u = r.call( i, 'finallyLoc' );
+										if ( s && u ) {
+											if ( this.prev < i.catchLoc )
+												return o( i.catchLoc, ! 0 );
+											if ( this.prev < i.finallyLoc )
+												return o( i.finallyLoc );
+										} else if ( s ) {
+											if ( this.prev < i.catchLoc )
+												return o( i.catchLoc, ! 0 );
+										} else {
+											if ( ! u )
+												throw Error(
+													'try statement without catch or finally'
+												);
+											if ( this.prev < i.finallyLoc )
+												return o( i.finallyLoc );
+										}
+									}
+								}
+							},
+							abrupt: function ( t, e ) {
+								for (
+									var n = this.tryEntries.length - 1;
+									n >= 0;
+									--n
+								) {
+									var o = this.tryEntries[ n ];
+									if (
+										o.tryLoc <= this.prev &&
+										r.call( o, 'finallyLoc' ) &&
+										this.prev < o.finallyLoc
+									) {
+										var a = o;
+										break;
+									}
+								}
+								a &&
+									( 'break' === t || 'continue' === t ) &&
+									a.tryLoc <= e &&
+									e <= a.finallyLoc &&
+									( a = null );
+								var i = a ? a.completion : {};
+								return (
+									( i.type = t ),
+									( i.arg = e ),
+									a
+										? ( ( this.method = 'next' ),
+										  ( this.next = a.finallyLoc ),
+										  g )
+										: this.complete( i )
+								);
+							},
+							complete: function ( t, e ) {
+								if ( 'throw' === t.type ) throw t.arg;
+								return (
+									'break' === t.type || 'continue' === t.type
+										? ( this.next = t.arg )
+										: 'return' === t.type
+										? ( ( this.rval = this.arg = t.arg ),
+										  ( this.method = 'return' ),
+										  ( this.next = 'end' ) )
+										: 'normal' === t.type &&
+										  e &&
+										  ( this.next = e ),
+									g
+								);
+							},
+							finish: function ( t ) {
+								for (
+									var e = this.tryEntries.length - 1;
+									e >= 0;
+									--e
+								) {
+									var n = this.tryEntries[ e ];
+									if ( n.finallyLoc === t )
+										return (
+											this.complete(
+												n.completion,
+												n.afterLoc
+											),
+											F( n ),
+											g
+										);
+								}
+							},
+							catch: function ( t ) {
+								for (
+									var e = this.tryEntries.length - 1;
+									e >= 0;
+									--e
+								) {
+									var n = this.tryEntries[ e ];
+									if ( n.tryLoc === t ) {
+										var r = n.completion;
+										if ( 'throw' === r.type ) {
+											var o = r.arg;
+											F( n );
+										}
+										return o;
+									}
+								}
+								throw Error( 'illegal catch attempt' );
+							},
+							delegateYield: function ( e, n, r ) {
+								return (
+									( this.delegate = {
+										iterator: C( e ),
+										resultName: n,
+										nextLoc: r,
+									} ),
+									'next' === this.method && ( this.arg = t ),
+									g
+								);
+							},
+						} ),
+						e
+					);
+				}
+				function f( t, e, n, r, o, a, i ) {
+					try {
+						var c = t[ a ]( i ),
+							s = c.value;
+					} catch ( t ) {
+						return void n( t );
+					}
+					c.done ? e( s ) : Promise.resolve( s ).then( r, o );
+				}
+				function h( t ) {
+					return function () {
+						var e = this,
+							n = arguments;
+						return new Promise( function ( r, o ) {
+							var a = t.apply( e, n );
+							function i( t ) {
+								f( a, r, o, i, c, 'next', t );
+							}
+							function c( t ) {
+								f( a, r, o, i, c, 'throw', t );
+							}
+							i( void 0 );
+						} );
+					};
+				}
+				var v = {
+					currentPage: 1,
+					perPage: 20,
+					totalPages: 1,
+					totalItems: 0,
+					filters: { status: '', category: '', search: '' },
+					init: function () {
+						document.getElementById( 'wp-aie-functions' ) &&
+							( this.bindEvents(),
+							this.loadFunctions(),
+							l.init( this ) );
+					},
+					bindEvents: function () {
+						var t,
+							e,
+							n,
+							r,
+							o,
+							a,
+							i,
+							c,
+							s,
+							u,
+							p,
+							d = this;
+						null ===
+							( t =
+								document.querySelector(
+									'.aie-new-function'
+								) ) ||
+							void 0 === t ||
+							t.addEventListener( 'click', function () {
+								d.openEditorModal();
+							} ),
+							null ===
+								( e = document.querySelector(
+									'.aie-browse-library'
+								) ) ||
+								void 0 === e ||
+								e.addEventListener( 'click', function () {
+									l.openLibrary();
+								} ),
+							null ===
+								( n =
+									document.getElementById(
+										'aie-filter-status'
+									) ) ||
+								void 0 === n ||
+								n.addEventListener( 'change', function ( t ) {
+									( d.filters.status = t.target.value ),
+										( d.currentPage = 1 ),
+										d.loadFunctions();
+								} ),
+							null ===
+								( r = document.getElementById(
+									'aie-filter-category'
+								) ) ||
+								void 0 === r ||
+								r.addEventListener( 'change', function ( t ) {
+									( d.filters.category = t.target.value ),
+										( d.currentPage = 1 ),
+										d.loadFunctions();
+								} ),
+							null ===
+								( o =
+									document.getElementById(
+										'aie-filter-search'
+									) ) ||
+								void 0 === o ||
+								o.addEventListener( 'input', function ( t ) {
+									clearTimeout( p ),
+										( p = setTimeout( function () {
+											( d.filters.search =
+												t.target.value ),
+												( d.currentPage = 1 ),
+												d.loadFunctions();
+										}, 500 ) );
+								} ),
+							null ===
+								( a =
+									document.querySelector(
+										'.aie-filter-clear'
+									) ) ||
+								void 0 === a ||
+								a.addEventListener( 'click', function () {
+									d.clearFilters();
+								} ),
+							null ===
+								( i =
+									document.querySelector(
+										'.aie-prev-page'
+									) ) ||
+								void 0 === i ||
+								i.addEventListener( 'click', function () {
+									d.currentPage > 1 &&
+										( d.currentPage--, d.loadFunctions() );
+								} ),
+							null ===
+								( c =
+									document.querySelector(
+										'.aie-next-page'
+									) ) ||
+								void 0 === c ||
+								c.addEventListener( 'click', function () {
+									d.currentPage < d.totalPages &&
+										( d.currentPage++, d.loadFunctions() );
+								} ),
+							document
+								.querySelectorAll(
+									'.aie-modal-close, .aie-modal-cancel'
+								)
+								.forEach( function ( t ) {
+									t.addEventListener(
+										'click',
+										function ( t ) {
+											var e =
+												t.target.closest(
+													'.aie-modal'
+												);
+											e && d.closeModal( e );
+										}
+									);
+								} ),
+							null ===
+								( s =
+									document.querySelector(
+										'.aie-save-function'
+									) ) ||
+								void 0 === s ||
+								s.addEventListener( 'click', function () {
+									d.saveFunction();
+								} ),
+							null ===
+								( u =
+									document.querySelector(
+										'.aie-test-function'
+									) ) ||
+								void 0 === u ||
+								u.addEventListener( 'click', function () {
+									d.testFunction();
+								} ),
+							document
+								.querySelectorAll( '.aie-modal-backdrop' )
+								.forEach( function ( t ) {
+									t.addEventListener(
+										'click',
+										function ( t ) {
+											var e =
+												t.target.closest(
+													'.aie-modal'
+												);
+											e && d.closeModal( e );
+										}
+									);
+								} );
+					},
+					loadFunctions: function () {
+						var t = this;
+						return h(
+							d().mark( function e() {
+								var n, r, o, a, i, c;
+								return d().wrap(
+									function ( e ) {
+										for (;;)
+											switch ( ( e.prev = e.next ) ) {
+												case 0:
+													if (
+														( r =
+															document.getElementById(
+																'aie-functions-tbody'
+															) )
+													) {
+														e.next = 3;
+														break;
+													}
+													return e.abrupt( 'return' );
+												case 3:
+													return (
+														( r.innerHTML =
+															'\n\t\t\t<tr class="aie-loading-row">\n\t\t\t\t<td colspan="7" style="text-align:center;">\n\t\t\t\t\t<span class="spinner is-active"></span>\n\t\t\t\t\t'.concat(
+																( null ===
+																	( n =
+																		window.wpAieData ) ||
+																void 0 === n ||
+																null ===
+																	( n =
+																		n.i18n ) ||
+																void 0 === n
+																	? void 0
+																	: n.loading ) ||
+																	'Loading...',
+																'\n\t\t\t\t</td>\n\t\t\t</tr>\n\t\t'
+															) ),
+														( e.prev = 4 ),
+														( e.next = 7 ),
+														fetch( window.ajaxurl, {
+															method: 'POST',
+															headers: {
+																'Content-Type':
+																	'application/x-www-form-urlencoded',
+															},
+															body: new URLSearchParams(
+																{
+																	action: 'aie_functions_get_all',
+																	nonce:
+																		( null ===
+																			( o =
+																				window.wpAieData ) ||
+																		void 0 ===
+																			o
+																			? void 0
+																			: o.nonce ) ||
+																		'',
+																	status: t
+																		.filters
+																		.status,
+																	category:
+																		t
+																			.filters
+																			.category,
+																	search: t
+																		.filters
+																		.search,
+																	page: t.currentPage,
+																	per_page:
+																		t.perPage,
+																}
+															),
+														} )
+													);
+												case 7:
+													return (
+														( a = e.sent ),
+														( e.next = 10 ),
+														a.json()
+													);
+												case 10:
+													if (
+														( i = e.sent ).success
+													) {
+														e.next = 13;
+														break;
+													}
+													throw new Error(
+														( null ===
+															( c = i.data ) ||
+														void 0 === c
+															? void 0
+															: c.message ) ||
+															'Failed to load functions'
+													);
+												case 13:
+													( t.totalPages =
+														i.data.total_pages ||
+														1 ),
+														( t.totalItems =
+															i.data.total || 0 ),
+														t.renderTable(
+															i.data.functions ||
+																[]
+														),
+														t.updatePagination(),
+														( e.next = 23 );
+													break;
+												case 19:
+													( e.prev = 19 ),
+														( e.t0 = e.catch( 4 ) ),
+														console.error(
+															'Error loading functions:',
+															e.t0
+														),
+														( r.innerHTML =
+															'\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan="7" style="text-align:center; color:#dc3232;">\n\t\t\t\t\t\t<span class="dashicons dashicons-warning"></span>\n\t\t\t\t\t\t'.concat(
+																e.t0.message,
+																'\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t'
+															) );
+												case 23:
+												case 'end':
+													return e.stop();
+											}
+									},
+									e,
+									null,
+									[ [ 4, 19 ] ]
+								);
+							} )
+						)();
+					},
+					renderTable: function ( t ) {
+						var e,
+							r = this,
+							o = document.getElementById(
+								'aie-functions-tbody'
+							);
+						o &&
+							( 0 !== t.length
+								? ( ( o.innerHTML = t
+										.map( function ( t ) {
+											return '\n\t\t\t<tr data-function-id="'
+												.concat(
+													t.id,
+													'">\n\t\t\t\t<td class="column-name">\n\t\t\t\t\t<strong>'
+												)
+												.concat(
+													r.escapeHtml( t.name ),
+													'</strong>\n\t\t\t\t</td>\n\t\t\t\t<td class="column-description">\n\t\t\t\t\t'
+												)
+												.concat(
+													t.description
+														? r.escapeHtml(
+																t.description
+														  )
+														: '<em style="color:#999;">No description</em>',
+													'\n\t\t\t\t</td>\n\t\t\t\t<td class="column-category">\n\t\t\t\t\t'
+												)
+												.concat(
+													r.getCategoryLabel(
+														t.category
+													),
+													'\n\t\t\t\t</td>\n\t\t\t\t<td class="column-source">\n\t\t\t\t\t'
+												)
+												.concat(
+													r.getSourceBadge(
+														t.source
+													),
+													'\n\t\t\t\t</td>\n\t\t\t\t<td class="column-status">\n\t\t\t\t\t'
+												)
+												.concat(
+													r.getStatusBadge(
+														t.status
+													),
+													'\n\t\t\t\t</td>\n\t\t\t\t<td class="column-usage">\n\t\t\t\t\t'
+												)
+												.concat(
+													t.usage_count || 0,
+													'\n\t\t\t\t</td>\n\t\t\t\t<td class="column-actions">\n\t\t\t\t\t<button type="button" class="button button-small aie-edit-function" data-id="'
+												)
+												.concat(
+													t.id,
+													'" title="Edit">\n\t\t\t\t\t\t<span class="dashicons dashicons-edit"></span>\n\t\t\t\t\t</button>\n\t\t\t\t\t<button type="button" class="button button-small aie-delete-function" data-id="'
+												)
+												.concat(
+													t.id,
+													'" title="Delete">\n\t\t\t\t\t\t<span class="dashicons dashicons-trash"></span>\n\t\t\t\t\t</button>\n\t\t\t\t</td>\n\t\t\t</tr>\n\t\t'
+												);
+										} )
+										.join( '' ) ),
+								  o
+										.querySelectorAll(
+											'.aie-edit-function'
+										)
+										.forEach( function ( t ) {
+											t.addEventListener(
+												'click',
+												function ( t ) {
+													var e =
+														t.currentTarget.dataset
+															.id;
+													r.openEditorModal( e );
+												}
+											);
+										} ),
+								  o
+										.querySelectorAll(
+											'.aie-delete-function'
+										)
+										.forEach( function ( t ) {
+											t.addEventListener(
+												'click',
+												( function () {
+													var t = h(
+														d().mark(
+															function t( e ) {
+																var o, a;
+																return d().wrap(
+																	function (
+																		t
+																	) {
+																		for (;;)
+																			switch (
+																				( t.prev =
+																					t.next )
+																			) {
+																				case 0:
+																					return (
+																						( a =
+																							e
+																								.currentTarget
+																								.dataset
+																								.id ),
+																						( t.next = 3 ),
+																						n(
+																							( null ===
+																								( o =
+																									window.wpAieData ) ||
+																							void 0 ===
+																								o ||
+																							null ===
+																								( o =
+																									o.i18n ) ||
+																							void 0 ===
+																								o
+																								? void 0
+																								: o.confirm_delete ) ||
+																								'Are you sure you want to delete this function?'
+																						)
+																					);
+																				case 3:
+																					t.sent &&
+																						r.deleteFunction(
+																							a
+																						);
+																				case 5:
+																				case 'end':
+																					return t.stop();
+																			}
+																	},
+																	t
+																);
+															}
+														)
+													);
+													return function ( e ) {
+														return t.apply(
+															this,
+															arguments
+														);
+													};
+												} )()
+											);
+										} ) )
+								: ( o.innerHTML =
+										'\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan="7" style="text-align:center; padding:40px;">\n\t\t\t\t\t\t<span class="dashicons dashicons-info" style="font-size:48px; opacity:0.3;"></span>\n\t\t\t\t\t\t<p style="margin-top:10px; color:#666;">\n\t\t\t\t\t\t\t'.concat(
+											( null ===
+												( e = window.wpAieData ) ||
+											void 0 === e ||
+											null === ( e = e.i18n ) ||
+											void 0 === e
+												? void 0
+												: e.no_functions ) ||
+												'No functions found. Create your first function or browse the library.',
+											'\n\t\t\t\t\t\t</p>\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t'
+										) ) );
+					},
+					updatePagination: function () {
+						var t = document.querySelector( '.aie-current-page' ),
+							e = document.querySelector( '.aie-total-pages' ),
+							n = document.querySelector( '.aie-prev-page' ),
+							r = document.querySelector( '.aie-next-page' ),
+							o = document.querySelector(
+								'.aie-pagination-info'
+							);
+						if (
+							( t && ( t.textContent = this.currentPage ),
+							e && ( e.textContent = this.totalPages ),
+							n && ( n.disabled = this.currentPage <= 1 ),
+							r &&
+								( r.disabled =
+									this.currentPage >= this.totalPages ),
+							o )
+						) {
+							var a = ( this.currentPage - 1 ) * this.perPage + 1,
+								i = Math.min(
+									this.currentPage * this.perPage,
+									this.totalItems
+								);
+							o.textContent = 'Showing '
+								.concat( a, '-' )
+								.concat( i, ' of ' )
+								.concat( this.totalItems, ' functions' );
+						}
+					},
+					openEditorModal: function () {
+						var t = arguments;
+						return h(
+							d().mark( function n() {
+								var r, o, a, i, c, s, u, l, p, f, h;
+								return d().wrap(
+									function ( n ) {
+										for (;;)
+											switch ( ( n.prev = n.next ) ) {
+												case 0:
+													if (
+														( ( r =
+															t.length > 0 &&
+															void 0 !== t[ 0 ]
+																? t[ 0 ]
+																: null ),
+														( o =
+															document.getElementById(
+																'aie-function-editor-modal'
+															) ),
+														( a =
+															o.querySelector(
+																'.aie-modal-title'
+															) ),
+														( i =
+															document.getElementById(
+																'aie-function-form'
+															) ),
+														o && i )
+													) {
+														n.next = 6;
+														break;
+													}
+													return n.abrupt( 'return' );
+												case 6:
+													if (
+														( i.reset(),
+														( document.getElementById(
+															'aie-function-id'
+														).value = '' ),
+														( document.querySelector(
+															'.aie-test-results'
+														).style.display =
+															'none' ),
+														! r )
+													) {
+														n.next = 36;
+														break;
+													}
+													return (
+														( a.textContent =
+															( null ===
+																( c =
+																	window.wpAieData ) ||
+															void 0 === c ||
+															null ===
+																( c =
+																	c.i18n ) ||
+															void 0 === c
+																? void 0
+																: c.edit_function ) ||
+															'Edit Function' ),
+														( n.prev = 11 ),
+														( n.next = 14 ),
+														fetch( window.ajaxurl, {
+															method: 'POST',
+															headers: {
+																'Content-Type':
+																	'application/x-www-form-urlencoded',
+															},
+															body: new URLSearchParams(
+																{
+																	action: 'aie_functions_get',
+																	nonce:
+																		( null ===
+																			( s =
+																				window.wpAieData ) ||
+																		void 0 ===
+																			s
+																			? void 0
+																			: s.nonce ) ||
+																		'',
+																	id: r,
+																}
+															),
+														} )
+													);
+												case 14:
+													return (
+														( u = n.sent ),
+														( n.next = 17 ),
+														u.json()
+													);
+												case 17:
+													if (
+														( l = n.sent ).success
+													) {
+														n.next = 20;
+														break;
+													}
+													throw new Error(
+														( null ===
+															( p = l.data ) ||
+														void 0 === p
+															? void 0
+															: p.message ) ||
+															'Failed to load function'
+													);
+												case 20:
+													( f = l.data ),
+														( document.getElementById(
+															'aie-function-id'
+														).value = f.id ),
+														( document.getElementById(
+															'aie-function-name'
+														).value = f.name ),
+														( document.getElementById(
+															'aie-function-description'
+														).value =
+															f.description ||
+															'' ),
+														( document.getElementById(
+															'aie-function-category'
+														).value = f.category ),
+														( document.getElementById(
+															'aie-function-code'
+														).value = f.code ),
+														( document.getElementById(
+															'aie-function-status'
+														).value = f.status ),
+														( n.next = 34 );
+													break;
+												case 29:
+													return (
+														( n.prev = 29 ),
+														( n.t0 =
+															n.catch( 11 ) ),
+														console.error(
+															'Error loading function:',
+															n.t0
+														),
+														e( n.t0.message ),
+														n.abrupt( 'return' )
+													);
+												case 34:
+													n.next = 37;
+													break;
+												case 36:
+													a.textContent =
+														( null ===
+															( h =
+																window.wpAieData ) ||
+														void 0 === h ||
+														null ===
+															( h = h.i18n ) ||
+														void 0 === h
+															? void 0
+															: h.new_function ) ||
+														'New Function';
+												case 37:
+													( o.style.display =
+														'flex' ),
+														( document.body.style.overflow =
+															'hidden' );
+												case 39:
+												case 'end':
+													return n.stop();
+											}
+									},
+									n,
+									null,
+									[ [ 11, 29 ] ]
+								);
+							} )
+						)();
+					},
+					closeModal: function ( t ) {
+						( t.style.display = 'none' ),
+							( document.body.style.overflow = '' );
+					},
+					saveFunction: function () {
+						var n = this;
+						return h(
+							d().mark( function r() {
+								var o, a, i, c, s, u, l, p;
+								return d().wrap(
+									function ( r ) {
+										for (;;)
+											switch ( ( r.prev = r.next ) ) {
+												case 0:
+													if (
+														( a =
+															document.getElementById(
+																'aie-function-form'
+															) ).checkValidity()
+													) {
+														r.next = 4;
+														break;
+													}
+													return (
+														a.reportValidity(),
+														r.abrupt( 'return' )
+													);
+												case 4:
+													return (
+														( i =
+															document.getElementById(
+																'aie-function-id'
+															).value ),
+														( c = {
+															action: i
+																? 'aie_functions_update'
+																: 'aie_functions_create',
+															nonce:
+																( null ===
+																	( o =
+																		window.wpAieData ) ||
+																void 0 === o
+																	? void 0
+																	: o.nonce ) ||
+																'',
+															name: document.getElementById(
+																'aie-function-name'
+															).value,
+															description:
+																document.getElementById(
+																	'aie-function-description'
+																).value,
+															category:
+																document.getElementById(
+																	'aie-function-category'
+																).value,
+															code: document.getElementById(
+																'aie-function-code'
+															).value,
+															status: document.getElementById(
+																'aie-function-status'
+															).value,
+														} ),
+														i && ( c.id = i ),
+														( r.prev = 7 ),
+														( r.next = 10 ),
+														fetch( window.ajaxurl, {
+															method: 'POST',
+															headers: {
+																'Content-Type':
+																	'application/x-www-form-urlencoded',
+															},
+															body: new URLSearchParams(
+																c
+															),
+														} )
+													);
+												case 10:
+													return (
+														( u = r.sent ),
+														( r.next = 13 ),
+														u.json()
+													);
+												case 13:
+													if (
+														( l = r.sent ).success
+													) {
+														r.next = 16;
+														break;
+													}
+													throw new Error(
+														( null ===
+															( p = l.data ) ||
+														void 0 === p
+															? void 0
+															: p.message ) ||
+															'Failed to save function'
+													);
+												case 16:
+													t(
+														( null ===
+															( s =
+																window.wpAieData ) ||
+														void 0 === s ||
+														null ===
+															( s = s.i18n ) ||
+														void 0 === s
+															? void 0
+															: s.function_saved ) ||
+															'Function saved successfully'
+													),
+														n.closeModal(
+															document.getElementById(
+																'aie-function-editor-modal'
+															)
+														),
+														n.loadFunctions(),
+														( r.next = 25 );
+													break;
+												case 21:
+													( r.prev = 21 ),
+														( r.t0 = r.catch( 7 ) ),
+														console.error(
+															'Error saving function:',
+															r.t0
+														),
+														e( r.t0.message );
+												case 25:
+												case 'end':
+													return r.stop();
+											}
+									},
+									r,
+									null,
+									[ [ 7, 21 ] ]
+								);
+							} )
+						)();
+					},
+					deleteFunction: function ( n ) {
+						var r = this;
+						return h(
+							d().mark( function o() {
+								var a, i, c, s, u;
+								return d().wrap(
+									function ( o ) {
+										for (;;)
+											switch ( ( o.prev = o.next ) ) {
+												case 0:
+													return (
+														( o.prev = 0 ),
+														( o.next = 3 ),
+														fetch( window.ajaxurl, {
+															method: 'POST',
+															headers: {
+																'Content-Type':
+																	'application/x-www-form-urlencoded',
+															},
+															body: new URLSearchParams(
+																{
+																	action: 'aie_functions_delete',
+																	nonce:
+																		( null ===
+																			( a =
+																				window.wpAieData ) ||
+																		void 0 ===
+																			a
+																			? void 0
+																			: a.nonce ) ||
+																		'',
+																	id: n,
+																}
+															),
+														} )
+													);
+												case 3:
+													return (
+														( c = o.sent ),
+														( o.next = 6 ),
+														c.json()
+													);
+												case 6:
+													if (
+														( s = o.sent ).success
+													) {
+														o.next = 9;
+														break;
+													}
+													throw new Error(
+														( null ===
+															( u = s.data ) ||
+														void 0 === u
+															? void 0
+															: u.message ) ||
+															'Failed to delete function'
+													);
+												case 9:
+													t(
+														( null ===
+															( i =
+																window.wpAieData ) ||
+														void 0 === i ||
+														null ===
+															( i = i.i18n ) ||
+														void 0 === i
+															? void 0
+															: i.function_deleted ) ||
+															'Function deleted successfully'
+													),
+														r.loadFunctions(),
+														( o.next = 17 );
+													break;
+												case 13:
+													( o.prev = 13 ),
+														( o.t0 = o.catch( 0 ) ),
+														console.error(
+															'Error deleting function:',
+															o.t0
+														),
+														e( o.t0.message );
+												case 17:
+												case 'end':
+													return o.stop();
+											}
+									},
+									o,
+									null,
+									[ [ 0, 13 ] ]
+								);
+							} )
+						)();
+					},
+					testFunction: function () {
+						return h(
+							d().mark( function t() {
+								var n, r, o, a, i, c, s;
+								return d().wrap(
+									function ( t ) {
+										for (;;)
+											switch ( ( t.prev = t.next ) ) {
+												case 0:
+													if (
+														( ( n =
+															document.getElementById(
+																'aie-function-code'
+															).value ),
+														( r =
+															document.getElementById(
+																'aie-test-value'
+															).value ),
+														( o =
+															document.querySelector(
+																'.aie-test-results'
+															) ),
+														n )
+													) {
+														t.next = 6;
+														break;
+													}
+													return (
+														e(
+															'Please enter function code first'
+														),
+														t.abrupt( 'return' )
+													);
+												case 6:
+													return (
+														( t.prev = 6 ),
+														( t.next = 9 ),
+														fetch( window.ajaxurl, {
+															method: 'POST',
+															headers: {
+																'Content-Type':
+																	'application/x-www-form-urlencoded',
+															},
+															body: new URLSearchParams(
+																{
+																	action: 'aie_functions_test',
+																	nonce:
+																		( null ===
+																			( a =
+																				window.wpAieData ) ||
+																		void 0 ===
+																			a
+																			? void 0
+																			: a.nonce ) ||
+																		'',
+																	code: n,
+																	value: r,
+																}
+															),
+														} )
+													);
+												case 9:
+													return (
+														( i = t.sent ),
+														( t.next = 12 ),
+														i.json()
+													);
+												case 12:
+													if (
+														( c = t.sent ).success
+													) {
+														t.next = 15;
+														break;
+													}
+													throw new Error(
+														( null ===
+															( s = c.data ) ||
+														void 0 === s
+															? void 0
+															: s.message ) ||
+															'Test failed'
+													);
+												case 15:
+													( document.querySelector(
+														'.aie-test-input'
+													).textContent =
+														void 0 !== c.data.input
+															? c.data.input
+															: r ),
+														( document.querySelector(
+															'.aie-test-output'
+														).textContent =
+															void 0 !==
+															c.data.output
+																? c.data.output
+																: '' ),
+														( o.style.display =
+															'block' ),
+														( t.next = 24 );
+													break;
+												case 20:
+													( t.prev = 20 ),
+														( t.t0 = t.catch( 6 ) ),
+														console.error(
+															'Error testing function:',
+															t.t0
+														),
+														e( t.t0.message );
+												case 24:
+												case 'end':
+													return t.stop();
+											}
+									},
+									t,
+									null,
+									[ [ 6, 20 ] ]
+								);
+							} )
+						)();
+					},
+					clearFilters: function () {
+						( this.filters = {
+							status: '',
+							category: '',
+							search: '',
+						} ),
+							( document.getElementById(
+								'aie-filter-status'
+							).value = '' ),
+							( document.getElementById(
+								'aie-filter-category'
+							).value = '' ),
+							( document.getElementById(
+								'aie-filter-search'
+							).value = '' ),
+							( this.currentPage = 1 ),
+							this.loadFunctions();
+					},
+					getCategoryLabel: function ( t ) {
+						return (
+							{
+								string: 'String Operations',
+								date: 'Date & Time',
+								numeric: 'Numeric Operations',
+								html: 'HTML Operations',
+								wordpress: 'WordPress',
+								validation: 'Validation',
+								advanced: 'Advanced',
+								custom: 'Custom',
+							}[ t ] || t
+						);
+					},
+					getSourceBadge: function ( t ) {
+						return t.startsWith( 'library:' )
+							? '<span class="aie-badge aie-badge-library">Library</span>'
+							: '<span class="aie-badge aie-badge-custom">Custom</span>';
+					},
+					getStatusBadge: function ( t ) {
+						return 'active' === t
+							? '<span class="aie-badge aie-badge-active">Active</span>'
+							: '<span class="aie-badge aie-badge-inactive">Inactive</span>';
+					},
+					escapeHtml: function ( t ) {
+						var e = document.createElement( 'div' );
+						return ( e.textContent = t ), e.innerHTML;
+					},
+				};
+				const y = v;
+				function m( t ) {
+					return (
+						( m =
+							'function' == typeof Symbol &&
+							'symbol' == typeof Symbol.iterator
+								? function ( t ) {
+										return typeof t;
+								  }
+								: function ( t ) {
+										return t &&
+											'function' == typeof Symbol &&
+											t.constructor === Symbol &&
+											t !== Symbol.prototype
+											? 'symbol'
+											: typeof t;
+								  } ),
+						m( t )
+					);
+				}
+				function g( t, e ) {
+					var n =
+						( 'undefined' != typeof Symbol &&
+							t[ Symbol.iterator ] ) ||
+						t[ '@@iterator' ];
+					if ( ! n ) {
+						if (
+							Array.isArray( t ) ||
+							( n = ( function ( t, e ) {
+								if ( t ) {
+									if ( 'string' == typeof t )
+										return w( t, e );
+									var n = {}.toString
+										.call( t )
+										.slice( 8, -1 );
+									return (
+										'Object' === n &&
+											t.constructor &&
+											( n = t.constructor.name ),
+										'Map' === n || 'Set' === n
+											? Array.from( t )
+											: 'Arguments' === n ||
+											  /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(
+													n
+											  )
+											? w( t, e )
+											: void 0
+									);
+								}
+							} )( t ) ) ||
+							( e && t && 'number' == typeof t.length )
+						) {
+							n && ( t = n );
+							var r = 0,
+								o = function () {};
+							return {
+								s: o,
+								n: function () {
+									return r >= t.length
+										? { done: ! 0 }
+										: { done: ! 1, value: t[ r++ ] };
+								},
+								e: function ( t ) {
+									throw t;
+								},
+								f: o,
+							};
+						}
+						throw new TypeError(
+							'Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.'
+						);
+					}
+					var a,
+						i = ! 0,
+						c = ! 1;
+					return {
+						s: function () {
+							n = n.call( t );
+						},
+						n: function () {
+							var t = n.next();
+							return ( i = t.done ), t;
+						},
+						e: function ( t ) {
+							( c = ! 0 ), ( a = t );
+						},
+						f: function () {
+							try {
+								i || null == n.return || n.return();
+							} finally {
+								if ( c ) throw a;
+							}
+						},
+					};
+				}
+				function w( t, e ) {
+					( null == e || e > t.length ) && ( e = t.length );
+					for ( var n = 0, r = Array( e ); n < e; n++ )
+						r[ n ] = t[ n ];
+					return r;
+				}
+				function b( t, e ) {
+					var n = Object.keys( t );
+					if ( Object.getOwnPropertySymbols ) {
+						var r = Object.getOwnPropertySymbols( t );
+						e &&
+							( r = r.filter( function ( e ) {
+								return Object.getOwnPropertyDescriptor( t, e )
+									.enumerable;
+							} ) ),
+							n.push.apply( n, r );
+					}
+					return n;
+				}
+				function x( t, e, n ) {
+					return (
+						( e = ( function ( t ) {
+							var e = ( function ( t, e ) {
+								if ( 'object' != m( t ) || ! t ) return t;
+								var n = t[ Symbol.toPrimitive ];
+								if ( void 0 !== n ) {
+									var r = n.call( t, e || 'default' );
+									if ( 'object' != m( r ) ) return r;
+									throw new TypeError(
+										'@@toPrimitive must return a primitive value.'
+									);
+								}
+								return ( 'string' === e ? String : Number )(
+									t
+								);
+							} )( t, 'string' );
+							return 'symbol' == m( e ) ? e : e + '';
+						} )( e ) ) in t
+							? Object.defineProperty( t, e, {
+									value: n,
+									enumerable: ! 0,
+									configurable: ! 0,
+									writable: ! 0,
+							  } )
+							: ( t[ e ] = n ),
+						t
+					);
+				}
+				const j = {
+					ajax: function ( t ) {
+						var e =
+								arguments.length > 1 &&
+								void 0 !== arguments[ 1 ]
+									? arguments[ 1 ]
+									: {},
+							n =
+								arguments.length > 2 &&
+								void 0 !== arguments[ 2 ]
+									? arguments[ 2 ]
+									: 'POST';
+						return new Promise( function ( r, o ) {
+							var a,
+								i,
+								c = ( function ( t ) {
+									for (
+										var e = 1;
+										e < arguments.length;
+										e++
+									) {
+										var n =
+											null != arguments[ e ]
+												? arguments[ e ]
+												: {};
+										e % 2
+											? b( Object( n ), ! 0 ).forEach(
+													function ( e ) {
+														x( t, e, n[ e ] );
+													}
+											  )
+											: Object.getOwnPropertyDescriptors
+											? Object.defineProperties(
+													t,
+													Object.getOwnPropertyDescriptors(
+														n
+													)
+											  )
+											: b( Object( n ) ).forEach(
+													function ( e ) {
+														Object.defineProperty(
+															t,
+															e,
+															Object.getOwnPropertyDescriptor(
+																n,
+																e
+															)
+														);
+													}
+											  );
+									}
+									return t;
+								} )(
+									{
+										action: t,
+										nonce:
+											( null === ( a = window.aieData ) ||
+											void 0 === a
+												? void 0
+												: a.nonce ) || '',
+									},
+									e
+								);
+							jQuery
+								.ajax( {
+									url:
+										( null === ( i = window.aieData ) ||
+										void 0 === i
+											? void 0
+											: i.ajaxUrl ) ||
+										'/wp-admin/admin-ajax.php',
+									type: n,
+									data: c,
+									dataType: 'json',
+								} )
+								.done( function ( t ) {
+									var e;
+									t.success
+										? r( t.data || t )
+										: o(
+												( null === ( e = t.data ) ||
+												void 0 === e
+													? void 0
+													: e.message ) ||
+													'Request failed'
+										  );
+								} )
+								.fail( function ( t, e, n ) {
+									o(
+										'AJAX Error: '
+											.concat( e, ' - ' )
+											.concat( n )
+									);
+								} );
+						} );
+					},
+					formatFileSize: function ( t ) {
+						if ( 0 === t ) return '0 Bytes';
+						var e = Math.floor( Math.log( t ) / Math.log( 1024 ) );
+						return (
+							Math.round( ( t / Math.pow( 1024, e ) ) * 100 ) /
+								100 +
+							' ' +
+							[ 'Bytes', 'KB', 'MB', 'GB' ][ e ]
+						);
+					},
+					formatDuration: function ( t ) {
+						if ( t < 60 ) return Math.round( t ) + 's';
+						var e = Math.floor( t / 60 ),
+							n = Math.round( t % 60 );
+						if ( e < 60 )
+							return ''.concat( e, 'm ' ).concat( n, 's' );
+						var r = Math.floor( e / 60 ),
+							o = e % 60;
+						return ''.concat( r, 'h ' ).concat( o, 'm' );
+					},
+					debounce: function ( t ) {
+						var e,
+							n =
+								arguments.length > 1 &&
+								void 0 !== arguments[ 1 ]
+									? arguments[ 1 ]
+									: 300;
+						return function () {
+							for (
+								var r = arguments.length,
+									o = new Array( r ),
+									a = 0;
+								a < r;
+								a++
+							)
+								o[ a ] = arguments[ a ];
+							var i = this;
+							clearTimeout( e ),
+								( e = setTimeout( function () {
+									return t.apply( i, o );
+								}, n ) );
+						};
+					},
+					showNotice: function ( t ) {
+						var e = 'notice notice-'.concat(
+								arguments.length > 1 &&
+									void 0 !== arguments[ 1 ]
+									? arguments[ 1 ]
+									: 'info',
+								' is-dismissible'
+							),
+							n = '\n\t\t\t<div class="'
+								.concat( e, '">\n\t\t\t\t<p>' )
+								.concat(
+									t,
+									'</p>\n\t\t\t\t<button type="button" class="notice-dismiss">\n\t\t\t\t\t<span class="screen-reader-text">Dismiss this notice.</span>\n\t\t\t\t</button>\n\t\t\t</div>\n\t\t'
+								),
+							r = jQuery( n );
+						jQuery( '.wrap > h1' ).after( r ),
+							setTimeout( function () {
+								r.fadeOut( function () {
+									return r.remove();
+								} );
+							}, 5e3 ),
+							r.on( 'click', '.notice-dismiss', function () {
+								r.fadeOut( function () {
+									return r.remove();
+								} );
+							} );
+					},
+					validateFile: function ( t ) {
+						var e =
+								arguments.length > 1 &&
+								void 0 !== arguments[ 1 ]
+									? arguments[ 1 ]
+									: [],
+							n =
+								arguments.length > 2 &&
+								void 0 !== arguments[ 2 ]
+									? arguments[ 2 ]
+									: 52428800,
+							r = [];
+						if (
+							( t.size > n &&
+								r.push(
+									'File size ('
+										.concat(
+											this.formatFileSize( t.size ),
+											') exceeds maximum allowed size ('
+										)
+										.concat( this.formatFileSize( n ), ')' )
+								),
+							e.length > 0 )
+						) {
+							var o = t.name.split( '.' ).pop().toLowerCase();
+							e.some( function ( e ) {
+								return e.startsWith( '.' )
+									? e.substring( 1 ) === o
+									: t.type === e;
+							} ) ||
+								r.push(
+									'File type .'
+										.concat(
+											o,
+											' is not allowed. Allowed types: '
+										)
+										.concat( e.join( ', ' ) )
+								);
+						}
+						return { valid: 0 === r.length, errors: r };
+					},
+					parseCSV: function ( t ) {
+						var e,
+							n =
+								arguments.length > 1 &&
+								void 0 !== arguments[ 1 ]
+									? arguments[ 1 ]
+									: ',',
+							r = [],
+							o = g( t.split( '\n' ) );
+						try {
+							for ( o.s(); ! ( e = o.n() ).done;  ) {
+								var a = e.value;
+								if ( '' !== a.trim() ) {
+									for (
+										var i = [], c = '', s = ! 1, u = 0;
+										u < a.length;
+										u++
+									) {
+										var l = a[ u ];
+										'"' === l
+											? ( s = ! s )
+											: l !== n || s
+											? ( c += l )
+											: ( i.push( c.trim() ),
+											  ( c = '' ) );
+									}
+									i.push( c.trim() ), r.push( i );
+								}
+							}
+						} catch ( t ) {
+							o.e( t );
+						} finally {
+							o.f();
+						}
+						return r;
+					},
+					escapeHtml: function ( t ) {
+						var e = document.createElement( 'div' );
+						return ( e.textContent = t ), e.innerHTML;
+					},
+					getUrlParameter: function ( t ) {
+						return new URLSearchParams(
+							window.location.search
+						).get( t );
+					},
+					downloadFile: function ( t, e ) {
+						var n = document.createElement( 'a' );
+						( n.href = t ),
+							( n.download = e || 'export.csv' ),
+							document.body.appendChild( n ),
+							n.click(),
+							document.body.removeChild( n );
+					},
+					generateUUID: function () {
+						return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
+							/[xy]/g,
+							function ( t ) {
+								var e = ( 16 * Math.random() ) | 0;
+								return (
+									'x' === t ? e : ( 3 & e ) | 8
+								).toString( 16 );
+							}
+						);
+					},
+					createProgressBar: function () {
+						return jQuery(
+							'\n\t\t\t<div class="aie-progress-container">\n\t\t\t\t<div class="aie-progress-bar">\n\t\t\t\t\t<div class="aie-progress-bar-fill" style="width: 0%;"></div>\n\t\t\t\t</div>\n\t\t\t\t<div class="aie-progress-stats">\n\t\t\t\t\t<div class="aie-progress-percentage">0%</div>\n\t\t\t\t\t<div class="aie-progress-details">\n\t\t\t\t\t\t<span class="aie-processed">0</span> / <span class="aie-total">0</span> items\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t'
+						);
+					},
+					updateProgressBar: function ( t, e ) {
+						var n = e.percentage || 0,
+							r = e.processed || 0,
+							o = e.total || 0;
+						t
+							.find( '.aie-progress-bar-fill' )
+							.css( 'width', n + '%' ),
+							t
+								.find( '.aie-progress-percentage' )
+								.text( Math.round( n ) + '%' ),
+							t.find( '.aie-processed' ).text( r ),
+							t.find( '.aie-total' ).text( o ),
+							e.estimates &&
+								( e.estimates.elapsed_formatted &&
+									t
+										.find( '.aie-elapsed-time' )
+										.text( e.estimates.elapsed_formatted ),
+								e.estimates.remaining_formatted &&
+									t
+										.find( '.aie-remaining-time' )
+										.text(
+											e.estimates.remaining_formatted
+										),
+								e.estimates.items_per_second &&
+									t
+										.find( '.aie-items-per-second' )
+										.text(
+											e.estimates.items_per_second.toFixed(
+												1
+											) + ' items/s'
+										) );
+					},
+					handleError: function ( t ) {
+						var e =
+							arguments.length > 1 && void 0 !== arguments[ 1 ]
+								? arguments[ 1 ]
+								: '';
+						console.error(
+							'AIE Error'.concat( e ? ' (' + e + ')' : '', ':' ),
+							t
+						);
+						var n = t.message || t.toString();
+						this.showNotice( n, 'error' );
+					},
+				};
+				function E( t ) {
+					return (
+						( E =
+							'function' == typeof Symbol &&
+							'symbol' == typeof Symbol.iterator
+								? function ( t ) {
+										return typeof t;
+								  }
+								: function ( t ) {
+										return t &&
+											'function' == typeof Symbol &&
+											t.constructor === Symbol &&
+											t !== Symbol.prototype
+											? 'symbol'
+											: typeof t;
+								  } ),
+						E( t )
+					);
+				}
+				function S() {
+					S = function () {
+						return e;
+					};
+					var t,
+						e = {},
+						n = Object.prototype,
+						r = n.hasOwnProperty,
+						o =
+							Object.defineProperty ||
+							function ( t, e, n ) {
+								t[ e ] = n.value;
+							},
+						a = 'function' == typeof Symbol ? Symbol : {},
+						i = a.iterator || '@@iterator',
+						c = a.asyncIterator || '@@asyncIterator',
+						s = a.toStringTag || '@@toStringTag';
+					function u( t, e, n ) {
+						return (
+							Object.defineProperty( t, e, {
+								value: n,
+								enumerable: ! 0,
+								configurable: ! 0,
+								writable: ! 0,
+							} ),
+							t[ e ]
+						);
+					}
+					try {
+						u( {}, '' );
+					} catch ( t ) {
+						u = function ( t, e, n ) {
+							return ( t[ e ] = n );
+						};
+					}
+					function l( t, e, n, r ) {
+						var a = e && e.prototype instanceof m ? e : m,
+							i = Object.create( a.prototype ),
+							c = new O( r || [] );
+						return o( i, '_invoke', { value: I( t, n, c ) } ), i;
+					}
+					function p( t, e, n ) {
+						try {
+							return { type: 'normal', arg: t.call( e, n ) };
+						} catch ( t ) {
+							return { type: 'throw', arg: t };
+						}
+					}
+					e.wrap = l;
+					var d = 'suspendedStart',
+						f = 'suspendedYield',
+						h = 'executing',
+						v = 'completed',
+						y = {};
+					function m() {}
+					function g() {}
+					function w() {}
+					var b = {};
+					u( b, i, function () {
+						return this;
+					} );
+					var x = Object.getPrototypeOf,
+						j = x && x( x( C( [] ) ) );
+					j && j !== n && r.call( j, i ) && ( b = j );
+					var _ = ( w.prototype = m.prototype = Object.create( b ) );
+					function L( t ) {
+						[ 'next', 'throw', 'return' ].forEach( function ( e ) {
+							u( t, e, function ( t ) {
+								return this._invoke( e, t );
+							} );
+						} );
+					}
+					function k( t, e ) {
+						function n( o, a, i, c ) {
+							var s = p( t[ o ], t, a );
+							if ( 'throw' !== s.type ) {
+								var u = s.arg,
+									l = u.value;
+								return l &&
+									'object' == E( l ) &&
+									r.call( l, '__await' )
+									? e.resolve( l.__await ).then(
+											function ( t ) {
+												n( 'next', t, i, c );
+											},
+											function ( t ) {
+												n( 'throw', t, i, c );
+											}
+									  )
+									: e.resolve( l ).then(
+											function ( t ) {
+												( u.value = t ), i( u );
+											},
+											function ( t ) {
+												return n( 'throw', t, i, c );
+											}
+									  );
+							}
+							c( s.arg );
+						}
+						var a;
+						o( this, '_invoke', {
+							value: function ( t, r ) {
+								function o() {
+									return new e( function ( e, o ) {
+										n( t, r, e, o );
+									} );
+								}
+								return ( a = a ? a.then( o, o ) : o() );
+							},
+						} );
+					}
+					function I( e, n, r ) {
+						var o = d;
+						return function ( a, i ) {
+							if ( o === h )
+								throw Error( 'Generator is already running' );
+							if ( o === v ) {
+								if ( 'throw' === a ) throw i;
+								return { value: t, done: ! 0 };
+							}
+							for ( r.method = a, r.arg = i; ;  ) {
+								var c = r.delegate;
+								if ( c ) {
+									var s = Q( c, r );
+									if ( s ) {
+										if ( s === y ) continue;
+										return s;
+									}
+								}
+								if ( 'next' === r.method )
+									r.sent = r._sent = r.arg;
+								else if ( 'throw' === r.method ) {
+									if ( o === d ) throw ( ( o = v ), r.arg );
+									r.dispatchException( r.arg );
+								} else
+									'return' === r.method &&
+										r.abrupt( 'return', r.arg );
+								o = h;
+								var u = p( e, n, r );
+								if ( 'normal' === u.type ) {
+									if (
+										( ( o = r.done ? v : f ), u.arg === y )
+									)
+										continue;
+									return { value: u.arg, done: r.done };
+								}
+								'throw' === u.type &&
+									( ( o = v ),
+									( r.method = 'throw' ),
+									( r.arg = u.arg ) );
+							}
+						};
+					}
+					function Q( e, n ) {
+						var r = n.method,
+							o = e.iterator[ r ];
+						if ( o === t )
+							return (
+								( n.delegate = null ),
+								( 'throw' === r &&
+									e.iterator.return &&
+									( ( n.method = 'return' ),
+									( n.arg = t ),
+									Q( e, n ),
+									'throw' === n.method ) ) ||
+									( 'return' !== r &&
+										( ( n.method = 'throw' ),
+										( n.arg = new TypeError(
+											"The iterator does not provide a '" +
+												r +
+												"' method"
+										) ) ) ),
+								y
+							);
+						var a = p( o, e.iterator, n.arg );
+						if ( 'throw' === a.type )
+							return (
+								( n.method = 'throw' ),
+								( n.arg = a.arg ),
+								( n.delegate = null ),
+								y
+							);
+						var i = a.arg;
+						return i
+							? i.done
+								? ( ( n[ e.resultName ] = i.value ),
+								  ( n.next = e.nextLoc ),
+								  'return' !== n.method &&
+										( ( n.method = 'next' ),
+										( n.arg = t ) ),
+								  ( n.delegate = null ),
+								  y )
+								: i
+							: ( ( n.method = 'throw' ),
+							  ( n.arg = new TypeError(
+									'iterator result is not an object'
+							  ) ),
+							  ( n.delegate = null ),
+							  y );
+					}
+					function P( t ) {
+						var e = { tryLoc: t[ 0 ] };
+						1 in t && ( e.catchLoc = t[ 1 ] ),
+							2 in t &&
+								( ( e.finallyLoc = t[ 2 ] ),
+								( e.afterLoc = t[ 3 ] ) ),
+							this.tryEntries.push( e );
+					}
+					function F( t ) {
+						var e = t.completion || {};
+						( e.type = 'normal' ),
+							delete e.arg,
+							( t.completion = e );
+					}
+					function O( t ) {
+						( this.tryEntries = [ { tryLoc: 'root' } ] ),
+							t.forEach( P, this ),
+							this.reset( ! 0 );
+					}
+					function C( e ) {
+						if ( e || '' === e ) {
+							var n = e[ i ];
+							if ( n ) return n.call( e );
+							if ( 'function' == typeof e.next ) return e;
+							if ( ! isNaN( e.length ) ) {
+								var o = -1,
+									a = function n() {
+										for ( ; ++o < e.length;  )
+											if ( r.call( e, o ) )
+												return (
+													( n.value = e[ o ] ),
+													( n.done = ! 1 ),
+													n
+												);
+										return (
+											( n.value = t ), ( n.done = ! 0 ), n
+										);
+									};
+								return ( a.next = a );
+							}
+						}
+						throw new TypeError( E( e ) + ' is not iterable' );
+					}
+					return (
+						( g.prototype = w ),
+						o( _, 'constructor', { value: w, configurable: ! 0 } ),
+						o( w, 'constructor', { value: g, configurable: ! 0 } ),
+						( g.displayName = u( w, s, 'GeneratorFunction' ) ),
+						( e.isGeneratorFunction = function ( t ) {
+							var e = 'function' == typeof t && t.constructor;
+							return (
+								!! e &&
+								( e === g ||
+									'GeneratorFunction' ===
+										( e.displayName || e.name ) )
+							);
+						} ),
+						( e.mark = function ( t ) {
+							return (
+								Object.setPrototypeOf
+									? Object.setPrototypeOf( t, w )
+									: ( ( t.__proto__ = w ),
+									  u( t, s, 'GeneratorFunction' ) ),
+								( t.prototype = Object.create( _ ) ),
+								t
+							);
+						} ),
+						( e.awrap = function ( t ) {
+							return { __await: t };
+						} ),
+						L( k.prototype ),
+						u( k.prototype, c, function () {
+							return this;
+						} ),
+						( e.AsyncIterator = k ),
+						( e.async = function ( t, n, r, o, a ) {
+							void 0 === a && ( a = Promise );
+							var i = new k( l( t, n, r, o ), a );
+							return e.isGeneratorFunction( n )
+								? i
+								: i.next().then( function ( t ) {
+										return t.done ? t.value : i.next();
+								  } );
+						} ),
+						L( _ ),
+						u( _, s, 'Generator' ),
+						u( _, i, function () {
+							return this;
+						} ),
+						u( _, 'toString', function () {
+							return '[object Generator]';
+						} ),
+						( e.keys = function ( t ) {
+							var e = Object( t ),
+								n = [];
+							for ( var r in e ) n.push( r );
+							return (
+								n.reverse(),
+								function t() {
+									for ( ; n.length;  ) {
+										var r = n.pop();
+										if ( r in e )
+											return (
+												( t.value = r ),
+												( t.done = ! 1 ),
+												t
+											);
+									}
+									return ( t.done = ! 0 ), t;
+								}
+							);
+						} ),
+						( e.values = C ),
+						( O.prototype = {
+							constructor: O,
+							reset: function ( e ) {
+								if (
+									( ( this.prev = 0 ),
+									( this.next = 0 ),
+									( this.sent = this._sent = t ),
+									( this.done = ! 1 ),
+									( this.delegate = null ),
+									( this.method = 'next' ),
+									( this.arg = t ),
+									this.tryEntries.forEach( F ),
+									! e )
+								)
+									for ( var n in this )
+										't' === n.charAt( 0 ) &&
+											r.call( this, n ) &&
+											! isNaN( +n.slice( 1 ) ) &&
+											( this[ n ] = t );
+							},
+							stop: function () {
+								this.done = ! 0;
+								var t = this.tryEntries[ 0 ].completion;
+								if ( 'throw' === t.type ) throw t.arg;
+								return this.rval;
+							},
+							dispatchException: function ( e ) {
+								if ( this.done ) throw e;
+								var n = this;
+								function o( r, o ) {
+									return (
+										( c.type = 'throw' ),
+										( c.arg = e ),
+										( n.next = r ),
+										o &&
+											( ( n.method = 'next' ),
+											( n.arg = t ) ),
+										!! o
+									);
+								}
+								for (
+									var a = this.tryEntries.length - 1;
+									a >= 0;
+									--a
+								) {
+									var i = this.tryEntries[ a ],
+										c = i.completion;
+									if ( 'root' === i.tryLoc )
+										return o( 'end' );
+									if ( i.tryLoc <= this.prev ) {
+										var s = r.call( i, 'catchLoc' ),
+											u = r.call( i, 'finallyLoc' );
+										if ( s && u ) {
+											if ( this.prev < i.catchLoc )
+												return o( i.catchLoc, ! 0 );
+											if ( this.prev < i.finallyLoc )
+												return o( i.finallyLoc );
+										} else if ( s ) {
+											if ( this.prev < i.catchLoc )
+												return o( i.catchLoc, ! 0 );
+										} else {
+											if ( ! u )
+												throw Error(
+													'try statement without catch or finally'
+												);
+											if ( this.prev < i.finallyLoc )
+												return o( i.finallyLoc );
+										}
+									}
+								}
+							},
+							abrupt: function ( t, e ) {
+								for (
+									var n = this.tryEntries.length - 1;
+									n >= 0;
+									--n
+								) {
+									var o = this.tryEntries[ n ];
+									if (
+										o.tryLoc <= this.prev &&
+										r.call( o, 'finallyLoc' ) &&
+										this.prev < o.finallyLoc
+									) {
+										var a = o;
+										break;
+									}
+								}
+								a &&
+									( 'break' === t || 'continue' === t ) &&
+									a.tryLoc <= e &&
+									e <= a.finallyLoc &&
+									( a = null );
+								var i = a ? a.completion : {};
+								return (
+									( i.type = t ),
+									( i.arg = e ),
+									a
+										? ( ( this.method = 'next' ),
+										  ( this.next = a.finallyLoc ),
+										  y )
+										: this.complete( i )
+								);
+							},
+							complete: function ( t, e ) {
+								if ( 'throw' === t.type ) throw t.arg;
+								return (
+									'break' === t.type || 'continue' === t.type
+										? ( this.next = t.arg )
+										: 'return' === t.type
+										? ( ( this.rval = this.arg = t.arg ),
+										  ( this.method = 'return' ),
+										  ( this.next = 'end' ) )
+										: 'normal' === t.type &&
+										  e &&
+										  ( this.next = e ),
+									y
+								);
+							},
+							finish: function ( t ) {
+								for (
+									var e = this.tryEntries.length - 1;
+									e >= 0;
+									--e
+								) {
+									var n = this.tryEntries[ e ];
+									if ( n.finallyLoc === t )
+										return (
+											this.complete(
+												n.completion,
+												n.afterLoc
+											),
+											F( n ),
+											y
+										);
+								}
+							},
+							catch: function ( t ) {
+								for (
+									var e = this.tryEntries.length - 1;
+									e >= 0;
+									--e
+								) {
+									var n = this.tryEntries[ e ];
+									if ( n.tryLoc === t ) {
+										var r = n.completion;
+										if ( 'throw' === r.type ) {
+											var o = r.arg;
+											F( n );
+										}
+										return o;
+									}
+								}
+								throw Error( 'illegal catch attempt' );
+							},
+							delegateYield: function ( e, n, r ) {
+								return (
+									( this.delegate = {
+										iterator: C( e ),
+										resultName: n,
+										nextLoc: r,
+									} ),
+									'next' === this.method && ( this.arg = t ),
+									y
+								);
+							},
+						} ),
+						e
+					);
+				}
+				function _( t, e, n, r, o, a, i ) {
+					try {
+						var c = t[ a ]( i ),
+							s = c.value;
+					} catch ( t ) {
+						return void n( t );
+					}
+					c.done ? e( s ) : Promise.resolve( s ).then( r, o );
+				}
+				function L( t ) {
+					return function () {
+						var e = this,
+							n = arguments;
+						return new Promise( function ( r, o ) {
+							var a = t.apply( e, n );
+							function i( t ) {
+								_( a, r, o, i, c, 'next', t );
+							}
+							function c( t ) {
+								_( a, r, o, i, c, 'throw', t );
+							}
+							i( void 0 );
+						} );
+					};
+				}
+				const k = {
 					currentStep: 1,
 					totalSteps: 6,
 					uploadedFile: null,
@@ -1040,20 +4076,20 @@
 									return t.removeFile();
 								}
 							);
-						var r = jQuery( '#aie-upload-area' );
-						r
+						var n = jQuery( '#aie-upload-area' );
+						n
 							.on( 'dragover', function ( t ) {
 								t.preventDefault(),
-									r.addClass( 'aie-dragover' );
+									n.addClass( 'aie-dragover' );
 							} )
 							.on( 'dragleave', function () {
-								r.removeClass( 'aie-dragover' );
+								n.removeClass( 'aie-dragover' );
 							} )
 							.on( 'drop', function ( e ) {
 								e.preventDefault(),
-									r.removeClass( 'aie-dragover' );
-								var n = e.originalEvent.dataTransfer.files;
-								n.length > 0 && t.handleFile( n[ 0 ] );
+									n.removeClass( 'aie-dragover' );
+								var r = e.originalEvent.dataTransfer.files;
+								r.length > 0 && t.handleFile( r[ 0 ] );
 							} ),
 							e.on( 'click', '.aie-auto-map', function () {
 								return t.autoMapFields();
@@ -1116,7 +4152,7 @@
 							case 2:
 								if ( ! this.uploadedFile )
 									return (
-										i.showNotice(
+										j.showNotice(
 											'Please upload a file',
 											'error'
 										),
@@ -1127,7 +4163,7 @@
 								var e = this.getFieldMapping();
 								if ( 0 === Object.keys( e ).length )
 									return (
-										i.showNotice(
+										j.showNotice(
 											'Please map at least one field',
 											'error'
 										),
@@ -1148,7 +4184,7 @@
 						e && this.handleFile( e );
 					},
 					handleFile: function ( t ) {
-						var e = i.validateFile(
+						var e = j.validateFile(
 							t,
 							[ '.csv', '.json', '.xml' ],
 							52428800
@@ -1159,13 +4195,13 @@
 								jQuery( '.aie-file-info' ).show(),
 								jQuery( '.aie-file-name' ).text( t.name ),
 								jQuery( '.aie-file-size' ).text(
-									i.formatFileSize( t.size )
+									j.formatFileSize( t.size )
 								);
-							var r = this.detectFormat( t.name );
+							var n = this.detectFormat( t.name );
 							jQuery( '.aie-file-format' ).text(
-								r.toUpperCase()
+								n.toUpperCase()
 							),
-								'csv' === r &&
+								'csv' === n &&
 									( jQuery( '.aie-format-options' ).show(),
 									jQuery( '.aie-csv-options' ).show() ),
 								jQuery( '.aie-step-2 .aie-next-step' ).prop(
@@ -1173,17 +4209,17 @@
 									! 1
 								),
 								this.uploadFile( t );
-						} else i.showNotice( e.errors.join( '<br>' ), 'error' );
+						} else j.showNotice( e.errors.join( '<br>' ), 'error' );
 					},
 					uploadFile: function ( t ) {
 						var e = this;
-						return l(
-							s().mark( function r() {
-								var n, o, a, c, u;
-								return s().wrap(
-									function ( r ) {
+						return L(
+							S().mark( function n() {
+								var r, o, a, i, c;
+								return S().wrap(
+									function ( n ) {
 										for (;;)
-											switch ( ( r.prev = r.next ) ) {
+											switch ( ( n.prev = n.next ) ) {
 												case 0:
 													return (
 														( o =
@@ -1198,11 +4234,11 @@
 														o.append(
 															'nonce',
 															( null ===
-																( n =
+																( r =
 																	window.aieData ) ||
-															void 0 === n
+															void 0 === r
 																? void 0
-																: n.nonce ) ||
+																: r.nonce ) ||
 																''
 														),
 														o.append(
@@ -1211,8 +4247,8 @@
 																'input[name="content_type"]:checked'
 															).val()
 														),
-														( r.prev = 5 ),
-														( r.next = 8 ),
+														( n.prev = 5 ),
+														( n.next = 8 ),
 														jQuery.ajax( {
 															url:
 																( null ===
@@ -1231,44 +4267,44 @@
 													);
 												case 8:
 													if (
-														! ( c = r.sent ).success
+														! ( i = n.sent ).success
 													) {
-														r.next = 14;
+														n.next = 14;
 														break;
 													}
-													( e.fileData = c.data ),
-														i.showNotice(
+													( e.fileData = i.data ),
+														j.showNotice(
 															'File uploaded successfully',
 															'success'
 														),
-														( r.next = 15 );
+														( n.next = 15 );
 													break;
 												case 14:
 													throw new Error(
 														( null ===
-															( u = c.data ) ||
-														void 0 === u
+															( c = i.data ) ||
+														void 0 === c
 															? void 0
-															: u.message ) ||
+															: c.message ) ||
 															'Upload failed'
 													);
 												case 15:
-													r.next = 21;
+													n.next = 21;
 													break;
 												case 17:
-													( r.prev = 17 ),
-														( r.t0 = r.catch( 5 ) ),
-														i.handleError(
-															r.t0,
+													( n.prev = 17 ),
+														( n.t0 = n.catch( 5 ) ),
+														j.handleError(
+															n.t0,
 															'File upload'
 														),
 														e.removeFile();
 												case 21:
 												case 'end':
-													return r.stop();
+													return n.stop();
 											}
 									},
-									r,
+									n,
 									null,
 									[ [ 5, 17 ] ]
 								);
@@ -1295,10 +4331,10 @@
 					},
 					loadPreview: function () {
 						var t = this;
-						return l(
-							s().mark( function e() {
-								var r, n, o, a, c;
-								return s().wrap( function ( e ) {
+						return L(
+							S().mark( function e() {
+								var n, r, o, a, i;
+								return S().wrap( function ( e ) {
 									for (;;)
 										switch ( ( e.prev = e.next ) ) {
 											case 0:
@@ -1311,7 +4347,7 @@
 												}
 												return e.abrupt( 'return' );
 											case 2:
-												( n = t.fileData.preview ),
+												( r = t.fileData.preview ),
 													( o =
 														jQuery(
 															'.aie-preview-table'
@@ -1326,20 +4362,20 @@
 														'.aie-total-columns'
 													).text(
 														( null ===
-															( r =
+															( n =
 																t.fileData
 																	.columns ) ||
-														void 0 === r
+														void 0 === n
 															? void 0
-															: r.length ) || 0
+															: n.length ) || 0
 													),
 													( a = '<tr>' ),
-													n.headers &&
-														n.headers.forEach(
+													r.headers &&
+														r.headers.forEach(
 															function ( t ) {
 																a +=
 																	'<th>'.concat(
-																		i.escapeHtml(
+																		j.escapeHtml(
 																			t
 																		),
 																		'</th>'
@@ -1348,17 +4384,17 @@
 														),
 													( a += '</tr>' ),
 													o.find( 'thead' ).html( a ),
-													( c = '' ),
-													n.data &&
-														n.data.forEach(
+													( i = '' ),
+													r.data &&
+														r.data.forEach(
 															function ( t, e ) {
-																( c += '<tr>' ),
+																( i += '<tr>' ),
 																	t.forEach(
 																		function (
 																			t
 																		) {
 																			var e =
-																				i.escapeHtml(
+																				j.escapeHtml(
 																					String(
 																						t
 																					).substring(
@@ -1366,18 +4402,18 @@
 																						100
 																					)
 																				);
-																			c +=
+																			i +=
 																				'<td>'.concat(
 																					e,
 																					'</td>'
 																				);
 																		}
 																	),
-																	( c +=
+																	( i +=
 																		'</tr>' );
 															}
 														),
-													o.find( 'tbody' ).html( c );
+													o.find( 'tbody' ).html( i );
 											case 13:
 											case 'end':
 												return e.stop();
@@ -1392,13 +4428,13 @@
 							var e = jQuery(
 									'input[name="content_type"]:checked'
 								).val(),
-								r = this.getTargetFields( e ),
-								n = jQuery( '.aie-mapping-body' ),
+								n = this.getTargetFields( e ),
+								r = jQuery( '.aie-mapping-body' ),
 								o = '';
-							this.fileData.columns.forEach( function ( e, n ) {
+							this.fileData.columns.forEach( function ( e, r ) {
 								var a,
-									c,
-									s =
+									i,
+									c =
 										( null === ( a = t.fileData.preview ) ||
 										void 0 === a ||
 										null === ( a = a.data ) ||
@@ -1406,27 +4442,27 @@
 										null === ( a = a[ 0 ] ) ||
 										void 0 === a
 											? void 0
-											: a[ n ] ) || '';
+											: a[ r ] ) || '';
 								o += '\n\t\t\t\t<tr>\n\t\t\t\t\t<td><strong>'
 									.concat(
-										i.escapeHtml( e ),
+										j.escapeHtml( e ),
 										'</strong></td>\n\t\t\t\t\t<td>\n\t\t\t\t\t\t<select name="field_map['
 									)
 									.concat(
-										n,
+										r,
 										']" class="regular-text">\n\t\t\t\t\t\t\t<option value="">-- '
 									)
 									.concat(
-										( null === ( c = window.aieData ) ||
-										void 0 === c ||
-										null === ( c = c.i18n ) ||
-										void 0 === c
+										( null === ( i = window.aieData ) ||
+										void 0 === i ||
+										null === ( i = i.i18n ) ||
+										void 0 === i
 											? void 0
-											: c.skip ) || 'Skip',
+											: i.skip ) || 'Skip',
 										' --</option>\n\t\t\t\t\t\t\t'
 									)
 									.concat(
-										r
+										n
 											.map( function ( t ) {
 												return '<option value="'
 													.concat( t.value, '">' )
@@ -1439,13 +4475,13 @@
 										'\n\t\t\t\t\t\t</select>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td><code>'
 									)
 									.concat(
-										i.escapeHtml(
-											String( s ).substring( 0, 50 )
+										j.escapeHtml(
+											String( c ).substring( 0, 50 )
 										),
 										'</code></td>\n\t\t\t\t</tr>\n\t\t\t'
 									);
 							} ),
-								n.html( o );
+								r.html( o );
 						}
 					},
 					getTargetFields: function ( t ) {
@@ -1484,18 +4520,18 @@
 									.text()
 									.toLowerCase();
 							t.find( 'option' ).each( function () {
-								var r = jQuery( this ).val().toLowerCase(),
-									n = jQuery( this ).text().toLowerCase();
+								var n = jQuery( this ).val().toLowerCase(),
+									r = jQuery( this ).text().toLowerCase();
 								if (
-									e === r ||
 									e === n ||
-									e.includes( r ) ||
-									r.includes( e )
+									e === r ||
+									e.includes( n ) ||
+									n.includes( e )
 								)
 									return t.val( jQuery( this ).val() ), ! 1;
 							} );
 						} ),
-							i.showNotice( 'Auto-mapping completed', 'success' );
+							j.showNotice( 'Auto-mapping completed', 'success' );
 					},
 					clearFieldMapping: function () {
 						jQuery( '.aie-mapping-body select' ).val( '' );
@@ -1506,17 +4542,17 @@
 							jQuery( '.aie-mapping-body select' ).each(
 								function () {
 									var e,
-										r = jQuery( this ),
-										n =
+										n = jQuery( this ),
+										r =
 											null ===
-												( e = r
+												( e = n
 													.attr( 'name' )
 													.match( /\[(\d+)\]/ ) ) ||
 											void 0 === e
 												? void 0
 												: e[ 1 ],
-										o = r.val();
-									o && void 0 !== n && ( t[ n ] = o );
+										o = n.val();
+									o && void 0 !== r && ( t[ r ] = o );
 								}
 							),
 							t
@@ -1524,17 +4560,17 @@
 					},
 					startImport: function () {
 						var t = this;
-						return l(
-							s().mark( function e() {
-								var r, n;
-								return s().wrap(
+						return L(
+							S().mark( function e() {
+								var n, r;
+								return S().wrap(
 									function ( e ) {
 										for (;;)
 											switch ( ( e.prev = e.next ) ) {
 												case 0:
 													return (
 														( e.prev = 0 ),
-														( r = {
+														( n = {
 															file_path:
 																t.fileData
 																	.file_path,
@@ -1571,17 +4607,17 @@
 																) || 50,
 														} ),
 														( e.next = 4 ),
-														i.ajax(
+														j.ajax(
 															'aie_import_start',
-															r
+															n
 														)
 													);
 												case 4:
-													( n = e.sent ),
-														( t.jobId = n.job_id ),
+													( r = e.sent ),
+														( t.jobId = r.job_id ),
 														t.showStep( 6 ),
 														t.startProgressTracking(),
-														i.showNotice(
+														j.showNotice(
 															'Import started successfully',
 															'success'
 														),
@@ -1590,7 +4626,7 @@
 												case 11:
 													( e.prev = 11 ),
 														( e.t0 = e.catch( 0 ) ),
-														i.handleError(
+														j.handleError(
 															e.t0,
 															'Start import'
 														);
@@ -1614,10 +4650,10 @@
 					},
 					updateProgress: function () {
 						var t = this;
-						return l(
-							s().mark( function e() {
-								var r;
-								return s().wrap(
+						return L(
+							S().mark( function e() {
+								var n;
+								return S().wrap(
 									function ( e ) {
 										for (;;)
 											switch ( ( e.prev = e.next ) ) {
@@ -1625,27 +4661,27 @@
 													return (
 														( e.prev = 0 ),
 														( e.next = 3 ),
-														i.ajax(
+														j.ajax(
 															'aie_import_get_progress',
 															{ job_id: t.jobId }
 														)
 													);
 												case 3:
-													( r = e.sent ),
-														i.updateProgressBar(
+													( n = e.sent ),
+														j.updateProgressBar(
 															jQuery(
 																'.aie-step-6'
 															),
-															r
+															n
 														),
-														'completed' === r.status
+														'completed' === n.status
 															? t.onImportComplete(
-																	r
+																	n
 															  )
 															: 'failed' ===
-																	r.status &&
+																	n.status &&
 															  t.onImportFailed(
-																	r
+																	n
 															  ),
 														( e.next = 11 );
 													break;
@@ -1688,14 +4724,14 @@
 							),
 							jQuery( '.aie-cancel-import' ).hide(),
 							jQuery( '.aie-new-import' ).show(),
-							i.showNotice(
+							j.showNotice(
 								'Import completed successfully!',
 								'success'
 							);
 					},
 					onImportFailed: function ( t ) {
 						clearInterval( this.progressInterval ),
-							i.showNotice(
+							j.showNotice(
 								'Import failed: ' +
 									( t.error || 'Unknown error' ),
 								'error'
@@ -1703,9 +4739,9 @@
 					},
 					cancelImport: function () {
 						var t = this;
-						return l(
-							s().mark( function e() {
-								return s().wrap(
+						return L(
+							S().mark( function e() {
+								return S().wrap(
 									function ( e ) {
 										for (;;)
 											switch ( ( e.prev = e.next ) ) {
@@ -1723,7 +4759,7 @@
 													return (
 														( e.prev = 2 ),
 														( e.next = 5 ),
-														i.ajax(
+														j.ajax(
 															'aie_import_cancel',
 															{ job_id: t.jobId }
 														)
@@ -1732,7 +4768,7 @@
 													clearInterval(
 														t.progressInterval
 													),
-														i.showNotice(
+														j.showNotice(
 															'Import cancelled',
 															'info'
 														),
@@ -1742,7 +4778,7 @@
 												case 10:
 													( e.prev = 10 ),
 														( e.t0 = e.catch( 2 ) ),
-														i.handleError(
+														j.handleError(
 															e.t0,
 															'Cancel import'
 														);
@@ -1779,9 +4815,9 @@
 							this.showStep( 1 );
 					},
 				};
-				function f( t ) {
+				function I( t ) {
 					return (
-						( f =
+						( I =
 							'function' == typeof Symbol &&
 							'symbol' == typeof Symbol.iterator
 								? function ( t ) {
@@ -1795,30 +4831,30 @@
 											? 'symbol'
 											: typeof t;
 								  } ),
-						f( t )
+						I( t )
 					);
 				}
-				function d() {
-					d = function () {
+				function Q() {
+					Q = function () {
 						return e;
 					};
 					var t,
 						e = {},
-						r = Object.prototype,
-						n = r.hasOwnProperty,
+						n = Object.prototype,
+						r = n.hasOwnProperty,
 						o =
 							Object.defineProperty ||
-							function ( t, e, r ) {
-								t[ e ] = r.value;
+							function ( t, e, n ) {
+								t[ e ] = n.value;
 							},
 						a = 'function' == typeof Symbol ? Symbol : {},
 						i = a.iterator || '@@iterator',
 						c = a.asyncIterator || '@@asyncIterator',
 						s = a.toStringTag || '@@toStringTag';
-					function u( t, e, r ) {
+					function u( t, e, n ) {
 						return (
 							Object.defineProperty( t, e, {
-								value: r,
+								value: n,
 								enumerable: ! 0,
 								configurable: ! 0,
 								writable: ! 0,
@@ -1829,62 +4865,62 @@
 					try {
 						u( {}, '' );
 					} catch ( t ) {
-						u = function ( t, e, r ) {
-							return ( t[ e ] = r );
+						u = function ( t, e, n ) {
+							return ( t[ e ] = n );
 						};
 					}
-					function l( t, e, r, n ) {
-						var a = e && e.prototype instanceof w ? e : w,
+					function l( t, e, n, r ) {
+						var a = e && e.prototype instanceof m ? e : m,
 							i = Object.create( a.prototype ),
-							c = new C( n || [] );
-						return o( i, '_invoke', { value: F( t, r, c ) } ), i;
+							c = new O( r || [] );
+						return o( i, '_invoke', { value: L( t, n, c ) } ), i;
 					}
-					function p( t, e, r ) {
+					function p( t, e, n ) {
 						try {
-							return { type: 'normal', arg: t.call( e, r ) };
+							return { type: 'normal', arg: t.call( e, n ) };
 						} catch ( t ) {
 							return { type: 'throw', arg: t };
 						}
 					}
 					e.wrap = l;
-					var h = 'suspendedStart',
-						v = 'suspendedYield',
-						y = 'executing',
-						m = 'completed',
-						g = {};
+					var d = 'suspendedStart',
+						f = 'suspendedYield',
+						h = 'executing',
+						v = 'completed',
+						y = {};
+					function m() {}
+					function g() {}
 					function w() {}
-					function x() {}
-					function j() {}
 					var b = {};
 					u( b, i, function () {
 						return this;
 					} );
-					var _ = Object.getPrototypeOf,
-						Q = _ && _( _( P( [] ) ) );
-					Q && Q !== r && n.call( Q, i ) && ( b = Q );
-					var S = ( j.prototype = w.prototype = Object.create( b ) );
-					function k( t ) {
+					var x = Object.getPrototypeOf,
+						j = x && x( x( C( [] ) ) );
+					j && j !== n && r.call( j, i ) && ( b = j );
+					var E = ( w.prototype = m.prototype = Object.create( b ) );
+					function S( t ) {
 						[ 'next', 'throw', 'return' ].forEach( function ( e ) {
 							u( t, e, function ( t ) {
 								return this._invoke( e, t );
 							} );
 						} );
 					}
-					function E( t, e ) {
-						function r( o, a, i, c ) {
+					function _( t, e ) {
+						function n( o, a, i, c ) {
 							var s = p( t[ o ], t, a );
 							if ( 'throw' !== s.type ) {
 								var u = s.arg,
 									l = u.value;
 								return l &&
-									'object' == f( l ) &&
-									n.call( l, '__await' )
+									'object' == I( l ) &&
+									r.call( l, '__await' )
 									? e.resolve( l.__await ).then(
 											function ( t ) {
-												r( 'next', t, i, c );
+												n( 'next', t, i, c );
 											},
 											function ( t ) {
-												r( 'throw', t, i, c );
+												n( 'throw', t, i, c );
 											}
 									  )
 									: e.resolve( l ).then(
@@ -1892,7 +4928,7 @@
 												( u.value = t ), i( u );
 											},
 											function ( t ) {
-												return r( 'throw', t, i, c );
+												return n( 'throw', t, i, c );
 											}
 									  );
 							}
@@ -1900,106 +4936,106 @@
 						}
 						var a;
 						o( this, '_invoke', {
-							value: function ( t, n ) {
+							value: function ( t, r ) {
 								function o() {
 									return new e( function ( e, o ) {
-										r( t, n, e, o );
+										n( t, r, e, o );
 									} );
 								}
 								return ( a = a ? a.then( o, o ) : o() );
 							},
 						} );
 					}
-					function F( e, r, n ) {
-						var o = h;
+					function L( e, n, r ) {
+						var o = d;
 						return function ( a, i ) {
-							if ( o === y )
+							if ( o === h )
 								throw Error( 'Generator is already running' );
-							if ( o === m ) {
+							if ( o === v ) {
 								if ( 'throw' === a ) throw i;
 								return { value: t, done: ! 0 };
 							}
-							for ( n.method = a, n.arg = i; ;  ) {
-								var c = n.delegate;
+							for ( r.method = a, r.arg = i; ;  ) {
+								var c = r.delegate;
 								if ( c ) {
-									var s = L( c, n );
+									var s = k( c, r );
 									if ( s ) {
-										if ( s === g ) continue;
+										if ( s === y ) continue;
 										return s;
 									}
 								}
-								if ( 'next' === n.method )
-									n.sent = n._sent = n.arg;
-								else if ( 'throw' === n.method ) {
-									if ( o === h ) throw ( ( o = m ), n.arg );
-									n.dispatchException( n.arg );
+								if ( 'next' === r.method )
+									r.sent = r._sent = r.arg;
+								else if ( 'throw' === r.method ) {
+									if ( o === d ) throw ( ( o = v ), r.arg );
+									r.dispatchException( r.arg );
 								} else
-									'return' === n.method &&
-										n.abrupt( 'return', n.arg );
-								o = y;
-								var u = p( e, r, n );
+									'return' === r.method &&
+										r.abrupt( 'return', r.arg );
+								o = h;
+								var u = p( e, n, r );
 								if ( 'normal' === u.type ) {
 									if (
-										( ( o = n.done ? m : v ), u.arg === g )
+										( ( o = r.done ? v : f ), u.arg === y )
 									)
 										continue;
-									return { value: u.arg, done: n.done };
+									return { value: u.arg, done: r.done };
 								}
 								'throw' === u.type &&
-									( ( o = m ),
-									( n.method = 'throw' ),
-									( n.arg = u.arg ) );
+									( ( o = v ),
+									( r.method = 'throw' ),
+									( r.arg = u.arg ) );
 							}
 						};
 					}
-					function L( e, r ) {
-						var n = r.method,
-							o = e.iterator[ n ];
+					function k( e, n ) {
+						var r = n.method,
+							o = e.iterator[ r ];
 						if ( o === t )
 							return (
-								( r.delegate = null ),
-								( 'throw' === n &&
+								( n.delegate = null ),
+								( 'throw' === r &&
 									e.iterator.return &&
-									( ( r.method = 'return' ),
-									( r.arg = t ),
-									L( e, r ),
-									'throw' === r.method ) ) ||
-									( 'return' !== n &&
-										( ( r.method = 'throw' ),
-										( r.arg = new TypeError(
+									( ( n.method = 'return' ),
+									( n.arg = t ),
+									k( e, n ),
+									'throw' === n.method ) ) ||
+									( 'return' !== r &&
+										( ( n.method = 'throw' ),
+										( n.arg = new TypeError(
 											"The iterator does not provide a '" +
-												n +
+												r +
 												"' method"
 										) ) ) ),
-								g
+								y
 							);
-						var a = p( o, e.iterator, r.arg );
+						var a = p( o, e.iterator, n.arg );
 						if ( 'throw' === a.type )
 							return (
-								( r.method = 'throw' ),
-								( r.arg = a.arg ),
-								( r.delegate = null ),
-								g
+								( n.method = 'throw' ),
+								( n.arg = a.arg ),
+								( n.delegate = null ),
+								y
 							);
 						var i = a.arg;
 						return i
 							? i.done
-								? ( ( r[ e.resultName ] = i.value ),
-								  ( r.next = e.nextLoc ),
-								  'return' !== r.method &&
-										( ( r.method = 'next' ),
-										( r.arg = t ) ),
-								  ( r.delegate = null ),
-								  g )
+								? ( ( n[ e.resultName ] = i.value ),
+								  ( n.next = e.nextLoc ),
+								  'return' !== n.method &&
+										( ( n.method = 'next' ),
+										( n.arg = t ) ),
+								  ( n.delegate = null ),
+								  y )
 								: i
-							: ( ( r.method = 'throw' ),
-							  ( r.arg = new TypeError(
+							: ( ( n.method = 'throw' ),
+							  ( n.arg = new TypeError(
 									'iterator result is not an object'
 							  ) ),
-							  ( r.delegate = null ),
-							  g );
+							  ( n.delegate = null ),
+							  y );
 					}
-					function O( t ) {
+					function P( t ) {
 						var e = { tryLoc: t[ 0 ] };
 						1 in t && ( e.catchLoc = t[ 1 ] ),
 							2 in t &&
@@ -2007,51 +5043,51 @@
 								( e.afterLoc = t[ 3 ] ) ),
 							this.tryEntries.push( e );
 					}
-					function I( t ) {
+					function F( t ) {
 						var e = t.completion || {};
 						( e.type = 'normal' ),
 							delete e.arg,
 							( t.completion = e );
 					}
-					function C( t ) {
+					function O( t ) {
 						( this.tryEntries = [ { tryLoc: 'root' } ] ),
-							t.forEach( O, this ),
+							t.forEach( P, this ),
 							this.reset( ! 0 );
 					}
-					function P( e ) {
+					function C( e ) {
 						if ( e || '' === e ) {
-							var r = e[ i ];
-							if ( r ) return r.call( e );
+							var n = e[ i ];
+							if ( n ) return n.call( e );
 							if ( 'function' == typeof e.next ) return e;
 							if ( ! isNaN( e.length ) ) {
 								var o = -1,
-									a = function r() {
+									a = function n() {
 										for ( ; ++o < e.length;  )
-											if ( n.call( e, o ) )
+											if ( r.call( e, o ) )
 												return (
-													( r.value = e[ o ] ),
-													( r.done = ! 1 ),
-													r
+													( n.value = e[ o ] ),
+													( n.done = ! 1 ),
+													n
 												);
 										return (
-											( r.value = t ), ( r.done = ! 0 ), r
+											( n.value = t ), ( n.done = ! 0 ), n
 										);
 									};
 								return ( a.next = a );
 							}
 						}
-						throw new TypeError( f( e ) + ' is not iterable' );
+						throw new TypeError( I( e ) + ' is not iterable' );
 					}
 					return (
-						( x.prototype = j ),
-						o( S, 'constructor', { value: j, configurable: ! 0 } ),
-						o( j, 'constructor', { value: x, configurable: ! 0 } ),
-						( x.displayName = u( j, s, 'GeneratorFunction' ) ),
+						( g.prototype = w ),
+						o( E, 'constructor', { value: w, configurable: ! 0 } ),
+						o( w, 'constructor', { value: g, configurable: ! 0 } ),
+						( g.displayName = u( w, s, 'GeneratorFunction' ) ),
 						( e.isGeneratorFunction = function ( t ) {
 							var e = 'function' == typeof t && t.constructor;
 							return (
 								!! e &&
-								( e === x ||
+								( e === g ||
 									'GeneratorFunction' ===
 										( e.displayName || e.name ) )
 							);
@@ -2059,50 +5095,50 @@
 						( e.mark = function ( t ) {
 							return (
 								Object.setPrototypeOf
-									? Object.setPrototypeOf( t, j )
-									: ( ( t.__proto__ = j ),
+									? Object.setPrototypeOf( t, w )
+									: ( ( t.__proto__ = w ),
 									  u( t, s, 'GeneratorFunction' ) ),
-								( t.prototype = Object.create( S ) ),
+								( t.prototype = Object.create( E ) ),
 								t
 							);
 						} ),
 						( e.awrap = function ( t ) {
 							return { __await: t };
 						} ),
-						k( E.prototype ),
-						u( E.prototype, c, function () {
+						S( _.prototype ),
+						u( _.prototype, c, function () {
 							return this;
 						} ),
-						( e.AsyncIterator = E ),
-						( e.async = function ( t, r, n, o, a ) {
+						( e.AsyncIterator = _ ),
+						( e.async = function ( t, n, r, o, a ) {
 							void 0 === a && ( a = Promise );
-							var i = new E( l( t, r, n, o ), a );
-							return e.isGeneratorFunction( r )
+							var i = new _( l( t, n, r, o ), a );
+							return e.isGeneratorFunction( n )
 								? i
 								: i.next().then( function ( t ) {
 										return t.done ? t.value : i.next();
 								  } );
 						} ),
-						k( S ),
-						u( S, s, 'Generator' ),
-						u( S, i, function () {
+						S( E ),
+						u( E, s, 'Generator' ),
+						u( E, i, function () {
 							return this;
 						} ),
-						u( S, 'toString', function () {
+						u( E, 'toString', function () {
 							return '[object Generator]';
 						} ),
 						( e.keys = function ( t ) {
 							var e = Object( t ),
-								r = [];
-							for ( var n in e ) r.push( n );
+								n = [];
+							for ( var r in e ) n.push( r );
 							return (
-								r.reverse(),
+								n.reverse(),
 								function t() {
-									for ( ; r.length;  ) {
-										var n = r.pop();
-										if ( n in e )
+									for ( ; n.length;  ) {
+										var r = n.pop();
+										if ( r in e )
 											return (
-												( t.value = n ),
+												( t.value = r ),
 												( t.done = ! 1 ),
 												t
 											);
@@ -2111,9 +5147,9 @@
 								}
 							);
 						} ),
-						( e.values = P ),
-						( C.prototype = {
-							constructor: C,
+						( e.values = C ),
+						( O.prototype = {
+							constructor: O,
 							reset: function ( e ) {
 								if (
 									( ( this.prev = 0 ),
@@ -2123,14 +5159,14 @@
 									( this.delegate = null ),
 									( this.method = 'next' ),
 									( this.arg = t ),
-									this.tryEntries.forEach( I ),
+									this.tryEntries.forEach( F ),
 									! e )
 								)
-									for ( var r in this )
-										't' === r.charAt( 0 ) &&
-											n.call( this, r ) &&
-											! isNaN( +r.slice( 1 ) ) &&
-											( this[ r ] = t );
+									for ( var n in this )
+										't' === n.charAt( 0 ) &&
+											r.call( this, n ) &&
+											! isNaN( +n.slice( 1 ) ) &&
+											( this[ n ] = t );
 							},
 							stop: function () {
 								this.done = ! 0;
@@ -2140,15 +5176,15 @@
 							},
 							dispatchException: function ( e ) {
 								if ( this.done ) throw e;
-								var r = this;
-								function o( n, o ) {
+								var n = this;
+								function o( r, o ) {
 									return (
 										( c.type = 'throw' ),
 										( c.arg = e ),
-										( r.next = n ),
+										( n.next = r ),
 										o &&
-											( ( r.method = 'next' ),
-											( r.arg = t ) ),
+											( ( n.method = 'next' ),
+											( n.arg = t ) ),
 										!! o
 									);
 								}
@@ -2162,8 +5198,8 @@
 									if ( 'root' === i.tryLoc )
 										return o( 'end' );
 									if ( i.tryLoc <= this.prev ) {
-										var s = n.call( i, 'catchLoc' ),
-											u = n.call( i, 'finallyLoc' );
+										var s = r.call( i, 'catchLoc' ),
+											u = r.call( i, 'finallyLoc' );
 										if ( s && u ) {
 											if ( this.prev < i.catchLoc )
 												return o( i.catchLoc, ! 0 );
@@ -2185,14 +5221,14 @@
 							},
 							abrupt: function ( t, e ) {
 								for (
-									var r = this.tryEntries.length - 1;
-									r >= 0;
-									--r
+									var n = this.tryEntries.length - 1;
+									n >= 0;
+									--n
 								) {
-									var o = this.tryEntries[ r ];
+									var o = this.tryEntries[ n ];
 									if (
 										o.tryLoc <= this.prev &&
-										n.call( o, 'finallyLoc' ) &&
+										r.call( o, 'finallyLoc' ) &&
 										this.prev < o.finallyLoc
 									) {
 										var a = o;
@@ -2211,7 +5247,7 @@
 									a
 										? ( ( this.method = 'next' ),
 										  ( this.next = a.finallyLoc ),
-										  g )
+										  y )
 										: this.complete( i )
 								);
 							},
@@ -2227,7 +5263,7 @@
 										: 'normal' === t.type &&
 										  e &&
 										  ( this.next = e ),
-									g
+									y
 								);
 							},
 							finish: function ( t ) {
@@ -2236,15 +5272,15 @@
 									e >= 0;
 									--e
 								) {
-									var r = this.tryEntries[ e ];
-									if ( r.finallyLoc === t )
+									var n = this.tryEntries[ e ];
+									if ( n.finallyLoc === t )
 										return (
 											this.complete(
-												r.completion,
-												r.afterLoc
+												n.completion,
+												n.afterLoc
 											),
-											I( r ),
-											g
+											F( n ),
+											y
 										);
 								}
 							},
@@ -2254,59 +5290,59 @@
 									e >= 0;
 									--e
 								) {
-									var r = this.tryEntries[ e ];
-									if ( r.tryLoc === t ) {
-										var n = r.completion;
-										if ( 'throw' === n.type ) {
-											var o = n.arg;
-											I( r );
+									var n = this.tryEntries[ e ];
+									if ( n.tryLoc === t ) {
+										var r = n.completion;
+										if ( 'throw' === r.type ) {
+											var o = r.arg;
+											F( n );
 										}
 										return o;
 									}
 								}
 								throw Error( 'illegal catch attempt' );
 							},
-							delegateYield: function ( e, r, n ) {
+							delegateYield: function ( e, n, r ) {
 								return (
 									( this.delegate = {
-										iterator: P( e ),
-										resultName: r,
-										nextLoc: n,
+										iterator: C( e ),
+										resultName: n,
+										nextLoc: r,
 									} ),
 									'next' === this.method && ( this.arg = t ),
-									g
+									y
 								);
 							},
 						} ),
 						e
 					);
 				}
-				function h( t, e, r, n, o, a, i ) {
+				function P( t, e, n, r, o, a, i ) {
 					try {
 						var c = t[ a ]( i ),
 							s = c.value;
 					} catch ( t ) {
-						return void r( t );
+						return void n( t );
 					}
-					c.done ? e( s ) : Promise.resolve( s ).then( n, o );
+					c.done ? e( s ) : Promise.resolve( s ).then( r, o );
 				}
-				function v( t ) {
+				function F( t ) {
 					return function () {
 						var e = this,
-							r = arguments;
-						return new Promise( function ( n, o ) {
-							var a = t.apply( e, r );
+							n = arguments;
+						return new Promise( function ( r, o ) {
+							var a = t.apply( e, n );
 							function i( t ) {
-								h( a, n, o, i, c, 'next', t );
+								P( a, r, o, i, c, 'next', t );
 							}
 							function c( t ) {
-								h( a, n, o, i, c, 'throw', t );
+								P( a, r, o, i, c, 'throw', t );
 							}
 							i( void 0 );
 						} );
 					};
 				}
-				const y = {
+				const O = {
 					currentStep: 1,
 					totalSteps: 5,
 					jobId: null,
@@ -2334,7 +5370,7 @@
 							e.on(
 								'change',
 								'.aie-export-filters input, .aie-export-filters select',
-								i.debounce( function () {
+								j.debounce( function () {
 									return t.refreshCount();
 								}, 500 )
 							),
@@ -2429,17 +5465,17 @@
 					},
 					refreshCount: function () {
 						var t = this;
-						return v(
-							d().mark( function e() {
-								var r, n, o, a;
-								return d().wrap(
+						return F(
+							Q().mark( function e() {
+								var n, r, o, a;
+								return Q().wrap(
 									function ( e ) {
 										for (;;)
 											switch ( ( e.prev = e.next ) ) {
 												case 0:
 													return (
-														( r = t.getFilters() ),
-														( n =
+														( n = t.getFilters() ),
+														( r =
 															jQuery(
 																'.aie-count-value'
 															) ),
@@ -2450,26 +5486,26 @@
 														),
 														( e.prev = 4 ),
 														( e.next = 7 ),
-														i.ajax(
+														j.ajax(
 															'aie_export_get_count',
 															{
 																content_type:
 																	jQuery(
 																		'input[name="content_type"]:checked'
 																	).val(),
-																filters: r,
+																filters: n,
 															}
 														)
 													);
 												case 7:
 													( a = e.sent ),
-														n.text( a.count || 0 ),
+														r.text( a.count || 0 ),
 														( e.next = 15 );
 													break;
 												case 11:
 													( e.prev = 11 ),
 														( e.t0 = e.catch( 4 ) ),
-														n.text( '-' ),
+														r.text( '-' ),
 														console.error(
 															'Count error:',
 															e.t0
@@ -2570,17 +5606,17 @@
 					},
 					startExport: function () {
 						var t = this;
-						return v(
-							d().mark( function e() {
-								var r, n, o;
-								return d().wrap(
+						return F(
+							Q().mark( function e() {
+								var n, r, o;
+								return Q().wrap(
 									function ( e ) {
 										for (;;)
 											switch ( ( e.prev = e.next ) ) {
 												case 0:
 													if (
 														0 !==
-														( r =
+														( n =
 															t.getSelectedFields() )
 															.length
 													) {
@@ -2588,7 +5624,7 @@
 														break;
 													}
 													return (
-														i.showNotice(
+														j.showNotice(
 															'Please select at least one field to export',
 															'error'
 														),
@@ -2597,14 +5633,14 @@
 												case 4:
 													return (
 														( e.prev = 4 ),
-														( n = {
+														( r = {
 															content_type:
 																jQuery(
 																	'input[name="content_type"]:checked'
 																).val(),
 															filters:
 																t.getFilters(),
-															fields: r,
+															fields: n,
 															format: jQuery(
 																'input[name="format"]:checked'
 															).val(),
@@ -2640,9 +5676,9 @@
 															},
 														} ),
 														( e.next = 8 ),
-														i.ajax(
+														j.ajax(
 															'aie_export_start',
-															n
+															r
 														)
 													);
 												case 8:
@@ -2650,7 +5686,7 @@
 														( t.jobId = o.job_id ),
 														t.showStep( 5 ),
 														t.startProgressTracking(),
-														i.showNotice(
+														j.showNotice(
 															'Export started successfully',
 															'success'
 														),
@@ -2659,7 +5695,7 @@
 												case 15:
 													( e.prev = 15 ),
 														( e.t0 = e.catch( 4 ) ),
-														i.handleError(
+														j.handleError(
 															e.t0,
 															'Start export'
 														);
@@ -2683,10 +5719,10 @@
 					},
 					updateProgress: function () {
 						var t = this;
-						return v(
-							d().mark( function e() {
-								var r;
-								return d().wrap(
+						return F(
+							Q().mark( function e() {
+								var n;
+								return Q().wrap(
 									function ( e ) {
 										for (;;)
 											switch ( ( e.prev = e.next ) ) {
@@ -2694,27 +5730,27 @@
 													return (
 														( e.prev = 0 ),
 														( e.next = 3 ),
-														i.ajax(
+														j.ajax(
 															'aie_export_get_progress',
 															{ job_id: t.jobId }
 														)
 													);
 												case 3:
-													( r = e.sent ),
-														i.updateProgressBar(
+													( n = e.sent ),
+														j.updateProgressBar(
 															jQuery(
 																'.aie-step-5'
 															),
-															r
+															n
 														),
-														'completed' === r.status
+														'completed' === n.status
 															? t.onExportComplete(
-																	r
+																	n
 															  )
 															: 'failed' ===
-																	r.status &&
+																	n.status &&
 															  t.onExportFailed(
-																	r
+																	n
 															  ),
 														( e.next = 11 );
 													break;
@@ -2745,7 +5781,7 @@
 								t.processed || 0
 							),
 							jQuery( '.aie-result-filesize' ).text(
-								i.formatFileSize( t.file_size || 0 )
+								j.formatFileSize( t.file_size || 0 )
 							),
 							jQuery( '.aie-result-duration' ).text(
 								( null === ( e = t.estimates ) || void 0 === e
@@ -2754,14 +5790,14 @@
 							),
 							jQuery( '.aie-cancel-export' ).hide(),
 							jQuery( '.aie-new-export' ).show(),
-							i.showNotice(
+							j.showNotice(
 								'Export completed successfully!',
 								'success'
 							);
 					},
 					onExportFailed: function ( t ) {
 						clearInterval( this.progressInterval ),
-							i.showNotice(
+							j.showNotice(
 								'Export failed: ' +
 									( t.error || 'Unknown error' ),
 								'error'
@@ -2769,10 +5805,10 @@
 					},
 					downloadFile: function () {
 						var t = this;
-						return v(
-							d().mark( function e() {
-								var r;
-								return d().wrap(
+						return F(
+							Q().mark( function e() {
+								var n;
+								return Q().wrap(
 									function ( e ) {
 										for (;;)
 											switch ( ( e.prev = e.next ) ) {
@@ -2780,24 +5816,24 @@
 													return (
 														( e.prev = 0 ),
 														( e.next = 3 ),
-														i.ajax(
+														j.ajax(
 															'aie_export_download',
 															{ job_id: t.jobId }
 														)
 													);
 												case 3:
-													( r = e.sent )
+													( n = e.sent )
 														.download_url &&
-														i.downloadFile(
-															r.download_url,
-															r.filename
+														j.downloadFile(
+															n.download_url,
+															n.filename
 														),
 														( e.next = 10 );
 													break;
 												case 7:
 													( e.prev = 7 ),
 														( e.t0 = e.catch( 0 ) ),
-														i.handleError(
+														j.handleError(
 															e.t0,
 															'Download file'
 														);
@@ -2815,9 +5851,9 @@
 					},
 					cancelExport: function () {
 						var t = this;
-						return v(
-							d().mark( function e() {
-								return d().wrap(
+						return F(
+							Q().mark( function e() {
+								return Q().wrap(
 									function ( e ) {
 										for (;;)
 											switch ( ( e.prev = e.next ) ) {
@@ -2835,7 +5871,7 @@
 													return (
 														( e.prev = 2 ),
 														( e.next = 5 ),
-														i.ajax(
+														j.ajax(
 															'aie_export_cancel',
 															{ job_id: t.jobId }
 														)
@@ -2844,7 +5880,7 @@
 													clearInterval(
 														t.progressInterval
 													),
-														i.showNotice(
+														j.showNotice(
 															'Export cancelled',
 															'info'
 														),
@@ -2854,7 +5890,7 @@
 												case 10:
 													( e.prev = 10 ),
 														( e.t0 = e.catch( 2 ) ),
-														i.handleError(
+														j.handleError(
 															e.t0,
 															'Cancel export'
 														);
@@ -2884,33 +5920,33 @@
 							this.showStep( 1 );
 					},
 				};
-				jQuery( document ).ready( function ( e ) {
-					p.init(), y.init(), 'function' == typeof t.init && t.init();
+				jQuery( document ).ready( function ( t ) {
+					k.init(), O.init(), y.init();
 				} );
 			},
 			205: () => {},
 		},
-		r = {};
-	function n( t ) {
-		var o = r[ t ];
+		n = {};
+	function r( t ) {
+		var o = n[ t ];
 		if ( void 0 !== o ) return o.exports;
-		var a = ( r[ t ] = { exports: {} } );
-		return e[ t ]( a, a.exports, n ), a.exports;
+		var a = ( n[ t ] = { exports: {} } );
+		return e[ t ]( a, a.exports, r ), a.exports;
 	}
-	( n.m = e ),
+	( r.m = e ),
 		( t = [] ),
-		( n.O = ( e, r, o, a ) => {
-			if ( ! r ) {
+		( r.O = ( e, n, o, a ) => {
+			if ( ! n ) {
 				var i = 1 / 0;
 				for ( l = 0; l < t.length; l++ ) {
 					for (
-						var [ r, o, a ] = t[ l ], c = ! 0, s = 0;
-						s < r.length;
+						var [ n, o, a ] = t[ l ], c = ! 0, s = 0;
+						s < n.length;
 						s++
 					)
 						( ! 1 & a || i >= a ) &&
-						Object.keys( n.O ).every( ( t ) => n.O[ t ]( r[ s ] ) )
-							? r.splice( s--, 1 )
+						Object.keys( r.O ).every( ( t ) => r.O[ t ]( n[ s ] ) )
+							? n.splice( s--, 1 )
 							: ( ( c = ! 1 ), a < i && ( i = a ) );
 					if ( c ) {
 						t.splice( l--, 1 );
@@ -2923,34 +5959,34 @@
 			a = a || 0;
 			for ( var l = t.length; l > 0 && t[ l - 1 ][ 2 ] > a; l-- )
 				t[ l ] = t[ l - 1 ];
-			t[ l ] = [ r, o, a ];
+			t[ l ] = [ n, o, a ];
 		} ),
-		( n.o = ( t, e ) => Object.prototype.hasOwnProperty.call( t, e ) ),
+		( r.o = ( t, e ) => Object.prototype.hasOwnProperty.call( t, e ) ),
 		( () => {
 			var t = { 847: 0, 252: 0 };
-			n.O.j = ( e ) => 0 === t[ e ];
-			var e = ( e, r ) => {
+			r.O.j = ( e ) => 0 === t[ e ];
+			var e = ( e, n ) => {
 					var o,
 						a,
-						[ i, c, s ] = r,
+						[ i, c, s ] = n,
 						u = 0;
 					if ( i.some( ( e ) => 0 !== t[ e ] ) ) {
-						for ( o in c ) n.o( c, o ) && ( n.m[ o ] = c[ o ] );
-						if ( s ) var l = s( n );
+						for ( o in c ) r.o( c, o ) && ( r.m[ o ] = c[ o ] );
+						if ( s ) var l = s( r );
 					}
-					for ( e && e( r ); u < i.length; u++ )
+					for ( e && e( n ); u < i.length; u++ )
 						( a = i[ u ] ),
-							n.o( t, a ) && t[ a ] && t[ a ][ 0 ](),
+							r.o( t, a ) && t[ a ] && t[ a ][ 0 ](),
 							( t[ a ] = 0 );
-					return n.O( l );
+					return r.O( l );
 				},
-				r = ( self.webpackChunkboilerplate =
+				n = ( self.webpackChunkboilerplate =
 					self.webpackChunkboilerplate || [] );
-			r.forEach( e.bind( null, 0 ) ),
-				( r.push = e.bind( null, r.push.bind( r ) ) );
+			n.forEach( e.bind( null, 0 ) ),
+				( n.push = e.bind( null, n.push.bind( n ) ) );
 		} )(),
-		n.O( void 0, [ 252 ], () => n( 463 ) );
-	var o = n.O( void 0, [ 252 ], () => n( 205 ) );
-	o = n.O( o );
+		r.O( void 0, [ 252 ], () => r( 673 ) );
+	var o = r.O( void 0, [ 252 ], () => r( 205 ) );
+	o = r.O( o );
 } )();
 //# sourceMappingURL=app.js.map
