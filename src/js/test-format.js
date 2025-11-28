@@ -1,1 +1,1 @@
-const test={a:1,b:2};
+const bad={x:1};
