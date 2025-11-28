@@ -2442,7 +2442,7 @@
 											);
 										} ) )
 								: ( o.innerHTML =
-										'\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan="7" style="text-align:center; padding:40px;">\n\t\t\t\t\t\t<span class="dashicons dashicons-info" style="font-size:48px; opacity:0.3;"></span>\n\t\t\t\t\t\t<p style="margin-top:10px; color:#666;">\n\t\t\t\t\t\t\t'.concat(
+										'\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan="7" style="text-align:center; padding:40px;">\n\t\t\t\t\t\t<div style="display:flex; flex-direction:column; align-items:center; gap:10px;">\n\t\t\t\t\t\t\t<span class="dashicons dashicons-info" style="font-size:48px; opacity:0.3;"></span>\n\t\t\t\t\t\t\t<p style="margin:0; color:#666;">\n\t\t\t\t\t\t\t\t'.concat(
 											( null === ( e = window.aieData ) ||
 											void 0 === e ||
 											null === ( e = e.i18n ) ||
@@ -2450,7 +2450,7 @@
 												? void 0
 												: e.no_functions ) ||
 												'No functions found. Create your first function or browse the library.',
-											'\n\t\t\t\t\t\t</p>\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t'
+											'\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t'
 										) ) );
 					},
 					updatePagination: function () {
