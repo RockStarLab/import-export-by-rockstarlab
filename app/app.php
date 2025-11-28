@@ -26,7 +26,8 @@ class app {
 	}
 
 	private function __construct() {
-
+		// Initialize model registry
+		$this->model = new \WP_AIE\model\model_registry();
 	}
 
 	private function __clone() {
