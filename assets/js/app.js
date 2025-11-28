@@ -958,55 +958,65 @@
 						}
 					},
 					renderSnippets: function () {
-						var t = this,
-							e = document.getElementById( 'aie-snippets-grid' );
-						if ( e ) {
-							var n,
-								r = Object.entries( this.allSnippets );
+						var t,
+							e = this,
+							n = document.getElementById( 'aie-snippets-grid' );
+						if ( n ) {
+							var r = Object.entries( this.allSnippets );
 							if (
 								( this.currentCategory &&
-									( r = r.filter( function ( e ) {
+									( r = r.filter( function ( t ) {
 										return (
-											a( e, 2 )[ 1 ].category ===
-											t.currentCategory
+											a( t, 2 )[ 1 ].category ===
+											e.currentCategory
 										);
 									} ) ),
 								0 !== r.length )
-							)
-								( e.innerHTML = r
-									.map( function ( e ) {
+							) {
+								var o =
+										( null === ( t = window.aieData ) ||
+										void 0 === t
+											? void 0
+											: t.currentPage ) || '',
+									i = [
+										'wp-advanced-import-export',
+										'wp-aie-export',
+										'wp-aie-content-sync',
+									].includes( o );
+								( n.innerHTML = r
+									.map( function ( t ) {
 										var n,
 											r,
-											o = a( e, 2 ),
-											i = o[ 0 ],
-											c = o[ 1 ];
+											o = a( t, 2 ),
+											c = o[ 0 ],
+											s = o[ 1 ];
 										return '\n\t\t\t<div class="aie-snippet-card" data-snippet-key="'
 											.concat(
-												i,
+												c,
 												'">\n\t\t\t\t<div class="aie-snippet-header">\n\t\t\t\t\t<h3 class="aie-snippet-name">'
 											)
 											.concat(
-												t.escapeHtml( c.name ),
+												e.escapeHtml( s.name ),
 												'</h3>\n\t\t\t\t\t<span class="aie-snippet-category-badge">'
 											)
 											.concat(
-												t.getCategoryLabel(
-													c.category
+												e.getCategoryLabel(
+													s.category
 												),
 												'</span>\n\t\t\t\t</div>\n\t\t\t\t<p class="aie-snippet-description">'
 											)
 											.concat(
-												t.escapeHtml( c.description ),
+												e.escapeHtml( s.description ),
 												'</p>\n\t\t\t\t<div class="aie-snippet-tags">\n\t\t\t\t\t'
 											)
 											.concat(
-												c.tags
-													? c.tags
+												s.tags
+													? s.tags
 															.map(
-																function ( e ) {
+																function ( t ) {
 																	return '<span class="aie-tag">'.concat(
-																		t.escapeHtml(
-																			e
+																		e.escapeHtml(
+																			t
 																		),
 																		'</span>'
 																	);
@@ -1017,7 +1027,7 @@
 												'\n\t\t\t\t</div>\n\t\t\t\t<div class="aie-snippet-actions">\n\t\t\t\t\t<button type="button" class="button button-small aie-preview-snippet" data-snippet-key="'
 											)
 											.concat(
-												i,
+												c,
 												'">\n\t\t\t\t\t\t<span class="dashicons dashicons-visibility"></span>\n\t\t\t\t\t\t'
 											)
 											.concat(
@@ -1028,64 +1038,76 @@
 												void 0 === n
 													? void 0
 													: n.preview ) || 'Preview',
-												'\n\t\t\t\t\t</button>\n\t\t\t\t\t<button type="button" class="button button-primary button-small aie-quick-import" data-snippet-key="'
+												'\n\t\t\t\t\t</button>\n\t\t\t\t\t'
 											)
 											.concat(
-												i,
-												'">\n\t\t\t\t\t\t<span class="dashicons dashicons-plus"></span>\n\t\t\t\t\t\t'
-											)
-											.concat(
-												( null ===
-													( r = window.aieData ) ||
-												void 0 === r ||
-												null === ( r = r.i18n ) ||
-												void 0 === r
-													? void 0
-													: r.use ) || 'Use',
-												'\n\t\t\t\t\t</button>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t'
+												i
+													? '<button type="button" class="button button-primary button-small aie-quick-import" data-snippet-key="'
+															.concat(
+																c,
+																'">\n\t\t\t\t\t\t<span class="dashicons dashicons-plus"></span>\n\t\t\t\t\t\t'
+															)
+															.concat(
+																( null ===
+																	( r =
+																		window.aieData ) ||
+																void 0 === r ||
+																null ===
+																	( r =
+																		r.i18n ) ||
+																void 0 === r
+																	? void 0
+																	: r.use ) ||
+																	'Use',
+																'\n\t\t\t\t\t</button>'
+															)
+													: '',
+												'\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t'
 											);
 									} )
 									.join( '' ) ),
-									e
+									n
 										.querySelectorAll(
 											'.aie-preview-snippet'
 										)
-										.forEach( function ( e ) {
-											e.addEventListener(
+										.forEach( function ( t ) {
+											t.addEventListener(
 												'click',
-												function ( e ) {
+												function ( t ) {
 													var n =
-														e.currentTarget.dataset
+														t.currentTarget.dataset
 															.snippetKey;
-													t.previewSnippet( n );
+													e.previewSnippet( n );
 												}
 											);
 										} ),
-									e
+									n
 										.querySelectorAll( '.aie-quick-import' )
-										.forEach( function ( e ) {
-											e.addEventListener(
+										.forEach( function ( t ) {
+											t.addEventListener(
 												'click',
-												function ( e ) {
+												function ( t ) {
 													var n =
-														e.currentTarget.dataset
+														t.currentTarget.dataset
 															.snippetKey;
-													t.importSnippet( n, ! 1 );
+													e.importSnippet( n, ! 1 );
 												}
 											);
 										} );
-							else
-								e.innerHTML =
+							} else {
+								var c;
+								n.innerHTML =
 									'\n\t\t\t\t<div class="aie-no-snippets">\n\t\t\t\t\t<span class="dashicons dashicons-info" style="width: auto; height: auto;"></span>\n\t\t\t\t\t<p>'.concat(
-										( null === ( n = window.aieData ) ||
-										void 0 === n ||
-										null === ( n = n.i18n ) ||
-										void 0 === n
+										( null === ( c = window.aieData ) ||
+										void 0 === c ||
+										null === ( c = c.i18n ) ||
+										void 0 === c
 											? void 0
-											: n.no_snippets ) ||
+											: c.no_snippets ) ||
 											'No snippets found',
 										'</p>\n\t\t\t\t</div>\n\t\t\t'
 									);
+							}
 						}
 					},
 					filterByCategory: function ( t ) {

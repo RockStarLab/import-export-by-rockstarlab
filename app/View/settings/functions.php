@@ -330,7 +330,7 @@ defined( 'ABSPATH' ) || exit;
 				<span class="dashicons dashicons-edit"></span>
 				<?php esc_html_e( 'Customize', 'wp-aie' ); ?>
 			</button>
-			<button type="button" class="button button-primary aie-use-snippet">
+			<button type="button" class="button button-primary aie-use-snippet" style="display: none;">
 				<span class="dashicons dashicons-yes"></span>
 				<?php esc_html_e( 'Use As Is', 'wp-aie' ); ?>
 			</button>
