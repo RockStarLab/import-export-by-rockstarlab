@@ -1,50 +1,57 @@
 <?php
 /**
  * Database Migration Helper
- * 
+ *
  * Handles creation and management of custom database tables
- * 
+ *
  * @package WP_AIE
  * @subpackage Helper
  */
 
 namespace WP_AIE\helper;
 
-class database_migration {
-    
-    /**
-     * Database version
-     * Update this when schema changes
-     */
-    const DB_VERSION = '1.0.0';
-    
-    /**
-     * Database version option name
-     */
-    const DB_VERSION_OPTION = 'aie_db_version';
-    
-    /**
-     * Create all custom tables
-     * Called on plugin activation
-     */
-    public static function create_tables() {
-        global $wpdb;
-        
-        $charset_collate = $wpdb->get_charset_collate();
-        $prefix = $wpdb->prefix;
-        
-        require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-        
-        // Get current DB version
-        $current_version = get_option( self::DB_VERSION_OPTION );
-        
-        // Only create/update tables if version changed
-        if ( $current_version === self::DB_VERSION ) {
-            return;
-        }
-        
-        // 1. Jobs table - import/export history
-        $sql_jobs = "CREATE TABLE {$prefix}aie_jobs (
+/**
+ * Database Migration Helper Class
+ *
+ * Handles creation and management of custom database tables.
+ *
+ * @package WP_AIE\Helper
+ */
+class Database_Migration {
+
+	/**
+	 * Database version
+	 * Update this when schema changes
+	 */
+	const DB_VERSION = '1.0.0';
+
+	/**
+	 * Database version option name
+	 */
+	const DB_VERSION_OPTION = 'aie_db_version';
+
+	/**
+	 * Create all custom tables
+	 * Called on plugin activation
+	 */
+	public static function create_tables() {
+		global $wpdb;
+
+		$charset_collate = $wpdb->get_charset_collate();
+		$prefix          = $wpdb->prefix;
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+		// Get current DB version
+		$current_version = get_option( self::DB_VERSION_OPTION );
+
+		// Only create/update tables if version changed
+		if ( $current_version === self::DB_VERSION ) {
+			return;
+		}
+
+		// 1. Jobs table - import/export history
+		$sql_jobs = "CREATE TABLE {$prefix}aie_jobs (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             user_id BIGINT(20) UNSIGNED NOT NULL,
             type ENUM('import', 'export') NOT NULL,
@@ -66,9 +73,9 @@ class database_migration {
             INDEX type_idx (type),
             INDEX created_at_idx (created_at)
         ) ENGINE=InnoDB $charset_collate;";
-        
-        // 2. Logs table - execution logs
-        $sql_logs = "CREATE TABLE {$prefix}aie_logs (
+
+		// 2. Logs table - execution logs
+		$sql_logs = "CREATE TABLE {$prefix}aie_logs (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             job_id BIGINT(20) UNSIGNED NOT NULL,
             level ENUM('info', 'warning', 'error') DEFAULT 'info',
@@ -79,9 +86,9 @@ class database_migration {
             INDEX level_idx (level),
             INDEX created_at_idx (created_at)
         ) ENGINE=InnoDB $charset_collate;";
-        
-        // 3. Field Maps table - saved mapping presets
-        $sql_field_maps = "CREATE TABLE {$prefix}aie_field_maps (
+
+		// 3. Field Maps table - saved mapping presets
+		$sql_field_maps = "CREATE TABLE {$prefix}aie_field_maps (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
             data_type VARCHAR(50) NOT NULL,
@@ -91,9 +98,9 @@ class database_migration {
             INDEX user_id_idx (user_id),
             INDEX data_type_idx (data_type)
         ) ENGINE=InnoDB $charset_collate;";
-        
-        // 4. Custom Functions table - user-defined functions
-        $sql_custom_functions = "CREATE TABLE {$prefix}aie_custom_functions (
+
+		// 4. Custom Functions table - user-defined functions
+		$sql_custom_functions = "CREATE TABLE {$prefix}aie_custom_functions (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(100) NOT NULL UNIQUE,
             description TEXT,
@@ -112,9 +119,9 @@ class database_migration {
             INDEX is_active_idx (is_active),
             INDEX source_idx (source)
         ) ENGINE=InnoDB $charset_collate;";
-        
-        // 5. Media Sync table - media folder synchronization
-        $sql_media_sync = "CREATE TABLE {$prefix}aie_media_sync (
+
+		// 5. Media Sync table - media folder synchronization
+		$sql_media_sync = "CREATE TABLE {$prefix}aie_media_sync (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             job_id BIGINT(20) UNSIGNED NOT NULL,
             folder_path VARCHAR(500) NOT NULL,
@@ -132,9 +139,9 @@ class database_migration {
             INDEX attachment_id_idx (attachment_id),
             INDEX status_idx (status)
         ) ENGINE=InnoDB $charset_collate;";
-        
-        // 6. Site Connections table - site-to-site connections
-        $sql_site_connections = "CREATE TABLE {$prefix}aie_site_connections (
+
+		// 6. Site Connections table - site-to-site connections
+		$sql_site_connections = "CREATE TABLE {$prefix}aie_site_connections (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
             remote_url VARCHAR(500) NOT NULL,
@@ -150,9 +157,9 @@ class database_migration {
             INDEX status_idx (status),
             INDEX created_by_idx (created_by)
         ) ENGINE=InnoDB $charset_collate;";
-        
-        // 7. Content Sync table - content synchronization history
-        $sql_content_sync = "CREATE TABLE {$prefix}aie_content_sync (
+
+		// 7. Content Sync table - content synchronization history
+		$sql_content_sync = "CREATE TABLE {$prefix}aie_content_sync (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             job_id BIGINT(20) UNSIGNED NOT NULL,
             connection_id BIGINT(20) UNSIGNED NOT NULL,
@@ -169,9 +176,9 @@ class database_migration {
             INDEX local_id_idx (local_id),
             INDEX remote_id_idx (remote_id)
         ) ENGINE=InnoDB $charset_collate;";
-        
-        // 8. API Keys table - API keys for incoming connections
-        $sql_api_keys = "CREATE TABLE {$prefix}aie_api_keys (
+
+		// 8. API Keys table - API keys for incoming connections
+		$sql_api_keys = "CREATE TABLE {$prefix}aie_api_keys (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
             api_key VARCHAR(100) NOT NULL UNIQUE,
@@ -184,98 +191,97 @@ class database_migration {
             INDEX status_idx (status),
             INDEX api_key_idx (api_key)
         ) ENGINE=InnoDB $charset_collate;";
-        
-        // Execute table creation
-        dbDelta( $sql_jobs );
-        dbDelta( $sql_logs );
-        dbDelta( $sql_field_maps );
-        dbDelta( $sql_custom_functions );
-        dbDelta( $sql_media_sync );
-        dbDelta( $sql_site_connections );
-        dbDelta( $sql_content_sync );
-        dbDelta( $sql_api_keys );
-        
-        // Update DB version
-        update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
-        
-        do_action( 'aie_tables_created' );
-    }
-    
-    /**
-     * Drop all custom tables
-     * Called on plugin uninstall (not deactivation)
-     */
-    public static function drop_tables() {
-        global $wpdb;
-        
-        $prefix = $wpdb->prefix;
-        
-        // Drop tables in reverse order (respect foreign keys)
-        $tables = [
-            "{$prefix}aie_content_sync",
-            "{$prefix}aie_site_connections",
-            "{$prefix}aie_media_sync",
-            "{$prefix}aie_logs",
-            "{$prefix}aie_api_keys",
-            "{$prefix}aie_custom_functions",
-            "{$prefix}aie_field_maps",
-            "{$prefix}aie_jobs",
-        ];
-        
-        foreach ( $tables as $table ) {
-            $wpdb->query( "DROP TABLE IF EXISTS {$table}" );
-        }
-        
-        // Delete DB version option
-        delete_option( self::DB_VERSION_OPTION );
-        
-        do_action( 'aie_tables_dropped' );
-    }
-    
-    /**
-     * Check if tables exist
-     * 
-     * @return bool
-     */
-    public static function tables_exist() {
-        global $wpdb;
-        
-        $prefix = $wpdb->prefix;
-        $table = "{$prefix}aie_jobs";
-        
-        $result = $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" );
-        
-        return $result === $table;
-    }
-    
-    /**
-     * Get database version
-     * 
-     * @return string|false
-     */
-    public static function get_version() {
-        return get_option( self::DB_VERSION_OPTION, false );
-    }
-    
-    /**
-     * Clean up old jobs (>30 days)
-     * Can be called via cron
-     * 
-     * @param int $days Optional. Number of days to keep, default 30
-     * @return int|false Number of jobs deleted or false on failure
-     */
-    public static function cleanup_old_jobs( $days = 30 ) {
-        return WP_AIE()->model->job->cleanup_old( $days );
-    }
-    
-    /**
-     * Clean up exported files older than X days
-     * 
-     * @param int $days Number of days to keep files, default 7
-     * @return int Number of files deleted
-     */
-    public static function cleanup_old_files( $days = 7 ) {
-        return WP_AIE()->model->job->cleanup_old_files( $days );
-    }
-}
 
+		// Execute table creation
+		dbDelta( $sql_jobs );
+		dbDelta( $sql_logs );
+		dbDelta( $sql_field_maps );
+		dbDelta( $sql_custom_functions );
+		dbDelta( $sql_media_sync );
+		dbDelta( $sql_site_connections );
+		dbDelta( $sql_content_sync );
+		dbDelta( $sql_api_keys );
+
+		// Update DB version
+		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
+
+		do_action( 'aie_tables_created' );
+	}
+
+	/**
+	 * Drop all custom tables
+	 * Called on plugin uninstall (not deactivation)
+	 */
+	public static function drop_tables() {
+		global $wpdb;
+
+		$prefix = $wpdb->prefix;
+
+		// Drop tables in reverse order (respect foreign keys)
+		$tables = [
+			"{$prefix}aie_content_sync",
+			"{$prefix}aie_site_connections",
+			"{$prefix}aie_media_sync",
+			"{$prefix}aie_logs",
+			"{$prefix}aie_api_keys",
+			"{$prefix}aie_custom_functions",
+			"{$prefix}aie_field_maps",
+			"{$prefix}aie_jobs",
+		];
+
+		foreach ( $tables as $table ) {
+			$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
+		}
+
+		// Delete DB version option
+		delete_option( self::DB_VERSION_OPTION );
+
+		do_action( 'aie_tables_dropped' );
+	}
+
+	/**
+	 * Check if tables exist
+	 *
+	 * @return bool
+	 */
+	public static function tables_exist() {
+		global $wpdb;
+
+		$prefix = $wpdb->prefix;
+		$table  = "{$prefix}aie_jobs";
+
+		$result = $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" );
+
+		return $result === $table;
+	}
+
+	/**
+	 * Get database version
+	 *
+	 * @return string|false
+	 */
+	public static function get_version() {
+		return get_option( self::DB_VERSION_OPTION, false );
+	}
+
+	/**
+	 * Clean up old jobs (>30 days)
+	 * Can be called via cron
+	 *
+	 * @param int $days Optional. Number of days to keep, default 30
+	 * @return int|false Number of jobs deleted or false on failure
+	 */
+	public static function cleanup_old_jobs( $days = 30 ) {
+		return WP_AIE()->model->job->cleanup_old( $days );
+	}
+
+	/**
+	 * Clean up exported files older than X days
+	 *
+	 * @param int $days Number of days to keep files, default 7
+	 * @return int Number of files deleted
+	 */
+	public static function cleanup_old_files( $days = 7 ) {
+		return WP_AIE()->model->job->cleanup_old_files( $days );
+	}
+}

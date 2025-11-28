@@ -1,20 +1,27 @@
 <?php
 /**
  * Progress Tracker Helper
- * 
+ *
  * Facade for job progress tracking operations.
  * Provides convenient static methods for updating job progress and status.
- * 
+ *
  * @package WP_AIE\Helper
  */
 
 namespace WP_AIE\helper;
 
-class progress_tracker {
+/**
+ * Progress Tracker Helper Class
+ *
+ * Facade for job progress tracking operations.
+ *
+ * @package WP_AIE\Helper
+ */
+class Progress_Tracker {
 
 	/**
 	 * Update job progress with item counts
-	 * 
+	 *
 	 * @param int $job_id   Job ID to update
 	 * @param int $total    Total number of items
 	 * @param int $processed Number of items processed
@@ -28,7 +35,7 @@ class progress_tracker {
 
 	/**
 	 * Increment processed item counter
-	 * 
+	 *
 	 * @param int  $job_id  Job ID to increment
 	 * @param bool $success Whether the item was successful
 	 * @return int|WP_Error|false Number of rows affected or false
@@ -39,7 +46,7 @@ class progress_tracker {
 
 	/**
 	 * Get current progress information
-	 * 
+	 *
 	 * @param int $job_id Job ID to get progress for
 	 * @return array|null Progress information array or null
 	 */
@@ -49,20 +56,20 @@ class progress_tracker {
 
 	/**
 	 * Mark job as complete or failed
-	 * 
+	 *
 	 * @param int  $job_id  Job ID to mark
 	 * @param bool $success Whether completed successfully
 	 * @return int|WP_Error Number of rows affected or WP_Error
 	 */
 	public static function mark_complete( $job_id, $success = true ) {
-		return $success 
-			? WP_AIE()->model->job->mark_completed( $job_id ) 
+		return $success
+			? WP_AIE()->model->job->mark_completed( $job_id )
 			: WP_AIE()->model->job->mark_failed( $job_id );
 	}
 
 	/**
 	 * Mark job as running/processing
-	 * 
+	 *
 	 * @param int $job_id Job ID to mark as running
 	 * @return int|WP_Error Number of rows affected or WP_Error
 	 */
@@ -72,7 +79,7 @@ class progress_tracker {
 
 	/**
 	 * Mark job as failed and optionally log error
-	 * 
+	 *
 	 * @param int    $job_id       Job ID to mark as failed
 	 * @param string $error_message Optional. Error message to log
 	 * @return int|WP_Error Number of rows affected or WP_Error
