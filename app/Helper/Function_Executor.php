@@ -344,6 +344,51 @@ class Function_Executor {
 			}
 		}
 
+		// Advanced validation: Try to actually evaluate the code syntax
+		// This catches errors that token_get_all misses
+		$validation_code = sprintf(
+			'<?php return true; if(false) { %s }',
+			$clean_code
+		);
+
+		$old_error_handler = set_error_handler(
+			function ( $errno, $errstr ) {
+				// Capture the error
+				return true;
+			}
+		);
+
+		$syntax_error = null;
+		ob_start();
+		$result = eval( $validation_code ); // phpcs:ignore Squiz.PHP.Eval.Discouraged
+		$output = ob_get_clean();
+
+		// Check for parse errors
+		$error = error_get_last();
+		if ( $error && ( E_PARSE === $error['type'] || E_COMPILE_ERROR === $error['type'] ) ) {
+			$syntax_error = $error['message'];
+		}
+
+		// Restore error handler
+		if ( $old_error_handler ) {
+			set_error_handler( $old_error_handler );
+		} else {
+			restore_error_handler();
+		}
+
+		if ( $syntax_error ) {
+			// Clean up the error message
+			$syntax_error = preg_replace( "/eval\(\)'d code/", 'code', $syntax_error );
+			return new \WP_Error(
+				'parse_error',
+				sprintf(
+					/* translators: %s: Error message */
+					__( 'PHP Syntax Error: %s', 'wp-aie' ),
+					$syntax_error
+				)
+			);
+		}
+
 		return true;
 	}
 
