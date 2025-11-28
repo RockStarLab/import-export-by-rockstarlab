@@ -498,6 +498,20 @@ const FunctionsModule = {
 				body: new URLSearchParams( functionData ),
 			} );
 
+			// Check if response is JSON
+			const contentType = response.headers.get( 'content-type' );
+			if (
+				! contentType ||
+				! contentType.includes( 'application/json' )
+			) {
+				// Response is not JSON, probably a PHP error page
+				const text = await response.text();
+				console.error( 'Non-JSON response:', text );
+				throw new Error(
+					'Server error: The function code contains errors that prevent it from being saved. Please check your PHP syntax.'
+				);
+			}
+
 			const data = await response.json();
 
 			if ( ! data.success ) {
@@ -519,10 +533,21 @@ const FunctionsModule = {
 			const modal = document.getElementById(
 				'aie-function-editor-modal'
 			);
+
+			// Improve error message for JSON parse errors
+			let errorMessage = error.message;
+			if (
+				errorMessage.includes( 'Unexpected token' ) ||
+				errorMessage.includes( 'is not valid JSON' )
+			) {
+				errorMessage =
+					'Server error: Unable to save function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
+			}
+
 			if ( modal && modal.style.display === 'flex' ) {
-				showModalError( error.message, modal );
+				showModalError( errorMessage, modal );
 			} else {
-				showError( error.message );
+				showError( errorMessage );
 			}
 		}
 	},
@@ -611,6 +636,20 @@ const FunctionsModule = {
 				} ),
 			} );
 
+			// Check if response is JSON
+			const contentType = response.headers.get( 'content-type' );
+			if (
+				! contentType ||
+				! contentType.includes( 'application/json' )
+			) {
+				// Response is not JSON, probably a PHP error page
+				const text = await response.text();
+				console.error( 'Non-JSON response:', text );
+				throw new Error(
+					'Server error: The function code contains errors. Please check your PHP syntax.'
+				);
+			}
+
 			const data = await response.json();
 
 			if ( ! data.success ) {
@@ -625,10 +664,21 @@ const FunctionsModule = {
 			resultsDiv.style.display = 'block';
 		} catch ( error ) {
 			console.error( 'Error testing function:', error );
+
+			// Improve error message for JSON parse errors
+			let errorMessage = error.message;
+			if (
+				errorMessage.includes( 'Unexpected token' ) ||
+				errorMessage.includes( 'is not valid JSON' )
+			) {
+				errorMessage =
+					'Server error: Unable to test function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
+			}
+
 			if ( modal && modal.style.display === 'flex' ) {
-				showModalError( error.message, modal );
+				showModalError( errorMessage, modal );
 			} else {
-				showError( error.message );
+				showError( errorMessage );
 			}
 		}
 	},

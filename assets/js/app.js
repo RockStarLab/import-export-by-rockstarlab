@@ -225,7 +225,7 @@
 					function p( t, e, n, r ) {
 						var a = e && e.prototype instanceof w ? e : w,
 							i = Object.create( a.prototype ),
-							c = new F( r || [] );
+							c = new O( r || [] );
 						return o( i, '_invoke', { value: P( t, n, c ) } ), i;
 					}
 					function f( t, e, n ) {
@@ -249,17 +249,17 @@
 						return this;
 					} );
 					var j = Object.getPrototypeOf,
-						S = j && j( j( O( [] ) ) );
+						S = j && j( j( F( [] ) ) );
 					S && S !== n && r.call( S, c ) && ( E = S );
 					var _ = ( x.prototype = w.prototype = Object.create( E ) );
-					function L( t ) {
+					function k( t ) {
 						[ 'next', 'throw', 'return' ].forEach( function ( e ) {
 							d( t, e, function ( t ) {
 								return this._invoke( e, t );
 							} );
 						} );
 					}
-					function k( t, e ) {
+					function L( t, e ) {
 						function n( o, i, c, s ) {
 							var u = f( t[ o ], t, i );
 							if ( 'throw' !== u.type ) {
@@ -402,12 +402,12 @@
 							delete e.arg,
 							( t.completion = e );
 					}
-					function F( t ) {
+					function O( t ) {
 						( this.tryEntries = [ { tryLoc: 'root' } ] ),
 							t.forEach( Q, this ),
 							this.reset( ! 0 );
 					}
-					function O( e ) {
+					function F( e ) {
 						if ( e || '' === e ) {
 							var n = e[ c ];
 							if ( n ) return n.call( e );
@@ -458,21 +458,21 @@
 						( e.awrap = function ( t ) {
 							return { __await: t };
 						} ),
-						L( k.prototype ),
-						d( k.prototype, u, function () {
+						k( L.prototype ),
+						d( L.prototype, u, function () {
 							return this;
 						} ),
-						( e.AsyncIterator = k ),
+						( e.AsyncIterator = L ),
 						( e.async = function ( t, n, r, o, a ) {
 							void 0 === a && ( a = Promise );
-							var i = new k( p( t, n, r, o ), a );
+							var i = new L( p( t, n, r, o ), a );
 							return e.isGeneratorFunction( n )
 								? i
 								: i.next().then( function ( t ) {
 										return t.done ? t.value : i.next();
 								  } );
 						} ),
-						L( _ ),
+						k( _ ),
 						d( _, l, 'Generator' ),
 						d( _, c, function () {
 							return this;
@@ -500,9 +500,9 @@
 								}
 							);
 						} ),
-						( e.values = O ),
-						( F.prototype = {
-							constructor: F,
+						( e.values = F ),
+						( O.prototype = {
+							constructor: O,
 							reset: function ( e ) {
 								if (
 									( ( this.prev = 0 ),
@@ -658,7 +658,7 @@
 							delegateYield: function ( e, n, r ) {
 								return (
 									( this.delegate = {
-										iterator: O( e ),
+										iterator: F( e ),
 										resultName: n,
 										nextLoc: r,
 									} ),
@@ -1606,7 +1606,7 @@
 					function l( t, e, n, r ) {
 						var a = e && e.prototype instanceof w ? e : w,
 							i = Object.create( a.prototype ),
-							c = new F( r || [] );
+							c = new O( r || [] );
 						return o( i, '_invoke', { value: P( t, n, c ) } ), i;
 					}
 					function d( t, e, n ) {
@@ -1630,17 +1630,17 @@
 						return this;
 					} );
 					var j = Object.getPrototypeOf,
-						S = j && j( j( O( [] ) ) );
+						S = j && j( j( F( [] ) ) );
 					S && S !== n && r.call( S, i ) && ( E = S );
 					var _ = ( x.prototype = w.prototype = Object.create( E ) );
-					function L( t ) {
+					function k( t ) {
 						[ 'next', 'throw', 'return' ].forEach( function ( e ) {
 							u( t, e, function ( t ) {
 								return this._invoke( e, t );
 							} );
 						} );
 					}
-					function k( t, e ) {
+					function L( t, e ) {
 						function n( o, a, i, c ) {
 							var s = d( t[ o ], t, a );
 							if ( 'throw' !== s.type ) {
@@ -1783,12 +1783,12 @@
 							delete e.arg,
 							( t.completion = e );
 					}
-					function F( t ) {
+					function O( t ) {
 						( this.tryEntries = [ { tryLoc: 'root' } ] ),
 							t.forEach( Q, this ),
 							this.reset( ! 0 );
 					}
-					function O( e ) {
+					function F( e ) {
 						if ( e || '' === e ) {
 							var n = e[ i ];
 							if ( n ) return n.call( e );
@@ -1839,21 +1839,21 @@
 						( e.awrap = function ( t ) {
 							return { __await: t };
 						} ),
-						L( k.prototype ),
-						u( k.prototype, c, function () {
+						k( L.prototype ),
+						u( L.prototype, c, function () {
 							return this;
 						} ),
-						( e.AsyncIterator = k ),
+						( e.AsyncIterator = L ),
 						( e.async = function ( t, n, r, o, a ) {
 							void 0 === a && ( a = Promise );
-							var i = new k( l( t, n, r, o ), a );
+							var i = new L( l( t, n, r, o ), a );
 							return e.isGeneratorFunction( n )
 								? i
 								: i.next().then( function ( t ) {
 										return t.done ? t.value : i.next();
 								  } );
 						} ),
-						L( _ ),
+						k( _ ),
 						u( _, s, 'Generator' ),
 						u( _, i, function () {
 							return this;
@@ -1881,9 +1881,9 @@
 								}
 							);
 						} ),
-						( e.values = O ),
-						( F.prototype = {
-							constructor: F,
+						( e.values = F ),
+						( O.prototype = {
+							constructor: O,
 							reset: function ( e ) {
 								if (
 									( ( this.prev = 0 ),
@@ -2039,7 +2039,7 @@
 							delegateYield: function ( e, n, r ) {
 								return (
 									( this.delegate = {
-										iterator: O( e ),
+										iterator: F( e ),
 										resultName: n,
 										nextLoc: r,
 									} ),
@@ -2778,7 +2778,7 @@
 						var r = this;
 						return v(
 							f().mark( function o() {
-								var a, i, c, s, u, l, d, p, h, v, y;
+								var a, i, c, s, u, l, d, p, h, v, y, m, g, w;
 								return f().wrap(
 									function ( o ) {
 										for (;;)
@@ -2865,27 +2865,55 @@
 														)
 													);
 												case 14:
+													if (
+														( ( p = o.sent ),
+														( h =
+															p.headers.get(
+																'content-type'
+															) ) &&
+															h.includes(
+																'application/json'
+															) )
+													) {
+														o.next = 22;
+														break;
+													}
 													return (
-														( p = o.sent ),
-														( o.next = 17 ),
+														( o.next = 19 ),
+														p.text()
+													);
+												case 19:
+													throw (
+														( ( v = o.sent ),
+														console.error(
+															'Non-JSON response:',
+															v
+														),
+														new Error(
+															'Server error: The function code contains errors that prevent it from being saved. Please check your PHP syntax.'
+														) )
+													);
+												case 22:
+													return (
+														( o.next = 24 ),
 														p.json()
 													);
-												case 17:
+												case 24:
 													if (
-														( h = o.sent ).success
+														( y = o.sent ).success
 													) {
-														o.next = 20;
+														o.next = 27;
 														break;
 													}
 													throw new Error(
 														( null ===
-															( v = h.data ) ||
-														void 0 === v
+															( m = y.data ) ||
+														void 0 === m
 															? void 0
-															: v.message ) ||
+															: m.message ) ||
 															'Failed to save function'
 													);
-												case 20:
+												case 27:
 													t(
 														( null ===
 															( d =
@@ -2904,36 +2932,43 @@
 															)
 														),
 														r.loadFunctions(),
-														( o.next = 30 );
+														( o.next = 39 );
 													break;
-												case 25:
-													( o.prev = 25 ),
+												case 32:
+													( o.prev = 32 ),
 														( o.t0 =
 															o.catch( 11 ) ),
 														console.error(
 															'Error saving function:',
 															o.t0
 														),
-														( y =
+														( g =
 															document.getElementById(
 																'aie-function-editor-modal'
+															) ),
+														( ( w =
+															o.t0
+																.message ).includes(
+															'Unexpected token'
+														) ||
+															w.includes(
+																'is not valid JSON'
 															) ) &&
+															( w =
+																'Server error: Unable to save function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.' ),
+														g &&
 														'flex' ===
-															y.style.display
-															? n(
-																	o.t0
-																		.message,
-																	y
-															  )
-															: e( o.t0.message );
-												case 30:
+															g.style.display
+															? n( w, g )
+															: e( w );
+												case 39:
 												case 'end':
 													return o.stop();
 											}
 									},
 									o,
 									null,
-									[ [ 11, 25 ] ]
+									[ [ 11, 32 ] ]
 								);
 							} )
 						)();
@@ -3039,7 +3074,7 @@
 						var t = this;
 						return v(
 							f().mark( function r() {
-								var o, a, i, c, s, u, l, d, p;
+								var o, a, i, c, s, u, l, d, p, h, v, y;
 								return f().wrap(
 									function ( r ) {
 										for (;;)
@@ -3133,69 +3168,103 @@
 														)
 													);
 												case 17:
+													if (
+														( ( l = r.sent ),
+														( d =
+															l.headers.get(
+																'content-type'
+															) ) &&
+															d.includes(
+																'application/json'
+															) )
+													) {
+														r.next = 25;
+														break;
+													}
 													return (
-														( l = r.sent ),
-														( r.next = 20 ),
+														( r.next = 22 ),
+														l.text()
+													);
+												case 22:
+													throw (
+														( ( p = r.sent ),
+														console.error(
+															'Non-JSON response:',
+															p
+														),
+														new Error(
+															'Server error: The function code contains errors. Please check your PHP syntax.'
+														) )
+													);
+												case 25:
+													return (
+														( r.next = 27 ),
 														l.json()
 													);
-												case 20:
+												case 27:
 													if (
-														( d = r.sent ).success
+														( h = r.sent ).success
 													) {
-														r.next = 23;
+														r.next = 30;
 														break;
 													}
 													throw new Error(
 														( null ===
-															( p = d.data ) ||
-														void 0 === p
+															( v = h.data ) ||
+														void 0 === v
 															? void 0
-															: p.message ) ||
+															: v.message ) ||
 															'Test failed'
 													);
-												case 23:
+												case 30:
 													( document.querySelector(
 														'.aie-test-input'
 													).textContent =
-														void 0 !== d.data.input
-															? d.data.input
+														void 0 !== h.data.input
+															? h.data.input
 															: i ),
 														( document.querySelector(
 															'.aie-test-output'
 														).textContent =
 															void 0 !==
-															d.data.output
-																? d.data.output
+															h.data.output
+																? h.data.output
 																: '' ),
 														( c.style.display =
 															'block' ),
-														( r.next = 32 );
+														( r.next = 41 );
 													break;
-												case 28:
-													( r.prev = 28 ),
+												case 35:
+													( r.prev = 35 ),
 														( r.t0 =
 															r.catch( 14 ) ),
 														console.error(
 															'Error testing function:',
 															r.t0
 														),
+														( ( y =
+															r.t0
+																.message ).includes(
+															'Unexpected token'
+														) ||
+															y.includes(
+																'is not valid JSON'
+															) ) &&
+															( y =
+																'Server error: Unable to test function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.' ),
 														s &&
 														'flex' ===
 															s.style.display
-															? n(
-																	r.t0
-																		.message,
-																	s
-															  )
-															: e( r.t0.message );
-												case 32:
+															? n( y, s )
+															: e( y );
+												case 41:
 												case 'end':
 													return r.stop();
 											}
 									},
 									r,
 									null,
-									[ [ 14, 28 ] ]
+									[ [ 14, 35 ] ]
 								);
 							} )
 						)();
@@ -3785,7 +3854,7 @@
 					function l( t, e, n, r ) {
 						var a = e && e.prototype instanceof m ? e : m,
 							i = Object.create( a.prototype ),
-							c = new F( r || [] );
+							c = new O( r || [] );
 						return o( i, '_invoke', { value: P( t, n, c ) } ), i;
 					}
 					function d( t, e, n ) {
@@ -3809,17 +3878,17 @@
 						return this;
 					} );
 					var x = Object.getPrototypeOf,
-						E = x && x( x( O( [] ) ) );
+						E = x && x( x( F( [] ) ) );
 					E && E !== n && r.call( E, i ) && ( b = E );
 					var j = ( w.prototype = m.prototype = Object.create( b ) );
-					function L( t ) {
+					function k( t ) {
 						[ 'next', 'throw', 'return' ].forEach( function ( e ) {
 							u( t, e, function ( t ) {
 								return this._invoke( e, t );
 							} );
 						} );
 					}
-					function k( t, e ) {
+					function L( t, e ) {
 						function n( o, a, i, c ) {
 							var s = d( t[ o ], t, a );
 							if ( 'throw' !== s.type ) {
@@ -3962,12 +4031,12 @@
 							delete e.arg,
 							( t.completion = e );
 					}
-					function F( t ) {
+					function O( t ) {
 						( this.tryEntries = [ { tryLoc: 'root' } ] ),
 							t.forEach( Q, this ),
 							this.reset( ! 0 );
 					}
-					function O( e ) {
+					function F( e ) {
 						if ( e || '' === e ) {
 							var n = e[ i ];
 							if ( n ) return n.call( e );
@@ -4018,21 +4087,21 @@
 						( e.awrap = function ( t ) {
 							return { __await: t };
 						} ),
-						L( k.prototype ),
-						u( k.prototype, c, function () {
+						k( L.prototype ),
+						u( L.prototype, c, function () {
 							return this;
 						} ),
-						( e.AsyncIterator = k ),
+						( e.AsyncIterator = L ),
 						( e.async = function ( t, n, r, o, a ) {
 							void 0 === a && ( a = Promise );
-							var i = new k( l( t, n, r, o ), a );
+							var i = new L( l( t, n, r, o ), a );
 							return e.isGeneratorFunction( n )
 								? i
 								: i.next().then( function ( t ) {
 										return t.done ? t.value : i.next();
 								  } );
 						} ),
-						L( j ),
+						k( j ),
 						u( j, s, 'Generator' ),
 						u( j, i, function () {
 							return this;
@@ -4060,9 +4129,9 @@
 								}
 							);
 						} ),
-						( e.values = O ),
-						( F.prototype = {
-							constructor: F,
+						( e.values = F ),
+						( O.prototype = {
+							constructor: O,
 							reset: function ( e ) {
 								if (
 									( ( this.prev = 0 ),
@@ -4218,7 +4287,7 @@
 							delegateYield: function ( e, n, r ) {
 								return (
 									( this.delegate = {
-										iterator: O( e ),
+										iterator: F( e ),
 										resultName: n,
 										nextLoc: r,
 									} ),
@@ -4230,7 +4299,7 @@
 						e
 					);
 				}
-				function L( t, e, n, r, o, a, i ) {
+				function k( t, e, n, r, o, a, i ) {
 					try {
 						var c = t[ a ]( i ),
 							s = c.value;
@@ -4239,17 +4308,17 @@
 					}
 					c.done ? e( s ) : Promise.resolve( s ).then( r, o );
 				}
-				function k( t ) {
+				function L( t ) {
 					return function () {
 						var e = this,
 							n = arguments;
 						return new Promise( function ( r, o ) {
 							var a = t.apply( e, n );
 							function i( t ) {
-								L( a, r, o, i, c, 'next', t );
+								k( a, r, o, i, c, 'next', t );
 							}
 							function c( t ) {
-								L( a, r, o, i, c, 'throw', t );
+								k( a, r, o, i, c, 'throw', t );
 							}
 							i( void 0 );
 						} );
@@ -4437,7 +4506,7 @@
 					},
 					uploadFile: function ( t ) {
 						var e = this;
-						return k(
+						return L(
 							_().mark( function n() {
 								var r, o, a, i, c;
 								return _().wrap(
@@ -4555,7 +4624,7 @@
 					},
 					loadPreview: function () {
 						var t = this;
-						return k(
+						return L(
 							_().mark( function e() {
 								var n, r, o, a, i;
 								return _().wrap( function ( e ) {
@@ -4784,7 +4853,7 @@
 					},
 					startImport: function () {
 						var t = this;
-						return k(
+						return L(
 							_().mark( function e() {
 								var n, r;
 								return _().wrap(
@@ -4874,7 +4943,7 @@
 					},
 					updateProgress: function () {
 						var t = this;
-						return k(
+						return L(
 							_().mark( function e() {
 								var n;
 								return _().wrap(
@@ -4963,7 +5032,7 @@
 					},
 					cancelImport: function () {
 						var t = this;
-						return k(
+						return L(
 							_().mark( function e() {
 								return _().wrap(
 									function ( e ) {
@@ -5096,8 +5165,8 @@
 					function l( t, e, n, r ) {
 						var a = e && e.prototype instanceof m ? e : m,
 							i = Object.create( a.prototype ),
-							c = new F( r || [] );
-						return o( i, '_invoke', { value: L( t, n, c ) } ), i;
+							c = new O( r || [] );
+						return o( i, '_invoke', { value: k( t, n, c ) } ), i;
 					}
 					function d( t, e, n ) {
 						try {
@@ -5120,7 +5189,7 @@
 						return this;
 					} );
 					var x = Object.getPrototypeOf,
-						E = x && x( x( O( [] ) ) );
+						E = x && x( x( F( [] ) ) );
 					E && E !== n && r.call( E, i ) && ( b = E );
 					var j = ( w.prototype = m.prototype = Object.create( b ) );
 					function S( t ) {
@@ -5170,7 +5239,7 @@
 							},
 						} );
 					}
-					function L( e, n, r ) {
+					function k( e, n, r ) {
 						var o = p;
 						return function ( a, i ) {
 							if ( o === h )
@@ -5182,7 +5251,7 @@
 							for ( r.method = a, r.arg = i; ;  ) {
 								var c = r.delegate;
 								if ( c ) {
-									var s = k( c, r );
+									var s = L( c, r );
 									if ( s ) {
 										if ( s === y ) continue;
 										return s;
@@ -5212,7 +5281,7 @@
 							}
 						};
 					}
-					function k( e, n ) {
+					function L( e, n ) {
 						var r = n.method,
 							o = e.iterator[ r ];
 						if ( o === t )
@@ -5222,7 +5291,7 @@
 									e.iterator.return &&
 									( ( n.method = 'return' ),
 									( n.arg = t ),
-									k( e, n ),
+									L( e, n ),
 									'throw' === n.method ) ) ||
 									( 'return' !== r &&
 										( ( n.method = 'throw' ),
@@ -5273,12 +5342,12 @@
 							delete e.arg,
 							( t.completion = e );
 					}
-					function F( t ) {
+					function O( t ) {
 						( this.tryEntries = [ { tryLoc: 'root' } ] ),
 							t.forEach( P, this ),
 							this.reset( ! 0 );
 					}
-					function O( e ) {
+					function F( e ) {
 						if ( e || '' === e ) {
 							var n = e[ i ];
 							if ( n ) return n.call( e );
@@ -5371,9 +5440,9 @@
 								}
 							);
 						} ),
-						( e.values = O ),
-						( F.prototype = {
-							constructor: F,
+						( e.values = F ),
+						( O.prototype = {
+							constructor: O,
 							reset: function ( e ) {
 								if (
 									( ( this.prev = 0 ),
@@ -5529,7 +5598,7 @@
 							delegateYield: function ( e, n, r ) {
 								return (
 									( this.delegate = {
-										iterator: O( e ),
+										iterator: F( e ),
 										resultName: n,
 										nextLoc: r,
 									} ),
@@ -5550,7 +5619,7 @@
 					}
 					c.done ? e( s ) : Promise.resolve( s ).then( r, o );
 				}
-				function F( t ) {
+				function O( t ) {
 					return function () {
 						var e = this,
 							n = arguments;
@@ -5566,7 +5635,7 @@
 						} );
 					};
 				}
-				const O = {
+				const F = {
 					currentStep: 1,
 					totalSteps: 5,
 					jobId: null,
@@ -5689,7 +5758,7 @@
 					},
 					refreshCount: function () {
 						var t = this;
-						return F(
+						return O(
 							Q().mark( function e() {
 								var n, r, o, a;
 								return Q().wrap(
@@ -5830,7 +5899,7 @@
 					},
 					startExport: function () {
 						var t = this;
-						return F(
+						return O(
 							Q().mark( function e() {
 								var n, r, o;
 								return Q().wrap(
@@ -5943,7 +6012,7 @@
 					},
 					updateProgress: function () {
 						var t = this;
-						return F(
+						return O(
 							Q().mark( function e() {
 								var n;
 								return Q().wrap(
@@ -6029,7 +6098,7 @@
 					},
 					downloadFile: function () {
 						var t = this;
-						return F(
+						return O(
 							Q().mark( function e() {
 								var n;
 								return Q().wrap(
@@ -6075,7 +6144,7 @@
 					},
 					cancelExport: function () {
 						var t = this;
-						return F(
+						return O(
 							Q().mark( function e() {
 								return Q().wrap(
 									function ( e ) {
@@ -6145,7 +6214,7 @@
 					},
 				};
 				jQuery( document ).ready( function ( t ) {
-					P.init(), O.init(), m.init();
+					P.init(), F.init(), m.init();
 				} );
 			},
 			205: () => {},
