@@ -17,6 +17,13 @@
 	height: auto;
 	line-height: 1;
 }
+#wp-aie-functions h1 {
+	align-items: center;
+	display: inline-flex;
+}
+#wp-aie-functions h1 button {
+	top: auto;
+}
 #wp-aie-functions .description {
 	margin-bottom: 20px;
 }

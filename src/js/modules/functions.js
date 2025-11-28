@@ -4,7 +4,12 @@
  * Handles CRUD operations for custom transformation functions
  */
 
-import { showNotice, showError, confirmDialog } from '../utils/notifications';
+import {
+	showNotice,
+	showError,
+	showModalError,
+	confirmDialog,
+} from '../utils/notifications';
 import FunctionLibrary from './function_library';
 
 const FunctionsModule = {
@@ -17,6 +22,7 @@ const FunctionsModule = {
 		category: '',
 		search: '',
 	},
+	codeEditor: null, // CodeMirror instance
 
 	/**
 	 * Initialize the module
@@ -390,9 +396,14 @@ const FunctionsModule = {
 					func.code;
 				document.getElementById( 'aie-function-status' ).value =
 					func.status;
+
+				// Update CodeMirror if initialized
+				if ( this.codeEditor ) {
+					this.codeEditor.codemirror.setValue( func.code );
+				}
 			} catch ( error ) {
 				console.error( 'Error loading function:', error );
-				showError( error.message );
+				showModalError( error.message, modal );
 				return;
 			}
 		} else {
@@ -403,6 +414,29 @@ const FunctionsModule = {
 
 		modal.style.display = 'flex';
 		document.body.style.overflow = 'hidden';
+
+		// Initialize CodeMirror for code editor
+		if ( ! this.codeEditor && window.wp && window.wp.codeEditor ) {
+			const codeTextarea = document.getElementById( 'aie-function-code' );
+			if ( codeTextarea ) {
+				this.codeEditor = window.wp.codeEditor.initialize(
+					codeTextarea,
+					{
+						codemirror: {
+							mode: 'php',
+							lineNumbers: true,
+							lineWrapping: true,
+							indentUnit: 4,
+							indentWithTabs: true,
+							autoCloseBrackets: true,
+							matchBrackets: true,
+							styleActiveLine: true,
+							continueComments: true,
+						},
+					}
+				);
+			}
+		}
 	},
 
 	/**
@@ -423,6 +457,12 @@ const FunctionsModule = {
 			return;
 		}
 
+		// Get code from CodeMirror if initialized
+		let code = document.getElementById( 'aie-function-code' ).value;
+		if ( this.codeEditor && this.codeEditor.codemirror ) {
+			code = this.codeEditor.codemirror.getValue();
+		}
+
 		const functionId = document.getElementById( 'aie-function-id' ).value;
 		const functionData = {
 			action: functionId
@@ -433,7 +473,7 @@ const FunctionsModule = {
 			description: document.getElementById( 'aie-function-description' )
 				.value,
 			category: document.getElementById( 'aie-function-category' ).value,
-			code: document.getElementById( 'aie-function-code' ).value,
+			code: code,
 			status: document.getElementById( 'aie-function-status' ).value,
 		};
 
@@ -468,7 +508,14 @@ const FunctionsModule = {
 			this.loadFunctions();
 		} catch ( error ) {
 			console.error( 'Error saving function:', error );
-			showError( error.message );
+			const modal = document.getElementById(
+				'aie-function-editor-modal'
+			);
+			if ( modal && modal.style.display === 'flex' ) {
+				showModalError( error.message, modal );
+			} else {
+				showError( error.message );
+			}
 		}
 	},
 
@@ -512,12 +559,25 @@ const FunctionsModule = {
 	 * Test function with sample value
 	 */
 	async testFunction() {
-		const code = document.getElementById( 'aie-function-code' ).value;
-		const testValue = document.getElementById( 'aie-test-value' ).value;
+		// Get code from CodeMirror if initialized
+		let code = document.getElementById( 'aie-function-code' ).value;
+		if ( this.codeEditor && this.codeEditor.codemirror ) {
+			code = this.codeEditor.codemirror.getValue();
+		}
+
+		const testValueInput = document.getElementById( 'aie-test-value' );
+		const testValue = testValueInput.value;
 		const resultsDiv = document.querySelector( '.aie-test-results' );
 
 		if ( ! code ) {
 			showError( 'Please enter function code first' );
+			return;
+		}
+
+		// Check if test value is empty or only whitespace
+		if ( ! testValue || ! testValue.trim() ) {
+			testValueInput.focus();
+			testValueInput.select();
 			return;
 		}
 
