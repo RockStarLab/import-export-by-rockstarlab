@@ -54,20 +54,20 @@ class Custom_Function extends Model {
 	 * Create a new custom function
 	 *
 	 * @param array $data Function data
-	 * @return int|false Function ID or false on failure
+	 * @return int|\WP_Error Function ID or WP_Error on failure
 	 */
 	public function create( $data ) {
 		global $wpdb;
 
 		// Validate required fields
 		if ( empty( $data['name'] ) || empty( $data['code'] ) ) {
-			return false;
+			return new \WP_Error( 'missing_fields', __( 'Name and code are required', 'wp-aie' ) );
 		}
 
 		// Validate code security
 		$validation = $this->executor->validate_function_code( $data['code'] );
 		if ( is_wp_error( $validation ) ) {
-			return false;
+			return $validation;
 		}
 
 		// Prepare data
@@ -113,7 +113,11 @@ class Custom_Function extends Model {
 			return $function_id;
 		}
 
-		return false;
+		return new \WP_Error(
+			'db_error',
+			__( 'Database error: Failed to save function', 'wp-aie' ),
+			array( 'db_error' => $wpdb->last_error )
+		);
 	}
 
 	/**
@@ -121,7 +125,7 @@ class Custom_Function extends Model {
 	 *
 	 * @param int   $id   Function ID
 	 * @param array $data Function data
-	 * @return bool Success
+	 * @return bool|\WP_Error Success or WP_Error on failure
 	 */
 	public function update( $id, $data ) {
 		global $wpdb;
@@ -129,19 +133,19 @@ class Custom_Function extends Model {
 		// Check if function exists
 		$existing = $this->get( $id );
 		if ( ! $existing ) {
-			return false;
+			return new \WP_Error( 'not_found', __( 'Function not found', 'wp-aie' ) );
 		}
 
 		// Check permissions
 		if ( ! $this->can_edit_function( $id ) ) {
-			return false;
+			return new \WP_Error( 'permission_denied', __( 'You do not have permission to edit this function', 'wp-aie' ) );
 		}
 
 		// Validate code if provided
 		if ( ! empty( $data['code'] ) ) {
 			$validation = $this->executor->validate_function_code( $data['code'] );
 			if ( is_wp_error( $validation ) ) {
-				return false;
+				return $validation;
 			}
 		}
 
@@ -173,9 +177,9 @@ class Custom_Function extends Model {
 		$result = $wpdb->update(
 			$this->get_table_name(),
 			$update_data,
-			[ 'id' => $id ],
+			array( 'id' => $id ),
 			array_fill( 0, count( $update_data ), '%s' ),
-			[ '%d' ]
+			array( '%d' )
 		);
 
 		if ( false !== $result ) {
@@ -184,9 +188,14 @@ class Custom_Function extends Model {
 				'info',
 				sprintf( 'Custom function updated: ID %d', $id )
 			);
+			return true;
 		}
 
-		return false !== $result;
+		return new \WP_Error(
+			'db_error',
+			__( 'Database error: Failed to update function', 'wp-aie' ),
+			array( 'db_error' => $wpdb->last_error )
+		);
 	}
 
 	/**
