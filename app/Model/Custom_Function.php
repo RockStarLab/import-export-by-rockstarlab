@@ -26,7 +26,7 @@ class Custom_Function extends Model {
 	 *
 	 * @var string
 	 */
-	protected $table = 'aie_custom_functions';
+	protected $table_name = 'aie_custom_functions';
 
 	/**
 	 * Function Executor instance
@@ -64,6 +64,9 @@ class Custom_Function extends Model {
 			return new \WP_Error( 'missing_fields', __( 'Name and code are required', 'wp-aie' ) );
 		}
 
+		// Decode HTML entities from code
+		$data['code'] = html_entity_decode( $data['code'], ENT_QUOTES, 'UTF-8' );
+
 		// Validate code security
 		$validation = $this->executor->validate_function_code( $data['code'] );
 		if ( is_wp_error( $validation ) ) {
@@ -71,37 +74,35 @@ class Custom_Function extends Model {
 		}
 
 		// Prepare data
-		$insert_data = [
-			'name'        => sanitize_text_field( $data['name'] ),
-			'description' => ! empty( $data['description'] ) ? sanitize_textarea_field( $data['description'] ) : '',
-			'code'        => $data['code'], // Store as-is, already validated
-			'source'      => ! empty( $data['source'] ) ? sanitize_text_field( $data['source'] ) : 'custom',
-			'category'    => ! empty( $data['category'] ) ? sanitize_text_field( $data['category'] ) : 'custom',
-			'status'      => ! empty( $data['status'] ) ? sanitize_text_field( $data['status'] ) : 'active',
-			'usage_count' => 0,
-			'created_by'  => get_current_user_id(),
-			'created_at'  => current_time( 'mysql' ),
-			'updated_at'  => current_time( 'mysql' ),
-		];
-
-		$result = $wpdb->insert(
+		$insert_data    = [
+			'name'          => sanitize_text_field( $data['name'] ),
+			'description'   => ! empty( $data['description'] ) ? sanitize_textarea_field( $data['description'] ) : '',
+			'function_code' => $data['code'], // Store as-is, already validated and decoded
+			'source'        => ! empty( $data['source'] ) ? sanitize_text_field( $data['source'] ) : 'custom',
+			'input_type'    => ! empty( $data['input_type'] ) ? sanitize_text_field( $data['input_type'] ) : 'string',
+			'output_type'   => ! empty( $data['output_type'] ) ? sanitize_text_field( $data['output_type'] ) : 'string',
+			'is_active'     => 1,
+			'user_id'       => get_current_user_id(),
+			'usage_count'   => 0,
+			'created_at'    => current_time( 'mysql' ),
+			'updated_at'    => current_time( 'mysql' ),
+		];      $result = $wpdb->insert(
 			$this->get_table_name(),
 			$insert_data,
 			[
 				'%s', // name
 				'%s', // description
-				'%s', // code
+				'%s', // function_code
 				'%s', // source
-				'%s', // category
-				'%s', // status
+				'%s', // input_type
+				'%s', // output_type
+				'%d', // is_active
+				'%d', // user_id
 				'%d', // usage_count
-				'%d', // created_by
 				'%s', // created_at
 				'%s', // updated_at
 			]
-		);
-
-		if ( $result ) {
+		);      if ( $result ) {
 			$function_id = $wpdb->insert_id;
 
 			$this->logger->log(
@@ -141,6 +142,11 @@ class Custom_Function extends Model {
 			return new \WP_Error( 'permission_denied', __( 'You do not have permission to edit this function', 'wp-aie' ) );
 		}
 
+		// Decode HTML entities from code if provided
+		if ( ! empty( $data['code'] ) ) {
+			$data['code'] = html_entity_decode( $data['code'], ENT_QUOTES, 'UTF-8' );
+		}
+
 		// Validate code if provided
 		if ( ! empty( $data['code'] ) ) {
 			$validation = $this->executor->validate_function_code( $data['code'] );
@@ -163,15 +169,19 @@ class Custom_Function extends Model {
 		}
 
 		if ( isset( $data['code'] ) ) {
-			$update_data['code'] = $data['code'];
+			$update_data['function_code'] = $data['code'];
 		}
 
-		if ( isset( $data['status'] ) ) {
-			$update_data['status'] = sanitize_text_field( $data['status'] );
+		if ( isset( $data['is_active'] ) ) {
+			$update_data['is_active'] = (int) $data['is_active'];
 		}
 
-		if ( isset( $data['category'] ) ) {
-			$update_data['category'] = sanitize_text_field( $data['category'] );
+		if ( isset( $data['input_type'] ) ) {
+			$update_data['input_type'] = sanitize_text_field( $data['input_type'] );
+		}
+
+		if ( isset( $data['output_type'] ) ) {
+			$update_data['output_type'] = sanitize_text_field( $data['output_type'] );
 		}
 
 		$result = $wpdb->update(
@@ -246,38 +256,41 @@ class Custom_Function extends Model {
 			ARRAY_A
 		);
 
-		return $function ?: null;
-	}
+		if ( $function ) {
+			// Map database columns to expected format for backward compatibility
+			$function = $this->map_db_to_output( $function );
+		}
 
-	/**
-	 * Get all functions with optional filters
-	 *
-	 * @param array $args {
-	 *     Optional. Arguments for filtering functions.
-	 *
-	 *     @type string $status   Filter by status (active, inactive)
-	 *     @type string $category Filter by category
-	 *     @type string $source   Filter by source (custom, library, snippet_key)
-	 *     @type string $search   Search in name and description
-	 *     @type string $orderby  Order by column (default: name)
-	 *     @type string $order    Sort order (ASC, DESC) (default: ASC)
-	 *     @type int    $limit    Limit results
-	 *     @type int    $offset   Offset for pagination
-	 * }
-	 * @return array Functions array
-	 */
+		return $function ?: null;
+	}   /**
+		 * Get all functions with optional filters
+		 *
+		 * @param array $args {
+		 *     Optional. Arguments for filtering functions.
+		 *
+		 *     @type string $status   Filter by status (active, inactive)
+		 *     @type string $category Filter by category
+		 *     @type string $source   Filter by source (custom, library, snippet_key)
+		 *     @type string $search   Search in name and description
+		 *     @type string $orderby  Order by column (default: name)
+		 *     @type string $order    Sort order (ASC, DESC) (default: ASC)
+		 *     @type int    $limit    Limit results
+		 *     @type int    $offset   Offset for pagination
+		 * }
+		 * @return array Functions array
+		 */
 	public function get_all( $args = [] ) {
 		global $wpdb;
 
 		$defaults = [
-			'status'   => '',
-			'category' => '',
-			'source'   => '',
-			'search'   => '',
-			'orderby'  => 'name',
-			'order'    => 'ASC',
-			'limit'    => 0,
-			'offset'   => 0,
+			'is_active' => '', // Filter by active status (1/0)
+			'source'    => '', // Filter by source
+			'category'  => '', // Filter by category (library/custom)
+			'search'    => '', // Search in name/description
+			'orderby'   => 'name',
+			'order'     => 'ASC',
+			'limit'     => 0,
+			'offset'    => 0,
 		];
 
 		$args = wp_parse_args( $args, $defaults );
@@ -286,36 +299,42 @@ class Custom_Function extends Model {
 		$where_clauses = [];
 		$where_values  = [];
 
+		// Support old 'status' param for backward compatibility
 		if ( ! empty( $args['status'] ) ) {
-			$where_clauses[] = 'status = %s';
-			$where_values[]  = $args['status'];
+			$args['is_active'] = ( 'active' === $args['status'] ) ? 1 : 0;
 		}
 
+		// Support 'category' filter (library/custom)
 		if ( ! empty( $args['category'] ) ) {
-			$where_clauses[] = 'category = %s';
-			$where_values[]  = $args['category'];
+			if ( 'library' === $args['category'] ) {
+				$where_clauses[] = 'source LIKE %s';
+				$where_values[]  = 'library:%';
+			} elseif ( 'custom' === $args['category'] ) {
+				$where_clauses[] = 'source NOT LIKE %s';
+				$where_values[]  = 'library:%';
+			}
+		}
+
+		if ( '' !== $args['is_active'] && null !== $args['is_active'] ) {
+			$where_clauses[] = 'is_active = %d';
+			$where_values[]  = (int) $args['is_active'];
 		}
 
 		if ( ! empty( $args['source'] ) ) {
 			$where_clauses[] = 'source = %s';
 			$where_values[]  = $args['source'];
-		}
-
-		if ( ! empty( $args['search'] ) ) {
+		}       if ( ! empty( $args['search'] ) ) {
 			$where_clauses[] = '(name LIKE %s OR description LIKE %s)';
 			$search_term     = '%' . $wpdb->esc_like( $args['search'] ) . '%';
 			$where_values[]  = $search_term;
 			$where_values[]  = $search_term;
-		}
-
-		$where_sql = ! empty( $where_clauses ) ? 'WHERE ' . implode( ' AND ', $where_clauses ) : '';
+		}       $where_sql = ! empty( $where_clauses ) ? 'WHERE ' . implode( ' AND ', $where_clauses ) : '';
 
 		// Validate orderby
-		$allowed_orderby = [ 'id', 'name', 'category', 'status', 'usage_count', 'created_at', 'updated_at' ];
+		$allowed_orderby = [ 'id', 'name', 'source', 'is_active', 'usage_count', 'created_at', 'updated_at' ];
 		$orderby         = in_array( $args['orderby'], $allowed_orderby, true ) ? $args['orderby'] : 'name';
 		$order           = 'DESC' === strtoupper( $args['order'] ) ? 'DESC' : 'ASC';
-
-		$query = "SELECT * FROM {$this->get_table_name()} {$where_sql} ORDER BY {$orderby} {$order}";
+		$query           = "SELECT * FROM {$this->get_table_name()} {$where_sql} ORDER BY {$orderby} {$order}";
 
 		if ( $args['limit'] > 0 ) {
 			$query .= $wpdb->prepare( ' LIMIT %d OFFSET %d', $args['limit'], $args['offset'] );
@@ -327,6 +346,10 @@ class Custom_Function extends Model {
 
 		$functions = $wpdb->get_results( $query, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
+		// Map database columns to expected format
+		if ( ! empty( $functions ) ) {
+			$functions = array_map( [ $this, 'map_db_to_output' ], $functions );
+		}
 		return $functions ?: [];
 	}
 
@@ -342,14 +365,22 @@ class Custom_Function extends Model {
 		$where_clauses = [];
 		$where_values  = [];
 
+		// Support old 'status' param for backward compatibility
 		if ( ! empty( $args['status'] ) ) {
-			$where_clauses[] = 'status = %s';
-			$where_values[]  = $args['status'];
+			$is_active       = ( 'active' === $args['status'] ) ? 1 : 0;
+			$where_clauses[] = 'is_active = %d';
+			$where_values[]  = $is_active;
 		}
 
+		// Support 'category' filter (library/custom)
 		if ( ! empty( $args['category'] ) ) {
-			$where_clauses[] = 'category = %s';
-			$where_values[]  = $args['category'];
+			if ( 'library' === $args['category'] ) {
+				$where_clauses[] = 'source LIKE %s';
+				$where_values[]  = 'library:%';
+			} elseif ( 'custom' === $args['category'] ) {
+				$where_clauses[] = 'source NOT LIKE %s';
+				$where_values[]  = 'library:%';
+			}
 		}
 
 		if ( ! empty( $args['source'] ) ) {
@@ -373,16 +404,14 @@ class Custom_Function extends Model {
 		}
 
 		return (int) $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-	}
-
-	/**
-	 * Test function with sample value
-	 *
-	 * @param string $code    PHP code to test
-	 * @param mixed  $value   Test value
-	 * @param array  $context Optional context
-	 * @return array Test result
-	 */
+	}   /**
+		 * Test function with sample value
+		 *
+		 * @param string $code    PHP code to test
+		 * @param mixed  $value   Test value
+		 * @param array  $context Optional context
+		 * @return array Test result
+		 */
 	public function test_function( $code, $value, $context = [] ) {
 		return $this->executor->test_function( $code, $value, $context );
 	}
@@ -477,6 +506,10 @@ class Custom_Function extends Model {
 
 		$functions = $wpdb->get_results( $query, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
+		// Map database columns to expected format
+		if ( ! empty( $functions ) ) {
+			$functions = array_map( [ $this, 'map_db_to_output' ], $functions );
+		}
 		return $functions ?: [];
 	}
 
@@ -504,5 +537,36 @@ class Custom_Function extends Model {
 		}
 
 		return $options;
+	}
+
+	/**
+	 * Map database columns to output format for backward compatibility
+	 *
+	 * @param array $function Function data from database
+	 * @return array Mapped function data
+	 */
+	private function map_db_to_output( $function ) {
+		// Map function_code to code for JavaScript compatibility
+		if ( isset( $function['function_code'] ) ) {
+			$function['code'] = $function['function_code'];
+			unset( $function['function_code'] );
+		}
+
+		// Map new fields to old fields for backward compatibility
+		// is_active (1/0) -> status (active/inactive)
+		if ( isset( $function['is_active'] ) ) {
+			$function['status'] = $function['is_active'] ? 'active' : 'inactive';
+		} else {
+			$function['status'] = 'active'; // default
+		}
+
+		// Add category as source type for compatibility
+		if ( isset( $function['source'] ) ) {
+			$function['category'] = strpos( $function['source'], 'library:' ) === 0 ? 'library' : 'custom';
+		} else {
+			$function['category'] = 'custom';
+		}
+
+		return $function;
 	}
 }
