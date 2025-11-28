@@ -58,6 +58,10 @@ class App {
 	 * Run the core
 	 **/
 	public function run() {
+		// Check if database tables exist and create if needed
+		if ( ! \WP_AIE\Helper\Database_Migration::tables_exist() ) {
+			\WP_AIE\Helper\Database_Migration::create_tables();
+		}
 
 		// Load core classes
 		$this->_dispatch();
