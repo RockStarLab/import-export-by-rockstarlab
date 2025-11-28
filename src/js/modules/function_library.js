@@ -211,6 +211,15 @@ const FunctionLibrary = {
 			return;
 		}
 
+		// Check if "Use" button should be shown
+		const currentPage = window.aieData?.currentPage || '';
+		const allowedPages = [
+			'wp-advanced-import-export',
+			'wp-aie-export',
+			'wp-aie-content-sync',
+		];
+		const showUseButton = allowedPages.includes( currentPage );
+
 		grid.innerHTML = snippets
 			.map(
 				( [ key, snippet ] ) => `
@@ -243,10 +252,14 @@ const FunctionLibrary = {
 						<span class="dashicons dashicons-visibility"></span>
 						${ window.aieData?.i18n?.preview || 'Preview' }
 					</button>
-					<button type="button" class="button button-primary button-small aie-quick-import" data-snippet-key="${ key }">
+					${
+						showUseButton
+							? `<button type="button" class="button button-primary button-small aie-quick-import" data-snippet-key="${ key }">
 						<span class="dashicons dashicons-plus"></span>
 						${ window.aieData?.i18n?.use || 'Use' }
-					</button>
+					</button>`
+							: ''
+					}
 				</div>
 			</div>
 		`
@@ -392,6 +405,7 @@ const FunctionLibrary = {
 				'wp-aie-export',
 				'wp-aie-content-sync',
 			];
+
 			useButton.style.display = allowedPages.includes( currentPage )
 				? ''
 				: 'none';
