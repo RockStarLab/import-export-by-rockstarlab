@@ -216,22 +216,46 @@ class Function_Executor {
 		$original_time_limit = ini_get( 'max_execution_time' );
 		@set_time_limit( $this->timeout ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
+		// Remove PHP tags if present (eval doesn't need them)
+		$clean_code = preg_replace( '/<\?php\s*/', '', $code );
+		$clean_code = preg_replace( '/<\?\s*/', '', $clean_code );
+		$clean_code = preg_replace( '/\?>/', '', $clean_code );
+		$clean_code = trim( $clean_code );
+
+		// Check if code is a complete function definition
+		$is_function = preg_match( '/^function\s+(\w+)\s*\(/i', $clean_code, $matches );
+
 		$result = $value; // Default to original value
 
 		try {
-			// Create isolated scope
-			$execute = function () use ( $code, $value, $context ) {
-				// Make context variables available
-				if ( ! empty( $context ) ) {
-					extract( $context, EXTR_SKIP ); // phpcs:ignore WordPress.PHP.DontExtract.extract_extract
-				}
-
-				// Execute the code
+			if ( $is_function ) {
+				// Execute function definition
 				// phpcs:ignore Squiz.PHP.Eval.Discouraged
-				return eval( $code );
-			};
+				eval( $clean_code );
 
-			$result = $execute();
+				// Get function name from match
+				$function_name = $matches[1];
+
+				// Call the function if it exists
+				if ( function_exists( $function_name ) ) {
+					$result = $function_name( $value, $context );
+				}
+			} else {
+				// For non-function code (expressions), wrap in anonymous function
+				// Create isolated scope
+				$execute = function () use ( $clean_code, $value, $context ) {
+					// Make context variables available
+					if ( ! empty( $context ) ) {
+						extract( $context, EXTR_SKIP ); // phpcs:ignore WordPress.PHP.DontExtract.extract_extract
+					}
+
+					// Execute the code - it should return a value
+					// phpcs:ignore Squiz.PHP.Eval.Discouraged
+					return eval( $clean_code );
+				};
+
+				$result = $execute();
+			}
 
 			// Restore time limit
 			@set_time_limit( (int) $original_time_limit ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
@@ -241,8 +265,7 @@ class Function_Executor {
 				0,
 				'error',
 				sprintf(
-					'Function parse error (ID: %d): %s at line %d',
-					$function_id,
+					'Function parse error: %s at line %d',
 					$e->getMessage(),
 					$e->getLine()
 				)
@@ -254,8 +277,7 @@ class Function_Executor {
 				0,
 				'error',
 				sprintf(
-					'Function error (ID: %d): %s',
-					$function_id,
+					'Function error: %s',
 					$e->getMessage()
 				)
 			);
@@ -266,8 +288,7 @@ class Function_Executor {
 				0,
 				'error',
 				sprintf(
-					'Function exception (ID: %d): %s',
-					$function_id,
+					'Function exception: %s',
 					$e->getMessage()
 				)
 			);
