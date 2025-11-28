@@ -1,13 +1,13 @@
 {
-	"name": "bilberrry/bilberrry",
+	"name": "rockstarlab/wp-advanced-import-export",
 	"authors": [
 		{
-			"name": "Bilberrry"
+			"name": "rockstarlab"
 		}
 	],
 	"scripts": {
-		"lint": "phpcs --standard=./wp-content/themes/bilberrry/.phpcs.xml.dist --report=diff -d memory_limit=2046M",
-		"fix": "phpcbf --standard=./wp-content/themes/bilberrry/.phpcs.xml.dist || true",
+		"lint": "phpcs --standard=./.phpcs.xml.dist --report=diff -d memory_limit=2046M",
+		"fix": "phpcbf --standard=./.phpcs.xml.dist || true",
 		"post-install-cmd": [
 			"@php ./vendor/bin/phpcs --config-set installed_paths vendor/wp-coding-standards/wpcs,vendor/phpcompatibility/php-compatibility,vendor/phpcsstandards/phpcsextra,vendor/phpcsstandards/phpcsutils"
 		],

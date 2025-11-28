@@ -1,24 +1,15 @@
 <?php return array(
     'root' => array(
-        'name' => 'bilberrry/bilberrry',
+        'name' => 'rockstarlab/wp-advanced-import-export',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'c7be6177bf8851d819e0095b5a21e81534dd3067',
+        'reference' => 'd2dee87c3b5290862a38825c4feec1cb38b90e65',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
         'dev' => true,
     ),
     'versions' => array(
-        'bilberrry/bilberrry' => array(
-            'pretty_version' => 'dev-main',
-            'version' => 'dev-main',
-            'reference' => 'c7be6177bf8851d819e0095b5a21e81534dd3067',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../../',
-            'aliases' => array(),
-            'dev_requirement' => false,
-        ),
         'dealerdirect/phpcodesniffer-composer-installer' => array(
             'pretty_version' => 'v1.0.0',
             'version' => '1.0.0.0',
@@ -54,6 +45,15 @@
             'install_path' => __DIR__ . '/../phpcsstandards/phpcsutils',
             'aliases' => array(),
             'dev_requirement' => true,
+        ),
+        'rockstarlab/wp-advanced-import-export' => array(
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'd2dee87c3b5290862a38825c4feec1cb38b90e65',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'squizlabs/php_codesniffer' => array(
             'pretty_version' => '3.11.3',
