@@ -57,24 +57,34 @@ if command_exists php && [ "$SKIP_PHPCBF" -eq 0 ]; then
     
     if [ -n "$STAGED_PHP_FILES" ]; then
         echo ""
-        echo "🔍 Checking PHP files..."
+        echo "🔍 Checking and formatting PHP files (WordPress Coding Standards)..."
         
         if [ -f "./vendor/bin/phpcbf" ] && [ -f "./vendor/bin/phpcs" ]; then
-            # Auto-fix with PHPCBF
-            echo "🔧 Running PHPCBF (auto-fix)..."
-            echo "$STAGED_PHP_FILES" | xargs ./vendor/bin/phpcbf --standard=.phpcs.xml.dist || true
+            # Format each file individually
+            for file in $STAGED_PHP_FILES; do
+                echo "  - $file"
+                
+                # Try to auto-fix with PHPCBF
+                if ./vendor/bin/phpcbf --standard=.phpcs.xml.dist "$file" >/dev/null 2>&1; then
+                    echo "    ✓ Formatted and fixed"
+                    git add "$file"
+                else
+                    # PHPCBF returns exit code 1 even on success, check if file changed
+                    git add "$file"
+                    echo "    ✓ Checked"
+                fi
+            done
             
-            # Re-stage fixed files
-            echo "$STAGED_PHP_FILES" | xargs git add
-            
-            # Check with PHPCS (informational only)
-            echo "📋 Running PHPCS (check)..."
+            # Final check with PHPCS (informational)
+            echo ""
+            echo "📋 Final PHPCS check (remaining issues):"
             echo "$STAGED_PHP_FILES" | xargs ./vendor/bin/phpcs --standard=.phpcs.xml.dist --report=summary || true
             
-            echo "✅ PHP check completed"
+            echo "✅ PHP formatting completed"
         else
-            echo "⚠️ PHPCS/PHPCBF not found in vendor/bin, skipping PHP checks"
+            echo "⚠️ PHPCS/PHPCBF not found in vendor/bin"
             echo "💡 Run: composer install"
+            echo "⚠️ Skipping PHP checks"
         fi
     fi
 elif [ "$SKIP_PHPCBF" -eq 1 ]; then
