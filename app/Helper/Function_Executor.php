@@ -229,16 +229,26 @@ class Function_Executor {
 
 		try {
 			if ( $is_function ) {
-				// Execute function definition
-				// phpcs:ignore Squiz.PHP.Eval.Discouraged
-				eval( $clean_code );
-
-				// Get function name from match
+				// For function definitions, convert to anonymous function to avoid redeclaration errors
 				$function_name = $matches[1];
 
-				// Call the function if it exists
-				if ( function_exists( $function_name ) ) {
-					$result = $function_name( $value, $context );
+				// Extract function body
+				// Replace function name with anonymous function
+				$anonymous_code  = preg_replace(
+					'/^function\s+' . preg_quote( $function_name, '/' ) . '\s*\(/i',
+					'$func = function(',
+					$clean_code,
+					1
+				);
+				$anonymous_code .= ';';
+
+				// Execute anonymous function definition
+				// phpcs:ignore Squiz.PHP.Eval.Discouraged
+				eval( $anonymous_code );
+
+				// Call the anonymous function if it exists
+				if ( isset( $func ) && is_callable( $func ) ) {
+					$result = $func( $value, $context );
 				}
 			} else {
 				// For non-function code (expressions), wrap in anonymous function
