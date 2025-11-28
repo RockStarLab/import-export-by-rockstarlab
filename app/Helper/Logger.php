@@ -20,6 +20,27 @@ namespace WP_AIE\Helper;
 class Logger {
 
 	/**
+	 * Generic log method that routes to appropriate level method
+	 *
+	 * @param int    $job_id  Job ID this log belongs to
+	 * @param string $level   Log level: 'info', 'warning', or 'error'
+	 * @param string $message Log message text
+	 * @param array  $data    Optional. Additional data to store
+	 * @return int|WP_Error Created log ID on success, WP_Error on failure
+	 */
+	public static function log( $job_id, $level, $message, $data = [] ) {
+		switch ( $level ) {
+			case 'warning':
+				return self::warning( $job_id, $message, $data );
+			case 'error':
+				return self::error( $job_id, $message, $data );
+			case 'info':
+			default:
+				return self::info( $job_id, $message, $data );
+		}
+	}
+
+	/**
 	 * Log an info-level message
 	 *
 	 * @param int    $job_id  Job ID this log belongs to
