@@ -257,10 +257,7 @@ const FunctionsModule = {
 					}
 				</td>
 				<td class="column-category">
-					${ this.getCategoryLabel( func.category ) }
-				</td>
-				<td class="column-source">
-					${ this.getSourceBadge( func.source ) }
+					${ this.getCategoryBadge( func.category ) }
 				</td>
 				<td class="column-status">
 					${ this.getStatusBadge( func.status ) }
@@ -382,24 +379,23 @@ const FunctionsModule = {
 					throw new Error(
 						data.data?.message || 'Failed to load function'
 					);
-				}
+			}
 
-				const func = data.data;
-				document.getElementById( 'aie-function-id' ).value = func.id;
-				document.getElementById( 'aie-function-name' ).value =
-					func.name;
-				document.getElementById( 'aie-function-description' ).value =
-					func.description || '';
-				document.getElementById( 'aie-function-category' ).value =
-					func.category;
-				document.getElementById( 'aie-function-code' ).value =
-					func.code;
-				document.getElementById( 'aie-function-status' ).value =
-					func.status;
-
-				// Update CodeMirror if initialized
+			const func = data.data;
+			console.log( 'Loaded function data:', func ); // Debug log
+			document.getElementById( 'aie-function-id' ).value = func.id;
+			document.getElementById( 'aie-function-name' ).value =
+				func.name;
+			document.getElementById( 'aie-function-description' ).value =
+				func.description || '';
+			// Category is now computed (library/custom) - don't set from data
+			// document.getElementById( 'aie-function-category' ).value = func.category;
+			document.getElementById( 'aie-function-code' ).value =
+				func.code || '';
+			document.getElementById( 'aie-function-status' ).value =
+				func.status;				// Update CodeMirror if initialized
 				if ( this.codeEditor ) {
-					this.codeEditor.codemirror.setValue( func.code );
+					this.codeEditor.codemirror.setValue( func.code || '' );
 				}
 			} catch ( error ) {
 				console.error( 'Error loading function:', error );
@@ -710,6 +706,16 @@ const FunctionsModule = {
 			custom: 'Custom',
 		};
 		return labels[ category ] || category;
+	},
+
+	/**
+	 * Get category badge HTML
+	 */
+	getCategoryBadge( category ) {
+		if ( category === 'library' ) {
+			return '<span class="aie-badge aie-badge-library">Library</span>';
+		}
+		return '<span class="aie-badge aie-badge-custom">Custom</span>';
 	},
 
 	/**

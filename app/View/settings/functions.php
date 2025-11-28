@@ -146,24 +146,6 @@ defined( 'ABSPATH' ) || exit;
 
 					<tr>
 						<th scope="row">
-							<label for="aie-function-category"><?php esc_html_e( 'Category', 'wp-aie' ); ?></label>
-						</th>
-						<td>
-							<select id="aie-function-category">
-								<option value="custom"><?php esc_html_e( 'Custom', 'wp-aie' ); ?></option>
-								<option value="string"><?php esc_html_e( 'String Operations', 'wp-aie' ); ?></option>
-								<option value="date"><?php esc_html_e( 'Date & Time', 'wp-aie' ); ?></option>
-								<option value="numeric"><?php esc_html_e( 'Numeric Operations', 'wp-aie' ); ?></option>
-								<option value="html"><?php esc_html_e( 'HTML Operations', 'wp-aie' ); ?></option>
-								<option value="wordpress"><?php esc_html_e( 'WordPress Functions', 'wp-aie' ); ?></option>
-								<option value="validation"><?php esc_html_e( 'Validation', 'wp-aie' ); ?></option>
-								<option value="advanced"><?php esc_html_e( 'Advanced', 'wp-aie' ); ?></option>
-							</select>
-						</td>
-					</tr>
-
-					<tr>
-						<th scope="row">
 							<label for="aie-function-code">
 								<?php esc_html_e( 'PHP Code', 'wp-aie' ); ?>
 								<span class="required">*</span>
@@ -182,7 +164,7 @@ defined( 'ABSPATH' ) || exit;
 						</td>
 					</tr>
 
-					<tr>
+					<tr style="display:none;">
 						<th scope="row">
 							<label for="aie-function-status"><?php esc_html_e( 'Status', 'wp-aie' ); ?></label>
 						</th>
@@ -219,6 +201,9 @@ defined( 'ABSPATH' ) || exit;
 						</td>
 					</tr>
 				</table>
+				
+				<!-- Hidden fields for category and status -->
+				<input type="hidden" id="aie-function-category" value="custom">
 			</form>
 		</div>
 

@@ -42,14 +42,6 @@ class Database_Migration {
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-		// Get current DB version
-		$current_version = get_option( self::DB_VERSION_OPTION );
-
-		// Only create/update tables if version changed
-		if ( $current_version === self::DB_VERSION ) {
-			return;
-		}
-
 		// 1. Jobs table - import/export history
 		$sql_jobs = "CREATE TABLE {$prefix}aie_jobs (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,

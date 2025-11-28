@@ -212,15 +212,14 @@ const FunctionLibrary = {
 		}
 
 		// Check if "Use" button should be shown
-		const currentPage = window.aieData?.currentPage || '';
-		const allowedPages = [
-			'wp-advanced-import-export',
-			'wp-aie-export',
-			'wp-aie-content-sync',
-		];
-		const showUseButton = allowedPages.includes( currentPage );
-
-		grid.innerHTML = snippets
+	const currentPage = window.aieData?.currentPage || '';
+	const allowedPages = [
+		'wp-advanced-import-export',
+		'wp-aie-export',
+		'wp-aie-content-sync',
+		'wp-aie-functions', // Add Functions page
+	];
+	const showUseButton = allowedPages.includes( currentPage );		grid.innerHTML = snippets
 			.map(
 				( [ key, snippet ] ) => `
 			<div class="aie-snippet-card" data-snippet-key="${ key }">

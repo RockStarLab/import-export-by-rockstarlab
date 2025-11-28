@@ -377,8 +377,9 @@ class Function_Executor {
 
 		// Advanced validation: Try to actually evaluate the code syntax
 		// This catches errors that token_get_all misses
+		// NOTE: eval() does NOT need <?php tag, it expects pure PHP code
 		$validation_code = sprintf(
-			'<?php return true; if(false) { %s }',
+			'return true; if(false) { %s }',
 			$clean_code
 		);
 
@@ -391,6 +392,11 @@ class Function_Executor {
 
 		$syntax_error = null;
 		ob_start();
+
+		// Debug: log what we're trying to validate
+		error_log( 'VALIDATION - Clean code: ' . $clean_code );
+		error_log( 'VALIDATION - Validation code: ' . $validation_code );
+
 		$result = eval( $validation_code ); // phpcs:ignore Squiz.PHP.Eval.Discouraged
 		$output = ob_get_clean();
 
@@ -454,9 +460,16 @@ class Function_Executor {
 	 * @return array Result with success flag and output
 	 */
 	public function test_function( $code, $value, $context = [] ) {
+		// Decode HTML entities that may have been encoded during transmission
+		$code = html_entity_decode( $code, ENT_QUOTES, 'UTF-8' );
+
+		// Debug logging
+		error_log( 'TEST FUNCTION - Code received: ' . $code );
+
 		// Validate code
 		$validation = $this->validate_function_code( $code );
 		if ( is_wp_error( $validation ) ) {
+			error_log( 'TEST FUNCTION - Validation error: ' . $validation->get_error_message() );
 			return [
 				'success' => false,
 				'error'   => $validation->get_error_message(),
@@ -465,6 +478,8 @@ class Function_Executor {
 
 		// Execute and capture result
 		$result = $this->execute_in_sandbox( $code, $value, $context );
+
+		error_log( 'TEST FUNCTION - Result: ' . print_r( $result, true ) );
 
 		return [
 			'success' => true,
