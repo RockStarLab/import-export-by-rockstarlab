@@ -14,10 +14,26 @@ defined( 'ABSPATH' ) or exit;
 class App {
 
 	private static $instance = null;
-	public $config;
-	public $view;
-	public $controller;
-	public $model;
+
+	/**
+	 * @var array Configuration array
+	 */
+	public $Config;
+
+	/**
+	 * @var \WP_AIE\View\View View instance
+	 */
+	public $View;
+
+	/**
+	 * @var \stdClass Controller container
+	 */
+	public $Controller;
+
+	/**
+	 * @var \WP_AIE\Model\Model_Registry Model registry instance
+	 */
+	public $Model;
 
 	/**
 	 * @return static
@@ -32,7 +48,7 @@ class App {
 
 	private function __construct() {
 		// Initialize model registry
-		$this->model = new \WP_AIE\model\Model_Registry();
+		$this->Model = new \WP_AIE\Model\Model_Registry();
 	}
 
 	private function __clone() {
@@ -53,17 +69,14 @@ class App {
 	 **/
 	private function _dispatch() {
 
-		$this->config = require_once WP_AIE_PATH . '/app/config.php';
+		$this->Config = require_once WP_AIE_PATH . '/app/config.php';
 
-		$this->controller = new \stdClass();
-		$this->view       = new \WP_AIE\view\View();
-
-		// Autoload models
-		$this->_load_modules( 'model', '/' );
+		$this->Controller = new \stdClass();
+		$this->View       = new \WP_AIE\View\View();
 
 		// Load controllers manually
 		$controllers = [
-			'init',
+			'Init',
 		];
 
 		$this->_load_controllers( $controllers );
@@ -106,7 +119,7 @@ class App {
 	 */
 	private function _load_controllers( $list ) {
 
-		$directory = WP_AIE_PATH . '/app/controller/';
+		$directory = WP_AIE_PATH . '/app/Controller/';
 
 		foreach ( $list as $controller_name ) {
 
@@ -116,8 +129,8 @@ class App {
 
 				// Avoid recursion
 				if ( $class !== get_class( $this ) ) {
-					$classPath                          = "\\WP_AIE\\controller\\{$class}";
-					$this->controller->$controller_name = new $classPath();
+					$classPath                          = "\\WP_AIE\\Controller\\{$class}";
+					$this->Controller->$controller_name = new $classPath();
 				}
 			}
 		}

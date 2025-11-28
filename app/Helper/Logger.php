@@ -8,7 +8,7 @@
  * @package WP_AIE\Helper
  */
 
-namespace WP_AIE\helper;
+namespace WP_AIE\Helper;
 
 /**
  * Logger Helper Class
@@ -28,7 +28,7 @@ class Logger {
 	 * @return int|WP_Error Created log ID on success, WP_Error on failure
 	 */
 	public static function info( $job_id, $message, $data = [] ) {
-		return WP_AIE()->model->log->info( $job_id, $message, $data );
+		return WP_AIE()->Model->Log->info( $job_id, $message, $data );
 	}
 
 	/**
@@ -40,7 +40,7 @@ class Logger {
 	 * @return int|WP_Error Created log ID on success, WP_Error on failure
 	 */
 	public static function warning( $job_id, $message, $data = [] ) {
-		return WP_AIE()->model->log->warning( $job_id, $message, $data );
+		return WP_AIE()->Model->Log->warning( $job_id, $message, $data );
 	}
 
 	/**
@@ -52,7 +52,7 @@ class Logger {
 	 * @return int|WP_Error Created log ID on success, WP_Error on failure
 	 */
 	public static function error( $job_id, $message, $data = [] ) {
-		return WP_AIE()->model->log->error( $job_id, $message, $data );
+		return WP_AIE()->Model->Log->error( $job_id, $message, $data );
 	}
 
 	/**
@@ -63,7 +63,7 @@ class Logger {
 	 * @return array Array of log records
 	 */
 	public static function get_logs( $job_id, $level = null ) {
-		return WP_AIE()->model->log->get_by_job( $job_id, $level );
+		return WP_AIE()->Model->Log->get_by_job( $job_id, $level );
 	}
 
 	/**
@@ -73,6 +73,6 @@ class Logger {
 	 * @return int|false Number of rows deleted or false on failure
 	 */
 	public static function clear_logs( $job_id ) {
-		return WP_AIE()->model->log->delete_by_job( $job_id );
+		return WP_AIE()->Model->Log->delete_by_job( $job_id );
 	}
 }

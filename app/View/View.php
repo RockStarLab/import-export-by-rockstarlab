@@ -1,6 +1,6 @@
 <?php
 
-namespace WP_AIE\view;
+namespace WP_AIE\View;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -21,7 +21,7 @@ class View {
 	function load( $path = '', $data = [], $return = false, $base = null ) {
 
 		if ( is_null( $base ) ) {
-			$base = WP_AIE_PATH . '/app/view/';
+			$base = WP_AIE_PATH . '/app/View/';
 		} else {
 			$base = wp_normalize_path( WP_AIE_PATH . '/' . $base );
 		}

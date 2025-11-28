@@ -8,7 +8,7 @@
  * @subpackage Helper
  */
 
-namespace WP_AIE\helper;
+namespace WP_AIE\Helper;
 
 /**
  * Database Migration Helper Class
@@ -262,26 +262,5 @@ class Database_Migration {
 	 */
 	public static function get_version() {
 		return get_option( self::DB_VERSION_OPTION, false );
-	}
-
-	/**
-	 * Clean up old jobs (>30 days)
-	 * Can be called via cron
-	 *
-	 * @param int $days Optional. Number of days to keep, default 30
-	 * @return int|false Number of jobs deleted or false on failure
-	 */
-	public static function cleanup_old_jobs( $days = 30 ) {
-		return WP_AIE()->model->job->cleanup_old( $days );
-	}
-
-	/**
-	 * Clean up exported files older than X days
-	 *
-	 * @param int $days Number of days to keep files, default 7
-	 * @return int Number of files deleted
-	 */
-	public static function cleanup_old_files( $days = 7 ) {
-		return WP_AIE()->model->job->cleanup_old_files( $days );
 	}
 }
