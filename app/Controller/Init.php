@@ -14,6 +14,27 @@ defined( 'ABSPATH' ) or exit;
 class Init {
 
 	/**
+	 * Import Controller
+	 *
+	 * @var Import_Controller
+	 */
+	private $import_controller;
+
+	/**
+	 * Export Controller
+	 *
+	 * @var Export_Controller
+	 */
+	private $export_controller;
+
+	/**
+	 * Job Controller
+	 *
+	 * @var Job_Controller
+	 */
+	private $job_controller;
+
+	/**
 	 * Constructor
 	 **/
 	function __construct() {
@@ -26,6 +47,23 @@ class Init {
 
 		// add settings pages
 		add_action( 'admin_menu', [ $this, 'add_settings_pages' ] );
+
+		// Initialize AJAX controllers
+		add_action( 'init', [ $this, 'init_controllers' ] );
+	}
+
+	/**
+	 * Initialize AJAX controllers
+	 */
+	function init_controllers() {
+		$this->import_controller = new Import_Controller();
+		$this->import_controller->init();
+
+		$this->export_controller = new Export_Controller();
+		$this->export_controller->init();
+
+		$this->job_controller = new Job_Controller();
+		$this->job_controller->init();
 	}
 
 	/**
