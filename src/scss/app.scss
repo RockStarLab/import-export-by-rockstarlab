@@ -85,6 +85,11 @@
 		}
 
 		.aie-content-type-card {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			min-height: 200px;
 			border: 2px solid #dcdcde;
 			border-radius: 4px;
 			padding: 30px 20px;

@@ -100,10 +100,11 @@ class Init {
 		if ( ! in_array(
 			$admin_page,
 			array(
-				'toplevel_page_wp-aie-import',
-				'import-export-pro_page_wp-aie-export',
-				'import-export-pro_page_wp-aie-media-sync',
-				'import-export-pro_page_wp-aie-functions',
+				'toplevel_page_wp-advanced-import-export',
+				'advanced-import-export_page_wp-aie-export',
+				'advanced-import-export_page_wp-aie-content-sync',
+				'advanced-import-export_page_wp-aie-media-sync',
+				'advanced-import-export_page_wp-aie-functions',
 			)
 		) ) {
 			return;

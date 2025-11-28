@@ -64,8 +64,13 @@
 	display: none;
 }
 .wp-advanced-import-export .aie-content-type .aie-content-type-card {
+	align-items: center;
 	border: 2px solid #dcdcde;
 	border-radius: 4px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	min-height: 200px;
 	padding: 30px 20px;
 	text-align: center;
 	transition: all 0.2s;
