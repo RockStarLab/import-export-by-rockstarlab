@@ -60,6 +60,53 @@ export function showError( message ) {
 }
 
 /**
+ * Show error message inside a modal
+ */
+export function showModalError( message, modalElement ) {
+	// Remove any existing error notices in the modal
+	const existingErrors = modalElement.querySelectorAll( '.aie-modal-error' );
+	existingErrors.forEach( ( el ) => el.remove() );
+
+	// Create error notice
+	const notice = document.createElement( 'div' );
+	notice.className = 'notice notice-error is-dismissible aie-modal-error';
+	notice.style.margin = '10px 0';
+	notice.innerHTML = `<p>${ escapeHtml( message ) }</p>`;
+
+	// Find modal content area
+	const modalContent =
+		modalElement.querySelector( '.aie-modal-content' ) ||
+		modalElement.querySelector( '.aie-modal-body' ) ||
+		modalElement;
+
+	// Insert at the top of modal content
+	if ( modalContent.firstChild ) {
+		modalContent.insertBefore( notice, modalContent.firstChild );
+	} else {
+		modalContent.appendChild( notice );
+	}
+
+	// Auto dismiss after 10 seconds
+	setTimeout( () => {
+		notice.remove();
+	}, 10000 );
+
+	// Make it dismissible
+	const dismissButton = document.createElement( 'button' );
+	dismissButton.type = 'button';
+	dismissButton.className = 'notice-dismiss';
+	dismissButton.innerHTML =
+		'<span class="screen-reader-text">Dismiss this notice.</span>';
+	dismissButton.addEventListener( 'click', () => {
+		notice.remove();
+	} );
+	notice.appendChild( dismissButton );
+
+	// Scroll to top of modal to show error
+	modalContent.scrollTop = 0;
+}
+
+/**
  * Show confirmation dialog
  */
 export function confirmDialog( message ) {

@@ -120,6 +120,11 @@ class Init {
 			return;
 		}
 
+		// Enqueue CodeMirror for code editor
+		if ( 'advanced-import-export_page_wp-aie-functions' === $admin_page ) {
+			wp_enqueue_code_editor( array( 'type' => 'application/x-httpd-php' ) );
+		}
+
 		wp_enqueue_script(
 			'wp-advanced-import-export-scripts',
 			plugins_url( 'assets/js/app.js', WP_AIE_FILE ),

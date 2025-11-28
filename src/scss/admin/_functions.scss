@@ -21,6 +21,14 @@
 
 // Functions page container
 #wp-aie-functions {
+	h1 {
+		display: inline-flex;
+		align-items: center;
+		button {
+			top: auto;
+		}
+	}
+
 	.description {
 		margin-bottom: 20px;
 	}
