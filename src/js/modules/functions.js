@@ -451,19 +451,24 @@ const FunctionsModule = {
 	 * Save function
 	 */
 	async saveFunction() {
+		// Get code from CodeMirror if initialized and sync with textarea
+		const codeTextarea = document.getElementById( 'aie-function-code' );
+		let code = codeTextarea.value;
+
+		if ( this.codeEditor && this.codeEditor.codemirror ) {
+			code = this.codeEditor.codemirror.getValue();
+			// Sync CodeMirror value back to textarea for validation
+			codeTextarea.value = code;
+		}
+
+		// Now validate the form
 		const form = document.getElementById( 'aie-function-form' );
 		if ( ! form.checkValidity() ) {
 			form.reportValidity();
 			return;
 		}
 
-		// Get code from CodeMirror if initialized
-		let code = document.getElementById( 'aie-function-code' ).value;
-		if ( this.codeEditor && this.codeEditor.codemirror ) {
-			code = this.codeEditor.codemirror.getValue();
-		}
-
-		// Normalize PHP code (add <?php if missing)
+		// Normalize PHP code (add <?php if missing and wrap if needed)
 		code = this.normalizePhpCode( code );
 
 		const functionId = document.getElementById( 'aie-function-id' ).value;

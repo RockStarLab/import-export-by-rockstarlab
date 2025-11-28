@@ -2778,46 +2778,48 @@
 						var r = this;
 						return v(
 							f().mark( function o() {
-								var a, i, c, s, u, l, d, p, h, v;
+								var a, i, c, s, u, l, d, p, h, v, y;
 								return f().wrap(
 									function ( o ) {
 										for (;;)
 											switch ( ( o.prev = o.next ) ) {
 												case 0:
 													if (
-														( i =
-															document.getElementById(
-																'aie-function-form'
-															) ).checkValidity()
-													) {
-														o.next = 4;
-														break;
-													}
-													return (
-														i.reportValidity(),
-														o.abrupt( 'return' )
-													);
-												case 4:
-													return (
-														( c =
+														( ( i =
 															document.getElementById(
 																'aie-function-code'
-															).value ),
+															) ),
+														( c = i.value ),
 														r.codeEditor &&
 															r.codeEditor
 																.codemirror &&
-															( c =
+															( ( c =
 																r.codeEditor.codemirror.getValue() ),
+															( i.value = c ) ),
+														( s =
+															document.getElementById(
+																'aie-function-form'
+															) ).checkValidity() )
+													) {
+														o.next = 7;
+														break;
+													}
+													return (
+														s.reportValidity(),
+														o.abrupt( 'return' )
+													);
+												case 7:
+													return (
 														( c =
 															r.normalizePhpCode(
 																c
 															) ),
-														( s =
+														( u =
 															document.getElementById(
 																'aie-function-id'
 															).value ),
-														( u = {
-															action: s
+														( l = {
+															action: u
 																? 'aie_functions_update'
 																: 'aie_functions_create',
 															nonce:
@@ -2844,9 +2846,9 @@
 																'aie-function-status'
 															).value,
 														} ),
-														s && ( u.id = s ),
-														( o.prev = 10 ),
-														( o.next = 13 ),
+														u && ( l.id = u ),
+														( o.prev = 11 ),
+														( o.next = 14 ),
 														fetch(
 															window.aieData
 																.ajaxUrl,
@@ -2857,43 +2859,43 @@
 																		'application/x-www-form-urlencoded',
 																},
 																body: new URLSearchParams(
-																	u
+																	l
 																),
 															}
 														)
 													);
-												case 13:
+												case 14:
 													return (
-														( d = o.sent ),
-														( o.next = 16 ),
-														d.json()
+														( p = o.sent ),
+														( o.next = 17 ),
+														p.json()
 													);
-												case 16:
+												case 17:
 													if (
-														( p = o.sent ).success
+														( h = o.sent ).success
 													) {
-														o.next = 19;
+														o.next = 20;
 														break;
 													}
 													throw new Error(
 														( null ===
-															( h = p.data ) ||
-														void 0 === h
+															( v = h.data ) ||
+														void 0 === v
 															? void 0
-															: h.message ) ||
+															: v.message ) ||
 															'Failed to save function'
 													);
-												case 19:
+												case 20:
 													t(
 														( null ===
-															( l =
+															( d =
 																window.aieData ) ||
-														void 0 === l ||
+														void 0 === d ||
 														null ===
-															( l = l.i18n ) ||
-														void 0 === l
+															( d = d.i18n ) ||
+														void 0 === d
 															? void 0
-															: l.function_saved ) ||
+															: d.function_saved ) ||
 															'Function saved successfully'
 													),
 														r.closeModal(
@@ -2902,36 +2904,36 @@
 															)
 														),
 														r.loadFunctions(),
-														( o.next = 29 );
+														( o.next = 30 );
 													break;
-												case 24:
-													( o.prev = 24 ),
+												case 25:
+													( o.prev = 25 ),
 														( o.t0 =
-															o.catch( 10 ) ),
+															o.catch( 11 ) ),
 														console.error(
 															'Error saving function:',
 															o.t0
 														),
-														( v =
+														( y =
 															document.getElementById(
 																'aie-function-editor-modal'
 															) ) &&
 														'flex' ===
-															v.style.display
+															y.style.display
 															? n(
 																	o.t0
 																		.message,
-																	v
+																	y
 															  )
 															: e( o.t0.message );
-												case 29:
+												case 30:
 												case 'end':
 													return o.stop();
 											}
 									},
 									o,
 									null,
-									[ [ 10, 24 ] ]
+									[ [ 11, 25 ] ]
 								);
 							} )
 						)();
