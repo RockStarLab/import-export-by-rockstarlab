@@ -260,73 +260,22 @@ class database_migration {
     /**
      * Clean up old jobs (>30 days)
      * Can be called via cron
+     * 
+     * @param int $days Optional. Number of days to keep, default 30
+     * @return int|false Number of jobs deleted or false on failure
      */
-    public static function cleanup_old_jobs() {
-        global $wpdb;
-        
-        $prefix = $wpdb->prefix;
-        $days = apply_filters( 'aie_cleanup_old_jobs_days', 30 );
-        
-        // Delete old jobs and related logs (cascade)
-        $wpdb->query( $wpdb->prepare(
-            "DELETE FROM {$prefix}aie_jobs 
-            WHERE status IN ('completed', 'failed', 'cancelled') 
-            AND created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
-            $days
-        ) );
-        
-        // Delete orphaned logs (just in case)
-        $wpdb->query(
-            "DELETE l FROM {$prefix}aie_logs l
-            LEFT JOIN {$prefix}aie_jobs j ON l.job_id = j.id
-            WHERE j.id IS NULL"
-        );
-        
-        do_action( 'aie_old_jobs_cleaned' );
+    public static function cleanup_old_jobs( $days = 30 ) {
+        return WP_AIE()->model->job->cleanup_old( $days );
     }
     
     /**
      * Clean up exported files older than X days
      * 
-     * @param int $days Number of days to keep files
+     * @param int $days Number of days to keep files, default 7
+     * @return int Number of files deleted
      */
     public static function cleanup_old_files( $days = 7 ) {
-        global $wpdb;
-        
-        $prefix = $wpdb->prefix;
-        $days = apply_filters( 'aie_cleanup_old_files_days', $days );
-        
-        // Get old export jobs with file paths
-        $results = $wpdb->get_results( $wpdb->prepare(
-            "SELECT id, file_path FROM {$prefix}aie_jobs 
-            WHERE type = 'export' 
-            AND status = 'completed' 
-            AND file_path IS NOT NULL 
-            AND created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
-            $days
-        ) );
-        
-        $deleted_count = 0;
-        
-        foreach ( $results as $row ) {
-            // Delete physical file
-            if ( file_exists( $row->file_path ) ) {
-                @unlink( $row->file_path );
-                $deleted_count++;
-            }
-            
-            // Clear file_path in database
-            $wpdb->update(
-                "{$prefix}aie_jobs",
-                [ 'file_path' => null ],
-                [ 'id' => $row->id ],
-                [ '%s' ],
-                [ '%d' ]
-            );
-        }
-        
-        do_action( 'aie_old_files_cleaned', $deleted_count );
-        
-        return $deleted_count;
+        return WP_AIE()->model->job->cleanup_old_files( $days );
     }
 }
+

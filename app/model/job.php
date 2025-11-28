@@ -231,4 +231,86 @@ class job extends model {
 			)
 		);
 	}
+	
+	/**
+	 * Clean up old completed/failed jobs
+	 * Deletes jobs older than specified days (default 30)
+	 * Also cleans up orphaned logs via Log model
+	 * 
+	 * @param int $days Number of days to keep, default 30
+	 * @return int|false Number of jobs deleted or false on failure
+	 */
+	public function cleanup_old( $days = 30 ) {
+		global $wpdb;
+		$table = $this->get_table_name();
+		
+		$days = apply_filters( 'aie_cleanup_old_jobs_days', $days );
+		
+		// Delete old jobs
+		$deleted = $wpdb->query( $wpdb->prepare(
+			"DELETE FROM {$table} 
+			WHERE status IN ('completed', 'failed', 'cancelled') 
+			AND created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
+			$days
+		) );
+		
+		// Delete orphaned logs
+		$logs_table = $wpdb->prefix . 'aie_logs';
+		$wpdb->query(
+			"DELETE l FROM {$logs_table} l
+			LEFT JOIN {$table} j ON l.job_id = j.id
+			WHERE j.id IS NULL"
+		);
+		
+		do_action( 'aie_old_jobs_cleaned', $deleted );
+		
+		return $deleted;
+	}
+	
+	/**
+	 * Clean up exported files older than specified days
+	 * Deletes physical files and clears file_path in database
+	 * 
+	 * @param int $days Number of days to keep files, default 7
+	 * @return int Number of files deleted
+	 */
+	public function cleanup_old_files( $days = 7 ) {
+		global $wpdb;
+		$table = $this->get_table_name();
+		
+		$days = apply_filters( 'aie_cleanup_old_files_days', $days );
+		
+		// Get old export jobs with file paths
+		$results = $wpdb->get_results( $wpdb->prepare(
+			"SELECT id, file_path FROM {$table} 
+			WHERE type = 'export' 
+			AND status = 'completed' 
+			AND file_path IS NOT NULL 
+			AND created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
+			$days
+		) );
+		
+		$deleted_count = 0;
+		
+		foreach ( $results as $row ) {
+			// Delete physical file
+			if ( file_exists( $row->file_path ) ) {
+				@unlink( $row->file_path );
+				$deleted_count++;
+			}
+			
+			// Clear file_path in database
+			$wpdb->update(
+				$table,
+				[ 'file_path' => null ],
+				[ 'id' => $row->id ],
+				[ '%s' ],
+				[ '%d' ]
+			);
+		}
+		
+		do_action( 'aie_old_files_cleaned', $deleted_count );
+		
+		return $deleted_count;
+	}
 }
