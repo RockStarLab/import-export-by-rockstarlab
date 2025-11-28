@@ -245,14 +245,14 @@
 					function w() {}
 					function b() {}
 					function x() {}
-					var j = {};
-					d( j, c, function () {
+					var E = {};
+					d( E, c, function () {
 						return this;
 					} );
-					var E = Object.getPrototypeOf,
-						S = E && E( E( O( [] ) ) );
-					S && S !== n && r.call( S, c ) && ( j = S );
-					var _ = ( x.prototype = w.prototype = Object.create( j ) );
+					var j = Object.getPrototypeOf,
+						S = j && j( j( O( [] ) ) );
+					S && S !== n && r.call( S, c ) && ( E = S );
+					var _ = ( x.prototype = w.prototype = Object.create( E ) );
 					function L( t ) {
 						[ 'next', 'throw', 'return' ].forEach( function ( e ) {
 							d( t, e, function ( t ) {
@@ -1626,14 +1626,14 @@
 					function w() {}
 					function b() {}
 					function x() {}
-					var j = {};
-					u( j, i, function () {
+					var E = {};
+					u( E, i, function () {
 						return this;
 					} );
-					var E = Object.getPrototypeOf,
-						S = E && E( E( O( [] ) ) );
-					S && S !== n && r.call( S, i ) && ( j = S );
-					var _ = ( x.prototype = w.prototype = Object.create( j ) );
+					var j = Object.getPrototypeOf,
+						S = j && j( j( O( [] ) ) );
+					S && S !== n && r.call( S, i ) && ( E = S );
+					var _ = ( x.prototype = w.prototype = Object.create( E ) );
 					function L( t ) {
 						[ 'next', 'throw', 'return' ].forEach( function ( e ) {
 							u( t, e, function ( t ) {
@@ -3032,57 +3032,68 @@
 					testFunction: function () {
 						var t = this;
 						return v(
-							f().mark( function n() {
-								var r, o, a, i, c, s, u, l;
+							f().mark( function r() {
+								var o, a, i, c, s, u, l, d, p;
 								return f().wrap(
-									function ( n ) {
+									function ( r ) {
 										for (;;)
-											switch ( ( n.prev = n.next ) ) {
+											switch ( ( r.prev = r.next ) ) {
 												case 0:
 													if (
-														( ( r =
+														( ( o =
 															document.getElementById(
 																'aie-function-code'
 															).value ),
 														t.codeEditor &&
 															t.codeEditor
 																.codemirror &&
-															( r =
+															( o =
 																t.codeEditor.codemirror.getValue() ),
-														( o =
+														( a =
 															document.getElementById(
 																'aie-test-value'
 															) ),
-														( a = o.value ),
-														( i =
+														( i = a.value ),
+														( c =
 															document.querySelector(
 																'.aie-test-results'
 															) ),
-														r )
+														( s =
+															document.getElementById(
+																'aie-function-editor-modal'
+															) ),
+														o )
 													) {
-														n.next = 8;
+														r.next = 9;
 														break;
 													}
 													return (
-														e(
-															'Please enter function code first'
-														),
-														n.abrupt( 'return' )
+														s &&
+														'flex' ===
+															s.style.display
+															? n(
+																	'Please enter function code first',
+																	s
+															  )
+															: e(
+																	'Please enter function code first'
+															  ),
+														r.abrupt( 'return' )
 													);
-												case 8:
-													if ( a && a.trim() ) {
-														n.next = 12;
+												case 9:
+													if ( i && i.trim() ) {
+														r.next = 13;
 														break;
 													}
 													return (
-														o.focus(),
-														o.select(),
-														n.abrupt( 'return' )
+														a.focus(),
+														a.select(),
+														r.abrupt( 'return' )
 													);
-												case 12:
+												case 13:
 													return (
-														( n.prev = 12 ),
-														( n.next = 15 ),
+														( r.prev = 13 ),
+														( r.next = 16 ),
 														fetch(
 															window.aieData
 																.ajaxUrl,
@@ -3097,76 +3108,84 @@
 																		action: 'aie_functions_test',
 																		nonce:
 																			( null ===
-																				( c =
+																				( u =
 																					window.aieData ) ||
 																			void 0 ===
-																				c
+																				u
 																				? void 0
-																				: c.nonce ) ||
+																				: u.nonce ) ||
 																			'',
-																		code: r,
-																		value: a,
+																		code: o,
+																		value: i,
 																	}
 																),
 															}
 														)
 													);
-												case 15:
+												case 16:
 													return (
-														( s = n.sent ),
-														( n.next = 18 ),
-														s.json()
+														( l = r.sent ),
+														( r.next = 19 ),
+														l.json()
 													);
-												case 18:
+												case 19:
 													if (
-														( u = n.sent ).success
+														( d = r.sent ).success
 													) {
-														n.next = 21;
+														r.next = 22;
 														break;
 													}
 													throw new Error(
 														( null ===
-															( l = u.data ) ||
-														void 0 === l
+															( p = d.data ) ||
+														void 0 === p
 															? void 0
-															: l.message ) ||
+															: p.message ) ||
 															'Test failed'
 													);
-												case 21:
+												case 22:
 													( document.querySelector(
 														'.aie-test-input'
 													).textContent =
-														void 0 !== u.data.input
-															? u.data.input
-															: a ),
+														void 0 !== d.data.input
+															? d.data.input
+															: i ),
 														( document.querySelector(
 															'.aie-test-output'
 														).textContent =
 															void 0 !==
-															u.data.output
-																? u.data.output
+															d.data.output
+																? d.data.output
 																: '' ),
-														( i.style.display =
+														( c.style.display =
 															'block' ),
-														( n.next = 30 );
+														( r.next = 31 );
 													break;
-												case 26:
-													( n.prev = 26 ),
-														( n.t0 =
-															n.catch( 12 ) ),
+												case 27:
+													( r.prev = 27 ),
+														( r.t0 =
+															r.catch( 13 ) ),
 														console.error(
 															'Error testing function:',
-															n.t0
+															r.t0
 														),
-														e( n.t0.message );
-												case 30:
+														s &&
+														'flex' ===
+															s.style.display
+															? n(
+																	r.t0
+																		.message,
+																	s
+															  )
+															: e( r.t0.message );
+												case 31:
 												case 'end':
-													return n.stop();
+													return r.stop();
 											}
 									},
-									n,
+									r,
 									null,
-									[ [ 12, 26 ] ]
+									[ [ 13, 27 ] ]
 								);
 							} )
 						)();
@@ -3332,7 +3351,7 @@
 					}
 					return n;
 				}
-				function j( t, e, n ) {
+				function E( t, e, n ) {
 					return (
 						( e = ( function ( t ) {
 							var e = ( function ( t, e ) {
@@ -3361,7 +3380,7 @@
 						t
 					);
 				}
-				const E = {
+				const j = {
 					ajax: function ( t ) {
 						var e =
 								arguments.length > 1 &&
@@ -3389,7 +3408,7 @@
 										e % 2
 											? x( Object( n ), ! 0 ).forEach(
 													function ( e ) {
-														j( t, e, n[ e ] );
+														E( t, e, n[ e ] );
 													}
 											  )
 											: Object.getOwnPropertyDescriptors
@@ -3763,9 +3782,9 @@
 						return this;
 					} );
 					var x = Object.getPrototypeOf,
-						j = x && x( x( O( [] ) ) );
-					j && j !== n && r.call( j, i ) && ( b = j );
-					var E = ( w.prototype = m.prototype = Object.create( b ) );
+						E = x && x( x( O( [] ) ) );
+					E && E !== n && r.call( E, i ) && ( b = E );
+					var j = ( w.prototype = m.prototype = Object.create( b ) );
 					function L( t ) {
 						[ 'next', 'throw', 'return' ].forEach( function ( e ) {
 							u( t, e, function ( t ) {
@@ -3947,7 +3966,7 @@
 					}
 					return (
 						( g.prototype = w ),
-						o( E, 'constructor', { value: w, configurable: ! 0 } ),
+						o( j, 'constructor', { value: w, configurable: ! 0 } ),
 						o( w, 'constructor', { value: g, configurable: ! 0 } ),
 						( g.displayName = u( w, s, 'GeneratorFunction' ) ),
 						( e.isGeneratorFunction = function ( t ) {
@@ -3965,7 +3984,7 @@
 									? Object.setPrototypeOf( t, w )
 									: ( ( t.__proto__ = w ),
 									  u( t, s, 'GeneratorFunction' ) ),
-								( t.prototype = Object.create( E ) ),
+								( t.prototype = Object.create( j ) ),
 								t
 							);
 						} ),
@@ -3986,12 +4005,12 @@
 										return t.done ? t.value : i.next();
 								  } );
 						} ),
-						L( E ),
-						u( E, s, 'Generator' ),
-						u( E, i, function () {
+						L( j ),
+						u( j, s, 'Generator' ),
+						u( j, i, function () {
 							return this;
 						} ),
-						u( E, 'toString', function () {
+						u( j, 'toString', function () {
 							return '[object Generator]';
 						} ),
 						( e.keys = function ( t ) {
@@ -4330,7 +4349,7 @@
 							case 2:
 								if ( ! this.uploadedFile )
 									return (
-										E.showNotice(
+										j.showNotice(
 											'Please upload a file',
 											'error'
 										),
@@ -4341,7 +4360,7 @@
 								var e = this.getFieldMapping();
 								if ( 0 === Object.keys( e ).length )
 									return (
-										E.showNotice(
+										j.showNotice(
 											'Please map at least one field',
 											'error'
 										),
@@ -4362,7 +4381,7 @@
 						e && this.handleFile( e );
 					},
 					handleFile: function ( t ) {
-						var e = E.validateFile(
+						var e = j.validateFile(
 							t,
 							[ '.csv', '.json', '.xml' ],
 							52428800
@@ -4373,7 +4392,7 @@
 								jQuery( '.aie-file-info' ).show(),
 								jQuery( '.aie-file-name' ).text( t.name ),
 								jQuery( '.aie-file-size' ).text(
-									E.formatFileSize( t.size )
+									j.formatFileSize( t.size )
 								);
 							var n = this.detectFormat( t.name );
 							jQuery( '.aie-file-format' ).text(
@@ -4387,7 +4406,7 @@
 									! 1
 								),
 								this.uploadFile( t );
-						} else E.showNotice( e.errors.join( '<br>' ), 'error' );
+						} else j.showNotice( e.errors.join( '<br>' ), 'error' );
 					},
 					uploadFile: function ( t ) {
 						var e = this;
@@ -4451,7 +4470,7 @@
 														break;
 													}
 													( e.fileData = i.data ),
-														E.showNotice(
+														j.showNotice(
 															'File uploaded successfully',
 															'success'
 														),
@@ -4472,7 +4491,7 @@
 												case 17:
 													( n.prev = 17 ),
 														( n.t0 = n.catch( 5 ) ),
-														E.handleError(
+														j.handleError(
 															n.t0,
 															'File upload'
 														),
@@ -4553,7 +4572,7 @@
 															function ( t ) {
 																a +=
 																	'<th>'.concat(
-																		E.escapeHtml(
+																		j.escapeHtml(
 																			t
 																		),
 																		'</th>'
@@ -4572,7 +4591,7 @@
 																			t
 																		) {
 																			var e =
-																				E.escapeHtml(
+																				j.escapeHtml(
 																					String(
 																						t
 																					).substring(
@@ -4623,7 +4642,7 @@
 											: a[ r ] ) || '';
 								o += '\n\t\t\t\t<tr>\n\t\t\t\t\t<td><strong>'
 									.concat(
-										E.escapeHtml( e ),
+										j.escapeHtml( e ),
 										'</strong></td>\n\t\t\t\t\t<td>\n\t\t\t\t\t\t<select name="field_map['
 									)
 									.concat(
@@ -4653,7 +4672,7 @@
 										'\n\t\t\t\t\t\t</select>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td><code>'
 									)
 									.concat(
-										E.escapeHtml(
+										j.escapeHtml(
 											String( c ).substring( 0, 50 )
 										),
 										'</code></td>\n\t\t\t\t</tr>\n\t\t\t'
@@ -4709,7 +4728,7 @@
 									return t.val( jQuery( this ).val() ), ! 1;
 							} );
 						} ),
-							E.showNotice( 'Auto-mapping completed', 'success' );
+							j.showNotice( 'Auto-mapping completed', 'success' );
 					},
 					clearFieldMapping: function () {
 						jQuery( '.aie-mapping-body select' ).val( '' );
@@ -4785,7 +4804,7 @@
 																) || 50,
 														} ),
 														( e.next = 4 ),
-														E.ajax(
+														j.ajax(
 															'aie_import_start',
 															n
 														)
@@ -4795,7 +4814,7 @@
 														( t.jobId = r.job_id ),
 														t.showStep( 6 ),
 														t.startProgressTracking(),
-														E.showNotice(
+														j.showNotice(
 															'Import started successfully',
 															'success'
 														),
@@ -4804,7 +4823,7 @@
 												case 11:
 													( e.prev = 11 ),
 														( e.t0 = e.catch( 0 ) ),
-														E.handleError(
+														j.handleError(
 															e.t0,
 															'Start import'
 														);
@@ -4839,14 +4858,14 @@
 													return (
 														( e.prev = 0 ),
 														( e.next = 3 ),
-														E.ajax(
+														j.ajax(
 															'aie_import_get_progress',
 															{ job_id: t.jobId }
 														)
 													);
 												case 3:
 													( n = e.sent ),
-														E.updateProgressBar(
+														j.updateProgressBar(
 															jQuery(
 																'.aie-step-6'
 															),
@@ -4902,14 +4921,14 @@
 							),
 							jQuery( '.aie-cancel-import' ).hide(),
 							jQuery( '.aie-new-import' ).show(),
-							E.showNotice(
+							j.showNotice(
 								'Import completed successfully!',
 								'success'
 							);
 					},
 					onImportFailed: function ( t ) {
 						clearInterval( this.progressInterval ),
-							E.showNotice(
+							j.showNotice(
 								'Import failed: ' +
 									( t.error || 'Unknown error' ),
 								'error'
@@ -4937,7 +4956,7 @@
 													return (
 														( e.prev = 2 ),
 														( e.next = 5 ),
-														E.ajax(
+														j.ajax(
 															'aie_import_cancel',
 															{ job_id: t.jobId }
 														)
@@ -4946,7 +4965,7 @@
 													clearInterval(
 														t.progressInterval
 													),
-														E.showNotice(
+														j.showNotice(
 															'Import cancelled',
 															'info'
 														),
@@ -4956,7 +4975,7 @@
 												case 10:
 													( e.prev = 10 ),
 														( e.t0 = e.catch( 2 ) ),
-														E.handleError(
+														j.handleError(
 															e.t0,
 															'Cancel import'
 														);
@@ -5074,9 +5093,9 @@
 						return this;
 					} );
 					var x = Object.getPrototypeOf,
-						j = x && x( x( O( [] ) ) );
-					j && j !== n && r.call( j, i ) && ( b = j );
-					var E = ( w.prototype = m.prototype = Object.create( b ) );
+						E = x && x( x( O( [] ) ) );
+					E && E !== n && r.call( E, i ) && ( b = E );
+					var j = ( w.prototype = m.prototype = Object.create( b ) );
 					function S( t ) {
 						[ 'next', 'throw', 'return' ].forEach( function ( e ) {
 							u( t, e, function ( t ) {
@@ -5258,7 +5277,7 @@
 					}
 					return (
 						( g.prototype = w ),
-						o( E, 'constructor', { value: w, configurable: ! 0 } ),
+						o( j, 'constructor', { value: w, configurable: ! 0 } ),
 						o( w, 'constructor', { value: g, configurable: ! 0 } ),
 						( g.displayName = u( w, s, 'GeneratorFunction' ) ),
 						( e.isGeneratorFunction = function ( t ) {
@@ -5276,7 +5295,7 @@
 									? Object.setPrototypeOf( t, w )
 									: ( ( t.__proto__ = w ),
 									  u( t, s, 'GeneratorFunction' ) ),
-								( t.prototype = Object.create( E ) ),
+								( t.prototype = Object.create( j ) ),
 								t
 							);
 						} ),
@@ -5297,12 +5316,12 @@
 										return t.done ? t.value : i.next();
 								  } );
 						} ),
-						S( E ),
-						u( E, s, 'Generator' ),
-						u( E, i, function () {
+						S( j ),
+						u( j, s, 'Generator' ),
+						u( j, i, function () {
 							return this;
 						} ),
-						u( E, 'toString', function () {
+						u( j, 'toString', function () {
 							return '[object Generator]';
 						} ),
 						( e.keys = function ( t ) {
@@ -5548,7 +5567,7 @@
 							e.on(
 								'change',
 								'.aie-export-filters input, .aie-export-filters select',
-								E.debounce( function () {
+								j.debounce( function () {
 									return t.refreshCount();
 								}, 500 )
 							),
@@ -5664,7 +5683,7 @@
 														),
 														( e.prev = 4 ),
 														( e.next = 7 ),
-														E.ajax(
+														j.ajax(
 															'aie_export_get_count',
 															{
 																content_type:
@@ -5802,7 +5821,7 @@
 														break;
 													}
 													return (
-														E.showNotice(
+														j.showNotice(
 															'Please select at least one field to export',
 															'error'
 														),
@@ -5854,7 +5873,7 @@
 															},
 														} ),
 														( e.next = 8 ),
-														E.ajax(
+														j.ajax(
 															'aie_export_start',
 															r
 														)
@@ -5864,7 +5883,7 @@
 														( t.jobId = o.job_id ),
 														t.showStep( 5 ),
 														t.startProgressTracking(),
-														E.showNotice(
+														j.showNotice(
 															'Export started successfully',
 															'success'
 														),
@@ -5873,7 +5892,7 @@
 												case 15:
 													( e.prev = 15 ),
 														( e.t0 = e.catch( 4 ) ),
-														E.handleError(
+														j.handleError(
 															e.t0,
 															'Start export'
 														);
@@ -5908,14 +5927,14 @@
 													return (
 														( e.prev = 0 ),
 														( e.next = 3 ),
-														E.ajax(
+														j.ajax(
 															'aie_export_get_progress',
 															{ job_id: t.jobId }
 														)
 													);
 												case 3:
 													( n = e.sent ),
-														E.updateProgressBar(
+														j.updateProgressBar(
 															jQuery(
 																'.aie-step-5'
 															),
@@ -5959,7 +5978,7 @@
 								t.processed || 0
 							),
 							jQuery( '.aie-result-filesize' ).text(
-								E.formatFileSize( t.file_size || 0 )
+								j.formatFileSize( t.file_size || 0 )
 							),
 							jQuery( '.aie-result-duration' ).text(
 								( null === ( e = t.estimates ) || void 0 === e
@@ -5968,14 +5987,14 @@
 							),
 							jQuery( '.aie-cancel-export' ).hide(),
 							jQuery( '.aie-new-export' ).show(),
-							E.showNotice(
+							j.showNotice(
 								'Export completed successfully!',
 								'success'
 							);
 					},
 					onExportFailed: function ( t ) {
 						clearInterval( this.progressInterval ),
-							E.showNotice(
+							j.showNotice(
 								'Export failed: ' +
 									( t.error || 'Unknown error' ),
 								'error'
@@ -5994,7 +6013,7 @@
 													return (
 														( e.prev = 0 ),
 														( e.next = 3 ),
-														E.ajax(
+														j.ajax(
 															'aie_export_download',
 															{ job_id: t.jobId }
 														)
@@ -6002,7 +6021,7 @@
 												case 3:
 													( n = e.sent )
 														.download_url &&
-														E.downloadFile(
+														j.downloadFile(
 															n.download_url,
 															n.filename
 														),
@@ -6011,7 +6030,7 @@
 												case 7:
 													( e.prev = 7 ),
 														( e.t0 = e.catch( 0 ) ),
-														E.handleError(
+														j.handleError(
 															e.t0,
 															'Download file'
 														);
@@ -6049,7 +6068,7 @@
 													return (
 														( e.prev = 2 ),
 														( e.next = 5 ),
-														E.ajax(
+														j.ajax(
 															'aie_export_cancel',
 															{ job_id: t.jobId }
 														)
@@ -6058,7 +6077,7 @@
 													clearInterval(
 														t.progressInterval
 													),
-														E.showNotice(
+														j.showNotice(
 															'Export cancelled',
 															'info'
 														),
@@ -6068,7 +6087,7 @@
 												case 10:
 													( e.prev = 10 ),
 														( e.t0 = e.catch( 2 ) ),
-														E.handleError(
+														j.handleError(
 															e.t0,
 															'Cancel export'
 														);

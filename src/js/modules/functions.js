@@ -568,9 +568,14 @@ const FunctionsModule = {
 		const testValueInput = document.getElementById( 'aie-test-value' );
 		const testValue = testValueInput.value;
 		const resultsDiv = document.querySelector( '.aie-test-results' );
+		const modal = document.getElementById( 'aie-function-editor-modal' );
 
 		if ( ! code ) {
-			showError( 'Please enter function code first' );
+			if ( modal && modal.style.display === 'flex' ) {
+				showModalError( 'Please enter function code first', modal );
+			} else {
+				showError( 'Please enter function code first' );
+			}
 			return;
 		}
 
@@ -609,7 +614,11 @@ const FunctionsModule = {
 			resultsDiv.style.display = 'block';
 		} catch ( error ) {
 			console.error( 'Error testing function:', error );
-			showError( error.message );
+			if ( modal && modal.style.display === 'flex' ) {
+				showModalError( error.message, modal );
+			} else {
+				showError( error.message );
+			}
 		}
 	},
 

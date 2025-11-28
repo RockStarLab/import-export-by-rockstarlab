@@ -191,6 +191,10 @@
 	width: 90%;
 	z-index: 1;
 }
+.aie-modal-content .notice {
+	margin-left: 24px;
+	margin-right: 24px;
+}
 .aie-modal-header {
 	align-items: center;
 	border-bottom: 1px solid #ddd;
