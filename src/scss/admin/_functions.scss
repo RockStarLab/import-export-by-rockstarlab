@@ -3,15 +3,19 @@
  */
 
 // Global button styles for all buttons in the interface
-.button,
-button[type="button"],
-button[type="submit"] {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
+.aie-modal,
+.wp-advanced-import-export {
+	.button,
+	button[type="button"],
+	button[type="submit"] {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
 
-	.dashicons {
-		line-height: 1;
+		.dashicons {
+			line-height: 1;
+			height: auto;
+		}
 	}
 }
 

@@ -204,7 +204,7 @@ const FunctionLibrary = {
 		if ( snippets.length === 0 ) {
 			grid.innerHTML = `
 				<div class="aie-no-snippets">
-					<span class="dashicons dashicons-info"></span>
+					<span class="dashicons dashicons-info" style="width: auto; height: auto;"></span>
 					<p>${ window.aieData?.i18n?.no_snippets || 'No snippets found' }</p>
 				</div>
 			`;
@@ -380,6 +380,21 @@ const FunctionLibrary = {
 				snippet.example.output !== undefined
 					? snippet.example.output
 					: 'N/A';
+		}
+
+		// Show/hide "Use" button based on current page
+		// Only show on Import, Export, and Content Sync pages
+		const useButton = modal.querySelector( '.aie-use-snippet' );
+		if ( useButton ) {
+			const currentPage = window.aieData?.currentPage || '';
+			const allowedPages = [
+				'wp-advanced-import-export',
+				'wp-aie-export',
+				'wp-aie-content-sync',
+			];
+			useButton.style.display = allowedPages.includes( currentPage )
+				? ''
+				: 'none';
 		}
 
 		modal.style.display = 'flex';

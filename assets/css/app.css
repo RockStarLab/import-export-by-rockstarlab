@@ -1,13 +1,20 @@
-.button,
-button[type="button"],
-button[type="submit"] {
+.aie-modal .button,
+.aie-modal button[type="button"],
+.aie-modal button[type="submit"],
+.wp-advanced-import-export .button,
+.wp-advanced-import-export button[type="button"],
+.wp-advanced-import-export button[type="submit"] {
 	align-items: center;
 	display: inline-flex;
 	gap: 4px;
 }
-.button .dashicons,
-button[type="button"] .dashicons,
-button[type="submit"] .dashicons {
+.aie-modal .button .dashicons,
+.aie-modal button[type="button"] .dashicons,
+.aie-modal button[type="submit"] .dashicons,
+.wp-advanced-import-export .button .dashicons,
+.wp-advanced-import-export button[type="button"] .dashicons,
+.wp-advanced-import-export button[type="submit"] .dashicons {
+	height: auto;
 	line-height: 1;
 }
 #wp-aie-functions .description {
