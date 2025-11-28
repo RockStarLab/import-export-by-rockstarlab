@@ -1,6 +1,11 @@
 #wp-aie-functions .description {
 	margin-bottom: 20px;
 }
+#wp-aie-functions .page-title-action .dashicons {
+	line-height: 1;
+	margin-right: 4px;
+	vertical-align: middle;
+}
 .aie-functions-filters {
 	align-items: center;
 	background: #fff;
