@@ -868,7 +868,7 @@ var FunctionLibrary = {
     var _arguments2 = arguments,
       _this7 = this;
     return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
-      var customize, snippet, libraryModal, previewModal, editorModal, _window$aieData11, _window$aieData12, response, data, _data$data3, _libraryModal, _previewModal;
+      var customize, snippet, libraryModal, previewModal, editorModal, _window$aieData11, _window$aieData12, response, data, _data$data3;
       return _regeneratorRuntime().wrap(function _callee4$(_context4) {
         while (1) switch (_context4.prev = _context4.next) {
           case 0:
@@ -881,10 +881,10 @@ var FunctionLibrary = {
             return _context4.abrupt("return");
           case 4:
             if (!customize) {
-              _context4.next = 14;
+              _context4.next = 19;
               break;
             }
-            // Open editor modal with snippet code
+            // Close library and preview modals
             libraryModal = document.getElementById('aie-snippets-library-modal');
             previewModal = document.getElementById('aie-snippet-preview-modal');
             if (libraryModal) {
@@ -895,9 +895,22 @@ var FunctionLibrary = {
             }
             document.body.style.overflow = '';
 
-            // Open editor with snippet data
+            // Use the FunctionsModule method to open editor with snippet data
+            if (!(_this7.functionsModule && _this7.functionsModule.openEditorWithSnippet)) {
+              _context4.next = 15;
+              break;
+            }
+            _context4.next = 13;
+            return _this7.functionsModule.openEditorWithSnippet(snippet);
+          case 13:
+            _context4.next = 17;
+            break;
+          case 15:
+            // Fallback: Open editor directly (old method)
             editorModal = document.getElementById('aie-function-editor-modal');
             if (editorModal) {
+              // Clear any previous errors
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.clearModalErrors)();
               document.getElementById('aie-function-id').value = '';
               document.getElementById('aie-function-name').value = snippet.name;
               document.getElementById('aie-function-description').value = snippet.description;
@@ -908,11 +921,12 @@ var FunctionLibrary = {
               editorModal.style.display = 'flex';
               document.body.style.overflow = 'hidden';
             }
-            _context4.next = 36;
+          case 17:
+            _context4.next = 37;
             break;
-          case 14:
-            _context4.prev = 14;
-            _context4.next = 17;
+          case 19:
+            _context4.prev = 19;
+            _context4.next = 22;
             return fetch(window.aieData.ajaxUrl, {
               method: 'POST',
               headers: {
@@ -924,47 +938,37 @@ var FunctionLibrary = {
                 snippet_key: snippetKey
               })
             });
-          case 17:
+          case 22:
             response = _context4.sent;
-            _context4.next = 20;
+            _context4.next = 25;
             return response.json();
-          case 20:
+          case 25:
             data = _context4.sent;
             if (data.success) {
-              _context4.next = 23;
+              _context4.next = 28;
               break;
             }
             throw new Error(((_data$data3 = data.data) === null || _data$data3 === void 0 ? void 0 : _data$data3.message) || 'Import failed');
-          case 23:
+          case 28:
             (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showNotice)(((_window$aieData12 = window.aieData) === null || _window$aieData12 === void 0 || (_window$aieData12 = _window$aieData12.i18n) === null || _window$aieData12 === void 0 ? void 0 : _window$aieData12.snippet_imported) || 'Snippet imported successfully');
-
-            // Close modals
-            _libraryModal = document.getElementById('aie-snippets-library-modal');
-            _previewModal = document.getElementById('aie-snippet-preview-modal');
-            if (_libraryModal) {
-              _libraryModal.style.display = 'none';
-            }
-            if (_previewModal) {
-              _previewModal.style.display = 'none';
-            }
             document.body.style.overflow = '';
 
             // Refresh functions list
             if (_this7.functionsModule) {
               _this7.functionsModule.loadFunctions();
             }
-            _context4.next = 36;
+            _context4.next = 37;
             break;
-          case 32:
-            _context4.prev = 32;
-            _context4.t0 = _context4["catch"](14);
+          case 33:
+            _context4.prev = 33;
+            _context4.t0 = _context4["catch"](19);
             console.error('Error importing snippet:', _context4.t0);
             (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)(_context4.t0.message);
-          case 36:
+          case 37:
           case "end":
             return _context4.stop();
         }
-      }, _callee4, null, [[14, 32]]);
+      }, _callee4, null, [[19, 33]]);
     }))();
   },
   /**
@@ -1161,7 +1165,7 @@ var FunctionsModule = {
             return _context.abrupt("return");
           case 3:
             // Show loading
-            tbody.innerHTML = "\n\t\t\t<tr class=\"aie-loading-row\">\n\t\t\t\t<td colspan=\"7\" style=\"text-align:center;\">\n\t\t\t\t\t<span class=\"spinner is-active\"></span>\n\t\t\t\t\t".concat(((_window$aieData = window.aieData) === null || _window$aieData === void 0 || (_window$aieData = _window$aieData.i18n) === null || _window$aieData === void 0 ? void 0 : _window$aieData.loading) || 'Loading...', "\n\t\t\t\t</td>\n\t\t\t</tr>\n\t\t");
+            tbody.innerHTML = "\n\t\t\t<tr class=\"aie-loading-row\">\n\t\t\t\t<td colspan=\"6\" style=\"text-align:center;\">\n\t\t\t\t\t<span class=\"spinner is-active\"></span>\n\t\t\t\t\t".concat(((_window$aieData = window.aieData) === null || _window$aieData === void 0 || (_window$aieData = _window$aieData.i18n) === null || _window$aieData === void 0 ? void 0 : _window$aieData.loading) || 'Loading...', "\n\t\t\t\t</td>\n\t\t\t</tr>\n\t\t");
             _context.prev = 4;
             _context.next = 7;
             return fetch(window.aieData.ajaxUrl, {
@@ -1189,7 +1193,7 @@ var FunctionsModule = {
               _context.next = 13;
               break;
             }
-            throw new Error(((_data$data = data.data) === null || _data$data === void 0 ? void 0 : _data$data.message) || 'Failed to load functions');
+            throw new Error(data.message || ((_data$data = data.data) === null || _data$data === void 0 ? void 0 : _data$data.message) || 'Failed to load functions');
           case 13:
             _this2.totalPages = data.data.total_pages || 1;
             _this2.totalItems = data.data.total || 0;
@@ -1201,7 +1205,7 @@ var FunctionsModule = {
             _context.prev = 19;
             _context.t0 = _context["catch"](4);
             console.error('Error loading functions:', _context.t0);
-            tbody.innerHTML = "\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan=\"7\" style=\"text-align:center; color:#dc3232;\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-warning\"></span>\n\t\t\t\t\t\t".concat(_context.t0.message, "\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
+            tbody.innerHTML = "\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan=\"6\" style=\"text-align:center; color:#dc3232;\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-warning\"></span>\n\t\t\t\t\t\t".concat(_context.t0.message, "\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
           case 23:
           case "end":
             return _context.stop();
@@ -1220,7 +1224,7 @@ var FunctionsModule = {
     }
     if (functions.length === 0) {
       var _window$aieData3;
-      tbody.innerHTML = "\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan=\"7\" style=\"text-align:center; padding:40px;\">\n\t\t\t\t\t\t<div style=\"display:flex; flex-direction:column; align-items:center; gap:10px;\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-info\" style=\"font-size:48px; opacity:0.3;\"></span>\n\t\t\t\t\t\t\t<p style=\"margin:23px 0 0 0; color:#666;\">\n\t\t\t\t\t\t\t\t".concat(((_window$aieData3 = window.aieData) === null || _window$aieData3 === void 0 || (_window$aieData3 = _window$aieData3.i18n) === null || _window$aieData3 === void 0 ? void 0 : _window$aieData3.no_functions) || 'No functions found. Create your first function or browse the library.', "\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
+      tbody.innerHTML = "\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan=\"6\" style=\"text-align:center; padding:40px;\">\n\t\t\t\t\t\t<div style=\"display:flex; flex-direction:column; align-items:center; gap:10px;\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-info\" style=\"font-size:48px; opacity:0.3;\"></span>\n\t\t\t\t\t\t\t<p style=\"margin:23px 0 0 0; color:#666;\">\n\t\t\t\t\t\t\t\t".concat(((_window$aieData3 = window.aieData) === null || _window$aieData3 === void 0 || (_window$aieData3 = _window$aieData3.i18n) === null || _window$aieData3 === void 0 ? void 0 : _window$aieData3.no_functions) || 'No functions found. Create your first function or browse the library.', "\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
       return;
     }
     tbody.innerHTML = functions.map(function (func) {
@@ -1296,7 +1300,7 @@ var FunctionsModule = {
     var _arguments = arguments,
       _this4 = this;
     return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
-      var functionId, modal, title, form, _window$aieData5, _window$aieData6, response, data, _data$data2, func, _window$aieData7, codeTextarea;
+      var functionId, modal, title, form, codeTextarea, _window$aieData5, _window$aieData6, response, data, _data$data2, func, _window$aieData7, defaultCode;
       return _regeneratorRuntime().wrap(function _callee3$(_context3) {
         while (1) switch (_context3.prev = _context3.next) {
           case 0:
@@ -1304,24 +1308,59 @@ var FunctionsModule = {
             modal = document.getElementById('aie-function-editor-modal');
             title = modal.querySelector('.aie-modal-title');
             form = document.getElementById('aie-function-form');
-            if (!(!modal || !form)) {
-              _context3.next = 6;
+            codeTextarea = document.getElementById('aie-function-code');
+            if (!(!modal || !form || !codeTextarea)) {
+              _context3.next = 7;
               break;
             }
             return _context3.abrupt("return");
-          case 6:
+          case 7:
+            // Clear previous errors
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.clearModalErrors)(modal);
+
             // Reset form
             form.reset();
             document.getElementById('aie-function-id').value = '';
             document.querySelector('.aie-test-results').style.display = 'none';
+
+            // Clear textarea directly
+            codeTextarea.value = '';
+
+            // Show modal and initialize CodeMirror FIRST (before loading data)
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            // Initialize CodeMirror for code editor if not already initialized
+            if (!_this4.codeEditor && window.wp && window.wp.codeEditor) {
+              _this4.codeEditor = window.wp.codeEditor.initialize(codeTextarea, {
+                codemirror: {
+                  mode: 'php',
+                  lineNumbers: true,
+                  lineWrapping: true,
+                  indentUnit: 4,
+                  indentWithTabs: true,
+                  autoCloseBrackets: true,
+                  matchBrackets: true,
+                  styleActiveLine: true,
+                  continueComments: true
+                }
+              });
+            }
+
+            // Clear CodeMirror content after initialization
+            if (_this4.codeEditor && _this4.codeEditor.codemirror) {
+              _this4.codeEditor.codemirror.setValue('');
+              // Force refresh
+              _this4.codeEditor.codemirror.clearHistory();
+            }
             if (!functionId) {
-              _context3.next = 37;
+              _context3.next = 42;
               break;
             }
             // Edit mode - load function data
             title.textContent = ((_window$aieData5 = window.aieData) === null || _window$aieData5 === void 0 || (_window$aieData5 = _window$aieData5.i18n) === null || _window$aieData5 === void 0 ? void 0 : _window$aieData5.edit_function) || 'Edit Function';
-            _context3.prev = 11;
-            _context3.next = 14;
+            _context3.prev = 18;
+            _context3.next = 21;
             return fetch(window.aieData.ajaxUrl, {
               method: 'POST',
               headers: {
@@ -1333,72 +1372,151 @@ var FunctionsModule = {
                 id: functionId
               })
             });
-          case 14:
+          case 21:
             response = _context3.sent;
-            _context3.next = 17;
+            _context3.next = 24;
             return response.json();
-          case 17:
+          case 24:
             data = _context3.sent;
             if (data.success) {
-              _context3.next = 20;
+              _context3.next = 27;
               break;
             }
-            throw new Error(((_data$data2 = data.data) === null || _data$data2 === void 0 ? void 0 : _data$data2.message) || 'Failed to load function');
-          case 20:
+            throw new Error(data.message || ((_data$data2 = data.data) === null || _data$data2 === void 0 ? void 0 : _data$data2.message) || 'Failed to load function');
+          case 27:
             func = data.data;
-            console.log('Loaded function data:', func); // Debug log
             document.getElementById('aie-function-id').value = func.id;
             document.getElementById('aie-function-name').value = func.name;
             document.getElementById('aie-function-description').value = func.description || '';
             // Category is now computed (library/custom) - don't set from data
             // document.getElementById( 'aie-function-category' ).value = func.category;
-            document.getElementById('aie-function-code').value = func.code || '';
-            document.getElementById('aie-function-status').value = func.status; // Update CodeMirror if initialized
-            if (_this4.codeEditor) {
+            document.getElementById('aie-function-status').value = func.status;
+
+            // Update CodeMirror with the loaded code
+            if (_this4.codeEditor && _this4.codeEditor.codemirror) {
               _this4.codeEditor.codemirror.setValue(func.code || '');
+            } else {
+              // Fallback to textarea if CodeMirror not initialized
+              document.getElementById('aie-function-code').value = func.code || '';
             }
-            _context3.next = 35;
+            _context3.next = 40;
             break;
-          case 30:
-            _context3.prev = 30;
-            _context3.t0 = _context3["catch"](11);
+          case 35:
+            _context3.prev = 35;
+            _context3.t0 = _context3["catch"](18);
             console.error('Error loading function:', _context3.t0);
             (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(_context3.t0.message, modal);
             return _context3.abrupt("return");
-          case 35:
-            _context3.next = 38;
+          case 40:
+            _context3.next = 45;
             break;
-          case 37:
-            // Create mode
+          case 42:
+            // Create mode - add default PHP opening tag
             title.textContent = ((_window$aieData7 = window.aieData) === null || _window$aieData7 === void 0 || (_window$aieData7 = _window$aieData7.i18n) === null || _window$aieData7 === void 0 ? void 0 : _window$aieData7.new_function) || 'New Function';
-          case 38:
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
 
-            // Initialize CodeMirror for code editor
-            if (!_this4.codeEditor && window.wp && window.wp.codeEditor) {
-              codeTextarea = document.getElementById('aie-function-code');
-              if (codeTextarea) {
-                _this4.codeEditor = window.wp.codeEditor.initialize(codeTextarea, {
-                  codemirror: {
-                    mode: 'php',
-                    lineNumbers: true,
-                    lineWrapping: true,
-                    indentUnit: 4,
-                    indentWithTabs: true,
-                    autoCloseBrackets: true,
-                    matchBrackets: true,
-                    styleActiveLine: true,
-                    continueComments: true
-                  }
+            // Set default PHP code template
+            defaultCode = '<?php\n\n';
+            if (_this4.codeEditor && _this4.codeEditor.codemirror) {
+              _this4.codeEditor.codemirror.setValue(defaultCode);
+              // Position cursor after the opening tag and empty lines
+              setTimeout(function () {
+                _this4.codeEditor.codemirror.setCursor({
+                  line: 2,
+                  ch: 0
                 });
-              }
+                _this4.codeEditor.codemirror.focus();
+              }, 100);
+            } else {
+              // Fallback to textarea if CodeMirror not initialized
+              codeTextarea.value = defaultCode;
             }
-          case 41:
+          case 45:
           case "end":
             return _context3.stop();
         }
-      }, _callee3, null, [[11, 30]]);
+      }, _callee3, null, [[18, 35]]);
+    }))();
+  },
+  /**
+   * Open editor modal with snippet data for customization
+   */
+  openEditorWithSnippet: function openEditorWithSnippet(snippetData) {
+    var _this5 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+      var modal, title, form, codeTextarea, code;
+      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+        while (1) switch (_context4.prev = _context4.next) {
+          case 0:
+            modal = document.getElementById('aie-function-editor-modal');
+            title = modal.querySelector('.aie-modal-title');
+            form = document.getElementById('aie-function-form');
+            codeTextarea = document.getElementById('aie-function-code');
+            if (!(!modal || !form || !codeTextarea)) {
+              _context4.next = 6;
+              break;
+            }
+            return _context4.abrupt("return");
+          case 6:
+            // Clear previous errors
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.clearModalErrors)(modal);
+
+            // Reset form
+            form.reset();
+            document.getElementById('aie-function-id').value = '';
+            document.querySelector('.aie-test-results').style.display = 'none';
+
+            // Show modal FIRST
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            // Initialize CodeMirror if not already initialized
+            if (!_this5.codeEditor && window.wp && window.wp.codeEditor) {
+              _this5.codeEditor = window.wp.codeEditor.initialize(codeTextarea, {
+                codemirror: {
+                  mode: 'php',
+                  lineNumbers: true,
+                  lineWrapping: true,
+                  indentUnit: 4,
+                  indentWithTabs: true,
+                  autoCloseBrackets: true,
+                  matchBrackets: true,
+                  styleActiveLine: true,
+                  continueComments: true
+                }
+              });
+            }
+
+            // Set title
+            title.textContent = 'Customize Function';
+
+            // Fill form with snippet data
+            document.getElementById('aie-function-name').value = snippetData.name || '';
+            document.getElementById('aie-function-description').value = snippetData.description || '';
+            document.getElementById('aie-function-category').value = snippetData.category || 'custom';
+            document.getElementById('aie-function-status').value = 'active';
+
+            // Prepare code with <?php opening tag
+            code = snippetData.code || ''; // Only add <?php if it doesn't already start with it
+            if (code && !code.trim().startsWith('<?php') && !code.trim().startsWith('<?')) {
+              code = '<?php\n\n' + code;
+            }
+
+            // Set code in CodeMirror
+            if (_this5.codeEditor && _this5.codeEditor.codemirror) {
+              _this5.codeEditor.codemirror.setValue(code);
+              // Force refresh to ensure proper rendering
+              setTimeout(function () {
+                _this5.codeEditor.codemirror.refresh();
+              }, 100);
+            } else {
+              // Fallback to textarea if CodeMirror not initialized
+              codeTextarea.value = code;
+            }
+          case 21:
+          case "end":
+            return _context4.stop();
+        }
+      }, _callee4);
     }))();
   },
   /**
@@ -1412,118 +1530,143 @@ var FunctionsModule = {
    * Save function
    */
   saveFunction: function saveFunction() {
-    var _this5 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
-      var _window$aieData8;
-      var codeTextarea, code, form, functionId, functionData, _window$aieData9, response, contentType, text, data, _data$data3, modal, errorMessage;
-      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-        while (1) switch (_context4.prev = _context4.next) {
+    var _this6 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+      var _window$aieData11;
+      var codeTextarea, code, name, category, _window$aieData8, _window$aieData9, _window$aieData10, functionId, formData, _window$aieData12, response, contentType, text, data, _data$data3, modal, errorMessage;
+      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+        while (1) switch (_context5.prev = _context5.next) {
           case 0:
+            // Clear any previous modal errors
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.clearModalErrors)();
+
             // Get code from CodeMirror if initialized and sync with textarea
             codeTextarea = document.getElementById('aie-function-code');
             code = codeTextarea.value;
-            if (_this5.codeEditor && _this5.codeEditor.codemirror) {
-              code = _this5.codeEditor.codemirror.getValue();
+            if (_this6.codeEditor && _this6.codeEditor.codemirror) {
+              code = _this6.codeEditor.codemirror.getValue();
               // Sync CodeMirror value back to textarea for validation
               codeTextarea.value = code;
             }
 
-            // Now validate the form
-            form = document.getElementById('aie-function-form');
-            if (form.checkValidity()) {
-              _context4.next = 7;
+            // Manual validation with user-friendly messages
+            name = document.getElementById('aie-function-name').value.trim();
+            category = document.getElementById('aie-function-category').value;
+            if (name) {
+              _context5.next = 10;
               break;
             }
-            form.reportValidity();
-            return _context4.abrupt("return");
-          case 7:
-            // Normalize PHP code (add <?php if missing and wrap if needed)
-            code = _this5.normalizePhpCode(code);
-            functionId = document.getElementById('aie-function-id').value;
-            functionData = {
-              action: functionId ? 'aie_functions_update' : 'aie_functions_create',
-              nonce: ((_window$aieData8 = window.aieData) === null || _window$aieData8 === void 0 ? void 0 : _window$aieData8.nonce) || '',
-              name: document.getElementById('aie-function-name').value,
-              description: document.getElementById('aie-function-description').value,
-              category: document.getElementById('aie-function-category').value,
-              code: code,
-              status: document.getElementById('aie-function-status').value
-            };
-            if (functionId) {
-              functionData.id = functionId;
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(((_window$aieData8 = window.aieData) === null || _window$aieData8 === void 0 || (_window$aieData8 = _window$aieData8.i18n) === null || _window$aieData8 === void 0 ? void 0 : _window$aieData8.name_required) || 'Please enter a function name.');
+            document.getElementById('aie-function-name').focus();
+            return _context5.abrupt("return");
+          case 10:
+            if (code.trim()) {
+              _context5.next = 14;
+              break;
             }
-            _context4.prev = 11;
-            _context4.next = 14;
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(((_window$aieData9 = window.aieData) === null || _window$aieData9 === void 0 || (_window$aieData9 = _window$aieData9.i18n) === null || _window$aieData9 === void 0 ? void 0 : _window$aieData9.code_required) || 'Please enter the PHP code for your function.');
+            // Focus on CodeMirror if available, otherwise on textarea
+            if (_this6.codeEditor && _this6.codeEditor.codemirror) {
+              _this6.codeEditor.codemirror.focus();
+            } else {
+              codeTextarea.focus();
+            }
+            return _context5.abrupt("return");
+          case 14:
+            if (category) {
+              _context5.next = 18;
+              break;
+            }
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(((_window$aieData10 = window.aieData) === null || _window$aieData10 === void 0 || (_window$aieData10 = _window$aieData10.i18n) === null || _window$aieData10 === void 0 ? void 0 : _window$aieData10.category_required) || 'Please select a category.');
+            document.getElementById('aie-function-category').focus();
+            return _context5.abrupt("return");
+          case 18:
+            // Normalize PHP code (add <?php if missing and wrap if needed)
+            code = _this6.normalizePhpCode(code);
+            functionId = document.getElementById('aie-function-id').value; // Use FormData instead of URLSearchParams to preserve newlines
+            formData = new FormData();
+            formData.append('action', functionId ? 'aie_functions_update' : 'aie_functions_create');
+            formData.append('nonce', ((_window$aieData11 = window.aieData) === null || _window$aieData11 === void 0 ? void 0 : _window$aieData11.nonce) || '');
+            formData.append('name', document.getElementById('aie-function-name').value);
+            formData.append('description', document.getElementById('aie-function-description').value);
+            formData.append('category', document.getElementById('aie-function-category').value);
+            formData.append('code', code);
+            formData.append('status', document.getElementById('aie-function-status').value);
+            if (functionId) {
+              formData.append('id', functionId);
+            }
+            _context5.prev = 29;
+            _context5.next = 32;
             return fetch(window.aieData.ajaxUrl, {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-              },
-              body: new URLSearchParams(functionData)
+              body: formData
             });
-          case 14:
-            response = _context4.sent;
+          case 32:
+            response = _context5.sent;
             // Check if response is JSON
             contentType = response.headers.get('content-type');
             if (!(!contentType || !contentType.includes('application/json'))) {
-              _context4.next = 22;
+              _context5.next = 40;
               break;
             }
-            _context4.next = 19;
+            _context5.next = 37;
             return response.text();
-          case 19:
-            text = _context4.sent;
+          case 37:
+            text = _context5.sent;
             console.error('Non-JSON response:', text);
             throw new Error('Server error: The function code contains errors that prevent it from being saved. Please check your PHP syntax.');
-          case 22:
-            _context4.next = 24;
+          case 40:
+            _context5.next = 42;
             return response.json();
-          case 24:
-            data = _context4.sent;
+          case 42:
+            data = _context5.sent;
             if (data.success) {
-              _context4.next = 27;
+              _context5.next = 46;
               break;
             }
-            throw new Error(((_data$data3 = data.data) === null || _data$data3 === void 0 ? void 0 : _data$data3.message) || 'Failed to save function');
-          case 27:
-            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showNotice)(((_window$aieData9 = window.aieData) === null || _window$aieData9 === void 0 || (_window$aieData9 = _window$aieData9.i18n) === null || _window$aieData9 === void 0 ? void 0 : _window$aieData9.function_saved) || 'Function saved successfully');
-            _this5.closeModal(document.getElementById('aie-function-editor-modal'));
-            _this5.loadFunctions();
-            _context4.next = 39;
+            console.error('Server response error:', data);
+            throw new Error(data.message || ((_data$data3 = data.data) === null || _data$data3 === void 0 ? void 0 : _data$data3.message) || 'Failed to save function');
+          case 46:
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showNotice)(((_window$aieData12 = window.aieData) === null || _window$aieData12 === void 0 || (_window$aieData12 = _window$aieData12.i18n) === null || _window$aieData12 === void 0 ? void 0 : _window$aieData12.function_saved) || 'Function saved successfully');
+            _this6.closeModal(document.getElementById('aie-function-editor-modal'));
+            _this6.loadFunctions();
+            _context5.next = 60;
             break;
-          case 32:
-            _context4.prev = 32;
-            _context4.t0 = _context4["catch"](11);
-            console.error('Error saving function:', _context4.t0);
+          case 51:
+            _context5.prev = 51;
+            _context5.t0 = _context5["catch"](29);
+            console.error('Error saving function:', _context5.t0);
+            console.error('Error message:', _context5.t0.message);
             modal = document.getElementById('aie-function-editor-modal'); // Improve error message for JSON parse errors
-            errorMessage = _context4.t0.message;
+            errorMessage = _context5.t0.message;
             if (errorMessage.includes('Unexpected token') || errorMessage.includes('is not valid JSON')) {
               errorMessage = 'Server error: Unable to save function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
             }
+            console.log('Final error message:', errorMessage);
             if (modal && modal.style.display === 'flex') {
               (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(errorMessage, modal);
             } else {
               (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)(errorMessage);
             }
-          case 39:
+          case 60:
           case "end":
-            return _context4.stop();
+            return _context5.stop();
         }
-      }, _callee4, null, [[11, 32]]);
+      }, _callee5, null, [[29, 51]]);
     }))();
   },
   /**
    * Delete function
    */
   deleteFunction: function deleteFunction(functionId) {
-    var _this6 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
-      var _window$aieData10, _window$aieData11, response, data, _data$data4;
-      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-        while (1) switch (_context5.prev = _context5.next) {
+    var _this7 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+      var _window$aieData13, _window$aieData14, response, data, _data$data4;
+      return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+        while (1) switch (_context6.prev = _context6.next) {
           case 0:
-            _context5.prev = 0;
-            _context5.next = 3;
+            _context6.prev = 0;
+            _context6.next = 3;
             return fetch(window.aieData.ajaxUrl, {
               method: 'POST',
               headers: {
@@ -1531,59 +1674,59 @@ var FunctionsModule = {
               },
               body: new URLSearchParams({
                 action: 'aie_functions_delete',
-                nonce: ((_window$aieData10 = window.aieData) === null || _window$aieData10 === void 0 ? void 0 : _window$aieData10.nonce) || '',
+                nonce: ((_window$aieData13 = window.aieData) === null || _window$aieData13 === void 0 ? void 0 : _window$aieData13.nonce) || '',
                 id: functionId
               })
             });
           case 3:
-            response = _context5.sent;
-            _context5.next = 6;
+            response = _context6.sent;
+            _context6.next = 6;
             return response.json();
           case 6:
-            data = _context5.sent;
+            data = _context6.sent;
             if (data.success) {
-              _context5.next = 9;
+              _context6.next = 9;
               break;
             }
-            throw new Error(((_data$data4 = data.data) === null || _data$data4 === void 0 ? void 0 : _data$data4.message) || 'Failed to delete function');
+            throw new Error(data.message || ((_data$data4 = data.data) === null || _data$data4 === void 0 ? void 0 : _data$data4.message) || 'Failed to delete function');
           case 9:
-            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showNotice)(((_window$aieData11 = window.aieData) === null || _window$aieData11 === void 0 || (_window$aieData11 = _window$aieData11.i18n) === null || _window$aieData11 === void 0 ? void 0 : _window$aieData11.function_deleted) || 'Function deleted successfully');
-            _this6.loadFunctions();
-            _context5.next = 17;
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showNotice)(((_window$aieData14 = window.aieData) === null || _window$aieData14 === void 0 || (_window$aieData14 = _window$aieData14.i18n) === null || _window$aieData14 === void 0 ? void 0 : _window$aieData14.function_deleted) || 'Function deleted successfully');
+            _this7.loadFunctions();
+            _context6.next = 17;
             break;
           case 13:
-            _context5.prev = 13;
-            _context5.t0 = _context5["catch"](0);
-            console.error('Error deleting function:', _context5.t0);
-            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)(_context5.t0.message);
+            _context6.prev = 13;
+            _context6.t0 = _context6["catch"](0);
+            console.error('Error deleting function:', _context6.t0);
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)(_context6.t0.message);
           case 17:
           case "end":
-            return _context5.stop();
+            return _context6.stop();
         }
-      }, _callee5, null, [[0, 13]]);
+      }, _callee6, null, [[0, 13]]);
     }))();
   },
   /**
    * Test function with sample value
    */
   testFunction: function testFunction() {
-    var _this7 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
-      var code, testValueInput, testValue, resultsDiv, modal, _window$aieData12, response, contentType, text, data, _data$data5, errorMessage;
-      return _regeneratorRuntime().wrap(function _callee6$(_context6) {
-        while (1) switch (_context6.prev = _context6.next) {
+    var _this8 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
+      var code, testValueInput, testValue, resultsDiv, modal, _window$aieData15, formData, response, contentType, text, data, _data$data5, errorMessage;
+      return _regeneratorRuntime().wrap(function _callee7$(_context7) {
+        while (1) switch (_context7.prev = _context7.next) {
           case 0:
             // Get code from CodeMirror if initialized
             code = document.getElementById('aie-function-code').value;
-            if (_this7.codeEditor && _this7.codeEditor.codemirror) {
-              code = _this7.codeEditor.codemirror.getValue();
+            if (_this8.codeEditor && _this8.codeEditor.codemirror) {
+              code = _this8.codeEditor.codemirror.getValue();
             }
             testValueInput = document.getElementById('aie-test-value');
             testValue = testValueInput.value;
             resultsDiv = document.querySelector('.aie-test-results');
             modal = document.getElementById('aie-function-editor-modal');
             if (code) {
-              _context6.next = 9;
+              _context7.next = 9;
               break;
             }
             if (modal && modal.style.display === 'flex') {
@@ -1591,70 +1734,68 @@ var FunctionsModule = {
             } else {
               (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)('Please enter function code first');
             }
-            return _context6.abrupt("return");
+            return _context7.abrupt("return");
           case 9:
             if (!(!testValue || !testValue.trim())) {
-              _context6.next = 13;
+              _context7.next = 13;
               break;
             }
             testValueInput.focus();
             testValueInput.select();
-            return _context6.abrupt("return");
+            return _context7.abrupt("return");
           case 13:
             // Normalize PHP code (add <?php if missing)
-            code = _this7.normalizePhpCode(code);
-            _context6.prev = 14;
-            _context6.next = 17;
+            code = _this8.normalizePhpCode(code);
+            _context7.prev = 14;
+            // Use FormData to preserve newlines
+            formData = new FormData();
+            formData.append('action', 'aie_functions_test');
+            formData.append('nonce', ((_window$aieData15 = window.aieData) === null || _window$aieData15 === void 0 ? void 0 : _window$aieData15.nonce) || '');
+            formData.append('code', code);
+            formData.append('value', testValue);
+            _context7.next = 22;
             return fetch(window.aieData.ajaxUrl, {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-              },
-              body: new URLSearchParams({
-                action: 'aie_functions_test',
-                nonce: ((_window$aieData12 = window.aieData) === null || _window$aieData12 === void 0 ? void 0 : _window$aieData12.nonce) || '',
-                code: code,
-                value: testValue
-              })
+              body: formData
             });
-          case 17:
-            response = _context6.sent;
+          case 22:
+            response = _context7.sent;
             // Check if response is JSON
             contentType = response.headers.get('content-type');
             if (!(!contentType || !contentType.includes('application/json'))) {
-              _context6.next = 25;
+              _context7.next = 30;
               break;
             }
-            _context6.next = 22;
+            _context7.next = 27;
             return response.text();
-          case 22:
-            text = _context6.sent;
+          case 27:
+            text = _context7.sent;
             console.error('Non-JSON response:', text);
             throw new Error('Server error: The function code contains errors. Please check your PHP syntax.');
-          case 25:
-            _context6.next = 27;
+          case 30:
+            _context7.next = 32;
             return response.json();
-          case 27:
-            data = _context6.sent;
+          case 32:
+            data = _context7.sent;
             if (data.success) {
-              _context6.next = 30;
+              _context7.next = 35;
               break;
             }
-            throw new Error(((_data$data5 = data.data) === null || _data$data5 === void 0 ? void 0 : _data$data5.message) || 'Test failed');
-          case 30:
+            throw new Error(data.message || ((_data$data5 = data.data) === null || _data$data5 === void 0 ? void 0 : _data$data5.message) || 'Test failed');
+          case 35:
             // Show results
             document.querySelector('.aie-test-input').textContent = data.data.input !== undefined ? data.data.input : testValue;
             document.querySelector('.aie-test-output').textContent = data.data.output !== undefined ? data.data.output : '';
             resultsDiv.style.display = 'block';
-            _context6.next = 41;
+            _context7.next = 46;
             break;
-          case 35:
-            _context6.prev = 35;
-            _context6.t0 = _context6["catch"](14);
-            console.error('Error testing function:', _context6.t0);
+          case 40:
+            _context7.prev = 40;
+            _context7.t0 = _context7["catch"](14);
+            console.error('Error testing function:', _context7.t0);
 
             // Improve error message for JSON parse errors
-            errorMessage = _context6.t0.message;
+            errorMessage = _context7.t0.message;
             if (errorMessage.includes('Unexpected token') || errorMessage.includes('is not valid JSON')) {
               errorMessage = 'Server error: Unable to test function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
             }
@@ -1663,11 +1804,11 @@ var FunctionsModule = {
             } else {
               (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)(errorMessage);
             }
-          case 41:
+          case 46:
           case "end":
-            return _context6.stop();
+            return _context7.stop();
         }
-      }, _callee6, null, [[14, 35]]);
+      }, _callee7, null, [[14, 40]]);
     }))();
   },
   /**
@@ -1722,7 +1863,7 @@ var FunctionsModule = {
     // Check if code already starts with <?php or <?
     if (trimmedCode.startsWith('<?php') || trimmedCode.startsWith('<?')) {
       // Remove PHP tags for further processing
-      trimmedCode = trimmedCode.replace(/^<\?php\s*/i, '').replace(/^<\?\s*/, '');
+      trimmedCode = trimmedCode.replace(/^<\?php\s*/i, '').replace(/^<\?\s*/, '').trim(); // Trim again after removing tags
     }
 
     // Check if code is already a complete function
@@ -1733,7 +1874,12 @@ var FunctionsModule = {
     }
 
     // Wrap simple expressions/statements in a function
-    return "<?php\nfunction transform_value( $value, $args = array() ) {\n\t".concat(trimmedCode, "\n}");
+    // Add indentation to each line of user code
+    var lines = trimmedCode.split('\n');
+    var indentedCode = lines.map(function (line) {
+      return '\t' + line;
+    }).join('\n');
+    return '<?php\n' + 'function transform_value( $value, $args = array() ) {\n' + indentedCode + '\n' + '}';
   },
   /**
    * Get source badge HTML
@@ -2743,6 +2889,7 @@ var Utils = {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   clearModalErrors: () => (/* binding */ clearModalErrors),
 /* harmony export */   confirmDialog: () => (/* binding */ confirmDialog),
 /* harmony export */   showError: () => (/* binding */ showError),
 /* harmony export */   showModalError: () => (/* binding */ showModalError),
@@ -2808,7 +2955,18 @@ function showError(message) {
 /**
  * Show error message inside a modal
  */
-function showModalError(message, modalElement) {
+function showModalError(message) {
+  var modalElement = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+  // If no modal specified, try to find the currently visible modal
+  if (!modalElement) {
+    modalElement = document.querySelector('.aie-modal[style*="display: flex"]') || document.querySelector('.aie-modal[style*="display:flex"]') || document.querySelector('.aie-modal');
+  }
+  if (!modalElement) {
+    // Fallback to regular error if no modal found
+    showError(message);
+    return;
+  }
+
   // Remove any existing error notices in the modal
   var existingErrors = modalElement.querySelectorAll('.aie-modal-error');
   existingErrors.forEach(function (el) {
@@ -2847,6 +3005,25 @@ function showModalError(message, modalElement) {
 
   // Scroll to top of modal to show error
   modalContent.scrollTop = 0;
+}
+
+/**
+ * Clear modal errors
+ */
+function clearModalErrors() {
+  var modalElement = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+  // If no modal specified, try to find the currently visible modal or clear all
+  if (!modalElement) {
+    var existingErrors = document.querySelectorAll('.aie-modal-error');
+    existingErrors.forEach(function (el) {
+      return el.remove();
+    });
+  } else {
+    var _existingErrors = modalElement.querySelectorAll('.aie-modal-error');
+    _existingErrors.forEach(function (el) {
+      return el.remove();
+    });
+  }
 }
 
 /**

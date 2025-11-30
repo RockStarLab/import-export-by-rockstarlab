@@ -62,7 +62,20 @@ export function showError( message ) {
 /**
  * Show error message inside a modal
  */
-export function showModalError( message, modalElement ) {
+export function showModalError( message, modalElement = null ) {
+	// If no modal specified, try to find the currently visible modal
+	if ( ! modalElement ) {
+		modalElement = document.querySelector( '.aie-modal[style*="display: flex"]' ) || 
+		               document.querySelector( '.aie-modal[style*="display:flex"]' ) ||
+		               document.querySelector( '.aie-modal' );
+	}
+
+	if ( ! modalElement ) {
+		// Fallback to regular error if no modal found
+		showError( message );
+		return;
+	}
+
 	// Remove any existing error notices in the modal
 	const existingErrors = modalElement.querySelectorAll( '.aie-modal-error' );
 	existingErrors.forEach( ( el ) => el.remove() );
@@ -103,6 +116,20 @@ export function showModalError( message, modalElement ) {
 
 	// Scroll to top of modal to show error
 	modalContent.scrollTop = 0;
+}
+
+/**
+ * Clear modal errors
+ */
+export function clearModalErrors( modalElement = null ) {
+	// If no modal specified, try to find the currently visible modal or clear all
+	if ( ! modalElement ) {
+		const existingErrors = document.querySelectorAll( '.aie-modal-error' );
+		existingErrors.forEach( ( el ) => el.remove() );
+	} else {
+		const existingErrors = modalElement.querySelectorAll( '.aie-modal-error' );
+		existingErrors.forEach( ( el ) => el.remove() );
+	}
 }
 
 /**

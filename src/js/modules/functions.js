@@ -8,6 +8,7 @@ import {
 	showNotice,
 	showError,
 	showModalError,
+	clearModalErrors,
 	confirmDialog,
 } from '../utils/notifications';
 import FunctionLibrary from './function_library';
@@ -164,7 +165,7 @@ const FunctionsModule = {
 		// Show loading
 		tbody.innerHTML = `
 			<tr class="aie-loading-row">
-				<td colspan="7" style="text-align:center;">
+				<td colspan="6" style="text-align:center;">
 					<span class="spinner is-active"></span>
 					${ window.aieData?.i18n?.loading || 'Loading...' }
 				</td>
@@ -192,7 +193,7 @@ const FunctionsModule = {
 
 			if ( ! data.success ) {
 				throw new Error(
-					data.data?.message || 'Failed to load functions'
+					data.message || data.data?.message || 'Failed to load functions'
 				);
 			}
 
@@ -205,7 +206,7 @@ const FunctionsModule = {
 			console.error( 'Error loading functions:', error );
 			tbody.innerHTML = `
 				<tr>
-					<td colspan="7" style="text-align:center; color:#dc3232;">
+					<td colspan="6" style="text-align:center; color:#dc3232;">
 						<span class="dashicons dashicons-warning"></span>
 						${ error.message }
 					</td>
@@ -226,7 +227,7 @@ const FunctionsModule = {
 		if ( functions.length === 0 ) {
 			tbody.innerHTML = `
 				<tr>
-					<td colspan="7" style="text-align:center; padding:40px;">
+					<td colspan="6" style="text-align:center; padding:40px;">
 						<div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
 							<span class="dashicons dashicons-info" style="font-size:48px; opacity:0.3;"></span>
 							<p style="margin:23px 0 0 0; color:#666;">
@@ -345,15 +346,53 @@ const FunctionsModule = {
 		const modal = document.getElementById( 'aie-function-editor-modal' );
 		const title = modal.querySelector( '.aie-modal-title' );
 		const form = document.getElementById( 'aie-function-form' );
+		const codeTextarea = document.getElementById( 'aie-function-code' );
 
-		if ( ! modal || ! form ) {
+		if ( ! modal || ! form || ! codeTextarea ) {
 			return;
 		}
+
+		// Clear previous errors
+		clearModalErrors( modal );
 
 		// Reset form
 		form.reset();
 		document.getElementById( 'aie-function-id' ).value = '';
 		document.querySelector( '.aie-test-results' ).style.display = 'none';
+
+		// Clear textarea directly
+		codeTextarea.value = '';
+
+		// Show modal and initialize CodeMirror FIRST (before loading data)
+		modal.style.display = 'flex';
+		document.body.style.overflow = 'hidden';
+
+		// Initialize CodeMirror for code editor if not already initialized
+		if ( ! this.codeEditor && window.wp && window.wp.codeEditor ) {
+			this.codeEditor = window.wp.codeEditor.initialize(
+				codeTextarea,
+				{
+					codemirror: {
+						mode: 'php',
+						lineNumbers: true,
+						lineWrapping: true,
+						indentUnit: 4,
+						indentWithTabs: true,
+						autoCloseBrackets: true,
+						matchBrackets: true,
+						styleActiveLine: true,
+						continueComments: true,
+					},
+				}
+			);
+		}
+
+		// Clear CodeMirror content after initialization
+		if ( this.codeEditor && this.codeEditor.codemirror ) {
+			this.codeEditor.codemirror.setValue( '' );
+			// Force refresh
+			this.codeEditor.codemirror.clearHistory();
+		}
 
 		if ( functionId ) {
 			// Edit mode - load function data
@@ -377,25 +416,28 @@ const FunctionsModule = {
 
 				if ( ! data.success ) {
 					throw new Error(
-						data.data?.message || 'Failed to load function'
+						data.message || data.data?.message || 'Failed to load function'
 					);
-			}
+				}
 
-			const func = data.data;
-			console.log( 'Loaded function data:', func ); // Debug log
-			document.getElementById( 'aie-function-id' ).value = func.id;
-			document.getElementById( 'aie-function-name' ).value =
-				func.name;
-			document.getElementById( 'aie-function-description' ).value =
-				func.description || '';
-			// Category is now computed (library/custom) - don't set from data
-			// document.getElementById( 'aie-function-category' ).value = func.category;
-			document.getElementById( 'aie-function-code' ).value =
-				func.code || '';
-			document.getElementById( 'aie-function-status' ).value =
-				func.status;				// Update CodeMirror if initialized
-				if ( this.codeEditor ) {
+				const func = data.data;
+				document.getElementById( 'aie-function-id' ).value = func.id;
+				document.getElementById( 'aie-function-name' ).value =
+					func.name;
+				document.getElementById( 'aie-function-description' ).value =
+					func.description || '';
+				// Category is now computed (library/custom) - don't set from data
+				// document.getElementById( 'aie-function-category' ).value = func.category;
+				document.getElementById( 'aie-function-status' ).value =
+					func.status;
+
+				// Update CodeMirror with the loaded code
+				if ( this.codeEditor && this.codeEditor.codemirror ) {
 					this.codeEditor.codemirror.setValue( func.code || '' );
+				} else {
+					// Fallback to textarea if CodeMirror not initialized
+					document.getElementById( 'aie-function-code' ).value =
+						func.code || '';
 				}
 			} catch ( error ) {
 				console.error( 'Error loading function:', error );
@@ -403,35 +445,97 @@ const FunctionsModule = {
 				return;
 			}
 		} else {
-			// Create mode
+			// Create mode - add default PHP opening tag
 			title.textContent =
 				window.aieData?.i18n?.new_function || 'New Function';
+			
+			// Set default PHP code template
+			const defaultCode = '<?php\n\n';
+			if ( this.codeEditor && this.codeEditor.codemirror ) {
+				this.codeEditor.codemirror.setValue( defaultCode );
+				// Position cursor after the opening tag and empty lines
+				setTimeout( () => {
+					this.codeEditor.codemirror.setCursor( { line: 2, ch: 0 } );
+					this.codeEditor.codemirror.focus();
+				}, 100 );
+			} else {
+				// Fallback to textarea if CodeMirror not initialized
+				codeTextarea.value = defaultCode;
+			}
+		}
+	},
+
+	/**
+	 * Open editor modal with snippet data for customization
+	 */
+	async openEditorWithSnippet( snippetData ) {
+		const modal = document.getElementById( 'aie-function-editor-modal' );
+		const title = modal.querySelector( '.aie-modal-title' );
+		const form = document.getElementById( 'aie-function-form' );
+		const codeTextarea = document.getElementById( 'aie-function-code' );
+
+		if ( ! modal || ! form || ! codeTextarea ) {
+			return;
 		}
 
+		// Clear previous errors
+		clearModalErrors( modal );
+
+		// Reset form
+		form.reset();
+		document.getElementById( 'aie-function-id' ).value = '';
+		document.querySelector( '.aie-test-results' ).style.display = 'none';
+
+		// Show modal FIRST
 		modal.style.display = 'flex';
 		document.body.style.overflow = 'hidden';
 
-		// Initialize CodeMirror for code editor
+		// Initialize CodeMirror if not already initialized
 		if ( ! this.codeEditor && window.wp && window.wp.codeEditor ) {
-			const codeTextarea = document.getElementById( 'aie-function-code' );
-			if ( codeTextarea ) {
-				this.codeEditor = window.wp.codeEditor.initialize(
-					codeTextarea,
-					{
-						codemirror: {
-							mode: 'php',
-							lineNumbers: true,
-							lineWrapping: true,
-							indentUnit: 4,
-							indentWithTabs: true,
-							autoCloseBrackets: true,
-							matchBrackets: true,
-							styleActiveLine: true,
-							continueComments: true,
-						},
-					}
-				);
-			}
+			this.codeEditor = window.wp.codeEditor.initialize(
+				codeTextarea,
+				{
+					codemirror: {
+						mode: 'php',
+						lineNumbers: true,
+						lineWrapping: true,
+						indentUnit: 4,
+						indentWithTabs: true,
+						autoCloseBrackets: true,
+						matchBrackets: true,
+						styleActiveLine: true,
+						continueComments: true,
+					},
+				}
+			);
+		}
+
+		// Set title
+		title.textContent = 'Customize Function';
+
+		// Fill form with snippet data
+		document.getElementById( 'aie-function-name' ).value = snippetData.name || '';
+		document.getElementById( 'aie-function-description' ).value = snippetData.description || '';
+		document.getElementById( 'aie-function-category' ).value = snippetData.category || 'custom';
+		document.getElementById( 'aie-function-status' ).value = 'active';
+
+		// Prepare code with <?php opening tag
+		let code = snippetData.code || '';
+		// Only add <?php if it doesn't already start with it
+		if ( code && ! code.trim().startsWith( '<?php' ) && ! code.trim().startsWith( '<?' ) ) {
+			code = '<?php\n\n' + code;
+		}
+
+		// Set code in CodeMirror
+		if ( this.codeEditor && this.codeEditor.codemirror ) {
+			this.codeEditor.codemirror.setValue( code );
+			// Force refresh to ensure proper rendering
+			setTimeout( () => {
+				this.codeEditor.codemirror.refresh();
+			}, 100 );
+		} else {
+			// Fallback to textarea if CodeMirror not initialized
+			codeTextarea.value = code;
 		}
 	},
 
@@ -447,6 +551,9 @@ const FunctionsModule = {
 	 * Save function
 	 */
 	async saveFunction() {
+		// Clear any previous modal errors
+		clearModalErrors();
+
 		// Get code from CodeMirror if initialized and sync with textarea
 		const codeTextarea = document.getElementById( 'aie-function-code' );
 		let code = codeTextarea.value;
@@ -457,10 +564,30 @@ const FunctionsModule = {
 			codeTextarea.value = code;
 		}
 
-		// Now validate the form
-		const form = document.getElementById( 'aie-function-form' );
-		if ( ! form.checkValidity() ) {
-			form.reportValidity();
+		// Manual validation with user-friendly messages
+		const name = document.getElementById( 'aie-function-name' ).value.trim();
+		const category = document.getElementById( 'aie-function-category' ).value;
+
+		if ( ! name ) {
+			showModalError( window.aieData?.i18n?.name_required || 'Please enter a function name.' );
+			document.getElementById( 'aie-function-name' ).focus();
+			return;
+		}
+
+		if ( ! code.trim() ) {
+			showModalError( window.aieData?.i18n?.code_required || 'Please enter the PHP code for your function.' );
+			// Focus on CodeMirror if available, otherwise on textarea
+			if ( this.codeEditor && this.codeEditor.codemirror ) {
+				this.codeEditor.codemirror.focus();
+			} else {
+				codeTextarea.focus();
+			}
+			return;
+		}
+
+		if ( ! category ) {
+			showModalError( window.aieData?.i18n?.category_required || 'Please select a category.' );
+			document.getElementById( 'aie-function-category' ).focus();
 			return;
 		}
 
@@ -468,30 +595,25 @@ const FunctionsModule = {
 		code = this.normalizePhpCode( code );
 
 		const functionId = document.getElementById( 'aie-function-id' ).value;
-		const functionData = {
-			action: functionId
-				? 'aie_functions_update'
-				: 'aie_functions_create',
-			nonce: window.aieData?.nonce || '',
-			name: document.getElementById( 'aie-function-name' ).value,
-			description: document.getElementById( 'aie-function-description' )
-				.value,
-			category: document.getElementById( 'aie-function-category' ).value,
-			code: code,
-			status: document.getElementById( 'aie-function-status' ).value,
-		};
+		
+		// Use FormData instead of URLSearchParams to preserve newlines
+		const formData = new FormData();
+		formData.append( 'action', functionId ? 'aie_functions_update' : 'aie_functions_create' );
+		formData.append( 'nonce', window.aieData?.nonce || '' );
+		formData.append( 'name', document.getElementById( 'aie-function-name' ).value );
+		formData.append( 'description', document.getElementById( 'aie-function-description' ).value );
+		formData.append( 'category', document.getElementById( 'aie-function-category' ).value );
+		formData.append( 'code', code );
+		formData.append( 'status', document.getElementById( 'aie-function-status' ).value );
 
 		if ( functionId ) {
-			functionData.id = functionId;
+			formData.append( 'id', functionId );
 		}
 
 		try {
 			const response = await fetch( window.aieData.ajaxUrl, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: new URLSearchParams( functionData ),
+				body: formData,
 			} );
 
 			// Check if response is JSON
@@ -511,8 +633,9 @@ const FunctionsModule = {
 			const data = await response.json();
 
 			if ( ! data.success ) {
+				console.error( 'Server response error:', data );
 				throw new Error(
-					data.data?.message || 'Failed to save function'
+					data.message || data.data?.message || 'Failed to save function'
 				);
 			}
 
@@ -526,6 +649,7 @@ const FunctionsModule = {
 			this.loadFunctions();
 		} catch ( error ) {
 			console.error( 'Error saving function:', error );
+			console.error( 'Error message:', error.message );
 			const modal = document.getElementById(
 				'aie-function-editor-modal'
 			);
@@ -539,6 +663,8 @@ const FunctionsModule = {
 				errorMessage =
 					'Server error: Unable to save function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
 			}
+
+			console.log( 'Final error message:', errorMessage );
 
 			if ( modal && modal.style.display === 'flex' ) {
 				showModalError( errorMessage, modal );
@@ -569,7 +695,7 @@ const FunctionsModule = {
 
 			if ( ! data.success ) {
 				throw new Error(
-					data.data?.message || 'Failed to delete function'
+					data.message || data.data?.message || 'Failed to delete function'
 				);
 			}
 
@@ -619,17 +745,16 @@ const FunctionsModule = {
 		code = this.normalizePhpCode( code );
 
 		try {
+			// Use FormData to preserve newlines
+			const formData = new FormData();
+			formData.append( 'action', 'aie_functions_test' );
+			formData.append( 'nonce', window.aieData?.nonce || '' );
+			formData.append( 'code', code );
+			formData.append( 'value', testValue );
+
 			const response = await fetch( window.aieData.ajaxUrl, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: new URLSearchParams( {
-					action: 'aie_functions_test',
-					nonce: window.aieData?.nonce || '',
-					code: code,
-					value: testValue,
-				} ),
+				body: formData,
 			} );
 
 			// Check if response is JSON
@@ -649,7 +774,7 @@ const FunctionsModule = {
 			const data = await response.json();
 
 			if ( ! data.success ) {
-				throw new Error( data.data?.message || 'Test failed' );
+				throw new Error( data.message || data.data?.message || 'Test failed' );
 			}
 
 			// Show results
@@ -736,7 +861,8 @@ const FunctionsModule = {
 			// Remove PHP tags for further processing
 			trimmedCode = trimmedCode
 				.replace( /^<\?php\s*/i, '' )
-				.replace( /^<\?\s*/, '' );
+				.replace( /^<\?\s*/, '' )
+				.trim(); // Trim again after removing tags
 		}
 
 		// Check if code is already a complete function
@@ -750,10 +876,16 @@ const FunctionsModule = {
 		}
 
 		// Wrap simple expressions/statements in a function
-		return `<?php
-function transform_value( $value, $args = array() ) {
-	${ trimmedCode }
-}`;
+		// Add indentation to each line of user code
+		const lines = trimmedCode.split( '\n' );
+		const indentedCode = lines
+			.map( ( line ) => '\t' + line )
+			.join( '\n' );
+
+		return '<?php\n' +
+			'function transform_value( $value, $args = array() ) {\n' +
+			indentedCode + '\n' +
+			'}';
 	},
 
 	/**

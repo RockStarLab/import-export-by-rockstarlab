@@ -64,6 +64,11 @@ class Custom_Function extends Model {
 			return new \WP_Error( 'missing_fields', __( 'Name and code are required', 'wp-aie' ) );
 		}
 
+		// Check if function name already exists
+		if ( $this->function_name_exists( $data['name'] ) ) {
+			return new \WP_Error( 'duplicate_name', __( 'A function with this name already exists', 'wp-aie' ) );
+		}
+
 		// Decode HTML entities from code
 		$data['code'] = html_entity_decode( $data['code'], ENT_QUOTES, 'UTF-8' );
 
@@ -140,6 +145,13 @@ class Custom_Function extends Model {
 		// Check permissions
 		if ( ! $this->can_edit_function( $id ) ) {
 			return new \WP_Error( 'permission_denied', __( 'You do not have permission to edit this function', 'wp-aie' ) );
+		}
+
+		// Check if function name is being changed and if new name already exists
+		if ( isset( $data['name'] ) && $data['name'] !== $existing['name'] ) {
+			if ( $this->function_name_exists( $data['name'], $id ) ) {
+				return new \WP_Error( 'duplicate_name', __( 'A function with this name already exists', 'wp-aie' ) );
+			}
 		}
 
 		// Decode HTML entities from code if provided
@@ -262,23 +274,53 @@ class Custom_Function extends Model {
 		}
 
 		return $function ?: null;
-	}   /**
-		 * Get all functions with optional filters
-		 *
-		 * @param array $args {
-		 *     Optional. Arguments for filtering functions.
-		 *
-		 *     @type string $status   Filter by status (active, inactive)
-		 *     @type string $category Filter by category
-		 *     @type string $source   Filter by source (custom, library, snippet_key)
-		 *     @type string $search   Search in name and description
-		 *     @type string $orderby  Order by column (default: name)
-		 *     @type string $order    Sort order (ASC, DESC) (default: ASC)
-		 *     @type int    $limit    Limit results
-		 *     @type int    $offset   Offset for pagination
-		 * }
-		 * @return array Functions array
-		 */
+	}
+
+	/**
+	 * Check if function name already exists
+	 *
+	 * @param string $name Function name
+	 * @param int    $exclude_id Optional ID to exclude from check (for updates)
+	 * @return bool True if name exists, false otherwise
+	 */
+	public function function_name_exists( $name, $exclude_id = 0 ) {
+		global $wpdb;
+
+		$query = $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$this->get_table_name()} WHERE name = %s",
+			$name
+		);
+
+		if ( $exclude_id > 0 ) {
+			$query = $wpdb->prepare(
+				"SELECT COUNT(*) FROM {$this->get_table_name()} WHERE name = %s AND id != %d",
+				$name,
+				$exclude_id
+			);
+		}
+
+		$count = (int) $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		return $count > 0;
+	}
+
+	/**
+	 * Get all functions with optional filters
+	 *
+	 * @param array $args {
+	 *     Optional. Arguments for filtering functions.
+	 *
+	 *     @type string $status   Filter by status (active, inactive)
+	 *     @type string $category Filter by category
+	 *     @type string $source   Filter by source (custom, library, snippet_key)
+	 *     @type string $search   Search in name and description
+	 *     @type string $orderby  Order by column (default: name)
+	 *     @type string $order    Sort order (ASC, DESC) (default: ASC)
+	 *     @type int    $limit    Limit results
+	 *     @type int    $offset   Offset for pagination
+	 * }
+	 * @return array Functions array
+	 */
 	public function get_all( $args = [] ) {
 		global $wpdb;
 
@@ -548,7 +590,58 @@ class Custom_Function extends Model {
 	private function map_db_to_output( $function ) {
 		// Map function_code to code for JavaScript compatibility
 		if ( isset( $function['function_code'] ) ) {
-			$function['code'] = $function['function_code'];
+			$code = $function['function_code'];
+
+			// Extract original code from wrapped function if it was auto-wrapped
+			// Check if code contains the transform_value wrapper
+			if ( strpos( $code, 'function transform_value' ) !== false ) {
+				// Try to extract the body between the last { and first }
+				// Find the position of the opening brace after transform_value
+				$start_pos = strpos( $code, '{', strpos( $code, 'transform_value' ) );
+				// Find the position of the last closing brace
+				$end_pos = strrpos( $code, '}' );
+
+				if ( $start_pos !== false && $end_pos !== false && $end_pos > $start_pos ) {
+					// Extract the content between braces
+					$body = substr( $code, $start_pos + 1, $end_pos - $start_pos - 1 );
+
+					// Remove leading/trailing whitespace from the entire block
+					$body = trim( $body );
+
+					// Remove leading tab from each line (added during wrapping)
+					$lines           = explode( "\n", $body );
+					$extracted_lines = array_map(
+						function ( $line ) {
+							// Remove one leading tab if present
+							if ( strpos( $line, "\t" ) === 0 ) {
+								return substr( $line, 1 );
+							}
+							return $line;
+						},
+						$lines
+					);
+					$extracted_code  = implode( "\n", $extracted_lines );
+
+					// Add <?php tag if it's not already there
+					if ( ! empty( $extracted_code ) && ! preg_match( '/^<\?php/i', $extracted_code ) ) {
+						$function['code'] = "<?php\n\n" . $extracted_code;
+					} else {
+						$function['code'] = $extracted_code;
+					}
+				} else {
+					// Fallback: use code as-is if extraction failed
+					$function['code'] = $code;
+				}
+			} else {
+				// Code is not wrapped
+				// Add <?php tag if it's not already there
+				if ( ! empty( $code ) && ! preg_match( '/^<\?php/i', $code ) ) {
+					$function['code'] = "<?php\n\n" . $code;
+				} else {
+					$function['code'] = $code;
+				}
+			}
+
 			unset( $function['function_code'] );
 		}
 

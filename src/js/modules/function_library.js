@@ -4,7 +4,7 @@
  * Handles browsing, searching, and importing snippet functions
  */
 
-import { showNotice, showError } from '../utils/notifications';
+import { showNotice, showError, clearModalErrors } from '../utils/notifications';
 
 const FunctionLibrary = {
 	functionsModule: null,
@@ -423,7 +423,7 @@ const FunctionLibrary = {
 		}
 
 		if ( customize ) {
-			// Open editor modal with snippet code
+			// Close library and preview modals
 			const libraryModal = document.getElementById(
 				'aie-snippets-library-modal'
 			);
@@ -439,27 +439,35 @@ const FunctionLibrary = {
 			}
 			document.body.style.overflow = '';
 
-			// Open editor with snippet data
-			const editorModal = document.getElementById(
-				'aie-function-editor-modal'
-			);
-			if ( editorModal ) {
-				document.getElementById( 'aie-function-id' ).value = '';
-				document.getElementById( 'aie-function-name' ).value =
-					snippet.name;
-				document.getElementById( 'aie-function-description' ).value =
-					snippet.description;
-				document.getElementById( 'aie-function-category' ).value =
-					snippet.category;
-				document.getElementById( 'aie-function-code' ).value =
-					snippet.code;
-				document.getElementById( 'aie-function-status' ).value =
-					'active';
-				document.querySelector( '.aie-modal-title' ).textContent =
-					'Customize Function';
+			// Use the FunctionsModule method to open editor with snippet data
+			if ( this.functionsModule && this.functionsModule.openEditorWithSnippet ) {
+				await this.functionsModule.openEditorWithSnippet( snippet );
+			} else {
+				// Fallback: Open editor directly (old method)
+				const editorModal = document.getElementById(
+					'aie-function-editor-modal'
+				);
+				if ( editorModal ) {
+					// Clear any previous errors
+					clearModalErrors();
 
-				editorModal.style.display = 'flex';
-				document.body.style.overflow = 'hidden';
+					document.getElementById( 'aie-function-id' ).value = '';
+					document.getElementById( 'aie-function-name' ).value =
+						snippet.name;
+					document.getElementById( 'aie-function-description' ).value =
+						snippet.description;
+					document.getElementById( 'aie-function-category' ).value =
+						snippet.category;
+					document.getElementById( 'aie-function-code' ).value =
+						snippet.code;
+					document.getElementById( 'aie-function-status' ).value =
+						'active';
+					document.querySelector( '.aie-modal-title' ).textContent =
+						'Customize Function';
+
+					editorModal.style.display = 'flex';
+					document.body.style.overflow = 'hidden';
+				}
 			}
 		} else {
 			// Import directly
@@ -486,21 +494,6 @@ const FunctionLibrary = {
 					window.aieData?.i18n?.snippet_imported ||
 						'Snippet imported successfully'
 				);
-
-				// Close modals
-				const libraryModal = document.getElementById(
-					'aie-snippets-library-modal'
-				);
-				const previewModal = document.getElementById(
-					'aie-snippet-preview-modal'
-				);
-
-				if ( libraryModal ) {
-					libraryModal.style.display = 'none';
-				}
-				if ( previewModal ) {
-					previewModal.style.display = 'none';
-				}
 				document.body.style.overflow = '';
 
 				// Refresh functions list
