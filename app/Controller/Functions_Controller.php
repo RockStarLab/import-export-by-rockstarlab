@@ -118,7 +118,7 @@ class Functions_Controller extends Base_Controller {
 			$this->send_error( __( 'Function not found', 'wp-aie' ) );
 		}
 
-		$this->send_success( [ 'function' => $function ] );
+		$this->send_success( $function );
 	}
 
 	/**
@@ -132,9 +132,11 @@ class Functions_Controller extends Base_Controller {
 
 		$name        = $this->get_request_param( 'name', '' );
 		$description = $this->get_request_param( 'description', '' );
-		$code        = $this->get_request_param( 'code', '' );
-		$category    = $this->get_request_param( 'category', 'custom' );
-		$status      = $this->get_request_param( 'status', 'active' );
+		// Don't use get_request_param for code - it uses sanitize_text_field which removes newlines
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$code     = isset( $_REQUEST['code'] ) ? wp_unslash( $_REQUEST['code'] ) : '';
+		$category = $this->get_request_param( 'category', 'custom' );
+		$status   = $this->get_request_param( 'status', 'active' );
 
 		if ( empty( $name ) || empty( $code ) ) {
 			$this->send_error( __( 'Name and code are required', 'wp-aie' ) );
@@ -204,7 +206,9 @@ class Functions_Controller extends Base_Controller {
 			$update_data['description'] = $description;
 		}
 
-		$code = $this->get_request_param( 'code', '' );
+		// Don't use get_request_param for code - it uses sanitize_text_field which removes newlines
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$code = isset( $_REQUEST['code'] ) ? wp_unslash( $_REQUEST['code'] ) : '';
 		if ( ! empty( $code ) ) {
 			$update_data['code'] = $code;
 		}
@@ -287,7 +291,9 @@ class Functions_Controller extends Base_Controller {
 			$this->send_error( $verify->get_error_message() );
 		}
 
-		$code  = $this->get_request_param( 'code', '' );
+		// Don't use get_request_param for code - it uses sanitize_text_field which removes newlines
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$code  = isset( $_REQUEST['code'] ) ? wp_unslash( $_REQUEST['code'] ) : '';
 		$value = $this->get_request_param( 'value', '' );
 
 		if ( empty( $code ) ) {

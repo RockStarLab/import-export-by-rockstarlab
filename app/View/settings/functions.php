@@ -40,13 +40,7 @@ defined( 'ABSPATH' ) || exit;
 			<label for="aie-filter-category"><?php esc_html_e( 'Category:', 'wp-aie' ); ?></label>
 			<select id="aie-filter-category">
 				<option value=""><?php esc_html_e( 'All Categories', 'wp-aie' ); ?></option>
-				<option value="string"><?php esc_html_e( 'String Operations', 'wp-aie' ); ?></option>
-				<option value="date"><?php esc_html_e( 'Date & Time', 'wp-aie' ); ?></option>
-				<option value="numeric"><?php esc_html_e( 'Numeric Operations', 'wp-aie' ); ?></option>
-				<option value="html"><?php esc_html_e( 'HTML Operations', 'wp-aie' ); ?></option>
-				<option value="wordpress"><?php esc_html_e( 'WordPress Functions', 'wp-aie' ); ?></option>
-				<option value="validation"><?php esc_html_e( 'Validation', 'wp-aie' ); ?></option>
-				<option value="advanced"><?php esc_html_e( 'Advanced', 'wp-aie' ); ?></option>
+				<option value="library"><?php esc_html_e( 'Library', 'wp-aie' ); ?></option>
 				<option value="custom"><?php esc_html_e( 'Custom', 'wp-aie' ); ?></option>
 			</select>
 		</div>
@@ -69,7 +63,6 @@ defined( 'ABSPATH' ) || exit;
 					<th class="column-name"><?php esc_html_e( 'Name', 'wp-aie' ); ?></th>
 					<th class="column-description"><?php esc_html_e( 'Description', 'wp-aie' ); ?></th>
 					<th class="column-category"><?php esc_html_e( 'Category', 'wp-aie' ); ?></th>
-					<th class="column-source"><?php esc_html_e( 'Source', 'wp-aie' ); ?></th>
 					<th class="column-status"><?php esc_html_e( 'Status', 'wp-aie' ); ?></th>
 					<th class="column-usage"><?php esc_html_e( 'Usage', 'wp-aie' ); ?></th>
 					<th class="column-actions"><?php esc_html_e( 'Actions', 'wp-aie' ); ?></th>
@@ -77,7 +70,7 @@ defined( 'ABSPATH' ) || exit;
 			</thead>
 			<tbody id="aie-functions-tbody">
 				<tr class="aie-loading-row">
-					<td colspan="7" style="text-align:center;">
+					<td colspan="6" style="text-align:center;">
 						<span class="spinner is-active"></span>
 						<?php esc_html_e( 'Loading functions...', 'wp-aie' ); ?>
 					</td>
@@ -129,7 +122,7 @@ defined( 'ABSPATH' ) || exit;
 							</label>
 						</th>
 						<td>
-							<input type="text" id="aie-function-name" class="regular-text" required>
+							<input type="text" id="aie-function-name" class="regular-text">
 							<p class="description"><?php esc_html_e( 'A descriptive name for this function', 'wp-aie' ); ?></p>
 						</td>
 					</tr>
@@ -152,7 +145,7 @@ defined( 'ABSPATH' ) || exit;
 							</label>
 						</th>
 						<td>
-							<textarea id="aie-function-code" class="large-text code" rows="10" required spellcheck="false"></textarea>
+							<textarea id="aie-function-code" class="large-text code" rows="10" spellcheck="false"></textarea>
 							<p class="description">
 								<?php esc_html_e( 'Enter PHP code without opening/closing tags. Use $value for input. Example:', 'wp-aie' ); ?>
 								<code>return strtoupper($value);</code>
@@ -315,7 +308,7 @@ defined( 'ABSPATH' ) || exit;
 				<span class="dashicons dashicons-edit"></span>
 				<?php esc_html_e( 'Customize', 'wp-aie' ); ?>
 			</button>
-			<button type="button" class="button button-primary aie-use-snippet" style="display: none;">
+			<button type="button" class="button button-primary aie-use-snippet">
 				<span class="dashicons dashicons-yes"></span>
 				<?php esc_html_e( 'Use As Is', 'wp-aie' ); ?>
 			</button>
