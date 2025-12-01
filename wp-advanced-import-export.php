@@ -2,14 +2,14 @@
 /*
 	Plugin Name:                WP Advanced Import Export
 	Plugin URI:                 https://profiles.wordpress.org/rockstarlab/
-	Description:
-	Version:                        1.0.0
-	Requires at least:  4.3
-	Author:                         RockstarLab
+	Description:                A powerful advanced plugin for importing and exporting WordPress content.
+	Version:                    1.0.0
+	Requires at least:          5.8
+	Author:                     RockstarLab
 	Author URI:                 https://profiles.wordpress.org/rockstarlab/profile/
 	Text Domain:                wp-advanced-import-export
 	Domain Path:                /languages
-	License:                        GPL v2 or later
+	License:                    GPL v2 or later
 	License URI:                https://www.gnu.org/licenses/gpl-2.0.html
 */
 
@@ -47,7 +47,6 @@ if ( ! function_exists( 'WP_AIE' ) ) {
 	}
 
 }
-
 if ( ! function_exists( 'waie_fs' ) ) {
 	// Create a helper function for easy SDK access.
 	function waie_fs() {
@@ -63,7 +62,7 @@ if ( ! function_exists( 'waie_fs' ) ) {
 					'slug'              => 'wp-advanced-import-export',
 					'type'              => 'plugin',
 					'public_key'        => 'pk_c389cfb9437cdb5c934c0efd7e99c',
-					'is_premium'        => false,
+					'is_premium'        => true,
 					'is_premium_only'   => false,
 					'has_addons'        => false,
 					'has_paid_plans'    => true,
@@ -82,7 +81,16 @@ if ( ! function_exists( 'waie_fs' ) ) {
 	}
 
 	// Init Freemius.
-	waie_fs();
+	waie_fs()->add_filter(
+		'connect_url',
+		function ( $url ) {
+			if ( strpos( $url, 'require_license' ) === false ) {
+				$url = add_query_arg( 'require_license', 'false', $url );
+			}
+			return $url;
+		}
+	);
+
 	// Signal that SDK was initiated.
 	do_action( 'waie_fs_loaded' );
 }

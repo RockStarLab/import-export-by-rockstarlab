@@ -17,7 +17,13 @@ use WP_AIE\Model\Job;
 /**
  * Media Sync Processor Class
  *
- * Handles background processing of media sync jobs
+	foreach ( $files as $file ) {
+		++$results['processed'];
+
+		// Add small delay for testing (remove in production)
+		usleep( 500000 ); // 0.5 seconds per file
+
+		try {andles background processing of media sync jobs
  *
  * @package WP_AIE\Model\Queue
  */
@@ -70,10 +76,23 @@ class Media_Sync_Processor {
 	public function process( $job_id ) {
 		try {
 			// Get job data
-			$job = $this->job_model->read( $job_id );
+			$job = $this->job_model->find( $job_id );
 
 			if ( ! $job ) {
 				throw new \Exception( sprintf( 'Job #%d not found', $job_id ) );
+			}
+
+			// Check if job is paused
+			if ( 'paused' === $job->status ) {
+				$this->logger->log(
+					$job_id,
+					'info',
+					sprintf( 'Job #%d is paused, skipping processing', $job_id )
+				);
+				return array(
+					'status'  => 'paused',
+					'message' => 'Job is paused',
+				);
 			}
 
 			// Update status to processing
@@ -81,7 +100,7 @@ class Media_Sync_Processor {
 				$job_id,
 				array(
 					'status'     => 'processing',
-					'started_at' => current_time( 'mysql' ),
+					'updated_at' => current_time( 'mysql' ),
 				)
 			);
 
@@ -91,19 +110,80 @@ class Media_Sync_Processor {
 				sprintf( 'Started processing media sync job #%d', $job_id )
 			);
 
-			// Parse parameters
-			$parameters = json_decode( $job->parameters, true );
-			$files      = $parameters['files'] ?? array();
-			$options    = $parameters['options'] ?? array();
-			$offset     = $parameters['offset'] ?? 0;
+			// Parse settings
+			$settings        = json_decode( $job->settings, true );
+			$folder_path     = $settings['folder_path'] ?? '';
+			$scan_options    = $settings['scan_options'] ?? array();
+			$sync_options    = $settings['sync_options'] ?? array();
+			$offset          = $settings['offset'] ?? 0;
+			$processed_count = $settings['processed_count'] ?? 0;
+
+			// Get cumulative results from previous batches
+			$cumulative_result = $job->result ? json_decode( $job->result, true ) : array(
+				'processed' => 0,
+				'success'   => 0,
+				'skipped'   => 0,
+				'failed'    => 0,
+				'errors'    => array(),
+			);
+
+			// Debug logging
+			error_log(
+				sprintf(
+					'[Media Sync] Job #%d - Initial state: offset=%d, result=%s, cumulative=%s',
+					$job_id,
+					$offset,
+					$job->result ?? 'NULL',
+					wp_json_encode( $cumulative_result )
+				)
+			);            // Scan folder for files (if not already scanned)
+			if ( ! isset( $settings['total_files'] ) ) {
+				$this->logger->log(
+					$job_id,
+					'info',
+					sprintf( 'Scanning folder: %s', $folder_path )
+				);
+
+				$files_result = Media_Sync::scan_folder( $folder_path, $scan_options );
+
+				if ( is_wp_error( $files_result ) ) {
+					throw new \Exception( $files_result->get_error_message() );
+				}
+
+				$total_files = count( $files_result );
+
+				$this->logger->log(
+					$job_id,
+					'info',
+					sprintf( 'Found %d files in folder', $total_files )
+				);
+
+				// Update settings with total files count
+				$settings['total_files'] = $total_files;
+				$settings['all_files']   = $files_result;
+
+				$this->job_model->update(
+					$job_id,
+					array(
+						'settings' => wp_json_encode( $settings ),
+					)
+				);
+			} else {
+				$total_files = $settings['total_files'];
+			}
+
+			// Get all files from settings
+			$all_files = $settings['all_files'] ?? array();
+
+			if ( empty( $all_files ) ) {
+				throw new \Exception( 'No files found in folder' );
+			}
 
 			// Get files chunk from offset
-			$chunk_size = 20; // Process 20 files at a time
-			$chunk      = array_slice( $files, $offset, $chunk_size );
-
-			if ( empty( $chunk ) ) {
+			$chunk_size = 3; // Process 3 files at a time (small for testing/demo)
+			$chunk      = array_slice( $all_files, $offset, $chunk_size );          if ( empty( $chunk ) ) {
 				// All files processed
-				return $this->complete_job( $job_id, $offset );
+				return $this->complete_job( $job_id, $processed_count );
 			}
 
 			$this->logger->log(
@@ -112,47 +192,82 @@ class Media_Sync_Processor {
 				sprintf(
 					'Processing batch: files %d-%d of %d',
 					$offset + 1,
-					min( $offset + $chunk_size, count( $files ) ),
-					count( $files )
+					min( $offset + $chunk_size, $total_files ),
+					$total_files
 				)
 			);
 
 			// Process batch
-			$result = $this->process_batch( $job_id, $chunk, $options );
+			// Add base folder to sync options for structure preservation
+			$sync_options['base_folder'] = $folder_path;
+
+			$result = $this->process_batch( $job_id, $chunk, $sync_options );
+
+			// Merge with cumulative results
+			$cumulative_result['processed'] += $result['processed'];
+			$cumulative_result['success']   += $result['success'];
+			$cumulative_result['skipped']   += $result['skipped'];
+			$cumulative_result['failed']    += $result['failed'];
+			$cumulative_result['errors']     = array_merge(
+				$cumulative_result['errors'],
+				array_slice( $result['errors'], 0, 20 ) // Keep only last 20 errors
+			);
+
+			// Debug logging
+			error_log(
+				sprintf(
+					'[Media Sync] Job #%d - After batch: batch_result=%s, cumulative=%s',
+					$job_id,
+					wp_json_encode( $result ),
+					wp_json_encode( $cumulative_result )
+				)
+			);
 
 			// Calculate progress
 			$new_offset = $offset + count( $chunk );
-			$progress   = round( ( $new_offset / count( $files ) ) * 100 );
+			$progress   = round( ( $new_offset / $total_files ) * 100 );
 
-			// Update progress
-			$this->progress_tracker->update_progress( $job_id, $progress );
+			// Update progress with detailed stats
+			$this->progress_tracker->update_percentage( $job_id, $new_offset, $total_files );
 
 			// Check if completed
-			if ( $new_offset >= count( $files ) ) {
-				return $this->complete_job( $job_id, $new_offset, $result );
+			if ( $new_offset >= $total_files ) {
+				return $this->complete_job( $job_id, $new_offset, $cumulative_result );
 			}
 
-			// Update job parameters with new offset
-			$parameters['offset'] = $new_offset;
+			// Update job settings with new offset
+			$settings['offset']          = $new_offset;
+			$settings['processed_count'] = $new_offset;
 
-			$this->job_model->update(
-				$job_id,
-				array(
-					'parameters' => wp_json_encode( $parameters ),
-					'progress'   => $progress,
+			// Prepare update data
+			$update_data = array(
+				'settings' => wp_json_encode( $settings ),
+				'progress' => $progress,
+				'result'   => wp_json_encode( $cumulative_result ), // Save cumulative results
+			);
+
+			// Debug logging
+			error_log(
+				sprintf(
+					'[Media Sync] Updating job #%d: progress=%d%%, result=%s',
+					$job_id,
+					$progress,
+					wp_json_encode( $cumulative_result )
 				)
 			);
+
+			$this->job_model->update( $job_id, $update_data );
 
 			$this->logger->log(
 				$job_id,
 				'info',
 				sprintf(
-					'Batch completed. Progress: %d%%. Processed: %d, Success: %d, Skipped: %d, Failed: %d',
+					'Batch completed. Progress: %d%%. Total: Processed: %d, Success: %d, Skipped: %d, Failed: %d',
 					$progress,
-					$result['processed'],
-					$result['success'],
-					$result['skipped'],
-					$result['failed']
+					$cumulative_result['processed'],
+					$cumulative_result['success'],
+					$cumulative_result['skipped'],
+					$cumulative_result['failed']
 				)
 			);
 
@@ -160,10 +275,8 @@ class Media_Sync_Processor {
 				'completed' => false,
 				'offset'    => $new_offset,
 				'progress'  => $progress,
-				'result'    => $result,
-			);
-
-		} catch ( \Exception $e ) {
+				'result'    => $cumulative_result, // Return cumulative results
+			);      } catch ( \Exception $e ) {
 			$this->logger->log(
 				$job_id,
 				'error',
@@ -187,7 +300,7 @@ class Media_Sync_Processor {
 				'completed' => true,
 				'error'     => $e->getMessage(),
 			);
-		}
+			}
 	}
 
 	/**
@@ -211,12 +324,15 @@ class Media_Sync_Processor {
 			++$results['processed'];
 
 			try {
+				// Get file path from array
+				$file_path = is_array( $file ) ? $file['path'] : $file;
+
 				// Check if file still exists
-				if ( ! file_exists( $file ) ) {
+				if ( ! file_exists( $file_path ) ) {
 					++$results['failed'];
 					$results['errors'][] = sprintf(
 						'File not found: %s',
-						basename( $file )
+						basename( $file_path )
 					);
 					continue;
 				}
@@ -226,27 +342,41 @@ class Media_Sync_Processor {
 
 				if ( 'skip' === $duplicate_handling ) {
 					$duplicate_check = $options['duplicate_check'] ?? 'hash';
-					$is_duplicate    = Media_Sync::check_duplicate( $file, $duplicate_check );
+					$is_duplicate    = Media_Sync::check_duplicate( $file_path, $duplicate_check );
 
 					if ( $is_duplicate ) {
 						++$results['skipped'];
 						$this->logger->log(
 							$job_id,
 							'info',
-							sprintf( 'Skipped duplicate: %s', basename( $file ) )
+							sprintf( 'Skipped duplicate: %s', basename( $file_path ) )
 						);
 						continue;
 					}
 				}
 
 				// Import file
-				$import_result = Media_Sync::import_file( $file, $options );
+				// Map UI option names to helper option names
+				$import_options = $options;
+
+				// Always generate thumbnails (skip_thumbnails = false)
+				$import_options['skip_thumbnails'] = false;
+
+				// file_operation is passed directly: 'keep', 'copy', or 'move'
+				// No need to convert, helper now uses file_operation directly
+
+				// Enable RML folder structure if RML integration is enabled
+				if ( ! empty( $options['rml_integration'] ) ) {
+					$import_options['rml_folder_structure'] = true;
+				}
+
+				$import_result = Media_Sync::import_file( $file_path, $import_options );
 
 				if ( is_wp_error( $import_result ) ) {
 					++$results['failed'];
 					$results['errors'][] = sprintf(
 						'%s: %s',
-						basename( $file ),
+						basename( $file_path ),
 						$import_result->get_error_message()
 					);
 
@@ -255,7 +385,7 @@ class Media_Sync_Processor {
 						'error',
 						sprintf(
 							'Failed to import %s: %s',
-							basename( $file ),
+							basename( $file_path ),
 							$import_result->get_error_message()
 						)
 					);
@@ -264,14 +394,14 @@ class Media_Sync_Processor {
 					$this->logger->log(
 						$job_id,
 						'info',
-						sprintf( 'Imported: %s (ID: %d)', basename( $file ), $import_result )
+						sprintf( 'Imported: %s (ID: %d)', basename( $file_path ), $import_result )
 					);
 				}
 			} catch ( \Exception $e ) {
 				++$results['failed'];
 				$results['errors'][] = sprintf(
 					'%s: %s',
-					basename( $file ),
+					basename( $file_path ),
 					$e->getMessage()
 				);
 
@@ -280,7 +410,7 @@ class Media_Sync_Processor {
 					'error',
 					sprintf(
 						'Exception while importing %s: %s',
-						basename( $file ),
+						basename( $file_path ),
 						$e->getMessage()
 					)
 				);
@@ -310,7 +440,7 @@ class Media_Sync_Processor {
 	 */
 	protected function complete_job( $job_id, $processed, $result = null ) {
 		// Get accumulated results from job
-		$job          = $this->job_model->read( $job_id );
+		$job          = $this->job_model->find( $job_id );
 		$current_data = json_decode( $job->result, true );
 
 		// Merge with final result
@@ -347,9 +477,6 @@ class Media_Sync_Processor {
 				$final_result['failed']
 			)
 		);
-
-		// Update progress to 100%
-		$this->progress_tracker->update_progress( $job_id, 100 );
 
 		return array(
 			'completed' => true,

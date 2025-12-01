@@ -198,6 +198,70 @@ class Database_Migration {
 		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
 
 		do_action( 'aie_tables_created' );
+
+		// Run migrations for existing tables
+		self::maybe_add_progress_column();
+		self::maybe_add_result_column();
+	}
+
+	/**
+	 * Add progress column to jobs table if it doesn't exist
+	 */
+	private static function maybe_add_progress_column() {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'aie_jobs';
+
+		// Check if column already exists
+		$column_exists = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+				WHERE TABLE_SCHEMA = %s 
+				AND TABLE_NAME = %s 
+				AND COLUMN_NAME = 'progress'",
+				DB_NAME,
+				$table_name
+			)
+		);
+
+		// Add column if it doesn't exist
+		if ( empty( $column_exists ) ) {
+			$wpdb->query(
+				"ALTER TABLE {$table_name} 
+				ADD COLUMN progress DECIMAL(5,2) DEFAULT 0 COMMENT 'Progress percentage (0-100)' 
+				AFTER failed_items"
+			);
+		}
+	}
+
+	/**
+	 * Add result column to jobs table if it doesn't exist
+	 */
+	private static function maybe_add_result_column() {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'aie_jobs';
+
+		// Check if column already exists
+		$column_exists = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+				WHERE TABLE_SCHEMA = %s 
+				AND TABLE_NAME = %s 
+				AND COLUMN_NAME = 'result'",
+				DB_NAME,
+				$table_name
+			)
+		);
+
+		// Add column if it doesn't exist
+		if ( empty( $column_exists ) ) {
+			$wpdb->query(
+				"ALTER TABLE {$table_name} 
+				ADD COLUMN result TEXT NULL COMMENT 'JSON result data (processed, success, failed counts)' 
+				AFTER settings"
+			);
+		}
 	}
 
 	/**

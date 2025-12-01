@@ -46,6 +46,9 @@ class Cron_Manager {
 		// Register cron action
 		add_action( self::CRON_HOOK, array( $this, 'process_queue' ) );
 
+		// Register media sync job cron action
+		add_action( 'aie_process_media_sync_job', array( $this, 'process_media_sync_job' ) );
+
 		// Add custom cron schedule
 		add_filter( 'cron_schedules', array( $this, 'add_cron_schedules' ) );
 
@@ -161,5 +164,15 @@ class Cron_Manager {
 	 */
 	public function get_processor() {
 		return $this->processor;
+	}
+
+	/**
+	 * Process media sync job
+	 *
+	 * @param int $job_id Job ID
+	 */
+	public function process_media_sync_job( $job_id ) {
+		$processor = new Media_Sync_Processor();
+		$processor->process( $job_id );
 	}
 }

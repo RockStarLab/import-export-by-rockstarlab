@@ -9,6 +9,7 @@ namespace WP_AIE\Controller;
 
 use WP_AIE\Helper\Media_Sync;
 use WP_AIE\Model\Job;
+use WP_AIE\Model\Queue\Media_Sync_Processor;
 
 if ( ! defined( 'WPINC' ) ) {
 	die;
@@ -18,12 +19,14 @@ class Media_Sync_Controller extends Base_Controller {
 
 	protected function get_ajax_actions() {
 		return [
-			'scan_folder'       => [ 'callback' => 'scan_folder' ],
-			'start_media_sync'  => [ 'callback' => 'start_media_sync' ],
-			'get_sync_progress' => [ 'callback' => 'get_sync_progress' ],
-			'pause_media_sync'  => [ 'callback' => 'pause_media_sync' ],
-			'cancel_media_sync' => [ 'callback' => 'cancel_media_sync' ],
-			'browse_folders'    => [ 'callback' => 'browse_folders' ],
+			'scan_folder'              => [ 'callback' => 'scan_folder' ],
+			'start_media_sync'         => [ 'callback' => 'start_media_sync' ],
+			'get_sync_progress'        => [ 'callback' => 'get_sync_progress' ],
+			'pause_media_sync'         => [ 'callback' => 'pause_media_sync' ],
+			'resume_media_sync'        => [ 'callback' => 'resume_media_sync' ],
+			'cancel_media_sync'        => [ 'callback' => 'cancel_media_sync' ],
+			'browse_folders'           => [ 'callback' => 'browse_folders' ],
+			'process_media_sync_batch' => [ 'callback' => 'process_media_sync_batch' ],
 		];
 	}
 
@@ -81,40 +84,42 @@ class Media_Sync_Controller extends Base_Controller {
 			$this->send_error( $verification );
 		}
 
-		$this->validate_required_params( [ 'files' ] );
+		$this->validate_required_params( [ 'folder_path' ] );
 
-		$files   = $this->get_request_array( 'files' );
-		$options = $this->get_request_array( 'options' );
+		$folder_path  = $this->get_request_param( 'folder_path' );
+		$scan_options = $this->get_request_array( 'scan_options' );
+		$sync_options = $this->get_request_array( 'sync_options' );
 
-		// Extract file paths from file objects
-		$file_paths = array_map(
-			function ( $file ) {
-				return $file['path'] ?? '';
-			},
-			$files
-		);
-		$file_paths = array_filter( $file_paths ); // Remove empty paths
+		// Validate folder path
+		$upload_dir  = wp_upload_dir();
+		$base_dir    = $upload_dir['basedir'];
+		$folder_path = trim( $folder_path, '/' );
 
-		if ( empty( $file_paths ) ) {
+		$absolute_path = empty( $folder_path ) ? $base_dir : $base_dir . '/' . $folder_path;
+		$real_path     = realpath( $absolute_path );
+		$real_base     = realpath( $base_dir );
+
+		if ( false === $real_path || false === strpos( $real_path, $real_base ) ) {
 			$this->send_error(
 				new \WP_Error(
-					'no_files',
-					__( 'No valid files provided', 'wp-advanced-import-export' )
+					'invalid_path',
+					__( 'Invalid folder path', 'wp-advanced-import-export' )
 				)
 			);
 		}
 
-		// Create job record.
+		// Create job record with folder path and options
 		$job      = new Job();
 		$job_data = [
-			'type'       => 'media_sync',
-			'status'     => 'pending',
-			'user_id'    => $this->get_current_user_id(),
-			'parameters' => wp_json_encode(
+			'type'     => 'media_sync',
+			'status'   => 'pending',
+			'user_id'  => $this->get_current_user_id(),
+			'settings' => wp_json_encode(
 				[
-					'files'   => $file_paths,
-					'options' => $options,
-					'offset'  => 0,
+					'folder_path'  => $absolute_path,
+					'scan_options' => $scan_options,
+					'sync_options' => $sync_options,
+					'offset'       => 0,
 				]
 			),
 		];
@@ -124,16 +129,26 @@ class Media_Sync_Controller extends Base_Controller {
 			$this->send_error( $job_id );
 		}
 
-		// Schedule job to be processed in background queue
-		if ( ! wp_next_scheduled( 'aie_process_queue' ) ) {
-			wp_schedule_single_event( time(), 'aie_process_queue' );
+		// Process first batch synchronously to show immediate progress
+		// This gives instant feedback to the user
+		$processor = new Media_Sync_Processor();
+		$processor->process( $job_id );
+
+		// Schedule remaining batches via WP Cron for background processing
+		if ( ! wp_next_scheduled( 'aie_process_media_sync_job', array( $job_id ) ) ) {
+			wp_schedule_single_event( time(), 'aie_process_media_sync_job', array( $job_id ) );
 		}
 
+		// Also try async via wp_remote_post as backup
+		$this->trigger_async_processing( $job_id );
+
+		$response_data = [
+			'job_id'      => $job_id,
+			'folder_path' => $folder_path,
+		];
+
 		$this->send_success(
-			[
-				'job_id'      => $job_id,
-				'total_files' => count( $file_paths ),
-			],
+			$response_data,
 			__( 'Media sync job started', 'wp-advanced-import-export' )
 		);
 	}
@@ -148,17 +163,33 @@ class Media_Sync_Controller extends Base_Controller {
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
 		$job  = new Job();
-		$data = $job->read( $job_id );
+		$data = $job->find( $job_id );
 
 		if ( ! $data ) {
 			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ) );
+		}
+
+		// Get result, handle if column doesn't exist or is null
+		$result = isset( $data->result ) ? $data->result : null;
+
+		// Debug logging
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log(
+				sprintf(
+					'[Media Sync] Get progress for job #%d: status=%s, progress=%s, result=%s',
+					$job_id,
+					$data->status,
+					$data->progress,
+					$result ?? 'NULL'
+				)
+			);
 		}
 
 		$this->send_success(
 			[
 				'status'   => $data->status,
 				'progress' => $data->progress,
-				'result'   => $data->result ? json_decode( $data->result, true ) : null,
+				'result'   => $result ? json_decode( $result, true ) : null,
 			]
 		);
 	}
@@ -168,6 +199,36 @@ class Media_Sync_Controller extends Base_Controller {
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
+
+		$this->validate_required_params( [ 'job_id' ] );
+		$job_id = (int) $this->get_request_param( 'job_id' );
+
+		$job = new Job();
+		$job->update( $job_id, [ 'status' => 'paused' ] );
+
+		$this->send_success();
+	}
+
+	public function resume_media_sync() {
+		$verification = $this->verify_request( 'aie_resume_media_sync' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification );
+		}
+
+		$this->validate_required_params( [ 'job_id' ] );
+		$job_id = (int) $this->get_request_param( 'job_id' );
+
+		$job = new Job();
+		$job->update( $job_id, [ 'status' => 'processing' ] );
+
+		// Resume processing via WP Cron
+		if ( ! wp_next_scheduled( 'aie_process_media_sync_job', array( $job_id ) ) ) {
+			wp_schedule_single_event( time(), 'aie_process_media_sync_job', array( $job_id ) );
+		}
+
+		// Also try async via wp_remote_post as backup
+		$this->trigger_async_processing( $job_id );
+
 		$this->send_success();
 	}
 
@@ -184,6 +245,66 @@ class Media_Sync_Controller extends Base_Controller {
 		$job->update( $job_id, [ 'status' => 'cancelled' ] );
 
 		$this->send_success();
+	}
+
+	/**
+	 * Process media sync batch (called via AJAX for async processing)
+	 */
+	public function process_media_sync_batch() {
+		// Verify nonce
+		$verification = $this->verify_request( 'aie_process_media_sync_batch' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification );
+		}
+
+		$this->validate_required_params( [ 'job_id' ] );
+		$job_id = (int) $this->get_request_param( 'job_id' );
+
+		// Process the job
+		$processor = new \WP_AIE\Model\Queue\Media_Sync_Processor();
+		$result    = $processor->process( $job_id );
+
+		// If not completed, schedule next batch
+		if ( ! isset( $result['completed'] ) || ! $result['completed'] ) {
+			$this->trigger_next_batch( $job_id );
+		}
+
+		$this->send_success( $result );
+	}
+
+	/**
+	 * Trigger next batch processing via non-blocking request
+	 *
+	 * @param int $job_id Job ID
+	 */
+	protected function trigger_next_batch( $job_id ) {
+		wp_remote_post(
+			admin_url( 'admin-ajax.php' ),
+			array(
+				'timeout'   => 0.01,
+				'blocking'  => false,
+				'sslverify' => false,
+				'body'      => array(
+					'action' => 'aie_process_media_sync_batch',
+					'nonce'  => wp_create_nonce( 'aie_process_media_sync_batch' ),
+					'job_id' => $job_id,
+				),
+				'cookies'   => $_COOKIE,
+			)
+		);
+	}
+
+	/**
+	 * Trigger async processing for a job
+	 * Non-blocking call that starts processing immediately
+	 *
+	 * @param int $job_id Job ID.
+	 * @return void
+	 */
+	protected function trigger_async_processing( $job_id ) {
+		// Use same endpoint as trigger_next_batch
+		// This will start the first batch asynchronously
+		$this->trigger_next_batch( $job_id );
 	}
 
 	/**
