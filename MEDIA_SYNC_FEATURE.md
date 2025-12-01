@@ -63,10 +63,44 @@
 
 ## UI/UX
 
+### Относительные пути (Relative Paths)
+
+**Важно:** Для удобства использования, путь к папке указывается **относительно директории загрузок** (uploads directory).
+
+#### Примеры:
+- Вводите: `ftp-import` → Система понимает: `/wp-content/uploads/ftp-import/`
+- Вводите: `/test-folder/` → Система понимает: `/wp-content/uploads/test-folder/`
+- Вводите: `/` или оставьте пустым → Корневая директория: `/wp-content/uploads/`
+
+#### Преимущества:
+- 🎯 **Короткие пути** - не нужно писать полный путь
+- 🔒 **Безопасность** - автоматическая проверка, что путь внутри uploads директории
+- 👤 **Понятно** - пользователь видит базовый путь и вводит только имя своей папки
+
+### Браузер папок (Folder Browser)
+
+**Новая функция:** Модальное окно для визуального выбора папок на сервере.
+
+#### Как использовать:
+1. Нажмите кнопку **"Browse"** рядом с полем Folder Path
+2. Откроется модальное окно с деревом папок из `/wp-content/uploads/`
+3. Выберите нужную папку одним кликом
+4. Двойной клик - переход внутрь папки (навигация)
+5. Нажмите **"Choose"** для подтверждения выбора
+6. Путь автоматически вставится в поле Folder Path
+
+#### Особенности:
+- 📂 **Визуальный выбор** - не нужно помнить названия папок
+- 🔄 **Навигация** - двойной клик для перехода в подпапки
+- ⬆️ **"Go Up"** - кнопка для возврата на уровень выше
+- ⭐ **"Use this folder"** - опция для выбора текущей директории
+- 🔒 **Безопасность** - показывает только папки внутри uploads directory
+
 ### Главная страница
 ```
 Step 1: Select Folder
-  └─ Browse server + Recent folders dropdown
+  └─ Folder Path: [input] [Browse Button]
+  └─ Folder Browser Modal (визуальный выбор)
 
 Step 2: File Options  
   └─ All / Images / Custom types
@@ -345,5 +379,462 @@ Premium версия: Real Media Library integration
 ---
 
 **Версия:** 1.0.0  
-**Дата:** 2025-11-27  
-**Статус:** В разработке (Phase 9.8)
+**Дата:** 2025-12-01  
+**Статус:** ✅ Реализовано (Phase 9.8)
+
+---
+
+## 📋 Реализованная функциональность
+
+### Созданные компоненты
+
+#### Backend (PHP)
+
+1. **`app/Helper/Media_Sync.php`** - Статический helper класс
+   ```php
+   use WP_AIE\Helper\Media_Sync;
+
+   // Сканирование папки
+   $files = Media_Sync::scan_folder('/path/to/folder', [
+       'recursive' => true,
+       'file_types' => 'images', // или 'all', 'videos', 'audio', 'documents'
+       'custom_types' => ['jpg', 'png'] // если file_types = 'custom'
+   ]);
+
+   // Проверка дубликата
+   $duplicate = Media_Sync::check_duplicate('/path/to/file.jpg', 'hash');
+   // Методы: 'hash' (MD5), 'filename', 'filesize'
+   // Возвращает: false или ID существующего attachment
+
+   // Импорт файла
+   $attachment_id = Media_Sync::import_file('/path/to/file.jpg', [
+       'post_id' => 123,              // Привязать к посту (опционально)
+       'generate_thumbnails' => true,  // Генерировать миниатюры
+       'set_alt_text' => true,        // Установить alt из имени файла
+       'preserve_structure' => false   // Сохранить структуру папок
+   ]);
+
+   // Получить разрешенные типы файлов
+   $types = Media_Sync::get_allowed_file_types('images');
+   // Возвращает: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']
+   ```
+
+2. **`app/Controller/Media_Sync_Controller.php`** - AJAX контроллер
+
+   **AJAX Endpoints:**
+   
+   - `aie_scan_folder` - Сканировать папку
+     ```javascript
+     jQuery.post(ajaxurl, {
+         action: 'aie_scan_folder',
+         nonce: aieData.nonce,
+         folder_path: '/path/to/folder',
+         options: {
+             recursive: true,
+             file_types: 'images'
+         }
+     }, function(response) {
+         console.log(response.data.files); // Array of file objects
+     });
+     ```
+
+   - `aie_start_media_sync` - Запустить синхронизацию
+     ```javascript
+     jQuery.post(ajaxurl, {
+         action: 'aie_start_media_sync',
+         nonce: aieData.nonce,
+         files: [{path: '/file1.jpg', size: 1234, name: 'file1.jpg'}],
+         options: {
+             duplicate_check: 'hash',
+             duplicate_handling: 'skip',
+             generate_thumbnails: true
+         }
+     }, function(response) {
+         const jobId = response.data.job_id;
+         // Начать отслеживание прогресса
+     });
+     ```
+
+   - `aie_get_sync_progress` - Получить прогресс
+     ```javascript
+     jQuery.post(ajaxurl, {
+         action: 'aie_get_sync_progress',
+         nonce: aieData.nonce,
+         job_id: 123
+     }, function(response) {
+         console.log(response.data.progress); // 0-100
+         console.log(response.data.status);   // pending/processing/completed
+         console.log(response.data.result);   // {processed, success, skipped, failed}
+     });
+     ```
+
+   - `aie_pause_media_sync` - Приостановить (заглушка)
+   - `aie_cancel_media_sync` - Отменить задачу
+
+3. **`app/Model/Queue/Media_Sync_Processor.php`** - Фоновый процессор
+   ```php
+   use WP_AIE\Model\Queue\Media_Sync_Processor;
+
+   $processor = new Media_Sync_Processor();
+   $result = $processor->process($job_id);
+   // Обрабатывает 20 файлов за раз
+   // Автоматически вызывается Background_Processor
+   ```
+
+#### Frontend (JavaScript)
+
+**Модуль:** `src/js/modules/media_sync.js`
+
+```javascript
+// Автоматически инициализируется на странице #wp-aie-media-sync
+import MediaSyncModule from './modules/media_sync';
+
+// Доступные методы:
+MediaSyncModule.init();              // Инициализация
+MediaSyncModule.scanFolder();        // Сканирование папки
+MediaSyncModule.startSync();         // Запуск синхронизации
+MediaSyncModule.checkProgress();     // Проверка прогресса
+MediaSyncModule.pauseSync();         // Пауза
+MediaSyncModule.cancelSync();        // Отмена
+MediaSyncModule.resetPage();         // Сброс в начальное состояние
+```
+
+#### Admin UI
+
+**Страница:** `/wp-admin/admin.php?page=wp-aie-media-sync`
+
+**View:** `app/View/settings/media_sync.php`
+
+**Стили:** `src/scss/app.scss` (секция `#wp-aie-media-sync`)
+
+## 🔌 Хуки и фильтры
+
+### Actions (будущее расширение)
+
+```php
+// Перед импортом файла
+do_action('aie_before_import_file', $file_path, $options);
+
+// После успешного импорта
+do_action('aie_after_import_file', $attachment_id, $file_path, $options);
+
+// При пропуске дубликата
+do_action('aie_import_file_skipped', $file_path, $duplicate_id, $method);
+
+// При ошибке импорта
+do_action('aie_import_file_error', $file_path, $error);
+
+// Завершение задачи синхронизации
+do_action('aie_media_sync_completed', $job_id, $result);
+```
+
+### Filters (будущее расширение)
+
+```php
+// Фильтрация списка файлов перед сканированием
+$files = apply_filters('aie_media_sync_scanned_files', $files, $folder_path, $options);
+
+// Разрешенные типы файлов
+$mime_types = apply_filters('aie_media_sync_allowed_mimes', $mime_types, $type);
+
+// Alt text для изображения
+$alt_text = apply_filters('aie_media_sync_alt_text', $alt_text, $file_path, $attachment_id);
+
+// Размер батча для обработки
+$batch_size = apply_filters('aie_media_sync_batch_size', 20);
+
+// Лимит памяти для обработки
+$memory_limit = apply_filters('aie_media_sync_memory_limit', $memory_limit);
+```
+
+## 🎯 Примеры использования
+
+### Пример 1: Программный запуск синхронизации
+
+```php
+// Сканируем папку
+$files = \WP_AIE\Helper\Media_Sync::scan_folder(
+    ABSPATH . 'wp-content/uploads/ftp-import',
+    ['recursive' => true, 'file_types' => 'images']
+);
+
+// Создаем задачу
+$job = new \WP_AIE\Model\Job();
+$job_id = $job->create([
+    'type' => 'media_sync',
+    'status' => 'pending',
+    'user_id' => get_current_user_id(),
+    'parameters' => wp_json_encode([
+        'files' => array_map(function($file) {
+            return $file['path'];
+        }, $files),
+        'options' => [
+            'duplicate_check' => 'hash',
+            'duplicate_handling' => 'skip',
+            'generate_thumbnails' => true
+        ],
+        'offset' => 0
+    ])
+]);
+
+// Запускаем обработку
+if (!wp_next_scheduled('aie_process_queue')) {
+    wp_schedule_single_event(time(), 'aie_process_queue');
+}
+```
+
+### Пример 2: Кастомная обработка дубликатов
+
+```php
+// В вашем плагине/теме
+add_filter('aie_media_sync_duplicate_handling', function($handling, $file_path, $existing_id) {
+    // Всегда перезаписывать старые файлы
+    return 'overwrite';
+}, 10, 3);
+```
+
+### Пример 3: Интеграция с Real Media Library (Premium)
+
+```php
+// Проверяем Premium и RML
+if (aie_fs()->is_premium() && function_exists('wp_rml_create')) {
+    add_action('aie_after_import_file', function($attachment_id, $file_path, $options) {
+        // Получаем структуру папок из пути
+        $folder_structure = dirname(str_replace(ABSPATH, '', $file_path));
+        
+        // Создаем папку в RML (если не существует)
+        $rml_folder_id = wp_rml_create($folder_structure);
+        
+        // Назначаем файл в папку
+        wp_rml_set_attachment_folder($attachment_id, $rml_folder_id);
+    }, 10, 3);
+}
+```
+
+### Пример 4: Автоматическая синхронизация по расписанию
+
+```php
+// Добавляем кастомное расписание
+add_filter('cron_schedules', function($schedules) {
+    $schedules['daily_sync'] = [
+        'interval' => DAY_IN_SECONDS,
+        'display' => __('Once Daily for Media Sync')
+    ];
+    return $schedules;
+});
+
+// Регистрируем задачу
+if (!wp_next_scheduled('my_daily_media_sync')) {
+    wp_schedule_event(time(), 'daily_sync', 'my_daily_media_sync');
+}
+
+// Обработчик
+add_action('my_daily_media_sync', function() {
+    $watch_folder = ABSPATH . 'wp-content/uploads/auto-sync';
+    
+    if (!is_dir($watch_folder)) {
+        return;
+    }
+    
+    $files = \WP_AIE\Helper\Media_Sync::scan_folder($watch_folder, [
+        'recursive' => true,
+        'file_types' => 'all'
+    ]);
+    
+    // Создаем задачу и запускаем...
+    // (код аналогичен примеру 1)
+});
+```
+
+## 🧪 Тестирование
+
+### Вручную через UI
+
+1. Откройте `/wp-admin/admin.php?page=wp-aie-media-sync`
+2. Введите путь к папке (например, `/wp-content/uploads/test-import`)
+3. Нажмите "Scan Folder"
+4. Выберите файлы для импорта
+5. Настройте опции (дубликаты, миниатюры и т.д.)
+6. Нажмите "Start Synchronization"
+7. Наблюдайте за прогрессом в реальном времени
+8. Проверьте результат в медиа библиотеке
+
+### Через WP-CLI (будущее)
+
+```bash
+# Сканировать папку
+wp aie media-sync scan /path/to/folder --recursive
+
+# Запустить синхронизацию
+wp aie media-sync start /path/to/folder --skip-duplicates --hash-method
+
+# Проверить статус задачи
+wp aie media-sync status 123
+
+# Отменить задачу
+wp aie media-sync cancel 123
+```
+
+### PHP Unit тесты (будущее)
+
+```php
+class Media_Sync_Test extends WP_UnitTestCase {
+    public function test_scan_folder() {
+        $files = Media_Sync::scan_folder('/test-folder', ['recursive' => true]);
+        $this->assertIsArray($files);
+        $this->assertGreaterThan(0, count($files));
+    }
+    
+    public function test_check_duplicate_hash() {
+        $file = '/path/to/test.jpg';
+        
+        // Первая проверка - не найдет
+        $duplicate = Media_Sync::check_duplicate($file, 'hash');
+        $this->assertFalse($duplicate);
+        
+        // Импортируем
+        $attachment_id = Media_Sync::import_file($file, []);
+        
+        // Вторая проверка - найдет
+        $duplicate = Media_Sync::check_duplicate($file, 'hash');
+        $this->assertEquals($attachment_id, $duplicate);
+    }
+}
+```
+
+## 📊 Мониторинг и логи
+
+### Логи задач
+
+Все операции логируются в таблицу `wp_aie_logs`:
+
+```sql
+SELECT * FROM wp_aie_logs 
+WHERE job_id = 123 
+ORDER BY created_at DESC;
+```
+
+### Прогресс задачи
+
+```php
+$job = new \WP_AIE\Model\Job();
+$job_data = $job->read($job_id);
+
+echo "Status: " . $job_data->status . "\n";
+echo "Progress: " . $job_data->progress . "%\n";
+
+$result = json_decode($job_data->result, true);
+echo "Processed: " . $result['processed'] . "\n";
+echo "Success: " . $result['success'] . "\n";
+echo "Skipped: " . $result['skipped'] . "\n";
+echo "Failed: " . $result['failed'] . "\n";
+```
+
+### Отладка
+
+Включите WP_DEBUG и WP_DEBUG_LOG в wp-config.php:
+
+```php
+define('WP_DEBUG', true);
+define('WP_DEBUG_LOG', true);
+define('WP_DEBUG_DISPLAY', false);
+```
+
+Логи будут в `/wp-content/debug.log`
+
+## 🔧 Troubleshooting
+
+### Проблема: Файлы не импортируются
+
+**Решение:**
+1. Проверьте права доступа к папке (должна быть readable)
+2. Убедитесь, что файлы разрешенных MIME типов
+3. Проверьте логи: `SELECT * FROM wp_aie_logs WHERE job_id = ?`
+
+### Проблема: Медленная обработка
+
+**Решение:**
+1. Уменьшите размер батча в Media_Sync_Processor (по умолчанию 20)
+2. Используйте 'filename' вместо 'hash' для проверки дубликатов
+3. Отключите генерацию миниатюр для больших изображений
+
+### Проблема: Cron не запускается
+
+**Решение:**
+```php
+// Проверьте расписание
+wp_get_schedules();
+
+// Проверьте задачу
+wp_next_scheduled('aie_process_queue');
+
+// Запустите вручную
+do_action('aie_process_queue');
+
+// Или через WP-CLI
+wp cron event run aie_process_queue
+```
+
+### Проблема: Таймаут при сканировании больших папок
+
+**Решение:**
+1. Увеличьте `max_execution_time` в php.ini
+2. Или разбейте сканирование на несколько подпапок
+3. Отключите рекурсивное сканирование
+
+## 📦 Зависимости
+
+- PHP 7.4+
+- WordPress 5.8+
+- MySQL 5.7+ / MariaDB 10.2+
+- JavaScript ES6
+- jQuery 3.x
+
+### Опциональные:
+- Real Media Library (Premium feature)
+- WP-CLI (для CLI команд)
+
+## 🚀 Производительность
+
+### Рекомендации:
+
+- **Батч размер:** 10-50 файлов (по умолчанию 20)
+- **Метод дубликатов:** 
+  - `hash` - для точности (медленно)
+  - `filename` - для скорости (быстро)
+  - `filesize` - баланс
+- **Миниатюры:** Отключите для очень больших изображений
+- **Cron:** Рекомендуется настроить system cron вместо WP Cron
+
+### Оптимизация:
+
+```php
+// Увеличить размер батча (осторожно с памятью!)
+add_filter('aie_media_sync_batch_size', function() {
+    return 50;
+});
+
+// Пропустить генерацию миниатюр для больших файлов
+add_filter('aie_media_sync_generate_thumbnails', function($generate, $file_path) {
+    $size = filesize($file_path);
+    if ($size > 5 * 1024 * 1024) { // > 5MB
+        return false;
+    }
+    return $generate;
+}, 10, 2);
+```
+
+---
+
+## 🎓 Дополнительные ресурсы
+
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Полная архитектура плагина
+- **[DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md)** - План разработки
+- **[PHASE_7_QUEUE_SYSTEM.md](./PHASE_7_QUEUE_SYSTEM.md)** - Документация системы очередей
+- **[copilot-instructions.md](./copilot-instructions.md)** - Инструкции для AI
+
+---
+
+**Автор:** DKudleichuk  
+**Дата обновления:** 2025-12-01  
+**Статус:** ✅ Полностью реализовано и готово к использованию

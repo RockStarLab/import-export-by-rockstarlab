@@ -42,6 +42,13 @@ class Init {
 	private $functions_controller;
 
 	/**
+	 * Media Sync Controller
+	 *
+	 * @var Media_Sync_Controller
+	 */
+	private $media_sync_controller;
+
+	/**
 	 * Cron Manager
 	 *
 	 * @var \WP_AIE\Model\Queue\Cron_Manager
@@ -84,6 +91,9 @@ class Init {
 
 		$this->functions_controller = new Functions_Controller();
 		$this->functions_controller->init();
+
+		$this->media_sync_controller = new Media_Sync_Controller();
+		$this->media_sync_controller->init();
 	}
 
 	/**
