@@ -120,6 +120,7 @@ class Media_Sync {
 		$filename = basename( $file_path );
 		$size     = filesize( $file_path );
 
+		// First check our custom meta
 		$args = [
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
@@ -135,7 +136,32 @@ class Media_Sync {
 		];
 
 		$query = new \WP_Query( $args );
-		return $query->have_posts() ? (int) $query->posts[0] : false;
+		if ( $query->have_posts() ) {
+			return (int) $query->posts[0];
+		}
+
+		// Fallback: check all attachments with same filename and compare sizes
+		$args = [
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+			'fields'         => 'ids',
+			'posts_per_page' => 50,
+			's'              => pathinfo( $filename, PATHINFO_FILENAME ),
+		];
+
+		$query = new \WP_Query( $args );
+		if ( $query->have_posts() ) {
+			foreach ( $query->posts as $attachment_id ) {
+				$existing_file = get_attached_file( $attachment_id );
+				if ( $existing_file && file_exists( $existing_file ) ) {
+					if ( filesize( $existing_file ) === $size && basename( $existing_file ) === $filename ) {
+						return (int) $attachment_id;
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -147,6 +173,7 @@ class Media_Sync {
 	protected static function check_duplicate_by_hash( $file_path ) {
 		$hash = md5_file( $file_path );
 
+		// First check our custom meta
 		$args = [
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
@@ -161,7 +188,33 @@ class Media_Sync {
 		];
 
 		$query = new \WP_Query( $args );
-		return $query->have_posts() ? (int) $query->posts[0] : false;
+		if ( $query->have_posts() ) {
+			return (int) $query->posts[0];
+		}
+
+		// Fallback: check all attachments and compare their file hashes
+		$filename = basename( $file_path );
+		$args     = [
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+			'fields'         => 'ids',
+			'posts_per_page' => 100, // Check up to 100 files with same name
+			's'              => pathinfo( $filename, PATHINFO_FILENAME ),
+		];
+
+		$query = new \WP_Query( $args );
+		if ( $query->have_posts() ) {
+			foreach ( $query->posts as $attachment_id ) {
+				$existing_file = get_attached_file( $attachment_id );
+				if ( $existing_file && file_exists( $existing_file ) ) {
+					if ( md5_file( $existing_file ) === $hash ) {
+						return (int) $attachment_id;
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -199,19 +252,17 @@ class Media_Sync {
 		} else {
 			// For 'copy' or 'move' modes - copy/move to uploads directory
 			// Get WordPress upload directory (uses year/month structure).
-			$uploads = wp_upload_dir();
+			$uploads      = wp_upload_dir();
+			$uploads_root = trailingslashit( $uploads['basedir'] );
 
-			// Calculate relative path from base folder to preserve structure
+			// Calculate relative path from uploads root to preserve structure
 			$relative_path = '';
-			if ( ! empty( $options['base_folder'] ) ) {
-				$base_folder = trailingslashit( $options['base_folder'] );
-				$file_dir    = trailingslashit( dirname( $file_path ) );
+			$file_dir      = trailingslashit( dirname( $file_path ) );
 
-				// Get path relative to base folder
-				if ( 0 === strpos( $file_dir, $base_folder ) ) {
-					$relative_path = substr( $file_dir, strlen( $base_folder ) );
-					$relative_path = trim( $relative_path, '/' );
-				}
+			// Get path relative to uploads root
+			if ( 0 === strpos( $file_dir, $uploads_root ) ) {
+				$relative_path = substr( $file_dir, strlen( $uploads_root ) );
+				$relative_path = trim( $relative_path, '/' );
 			}
 
 			// Build destination directory: uploads/YYYY/MM/relative/path

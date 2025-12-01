@@ -179,9 +179,14 @@ class Media_Sync_Processor {
 				throw new \Exception( 'No files found in folder' );
 			}
 
+			// Get batch size from options (default to 3 if not set)
+			$chunk_size = isset( $options['batch_size'] ) ? (int) $options['batch_size'] : 3;
+			$chunk_size = max( 1, min( 100, $chunk_size ) ); // Ensure between 1 and 100
+
 			// Get files chunk from offset
-			$chunk_size = 3; // Process 3 files at a time (small for testing/demo)
-			$chunk      = array_slice( $all_files, $offset, $chunk_size );          if ( empty( $chunk ) ) {
+			$chunk = array_slice( $all_files, $offset, $chunk_size );
+
+			if ( empty( $chunk ) ) {
 				// All files processed
 				return $this->complete_job( $job_id, $processed_count );
 			}
@@ -190,10 +195,22 @@ class Media_Sync_Processor {
 				$job_id,
 				'info',
 				sprintf(
-					'Processing batch: files %d-%d of %d',
+					'Processing batch: files %d-%d of %d (batch size: %d)',
 					$offset + 1,
 					min( $offset + $chunk_size, $total_files ),
-					$total_files
+					$total_files,
+					$chunk_size
+				)
+			);
+
+			// Log duplicate handling options
+			$this->logger->log(
+				$job_id,
+				'info',
+				sprintf(
+					'Duplicate options: handling=%s, check=%s',
+					$sync_options['duplicate_handling'] ?? 'NOT SET',
+					$sync_options['duplicate_check'] ?? 'NOT SET'
 				)
 			);
 
@@ -201,9 +218,7 @@ class Media_Sync_Processor {
 			// Add base folder to sync options for structure preservation
 			$sync_options['base_folder'] = $folder_path;
 
-			$result = $this->process_batch( $job_id, $chunk, $sync_options );
-
-			// Merge with cumulative results
+			$result                          = $this->process_batch( $job_id, $chunk, $sync_options );           // Merge with cumulative results
 			$cumulative_result['processed'] += $result['processed'];
 			$cumulative_result['success']   += $result['success'];
 			$cumulative_result['skipped']   += $result['skipped'];
@@ -344,6 +359,18 @@ class Media_Sync_Processor {
 					$duplicate_check = $options['duplicate_check'] ?? 'hash';
 					$is_duplicate    = Media_Sync::check_duplicate( $file_path, $duplicate_check );
 
+					// Log duplicate check
+					$this->logger->log(
+						$job_id,
+						'info',
+						sprintf(
+							'Duplicate check for %s: method=%s, result=%s',
+							basename( $file_path ),
+							$duplicate_check,
+							$is_duplicate ? 'DUPLICATE (ID: ' . $is_duplicate . ')' : 'NOT DUPLICATE'
+						)
+					);
+
 					if ( $is_duplicate ) {
 						++$results['skipped'];
 						$this->logger->log(
@@ -353,9 +380,7 @@ class Media_Sync_Processor {
 						);
 						continue;
 					}
-				}
-
-				// Import file
+				}               // Import file
 				// Map UI option names to helper option names
 				$import_options = $options;
 
