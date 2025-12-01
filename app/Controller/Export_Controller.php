@@ -188,7 +188,7 @@ class Export_Controller extends Base_Controller {
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
 		$job      = new Job();
-		$job_data = $job->read( $job_id );
+		$job_data = $job->find( $job_id );
 
 		if ( ! $job_data ) {
 			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ), null, 404 );
@@ -221,7 +221,7 @@ class Export_Controller extends Base_Controller {
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
 		$job      = new Job();
-		$job_data = $job->read( $job_id );
+		$job_data = $job->find( $job_id );
 
 		if ( ! $job_data || empty( $job_data->file_path ) ) {
 			$this->send_error( __( 'Export file not found', 'wp-advanced-import-export' ), null, 404 );
@@ -293,7 +293,7 @@ class Export_Controller extends Base_Controller {
 	 */
 	private function process_export_job( $job_id ) {
 		$job      = new Job();
-		$job_data = $job->read( $job_id );
+		$job_data = $job->find( $job_id );
 
 		if ( ! $job_data ) {
 			return;

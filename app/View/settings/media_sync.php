@@ -206,60 +206,48 @@ $base_dir   = $upload_dir['basedir'];
 						</th>
 						<td>
 							<select id="aie-copy-files" class="regular-text">
+								<option value="keep"><?php esc_html_e( 'Keep in current directory', 'wp-advanced-import-export' ); ?></option>
 								<option value="copy"><?php esc_html_e( 'Copy Files (keep originals)', 'wp-advanced-import-export' ); ?></option>
 								<option value="move"><?php esc_html_e( 'Move Files (delete originals)', 'wp-advanced-import-export' ); ?></option>
 							</select>
-						</td>
-					</tr>
-
-					<tr>
-						<th scope="row">
-							<label for="aie-preserve-structure">
-								<?php esc_html_e( 'Folder Structure', 'wp-advanced-import-export' ); ?>
-							</label>
-						</th>
-						<td>
-							<label>
-								<input type="checkbox" id="aie-preserve-structure">
-								<?php esc_html_e( 'Preserve folder structure in uploads directory', 'wp-advanced-import-export' ); ?>
-							</label>
 							<p class="description">
-								<?php esc_html_e( 'Keep subfolder names when copying to uploads', 'wp-advanced-import-export' ); ?>
+								<?php esc_html_e( 'Choose how to handle files during import', 'wp-advanced-import-export' ); ?>
 							</p>
 						</td>
 					</tr>
 
 					<tr>
 						<th scope="row">
-							<label for="aie-generate-thumbnails">
-								<?php esc_html_e( 'Thumbnails', 'wp-advanced-import-export' ); ?>
+							<label for="aie-rml-integration">
+								<?php esc_html_e( 'Real Media Library', 'wp-advanced-import-export' ); ?>
+								<?php if ( ! waie_fs()->can_use_premium_code() ) : ?>
+									<span class="aie-premium-badge" title="<?php esc_attr_e( 'Premium Feature', 'wp-advanced-import-export' ); ?>">
+										<span class="dashicons dashicons-star-filled"></span>
+										<?php esc_html_e( 'PRO', 'wp-advanced-import-export' ); ?>
+									</span>
+								<?php endif; ?>
 							</label>
 						</th>
 						<td>
-							<label>
-								<input type="checkbox" id="aie-generate-thumbnails" checked>
-								<?php esc_html_e( 'Generate thumbnails for images', 'wp-advanced-import-export' ); ?>
-							</label>
-						</td>
-					</tr>
-
-					<tr>
-						<th scope="row">
-							<label for="aie-assign-to-post">
-								<?php esc_html_e( 'Assign to Post', 'wp-advanced-import-export' ); ?>
-							</label>
-						</th>
-						<td>
-							<input 
-								type="number" 
-								id="aie-assign-to-post" 
-								class="small-text" 
-								placeholder="<?php esc_attr_e( 'Post ID', 'wp-advanced-import-export' ); ?>"
-								min="0"
-							>
-							<p class="description">
-								<?php esc_html_e( 'Optionally assign all imported media to a specific post (leave empty for none)', 'wp-advanced-import-export' ); ?>
-							</p>
+							<?php if ( waie_fs()->can_use_premium_code() ) : ?>
+								<label>
+									<input type="checkbox" id="aie-rml-integration">
+									<?php printf( esc_html__( 'Create virtual folders in %s plugin', 'wp-advanced-import-export' ), '<a href="https://devowl.io/wordpress-real-media-library/" target="_blank">Real Media Library</a>' ); ?>
+								</label>
+								<p class="description">
+									<?php esc_html_e( 'Automatically create folders in Real Media Library and organize imported files based on their folder structure.', 'wp-advanced-import-export' ); ?>
+								</p>
+							<?php else : ?>
+								<p class="description">
+									<?php
+									printf(
+										/* translators: %s: upgrade link */
+										esc_html__( 'This feature requires a premium subscription. %s to unlock Real Media Library integration.', 'wp-advanced-import-export' ),
+										'<a href="' . esc_url( waie_fs()->get_upgrade_url() ) . '" target="_blank">' . esc_html__( 'Upgrade now', 'wp-advanced-import-export' ) . '</a>'
+									);
+									?>
+								</p>
+							<?php endif; ?>
 						</td>
 					</tr>
 				</table>
@@ -382,6 +370,11 @@ $base_dir   = $upload_dir['basedir'];
 			</div>
 
 			<div class="aie-modal-body">
+				<p class="description" style="margin-bottom: 15px; padding: 8px 12px; background: #f0f0f1; border-left: 3px solid #2271b1;">
+					<span class="dashicons dashicons-info" style="color: #2271b1;"></span>
+					<?php esc_html_e( 'Click to select a folder, double-click to open it.', 'wp-advanced-import-export' ); ?>
+				</p>
+
 				<div class="aie-folder-browser-path">
 					<span class="dashicons dashicons-admin-home"></span>
 					<span id="aie-current-path"><?php echo esc_html( $base_dir ); ?></span>

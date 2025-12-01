@@ -10,6 +10,7 @@ const MediaSyncModule = {
 	jobId: null,
 	progressInterval: null,
 	scannedFiles: [],
+	isPaused: false,
 
 	/**
 	 * Initialize module
@@ -65,7 +66,11 @@ const MediaSyncModule = {
 		// Pause sync
 		$page.on( 'click', '#aie-pause-sync-btn', ( e ) => {
 			e.preventDefault();
-			this.pauseSync();
+			if ( this.isPaused ) {
+				this.resumeSync();
+			} else {
+				this.pauseSync();
+			}
 		} );
 
 		// Cancel sync
@@ -176,11 +181,11 @@ const MediaSyncModule = {
 
 		jQuery
 			.ajax( {
-				url: aieData.ajaxUrl,
+				url: window.aieData?.ajaxUrl || window.ajaxurl,
 				method: 'POST',
 				data: {
 					action: 'aie_scan_folder',
-					nonce: aieData.nonce,
+					nonce: window.aieData?.nonce || '',
 					folder_path: folderPath,
 					options: options,
 				},
@@ -188,14 +193,25 @@ const MediaSyncModule = {
 			.done( ( response ) => {
 				if ( response.success ) {
 					this.scannedFiles = response.data.files || [];
-					this.displayFiles( this.scannedFiles );
-					Utils.showNotice(
-						`Found ${ this.scannedFiles.length } files`,
-						'success'
-					);
-
-					// Show sync options
-					jQuery( '#aie-sync-options' ).slideDown();
+					
+					if ( this.scannedFiles.length === 0 ) {
+						// Show empty state message
+						this.showEmptyState();
+						Utils.showNotice(
+							'No files found matching the criteria',
+							'info'
+						);
+					} else {
+						// Show summary instead of file list
+						this.displayScanSummary( this.scannedFiles );
+						Utils.showNotice(
+							`Found ${ this.scannedFiles.length } files ready to sync`,
+							'success'
+						);
+						
+						// Show sync options
+						jQuery( '#aie-sync-options' ).slideDown();
+					}
 				} else {
 					Utils.showNotice(
 						response.data?.message || 'Scan failed',
@@ -216,7 +232,90 @@ const MediaSyncModule = {
 	},
 
 	/**
-	 * Display scanned files
+	 * Show empty state when no files found
+	 */
+	showEmptyState() {
+		const $list = jQuery( '#aie-file-list' );
+		$list.html( `
+			<div class="aie-empty-state">
+				<span class="dashicons dashicons-search"></span>
+				<h3>No Files Found</h3>
+				<p>No files matching your criteria were found in the selected folder.</p>
+				<div class="aie-empty-suggestions">
+					<strong>Suggestions:</strong>
+					<ul>
+						<li>Check if the folder path is correct</li>
+						<li>Try enabling "Scan Recursive" to search in subfolders</li>
+						<li>Change the file type filter</li>
+						<li>Make sure the folder contains supported media files</li>
+					</ul>
+				</div>
+			</div>
+		` );
+		
+		// Show scan results section but hide stats
+		jQuery( '#aie-scan-results .aie-scan-stats' ).hide();
+		jQuery( '#aie-scan-results' ).slideDown();
+		
+		// Hide sync options
+		jQuery( '#aie-sync-options' ).hide();
+	},
+
+	/**
+	 * Display scan summary (instead of full file list)
+	 */
+	displayScanSummary( files ) {
+		if ( ! files || files.length === 0 ) {
+			jQuery( '#aie-scan-results' ).hide();
+			return;
+		}
+
+		let totalSize = 0;
+		const fileTypes = {};
+
+		files.forEach( ( file ) => {
+			totalSize += file.size || 0;
+			
+			// Count file types
+			const ext = file.name.split( '.' ).pop().toLowerCase();
+			fileTypes[ ext ] = ( fileTypes[ ext ] || 0 ) + 1;
+		} );
+
+		// Display summary
+		const $list = jQuery( '#aie-file-list' );
+		$list.html( `
+			<div class="aie-scan-summary">
+				<div class="aie-summary-icon">
+					<span class="dashicons dashicons-yes-alt"></span>
+				</div>
+				<div class="aie-summary-content">
+					<h3>Scan Complete</h3>
+					<p>Found <strong>${ files.length } files</strong> ready for synchronization (Total: <strong>${ Utils.formatBytes( totalSize ) }</strong>)</p>
+					<div class="aie-file-types">
+						<strong>File Types:</strong>
+						${ Object.entries( fileTypes ).map( ( [ ext, count ] ) => 
+							`<span class="aie-type-badge">${ ext.toUpperCase() } (${ count })</span>`
+						).join( '' ) }
+					</div>
+					<p class="aie-summary-note">
+						<span class="dashicons dashicons-info"></span>
+						All files will be processed in batches. Click "Start Sync" below to begin.
+					</p>
+				</div>
+			</div>
+		` );
+
+		// Update stats
+		jQuery( '#aie-total-files' ).text( files.length );
+		jQuery( '#aie-total-size' ).text( Utils.formatBytes( totalSize ) );
+		
+		// Show stats and scan results
+		jQuery( '#aie-scan-results .aie-scan-stats' ).show();
+		jQuery( '#aie-scan-results' ).slideDown();
+	},
+
+	/**
+	 * Display scanned files (old method - keeping for compatibility)
 	 */
 	displayFiles( files ) {
 		const $list = jQuery( '#aie-file-list' );
@@ -255,6 +354,9 @@ const MediaSyncModule = {
 		// Update stats
 		jQuery( '#aie-total-files' ).text( files.length );
 		jQuery( '#aie-total-size' ).text( Utils.formatBytes( totalSize ) );
+		
+		// Show stats and scan results
+		jQuery( '#aie-scan-results .aie-scan-stats' ).show();
 		jQuery( '#aie-scan-results' ).slideDown();
 
 		this.updateSelectedCount();
@@ -311,9 +413,10 @@ const MediaSyncModule = {
 	 */
 	getSelectedFiles() {
 		const files = [];
+		const self = this;
 		jQuery( '.aie-file-checkbox:checked' ).each( function () {
 			const path = jQuery( this ).val();
-			const fileData = MediaSyncModule.scannedFiles.find(
+			const fileData = self.scannedFiles.find(
 				( f ) => f.path === path
 			);
 			if ( fileData ) {
@@ -327,17 +430,15 @@ const MediaSyncModule = {
 	 * Get sync options
 	 */
 	getOptions() {
+		const fileOperation = jQuery( '#aie-copy-files' ).val();
+		
 		return {
 			duplicate_check: jQuery( '#aie-duplicate-check' ).val(),
 			duplicate_handling: jQuery( '#aie-duplicate-handling' ).val(),
-			copy_files: jQuery( '#aie-copy-files' ).val() === 'copy',
-			preserve_structure: jQuery( '#aie-preserve-structure' ).is(
-				':checked'
-			),
-			generate_thumbnails: jQuery( '#aie-generate-thumbnails' ).is(
-				':checked'
-			),
-			post_id: parseInt( jQuery( '#aie-assign-to-post' ).val() ) || 0,
+			file_operation: fileOperation,
+			copy_files: fileOperation === 'copy',
+			generate_thumbnails: true, // Always generate thumbnails
+			rml_integration: jQuery( '#aie-rml-integration' ).is( ':checked' ),
 		};
 	},
 
@@ -345,26 +446,49 @@ const MediaSyncModule = {
 	 * Start media sync
 	 */
 	startSync() {
-		const files = this.getSelectedFiles();
-
-		if ( files.length === 0 ) {
-			Utils.showNotice( 'Please select at least one file', 'error' );
+		if ( ! this.scannedFiles || this.scannedFiles.length === 0 ) {
+			Utils.showNotice( 'No files to sync. Please scan a folder first.', 'error' );
 			return;
 		}
 
-		const options = this.getOptions();
+		const folderPath = jQuery( '#aie-folder-path' ).val().trim();
+		
+		if ( ! folderPath ) {
+			Utils.showNotice( 'Invalid folder path', 'error' );
+			return;
+		}
 
-		jQuery( '#aie-start-sync-btn' ).prop( 'disabled', true );
+		// Get scan options (for filtering on backend)
+		const scanOptions = {
+			recursive: jQuery( '#aie-scan-recursive' ).is( ':checked' ),
+			file_types: jQuery( '#aie-file-types' ).val(),
+		};
+		
+		if ( scanOptions.file_types === 'custom' ) {
+			scanOptions.custom_types = jQuery( '#aie-custom-extensions-input' )
+				.val()
+				.split( ',' )
+				.map( ( ext ) => ext.trim() )
+				.filter( ( ext ) => ext );
+		}
+
+		const syncOptions = this.getOptions();
+
+		// Disable button and show loading state
+		const $btn = jQuery( '#aie-start-sync-btn' );
+		const originalText = $btn.html();
+		$btn.prop( 'disabled', true ).html( '<span class="dashicons dashicons-update aie-spin"></span> Starting...' );
 
 		jQuery
 			.ajax( {
-				url: aieData.ajaxUrl,
+				url: window.aieData?.ajaxUrl || window.ajaxurl,
 				method: 'POST',
 				data: {
 					action: 'aie_start_media_sync',
-					nonce: aieData.nonce,
-					files: files,
-					options: options,
+					nonce: window.aieData?.nonce || '',
+					folder_path: folderPath,
+					scan_options: scanOptions,
+					sync_options: syncOptions,
 				},
 			} )
 			.done( ( response ) => {
@@ -374,10 +498,15 @@ const MediaSyncModule = {
 					// Hide scan and options sections
 					jQuery( '.aie-scan-section, .aie-options-section' ).slideUp();
 
-					// Show progress section
+					// Show progress section immediately
 					jQuery( '#aie-sync-progress-section' ).slideDown();
+					
+					// Set initial state to show UI is ready
+					jQuery( '#aie-progress-fill' ).css( 'width', '0%' );
+					jQuery( '#aie-progress-percentage' ).text( '0%' );
+					jQuery( '#aie-sync-status' ).text( 'Processing...' );
 
-					// Start tracking progress
+					// Start tracking progress immediately (first batch already processed by server)
 					this.startProgressTracking();
 
 					Utils.showNotice( 'Synchronization started', 'success' );
@@ -386,12 +515,12 @@ const MediaSyncModule = {
 						response.data?.message || 'Failed to start sync',
 						'error'
 					);
-					jQuery( '#aie-start-sync-btn' ).prop( 'disabled', false );
+					$btn.prop( 'disabled', false ).html( originalText );
 				}
 			} )
 			.fail( () => {
 				Utils.showNotice( 'Request failed', 'error' );
-				jQuery( '#aie-start-sync-btn' ).prop( 'disabled', false );
+				$btn.prop( 'disabled', false ).html( originalText );
 			} );
 	},
 
@@ -413,17 +542,26 @@ const MediaSyncModule = {
 	 */
 	checkProgress() {
 		jQuery.ajax( {
-			url: aieData.ajaxUrl,
+			url: window.aieData?.ajaxUrl || window.ajaxurl,
 			method: 'POST',
 			data: {
 				action: 'aie_get_sync_progress',
-				nonce: aieData.nonce,
+				nonce: window.aieData?.nonce || '',
 				job_id: this.jobId,
 			},
 		} ).done( ( response ) => {
-			if ( response.success ) {
+			console.log( '=== Progress Response ===', response );
+			if ( response.success && response.data ) {
+				console.log( '  Status:', response.data.status );
+				console.log( '  Progress:', response.data.progress );
+				console.log( '  Result (raw):', response.data.result );
+				console.log( '  Result type:', typeof response.data.result );
 				this.updateProgress( response.data );
+			} else {
+				console.error( 'Progress error:', response );
 			}
+		} ).fail( ( xhr, status, error ) => {
+			console.error( 'Progress AJAX failed:', status, error );
 		} );
 	},
 
@@ -431,29 +569,78 @@ const MediaSyncModule = {
 	 * Update progress UI
 	 */
 	updateProgress( data ) {
-		const progress = data.progress || 0;
+		console.log( '=== Update Progress Called ===' );
+		console.log( '  Raw data:', data );
+		
+		// Parse progress as integer (remove decimals)
+		const progress = Math.round( parseFloat( data.progress ) || 0 );
 		const status = data.status || 'processing';
+		
+		console.log( '  Parsed progress:', progress );
+		console.log( '  Status:', status );
 
 		// Update progress bar
 		jQuery( '#aie-progress-fill' ).css( 'width', progress + '%' );
 		jQuery( '#aie-progress-percentage' ).text( progress + '%' );
 
-		// Update stats
-		const result = data.result || {};
-		jQuery( '#aie-stat-processed' ).text( result.processed || 0 );
-		jQuery( '#aie-stat-success' ).text( result.success || 0 );
-		jQuery( '#aie-stat-skipped' ).text( result.skipped || 0 );
-		jQuery( '#aie-stat-failed' ).text( result.failed || 0 );
+		// Update stats - handle both object and null
+		let result = data.result;
+		
+		console.log( '  Result (before parse):', result );
+		console.log( '  Result type:', typeof result );
+		
+		// If result is a string, try to parse it
+		if ( typeof result === 'string' ) {
+			try {
+				result = JSON.parse( result );
+				console.log( '  Result after JSON.parse:', result );
+			} catch ( e ) {
+				console.error( '  Failed to parse result:', result, e );
+				result = {};
+			}
+		}
+		
+		// Ensure result is an object
+		result = result || {};
+		
+		console.log( '  Final result object:', result );
+		console.log( '  Processed:', result.processed );
+		console.log( '  Success:', result.success );
+		console.log( '  Skipped:', result.skipped );
+		console.log( '  Failed:', result.failed );
 
-		// Update status text
+		// Update stats with explicit checks
+		// Show 0 if undefined (processing hasn't generated results yet)
+		const processed = result.processed !== undefined ? result.processed : 0;
+		const success = result.success !== undefined ? result.success : 0;
+		const skipped = result.skipped !== undefined ? result.skipped : 0;
+		const failed = result.failed !== undefined ? result.failed : 0;
+		
+		console.log( '  Setting values:', { processed, success, skipped, failed } );
+		
+		jQuery( '#aie-stat-processed' ).text( processed );
+		jQuery( '#aie-stat-success' ).text( success );
+		jQuery( '#aie-stat-skipped' ).text( skipped );
+		jQuery( '#aie-stat-failed' ).text( failed );
+		
+		console.log( '  DOM updated' );
+
+		// Update status text (fix selector - was #aie-progress-status, should be #aie-sync-status)
 		const statusTexts = {
-			pending: 'Waiting to start...',
-			processing: 'Processing files...',
+			pending: 'Starting...',
+			processing: 'Synchronization in Progress',
 			completed: 'Completed',
 			failed: 'Failed',
 			cancelled: 'Cancelled',
+			paused: 'Paused',
 		};
-		jQuery( '#aie-progress-status' ).text( statusTexts[ status ] );
+		
+		const statusText = statusTexts[ status ] || 'Processing...';
+		console.log( '  Setting status text:', statusText );
+		
+		// Update both possible selectors to be safe
+		jQuery( '#aie-sync-status' ).text( statusText );
+		jQuery( '#aie-progress-status' ).text( statusText );
 
 		// Show errors if any
 		if ( result.errors && result.errors.length > 0 ) {
@@ -499,15 +686,78 @@ const MediaSyncModule = {
 		// Show completion section
 		jQuery( '#aie-sync-completion' ).slideDown();
 
-		const result = data.result || {};
-		const message = `
-			Successfully processed ${ result.processed || 0 } files:
-			<strong>${ result.success || 0 }</strong> imported,
-			<strong>${ result.skipped || 0 }</strong> skipped,
-			<strong>${ result.failed || 0 }</strong> failed.
-		`;
+		// Parse result if needed
+		let result = data.result;
+		if ( typeof result === 'string' ) {
+			try {
+				result = JSON.parse( result );
+			} catch ( e ) {
+				result = {};
+			}
+		}
+		result = result || {};
+		
+		// Get stats
+		const processed = result.processed || 0;
+		const success = result.success || 0;
+		const skipped = result.skipped || 0;
+		const failed = result.failed || 0;
 
-		jQuery( '#aie-completion-message' ).html( message );
+		// Create beautiful completion message
+		let messageHtml = '';
+		
+		if ( data.status === 'completed' ) {
+			// Success message with emoji and stats
+			messageHtml = `
+				<div style="text-align: center; padding: 20px;">
+					<div style="font-size: 64px; margin-bottom: 15px;">🎉</div>
+					<h3 style="color: #00a32a; margin: 0 0 15px; font-size: 24px;">Synchronization Complete!</h3>
+					<p style="font-size: 16px; color: #1d2327; margin-bottom: 20px;">
+						Successfully processed <strong>${ processed }</strong> file${ processed !== 1 ? 's' : '' }
+					</p>
+					<div style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap;">
+						<div style="text-align: center;">
+							<div style="font-size: 32px; color: #00a32a; font-weight: 600;">${ success }</div>
+							<div style="font-size: 12px; color: #646970; text-transform: uppercase;">✅ Imported</div>
+						</div>
+						${ skipped > 0 ? `
+						<div style="text-align: center;">
+							<div style="font-size: 32px; color: #dba617; font-weight: 600;">${ skipped }</div>
+							<div style="font-size: 12px; color: #646970; text-transform: uppercase;">⏭️ Skipped</div>
+						</div>
+						` : '' }
+						${ failed > 0 ? `
+						<div style="text-align: center;">
+							<div style="font-size: 32px; color: #d63638; font-weight: 600;">${ failed }</div>
+							<div style="font-size: 12px; color: #646970; text-transform: uppercase;">❌ Failed</div>
+						</div>
+						` : '' }
+					</div>
+				</div>
+			`;
+		} else if ( data.status === 'failed' ) {
+			messageHtml = `
+				<div style="text-align: center; padding: 20px;">
+					<div style="font-size: 64px; margin-bottom: 15px;">⚠️</div>
+					<h3 style="color: #d63638; margin: 0 0 15px; font-size: 24px;">Synchronization Failed</h3>
+					<p style="font-size: 16px; color: #646970;">
+						The synchronization process encountered an error and could not complete.
+					</p>
+				</div>
+			`;
+		} else if ( data.status === 'cancelled' ) {
+			messageHtml = `
+				<div style="text-align: center; padding: 20px;">
+					<div style="font-size: 64px; margin-bottom: 15px;">🛑</div>
+					<h3 style="color: #dba617; margin: 0 0 15px; font-size: 24px;">Synchronization Cancelled</h3>
+					<p style="font-size: 16px; color: #646970;">
+						Processed <strong>${ processed }</strong> file${ processed !== 1 ? 's' : '' } before cancellation.
+					</p>
+				</div>
+			`;
+		}
+
+		jQuery( '#aie-completion-message' ).html( messageHtml );
 	},
 
 	/**
@@ -515,17 +765,57 @@ const MediaSyncModule = {
 	 */
 	pauseSync() {
 		jQuery.ajax( {
-			url: aieData.ajaxUrl,
+			url: window.aieData?.ajaxUrl || window.ajaxurl,
 			method: 'POST',
 			data: {
 				action: 'aie_pause_media_sync',
-				nonce: aieData.nonce,
+				nonce: window.aieData?.nonce || '',
 				job_id: this.jobId,
 			},
 		} ).done( ( response ) => {
 			if ( response.success ) {
+				this.isPaused = true;
 				clearInterval( this.progressInterval );
+				
+				// Update UI
+				const $header = jQuery( '#aie-sync-progress-section .aie-card-header h2' );
+				$header.html( '<span class="dashicons dashicons-controls-pause"></span> Synchronization Paused' );
+				
+				const $pauseBtn = jQuery( '#aie-pause-sync-btn' );
+				$pauseBtn.html( '<span class="dashicons dashicons-controls-play"></span> Resume' );
+				
 				Utils.showNotice( 'Sync paused', 'info' );
+			}
+		} );
+	},
+
+	/**
+	 * Resume sync
+	 */
+	resumeSync() {
+		jQuery.ajax( {
+			url: window.aieData?.ajaxUrl || window.ajaxurl,
+			method: 'POST',
+			data: {
+				action: 'aie_resume_media_sync',
+				nonce: window.aieData?.nonce || '',
+				job_id: this.jobId,
+			},
+		} ).done( ( response ) => {
+			if ( response.success ) {
+				this.isPaused = false;
+				
+				// Update UI
+				const $header = jQuery( '#aie-sync-progress-section .aie-card-header h2' );
+				$header.html( '<span class="dashicons dashicons-update aie-spin"></span> Synchronization in Progress' );
+				
+				const $pauseBtn = jQuery( '#aie-pause-sync-btn' );
+				$pauseBtn.html( '<span class="dashicons dashicons-controls-pause"></span> Pause' );
+				
+				// Restart progress monitoring
+				this.startProgressMonitoring();
+				
+				Utils.showNotice( 'Sync resumed', 'success' );
 			}
 		} );
 	},
@@ -543,11 +833,11 @@ const MediaSyncModule = {
 		}
 
 		jQuery.ajax( {
-			url: aieData.ajaxUrl,
+			url: window.aieData?.ajaxUrl || window.ajaxurl,
 			method: 'POST',
 			data: {
 				action: 'aie_cancel_media_sync',
-				nonce: aieData.nonce,
+				nonce: window.aieData?.nonce || '',
 				job_id: this.jobId,
 			},
 		} ).done( ( response ) => {
@@ -579,10 +869,19 @@ const MediaSyncModule = {
 		// Reset data
 		this.jobId = null;
 		this.scannedFiles = [];
+		this.isPaused = false;
 
 		if ( this.progressInterval ) {
 			clearInterval( this.progressInterval );
 		}
+		
+		// Reset pause button to default state
+		const $pauseBtn = jQuery( '#aie-pause-sync-btn' );
+		$pauseBtn.html( '<span class="dashicons dashicons-controls-pause"></span> Pause' );
+		
+		// Reset header to default state
+		const $header = jQuery( '#aie-sync-progress-section .aie-card-header h2' );
+		$header.html( '<span class="dashicons dashicons-update aie-spin"></span> Synchronization in Progress' );
 	},
 
 	/**
@@ -605,7 +904,10 @@ const MediaSyncModule = {
 	openFolderBrowser() {
 		jQuery( '#aie-folder-browser-modal' ).fadeIn( 200 );
 		jQuery( 'body' ).addClass( 'aie-modal-open' );
-		this.browseFolders( '' ); // Load root uploads directory
+		
+		// Load current folder from input or start from root
+		const currentFolder = jQuery( '#aie-folder-path' ).val().trim();
+		this.browseFolders( currentFolder ); // Load current or root uploads directory
 	},
 
 	/**
@@ -614,7 +916,7 @@ const MediaSyncModule = {
 	closeFolderBrowser() {
 		jQuery( '#aie-folder-browser-modal' ).fadeOut( 200 );
 		jQuery( 'body' ).removeClass( 'aie-modal-open' );
-		jQuery( '#aie-selected-folder-path' ).val( '' );
+		// Don't clear selected path - it's just a temporary selection within modal
 		jQuery( '#aie-choose-folder-btn' ).prop( 'disabled', true );
 		jQuery( '.aie-folder-item' ).removeClass( 'selected' );
 	},
@@ -726,16 +1028,22 @@ const MediaSyncModule = {
 
 		$list.empty();
 
-		// Update current path display
-		const uploadDir = $currentPath.text().split( '/' );
-		const baseDir = uploadDir.slice( 0, -1 ).join( '/' ) || uploadDir[ 0 ];
+		// Store base uploads directory path once
+		if ( ! $currentPath.data( 'base-dir' ) ) {
+			const basePath = $currentPath.text().trim();
+			$currentPath.data( 'base-dir', basePath );
+		}
+
+		const baseDir = $currentPath.data( 'base-dir' );
 		
+		// Update current path display
 		if ( currentPath ) {
 			$currentPath.text( baseDir + '/' + currentPath );
 		} else {
 			$currentPath.text( baseDir );
 		}
 		
+		// Store current relative path for navigation
 		$currentPath.data( 'relative-path', currentPath );
 
 		// Show/hide up button
