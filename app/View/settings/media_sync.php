@@ -218,6 +218,20 @@ $base_dir   = $upload_dir['basedir'];
 
 					<tr>
 						<th scope="row">
+							<label for="aie-batch-size">
+								<?php esc_html_e( 'Batch Size', 'wp-advanced-import-export' ); ?>
+							</label>
+						</th>
+						<td>
+							<input type="number" id="aie-batch-size" class="small-text" value="3" min="1" max="100" step="1">
+							<p class="description">
+								<?php esc_html_e( 'Number of files to process per batch. Lower values show more progress updates but take longer.', 'wp-advanced-import-export' ); ?>
+							</p>
+						</td>
+					</tr>
+
+					<tr>
+						<th scope="row">
 							<label for="aie-rml-integration">
 								<?php esc_html_e( 'Real Media Library', 'wp-advanced-import-export' ); ?>
 								<?php if ( ! waie_fs()->can_use_premium_code() ) : ?>

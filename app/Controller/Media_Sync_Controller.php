@@ -142,9 +142,16 @@ class Media_Sync_Controller extends Base_Controller {
 		// Also try async via wp_remote_post as backup
 		$this->trigger_async_processing( $job_id );
 
+		// Get updated job data after first batch
+		$updated_job = $job->find( $job_id );
+		$result      = isset( $updated_job->result ) ? $updated_job->result : null;
+
 		$response_data = [
 			'job_id'      => $job_id,
 			'folder_path' => $folder_path,
+			'progress'    => $updated_job->progress ?? 0,
+			'status'      => $updated_job->status ?? 'processing',
+			'result'      => $result ? json_decode( $result, true ) : null,
 		];
 
 		$this->send_success(
@@ -221,7 +228,11 @@ class Media_Sync_Controller extends Base_Controller {
 		$job = new Job();
 		$job->update( $job_id, [ 'status' => 'processing' ] );
 
-		// Resume processing via WP Cron
+		// Process next batch synchronously to show immediate progress
+		$processor = new Media_Sync_Processor();
+		$processor->process( $job_id );
+
+		// Schedule remaining batches via WP Cron for background processing
 		if ( ! wp_next_scheduled( 'aie_process_media_sync_job', array( $job_id ) ) ) {
 			wp_schedule_single_event( time(), 'aie_process_media_sync_job', array( $job_id ) );
 		}
@@ -242,7 +253,19 @@ class Media_Sync_Controller extends Base_Controller {
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
 		$job = new Job();
+
+		// Update status to cancelled
 		$job->update( $job_id, [ 'status' => 'cancelled' ] );
+
+		// Clear any scheduled cron events for this job
+		$timestamp = wp_next_scheduled( 'aie_process_media_sync_job', array( $job_id ) );
+		if ( $timestamp ) {
+			wp_unschedule_event( $timestamp, 'aie_process_media_sync_job', array( $job_id ) );
+		}
+
+		// Optionally delete the job record to clean up
+		// Uncomment if you want to remove cancelled jobs completely:
+		// $job->delete( $job_id );
 
 		$this->send_success();
 	}

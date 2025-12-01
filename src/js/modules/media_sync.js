@@ -147,6 +147,13 @@ const MediaSyncModule = {
 	 * Scan folder for media files
 	 */
 	scanFolder() {
+		// Reset any previous sync state
+		this.jobId = null;
+		this.isPaused = false;
+		
+		// Hide progress and completion sections if they were visible
+		jQuery( '#aie-sync-progress-section, #aie-sync-completion' ).hide();
+		
 		let folderPath = jQuery( '#aie-folder-path' ).val().trim();
 
 		if ( ! folderPath ) {
@@ -431,6 +438,7 @@ const MediaSyncModule = {
 	 */
 	getOptions() {
 		const fileOperation = jQuery( '#aie-copy-files' ).val();
+		const batchSize = parseInt( jQuery( '#aie-batch-size' ).val() ) || 3;
 		
 		return {
 			duplicate_check: jQuery( '#aie-duplicate-check' ).val(),
@@ -439,6 +447,7 @@ const MediaSyncModule = {
 			copy_files: fileOperation === 'copy',
 			generate_thumbnails: true, // Always generate thumbnails
 			rml_integration: jQuery( '#aie-rml-integration' ).is( ':checked' ),
+			batch_size: batchSize,
 		};
 	},
 
@@ -451,6 +460,15 @@ const MediaSyncModule = {
 			return;
 		}
 
+		// Clear any previous progress interval
+		if ( this.progressInterval ) {
+			clearInterval( this.progressInterval );
+			this.progressInterval = null;
+		}
+
+		// Reset state
+		this.isPaused = false;
+		
 		const folderPath = jQuery( '#aie-folder-path' ).val().trim();
 		
 		if ( ! folderPath ) {
@@ -501,9 +519,21 @@ const MediaSyncModule = {
 					// Show progress section immediately
 					jQuery( '#aie-sync-progress-section' ).slideDown();
 					
-					// Set initial state to show UI is ready
-					jQuery( '#aie-progress-fill' ).css( 'width', '0%' );
-					jQuery( '#aie-progress-percentage' ).text( '0%' );
+					// Update progress with data from first batch (if available)
+					if ( response.data.progress !== undefined ) {
+						const progress = Math.round( parseFloat( response.data.progress ) || 0 );
+						jQuery( '#aie-progress-fill' ).css( 'width', progress + '%' );
+						jQuery( '#aie-progress-percentage' ).text( progress + '%' );
+						
+						// Update stats if available
+						if ( response.data.result ) {
+							this.updateStats( response.data.result );
+						}
+					} else {
+						jQuery( '#aie-progress-fill' ).css( 'width', '0%' );
+						jQuery( '#aie-progress-percentage' ).text( '0%' );
+					}
+					
 					jQuery( '#aie-sync-status' ).text( 'Processing...' );
 
 					// Start tracking progress immediately (first batch already processed by server)
@@ -563,6 +593,32 @@ const MediaSyncModule = {
 		} ).fail( ( xhr, status, error ) => {
 			console.error( 'Progress AJAX failed:', status, error );
 		} );
+	},
+
+	/**
+	 * Update stats only (helper method)
+	 */
+	updateStats( result ) {
+		// Ensure result is an object
+		if ( typeof result === 'string' ) {
+			try {
+				result = JSON.parse( result );
+			} catch ( e ) {
+				result = {};
+			}
+		}
+		
+		result = result || {};
+		
+		const processed = result.processed !== undefined ? result.processed : 0;
+		const success = result.success !== undefined ? result.success : 0;
+		const skipped = result.skipped !== undefined ? result.skipped : 0;
+		const failed = result.failed !== undefined ? result.failed : 0;
+		
+		jQuery( '#aie-stat-processed' ).text( processed );
+		jQuery( '#aie-stat-success' ).text( success );
+		jQuery( '#aie-stat-skipped' ).text( skipped );
+		jQuery( '#aie-stat-failed' ).text( failed );
 	},
 
 	/**
@@ -781,6 +837,10 @@ const MediaSyncModule = {
 				const $header = jQuery( '#aie-sync-progress-section .aie-card-header h2' );
 				$header.html( '<span class="dashicons dashicons-controls-pause"></span> Synchronization Paused' );
 				
+				// Update status text
+				jQuery( '#aie-progress-status' ).text( 'Paused' );
+				jQuery( '#aie-sync-status' ).text( 'Paused' );
+				
 				const $pauseBtn = jQuery( '#aie-pause-sync-btn' );
 				$pauseBtn.html( '<span class="dashicons dashicons-controls-play"></span> Resume' );
 				
@@ -809,11 +869,15 @@ const MediaSyncModule = {
 				const $header = jQuery( '#aie-sync-progress-section .aie-card-header h2' );
 				$header.html( '<span class="dashicons dashicons-update aie-spin"></span> Synchronization in Progress' );
 				
+				// Update status text
+				jQuery( '#aie-progress-status' ).text( 'Synchronization in Progress' );
+				jQuery( '#aie-sync-status' ).text( 'Synchronization in Progress' );
+				
 				const $pauseBtn = jQuery( '#aie-pause-sync-btn' );
 				$pauseBtn.html( '<span class="dashicons dashicons-controls-pause"></span> Pause' );
 				
 				// Restart progress monitoring
-				this.startProgressMonitoring();
+				this.startProgressTracking();
 				
 				Utils.showNotice( 'Sync resumed', 'success' );
 			}
@@ -864,7 +928,23 @@ const MediaSyncModule = {
 		// Reset form
 		jQuery( '#aie-folder-path' ).val( '' );
 		jQuery( '#aie-file-list' ).empty();
-		jQuery( '#aie-start-sync-btn' ).prop( 'disabled', false );
+		
+		// Reset Start button
+		const $startBtn = jQuery( '#aie-start-sync-btn' );
+		$startBtn.prop( 'disabled', false );
+		$startBtn.html( '<span class="dashicons dashicons-controls-play"></span> Start Sync' );
+		
+		// Reset Scan button
+		const $scanBtn = jQuery( '#aie-scan-folder-btn' );
+		$scanBtn.prop( 'disabled', false ).text( 'Scan Folder' );
+
+		// Reset progress bar and stats
+		jQuery( '#aie-progress-fill' ).css( 'width', '0%' );
+		jQuery( '#aie-progress-percentage' ).text( '0%' );
+		jQuery( '#aie-stat-processed' ).text( '0' );
+		jQuery( '#aie-stat-success' ).text( '0' );
+		jQuery( '#aie-stat-skipped' ).text( '0' );
+		jQuery( '#aie-stat-failed' ).text( '0' );
 
 		// Reset data
 		this.jobId = null;
