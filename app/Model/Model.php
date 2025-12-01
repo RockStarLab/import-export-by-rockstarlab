@@ -186,6 +186,12 @@ abstract class Model {
 			$values[]     = $value;
 		}
 
+		if ( empty( $conditions ) ) {
+			// No WHERE conditions, return total count
+			$query = "SELECT COUNT(*) FROM {$table}";
+			return (int) $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
+
 		$where_clause = implode( ' AND ', $conditions );
 		$query        = $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE {$where_clause}", $values );
 

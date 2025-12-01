@@ -350,6 +350,16 @@ const Utils = {
 		const message = error.message || error.toString();
 		this.showNotice( message, 'error' );
 	},
+
+	/**
+	 * Format bytes (alias for formatFileSize)
+	 *
+	 * @param {number} bytes File size in bytes
+	 * @returns {string} Formatted size
+	 */
+	formatBytes( bytes ) {
+		return this.formatFileSize( bytes );
+	},
 };
 
 export default Utils;

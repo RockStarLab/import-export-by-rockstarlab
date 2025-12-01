@@ -142,11 +142,11 @@ class Background_Processor {
 				$result = $this->process_import_job( $job_id, $parameters );
 			} elseif ( 'export' === $job['type'] ) {
 				$result = $this->process_export_job( $job_id, $parameters );
+			} elseif ( 'media_sync' === $job['type'] ) {
+				$result = $this->process_media_sync_job( $job_id, $parameters );
 			} else {
 				throw new \Exception( 'Invalid job type: ' . $job['type'] );
-			}
-
-			// Check if completed or needs to continue
+			}           // Check if completed or needs to continue
 			if ( $result['completed'] ) {
 				$this->complete_job( $job_id, $result );
 			} else {
@@ -407,6 +407,18 @@ class Background_Processor {
 				)
 			);
 		}
+	}
+
+	/**
+	 * Process media sync job
+	 *
+	 * @param int   $job_id Job ID
+	 * @param array $parameters Job parameters
+	 * @return array Processing result
+	 */
+	protected function process_media_sync_job( $job_id, $parameters ) {
+		$processor = new Media_Sync_Processor();
+		return $processor->process( $job_id );
 	}
 
 	/**
