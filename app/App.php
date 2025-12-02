@@ -63,6 +63,9 @@ class App {
 			\WP_AIE\Helper\Database_Migration::create_tables();
 		}
 
+		// Initialize Media Hash helper to add MD5 hashes to all uploads
+		\WP_AIE\Helper\Media_Hash::init();
+
 		// Load core classes
 		$this->_dispatch();
 	}

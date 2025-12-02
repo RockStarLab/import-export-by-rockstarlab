@@ -17,13 +17,7 @@ use WP_AIE\Model\Job;
 /**
  * Media Sync Processor Class
  *
-	foreach ( $files as $file ) {
-		++$results['processed'];
-
-		// Add small delay for testing (remove in production)
-		usleep( 500000 ); // 0.5 seconds per file
-
-		try {andles background processing of media sync jobs
+ * Handles background processing of media sync jobs
  *
  * @package WP_AIE\Model\Queue
  */
@@ -187,8 +181,8 @@ class Media_Sync_Processor {
 			$chunk = array_slice( $all_files, $offset, $chunk_size );
 
 			if ( empty( $chunk ) ) {
-				// All files processed
-				return $this->complete_job( $job_id, $processed_count );
+				// All files processed - use cumulative results from job
+				return $this->complete_job( $job_id, $processed_count, $cumulative_result );
 			}
 
 			$this->logger->log(
@@ -247,8 +241,12 @@ class Media_Sync_Processor {
 
 			// Check if completed
 			if ( $new_offset >= $total_files ) {
+				error_log( sprintf( '[Media Sync] Job #%d COMPLETING: new_offset=%d >= total_files=%d', $job_id, $new_offset, $total_files ) );
 				return $this->complete_job( $job_id, $new_offset, $cumulative_result );
 			}
+
+			// Not completed yet - need to process more batches
+			error_log( sprintf( '[Media Sync] Job #%d NOT COMPLETE: new_offset=%d < total_files=%d, will return completed=false', $job_id, $new_offset, $total_files ) );
 
 			// Update job settings with new offset
 			$settings['offset']          = $new_offset;
@@ -285,6 +283,8 @@ class Media_Sync_Processor {
 					$cumulative_result['failed']
 				)
 			);
+
+			error_log( sprintf( '[Media Sync] Job #%d returning completed=false, offset=%d, progress=%d%%', $job_id, $new_offset, $progress ) );
 
 			return array(
 				'completed' => false,
@@ -460,25 +460,21 @@ class Media_Sync_Processor {
 	 *
 	 * @param int   $job_id Job ID
 	 * @param int   $processed Total files processed
-	 * @param array $result Last batch result
+	 * @param array $result Cumulative result (already includes all batches)
 	 * @return array Completion result
 	 */
 	protected function complete_job( $job_id, $processed, $result = null ) {
-		// Get accumulated results from job
-		$job          = $this->job_model->find( $job_id );
-		$current_data = json_decode( $job->result, true );
-
-		// Merge with final result
-		$final_result = array(
+		// Use cumulative result passed from process() - it already contains all accumulated data
+		$final_result = $result ?? array(
 			'processed' => $processed,
-			'success'   => ( $current_data['success'] ?? 0 ) + ( $result['success'] ?? 0 ),
-			'skipped'   => ( $current_data['skipped'] ?? 0 ) + ( $result['skipped'] ?? 0 ),
-			'failed'    => ( $current_data['failed'] ?? 0 ) + ( $result['failed'] ?? 0 ),
-			'errors'    => array_merge(
-				$current_data['errors'] ?? array(),
-				$result['errors'] ?? array()
-			),
+			'success'   => 0,
+			'skipped'   => 0,
+			'failed'    => 0,
+			'errors'    => array(),
 		);
+
+		// Ensure processed count is set correctly
+		$final_result['processed'] = $processed;
 
 		$this->job_model->update(
 			$job_id,

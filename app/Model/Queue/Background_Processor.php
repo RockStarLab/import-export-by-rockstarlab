@@ -144,15 +144,41 @@ class Background_Processor {
 				$result = $this->process_export_job( $job_id, $parameters );
 			} elseif ( 'media_sync' === $job['type'] ) {
 				$result = $this->process_media_sync_job( $job_id, $parameters );
+				error_log( sprintf( '[Background Processor] Media sync job #%d result: %s', $job_id, wp_json_encode( $result ) ) );
 			} else {
 				throw new \Exception( 'Invalid job type: ' . $job['type'] );
 			}           // Check if completed or needs to continue
-			if ( $result['completed'] ) {
+			if ( isset( $result['completed'] ) && $result['completed'] ) {
+				error_log( sprintf( '[Background Processor] Job #%d COMPLETED, calling complete_job()', $job_id ) );
 				$this->complete_job( $job_id, $result );
 			} else {
-				// Update progress and reschedule
-				$this->update_job_progress( $job_id, $result );
-				$this->schedule_next_run();
+				// Job still processing - schedule next batch immediately
+				error_log( sprintf( '[Background Processor] Job #%d NOT COMPLETED, scheduling next batch...', $job_id ) );
+
+				$this->logger->log(
+					$job_id,
+					'info',
+					sprintf(
+						'Job #%d batch completed, scheduling next batch (progress: %s%%)',
+						$job_id,
+						isset( $result['progress'] ) ? $result['progress'] : 'unknown'
+					)
+				);
+
+				// Schedule immediate next run for continued processing
+				$this->schedule_next_run( 0 );
+				error_log( sprintf( '[Background Processor] Scheduled next cron run for job #%d', $job_id ) );
+
+				// For local development: spawn immediate cron check
+				// This ensures processing continues even if WP-Cron is not triggered by page load
+				if ( defined( 'DOING_CRON' ) && ! DOING_CRON ) {
+					spawn_cron();
+					error_log( sprintf( '[Background Processor] Called spawn_cron() for job #%d', $job_id ) );
+				}
+
+				// Fallback: trigger via AJAX for reliability (non-blocking)
+				$this->trigger_ajax_processing( $job_id );
+				error_log( sprintf( '[Background Processor] Triggered AJAX processing for job #%d', $job_id ) );
 			}
 		} catch ( \Exception $e ) {
 			$this->handle_job_error( $job_id, $e );
@@ -427,12 +453,41 @@ class Background_Processor {
 	 * @param int $delay Optional. Delay in seconds (default: 0)
 	 */
 	protected function schedule_next_run( $delay = 0 ) {
-		if ( ! wp_next_scheduled( 'aie_process_queue' ) ) {
-			wp_schedule_single_event(
-				time() + $delay,
-				'aie_process_queue'
-			);
+		// Always schedule immediate processing for continued jobs
+		// Don't check for existing scheduled events - we want to trigger NOW
+		wp_schedule_single_event(
+			time() + $delay,
+			'aie_process_queue'
+		);
+	}
+
+	/**
+	 * Trigger next batch via AJAX (non-blocking)
+	 *
+	 * @param int $job_id Job ID
+	 */
+	protected function trigger_ajax_processing( $job_id ) {
+		// Only trigger for media_sync jobs (they have dedicated AJAX endpoint)
+		$job = $this->job_model->get( $job_id );
+		if ( ! $job || $job['type'] !== 'media_sync' ) {
+			return;
 		}
+
+		// Trigger via non-blocking HTTP request
+		wp_remote_post(
+			admin_url( 'admin-ajax.php' ),
+			array(
+				'timeout'   => 0.01,
+				'blocking'  => false,
+				'sslverify' => false,
+				'body'      => array(
+					'action' => 'aie_process_media_sync_batch',
+					'nonce'  => wp_create_nonce( 'aie_process_media_sync_batch' ),
+					'job_id' => $job_id,
+				),
+				'cookies'   => $_COOKIE,
+			)
+		);
 	}
 
 	/**
