@@ -519,25 +519,16 @@ const MediaSyncModule = {
 					// Show progress section immediately
 					jQuery( '#aie-sync-progress-section' ).slideDown();
 					
-					// Update progress with data from first batch (if available)
-					if ( response.data.progress !== undefined ) {
-						const progress = Math.round( parseFloat( response.data.progress ) || 0 );
-						jQuery( '#aie-progress-fill' ).css( 'width', progress + '%' );
-						jQuery( '#aie-progress-percentage' ).text( progress + '%' );
-						
-						// Update stats if available
-						if ( response.data.result ) {
-							this.updateStats( response.data.result );
-						}
-					} else {
-						jQuery( '#aie-progress-fill' ).css( 'width', '0%' );
-						jQuery( '#aie-progress-percentage' ).text( '0%' );
-					}
-					
+					// Initialize progress at 0%
+					jQuery( '#aie-progress-fill' ).css( 'width', '0%' );
+					jQuery( '#aie-progress-percentage' ).text( '0%' );
 					jQuery( '#aie-sync-status' ).text( 'Processing...' );
 
-					// Start tracking progress immediately (first batch already processed by server)
+					// Start tracking progress
 					this.startProgressTracking();
+
+					// Trigger first batch processing immediately
+					this.triggerBatchProcessing();
 
 					Utils.showNotice( 'Synchronization started', 'success' );
 				} else {
@@ -565,6 +556,26 @@ const MediaSyncModule = {
 
 		// Check immediately
 		this.checkProgress();
+	},
+
+	/**
+	 * Trigger batch processing (starts the actual work)
+	 */
+	triggerBatchProcessing() {
+		jQuery.ajax( {
+			url: window.aieData?.ajaxUrl || window.ajaxurl,
+			method: 'POST',
+			data: {
+				action: 'aie_process_media_sync_batch',
+				nonce: window.aieData?.nonce || '',
+				job_id: this.jobId,
+			},
+		} ).done( ( response ) => {
+			console.log( 'Batch processing triggered:', response );
+			// Result will be picked up by progress tracking
+		} ).fail( ( xhr, status, error ) => {
+			console.error( 'Batch processing failed:', status, error );
+		} );
 	},
 
 	/**
