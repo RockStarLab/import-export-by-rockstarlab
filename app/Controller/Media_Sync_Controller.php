@@ -129,32 +129,17 @@ class Media_Sync_Controller extends Base_Controller {
 			$this->send_error( $job_id );
 		}
 
-		// Process first batch synchronously to show immediate progress
-		// This gives instant feedback to the user
-		$processor   = new Media_Sync_Processor();
-		$first_batch = $processor->process( $job_id );
+		// Update job to processing status
+		$job->update( $job_id, [ 'status' => 'processing' ] );
 
-		// If not completed after first batch, trigger continuous processing
-		if ( ! isset( $first_batch['completed'] ) || ! $first_batch['completed'] ) {
-			// Trigger AJAX chain for remaining batches
-			$this->trigger_next_batch( $job_id );
-		}
-
-		// Schedule remaining batches via WP Cron for background processing (fallback)
-		if ( ! wp_next_scheduled( 'aie_process_media_sync_job', array( $job_id ) ) ) {
-			wp_schedule_single_event( time(), 'aie_process_media_sync_job', array( $job_id ) );
-		}
-
-		// Get updated job data after first batch
-		$updated_job = $job->find( $job_id );
-		$result      = isset( $updated_job->result ) ? $updated_job->result : null;
-
+		// Return job info immediately so UI can open progress dialog
+		// JS will trigger the first processing request
 		$response_data = [
 			'job_id'      => $job_id,
 			'folder_path' => $folder_path,
-			'progress'    => $updated_job->progress ?? 0,
-			'status'      => $updated_job->status ?? 'processing',
-			'result'      => $result ? json_decode( $result, true ) : null,
+			'progress'    => 0,
+			'status'      => 'processing',
+			'result'      => null,
 		];
 
 		$this->send_success(
@@ -319,6 +304,33 @@ class Media_Sync_Controller extends Base_Controller {
 				}
 			},
 			999
+		);
+	}
+
+	/**
+	 * Trigger background processing for a job
+	 * Uses direct HTTP request with minimal timeout to start processing immediately
+	 *
+	 * @param int $job_id Job ID.
+	 * @return void
+	 */
+	protected function trigger_background_processing( $job_id ) {
+		// Generate internal key for authentication
+		$internal_key = md5( 'aie_internal_processing_' . NONCE_SALT );
+
+		// Make non-blocking HTTP request to start processing
+		wp_remote_post(
+			admin_url( 'admin-ajax.php' ),
+			[
+				'timeout'   => 0.01, // Minimal timeout - just trigger and return
+				'blocking'  => false, // Don't wait for response
+				'sslverify' => false,
+				'body'      => [
+					'action'       => 'aie_process_media_sync_batch',
+					'job_id'       => $job_id,
+					'internal_key' => $internal_key,
+				],
+			]
 		);
 	}
 
