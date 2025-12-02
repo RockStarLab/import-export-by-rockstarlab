@@ -49,6 +49,13 @@ class Init {
 	private $media_sync_controller;
 
 	/**
+	 * Media Hash Controller
+	 *
+	 * @var Media_Hash_Controller
+	 */
+	private $media_hash_controller;
+
+	/**
 	 * Cron Manager
 	 *
 	 * @var \WP_AIE\Model\Queue\Cron_Manager
@@ -94,6 +101,9 @@ class Init {
 
 		$this->media_sync_controller = new Media_Sync_Controller();
 		$this->media_sync_controller->init();
+
+		$this->media_hash_controller = new Media_Hash_Controller();
+		$this->media_hash_controller->init();
 	}
 
 	/**
