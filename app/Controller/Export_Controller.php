@@ -42,6 +42,9 @@ class Export_Controller extends Base_Controller {
 			'export_get_progress' => [ 'callback' => 'get_progress' ],
 			'export_download'     => [ 'callback' => 'download_file' ],
 			'export_cancel'       => [ 'callback' => 'cancel_export' ],
+			'get_post_types'      => [ 'callback' => 'get_post_types' ],
+			'get_database_tables' => [ 'callback' => 'get_database_tables' ],
+			'get_table_columns'   => [ 'callback' => 'get_table_columns' ],
 		];
 	}
 
@@ -379,5 +382,173 @@ class Export_Controller extends Base_Controller {
 				'result'    => wp_json_encode( $stats ),
 			]
 		);
+	}
+
+	/**
+	 * Get all registered post types
+	 */
+	public function get_post_types() {
+		$verification = $this->verify_request( 'export_get_post_types' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		$include_hidden = $this->get_request_param( 'include_hidden', false );
+
+		// Get all post types
+		$args = [];
+		if ( ! $include_hidden ) {
+			$args['public'] = true;
+		}
+
+		$post_types = get_post_types( $args, 'objects' );
+
+		$result = [];
+		foreach ( $post_types as $post_type ) {
+			// Skip attachments as they're handled separately as media
+			if ( 'attachment' === $post_type->name ) {
+				continue;
+			}
+
+			$result[] = [
+				'name'   => $post_type->name,
+				'label'  => $post_type->label,
+				'public' => $post_type->public,
+			];
+		}
+
+		// Sort by label
+		usort(
+			$result,
+			function ( $a, $b ) {
+				return strcmp( $a['label'], $b['label'] );
+			}
+		);
+
+		$this->send_success( $result );
+	}
+
+	/**
+	 * Get database tables
+	 */
+	public function get_database_tables() {
+		$verification = $this->verify_request( 'export_get_tables' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		global $wpdb;
+
+		// Get all tables
+		$tables = $wpdb->get_results( 'SHOW TABLES', ARRAY_N );
+
+		$result = [];
+		foreach ( $tables as $table ) {
+			$table_name = $table[0];
+
+			// By default, only show WordPress tables (with prefix)
+			if ( strpos( $table_name, $wpdb->prefix ) === 0 ) {
+				$display_name = str_replace( $wpdb->prefix, '', $table_name );
+				$result[]     = [
+					'name'         => $table_name,
+					'display_name' => $display_name,
+				];
+			}
+		}
+
+		// Sort by display name
+		usort(
+			$result,
+			function ( $a, $b ) {
+				return strcmp( $a['display_name'], $b['display_name'] );
+			}
+		);
+
+		$this->send_success( $result );
+	}
+
+	/**
+	 * Get table columns with types
+	 */
+	public function get_table_columns() {
+		$verification = $this->verify_request( 'export_get_columns' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		$validation = $this->validate_required_params( [ 'table_name' ] );
+		if ( is_wp_error( $validation ) ) {
+			$this->send_error( $validation, null, 400 );
+		}
+
+		global $wpdb;
+
+		$table_name = $this->get_request_param( 'table_name' );
+
+		// Validate table exists and belongs to WordPress
+		if ( strpos( $table_name, $wpdb->prefix ) !== 0 ) {
+			$this->send_error( __( 'Invalid table name', 'wp-advanced-import-export' ), null, 400 );
+		}
+
+		// Get columns from INFORMATION_SCHEMA
+		$columns = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE 
+				FROM INFORMATION_SCHEMA.COLUMNS 
+				WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
+				ORDER BY ORDINAL_POSITION',
+				DB_NAME,
+				$table_name
+			)
+		);
+
+		if ( ! $columns ) {
+			$this->send_error( __( 'Could not retrieve table columns', 'wp-advanced-import-export' ), null, 400 );
+		}
+
+		$result = [];
+		foreach ( $columns as $column ) {
+			$data_type = $this->map_mysql_type_to_filter_type( $column->DATA_TYPE );
+
+			$result[] = [
+				'name'       => $column->COLUMN_NAME,
+				'type'       => $column->DATA_TYPE,
+				'mysql_type' => $column->COLUMN_TYPE,
+				'data_type'  => $data_type,
+			];
+		}
+
+		$this->send_success( $result );
+	}
+
+	/**
+	 * Map MySQL data type to filter data type
+	 *
+	 * @param string $mysql_type MySQL data type.
+	 * @return string Filter data type (string, number, date).
+	 */
+	private function map_mysql_type_to_filter_type( $mysql_type ) {
+		$mysql_type = strtolower( $mysql_type );
+
+		// Number types
+		if ( in_array(
+			$mysql_type,
+			[ 'int', 'tinyint', 'smallint', 'mediumint', 'bigint', 'decimal', 'float', 'double' ],
+			true
+		) ) {
+			return 'number';
+		}
+
+		// Date types
+		if ( in_array(
+			$mysql_type,
+			[ 'date', 'datetime', 'timestamp', 'time', 'year' ],
+			true
+		) ) {
+			return 'date';
+		}
+
+		// Default to string for all text types
+		return 'string';
 	}
 }

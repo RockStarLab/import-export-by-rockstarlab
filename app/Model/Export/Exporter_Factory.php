@@ -54,9 +54,23 @@ class Exporter_Factory {
 	 */
 	private static function get_exporter_map() {
 		$default_map = [
-			'posts' => Post_Exporter::class,
-			'pages' => Post_Exporter::class,
-			'media' => Media_Exporter::class,
+			// Core content types
+			'post'                 => Post_Exporter::class,
+			'page'                 => Post_Exporter::class,
+			'media'                => Media_Exporter::class,
+			'menu'                 => Post_Exporter::class,
+			'user'                 => Post_Exporter::class,
+			'comment'              => Post_Exporter::class,
+			'block_theme_settings' => Post_Exporter::class,
+			'taxonomy'             => Post_Exporter::class,
+
+			// Premium features
+			'custom_post_types'    => Post_Exporter::class,
+			'woo_product'          => Post_Exporter::class,
+			'woo_order'            => Post_Exporter::class,
+			'woo_coupon'           => Post_Exporter::class,
+			'woo_attribute'        => Post_Exporter::class,
+			'custom_table'         => Custom_Table_Exporter::class,
 		];
 
 		/**

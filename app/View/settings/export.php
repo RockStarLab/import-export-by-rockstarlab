@@ -113,6 +113,15 @@ defined( 'ABSPATH' ) || exit;
 						</div>
 					</label>
 
+					<label class="aie-content-type">
+						<input type="radio" name="content_type" value="taxonomy">
+						<div class="aie-content-type-card">
+							<span class="dashicons dashicons-category"></span>
+							<h3><?php esc_html_e( 'Taxonomy Terms', 'wp-aie' ); ?></h3>
+							<p><?php esc_html_e( 'Export categories, tags, and custom taxonomies', 'wp-aie' ); ?></p>
+						</div>
+					</label>
+
 					<!-- Premium Features -->
 					<label class="aie-content-type">
 						<input type="radio" name="content_type" value="custom_post_types" <?php echo ! $is_premium ? 'disabled' : ''; ?>>
@@ -186,167 +195,85 @@ defined( 'ABSPATH' ) || exit;
 			</div>
 
 			<div class="aie-step-content">
-				<table class="form-table aie-export-filters">
-					<!-- Post Filters -->
-					<tbody class="aie-post-filters">
-						<tr>
-							<th scope="row">
-								<label><?php esc_html_e( 'Post Type', 'wp-aie' ); ?></label>
-							</th>
-							<td>
-								<select name="post_type" class="regular-text">
-									<option value="post"><?php esc_html_e( 'Post', 'wp-aie' ); ?></option>
-									<option value="page"><?php esc_html_e( 'Page', 'wp-aie' ); ?></option>
-									<?php
-									$post_types = get_post_types(
-										[
-											'public'   => true,
-											'_builtin' => false,
-										],
-										'objects'
-									);
-									foreach ( $post_types as $post_type ) {
-										printf(
-											'<option value="%s">%s</option>',
-											esc_attr( $post_type->name ),
-											esc_html( $post_type->label )
-										);
-									}
-									?>
-								</select>
-							</td>
-						</tr>
-
-						<tr>
-							<th scope="row">
-								<label><?php esc_html_e( 'Post Status', 'wp-aie' ); ?></label>
-							</th>
-							<td>
-								<select name="post_status[]" class="regular-text" multiple size="4">
-									<option value="publish" selected><?php esc_html_e( 'Published', 'wp-aie' ); ?></option>
-									<option value="draft"><?php esc_html_e( 'Draft', 'wp-aie' ); ?></option>
-									<option value="pending"><?php esc_html_e( 'Pending', 'wp-aie' ); ?></option>
-									<option value="private"><?php esc_html_e( 'Private', 'wp-aie' ); ?></option>
-									<option value="trash"><?php esc_html_e( 'Trash', 'wp-aie' ); ?></option>
-								</select>
-								<p class="description"><?php esc_html_e( 'Hold Ctrl/Cmd to select multiple', 'wp-aie' ); ?></p>
-							</td>
-						</tr>
-
-						<tr>
-							<th scope="row">
-								<label><?php esc_html_e( 'Date Range', 'wp-aie' ); ?></label>
-							</th>
-							<td>
-								<input type="date" name="date_from" class="regular-text" placeholder="<?php esc_attr_e( 'From', 'wp-aie' ); ?>">
-								<span> – </span>
-								<input type="date" name="date_to" class="regular-text" placeholder="<?php esc_attr_e( 'To', 'wp-aie' ); ?>">
-							</td>
-						</tr>
-
-						<tr>
-							<th scope="row">
-								<label><?php esc_html_e( 'Author', 'wp-aie' ); ?></label>
-							</th>
-							<td>
-								<select name="author" class="regular-text">
-									<option value=""><?php esc_html_e( 'All Authors', 'wp-aie' ); ?></option>
-									<?php
-									$authors = get_users( [ 'who' => 'authors' ] );
-									foreach ( $authors as $author ) {
-										printf(
-											'<option value="%d">%s</option>',
-											$author->ID,
-											esc_html( $author->display_name )
-										);
-									}
-									?>
-								</select>
-							</td>
-						</tr>
-
-						<tr>
-							<th scope="row">
-								<label><?php esc_html_e( 'Category', 'wp-aie' ); ?></label>
-							</th>
-							<td>
-								<select name="category" class="regular-text">
-									<option value=""><?php esc_html_e( 'All Categories', 'wp-aie' ); ?></option>
-									<?php
-									$categories = get_categories( [ 'hide_empty' => false ] );
-									foreach ( $categories as $category ) {
-										printf(
-											'<option value="%d">%s (%d)</option>',
-											$category->term_id,
-											esc_html( $category->name ),
-											$category->count
-										);
-									}
-									?>
-								</select>
-							</td>
-						</tr>
-
-						<tr>
-							<th scope="row">
-								<label><?php esc_html_e( 'Tag', 'wp-aie' ); ?></label>
-							</th>
-							<td>
-								<input type="text" name="tag" class="regular-text" placeholder="<?php esc_attr_e( 'Tag name or slug', 'wp-aie' ); ?>">
-							</td>
-						</tr>
-
-						<tr>
-							<th scope="row">
-								<label><?php esc_html_e( 'Search', 'wp-aie' ); ?></label>
-							</th>
-							<td>
-								<input type="text" name="search" class="regular-text" placeholder="<?php esc_attr_e( 'Search in title and content', 'wp-aie' ); ?>">
-							</td>
-						</tr>
-					</tbody>
-
-					<!-- Media Filters -->
-					<tbody class="aie-media-filters" style="display:none;">
-						<tr>
-							<th scope="row">
-								<label><?php esc_html_e( 'Media Type', 'wp-aie' ); ?></label>
-							</th>
-							<td>
-								<select name="mime_type" class="regular-text">
-									<option value=""><?php esc_html_e( 'All Types', 'wp-aie' ); ?></option>
-									<option value="image"><?php esc_html_e( 'Images', 'wp-aie' ); ?></option>
-									<option value="video"><?php esc_html_e( 'Videos', 'wp-aie' ); ?></option>
-									<option value="audio"><?php esc_html_e( 'Audio', 'wp-aie' ); ?></option>
-									<option value="application"><?php esc_html_e( 'Documents', 'wp-aie' ); ?></option>
-								</select>
-							</td>
-						</tr>
-
-						<tr>
-							<th scope="row">
-								<label><?php esc_html_e( 'Upload Date', 'wp-aie' ); ?></label>
-							</th>
-							<td>
-								<input type="date" name="media_date_from" class="regular-text">
-								<span> – </span>
-								<input type="date" name="media_date_to" class="regular-text">
-							</td>
-						</tr>
-					</tbody>
-				</table>
-
-				<div class="aie-filter-summary">
-					<h3><?php esc_html_e( 'Items to Export', 'wp-aie' ); ?></h3>
-					<div class="aie-item-count">
-						<div class="spinner is-active"></div>
-						<span class="aie-count-value">-</span>
+				
+				<!-- Item Count Summary (Top) -->
+				<div class="aie-filter-summary-top">
+					<div class="aie-summary-card">
+						<div class="aie-summary-icon">
+							<span class="dashicons dashicons-database"></span>
+						</div>
+						<div class="aie-summary-content">
+							<div class="aie-summary-label"><?php esc_html_e( 'Total Items Available', 'wp-aie' ); ?></div>
+							<div class="aie-item-count">
+								<span class="aie-count-value">-</span>
+								<div class="spinner"></div>
+							</div>
+						</div>
+						<button type="button" class="button aie-refresh-count">
+							<span class="dashicons dashicons-update"></span>
+						</button>
 					</div>
-					<button type="button" class="button aie-refresh-count">
-						<span class="dashicons dashicons-update"></span>
-						<?php esc_html_e( 'Refresh Count', 'wp-aie' ); ?>
-					</button>
 				</div>
+
+				<!-- Custom Filters Section -->
+				<div class="aie-custom-filters-section">
+					<div class="aie-section-header">
+						<h3>
+							<span class="dashicons dashicons-filter"></span>
+							<?php esc_html_e( 'Customize Filters', 'wp-aie' ); ?>
+						</h3>
+						<p class="description"><?php esc_html_e( 'Add custom filters to narrow down your export', 'wp-aie' ); ?></p>
+					</div>
+
+					<!-- Filters Container -->
+					<div class="aie-filters-list" id="aie-filters-list">
+						<!-- Filters will be added here dynamically -->
+					</div>
+
+					<!-- Add Filter Button -->
+					<div class="aie-add-filter-wrap">
+						<button type="button" class="button button-secondary aie-add-filter">
+							<span class="dashicons dashicons-plus-alt2"></span>
+							<?php esc_html_e( 'Add Filter', 'wp-aie' ); ?>
+						</button>
+					</div>
+				</div>
+
+				<!-- Hidden Template for Filter Row -->
+				<template id="aie-filter-row-template">
+					<div class="aie-filter-row">
+						<div class="aie-filter-row-inner">
+							<!-- Field Selection -->
+							<div class="aie-filter-field-wrap">
+								<label><?php esc_html_e( 'Field', 'wp-aie' ); ?></label>
+								<select class="aie-filter-field" name="filter_field[]">
+									<option value=""><?php esc_html_e( 'Select Field...', 'wp-aie' ); ?></option>
+								</select>
+							</div>
+
+							<!-- Condition Selection -->
+							<div class="aie-filter-condition-wrap">
+								<label><?php esc_html_e( 'Condition', 'wp-aie' ); ?></label>
+								<select class="aie-filter-condition" name="filter_condition[]">
+									<option value=""><?php esc_html_e( 'Select...', 'wp-aie' ); ?></option>
+								</select>
+							</div>
+
+							<!-- Value Input -->
+							<div class="aie-filter-value-wrap">
+								<label><?php esc_html_e( 'Value', 'wp-aie' ); ?></label>
+								<input type="text" class="aie-filter-value" name="filter_value[]" placeholder="<?php esc_attr_e( 'Enter value...', 'wp-aie' ); ?>">
+							</div>
+
+							<!-- Remove Button -->
+							<div class="aie-filter-actions">
+								<button type="button" class="button button-link-delete aie-remove-filter" title="<?php esc_attr_e( 'Remove filter', 'wp-aie' ); ?>">
+									<span class="dashicons dashicons-trash"></span>
+								</button>
+							</div>
+						</div>
+					</div>
+				</template>
 
 				<div class="aie-step-actions">
 					<button type="button" class="button button-secondary aie-prev-step">
