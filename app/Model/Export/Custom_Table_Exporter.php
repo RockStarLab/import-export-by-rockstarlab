@@ -238,13 +238,58 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 			$condition = $filter['condition'];
 			$value     = $filter['value'] ?? '';
 
+			// Check if field is likely a date field based on common naming patterns
+			$is_date_field = preg_match( '/(date|time|created|updated|modified|published)$/i', $field );
+
 			// Build condition based on type
 			switch ( $condition ) {
 				case 'equals':
-					$conditions[] = $wpdb->prepare( "`{$field}` = %s", $value );
+					if ( $is_date_field ) {
+						// For date fields, compare only the date part
+						$conditions[] = $wpdb->prepare( "DATE(`{$field}`) = %s", $value );
+					} else {
+						$conditions[] = $wpdb->prepare( "`{$field}` = %s", $value );
+					}
 					break;
 				case 'not_equals':
-					$conditions[] = $wpdb->prepare( "`{$field}` != %s", $value );
+					if ( $is_date_field ) {
+						// For date fields, compare only the date part
+						$conditions[] = $wpdb->prepare( "DATE(`{$field}`) != %s", $value );
+					} else {
+						$conditions[] = $wpdb->prepare( "`{$field}` != %s", $value );
+					}
+					break;
+				case 'in':
+					// Split by comma and prepare IN clause
+					$values = array_map(
+						function ( $v ) {
+							$v = trim( $v );
+							// Remove surrounding quotes if present
+							return trim( $v, '\'"' );
+						},
+						explode( ',', $value )
+					);
+					$values = array_filter( $values ); // Remove empty values
+					if ( ! empty( $values ) ) {
+						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
+						$conditions[] = $wpdb->prepare( "`{$field}` IN ($placeholders)", $values );
+					}
+					break;
+				case 'not_in':
+					// Split by comma and prepare NOT IN clause
+					$values = array_map(
+						function ( $v ) {
+							$v = trim( $v );
+							// Remove surrounding quotes if present
+							return trim( $v, '\'"' );
+						},
+						explode( ',', $value )
+					);
+					$values = array_filter( $values ); // Remove empty values
+					if ( ! empty( $values ) ) {
+						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
+						$conditions[] = $wpdb->prepare( "`{$field}` NOT IN ($placeholders)", $values );
+					}
 					break;
 				case 'contains':
 					$conditions[] = $wpdb->prepare( "`{$field}` LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' );
@@ -260,19 +305,35 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 					break;
 				case 'greater':
 				case 'greater_than':
-					$conditions[] = $wpdb->prepare( "`{$field}` > %s", $value );
+					if ( $is_date_field ) {
+						$conditions[] = $wpdb->prepare( "DATE(`{$field}`) > %s", $value );
+					} else {
+						$conditions[] = $wpdb->prepare( "`{$field}` > %s", $value );
+					}
 					break;
 				case 'less':
 				case 'less_than':
-					$conditions[] = $wpdb->prepare( "`{$field}` < %s", $value );
+					if ( $is_date_field ) {
+						$conditions[] = $wpdb->prepare( "DATE(`{$field}`) < %s", $value );
+					} else {
+						$conditions[] = $wpdb->prepare( "`{$field}` < %s", $value );
+					}
 					break;
 				case 'equals_or_greater':
 				case 'greater_or_equal':
-					$conditions[] = $wpdb->prepare( "`{$field}` >= %s", $value );
+					if ( $is_date_field ) {
+						$conditions[] = $wpdb->prepare( "DATE(`{$field}`) >= %s", $value );
+					} else {
+						$conditions[] = $wpdb->prepare( "`{$field}` >= %s", $value );
+					}
 					break;
 				case 'equals_or_less':
 				case 'less_or_equal':
-					$conditions[] = $wpdb->prepare( "`{$field}` <= %s", $value );
+					if ( $is_date_field ) {
+						$conditions[] = $wpdb->prepare( "DATE(`{$field}`) <= %s", $value );
+					} else {
+						$conditions[] = $wpdb->prepare( "`{$field}` <= %s", $value );
+					}
 					break;
 				case 'is_empty':
 					$conditions[] = "(`{$field}` IS NULL OR `{$field}` = '')";

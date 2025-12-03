@@ -86,6 +86,12 @@ const ExportModule = {
 		// Dynamic filter value changes - auto refresh count when filter is complete
 		$wizard.on( 'change', '.aie-filter-condition', ( e ) => {
 			const $row = jQuery( e.target ).closest( '.aie-filter-row' );
+			const $value = $row.find( '.aie-filter-value' );
+			
+			// Clear the value when condition changes
+			if ( $value.length ) {
+				$value.val( '' );
+			}
 			
 			// Update input type based on condition
 			this.updateValueInputType( $row );
@@ -794,6 +800,22 @@ const ExportModule = {
 				if ( fieldName === 'ID' || fieldName === 'comment_ID' || fieldName === 'term_id' || fieldName === 'user_id' || fieldName === 'attribute_id' ) {
 					return condition.value !== 'is_empty' && condition.value !== 'is_not_empty';
 				}
+				
+				// For date fields, exclude is_empty and is_not_empty (dates typically always have values)
+				if ( fieldType === 'date' ) {
+					return condition.value !== 'is_empty' && condition.value !== 'is_not_empty';
+				}
+				
+				// For comment_status, exclude is_empty and is_not_empty (always has a value: open, closed, etc.)
+				if ( fieldName === 'comment_status' ) {
+					return condition.value !== 'is_empty' && condition.value !== 'is_not_empty';
+				}
+				
+				// For content and excerpt fields, exclude in and not_in (not practical for long text)
+				if ( fieldName === 'post_content' || fieldName === 'post_excerpt' ) {
+					return condition.value !== 'in' && condition.value !== 'not_in';
+				}
+				
 				return true;
 			} );
 			
@@ -805,6 +827,9 @@ const ExportModule = {
 				);
 			} );
 
+			// Clear the value when field changes
+			$value.val( '' );
+			
 			// Change value input type based on field type
 			if ( fieldType === 'date' ) {
 				$value.attr( 'type', 'date' );
@@ -897,7 +922,6 @@ const ExportModule = {
 			{
 				label: 'Other',
 				options: [
-					{ value: 'post_parent', label: 'Parent ID', type: 'number' },
 					{ value: 'comment_status', label: 'Comment Status', type: 'string' },
 					{ value: 'post_modified', label: 'Modified Date', type: 'date' },
 				],
@@ -1405,6 +1429,16 @@ const ExportModule = {
 			return;
 		}
 		
+		// For 'is_empty' and 'is_not_empty', hide the value input
+		const noValueConditions = [ 'is_empty', 'is_not_empty' ];
+		if ( noValueConditions.includes( condition ) ) {
+			$value.closest( '.aie-filter-value-wrap' ).hide();
+			return;
+		} else {
+			// Always show the value input for other conditions
+			$value.closest( '.aie-filter-value-wrap' ).show();
+		}
+		
 		// For 'in' and 'not_in' conditions, always use text input to allow comma-separated values
 		if ( condition === 'in' || condition === 'not_in' ) {
 			$value.attr( 'type', 'text' );
@@ -1417,15 +1451,6 @@ const ExportModule = {
 			$value.attr( 'type', 'text' );
 			$value.attr( 'placeholder', 'Enter two numbers separated by comma (e.g., 10,100)' );
 			return;
-		}
-		
-		// For 'is_empty' and 'is_not_empty', hide the value input
-		const noValueConditions = [ 'is_empty', 'is_not_empty' ];
-		if ( noValueConditions.includes( condition ) ) {
-			$value.closest( '.aie-filter-value-wrap' ).hide();
-			return;
-		} else {
-			$value.closest( '.aie-filter-value-wrap' ).show();
 		}
 		
 		// Otherwise, set type based on field type

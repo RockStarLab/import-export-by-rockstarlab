@@ -127,15 +127,31 @@ class Post_Exporter extends Abstract_Exporter {
 		$query_args['posts_per_page'] = -1;
 
 		// Combine custom filters
-		$custom_id_filters    = $query_args['_custom_id_filters'] ?? [];
-		$custom_field_filters = $query_args['_custom_field_filters'] ?? [];
-		unset( $query_args['_custom_id_filters'], $query_args['_custom_field_filters'] );
+		$custom_id_filters     = $query_args['_custom_id_filters'] ?? [];
+		$custom_field_filters  = $query_args['_custom_field_filters'] ?? [];
+		$custom_author_filters = $query_args['_custom_author_filters'] ?? [];
+		unset( $query_args['_custom_id_filters'], $query_args['_custom_field_filters'], $query_args['_custom_author_filters'] );
+
+		// Add JOIN for author filters
+		if ( ! empty( $custom_author_filters ) ) {
+			add_filter(
+				'posts_join',
+				function ( $join ) {
+					global $wpdb;
+					// Join with users table for author name/email filtering
+					$join .= " INNER JOIN {$wpdb->users} ON {$wpdb->posts}.post_author = {$wpdb->users}.ID";
+					return $join;
+				},
+				10,
+				1
+			);
+		}
 
 		// Add custom filters via posts_where hook
-		if ( ! empty( $custom_id_filters ) || ! empty( $custom_field_filters ) ) {
+		if ( ! empty( $custom_id_filters ) || ! empty( $custom_field_filters ) || ! empty( $custom_author_filters ) ) {
 			add_filter(
 				'posts_where',
-				function ( $where ) use ( $custom_id_filters, $custom_field_filters ) {
+				function ( $where ) use ( $custom_id_filters, $custom_field_filters, $custom_author_filters ) {
 					global $wpdb;
 
 					// Handle ID filters
@@ -164,6 +180,11 @@ class Post_Exporter extends Abstract_Exporter {
 						$where .= $this->build_custom_field_where( $custom_field_filters );
 					}
 
+					// Handle author filters
+					if ( ! empty( $custom_author_filters ) ) {
+						$where .= $this->build_custom_author_where( $custom_author_filters );
+					}
+
 					return $where;
 				},
 				10,
@@ -173,7 +194,8 @@ class Post_Exporter extends Abstract_Exporter {
 
 		$query = new \WP_Query( $query_args );
 
-		// Remove the filter after query
+		// Remove the filters after query
+		remove_all_filters( 'posts_join', 10 );
 		remove_all_filters( 'posts_where', 10 );
 
 		return $query->found_posts;
@@ -191,15 +213,31 @@ class Post_Exporter extends Abstract_Exporter {
 		$this->log_info( 'Querying posts', $query_args );
 
 		// Combine custom filters
-		$custom_id_filters    = $query_args['_custom_id_filters'] ?? [];
-		$custom_field_filters = $query_args['_custom_field_filters'] ?? [];
-		unset( $query_args['_custom_id_filters'], $query_args['_custom_field_filters'] );
+		$custom_id_filters     = $query_args['_custom_id_filters'] ?? [];
+		$custom_field_filters  = $query_args['_custom_field_filters'] ?? [];
+		$custom_author_filters = $query_args['_custom_author_filters'] ?? [];
+		unset( $query_args['_custom_id_filters'], $query_args['_custom_field_filters'], $query_args['_custom_author_filters'] );
+
+		// Add JOIN for author filters
+		if ( ! empty( $custom_author_filters ) ) {
+			add_filter(
+				'posts_join',
+				function ( $join ) {
+					global $wpdb;
+					// Join with users table for author name/email filtering
+					$join .= " INNER JOIN {$wpdb->users} ON {$wpdb->posts}.post_author = {$wpdb->users}.ID";
+					return $join;
+				},
+				10,
+				1
+			);
+		}
 
 		// Add custom filters via posts_where hook
-		if ( ! empty( $custom_id_filters ) || ! empty( $custom_field_filters ) ) {
+		if ( ! empty( $custom_id_filters ) || ! empty( $custom_field_filters ) || ! empty( $custom_author_filters ) ) {
 			add_filter(
 				'posts_where',
-				function ( $where ) use ( $custom_id_filters, $custom_field_filters ) {
+				function ( $where ) use ( $custom_id_filters, $custom_field_filters, $custom_author_filters ) {
 					global $wpdb;
 
 					// Handle ID filters
@@ -228,6 +266,11 @@ class Post_Exporter extends Abstract_Exporter {
 						$where .= $this->build_custom_field_where( $custom_field_filters );
 					}
 
+					// Handle author filters
+					if ( ! empty( $custom_author_filters ) ) {
+						$where .= $this->build_custom_author_where( $custom_author_filters );
+					}
+
 					return $where;
 				},
 				10,
@@ -237,7 +280,8 @@ class Post_Exporter extends Abstract_Exporter {
 
 		$query = new \WP_Query( $query_args );
 
-		// Remove the filter after query
+		// Remove the filters after query
+		remove_all_filters( 'posts_join', 10 );
 		remove_all_filters( 'posts_where', 10 );
 
 		if ( ! $query->have_posts() ) {
@@ -361,6 +405,20 @@ class Post_Exporter extends Abstract_Exporter {
 				continue;
 			}
 
+			// Handle author_name and author_email fields (need JOIN with users table)
+			if ( $field === 'author_name' || $field === 'author_email' ) {
+				// Store condition for custom WHERE clause with JOIN
+				if ( ! isset( $args['_custom_author_filters'] ) ) {
+					$args['_custom_author_filters'] = [];
+				}
+				$args['_custom_author_filters'][] = [
+					'field'     => $field,
+					'condition' => $condition,
+					'value'     => $value,
+				];
+				continue;
+			}
+
 			if ( $field === 'post_parent' ) {
 				$args['post_parent'] = absint( $value );
 				continue;
@@ -372,7 +430,7 @@ class Post_Exporter extends Abstract_Exporter {
 			}
 
 			// For other post fields that need custom SQL (like is_empty, contains, etc.)
-			$post_fields = [ 'post_title', 'post_content', 'post_excerpt', 'post_date', 'post_modified', 'post_name' ];
+			$post_fields = [ 'post_title', 'post_content', 'post_excerpt', 'post_date', 'post_modified', 'post_name', 'comment_status' ];
 			if ( in_array( $field, $post_fields, true ) ) {
 				// Store condition for custom WHERE clause
 				if ( ! isset( $args['_custom_field_filters'] ) ) {
@@ -383,6 +441,118 @@ class Post_Exporter extends Abstract_Exporter {
 					'condition' => $condition,
 					'value'     => $value,
 				];
+				continue;
+			}
+
+			// Handle taxonomy filters (categories, tags, etc.)
+			$taxonomy_map = [
+				'categories'  => 'category',
+				'tags'        => 'post_tag',
+				'product_cat' => 'product_cat',
+				'product_tag' => 'product_tag',
+			];
+
+			if ( isset( $taxonomy_map[ $field ] ) ) {
+				$taxonomy = $taxonomy_map[ $field ];
+
+				// Initialize tax_query if not exists
+				if ( ! isset( $args['tax_query'] ) ) {
+					$args['tax_query'] = [];
+				}
+
+				// Handle different conditions for taxonomies
+				if ( $condition === 'equals' || $condition === 'contains' ) {
+					// Single term by slug or name
+					$args['tax_query'][] = [
+						'taxonomy' => $taxonomy,
+						'field'    => 'slug',
+						'terms'    => sanitize_title( $value ),
+						'operator' => 'IN',
+					];
+				} elseif ( $condition === 'not_equals' || $condition === 'not_contains' ) {
+					// Exclude term
+					$args['tax_query'][] = [
+						'taxonomy' => $taxonomy,
+						'field'    => 'slug',
+						'terms'    => sanitize_title( $value ),
+						'operator' => 'NOT IN',
+					];
+				} elseif ( $condition === 'in' ) {
+					// Multiple terms
+					$term_values         = array_map( 'trim', explode( ',', $value ) );
+					$term_slugs          = array_map( 'sanitize_title', $term_values );
+					$args['tax_query'][] = [
+						'taxonomy' => $taxonomy,
+						'field'    => 'slug',
+						'terms'    => $term_slugs,
+						'operator' => 'IN',
+					];
+				} elseif ( $condition === 'not_in' ) {
+					// Exclude multiple terms
+					$term_values         = array_map( 'trim', explode( ',', $value ) );
+					$term_slugs          = array_map( 'sanitize_title', $term_values );
+					$args['tax_query'][] = [
+						'taxonomy' => $taxonomy,
+						'field'    => 'slug',
+						'terms'    => $term_slugs,
+						'operator' => 'NOT IN',
+					];
+				} elseif ( $condition === 'is_empty' ) {
+					// Posts without this taxonomy OR with only Uncategorized category
+					if ( $taxonomy === 'category' ) {
+						// Get default category ID (usually "Uncategorized")
+						$default_category = get_option( 'default_category' );
+
+						// For categories, include posts without categories OR with only default category
+						$args['tax_query'][] = [
+							'relation' => 'OR',
+							[
+								'taxonomy' => $taxonomy,
+								'operator' => 'NOT EXISTS',
+							],
+							[
+								'taxonomy' => $taxonomy,
+								'field'    => 'term_id',
+								'terms'    => $default_category,
+								'operator' => 'IN',
+							],
+						];
+					} else {
+						// For other taxonomies, just check if not exists
+						$args['tax_query'][] = [
+							'taxonomy' => $taxonomy,
+							'operator' => 'NOT EXISTS',
+						];
+					}
+				} elseif ( $condition === 'is_not_empty' ) {
+					// Posts with any term in this taxonomy (excluding Uncategorized for categories)
+					if ( $taxonomy === 'category' ) {
+						// Get default category ID (usually "Uncategorized")
+						$default_category = get_option( 'default_category' );
+
+						// For categories, exclude default category
+						$args['tax_query'][] = [
+							'relation' => 'AND',
+							[
+								'taxonomy' => $taxonomy,
+								'operator' => 'EXISTS',
+							],
+							[
+								'taxonomy' => $taxonomy,
+								'field'    => 'term_id',
+								'terms'    => $default_category,
+								'operator' => 'NOT IN',
+							],
+						];
+					} else {
+						// For other taxonomies, just check if exists
+						$args['tax_query'][] = [
+							'taxonomy' => $taxonomy,
+							'operator' => 'EXISTS',
+						];
+					}
+				}
+
 				continue;
 			}
 
@@ -449,12 +619,58 @@ class Post_Exporter extends Abstract_Exporter {
 			$condition = $filter['condition'];
 			$value     = $filter['value'] ?? '';
 
+			// Date fields that need special handling
+			$date_fields   = [ 'post_date', 'post_modified', 'post_date_gmt', 'post_modified_gmt' ];
+			$is_date_field = in_array( $field, $date_fields, true );
+
 			switch ( $condition ) {
 				case 'equals':
-					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} = %s", $value );
+					if ( $is_date_field ) {
+						// For date fields, compare only the date part (ignore time)
+						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) = %s", $value );
+					} else {
+						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} = %s", $value );
+					}
 					break;
 				case 'not_equals':
-					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} != %s", $value );
+					if ( $is_date_field ) {
+						// For date fields, compare only the date part (ignore time)
+						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) != %s", $value );
+					} else {
+						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} != %s", $value );
+					}
+					break;
+				case 'in':
+					// Split by comma and prepare IN clause
+					$values = array_map(
+						function ( $v ) {
+							$v = trim( $v );
+							// Remove surrounding quotes if present
+							return trim( $v, '\'"' );
+						},
+						explode( ',', $value )
+					);
+					$values = array_filter( $values ); // Remove empty values
+					if ( ! empty( $values ) ) {
+						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
+						$where       .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} IN ($placeholders)", $values );
+					}
+					break;
+				case 'not_in':
+					// Split by comma and prepare NOT IN clause
+					$values = array_map(
+						function ( $v ) {
+							$v = trim( $v );
+							// Remove surrounding quotes if present
+							return trim( $v, '\'"' );
+						},
+						explode( ',', $value )
+					);
+					$values = array_filter( $values ); // Remove empty values
+					if ( ! empty( $values ) ) {
+						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
+						$where       .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} NOT IN ($placeholders)", $values );
+					}
 					break;
 				case 'contains':
 					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' );
@@ -469,16 +685,111 @@ class Post_Exporter extends Abstract_Exporter {
 					$where .= " AND ({$wpdb->posts}.{$field} IS NOT NULL AND {$wpdb->posts}.{$field} != '')";
 					break;
 				case 'greater':
-					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} > %s", $value );
+					if ( $is_date_field ) {
+						// For date fields, compare only the date part
+						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) > %s", $value );
+					} else {
+						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} > %s", $value );
+					}
 					break;
 				case 'less':
-					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} < %s", $value );
+					if ( $is_date_field ) {
+						// For date fields, compare only the date part
+						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) < %s", $value );
+					} else {
+						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} < %s", $value );
+					}
 					break;
 				case 'equals_or_greater':
-					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} >= %s", $value );
+					if ( $is_date_field ) {
+						// For date fields, compare only the date part
+						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) >= %s", $value );
+					} else {
+						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} >= %s", $value );
+					}
 					break;
 				case 'equals_or_less':
-					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} <= %s", $value );
+					if ( $is_date_field ) {
+						// For date fields, compare only the date part
+						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) <= %s", $value );
+					} else {
+						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} <= %s", $value );
+					}
+					break;
+			}
+		}
+
+		return $where;
+	}
+
+	/**
+	 * Build WHERE clause for custom author filters (author_name, author_email)
+	 *
+	 * @param array $filters Custom author filters
+	 * @return string WHERE clause
+	 */
+	protected function build_custom_author_where( $filters ) {
+		global $wpdb;
+		$where = '';
+
+		foreach ( $filters as $filter ) {
+			$field     = $filter['field'];
+			$condition = $filter['condition'];
+			$value     = $filter['value'] ?? '';
+
+			// Map field to users table column
+			$user_field = $field === 'author_name' ? 'display_name' : 'user_email';
+
+			switch ( $condition ) {
+				case 'equals':
+					$where .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} = %s", $value );
+					break;
+				case 'not_equals':
+					$where .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} != %s", $value );
+					break;
+				case 'in':
+					// Split by comma and prepare IN clause
+					$values = array_map(
+						function ( $v ) {
+							$v = trim( $v );
+							// Remove surrounding quotes if present
+							return trim( $v, '\'"' );
+						},
+						explode( ',', $value )
+					);
+					$values = array_filter( $values ); // Remove empty values
+					if ( ! empty( $values ) ) {
+						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
+						$where       .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} IN ($placeholders)", $values );
+					}
+					break;
+				case 'not_in':
+					// Split by comma and prepare NOT IN clause
+					$values = array_map(
+						function ( $v ) {
+							$v = trim( $v );
+							// Remove surrounding quotes if present
+							return trim( $v, '\'"' );
+						},
+						explode( ',', $value )
+					);
+					$values = array_filter( $values ); // Remove empty values
+					if ( ! empty( $values ) ) {
+						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
+						$where       .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} NOT IN ($placeholders)", $values );
+					}
+					break;
+				case 'contains':
+					$where .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' );
+					break;
+				case 'not_contains':
+					$where .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} NOT LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' );
+					break;
+				case 'is_empty':
+					$where .= " AND ({$wpdb->users}.{$user_field} IS NULL OR {$wpdb->users}.{$user_field} = '')";
+					break;
+				case 'is_not_empty':
+					$where .= " AND ({$wpdb->users}.{$user_field} IS NOT NULL AND {$wpdb->users}.{$user_field} != '')";
 					break;
 			}
 		}
