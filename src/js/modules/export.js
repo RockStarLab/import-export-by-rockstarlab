@@ -30,6 +30,11 @@ const ExportModule = {
 	bindEvents() {
 		const $wizard = jQuery( '#wp-aie-export' );
 
+		// Content type filter/search
+		$wizard.on( 'input', '#aie-content-type-search', ( e ) =>
+			this.filterContentTypes( e )
+		);
+
 		// Step navigation
 		$wizard.on( 'click', '.aie-next-step', () => this.nextStep() );
 		$wizard.on( 'click', '.aie-prev-step', () => this.prevStep() );
@@ -125,6 +130,52 @@ const ExportModule = {
 			jQuery( '.aie-media-filters' ).hide();
 			jQuery( '.aie-post-field-group' ).show();
 			jQuery( '.aie-media-field-group' ).hide();
+		}
+	},
+
+	/**
+	 * Filter content types based on search input
+	 */
+	filterContentTypes( e ) {
+		const searchTerm = jQuery( e.target ).val().toLowerCase().trim();
+		const $contentTypes = jQuery( '.aie-content-type' );
+		const $filterCount = jQuery( '.aie-filter-count' );
+		const $filterCountValue = jQuery( '.aie-filter-count-value' );
+		const $noResults = jQuery( '.aie-no-results' );
+		let visibleCount = 0;
+
+		if ( searchTerm === '' ) {
+			// Show all if search is empty
+			$contentTypes.show();
+			$filterCount.hide();
+			$noResults.hide();
+			return;
+		}
+
+		// Filter content types
+		$contentTypes.each( function () {
+			const $this = jQuery( this );
+			const title = $this.find( 'h3' ).text().toLowerCase();
+			const description = $this.find( 'p' ).text().toLowerCase();
+
+			// Check if search term matches title or description
+			if ( title.includes( searchTerm ) || description.includes( searchTerm ) ) {
+				$this.show();
+				visibleCount++;
+			} else {
+				$this.hide();
+			}
+		} );
+
+		// Update and show count
+		$filterCountValue.text( visibleCount );
+		$filterCount.show();
+
+		// Show/hide no results message
+		if ( visibleCount === 0 ) {
+			$noResults.show();
+		} else {
+			$noResults.hide();
 		}
 	},
 
