@@ -376,6 +376,8 @@ class Post_Exporter extends Abstract_Exporter {
 				// ID filtering
 				if ( $condition === 'equals' ) {
 					$args['post__in'] = [ absint( $value ) ];
+				} elseif ( $condition === 'not_equals' ) {
+					$args['post__not_in'] = [ absint( $value ) ];
 				} elseif ( $condition === 'in' ) {
 					$args['post__in'] = array_map( 'absint', explode( ',', $value ) );
 				} elseif ( $condition === 'not_in' ) {
@@ -567,7 +569,20 @@ class Post_Exporter extends Abstract_Exporter {
 
 				// Add value only if condition requires it
 				if ( ! in_array( $condition, [ 'is_empty', 'is_not_empty' ], true ) ) {
-					$meta_query_item['value'] = $value;
+					// For IN and NOT IN, value should be an array
+					if ( in_array( $condition, [ 'in', 'not_in' ], true ) ) {
+						$values                   = array_map(
+							function ( $v ) {
+								$v = trim( $v );
+								// Remove surrounding quotes if present
+								return trim( $v, '\'"' );
+							},
+							explode( ',', $value )
+						);
+						$meta_query_item['value'] = array_filter( $values ); // Remove empty values
+					} else {
+						$meta_query_item['value'] = $value;
+					}
 				}
 
 				$meta_query[] = $meta_query_item;
