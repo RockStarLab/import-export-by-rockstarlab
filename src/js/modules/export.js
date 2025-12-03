@@ -919,16 +919,15 @@ const ExportModule = {
 					{ value: 'author_email', label: 'Author Email', type: 'string' },
 				],
 			},
-			{
-				label: 'Other',
-				options: [
-					{ value: 'comment_status', label: 'Comment Status', type: 'string' },
-					{ value: 'post_modified', label: 'Modified Date', type: 'date' },
-				],
-			},
-		];
-
-		// Customize based on content type
+		{
+			label: 'Other',
+			options: [
+				{ value: 'comment_status', label: 'Comment Status', type: 'string' },
+				{ value: 'post_modified', label: 'Modified Date', type: 'date' },
+				{ value: '_wp_page_template', label: 'Template', type: 'string' },
+			],
+		},
+	];		// Customize based on content type
 		if ( contentType === 'media' ) {
 			return [
 				{
@@ -1147,18 +1146,17 @@ const ExportModule = {
 						{ value: 'author_email', label: 'Author Email', type: 'string' },
 					],
 				},
-				{
-					label: 'Other',
-					options: [
-						{ value: 'post_parent', label: 'Parent ID', type: 'number' },
-						{ value: 'post_modified', label: 'Modified Date', type: 'date' },
-						{ value: 'menu_order', label: 'Menu Order', type: 'number' },
-					],
-				},
-			];
-		}
-
-		// Taxonomy
+			{
+				label: 'Other',
+				options: [
+					{ value: 'post_parent', label: 'Parent ID', type: 'number' },
+					{ value: 'post_modified', label: 'Modified Date', type: 'date' },
+					{ value: 'menu_order', label: 'Menu Order', type: 'number' },
+					{ value: '_wp_page_template', label: 'Template', type: 'string' },
+				],
+			},
+		];
+	}		// Taxonomy
 		if ( contentType === 'taxonomy' ) {
 			return [
 				{
