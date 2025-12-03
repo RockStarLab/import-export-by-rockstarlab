@@ -126,7 +126,56 @@ class Post_Exporter extends Abstract_Exporter {
 		$query_args['fields']         = 'ids';
 		$query_args['posts_per_page'] = -1;
 
+		// Combine custom filters
+		$custom_id_filters    = $query_args['_custom_id_filters'] ?? [];
+		$custom_field_filters = $query_args['_custom_field_filters'] ?? [];
+		unset( $query_args['_custom_id_filters'], $query_args['_custom_field_filters'] );
+
+		// Add custom filters via posts_where hook
+		if ( ! empty( $custom_id_filters ) || ! empty( $custom_field_filters ) ) {
+			add_filter(
+				'posts_where',
+				function ( $where ) use ( $custom_id_filters, $custom_field_filters ) {
+					global $wpdb;
+
+					// Handle ID filters
+					foreach ( $custom_id_filters as $filter ) {
+						$condition = $filter['condition'];
+						$value     = $filter['value'];
+
+						if ( $condition === 'greater' ) {
+							$where .= $wpdb->prepare( " AND {$wpdb->posts}.ID > %d", absint( $value ) );
+						} elseif ( $condition === 'less' ) {
+							$where .= $wpdb->prepare( " AND {$wpdb->posts}.ID < %d", absint( $value ) );
+						} elseif ( $condition === 'equals_or_greater' ) {
+							$where .= $wpdb->prepare( " AND {$wpdb->posts}.ID >= %d", absint( $value ) );
+						} elseif ( $condition === 'equals_or_less' ) {
+							$where .= $wpdb->prepare( " AND {$wpdb->posts}.ID <= %d", absint( $value ) );
+						} elseif ( $condition === 'between' ) {
+							$values = array_map( 'absint', explode( ',', $value ) );
+							if ( count( $values ) === 2 ) {
+								$where .= $wpdb->prepare( " AND {$wpdb->posts}.ID BETWEEN %d AND %d", $values[0], $values[1] );
+							}
+						}
+					}
+
+					// Handle field filters
+					if ( ! empty( $custom_field_filters ) ) {
+						$where .= $this->build_custom_field_where( $custom_field_filters );
+					}
+
+					return $where;
+				},
+				10,
+				1
+			);
+		}
+
 		$query = new \WP_Query( $query_args );
+
+		// Remove the filter after query
+		remove_all_filters( 'posts_where', 10 );
+
 		return $query->found_posts;
 	}
 
@@ -141,7 +190,55 @@ class Post_Exporter extends Abstract_Exporter {
 
 		$this->log_info( 'Querying posts', $query_args );
 
+		// Combine custom filters
+		$custom_id_filters    = $query_args['_custom_id_filters'] ?? [];
+		$custom_field_filters = $query_args['_custom_field_filters'] ?? [];
+		unset( $query_args['_custom_id_filters'], $query_args['_custom_field_filters'] );
+
+		// Add custom filters via posts_where hook
+		if ( ! empty( $custom_id_filters ) || ! empty( $custom_field_filters ) ) {
+			add_filter(
+				'posts_where',
+				function ( $where ) use ( $custom_id_filters, $custom_field_filters ) {
+					global $wpdb;
+
+					// Handle ID filters
+					foreach ( $custom_id_filters as $filter ) {
+						$condition = $filter['condition'];
+						$value     = $filter['value'];
+
+						if ( $condition === 'greater' ) {
+							$where .= $wpdb->prepare( " AND {$wpdb->posts}.ID > %d", absint( $value ) );
+						} elseif ( $condition === 'less' ) {
+							$where .= $wpdb->prepare( " AND {$wpdb->posts}.ID < %d", absint( $value ) );
+						} elseif ( $condition === 'equals_or_greater' ) {
+							$where .= $wpdb->prepare( " AND {$wpdb->posts}.ID >= %d", absint( $value ) );
+						} elseif ( $condition === 'equals_or_less' ) {
+							$where .= $wpdb->prepare( " AND {$wpdb->posts}.ID <= %d", absint( $value ) );
+						} elseif ( $condition === 'between' ) {
+							$values = array_map( 'absint', explode( ',', $value ) );
+							if ( count( $values ) === 2 ) {
+								$where .= $wpdb->prepare( " AND {$wpdb->posts}.ID BETWEEN %d AND %d", $values[0], $values[1] );
+							}
+						}
+					}
+
+					// Handle field filters
+					if ( ! empty( $custom_field_filters ) ) {
+						$where .= $this->build_custom_field_where( $custom_field_filters );
+					}
+
+					return $where;
+				},
+				10,
+				1
+			);
+		}
+
 		$query = new \WP_Query( $query_args );
+
+		// Remove the filter after query
+		remove_all_filters( 'posts_where', 10 );
 
 		if ( ! $query->have_posts() ) {
 			return [];
@@ -239,6 +336,22 @@ class Post_Exporter extends Abstract_Exporter {
 					$args['post__in'] = array_map( 'absint', explode( ',', $value ) );
 				} elseif ( $condition === 'not_in' ) {
 					$args['post__not_in'] = array_map( 'absint', explode( ',', $value ) );
+				} elseif ( $condition === 'is_empty' ) {
+					// ID cannot be empty - return no results
+					$args['post__in'] = [ 0 ];
+				} elseif ( $condition === 'is_not_empty' ) {
+					// ID is always not empty - this condition is always true, no filter needed
+					// Do nothing, return all posts
+				} elseif ( in_array( $condition, [ 'greater', 'less', 'equals_or_greater', 'equals_or_less', 'between' ], true ) ) {
+					// For numeric comparisons on ID, we need to use a custom WHERE clause
+					// Store the condition in a temporary property to be used in posts_where filter
+					if ( ! isset( $args['_custom_id_filters'] ) ) {
+						$args['_custom_id_filters'] = [];
+					}
+					$args['_custom_id_filters'][] = [
+						'condition' => $condition,
+						'value'     => $value,
+					];
 				}
 				continue;
 			}
@@ -258,10 +371,18 @@ class Post_Exporter extends Abstract_Exporter {
 				continue;
 			}
 
-			// For other post fields, skip for now
-			$post_fields = [ 'post_title', 'post_content', 'post_excerpt', 'post_date' ];
+			// For other post fields that need custom SQL (like is_empty, contains, etc.)
+			$post_fields = [ 'post_title', 'post_content', 'post_excerpt', 'post_date', 'post_modified', 'post_name' ];
 			if ( in_array( $field, $post_fields, true ) ) {
-				// TODO: Add support for these fields using custom SQL
+				// Store condition for custom WHERE clause
+				if ( ! isset( $args['_custom_field_filters'] ) ) {
+					$args['_custom_field_filters'] = [];
+				}
+				$args['_custom_field_filters'][] = [
+					'field'     => $field,
+					'condition' => $condition,
+					'value'     => $value,
+				];
 				continue;
 			}
 
@@ -296,19 +417,73 @@ class Post_Exporter extends Abstract_Exporter {
 	 */
 	protected function convert_condition_to_meta_compare( $condition ) {
 		$map = [
-			'equals'           => '=',
-			'not_equals'       => '!=',
-			'greater_than'     => '>',
-			'less_than'        => '<',
-			'greater_or_equal' => '>=',
-			'less_or_equal'    => '<=',
-			'contains'         => 'LIKE',
-			'not_contains'     => 'NOT LIKE',
-			'is_empty'         => 'NOT EXISTS',
-			'is_not_empty'     => 'EXISTS',
+			'equals'            => '=',
+			'not_equals'        => '!=',
+			'greater'           => '>',
+			'less'              => '<',
+			'equals_or_greater' => '>=',
+			'equals_or_less'    => '<=',
+			'contains'          => 'LIKE',
+			'not_contains'      => 'NOT LIKE',
+			'is_empty'          => 'NOT EXISTS',
+			'is_not_empty'      => 'EXISTS',
+			'in'                => 'IN',
+			'not_in'            => 'NOT IN',
 		];
 
 		return $map[ $condition ] ?? null;
+	}
+
+	/**
+	 * Build WHERE clause for custom field filters
+	 *
+	 * @param array $filters Custom field filters
+	 * @return string WHERE clause
+	 */
+	protected function build_custom_field_where( $filters ) {
+		global $wpdb;
+		$where = '';
+
+		foreach ( $filters as $filter ) {
+			$field     = $filter['field'];
+			$condition = $filter['condition'];
+			$value     = $filter['value'] ?? '';
+
+			switch ( $condition ) {
+				case 'equals':
+					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} = %s", $value );
+					break;
+				case 'not_equals':
+					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} != %s", $value );
+					break;
+				case 'contains':
+					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' );
+					break;
+				case 'not_contains':
+					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} NOT LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' );
+					break;
+				case 'is_empty':
+					$where .= " AND ({$wpdb->posts}.{$field} IS NULL OR {$wpdb->posts}.{$field} = '')";
+					break;
+				case 'is_not_empty':
+					$where .= " AND ({$wpdb->posts}.{$field} IS NOT NULL AND {$wpdb->posts}.{$field} != '')";
+					break;
+				case 'greater':
+					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} > %s", $value );
+					break;
+				case 'less':
+					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} < %s", $value );
+					break;
+				case 'equals_or_greater':
+					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} >= %s", $value );
+					break;
+				case 'equals_or_less':
+					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} <= %s", $value );
+					break;
+			}
+		}
+
+		return $where;
 	}
 
 	/**

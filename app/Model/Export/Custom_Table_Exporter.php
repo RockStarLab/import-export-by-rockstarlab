@@ -258,15 +258,19 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 				case 'ends_with':
 					$conditions[] = $wpdb->prepare( "`{$field}` LIKE %s", '%' . $wpdb->esc_like( $value ) );
 					break;
+				case 'greater':
 				case 'greater_than':
 					$conditions[] = $wpdb->prepare( "`{$field}` > %s", $value );
 					break;
+				case 'less':
 				case 'less_than':
 					$conditions[] = $wpdb->prepare( "`{$field}` < %s", $value );
 					break;
+				case 'equals_or_greater':
 				case 'greater_or_equal':
 					$conditions[] = $wpdb->prepare( "`{$field}` >= %s", $value );
 					break;
+				case 'equals_or_less':
 				case 'less_or_equal':
 					$conditions[] = $wpdb->prepare( "`{$field}` <= %s", $value );
 					break;

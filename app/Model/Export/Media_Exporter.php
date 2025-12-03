@@ -321,6 +321,12 @@ class Media_Exporter extends Abstract_Exporter {
 					$args['post__in'] = array_map( 'absint', explode( ',', $value ) );
 				} elseif ( $condition === 'not_in' ) {
 					$args['post__not_in'] = array_map( 'absint', explode( ',', $value ) );
+				} elseif ( $condition === 'is_empty' ) {
+					// ID cannot be empty - return no results
+					$args['post__in'] = [ 0 ];
+				} elseif ( $condition === 'is_not_empty' ) {
+					// ID is always not empty - this condition is always true, no filter needed
+					// Do nothing, return all posts
 				} elseif ( in_array( $condition, [ 'greater_than', 'less_than', 'greater_than_or_equal', 'less_than_or_equal', 'between' ], true ) ) {
 					// For numeric comparisons on ID, we need to use a custom WHERE clause
 					// Store the condition in a temporary property to be used in posts_where filter
@@ -383,16 +389,18 @@ class Media_Exporter extends Abstract_Exporter {
 	 */
 	protected function convert_condition_to_meta_compare( $condition ) {
 		$map = [
-			'equals'           => '=',
-			'not_equals'       => '!=',
-			'greater_than'     => '>',
-			'less_than'        => '<',
-			'greater_or_equal' => '>=',
-			'less_or_equal'    => '<=',
-			'contains'         => 'LIKE',
-			'not_contains'     => 'NOT LIKE',
-			'is_empty'         => 'NOT EXISTS',
-			'is_not_empty'     => 'EXISTS',
+			'equals'            => '=',
+			'not_equals'        => '!=',
+			'greater'           => '>',
+			'less'              => '<',
+			'equals_or_greater' => '>=',
+			'equals_or_less'    => '<=',
+			'contains'          => 'LIKE',
+			'not_contains'      => 'NOT LIKE',
+			'is_empty'          => 'NOT EXISTS',
+			'is_not_empty'      => 'EXISTS',
+			'in'                => 'IN',
+			'not_in'            => 'NOT IN',
 		];
 
 		return $map[ $condition ] ?? null;

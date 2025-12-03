@@ -784,7 +784,20 @@ const ExportModule = {
 
 			// Populate conditions based on field type
 			const conditions = this.getConditionsByFieldType( fieldType );
-			conditions.forEach( ( condition ) => {
+			
+			// Get the actual field name to filter out inappropriate conditions
+			const fieldName = $field.val();
+			
+			// Filter conditions based on field
+			const filteredConditions = conditions.filter( ( condition ) => {
+				// For ID fields, exclude is_empty and is_not_empty (ID cannot be empty)
+				if ( fieldName === 'ID' || fieldName === 'comment_ID' || fieldName === 'term_id' || fieldName === 'user_id' || fieldName === 'attribute_id' ) {
+					return condition.value !== 'is_empty' && condition.value !== 'is_not_empty';
+				}
+				return true;
+			} );
+			
+			filteredConditions.forEach( ( condition ) => {
 				$condition.append(
 					jQuery( '<option>' )
 						.val( condition.value )
