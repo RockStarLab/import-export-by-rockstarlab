@@ -236,6 +236,15 @@ class Init {
 
 		add_submenu_page(
 			'wp-advanced-import-export',
+			__( 'Content Updater', 'wp-advanced-import-export' ),
+			__( 'Content Updater', 'wp-advanced-import-export' ),
+			'manage_options',
+			'wp-aie-content-updater',
+			array( $this, 'display_content_updater_page' )
+		);
+
+		add_submenu_page(
+			'wp-advanced-import-export',
 			__( 'Media Sync', 'wp-advanced-import-export' ),
 			__( 'Media Sync', 'wp-advanced-import-export' ),
 			'manage_options',
@@ -272,6 +281,13 @@ class Init {
 	 */
 	function display_content_sync_page() {
 		WP_AIE()->View->load( 'settings/content_sync' );
+	}
+
+	/**
+	 * Display Content Updater Settings Page
+	 */
+	function display_content_updater_page() {
+		WP_AIE()->View->load( 'settings/content_updater' );
 	}
 
 	/**
