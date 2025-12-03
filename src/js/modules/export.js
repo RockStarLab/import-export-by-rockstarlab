@@ -82,6 +82,30 @@ const ExportModule = {
 		$wizard.on( 'change', '.aie-filter-field', ( e ) =>
 			this.onFilterFieldChange( e )
 		);
+		
+		// Dynamic filter value changes - auto refresh count when filter is complete
+		$wizard.on( 'change', '.aie-filter-condition', ( e ) => {
+			const $row = jQuery( e.target ).closest( '.aie-filter-row' );
+			
+			// Update input type based on condition
+			this.updateValueInputType( $row );
+			
+			if ( this.isFilterRowComplete( $row ) ) {
+				Utils.debounce( () => this.refreshCount( false ), 500 )();
+			}
+		} );
+		$wizard.on( 'input', '.aie-filter-value', ( e ) => {
+			const $row = jQuery( e.target ).closest( '.aie-filter-row' );
+			if ( this.isFilterRowComplete( $row ) ) {
+				Utils.debounce( () => this.refreshCount( false ), 1000 )();
+			}
+		} );
+		$wizard.on( 'change', '.aie-filter-value', ( e ) => {
+			const $row = jQuery( e.target ).closest( '.aie-filter-row' );
+			if ( this.isFilterRowComplete( $row ) ) {
+				Utils.debounce( () => this.refreshCount( false ), 500 )();
+			}
+		} );
 	},
 
 	/**
@@ -211,16 +235,11 @@ const ExportModule = {
 	 * Refresh item count
 	 */
 	async refreshCount( showSpinner = true ) {
-		const filters = this.getFilters();
 		const $count = jQuery( '.aie-count-value' );
 		const $spinner = jQuery( '.aie-item-count .spinner' );
 		const $refreshBtn = jQuery( '.aie-refresh-count' );
 
-		console.log( 'refreshCount called, showSpinner:', showSpinner );
-		console.log( 'Spinner element found:', $spinner.length );
-
 		if ( showSpinner ) {
-			console.log( 'Adding is-active to spinner' );
 			$spinner.addClass( 'is-active' );
 		}
 		$refreshBtn.addClass( 'is-refreshing' );
@@ -232,17 +251,28 @@ const ExportModule = {
 
 			// Prepare options based on content type
 			let options = {};
+			
 			if ( contentType === 'custom_table' ) {
 				// For custom tables, get table name from first filter row
 				const $tableSelector = jQuery( '.aie-table-selector' );
 				options = {
 					table_name: $tableSelector.val(),
-					filters: this.getCustomTableFilters(),
+					filters: this.getDynamicFilters(),
 				};
 			} else {
-				options = filters;
+				// For other types, use dynamic filters
+				const dynamicFilters = this.getDynamicFilters();
+				
 				// Map content type to post_type for post-based exporters
-				options.post_type = this.getPostTypeForContentType( contentType );
+				const postType = this.getPostTypeForContentType( contentType );
+				if ( postType ) {
+					options.post_type = postType;
+				}
+				
+				// Add dynamic filters as query parameters
+				if ( dynamicFilters.length > 0 ) {
+					options.filters = dynamicFilters;
+				}
 			}
 
 			const response = await Utils.ajax( 'aie_export_get_count', {
@@ -326,7 +356,44 @@ const ExportModule = {
 	},
 
 	/**
-	 * Get custom table filters
+	 * Get dynamic filters from filter rows
+	 */
+	getDynamicFilters() {
+		const filters = [];
+		
+		jQuery( '.aie-filter-row' ).each( ( index, row ) => {
+			const $row = jQuery( row );
+			const field = $row.find( '.aie-filter-field' ).val();
+			const condition = $row.find( '.aie-filter-condition' ).val();
+			const value = $row.find( '.aie-filter-value' ).val();
+
+			// Skip empty or incomplete filters
+			if ( ! field || ! condition ) {
+				return;
+			}
+
+			// Skip table selector for custom_table type
+			const fieldType = $row.find( '.aie-filter-field option:selected' ).data( 'type' );
+			if ( fieldType === 'table_selector' ) {
+				return;
+			}
+
+			// For conditions that don't need value
+			const noValueConditions = [ 'is_empty', 'is_not_empty' ];
+			if ( noValueConditions.includes( condition ) || ( value && value.trim() !== '' ) ) {
+				filters.push( {
+					field: field,
+					condition: condition,
+					value: value || '',
+				} );
+			}
+		} );
+
+		return filters;
+	},
+
+	/**
+	 * Get custom table filters (deprecated - use getDynamicFilters instead)
 	 */
 	getCustomTableFilters() {
 		const filters = [];
@@ -733,6 +800,9 @@ const ExportModule = {
 			} else {
 				$value.attr( 'type', 'text' );
 			}
+			
+			// Update input type based on current condition
+			this.updateValueInputType( $row );
 		}
 
 		// Trigger count refresh (without spinner)
@@ -1280,6 +1350,82 @@ const ExportModule = {
 		}
 
 		return baseFields;
+	},
+
+	/**
+	 * Check if filter row is complete (has all required values)
+	 */
+	isFilterRowComplete( $row ) {
+		const field = $row.find( '.aie-filter-field' ).val();
+		const condition = $row.find( '.aie-filter-condition' ).val();
+		const value = $row.find( '.aie-filter-value' ).val();
+
+		// Field and condition must be selected
+		if ( ! field || ! condition ) {
+			return false;
+		}
+
+		// Check if condition requires a value
+		const noValueConditions = [ 'is_empty', 'is_not_empty' ];
+		if ( noValueConditions.includes( condition ) ) {
+			return true; // These conditions don't need a value
+		}
+
+		// Value must be filled
+		return value && value.trim() !== '';
+	},
+	
+	/**
+	 * Update value input type based on condition and field type
+	 */
+	updateValueInputType( $row ) {
+		const $field = $row.find( '.aie-filter-field' );
+		const $condition = $row.find( '.aie-filter-condition' );
+		const $value = $row.find( '.aie-filter-value' );
+		
+		const selectedOption = $field.find( 'option:selected' );
+		const fieldType = selectedOption.data( 'type' ) || 'string';
+		const condition = $condition.val();
+		
+		// Skip if value is not an input field
+		if ( ! $value.is( 'input' ) ) {
+			return;
+		}
+		
+		// For 'in' and 'not_in' conditions, always use text input to allow comma-separated values
+		if ( condition === 'in' || condition === 'not_in' ) {
+			$value.attr( 'type', 'text' );
+			$value.attr( 'placeholder', 'Enter values separated by comma (e.g., 1,5,8 or test1,test2)' );
+			return;
+		}
+		
+		// For 'between' condition on numbers, use text to allow comma-separated range
+		if ( condition === 'between' && fieldType === 'number' ) {
+			$value.attr( 'type', 'text' );
+			$value.attr( 'placeholder', 'Enter two numbers separated by comma (e.g., 10,100)' );
+			return;
+		}
+		
+		// For 'is_empty' and 'is_not_empty', hide the value input
+		const noValueConditions = [ 'is_empty', 'is_not_empty' ];
+		if ( noValueConditions.includes( condition ) ) {
+			$value.closest( '.aie-filter-value-wrap' ).hide();
+			return;
+		} else {
+			$value.closest( '.aie-filter-value-wrap' ).show();
+		}
+		
+		// Otherwise, set type based on field type
+		if ( fieldType === 'date' ) {
+			$value.attr( 'type', 'date' );
+			$value.attr( 'placeholder', '' );
+		} else if ( fieldType === 'number' ) {
+			$value.attr( 'type', 'number' );
+			$value.attr( 'placeholder', 'Enter number...' );
+		} else {
+			$value.attr( 'type', 'text' );
+			$value.attr( 'placeholder', 'Enter value...' );
+		}
 	},
 
 	/**

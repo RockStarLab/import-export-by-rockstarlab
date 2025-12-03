@@ -204,7 +204,111 @@ class Post_Exporter extends Abstract_Exporter {
 			$args['meta_query'] = $options['meta_query'];
 		}
 
+		// Process dynamic filters
+		if ( ! empty( $options['filters'] ) && is_array( $options['filters'] ) ) {
+			$this->apply_dynamic_filters( $args, $options['filters'] );
+		}
+
 		return $args;
+	}
+
+	/**
+	 * Apply dynamic filters to query args
+	 *
+	 * @param array $args    Query arguments (by reference)
+	 * @param array $filters Dynamic filters
+	 */
+	protected function apply_dynamic_filters( &$args, $filters ) {
+		$meta_query = $args['meta_query'] ?? [];
+
+		foreach ( $filters as $filter ) {
+			if ( empty( $filter['field'] ) || empty( $filter['condition'] ) ) {
+				continue;
+			}
+
+			$field     = $filter['field'];
+			$condition = $filter['condition'];
+			$value     = $filter['value'] ?? '';
+
+			// Handle specific post fields
+			if ( $field === 'ID' ) {
+				// ID filtering
+				if ( $condition === 'equals' ) {
+					$args['post__in'] = [ absint( $value ) ];
+				} elseif ( $condition === 'in' ) {
+					$args['post__in'] = array_map( 'absint', explode( ',', $value ) );
+				} elseif ( $condition === 'not_in' ) {
+					$args['post__not_in'] = array_map( 'absint', explode( ',', $value ) );
+				}
+				continue;
+			}
+
+			if ( $field === 'post_author' ) {
+				$args['author'] = absint( $value );
+				continue;
+			}
+
+			if ( $field === 'post_parent' ) {
+				$args['post_parent'] = absint( $value );
+				continue;
+			}
+
+			if ( $field === 'post_status' ) {
+				$args['post_status'] = sanitize_text_field( $value );
+				continue;
+			}
+
+			// For other post fields, skip for now
+			$post_fields = [ 'post_title', 'post_content', 'post_excerpt', 'post_date' ];
+			if ( in_array( $field, $post_fields, true ) ) {
+				// TODO: Add support for these fields using custom SQL
+				continue;
+			}
+
+			// Handle as meta field
+			$meta_condition = $this->convert_condition_to_meta_compare( $condition );
+
+			if ( $meta_condition ) {
+				$meta_query_item = [
+					'key'     => $field,
+					'compare' => $meta_condition,
+				];
+
+				// Add value only if condition requires it
+				if ( ! in_array( $condition, [ 'is_empty', 'is_not_empty' ], true ) ) {
+					$meta_query_item['value'] = $value;
+				}
+
+				$meta_query[] = $meta_query_item;
+			}
+		}
+
+		if ( ! empty( $meta_query ) ) {
+			$args['meta_query'] = $meta_query;
+		}
+	}
+
+	/**
+	 * Convert filter condition to WP meta compare operator
+	 *
+	 * @param string $condition Filter condition
+	 * @return string|null Meta compare operator
+	 */
+	protected function convert_condition_to_meta_compare( $condition ) {
+		$map = [
+			'equals'           => '=',
+			'not_equals'       => '!=',
+			'greater_than'     => '>',
+			'less_than'        => '<',
+			'greater_or_equal' => '>=',
+			'less_or_equal'    => '<=',
+			'contains'         => 'LIKE',
+			'not_contains'     => 'NOT LIKE',
+			'is_empty'         => 'NOT EXISTS',
+			'is_not_empty'     => 'EXISTS',
+		];
+
+		return $map[ $condition ] ?? null;
 	}
 
 	/**

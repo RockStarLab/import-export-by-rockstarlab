@@ -115,12 +115,41 @@ abstract class Base_Controller {
 	 */
 	protected function get_request_array( $key, $default = [] ) {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( ! isset( $_REQUEST[ $key ] ) || ! is_array( $_REQUEST[ $key ] ) ) {
+		if ( ! isset( $_REQUEST[ $key ] ) ) {
 			return $default;
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		return array_map( 'sanitize_text_field', wp_unslash( $_REQUEST[ $key ] ) );
+		$value = $_REQUEST[ $key ];
+
+		if ( ! is_array( $value ) ) {
+			return $default;
+		}
+
+		// Recursively sanitize nested arrays
+		return $this->sanitize_array( $value );
+	}
+
+	/**
+	 * Recursively sanitize array
+	 *
+	 * @param array $array Array to sanitize
+	 * @return array Sanitized array
+	 */
+	private function sanitize_array( $array ) {
+		$sanitized = [];
+
+		foreach ( $array as $key => $value ) {
+			$sanitized_key = sanitize_text_field( wp_unslash( $key ) );
+
+			if ( is_array( $value ) ) {
+				$sanitized[ $sanitized_key ] = $this->sanitize_array( $value );
+			} else {
+				$sanitized[ $sanitized_key ] = sanitize_text_field( wp_unslash( $value ) );
+			}
+		}
+
+		return $sanitized;
 	}
 
 	/**
