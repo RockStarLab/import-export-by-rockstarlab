@@ -101,12 +101,69 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 	 * @return int
 	 */
 	public function get_count( $options = [] ) {
-		$query_args           = $this->build_query_args( $options );
-		$query_args['fields'] = 'count';
+		// Check if a specific taxonomy is requested
+		if ( ! empty( $options['taxonomy'] ) && is_string( $options['taxonomy'] ) ) {
+			// Count terms in the specific taxonomy
+			$query_args           = $this->build_query_args( $options );
+			$query_args['fields'] = 'count';
 
-		$count = get_terms( $query_args );
+			$count = get_terms( $query_args );
 
-		return is_wp_error( $count ) ? 0 : (int) $count;
+			return is_wp_error( $count ) ? 0 : (int) $count;
+		}
+
+		// Count unique taxonomies (not terms)
+		$taxonomies = get_taxonomies(
+			[
+				'public'   => true,
+				'_builtin' => false,
+			],
+			'names'
+		);
+
+		// Include built-in taxonomies
+		$builtin_taxonomies = [ 'category', 'post_tag', 'nav_menu', 'link_category', 'post_format' ];
+		$all_taxonomies     = array_merge( $builtin_taxonomies, $taxonomies );
+
+		// Apply filters if provided
+		if ( ! empty( $options['filters'] ) && is_array( $options['filters'] ) ) {
+			foreach ( $options['filters'] as $filter ) {
+				if ( empty( $filter['field'] ) || empty( $filter['condition'] ) ) {
+					continue;
+				}
+
+				$field     = $filter['field'];
+				$condition = $filter['condition'];
+				$value     = $filter['value'] ?? '';
+
+				// Filter by taxonomy name
+				if ( $field === 'name' ) {
+					$all_taxonomies = array_filter(
+						$all_taxonomies,
+						function ( $tax_name ) use ( $condition, $value ) {
+							$tax_obj = get_taxonomy( $tax_name );
+							if ( ! $tax_obj ) {
+								return false;
+							}
+							$name = $tax_obj->label;
+							return $this->apply_string_condition( $name, $condition, $value );
+						}
+					);
+				}
+
+				// Filter by taxonomy slug
+				if ( $field === 'slug' || $field === 'taxonomy' ) {
+					$all_taxonomies = array_filter(
+						$all_taxonomies,
+						function ( $tax_name ) use ( $condition, $value ) {
+							return $this->apply_string_condition( $tax_name, $condition, $value );
+						}
+					);
+				}
+			}
+		}
+
+		return count( $all_taxonomies );
 	}
 
 	/**
@@ -410,6 +467,42 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 				}
 				continue;
 			}
+		}
+	}
+
+	/**
+	 * Apply string condition to a value
+	 *
+	 * @param string $haystack The value to check
+	 * @param string $condition The condition to apply
+	 * @param string $needle The value to compare against
+	 * @return bool
+	 */
+	protected function apply_string_condition( $haystack, $condition, $needle ) {
+		$haystack = strtolower( $haystack );
+		$needle   = strtolower( $needle );
+
+		switch ( $condition ) {
+			case 'equals':
+				return $haystack === $needle;
+			case 'not_equals':
+				return $haystack !== $needle;
+			case 'contains':
+				return strpos( $haystack, $needle ) !== false;
+			case 'not_contains':
+				return strpos( $haystack, $needle ) === false;
+			case 'starts_with':
+				return strpos( $haystack, $needle ) === 0;
+			case 'ends_with':
+				return substr( $haystack, -strlen( $needle ) ) === $needle;
+			case 'in':
+				$values = array_map( 'trim', explode( ',', $needle ) );
+				return in_array( $haystack, $values, true );
+			case 'not_in':
+				$values = array_map( 'trim', explode( ',', $needle ) );
+				return ! in_array( $haystack, $values, true );
+			default:
+				return true;
 		}
 	}
 
