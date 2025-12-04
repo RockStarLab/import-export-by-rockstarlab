@@ -48,15 +48,17 @@ class Post_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'post_type'   => __( 'Post type (post, page, or custom post type)', 'wp-advanced-import-export' ),
-			'post_status' => __( 'Post status (publish, draft, pending, etc.)', 'wp-advanced-import-export' ),
-			'author'      => __( 'Author ID or array of IDs', 'wp-advanced-import-export' ),
-			'date_query'  => __( 'Date query parameters', 'wp-advanced-import-export' ),
-			'tax_query'   => __( 'Taxonomy query parameters', 'wp-advanced-import-export' ),
-			'meta_query'  => __( 'Meta query parameters', 'wp-advanced-import-export' ),
-			's'           => __( 'Search query', 'wp-advanced-import-export' ),
-			'orderby'     => __( 'Order by field', 'wp-advanced-import-export' ),
-			'order'       => __( 'Order direction (ASC or DESC)', 'wp-advanced-import-export' ),
+			'post_type'     => __( 'Post type (post, page, or custom post type)', 'wp-advanced-import-export' ),
+			'post_status'   => __( 'Post status (publish, draft, pending, etc.)', 'wp-advanced-import-export' ),
+			'author'        => __( 'Author ID or array of IDs', 'wp-advanced-import-export' ),
+			'date_query'    => __( 'Date query parameters', 'wp-advanced-import-export' ),
+			'tax_query'     => __( 'Taxonomy query parameters', 'wp-advanced-import-export' ),
+			'meta_query'    => __( 'Meta query parameters', 'wp-advanced-import-export' ),
+			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'wp-advanced-import-export' ),
+			'taxonomy'      => __( 'Taxonomy filters: array of [taxonomy, terms, condition]', 'wp-advanced-import-export' ),
+			's'             => __( 'Search query', 'wp-advanced-import-export' ),
+			'orderby'       => __( 'Order by field', 'wp-advanced-import-export' ),
+			'order'         => __( 'Order direction (ASC or DESC)', 'wp-advanced-import-export' ),
 		];
 	}
 
@@ -334,6 +336,11 @@ class Post_Exporter extends Abstract_Exporter {
 	 * @return array Query arguments
 	 */
 	protected function build_query_args( $options ) {
+		// Debug logging
+		if ( ! empty( $options['taxonomy'] ) ) {
+			error_log( 'Post_Exporter: Received taxonomy filters: ' . print_r( $options['taxonomy'], true ) );
+		}
+
 		$args = [
 			'post_type'      => $options['post_type'] ?? 'post',
 			'post_status'    => $options['post_status'] ?? 'any',
@@ -368,12 +375,157 @@ class Post_Exporter extends Abstract_Exporter {
 			$args['meta_query'] = $options['meta_query'];
 		}
 
+		// Custom field filters
+		if ( ! empty( $options['custom_fields'] ) && is_array( $options['custom_fields'] ) ) {
+			$this->apply_custom_field_filters( $args, $options['custom_fields'] );
+		}
+
+		// Taxonomy filters
+		if ( ! empty( $options['taxonomy'] ) && is_array( $options['taxonomy'] ) ) {
+			$this->apply_taxonomy_filters( $args, $options['taxonomy'] );
+		}
+
 		// Process dynamic filters
 		if ( ! empty( $options['filters'] ) && is_array( $options['filters'] ) ) {
 			$this->apply_dynamic_filters( $args, $options['filters'] );
 		}
 
 		return $args;
+	}
+
+	/**
+	 * Apply custom field (meta) filters to query args
+	 *
+	 * @param array $args    Query arguments (by reference)
+	 * @param array $filters Custom field filters
+	 *                       Format: [
+	 *                           [
+	 *                               'name' => 'field_name',
+	 *                               'value' => 'field_value',
+	 *                               'condition' => 'equals|not_equals|contains|not_contains|...'
+	 *                           ]
+	 *                       ]
+	 */
+	protected function apply_custom_field_filters( &$args, $filters ) {
+		if ( empty( $filters ) || ! is_array( $filters ) ) {
+			return;
+		}
+
+		// Initialize meta_query if not exists
+		if ( ! isset( $args['meta_query'] ) ) {
+			$args['meta_query'] = [];
+		}
+
+		foreach ( $filters as $filter ) {
+			if ( empty( $filter['name'] ) || ! isset( $filter['condition'] ) ) {
+				continue;
+			}
+
+			$name      = sanitize_text_field( $filter['name'] );
+			$condition = $filter['condition'];
+			$value     = $filter['value'] ?? '';
+
+			// Convert condition to meta compare
+			$meta_condition = $this->convert_condition_to_meta_compare( $condition );
+
+			if ( ! $meta_condition ) {
+				continue;
+			}
+
+			$meta_query_item = [
+				'key'     => $name,
+				'compare' => $meta_condition,
+			];
+
+			// Add value only if condition requires it
+			if ( ! in_array( $condition, [ 'is_empty', 'is_not_empty' ], true ) ) {
+				// For IN and NOT IN, value should be an array
+				if ( in_array( $condition, [ 'in', 'not_in' ], true ) ) {
+					$values                   = array_map(
+						function ( $v ) {
+							$v = trim( $v );
+							// Remove surrounding quotes if present
+							return trim( $v, '\'"' );
+						},
+						is_array( $value ) ? $value : explode( ',', $value )
+					);
+					$meta_query_item['value'] = array_filter( $values ); // Remove empty values
+				} else {
+					$meta_query_item['value'] = $value;
+				}
+			}
+
+			$args['meta_query'][] = $meta_query_item;
+		}
+	}
+
+	/**
+	 * Apply taxonomy filters to query args
+	 *
+	 * @param array $args    Query arguments (by reference)
+	 * @param array $filters Taxonomy filters
+	 *                       Format: [
+	 *                           [
+	 *                               'taxonomy' => 'category',
+	 *                               'terms' => ['term1', 'term2'] or 'term1,term2',
+	 *                               'condition' => 'in|not_in|and|or'
+	 *                           ]
+	 *                       ]
+	 */
+	protected function apply_taxonomy_filters( &$args, $filters ) {
+		error_log( 'apply_taxonomy_filters called with filters: ' . print_r( $filters, true ) );
+
+		if ( empty( $filters ) || ! is_array( $filters ) ) {
+			error_log( 'apply_taxonomy_filters: filters empty or not array' );
+			return;
+		}
+
+		// Initialize tax_query if not exists
+		if ( ! isset( $args['tax_query'] ) ) {
+			$args['tax_query'] = [];
+		}
+
+		foreach ( $filters as $filter ) {
+			if ( empty( $filter['taxonomy'] ) || empty( $filter['terms'] ) ) {
+				continue;
+			}
+
+			$taxonomy  = sanitize_text_field( $filter['taxonomy'] );
+			$terms     = $filter['terms'];
+			$condition = $filter['condition'] ?? 'in';
+
+			// Ensure terms is an array
+			if ( ! is_array( $terms ) ) {
+				$terms = array_map( 'trim', explode( ',', $terms ) );
+			}
+
+			// Clean up terms
+			$terms = array_map( 'sanitize_text_field', $terms );
+			$terms = array_filter( $terms ); // Remove empty values
+
+			if ( empty( $terms ) ) {
+				continue;
+			}
+
+			// Map condition to operator
+			$operator = 'IN';
+			if ( $condition === 'not_in' ) {
+				$operator = 'NOT IN';
+			} elseif ( $condition === 'and' || $condition === 'AND' ) {
+				$operator = 'AND';
+			}
+
+			$tax_query_item = [
+				'taxonomy' => $taxonomy,
+				'field'    => 'slug',
+				'terms'    => $terms,
+				'operator' => $operator,
+			];
+
+			$args['tax_query'][] = $tax_query_item;
+		}
+
+		error_log( 'apply_taxonomy_filters: Final tax_query: ' . print_r( $args['tax_query'], true ) );
 	}
 
 	/**

@@ -261,13 +261,14 @@ const ExportModule = {
 			if ( contentType === 'custom_table' ) {
 				// For custom tables, get table name from first filter row
 				const $tableSelector = jQuery( '.aie-table-selector' );
+				const dynamicFiltersData = this.getDynamicFilters();
 				options = {
 					table_name: $tableSelector.val(),
-					filters: this.getDynamicFilters(),
+					filters: dynamicFiltersData.filters,
 				};
 			} else {
 				// For other types, use dynamic filters
-				const dynamicFilters = this.getDynamicFilters();
+				const dynamicFiltersData = this.getDynamicFilters();
 				
 				// Map content type to post_type for post-based exporters
 				const postType = this.getPostTypeForContentType( contentType );
@@ -276,16 +277,29 @@ const ExportModule = {
 				}
 				
 				// Add dynamic filters as query parameters
-				if ( dynamicFilters.length > 0 ) {
-					options.filters = dynamicFilters;
+				if ( dynamicFiltersData.filters.length > 0 ) {
+					options.filters = dynamicFiltersData.filters;
+				}
+				
+				// Add custom field filters
+				if ( dynamicFiltersData.custom_fields.length > 0 ) {
+					options.custom_fields = dynamicFiltersData.custom_fields;
+				}
+				
+				// Add taxonomy filters
+				if ( dynamicFiltersData.taxonomy.length > 0 ) {
+					options.taxonomy = dynamicFiltersData.taxonomy;
 				}
 			}
 
+			console.log('Sending options to backend:', options);
+			
 			const response = await Utils.ajax( 'aie_export_get_count', {
 				export_type: contentType,
 				options: options,
 			} );
 
+			console.log('Received count response:', response);
 			$count.text( response.count || 0 );
 		} catch ( error ) {
 			$count.text( '-' );
@@ -366,21 +380,60 @@ const ExportModule = {
 	 */
 	getDynamicFilters() {
 		const filters = [];
+		const customFields = [];
+		const taxonomyFilters = [];
 		
 		jQuery( '.aie-filter-row' ).each( ( index, row ) => {
 			const $row = jQuery( row );
 			const field = $row.find( '.aie-filter-field' ).val();
+			const fieldType = $row.find( '.aie-filter-field option:selected' ).data( 'type' );
+
+			// Skip table selector for custom_table type
+			if ( fieldType === 'table_selector' ) {
+				return;
+			}
+
+			// Handle custom_field type
+			if ( fieldType === 'custom_field' ) {
+				const name = $row.find( '.aie-custom-field-name' ).val();
+				const condition = $row.find( '.aie-custom-field-condition' ).val();
+				const value = $row.find( '.aie-custom-field-value' ).val();
+
+				if ( name && condition ) {
+					const noValueConditions = [ 'is_empty', 'is_not_empty' ];
+					if ( noValueConditions.includes( condition ) || ( value && value.trim() !== '' ) ) {
+						customFields.push( {
+							name: name,
+							condition: condition,
+							value: value || '',
+						} );
+					}
+				}
+				return;
+			}
+
+			// Handle taxonomy_filter type
+			if ( fieldType === 'taxonomy_filter' ) {
+				const taxonomy = $row.find( '.aie-taxonomy-name' ).val();
+				const condition = $row.find( '.aie-taxonomy-condition' ).val();
+				const terms = $row.find( '.aie-taxonomy-terms' ).val();
+
+				if ( taxonomy && condition && terms && terms.trim() !== '' ) {
+					taxonomyFilters.push( {
+						taxonomy: taxonomy,
+						condition: condition,
+						terms: terms,
+					} );
+				}
+				return;
+			}
+
+			// Handle regular filters
 			const condition = $row.find( '.aie-filter-condition' ).val();
 			const value = $row.find( '.aie-filter-value' ).val();
 
 			// Skip empty or incomplete filters
 			if ( ! field || ! condition ) {
-				return;
-			}
-
-			// Skip table selector for custom_table type
-			const fieldType = $row.find( '.aie-filter-field option:selected' ).data( 'type' );
-			if ( fieldType === 'table_selector' ) {
 				return;
 			}
 
@@ -395,7 +448,11 @@ const ExportModule = {
 			}
 		} );
 
-		return filters;
+		return {
+			filters: filters,
+			custom_fields: customFields,
+			taxonomy: taxonomyFilters,
+		};
 	},
 
 	/**
@@ -486,10 +543,11 @@ const ExportModule = {
 		}
 
 		try {
+			const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
+			const dynamicFiltersData = this.getDynamicFilters();
+			
 			const data = {
-				export_type: jQuery(
-					'input[name="content_type"]:checked'
-				).val(),
+				export_type: contentType,
 				filters: this.getFilters(),
 				fields: fields,
 				format: jQuery( 'input[name="format"]:checked' ).val(),
@@ -506,6 +564,21 @@ const ExportModule = {
 					xml_item: jQuery( '[name="xml_item"]' ).val(),
 				},
 			};
+
+			// Add dynamic filters
+			if ( dynamicFiltersData.filters.length > 0 ) {
+				data.dynamic_filters = dynamicFiltersData.filters;
+			}
+
+			// Add custom field filters
+			if ( dynamicFiltersData.custom_fields.length > 0 ) {
+				data.custom_fields = dynamicFiltersData.custom_fields;
+			}
+
+			// Add taxonomy filters
+			if ( dynamicFiltersData.taxonomy.length > 0 ) {
+				data.taxonomy = dynamicFiltersData.taxonomy;
+			}
 
 			const response = await Utils.ajax( 'aie_export_start', data );
 
@@ -692,6 +765,97 @@ const ExportModule = {
 
 		const selectedOption = $field.find( 'option:selected' );
 		const fieldType = selectedOption.data( 'type' ) || 'string';
+
+		// Special handling for custom_field
+		if ( fieldType === 'custom_field' ) {
+			// Create custom interface for custom field filter
+			$condition.closest( '.aie-filter-condition-wrap' ).show();
+			$valueWrap.html( `
+				<div class="aie-custom-field-inputs">
+					<div class="aie-input-group">
+						<label>Field Name</label>
+						<input type="text" class="aie-custom-field-name" placeholder="Enter custom field name..." />
+					</div>
+					<div class="aie-input-group">
+						<label>Condition</label>
+						<select class="aie-custom-field-condition aie-filter-condition">
+							<option value="equals">Equals</option>
+							<option value="not_equals">Not Equals</option>
+							<option value="contains">Contains</option>
+							<option value="not_contains">Not Contains</option>
+							<option value="greater">Greater Than</option>
+							<option value="less">Less Than</option>
+							<option value="equals_or_greater">Greater or Equal</option>
+							<option value="equals_or_less">Less or Equal</option>
+							<option value="in">In (comma-separated)</option>
+							<option value="not_in">Not In (comma-separated)</option>
+							<option value="is_empty">Is Empty</option>
+							<option value="is_not_empty">Is Not Empty</option>
+						</select>
+					</div>
+					<div class="aie-input-group aie-custom-field-value-group">
+						<label>Value</label>
+						<input type="text" class="aie-custom-field-value aie-filter-value" placeholder="Enter value..." />
+					</div>
+				</div>
+			` );
+			$condition.closest( '.aie-filter-condition-wrap' ).hide();
+			
+			// Handle condition change to show/hide value input
+			$row.find( '.aie-custom-field-condition' ).on( 'change', function() {
+				const condition = jQuery( this ).val();
+				const $valueGroup = $row.find( '.aie-custom-field-value-group' );
+				if ( condition === 'is_empty' || condition === 'is_not_empty' ) {
+					$valueGroup.hide();
+				} else {
+					$valueGroup.show();
+				}
+				// Trigger count refresh on condition change
+				Utils.debounce( () => this.refreshCount( false ), 500 )();
+			}.bind( this ) );
+			
+			// Add change event handlers to trigger count refresh
+			$row.find( '.aie-custom-field-name, .aie-custom-field-value' ).on( 'input change', () => {
+				Utils.debounce( () => this.refreshCount( false ), 500 )();
+			} );
+			
+			return;
+		}
+
+		// Special handling for taxonomy_filter
+		if ( fieldType === 'taxonomy_filter' ) {
+			// Create custom interface for taxonomy filter
+			$condition.closest( '.aie-filter-condition-wrap' ).show();
+			$valueWrap.html( `
+				<div class="aie-taxonomy-filter-inputs">
+					<div class="aie-input-group">
+						<label>Taxonomy Name</label>
+						<input type="text" class="aie-taxonomy-name" placeholder="e.g., category, post_tag, product_cat..." />
+					</div>
+					<div class="aie-input-group">
+						<label>Condition</label>
+						<select class="aie-taxonomy-condition aie-filter-condition">
+							<option value="in">Has Term(s) - IN</option>
+							<option value="not_in">Does Not Have Term(s) - NOT IN</option>
+							<option value="and">Has All Terms - AND</option>
+						</select>
+					</div>
+					<div class="aie-input-group">
+						<label>Terms</label>
+						<input type="text" class="aie-taxonomy-terms aie-filter-value" placeholder="Enter term slugs (comma-separated)..." />
+						<small>Enter term slugs separated by commas</small>
+					</div>
+				</div>
+			` );
+			$condition.closest( '.aie-filter-condition-wrap' ).hide();
+			
+			// Add change event handlers to trigger count refresh
+			$row.find( '.aie-taxonomy-name, .aie-taxonomy-condition, .aie-taxonomy-terms' ).on( 'input change', () => {
+				Utils.debounce( () => this.refreshCount( false ), 500 )();
+			} );
+			
+			return;
+		}
 
 		// Special handling for table_selector
 		if ( fieldType === 'table_selector' ) {
@@ -927,6 +1091,13 @@ const ExportModule = {
 				{ value: '_wp_page_template', label: 'Template', type: 'string' },
 			],
 		},
+		{
+			label: 'Custom Filters',
+			options: [
+				{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
+				{ value: '_taxonomy_filter', label: '🏷️ Taxonomy Filter', type: 'taxonomy_filter' },
+			],
+		},
 	];		// Customize based on content type
 		if ( contentType === 'media' ) {
 			return [
@@ -971,10 +1142,16 @@ const ExportModule = {
 						{ value: 'alt_text', label: 'Alt Text', type: 'string' },
 					],
 				},
+				{
+					label: 'Custom Filters',
+					options: [
+						{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
+					],
+				},
 			];
 		}
 
-		// Pages don't have taxonomy
+		// Pages don't have taxonomy section (but taxonomy_filter is still available in Custom Filters)
 		if ( contentType === 'page' ) {
 			return baseFields.filter( group => group.label !== 'Taxonomy' );
 		}
@@ -987,6 +1164,12 @@ const ExportModule = {
 					options: [
 						{ value: 'term_id', label: 'Menu ID', type: 'number' },
 						{ value: 'name', label: 'Menu Name', type: 'string' },
+					],
+				},
+				{
+					label: 'Custom Filters',
+					options: [
+						{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
 					],
 				},
 			];
@@ -1027,6 +1210,12 @@ const ExportModule = {
 						{ value: 'user_registered', label: 'Registration Date', type: 'date' },
 					],
 				},
+				{
+					label: 'Custom Filters',
+					options: [
+						{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
+					],
+				},
 			];
 		}
 
@@ -1064,6 +1253,12 @@ const ExportModule = {
 						{ value: 'comment_parent', label: 'Parent Comment ID', type: 'number' },
 						{ value: 'comment_karma', label: 'Karma', type: 'number' },
 						{ value: 'comment_type', label: 'Comment Type', type: 'string' },
+					],
+				},
+				{
+					label: 'Custom Filters',
+					options: [
+						{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
 					],
 				},
 			];
@@ -1142,6 +1337,13 @@ const ExportModule = {
 					{ value: '_wp_page_template', label: 'Template', type: 'string' },
 				],
 			},
+			{
+				label: 'Custom Filters',
+				options: [
+					{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
+					{ value: '_taxonomy_filter', label: '🏷️ Taxonomy Filter', type: 'taxonomy_filter' },
+				],
+			},
 		];
 	}		// Taxonomy
 		if ( contentType === 'taxonomy' ) {
@@ -1168,6 +1370,12 @@ const ExportModule = {
 					options: [
 						{ value: 'term_group', label: 'Term Group', type: 'number' },
 						{ value: 'term_order', label: 'Term Order', type: 'number' },
+					],
+				},
+				{
+					label: 'Custom Filters',
+					options: [
+						{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
 					],
 				},
 			];
@@ -1221,6 +1429,13 @@ const ExportModule = {
 						{ value: 'weight', label: 'Weight', type: 'number' },
 					],
 				},
+				{
+					label: 'Custom Filters',
+					options: [
+						{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
+						{ value: '_taxonomy_filter', label: '🏷️ Taxonomy Filter', type: 'taxonomy_filter' },
+					],
+				},
 			];
 		}
 
@@ -1272,6 +1487,12 @@ const ExportModule = {
 						{ value: 'currency', label: 'Currency', type: 'string' },
 					],
 				},
+				{
+					label: 'Custom Filters',
+					options: [
+						{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
+					],
+				},
 			];
 		}
 
@@ -1318,6 +1539,12 @@ const ExportModule = {
 					options: [
 						{ value: 'free_shipping', label: 'Free Shipping', type: 'string' },
 						{ value: 'exclude_sale_items', label: 'Exclude Sale Items', type: 'string' },
+					],
+				},
+				{
+					label: 'Custom Filters',
+					options: [
+						{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
 					],
 				},
 			];
