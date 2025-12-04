@@ -396,7 +396,12 @@ class Export_Controller extends Base_Controller {
 		$include_hidden = $this->get_request_param( 'include_hidden', false );
 
 		// Get all post types
-		$args = [];
+		// When include_hidden is true, we need to explicitly get all post types
+		// because get_post_types() with empty args doesn't return non-public types
+		$args = [
+			'show_ui' => true, // Get all post types that have UI (includes custom post types)
+		];
+
 		if ( ! $include_hidden ) {
 			$args['public'] = true;
 		}
