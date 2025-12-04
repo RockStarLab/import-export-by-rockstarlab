@@ -1,3 +1,5938 @@
-/*! For license information please see app.js.LICENSE.txt */
-(()=>{"use strict";var t,e={226:()=>{function t(t){var e=document.createElement("div");e.className="notice notice-success is-dismissible",e.innerHTML="<p>".concat(o(t),"</p>");var n=document.querySelector(".wrap")||document.body;n.insertBefore(e,n.firstChild),setTimeout((function(){e.remove()}),5e3);var r=document.createElement("button");r.type="button",r.className="notice-dismiss",r.innerHTML='<span class="screen-reader-text">Dismiss this notice.</span>',r.addEventListener("click",(function(){e.remove()})),e.appendChild(r)}function e(t){var e=document.createElement("div");e.className="notice notice-error is-dismissible",e.innerHTML="<p>".concat(o(t),"</p>");var n=document.querySelector(".wrap")||document.body;n.insertBefore(e,n.firstChild),setTimeout((function(){e.remove()}),1e4);var r=document.createElement("button");r.type="button",r.className="notice-dismiss",r.innerHTML='<span class="screen-reader-text">Dismiss this notice.</span>',r.addEventListener("click",(function(){e.remove()})),e.appendChild(r)}function n(t){var n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:null;if(n||(n=document.querySelector('.aie-modal[style*="display: flex"]')||document.querySelector('.aie-modal[style*="display:flex"]')||document.querySelector(".aie-modal")),n){n.querySelectorAll(".aie-modal-error").forEach((function(t){return t.remove()}));var r=document.createElement("div");r.className="notice notice-error is-dismissible aie-modal-error",r.innerHTML="<p>".concat(o(t),"</p>");var a=n.querySelector(".aie-modal-content")||n.querySelector(".aie-modal-body")||n;a.firstChild?a.insertBefore(r,a.firstChild):a.appendChild(r),setTimeout((function(){r.remove()}),1e4);var i=document.createElement("button");i.type="button",i.className="notice-dismiss",i.innerHTML='<span class="screen-reader-text">Dismiss this notice.</span>',i.addEventListener("click",(function(){r.remove()})),r.appendChild(i),a.scrollTop=0}else e(t)}function r(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:null;t?t.querySelectorAll(".aie-modal-error").forEach((function(t){return t.remove()})):document.querySelectorAll(".aie-modal-error").forEach((function(t){return t.remove()}))}function a(t){return new Promise((function(e){e(confirm(t))}))}function o(t){var e=document.createElement("div");return e.textContent=t,e.innerHTML}function i(t){return i="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},i(t)}function s(t,e){return function(t){if(Array.isArray(t))return t}(t)||function(t,e){var n=null==t?null:"undefined"!=typeof Symbol&&t[Symbol.iterator]||t["@@iterator"];if(null!=n){var r,a,o,i,s=[],l=!0,c=!1;try{if(o=(n=n.call(t)).next,0===e){if(Object(n)!==n)return;l=!1}else for(;!(l=(r=o.call(n)).done)&&(s.push(r.value),s.length!==e);l=!0);}catch(t){c=!0,a=t}finally{try{if(!l&&null!=n.return&&(i=n.return(),Object(i)!==i))return}finally{if(c)throw a}}return s}}(t,e)||function(t,e){if(t){if("string"==typeof t)return l(t,e);var n={}.toString.call(t).slice(8,-1);return"Object"===n&&t.constructor&&(n=t.constructor.name),"Map"===n||"Set"===n?Array.from(t):"Arguments"===n||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)?l(t,e):void 0}}(t,e)||function(){throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}()}function l(t,e){(null==e||e>t.length)&&(e=t.length);for(var n=0,r=Array(e);n<e;n++)r[n]=t[n];return r}function c(){c=function(){return e};var t,e={},n=Object.prototype,r=n.hasOwnProperty,a=Object.defineProperty||function(t,e,n){t[e]=n.value},o="function"==typeof Symbol?Symbol:{},s=o.iterator||"@@iterator",l=o.asyncIterator||"@@asyncIterator",u=o.toStringTag||"@@toStringTag";function d(t,e,n){return Object.defineProperty(t,e,{value:n,enumerable:!0,configurable:!0,writable:!0}),t[e]}try{d({},"")}catch(t){d=function(t,e,n){return t[e]=n}}function p(t,e,n,r){var o=e&&e.prototype instanceof b?e:b,i=Object.create(o.prototype),s=new P(r||[]);return a(i,"_invoke",{value:C(t,n,s)}),i}function f(t,e,n){try{return{type:"normal",arg:t.call(e,n)}}catch(t){return{type:"throw",arg:t}}}e.wrap=p;var v="suspendedStart",y="suspendedYield",m="executing",h="completed",g={};function b(){}function w(){}function x(){}var _={};d(_,s,(function(){return this}));var j=Object.getPrototypeOf,S=j&&j(j(L([])));S&&S!==n&&r.call(S,s)&&(_=S);var E=x.prototype=b.prototype=Object.create(_);function Q(t){["next","throw","return"].forEach((function(e){d(t,e,(function(t){return this._invoke(e,t)}))}))}function k(t,e){function n(a,o,s,l){var c=f(t[a],t,o);if("throw"!==c.type){var u=c.arg,d=u.value;return d&&"object"==i(d)&&r.call(d,"__await")?e.resolve(d.__await).then((function(t){n("next",t,s,l)}),(function(t){n("throw",t,s,l)})):e.resolve(d).then((function(t){u.value=t,s(u)}),(function(t){return n("throw",t,s,l)}))}l(c.arg)}var o;a(this,"_invoke",{value:function(t,r){function a(){return new e((function(e,a){n(t,r,e,a)}))}return o=o?o.then(a,a):a()}})}function C(e,n,r){var a=v;return function(o,i){if(a===m)throw Error("Generator is already running");if(a===h){if("throw"===o)throw i;return{value:t,done:!0}}for(r.method=o,r.arg=i;;){var s=r.delegate;if(s){var l=T(s,r);if(l){if(l===g)continue;return l}}if("next"===r.method)r.sent=r._sent=r.arg;else if("throw"===r.method){if(a===v)throw a=h,r.arg;r.dispatchException(r.arg)}else"return"===r.method&&r.abrupt("return",r.arg);a=m;var c=f(e,n,r);if("normal"===c.type){if(a=r.done?h:y,c.arg===g)continue;return{value:c.arg,done:r.done}}"throw"===c.type&&(a=h,r.method="throw",r.arg=c.arg)}}}function T(e,n){var r=n.method,a=e.iterator[r];if(a===t)return n.delegate=null,"throw"===r&&e.iterator.return&&(n.method="return",n.arg=t,T(e,n),"throw"===n.method)||"return"!==r&&(n.method="throw",n.arg=new TypeError("The iterator does not provide a '"+r+"' method")),g;var o=f(a,e.iterator,n.arg);if("throw"===o.type)return n.method="throw",n.arg=o.arg,n.delegate=null,g;var i=o.arg;return i?i.done?(n[e.resultName]=i.value,n.next=e.nextLoc,"return"!==n.method&&(n.method="next",n.arg=t),n.delegate=null,g):i:(n.method="throw",n.arg=new TypeError("iterator result is not an object"),n.delegate=null,g)}function I(t){var e={tryLoc:t[0]};1 in t&&(e.catchLoc=t[1]),2 in t&&(e.finallyLoc=t[2],e.afterLoc=t[3]),this.tryEntries.push(e)}function F(t){var e=t.completion||{};e.type="normal",delete e.arg,t.completion=e}function P(t){this.tryEntries=[{tryLoc:"root"}],t.forEach(I,this),this.reset(!0)}function L(e){if(e||""===e){var n=e[s];if(n)return n.call(e);if("function"==typeof e.next)return e;if(!isNaN(e.length)){var a=-1,o=function n(){for(;++a<e.length;)if(r.call(e,a))return n.value=e[a],n.done=!1,n;return n.value=t,n.done=!0,n};return o.next=o}}throw new TypeError(i(e)+" is not iterable")}return w.prototype=x,a(E,"constructor",{value:x,configurable:!0}),a(x,"constructor",{value:w,configurable:!0}),w.displayName=d(x,u,"GeneratorFunction"),e.isGeneratorFunction=function(t){var e="function"==typeof t&&t.constructor;return!!e&&(e===w||"GeneratorFunction"===(e.displayName||e.name))},e.mark=function(t){return Object.setPrototypeOf?Object.setPrototypeOf(t,x):(t.__proto__=x,d(t,u,"GeneratorFunction")),t.prototype=Object.create(E),t},e.awrap=function(t){return{__await:t}},Q(k.prototype),d(k.prototype,l,(function(){return this})),e.AsyncIterator=k,e.async=function(t,n,r,a,o){void 0===o&&(o=Promise);var i=new k(p(t,n,r,a),o);return e.isGeneratorFunction(n)?i:i.next().then((function(t){return t.done?t.value:i.next()}))},Q(E),d(E,u,"Generator"),d(E,s,(function(){return this})),d(E,"toString",(function(){return"[object Generator]"})),e.keys=function(t){var e=Object(t),n=[];for(var r in e)n.push(r);return n.reverse(),function t(){for(;n.length;){var r=n.pop();if(r in e)return t.value=r,t.done=!1,t}return t.done=!0,t}},e.values=L,P.prototype={constructor:P,reset:function(e){if(this.prev=0,this.next=0,this.sent=this._sent=t,this.done=!1,this.delegate=null,this.method="next",this.arg=t,this.tryEntries.forEach(F),!e)for(var n in this)"t"===n.charAt(0)&&r.call(this,n)&&!isNaN(+n.slice(1))&&(this[n]=t)},stop:function(){this.done=!0;var t=this.tryEntries[0].completion;if("throw"===t.type)throw t.arg;return this.rval},dispatchException:function(e){if(this.done)throw e;var n=this;function a(r,a){return s.type="throw",s.arg=e,n.next=r,a&&(n.method="next",n.arg=t),!!a}for(var o=this.tryEntries.length-1;o>=0;--o){var i=this.tryEntries[o],s=i.completion;if("root"===i.tryLoc)return a("end");if(i.tryLoc<=this.prev){var l=r.call(i,"catchLoc"),c=r.call(i,"finallyLoc");if(l&&c){if(this.prev<i.catchLoc)return a(i.catchLoc,!0);if(this.prev<i.finallyLoc)return a(i.finallyLoc)}else if(l){if(this.prev<i.catchLoc)return a(i.catchLoc,!0)}else{if(!c)throw Error("try statement without catch or finally");if(this.prev<i.finallyLoc)return a(i.finallyLoc)}}}},abrupt:function(t,e){for(var n=this.tryEntries.length-1;n>=0;--n){var a=this.tryEntries[n];if(a.tryLoc<=this.prev&&r.call(a,"finallyLoc")&&this.prev<a.finallyLoc){var o=a;break}}o&&("break"===t||"continue"===t)&&o.tryLoc<=e&&e<=o.finallyLoc&&(o=null);var i=o?o.completion:{};return i.type=t,i.arg=e,o?(this.method="next",this.next=o.finallyLoc,g):this.complete(i)},complete:function(t,e){if("throw"===t.type)throw t.arg;return"break"===t.type||"continue"===t.type?this.next=t.arg:"return"===t.type?(this.rval=this.arg=t.arg,this.method="return",this.next="end"):"normal"===t.type&&e&&(this.next=e),g},finish:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.finallyLoc===t)return this.complete(n.completion,n.afterLoc),F(n),g}},catch:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.tryLoc===t){var r=n.completion;if("throw"===r.type){var a=r.arg;F(n)}return a}}throw Error("illegal catch attempt")},delegateYield:function(e,n,r){return this.delegate={iterator:L(e),resultName:n,nextLoc:r},"next"===this.method&&(this.arg=t),g}},e}function u(t,e,n,r,a,o,i){try{var s=t[o](i),l=s.value}catch(t){return void n(t)}s.done?e(l):Promise.resolve(l).then(r,a)}function d(t){return function(){var e=this,n=arguments;return new Promise((function(r,a){var o=t.apply(e,n);function i(t){u(o,r,a,i,s,"next",t)}function s(t){u(o,r,a,i,s,"throw",t)}i(void 0)}))}}const p={functionsModule:null,allSnippets:{},categories:{},currentCategory:"",currentSnippet:null,init:function(t){this.functionsModule=t},openLibrary:function(){var t=this;return d(c().mark((function e(){var n;return c().wrap((function(e){for(;;)switch(e.prev=e.next){case 0:if(n=document.getElementById("aie-snippets-library-modal")){e.next=3;break}return e.abrupt("return");case 3:if(n.style.display="flex",document.body.style.overflow="hidden",0!==Object.keys(t.allSnippets).length){e.next=10;break}return e.next=8,t.loadSnippets();case 8:e.next=11;break;case 10:t.renderSnippets();case 11:t.bindLibraryEvents();case 12:case"end":return e.stop()}}),e)})))()},bindLibraryEvents:function(){var t=this;document.querySelectorAll(".aie-category-item").forEach((function(e){e.addEventListener("click",(function(e){var n=e.currentTarget.dataset.category;t.filterByCategory(n)}))}));var e,n=document.getElementById("aie-snippet-search");n&&n.addEventListener("input",(function(n){clearTimeout(e),e=setTimeout((function(){t.searchSnippets(n.target.value)}),300)}));var r,a,o=document.getElementById("aie-snippet-preview-modal");o&&(null===(r=o.querySelector(".aie-use-snippet"))||void 0===r||r.addEventListener("click",(function(){t.importSnippet(t.currentSnippet,!1)})),null===(a=o.querySelector(".aie-customize-snippet"))||void 0===a||a.addEventListener("click",(function(){t.importSnippet(t.currentSnippet,!0)})))},loadSnippets:function(){var t=arguments,e=this;return d(c().mark((function n(){var r,a,o,i,s,l,u;return c().wrap((function(n){for(;;)switch(n.prev=n.next){case 0:if(a=t.length>0&&void 0!==t[0]?t[0]:"",o=document.getElementById("aie-snippets-grid")){n.next=4;break}return n.abrupt("return");case 4:return o.innerHTML='\n\t\t\t<div class="aie-loading-snippets">\n\t\t\t\t<span class="spinner is-active"></span>\n\t\t\t\t<p>'.concat((null===(r=window.aieData)||void 0===r||null===(r=r.i18n)||void 0===r?void 0:r.loading)||"Loading snippets...","</p>\n\t\t\t</div>\n\t\t"),n.prev=5,n.next=8,fetch(window.aieData.ajaxUrl,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({action:"aie_functions_get_snippets",nonce:(null===(i=window.aieData)||void 0===i?void 0:i.nonce)||"",category:a})});case 8:return s=n.sent,n.next=11,s.json();case 11:if((l=n.sent).success){n.next=14;break}throw new Error((null===(u=l.data)||void 0===u?void 0:u.message)||"Failed to load snippets");case 14:e.allSnippets=l.data.snippets||{},e.categories=l.data.categories||{},e.renderCategories(),e.renderSnippets(),n.next=24;break;case 20:n.prev=20,n.t0=n.catch(5),console.error("Error loading snippets:",n.t0),o.innerHTML='\n\t\t\t\t<div class="aie-error-message">\n\t\t\t\t\t<span class="dashicons dashicons-warning"></span>\n\t\t\t\t\t<p>'.concat(n.t0.message,"</p>\n\t\t\t\t</div>\n\t\t\t");case 24:case"end":return n.stop()}}),n,null,[[5,20]])})))()},renderCategories:function(){var t,e=this,n=document.getElementById("aie-categories-list");if(n){var r=Object.keys(this.allSnippets).length,a='\n\t\t\t<li class="aie-category-item '.concat(""===this.currentCategory?"active":"",'" data-category="">\n\t\t\t\t<span class="dashicons dashicons-category"></span>\n\t\t\t\t<span class="aie-category-name">').concat((null===(t=window.aieData)||void 0===t||null===(t=t.i18n)||void 0===t?void 0:t.all_snippets)||"All Snippets",'</span>\n\t\t\t\t<span class="aie-category-count">').concat(r,"</span>\n\t\t\t</li>\n\t\t");Object.entries(this.categories).forEach((function(t){var n=s(t,2),r=n[0],o=n[1],i=Object.values(e.allSnippets).filter((function(t){return t.category===r})).length,l=e.currentCategory===r;a+='\n\t\t\t\t<li class="aie-category-item '.concat(l?"active":"",'" data-category="').concat(r,'">\n\t\t\t\t\t<span class="dashicons dashicons-').concat(o.icon,'"></span>\n\t\t\t\t\t<span class="aie-category-name">').concat(o.name,'</span>\n\t\t\t\t\t<span class="aie-category-count">').concat(i,"</span>\n\t\t\t\t</li>\n\t\t\t")})),n.innerHTML=a}},renderSnippets:function(){var t,e=this,n=document.getElementById("aie-snippets-grid");if(n){var r=Object.entries(this.allSnippets);if(this.currentCategory&&(r=r.filter((function(t){return s(t,2)[1].category===e.currentCategory}))),0!==r.length){var a=(null===(t=window.aieData)||void 0===t?void 0:t.currentPage)||"",o=["wp-advanced-import-export","wp-aie-export","wp-aie-content-sync","wp-aie-functions"].includes(a);n.innerHTML=r.map((function(t){var n,r,a=s(t,2),i=a[0],l=a[1];return'\n\t\t\t<div class="aie-snippet-card" data-snippet-key="'.concat(i,'">\n\t\t\t\t<div class="aie-snippet-header">\n\t\t\t\t\t<h3 class="aie-snippet-name">').concat(e.escapeHtml(l.name),'</h3>\n\t\t\t\t\t<span class="aie-snippet-category-badge">').concat(e.getCategoryLabel(l.category),'</span>\n\t\t\t\t</div>\n\t\t\t\t<p class="aie-snippet-description">').concat(e.escapeHtml(l.description),'</p>\n\t\t\t\t<div class="aie-snippet-tags">\n\t\t\t\t\t').concat(l.tags?l.tags.map((function(t){return'<span class="aie-tag">'.concat(e.escapeHtml(t),"</span>")})).join(""):"",'\n\t\t\t\t</div>\n\t\t\t\t<div class="aie-snippet-actions">\n\t\t\t\t\t<button type="button" class="button button-small aie-preview-snippet" data-snippet-key="').concat(i,'">\n\t\t\t\t\t\t<span class="dashicons dashicons-visibility"></span>\n\t\t\t\t\t\t').concat((null===(n=window.aieData)||void 0===n||null===(n=n.i18n)||void 0===n?void 0:n.preview)||"Preview","\n\t\t\t\t\t</button>\n\t\t\t\t\t").concat(o?'<button type="button" class="button button-primary button-small aie-quick-import" data-snippet-key="'.concat(i,'">\n\t\t\t\t\t\t<span class="dashicons dashicons-plus"></span>\n\t\t\t\t\t\t').concat((null===(r=window.aieData)||void 0===r||null===(r=r.i18n)||void 0===r?void 0:r.use)||"Use","\n\t\t\t\t\t</button>"):"","\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t")})).join(""),n.querySelectorAll(".aie-preview-snippet").forEach((function(t){t.addEventListener("click",(function(t){var n=t.currentTarget.dataset.snippetKey;e.previewSnippet(n)}))})),n.querySelectorAll(".aie-quick-import").forEach((function(t){t.addEventListener("click",(function(t){var n=t.currentTarget.dataset.snippetKey;e.importSnippet(n,!1)}))}))}else{var i;n.innerHTML='\n\t\t\t\t<div class="aie-no-snippets">\n\t\t\t\t\t<span class="dashicons dashicons-info" style="width: auto; height: auto;"></span>\n\t\t\t\t\t<p>'.concat((null===(i=window.aieData)||void 0===i||null===(i=i.i18n)||void 0===i?void 0:i.no_snippets)||"No snippets found","</p>\n\t\t\t\t</div>\n\t\t\t")}}},filterByCategory:function(t){this.currentCategory=t,document.querySelectorAll(".aie-category-item").forEach((function(e){e.classList.toggle("active",e.dataset.category===t)})),this.renderSnippets()},searchSnippets:function(t){var n=this;return d(c().mark((function r(){var a,o,i,s,l,u,d;return c().wrap((function(r){for(;;)switch(r.prev=r.next){case 0:if(o=document.getElementById("aie-snippets-grid")){r.next=3;break}return r.abrupt("return");case 3:if(t.trim()){r.next=6;break}return n.renderSnippets(),r.abrupt("return");case 6:return o.innerHTML='\n\t\t\t<div class="aie-loading-snippets">\n\t\t\t\t<span class="spinner is-active"></span>\n\t\t\t\t<p>'.concat((null===(a=window.aieData)||void 0===a||null===(a=a.i18n)||void 0===a?void 0:a.searching)||"Searching...","</p>\n\t\t\t</div>\n\t\t"),r.prev=7,r.next=10,fetch(window.aieData.ajaxUrl,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({action:"aie_functions_search",nonce:(null===(i=window.aieData)||void 0===i?void 0:i.nonce)||"",query:t})});case 10:return s=r.sent,r.next=13,s.json();case 13:if((l=r.sent).success){r.next=16;break}throw new Error((null===(u=l.data)||void 0===u?void 0:u.message)||"Search failed");case 16:d=n.allSnippets,n.allSnippets=l.data.snippets||{},n.currentCategory="",n.renderSnippets(),n.allSnippets=d,r.next=27;break;case 23:r.prev=23,r.t0=r.catch(7),console.error("Error searching snippets:",r.t0),e(r.t0.message);case 27:case"end":return r.stop()}}),r,null,[[7,23]])})))()},previewSnippet:function(t){var e=this.allSnippets[t];if(e){this.currentSnippet=t;var n=document.getElementById("aie-snippet-preview-modal");if(n){n.querySelector(".aie-snippet-title").textContent=e.name,n.querySelector(".aie-snippet-description").textContent=e.description,n.querySelector(".aie-snippet-category").textContent=this.getCategoryLabel(e.category),n.querySelector(".aie-snippet-code").textContent=e.code,e.tags&&e.tags.length>0?n.querySelector(".aie-snippet-tags").textContent=e.tags.join(", "):n.querySelector(".aie-snippet-tags").textContent="None",e.example&&(n.querySelector(".aie-example-input-value").textContent=void 0!==e.example.input?e.example.input:"N/A",n.querySelector(".aie-example-output-value").textContent=void 0!==e.example.output?e.example.output:"N/A");var r=n.querySelector(".aie-use-snippet");if(r){var a,o=(null===(a=window.aieData)||void 0===a?void 0:a.currentPage)||"";r.style.display=["wp-advanced-import-export","wp-aie-export","wp-aie-content-sync"].includes(o)?"":"none"}n.style.display="flex"}}},importSnippet:function(n){var a=arguments,o=this;return d(c().mark((function i(){var s,l,u,d,p,f,v,y,m,h;return c().wrap((function(i){for(;;)switch(i.prev=i.next){case 0:if(s=a.length>1&&void 0!==a[1]&&a[1],l=o.allSnippets[n]){i.next=4;break}return i.abrupt("return");case 4:if(!s){i.next=19;break}if(u=document.getElementById("aie-snippets-library-modal"),d=document.getElementById("aie-snippet-preview-modal"),u&&(u.style.display="none"),d&&(d.style.display="none"),document.body.style.overflow="",!o.functionsModule||!o.functionsModule.openEditorWithSnippet){i.next=15;break}return i.next=13,o.functionsModule.openEditorWithSnippet(l);case 13:i.next=17;break;case 15:(p=document.getElementById("aie-function-editor-modal"))&&(r(),document.getElementById("aie-function-id").value="",document.getElementById("aie-function-name").value=l.name,document.getElementById("aie-function-description").value=l.description,document.getElementById("aie-function-category").value=l.category,document.getElementById("aie-function-code").value=l.code,document.getElementById("aie-function-status").value="active",document.querySelector(".aie-modal-title").textContent="Customize Function",p.style.display="flex",document.body.style.overflow="hidden");case 17:i.next=37;break;case 19:return i.prev=19,i.next=22,fetch(window.aieData.ajaxUrl,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({action:"aie_functions_import",nonce:(null===(f=window.aieData)||void 0===f?void 0:f.nonce)||"",snippet_key:n})});case 22:return y=i.sent,i.next=25,y.json();case 25:if((m=i.sent).success){i.next=28;break}throw new Error((null===(h=m.data)||void 0===h?void 0:h.message)||"Import failed");case 28:t((null===(v=window.aieData)||void 0===v||null===(v=v.i18n)||void 0===v?void 0:v.snippet_imported)||"Snippet imported successfully"),document.body.style.overflow="",o.functionsModule&&o.functionsModule.loadFunctions(),i.next=37;break;case 33:i.prev=33,i.t0=i.catch(19),console.error("Error importing snippet:",i.t0),e(i.t0.message);case 37:case"end":return i.stop()}}),i,null,[[19,33]])})))()},getCategoryLabel:function(t){return{string:"String Operations",date:"Date & Time",numeric:"Numeric Operations",html:"HTML Operations",wordpress:"WordPress",validation:"Validation",advanced:"Advanced",custom:"Custom"}[t]||t},escapeHtml:function(t){var e=document.createElement("div");return e.textContent=t,e.innerHTML}};function f(t){return f="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},f(t)}function v(){v=function(){return e};var t,e={},n=Object.prototype,r=n.hasOwnProperty,a=Object.defineProperty||function(t,e,n){t[e]=n.value},o="function"==typeof Symbol?Symbol:{},i=o.iterator||"@@iterator",s=o.asyncIterator||"@@asyncIterator",l=o.toStringTag||"@@toStringTag";function c(t,e,n){return Object.defineProperty(t,e,{value:n,enumerable:!0,configurable:!0,writable:!0}),t[e]}try{c({},"")}catch(t){c=function(t,e,n){return t[e]=n}}function u(t,e,n,r){var o=e&&e.prototype instanceof b?e:b,i=Object.create(o.prototype),s=new P(r||[]);return a(i,"_invoke",{value:C(t,n,s)}),i}function d(t,e,n){try{return{type:"normal",arg:t.call(e,n)}}catch(t){return{type:"throw",arg:t}}}e.wrap=u;var p="suspendedStart",y="suspendedYield",m="executing",h="completed",g={};function b(){}function w(){}function x(){}var _={};c(_,i,(function(){return this}));var j=Object.getPrototypeOf,S=j&&j(j(L([])));S&&S!==n&&r.call(S,i)&&(_=S);var E=x.prototype=b.prototype=Object.create(_);function Q(t){["next","throw","return"].forEach((function(e){c(t,e,(function(t){return this._invoke(e,t)}))}))}function k(t,e){function n(a,o,i,s){var l=d(t[a],t,o);if("throw"!==l.type){var c=l.arg,u=c.value;return u&&"object"==f(u)&&r.call(u,"__await")?e.resolve(u.__await).then((function(t){n("next",t,i,s)}),(function(t){n("throw",t,i,s)})):e.resolve(u).then((function(t){c.value=t,i(c)}),(function(t){return n("throw",t,i,s)}))}s(l.arg)}var o;a(this,"_invoke",{value:function(t,r){function a(){return new e((function(e,a){n(t,r,e,a)}))}return o=o?o.then(a,a):a()}})}function C(e,n,r){var a=p;return function(o,i){if(a===m)throw Error("Generator is already running");if(a===h){if("throw"===o)throw i;return{value:t,done:!0}}for(r.method=o,r.arg=i;;){var s=r.delegate;if(s){var l=T(s,r);if(l){if(l===g)continue;return l}}if("next"===r.method)r.sent=r._sent=r.arg;else if("throw"===r.method){if(a===p)throw a=h,r.arg;r.dispatchException(r.arg)}else"return"===r.method&&r.abrupt("return",r.arg);a=m;var c=d(e,n,r);if("normal"===c.type){if(a=r.done?h:y,c.arg===g)continue;return{value:c.arg,done:r.done}}"throw"===c.type&&(a=h,r.method="throw",r.arg=c.arg)}}}function T(e,n){var r=n.method,a=e.iterator[r];if(a===t)return n.delegate=null,"throw"===r&&e.iterator.return&&(n.method="return",n.arg=t,T(e,n),"throw"===n.method)||"return"!==r&&(n.method="throw",n.arg=new TypeError("The iterator does not provide a '"+r+"' method")),g;var o=d(a,e.iterator,n.arg);if("throw"===o.type)return n.method="throw",n.arg=o.arg,n.delegate=null,g;var i=o.arg;return i?i.done?(n[e.resultName]=i.value,n.next=e.nextLoc,"return"!==n.method&&(n.method="next",n.arg=t),n.delegate=null,g):i:(n.method="throw",n.arg=new TypeError("iterator result is not an object"),n.delegate=null,g)}function I(t){var e={tryLoc:t[0]};1 in t&&(e.catchLoc=t[1]),2 in t&&(e.finallyLoc=t[2],e.afterLoc=t[3]),this.tryEntries.push(e)}function F(t){var e=t.completion||{};e.type="normal",delete e.arg,t.completion=e}function P(t){this.tryEntries=[{tryLoc:"root"}],t.forEach(I,this),this.reset(!0)}function L(e){if(e||""===e){var n=e[i];if(n)return n.call(e);if("function"==typeof e.next)return e;if(!isNaN(e.length)){var a=-1,o=function n(){for(;++a<e.length;)if(r.call(e,a))return n.value=e[a],n.done=!1,n;return n.value=t,n.done=!0,n};return o.next=o}}throw new TypeError(f(e)+" is not iterable")}return w.prototype=x,a(E,"constructor",{value:x,configurable:!0}),a(x,"constructor",{value:w,configurable:!0}),w.displayName=c(x,l,"GeneratorFunction"),e.isGeneratorFunction=function(t){var e="function"==typeof t&&t.constructor;return!!e&&(e===w||"GeneratorFunction"===(e.displayName||e.name))},e.mark=function(t){return Object.setPrototypeOf?Object.setPrototypeOf(t,x):(t.__proto__=x,c(t,l,"GeneratorFunction")),t.prototype=Object.create(E),t},e.awrap=function(t){return{__await:t}},Q(k.prototype),c(k.prototype,s,(function(){return this})),e.AsyncIterator=k,e.async=function(t,n,r,a,o){void 0===o&&(o=Promise);var i=new k(u(t,n,r,a),o);return e.isGeneratorFunction(n)?i:i.next().then((function(t){return t.done?t.value:i.next()}))},Q(E),c(E,l,"Generator"),c(E,i,(function(){return this})),c(E,"toString",(function(){return"[object Generator]"})),e.keys=function(t){var e=Object(t),n=[];for(var r in e)n.push(r);return n.reverse(),function t(){for(;n.length;){var r=n.pop();if(r in e)return t.value=r,t.done=!1,t}return t.done=!0,t}},e.values=L,P.prototype={constructor:P,reset:function(e){if(this.prev=0,this.next=0,this.sent=this._sent=t,this.done=!1,this.delegate=null,this.method="next",this.arg=t,this.tryEntries.forEach(F),!e)for(var n in this)"t"===n.charAt(0)&&r.call(this,n)&&!isNaN(+n.slice(1))&&(this[n]=t)},stop:function(){this.done=!0;var t=this.tryEntries[0].completion;if("throw"===t.type)throw t.arg;return this.rval},dispatchException:function(e){if(this.done)throw e;var n=this;function a(r,a){return s.type="throw",s.arg=e,n.next=r,a&&(n.method="next",n.arg=t),!!a}for(var o=this.tryEntries.length-1;o>=0;--o){var i=this.tryEntries[o],s=i.completion;if("root"===i.tryLoc)return a("end");if(i.tryLoc<=this.prev){var l=r.call(i,"catchLoc"),c=r.call(i,"finallyLoc");if(l&&c){if(this.prev<i.catchLoc)return a(i.catchLoc,!0);if(this.prev<i.finallyLoc)return a(i.finallyLoc)}else if(l){if(this.prev<i.catchLoc)return a(i.catchLoc,!0)}else{if(!c)throw Error("try statement without catch or finally");if(this.prev<i.finallyLoc)return a(i.finallyLoc)}}}},abrupt:function(t,e){for(var n=this.tryEntries.length-1;n>=0;--n){var a=this.tryEntries[n];if(a.tryLoc<=this.prev&&r.call(a,"finallyLoc")&&this.prev<a.finallyLoc){var o=a;break}}o&&("break"===t||"continue"===t)&&o.tryLoc<=e&&e<=o.finallyLoc&&(o=null);var i=o?o.completion:{};return i.type=t,i.arg=e,o?(this.method="next",this.next=o.finallyLoc,g):this.complete(i)},complete:function(t,e){if("throw"===t.type)throw t.arg;return"break"===t.type||"continue"===t.type?this.next=t.arg:"return"===t.type?(this.rval=this.arg=t.arg,this.method="return",this.next="end"):"normal"===t.type&&e&&(this.next=e),g},finish:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.finallyLoc===t)return this.complete(n.completion,n.afterLoc),F(n),g}},catch:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.tryLoc===t){var r=n.completion;if("throw"===r.type){var a=r.arg;F(n)}return a}}throw Error("illegal catch attempt")},delegateYield:function(e,n,r){return this.delegate={iterator:L(e),resultName:n,nextLoc:r},"next"===this.method&&(this.arg=t),g}},e}function y(t,e,n,r,a,o,i){try{var s=t[o](i),l=s.value}catch(t){return void n(t)}s.done?e(l):Promise.resolve(l).then(r,a)}function m(t){return function(){var e=this,n=arguments;return new Promise((function(r,a){var o=t.apply(e,n);function i(t){y(o,r,a,i,s,"next",t)}function s(t){y(o,r,a,i,s,"throw",t)}i(void 0)}))}}var h={currentPage:1,perPage:20,totalPages:1,totalItems:0,filters:{status:"",category:"",search:""},codeEditor:null,init:function(){document.getElementById("wp-aie-functions")&&(this.bindEvents(),this.loadFunctions(),p.init(this))},bindEvents:function(){var t,e,n,r,a,o,i,s,l,c,u,d=this;null===(t=document.querySelector(".aie-new-function"))||void 0===t||t.addEventListener("click",(function(){d.openEditorModal()})),null===(e=document.querySelector(".aie-browse-library"))||void 0===e||e.addEventListener("click",(function(){p.openLibrary()})),null===(n=document.getElementById("aie-filter-status"))||void 0===n||n.addEventListener("change",(function(t){d.filters.status=t.target.value,d.currentPage=1,d.loadFunctions()})),null===(r=document.getElementById("aie-filter-category"))||void 0===r||r.addEventListener("change",(function(t){d.filters.category=t.target.value,d.currentPage=1,d.loadFunctions()})),null===(a=document.getElementById("aie-filter-search"))||void 0===a||a.addEventListener("input",(function(t){clearTimeout(u),u=setTimeout((function(){d.filters.search=t.target.value,d.currentPage=1,d.loadFunctions()}),500)})),null===(o=document.querySelector(".aie-filter-clear"))||void 0===o||o.addEventListener("click",(function(){d.clearFilters()})),null===(i=document.querySelector(".aie-prev-page"))||void 0===i||i.addEventListener("click",(function(){d.currentPage>1&&(d.currentPage--,d.loadFunctions())})),null===(s=document.querySelector(".aie-next-page"))||void 0===s||s.addEventListener("click",(function(){d.currentPage<d.totalPages&&(d.currentPage++,d.loadFunctions())})),document.querySelectorAll(".aie-modal-close, .aie-modal-cancel").forEach((function(t){t.addEventListener("click",(function(t){var e=t.target.closest(".aie-modal");e&&d.closeModal(e)}))})),null===(l=document.querySelector(".aie-save-function"))||void 0===l||l.addEventListener("click",(function(){d.saveFunction()})),null===(c=document.querySelector(".aie-test-function"))||void 0===c||c.addEventListener("click",(function(){d.testFunction()})),document.querySelectorAll(".aie-modal-backdrop").forEach((function(t){t.addEventListener("click",(function(t){var e=t.target.closest(".aie-modal");e&&d.closeModal(e)}))}))},loadFunctions:function(){var t=this;return m(v().mark((function e(){var n,r,a,o,i,s;return v().wrap((function(e){for(;;)switch(e.prev=e.next){case 0:if(r=document.getElementById("aie-functions-tbody")){e.next=3;break}return e.abrupt("return");case 3:return r.innerHTML='\n\t\t\t<tr class="aie-loading-row">\n\t\t\t\t<td colspan="6" style="text-align:center;">\n\t\t\t\t\t<span class="spinner is-active"></span>\n\t\t\t\t\t'.concat((null===(n=window.aieData)||void 0===n||null===(n=n.i18n)||void 0===n?void 0:n.loading)||"Loading...","\n\t\t\t\t</td>\n\t\t\t</tr>\n\t\t"),e.prev=4,e.next=7,fetch(window.aieData.ajaxUrl,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({action:"aie_functions_get_all",nonce:(null===(a=window.aieData)||void 0===a?void 0:a.nonce)||"",status:t.filters.status,category:t.filters.category,search:t.filters.search,page:t.currentPage,per_page:t.perPage})});case 7:return o=e.sent,e.next=10,o.json();case 10:if((i=e.sent).success){e.next=13;break}throw new Error(i.message||(null===(s=i.data)||void 0===s?void 0:s.message)||"Failed to load functions");case 13:t.totalPages=i.data.total_pages||1,t.totalItems=i.data.total||0,t.renderTable(i.data.functions||[]),t.updatePagination(),e.next=23;break;case 19:e.prev=19,e.t0=e.catch(4),console.error("Error loading functions:",e.t0),r.innerHTML='\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan="6" style="text-align:center; color:#dc3232;">\n\t\t\t\t\t\t<span class="dashicons dashicons-warning"></span>\n\t\t\t\t\t\t'.concat(e.t0.message,"\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");case 23:case"end":return e.stop()}}),e,null,[[4,19]])})))()},renderTable:function(t){var e,n=this,r=document.getElementById("aie-functions-tbody");r&&(0!==t.length?(r.innerHTML=t.map((function(t){return'\n\t\t\t<tr data-function-id="'.concat(t.id,'">\n\t\t\t\t<td class="column-name">\n\t\t\t\t\t<strong>').concat(n.escapeHtml(t.name),'</strong>\n\t\t\t\t</td>\n\t\t\t\t<td class="column-description">\n\t\t\t\t\t').concat(t.description?n.escapeHtml(t.description):'<em style="color:#999;">No description</em>','\n\t\t\t\t</td>\n\t\t\t\t<td class="column-category">\n\t\t\t\t\t').concat(n.getCategoryBadge(t.category),'\n\t\t\t\t</td>\n\t\t\t\t<td class="column-status">\n\t\t\t\t\t').concat(n.getStatusBadge(t.status),'\n\t\t\t\t</td>\n\t\t\t\t<td class="column-usage">\n\t\t\t\t\t').concat(t.usage_count||0,'\n\t\t\t\t</td>\n\t\t\t\t<td class="column-actions">\n\t\t\t\t\t<button type="button" class="button button-small aie-edit-function" data-id="').concat(t.id,'" title="Edit">\n\t\t\t\t\t\t<span class="dashicons dashicons-edit"></span>\n\t\t\t\t\t</button>\n\t\t\t\t\t<button type="button" class="button button-small aie-delete-function" data-id="').concat(t.id,'" title="Delete">\n\t\t\t\t\t\t<span class="dashicons dashicons-trash"></span>\n\t\t\t\t\t</button>\n\t\t\t\t</td>\n\t\t\t</tr>\n\t\t')})).join(""),r.querySelectorAll(".aie-edit-function").forEach((function(t){t.addEventListener("click",(function(t){var e=t.currentTarget.dataset.id;n.openEditorModal(e)}))})),r.querySelectorAll(".aie-delete-function").forEach((function(t){t.addEventListener("click",function(){var t=m(v().mark((function t(e){var r,o;return v().wrap((function(t){for(;;)switch(t.prev=t.next){case 0:return o=e.currentTarget.dataset.id,t.next=3,a((null===(r=window.aieData)||void 0===r||null===(r=r.i18n)||void 0===r?void 0:r.confirm_delete)||"Are you sure you want to delete this function?");case 3:t.sent&&n.deleteFunction(o);case 5:case"end":return t.stop()}}),t)})));return function(e){return t.apply(this,arguments)}}())}))):r.innerHTML='\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan="6" style="text-align:center; padding:40px;">\n\t\t\t\t\t\t<div style="display:flex; flex-direction:column; align-items:center; gap:10px;">\n\t\t\t\t\t\t\t<span class="dashicons dashicons-info" style="font-size:48px; opacity:0.3;"></span>\n\t\t\t\t\t\t\t<p style="margin:23px 0 0 0; color:#666;">\n\t\t\t\t\t\t\t\t'.concat((null===(e=window.aieData)||void 0===e||null===(e=e.i18n)||void 0===e?void 0:e.no_functions)||"No functions found. Create your first function or browse the library.","\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t"))},updatePagination:function(){var t=document.querySelector(".aie-current-page"),e=document.querySelector(".aie-total-pages"),n=document.querySelector(".aie-prev-page"),r=document.querySelector(".aie-next-page"),a=document.querySelector(".aie-pagination-info");if(t&&(t.textContent=this.currentPage),e&&(e.textContent=this.totalPages),n&&(n.disabled=this.currentPage<=1),r&&(r.disabled=this.currentPage>=this.totalPages),a){var o=(this.currentPage-1)*this.perPage+1,i=Math.min(this.currentPage*this.perPage,this.totalItems);a.textContent="Showing ".concat(o,"-").concat(i," of ").concat(this.totalItems," functions")}},openEditorModal:function(){var t=arguments,e=this;return m(v().mark((function a(){var o,i,s,l,c,u,d,p,f,y,m,h,g;return v().wrap((function(a){for(;;)switch(a.prev=a.next){case 0:if(o=t.length>0&&void 0!==t[0]?t[0]:null,i=document.getElementById("aie-function-editor-modal"),s=i.querySelector(".aie-modal-title"),l=document.getElementById("aie-function-form"),c=document.getElementById("aie-function-code"),i&&l&&c){a.next=7;break}return a.abrupt("return");case 7:if(r(i),l.reset(),document.getElementById("aie-function-id").value="",document.querySelector(".aie-test-results").style.display="none",c.value="",i.style.display="flex",document.body.style.overflow="hidden",!e.codeEditor&&window.wp&&window.wp.codeEditor&&(e.codeEditor=window.wp.codeEditor.initialize(c,{codemirror:{mode:"php",lineNumbers:!0,lineWrapping:!0,indentUnit:4,indentWithTabs:!0,autoCloseBrackets:!0,matchBrackets:!0,styleActiveLine:!0,continueComments:!0}})),e.codeEditor&&e.codeEditor.codemirror&&(e.codeEditor.codemirror.setValue(""),e.codeEditor.codemirror.clearHistory()),!o){a.next=42;break}return s.textContent=(null===(u=window.aieData)||void 0===u||null===(u=u.i18n)||void 0===u?void 0:u.edit_function)||"Edit Function",a.prev=18,a.next=21,fetch(window.aieData.ajaxUrl,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({action:"aie_functions_get",nonce:(null===(d=window.aieData)||void 0===d?void 0:d.nonce)||"",id:o})});case 21:return p=a.sent,a.next=24,p.json();case 24:if((f=a.sent).success){a.next=27;break}throw new Error(f.message||(null===(y=f.data)||void 0===y?void 0:y.message)||"Failed to load function");case 27:m=f.data,document.getElementById("aie-function-id").value=m.id,document.getElementById("aie-function-name").value=m.name,document.getElementById("aie-function-description").value=m.description||"",document.getElementById("aie-function-status").value=m.status,e.codeEditor&&e.codeEditor.codemirror?e.codeEditor.codemirror.setValue(m.code||""):document.getElementById("aie-function-code").value=m.code||"",a.next=40;break;case 35:return a.prev=35,a.t0=a.catch(18),console.error("Error loading function:",a.t0),n(a.t0.message,i),a.abrupt("return");case 40:a.next=45;break;case 42:s.textContent=(null===(h=window.aieData)||void 0===h||null===(h=h.i18n)||void 0===h?void 0:h.new_function)||"New Function",g="<?php\n\n",e.codeEditor&&e.codeEditor.codemirror?(e.codeEditor.codemirror.setValue(g),setTimeout((function(){e.codeEditor.codemirror.setCursor({line:2,ch:0}),e.codeEditor.codemirror.focus()}),100)):c.value=g;case 45:case"end":return a.stop()}}),a,null,[[18,35]])})))()},openEditorWithSnippet:function(t){var e=this;return m(v().mark((function n(){var a,o,i,s,l;return v().wrap((function(n){for(;;)switch(n.prev=n.next){case 0:if(a=document.getElementById("aie-function-editor-modal"),o=a.querySelector(".aie-modal-title"),i=document.getElementById("aie-function-form"),s=document.getElementById("aie-function-code"),a&&i&&s){n.next=6;break}return n.abrupt("return");case 6:r(a),i.reset(),document.getElementById("aie-function-id").value="",document.querySelector(".aie-test-results").style.display="none",a.style.display="flex",document.body.style.overflow="hidden",!e.codeEditor&&window.wp&&window.wp.codeEditor&&(e.codeEditor=window.wp.codeEditor.initialize(s,{codemirror:{mode:"php",lineNumbers:!0,lineWrapping:!0,indentUnit:4,indentWithTabs:!0,autoCloseBrackets:!0,matchBrackets:!0,styleActiveLine:!0,continueComments:!0}})),o.textContent="Customize Function",document.getElementById("aie-function-name").value=t.name||"",document.getElementById("aie-function-description").value=t.description||"",document.getElementById("aie-function-category").value=t.category||"custom",document.getElementById("aie-function-status").value="active",!(l=t.code||"")||l.trim().startsWith("<?php")||l.trim().startsWith("<?")||(l="<?php\n\n"+l),e.codeEditor&&e.codeEditor.codemirror?(e.codeEditor.codemirror.setValue(l),setTimeout((function(){e.codeEditor.codemirror.refresh()}),100)):s.value=l;case 21:case"end":return n.stop()}}),n)})))()},closeModal:function(t){t.style.display="none",document.body.style.overflow=""},saveFunction:function(){var a=this;return m(v().mark((function o(){var i,s,l,c,u,d,p,f,y,m,h,g,b,w,x,_,j,S;return v().wrap((function(o){for(;;)switch(o.prev=o.next){case 0:if(r(),s=document.getElementById("aie-function-code"),l=s.value,a.codeEditor&&a.codeEditor.codemirror&&(l=a.codeEditor.codemirror.getValue(),s.value=l),c=document.getElementById("aie-function-name").value.trim(),u=document.getElementById("aie-function-category").value,c){o.next=10;break}return n((null===(d=window.aieData)||void 0===d||null===(d=d.i18n)||void 0===d?void 0:d.name_required)||"Please enter a function name."),document.getElementById("aie-function-name").focus(),o.abrupt("return");case 10:if(l.trim()){o.next=14;break}return n((null===(p=window.aieData)||void 0===p||null===(p=p.i18n)||void 0===p?void 0:p.code_required)||"Please enter the PHP code for your function."),a.codeEditor&&a.codeEditor.codemirror?a.codeEditor.codemirror.focus():s.focus(),o.abrupt("return");case 14:if(u){o.next=18;break}return n((null===(f=window.aieData)||void 0===f||null===(f=f.i18n)||void 0===f?void 0:f.category_required)||"Please select a category."),document.getElementById("aie-function-category").focus(),o.abrupt("return");case 18:return l=a.normalizePhpCode(l),y=document.getElementById("aie-function-id").value,(m=new FormData).append("action",y?"aie_functions_update":"aie_functions_create"),m.append("nonce",(null===(i=window.aieData)||void 0===i?void 0:i.nonce)||""),m.append("name",document.getElementById("aie-function-name").value),m.append("description",document.getElementById("aie-function-description").value),m.append("category",document.getElementById("aie-function-category").value),m.append("code",l),m.append("status",document.getElementById("aie-function-status").value),y&&m.append("id",y),o.prev=29,o.next=32,fetch(window.aieData.ajaxUrl,{method:"POST",body:m});case 32:if(g=o.sent,(b=g.headers.get("content-type"))&&b.includes("application/json")){o.next=40;break}return o.next=37,g.text();case 37:throw w=o.sent,console.error("Non-JSON response:",w),new Error("Server error: The function code contains errors that prevent it from being saved. Please check your PHP syntax.");case 40:return o.next=42,g.json();case 42:if((x=o.sent).success){o.next=46;break}throw console.error("Server response error:",x),new Error(x.message||(null===(_=x.data)||void 0===_?void 0:_.message)||"Failed to save function");case 46:t((null===(h=window.aieData)||void 0===h||null===(h=h.i18n)||void 0===h?void 0:h.function_saved)||"Function saved successfully"),a.closeModal(document.getElementById("aie-function-editor-modal")),a.loadFunctions(),o.next=60;break;case 51:o.prev=51,o.t0=o.catch(29),console.error("Error saving function:",o.t0),console.error("Error message:",o.t0.message),j=document.getElementById("aie-function-editor-modal"),((S=o.t0.message).includes("Unexpected token")||S.includes("is not valid JSON"))&&(S="Server error: Unable to save function. The code may contain syntax errors or forbidden constructs. Check the browser console for details."),console.log("Final error message:",S),j&&"flex"===j.style.display?n(S,j):e(S);case 60:case"end":return o.stop()}}),o,null,[[29,51]])})))()},deleteFunction:function(n){var r=this;return m(v().mark((function a(){var o,i,s,l,c;return v().wrap((function(a){for(;;)switch(a.prev=a.next){case 0:return a.prev=0,a.next=3,fetch(window.aieData.ajaxUrl,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({action:"aie_functions_delete",nonce:(null===(o=window.aieData)||void 0===o?void 0:o.nonce)||"",id:n})});case 3:return s=a.sent,a.next=6,s.json();case 6:if((l=a.sent).success){a.next=9;break}throw new Error(l.message||(null===(c=l.data)||void 0===c?void 0:c.message)||"Failed to delete function");case 9:t((null===(i=window.aieData)||void 0===i||null===(i=i.i18n)||void 0===i?void 0:i.function_deleted)||"Function deleted successfully"),r.loadFunctions(),a.next=17;break;case 13:a.prev=13,a.t0=a.catch(0),console.error("Error deleting function:",a.t0),e(a.t0.message);case 17:case"end":return a.stop()}}),a,null,[[0,13]])})))()},testFunction:function(){var t=this;return m(v().mark((function r(){var a,o,i,s,l,c,u,d,p,f,y,m,h;return v().wrap((function(r){for(;;)switch(r.prev=r.next){case 0:if(a=document.getElementById("aie-function-code").value,t.codeEditor&&t.codeEditor.codemirror&&(a=t.codeEditor.codemirror.getValue()),o=document.getElementById("aie-test-value"),i=o.value,s=document.querySelector(".aie-test-results"),l=document.getElementById("aie-function-editor-modal"),a){r.next=9;break}return l&&"flex"===l.style.display?n("Please enter function code first",l):e("Please enter function code first"),r.abrupt("return");case 9:if(i&&i.trim()){r.next=13;break}return o.focus(),o.select(),r.abrupt("return");case 13:return a=t.normalizePhpCode(a),r.prev=14,(u=new FormData).append("action","aie_functions_test"),u.append("nonce",(null===(c=window.aieData)||void 0===c?void 0:c.nonce)||""),u.append("code",a),u.append("value",i),r.next=22,fetch(window.aieData.ajaxUrl,{method:"POST",body:u});case 22:if(d=r.sent,(p=d.headers.get("content-type"))&&p.includes("application/json")){r.next=30;break}return r.next=27,d.text();case 27:throw f=r.sent,console.error("Non-JSON response:",f),new Error("Server error: The function code contains errors. Please check your PHP syntax.");case 30:return r.next=32,d.json();case 32:if((y=r.sent).success){r.next=35;break}throw new Error(y.message||(null===(m=y.data)||void 0===m?void 0:m.message)||"Test failed");case 35:document.querySelector(".aie-test-input").textContent=void 0!==y.data.input?y.data.input:i,document.querySelector(".aie-test-output").textContent=void 0!==y.data.output?y.data.output:"",s.style.display="block",r.next=46;break;case 40:r.prev=40,r.t0=r.catch(14),console.error("Error testing function:",r.t0),((h=r.t0.message).includes("Unexpected token")||h.includes("is not valid JSON"))&&(h="Server error: Unable to test function. The code may contain syntax errors or forbidden constructs. Check the browser console for details."),l&&"flex"===l.style.display?n(h,l):e(h);case 46:case"end":return r.stop()}}),r,null,[[14,40]])})))()},clearFilters:function(){this.filters={status:"",category:"",search:""},document.getElementById("aie-filter-status").value="",document.getElementById("aie-filter-category").value="",document.getElementById("aie-filter-search").value="",this.currentPage=1,this.loadFunctions()},getCategoryLabel:function(t){return{string:"String Operations",date:"Date & Time",numeric:"Numeric Operations",html:"HTML Operations",wordpress:"WordPress",validation:"Validation",advanced:"Advanced",custom:"Custom"}[t]||t},getCategoryBadge:function(t){return"library"===t?'<span class="aie-badge aie-badge-library">Library</span>':'<span class="aie-badge aie-badge-custom">Custom</span>'},normalizePhpCode:function(t){if(!t||!t.trim())return t;var e=t.trim();return(e.startsWith("<?php")||e.startsWith("<?"))&&(e=e.replace(/^<\?php\s*/i,"").replace(/^<\?\s*/,"").trim()),/^function\s+\w+\s*\(/i.test(e)?"<?php\n"+e:"<?php\nfunction transform_value( $value, $args = array() ) {\n"+e.split("\n").map((function(t){return"\t"+t})).join("\n")+"\n}"},getSourceBadge:function(t){return t.startsWith("library:")?'<span class="aie-badge aie-badge-library">Library</span>':'<span class="aie-badge aie-badge-custom">Custom</span>'},getStatusBadge:function(t){return"active"===t?'<span class="aie-badge aie-badge-active">Active</span>':'<span class="aie-badge aie-badge-inactive">Inactive</span>'},escapeHtml:function(t){var e=document.createElement("div");return e.textContent=t,e.innerHTML}};const g=h;function b(t){return b="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},b(t)}function w(t,e){var n="undefined"!=typeof Symbol&&t[Symbol.iterator]||t["@@iterator"];if(!n){if(Array.isArray(t)||(n=function(t,e){if(t){if("string"==typeof t)return x(t,e);var n={}.toString.call(t).slice(8,-1);return"Object"===n&&t.constructor&&(n=t.constructor.name),"Map"===n||"Set"===n?Array.from(t):"Arguments"===n||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)?x(t,e):void 0}}(t))||e&&t&&"number"==typeof t.length){n&&(t=n);var r=0,a=function(){};return{s:a,n:function(){return r>=t.length?{done:!0}:{done:!1,value:t[r++]}},e:function(t){throw t},f:a}}throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}var o,i=!0,s=!1;return{s:function(){n=n.call(t)},n:function(){var t=n.next();return i=t.done,t},e:function(t){s=!0,o=t},f:function(){try{i||null==n.return||n.return()}finally{if(s)throw o}}}}function x(t,e){(null==e||e>t.length)&&(e=t.length);for(var n=0,r=Array(e);n<e;n++)r[n]=t[n];return r}function _(t,e){var n=Object.keys(t);if(Object.getOwnPropertySymbols){var r=Object.getOwnPropertySymbols(t);e&&(r=r.filter((function(e){return Object.getOwnPropertyDescriptor(t,e).enumerable}))),n.push.apply(n,r)}return n}function j(t,e,n){return(e=function(t){var e=function(t,e){if("object"!=b(t)||!t)return t;var n=t[Symbol.toPrimitive];if(void 0!==n){var r=n.call(t,e||"default");if("object"!=b(r))return r;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===e?String:Number)(t)}(t,"string");return"symbol"==b(e)?e:e+""}(e))in t?Object.defineProperty(t,e,{value:n,enumerable:!0,configurable:!0,writable:!0}):t[e]=n,t}const S={ajax:function(t){var e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{},n=arguments.length>2&&void 0!==arguments[2]?arguments[2]:"POST";return new Promise((function(r,a){var o,i,s=function(t){for(var e=1;e<arguments.length;e++){var n=null!=arguments[e]?arguments[e]:{};e%2?_(Object(n),!0).forEach((function(e){j(t,e,n[e])})):Object.getOwnPropertyDescriptors?Object.defineProperties(t,Object.getOwnPropertyDescriptors(n)):_(Object(n)).forEach((function(e){Object.defineProperty(t,e,Object.getOwnPropertyDescriptor(n,e))}))}return t}({action:t,nonce:(null===(o=window.aieData)||void 0===o?void 0:o.nonce)||""},e);jQuery.ajax({url:(null===(i=window.aieData)||void 0===i?void 0:i.ajaxUrl)||"/wp-admin/admin-ajax.php",type:n,data:s,dataType:"json"}).done((function(t){var e;t.success?r(t.data||t):a((null===(e=t.data)||void 0===e?void 0:e.message)||"Request failed")})).fail((function(t,e,n){a("AJAX Error: ".concat(e," - ").concat(n))}))}))},formatFileSize:function(t){if(0===t)return"0 Bytes";var e=Math.floor(Math.log(t)/Math.log(1024));return Math.round(t/Math.pow(1024,e)*100)/100+" "+["Bytes","KB","MB","GB"][e]},formatDuration:function(t){if(t<60)return Math.round(t)+"s";var e=Math.floor(t/60),n=Math.round(t%60);if(e<60)return"".concat(e,"m ").concat(n,"s");var r=Math.floor(e/60),a=e%60;return"".concat(r,"h ").concat(a,"m")},debounce:function(t){var e,n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:300;return function(){for(var r=arguments.length,a=new Array(r),o=0;o<r;o++)a[o]=arguments[o];var i=this;clearTimeout(e),e=setTimeout((function(){return t.apply(i,a)}),n)}},showNotice:function(t){var e="notice notice-".concat(arguments.length>1&&void 0!==arguments[1]?arguments[1]:"info"," is-dismissible"),n='\n\t\t\t<div class="'.concat(e,'">\n\t\t\t\t<p>').concat(t,'</p>\n\t\t\t\t<button type="button" class="notice-dismiss">\n\t\t\t\t\t<span class="screen-reader-text">Dismiss this notice.</span>\n\t\t\t\t</button>\n\t\t\t</div>\n\t\t'),r=jQuery(n);jQuery(".wrap > h1").after(r),setTimeout((function(){r.fadeOut((function(){return r.remove()}))}),5e3),r.on("click",".notice-dismiss",(function(){r.fadeOut((function(){return r.remove()}))}))},validateFile:function(t){var e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:[],n=arguments.length>2&&void 0!==arguments[2]?arguments[2]:52428800,r=[];if(t.size>n&&r.push("File size (".concat(this.formatFileSize(t.size),") exceeds maximum allowed size (").concat(this.formatFileSize(n),")")),e.length>0){var a=t.name.split(".").pop().toLowerCase();e.some((function(e){return e.startsWith(".")?e.substring(1)===a:t.type===e}))||r.push("File type .".concat(a," is not allowed. Allowed types: ").concat(e.join(", ")))}return{valid:0===r.length,errors:r}},parseCSV:function(t){var e,n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:",",r=[],a=w(t.split("\n"));try{for(a.s();!(e=a.n()).done;){var o=e.value;if(""!==o.trim()){for(var i=[],s="",l=!1,c=0;c<o.length;c++){var u=o[c];'"'===u?l=!l:u!==n||l?s+=u:(i.push(s.trim()),s="")}i.push(s.trim()),r.push(i)}}}catch(t){a.e(t)}finally{a.f()}return r},escapeHtml:function(t){var e=document.createElement("div");return e.textContent=t,e.innerHTML},getUrlParameter:function(t){return new URLSearchParams(window.location.search).get(t)},downloadFile:function(t,e){var n=document.createElement("a");n.href=t,n.download=e||"export.csv",document.body.appendChild(n),n.click(),document.body.removeChild(n)},generateUUID:function(){return"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,(function(t){var e=16*Math.random()|0;return("x"===t?e:3&e|8).toString(16)}))},createProgressBar:function(){return jQuery('\n\t\t\t<div class="aie-progress-container">\n\t\t\t\t<div class="aie-progress-bar">\n\t\t\t\t\t<div class="aie-progress-bar-fill" style="width: 0%;"></div>\n\t\t\t\t</div>\n\t\t\t\t<div class="aie-progress-stats">\n\t\t\t\t\t<div class="aie-progress-percentage">0%</div>\n\t\t\t\t\t<div class="aie-progress-details">\n\t\t\t\t\t\t<span class="aie-processed">0</span> / <span class="aie-total">0</span> items\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t')},updateProgressBar:function(t,e){var n=e.percentage||0,r=e.processed||0,a=e.total||0;t.find(".aie-progress-bar-fill").css("width",n+"%"),t.find(".aie-progress-percentage").text(Math.round(n)+"%"),t.find(".aie-processed").text(r),t.find(".aie-total").text(a),e.estimates&&(e.estimates.elapsed_formatted&&t.find(".aie-elapsed-time").text(e.estimates.elapsed_formatted),e.estimates.remaining_formatted&&t.find(".aie-remaining-time").text(e.estimates.remaining_formatted),e.estimates.items_per_second&&t.find(".aie-items-per-second").text(e.estimates.items_per_second.toFixed(1)+" items/s"))},handleError:function(t){var e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:"";console.error("AIE Error".concat(e?" ("+e+")":"",":"),t);var n=t.message||t.toString();this.showNotice(n,"error")},formatBytes:function(t){return this.formatFileSize(t)}};function E(t){return E="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},E(t)}function Q(){Q=function(){return e};var t,e={},n=Object.prototype,r=n.hasOwnProperty,a=Object.defineProperty||function(t,e,n){t[e]=n.value},o="function"==typeof Symbol?Symbol:{},i=o.iterator||"@@iterator",s=o.asyncIterator||"@@asyncIterator",l=o.toStringTag||"@@toStringTag";function c(t,e,n){return Object.defineProperty(t,e,{value:n,enumerable:!0,configurable:!0,writable:!0}),t[e]}try{c({},"")}catch(t){c=function(t,e,n){return t[e]=n}}function u(t,e,n,r){var o=e&&e.prototype instanceof h?e:h,i=Object.create(o.prototype),s=new P(r||[]);return a(i,"_invoke",{value:C(t,n,s)}),i}function d(t,e,n){try{return{type:"normal",arg:t.call(e,n)}}catch(t){return{type:"throw",arg:t}}}e.wrap=u;var p="suspendedStart",f="suspendedYield",v="executing",y="completed",m={};function h(){}function g(){}function b(){}var w={};c(w,i,(function(){return this}));var x=Object.getPrototypeOf,_=x&&x(x(L([])));_&&_!==n&&r.call(_,i)&&(w=_);var j=b.prototype=h.prototype=Object.create(w);function S(t){["next","throw","return"].forEach((function(e){c(t,e,(function(t){return this._invoke(e,t)}))}))}function k(t,e){function n(a,o,i,s){var l=d(t[a],t,o);if("throw"!==l.type){var c=l.arg,u=c.value;return u&&"object"==E(u)&&r.call(u,"__await")?e.resolve(u.__await).then((function(t){n("next",t,i,s)}),(function(t){n("throw",t,i,s)})):e.resolve(u).then((function(t){c.value=t,i(c)}),(function(t){return n("throw",t,i,s)}))}s(l.arg)}var o;a(this,"_invoke",{value:function(t,r){function a(){return new e((function(e,a){n(t,r,e,a)}))}return o=o?o.then(a,a):a()}})}function C(e,n,r){var a=p;return function(o,i){if(a===v)throw Error("Generator is already running");if(a===y){if("throw"===o)throw i;return{value:t,done:!0}}for(r.method=o,r.arg=i;;){var s=r.delegate;if(s){var l=T(s,r);if(l){if(l===m)continue;return l}}if("next"===r.method)r.sent=r._sent=r.arg;else if("throw"===r.method){if(a===p)throw a=y,r.arg;r.dispatchException(r.arg)}else"return"===r.method&&r.abrupt("return",r.arg);a=v;var c=d(e,n,r);if("normal"===c.type){if(a=r.done?y:f,c.arg===m)continue;return{value:c.arg,done:r.done}}"throw"===c.type&&(a=y,r.method="throw",r.arg=c.arg)}}}function T(e,n){var r=n.method,a=e.iterator[r];if(a===t)return n.delegate=null,"throw"===r&&e.iterator.return&&(n.method="return",n.arg=t,T(e,n),"throw"===n.method)||"return"!==r&&(n.method="throw",n.arg=new TypeError("The iterator does not provide a '"+r+"' method")),m;var o=d(a,e.iterator,n.arg);if("throw"===o.type)return n.method="throw",n.arg=o.arg,n.delegate=null,m;var i=o.arg;return i?i.done?(n[e.resultName]=i.value,n.next=e.nextLoc,"return"!==n.method&&(n.method="next",n.arg=t),n.delegate=null,m):i:(n.method="throw",n.arg=new TypeError("iterator result is not an object"),n.delegate=null,m)}function I(t){var e={tryLoc:t[0]};1 in t&&(e.catchLoc=t[1]),2 in t&&(e.finallyLoc=t[2],e.afterLoc=t[3]),this.tryEntries.push(e)}function F(t){var e=t.completion||{};e.type="normal",delete e.arg,t.completion=e}function P(t){this.tryEntries=[{tryLoc:"root"}],t.forEach(I,this),this.reset(!0)}function L(e){if(e||""===e){var n=e[i];if(n)return n.call(e);if("function"==typeof e.next)return e;if(!isNaN(e.length)){var a=-1,o=function n(){for(;++a<e.length;)if(r.call(e,a))return n.value=e[a],n.done=!1,n;return n.value=t,n.done=!0,n};return o.next=o}}throw new TypeError(E(e)+" is not iterable")}return g.prototype=b,a(j,"constructor",{value:b,configurable:!0}),a(b,"constructor",{value:g,configurable:!0}),g.displayName=c(b,l,"GeneratorFunction"),e.isGeneratorFunction=function(t){var e="function"==typeof t&&t.constructor;return!!e&&(e===g||"GeneratorFunction"===(e.displayName||e.name))},e.mark=function(t){return Object.setPrototypeOf?Object.setPrototypeOf(t,b):(t.__proto__=b,c(t,l,"GeneratorFunction")),t.prototype=Object.create(j),t},e.awrap=function(t){return{__await:t}},S(k.prototype),c(k.prototype,s,(function(){return this})),e.AsyncIterator=k,e.async=function(t,n,r,a,o){void 0===o&&(o=Promise);var i=new k(u(t,n,r,a),o);return e.isGeneratorFunction(n)?i:i.next().then((function(t){return t.done?t.value:i.next()}))},S(j),c(j,l,"Generator"),c(j,i,(function(){return this})),c(j,"toString",(function(){return"[object Generator]"})),e.keys=function(t){var e=Object(t),n=[];for(var r in e)n.push(r);return n.reverse(),function t(){for(;n.length;){var r=n.pop();if(r in e)return t.value=r,t.done=!1,t}return t.done=!0,t}},e.values=L,P.prototype={constructor:P,reset:function(e){if(this.prev=0,this.next=0,this.sent=this._sent=t,this.done=!1,this.delegate=null,this.method="next",this.arg=t,this.tryEntries.forEach(F),!e)for(var n in this)"t"===n.charAt(0)&&r.call(this,n)&&!isNaN(+n.slice(1))&&(this[n]=t)},stop:function(){this.done=!0;var t=this.tryEntries[0].completion;if("throw"===t.type)throw t.arg;return this.rval},dispatchException:function(e){if(this.done)throw e;var n=this;function a(r,a){return s.type="throw",s.arg=e,n.next=r,a&&(n.method="next",n.arg=t),!!a}for(var o=this.tryEntries.length-1;o>=0;--o){var i=this.tryEntries[o],s=i.completion;if("root"===i.tryLoc)return a("end");if(i.tryLoc<=this.prev){var l=r.call(i,"catchLoc"),c=r.call(i,"finallyLoc");if(l&&c){if(this.prev<i.catchLoc)return a(i.catchLoc,!0);if(this.prev<i.finallyLoc)return a(i.finallyLoc)}else if(l){if(this.prev<i.catchLoc)return a(i.catchLoc,!0)}else{if(!c)throw Error("try statement without catch or finally");if(this.prev<i.finallyLoc)return a(i.finallyLoc)}}}},abrupt:function(t,e){for(var n=this.tryEntries.length-1;n>=0;--n){var a=this.tryEntries[n];if(a.tryLoc<=this.prev&&r.call(a,"finallyLoc")&&this.prev<a.finallyLoc){var o=a;break}}o&&("break"===t||"continue"===t)&&o.tryLoc<=e&&e<=o.finallyLoc&&(o=null);var i=o?o.completion:{};return i.type=t,i.arg=e,o?(this.method="next",this.next=o.finallyLoc,m):this.complete(i)},complete:function(t,e){if("throw"===t.type)throw t.arg;return"break"===t.type||"continue"===t.type?this.next=t.arg:"return"===t.type?(this.rval=this.arg=t.arg,this.method="return",this.next="end"):"normal"===t.type&&e&&(this.next=e),m},finish:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.finallyLoc===t)return this.complete(n.completion,n.afterLoc),F(n),m}},catch:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.tryLoc===t){var r=n.completion;if("throw"===r.type){var a=r.arg;F(n)}return a}}throw Error("illegal catch attempt")},delegateYield:function(e,n,r){return this.delegate={iterator:L(e),resultName:n,nextLoc:r},"next"===this.method&&(this.arg=t),m}},e}function k(t,e,n,r,a,o,i){try{var s=t[o](i),l=s.value}catch(t){return void n(t)}s.done?e(l):Promise.resolve(l).then(r,a)}function C(t){return function(){var e=this,n=arguments;return new Promise((function(r,a){var o=t.apply(e,n);function i(t){k(o,r,a,i,s,"next",t)}function s(t){k(o,r,a,i,s,"throw",t)}i(void 0)}))}}const T={currentStep:1,totalSteps:6,uploadedFile:null,fileData:null,jobId:null,progressInterval:null,init:function(){jQuery("#wp-aie-import").length&&(this.bindEvents(),this.showStep(1))},bindEvents:function(){var t=this,e=jQuery("#wp-aie-import");e.on("click",".aie-next-step",(function(){return t.nextStep()})),e.on("click",".aie-prev-step",(function(){return t.prevStep()})),e.on("change",'input[name="content_type"]',(function(e){return t.onContentTypeChange(e)})),jQuery("#aie-select-file").on("click",(function(){return jQuery("#aie-file-input").click()})),jQuery("#aie-file-input").on("change",(function(e){return t.onFileSelect(e)})),jQuery(".aie-remove-file").on("click",(function(){return t.removeFile()}));var n=jQuery("#aie-upload-area");n.on("dragover",(function(t){t.preventDefault(),n.addClass("aie-dragover")})).on("dragleave",(function(){n.removeClass("aie-dragover")})).on("drop",(function(e){e.preventDefault(),n.removeClass("aie-dragover");var r=e.originalEvent.dataTransfer.files;r.length>0&&t.handleFile(r[0])})),e.on("click",".aie-auto-map",(function(){return t.autoMapFields()})),e.on("click",".aie-clear-map",(function(){return t.clearFieldMapping()})),e.on("click",".aie-start-import",(function(){return t.startImport()})),e.on("click",".aie-cancel-import",(function(){return t.cancelImport()})),e.on("click",".aie-new-import",(function(){return t.resetWizard()})),e.on("click",".aie-toggle-logs",(function(){return t.toggleLogs()}))},showStep:function(t){var e=jQuery("#wp-aie-import");e.find(".aie-step").removeClass("active"),e.find(".aie-step-".concat(t)).addClass("active"),e.find(".aie-step-indicator").removeClass("active completed"),e.find('.aie-step-indicator[data-step="'.concat(t,'"]')).addClass("active"),e.find(".aie-step-indicator[data-step]").filter((function(){return jQuery(this).data("step")<t})).addClass("completed"),this.currentStep=t,3===t?this.loadPreview():4===t&&this.buildFieldMapping()},nextStep:function(){this.currentStep<this.totalSteps&&this.validateStep(this.currentStep)&&this.showStep(this.currentStep+1)},prevStep:function(){this.currentStep>1&&this.showStep(this.currentStep-1)},validateStep:function(t){switch(t){case 2:if(!this.uploadedFile)return S.showNotice("Please upload a file","error"),!1;break;case 4:var e=this.getFieldMapping();if(0===Object.keys(e).length)return S.showNotice("Please map at least one field","error"),!1}return!0},onContentTypeChange:function(t){"media"===jQuery(t.target).val()?(jQuery(".aie-post-options").hide(),jQuery(".aie-media-options").show()):(jQuery(".aie-post-options").show(),jQuery(".aie-media-options").hide())},onFileSelect:function(t){var e=t.target.files[0];e&&this.handleFile(e)},handleFile:function(t){var e=S.validateFile(t,[".csv",".json",".xml"],52428800);if(e.valid){this.uploadedFile=t,jQuery(".aie-upload-placeholder").hide(),jQuery(".aie-file-info").show(),jQuery(".aie-file-name").text(t.name),jQuery(".aie-file-size").text(S.formatFileSize(t.size));var n=this.detectFormat(t.name);jQuery(".aie-file-format").text(n.toUpperCase()),"csv"===n&&(jQuery(".aie-format-options").show(),jQuery(".aie-csv-options").show()),jQuery(".aie-step-2 .aie-next-step").prop("disabled",!1),this.uploadFile(t)}else S.showNotice(e.errors.join("<br>"),"error")},uploadFile:function(t){var e=this;return C(Q().mark((function n(){var r,a,o,i,s;return Q().wrap((function(n){for(;;)switch(n.prev=n.next){case 0:return(a=new FormData).append("file",t),a.append("action","aie_import_upload_file"),a.append("nonce",(null===(r=window.aieData)||void 0===r?void 0:r.nonce)||""),a.append("content_type",jQuery('input[name="content_type"]:checked').val()),n.prev=5,n.next=8,jQuery.ajax({url:(null===(o=window.aieData)||void 0===o?void 0:o.ajaxUrl)||"/wp-admin/admin-ajax.php",type:"POST",data:a,processData:!1,contentType:!1,dataType:"json"});case 8:if(!(i=n.sent).success){n.next=14;break}e.fileData=i.data,S.showNotice("File uploaded successfully","success"),n.next=15;break;case 14:throw new Error((null===(s=i.data)||void 0===s?void 0:s.message)||"Upload failed");case 15:n.next=21;break;case 17:n.prev=17,n.t0=n.catch(5),S.handleError(n.t0,"File upload"),e.removeFile();case 21:case"end":return n.stop()}}),n,null,[[5,17]])})))()},removeFile:function(){this.uploadedFile=null,this.fileData=null,jQuery(".aie-file-info").hide(),jQuery(".aie-upload-placeholder").show(),jQuery(".aie-format-options").hide(),jQuery("#aie-file-input").val(""),jQuery(".aie-step-2 .aie-next-step").prop("disabled",!0)},detectFormat:function(t){var e=t.split(".").pop().toLowerCase();return["csv","json","xml"].includes(e)?e:"csv"},loadPreview:function(){var t=this;return C(Q().mark((function e(){var n,r,a,o,i;return Q().wrap((function(e){for(;;)switch(e.prev=e.next){case 0:if(t.fileData&&t.fileData.preview){e.next=2;break}return e.abrupt("return");case 2:r=t.fileData.preview,a=jQuery(".aie-preview-table"),jQuery(".aie-total-rows").text(t.fileData.total_rows||0),jQuery(".aie-total-columns").text((null===(n=t.fileData.columns)||void 0===n?void 0:n.length)||0),o="<tr>",r.headers&&r.headers.forEach((function(t){o+="<th>".concat(S.escapeHtml(t),"</th>")})),o+="</tr>",a.find("thead").html(o),i="",r.data&&r.data.forEach((function(t,e){i+="<tr>",t.forEach((function(t){var e=S.escapeHtml(String(t).substring(0,100));i+="<td>".concat(e,"</td>")})),i+="</tr>"})),a.find("tbody").html(i);case 13:case"end":return e.stop()}}),e)})))()},buildFieldMapping:function(){var t=this;if(this.fileData&&this.fileData.columns){var e=jQuery('input[name="content_type"]:checked').val(),n=this.getTargetFields(e),r=jQuery(".aie-mapping-body"),a="";this.fileData.columns.forEach((function(e,r){var o,i,s=(null===(o=t.fileData.preview)||void 0===o||null===(o=o.data)||void 0===o||null===(o=o[0])||void 0===o?void 0:o[r])||"";a+="\n\t\t\t\t<tr>\n\t\t\t\t\t<td><strong>".concat(S.escapeHtml(e),'</strong></td>\n\t\t\t\t\t<td>\n\t\t\t\t\t\t<select name="field_map[').concat(r,']" class="regular-text">\n\t\t\t\t\t\t\t<option value="">-- ').concat((null===(i=window.aieData)||void 0===i||null===(i=i.i18n)||void 0===i?void 0:i.skip)||"Skip"," --</option>\n\t\t\t\t\t\t\t").concat(n.map((function(t){return'<option value="'.concat(t.value,'">').concat(t.label,"</option>")})).join(""),"\n\t\t\t\t\t\t</select>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td><code>").concat(S.escapeHtml(String(s).substring(0,50)),"</code></td>\n\t\t\t\t</tr>\n\t\t\t")})),r.html(a)}},getTargetFields:function(t){var e={post:[{value:"post_title",label:"Title"},{value:"post_content",label:"Content"},{value:"post_excerpt",label:"Excerpt"},{value:"post_status",label:"Status"},{value:"post_author",label:"Author"},{value:"post_date",label:"Date"},{value:"post_name",label:"Slug"},{value:"categories",label:"Categories"},{value:"tags",label:"Tags"},{value:"featured_image",label:"Featured Image"}],media:[{value:"post_title",label:"Title"},{value:"post_content",label:"Description"},{value:"post_excerpt",label:"Caption"},{value:"file_url",label:"File URL"},{value:"alt_text",label:"Alt Text"}]};return e[t]||e.post},autoMapFields:function(){jQuery(".aie-mapping-body select").each((function(){var t=jQuery(this),e=t.closest("tr").find("strong").text().toLowerCase();t.find("option").each((function(){var n=jQuery(this).val().toLowerCase(),r=jQuery(this).text().toLowerCase();if(e===n||e===r||e.includes(n)||n.includes(e))return t.val(jQuery(this).val()),!1}))})),S.showNotice("Auto-mapping completed","success")},clearFieldMapping:function(){jQuery(".aie-mapping-body select").val("")},getFieldMapping:function(){var t={};return jQuery(".aie-mapping-body select").each((function(){var e,n=jQuery(this),r=null===(e=n.attr("name").match(/\[(\d+)\]/))||void 0===e?void 0:e[1],a=n.val();a&&void 0!==r&&(t[r]=a)})),t},startImport:function(){var t=this;return C(Q().mark((function e(){var n,r;return Q().wrap((function(e){for(;;)switch(e.prev=e.next){case 0:return e.prev=0,n={file_path:t.fileData.file_path,content_type:jQuery('input[name="content_type"]:checked').val(),format:t.fileData.format,field_mapping:t.getFieldMapping(),duplicate_handling:jQuery('input[name="duplicate_handling"]:checked').val(),post_status:jQuery('[name="post_status"]').val(),post_type:jQuery('[name="post_type"]').val(),download_images:jQuery('[name="download_images"]').is(":checked"),batch_size:parseInt(jQuery('[name="batch_size"]').val())||50},e.next=4,S.ajax("aie_import_start",n);case 4:r=e.sent,t.jobId=r.job_id,t.showStep(6),t.startProgressTracking(),S.showNotice("Import started successfully","success"),e.next=14;break;case 11:e.prev=11,e.t0=e.catch(0),S.handleError(e.t0,"Start import");case 14:case"end":return e.stop()}}),e,null,[[0,11]])})))()},startProgressTracking:function(){var t=this;this.progressInterval=setInterval((function(){t.updateProgress()}),2e3)},updateProgress:function(){var t=this;return C(Q().mark((function e(){var n;return Q().wrap((function(e){for(;;)switch(e.prev=e.next){case 0:return e.prev=0,e.next=3,S.ajax("aie_import_get_progress",{job_id:t.jobId});case 3:n=e.sent,S.updateProgressBar(jQuery(".aie-step-6"),n),"completed"===n.status?t.onImportComplete(n):"failed"===n.status&&t.onImportFailed(n),e.next=11;break;case 8:e.prev=8,e.t0=e.catch(0),console.error("Progress update error:",e.t0);case 11:case"end":return e.stop()}}),e,null,[[0,8]])})))()},onImportComplete:function(t){var e;clearInterval(this.progressInterval),jQuery(".aie-import-results").show(),jQuery(".aie-result-processed").text(t.processed||0),jQuery(".aie-result-success").text(t.success||0),jQuery(".aie-result-failed").text(t.failed||0),jQuery(".aie-result-duration").text((null===(e=t.estimates)||void 0===e?void 0:e.elapsed_formatted)||"0s"),jQuery(".aie-cancel-import").hide(),jQuery(".aie-new-import").show(),S.showNotice("Import completed successfully!","success")},onImportFailed:function(t){clearInterval(this.progressInterval),S.showNotice("Import failed: "+(t.error||"Unknown error"),"error")},cancelImport:function(){var t=this;return C(Q().mark((function e(){return Q().wrap((function(e){for(;;)switch(e.prev=e.next){case 0:if(confirm("Are you sure you want to cancel this import?")){e.next=2;break}return e.abrupt("return");case 2:return e.prev=2,e.next=5,S.ajax("aie_import_cancel",{job_id:t.jobId});case 5:clearInterval(t.progressInterval),S.showNotice("Import cancelled","info"),t.resetWizard(),e.next=13;break;case 10:e.prev=10,e.t0=e.catch(2),S.handleError(e.t0,"Cancel import");case 13:case"end":return e.stop()}}),e,null,[[2,10]])})))()},toggleLogs:function(){jQuery(".aie-logs-container").slideToggle()},resetWizard:function(){this.currentStep=1,this.uploadedFile=null,this.fileData=null,this.jobId=null,clearInterval(this.progressInterval),jQuery('#wp-aie-import input[type="text"], #wp-aie-import input[type="file"]').val(""),jQuery('#wp-aie-import input[type="radio"]:first').prop("checked",!0),jQuery(".aie-file-info").hide(),jQuery(".aie-upload-placeholder").show(),jQuery(".aie-import-results").hide(),this.showStep(1)}};function I(t){return I="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},I(t)}function F(){F=function(){return e};var t,e={},n=Object.prototype,r=n.hasOwnProperty,a=Object.defineProperty||function(t,e,n){t[e]=n.value},o="function"==typeof Symbol?Symbol:{},i=o.iterator||"@@iterator",s=o.asyncIterator||"@@asyncIterator",l=o.toStringTag||"@@toStringTag";function c(t,e,n){return Object.defineProperty(t,e,{value:n,enumerable:!0,configurable:!0,writable:!0}),t[e]}try{c({},"")}catch(t){c=function(t,e,n){return t[e]=n}}function u(t,e,n,r){var o=e&&e.prototype instanceof h?e:h,i=Object.create(o.prototype),s=new P(r||[]);return a(i,"_invoke",{value:Q(t,n,s)}),i}function d(t,e,n){try{return{type:"normal",arg:t.call(e,n)}}catch(t){return{type:"throw",arg:t}}}e.wrap=u;var p="suspendedStart",f="suspendedYield",v="executing",y="completed",m={};function h(){}function g(){}function b(){}var w={};c(w,i,(function(){return this}));var x=Object.getPrototypeOf,_=x&&x(x(L([])));_&&_!==n&&r.call(_,i)&&(w=_);var j=b.prototype=h.prototype=Object.create(w);function S(t){["next","throw","return"].forEach((function(e){c(t,e,(function(t){return this._invoke(e,t)}))}))}function E(t,e){function n(a,o,i,s){var l=d(t[a],t,o);if("throw"!==l.type){var c=l.arg,u=c.value;return u&&"object"==I(u)&&r.call(u,"__await")?e.resolve(u.__await).then((function(t){n("next",t,i,s)}),(function(t){n("throw",t,i,s)})):e.resolve(u).then((function(t){c.value=t,i(c)}),(function(t){return n("throw",t,i,s)}))}s(l.arg)}var o;a(this,"_invoke",{value:function(t,r){function a(){return new e((function(e,a){n(t,r,e,a)}))}return o=o?o.then(a,a):a()}})}function Q(e,n,r){var a=p;return function(o,i){if(a===v)throw Error("Generator is already running");if(a===y){if("throw"===o)throw i;return{value:t,done:!0}}for(r.method=o,r.arg=i;;){var s=r.delegate;if(s){var l=k(s,r);if(l){if(l===m)continue;return l}}if("next"===r.method)r.sent=r._sent=r.arg;else if("throw"===r.method){if(a===p)throw a=y,r.arg;r.dispatchException(r.arg)}else"return"===r.method&&r.abrupt("return",r.arg);a=v;var c=d(e,n,r);if("normal"===c.type){if(a=r.done?y:f,c.arg===m)continue;return{value:c.arg,done:r.done}}"throw"===c.type&&(a=y,r.method="throw",r.arg=c.arg)}}}function k(e,n){var r=n.method,a=e.iterator[r];if(a===t)return n.delegate=null,"throw"===r&&e.iterator.return&&(n.method="return",n.arg=t,k(e,n),"throw"===n.method)||"return"!==r&&(n.method="throw",n.arg=new TypeError("The iterator does not provide a '"+r+"' method")),m;var o=d(a,e.iterator,n.arg);if("throw"===o.type)return n.method="throw",n.arg=o.arg,n.delegate=null,m;var i=o.arg;return i?i.done?(n[e.resultName]=i.value,n.next=e.nextLoc,"return"!==n.method&&(n.method="next",n.arg=t),n.delegate=null,m):i:(n.method="throw",n.arg=new TypeError("iterator result is not an object"),n.delegate=null,m)}function C(t){var e={tryLoc:t[0]};1 in t&&(e.catchLoc=t[1]),2 in t&&(e.finallyLoc=t[2],e.afterLoc=t[3]),this.tryEntries.push(e)}function T(t){var e=t.completion||{};e.type="normal",delete e.arg,t.completion=e}function P(t){this.tryEntries=[{tryLoc:"root"}],t.forEach(C,this),this.reset(!0)}function L(e){if(e||""===e){var n=e[i];if(n)return n.call(e);if("function"==typeof e.next)return e;if(!isNaN(e.length)){var a=-1,o=function n(){for(;++a<e.length;)if(r.call(e,a))return n.value=e[a],n.done=!1,n;return n.value=t,n.done=!0,n};return o.next=o}}throw new TypeError(I(e)+" is not iterable")}return g.prototype=b,a(j,"constructor",{value:b,configurable:!0}),a(b,"constructor",{value:g,configurable:!0}),g.displayName=c(b,l,"GeneratorFunction"),e.isGeneratorFunction=function(t){var e="function"==typeof t&&t.constructor;return!!e&&(e===g||"GeneratorFunction"===(e.displayName||e.name))},e.mark=function(t){return Object.setPrototypeOf?Object.setPrototypeOf(t,b):(t.__proto__=b,c(t,l,"GeneratorFunction")),t.prototype=Object.create(j),t},e.awrap=function(t){return{__await:t}},S(E.prototype),c(E.prototype,s,(function(){return this})),e.AsyncIterator=E,e.async=function(t,n,r,a,o){void 0===o&&(o=Promise);var i=new E(u(t,n,r,a),o);return e.isGeneratorFunction(n)?i:i.next().then((function(t){return t.done?t.value:i.next()}))},S(j),c(j,l,"Generator"),c(j,i,(function(){return this})),c(j,"toString",(function(){return"[object Generator]"})),e.keys=function(t){var e=Object(t),n=[];for(var r in e)n.push(r);return n.reverse(),function t(){for(;n.length;){var r=n.pop();if(r in e)return t.value=r,t.done=!1,t}return t.done=!0,t}},e.values=L,P.prototype={constructor:P,reset:function(e){if(this.prev=0,this.next=0,this.sent=this._sent=t,this.done=!1,this.delegate=null,this.method="next",this.arg=t,this.tryEntries.forEach(T),!e)for(var n in this)"t"===n.charAt(0)&&r.call(this,n)&&!isNaN(+n.slice(1))&&(this[n]=t)},stop:function(){this.done=!0;var t=this.tryEntries[0].completion;if("throw"===t.type)throw t.arg;return this.rval},dispatchException:function(e){if(this.done)throw e;var n=this;function a(r,a){return s.type="throw",s.arg=e,n.next=r,a&&(n.method="next",n.arg=t),!!a}for(var o=this.tryEntries.length-1;o>=0;--o){var i=this.tryEntries[o],s=i.completion;if("root"===i.tryLoc)return a("end");if(i.tryLoc<=this.prev){var l=r.call(i,"catchLoc"),c=r.call(i,"finallyLoc");if(l&&c){if(this.prev<i.catchLoc)return a(i.catchLoc,!0);if(this.prev<i.finallyLoc)return a(i.finallyLoc)}else if(l){if(this.prev<i.catchLoc)return a(i.catchLoc,!0)}else{if(!c)throw Error("try statement without catch or finally");if(this.prev<i.finallyLoc)return a(i.finallyLoc)}}}},abrupt:function(t,e){for(var n=this.tryEntries.length-1;n>=0;--n){var a=this.tryEntries[n];if(a.tryLoc<=this.prev&&r.call(a,"finallyLoc")&&this.prev<a.finallyLoc){var o=a;break}}o&&("break"===t||"continue"===t)&&o.tryLoc<=e&&e<=o.finallyLoc&&(o=null);var i=o?o.completion:{};return i.type=t,i.arg=e,o?(this.method="next",this.next=o.finallyLoc,m):this.complete(i)},complete:function(t,e){if("throw"===t.type)throw t.arg;return"break"===t.type||"continue"===t.type?this.next=t.arg:"return"===t.type?(this.rval=this.arg=t.arg,this.method="return",this.next="end"):"normal"===t.type&&e&&(this.next=e),m},finish:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.finallyLoc===t)return this.complete(n.completion,n.afterLoc),T(n),m}},catch:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.tryLoc===t){var r=n.completion;if("throw"===r.type){var a=r.arg;T(n)}return a}}throw Error("illegal catch attempt")},delegateYield:function(e,n,r){return this.delegate={iterator:L(e),resultName:n,nextLoc:r},"next"===this.method&&(this.arg=t),m}},e}function P(t,e,n,r,a,o,i){try{var s=t[o](i),l=s.value}catch(t){return void n(t)}s.done?e(l):Promise.resolve(l).then(r,a)}function L(t){return function(){var e=this,n=arguments;return new Promise((function(r,a){var o=t.apply(e,n);function i(t){P(o,r,a,i,s,"next",t)}function s(t){P(o,r,a,i,s,"throw",t)}i(void 0)}))}}const D={currentStep:1,totalSteps:5,jobId:null,progressInterval:null,init:function(){jQuery("#wp-aie-export").length&&(this.bindEvents(),this.showStep(1))},bindEvents:function(){var t=this,e=jQuery("#wp-aie-export");e.on("input","#aie-content-type-search",(function(e){return t.filterContentTypes(e)})),e.on("click",".aie-next-step",(function(){return t.nextStep()})),e.on("click",".aie-prev-step",(function(){return t.prevStep()})),e.on("change",'input[name="content_type"]',(function(e){return t.onContentTypeChange(e)})),e.on("change",".aie-export-filters input, .aie-export-filters select",S.debounce((function(){return t.refreshCount(!1)}),500)),e.on("click",".aie-refresh-count",(function(){return t.refreshCount(!0)})),e.on("click",".aie-select-all-fields",(function(){return t.selectAllFields(!0)})),e.on("click",".aie-deselect-all-fields",(function(){return t.selectAllFields(!1)})),e.on("click",".aie-select-common-fields",(function(){return t.selectCommonFields()})),e.on("change",'input[name="format"]',(function(e){return t.onFormatChange(e)})),e.on("click",".aie-start-export",(function(){return t.startExport()})),e.on("click",".aie-cancel-export",(function(){return t.cancelExport()})),e.on("click",".aie-download-file",(function(){return t.downloadFile()})),e.on("click",".aie-new-export",(function(){return t.resetWizard()})),e.on("click",".aie-add-filter",(function(){return t.addFilterRow()})),e.on("click",".aie-remove-filter",(function(e){return t.removeFilterRow(e)})),e.on("change",".aie-filter-field",(function(e){return t.onFilterFieldChange(e)})),e.on("change",".aie-filter-condition",(function(e){var n=jQuery(e.target).closest(".aie-filter-row"),r=n.find(".aie-filter-value");r.length&&r.val(""),t.updateValueInputType(n),t.isFilterRowComplete(n)&&S.debounce((function(){return t.refreshCount(!1)}),500)()})),e.on("input",".aie-filter-value",(function(e){var n=jQuery(e.target).closest(".aie-filter-row");t.isFilterRowComplete(n)&&S.debounce((function(){return t.refreshCount(!1)}),1e3)()})),e.on("change",".aie-filter-value",(function(e){var n=jQuery(e.target).closest(".aie-filter-row");t.isFilterRowComplete(n)&&S.debounce((function(){return t.refreshCount(!1)}),500)()}))},showStep:function(t){var e=jQuery("#wp-aie-export");e.find(".aie-step").removeClass("active"),e.find(".aie-step-".concat(t)).addClass("active"),e.find(".aie-step-indicator").removeClass("active completed"),e.find('.aie-step-indicator[data-step="'.concat(t,'"]')).addClass("active"),e.find(".aie-step-indicator[data-step]").filter((function(){return jQuery(this).data("step")<t})).addClass("completed"),this.currentStep=t,2===t?this.refreshCount(!1):this.resetCount()},nextStep:function(){this.currentStep<this.totalSteps&&this.showStep(this.currentStep+1)},prevStep:function(){this.currentStep>1&&this.showStep(this.currentStep-1)},onContentTypeChange:function(t){var e=jQuery(t.target).val();jQuery("#aie-filters-list").empty();["post","page","media","menu","user","comment","block_theme_settings","custom_post_types","taxonomy","woo_product","woo_order","woo_coupon","woo_attribute","custom_table"].includes(e)?jQuery(".aie-custom-filters-section").show():jQuery(".aie-custom-filters-section").hide(),"media"===e?(jQuery(".aie-post-field-group").hide(),jQuery(".aie-media-field-group").show()):(jQuery(".aie-post-field-group").show(),jQuery(".aie-media-field-group").hide()),this.refreshCount(!1)},filterContentTypes:function(t){var e=jQuery(t.target).val().toLowerCase().trim(),n=jQuery(".aie-content-type"),r=jQuery(".aie-filter-count"),a=jQuery(".aie-filter-count-value"),o=jQuery(".aie-no-results"),i=0;if(""===e)return n.show(),r.hide(),void o.hide();n.each((function(){var t=jQuery(this),n=t.find("h3").text().toLowerCase(),r=t.find("p").text().toLowerCase();n.includes(e)||r.includes(e)?(t.show(),i++):t.hide()})),a.text(i),r.show(),0===i?o.show():o.hide()},refreshCount:function(){var t=arguments,e=this;return L(F().mark((function n(){var r,a,o,i,s,l,c,u,d,p,f;return F().wrap((function(n){for(;;)switch(n.prev=n.next){case 0:return r=!(t.length>0&&void 0!==t[0])||t[0],a=jQuery(".aie-count-value"),o=jQuery(".aie-item-count .spinner"),i=jQuery(".aie-refresh-count"),r&&o.addClass("is-active"),i.addClass("is-refreshing"),n.prev=6,s=jQuery('input[name="content_type"]:checked').val(),l={},"custom_table"===s?(c=jQuery(".aie-table-selector"),u=e.getDynamicFilters(),l={table_name:c.val(),filters:u.filters}):(d=e.getDynamicFilters(),(p=e.getPostTypeForContentType(s))&&(l.post_type=p),d.filters.length>0&&(l.filters=d.filters),d.custom_fields.length>0&&(l.custom_fields=d.custom_fields),d.taxonomy.length>0&&(l.taxonomy=d.taxonomy)),console.log("Sending options to backend:",l),n.next=13,S.ajax("aie_export_get_count",{export_type:s,options:l});case 13:f=n.sent,console.log("Received count response:",f),a.text(f.count||0),n.next=22;break;case 18:n.prev=18,n.t0=n.catch(6),a.text("-"),console.error("Count error:",n.t0);case 22:return n.prev=22,o.removeClass("is-active"),i.removeClass("is-refreshing"),n.finish(22);case 26:case"end":return n.stop()}}),n,null,[[6,18,22,26]])})))()},resetCount:function(){var t=jQuery(".aie-count-value"),e=jQuery(".aie-item-count .spinner"),n=jQuery(".aie-refresh-count");t.text("-"),e.removeClass("is-active"),n.removeClass("is-refreshing")},getPostTypeForContentType:function(t){return{post:"post",page:"page",media:"attachment",menu:"nav_menu_item",comment:null,user:null,block_theme_settings:"wp_template",taxonomy:null,custom_post_types:null,woo_product:"product",woo_order:"shop_order",woo_coupon:"shop_coupon",woo_attribute:null,custom_table:null}[t]||null},getFilters:function(){var t={},e=jQuery('input[name="content_type"]:checked').val();return"post"===e?(t.post_type=jQuery('[name="post_type"]').val(),t.post_status=jQuery('[name="post_status[]"]').val()||[],t.date_from=jQuery('[name="date_from"]').val(),t.date_to=jQuery('[name="date_to"]').val(),t.author=jQuery('[name="author"]').val(),t.category=jQuery('[name="category"]').val(),t.tag=jQuery('[name="tag"]').val(),t.search=jQuery('[name="search"]').val()):"media"===e&&(t.mime_type=jQuery('[name="mime_type"]').val(),t.date_from=jQuery('[name="media_date_from"]').val(),t.date_to=jQuery('[name="media_date_to"]').val()),t},getDynamicFilters:function(){var t=[],e=[],n=[];return jQuery(".aie-filter-row").each((function(r,a){var o=jQuery(a),i=o.find(".aie-filter-field").val(),s=o.find(".aie-filter-field option:selected").data("type");if("table_selector"!==s)if("custom_field"!==s)if("taxonomy_filter"!==s){var l=o.find(".aie-filter-condition").val(),c=o.find(".aie-filter-value").val();if(i&&l){(["is_empty","is_not_empty"].includes(l)||c&&""!==c.trim())&&t.push({field:i,condition:l,value:c||""})}}else{var u=o.find(".aie-taxonomy-name").val(),d=o.find(".aie-taxonomy-condition").val(),p=o.find(".aie-taxonomy-terms").val();u&&d&&p&&""!==p.trim()&&n.push({taxonomy:u,condition:d,terms:p})}else{var f=o.find(".aie-custom-field-name").val(),v=o.find(".aie-custom-field-condition").val(),y=o.find(".aie-custom-field-value").val();if(f&&v){(["is_empty","is_not_empty"].includes(v)||y&&""!==y.trim())&&e.push({name:f,condition:v,value:y||""})}}})),{filters:t,custom_fields:e,taxonomy:n}},getCustomTableFilters:function(){var t=[];return jQuery(".aie-filter-row").each((function(e,n){var r=jQuery(n),a=r.find(".aie-filter-field").val(),o=r.find(".aie-filter-condition").val(),i=r.find(".aie-filter-value").val();a&&"table_name"!==a&&o&&t.push({field:a,condition:o,value:i})})),t},selectAllFields:function(t){jQuery('input[name="fields[]"]:visible').prop("checked",t)},selectCommonFields:function(){this.selectAllFields(!1);["ID","post_title","post_content","post_status"].forEach((function(t){jQuery('input[name="fields[]"][value="'.concat(t,'"]')).prop("checked",!0)}))},onFormatChange:function(t){var e=jQuery(t.target).val();jQuery(".aie-format-options > div").hide(),jQuery(".aie-".concat(e,"-options")).show()},getSelectedFields:function(){var t=[];return jQuery('input[name="fields[]"]:checked').each((function(){t.push(jQuery(this).val())})),t},startExport:function(){var t=this;return L(F().mark((function e(){var n,r,a,o,i;return F().wrap((function(e){for(;;)switch(e.prev=e.next){case 0:if(0!==(n=t.getSelectedFields()).length){e.next=4;break}return S.showNotice("Please select at least one field to export","error"),e.abrupt("return");case 4:return e.prev=4,r=jQuery('input[name="content_type"]:checked').val(),a=t.getDynamicFilters(),o={export_type:r,filters:t.getFilters(),fields:n,format:jQuery('input[name="format"]:checked').val(),format_options:{csv_delimiter:jQuery('[name="csv_delimiter"]').val(),csv_encoding:jQuery('[name="csv_encoding"]').val(),csv_include_header:jQuery('[name="csv_include_header"]').is(":checked"),json_pretty_print:jQuery('[name="json_pretty_print"]').is(":checked"),xml_root:jQuery('[name="xml_root"]').val(),xml_item:jQuery('[name="xml_item"]').val()}},a.filters.length>0&&(o.dynamic_filters=a.filters),a.custom_fields.length>0&&(o.custom_fields=a.custom_fields),a.taxonomy.length>0&&(o.taxonomy=a.taxonomy),e.next=13,S.ajax("aie_export_start",o);case 13:i=e.sent,t.jobId=i.job_id,t.showStep(5),t.startProgressTracking(),S.showNotice("Export started successfully","success"),e.next=23;break;case 20:e.prev=20,e.t0=e.catch(4),S.handleError(e.t0,"Start export");case 23:case"end":return e.stop()}}),e,null,[[4,20]])})))()},startProgressTracking:function(){var t=this;this.progressInterval=setInterval((function(){t.updateProgress()}),2e3)},updateProgress:function(){var t=this;return L(F().mark((function e(){var n;return F().wrap((function(e){for(;;)switch(e.prev=e.next){case 0:return e.prev=0,e.next=3,S.ajax("aie_export_get_progress",{job_id:t.jobId});case 3:n=e.sent,S.updateProgressBar(jQuery(".aie-step-5"),n),"completed"===n.status?t.onExportComplete(n):"failed"===n.status&&t.onExportFailed(n),e.next=11;break;case 8:e.prev=8,e.t0=e.catch(0),console.error("Progress update error:",e.t0);case 11:case"end":return e.stop()}}),e,null,[[0,8]])})))()},onExportComplete:function(t){var e;clearInterval(this.progressInterval),jQuery(".aie-export-results").show(),jQuery(".aie-result-processed").text(t.processed||0),jQuery(".aie-result-filesize").text(S.formatFileSize(t.file_size||0)),jQuery(".aie-result-duration").text((null===(e=t.estimates)||void 0===e?void 0:e.elapsed_formatted)||"0s"),jQuery(".aie-cancel-export").hide(),jQuery(".aie-new-export").show(),S.showNotice("Export completed successfully!","success")},onExportFailed:function(t){clearInterval(this.progressInterval),S.showNotice("Export failed: "+(t.error||"Unknown error"),"error")},downloadFile:function(){var t=this;return L(F().mark((function e(){var n;return F().wrap((function(e){for(;;)switch(e.prev=e.next){case 0:return e.prev=0,e.next=3,S.ajax("aie_export_download",{job_id:t.jobId});case 3:(n=e.sent).download_url&&S.downloadFile(n.download_url,n.filename),e.next=10;break;case 7:e.prev=7,e.t0=e.catch(0),S.handleError(e.t0,"Download file");case 10:case"end":return e.stop()}}),e,null,[[0,7]])})))()},cancelExport:function(){var t=this;return L(F().mark((function e(){return F().wrap((function(e){for(;;)switch(e.prev=e.next){case 0:if(confirm("Are you sure you want to cancel this export?")){e.next=2;break}return e.abrupt("return");case 2:return e.prev=2,e.next=5,S.ajax("aie_export_cancel",{job_id:t.jobId});case 5:clearInterval(t.progressInterval),S.showNotice("Export cancelled","info"),t.resetWizard(),e.next=13;break;case 10:e.prev=10,e.t0=e.catch(2),S.handleError(e.t0,"Cancel export");case 13:case"end":return e.stop()}}),e,null,[[2,10]])})))()},resetWizard:function(){this.currentStep=1,this.jobId=null,clearInterval(this.progressInterval),jQuery('#wp-aie-export input[type="text"], #wp-aie-export input[type="date"]').val(""),jQuery('#wp-aie-export input[type="radio"]:first').prop("checked",!0),jQuery(".aie-export-results").hide(),this.showStep(1)},addFilterRow:function(){var t=this,e=document.getElementById("aie-filter-row-template").content.cloneNode(!0),n=jQuery('input[name="content_type"]:checked').val(),r=jQuery(e).find(".aie-filter-field");this.getFieldsByContentType(n).forEach((function(t){var e=jQuery("<optgroup>").attr("label",t.label);t.options.forEach((function(t){e.append(jQuery("<option>").val(t.value).text(t.label).data("type",t.type))})),r.append(e)})),jQuery("#aie-filters-list").append(e),S.debounce((function(){return t.refreshCount(!1)}),500)()},removeFilterRow:function(t){var e=this;jQuery(t.target).closest(".aie-filter-row").remove(),S.debounce((function(){return e.refreshCount(!1)}),500)()},onFilterFieldChange:function(t){var e=this,n=jQuery(t.target),r=n.closest(".aie-filter-row"),a=r.find(".aie-filter-condition"),o=r.find(".aie-filter-value-wrap"),i=r.find(".aie-filter-value"),s=n.find("option:selected").data("type")||"string";if("custom_field"===s)return a.closest(".aie-filter-condition-wrap").show(),o.html('\n\t\t\t\t<div class="aie-custom-field-inputs">\n\t\t\t\t\t<div class="aie-input-group">\n\t\t\t\t\t\t<label>Field Name</label>\n\t\t\t\t\t\t<input type="text" class="aie-custom-field-name" placeholder="Enter custom field name..." />\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class="aie-input-group">\n\t\t\t\t\t\t<label>Condition</label>\n\t\t\t\t\t\t<select class="aie-custom-field-condition aie-filter-condition">\n\t\t\t\t\t\t\t<option value="equals">Equals</option>\n\t\t\t\t\t\t\t<option value="not_equals">Not Equals</option>\n\t\t\t\t\t\t\t<option value="contains">Contains</option>\n\t\t\t\t\t\t\t<option value="not_contains">Not Contains</option>\n\t\t\t\t\t\t\t<option value="greater">Greater Than</option>\n\t\t\t\t\t\t\t<option value="less">Less Than</option>\n\t\t\t\t\t\t\t<option value="equals_or_greater">Greater or Equal</option>\n\t\t\t\t\t\t\t<option value="equals_or_less">Less or Equal</option>\n\t\t\t\t\t\t\t<option value="in">In (comma-separated)</option>\n\t\t\t\t\t\t\t<option value="not_in">Not In (comma-separated)</option>\n\t\t\t\t\t\t\t<option value="is_empty">Is Empty</option>\n\t\t\t\t\t\t\t<option value="is_not_empty">Is Not Empty</option>\n\t\t\t\t\t\t</select>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class="aie-input-group aie-custom-field-value-group">\n\t\t\t\t\t\t<label>Value</label>\n\t\t\t\t\t\t<input type="text" class="aie-custom-field-value aie-filter-value" placeholder="Enter value..." />\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t'),a.closest(".aie-filter-condition-wrap").hide(),r.find(".aie-custom-field-condition").on("change",function(){var t=this,e=jQuery(this).val(),n=r.find(".aie-custom-field-value-group");"is_empty"===e||"is_not_empty"===e?n.hide():n.show(),S.debounce((function(){return t.refreshCount(!1)}),500)()}.bind(this)),void r.find(".aie-custom-field-name, .aie-custom-field-value").on("input change",(function(){S.debounce((function(){return e.refreshCount(!1)}),500)()}));if("taxonomy_filter"===s)return a.closest(".aie-filter-condition-wrap").show(),o.html('\n\t\t\t\t<div class="aie-taxonomy-filter-inputs">\n\t\t\t\t\t<div class="aie-input-group">\n\t\t\t\t\t\t<label>Taxonomy Name</label>\n\t\t\t\t\t\t<input type="text" class="aie-taxonomy-name" placeholder="e.g., category, post_tag, product_cat..." />\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class="aie-input-group">\n\t\t\t\t\t\t<label>Condition</label>\n\t\t\t\t\t\t<select class="aie-taxonomy-condition aie-filter-condition">\n\t\t\t\t\t\t\t<option value="in">Has Term(s) - IN</option>\n\t\t\t\t\t\t\t<option value="not_in">Does Not Have Term(s) - NOT IN</option>\n\t\t\t\t\t\t\t<option value="and">Has All Terms - AND</option>\n\t\t\t\t\t\t</select>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class="aie-input-group">\n\t\t\t\t\t\t<label>Terms</label>\n\t\t\t\t\t\t<input type="text" class="aie-taxonomy-terms aie-filter-value" placeholder="Enter term slugs (comma-separated)..." />\n\t\t\t\t\t\t<small>Enter term slugs separated by commas</small>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t'),a.closest(".aie-filter-condition-wrap").hide(),void r.find(".aie-taxonomy-name, .aie-taxonomy-condition, .aie-taxonomy-terms").on("input change",(function(){S.debounce((function(){return e.refreshCount(!1)}),500)()}));if("table_selector"===s){a.closest(".aie-filter-condition-wrap").hide(),o.find("label").text("Select Table");var l=jQuery("<select>").addClass("aie-filter-value aie-table-selector").attr("name","filter_value[]");return S.ajax({action:"get_database_tables"}).then((function(t){t.success&&t.data&&(l.append(jQuery("<option>").val("").text("Select Table...")),t.data.forEach((function(t){l.append(jQuery("<option>").val(t.name).text(t.name))})),l.on("change",(function(){var t=l.val();t&&e.loadTableColumns(t)})))})),void i.replaceWith(l)}if("post_type_selector"===s){a.closest(".aie-filter-condition-wrap").hide(),o.find("label").text("Select Post Type");var c=jQuery("<select>").addClass("aie-filter-value aie-post-type-selector").attr("name","filter_value[]");return S.ajax({action:"aie_get_post_types",include_hidden:!0}).then((function(t){t.success&&t.data&&(c.append(jQuery("<option>").val("").text("Select Post Type...")),t.data.forEach((function(t){c.append(jQuery("<option>").val(t.name).text(t.label+" ("+t.name+")"))})))})),void i.replaceWith(c)}if(a.closest(".aie-filter-condition-wrap").show(),o.find("label").text("Value"),i.is("select")){var u=jQuery("<input>").attr("type","text").addClass("aie-filter-value").attr("name","filter_value[]").attr("placeholder","Enter value...");i.replaceWith(u),r.find(".aie-filter-value").attr("type","date"===s?"date":"number"===s?"number":"text")}else{a.empty();var d=this.getConditionsByFieldType(s),p=n.val();d.filter((function(t){return"ID"===p||"comment_ID"===p||"term_id"===p||"user_id"===p||"attribute_id"===p||"date"===s||"comment_status"===p?"is_empty"!==t.value&&"is_not_empty"!==t.value:"post_content"!==p&&"post_excerpt"!==p||"in"!==t.value&&"not_in"!==t.value})).forEach((function(t){a.append(jQuery("<option>").val(t.value).text(t.label))})),i.val(""),"date"===s?i.attr("type","date"):"number"===s?i.attr("type","number"):i.attr("type","text"),this.updateValueInputType(r)}S.debounce((function(){return e.refreshCount(!1)}),500)()},loadTableColumns:function(t){var e=this;S.ajax({action:"get_table_columns",table_name:t}).then((function(t){t.success&&t.data&&(e.tableColumns=t.data,jQuery(".aie-filter-field").each((function(e,n){var r=jQuery(n),a=r.val();r.empty(),r.append(jQuery("<option>").val("").text("Select Field...")),t.data.forEach((function(t){r.append(jQuery("<option>").val(t.name).text(t.name+" ("+t.type+")").data("type",t.data_type))})),a&&r.val(a)})))}))},getFieldsByContentType:function(t){var e=[{label:"Standard",options:[{value:"ID",label:"ID",type:"number"},{value:"post_title",label:"Title",type:"string"},{value:"post_content",label:"Content",type:"string"},{value:"post_excerpt",label:"Excerpt",type:"string"},{value:"post_date",label:"Date",type:"date"},{value:"post_name",label:"Slug",type:"string"},{value:"post_status",label:"Status",type:"string"}]},{label:"Taxonomy",options:[{value:"categories",label:"Categories",type:"string"},{value:"tags",label:"Tags",type:"string"}]},{label:"Author",options:[{value:"post_author",label:"Author ID",type:"number"},{value:"author_name",label:"Author Name",type:"string"},{value:"author_email",label:"Author Email",type:"string"}]},{label:"Other",options:[{value:"comment_status",label:"Comment Status",type:"string"},{value:"post_modified",label:"Modified Date",type:"date"},{value:"_wp_page_template",label:"Template",type:"string"}]},{label:"Custom Filters",options:[{value:"_custom_field",label:"🔧 Custom Field (Meta)",type:"custom_field"},{value:"_taxonomy_filter",label:"🏷️ Taxonomy Filter",type:"taxonomy_filter"}]}];return"media"===t?[{label:"Basic",options:[{value:"ID",label:"ID",type:"number"},{value:"post_title",label:"Title",type:"string"},{value:"post_content",label:"Description",type:"string"},{value:"post_excerpt",label:"Caption",type:"string"},{value:"post_name",label:"Slug",type:"string"}]},{label:"File",options:[{value:"post_mime_type",label:"MIME Type",type:"string"},{value:"file_size",label:"File Size (bytes)",type:"number"},{value:"file_name",label:"File Name",type:"string"},{value:"file_extension",label:"File Extension",type:"string"},{value:"file_path",label:"File Path",type:"string"}]},{label:"Dates",options:[{value:"post_date",label:"Upload Date",type:"date"},{value:"post_modified",label:"Modified Date",type:"date"}]},{label:"Author",options:[{value:"post_author",label:"Author ID",type:"number"},{value:"author_name",label:"Author Name",type:"string"}]},{label:"Other",options:[{value:"post_parent",label:"Attached To (Post ID)",type:"number"},{value:"alt_text",label:"Alt Text",type:"string"}]},{label:"Custom Filters",options:[{value:"_custom_field",label:"🔧 Custom Field (Meta)",type:"custom_field"}]}]:"page"===t?e.filter((function(t){return"Taxonomy"!==t.label})):"menu"===t?[{label:"Menu",options:[{value:"term_id",label:"Menu ID",type:"number"},{value:"name",label:"Menu Name",type:"string"}]},{label:"Custom Filters",options:[{value:"_custom_field",label:"🔧 Custom Field (Meta)",type:"custom_field"}]}]:"user"===t?[{label:"Basic",options:[{value:"ID",label:"User ID",type:"number"},{value:"user_login",label:"Username",type:"string"},{value:"user_email",label:"Email",type:"string"},{value:"display_name",label:"Display Name",type:"string"},{value:"user_nicename",label:"Nice Name",type:"string"}]},{label:"Profile",options:[{value:"first_name",label:"First Name",type:"string"},{value:"last_name",label:"Last Name",type:"string"},{value:"nickname",label:"Nickname",type:"string"},{value:"description",label:"Bio",type:"string"},{value:"user_url",label:"Website",type:"string"}]},{label:"Role",options:[{value:"role",label:"Role",type:"string"}]},{label:"Dates",options:[{value:"user_registered",label:"Registration Date",type:"date"}]},{label:"Custom Filters",options:[{value:"_custom_field",label:"🔧 Custom Field (Meta)",type:"custom_field"}]}]:"comment"===t?[{label:"Basic",options:[{value:"comment_ID",label:"Comment ID",type:"number"},{value:"comment_post_ID",label:"Post ID",type:"number"},{value:"comment_content",label:"Comment Content",type:"string"},{value:"comment_approved",label:"Status",type:"string"}]},{label:"Author",options:[{value:"comment_author",label:"Author Name",type:"string"},{value:"comment_author_email",label:"Author Email",type:"string"},{value:"comment_author_url",label:"Author URL",type:"string"},{value:"comment_author_IP",label:"Author IP",type:"string"},{value:"user_id",label:"User ID",type:"number"}]},{label:"Dates",options:[{value:"comment_date",label:"Comment Date",type:"date"}]},{label:"Other",options:[{value:"comment_parent",label:"Parent Comment ID",type:"number"},{value:"comment_karma",label:"Karma",type:"number"},{value:"comment_type",label:"Comment Type",type:"string"}]},{label:"Custom Filters",options:[{value:"_custom_field",label:"🔧 Custom Field (Meta)",type:"custom_field"}]}]:"block_theme_settings"===t?[{label:"Settings",options:[{value:"setting_name",label:"Setting Name",type:"string"},{value:"setting_type",label:"Setting Type",type:"string"},{value:"setting_value",label:"Setting Value",type:"string"}]},{label:"Theme",options:[{value:"theme_slug",label:"Theme Slug",type:"string"},{value:"theme_version",label:"Theme Version",type:"string"}]},{label:"Templates",options:[{value:"template_name",label:"Template Name",type:"string"},{value:"template_slug",label:"Template Slug",type:"string"},{value:"template_type",label:"Template Type",type:"string"}]},{label:"Dates",options:[{value:"modified_date",label:"Modified Date",type:"date"}]}]:"custom_post_types"===t?[{label:"Post Type Selection",options:[{value:"_post_type",label:"Post Type (select specific)",type:"post_type_selector"}]},{label:"Standard",options:[{value:"ID",label:"ID",type:"number"},{value:"post_title",label:"Title",type:"string"},{value:"post_content",label:"Content",type:"string"},{value:"post_excerpt",label:"Excerpt",type:"string"},{value:"post_date",label:"Date",type:"date"},{value:"post_name",label:"Slug",type:"string"},{value:"post_status",label:"Status",type:"string"}]},{label:"Author",options:[{value:"post_author",label:"Author ID",type:"number"},{value:"author_name",label:"Author Name",type:"string"},{value:"author_email",label:"Author Email",type:"string"}]},{label:"Other",options:[{value:"post_parent",label:"Parent ID",type:"number"},{value:"post_modified",label:"Modified Date",type:"date"},{value:"menu_order",label:"Menu Order",type:"number"},{value:"_wp_page_template",label:"Template",type:"string"}]},{label:"Custom Filters",options:[{value:"_custom_field",label:"🔧 Custom Field (Meta)",type:"custom_field"},{value:"_taxonomy_filter",label:"🏷️ Taxonomy Filter",type:"taxonomy_filter"}]}]:"taxonomy"===t?[{label:"Basic",options:[{value:"term_id",label:"Term ID",type:"number"},{value:"name",label:"Term Name",type:"string"},{value:"slug",label:"Term Slug",type:"string"},{value:"taxonomy",label:"Taxonomy",type:"string"},{value:"description",label:"Description",type:"string"}]},{label:"Hierarchy",options:[{value:"parent",label:"Parent Term ID",type:"number"},{value:"count",label:"Post Count",type:"number"}]},{label:"Meta",options:[{value:"term_group",label:"Term Group",type:"number"},{value:"term_order",label:"Term Order",type:"number"}]},{label:"Custom Filters",options:[{value:"_custom_field",label:"🔧 Custom Field (Meta)",type:"custom_field"}]}]:"woo_product"===t?[{label:"Basic",options:[{value:"ID",label:"Product ID",type:"number"},{value:"post_title",label:"Product Name",type:"string"},{value:"post_name",label:"Slug",type:"string"},{value:"post_status",label:"Status",type:"string"},{value:"sku",label:"SKU",type:"string"}]},{label:"Product Data",options:[{value:"product_type",label:"Product Type",type:"string"},{value:"regular_price",label:"Regular Price",type:"number"},{value:"sale_price",label:"Sale Price",type:"number"},{value:"stock_quantity",label:"Stock Quantity",type:"number"},{value:"stock_status",label:"Stock Status",type:"string"},{value:"manage_stock",label:"Manage Stock",type:"string"}]},{label:"Taxonomy",options:[{value:"product_cat",label:"Categories",type:"string"},{value:"product_tag",label:"Tags",type:"string"},{value:"product_brand",label:"Brands",type:"string"}]},{label:"Dates",options:[{value:"post_date",label:"Created Date",type:"date"},{value:"post_modified",label:"Modified Date",type:"date"}]},{label:"Other",options:[{value:"featured",label:"Featured",type:"string"},{value:"visibility",label:"Visibility",type:"string"},{value:"total_sales",label:"Total Sales",type:"number"},{value:"weight",label:"Weight",type:"number"}]},{label:"Custom Filters",options:[{value:"_custom_field",label:"🔧 Custom Field (Meta)",type:"custom_field"},{value:"_taxonomy_filter",label:"🏷️ Taxonomy Filter",type:"taxonomy_filter"}]}]:"woo_order"===t?[{label:"Basic",options:[{value:"ID",label:"Order ID",type:"number"},{value:"order_number",label:"Order Number",type:"string"},{value:"order_status",label:"Status",type:"string"},{value:"order_key",label:"Order Key",type:"string"}]},{label:"Amounts",options:[{value:"order_total",label:"Order Total",type:"number"},{value:"order_subtotal",label:"Subtotal",type:"number"},{value:"order_tax",label:"Tax",type:"number"},{value:"order_shipping",label:"Shipping",type:"number"},{value:"order_discount",label:"Discount",type:"number"}]},{label:"Customer",options:[{value:"customer_id",label:"Customer ID",type:"number"},{value:"billing_email",label:"Billing Email",type:"string"},{value:"billing_first_name",label:"First Name",type:"string"},{value:"billing_last_name",label:"Last Name",type:"string"},{value:"billing_country",label:"Country",type:"string"}]},{label:"Dates",options:[{value:"order_date",label:"Order Date",type:"date"},{value:"completed_date",label:"Completed Date",type:"date"},{value:"paid_date",label:"Paid Date",type:"date"}]},{label:"Other",options:[{value:"payment_method",label:"Payment Method",type:"string"},{value:"transaction_id",label:"Transaction ID",type:"string"},{value:"currency",label:"Currency",type:"string"}]},{label:"Custom Filters",options:[{value:"_custom_field",label:"🔧 Custom Field (Meta)",type:"custom_field"}]}]:"woo_coupon"===t?[{label:"Basic",options:[{value:"ID",label:"Coupon ID",type:"number"},{value:"post_title",label:"Coupon Code",type:"string"},{value:"post_excerpt",label:"Description",type:"string"},{value:"post_status",label:"Status",type:"string"}]},{label:"Discount",options:[{value:"discount_type",label:"Discount Type",type:"string"},{value:"coupon_amount",label:"Coupon Amount",type:"number"},{value:"minimum_amount",label:"Minimum Amount",type:"number"},{value:"maximum_amount",label:"Maximum Amount",type:"number"}]},{label:"Usage",options:[{value:"usage_count",label:"Usage Count",type:"number"},{value:"usage_limit",label:"Usage Limit",type:"number"},{value:"usage_limit_per_user",label:"Usage Limit Per User",type:"number"},{value:"individual_use",label:"Individual Use",type:"string"}]},{label:"Dates",options:[{value:"date_expires",label:"Expiry Date",type:"date"},{value:"post_date",label:"Created Date",type:"date"},{value:"post_modified",label:"Modified Date",type:"date"}]},{label:"Other",options:[{value:"free_shipping",label:"Free Shipping",type:"string"},{value:"exclude_sale_items",label:"Exclude Sale Items",type:"string"}]},{label:"Custom Filters",options:[{value:"_custom_field",label:"🔧 Custom Field (Meta)",type:"custom_field"}]}]:"woo_attribute"===t?[{label:"Basic",options:[{value:"attribute_id",label:"Attribute ID",type:"number"},{value:"attribute_name",label:"Attribute Name",type:"string"},{value:"attribute_label",label:"Attribute Label",type:"string"},{value:"attribute_type",label:"Attribute Type",type:"string"}]},{label:"Settings",options:[{value:"attribute_orderby",label:"Order By",type:"string"},{value:"attribute_public",label:"Public",type:"string"}]},{label:"Terms",options:[{value:"term_count",label:"Term Count",type:"number"},{value:"term_name",label:"Term Name",type:"string"},{value:"term_slug",label:"Term Slug",type:"string"}]}]:"custom_table"===t?[{label:"Table Selection",options:[{value:"_table_name",label:"Table Name (select specific)",type:"table_selector"}]},{label:"Dynamic Fields",options:[{value:"_dynamic_field",label:"Select table first to load fields",type:"string"}]}]:e},isFilterRowComplete:function(t){var e=t.find(".aie-filter-field").val(),n=t.find(".aie-filter-condition").val(),r=t.find(".aie-filter-value").val();if(!e||!n)return!1;return!!["is_empty","is_not_empty"].includes(n)||r&&""!==r.trim()},updateValueInputType:function(t){var e=t.find(".aie-filter-field"),n=t.find(".aie-filter-condition"),r=t.find(".aie-filter-value"),a=e.find("option:selected").data("type")||"string",o=n.val();if(r.is("input")){if(!["is_empty","is_not_empty"].includes(o))return r.closest(".aie-filter-value-wrap").show(),"in"===o||"not_in"===o?(r.attr("type","text"),void r.attr("placeholder","Enter values separated by comma (e.g., 1,5,8 or test1,test2)")):"between"===o&&"number"===a?(r.attr("type","text"),void r.attr("placeholder","Enter two numbers separated by comma (e.g., 10,100)")):void("date"===a?(r.attr("type","date"),r.attr("placeholder","")):"number"===a?(r.attr("type","number"),r.attr("placeholder","Enter number...")):(r.attr("type","text"),r.attr("placeholder","Enter value...")));r.closest(".aie-filter-value-wrap").hide()}},getConditionsByFieldType:function(t){var e={string:[{value:"equals",label:"Equals"},{value:"not_equals",label:"Doesn't Equal"},{value:"in",label:"In"},{value:"not_in",label:"Not In"},{value:"contains",label:"Contains"},{value:"not_contains",label:"Doesn't Contain"},{value:"is_empty",label:"Is Empty"},{value:"is_not_empty",label:"Is Not Empty"}],number:[{value:"equals",label:"Equals"},{value:"not_equals",label:"Doesn't Equal"},{value:"in",label:"In"},{value:"not_in",label:"Not In"},{value:"greater",label:"Greater Than"},{value:"equals_or_greater",label:"Equal To Or Greater Than"},{value:"less",label:"Less Than"},{value:"equals_or_less",label:"Equal To Or Less Than"},{value:"is_empty",label:"Is Empty"},{value:"is_not_empty",label:"Is Not Empty"}],date:[{value:"equals",label:"Equals"},{value:"not_equals",label:"Doesn't Equal"},{value:"greater",label:"Newer Than"},{value:"equals_or_greater",label:"Equal To Or Newer Than"},{value:"less",label:"Older Than"},{value:"equals_or_less",label:"Equal To Or Older Than"},{value:"is_empty",label:"Is Empty"},{value:"is_not_empty",label:"Is Not Empty"}]};return e[t]||e.string}};function O(t){return O="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},O(t)}function N(t,e){return function(t){if(Array.isArray(t))return t}(t)||function(t,e){var n=null==t?null:"undefined"!=typeof Symbol&&t[Symbol.iterator]||t["@@iterator"];if(null!=n){var r,a,o,i,s=[],l=!0,c=!1;try{if(o=(n=n.call(t)).next,0===e){if(Object(n)!==n)return;l=!1}else for(;!(l=(r=o.call(n)).done)&&(s.push(r.value),s.length!==e);l=!0);}catch(t){c=!0,a=t}finally{try{if(!l&&null!=n.return&&(i=n.return(),Object(i)!==i))return}finally{if(c)throw a}}return s}}(t,e)||function(t,e){if(t){if("string"==typeof t)return B(t,e);var n={}.toString.call(t).slice(8,-1);return"Object"===n&&t.constructor&&(n=t.constructor.name),"Map"===n||"Set"===n?Array.from(t):"Arguments"===n||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)?B(t,e):void 0}}(t,e)||function(){throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}()}function B(t,e){(null==e||e>t.length)&&(e=t.length);for(var n=0,r=Array(e);n<e;n++)r[n]=t[n];return r}const A={jobId:null,progressInterval:null,scannedFiles:[],isPaused:!1,init:function(){jQuery("#wp-aie-media-sync").length&&this.bindEvents()},bindEvents:function(){var t=this,e=jQuery("#wp-aie-media-sync");e.on("change","#aie-file-types",(function(t){"custom"===jQuery(t.target).val()?jQuery("#aie-custom-extensions").show():jQuery("#aie-custom-extensions").hide()})),e.on("click","#aie-scan-folder-btn",(function(e){e.preventDefault(),t.scanFolder()})),e.on("change","#aie-select-all-files",(function(e){var n=jQuery(e.target).is(":checked");jQuery(".aie-file-checkbox").prop("checked",n),t.updateSelectedCount()})),e.on("change",".aie-file-checkbox",(function(){t.updateSelectedCount()})),e.on("click","#aie-start-sync-btn",(function(e){e.preventDefault(),t.startSync()})),e.on("click","#aie-pause-sync-btn",(function(e){e.preventDefault(),t.isPaused?t.resumeSync():t.pauseSync()})),e.on("click","#aie-cancel-sync-btn",(function(e){e.preventDefault(),t.cancelSync()})),e.on("click","#aie-sync-another-btn",(function(e){e.preventDefault(),t.resetPage()})),e.on("click","#aie-browse-folders-btn",(function(e){e.preventDefault(),t.openFolderBrowser()})),e.on("click",".aie-modal-close, .aie-modal-overlay",(function(e){e.preventDefault(),t.closeFolderBrowser()})),e.on("click",".aie-folder-item",(function(t){t.preventDefault();var e=jQuery(t.currentTarget);jQuery(".aie-folder-item").removeClass("selected"),e.addClass("selected");var n=e.data("path");jQuery("#aie-selected-folder-path").val(n),jQuery("#aie-choose-folder-btn").prop("disabled",!1)})),e.on("dblclick",".aie-folder-item",(function(e){e.preventDefault();var n=jQuery(e.currentTarget).data("path");t.browseFolders(n)})),e.on("click","#aie-folder-up-btn",(function(e){e.preventDefault();var n=jQuery("#aie-current-path").data("relative-path");if(n){var r=n.split("/").filter((function(t){return t}));r.pop();var a=r.join("/");t.browseFolders(a)}})),e.on("click","#aie-choose-folder-btn",(function(e){e.preventDefault();var n=jQuery("#aie-selected-folder-path").val();n&&(jQuery("#aie-folder-path").val(n),t.closeFolderBrowser())}))},scanFolder:function(){var t,e,n=this;this.jobId=null,this.isPaused=!1,jQuery("#aie-sync-progress-section, #aie-sync-completion").hide();var r=jQuery("#aie-folder-path").val().trim();if(r){r.startsWith("/")||(r="/"+r),r.length>1&&r.endsWith("/")&&(r=r.slice(0,-1));var a={recursive:jQuery("#aie-scan-recursive").is(":checked"),file_types:jQuery("#aie-file-types").val()};"custom"===a.file_types&&(a.custom_types=jQuery("#aie-custom-extensions-input").val().split(",").map((function(t){return t.trim()})).filter((function(t){return t}))),jQuery("#aie-scan-folder-btn").prop("disabled",!0).text("Scanning..."),jQuery.ajax({url:(null===(t=window.aieData)||void 0===t?void 0:t.ajaxUrl)||window.ajaxurl,method:"POST",data:{action:"aie_scan_folder",nonce:(null===(e=window.aieData)||void 0===e?void 0:e.nonce)||"",folder_path:r,options:a}}).done((function(t){var e;t.success?(n.scannedFiles=t.data.files||[],0===n.scannedFiles.length?(n.showEmptyState(),S.showNotice("No files found matching the criteria","info")):(n.displayScanSummary(n.scannedFiles),S.showNotice("Found ".concat(n.scannedFiles.length," files ready to sync"),"success"),jQuery("#aie-sync-options").slideDown())):S.showNotice((null===(e=t.data)||void 0===e?void 0:e.message)||"Scan failed","error")})).fail((function(){S.showNotice("Request failed","error")})).always((function(){jQuery("#aie-scan-folder-btn").prop("disabled",!1).html('<span class="dashicons dashicons-search"></span> Scan Folder')}))}else S.showNotice("Please enter a folder path","error")},showEmptyState:function(){jQuery("#aie-file-list").html('\n\t\t\t<div class="aie-empty-state">\n\t\t\t\t<span class="dashicons dashicons-search"></span>\n\t\t\t\t<h3>No Files Found</h3>\n\t\t\t\t<p>No files matching your criteria were found in the selected folder.</p>\n\t\t\t\t<div class="aie-empty-suggestions">\n\t\t\t\t\t<strong>Suggestions:</strong>\n\t\t\t\t\t<ul>\n\t\t\t\t\t\t<li>Check if the folder path is correct</li>\n\t\t\t\t\t\t<li>Try enabling "Scan Recursive" to search in subfolders</li>\n\t\t\t\t\t\t<li>Change the file type filter</li>\n\t\t\t\t\t\t<li>Make sure the folder contains supported media files</li>\n\t\t\t\t\t</ul>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t'),jQuery("#aie-scan-results .aie-scan-stats").hide(),jQuery("#aie-scan-results").slideDown(),jQuery("#aie-sync-options").hide()},displayScanSummary:function(t){if(t&&0!==t.length){var e=0,n={};t.forEach((function(t){e+=t.size||0;var r=t.name.split(".").pop().toLowerCase();n[r]=(n[r]||0)+1})),jQuery("#aie-file-list").html('\n\t\t\t<div class="aie-scan-summary">\n\t\t\t\t<div class="aie-summary-icon">\n\t\t\t\t\t<span class="dashicons dashicons-yes-alt"></span>\n\t\t\t\t</div>\n\t\t\t\t<div class="aie-summary-content">\n\t\t\t\t\t<h3>Scan Complete</h3>\n\t\t\t\t\t<p>Found <strong>'.concat(t.length," files</strong> ready for synchronization (Total: <strong>").concat(S.formatBytes(e),'</strong>)</p>\n\t\t\t\t\t<div class="aie-file-types">\n\t\t\t\t\t\t<strong>File Types:</strong>\n\t\t\t\t\t\t').concat(Object.entries(n).map((function(t){var e=N(t,2),n=e[0],r=e[1];return'<span class="aie-type-badge">'.concat(n.toUpperCase()," (").concat(r,")</span>")})).join(""),'\n\t\t\t\t\t</div>\n\t\t\t\t\t<p class="aie-summary-note">\n\t\t\t\t\t\t<span class="dashicons dashicons-info"></span>\n\t\t\t\t\t\tAll files will be processed in batches. Click "Start Sync" below to begin.\n\t\t\t\t\t</p>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t')),jQuery("#aie-total-files").text(t.length),jQuery("#aie-total-size").text(S.formatBytes(e)),jQuery("#aie-scan-results .aie-scan-stats").show(),jQuery("#aie-scan-results").slideDown()}else jQuery("#aie-scan-results").hide()},displayFiles:function(t){var e=this,n=jQuery("#aie-file-list");if(n.empty(),t&&0!==t.length){var r=0;t.forEach((function(t){r+=t.size||0;var a=e.getFileIcon(t.name),o=jQuery('\n\t\t\t\t<div class="aie-file-item">\n\t\t\t\t\t<input type="checkbox" class="aie-file-checkbox" value="'.concat(t.path,'" checked>\n\t\t\t\t\t<div class="aie-file-icon">\n\t\t\t\t\t\t<span class="dashicons ').concat(a,'"></span>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class="aie-file-info">\n\t\t\t\t\t\t<div class="aie-file-name">').concat(e.escapeHtml(t.name),'</div>\n\t\t\t\t\t\t<div class="aie-file-meta">\n\t\t\t\t\t\t\t<span>').concat(S.formatBytes(t.size),"</span>\n\t\t\t\t\t\t\t<span>").concat(e.escapeHtml(t.path),"</span>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t"));n.append(o)})),jQuery("#aie-total-files").text(t.length),jQuery("#aie-total-size").text(S.formatBytes(r)),jQuery("#aie-scan-results .aie-scan-stats").show(),jQuery("#aie-scan-results").slideDown(),this.updateSelectedCount()}else jQuery("#aie-scan-results").hide()},getFileIcon:function(t){return{jpg:"dashicons-format-image",jpeg:"dashicons-format-image",png:"dashicons-format-image",gif:"dashicons-format-image",webp:"dashicons-format-image",svg:"dashicons-format-image",mp4:"dashicons-format-video",avi:"dashicons-format-video",mov:"dashicons-format-video",wmv:"dashicons-format-video",mp3:"dashicons-format-audio",wav:"dashicons-format-audio",ogg:"dashicons-format-audio",pdf:"dashicons-pdf",doc:"dashicons-media-document",docx:"dashicons-media-document",xls:"dashicons-media-spreadsheet",xlsx:"dashicons-media-spreadsheet"}[t.split(".").pop().toLowerCase()]||"dashicons-media-default"},updateSelectedCount:function(){var t=jQuery(".aie-file-checkbox:checked").length;jQuery("#aie-selected-count").text(t);var e=jQuery(".aie-file-checkbox").length;jQuery("#aie-select-all-files").prop("checked",t===e)},getSelectedFiles:function(){var t=[],e=this;return jQuery(".aie-file-checkbox:checked").each((function(){var n=jQuery(this).val(),r=e.scannedFiles.find((function(t){return t.path===n}));r&&t.push(r)})),t},getOptions:function(){var t=jQuery("#aie-copy-files").val(),e=parseInt(jQuery("#aie-batch-size").val())||3;return{duplicate_check:jQuery("#aie-duplicate-check").val(),duplicate_handling:jQuery("#aie-duplicate-handling").val(),file_operation:t,copy_files:"copy"===t,generate_thumbnails:!0,rml_integration:jQuery("#aie-rml-integration").is(":checked"),batch_size:e}},startSync:function(){var t,e,n=this;if(this.scannedFiles&&0!==this.scannedFiles.length){this.progressInterval&&(clearInterval(this.progressInterval),this.progressInterval=null),this.isPaused=!1;var r=jQuery("#aie-folder-path").val().trim();if(r){var a={recursive:jQuery("#aie-scan-recursive").is(":checked"),file_types:jQuery("#aie-file-types").val()};"custom"===a.file_types&&(a.custom_types=jQuery("#aie-custom-extensions-input").val().split(",").map((function(t){return t.trim()})).filter((function(t){return t})));var o=this.getOptions(),i=jQuery("#aie-start-sync-btn"),s=i.html();i.prop("disabled",!0).html('<span class="dashicons dashicons-update aie-spin"></span> Starting...'),jQuery.ajax({url:(null===(t=window.aieData)||void 0===t?void 0:t.ajaxUrl)||window.ajaxurl,method:"POST",data:{action:"aie_start_media_sync",nonce:(null===(e=window.aieData)||void 0===e?void 0:e.nonce)||"",folder_path:r,scan_options:a,sync_options:o}}).done((function(t){var e;t.success?(n.jobId=t.data.job_id,jQuery(".aie-scan-section, .aie-options-section").slideUp(),jQuery("#aie-sync-progress-section").slideDown(),jQuery("#aie-progress-fill").css("width","0%"),jQuery("#aie-progress-percentage").text("0%"),jQuery("#aie-sync-status").text("Processing..."),n.startProgressTracking(),n.triggerBatchProcessing(),S.showNotice("Synchronization started","success")):(S.showNotice((null===(e=t.data)||void 0===e?void 0:e.message)||"Failed to start sync","error"),i.prop("disabled",!1).html(s))})).fail((function(){S.showNotice("Request failed","error"),i.prop("disabled",!1).html(s)}))}else S.showNotice("Invalid folder path","error")}else S.showNotice("No files to sync. Please scan a folder first.","error")},startProgressTracking:function(){var t=this;this.progressInterval=setInterval((function(){t.checkProgress()}),2e3),this.checkProgress()},triggerBatchProcessing:function(){var t,e;jQuery.ajax({url:(null===(t=window.aieData)||void 0===t?void 0:t.ajaxUrl)||window.ajaxurl,method:"POST",data:{action:"aie_process_media_sync_batch",nonce:(null===(e=window.aieData)||void 0===e?void 0:e.nonce)||"",job_id:this.jobId}}).done((function(t){console.log("Batch processing triggered:",t)})).fail((function(t,e,n){console.error("Batch processing failed:",e,n)}))},checkProgress:function(){var t,e,n=this;jQuery.ajax({url:(null===(t=window.aieData)||void 0===t?void 0:t.ajaxUrl)||window.ajaxurl,method:"POST",data:{action:"aie_get_sync_progress",nonce:(null===(e=window.aieData)||void 0===e?void 0:e.nonce)||"",job_id:this.jobId}}).done((function(t){console.log("=== Progress Response ===",t),t.success&&t.data?(console.log("  Status:",t.data.status),console.log("  Progress:",t.data.progress),console.log("  Result (raw):",t.data.result),console.log("  Result type:",O(t.data.result)),n.updateProgress(t.data)):console.error("Progress error:",t)})).fail((function(t,e,n){console.error("Progress AJAX failed:",e,n)}))},updateStats:function(t){if("string"==typeof t)try{t=JSON.parse(t)}catch(e){t={}}var e=void 0!==(t=t||{}).processed?t.processed:0,n=void 0!==t.success?t.success:0,r=void 0!==t.skipped?t.skipped:0,a=void 0!==t.failed?t.failed:0;jQuery("#aie-stat-processed").text(e),jQuery("#aie-stat-success").text(n),jQuery("#aie-stat-skipped").text(r),jQuery("#aie-stat-failed").text(a)},updateProgress:function(t){console.log("=== Update Progress Called ==="),console.log("  Raw data:",t);var e=Math.round(parseFloat(t.progress)||0),n=t.status||"processing";console.log("  Parsed progress:",e),console.log("  Status:",n),jQuery("#aie-progress-fill").css("width",e+"%"),jQuery("#aie-progress-percentage").text(e+"%");var r=t.result;if(console.log("  Result (before parse):",r),console.log("  Result type:",O(r)),"string"==typeof r)try{r=JSON.parse(r),console.log("  Result after JSON.parse:",r)}catch(t){console.error("  Failed to parse result:",r,t),r={}}r=r||{},console.log("  Final result object:",r),console.log("  Processed:",r.processed),console.log("  Success:",r.success),console.log("  Skipped:",r.skipped),console.log("  Failed:",r.failed);var a=void 0!==r.processed?r.processed:0,o=void 0!==r.success?r.success:0,i=void 0!==r.skipped?r.skipped:0,s=void 0!==r.failed?r.failed:0;console.log("  Setting values:",{processed:a,success:o,skipped:i,failed:s}),jQuery("#aie-stat-processed").text(a),jQuery("#aie-stat-success").text(o),jQuery("#aie-stat-skipped").text(i),jQuery("#aie-stat-failed").text(s),console.log("  DOM updated");var l={pending:"Starting...",processing:"Synchronization in Progress",completed:"Completed",failed:"Failed",cancelled:"Cancelled",paused:"Paused"}[n]||"Processing...";console.log("  Setting status text:",l),jQuery("#aie-sync-status").text(l),jQuery("#aie-progress-status").text(l),r.errors&&r.errors.length>0&&this.displayErrors(r.errors),"completed"!==n&&"failed"!==n&&"cancelled"!==n||(clearInterval(this.progressInterval),this.showCompletion(t))},displayErrors:function(t){var e=this,n=jQuery("#aie-error-log"),r=jQuery("#aie-error-list");r.empty(),t.slice(0,20).forEach((function(t){r.append("<li>".concat(e.escapeHtml(t),"</li>"))})),t.length>20&&r.append("<li>... and ".concat(t.length-20," more errors</li>")),n.show()},showCompletion:function(t){jQuery("#aie-sync-progress-section").slideUp(),jQuery("#aie-sync-completion").slideDown();var e=t.result;if("string"==typeof e)try{e=JSON.parse(e)}catch(t){e={}}var n=(e=e||{}).processed||0,r=e.success||0,a=e.skipped||0,o=e.failed||0,i="";"completed"===t.status?i='\n\t\t\t\t<div style="text-align: center; padding: 20px;">\n\t\t\t\t\t<div style="font-size: 64px; margin-bottom: 15px;">🎉</div>\n\t\t\t\t\t<h3 style="color: #00a32a; margin: 0 0 15px; font-size: 24px;">Synchronization Complete!</h3>\n\t\t\t\t\t<p style="font-size: 16px; color: #1d2327; margin-bottom: 20px;">\n\t\t\t\t\t\tSuccessfully processed <strong>'.concat(n,"</strong> file").concat(1!==n?"s":"",'\n\t\t\t\t\t</p>\n\t\t\t\t\t<div style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap;">\n\t\t\t\t\t\t<div style="text-align: center;">\n\t\t\t\t\t\t\t<div style="font-size: 32px; color: #00a32a; font-weight: 600;">').concat(r,'</div>\n\t\t\t\t\t\t\t<div style="font-size: 12px; color: #646970; text-transform: uppercase;">✅ Imported</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t').concat(a>0?'\n\t\t\t\t\t\t<div style="text-align: center;">\n\t\t\t\t\t\t\t<div style="font-size: 32px; color: #dba617; font-weight: 600;">'.concat(a,'</div>\n\t\t\t\t\t\t\t<div style="font-size: 12px; color: #646970; text-transform: uppercase;">⏭️ Skipped</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t'):"","\n\t\t\t\t\t\t").concat(o>0?'\n\t\t\t\t\t\t<div style="text-align: center;">\n\t\t\t\t\t\t\t<div style="font-size: 32px; color: #d63638; font-weight: 600;">'.concat(o,'</div>\n\t\t\t\t\t\t\t<div style="font-size: 12px; color: #646970; text-transform: uppercase;">❌ Failed</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t'):"","\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t"):"failed"===t.status?i='\n\t\t\t\t<div style="text-align: center; padding: 20px;">\n\t\t\t\t\t<div style="font-size: 64px; margin-bottom: 15px;">⚠️</div>\n\t\t\t\t\t<h3 style="color: #d63638; margin: 0 0 15px; font-size: 24px;">Synchronization Failed</h3>\n\t\t\t\t\t<p style="font-size: 16px; color: #646970;">\n\t\t\t\t\t\tThe synchronization process encountered an error and could not complete.\n\t\t\t\t\t</p>\n\t\t\t\t</div>\n\t\t\t':"cancelled"===t.status&&(i='\n\t\t\t\t<div style="text-align: center; padding: 20px;">\n\t\t\t\t\t<div style="font-size: 64px; margin-bottom: 15px;">🛑</div>\n\t\t\t\t\t<h3 style="color: #dba617; margin: 0 0 15px; font-size: 24px;">Synchronization Cancelled</h3>\n\t\t\t\t\t<p style="font-size: 16px; color: #646970;">\n\t\t\t\t\t\tProcessed <strong>'.concat(n,"</strong> file").concat(1!==n?"s":""," before cancellation.\n\t\t\t\t\t</p>\n\t\t\t\t</div>\n\t\t\t")),jQuery("#aie-completion-message").html(i)},pauseSync:function(){var t,e,n=this;jQuery.ajax({url:(null===(t=window.aieData)||void 0===t?void 0:t.ajaxUrl)||window.ajaxurl,method:"POST",data:{action:"aie_pause_media_sync",nonce:(null===(e=window.aieData)||void 0===e?void 0:e.nonce)||"",job_id:this.jobId}}).done((function(t){t.success&&(n.isPaused=!0,clearInterval(n.progressInterval),jQuery("#aie-sync-progress-section .aie-card-header h2").html('<span class="dashicons dashicons-controls-pause"></span> Synchronization Paused'),jQuery("#aie-progress-status").text("Paused"),jQuery("#aie-sync-status").text("Paused"),jQuery("#aie-pause-sync-btn").html('<span class="dashicons dashicons-controls-play"></span> Resume'),S.showNotice("Sync paused","info"))}))},resumeSync:function(){var t,e,n=this;jQuery.ajax({url:(null===(t=window.aieData)||void 0===t?void 0:t.ajaxUrl)||window.ajaxurl,method:"POST",data:{action:"aie_resume_media_sync",nonce:(null===(e=window.aieData)||void 0===e?void 0:e.nonce)||"",job_id:this.jobId}}).done((function(t){t.success&&(n.isPaused=!1,jQuery("#aie-sync-progress-section .aie-card-header h2").html('<span class="dashicons dashicons-update aie-spin"></span> Synchronization in Progress'),jQuery("#aie-progress-status").text("Synchronization in Progress"),jQuery("#aie-sync-status").text("Synchronization in Progress"),jQuery("#aie-pause-sync-btn").html('<span class="dashicons dashicons-controls-pause"></span> Pause'),n.startProgressTracking(),S.showNotice("Sync resumed","success"))}))},cancelSync:function(){var t,e,n=this;confirm("Are you sure you want to cancel? This cannot be undone.")&&jQuery.ajax({url:(null===(t=window.aieData)||void 0===t?void 0:t.ajaxUrl)||window.ajaxurl,method:"POST",data:{action:"aie_cancel_media_sync",nonce:(null===(e=window.aieData)||void 0===e?void 0:e.nonce)||"",job_id:this.jobId}}).done((function(t){t.success&&(clearInterval(n.progressInterval),S.showNotice("Sync cancelled","warning"),n.resetPage())}))},resetPage:function(){jQuery("#aie-scan-results, #aie-sync-options, #aie-sync-progress-section, #aie-sync-completion").hide(),jQuery(".aie-scan-section").show(),jQuery("#aie-folder-path").val(""),jQuery("#aie-file-list").empty();var t=jQuery("#aie-start-sync-btn");t.prop("disabled",!1),t.html('<span class="dashicons dashicons-controls-play"></span> Start Sync'),jQuery("#aie-scan-folder-btn").prop("disabled",!1).text("Scan Folder"),jQuery("#aie-progress-fill").css("width","0%"),jQuery("#aie-progress-percentage").text("0%"),jQuery("#aie-stat-processed").text("0"),jQuery("#aie-stat-success").text("0"),jQuery("#aie-stat-skipped").text("0"),jQuery("#aie-stat-failed").text("0"),this.jobId=null,this.scannedFiles=[],this.isPaused=!1,this.progressInterval&&clearInterval(this.progressInterval),jQuery("#aie-pause-sync-btn").html('<span class="dashicons dashicons-controls-pause"></span> Pause'),jQuery("#aie-sync-progress-section .aie-card-header h2").html('<span class="dashicons dashicons-update aie-spin"></span> Synchronization in Progress')},escapeHtml:function(t){var e={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"};return String(t).replace(/[&<>"']/g,(function(t){return e[t]}))},openFolderBrowser:function(){jQuery("#aie-folder-browser-modal").fadeIn(200),jQuery("body").addClass("aie-modal-open");var t=jQuery("#aie-folder-path").val().trim();this.browseFolders(t)},closeFolderBrowser:function(){jQuery("#aie-folder-browser-modal").fadeOut(200),jQuery("body").removeClass("aie-modal-open"),jQuery("#aie-choose-folder-btn").prop("disabled",!0),jQuery(".aie-folder-item").removeClass("selected")},browseFolders:function(t){var e,n,r=this;jQuery("#aie-folder-browser-loading").show(),jQuery("#aie-folder-browser-list").empty(),jQuery("#aie-folder-browser-empty").hide(),jQuery("#aie-folder-browser-error").hide(),jQuery("#aie-selected-folder-path").val(""),jQuery("#aie-choose-folder-btn").prop("disabled",!0),jQuery.ajax({url:window.ajaxurl||(null===(e=window.aieData)||void 0===e?void 0:e.ajaxUrl),type:"POST",data:{action:"aie_browse_folders",nonce:null===(n=window.aieData)||void 0===n?void 0:n.nonce,path:t}}).done((function(t){var e;t.success&&t.data?r.displayFolders(t.data.folders,t.data.current_path):(console.error("Browse folders failed:",t),r.showBrowserError((null===(e=t.data)||void 0===e?void 0:e.message)||"Failed to load folders"))})).fail((function(t,e,n){console.error("AJAX request failed:",{status:t.status,statusText:t.statusText,responseJSON:t.responseJSON,responseText:t.responseText,textStatus:e,errorThrown:n}),t.responseText&&console.log("Full response text:",t.responseText);var a="Request failed";if(t.responseJSON)t.responseJSON.data&&t.responseJSON.data.message?a=t.responseJSON.data.message:t.responseJSON.message&&(a=t.responseJSON.message);else if(t.responseText){var o=jQuery("<div>").html(t.responseText).find("title").text();if(o)a="Server Error: "+o;else{var i=t.responseText.split("\n")[0].substring(0,100);i&&(a="Server Error: "+i)}}n&&"Request failed"===a&&(a="Request failed: "+n),t.status&&200!==t.status&&(a+=" (Status: "+t.status+")"),r.showBrowserError(a)})).always((function(){jQuery("#aie-folder-browser-loading").hide()}))},showBrowserError:function(t){jQuery("#aie-folder-browser-error-message").text(t),jQuery("#aie-folder-browser-error").slideDown()},displayFolders:function(t,e){var n=this,r=jQuery("#aie-folder-browser-list"),a=jQuery("#aie-current-path"),o=jQuery("#aie-folder-up-btn");if(r.empty(),!a.data("base-dir")){var i=a.text().trim();a.data("base-dir",i)}var s=a.data("base-dir");(e?a.text(s+"/"+e):a.text(s),a.data("relative-path",e),e)?o.length||jQuery('\n\t\t\t\t\t<button type="button" id="aie-folder-up-btn" class="button" style="margin-bottom: 10px;">\n\t\t\t\t\t\t<span class="dashicons dashicons-arrow-up-alt"></span>\n\t\t\t\t\t\tGo Up\n\t\t\t\t\t</button>\n\t\t\t\t').insertBefore(r):o.remove();var l=jQuery('\n\t\t\t<div class="aie-folder-item aie-folder-current" data-path="'.concat(this.escapeHtml(e),'">\n\t\t\t\t<span class="dashicons dashicons-location"></span>\n\t\t\t\t<span class="aie-folder-name">\n\t\t\t\t\t<strong>. (Use this folder)</strong>\n\t\t\t\t</span>\n\t\t\t</div>\n\t\t'));r.append(l),t&&0!==t.length?t.forEach((function(t){var e=jQuery('\n\t\t\t\t<div class="aie-folder-item" data-path="'.concat(n.escapeHtml(t.path),'">\n\t\t\t\t\t<span class="dashicons dashicons-category"></span>\n\t\t\t\t\t<span class="aie-folder-name">').concat(n.escapeHtml(t.name),'</span>\n\t\t\t\t\t<span class="dashicons dashicons-arrow-right-alt2"></span>\n\t\t\t\t</div>\n\t\t\t'));r.append(e)})):jQuery("#aie-folder-browser-empty").show()}};jQuery(document).ready((function(t){T.init(),D.init(),g.init(),A.init()}))},205:()=>{}},n={};function r(t){var a=n[t];if(void 0!==a)return a.exports;var o=n[t]={exports:{}};return e[t](o,o.exports,r),o.exports}r.m=e,t=[],r.O=(e,n,a,o)=>{if(!n){var i=1/0;for(u=0;u<t.length;u++){for(var[n,a,o]=t[u],s=!0,l=0;l<n.length;l++)(!1&o||i>=o)&&Object.keys(r.O).every((t=>r.O[t](n[l])))?n.splice(l--,1):(s=!1,o<i&&(i=o));if(s){t.splice(u--,1);var c=a();void 0!==c&&(e=c)}}return e}o=o||0;for(var u=t.length;u>0&&t[u-1][2]>o;u--)t[u]=t[u-1];t[u]=[n,a,o]},r.o=(t,e)=>Object.prototype.hasOwnProperty.call(t,e),(()=>{var t={847:0,252:0};r.O.j=e=>0===t[e];var e=(e,n)=>{var a,o,[i,s,l]=n,c=0;if(i.some((e=>0!==t[e]))){for(a in s)r.o(s,a)&&(r.m[a]=s[a]);if(l)var u=l(r)}for(e&&e(n);c<i.length;c++)o=i[c],r.o(t,o)&&t[o]&&t[o][0](),t[o]=0;return r.O(u)},n=self.webpackChunkboilerplate=self.webpackChunkboilerplate||[];n.forEach(e.bind(null,0)),n.push=e.bind(null,n.push.bind(n))})(),r.O(void 0,[252],(()=>r(226)));var a=r.O(void 0,[252],(()=>r(205)));a=r.O(a)})();
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./src/js/app.js":
+/*!***********************!*\
+  !*** ./src/js/app.js ***!
+  \***********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _modules_functions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./modules/functions */ "./src/js/modules/functions.js");
+/* harmony import */ var _modules_import__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modules/import */ "./src/js/modules/import.js");
+/* harmony import */ var _modules_export__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./modules/export */ "./src/js/modules/export.js");
+/* harmony import */ var _modules_media_sync__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./modules/media_sync */ "./src/js/modules/media_sync.js");
+
+
+
+
+
+// Initialize modules when DOM is ready
+jQuery(document).ready(function ($) {
+  // Initialize import module
+  _modules_import__WEBPACK_IMPORTED_MODULE_1__["default"].init();
+
+  // Initialize export module
+  _modules_export__WEBPACK_IMPORTED_MODULE_2__["default"].init();
+
+  // Initialize functions module
+  _modules_functions__WEBPACK_IMPORTED_MODULE_0__["default"].init();
+
+  // Initialize media sync module
+  _modules_media_sync__WEBPACK_IMPORTED_MODULE_3__["default"].init();
+});
+
+/***/ }),
+
+/***/ "./src/js/modules/export.js":
+/*!**********************************!*\
+  !*** ./src/js/modules/export.js ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/js/modules/utils.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+/**
+ * Export Module
+ *
+ * Handles the export wizard functionality
+ */
+
+
+var ExportModule = {
+  currentStep: 1,
+  totalSteps: 5,
+  jobId: null,
+  progressInterval: null,
+  /**
+   * Initialize module
+   */
+  init: function init() {
+    if (!jQuery('#wp-aie-export').length) {
+      return;
+    }
+    this.bindEvents();
+    this.showStep(1);
+  },
+  /**
+   * Bind event handlers
+   */
+  bindEvents: function bindEvents() {
+    var _this = this;
+    var $wizard = jQuery('#wp-aie-export');
+
+    // Content type filter/search
+    $wizard.on('input', '#aie-content-type-search', function (e) {
+      return _this.filterContentTypes(e);
+    });
+
+    // Step navigation
+    $wizard.on('click', '.aie-next-step', function () {
+      return _this.nextStep();
+    });
+    $wizard.on('click', '.aie-prev-step', function () {
+      return _this.prevStep();
+    });
+
+    // Content type
+    $wizard.on('change', 'input[name="content_type"]', function (e) {
+      return _this.onContentTypeChange(e);
+    });
+
+    // Filters
+    $wizard.on('change', '.aie-export-filters input, .aie-export-filters select', _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+      return _this.refreshCount(false);
+    }, 500));
+    $wizard.on('click', '.aie-refresh-count', function () {
+      return _this.refreshCount(true);
+    });
+
+    // Field selection
+    $wizard.on('click', '.aie-select-all-fields', function () {
+      return _this.selectAllFields(true);
+    });
+    $wizard.on('click', '.aie-deselect-all-fields', function () {
+      return _this.selectAllFields(false);
+    });
+    $wizard.on('click', '.aie-select-common-fields', function () {
+      return _this.selectCommonFields();
+    });
+
+    // Format selection
+    $wizard.on('change', 'input[name="format"]', function (e) {
+      return _this.onFormatChange(e);
+    });
+
+    // Export actions
+    $wizard.on('click', '.aie-start-export', function () {
+      return _this.startExport();
+    });
+    $wizard.on('click', '.aie-cancel-export', function () {
+      return _this.cancelExport();
+    });
+    $wizard.on('click', '.aie-download-file', function () {
+      return _this.downloadFile();
+    });
+    $wizard.on('click', '.aie-new-export', function () {
+      return _this.resetWizard();
+    });
+
+    // Dynamic Filters
+    $wizard.on('click', '.aie-add-filter', function () {
+      return _this.addFilterRow();
+    });
+    $wizard.on('click', '.aie-remove-filter', function (e) {
+      return _this.removeFilterRow(e);
+    });
+    $wizard.on('change', '.aie-filter-field', function (e) {
+      return _this.onFilterFieldChange(e);
+    });
+
+    // Dynamic filter value changes - auto refresh count when filter is complete
+    $wizard.on('change', '.aie-filter-condition', function (e) {
+      var $row = jQuery(e.target).closest('.aie-filter-row');
+      var $value = $row.find('.aie-filter-value');
+
+      // Clear the value when condition changes
+      if ($value.length) {
+        $value.val('');
+      }
+
+      // Update input type based on condition
+      _this.updateValueInputType($row);
+      if (_this.isFilterRowComplete($row)) {
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+          return _this.refreshCount(false);
+        }, 500)();
+      }
+    });
+    $wizard.on('input', '.aie-filter-value', function (e) {
+      var $row = jQuery(e.target).closest('.aie-filter-row');
+      if (_this.isFilterRowComplete($row)) {
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+          return _this.refreshCount(false);
+        }, 1000)();
+      }
+    });
+    $wizard.on('change', '.aie-filter-value', function (e) {
+      var $row = jQuery(e.target).closest('.aie-filter-row');
+      if (_this.isFilterRowComplete($row)) {
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+          return _this.refreshCount(false);
+        }, 500)();
+      }
+    });
+  },
+  /**
+   * Show specific step
+   */
+  showStep: function showStep(step) {
+    var $wizard = jQuery('#wp-aie-export');
+    $wizard.find('.aie-step').removeClass('active');
+    $wizard.find(".aie-step-".concat(step)).addClass('active');
+    $wizard.find('.aie-step-indicator').removeClass('active completed');
+    $wizard.find(".aie-step-indicator[data-step=\"".concat(step, "\"]")).addClass('active');
+    $wizard.find(".aie-step-indicator[data-step]").filter(function () {
+      return jQuery(this).data('step') < step;
+    }).addClass('completed');
+    this.currentStep = step;
+    if (step === 2) {
+      this.refreshCount(false); // Don't show spinner on auto-refresh
+    } else {
+      // Reset count when leaving step 2
+      this.resetCount();
+    }
+  },
+  nextStep: function nextStep() {
+    if (this.currentStep < this.totalSteps) {
+      var nextStep = this.currentStep + 1;
+
+      // Skip step 2 (filters) for content types that don't need filtering
+      if (nextStep === 2 && this.shouldSkipFilters()) {
+        nextStep = 3;
+      }
+      this.showStep(nextStep);
+    }
+  },
+  prevStep: function prevStep() {
+    if (this.currentStep > 1) {
+      var prevStep = this.currentStep - 1;
+
+      // Skip step 2 (filters) when going back for content types that don't need filtering
+      if (prevStep === 2 && this.shouldSkipFilters()) {
+        prevStep = 1;
+      }
+      this.showStep(prevStep);
+    }
+  },
+  /**
+   * Check if current content type should skip filters step
+   */
+  shouldSkipFilters: function shouldSkipFilters() {
+    var contentType = jQuery('input[name="content_type"]:checked').val();
+
+    // Content types that don't need filtering (go straight from step 1 to step 3)
+    var noFilterTypes = ['block_theme_settings'];
+    return noFilterTypes.includes(contentType);
+  },
+  /**
+   * Handle content type change
+   */
+  onContentTypeChange: function onContentTypeChange(e) {
+    var contentType = jQuery(e.target).val();
+
+    // Clear existing filters
+    jQuery('#aie-filters-list').empty();
+
+    // Show/hide custom filters section
+    // Note: block_theme_settings is excluded - it doesn't need filters (goes straight to step 3)
+    var filterableTypes = ['post', 'page', 'media', 'menu', 'user', 'comment', 'custom_post_types', 'taxonomy', 'woo_product', 'woo_order', 'woo_coupon', 'woo_attribute', 'custom_table'];
+    if (filterableTypes.includes(contentType)) {
+      jQuery('.aie-custom-filters-section').show();
+    } else {
+      jQuery('.aie-custom-filters-section').hide();
+    }
+
+    // Update field groups visibility if needed
+    if (contentType === 'media') {
+      jQuery('.aie-post-field-group').hide();
+      jQuery('.aie-media-field-group').show();
+    } else {
+      jQuery('.aie-post-field-group').show();
+      jQuery('.aie-media-field-group').hide();
+    }
+
+    // Refresh count (without spinner)
+    this.refreshCount(false);
+  },
+  /**
+   * Filter content types based on search input
+   */
+  filterContentTypes: function filterContentTypes(e) {
+    var searchTerm = jQuery(e.target).val().toLowerCase().trim();
+    var $contentTypes = jQuery('.aie-content-type');
+    var $filterCount = jQuery('.aie-filter-count');
+    var $filterCountValue = jQuery('.aie-filter-count-value');
+    var $noResults = jQuery('.aie-no-results');
+    var visibleCount = 0;
+    if (searchTerm === '') {
+      // Show all if search is empty
+      $contentTypes.show();
+      $filterCount.hide();
+      $noResults.hide();
+      return;
+    }
+
+    // Filter content types
+    $contentTypes.each(function () {
+      var $this = jQuery(this);
+      var title = $this.find('h3').text().toLowerCase();
+      var description = $this.find('p').text().toLowerCase();
+
+      // Check if search term matches title or description
+      if (title.includes(searchTerm) || description.includes(searchTerm)) {
+        $this.show();
+        visibleCount++;
+      } else {
+        $this.hide();
+      }
+    });
+
+    // Update and show count
+    $filterCountValue.text(visibleCount);
+    $filterCount.show();
+
+    // Show/hide no results message
+    if (visibleCount === 0) {
+      $noResults.show();
+    } else {
+      $noResults.hide();
+    }
+  },
+  /**
+   * Refresh item count
+   */
+  refreshCount: function refreshCount() {
+    var _arguments = arguments,
+      _this2 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+      var showSpinner, $count, $spinner, $refreshBtn, contentType, options, $tableSelector, dynamicFiltersData, _dynamicFiltersData, postType, response;
+      return _regeneratorRuntime().wrap(function _callee$(_context) {
+        while (1) switch (_context.prev = _context.next) {
+          case 0:
+            showSpinner = _arguments.length > 0 && _arguments[0] !== undefined ? _arguments[0] : true;
+            $count = jQuery('.aie-count-value');
+            $spinner = jQuery('.aie-item-count .spinner');
+            $refreshBtn = jQuery('.aie-refresh-count');
+            if (showSpinner) {
+              $spinner.addClass('is-active');
+            }
+            $refreshBtn.addClass('is-refreshing');
+            _context.prev = 6;
+            contentType = jQuery('input[name="content_type"]:checked').val(); // Prepare options based on content type
+            options = {};
+            if (contentType === 'custom_table') {
+              // For custom tables, get table name from first filter row
+              $tableSelector = jQuery('.aie-table-selector');
+              dynamicFiltersData = _this2.getDynamicFilters();
+              options = {
+                table_name: $tableSelector.val(),
+                filters: dynamicFiltersData.filters
+              };
+            } else {
+              // For other types, use dynamic filters
+              _dynamicFiltersData = _this2.getDynamicFilters(); // Map content type to post_type for post-based exporters
+              postType = _this2.getPostTypeForContentType(contentType);
+              if (postType) {
+                options.post_type = postType;
+              }
+
+              // Add dynamic filters as query parameters
+              if (_dynamicFiltersData.filters.length > 0) {
+                options.filters = _dynamicFiltersData.filters;
+              }
+
+              // Add custom field filters
+              if (_dynamicFiltersData.custom_fields.length > 0) {
+                options.custom_fields = _dynamicFiltersData.custom_fields;
+              }
+
+              // Add taxonomy filters
+              if (_dynamicFiltersData.taxonomy.length > 0) {
+                options.taxonomy = _dynamicFiltersData.taxonomy;
+              }
+            }
+            console.log('Sending options to backend:', options);
+            _context.next = 13;
+            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_get_count', {
+              export_type: contentType,
+              options: options
+            });
+          case 13:
+            response = _context.sent;
+            console.log('Received count response:', response);
+            $count.text(response.count || 0);
+            _context.next = 22;
+            break;
+          case 18:
+            _context.prev = 18;
+            _context.t0 = _context["catch"](6);
+            $count.text('-');
+            console.error('Count error:', _context.t0);
+          case 22:
+            _context.prev = 22;
+            $spinner.removeClass('is-active');
+            $refreshBtn.removeClass('is-refreshing');
+            return _context.finish(22);
+          case 26:
+          case "end":
+            return _context.stop();
+        }
+      }, _callee, null, [[6, 18, 22, 26]]);
+    }))();
+  },
+  /**
+   * Reset count display
+   */
+  resetCount: function resetCount() {
+    var $count = jQuery('.aie-count-value');
+    var $spinner = jQuery('.aie-item-count .spinner');
+    var $refreshBtn = jQuery('.aie-refresh-count');
+    $count.text('-');
+    $spinner.removeClass('is-active');
+    $refreshBtn.removeClass('is-refreshing');
+  },
+  /**
+   * Map content type to WordPress post_type
+   */
+  getPostTypeForContentType: function getPostTypeForContentType(contentType) {
+    var postTypeMap = {
+      post: 'post',
+      page: 'page',
+      media: 'attachment',
+      menu: 'nav_menu_item',
+      comment: null,
+      // Comments are not post type
+      user: null,
+      // Users are not post type
+      block_theme_settings: 'wp_template',
+      taxonomy: null,
+      // Taxonomies are not post type
+      custom_post_types: null,
+      // Will be determined dynamically
+      woo_product: 'product',
+      woo_order: 'shop_order',
+      woo_coupon: 'shop_coupon',
+      woo_attribute: null,
+      // Attributes are taxonomy-based
+      custom_table: null // Not a post type
+    };
+    return postTypeMap[contentType] || null;
+  },
+  /**
+   * Get filter values
+   */
+  getFilters: function getFilters() {
+    var filters = {};
+    var contentType = jQuery('input[name="content_type"]:checked').val();
+    if (contentType === 'post') {
+      filters.post_type = jQuery('[name="post_type"]').val();
+      filters.post_status = jQuery('[name="post_status[]"]').val() || [];
+      filters.date_from = jQuery('[name="date_from"]').val();
+      filters.date_to = jQuery('[name="date_to"]').val();
+      filters.author = jQuery('[name="author"]').val();
+      filters.category = jQuery('[name="category"]').val();
+      filters.tag = jQuery('[name="tag"]').val();
+      filters.search = jQuery('[name="search"]').val();
+    } else if (contentType === 'media') {
+      filters.mime_type = jQuery('[name="mime_type"]').val();
+      filters.date_from = jQuery('[name="media_date_from"]').val();
+      filters.date_to = jQuery('[name="media_date_to"]').val();
+    }
+    return filters;
+  },
+  /**
+   * Get dynamic filters from filter rows
+   */
+  getDynamicFilters: function getDynamicFilters() {
+    var filters = [];
+    var customFields = [];
+    var taxonomyFilters = [];
+    jQuery('.aie-filter-row').each(function (index, row) {
+      var $row = jQuery(row);
+      var field = $row.find('.aie-filter-field').val();
+      var fieldType = $row.find('.aie-filter-field option:selected').data('type');
+
+      // Skip table selector for custom_table type
+      if (fieldType === 'table_selector') {
+        return;
+      }
+
+      // Handle custom_field type
+      if (fieldType === 'custom_field') {
+        var name = $row.find('.aie-custom-field-name').val();
+        var _condition = $row.find('.aie-custom-field-condition').val();
+        var _value = $row.find('.aie-custom-field-value').val();
+        if (name && _condition) {
+          var _noValueConditions = ['is_empty', 'is_not_empty'];
+          if (_noValueConditions.includes(_condition) || _value && _value.trim() !== '') {
+            customFields.push({
+              name: name,
+              condition: _condition,
+              value: _value || ''
+            });
+          }
+        }
+        return;
+      }
+
+      // Handle taxonomy_filter type
+      if (fieldType === 'taxonomy_filter') {
+        var taxonomy = $row.find('.aie-taxonomy-name').val();
+        var _condition2 = $row.find('.aie-taxonomy-condition').val();
+        var terms = $row.find('.aie-taxonomy-terms').val();
+        if (taxonomy && _condition2 && terms && terms.trim() !== '') {
+          taxonomyFilters.push({
+            taxonomy: taxonomy,
+            condition: _condition2,
+            terms: terms
+          });
+        }
+        return;
+      }
+
+      // Handle regular filters
+      var condition = $row.find('.aie-filter-condition').val();
+      var value = $row.find('.aie-filter-value').val();
+
+      // Skip empty or incomplete filters
+      if (!field || !condition) {
+        return;
+      }
+
+      // For conditions that don't need value
+      var noValueConditions = ['is_empty', 'is_not_empty'];
+      if (noValueConditions.includes(condition) || value && value.trim() !== '') {
+        filters.push({
+          field: field,
+          condition: condition,
+          value: value || ''
+        });
+      }
+    });
+    return {
+      filters: filters,
+      custom_fields: customFields,
+      taxonomy: taxonomyFilters
+    };
+  },
+  /**
+   * Get custom table filters (deprecated - use getDynamicFilters instead)
+   */
+  getCustomTableFilters: function getCustomTableFilters() {
+    var filters = [];
+    jQuery('.aie-filter-row').each(function (index, row) {
+      var $row = jQuery(row);
+      var field = $row.find('.aie-filter-field').val();
+      var condition = $row.find('.aie-filter-condition').val();
+      var value = $row.find('.aie-filter-value').val();
+
+      // Skip table selector row and empty filters
+      if (!field || field === 'table_name' || !condition) {
+        return;
+      }
+      filters.push({
+        field: field,
+        condition: condition,
+        value: value
+      });
+    });
+    return filters;
+  },
+  /**
+   * Select/deselect all fields
+   */
+  selectAllFields: function selectAllFields(checked) {
+    jQuery('input[name="fields[]"]:visible').prop('checked', checked);
+  },
+  /**
+   * Select common fields only
+   */
+  selectCommonFields: function selectCommonFields() {
+    this.selectAllFields(false);
+    var commonFields = ['ID', 'post_title', 'post_content', 'post_status'];
+    commonFields.forEach(function (field) {
+      jQuery("input[name=\"fields[]\"][value=\"".concat(field, "\"]")).prop('checked', true);
+    });
+  },
+  /**
+   * Handle format change
+   */
+  onFormatChange: function onFormatChange(e) {
+    var format = jQuery(e.target).val();
+    jQuery('.aie-format-options > div').hide();
+    jQuery(".aie-".concat(format, "-options")).show();
+  },
+  /**
+   * Get selected fields
+   */
+  getSelectedFields: function getSelectedFields() {
+    var fields = [];
+    jQuery('input[name="fields[]"]:checked').each(function () {
+      fields.push(jQuery(this).val());
+    });
+    return fields;
+  },
+  /**
+   * Start export
+   */
+  startExport: function startExport() {
+    var _this3 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+      var fields, contentType, dynamicFiltersData, data, response;
+      return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+        while (1) switch (_context2.prev = _context2.next) {
+          case 0:
+            fields = _this3.getSelectedFields();
+            if (!(fields.length === 0)) {
+              _context2.next = 4;
+              break;
+            }
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Please select at least one field to export', 'error');
+            return _context2.abrupt("return");
+          case 4:
+            _context2.prev = 4;
+            contentType = jQuery('input[name="content_type"]:checked').val();
+            dynamicFiltersData = _this3.getDynamicFilters();
+            data = {
+              export_type: contentType,
+              filters: _this3.getFilters(),
+              fields: fields,
+              format: jQuery('input[name="format"]:checked').val(),
+              format_options: {
+                csv_delimiter: jQuery('[name="csv_delimiter"]').val(),
+                csv_encoding: jQuery('[name="csv_encoding"]').val(),
+                csv_include_header: jQuery('[name="csv_include_header"]').is(':checked'),
+                json_pretty_print: jQuery('[name="json_pretty_print"]').is(':checked'),
+                xml_root: jQuery('[name="xml_root"]').val(),
+                xml_item: jQuery('[name="xml_item"]').val()
+              }
+            }; // Add dynamic filters
+            if (dynamicFiltersData.filters.length > 0) {
+              data.dynamic_filters = dynamicFiltersData.filters;
+            }
+
+            // Add custom field filters
+            if (dynamicFiltersData.custom_fields.length > 0) {
+              data.custom_fields = dynamicFiltersData.custom_fields;
+            }
+
+            // Add taxonomy filters
+            if (dynamicFiltersData.taxonomy.length > 0) {
+              data.taxonomy = dynamicFiltersData.taxonomy;
+            }
+            _context2.next = 13;
+            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_start', data);
+          case 13:
+            response = _context2.sent;
+            _this3.jobId = response.job_id;
+            _this3.showStep(5);
+            _this3.startProgressTracking();
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Export started successfully', 'success');
+            _context2.next = 23;
+            break;
+          case 20:
+            _context2.prev = 20;
+            _context2.t0 = _context2["catch"](4);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context2.t0, 'Start export');
+          case 23:
+          case "end":
+            return _context2.stop();
+        }
+      }, _callee2, null, [[4, 20]]);
+    }))();
+  },
+  /**
+   * Start progress tracking
+   */
+  startProgressTracking: function startProgressTracking() {
+    var _this4 = this;
+    this.progressInterval = setInterval(function () {
+      _this4.updateProgress();
+    }, 2000);
+  },
+  /**
+   * Update progress
+   */
+  updateProgress: function updateProgress() {
+    var _this5 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+      var response;
+      return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+        while (1) switch (_context3.prev = _context3.next) {
+          case 0:
+            _context3.prev = 0;
+            _context3.next = 3;
+            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_get_progress', {
+              job_id: _this5.jobId
+            });
+          case 3:
+            response = _context3.sent;
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].updateProgressBar(jQuery('.aie-step-5'), response);
+            if (response.status === 'completed') {
+              _this5.onExportComplete(response);
+            } else if (response.status === 'failed') {
+              _this5.onExportFailed(response);
+            }
+            _context3.next = 11;
+            break;
+          case 8:
+            _context3.prev = 8;
+            _context3.t0 = _context3["catch"](0);
+            console.error('Progress update error:', _context3.t0);
+          case 11:
+          case "end":
+            return _context3.stop();
+        }
+      }, _callee3, null, [[0, 8]]);
+    }))();
+  },
+  /**
+   * Handle export completion
+   */
+  onExportComplete: function onExportComplete(result) {
+    var _result$estimates;
+    clearInterval(this.progressInterval);
+    jQuery('.aie-export-results').show();
+    jQuery('.aie-result-processed').text(result.processed || 0);
+    jQuery('.aie-result-filesize').text(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].formatFileSize(result.file_size || 0));
+    jQuery('.aie-result-duration').text(((_result$estimates = result.estimates) === null || _result$estimates === void 0 ? void 0 : _result$estimates.elapsed_formatted) || '0s');
+    jQuery('.aie-cancel-export').hide();
+    jQuery('.aie-new-export').show();
+    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Export completed successfully!', 'success');
+  },
+  /**
+   * Handle export failure
+   */
+  onExportFailed: function onExportFailed(result) {
+    clearInterval(this.progressInterval);
+    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Export failed: ' + (result.error || 'Unknown error'), 'error');
+  },
+  /**
+   * Download export file
+   */
+  downloadFile: function downloadFile() {
+    var _this6 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+      var response;
+      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+        while (1) switch (_context4.prev = _context4.next) {
+          case 0:
+            _context4.prev = 0;
+            _context4.next = 3;
+            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_download', {
+              job_id: _this6.jobId
+            });
+          case 3:
+            response = _context4.sent;
+            if (response.download_url) {
+              _utils__WEBPACK_IMPORTED_MODULE_0__["default"].downloadFile(response.download_url, response.filename);
+            }
+            _context4.next = 10;
+            break;
+          case 7:
+            _context4.prev = 7;
+            _context4.t0 = _context4["catch"](0);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context4.t0, 'Download file');
+          case 10:
+          case "end":
+            return _context4.stop();
+        }
+      }, _callee4, null, [[0, 7]]);
+    }))();
+  },
+  /**
+   * Cancel export
+   */
+  cancelExport: function cancelExport() {
+    var _this7 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+        while (1) switch (_context5.prev = _context5.next) {
+          case 0:
+            if (confirm('Are you sure you want to cancel this export?')) {
+              _context5.next = 2;
+              break;
+            }
+            return _context5.abrupt("return");
+          case 2:
+            _context5.prev = 2;
+            _context5.next = 5;
+            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_cancel', {
+              job_id: _this7.jobId
+            });
+          case 5:
+            clearInterval(_this7.progressInterval);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Export cancelled', 'info');
+            _this7.resetWizard();
+            _context5.next = 13;
+            break;
+          case 10:
+            _context5.prev = 10;
+            _context5.t0 = _context5["catch"](2);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context5.t0, 'Cancel export');
+          case 13:
+          case "end":
+            return _context5.stop();
+        }
+      }, _callee5, null, [[2, 10]]);
+    }))();
+  },
+  /**
+   * Reset wizard
+   */
+  resetWizard: function resetWizard() {
+    this.currentStep = 1;
+    this.jobId = null;
+    clearInterval(this.progressInterval);
+    jQuery('#wp-aie-export input[type="text"], #wp-aie-export input[type="date"]').val('');
+    jQuery('#wp-aie-export input[type="radio"]:first').prop('checked', true);
+    jQuery('.aie-export-results').hide();
+    this.showStep(1);
+  },
+  /**
+   * Add new filter row
+   */
+  addFilterRow: function addFilterRow() {
+    var _this8 = this;
+    var template = document.getElementById('aie-filter-row-template');
+    var clone = template.content.cloneNode(true);
+    var contentType = jQuery('input[name="content_type"]:checked').val();
+
+    // Populate field options based on content type
+    var $fieldSelect = jQuery(clone).find('.aie-filter-field');
+    var fields = this.getFieldsByContentType(contentType);
+    fields.forEach(function (group) {
+      var $optgroup = jQuery('<optgroup>').attr('label', group.label);
+      group.options.forEach(function (option) {
+        $optgroup.append(jQuery('<option>').val(option.value).text(option.label).data('type', option.type));
+      });
+      $fieldSelect.append($optgroup);
+    });
+    jQuery('#aie-filters-list').append(clone);
+
+    // Trigger count refresh (without spinner)
+    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+      return _this8.refreshCount(false);
+    }, 500)();
+  },
+  /**
+   * Remove filter row
+   */
+  removeFilterRow: function removeFilterRow(e) {
+    var _this9 = this;
+    jQuery(e.target).closest('.aie-filter-row').remove();
+
+    // Trigger count refresh (without spinner)
+    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+      return _this9.refreshCount(false);
+    }, 500)();
+  },
+  /**
+   * Handle filter field change
+   */
+  onFilterFieldChange: function onFilterFieldChange(e) {
+    var _this11 = this;
+    var $field = jQuery(e.target);
+    var $row = $field.closest('.aie-filter-row');
+    var $condition = $row.find('.aie-filter-condition');
+    var $valueWrap = $row.find('.aie-filter-value-wrap');
+    var $value = $row.find('.aie-filter-value');
+    var selectedOption = $field.find('option:selected');
+    var fieldType = selectedOption.data('type') || 'string';
+
+    // Special handling for custom_field
+    if (fieldType === 'custom_field') {
+      // Create custom interface for custom field filter
+      $condition.closest('.aie-filter-condition-wrap').show();
+      $valueWrap.html("\n\t\t\t\t<div class=\"aie-custom-field-inputs\">\n\t\t\t\t\t<div class=\"aie-input-group\">\n\t\t\t\t\t\t<label>Field Name</label>\n\t\t\t\t\t\t<input type=\"text\" class=\"aie-custom-field-name\" placeholder=\"Enter custom field name...\" />\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-input-group\">\n\t\t\t\t\t\t<label>Condition</label>\n\t\t\t\t\t\t<select class=\"aie-custom-field-condition aie-filter-condition\">\n\t\t\t\t\t\t\t<option value=\"equals\">Equals</option>\n\t\t\t\t\t\t\t<option value=\"not_equals\">Not Equals</option>\n\t\t\t\t\t\t\t<option value=\"contains\">Contains</option>\n\t\t\t\t\t\t\t<option value=\"not_contains\">Not Contains</option>\n\t\t\t\t\t\t\t<option value=\"greater\">Greater Than</option>\n\t\t\t\t\t\t\t<option value=\"less\">Less Than</option>\n\t\t\t\t\t\t\t<option value=\"equals_or_greater\">Greater or Equal</option>\n\t\t\t\t\t\t\t<option value=\"equals_or_less\">Less or Equal</option>\n\t\t\t\t\t\t\t<option value=\"in\">In (comma-separated)</option>\n\t\t\t\t\t\t\t<option value=\"not_in\">Not In (comma-separated)</option>\n\t\t\t\t\t\t\t<option value=\"is_empty\">Is Empty</option>\n\t\t\t\t\t\t\t<option value=\"is_not_empty\">Is Not Empty</option>\n\t\t\t\t\t\t</select>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-input-group aie-custom-field-value-group\">\n\t\t\t\t\t\t<label>Value</label>\n\t\t\t\t\t\t<input type=\"text\" class=\"aie-custom-field-value aie-filter-value\" placeholder=\"Enter value...\" />\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t");
+      $condition.closest('.aie-filter-condition-wrap').hide();
+
+      // Handle condition change to show/hide value input
+      $row.find('.aie-custom-field-condition').on('change', function () {
+        var _this10 = this;
+        var condition = jQuery(this).val();
+        var $valueGroup = $row.find('.aie-custom-field-value-group');
+        if (condition === 'is_empty' || condition === 'is_not_empty') {
+          $valueGroup.hide();
+        } else {
+          $valueGroup.show();
+        }
+        // Trigger count refresh on condition change
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+          return _this10.refreshCount(false);
+        }, 500)();
+      }.bind(this));
+
+      // Add change event handlers to trigger count refresh
+      $row.find('.aie-custom-field-name, .aie-custom-field-value').on('input change', function () {
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+          return _this11.refreshCount(false);
+        }, 500)();
+      });
+      return;
+    }
+
+    // Special handling for taxonomy_filter
+    if (fieldType === 'taxonomy_filter') {
+      // Create custom interface for taxonomy filter
+      $condition.closest('.aie-filter-condition-wrap').show();
+      $valueWrap.html("\n\t\t\t\t<div class=\"aie-taxonomy-filter-inputs\">\n\t\t\t\t\t<div class=\"aie-input-group\">\n\t\t\t\t\t\t<label>Taxonomy Name</label>\n\t\t\t\t\t\t<input type=\"text\" class=\"aie-taxonomy-name\" placeholder=\"e.g., category, post_tag, product_cat...\" />\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-input-group\">\n\t\t\t\t\t\t<label>Condition</label>\n\t\t\t\t\t\t<select class=\"aie-taxonomy-condition aie-filter-condition\">\n\t\t\t\t\t\t\t<option value=\"in\">Has Term(s) - IN</option>\n\t\t\t\t\t\t\t<option value=\"not_in\">Does Not Have Term(s) - NOT IN</option>\n\t\t\t\t\t\t\t<option value=\"and\">Has All Terms - AND</option>\n\t\t\t\t\t\t</select>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-input-group\">\n\t\t\t\t\t\t<label>Terms</label>\n\t\t\t\t\t\t<input type=\"text\" class=\"aie-taxonomy-terms aie-filter-value\" placeholder=\"Enter term slugs (comma-separated)...\" />\n\t\t\t\t\t\t<small>Enter term slugs separated by commas</small>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t");
+      $condition.closest('.aie-filter-condition-wrap').hide();
+
+      // Add change event handlers to trigger count refresh
+      $row.find('.aie-taxonomy-name, .aie-taxonomy-condition, .aie-taxonomy-terms').on('input change', function () {
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+          return _this11.refreshCount(false);
+        }, 500)();
+      });
+      return;
+    }
+
+    // Special handling for table_selector
+    if (fieldType === 'table_selector') {
+      // Hide condition dropdown for table selector
+      $condition.closest('.aie-filter-condition-wrap').hide();
+
+      // Replace value input with table selector
+      $valueWrap.find('label').text('Select Table');
+
+      // Create a select dropdown for tables
+      var $select = jQuery('<select>').addClass('aie-filter-value aie-table-selector').attr('name', 'filter_value[]');
+
+      // Fetch database tables via AJAX
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax({
+        action: 'get_database_tables'
+      }).then(function (response) {
+        if (response.success && response.data) {
+          $select.append(jQuery('<option>').val('').text('Select Table...'));
+          response.data.forEach(function (table) {
+            $select.append(jQuery('<option>').val(table.name).text(table.name));
+          });
+
+          // When table is selected, reload filter fields
+          $select.on('change', function () {
+            var tableName = $select.val();
+            if (tableName) {
+              _this11.loadTableColumns(tableName);
+            }
+          });
+        }
+      });
+      $value.replaceWith($select);
+      return;
+    }
+
+    // Special handling for post_type_selector
+    if (fieldType === 'post_type_selector') {
+      // Hide condition dropdown for post type selector
+      $condition.closest('.aie-filter-condition-wrap').hide();
+
+      // Replace value input with post type selector
+      $valueWrap.find('label').text('Select Post Type');
+
+      // Create a select dropdown for post types
+      var _$select = jQuery('<select>').addClass('aie-filter-value aie-post-type-selector').attr('name', 'filter_value[]');
+
+      // Fetch post types via AJAX
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax({
+        action: 'aie_get_post_types',
+        include_hidden: true
+      }).then(function (response) {
+        if (response.success && response.data) {
+          _$select.append(jQuery('<option>').val('').text('Select Post Type...'));
+          response.data.forEach(function (postType) {
+            _$select.append(jQuery('<option>').val(postType.name).text(postType.label + ' (' + postType.name + ')'));
+          });
+        }
+      });
+      $value.replaceWith(_$select);
+      return;
+    }
+
+    // Show condition dropdown for normal fields
+    $condition.closest('.aie-filter-condition-wrap').show();
+    $valueWrap.find('label').text('Value');
+
+    // If current input is a select (from post_type_selector or table_selector), replace with input
+    if ($value.is('select')) {
+      var $input = jQuery('<input>').attr('type', 'text').addClass('aie-filter-value').attr('name', 'filter_value[]').attr('placeholder', 'Enter value...');
+      $value.replaceWith($input);
+      // Update reference
+      $row.find('.aie-filter-value').attr('type', fieldType === 'date' ? 'date' : fieldType === 'number' ? 'number' : 'text');
+    } else {
+      // Clear existing conditions
+      $condition.empty();
+
+      // Populate conditions based on field type
+      var conditions = this.getConditionsByFieldType(fieldType);
+
+      // Get the actual field name to filter out inappropriate conditions
+      var fieldName = $field.val();
+
+      // Filter conditions based on field
+      var filteredConditions = conditions.filter(function (condition) {
+        // For ID fields, exclude is_empty and is_not_empty (ID cannot be empty)
+        if (fieldName === 'ID' || fieldName === 'comment_ID' || fieldName === 'term_id' || fieldName === 'user_id' || fieldName === 'attribute_id') {
+          return condition.value !== 'is_empty' && condition.value !== 'is_not_empty';
+        }
+
+        // For date fields, exclude is_empty and is_not_empty (dates typically always have values)
+        if (fieldType === 'date') {
+          return condition.value !== 'is_empty' && condition.value !== 'is_not_empty';
+        }
+
+        // For comment_status, exclude is_empty and is_not_empty (always has a value: open, closed, etc.)
+        if (fieldName === 'comment_status') {
+          return condition.value !== 'is_empty' && condition.value !== 'is_not_empty';
+        }
+
+        // For content and excerpt fields, exclude in and not_in (not practical for long text)
+        if (fieldName === 'post_content' || fieldName === 'post_excerpt') {
+          return condition.value !== 'in' && condition.value !== 'not_in';
+        }
+        return true;
+      });
+      filteredConditions.forEach(function (condition) {
+        $condition.append(jQuery('<option>').val(condition.value).text(condition.label));
+      });
+
+      // Clear the value when field changes
+      $value.val('');
+
+      // Change value input type based on field type
+      if (fieldType === 'date') {
+        $value.attr('type', 'date');
+      } else if (fieldType === 'number') {
+        $value.attr('type', 'number');
+      } else {
+        $value.attr('type', 'text');
+      }
+
+      // Update input type based on current condition
+      this.updateValueInputType($row);
+    }
+
+    // Trigger count refresh (without spinner)
+    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+      return _this11.refreshCount(false);
+    }, 500)();
+  },
+  /**
+   * Load table columns dynamically
+   */
+  loadTableColumns: function loadTableColumns(tableName) {
+    var _this12 = this;
+    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax({
+      action: 'get_table_columns',
+      table_name: tableName
+    }).then(function (response) {
+      if (response.success && response.data) {
+        // Store columns for later use
+        _this12.tableColumns = response.data;
+
+        // Update all filter field dropdowns
+        jQuery('.aie-filter-field').each(function (index, element) {
+          var $fieldSelect = jQuery(element);
+          var currentValue = $fieldSelect.val();
+
+          // Clear and rebuild options
+          $fieldSelect.empty();
+          $fieldSelect.append(jQuery('<option>').val('').text('Select Field...'));
+
+          // Add columns as options
+          response.data.forEach(function (column) {
+            $fieldSelect.append(jQuery('<option>').val(column.name).text(column.name + ' (' + column.type + ')').data('type', column.data_type));
+          });
+
+          // Restore previous value if exists
+          if (currentValue) {
+            $fieldSelect.val(currentValue);
+          }
+        });
+      }
+    });
+  },
+  /**
+   * Get fields by content type
+   */
+  getFieldsByContentType: function getFieldsByContentType(contentType) {
+    var baseFields = [{
+      label: 'Standard',
+      options: [{
+        value: 'ID',
+        label: 'ID',
+        type: 'number'
+      }, {
+        value: 'post_title',
+        label: 'Title',
+        type: 'string'
+      }, {
+        value: 'post_content',
+        label: 'Content',
+        type: 'string'
+      }, {
+        value: 'post_excerpt',
+        label: 'Excerpt',
+        type: 'string'
+      }, {
+        value: 'post_date',
+        label: 'Date',
+        type: 'date'
+      }, {
+        value: 'post_name',
+        label: 'Slug',
+        type: 'string'
+      }, {
+        value: 'post_status',
+        label: 'Status',
+        type: 'string'
+      }]
+    }, {
+      label: 'Taxonomy',
+      options: [{
+        value: 'categories',
+        label: 'Categories',
+        type: 'string'
+      }, {
+        value: 'tags',
+        label: 'Tags',
+        type: 'string'
+      }]
+    }, {
+      label: 'Author',
+      options: [{
+        value: 'post_author',
+        label: 'Author ID',
+        type: 'number'
+      }, {
+        value: 'author_name',
+        label: 'Author Name',
+        type: 'string'
+      }, {
+        value: 'author_email',
+        label: 'Author Email',
+        type: 'string'
+      }]
+    }, {
+      label: 'Other',
+      options: [{
+        value: 'comment_status',
+        label: 'Comment Status',
+        type: 'string'
+      }, {
+        value: 'post_modified',
+        label: 'Modified Date',
+        type: 'date'
+      }, {
+        value: '_wp_page_template',
+        label: 'Template',
+        type: 'string'
+      }]
+    }, {
+      label: 'Custom Filters',
+      options: [{
+        value: '_custom_field',
+        label: '🔧 Custom Field (Meta)',
+        type: 'custom_field'
+      }, {
+        value: '_taxonomy_filter',
+        label: '🏷️ Taxonomy Filter',
+        type: 'taxonomy_filter'
+      }]
+    }]; // Customize based on content type
+    if (contentType === 'media') {
+      return [{
+        label: 'Basic',
+        options: [{
+          value: 'ID',
+          label: 'ID',
+          type: 'number'
+        }, {
+          value: 'post_title',
+          label: 'Title',
+          type: 'string'
+        }, {
+          value: 'post_content',
+          label: 'Description',
+          type: 'string'
+        }, {
+          value: 'post_excerpt',
+          label: 'Caption',
+          type: 'string'
+        }, {
+          value: 'post_name',
+          label: 'Slug',
+          type: 'string'
+        }]
+      }, {
+        label: 'File',
+        options: [{
+          value: 'post_mime_type',
+          label: 'MIME Type',
+          type: 'string'
+        }, {
+          value: 'file_size',
+          label: 'File Size (bytes)',
+          type: 'number'
+        }, {
+          value: 'file_name',
+          label: 'File Name',
+          type: 'string'
+        }, {
+          value: 'file_extension',
+          label: 'File Extension',
+          type: 'string'
+        }, {
+          value: 'file_path',
+          label: 'File Path',
+          type: 'string'
+        }]
+      }, {
+        label: 'Dates',
+        options: [{
+          value: 'post_date',
+          label: 'Upload Date',
+          type: 'date'
+        }, {
+          value: 'post_modified',
+          label: 'Modified Date',
+          type: 'date'
+        }]
+      }, {
+        label: 'Author',
+        options: [{
+          value: 'post_author',
+          label: 'Author ID',
+          type: 'number'
+        }, {
+          value: 'author_name',
+          label: 'Author Name',
+          type: 'string'
+        }]
+      }, {
+        label: 'Other',
+        options: [{
+          value: 'post_parent',
+          label: 'Attached To (Post ID)',
+          type: 'number'
+        }, {
+          value: 'alt_text',
+          label: 'Alt Text',
+          type: 'string'
+        }]
+      }, {
+        label: 'Custom Filters',
+        options: [{
+          value: '_custom_field',
+          label: '🔧 Custom Field (Meta)',
+          type: 'custom_field'
+        }]
+      }];
+    }
+
+    // Pages don't have taxonomy section (but taxonomy_filter is still available in Custom Filters)
+    if (contentType === 'page') {
+      return baseFields.filter(function (group) {
+        return group.label !== 'Taxonomy';
+      });
+    }
+
+    // Menus
+    if (contentType === 'menu') {
+      return [{
+        label: 'Menu',
+        options: [{
+          value: 'term_id',
+          label: 'Menu ID',
+          type: 'number'
+        }, {
+          value: 'name',
+          label: 'Menu Name',
+          type: 'string'
+        }]
+      }, {
+        label: 'Custom Filters',
+        options: [{
+          value: '_custom_field',
+          label: '🔧 Custom Field (Meta)',
+          type: 'custom_field'
+        }]
+      }];
+    }
+
+    // Users
+    if (contentType === 'user') {
+      return [{
+        label: 'Basic',
+        options: [{
+          value: 'ID',
+          label: 'User ID',
+          type: 'number'
+        }, {
+          value: 'user_login',
+          label: 'Username',
+          type: 'string'
+        }, {
+          value: 'user_email',
+          label: 'Email',
+          type: 'string'
+        }, {
+          value: 'display_name',
+          label: 'Display Name',
+          type: 'string'
+        }, {
+          value: 'user_nicename',
+          label: 'Nice Name',
+          type: 'string'
+        }]
+      }, {
+        label: 'Profile',
+        options: [{
+          value: 'first_name',
+          label: 'First Name',
+          type: 'string'
+        }, {
+          value: 'last_name',
+          label: 'Last Name',
+          type: 'string'
+        }, {
+          value: 'nickname',
+          label: 'Nickname',
+          type: 'string'
+        }, {
+          value: 'description',
+          label: 'Bio',
+          type: 'string'
+        }, {
+          value: 'user_url',
+          label: 'Website',
+          type: 'string'
+        }]
+      }, {
+        label: 'Role',
+        options: [{
+          value: 'role',
+          label: 'Role',
+          type: 'string'
+        }]
+      }, {
+        label: 'Dates',
+        options: [{
+          value: 'user_registered',
+          label: 'Registration Date',
+          type: 'date'
+        }]
+      }, {
+        label: 'Custom Filters',
+        options: [{
+          value: '_custom_field',
+          label: '🔧 Custom Field (Meta)',
+          type: 'custom_field'
+        }]
+      }];
+    }
+
+    // Comments
+    if (contentType === 'comment') {
+      return [{
+        label: 'Basic',
+        options: [{
+          value: 'comment_ID',
+          label: 'Comment ID',
+          type: 'number'
+        }, {
+          value: 'comment_post_ID',
+          label: 'Post ID',
+          type: 'number'
+        }, {
+          value: 'comment_content',
+          label: 'Comment Content',
+          type: 'string'
+        }, {
+          value: 'comment_approved',
+          label: 'Status',
+          type: 'string'
+        }]
+      }, {
+        label: 'Author',
+        options: [{
+          value: 'comment_author',
+          label: 'Author Name',
+          type: 'string'
+        }, {
+          value: 'comment_author_email',
+          label: 'Author Email',
+          type: 'string'
+        }, {
+          value: 'comment_author_url',
+          label: 'Author URL',
+          type: 'string'
+        }, {
+          value: 'comment_author_IP',
+          label: 'Author IP',
+          type: 'string'
+        }, {
+          value: 'user_id',
+          label: 'User ID',
+          type: 'number'
+        }]
+      }, {
+        label: 'Dates',
+        options: [{
+          value: 'comment_date',
+          label: 'Comment Date',
+          type: 'date'
+        }]
+      }, {
+        label: 'Other',
+        options: [{
+          value: 'comment_parent',
+          label: 'Parent Comment ID',
+          type: 'number'
+        }, {
+          value: 'comment_karma',
+          label: 'Karma',
+          type: 'number'
+        }, {
+          value: 'comment_type',
+          label: 'Comment Type',
+          type: 'string'
+        }]
+      }, {
+        label: 'Custom Filters',
+        options: [{
+          value: '_custom_field',
+          label: '🔧 Custom Field (Meta)',
+          type: 'custom_field'
+        }]
+      }];
+    }
+
+    // Block Theme Settings
+    if (contentType === 'block_theme_settings') {
+      return [{
+        label: 'Settings',
+        options: [{
+          value: 'setting_name',
+          label: 'Setting Name',
+          type: 'string'
+        }, {
+          value: 'setting_type',
+          label: 'Setting Type',
+          type: 'string'
+        }, {
+          value: 'setting_value',
+          label: 'Setting Value',
+          type: 'string'
+        }]
+      }, {
+        label: 'Theme',
+        options: [{
+          value: 'theme_slug',
+          label: 'Theme Slug',
+          type: 'string'
+        }, {
+          value: 'theme_version',
+          label: 'Theme Version',
+          type: 'string'
+        }]
+      }, {
+        label: 'Templates',
+        options: [{
+          value: 'template_name',
+          label: 'Template Name',
+          type: 'string'
+        }, {
+          value: 'template_slug',
+          label: 'Template Slug',
+          type: 'string'
+        }, {
+          value: 'template_type',
+          label: 'Template Type',
+          type: 'string'
+        }]
+      }, {
+        label: 'Dates',
+        options: [{
+          value: 'modified_date',
+          label: 'Modified Date',
+          type: 'date'
+        }]
+      }];
+    }
+
+    // Custom Post Types
+    if (contentType === 'custom_post_types') {
+      return [{
+        label: 'Post Type Selection',
+        options: [{
+          value: '_post_type',
+          label: 'Post Type (select specific)',
+          type: 'post_type_selector'
+        }]
+      }, {
+        label: 'Standard',
+        options: [{
+          value: 'ID',
+          label: 'ID',
+          type: 'number'
+        }, {
+          value: 'post_title',
+          label: 'Title',
+          type: 'string'
+        }, {
+          value: 'post_content',
+          label: 'Content',
+          type: 'string'
+        }, {
+          value: 'post_excerpt',
+          label: 'Excerpt',
+          type: 'string'
+        }, {
+          value: 'post_date',
+          label: 'Date',
+          type: 'date'
+        }, {
+          value: 'post_name',
+          label: 'Slug',
+          type: 'string'
+        }, {
+          value: 'post_status',
+          label: 'Status',
+          type: 'string'
+        }]
+      }, {
+        label: 'Author',
+        options: [{
+          value: 'post_author',
+          label: 'Author ID',
+          type: 'number'
+        }, {
+          value: 'author_name',
+          label: 'Author Name',
+          type: 'string'
+        }, {
+          value: 'author_email',
+          label: 'Author Email',
+          type: 'string'
+        }]
+      }, {
+        label: 'Other',
+        options: [{
+          value: 'post_parent',
+          label: 'Parent ID',
+          type: 'number'
+        }, {
+          value: 'post_modified',
+          label: 'Modified Date',
+          type: 'date'
+        }, {
+          value: 'menu_order',
+          label: 'Menu Order',
+          type: 'number'
+        }, {
+          value: '_wp_page_template',
+          label: 'Template',
+          type: 'string'
+        }]
+      }, {
+        label: 'Custom Filters',
+        options: [{
+          value: '_custom_field',
+          label: '🔧 Custom Field (Meta)',
+          type: 'custom_field'
+        }, {
+          value: '_taxonomy_filter',
+          label: '🏷️ Taxonomy Filter',
+          type: 'taxonomy_filter'
+        }]
+      }];
+    } // Taxonomy
+    if (contentType === 'taxonomy') {
+      return [{
+        label: 'Basic',
+        options: [{
+          value: 'term_id',
+          label: 'Term ID',
+          type: 'number'
+        }, {
+          value: 'name',
+          label: 'Term Name',
+          type: 'string'
+        }, {
+          value: 'slug',
+          label: 'Term Slug',
+          type: 'string'
+        }, {
+          value: 'taxonomy',
+          label: 'Taxonomy',
+          type: 'string'
+        }, {
+          value: 'description',
+          label: 'Description',
+          type: 'string'
+        }]
+      }, {
+        label: 'Hierarchy',
+        options: [{
+          value: 'parent',
+          label: 'Parent Term ID',
+          type: 'number'
+        }, {
+          value: 'count',
+          label: 'Post Count',
+          type: 'number'
+        }]
+      }, {
+        label: 'Meta',
+        options: [{
+          value: 'term_group',
+          label: 'Term Group',
+          type: 'number'
+        }, {
+          value: 'term_order',
+          label: 'Term Order',
+          type: 'number'
+        }]
+      }, {
+        label: 'Custom Filters',
+        options: [{
+          value: '_custom_field',
+          label: '🔧 Custom Field (Meta)',
+          type: 'custom_field'
+        }]
+      }];
+    }
+
+    // WooCommerce Products
+    if (contentType === 'woo_product') {
+      return [{
+        label: 'Basic',
+        options: [{
+          value: 'ID',
+          label: 'Product ID',
+          type: 'number'
+        }, {
+          value: 'post_title',
+          label: 'Product Name',
+          type: 'string'
+        }, {
+          value: 'post_name',
+          label: 'Slug',
+          type: 'string'
+        }, {
+          value: 'post_status',
+          label: 'Status',
+          type: 'string'
+        }, {
+          value: 'sku',
+          label: 'SKU',
+          type: 'string'
+        }]
+      }, {
+        label: 'Product Data',
+        options: [{
+          value: 'product_type',
+          label: 'Product Type',
+          type: 'string'
+        }, {
+          value: 'regular_price',
+          label: 'Regular Price',
+          type: 'number'
+        }, {
+          value: 'sale_price',
+          label: 'Sale Price',
+          type: 'number'
+        }, {
+          value: 'stock_quantity',
+          label: 'Stock Quantity',
+          type: 'number'
+        }, {
+          value: 'stock_status',
+          label: 'Stock Status',
+          type: 'string'
+        }, {
+          value: 'manage_stock',
+          label: 'Manage Stock',
+          type: 'string'
+        }]
+      }, {
+        label: 'Taxonomy',
+        options: [{
+          value: 'product_cat',
+          label: 'Categories',
+          type: 'string'
+        }, {
+          value: 'product_tag',
+          label: 'Tags',
+          type: 'string'
+        }, {
+          value: 'product_brand',
+          label: 'Brands',
+          type: 'string'
+        }]
+      }, {
+        label: 'Dates',
+        options: [{
+          value: 'post_date',
+          label: 'Created Date',
+          type: 'date'
+        }, {
+          value: 'post_modified',
+          label: 'Modified Date',
+          type: 'date'
+        }]
+      }, {
+        label: 'Other',
+        options: [{
+          value: 'featured',
+          label: 'Featured',
+          type: 'string'
+        }, {
+          value: 'visibility',
+          label: 'Visibility',
+          type: 'string'
+        }, {
+          value: 'total_sales',
+          label: 'Total Sales',
+          type: 'number'
+        }, {
+          value: 'weight',
+          label: 'Weight',
+          type: 'number'
+        }]
+      }, {
+        label: 'Custom Filters',
+        options: [{
+          value: '_custom_field',
+          label: '🔧 Custom Field (Meta)',
+          type: 'custom_field'
+        }, {
+          value: '_taxonomy_filter',
+          label: '🏷️ Taxonomy Filter',
+          type: 'taxonomy_filter'
+        }]
+      }];
+    }
+
+    // WooCommerce Orders
+    if (contentType === 'woo_order') {
+      return [{
+        label: 'Basic',
+        options: [{
+          value: 'ID',
+          label: 'Order ID',
+          type: 'number'
+        }, {
+          value: 'order_number',
+          label: 'Order Number',
+          type: 'string'
+        }, {
+          value: 'order_status',
+          label: 'Status',
+          type: 'string'
+        }, {
+          value: 'order_key',
+          label: 'Order Key',
+          type: 'string'
+        }]
+      }, {
+        label: 'Amounts',
+        options: [{
+          value: 'order_total',
+          label: 'Order Total',
+          type: 'number'
+        }, {
+          value: 'order_subtotal',
+          label: 'Subtotal',
+          type: 'number'
+        }, {
+          value: 'order_tax',
+          label: 'Tax',
+          type: 'number'
+        }, {
+          value: 'order_shipping',
+          label: 'Shipping',
+          type: 'number'
+        }, {
+          value: 'order_discount',
+          label: 'Discount',
+          type: 'number'
+        }]
+      }, {
+        label: 'Customer',
+        options: [{
+          value: 'customer_id',
+          label: 'Customer ID',
+          type: 'number'
+        }, {
+          value: 'billing_email',
+          label: 'Billing Email',
+          type: 'string'
+        }, {
+          value: 'billing_first_name',
+          label: 'First Name',
+          type: 'string'
+        }, {
+          value: 'billing_last_name',
+          label: 'Last Name',
+          type: 'string'
+        }, {
+          value: 'billing_country',
+          label: 'Country',
+          type: 'string'
+        }]
+      }, {
+        label: 'Dates',
+        options: [{
+          value: 'order_date',
+          label: 'Order Date',
+          type: 'date'
+        }, {
+          value: 'completed_date',
+          label: 'Completed Date',
+          type: 'date'
+        }, {
+          value: 'paid_date',
+          label: 'Paid Date',
+          type: 'date'
+        }]
+      }, {
+        label: 'Other',
+        options: [{
+          value: 'payment_method',
+          label: 'Payment Method',
+          type: 'string'
+        }, {
+          value: 'transaction_id',
+          label: 'Transaction ID',
+          type: 'string'
+        }, {
+          value: 'currency',
+          label: 'Currency',
+          type: 'string'
+        }]
+      }, {
+        label: 'Custom Filters',
+        options: [{
+          value: '_custom_field',
+          label: '🔧 Custom Field (Meta)',
+          type: 'custom_field'
+        }]
+      }];
+    }
+
+    // WooCommerce Coupons
+    if (contentType === 'woo_coupon') {
+      return [{
+        label: 'Basic',
+        options: [{
+          value: 'ID',
+          label: 'Coupon ID',
+          type: 'number'
+        }, {
+          value: 'post_title',
+          label: 'Coupon Code',
+          type: 'string'
+        }, {
+          value: 'post_excerpt',
+          label: 'Description',
+          type: 'string'
+        }, {
+          value: 'post_status',
+          label: 'Status',
+          type: 'string'
+        }]
+      }, {
+        label: 'Discount',
+        options: [{
+          value: 'discount_type',
+          label: 'Discount Type',
+          type: 'string'
+        }, {
+          value: 'coupon_amount',
+          label: 'Coupon Amount',
+          type: 'number'
+        }, {
+          value: 'minimum_amount',
+          label: 'Minimum Amount',
+          type: 'number'
+        }, {
+          value: 'maximum_amount',
+          label: 'Maximum Amount',
+          type: 'number'
+        }]
+      }, {
+        label: 'Usage',
+        options: [{
+          value: 'usage_count',
+          label: 'Usage Count',
+          type: 'number'
+        }, {
+          value: 'usage_limit',
+          label: 'Usage Limit',
+          type: 'number'
+        }, {
+          value: 'usage_limit_per_user',
+          label: 'Usage Limit Per User',
+          type: 'number'
+        }, {
+          value: 'individual_use',
+          label: 'Individual Use',
+          type: 'string'
+        }]
+      }, {
+        label: 'Dates',
+        options: [{
+          value: 'date_expires',
+          label: 'Expiry Date',
+          type: 'date'
+        }, {
+          value: 'post_date',
+          label: 'Created Date',
+          type: 'date'
+        }, {
+          value: 'post_modified',
+          label: 'Modified Date',
+          type: 'date'
+        }]
+      }, {
+        label: 'Other',
+        options: [{
+          value: 'free_shipping',
+          label: 'Free Shipping',
+          type: 'string'
+        }, {
+          value: 'exclude_sale_items',
+          label: 'Exclude Sale Items',
+          type: 'string'
+        }]
+      }, {
+        label: 'Custom Filters',
+        options: [{
+          value: '_custom_field',
+          label: '🔧 Custom Field (Meta)',
+          type: 'custom_field'
+        }]
+      }];
+    }
+
+    // WooCommerce Attributes
+    if (contentType === 'woo_attribute') {
+      return [{
+        label: 'Basic',
+        options: [{
+          value: 'attribute_id',
+          label: 'Attribute ID',
+          type: 'number'
+        }, {
+          value: 'attribute_name',
+          label: 'Attribute Name',
+          type: 'string'
+        }, {
+          value: 'attribute_label',
+          label: 'Attribute Label',
+          type: 'string'
+        }, {
+          value: 'attribute_type',
+          label: 'Attribute Type',
+          type: 'string'
+        }]
+      }, {
+        label: 'Settings',
+        options: [{
+          value: 'attribute_orderby',
+          label: 'Order By',
+          type: 'string'
+        }, {
+          value: 'attribute_public',
+          label: 'Public',
+          type: 'string'
+        }]
+      }, {
+        label: 'Terms',
+        options: [{
+          value: 'term_count',
+          label: 'Term Count',
+          type: 'number'
+        }, {
+          value: 'term_name',
+          label: 'Term Name',
+          type: 'string'
+        }, {
+          value: 'term_slug',
+          label: 'Term Slug',
+          type: 'string'
+        }]
+      }];
+    }
+
+    // Custom MySQL Table
+    if (contentType === 'custom_table') {
+      return [{
+        label: 'Table Selection',
+        options: [{
+          value: '_table_name',
+          label: 'Table Name (select specific)',
+          type: 'table_selector'
+        }]
+      }, {
+        label: 'Dynamic Fields',
+        options: [{
+          value: '_dynamic_field',
+          label: 'Select table first to load fields',
+          type: 'string'
+        }]
+      }];
+    }
+    return baseFields;
+  },
+  /**
+   * Check if filter row is complete (has all required values)
+   */
+  isFilterRowComplete: function isFilterRowComplete($row) {
+    var field = $row.find('.aie-filter-field').val();
+    var condition = $row.find('.aie-filter-condition').val();
+    var value = $row.find('.aie-filter-value').val();
+
+    // Field and condition must be selected
+    if (!field || !condition) {
+      return false;
+    }
+
+    // Check if condition requires a value
+    var noValueConditions = ['is_empty', 'is_not_empty'];
+    if (noValueConditions.includes(condition)) {
+      return true; // These conditions don't need a value
+    }
+
+    // Value must be filled
+    return value && value.trim() !== '';
+  },
+  /**
+   * Update value input type based on condition and field type
+   */
+  updateValueInputType: function updateValueInputType($row) {
+    var $field = $row.find('.aie-filter-field');
+    var $condition = $row.find('.aie-filter-condition');
+    var $value = $row.find('.aie-filter-value');
+    var selectedOption = $field.find('option:selected');
+    var fieldType = selectedOption.data('type') || 'string';
+    var condition = $condition.val();
+
+    // Skip if value is not an input field
+    if (!$value.is('input')) {
+      return;
+    }
+
+    // For 'is_empty' and 'is_not_empty', hide the value input
+    var noValueConditions = ['is_empty', 'is_not_empty'];
+    if (noValueConditions.includes(condition)) {
+      $value.closest('.aie-filter-value-wrap').hide();
+      return;
+    } else {
+      // Always show the value input for other conditions
+      $value.closest('.aie-filter-value-wrap').show();
+    }
+
+    // For 'in' and 'not_in' conditions, always use text input to allow comma-separated values
+    if (condition === 'in' || condition === 'not_in') {
+      $value.attr('type', 'text');
+      $value.attr('placeholder', 'Enter values separated by comma (e.g., 1,5,8 or test1,test2)');
+      return;
+    }
+
+    // For 'between' condition on numbers, use text to allow comma-separated range
+    if (condition === 'between' && fieldType === 'number') {
+      $value.attr('type', 'text');
+      $value.attr('placeholder', 'Enter two numbers separated by comma (e.g., 10,100)');
+      return;
+    }
+
+    // Otherwise, set type based on field type
+    if (fieldType === 'date') {
+      $value.attr('type', 'date');
+      $value.attr('placeholder', '');
+    } else if (fieldType === 'number') {
+      $value.attr('type', 'number');
+      $value.attr('placeholder', 'Enter number...');
+    } else {
+      $value.attr('type', 'text');
+      $value.attr('placeholder', 'Enter value...');
+    }
+  },
+  /**
+   * Get conditions by field type
+   */
+  getConditionsByFieldType: function getConditionsByFieldType(fieldType) {
+    var conditions = {
+      string: [{
+        value: 'equals',
+        label: 'Equals'
+      }, {
+        value: 'not_equals',
+        label: "Doesn't Equal"
+      }, {
+        value: 'in',
+        label: 'In'
+      }, {
+        value: 'not_in',
+        label: 'Not In'
+      }, {
+        value: 'contains',
+        label: 'Contains'
+      }, {
+        value: 'not_contains',
+        label: "Doesn't Contain"
+      }, {
+        value: 'is_empty',
+        label: 'Is Empty'
+      }, {
+        value: 'is_not_empty',
+        label: 'Is Not Empty'
+      }],
+      number: [{
+        value: 'equals',
+        label: 'Equals'
+      }, {
+        value: 'not_equals',
+        label: "Doesn't Equal"
+      }, {
+        value: 'in',
+        label: 'In'
+      }, {
+        value: 'not_in',
+        label: 'Not In'
+      }, {
+        value: 'greater',
+        label: 'Greater Than'
+      }, {
+        value: 'equals_or_greater',
+        label: 'Equal To Or Greater Than'
+      }, {
+        value: 'less',
+        label: 'Less Than'
+      }, {
+        value: 'equals_or_less',
+        label: 'Equal To Or Less Than'
+      }, {
+        value: 'is_empty',
+        label: 'Is Empty'
+      }, {
+        value: 'is_not_empty',
+        label: 'Is Not Empty'
+      }],
+      date: [{
+        value: 'equals',
+        label: 'Equals'
+      }, {
+        value: 'not_equals',
+        label: "Doesn't Equal"
+      }, {
+        value: 'greater',
+        label: 'Newer Than'
+      }, {
+        value: 'equals_or_greater',
+        label: 'Equal To Or Newer Than'
+      }, {
+        value: 'less',
+        label: 'Older Than'
+      }, {
+        value: 'equals_or_less',
+        label: 'Equal To Or Older Than'
+      }, {
+        value: 'is_empty',
+        label: 'Is Empty'
+      }, {
+        value: 'is_not_empty',
+        label: 'Is Not Empty'
+      }]
+    };
+    return conditions[fieldType] || conditions.string;
+  }
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ExportModule);
+
+/***/ }),
+
+/***/ "./src/js/modules/function_library.js":
+/*!********************************************!*\
+  !*** ./src/js/modules/function_library.js ***!
+  \********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _utils_notifications__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/notifications */ "./src/js/utils/notifications.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+/**
+ * Function Library Browser Module
+ *
+ * Handles browsing, searching, and importing snippet functions
+ */
+
+
+var FunctionLibrary = {
+  functionsModule: null,
+  allSnippets: {},
+  categories: {},
+  currentCategory: '',
+  currentSnippet: null,
+  /**
+   * Initialize the module
+   */
+  init: function init(functionsModule) {
+    this.functionsModule = functionsModule;
+  },
+  /**
+   * Open library modal
+   */
+  openLibrary: function openLibrary() {
+    var _this = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+      var modal;
+      return _regeneratorRuntime().wrap(function _callee$(_context) {
+        while (1) switch (_context.prev = _context.next) {
+          case 0:
+            modal = document.getElementById('aie-snippets-library-modal');
+            if (modal) {
+              _context.next = 3;
+              break;
+            }
+            return _context.abrupt("return");
+          case 3:
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            // Load snippets if not loaded
+            if (!(Object.keys(_this.allSnippets).length === 0)) {
+              _context.next = 10;
+              break;
+            }
+            _context.next = 8;
+            return _this.loadSnippets();
+          case 8:
+            _context.next = 11;
+            break;
+          case 10:
+            _this.renderSnippets();
+          case 11:
+            _this.bindLibraryEvents();
+          case 12:
+          case "end":
+            return _context.stop();
+        }
+      }, _callee);
+    }))();
+  },
+  /**
+   * Bind library modal events
+   */
+  bindLibraryEvents: function bindLibraryEvents() {
+    var _this2 = this;
+    // Category filtering
+    var categoryItems = document.querySelectorAll('.aie-category-item');
+    categoryItems.forEach(function (item) {
+      item.addEventListener('click', function (e) {
+        var category = e.currentTarget.dataset.category;
+        _this2.filterByCategory(category);
+      });
+    });
+
+    // Search
+    var searchInput = document.getElementById('aie-snippet-search');
+    if (searchInput) {
+      var searchTimeout;
+      searchInput.addEventListener('input', function (e) {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function () {
+          _this2.searchSnippets(e.target.value);
+        }, 300);
+      });
+    }
+
+    // Preview modal events
+    var previewModal = document.getElementById('aie-snippet-preview-modal');
+    if (previewModal) {
+      var _previewModal$querySe, _previewModal$querySe2;
+      (_previewModal$querySe = previewModal.querySelector('.aie-use-snippet')) === null || _previewModal$querySe === void 0 || _previewModal$querySe.addEventListener('click', function () {
+        _this2.importSnippet(_this2.currentSnippet, false);
+      });
+      (_previewModal$querySe2 = previewModal.querySelector('.aie-customize-snippet')) === null || _previewModal$querySe2 === void 0 || _previewModal$querySe2.addEventListener('click', function () {
+        _this2.importSnippet(_this2.currentSnippet, true);
+      });
+    }
+  },
+  /**
+   * Load snippets from server
+   */
+  loadSnippets: function loadSnippets() {
+    var _arguments = arguments,
+      _this3 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+      var _window$aieData;
+      var category, grid, _window$aieData2, response, data, _data$data;
+      return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+        while (1) switch (_context2.prev = _context2.next) {
+          case 0:
+            category = _arguments.length > 0 && _arguments[0] !== undefined ? _arguments[0] : '';
+            grid = document.getElementById('aie-snippets-grid');
+            if (grid) {
+              _context2.next = 4;
+              break;
+            }
+            return _context2.abrupt("return");
+          case 4:
+            // Show loading
+            grid.innerHTML = "\n\t\t\t<div class=\"aie-loading-snippets\">\n\t\t\t\t<span class=\"spinner is-active\"></span>\n\t\t\t\t<p>".concat(((_window$aieData = window.aieData) === null || _window$aieData === void 0 || (_window$aieData = _window$aieData.i18n) === null || _window$aieData === void 0 ? void 0 : _window$aieData.loading) || 'Loading snippets...', "</p>\n\t\t\t</div>\n\t\t");
+            _context2.prev = 5;
+            _context2.next = 8;
+            return fetch(window.aieData.ajaxUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+              },
+              body: new URLSearchParams({
+                action: 'aie_functions_get_snippets',
+                nonce: ((_window$aieData2 = window.aieData) === null || _window$aieData2 === void 0 ? void 0 : _window$aieData2.nonce) || '',
+                category: category
+              })
+            });
+          case 8:
+            response = _context2.sent;
+            _context2.next = 11;
+            return response.json();
+          case 11:
+            data = _context2.sent;
+            if (data.success) {
+              _context2.next = 14;
+              break;
+            }
+            throw new Error(((_data$data = data.data) === null || _data$data === void 0 ? void 0 : _data$data.message) || 'Failed to load snippets');
+          case 14:
+            _this3.allSnippets = data.data.snippets || {};
+            _this3.categories = data.data.categories || {};
+            _this3.renderCategories();
+            _this3.renderSnippets();
+            _context2.next = 24;
+            break;
+          case 20:
+            _context2.prev = 20;
+            _context2.t0 = _context2["catch"](5);
+            console.error('Error loading snippets:', _context2.t0);
+            grid.innerHTML = "\n\t\t\t\t<div class=\"aie-error-message\">\n\t\t\t\t\t<span class=\"dashicons dashicons-warning\"></span>\n\t\t\t\t\t<p>".concat(_context2.t0.message, "</p>\n\t\t\t\t</div>\n\t\t\t");
+          case 24:
+          case "end":
+            return _context2.stop();
+        }
+      }, _callee2, null, [[5, 20]]);
+    }))();
+  },
+  /**
+   * Render categories sidebar
+   */
+  renderCategories: function renderCategories() {
+    var _window$aieData3,
+      _this4 = this;
+    var categoriesList = document.getElementById('aie-categories-list');
+    if (!categoriesList) {
+      return;
+    }
+    var totalSnippets = Object.keys(this.allSnippets).length;
+    var html = "\n\t\t\t<li class=\"aie-category-item ".concat(this.currentCategory === '' ? 'active' : '', "\" data-category=\"\">\n\t\t\t\t<span class=\"dashicons dashicons-category\"></span>\n\t\t\t\t<span class=\"aie-category-name\">").concat(((_window$aieData3 = window.aieData) === null || _window$aieData3 === void 0 || (_window$aieData3 = _window$aieData3.i18n) === null || _window$aieData3 === void 0 ? void 0 : _window$aieData3.all_snippets) || 'All Snippets', "</span>\n\t\t\t\t<span class=\"aie-category-count\">").concat(totalSnippets, "</span>\n\t\t\t</li>\n\t\t");
+    Object.entries(this.categories).forEach(function (_ref) {
+      var _ref2 = _slicedToArray(_ref, 2),
+        category = _ref2[0],
+        info = _ref2[1];
+      var count = Object.values(_this4.allSnippets).filter(function (s) {
+        return s.category === category;
+      }).length;
+      var isActive = _this4.currentCategory === category;
+      html += "\n\t\t\t\t<li class=\"aie-category-item ".concat(isActive ? 'active' : '', "\" data-category=\"").concat(category, "\">\n\t\t\t\t\t<span class=\"dashicons dashicons-").concat(info.icon, "\"></span>\n\t\t\t\t\t<span class=\"aie-category-name\">").concat(info.name, "</span>\n\t\t\t\t\t<span class=\"aie-category-count\">").concat(count, "</span>\n\t\t\t\t</li>\n\t\t\t");
+    });
+    categoriesList.innerHTML = html;
+  },
+  /**
+   * Render snippet cards
+   */
+  renderSnippets: function renderSnippets() {
+    var _this5 = this,
+      _window$aieData5;
+    var grid = document.getElementById('aie-snippets-grid');
+    if (!grid) {
+      return;
+    }
+    var snippets = Object.entries(this.allSnippets);
+
+    // Filter by category
+    if (this.currentCategory) {
+      snippets = snippets.filter(function (_ref3) {
+        var _ref4 = _slicedToArray(_ref3, 2),
+          snippet = _ref4[1];
+        return snippet.category === _this5.currentCategory;
+      });
+    }
+    if (snippets.length === 0) {
+      var _window$aieData4;
+      grid.innerHTML = "\n\t\t\t\t<div class=\"aie-no-snippets\">\n\t\t\t\t\t<span class=\"dashicons dashicons-info\" style=\"width: auto; height: auto;\"></span>\n\t\t\t\t\t<p>".concat(((_window$aieData4 = window.aieData) === null || _window$aieData4 === void 0 || (_window$aieData4 = _window$aieData4.i18n) === null || _window$aieData4 === void 0 ? void 0 : _window$aieData4.no_snippets) || 'No snippets found', "</p>\n\t\t\t\t</div>\n\t\t\t");
+      return;
+    }
+
+    // Check if "Use" button should be shown
+    var currentPage = ((_window$aieData5 = window.aieData) === null || _window$aieData5 === void 0 ? void 0 : _window$aieData5.currentPage) || '';
+    var allowedPages = ['wp-advanced-import-export', 'wp-aie-export', 'wp-aie-content-sync', 'wp-aie-functions' // Add Functions page
+    ];
+    var showUseButton = allowedPages.includes(currentPage);
+    grid.innerHTML = snippets.map(function (_ref5) {
+      var _window$aieData6, _window$aieData7;
+      var _ref6 = _slicedToArray(_ref5, 2),
+        key = _ref6[0],
+        snippet = _ref6[1];
+      return "\n\t\t\t<div class=\"aie-snippet-card\" data-snippet-key=\"".concat(key, "\">\n\t\t\t\t<div class=\"aie-snippet-header\">\n\t\t\t\t\t<h3 class=\"aie-snippet-name\">").concat(_this5.escapeHtml(snippet.name), "</h3>\n\t\t\t\t\t<span class=\"aie-snippet-category-badge\">").concat(_this5.getCategoryLabel(snippet.category), "</span>\n\t\t\t\t</div>\n\t\t\t\t<p class=\"aie-snippet-description\">").concat(_this5.escapeHtml(snippet.description), "</p>\n\t\t\t\t<div class=\"aie-snippet-tags\">\n\t\t\t\t\t").concat(snippet.tags ? snippet.tags.map(function (tag) {
+        return "<span class=\"aie-tag\">".concat(_this5.escapeHtml(tag), "</span>");
+      }).join('') : '', "\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-snippet-actions\">\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-preview-snippet\" data-snippet-key=\"").concat(key, "\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-visibility\"></span>\n\t\t\t\t\t\t").concat(((_window$aieData6 = window.aieData) === null || _window$aieData6 === void 0 || (_window$aieData6 = _window$aieData6.i18n) === null || _window$aieData6 === void 0 ? void 0 : _window$aieData6.preview) || 'Preview', "\n\t\t\t\t\t</button>\n\t\t\t\t\t").concat(showUseButton ? "<button type=\"button\" class=\"button button-primary button-small aie-quick-import\" data-snippet-key=\"".concat(key, "\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-plus\"></span>\n\t\t\t\t\t\t").concat(((_window$aieData7 = window.aieData) === null || _window$aieData7 === void 0 || (_window$aieData7 = _window$aieData7.i18n) === null || _window$aieData7 === void 0 ? void 0 : _window$aieData7.use) || 'Use', "\n\t\t\t\t\t</button>") : '', "\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t");
+    }).join('');
+
+    // Bind snippet card events
+    grid.querySelectorAll('.aie-preview-snippet').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        var key = e.currentTarget.dataset.snippetKey;
+        _this5.previewSnippet(key);
+      });
+    });
+    grid.querySelectorAll('.aie-quick-import').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        var key = e.currentTarget.dataset.snippetKey;
+        _this5.importSnippet(key, false);
+      });
+    });
+  },
+  /**
+   * Filter snippets by category
+   */
+  filterByCategory: function filterByCategory(category) {
+    this.currentCategory = category;
+
+    // Update active state
+    document.querySelectorAll('.aie-category-item').forEach(function (item) {
+      item.classList.toggle('active', item.dataset.category === category);
+    });
+    this.renderSnippets();
+  },
+  /**
+   * Search snippets
+   */
+  searchSnippets: function searchSnippets(query) {
+    var _this6 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+      var _window$aieData8;
+      var grid, _window$aieData9, response, data, _data$data2, originalSnippets;
+      return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+        while (1) switch (_context3.prev = _context3.next) {
+          case 0:
+            grid = document.getElementById('aie-snippets-grid');
+            if (grid) {
+              _context3.next = 3;
+              break;
+            }
+            return _context3.abrupt("return");
+          case 3:
+            if (query.trim()) {
+              _context3.next = 6;
+              break;
+            }
+            // Reset to current category
+            _this6.renderSnippets();
+            return _context3.abrupt("return");
+          case 6:
+            // Show loading
+            grid.innerHTML = "\n\t\t\t<div class=\"aie-loading-snippets\">\n\t\t\t\t<span class=\"spinner is-active\"></span>\n\t\t\t\t<p>".concat(((_window$aieData8 = window.aieData) === null || _window$aieData8 === void 0 || (_window$aieData8 = _window$aieData8.i18n) === null || _window$aieData8 === void 0 ? void 0 : _window$aieData8.searching) || 'Searching...', "</p>\n\t\t\t</div>\n\t\t");
+            _context3.prev = 7;
+            _context3.next = 10;
+            return fetch(window.aieData.ajaxUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+              },
+              body: new URLSearchParams({
+                action: 'aie_functions_search',
+                nonce: ((_window$aieData9 = window.aieData) === null || _window$aieData9 === void 0 ? void 0 : _window$aieData9.nonce) || '',
+                query: query
+              })
+            });
+          case 10:
+            response = _context3.sent;
+            _context3.next = 13;
+            return response.json();
+          case 13:
+            data = _context3.sent;
+            if (data.success) {
+              _context3.next = 16;
+              break;
+            }
+            throw new Error(((_data$data2 = data.data) === null || _data$data2 === void 0 ? void 0 : _data$data2.message) || 'Search failed');
+          case 16:
+            // Temporarily replace snippets with search results
+            originalSnippets = _this6.allSnippets;
+            _this6.allSnippets = data.data.snippets || {};
+            _this6.currentCategory = ''; // Show all results
+            _this6.renderSnippets();
+            _this6.allSnippets = originalSnippets; // Restore
+            _context3.next = 27;
+            break;
+          case 23:
+            _context3.prev = 23;
+            _context3.t0 = _context3["catch"](7);
+            console.error('Error searching snippets:', _context3.t0);
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)(_context3.t0.message);
+          case 27:
+          case "end":
+            return _context3.stop();
+        }
+      }, _callee3, null, [[7, 23]]);
+    }))();
+  },
+  /**
+   * Preview snippet in modal
+   */
+  previewSnippet: function previewSnippet(snippetKey) {
+    var snippet = this.allSnippets[snippetKey];
+    if (!snippet) {
+      return;
+    }
+    this.currentSnippet = snippetKey;
+    var modal = document.getElementById('aie-snippet-preview-modal');
+    if (!modal) {
+      return;
+    }
+
+    // Fill modal with snippet details
+    modal.querySelector('.aie-snippet-title').textContent = snippet.name;
+    modal.querySelector('.aie-snippet-description').textContent = snippet.description;
+    modal.querySelector('.aie-snippet-category').textContent = this.getCategoryLabel(snippet.category);
+    modal.querySelector('.aie-snippet-code').textContent = snippet.code;
+    if (snippet.tags && snippet.tags.length > 0) {
+      modal.querySelector('.aie-snippet-tags').textContent = snippet.tags.join(', ');
+    } else {
+      modal.querySelector('.aie-snippet-tags').textContent = 'None';
+    }
+    if (snippet.example) {
+      modal.querySelector('.aie-example-input-value').textContent = snippet.example.input !== undefined ? snippet.example.input : 'N/A';
+      modal.querySelector('.aie-example-output-value').textContent = snippet.example.output !== undefined ? snippet.example.output : 'N/A';
+    }
+
+    // Show/hide "Use" button based on current page
+    // Only show on Import, Export, and Content Sync pages
+    var useButton = modal.querySelector('.aie-use-snippet');
+    if (useButton) {
+      var _window$aieData10;
+      var currentPage = ((_window$aieData10 = window.aieData) === null || _window$aieData10 === void 0 ? void 0 : _window$aieData10.currentPage) || '';
+      var allowedPages = ['wp-advanced-import-export', 'wp-aie-export', 'wp-aie-content-sync'];
+      useButton.style.display = allowedPages.includes(currentPage) ? '' : 'none';
+    }
+    modal.style.display = 'flex';
+  },
+  /**
+   * Import snippet as function
+   */
+  importSnippet: function importSnippet(snippetKey) {
+    var _arguments2 = arguments,
+      _this7 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+      var customize, snippet, libraryModal, previewModal, editorModal, _window$aieData11, _window$aieData12, response, data, _data$data3;
+      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+        while (1) switch (_context4.prev = _context4.next) {
+          case 0:
+            customize = _arguments2.length > 1 && _arguments2[1] !== undefined ? _arguments2[1] : false;
+            snippet = _this7.allSnippets[snippetKey];
+            if (snippet) {
+              _context4.next = 4;
+              break;
+            }
+            return _context4.abrupt("return");
+          case 4:
+            if (!customize) {
+              _context4.next = 19;
+              break;
+            }
+            // Close library and preview modals
+            libraryModal = document.getElementById('aie-snippets-library-modal');
+            previewModal = document.getElementById('aie-snippet-preview-modal');
+            if (libraryModal) {
+              libraryModal.style.display = 'none';
+            }
+            if (previewModal) {
+              previewModal.style.display = 'none';
+            }
+            document.body.style.overflow = '';
+
+            // Use the FunctionsModule method to open editor with snippet data
+            if (!(_this7.functionsModule && _this7.functionsModule.openEditorWithSnippet)) {
+              _context4.next = 15;
+              break;
+            }
+            _context4.next = 13;
+            return _this7.functionsModule.openEditorWithSnippet(snippet);
+          case 13:
+            _context4.next = 17;
+            break;
+          case 15:
+            // Fallback: Open editor directly (old method)
+            editorModal = document.getElementById('aie-function-editor-modal');
+            if (editorModal) {
+              // Clear any previous errors
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.clearModalErrors)();
+              document.getElementById('aie-function-id').value = '';
+              document.getElementById('aie-function-name').value = snippet.name;
+              document.getElementById('aie-function-description').value = snippet.description;
+              document.getElementById('aie-function-category').value = snippet.category;
+              document.getElementById('aie-function-code').value = snippet.code;
+              document.getElementById('aie-function-status').value = 'active';
+              document.querySelector('.aie-modal-title').textContent = 'Customize Function';
+              editorModal.style.display = 'flex';
+              document.body.style.overflow = 'hidden';
+            }
+          case 17:
+            _context4.next = 37;
+            break;
+          case 19:
+            _context4.prev = 19;
+            _context4.next = 22;
+            return fetch(window.aieData.ajaxUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+              },
+              body: new URLSearchParams({
+                action: 'aie_functions_import',
+                nonce: ((_window$aieData11 = window.aieData) === null || _window$aieData11 === void 0 ? void 0 : _window$aieData11.nonce) || '',
+                snippet_key: snippetKey
+              })
+            });
+          case 22:
+            response = _context4.sent;
+            _context4.next = 25;
+            return response.json();
+          case 25:
+            data = _context4.sent;
+            if (data.success) {
+              _context4.next = 28;
+              break;
+            }
+            throw new Error(((_data$data3 = data.data) === null || _data$data3 === void 0 ? void 0 : _data$data3.message) || 'Import failed');
+          case 28:
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showNotice)(((_window$aieData12 = window.aieData) === null || _window$aieData12 === void 0 || (_window$aieData12 = _window$aieData12.i18n) === null || _window$aieData12 === void 0 ? void 0 : _window$aieData12.snippet_imported) || 'Snippet imported successfully');
+            document.body.style.overflow = '';
+
+            // Refresh functions list
+            if (_this7.functionsModule) {
+              _this7.functionsModule.loadFunctions();
+            }
+            _context4.next = 37;
+            break;
+          case 33:
+            _context4.prev = 33;
+            _context4.t0 = _context4["catch"](19);
+            console.error('Error importing snippet:', _context4.t0);
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)(_context4.t0.message);
+          case 37:
+          case "end":
+            return _context4.stop();
+        }
+      }, _callee4, null, [[19, 33]]);
+    }))();
+  },
+  /**
+   * Get category label
+   */
+  getCategoryLabel: function getCategoryLabel(category) {
+    var labels = {
+      string: 'String Operations',
+      date: 'Date & Time',
+      numeric: 'Numeric Operations',
+      html: 'HTML Operations',
+      wordpress: 'WordPress',
+      validation: 'Validation',
+      advanced: 'Advanced',
+      custom: 'Custom'
+    };
+    return labels[category] || category;
+  },
+  /**
+   * Escape HTML
+   */
+  escapeHtml: function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (FunctionLibrary);
+
+/***/ }),
+
+/***/ "./src/js/modules/functions.js":
+/*!*************************************!*\
+  !*** ./src/js/modules/functions.js ***!
+  \*************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _utils_notifications__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/notifications */ "./src/js/utils/notifications.js");
+/* harmony import */ var _function_library__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./function_library */ "./src/js/modules/function_library.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+/**
+ * Custom Functions Management Module
+ *
+ * Handles CRUD operations for custom transformation functions
+ */
+
+
+
+var FunctionsModule = {
+  currentPage: 1,
+  perPage: 20,
+  totalPages: 1,
+  totalItems: 0,
+  filters: {
+    status: '',
+    category: '',
+    search: ''
+  },
+  codeEditor: null,
+  // CodeMirror instance
+  /**
+   * Initialize the module
+   */
+  init: function init() {
+    if (!document.getElementById('wp-aie-functions')) {
+      return;
+    }
+    this.bindEvents();
+    this.loadFunctions();
+
+    // Initialize library module
+    _function_library__WEBPACK_IMPORTED_MODULE_1__["default"].init(this);
+  },
+  /**
+   * Bind event handlers
+   */
+  bindEvents: function bindEvents() {
+    var _document$querySelect,
+      _this = this,
+      _document$querySelect2,
+      _document$getElementB,
+      _document$getElementB2,
+      _document$getElementB3,
+      _document$querySelect3,
+      _document$querySelect4,
+      _document$querySelect5,
+      _document$querySelect6,
+      _document$querySelect7;
+    // New function button
+    (_document$querySelect = document.querySelector('.aie-new-function')) === null || _document$querySelect === void 0 || _document$querySelect.addEventListener('click', function () {
+      _this.openEditorModal();
+    });
+
+    // Browse library button
+    (_document$querySelect2 = document.querySelector('.aie-browse-library')) === null || _document$querySelect2 === void 0 || _document$querySelect2.addEventListener('click', function () {
+      _function_library__WEBPACK_IMPORTED_MODULE_1__["default"].openLibrary();
+    });
+
+    // Filter controls
+    (_document$getElementB = document.getElementById('aie-filter-status')) === null || _document$getElementB === void 0 || _document$getElementB.addEventListener('change', function (e) {
+      _this.filters.status = e.target.value;
+      _this.currentPage = 1;
+      _this.loadFunctions();
+    });
+    (_document$getElementB2 = document.getElementById('aie-filter-category')) === null || _document$getElementB2 === void 0 || _document$getElementB2.addEventListener('change', function (e) {
+      _this.filters.category = e.target.value;
+      _this.currentPage = 1;
+      _this.loadFunctions();
+    });
+
+    // Search with debounce
+    var searchTimeout;
+    (_document$getElementB3 = document.getElementById('aie-filter-search')) === null || _document$getElementB3 === void 0 || _document$getElementB3.addEventListener('input', function (e) {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(function () {
+        _this.filters.search = e.target.value;
+        _this.currentPage = 1;
+        _this.loadFunctions();
+      }, 500);
+    });
+
+    // Clear filters
+    (_document$querySelect3 = document.querySelector('.aie-filter-clear')) === null || _document$querySelect3 === void 0 || _document$querySelect3.addEventListener('click', function () {
+      _this.clearFilters();
+    });
+
+    // Pagination
+    (_document$querySelect4 = document.querySelector('.aie-prev-page')) === null || _document$querySelect4 === void 0 || _document$querySelect4.addEventListener('click', function () {
+      if (_this.currentPage > 1) {
+        _this.currentPage--;
+        _this.loadFunctions();
+      }
+    });
+    (_document$querySelect5 = document.querySelector('.aie-next-page')) === null || _document$querySelect5 === void 0 || _document$querySelect5.addEventListener('click', function () {
+      if (_this.currentPage < _this.totalPages) {
+        _this.currentPage++;
+        _this.loadFunctions();
+      }
+    });
+
+    // Modal controls
+    document.querySelectorAll('.aie-modal-close, .aie-modal-cancel').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        var modal = e.target.closest('.aie-modal');
+        if (modal) {
+          _this.closeModal(modal);
+        }
+      });
+    });
+
+    // Save function
+    (_document$querySelect6 = document.querySelector('.aie-save-function')) === null || _document$querySelect6 === void 0 || _document$querySelect6.addEventListener('click', function () {
+      _this.saveFunction();
+    });
+
+    // Test function
+    (_document$querySelect7 = document.querySelector('.aie-test-function')) === null || _document$querySelect7 === void 0 || _document$querySelect7.addEventListener('click', function () {
+      _this.testFunction();
+    });
+
+    // Close modal on backdrop click
+    document.querySelectorAll('.aie-modal-backdrop').forEach(function (backdrop) {
+      backdrop.addEventListener('click', function (e) {
+        var modal = e.target.closest('.aie-modal');
+        if (modal) {
+          _this.closeModal(modal);
+        }
+      });
+    });
+  },
+  /**
+   * Load functions from server
+   */
+  loadFunctions: function loadFunctions() {
+    var _this2 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+      var _window$aieData;
+      var tbody, _window$aieData2, response, data, _data$data;
+      return _regeneratorRuntime().wrap(function _callee$(_context) {
+        while (1) switch (_context.prev = _context.next) {
+          case 0:
+            tbody = document.getElementById('aie-functions-tbody');
+            if (tbody) {
+              _context.next = 3;
+              break;
+            }
+            return _context.abrupt("return");
+          case 3:
+            // Show loading
+            tbody.innerHTML = "\n\t\t\t<tr class=\"aie-loading-row\">\n\t\t\t\t<td colspan=\"6\" style=\"text-align:center;\">\n\t\t\t\t\t<span class=\"spinner is-active\"></span>\n\t\t\t\t\t".concat(((_window$aieData = window.aieData) === null || _window$aieData === void 0 || (_window$aieData = _window$aieData.i18n) === null || _window$aieData === void 0 ? void 0 : _window$aieData.loading) || 'Loading...', "\n\t\t\t\t</td>\n\t\t\t</tr>\n\t\t");
+            _context.prev = 4;
+            _context.next = 7;
+            return fetch(window.aieData.ajaxUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+              },
+              body: new URLSearchParams({
+                action: 'aie_functions_get_all',
+                nonce: ((_window$aieData2 = window.aieData) === null || _window$aieData2 === void 0 ? void 0 : _window$aieData2.nonce) || '',
+                status: _this2.filters.status,
+                category: _this2.filters.category,
+                search: _this2.filters.search,
+                page: _this2.currentPage,
+                per_page: _this2.perPage
+              })
+            });
+          case 7:
+            response = _context.sent;
+            _context.next = 10;
+            return response.json();
+          case 10:
+            data = _context.sent;
+            if (data.success) {
+              _context.next = 13;
+              break;
+            }
+            throw new Error(data.message || ((_data$data = data.data) === null || _data$data === void 0 ? void 0 : _data$data.message) || 'Failed to load functions');
+          case 13:
+            _this2.totalPages = data.data.total_pages || 1;
+            _this2.totalItems = data.data.total || 0;
+            _this2.renderTable(data.data.functions || []);
+            _this2.updatePagination();
+            _context.next = 23;
+            break;
+          case 19:
+            _context.prev = 19;
+            _context.t0 = _context["catch"](4);
+            console.error('Error loading functions:', _context.t0);
+            tbody.innerHTML = "\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan=\"6\" style=\"text-align:center; color:#dc3232;\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-warning\"></span>\n\t\t\t\t\t\t".concat(_context.t0.message, "\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
+          case 23:
+          case "end":
+            return _context.stop();
+        }
+      }, _callee, null, [[4, 19]]);
+    }))();
+  },
+  /**
+   * Render functions table
+   */
+  renderTable: function renderTable(functions) {
+    var _this3 = this;
+    var tbody = document.getElementById('aie-functions-tbody');
+    if (!tbody) {
+      return;
+    }
+    if (functions.length === 0) {
+      var _window$aieData3;
+      tbody.innerHTML = "\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan=\"6\" style=\"text-align:center; padding:40px;\">\n\t\t\t\t\t\t<div style=\"display:flex; flex-direction:column; align-items:center; gap:10px;\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-info\" style=\"font-size:48px; opacity:0.3;\"></span>\n\t\t\t\t\t\t\t<p style=\"margin:23px 0 0 0; color:#666;\">\n\t\t\t\t\t\t\t\t".concat(((_window$aieData3 = window.aieData) === null || _window$aieData3 === void 0 || (_window$aieData3 = _window$aieData3.i18n) === null || _window$aieData3 === void 0 ? void 0 : _window$aieData3.no_functions) || 'No functions found. Create your first function or browse the library.', "\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
+      return;
+    }
+    tbody.innerHTML = functions.map(function (func) {
+      return "\n\t\t\t<tr data-function-id=\"".concat(func.id, "\">\n\t\t\t\t<td class=\"column-name\">\n\t\t\t\t\t<strong>").concat(_this3.escapeHtml(func.name), "</strong>\n\t\t\t\t</td>\n\t\t\t\t<td class=\"column-description\">\n\t\t\t\t\t").concat(func.description ? _this3.escapeHtml(func.description) : '<em style="color:#999;">No description</em>', "\n\t\t\t\t</td>\n\t\t\t\t<td class=\"column-category\">\n\t\t\t\t\t").concat(_this3.getCategoryBadge(func.category), "\n\t\t\t\t</td>\n\t\t\t\t<td class=\"column-status\">\n\t\t\t\t\t").concat(_this3.getStatusBadge(func.status), "\n\t\t\t\t</td>\n\t\t\t\t<td class=\"column-usage\">\n\t\t\t\t\t").concat(func.usage_count || 0, "\n\t\t\t\t</td>\n\t\t\t\t<td class=\"column-actions\">\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-edit-function\" data-id=\"").concat(func.id, "\" title=\"Edit\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-edit\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-delete-function\" data-id=\"").concat(func.id, "\" title=\"Delete\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-trash\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t</td>\n\t\t\t</tr>\n\t\t");
+    }).join('');
+
+    // Bind action buttons
+    tbody.querySelectorAll('.aie-edit-function').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        var id = e.currentTarget.dataset.id;
+        _this3.openEditorModal(id);
+      });
+    });
+    tbody.querySelectorAll('.aie-delete-function').forEach(function (btn) {
+      btn.addEventListener('click', /*#__PURE__*/function () {
+        var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(e) {
+          var _window$aieData4;
+          var id, confirmed;
+          return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+            while (1) switch (_context2.prev = _context2.next) {
+              case 0:
+                id = e.currentTarget.dataset.id;
+                _context2.next = 3;
+                return (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.confirmDialog)(((_window$aieData4 = window.aieData) === null || _window$aieData4 === void 0 || (_window$aieData4 = _window$aieData4.i18n) === null || _window$aieData4 === void 0 ? void 0 : _window$aieData4.confirm_delete) || 'Are you sure you want to delete this function?');
+              case 3:
+                confirmed = _context2.sent;
+                if (confirmed) {
+                  _this3.deleteFunction(id);
+                }
+              case 5:
+              case "end":
+                return _context2.stop();
+            }
+          }, _callee2);
+        }));
+        return function (_x) {
+          return _ref.apply(this, arguments);
+        };
+      }());
+    });
+  },
+  /**
+   * Update pagination controls
+   */
+  updatePagination: function updatePagination() {
+    var currentPageEl = document.querySelector('.aie-current-page');
+    var totalPagesEl = document.querySelector('.aie-total-pages');
+    var prevBtn = document.querySelector('.aie-prev-page');
+    var nextBtn = document.querySelector('.aie-next-page');
+    var paginationInfo = document.querySelector('.aie-pagination-info');
+    if (currentPageEl) {
+      currentPageEl.textContent = this.currentPage;
+    }
+    if (totalPagesEl) {
+      totalPagesEl.textContent = this.totalPages;
+    }
+    if (prevBtn) {
+      prevBtn.disabled = this.currentPage <= 1;
+    }
+    if (nextBtn) {
+      nextBtn.disabled = this.currentPage >= this.totalPages;
+    }
+    if (paginationInfo) {
+      var start = (this.currentPage - 1) * this.perPage + 1;
+      var end = Math.min(this.currentPage * this.perPage, this.totalItems);
+      paginationInfo.textContent = "Showing ".concat(start, "-").concat(end, " of ").concat(this.totalItems, " functions");
+    }
+  },
+  /**
+   * Open function editor modal
+   */
+  openEditorModal: function openEditorModal() {
+    var _arguments = arguments,
+      _this4 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+      var functionId, modal, title, form, codeTextarea, _window$aieData5, _window$aieData6, response, data, _data$data2, func, _window$aieData7, defaultCode;
+      return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+        while (1) switch (_context3.prev = _context3.next) {
+          case 0:
+            functionId = _arguments.length > 0 && _arguments[0] !== undefined ? _arguments[0] : null;
+            modal = document.getElementById('aie-function-editor-modal');
+            title = modal.querySelector('.aie-modal-title');
+            form = document.getElementById('aie-function-form');
+            codeTextarea = document.getElementById('aie-function-code');
+            if (!(!modal || !form || !codeTextarea)) {
+              _context3.next = 7;
+              break;
+            }
+            return _context3.abrupt("return");
+          case 7:
+            // Clear previous errors
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.clearModalErrors)(modal);
+
+            // Reset form
+            form.reset();
+            document.getElementById('aie-function-id').value = '';
+            document.querySelector('.aie-test-results').style.display = 'none';
+
+            // Clear textarea directly
+            codeTextarea.value = '';
+
+            // Show modal and initialize CodeMirror FIRST (before loading data)
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            // Initialize CodeMirror for code editor if not already initialized
+            if (!_this4.codeEditor && window.wp && window.wp.codeEditor) {
+              _this4.codeEditor = window.wp.codeEditor.initialize(codeTextarea, {
+                codemirror: {
+                  mode: 'php',
+                  lineNumbers: true,
+                  lineWrapping: true,
+                  indentUnit: 4,
+                  indentWithTabs: true,
+                  autoCloseBrackets: true,
+                  matchBrackets: true,
+                  styleActiveLine: true,
+                  continueComments: true
+                }
+              });
+            }
+
+            // Clear CodeMirror content after initialization
+            if (_this4.codeEditor && _this4.codeEditor.codemirror) {
+              _this4.codeEditor.codemirror.setValue('');
+              // Force refresh
+              _this4.codeEditor.codemirror.clearHistory();
+            }
+            if (!functionId) {
+              _context3.next = 42;
+              break;
+            }
+            // Edit mode - load function data
+            title.textContent = ((_window$aieData5 = window.aieData) === null || _window$aieData5 === void 0 || (_window$aieData5 = _window$aieData5.i18n) === null || _window$aieData5 === void 0 ? void 0 : _window$aieData5.edit_function) || 'Edit Function';
+            _context3.prev = 18;
+            _context3.next = 21;
+            return fetch(window.aieData.ajaxUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+              },
+              body: new URLSearchParams({
+                action: 'aie_functions_get',
+                nonce: ((_window$aieData6 = window.aieData) === null || _window$aieData6 === void 0 ? void 0 : _window$aieData6.nonce) || '',
+                id: functionId
+              })
+            });
+          case 21:
+            response = _context3.sent;
+            _context3.next = 24;
+            return response.json();
+          case 24:
+            data = _context3.sent;
+            if (data.success) {
+              _context3.next = 27;
+              break;
+            }
+            throw new Error(data.message || ((_data$data2 = data.data) === null || _data$data2 === void 0 ? void 0 : _data$data2.message) || 'Failed to load function');
+          case 27:
+            func = data.data;
+            document.getElementById('aie-function-id').value = func.id;
+            document.getElementById('aie-function-name').value = func.name;
+            document.getElementById('aie-function-description').value = func.description || '';
+            // Category is now computed (library/custom) - don't set from data
+            // document.getElementById( 'aie-function-category' ).value = func.category;
+            document.getElementById('aie-function-status').value = func.status;
+
+            // Update CodeMirror with the loaded code
+            if (_this4.codeEditor && _this4.codeEditor.codemirror) {
+              _this4.codeEditor.codemirror.setValue(func.code || '');
+            } else {
+              // Fallback to textarea if CodeMirror not initialized
+              document.getElementById('aie-function-code').value = func.code || '';
+            }
+            _context3.next = 40;
+            break;
+          case 35:
+            _context3.prev = 35;
+            _context3.t0 = _context3["catch"](18);
+            console.error('Error loading function:', _context3.t0);
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(_context3.t0.message, modal);
+            return _context3.abrupt("return");
+          case 40:
+            _context3.next = 45;
+            break;
+          case 42:
+            // Create mode - add default PHP opening tag
+            title.textContent = ((_window$aieData7 = window.aieData) === null || _window$aieData7 === void 0 || (_window$aieData7 = _window$aieData7.i18n) === null || _window$aieData7 === void 0 ? void 0 : _window$aieData7.new_function) || 'New Function';
+
+            // Set default PHP code template
+            defaultCode = '<?php\n\n';
+            if (_this4.codeEditor && _this4.codeEditor.codemirror) {
+              _this4.codeEditor.codemirror.setValue(defaultCode);
+              // Position cursor after the opening tag and empty lines
+              setTimeout(function () {
+                _this4.codeEditor.codemirror.setCursor({
+                  line: 2,
+                  ch: 0
+                });
+                _this4.codeEditor.codemirror.focus();
+              }, 100);
+            } else {
+              // Fallback to textarea if CodeMirror not initialized
+              codeTextarea.value = defaultCode;
+            }
+          case 45:
+          case "end":
+            return _context3.stop();
+        }
+      }, _callee3, null, [[18, 35]]);
+    }))();
+  },
+  /**
+   * Open editor modal with snippet data for customization
+   */
+  openEditorWithSnippet: function openEditorWithSnippet(snippetData) {
+    var _this5 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+      var modal, title, form, codeTextarea, code;
+      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+        while (1) switch (_context4.prev = _context4.next) {
+          case 0:
+            modal = document.getElementById('aie-function-editor-modal');
+            title = modal.querySelector('.aie-modal-title');
+            form = document.getElementById('aie-function-form');
+            codeTextarea = document.getElementById('aie-function-code');
+            if (!(!modal || !form || !codeTextarea)) {
+              _context4.next = 6;
+              break;
+            }
+            return _context4.abrupt("return");
+          case 6:
+            // Clear previous errors
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.clearModalErrors)(modal);
+
+            // Reset form
+            form.reset();
+            document.getElementById('aie-function-id').value = '';
+            document.querySelector('.aie-test-results').style.display = 'none';
+
+            // Show modal FIRST
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            // Initialize CodeMirror if not already initialized
+            if (!_this5.codeEditor && window.wp && window.wp.codeEditor) {
+              _this5.codeEditor = window.wp.codeEditor.initialize(codeTextarea, {
+                codemirror: {
+                  mode: 'php',
+                  lineNumbers: true,
+                  lineWrapping: true,
+                  indentUnit: 4,
+                  indentWithTabs: true,
+                  autoCloseBrackets: true,
+                  matchBrackets: true,
+                  styleActiveLine: true,
+                  continueComments: true
+                }
+              });
+            }
+
+            // Set title
+            title.textContent = 'Customize Function';
+
+            // Fill form with snippet data
+            document.getElementById('aie-function-name').value = snippetData.name || '';
+            document.getElementById('aie-function-description').value = snippetData.description || '';
+            document.getElementById('aie-function-category').value = snippetData.category || 'custom';
+            document.getElementById('aie-function-status').value = 'active';
+
+            // Prepare code with <?php opening tag
+            code = snippetData.code || ''; // Only add <?php if it doesn't already start with it
+            if (code && !code.trim().startsWith('<?php') && !code.trim().startsWith('<?')) {
+              code = '<?php\n\n' + code;
+            }
+
+            // Set code in CodeMirror
+            if (_this5.codeEditor && _this5.codeEditor.codemirror) {
+              _this5.codeEditor.codemirror.setValue(code);
+              // Force refresh to ensure proper rendering
+              setTimeout(function () {
+                _this5.codeEditor.codemirror.refresh();
+              }, 100);
+            } else {
+              // Fallback to textarea if CodeMirror not initialized
+              codeTextarea.value = code;
+            }
+          case 21:
+          case "end":
+            return _context4.stop();
+        }
+      }, _callee4);
+    }))();
+  },
+  /**
+   * Close modal
+   */
+  closeModal: function closeModal(modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  },
+  /**
+   * Save function
+   */
+  saveFunction: function saveFunction() {
+    var _this6 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+      var _window$aieData11;
+      var codeTextarea, code, name, category, _window$aieData8, _window$aieData9, _window$aieData10, functionId, formData, _window$aieData12, response, contentType, text, data, _data$data3, modal, errorMessage;
+      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+        while (1) switch (_context5.prev = _context5.next) {
+          case 0:
+            // Clear any previous modal errors
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.clearModalErrors)();
+
+            // Get code from CodeMirror if initialized and sync with textarea
+            codeTextarea = document.getElementById('aie-function-code');
+            code = codeTextarea.value;
+            if (_this6.codeEditor && _this6.codeEditor.codemirror) {
+              code = _this6.codeEditor.codemirror.getValue();
+              // Sync CodeMirror value back to textarea for validation
+              codeTextarea.value = code;
+            }
+
+            // Manual validation with user-friendly messages
+            name = document.getElementById('aie-function-name').value.trim();
+            category = document.getElementById('aie-function-category').value;
+            if (name) {
+              _context5.next = 10;
+              break;
+            }
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(((_window$aieData8 = window.aieData) === null || _window$aieData8 === void 0 || (_window$aieData8 = _window$aieData8.i18n) === null || _window$aieData8 === void 0 ? void 0 : _window$aieData8.name_required) || 'Please enter a function name.');
+            document.getElementById('aie-function-name').focus();
+            return _context5.abrupt("return");
+          case 10:
+            if (code.trim()) {
+              _context5.next = 14;
+              break;
+            }
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(((_window$aieData9 = window.aieData) === null || _window$aieData9 === void 0 || (_window$aieData9 = _window$aieData9.i18n) === null || _window$aieData9 === void 0 ? void 0 : _window$aieData9.code_required) || 'Please enter the PHP code for your function.');
+            // Focus on CodeMirror if available, otherwise on textarea
+            if (_this6.codeEditor && _this6.codeEditor.codemirror) {
+              _this6.codeEditor.codemirror.focus();
+            } else {
+              codeTextarea.focus();
+            }
+            return _context5.abrupt("return");
+          case 14:
+            if (category) {
+              _context5.next = 18;
+              break;
+            }
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(((_window$aieData10 = window.aieData) === null || _window$aieData10 === void 0 || (_window$aieData10 = _window$aieData10.i18n) === null || _window$aieData10 === void 0 ? void 0 : _window$aieData10.category_required) || 'Please select a category.');
+            document.getElementById('aie-function-category').focus();
+            return _context5.abrupt("return");
+          case 18:
+            // Normalize PHP code (add <?php if missing and wrap if needed)
+            code = _this6.normalizePhpCode(code);
+            functionId = document.getElementById('aie-function-id').value; // Use FormData instead of URLSearchParams to preserve newlines
+            formData = new FormData();
+            formData.append('action', functionId ? 'aie_functions_update' : 'aie_functions_create');
+            formData.append('nonce', ((_window$aieData11 = window.aieData) === null || _window$aieData11 === void 0 ? void 0 : _window$aieData11.nonce) || '');
+            formData.append('name', document.getElementById('aie-function-name').value);
+            formData.append('description', document.getElementById('aie-function-description').value);
+            formData.append('category', document.getElementById('aie-function-category').value);
+            formData.append('code', code);
+            formData.append('status', document.getElementById('aie-function-status').value);
+            if (functionId) {
+              formData.append('id', functionId);
+            }
+            _context5.prev = 29;
+            _context5.next = 32;
+            return fetch(window.aieData.ajaxUrl, {
+              method: 'POST',
+              body: formData
+            });
+          case 32:
+            response = _context5.sent;
+            // Check if response is JSON
+            contentType = response.headers.get('content-type');
+            if (!(!contentType || !contentType.includes('application/json'))) {
+              _context5.next = 40;
+              break;
+            }
+            _context5.next = 37;
+            return response.text();
+          case 37:
+            text = _context5.sent;
+            console.error('Non-JSON response:', text);
+            throw new Error('Server error: The function code contains errors that prevent it from being saved. Please check your PHP syntax.');
+          case 40:
+            _context5.next = 42;
+            return response.json();
+          case 42:
+            data = _context5.sent;
+            if (data.success) {
+              _context5.next = 46;
+              break;
+            }
+            console.error('Server response error:', data);
+            throw new Error(data.message || ((_data$data3 = data.data) === null || _data$data3 === void 0 ? void 0 : _data$data3.message) || 'Failed to save function');
+          case 46:
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showNotice)(((_window$aieData12 = window.aieData) === null || _window$aieData12 === void 0 || (_window$aieData12 = _window$aieData12.i18n) === null || _window$aieData12 === void 0 ? void 0 : _window$aieData12.function_saved) || 'Function saved successfully');
+            _this6.closeModal(document.getElementById('aie-function-editor-modal'));
+            _this6.loadFunctions();
+            _context5.next = 60;
+            break;
+          case 51:
+            _context5.prev = 51;
+            _context5.t0 = _context5["catch"](29);
+            console.error('Error saving function:', _context5.t0);
+            console.error('Error message:', _context5.t0.message);
+            modal = document.getElementById('aie-function-editor-modal'); // Improve error message for JSON parse errors
+            errorMessage = _context5.t0.message;
+            if (errorMessage.includes('Unexpected token') || errorMessage.includes('is not valid JSON')) {
+              errorMessage = 'Server error: Unable to save function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
+            }
+            console.log('Final error message:', errorMessage);
+            if (modal && modal.style.display === 'flex') {
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(errorMessage, modal);
+            } else {
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)(errorMessage);
+            }
+          case 60:
+          case "end":
+            return _context5.stop();
+        }
+      }, _callee5, null, [[29, 51]]);
+    }))();
+  },
+  /**
+   * Delete function
+   */
+  deleteFunction: function deleteFunction(functionId) {
+    var _this7 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+      var _window$aieData13, _window$aieData14, response, data, _data$data4;
+      return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+        while (1) switch (_context6.prev = _context6.next) {
+          case 0:
+            _context6.prev = 0;
+            _context6.next = 3;
+            return fetch(window.aieData.ajaxUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+              },
+              body: new URLSearchParams({
+                action: 'aie_functions_delete',
+                nonce: ((_window$aieData13 = window.aieData) === null || _window$aieData13 === void 0 ? void 0 : _window$aieData13.nonce) || '',
+                id: functionId
+              })
+            });
+          case 3:
+            response = _context6.sent;
+            _context6.next = 6;
+            return response.json();
+          case 6:
+            data = _context6.sent;
+            if (data.success) {
+              _context6.next = 9;
+              break;
+            }
+            throw new Error(data.message || ((_data$data4 = data.data) === null || _data$data4 === void 0 ? void 0 : _data$data4.message) || 'Failed to delete function');
+          case 9:
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showNotice)(((_window$aieData14 = window.aieData) === null || _window$aieData14 === void 0 || (_window$aieData14 = _window$aieData14.i18n) === null || _window$aieData14 === void 0 ? void 0 : _window$aieData14.function_deleted) || 'Function deleted successfully');
+            _this7.loadFunctions();
+            _context6.next = 17;
+            break;
+          case 13:
+            _context6.prev = 13;
+            _context6.t0 = _context6["catch"](0);
+            console.error('Error deleting function:', _context6.t0);
+            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)(_context6.t0.message);
+          case 17:
+          case "end":
+            return _context6.stop();
+        }
+      }, _callee6, null, [[0, 13]]);
+    }))();
+  },
+  /**
+   * Test function with sample value
+   */
+  testFunction: function testFunction() {
+    var _this8 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
+      var code, testValueInput, testValue, resultsDiv, modal, _window$aieData15, formData, response, contentType, text, data, _data$data5, errorMessage;
+      return _regeneratorRuntime().wrap(function _callee7$(_context7) {
+        while (1) switch (_context7.prev = _context7.next) {
+          case 0:
+            // Get code from CodeMirror if initialized
+            code = document.getElementById('aie-function-code').value;
+            if (_this8.codeEditor && _this8.codeEditor.codemirror) {
+              code = _this8.codeEditor.codemirror.getValue();
+            }
+            testValueInput = document.getElementById('aie-test-value');
+            testValue = testValueInput.value;
+            resultsDiv = document.querySelector('.aie-test-results');
+            modal = document.getElementById('aie-function-editor-modal');
+            if (code) {
+              _context7.next = 9;
+              break;
+            }
+            if (modal && modal.style.display === 'flex') {
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)('Please enter function code first', modal);
+            } else {
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)('Please enter function code first');
+            }
+            return _context7.abrupt("return");
+          case 9:
+            if (!(!testValue || !testValue.trim())) {
+              _context7.next = 13;
+              break;
+            }
+            testValueInput.focus();
+            testValueInput.select();
+            return _context7.abrupt("return");
+          case 13:
+            // Normalize PHP code (add <?php if missing)
+            code = _this8.normalizePhpCode(code);
+            _context7.prev = 14;
+            // Use FormData to preserve newlines
+            formData = new FormData();
+            formData.append('action', 'aie_functions_test');
+            formData.append('nonce', ((_window$aieData15 = window.aieData) === null || _window$aieData15 === void 0 ? void 0 : _window$aieData15.nonce) || '');
+            formData.append('code', code);
+            formData.append('value', testValue);
+            _context7.next = 22;
+            return fetch(window.aieData.ajaxUrl, {
+              method: 'POST',
+              body: formData
+            });
+          case 22:
+            response = _context7.sent;
+            // Check if response is JSON
+            contentType = response.headers.get('content-type');
+            if (!(!contentType || !contentType.includes('application/json'))) {
+              _context7.next = 30;
+              break;
+            }
+            _context7.next = 27;
+            return response.text();
+          case 27:
+            text = _context7.sent;
+            console.error('Non-JSON response:', text);
+            throw new Error('Server error: The function code contains errors. Please check your PHP syntax.');
+          case 30:
+            _context7.next = 32;
+            return response.json();
+          case 32:
+            data = _context7.sent;
+            if (data.success) {
+              _context7.next = 35;
+              break;
+            }
+            throw new Error(data.message || ((_data$data5 = data.data) === null || _data$data5 === void 0 ? void 0 : _data$data5.message) || 'Test failed');
+          case 35:
+            // Show results
+            document.querySelector('.aie-test-input').textContent = data.data.input !== undefined ? data.data.input : testValue;
+            document.querySelector('.aie-test-output').textContent = data.data.output !== undefined ? data.data.output : '';
+            resultsDiv.style.display = 'block';
+            _context7.next = 46;
+            break;
+          case 40:
+            _context7.prev = 40;
+            _context7.t0 = _context7["catch"](14);
+            console.error('Error testing function:', _context7.t0);
+
+            // Improve error message for JSON parse errors
+            errorMessage = _context7.t0.message;
+            if (errorMessage.includes('Unexpected token') || errorMessage.includes('is not valid JSON')) {
+              errorMessage = 'Server error: Unable to test function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
+            }
+            if (modal && modal.style.display === 'flex') {
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(errorMessage, modal);
+            } else {
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)(errorMessage);
+            }
+          case 46:
+          case "end":
+            return _context7.stop();
+        }
+      }, _callee7, null, [[14, 40]]);
+    }))();
+  },
+  /**
+   * Clear all filters
+   */
+  clearFilters: function clearFilters() {
+    this.filters = {
+      status: '',
+      category: '',
+      search: ''
+    };
+    document.getElementById('aie-filter-status').value = '';
+    document.getElementById('aie-filter-category').value = '';
+    document.getElementById('aie-filter-search').value = '';
+    this.currentPage = 1;
+    this.loadFunctions();
+  },
+  /**
+   * Get category label
+   */
+  getCategoryLabel: function getCategoryLabel(category) {
+    var labels = {
+      string: 'String Operations',
+      date: 'Date & Time',
+      numeric: 'Numeric Operations',
+      html: 'HTML Operations',
+      wordpress: 'WordPress',
+      validation: 'Validation',
+      advanced: 'Advanced',
+      custom: 'Custom'
+    };
+    return labels[category] || category;
+  },
+  /**
+   * Get category badge HTML
+   */
+  getCategoryBadge: function getCategoryBadge(category) {
+    if (category === 'library') {
+      return '<span class="aie-badge aie-badge-library">Library</span>';
+    }
+    return '<span class="aie-badge aie-badge-custom">Custom</span>';
+  },
+  /**
+   * Normalize PHP code - ensure it starts with <?php and wrap in function if needed
+   */
+  normalizePhpCode: function normalizePhpCode(code) {
+    if (!code || !code.trim()) {
+      return code;
+    }
+    var trimmedCode = code.trim();
+
+    // Check if code already starts with <?php or <?
+    if (trimmedCode.startsWith('<?php') || trimmedCode.startsWith('<?')) {
+      // Remove PHP tags for further processing
+      trimmedCode = trimmedCode.replace(/^<\?php\s*/i, '').replace(/^<\?\s*/, '').trim(); // Trim again after removing tags
+    }
+
+    // Check if code is already a complete function
+    var isFunctionDefinition = /^function\s+\w+\s*\(/i.test(trimmedCode);
+    if (isFunctionDefinition) {
+      // Just add PHP tag
+      return '<?php\n' + trimmedCode;
+    }
+
+    // Wrap simple expressions/statements in a function
+    // Add indentation to each line of user code
+    var lines = trimmedCode.split('\n');
+    var indentedCode = lines.map(function (line) {
+      return '\t' + line;
+    }).join('\n');
+    return '<?php\n' + 'function transform_value( $value, $args = array() ) {\n' + indentedCode + '\n' + '}';
+  },
+  /**
+   * Get source badge HTML
+   */
+  getSourceBadge: function getSourceBadge(source) {
+    if (source.startsWith('library:')) {
+      return '<span class="aie-badge aie-badge-library">Library</span>';
+    }
+    return '<span class="aie-badge aie-badge-custom">Custom</span>';
+  },
+  /**
+   * Get status badge HTML
+   */
+  getStatusBadge: function getStatusBadge(status) {
+    if (status === 'active') {
+      return '<span class="aie-badge aie-badge-active">Active</span>';
+    }
+    return '<span class="aie-badge aie-badge-inactive">Inactive</span>';
+  },
+  /**
+   * Escape HTML
+   */
+  escapeHtml: function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (FunctionsModule);
+
+/***/ }),
+
+/***/ "./src/js/modules/import.js":
+/*!**********************************!*\
+  !*** ./src/js/modules/import.js ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/js/modules/utils.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+/**
+ * Import Module
+ *
+ * Handles the import wizard functionality
+ */
+
+
+var ImportModule = {
+  // Current wizard state
+  currentStep: 1,
+  totalSteps: 6,
+  uploadedFile: null,
+  fileData: null,
+  jobId: null,
+  progressInterval: null,
+  /**
+   * Initialize module
+   */
+  init: function init() {
+    if (!jQuery('#wp-aie-import').length) {
+      return;
+    }
+    this.bindEvents();
+    this.showStep(1);
+  },
+  /**
+   * Bind event handlers
+   */
+  bindEvents: function bindEvents() {
+    var _this = this;
+    var $wizard = jQuery('#wp-aie-import');
+
+    // Step navigation
+    $wizard.on('click', '.aie-next-step', function () {
+      return _this.nextStep();
+    });
+    $wizard.on('click', '.aie-prev-step', function () {
+      return _this.prevStep();
+    });
+
+    // Content type selection
+    $wizard.on('change', 'input[name="content_type"]', function (e) {
+      return _this.onContentTypeChange(e);
+    });
+
+    // File upload
+    jQuery('#aie-select-file').on('click', function () {
+      return jQuery('#aie-file-input').click();
+    });
+    jQuery('#aie-file-input').on('change', function (e) {
+      return _this.onFileSelect(e);
+    });
+    jQuery('.aie-remove-file').on('click', function () {
+      return _this.removeFile();
+    });
+
+    // Drag & drop
+    var $dropZone = jQuery('#aie-upload-area');
+    $dropZone.on('dragover', function (e) {
+      e.preventDefault();
+      $dropZone.addClass('aie-dragover');
+    }).on('dragleave', function () {
+      $dropZone.removeClass('aie-dragover');
+    }).on('drop', function (e) {
+      e.preventDefault();
+      $dropZone.removeClass('aie-dragover');
+      var files = e.originalEvent.dataTransfer.files;
+      if (files.length > 0) {
+        _this.handleFile(files[0]);
+      }
+    });
+
+    // Field mapping
+    $wizard.on('click', '.aie-auto-map', function () {
+      return _this.autoMapFields();
+    });
+    $wizard.on('click', '.aie-clear-map', function () {
+      return _this.clearFieldMapping();
+    });
+
+    // Import actions
+    $wizard.on('click', '.aie-start-import', function () {
+      return _this.startImport();
+    });
+    $wizard.on('click', '.aie-cancel-import', function () {
+      return _this.cancelImport();
+    });
+    $wizard.on('click', '.aie-new-import', function () {
+      return _this.resetWizard();
+    });
+    $wizard.on('click', '.aie-toggle-logs', function () {
+      return _this.toggleLogs();
+    });
+  },
+  /**
+   * Show specific step
+   */
+  showStep: function showStep(step) {
+    var $wizard = jQuery('#wp-aie-import');
+
+    // Hide all steps
+    $wizard.find('.aie-step').removeClass('active');
+
+    // Show current step
+    $wizard.find(".aie-step-".concat(step)).addClass('active');
+
+    // Update indicators
+    $wizard.find('.aie-step-indicator').removeClass('active completed');
+    $wizard.find(".aie-step-indicator[data-step=\"".concat(step, "\"]")).addClass('active');
+    $wizard.find(".aie-step-indicator[data-step]").filter(function () {
+      return jQuery(this).data('step') < step;
+    }).addClass('completed');
+    this.currentStep = step;
+
+    // Step-specific actions
+    if (step === 3) {
+      this.loadPreview();
+    } else if (step === 4) {
+      this.buildFieldMapping();
+    }
+  },
+  /**
+   * Go to next step
+   */
+  nextStep: function nextStep() {
+    if (this.currentStep < this.totalSteps) {
+      // Validate current step
+      if (this.validateStep(this.currentStep)) {
+        this.showStep(this.currentStep + 1);
+      }
+    }
+  },
+  /**
+   * Go to previous step
+   */
+  prevStep: function prevStep() {
+    if (this.currentStep > 1) {
+      this.showStep(this.currentStep - 1);
+    }
+  },
+  /**
+   * Validate step
+   */
+  validateStep: function validateStep(step) {
+    switch (step) {
+      case 2:
+        if (!this.uploadedFile) {
+          _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Please upload a file', 'error');
+          return false;
+        }
+        break;
+      case 4:
+        // Validate field mapping
+        var mappedFields = this.getFieldMapping();
+        if (Object.keys(mappedFields).length === 0) {
+          _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Please map at least one field', 'error');
+          return false;
+        }
+        break;
+    }
+    return true;
+  },
+  /**
+   * Handle content type change
+   */
+  onContentTypeChange: function onContentTypeChange(e) {
+    var contentType = jQuery(e.target).val();
+
+    // Show/hide content-specific options
+    if (contentType === 'media') {
+      jQuery('.aie-post-options').hide();
+      jQuery('.aie-media-options').show();
+    } else {
+      jQuery('.aie-post-options').show();
+      jQuery('.aie-media-options').hide();
+    }
+  },
+  /**
+   * Handle file selection
+   */
+  onFileSelect: function onFileSelect(e) {
+    var file = e.target.files[0];
+    if (file) {
+      this.handleFile(file);
+    }
+  },
+  /**
+   * Handle file upload
+   */
+  handleFile: function handleFile(file) {
+    // Validate file
+    var validation = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].validateFile(file, ['.csv', '.json', '.xml'], 50 * 1024 * 1024);
+    if (!validation.valid) {
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(validation.errors.join('<br>'), 'error');
+      return;
+    }
+    this.uploadedFile = file;
+
+    // Show file info
+    jQuery('.aie-upload-placeholder').hide();
+    jQuery('.aie-file-info').show();
+    jQuery('.aie-file-name').text(file.name);
+    jQuery('.aie-file-size').text(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].formatFileSize(file.size));
+
+    // Detect format
+    var format = this.detectFormat(file.name);
+    jQuery('.aie-file-format').text(format.toUpperCase());
+
+    // Show format options
+    if (format === 'csv') {
+      jQuery('.aie-format-options').show();
+      jQuery('.aie-csv-options').show();
+    }
+
+    // Enable next button
+    jQuery('.aie-step-2 .aie-next-step').prop('disabled', false);
+
+    // Upload file
+    this.uploadFile(file);
+  },
+  /**
+   * Upload file to server
+   */
+  uploadFile: function uploadFile(file) {
+    var _this2 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+      var _window$aieData;
+      var formData, _window$aieData2, response, _response$data;
+      return _regeneratorRuntime().wrap(function _callee$(_context) {
+        while (1) switch (_context.prev = _context.next) {
+          case 0:
+            formData = new FormData();
+            formData.append('file', file);
+            formData.append('action', 'aie_import_upload_file');
+            formData.append('nonce', ((_window$aieData = window.aieData) === null || _window$aieData === void 0 ? void 0 : _window$aieData.nonce) || '');
+            formData.append('content_type', jQuery('input[name="content_type"]:checked').val());
+            _context.prev = 5;
+            _context.next = 8;
+            return jQuery.ajax({
+              url: ((_window$aieData2 = window.aieData) === null || _window$aieData2 === void 0 ? void 0 : _window$aieData2.ajaxUrl) || '/wp-admin/admin-ajax.php',
+              type: 'POST',
+              data: formData,
+              processData: false,
+              contentType: false,
+              dataType: 'json'
+            });
+          case 8:
+            response = _context.sent;
+            if (!response.success) {
+              _context.next = 14;
+              break;
+            }
+            _this2.fileData = response.data;
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('File uploaded successfully', 'success');
+            _context.next = 15;
+            break;
+          case 14:
+            throw new Error(((_response$data = response.data) === null || _response$data === void 0 ? void 0 : _response$data.message) || 'Upload failed');
+          case 15:
+            _context.next = 21;
+            break;
+          case 17:
+            _context.prev = 17;
+            _context.t0 = _context["catch"](5);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context.t0, 'File upload');
+            _this2.removeFile();
+          case 21:
+          case "end":
+            return _context.stop();
+        }
+      }, _callee, null, [[5, 17]]);
+    }))();
+  },
+  /**
+   * Remove uploaded file
+   */
+  removeFile: function removeFile() {
+    this.uploadedFile = null;
+    this.fileData = null;
+    jQuery('.aie-file-info').hide();
+    jQuery('.aie-upload-placeholder').show();
+    jQuery('.aie-format-options').hide();
+    jQuery('#aie-file-input').val('');
+    jQuery('.aie-step-2 .aie-next-step').prop('disabled', true);
+  },
+  /**
+   * Detect file format from filename
+   */
+  detectFormat: function detectFormat(filename) {
+    var ext = filename.split('.').pop().toLowerCase();
+    return ['csv', 'json', 'xml'].includes(ext) ? ext : 'csv';
+  },
+  /**
+   * Load data preview
+   */
+  loadPreview: function loadPreview() {
+    var _this3 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+      var _this3$fileData$colum;
+      var preview, $table, headerHtml, bodyHtml;
+      return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+        while (1) switch (_context2.prev = _context2.next) {
+          case 0:
+            if (!(!_this3.fileData || !_this3.fileData.preview)) {
+              _context2.next = 2;
+              break;
+            }
+            return _context2.abrupt("return");
+          case 2:
+            preview = _this3.fileData.preview;
+            $table = jQuery('.aie-preview-table'); // Update stats
+            jQuery('.aie-total-rows').text(_this3.fileData.total_rows || 0);
+            jQuery('.aie-total-columns').text(((_this3$fileData$colum = _this3.fileData.columns) === null || _this3$fileData$colum === void 0 ? void 0 : _this3$fileData$colum.length) || 0);
+
+            // Build table header
+            headerHtml = '<tr>';
+            if (preview.headers) {
+              preview.headers.forEach(function (header) {
+                headerHtml += "<th>".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(header), "</th>");
+              });
+            }
+            headerHtml += '</tr>';
+            $table.find('thead').html(headerHtml);
+
+            // Build table body
+            bodyHtml = '';
+            if (preview.data) {
+              preview.data.forEach(function (row, index) {
+                bodyHtml += '<tr>';
+                row.forEach(function (cell) {
+                  var cellContent = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(String(cell).substring(0, 100));
+                  bodyHtml += "<td>".concat(cellContent, "</td>");
+                });
+                bodyHtml += '</tr>';
+              });
+            }
+            $table.find('tbody').html(bodyHtml);
+          case 13:
+          case "end":
+            return _context2.stop();
+        }
+      }, _callee2);
+    }))();
+  },
+  /**
+   * Build field mapping interface
+   */
+  buildFieldMapping: function buildFieldMapping() {
+    var _this4 = this;
+    if (!this.fileData || !this.fileData.columns) {
+      return;
+    }
+    var contentType = jQuery('input[name="content_type"]:checked').val();
+    var targetFields = this.getTargetFields(contentType);
+    var $tbody = jQuery('.aie-mapping-body');
+    var html = '';
+    this.fileData.columns.forEach(function (column, index) {
+      var _this4$fileData$previ, _window$aieData3;
+      var sampleData = ((_this4$fileData$previ = _this4.fileData.preview) === null || _this4$fileData$previ === void 0 || (_this4$fileData$previ = _this4$fileData$previ.data) === null || _this4$fileData$previ === void 0 || (_this4$fileData$previ = _this4$fileData$previ[0]) === null || _this4$fileData$previ === void 0 ? void 0 : _this4$fileData$previ[index]) || '';
+      html += "\n\t\t\t\t<tr>\n\t\t\t\t\t<td><strong>".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(column), "</strong></td>\n\t\t\t\t\t<td>\n\t\t\t\t\t\t<select name=\"field_map[").concat(index, "]\" class=\"regular-text\">\n\t\t\t\t\t\t\t<option value=\"\">-- ").concat(((_window$aieData3 = window.aieData) === null || _window$aieData3 === void 0 || (_window$aieData3 = _window$aieData3.i18n) === null || _window$aieData3 === void 0 ? void 0 : _window$aieData3.skip) || 'Skip', " --</option>\n\t\t\t\t\t\t\t").concat(targetFields.map(function (field) {
+        return "<option value=\"".concat(field.value, "\">").concat(field.label, "</option>");
+      }).join(''), "\n\t\t\t\t\t\t</select>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td><code>").concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(String(sampleData).substring(0, 50)), "</code></td>\n\t\t\t\t</tr>\n\t\t\t");
+    });
+    $tbody.html(html);
+  },
+  /**
+   * Get target fields for content type
+   */
+  getTargetFields: function getTargetFields(contentType) {
+    var fields = {
+      post: [{
+        value: 'post_title',
+        label: 'Title'
+      }, {
+        value: 'post_content',
+        label: 'Content'
+      }, {
+        value: 'post_excerpt',
+        label: 'Excerpt'
+      }, {
+        value: 'post_status',
+        label: 'Status'
+      }, {
+        value: 'post_author',
+        label: 'Author'
+      }, {
+        value: 'post_date',
+        label: 'Date'
+      }, {
+        value: 'post_name',
+        label: 'Slug'
+      }, {
+        value: 'categories',
+        label: 'Categories'
+      }, {
+        value: 'tags',
+        label: 'Tags'
+      }, {
+        value: 'featured_image',
+        label: 'Featured Image'
+      }],
+      media: [{
+        value: 'post_title',
+        label: 'Title'
+      }, {
+        value: 'post_content',
+        label: 'Description'
+      }, {
+        value: 'post_excerpt',
+        label: 'Caption'
+      }, {
+        value: 'file_url',
+        label: 'File URL'
+      }, {
+        value: 'alt_text',
+        label: 'Alt Text'
+      }]
+    };
+    return fields[contentType] || fields.post;
+  },
+  /**
+   * Auto-map fields
+   */
+  autoMapFields: function autoMapFields() {
+    var $selects = jQuery('.aie-mapping-body select');
+    $selects.each(function () {
+      var $select = jQuery(this);
+      var columnName = $select.closest('tr').find('strong').text().toLowerCase();
+
+      // Try to find matching field
+      $select.find('option').each(function () {
+        var optionValue = jQuery(this).val().toLowerCase();
+        var optionLabel = jQuery(this).text().toLowerCase();
+        if (columnName === optionValue || columnName === optionLabel || columnName.includes(optionValue) || optionValue.includes(columnName)) {
+          $select.val(jQuery(this).val());
+          return false;
+        }
+      });
+    });
+    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Auto-mapping completed', 'success');
+  },
+  /**
+   * Clear field mapping
+   */
+  clearFieldMapping: function clearFieldMapping() {
+    jQuery('.aie-mapping-body select').val('');
+  },
+  /**
+   * Get field mapping
+   */
+  getFieldMapping: function getFieldMapping() {
+    var mapping = {};
+    jQuery('.aie-mapping-body select').each(function () {
+      var _$select$attr$match;
+      var $select = jQuery(this);
+      var sourceIndex = (_$select$attr$match = $select.attr('name').match(/\[(\d+)\]/)) === null || _$select$attr$match === void 0 ? void 0 : _$select$attr$match[1];
+      var targetField = $select.val();
+      if (targetField && sourceIndex !== undefined) {
+        mapping[sourceIndex] = targetField;
+      }
+    });
+    return mapping;
+  },
+  /**
+   * Start import
+   */
+  startImport: function startImport() {
+    var _this5 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+      var data, response;
+      return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+        while (1) switch (_context3.prev = _context3.next) {
+          case 0:
+            _context3.prev = 0;
+            data = {
+              file_path: _this5.fileData.file_path,
+              content_type: jQuery('input[name="content_type"]:checked').val(),
+              format: _this5.fileData.format,
+              field_mapping: _this5.getFieldMapping(),
+              duplicate_handling: jQuery('input[name="duplicate_handling"]:checked').val(),
+              post_status: jQuery('[name="post_status"]').val(),
+              post_type: jQuery('[name="post_type"]').val(),
+              download_images: jQuery('[name="download_images"]').is(':checked'),
+              batch_size: parseInt(jQuery('[name="batch_size"]').val()) || 50
+            };
+            _context3.next = 4;
+            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_import_start', data);
+          case 4:
+            response = _context3.sent;
+            _this5.jobId = response.job_id;
+            _this5.showStep(6);
+            _this5.startProgressTracking();
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Import started successfully', 'success');
+            _context3.next = 14;
+            break;
+          case 11:
+            _context3.prev = 11;
+            _context3.t0 = _context3["catch"](0);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context3.t0, 'Start import');
+          case 14:
+          case "end":
+            return _context3.stop();
+        }
+      }, _callee3, null, [[0, 11]]);
+    }))();
+  },
+  /**
+   * Start progress tracking
+   */
+  startProgressTracking: function startProgressTracking() {
+    var _this6 = this;
+    this.progressInterval = setInterval(function () {
+      _this6.updateProgress();
+    }, 2000);
+  },
+  /**
+   * Update import progress
+   */
+  updateProgress: function updateProgress() {
+    var _this7 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+      var response;
+      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+        while (1) switch (_context4.prev = _context4.next) {
+          case 0:
+            _context4.prev = 0;
+            _context4.next = 3;
+            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_import_get_progress', {
+              job_id: _this7.jobId
+            });
+          case 3:
+            response = _context4.sent;
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].updateProgressBar(jQuery('.aie-step-6'), response);
+            if (response.status === 'completed') {
+              _this7.onImportComplete(response);
+            } else if (response.status === 'failed') {
+              _this7.onImportFailed(response);
+            }
+            _context4.next = 11;
+            break;
+          case 8:
+            _context4.prev = 8;
+            _context4.t0 = _context4["catch"](0);
+            console.error('Progress update error:', _context4.t0);
+          case 11:
+          case "end":
+            return _context4.stop();
+        }
+      }, _callee4, null, [[0, 8]]);
+    }))();
+  },
+  /**
+   * Handle import completion
+   */
+  onImportComplete: function onImportComplete(result) {
+    var _result$estimates;
+    clearInterval(this.progressInterval);
+    jQuery('.aie-import-results').show();
+    jQuery('.aie-result-processed').text(result.processed || 0);
+    jQuery('.aie-result-success').text(result.success || 0);
+    jQuery('.aie-result-failed').text(result.failed || 0);
+    jQuery('.aie-result-duration').text(((_result$estimates = result.estimates) === null || _result$estimates === void 0 ? void 0 : _result$estimates.elapsed_formatted) || '0s');
+    jQuery('.aie-cancel-import').hide();
+    jQuery('.aie-new-import').show();
+    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Import completed successfully!', 'success');
+  },
+  /**
+   * Handle import failure
+   */
+  onImportFailed: function onImportFailed(result) {
+    clearInterval(this.progressInterval);
+    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Import failed: ' + (result.error || 'Unknown error'), 'error');
+  },
+  /**
+   * Cancel import
+   */
+  cancelImport: function cancelImport() {
+    var _this8 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+        while (1) switch (_context5.prev = _context5.next) {
+          case 0:
+            if (confirm('Are you sure you want to cancel this import?')) {
+              _context5.next = 2;
+              break;
+            }
+            return _context5.abrupt("return");
+          case 2:
+            _context5.prev = 2;
+            _context5.next = 5;
+            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_import_cancel', {
+              job_id: _this8.jobId
+            });
+          case 5:
+            clearInterval(_this8.progressInterval);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Import cancelled', 'info');
+            _this8.resetWizard();
+            _context5.next = 13;
+            break;
+          case 10:
+            _context5.prev = 10;
+            _context5.t0 = _context5["catch"](2);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context5.t0, 'Cancel import');
+          case 13:
+          case "end":
+            return _context5.stop();
+        }
+      }, _callee5, null, [[2, 10]]);
+    }))();
+  },
+  /**
+   * Toggle logs visibility
+   */
+  toggleLogs: function toggleLogs() {
+    jQuery('.aie-logs-container').slideToggle();
+  },
+  /**
+   * Reset wizard
+   */
+  resetWizard: function resetWizard() {
+    this.currentStep = 1;
+    this.uploadedFile = null;
+    this.fileData = null;
+    this.jobId = null;
+    clearInterval(this.progressInterval);
+    jQuery('#wp-aie-import input[type="text"], #wp-aie-import input[type="file"]').val('');
+    jQuery('#wp-aie-import input[type="radio"]:first').prop('checked', true);
+    jQuery('.aie-file-info').hide();
+    jQuery('.aie-upload-placeholder').show();
+    jQuery('.aie-import-results').hide();
+    this.showStep(1);
+  }
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ImportModule);
+
+/***/ }),
+
+/***/ "./src/js/modules/media_sync.js":
+/*!**************************************!*\
+  !*** ./src/js/modules/media_sync.js ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/js/modules/utils.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+/**
+ * Media Sync Module
+ *
+ * Handles media folder sync functionality
+ */
+
+
+var MediaSyncModule = {
+  jobId: null,
+  progressInterval: null,
+  scannedFiles: [],
+  isPaused: false,
+  /**
+   * Initialize module
+   */
+  init: function init() {
+    if (!jQuery('#wp-aie-media-sync').length) {
+      return;
+    }
+    this.bindEvents();
+  },
+  /**
+   * Bind event handlers
+   */
+  bindEvents: function bindEvents() {
+    var _this = this;
+    var $page = jQuery('#wp-aie-media-sync');
+
+    // File type selection
+    $page.on('change', '#aie-file-types', function (e) {
+      var val = jQuery(e.target).val();
+      if (val === 'custom') {
+        jQuery('#aie-custom-extensions').show();
+      } else {
+        jQuery('#aie-custom-extensions').hide();
+      }
+    });
+
+    // Scan folder button
+    $page.on('click', '#aie-scan-folder-btn', function (e) {
+      e.preventDefault();
+      _this.scanFolder();
+    });
+
+    // Select all files
+    $page.on('change', '#aie-select-all-files', function (e) {
+      var checked = jQuery(e.target).is(':checked');
+      jQuery('.aie-file-checkbox').prop('checked', checked);
+      _this.updateSelectedCount();
+    });
+
+    // Individual file selection
+    $page.on('change', '.aie-file-checkbox', function () {
+      _this.updateSelectedCount();
+    });
+
+    // Start sync button
+    $page.on('click', '#aie-start-sync-btn', function (e) {
+      e.preventDefault();
+      _this.startSync();
+    });
+
+    // Pause sync
+    $page.on('click', '#aie-pause-sync-btn', function (e) {
+      e.preventDefault();
+      if (_this.isPaused) {
+        _this.resumeSync();
+      } else {
+        _this.pauseSync();
+      }
+    });
+
+    // Cancel sync
+    $page.on('click', '#aie-cancel-sync-btn', function (e) {
+      e.preventDefault();
+      _this.cancelSync();
+    });
+
+    // Sync another folder
+    $page.on('click', '#aie-sync-another-btn', function (e) {
+      e.preventDefault();
+      _this.resetPage();
+    });
+
+    // Browse folders button
+    $page.on('click', '#aie-browse-folders-btn', function (e) {
+      e.preventDefault();
+      _this.openFolderBrowser();
+    });
+
+    // Close modal
+    $page.on('click', '.aie-modal-close, .aie-modal-overlay', function (e) {
+      e.preventDefault();
+      _this.closeFolderBrowser();
+    });
+
+    // Folder item click
+    $page.on('click', '.aie-folder-item', function (e) {
+      e.preventDefault();
+      var $item = jQuery(e.currentTarget);
+
+      // Toggle selection
+      jQuery('.aie-folder-item').removeClass('selected');
+      $item.addClass('selected');
+
+      // Enable choose button and update path
+      var path = $item.data('path');
+      jQuery('#aie-selected-folder-path').val(path);
+      jQuery('#aie-choose-folder-btn').prop('disabled', false);
+    });
+
+    // Folder double-click to navigate
+    $page.on('dblclick', '.aie-folder-item', function (e) {
+      e.preventDefault();
+      var $item = jQuery(e.currentTarget);
+      var path = $item.data('path');
+      _this.browseFolders(path);
+    });
+
+    // Go up button
+    $page.on('click', '#aie-folder-up-btn', function (e) {
+      e.preventDefault();
+      var currentPath = jQuery('#aie-current-path').data('relative-path');
+      if (currentPath) {
+        var parts = currentPath.split('/').filter(function (p) {
+          return p;
+        });
+        parts.pop();
+        var parentPath = parts.join('/');
+        _this.browseFolders(parentPath);
+      }
+    });
+
+    // Choose folder button
+    $page.on('click', '#aie-choose-folder-btn', function (e) {
+      e.preventDefault();
+      var path = jQuery('#aie-selected-folder-path').val();
+      if (path) {
+        jQuery('#aie-folder-path').val(path);
+        _this.closeFolderBrowser();
+      }
+    });
+  },
+  /**
+   * Scan folder for media files
+   */
+  scanFolder: function scanFolder() {
+    var _window$aieData,
+      _window$aieData2,
+      _this2 = this;
+    // Reset any previous sync state
+    this.jobId = null;
+    this.isPaused = false;
+
+    // Hide progress and completion sections if they were visible
+    jQuery('#aie-sync-progress-section, #aie-sync-completion').hide();
+    var folderPath = jQuery('#aie-folder-path').val().trim();
+    if (!folderPath) {
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Please enter a folder path', 'error');
+      return;
+    }
+
+    // If path doesn't start with /, add it
+    if (!folderPath.startsWith('/')) {
+      folderPath = '/' + folderPath;
+    }
+
+    // Remove trailing slash if present
+    if (folderPath.length > 1 && folderPath.endsWith('/')) {
+      folderPath = folderPath.slice(0, -1);
+    }
+    var options = {
+      recursive: jQuery('#aie-scan-recursive').is(':checked'),
+      file_types: jQuery('#aie-file-types').val()
+    };
+    if (options.file_types === 'custom') {
+      options.custom_types = jQuery('#aie-custom-extensions-input').val().split(',').map(function (ext) {
+        return ext.trim();
+      }).filter(function (ext) {
+        return ext;
+      });
+    }
+    jQuery('#aie-scan-folder-btn').prop('disabled', true).text('Scanning...');
+    jQuery.ajax({
+      url: ((_window$aieData = window.aieData) === null || _window$aieData === void 0 ? void 0 : _window$aieData.ajaxUrl) || window.ajaxurl,
+      method: 'POST',
+      data: {
+        action: 'aie_scan_folder',
+        nonce: ((_window$aieData2 = window.aieData) === null || _window$aieData2 === void 0 ? void 0 : _window$aieData2.nonce) || '',
+        folder_path: folderPath,
+        options: options
+      }
+    }).done(function (response) {
+      if (response.success) {
+        _this2.scannedFiles = response.data.files || [];
+        if (_this2.scannedFiles.length === 0) {
+          // Show empty state message
+          _this2.showEmptyState();
+          _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('No files found matching the criteria', 'info');
+        } else {
+          // Show summary instead of file list
+          _this2.displayScanSummary(_this2.scannedFiles);
+          _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice("Found ".concat(_this2.scannedFiles.length, " files ready to sync"), 'success');
+
+          // Show sync options
+          jQuery('#aie-sync-options').slideDown();
+        }
+      } else {
+        var _response$data;
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(((_response$data = response.data) === null || _response$data === void 0 ? void 0 : _response$data.message) || 'Scan failed', 'error');
+      }
+    }).fail(function () {
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Request failed', 'error');
+    }).always(function () {
+      jQuery('#aie-scan-folder-btn').prop('disabled', false).html('<span class="dashicons dashicons-search"></span> Scan Folder');
+    });
+  },
+  /**
+   * Show empty state when no files found
+   */
+  showEmptyState: function showEmptyState() {
+    var $list = jQuery('#aie-file-list');
+    $list.html("\n\t\t\t<div class=\"aie-empty-state\">\n\t\t\t\t<span class=\"dashicons dashicons-search\"></span>\n\t\t\t\t<h3>No Files Found</h3>\n\t\t\t\t<p>No files matching your criteria were found in the selected folder.</p>\n\t\t\t\t<div class=\"aie-empty-suggestions\">\n\t\t\t\t\t<strong>Suggestions:</strong>\n\t\t\t\t\t<ul>\n\t\t\t\t\t\t<li>Check if the folder path is correct</li>\n\t\t\t\t\t\t<li>Try enabling \"Scan Recursive\" to search in subfolders</li>\n\t\t\t\t\t\t<li>Change the file type filter</li>\n\t\t\t\t\t\t<li>Make sure the folder contains supported media files</li>\n\t\t\t\t\t</ul>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t");
+
+    // Show scan results section but hide stats
+    jQuery('#aie-scan-results .aie-scan-stats').hide();
+    jQuery('#aie-scan-results').slideDown();
+
+    // Hide sync options
+    jQuery('#aie-sync-options').hide();
+  },
+  /**
+   * Display scan summary (instead of full file list)
+   */
+  displayScanSummary: function displayScanSummary(files) {
+    if (!files || files.length === 0) {
+      jQuery('#aie-scan-results').hide();
+      return;
+    }
+    var totalSize = 0;
+    var fileTypes = {};
+    files.forEach(function (file) {
+      totalSize += file.size || 0;
+
+      // Count file types
+      var ext = file.name.split('.').pop().toLowerCase();
+      fileTypes[ext] = (fileTypes[ext] || 0) + 1;
+    });
+
+    // Display summary
+    var $list = jQuery('#aie-file-list');
+    $list.html("\n\t\t\t<div class=\"aie-scan-summary\">\n\t\t\t\t<div class=\"aie-summary-icon\">\n\t\t\t\t\t<span class=\"dashicons dashicons-yes-alt\"></span>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-summary-content\">\n\t\t\t\t\t<h3>Scan Complete</h3>\n\t\t\t\t\t<p>Found <strong>".concat(files.length, " files</strong> ready for synchronization (Total: <strong>").concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].formatBytes(totalSize), "</strong>)</p>\n\t\t\t\t\t<div class=\"aie-file-types\">\n\t\t\t\t\t\t<strong>File Types:</strong>\n\t\t\t\t\t\t").concat(Object.entries(fileTypes).map(function (_ref) {
+      var _ref2 = _slicedToArray(_ref, 2),
+        ext = _ref2[0],
+        count = _ref2[1];
+      return "<span class=\"aie-type-badge\">".concat(ext.toUpperCase(), " (").concat(count, ")</span>");
+    }).join(''), "\n\t\t\t\t\t</div>\n\t\t\t\t\t<p class=\"aie-summary-note\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-info\"></span>\n\t\t\t\t\t\tAll files will be processed in batches. Click \"Start Sync\" below to begin.\n\t\t\t\t\t</p>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t"));
+
+    // Update stats
+    jQuery('#aie-total-files').text(files.length);
+    jQuery('#aie-total-size').text(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].formatBytes(totalSize));
+
+    // Show stats and scan results
+    jQuery('#aie-scan-results .aie-scan-stats').show();
+    jQuery('#aie-scan-results').slideDown();
+  },
+  /**
+   * Display scanned files (old method - keeping for compatibility)
+   */
+  displayFiles: function displayFiles(files) {
+    var _this3 = this;
+    var $list = jQuery('#aie-file-list');
+    $list.empty();
+    if (!files || files.length === 0) {
+      jQuery('#aie-scan-results').hide();
+      return;
+    }
+    var totalSize = 0;
+    files.forEach(function (file) {
+      totalSize += file.size || 0;
+      var icon = _this3.getFileIcon(file.name);
+      var $item = jQuery("\n\t\t\t\t<div class=\"aie-file-item\">\n\t\t\t\t\t<input type=\"checkbox\" class=\"aie-file-checkbox\" value=\"".concat(file.path, "\" checked>\n\t\t\t\t\t<div class=\"aie-file-icon\">\n\t\t\t\t\t\t<span class=\"dashicons ").concat(icon, "\"></span>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-file-info\">\n\t\t\t\t\t\t<div class=\"aie-file-name\">").concat(_this3.escapeHtml(file.name), "</div>\n\t\t\t\t\t\t<div class=\"aie-file-meta\">\n\t\t\t\t\t\t\t<span>").concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].formatBytes(file.size), "</span>\n\t\t\t\t\t\t\t<span>").concat(_this3.escapeHtml(file.path), "</span>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t"));
+      $list.append($item);
+    });
+
+    // Update stats
+    jQuery('#aie-total-files').text(files.length);
+    jQuery('#aie-total-size').text(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].formatBytes(totalSize));
+
+    // Show stats and scan results
+    jQuery('#aie-scan-results .aie-scan-stats').show();
+    jQuery('#aie-scan-results').slideDown();
+    this.updateSelectedCount();
+  },
+  /**
+   * Get file icon based on extension
+   */
+  getFileIcon: function getFileIcon(filename) {
+    var ext = filename.split('.').pop().toLowerCase();
+    var icons = {
+      // Images
+      jpg: 'dashicons-format-image',
+      jpeg: 'dashicons-format-image',
+      png: 'dashicons-format-image',
+      gif: 'dashicons-format-image',
+      webp: 'dashicons-format-image',
+      svg: 'dashicons-format-image',
+      // Videos
+      mp4: 'dashicons-format-video',
+      avi: 'dashicons-format-video',
+      mov: 'dashicons-format-video',
+      wmv: 'dashicons-format-video',
+      // Audio
+      mp3: 'dashicons-format-audio',
+      wav: 'dashicons-format-audio',
+      ogg: 'dashicons-format-audio',
+      // Documents
+      pdf: 'dashicons-pdf',
+      doc: 'dashicons-media-document',
+      docx: 'dashicons-media-document',
+      xls: 'dashicons-media-spreadsheet',
+      xlsx: 'dashicons-media-spreadsheet'
+    };
+    return icons[ext] || 'dashicons-media-default';
+  },
+  /**
+   * Update selected files count
+   */
+  updateSelectedCount: function updateSelectedCount() {
+    var count = jQuery('.aie-file-checkbox:checked').length;
+    jQuery('#aie-selected-count').text(count);
+
+    // Update select all checkbox
+    var total = jQuery('.aie-file-checkbox').length;
+    jQuery('#aie-select-all-files').prop('checked', count === total);
+  },
+  /**
+   * Get selected files
+   */
+  getSelectedFiles: function getSelectedFiles() {
+    var files = [];
+    var self = this;
+    jQuery('.aie-file-checkbox:checked').each(function () {
+      var path = jQuery(this).val();
+      var fileData = self.scannedFiles.find(function (f) {
+        return f.path === path;
+      });
+      if (fileData) {
+        files.push(fileData);
+      }
+    });
+    return files;
+  },
+  /**
+   * Get sync options
+   */
+  getOptions: function getOptions() {
+    var fileOperation = jQuery('#aie-copy-files').val();
+    var batchSize = parseInt(jQuery('#aie-batch-size').val()) || 3;
+    return {
+      duplicate_check: jQuery('#aie-duplicate-check').val(),
+      duplicate_handling: jQuery('#aie-duplicate-handling').val(),
+      file_operation: fileOperation,
+      copy_files: fileOperation === 'copy',
+      generate_thumbnails: true,
+      // Always generate thumbnails
+      rml_integration: jQuery('#aie-rml-integration').is(':checked'),
+      batch_size: batchSize
+    };
+  },
+  /**
+   * Start media sync
+   */
+  startSync: function startSync() {
+    var _window$aieData3,
+      _window$aieData4,
+      _this4 = this;
+    if (!this.scannedFiles || this.scannedFiles.length === 0) {
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('No files to sync. Please scan a folder first.', 'error');
+      return;
+    }
+
+    // Clear any previous progress interval
+    if (this.progressInterval) {
+      clearInterval(this.progressInterval);
+      this.progressInterval = null;
+    }
+
+    // Reset state
+    this.isPaused = false;
+    var folderPath = jQuery('#aie-folder-path').val().trim();
+    if (!folderPath) {
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Invalid folder path', 'error');
+      return;
+    }
+
+    // Get scan options (for filtering on backend)
+    var scanOptions = {
+      recursive: jQuery('#aie-scan-recursive').is(':checked'),
+      file_types: jQuery('#aie-file-types').val()
+    };
+    if (scanOptions.file_types === 'custom') {
+      scanOptions.custom_types = jQuery('#aie-custom-extensions-input').val().split(',').map(function (ext) {
+        return ext.trim();
+      }).filter(function (ext) {
+        return ext;
+      });
+    }
+    var syncOptions = this.getOptions();
+
+    // Disable button and show loading state
+    var $btn = jQuery('#aie-start-sync-btn');
+    var originalText = $btn.html();
+    $btn.prop('disabled', true).html('<span class="dashicons dashicons-update aie-spin"></span> Starting...');
+    jQuery.ajax({
+      url: ((_window$aieData3 = window.aieData) === null || _window$aieData3 === void 0 ? void 0 : _window$aieData3.ajaxUrl) || window.ajaxurl,
+      method: 'POST',
+      data: {
+        action: 'aie_start_media_sync',
+        nonce: ((_window$aieData4 = window.aieData) === null || _window$aieData4 === void 0 ? void 0 : _window$aieData4.nonce) || '',
+        folder_path: folderPath,
+        scan_options: scanOptions,
+        sync_options: syncOptions
+      }
+    }).done(function (response) {
+      if (response.success) {
+        _this4.jobId = response.data.job_id;
+
+        // Hide scan and options sections
+        jQuery('.aie-scan-section, .aie-options-section').slideUp();
+
+        // Show progress section immediately
+        jQuery('#aie-sync-progress-section').slideDown();
+
+        // Initialize progress at 0%
+        jQuery('#aie-progress-fill').css('width', '0%');
+        jQuery('#aie-progress-percentage').text('0%');
+        jQuery('#aie-sync-status').text('Processing...');
+
+        // Start tracking progress
+        _this4.startProgressTracking();
+
+        // Trigger first batch processing immediately
+        _this4.triggerBatchProcessing();
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Synchronization started', 'success');
+      } else {
+        var _response$data2;
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(((_response$data2 = response.data) === null || _response$data2 === void 0 ? void 0 : _response$data2.message) || 'Failed to start sync', 'error');
+        $btn.prop('disabled', false).html(originalText);
+      }
+    }).fail(function () {
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Request failed', 'error');
+      $btn.prop('disabled', false).html(originalText);
+    });
+  },
+  /**
+   * Start progress tracking
+   */
+  startProgressTracking: function startProgressTracking() {
+    var _this5 = this;
+    // Check progress every 2 seconds
+    this.progressInterval = setInterval(function () {
+      _this5.checkProgress();
+    }, 2000);
+
+    // Check immediately
+    this.checkProgress();
+  },
+  /**
+   * Trigger batch processing (starts the actual work)
+   */
+  triggerBatchProcessing: function triggerBatchProcessing() {
+    var _window$aieData5, _window$aieData6;
+    jQuery.ajax({
+      url: ((_window$aieData5 = window.aieData) === null || _window$aieData5 === void 0 ? void 0 : _window$aieData5.ajaxUrl) || window.ajaxurl,
+      method: 'POST',
+      data: {
+        action: 'aie_process_media_sync_batch',
+        nonce: ((_window$aieData6 = window.aieData) === null || _window$aieData6 === void 0 ? void 0 : _window$aieData6.nonce) || '',
+        job_id: this.jobId
+      }
+    }).done(function (response) {
+      console.log('Batch processing triggered:', response);
+      // Result will be picked up by progress tracking
+    }).fail(function (xhr, status, error) {
+      console.error('Batch processing failed:', status, error);
+    });
+  },
+  /**
+   * Check sync progress
+   */
+  checkProgress: function checkProgress() {
+    var _window$aieData7,
+      _window$aieData8,
+      _this6 = this;
+    jQuery.ajax({
+      url: ((_window$aieData7 = window.aieData) === null || _window$aieData7 === void 0 ? void 0 : _window$aieData7.ajaxUrl) || window.ajaxurl,
+      method: 'POST',
+      data: {
+        action: 'aie_get_sync_progress',
+        nonce: ((_window$aieData8 = window.aieData) === null || _window$aieData8 === void 0 ? void 0 : _window$aieData8.nonce) || '',
+        job_id: this.jobId
+      }
+    }).done(function (response) {
+      console.log('=== Progress Response ===', response);
+      if (response.success && response.data) {
+        console.log('  Status:', response.data.status);
+        console.log('  Progress:', response.data.progress);
+        console.log('  Result (raw):', response.data.result);
+        console.log('  Result type:', _typeof(response.data.result));
+        _this6.updateProgress(response.data);
+      } else {
+        console.error('Progress error:', response);
+      }
+    }).fail(function (xhr, status, error) {
+      console.error('Progress AJAX failed:', status, error);
+    });
+  },
+  /**
+   * Update stats only (helper method)
+   */
+  updateStats: function updateStats(result) {
+    // Ensure result is an object
+    if (typeof result === 'string') {
+      try {
+        result = JSON.parse(result);
+      } catch (e) {
+        result = {};
+      }
+    }
+    result = result || {};
+    var processed = result.processed !== undefined ? result.processed : 0;
+    var success = result.success !== undefined ? result.success : 0;
+    var skipped = result.skipped !== undefined ? result.skipped : 0;
+    var failed = result.failed !== undefined ? result.failed : 0;
+    jQuery('#aie-stat-processed').text(processed);
+    jQuery('#aie-stat-success').text(success);
+    jQuery('#aie-stat-skipped').text(skipped);
+    jQuery('#aie-stat-failed').text(failed);
+  },
+  /**
+   * Update progress UI
+   */
+  updateProgress: function updateProgress(data) {
+    console.log('=== Update Progress Called ===');
+    console.log('  Raw data:', data);
+
+    // Parse progress as integer (remove decimals)
+    var progress = Math.round(parseFloat(data.progress) || 0);
+    var status = data.status || 'processing';
+    console.log('  Parsed progress:', progress);
+    console.log('  Status:', status);
+
+    // Update progress bar
+    jQuery('#aie-progress-fill').css('width', progress + '%');
+    jQuery('#aie-progress-percentage').text(progress + '%');
+
+    // Update stats - handle both object and null
+    var result = data.result;
+    console.log('  Result (before parse):', result);
+    console.log('  Result type:', _typeof(result));
+
+    // If result is a string, try to parse it
+    if (typeof result === 'string') {
+      try {
+        result = JSON.parse(result);
+        console.log('  Result after JSON.parse:', result);
+      } catch (e) {
+        console.error('  Failed to parse result:', result, e);
+        result = {};
+      }
+    }
+
+    // Ensure result is an object
+    result = result || {};
+    console.log('  Final result object:', result);
+    console.log('  Processed:', result.processed);
+    console.log('  Success:', result.success);
+    console.log('  Skipped:', result.skipped);
+    console.log('  Failed:', result.failed);
+
+    // Update stats with explicit checks
+    // Show 0 if undefined (processing hasn't generated results yet)
+    var processed = result.processed !== undefined ? result.processed : 0;
+    var success = result.success !== undefined ? result.success : 0;
+    var skipped = result.skipped !== undefined ? result.skipped : 0;
+    var failed = result.failed !== undefined ? result.failed : 0;
+    console.log('  Setting values:', {
+      processed: processed,
+      success: success,
+      skipped: skipped,
+      failed: failed
+    });
+    jQuery('#aie-stat-processed').text(processed);
+    jQuery('#aie-stat-success').text(success);
+    jQuery('#aie-stat-skipped').text(skipped);
+    jQuery('#aie-stat-failed').text(failed);
+    console.log('  DOM updated');
+
+    // Update status text (fix selector - was #aie-progress-status, should be #aie-sync-status)
+    var statusTexts = {
+      pending: 'Starting...',
+      processing: 'Synchronization in Progress',
+      completed: 'Completed',
+      failed: 'Failed',
+      cancelled: 'Cancelled',
+      paused: 'Paused'
+    };
+    var statusText = statusTexts[status] || 'Processing...';
+    console.log('  Setting status text:', statusText);
+
+    // Update both possible selectors to be safe
+    jQuery('#aie-sync-status').text(statusText);
+    jQuery('#aie-progress-status').text(statusText);
+
+    // Show errors if any
+    if (result.errors && result.errors.length > 0) {
+      this.displayErrors(result.errors);
+    }
+
+    // Check if completed
+    if (status === 'completed' || status === 'failed' || status === 'cancelled') {
+      clearInterval(this.progressInterval);
+      this.showCompletion(data);
+    }
+  },
+  /**
+   * Display errors
+   */
+  displayErrors: function displayErrors(errors) {
+    var _this7 = this;
+    var $errorLog = jQuery('#aie-error-log');
+    var $errorList = jQuery('#aie-error-list');
+    $errorList.empty();
+    errors.slice(0, 20).forEach(function (error) {
+      $errorList.append("<li>".concat(_this7.escapeHtml(error), "</li>"));
+    });
+    if (errors.length > 20) {
+      $errorList.append("<li>... and ".concat(errors.length - 20, " more errors</li>"));
+    }
+    $errorLog.show();
+  },
+  /**
+   * Show completion
+   */
+  showCompletion: function showCompletion(data) {
+    // Hide progress section
+    jQuery('#aie-sync-progress-section').slideUp();
+
+    // Show completion section
+    jQuery('#aie-sync-completion').slideDown();
+
+    // Parse result if needed
+    var result = data.result;
+    if (typeof result === 'string') {
+      try {
+        result = JSON.parse(result);
+      } catch (e) {
+        result = {};
+      }
+    }
+    result = result || {};
+
+    // Get stats
+    var processed = result.processed || 0;
+    var success = result.success || 0;
+    var skipped = result.skipped || 0;
+    var failed = result.failed || 0;
+
+    // Create beautiful completion message
+    var messageHtml = '';
+    if (data.status === 'completed') {
+      // Success message with emoji and stats
+      messageHtml = "\n\t\t\t\t<div style=\"text-align: center; padding: 20px;\">\n\t\t\t\t\t<div style=\"font-size: 64px; margin-bottom: 15px;\">\uD83C\uDF89</div>\n\t\t\t\t\t<h3 style=\"color: #00a32a; margin: 0 0 15px; font-size: 24px;\">Synchronization Complete!</h3>\n\t\t\t\t\t<p style=\"font-size: 16px; color: #1d2327; margin-bottom: 20px;\">\n\t\t\t\t\t\tSuccessfully processed <strong>".concat(processed, "</strong> file").concat(processed !== 1 ? 's' : '', "\n\t\t\t\t\t</p>\n\t\t\t\t\t<div style=\"display: flex; justify-content: center; gap: 30px; flex-wrap: wrap;\">\n\t\t\t\t\t\t<div style=\"text-align: center;\">\n\t\t\t\t\t\t\t<div style=\"font-size: 32px; color: #00a32a; font-weight: 600;\">").concat(success, "</div>\n\t\t\t\t\t\t\t<div style=\"font-size: 12px; color: #646970; text-transform: uppercase;\">\u2705 Imported</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t").concat(skipped > 0 ? "\n\t\t\t\t\t\t<div style=\"text-align: center;\">\n\t\t\t\t\t\t\t<div style=\"font-size: 32px; color: #dba617; font-weight: 600;\">".concat(skipped, "</div>\n\t\t\t\t\t\t\t<div style=\"font-size: 12px; color: #646970; text-transform: uppercase;\">\u23ED\uFE0F Skipped</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t") : '', "\n\t\t\t\t\t\t").concat(failed > 0 ? "\n\t\t\t\t\t\t<div style=\"text-align: center;\">\n\t\t\t\t\t\t\t<div style=\"font-size: 32px; color: #d63638; font-weight: 600;\">".concat(failed, "</div>\n\t\t\t\t\t\t\t<div style=\"font-size: 12px; color: #646970; text-transform: uppercase;\">\u274C Failed</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t") : '', "\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t");
+    } else if (data.status === 'failed') {
+      messageHtml = "\n\t\t\t\t<div style=\"text-align: center; padding: 20px;\">\n\t\t\t\t\t<div style=\"font-size: 64px; margin-bottom: 15px;\">\u26A0\uFE0F</div>\n\t\t\t\t\t<h3 style=\"color: #d63638; margin: 0 0 15px; font-size: 24px;\">Synchronization Failed</h3>\n\t\t\t\t\t<p style=\"font-size: 16px; color: #646970;\">\n\t\t\t\t\t\tThe synchronization process encountered an error and could not complete.\n\t\t\t\t\t</p>\n\t\t\t\t</div>\n\t\t\t";
+    } else if (data.status === 'cancelled') {
+      messageHtml = "\n\t\t\t\t<div style=\"text-align: center; padding: 20px;\">\n\t\t\t\t\t<div style=\"font-size: 64px; margin-bottom: 15px;\">\uD83D\uDED1</div>\n\t\t\t\t\t<h3 style=\"color: #dba617; margin: 0 0 15px; font-size: 24px;\">Synchronization Cancelled</h3>\n\t\t\t\t\t<p style=\"font-size: 16px; color: #646970;\">\n\t\t\t\t\t\tProcessed <strong>".concat(processed, "</strong> file").concat(processed !== 1 ? 's' : '', " before cancellation.\n\t\t\t\t\t</p>\n\t\t\t\t</div>\n\t\t\t");
+    }
+    jQuery('#aie-completion-message').html(messageHtml);
+  },
+  /**
+   * Pause sync
+   */
+  pauseSync: function pauseSync() {
+    var _window$aieData9,
+      _window$aieData10,
+      _this8 = this;
+    jQuery.ajax({
+      url: ((_window$aieData9 = window.aieData) === null || _window$aieData9 === void 0 ? void 0 : _window$aieData9.ajaxUrl) || window.ajaxurl,
+      method: 'POST',
+      data: {
+        action: 'aie_pause_media_sync',
+        nonce: ((_window$aieData10 = window.aieData) === null || _window$aieData10 === void 0 ? void 0 : _window$aieData10.nonce) || '',
+        job_id: this.jobId
+      }
+    }).done(function (response) {
+      if (response.success) {
+        _this8.isPaused = true;
+        clearInterval(_this8.progressInterval);
+
+        // Update UI
+        var $header = jQuery('#aie-sync-progress-section .aie-card-header h2');
+        $header.html('<span class="dashicons dashicons-controls-pause"></span> Synchronization Paused');
+
+        // Update status text
+        jQuery('#aie-progress-status').text('Paused');
+        jQuery('#aie-sync-status').text('Paused');
+        var $pauseBtn = jQuery('#aie-pause-sync-btn');
+        $pauseBtn.html('<span class="dashicons dashicons-controls-play"></span> Resume');
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Sync paused', 'info');
+      }
+    });
+  },
+  /**
+   * Resume sync
+   */
+  resumeSync: function resumeSync() {
+    var _window$aieData11,
+      _window$aieData12,
+      _this9 = this;
+    jQuery.ajax({
+      url: ((_window$aieData11 = window.aieData) === null || _window$aieData11 === void 0 ? void 0 : _window$aieData11.ajaxUrl) || window.ajaxurl,
+      method: 'POST',
+      data: {
+        action: 'aie_resume_media_sync',
+        nonce: ((_window$aieData12 = window.aieData) === null || _window$aieData12 === void 0 ? void 0 : _window$aieData12.nonce) || '',
+        job_id: this.jobId
+      }
+    }).done(function (response) {
+      if (response.success) {
+        _this9.isPaused = false;
+
+        // Update UI
+        var $header = jQuery('#aie-sync-progress-section .aie-card-header h2');
+        $header.html('<span class="dashicons dashicons-update aie-spin"></span> Synchronization in Progress');
+
+        // Update status text
+        jQuery('#aie-progress-status').text('Synchronization in Progress');
+        jQuery('#aie-sync-status').text('Synchronization in Progress');
+        var $pauseBtn = jQuery('#aie-pause-sync-btn');
+        $pauseBtn.html('<span class="dashicons dashicons-controls-pause"></span> Pause');
+
+        // Restart progress monitoring
+        _this9.startProgressTracking();
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Sync resumed', 'success');
+      }
+    });
+  },
+  /**
+   * Cancel sync
+   */
+  cancelSync: function cancelSync() {
+    var _window$aieData13,
+      _window$aieData14,
+      _this10 = this;
+    if (!confirm('Are you sure you want to cancel? This cannot be undone.')) {
+      return;
+    }
+    jQuery.ajax({
+      url: ((_window$aieData13 = window.aieData) === null || _window$aieData13 === void 0 ? void 0 : _window$aieData13.ajaxUrl) || window.ajaxurl,
+      method: 'POST',
+      data: {
+        action: 'aie_cancel_media_sync',
+        nonce: ((_window$aieData14 = window.aieData) === null || _window$aieData14 === void 0 ? void 0 : _window$aieData14.nonce) || '',
+        job_id: this.jobId
+      }
+    }).done(function (response) {
+      if (response.success) {
+        clearInterval(_this10.progressInterval);
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Sync cancelled', 'warning');
+        _this10.resetPage();
+      }
+    });
+  },
+  /**
+   * Reset page to initial state
+   */
+  resetPage: function resetPage() {
+    // Hide all sections
+    jQuery('#aie-scan-results, #aie-sync-options, #aie-sync-progress-section, #aie-sync-completion').hide();
+
+    // Show scan section
+    jQuery('.aie-scan-section').show();
+
+    // Reset form
+    jQuery('#aie-folder-path').val('');
+    jQuery('#aie-file-list').empty();
+
+    // Reset Start button
+    var $startBtn = jQuery('#aie-start-sync-btn');
+    $startBtn.prop('disabled', false);
+    $startBtn.html('<span class="dashicons dashicons-controls-play"></span> Start Sync');
+
+    // Reset Scan button
+    var $scanBtn = jQuery('#aie-scan-folder-btn');
+    $scanBtn.prop('disabled', false).text('Scan Folder');
+
+    // Reset progress bar and stats
+    jQuery('#aie-progress-fill').css('width', '0%');
+    jQuery('#aie-progress-percentage').text('0%');
+    jQuery('#aie-stat-processed').text('0');
+    jQuery('#aie-stat-success').text('0');
+    jQuery('#aie-stat-skipped').text('0');
+    jQuery('#aie-stat-failed').text('0');
+
+    // Reset data
+    this.jobId = null;
+    this.scannedFiles = [];
+    this.isPaused = false;
+    if (this.progressInterval) {
+      clearInterval(this.progressInterval);
+    }
+
+    // Reset pause button to default state
+    var $pauseBtn = jQuery('#aie-pause-sync-btn');
+    $pauseBtn.html('<span class="dashicons dashicons-controls-pause"></span> Pause');
+
+    // Reset header to default state
+    var $header = jQuery('#aie-sync-progress-section .aie-card-header h2');
+    $header.html('<span class="dashicons dashicons-update aie-spin"></span> Synchronization in Progress');
+  },
+  /**
+   * Escape HTML
+   */
+  escapeHtml: function escapeHtml(text) {
+    var map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return String(text).replace(/[&<>"']/g, function (m) {
+      return map[m];
+    });
+  },
+  /**
+   * Open folder browser modal
+   */
+  openFolderBrowser: function openFolderBrowser() {
+    jQuery('#aie-folder-browser-modal').fadeIn(200);
+    jQuery('body').addClass('aie-modal-open');
+
+    // Load current folder from input or start from root
+    var currentFolder = jQuery('#aie-folder-path').val().trim();
+    this.browseFolders(currentFolder); // Load current or root uploads directory
+  },
+  /**
+   * Close folder browser modal
+   */
+  closeFolderBrowser: function closeFolderBrowser() {
+    jQuery('#aie-folder-browser-modal').fadeOut(200);
+    jQuery('body').removeClass('aie-modal-open');
+    // Don't clear selected path - it's just a temporary selection within modal
+    jQuery('#aie-choose-folder-btn').prop('disabled', true);
+    jQuery('.aie-folder-item').removeClass('selected');
+  },
+  /**
+   * Browse folders via AJAX
+   */
+  browseFolders: function browseFolders(relativePath) {
+    var _window$aieData15,
+      _window$aieData16,
+      _this11 = this;
+    jQuery('#aie-folder-browser-loading').show();
+    jQuery('#aie-folder-browser-list').empty();
+    jQuery('#aie-folder-browser-empty').hide();
+    jQuery('#aie-folder-browser-error').hide();
+    jQuery('#aie-selected-folder-path').val('');
+    jQuery('#aie-choose-folder-btn').prop('disabled', true);
+    jQuery.ajax({
+      url: window.ajaxurl || ((_window$aieData15 = window.aieData) === null || _window$aieData15 === void 0 ? void 0 : _window$aieData15.ajaxUrl),
+      type: 'POST',
+      data: {
+        action: 'aie_browse_folders',
+        nonce: (_window$aieData16 = window.aieData) === null || _window$aieData16 === void 0 ? void 0 : _window$aieData16.nonce,
+        path: relativePath
+      }
+    }).done(function (response) {
+      if (response.success && response.data) {
+        _this11.displayFolders(response.data.folders, response.data.current_path);
+      } else {
+        var _response$data3;
+        // Debug output
+        console.error('Browse folders failed:', response);
+        _this11.showBrowserError(((_response$data3 = response.data) === null || _response$data3 === void 0 ? void 0 : _response$data3.message) || 'Failed to load folders');
+      }
+    }).fail(function (jqXHR, textStatus, errorThrown) {
+      // Debug output
+      console.error('AJAX request failed:', {
+        status: jqXHR.status,
+        statusText: jqXHR.statusText,
+        responseJSON: jqXHR.responseJSON,
+        responseText: jqXHR.responseText,
+        textStatus: textStatus,
+        errorThrown: errorThrown
+      });
+
+      // Log the full response text for debugging
+      if (jqXHR.responseText) {
+        console.log('Full response text:', jqXHR.responseText);
+      }
+      var errorMsg = 'Request failed';
+
+      // Check for WP_Error response
+      if (jqXHR.responseJSON) {
+        if (jqXHR.responseJSON.data && jqXHR.responseJSON.data.message) {
+          errorMsg = jqXHR.responseJSON.data.message;
+        } else if (jqXHR.responseJSON.message) {
+          errorMsg = jqXHR.responseJSON.message;
+        }
+      } else if (jqXHR.responseText) {
+        // Try to parse HTML error
+        var $html = jQuery('<div>').html(jqXHR.responseText);
+        var title = $html.find('title').text();
+        if (title) {
+          errorMsg = 'Server Error: ' + title;
+        } else {
+          // Show first line of error
+          var firstLine = jqXHR.responseText.split('\n')[0].substring(0, 100);
+          if (firstLine) {
+            errorMsg = 'Server Error: ' + firstLine;
+          }
+        }
+      }
+      if (errorThrown && errorMsg === 'Request failed') {
+        errorMsg = 'Request failed: ' + errorThrown;
+      }
+
+      // Add status code to message
+      if (jqXHR.status && jqXHR.status !== 200) {
+        errorMsg += ' (Status: ' + jqXHR.status + ')';
+      }
+      _this11.showBrowserError(errorMsg);
+    }).always(function () {
+      jQuery('#aie-folder-browser-loading').hide();
+    });
+  },
+  /**
+   * Show error in folder browser
+   */
+  showBrowserError: function showBrowserError(message) {
+    jQuery('#aie-folder-browser-error-message').text(message);
+    jQuery('#aie-folder-browser-error').slideDown();
+  },
+  /**
+   * Display folders in browser
+   */
+  displayFolders: function displayFolders(folders, currentPath) {
+    var _this12 = this;
+    var $list = jQuery('#aie-folder-browser-list');
+    var $currentPath = jQuery('#aie-current-path');
+    var $upBtn = jQuery('#aie-folder-up-btn');
+    $list.empty();
+
+    // Store base uploads directory path once
+    if (!$currentPath.data('base-dir')) {
+      var basePath = $currentPath.text().trim();
+      $currentPath.data('base-dir', basePath);
+    }
+    var baseDir = $currentPath.data('base-dir');
+
+    // Update current path display
+    if (currentPath) {
+      $currentPath.text(baseDir + '/' + currentPath);
+    } else {
+      $currentPath.text(baseDir);
+    }
+
+    // Store current relative path for navigation
+    $currentPath.data('relative-path', currentPath);
+
+    // Show/hide up button
+    if (currentPath) {
+      if (!$upBtn.length) {
+        var $upButton = jQuery("\n\t\t\t\t\t<button type=\"button\" id=\"aie-folder-up-btn\" class=\"button\" style=\"margin-bottom: 10px;\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-arrow-up-alt\"></span>\n\t\t\t\t\t\tGo Up\n\t\t\t\t\t</button>\n\t\t\t\t");
+        $upButton.insertBefore($list);
+      }
+    } else {
+      $upBtn.remove();
+    }
+
+    // Add "Use this folder" option
+    var $rootOption = jQuery("\n\t\t\t<div class=\"aie-folder-item aie-folder-current\" data-path=\"".concat(this.escapeHtml(currentPath), "\">\n\t\t\t\t<span class=\"dashicons dashicons-location\"></span>\n\t\t\t\t<span class=\"aie-folder-name\">\n\t\t\t\t\t<strong>. (Use this folder)</strong>\n\t\t\t\t</span>\n\t\t\t</div>\n\t\t"));
+    $list.append($rootOption);
+    if (!folders || folders.length === 0) {
+      jQuery('#aie-folder-browser-empty').show();
+      return;
+    }
+
+    // Display folders
+    folders.forEach(function (folder) {
+      var $item = jQuery("\n\t\t\t\t<div class=\"aie-folder-item\" data-path=\"".concat(_this12.escapeHtml(folder.path), "\">\n\t\t\t\t\t<span class=\"dashicons dashicons-category\"></span>\n\t\t\t\t\t<span class=\"aie-folder-name\">").concat(_this12.escapeHtml(folder.name), "</span>\n\t\t\t\t\t<span class=\"dashicons dashicons-arrow-right-alt2\"></span>\n\t\t\t\t</div>\n\t\t\t"));
+      $list.append($item);
+    });
+  }
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (MediaSyncModule);
+
+/***/ }),
+
+/***/ "./src/js/modules/utils.js":
+/*!*********************************!*\
+  !*** ./src/js/modules/utils.js ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+/**
+ * Utility Functions
+ *
+ * Common utilities used across the plugin
+ */
+
+var Utils = {
+  /**
+   * Make AJAX request
+   *
+   * @param {string} action AJAX action name
+   * @param {Object} data Data to send
+   * @param {string} method HTTP method (GET|POST)
+   * @returns {Promise}
+   */
+  ajax: function ajax(action) {
+    var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    var method = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'POST';
+    return new Promise(function (resolve, reject) {
+      var _window$aieData, _window$aieData2;
+      var ajaxData = _objectSpread({
+        action: action,
+        nonce: ((_window$aieData = window.aieData) === null || _window$aieData === void 0 ? void 0 : _window$aieData.nonce) || ''
+      }, data);
+      jQuery.ajax({
+        url: ((_window$aieData2 = window.aieData) === null || _window$aieData2 === void 0 ? void 0 : _window$aieData2.ajaxUrl) || '/wp-admin/admin-ajax.php',
+        type: method,
+        data: ajaxData,
+        dataType: 'json'
+      }).done(function (response) {
+        if (response.success) {
+          resolve(response.data || response);
+        } else {
+          var _response$data;
+          reject(((_response$data = response.data) === null || _response$data === void 0 ? void 0 : _response$data.message) || 'Request failed');
+        }
+      }).fail(function (jqXHR, textStatus, errorThrown) {
+        reject("AJAX Error: ".concat(textStatus, " - ").concat(errorThrown));
+      });
+    });
+  },
+  /**
+   * Format file size
+   *
+   * @param {number} bytes File size in bytes
+   * @returns {string} Formatted size
+   */
+  formatFileSize: function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    var k = 1024;
+    var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  },
+  /**
+   * Format duration
+   *
+   * @param {number} seconds Duration in seconds
+   * @returns {string} Formatted duration
+   */
+  formatDuration: function formatDuration(seconds) {
+    if (seconds < 60) {
+      return Math.round(seconds) + 's';
+    }
+    var minutes = Math.floor(seconds / 60);
+    var secs = Math.round(seconds % 60);
+    if (minutes < 60) {
+      return "".concat(minutes, "m ").concat(secs, "s");
+    }
+    var hours = Math.floor(minutes / 60);
+    var mins = minutes % 60;
+    return "".concat(hours, "h ").concat(mins, "m");
+  },
+  /**
+   * Debounce function
+   *
+   * @param {Function} func Function to debounce
+   * @param {number} wait Wait time in ms
+   * @returns {Function}
+   */
+  debounce: function debounce(func) {
+    var wait = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 300;
+    var timeout;
+    return function () {
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      var context = this;
+      clearTimeout(timeout);
+      timeout = setTimeout(function () {
+        return func.apply(context, args);
+      }, wait);
+    };
+  },
+  /**
+   * Show notice message
+   *
+   * @param {string} message Message text
+   * @param {string} type Notice type (success|error|warning|info)
+   */
+  showNotice: function showNotice(message) {
+    var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'info';
+    var noticeClass = "notice notice-".concat(type, " is-dismissible");
+    var noticeHtml = "\n\t\t\t<div class=\"".concat(noticeClass, "\">\n\t\t\t\t<p>").concat(message, "</p>\n\t\t\t\t<button type=\"button\" class=\"notice-dismiss\">\n\t\t\t\t\t<span class=\"screen-reader-text\">Dismiss this notice.</span>\n\t\t\t\t</button>\n\t\t\t</div>\n\t\t");
+    var $notice = jQuery(noticeHtml);
+    jQuery('.wrap > h1').after($notice);
+
+    // Auto dismiss after 5 seconds
+    setTimeout(function () {
+      $notice.fadeOut(function () {
+        return $notice.remove();
+      });
+    }, 5000);
+
+    // Manual dismiss
+    $notice.on('click', '.notice-dismiss', function () {
+      $notice.fadeOut(function () {
+        return $notice.remove();
+      });
+    });
+  },
+  /**
+   * Validate file
+   *
+   * @param {File} file File object
+   * @param {Array} allowedTypes Allowed MIME types
+   * @param {number} maxSize Max size in bytes
+   * @returns {Object} Validation result
+   */
+  validateFile: function validateFile(file) {
+    var allowedTypes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+    var maxSize = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 50 * 1024 * 1024;
+    var errors = [];
+
+    // Check file size
+    if (file.size > maxSize) {
+      errors.push("File size (".concat(this.formatFileSize(file.size), ") exceeds maximum allowed size (").concat(this.formatFileSize(maxSize), ")"));
+    }
+
+    // Check file type
+    if (allowedTypes.length > 0) {
+      var fileExt = file.name.split('.').pop().toLowerCase();
+      var isAllowed = allowedTypes.some(function (type) {
+        if (type.startsWith('.')) {
+          return type.substring(1) === fileExt;
+        }
+        return file.type === type;
+      });
+      if (!isAllowed) {
+        errors.push("File type .".concat(fileExt, " is not allowed. Allowed types: ").concat(allowedTypes.join(', ')));
+      }
+    }
+    return {
+      valid: errors.length === 0,
+      errors: errors
+    };
+  },
+  /**
+   * Parse CSV string to array
+   *
+   * @param {string} csv CSV string
+   * @param {string} delimiter Delimiter character
+   * @returns {Array} Parsed data
+   */
+  parseCSV: function parseCSV(csv) {
+    var delimiter = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ',';
+    var lines = csv.split('\n');
+    var result = [];
+    var _iterator = _createForOfIteratorHelper(lines),
+      _step;
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var line = _step.value;
+        if (line.trim() === '') continue;
+        var row = [];
+        var current = '';
+        var inQuotes = false;
+        for (var i = 0; i < line.length; i++) {
+          var _char = line[i];
+          if (_char === '"') {
+            inQuotes = !inQuotes;
+          } else if (_char === delimiter && !inQuotes) {
+            row.push(current.trim());
+            current = '';
+          } else {
+            current += _char;
+          }
+        }
+        row.push(current.trim());
+        result.push(row);
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+    return result;
+  },
+  /**
+   * Escape HTML
+   *
+   * @param {string} html HTML string
+   * @returns {string} Escaped HTML
+   */
+  escapeHtml: function escapeHtml(html) {
+    var div = document.createElement('div');
+    div.textContent = html;
+    return div.innerHTML;
+  },
+  /**
+   * Get URL parameter
+   *
+   * @param {string} name Parameter name
+   * @returns {string|null} Parameter value
+   */
+  getUrlParameter: function getUrlParameter(name) {
+    var urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+  },
+  /**
+   * Download file from URL
+   *
+   * @param {string} url File URL
+   * @param {string} filename Filename for download
+   */
+  downloadFile: function downloadFile(url, filename) {
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = filename || 'export.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  },
+  /**
+   * Generate UUID
+   *
+   * @returns {string} UUID
+   */
+  generateUUID: function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      var r = Math.random() * 16 | 0;
+      var v = c === 'x' ? r : r & 0x3 | 0x8;
+      return v.toString(16);
+    });
+  },
+  /**
+   * Create progress bar element
+   *
+   * @returns {jQuery} Progress bar element
+   */
+  createProgressBar: function createProgressBar() {
+    return jQuery("\n\t\t\t<div class=\"aie-progress-container\">\n\t\t\t\t<div class=\"aie-progress-bar\">\n\t\t\t\t\t<div class=\"aie-progress-bar-fill\" style=\"width: 0%;\"></div>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-progress-stats\">\n\t\t\t\t\t<div class=\"aie-progress-percentage\">0%</div>\n\t\t\t\t\t<div class=\"aie-progress-details\">\n\t\t\t\t\t\t<span class=\"aie-processed\">0</span> / <span class=\"aie-total\">0</span> items\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t");
+  },
+  /**
+   * Update progress bar
+   *
+   * @param {jQuery} $container Progress container
+   * @param {Object} data Progress data
+   */
+  updateProgressBar: function updateProgressBar($container, data) {
+    var percentage = data.percentage || 0;
+    var processed = data.processed || 0;
+    var total = data.total || 0;
+    $container.find('.aie-progress-bar-fill').css('width', percentage + '%');
+    $container.find('.aie-progress-percentage').text(Math.round(percentage) + '%');
+    $container.find('.aie-processed').text(processed);
+    $container.find('.aie-total').text(total);
+
+    // Update estimates if available
+    if (data.estimates) {
+      if (data.estimates.elapsed_formatted) {
+        $container.find('.aie-elapsed-time').text(data.estimates.elapsed_formatted);
+      }
+      if (data.estimates.remaining_formatted) {
+        $container.find('.aie-remaining-time').text(data.estimates.remaining_formatted);
+      }
+      if (data.estimates.items_per_second) {
+        $container.find('.aie-items-per-second').text(data.estimates.items_per_second.toFixed(1) + ' items/s');
+      }
+    }
+  },
+  /**
+   * Handle errors
+   *
+   * @param {Error|string} error Error object or message
+   * @param {string} context Error context
+   */
+  handleError: function handleError(error) {
+    var context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+    console.error("AIE Error".concat(context ? ' (' + context + ')' : '', ":"), error);
+    var message = error.message || error.toString();
+    this.showNotice(message, 'error');
+  },
+  /**
+   * Format bytes (alias for formatFileSize)
+   *
+   * @param {number} bytes File size in bytes
+   * @returns {string} Formatted size
+   */
+  formatBytes: function formatBytes(bytes) {
+    return this.formatFileSize(bytes);
+  }
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Utils);
+
+/***/ }),
+
+/***/ "./src/js/utils/notifications.js":
+/*!***************************************!*\
+  !*** ./src/js/utils/notifications.js ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   clearModalErrors: () => (/* binding */ clearModalErrors),
+/* harmony export */   confirmDialog: () => (/* binding */ confirmDialog),
+/* harmony export */   showError: () => (/* binding */ showError),
+/* harmony export */   showModalError: () => (/* binding */ showModalError),
+/* harmony export */   showNotice: () => (/* binding */ showNotice)
+/* harmony export */ });
+/**
+ * Notification utilities
+ */
+
+/**
+ * Show success notice
+ */
+function showNotice(message) {
+  // Use WordPress admin notice
+  var notice = document.createElement('div');
+  notice.className = 'notice notice-success is-dismissible';
+  notice.innerHTML = "<p>".concat(escapeHtml(message), "</p>");
+  var container = document.querySelector('.wrap') || document.body;
+  container.insertBefore(notice, container.firstChild);
+
+  // Auto dismiss after 5 seconds
+  setTimeout(function () {
+    notice.remove();
+  }, 5000);
+
+  // Make it dismissible
+  var dismissButton = document.createElement('button');
+  dismissButton.type = 'button';
+  dismissButton.className = 'notice-dismiss';
+  dismissButton.innerHTML = '<span class="screen-reader-text">Dismiss this notice.</span>';
+  dismissButton.addEventListener('click', function () {
+    notice.remove();
+  });
+  notice.appendChild(dismissButton);
+}
+
+/**
+ * Show error message
+ */
+function showError(message) {
+  var notice = document.createElement('div');
+  notice.className = 'notice notice-error is-dismissible';
+  notice.innerHTML = "<p>".concat(escapeHtml(message), "</p>");
+  var container = document.querySelector('.wrap') || document.body;
+  container.insertBefore(notice, container.firstChild);
+
+  // Auto dismiss after 10 seconds
+  setTimeout(function () {
+    notice.remove();
+  }, 10000);
+
+  // Make it dismissible
+  var dismissButton = document.createElement('button');
+  dismissButton.type = 'button';
+  dismissButton.className = 'notice-dismiss';
+  dismissButton.innerHTML = '<span class="screen-reader-text">Dismiss this notice.</span>';
+  dismissButton.addEventListener('click', function () {
+    notice.remove();
+  });
+  notice.appendChild(dismissButton);
+}
+
+/**
+ * Show error message inside a modal
+ */
+function showModalError(message) {
+  var modalElement = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+  // If no modal specified, try to find the currently visible modal
+  if (!modalElement) {
+    modalElement = document.querySelector('.aie-modal[style*="display: flex"]') || document.querySelector('.aie-modal[style*="display:flex"]') || document.querySelector('.aie-modal');
+  }
+  if (!modalElement) {
+    // Fallback to regular error if no modal found
+    showError(message);
+    return;
+  }
+
+  // Remove any existing error notices in the modal
+  var existingErrors = modalElement.querySelectorAll('.aie-modal-error');
+  existingErrors.forEach(function (el) {
+    return el.remove();
+  });
+
+  // Create error notice
+  var notice = document.createElement('div');
+  notice.className = 'notice notice-error is-dismissible aie-modal-error';
+  notice.innerHTML = "<p>".concat(escapeHtml(message), "</p>");
+
+  // Find modal content area
+  var modalContent = modalElement.querySelector('.aie-modal-content') || modalElement.querySelector('.aie-modal-body') || modalElement;
+
+  // Insert at the top of modal content
+  if (modalContent.firstChild) {
+    modalContent.insertBefore(notice, modalContent.firstChild);
+  } else {
+    modalContent.appendChild(notice);
+  }
+
+  // Auto dismiss after 10 seconds
+  setTimeout(function () {
+    notice.remove();
+  }, 10000);
+
+  // Make it dismissible
+  var dismissButton = document.createElement('button');
+  dismissButton.type = 'button';
+  dismissButton.className = 'notice-dismiss';
+  dismissButton.innerHTML = '<span class="screen-reader-text">Dismiss this notice.</span>';
+  dismissButton.addEventListener('click', function () {
+    notice.remove();
+  });
+  notice.appendChild(dismissButton);
+
+  // Scroll to top of modal to show error
+  modalContent.scrollTop = 0;
+}
+
+/**
+ * Clear modal errors
+ */
+function clearModalErrors() {
+  var modalElement = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+  // If no modal specified, try to find the currently visible modal or clear all
+  if (!modalElement) {
+    var existingErrors = document.querySelectorAll('.aie-modal-error');
+    existingErrors.forEach(function (el) {
+      return el.remove();
+    });
+  } else {
+    var _existingErrors = modalElement.querySelectorAll('.aie-modal-error');
+    _existingErrors.forEach(function (el) {
+      return el.remove();
+    });
+  }
+}
+
+/**
+ * Show confirmation dialog
+ */
+function confirmDialog(message) {
+  return new Promise(function (resolve) {
+    // Use native confirm for simplicity
+    var result = confirm(message);
+    resolve(result);
+  });
+}
+
+/**
+ * Escape HTML
+ */
+function escapeHtml(text) {
+  var div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+/***/ }),
+
+/***/ "./src/scss/app.scss":
+/*!***************************!*\
+  !*** ./src/scss/app.scss ***!
+  \***************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = __webpack_modules__;
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/chunk loaded */
+/******/ 	(() => {
+/******/ 		var deferred = [];
+/******/ 		__webpack_require__.O = (result, chunkIds, fn, priority) => {
+/******/ 			if(chunkIds) {
+/******/ 				priority = priority || 0;
+/******/ 				for(var i = deferred.length; i > 0 && deferred[i - 1][2] > priority; i--) deferred[i] = deferred[i - 1];
+/******/ 				deferred[i] = [chunkIds, fn, priority];
+/******/ 				return;
+/******/ 			}
+/******/ 			var notFulfilled = Infinity;
+/******/ 			for (var i = 0; i < deferred.length; i++) {
+/******/ 				var [chunkIds, fn, priority] = deferred[i];
+/******/ 				var fulfilled = true;
+/******/ 				for (var j = 0; j < chunkIds.length; j++) {
+/******/ 					if ((priority & 1 === 0 || notFulfilled >= priority) && Object.keys(__webpack_require__.O).every((key) => (__webpack_require__.O[key](chunkIds[j])))) {
+/******/ 						chunkIds.splice(j--, 1);
+/******/ 					} else {
+/******/ 						fulfilled = false;
+/******/ 						if(priority < notFulfilled) notFulfilled = priority;
+/******/ 					}
+/******/ 				}
+/******/ 				if(fulfilled) {
+/******/ 					deferred.splice(i--, 1)
+/******/ 					var r = fn();
+/******/ 					if (r !== undefined) result = r;
+/******/ 				}
+/******/ 			}
+/******/ 			return result;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/jsonp chunk loading */
+/******/ 	(() => {
+/******/ 		// no baseURI
+/******/ 		
+/******/ 		// object to store loaded and loading chunks
+/******/ 		// undefined = chunk not loaded, null = chunk preloaded/prefetched
+/******/ 		// [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
+/******/ 		var installedChunks = {
+/******/ 			"/js/app": 0,
+/******/ 			"css/app": 0
+/******/ 		};
+/******/ 		
+/******/ 		// no chunk on demand loading
+/******/ 		
+/******/ 		// no prefetching
+/******/ 		
+/******/ 		// no preloaded
+/******/ 		
+/******/ 		// no HMR
+/******/ 		
+/******/ 		// no HMR manifest
+/******/ 		
+/******/ 		__webpack_require__.O.j = (chunkId) => (installedChunks[chunkId] === 0);
+/******/ 		
+/******/ 		// install a JSONP callback for chunk loading
+/******/ 		var webpackJsonpCallback = (parentChunkLoadingFunction, data) => {
+/******/ 			var [chunkIds, moreModules, runtime] = data;
+/******/ 			// add "moreModules" to the modules object,
+/******/ 			// then flag all "chunkIds" as loaded and fire callback
+/******/ 			var moduleId, chunkId, i = 0;
+/******/ 			if(chunkIds.some((id) => (installedChunks[id] !== 0))) {
+/******/ 				for(moduleId in moreModules) {
+/******/ 					if(__webpack_require__.o(moreModules, moduleId)) {
+/******/ 						__webpack_require__.m[moduleId] = moreModules[moduleId];
+/******/ 					}
+/******/ 				}
+/******/ 				if(runtime) var result = runtime(__webpack_require__);
+/******/ 			}
+/******/ 			if(parentChunkLoadingFunction) parentChunkLoadingFunction(data);
+/******/ 			for(;i < chunkIds.length; i++) {
+/******/ 				chunkId = chunkIds[i];
+/******/ 				if(__webpack_require__.o(installedChunks, chunkId) && installedChunks[chunkId]) {
+/******/ 					installedChunks[chunkId][0]();
+/******/ 				}
+/******/ 				installedChunks[chunkId] = 0;
+/******/ 			}
+/******/ 			return __webpack_require__.O(result);
+/******/ 		}
+/******/ 		
+/******/ 		var chunkLoadingGlobal = self["webpackChunkboilerplate"] = self["webpackChunkboilerplate"] || [];
+/******/ 		chunkLoadingGlobal.forEach(webpackJsonpCallback.bind(null, 0));
+/******/ 		chunkLoadingGlobal.push = webpackJsonpCallback.bind(null, chunkLoadingGlobal.push.bind(chunkLoadingGlobal));
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module depends on other loaded chunks and execution need to be delayed
+/******/ 	__webpack_require__.O(undefined, ["css/app"], () => (__webpack_require__("./src/js/app.js")))
+/******/ 	var __webpack_exports__ = __webpack_require__.O(undefined, ["css/app"], () => (__webpack_require__("./src/scss/app.scss")))
+/******/ 	__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
+/******/ 	
+/******/ })()
+;
 //# sourceMappingURL=app.js.map
