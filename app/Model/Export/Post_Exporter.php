@@ -122,6 +122,29 @@ class Post_Exporter extends Abstract_Exporter {
 	 * @return int
 	 */
 	public function get_count( $options = [] ) {
+		// Special handling for menus - count nav_menu terms, not nav_menu_item posts
+		if ( isset( $options['post_type'] ) && $options['post_type'] === 'nav_menu_item' ) {
+			$term_args = [
+				'taxonomy'   => 'nav_menu',
+				'hide_empty' => false,
+				'fields'     => 'all',
+			];
+
+			// Get all terms first
+			$terms = get_terms( $term_args );
+
+			if ( is_wp_error( $terms ) || empty( $terms ) ) {
+				return 0;
+			}
+
+			// Apply filters if present
+			if ( ! empty( $options['filters'] ) && is_array( $options['filters'] ) ) {
+				$terms = $this->apply_menu_filters( $terms, $options['filters'] );
+			}
+
+			return count( $terms );
+		}
+
 		$query_args                   = $this->build_query_args( $options );
 		$query_args['fields']         = 'ids';
 		$query_args['posts_per_page'] = -1;
@@ -956,5 +979,103 @@ class Post_Exporter extends Abstract_Exporter {
 			'caption'  => $image->post_excerpt,
 			'filename' => basename( get_attached_file( $thumbnail_id ) ),
 		];
+	}
+
+	/**
+	 * Apply filters to menu terms
+	 *
+	 * @param array $terms   Array of term objects
+	 * @param array $filters Array of filter conditions
+	 * @return array Filtered terms
+	 */
+	protected function apply_menu_filters( $terms, $filters ) {
+		if ( empty( $filters ) || ! is_array( $filters ) ) {
+			return $terms;
+		}
+
+		$filtered = $terms;
+
+		foreach ( $filters as $filter ) {
+			if ( empty( $filter['field'] ) || empty( $filter['condition'] ) ) {
+				continue;
+			}
+
+			$field     = $filter['field'];
+			$condition = $filter['condition'];
+			$value     = $filter['value'] ?? '';
+
+			$filtered = array_filter(
+				$filtered,
+				function ( $term ) use ( $field, $condition, $value ) {
+					// Get the field value from term object
+					$term_value = null;
+					if ( $field === 'term_id' ) {
+						$term_value = $term->term_id;
+					} elseif ( $field === 'name' ) {
+						$term_value = $term->name;
+					} else {
+						// Field not supported for menus
+						return true;
+					}
+
+					// Apply condition
+					return $this->evaluate_condition( $term_value, $condition, $value );
+				}
+			);
+		}
+
+		return array_values( $filtered ); // Re-index array
+	}
+
+	/**
+	 * Evaluate a filter condition
+	 *
+	 * @param mixed  $field_value The value to test
+	 * @param string $condition   The condition type
+	 * @param mixed  $test_value  The value to test against
+	 * @return bool True if condition matches
+	 */
+	protected function evaluate_condition( $field_value, $condition, $test_value ) {
+		switch ( $condition ) {
+			case 'equals':
+				return $field_value == $test_value;
+
+			case 'not_equals':
+				return $field_value != $test_value;
+
+			case 'contains':
+				return stripos( $field_value, $test_value ) !== false;
+
+			case 'not_contains':
+				return stripos( $field_value, $test_value ) === false;
+
+			case 'starts_with':
+				return stripos( $field_value, $test_value ) === 0;
+
+			case 'ends_with':
+				return substr( strtolower( $field_value ), -strlen( $test_value ) ) === strtolower( $test_value );
+
+			case 'greater':
+				return $field_value > $test_value;
+
+			case 'less':
+				return $field_value < $test_value;
+
+			case 'equals_or_greater':
+				return $field_value >= $test_value;
+
+			case 'equals_or_less':
+				return $field_value <= $test_value;
+
+			case 'between':
+				$values = array_map( 'trim', explode( ',', $test_value ) );
+				if ( count( $values ) === 2 ) {
+					return $field_value >= $values[0] && $field_value <= $values[1];
+				}
+				return true;
+
+			default:
+				return true;
+		}
 	}
 }

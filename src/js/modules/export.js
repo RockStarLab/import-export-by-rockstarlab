@@ -987,18 +987,6 @@ const ExportModule = {
 					options: [
 						{ value: 'term_id', label: 'Menu ID', type: 'number' },
 						{ value: 'name', label: 'Menu Name', type: 'string' },
-						{ value: 'slug', label: 'Menu Slug', type: 'string' },
-						{ value: 'count', label: 'Item Count', type: 'number' },
-					],
-				},
-				{
-					label: 'Menu Items',
-					options: [
-						{ value: 'item_type', label: 'Item Type', type: 'string' },
-						{ value: 'item_title', label: 'Item Title', type: 'string' },
-						{ value: 'item_url', label: 'Item URL', type: 'string' },
-						{ value: 'item_parent', label: 'Parent Item ID', type: 'number' },
-						{ value: 'item_position', label: 'Position', type: 'number' },
 					],
 				},
 			];
@@ -1028,10 +1016,9 @@ const ExportModule = {
 					],
 				},
 				{
-					label: 'Role & Status',
+					label: 'Role',
 					options: [
 						{ value: 'role', label: 'Role', type: 'string' },
-						{ value: 'user_status', label: 'Status', type: 'number' },
 					],
 				},
 				{

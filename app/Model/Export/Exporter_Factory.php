@@ -59,17 +59,17 @@ class Exporter_Factory {
 			'page'                 => Post_Exporter::class,
 			'media'                => Media_Exporter::class,
 			'menu'                 => Post_Exporter::class,
-			'user'                 => Post_Exporter::class,
-			'comment'              => Post_Exporter::class,
-			'block_theme_settings' => Post_Exporter::class,
-			'taxonomy'             => Post_Exporter::class,
+			'user'                 => User_Exporter::class,
+			'comment'              => Comment_Exporter::class,
+			'block_theme_settings' => Block_Theme_Settings_Exporter::class,
+			'taxonomy'             => Taxonomy_Exporter::class,
 
 			// Premium features
 			'custom_post_types'    => Post_Exporter::class,
 			'woo_product'          => Post_Exporter::class,
 			'woo_order'            => Post_Exporter::class,
 			'woo_coupon'           => Post_Exporter::class,
-			'woo_attribute'        => Post_Exporter::class,
+			'woo_attribute'        => Woo_Attribute_Exporter::class,
 			'custom_table'         => Custom_Table_Exporter::class,
 		];
 
