@@ -46,13 +46,14 @@ class User_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'role'         => __( 'User role', 'wp-advanced-import-export' ),
-			'role__in'     => __( 'Array of roles', 'wp-advanced-import-export' ),
-			'role__not_in' => __( 'Array of roles to exclude', 'wp-advanced-import-export' ),
-			'meta_query'   => __( 'Meta query parameters', 'wp-advanced-import-export' ),
-			'search'       => __( 'Search query', 'wp-advanced-import-export' ),
-			'orderby'      => __( 'Order by field', 'wp-advanced-import-export' ),
-			'order'        => __( 'Order direction (ASC or DESC)', 'wp-advanced-import-export' ),
+			'role'          => __( 'User role', 'wp-advanced-import-export' ),
+			'role__in'      => __( 'Array of roles', 'wp-advanced-import-export' ),
+			'role__not_in'  => __( 'Array of roles to exclude', 'wp-advanced-import-export' ),
+			'meta_query'    => __( 'Meta query parameters', 'wp-advanced-import-export' ),
+			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'wp-advanced-import-export' ),
+			'search'        => __( 'Search query', 'wp-advanced-import-export' ),
+			'orderby'       => __( 'Order by field', 'wp-advanced-import-export' ),
+			'order'         => __( 'Order direction (ASC or DESC)', 'wp-advanced-import-export' ),
 		];
 	}
 
@@ -329,6 +330,11 @@ class User_Exporter extends Abstract_Exporter {
 			$args['meta_query'] = $options['meta_query'];
 		}
 
+		// Custom field filters
+		if ( ! empty( $options['custom_fields'] ) && is_array( $options['custom_fields'] ) ) {
+			$this->apply_custom_field_filters( $args, $options['custom_fields'] );
+		}
+
 		// Process dynamic filters
 		if ( ! empty( $options['filters'] ) && is_array( $options['filters'] ) ) {
 			// Log filters for debugging
@@ -339,6 +345,72 @@ class User_Exporter extends Abstract_Exporter {
 		}
 
 		return $args;
+	}
+
+	/**
+	 * Apply custom field (meta) filters to query args
+	 *
+	 * @param array $args    Query arguments (by reference)
+	 * @param array $filters Custom field filters
+	 *                       Format: [
+	 *                           [
+	 *                               'name' => 'field_name',
+	 *                               'value' => 'field_value',
+	 *                               'condition' => 'equals|not_equals|contains|not_contains|...'
+	 *                           ]
+	 *                       ]
+	 */
+	protected function apply_custom_field_filters( &$args, $filters ) {
+		if ( empty( $filters ) || ! is_array( $filters ) ) {
+			return;
+		}
+
+		// Initialize meta_query if not exists
+		if ( ! isset( $args['meta_query'] ) ) {
+			$args['meta_query'] = [];
+		}
+
+		foreach ( $filters as $filter ) {
+			if ( empty( $filter['name'] ) || ! isset( $filter['condition'] ) ) {
+				continue;
+			}
+
+			$name      = sanitize_text_field( $filter['name'] );
+			$condition = $filter['condition'];
+			$value     = $filter['value'] ?? '';
+
+			// Convert condition to meta compare
+			$meta_condition = $this->convert_condition_to_meta_compare( $condition );
+
+			if ( ! $meta_condition ) {
+				continue;
+			}
+
+			$meta_query_item = [
+				'key'     => $name,
+				'compare' => $meta_condition,
+			];
+
+			// Add value only if condition requires it
+			if ( ! in_array( $condition, [ 'is_empty', 'is_not_empty' ], true ) ) {
+				// For IN and NOT IN, value should be an array
+				if ( in_array( $condition, [ 'in', 'not_in' ], true ) ) {
+					$values                   = array_map(
+						function ( $v ) {
+							$v = trim( $v );
+							// Remove surrounding quotes if present
+							return trim( $v, '\'"' );
+						},
+						is_array( $value ) ? $value : explode( ',', $value )
+					);
+					$meta_query_item['value'] = array_filter( $values ); // Remove empty values
+				} else {
+					$meta_query_item['value'] = $value;
+				}
+			}
+
+			$args['meta_query'][] = $meta_query_item;
+		}
 	}
 
 	/**
@@ -558,6 +630,31 @@ class User_Exporter extends Abstract_Exporter {
 			$args['search']         = $search_value;
 			$args['search_columns'] = [ $first_filter['field'] ];
 		}
+	}
+
+	/**
+	 * Convert filter condition to WP meta compare operator
+	 *
+	 * @param string $condition Filter condition
+	 * @return string|null Meta compare operator
+	 */
+	protected function convert_condition_to_meta_compare( $condition ) {
+		$map = [
+			'equals'            => '=',
+			'not_equals'        => '!=',
+			'greater'           => '>',
+			'less'              => '<',
+			'equals_or_greater' => '>=',
+			'equals_or_less'    => '<=',
+			'contains'          => 'LIKE',
+			'not_contains'      => 'NOT LIKE',
+			'is_empty'          => 'NOT EXISTS',
+			'is_not_empty'      => 'EXISTS',
+			'in'                => 'IN',
+			'not_in'            => 'NOT IN',
+		];
+
+		return $map[ $condition ] ?? null;
 	}
 
 	/**
