@@ -146,14 +146,40 @@ const ExportModule = {
 
 	nextStep() {
 		if ( this.currentStep < this.totalSteps ) {
-			this.showStep( this.currentStep + 1 );
+			let nextStep = this.currentStep + 1;
+			
+			// Skip step 2 (filters) for content types that don't need filtering
+			if ( nextStep === 2 && this.shouldSkipFilters() ) {
+				nextStep = 3;
+			}
+			
+			this.showStep( nextStep );
 		}
 	},
 
 	prevStep() {
 		if ( this.currentStep > 1 ) {
-			this.showStep( this.currentStep - 1 );
+			let prevStep = this.currentStep - 1;
+			
+			// Skip step 2 (filters) when going back for content types that don't need filtering
+			if ( prevStep === 2 && this.shouldSkipFilters() ) {
+				prevStep = 1;
+			}
+			
+			this.showStep( prevStep );
 		}
+	},
+
+	/**
+	 * Check if current content type should skip filters step
+	 */
+	shouldSkipFilters() {
+		const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
+		
+		// Content types that don't need filtering (go straight from step 1 to step 3)
+		const noFilterTypes = [ 'block_theme_settings' ];
+		
+		return noFilterTypes.includes( contentType );
 	},
 
 	/**
@@ -166,9 +192,10 @@ const ExportModule = {
 		jQuery( '#aie-filters-list' ).empty();
 
 		// Show/hide custom filters section
+		// Note: block_theme_settings is excluded - it doesn't need filters (goes straight to step 3)
 		const filterableTypes = [ 
 			'post', 'page', 'media', 'menu', 'user', 'comment', 
-			'block_theme_settings', 'custom_post_types', 'taxonomy',
+			'custom_post_types', 'taxonomy',
 			'woo_product', 'woo_order', 'woo_coupon', 'woo_attribute',
 			'custom_table'
 		];
