@@ -1378,31 +1378,14 @@ const ExportModule = {
 				{
 					label: 'Basic',
 					options: [
-						{ value: 'term_id', label: 'Term ID', type: 'number' },
-						{ value: 'name', label: 'Term Name', type: 'string' },
-						{ value: 'slug', label: 'Term Slug', type: 'string' },
-						{ value: 'taxonomy', label: 'Taxonomy', type: 'string' },
-						{ value: 'description', label: 'Description', type: 'string' },
-					],
-				},
-				{
-					label: 'Hierarchy',
-					options: [
-						{ value: 'parent', label: 'Parent Term ID', type: 'number' },
-						{ value: 'count', label: 'Post Count', type: 'number' },
-					],
-				},
-				{
-					label: 'Meta',
-					options: [
-						{ value: 'term_group', label: 'Term Group', type: 'number' },
-						{ value: 'term_order', label: 'Term Order', type: 'number' },
+						{ value: 'name', label: 'Taxonomy Name', type: 'string' },
+						{ value: 'slug', label: 'Taxonomy Slug', type: 'string' },
 					],
 				},
 				{
 					label: 'Custom Filters',
 					options: [
-						{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
+						{ value: '_custom_field', label: '🔧 Taxonomy Custom Field (Meta)', type: 'custom_field' },
 					],
 				},
 			];
