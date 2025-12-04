@@ -293,35 +293,35 @@ const ExportModule = {
 					table_name: $tableSelector.val(),
 					filters: dynamicFiltersData.filters,
 				};
-			} else {
-				// For other types, use dynamic filters
-				const dynamicFiltersData = this.getDynamicFilters();
-				
-				// Map content type to post_type for post-based exporters
-				const postType = this.getPostTypeForContentType( contentType );
-				if ( postType ) {
-					options.post_type = postType;
-				}
-				
-				// Add dynamic filters as query parameters
-				if ( dynamicFiltersData.filters.length > 0 ) {
-					options.filters = dynamicFiltersData.filters;
-				}
-				
-				// Add custom field filters
-				if ( dynamicFiltersData.custom_fields.length > 0 ) {
-					options.custom_fields = dynamicFiltersData.custom_fields;
-				}
-				
-				// Add taxonomy filters
-				if ( dynamicFiltersData.taxonomy.length > 0 ) {
-					options.taxonomy = dynamicFiltersData.taxonomy;
-				}
-			}
-
-			console.log('Sending options to backend:', options);
+		} else {
+			// For other types, use dynamic filters
+			const dynamicFiltersData = this.getDynamicFilters();
 			
-			const response = await Utils.ajax( 'aie_export_get_count', {
+			console.log('Dynamic filters data:', dynamicFiltersData);
+			
+			// Map content type to post_type for post-based exporters
+			const postType = this.getPostTypeForContentType( contentType );
+			if ( postType ) {
+				options.post_type = postType;
+			}
+			
+			// Add dynamic filters as query parameters
+			if ( dynamicFiltersData.filters.length > 0 ) {
+				options.filters = dynamicFiltersData.filters;
+			}
+			
+			// Add custom field filters
+			if ( dynamicFiltersData.custom_fields.length > 0 ) {
+				options.custom_fields = dynamicFiltersData.custom_fields;
+			}
+			
+			// Add taxonomy filters
+			if ( dynamicFiltersData.taxonomy.length > 0 ) {
+				options.taxonomy = dynamicFiltersData.taxonomy;
+			}
+		}
+
+		console.log('Sending options to backend:', options);			const response = await Utils.ajax( 'aie_export_get_count', {
 				export_type: contentType,
 				options: options,
 			} );
@@ -417,6 +417,20 @@ const ExportModule = {
 
 			// Skip table selector for custom_table type
 			if ( fieldType === 'table_selector' ) {
+				return;
+			}
+
+			// Handle post_type_selector type
+			if ( fieldType === 'post_type_selector' ) {
+				const value = $row.find( '.aie-filter-value' ).val();
+				
+				if ( value && value.trim() !== '' ) {
+					filters.push( {
+						field: 'post_type',
+						condition: 'equals', // Default condition for post type
+						value: value,
+					} );
+				}
 				return;
 			}
 
@@ -898,13 +912,11 @@ const ExportModule = {
 				.attr( 'name', 'filter_value[]' );
 			
 			// Fetch database tables via AJAX
-			Utils.ajax( {
-				action: 'get_database_tables',
-			} ).then( ( response ) => {
-				if ( response.success && response.data ) {
-					$select.append( jQuery( '<option>' ).val( '' ).text( 'Select Table...' ) );
-					
-					response.data.forEach( ( table ) => {
+			Utils.ajax( 'aie_get_database_tables', {} ).then( ( tables ) => {
+				$select.append( jQuery( '<option>' ).val( '' ).text( 'Select Table...' ) );
+				
+				if ( tables && Array.isArray( tables ) ) {
+					tables.forEach( ( table ) => {
 						$select.append(
 							jQuery( '<option>' )
 								.val( table.name )
@@ -920,6 +932,9 @@ const ExportModule = {
 						}
 					} );
 				}
+			} ).catch( ( error ) => {
+				console.error( 'Error loading tables:', error );
+				$select.append( jQuery( '<option>' ).val( '' ).text( 'Error loading tables' ) );
 			} );
 			
 			$value.replaceWith( $select );
@@ -931,37 +946,42 @@ const ExportModule = {
 			// Hide condition dropdown for post type selector
 			$condition.closest( '.aie-filter-condition-wrap' ).hide();
 			
-			// Replace value input with post type selector
-			$valueWrap.find( 'label' ).text( 'Select Post Type' );
+		// Replace value input with post type selector
+		$valueWrap.find( 'label' ).text( 'Select Post Type' );
+		
+		// Create a select dropdown for post types
+		const $select = jQuery( '<select>' )
+			.addClass( 'aie-filter-value aie-post-type-selector' )
+			.attr( 'name', 'filter_value[]' );
+		
+		// Fetch post types via AJAX
+		Utils.ajax( 'aie_get_post_types', {
+			include_hidden: true,
+		} ).then( ( postTypes ) => {
+			$select.append( jQuery( '<option>' ).val( '' ).text( 'Select Post Type...' ) );
 			
-			// Create a select dropdown for post types
-			const $select = jQuery( '<select>' )
-				.addClass( 'aie-filter-value aie-post-type-selector' )
-				.attr( 'name', 'filter_value[]' );
-			
-			// Fetch post types via AJAX
-			Utils.ajax( {
-				action: 'aie_get_post_types',
-				include_hidden: true,
-			} ).then( ( response ) => {
-				if ( response.success && response.data ) {
-					$select.append( jQuery( '<option>' ).val( '' ).text( 'Select Post Type...' ) );
-					
-					response.data.forEach( ( postType ) => {
-						$select.append(
-							jQuery( '<option>' )
-								.val( postType.name )
-								.text( postType.label + ' (' + postType.name + ')' )
-						);
-					} );
-				}
-			} );
-			
-			$value.replaceWith( $select );
-			return;
-		}
+			if ( postTypes && Array.isArray( postTypes ) ) {
+				postTypes.forEach( ( postType ) => {
+					$select.append(
+						jQuery( '<option>' )
+							.val( postType.name )
+							.text( postType.label + ' (' + postType.name + ')' )
+					);
+				} );
 
-		// Show condition dropdown for normal fields
+				// When post type is selected, refresh count
+				$select.on( 'change', () => {
+					Utils.debounce( () => this.refreshCount( false ), 500 )();
+				} );
+			}
+		} ).catch( ( error ) => {
+			console.error( 'Error loading post types:', error );
+			$select.append( jQuery( '<option>' ).val( '' ).text( 'Error loading post types' ) );
+		} );
+		
+		$value.replaceWith( $select );
+		return;
+	}		// Show condition dropdown for normal fields
 		$condition.closest( '.aie-filter-condition-wrap' ).show();
 		$valueWrap.find( 'label' ).text( 'Value' );
 
@@ -1042,13 +1062,12 @@ const ExportModule = {
 	 * Load table columns dynamically
 	 */
 	loadTableColumns( tableName ) {
-		Utils.ajax( {
-			action: 'get_table_columns',
+		Utils.ajax( 'aie_get_table_columns', {
 			table_name: tableName,
-		} ).then( ( response ) => {
-			if ( response.success && response.data ) {
+		} ).then( ( columns ) => {
+			if ( columns && Array.isArray( columns ) ) {
 				// Store columns for later use
-				this.tableColumns = response.data;
+				this.tableColumns = columns;
 				
 				// Update all filter field dropdowns
 				jQuery( '.aie-filter-field' ).each( ( index, element ) => {
@@ -1060,7 +1079,7 @@ const ExportModule = {
 					$fieldSelect.append( jQuery( '<option>' ).val( '' ).text( 'Select Field...' ) );
 					
 					// Add columns as options
-					response.data.forEach( ( column ) => {
+					columns.forEach( ( column ) => {
 						$fieldSelect.append(
 							jQuery( '<option>' )
 								.val( column.name )
@@ -1075,6 +1094,8 @@ const ExportModule = {
 					}
 				} );
 			}
+		} ).catch( ( error ) => {
+			console.error( 'Error loading table columns:', error );
 		} );
 	},
 
@@ -1360,7 +1381,6 @@ const ExportModule = {
 				options: [
 					{ value: 'post_parent', label: 'Parent ID', type: 'number' },
 					{ value: 'post_modified', label: 'Modified Date', type: 'date' },
-					{ value: 'menu_order', label: 'Menu Order', type: 'number' },
 					{ value: '_wp_page_template', label: 'Template', type: 'string' },
 				],
 			},

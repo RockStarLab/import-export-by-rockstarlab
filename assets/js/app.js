@@ -339,7 +339,10 @@ var ExportModule = {
               };
             } else {
               // For other types, use dynamic filters
-              _dynamicFiltersData = _this2.getDynamicFilters(); // Map content type to post_type for post-based exporters
+              _dynamicFiltersData = _this2.getDynamicFilters();
+              console.log('Dynamic filters data:', _dynamicFiltersData);
+
+              // Map content type to post_type for post-based exporters
               postType = _this2.getPostTypeForContentType(contentType);
               if (postType) {
                 options.post_type = postType;
@@ -466,18 +469,32 @@ var ExportModule = {
         return;
       }
 
+      // Handle post_type_selector type
+      if (fieldType === 'post_type_selector') {
+        var _value = $row.find('.aie-filter-value').val();
+        if (_value && _value.trim() !== '') {
+          filters.push({
+            field: 'post_type',
+            condition: 'equals',
+            // Default condition for post type
+            value: _value
+          });
+        }
+        return;
+      }
+
       // Handle custom_field type
       if (fieldType === 'custom_field') {
         var name = $row.find('.aie-custom-field-name').val();
         var _condition = $row.find('.aie-custom-field-condition').val();
-        var _value = $row.find('.aie-custom-field-value').val();
+        var _value2 = $row.find('.aie-custom-field-value').val();
         if (name && _condition) {
           var _noValueConditions = ['is_empty', 'is_not_empty'];
-          if (_noValueConditions.includes(_condition) || _value && _value.trim() !== '') {
+          if (_noValueConditions.includes(_condition) || _value2 && _value2.trim() !== '') {
             customFields.push({
               name: name,
               condition: _condition,
-              value: _value || ''
+              value: _value2 || ''
             });
           }
         }
@@ -909,12 +926,10 @@ var ExportModule = {
       var $select = jQuery('<select>').addClass('aie-filter-value aie-table-selector').attr('name', 'filter_value[]');
 
       // Fetch database tables via AJAX
-      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax({
-        action: 'get_database_tables'
-      }).then(function (response) {
-        if (response.success && response.data) {
-          $select.append(jQuery('<option>').val('').text('Select Table...'));
-          response.data.forEach(function (table) {
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_get_database_tables', {}).then(function (tables) {
+        $select.append(jQuery('<option>').val('').text('Select Table...'));
+        if (tables && Array.isArray(tables)) {
+          tables.forEach(function (table) {
             $select.append(jQuery('<option>').val(table.name).text(table.name));
           });
 
@@ -926,6 +941,9 @@ var ExportModule = {
             }
           });
         }
+      })["catch"](function (error) {
+        console.error('Error loading tables:', error);
+        $select.append(jQuery('<option>').val('').text('Error loading tables'));
       });
       $value.replaceWith($select);
       return;
@@ -943,22 +961,29 @@ var ExportModule = {
       var _$select = jQuery('<select>').addClass('aie-filter-value aie-post-type-selector').attr('name', 'filter_value[]');
 
       // Fetch post types via AJAX
-      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax({
-        action: 'aie_get_post_types',
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_get_post_types', {
         include_hidden: true
-      }).then(function (response) {
-        if (response.success && response.data) {
-          _$select.append(jQuery('<option>').val('').text('Select Post Type...'));
-          response.data.forEach(function (postType) {
+      }).then(function (postTypes) {
+        _$select.append(jQuery('<option>').val('').text('Select Post Type...'));
+        if (postTypes && Array.isArray(postTypes)) {
+          postTypes.forEach(function (postType) {
             _$select.append(jQuery('<option>').val(postType.name).text(postType.label + ' (' + postType.name + ')'));
           });
+
+          // When post type is selected, refresh count
+          _$select.on('change', function () {
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+              return _this11.refreshCount(false);
+            }, 500)();
+          });
         }
+      })["catch"](function (error) {
+        console.error('Error loading post types:', error);
+        _$select.append(jQuery('<option>').val('').text('Error loading post types'));
       });
       $value.replaceWith(_$select);
       return;
-    }
-
-    // Show condition dropdown for normal fields
+    } // Show condition dropdown for normal fields
     $condition.closest('.aie-filter-condition-wrap').show();
     $valueWrap.find('label').text('Value');
 
@@ -1031,13 +1056,12 @@ var ExportModule = {
    */
   loadTableColumns: function loadTableColumns(tableName) {
     var _this12 = this;
-    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax({
-      action: 'get_table_columns',
+    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_get_table_columns', {
       table_name: tableName
-    }).then(function (response) {
-      if (response.success && response.data) {
+    }).then(function (columns) {
+      if (columns && Array.isArray(columns)) {
         // Store columns for later use
-        _this12.tableColumns = response.data;
+        _this12.tableColumns = columns;
 
         // Update all filter field dropdowns
         jQuery('.aie-filter-field').each(function (index, element) {
@@ -1049,7 +1073,7 @@ var ExportModule = {
           $fieldSelect.append(jQuery('<option>').val('').text('Select Field...'));
 
           // Add columns as options
-          response.data.forEach(function (column) {
+          columns.forEach(function (column) {
             $fieldSelect.append(jQuery('<option>').val(column.name).text(column.name + ' (' + column.type + ')').data('type', column.data_type));
           });
 
@@ -1059,6 +1083,8 @@ var ExportModule = {
           }
         });
       }
+    })["catch"](function (error) {
+      console.error('Error loading table columns:', error);
     });
   },
   /**
@@ -1535,10 +1561,6 @@ var ExportModule = {
           value: 'post_modified',
           label: 'Modified Date',
           type: 'date'
-        }, {
-          value: 'menu_order',
-          label: 'Menu Order',
-          type: 'number'
         }, {
           value: '_wp_page_template',
           label: 'Template',

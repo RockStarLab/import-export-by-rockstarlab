@@ -342,7 +342,7 @@ class Post_Exporter extends Abstract_Exporter {
 		}
 
 		$args = [
-			'post_type'      => $options['post_type'] ?? 'post',
+			'post_type'      => $options['post_type'] ?? 'any',  // Changed from 'post' to 'any' to show all post types by default
 			'post_status'    => $options['post_status'] ?? 'any',
 			'posts_per_page' => $options['limit'] ?? -1,
 			'offset'         => $options['offset'] ?? 0,
@@ -545,6 +545,15 @@ class Post_Exporter extends Abstract_Exporter {
 			$field     = $filter['field'];
 			$condition = $filter['condition'];
 			$value     = $filter['value'] ?? '';
+
+			// Handle post_type field
+			if ( $field === 'post_type' ) {
+				if ( ! empty( $value ) ) {
+					// If specific post type is selected, override the default
+					$args['post_type'] = sanitize_text_field( $value );
+				}
+				continue;
+			}
 
 			// Handle specific post fields
 			if ( $field === 'ID' ) {
