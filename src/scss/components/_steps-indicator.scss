@@ -1,0 +1,62 @@
+// Steps Indicator
+.aie-steps-indicator {
+	display: flex;
+	justify-content: space-between;
+	margin: 40px 0 0;
+	padding: 30px 0 0;
+	border-top: 2px solid #dcdcde;
+
+	.aie-step-indicator {
+		flex: 1;
+		text-align: center;
+		position: relative;
+		cursor: pointer;
+
+		&:not(:last-child)::after {
+			content: "";
+			position: absolute;
+			top: 18px;
+			left: 50%;
+			right: -50%;
+			height: 2px;
+			background: #dcdcde;
+			z-index: -1;
+		}
+
+		&.completed {
+			.aie-step-number {
+				background: #00a32a;
+				color: #fff;
+			}
+
+			&::after {
+				background: #00a32a;
+			}
+		}
+
+		&.active {
+			.aie-step-number {
+				background: #2271b1;
+				color: #fff;
+				box-shadow: 0 0 0 4px rgba(34, 113, 177, 0.2);
+			}
+		}
+
+		.aie-step-number {
+			width: 36px;
+			height: 36px;
+			line-height: 36px;
+			border-radius: 50%;
+			background: #f6f7f7;
+			color: #646970;
+			font-weight: 600;
+			margin: 0 auto 10px;
+			transition: all 0.3s;
+		}
+
+		.aie-step-label {
+			font-size: 12px;
+			color: #646970;
+		}
+	}
+}

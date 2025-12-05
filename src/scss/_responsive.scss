@@ -1,0 +1,49 @@
+// Responsive Styles
+@media (max-width: 768px) {
+	.wp-advanced-import-export {
+		.aie-content-types {
+			grid-template-columns: 1fr;
+		}
+
+		.aie-format-selection {
+			grid-template-columns: 1fr;
+		}
+
+		.aie-field-groups .aie-fields-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.aie-progress-estimates {
+			grid-template-columns: 1fr;
+		}
+
+		.aie-steps-indicator {
+			flex-wrap: wrap;
+			gap: 15px;
+
+			.aie-step-indicator {
+				flex: 0 0 calc(33.333% - 10px);
+
+				&::after {
+					display: none;
+				}
+			}
+		}
+
+		// Filter rows responsive
+		.aie-filter-row .aie-filter-row-inner {
+			grid-template-columns: 1fr;
+			gap: 12px;
+		}
+
+		.aie-filter-summary-top .aie-summary-card {
+			flex-direction: column;
+			text-align: center;
+		}
+	}
+}
+
+// Utility Classes
+.aie-table-selection-section + .aie-filter-summary-top {
+	margin-top: 20px;
+}
