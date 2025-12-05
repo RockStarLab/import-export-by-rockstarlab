@@ -106,13 +106,17 @@ class User_Exporter extends Abstract_Exporter {
 	 */
 	public function get_count( $options = [] ) {
 		$query_args                = $this->build_query_args( $options );
-		$query_args['fields']      = 'ID';
+		$query_args['fields']      = 'all';
 		$query_args['number']      = -1;
-		$query_args['count_total'] = true;
+		$query_args['count_total'] = false;
 
 		// Apply custom ID filters if present
 		$custom_id_filters = $query_args['_custom_id_filters'] ?? [];
 		unset( $query_args['_custom_id_filters'] );
+
+		// Extract other filters for manual checking
+		$other_filters = $query_args['_other_filters'] ?? [];
+		unset( $query_args['_other_filters'] );
 
 		if ( ! empty( $custom_id_filters ) ) {
 			add_action(
@@ -130,7 +134,33 @@ class User_Exporter extends Abstract_Exporter {
 			remove_all_actions( 'pre_user_query' );
 		}
 
-		return $user_query->get_total();
+		$users = $user_query->get_results();
+
+		// If no other filters, return count directly
+		if ( empty( $other_filters ) ) {
+			return count( $users );
+		}
+
+		// Apply manual filtering for non-ID filters
+		$count = 0;
+		foreach ( $users as $user ) {
+			$passes_all_filters = true;
+
+			foreach ( $other_filters as $filter ) {
+				$field_value = $this->get_user_field_value( $user, $filter['field'] );
+
+				if ( ! $this->check_condition( $field_value, $filter['condition'], $filter['value'] ) ) {
+					$passes_all_filters = false;
+					break;
+				}
+			}
+
+			if ( $passes_all_filters ) {
+				++$count;
+			}
+		}
+
+		return $count;
 	}
 
 	/**
@@ -147,6 +177,10 @@ class User_Exporter extends Abstract_Exporter {
 		// Apply custom ID filters if present
 		$custom_id_filters = $query_args['_custom_id_filters'] ?? [];
 		unset( $query_args['_custom_id_filters'] );
+
+		// Extract other filters for manual checking
+		$other_filters = $query_args['_other_filters'] ?? [];
+		unset( $query_args['_other_filters'] );
 
 		if ( ! empty( $custom_id_filters ) ) {
 			add_action(
@@ -171,6 +205,24 @@ class User_Exporter extends Abstract_Exporter {
 
 		$data = [];
 		foreach ( $users as $user ) {
+			// Apply manual filtering for non-ID filters
+			if ( ! empty( $other_filters ) ) {
+				$passes_all_filters = true;
+
+				foreach ( $other_filters as $filter ) {
+					$field_value = $this->get_user_field_value( $user, $filter['field'] );
+
+					if ( ! $this->check_condition( $field_value, $filter['condition'], $filter['value'] ) ) {
+						$passes_all_filters = false;
+						break;
+					}
+				}
+
+				if ( ! $passes_all_filters ) {
+					continue;
+				}
+			}
+
 			$data[] = $this->format_user( $user, $options );
 		}
 
@@ -420,6 +472,11 @@ class User_Exporter extends Abstract_Exporter {
 	 * @param array $filters Dynamic filters
 	 */
 	protected function apply_dynamic_filters( &$args, $filters ) {
+		// Store all filters for manual checking
+		if ( ! isset( $args['_other_filters'] ) ) {
+			$args['_other_filters'] = [];
+		}
+
 		// Group filters by type to avoid conflicts
 		$search_filters = [];
 
@@ -435,6 +492,11 @@ class User_Exporter extends Abstract_Exporter {
 			// Skip empty values for most conditions (except is_empty/is_not_empty)
 			if ( empty( $value ) && ! in_array( $condition, [ 'is_empty', 'is_not_empty' ], true ) ) {
 				continue;
+			}
+
+			// Store all non-ID filters for manual checking
+			if ( $field !== 'ID' ) {
+				$args['_other_filters'][] = $filter;
 			}
 
 			// Handle user ID field with all conditions
@@ -684,6 +746,151 @@ class User_Exporter extends Abstract_Exporter {
 					$query->query_where .= $wpdb->prepare( " AND {$wpdb->users}.ID BETWEEN %d AND %d", $values[0], $values[1] );
 				}
 			}
+		}
+	}
+
+	/**
+	 * Get user field value
+	 *
+	 * @param WP_User $user       User object
+	 * @param string  $field_name Field name
+	 * @return mixed Field value
+	 */
+	protected function get_user_field_value( $user, $field_name ) {
+		// Map field names to user properties
+		$field_map = array(
+			'ID'              => 'ID',
+			'user_login'      => 'user_login',
+			'user_email'      => 'user_email',
+			'user_nicename'   => 'user_nicename',
+			'display_name'    => 'display_name',
+			'user_registered' => 'user_registered',
+		);
+
+		// Check if it's a standard field
+		if ( isset( $field_map[ $field_name ] ) ) {
+			$property = $field_map[ $field_name ];
+			return $user->$property ?? '';
+		}
+
+		// Check if it's a role field
+		if ( $field_name === 'role' ) {
+			$roles = $user->roles;
+			return ! empty( $roles ) ? $roles[0] : '';
+		}
+
+		// Check if it's a meta field
+		return get_user_meta( $user->ID, $field_name, true );
+	}
+
+	/**
+	 * Check if a condition matches
+	 *
+	 * @param mixed  $field_value The value to test
+	 * @param string $condition   The condition type
+	 * @param mixed  $test_value  The value to test against
+	 * @return bool True if condition matches
+	 */
+	protected function check_condition( $field_value, $condition, $test_value ) {
+		// For date comparisons, extract only the date part (YYYY-MM-DD)
+		$is_date_value   = false;
+		$field_date_only = null;
+		$test_date_only  = null;
+
+		if ( is_string( $field_value ) && preg_match( '/^\d{4}-\d{2}-\d{2}/', $field_value ) ) {
+			$is_date_value   = true;
+			$field_date_only = substr( $field_value, 0, 10 ); // Get YYYY-MM-DD part
+		}
+		if ( is_string( $test_value ) && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $test_value ) ) {
+			$test_date_only = $test_value;
+		}
+
+		// For date comparisons (greater/less/between), exclude empty values
+		$is_date_comparison = in_array( $condition, [ 'greater', 'less', 'equals_or_greater', 'equals_or_less', 'between' ], true );
+		if ( $is_date_comparison && $test_date_only && empty( $field_value ) ) {
+			return false; // Empty dates shouldn't match numeric/date comparisons
+		}
+
+		switch ( $condition ) {
+			case 'equals':
+				// For dates, compare only date parts
+				if ( $is_date_value && isset( $field_date_only ) && isset( $test_date_only ) ) {
+					return $field_date_only === $test_date_only;
+				}
+				return $field_value == $test_value;
+
+			case 'not_equals':
+				// For dates, compare only date parts
+				if ( $is_date_value && isset( $field_date_only ) && isset( $test_date_only ) ) {
+					return $field_date_only !== $test_date_only;
+				}
+				return $field_value != $test_value;
+
+			case 'contains':
+				return stripos( (string) $field_value, (string) $test_value ) !== false;
+
+			case 'not_contains':
+				return stripos( (string) $field_value, (string) $test_value ) === false;
+
+			case 'starts_with':
+				return stripos( (string) $field_value, (string) $test_value ) === 0;
+
+			case 'ends_with':
+				$field_lower = strtolower( (string) $field_value );
+				$test_lower  = strtolower( (string) $test_value );
+				return substr( $field_lower, -strlen( $test_lower ) ) === $test_lower;
+
+			case 'greater':
+				// For dates, compare only date parts
+				if ( $is_date_value && isset( $field_date_only ) && isset( $test_date_only ) ) {
+					return $field_date_only > $test_date_only;
+				}
+				return $field_value > $test_value;
+
+			case 'less':
+				// For dates, compare only date parts
+				if ( $is_date_value && isset( $field_date_only ) && isset( $test_date_only ) ) {
+					return $field_date_only < $test_date_only;
+				}
+				return $field_value < $test_value;
+
+			case 'equals_or_greater':
+				// For dates, compare only date parts
+				if ( $is_date_value && isset( $field_date_only ) && isset( $test_date_only ) ) {
+					return $field_date_only >= $test_date_only;
+				}
+				return $field_value >= $test_value;
+
+			case 'equals_or_less':
+				// For dates, compare only date parts
+				if ( $is_date_value && isset( $field_date_only ) && isset( $test_date_only ) ) {
+					return $field_date_only <= $test_date_only;
+				}
+				return $field_value <= $test_value;
+
+			case 'between':
+				$values = array_map( 'trim', explode( ',', (string) $test_value ) );
+				if ( count( $values ) === 2 ) {
+					return $field_value >= $values[0] && $field_value <= $values[1];
+				}
+				return true;
+
+			case 'in':
+				$values = array_map( 'trim', explode( ',', (string) $test_value ) );
+				return in_array( $field_value, $values, false ); // Non-strict for flexibility
+
+			case 'not_in':
+				$values = array_map( 'trim', explode( ',', (string) $test_value ) );
+				return ! in_array( $field_value, $values, false );
+
+			case 'is_empty':
+				return empty( $field_value );
+
+			case 'is_not_empty':
+				return ! empty( $field_value );
+
+			default:
+				return true;
 		}
 	}
 
