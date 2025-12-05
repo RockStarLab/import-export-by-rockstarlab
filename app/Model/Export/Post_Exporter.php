@@ -555,6 +555,184 @@ class Post_Exporter extends Abstract_Exporter {
 				continue;
 			}
 
+			// Handle WooCommerce product fields (convert to meta fields with underscore prefix)
+			$woo_product_fields = [
+				'sku'            => '_sku',
+				'regular_price'  => '_regular_price',
+				'sale_price'     => '_sale_price',
+				'stock_quantity' => '_stock',
+				'stock_status'   => '_stock_status',
+				'manage_stock'   => '_manage_stock',
+				'total_sales'    => 'total_sales',
+				'weight'         => '_weight',
+				'length'         => '_length',
+				'width'          => '_width',
+				'height'         => '_height',
+				'price'          => '_price',
+			];
+
+			if ( isset( $woo_product_fields[ $field ] ) ) {
+				$field = $woo_product_fields[ $field ]; // Convert to actual meta key
+				// Continue processing as meta field below
+			}
+
+			// Handle featured as product_visibility taxonomy
+			if ( $field === 'featured' ) {
+				if ( ! isset( $args['tax_query'] ) ) {
+					$args['tax_query'] = [];
+				}
+
+				// Featured is a term in product_visibility taxonomy
+				if ( $condition === 'equals' ) {
+					// Check if value indicates featured (yes, true, 1, featured)
+					$is_featured = in_array( strtolower( $value ), [ 'yes', 'true', '1', 'featured' ], true );
+					if ( $is_featured ) {
+						$args['tax_query'][] = [
+							'taxonomy' => 'product_visibility',
+							'field'    => 'slug',
+							'terms'    => 'featured',
+							'operator' => 'IN',
+						];
+					} else {
+						$args['tax_query'][] = [
+							'taxonomy' => 'product_visibility',
+							'field'    => 'slug',
+							'terms'    => 'featured',
+							'operator' => 'NOT IN',
+						];
+					}
+				} elseif ( $condition === 'not_equals' ) {
+					$is_featured = in_array( strtolower( $value ), [ 'yes', 'true', '1', 'featured' ], true );
+					if ( $is_featured ) {
+						$args['tax_query'][] = [
+							'taxonomy' => 'product_visibility',
+							'field'    => 'slug',
+							'terms'    => 'featured',
+							'operator' => 'NOT IN',
+						];
+					} else {
+						$args['tax_query'][] = [
+							'taxonomy' => 'product_visibility',
+							'field'    => 'slug',
+							'terms'    => 'featured',
+							'operator' => 'IN',
+						];
+					}
+				}
+				continue;
+			}
+
+			// Handle visibility as product_visibility taxonomy
+			if ( $field === 'visibility' ) {
+				if ( ! isset( $args['tax_query'] ) ) {
+					$args['tax_query'] = [];
+				}
+
+				// Visibility values: visible, catalog, search, hidden
+				// visible = no terms, catalog = exclude-from-search, search = exclude-from-catalog, hidden = both
+				$visibility_map = [
+					'visible' => [],
+					'catalog' => [ 'exclude-from-search' ],
+					'search'  => [ 'exclude-from-catalog' ],
+					'hidden'  => [ 'exclude-from-catalog', 'exclude-from-search' ],
+				];
+
+				$visibility_value = strtolower( $value );
+
+				if ( isset( $visibility_map[ $visibility_value ] ) ) {
+					$terms = $visibility_map[ $visibility_value ];
+
+					if ( empty( $terms ) ) {
+						// Visible = no visibility terms
+						if ( $condition === 'equals' ) {
+							$args['tax_query'][] = [
+								'taxonomy' => 'product_visibility',
+								'field'    => 'slug',
+								'terms'    => [ 'exclude-from-catalog', 'exclude-from-search' ],
+								'operator' => 'NOT IN',
+							];
+						}
+					} else {
+						// Has specific visibility terms
+						if ( $condition === 'equals' ) {
+							$args['tax_query'][] = [
+								'taxonomy' => 'product_visibility',
+								'field'    => 'slug',
+								'terms'    => $terms,
+								'operator' => 'IN',
+							];
+						} elseif ( $condition === 'not_equals' ) {
+							$args['tax_query'][] = [
+								'taxonomy' => 'product_visibility',
+								'field'    => 'slug',
+								'terms'    => $terms,
+								'operator' => 'NOT IN',
+							];
+						}
+					}
+				}
+				continue;
+			}
+
+			// Handle product_type as taxonomy
+			if ( $field === 'product_type' ) {
+				// product_type is actually a taxonomy in WooCommerce
+				if ( ! isset( $args['tax_query'] ) ) {
+					$args['tax_query'] = [];
+				}
+
+				if ( $condition === 'equals' ) {
+					$args['tax_query'][] = [
+						'taxonomy' => 'product_type',
+						'field'    => 'slug',
+						'terms'    => sanitize_title( $value ),
+						'operator' => 'IN',
+					];
+				} elseif ( $condition === 'not_equals' ) {
+					$args['tax_query'][] = [
+						'taxonomy' => 'product_type',
+						'field'    => 'slug',
+						'terms'    => sanitize_title( $value ),
+						'operator' => 'NOT IN',
+					];
+				} elseif ( $condition === 'in' ) {
+					$term_values         = array_map( 'trim', explode( ',', $value ) );
+					$term_slugs          = array_map( 'sanitize_title', $term_values );
+					$args['tax_query'][] = [
+						'taxonomy' => 'product_type',
+						'field'    => 'slug',
+						'terms'    => $term_slugs,
+						'operator' => 'IN',
+					];
+				} elseif ( $condition === 'not_in' ) {
+					$term_values         = array_map( 'trim', explode( ',', $value ) );
+					$term_slugs          = array_map( 'sanitize_title', $term_values );
+					$args['tax_query'][] = [
+						'taxonomy' => 'product_type',
+						'field'    => 'slug',
+						'terms'    => $term_slugs,
+						'operator' => 'NOT IN',
+					];
+				}
+				continue;
+			}           // Handle WooCommerce order fields
+			$woo_order_fields = [
+				'order_number'   => '_order_number',
+				'order_status'   => 'post_status', // This is actually post_status
+				'order_key'      => '_order_key',
+				'order_total'    => '_order_total',
+				'order_subtotal' => '_order_subtotal',
+				'order_tax'      => '_order_tax',
+				'order_shipping' => '_order_shipping',
+				'payment_method' => '_payment_method',
+				'customer_id'    => '_customer_user',
+			];
+
+			if ( isset( $woo_order_fields[ $field ] ) ) {
+				$field = $woo_order_fields[ $field ]; // Convert to actual meta key
+				// Continue processing as meta field below
+			}
+
 			// Handle specific post fields
 			if ( $field === 'ID' ) {
 				// ID filtering
@@ -632,16 +810,15 @@ class Post_Exporter extends Abstract_Exporter {
 
 			// Handle taxonomy filters (categories, tags, etc.)
 			$taxonomy_map = [
-				'categories'  => 'category',
-				'tags'        => 'post_tag',
-				'product_cat' => 'product_cat',
-				'product_tag' => 'product_tag',
+				'categories'    => 'category',
+				'tags'          => 'post_tag',
+				'product_cat'   => 'product_cat',
+				'product_tag'   => 'product_tag',
+				'product_brand' => 'product_brand',
 			];
 
 			if ( isset( $taxonomy_map[ $field ] ) ) {
-				$taxonomy = $taxonomy_map[ $field ];
-
-				// Initialize tax_query if not exists
+				$taxonomy = $taxonomy_map[ $field ];                // Initialize tax_query if not exists
 				if ( ! isset( $args['tax_query'] ) ) {
 					$args['tax_query'] = [];
 				}
