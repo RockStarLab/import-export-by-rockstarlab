@@ -1,0 +1,55 @@
+// Format Selection
+.aie-format-selection {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 20px;
+	margin: 20px 0;
+}
+
+.aie-format-option {
+	cursor: pointer;
+
+	input[type="radio"] {
+		display: none;
+	}
+
+	.aie-format-card {
+		border: 2px solid #dcdcde;
+		border-radius: 4px;
+		padding: 30px 20px;
+		text-align: center;
+		transition: all 0.2s;
+
+		.dashicons {
+			font-size: 48px;
+			width: 48px;
+			height: 48px;
+			color: #646970;
+		}
+
+		h3 {
+			margin: 15px 0 10px;
+			font-size: 18px;
+		}
+
+		p {
+			margin: 0;
+			font-size: 13px;
+			color: #646970;
+		}
+
+		&:hover {
+			border-color: #2271b1;
+			box-shadow: 0 2px 8px rgba(34, 113, 177, 0.1);
+		}
+	}
+
+	input:checked + .aie-format-card {
+		border-color: #2271b1;
+		background: #f0f6fc;
+
+		.dashicons {
+			color: #2271b1;
+		}
+	}
+}

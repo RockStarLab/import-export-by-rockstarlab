@@ -1,0 +1,70 @@
+/**
+ * Wizard Container & Steps
+ */
+
+// Wizard Container
+.wp-advanced-import-export {
+	max-width: 1200px;
+	margin: 20px 0;
+
+	.aie-import-wizard,
+	.aie-export-wizard {
+		position: relative;
+		background: #fff;
+		border: 1px solid #c3c4c7;
+		border-radius: 4px;
+		padding: 30px;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+		margin: 20px 0;
+	}
+
+	// Steps
+	.aie-step {
+		display: none;
+
+		&.active {
+			display: block;
+		}
+	}
+
+	.aie-step-header {
+		margin-bottom: 30px;
+		padding-bottom: 20px;
+		border-bottom: 1px solid #dcdcde;
+
+		h2 {
+			margin: 0 0 10px;
+			font-size: 24px;
+		}
+
+		.description {
+			margin: 0;
+			color: #646970;
+		}
+	}
+
+	.aie-step-content {
+		min-height: 300px;
+	}
+
+	.aie-step-actions {
+		margin-top: 30px;
+		padding-top: 20px;
+		border-top: 1px solid #dcdcde;
+		display: flex;
+		gap: 10px;
+		justify-content: space-between;
+
+		.button {
+			display: inline-flex;
+			align-items: center;
+			gap: 5px;
+
+			.dashicons {
+				font-size: 18px;
+				width: 18px;
+				height: 18px;
+			}
+		}
+	}
+}
