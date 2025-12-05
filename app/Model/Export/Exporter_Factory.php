@@ -70,7 +70,7 @@ class Exporter_Factory {
 			'woo_order'            => Order_Exporter::class,
 			'woo_coupon'           => Coupon_Exporter::class,
 			'woo_attribute'        => Woo_Attribute_Exporter::class,
-			'custom_table'         => Custom_Table_Exporter::class,
+			'database_table'       => Database_Table_Exporter::class,
 		];
 
 		/**

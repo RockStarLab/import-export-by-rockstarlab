@@ -137,6 +137,12 @@ const ExportModule = {
 		this.currentStep = step;
 
 		if ( step === 2 ) {
+			// Check if database_table type is selected
+			const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
+			if ( contentType === 'database_table' ) {
+				this.loadDatabaseTables();
+			}
+			
 			this.refreshCount( false ); // Don't show spinner on auto-refresh
 		} else {
 			// Reset count when leaving step 2
@@ -191,13 +197,21 @@ const ExportModule = {
 		// Clear existing filters
 		jQuery( '#aie-filters-list' ).empty();
 
+		// Show/hide table selection section
+		if ( contentType === 'database_table' ) {
+			jQuery( '.aie-table-selection-section' ).show();
+			jQuery( '.aie-custom-filters-section' ).show();
+		} else {
+			jQuery( '.aie-table-selection-section' ).hide();
+		}
+
 		// Show/hide custom filters section
 		// Note: block_theme_settings is excluded - it doesn't need filters (goes straight to step 3)
 		const filterableTypes = [ 
 			'post', 'page', 'media', 'menu', 'user', 'comment', 
 			'custom_post_types', 'taxonomy',
 			'woo_product', 'woo_order', 'woo_coupon', 'woo_attribute',
-			'custom_table'
+			'database_table'
 		];
 		if ( filterableTypes.includes( contentType ) ) {
 			jQuery( '.aie-custom-filters-section' ).show();
@@ -285,12 +299,12 @@ const ExportModule = {
 			// Prepare options based on content type
 			let options = {};
 			
-			if ( contentType === 'custom_table' ) {
-				// For custom tables, get table name from first filter row
-				const $tableSelector = jQuery( '.aie-table-selector' );
+			if ( contentType === 'database_table' ) {
+				// For database tables, get table name from dropdown
+				const $tableDropdown = jQuery( '#aie-table-name' );
 				const dynamicFiltersData = this.getDynamicFilters();
 				options = {
-					table_name: $tableSelector.val(),
+					table_name: $tableDropdown.val(),
 					filters: dynamicFiltersData.filters,
 				};
 		} else {
@@ -1610,19 +1624,33 @@ const ExportModule = {
 			];
 		}
 
-		// Custom MySQL Table
-		if ( contentType === 'custom_table' ) {
+		// Database Table - use dynamic columns from selected table
+		if ( contentType === 'database_table' ) {
+			// If we have columns loaded, use them
+			if ( this.currentTableColumns && this.currentTableColumns.length > 0 ) {
+				const columnOptions = this.currentTableColumns.map( ( col ) => {
+					const typeLabel = col.is_numeric ? 'number' : col.is_date ? 'date' : 'string';
+					return {
+						value: col.name,
+						label: `${col.name} (${col.type})`,
+						type: typeLabel
+					};
+				} );
+
+				return [
+					{
+						label: 'Table Columns',
+						options: columnOptions
+					}
+				];
+			}
+
+			// Otherwise show message to select table first
 			return [
 				{
 					label: 'Table Selection',
 					options: [
-						{ value: '_table_name', label: 'Table Name (select specific)', type: 'table_selector' },
-					],
-				},
-				{
-					label: 'Dynamic Fields',
-					options: [
-						{ value: '_dynamic_field', label: 'Select table first to load fields', type: 'string' },
+						{ value: '_select_table', label: 'Please select a table first', type: 'string' },
 					],
 				},
 			];
@@ -1748,6 +1776,143 @@ const ExportModule = {
 		};
 
 		return conditions[ fieldType ] || conditions.string;
+	},
+
+	/**
+	 * Load database tables
+	 */
+	loadDatabaseTables() {
+		const $dropdown = jQuery( '#aie-table-name' );
+		const $spinner = jQuery( '.aie-table-selector .spinner' );
+		const $section = jQuery( '.aie-table-selection-section' );
+
+		// Show section
+		$section.show();
+
+		// Show loading state
+		$dropdown.prop( 'disabled', true );
+		$spinner.addClass( 'is-active' );
+
+		// Fetch tables via AJAX
+		Utils.ajax( 'aie_get_database_tables', {} )
+			.then( ( response ) => {
+				console.log( 'Tables response:', response );
+				const tables = response.tables || response || [];
+				
+				console.log( 'Parsed tables:', tables );
+				
+				// Clear and populate dropdown
+				$dropdown.empty();
+				$dropdown.append( jQuery( '<option>' ).val( '' ).text( 'Select a table...' ) );
+
+				if ( !Array.isArray( tables ) || tables.length === 0 ) {
+					$dropdown.append( jQuery( '<option>' ).val( '' ).text( 'No tables found' ) );
+					$dropdown.prop( 'disabled', true );
+					$spinner.removeClass( 'is-active' );
+					return;
+				}
+
+				tables.forEach( ( table ) => {
+					$dropdown.append(
+						jQuery( '<option>' )
+							.val( table.table_name )
+							.text( table.label )
+					);
+				} );
+
+				// Enable dropdown
+				$dropdown.prop( 'disabled', false );
+				$spinner.removeClass( 'is-active' );
+
+				// Handle table selection
+				$dropdown.off( 'change' ).on( 'change', () => {
+					const tableName = $dropdown.val();
+					if ( tableName ) {
+						this.loadTableColumns( tableName );
+					} else {
+						jQuery( '.aie-table-info' ).hide();
+						jQuery( '#aie-filters-list' ).empty();
+					}
+				} );
+			} )
+			.catch( ( error ) => {
+				console.error( 'Error loading tables:', error );
+				$dropdown.empty();
+				$dropdown.append( jQuery( '<option>' ).val( '' ).text( 'Error loading tables' ) );
+				$dropdown.prop( 'disabled', true );
+				$spinner.removeClass( 'is-active' );
+			} );
+	},
+
+	/**
+	 * Load table columns and show info
+	 */
+	loadTableColumns( tableName ) {
+		const $tableInfo = jQuery( '.aie-table-info' );
+		const $columnsList = jQuery( '.aie-columns-list' );
+		const $rowCount = jQuery( '.aie-table-row-count' );
+		const $columnCount = jQuery( '.aie-table-column-count' );
+
+		// Show loading state
+		$tableInfo.show();
+		$columnsList.html( '<p>Loading columns...</p>' );
+
+		// Fetch columns via AJAX
+		Utils.ajax( 'aie_get_table_columns', { table_name: tableName } )
+			.then( ( response ) => {
+				const columns = response.columns || [];
+
+				// Update column count
+				$columnCount.text( columns.length );
+
+				// Display columns with types
+				$columnsList.empty();
+				const $list = jQuery( '<ul>' ).addClass( 'aie-column-type-list' );
+
+				columns.forEach( ( col ) => {
+					const typeIcon = this.getColumnTypeIcon( col );
+					const typeLabel = col.is_numeric ? 'numeric' : col.is_string ? 'text' : col.is_date ? 'date' : 'other';
+					
+					$list.append(
+						jQuery( '<li>' ).html(
+							`<span class="dashicons ${ typeIcon }"></span> 
+							<strong>${ col.name }</strong> 
+							<span class="column-type">(${ col.type })</span>`
+						)
+					);
+				} );
+
+				$columnsList.append( $list );
+
+				// Store columns for filter field options
+				this.currentTableColumns = columns;
+
+				// Clear existing filters
+				jQuery( '#aie-filters-list' ).empty();
+
+				// Refresh count to get row count
+				this.refreshCount( false );
+			} )
+			.catch( ( error ) => {
+				console.error( 'Error loading columns:', error );
+				$columnsList.html( '<p class="error">Error loading columns</p>' );
+			} );
+	},
+
+	/**
+	 * Get icon for column type
+	 */
+	getColumnTypeIcon( column ) {
+		if ( column.is_primary ) {
+			return 'dashicons-admin-network';
+		} else if ( column.is_numeric ) {
+			return 'dashicons-calculator';
+		} else if ( column.is_date ) {
+			return 'dashicons-calendar-alt';
+		} else if ( column.is_string ) {
+			return 'dashicons-text';
+		}
+		return 'dashicons-marker';
 	},
 };
 

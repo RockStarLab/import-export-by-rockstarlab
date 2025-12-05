@@ -169,11 +169,11 @@ defined( 'ABSPATH' ) || exit;
 					</label>
 
 					<label class="aie-content-type">
-						<input type="radio" name="content_type" value="custom_table" <?php echo ! $is_premium ? 'disabled' : ''; ?>>
+						<input type="radio" name="content_type" value="database_table" <?php echo ! $is_premium ? 'disabled' : ''; ?>>
 						<div class="aie-content-type-card <?php echo ! $is_premium ? 'aie-disabled' : ''; ?>">
-							<span class="dashicons dashicons-database"></span>
-							<h3><?php esc_html_e( 'MySQL Table', 'wp-aie' ); ?></h3>
-							<p><?php echo ! $is_premium ? esc_html__( 'Premium feature', 'wp-aie' ) : esc_html__( 'Export any database table data', 'wp-aie' ); ?></p>
+							<span class="dashicons dashicons-database-view"></span>
+							<h3><?php esc_html_e( 'MySQL Database Table', 'wp-aie' ); ?></h3>
+							<p><?php echo ! $is_premium ? esc_html__( 'Premium feature', 'wp-aie' ) : esc_html__( 'Export any MySQL table fields', 'wp-aie' ); ?></p>
 						</div>
 					</label>
 				</div>
@@ -196,6 +196,45 @@ defined( 'ABSPATH' ) || exit;
 
 			<div class="aie-step-content">
 				
+				<!-- Database Table Selection (shown only for database_table type) -->
+				<div class="aie-table-selection-section" style="display:none;">
+					<div class="aie-section-header">
+						<h3>
+							<span class="dashicons dashicons-database-view"></span>
+							<?php esc_html_e( 'Select Database Table', 'wp-aie' ); ?>
+						</h3>
+						<p class="description"><?php esc_html_e( 'Choose which database table you want to export', 'wp-aie' ); ?></p>
+					</div>
+
+					<div class="aie-table-selector">
+						<label for="aie-table-name"><?php esc_html_e( 'Database Table:', 'wp-aie' ); ?></label>
+						<select id="aie-table-name" name="table_name" class="aie-table-dropdown">
+							<option value=""><?php esc_html_e( 'Loading tables...', 'wp-aie' ); ?></option>
+						</select>
+						<span class="spinner" style="float:none;margin:0 10px;"></span>
+					</div>
+
+					<div class="aie-table-info" style="display:none;">
+						<div class="aie-info-card">
+							<h4><?php esc_html_e( 'Table Information', 'wp-aie' ); ?></h4>
+							<div class="aie-table-stats">
+								<div class="aie-stat">
+									<span class="label"><?php esc_html_e( 'Total Rows:', 'wp-aie' ); ?></span>
+									<span class="value aie-table-row-count">-</span>
+								</div>
+								<div class="aie-stat">
+									<span class="label"><?php esc_html_e( 'Total Columns:', 'wp-aie' ); ?></span>
+									<span class="value aie-table-column-count">-</span>
+								</div>
+							</div>
+							<div class="aie-table-columns">
+								<h5><?php esc_html_e( 'Available Columns:', 'wp-aie' ); ?></h5>
+								<div class="aie-columns-list"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+
 				<!-- Item Count Summary (Top) -->
 				<div class="aie-filter-summary-top">
 					<div class="aie-summary-card">

@@ -437,46 +437,23 @@ class Export_Controller extends Base_Controller {
 	 * Get database tables
 	 */
 	public function get_database_tables() {
-		$verification = $this->verify_request( 'export_get_tables' );
+		$verification = $this->verify_request( 'export_count' );
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		global $wpdb;
+		// Use Database_Table_Exporter to get tables with row counts
+		$exporter = new \WP_AIE\Model\Export\Database_Table_Exporter();
+		$tables   = $exporter->get_available_tables();
 
-		// Get all tables
-		$tables = $wpdb->get_results( 'SHOW TABLES', ARRAY_N );
-
-		$result = [];
-		foreach ( $tables as $table ) {
-			$table_name = $table[0];
-
-			// By default, only show WordPress tables (with prefix)
-			if ( strpos( $table_name, $wpdb->prefix ) === 0 ) {
-				$display_name = str_replace( $wpdb->prefix, '', $table_name );
-				$result[]     = [
-					'name'         => $table_name,
-					'display_name' => $display_name,
-				];
-			}
-		}
-
-		// Sort by display name
-		usort(
-			$result,
-			function ( $a, $b ) {
-				return strcmp( $a['display_name'], $b['display_name'] );
-			}
-		);
-
-		$this->send_success( $result );
+		$this->send_success( [ 'tables' => $tables ] );
 	}
 
 	/**
 	 * Get table columns with types
 	 */
 	public function get_table_columns() {
-		$verification = $this->verify_request( 'export_get_columns' );
+		$verification = $this->verify_request( 'export_count' );
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -486,44 +463,17 @@ class Export_Controller extends Base_Controller {
 			$this->send_error( $validation, null, 400 );
 		}
 
-		global $wpdb;
-
 		$table_name = $this->get_request_param( 'table_name' );
 
-		// Validate table exists and belongs to WordPress
-		if ( strpos( $table_name, $wpdb->prefix ) !== 0 ) {
-			$this->send_error( __( 'Invalid table name', 'wp-advanced-import-export' ), null, 400 );
-		}
+		// Use Database_Table_Exporter to get columns
+		$exporter = new \WP_AIE\Model\Export\Database_Table_Exporter();
+		$columns  = $exporter->get_table_columns( $table_name );
 
-		// Get columns from INFORMATION_SCHEMA
-		$columns = $wpdb->get_results(
-			$wpdb->prepare(
-				'SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE 
-				FROM INFORMATION_SCHEMA.COLUMNS 
-				WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
-				ORDER BY ORDINAL_POSITION',
-				DB_NAME,
-				$table_name
-			)
-		);
-
-		if ( ! $columns ) {
+		if ( empty( $columns ) ) {
 			$this->send_error( __( 'Could not retrieve table columns', 'wp-advanced-import-export' ), null, 400 );
 		}
 
-		$result = [];
-		foreach ( $columns as $column ) {
-			$data_type = $this->map_mysql_type_to_filter_type( $column->DATA_TYPE );
-
-			$result[] = [
-				'name'       => $column->COLUMN_NAME,
-				'type'       => $column->DATA_TYPE,
-				'mysql_type' => $column->COLUMN_TYPE,
-				'data_type'  => $data_type,
-			];
-		}
-
-		$this->send_success( $result );
+		$this->send_success( [ 'columns' => $columns ] );
 	}
 
 	/**
