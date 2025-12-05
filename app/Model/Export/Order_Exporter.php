@@ -671,13 +671,22 @@ class Order_Exporter extends Abstract_Exporter {
 	 */
 	protected function check_condition( $field_value, $condition, $test_value ) {
 		// For date comparisons, extract only the date part (YYYY-MM-DD)
-		$is_date_value = false;
+		$is_date_value   = false;
+		$field_date_only = null;
+		$test_date_only  = null;
+
 		if ( is_string( $field_value ) && preg_match( '/^\d{4}-\d{2}-\d{2}/', $field_value ) ) {
 			$is_date_value   = true;
 			$field_date_only = substr( $field_value, 0, 10 ); // Get YYYY-MM-DD part
 		}
 		if ( is_string( $test_value ) && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $test_value ) ) {
 			$test_date_only = $test_value;
+		}
+
+		// For date comparisons (greater/less/between), exclude empty values
+		$is_date_comparison = in_array( $condition, [ 'greater', 'less', 'equals_or_greater', 'equals_or_less', 'between' ], true );
+		if ( $is_date_comparison && $test_date_only && empty( $field_value ) ) {
+			return false; // Empty dates shouldn't match numeric/date comparisons
 		}
 
 		switch ( $condition ) {

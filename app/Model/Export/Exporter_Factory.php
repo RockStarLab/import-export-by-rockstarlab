@@ -68,7 +68,7 @@ class Exporter_Factory {
 			'custom_post_types'    => Post_Exporter::class,
 			'woo_product'          => Post_Exporter::class,
 			'woo_order'            => Order_Exporter::class,
-			'woo_coupon'           => Post_Exporter::class,
+			'woo_coupon'           => Coupon_Exporter::class,
 			'woo_attribute'        => Woo_Attribute_Exporter::class,
 			'custom_table'         => Custom_Table_Exporter::class,
 		];
