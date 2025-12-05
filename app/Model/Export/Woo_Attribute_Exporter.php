@@ -98,9 +98,24 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 		}
 
 		global $wpdb;
-		$count = $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}woocommerce_attribute_taxonomies" );
+		$attributes = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}woocommerce_attribute_taxonomies" );
 
-		return (int) $count;
+		if ( empty( $attributes ) ) {
+			return 0;
+		}
+
+		// Apply filters if present
+		if ( ! empty( $options['filters'] ) && is_array( $options['filters'] ) ) {
+			$count = 0;
+			foreach ( $attributes as $attribute ) {
+				if ( $this->passes_all_filters( $attribute, $options['filters'] ) ) {
+					++$count;
+				}
+			}
+			return $count;
+		}
+
+		return count( $attributes );
 	}
 
 	/**
@@ -126,6 +141,16 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 
 		if ( empty( $attributes ) ) {
 			return [];
+		}
+
+		// Apply filters
+		if ( ! empty( $options['filters'] ) && is_array( $options['filters'] ) ) {
+			$attributes = array_filter(
+				$attributes,
+				function ( $attribute ) use ( $options ) {
+					return $this->passes_all_filters( $attribute, $options['filters'] );
+				}
+			);
 		}
 
 		$data = [];
@@ -235,6 +260,124 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 	 */
 	protected function build_query_args( $options ) {
 		return $options;
+	}
+
+	/**
+	 * Get attribute field value
+	 *
+	 * @param object $attribute  Attribute object
+	 * @param string $field_name Field name
+	 * @return mixed
+	 */
+	protected function get_attribute_field_value( $attribute, $field_name ) {
+		$field_map = [
+			'attribute_id'      => 'attribute_id',
+			'attribute_name'    => 'attribute_name',
+			'attribute_label'   => 'attribute_label',
+			'attribute_type'    => 'attribute_type',
+			'attribute_orderby' => 'attribute_orderby',
+			'attribute_public'  => 'attribute_public',
+		];
+
+		if ( isset( $field_map[ $field_name ] ) ) {
+			$property = $field_map[ $field_name ];
+			return $attribute->$property ?? '';
+		}
+
+		return '';
+	}
+
+	/**
+	 * Check if attribute passes all filters
+	 *
+	 * @param object $attribute Attribute object
+	 * @param array  $filters   Filters array
+	 * @return bool
+	 */
+	protected function passes_all_filters( $attribute, $filters ) {
+		if ( empty( $filters ) ) {
+			return true;
+		}
+
+		foreach ( $filters as $filter ) {
+			$field_value = $this->get_attribute_field_value( $attribute, $filter['field'] );
+			$condition   = $filter['condition'];
+			$test_value  = $filter['value'] ?? '';
+
+			if ( ! $this->check_condition( $field_value, $condition, $test_value ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a condition matches
+	 *
+	 * @param mixed  $field_value The value to test
+	 * @param string $condition   The condition type
+	 * @param mixed  $test_value  The value to test against
+	 * @return bool
+	 */
+	protected function check_condition( $field_value, $condition, $test_value ) {
+		switch ( $condition ) {
+			case 'equals':
+				return $field_value == $test_value;
+
+			case 'not_equals':
+				return $field_value != $test_value;
+
+			case 'contains':
+				return stripos( (string) $field_value, (string) $test_value ) !== false;
+
+			case 'not_contains':
+				return stripos( (string) $field_value, (string) $test_value ) === false;
+
+			case 'starts_with':
+				return stripos( (string) $field_value, (string) $test_value ) === 0;
+
+			case 'ends_with':
+				$field_lower = strtolower( (string) $field_value );
+				$test_lower  = strtolower( (string) $test_value );
+				return substr( $field_lower, -strlen( $test_lower ) ) === $test_lower;
+
+			case 'greater':
+				return $field_value > $test_value;
+
+			case 'less':
+				return $field_value < $test_value;
+
+			case 'equals_or_greater':
+				return $field_value >= $test_value;
+
+			case 'equals_or_less':
+				return $field_value <= $test_value;
+
+			case 'between':
+				$values = array_map( 'trim', explode( ',', (string) $test_value ) );
+				if ( count( $values ) === 2 ) {
+					return $field_value >= $values[0] && $field_value <= $values[1];
+				}
+				return true;
+
+			case 'in':
+				$values = array_map( 'trim', explode( ',', (string) $test_value ) );
+				return in_array( $field_value, $values, false );
+
+			case 'not_in':
+				$values = array_map( 'trim', explode( ',', (string) $test_value ) );
+				return ! in_array( $field_value, $values, false );
+
+			case 'is_empty':
+				return empty( $field_value );
+
+			case 'is_not_empty':
+				return ! empty( $field_value );
+
+			default:
+				return true;
+		}
 	}
 
 	/**

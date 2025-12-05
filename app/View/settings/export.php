@@ -154,7 +154,7 @@ defined( 'ABSPATH' ) || exit;
 						<input type="radio" name="content_type" value="woo_coupon" <?php echo ! $is_premium ? 'disabled' : ''; ?>>
 						<div class="aie-content-type-card <?php echo ! $is_premium ? 'aie-disabled' : ''; ?>">
 							<span class="dashicons dashicons-tickets-alt"></span>
-							<h3><?php esc_html_e( 'WooCommerce Coupons (8.0+)', 'wp-aie' ); ?></h3>
+							<h3><?php esc_html_e( 'WooCommerce Coupons', 'wp-aie' ); ?></h3>
 							<p><?php echo ! $is_premium ? esc_html__( 'Premium feature', 'wp-aie' ) : esc_html__( 'Export WooCommerce coupons', 'wp-aie' ); ?></p>
 						</div>
 					</label>
