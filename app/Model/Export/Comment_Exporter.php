@@ -115,24 +115,70 @@ class Comment_Exporter extends Abstract_Exporter {
 	public function get_count( $options = [] ) {
 		$this->log_info( 'get_count called', [ 'options' => $options ] );
 
-		$query_args          = $this->build_query_args( $options );
-		$query_args['count'] = true;
+		$query_args = $this->build_query_args( $options );
 
+		// Extract other filters for manual checking
+		$other_filters = $query_args['_other_filters'] ?? [];
+		unset( $query_args['_other_filters'] );
+
+		// If we have other filters, we need to get all comments and manually filter them
+		// Otherwise use count mode for efficiency
+		if ( empty( $other_filters ) ) {
+			$query_args['count'] = true;
+
+			$this->log_info(
+				'get_count query_args',
+				[
+					'query_args'         => $query_args,
+					'custom_filters_set' => ! empty( $this->custom_filters ),
+				]
+			);
+
+			$comment_query = new \WP_Comment_Query( $query_args );
+			$count         = (int) $comment_query->get_comments();
+
+			$this->log_info( 'get_count result', [ 'count' => $count ] );
+
+			// Remove filter after count query
+			$this->remove_custom_filters();
+
+			return $count;
+		}
+
+		// Get all comments and manually filter
 		$this->log_info(
-			'get_count query_args',
+			'get_count with manual filtering',
 			[
-				'query_args'         => $query_args,
-				'custom_filters_set' => ! empty( $this->custom_filters ),
+				'query_args'    => $query_args,
+				'other_filters' => $other_filters,
 			]
 		);
 
 		$comment_query = new \WP_Comment_Query( $query_args );
-		$count         = (int) $comment_query->get_comments();
+		$comments      = $comment_query->get_comments();
 
-		$this->log_info( 'get_count result', [ 'count' => $count ] );
-
-		// Remove filter after count query
+		// Remove filter after query
 		$this->remove_custom_filters();
+
+		$count = 0;
+		foreach ( $comments as $comment ) {
+			$passes_all_filters = true;
+
+			foreach ( $other_filters as $filter ) {
+				$field_value = $this->get_comment_field_value( $comment, $filter['field'] );
+
+				if ( ! $this->check_condition( $field_value, $filter['condition'], $filter['value'] ) ) {
+					$passes_all_filters = false;
+					break;
+				}
+			}
+
+			if ( $passes_all_filters ) {
+				++$count;
+			}
+		}
+
+		$this->log_info( 'get_count result with manual filtering', [ 'count' => $count ] );
 
 		return $count;
 	}
@@ -145,6 +191,10 @@ class Comment_Exporter extends Abstract_Exporter {
 	 */
 	public function get_data( $options = [] ) {
 		$query_args = $this->build_query_args( $options );
+
+		// Extract other filters for manual checking
+		$other_filters = $query_args['_other_filters'] ?? [];
+		unset( $query_args['_other_filters'] );
 
 		$this->log_info( 'Querying comments', $query_args );
 
@@ -160,6 +210,24 @@ class Comment_Exporter extends Abstract_Exporter {
 
 		$data = [];
 		foreach ( $comments as $comment ) {
+			// Apply manual filtering for other filters
+			if ( ! empty( $other_filters ) ) {
+				$passes_all_filters = true;
+
+				foreach ( $other_filters as $filter ) {
+					$field_value = $this->get_comment_field_value( $comment, $filter['field'] );
+
+					if ( ! $this->check_condition( $field_value, $filter['condition'], $filter['value'] ) ) {
+						$passes_all_filters = false;
+						break;
+					}
+				}
+
+				if ( ! $passes_all_filters ) {
+					continue;
+				}
+			}
+
 			$data[] = $this->format_comment( $comment, $options );
 		}
 
@@ -293,11 +361,17 @@ class Comment_Exporter extends Abstract_Exporter {
 	 */
 	protected function build_query_args( $options ) {
 		$args = [
-			'number'  => $options['limit'] ?? -1,
 			'offset'  => $options['offset'] ?? 0,
 			'orderby' => $options['orderby'] ?? 'comment_date',
 			'order'   => $options['order'] ?? 'DESC',
+			'status'  => 'all', // Get all comment statuses by default
 		];
+
+		// Number/limit - WP_Comment_Query doesn't accept -1, use empty or large number
+		if ( isset( $options['limit'] ) && $options['limit'] > 0 ) {
+			$args['number'] = $options['limit'];
+		}
+		// If limit is -1 or not set, don't include 'number' parameter (gets all)
 
 		// Status filter
 		if ( ! empty( $options['status'] ) ) {
@@ -444,6 +518,11 @@ class Comment_Exporter extends Abstract_Exporter {
 
 		$this->log_info( 'Applying dynamic filters', [ 'filters' => $filters ] );
 
+		// Store all filters for manual checking
+		if ( ! isset( $args['_other_filters'] ) ) {
+			$args['_other_filters'] = [];
+		}
+
 		// Collect search filters separately to avoid conflicts
 		$search_filters    = [];
 		$custom_id_filters = [];
@@ -462,24 +541,30 @@ class Comment_Exporter extends Abstract_Exporter {
 				continue;
 			}
 
+			// Store all non-ID filters for manual checking and skip SQL filtering
+			if ( $field !== 'comment_ID' ) {
+				$args['_other_filters'][] = $filter;
+				continue; // Skip old SQL filtering logic - we'll handle manually
+			}
+
 			// Handle comment ID with numeric comparisons
 			if ( $field === 'comment_ID' ) {
+				// Only basic conditions (equals, in, not_equals, not_in) use SQL
+				// Complex conditions (greater, less, between, etc.) use manual filtering
+				if ( in_array( $condition, [ 'greater', 'less', 'equals_or_greater', 'equals_or_less', 'between' ], true ) ) {
+					$args['_other_filters'][] = $filter;
+					continue; // Handle manually
+				}
+
+				// Apply simple ID filters via SQL
 				if ( $condition === 'equals' ) {
 					$args['comment__in'] = [ absint( $value ) ];
 				} elseif ( $condition === 'not_equals' ) {
 					$args['comment__not_in'] = [ absint( $value ) ];
 				} elseif ( $condition === 'in' ) {
-					$args['comment__in'] = array_map( 'trim', explode( ',', $value ) );
-					$args['comment__in'] = array_map( 'absint', $args['comment__in'] );
+					$args['comment__in'] = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
 				} elseif ( $condition === 'not_in' ) {
-					$args['comment__not_in'] = array_map( 'trim', explode( ',', $value ) );
-					$args['comment__not_in'] = array_map( 'absint', $args['comment__not_in'] );
-				} elseif ( in_array( $condition, [ 'greater', 'less', 'equals_or_greater', 'equals_or_less', 'between' ], true ) ) {
-					$custom_id_filters[] = [
-						'field'     => $field,
-						'condition' => $condition,
-						'value'     => $value,
-					];
+					$args['comment__not_in'] = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
 				}
 				continue;
 			}
@@ -851,6 +936,154 @@ class Comment_Exporter extends Abstract_Exporter {
 		}
 
 		return $clauses;
+	}
+
+	/**
+	 * Get comment field value
+	 *
+	 * @param \WP_Comment $comment    Comment object
+	 * @param string      $field_name Field name
+	 * @return mixed Field value
+	 */
+	protected function get_comment_field_value( $comment, $field_name ) {
+		// Map field names to comment properties
+		$field_map = array(
+			'comment_ID'           => 'comment_ID',
+			'comment_post_ID'      => 'comment_post_ID',
+			'comment_author'       => 'comment_author',
+			'comment_author_email' => 'comment_author_email',
+			'comment_author_url'   => 'comment_author_url',
+			'comment_author_IP'    => 'comment_author_IP',
+			'comment_date'         => 'comment_date',
+			'comment_date_gmt'     => 'comment_date_gmt',
+			'comment_content'      => 'comment_content',
+			'comment_karma'        => 'comment_karma',
+			'comment_approved'     => 'comment_approved',
+			'comment_agent'        => 'comment_agent',
+			'comment_type'         => 'comment_type',
+			'comment_parent'       => 'comment_parent',
+			'user_id'              => 'user_id',
+		);
+
+		// Check if it's a standard field
+		if ( isset( $field_map[ $field_name ] ) ) {
+			$property = $field_map[ $field_name ];
+			return $comment->$property ?? '';
+		}
+
+		// Check if it's a meta field
+		return get_comment_meta( $comment->comment_ID, $field_name, true );
+	}
+
+	/**
+	 * Check if a condition matches
+	 *
+	 * @param mixed  $field_value The value to test
+	 * @param string $condition   The condition type
+	 * @param mixed  $test_value  The value to test against
+	 * @return bool True if condition matches
+	 */
+	protected function check_condition( $field_value, $condition, $test_value ) {
+		// For date comparisons, extract only the date part (YYYY-MM-DD)
+		$is_date_value   = false;
+		$field_date_only = null;
+		$test_date_only  = null;
+
+		if ( is_string( $field_value ) && preg_match( '/^\d{4}-\d{2}-\d{2}/', $field_value ) ) {
+			$is_date_value   = true;
+			$field_date_only = substr( $field_value, 0, 10 ); // Get YYYY-MM-DD part
+		}
+		if ( is_string( $test_value ) && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $test_value ) ) {
+			$test_date_only = $test_value;
+		}
+
+		// For date comparisons (greater/less/between), exclude empty values
+		$is_date_comparison = in_array( $condition, [ 'greater', 'less', 'equals_or_greater', 'equals_or_less', 'between' ], true );
+		if ( $is_date_comparison && $test_date_only && empty( $field_value ) ) {
+			return false; // Empty dates shouldn't match numeric/date comparisons
+		}
+
+		switch ( $condition ) {
+			case 'equals':
+				// For dates, compare only date parts
+				if ( $is_date_value && isset( $field_date_only ) && isset( $test_date_only ) ) {
+					return $field_date_only === $test_date_only;
+				}
+				return $field_value == $test_value;
+
+			case 'not_equals':
+				// For dates, compare only date parts
+				if ( $is_date_value && isset( $field_date_only ) && isset( $test_date_only ) ) {
+					return $field_date_only !== $test_date_only;
+				}
+				return $field_value != $test_value;
+
+			case 'contains':
+				return stripos( (string) $field_value, (string) $test_value ) !== false;
+
+			case 'not_contains':
+				return stripos( (string) $field_value, (string) $test_value ) === false;
+
+			case 'starts_with':
+				return stripos( (string) $field_value, (string) $test_value ) === 0;
+
+			case 'ends_with':
+				$field_lower = strtolower( (string) $field_value );
+				$test_lower  = strtolower( (string) $test_value );
+				return substr( $field_lower, -strlen( $test_lower ) ) === $test_lower;
+
+			case 'greater':
+				// For dates, compare only date parts
+				if ( $is_date_value && isset( $field_date_only ) && isset( $test_date_only ) ) {
+					return $field_date_only > $test_date_only;
+				}
+				return $field_value > $test_value;
+
+			case 'less':
+				// For dates, compare only date parts
+				if ( $is_date_value && isset( $field_date_only ) && isset( $test_date_only ) ) {
+					return $field_date_only < $test_date_only;
+				}
+				return $field_value < $test_value;
+
+			case 'equals_or_greater':
+				// For dates, compare only date parts
+				if ( $is_date_value && isset( $field_date_only ) && isset( $test_date_only ) ) {
+					return $field_date_only >= $test_date_only;
+				}
+				return $field_value >= $test_value;
+
+			case 'equals_or_less':
+				// For dates, compare only date parts
+				if ( $is_date_value && isset( $field_date_only ) && isset( $test_date_only ) ) {
+					return $field_date_only <= $test_date_only;
+				}
+				return $field_value <= $test_value;
+
+			case 'between':
+				$values = array_map( 'trim', explode( ',', (string) $test_value ) );
+				if ( count( $values ) === 2 ) {
+					return $field_value >= $values[0] && $field_value <= $values[1];
+				}
+				return true;
+
+			case 'in':
+				$values = array_map( 'trim', explode( ',', (string) $test_value ) );
+				return in_array( $field_value, $values, false ); // Non-strict for flexibility
+
+			case 'not_in':
+				$values = array_map( 'trim', explode( ',', (string) $test_value ) );
+				return ! in_array( $field_value, $values, false );
+
+			case 'is_empty':
+				return empty( $field_value );
+
+			case 'is_not_empty':
+				return ! empty( $field_value );
+
+			default:
+				return true;
+		}
 	}
 
 	/**
