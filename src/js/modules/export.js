@@ -140,12 +140,27 @@ const ExportModule = {
 			.addClass( 'completed' );
 
 		this.currentStep = step;
+		
+		const previousStep = this.currentStep;
 
-		if ( step === 2 ) {
+		if ( step === 1 ) {
+			// Hide database table selection and info when returning to step 1
+			jQuery( '.aie-table-selection-section' ).hide();
+			jQuery( '.aie-table-info' ).hide();
+			// Reset count only when going back to step 1
+			this.resetCount();
+		} else if ( step === 2 ) {
 			// Check if database_table type is selected
 			const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
 			if ( contentType === 'database_table' ) {
-				this.loadDatabaseTables();
+				jQuery( '.aie-table-selection-section' ).show();
+				// Only load database tables if coming from step 1 or if table not selected
+				const $tableSelect = jQuery( '#aie-table-name' );
+				if ( previousStep === 1 || !$tableSelect.val() ) {
+					this.loadDatabaseTables();
+				}
+			} else {
+				jQuery( '.aie-table-selection-section' ).hide();
 			}
 			
 			this.refreshCount( false ); // Don't show spinner on auto-refresh
@@ -154,9 +169,6 @@ const ExportModule = {
 			if ( this.step3Instance ) {
 				this.step3Instance.loadDynamicFields();
 			}
-		} else {
-			// Reset count when leaving step 2
-			this.resetCount();
 		}
 	},
 
@@ -185,6 +197,12 @@ const ExportModule = {
 			// Skip step 2 (filters) when going back for content types that don't need filtering
 			if ( prevStep === 2 && this.shouldSkipFilters() ) {
 				prevStep = 1;
+			}
+			
+			// Hide table selection when going back to step 1
+			if ( prevStep === 1 ) {
+				jQuery( '.aie-table-selection-section' ).hide();
+				jQuery( '.aie-table-info' ).hide();
 			}
 			
 			this.showStep( prevStep );
@@ -1904,12 +1922,6 @@ const ExportModule = {
 						label: 'Table Columns',
 						options: columnOptions
 					},
-					{
-						label: 'Info',
-						options: [
-							{ value: '_info', label: `ℹ️ ${this.currentTableColumns.length} columns available`, type: 'info' },
-						],
-					},
 				];
 			}
 
@@ -2098,7 +2110,7 @@ const ExportModule = {
 					if ( tableName ) {
 						this.loadTableColumns( tableName );
 					} else {
-						jQuery( '.aie-table-info' ).hide();
+						jQuery( '.aie-table-info' ).html('').hide();
 						jQuery( '#aie-filters-list' ).empty();
 					}
 				} );
