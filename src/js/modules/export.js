@@ -5,12 +5,14 @@
  */
 
 import Utils from './utils';
+import ExportStep3 from './export-step-3';
 
 const ExportModule = {
 	currentStep: 1,
 	totalSteps: 5,
 	jobId: null,
 	progressInterval: null,
+	step3Instance: null,
 
 	/**
 	 * Initialize module
@@ -22,6 +24,9 @@ const ExportModule = {
 
 		this.bindEvents();
 		this.showStep( 1 );
+		
+		// Initialize Step 3 drag and drop
+		this.step3Instance = new ExportStep3();
 	},
 
 	/**
@@ -50,7 +55,7 @@ const ExportModule = {
 			'.aie-export-filters input, .aie-export-filters select',
 			Utils.debounce( () => this.refreshCount( false ), 500 )
 		);
-		$wizard.on( 'click', '.aie-refresh-count', () => this.refreshCount( true ) );
+		$wizard.on( 'click', '.aie-step-2 .aie-refresh-count', () => this.refreshCount( true ) );
 
 		// Field selection
 		$wizard.on( 'click', '.aie-select-all-fields', () =>
@@ -144,6 +149,11 @@ const ExportModule = {
 			}
 			
 			this.refreshCount( false ); // Don't show spinner on auto-refresh
+		} else if ( step === 3 ) {
+			// Load dynamic fields when entering step 3
+			if ( this.step3Instance ) {
+				this.step3Instance.loadDynamicFields();
+			}
 		} else {
 			// Reset count when leaving step 2
 			this.resetCount();
@@ -164,6 +174,11 @@ const ExportModule = {
 	},
 
 	prevStep() {
+		// Clear step 3 fields when going back from step 3
+		if ( this.currentStep === 3 && this.step3Instance ) {
+			this.step3Instance.clearAllFields();
+		}
+		
 		if ( this.currentStep > 1 ) {
 			let prevStep = this.currentStep - 1;
 			
@@ -282,9 +297,9 @@ const ExportModule = {
 	 * Refresh item count
 	 */
 	async refreshCount( showSpinner = true ) {
-		const $count = jQuery( '.aie-count-value' );
-		const $spinner = jQuery( '.aie-item-count .spinner' );
-		const $refreshBtn = jQuery( '.aie-refresh-count' );
+		const $count = jQuery( '.aie-step-2 .aie-count-value' );
+		const $spinner = jQuery( '.aie-step-2 .aie-item-count .spinner' );
+		const $refreshBtn = jQuery( '.aie-step-2 .aie-refresh-count' );
 
 		if ( showSpinner ) {
 			$spinner.addClass( 'is-active' );
@@ -355,9 +370,9 @@ const ExportModule = {
 	 * Reset count display
 	 */
 	resetCount() {
-		const $count = jQuery( '.aie-count-value' );
-		const $spinner = jQuery( '.aie-item-count .spinner' );
-		const $refreshBtn = jQuery( '.aie-refresh-count' );
+		const $count = jQuery( '.aie-step-2 .aie-count-value' );
+		const $spinner = jQuery( '.aie-step-2 .aie-item-count .spinner' );
+		const $refreshBtn = jQuery( '.aie-step-2 .aie-refresh-count' );
 		
 		$count.text( '-' );
 		$spinner.removeClass( 'is-active' );
@@ -986,6 +1001,11 @@ const ExportModule = {
 				// When post type is selected, refresh count
 				$select.on( 'change', () => {
 					Utils.debounce( () => this.refreshCount( false ), 500 )();
+					
+					// Reload step 3 fields if currently on step 3
+					if ( this.currentStep === 3 && this.step3Instance ) {
+						this.step3Instance.reloadDynamicFields();
+					}
 				} );
 			}
 		} ).catch( ( error ) => {
@@ -1171,16 +1191,26 @@ const ExportModule = {
 						{ value: 'post_content', label: 'Description', type: 'string' },
 						{ value: 'post_excerpt', label: 'Caption', type: 'string' },
 						{ value: 'post_name', label: 'Slug', type: 'string' },
+						{ value: 'alt_text', label: 'Alt Text', type: 'string' },
 					],
 				},
 				{
-					label: 'File',
+					label: 'File Information',
 					options: [
-						{ value: 'post_mime_type', label: 'MIME Type', type: 'string' },
-						{ value: 'file_size', label: 'File Size (bytes)', type: 'number' },
+						{ value: 'guid', label: 'File URL (GUID)', type: 'url' },
+						{ value: 'file_url', label: 'File URL', type: 'url' },
+						{ value: 'file_path', label: 'File Path (Relative)', type: 'string' },
 						{ value: 'file_name', label: 'File Name', type: 'string' },
 						{ value: 'file_extension', label: 'File Extension', type: 'string' },
-						{ value: 'file_path', label: 'File Path', type: 'string' },
+						{ value: 'post_mime_type', label: 'MIME Type', type: 'string' },
+						{ value: 'file_size', label: 'File Size (bytes)', type: 'number' },
+					],
+				},
+				{
+					label: 'Image Dimensions',
+					options: [
+						{ value: 'width', label: 'Width (px)', type: 'number' },
+						{ value: 'height', label: 'Height (px)', type: 'number' },
 					],
 				},
 				{
@@ -1195,13 +1225,14 @@ const ExportModule = {
 					options: [
 						{ value: 'post_author', label: 'Author ID', type: 'number' },
 						{ value: 'author_name', label: 'Author Name', type: 'string' },
+						{ value: 'author_email', label: 'Author Email', type: 'email' },
 					],
 				},
 				{
-					label: 'Other',
+					label: 'Attachment',
 					options: [
 						{ value: 'post_parent', label: 'Attached To (Post ID)', type: 'number' },
-						{ value: 'alt_text', label: 'Alt Text', type: 'string' },
+						{ value: 'attached_post_title', label: 'Attached Post Title', type: 'string' },
 					],
 				},
 				{
@@ -1222,10 +1253,20 @@ const ExportModule = {
 		if ( contentType === 'menu' ) {
 			return [
 				{
-					label: 'Menu',
+					label: 'Basic',
 					options: [
 						{ value: 'term_id', label: 'Menu ID', type: 'number' },
 						{ value: 'name', label: 'Menu Name', type: 'string' },
+						{ value: 'slug', label: 'Menu Slug', type: 'string' },
+						{ value: 'description', label: 'Description', type: 'string' },
+						{ value: 'menu_items', label: 'Menu Items (Array)', type: 'array' },
+					],
+				},
+				{
+					label: 'Details',
+					options: [
+						{ value: 'count', label: 'Items Count', type: 'number' },
+						{ value: 'locations', label: 'Theme Locations', type: 'string' },
 					],
 				},
 				{
@@ -1258,18 +1299,30 @@ const ExportModule = {
 						{ value: 'nickname', label: 'Nickname', type: 'string' },
 						{ value: 'description', label: 'Bio', type: 'string' },
 						{ value: 'user_url', label: 'Website', type: 'string' },
+						{ value: 'avatar_url', label: 'Avatar URL', type: 'string' },
 					],
 				},
 				{
-					label: 'Role',
+					label: 'Role & Permissions',
 					options: [
 						{ value: 'role', label: 'Role', type: 'string' },
+						{ value: 'capabilities', label: 'Capabilities (Array)', type: 'array' },
 					],
 				},
 				{
-					label: 'Dates',
+					label: 'Preferences',
 					options: [
+						{ value: 'locale', label: 'Language', type: 'string' },
+						{ value: 'admin_color', label: 'Admin Color Scheme', type: 'string' },
+						{ value: 'rich_editing', label: 'Visual Editor', type: 'boolean' },
+					],
+				},
+				{
+					label: 'Stats',
+					options: [
+						{ value: 'posts_count', label: 'Posts Count', type: 'number' },
 						{ value: 'user_registered', label: 'Registration Date', type: 'date' },
+						{ value: 'user_status', label: 'User Status', type: 'number' },
 					],
 				},
 				{
@@ -1291,6 +1344,7 @@ const ExportModule = {
 						{ value: 'comment_post_ID', label: 'Post ID', type: 'number' },
 						{ value: 'comment_content', label: 'Comment Content', type: 'string' },
 						{ value: 'comment_approved', label: 'Status', type: 'string' },
+						{ value: 'comment_type', label: 'Comment Type', type: 'string' },
 					],
 				},
 				{
@@ -1301,20 +1355,28 @@ const ExportModule = {
 						{ value: 'comment_author_url', label: 'Author URL', type: 'string' },
 						{ value: 'comment_author_IP', label: 'Author IP', type: 'string' },
 						{ value: 'user_id', label: 'User ID', type: 'number' },
+						{ value: 'comment_agent', label: 'User Agent', type: 'string' },
+					],
+				},
+				{
+					label: 'Related Post',
+					options: [
+						{ value: 'post_title', label: 'Post Title', type: 'string' },
+						{ value: 'post_author', label: 'Post Author ID', type: 'number' },
 					],
 				},
 				{
 					label: 'Dates',
 					options: [
 						{ value: 'comment_date', label: 'Comment Date', type: 'date' },
+						{ value: 'comment_date_gmt', label: 'Comment Date (GMT)', type: 'date' },
 					],
 				},
 				{
-					label: 'Other',
+					label: 'Hierarchy',
 					options: [
 						{ value: 'comment_parent', label: 'Parent Comment ID', type: 'number' },
 						{ value: 'comment_karma', label: 'Karma', type: 'number' },
-						{ value: 'comment_type', label: 'Comment Type', type: 'string' },
 					],
 				},
 				{

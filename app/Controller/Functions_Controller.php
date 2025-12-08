@@ -33,6 +33,7 @@ class Functions_Controller extends Base_Controller {
 	 */
 	protected function get_ajax_actions() {
 		return [
+			'get_functions'          => [ 'callback' => 'get_functions_list' ],
 			'functions_get_all'      => [ 'callback' => 'get_all_functions' ],
 			'functions_get'          => [ 'callback' => 'get_function' ],
 			'functions_create'       => [ 'callback' => 'create_function' ],
@@ -43,6 +44,46 @@ class Functions_Controller extends Base_Controller {
 			'functions_search'       => [ 'callback' => 'search_snippets' ],
 			'functions_import'       => [ 'callback' => 'import_snippet' ],
 		];
+	}
+
+	/**
+	 * Get functions list (simplified for export field selection)
+	 * Returns only active functions without pagination
+	 */
+	public function get_functions_list() {
+		$verify = $this->verify_request( 'nonce' );
+		if ( is_wp_error( $verify ) ) {
+			$this->send_error( $verify->get_error_message() );
+		}
+
+		$model = new Custom_Function();
+
+		$args = [
+			'status'  => 'active',
+			'orderby' => 'name',
+			'order'   => 'ASC',
+		];
+
+		$functions = $model->get_all( $args );
+
+		// Format functions for the export interface
+		$formatted_functions = array_map(
+			function ( $function ) {
+				return [
+					'id'          => $function['id'],
+					'name'        => $function['name'],
+					'description' => $function['description'],
+					'category'    => $function['category'],
+				];
+			},
+			$functions
+		);
+
+		$this->send_success(
+			[
+				'functions' => $formatted_functions,
+			]
+		);
 	}
 
 	/**

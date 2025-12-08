@@ -10,6 +10,9 @@ jQuery( document ).ready( function ( $ ) {
 
 	// Initialize export module
 	ExportModule.init();
+	
+	// Make export module globally accessible for step 3
+	window.aieExportModule = ExportModule;
 
 	// Initialize functions module
 	FunctionsModule.init();

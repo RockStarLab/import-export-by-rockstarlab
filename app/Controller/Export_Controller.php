@@ -45,6 +45,10 @@ class Export_Controller extends Base_Controller {
 			'get_post_types'      => [ 'callback' => 'get_post_types' ],
 			'get_database_tables' => [ 'callback' => 'get_database_tables' ],
 			'get_table_columns'   => [ 'callback' => 'get_table_columns' ],
+			'get_taxonomies'      => [ 'callback' => 'get_taxonomies' ],
+			'get_custom_fields'   => [ 'callback' => 'get_custom_fields' ],
+			'get_acf_fields'      => [ 'callback' => 'get_acf_fields' ],
+			'get_yoast_fields'    => [ 'callback' => 'get_yoast_fields' ],
 		];
 	}
 
@@ -505,5 +509,191 @@ class Export_Controller extends Base_Controller {
 
 		// Default to string for all text types
 		return 'string';
+	}
+
+	/**
+	 * Get taxonomies for a post type
+	 */
+	public function get_taxonomies() {
+		error_log( 'Export_Controller::get_taxonomies() called' );
+		error_log( 'POST data: ' . print_r( $_POST, true ) );
+
+		$verification = $this->verify_request( 'export_fields' );
+		if ( is_wp_error( $verification ) ) {
+			error_log( 'Verification failed: ' . $verification->get_error_message() );
+			$this->send_error( $verification, null, 403 );
+		}
+
+		$post_type = $this->get_request_param( 'post_type', 'post' );
+		error_log( 'Post type: ' . $post_type );
+
+		// Get all taxonomies registered for this post type
+		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
+		error_log( 'Taxonomies found: ' . count( $taxonomies ) );
+
+		$taxonomy_list = [];
+		foreach ( $taxonomies as $taxonomy ) {
+			$taxonomy_list[] = [
+				'name'  => $taxonomy->name,
+				'label' => $taxonomy->label,
+			];
+		}
+
+		error_log( 'Sending success with ' . count( $taxonomy_list ) . ' taxonomies' );
+		$this->send_success( [ 'taxonomies' => $taxonomy_list ] );
+	}
+
+	/**
+	 * Get custom fields for a post type
+	 */
+	public function get_custom_fields() {
+		$verification = $this->verify_request( 'export_fields' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		global $wpdb;
+
+		$post_type = $this->get_request_param( 'post_type', 'post' );
+
+		// Get unique meta keys for this post type
+		$meta_keys = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT DISTINCT pm.meta_key 
+				FROM {$wpdb->postmeta} pm
+				INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+				WHERE p.post_type = %s
+				AND pm.meta_key NOT LIKE '\\_%%'
+				ORDER BY pm.meta_key ASC
+				LIMIT 100",
+				$post_type
+			)
+		);
+
+		$fields = [];
+		foreach ( $meta_keys as $meta ) {
+			$fields[] = [
+				'name'  => $meta->meta_key,
+				'label' => $meta->meta_key,
+			];
+		}
+
+		$this->send_success( [ 'fields' => $fields ] );
+	}
+
+	/**
+	 * Get ACF fields for a post type
+	 */
+	public function get_acf_fields() {
+		$verification = $this->verify_request( 'export_fields' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		// Check if ACF is active
+		if ( ! function_exists( 'acf_get_field_groups' ) ) {
+			$this->send_success( [ 'fields' => [] ] );
+			return;
+		}
+
+		$post_type = $this->get_request_param( 'post_type', 'post' );
+
+		// Determine the location rule based on content type
+		$location_args = [];
+		if ( $post_type === 'user' ) {
+			$location_args['user_form'] = 'all'; // ACF User fields
+		} else {
+			$location_args['post_type'] = $post_type;
+		}
+
+		// Get field groups for this location
+		$field_groups = acf_get_field_groups( $location_args );
+
+		$fields = [];
+		foreach ( $field_groups as $group ) {
+			$group_fields = acf_get_fields( $group['key'] );
+
+			if ( $group_fields ) {
+				foreach ( $group_fields as $field ) {
+					$fields[] = [
+						'name'  => $field['name'],
+						'label' => $field['label'],
+						'type'  => $field['type'],
+					];
+				}
+			}
+		}
+
+		$this->send_success( [ 'fields' => $fields ] );
+	}
+
+	/**
+	 * Get Yoast SEO fields
+	 */
+	public function get_yoast_fields() {
+		$verification = $this->verify_request( 'export_fields' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		// Check if Yoast SEO is active
+		if ( ! defined( 'WPSEO_VERSION' ) ) {
+			$this->send_success( [ 'fields' => [] ] );
+			return;
+		}
+
+		// Standard Yoast SEO meta fields
+		$fields = [
+			[
+				'name'  => '_yoast_wpseo_title',
+				'label' => 'SEO Title',
+			],
+			[
+				'name'  => '_yoast_wpseo_metadesc',
+				'label' => 'Meta Description',
+			],
+			[
+				'name'  => '_yoast_wpseo_focuskw',
+				'label' => 'Focus Keyword',
+			],
+			[
+				'name'  => '_yoast_wpseo_canonical',
+				'label' => 'Canonical URL',
+			],
+			[
+				'name'  => '_yoast_wpseo_meta-robots-noindex',
+				'label' => 'Meta Robots (Index)',
+			],
+			[
+				'name'  => '_yoast_wpseo_meta-robots-nofollow',
+				'label' => 'Meta Robots (Follow)',
+			],
+			[
+				'name'  => '_yoast_wpseo_opengraph-title',
+				'label' => 'Facebook Title',
+			],
+			[
+				'name'  => '_yoast_wpseo_opengraph-description',
+				'label' => 'Facebook Description',
+			],
+			[
+				'name'  => '_yoast_wpseo_opengraph-image',
+				'label' => 'Facebook Image',
+			],
+			[
+				'name'  => '_yoast_wpseo_twitter-title',
+				'label' => 'Twitter Title',
+			],
+			[
+				'name'  => '_yoast_wpseo_twitter-description',
+				'label' => 'Twitter Description',
+			],
+			[
+				'name'  => '_yoast_wpseo_twitter-image',
+				'label' => 'Twitter Image',
+			],
+		];
+
+		$this->send_success( [ 'fields' => $fields ] );
 	}
 }
