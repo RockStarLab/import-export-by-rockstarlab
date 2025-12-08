@@ -686,8 +686,9 @@ var ExportStep3 = /*#__PURE__*/function () {
       // Check if ACF is active and load ACF fields
       this.checkAndLoadACF();
 
-      // Check if Yoast is active and load Yoast fields (skip for media, users, and menus)
-      if (contentType !== 'media' && contentType !== 'user' && contentType !== 'menu') {
+      // Check if Yoast is active and load Yoast fields (skip for non-content types)
+      var excludedTypes = ['media', 'user', 'menu', 'block_theme_settings', 'taxonomy', 'database_table', 'woo_attribute', 'woo_coupon', 'woo_order'];
+      if (!excludedTypes.includes(contentType)) {
         this.checkAndLoadYoast();
       }
     }
@@ -2008,23 +2009,29 @@ var ExportModule = _defineProperty(_defineProperty({
             response = _context.sent;
             console.log('Received count response:', response);
             $count.text(response.count || 0);
-            _context.next = 22;
+
+            // Update next button state based on count
+            _this2.updateStep2NextButton();
+            _context.next = 24;
             break;
-          case 18:
-            _context.prev = 18;
+          case 19:
+            _context.prev = 19;
             _context.t0 = _context["catch"](6);
             $count.text('-');
             console.error('Count error:', _context.t0);
-          case 22:
-            _context.prev = 22;
+
+            // Disable next button on error
+            _this2.updateStep2NextButton();
+          case 24:
+            _context.prev = 24;
             $spinner.removeClass('is-active');
             $refreshBtn.removeClass('is-refreshing');
-            return _context.finish(22);
-          case 26:
+            return _context.finish(24);
+          case 28:
           case "end":
             return _context.stop();
         }
-      }, _callee, null, [[6, 18, 22, 26]]);
+      }, _callee, null, [[6, 19, 24, 28]]);
     }))();
   },
   /**
@@ -2037,6 +2044,85 @@ var ExportModule = _defineProperty(_defineProperty({
     $count.text('-');
     $spinner.removeClass('is-active');
     $refreshBtn.removeClass('is-refreshing');
+
+    // Disable next button when count is reset
+    this.updateStep2NextButton();
+  },
+  /**
+   * Update step 2 next button state based on item count
+   */
+  updateStep2NextButton: function updateStep2NextButton() {
+    var _this3 = this;
+    var $nextBtn = jQuery('.aie-step-2 .aie-next-step');
+    var $count = jQuery('.aie-step-2 .aie-count-value');
+    var countText = $count.text();
+    var count = parseInt(countText, 10);
+
+    // Remove previous event handlers
+    $nextBtn.off('mouseenter.tooltip mouseleave.tooltip');
+
+    // Disable if count is 0, NaN, or '-'
+    if (countText === '-' || isNaN(count) || count === 0) {
+      $nextBtn.prop('disabled', true);
+
+      // Show tooltip on hover
+      $nextBtn.on('mouseenter.tooltip', function () {
+        _this3.showNextButtonTooltip($nextBtn);
+      });
+
+      // Hide tooltip on mouse leave
+      $nextBtn.on('mouseleave.tooltip', function () {
+        _this3.hideNextButtonTooltip($nextBtn);
+      });
+    } else {
+      $nextBtn.prop('disabled', false);
+
+      // Hide tooltip if it's shown
+      this.hideNextButtonTooltip($nextBtn);
+    }
+  },
+  /**
+   * Show custom tooltip on Next button
+   */
+  showNextButtonTooltip: function showNextButtonTooltip($button) {
+    // Remove any existing tooltips
+    jQuery('.aie-custom-tooltip').remove();
+    // Create tooltip element
+    var $tooltip = jQuery('<div>').addClass('aie-custom-tooltip aie-custom-pointer').html("\n\t\t\t\t<div class=\"aie-pointer-icon\">\n\t\t\t\t\t<span class=\"dashicons dashicons-warning\"></span>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-pointer-content\">\n\t\t\t\t\t<h3>No Data Available</h3>\n\t\t\t\t\t<p>Adjust your filters or select a different content type to continue with the export.</p>\n\t\t\t\t</div>\n\t\t\t");
+    // Append to body
+    jQuery('body').append($tooltip);
+    // Position tooltip
+    var buttonOffset = $button.offset();
+    var buttonWidth = $button.outerWidth();
+    var buttonHeight = $button.outerHeight();
+    var tooltipWidth = $tooltip.outerWidth();
+    var tooltipHeight = $tooltip.outerHeight();
+    // Position above the button, centered
+    var left = buttonOffset.left + buttonWidth / 2 - tooltipWidth / 2;
+    var top = buttonOffset.top - tooltipHeight - 10; // 10px gap
+    $tooltip.css({
+      left: left + 'px',
+      top: top + 'px',
+      zIndex: 9999
+    });
+    // Fade in
+    setTimeout(function () {
+      $tooltip.addClass('aie-tooltip-visible');
+    }, 10);
+  },
+  /**
+   * Hide custom tooltip
+   */
+  hideNextButtonTooltip: function hideNextButtonTooltip($button) {
+    var $tooltip = jQuery('.aie-custom-tooltip');
+    if ($tooltip.length) {
+      $tooltip.removeClass('aie-tooltip-visible');
+
+      // Remove after animation
+      setTimeout(function () {
+        $tooltip.remove();
+      }, 200);
+    }
   },
   /**
    * Map content type to WordPress post_type
@@ -2237,13 +2323,13 @@ var ExportModule = _defineProperty(_defineProperty({
    * Start export
    */
   startExport: function startExport() {
-    var _this3 = this;
+    var _this4 = this;
     return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
       var fields, contentType, dynamicFiltersData, data, response;
       return _regeneratorRuntime().wrap(function _callee2$(_context2) {
         while (1) switch (_context2.prev = _context2.next) {
           case 0:
-            fields = _this3.getSelectedFields();
+            fields = _this4.getSelectedFields();
             if (!(fields.length === 0)) {
               _context2.next = 4;
               break;
@@ -2253,10 +2339,10 @@ var ExportModule = _defineProperty(_defineProperty({
           case 4:
             _context2.prev = 4;
             contentType = jQuery('input[name="content_type"]:checked').val();
-            dynamicFiltersData = _this3.getDynamicFilters();
+            dynamicFiltersData = _this4.getDynamicFilters();
             data = {
               export_type: contentType,
-              filters: _this3.getFilters(),
+              filters: _this4.getFilters(),
               fields: fields,
               format: jQuery('input[name="format"]:checked').val(),
               format_options: {
@@ -2285,9 +2371,9 @@ var ExportModule = _defineProperty(_defineProperty({
             return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_start', data);
           case 13:
             response = _context2.sent;
-            _this3.jobId = response.job_id;
-            _this3.showStep(5);
-            _this3.startProgressTracking();
+            _this4.jobId = response.job_id;
+            _this4.showStep(5);
+            _this4.startProgressTracking();
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Export started successfully', 'success');
             _context2.next = 23;
             break;
@@ -2306,16 +2392,16 @@ var ExportModule = _defineProperty(_defineProperty({
    * Start progress tracking
    */
   startProgressTracking: function startProgressTracking() {
-    var _this4 = this;
+    var _this5 = this;
     this.progressInterval = setInterval(function () {
-      _this4.updateProgress();
+      _this5.updateProgress();
     }, 2000);
   },
   /**
    * Update progress
    */
   updateProgress: function updateProgress() {
-    var _this5 = this;
+    var _this6 = this;
     return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
       var response;
       return _regeneratorRuntime().wrap(function _callee3$(_context3) {
@@ -2324,15 +2410,15 @@ var ExportModule = _defineProperty(_defineProperty({
             _context3.prev = 0;
             _context3.next = 3;
             return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_get_progress', {
-              job_id: _this5.jobId
+              job_id: _this6.jobId
             });
           case 3:
             response = _context3.sent;
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].updateProgressBar(jQuery('.aie-step-5'), response);
             if (response.status === 'completed') {
-              _this5.onExportComplete(response);
+              _this6.onExportComplete(response);
             } else if (response.status === 'failed') {
-              _this5.onExportFailed(response);
+              _this6.onExportFailed(response);
             }
             _context3.next = 11;
             break;
@@ -2372,7 +2458,7 @@ var ExportModule = _defineProperty(_defineProperty({
    * Download export file
    */
   downloadFile: function downloadFile() {
-    var _this6 = this;
+    var _this7 = this;
     return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
       var response;
       return _regeneratorRuntime().wrap(function _callee4$(_context4) {
@@ -2381,7 +2467,7 @@ var ExportModule = _defineProperty(_defineProperty({
             _context4.prev = 0;
             _context4.next = 3;
             return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_download', {
-              job_id: _this6.jobId
+              job_id: _this7.jobId
             });
           case 3:
             response = _context4.sent;
@@ -2405,7 +2491,7 @@ var ExportModule = _defineProperty(_defineProperty({
    * Cancel export
    */
   cancelExport: function cancelExport() {
-    var _this7 = this;
+    var _this8 = this;
     return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
       return _regeneratorRuntime().wrap(function _callee5$(_context5) {
         while (1) switch (_context5.prev = _context5.next) {
@@ -2419,12 +2505,12 @@ var ExportModule = _defineProperty(_defineProperty({
             _context5.prev = 2;
             _context5.next = 5;
             return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_cancel', {
-              job_id: _this7.jobId
+              job_id: _this8.jobId
             });
           case 5:
-            clearInterval(_this7.progressInterval);
+            clearInterval(_this8.progressInterval);
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Export cancelled', 'info');
-            _this7.resetWizard();
+            _this8.resetWizard();
             _context5.next = 13;
             break;
           case 10:
@@ -2454,7 +2540,7 @@ var ExportModule = _defineProperty(_defineProperty({
    * Add new filter row
    */
   addFilterRow: function addFilterRow() {
-    var _this8 = this;
+    var _this9 = this;
     var template = document.getElementById('aie-filter-row-template');
     var clone = template.content.cloneNode(true);
     var contentType = jQuery('input[name="content_type"]:checked').val();
@@ -2473,26 +2559,26 @@ var ExportModule = _defineProperty(_defineProperty({
 
     // Trigger count refresh (without spinner)
     _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-      return _this8.refreshCount(false);
+      return _this9.refreshCount(false);
     }, 500)();
   },
   /**
    * Remove filter row
    */
   removeFilterRow: function removeFilterRow(e) {
-    var _this9 = this;
+    var _this10 = this;
     jQuery(e.target).closest('.aie-filter-row').remove();
 
     // Trigger count refresh (without spinner)
     _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-      return _this9.refreshCount(false);
+      return _this10.refreshCount(false);
     }, 500)();
   },
   /**
    * Handle filter field change
    */
   onFilterFieldChange: function onFilterFieldChange(e) {
-    var _this11 = this;
+    var _this12 = this;
     var $field = jQuery(e.target);
     var $row = $field.closest('.aie-filter-row');
     var $condition = $row.find('.aie-filter-condition');
@@ -2510,7 +2596,7 @@ var ExportModule = _defineProperty(_defineProperty({
 
       // Handle condition change to show/hide value input
       $row.find('.aie-custom-field-condition').on('change', function () {
-        var _this10 = this;
+        var _this11 = this;
         var condition = jQuery(this).val();
         var $valueGroup = $row.find('.aie-custom-field-value-group');
         if (condition === 'is_empty' || condition === 'is_not_empty') {
@@ -2520,14 +2606,14 @@ var ExportModule = _defineProperty(_defineProperty({
         }
         // Trigger count refresh on condition change
         _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-          return _this10.refreshCount(false);
+          return _this11.refreshCount(false);
         }, 500)();
       }.bind(this));
 
       // Add change event handlers to trigger count refresh
       $row.find('.aie-custom-field-name, .aie-custom-field-value').on('input change', function () {
         _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-          return _this11.refreshCount(false);
+          return _this12.refreshCount(false);
         }, 500)();
       });
       return;
@@ -2543,7 +2629,7 @@ var ExportModule = _defineProperty(_defineProperty({
       // Add change event handlers to trigger count refresh
       $row.find('.aie-taxonomy-name, .aie-taxonomy-condition, .aie-taxonomy-terms').on('input change', function () {
         _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-          return _this11.refreshCount(false);
+          return _this12.refreshCount(false);
         }, 500)();
       });
       return;
@@ -2572,7 +2658,7 @@ var ExportModule = _defineProperty(_defineProperty({
           $select.on('change', function () {
             var tableName = $select.val();
             if (tableName) {
-              _this11.loadTableColumns(tableName);
+              _this12.loadTableColumns(tableName);
             }
           });
         }
@@ -2608,12 +2694,12 @@ var ExportModule = _defineProperty(_defineProperty({
           // When post type is selected, refresh count
           _$select.on('change', function () {
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-              return _this11.refreshCount(false);
+              return _this12.refreshCount(false);
             }, 500)();
 
             // Reload step 3 fields if currently on step 3
-            if (_this11.currentStep === 3 && _this11.step3Instance) {
-              _this11.step3Instance.reloadDynamicFields();
+            if (_this12.currentStep === 3 && _this12.step3Instance) {
+              _this12.step3Instance.reloadDynamicFields();
             }
           });
         }
@@ -2688,20 +2774,20 @@ var ExportModule = _defineProperty(_defineProperty({
 
     // Trigger count refresh (without spinner)
     _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-      return _this11.refreshCount(false);
+      return _this12.refreshCount(false);
     }, 500)();
   },
   /**
    * Load table columns dynamically
    */
   loadTableColumns: function loadTableColumns(tableName) {
-    var _this12 = this;
+    var _this13 = this;
     _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_get_table_columns', {
       table_name: tableName
     }).then(function (columns) {
       if (columns && Array.isArray(columns)) {
         // Store columns for later use
-        _this12.tableColumns = columns;
+        _this13.tableColumns = columns;
 
         // Update all filter field dropdowns
         jQuery('.aie-filter-field').each(function (index, element) {
@@ -3200,39 +3286,6 @@ var ExportModule = _defineProperty(_defineProperty({
           label: 'Setting Value',
           type: 'string'
         }]
-      }, {
-        label: 'Theme',
-        options: [{
-          value: 'theme_slug',
-          label: 'Theme Slug',
-          type: 'string'
-        }, {
-          value: 'theme_version',
-          label: 'Theme Version',
-          type: 'string'
-        }]
-      }, {
-        label: 'Templates',
-        options: [{
-          value: 'template_name',
-          label: 'Template Name',
-          type: 'string'
-        }, {
-          value: 'template_slug',
-          label: 'Template Slug',
-          type: 'string'
-        }, {
-          value: 'template_type',
-          label: 'Template Type',
-          type: 'string'
-        }]
-      }, {
-        label: 'Dates',
-        options: [{
-          value: 'modified_date',
-          label: 'Modified Date',
-          type: 'date'
-        }]
       }];
     }
 
@@ -3323,19 +3376,49 @@ var ExportModule = _defineProperty(_defineProperty({
       return [{
         label: 'Basic',
         options: [{
+          value: 'term_id',
+          label: 'Term ID',
+          type: 'number'
+        }, {
           value: 'name',
-          label: 'Taxonomy Name',
+          label: 'Term Name',
           type: 'string'
         }, {
           value: 'slug',
-          label: 'Taxonomy Slug',
+          label: 'Term Slug',
           type: 'string'
+        }, {
+          value: 'description',
+          label: 'Description',
+          type: 'string'
+        }]
+      }, {
+        label: 'Taxonomy',
+        options: [{
+          value: 'taxonomy',
+          label: 'Taxonomy Type',
+          type: 'string'
+        }, {
+          value: 'term_taxonomy_id',
+          label: 'Taxonomy ID',
+          type: 'number'
+        }]
+      }, {
+        label: 'Hierarchy',
+        options: [{
+          value: 'parent',
+          label: 'Parent Term ID',
+          type: 'number'
+        }, {
+          value: 'count',
+          label: 'Posts Count',
+          type: 'number'
         }]
       }, {
         label: 'Custom Filters',
         options: [{
           value: '_custom_field',
-          label: '🔧 Taxonomy Custom Field (Meta)',
+          label: '🔧 Term Meta Field',
           type: 'custom_field'
         }]
       }];
@@ -3365,14 +3448,25 @@ var ExportModule = _defineProperty(_defineProperty({
           value: 'sku',
           label: 'SKU',
           type: 'string'
+        }, {
+          value: 'post_author',
+          label: 'Author ID',
+          type: 'number'
         }]
       }, {
-        label: 'Product Data',
+        label: 'Content',
         options: [{
-          value: 'product_type',
-          label: 'Product Type',
+          value: 'post_content',
+          label: 'Description',
           type: 'string'
         }, {
+          value: 'post_excerpt',
+          label: 'Short Description',
+          type: 'string'
+        }]
+      }, {
+        label: 'Pricing',
+        options: [{
           value: 'regular_price',
           label: 'Regular Price',
           type: 'number'
@@ -3381,6 +3475,17 @@ var ExportModule = _defineProperty(_defineProperty({
           label: 'Sale Price',
           type: 'number'
         }, {
+          value: 'tax_status',
+          label: 'Tax Status',
+          type: 'string'
+        }, {
+          value: 'tax_class',
+          label: 'Tax Class',
+          type: 'string'
+        }]
+      }, {
+        label: 'Inventory',
+        options: [{
           value: 'stock_quantity',
           label: 'Stock Quantity',
           type: 'number'
@@ -3391,7 +3496,60 @@ var ExportModule = _defineProperty(_defineProperty({
         }, {
           value: 'manage_stock',
           label: 'Manage Stock',
+          type: 'boolean'
+        }, {
+          value: 'backorders',
+          label: 'Backorders',
           type: 'string'
+        }]
+      }, {
+        label: 'Product Type',
+        options: [{
+          value: 'product_type',
+          label: 'Product Type',
+          type: 'string'
+        }, {
+          value: 'downloadable',
+          label: 'Downloadable',
+          type: 'boolean'
+        }, {
+          value: 'virtual',
+          label: 'Virtual',
+          type: 'boolean'
+        }]
+      }, {
+        label: 'Shipping',
+        options: [{
+          value: 'weight',
+          label: 'Weight',
+          type: 'number'
+        }, {
+          value: 'length',
+          label: 'Length',
+          type: 'number'
+        }, {
+          value: 'width',
+          label: 'Width',
+          type: 'number'
+        }, {
+          value: 'height',
+          label: 'Height',
+          type: 'number'
+        }, {
+          value: 'shipping_class',
+          label: 'Shipping Class',
+          type: 'string'
+        }]
+      }, {
+        label: 'Media',
+        options: [{
+          value: 'featured_image',
+          label: 'Featured Image',
+          type: 'string'
+        }, {
+          value: 'product_gallery',
+          label: 'Gallery Images',
+          type: 'array'
         }]
       }, {
         label: 'Taxonomy',
@@ -3403,10 +3561,36 @@ var ExportModule = _defineProperty(_defineProperty({
           value: 'product_tag',
           label: 'Tags',
           type: 'string'
+        }]
+      }, {
+        label: 'Reviews',
+        options: [{
+          value: 'average_rating',
+          label: 'Average Rating',
+          type: 'number'
         }, {
-          value: 'product_brand',
-          label: 'Brands',
+          value: 'review_count',
+          label: 'Review Count',
+          type: 'number'
+        }, {
+          value: 'comment_status',
+          label: 'Reviews Enabled',
           type: 'string'
+        }]
+      }, {
+        label: 'Visibility',
+        options: [{
+          value: 'featured',
+          label: 'Featured',
+          type: 'boolean'
+        }, {
+          value: 'visibility',
+          label: 'Catalog Visibility',
+          type: 'string'
+        }, {
+          value: 'total_sales',
+          label: 'Total Sales',
+          type: 'number'
         }]
       }, {
         label: 'Dates',
@@ -3418,25 +3602,6 @@ var ExportModule = _defineProperty(_defineProperty({
           value: 'post_modified',
           label: 'Modified Date',
           type: 'date'
-        }]
-      }, {
-        label: 'Other',
-        options: [{
-          value: 'featured',
-          label: 'Featured',
-          type: 'string'
-        }, {
-          value: 'visibility',
-          label: 'Visibility',
-          type: 'string'
-        }, {
-          value: 'total_sales',
-          label: 'Total Sales',
-          type: 'number'
-        }, {
-          value: 'weight',
-          label: 'Weight',
-          type: 'number'
         }]
       }, {
         label: 'Custom Filters',
@@ -3472,6 +3637,10 @@ var ExportModule = _defineProperty(_defineProperty({
           value: 'order_key',
           label: 'Order Key',
           type: 'string'
+        }, {
+          value: 'currency',
+          label: 'Currency',
+          type: 'string'
         }]
       }, {
         label: 'Amounts',
@@ -3504,9 +3673,16 @@ var ExportModule = _defineProperty(_defineProperty({
           type: 'number'
         }, {
           value: 'billing_email',
-          label: 'Billing Email',
+          label: 'Email',
           type: 'string'
         }, {
+          value: 'customer_note',
+          label: 'Customer Note',
+          type: 'string'
+        }]
+      }, {
+        label: 'Billing Address',
+        options: [{
           value: 'billing_first_name',
           label: 'First Name',
           type: 'string'
@@ -3515,8 +3691,108 @@ var ExportModule = _defineProperty(_defineProperty({
           label: 'Last Name',
           type: 'string'
         }, {
+          value: 'billing_company',
+          label: 'Company',
+          type: 'string'
+        }, {
+          value: 'billing_address_1',
+          label: 'Address 1',
+          type: 'string'
+        }, {
+          value: 'billing_address_2',
+          label: 'Address 2',
+          type: 'string'
+        }, {
+          value: 'billing_city',
+          label: 'City',
+          type: 'string'
+        }, {
+          value: 'billing_state',
+          label: 'State',
+          type: 'string'
+        }, {
+          value: 'billing_postcode',
+          label: 'Postcode',
+          type: 'string'
+        }, {
           value: 'billing_country',
           label: 'Country',
+          type: 'string'
+        }, {
+          value: 'billing_phone',
+          label: 'Phone',
+          type: 'string'
+        }]
+      }, {
+        label: 'Shipping Address',
+        options: [{
+          value: 'shipping_first_name',
+          label: 'First Name',
+          type: 'string'
+        }, {
+          value: 'shipping_last_name',
+          label: 'Last Name',
+          type: 'string'
+        }, {
+          value: 'shipping_company',
+          label: 'Company',
+          type: 'string'
+        }, {
+          value: 'shipping_address_1',
+          label: 'Address 1',
+          type: 'string'
+        }, {
+          value: 'shipping_address_2',
+          label: 'Address 2',
+          type: 'string'
+        }, {
+          value: 'shipping_city',
+          label: 'City',
+          type: 'string'
+        }, {
+          value: 'shipping_state',
+          label: 'State',
+          type: 'string'
+        }, {
+          value: 'shipping_postcode',
+          label: 'Postcode',
+          type: 'string'
+        }, {
+          value: 'shipping_country',
+          label: 'Country',
+          type: 'string'
+        }]
+      }, {
+        label: 'Order Items',
+        options: [{
+          value: 'order_items',
+          label: 'Order Items (Array)',
+          type: 'array'
+        }, {
+          value: 'item_count',
+          label: 'Item Count',
+          type: 'number'
+        }]
+      }, {
+        label: 'Payment',
+        options: [{
+          value: 'payment_method',
+          label: 'Payment Method',
+          type: 'string'
+        }, {
+          value: 'payment_method_title',
+          label: 'Payment Method Title',
+          type: 'string'
+        }, {
+          value: 'transaction_id',
+          label: 'Transaction ID',
+          type: 'string'
+        }]
+      }, {
+        label: 'Shipping',
+        options: [{
+          value: 'shipping_method',
+          label: 'Shipping Method',
           type: 'string'
         }]
       }, {
@@ -3535,19 +3811,11 @@ var ExportModule = _defineProperty(_defineProperty({
           type: 'date'
         }]
       }, {
-        label: 'Other',
+        label: 'Notes',
         options: [{
-          value: 'payment_method',
-          label: 'Payment Method',
-          type: 'string'
-        }, {
-          value: 'transaction_id',
-          label: 'Transaction ID',
-          type: 'string'
-        }, {
-          value: 'currency',
-          label: 'Currency',
-          type: 'string'
+          value: 'order_notes',
+          label: 'Order Notes (Array)',
+          type: 'array'
         }]
       }, {
         label: 'Custom Filters',
@@ -3591,32 +3859,69 @@ var ExportModule = _defineProperty(_defineProperty({
           label: 'Coupon Amount',
           type: 'number'
         }, {
+          value: 'free_shipping',
+          label: 'Free Shipping',
+          type: 'boolean'
+        }]
+      }, {
+        label: 'Usage Restrictions',
+        options: [{
           value: 'minimum_amount',
-          label: 'Minimum Amount',
+          label: 'Minimum Spend',
           type: 'number'
         }, {
           value: 'maximum_amount',
-          label: 'Maximum Amount',
+          label: 'Maximum Spend',
           type: 'number'
+        }, {
+          value: 'individual_use',
+          label: 'Individual Use Only',
+          type: 'boolean'
+        }, {
+          value: 'exclude_sale_items',
+          label: 'Exclude Sale Items',
+          type: 'boolean'
         }]
       }, {
-        label: 'Usage',
+        label: 'Product Restrictions',
+        options: [{
+          value: 'product_ids',
+          label: 'Allowed Products',
+          type: 'array'
+        }, {
+          value: 'excluded_product_ids',
+          label: 'Excluded Products',
+          type: 'array'
+        }, {
+          value: 'product_categories',
+          label: 'Allowed Categories',
+          type: 'array'
+        }, {
+          value: 'excluded_product_categories',
+          label: 'Excluded Categories',
+          type: 'array'
+        }]
+      }, {
+        label: 'Email Restrictions',
+        options: [{
+          value: 'allowed_emails',
+          label: 'Allowed Emails',
+          type: 'array'
+        }]
+      }, {
+        label: 'Usage Limits',
         options: [{
           value: 'usage_count',
           label: 'Usage Count',
           type: 'number'
         }, {
           value: 'usage_limit',
-          label: 'Usage Limit',
+          label: 'Usage Limit Total',
           type: 'number'
         }, {
           value: 'usage_limit_per_user',
           label: 'Usage Limit Per User',
           type: 'number'
-        }, {
-          value: 'individual_use',
-          label: 'Individual Use',
-          type: 'string'
         }]
       }, {
         label: 'Dates',
@@ -3632,17 +3937,6 @@ var ExportModule = _defineProperty(_defineProperty({
           value: 'post_modified',
           label: 'Modified Date',
           type: 'date'
-        }]
-      }, {
-        label: 'Other',
-        options: [{
-          value: 'free_shipping',
-          label: 'Free Shipping',
-          type: 'string'
-        }, {
-          value: 'exclude_sale_items',
-          label: 'Exclude Sale Items',
-          type: 'string'
         }]
       }, {
         label: 'Custom Filters',
@@ -3679,27 +3973,23 @@ var ExportModule = _defineProperty(_defineProperty({
         label: 'Settings',
         options: [{
           value: 'attribute_orderby',
-          label: 'Order By',
+          label: 'Default Sort Order',
           type: 'string'
         }, {
           value: 'attribute_public',
-          label: 'Public',
-          type: 'string'
+          label: 'Enable Archives',
+          type: 'boolean'
         }]
       }, {
         label: 'Terms',
         options: [{
           value: 'term_count',
-          label: 'Term Count',
+          label: 'Terms Count',
           type: 'number'
         }, {
-          value: 'term_name',
-          label: 'Term Name',
-          type: 'string'
-        }, {
-          value: 'term_slug',
-          label: 'Term Slug',
-          type: 'string'
+          value: 'attribute_terms',
+          label: 'All Terms (Array)',
+          type: 'array'
         }]
       }];
     }
@@ -3719,6 +4009,13 @@ var ExportModule = _defineProperty(_defineProperty({
         return [{
           label: 'Table Columns',
           options: columnOptions
+        }, {
+          label: 'Info',
+          options: [{
+            value: '_info',
+            label: "\u2139\uFE0F ".concat(this.currentTableColumns.length, " columns available"),
+            type: 'info'
+          }]
         }];
       }
 
@@ -3727,8 +4024,8 @@ var ExportModule = _defineProperty(_defineProperty({
         label: 'Table Selection',
         options: [{
           value: '_select_table',
-          label: 'Please select a table first',
-          type: 'string'
+          label: '⚠️ Please select a database table first',
+          type: 'info'
         }]
       }];
     }
@@ -3901,7 +4198,7 @@ var ExportModule = _defineProperty(_defineProperty({
    * Load database tables
    */
   loadDatabaseTables: function loadDatabaseTables() {
-    var _this13 = this;
+    var _this14 = this;
     var $dropdown = jQuery('#aie-table-name');
     var $spinner = jQuery('.aie-table-selector .spinner');
     var $section = jQuery('.aie-table-selection-section');
@@ -3940,7 +4237,7 @@ var ExportModule = _defineProperty(_defineProperty({
       $dropdown.off('change').on('change', function () {
         var tableName = $dropdown.val();
         if (tableName) {
-          _this13.loadTableColumns(tableName);
+          _this14.loadTableColumns(tableName);
         } else {
           jQuery('.aie-table-info').hide();
           jQuery('#aie-filters-list').empty();
@@ -3955,7 +4252,7 @@ var ExportModule = _defineProperty(_defineProperty({
     });
   }
 }, "loadTableColumns", function loadTableColumns(tableName) {
-  var _this14 = this;
+  var _this15 = this;
   var $tableInfo = jQuery('.aie-table-info');
   var $columnsList = jQuery('.aie-columns-list');
   var $rowCount = jQuery('.aie-table-row-count');
@@ -3978,20 +4275,20 @@ var ExportModule = _defineProperty(_defineProperty({
     $columnsList.empty();
     var $list = jQuery('<ul>').addClass('aie-column-type-list');
     columns.forEach(function (col) {
-      var typeIcon = _this14.getColumnTypeIcon(col);
+      var typeIcon = _this15.getColumnTypeIcon(col);
       var typeLabel = col.is_numeric ? 'numeric' : col.is_string ? 'text' : col.is_date ? 'date' : 'other';
       $list.append(jQuery('<li>').html("<span class=\"dashicons ".concat(typeIcon, "\"></span> \n\t\t\t\t\t\t\t<strong>").concat(col.name, "</strong> \n\t\t\t\t\t\t\t<span class=\"column-type\">(").concat(col.type, ")</span>")));
     });
     $columnsList.append($list);
 
     // Store columns for filter field options
-    _this14.currentTableColumns = columns;
+    _this15.currentTableColumns = columns;
 
     // Clear existing filters
     jQuery('#aie-filters-list').empty();
 
     // Refresh count to get row count
-    _this14.refreshCount(false);
+    _this15.refreshCount(false);
   })["catch"](function (error) {
     console.error('Error loading columns:', error);
     $columnsList.html('<p class="error">Error loading columns</p>');

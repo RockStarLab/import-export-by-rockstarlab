@@ -621,8 +621,19 @@ export default class ExportStep3 {
 		// Check if ACF is active and load ACF fields
 		this.checkAndLoadACF();
 		
-		// Check if Yoast is active and load Yoast fields (skip for media, users, and menus)
-		if (contentType !== 'media' && contentType !== 'user' && contentType !== 'menu') {
+		// Check if Yoast is active and load Yoast fields (skip for non-content types)
+		const excludedTypes = [
+			'media', 
+			'user', 
+			'menu', 
+			'block_theme_settings', 
+			'taxonomy',
+			'database_table',
+			'woo_attribute',
+			'woo_coupon',
+			'woo_order'
+		];
+		if (!excludedTypes.includes(contentType)) {
 			this.checkAndLoadYoast();
 		}
 	}

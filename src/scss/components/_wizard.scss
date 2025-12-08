@@ -68,3 +68,93 @@
 		}
 	}
 }
+
+/**
+ * Custom Pointer Tooltip (WordPress & Project Style)
+ */
+.aie-custom-tooltip.aie-custom-pointer {
+	background: #fff;
+	border: 1px solid #2271b1;
+	border-radius: 4px;
+	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+	padding: 0;
+	min-width: 280px;
+	max-width: 340px;
+	position: absolute;
+	opacity: 0;
+	transition: opacity 0.2s ease-in-out;
+	pointer-events: auto;
+	z-index: 999999 !important;
+	display: flex;
+	align-items: stretch;
+	overflow: hidden;
+	
+	// Arrow pointer
+	&::before {
+		content: '';
+		position: absolute;
+		bottom: -8px;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 0;
+		height: 0;
+		border-left: 8px solid transparent;
+		border-right: 8px solid transparent;
+		border-top: 8px solid #2271b1;
+		z-index: 1;
+	}
+	
+	&::after {
+		content: '';
+		position: absolute;
+		bottom: -7px;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 0;
+		height: 0;
+		border-left: 7px solid transparent;
+		border-right: 7px solid transparent;
+		border-top: 7px solid #fff;
+		z-index: 2;
+	}
+	
+	&.aie-tooltip-visible {
+		opacity: 1;
+	}
+}
+
+.aie-custom-tooltip .aie-pointer-icon {
+	background: linear-gradient(135deg, #2271b1 0%, #135e96 100%);
+	padding: 18px 16px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	
+	.dashicons-warning {
+		color: #fff;
+		font-size: 26px;
+		width: 26px;
+		height: 26px;
+	}
+}
+
+.aie-custom-tooltip .aie-pointer-content {
+	padding: 16px 20px;
+	flex: 1;
+	
+	h3 {
+		margin: 0 0 8px 0;
+		font-size: 14px;
+		font-weight: 600;
+		color: #1d2327;
+		line-height: 1.4;
+	}
+	
+	p {
+		margin: 0;
+		font-size: 13px;
+		line-height: 1.5;
+		color: #50575e;
+	}
+}

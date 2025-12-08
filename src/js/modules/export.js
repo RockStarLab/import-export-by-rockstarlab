@@ -357,9 +357,15 @@ const ExportModule = {
 
 			console.log('Received count response:', response);
 			$count.text( response.count || 0 );
+			
+			// Update next button state based on count
+			this.updateStep2NextButton();
 		} catch ( error ) {
 			$count.text( '-' );
 			console.error( 'Count error:', error );
+			
+			// Disable next button on error
+			this.updateStep2NextButton();
 		} finally {
 			$spinner.removeClass( 'is-active' );
 			$refreshBtn.removeClass( 'is-refreshing' );
@@ -377,6 +383,98 @@ const ExportModule = {
 		$count.text( '-' );
 		$spinner.removeClass( 'is-active' );
 		$refreshBtn.removeClass( 'is-refreshing' );
+		
+		// Disable next button when count is reset
+		this.updateStep2NextButton();
+	},
+
+	/**
+	 * Update step 2 next button state based on item count
+	 */
+	updateStep2NextButton() {
+		const $nextBtn = jQuery( '.aie-step-2 .aie-next-step' );
+		const $count = jQuery( '.aie-step-2 .aie-count-value' );
+		const countText = $count.text();
+		const count = parseInt( countText, 10 );
+		
+		// Remove previous event handlers
+		$nextBtn.off( 'mouseenter.tooltip mouseleave.tooltip' );
+		
+		// Disable if count is 0, NaN, or '-'
+		if ( countText === '-' || isNaN( count ) || count === 0 ) {
+			$nextBtn.prop( 'disabled', true );
+			
+			// Show tooltip on hover
+			$nextBtn.on( 'mouseenter.tooltip', () => {
+				this.showNextButtonTooltip( $nextBtn );
+			} );
+			
+			// Hide tooltip on mouse leave
+			$nextBtn.on( 'mouseleave.tooltip', () => {
+				this.hideNextButtonTooltip( $nextBtn );
+			} );
+		} else {
+			$nextBtn.prop( 'disabled', false );
+			
+			// Hide tooltip if it's shown
+			this.hideNextButtonTooltip( $nextBtn );
+		}
+	},
+
+	/**
+	 * Show custom tooltip on Next button
+	 */
+	showNextButtonTooltip( $button ) {
+		// Remove any existing tooltips
+		jQuery( '.aie-custom-tooltip' ).remove();
+		// Create tooltip element
+		const $tooltip = jQuery( '<div>' )
+			.addClass( 'aie-custom-tooltip aie-custom-pointer' )
+			.html( `
+				<div class="aie-pointer-icon">
+					<span class="dashicons dashicons-warning"></span>
+				</div>
+				<div class="aie-pointer-content">
+					<h3>No Data Available</h3>
+					<p>Adjust your filters or select a different content type to continue with the export.</p>
+				</div>
+			` );
+		// Append to body
+		jQuery( 'body' ).append( $tooltip );
+		// Position tooltip
+		const buttonOffset = $button.offset();
+		const buttonWidth = $button.outerWidth();
+		const buttonHeight = $button.outerHeight();
+		const tooltipWidth = $tooltip.outerWidth();
+		const tooltipHeight = $tooltip.outerHeight();
+		// Position above the button, centered
+		const left = buttonOffset.left + ( buttonWidth / 2 ) - ( tooltipWidth / 2 );
+		const top = buttonOffset.top - tooltipHeight - 10; // 10px gap
+		$tooltip.css( {
+			left: left + 'px',
+			top: top + 'px',
+			zIndex: 9999
+		} );
+		// Fade in
+		setTimeout( () => {
+			$tooltip.addClass( 'aie-tooltip-visible' );
+		}, 10 );
+	},
+
+	/**
+	 * Hide custom tooltip
+	 */
+	hideNextButtonTooltip( $button ) {
+		const $tooltip = jQuery( '.aie-custom-tooltip' );
+		
+		if ( $tooltip.length ) {
+			$tooltip.removeClass( 'aie-tooltip-visible' );
+			
+			// Remove after animation
+			setTimeout( () => {
+				$tooltip.remove();
+			}, 200 );
+		}
 	},
 
 	/**
@@ -1399,27 +1497,6 @@ const ExportModule = {
 						{ value: 'setting_value', label: 'Setting Value', type: 'string' },
 					],
 				},
-				{
-					label: 'Theme',
-					options: [
-						{ value: 'theme_slug', label: 'Theme Slug', type: 'string' },
-						{ value: 'theme_version', label: 'Theme Version', type: 'string' },
-					],
-				},
-				{
-					label: 'Templates',
-					options: [
-						{ value: 'template_name', label: 'Template Name', type: 'string' },
-						{ value: 'template_slug', label: 'Template Slug', type: 'string' },
-						{ value: 'template_type', label: 'Template Type', type: 'string' },
-					],
-				},
-				{
-					label: 'Dates',
-					options: [
-						{ value: 'modified_date', label: 'Modified Date', type: 'date' },
-					],
-				},
 			];
 		}
 
@@ -1474,14 +1551,30 @@ const ExportModule = {
 				{
 					label: 'Basic',
 					options: [
-						{ value: 'name', label: 'Taxonomy Name', type: 'string' },
-						{ value: 'slug', label: 'Taxonomy Slug', type: 'string' },
+						{ value: 'term_id', label: 'Term ID', type: 'number' },
+						{ value: 'name', label: 'Term Name', type: 'string' },
+						{ value: 'slug', label: 'Term Slug', type: 'string' },
+						{ value: 'description', label: 'Description', type: 'string' },
+					],
+				},
+				{
+					label: 'Taxonomy',
+					options: [
+						{ value: 'taxonomy', label: 'Taxonomy Type', type: 'string' },
+						{ value: 'term_taxonomy_id', label: 'Taxonomy ID', type: 'number' },
+					],
+				},
+				{
+					label: 'Hierarchy',
+					options: [
+						{ value: 'parent', label: 'Parent Term ID', type: 'number' },
+						{ value: 'count', label: 'Posts Count', type: 'number' },
 					],
 				},
 				{
 					label: 'Custom Filters',
 					options: [
-						{ value: '_custom_field', label: '🔧 Taxonomy Custom Field (Meta)', type: 'custom_field' },
+						{ value: '_custom_field', label: '🔧 Term Meta Field', type: 'custom_field' },
 					],
 				},
 			];
@@ -1498,17 +1591,57 @@ const ExportModule = {
 						{ value: 'post_name', label: 'Slug', type: 'string' },
 						{ value: 'post_status', label: 'Status', type: 'string' },
 						{ value: 'sku', label: 'SKU', type: 'string' },
+						{ value: 'post_author', label: 'Author ID', type: 'number' },
 					],
 				},
 				{
-					label: 'Product Data',
+					label: 'Content',
 					options: [
-						{ value: 'product_type', label: 'Product Type', type: 'string' },
+						{ value: 'post_content', label: 'Description', type: 'string' },
+						{ value: 'post_excerpt', label: 'Short Description', type: 'string' },
+					],
+				},
+				{
+					label: 'Pricing',
+					options: [
 						{ value: 'regular_price', label: 'Regular Price', type: 'number' },
 						{ value: 'sale_price', label: 'Sale Price', type: 'number' },
+						{ value: 'tax_status', label: 'Tax Status', type: 'string' },
+						{ value: 'tax_class', label: 'Tax Class', type: 'string' },
+					],
+				},
+				{
+					label: 'Inventory',
+					options: [
 						{ value: 'stock_quantity', label: 'Stock Quantity', type: 'number' },
 						{ value: 'stock_status', label: 'Stock Status', type: 'string' },
-						{ value: 'manage_stock', label: 'Manage Stock', type: 'string' },
+						{ value: 'manage_stock', label: 'Manage Stock', type: 'boolean' },
+						{ value: 'backorders', label: 'Backorders', type: 'string' },
+					],
+				},
+				{
+					label: 'Product Type',
+					options: [
+						{ value: 'product_type', label: 'Product Type', type: 'string' },
+						{ value: 'downloadable', label: 'Downloadable', type: 'boolean' },
+						{ value: 'virtual', label: 'Virtual', type: 'boolean' },
+					],
+				},
+				{
+					label: 'Shipping',
+					options: [
+						{ value: 'weight', label: 'Weight', type: 'number' },
+						{ value: 'length', label: 'Length', type: 'number' },
+						{ value: 'width', label: 'Width', type: 'number' },
+						{ value: 'height', label: 'Height', type: 'number' },
+						{ value: 'shipping_class', label: 'Shipping Class', type: 'string' },
+					],
+				},
+				{
+					label: 'Media',
+					options: [
+						{ value: 'featured_image', label: 'Featured Image', type: 'string' },
+						{ value: 'product_gallery', label: 'Gallery Images', type: 'array' },
 					],
 				},
 				{
@@ -1516,7 +1649,22 @@ const ExportModule = {
 					options: [
 						{ value: 'product_cat', label: 'Categories', type: 'string' },
 						{ value: 'product_tag', label: 'Tags', type: 'string' },
-						{ value: 'product_brand', label: 'Brands', type: 'string' },
+					],
+				},
+				{
+					label: 'Reviews',
+					options: [
+						{ value: 'average_rating', label: 'Average Rating', type: 'number' },
+						{ value: 'review_count', label: 'Review Count', type: 'number' },
+						{ value: 'comment_status', label: 'Reviews Enabled', type: 'string' },
+					],
+				},
+				{
+					label: 'Visibility',
+					options: [
+						{ value: 'featured', label: 'Featured', type: 'boolean' },
+						{ value: 'visibility', label: 'Catalog Visibility', type: 'string' },
+						{ value: 'total_sales', label: 'Total Sales', type: 'number' },
 					],
 				},
 				{
@@ -1524,15 +1672,6 @@ const ExportModule = {
 					options: [
 						{ value: 'post_date', label: 'Created Date', type: 'date' },
 						{ value: 'post_modified', label: 'Modified Date', type: 'date' },
-					],
-				},
-				{
-					label: 'Other',
-					options: [
-						{ value: 'featured', label: 'Featured', type: 'string' },
-						{ value: 'visibility', label: 'Visibility', type: 'string' },
-						{ value: 'total_sales', label: 'Total Sales', type: 'number' },
-						{ value: 'weight', label: 'Weight', type: 'number' },
 					],
 				},
 				{
@@ -1555,6 +1694,7 @@ const ExportModule = {
 						{ value: 'order_number', label: 'Order Number', type: 'string' },
 						{ value: 'order_status', label: 'Status', type: 'string' },
 						{ value: 'order_key', label: 'Order Key', type: 'string' },
+						{ value: 'currency', label: 'Currency', type: 'string' },
 					],
 				},
 				{
@@ -1571,10 +1711,58 @@ const ExportModule = {
 					label: 'Customer',
 					options: [
 						{ value: 'customer_id', label: 'Customer ID', type: 'number' },
-						{ value: 'billing_email', label: 'Billing Email', type: 'string' },
+						{ value: 'billing_email', label: 'Email', type: 'string' },
+						{ value: 'customer_note', label: 'Customer Note', type: 'string' },
+					],
+				},
+				{
+					label: 'Billing Address',
+					options: [
 						{ value: 'billing_first_name', label: 'First Name', type: 'string' },
 						{ value: 'billing_last_name', label: 'Last Name', type: 'string' },
+						{ value: 'billing_company', label: 'Company', type: 'string' },
+						{ value: 'billing_address_1', label: 'Address 1', type: 'string' },
+						{ value: 'billing_address_2', label: 'Address 2', type: 'string' },
+						{ value: 'billing_city', label: 'City', type: 'string' },
+						{ value: 'billing_state', label: 'State', type: 'string' },
+						{ value: 'billing_postcode', label: 'Postcode', type: 'string' },
 						{ value: 'billing_country', label: 'Country', type: 'string' },
+						{ value: 'billing_phone', label: 'Phone', type: 'string' },
+					],
+				},
+				{
+					label: 'Shipping Address',
+					options: [
+						{ value: 'shipping_first_name', label: 'First Name', type: 'string' },
+						{ value: 'shipping_last_name', label: 'Last Name', type: 'string' },
+						{ value: 'shipping_company', label: 'Company', type: 'string' },
+						{ value: 'shipping_address_1', label: 'Address 1', type: 'string' },
+						{ value: 'shipping_address_2', label: 'Address 2', type: 'string' },
+						{ value: 'shipping_city', label: 'City', type: 'string' },
+						{ value: 'shipping_state', label: 'State', type: 'string' },
+						{ value: 'shipping_postcode', label: 'Postcode', type: 'string' },
+						{ value: 'shipping_country', label: 'Country', type: 'string' },
+					],
+				},
+				{
+					label: 'Order Items',
+					options: [
+						{ value: 'order_items', label: 'Order Items (Array)', type: 'array' },
+						{ value: 'item_count', label: 'Item Count', type: 'number' },
+					],
+				},
+				{
+					label: 'Payment',
+					options: [
+						{ value: 'payment_method', label: 'Payment Method', type: 'string' },
+						{ value: 'payment_method_title', label: 'Payment Method Title', type: 'string' },
+						{ value: 'transaction_id', label: 'Transaction ID', type: 'string' },
+					],
+				},
+				{
+					label: 'Shipping',
+					options: [
+						{ value: 'shipping_method', label: 'Shipping Method', type: 'string' },
 					],
 				},
 				{
@@ -1586,11 +1774,9 @@ const ExportModule = {
 					],
 				},
 				{
-					label: 'Other',
+					label: 'Notes',
 					options: [
-						{ value: 'payment_method', label: 'Payment Method', type: 'string' },
-						{ value: 'transaction_id', label: 'Transaction ID', type: 'string' },
-						{ value: 'currency', label: 'Currency', type: 'string' },
+						{ value: 'order_notes', label: 'Order Notes (Array)', type: 'array' },
 					],
 				},
 				{
@@ -1619,17 +1805,39 @@ const ExportModule = {
 					options: [
 						{ value: 'discount_type', label: 'Discount Type', type: 'string' },
 						{ value: 'coupon_amount', label: 'Coupon Amount', type: 'number' },
-						{ value: 'minimum_amount', label: 'Minimum Amount', type: 'number' },
-						{ value: 'maximum_amount', label: 'Maximum Amount', type: 'number' },
+						{ value: 'free_shipping', label: 'Free Shipping', type: 'boolean' },
 					],
 				},
 				{
-					label: 'Usage',
+					label: 'Usage Restrictions',
+					options: [
+						{ value: 'minimum_amount', label: 'Minimum Spend', type: 'number' },
+						{ value: 'maximum_amount', label: 'Maximum Spend', type: 'number' },
+						{ value: 'individual_use', label: 'Individual Use Only', type: 'boolean' },
+						{ value: 'exclude_sale_items', label: 'Exclude Sale Items', type: 'boolean' },
+					],
+				},
+				{
+					label: 'Product Restrictions',
+					options: [
+						{ value: 'product_ids', label: 'Allowed Products', type: 'array' },
+						{ value: 'excluded_product_ids', label: 'Excluded Products', type: 'array' },
+						{ value: 'product_categories', label: 'Allowed Categories', type: 'array' },
+						{ value: 'excluded_product_categories', label: 'Excluded Categories', type: 'array' },
+					],
+				},
+				{
+					label: 'Email Restrictions',
+					options: [
+						{ value: 'allowed_emails', label: 'Allowed Emails', type: 'array' },
+					],
+				},
+				{
+					label: 'Usage Limits',
 					options: [
 						{ value: 'usage_count', label: 'Usage Count', type: 'number' },
-						{ value: 'usage_limit', label: 'Usage Limit', type: 'number' },
+						{ value: 'usage_limit', label: 'Usage Limit Total', type: 'number' },
 						{ value: 'usage_limit_per_user', label: 'Usage Limit Per User', type: 'number' },
-						{ value: 'individual_use', label: 'Individual Use', type: 'string' },
 					],
 				},
 				{
@@ -1638,13 +1846,6 @@ const ExportModule = {
 						{ value: 'date_expires', label: 'Expiry Date', type: 'date' },
 						{ value: 'post_date', label: 'Created Date', type: 'date' },
 						{ value: 'post_modified', label: 'Modified Date', type: 'date' },
-					],
-				},
-				{
-					label: 'Other',
-					options: [
-						{ value: 'free_shipping', label: 'Free Shipping', type: 'string' },
-						{ value: 'exclude_sale_items', label: 'Exclude Sale Items', type: 'string' },
 					],
 				},
 				{
@@ -1671,16 +1872,15 @@ const ExportModule = {
 				{
 					label: 'Settings',
 					options: [
-						{ value: 'attribute_orderby', label: 'Order By', type: 'string' },
-						{ value: 'attribute_public', label: 'Public', type: 'string' },
+						{ value: 'attribute_orderby', label: 'Default Sort Order', type: 'string' },
+						{ value: 'attribute_public', label: 'Enable Archives', type: 'boolean' },
 					],
 				},
 				{
 					label: 'Terms',
 					options: [
-						{ value: 'term_count', label: 'Term Count', type: 'number' },
-						{ value: 'term_name', label: 'Term Name', type: 'string' },
-						{ value: 'term_slug', label: 'Term Slug', type: 'string' },
+						{ value: 'term_count', label: 'Terms Count', type: 'number' },
+						{ value: 'attribute_terms', label: 'All Terms (Array)', type: 'array' },
 					],
 				},
 			];
@@ -1703,7 +1903,13 @@ const ExportModule = {
 					{
 						label: 'Table Columns',
 						options: columnOptions
-					}
+					},
+					{
+						label: 'Info',
+						options: [
+							{ value: '_info', label: `ℹ️ ${this.currentTableColumns.length} columns available`, type: 'info' },
+						],
+					},
 				];
 			}
 
@@ -1712,7 +1918,7 @@ const ExportModule = {
 				{
 					label: 'Table Selection',
 					options: [
-						{ value: '_select_table', label: 'Please select a table first', type: 'string' },
+						{ value: '_select_table', label: '⚠️ Please select a database table first', type: 'info' },
 					],
 				},
 			];
