@@ -38,6 +38,9 @@ export default class ExportStep3 {
 		// Load available functions
 		this.loadFunctions();
 		
+		// Initialize tooltip for next button
+		this.toggleNextButton();
+		
 		// Don't load dynamic fields immediately
 		// They will be loaded when step 3 becomes active
 		// this.loadDynamicFields();
@@ -389,7 +392,90 @@ export default class ExportStep3 {
 	toggleNextButton() {
 		const nextBtn = document.querySelector('.aie-step-3 .aie-next-step');
 		if (nextBtn) {
-			nextBtn.disabled = this.selectedFields.length === 0;
+			const $nextBtn = jQuery(nextBtn);
+			const isDisabled = this.selectedFields.length === 0;
+			
+			// Remove previous event handlers
+			$nextBtn.off('mouseenter.tooltip mouseleave.tooltip');
+			
+			if (isDisabled) {
+				nextBtn.disabled = true;
+				
+				// Show tooltip on hover
+				$nextBtn.on('mouseenter.tooltip', () => {
+					this.showNextButtonTooltip($nextBtn);
+				});
+				
+				// Hide tooltip on mouse leave
+				$nextBtn.on('mouseleave.tooltip', () => {
+					this.hideNextButtonTooltip($nextBtn);
+				});
+			} else {
+				nextBtn.disabled = false;
+				// Hide tooltip if it's shown
+				this.hideNextButtonTooltip($nextBtn);
+			}
+		}
+	}
+
+	/**
+	 * Show custom tooltip on Next button
+	 */
+	showNextButtonTooltip($button) {
+		// Remove any existing tooltips
+		jQuery('.aie-custom-tooltip').remove();
+		
+		// Create tooltip element
+		const $tooltip = jQuery('<div>')
+			.addClass('aie-custom-tooltip aie-custom-pointer')
+			.html(`
+				<div class="aie-pointer-icon">
+					<span class="dashicons dashicons-warning"></span>
+				</div>
+				<div class="aie-pointer-content">
+					<h3>No Fields Selected</h3>
+					<p>Please select at least one field to continue with the export.</p>
+				</div>
+			`);
+		
+		// Append to body
+		jQuery('body').append($tooltip);
+		
+		// Position tooltip
+		const buttonOffset = $button.offset();
+		const buttonWidth = $button.outerWidth();
+		const tooltipWidth = $tooltip.outerWidth();
+		const tooltipHeight = $tooltip.outerHeight();
+		
+		// Position above the button, centered
+		const left = buttonOffset.left + (buttonWidth / 2) - (tooltipWidth / 2);
+		const top = buttonOffset.top - tooltipHeight - 10; // 10px gap
+		
+		$tooltip.css({
+			left: left + 'px',
+			top: top + 'px',
+			zIndex: 9999
+		});
+		
+		// Fade in
+		setTimeout(() => {
+			$tooltip.addClass('aie-tooltip-visible');
+		}, 10);
+	}
+
+	/**
+	 * Hide custom tooltip
+	 */
+	hideNextButtonTooltip($button) {
+		const $tooltip = jQuery('.aie-custom-tooltip');
+		
+		if ($tooltip.length) {
+			$tooltip.removeClass('aie-tooltip-visible');
+			
+			// Remove after animation
+			setTimeout(() => {
+				$tooltip.remove();
+			}, 200);
 		}
 	}
 

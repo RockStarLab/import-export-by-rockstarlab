@@ -97,6 +97,9 @@ var ExportStep3 = /*#__PURE__*/function () {
       // Load available functions
       this.loadFunctions();
 
+      // Initialize tooltip for next button
+      this.toggleNextButton();
+
       // Don't load dynamic fields immediately
       // They will be loaded when step 3 becomes active
       // this.loadDynamicFields();
@@ -449,9 +452,85 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "toggleNextButton",
     value: function toggleNextButton() {
+      var _this5 = this;
       var nextBtn = document.querySelector('.aie-step-3 .aie-next-step');
       if (nextBtn) {
-        nextBtn.disabled = this.selectedFields.length === 0;
+        var $nextBtn = jQuery(nextBtn);
+        var isDisabled = this.selectedFields.length === 0;
+
+        // Remove previous event handlers
+        $nextBtn.off('mouseenter.tooltip mouseleave.tooltip');
+        if (isDisabled) {
+          nextBtn.disabled = true;
+
+          // Show tooltip on hover
+          $nextBtn.on('mouseenter.tooltip', function () {
+            _this5.showNextButtonTooltip($nextBtn);
+          });
+
+          // Hide tooltip on mouse leave
+          $nextBtn.on('mouseleave.tooltip', function () {
+            _this5.hideNextButtonTooltip($nextBtn);
+          });
+        } else {
+          nextBtn.disabled = false;
+          // Hide tooltip if it's shown
+          this.hideNextButtonTooltip($nextBtn);
+        }
+      }
+    }
+
+    /**
+     * Show custom tooltip on Next button
+     */
+  }, {
+    key: "showNextButtonTooltip",
+    value: function showNextButtonTooltip($button) {
+      // Remove any existing tooltips
+      jQuery('.aie-custom-tooltip').remove();
+
+      // Create tooltip element
+      var $tooltip = jQuery('<div>').addClass('aie-custom-tooltip aie-custom-pointer').html("\n\t\t\t\t<div class=\"aie-pointer-icon\">\n\t\t\t\t\t<span class=\"dashicons dashicons-warning\"></span>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-pointer-content\">\n\t\t\t\t\t<h3>No Fields Selected</h3>\n\t\t\t\t\t<p>Please select at least one field to continue with the export.</p>\n\t\t\t\t</div>\n\t\t\t");
+
+      // Append to body
+      jQuery('body').append($tooltip);
+
+      // Position tooltip
+      var buttonOffset = $button.offset();
+      var buttonWidth = $button.outerWidth();
+      var tooltipWidth = $tooltip.outerWidth();
+      var tooltipHeight = $tooltip.outerHeight();
+
+      // Position above the button, centered
+      var left = buttonOffset.left + buttonWidth / 2 - tooltipWidth / 2;
+      var top = buttonOffset.top - tooltipHeight - 10; // 10px gap
+
+      $tooltip.css({
+        left: left + 'px',
+        top: top + 'px',
+        zIndex: 9999
+      });
+
+      // Fade in
+      setTimeout(function () {
+        $tooltip.addClass('aie-tooltip-visible');
+      }, 10);
+    }
+
+    /**
+     * Hide custom tooltip
+     */
+  }, {
+    key: "hideNextButtonTooltip",
+    value: function hideNextButtonTooltip($button) {
+      var $tooltip = jQuery('.aie-custom-tooltip');
+      if ($tooltip.length) {
+        $tooltip.removeClass('aie-tooltip-visible');
+
+        // Remove after animation
+        setTimeout(function () {
+          $tooltip.remove();
+        }, 200);
       }
     }
 
@@ -461,12 +540,12 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "initFieldSearch",
     value: function initFieldSearch() {
-      var _this5 = this;
+      var _this6 = this;
       var searchInput = document.getElementById('aie-fields-search');
       if (!searchInput) return;
       searchInput.addEventListener('input', function (e) {
         var query = e.target.value.toLowerCase();
-        _this5.filterFields(query);
+        _this6.filterFields(query);
       });
     }
 
@@ -476,12 +555,12 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "initCategoryToggle",
     value: function initCategoryToggle() {
-      var _this6 = this;
+      var _this7 = this;
       document.addEventListener('click', function (e) {
         // Handle "Add all" button
         if (e.target.classList.contains('aie-add-all-fields')) {
           e.stopPropagation();
-          _this6.addAllFieldsFromCategory(e.target);
+          _this7.addAllFieldsFromCategory(e.target);
           return;
         }
 
@@ -504,7 +583,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "addAllFieldsFromCategory",
     value: function addAllFieldsFromCategory(button) {
-      var _this7 = this;
+      var _this8 = this;
       var category = button.closest('.aie-field-category');
       if (!category) return;
       var fieldItems = category.querySelectorAll('.aie-field-item:not([style*="display: none"])');
@@ -516,11 +595,11 @@ var ExportStep3 = /*#__PURE__*/function () {
         };
 
         // Check if field is not already added
-        var exists = _this7.selectedFields.find(function (f) {
+        var exists = _this8.selectedFields.find(function (f) {
           return f.field === fieldData.field;
         });
         if (!exists) {
-          _this7.addFieldToCSV(fieldData);
+          _this8.addFieldToCSV(fieldData);
         }
       });
     }
@@ -574,7 +653,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "loadGroupFields",
     value: function loadGroupFields(group) {
-      var _this8 = this;
+      var _this9 = this;
       if (group === 'wordpress') {
         // Already loaded in HTML
         return;
@@ -603,7 +682,7 @@ var ExportStep3 = /*#__PURE__*/function () {
         },
         success: function success(response) {
           if (response.success && response.data.fields) {
-            _this8.renderGroupFields(content, response.data.fields);
+            _this9.renderGroupFields(content, response.data.fields);
             content.dataset.loaded = 'true';
           }
         }
@@ -616,7 +695,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "renderGroupFields",
     value: function renderGroupFields(container, fields) {
-      var _this9 = this;
+      var _this10 = this;
       var loadingEl = container.querySelector('.aie-acf-loading, .aie-yoast-loading, .aie-meta-loading');
       if (loadingEl) {
         loadingEl.remove();
@@ -632,8 +711,8 @@ var ExportStep3 = /*#__PURE__*/function () {
         item.dataset.field = field.key;
         item.dataset.label = field.label;
         item.dataset.type = field.type || 'text';
-        var iconClass = _this9.getFieldIcon(field.type);
-        item.innerHTML = "\n\t\t\t\t<span class=\"aie-field-icon dashicons ".concat(iconClass, "\"></span>\n\t\t\t\t<span class=\"aie-field-label\">").concat(_this9.escapeHtml(field.label), "</span>\n\t\t\t\t<span class=\"aie-field-type\">").concat(_this9.escapeHtml(field.type), "</span>\n\t\t\t");
+        var iconClass = _this10.getFieldIcon(field.type);
+        item.innerHTML = "\n\t\t\t\t<span class=\"aie-field-icon dashicons ".concat(iconClass, "\"></span>\n\t\t\t\t<span class=\"aie-field-label\">").concat(_this10.escapeHtml(field.label), "</span>\n\t\t\t\t<span class=\"aie-field-type\">").concat(_this10.escapeHtml(field.type), "</span>\n\t\t\t");
         grid.appendChild(item);
       });
       category.appendChild(grid);
@@ -753,7 +832,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "loadStaticFields",
     value: function loadStaticFields() {
-      var _this10 = this;
+      var _this11 = this;
       // Get field definitions from parent export module
       if (typeof window.aieExportModule === 'undefined' || !window.aieExportModule.getFieldsByContentType) {
         console.error('Export module not found or getFieldsByContentType method missing');
@@ -780,7 +859,7 @@ var ExportStep3 = /*#__PURE__*/function () {
       fieldGroups.forEach(function (group, index) {
         // Skip Custom Filters group
         if (group.label === 'Custom Filters') return;
-        var category = _this10.createFieldCategory(group, index === 0);
+        var category = _this11.createFieldCategory(group, index === 0);
 
         // Insert before taxonomies category
         if (taxonomiesCategory) {
@@ -797,7 +876,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "createFieldCategory",
     value: function createFieldCategory(group) {
-      var _this11 = this;
+      var _this12 = this;
       var isOpen = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
       var category = document.createElement('div');
       category.className = 'aie-field-category' + (isOpen ? '' : ' aie-collapsed');
@@ -814,7 +893,7 @@ var ExportStep3 = /*#__PURE__*/function () {
           if (option.type === 'custom_field' || option.type === 'taxonomy_filter' || option.type === 'post_type_selector' || option.type === 'table_selector') {
             return;
           }
-          var field = _this11.createFieldItem(option);
+          var field = _this12.createFieldItem(option);
           grid.appendChild(field);
         });
       }
@@ -856,7 +935,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "loadTaxonomies",
     value: function loadTaxonomies() {
-      var _this12 = this;
+      var _this13 = this;
       if (typeof aieData === 'undefined') return;
       jQuery.ajax({
         url: aieData.ajaxUrl,
@@ -869,7 +948,7 @@ var ExportStep3 = /*#__PURE__*/function () {
         success: function success(response) {
           console.log('Taxonomies response:', response);
           if (response.success && response.data.taxonomies && response.data.taxonomies.length > 0) {
-            _this12.renderTaxonomies(response.data.taxonomies);
+            _this13.renderTaxonomies(response.data.taxonomies);
             // Show the category
             var category = document.querySelector('.aie-taxonomies-category');
             if (category) {
@@ -895,7 +974,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "renderTaxonomies",
     value: function renderTaxonomies(taxonomies) {
-      var _this13 = this;
+      var _this14 = this;
       var grid = document.querySelector('.aie-taxonomies-grid');
       if (!grid) return;
       grid.innerHTML = '';
@@ -906,7 +985,7 @@ var ExportStep3 = /*#__PURE__*/function () {
         item.dataset.field = 'taxonomy_' + taxonomy.name;
         item.dataset.label = taxonomy.label;
         item.dataset.type = 'taxonomy';
-        item.innerHTML = "\n\t\t\t\t<span class=\"aie-field-icon dashicons dashicons-category\"></span>\n\t\t\t\t<span class=\"aie-field-label\">".concat(_this13.escapeHtml(taxonomy.label), "</span>\n\t\t\t\t<span class=\"aie-field-type\">taxonomy</span>\n\t\t\t");
+        item.innerHTML = "\n\t\t\t\t<span class=\"aie-field-icon dashicons dashicons-category\"></span>\n\t\t\t\t<span class=\"aie-field-label\">".concat(_this14.escapeHtml(taxonomy.label), "</span>\n\t\t\t\t<span class=\"aie-field-type\">taxonomy</span>\n\t\t\t");
         grid.appendChild(item);
       });
     }
@@ -917,7 +996,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "loadCustomFields",
     value: function loadCustomFields() {
-      var _this14 = this;
+      var _this15 = this;
       if (typeof aieData === 'undefined') return;
       jQuery.ajax({
         url: aieData.ajaxUrl,
@@ -929,7 +1008,7 @@ var ExportStep3 = /*#__PURE__*/function () {
         },
         success: function success(response) {
           if (response.success && response.data.fields && response.data.fields.length > 0) {
-            _this14.renderCustomFields(response.data.fields);
+            _this15.renderCustomFields(response.data.fields);
             // Show the category
             var category = document.querySelector('.aie-custom-fields-category');
             if (category) {
@@ -952,7 +1031,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "renderCustomFields",
     value: function renderCustomFields(fields) {
-      var _this15 = this;
+      var _this16 = this;
       var grid = document.querySelector('.aie-custom-fields-grid');
       if (!grid) return;
       grid.innerHTML = '';
@@ -963,7 +1042,7 @@ var ExportStep3 = /*#__PURE__*/function () {
         item.dataset.field = 'meta_' + field.name;
         item.dataset.label = field.name;
         item.dataset.type = 'meta';
-        item.innerHTML = "\n\t\t\t\t<span class=\"aie-field-icon dashicons dashicons-admin-generic\"></span>\n\t\t\t\t<span class=\"aie-field-label\">".concat(_this15.escapeHtml(field.name), "</span>\n\t\t\t\t<span class=\"aie-field-type\">meta</span>\n\t\t\t");
+        item.innerHTML = "\n\t\t\t\t<span class=\"aie-field-icon dashicons dashicons-admin-generic\"></span>\n\t\t\t\t<span class=\"aie-field-label\">".concat(_this16.escapeHtml(field.name), "</span>\n\t\t\t\t<span class=\"aie-field-type\">meta</span>\n\t\t\t");
         grid.appendChild(item);
       });
     }
@@ -974,7 +1053,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "checkAndLoadACF",
     value: function checkAndLoadACF() {
-      var _this16 = this;
+      var _this17 = this;
       if (typeof aieData === 'undefined') return;
       jQuery.ajax({
         url: aieData.ajaxUrl,
@@ -986,7 +1065,7 @@ var ExportStep3 = /*#__PURE__*/function () {
         },
         success: function success(response) {
           if (response.success && response.data.fields && response.data.fields.length > 0) {
-            _this16.renderACFFields(response.data.fields);
+            _this17.renderACFFields(response.data.fields);
             // Show the ACF category
             var category = document.querySelector('.aie-acf-fields-category');
             if (category) {
@@ -1009,7 +1088,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "renderACFFields",
     value: function renderACFFields(fields) {
-      var _this17 = this;
+      var _this18 = this;
       var grid = document.querySelector('.aie-acf-fields-grid');
       if (!grid) return;
 
@@ -1022,7 +1101,7 @@ var ExportStep3 = /*#__PURE__*/function () {
         item.dataset.field = 'acf_' + field.name;
         item.dataset.label = field.label;
         item.dataset.type = 'acf';
-        item.innerHTML = "\n\t\t\t\t<span class=\"aie-field-icon dashicons dashicons-admin-settings\"></span>\n\t\t\t\t<span class=\"aie-field-label\">".concat(_this17.escapeHtml(field.label), "</span>\n\t\t\t\t<span class=\"aie-field-type\">acf</span>\n\t\t\t");
+        item.innerHTML = "\n\t\t\t\t<span class=\"aie-field-icon dashicons dashicons-admin-settings\"></span>\n\t\t\t\t<span class=\"aie-field-label\">".concat(_this18.escapeHtml(field.label), "</span>\n\t\t\t\t<span class=\"aie-field-type\">acf</span>\n\t\t\t");
         grid.appendChild(item);
       });
     }
@@ -1033,7 +1112,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "checkAndLoadYoast",
     value: function checkAndLoadYoast() {
-      var _this18 = this;
+      var _this19 = this;
       if (typeof aieData === 'undefined') return;
       jQuery.ajax({
         url: aieData.ajaxUrl,
@@ -1045,7 +1124,7 @@ var ExportStep3 = /*#__PURE__*/function () {
         },
         success: function success(response) {
           if (response.success && response.data.fields && response.data.fields.length > 0) {
-            _this18.renderYoastFields(response.data.fields);
+            _this19.renderYoastFields(response.data.fields);
             // Show the Yoast category
             var category = document.querySelector('.aie-yoast-fields-category');
             if (category) {
@@ -1068,7 +1147,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "renderYoastFields",
     value: function renderYoastFields(fields) {
-      var _this19 = this;
+      var _this20 = this;
       var grid = document.querySelector('.aie-yoast-fields-grid');
       if (!grid) return;
 
@@ -1081,7 +1160,7 @@ var ExportStep3 = /*#__PURE__*/function () {
         item.dataset.field = 'yoast_' + field.name;
         item.dataset.label = field.label;
         item.dataset.type = 'yoast';
-        item.innerHTML = "\n\t\t\t\t<span class=\"aie-field-icon dashicons dashicons-chart-line\"></span>\n\t\t\t\t<span class=\"aie-field-label\">".concat(_this19.escapeHtml(field.label), "</span>\n\t\t\t\t<span class=\"aie-field-type\">yoast</span>\n\t\t\t");
+        item.innerHTML = "\n\t\t\t\t<span class=\"aie-field-icon dashicons dashicons-chart-line\"></span>\n\t\t\t\t<span class=\"aie-field-label\">".concat(_this20.escapeHtml(field.label), "</span>\n\t\t\t\t<span class=\"aie-field-type\">yoast</span>\n\t\t\t");
         grid.appendChild(item);
       });
     }
@@ -1093,7 +1172,7 @@ var ExportStep3 = /*#__PURE__*/function () {
     key: "initFieldFunctionsModal",
     value: function initFieldFunctionsModal() {
       var _modal$querySelector,
-        _this20 = this,
+        _this21 = this,
         _modal$querySelector2,
         _modal$querySelector3,
         _modal$querySelector4,
@@ -1103,31 +1182,31 @@ var ExportStep3 = /*#__PURE__*/function () {
 
       // Close modal
       (_modal$querySelector = modal.querySelector('.aie-modal-close')) === null || _modal$querySelector === void 0 || _modal$querySelector.addEventListener('click', function () {
-        _this20.closeFieldFunctionsModal();
+        _this21.closeFieldFunctionsModal();
       });
       (_modal$querySelector2 = modal.querySelector('.aie-modal-cancel')) === null || _modal$querySelector2 === void 0 || _modal$querySelector2.addEventListener('click', function () {
-        _this20.closeFieldFunctionsModal();
+        _this21.closeFieldFunctionsModal();
       });
 
       // Save functions
       (_modal$querySelector3 = modal.querySelector('.aie-save-field-functions')) === null || _modal$querySelector3 === void 0 || _modal$querySelector3.addEventListener('click', function () {
-        _this20.saveFieldFunctions();
+        _this21.saveFieldFunctions();
       });
 
       // Test pipeline
       (_modal$querySelector4 = modal.querySelector('.aie-test-pipeline')) === null || _modal$querySelector4 === void 0 || _modal$querySelector4.addEventListener('click', function () {
-        _this20.testFunctionPipeline();
+        _this21.testFunctionPipeline();
       });
 
       // Functions search
       (_modal$querySelector5 = modal.querySelector('#aie-functions-search')) === null || _modal$querySelector5 === void 0 || _modal$querySelector5.addEventListener('input', function (e) {
-        _this20.filterFunctions(e.target.value);
+        _this21.filterFunctions(e.target.value);
       });
 
       // Functions filter
       modal.querySelectorAll('input[name="functions-filter"]').forEach(function (radio) {
         radio.addEventListener('change', function (e) {
-          _this20.filterFunctionsByCategory(e.target.value);
+          _this21.filterFunctionsByCategory(e.target.value);
         });
       });
 
@@ -1184,7 +1263,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "loadCurrentFunctions",
     value: function loadCurrentFunctions(fieldKey) {
-      var _this21 = this;
+      var _this22 = this;
       var container = document.getElementById('aie-function-items');
       if (!container) return;
       container.innerHTML = '';
@@ -1197,11 +1276,11 @@ var ExportStep3 = /*#__PURE__*/function () {
       }
       if (noFunctionsEl) noFunctionsEl.style.display = 'none';
       functions.forEach(function (funcId) {
-        var func = _this21.availableFunctions.find(function (f) {
+        var func = _this22.availableFunctions.find(function (f) {
           return f.id == funcId;
         });
         if (func) {
-          _this21.addFunctionToPipeline(func, false);
+          _this22.addFunctionToPipeline(func, false);
         }
       });
       this.updateFunctionsCount(functions.length);
@@ -1213,7 +1292,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "addFunctionToPipeline",
     value: function addFunctionToPipeline(func) {
-      var _this22 = this;
+      var _this23 = this;
       var updateArray = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
       var container = document.getElementById('aie-function-items');
       if (!container) return;
@@ -1225,9 +1304,9 @@ var ExportStep3 = /*#__PURE__*/function () {
       // Remove function event
       item.querySelector('.aie-remove-function').addEventListener('click', function () {
         item.remove();
-        _this22.updatePipelineFunctions();
-        _this22.updateFunctionsCount();
-        _this22.toggleNoFunctionsMessage();
+        _this23.updatePipelineFunctions();
+        _this23.updateFunctionsCount();
+        _this23.toggleNoFunctionsMessage();
       });
       container.appendChild(item);
       if (updateArray) {
@@ -1286,14 +1365,14 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "initFunctionPipelineSortable",
     value: function initFunctionPipelineSortable() {
-      var _this23 = this;
+      var _this24 = this;
       var container = document.getElementById('aie-function-items');
       if (!container || !jQuery.fn.sortable) return;
       jQuery(container).sortable({
         handle: '.aie-function-handle',
         placeholder: 'aie-function-item-placeholder',
         update: function update() {
-          _this23.updatePipelineFunctions();
+          _this24.updatePipelineFunctions();
         }
       });
     }
@@ -1336,7 +1415,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "loadFunctions",
     value: function loadFunctions() {
-      var _this24 = this;
+      var _this25 = this;
       // Check if aieData is available
       if (typeof aieData === 'undefined') {
         console.error('aieData is not defined');
@@ -1351,8 +1430,8 @@ var ExportStep3 = /*#__PURE__*/function () {
         },
         success: function success(response) {
           if (response.success && response.data.functions) {
-            _this24.availableFunctions = response.data.functions;
-            _this24.renderAvailableFunctions();
+            _this25.availableFunctions = response.data.functions;
+            _this25.renderAvailableFunctions();
           }
         }
       });
@@ -1364,7 +1443,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "renderAvailableFunctions",
     value: function renderAvailableFunctions() {
-      var _this25 = this;
+      var _this26 = this;
       var container = document.getElementById('aie-functions-list');
       if (!container) return;
       var loadingEl = container.querySelector('.aie-functions-loading');
@@ -1375,9 +1454,9 @@ var ExportStep3 = /*#__PURE__*/function () {
         item.className = 'aie-function-list-item';
         item.dataset.functionId = func.id;
         item.dataset.category = func.category || 'custom';
-        item.innerHTML = "\n\t\t\t\t<div class=\"aie-function-list-info\">\n\t\t\t\t\t<span class=\"aie-function-list-name\">".concat(_this25.escapeHtml(func.name), "</span>\n\t\t\t\t\t<span class=\"aie-function-list-desc\">").concat(_this25.escapeHtml(func.description || ''), "</span>\n\t\t\t\t</div>\n\t\t\t\t<button type=\"button\" class=\"button button-small\">Add</button>\n\t\t\t");
+        item.innerHTML = "\n\t\t\t\t<div class=\"aie-function-list-info\">\n\t\t\t\t\t<span class=\"aie-function-list-name\">".concat(_this26.escapeHtml(func.name), "</span>\n\t\t\t\t\t<span class=\"aie-function-list-desc\">").concat(_this26.escapeHtml(func.description || ''), "</span>\n\t\t\t\t</div>\n\t\t\t\t<button type=\"button\" class=\"button button-small\">Add</button>\n\t\t\t");
         item.querySelector('button').addEventListener('click', function () {
-          _this25.addFunctionToPipeline(func);
+          _this26.addFunctionToPipeline(func);
         });
         container.appendChild(item);
       });
@@ -1424,7 +1503,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "testFunctionPipeline",
     value: function testFunctionPipeline() {
-      var _this26 = this;
+      var _this27 = this;
       var input = document.getElementById('aie-preview-input').value;
       if (!input) {
         this.showNotice('Please enter a test value', 'warning');
@@ -1455,13 +1534,13 @@ var ExportStep3 = /*#__PURE__*/function () {
         },
         success: function success(response) {
           if (response.success) {
-            _this26.renderPipelinePreview(input, response.data.steps);
+            _this27.renderPipelinePreview(input, response.data.steps);
           } else {
-            _this26.showNotice(response.data.message || 'Test failed', 'error');
+            _this27.showNotice(response.data.message || 'Test failed', 'error');
           }
         },
         error: function error() {
-          _this26.showNotice('Error testing pipeline', 'error');
+          _this27.showNotice('Error testing pipeline', 'error');
         }
       });
     }
@@ -1472,7 +1551,7 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "renderPipelinePreview",
     value: function renderPipelinePreview(initialValue, steps) {
-      var _this27 = this;
+      var _this28 = this;
       var container = document.getElementById('aie-preview-result');
       if (!container) return;
       var stepsContainer = container.querySelector('.aie-preview-steps');
@@ -1483,7 +1562,7 @@ var ExportStep3 = /*#__PURE__*/function () {
 
       // Each function step
       steps.forEach(function (step, index) {
-        stepsContainer.appendChild(_this27.createPreviewStep(index + 1, step.function_name, step.output, step.error));
+        stepsContainer.appendChild(_this28.createPreviewStep(index + 1, step.function_name, step.output, step.error));
       });
       container.style.display = 'block';
     }
@@ -1615,11 +1694,11 @@ var ExportStep3 = /*#__PURE__*/function () {
   }, {
     key: "setSelectedFieldsData",
     value: function setSelectedFieldsData(data) {
-      var _this28 = this;
+      var _this29 = this;
       if (data.fields) {
         this.selectedFields = [];
         data.fields.forEach(function (field) {
-          _this28.addFieldToCSV(field);
+          _this29.addFieldToCSV(field);
         });
       }
       if (data.functions) {
@@ -1628,7 +1707,7 @@ var ExportStep3 = /*#__PURE__*/function () {
         // Update column badges
         Object.keys(this.fieldFunctions).forEach(function (fieldKey) {
           var column = document.querySelector("[data-field-key=\"".concat(fieldKey, "\"]"));
-          if (column && _this28.fieldFunctions[fieldKey].length > 0) {
+          if (column && _this29.fieldFunctions[fieldKey].length > 0) {
             column.classList.add('has-functions');
           }
         });
@@ -1808,11 +1887,25 @@ var ExportModule = _defineProperty(_defineProperty({
       return jQuery(this).data('step') < step;
     }).addClass('completed');
     this.currentStep = step;
-    if (step === 2) {
+    var previousStep = this.currentStep;
+    if (step === 1) {
+      // Hide database table selection and info when returning to step 1
+      jQuery('.aie-table-selection-section').hide();
+      jQuery('.aie-table-info').hide();
+      // Reset count only when going back to step 1
+      this.resetCount();
+    } else if (step === 2) {
       // Check if database_table type is selected
       var contentType = jQuery('input[name="content_type"]:checked').val();
       if (contentType === 'database_table') {
-        this.loadDatabaseTables();
+        jQuery('.aie-table-selection-section').show();
+        // Only load database tables if coming from step 1 or if table not selected
+        var $tableSelect = jQuery('#aie-table-name');
+        if (previousStep === 1 || !$tableSelect.val()) {
+          this.loadDatabaseTables();
+        }
+      } else {
+        jQuery('.aie-table-selection-section').hide();
       }
       this.refreshCount(false); // Don't show spinner on auto-refresh
     } else if (step === 3) {
@@ -1820,9 +1913,6 @@ var ExportModule = _defineProperty(_defineProperty({
       if (this.step3Instance) {
         this.step3Instance.loadDynamicFields();
       }
-    } else {
-      // Reset count when leaving step 2
-      this.resetCount();
     }
   },
   nextStep: function nextStep() {
@@ -1847,6 +1937,12 @@ var ExportModule = _defineProperty(_defineProperty({
       // Skip step 2 (filters) when going back for content types that don't need filtering
       if (prevStep === 2 && this.shouldSkipFilters()) {
         prevStep = 1;
+      }
+
+      // Hide table selection when going back to step 1
+      if (prevStep === 1) {
+        jQuery('.aie-table-selection-section').hide();
+        jQuery('.aie-table-info').hide();
       }
       this.showStep(prevStep);
     }
@@ -4009,13 +4105,6 @@ var ExportModule = _defineProperty(_defineProperty({
         return [{
           label: 'Table Columns',
           options: columnOptions
-        }, {
-          label: 'Info',
-          options: [{
-            value: '_info',
-            label: "\u2139\uFE0F ".concat(this.currentTableColumns.length, " columns available"),
-            type: 'info'
-          }]
         }];
       }
 
@@ -4239,7 +4328,7 @@ var ExportModule = _defineProperty(_defineProperty({
         if (tableName) {
           _this14.loadTableColumns(tableName);
         } else {
-          jQuery('.aie-table-info').hide();
+          jQuery('.aie-table-info').html('').hide();
           jQuery('#aie-filters-list').empty();
         }
       });
