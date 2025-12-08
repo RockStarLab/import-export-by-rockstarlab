@@ -9,7 +9,7 @@
 8. Follow SOLID, KISS, and DRY principles.
 9. Do not write documentation or test scripts unless explicitly requested.
 10. If something is unclear, ask questions before making any changes.
-11. **NEVER create .md documentation files for features or fixes** - only code changes are needed.
+11. **NEVER create .md documentation files for features or fixes** - only code changes are needed. Do not document bug fixes.
 
 ## Naming Conventions ##
 **КРИТИЧЕСКИ ВАЖНО**: Используйте WordPress Coding Standards для всех имен:

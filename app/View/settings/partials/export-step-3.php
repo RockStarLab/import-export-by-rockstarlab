@@ -1,6 +1,6 @@
 <?php
 /**
- * Export Step 3: Select Fields
+ * Export Step 3: Select Fields with Drag & Drop
  *
  * @package WP_AIE\View
  */
@@ -12,85 +12,154 @@ defined( 'ABSPATH' ) || exit;
 <div class="aie-step aie-step-3" data-step="3">
 	<div class="aie-step-header">
 		<h2><?php esc_html_e( 'Step 3: Select Fields', 'wp-aie' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Choose which fields to include in the export', 'wp-aie' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Drag and drop fields to build your export structure. Click on a field to assign functions.', 'wp-aie' ); ?></p>
 	</div>
 
 	<div class="aie-step-content">
-		<div class="aie-field-selection-controls">
-			<button type="button" class="button aie-select-all-fields">
-				<span class="dashicons dashicons-yes"></span>
-				<?php esc_html_e( 'Select All', 'wp-aie' ); ?>
-			</button>
-			<button type="button" class="button aie-deselect-all-fields">
-				<span class="dashicons dashicons-no-alt"></span>
-				<?php esc_html_e( 'Deselect All', 'wp-aie' ); ?>
-			</button>
-			<button type="button" class="button aie-select-common-fields">
-				<span class="dashicons dashicons-admin-generic"></span>
-				<?php esc_html_e( 'Common Fields', 'wp-aie' ); ?>
-			</button>
-		</div>
-
-		<div class="aie-field-groups">
-			<!-- Post Fields -->
-			<div class="aie-field-group aie-post-field-group">
-				<h3><?php esc_html_e( 'Basic Fields', 'wp-aie' ); ?></h3>
-				<div class="aie-fields-grid">
-					<label><input type="checkbox" name="fields[]" value="ID" checked> ID</label>
-					<label><input type="checkbox" name="fields[]" value="post_title" checked> <?php esc_html_e( 'Title', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="post_content" checked> <?php esc_html_e( 'Content', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="post_excerpt"> <?php esc_html_e( 'Excerpt', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="post_status" checked> <?php esc_html_e( 'Status', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="post_author"> <?php esc_html_e( 'Author', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="post_date"> <?php esc_html_e( 'Date', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="post_name"> <?php esc_html_e( 'Slug', 'wp-aie' ); ?></label>
+		<div class="aie-step-3-columns">
+			<!-- Left Column: Export File Structure (CSV Builder) -->
+			<div class="aie-csv-builder">
+			<div class="aie-csv-builder-header">
+				<h3>
+					<span class="dashicons dashicons-media-spreadsheet"></span>
+					<?php esc_html_e( 'Export File Structure', 'wp-aie' ); ?>
+				</h3>
+				<div class="aie-csv-builder-actions">
+					<button type="button" class="button button-small aie-clear-all-fields" title="<?php esc_attr_e( 'Clear all fields', 'wp-aie' ); ?>">
+						<span class="dashicons dashicons-trash"></span>
+						<?php esc_html_e( 'Clear All', 'wp-aie' ); ?>
+					</button>
+					<button type="button" class="button button-small aie-add-custom-column" title="<?php esc_attr_e( 'Add custom column', 'wp-aie' ); ?>">
+						<span class="dashicons dashicons-plus-alt2"></span>
+						<?php esc_html_e( 'Add Custom', 'wp-aie' ); ?>
+					</button>
 				</div>
 			</div>
 
-			<div class="aie-field-group aie-post-field-group">
-				<h3><?php esc_html_e( 'Additional Fields', 'wp-aie' ); ?></h3>
-				<div class="aie-fields-grid">
-					<label><input type="checkbox" name="fields[]" value="post_parent"> <?php esc_html_e( 'Parent ID', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="menu_order"> <?php esc_html_e( 'Menu Order', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="comment_status"> <?php esc_html_e( 'Comment Status', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="ping_status"> <?php esc_html_e( 'Ping Status', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="guid"> GUID</label>
-					<label><input type="checkbox" name="fields[]" value="post_modified"> <?php esc_html_e( 'Modified Date', 'wp-aie' ); ?></label>
+			<div class="aie-csv-builder-body">
+				<!-- Drop Zone -->
+				<div class="aie-csv-dropzone" id="aie-csv-dropzone">
+					<div class="aie-csv-dropzone-placeholder">
+						<span class="dashicons dashicons-download"></span>
+						<p><?php esc_html_e( 'Drag fields here to build your export file', 'wp-aie' ); ?></p>
+						<span class="aie-csv-hint"><?php esc_html_e( 'or click "Add Custom" to create a custom column', 'wp-aie' ); ?></span>
+					</div>
+					
+					<!-- Selected Fields Container -->
+					<div class="aie-csv-columns" id="aie-csv-columns">
+						<!-- Columns will be added here dynamically -->
+					</div>
 				</div>
-			</div>
 
-			<div class="aie-field-group aie-post-field-group">
-				<h3><?php esc_html_e( 'Taxonomies & Meta', 'wp-aie' ); ?></h3>
-				<div class="aie-fields-grid">
-					<label><input type="checkbox" name="fields[]" value="categories"> <?php esc_html_e( 'Categories', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="tags"> <?php esc_html_e( 'Tags', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="featured_image"> <?php esc_html_e( 'Featured Image', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="post_meta"> <?php esc_html_e( 'All Post Meta', 'wp-aie' ); ?></label>
-				</div>
-			</div>
-
-			<!-- Media Fields -->
-			<div class="aie-field-group aie-media-field-group" style="display:none;">
-				<h3><?php esc_html_e( 'Media Fields', 'wp-aie' ); ?></h3>
-				<div class="aie-fields-grid">
-					<label><input type="checkbox" name="fields[]" value="ID" checked> ID</label>
-					<label><input type="checkbox" name="fields[]" value="post_title" checked> <?php esc_html_e( 'Title', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="post_mime_type" checked> <?php esc_html_e( 'MIME Type', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="guid" checked> <?php esc_html_e( 'URL', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="file_path"> <?php esc_html_e( 'File Path', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="file_size"> <?php esc_html_e( 'File Size', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="dimensions"> <?php esc_html_e( 'Dimensions', 'wp-aie' ); ?></label>
-					<label><input type="checkbox" name="fields[]" value="alt_text"> <?php esc_html_e( 'Alt Text', 'wp-aie' ); ?></label>
+				<!-- Field Counter -->
+				<div class="aie-csv-stats">
+					<span class="aie-field-count">
+						<strong><?php esc_html_e( 'Columns:', 'wp-aie' ); ?></strong> 
+						<span class="aie-count-value aie-columns-count">0</span>
+					</span>
 				</div>
 			</div>
 		</div>
 
+		<!-- Right Column: Available Fields Library -->
+		<div class="aie-fields-library">
+			<div class="aie-fields-library-header">
+				<h3>
+					<span class="dashicons dashicons-list-view"></span>
+					<?php esc_html_e( 'Available Fields', 'wp-aie' ); ?>
+				</h3>
+			</div>
+			
+			<!-- Search/Filter -->
+			<div class="aie-fields-search">
+				<input 
+					type="text" 
+					id="aie-fields-search" 
+					class="regular-text" 
+					placeholder="<?php esc_attr_e( 'Search fields...', 'wp-aie' ); ?>"
+				>
+				<span class="dashicons dashicons-search"></span>
+			</div>
+
+			<div class="aie-fields-library-body">
+						<!-- Static fields will be loaded here dynamically based on content type -->
+						
+						<!-- Taxonomies (Dynamic - loaded via AJAX) -->
+						<div class="aie-field-category aie-collapsed aie-taxonomies-category" style="display:none;">
+							<h4 class="aie-field-category-title">
+								<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
+								<span class="dashicons dashicons-category"></span>
+								<?php esc_html_e( 'Taxonomies', 'wp-aie' ); ?>
+								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'wp-aie' ); ?>">
+									<?php esc_html_e( 'Add all', 'wp-aie' ); ?>
+								</button>
+							</h4>
+							<div class="aie-fields-grid aie-taxonomies-grid">
+								<!-- Taxonomies will be loaded dynamically based on post type -->
+							</div>
+						</div>
+
+						<!-- Custom Fields (Dynamic - loaded via AJAX) -->
+						<div class="aie-field-category aie-collapsed aie-custom-fields-category" style="display:none;">
+							<h4 class="aie-field-category-title">
+								<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
+								<span class="dashicons dashicons-admin-generic"></span>
+								<?php esc_html_e( 'Custom Fields', 'wp-aie' ); ?>
+								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'wp-aie' ); ?>">
+									<?php esc_html_e( 'Add all', 'wp-aie' ); ?>
+								</button>
+							</h4>
+							<div class="aie-fields-grid aie-custom-fields-grid">
+								<!-- Custom fields will be loaded dynamically based on post type -->
+							</div>
+						</div>
+
+						<!-- ACF Fields (Dynamic - loaded via AJAX) -->
+						<div class="aie-field-category aie-collapsed aie-acf-fields-category" style="display:none;">
+							<h4 class="aie-field-category-title">
+								<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
+								<span class="dashicons dashicons-admin-settings"></span>
+								<?php esc_html_e( 'ACF Fields', 'wp-aie' ); ?>
+								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'wp-aie' ); ?>">
+									<?php esc_html_e( 'Add all', 'wp-aie' ); ?>
+								</button>
+							</h4>
+							<div class="aie-fields-grid aie-acf-fields-grid">
+								<div class="aie-acf-loading">
+									<span class="spinner is-active"></span>
+									<p><?php esc_html_e( 'Loading ACF fields...', 'wp-aie' ); ?></p>
+								</div>
+							</div>
+						</div>
+
+						<!-- Yoast SEO Fields (Dynamic - loaded via AJAX) -->
+						<div class="aie-field-category aie-collapsed aie-yoast-fields-category" style="display:none;">
+							<h4 class="aie-field-category-title">
+								<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
+								<span class="dashicons dashicons-chart-line"></span>
+								<?php esc_html_e( 'Yoast SEO', 'wp-aie' ); ?>
+								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'wp-aie' ); ?>">
+									<?php esc_html_e( 'Add all', 'wp-aie' ); ?>
+								</button>
+							</h4>
+							<div class="aie-fields-grid aie-yoast-fields-grid">
+								<div class="aie-yoast-loading">
+									<span class="spinner is-active"></span>
+									<p><?php esc_html_e( 'Loading Yoast SEO fields...', 'wp-aie' ); ?></p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		<!-- Step Actions -->
 		<div class="aie-step-actions">
 			<button type="button" class="button button-secondary aie-prev-step">
 				<span class="dashicons dashicons-arrow-left-alt2"></span>
 				<?php esc_html_e( 'Previous', 'wp-aie' ); ?>
 			</button>
-			<button type="button" class="button button-primary button-large aie-next-step">
+			<button type="button" class="button button-primary button-large aie-next-step" disabled>
 				<?php esc_html_e( 'Next Step', 'wp-aie' ); ?>
 				<span class="dashicons dashicons-arrow-right-alt2"></span>
 			</button>
