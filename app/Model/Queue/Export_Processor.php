@@ -86,8 +86,6 @@ class Export_Processor {
 				throw new \Exception( 'Invalid job parameters' );
 			}
 
-			error_log( 'Export_Processor: Received parameters: ' . print_r( $parameters, true ) );
-
 			$export_type = $parameters['export_type'];
 			$options     = $parameters['options'] ?? [];
 			$fields      = $parameters['fields'] ?? [];
@@ -160,10 +158,7 @@ class Export_Processor {
 			// For database_table, add table_name to export_options
 			if ( 'database_table' === $export_type && ! empty( $parameters['table_name'] ) ) {
 				$export_options['table_name'] = $parameters['table_name'];
-				error_log( 'Export_Processor: Added table_name to export_options: ' . $parameters['table_name'] );
 			}
-
-			error_log( 'Export_Processor: Final export_options for ' . $export_type . ': ' . print_r( $export_options, true ) );
 
 			// Get total count on first batch
 			if ( 0 === $current_offset ) {

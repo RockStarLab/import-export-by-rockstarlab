@@ -199,7 +199,7 @@ class CSV_Format implements File_Format_Interface {
 		}
 
 		// Write headers
-		if ( null === $headers && is_array( $data[0] ) && ! isset( $data[0][0] ) ) {
+		if ( null === $headers && isset( $data[0] ) && is_array( $data[0] ) && ! isset( $data[0][0] ) ) {
 			// Extract headers from associative array
 			$headers = array_keys( $data[0] );
 		}
@@ -210,13 +210,34 @@ class CSV_Format implements File_Format_Interface {
 
 		// Write data rows
 		foreach ( $data as $row ) {
-			if ( ! empty( $headers ) && is_array( $row ) && ! isset( $row[0] ) ) {
+			if ( ! is_array( $row ) ) {
+				// Skip non-array rows
+				continue;
+			}
+
+			if ( ! empty( $headers ) && ! isset( $row[0] ) ) {
 				// Associative array - reorder by headers
 				$ordered_row = [];
 				foreach ( $headers as $header ) {
-					$ordered_row[] = $row[ $header ] ?? '';
+					$value = $row[ $header ] ?? '';
+					// Convert arrays/objects to JSON string
+					if ( is_array( $value ) || is_object( $value ) ) {
+						$value = wp_json_encode( $value );
+					}
+					$ordered_row[] = $value;
 				}
 				$row = $ordered_row;
+			} else {
+				// For indexed arrays, also convert any array/object values
+				$row = array_map(
+					function ( $value ) {
+						if ( is_array( $value ) || is_object( $value ) ) {
+								return wp_json_encode( $value );
+						}
+						return $value;
+					},
+					$row
+				);
 			}
 
 			fputcsv( $handle, $row, $delimiter, $enclosure, $escape );

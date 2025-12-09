@@ -887,7 +887,11 @@ const ExportModule = {
 
 			// Add field functions if available
 			if (this.step3Instance && this.step3Instance.fieldFunctions) {
-				data.field_functions = this.step3Instance.fieldFunctions;
+				// Convert field functions from fieldKey (with timestamp) to actual field names
+				const convertedFunctions = this.convertFieldFunctions(this.step3Instance.fieldFunctions, this.step3Instance.selectedFields);
+				if (Object.keys(convertedFunctions).length > 0) {
+					data.field_functions = convertedFunctions;
+				}
 			}
 
 			// Add dynamic filters
@@ -2457,6 +2461,38 @@ const ExportModule = {
 		}
 		return 'dashicons-marker';
 	},
+
+	/**
+	 * Convert field functions from fieldKey (with timestamp) to actual field names
+	 * 
+	 * @param {Object} fieldFunctions - Object with fieldKey as keys and function IDs as values
+	 * @param {Array} selectedFields - Array of selected fields with { key, field, label, type }
+	 * @return {Object} - Object with actual field names as keys
+	 */
+	convertFieldFunctions( fieldFunctions, selectedFields ) {
+		const converted = {};
+		
+		if ( ! fieldFunctions || ! selectedFields ) {
+			return converted;
+		}
+
+		// Create a map from fieldKey to actual field name
+		const keyToFieldMap = {};
+		selectedFields.forEach( fieldData => {
+			keyToFieldMap[ fieldData.key ] = fieldData.field;
+		} );
+
+		// Convert fieldKey to actual field name
+		Object.keys( fieldFunctions ).forEach( fieldKey => {
+			const actualFieldName = keyToFieldMap[ fieldKey ];
+			if ( actualFieldName && fieldFunctions[ fieldKey ].length > 0 ) {
+				converted[ actualFieldName ] = fieldFunctions[ fieldKey ];
+			}
+		} );
+
+		return converted;
+	},
+
 };
 
 export default ExportModule;
