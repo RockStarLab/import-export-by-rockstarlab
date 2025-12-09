@@ -233,6 +233,11 @@ class Post_Exporter extends Abstract_Exporter {
 	 * @return array|WP_Error
 	 */
 	public function get_data( $options = [] ) {
+		// Special handling for menus - export nav_menu terms with items
+		if ( isset( $options['post_type'] ) && $options['post_type'] === 'nav_menu_item' ) {
+			return $this->get_menu_data( $options );
+		}
+
 		$query_args = $this->build_query_args( $options );
 
 		$this->log_info( 'Querying posts', $query_args );
@@ -315,6 +320,11 @@ class Post_Exporter extends Abstract_Exporter {
 
 		$data   = [];
 		$fields = $this->get_option( 'fields', $this->get_default_fields() );
+
+		// If fields is empty array, use default fields
+		if ( empty( $fields ) ) {
+			$fields = $this->get_default_fields();
+		}
 
 		while ( $query->have_posts() ) {
 			$query->the_post();
@@ -1317,6 +1327,87 @@ class Post_Exporter extends Abstract_Exporter {
 			'caption'  => $image->post_excerpt,
 			'filename' => basename( get_attached_file( $thumbnail_id ) ),
 		];
+	}
+
+	/**
+	 * Get menu data (nav_menu terms with their items)
+	 *
+	 * @param array $options Export options
+	 * @return array Menu data
+	 */
+	protected function get_menu_data( $options ) {
+		$term_args = [
+			'taxonomy'   => 'nav_menu',
+			'hide_empty' => false,
+			'fields'     => 'all',
+		];
+
+		// Apply limit and offset if present
+		if ( isset( $options['limit'] ) && $options['limit'] > 0 ) {
+			$term_args['number'] = $options['limit'];
+		}
+		if ( isset( $options['offset'] ) ) {
+			$term_args['offset'] = $options['offset'];
+		}
+
+		// Get all menu terms
+		$terms = get_terms( $term_args );
+
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			return [];
+		}
+
+		// Apply filters if present
+		if ( ! empty( $options['filters'] ) && is_array( $options['filters'] ) ) {
+			$terms = $this->apply_menu_filters( $terms, $options['filters'] );
+		}
+
+		$data   = [];
+		$fields = $this->get_option( 'fields', $this->get_default_fields() );
+
+		// If fields is empty array, use default fields
+		if ( empty( $fields ) ) {
+			$fields = $this->get_default_fields();
+		}
+
+		foreach ( $terms as $term ) {
+			// Get menu items for this menu
+			$menu_items = wp_get_nav_menu_items( $term->term_id );
+
+			$menu_data = [
+				'term_id'     => $term->term_id,
+				'name'        => $term->name,
+				'slug'        => $term->slug,
+				'description' => $term->description,
+				'count'       => $term->count,
+				'menu_items'  => [],
+			];
+
+			if ( ! empty( $menu_items ) ) {
+				foreach ( $menu_items as $item ) {
+					$menu_data['menu_items'][] = [
+						'ID'               => $item->ID,
+						'title'            => $item->title,
+						'url'              => $item->url,
+						'menu_order'       => $item->menu_order,
+						'menu_item_parent' => $item->menu_item_parent,
+						'object'           => $item->object,
+						'object_id'        => $item->object_id,
+						'type'             => $item->type,
+						'type_label'       => $item->type_label,
+						'target'           => $item->target,
+						'attr_title'       => $item->attr_title,
+						'classes'          => $item->classes,
+						'xfn'              => $item->xfn,
+						'description'      => $item->description,
+					];
+				}
+			}
+
+			$data[] = $menu_data;
+		}
+
+		return $data;
 	}
 
 	/**

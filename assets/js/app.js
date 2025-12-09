@@ -862,8 +862,10 @@ var ExportStep3 = /*#__PURE__*/function () {
 
       // Render each field group as a category
       fieldGroups.forEach(function (group, index) {
-        // Skip Custom Filters group
-        if (group.label === 'Custom Filters') return;
+        // Skip Custom Filters group and selector groups (they're only for step 2)
+        if (group.label === 'Custom Filters' || group.label === 'Post Type Selection' || group.label === 'Taxonomy Selection') {
+          return;
+        }
         var category = _this11.createFieldCategory(group, index === 0);
 
         // Insert before taxonomies category
@@ -895,7 +897,7 @@ var ExportStep3 = /*#__PURE__*/function () {
       if (group.options && Array.isArray(group.options)) {
         group.options.forEach(function (option) {
           // Skip special filter types
-          if (option.type === 'custom_field' || option.type === 'taxonomy_filter' || option.type === 'post_type_selector' || option.type === 'table_selector') {
+          if (option.type === 'custom_field' || option.type === 'taxonomy_filter' || option.type === 'post_type_selector' || option.type === 'taxonomy_selector' || option.type === 'table_selector') {
             return;
           }
           var field = _this12.createFieldItem(option);
@@ -2262,12 +2264,58 @@ var ExportModule = _defineProperty(_defineProperty({
     var countText = $count.text();
     var count = parseInt(countText, 10);
 
+    // Check content type for special validation
+    var contentType = jQuery('input[name="content_type"]:checked').val();
+    var isDisabled = false;
+    var tooltipTitle = 'No Data Available';
+    var tooltipMessage = 'Adjust your filters or select a different content type to continue with the export.';
+
     // Remove previous event handlers
     $nextBtn.off('mouseenter.tooltip mouseleave.tooltip');
 
+    // For custom_post_types, check if post type is selected
+    if (contentType === 'custom_post_types') {
+      var $postTypeSelector = jQuery('.aie-post-type-selector');
+      var selectedPostType = $postTypeSelector.val();
+      if (!selectedPostType || selectedPostType.trim() === '') {
+        isDisabled = true;
+        tooltipTitle = 'Post Type Required';
+        tooltipMessage = 'Please select a specific post type from the dropdown to continue.';
+      }
+    }
+
+    // For taxonomy, check if taxonomy is selected
+    if (contentType === 'taxonomy') {
+      var $taxonomySelector = jQuery('.aie-taxonomy-selector');
+      var selectedTaxonomy = $taxonomySelector.val();
+      if (!selectedTaxonomy || selectedTaxonomy.trim() === '') {
+        isDisabled = true;
+        tooltipTitle = 'Taxonomy Required';
+        tooltipMessage = 'Please select a specific taxonomy from the dropdown to continue.';
+      }
+    }
+
+    // For database_table, check if table is selected
+    if (contentType === 'database_table') {
+      var $tableSelector = jQuery('#aie-table-name');
+      var selectedTable = $tableSelector.val();
+      if (!selectedTable || selectedTable.trim() === '') {
+        isDisabled = true;
+        tooltipTitle = 'Table Required';
+        tooltipMessage = 'Please select a database table from the dropdown to continue.';
+      }
+    }
+
     // Disable if count is 0, NaN, or '-'
-    if (countText === '-' || isNaN(count) || count === 0) {
+    if (!isDisabled && (countText === '-' || isNaN(count) || count === 0)) {
+      isDisabled = true;
+    }
+    if (isDisabled) {
       $nextBtn.prop('disabled', true);
+
+      // Store tooltip data
+      $nextBtn.data('tooltip-title', tooltipTitle);
+      $nextBtn.data('tooltip-message', tooltipMessage);
 
       // Show tooltip on hover
       $nextBtn.on('mouseenter.tooltip', function () {
@@ -2291,8 +2339,13 @@ var ExportModule = _defineProperty(_defineProperty({
   showNextButtonTooltip: function showNextButtonTooltip($button) {
     // Remove any existing tooltips
     jQuery('.aie-custom-tooltip').remove();
+
+    // Get custom tooltip data or use defaults
+    var tooltipTitle = $button.data('tooltip-title') || 'No Data Available';
+    var tooltipMessage = $button.data('tooltip-message') || 'Adjust your filters or select a different content type to continue with the export.';
+
     // Create tooltip element
-    var $tooltip = jQuery('<div>').addClass('aie-custom-tooltip aie-custom-pointer').html("\n\t\t\t\t<div class=\"aie-pointer-icon\">\n\t\t\t\t\t<span class=\"dashicons dashicons-warning\"></span>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-pointer-content\">\n\t\t\t\t\t<h3>No Data Available</h3>\n\t\t\t\t\t<p>Adjust your filters or select a different content type to continue with the export.</p>\n\t\t\t\t</div>\n\t\t\t");
+    var $tooltip = jQuery('<div>').addClass('aie-custom-tooltip aie-custom-pointer').html("\n\t\t\t\t<div class=\"aie-pointer-icon\">\n\t\t\t\t\t<span class=\"dashicons dashicons-warning\"></span>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-pointer-content\">\n\t\t\t\t\t<h3>".concat(tooltipTitle, "</h3>\n\t\t\t\t\t<p>").concat(tooltipMessage, "</p>\n\t\t\t\t</div>\n\t\t\t"));
     // Append to body
     jQuery('body').append($tooltip);
     // Position tooltip
@@ -2408,18 +2461,32 @@ var ExportModule = _defineProperty(_defineProperty({
         return;
       }
 
+      // Handle taxonomy_selector type
+      if (fieldType === 'taxonomy_selector') {
+        var _value2 = $row.find('.aie-filter-value').val();
+        if (_value2 && _value2.trim() !== '') {
+          filters.push({
+            field: 'taxonomy',
+            condition: 'equals',
+            // Default condition for taxonomy
+            value: _value2
+          });
+        }
+        return;
+      }
+
       // Handle custom_field type
       if (fieldType === 'custom_field') {
         var name = $row.find('.aie-custom-field-name').val();
         var _condition = $row.find('.aie-custom-field-condition').val();
-        var _value2 = $row.find('.aie-custom-field-value').val();
+        var _value3 = $row.find('.aie-custom-field-value').val();
         if (name && _condition) {
           var _noValueConditions = ['is_empty', 'is_not_empty'];
-          if (_noValueConditions.includes(_condition) || _value2 && _value2.trim() !== '') {
+          if (_noValueConditions.includes(_condition) || _value3 && _value3.trim() !== '') {
             customFields.push({
               name: name,
               condition: _condition,
-              value: _value2 || ''
+              value: _value3 || ''
             });
           }
         }
@@ -2530,8 +2597,12 @@ var ExportModule = _defineProperty(_defineProperty({
   getSelectedFields: function getSelectedFields() {
     // Get fields from Step 3 drag & drop interface
     if (this.step3Instance && this.step3Instance.selectedFields) {
+      // Filter out pseudo-fields (selectors that start with _ and are used only for filtering)
+      var pseudoFields = ['_post_type', '_taxonomy', '_table_name'];
       return this.step3Instance.selectedFields.map(function (field) {
         return field.field;
+      }).filter(function (field) {
+        return !pseudoFields.includes(field);
       });
     }
 
@@ -2548,11 +2619,11 @@ var ExportModule = _defineProperty(_defineProperty({
   startExport: function startExport() {
     var _this5 = this;
     return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
-      var fields, contentType, dynamicFiltersData, csvDelimiter, customDelimiter, data, response;
+      var fields, contentType, dynamicFiltersData, csvDelimiter, customDelimiter, data, $tableDropdown, tableName, response;
       return _regeneratorRuntime().wrap(function _callee2$(_context2) {
         while (1) switch (_context2.prev = _context2.next) {
           case 0:
-            fields = _this5.getSelectedFields();
+            fields = _this5.getSelectedFields(); // If no fields selected (or only pseudo-fields were filtered out), show error
             if (!(fields.length === 0)) {
               _context2.next = 4;
               break;
@@ -2612,9 +2683,18 @@ var ExportModule = _defineProperty(_defineProperty({
             if (dynamicFiltersData.taxonomy.length > 0) {
               data.taxonomy = dynamicFiltersData.taxonomy;
             }
-            _context2.next = 22;
+
+            // For database_table, add table_name
+            if (contentType === 'database_table') {
+              $tableDropdown = jQuery('#aie-table-name');
+              tableName = $tableDropdown.val();
+              if (tableName) {
+                data.table_name = tableName;
+              }
+            }
+            _context2.next = 23;
             return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_start', data);
-          case 22:
+          case 23:
             response = _context2.sent;
             _this5.jobId = response.job_id;
             _this5.showStep(5);
@@ -2623,17 +2703,17 @@ var ExportModule = _defineProperty(_defineProperty({
             // Trigger first batch processing
             _this5.processNextBatch();
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Export started successfully', 'success');
-            _context2.next = 33;
+            _context2.next = 34;
             break;
-          case 30:
-            _context2.prev = 30;
+          case 31:
+            _context2.prev = 31;
             _context2.t0 = _context2["catch"](4);
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context2.t0, 'Start export');
-          case 33:
+          case 34:
           case "end":
             return _context2.stop();
         }
-      }, _callee2, null, [[4, 30]]);
+      }, _callee2, null, [[4, 31]]);
     }))();
   },
   /**
@@ -3012,6 +3092,9 @@ var ExportModule = _defineProperty(_defineProperty({
               return _this14.refreshCount(false);
             }, 500)();
 
+            // Update step 2 next button state
+            _this14.updateStep2NextButton();
+
             // Reload step 3 fields if currently on step 3
             if (_this14.currentStep === 3 && _this14.step3Instance) {
               _this14.step3Instance.reloadDynamicFields();
@@ -3024,7 +3107,51 @@ var ExportModule = _defineProperty(_defineProperty({
       });
       $value.replaceWith(_$select);
       return;
-    } // Show condition dropdown for normal fields
+    }
+
+    // Special handling for taxonomy_selector
+    if (fieldType === 'taxonomy_selector') {
+      // Hide condition dropdown for taxonomy selector
+      $condition.closest('.aie-filter-condition-wrap').hide();
+
+      // Replace value input with taxonomy selector
+      $valueWrap.find('label').text('Select Taxonomy');
+
+      // Create a select dropdown for taxonomies
+      var _$select2 = jQuery('<select>').addClass('aie-filter-value aie-taxonomy-selector').attr('name', 'filter_value[]');
+
+      // Fetch taxonomies via AJAX
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_get_all_taxonomies', {}).then(function (taxonomies) {
+        _$select2.append(jQuery('<option>').val('').text('Select Taxonomy...'));
+        if (taxonomies && Array.isArray(taxonomies)) {
+          taxonomies.forEach(function (taxonomy) {
+            _$select2.append(jQuery('<option>').val(taxonomy.name).text(taxonomy.label + ' (' + taxonomy.name + ')'));
+          });
+
+          // When taxonomy is selected, refresh count
+          _$select2.on('change', function () {
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+              return _this14.refreshCount(false);
+            }, 500)();
+
+            // Update step 2 next button state
+            _this14.updateStep2NextButton();
+
+            // Reload step 3 fields if currently on step 3
+            if (_this14.currentStep === 3 && _this14.step3Instance) {
+              _this14.step3Instance.reloadDynamicFields();
+            }
+          });
+        }
+      })["catch"](function (error) {
+        console.error('Error loading taxonomies:', error);
+        _$select2.append(jQuery('<option>').val('').text('Error loading taxonomies'));
+      });
+      $value.replaceWith(_$select2);
+      return;
+    }
+
+    // Show condition dropdown for normal fields
     $condition.closest('.aie-filter-condition-wrap').show();
     $valueWrap.find('label').text('Value');
 
@@ -3587,18 +3714,26 @@ var ExportModule = _defineProperty(_defineProperty({
     // Block Theme Settings
     if (contentType === 'block_theme_settings') {
       return [{
-        label: 'Settings',
+        label: 'Block Theme Components',
         options: [{
-          value: 'setting_name',
-          label: 'Setting Name',
-          type: 'string'
+          value: 'global_styles',
+          label: 'Global Styles (theme.json)',
+          type: 'array'
         }, {
-          value: 'setting_type',
-          label: 'Setting Type',
-          type: 'string'
+          value: 'templates',
+          label: 'Custom Templates',
+          type: 'array'
         }, {
-          value: 'setting_value',
-          label: 'Setting Value',
+          value: 'template_parts',
+          label: 'Template Parts',
+          type: 'array'
+        }, {
+          value: 'theme_mods',
+          label: 'Theme Modifications',
+          type: 'array'
+        }, {
+          value: 'custom_css',
+          label: 'Custom CSS',
           type: 'string'
         }]
       }];
@@ -3689,6 +3824,13 @@ var ExportModule = _defineProperty(_defineProperty({
     } // Taxonomy
     if (contentType === 'taxonomy') {
       return [{
+        label: 'Taxonomy Selection',
+        options: [{
+          value: '_taxonomy',
+          label: 'Taxonomy (select specific)',
+          type: 'taxonomy_selector'
+        }]
+      }, {
         label: 'Basic',
         options: [{
           value: 'term_id',
@@ -4550,6 +4692,8 @@ var ExportModule = _defineProperty(_defineProperty({
           jQuery('.aie-table-info').html('').hide();
           jQuery('#aie-filters-list').empty();
         }
+        // Update Next button state based on table selection
+        _this16.updateStep2NextButton();
       });
     })["catch"](function (error) {
       console.error('Error loading tables:', error);

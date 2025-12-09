@@ -99,6 +99,13 @@ class Block_Theme_Settings_Exporter extends Abstract_Exporter {
 	 * @return array|WP_Error
 	 */
 	public function get_data( $options = [] ) {
+		// Block theme settings is exported as a single item
+		// If offset > 0, return empty array (already exported)
+		$offset = isset( $options['offset'] ) ? (int) $options['offset'] : 0;
+		if ( $offset > 0 ) {
+			return [];
+		}
+
 		$fields = $options['fields'] ?? $this->get_default_fields();
 		$data   = [];
 
@@ -284,11 +291,12 @@ class Block_Theme_Settings_Exporter extends Abstract_Exporter {
 	 * @return true|\WP_Error
 	 */
 	public function validate_options( $options ) {
-		// Check if block theme is active
+		// Log warning if block theme is not active, but allow export to continue
+		// (templates/styles might still exist from Gutenberg plugin)
 		if ( ! wp_is_block_theme() ) {
-			return new \WP_Error(
-				'not_block_theme',
-				__( 'Block theme is not active. This exporter only works with block themes.', 'wp-advanced-import-export' )
+			$this->log_info(
+				'Block theme is not active. Some data may be unavailable.',
+				[ 'theme' => wp_get_theme()->get( 'Name' ) ]
 			);
 		}
 

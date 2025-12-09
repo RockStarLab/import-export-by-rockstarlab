@@ -246,7 +246,13 @@ class Background_Processor {
 		$offset      = $parameters['offset'] ?? 0;
 
 		// Get exporter
-		$exporter = \WP_AIE\Model\Export\Exporter_Factory::create( $export_type );
+		$exporter = \WP_AIE\Model\Export\Exporter_Factory::get_exporter( $export_type, $job_id );
+
+		if ( is_wp_error( $exporter ) ) {
+			return array(
+				'error' => $exporter->get_error_message(),
+			);
+		}
 
 		// Set filters
 		if ( ! empty( $filters ) ) {
@@ -299,15 +305,14 @@ class Background_Processor {
 		// Get format handler
 		$format_handler = \WP_AIE\Model\Format\Format_Factory::create( $format );
 
-		// Generate content
-		$content = $format_handler->generate( $data );
+		// Generate content (note: this is legacy code, new exports use Export_Processor)
+		$result = $format_handler->generate( $data, $file_path );
 
-		// Append to file
-		if ( $first_batch ) {
-			file_put_contents( $file_path, $content );
-		} else {
-			file_put_contents( $file_path, $content, FILE_APPEND );
+		if ( is_wp_error( $result ) ) {
+			return;
 		}
+
+		// File is already written by generate(), no need to append
 	}
 
 	/**

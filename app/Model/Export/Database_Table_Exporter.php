@@ -209,7 +209,10 @@ class Database_Table_Exporter extends Abstract_Exporter {
 	 * @return int
 	 */
 	public function get_count( $options = [] ) {
+		error_log( 'Database_Table_Exporter::get_count - Options: ' . print_r( $options, true ) );
+
 		if ( empty( $options['table_name'] ) ) {
+			error_log( 'Database_Table_Exporter::get_count - No table_name in options!' );
 			return 0;
 		}
 

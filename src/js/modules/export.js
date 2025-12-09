@@ -440,12 +440,62 @@ const ExportModule = {
 		const countText = $count.text();
 		const count = parseInt( countText, 10 );
 		
+		// Check content type for special validation
+		const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
+		let isDisabled = false;
+		let tooltipTitle = 'No Data Available';
+		let tooltipMessage = 'Adjust your filters or select a different content type to continue with the export.';
+		
 		// Remove previous event handlers
 		$nextBtn.off( 'mouseenter.tooltip mouseleave.tooltip' );
 		
+		// For custom_post_types, check if post type is selected
+		if ( contentType === 'custom_post_types' ) {
+			const $postTypeSelector = jQuery( '.aie-post-type-selector' );
+			const selectedPostType = $postTypeSelector.val();
+			
+			if ( ! selectedPostType || selectedPostType.trim() === '' ) {
+				isDisabled = true;
+				tooltipTitle = 'Post Type Required';
+				tooltipMessage = 'Please select a specific post type from the dropdown to continue.';
+			}
+		}
+		
+		// For taxonomy, check if taxonomy is selected
+		if ( contentType === 'taxonomy' ) {
+			const $taxonomySelector = jQuery( '.aie-taxonomy-selector' );
+			const selectedTaxonomy = $taxonomySelector.val();
+			
+			if ( ! selectedTaxonomy || selectedTaxonomy.trim() === '' ) {
+				isDisabled = true;
+				tooltipTitle = 'Taxonomy Required';
+				tooltipMessage = 'Please select a specific taxonomy from the dropdown to continue.';
+			}
+		}
+		
+		// For database_table, check if table is selected
+		if ( contentType === 'database_table' ) {
+			const $tableSelector = jQuery( '#aie-table-name' );
+			const selectedTable = $tableSelector.val();
+			
+			if ( ! selectedTable || selectedTable.trim() === '' ) {
+				isDisabled = true;
+				tooltipTitle = 'Table Required';
+				tooltipMessage = 'Please select a database table from the dropdown to continue.';
+			}
+		}
+		
 		// Disable if count is 0, NaN, or '-'
-		if ( countText === '-' || isNaN( count ) || count === 0 ) {
+		if ( ! isDisabled && ( countText === '-' || isNaN( count ) || count === 0 ) ) {
+			isDisabled = true;
+		}
+		
+		if ( isDisabled ) {
 			$nextBtn.prop( 'disabled', true );
+			
+			// Store tooltip data
+			$nextBtn.data( 'tooltip-title', tooltipTitle );
+			$nextBtn.data( 'tooltip-message', tooltipMessage );
 			
 			// Show tooltip on hover
 			$nextBtn.on( 'mouseenter.tooltip', () => {
@@ -470,6 +520,11 @@ const ExportModule = {
 	showNextButtonTooltip( $button ) {
 		// Remove any existing tooltips
 		jQuery( '.aie-custom-tooltip' ).remove();
+		
+		// Get custom tooltip data or use defaults
+		const tooltipTitle = $button.data( 'tooltip-title' ) || 'No Data Available';
+		const tooltipMessage = $button.data( 'tooltip-message' ) || 'Adjust your filters or select a different content type to continue with the export.';
+		
 		// Create tooltip element
 		const $tooltip = jQuery( '<div>' )
 			.addClass( 'aie-custom-tooltip aie-custom-pointer' )
@@ -478,8 +533,8 @@ const ExportModule = {
 					<span class="dashicons dashicons-warning"></span>
 				</div>
 				<div class="aie-pointer-content">
-					<h3>No Data Available</h3>
-					<p>Adjust your filters or select a different content type to continue with the export.</p>
+					<h3>${tooltipTitle}</h3>
+					<p>${tooltipMessage}</p>
 				</div>
 			` );
 		// Append to body
@@ -598,6 +653,20 @@ const ExportModule = {
 					filters.push( {
 						field: 'post_type',
 						condition: 'equals', // Default condition for post type
+						value: value,
+					} );
+				}
+				return;
+			}
+
+			// Handle taxonomy_selector type
+			if ( fieldType === 'taxonomy_selector' ) {
+				const value = $row.find( '.aie-filter-value' ).val();
+				
+				if ( value && value.trim() !== '' ) {
+					filters.push( {
+						field: 'taxonomy',
+						condition: 'equals', // Default condition for taxonomy
 						value: value,
 					} );
 				}
@@ -747,7 +816,11 @@ const ExportModule = {
 	getSelectedFields() {
 		// Get fields from Step 3 drag & drop interface
 		if (this.step3Instance && this.step3Instance.selectedFields) {
-			return this.step3Instance.selectedFields.map(field => field.field);
+			// Filter out pseudo-fields (selectors that start with _ and are used only for filtering)
+			const pseudoFields = ['_post_type', '_taxonomy', '_table_name'];
+			return this.step3Instance.selectedFields
+				.map(field => field.field)
+				.filter(field => !pseudoFields.includes(field));
 		}
 		
 		// Fallback to old checkbox method (if still used somewhere)
@@ -762,8 +835,9 @@ const ExportModule = {
 	 * Start export
 	 */
 	async startExport() {
-		const fields = this.getSelectedFields();
+		let fields = this.getSelectedFields();
 
+		// If no fields selected (or only pseudo-fields were filtered out), show error
 		if ( fields.length === 0 ) {
 			Utils.showNotice(
 				'Please select at least one field to export',
@@ -829,6 +903,15 @@ const ExportModule = {
 			// Add taxonomy filters
 			if ( dynamicFiltersData.taxonomy.length > 0 ) {
 				data.taxonomy = dynamicFiltersData.taxonomy;
+			}
+
+			// For database_table, add table_name
+			if ( contentType === 'database_table' ) {
+				const $tableDropdown = jQuery( '#aie-table-name' );
+				const tableName = $tableDropdown.val();
+				if ( tableName ) {
+					data.table_name = tableName;
+				}
 			}
 
 			const response = await Utils.ajax( 'aie_export_start', data );
@@ -1235,6 +1318,9 @@ const ExportModule = {
 				$select.on( 'change', () => {
 					Utils.debounce( () => this.refreshCount( false ), 500 )();
 					
+					// Update step 2 next button state
+					this.updateStep2NextButton();
+					
 					// Reload step 3 fields if currently on step 3
 					if ( this.currentStep === 3 && this.step3Instance ) {
 						this.step3Instance.reloadDynamicFields();
@@ -1248,7 +1334,57 @@ const ExportModule = {
 		
 		$value.replaceWith( $select );
 		return;
-	}		// Show condition dropdown for normal fields
+	}
+		
+		// Special handling for taxonomy_selector
+		if ( fieldType === 'taxonomy_selector' ) {
+			// Hide condition dropdown for taxonomy selector
+			$condition.closest( '.aie-filter-condition-wrap' ).hide();
+			
+			// Replace value input with taxonomy selector
+			$valueWrap.find( 'label' ).text( 'Select Taxonomy' );
+			
+			// Create a select dropdown for taxonomies
+			const $select = jQuery( '<select>' )
+				.addClass( 'aie-filter-value aie-taxonomy-selector' )
+				.attr( 'name', 'filter_value[]' );
+			
+			// Fetch taxonomies via AJAX
+			Utils.ajax( 'aie_get_all_taxonomies', {} ).then( ( taxonomies ) => {
+				$select.append( jQuery( '<option>' ).val( '' ).text( 'Select Taxonomy...' ) );
+				
+				if ( taxonomies && Array.isArray( taxonomies ) ) {
+					taxonomies.forEach( ( taxonomy ) => {
+						$select.append(
+							jQuery( '<option>' )
+								.val( taxonomy.name )
+								.text( taxonomy.label + ' (' + taxonomy.name + ')' )
+						);
+					} );
+
+					// When taxonomy is selected, refresh count
+					$select.on( 'change', () => {
+						Utils.debounce( () => this.refreshCount( false ), 500 )();
+						
+						// Update step 2 next button state
+						this.updateStep2NextButton();
+						
+						// Reload step 3 fields if currently on step 3
+						if ( this.currentStep === 3 && this.step3Instance ) {
+							this.step3Instance.reloadDynamicFields();
+						}
+					} );
+				}
+			} ).catch( ( error ) => {
+				console.error( 'Error loading taxonomies:', error );
+				$select.append( jQuery( '<option>' ).val( '' ).text( 'Error loading taxonomies' ) );
+			} );
+			
+			$value.replaceWith( $select );
+			return;
+		}
+
+		// Show condition dropdown for normal fields
 		$condition.closest( '.aie-filter-condition-wrap' ).show();
 		$valueWrap.find( 'label' ).text( 'Value' );
 
@@ -1625,11 +1761,13 @@ const ExportModule = {
 		if ( contentType === 'block_theme_settings' ) {
 			return [
 				{
-					label: 'Settings',
+					label: 'Block Theme Components',
 					options: [
-						{ value: 'setting_name', label: 'Setting Name', type: 'string' },
-						{ value: 'setting_type', label: 'Setting Type', type: 'string' },
-						{ value: 'setting_value', label: 'Setting Value', type: 'string' },
+						{ value: 'global_styles', label: 'Global Styles (theme.json)', type: 'array' },
+						{ value: 'templates', label: 'Custom Templates', type: 'array' },
+						{ value: 'template_parts', label: 'Template Parts', type: 'array' },
+						{ value: 'theme_mods', label: 'Theme Modifications', type: 'array' },
+						{ value: 'custom_css', label: 'Custom CSS', type: 'string' },
 					],
 				},
 			];
@@ -1683,6 +1821,12 @@ const ExportModule = {
 	}		// Taxonomy
 		if ( contentType === 'taxonomy' ) {
 			return [
+				{
+					label: 'Taxonomy Selection',
+					options: [
+						{ value: '_taxonomy', label: 'Taxonomy (select specific)', type: 'taxonomy_selector' },
+					],
+				},
 				{
 					label: 'Basic',
 					options: [
@@ -2230,6 +2374,8 @@ const ExportModule = {
 						jQuery( '.aie-table-info' ).html('').hide();
 						jQuery( '#aie-filters-list' ).empty();
 					}
+					// Update Next button state based on table selection
+					this.updateStep2NextButton();
 				} );
 			} )
 			.catch( ( error ) => {
