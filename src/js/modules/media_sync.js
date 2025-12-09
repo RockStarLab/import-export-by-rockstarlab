@@ -571,8 +571,14 @@ const MediaSyncModule = {
 				job_id: this.jobId,
 			},
 		} ).done( ( response ) => {
-			console.log( 'Batch processing triggered:', response );
-			// Result will be picked up by progress tracking
+			console.log( 'Batch processing response:', response );
+			
+			// If not completed, process next batch after small delay
+			if ( response.success && response.data && ! response.data.completed ) {
+				setTimeout( () => {
+					this.triggerBatchProcessing();
+				}, 100 );
+			}
 		} ).fail( ( xhr, status, error ) => {
 			console.error( 'Batch processing failed:', status, error );
 		} );
@@ -889,6 +895,9 @@ const MediaSyncModule = {
 				
 				// Restart progress monitoring
 				this.startProgressTracking();
+				
+				// Trigger batch processing to continue
+				this.triggerBatchProcessing();
 				
 				Utils.showNotice( 'Sync resumed', 'success' );
 			}

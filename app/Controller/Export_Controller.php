@@ -12,6 +12,7 @@ namespace WP_AIE\Controller;
 use WP_AIE\Model\Job;
 use WP_AIE\Model\Export\Exporter_Factory;
 use WP_AIE\Model\Format\Format_Factory;
+use WP_AIE\Model\Queue\Export_Processor;
 use WP_AIE\Helper\Fs;
 use WP_AIE\Helper\Logger;
 
@@ -36,20 +37,21 @@ class Export_Controller extends Base_Controller {
 	 */
 	protected function get_ajax_actions() {
 		return [
-			'export_get_count'    => [ 'callback' => 'get_count' ],
-			'export_get_preview'  => [ 'callback' => 'get_preview' ],
-			'export_start'        => [ 'callback' => 'start_export' ],
-			'export_get_progress' => [ 'callback' => 'get_progress' ],
-			'export_download'     => [ 'callback' => 'download_file' ],
-			'secure_download'     => [ 'callback' => 'secure_download' ],
-			'export_cancel'       => [ 'callback' => 'cancel_export' ],
-			'get_post_types'      => [ 'callback' => 'get_post_types' ],
-			'get_database_tables' => [ 'callback' => 'get_database_tables' ],
-			'get_table_columns'   => [ 'callback' => 'get_table_columns' ],
-			'get_taxonomies'      => [ 'callback' => 'get_taxonomies' ],
-			'get_custom_fields'   => [ 'callback' => 'get_custom_fields' ],
-			'get_acf_fields'      => [ 'callback' => 'get_acf_fields' ],
-			'get_yoast_fields'    => [ 'callback' => 'get_yoast_fields' ],
+			'export_get_count'     => [ 'callback' => 'get_count' ],
+			'export_get_preview'   => [ 'callback' => 'get_preview' ],
+			'export_start'         => [ 'callback' => 'start_export' ],
+			'export_get_progress'  => [ 'callback' => 'get_progress' ],
+			'export_download'      => [ 'callback' => 'download_file' ],
+			'secure_download'      => [ 'callback' => 'secure_download' ],
+			'export_cancel'        => [ 'callback' => 'cancel_export' ],
+			'export_process_batch' => [ 'callback' => 'process_export_batch' ],
+			'get_post_types'       => [ 'callback' => 'get_post_types' ],
+			'get_database_tables'  => [ 'callback' => 'get_database_tables' ],
+			'get_table_columns'    => [ 'callback' => 'get_table_columns' ],
+			'get_taxonomies'       => [ 'callback' => 'get_taxonomies' ],
+			'get_custom_fields'    => [ 'callback' => 'get_custom_fields' ],
+			'get_acf_fields'       => [ 'callback' => 'get_acf_fields' ],
+			'get_yoast_fields'     => [ 'callback' => 'get_yoast_fields' ],
 		];
 	}
 
@@ -175,9 +177,6 @@ class Export_Controller extends Base_Controller {
 		if ( is_wp_error( $job_id ) ) {
 			$this->send_error( $job_id, null, 500 );
 		}
-
-		// Start export in background
-		$this->process_export_job( $job_id );
 
 		$this->log(
 			'start_export',
@@ -445,6 +444,29 @@ class Export_Controller extends Base_Controller {
 	}
 
 	/**
+	 * Process export batch (called via AJAX for async processing)
+	 */
+	public function process_export_batch() {
+		$verification = $this->verify_request( 'export_process_batch' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		$validation = $this->validate_required_params( [ 'job_id' ] );
+		if ( is_wp_error( $validation ) ) {
+			$this->send_error( $validation, null, 400 );
+		}
+
+		$job_id = (int) $this->get_request_param( 'job_id' );
+
+		// Process the job using Export_Processor
+		$processor = new Export_Processor();
+		$result    = $processor->process( $job_id );
+
+		$this->send_success( $result );
+	}
+
+	/**
 	 * Process export job
 	 *
 	 * @param int $job_id Job ID
@@ -561,14 +583,23 @@ class Export_Controller extends Base_Controller {
 			return;
 		}
 
-		// Update job
+		// Get file size
+		$file_size = file_exists( $file_info['path'] ) ? filesize( $file_info['path'] ) : 0;
+
+		// Update job with complete stats
 		$job->update(
 			$job_id,
 			[
-				'status'    => 'completed',
-				'progress'  => 100,
-				'file_path' => $file_info['path'],
-				'result'    => wp_json_encode( $stats ),
+				'status'          => 'completed',
+				'progress'        => 100,
+				'total_items'     => $stats['total'] ?? 0,
+				'processed_items' => $stats['exported'] ?? 0,
+				'success_items'   => $stats['exported'] ?? 0,
+				'failed_items'    => $stats['failed'] ?? 0,
+				'file_path'       => $file_info['path'],
+				'file_size'       => $file_size,
+				'result'          => wp_json_encode( $stats ),
+				'completed_at'    => current_time( 'mysql' ),
 			]
 		);
 	}
