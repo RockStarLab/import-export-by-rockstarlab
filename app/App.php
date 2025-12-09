@@ -61,6 +61,14 @@ class App {
 		// Check if database tables exist and create if needed
 		if ( ! \WP_AIE\Helper\Database_Migration::tables_exist() ) {
 			\WP_AIE\Helper\Database_Migration::create_tables();
+		} else {
+			// Check if database needs migration (version changed)
+			$current_version = \WP_AIE\Helper\Database_Migration::get_version();
+			$latest_version  = \WP_AIE\Helper\Database_Migration::DB_VERSION;
+
+			if ( version_compare( $current_version, $latest_version, '<' ) ) {
+				\WP_AIE\Helper\Database_Migration::create_tables();
+			}
 		}
 
 		// Initialize Media Hash helper to add MD5 hashes to all uploads

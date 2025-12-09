@@ -23,7 +23,7 @@ class Database_Migration {
 	 * Database version
 	 * Update this when schema changes
 	 */
-	const DB_VERSION = '1.0.0';
+	const DB_VERSION = '1.2.0';
 
 	/**
 	 * Database version option name
@@ -57,8 +57,10 @@ class Database_Migration {
             file_path VARCHAR(255),
             file_size BIGINT(20),
             settings TEXT,
+            parameters LONGTEXT,
             created_at DATETIME NOT NULL,
             updated_at DATETIME NOT NULL,
+            started_at DATETIME,
             completed_at DATETIME,
             INDEX user_id_idx (user_id),
             INDEX status_idx (status),
@@ -202,6 +204,9 @@ class Database_Migration {
 		// Run migrations for existing tables
 		self::maybe_add_progress_column();
 		self::maybe_add_result_column();
+		self::maybe_add_parameters_column();
+		self::maybe_add_started_at_column();
+		self::maybe_add_retries_column();
 	}
 
 	/**
@@ -260,6 +265,96 @@ class Database_Migration {
 				"ALTER TABLE {$table_name} 
 				ADD COLUMN result TEXT NULL COMMENT 'JSON result data (processed, success, failed counts)' 
 				AFTER settings"
+			);
+		}
+	}
+
+	/**
+	 * Add parameters column to jobs table if it doesn't exist
+	 */
+	private static function maybe_add_parameters_column() {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'aie_jobs';
+
+		// Check if column already exists
+		$column_exists = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+				WHERE TABLE_SCHEMA = %s 
+				AND TABLE_NAME = %s 
+				AND COLUMN_NAME = 'parameters'",
+				DB_NAME,
+				$table_name
+			)
+		);
+
+		// Add column if it doesn't exist
+		if ( empty( $column_exists ) ) {
+			$wpdb->query(
+				"ALTER TABLE {$table_name} 
+				ADD COLUMN parameters LONGTEXT NULL COMMENT 'JSON job parameters' 
+				AFTER settings"
+			);
+		}
+	}
+
+	/**
+	 * Add started_at column to jobs table if it doesn't exist
+	 */
+	private static function maybe_add_started_at_column() {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'aie_jobs';
+
+		// Check if column already exists
+		$column_exists = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+				WHERE TABLE_SCHEMA = %s 
+				AND TABLE_NAME = %s 
+				AND COLUMN_NAME = 'started_at'",
+				DB_NAME,
+				$table_name
+			)
+		);
+
+		// Add column if it doesn't exist
+		if ( empty( $column_exists ) ) {
+			$wpdb->query(
+				"ALTER TABLE {$table_name} 
+				ADD COLUMN started_at DATETIME NULL COMMENT 'When job processing started' 
+				AFTER updated_at"
+			);
+		}
+	}
+
+	/**
+	 * Add retries column to jobs table if it doesn't exist
+	 */
+	private static function maybe_add_retries_column() {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'aie_jobs';
+
+		// Check if column already exists
+		$column_exists = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+				WHERE TABLE_SCHEMA = %s 
+				AND TABLE_NAME = %s 
+				AND COLUMN_NAME = 'retries'",
+				DB_NAME,
+				$table_name
+			)
+		);
+
+		// Add column if it doesn't exist
+		if ( empty( $column_exists ) ) {
+			$wpdb->query(
+				"ALTER TABLE {$table_name} 
+				ADD COLUMN retries INT DEFAULT 0 COMMENT 'Number of retry attempts' 
+				AFTER status"
 			);
 		}
 	}

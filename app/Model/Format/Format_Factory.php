@@ -134,6 +134,16 @@ class Format_Factory {
 	}
 
 	/**
+	 * Create format handler by format name (alias for get_handler)
+	 *
+	 * @param string $format Format name (csv, json, xml)
+	 * @return File_Format_Interface|WP_Error Handler instance or WP_Error
+	 */
+	public static function create( $format ) {
+		return self::get_handler( $format );
+	}
+
+	/**
 	 * Get all registered format handlers
 	 *
 	 * @return array Array of handler instances

@@ -3,6 +3,113 @@
 .aie-export-results {
 	margin: 30px 0;
 
+	// Success card with modern design
+	.aie-export-complete-card {
+		background: #fff;
+		border: 2px solid #00a32a;
+		border-radius: 12px;
+		padding: 40px;
+		text-align: center;
+		box-shadow: 0 4px 20px rgba(0, 163, 42, 0.1);
+		animation: slideInUp 0.5s ease-out;
+
+		.aie-complete-icon {
+			margin: 0 auto 20px;
+			width: 80px;
+			height: 80px;
+			background: linear-gradient(135deg, #00a32a, #008a20);
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			box-shadow: 0 4px 16px rgba(0, 163, 42, 0.3);
+
+			.dashicons {
+				font-size: 48px;
+				width: 48px;
+				height: 48px;
+				color: #fff;
+			}
+		}
+
+		.aie-complete-title {
+			margin: 0 0 10px;
+			font-size: 28px;
+			font-weight: 600;
+			color: #00a32a;
+		}
+
+		.aie-complete-subtitle {
+			margin: 0 0 30px;
+			font-size: 16px;
+			color: #646970;
+		}
+
+		.aie-results-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+			gap: 20px;
+			margin: 30px 0;
+			padding: 20px 0;
+			border-top: 1px solid #dcdcde;
+			border-bottom: 1px solid #dcdcde;
+
+			.aie-result-item {
+				display: flex;
+				align-items: center;
+				gap: 15px;
+				padding: 15px;
+				background: #f6f7f7;
+				border-radius: 8px;
+				transition: all 0.3s ease;
+
+				&:hover {
+					background: #eff1f2;
+					transform: translateY(-2px);
+					box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+				}
+
+				.aie-result-icon {
+					flex-shrink: 0;
+					width: 40px;
+					height: 40px;
+					background: linear-gradient(135deg, #2271b1, #135e96);
+					border-radius: 8px;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+
+					.dashicons {
+						font-size: 24px;
+						width: 24px;
+						height: 24px;
+						color: #fff;
+					}
+				}
+
+				.aie-result-details {
+					flex: 1;
+					text-align: left;
+
+					.aie-result-label {
+						display: block;
+						font-size: 12px;
+						color: #646970;
+						margin-bottom: 4px;
+					}
+
+					.aie-result-value {
+						display: block;
+						font-size: 20px;
+						font-weight: 600;
+						color: #1d2327;
+					}
+				}
+			}
+		}
+	}
+
+	// Legacy notice styles (for backward compatibility)
 	.notice {
 		padding: 20px;
 
@@ -27,5 +134,55 @@
 		.button {
 			margin-top: 15px;
 		}
+	}
+
+	// Enhanced download button
+	.aie-download-action {
+		margin-top: 30px;
+		text-align: center;
+
+		.aie-download-file {
+			background: linear-gradient(135deg, #2271b1, #135e96);
+			border: none;
+			color: #fff;
+			font-size: 16px;
+			font-weight: 600;
+			padding: 15px 40px;
+			border-radius: 6px;
+			box-shadow: 0 4px 12px rgba(34, 113, 177, 0.3);
+			transition: all 0.3s ease;
+			cursor: pointer;
+
+			&:hover {
+				background: linear-gradient(135deg, #135e96, #0d4066);
+				box-shadow: 0 6px 16px rgba(34, 113, 177, 0.4);
+				transform: translateY(-2px);
+			}
+
+			&:active {
+				transform: translateY(0);
+				box-shadow: 0 2px 8px rgba(34, 113, 177, 0.3);
+			}
+
+			.dashicons {
+				font-size: 24px;
+				width: 24px;
+				height: 24px;
+				margin-right: 8px;
+				vertical-align: middle;
+			}
+		}
+	}
+}
+
+// Animation
+@keyframes slideInUp {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
 	}
 }

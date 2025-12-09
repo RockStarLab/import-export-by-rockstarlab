@@ -85,6 +85,19 @@ defined( 'ABSPATH' ) || exit;
 					</tr>
 				</table>
 			</div>
+
+			<div class="aie-common-options">
+				<h3><?php esc_html_e( 'Processing Options', 'wp-aie' ); ?></h3>
+				<table class="form-table">
+					<tr>
+						<th><?php esc_html_e( 'Items per iteration', 'wp-aie' ); ?></th>
+						<td>
+							<input type="number" name="items_per_iteration" value="3" min="1" max="100" class="small-text">
+							<p class="description"><?php esc_html_e( 'Number of items to process in each batch. Lower values are safer for large exports.', 'wp-aie' ); ?></p>
+						</td>
+					</tr>
+				</table>
+			</div>
 		</div>
 
 		<div class="aie-step-actions">

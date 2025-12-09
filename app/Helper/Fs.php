@@ -78,7 +78,8 @@ class FS {
 
 	/**
 	 * Get export file path
-	 * Prepares path for export file in plugin's upload directory
+	 * Prepares path for export file in a secure subdirectory
+	 * Path: wp-content/uploads/wp-advanced-import-export-files/{secure_hash}/
 	 *
 	 * @param string $filename Desired filename
 	 * @return array|WP_Error {
@@ -86,15 +87,40 @@ class FS {
 	 *
 	 *     @type string $file Filename
 	 *     @type string $path Absolute file path
+	 *     @type string $dir  Directory path
+	 *     @type string $hash Secure directory hash
 	 * }
 	 */
 	public static function get_export_file_path( $filename ) {
-		$upload_dir = self::get_upload_dir();
-		$file_path  = $upload_dir['path'] . '/' . $filename;
+		$upload = wp_upload_dir();
+
+		// Create base directory for exports
+		$base_dir = $upload['basedir'] . '/wp-advanced-import-export-files';
+		if ( ! file_exists( $base_dir ) ) {
+			wp_mkdir_p( $base_dir );
+
+			// Add .htaccess to prevent directory listing
+			$htaccess_content = "Options -Indexes\n<FilesMatch \"\\.(csv|json|xml)$\">\n  Order Deny,Allow\n  Deny from all\n</FilesMatch>";
+			file_put_contents( $base_dir . '/.htaccess', $htaccess_content );
+		}
+
+		// Generate secure hash for this export session
+		// Use time + user ID + salt for uniqueness and security
+		$secure_hash = md5( current_time( 'timestamp' ) . get_current_user_id() . wp_salt( 'nonce' ) . uniqid( '', true ) );
+
+		// Create subdirectory with secure hash
+		$export_dir = $base_dir . '/' . $secure_hash;
+		if ( ! file_exists( $export_dir ) ) {
+			wp_mkdir_p( $export_dir );
+		}
+
+		$file_path = $export_dir . '/' . $filename;
 
 		return [
 			'file' => $filename,
 			'path' => $file_path,
+			'dir'  => $export_dir,
+			'hash' => $secure_hash,
 		];
 	}
 }

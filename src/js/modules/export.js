@@ -82,7 +82,7 @@ const ExportModule = {
 		$wizard.on( 'click', '.aie-start-export', () => this.startExport() );
 		$wizard.on( 'click', '.aie-cancel-export', () => this.cancelExport() );
 		$wizard.on( 'click', '.aie-download-file', () => this.downloadFile() );
-		$wizard.on( 'click', '.aie-new-export', () => this.resetWizard() );
+		$wizard.on( 'click', '.aie-new-export', () => this.newExport() );
 
 		// Dynamic Filters
 		$wizard.on( 'click', '.aie-add-filter', () => this.addFilterRow() );
@@ -725,6 +725,12 @@ const ExportModule = {
 	 * Get selected fields
 	 */
 	getSelectedFields() {
+		// Get fields from Step 3 drag & drop interface
+		if (this.step3Instance && this.step3Instance.selectedFields) {
+			return this.step3Instance.selectedFields.map(field => field.field);
+		}
+		
+		// Fallback to old checkbox method (if still used somewhere)
 		const fields = [];
 		jQuery( 'input[name="fields[]"]:checked' ).each( function () {
 			fields.push( jQuery( this ).val() );
@@ -759,6 +765,8 @@ const ExportModule = {
 						'Please enter a custom delimiter',
 						'error'
 					);
+					// Set focus to the custom delimiter field
+					jQuery( '[name="csv_custom_delimiter"]' ).focus();
 					return;
 				}
 				csvDelimiter = customDelimiter;
@@ -778,7 +786,13 @@ const ExportModule = {
 						'[name="json_pretty_print"]'
 					).is( ':checked' ),
 				},
+				items_per_iteration: parseInt( jQuery( '[name="items_per_iteration"]' ).val() ) || 3,
 			};
+
+			// Add field functions if available
+			if (this.step3Instance && this.step3Instance.fieldFunctions) {
+				data.field_functions = this.step3Instance.fieldFunctions;
+			}
 
 			// Add dynamic filters
 			if ( dynamicFiltersData.filters.length > 0 ) {
@@ -843,8 +857,18 @@ const ExportModule = {
 	onExportComplete( result ) {
 		clearInterval( this.progressInterval );
 
+		// Update title
+		jQuery( '.aie-step-5 h2' ).text( 'Export Complete!' );
+
+		// Show results container
 		jQuery( '.aie-export-results' ).show();
-		jQuery( '.aie-result-processed' ).text( result.processed || 0 );
+		
+		// Show and populate the success card
+		const $card = jQuery( '.aie-export-complete-card' );
+		$card.show();
+		
+		// Use data from result (progress response)
+		jQuery( '.aie-result-processed' ).text( result.processed || result.total || 0 );
 		jQuery( '.aie-result-filesize' ).text(
 			Utils.formatFileSize( result.file_size || 0 )
 		);
@@ -902,6 +926,13 @@ const ExportModule = {
 		} catch ( error ) {
 			Utils.handleError( error, 'Cancel export' );
 		}
+	},
+
+	/**
+	 * Start new export - reload the page
+	 */
+	newExport() {
+		window.location.href = '/wp-admin/admin.php?page=wp-aie-export';
 	},
 
 	/**

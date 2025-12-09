@@ -53,3 +53,28 @@
 		}
 	}
 }
+
+// Format options sections
+.aie-format-options {
+	.aie-csv-options,
+	.aie-json-options,
+	.aie-common-options {
+		background: #fff;
+		border: 1px solid #dcdcde;
+		border-radius: 4px;
+		padding: 20px;
+		margin-top: 20px;
+
+		h3 {
+			margin-top: 0;
+			margin-bottom: 15px;
+			font-size: 16px;
+			color: #1d2327;
+		}
+	}
+
+	.aie-common-options {
+		border-left: 3px solid #2271b1;
+		background: #f9fafb;
+	}
+}
