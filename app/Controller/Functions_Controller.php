@@ -40,6 +40,7 @@ class Functions_Controller extends Base_Controller {
 			'functions_update'       => [ 'callback' => 'update_function' ],
 			'functions_delete'       => [ 'callback' => 'delete_function' ],
 			'functions_test'         => [ 'callback' => 'test_function' ],
+			'test_function_pipeline' => [ 'callback' => 'test_function_pipeline' ],
 			'functions_get_snippets' => [ 'callback' => 'get_snippets' ],
 			'functions_search'       => [ 'callback' => 'search_snippets' ],
 			'functions_import'       => [ 'callback' => 'import_snippet' ],
@@ -66,18 +67,32 @@ class Functions_Controller extends Base_Controller {
 
 		$functions = $model->get_all( $args );
 
-		// Format functions for the export interface
+		// Format custom functions for the export interface
 		$formatted_functions = array_map(
 			function ( $function ) {
 				return [
 					'id'          => $function['id'],
 					'name'        => $function['name'],
 					'description' => $function['description'],
-					'category'    => $function['category'],
+					'category'    => 'custom',
 				];
 			},
 			$functions
 		);
+
+		// Also add library snippets as available functions
+		$library  = new Function_Snippets();
+		$snippets = $library->get_all_snippets();
+
+		foreach ( $snippets as $snippet_key => $snippet ) {
+			$formatted_functions[] = [
+				'id'          => 'snippet_' . $snippet_key,
+				'name'        => $snippet['name'],
+				'description' => $snippet['description'],
+				'category'    => 'library',
+				'snippet_id'  => $snippet_key,
+			];
+		}
 
 		$this->send_success(
 			[
@@ -352,6 +367,96 @@ class Functions_Controller extends Base_Controller {
 			[
 				'input'  => $result['input'],
 				'output' => $result['output'],
+			]
+		);
+	}
+
+	/**
+	 * Test function pipeline with multiple functions
+	 */
+	public function test_function_pipeline() {
+		$verify = $this->verify_request( 'nonce' );
+		if ( is_wp_error( $verify ) ) {
+			$this->send_error( $verify->get_error_message() );
+		}
+
+		$value        = $this->get_request_param( 'value', '' );
+		$function_ids = $this->get_request_array( 'functions' );
+
+		if ( empty( $function_ids ) ) {
+			$this->send_error( __( 'No functions provided', 'wp-aie' ) );
+		}
+
+		$model         = new Custom_Function();
+		$library       = new Function_Snippets();
+		$steps         = [];
+		$current_value = $value;
+
+		foreach ( $function_ids as $function_id ) {
+			$code          = '';
+			$function_name = '';
+
+			// Check if it's a library snippet
+			if ( strpos( $function_id, 'snippet_' ) === 0 ) {
+				$snippet_id = str_replace( 'snippet_', '', $function_id );
+				$snippet    = $library->get_snippet_by_id( $snippet_id );
+
+				if ( ! $snippet ) {
+					$steps[] = [
+						'function_id'   => $function_id,
+						'function_name' => 'Unknown Snippet',
+						'output'        => 'Snippet not found',
+						'error'         => true,
+					];
+					break;
+				}
+
+				$code          = $snippet['code'];
+				$function_name = $snippet['name'];
+			} else {
+				// Custom function from database
+				$function = $model->find( $function_id );
+
+				if ( ! $function ) {
+					$steps[] = [
+						'function_id'   => $function_id,
+						'function_name' => 'Unknown Function',
+						'output'        => 'Function not found',
+						'error'         => true,
+					];
+					break;
+				}
+
+				$code          = $function['code'];
+				$function_name = $function['name'];
+			}
+
+			$result = $model->test_function( $code, $current_value );
+
+			if ( ! $result['success'] ) {
+				$steps[] = [
+					'function_id'   => $function_id,
+					'function_name' => $function_name,
+					'output'        => $result['error'],
+					'error'         => true,
+				];
+				break;
+			}
+
+			$steps[] = [
+				'function_id'   => $function_id,
+				'function_name' => $function_name,
+				'output'        => $result['output'],
+				'error'         => false,
+			];
+
+			$current_value = $result['output'];
+		}
+
+		$this->send_success(
+			[
+				'input' => $value,
+				'steps' => $steps,
 			]
 		);
 	}

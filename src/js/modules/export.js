@@ -72,6 +72,11 @@ const ExportModule = {
 		$wizard.on( 'change', 'input[name="format"]', ( e ) =>
 			this.onFormatChange( e )
 		);
+		
+		// CSV delimiter change
+		$wizard.on( 'change', 'select[name="csv_delimiter"]', ( e ) =>
+			this.onDelimiterChange( e )
+		);
 
 		// Export actions
 		$wizard.on( 'click', '.aie-start-export', () => this.startExport() );
@@ -704,6 +709,19 @@ const ExportModule = {
 	},
 
 	/**
+	 * Handle delimiter change
+	 */
+	onDelimiterChange( e ) {
+		const delimiter = jQuery( e.target ).val();
+
+		if ( delimiter === 'custom' ) {
+			jQuery( '.aie-custom-delimiter-row' ).show();
+		} else {
+			jQuery( '.aie-custom-delimiter-row' ).hide();
+		}
+	},
+
+	/**
 	 * Get selected fields
 	 */
 	getSelectedFields() {
@@ -732,22 +750,33 @@ const ExportModule = {
 			const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
 			const dynamicFiltersData = this.getDynamicFilters();
 			
+			// Get CSV delimiter
+			let csvDelimiter = jQuery( '[name="csv_delimiter"]' ).val();
+			if ( csvDelimiter === 'custom' ) {
+				const customDelimiter = jQuery( '[name="csv_custom_delimiter"]' ).val();
+				if ( ! customDelimiter ) {
+					Utils.showNotice(
+						'Please enter a custom delimiter',
+						'error'
+					);
+					return;
+				}
+				csvDelimiter = customDelimiter;
+			}
+			
 			const data = {
 				export_type: contentType,
 				filters: this.getFilters(),
 				fields: fields,
 				format: jQuery( 'input[name="format"]:checked' ).val(),
 				format_options: {
-					csv_delimiter: jQuery( '[name="csv_delimiter"]' ).val(),
-					csv_encoding: jQuery( '[name="csv_encoding"]' ).val(),
+					csv_delimiter: csvDelimiter,
 					csv_include_header: jQuery(
 						'[name="csv_include_header"]'
 					).is( ':checked' ),
 					json_pretty_print: jQuery(
 						'[name="json_pretty_print"]'
 					).is( ':checked' ),
-					xml_root: jQuery( '[name="xml_root"]' ).val(),
-					xml_item: jQuery( '[name="xml_item"]' ).val(),
 				},
 			};
 

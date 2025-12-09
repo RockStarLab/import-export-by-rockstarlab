@@ -34,15 +34,6 @@ defined( 'ABSPATH' ) || exit;
 					<p><?php esc_html_e( 'JavaScript Object Notation, best for APIs', 'wp-aie' ); ?></p>
 				</div>
 			</label>
-
-			<label class="aie-format-option">
-				<input type="radio" name="format" value="xml">
-				<div class="aie-format-card">
-					<span class="dashicons dashicons-media-document"></span>
-					<h3>XML</h3>
-					<p><?php esc_html_e( 'Extensible Markup Language', 'wp-aie' ); ?></p>
-				</div>
-			</label>
 		</div>
 
 		<div class="aie-format-options">
@@ -57,17 +48,15 @@ defined( 'ABSPATH' ) || exit;
 								<option value=";">; <?php esc_html_e( ' (Semicolon)', 'wp-aie' ); ?></option>
 								<option value="\t">\t <?php esc_html_e( ' (Tab)', 'wp-aie' ); ?></option>
 								<option value="|">| <?php esc_html_e( ' (Pipe)', 'wp-aie' ); ?></option>
+								<option value="custom"><?php esc_html_e( 'Custom', 'wp-aie' ); ?></option>
 							</select>
 						</td>
 					</tr>
-					<tr>
-						<th><?php esc_html_e( 'Encoding', 'wp-aie' ); ?></th>
+					<tr class="aie-custom-delimiter-row" style="display:none;">
+						<th><?php esc_html_e( 'Custom Delimiter', 'wp-aie' ); ?></th>
 						<td>
-							<select name="csv_encoding" class="regular-text">
-								<option value="UTF-8">UTF-8</option>
-								<option value="ISO-8859-1">ISO-8859-1</option>
-								<option value="Windows-1252">Windows-1252</option>
-							</select>
+							<input type="text" name="csv_custom_delimiter" maxlength="1" class="regular-text" placeholder="<?php esc_attr_e( 'Enter a single character', 'wp-aie' ); ?>">
+							<p class="description"><?php esc_html_e( 'Enter a single character to use as delimiter', 'wp-aie' ); ?></p>
 						</td>
 					</tr>
 					<tr>
@@ -92,24 +81,6 @@ defined( 'ABSPATH' ) || exit;
 								<input type="checkbox" name="json_pretty_print" checked>
 								<?php esc_html_e( 'Format with indentation for readability', 'wp-aie' ); ?>
 							</label>
-						</td>
-					</tr>
-				</table>
-			</div>
-
-			<div class="aie-xml-options" style="display:none;">
-				<h3><?php esc_html_e( 'XML Options', 'wp-aie' ); ?></h3>
-				<table class="form-table">
-					<tr>
-						<th><?php esc_html_e( 'Root Element', 'wp-aie' ); ?></th>
-						<td>
-							<input type="text" name="xml_root" value="data" class="regular-text">
-						</td>
-					</tr>
-					<tr>
-						<th><?php esc_html_e( 'Item Element', 'wp-aie' ); ?></th>
-						<td>
-							<input type="text" name="xml_item" value="item" class="regular-text">
 						</td>
 					</tr>
 				</table>

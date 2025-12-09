@@ -75,4 +75,26 @@ class FS {
 			'path' => $file_path,
 		];
 	}
+
+	/**
+	 * Get export file path
+	 * Prepares path for export file in plugin's upload directory
+	 *
+	 * @param string $filename Desired filename
+	 * @return array|WP_Error {
+	 *     File path information on success, WP_Error on failure.
+	 *
+	 *     @type string $file Filename
+	 *     @type string $path Absolute file path
+	 * }
+	 */
+	public static function get_export_file_path( $filename ) {
+		$upload_dir = self::get_upload_dir();
+		$file_path  = $upload_dir['path'] . '/' . $filename;
+
+		return [
+			'file' => $filename,
+			'path' => $file_path,
+		];
+	}
 }

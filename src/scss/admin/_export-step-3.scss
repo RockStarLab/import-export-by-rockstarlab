@@ -744,6 +744,33 @@ body.aie-dragging {
 			font-size: 13px;
 		}
 	}
+
+	.aie-functions-empty-state,
+	.aie-functions-no-results {
+		text-align: center;
+		padding: 30px 20px;
+		color: #646970;
+
+		.dashicons {
+			font-size: 40px;
+			width: 40px;
+			height: 40px;
+			color: #a7aaad;
+			margin-bottom: 10px;
+			height: auto;
+		}
+
+		p {
+			margin: 5px 0;
+			font-size: 13px;
+			line-height: 1.5;
+
+			&:first-of-type {
+				font-weight: 600;
+				color: #1d2327;
+			}
+		}
+	}
 }
 
 .aie-function-list-item {
