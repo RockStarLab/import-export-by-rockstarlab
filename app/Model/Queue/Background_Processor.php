@@ -61,7 +61,7 @@ class Background_Processor {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->job_model        = new Job();
+		$this->job_model        = WP_AIE()->Model->job;
 		$this->batch_processor  = new Batch_Processor();
 		$this->logger           = new Logger();
 		$this->progress_tracker = new Progress_Tracker();

@@ -23,7 +23,7 @@ class Database_Migration {
 	 * Database version
 	 * Update this when schema changes
 	 */
-	const DB_VERSION = '1.2.0';
+	const DB_VERSION = '1.3.0';
 
 	/**
 	 * Database version option name
@@ -46,7 +46,7 @@ class Database_Migration {
 		$sql_jobs = "CREATE TABLE {$prefix}aie_jobs (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             user_id BIGINT(20) UNSIGNED NOT NULL,
-            type ENUM('import', 'export') NOT NULL,
+            type ENUM('import', 'export', 'media_sync') NOT NULL,
             data_type VARCHAR(50) NOT NULL,
             file_format VARCHAR(10) NOT NULL,
             status ENUM('pending', 'processing', 'completed', 'failed', 'paused', 'cancelled') DEFAULT 'pending',
@@ -54,6 +54,7 @@ class Database_Migration {
             processed_items INT DEFAULT 0,
             success_items INT DEFAULT 0,
             failed_items INT DEFAULT 0,
+            progress TINYINT UNSIGNED DEFAULT 0,
             file_path VARCHAR(255),
             file_size BIGINT(20),
             settings TEXT,

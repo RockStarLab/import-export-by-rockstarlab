@@ -32,11 +32,15 @@ class Job_Controller extends Base_Controller {
 	 */
 	protected function get_ajax_actions() {
 		return [
-			'job_list'     => [ 'callback' => 'list_jobs' ],
-			'job_get'      => [ 'callback' => 'get_job' ],
-			'job_delete'   => [ 'callback' => 'delete_job' ],
-			'job_get_logs' => [ 'callback' => 'get_logs' ],
-			'job_cleanup'  => [ 'callback' => 'cleanup_old_jobs' ],
+			'job_list'         => [ 'callback' => 'list_jobs' ],
+			'job_get'          => [ 'callback' => 'get_job' ],
+			'job_delete'       => [ 'callback' => 'delete_job' ],
+			'job_get_logs'     => [ 'callback' => 'get_logs' ],
+			'job_cleanup'      => [ 'callback' => 'cleanup_old_jobs' ],
+			'job_resume'       => [ 'callback' => 'resume_job' ],
+			'job_restart'      => [ 'callback' => 'restart_job' ],
+			'job_retry'        => [ 'callback' => 'retry_job' ],
+			'job_download_url' => [ 'callback' => 'get_download_url' ],
 		];
 	}
 
@@ -49,29 +53,27 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		$type   = $this->get_request_param( 'type', 'all' ); // all, import, export
-		$status = $this->get_request_param( 'status', 'all' ); // all, pending, processing, completed, failed, cancelled
+		$type   = $this->get_request_param( 'type', '' );
+		$status = $this->get_request_param( 'status', '' );
 		$limit  = (int) $this->get_request_param( 'limit', 20 );
 		$offset = (int) $this->get_request_param( 'offset', 0 );
 
-		$job    = new Job();
-		$where  = [];
-		$params = [];
+		$job_model = WP_AIE()->Model->job;
+		$where     = [];
 
-		if ( 'all' !== $type ) {
-			$where[]  = 'type = %s';
-			$params[] = $type;
+		if ( ! empty( $type ) ) {
+			$where['type'] = $type;
 		}
 
-		if ( 'all' !== $status ) {
-			$where[]  = 'status = %s';
-			$params[] = $status;
+		if ( ! empty( $status ) ) {
+			$where['status'] = $status;
 		}
 
-		$jobs = $job->find_all( implode( ' AND ', $where ), $params, $limit, $offset );
+		// Get jobs using get_all method
+		$jobs = $job_model->get_all( $where, $limit, $offset, 'created_at DESC' );
 
 		// Get total count
-		$total = $job->count( implode( ' AND ', $where ), $params );
+		$total = $job_model->count( $where );
 
 		$this->send_success(
 			[
@@ -99,8 +101,8 @@ class Job_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job      = new Job();
-		$job_data = $job->find( $job_id );
+		$job_model = WP_AIE()->Model->job;
+		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
 			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ), null, 404 );
@@ -129,8 +131,8 @@ class Job_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job    = new Job();
-		$result = $job->delete( $job_id );
+		$job_model = WP_AIE()->Model->job;
+		$result    = $job_model->delete( $job_id );
 
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result, null, 500 );
@@ -159,16 +161,16 @@ class Job_Controller extends Base_Controller {
 		$level  = $this->get_request_param( 'level', 'all' ); // all, info, warning, error
 		$limit  = (int) $this->get_request_param( 'limit', 100 );
 
-		$log    = new Log();
-		$where  = 'job_id = %d';
-		$params = [ $job_id ];
+		$log_model = WP_AIE()->Model->log;
+		$where     = 'job_id = %d';
+		$params    = [ $job_id ];
 
 		if ( 'all' !== $level ) {
 			$where   .= ' AND level = %s';
 			$params[] = $level;
 		}
 
-		$logs = $log->find_all( $where, $params, $limit );
+		$logs = $log_model->find_all( $where, $params, $limit );
 
 		$this->send_success(
 			[
@@ -221,6 +223,248 @@ class Job_Controller extends Base_Controller {
 				__( 'Deleted %d old jobs', 'wp-advanced-import-export' ),
 				$deleted
 			)
+		);
+	}
+
+	/**
+	 * Resume job
+	 */
+	public function resume_job() {
+		$verification = $this->verify_request( 'job_resume' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		$validation = $this->validate_required_params( [ 'job_id' ] );
+		if ( is_wp_error( $validation ) ) {
+			$this->send_error( $validation, null, 400 );
+		}
+
+		$job_id = (int) $this->get_request_param( 'job_id' );
+
+		$job_model = WP_AIE()->Model->job;
+		$job_data  = $job_model->find( $job_id );
+
+		if ( ! $job_data ) {
+			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ), null, 404 );
+		}
+
+		// Check if job can be resumed
+		if ( ! in_array( $job_data->status, [ 'paused', 'failed', 'processing' ], true ) ) {
+			$this->send_error(
+				sprintf(
+					/* translators: %s: current job status */
+					__( 'Job cannot be resumed. Current status: %s', 'wp-advanced-import-export' ),
+					$job_data->status
+				),
+				null,
+				400
+			);
+		}
+
+		// Update job status
+		$updated = $job_model->update(
+			$job_id,
+			[
+				'status'     => 'processing',
+				'updated_at' => current_time( 'mysql' ),
+			]
+		);
+
+		if ( is_wp_error( $updated ) ) {
+			$this->send_error( $updated, null, 500 );
+		}
+
+		$this->log( 'resume_job', [ 'job_id' => $job_id ] );
+
+		// Parse parameters for frontend
+		$parameters = maybe_unserialize( $job_data->parameters );
+
+		$this->send_success(
+			[
+				'job_id'     => $job_id,
+				'type'       => $job_data->type,
+				'parameters' => $parameters,
+			],
+			__( 'Job resumed successfully', 'wp-advanced-import-export' )
+		);
+	}
+
+	/**
+	 * Restart job (create new job with same settings)
+	 */
+	public function restart_job() {
+		$verification = $this->verify_request( 'job_restart' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		$validation = $this->validate_required_params( [ 'job_id' ] );
+		if ( is_wp_error( $validation ) ) {
+			$this->send_error( $validation, null, 400 );
+		}
+
+		$job_id = (int) $this->get_request_param( 'job_id' );
+
+		$job_model = WP_AIE()->Model->job;
+		$job_data  = $job_model->find( $job_id );
+
+		if ( ! $job_data ) {
+			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ), null, 404 );
+		}
+
+		// Get job parameters
+		$parameters = maybe_unserialize( $job_data->parameters );
+		if ( empty( $parameters ) ) {
+			$this->send_error( __( 'Job parameters not found', 'wp-advanced-import-export' ), null, 400 );
+		}
+
+		// Create new job with same settings
+		$new_job_id = $job_model->create(
+			[
+				'user_id'     => $job_data->user_id,
+				'type'        => $job_data->type,
+				'data_type'   => $job_data->data_type,
+				'file_format' => $job_data->file_format,
+				'parameters'  => $job_data->parameters,
+				'settings'    => $job_data->settings,
+			]
+		);
+
+		if ( is_wp_error( $new_job_id ) ) {
+			$this->send_error( $new_job_id, null, 500 );
+		}
+
+		$this->log(
+			'restart_job',
+			[
+				'old_job_id' => $job_id,
+				'new_job_id' => $new_job_id,
+			]
+		);
+
+		$this->send_success(
+			[
+				'job_id'     => $new_job_id,
+				'type'       => $job_data->type,
+				'parameters' => $parameters,
+			],
+			__( 'Job restarted successfully', 'wp-advanced-import-export' )
+		);
+	}
+
+	/**
+	 * Retry job (create new job and set to processing immediately)
+	 */
+	public function retry_job() {
+		$verification = $this->verify_request( 'job_retry' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		$validation = $this->validate_required_params( [ 'job_id' ] );
+		if ( is_wp_error( $validation ) ) {
+			$this->send_error( $validation, null, 400 );
+		}
+
+		$job_id = (int) $this->get_request_param( 'job_id' );
+
+		$job_model = WP_AIE()->Model->job;
+		$job_data  = $job_model->find( $job_id );
+
+		if ( ! $job_data ) {
+			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ), null, 404 );
+		}
+
+		// Get job parameters
+		$parameters = maybe_unserialize( $job_data->parameters );
+		if ( empty( $parameters ) ) {
+			$this->send_error( __( 'Job parameters not found', 'wp-advanced-import-export' ), null, 400 );
+		}
+
+		// Create new job with same settings but set status to processing
+		$new_job_id = $job_model->create(
+			[
+				'user_id'     => $job_data->user_id,
+				'type'        => $job_data->type,
+				'data_type'   => $job_data->data_type,
+				'file_format' => $job_data->file_format,
+				'parameters'  => $job_data->parameters,
+				'settings'    => $job_data->settings,
+				'status'      => 'processing', // Set to processing immediately
+			]
+		);
+
+		if ( is_wp_error( $new_job_id ) ) {
+			$this->send_error( $new_job_id, null, 500 );
+		}
+
+		$this->log(
+			'retry_job',
+			[
+				'old_job_id' => $job_id,
+				'new_job_id' => $new_job_id,
+			]
+		);
+
+		$this->send_success(
+			[
+				'job_id'     => $new_job_id,
+				'type'       => $job_data->type,
+				'parameters' => $parameters,
+			],
+			__( 'Job created and ready to process', 'wp-advanced-import-export' )
+		);
+	}
+
+	/**
+	 * Get download URL with nonce
+	 */
+	public function get_download_url() {
+		$verification = $this->verify_request( 'job_download_url' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		$job_id = $this->get_request_param( 'job_id', 0 );
+
+		if ( empty( $job_id ) ) {
+			$this->send_error(
+				new \WP_Error( 'missing_job_id', __( 'Job ID is required', 'wp-advanced-import-export' ) ),
+				null,
+				400
+			);
+		}
+
+		// Verify job exists
+		$job_model = WP_AIE()->Model->job;
+		$job_data  = $job_model->find( $job_id );
+
+		if ( ! $job_data ) {
+			$this->send_error(
+				new \WP_Error( 'job_not_found', __( 'Job not found', 'wp-advanced-import-export' ) ),
+				null,
+				404
+			);
+		}
+
+		// Generate nonce for this specific job
+		$nonce = wp_create_nonce( 'aie_download_' . $job_id );
+		$url   = add_query_arg(
+			[
+				'action'   => 'aie_secure_download',
+				'job_id'   => $job_id,
+				'_wpnonce' => $nonce,
+			],
+			admin_url( 'admin-ajax.php' )
+		);
+
+		$this->send_success(
+			[
+				'url'   => $url,
+				'nonce' => $nonce,
+			],
+			__( 'Download URL generated', 'wp-advanced-import-export' )
 		);
 	}
 }
