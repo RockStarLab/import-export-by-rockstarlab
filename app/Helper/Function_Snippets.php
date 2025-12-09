@@ -132,6 +132,22 @@ class Function_Snippets {
 	}
 
 	/**
+	 * Get single snippet by ID (alias for get_snippet)
+	 *
+	 * @param string $id Snippet ID/key
+	 * @return array|null Snippet with ID included or null
+	 */
+	public function get_snippet_by_id( $id ) {
+		$snippet = $this->get_snippet( $id );
+
+		if ( $snippet ) {
+			$snippet['id'] = $id;
+		}
+
+		return $snippet;
+	}
+
+	/**
 	 * String operation snippets
 	 *
 	 * @return array

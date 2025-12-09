@@ -56,13 +56,9 @@ defined( 'ABSPATH' ) || exit;
 			<button type="button" class="button button-secondary aie-modal-cancel">
 				<?php esc_html_e( 'Close', 'wp-aie' ); ?>
 			</button>
-			<button type="button" class="button aie-customize-snippet">
+			<button type="button" class="button button-primary aie-customize-snippet">
 				<span class="dashicons dashicons-edit"></span>
 				<?php esc_html_e( 'Customize', 'wp-aie' ); ?>
-			</button>
-			<button type="button" class="button button-primary aie-use-snippet">
-				<span class="dashicons dashicons-yes"></span>
-				<?php esc_html_e( 'Use As Is', 'wp-aie' ); ?>
 			</button>
 		</div>
 	</div>

@@ -513,10 +513,10 @@ const FunctionsModule = {
 		// Set title
 		title.textContent = 'Customize Function';
 
-		// Fill form with snippet data
+		// Fill form with snippet data - always use 'custom' category
 		document.getElementById( 'aie-function-name' ).value = snippetData.name || '';
 		document.getElementById( 'aie-function-description' ).value = snippetData.description || '';
-		document.getElementById( 'aie-function-category' ).value = snippetData.category || 'custom';
+		document.getElementById( 'aie-function-category' ).value = 'custom';
 		document.getElementById( 'aie-function-status' ).value = 'active';
 
 		// Prepare code with <?php opening tag

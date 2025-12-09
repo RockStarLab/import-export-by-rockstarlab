@@ -134,6 +134,14 @@ class Export_Controller extends Base_Controller {
 		$format      = $this->get_request_param( 'format' );
 		$options     = $this->get_request_array( 'options' );
 
+		// Get all export parameters
+		$filters         = $this->get_request_array( 'filters' );
+		$fields          = $this->get_request_array( 'fields' );
+		$format_options  = $this->get_request_array( 'format_options' );
+		$dynamic_filters = $this->get_request_array( 'dynamic_filters' );
+		$custom_fields   = $this->get_request_array( 'custom_fields' );
+		$taxonomy        = $this->get_request_array( 'taxonomy' );
+
 		// Validate format
 		if ( ! Format_Factory::is_supported( $format ) ) {
 			$this->send_error( __( 'Unsupported export format', 'wp-advanced-import-export' ), null, 400 );
@@ -147,9 +155,15 @@ class Export_Controller extends Base_Controller {
 			'user_id'    => $this->get_current_user_id(),
 			'parameters' => wp_json_encode(
 				[
-					'export_type' => $export_type,
-					'format'      => $format,
-					'options'     => $options,
+					'export_type'     => $export_type,
+					'format'          => $format,
+					'options'         => $options,
+					'filters'         => $filters,
+					'fields'          => $fields,
+					'format_options'  => $format_options,
+					'dynamic_filters' => $dynamic_filters,
+					'custom_fields'   => $custom_fields,
+					'taxonomy'        => $taxonomy,
 				]
 			),
 		];
@@ -309,10 +323,28 @@ class Export_Controller extends Base_Controller {
 		// Update status to processing
 		$job->update( $job_id, [ 'status' => 'processing' ] );
 
-		$parameters  = json_decode( $job_data->parameters, true );
-		$export_type = $parameters['export_type'];
-		$format      = $parameters['format'];
-		$options     = $parameters['options'] ?? [];
+		$parameters      = json_decode( $job_data->parameters, true );
+		$export_type     = $parameters['export_type'];
+		$format          = $parameters['format'];
+		$options         = $parameters['options'] ?? [];
+		$filters         = $parameters['filters'] ?? [];
+		$fields          = $parameters['fields'] ?? [];
+		$format_options  = $parameters['format_options'] ?? [];
+		$dynamic_filters = $parameters['dynamic_filters'] ?? [];
+		$custom_fields   = $parameters['custom_fields'] ?? [];
+		$taxonomy        = $parameters['taxonomy'] ?? [];
+
+		// Merge all options for export
+		$export_options = array_merge(
+			$options,
+			[
+				'filters'         => $filters,
+				'fields'          => $fields,
+				'dynamic_filters' => $dynamic_filters,
+				'custom_fields'   => $custom_fields,
+				'taxonomy'        => $taxonomy,
+			]
+		);
 
 		// Get exporter
 		$exporter = Exporter_Factory::get_exporter( $export_type, $job_id );
@@ -329,7 +361,7 @@ class Export_Controller extends Base_Controller {
 		}
 
 		// Export data
-		$export_result = $exporter->export( $options );
+		$export_result = $exporter->export( $export_options );
 
 		if ( is_wp_error( $export_result ) ) {
 			$job->update(
@@ -346,31 +378,44 @@ class Export_Controller extends Base_Controller {
 		$data  = $export_result['data'];
 		$stats = $export_result['stats'];
 
-		// Generate file
-		$formatter    = Format_Factory::create( $format );
-		$file_content = $formatter->generate( $data );
+		// Prepare file path
+		$filename  = sprintf( 'export-%s-%d.%s', $export_type, $job_id, $format );
+		$file_info = Fs::get_export_file_path( $filename );
 
-		if ( is_wp_error( $file_content ) ) {
+		if ( is_wp_error( $file_info ) ) {
 			$job->update(
 				$job_id,
 				[
 					'status' => 'failed',
-					'result' => wp_json_encode( [ 'error' => $file_content->get_error_message() ] ),
+					'result' => wp_json_encode( [ 'error' => $file_info->get_error_message() ] ),
 				]
 			);
 			return;
 		}
 
-		// Save file
-		$filename  = sprintf( 'export-%s-%d.%s', $export_type, $job_id, $format );
-		$file_save = Fs::save_export_file( $filename, $file_content );
+		// Map format_options to actual option names used by formatters
+		$formatter_options = [];
+		if ( 'csv' === $format ) {
+			$formatter_options = [
+				'delimiter' => $format_options['csv_delimiter'] ?? ',',
+				'headers'   => ! empty( $format_options['csv_include_header'] ) ? null : false,
+			];
+		} elseif ( 'json' === $format ) {
+			$formatter_options = [
+				'pretty_print' => ! empty( $format_options['json_pretty_print'] ),
+			];
+		}
 
-		if ( is_wp_error( $file_save ) ) {
+		// Generate file with format options
+		$formatter = Format_Factory::create( $format );
+		$result    = $formatter->generate( $data, $file_info['path'], $formatter_options );
+
+		if ( is_wp_error( $result ) ) {
 			$job->update(
 				$job_id,
 				[
 					'status' => 'failed',
-					'result' => wp_json_encode( [ 'error' => $file_save->get_error_message() ] ),
+					'result' => wp_json_encode( [ 'error' => $result->get_error_message() ] ),
 				]
 			);
 			return;
@@ -382,7 +427,7 @@ class Export_Controller extends Base_Controller {
 			[
 				'status'    => 'completed',
 				'progress'  => 100,
-				'file_path' => $file_save['path'],
+				'file_path' => $file_info['path'],
 				'result'    => wp_json_encode( $stats ),
 			]
 		);

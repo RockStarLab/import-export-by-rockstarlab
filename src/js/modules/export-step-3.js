@@ -1180,6 +1180,12 @@ export default class ExportStep3 {
 			});
 		});
 
+		// Create new function button
+		modal.querySelector('.aie-create-new-function')?.addEventListener('click', (e) => {
+			e.preventDefault();
+			this.createNewFunction();
+		});
+
 		// Initialize sortable for function pipeline
 		this.initFunctionPipelineSortable();
 	}
@@ -1219,6 +1225,18 @@ export default class ExportStep3 {
 		if (modal) {
 			modal.style.display = 'none';
 			document.body.classList.remove('aie-modal-open');
+			
+			// Hide preview results
+			const previewResult = modal.querySelector('#aie-preview-result');
+			if (previewResult) {
+				previewResult.style.display = 'none';
+			}
+			
+			// Clear preview input
+			const previewInput = modal.querySelector('#aie-preview-input');
+			if (previewInput) {
+				previewInput.value = '';
+			}
 		}
 		this.currentEditingField = null;
 	}
@@ -1424,6 +1442,19 @@ export default class ExportStep3 {
 
 		container.innerHTML = '';
 
+		if (this.availableFunctions.length === 0) {
+			// Show empty state
+			const emptyState = document.createElement('div');
+			emptyState.className = 'aie-functions-empty-state';
+			emptyState.innerHTML = `
+				<span class="dashicons dashicons-info"></span>
+				<p>${this.escapeHtml('No functions available yet.')}</p>
+				<p>${this.escapeHtml('Create your first custom function to get started.')}</p>
+			`;
+			container.appendChild(emptyState);
+			return;
+		}
+
 		this.availableFunctions.forEach(func => {
 			const item = document.createElement('div');
 			item.className = 'aie-function-list-item';
@@ -1470,14 +1501,55 @@ export default class ExportStep3 {
 	 */
 	filterFunctionsByCategory(category) {
 		const items = document.querySelectorAll('.aie-function-list-item');
+		const emptyState = document.querySelector('.aie-functions-empty-state');
+
+		// Don't filter if only empty state is shown
+		if (emptyState && items.length === 0) {
+			return;
+		}
+
+		let visibleCount = 0;
 
 		items.forEach(item => {
 			if (category === 'all' || item.dataset.category === category) {
 				item.style.display = '';
+				visibleCount++;
 			} else {
 				item.style.display = 'none';
 			}
 		});
+
+		// Show/hide no results message for filtered category
+		this.toggleNoResultsMessage(visibleCount, category);
+	}
+
+	/**
+	 * Toggle no results message
+	 */
+	toggleNoResultsMessage(visibleCount, category) {
+		const container = document.getElementById('aie-functions-list');
+		if (!container) return;
+
+		let noResults = container.querySelector('.aie-functions-no-results');
+
+		if (visibleCount === 0 && category !== 'all') {
+			if (!noResults) {
+				noResults = document.createElement('div');
+				noResults.className = 'aie-functions-no-results';
+				container.appendChild(noResults);
+			}
+			
+			const categoryLabel = category === 'library' ? 'library' : 'custom';
+			noResults.innerHTML = `
+				<span class="dashicons dashicons-info"></span>
+				<p>${this.escapeHtml(`No ${categoryLabel} functions found.`)}</p>
+			`;
+			noResults.style.display = 'block';
+		} else {
+			if (noResults) {
+				noResults.style.display = 'none';
+			}
+		}
 	}
 
 	/**
@@ -1653,6 +1725,19 @@ export default class ExportStep3 {
 	showNotice(message, type = 'info') {
 		// You can implement a toast notification system here
 		console.log(`[${type.toUpperCase()}] ${message}`);
+	}
+
+	/**
+	 * Create new function
+	 */
+	createNewFunction() {
+		// Redirect to Functions management page
+		if (typeof aieData !== 'undefined' && aieData.functionsUrl) {
+			window.open(aieData.functionsUrl, '_blank');
+		} else {
+			// Fallback - go to admin page
+			window.open('/wp-admin/admin.php?page=wp-aie-functions', '_blank');
+		}
 	}
 
 	/**

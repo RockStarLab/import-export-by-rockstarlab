@@ -73,12 +73,6 @@ const FunctionLibrary = {
 		);
 		if ( previewModal ) {
 			previewModal
-				.querySelector( '.aie-use-snippet' )
-				?.addEventListener( 'click', () => {
-					this.importSnippet( this.currentSnippet, false );
-				} );
-
-			previewModal
 				.querySelector( '.aie-customize-snippet' )
 				?.addEventListener( 'click', () => {
 					this.importSnippet( this.currentSnippet, true );
@@ -255,7 +249,7 @@ const FunctionLibrary = {
 						showUseButton
 							? `<button type="button" class="button button-primary button-small aie-quick-import" data-snippet-key="${ key }">
 						<span class="dashicons dashicons-plus"></span>
-						${ window.aieData?.i18n?.use || 'Use' }
+						${ window.aieData?.i18n?.customize || 'Customize' }
 					</button>`
 							: ''
 					}
@@ -276,7 +270,7 @@ const FunctionLibrary = {
 		grid.querySelectorAll( '.aie-quick-import' ).forEach( ( btn ) => {
 			btn.addEventListener( 'click', ( e ) => {
 				const key = e.currentTarget.dataset.snippetKey;
-				this.importSnippet( key, false );
+				this.importSnippet( key, true ); // Changed to true - always customize
 			} );
 		} );
 	},
@@ -457,7 +451,7 @@ const FunctionLibrary = {
 					document.getElementById( 'aie-function-description' ).value =
 						snippet.description;
 					document.getElementById( 'aie-function-category' ).value =
-						snippet.category;
+						'custom'; // Always use 'custom' category
 					document.getElementById( 'aie-function-code' ).value =
 						snippet.code;
 					document.getElementById( 'aie-function-status' ).value =
