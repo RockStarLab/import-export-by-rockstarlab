@@ -113,6 +113,8 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 				++$this->stats['skipped'];
 			} else {
 				++$this->stats['exported'];
+				// Save the processed item back to data array
+				$data[ $index ] = $processed;
 			}
 		}
 
@@ -175,8 +177,80 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	 * @return mixed|string|WP_Error Processed item, 'skipped', or WP_Error
 	 */
 	protected function process_item( $item, $index ) {
+		// Apply field functions if they exist
+		if ( ! empty( $this->options['field_functions'] ) && is_array( $item ) ) {
+			$item = $this->apply_field_functions( $item, $this->options['field_functions'] );
+		}
+
 		// Default: return as-is
 		// Child classes can override for filtering, transformation, etc.
+		return $item;
+	}
+
+	/**
+	 * Apply transformation functions to fields
+	 *
+	 * @param array $item            Item data
+	 * @param array $field_functions Field functions mapping { fieldKey: [functionId1, functionId2, ...] }
+	 * @return array Item with transformed fields
+	 */
+	protected function apply_field_functions( $item, $field_functions ) {
+		if ( empty( $field_functions ) || ! is_array( $item ) ) {
+			return $item;
+		}
+
+		// Initialize Function_Executor
+		$function_executor = new \WP_AIE\Helper\Function_Executor();
+
+		foreach ( $field_functions as $field_key => $function_ids ) {
+			// Skip if field doesn't exist in item or no functions assigned
+			if ( ! isset( $item[ $field_key ] ) || empty( $function_ids ) || ! is_array( $function_ids ) ) {
+				continue;
+			}
+
+			$value = $item[ $field_key ];
+
+			// Apply each function in sequence (pipeline)
+			foreach ( $function_ids as $function_id ) {
+				try {
+					$result = $function_executor->execute(
+						$function_id,
+						$value,
+						[
+							'field' => $field_key,
+							'item'  => $item,
+						]
+					);
+
+					// Only update value if function execution was successful
+					if ( ! is_wp_error( $result ) ) {
+						$value = $result;
+					} else {
+						$this->log_warning(
+							sprintf( 'Failed to apply function %d to field %s: %s', $function_id, $field_key, $result->get_error_message() ),
+							[
+								'function_id' => $function_id,
+								'field_key'   => $field_key,
+								'error'       => $result->get_error_message(),
+							]
+						);
+					}
+				} catch ( \Exception $e ) {
+					$this->log_error(
+						sprintf( 'Exception applying function %d to field %s: %s', $function_id, $field_key, $e->getMessage() ),
+						[
+							'function_id' => $function_id,
+							'field_key'   => $field_key,
+							'exception'   => $e->getMessage(),
+						]
+					);
+				}
+			}
+
+			// Update field with transformed value
+			$item[ $field_key ] = $value;
+		}
+
 		return $item;
 	}
 

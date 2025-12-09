@@ -184,7 +184,9 @@ class Function_Executor {
 			return $value;
 		}
 
-		return $this->execute_in_sandbox( $function['code'], $value, $context, $function_id );
+		$result = $this->execute_in_sandbox( $function['code'], $value, $context, $function_id );
+
+		return $result;
 	}
 
 	/**
@@ -393,10 +395,6 @@ class Function_Executor {
 		$syntax_error = null;
 		ob_start();
 
-		// Debug: log what we're trying to validate
-		error_log( 'VALIDATION - Clean code: ' . $clean_code );
-		error_log( 'VALIDATION - Validation code: ' . $validation_code );
-
 		$result = eval( $validation_code ); // phpcs:ignore Squiz.PHP.Eval.Discouraged
 		$output = ob_get_clean();
 
@@ -448,7 +446,17 @@ class Function_Executor {
 			ARRAY_A
 		);
 
-		return $function ?: null;
+		if ( ! $function ) {
+			return null;
+		}
+
+		// Map function_code to code for compatibility
+		if ( isset( $function['function_code'] ) ) {
+			$function['code'] = $function['function_code'];
+			unset( $function['function_code'] );
+		}
+
+		return $function;
 	}
 
 	/**

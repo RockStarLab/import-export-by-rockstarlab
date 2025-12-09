@@ -1831,7 +1831,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
 
 
 
-var ExportModule = _defineProperty(_defineProperty({
+var ExportModule = _defineProperty(_defineProperty(_defineProperty({
   currentStep: 1,
   totalSteps: 5,
   jobId: null,
@@ -2619,7 +2619,7 @@ var ExportModule = _defineProperty(_defineProperty({
   startExport: function startExport() {
     var _this5 = this;
     return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
-      var fields, contentType, dynamicFiltersData, csvDelimiter, customDelimiter, data, $tableDropdown, tableName, response;
+      var fields, contentType, dynamicFiltersData, csvDelimiter, customDelimiter, data, convertedFunctions, $tableDropdown, tableName, response;
       return _regeneratorRuntime().wrap(function _callee2$(_context2) {
         while (1) switch (_context2.prev = _context2.next) {
           case 0:
@@ -2666,7 +2666,11 @@ var ExportModule = _defineProperty(_defineProperty({
               }
             }; // Add field functions if available
             if (_this5.step3Instance && _this5.step3Instance.fieldFunctions) {
-              data.field_functions = _this5.step3Instance.fieldFunctions;
+              // Convert field functions from fieldKey (with timestamp) to actual field names
+              convertedFunctions = _this5.convertFieldFunctions(_this5.step3Instance.fieldFunctions, _this5.step3Instance.selectedFields);
+              if (Object.keys(convertedFunctions).length > 0) {
+                data.field_functions = convertedFunctions;
+              }
             }
 
             // Add dynamic filters
@@ -4756,6 +4760,26 @@ var ExportModule = _defineProperty(_defineProperty({
     return 'dashicons-text';
   }
   return 'dashicons-marker';
+}), "convertFieldFunctions", function convertFieldFunctions(fieldFunctions, selectedFields) {
+  var converted = {};
+  if (!fieldFunctions || !selectedFields) {
+    return converted;
+  }
+
+  // Create a map from fieldKey to actual field name
+  var keyToFieldMap = {};
+  selectedFields.forEach(function (fieldData) {
+    keyToFieldMap[fieldData.key] = fieldData.field;
+  });
+
+  // Convert fieldKey to actual field name
+  Object.keys(fieldFunctions).forEach(function (fieldKey) {
+    var actualFieldName = keyToFieldMap[fieldKey];
+    if (actualFieldName && fieldFunctions[fieldKey].length > 0) {
+      converted[actualFieldName] = fieldFunctions[fieldKey];
+    }
+  });
+  return converted;
 });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ExportModule);
 
