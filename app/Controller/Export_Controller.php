@@ -41,6 +41,7 @@ class Export_Controller extends Base_Controller {
 			'export_start'        => [ 'callback' => 'start_export' ],
 			'export_get_progress' => [ 'callback' => 'get_progress' ],
 			'export_download'     => [ 'callback' => 'download_file' ],
+			'secure_download'     => [ 'callback' => 'secure_download' ],
 			'export_cancel'       => [ 'callback' => 'cancel_export' ],
 			'get_post_types'      => [ 'callback' => 'get_post_types' ],
 			'get_database_tables' => [ 'callback' => 'get_database_tables' ],
@@ -141,6 +142,7 @@ class Export_Controller extends Base_Controller {
 		$dynamic_filters = $this->get_request_array( 'dynamic_filters' );
 		$custom_fields   = $this->get_request_array( 'custom_fields' );
 		$taxonomy        = $this->get_request_array( 'taxonomy' );
+		$field_functions = $this->get_request_array( 'field_functions' );
 
 		// Validate format
 		if ( ! Format_Factory::is_supported( $format ) ) {
@@ -164,6 +166,7 @@ class Export_Controller extends Base_Controller {
 					'dynamic_filters' => $dynamic_filters,
 					'custom_fields'   => $custom_fields,
 					'taxonomy'        => $taxonomy,
+					'field_functions' => $field_functions,
 				]
 			),
 		];
@@ -215,14 +218,93 @@ class Export_Controller extends Base_Controller {
 			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ), null, 404 );
 		}
 
+		// Calculate progress metrics
+		$total      = (int) $job_data->total_items;
+		$processed  = (int) $job_data->processed_items;
+		$percentage = $total > 0 ? ( $processed / $total ) * 100 : 0;
+
+		// Calculate time estimates
+		$estimates = $this->calculate_time_estimates( $job_data );
+
 		$this->send_success(
 			[
-				'status'    => $job_data->status,
-				'progress'  => $job_data->progress,
-				'file_path' => $job_data->file_path,
-				'result'    => $job_data->result ? json_decode( $job_data->result, true ) : null,
+				'status'     => $job_data->status,
+				'progress'   => $job_data->progress,
+				'percentage' => round( $percentage, 2 ),
+				'processed'  => $processed,
+				'total'      => $total,
+				'file_path'  => $job_data->file_path,
+				'file_size'  => $job_data->file_size,
+				'estimates'  => $estimates,
+				'result'     => $job_data->result ? json_decode( $job_data->result, true ) : null,
 			]
 		);
+	}
+
+	/**
+	 * Calculate time estimates for job progress
+	 *
+	 * @param object $job_data Job data object
+	 * @return array Time estimates
+	 */
+	private function calculate_time_estimates( $job_data ) {
+		$estimates = [
+			'elapsed_formatted'   => '-',
+			'remaining_formatted' => '-',
+			'items_per_second'    => 0,
+		];
+
+		// Calculate elapsed time
+		$started_at = $job_data->started_at ?? $job_data->created_at;
+		if ( $started_at ) {
+			$start_timestamp = strtotime( $started_at );
+			$now_timestamp   = current_time( 'timestamp' );
+			$elapsed_seconds = $now_timestamp - $start_timestamp;
+
+			$estimates['elapsed_formatted'] = $this->format_duration( $elapsed_seconds );
+			$estimates['elapsed_seconds']   = $elapsed_seconds;
+
+			// Calculate speed and remaining time
+			$processed = (int) $job_data->processed_items;
+			$total     = (int) $job_data->total_items;
+
+			if ( $processed > 0 && $elapsed_seconds > 0 ) {
+				$items_per_second              = $processed / $elapsed_seconds;
+				$estimates['items_per_second'] = round( $items_per_second, 2 );
+
+				$remaining = $total - $processed;
+				if ( $remaining > 0 && $items_per_second > 0 ) {
+					$remaining_seconds                = $remaining / $items_per_second;
+					$estimates['remaining_formatted'] = $this->format_duration( (int) $remaining_seconds );
+					$estimates['remaining_seconds']   = (int) $remaining_seconds;
+				} else {
+					$estimates['remaining_formatted'] = '0s';
+					$estimates['remaining_seconds']   = 0;
+				}
+			}
+		}
+
+		return $estimates;
+	}
+
+	/**
+	 * Format duration in human-readable format
+	 *
+	 * @param int $seconds Duration in seconds
+	 * @return string Formatted duration
+	 */
+	private function format_duration( $seconds ) {
+		if ( $seconds < 60 ) {
+			return $seconds . 's';
+		} elseif ( $seconds < 3600 ) {
+			$minutes = floor( $seconds / 60 );
+			$secs    = $seconds % 60;
+			return sprintf( '%dm %ds', $minutes, $secs );
+		} else {
+			$hours   = floor( $seconds / 3600 );
+			$minutes = floor( ( $seconds % 3600 ) / 60 );
+			return sprintf( '%dh %dm', $hours, $minutes );
+		}
 	}
 
 	/**
@@ -254,27 +336,82 @@ class Export_Controller extends Base_Controller {
 			$this->send_error( __( 'Export file does not exist', 'wp-advanced-import-export' ), null, 404 );
 		}
 
-		// Send file for download
+		// Generate download URL with nonce for security
 		$parameters = json_decode( $job_data->parameters, true );
 		$format     = $parameters['format'] ?? 'csv';
 		$filename   = sprintf( 'export-%s.%s', gmdate( 'Y-m-d-His' ), $format );
 
-		header( 'Content-Type: application/octet-stream' );
-		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
-		header( 'Content-Length: ' . filesize( $file_path ) );
-		header( 'Pragma: no-cache' );
-		header( 'Expires: 0' );
+		// Generate secure download nonce
+		$download_nonce = wp_create_nonce( 'aie_download_' . $job_id );
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile
-		readfile( $file_path );
+		$download_url = add_query_arg(
+			[
+				'action'   => 'aie_secure_download',
+				'job_id'   => $job_id,
+				'_wpnonce' => $download_nonce,
+			],
+			admin_url( 'admin-ajax.php' )
+		);
 
 		$this->log(
-			'download_export',
+			'prepare_download',
 			[
 				'job_id'   => $job_id,
 				'filename' => $filename,
 			]
 		);
+
+		$this->send_success(
+			[
+				'download_url' => $download_url,
+				'filename'     => $filename,
+				'file_size'    => filesize( $file_path ),
+			]
+		);
+	}
+
+	/**
+	 * Secure download handler
+	 * Handles actual file download with nonce verification
+	 */
+	public function secure_download() {
+		// Verify nonce
+		$job_id = isset( $_GET['job_id'] ) ? (int) $_GET['job_id'] : 0;
+		$nonce  = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
+
+		if ( ! wp_verify_nonce( $nonce, 'aie_download_' . $job_id ) ) {
+			wp_die( esc_html__( 'Security check failed', 'wp-advanced-import-export' ), 403 );
+		}
+
+		// Get job
+		$job      = new Job();
+		$job_data = $job->find( $job_id );
+
+		if ( ! $job_data || empty( $job_data->file_path ) ) {
+			wp_die( esc_html__( 'Export file not found', 'wp-advanced-import-export' ), 404 );
+		}
+
+		$file_path = $job_data->file_path;
+
+		if ( ! file_exists( $file_path ) ) {
+			wp_die( esc_html__( 'Export file does not exist', 'wp-advanced-import-export' ), 404 );
+		}
+
+		// Send file for download
+		$parameters = json_decode( $job_data->parameters, true );
+		$format     = $parameters['format'] ?? 'csv';
+		$filename   = sprintf( 'export-%s.%s', gmdate( 'Y-m-d-His' ), $format );
+
+		// Set headers for download
+		header( 'Content-Type: application/octet-stream' );
+		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+		header( 'Content-Length: ' . filesize( $file_path ) );
+		header( 'Pragma: no-cache' );
+		header( 'Expires: 0' );
+		header( 'Cache-Control: must-revalidate' );
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile
+		readfile( $file_path );
 
 		exit;
 	}
@@ -333,16 +470,19 @@ class Export_Controller extends Base_Controller {
 		$dynamic_filters = $parameters['dynamic_filters'] ?? [];
 		$custom_fields   = $parameters['custom_fields'] ?? [];
 		$taxonomy        = $parameters['taxonomy'] ?? [];
+		$field_functions = $parameters['field_functions'] ?? [];
 
 		// Merge all options for export
 		$export_options = array_merge(
 			$options,
 			[
+				'post_type'       => $export_type,  // Add post_type from export_type
 				'filters'         => $filters,
 				'fields'          => $fields,
 				'dynamic_filters' => $dynamic_filters,
 				'custom_fields'   => $custom_fields,
 				'taxonomy'        => $taxonomy,
+				'field_functions' => $field_functions,
 			]
 		);
 
@@ -560,21 +700,15 @@ class Export_Controller extends Base_Controller {
 	 * Get taxonomies for a post type
 	 */
 	public function get_taxonomies() {
-		error_log( 'Export_Controller::get_taxonomies() called' );
-		error_log( 'POST data: ' . print_r( $_POST, true ) );
-
 		$verification = $this->verify_request( 'export_fields' );
 		if ( is_wp_error( $verification ) ) {
-			error_log( 'Verification failed: ' . $verification->get_error_message() );
 			$this->send_error( $verification, null, 403 );
 		}
 
 		$post_type = $this->get_request_param( 'post_type', 'post' );
-		error_log( 'Post type: ' . $post_type );
 
 		// Get all taxonomies registered for this post type
 		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
-		error_log( 'Taxonomies found: ' . count( $taxonomies ) );
 
 		$taxonomy_list = [];
 		foreach ( $taxonomies as $taxonomy ) {
@@ -584,7 +718,6 @@ class Export_Controller extends Base_Controller {
 			];
 		}
 
-		error_log( 'Sending success with ' . count( $taxonomy_list ) . ' taxonomies' );
 		$this->send_success( [ 'taxonomies' => $taxonomy_list ] );
 	}
 

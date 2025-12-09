@@ -45,24 +45,45 @@ defined( 'ABSPATH' ) || exit;
 		</div>
 
 		<div class="aie-export-results" style="display:none;">
-			<div class="notice notice-success" style="display:none;">
-				<h3><?php esc_html_e( 'Export Completed!', 'wp-aie' ); ?></h3>
-				<ul class="aie-results-list">
-					<li>
-						<?php esc_html_e( 'Total Exported:', 'wp-aie' ); ?>
-						<strong class="aie-result-processed">0</strong>
-					</li>
-					<li>
-						<?php esc_html_e( 'File Size:', 'wp-aie' ); ?>
-						<strong class="aie-result-filesize">0 KB</strong>
-					</li>
-					<li>
-						<?php esc_html_e( 'Duration:', 'wp-aie' ); ?>
-						<strong class="aie-result-duration">0s</strong>
-					</li>
-				</ul>
-				<p>
-					<button type="button" class="button button-primary button-large aie-download-file">
+			<div class="aie-export-complete-card" style="display:none;">
+				<div class="aie-complete-icon">
+					<span class="dashicons dashicons-yes-alt"></span>
+				</div>
+				<h3 class="aie-complete-title"><?php esc_html_e( 'Export Completed Successfully!', 'wp-aie' ); ?></h3>
+				<p class="aie-complete-subtitle"><?php esc_html_e( 'Your data has been exported and is ready to download', 'wp-aie' ); ?></p>
+				
+				<div class="aie-results-grid">
+					<div class="aie-result-item">
+						<div class="aie-result-icon">
+							<span class="dashicons dashicons-database-export"></span>
+						</div>
+						<div class="aie-result-details">
+							<span class="aie-result-label"><?php esc_html_e( 'Items Exported', 'wp-aie' ); ?></span>
+							<strong class="aie-result-value aie-result-processed">0</strong>
+						</div>
+					</div>
+					<div class="aie-result-item">
+						<div class="aie-result-icon">
+							<span class="dashicons dashicons-media-document"></span>
+						</div>
+						<div class="aie-result-details">
+							<span class="aie-result-label"><?php esc_html_e( 'File Size', 'wp-aie' ); ?></span>
+							<strong class="aie-result-value aie-result-filesize">0 KB</strong>
+						</div>
+					</div>
+					<div class="aie-result-item">
+						<div class="aie-result-icon">
+							<span class="dashicons dashicons-clock"></span>
+						</div>
+						<div class="aie-result-details">
+							<span class="aie-result-label"><?php esc_html_e( 'Duration', 'wp-aie' ); ?></span>
+							<strong class="aie-result-value aie-result-duration">0s</strong>
+						</div>
+					</div>
+				</div>
+				
+				<p class="aie-download-action">
+					<button type="button" class="button button-primary button-hero aie-download-file">
 						<span class="dashicons dashicons-download"></span>
 						<?php esc_html_e( 'Download Export File', 'wp-aie' ); ?>
 					</button>

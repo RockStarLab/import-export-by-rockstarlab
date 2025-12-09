@@ -135,7 +135,7 @@ class Background_Processor {
 			);
 
 			// Parse parameters
-			$parameters = json_decode( $job['parameters'], true );
+			$parameters = ! empty( $job['parameters'] ) ? json_decode( $job['parameters'], true ) : [];
 
 			// Process based on job type
 			if ( 'import' === $job['type'] ) {
@@ -193,10 +193,10 @@ class Background_Processor {
 	 * @return array Processing result
 	 */
 	protected function process_import_job( $job_id, $parameters ) {
-		$file_path    = $parameters['file_path'] ?? '';
-		$content_type = $parameters['content_type'] ?? 'post';
-		$format       = $parameters['format'] ?? 'csv';
-		$offset       = $parameters['offset'] ?? 0;
+		$file_path   = $parameters['file_path'] ?? '';
+		$import_type = $parameters['import_type'] ?? 'post';
+		$format      = $parameters['format'] ?? 'csv';
+		$offset      = $parameters['offset'] ?? 0;
 
 		// Parse file data
 		$format_handler = \WP_AIE\Model\Format\Format_Factory::create( $format );
@@ -214,7 +214,7 @@ class Background_Processor {
 		}
 
 		// Get importer
-		$importer = \WP_AIE\Model\Import\Importer_Factory::create( $content_type );
+		$importer = \WP_AIE\Model\Import\Importer_Factory::create( $import_type );
 		$importer->set_duplicate_handling( $parameters['duplicate_handling'] ?? 'skip' );
 
 		// Process batch
@@ -240,13 +240,13 @@ class Background_Processor {
 	 * @return array Processing result
 	 */
 	protected function process_export_job( $job_id, $parameters ) {
-		$content_type = $parameters['content_type'] ?? 'post';
-		$format       = $parameters['format'] ?? 'csv';
-		$filters      = $parameters['filters'] ?? array();
-		$offset       = $parameters['offset'] ?? 0;
+		$export_type = $parameters['export_type'] ?? 'post';
+		$format      = $parameters['format'] ?? 'csv';
+		$filters     = $parameters['filters'] ?? array();
+		$offset      = $parameters['offset'] ?? 0;
 
 		// Get exporter
-		$exporter = \WP_AIE\Model\Export\Exporter_Factory::create( $content_type );
+		$exporter = \WP_AIE\Model\Export\Exporter_Factory::create( $export_type );
 
 		// Set filters
 		if ( ! empty( $filters ) ) {
@@ -360,8 +360,8 @@ class Background_Processor {
 	 */
 	protected function update_job_progress( $job_id, $result ) {
 		// Update job parameters with new offset
-		$job        = $this->job_model->get( $job_id );
-		$parameters = json_decode( $job['parameters'], true );
+		$job        = $this->job_model->find( $job_id );
+		$parameters = json_decode( $job->parameters, true );
 
 		$parameters['offset'] = $result['offset'] ?? 0;
 
@@ -390,8 +390,8 @@ class Background_Processor {
 	 */
 	protected function handle_job_error( $job_id, $e ) {
 		// Get current retry count
-		$job     = $this->job_model->get( $job_id );
-		$retries = isset( $job['retries'] ) ? (int) $job['retries'] : 0;
+		$job     = $this->job_model->find( $job_id );
+		$retries = isset( $job->retries ) ? (int) $job->retries : 0;
 
 		$this->logger->log(
 			$job_id,
