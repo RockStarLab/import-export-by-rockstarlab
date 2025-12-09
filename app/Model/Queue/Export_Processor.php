@@ -86,6 +86,8 @@ class Export_Processor {
 				throw new \Exception( 'Invalid job parameters' );
 			}
 
+			error_log( 'Export_Processor: Received parameters: ' . print_r( $parameters, true ) );
+
 			$export_type = $parameters['export_type'];
 			$options     = $parameters['options'] ?? [];
 			$fields      = $parameters['fields'] ?? [];
@@ -102,11 +104,48 @@ class Export_Processor {
 				throw new \Exception( $exporter->get_error_message() );
 			}
 
+			// Map logical export types to actual WP post_type when needed
+			$post_type_map = [
+				'post'                 => 'post',
+				'page'                 => 'page',
+				'media'                => 'attachment',
+				'menu'                 => 'nav_menu_item',
+				'block_theme_settings' => 'wp_template',
+				'woo_product'          => 'product',
+				'woo_order'            => 'shop_order',
+				'woo_coupon'           => 'shop_coupon',
+			];
+
+			$mapped_post_type = isset( $post_type_map[ $export_type ] ) ? $post_type_map[ $export_type ] : $export_type;
+
+			// For custom_post_types and taxonomy, extract real post_type/taxonomy from dynamic_filters
+			if ( 'custom_post_types' === $export_type ) {
+				// Look for post_type in dynamic_filters
+				$dynamic_filters = $parameters['dynamic_filters'] ?? [];
+				foreach ( $dynamic_filters as $filter ) {
+					if ( isset( $filter['field'] ) && $filter['field'] === 'post_type' && ! empty( $filter['value'] ) ) {
+						$mapped_post_type = $filter['value'];
+						break;
+					}
+				}
+			}
+
+			if ( 'taxonomy' === $export_type ) {
+				// Look for taxonomy in dynamic_filters
+				$dynamic_filters = $parameters['dynamic_filters'] ?? [];
+				foreach ( $dynamic_filters as $filter ) {
+					if ( isset( $filter['field'] ) && $filter['field'] === 'taxonomy' && ! empty( $filter['value'] ) ) {
+						$mapped_post_type = $filter['value'];
+						break;
+					}
+				}
+			}
+
 			// Build export options
 			$export_options = array_merge(
 				$options,
 				[
-					'post_type'       => $export_type,
+					'post_type'       => $mapped_post_type,
 					'filters'         => $parameters['filters'] ?? [],
 					'fields'          => $fields,
 					'dynamic_filters' => $parameters['dynamic_filters'] ?? [],
@@ -118,9 +157,18 @@ class Export_Processor {
 				]
 			);
 
+			// For database_table, add table_name to export_options
+			if ( 'database_table' === $export_type && ! empty( $parameters['table_name'] ) ) {
+				$export_options['table_name'] = $parameters['table_name'];
+				error_log( 'Export_Processor: Added table_name to export_options: ' . $parameters['table_name'] );
+			}
+
+			error_log( 'Export_Processor: Final export_options for ' . $export_type . ': ' . print_r( $export_options, true ) );
+
 			// Get total count on first batch
 			if ( 0 === $current_offset ) {
 				$total_count = Exporter_Factory::get_count( $export_type, $export_options );
+
 				$this->job_model->update(
 					$job_id,
 					[
@@ -164,6 +212,7 @@ class Export_Processor {
 			if ( $completed ) {
 				// Get all accumulated data
 				$all_data = $this->get_accumulated_data( $job_id );
+
 				$this->finalize_export( $job_id, $parameters, $all_data );
 
 				// Clean up temp file
@@ -295,11 +344,21 @@ class Export_Processor {
 		$format_options = $parameters['format_options'] ?? [];
 		$export_type    = $parameters['export_type'];
 
+		$this->logger->log( $job_id, 'info', sprintf( 'Finalizing export: %d items, format: %s', count( $data ), $format ) );
+
 		// Prepare file path
 		$filename  = sprintf( 'export-%s-%d.%s', $export_type, $job_id, $format );
 		$file_info = Fs::get_export_file_path( $filename );
 
 		if ( is_wp_error( $file_info ) ) {
+			$this->logger->log( $job_id, 'error', 'Failed to get export file path: ' . $file_info->get_error_message() );
+			$this->job_model->update(
+				$job_id,
+				[
+					'status' => 'failed',
+					'result' => wp_json_encode( [ 'error' => $file_info->get_error_message() ] ),
+				]
+			);
 			return;
 		}
 
@@ -321,11 +380,21 @@ class Export_Processor {
 		$result    = $formatter->generate( $data, $file_info['path'], $formatter_options );
 
 		if ( is_wp_error( $result ) ) {
+			$this->logger->log( $job_id, 'error', 'Failed to generate export file: ' . $result->get_error_message() );
+			$this->job_model->update(
+				$job_id,
+				[
+					'status' => 'failed',
+					'result' => wp_json_encode( [ 'error' => $result->get_error_message() ] ),
+				]
+			);
 			return;
 		}
 
 		// Get file size
 		$file_size = file_exists( $file_info['path'] ) ? filesize( $file_info['path'] ) : 0;
+
+		$this->logger->log( $job_id, 'info', sprintf( 'Export file created: %s (%d bytes)', $file_info['path'], $file_size ) );
 
 		// Update job as completed
 		$this->job_model->update(

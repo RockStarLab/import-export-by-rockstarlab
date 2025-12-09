@@ -204,7 +204,13 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 	 */
 	protected function format_term( $term, $options ) {
 		$fields = $options['fields'] ?? $this->get_default_fields();
-		$data   = [];
+
+		// If fields is empty array, use default fields
+		if ( empty( $fields ) ) {
+			$fields = $this->get_default_fields();
+		}
+
+		$data = [];
 
 		foreach ( $fields as $field ) {
 			switch ( $field ) {

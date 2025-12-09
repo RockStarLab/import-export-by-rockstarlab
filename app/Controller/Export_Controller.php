@@ -49,6 +49,7 @@ class Export_Controller extends Base_Controller {
 			'get_database_tables'  => [ 'callback' => 'get_database_tables' ],
 			'get_table_columns'    => [ 'callback' => 'get_table_columns' ],
 			'get_taxonomies'       => [ 'callback' => 'get_taxonomies' ],
+			'get_all_taxonomies'   => [ 'callback' => 'get_all_taxonomies' ],
 			'get_custom_fields'    => [ 'callback' => 'get_custom_fields' ],
 			'get_acf_fields'       => [ 'callback' => 'get_acf_fields' ],
 			'get_yoast_fields'     => [ 'callback' => 'get_yoast_fields' ],
@@ -145,6 +146,7 @@ class Export_Controller extends Base_Controller {
 		$custom_fields   = $this->get_request_array( 'custom_fields' );
 		$taxonomy        = $this->get_request_array( 'taxonomy' );
 		$field_functions = $this->get_request_array( 'field_functions' );
+		$table_name      = $this->get_request_param( 'table_name' );
 
 		// Validate format
 		if ( ! Format_Factory::is_supported( $format ) ) {
@@ -171,6 +173,7 @@ class Export_Controller extends Base_Controller {
 					'custom_fields'   => $custom_fields,
 					'taxonomy'        => $taxonomy,
 					'field_functions' => $field_functions,
+					'table_name'      => $table_name,
 				]
 			),
 		];
@@ -752,6 +755,39 @@ class Export_Controller extends Base_Controller {
 		}
 
 		$this->send_success( [ 'taxonomies' => $taxonomy_list ] );
+	}
+
+	/**
+	 * Get all registered taxonomies
+	 */
+	public function get_all_taxonomies() {
+		$verification = $this->verify_request( 'export_fields' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		// Get all registered taxonomies
+		$taxonomies = get_taxonomies(
+			[
+				'public' => true,
+			],
+			'objects'
+		);
+
+		$taxonomy_list = [];
+		foreach ( $taxonomies as $taxonomy ) {
+			// Skip post_format as it's not a real taxonomy for export
+			if ( 'post_format' === $taxonomy->name ) {
+				continue;
+			}
+
+			$taxonomy_list[] = [
+				'name'  => $taxonomy->name,
+				'label' => $taxonomy->label,
+			];
+		}
+
+		$this->send_success( $taxonomy_list );
 	}
 
 	/**

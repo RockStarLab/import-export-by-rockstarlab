@@ -811,8 +811,12 @@ export default class ExportStep3 {
 		
 		// Render each field group as a category
 		fieldGroups.forEach((group, index) => {
-			// Skip Custom Filters group
-			if (group.label === 'Custom Filters') return;
+			// Skip Custom Filters group and selector groups (they're only for step 2)
+			if (group.label === 'Custom Filters' || 
+				group.label === 'Post Type Selection' || 
+				group.label === 'Taxonomy Selection') {
+				return;
+			}
 			
 			const category = this.createFieldCategory(group, index === 0);
 			
@@ -851,7 +855,8 @@ export default class ExportStep3 {
 			group.options.forEach(option => {
 				// Skip special filter types
 				if (option.type === 'custom_field' || option.type === 'taxonomy_filter' || 
-					option.type === 'post_type_selector' || option.type === 'table_selector') {
+					option.type === 'post_type_selector' || option.type === 'taxonomy_selector' || 
+					option.type === 'table_selector') {
 					return;
 				}
 				
