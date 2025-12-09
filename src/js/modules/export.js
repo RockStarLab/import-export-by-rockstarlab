@@ -786,7 +786,9 @@ const ExportModule = {
 						'[name="json_pretty_print"]'
 					).is( ':checked' ),
 				},
-				items_per_iteration: parseInt( jQuery( '[name="items_per_iteration"]' ).val() ) || 3,
+				options: {
+					items_per_iteration: parseInt( jQuery( '[name="items_per_iteration"]' ).val() ) || 3,
+				},
 			};
 
 			// Add field functions if available
@@ -815,9 +817,38 @@ const ExportModule = {
 			this.showStep( 5 );
 			this.startProgressTracking();
 
+			// Trigger first batch processing
+			this.processNextBatch();
+
 			Utils.showNotice( 'Export started successfully', 'success' );
 		} catch ( error ) {
 			Utils.handleError( error, 'Start export' );
+		}
+	},
+
+	/**
+	 * Process next export batch
+	 */
+	async processNextBatch() {
+		if ( ! this.jobId ) {
+			return;
+		}
+
+		try {
+			const response = await Utils.ajax( 'aie_export_process_batch', {
+				job_id: this.jobId,
+			} );
+			
+			console.log( 'Batch processing response:', response );
+
+			// If not completed, process next batch after small delay
+			if ( response && ! response.completed ) {
+				setTimeout( () => {
+					this.processNextBatch();
+				}, 100 );
+			}
+		} catch ( error ) {
+			console.error( 'Batch processing error:', error );
 		}
 	},
 
@@ -859,6 +890,12 @@ const ExportModule = {
 
 		// Update title
 		jQuery( '.aie-step-5 h2' ).text( 'Export Complete!' );
+		
+		// Hide the description text
+		jQuery( '.aie-step-5 .description' ).hide();
+		
+		// Hide progress container
+		jQuery( '.aie-progress-container' ).hide();
 
 		// Show results container
 		jQuery( '.aie-export-results' ).show();

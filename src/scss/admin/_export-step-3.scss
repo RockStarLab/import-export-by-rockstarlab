@@ -141,10 +141,13 @@ body.aie-dragging {
 
 // CSV Columns
 .aie-csv-columns {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 12px;
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	grid-template-rows: 1fr;
+	grid-column-gap: 12px;
+	grid-row-gap: 12px;
 	padding: 10px 0;
+	
 }
 
 .aie-csv-column {

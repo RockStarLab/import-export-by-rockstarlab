@@ -253,8 +253,10 @@ class Background_Processor {
 			$exporter->set_filters( $filters );
 		}
 
-		// Get batch size
-		$batch_size = $this->batch_processor->get_batch_size();
+		// Get batch size from parameters or use default
+		$batch_size = isset( $parameters['options']['items_per_iteration'] )
+			? (int) $parameters['options']['items_per_iteration']
+			: $this->batch_processor->get_batch_size();
 
 		// Export data
 		$data = $exporter->export( $offset, $batch_size );

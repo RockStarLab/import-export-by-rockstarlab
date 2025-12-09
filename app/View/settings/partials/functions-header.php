@@ -27,24 +27,6 @@ defined( 'ABSPATH' ) || exit;
 <!-- Filters -->
 <div class="aie-functions-filters">
 	<div class="aie-filter-group">
-		<label for="aie-filter-status"><?php esc_html_e( 'Status:', 'wp-aie' ); ?></label>
-		<select id="aie-filter-status">
-			<option value=""><?php esc_html_e( 'All Statuses', 'wp-aie' ); ?></option>
-			<option value="active"><?php esc_html_e( 'Active', 'wp-aie' ); ?></option>
-			<option value="inactive"><?php esc_html_e( 'Inactive', 'wp-aie' ); ?></option>
-		</select>
-	</div>
-
-	<div class="aie-filter-group">
-		<label for="aie-filter-category"><?php esc_html_e( 'Category:', 'wp-aie' ); ?></label>
-		<select id="aie-filter-category">
-			<option value=""><?php esc_html_e( 'All Categories', 'wp-aie' ); ?></option>
-			<option value="library"><?php esc_html_e( 'Library', 'wp-aie' ); ?></option>
-			<option value="custom"><?php esc_html_e( 'Custom', 'wp-aie' ); ?></option>
-		</select>
-	</div>
-
-	<div class="aie-filter-group">
 		<label for="aie-filter-search"><?php esc_html_e( 'Search:', 'wp-aie' ); ?></label>
 		<input type="text" id="aie-filter-search" placeholder="<?php esc_attr_e( 'Search functions...', 'wp-aie' ); ?>">
 	</div>
@@ -53,3 +35,4 @@ defined( 'ABSPATH' ) || exit;
 		<?php esc_html_e( 'Clear Filters', 'wp-aie' ); ?>
 	</button>
 </div>
+

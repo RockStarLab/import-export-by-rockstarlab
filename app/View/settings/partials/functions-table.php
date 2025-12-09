@@ -15,15 +15,12 @@ defined( 'ABSPATH' ) || exit;
 			<tr>
 				<th class="column-name"><?php esc_html_e( 'Name', 'wp-aie' ); ?></th>
 				<th class="column-description"><?php esc_html_e( 'Description', 'wp-aie' ); ?></th>
-				<th class="column-category"><?php esc_html_e( 'Category', 'wp-aie' ); ?></th>
-				<th class="column-status"><?php esc_html_e( 'Status', 'wp-aie' ); ?></th>
-				<th class="column-usage"><?php esc_html_e( 'Usage', 'wp-aie' ); ?></th>
 				<th class="column-actions"><?php esc_html_e( 'Actions', 'wp-aie' ); ?></th>
 			</tr>
 		</thead>
 		<tbody id="aie-functions-tbody">
 			<tr class="aie-loading-row">
-				<td colspan="6" style="text-align:center;">
+				<td colspan="3" style="text-align:center;">
 					<span class="spinner is-active"></span>
 					<?php esc_html_e( 'Loading functions...', 'wp-aie' ); ?>
 				</td>

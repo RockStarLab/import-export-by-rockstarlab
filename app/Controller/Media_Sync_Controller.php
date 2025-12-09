@@ -203,18 +203,6 @@ class Media_Sync_Controller extends Base_Controller {
 		$job = new Job();
 		$job->update( $job_id, [ 'status' => 'processing' ] );
 
-		// Process next batch synchronously to show immediate progress
-		$processor = new Media_Sync_Processor();
-		$processor->process( $job_id );
-
-		// Schedule remaining batches via WP Cron for background processing
-		if ( ! wp_next_scheduled( 'aie_process_media_sync_job', array( $job_id ) ) ) {
-			wp_schedule_single_event( time(), 'aie_process_media_sync_job', array( $job_id ) );
-		}
-
-		// Also try async via wp_remote_post as backup
-		$this->trigger_async_processing( $job_id );
-
 		$this->send_success();
 	}
 
@@ -249,18 +237,9 @@ class Media_Sync_Controller extends Base_Controller {
 	 * Process media sync batch (called via AJAX for async processing)
 	 */
 	public function process_media_sync_batch() {
-		// For internal processing, allow both nonce and internal key
-		$internal_key = $this->get_request_param( 'internal_key' );
-		$expected_key = md5( 'aie_internal_processing_' . NONCE_SALT );
-
-		if ( $internal_key === $expected_key ) {
-			// Internal processing - skip nonce check
-		} else {
-			// External request - require nonce
-			$verification = $this->verify_request( 'aie_process_media_sync_batch' );
-			if ( is_wp_error( $verification ) ) {
-				$this->send_error( $verification );
-			}
+		$verification = $this->verify_request( 'aie_process_media_sync_batch' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification );
 		}
 
 		$this->validate_required_params( [ 'job_id' ] );
@@ -270,81 +249,7 @@ class Media_Sync_Controller extends Base_Controller {
 		$processor = new \WP_AIE\Model\Queue\Media_Sync_Processor();
 		$result    = $processor->process( $job_id );
 
-		// If not completed, schedule next batch
-		if ( ! isset( $result['completed'] ) || ! $result['completed'] ) {
-			$this->trigger_next_batch( $job_id );
-		}
-
 		$this->send_success( $result );
-	}
-
-	/**
-	 * Trigger next batch processing via non-blocking request
-	 *
-	 * @param int $job_id Job ID
-	 */
-	protected function trigger_next_batch( $job_id ) {
-		// Use shutdown hook for reliable processing after response is sent
-		// This works better than wp_remote_post in local environments
-		add_action(
-			'shutdown',
-			function () use ( $job_id ) {
-				// Prevent WordPress from outputting anything after this
-				if ( ! defined( 'DOING_AJAX' ) ) {
-					define( 'DOING_AJAX', true );
-				}
-
-				// Process next batch
-				$processor = new \WP_AIE\Model\Queue\Media_Sync_Processor();
-				$result    = $processor->process( $job_id );
-
-				// Continue chain if needed
-				if ( ! isset( $result['completed'] ) || ! $result['completed'] ) {
-					$this->trigger_next_batch( $job_id );
-				}
-			},
-			999
-		);
-	}
-
-	/**
-	 * Trigger background processing for a job
-	 * Uses direct HTTP request with minimal timeout to start processing immediately
-	 *
-	 * @param int $job_id Job ID.
-	 * @return void
-	 */
-	protected function trigger_background_processing( $job_id ) {
-		// Generate internal key for authentication
-		$internal_key = md5( 'aie_internal_processing_' . NONCE_SALT );
-
-		// Make non-blocking HTTP request to start processing
-		wp_remote_post(
-			admin_url( 'admin-ajax.php' ),
-			[
-				'timeout'   => 0.01, // Minimal timeout - just trigger and return
-				'blocking'  => false, // Don't wait for response
-				'sslverify' => false,
-				'body'      => [
-					'action'       => 'aie_process_media_sync_batch',
-					'job_id'       => $job_id,
-					'internal_key' => $internal_key,
-				],
-			]
-		);
-	}
-
-	/**
-	 * Trigger async processing for a job
-	 * Non-blocking call that starts processing immediately
-	 *
-	 * @param int $job_id Job ID.
-	 * @return void
-	 */
-	protected function trigger_async_processing( $job_id ) {
-		// Use same endpoint as trigger_next_batch
-		// This will start the first batch asynchronously
-		$this->trigger_next_batch( $job_id );
 	}
 
 	/**

@@ -19,8 +19,6 @@ const FunctionsModule = {
 	totalPages: 1,
 	totalItems: 0,
 	filters: {
-		status: '',
-		category: '',
 		search: '',
 	},
 	codeEditor: null, // CodeMirror instance
@@ -56,23 +54,6 @@ const FunctionsModule = {
 			.querySelector( '.aie-browse-library' )
 			?.addEventListener( 'click', () => {
 				FunctionLibrary.openLibrary();
-			} );
-
-		// Filter controls
-		document
-			.getElementById( 'aie-filter-status' )
-			?.addEventListener( 'change', ( e ) => {
-				this.filters.status = e.target.value;
-				this.currentPage = 1;
-				this.loadFunctions();
-			} );
-
-		document
-			.getElementById( 'aie-filter-category' )
-			?.addEventListener( 'change', ( e ) => {
-				this.filters.category = e.target.value;
-				this.currentPage = 1;
-				this.loadFunctions();
 			} );
 
 		// Search with debounce
@@ -165,7 +146,7 @@ const FunctionsModule = {
 		// Show loading
 		tbody.innerHTML = `
 			<tr class="aie-loading-row">
-				<td colspan="6" style="text-align:center;">
+				<td colspan="3" style="text-align:center;">
 					<span class="spinner is-active"></span>
 					${ window.aieData?.i18n?.loading || 'Loading...' }
 				</td>
@@ -181,8 +162,6 @@ const FunctionsModule = {
 				body: new URLSearchParams( {
 					action: 'aie_functions_get_all',
 					nonce: window.aieData?.nonce || '',
-					status: this.filters.status,
-					category: this.filters.category,
 					search: this.filters.search,
 					page: this.currentPage,
 					per_page: this.perPage,
@@ -206,7 +185,7 @@ const FunctionsModule = {
 			console.error( 'Error loading functions:', error );
 			tbody.innerHTML = `
 				<tr>
-					<td colspan="6" style="text-align:center; color:#dc3232;">
+					<td colspan="4" style="text-align:center; color:#dc3232;">
 						<span class="dashicons dashicons-warning"></span>
 						${ error.message }
 					</td>
@@ -227,7 +206,7 @@ const FunctionsModule = {
 		if ( functions.length === 0 ) {
 			tbody.innerHTML = `
 				<tr>
-					<td colspan="6" style="text-align:center; padding:40px;">
+					<td colspan="4" style="text-align:center; padding:40px;">
 						<div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
 							<span class="dashicons dashicons-info" style="font-size:48px; opacity:0.3;"></span>
 							<p style="margin:23px 0 0 0; color:#666;">
@@ -256,15 +235,6 @@ const FunctionsModule = {
 							? this.escapeHtml( func.description )
 							: '<em style="color:#999;">No description</em>'
 					}
-				</td>
-				<td class="column-category">
-					${ this.getCategoryBadge( func.category ) }
-				</td>
-				<td class="column-status">
-					${ this.getStatusBadge( func.status ) }
-				</td>
-				<td class="column-usage">
-					${ func.usage_count || 0 }
 				</td>
 				<td class="column-actions">
 					<button type="button" class="button button-small aie-edit-function" data-id="${
@@ -808,9 +778,7 @@ const FunctionsModule = {
 	 * Clear all filters
 	 */
 	clearFilters() {
-		this.filters = { status: '', category: '', search: '' };
-		document.getElementById( 'aie-filter-status' ).value = '';
-		document.getElementById( 'aie-filter-category' ).value = '';
+		this.filters = { search: '' };
 		document.getElementById( 'aie-filter-search' ).value = '';
 		this.currentPage = 1;
 		this.loadFunctions();
