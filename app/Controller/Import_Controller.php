@@ -198,8 +198,8 @@ class Import_Controller extends Base_Controller {
 		$format      = $this->get_request_param( 'format', 'csv' );
 
 		// Create job
-		$job      = new Job();
-		$job_data = [
+		$job_model = WP_AIE()->Model->job;
+		$job_data  = [
 			'type'       => 'import',
 			'status'     => 'pending',
 			'user_id'    => $this->get_current_user_id(),
@@ -214,7 +214,7 @@ class Import_Controller extends Base_Controller {
 			),
 		];
 
-		$job_id = $job->create( $job_data );
+		$job_id = $job_model->create( $job_data );
 		if ( is_wp_error( $job_id ) ) {
 			$this->send_error( $job_id, null, 500 );
 		}
@@ -254,8 +254,8 @@ class Import_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job      = new Job();
-		$job_data = $job->find( $job_id );
+		$job_model = WP_AIE()->Model->job;
+		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
 			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ), null, 404 );
@@ -286,8 +286,8 @@ class Import_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job        = new Job();
-		$job_result = $job->update( $job_id, [ 'status' => 'cancelled' ] );
+		$job_model  = WP_AIE()->Model->job;
+		$job_result = $job_model->update( $job_id, [ 'status' => 'cancelled' ] );
 
 		if ( is_wp_error( $job_result ) ) {
 			$this->send_error( $job_result, null, 500 );
@@ -304,15 +304,15 @@ class Import_Controller extends Base_Controller {
 	 * @param int $job_id Job ID
 	 */
 	private function process_import_job( $job_id ) {
-		$job      = new Job();
-		$job_data = $job->find( $job_id );
+		$job_model = WP_AIE()->Model->job;
+		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
 			return;
 		}
 
 		// Update status to processing
-		$job->update( $job_id, [ 'status' => 'processing' ] );
+		$job_model->update( $job_id, [ 'status' => 'processing' ] );
 
 		$parameters  = json_decode( $job_data->parameters, true );
 		$import_type = $parameters['import_type'];
@@ -325,7 +325,7 @@ class Import_Controller extends Base_Controller {
 		$data   = $parser->parse( $job_data->file_path );
 
 		if ( is_wp_error( $data ) ) {
-			$job->update(
+			$job_model->update(
 				$job_id,
 				[
 					'status' => 'failed',
@@ -339,7 +339,7 @@ class Import_Controller extends Base_Controller {
 		$importer = Importer_Factory::get_importer( $import_type, $job_id );
 
 		if ( is_wp_error( $importer ) ) {
-			$job->update(
+			$job_model->update(
 				$job_id,
 				[
 					'status' => 'failed',
@@ -354,7 +354,7 @@ class Import_Controller extends Base_Controller {
 		$result        = $importer->import( $prepared_data, $options );
 
 		if ( is_wp_error( $result ) ) {
-			$job->update(
+			$job_model->update(
 				$job_id,
 				[
 					'status'   => 'failed',
@@ -363,7 +363,7 @@ class Import_Controller extends Base_Controller {
 				]
 			);
 		} else {
-			$job->update(
+			$job_model->update(
 				$job_id,
 				[
 					'status'   => 'completed',

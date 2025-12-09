@@ -43,7 +43,7 @@ class Export_Processor {
 	 */
 	public function __construct() {
 		$this->logger    = new Logger();
-		$this->job_model = new Job();
+		$this->job_model = WP_AIE()->Model->job;
 	}
 
 	/**

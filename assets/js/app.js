@@ -13,6 +13,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modules_import__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modules/import */ "./src/js/modules/import.js");
 /* harmony import */ var _modules_export__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./modules/export */ "./src/js/modules/export.js");
 /* harmony import */ var _modules_media_sync__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./modules/media_sync */ "./src/js/modules/media_sync.js");
+/* harmony import */ var _modules_jobs_log__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./modules/jobs-log */ "./src/js/modules/jobs-log.js");
+
 
 
 
@@ -34,6 +36,9 @@ jQuery(document).ready(function ($) {
 
   // Initialize media sync module
   _modules_media_sync__WEBPACK_IMPORTED_MODULE_3__["default"].init();
+
+  // Initialize jobs log module
+  _modules_jobs_log__WEBPACK_IMPORTED_MODULE_4__["default"].init();
 });
 
 /***/ }),
@@ -1834,11 +1839,31 @@ var ExportModule = _defineProperty(_defineProperty({
    * Initialize module
    */
   init: function init() {
+    var _this = this;
     if (!jQuery('#wp-aie-export').length) {
       return;
     }
+
+    // Check if resuming a job BEFORE showing any step
+    var urlParams = new URLSearchParams(window.location.search);
+    var resumeJobId = urlParams.get('resume_job');
     this.bindEvents();
-    this.showStep(1);
+    if (resumeJobId) {
+      // Resume job - go directly to step 5 and start processing
+      this.jobId = parseInt(resumeJobId);
+
+      // Show step 5 immediately (don't hide first, let showStep handle it)
+      this.showStep(5);
+
+      // Get initial progress first, then start tracking and processing
+      this.updateProgress().then(function () {
+        // Start progress tracking and batch processing
+        _this.startProgressTracking();
+        _this.processNextBatch();
+      });
+    } else {
+      this.showStep(1);
+    }
 
     // Initialize Step 3 drag and drop
     this.step3Instance = new _export_step_3__WEBPACK_IMPORTED_MODULE_1__["default"]();
@@ -1847,79 +1872,79 @@ var ExportModule = _defineProperty(_defineProperty({
    * Bind event handlers
    */
   bindEvents: function bindEvents() {
-    var _this = this;
+    var _this2 = this;
     var $wizard = jQuery('#wp-aie-export');
 
     // Content type filter/search
     $wizard.on('input', '#aie-content-type-search', function (e) {
-      return _this.filterContentTypes(e);
+      return _this2.filterContentTypes(e);
     });
 
     // Step navigation
     $wizard.on('click', '.aie-next-step', function () {
-      return _this.nextStep();
+      return _this2.nextStep();
     });
     $wizard.on('click', '.aie-prev-step', function () {
-      return _this.prevStep();
+      return _this2.prevStep();
     });
 
     // Content type
     $wizard.on('change', 'input[name="content_type"]', function (e) {
-      return _this.onContentTypeChange(e);
+      return _this2.onContentTypeChange(e);
     });
 
     // Filters
     $wizard.on('change', '.aie-export-filters input, .aie-export-filters select', _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-      return _this.refreshCount(false);
+      return _this2.refreshCount(false);
     }, 500));
     $wizard.on('click', '.aie-step-2 .aie-refresh-count', function () {
-      return _this.refreshCount(true);
+      return _this2.refreshCount(true);
     });
 
     // Field selection
     $wizard.on('click', '.aie-select-all-fields', function () {
-      return _this.selectAllFields(true);
+      return _this2.selectAllFields(true);
     });
     $wizard.on('click', '.aie-deselect-all-fields', function () {
-      return _this.selectAllFields(false);
+      return _this2.selectAllFields(false);
     });
     $wizard.on('click', '.aie-select-common-fields', function () {
-      return _this.selectCommonFields();
+      return _this2.selectCommonFields();
     });
 
     // Format selection
     $wizard.on('change', 'input[name="format"]', function (e) {
-      return _this.onFormatChange(e);
+      return _this2.onFormatChange(e);
     });
 
     // CSV delimiter change
     $wizard.on('change', 'select[name="csv_delimiter"]', function (e) {
-      return _this.onDelimiterChange(e);
+      return _this2.onDelimiterChange(e);
     });
 
     // Export actions
     $wizard.on('click', '.aie-start-export', function () {
-      return _this.startExport();
+      return _this2.startExport();
     });
     $wizard.on('click', '.aie-cancel-export', function () {
-      return _this.cancelExport();
+      return _this2.cancelExport();
     });
     $wizard.on('click', '.aie-download-file', function () {
-      return _this.downloadFile();
+      return _this2.downloadFile();
     });
     $wizard.on('click', '.aie-new-export', function () {
-      return _this.newExport();
+      return _this2.newExport();
     });
 
     // Dynamic Filters
     $wizard.on('click', '.aie-add-filter', function () {
-      return _this.addFilterRow();
+      return _this2.addFilterRow();
     });
     $wizard.on('click', '.aie-remove-filter', function (e) {
-      return _this.removeFilterRow(e);
+      return _this2.removeFilterRow(e);
     });
     $wizard.on('change', '.aie-filter-field', function (e) {
-      return _this.onFilterFieldChange(e);
+      return _this2.onFilterFieldChange(e);
     });
 
     // Dynamic filter value changes - auto refresh count when filter is complete
@@ -1933,26 +1958,26 @@ var ExportModule = _defineProperty(_defineProperty({
       }
 
       // Update input type based on condition
-      _this.updateValueInputType($row);
-      if (_this.isFilterRowComplete($row)) {
+      _this2.updateValueInputType($row);
+      if (_this2.isFilterRowComplete($row)) {
         _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-          return _this.refreshCount(false);
+          return _this2.refreshCount(false);
         }, 500)();
       }
     });
     $wizard.on('input', '.aie-filter-value', function (e) {
       var $row = jQuery(e.target).closest('.aie-filter-row');
-      if (_this.isFilterRowComplete($row)) {
+      if (_this2.isFilterRowComplete($row)) {
         _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-          return _this.refreshCount(false);
+          return _this2.refreshCount(false);
         }, 1000)();
       }
     });
     $wizard.on('change', '.aie-filter-value', function (e) {
       var $row = jQuery(e.target).closest('.aie-filter-row');
-      if (_this.isFilterRowComplete($row)) {
+      if (_this2.isFilterRowComplete($row)) {
         _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-          return _this.refreshCount(false);
+          return _this2.refreshCount(false);
         }, 500)();
       }
     });
@@ -2127,7 +2152,7 @@ var ExportModule = _defineProperty(_defineProperty({
    */
   refreshCount: function refreshCount() {
     var _arguments = arguments,
-      _this2 = this;
+      _this3 = this;
     return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
       var showSpinner, $count, $spinner, $refreshBtn, contentType, options, $tableDropdown, dynamicFiltersData, _dynamicFiltersData, postType, response;
       return _regeneratorRuntime().wrap(function _callee$(_context) {
@@ -2147,18 +2172,18 @@ var ExportModule = _defineProperty(_defineProperty({
             if (contentType === 'database_table') {
               // For database tables, get table name from dropdown
               $tableDropdown = jQuery('#aie-table-name');
-              dynamicFiltersData = _this2.getDynamicFilters();
+              dynamicFiltersData = _this3.getDynamicFilters();
               options = {
                 table_name: $tableDropdown.val(),
                 filters: dynamicFiltersData.filters
               };
             } else {
               // For other types, use dynamic filters
-              _dynamicFiltersData = _this2.getDynamicFilters();
+              _dynamicFiltersData = _this3.getDynamicFilters();
               console.log('Dynamic filters data:', _dynamicFiltersData);
 
               // Map content type to post_type for post-based exporters
-              postType = _this2.getPostTypeForContentType(contentType);
+              postType = _this3.getPostTypeForContentType(contentType);
               if (postType) {
                 options.post_type = postType;
               }
@@ -2190,7 +2215,7 @@ var ExportModule = _defineProperty(_defineProperty({
             $count.text(response.count || 0);
 
             // Update next button state based on count
-            _this2.updateStep2NextButton();
+            _this3.updateStep2NextButton();
             _context.next = 24;
             break;
           case 19:
@@ -2200,7 +2225,7 @@ var ExportModule = _defineProperty(_defineProperty({
             console.error('Count error:', _context.t0);
 
             // Disable next button on error
-            _this2.updateStep2NextButton();
+            _this3.updateStep2NextButton();
           case 24:
             _context.prev = 24;
             $spinner.removeClass('is-active');
@@ -2231,7 +2256,7 @@ var ExportModule = _defineProperty(_defineProperty({
    * Update step 2 next button state based on item count
    */
   updateStep2NextButton: function updateStep2NextButton() {
-    var _this3 = this;
+    var _this4 = this;
     var $nextBtn = jQuery('.aie-step-2 .aie-next-step');
     var $count = jQuery('.aie-step-2 .aie-count-value');
     var countText = $count.text();
@@ -2246,12 +2271,12 @@ var ExportModule = _defineProperty(_defineProperty({
 
       // Show tooltip on hover
       $nextBtn.on('mouseenter.tooltip', function () {
-        _this3.showNextButtonTooltip($nextBtn);
+        _this4.showNextButtonTooltip($nextBtn);
       });
 
       // Hide tooltip on mouse leave
       $nextBtn.on('mouseleave.tooltip', function () {
-        _this3.hideNextButtonTooltip($nextBtn);
+        _this4.hideNextButtonTooltip($nextBtn);
       });
     } else {
       $nextBtn.prop('disabled', false);
@@ -2521,13 +2546,13 @@ var ExportModule = _defineProperty(_defineProperty({
    * Start export
    */
   startExport: function startExport() {
-    var _this4 = this;
+    var _this5 = this;
     return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
       var fields, contentType, dynamicFiltersData, csvDelimiter, customDelimiter, data, response;
       return _regeneratorRuntime().wrap(function _callee2$(_context2) {
         while (1) switch (_context2.prev = _context2.next) {
           case 0:
-            fields = _this4.getSelectedFields();
+            fields = _this5.getSelectedFields();
             if (!(fields.length === 0)) {
               _context2.next = 4;
               break;
@@ -2537,7 +2562,7 @@ var ExportModule = _defineProperty(_defineProperty({
           case 4:
             _context2.prev = 4;
             contentType = jQuery('input[name="content_type"]:checked').val();
-            dynamicFiltersData = _this4.getDynamicFilters(); // Get CSV delimiter
+            dynamicFiltersData = _this5.getDynamicFilters(); // Get CSV delimiter
             csvDelimiter = jQuery('[name="csv_delimiter"]').val();
             if (!(csvDelimiter === 'custom')) {
               _context2.next = 15;
@@ -2557,7 +2582,7 @@ var ExportModule = _defineProperty(_defineProperty({
           case 15:
             data = {
               export_type: contentType,
-              filters: _this4.getFilters(),
+              filters: _this5.getFilters(),
               fields: fields,
               format: jQuery('input[name="format"]:checked').val(),
               format_options: {
@@ -2569,8 +2594,8 @@ var ExportModule = _defineProperty(_defineProperty({
                 items_per_iteration: parseInt(jQuery('[name="items_per_iteration"]').val()) || 3
               }
             }; // Add field functions if available
-            if (_this4.step3Instance && _this4.step3Instance.fieldFunctions) {
-              data.field_functions = _this4.step3Instance.fieldFunctions;
+            if (_this5.step3Instance && _this5.step3Instance.fieldFunctions) {
+              data.field_functions = _this5.step3Instance.fieldFunctions;
             }
 
             // Add dynamic filters
@@ -2591,12 +2616,12 @@ var ExportModule = _defineProperty(_defineProperty({
             return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_start', data);
           case 22:
             response = _context2.sent;
-            _this4.jobId = response.job_id;
-            _this4.showStep(5);
-            _this4.startProgressTracking();
+            _this5.jobId = response.job_id;
+            _this5.showStep(5);
+            _this5.startProgressTracking();
 
             // Trigger first batch processing
-            _this4.processNextBatch();
+            _this5.processNextBatch();
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Export started successfully', 'success');
             _context2.next = 33;
             break;
@@ -2615,13 +2640,13 @@ var ExportModule = _defineProperty(_defineProperty({
    * Process next export batch
    */
   processNextBatch: function processNextBatch() {
-    var _this5 = this;
+    var _this6 = this;
     return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
       var response;
       return _regeneratorRuntime().wrap(function _callee3$(_context3) {
         while (1) switch (_context3.prev = _context3.next) {
           case 0:
-            if (_this5.jobId) {
+            if (_this6.jobId) {
               _context3.next = 2;
               break;
             }
@@ -2630,7 +2655,7 @@ var ExportModule = _defineProperty(_defineProperty({
             _context3.prev = 2;
             _context3.next = 5;
             return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_process_batch', {
-              job_id: _this5.jobId
+              job_id: _this6.jobId
             });
           case 5:
             response = _context3.sent;
@@ -2639,7 +2664,7 @@ var ExportModule = _defineProperty(_defineProperty({
             // If not completed, process next batch after small delay
             if (response && !response.completed) {
               setTimeout(function () {
-                _this5.processNextBatch();
+                _this6.processNextBatch();
               }, 100);
             }
             _context3.next = 13;
@@ -2659,16 +2684,16 @@ var ExportModule = _defineProperty(_defineProperty({
    * Start progress tracking
    */
   startProgressTracking: function startProgressTracking() {
-    var _this6 = this;
+    var _this7 = this;
     this.progressInterval = setInterval(function () {
-      _this6.updateProgress();
+      _this7.updateProgress();
     }, 2000);
   },
   /**
    * Update progress
    */
   updateProgress: function updateProgress() {
-    var _this7 = this;
+    var _this8 = this;
     return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
       var response;
       return _regeneratorRuntime().wrap(function _callee4$(_context4) {
@@ -2677,15 +2702,15 @@ var ExportModule = _defineProperty(_defineProperty({
             _context4.prev = 0;
             _context4.next = 3;
             return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_get_progress', {
-              job_id: _this7.jobId
+              job_id: _this8.jobId
             });
           case 3:
             response = _context4.sent;
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].updateProgressBar(jQuery('.aie-step-5'), response);
             if (response.status === 'completed') {
-              _this7.onExportComplete(response);
+              _this8.onExportComplete(response);
             } else if (response.status === 'failed') {
-              _this7.onExportFailed(response);
+              _this8.onExportFailed(response);
             }
             _context4.next = 11;
             break;
@@ -2742,7 +2767,7 @@ var ExportModule = _defineProperty(_defineProperty({
    * Download export file
    */
   downloadFile: function downloadFile() {
-    var _this8 = this;
+    var _this9 = this;
     return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
       var response;
       return _regeneratorRuntime().wrap(function _callee5$(_context5) {
@@ -2751,7 +2776,7 @@ var ExportModule = _defineProperty(_defineProperty({
             _context5.prev = 0;
             _context5.next = 3;
             return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_download', {
-              job_id: _this8.jobId
+              job_id: _this9.jobId
             });
           case 3:
             response = _context5.sent;
@@ -2775,7 +2800,7 @@ var ExportModule = _defineProperty(_defineProperty({
    * Cancel export
    */
   cancelExport: function cancelExport() {
-    var _this9 = this;
+    var _this10 = this;
     return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
       return _regeneratorRuntime().wrap(function _callee6$(_context6) {
         while (1) switch (_context6.prev = _context6.next) {
@@ -2789,12 +2814,12 @@ var ExportModule = _defineProperty(_defineProperty({
             _context6.prev = 2;
             _context6.next = 5;
             return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_cancel', {
-              job_id: _this9.jobId
+              job_id: _this10.jobId
             });
           case 5:
-            clearInterval(_this9.progressInterval);
+            clearInterval(_this10.progressInterval);
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Export cancelled', 'info');
-            _this9.resetWizard();
+            _this10.resetWizard();
             _context6.next = 13;
             break;
           case 10:
@@ -2830,7 +2855,7 @@ var ExportModule = _defineProperty(_defineProperty({
    * Add new filter row
    */
   addFilterRow: function addFilterRow() {
-    var _this10 = this;
+    var _this11 = this;
     var template = document.getElementById('aie-filter-row-template');
     var clone = template.content.cloneNode(true);
     var contentType = jQuery('input[name="content_type"]:checked').val();
@@ -2849,26 +2874,26 @@ var ExportModule = _defineProperty(_defineProperty({
 
     // Trigger count refresh (without spinner)
     _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-      return _this10.refreshCount(false);
+      return _this11.refreshCount(false);
     }, 500)();
   },
   /**
    * Remove filter row
    */
   removeFilterRow: function removeFilterRow(e) {
-    var _this11 = this;
+    var _this12 = this;
     jQuery(e.target).closest('.aie-filter-row').remove();
 
     // Trigger count refresh (without spinner)
     _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-      return _this11.refreshCount(false);
+      return _this12.refreshCount(false);
     }, 500)();
   },
   /**
    * Handle filter field change
    */
   onFilterFieldChange: function onFilterFieldChange(e) {
-    var _this13 = this;
+    var _this14 = this;
     var $field = jQuery(e.target);
     var $row = $field.closest('.aie-filter-row');
     var $condition = $row.find('.aie-filter-condition');
@@ -2886,7 +2911,7 @@ var ExportModule = _defineProperty(_defineProperty({
 
       // Handle condition change to show/hide value input
       $row.find('.aie-custom-field-condition').on('change', function () {
-        var _this12 = this;
+        var _this13 = this;
         var condition = jQuery(this).val();
         var $valueGroup = $row.find('.aie-custom-field-value-group');
         if (condition === 'is_empty' || condition === 'is_not_empty') {
@@ -2896,14 +2921,14 @@ var ExportModule = _defineProperty(_defineProperty({
         }
         // Trigger count refresh on condition change
         _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-          return _this12.refreshCount(false);
+          return _this13.refreshCount(false);
         }, 500)();
       }.bind(this));
 
       // Add change event handlers to trigger count refresh
       $row.find('.aie-custom-field-name, .aie-custom-field-value').on('input change', function () {
         _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-          return _this13.refreshCount(false);
+          return _this14.refreshCount(false);
         }, 500)();
       });
       return;
@@ -2919,7 +2944,7 @@ var ExportModule = _defineProperty(_defineProperty({
       // Add change event handlers to trigger count refresh
       $row.find('.aie-taxonomy-name, .aie-taxonomy-condition, .aie-taxonomy-terms').on('input change', function () {
         _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-          return _this13.refreshCount(false);
+          return _this14.refreshCount(false);
         }, 500)();
       });
       return;
@@ -2948,7 +2973,7 @@ var ExportModule = _defineProperty(_defineProperty({
           $select.on('change', function () {
             var tableName = $select.val();
             if (tableName) {
-              _this13.loadTableColumns(tableName);
+              _this14.loadTableColumns(tableName);
             }
           });
         }
@@ -2984,12 +3009,12 @@ var ExportModule = _defineProperty(_defineProperty({
           // When post type is selected, refresh count
           _$select.on('change', function () {
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-              return _this13.refreshCount(false);
+              return _this14.refreshCount(false);
             }, 500)();
 
             // Reload step 3 fields if currently on step 3
-            if (_this13.currentStep === 3 && _this13.step3Instance) {
-              _this13.step3Instance.reloadDynamicFields();
+            if (_this14.currentStep === 3 && _this14.step3Instance) {
+              _this14.step3Instance.reloadDynamicFields();
             }
           });
         }
@@ -3064,20 +3089,20 @@ var ExportModule = _defineProperty(_defineProperty({
 
     // Trigger count refresh (without spinner)
     _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
-      return _this13.refreshCount(false);
+      return _this14.refreshCount(false);
     }, 500)();
   },
   /**
    * Load table columns dynamically
    */
   loadTableColumns: function loadTableColumns(tableName) {
-    var _this14 = this;
+    var _this15 = this;
     _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_get_table_columns', {
       table_name: tableName
     }).then(function (columns) {
       if (columns && Array.isArray(columns)) {
         // Store columns for later use
-        _this14.tableColumns = columns;
+        _this15.tableColumns = columns;
 
         // Update all filter field dropdowns
         jQuery('.aie-filter-field').each(function (index, element) {
@@ -4481,7 +4506,7 @@ var ExportModule = _defineProperty(_defineProperty({
    * Load database tables
    */
   loadDatabaseTables: function loadDatabaseTables() {
-    var _this15 = this;
+    var _this16 = this;
     var $dropdown = jQuery('#aie-table-name');
     var $spinner = jQuery('.aie-table-selector .spinner');
     var $section = jQuery('.aie-table-selection-section');
@@ -4520,7 +4545,7 @@ var ExportModule = _defineProperty(_defineProperty({
       $dropdown.off('change').on('change', function () {
         var tableName = $dropdown.val();
         if (tableName) {
-          _this15.loadTableColumns(tableName);
+          _this16.loadTableColumns(tableName);
         } else {
           jQuery('.aie-table-info').html('').hide();
           jQuery('#aie-filters-list').empty();
@@ -4535,7 +4560,7 @@ var ExportModule = _defineProperty(_defineProperty({
     });
   }
 }, "loadTableColumns", function loadTableColumns(tableName) {
-  var _this16 = this;
+  var _this17 = this;
   var $tableInfo = jQuery('.aie-table-info');
   var $columnsList = jQuery('.aie-columns-list');
   var $rowCount = jQuery('.aie-table-row-count');
@@ -4558,20 +4583,20 @@ var ExportModule = _defineProperty(_defineProperty({
     $columnsList.empty();
     var $list = jQuery('<ul>').addClass('aie-column-type-list');
     columns.forEach(function (col) {
-      var typeIcon = _this16.getColumnTypeIcon(col);
+      var typeIcon = _this17.getColumnTypeIcon(col);
       var typeLabel = col.is_numeric ? 'numeric' : col.is_string ? 'text' : col.is_date ? 'date' : 'other';
       $list.append(jQuery('<li>').html("<span class=\"dashicons ".concat(typeIcon, "\"></span> \n\t\t\t\t\t\t\t<strong>").concat(col.name, "</strong> \n\t\t\t\t\t\t\t<span class=\"column-type\">(").concat(col.type, ")</span>")));
     });
     $columnsList.append($list);
 
     // Store columns for filter field options
-    _this16.currentTableColumns = columns;
+    _this17.currentTableColumns = columns;
 
     // Clear existing filters
     jQuery('#aie-filters-list').empty();
 
     // Refresh count to get row count
-    _this16.refreshCount(false);
+    _this17.refreshCount(false);
   })["catch"](function (error) {
     console.error('Error loading columns:', error);
     $columnsList.html('<p class="error">Error loading columns</p>');
@@ -6655,6 +6680,628 @@ var ImportModule = {
   }
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ImportModule);
+
+/***/ }),
+
+/***/ "./src/js/modules/jobs-log.js":
+/*!************************************!*\
+  !*** ./src/js/modules/jobs-log.js ***!
+  \************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/js/modules/utils.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+/**
+ * Jobs Log Module
+ *
+ * Handles jobs log page functionality
+ */
+
+
+var JobsLogModule = {
+  currentPage: 1,
+  perPage: 20,
+  totalPages: 1,
+  totalJobs: 0,
+  filters: {
+    type: '',
+    status: ''
+  },
+  /**
+   * Initialize module
+   */
+  init: function init() {
+    if (!jQuery('#wp-aie-jobs-log').length) {
+      return;
+    }
+    this.bindEvents();
+    this.loadJobs();
+  },
+  /**
+   * Bind event handlers
+   */
+  bindEvents: function bindEvents() {
+    var _this = this;
+    var $page = jQuery('#wp-aie-jobs-log');
+
+    // Filter buttons
+    $page.on('click', '.aie-filter-apply', function () {
+      return _this.applyFilters();
+    });
+    $page.on('click', '.aie-filter-reset', function () {
+      return _this.resetFilters();
+    });
+
+    // Pagination
+    $page.on('click', '.first-page', function () {
+      return _this.goToPage(1);
+    });
+    $page.on('click', '.prev-page', function () {
+      return _this.goToPage(_this.currentPage - 1);
+    });
+    $page.on('click', '.next-page', function () {
+      return _this.goToPage(_this.currentPage + 1);
+    });
+    $page.on('click', '.last-page', function () {
+      return _this.goToPage(_this.totalPages);
+    });
+
+    // Job actions
+    $page.on('click', '.job-action-resume', function (e) {
+      return _this.resumeJob(e);
+    });
+    $page.on('click', '.job-action-restart', function (e) {
+      return _this.restartJob(e);
+    });
+    $page.on('click', '.job-action-retry', function (e) {
+      return _this.retryJob(e);
+    });
+    $page.on('click', '.job-action-delete', function (e) {
+      return _this.deleteJob(e);
+    });
+    $page.on('click', '.job-action-download', function (e) {
+      return _this.downloadFile(e);
+    });
+    $page.on('click', '.job-action-view', function (e) {
+      return _this.viewJobDetails(e);
+    });
+
+    // Modal close - bind to document for modals outside page container
+    jQuery(document).on('click', '.aie-modal-close', function () {
+      return _this.closeModal();
+    });
+    jQuery(document).on('click', '.aie-modal-overlay', function () {
+      return _this.closeModal();
+    });
+
+    // Confirm delete
+    jQuery(document).on('click', '.aie-confirm-delete', function () {
+      return _this.confirmDelete();
+    });
+  },
+  /**
+   * Apply filters
+   */
+  applyFilters: function applyFilters() {
+    this.filters.type = jQuery('#filter-type').val();
+    this.filters.status = jQuery('#filter-status').val();
+    this.currentPage = 1;
+    this.loadJobs();
+  },
+  /**
+   * Reset filters
+   */
+  resetFilters: function resetFilters() {
+    jQuery('#filter-type').val('');
+    jQuery('#filter-status').val('');
+    this.filters = {
+      type: '',
+      status: ''
+    };
+    this.currentPage = 1;
+    this.loadJobs();
+  },
+  /**
+   * Load jobs list
+   */
+  loadJobs: function loadJobs() {
+    var _this2 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+      var $loading, $table, offset, response;
+      return _regeneratorRuntime().wrap(function _callee$(_context) {
+        while (1) switch (_context.prev = _context.next) {
+          case 0:
+            $loading = jQuery('.aie-jobs-loading');
+            $table = jQuery('.aie-jobs-table-wrapper');
+            $loading.show();
+            $table.hide();
+            _context.prev = 4;
+            offset = (_this2.currentPage - 1) * _this2.perPage;
+            console.log('Loading jobs with params:', {
+              type: _this2.filters.type,
+              status: _this2.filters.status,
+              limit: _this2.perPage,
+              offset: offset
+            });
+            _context.next = 9;
+            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_job_list', {
+              type: _this2.filters.type,
+              status: _this2.filters.status,
+              limit: _this2.perPage,
+              offset: offset
+            });
+          case 9:
+            response = _context.sent;
+            console.log('Jobs response:', response);
+            if (response && response.jobs) {
+              _this2.totalJobs = response.total || 0;
+              _this2.totalPages = Math.ceil(_this2.totalJobs / _this2.perPage);
+              _this2.renderJobs(response.jobs);
+              _this2.updatePagination();
+            } else {
+              console.error('Invalid response format:', response);
+              _this2.renderJobs([]);
+            }
+            _context.next = 19;
+            break;
+          case 14:
+            _context.prev = 14;
+            _context.t0 = _context["catch"](4);
+            console.error('Error loading jobs:', _context.t0);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Error loading jobs: ' + _context.t0.message, 'error');
+            _this2.renderJobs([]);
+          case 19:
+            _context.prev = 19;
+            $loading.hide();
+            $table.show();
+            return _context.finish(19);
+          case 23:
+          case "end":
+            return _context.stop();
+        }
+      }, _callee, null, [[4, 14, 19, 23]]);
+    }))();
+  },
+  /**
+   * Render jobs table
+   */
+  renderJobs: function renderJobs(jobs) {
+    var _this3 = this;
+    var $tbody = jQuery('#jobs-table-body');
+    if (!jobs || jobs.length === 0) {
+      $tbody.html('<tr class="no-items"><td colspan="9">No jobs found.</td></tr>');
+      return;
+    }
+    var html = '';
+    jobs.forEach(function (job) {
+      html += _this3.renderJobRow(job);
+    });
+    $tbody.html(html);
+  },
+  /**
+   * Render single job row
+   */
+  renderJobRow: function renderJobRow(job) {
+    var statusClass = 'status-' + job.status;
+    var typeLabel = this.getTypeLabel(job.type);
+    var statusLabel = this.getStatusLabel(job.status);
+    var progressBar = this.renderProgressBar(job);
+    var actions = this.renderActions(job);
+    return "\n\t\t\t<tr class=\"job-row ".concat(statusClass, "\" data-job-id=\"").concat(job.id, "\">\n\t\t\t\t<td class=\"column-id\">").concat(job.id, "</td>\n\t\t\t\t<td class=\"column-type\">\n\t\t\t\t\t<span class=\"job-type-badge job-type-").concat(job.type, "\">").concat(typeLabel, "</span>\n\t\t\t\t</td>\n\t\t\t\t<td class=\"column-data-type\">").concat(job.data_type, "</td>\n\t\t\t\t<td class=\"column-status\">\n\t\t\t\t\t<span class=\"job-status-badge job-status-").concat(job.status, "\">").concat(statusLabel, "</span>\n\t\t\t\t</td>\n\t\t\t\t<td class=\"column-progress\">").concat(progressBar, "</td>\n\t\t\t\t<td class=\"column-items\">\n\t\t\t\t\t<div class=\"items-info\">\n\t\t\t\t\t\t<div><strong>").concat(job.processed_items, "</strong> / ").concat(job.total_items, "</div>\n\t\t\t\t\t\t").concat(job.failed_items > 0 ? "<div class=\"failed-count\">Failed: ".concat(job.failed_items, "</div>") : '', "\n\t\t\t\t\t</div>\n\t\t\t\t</td>\n\t\t\t\t<td class=\"column-created\">").concat(this.formatDate(job.created_at), "</td>\n\t\t\t\t<td class=\"column-elapsed\">").concat(job.elapsed_time || '-', "</td>\n\t\t\t\t<td class=\"column-actions\">").concat(actions, "</td>\n\t\t\t</tr>\n\t\t");
+  },
+  /**
+   * Render progress bar
+   */
+  renderProgressBar: function renderProgressBar(job) {
+    var progress = job.progress || 0;
+    return "\n\t\t\t<div class=\"progress-bar-wrapper\">\n\t\t\t\t<div class=\"progress-bar\">\n\t\t\t\t\t<div class=\"progress-bar-fill\" style=\"width: ".concat(progress, "%\"></div>\n\t\t\t\t</div>\n\t\t\t\t<span class=\"progress-text\">").concat(progress, "%</span>\n\t\t\t</div>\n\t\t");
+  },
+  /**
+   * Render action buttons
+   */
+  renderActions: function renderActions(job) {
+    var actions = [];
+
+    // View details
+    actions.push("<button class=\"button button-small job-action-view\" title=\"View Details\"><span class=\"dashicons dashicons-visibility\"></span></button>");
+
+    // Resume
+    if (job.can_resume) {
+      actions.push("<button class=\"button button-small job-action-resume\" title=\"Resume\"><span class=\"dashicons dashicons-controls-play\"></span></button>");
+    }
+
+    // Retry - always available
+    actions.push("<button class=\"button button-small job-action-retry\" title=\"Retry (Create new job with same parameters)\"><span class=\"dashicons dashicons-update\"></span></button>");
+
+    // Download (for exports)
+    if (job.type === 'export' && job.file_path && job.status === 'completed') {
+      actions.push("<button class=\"button button-small job-action-download\" title=\"Download\"><span class=\"dashicons dashicons-download\"></span></button>");
+    }
+
+    // Delete
+    if (job.can_delete) {
+      actions.push("<button class=\"button button-small job-action-delete\" title=\"Delete\"><span class=\"dashicons dashicons-trash\"></span></button>");
+    }
+    return "<div class=\"job-actions\">".concat(actions.join(''), "</div>");
+  },
+  /**
+   * Update pagination UI
+   */
+  updatePagination: function updatePagination() {
+    var $pagination = jQuery('.aie-jobs-pagination');
+    if (this.totalJobs === 0) {
+      $pagination.hide();
+      return;
+    }
+    $pagination.show();
+
+    // Update info text
+    var start = (this.currentPage - 1) * this.perPage + 1;
+    var end = Math.min(this.currentPage * this.perPage, this.totalJobs);
+    jQuery('.displaying-num').text("Showing ".concat(start, "-").concat(end, " of ").concat(this.totalJobs, " jobs"));
+
+    // Update page numbers
+    jQuery('.current-page').text(this.currentPage);
+    jQuery('.total-pages').text(this.totalPages);
+
+    // Update button states
+    jQuery('.first-page, .prev-page').prop('disabled', this.currentPage === 1);
+    jQuery('.next-page, .last-page').prop('disabled', this.currentPage >= this.totalPages);
+  },
+  /**
+   * Go to page
+   */
+  goToPage: function goToPage(page) {
+    if (page < 1 || page > this.totalPages || page === this.currentPage) {
+      return;
+    }
+    this.currentPage = page;
+    this.loadJobs();
+  },
+  /**
+   * Resume job
+   */
+  resumeJob: function resumeJob(e) {
+    var _this4 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+      var $button, $row, jobId, response;
+      return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+        while (1) switch (_context2.prev = _context2.next) {
+          case 0:
+            $button = jQuery(e.currentTarget);
+            $row = $button.closest('tr');
+            jobId = $row.data('job-id');
+            if (confirm('Resume this job?')) {
+              _context2.next = 5;
+              break;
+            }
+            return _context2.abrupt("return");
+          case 5:
+            $button.prop('disabled', true);
+            _context2.prev = 6;
+            _context2.next = 9;
+            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_job_resume', {
+              job_id: jobId
+            });
+          case 9:
+            response = _context2.sent;
+            if (response && response.job_id) {
+              _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Job resumed successfully', 'success');
+
+              // Redirect based on job type
+              _this4.redirectToJobPage(response.type, response.job_id);
+            }
+            _context2.next = 18;
+            break;
+          case 13:
+            _context2.prev = 13;
+            _context2.t0 = _context2["catch"](6);
+            console.error('Error resuming job:', _context2.t0);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Error resuming job: ' + _context2.t0.message, 'error');
+            $button.prop('disabled', false);
+          case 18:
+          case "end":
+            return _context2.stop();
+        }
+      }, _callee2, null, [[6, 13]]);
+    }))();
+  },
+  /**
+   * Restart job
+   */
+  restartJob: function restartJob(e) {
+    var _this5 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+      var $button, $row, jobId, response;
+      return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+        while (1) switch (_context3.prev = _context3.next) {
+          case 0:
+            $button = jQuery(e.currentTarget);
+            $row = $button.closest('tr');
+            jobId = $row.data('job-id');
+            if (confirm('Restart this job with the same settings?')) {
+              _context3.next = 5;
+              break;
+            }
+            return _context3.abrupt("return");
+          case 5:
+            $button.prop('disabled', true);
+            _context3.prev = 6;
+            _context3.next = 9;
+            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_job_restart', {
+              job_id: jobId
+            });
+          case 9:
+            response = _context3.sent;
+            if (response && response.job_id) {
+              _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Job restarted successfully', 'success');
+
+              // Redirect based on job type
+              _this5.redirectToJobPage(response.type, response.job_id);
+            }
+            _context3.next = 18;
+            break;
+          case 13:
+            _context3.prev = 13;
+            _context3.t0 = _context3["catch"](6);
+            console.error('Error restarting job:', _context3.t0);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Error restarting job: ' + _context3.t0.message, 'error');
+            $button.prop('disabled', false);
+          case 18:
+          case "end":
+            return _context3.stop();
+        }
+      }, _callee3, null, [[6, 13]]);
+    }))();
+  },
+  /**
+   * Retry job (create new job with processing status and show progress immediately)
+   */
+  retryJob: function retryJob(e) {
+    var _this6 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+      var $button, $row, jobId, response, errorMsg;
+      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+        while (1) switch (_context4.prev = _context4.next) {
+          case 0:
+            $button = jQuery(e.currentTarget);
+            $row = $button.closest('tr');
+            jobId = $row.data('job-id');
+            if (confirm('Retry this job with the same settings?')) {
+              _context4.next = 5;
+              break;
+            }
+            return _context4.abrupt("return");
+          case 5:
+            $button.prop('disabled', true);
+            _context4.prev = 6;
+            _context4.next = 9;
+            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_job_retry', {
+              job_id: jobId
+            });
+          case 9:
+            response = _context4.sent;
+            if (response && response.job_id && response.type) {
+              _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Job created, starting process...', 'success');
+
+              // Redirect to job page with resume_job parameter to show progress
+              _this6.redirectToJobPage(response.type, response.job_id);
+            }
+            _context4.next = 19;
+            break;
+          case 13:
+            _context4.prev = 13;
+            _context4.t0 = _context4["catch"](6);
+            console.error('Error retrying job:', _context4.t0);
+            errorMsg = _context4.t0 && _context4.t0.message ? _context4.t0.message : 'Unknown error occurred';
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Error retrying job: ' + errorMsg, 'error');
+            $button.prop('disabled', false);
+          case 19:
+          case "end":
+            return _context4.stop();
+        }
+      }, _callee4, null, [[6, 13]]);
+    }))();
+  },
+  /**
+   * Delete job
+   */
+  deleteJob: function deleteJob(e) {
+    var $button = jQuery(e.currentTarget);
+    var $row = $button.closest('tr');
+    var jobId = $row.data('job-id');
+
+    // Store job ID for confirmation
+    this.deleteJobId = jobId;
+
+    // Show confirmation modal
+    jQuery('#confirm-delete-modal').show();
+  },
+  /**
+   * Confirm delete
+   */
+  confirmDelete: function confirmDelete() {
+    var _this7 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+      var jobId;
+      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+        while (1) switch (_context5.prev = _context5.next) {
+          case 0:
+            if (_this7.deleteJobId) {
+              _context5.next = 2;
+              break;
+            }
+            return _context5.abrupt("return");
+          case 2:
+            jobId = _this7.deleteJobId;
+            _this7.closeModal();
+            _context5.prev = 4;
+            _context5.next = 7;
+            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_job_delete', {
+              job_id: jobId
+            });
+          case 7:
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Job deleted successfully', 'success');
+            _this7.loadJobs(); // Reload list
+            _context5.next = 15;
+            break;
+          case 11:
+            _context5.prev = 11;
+            _context5.t0 = _context5["catch"](4);
+            console.error('Error deleting job:', _context5.t0);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Error deleting job: ' + _context5.t0.message, 'error');
+          case 15:
+          case "end":
+            return _context5.stop();
+        }
+      }, _callee5, null, [[4, 11]]);
+    }))();
+  },
+  /**
+   * Download file
+   */
+  downloadFile: function downloadFile(e) {
+    var $button = jQuery(e.currentTarget);
+    var $row = $button.closest('tr');
+    var jobId = $row.data('job-id');
+
+    // Request download URL with nonce from server
+    jQuery.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: {
+        action: 'aie_job_download_url',
+        job_id: jobId,
+        nonce: aieData.nonce
+      },
+      success: function success(response) {
+        if (response.success && response.data.url) {
+          window.location.href = response.data.url;
+        } else {
+          alert(response.data || 'Download failed');
+        }
+      },
+      error: function error() {
+        alert('Failed to generate download URL');
+      }
+    });
+  },
+  /**
+   * View job details
+   */
+  viewJobDetails: function viewJobDetails(e) {
+    var _this8 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+      var $button, $row, jobId, response;
+      return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+        while (1) switch (_context6.prev = _context6.next) {
+          case 0:
+            $button = jQuery(e.currentTarget);
+            $row = $button.closest('tr');
+            jobId = $row.data('job-id');
+            _context6.prev = 3;
+            _context6.next = 6;
+            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_job_get', {
+              job_id: jobId
+            });
+          case 6:
+            response = _context6.sent;
+            if (response) {
+              _this8.showJobDetailsModal(response);
+            }
+            _context6.next = 14;
+            break;
+          case 10:
+            _context6.prev = 10;
+            _context6.t0 = _context6["catch"](3);
+            console.error('Error loading job details:', _context6.t0);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Error loading job details: ' + _context6.t0.message, 'error');
+          case 14:
+          case "end":
+            return _context6.stop();
+        }
+      }, _callee6, null, [[3, 10]]);
+    }))();
+  },
+  /**
+   * Show job details modal
+   */
+  showJobDetailsModal: function showJobDetailsModal(job) {
+    var html = "\n\t\t\t<div class=\"job-details\">\n\t\t\t\t<table class=\"form-table\">\n\t\t\t\t\t<tr>\n\t\t\t\t\t\t<th>ID:</th>\n\t\t\t\t\t\t<td>".concat(job.id, "</td>\n\t\t\t\t\t</tr>\n\t\t\t\t\t<tr>\n\t\t\t\t\t\t<th>Type:</th>\n\t\t\t\t\t\t<td>").concat(this.getTypeLabel(job.type), "</td>\n\t\t\t\t\t</tr>\n\t\t\t\t\t<tr>\n\t\t\t\t\t\t<th>Data Type:</th>\n\t\t\t\t\t\t<td>").concat(job.data_type, "</td>\n\t\t\t\t\t</tr>\n\t\t\t\t\t<tr>\n\t\t\t\t\t\t<th>File Format:</th>\n\t\t\t\t\t\t<td>").concat(job.file_format, "</td>\n\t\t\t\t\t</tr>\n\t\t\t\t\t<tr>\n\t\t\t\t\t\t<th>Status:</th>\n\t\t\t\t\t\t<td><span class=\"job-status-badge job-status-").concat(job.status, "\">").concat(this.getStatusLabel(job.status), "</span></td>\n\t\t\t\t\t</tr>\n\t\t\t\t\t<tr>\n\t\t\t\t\t\t<th>Progress:</th>\n\t\t\t\t\t\t<td>").concat(job.progress || 0, "%</td>\n\t\t\t\t\t</tr>\n\t\t\t\t\t<tr>\n\t\t\t\t\t\t<th>Items:</th>\n\t\t\t\t\t\t<td>").concat(job.processed_items, " / ").concat(job.total_items, " (Success: ").concat(job.success_items, ", Failed: ").concat(job.failed_items, ")</td>\n\t\t\t\t\t</tr>\n\t\t\t\t\t<tr>\n\t\t\t\t\t\t<th>Created:</th>\n\t\t\t\t\t\t<td>").concat(job.created_at, "</td>\n\t\t\t\t\t</tr>\n\t\t\t\t\t<tr>\n\t\t\t\t\t\t<th>Started:</th>\n\t\t\t\t\t\t<td>").concat(job.started_at || '-', "</td>\n\t\t\t\t\t</tr>\n\t\t\t\t\t<tr>\n\t\t\t\t\t\t<th>Completed:</th>\n\t\t\t\t\t\t<td>").concat(job.completed_at || '-', "</td>\n\t\t\t\t\t</tr>\n\t\t\t\t\t<tr>\n\t\t\t\t\t\t<th>File:</th>\n\t\t\t\t\t\t<td>").concat(job.file_path || '-', "</td>\n\t\t\t\t\t</tr>\n\t\t\t\t\t").concat(job.file_size ? "<tr><th>File Size:</th><td>".concat(job.file_size_human, "</td></tr>") : '', "\n\t\t\t\t</table>\n\t\t\t\t\n\t\t\t\t").concat(job.parameters ? "\n\t\t\t\t\t<h3>Parameters</h3>\n\t\t\t\t\t<pre class=\"job-parameters\">".concat(JSON.stringify(job.parameters, null, 2), "</pre>\n\t\t\t\t") : '', "\n\t\t\t</div>\n\t\t");
+    jQuery('#job-details-content').html(html);
+    jQuery('#job-details-modal').show();
+  },
+  /**
+   * Close modal
+   */
+  closeModal: function closeModal() {
+    jQuery('.aie-modal').hide();
+    this.deleteJobId = null;
+  },
+  /**
+   * Redirect to job page
+   */
+  redirectToJobPage: function redirectToJobPage(type, jobId) {
+    var page = '';
+    switch (type) {
+      case 'export':
+        page = 'wp-aie-export';
+        break;
+      case 'import':
+        page = 'wp-advanced-import-export';
+        break;
+      case 'media_sync':
+        page = 'wp-aie-media-sync';
+        break;
+    }
+    if (page) {
+      window.location.href = 'admin.php?page=' + page + '&resume_job=' + jobId;
+    }
+  },
+  /**
+   * Get type label
+   */
+  getTypeLabel: function getTypeLabel(type) {
+    var labels = {
+      'import': 'Import',
+      'export': 'Export',
+      'media_sync': 'Media Sync'
+    };
+    return labels[type] || type;
+  },
+  /**
+   * Get status label
+   */
+  getStatusLabel: function getStatusLabel(status) {
+    var labels = {
+      'pending': 'Pending',
+      'processing': 'Processing',
+      'completed': 'Completed',
+      'failed': 'Failed',
+      'paused': 'Paused',
+      'cancelled': 'Cancelled'
+    };
+    return labels[status] || status;
+  },
+  /**
+   * Format date
+   */
+  formatDate: function formatDate(dateString) {
+    if (!dateString) {
+      return '-';
+    }
+    var date = new Date(dateString);
+    return date.toLocaleString();
+  }
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (JobsLogModule);
 
 /***/ }),
 

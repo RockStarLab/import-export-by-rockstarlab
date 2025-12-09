@@ -152,12 +152,14 @@ class Export_Controller extends Base_Controller {
 		}
 
 		// Create job
-		$job      = new Job();
-		$job_data = [
-			'type'       => 'export',
-			'status'     => 'pending',
-			'user_id'    => $this->get_current_user_id(),
-			'parameters' => wp_json_encode(
+		$job_model = WP_AIE()->Model->job;
+		$job_data  = [
+			'type'        => 'export',
+			'status'      => 'pending',
+			'user_id'     => $this->get_current_user_id(),
+			'data_type'   => $export_type,
+			'file_format' => $format,
+			'parameters'  => wp_json_encode(
 				[
 					'export_type'     => $export_type,
 					'format'          => $format,
@@ -173,7 +175,7 @@ class Export_Controller extends Base_Controller {
 			),
 		];
 
-		$job_id = $job->create( $job_data );
+		$job_id = $job_model->create( $job_data );
 		if ( is_wp_error( $job_id ) ) {
 			$this->send_error( $job_id, null, 500 );
 		}
@@ -210,8 +212,8 @@ class Export_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job      = new Job();
-		$job_data = $job->find( $job_id );
+		$job_model = WP_AIE()->Model->job;
+		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
 			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ), null, 404 );
@@ -322,8 +324,8 @@ class Export_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job      = new Job();
-		$job_data = $job->find( $job_id );
+		$job_model = WP_AIE()->Model->job;
+		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data || empty( $job_data->file_path ) ) {
 			$this->send_error( __( 'Export file not found', 'wp-advanced-import-export' ), null, 404 );
@@ -383,8 +385,8 @@ class Export_Controller extends Base_Controller {
 		}
 
 		// Get job
-		$job      = new Job();
-		$job_data = $job->find( $job_id );
+		$job_model = WP_AIE()->Model->job;
+		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data || empty( $job_data->file_path ) ) {
 			wp_die( esc_html__( 'Export file not found', 'wp-advanced-import-export' ), 404 );
@@ -431,8 +433,8 @@ class Export_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job        = new Job();
-		$job_result = $job->update( $job_id, [ 'status' => 'cancelled' ] );
+		$job_model  = WP_AIE()->Model->job;
+		$job_result = $job_model->update( $job_id, [ 'status' => 'cancelled' ] );
 
 		if ( is_wp_error( $job_result ) ) {
 			$this->send_error( $job_result, null, 500 );
@@ -472,15 +474,15 @@ class Export_Controller extends Base_Controller {
 	 * @param int $job_id Job ID
 	 */
 	private function process_export_job( $job_id ) {
-		$job      = new Job();
-		$job_data = $job->find( $job_id );
+		$job_model = WP_AIE()->Model->job;
+		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
 			return;
 		}
 
 		// Update status to processing
-		$job->update( $job_id, [ 'status' => 'processing' ] );
+		$job_model->update( $job_id, [ 'status' => 'processing' ] );
 
 		$parameters      = json_decode( $job_data->parameters, true );
 		$export_type     = $parameters['export_type'];
@@ -512,7 +514,7 @@ class Export_Controller extends Base_Controller {
 		$exporter = Exporter_Factory::get_exporter( $export_type, $job_id );
 
 		if ( is_wp_error( $exporter ) ) {
-			$job->update(
+			$job_model->update(
 				$job_id,
 				[
 					'status' => 'failed',
@@ -526,7 +528,7 @@ class Export_Controller extends Base_Controller {
 		$export_result = $exporter->export( $export_options );
 
 		if ( is_wp_error( $export_result ) ) {
-			$job->update(
+			$job_model->update(
 				$job_id,
 				[
 					'status'   => 'failed',
@@ -545,7 +547,7 @@ class Export_Controller extends Base_Controller {
 		$file_info = Fs::get_export_file_path( $filename );
 
 		if ( is_wp_error( $file_info ) ) {
-			$job->update(
+			$job_model->update(
 				$job_id,
 				[
 					'status' => 'failed',
@@ -573,7 +575,7 @@ class Export_Controller extends Base_Controller {
 		$result    = $formatter->generate( $data, $file_info['path'], $formatter_options );
 
 		if ( is_wp_error( $result ) ) {
-			$job->update(
+			$job_model->update(
 				$job_id,
 				[
 					'status' => 'failed',
@@ -587,7 +589,7 @@ class Export_Controller extends Base_Controller {
 		$file_size = file_exists( $file_info['path'] ) ? filesize( $file_info['path'] ) : 0;
 
 		// Update job with complete stats
-		$job->update(
+		$job_model->update(
 			$job_id,
 			[
 				'status'          => 'completed',

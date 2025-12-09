@@ -98,6 +98,11 @@ if ( ! function_exists( 'waie_fs' ) ) {
 // Run the plugin
 WP_AIE()->run();
 
+// TEMPORARY: Test job creation
+if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+	require_once WP_AIE_PATH . 'test-job-creation.php';
+}
+
 // Activation hook - create database tables
 register_activation_hook(
 	WP_AIE_FILE,

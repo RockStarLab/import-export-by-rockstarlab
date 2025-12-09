@@ -44,14 +44,20 @@ class Model_Registry {
 	 * @return object|null Model instance or null
 	 */
 	public function __get( $name ) {
-		if ( isset( $this->models[ $name ] ) ) {
-			return $this->models[ $name ];
+		// Normalize name to lowercase for lookup
+		$lookup_name = strtolower( $name );
+
+		if ( isset( $this->models[ $lookup_name ] ) ) {
+			return $this->models[ $lookup_name ];
 		}
 
-		$class = "WP_AIE\\Model\\{$name}";
+		// Convert name to PascalCase for class name (ucfirst + any underscores)
+		$class_name = str_replace( ' ', '', ucwords( str_replace( '_', ' ', $name ) ) );
+		$class      = "WP_AIE\\Model\\{$class_name}";
+
 		if ( class_exists( $class ) ) {
-			$this->models[ $name ] = new $class();
-			return $this->models[ $name ];
+			$this->models[ $lookup_name ] = new $class();
+			return $this->models[ $lookup_name ];
 		}
 
 		return null;

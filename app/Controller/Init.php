@@ -133,6 +133,7 @@ class Init {
 				'toplevel_page_wp-advanced-import-export',
 				'advanced-import-export_page_wp-aie-export',
 				'advanced-import-export_page_wp-aie-content-sync',
+				'advanced-import-export_page_wp-aie-jobs-log',
 				'advanced-import-export_page_wp-aie-media-sync',
 				'advanced-import-export_page_wp-aie-functions',
 			)
@@ -260,6 +261,15 @@ class Init {
 			'wp-aie-functions',
 			array( $this, 'display_settings_functions_page' )
 		);
+
+		add_submenu_page(
+			'wp-advanced-import-export',
+			__( 'Jobs Log', 'wp-advanced-import-export' ),
+			__( 'Jobs Log', 'wp-advanced-import-export' ),
+			'manage_options',
+			'wp-aie-jobs-log',
+			array( $this, 'display_jobs_log_page' )
+		);
 	}
 
 	/**
@@ -295,6 +305,13 @@ class Init {
 	 */
 	function display_media_sync_page() {
 		WP_AIE()->View->load( 'settings/media_sync' );
+	}
+
+	/**
+	 * Display Jobs Log Page
+	 */
+	function display_jobs_log_page() {
+		WP_AIE()->View->load( 'settings/jobs-log' );
 	}
 
 	/**

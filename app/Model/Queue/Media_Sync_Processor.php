@@ -58,7 +58,7 @@ class Media_Sync_Processor {
 		$this->batch_processor  = new Batch_Processor( 20 ); // Process 20 files per batch
 		$this->logger           = new Logger();
 		$this->progress_tracker = new Progress_Tracker();
-		$this->job_model        = new Job();
+		$this->job_model        = WP_AIE()->Model->job;
 	}
 
 	/**

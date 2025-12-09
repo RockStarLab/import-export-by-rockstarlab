@@ -327,4 +327,57 @@ class Job extends Model {
 
 		return $deleted_count;
 	}
+
+	/**
+	 * Get all jobs with filters
+	 *
+	 * @param array  $where  WHERE conditions
+	 * @param int    $limit  Limit
+	 * @param int    $offset Offset
+	 * @param string $order  ORDER BY clause
+	 * @return array Jobs
+	 */
+	public function get_all( $where = [], $limit = 50, $offset = 0, $order = 'created_at DESC' ) {
+		global $wpdb;
+		$table = $this->get_table_name();
+
+		$where_sql = '1=1';
+		if ( ! empty( $where ) ) {
+			$conditions = [];
+			foreach ( $where as $key => $value ) {
+				$conditions[] = $wpdb->prepare( "{$key} = %s", $value );
+			}
+			$where_sql = implode( ' AND ', $conditions );
+		}
+
+		$sql = $wpdb->prepare(
+			"SELECT * FROM {$table} WHERE {$where_sql} ORDER BY {$order} LIMIT %d OFFSET %d",
+			$limit,
+			$offset
+		);
+
+		return $wpdb->get_results( $sql );
+	}
+
+	/**
+	 * Count jobs with filters
+	 *
+	 * @param array $where WHERE conditions
+	 * @return int Count
+	 */
+	public function count( $where = [] ) {
+		global $wpdb;
+		$table = $this->get_table_name();
+
+		$where_sql = '1=1';
+		if ( ! empty( $where ) ) {
+			$conditions = [];
+			foreach ( $where as $key => $value ) {
+				$conditions[] = $wpdb->prepare( "{$key} = %s", $value );
+			}
+			$where_sql = implode( ' AND ', $conditions );
+		}
+
+		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE {$where_sql}" );
+	}
 }

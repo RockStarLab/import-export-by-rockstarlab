@@ -22,8 +22,28 @@ const ExportModule = {
 			return;
 		}
 
+		// Check if resuming a job BEFORE showing any step
+		const urlParams = new URLSearchParams( window.location.search );
+		const resumeJobId = urlParams.get( 'resume_job' );
+		
 		this.bindEvents();
-		this.showStep( 1 );
+		
+		if ( resumeJobId ) {
+			// Resume job - go directly to step 5 and start processing
+			this.jobId = parseInt( resumeJobId );
+			
+			// Show step 5 immediately (don't hide first, let showStep handle it)
+			this.showStep( 5 );
+			
+			// Get initial progress first, then start tracking and processing
+			this.updateProgress().then( () => {
+				// Start progress tracking and batch processing
+				this.startProgressTracking();
+				this.processNextBatch();
+			} );
+		} else {
+			this.showStep( 1 );
+		}
 		
 		// Initialize Step 3 drag and drop
 		this.step3Instance = new ExportStep3();

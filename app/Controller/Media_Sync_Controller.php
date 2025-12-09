@@ -109,8 +109,8 @@ class Media_Sync_Controller extends Base_Controller {
 		}
 
 		// Create job record with folder path and options
-		$job      = new Job();
-		$job_data = [
+		$job_model = WP_AIE()->Model->job;
+		$job_data  = [
 			'type'     => 'media_sync',
 			'status'   => 'pending',
 			'user_id'  => $this->get_current_user_id(),
@@ -124,13 +124,13 @@ class Media_Sync_Controller extends Base_Controller {
 			),
 		];
 
-		$job_id = $job->create( $job_data );
+		$job_id = $job_model->create( $job_data );
 		if ( is_wp_error( $job_id ) ) {
 			$this->send_error( $job_id );
 		}
 
 		// Update job to processing status
-		$job->update( $job_id, [ 'status' => 'processing' ] );
+		$job_model->update( $job_id, [ 'status' => 'processing' ] );
 
 		// Return job info immediately so UI can open progress dialog
 		// JS will trigger the first processing request
@@ -157,8 +157,8 @@ class Media_Sync_Controller extends Base_Controller {
 		$this->validate_required_params( [ 'job_id' ] );
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job  = new Job();
-		$data = $job->find( $job_id );
+		$job_model = WP_AIE()->Model->job;
+		$data      = $job_model->find( $job_id );
 
 		if ( ! $data ) {
 			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ) );
@@ -185,8 +185,8 @@ class Media_Sync_Controller extends Base_Controller {
 		$this->validate_required_params( [ 'job_id' ] );
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job = new Job();
-		$job->update( $job_id, [ 'status' => 'paused' ] );
+		$job_model = WP_AIE()->Model->job;
+		$job_model->update( $job_id, [ 'status' => 'paused' ] );
 
 		$this->send_success();
 	}
@@ -200,8 +200,8 @@ class Media_Sync_Controller extends Base_Controller {
 		$this->validate_required_params( [ 'job_id' ] );
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job = new Job();
-		$job->update( $job_id, [ 'status' => 'processing' ] );
+		$job_model = WP_AIE()->Model->job;
+		$job_model->update( $job_id, [ 'status' => 'processing' ] );
 
 		$this->send_success();
 	}
@@ -215,10 +215,10 @@ class Media_Sync_Controller extends Base_Controller {
 		$this->validate_required_params( [ 'job_id' ] );
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job = new Job();
+		$job_model = WP_AIE()->Model->job;
 
 		// Update status to cancelled
-		$job->update( $job_id, [ 'status' => 'cancelled' ] );
+		$job_model->update( $job_id, [ 'status' => 'cancelled' ] );
 
 		// Clear any scheduled cron events for this job
 		$timestamp = wp_next_scheduled( 'aie_process_media_sync_job', array( $job_id ) );
@@ -228,7 +228,7 @@ class Media_Sync_Controller extends Base_Controller {
 
 		// Optionally delete the job record to clean up
 		// Uncomment if you want to remove cancelled jobs completely:
-		// $job->delete( $job_id );
+		// $job_model->delete( $job_id );
 
 		$this->send_success();
 	}
