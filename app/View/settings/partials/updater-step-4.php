@@ -89,15 +89,6 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 			</div>
 
-			<!-- Warning Notice -->
-			<div class="notice notice-warning aie-update-warning">
-				<p>
-					<span class="dashicons dashicons-warning"></span>
-					<strong><?php esc_html_e( 'Important:', 'wp-advanced-import-export' ); ?></strong>
-					<?php esc_html_e( 'This will modify your content. Please backup your database before proceeding.', 'wp-advanced-import-export' ); ?>
-				</p>
-			</div>
-
 			<!-- Start Button -->
 			<div class="aie-updater-start-actions">
 				<button type="button" class="button button-primary button-large button-hero aie-start-update-btn">

@@ -161,7 +161,7 @@ class Init {
 			'wp-advanced-import-export-scripts',
 			plugins_url( 'assets/js/app.js', WP_AIE_FILE ),
 			array( 'jquery' ),
-			'1.0.1',
+			filemtime( plugin_dir_path( WP_AIE_FILE ) . 'assets/js/app.js' ),
 			array(
 				'in_footer' => true,
 			)
@@ -172,11 +172,12 @@ class Init {
 			'wp-advanced-import-export-scripts',
 			'aieData',
 			array(
-				'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
-				'nonce'       => wp_create_nonce( 'aie_nonce' ),
-				'pluginUrl'   => plugins_url( '', WP_AIE_FILE ),
-				'currentPage' => isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '',
-				'i18n'        => array(
+				'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
+				'nonce'        => wp_create_nonce( 'aie_nonce' ),
+				'pluginUrl'    => plugins_url( '', WP_AIE_FILE ),
+				'functionsUrl' => admin_url( 'admin.php?page=wp-aie-functions' ),
+				'currentPage'  => isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '',
+				'i18n'         => array(
 					'skip'              => __( 'Skip', 'wp-aie' ),
 					'uploading'         => __( 'Uploading...', 'wp-aie' ),
 					'processing'        => __( 'Processing...', 'wp-aie' ),
@@ -200,7 +201,7 @@ class Init {
 			'wp-advanced-import-export-styles',
 			plugins_url( 'assets/css/app.css', WP_AIE_FILE ),
 			false,
-			'1.0.0',
+			filemtime( plugin_dir_path( WP_AIE_FILE ) . 'assets/css/app.css' )
 		);
 	}
 

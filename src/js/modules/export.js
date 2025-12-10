@@ -1514,28 +1514,11 @@ const ExportModule = {
 			{
 				label: 'Standard',
 				options: [
-					{ value: 'ID', label: 'ID', type: 'number' },
 					{ value: 'post_title', label: 'Title', type: 'string' },
 					{ value: 'post_content', label: 'Content', type: 'string' },
 					{ value: 'post_excerpt', label: 'Excerpt', type: 'string' },
 					{ value: 'post_date', label: 'Date', type: 'date' },
-					{ value: 'post_name', label: 'Slug', type: 'string' },
 					{ value: 'post_status', label: 'Status', type: 'string' },
-				],
-			},
-			{
-				label: 'Taxonomy',
-				options: [
-					{ value: 'categories', label: 'Categories', type: 'string' },
-					{ value: 'tags', label: 'Tags', type: 'string' },
-				],
-			},
-			{
-				label: 'Author',
-				options: [
-					{ value: 'post_author', label: 'Author ID', type: 'number' },
-					{ value: 'author_name', label: 'Author Name', type: 'string' },
-					{ value: 'author_email', label: 'Author Email', type: 'string' },
 				],
 			},
 		{
@@ -1559,11 +1542,9 @@ const ExportModule = {
 				{
 					label: 'Basic',
 					options: [
-						{ value: 'ID', label: 'ID', type: 'number' },
 						{ value: 'post_title', label: 'Title', type: 'string' },
 						{ value: 'post_content', label: 'Description', type: 'string' },
 						{ value: 'post_excerpt', label: 'Caption', type: 'string' },
-						{ value: 'post_name', label: 'Slug', type: 'string' },
 						{ value: 'alt_text', label: 'Alt Text', type: 'string' },
 					],
 				},
@@ -1628,9 +1609,7 @@ const ExportModule = {
 				{
 					label: 'Basic',
 					options: [
-						{ value: 'term_id', label: 'Menu ID', type: 'number' },
 						{ value: 'name', label: 'Menu Name', type: 'string' },
-						{ value: 'slug', label: 'Menu Slug', type: 'string' },
 						{ value: 'description', label: 'Description', type: 'string' },
 						{ value: 'menu_items', label: 'Menu Items (Array)', type: 'array' },
 					],
@@ -1657,7 +1636,6 @@ const ExportModule = {
 				{
 					label: 'Basic',
 					options: [
-						{ value: 'ID', label: 'User ID', type: 'number' },
 						{ value: 'user_login', label: 'Username', type: 'string' },
 						{ value: 'user_email', label: 'Email', type: 'string' },
 						{ value: 'display_name', label: 'Display Name', type: 'string' },

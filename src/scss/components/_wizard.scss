@@ -8,7 +8,8 @@
 	margin: 20px 0;
 
 	.aie-import-wizard,
-	.aie-export-wizard {
+	.aie-export-wizard,
+	.aie-updater-wizard {
 		position: relative;
 		background: #fff;
 		border: 1px solid #c3c4c7;
@@ -16,14 +17,24 @@
 		padding: 30px;
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 		margin: 20px 0;
+		display: flex;
+		flex-direction: column;
 	}
 
 	// Steps
 	.aie-step {
-		display: none;
+		display: none !important;
+		visibility: hidden !important;
+		opacity: 0 !important;
+		height: 0 !important;
+		overflow: hidden !important;
 
 		&.active {
-			display: block;
+			display: block !important;
+			visibility: visible !important;
+			opacity: 1 !important;
+			height: auto !important;
+			overflow: visible !important;
 		}
 	}
 

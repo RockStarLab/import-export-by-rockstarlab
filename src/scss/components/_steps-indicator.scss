@@ -2,9 +2,10 @@
 .aie-steps-indicator {
 	display: flex;
 	justify-content: space-between;
-	margin: 40px 0 0;
+	margin: 30px 0 0 0;
 	padding: 30px 0 0;
 	border-top: 2px solid #dcdcde;
+	order: 999; // Place it at the end
 
 	.aie-step-indicator {
 		flex: 1;
