@@ -23,22 +23,11 @@ defined( 'ABSPATH' ) || exit;
 					<h3><?php esc_html_e( 'Field Functions', 'wp-advanced-import-export' ); ?></h3>
 				</div>
 				<div class="aie-functions-actions">
-					<button type="button" class="button button-secondary aie-apply-function-to-all">
-						<span class="dashicons dashicons-controls-repeat"></span>
-						<?php esc_html_e( 'Apply to All', 'wp-advanced-import-export' ); ?>
-					</button>
 					<button type="button" class="button button-secondary aie-clear-all-functions">
 						<span class="dashicons dashicons-dismiss"></span>
 						<?php esc_html_e( 'Clear All', 'wp-advanced-import-export' ); ?>
 					</button>
 				</div>
-			</div>
-
-			<div class="aie-functions-notice notice notice-info">
-				<p>
-					<span class="dashicons dashicons-info"></span>
-					<?php esc_html_e( 'Assign custom functions to transform field values during the update process. You can select "None" to skip a field.', 'wp-advanced-import-export' ); ?>
-				</p>
 			</div>
 
 			<!-- Functions Assignment Table -->

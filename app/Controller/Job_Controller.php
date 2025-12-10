@@ -72,6 +72,18 @@ class Job_Controller extends Base_Controller {
 		// Get jobs using get_all method
 		$jobs = $job_model->get_all( $where, $limit, $offset, 'created_at DESC' );
 
+		// Add action flags to each job
+		foreach ( $jobs as &$job ) {
+			// Can resume: paused or failed jobs
+			$job->can_resume = in_array( $job->status, [ 'paused', 'failed' ], true );
+
+			// Can delete: any job
+			$job->can_delete = true;
+
+			// Can retry: any job
+			$job->can_retry = true;
+		}
+
 		// Get total count
 		$total = $job_model->count( $where );
 

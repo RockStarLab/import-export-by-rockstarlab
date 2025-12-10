@@ -180,7 +180,7 @@ const ContentUpdater = {
 			case 1:
 				// Content type must be selected
 				if ( ! jQuery( 'input[name="updater_content_type"]:checked' ).length ) {
-					Utils.showNotice( 'error', 'Please select a content type' );
+					Utils.showNotice( 'Please select a content type', 'error' );
 					return false;
 				}
 				return true;
@@ -188,7 +188,7 @@ const ContentUpdater = {
 			case 2:
 				// At least one field must be selected
 				if ( this.selectedFields.length === 0 ) {
-					Utils.showNotice( 'error', 'Please select at least one field to update' );
+					Utils.showNotice( 'Please select at least one field to update', 'error' );
 					return false;
 				}
 				return true;
@@ -199,7 +199,7 @@ const ContentUpdater = {
 					return Array.isArray( functions ) && functions.length > 0;
 				} );
 				if ( ! hasFunction ) {
-					Utils.showNotice( 'error', 'Please assign at least one function to a field' );
+					Utils.showNotice( 'Please assign at least one function to a field', 'error' );
 					return false;
 				}
 				return true;
@@ -268,10 +268,11 @@ const ContentUpdater = {
 		// Load static fields based on content type
 		this.loadStaticFields( contentType );
 		
-		// Load taxonomies for this content type (for posts)
+		// Load dynamic fields for this content type (excluding taxonomies for Content Updater)
 		if ( contentType === 'post' || contentType.startsWith( 'post_type_' ) ) {
 			const postType = contentType === 'post' ? 'post' : contentType.replace( 'post_type_', '' );
-			this.loadTaxonomies( postType );
+			// Skip taxonomies for Content Updater
+			// this.loadTaxonomies( postType );
 			this.loadCustomFields( postType );
 			this.checkAndLoadACF( postType );
 			this.checkAndLoadYoast( postType );
@@ -307,10 +308,12 @@ const ContentUpdater = {
 		
 		// Render each field group as a category
 		fieldGroups.forEach( ( group, index ) => {
-			// Skip Custom Filters group and selector groups
+			// Skip Custom Filters, selector groups, Taxonomy and Author categories for Content Updater
 			if ( group.label === 'Custom Filters' || 
 				group.label === 'Post Type Selection' || 
-				group.label === 'Taxonomy Selection' ) {
+				group.label === 'Taxonomy Selection' ||
+				group.label === 'Taxonomy' ||
+				group.label === 'Author' ) {
 				return;
 			}
 			
@@ -318,17 +321,9 @@ const ContentUpdater = {
 			$body.append( $category );
 		} );
 		
-		// Add placeholder categories for dynamic fields
+		// Add placeholder categories for dynamic fields (excluding Taxonomies)
 		$body.append( `
-			<div class="aie-field-category aie-taxonomies-category" style="display: none;">
-				<h4 class="aie-field-category-title">
-					<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
-					<span class="dashicons dashicons-category"></span>
-					Taxonomies
-				</h4>
-				<div class="aie-fields-grid aie-taxonomies-grid"></div>
-			</div>
-			<div class="aie-field-category aie-custom-fields-category" style="display: none;">
+			<div class="aie-field-category aie-collapsed aie-custom-fields-category" style="display: none;">
 				<h4 class="aie-field-category-title">
 					<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
 					<span class="dashicons dashicons-admin-generic"></span>
@@ -336,7 +331,7 @@ const ContentUpdater = {
 				</h4>
 				<div class="aie-fields-grid aie-custom-fields-grid"></div>
 			</div>
-			<div class="aie-field-category aie-acf-fields-category" style="display: none;">
+			<div class="aie-field-category aie-collapsed aie-acf-fields-category" style="display: none;">
 				<h4 class="aie-field-category-title">
 					<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
 					<span class="dashicons dashicons-admin-settings"></span>
@@ -346,7 +341,7 @@ const ContentUpdater = {
 					<div class="aie-acf-loading"><span class="spinner is-active"></span><p>Loading ACF fields...</p></div>
 				</div>
 			</div>
-			<div class="aie-field-category aie-yoast-fields-category" style="display: none;">
+			<div class="aie-field-category aie-collapsed aie-yoast-fields-category" style="display: none;">
 				<h4 class="aie-field-category-title">
 					<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
 					<span class="dashicons dashicons-chart-line"></span>
@@ -747,7 +742,7 @@ const ContentUpdater = {
 	addField( field, label ) {
 		// Check if already added
 		if ( this.selectedFields.includes( field ) ) {
-			Utils.showNotice( 'warning', `Field "${ label }" is already selected` );
+			Utils.showNotice( `Field "${ label }" is already selected`, 'warning' );
 			return;
 		}
 
@@ -844,12 +839,13 @@ const ContentUpdater = {
 			url: aieData.ajaxUrl,
 			method: 'POST',
 			data: {
-				action: 'aie_functions_get_all',
+				action: 'aie_get_functions',
 				nonce: aieData.nonce
 			},
 			success: ( response ) => {
-				if ( response.success ) {
-					this.availableFunctions = response.data.functions || [];
+				if ( response.success && response.data.functions ) {
+					this.availableFunctions = response.data.functions;
+					this.renderAvailableFunctions();
 				}
 			}
 		} );
@@ -1108,15 +1104,15 @@ const ContentUpdater = {
 
 		this.availableFunctions.forEach( func => {
 			const $funcItem = jQuery( '<div>' )
-				.addClass( 'aie-function-available' )
+				.addClass( 'aie-function-list-item' )
 				.attr( 'data-function-id', func.id )
-				.attr( 'data-category', func.type || 'custom' )
+				.attr( 'data-category', func.category || 'custom' )
 				.html( `
-					<div class="aie-function-info">
-						<strong class="aie-function-name">${ this.escapeHtml( func.name ) }</strong>
-						<span class="aie-function-desc">${ this.escapeHtml( func.description || '' ) }</span>
+					<div class="aie-function-list-info">
+						<strong class="aie-function-list-name">${ this.escapeHtml( func.name ) }</strong>
+						<span class="aie-function-list-desc">${ this.escapeHtml( func.description || '' ) }</span>
 					</div>
-					<button type="button" class="button-small aie-add-function-btn" data-function-id="${ func.id }">
+					<button type="button" class="button button-small aie-add-function-btn" data-function-id="${ func.id }">
 						<span class="dashicons dashicons-plus-alt"></span>
 						Add
 					</button>
@@ -1228,12 +1224,13 @@ const ContentUpdater = {
 		}
 
 		this.selectedFields.forEach( field => {
-			this.fieldFunctions[ field ] = 'none';
-			jQuery( `.aie-field-function-select[data-field="${ field }"]` ).val( 'none' );
+			this.fieldFunctions[ field ] = [];
+			const $row = jQuery( `tr[data-field="${ field }"]` );
+			$row.find( '.aie-updater-field-functions' ).empty();
 		} );
 
-		this.updateFunctionStats();
-		Utils.showNotice( 'success', 'All function assignments cleared' );
+		this.buildFunctionsTable();
+		Utils.showNotice( 'All function assignments cleared', 'success' );
 	},
 
 	/**
@@ -1244,7 +1241,7 @@ const ContentUpdater = {
 		const functionId = this.fieldFunctions[ field ];
 
 		if ( ! functionId || functionId === 'none' ) {
-			Utils.showNotice( 'warning', 'No function assigned to this field' );
+			Utils.showNotice( 'No function assigned to this field', 'warning' );
 			return;
 		}
 
@@ -1268,7 +1265,7 @@ const ContentUpdater = {
 				if ( response.success ) {
 					alert( `Output: ${ response.data.output }` );
 				} else {
-					Utils.showNotice( 'error', response.data.message || 'Function test failed' );
+					Utils.showNotice( response.data.message || 'Function test failed', 'error' );
 				}
 			}
 		} );
@@ -1360,18 +1357,18 @@ const ContentUpdater = {
 			success: ( response ) => {
 				if ( response.success ) {
 					this.jobId = response.data.job_id;
-					Utils.showNotice( 'success', 'Update started successfully' );
+					Utils.showNotice( 'Update started successfully', 'success' );
 					
 					// Start processing
 					this.startProgressTracking();
 					this.processNextBatch();
 				} else {
-					Utils.showNotice( 'error', response.data.message || 'Failed to start update' );
+					Utils.showNotice( response.data.message || 'Failed to start update', 'error' );
 					this.showResults( 'error' );
 				}
 			},
 			error: () => {
-				Utils.showNotice( 'error', 'Failed to start update' );
+				Utils.showNotice( 'Failed to start update', 'error' );
 				this.showResults( 'error' );
 			}
 		} );
@@ -1483,7 +1480,7 @@ const ContentUpdater = {
 			success: ( response ) => {
 				if ( response.success ) {
 					this.stopProgressTracking();
-					Utils.showNotice( 'info', 'Update cancelled' );
+					Utils.showNotice( 'Update cancelled', 'info' );
 					this.showResults( 'cancelled' );
 				}
 			}
@@ -1524,10 +1521,10 @@ const ContentUpdater = {
 	 */
 	filterFunctions( searchTerm ) {
 		const term = searchTerm.toLowerCase();
-		jQuery( '.aie-function-available' ).each( function() {
+		jQuery( '.aie-function-list-item' ).each( function() {
 			const $item = jQuery( this );
-			const name = $item.find( '.aie-function-name' ).text().toLowerCase();
-			const desc = $item.find( '.aie-function-desc' ).text().toLowerCase();
+			const name = $item.find( '.aie-function-list-name' ).text().toLowerCase();
+			const desc = $item.find( '.aie-function-list-desc' ).text().toLowerCase();
 			
 			if ( name.includes( term ) || desc.includes( term ) ) {
 				$item.show();
@@ -1542,9 +1539,9 @@ const ContentUpdater = {
 	 */
 	filterFunctionsByCategory( category ) {
 		if ( category === 'all' ) {
-			jQuery( '.aie-function-available' ).show();
+			jQuery( '.aie-function-list-item' ).show();
 		} else {
-			jQuery( '.aie-function-available' ).each( function() {
+			jQuery( '.aie-function-list-item' ).each( function() {
 				const $item = jQuery( this );
 				const itemCategory = $item.data( 'category' );
 				
@@ -1565,7 +1562,7 @@ const ContentUpdater = {
 		const testValue = $input.val();
 
 		if ( ! testValue ) {
-			Utils.showNotice( 'error', 'Please enter a test value' );
+			this.showNotice( 'Please enter a test value', 'warning' );
 			return;
 		}
 
@@ -1574,85 +1571,115 @@ const ContentUpdater = {
 			functionIds.push( jQuery( this ).data( 'function-id' ) );
 		} );
 
+		console.log( 'Test Pipeline - Function IDs:', functionIds );
+
 		if ( functionIds.length === 0 ) {
-			Utils.showNotice( 'error', 'No functions to test' );
+			this.showNotice( 'No functions to test', 'warning' );
 			return;
 		}
+
+		// Check if aieData is available
+		if ( typeof aieData === 'undefined' ) {
+			console.error( 'aieData is not defined' );
+			this.showNotice( 'Configuration error: aieData not found', 'error' );
+			return;
+		}
+
+		const requestData = {
+			action: 'aie_test_function_pipeline',
+			nonce: aieData.nonce,
+			functions: functionIds,
+			value: testValue
+		};
+
+		console.log( 'Test Pipeline - Request data:', requestData );
 
 		jQuery.ajax( {
 			url: aieData.ajaxUrl,
 			method: 'POST',
-			data: {
-				action: 'aie_functions_test_pipeline',
-				nonce: aieData.nonce,
-				functions: functionIds,
-				test_value: testValue
-			},
+			data: requestData,
 			success: ( response ) => {
+				console.log( 'Test Pipeline - Response:', response );
 				if ( response.success ) {
-					this.showPipelinePreview( response.data );
+					this.renderPipelinePreview( testValue, response.data.steps );
 				} else {
-					Utils.showNotice( 'error', response.data.message || 'Test failed' );
+					this.showNotice( response.data.message || 'Test failed', 'error' );
+					console.error( 'Test Pipeline Error:', response.data );
 				}
 			},
-			error: () => {
-				Utils.showNotice( 'error', 'Error testing pipeline' );
+			error: ( xhr, status, error ) => {
+				console.error( 'Test Pipeline AJAX Error:', { xhr, status, error } );
+				this.showNotice( 'Error testing pipeline', 'error' );
 			}
 		} );
 	},
 
 	/**
-	 * Show pipeline preview
+	 * Render pipeline preview
 	 */
-	showPipelinePreview( data ) {
-		const $result = jQuery( '#aie-updater-preview-result' );
-		const $steps = $result.find( '.aie-preview-steps' );
+	renderPipelinePreview( initialValue, steps ) {
+		const $container = jQuery( '#aie-updater-preview-result' );
+		if ( ! $container.length ) return;
 
-		$steps.empty();
+		const $stepsContainer = $container.find( '.aie-preview-steps' );
+		$stepsContainer.empty();
 
-		// Add initial value
-		$steps.append( `
-			<div class="aie-preview-step">
-				<div class="aie-preview-step-label">Input</div>
-				<div class="aie-preview-step-value">${ this.escapeHtml( data.initial_value ) }</div>
-			</div>
-		` );
+		// Initial value
+		$stepsContainer.append( this.createPreviewStep( 0, 'Input', initialValue ) );
 
-		// Add each transformation step
-		if ( data.steps && data.steps.length > 0 ) {
-			data.steps.forEach( ( step, index ) => {
-				$steps.append( `
-					<div class="aie-preview-arrow">
-						<span class="dashicons dashicons-arrow-down-alt"></span>
-					</div>
-					<div class="aie-preview-step">
-						<div class="aie-preview-step-label">${ this.escapeHtml( step.function_name ) }</div>
-						<div class="aie-preview-step-value">${ this.escapeHtml( step.value ) }</div>
-					</div>
-				` );
+		// Each function step
+		if ( steps && steps.length > 0 ) {
+			steps.forEach( ( step, index ) => {
+				$stepsContainer.append(
+					this.createPreviewStep(
+						index + 1,
+						step.function_name,
+						step.output,
+						step.error
+					)
+				);
 			} );
 		}
 
-		// Add final value
-		$steps.append( `
-			<div class="aie-preview-arrow">
-				<span class="dashicons dashicons-arrow-down-alt"></span>
-			</div>
-			<div class="aie-preview-step aie-preview-final">
-				<div class="aie-preview-step-label">Final Output</div>
-				<div class="aie-preview-step-value">${ this.escapeHtml( data.final_value ) }</div>
-			</div>
-		` );
+		$container.show();
+	},
 
-		$result.show();
+	/**
+	 * Create preview step element
+	 */
+	createPreviewStep( number, name, value, error = false ) {
+		return jQuery( '<div>' )
+			.addClass( 'aie-preview-step' )
+			.html( `
+				<div class="aie-step-number">${ number }</div>
+				<div class="aie-step-info">
+					<span class="aie-function-name">${ this.escapeHtml( name ) }</span>
+					<span class="aie-step-value ${ error ? 'error' : '' }">
+						${ this.escapeHtml( error ? `Error: ${ value }` : value ) }
+					</span>
+				</div>
+			` );
+	},
+
+	/**
+	 * Show notice (simple console logging to avoid z-index issues with modal)
+	 */
+	showNotice( message, type = 'info' ) {
+		// Log to console
+		console.log( `[${ type.toUpperCase() }] ${ message }` );
 	},
 
 	/**
 	 * Create new function
 	 */
 	createNewFunction() {
-		// Redirect to custom functions page
-		window.location.href = aieData.adminUrl + 'admin.php?page=wp-aie-custom-functions';
+		// Open Functions management page in new tab
+		if ( typeof aieData !== 'undefined' && aieData.functionsUrl ) {
+			window.open( aieData.functionsUrl, '_blank' );
+		} else {
+			// Fallback - go to admin page
+			window.open( '/wp-admin/admin.php?page=wp-aie-functions', '_blank' );
+		}
 	}
 };
 

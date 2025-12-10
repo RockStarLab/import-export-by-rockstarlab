@@ -380,4 +380,71 @@ class Job extends Model {
 
 		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE {$where_sql}" );
 	}
+
+	/**
+	 * Delete job and associated files
+	 *
+	 * Overrides parent delete() to also remove export files and folders
+	 *
+	 * @param int $id Job ID to delete
+	 * @return int|false|WP_Error Number of rows affected, false on error, or WP_Error
+	 */
+	public function delete( $id ) {
+		// Get job details before deletion
+		$job = $this->find( $id );
+
+		if ( ! $job ) {
+			return new \WP_Error( 'job_not_found', __( 'Job not found', 'wp-advanced-import-export' ) );
+		}
+
+		// Delete associated export file if exists
+		if ( ! empty( $job->file_path ) ) {
+			$file_path = $job->file_path;
+
+			// Convert relative path to absolute if needed
+			// Check if path is absolute (starts with / on Unix or C:\ on Windows)
+			$is_absolute = ( '/' === $file_path[0] || preg_match( '/^[a-zA-Z]:[\\\\\/]/', $file_path ) );
+
+			if ( ! $is_absolute ) {
+				$upload_dir = wp_upload_dir();
+				$file_path  = trailingslashit( $upload_dir['basedir'] ) . ltrim( $file_path, '/' );
+			}
+
+			// Delete the file
+			if ( file_exists( $file_path ) ) {
+				wp_delete_file( $file_path );
+
+				// Try to delete the parent directory if it's empty
+				$dir = dirname( $file_path );
+				if ( is_dir( $dir ) && $this->is_directory_empty( $dir ) ) {
+					rmdir( $dir );
+				}
+			}
+		}
+
+		// Delete job record from database
+		return parent::delete( $id );
+	}
+
+	/**
+	 * Check if directory is empty
+	 *
+	 * @param string $dir Directory path
+	 * @return bool True if empty or only contains . and ..
+	 */
+	private function is_directory_empty( $dir ) {
+		if ( ! is_readable( $dir ) ) {
+			return false;
+		}
+
+		$handle = opendir( $dir );
+		while ( false !== ( $entry = readdir( $handle ) ) ) {
+			if ( $entry !== '.' && $entry !== '..' ) {
+				closedir( $handle );
+				return false;
+			}
+		}
+		closedir( $handle );
+		return true;
+	}
 }

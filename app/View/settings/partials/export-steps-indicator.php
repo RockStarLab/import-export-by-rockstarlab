@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 
-<!-- Progress Steps Indicator -->
+<!-- Steps Indicator -->
 <div class="aie-steps-indicator">
 	<div class="aie-step-indicator active" data-step="1">
 		<div class="aie-step-number">1</div>

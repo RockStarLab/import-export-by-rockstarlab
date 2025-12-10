@@ -141,13 +141,31 @@ class Functions_Controller extends Base_Controller {
 		$functions = $model->get_all( $args );
 		$total     = $model->get_count( $args );
 
+		// Add library snippets
+		$library  = new Function_Snippets();
+		$snippets = $library->get_all_snippets();
+
+		$snippet_functions = [];
+		foreach ( $snippets as $key => $snippet ) {
+			$snippet_functions[] = [
+				'id'          => 'snippet_' . $key,
+				'name'        => $snippet['name'],
+				'description' => $snippet['description'],
+				'category'    => $snippet['category'],
+				'type'        => 'library',
+			];
+		}
+
+		// Merge custom functions and snippets
+		$all_functions = array_merge( $functions, $snippet_functions );
+
 		$this->send_success(
 			[
-				'functions'   => $functions,
-				'total'       => $total,
+				'functions'   => $all_functions,
+				'total'       => $total + count( $snippet_functions ),
 				'page'        => $page,
 				'per_page'    => $per_page,
-				'total_pages' => ceil( $total / $per_page ),
+				'total_pages' => ceil( ( $total + count( $snippet_functions ) ) / $per_page ),
 			]
 		);
 	}
@@ -411,8 +429,24 @@ class Functions_Controller extends Base_Controller {
 					break;
 				}
 
-				$code          = $snippet['code'];
-				$function_name = $snippet['name'];
+				$code          = isset( $snippet['code'] ) ? $snippet['code'] : '';
+				$function_name = isset( $snippet['name'] ) ? $snippet['name'] : 'Unknown';
+
+				// Debug logging
+				error_log( 'Test Pipeline - Snippet ID: ' . $snippet_id );
+				error_log( 'Test Pipeline - Snippet data: ' . print_r( $snippet, true ) );
+				error_log( 'Test Pipeline - Code: ' . $code );
+
+				// Check if code is empty
+				if ( empty( $code ) ) {
+					$steps[] = [
+						'function_id'   => $function_id,
+						'function_name' => $function_name,
+						'output'        => 'Function code cannot be empty. Snippet data: ' . print_r( $snippet, true ),
+						'error'         => true,
+					];
+					break;
+				}
 			} else {
 				// Custom function from database
 				$function = $model->find( $function_id );
@@ -427,8 +461,27 @@ class Functions_Controller extends Base_Controller {
 					break;
 				}
 
-				$code          = $function['code'];
-				$function_name = $function['name'];
+				// Support both 'code' and 'function_code' field names
+				$code          = isset( $function->code ) ? $function->code : ( isset( $function->function_code ) ? $function->function_code : '' );
+				$function_name = $function->name;
+
+				// Debug logging
+				error_log( 'Test Pipeline - Custom Function ID: ' . $function_id );
+				error_log( 'Test Pipeline - Function name: ' . $function_name );
+				error_log( 'Test Pipeline - Function object: ' . print_r( $function, true ) );
+				error_log( 'Test Pipeline - Code length: ' . strlen( $code ) );
+				error_log( 'Test Pipeline - Code: ' . $code );
+
+				// Check if code is empty
+				if ( empty( trim( $code ) ) ) {
+					$steps[] = [
+						'function_id'   => $function_id,
+						'function_name' => $function_name,
+						'output'        => 'Function code cannot be empty. Available fields: ' . implode( ', ', array_keys( (array) $function ) ),
+						'error'         => true,
+					];
+					break;
+				}
 			}
 
 			$result = $model->test_function( $code, $current_value );
