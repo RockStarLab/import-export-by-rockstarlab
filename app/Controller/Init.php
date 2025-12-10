@@ -56,6 +56,13 @@ class Init {
 	private $media_hash_controller;
 
 	/**
+	 * Content Updater Controller
+	 *
+	 * @var Content_Updater_Controller
+	 */
+	private $content_updater_controller;
+
+	/**
 	 * Cron Manager
 	 *
 	 * @var \WP_AIE\Model\Queue\Cron_Manager
@@ -104,6 +111,9 @@ class Init {
 
 		$this->media_hash_controller = new Media_Hash_Controller();
 		$this->media_hash_controller->init();
+
+		$this->content_updater_controller = new Content_Updater_Controller();
+		$this->content_updater_controller->init();
 	}
 
 	/**
@@ -133,6 +143,7 @@ class Init {
 				'toplevel_page_wp-advanced-import-export',
 				'advanced-import-export_page_wp-aie-export',
 				'advanced-import-export_page_wp-aie-content-sync',
+				'advanced-import-export_page_wp-aie-content-updater',
 				'advanced-import-export_page_wp-aie-jobs-log',
 				'advanced-import-export_page_wp-aie-media-sync',
 				'advanced-import-export_page_wp-aie-functions',
