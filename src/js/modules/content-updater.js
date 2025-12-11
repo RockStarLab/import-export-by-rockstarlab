@@ -8,12 +8,14 @@ import Utils from './utils';
 
 const ContentUpdater = {
 	currentStep: 1,
-	totalSteps: 4,
+	totalSteps: 5,  // Updated from 4 to 5 steps
 	jobId: null,
 	progressInterval: null,
 	selectedFields: [],
 	fieldFunctions: {},
 	availableFunctions: [],
+	selectedFilters: [],  // New: Store selected filters
+	filteredCount: null,  // New: Store filtered item count
 
 	/**
 	 * Initialize module
@@ -48,7 +50,15 @@ const ContentUpdater = {
 			this.onContentTypeChange( e )
 		);
 
-		// Field selection (Step 2)
+		// Filter events (Step 2)
+		$wizard.on( 'click', '.aie-updater-add-filter', () => this.addFilterRow() );
+		$wizard.on( 'click', '.aie-updater-remove-filter', ( e ) => this.removeFilterRow( e ) );
+		$wizard.on( 'change', '.aie-updater-filter-field', ( e ) => this.onFilterFieldChange( e ) );
+		$wizard.on( 'change', '.aie-updater-filter-condition', ( e ) => this.onFilterConditionChange( e ) );
+		$wizard.on( 'change', '.aie-updater-filter-value', () => Utils.debounce( () => this.refreshCount( false ), 500 )() );
+		$wizard.on( 'click', '.aie-updater-refresh-count', () => this.refreshCount( true ) );
+
+		// Field selection (Step 3)
 		$wizard.on( 'click', '.aie-updater-clear-all-fields', () => this.clearAllFields() );
 		$wizard.on( 'input', '#aie-updater-fields-search', ( e ) => this.filterFields( e ) );
 
@@ -139,12 +149,15 @@ const ContentUpdater = {
 		// Step-specific actions
 		switch ( step ) {
 			case 2:
-				this.loadFieldsLibrary();
+				this.loadFiltersLibrary();  // New: Load filters
 				break;
 			case 3:
-				this.buildFunctionsTable();
+				this.loadFieldsLibrary();
 				break;
 			case 4:
+				this.buildFunctionsTable();
+				break;
+			case 5:
 				this.prepareUpdateSummary();
 				break;
 		}
@@ -156,6 +169,12 @@ const ContentUpdater = {
 	nextStep() {
 		if ( ! this.validateCurrentStep() ) {
 			return;
+		}
+
+		// Save filters when leaving step 2
+		if ( this.currentStep === 2 ) {
+			this.selectedFilters = this.collectFilters();
+			console.log( 'Saved filters:', this.selectedFilters );
 		}
 
 		if ( this.currentStep < this.totalSteps ) {
@@ -186,6 +205,10 @@ const ContentUpdater = {
 				return true;
 
 			case 2:
+				// Filters are optional, always pass
+				return true;
+
+			case 3:
 				// At least one field must be selected
 				if ( this.selectedFields.length === 0 ) {
 					Utils.showNotice( 'Please select at least one field to update', 'error' );
@@ -193,7 +216,7 @@ const ContentUpdater = {
 				}
 				return true;
 
-			case 3:
+			case 4:
 				// At least one function must be assigned
 				const hasFunction = Object.values( this.fieldFunctions ).some( functions => {
 					return Array.isArray( functions ) && functions.length > 0;
@@ -248,6 +271,230 @@ const ContentUpdater = {
 		// Reset selections for new content type
 		this.selectedFields = [];
 		this.fieldFunctions = {};
+		this.selectedFilters = [];
+		this.filteredCount = null;  // Reset filtered count when content type changes
+	},
+
+	/**
+	 * Load filters library for selected content type
+	 */
+	loadFiltersLibrary() {
+		console.log( 'loadFiltersLibrary called' );
+		
+		// Get selected content type
+		const contentType = jQuery( 'input[name="updater_content_type"]:checked' ).val();
+		if ( ! contentType ) {
+			console.error( 'No content type selected' );
+			return;
+		}
+		
+		console.log( 'Loading filters for content type:', contentType );
+		
+		// Clear existing filters
+		jQuery( '#aie-updater-filters-list' ).empty();
+		
+		// Refresh count
+		this.refreshCount( true );
+	},
+
+	/**
+	 * Add new filter row
+	 */
+	addFilterRow() {
+		const template = document.getElementById( 'aie-updater-filter-row-template' );
+		const clone = template.content.cloneNode( true );
+		const contentType = jQuery( 'input[name="updater_content_type"]:checked' ).val();
+
+		// Populate field options based on content type
+		const $fieldSelect = jQuery( clone ).find( '.aie-updater-filter-field' );
+		
+		// Use export module's getFieldsByContentType if available
+		if ( typeof window.aieExportModule !== 'undefined' && window.aieExportModule.getFieldsByContentType ) {
+			const fields = window.aieExportModule.getFieldsByContentType( contentType );
+			
+			fields.forEach( ( group ) => {
+				const $optgroup = jQuery( '<optgroup>' ).attr( 'label', group.label );
+				group.options.forEach( ( option ) => {
+					$optgroup.append(
+						jQuery( '<option>' )
+							.val( option.value )
+							.text( option.label )
+							.data( 'type', option.type )
+					);
+				} );
+				$fieldSelect.append( $optgroup );
+			} );
+		}
+
+		jQuery( '#aie-updater-filters-list' ).append( clone );
+
+		// Trigger count refresh (without spinner)
+		Utils.debounce( () => this.refreshCount( false ), 500 )();
+	},
+
+	/**
+	 * Remove filter row
+	 */
+	removeFilterRow( e ) {
+		jQuery( e.target ).closest( '.aie-filter-row' ).remove();
+		Utils.debounce( () => this.refreshCount( false ), 500 )();
+	},
+
+	/**
+	 * Handle filter field change
+	 */
+	onFilterFieldChange( e ) {
+		const $field = jQuery( e.target );
+		const $row = $field.closest( '.aie-filter-row' );
+		const $condition = $row.find( '.aie-updater-filter-condition' );
+		
+		const selectedOption = $field.find( 'option:selected' );
+		const fieldType = selectedOption.data( 'type' ) || 'string';
+		
+		// Populate condition dropdown based on field type
+		$condition.empty();
+		
+		const conditions = this.getConditionsByFieldType( fieldType );
+		conditions.forEach( ( condition ) => {
+			$condition.append(
+				jQuery( '<option>' ).val( condition.value ).text( condition.label )
+			);
+		} );
+		
+		Utils.debounce( () => this.refreshCount( false ), 500 )();
+	},
+
+	/**
+	 * Handle filter condition change
+	 */
+	onFilterConditionChange( e ) {
+		const $condition = jQuery( e.target );
+		const $row = $condition.closest( '.aie-filter-row' );
+		const $valueWrap = $row.find( '.aie-filter-value-wrap' );
+		const conditionValue = $condition.val();
+		
+		// Hide/show value input based on condition
+		if ( conditionValue === 'is_empty' || conditionValue === 'is_not_empty' ) {
+			$valueWrap.hide();
+		} else {
+			$valueWrap.show();
+		}
+		
+		Utils.debounce( () => this.refreshCount( false ), 500 )();
+	},
+
+	/**
+	 * Get conditions by field type
+	 */
+	getConditionsByFieldType( fieldType ) {
+		const stringConditions = [
+			{ value: 'equals', label: 'Equals' },
+			{ value: 'not_equals', label: 'Not Equals' },
+			{ value: 'contains', label: 'Contains' },
+			{ value: 'not_contains', label: 'Not Contains' },
+			{ value: 'starts_with', label: 'Starts With' },
+			{ value: 'ends_with', label: 'Ends With' },
+			{ value: 'is_empty', label: 'Is Empty' },
+			{ value: 'is_not_empty', label: 'Is Not Empty' }
+		];
+		
+		const numberConditions = [
+			{ value: 'equals', label: 'Equals' },
+			{ value: 'not_equals', label: 'Not Equals' },
+			{ value: 'greater', label: 'Greater Than' },
+			{ value: 'less', label: 'Less Than' },
+			{ value: 'equals_or_greater', label: 'Greater or Equal' },
+			{ value: 'equals_or_less', label: 'Less or Equal' },
+			{ value: 'between', label: 'Between' }
+		];
+		
+		const dateConditions = [
+			{ value: 'equals', label: 'On Date' },
+			{ value: 'before', label: 'Before' },
+			{ value: 'after', label: 'After' },
+			{ value: 'between', label: 'Between' }
+		];
+		
+		switch ( fieldType ) {
+			case 'number':
+			case 'id':
+				return numberConditions;
+			case 'date':
+			case 'datetime':
+				return dateConditions;
+			default:
+				return stringConditions;
+		}
+	},
+
+	/**
+	 * Refresh item count
+	 */
+	refreshCount( showSpinner = true ) {
+		const contentType = jQuery( 'input[name="updater_content_type"]:checked' ).val();
+		if ( ! contentType ) {
+			return;
+		}
+		
+		const $countValue = jQuery( '.aie-count-value' );
+		const $spinner = jQuery( '.aie-filter-summary-top .spinner' );
+		
+		if ( showSpinner ) {
+			$spinner.addClass( 'is-active' );
+		}
+		
+		// Collect filters
+		const filters = this.collectFilters();
+		
+		jQuery.ajax( {
+			url: aieData.ajaxUrl,
+			method: 'POST',
+			data: {
+				action: 'aie_updater_get_count',
+				nonce: aieData.nonce,
+				content_type: contentType,
+				filters: JSON.stringify( filters ),
+				options: {}
+			},
+			success: ( response ) => {
+				$spinner.removeClass( 'is-active' );
+				if ( response.success ) {
+					$countValue.text( response.data.count );
+					// Save the filtered count for later use
+					this.filteredCount = response.data.count;
+				} else {
+					$countValue.text( 'Error' );
+				}
+			},
+			error: () => {
+				$spinner.removeClass( 'is-active' );
+				$countValue.text( 'Error' );
+			}
+		} );
+	},
+
+	/**
+	 * Collect filters from UI
+	 */
+	collectFilters() {
+		const filters = [];
+		
+		jQuery( '.aie-filter-row' ).each( function() {
+			const $row = jQuery( this );
+			const field = $row.find( '.aie-updater-filter-field' ).val();
+			const condition = $row.find( '.aie-updater-filter-condition' ).val();
+			const value = $row.find( '.aie-updater-filter-value' ).val();
+			
+			if ( field && condition ) {
+				filters.push( {
+					field: field,
+					condition: condition,
+					value: value
+				} );
+			}
+		} );
+		
+		return filters;
 	},
 
 	/**
@@ -1288,8 +1535,14 @@ const ContentUpdater = {
 		const functionsCount = Object.values( this.fieldFunctions ).filter( fn => fn && fn !== 'none' ).length;
 		jQuery( '.aie-functions-summary' ).text( functionsCount );
 
-		// Get count of items
-		this.getItemCount();
+		// Get count of items (with filters applied)
+		// If we already have a filtered count from Step 2, we can use it
+		// Otherwise, make a new request
+		if ( this.filteredCount !== undefined && this.filteredCount !== null ) {
+			jQuery( '.aie-total-items-summary' ).text( this.filteredCount );
+		} else {
+			this.getItemCount();
+		}
 	},
 
 	/**
@@ -1301,6 +1554,9 @@ const ContentUpdater = {
 
 		$countValue.html( '<span class="spinner" style="float:none;margin:0;"></span>' );
 
+		// Include filters in the count request
+		const filters = this.selectedFilters || [];
+
 		jQuery.ajax( {
 			url: aieData.ajaxUrl,
 			method: 'POST',
@@ -1308,11 +1564,14 @@ const ContentUpdater = {
 				action: 'aie_updater_get_count',
 				nonce: aieData.nonce,
 				content_type: contentType,
+				filters: JSON.stringify( filters ),
 				options: {}
 			},
 			success: ( response ) => {
 				if ( response.success ) {
 					$countValue.text( response.data.count );
+					// Save the filtered count
+					this.filteredCount = response.data.count;
 				} else {
 					$countValue.text( 'Error' );
 				}
@@ -1329,10 +1588,29 @@ const ContentUpdater = {
 	startUpdate() {
 		const contentType = jQuery( 'input[name="updater_content_type"]:checked' ).val();
 		const itemsPerIteration = parseInt( jQuery( '#aie-updater-items-per-iteration' ).val() ) || 10;
-		const dryRun = jQuery( '#aie-updater-dry-run' ).is( ':checked' );
+
+		// Validate fields and functions
+		if ( ! this.selectedFields || this.selectedFields.length === 0 ) {
+			Utils.showNotice( 'No fields selected. Please go back and select fields to update.', 'error' );
+			console.error( 'selectedFields is empty:', this.selectedFields );
+			return;
+		}
+
+		if ( ! this.fieldFunctions || Object.keys( this.fieldFunctions ).length === 0 ) {
+			Utils.showNotice( 'No functions assigned. Please go back and assign functions to fields.', 'error' );
+			console.error( 'fieldFunctions is empty:', this.fieldFunctions );
+			return;
+		}
 
 		// Prepare field functions array (indexed by field position)
-		const fieldFunctionsArray = this.selectedFields.map( field => this.fieldFunctions[ field ] || 'none' );
+		const fieldFunctionsArray = this.selectedFields.map( field => this.fieldFunctions[ field ] || [] );
+
+		console.log( 'Starting update with:', {
+			contentType,
+			selectedFields: this.selectedFields,
+			fieldFunctions: this.fieldFunctions,
+			fieldFunctionsArray
+		} );
 
 		// Show progress section
 		jQuery( '#aie-updater-config' ).hide();
@@ -1347,12 +1625,12 @@ const ContentUpdater = {
 				action: 'aie_updater_start',
 				nonce: aieData.nonce,
 				content_type: contentType,
-				fields: this.selectedFields,
-				field_functions: fieldFunctionsArray,
-				options: {
-					items_per_iteration: itemsPerIteration,
-					dry_run: dryRun
-				}
+				fields: JSON.stringify( this.selectedFields ),
+				field_functions: JSON.stringify( fieldFunctionsArray ),
+				filters: JSON.stringify( this.selectedFilters || [] ),
+				options: JSON.stringify( {
+					items_per_iteration: itemsPerIteration
+				} )
 			},
 			success: ( response ) => {
 				if ( response.success ) {

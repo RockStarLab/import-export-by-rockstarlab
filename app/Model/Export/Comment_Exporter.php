@@ -245,10 +245,18 @@ class Comment_Exporter extends Abstract_Exporter {
 		$fields = $options['fields'] ?? $this->get_default_fields();
 		$data   = [];
 
+		// Check if ID should be forced (for Content Updater)
+		$force_include_id = $options['force_include_id'] ?? false;
+
+		// Add comment_ID if requested or forced
+		if ( in_array( 'comment_ID', $fields, true ) || $force_include_id ) {
+			$data['comment_ID'] = $comment->comment_ID;
+		}
+
 		foreach ( $fields as $field ) {
 			switch ( $field ) {
 				case 'comment_ID':
-					$data['comment_ID'] = $comment->comment_ID;
+					// Already handled above, skip
 					break;
 
 				case 'comment_post_ID':

@@ -68,12 +68,17 @@ __webpack_require__.r(__webpack_exports__);
 
 var ContentUpdater = {
   currentStep: 1,
-  totalSteps: 4,
+  totalSteps: 5,
+  // Updated from 4 to 5 steps
   jobId: null,
   progressInterval: null,
   selectedFields: [],
   fieldFunctions: {},
   availableFunctions: [],
+  selectedFilters: [],
+  // New: Store selected filters
+  filteredCount: null,
+  // New: Store filtered item count
   /**
    * Initialize module
    */
@@ -110,7 +115,29 @@ var ContentUpdater = {
       return _this.onContentTypeChange(e);
     });
 
-    // Field selection (Step 2)
+    // Filter events (Step 2)
+    $wizard.on('click', '.aie-updater-add-filter', function () {
+      return _this.addFilterRow();
+    });
+    $wizard.on('click', '.aie-updater-remove-filter', function (e) {
+      return _this.removeFilterRow(e);
+    });
+    $wizard.on('change', '.aie-updater-filter-field', function (e) {
+      return _this.onFilterFieldChange(e);
+    });
+    $wizard.on('change', '.aie-updater-filter-condition', function (e) {
+      return _this.onFilterConditionChange(e);
+    });
+    $wizard.on('change', '.aie-updater-filter-value', function () {
+      return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+        return _this.refreshCount(false);
+      }, 500)();
+    });
+    $wizard.on('click', '.aie-updater-refresh-count', function () {
+      return _this.refreshCount(true);
+    });
+
+    // Field selection (Step 3)
     $wizard.on('click', '.aie-updater-clear-all-fields', function () {
       return _this.clearAllFields();
     });
@@ -216,12 +243,15 @@ var ContentUpdater = {
     // Step-specific actions
     switch (step) {
       case 2:
-        this.loadFieldsLibrary();
+        this.loadFiltersLibrary(); // New: Load filters
         break;
       case 3:
-        this.buildFunctionsTable();
+        this.loadFieldsLibrary();
         break;
       case 4:
+        this.buildFunctionsTable();
+        break;
+      case 5:
         this.prepareUpdateSummary();
         break;
     }
@@ -232,6 +262,12 @@ var ContentUpdater = {
   nextStep: function nextStep() {
     if (!this.validateCurrentStep()) {
       return;
+    }
+
+    // Save filters when leaving step 2
+    if (this.currentStep === 2) {
+      this.selectedFilters = this.collectFilters();
+      console.log('Saved filters:', this.selectedFilters);
     }
     if (this.currentStep < this.totalSteps) {
       this.showStep(this.currentStep + 1);
@@ -258,13 +294,16 @@ var ContentUpdater = {
         }
         return true;
       case 2:
+        // Filters are optional, always pass
+        return true;
+      case 3:
         // At least one field must be selected
         if (this.selectedFields.length === 0) {
           _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Please select at least one field to update', 'error');
           return false;
         }
         return true;
-      case 3:
+      case 4:
         // At least one function must be assigned
         var hasFunction = Object.values(this.fieldFunctions).some(function (functions) {
           return Array.isArray(functions) && functions.length > 0;
@@ -313,6 +352,248 @@ var ContentUpdater = {
     // Reset selections for new content type
     this.selectedFields = [];
     this.fieldFunctions = {};
+    this.selectedFilters = [];
+    this.filteredCount = null; // Reset filtered count when content type changes
+  },
+  /**
+   * Load filters library for selected content type
+   */
+  loadFiltersLibrary: function loadFiltersLibrary() {
+    console.log('loadFiltersLibrary called');
+
+    // Get selected content type
+    var contentType = jQuery('input[name="updater_content_type"]:checked').val();
+    if (!contentType) {
+      console.error('No content type selected');
+      return;
+    }
+    console.log('Loading filters for content type:', contentType);
+
+    // Clear existing filters
+    jQuery('#aie-updater-filters-list').empty();
+
+    // Refresh count
+    this.refreshCount(true);
+  },
+  /**
+   * Add new filter row
+   */
+  addFilterRow: function addFilterRow() {
+    var _this3 = this;
+    var template = document.getElementById('aie-updater-filter-row-template');
+    var clone = template.content.cloneNode(true);
+    var contentType = jQuery('input[name="updater_content_type"]:checked').val();
+
+    // Populate field options based on content type
+    var $fieldSelect = jQuery(clone).find('.aie-updater-filter-field');
+
+    // Use export module's getFieldsByContentType if available
+    if (typeof window.aieExportModule !== 'undefined' && window.aieExportModule.getFieldsByContentType) {
+      var fields = window.aieExportModule.getFieldsByContentType(contentType);
+      fields.forEach(function (group) {
+        var $optgroup = jQuery('<optgroup>').attr('label', group.label);
+        group.options.forEach(function (option) {
+          $optgroup.append(jQuery('<option>').val(option.value).text(option.label).data('type', option.type));
+        });
+        $fieldSelect.append($optgroup);
+      });
+    }
+    jQuery('#aie-updater-filters-list').append(clone);
+
+    // Trigger count refresh (without spinner)
+    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+      return _this3.refreshCount(false);
+    }, 500)();
+  },
+  /**
+   * Remove filter row
+   */
+  removeFilterRow: function removeFilterRow(e) {
+    var _this4 = this;
+    jQuery(e.target).closest('.aie-filter-row').remove();
+    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+      return _this4.refreshCount(false);
+    }, 500)();
+  },
+  /**
+   * Handle filter field change
+   */
+  onFilterFieldChange: function onFilterFieldChange(e) {
+    var _this5 = this;
+    var $field = jQuery(e.target);
+    var $row = $field.closest('.aie-filter-row');
+    var $condition = $row.find('.aie-updater-filter-condition');
+    var selectedOption = $field.find('option:selected');
+    var fieldType = selectedOption.data('type') || 'string';
+
+    // Populate condition dropdown based on field type
+    $condition.empty();
+    var conditions = this.getConditionsByFieldType(fieldType);
+    conditions.forEach(function (condition) {
+      $condition.append(jQuery('<option>').val(condition.value).text(condition.label));
+    });
+    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+      return _this5.refreshCount(false);
+    }, 500)();
+  },
+  /**
+   * Handle filter condition change
+   */
+  onFilterConditionChange: function onFilterConditionChange(e) {
+    var _this6 = this;
+    var $condition = jQuery(e.target);
+    var $row = $condition.closest('.aie-filter-row');
+    var $valueWrap = $row.find('.aie-filter-value-wrap');
+    var conditionValue = $condition.val();
+
+    // Hide/show value input based on condition
+    if (conditionValue === 'is_empty' || conditionValue === 'is_not_empty') {
+      $valueWrap.hide();
+    } else {
+      $valueWrap.show();
+    }
+    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+      return _this6.refreshCount(false);
+    }, 500)();
+  },
+  /**
+   * Get conditions by field type
+   */
+  getConditionsByFieldType: function getConditionsByFieldType(fieldType) {
+    var stringConditions = [{
+      value: 'equals',
+      label: 'Equals'
+    }, {
+      value: 'not_equals',
+      label: 'Not Equals'
+    }, {
+      value: 'contains',
+      label: 'Contains'
+    }, {
+      value: 'not_contains',
+      label: 'Not Contains'
+    }, {
+      value: 'starts_with',
+      label: 'Starts With'
+    }, {
+      value: 'ends_with',
+      label: 'Ends With'
+    }, {
+      value: 'is_empty',
+      label: 'Is Empty'
+    }, {
+      value: 'is_not_empty',
+      label: 'Is Not Empty'
+    }];
+    var numberConditions = [{
+      value: 'equals',
+      label: 'Equals'
+    }, {
+      value: 'not_equals',
+      label: 'Not Equals'
+    }, {
+      value: 'greater',
+      label: 'Greater Than'
+    }, {
+      value: 'less',
+      label: 'Less Than'
+    }, {
+      value: 'equals_or_greater',
+      label: 'Greater or Equal'
+    }, {
+      value: 'equals_or_less',
+      label: 'Less or Equal'
+    }, {
+      value: 'between',
+      label: 'Between'
+    }];
+    var dateConditions = [{
+      value: 'equals',
+      label: 'On Date'
+    }, {
+      value: 'before',
+      label: 'Before'
+    }, {
+      value: 'after',
+      label: 'After'
+    }, {
+      value: 'between',
+      label: 'Between'
+    }];
+    switch (fieldType) {
+      case 'number':
+      case 'id':
+        return numberConditions;
+      case 'date':
+      case 'datetime':
+        return dateConditions;
+      default:
+        return stringConditions;
+    }
+  },
+  /**
+   * Refresh item count
+   */
+  refreshCount: function refreshCount() {
+    var _this7 = this;
+    var showSpinner = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+    var contentType = jQuery('input[name="updater_content_type"]:checked').val();
+    if (!contentType) {
+      return;
+    }
+    var $countValue = jQuery('.aie-count-value');
+    var $spinner = jQuery('.aie-filter-summary-top .spinner');
+    if (showSpinner) {
+      $spinner.addClass('is-active');
+    }
+
+    // Collect filters
+    var filters = this.collectFilters();
+    jQuery.ajax({
+      url: aieData.ajaxUrl,
+      method: 'POST',
+      data: {
+        action: 'aie_updater_get_count',
+        nonce: aieData.nonce,
+        content_type: contentType,
+        filters: JSON.stringify(filters),
+        options: {}
+      },
+      success: function success(response) {
+        $spinner.removeClass('is-active');
+        if (response.success) {
+          $countValue.text(response.data.count);
+          // Save the filtered count for later use
+          _this7.filteredCount = response.data.count;
+        } else {
+          $countValue.text('Error');
+        }
+      },
+      error: function error() {
+        $spinner.removeClass('is-active');
+        $countValue.text('Error');
+      }
+    });
+  },
+  /**
+   * Collect filters from UI
+   */
+  collectFilters: function collectFilters() {
+    var filters = [];
+    jQuery('.aie-filter-row').each(function () {
+      var $row = jQuery(this);
+      var field = $row.find('.aie-updater-filter-field').val();
+      var condition = $row.find('.aie-updater-filter-condition').val();
+      var value = $row.find('.aie-updater-filter-value').val();
+      if (field && condition) {
+        filters.push({
+          field: field,
+          condition: condition,
+          value: value
+        });
+      }
+    });
+    return filters;
   },
   /**
    * Load fields library for selected content type
@@ -345,7 +626,7 @@ var ContentUpdater = {
    * Load static fields based on content type
    */
   loadStaticFields: function loadStaticFields(contentType) {
-    var _this3 = this;
+    var _this8 = this;
     // Get field definitions from export module
     if (typeof window.aieExportModule === 'undefined' || !window.aieExportModule.getFieldsByContentType) {
       console.error('Export module not found or getFieldsByContentType method missing');
@@ -374,7 +655,7 @@ var ContentUpdater = {
       if (group.label === 'Custom Filters' || group.label === 'Post Type Selection' || group.label === 'Taxonomy Selection' || group.label === 'Taxonomy' || group.label === 'Author') {
         return;
       }
-      var $category = _this3.createFieldCategory(group, index === 0);
+      var $category = _this8.createFieldCategory(group, index === 0);
       $body.append($category);
     });
 
@@ -391,7 +672,7 @@ var ContentUpdater = {
    * Create a field category element
    */
   createFieldCategory: function createFieldCategory(group) {
-    var _this4 = this;
+    var _this9 = this;
     var isOpen = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
     var $category = jQuery('<div>').addClass('aie-field-category');
     if (!isOpen) {
@@ -407,7 +688,7 @@ var ContentUpdater = {
         if (option.type === 'custom_field' || option.type === 'taxonomy_filter' || option.type === 'post_type_selector' || option.type === 'taxonomy_selector' || option.type === 'table_selector') {
           return;
         }
-        var $field = _this4.createFieldItem(option);
+        var $field = _this9.createFieldItem(option);
         $grid.append($field);
       });
     }
@@ -460,7 +741,7 @@ var ContentUpdater = {
    * Load taxonomies for selected post type
    */
   loadTaxonomies: function loadTaxonomies(postType) {
-    var _this5 = this;
+    var _this10 = this;
     if (typeof aieData === 'undefined') return;
     jQuery.ajax({
       url: aieData.ajaxUrl,
@@ -473,7 +754,7 @@ var ContentUpdater = {
       success: function success(response) {
         console.log('Taxonomies response:', response);
         if (response.success && response.data.taxonomies && response.data.taxonomies.length > 0) {
-          _this5.renderTaxonomies(response.data.taxonomies);
+          _this10.renderTaxonomies(response.data.taxonomies);
           jQuery('.aie-taxonomies-category').show();
         } else {
           jQuery('.aie-taxonomies-category').hide();
@@ -488,12 +769,12 @@ var ContentUpdater = {
    * Render taxonomies
    */
   renderTaxonomies: function renderTaxonomies(taxonomies) {
-    var _this6 = this;
+    var _this11 = this;
     var $grid = jQuery('.aie-taxonomies-grid');
     if (!$grid.length) return;
     $grid.empty();
     taxonomies.forEach(function (taxonomy) {
-      var $item = jQuery('<div>').addClass('aie-field-item').attr('draggable', true).attr('data-field', 'taxonomy_' + taxonomy.name).attr('data-label', taxonomy.label).attr('data-type', 'taxonomy').html("\n\t\t\t\t\t<span class=\"aie-field-icon dashicons dashicons-category\"></span>\n\t\t\t\t\t<span class=\"aie-field-label\">".concat(_this6.escapeHtml(taxonomy.label), "</span>\n\t\t\t\t\t<span class=\"aie-field-type\">taxonomy</span>\n\t\t\t\t"));
+      var $item = jQuery('<div>').addClass('aie-field-item').attr('draggable', true).attr('data-field', 'taxonomy_' + taxonomy.name).attr('data-label', taxonomy.label).attr('data-type', 'taxonomy').html("\n\t\t\t\t\t<span class=\"aie-field-icon dashicons dashicons-category\"></span>\n\t\t\t\t\t<span class=\"aie-field-label\">".concat(_this11.escapeHtml(taxonomy.label), "</span>\n\t\t\t\t\t<span class=\"aie-field-type\">taxonomy</span>\n\t\t\t\t"));
       $grid.append($item);
     });
   },
@@ -501,7 +782,7 @@ var ContentUpdater = {
    * Load custom fields for selected post type
    */
   loadCustomFields: function loadCustomFields(postType) {
-    var _this7 = this;
+    var _this12 = this;
     if (typeof aieData === 'undefined') return;
     jQuery.ajax({
       url: aieData.ajaxUrl,
@@ -514,7 +795,7 @@ var ContentUpdater = {
       success: function success(response) {
         console.log('Custom fields response:', response);
         if (response.success && response.data.fields && response.data.fields.length > 0) {
-          _this7.renderCustomFields(response.data.fields);
+          _this12.renderCustomFields(response.data.fields);
           jQuery('.aie-custom-fields-category').show();
         } else {
           jQuery('.aie-custom-fields-category').hide();
@@ -529,12 +810,12 @@ var ContentUpdater = {
    * Render custom fields
    */
   renderCustomFields: function renderCustomFields(fields) {
-    var _this8 = this;
+    var _this13 = this;
     var $grid = jQuery('.aie-custom-fields-grid');
     if (!$grid.length) return;
     $grid.empty();
     fields.forEach(function (field) {
-      var $item = jQuery('<div>').addClass('aie-field-item').attr('draggable', true).attr('data-field', 'meta_' + field.name).attr('data-label', field.name).attr('data-type', 'meta').html("\n\t\t\t\t\t<span class=\"aie-field-icon dashicons dashicons-admin-generic\"></span>\n\t\t\t\t\t<span class=\"aie-field-label\">".concat(_this8.escapeHtml(field.name), "</span>\n\t\t\t\t\t<span class=\"aie-field-type\">meta</span>\n\t\t\t\t"));
+      var $item = jQuery('<div>').addClass('aie-field-item').attr('draggable', true).attr('data-field', 'meta_' + field.name).attr('data-label', field.name).attr('data-type', 'meta').html("\n\t\t\t\t\t<span class=\"aie-field-icon dashicons dashicons-admin-generic\"></span>\n\t\t\t\t\t<span class=\"aie-field-label\">".concat(_this13.escapeHtml(field.name), "</span>\n\t\t\t\t\t<span class=\"aie-field-type\">meta</span>\n\t\t\t\t"));
       $grid.append($item);
     });
   },
@@ -542,7 +823,7 @@ var ContentUpdater = {
    * Check if ACF is active and load ACF fields
    */
   checkAndLoadACF: function checkAndLoadACF(postType) {
-    var _this9 = this;
+    var _this14 = this;
     if (typeof aieData === 'undefined') return;
     jQuery.ajax({
       url: aieData.ajaxUrl,
@@ -555,7 +836,7 @@ var ContentUpdater = {
       success: function success(response) {
         console.log('ACF fields response:', response);
         if (response.success && response.data.fields && response.data.fields.length > 0) {
-          _this9.renderACFFields(response.data.fields);
+          _this14.renderACFFields(response.data.fields);
           jQuery('.aie-acf-fields-category').show();
         } else {
           jQuery('.aie-acf-fields-category').hide();
@@ -570,12 +851,12 @@ var ContentUpdater = {
    * Render ACF fields
    */
   renderACFFields: function renderACFFields(fields) {
-    var _this10 = this;
+    var _this15 = this;
     var $grid = jQuery('.aie-acf-fields-grid');
     if (!$grid.length) return;
     $grid.empty();
     fields.forEach(function (field) {
-      var $item = jQuery('<div>').addClass('aie-field-item').attr('draggable', true).attr('data-field', 'acf_' + field.name).attr('data-label', field.label).attr('data-type', 'acf').html("\n\t\t\t\t\t<span class=\"aie-field-icon dashicons dashicons-admin-settings\"></span>\n\t\t\t\t\t<span class=\"aie-field-label\">".concat(_this10.escapeHtml(field.label), "</span>\n\t\t\t\t\t<span class=\"aie-field-type\">acf</span>\n\t\t\t\t"));
+      var $item = jQuery('<div>').addClass('aie-field-item').attr('draggable', true).attr('data-field', 'acf_' + field.name).attr('data-label', field.label).attr('data-type', 'acf').html("\n\t\t\t\t\t<span class=\"aie-field-icon dashicons dashicons-admin-settings\"></span>\n\t\t\t\t\t<span class=\"aie-field-label\">".concat(_this15.escapeHtml(field.label), "</span>\n\t\t\t\t\t<span class=\"aie-field-type\">acf</span>\n\t\t\t\t"));
       $grid.append($item);
     });
   },
@@ -583,7 +864,7 @@ var ContentUpdater = {
    * Check if Yoast is active and load Yoast fields
    */
   checkAndLoadYoast: function checkAndLoadYoast(postType) {
-    var _this11 = this;
+    var _this16 = this;
     if (typeof aieData === 'undefined') return;
     jQuery.ajax({
       url: aieData.ajaxUrl,
@@ -596,7 +877,7 @@ var ContentUpdater = {
       success: function success(response) {
         console.log('Yoast fields response:', response);
         if (response.success && response.data.fields && response.data.fields.length > 0) {
-          _this11.renderYoastFields(response.data.fields);
+          _this16.renderYoastFields(response.data.fields);
           jQuery('.aie-yoast-fields-category').show();
         } else {
           jQuery('.aie-yoast-fields-category').hide();
@@ -611,12 +892,12 @@ var ContentUpdater = {
    * Render Yoast fields
    */
   renderYoastFields: function renderYoastFields(fields) {
-    var _this12 = this;
+    var _this17 = this;
     var $grid = jQuery('.aie-yoast-fields-grid');
     if (!$grid.length) return;
     $grid.empty();
     fields.forEach(function (field) {
-      var $item = jQuery('<div>').addClass('aie-field-item').attr('draggable', true).attr('data-field', 'yoast_' + field.name).attr('data-label', field.label).attr('data-type', 'yoast').html("\n\t\t\t\t\t<span class=\"aie-field-icon dashicons dashicons-chart-line\"></span>\n\t\t\t\t\t<span class=\"aie-field-label\">".concat(_this12.escapeHtml(field.label), "</span>\n\t\t\t\t\t<span class=\"aie-field-type\">yoast</span>\n\t\t\t\t"));
+      var $item = jQuery('<div>').addClass('aie-field-item').attr('draggable', true).attr('data-field', 'yoast_' + field.name).attr('data-label', field.label).attr('data-type', 'yoast').html("\n\t\t\t\t\t<span class=\"aie-field-icon dashicons dashicons-chart-line\"></span>\n\t\t\t\t\t<span class=\"aie-field-label\">".concat(_this17.escapeHtml(field.label), "</span>\n\t\t\t\t\t<span class=\"aie-field-type\">yoast</span>\n\t\t\t\t"));
       $grid.append($item);
     });
   },
@@ -645,7 +926,7 @@ var ContentUpdater = {
    * Setup drag and drop handlers for field items
    */
   setupFieldsDragAndDrop: function setupFieldsDragAndDrop() {
-    var _this13 = this;
+    var _this18 = this;
     var $items = jQuery('.aie-field-item');
     var $dropzone = jQuery('#aie-updater-dropzone');
     $items.on('dragstart', function (e) {
@@ -655,7 +936,7 @@ var ContentUpdater = {
     });
     $items.on('click', function (e) {
       var $item = jQuery(e.currentTarget);
-      _this13.addField($item.data('field'), $item.find('.aie-field-label').text());
+      _this18.addField($item.data('field'), $item.find('.aie-field-label').text());
     });
     $dropzone.on('dragover', function (e) {
       e.preventDefault();
@@ -670,7 +951,7 @@ var ContentUpdater = {
       var field = e.originalEvent.dataTransfer.getData('field');
       var label = e.originalEvent.dataTransfer.getData('label');
       if (field) {
-        _this13.addField(field, label);
+        _this18.addField(field, label);
       }
     });
   },
@@ -678,7 +959,7 @@ var ContentUpdater = {
    * Add field to selected fields list
    */
   addField: function addField(field, label) {
-    var _this14 = this;
+    var _this19 = this;
     // Check if already added
     if (this.selectedFields.includes(field)) {
       _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice("Field \"".concat(label, "\" is already selected"), 'warning');
@@ -694,7 +975,7 @@ var ContentUpdater = {
 
     // Bind remove handler
     $list.find('.aie-remove-field').last().on('click', function (e) {
-      _this14.removeField(jQuery(e.currentTarget).closest('.aie-selected-field').data('field'));
+      _this19.removeField(jQuery(e.currentTarget).closest('.aie-selected-field').data('field'));
     });
   },
   /**
@@ -751,7 +1032,7 @@ var ContentUpdater = {
    * Load available functions from server
    */
   loadAvailableFunctions: function loadAvailableFunctions() {
-    var _this15 = this;
+    var _this20 = this;
     jQuery.ajax({
       url: aieData.ajaxUrl,
       method: 'POST',
@@ -761,8 +1042,8 @@ var ContentUpdater = {
       },
       success: function success(response) {
         if (response.success && response.data.functions) {
-          _this15.availableFunctions = response.data.functions;
-          _this15.renderAvailableFunctions();
+          _this20.availableFunctions = response.data.functions;
+          _this20.renderAvailableFunctions();
         }
       }
     });
@@ -771,7 +1052,7 @@ var ContentUpdater = {
    * Build functions assignment table
    */
   buildFunctionsTable: function buildFunctionsTable() {
-    var _this16 = this;
+    var _this21 = this;
     var $tbody = jQuery('#aie-updater-functions-tbody');
     $tbody.empty();
     if (this.selectedFields.length === 0) {
@@ -779,21 +1060,21 @@ var ContentUpdater = {
       return;
     }
     this.selectedFields.forEach(function (field, index) {
-      var functions = _this16.fieldFunctions[field] || [];
+      var functions = _this21.fieldFunctions[field] || [];
       var functionsCount = Array.isArray(functions) ? functions.length : 0;
       var fieldLabel = jQuery(".aie-selected-field[data-field=\"".concat(field, "\"] .aie-field-name")).text() || field;
       var functionsText = 'None';
       if (functionsCount > 0) {
         functionsText = "".concat(functionsCount, " function").concat(functionsCount > 1 ? 's' : '');
       }
-      var html = "\n\t\t\t\t<tr data-field=\"".concat(field, "\">\n\t\t\t\t\t<td class=\"aie-field-name-col\">\n\t\t\t\t\t\t<strong>").concat(_this16.escapeHtml(fieldLabel), "</strong>\n\t\t\t\t\t\t<br><code>").concat(_this16.escapeHtml(field), "</code>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"aie-field-type-col\">\n\t\t\t\t\t\t<span class=\"aie-field-type-badge\">Text</span>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"aie-functions-col\">\n\t\t\t\t\t\t<span class=\"aie-functions-count-badge\">").concat(functionsText, "</span>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"aie-actions-col\">\n\t\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-assign-functions\" data-field=\"").concat(field, "\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-generic\"></span>\n\t\t\t\t\t\t\tAssign Functions\n\t\t\t\t\t\t</button>\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
+      var html = "\n\t\t\t\t<tr data-field=\"".concat(field, "\">\n\t\t\t\t\t<td class=\"aie-field-name-col\">\n\t\t\t\t\t\t<strong>").concat(_this21.escapeHtml(fieldLabel), "</strong>\n\t\t\t\t\t\t<br><code>").concat(_this21.escapeHtml(field), "</code>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"aie-field-type-col\">\n\t\t\t\t\t\t<span class=\"aie-field-type-badge\">Text</span>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"aie-functions-col\">\n\t\t\t\t\t\t<span class=\"aie-functions-count-badge\">").concat(functionsText, "</span>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"aie-actions-col\">\n\t\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-assign-functions\" data-field=\"").concat(field, "\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-generic\"></span>\n\t\t\t\t\t\t\tAssign Functions\n\t\t\t\t\t\t</button>\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
       $tbody.append(html);
     });
 
     // Bind assign functions button
     $tbody.find('.aie-assign-functions').on('click', function (e) {
       var field = jQuery(e.currentTarget).data('field');
-      _this16.openFieldFunctionsModal(field);
+      _this21.openFieldFunctionsModal(field);
     });
     this.updateFunctionStats();
   },
@@ -855,7 +1136,7 @@ var ContentUpdater = {
    * Load current functions for field
    */
   loadCurrentFunctions: function loadCurrentFunctions(fieldKey) {
-    var _this17 = this;
+    var _this22 = this;
     var $container = jQuery('#aie-updater-function-items');
     if (!$container.length) return;
     $container.empty();
@@ -868,11 +1149,11 @@ var ContentUpdater = {
     }
     if ($noFunctionsEl.length) $noFunctionsEl.hide();
     functions.forEach(function (funcId) {
-      var func = _this17.availableFunctions.find(function (f) {
+      var func = _this22.availableFunctions.find(function (f) {
         return f.id == funcId;
       });
       if (func) {
-        _this17.addFunctionToPipeline(func, false);
+        _this22.addFunctionToPipeline(func, false);
       }
     });
     this.updateFunctionsCount(functions.length);
@@ -881,7 +1162,7 @@ var ContentUpdater = {
    * Add function to pipeline
    */
   addFunctionToPipeline: function addFunctionToPipeline(func) {
-    var _this18 = this;
+    var _this23 = this;
     var updateArray = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
     var $container = jQuery('#aie-updater-function-items');
     if (!$container.length) return;
@@ -890,9 +1171,9 @@ var ContentUpdater = {
     // Remove function event
     $item.find('.aie-remove-function').on('click', function () {
       $item.remove();
-      _this18.updatePipelineFunctions();
-      _this18.updateFunctionsCount();
-      _this18.toggleNoFunctionsMessage();
+      _this23.updatePipelineFunctions();
+      _this23.updateFunctionsCount();
+      _this23.toggleNoFunctionsMessage();
     });
     $container.append($item);
     if (updateArray) {
@@ -940,7 +1221,7 @@ var ContentUpdater = {
    * Render available functions
    */
   renderAvailableFunctions: function renderAvailableFunctions() {
-    var _this19 = this;
+    var _this24 = this;
     var $list = jQuery('#aie-updater-functions-list');
     if (!$list.length) return;
     $list.empty();
@@ -949,11 +1230,11 @@ var ContentUpdater = {
       return;
     }
     this.availableFunctions.forEach(function (func) {
-      var $funcItem = jQuery('<div>').addClass('aie-function-list-item').attr('data-function-id', func.id).attr('data-category', func.category || 'custom').html("\n\t\t\t\t\t<div class=\"aie-function-list-info\">\n\t\t\t\t\t\t<strong class=\"aie-function-list-name\">".concat(_this19.escapeHtml(func.name), "</strong>\n\t\t\t\t\t\t<span class=\"aie-function-list-desc\">").concat(_this19.escapeHtml(func.description || ''), "</span>\n\t\t\t\t\t</div>\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-add-function-btn\" data-function-id=\"").concat(func.id, "\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-plus-alt\"></span>\n\t\t\t\t\t\tAdd\n\t\t\t\t\t</button>\n\t\t\t\t"));
+      var $funcItem = jQuery('<div>').addClass('aie-function-list-item').attr('data-function-id', func.id).attr('data-category', func.category || 'custom').html("\n\t\t\t\t\t<div class=\"aie-function-list-info\">\n\t\t\t\t\t\t<strong class=\"aie-function-list-name\">".concat(_this24.escapeHtml(func.name), "</strong>\n\t\t\t\t\t\t<span class=\"aie-function-list-desc\">").concat(_this24.escapeHtml(func.description || ''), "</span>\n\t\t\t\t\t</div>\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-add-function-btn\" data-function-id=\"").concat(func.id, "\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-plus-alt\"></span>\n\t\t\t\t\t\tAdd\n\t\t\t\t\t</button>\n\t\t\t\t"));
 
       // Add function event
       $funcItem.find('.aie-add-function-btn').on('click', function () {
-        _this19.addFunctionToPipeline(func, true);
+        _this24.addFunctionToPipeline(func, true);
       });
       $list.append($funcItem);
     });
@@ -962,7 +1243,7 @@ var ContentUpdater = {
    * Initialize function pipeline sortable
    */
   initFunctionPipelineSortable: function initFunctionPipelineSortable() {
-    var _this20 = this;
+    var _this25 = this;
     var $container = jQuery('#aie-updater-function-items');
     if (!$container.length) return;
 
@@ -975,7 +1256,7 @@ var ContentUpdater = {
       placeholder: 'aie-function-item-placeholder',
       axis: 'y',
       update: function update() {
-        _this20.updatePipelineFunctions();
+        _this25.updatePipelineFunctions();
       }
     });
   },
@@ -1020,7 +1301,7 @@ var ContentUpdater = {
    * Apply function to all fields
    */
   applyFunctionToAll: function applyFunctionToAll() {
-    var _this21 = this;
+    var _this26 = this;
     // Show a dialog to select the function
     var functionId = prompt('Enter function ID to apply to all fields (or leave empty for none):');
     if (functionId === null) {
@@ -1028,7 +1309,7 @@ var ContentUpdater = {
     }
     var finalId = functionId.trim() || 'none';
     this.selectedFields.forEach(function (field) {
-      _this21.fieldFunctions[field] = finalId;
+      _this26.fieldFunctions[field] = finalId;
       jQuery(".aie-field-function-select[data-field=\"".concat(field, "\"]")).val(finalId);
     });
     this.updateFunctionStats();
@@ -1038,12 +1319,12 @@ var ContentUpdater = {
    * Clear all function assignments
    */
   clearAllFunctions: function clearAllFunctions() {
-    var _this22 = this;
+    var _this27 = this;
     if (!confirm('Are you sure you want to clear all function assignments?')) {
       return;
     }
     this.selectedFields.forEach(function (field) {
-      _this22.fieldFunctions[field] = [];
+      _this27.fieldFunctions[field] = [];
       var $row = jQuery("tr[data-field=\"".concat(field, "\"]"));
       $row.find('.aie-updater-field-functions').empty();
     });
@@ -1101,16 +1382,26 @@ var ContentUpdater = {
     }).length;
     jQuery('.aie-functions-summary').text(functionsCount);
 
-    // Get count of items
-    this.getItemCount();
+    // Get count of items (with filters applied)
+    // If we already have a filtered count from Step 2, we can use it
+    // Otherwise, make a new request
+    if (this.filteredCount !== undefined && this.filteredCount !== null) {
+      jQuery('.aie-total-items-summary').text(this.filteredCount);
+    } else {
+      this.getItemCount();
+    }
   },
   /**
    * Get count of items to update
    */
   getItemCount: function getItemCount() {
+    var _this28 = this;
     var contentType = jQuery('input[name="updater_content_type"]:checked').val();
     var $countValue = jQuery('.aie-total-items-summary');
     $countValue.html('<span class="spinner" style="float:none;margin:0;"></span>');
+
+    // Include filters in the count request
+    var filters = this.selectedFilters || [];
     jQuery.ajax({
       url: aieData.ajaxUrl,
       method: 'POST',
@@ -1118,11 +1409,14 @@ var ContentUpdater = {
         action: 'aie_updater_get_count',
         nonce: aieData.nonce,
         content_type: contentType,
+        filters: JSON.stringify(filters),
         options: {}
       },
       success: function success(response) {
         if (response.success) {
           $countValue.text(response.data.count);
+          // Save the filtered count
+          _this28.filteredCount = response.data.count;
         } else {
           $countValue.text('Error');
         }
@@ -1136,14 +1430,31 @@ var ContentUpdater = {
    * Start update process
    */
   startUpdate: function startUpdate() {
-    var _this23 = this;
+    var _this29 = this;
     var contentType = jQuery('input[name="updater_content_type"]:checked').val();
     var itemsPerIteration = parseInt(jQuery('#aie-updater-items-per-iteration').val()) || 10;
-    var dryRun = jQuery('#aie-updater-dry-run').is(':checked');
+
+    // Validate fields and functions
+    if (!this.selectedFields || this.selectedFields.length === 0) {
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('No fields selected. Please go back and select fields to update.', 'error');
+      console.error('selectedFields is empty:', this.selectedFields);
+      return;
+    }
+    if (!this.fieldFunctions || Object.keys(this.fieldFunctions).length === 0) {
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('No functions assigned. Please go back and assign functions to fields.', 'error');
+      console.error('fieldFunctions is empty:', this.fieldFunctions);
+      return;
+    }
 
     // Prepare field functions array (indexed by field position)
     var fieldFunctionsArray = this.selectedFields.map(function (field) {
-      return _this23.fieldFunctions[field] || 'none';
+      return _this29.fieldFunctions[field] || [];
+    });
+    console.log('Starting update with:', {
+      contentType: contentType,
+      selectedFields: this.selectedFields,
+      fieldFunctions: this.fieldFunctions,
+      fieldFunctionsArray: fieldFunctionsArray
     });
 
     // Show progress section
@@ -1159,29 +1470,29 @@ var ContentUpdater = {
         action: 'aie_updater_start',
         nonce: aieData.nonce,
         content_type: contentType,
-        fields: this.selectedFields,
-        field_functions: fieldFunctionsArray,
-        options: {
-          items_per_iteration: itemsPerIteration,
-          dry_run: dryRun
-        }
+        fields: JSON.stringify(this.selectedFields),
+        field_functions: JSON.stringify(fieldFunctionsArray),
+        filters: JSON.stringify(this.selectedFilters || []),
+        options: JSON.stringify({
+          items_per_iteration: itemsPerIteration
+        })
       },
       success: function success(response) {
         if (response.success) {
-          _this23.jobId = response.data.job_id;
+          _this29.jobId = response.data.job_id;
           _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Update started successfully', 'success');
 
           // Start processing
-          _this23.startProgressTracking();
-          _this23.processNextBatch();
+          _this29.startProgressTracking();
+          _this29.processNextBatch();
         } else {
           _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(response.data.message || 'Failed to start update', 'error');
-          _this23.showResults('error');
+          _this29.showResults('error');
         }
       },
       error: function error() {
         _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Failed to start update', 'error');
-        _this23.showResults('error');
+        _this29.showResults('error');
       }
     });
   },
@@ -1189,16 +1500,16 @@ var ContentUpdater = {
    * Start progress tracking
    */
   startProgressTracking: function startProgressTracking() {
-    var _this24 = this;
+    var _this30 = this;
     this.progressInterval = setInterval(function () {
-      _this24.updateProgress();
+      _this30.updateProgress();
     }, 2000);
   },
   /**
    * Update progress display
    */
   updateProgress: function updateProgress() {
-    var _this25 = this;
+    var _this31 = this;
     return jQuery.ajax({
       url: aieData.ajaxUrl,
       method: 'POST',
@@ -1227,8 +1538,8 @@ var ContentUpdater = {
 
           // Check if completed
           if (progress.status === 'completed' || progress.status === 'failed' || progress.status === 'cancelled') {
-            _this25.stopProgressTracking();
-            _this25.showResults(progress.status, progress);
+            _this31.stopProgressTracking();
+            _this31.showResults(progress.status, progress);
           }
         }
       }
@@ -1238,7 +1549,7 @@ var ContentUpdater = {
    * Process next batch
    */
   processNextBatch: function processNextBatch() {
-    var _this26 = this;
+    var _this32 = this;
     jQuery.ajax({
       url: aieData.ajaxUrl,
       method: 'POST',
@@ -1252,7 +1563,7 @@ var ContentUpdater = {
           if (!response.data.completed) {
             // Process next batch
             setTimeout(function () {
-              return _this26.processNextBatch();
+              return _this32.processNextBatch();
             }, 500);
           }
         } else {
@@ -1277,7 +1588,7 @@ var ContentUpdater = {
    * Cancel update
    */
   cancelUpdate: function cancelUpdate() {
-    var _this27 = this;
+    var _this33 = this;
     if (!confirm('Are you sure you want to cancel the update?')) {
       return;
     }
@@ -1291,9 +1602,9 @@ var ContentUpdater = {
       },
       success: function success(response) {
         if (response.success) {
-          _this27.stopProgressTracking();
+          _this33.stopProgressTracking();
           _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Update cancelled', 'info');
-          _this27.showResults('cancelled');
+          _this33.showResults('cancelled');
         }
       }
     });
@@ -1364,7 +1675,7 @@ var ContentUpdater = {
    * Test function pipeline
    */
   testFunctionPipeline: function testFunctionPipeline() {
-    var _this28 = this;
+    var _this34 = this;
     var $input = jQuery('#aie-updater-preview-input');
     var testValue = $input.val();
     if (!testValue) {
@@ -1401,9 +1712,9 @@ var ContentUpdater = {
       success: function success(response) {
         console.log('Test Pipeline - Response:', response);
         if (response.success) {
-          _this28.renderPipelinePreview(testValue, response.data.steps);
+          _this34.renderPipelinePreview(testValue, response.data.steps);
         } else {
-          _this28.showNotice(response.data.message || 'Test failed', 'error');
+          _this34.showNotice(response.data.message || 'Test failed', 'error');
           console.error('Test Pipeline Error:', response.data);
         }
       },
@@ -1413,7 +1724,7 @@ var ContentUpdater = {
           status: status,
           error: _error5
         });
-        _this28.showNotice('Error testing pipeline', 'error');
+        _this34.showNotice('Error testing pipeline', 'error');
       }
     });
   },
@@ -1421,7 +1732,7 @@ var ContentUpdater = {
    * Render pipeline preview
    */
   renderPipelinePreview: function renderPipelinePreview(initialValue, steps) {
-    var _this29 = this;
+    var _this35 = this;
     var $container = jQuery('#aie-updater-preview-result');
     if (!$container.length) return;
     var $stepsContainer = $container.find('.aie-preview-steps');
@@ -1433,7 +1744,7 @@ var ContentUpdater = {
     // Each function step
     if (steps && steps.length > 0) {
       steps.forEach(function (step, index) {
-        $stepsContainer.append(_this29.createPreviewStep(index + 1, step.function_name, step.output, step.error));
+        $stepsContainer.append(_this35.createPreviewStep(index + 1, step.function_name, step.output, step.error));
       });
     }
     $container.show();

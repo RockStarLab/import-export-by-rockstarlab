@@ -1215,8 +1215,12 @@ class Post_Exporter extends Abstract_Exporter {
 			'guid',
 		];
 
+		// Check if ID should be forced (for Content Updater)
+		$force_include_id = $this->get_option( 'force_include_id', false );
+
 		foreach ( $basic_fields as $field ) {
-			if ( in_array( $field, $fields, true ) ) {
+			// Include field if it's in the fields list OR if it's ID and force_include_id is true
+			if ( in_array( $field, $fields, true ) || ( $field === 'ID' && $force_include_id ) ) {
 				$data[ $field ] = $post->$field;
 			}
 		}

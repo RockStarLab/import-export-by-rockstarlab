@@ -662,4 +662,53 @@ class Custom_Function extends Model {
 
 		return $function;
 	}
+
+	/**
+	 * Seed built-in functions from snippets to database
+	 *
+	 * This loads all built-in functions from Function_Snippets into the database
+	 * so they can be used by Content Updater and other features.
+	 *
+	 * @return array Array with 'created' and 'skipped' counts
+	 */
+	public function seed_builtin_functions() {
+		$snippets     = new \WP_AIE\Helper\Function_Snippets();
+		$all_snippets = $snippets->get_all_functions();
+
+		$stats = [
+			'created' => 0,
+			'skipped' => 0,
+			'errors'  => 0,
+		];
+
+		foreach ( $all_snippets as $key => $snippet ) {
+			// Check if already exists by checking for source = 'library:key'
+			$existing = $this->find_by(
+				[
+					'source' => 'library:' . $key,
+				]
+			);
+
+			if ( ! empty( $existing ) ) {
+				++$stats['skipped'];
+				continue;
+			}
+
+			// Create the function
+			$result = $this->create_from_snippet(
+				$key,
+				[
+					'name' => $snippet['name'],
+				]
+			);
+
+			if ( $result && ! is_wp_error( $result ) ) {
+				++$stats['created'];
+			} else {
+				++$stats['errors'];
+			}
+		}
+
+		return $stats;
+	}
 }
