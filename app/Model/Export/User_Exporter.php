@@ -240,10 +240,18 @@ class User_Exporter extends Abstract_Exporter {
 		$fields = $options['fields'] ?? $this->get_default_fields();
 		$data   = [];
 
+		// Check if ID should be forced (for Content Updater)
+		$force_include_id = $options['force_include_id'] ?? false;
+
+		// Add ID if requested or forced
+		if ( in_array( 'ID', $fields, true ) || $force_include_id ) {
+			$data['ID'] = $user->ID;
+		}
+
 		foreach ( $fields as $field ) {
 			switch ( $field ) {
 				case 'ID':
-					$data['ID'] = $user->ID;
+					// Already handled above, skip
 					break;
 
 				case 'user_login':

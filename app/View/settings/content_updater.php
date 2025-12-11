@@ -20,6 +20,7 @@ defined( 'ABSPATH' ) || exit;
 		require_once __DIR__ . '/partials/updater-step-2.php';
 		require_once __DIR__ . '/partials/updater-step-3.php';
 		require_once __DIR__ . '/partials/updater-step-4.php';
+		require_once __DIR__ . '/partials/updater-step-5.php';
 		require_once __DIR__ . '/partials/updater-steps-indicator.php';
 		require_once __DIR__ . '/partials/updater-field-functions-modal.php';
 		?>

@@ -1,6 +1,6 @@
 <?php
 /**
- * Content Updater Step 3: Assign Functions to Fields
+ * Content Updater Step 2: Select Fields
  *
  * @package WP_AIE\View
  */
@@ -8,73 +8,80 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 
-<!-- Step 3: Assign Functions -->
+<!-- Step 3: Select Fields -->
 <div class="aie-step aie-updater-step-3" data-step="3">
 	<div class="aie-step-header">
-		<h2><?php esc_html_e( 'Step 3: Assign Functions to Fields', 'wp-advanced-import-export' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Assign transformation functions to each field', 'wp-advanced-import-export' ); ?></p>
+		<h2><?php esc_html_e( 'Step 3: Select Fields to Update', 'wp-advanced-import-export' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Choose which fields you want to update', 'wp-advanced-import-export' ); ?></p>
 	</div>
 
 	<div class="aie-step-content">
-		<div class="aie-functions-assignment">
-			<div class="aie-functions-header">
-				<div class="aie-functions-header-content">
-					<span class="dashicons dashicons-admin-tools"></span>
-					<h3><?php esc_html_e( 'Field Functions', 'wp-advanced-import-export' ); ?></h3>
+		<div class="aie-step-2-columns">
+			<!-- Left Column: Selected Fields -->
+			<div class="aie-updater-selected-fields">
+				<div class="aie-selected-fields-header">
+					<h3>
+						<span class="dashicons dashicons-yes-alt"></span>
+						<?php esc_html_e( 'Selected Fields', 'wp-advanced-import-export' ); ?>
+					</h3>
+					<div class="aie-selected-fields-actions">
+						<button type="button" class="button button-small aie-updater-clear-all-fields" title="<?php esc_attr_e( 'Clear all fields', 'wp-advanced-import-export' ); ?>">
+							<span class="dashicons dashicons-trash"></span>
+							<?php esc_html_e( 'Clear All', 'wp-advanced-import-export' ); ?>
+						</button>
+					</div>
 				</div>
-				<div class="aie-functions-actions">
-					<button type="button" class="button button-secondary aie-clear-all-functions">
-						<span class="dashicons dashicons-dismiss"></span>
-						<?php esc_html_e( 'Clear All', 'wp-advanced-import-export' ); ?>
-					</button>
+
+				<div class="aie-selected-fields-body">
+					<!-- Drop Zone -->
+					<div class="aie-updater-dropzone" id="aie-updater-dropzone">
+						<div class="aie-updater-dropzone-placeholder">
+							<span class="dashicons dashicons-download"></span>
+							<p><?php esc_html_e( 'Drag fields here to select for updating', 'wp-advanced-import-export' ); ?></p>
+						</div>
+						
+						<!-- Selected Fields Container -->
+						<div class="aie-updater-fields-list" id="aie-updater-fields-list">
+							<!-- Fields will be added here dynamically -->
+						</div>
+					</div>
+
+					<!-- Field Counter -->
+					<div class="aie-updater-stats">
+						<span class="aie-field-count">
+							<strong><?php esc_html_e( 'Fields Selected:', 'wp-advanced-import-export' ); ?></strong> 
+							<span class="aie-count-value aie-fields-count">0</span>
+						</span>
+					</div>
 				</div>
 			</div>
 
-			<!-- Functions Assignment Table -->
-			<div class="aie-functions-table-wrapper">
-				<table class="wp-list-table widefat fixed striped aie-functions-table">
-					<thead>
-						<tr>
-							<th class="aie-field-name-col"><?php esc_html_e( 'Field', 'wp-advanced-import-export' ); ?></th>
-							<th class="aie-field-type-col"><?php esc_html_e( 'Type', 'wp-advanced-import-export' ); ?></th>
-							<th class="aie-functions-col"><?php esc_html_e( 'Functions', 'wp-advanced-import-export' ); ?></th>
-							<th class="aie-actions-col"><?php esc_html_e( 'Actions', 'wp-advanced-import-export' ); ?></th>
-						</tr>
-					</thead>
-					<tbody id="aie-updater-functions-tbody">
-						<!-- Function rows will be added here dynamically -->
-						<tr class="aie-no-fields-row">
-							<td colspan="4" class="aie-no-fields-message">
-								<span class="dashicons dashicons-info"></span>
-								<?php esc_html_e( 'No fields selected. Please go back and select fields first.', 'wp-advanced-import-export' ); ?>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
+			<!-- Right Column: Available Fields Library -->
+			<div class="aie-fields-library">
+				<div class="aie-fields-library-header">
+					<h3>
+						<span class="dashicons dashicons-list-view"></span>
+						<?php esc_html_e( 'Available Fields', 'wp-advanced-import-export' ); ?>
+					</h3>
+				</div>
+				
+				<!-- Search/Filter -->
+				<div class="aie-fields-search">
+					<input 
+						type="text" 
+						id="aie-updater-fields-search" 
+						class="regular-text" 
+						placeholder="<?php esc_attr_e( 'Search fields...', 'wp-advanced-import-export' ); ?>"
+					>
+					<span class="dashicons dashicons-search"></span>
+				</div>
 
-			<!-- Stats Summary -->
-			<div class="aie-functions-stats">
-				<div class="aie-stat-card">
-					<span class="aie-stat-icon dashicons dashicons-admin-generic"></span>
-					<div class="aie-stat-content">
-						<span class="aie-stat-label"><?php esc_html_e( 'Total Fields', 'wp-advanced-import-export' ); ?></span>
-						<span class="aie-stat-value aie-total-fields-stat">0</span>
+				<div class="aie-fields-library-body" id="aie-updater-fields-library">
+					<div class="aie-fields-loading">
+						<span class="spinner is-active"></span>
+						<p><?php esc_html_e( 'Loading fields...', 'wp-advanced-import-export' ); ?></p>
 					</div>
-				</div>
-				<div class="aie-stat-card">
-					<span class="aie-stat-icon dashicons dashicons-yes-alt"></span>
-					<div class="aie-stat-content">
-						<span class="aie-stat-label"><?php esc_html_e( 'Functions Assigned', 'wp-advanced-import-export' ); ?></span>
-						<span class="aie-stat-value aie-functions-assigned-stat">0</span>
-					</div>
-				</div>
-				<div class="aie-stat-card">
-					<span class="aie-stat-icon dashicons dashicons-dismiss"></span>
-					<div class="aie-stat-content">
-						<span class="aie-stat-label"><?php esc_html_e( 'No Function', 'wp-advanced-import-export' ); ?></span>
-						<span class="aie-stat-value aie-no-function-stat">0</span>
-					</div>
+					<!-- Fields will be loaded dynamically based on content type -->
 				</div>
 			</div>
 		</div>

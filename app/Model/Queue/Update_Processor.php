@@ -94,6 +94,7 @@ class Update_Processor {
 			}
 
 			$content_type    = $parameters['content_type'];
+			$exporter_type   = $parameters['exporter_type'] ?? $content_type; // Use exporter_type if available
 			$options         = $parameters['options'] ?? [];
 			$fields          = $parameters['fields'] ?? [];
 			$field_functions = $parameters['field_functions'] ?? [];
@@ -105,24 +106,27 @@ class Update_Processor {
 			$current_offset = (int) ( $job->processed_items ?? 0 );
 
 			// Get exporter to fetch items
-			$exporter = Exporter_Factory::get_exporter( $content_type, $job_id );
+			$exporter = Exporter_Factory::get_exporter( $exporter_type, $job_id );
 			if ( is_wp_error( $exporter ) ) {
 				throw new \Exception( $exporter->get_error_message() );
 			}
 
 			// Build fetch options
+			// IMPORTANT: For Content Updater, we need ID field even if user didn't select it
+			// Add a special flag to tell exporter to include ID field
 			$fetch_options = array_merge(
 				$options,
 				[
-					'fields' => $fields,
-					'limit'  => $batch_size,
-					'offset' => $current_offset,
+					'fields'           => $fields,
+					'limit'            => $batch_size,
+					'offset'           => $current_offset,
+					'force_include_id' => true,  // Force ID inclusion for updates
 				]
 			);
 
 			// Get total count on first batch
 			if ( 0 === $current_offset ) {
-				$total_count = Exporter_Factory::get_count( $content_type, $fetch_options );
+				$total_count = Exporter_Factory::get_count( $exporter_type, $fetch_options );
 
 				$this->job_model->update(
 					$job_id,
@@ -264,37 +268,68 @@ class Update_Processor {
 
 		foreach ( $items as $item ) {
 			try {
-				$updated       = false;
-				$item_id       = $this->get_item_id( $item, $content_type );
+				$updated = false;
+				$item_id = $this->get_item_id( $item, $content_type );
+
+				// Debug: Log item structure
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG && 0 === $item_id ) {
+					$this->logger->log(
+						0,
+						'error',
+						'Item ID is 0 - Item keys: ' . implode( ', ', array_keys( $item ) )
+					);
+				}
+
 				$original_item = $item; // Keep original for comparison
 
 				// Apply functions to each field
 				foreach ( $fields as $index => $field ) {
 					// Check if this field has a function assigned
-					if ( ! isset( $field_functions[ $index ] ) || empty( $field_functions[ $index ] ) || 'none' === $field_functions[ $index ] ) {
+					if ( ! isset( $field_functions[ $index ] ) || empty( $field_functions[ $index ] ) ) {
 						continue;
 					}
 
-					$function_id = (int) $field_functions[ $index ];
+					$functions_for_field = $field_functions[ $index ];
+
+					// Ensure it's an array
+					if ( ! is_array( $functions_for_field ) ) {
+						$functions_for_field = [ $functions_for_field ];
+					}
+
+					// Skip if empty or 'none'
+					if ( empty( $functions_for_field ) || ( count( $functions_for_field ) === 1 && 'none' === $functions_for_field[0] ) ) {
+						continue;
+					}
 
 					// Get current field value
 					$current_value = isset( $item[ $field ] ) ? $item[ $field ] : '';
+					$new_value     = $current_value;
 
-					// Execute function
-					$new_value = $this->function_executor->execute( $function_id, $current_value, $item );
+					// Execute functions in pipeline (one after another)
+					foreach ( $functions_for_field as $function_id ) {
+						$function_id = (int) $function_id;
+						if ( $function_id <= 0 ) {
+							continue;
+						}
 
-					if ( is_wp_error( $new_value ) ) {
-						$this->logger->log(
-							0,
-							'warning',
-							sprintf(
-								'Function execution failed for item %s, field %s: %s',
-								$item_id,
-								$field,
-								$new_value->get_error_message()
-							)
-						);
-						continue;
+						// Execute function
+						$new_value = $this->function_executor->execute( $function_id, $new_value, $item );
+
+						if ( is_wp_error( $new_value ) ) {
+							$this->logger->log(
+								0,
+								'warning',
+								sprintf(
+									'Function execution failed for item %s, field %s: %s',
+									$item_id,
+									$field,
+									$new_value->get_error_message()
+								)
+							);
+							// Stop pipeline on error, revert to original
+							$new_value = $current_value;
+							break;
+						}
 					}
 
 					// Update field value
@@ -308,6 +343,25 @@ class Update_Processor {
 
 				// Save updated item if any changes were made
 				if ( $updated ) {
+					// Log what's being updated (only in debug mode)
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						$changes = [];
+						foreach ( $fields as $field ) {
+							if ( isset( $original_item[ $field ] ) && isset( $item[ $field ] ) && $original_item[ $field ] !== $item[ $field ] ) {
+								$changes[ $field ] = [
+									'from' => $original_item[ $field ],
+									'to'   => $item[ $field ],
+								];
+							}
+						}
+						$this->logger->log(
+							0,
+							'info',
+							sprintf( 'Updating item %s', $item_id ),
+							$changes
+						);
+					}
+
 					$save_result = $this->save_item( $item_id, $item, $content_type, $fields );
 
 					if ( is_wp_error( $save_result ) ) {

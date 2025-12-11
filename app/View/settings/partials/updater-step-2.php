@@ -1,6 +1,6 @@
 <?php
 /**
- * Content Updater Step 2: Select Fields
+ * Content Updater Step 2: Filter Data
  *
  * @package WP_AIE\View
  */
@@ -8,83 +8,103 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 
-<!-- Step 2: Select Fields -->
+<!-- Step 2: Filters -->
 <div class="aie-step aie-updater-step-2" data-step="2">
 	<div class="aie-step-header">
-		<h2><?php esc_html_e( 'Step 2: Select Fields to Update', 'wp-advanced-import-export' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Choose which fields you want to update', 'wp-advanced-import-export' ); ?></p>
+		<h2><?php esc_html_e( 'Step 2: Filter Data (Optional)', 'wp-advanced-import-export' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Apply filters to select specific items to update. Leave empty to update all items.', 'wp-advanced-import-export' ); ?></p>
 	</div>
 
 	<div class="aie-step-content">
-		<div class="aie-step-2-columns">
-			<!-- Left Column: Selected Fields -->
-			<div class="aie-updater-selected-fields">
-				<div class="aie-selected-fields-header">
-					<h3>
-						<span class="dashicons dashicons-yes-alt"></span>
-						<?php esc_html_e( 'Selected Fields', 'wp-advanced-import-export' ); ?>
-					</h3>
-					<div class="aie-selected-fields-actions">
-						<button type="button" class="button button-small aie-updater-clear-all-fields" title="<?php esc_attr_e( 'Clear all fields', 'wp-advanced-import-export' ); ?>">
+		
+		<!-- Info Notice -->
+		<div class="aie-updater-filters-notice">
+			<div class="notice notice-info inline">
+				<p>
+					<span class="dashicons dashicons-info"></span>
+					<?php esc_html_e( 'Filters are optional. If you don\'t add any filters, all items of the selected content type will be updated.', 'wp-advanced-import-export' ); ?>
+				</p>
+			</div>
+		</div>
+
+		<!-- Item Count Summary (Top) -->
+		<div class="aie-filter-summary-top">
+			<div class="aie-summary-card">
+				<div class="aie-summary-icon">
+					<span class="dashicons dashicons-database"></span>
+				</div>
+				<div class="aie-summary-content">
+					<div class="aie-summary-label"><?php esc_html_e( 'Total Items to Update', 'wp-advanced-import-export' ); ?></div>
+					<div class="aie-item-count">
+						<span class="aie-count-value">-</span>
+						<div class="spinner"></div>
+					</div>
+				</div>
+				<button type="button" class="button aie-updater-refresh-count">
+					<span class="dashicons dashicons-update"></span>
+				</button>
+			</div>
+		</div>
+
+		<!-- Custom Filters Section -->
+		<div class="aie-custom-filters-section">
+			<div class="aie-section-header">
+				<h3>
+					<span class="dashicons dashicons-filter"></span>
+					<?php esc_html_e( 'Customize Filters', 'wp-advanced-import-export' ); ?>
+				</h3>
+				<p class="description"><?php esc_html_e( 'Add custom filters to narrow down which items to update', 'wp-advanced-import-export' ); ?></p>
+			</div>
+
+			<!-- Filters Container -->
+			<div class="aie-filters-list aie-updater-filters-list" id="aie-updater-filters-list">
+				<!-- Filters will be added here dynamically -->
+			</div>
+
+			<!-- Add Filter Button -->
+			<div class="aie-add-filter-wrap">
+				<button type="button" class="button button-secondary aie-updater-add-filter">
+					<span class="dashicons dashicons-plus-alt2"></span>
+					<?php esc_html_e( 'Add Filter', 'wp-advanced-import-export' ); ?>
+				</button>
+			</div>
+		</div>
+
+		<!-- Hidden Template for Filter Row -->
+		<template id="aie-updater-filter-row-template">
+			<div class="aie-filter-row">
+				<div class="aie-filter-row-inner">
+					<!-- Field Selection -->
+					<div class="aie-filter-field-wrap">
+						<label><?php esc_html_e( 'Field', 'wp-advanced-import-export' ); ?></label>
+						<select class="aie-updater-filter-field" name="updater_filter_field[]">
+							<option value=""><?php esc_html_e( 'Select Field...', 'wp-advanced-import-export' ); ?></option>
+						</select>
+					</div>
+
+					<!-- Condition Selection -->
+					<div class="aie-filter-condition-wrap">
+						<label><?php esc_html_e( 'Condition', 'wp-advanced-import-export' ); ?></label>
+						<select class="aie-updater-filter-condition" name="updater_filter_condition[]">
+							<option value=""><?php esc_html_e( 'Select...', 'wp-advanced-import-export' ); ?></option>
+						</select>
+					</div>
+
+					<!-- Value Input -->
+					<div class="aie-filter-value-wrap">
+						<label><?php esc_html_e( 'Value', 'wp-advanced-import-export' ); ?></label>
+						<input type="text" class="aie-updater-filter-value" name="updater_filter_value[]" placeholder="<?php esc_attr_e( 'Enter value...', 'wp-advanced-import-export' ); ?>">
+					</div>
+
+					<!-- Remove Button -->
+					<div class="aie-filter-actions">
+						<button type="button" class="button button-link-delete aie-updater-remove-filter" title="<?php esc_attr_e( 'Remove filter', 'wp-advanced-import-export' ); ?>">
 							<span class="dashicons dashicons-trash"></span>
-							<?php esc_html_e( 'Clear All', 'wp-advanced-import-export' ); ?>
 						</button>
 					</div>
 				</div>
-
-				<div class="aie-selected-fields-body">
-					<!-- Drop Zone -->
-					<div class="aie-updater-dropzone" id="aie-updater-dropzone">
-						<div class="aie-updater-dropzone-placeholder">
-							<span class="dashicons dashicons-download"></span>
-							<p><?php esc_html_e( 'Drag fields here to select for updating', 'wp-advanced-import-export' ); ?></p>
-						</div>
-						
-						<!-- Selected Fields Container -->
-						<div class="aie-updater-fields-list" id="aie-updater-fields-list">
-							<!-- Fields will be added here dynamically -->
-						</div>
-					</div>
-
-					<!-- Field Counter -->
-					<div class="aie-updater-stats">
-						<span class="aie-field-count">
-							<strong><?php esc_html_e( 'Fields Selected:', 'wp-advanced-import-export' ); ?></strong> 
-							<span class="aie-count-value aie-fields-count">0</span>
-						</span>
-					</div>
-				</div>
 			</div>
-
-			<!-- Right Column: Available Fields Library -->
-			<div class="aie-fields-library">
-				<div class="aie-fields-library-header">
-					<h3>
-						<span class="dashicons dashicons-list-view"></span>
-						<?php esc_html_e( 'Available Fields', 'wp-advanced-import-export' ); ?>
-					</h3>
-				</div>
-				
-				<!-- Search/Filter -->
-				<div class="aie-fields-search">
-					<input 
-						type="text" 
-						id="aie-updater-fields-search" 
-						class="regular-text" 
-						placeholder="<?php esc_attr_e( 'Search fields...', 'wp-advanced-import-export' ); ?>"
-					>
-					<span class="dashicons dashicons-search"></span>
-				</div>
-
-				<div class="aie-fields-library-body" id="aie-updater-fields-library">
-					<div class="aie-fields-loading">
-						<span class="spinner is-active"></span>
-						<p><?php esc_html_e( 'Loading fields...', 'wp-advanced-import-export' ); ?></p>
-					</div>
-					<!-- Fields will be loaded dynamically based on content type -->
-				</div>
-			</div>
-		</div>
+		</template>
 
 		<div class="aie-step-actions">
 			<button type="button" class="button button-secondary aie-updater-prev-step">

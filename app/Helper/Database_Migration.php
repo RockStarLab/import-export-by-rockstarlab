@@ -23,7 +23,7 @@ class Database_Migration {
 	 * Database version
 	 * Update this when schema changes
 	 */
-	const DB_VERSION = '1.3.0';
+	const DB_VERSION = '1.3.3';
 
 	/**
 	 * Database version option name
@@ -46,7 +46,7 @@ class Database_Migration {
 		$sql_jobs = "CREATE TABLE {$prefix}aie_jobs (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             user_id BIGINT(20) UNSIGNED NOT NULL,
-            type ENUM('import', 'export', 'media_sync') NOT NULL,
+            type ENUM('import', 'export', 'media_sync', 'update') NOT NULL,
             data_type VARCHAR(50) NOT NULL,
             file_format VARCHAR(10) NOT NULL,
             status ENUM('pending', 'processing', 'completed', 'failed', 'paused', 'cancelled') DEFAULT 'pending',
@@ -208,6 +208,11 @@ class Database_Migration {
 		self::maybe_add_parameters_column();
 		self::maybe_add_started_at_column();
 		self::maybe_add_retries_column();
+		self::maybe_update_type_enum();
+		self::maybe_add_update_columns();
+
+		// Seed built-in functions
+		self::seed_builtin_functions();
 	}
 
 	/**
@@ -356,6 +361,138 @@ class Database_Migration {
 				"ALTER TABLE {$table_name} 
 				ADD COLUMN retries INT DEFAULT 0 COMMENT 'Number of retry attempts' 
 				AFTER status"
+			);
+		}
+	}
+
+	/**
+	 * Update type ENUM to include 'update' value
+	 */
+	private static function maybe_update_type_enum() {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'aie_jobs';
+
+		// Get current column definition
+		$column_info = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS 
+				WHERE TABLE_SCHEMA = %s 
+				AND TABLE_NAME = %s 
+				AND COLUMN_NAME = 'type'",
+				DB_NAME,
+				$table_name
+			)
+		);
+
+		// Check if 'update' is already in the ENUM
+		if ( ! empty( $column_info ) ) {
+			$column_type = $column_info[0]->COLUMN_TYPE;
+			if ( strpos( $column_type, "'update'" ) === false ) {
+				// Add 'update' to the ENUM
+				$wpdb->query(
+					"ALTER TABLE {$table_name} 
+					MODIFY COLUMN type ENUM('import', 'export', 'media_sync', 'update') NOT NULL"
+				);
+			}
+		}
+	}
+
+	/**
+	 * Add update-specific columns to jobs table if they don't exist
+	 */
+	private static function maybe_add_update_columns() {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'aie_jobs';
+
+		// Add imported_items column
+		$column_exists = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+				WHERE TABLE_SCHEMA = %s 
+				AND TABLE_NAME = %s 
+				AND COLUMN_NAME = 'imported_items'",
+				DB_NAME,
+				$table_name
+			)
+		);
+
+		if ( empty( $column_exists ) ) {
+			$wpdb->query(
+				"ALTER TABLE {$table_name} 
+				ADD COLUMN imported_items INT DEFAULT 0 COMMENT 'Number of items imported/updated' 
+				AFTER processed_items"
+			);
+		}
+
+		// Add skipped_items column
+		$column_exists = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+				WHERE TABLE_SCHEMA = %s 
+				AND TABLE_NAME = %s 
+				AND COLUMN_NAME = 'skipped_items'",
+				DB_NAME,
+				$table_name
+			)
+		);
+
+		if ( empty( $column_exists ) ) {
+			$wpdb->query(
+				"ALTER TABLE {$table_name} 
+				ADD COLUMN skipped_items INT DEFAULT 0 COMMENT 'Number of items skipped' 
+				AFTER imported_items"
+			);
+		}
+
+		// Add error_items column
+		$column_exists = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+				WHERE TABLE_SCHEMA = %s 
+				AND TABLE_NAME = %s 
+				AND COLUMN_NAME = 'error_items'",
+				DB_NAME,
+				$table_name
+			)
+		);
+
+		if ( empty( $column_exists ) ) {
+			$wpdb->query(
+				"ALTER TABLE {$table_name} 
+				ADD COLUMN error_items INT DEFAULT 0 COMMENT 'Number of items with errors' 
+				AFTER skipped_items"
+			);
+		}
+	}
+
+	/**
+	 * Seed built-in functions into database
+	 */
+	private static function seed_builtin_functions() {
+		// Check if already seeded (to avoid duplicates on every migration)
+		$seeded_option = 'aie_builtin_functions_seeded';
+		if ( get_option( $seeded_option, false ) ) {
+			return; // Already seeded
+		}
+
+		// Load Custom_Function model and seed
+		if ( class_exists( '\WP_AIE\Model\Custom_Function' ) ) {
+			$custom_function_model = new \WP_AIE\Model\Custom_Function();
+			$stats                 = $custom_function_model->seed_builtin_functions();
+
+			// Mark as seeded
+			update_option( $seeded_option, true );
+
+			// Log results
+			error_log(
+				sprintf(
+					'[WP_AIE] Built-in functions seeded: %d created, %d skipped, %d errors',
+					$stats['created'],
+					$stats['skipped'],
+					$stats['errors']
+				)
 			);
 		}
 	}

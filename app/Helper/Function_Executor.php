@@ -446,6 +446,11 @@ class Function_Executor {
 			ARRAY_A
 		);
 
+		// If not found in database, check if it's a built-in function
+		if ( ! $function ) {
+			$function = $this->get_builtin_function( $function_id );
+		}
+
 		if ( ! $function ) {
 			return null;
 		}
@@ -457,6 +462,22 @@ class Function_Executor {
 		}
 
 		return $function;
+	}
+
+	/**
+	 * Get built-in function by ID (from Function_Snippets)
+	 *
+	 * @param int $function_id Function ID
+	 * @return array|null Function data or null
+	 */
+	private function get_builtin_function( $function_id ) {
+		// Check if it's a numeric string function ID (legacy support)
+		// Built-in functions were originally stored as snippets with string keys
+		// but may be referenced by auto-increment IDs
+
+		// For now, return null - built-in functions should be loaded to DB
+		// This is just a fallback
+		return null;
 	}
 
 	/**

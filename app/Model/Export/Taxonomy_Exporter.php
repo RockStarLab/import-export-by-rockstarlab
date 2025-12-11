@@ -212,10 +212,18 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 
 		$data = [];
 
+		// Check if ID should be forced (for Content Updater)
+		$force_include_id = $options['force_include_id'] ?? false;
+
+		// Add term_id if requested or forced
+		if ( in_array( 'term_id', $fields, true ) || $force_include_id ) {
+			$data['term_id'] = $term->term_id;
+		}
+
 		foreach ( $fields as $field ) {
 			switch ( $field ) {
 				case 'term_id':
-					$data['term_id'] = $term->term_id;
+					// Already handled above, skip
 					break;
 
 				case 'name':

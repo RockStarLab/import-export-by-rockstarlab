@@ -60,8 +60,23 @@ class Content_Updater_Controller extends Base_Controller {
 		$content_type = $this->get_request_param( 'content_type' );
 		$options      = $this->get_request_array( 'options' );
 
+		// Get filters
+		$filters_json = $this->get_request_param( 'filters', '[]' );
+		$filters      = json_decode( $filters_json, true );
+		if ( ! is_array( $filters ) ) {
+			$filters = [];
+		}
+
+		// Add filters to options
+		if ( ! empty( $filters ) ) {
+			$options['filters'] = $filters;
+		}
+
+		// Map content_type to appropriate exporter type and options
+		$exporter_type = $this->map_content_type_to_exporter( $content_type, $options );
+
 		// Use Exporter_Factory to get count (same logic as export)
-		$count = Exporter_Factory::get_count( $content_type, $options );
+		$count = Exporter_Factory::get_count( $exporter_type, $options );
 
 		if ( is_wp_error( $count ) ) {
 			$this->send_error( $count, null, 400 );
@@ -93,8 +108,11 @@ class Content_Updater_Controller extends Base_Controller {
 		$preview_options['limit']  = 5;
 		$preview_options['offset'] = 0;
 
+		// Map content_type to appropriate exporter type and options
+		$exporter_type = $this->map_content_type_to_exporter( $content_type, $preview_options );
+
 		// Use Exporter_Factory to get preview data
-		$exporter = Exporter_Factory::get_exporter( $content_type );
+		$exporter = Exporter_Factory::get_exporter( $exporter_type );
 
 		if ( is_wp_error( $exporter ) ) {
 			$this->send_error( $exporter, null, 400 );
@@ -128,15 +146,65 @@ class Content_Updater_Controller extends Base_Controller {
 			$this->send_error( $validation, null, 400 );
 		}
 
-		$content_type    = $this->get_request_param( 'content_type' );
-		$fields          = $this->get_request_array( 'fields' );
-		$field_functions = $this->get_request_array( 'field_functions' );
-		$options         = $this->get_request_array( 'options' );
+		$content_type = $this->get_request_param( 'content_type' );
+
+		// Decode JSON strings from frontend
+		$fields_json = $this->get_request_param( 'fields' );
+		$fields      = json_decode( $fields_json, true );
+		if ( ! is_array( $fields ) ) {
+			$fields = [];
+		}
+
+		$field_functions_json = $this->get_request_param( 'field_functions' );
+		$field_functions      = json_decode( $field_functions_json, true );
+		if ( ! is_array( $field_functions ) ) {
+			$field_functions = [];
+		}
+
+		$filters_json = $this->get_request_param( 'filters', '[]' );
+		$filters      = json_decode( $filters_json, true );
+		if ( ! is_array( $filters ) ) {
+			$filters = [];
+		}
+
+		$options_json = $this->get_request_param( 'options', '{}' );
+		$options      = json_decode( $options_json, true );
+		if ( ! is_array( $options ) ) {
+			$options = [];
+		}
+
+		// Add filters to options
+		if ( ! empty( $filters ) ) {
+			$options['filters'] = $filters;
+		}
+
+		// Validate fields and functions are not empty
+		if ( empty( $fields ) ) {
+			$this->send_error(
+				new \WP_Error(
+					'no_fields_selected',
+					__( 'No fields selected. Please select at least one field to update.', 'wp-advanced-import-export' )
+				),
+				null,
+				400
+			);
+		}
+
+		if ( empty( $field_functions ) ) {
+			$this->send_error(
+				new \WP_Error(
+					'no_functions_assigned',
+					__( 'No functions assigned. Please assign at least one function to a field.', 'wp-advanced-import-export' )
+				),
+				null,
+				400
+			);
+		}
 
 		// Validate that at least one field has a function assigned
 		$has_functions = false;
-		foreach ( $field_functions as $function_id ) {
-			if ( ! empty( $function_id ) && 'none' !== $function_id ) {
+		foreach ( $field_functions as $function_list ) {
+			if ( is_array( $function_list ) && ! empty( $function_list ) ) {
 				$has_functions = true;
 				break;
 			}
@@ -153,8 +221,11 @@ class Content_Updater_Controller extends Base_Controller {
 			);
 		}
 
+		// Map content_type to appropriate exporter type and options
+		$exporter_type = $this->map_content_type_to_exporter( $content_type, $options );
+
 		// Get total count
-		$total_count = Exporter_Factory::get_count( $content_type, $options );
+		$total_count = Exporter_Factory::get_count( $exporter_type, $options );
 
 		if ( is_wp_error( $total_count ) ) {
 			$this->send_error( $total_count, null, 400 );
@@ -165,6 +236,7 @@ class Content_Updater_Controller extends Base_Controller {
 
 		$parameters = [
 			'content_type'    => $content_type,
+			'exporter_type'   => $exporter_type,
 			'fields'          => $fields,
 			'field_functions' => $field_functions,
 			'options'         => $options,
@@ -172,11 +244,13 @@ class Content_Updater_Controller extends Base_Controller {
 
 		$job_id = $job_model->create(
 			[
+				'user_id'     => get_current_user_id(),
 				'type'        => 'update',
+				'data_type'   => $content_type,
+				'file_format' => 'none',
 				'status'      => 'pending',
 				'total_items' => $total_count,
 				'parameters'  => wp_json_encode( $parameters ),
-				'created_by'  => get_current_user_id(),
 			]
 		);
 
@@ -184,7 +258,7 @@ class Content_Updater_Controller extends Base_Controller {
 			$this->send_error( $job_id, null, 500 );
 		}
 
-		Logger::log( sprintf( 'Content update job #%d created for %s', $job_id, $content_type ) );
+		Logger::log( $job_id, 'info', sprintf( 'Content update job created for %s', $content_type ) );
 
 		$this->send_success(
 			[
@@ -293,8 +367,50 @@ class Content_Updater_Controller extends Base_Controller {
 			);
 		}
 
-		Logger::log( sprintf( 'Content update job #%d cancelled', $job_id ) );
+		Logger::log( $job_id, 'info', 'Content update job cancelled' );
 
 		$this->send_success( [ 'cancelled' => true ] );
+	}
+
+	/**
+	 * Map content type from UI to exporter type and options
+	 *
+	 * This method converts the content_type value from the frontend
+	 * (like 'post', 'page', 'media') to the appropriate exporter type
+	 * and adds necessary options like post_type.
+	 *
+	 * @param string $content_type Content type from UI
+	 * @param array  $options      Options array (by reference)
+	 * @return string Exporter type
+	 */
+	protected function map_content_type_to_exporter( $content_type, &$options ) {
+		// Map UI content types to exporter types
+		$mapping = [
+			'post'              => 'post',
+			'page'              => 'page',
+			'media'             => 'media',
+			'menu'              => 'menu',
+			'user'              => 'user',
+			'comment'           => 'comment',
+			'taxonomy'          => 'taxonomy',
+			'custom_post_types' => 'custom_post_types',
+			'woo_product'       => 'woo_product',
+			'woo_order'         => 'woo_order',
+			'woo_coupon'        => 'woo_coupon',
+		];
+
+		// Get the exporter type
+		$exporter_type = $mapping[ $content_type ] ?? $content_type;
+
+		// For post-based content types, set the post_type in options
+		// This ensures the correct post_type filter is applied
+		if ( in_array( $content_type, [ 'post', 'page' ], true ) ) {
+			// Only set post_type if not already specified in options
+			if ( ! isset( $options['post_type'] ) ) {
+				$options['post_type'] = $content_type;
+			}
+		}
+
+		return $exporter_type;
 	}
 }
