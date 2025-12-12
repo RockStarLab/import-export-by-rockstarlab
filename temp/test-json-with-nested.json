@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "title": "User Import",
+    "email": "john@example.com",
+    "meta": {
+      "first_name": "John",
+      "last_name": "Doe",
+      "phone": "+1234567890"
+    },
+    "preferences": {
+      "newsletter": true,
+      "notifications": false
+    }
+  },
+  {
+    "id": 2,
+    "title": "Another User",
+    "email": "jane@example.com",
+    "meta": {
+      "first_name": "Jane",
+      "last_name": "Smith",
+      "phone": "+0987654321"
+    },
+    "preferences": {
+      "newsletter": false,
+      "notifications": true
+    }
+  }
+]

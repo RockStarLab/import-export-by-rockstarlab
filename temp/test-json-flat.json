@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "title": "Test Post 1",
+    "content": "Simple flat structure",
+    "author": "John Doe",
+    "status": "publish",
+    "date": "2025-12-12"
+  },
+  {
+    "id": 2,
+    "title": "Test Post 2",
+    "content": "Another flat structure",
+    "author": "Jane Smith",
+    "status": "draft",
+    "date": "2025-12-11"
+  }
+]

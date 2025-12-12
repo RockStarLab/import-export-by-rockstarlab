@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1,
+    "title": "Test Post",
+    "data": {
+      "meta": {
+        "nested": {
+          "deeply": "This is 3 levels deep - TOO MUCH"
+        }
+      }
+    }
+  }
+]
