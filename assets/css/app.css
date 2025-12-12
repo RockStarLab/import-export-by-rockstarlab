@@ -3309,6 +3309,511 @@ body.aie-dragging {
   color: #50575e;
 }
 
+.aie-preview-container {
+  margin: 20px 0;
+}
+.aie-preview-container .aie-preview-stats {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f6f7f7;
+  border-radius: 4px;
+}
+.aie-preview-container .aie-preview-stats .aie-stat {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.aie-preview-container .aie-preview-stats .aie-stat .aie-stat-label {
+  font-weight: 600;
+  color: #1d2327;
+}
+.aie-preview-container .aie-preview-stats .aie-stat .aie-stat-value {
+  color: #2271b1;
+  font-weight: 600;
+  font-size: 16px;
+}
+.aie-preview-container .aie-preview-table-container {
+  overflow-x: auto;
+  overflow-y: visible;
+  margin-bottom: 15px;
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+  max-height: 600px;
+  position: relative;
+}
+.aie-preview-container .aie-preview-table-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 30px;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.05), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.aie-preview-container .aie-preview-table-container.has-scroll::after {
+  opacity: 1;
+}
+.aie-preview-container .aie-preview-table-container.scrolled-to-end::after {
+  opacity: 0;
+}
+.aie-preview-container .aie-preview-table-container .aie-preview-table {
+  width: 100%;
+  min-width: 100%;
+  margin: 0;
+  border: none;
+}
+.aie-preview-container .aie-preview-table-container .aie-preview-table th, .aie-preview-container .aie-preview-table-container .aie-preview-table td {
+  padding: 10px 15px;
+  white-space: nowrap;
+  min-width: 120px;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-right: 1px solid #dcdcde;
+}
+.aie-preview-container .aie-preview-table-container .aie-preview-table th:last-child, .aie-preview-container .aie-preview-table-container .aie-preview-table td:last-child {
+  border-right: none;
+}
+.aie-preview-container .aie-preview-table-container .aie-preview-table th {
+  font-weight: 600;
+  background: #f6f7f7;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 2px solid #c3c4c7;
+}
+.aie-preview-container .aie-preview-table-container .aie-preview-table td {
+  border-bottom: 1px solid #dcdcde;
+}
+.aie-preview-container .aie-preview-table-container .aie-preview-table tbody tr td:first-child,
+.aie-preview-container .aie-preview-table-container .aie-preview-table thead tr th:first-child {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 5;
+}
+.aie-preview-container .aie-preview-table-container .aie-preview-table thead tr th:first-child {
+  z-index: 15;
+  background: #f6f7f7;
+}
+.aie-preview-container .aie-json-preview-container {
+  margin-bottom: 15px;
+}
+.aie-preview-container .aie-json-preview-container .aie-json-object table {
+  width: 100%;
+}
+.aie-preview-container .aie-json-preview-container .aie-json-object table th {
+  font-weight: 600;
+  background: #f6f7f7;
+  padding: 10px;
+  text-align: left;
+}
+.aie-preview-container .aie-json-preview-container .aie-json-object table td {
+  padding: 12px 10px;
+  vertical-align: top;
+  border-bottom: 1px solid #dcdcde;
+}
+.aie-preview-container .aie-json-preview-container .aie-json-object table td:first-child {
+  font-weight: 600;
+  color: #1d2327;
+}
+.aie-preview-container .aie-json-preview-container .aie-json-object table td:nth-child(2) {
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  color: #0073aa;
+}
+.aie-preview-container .aie-json-preview-container .aie-json-object table td:last-child {
+  word-break: break-word;
+  max-width: 500px;
+}
+.aie-preview-container .aie-json-preview-container .aie-json-object table td code {
+  padding: 2px 6px;
+  background: #f6f7f7;
+  border-radius: 3px;
+  font-size: 13px;
+}
+.aie-preview-container .aie-json-preview-container .aie-json-object table td em {
+  font-style: italic;
+}
+.aie-preview-container .aie-preview-note {
+  margin: 15px 0 0;
+  font-size: 13px;
+  color: #646970;
+  font-style: italic;
+}
+
+.wp-advanced-import-export .aie-mapping-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f6f7f7;
+  border-radius: 4px;
+}
+.wp-advanced-import-export .aie-mapping-controls .button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.wp-advanced-import-export .aie-mapping-controls .aie-mapping-stats {
+  margin-left: auto;
+  font-size: 14px;
+  color: #646970;
+}
+.wp-advanced-import-export .aie-mapping-controls .aie-mapping-stats .aie-mapped-count {
+  font-weight: 600;
+  color: #2271b1;
+}
+.wp-advanced-import-export .aie-mapping-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+.wp-advanced-import-export .aie-mapping-source,
+.wp-advanced-import-export .aie-mapping-target {
+  border: 1px solid #dcdcde;
+  border-radius: 4px;
+  background: #fff;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+.wp-advanced-import-export .aie-mapping-source h3,
+.wp-advanced-import-export .aie-mapping-target h3 {
+  margin: 0;
+  padding: 15px;
+  background: #f6f7f7;
+  border-bottom: 1px solid #dcdcde;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wp-advanced-import-export .aie-mapping-source h3 .dashicons,
+.wp-advanced-import-export .aie-mapping-target h3 .dashicons {
+  color: #2271b1;
+}
+.wp-advanced-import-export .aie-mapping-source .aie-search-box,
+.wp-advanced-import-export .aie-mapping-target .aie-search-box {
+  position: relative;
+  padding: 10px;
+  border-bottom: 1px solid #dcdcde;
+}
+.wp-advanced-import-export .aie-mapping-source .aie-search-box input,
+.wp-advanced-import-export .aie-mapping-target .aie-search-box input {
+  width: 100%;
+  padding: 8px 35px 8px 12px;
+  border: 1px solid #8c8f94;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.wp-advanced-import-export .aie-mapping-source .aie-search-box input:focus,
+.wp-advanced-import-export .aie-mapping-target .aie-search-box input:focus {
+  border-color: #2271b1;
+  outline: none;
+  box-shadow: 0 0 0 1px #2271b1;
+}
+.wp-advanced-import-export .aie-mapping-source .aie-search-box .dashicons,
+.wp-advanced-import-export .aie-mapping-target .aie-search-box .dashicons {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8c8f94;
+  pointer-events: none;
+}
+.wp-advanced-import-export .aie-mapping-source .aie-source-fields,
+.wp-advanced-import-export .aie-mapping-source .aie-target-fields,
+.wp-advanced-import-export .aie-mapping-target .aie-source-fields,
+.wp-advanced-import-export .aie-mapping-target .aie-target-fields {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  max-height: 500px;
+}
+.wp-advanced-import-export .aie-mapping-source .aie-field-group,
+.wp-advanced-import-export .aie-mapping-target .aie-field-group {
+  margin-bottom: 15px;
+}
+.wp-advanced-import-export .aie-mapping-source .aie-field-group:last-child,
+.wp-advanced-import-export .aie-mapping-target .aie-field-group:last-child {
+  margin-bottom: 0;
+}
+.wp-advanced-import-export .aie-mapping-source .aie-field-group .aie-field-group-label,
+.wp-advanced-import-export .aie-mapping-target .aie-field-group .aie-field-group-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #646970;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 12px;
+  background: #f6f7f7;
+  border-radius: 3px;
+  margin-bottom: 8px;
+}
+.wp-advanced-import-export .aie-field-card {
+  background: #fff;
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 8px;
+  cursor: grab;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.wp-advanced-import-export .aie-field-card:hover {
+  border-color: #2271b1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.wp-advanced-import-export .aie-field-card.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+.wp-advanced-import-export .aie-field-card.mapped {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: #f6f7f7;
+}
+.wp-advanced-import-export .aie-field-card.mapped:hover {
+  border-color: #c3c4c7;
+  box-shadow: none;
+}
+.wp-advanced-import-export .aie-field-card .aie-field-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  background: #f0f0f1;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2271b1;
+  font-size: 16px;
+}
+.wp-advanced-import-export .aie-field-card .aie-field-info {
+  flex: 1;
+  min-width: 0;
+}
+.wp-advanced-import-export .aie-field-card .aie-field-info .aie-field-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: #1d2327;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wp-advanced-import-export .aie-field-card .aie-field-info .aie-field-type {
+  font-size: 11px;
+  color: #646970;
+  margin-top: 2px;
+}
+.wp-advanced-import-export .aie-field-card .aie-field-info .aie-field-sample {
+  font-size: 11px;
+  color: #8c8f94;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: "Courier New", monospace;
+}
+.wp-advanced-import-export .aie-target-field {
+  background: #fff;
+  border: 2px dashed #c3c4c7;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 8px;
+  min-height: 60px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.wp-advanced-import-export .aie-target-field.drag-over {
+  border-color: #2271b1;
+  background: #f0f6fc;
+}
+.wp-advanced-import-export .aie-target-field.has-mapping {
+  border-style: solid;
+  border-color: #2271b1;
+  background: #f0f6fc;
+}
+.wp-advanced-import-export .aie-target-field .aie-field-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  background: #f0f0f1;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2271b1;
+  font-size: 16px;
+}
+.wp-advanced-import-export .aie-target-field .aie-field-info {
+  flex: 1;
+  min-width: 0;
+}
+.wp-advanced-import-export .aie-target-field .aie-field-info .aie-field-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: #1d2327;
+}
+.wp-advanced-import-export .aie-target-field .aie-field-info .aie-field-type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #f0f0f1;
+  border-radius: 3px;
+  font-size: 11px;
+  color: #646970;
+  margin-top: 4px;
+}
+.wp-advanced-import-export .aie-target-field .aie-field-info .aie-mapped-source {
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: #fff;
+  border: 1px solid #dcdcde;
+  border-radius: 3px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.wp-advanced-import-export .aie-target-field .aie-field-info .aie-mapped-source .aie-source-name {
+  font-weight: 600;
+  color: #2271b1;
+}
+.wp-advanced-import-export .aie-target-field .aie-field-info .aie-mapped-source .aie-remove-mapping {
+  color: #b32d2e;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+}
+.wp-advanced-import-export .aie-target-field .aie-field-info .aie-mapped-source .aie-remove-mapping:hover {
+  background: #f0f0f1;
+}
+.wp-advanced-import-export .aie-mapped-fields-section {
+  margin-top: 30px;
+  border: 1px solid #dcdcde;
+  border-radius: 4px;
+  background: #fff;
+}
+.wp-advanced-import-export .aie-mapped-fields-section h3 {
+  margin: 0;
+  padding: 15px;
+  background: #f6f7f7;
+  border-bottom: 1px solid #dcdcde;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wp-advanced-import-export .aie-mapped-fields-section h3 .dashicons {
+  color: #00a32a;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-mapped-fields {
+  padding: 15px;
+  min-height: 150px;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #646970;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-empty-state .dashicons {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  opacity: 0.3;
+  margin-bottom: 10px;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-empty-state p {
+  margin: 0;
+  font-size: 14px;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-mapping-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px;
+  background: #f6f7f7;
+  border: 1px solid #dcdcde;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-mapping-row .aie-source-col {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-mapping-row .aie-source-col .dashicons {
+  color: #2271b1;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-mapping-row .aie-source-col strong {
+  font-size: 13px;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-mapping-row .aie-source-col .aie-sample {
+  font-size: 11px;
+  color: #646970;
+  font-family: "Courier New", monospace;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-mapping-row .aie-arrow {
+  color: #8c8f94;
+  font-size: 18px;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-mapping-row .aie-target-col {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-mapping-row .aie-target-col .dashicons {
+  color: #00a32a;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-mapping-row .aie-target-col strong {
+  font-size: 13px;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-mapping-row .aie-target-col .aie-function-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #fcf9e8;
+  border: 1px solid #f0b849;
+  border-radius: 3px;
+  font-size: 11px;
+  color: #996800;
+  margin-left: 5px;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-mapping-row .aie-mapping-actions {
+  display: flex;
+  gap: 5px;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-mapping-row .aie-mapping-actions button {
+  padding: 4px 8px;
+  font-size: 11px;
+  line-height: 1;
+  height: auto;
+  min-height: 0;
+}
+.wp-advanced-import-export .aie-mapped-fields-section .aie-mapping-row .aie-mapping-actions button .dashicons {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
 /**
  * Content Type Selection & Filter
  */

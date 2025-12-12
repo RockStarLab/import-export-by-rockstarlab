@@ -74,6 +74,9 @@ class App {
 		// Initialize Media Hash helper to add MD5 hashes to all uploads
 		\WP_AIE\Helper\Media_Hash::init();
 
+		// Initialize Chunk Upload handler for large file uploads
+		new \WP_AIE\Helper\Chunk_Upload();
+
 		// Load core classes
 		$this->_dispatch();
 	}

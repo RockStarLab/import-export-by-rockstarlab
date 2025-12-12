@@ -48,6 +48,343 @@ jQuery(document).ready(function ($) {
 
 /***/ }),
 
+/***/ "./src/js/modules/FileUploader.js":
+/*!****************************************!*\
+  !*** ./src/js/modules/FileUploader.js ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ FileUploader)
+/* harmony export */ });
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+/**
+ * FileUploader - Handles chunked file uploads to bypass PHP upload limits
+ * 
+ * @package WP_AIE\JS
+ */
+var FileUploader = /*#__PURE__*/function () {
+  /**
+   * Constructor
+   * 
+   * @param {Object} options Upload options
+   */
+  function FileUploader() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    _classCallCheck(this, FileUploader);
+    this.chunkSize = options.chunkSize || 1024 * 1024; // 1MB chunks by default
+    this.file = null;
+    this.uploadId = null;
+    this.currentChunk = 0;
+    this.totalChunks = 0;
+    this.uploadedBytes = 0;
+    this.startTime = null;
+    this.aborted = false;
+
+    // Callbacks
+    this.onProgress = options.onProgress || function () {};
+    this.onComplete = options.onComplete || function () {};
+    this.onError = options.onError || function () {};
+    this.onChunkComplete = options.onChunkComplete || function () {};
+  }
+
+  /**
+   * Start uploading a file
+   * 
+   * @param {File} file File object to upload
+   * @returns {Promise}
+   */
+  return _createClass(FileUploader, [{
+    key: "upload",
+    value: (function () {
+      var _upload = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(file) {
+        var chunk, result;
+        return _regeneratorRuntime().wrap(function _callee$(_context) {
+          while (1) switch (_context.prev = _context.next) {
+            case 0:
+              this.file = file;
+              this.uploadId = this.generateUploadId();
+              this.currentChunk = 0;
+              this.totalChunks = Math.ceil(file.size / this.chunkSize);
+              this.uploadedBytes = 0;
+              this.startTime = Date.now();
+              this.aborted = false;
+              _context.prev = 7;
+              chunk = 0;
+            case 9:
+              if (!(chunk < this.totalChunks)) {
+                _context.next = 18;
+                break;
+              }
+              if (!this.aborted) {
+                _context.next = 12;
+                break;
+              }
+              throw new Error('Upload aborted');
+            case 12:
+              this.currentChunk = chunk;
+              _context.next = 15;
+              return this.uploadChunk(chunk);
+            case 15:
+              chunk++;
+              _context.next = 9;
+              break;
+            case 18:
+              _context.next = 20;
+              return this.finalizeUpload();
+            case 20:
+              result = _context.sent;
+              this.onComplete(result);
+              return _context.abrupt("return", result);
+            case 25:
+              _context.prev = 25;
+              _context.t0 = _context["catch"](7);
+              this.onError(_context.t0);
+              throw _context.t0;
+            case 29:
+            case "end":
+              return _context.stop();
+          }
+        }, _callee, this, [[7, 25]]);
+      }));
+      function upload(_x) {
+        return _upload.apply(this, arguments);
+      }
+      return upload;
+    }()
+    /**
+     * Upload a single chunk
+     * 
+     * @param {number} chunkIndex Chunk index
+     * @returns {Promise}
+     */
+    )
+  }, {
+    key: "uploadChunk",
+    value: (function () {
+      var _uploadChunk = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(chunkIndex) {
+        var start, end, chunk, formData, response, data, progress, elapsed, speed;
+        return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+          while (1) switch (_context2.prev = _context2.next) {
+            case 0:
+              start = chunkIndex * this.chunkSize;
+              end = Math.min(start + this.chunkSize, this.file.size);
+              chunk = this.file.slice(start, end);
+              formData = new FormData();
+              formData.append('action', 'aie_upload_chunk');
+              formData.append('nonce', aieData.nonce);
+              formData.append('upload_id', this.uploadId);
+              formData.append('chunk_index', chunkIndex);
+              formData.append('total_chunks', this.totalChunks);
+              formData.append('file_name', this.file.name);
+              formData.append('file_size', this.file.size);
+              formData.append('chunk', chunk);
+              _context2.next = 14;
+              return fetch(aieData.ajaxUrl, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+              });
+            case 14:
+              response = _context2.sent;
+              if (response.ok) {
+                _context2.next = 17;
+                break;
+              }
+              throw new Error("HTTP error! status: ".concat(response.status));
+            case 17:
+              _context2.next = 19;
+              return response.json();
+            case 19:
+              data = _context2.sent;
+              if (data.success) {
+                _context2.next = 22;
+                break;
+              }
+              throw new Error(data.data || 'Failed to upload chunk');
+            case 22:
+              // Update progress
+              this.uploadedBytes = end;
+              progress = this.uploadedBytes / this.file.size * 100;
+              elapsed = (Date.now() - this.startTime) / 1000; // seconds
+              speed = this.uploadedBytes / elapsed; // bytes per second
+              this.onProgress({
+                progress: progress,
+                uploadedBytes: this.uploadedBytes,
+                totalBytes: this.file.size,
+                currentChunk: chunkIndex + 1,
+                totalChunks: this.totalChunks,
+                speed: speed,
+                elapsed: elapsed
+              });
+              this.onChunkComplete(chunkIndex, this.totalChunks);
+              return _context2.abrupt("return", data);
+            case 29:
+            case "end":
+              return _context2.stop();
+          }
+        }, _callee2, this);
+      }));
+      function uploadChunk(_x2) {
+        return _uploadChunk.apply(this, arguments);
+      }
+      return uploadChunk;
+    }()
+    /**
+     * Finalize upload - tell server to merge chunks
+     * 
+     * @returns {Promise}
+     */
+    )
+  }, {
+    key: "finalizeUpload",
+    value: (function () {
+      var _finalizeUpload = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+        var formData, response, data;
+        return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+          while (1) switch (_context3.prev = _context3.next) {
+            case 0:
+              formData = new FormData();
+              formData.append('action', 'aie_finalize_upload');
+              formData.append('nonce', aieData.nonce);
+              formData.append('upload_id', this.uploadId);
+              formData.append('file_name', this.file.name);
+              formData.append('file_size', this.file.size);
+              formData.append('total_chunks', this.totalChunks);
+              _context3.next = 9;
+              return fetch(aieData.ajaxUrl, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+              });
+            case 9:
+              response = _context3.sent;
+              if (response.ok) {
+                _context3.next = 12;
+                break;
+              }
+              throw new Error("HTTP error! status: ".concat(response.status));
+            case 12:
+              _context3.next = 14;
+              return response.json();
+            case 14:
+              data = _context3.sent;
+              if (data.success) {
+                _context3.next = 17;
+                break;
+              }
+              throw new Error(data.data || 'Failed to finalize upload');
+            case 17:
+              return _context3.abrupt("return", data.data);
+            case 18:
+            case "end":
+              return _context3.stop();
+          }
+        }, _callee3, this);
+      }));
+      function finalizeUpload() {
+        return _finalizeUpload.apply(this, arguments);
+      }
+      return finalizeUpload;
+    }()
+    /**
+     * Abort current upload
+     */
+    )
+  }, {
+    key: "abort",
+    value: function abort() {
+      this.aborted = true;
+
+      // Clean up on server
+      if (this.uploadId) {
+        var formData = new FormData();
+        formData.append('action', 'aie_abort_upload');
+        formData.append('nonce', aieData.nonce);
+        formData.append('upload_id', this.uploadId);
+        fetch(aieData.ajaxUrl, {
+          method: 'POST',
+          body: formData,
+          credentials: 'same-origin'
+        })["catch"](function () {
+          // Ignore errors on abort
+        });
+      }
+    }
+
+    /**
+     * Generate unique upload ID
+     * 
+     * @returns {string}
+     */
+  }, {
+    key: "generateUploadId",
+    value: function generateUploadId() {
+      return 'upload_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    /**
+     * Format bytes to human readable string
+     * 
+     * @param {number} bytes Bytes
+     * @param {number} decimals Decimal places
+     * @returns {string}
+     */
+  }], [{
+    key: "formatBytes",
+    value: function formatBytes(bytes) {
+      var decimals = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 2;
+      if (bytes === 0) return '0 Bytes';
+      var k = 1024;
+      var dm = decimals < 0 ? 0 : decimals;
+      var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+      var i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+
+    /**
+     * Format speed to human readable string
+     * 
+     * @param {number} bytesPerSecond Bytes per second
+     * @returns {string}
+     */
+  }, {
+    key: "formatSpeed",
+    value: function formatSpeed(bytesPerSecond) {
+      return FileUploader.formatBytes(bytesPerSecond) + '/s';
+    }
+
+    /**
+     * Format time duration
+     * 
+     * @param {number} seconds Seconds
+     * @returns {string}
+     */
+  }, {
+    key: "formatTime",
+    value: function formatTime(seconds) {
+      if (seconds < 60) {
+        return Math.round(seconds) + 's';
+      }
+      var minutes = Math.floor(seconds / 60);
+      var secs = Math.round(seconds % 60);
+      return minutes + 'm ' + secs + 's';
+    }
+  }]);
+}();
+
+
+/***/ }),
+
 /***/ "./src/js/modules/content-updater.js":
 /*!*******************************************!*\
   !*** ./src/js/modules/content-updater.js ***!
@@ -7894,7 +8231,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/js/modules/utils.js");
+/* harmony import */ var _FileUploader__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./FileUploader */ "./src/js/modules/FileUploader.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
 function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
@@ -7905,6 +8249,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
  */
 
 
+
 var ImportModule = {
   // Current wizard state
   currentStep: 1,
@@ -7913,6 +8258,7 @@ var ImportModule = {
   fileData: null,
   jobId: null,
   progressInterval: null,
+  fileUploader: null,
   /**
    * Initialize module
    */
@@ -8015,6 +8361,23 @@ var ImportModule = {
     // Step-specific actions
     if (step === 3) {
       this.loadPreview();
+
+      // Check if there's an error from upload
+      if (this.fileData && this.fileData.hasError) {
+        // Show error message
+        jQuery('.aie-preview-table-container').hide();
+        jQuery('.aie-json-preview-container').hide();
+
+        // Show error in preview area
+        var errorHtml = "\n\t\t\t\t\t<div class=\"notice notice-error\" style=\"padding: 20px; margin: 20px 0;\">\n\t\t\t\t\t\t<h3 style=\"margin-top: 0;\">\u274C File Validation Failed</h3>\n\t\t\t\t\t\t<p style=\"font-size: 14px;\">".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(this.fileData.error), "</p>\n\t\t\t\t\t\t<p style=\"margin-bottom: 0;\">\n\t\t\t\t\t\t\t<button type=\"button\" class=\"button aie-prev-step\">\n\t\t\t\t\t\t\t\t\u2190 Go Back and Upload a Valid File\n\t\t\t\t\t\t\t</button>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t</div>\n\t\t\t\t");
+        jQuery('.aie-step-3 .aie-step-content').prepend(errorHtml);
+
+        // Disable next button
+        jQuery('.aie-step-3 .aie-next-step').prop('disabled', true);
+      } else {
+        // Enable next button if no error
+        jQuery('.aie-step-3 .aie-next-step').prop('disabled', false);
+      }
     } else if (step === 4) {
       this.buildFieldMapping();
     }
@@ -8088,10 +8451,11 @@ var ImportModule = {
    * Handle file upload
    */
   handleFile: function handleFile(file) {
-    // Validate file
-    var validation = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].validateFile(file, ['.csv', '.json', '.xml'], 50 * 1024 * 1024);
-    if (!validation.valid) {
-      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(validation.errors.join('<br>'), 'error');
+    // Validate file extension only (no size limit with chunked upload)
+    var allowedExtensions = ['.csv', '.json'];
+    var fileExt = '.' + file.name.split('.').pop().toLowerCase();
+    if (!allowedExtensions.includes(fileExt)) {
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Invalid file type. Please upload CSV or JSON files only.', 'error');
       return;
     }
     this.uploadedFile = file;
@@ -8112,73 +8476,94 @@ var ImportModule = {
       jQuery('.aie-csv-options').show();
     }
 
-    // Enable next button
-    jQuery('.aie-step-2 .aie-next-step').prop('disabled', false);
-
-    // Upload file
-    this.uploadFile(file);
+    // Start chunked upload
+    this.uploadFileInChunks(file);
   },
   /**
-   * Upload file to server
+   * Upload file in chunks
    */
-  uploadFile: function uploadFile(file) {
+  uploadFileInChunks: function uploadFileInChunks(file) {
     var _this2 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
-      var _window$aieData;
-      var formData, _window$aieData2, response, _response$data;
-      return _regeneratorRuntime().wrap(function _callee$(_context) {
-        while (1) switch (_context.prev = _context.next) {
-          case 0:
-            formData = new FormData();
-            formData.append('file', file);
-            formData.append('action', 'aie_import_upload_file');
-            formData.append('nonce', ((_window$aieData = window.aieData) === null || _window$aieData === void 0 ? void 0 : _window$aieData.nonce) || '');
-            formData.append('content_type', jQuery('input[name="content_type"]:checked').val());
-            _context.prev = 5;
-            _context.next = 8;
-            return jQuery.ajax({
-              url: ((_window$aieData2 = window.aieData) === null || _window$aieData2 === void 0 ? void 0 : _window$aieData2.ajaxUrl) || '/wp-admin/admin-ajax.php',
-              type: 'POST',
-              data: formData,
-              processData: false,
-              contentType: false,
-              dataType: 'json'
-            });
-          case 8:
-            response = _context.sent;
-            if (!response.success) {
-              _context.next = 14;
-              break;
-            }
-            _this2.fileData = response.data;
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('File uploaded successfully', 'success');
-            _context.next = 15;
-            break;
-          case 14:
-            throw new Error(((_response$data = response.data) === null || _response$data === void 0 ? void 0 : _response$data.message) || 'Upload failed');
-          case 15:
-            _context.next = 21;
-            break;
-          case 17:
-            _context.prev = 17;
-            _context.t0 = _context["catch"](5);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context.t0, 'File upload');
-            _this2.removeFile();
-          case 21:
-          case "end":
-            return _context.stop();
+    // Show upload progress
+    jQuery('.aie-upload-placeholder').hide();
+    jQuery('.aie-file-info').hide();
+    jQuery('.aie-upload-progress').show();
+
+    // Create uploader instance
+    this.fileUploader = new _FileUploader__WEBPACK_IMPORTED_MODULE_1__["default"]({
+      chunkSize: 1024 * 1024,
+      // 1MB chunks
+      onProgress: function onProgress(progress) {
+        // Update progress bar
+        jQuery('.aie-upload-progress .aie-progress-bar-fill').css('width', progress.progress + '%');
+        jQuery('.aie-upload-percentage').text(Math.round(progress.progress) + '%');
+        jQuery('.aie-upload-speed').text(_FileUploader__WEBPACK_IMPORTED_MODULE_1__["default"].formatSpeed(progress.speed));
+      },
+      onComplete: function onComplete(result) {
+        console.log('Upload complete, result:', result);
+
+        // Check for validation errors
+        if (result.error) {
+          console.log('Validation error detected:', result.error);
+          _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(result.error, 'error');
+
+          // Show file info but keep upload area visible
+          jQuery('.aie-upload-progress').hide();
+          jQuery('.aie-upload-placeholder').show();
+
+          // Store error in fileData to show on step 3
+          _this2.fileData = {
+            error: result.error,
+            hasError: true
+          };
+
+          // Disable next button due to validation error
+          jQuery('.aie-step-2 .aie-next-step').prop('disabled', true);
+          return;
         }
-      }, _callee, null, [[5, 17]]);
-    }))();
+
+        // Upload complete
+        _this2.fileData = result;
+        console.log('File data stored:', _this2.fileData);
+
+        // Hide upload area completely, show file info
+        jQuery('.aie-upload-area').hide();
+        jQuery('.aie-file-info').show();
+
+        // Enable next button
+        jQuery('.aie-step-2 .aie-next-step').prop('disabled', false);
+
+        // Show success message
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('File uploaded successfully', 'success');
+
+        // Show warning if present
+        if (result.warning) {
+          _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(result.warning, 'warning');
+        }
+      },
+      onError: function onError(error) {
+        // Upload failed
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Upload failed: ' + error.message, 'error');
+        _this2.removeFile();
+      }
+    });
+
+    // Start upload
+    this.fileUploader.upload(file);
   },
   /**
    * Remove uploaded file
    */
   removeFile: function removeFile() {
+    // Abort upload if in progress
+    if (this.fileUploader) {
+      this.fileUploader.abort();
+      this.fileUploader = null;
+    }
     this.uploadedFile = null;
     this.fileData = null;
     jQuery('.aie-file-info').hide();
-    jQuery('.aie-upload-placeholder').show();
+    jQuery('.aie-upload-area').show();
     jQuery('.aie-format-options').hide();
     jQuery('#aie-file-input').val('');
     jQuery('.aie-step-2 .aie-next-step').prop('disabled', true);
@@ -8188,80 +8573,664 @@ var ImportModule = {
    */
   detectFormat: function detectFormat(filename) {
     var ext = filename.split('.').pop().toLowerCase();
-    return ['csv', 'json', 'xml'].includes(ext) ? ext : 'csv';
+    return ['csv', 'json'].includes(ext) ? ext : 'csv';
   },
   /**
    * Load data preview
    */
   loadPreview: function loadPreview() {
     var _this3 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
       var _this3$fileData$colum;
-      var preview, $table, headerHtml, bodyHtml;
-      return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-        while (1) switch (_context2.prev = _context2.next) {
+      var preview, format;
+      return _regeneratorRuntime().wrap(function _callee$(_context) {
+        while (1) switch (_context.prev = _context.next) {
           case 0:
-            if (!(!_this3.fileData || !_this3.fileData.preview)) {
-              _context2.next = 2;
+            console.log('loadPreview called, fileData:', _this3.fileData);
+            if (_this3.fileData) {
+              _context.next = 4;
               break;
             }
-            return _context2.abrupt("return");
-          case 2:
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('No file data available', 'error');
+            return _context.abrupt("return");
+          case 4:
+            if (!_this3.fileData.hasError) {
+              _context.next = 7;
+              break;
+            }
+            console.log('File has validation error:', _this3.fileData.error);
+            return _context.abrupt("return");
+          case 7:
+            if (_this3.fileData.preview) {
+              _context.next = 10;
+              break;
+            }
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('No preview data available', 'error');
+            return _context.abrupt("return");
+          case 10:
             preview = _this3.fileData.preview;
-            $table = jQuery('.aie-preview-table'); // Update stats
+            format = _this3.fileData.format || 'csv';
+            console.log('Preview data:', preview);
+            console.log('Format:', format);
+
+            // Update stats
             jQuery('.aie-total-rows').text(_this3.fileData.total_rows || 0);
             jQuery('.aie-total-columns').text(((_this3$fileData$colum = _this3.fileData.columns) === null || _this3$fileData$colum === void 0 ? void 0 : _this3$fileData$colum.length) || 0);
 
-            // Build table header
-            headerHtml = '<tr>';
-            if (preview.headers) {
-              preview.headers.forEach(function (header) {
-                headerHtml += "<th>".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(header), "</th>");
-              });
-            }
-            headerHtml += '</tr>';
-            $table.find('thead').html(headerHtml);
-
-            // Build table body
-            bodyHtml = '';
-            if (preview.data) {
-              preview.data.forEach(function (row, index) {
-                bodyHtml += '<tr>';
-                row.forEach(function (cell) {
-                  var cellContent = _utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(String(cell).substring(0, 100));
-                  bodyHtml += "<td>".concat(cellContent, "</td>");
-                });
-                bodyHtml += '</tr>';
-              });
-            }
-            $table.find('tbody').html(bodyHtml);
-          case 13:
+            // Always show table preview (both CSV and JSON)
+            _this3.showTablePreview(preview);
+          case 17:
           case "end":
-            return _context2.stop();
+            return _context.stop();
         }
-      }, _callee2);
+      }, _callee);
     }))();
   },
   /**
-   * Build field mapping interface
+   * Show JSON preview (expanded first object)
+   */
+  showJsonPreview: function showJsonPreview(firstObject) {
+    // Hide table, show JSON preview
+    jQuery('.aie-preview-table-container').hide();
+    jQuery('.aie-json-preview-container').show();
+    jQuery('.aie-preview-note').text('Showing first object from JSON file');
+
+    // Build JSON preview HTML
+    var html = '<div class="aie-json-object">';
+    html += '<table class="wp-list-table widefat striped">';
+    html += '<thead><tr>';
+    html += '<th style="width: 30%;">Field</th>';
+    html += '<th style="width: 20%;">Type</th>';
+    html += '<th style="width: 50%;">Value</th>';
+    html += '</tr></thead><tbody>';
+
+    // Iterate through all fields
+    for (var _i = 0, _Object$entries = Object.entries(firstObject); _i < _Object$entries.length; _i++) {
+      var _Object$entries$_i = _slicedToArray(_Object$entries[_i], 2),
+        key = _Object$entries$_i[0],
+        value = _Object$entries$_i[1];
+      var type = this.getValueType(value);
+      var displayValue = this.formatJsonValue(value);
+      html += '<tr>';
+      html += "<td><strong>".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(key), "</strong></td>");
+      html += "<td><code>".concat(type, "</code></td>");
+      html += "<td>".concat(displayValue, "</td>");
+      html += '</tr>';
+    }
+    html += '</tbody></table></div>';
+    jQuery('.aie-json-preview').html(html);
+  },
+  /**
+   * Show table preview for CSV
+   */
+  showTablePreview: function showTablePreview(preview) {
+    // Show table, hide JSON preview
+    jQuery('.aie-preview-table-container').show();
+    jQuery('.aie-json-preview-container').hide();
+    jQuery('.aie-preview-note').text('Showing first 5 rows');
+    var $table = jQuery('.aie-preview-table');
+
+    // Build table header
+    var headerHtml = '<tr>';
+    if (preview.headers) {
+      preview.headers.forEach(function (header) {
+        headerHtml += "<th>".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(header), "</th>");
+      });
+    }
+    headerHtml += '</tr>';
+    $table.find('thead').html(headerHtml);
+
+    // Build table body
+    var bodyHtml = '';
+    if (preview.data) {
+      preview.data.forEach(function (row, index) {
+        bodyHtml += '<tr>';
+        row.forEach(function (cell) {
+          // Limit cell content length for preview
+          var cellContent = String(cell);
+
+          // If it looks like JSON, format it nicely
+          if (cellContent.startsWith('{') || cellContent.startsWith('[')) {
+            cellContent = cellContent.substring(0, 150);
+            if (String(cell).length > 150) {
+              cellContent += '...';
+            }
+          } else {
+            cellContent = cellContent.substring(0, 100);
+            if (String(cell).length > 100) {
+              cellContent += '...';
+            }
+          }
+          bodyHtml += "<td>".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(cellContent), "</td>");
+        });
+        bodyHtml += '</tr>';
+      });
+    }
+    $table.find('tbody').html(bodyHtml);
+
+    // Check if table has horizontal scroll
+    this.checkTableScroll();
+  },
+  /**
+   * Check if table container has horizontal scroll and add indicator
+   */
+  checkTableScroll: function checkTableScroll() {
+    var $container = jQuery('.aie-preview-table-container');
+    if ($container.length) {
+      // Use setTimeout to ensure DOM is fully rendered
+      setTimeout(function () {
+        var container = $container[0];
+        var hasScroll = container.scrollWidth > container.clientWidth;
+        $container.toggleClass('has-scroll', hasScroll);
+
+        // Add scroll event listener to hide shadow when scrolled to end
+        $container.off('scroll.preview').on('scroll.preview', function () {
+          var scrollLeft = jQuery(this).scrollLeft();
+          var scrollWidth = this.scrollWidth;
+          var clientWidth = this.clientWidth;
+          var isAtEnd = scrollLeft + clientWidth >= scrollWidth - 5;
+          jQuery(this).toggleClass('scrolled-to-end', isAtEnd);
+        });
+      }, 100);
+    }
+  },
+  /**
+   * Get value type for display
+   */
+  getValueType: function getValueType(value) {
+    if (value === null) return 'null';
+    if (Array.isArray(value)) return 'array';
+    if (_typeof(value) === 'object') return 'object';
+    if (typeof value === 'number') return 'number';
+    if (typeof value === 'boolean') return 'boolean';
+    return 'string';
+  },
+  /**
+   * Format JSON value for display
+   */
+  formatJsonValue: function formatJsonValue(value) {
+    if (value === null) {
+      return '<em style="color: #999;">null</em>';
+    }
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        return '<code>[]</code>';
+      }
+      var preview = value.slice(0, 3).map(function (v) {
+        return JSON.stringify(v);
+      }).join(', ');
+      var more = value.length > 3 ? " ... +".concat(value.length - 3) : '';
+      return "<code>[ ".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(preview)).concat(more, " ]</code>");
+    }
+    if (_typeof(value) === 'object') {
+      var keys = Object.keys(value);
+      if (keys.length === 0) {
+        return '<code>{}</code>';
+      }
+      var _preview = keys.slice(0, 2).join(', ');
+      var _more = keys.length > 2 ? " ... +".concat(keys.length - 2) : '';
+      return "<code>{ ".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(_preview)).concat(_more, " }</code>");
+    }
+    if (typeof value === 'boolean') {
+      return "<code style=\"color: #0073aa;\">".concat(value, "</code>");
+    }
+    if (typeof value === 'number') {
+      return "<code style=\"color: #d63638;\">".concat(value, "</code>");
+    }
+
+    // String
+    var strValue = String(value);
+    var displayValue = strValue.length > 200 ? strValue.substring(0, 200) + '...' : strValue;
+    return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(displayValue);
+  },
+  /**
+   * Build field mapping interface (Drag & Drop)
    */
   buildFieldMapping: function buildFieldMapping() {
-    var _this4 = this;
+    console.log('buildFieldMapping called');
     if (!this.fileData || !this.fileData.columns) {
+      console.log('No file data or columns');
       return;
     }
     var contentType = jQuery('input[name="content_type"]:checked').val();
-    var targetFields = this.getTargetFields(contentType);
-    var $tbody = jQuery('.aie-mapping-body');
+    console.log('Content type:', contentType);
+
+    // Build source fields (from file)
+    this.buildSourceFields();
+
+    // Build target fields (WordPress fields)
+    this.buildTargetFields(contentType);
+
+    // Initialize drag & drop
+    this.initializeDragDrop();
+
+    // Initialize search
+    this.initializeFieldSearch();
+
+    // Update stats
+    this.updateMappingStats();
+  },
+  /**
+   * Build source fields from uploaded file
+   */
+  buildSourceFields: function buildSourceFields() {
+    var _this4 = this;
+    var $container = jQuery('#aie-source-fields');
     var html = '';
     this.fileData.columns.forEach(function (column, index) {
-      var _this4$fileData$previ, _window$aieData3;
+      var _this4$fileData$previ;
       var sampleData = ((_this4$fileData$previ = _this4.fileData.preview) === null || _this4$fileData$previ === void 0 || (_this4$fileData$previ = _this4$fileData$previ.data) === null || _this4$fileData$previ === void 0 || (_this4$fileData$previ = _this4$fileData$previ[0]) === null || _this4$fileData$previ === void 0 ? void 0 : _this4$fileData$previ[index]) || '';
-      html += "\n\t\t\t\t<tr>\n\t\t\t\t\t<td><strong>".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(column), "</strong></td>\n\t\t\t\t\t<td>\n\t\t\t\t\t\t<select name=\"field_map[").concat(index, "]\" class=\"regular-text\">\n\t\t\t\t\t\t\t<option value=\"\">-- ").concat(((_window$aieData3 = window.aieData) === null || _window$aieData3 === void 0 || (_window$aieData3 = _window$aieData3.i18n) === null || _window$aieData3 === void 0 ? void 0 : _window$aieData3.skip) || 'Skip', " --</option>\n\t\t\t\t\t\t\t").concat(targetFields.map(function (field) {
-        return "<option value=\"".concat(field.value, "\">").concat(field.label, "</option>");
-      }).join(''), "\n\t\t\t\t\t\t</select>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td><code>").concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(String(sampleData).substring(0, 50)), "</code></td>\n\t\t\t\t</tr>\n\t\t\t");
+      var sampleDisplay = String(sampleData).substring(0, 30);
+      html += "\n\t\t\t\t<div class=\"aie-field-card\" draggable=\"true\" data-source-field=\"".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(column), "\" data-source-index=\"").concat(index, "\">\n\t\t\t\t\t<div class=\"aie-field-icon\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-media-spreadsheet\"></span>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-field-info\">\n\t\t\t\t\t\t<div class=\"aie-field-name\">").concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(column), "</div>\n\t\t\t\t\t\t").concat(sampleDisplay ? "<div class=\"aie-field-sample\">".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(sampleDisplay), "...</div>") : '', "\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t");
     });
-    $tbody.html(html);
+    $container.html(html);
+  },
+  /**
+   * Build target WordPress fields
+   */
+  buildTargetFields: function buildTargetFields(contentType) {
+    var $container = jQuery('#aie-target-fields');
+
+    // Get fields for content type
+    var fieldGroups = this.getFieldsByContentType(contentType);
+    console.log('Field groups:', fieldGroups);
+    var html = '';
+    fieldGroups.forEach(function (group) {
+      html += "<div class=\"aie-field-group\">";
+      html += "<div class=\"aie-field-group-label\">".concat(group.label, "</div>");
+      group.options.forEach(function (field) {
+        // Skip special fields
+        if (field.value.startsWith('_')) {
+          return;
+        }
+        html += "\n\t\t\t\t\t<div class=\"aie-target-field\" data-target-field=\"".concat(field.value, "\" data-field-type=\"").concat(field.type || 'string', "\">\n\t\t\t\t\t\t<div class=\"aie-field-icon\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-wordpress\"></span>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"aie-field-info\">\n\t\t\t\t\t\t\t<div class=\"aie-field-label\">").concat(field.label, "</div>\n\t\t\t\t\t\t\t<span class=\"aie-field-type-badge\">").concat(field.type || 'string', "</span>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t");
+      });
+      html += "</div>";
+    });
+    $container.html(html);
+  },
+  /**
+   * Get fields by content type (import-compatible fields)
+   */
+  getFieldsByContentType: function getFieldsByContentType(contentType) {
+    // Posts
+    if (contentType === 'post' || contentType === 'page') {
+      return [{
+        label: 'Standard',
+        options: [{
+          value: 'post_title',
+          label: 'Title',
+          type: 'string'
+        }, {
+          value: 'post_content',
+          label: 'Content',
+          type: 'string'
+        }, {
+          value: 'post_excerpt',
+          label: 'Excerpt',
+          type: 'string'
+        }, {
+          value: 'post_status',
+          label: 'Status',
+          type: 'string'
+        }, {
+          value: 'post_date',
+          label: 'Date',
+          type: 'date'
+        }, {
+          value: 'post_name',
+          label: 'Slug',
+          type: 'string'
+        }]
+      }, {
+        label: 'Author',
+        options: [{
+          value: 'post_author',
+          label: 'Author ID',
+          type: 'number'
+        }, {
+          value: 'author_email',
+          label: 'Author Email',
+          type: 'string'
+        }]
+      }, {
+        label: 'Taxonomy',
+        options: [{
+          value: 'categories',
+          label: 'Categories',
+          type: 'array'
+        }, {
+          value: 'tags',
+          label: 'Tags',
+          type: 'array'
+        }]
+      }, {
+        label: 'Media',
+        options: [{
+          value: 'featured_image',
+          label: 'Featured Image',
+          type: 'string'
+        }]
+      }];
+    }
+
+    // Users
+    if (contentType === 'user') {
+      return [{
+        label: 'Basic',
+        options: [{
+          value: 'user_login',
+          label: 'Username',
+          type: 'string'
+        }, {
+          value: 'user_email',
+          label: 'Email',
+          type: 'string'
+        }, {
+          value: 'display_name',
+          label: 'Display Name',
+          type: 'string'
+        }, {
+          value: 'user_nicename',
+          label: 'Nice Name',
+          type: 'string'
+        }]
+      }, {
+        label: 'Profile',
+        options: [{
+          value: 'first_name',
+          label: 'First Name',
+          type: 'string'
+        }, {
+          value: 'last_name',
+          label: 'Last Name',
+          type: 'string'
+        }, {
+          value: 'nickname',
+          label: 'Nickname',
+          type: 'string'
+        }, {
+          value: 'description',
+          label: 'Bio',
+          type: 'string'
+        }, {
+          value: 'user_url',
+          label: 'Website',
+          type: 'string'
+        }]
+      }, {
+        label: 'Role & Permissions',
+        options: [{
+          value: 'role',
+          label: 'Role',
+          type: 'string'
+        }]
+      }];
+    }
+
+    // Media
+    if (contentType === 'media') {
+      return [{
+        label: 'Basic',
+        options: [{
+          value: 'post_title',
+          label: 'Title',
+          type: 'string'
+        }, {
+          value: 'post_content',
+          label: 'Description',
+          type: 'string'
+        }, {
+          value: 'post_excerpt',
+          label: 'Caption',
+          type: 'string'
+        }, {
+          value: 'alt_text',
+          label: 'Alt Text',
+          type: 'string'
+        }]
+      }, {
+        label: 'File',
+        options: [{
+          value: 'file_url',
+          label: 'File URL',
+          type: 'string'
+        }, {
+          value: 'file_path',
+          label: 'File Path',
+          type: 'string'
+        }]
+      }];
+    }
+
+    // WooCommerce Products
+    if (contentType === 'woo_product') {
+      return [{
+        label: 'Basic',
+        options: [{
+          value: 'post_title',
+          label: 'Product Name',
+          type: 'string'
+        }, {
+          value: 'post_content',
+          label: 'Description',
+          type: 'string'
+        }, {
+          value: 'post_excerpt',
+          label: 'Short Description',
+          type: 'string'
+        }, {
+          value: 'sku',
+          label: 'SKU',
+          type: 'string'
+        }]
+      }, {
+        label: 'Pricing',
+        options: [{
+          value: 'regular_price',
+          label: 'Regular Price',
+          type: 'number'
+        }, {
+          value: 'sale_price',
+          label: 'Sale Price',
+          type: 'number'
+        }]
+      }, {
+        label: 'Inventory',
+        options: [{
+          value: 'stock_quantity',
+          label: 'Stock Quantity',
+          type: 'number'
+        }, {
+          value: 'stock_status',
+          label: 'Stock Status',
+          type: 'string'
+        }]
+      }];
+    }
+
+    // Default - return post fields
+    return [{
+      label: 'Standard',
+      options: [{
+        value: 'post_title',
+        label: 'Title',
+        type: 'string'
+      }, {
+        value: 'post_content',
+        label: 'Content',
+        type: 'string'
+      }, {
+        value: 'post_status',
+        label: 'Status',
+        type: 'string'
+      }]
+    }];
+  },
+  /**
+   * Initialize drag & drop functionality
+   */
+  initializeDragDrop: function initializeDragDrop() {
+    var self = this;
+    var draggedElement = null;
+
+    // Drag start on source fields
+    jQuery(document).on('dragstart', '.aie-field-card', function (e) {
+      if (jQuery(this).hasClass('mapped')) {
+        e.preventDefault();
+        return;
+      }
+      draggedElement = jQuery(this);
+      jQuery(this).addClass('dragging');
+      e.originalEvent.dataTransfer.effectAllowed = 'move';
+      e.originalEvent.dataTransfer.setData('text/html', this.innerHTML);
+    });
+
+    // Drag end
+    jQuery(document).on('dragend', '.aie-field-card', function () {
+      jQuery(this).removeClass('dragging');
+      jQuery('.aie-target-field').removeClass('drag-over');
+    });
+
+    // Drag over target fields
+    jQuery(document).on('dragover', '.aie-target-field', function (e) {
+      e.preventDefault();
+      jQuery(this).addClass('drag-over');
+    });
+
+    // Drag leave
+    jQuery(document).on('dragleave', '.aie-target-field', function () {
+      jQuery(this).removeClass('drag-over');
+    });
+
+    // Drop on target field
+    jQuery(document).on('drop', '.aie-target-field', function (e) {
+      e.preventDefault();
+      jQuery(this).removeClass('drag-over');
+      if (!draggedElement) {
+        return;
+      }
+      var sourceField = draggedElement.data('source-field');
+      var sourceIndex = draggedElement.data('source-index');
+      var targetField = jQuery(this).data('target-field');
+      var fieldType = jQuery(this).data('field-type');
+
+      // Create mapping
+      self.createMapping(sourceField, sourceIndex, targetField, fieldType, jQuery(this));
+
+      // Mark source as mapped
+      draggedElement.addClass('mapped');
+      draggedElement = null;
+
+      // Update stats
+      self.updateMappingStats();
+    });
+
+    // Remove mapping (from target field)
+    jQuery(document).on('click', '.aie-remove-mapping', function (e) {
+      e.stopPropagation();
+      var $targetField = jQuery(this).closest('.aie-target-field');
+      var sourceIndex = $targetField.data('mapped-source-index');
+      self.removeMapping(sourceIndex, $targetField);
+    });
+
+    // Remove mapping (from mapped fields section)
+    jQuery(document).on('click', '.aie-remove-row-mapping', function (e) {
+      e.stopPropagation();
+      var sourceIndex = jQuery(this).data('source-index');
+      var targetField = jQuery(this).closest('.aie-mapping-row').data('target-field');
+      var $targetField = jQuery(".aie-target-field[data-target-field=\"".concat(targetField, "\"]"));
+      self.removeMapping(sourceIndex, $targetField);
+    });
+  },
+  /**
+   * Remove mapping
+   */
+  removeMapping: function removeMapping(sourceIndex, $targetField) {
+    // Remove mapping from target
+    $targetField.find('.aie-mapped-source').remove();
+    $targetField.removeClass('has-mapping');
+    $targetField.removeData('mapped-source-index');
+    $targetField.removeData('mapped-source-field');
+
+    // Unmark source
+    jQuery(".aie-field-card[data-source-index=\"".concat(sourceIndex, "\"]")).removeClass('mapped');
+
+    // Remove from mapped fields section
+    jQuery(".aie-mapping-row[data-source-index=\"".concat(sourceIndex, "\"]")).remove();
+
+    // Show empty state if no mappings
+    if (jQuery('.aie-mapping-row').length === 0) {
+      jQuery('.aie-mapped-fields .aie-empty-state').show();
+    }
+
+    // Update stats
+    this.updateMappingStats();
+  },
+  /**
+   * Create field mapping
+   */
+  createMapping: function createMapping(sourceField, sourceIndex, targetField, fieldType, $targetElement) {
+    // Remove existing mapping if any
+    $targetElement.find('.aie-mapped-source').remove();
+
+    // Add mapped source indicator to target
+    var mappedHtml = "\n\t\t\t<div class=\"aie-mapped-source\">\n\t\t\t\t<span class=\"aie-source-name\">".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(sourceField), "</span>\n\t\t\t\t<span class=\"dashicons dashicons-no-alt aie-remove-mapping\"></span>\n\t\t\t</div>\n\t\t");
+    $targetElement.find('.aie-field-info').append(mappedHtml);
+    $targetElement.addClass('has-mapping');
+    $targetElement.data('mapped-source-index', sourceIndex);
+    $targetElement.data('mapped-source-field', sourceField);
+
+    // Add to mapped fields section
+    this.addToMappedFields(sourceField, sourceIndex, targetField, fieldType);
+  },
+  /**
+   * Add mapping to mapped fields section
+   */
+  addToMappedFields: function addToMappedFields(sourceField, sourceIndex, targetField, fieldType) {
+    var $container = jQuery('.aie-mapped-fields');
+
+    // Hide empty state
+    $container.find('.aie-empty-state').hide();
+
+    // Remove existing row if any
+    jQuery(".aie-mapping-row[data-source-index=\"".concat(sourceIndex, "\"]")).remove();
+
+    // Add new row
+    var html = "\n\t\t\t<div class=\"aie-mapping-row\" data-source-index=\"".concat(sourceIndex, "\" data-target-field=\"").concat(targetField, "\">\n\t\t\t\t<div class=\"aie-source-col\">\n\t\t\t\t\t<span class=\"dashicons dashicons-media-spreadsheet\"></span>\n\t\t\t\t\t<strong>").concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(sourceField), "</strong>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-arrow\">\u2192</div>\n\t\t\t\t<div class=\"aie-target-col\">\n\t\t\t\t\t<span class=\"dashicons dashicons-wordpress\"></span>\n\t\t\t\t\t<strong>").concat(targetField, "</strong>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-mapping-actions\">\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-add-function\" data-source-index=\"").concat(sourceIndex, "\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-tools\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-remove-row-mapping\" data-source-index=\"").concat(sourceIndex, "\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-no-alt\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t");
+    $container.append(html);
+  },
+  /**
+   * Update mapping statistics
+   */
+  updateMappingStats: function updateMappingStats() {
+    var _this$fileData;
+    var totalFields = ((_this$fileData = this.fileData) === null || _this$fileData === void 0 || (_this$fileData = _this$fileData.columns) === null || _this$fileData === void 0 ? void 0 : _this$fileData.length) || 0;
+    var mappedCount = jQuery('.aie-field-card.mapped').length;
+    jQuery('.aie-mapped-count').text(mappedCount);
+    jQuery('.aie-total-fields').text(totalFields);
+  },
+  /**
+   * Initialize field search
+   */
+  initializeFieldSearch: function initializeFieldSearch() {
+    // Search source fields
+    jQuery('.aie-search-source').on('input', function () {
+      var query = jQuery(this).val().toLowerCase();
+      jQuery('.aie-field-card').each(function () {
+        var fieldName = jQuery(this).find('.aie-field-name').text().toLowerCase();
+        jQuery(this).toggle(fieldName.includes(query));
+      });
+    });
+
+    // Search target fields
+    jQuery('.aie-search-target').on('input', function () {
+      var query = jQuery(this).val().toLowerCase();
+      jQuery('.aie-target-field').each(function () {
+        var fieldName = jQuery(this).find('.aie-field-label').text().toLowerCase();
+        jQuery(this).toggle(fieldName.includes(query));
+      });
+    });
   },
   /**
    * Get target fields for content type
@@ -8322,131 +9291,166 @@ var ImportModule = {
    * Auto-map fields
    */
   autoMapFields: function autoMapFields() {
-    var $selects = jQuery('.aie-mapping-body select');
-    $selects.each(function () {
-      var $select = jQuery(this);
-      var columnName = $select.closest('tr').find('strong').text().toLowerCase();
+    var _this5 = this;
+    var mappedCount = 0;
 
-      // Try to find matching field
-      $select.find('option').each(function () {
-        var optionValue = jQuery(this).val().toLowerCase();
-        var optionLabel = jQuery(this).text().toLowerCase();
-        if (columnName === optionValue || columnName === optionLabel || columnName.includes(optionValue) || optionValue.includes(columnName)) {
-          $select.val(jQuery(this).val());
-          return false;
+    // Clear existing mappings
+    this.clearFieldMapping();
+
+    // Try to auto-match source to target fields
+    jQuery('.aie-field-card').each(function (index, sourceCard) {
+      var $sourceCard = jQuery(sourceCard);
+      var sourceField = $sourceCard.data('source-field').toLowerCase();
+      var sourceIndex = $sourceCard.data('source-index');
+
+      // Try to find matching target
+      var matched = false;
+      jQuery('.aie-target-field').each(function (i, targetField) {
+        if (matched) return;
+        var $targetField = jQuery(targetField);
+        var targetFieldValue = $targetField.data('target-field').toLowerCase();
+        var targetLabel = $targetField.find('.aie-field-label').text().toLowerCase();
+
+        // Check for exact or partial match
+        if (sourceField === targetFieldValue || sourceField === targetLabel || sourceField.includes(targetFieldValue) || targetFieldValue.includes(sourceField) || sourceField.replace(/_/g, ' ') === targetLabel) {
+          // Create mapping
+          _this5.createMapping($sourceCard.data('source-field'), sourceIndex, $targetField.data('target-field'), $targetField.data('field-type'), $targetField);
+          $sourceCard.addClass('mapped');
+          matched = true;
+          mappedCount++;
         }
       });
     });
-    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Auto-mapping completed', 'success');
+    this.updateMappingStats();
+    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice("Auto-mapped ".concat(mappedCount, " fields"), 'success');
   },
   /**
    * Clear field mapping
    */
   clearFieldMapping: function clearFieldMapping() {
-    jQuery('.aie-mapping-body select').val('');
+    // Clear all mappings
+    jQuery('.aie-target-field').each(function () {
+      jQuery(this).find('.aie-mapped-source').remove();
+      jQuery(this).removeClass('has-mapping');
+      jQuery(this).removeData('mapped-source-index');
+      jQuery(this).removeData('mapped-source-field');
+    });
+
+    // Unmark all source fields
+    jQuery('.aie-field-card').removeClass('mapped');
+
+    // Clear mapped fields section
+    jQuery('.aie-mapped-fields').html("\n\t\t\t<div class=\"aie-empty-state\">\n\t\t\t\t<span class=\"dashicons dashicons-info\"></span>\n\t\t\t\t<p>Drag source columns to WordPress fields to create mappings</p>\n\t\t\t</div>\n\t\t");
+    this.updateMappingStats();
   },
   /**
    * Get field mapping
    */
   getFieldMapping: function getFieldMapping() {
-    var mapping = {};
-    jQuery('.aie-mapping-body select').each(function () {
-      var _$select$attr$match;
-      var $select = jQuery(this);
-      var sourceIndex = (_$select$attr$match = $select.attr('name').match(/\[(\d+)\]/)) === null || _$select$attr$match === void 0 ? void 0 : _$select$attr$match[1];
-      var targetField = $select.val();
-      if (targetField && sourceIndex !== undefined) {
-        mapping[sourceIndex] = targetField;
+    var mapping = [];
+    jQuery('.aie-mapping-row').each(function () {
+      var $row = jQuery(this);
+      var sourceIndex = $row.data('source-index');
+      var targetField = $row.data('target-field');
+      var sourceField = jQuery(".aie-field-card[data-source-index=\"".concat(sourceIndex, "\"]")).data('source-field');
+      if (sourceField && targetField) {
+        mapping.push({
+          source_index: sourceIndex,
+          source_field: sourceField,
+          target_field: targetField,
+          function_id: $row.data('function-id') || null
+        });
       }
     });
+    console.log('Field mapping:', mapping);
     return mapping;
   },
   /**
    * Start import
    */
   startImport: function startImport() {
-    var _this5 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+    var _this6 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
       var data, response;
-      return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-        while (1) switch (_context3.prev = _context3.next) {
+      return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+        while (1) switch (_context2.prev = _context2.next) {
           case 0:
-            _context3.prev = 0;
+            _context2.prev = 0;
             data = {
-              file_path: _this5.fileData.file_path,
+              file_path: _this6.fileData.file_path,
               content_type: jQuery('input[name="content_type"]:checked').val(),
-              format: _this5.fileData.format,
-              field_mapping: _this5.getFieldMapping(),
+              format: _this6.fileData.format,
+              field_mapping: _this6.getFieldMapping(),
               duplicate_handling: jQuery('input[name="duplicate_handling"]:checked').val(),
               post_status: jQuery('[name="post_status"]').val(),
               post_type: jQuery('[name="post_type"]').val(),
               download_images: jQuery('[name="download_images"]').is(':checked'),
               batch_size: parseInt(jQuery('[name="batch_size"]').val()) || 50
             };
-            _context3.next = 4;
+            _context2.next = 4;
             return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_import_start', data);
           case 4:
-            response = _context3.sent;
-            _this5.jobId = response.job_id;
-            _this5.showStep(6);
-            _this5.startProgressTracking();
+            response = _context2.sent;
+            _this6.jobId = response.job_id;
+            _this6.showStep(6);
+            _this6.startProgressTracking();
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Import started successfully', 'success');
-            _context3.next = 14;
+            _context2.next = 14;
             break;
           case 11:
-            _context3.prev = 11;
-            _context3.t0 = _context3["catch"](0);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context3.t0, 'Start import');
+            _context2.prev = 11;
+            _context2.t0 = _context2["catch"](0);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context2.t0, 'Start import');
           case 14:
           case "end":
-            return _context3.stop();
+            return _context2.stop();
         }
-      }, _callee3, null, [[0, 11]]);
+      }, _callee2, null, [[0, 11]]);
     }))();
   },
   /**
    * Start progress tracking
    */
   startProgressTracking: function startProgressTracking() {
-    var _this6 = this;
+    var _this7 = this;
     this.progressInterval = setInterval(function () {
-      _this6.updateProgress();
+      _this7.updateProgress();
     }, 2000);
   },
   /**
    * Update import progress
    */
   updateProgress: function updateProgress() {
-    var _this7 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+    var _this8 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
       var response;
-      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-        while (1) switch (_context4.prev = _context4.next) {
+      return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+        while (1) switch (_context3.prev = _context3.next) {
           case 0:
-            _context4.prev = 0;
-            _context4.next = 3;
+            _context3.prev = 0;
+            _context3.next = 3;
             return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_import_get_progress', {
-              job_id: _this7.jobId
+              job_id: _this8.jobId
             });
           case 3:
-            response = _context4.sent;
+            response = _context3.sent;
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].updateProgressBar(jQuery('.aie-step-6'), response);
             if (response.status === 'completed') {
-              _this7.onImportComplete(response);
+              _this8.onImportComplete(response);
             } else if (response.status === 'failed') {
-              _this7.onImportFailed(response);
+              _this8.onImportFailed(response);
             }
-            _context4.next = 11;
+            _context3.next = 11;
             break;
           case 8:
-            _context4.prev = 8;
-            _context4.t0 = _context4["catch"](0);
-            console.error('Progress update error:', _context4.t0);
+            _context3.prev = 8;
+            _context3.t0 = _context3["catch"](0);
+            console.error('Progress update error:', _context3.t0);
           case 11:
           case "end":
-            return _context4.stop();
+            return _context3.stop();
         }
-      }, _callee4, null, [[0, 8]]);
+      }, _callee3, null, [[0, 8]]);
     }))();
   },
   /**
@@ -8475,37 +9479,37 @@ var ImportModule = {
    * Cancel import
    */
   cancelImport: function cancelImport() {
-    var _this8 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
-      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-        while (1) switch (_context5.prev = _context5.next) {
+    var _this9 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+        while (1) switch (_context4.prev = _context4.next) {
           case 0:
             if (confirm('Are you sure you want to cancel this import?')) {
-              _context5.next = 2;
+              _context4.next = 2;
               break;
             }
-            return _context5.abrupt("return");
+            return _context4.abrupt("return");
           case 2:
-            _context5.prev = 2;
-            _context5.next = 5;
+            _context4.prev = 2;
+            _context4.next = 5;
             return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_import_cancel', {
-              job_id: _this8.jobId
+              job_id: _this9.jobId
             });
           case 5:
-            clearInterval(_this8.progressInterval);
+            clearInterval(_this9.progressInterval);
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Import cancelled', 'info');
-            _this8.resetWizard();
-            _context5.next = 13;
+            _this9.resetWizard();
+            _context4.next = 13;
             break;
           case 10:
-            _context5.prev = 10;
-            _context5.t0 = _context5["catch"](2);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context5.t0, 'Cancel import');
+            _context4.prev = 10;
+            _context4.t0 = _context4["catch"](2);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context4.t0, 'Cancel import');
           case 13:
           case "end":
-            return _context5.stop();
+            return _context4.stop();
         }
-      }, _callee5, null, [[2, 10]]);
+      }, _callee4, null, [[2, 10]]);
     }))();
   },
   /**
