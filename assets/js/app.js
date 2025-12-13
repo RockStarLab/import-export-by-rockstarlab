@@ -8259,6 +8259,7 @@ var ImportModule = {
   jobId: null,
   progressInterval: null,
   fileUploader: null,
+  mappingFunctions: {},
   /**
    * Initialize module
    */
@@ -9076,13 +9077,9 @@ var ImportModule = {
 
     // Drag start on source fields
     jQuery(document).on('dragstart', '.aie-field-card', function (e) {
-      if (jQuery(this).hasClass('mapped')) {
-        e.preventDefault();
-        return;
-      }
       draggedElement = jQuery(this);
       jQuery(this).addClass('dragging');
-      e.originalEvent.dataTransfer.effectAllowed = 'move';
+      e.originalEvent.dataTransfer.effectAllowed = 'copy';
       e.originalEvent.dataTransfer.setData('text/html', this.innerHTML);
     });
 
@@ -9118,8 +9115,10 @@ var ImportModule = {
       // Create mapping
       self.createMapping(sourceField, sourceIndex, targetField, fieldType, jQuery(this));
 
-      // Mark source as mapped
-      draggedElement.addClass('mapped');
+      // Add visual indicator that this source is used (but don't disable it)
+      draggedElement.addClass('used');
+
+      // Clear dragged element
       draggedElement = null;
 
       // Update stats
@@ -9142,22 +9141,57 @@ var ImportModule = {
       var $targetField = jQuery(".aie-target-field[data-target-field=\"".concat(targetField, "\"]"));
       self.removeMapping(sourceIndex, $targetField);
     });
+
+    // Add function to mapping
+    jQuery(document).on('click', '.aie-add-function', function (e) {
+      e.stopPropagation();
+      var sourceIndex = jQuery(this).data('source-index');
+      var targetField = jQuery(this).data('target-field');
+      self.showFunctionSelector(sourceIndex, targetField);
+    });
+
+    // Remove function from mapping
+    jQuery(document).on('click', '.aie-remove-function', function (e) {
+      e.stopPropagation();
+      var functionIndex = jQuery(this).data('function-index');
+      var $row = jQuery(this).closest('.aie-mapping-row');
+      var sourceIndex = $row.data('source-index');
+      var targetField = $row.data('target-field');
+      self.removeFunction(sourceIndex, targetField, functionIndex);
+    });
   },
   /**
    * Remove mapping
    */
   removeMapping: function removeMapping(sourceIndex, $targetField) {
+    var targetField = $targetField.data('target-field');
+
     // Remove mapping from target
     $targetField.find('.aie-mapped-source').remove();
     $targetField.removeClass('has-mapping');
     $targetField.removeData('mapped-source-index');
     $targetField.removeData('mapped-source-field');
 
-    // Unmark source
-    jQuery(".aie-field-card[data-source-index=\"".concat(sourceIndex, "\"]")).removeClass('mapped');
+    // Check if this source is still used in other mappings BEFORE removing
+    // We need to exclude the current mapping being removed
+    var allMappings = jQuery(".aie-mapping-row[data-source-index=\"".concat(sourceIndex, "\"]"));
+    var otherMappings = allMappings.filter(function () {
+      return jQuery(this).data('target-field') !== targetField;
+    });
+    var stillUsed = otherMappings.length > 0;
 
-    // Remove from mapped fields section
-    jQuery(".aie-mapping-row[data-source-index=\"".concat(sourceIndex, "\"]")).remove();
+    // Remove from mapped fields section (specific target field)
+    jQuery(".aie-mapping-row[data-source-index=\"".concat(sourceIndex, "\"][data-target-field=\"").concat(targetField, "\"]")).remove();
+
+    // Remove functions for this mapping
+    var mappingKey = "".concat(sourceIndex, "-").concat(targetField);
+    if (this.mappingFunctions && this.mappingFunctions[mappingKey]) {
+      delete this.mappingFunctions[mappingKey];
+    }
+    if (!stillUsed) {
+      // Remove 'used' class only if not used anywhere else
+      jQuery(".aie-field-card[data-source-index=\"".concat(sourceIndex, "\"]")).removeClass('used');
+    }
 
     // Show empty state if no mappings
     if (jQuery('.aie-mapping-row').length === 0) {
@@ -9188,16 +9222,31 @@ var ImportModule = {
    * Add mapping to mapped fields section
    */
   addToMappedFields: function addToMappedFields(sourceField, sourceIndex, targetField, fieldType) {
+    var _this$mappingFunction;
     var $container = jQuery('.aie-mapped-fields');
 
     // Hide empty state
     $container.find('.aie-empty-state').hide();
 
-    // Remove existing row if any
-    jQuery(".aie-mapping-row[data-source-index=\"".concat(sourceIndex, "\"]")).remove();
+    // Remove existing row for this specific combination (если перемапливаем то же поле)
+    jQuery(".aie-mapping-row[data-source-index=\"".concat(sourceIndex, "\"][data-target-field=\"").concat(targetField, "\"]")).remove();
+
+    // Get functions for this mapping
+    var mappingKey = "".concat(sourceIndex, "-").concat(targetField);
+    var functions = ((_this$mappingFunction = this.mappingFunctions) === null || _this$mappingFunction === void 0 ? void 0 : _this$mappingFunction[mappingKey]) || [];
+
+    // Build functions HTML
+    var functionsHtml = '';
+    if (functions.length > 0) {
+      functionsHtml = '<div class="aie-mapping-functions">';
+      functions.forEach(function (func, index) {
+        functionsHtml += "\n\t\t\t\t\t<span class=\"aie-function-badge\">\n\t\t\t\t\t\t".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(func.name), "\n\t\t\t\t\t\t<button type=\"button\" class=\"aie-remove-function\" data-function-index=\"").concat(index, "\">\xD7</button>\n\t\t\t\t\t</span>\n\t\t\t\t");
+      });
+      functionsHtml += '</div>';
+    }
 
     // Add new row
-    var html = "\n\t\t\t<div class=\"aie-mapping-row\" data-source-index=\"".concat(sourceIndex, "\" data-target-field=\"").concat(targetField, "\">\n\t\t\t\t<div class=\"aie-source-col\">\n\t\t\t\t\t<span class=\"dashicons dashicons-media-spreadsheet\"></span>\n\t\t\t\t\t<strong>").concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(sourceField), "</strong>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-arrow\">\u2192</div>\n\t\t\t\t<div class=\"aie-target-col\">\n\t\t\t\t\t<span class=\"dashicons dashicons-wordpress\"></span>\n\t\t\t\t\t<strong>").concat(targetField, "</strong>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-mapping-actions\">\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-add-function\" data-source-index=\"").concat(sourceIndex, "\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-tools\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-remove-row-mapping\" data-source-index=\"").concat(sourceIndex, "\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-no-alt\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t");
+    var html = "\n\t\t\t<div class=\"aie-mapping-row\" data-source-index=\"".concat(sourceIndex, "\" data-target-field=\"").concat(targetField, "\">\n\t\t\t\t<div class=\"aie-source-col\">\n\t\t\t\t\t<span class=\"dashicons dashicons-media-spreadsheet\"></span>\n\t\t\t\t\t<strong>").concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(sourceField), "</strong>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-arrow\">\u2192</div>\n\t\t\t\t<div class=\"aie-target-col\">\n\t\t\t\t\t<span class=\"dashicons dashicons-wordpress\"></span>\n\t\t\t\t\t<strong>").concat(targetField, "</strong>\n\t\t\t\t</div>\n\t\t\t\t").concat(functionsHtml, "\n\t\t\t\t<div class=\"aie-mapping-actions\">\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-add-function\" data-source-index=\"").concat(sourceIndex, "\" data-target-field=\"").concat(targetField, "\" title=\"Add transformation function\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-tools\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-remove-row-mapping\" data-source-index=\"").concat(sourceIndex, "\" data-target-field=\"").concat(targetField, "\" title=\"Remove mapping\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-no-alt\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t");
     $container.append(html);
   },
   /**
@@ -9206,9 +9255,376 @@ var ImportModule = {
   updateMappingStats: function updateMappingStats() {
     var _this$fileData;
     var totalFields = ((_this$fileData = this.fileData) === null || _this$fileData === void 0 || (_this$fileData = _this$fileData.columns) === null || _this$fileData === void 0 ? void 0 : _this$fileData.length) || 0;
-    var mappedCount = jQuery('.aie-field-card.mapped').length;
+
+    // Count unique source fields that are used
+    var usedSourceIndexes = new Set();
+    jQuery('.aie-mapping-row').each(function () {
+      usedSourceIndexes.add(jQuery(this).data('source-index'));
+    });
+    var mappedCount = usedSourceIndexes.size;
     jQuery('.aie-mapped-count').text(mappedCount);
     jQuery('.aie-total-fields').text(totalFields);
+  },
+  /**
+   * Show function selector modal
+   */
+  showFunctionSelector: function showFunctionSelector(sourceIndex, targetField) {
+    var _this5 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+      var mappingKey, response;
+      return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+        while (1) switch (_context2.prev = _context2.next) {
+          case 0:
+            // Get mapping key
+            mappingKey = "".concat(sourceIndex, "-").concat(targetField); // Get current functions for this mapping
+            if (!_this5.mappingFunctions) {
+              _this5.mappingFunctions = {};
+            }
+            if (!_this5.mappingFunctions[mappingKey]) {
+              _this5.mappingFunctions[mappingKey] = [];
+            }
+
+            // Load functions from server
+            _context2.prev = 3;
+            _context2.next = 6;
+            return jQuery.ajax({
+              url: window.aieData.ajaxUrl,
+              type: 'POST',
+              data: {
+                action: 'aie_functions_get_snippets',
+                nonce: window.aieData.nonce
+              }
+            });
+          case 6:
+            response = _context2.sent;
+            if (response.success) {
+              _context2.next = 10;
+              break;
+            }
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Failed to load functions', 'error');
+            return _context2.abrupt("return");
+          case 10:
+            _this5.showFunctionModal(sourceIndex, targetField, response.data);
+            _context2.next = 16;
+            break;
+          case 13:
+            _context2.prev = 13;
+            _context2.t0 = _context2["catch"](3);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Error loading functions: ' + _context2.t0.message, 'error');
+          case 16:
+          case "end":
+            return _context2.stop();
+        }
+      }, _callee2, null, [[3, 13]]);
+    }))();
+  },
+  /**
+   * Show function modal
+   */
+  showFunctionModal: function showFunctionModal(sourceIndex, targetField, functionsData) {
+    var mappingKey = "".concat(sourceIndex, "-").concat(targetField);
+    var currentFunctions = this.mappingFunctions[mappingKey] || [];
+    var sourceField = this.fileData.columns[sourceIndex];
+
+    // Store current editing context
+    this.currentEditingMapping = {
+      sourceIndex: sourceIndex,
+      targetField: targetField
+    };
+
+    // Create modal HTML (EXACTLY like export modal structure)
+    var modalHtml = "\n\t\t\t<div id=\"aie-field-functions-modal\" class=\"aie-modal\" style=\"display:flex;\">\n\t\t\t\t<div class=\"aie-modal-backdrop\"></div>\n\t\t\t\t<div class=\"aie-modal-content aie-field-functions-modal-content\">\n\t\t\t\t\t<div class=\"aie-modal-header\">\n\t\t\t\t\t\t<h2 class=\"aie-modal-title\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-generic\"></span>\n\t\t\t\t\t\t\tField Transformation Functions\n\t\t\t\t\t\t</h2>\n\t\t\t\t\t\t<button type=\"button\" class=\"aie-modal-close\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-no-alt\"></span>\n\t\t\t\t\t\t</button>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-modal-body\">\n\t\t\t\t\t\t<!-- Field Info -->\n\t\t\t\t\t\t<div class=\"aie-field-info\">\n\t\t\t\t\t\t\t<div class=\"aie-field-info-item\">\n\t\t\t\t\t\t\t\t<strong>Field:</strong>\n\t\t\t\t\t\t\t\t<span class=\"aie-current-field-label\">".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(sourceField), "</span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"aie-field-info-item\">\n\t\t\t\t\t\t\t\t<strong>Type:</strong>\n\t\t\t\t\t\t\t\t<span class=\"aie-current-field-type\">").concat(targetField, "</span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t<!-- Applied Functions List -->\n\t\t\t\t\t\t<div class=\"aie-applied-functions\">\n\t\t\t\t\t\t\t<h3>\n\t\t\t\t\t\t\t\tApplied Functions\n\t\t\t\t\t\t\t\t<span class=\"aie-functions-count\">(0)</span>\n\t\t\t\t\t\t\t</h3>\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t<div class=\"aie-functions-pipeline\" id=\"aie-functions-pipeline\">\n\t\t\t\t\t\t\t\t<div class=\"aie-no-functions\">\n\t\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-info\"></span>\n\t\t\t\t\t\t\t\t\t<p>No functions applied yet. Add functions from the list below.</p>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t<div class=\"aie-function-items\" id=\"aie-function-items\">\n\t\t\t\t\t\t\t\t\t<!-- Functions will be added here -->\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t\t<div class=\"aie-pipeline-hint\">\n\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-info\"></span>\n\t\t\t\t\t\t\t\tFunctions are applied in order from top to bottom. Drag to reorder.\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t<!-- Available Functions -->\n\t\t\t\t\t\t<div class=\"aie-available-functions\">\n\t\t\t\t\t\t\t<h3>Available Functions</h3>\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t<!-- Search Functions -->\n\t\t\t\t\t\t\t<div class=\"aie-functions-search\">\n\t\t\t\t\t\t\t\t<input \n\t\t\t\t\t\t\t\t\ttype=\"text\" \n\t\t\t\t\t\t\t\t\tid=\"aie-functions-search\" \n\t\t\t\t\t\t\t\t\tclass=\"regular-text\" \n\t\t\t\t\t\t\t\t\tplaceholder=\"Search functions...\"\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-search\"></span>\n\t\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t\t<!-- Functions Filter -->\n\t\t\t\t\t\t\t<div class=\"aie-functions-filter\">\n\t\t\t\t\t\t\t\t<label>\n\t\t\t\t\t\t\t\t\t<input type=\"radio\" name=\"functions-filter\" value=\"all\" checked>\n\t\t\t\t\t\t\t\t\tAll\n\t\t\t\t\t\t\t\t</label>\n\t\t\t\t\t\t\t\t<label>\n\t\t\t\t\t\t\t\t\t<input type=\"radio\" name=\"functions-filter\" value=\"library\">\n\t\t\t\t\t\t\t\t\tLibrary\n\t\t\t\t\t\t\t\t</label>\n\t\t\t\t\t\t\t\t<label>\n\t\t\t\t\t\t\t\t\t<input type=\"radio\" name=\"functions-filter\" value=\"custom\">\n\t\t\t\t\t\t\t\t\tCustom\n\t\t\t\t\t\t\t\t</label>\n\t\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t\t<!-- Functions List -->\n\t\t\t\t\t\t\t<div class=\"aie-functions-list\" id=\"aie-functions-list\">\n\t\t\t\t\t\t\t\t<div class=\"aie-functions-loading\">\n\t\t\t\t\t\t\t\t\t<span class=\"spinner is-active\"></span>\n\t\t\t\t\t\t\t\t\t<p>Loading functions...</p>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t\t<!-- Quick Add Link -->\n\t\t\t\t\t\t\t<div class=\"aie-functions-quick-add\">\n\t\t\t\t\t\t\t\t<a href=\"#\" class=\"aie-create-new-function\">\n\t\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-plus-alt\"></span>\n\t\t\t\t\t\t\t\t\tCreate New Function\n\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t<!-- Preview Section -->\n\t\t\t\t\t\t<div class=\"aie-function-preview\">\n\t\t\t\t\t\t\t<h3>Preview Transformation</h3>\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t<div class=\"aie-preview-controls\">\n\t\t\t\t\t\t\t\t<div class=\"aie-preview-input-group\">\n\t\t\t\t\t\t\t\t\t<label for=\"aie-preview-input\">\n\t\t\t\t\t\t\t\t\t\tTest Value:\n\t\t\t\t\t\t\t\t\t</label>\n\t\t\t\t\t\t\t\t\t<input \n\t\t\t\t\t\t\t\t\t\ttype=\"text\" \n\t\t\t\t\t\t\t\t\t\tid=\"aie-preview-input\" \n\t\t\t\t\t\t\t\t\t\tclass=\"regular-text\" \n\t\t\t\t\t\t\t\t\t\tplaceholder=\"Enter test value...\"\n\t\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<button type=\"button\" class=\"button aie-test-pipeline\">\n\t\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-media-code\"></span>\n\t\t\t\t\t\t\t\t\tTest Pipeline\n\t\t\t\t\t\t\t\t</button>\n\t\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t\t<div class=\"aie-preview-result\" id=\"aie-preview-result\" style=\"display:none;\">\n\t\t\t\t\t\t\t\t<div class=\"aie-preview-steps\">\n\t\t\t\t\t\t\t\t\t<!-- Steps will be added dynamically -->\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-modal-footer\">\n\t\t\t\t\t\t<button type=\"button\" class=\"button button-secondary aie-modal-cancel\">\n\t\t\t\t\t\t\tCancel\n\t\t\t\t\t\t</button>\n\t\t\t\t\t\t<button type=\"button\" class=\"button button-primary aie-save-field-functions\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-yes\"></span>\n\t\t\t\t\t\t\tApply Functions\n\t\t\t\t\t\t</button>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t");
+
+    // Remove existing modal
+    jQuery('#aie-field-functions-modal').remove();
+
+    // Add to body
+    jQuery('body').append(modalHtml);
+    jQuery('body').addClass('aie-modal-open');
+
+    // Load current functions into pipeline
+    this.loadCurrentFunctions(currentFunctions);
+
+    // Populate available functions
+    this.renderAvailableFunctions(functionsData);
+
+    // Bind modal events
+    this.bindFunctionModalEvents(sourceIndex, targetField);
+  },
+  /**
+   * Load current functions into pipeline
+   */
+  loadCurrentFunctions: function loadCurrentFunctions(currentFunctions) {
+    var _this6 = this;
+    var $container = jQuery('#aie-function-items');
+    $container.empty();
+    currentFunctions.forEach(function (func) {
+      _this6.addFunctionToPipeline(func, false);
+    });
+    this.updateFunctionsCount(currentFunctions.length);
+    this.toggleNoFunctionsMessage();
+  },
+  /**
+   * Render available functions (like export)
+   */
+  renderAvailableFunctions: function renderAvailableFunctions(functionsData) {
+    var _this7 = this;
+    var $container = jQuery('#aie-functions-list');
+    $container.empty();
+
+    // Get all snippets
+    var snippets = functionsData.snippets || {};
+    if (Object.keys(snippets).length === 0) {
+      $container.html("\n\t\t\t\t<div class=\"aie-functions-empty-state\">\n\t\t\t\t\t<span class=\"dashicons dashicons-info\"></span>\n\t\t\t\t\t<p>No functions available yet.</p>\n\t\t\t\t</div>\n\t\t\t");
+      return;
+    }
+
+    // Store for later use
+    this.availableFunctions = snippets;
+    Object.entries(snippets).forEach(function (_ref) {
+      var _ref2 = _slicedToArray(_ref, 2),
+        key = _ref2[0],
+        snippet = _ref2[1];
+      var item = jQuery('<div>').addClass('aie-function-list-item').attr('data-function-id', key).attr('data-category', snippet.category || 'custom').html("\n\t\t\t\t\t<div class=\"aie-function-list-info\">\n\t\t\t\t\t\t<span class=\"aie-function-list-name\">".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(snippet.name), "</span>\n\t\t\t\t\t\t<span class=\"aie-function-list-desc\">").concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(snippet.description || ''), "</span>\n\t\t\t\t\t</div>\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-add-function-btn\">Add</button>\n\t\t\t\t"));
+      item.find('.aie-add-function-btn').on('click', function () {
+        _this7.addFunctionToPipeline({
+          id: key,
+          name: snippet.name
+        }, true);
+      });
+      $container.append(item);
+    });
+  },
+  /**
+   * Add function to pipeline
+   */
+  addFunctionToPipeline: function addFunctionToPipeline(func) {
+    var _this8 = this;
+    var updateArray = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+    var $container = jQuery('#aie-function-items');
+    var item = jQuery('<div>').addClass('aie-function-item').attr('data-function-id', func.id).html("\n\t\t\t\t<span class=\"aie-function-handle dashicons dashicons-menu\"></span>\n\t\t\t\t<div class=\"aie-function-info\">\n\t\t\t\t\t<strong class=\"aie-function-name\">".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(func.name), "</strong>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-function-actions\">\n\t\t\t\t\t<button type=\"button\" class=\"button-small aie-remove-function\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-no-alt\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t</div>\n\t\t\t"));
+
+    // Remove function event
+    item.find('.aie-remove-function').on('click', function () {
+      item.remove();
+      _this8.updateFunctionsCount();
+      _this8.toggleNoFunctionsMessage();
+    });
+    $container.append(item);
+    if (updateArray) {
+      this.updateFunctionsCount();
+    }
+    this.toggleNoFunctionsMessage();
+  },
+  /**
+   * Update functions count
+   */
+  updateFunctionsCount: function updateFunctionsCount() {
+    var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+    var $countEl = jQuery('.aie-functions-count');
+    if (!$countEl.length) return;
+    if (count === null) {
+      count = jQuery('#aie-function-items .aie-function-item').length;
+    }
+    $countEl.text("(".concat(count, ")"));
+  },
+  /**
+   * Toggle no functions message
+   */
+  toggleNoFunctionsMessage: function toggleNoFunctionsMessage() {
+    var hasItems = jQuery('#aie-function-items .aie-function-item').length > 0;
+    jQuery('.aie-no-functions').toggle(!hasItems);
+    jQuery('#aie-function-items').toggle(hasItems);
+  },
+  /**
+   * Bind function modal events
+   */
+  bindFunctionModalEvents: function bindFunctionModalEvents(sourceIndex, targetField) {
+    var self = this;
+
+    // Close modal functions
+    var closeModal = function closeModal() {
+      jQuery('#aie-field-functions-modal').remove();
+      jQuery('body').removeClass('aie-modal-open');
+    };
+
+    // Close on backdrop click
+    jQuery('.aie-modal-backdrop').on('click', closeModal);
+
+    // Close on X button
+    jQuery('.aie-modal-close').on('click', closeModal);
+
+    // Close on Cancel button
+    jQuery('.aie-modal-cancel').on('click', closeModal);
+
+    // Search functions
+    jQuery('#aie-functions-search').on('input', function () {
+      var query = jQuery(this).val().toLowerCase();
+      jQuery('.aie-function-list-item').each(function () {
+        var name = jQuery(this).find('.aie-function-list-name').text().toLowerCase();
+        var desc = jQuery(this).find('.aie-function-list-desc').text().toLowerCase();
+        jQuery(this).toggle(name.includes(query) || desc.includes(query));
+      });
+    });
+
+    // Filter functions (All / Library / Custom)
+    jQuery('input[name="functions-filter"]').on('change', function () {
+      var filterValue = jQuery(this).val();
+      jQuery('.aie-function-list-item').each(function () {
+        var category = jQuery(this).data('category');
+        if (filterValue === 'all') {
+          jQuery(this).show();
+        } else if (filterValue === 'library') {
+          // Show library functions (snippets)
+          jQuery(this).toggle(category !== 'custom');
+        } else if (filterValue === 'custom') {
+          // Show custom functions
+          jQuery(this).toggle(category === 'custom');
+        }
+      });
+    });
+
+    // Create new function
+    jQuery('.aie-create-new-function').on('click', function (e) {
+      e.preventDefault();
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Creating custom functions will be available in the Functions Library section', 'info');
+    });
+
+    // Test Pipeline
+    jQuery('.aie-test-pipeline').on('click', function () {
+      var testValue = jQuery('#aie-preview-input').val();
+      if (!testValue) {
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Please enter a test value', 'warning');
+        return;
+      }
+      var functions = [];
+      jQuery('#aie-function-items .aie-function-item').each(function () {
+        functions.push(jQuery(this).data('function-id'));
+      });
+      if (functions.length === 0) {
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Please add at least one function to test', 'warning');
+        return;
+      }
+      self.testFunctionPipeline(testValue, functions);
+    });
+
+    // Apply functions (Save button)
+    jQuery('.aie-save-field-functions').on('click', function () {
+      var selectedFunctions = [];
+      jQuery('#aie-function-items .aie-function-item').each(function () {
+        var functionId = jQuery(this).data('function-id');
+        var functionName = jQuery(this).find('.aie-function-name').text();
+        selectedFunctions.push({
+          id: functionId,
+          name: functionName
+        });
+      });
+      self.applyFunctionsToMapping(sourceIndex, targetField, selectedFunctions);
+      closeModal();
+    });
+  },
+  /**
+   * Test function pipeline
+   */
+  testFunctionPipeline: function testFunctionPipeline(testValue, functionIds) {
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+      var $result, $steps, response, html, _response$data;
+      return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+        while (1) switch (_context3.prev = _context3.next) {
+          case 0:
+            $result = jQuery('#aie-preview-result');
+            $steps = $result.find('.aie-preview-steps');
+            $steps.html('<div class="aie-preview-loading"><span class="spinner is-active"></span> Testing...</div>');
+            $result.show();
+            _context3.prev = 4;
+            _context3.next = 7;
+            return jQuery.ajax({
+              url: window.aieData.ajaxUrl,
+              type: 'POST',
+              data: {
+                action: 'aie_test_function_pipeline',
+                nonce: window.aieData.nonce,
+                test_value: testValue,
+                function_ids: functionIds
+              }
+            });
+          case 7:
+            response = _context3.sent;
+            if (response.success && response.data.steps) {
+              html = ''; // Initial value
+              html += "\n\t\t\t\t\t<div class=\"aie-preview-step\">\n\t\t\t\t\t\t<div class=\"aie-step-label\">Initial Value:</div>\n\t\t\t\t\t\t<div class=\"aie-step-value\">".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(response.data.initial || testValue), "</div>\n\t\t\t\t\t</div>\n\t\t\t\t");
+
+              // Each step
+              response.data.steps.forEach(function (step, index) {
+                var stepNum = index + 1;
+                html += "\n\t\t\t\t\t\t<div class=\"aie-preview-step\">\n\t\t\t\t\t\t\t<div class=\"aie-step-label\">".concat(stepNum, ". ").concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(step.function_name), ":</div>\n\t\t\t\t\t\t\t<div class=\"aie-step-value\">").concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(step.output), "</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t");
+              });
+
+              // Final result
+              html += "\n\t\t\t\t\t<div class=\"aie-preview-step aie-preview-final\">\n\t\t\t\t\t\t<div class=\"aie-step-label\">Final Result:</div>\n\t\t\t\t\t\t<div class=\"aie-step-value\"><strong>".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(response.data["final"]), "</strong></div>\n\t\t\t\t\t</div>\n\t\t\t\t");
+              $steps.html(html);
+            } else {
+              $steps.html("<div class=\"notice notice-error inline\"><p>".concat(((_response$data = response.data) === null || _response$data === void 0 ? void 0 : _response$data.message) || 'Failed to test pipeline', "</p></div>"));
+            }
+            _context3.next = 14;
+            break;
+          case 11:
+            _context3.prev = 11;
+            _context3.t0 = _context3["catch"](4);
+            $steps.html("<div class=\"notice notice-error inline\"><p>Error: ".concat(_context3.t0.message, "</p></div>"));
+          case 14:
+          case "end":
+            return _context3.stop();
+        }
+      }, _callee3, null, [[4, 11]]);
+    }))();
+  },
+  /**
+   * Apply functions to mapping
+   */
+  applyFunctionsToMapping: function applyFunctionsToMapping(sourceIndex, targetField, functions) {
+    var mappingKey = "".concat(sourceIndex, "-").concat(targetField);
+
+    // Store functions
+    this.mappingFunctions[mappingKey] = functions;
+
+    // Update mapping row display
+    this.updateMappingRowFunctions(sourceIndex, targetField, functions);
+  },
+  /**
+   * Update mapping row with functions
+   */
+  updateMappingRowFunctions: function updateMappingRowFunctions(sourceIndex, targetField, functions) {
+    var $row = jQuery(".aie-mapping-row[data-source-index=\"".concat(sourceIndex, "\"][data-target-field=\"").concat(targetField, "\"]"));
+
+    // Remove existing functions display
+    $row.find('.aie-mapping-functions').remove();
+    if (functions.length === 0) {
+      return;
+    }
+
+    // Add functions display
+    var functionsHtml = '<div class="aie-mapping-functions">';
+    functions.forEach(function (func, index) {
+      functionsHtml += "\n\t\t\t\t<span class=\"aie-function-badge\">\n\t\t\t\t\t".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(func.name), "\n\t\t\t\t\t<button type=\"button\" class=\"aie-remove-function\" data-function-index=\"").concat(index, "\">\xD7</button>\n\t\t\t\t</span>\n\t\t\t");
+    });
+    functionsHtml += '</div>';
+
+    // Insert after target column
+    $row.find('.aie-target-col').after(functionsHtml);
+  },
+  /**
+   * Remove function from mapping
+   */
+  removeFunction: function removeFunction(sourceIndex, targetField, functionIndex) {
+    var mappingKey = "".concat(sourceIndex, "-").concat(targetField);
+    var functions = this.mappingFunctions[mappingKey] || [];
+
+    // Remove function
+    functions.splice(functionIndex, 1);
+
+    // Update display
+    this.updateMappingRowFunctions(sourceIndex, targetField, functions);
   },
   /**
    * Initialize field search
@@ -9291,7 +9707,7 @@ var ImportModule = {
    * Auto-map fields
    */
   autoMapFields: function autoMapFields() {
-    var _this5 = this;
+    var _this9 = this;
     var mappedCount = 0;
 
     // Clear existing mappings
@@ -9314,7 +9730,7 @@ var ImportModule = {
         // Check for exact or partial match
         if (sourceField === targetFieldValue || sourceField === targetLabel || sourceField.includes(targetFieldValue) || targetFieldValue.includes(sourceField) || sourceField.replace(/_/g, ' ') === targetLabel) {
           // Create mapping
-          _this5.createMapping($sourceCard.data('source-field'), sourceIndex, $targetField.data('target-field'), $targetField.data('field-type'), $targetField);
+          _this9.createMapping($sourceCard.data('source-field'), sourceIndex, $targetField.data('target-field'), $targetField.data('field-type'), $targetField);
           $sourceCard.addClass('mapped');
           matched = true;
           mappedCount++;
@@ -9336,11 +9752,14 @@ var ImportModule = {
       jQuery(this).removeData('mapped-source-field');
     });
 
-    // Unmark all source fields
-    jQuery('.aie-field-card').removeClass('mapped');
+    // Unmark all source fields (remove 'used' class)
+    jQuery('.aie-field-card').removeClass('used');
 
     // Clear mapped fields section
     jQuery('.aie-mapped-fields').html("\n\t\t\t<div class=\"aie-empty-state\">\n\t\t\t\t<span class=\"dashicons dashicons-info\"></span>\n\t\t\t\t<p>Drag source columns to WordPress fields to create mappings</p>\n\t\t\t</div>\n\t\t");
+
+    // Clear all functions
+    this.mappingFunctions = {};
     this.updateMappingStats();
   },
   /**
@@ -9369,88 +9788,88 @@ var ImportModule = {
    * Start import
    */
   startImport: function startImport() {
-    var _this6 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+    var _this10 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
       var data, response;
-      return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-        while (1) switch (_context2.prev = _context2.next) {
+      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+        while (1) switch (_context4.prev = _context4.next) {
           case 0:
-            _context2.prev = 0;
+            _context4.prev = 0;
             data = {
-              file_path: _this6.fileData.file_path,
+              file_path: _this10.fileData.file_path,
               content_type: jQuery('input[name="content_type"]:checked').val(),
-              format: _this6.fileData.format,
-              field_mapping: _this6.getFieldMapping(),
+              format: _this10.fileData.format,
+              field_mapping: _this10.getFieldMapping(),
               duplicate_handling: jQuery('input[name="duplicate_handling"]:checked').val(),
               post_status: jQuery('[name="post_status"]').val(),
               post_type: jQuery('[name="post_type"]').val(),
               download_images: jQuery('[name="download_images"]').is(':checked'),
               batch_size: parseInt(jQuery('[name="batch_size"]').val()) || 50
             };
-            _context2.next = 4;
+            _context4.next = 4;
             return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_import_start', data);
           case 4:
-            response = _context2.sent;
-            _this6.jobId = response.job_id;
-            _this6.showStep(6);
-            _this6.startProgressTracking();
+            response = _context4.sent;
+            _this10.jobId = response.job_id;
+            _this10.showStep(6);
+            _this10.startProgressTracking();
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Import started successfully', 'success');
-            _context2.next = 14;
+            _context4.next = 14;
             break;
           case 11:
-            _context2.prev = 11;
-            _context2.t0 = _context2["catch"](0);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context2.t0, 'Start import');
+            _context4.prev = 11;
+            _context4.t0 = _context4["catch"](0);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context4.t0, 'Start import');
           case 14:
           case "end":
-            return _context2.stop();
+            return _context4.stop();
         }
-      }, _callee2, null, [[0, 11]]);
+      }, _callee4, null, [[0, 11]]);
     }))();
   },
   /**
    * Start progress tracking
    */
   startProgressTracking: function startProgressTracking() {
-    var _this7 = this;
+    var _this11 = this;
     this.progressInterval = setInterval(function () {
-      _this7.updateProgress();
+      _this11.updateProgress();
     }, 2000);
   },
   /**
    * Update import progress
    */
   updateProgress: function updateProgress() {
-    var _this8 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+    var _this12 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
       var response;
-      return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-        while (1) switch (_context3.prev = _context3.next) {
+      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+        while (1) switch (_context5.prev = _context5.next) {
           case 0:
-            _context3.prev = 0;
-            _context3.next = 3;
+            _context5.prev = 0;
+            _context5.next = 3;
             return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_import_get_progress', {
-              job_id: _this8.jobId
+              job_id: _this12.jobId
             });
           case 3:
-            response = _context3.sent;
+            response = _context5.sent;
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].updateProgressBar(jQuery('.aie-step-6'), response);
             if (response.status === 'completed') {
-              _this8.onImportComplete(response);
+              _this12.onImportComplete(response);
             } else if (response.status === 'failed') {
-              _this8.onImportFailed(response);
+              _this12.onImportFailed(response);
             }
-            _context3.next = 11;
+            _context5.next = 11;
             break;
           case 8:
-            _context3.prev = 8;
-            _context3.t0 = _context3["catch"](0);
-            console.error('Progress update error:', _context3.t0);
+            _context5.prev = 8;
+            _context5.t0 = _context5["catch"](0);
+            console.error('Progress update error:', _context5.t0);
           case 11:
           case "end":
-            return _context3.stop();
+            return _context5.stop();
         }
-      }, _callee3, null, [[0, 8]]);
+      }, _callee5, null, [[0, 8]]);
     }))();
   },
   /**
@@ -9479,37 +9898,37 @@ var ImportModule = {
    * Cancel import
    */
   cancelImport: function cancelImport() {
-    var _this9 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
-      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-        while (1) switch (_context4.prev = _context4.next) {
+    var _this13 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+      return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+        while (1) switch (_context6.prev = _context6.next) {
           case 0:
             if (confirm('Are you sure you want to cancel this import?')) {
-              _context4.next = 2;
+              _context6.next = 2;
               break;
             }
-            return _context4.abrupt("return");
+            return _context6.abrupt("return");
           case 2:
-            _context4.prev = 2;
-            _context4.next = 5;
+            _context6.prev = 2;
+            _context6.next = 5;
             return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_import_cancel', {
-              job_id: _this9.jobId
+              job_id: _this13.jobId
             });
           case 5:
-            clearInterval(_this9.progressInterval);
+            clearInterval(_this13.progressInterval);
             _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Import cancelled', 'info');
-            _this9.resetWizard();
-            _context4.next = 13;
+            _this13.resetWizard();
+            _context6.next = 13;
             break;
           case 10:
-            _context4.prev = 10;
-            _context4.t0 = _context4["catch"](2);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context4.t0, 'Cancel import');
+            _context6.prev = 10;
+            _context6.t0 = _context6["catch"](2);
+            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context6.t0, 'Cancel import');
           case 13:
           case "end":
-            return _context4.stop();
+            return _context6.stop();
         }
-      }, _callee4, null, [[2, 10]]);
+      }, _callee6, null, [[2, 10]]);
     }))();
   },
   /**

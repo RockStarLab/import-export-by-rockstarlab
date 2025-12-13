@@ -16,6 +16,7 @@ const ImportModule = {
 	jobId: null,
 	progressInterval: null,
 	fileUploader: null,
+	mappingFunctions: {},
 
 	/**
 	 * Initialize module
@@ -829,15 +830,10 @@ const ImportModule = {
 
 		// Drag start on source fields
 		jQuery( document ).on( 'dragstart', '.aie-field-card', function ( e ) {
-			if ( jQuery( this ).hasClass( 'mapped' ) ) {
-				e.preventDefault();
-				return;
-			}
-
 			draggedElement = jQuery( this );
 			jQuery( this ).addClass( 'dragging' );
 			
-			e.originalEvent.dataTransfer.effectAllowed = 'move';
+			e.originalEvent.dataTransfer.effectAllowed = 'copy';
 			e.originalEvent.dataTransfer.setData( 'text/html', this.innerHTML );
 		} );
 
@@ -875,8 +871,10 @@ const ImportModule = {
 			// Create mapping
 			self.createMapping( sourceField, sourceIndex, targetField, fieldType, jQuery( this ) );
 
-			// Mark source as mapped
-			draggedElement.addClass( 'mapped' );
+			// Add visual indicator that this source is used (but don't disable it)
+			draggedElement.addClass( 'used' );
+			
+			// Clear dragged element
 			draggedElement = null;
 
 			// Update stats
@@ -901,23 +899,61 @@ const ImportModule = {
 
 			self.removeMapping( sourceIndex, $targetField );
 		} );
+
+		// Add function to mapping
+		jQuery( document ).on( 'click', '.aie-add-function', function ( e ) {
+			e.stopPropagation();
+			const sourceIndex = jQuery( this ).data( 'source-index' );
+			const targetField = jQuery( this ).data( 'target-field' );
+
+			self.showFunctionSelector( sourceIndex, targetField );
+		} );
+
+		// Remove function from mapping
+		jQuery( document ).on( 'click', '.aie-remove-function', function ( e ) {
+			e.stopPropagation();
+			const functionIndex = jQuery( this ).data( 'function-index' );
+			const $row = jQuery( this ).closest( '.aie-mapping-row' );
+			const sourceIndex = $row.data( 'source-index' );
+			const targetField = $row.data( 'target-field' );
+
+			self.removeFunction( sourceIndex, targetField, functionIndex );
+		} );
 	},
 
 	/**
 	 * Remove mapping
 	 */
 	removeMapping( sourceIndex, $targetField ) {
+		const targetField = $targetField.data( 'target-field' );
+		
 		// Remove mapping from target
 		$targetField.find( '.aie-mapped-source' ).remove();
 		$targetField.removeClass( 'has-mapping' );
 		$targetField.removeData( 'mapped-source-index' );
 		$targetField.removeData( 'mapped-source-field' );
 
-		// Unmark source
-		jQuery( `.aie-field-card[data-source-index="${ sourceIndex }"]` ).removeClass( 'mapped' );
+		// Check if this source is still used in other mappings BEFORE removing
+		// We need to exclude the current mapping being removed
+		const allMappings = jQuery( `.aie-mapping-row[data-source-index="${ sourceIndex }"]` );
+		const otherMappings = allMappings.filter( function() {
+			return jQuery( this ).data( 'target-field' ) !== targetField;
+		} );
+		const stillUsed = otherMappings.length > 0;
 
-		// Remove from mapped fields section
-		jQuery( `.aie-mapping-row[data-source-index="${ sourceIndex }"]` ).remove();
+		// Remove from mapped fields section (specific target field)
+		jQuery( `.aie-mapping-row[data-source-index="${ sourceIndex }"][data-target-field="${ targetField }"]` ).remove();
+
+		// Remove functions for this mapping
+		const mappingKey = `${ sourceIndex }-${ targetField }`;
+		if ( this.mappingFunctions && this.mappingFunctions[ mappingKey ] ) {
+			delete this.mappingFunctions[ mappingKey ];
+		}
+
+		if ( ! stillUsed ) {
+			// Remove 'used' class only if not used anywhere else
+			jQuery( `.aie-field-card[data-source-index="${ sourceIndex }"]` ).removeClass( 'used' );
+		}
 
 		// Show empty state if no mappings
 		if ( jQuery( '.aie-mapping-row' ).length === 0 ) {
@@ -960,8 +996,27 @@ const ImportModule = {
 		// Hide empty state
 		$container.find( '.aie-empty-state' ).hide();
 
-		// Remove existing row if any
-		jQuery( `.aie-mapping-row[data-source-index="${ sourceIndex }"]` ).remove();
+		// Remove existing row for this specific combination (если перемапливаем то же поле)
+		jQuery( `.aie-mapping-row[data-source-index="${ sourceIndex }"][data-target-field="${ targetField }"]` ).remove();
+
+		// Get functions for this mapping
+		const mappingKey = `${ sourceIndex }-${ targetField }`;
+		const functions = this.mappingFunctions?.[ mappingKey ] || [];
+
+		// Build functions HTML
+		let functionsHtml = '';
+		if ( functions.length > 0 ) {
+			functionsHtml = '<div class="aie-mapping-functions">';
+			functions.forEach( ( func, index ) => {
+				functionsHtml += `
+					<span class="aie-function-badge">
+						${ Utils.escapeHtml( func.name ) }
+						<button type="button" class="aie-remove-function" data-function-index="${ index }">×</button>
+					</span>
+				`;
+			} );
+			functionsHtml += '</div>';
+		}
 
 		// Add new row
 		const html = `
@@ -975,11 +1030,12 @@ const ImportModule = {
 					<span class="dashicons dashicons-wordpress"></span>
 					<strong>${ targetField }</strong>
 				</div>
+				${ functionsHtml }
 				<div class="aie-mapping-actions">
-					<button type="button" class="button button-small aie-add-function" data-source-index="${ sourceIndex }">
+					<button type="button" class="button button-small aie-add-function" data-source-index="${ sourceIndex }" data-target-field="${ targetField }" title="Add transformation function">
 						<span class="dashicons dashicons-admin-tools"></span>
 					</button>
-					<button type="button" class="button button-small aie-remove-row-mapping" data-source-index="${ sourceIndex }">
+					<button type="button" class="button button-small aie-remove-row-mapping" data-source-index="${ sourceIndex }" data-target-field="${ targetField }" title="Remove mapping">
 						<span class="dashicons dashicons-no-alt"></span>
 					</button>
 				</div>
@@ -994,10 +1050,559 @@ const ImportModule = {
 	 */
 	updateMappingStats() {
 		const totalFields = this.fileData?.columns?.length || 0;
-		const mappedCount = jQuery( '.aie-field-card.mapped' ).length;
+		
+		// Count unique source fields that are used
+		const usedSourceIndexes = new Set();
+		jQuery( '.aie-mapping-row' ).each( function() {
+			usedSourceIndexes.add( jQuery( this ).data( 'source-index' ) );
+		} );
+		const mappedCount = usedSourceIndexes.size;
 
 		jQuery( '.aie-mapped-count' ).text( mappedCount );
 		jQuery( '.aie-total-fields' ).text( totalFields );
+	},
+
+	/**
+	 * Show function selector modal
+	 */
+	async showFunctionSelector( sourceIndex, targetField ) {
+		// Get mapping key
+		const mappingKey = `${ sourceIndex }-${ targetField }`;
+		
+		// Get current functions for this mapping
+		if ( ! this.mappingFunctions ) {
+			this.mappingFunctions = {};
+		}
+		if ( ! this.mappingFunctions[ mappingKey ] ) {
+			this.mappingFunctions[ mappingKey ] = [];
+		}
+
+		// Load functions from server
+		try {
+			const response = await jQuery.ajax( {
+				url: window.aieData.ajaxUrl,
+				type: 'POST',
+				data: {
+					action: 'aie_functions_get_snippets',
+					nonce: window.aieData.nonce,
+				},
+			} );
+
+			if ( ! response.success ) {
+				Utils.showNotice( 'Failed to load functions', 'error' );
+				return;
+			}
+
+			this.showFunctionModal( sourceIndex, targetField, response.data );
+		} catch ( error ) {
+			Utils.showNotice( 'Error loading functions: ' + error.message, 'error' );
+		}
+	},
+
+	/**
+	 * Show function modal
+	 */
+	showFunctionModal( sourceIndex, targetField, functionsData ) {
+		const mappingKey = `${ sourceIndex }-${ targetField }`;
+		const currentFunctions = this.mappingFunctions[ mappingKey ] || [];
+		const sourceField = this.fileData.columns[ sourceIndex ];
+
+		// Store current editing context
+		this.currentEditingMapping = { sourceIndex, targetField };
+
+		// Create modal HTML (EXACTLY like export modal structure)
+		const modalHtml = `
+			<div id="aie-field-functions-modal" class="aie-modal" style="display:flex;">
+				<div class="aie-modal-backdrop"></div>
+				<div class="aie-modal-content aie-field-functions-modal-content">
+					<div class="aie-modal-header">
+						<h2 class="aie-modal-title">
+							<span class="dashicons dashicons-admin-generic"></span>
+							Field Transformation Functions
+						</h2>
+						<button type="button" class="aie-modal-close">
+							<span class="dashicons dashicons-no-alt"></span>
+						</button>
+					</div>
+					<div class="aie-modal-body">
+						<!-- Field Info -->
+						<div class="aie-field-info">
+							<div class="aie-field-info-item">
+								<strong>Field:</strong>
+								<span class="aie-current-field-label">${ Utils.escapeHtml( sourceField ) }</span>
+							</div>
+							<div class="aie-field-info-item">
+								<strong>Type:</strong>
+								<span class="aie-current-field-type">${ targetField }</span>
+							</div>
+						</div>
+
+						<!-- Applied Functions List -->
+						<div class="aie-applied-functions">
+							<h3>
+								Applied Functions
+								<span class="aie-functions-count">(0)</span>
+							</h3>
+							
+							<div class="aie-functions-pipeline" id="aie-functions-pipeline">
+								<div class="aie-no-functions">
+									<span class="dashicons dashicons-info"></span>
+									<p>No functions applied yet. Add functions from the list below.</p>
+								</div>
+								
+								<div class="aie-function-items" id="aie-function-items">
+									<!-- Functions will be added here -->
+								</div>
+							</div>
+
+							<div class="aie-pipeline-hint">
+								<span class="dashicons dashicons-info"></span>
+								Functions are applied in order from top to bottom. Drag to reorder.
+							</div>
+						</div>
+
+						<!-- Available Functions -->
+						<div class="aie-available-functions">
+							<h3>Available Functions</h3>
+							
+							<!-- Search Functions -->
+							<div class="aie-functions-search">
+								<input 
+									type="text" 
+									id="aie-functions-search" 
+									class="regular-text" 
+									placeholder="Search functions..."
+								>
+								<span class="dashicons dashicons-search"></span>
+							</div>
+
+							<!-- Functions Filter -->
+							<div class="aie-functions-filter">
+								<label>
+									<input type="radio" name="functions-filter" value="all" checked>
+									All
+								</label>
+								<label>
+									<input type="radio" name="functions-filter" value="library">
+									Library
+								</label>
+								<label>
+									<input type="radio" name="functions-filter" value="custom">
+									Custom
+								</label>
+							</div>
+
+							<!-- Functions List -->
+							<div class="aie-functions-list" id="aie-functions-list">
+								<div class="aie-functions-loading">
+									<span class="spinner is-active"></span>
+									<p>Loading functions...</p>
+								</div>
+							</div>
+
+							<!-- Quick Add Link -->
+							<div class="aie-functions-quick-add">
+								<a href="#" class="aie-create-new-function">
+									<span class="dashicons dashicons-plus-alt"></span>
+									Create New Function
+								</a>
+							</div>
+						</div>
+
+						<!-- Preview Section -->
+						<div class="aie-function-preview">
+							<h3>Preview Transformation</h3>
+							
+							<div class="aie-preview-controls">
+								<div class="aie-preview-input-group">
+									<label for="aie-preview-input">
+										Test Value:
+									</label>
+									<input 
+										type="text" 
+										id="aie-preview-input" 
+										class="regular-text" 
+										placeholder="Enter test value..."
+									>
+								</div>
+								<button type="button" class="button aie-test-pipeline">
+									<span class="dashicons dashicons-media-code"></span>
+									Test Pipeline
+								</button>
+							</div>
+
+							<div class="aie-preview-result" id="aie-preview-result" style="display:none;">
+								<div class="aie-preview-steps">
+									<!-- Steps will be added dynamically -->
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="aie-modal-footer">
+						<button type="button" class="button button-secondary aie-modal-cancel">
+							Cancel
+						</button>
+						<button type="button" class="button button-primary aie-save-field-functions">
+							<span class="dashicons dashicons-yes"></span>
+							Apply Functions
+						</button>
+					</div>
+				</div>
+			</div>
+		`;
+
+		// Remove existing modal
+		jQuery( '#aie-field-functions-modal' ).remove();
+		
+		// Add to body
+		jQuery( 'body' ).append( modalHtml );
+		jQuery( 'body' ).addClass( 'aie-modal-open' );
+
+		// Load current functions into pipeline
+		this.loadCurrentFunctions( currentFunctions );
+
+		// Populate available functions
+		this.renderAvailableFunctions( functionsData );
+
+		// Bind modal events
+		this.bindFunctionModalEvents( sourceIndex, targetField );
+	},
+
+	/**
+	 * Load current functions into pipeline
+	 */
+	loadCurrentFunctions( currentFunctions ) {
+		const $container = jQuery( '#aie-function-items' );
+		$container.empty();
+
+		currentFunctions.forEach( ( func ) => {
+			this.addFunctionToPipeline( func, false );
+		} );
+
+		this.updateFunctionsCount( currentFunctions.length );
+		this.toggleNoFunctionsMessage();
+	},
+
+	/**
+	 * Render available functions (like export)
+	 */
+	renderAvailableFunctions( functionsData ) {
+		const $container = jQuery( '#aie-functions-list' );
+		$container.empty();
+
+		// Get all snippets
+		const snippets = functionsData.snippets || {};
+
+		if ( Object.keys( snippets ).length === 0 ) {
+			$container.html( `
+				<div class="aie-functions-empty-state">
+					<span class="dashicons dashicons-info"></span>
+					<p>No functions available yet.</p>
+				</div>
+			` );
+			return;
+		}
+
+		// Store for later use
+		this.availableFunctions = snippets;
+
+		Object.entries( snippets ).forEach( ( [ key, snippet ] ) => {
+			const item = jQuery( '<div>' )
+				.addClass( 'aie-function-list-item' )
+				.attr( 'data-function-id', key )
+				.attr( 'data-category', snippet.category || 'custom' )
+				.html( `
+					<div class="aie-function-list-info">
+						<span class="aie-function-list-name">${ Utils.escapeHtml( snippet.name ) }</span>
+						<span class="aie-function-list-desc">${ Utils.escapeHtml( snippet.description || '' ) }</span>
+					</div>
+					<button type="button" class="button button-small aie-add-function-btn">Add</button>
+				` );
+
+			item.find( '.aie-add-function-btn' ).on( 'click', () => {
+				this.addFunctionToPipeline( { id: key, name: snippet.name }, true );
+			} );
+
+			$container.append( item );
+		} );
+	},
+
+	/**
+	 * Add function to pipeline
+	 */
+	addFunctionToPipeline( func, updateArray = true ) {
+		const $container = jQuery( '#aie-function-items' );
+
+		const item = jQuery( '<div>' )
+			.addClass( 'aie-function-item' )
+			.attr( 'data-function-id', func.id )
+			.html( `
+				<span class="aie-function-handle dashicons dashicons-menu"></span>
+				<div class="aie-function-info">
+					<strong class="aie-function-name">${ Utils.escapeHtml( func.name ) }</strong>
+				</div>
+				<div class="aie-function-actions">
+					<button type="button" class="button-small aie-remove-function">
+						<span class="dashicons dashicons-no-alt"></span>
+					</button>
+				</div>
+			` );
+
+		// Remove function event
+		item.find( '.aie-remove-function' ).on( 'click', () => {
+			item.remove();
+			this.updateFunctionsCount();
+			this.toggleNoFunctionsMessage();
+		} );
+
+		$container.append( item );
+
+		if ( updateArray ) {
+			this.updateFunctionsCount();
+		}
+
+		this.toggleNoFunctionsMessage();
+	},
+
+	/**
+	 * Update functions count
+	 */
+	updateFunctionsCount( count = null ) {
+		const $countEl = jQuery( '.aie-functions-count' );
+		if ( ! $countEl.length ) return;
+
+		if ( count === null ) {
+			count = jQuery( '#aie-function-items .aie-function-item' ).length;
+		}
+
+		$countEl.text( `(${ count })` );
+	},
+
+	/**
+	 * Toggle no functions message
+	 */
+	toggleNoFunctionsMessage() {
+		const hasItems = jQuery( '#aie-function-items .aie-function-item' ).length > 0;
+		jQuery( '.aie-no-functions' ).toggle( ! hasItems );
+		jQuery( '#aie-function-items' ).toggle( hasItems );
+	},
+
+	/**
+	 * Bind function modal events
+	 */
+	bindFunctionModalEvents( sourceIndex, targetField ) {
+		const self = this;
+
+		// Close modal functions
+		const closeModal = function() {
+			jQuery( '#aie-field-functions-modal' ).remove();
+			jQuery( 'body' ).removeClass( 'aie-modal-open' );
+		};
+
+		// Close on backdrop click
+		jQuery( '.aie-modal-backdrop' ).on( 'click', closeModal );
+
+		// Close on X button
+		jQuery( '.aie-modal-close' ).on( 'click', closeModal );
+
+		// Close on Cancel button
+		jQuery( '.aie-modal-cancel' ).on( 'click', closeModal );
+
+		// Search functions
+		jQuery( '#aie-functions-search' ).on( 'input', function () {
+			const query = jQuery( this ).val().toLowerCase();
+			
+			jQuery( '.aie-function-list-item' ).each( function () {
+				const name = jQuery( this ).find( '.aie-function-list-name' ).text().toLowerCase();
+				const desc = jQuery( this ).find( '.aie-function-list-desc' ).text().toLowerCase();
+				
+				jQuery( this ).toggle( name.includes( query ) || desc.includes( query ) );
+			} );
+		} );
+
+		// Filter functions (All / Library / Custom)
+		jQuery( 'input[name="functions-filter"]' ).on( 'change', function () {
+			const filterValue = jQuery( this ).val();
+			
+			jQuery( '.aie-function-list-item' ).each( function () {
+				const category = jQuery( this ).data( 'category' );
+				
+				if ( filterValue === 'all' ) {
+					jQuery( this ).show();
+				} else if ( filterValue === 'library' ) {
+					// Show library functions (snippets)
+					jQuery( this ).toggle( category !== 'custom' );
+				} else if ( filterValue === 'custom' ) {
+					// Show custom functions
+					jQuery( this ).toggle( category === 'custom' );
+				}
+			} );
+		} );
+
+		// Create new function
+		jQuery( '.aie-create-new-function' ).on( 'click', function ( e ) {
+			e.preventDefault();
+			Utils.showNotice( 'Creating custom functions will be available in the Functions Library section', 'info' );
+		} );
+
+		// Test Pipeline
+		jQuery( '.aie-test-pipeline' ).on( 'click', function () {
+			const testValue = jQuery( '#aie-preview-input' ).val();
+			
+			if ( ! testValue ) {
+				Utils.showNotice( 'Please enter a test value', 'warning' );
+				return;
+			}
+
+			const functions = [];
+			jQuery( '#aie-function-items .aie-function-item' ).each( function () {
+				functions.push( jQuery( this ).data( 'function-id' ) );
+			} );
+
+			if ( functions.length === 0 ) {
+				Utils.showNotice( 'Please add at least one function to test', 'warning' );
+				return;
+			}
+
+			self.testFunctionPipeline( testValue, functions );
+		} );
+
+		// Apply functions (Save button)
+		jQuery( '.aie-save-field-functions' ).on( 'click', function () {
+			const selectedFunctions = [];
+			
+			jQuery( '#aie-function-items .aie-function-item' ).each( function () {
+				const functionId = jQuery( this ).data( 'function-id' );
+				const functionName = jQuery( this ).find( '.aie-function-name' ).text();
+				
+				selectedFunctions.push( {
+					id: functionId,
+					name: functionName,
+				} );
+			} );
+
+			self.applyFunctionsToMapping( sourceIndex, targetField, selectedFunctions );
+			closeModal();
+		} );
+	},
+
+	/**
+	 * Test function pipeline
+	 */
+	async testFunctionPipeline( testValue, functionIds ) {
+		const $result = jQuery( '#aie-preview-result' );
+		const $steps = $result.find( '.aie-preview-steps' );
+		
+		$steps.html( '<div class="aie-preview-loading"><span class="spinner is-active"></span> Testing...</div>' );
+		$result.show();
+
+		try {
+			const response = await jQuery.ajax( {
+				url: window.aieData.ajaxUrl,
+				type: 'POST',
+				data: {
+					action: 'aie_test_function_pipeline',
+					nonce: window.aieData.nonce,
+					test_value: testValue,
+					function_ids: functionIds,
+				},
+			} );
+
+			if ( response.success && response.data.steps ) {
+				let html = '';
+				
+				// Initial value
+				html += `
+					<div class="aie-preview-step">
+						<div class="aie-step-label">Initial Value:</div>
+						<div class="aie-step-value">${ Utils.escapeHtml( response.data.initial || testValue ) }</div>
+					</div>
+				`;
+
+				// Each step
+				response.data.steps.forEach( ( step, index ) => {
+					const stepNum = index + 1;
+					html += `
+						<div class="aie-preview-step">
+							<div class="aie-step-label">${ stepNum }. ${ Utils.escapeHtml( step.function_name ) }:</div>
+							<div class="aie-step-value">${ Utils.escapeHtml( step.output ) }</div>
+						</div>
+					`;
+				} );
+
+				// Final result
+				html += `
+					<div class="aie-preview-step aie-preview-final">
+						<div class="aie-step-label">Final Result:</div>
+						<div class="aie-step-value"><strong>${ Utils.escapeHtml( response.data.final ) }</strong></div>
+					</div>
+				`;
+
+				$steps.html( html );
+			} else {
+				$steps.html( `<div class="notice notice-error inline"><p>${ response.data?.message || 'Failed to test pipeline' }</p></div>` );
+			}
+		} catch ( error ) {
+			$steps.html( `<div class="notice notice-error inline"><p>Error: ${ error.message }</p></div>` );
+		}
+	},
+
+	/**
+	 * Apply functions to mapping
+	 */
+	applyFunctionsToMapping( sourceIndex, targetField, functions ) {
+		const mappingKey = `${ sourceIndex }-${ targetField }`;
+		
+		// Store functions
+		this.mappingFunctions[ mappingKey ] = functions;
+
+		// Update mapping row display
+		this.updateMappingRowFunctions( sourceIndex, targetField, functions );
+	},
+
+	/**
+	 * Update mapping row with functions
+	 */
+	updateMappingRowFunctions( sourceIndex, targetField, functions ) {
+		const $row = jQuery( `.aie-mapping-row[data-source-index="${ sourceIndex }"][data-target-field="${ targetField }"]` );
+		
+		// Remove existing functions display
+		$row.find( '.aie-mapping-functions' ).remove();
+
+		if ( functions.length === 0 ) {
+			return;
+		}
+
+		// Add functions display
+		let functionsHtml = '<div class="aie-mapping-functions">';
+		
+		functions.forEach( ( func, index ) => {
+			functionsHtml += `
+				<span class="aie-function-badge">
+					${ Utils.escapeHtml( func.name ) }
+					<button type="button" class="aie-remove-function" data-function-index="${ index }">×</button>
+				</span>
+			`;
+		} );
+		
+		functionsHtml += '</div>';
+
+		// Insert after target column
+		$row.find( '.aie-target-col' ).after( functionsHtml );
+	},
+
+	/**
+	 * Remove function from mapping
+	 */
+	removeFunction( sourceIndex, targetField, functionIndex ) {
+		const mappingKey = `${ sourceIndex }-${ targetField }`;
+		const functions = this.mappingFunctions[ mappingKey ] || [];
+
+		// Remove function
+		functions.splice( functionIndex, 1 );
+
+		// Update display
+		this.updateMappingRowFunctions( sourceIndex, targetField, functions );
 	},
 
 	/**
@@ -1117,8 +1722,8 @@ const ImportModule = {
 			jQuery( this ).removeData( 'mapped-source-field' );
 		} );
 
-		// Unmark all source fields
-		jQuery( '.aie-field-card' ).removeClass( 'mapped' );
+		// Unmark all source fields (remove 'used' class)
+		jQuery( '.aie-field-card' ).removeClass( 'used' );
 
 		// Clear mapped fields section
 		jQuery( '.aie-mapped-fields' ).html( `
@@ -1127,6 +1732,9 @@ const ImportModule = {
 				<p>Drag source columns to WordPress fields to create mappings</p>
 			</div>
 		` );
+
+		// Clear all functions
+		this.mappingFunctions = {};
 
 		this.updateMappingStats();
 	},
