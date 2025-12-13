@@ -41,6 +41,8 @@ class Import_Controller extends Base_Controller {
 			'import_start'         => [ 'callback' => 'start_import' ],
 			'import_get_progress'  => [ 'callback' => 'get_progress' ],
 			'import_cancel'        => [ 'callback' => 'cancel_import' ],
+			'get_acf_fields'       => [ 'callback' => 'get_acf_fields' ],
+			'get_yoast_fields'     => [ 'callback' => 'get_yoast_fields' ],
 		];
 	}
 
@@ -372,5 +374,134 @@ class Import_Controller extends Base_Controller {
 				]
 			);
 		}
+	}
+
+	/**
+	 * Get ACF fields for import
+	 */
+	public function get_acf_fields() {
+		$verification = $this->verify_request( 'import_fields' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		// Check if ACF is active
+		if ( ! function_exists( 'acf_get_field_groups' ) ) {
+			$this->send_success( [ 'fields' => [] ] );
+			return;
+		}
+
+		$post_type = $this->get_request_param( 'post_type', 'post' );
+
+		// Map WooCommerce content types to actual post types
+		$woo_type_map = [
+			'woo_product' => 'product',
+			'woo_order'   => 'shop_order',
+			'woo_coupon'  => 'shop_coupon',
+		];
+
+		if ( isset( $woo_type_map[ $post_type ] ) ) {
+			$post_type = $woo_type_map[ $post_type ];
+		}
+
+		// Determine the location rule based on content type
+		$location_args = [];
+		if ( $post_type === 'user' ) {
+			$location_args['user_form'] = 'all'; // ACF User fields
+		} elseif ( $post_type === 'media' || $post_type === 'attachment' ) {
+			$location_args['attachment'] = 'all'; // ACF Media fields
+		} else {
+			$location_args['post_type'] = $post_type;
+		}
+
+		// Get field groups for this location
+		$field_groups = acf_get_field_groups( $location_args );
+
+		$fields = [];
+		foreach ( $field_groups as $group ) {
+			$group_fields = acf_get_fields( $group['key'] );
+
+			if ( $group_fields ) {
+				foreach ( $group_fields as $field ) {
+					$fields[] = [
+						'name'  => $field['name'],
+						'label' => $field['label'],
+						'type'  => $field['type'],
+					];
+				}
+			}
+		}
+
+		$this->send_success( [ 'fields' => $fields ] );
+	}
+
+	/**
+	 * Get Yoast SEO fields for import
+	 */
+	public function get_yoast_fields() {
+		$verification = $this->verify_request( 'import_fields' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		// Check if Yoast SEO is active
+		if ( ! defined( 'WPSEO_VERSION' ) ) {
+			$this->send_success( [ 'fields' => [] ] );
+			return;
+		}
+
+		// Standard Yoast SEO meta fields
+		$fields = [
+			[
+				'name'  => '_yoast_wpseo_title',
+				'label' => 'SEO Title',
+			],
+			[
+				'name'  => '_yoast_wpseo_metadesc',
+				'label' => 'Meta Description',
+			],
+			[
+				'name'  => '_yoast_wpseo_focuskw',
+				'label' => 'Focus Keyword',
+			],
+			[
+				'name'  => '_yoast_wpseo_canonical',
+				'label' => 'Canonical URL',
+			],
+			[
+				'name'  => '_yoast_wpseo_meta-robots-noindex',
+				'label' => 'Meta Robots (Index)',
+			],
+			[
+				'name'  => '_yoast_wpseo_meta-robots-nofollow',
+				'label' => 'Meta Robots (Follow)',
+			],
+			[
+				'name'  => '_yoast_wpseo_opengraph-title',
+				'label' => 'Facebook Title',
+			],
+			[
+				'name'  => '_yoast_wpseo_opengraph-description',
+				'label' => 'Facebook Description',
+			],
+			[
+				'name'  => '_yoast_wpseo_opengraph-image',
+				'label' => 'Facebook Image',
+			],
+			[
+				'name'  => '_yoast_wpseo_twitter-title',
+				'label' => 'Twitter Title',
+			],
+			[
+				'name'  => '_yoast_wpseo_twitter-description',
+				'label' => 'Twitter Description',
+			],
+			[
+				'name'  => '_yoast_wpseo_twitter-image',
+				'label' => 'Twitter Image',
+			],
+		];
+
+		$this->send_success( [ 'fields' => $fields ] );
 	}
 }
