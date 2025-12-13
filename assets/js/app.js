@@ -8380,6 +8380,8 @@ var ImportModule = {
         jQuery('.aie-step-3 .aie-next-step').prop('disabled', false);
       }
     } else if (step === 4) {
+      // Disable Next button before building mapping
+      jQuery('.aie-next-step').prop('disabled', true);
       this.buildFieldMapping();
     }
   },
@@ -8416,7 +8418,7 @@ var ImportModule = {
       case 4:
         // Validate field mapping
         var mappedFields = this.getFieldMapping();
-        if (Object.keys(mappedFields).length === 0) {
+        if (!mappedFields || mappedFields.length === 0) {
           _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Please map at least one field', 'error');
           return false;
         }
@@ -8802,6 +8804,12 @@ var ImportModule = {
     // Build target fields (WordPress fields)
     this.buildTargetFields(contentType);
 
+    // Load dynamic ACF fields
+    this.loadACFFields(contentType);
+
+    // Load dynamic Yoast fields
+    this.loadYoastFields(contentType);
+
     // Initialize drag & drop
     this.initializeDragDrop();
 
@@ -8854,34 +8862,199 @@ var ImportModule = {
    * Get fields by content type (import-compatible fields)
    */
   getFieldsByContentType: function getFieldsByContentType(contentType) {
-    // Posts
-    if (contentType === 'post' || contentType === 'page') {
+    var baseFields = [{
+      label: 'Standard',
+      options: [{
+        value: 'post_title',
+        label: 'Title',
+        type: 'string'
+      }, {
+        value: 'post_content',
+        label: 'Content',
+        type: 'string'
+      }, {
+        value: 'post_excerpt',
+        label: 'Excerpt',
+        type: 'string'
+      }, {
+        value: 'post_date',
+        label: 'Date',
+        type: 'date'
+      }, {
+        value: 'post_status',
+        label: 'Status',
+        type: 'string'
+      }, {
+        value: 'post_name',
+        label: 'Slug',
+        type: 'string'
+      }]
+    }, {
+      label: 'Author',
+      options: [{
+        value: 'post_author',
+        label: 'Author ID',
+        type: 'number'
+      }, {
+        value: 'author_name',
+        label: 'Author Name',
+        type: 'string'
+      }, {
+        value: 'author_email',
+        label: 'Author Email',
+        type: 'email'
+      }]
+    }, {
+      label: 'Taxonomy',
+      options: [{
+        value: 'categories',
+        label: 'Categories (names)',
+        type: 'array'
+      }, {
+        value: 'category_ids',
+        label: 'Category IDs',
+        type: 'array'
+      }, {
+        value: 'tags',
+        label: 'Tags (names)',
+        type: 'array'
+      }, {
+        value: 'tag_ids',
+        label: 'Tag IDs',
+        type: 'array'
+      }, {
+        value: 'term_id',
+        label: 'Term ID',
+        type: 'number'
+      }, {
+        value: 'term_name',
+        label: 'Term Name',
+        type: 'string'
+      }, {
+        value: 'term_slug',
+        label: 'Term Slug',
+        type: 'string'
+      }]
+    }, {
+      label: 'Media',
+      options: [{
+        value: 'featured_image',
+        label: 'Featured Image URL',
+        type: 'string'
+      }, {
+        value: 'featured_image_id',
+        label: 'Featured Image ID',
+        type: 'number'
+      }]
+    }, {
+      label: 'Other',
+      options: [{
+        value: 'comment_status',
+        label: 'Comment Status',
+        type: 'string'
+      }, {
+        value: 'post_modified',
+        label: 'Modified Date',
+        type: 'date'
+      }, {
+        value: '_wp_page_template',
+        label: 'Template',
+        type: 'string'
+      }, {
+        value: 'menu_order',
+        label: 'Menu Order',
+        type: 'number'
+      }, {
+        value: 'post_parent',
+        label: 'Parent ID',
+        type: 'number'
+      }]
+    }, {
+      label: 'Custom Fields (Meta)',
+      options: [{
+        value: 'meta_key',
+        label: 'Meta Key (for any custom field)',
+        type: 'string'
+      }, {
+        value: 'meta_value',
+        label: 'Meta Value',
+        type: 'string'
+      }]
+    }];
+
+    // Media
+    if (contentType === 'media') {
       return [{
-        label: 'Standard',
+        label: 'Basic',
         options: [{
           value: 'post_title',
           label: 'Title',
           type: 'string'
         }, {
           value: 'post_content',
-          label: 'Content',
+          label: 'Description',
           type: 'string'
         }, {
           value: 'post_excerpt',
-          label: 'Excerpt',
+          label: 'Caption',
           type: 'string'
         }, {
-          value: 'post_status',
-          label: 'Status',
+          value: 'alt_text',
+          label: 'Alt Text',
+          type: 'string'
+        }]
+      }, {
+        label: 'File Information',
+        options: [{
+          value: 'guid',
+          label: 'File URL (GUID)',
+          type: 'url'
+        }, {
+          value: 'file_url',
+          label: 'File URL',
+          type: 'url'
+        }, {
+          value: 'file_path',
+          label: 'File Path (Relative)',
           type: 'string'
         }, {
+          value: 'file_name',
+          label: 'File Name',
+          type: 'string'
+        }, {
+          value: 'file_extension',
+          label: 'File Extension',
+          type: 'string'
+        }, {
+          value: 'post_mime_type',
+          label: 'MIME Type',
+          type: 'string'
+        }, {
+          value: 'file_size',
+          label: 'File Size (bytes)',
+          type: 'number'
+        }]
+      }, {
+        label: 'Image Dimensions',
+        options: [{
+          value: 'width',
+          label: 'Width (px)',
+          type: 'number'
+        }, {
+          value: 'height',
+          label: 'Height (px)',
+          type: 'number'
+        }]
+      }, {
+        label: 'Dates',
+        options: [{
           value: 'post_date',
-          label: 'Date',
+          label: 'Upload Date',
           type: 'date'
         }, {
-          value: 'post_name',
-          label: 'Slug',
-          type: 'string'
+          value: 'post_modified',
+          label: 'Modified Date',
+          type: 'date'
         }]
       }, {
         label: 'Author',
@@ -8890,29 +9063,42 @@ var ImportModule = {
           label: 'Author ID',
           type: 'number'
         }, {
+          value: 'author_name',
+          label: 'Author Name',
+          type: 'string'
+        }, {
           value: 'author_email',
           label: 'Author Email',
+          type: 'email'
+        }]
+      }, {
+        label: 'Attachment',
+        options: [{
+          value: 'post_parent',
+          label: 'Attached To (Post ID)',
+          type: 'number'
+        }, {
+          value: 'attached_post_title',
+          label: 'Attached Post Title',
           type: 'string'
         }]
       }, {
-        label: 'Taxonomy',
+        label: 'Custom Fields (Meta)',
         options: [{
-          value: 'categories',
-          label: 'Categories',
-          type: 'array'
+          value: 'meta_key',
+          label: 'Meta Key (for any custom field)',
+          type: 'string'
         }, {
-          value: 'tags',
-          label: 'Tags',
-          type: 'array'
-        }]
-      }, {
-        label: 'Media',
-        options: [{
-          value: 'featured_image',
-          label: 'Featured Image',
+          value: 'meta_value',
+          label: 'Meta Value',
           type: 'string'
         }]
       }];
+    }
+
+    // Pages (uses base fields, no taxonomy section)
+    if (contentType === 'page') {
+      return baseFields;
     }
 
     // Users
@@ -8958,6 +9144,10 @@ var ImportModule = {
           value: 'user_url',
           label: 'Website',
           type: 'string'
+        }, {
+          value: 'avatar_url',
+          label: 'Avatar URL',
+          type: 'string'
         }]
       }, {
         label: 'Role & Permissions',
@@ -8965,40 +9155,50 @@ var ImportModule = {
           value: 'role',
           label: 'Role',
           type: 'string'
-        }]
-      }];
-    }
-
-    // Media
-    if (contentType === 'media') {
-      return [{
-        label: 'Basic',
-        options: [{
-          value: 'post_title',
-          label: 'Title',
-          type: 'string'
         }, {
-          value: 'post_content',
-          label: 'Description',
-          type: 'string'
-        }, {
-          value: 'post_excerpt',
-          label: 'Caption',
-          type: 'string'
-        }, {
-          value: 'alt_text',
-          label: 'Alt Text',
-          type: 'string'
+          value: 'capabilities',
+          label: 'Capabilities (Array)',
+          type: 'array'
         }]
       }, {
-        label: 'File',
+        label: 'Preferences',
         options: [{
-          value: 'file_url',
-          label: 'File URL',
+          value: 'locale',
+          label: 'Language',
           type: 'string'
         }, {
-          value: 'file_path',
-          label: 'File Path',
+          value: 'admin_color',
+          label: 'Admin Color Scheme',
+          type: 'string'
+        }, {
+          value: 'rich_editing',
+          label: 'Visual Editor',
+          type: 'boolean'
+        }]
+      }, {
+        label: 'Stats',
+        options: [{
+          value: 'posts_count',
+          label: 'Posts Count',
+          type: 'number'
+        }, {
+          value: 'user_registered',
+          label: 'Registration Date',
+          type: 'date'
+        }, {
+          value: 'user_status',
+          label: 'User Status',
+          type: 'number'
+        }]
+      }, {
+        label: 'Custom Fields (User Meta)',
+        options: [{
+          value: 'meta_key',
+          label: 'User Meta Key',
+          type: 'string'
+        }, {
+          value: 'meta_value',
+          label: 'User Meta Value',
           type: 'string'
         }]
       }];
@@ -9009,20 +9209,39 @@ var ImportModule = {
       return [{
         label: 'Basic',
         options: [{
+          value: 'ID',
+          label: 'Product ID',
+          type: 'number'
+        }, {
           value: 'post_title',
           label: 'Product Name',
           type: 'string'
         }, {
+          value: 'post_name',
+          label: 'Slug',
+          type: 'string'
+        }, {
+          value: 'post_status',
+          label: 'Status',
+          type: 'string'
+        }, {
+          value: 'sku',
+          label: 'SKU',
+          type: 'string'
+        }, {
+          value: 'post_author',
+          label: 'Author ID',
+          type: 'number'
+        }]
+      }, {
+        label: 'Content',
+        options: [{
           value: 'post_content',
           label: 'Description',
           type: 'string'
         }, {
           value: 'post_excerpt',
           label: 'Short Description',
-          type: 'string'
-        }, {
-          value: 'sku',
-          label: 'SKU',
           type: 'string'
         }]
       }, {
@@ -9035,6 +9254,14 @@ var ImportModule = {
           value: 'sale_price',
           label: 'Sale Price',
           type: 'number'
+        }, {
+          value: 'tax_status',
+          label: 'Tax Status',
+          type: 'string'
+        }, {
+          value: 'tax_class',
+          label: 'Tax Class',
+          type: 'string'
         }]
       }, {
         label: 'Inventory',
@@ -9046,27 +9273,132 @@ var ImportModule = {
           value: 'stock_status',
           label: 'Stock Status',
           type: 'string'
+        }, {
+          value: 'manage_stock',
+          label: 'Manage Stock',
+          type: 'boolean'
+        }, {
+          value: 'backorders',
+          label: 'Backorders',
+          type: 'string'
+        }]
+      }, {
+        label: 'Product Type',
+        options: [{
+          value: 'product_type',
+          label: 'Product Type',
+          type: 'string'
+        }, {
+          value: 'downloadable',
+          label: 'Downloadable',
+          type: 'boolean'
+        }, {
+          value: 'virtual',
+          label: 'Virtual',
+          type: 'boolean'
+        }]
+      }, {
+        label: 'Shipping',
+        options: [{
+          value: 'weight',
+          label: 'Weight',
+          type: 'number'
+        }, {
+          value: 'length',
+          label: 'Length',
+          type: 'number'
+        }, {
+          value: 'width',
+          label: 'Width',
+          type: 'number'
+        }, {
+          value: 'height',
+          label: 'Height',
+          type: 'number'
+        }, {
+          value: 'shipping_class',
+          label: 'Shipping Class',
+          type: 'string'
+        }]
+      }, {
+        label: 'Media',
+        options: [{
+          value: 'featured_image',
+          label: 'Featured Image',
+          type: 'string'
+        }, {
+          value: 'product_gallery',
+          label: 'Gallery Images',
+          type: 'array'
+        }]
+      }, {
+        label: 'Taxonomy',
+        options: [{
+          value: 'product_cat',
+          label: 'Categories',
+          type: 'string'
+        }, {
+          value: 'product_tag',
+          label: 'Tags',
+          type: 'string'
+        }]
+      }, {
+        label: 'Reviews',
+        options: [{
+          value: 'average_rating',
+          label: 'Average Rating',
+          type: 'number'
+        }, {
+          value: 'review_count',
+          label: 'Review Count',
+          type: 'number'
+        }, {
+          value: 'comment_status',
+          label: 'Reviews Enabled',
+          type: 'string'
+        }]
+      }, {
+        label: 'Visibility',
+        options: [{
+          value: 'featured',
+          label: 'Featured',
+          type: 'boolean'
+        }, {
+          value: 'visibility',
+          label: 'Catalog Visibility',
+          type: 'string'
+        }, {
+          value: 'total_sales',
+          label: 'Total Sales',
+          type: 'number'
+        }]
+      }, {
+        label: 'Dates',
+        options: [{
+          value: 'post_date',
+          label: 'Created Date',
+          type: 'date'
+        }, {
+          value: 'post_modified',
+          label: 'Modified Date',
+          type: 'date'
+        }]
+      }, {
+        label: 'Custom Fields (Meta)',
+        options: [{
+          value: 'meta_key',
+          label: 'Meta Key (for any custom field)',
+          type: 'string'
+        }, {
+          value: 'meta_value',
+          label: 'Meta Value',
+          type: 'string'
         }]
       }];
     }
 
     // Default - return post fields
-    return [{
-      label: 'Standard',
-      options: [{
-        value: 'post_title',
-        label: 'Title',
-        type: 'string'
-      }, {
-        value: 'post_content',
-        label: 'Content',
-        type: 'string'
-      }, {
-        value: 'post_status',
-        label: 'Status',
-        type: 'string'
-      }]
-    }];
+    return baseFields;
   },
   /**
    * Initialize drag & drop functionality
@@ -9264,6 +9596,16 @@ var ImportModule = {
     var mappedCount = usedSourceIndexes.size;
     jQuery('.aie-mapped-count').text(mappedCount);
     jQuery('.aie-total-fields').text(totalFields);
+
+    // Enable/disable Next button based on mapping count (only on Step 4)
+    if (this.currentStep === 4) {
+      var $nextButton = jQuery('.aie-next-step');
+      if (mappedCount === 0) {
+        $nextButton.prop('disabled', true);
+      } else {
+        $nextButton.prop('disabled', false);
+      }
+    }
   },
   /**
    * Show function selector modal
@@ -9952,6 +10294,100 @@ var ImportModule = {
     jQuery('.aie-upload-placeholder').show();
     jQuery('.aie-import-results').hide();
     this.showStep(1);
+  },
+  /**
+   * Load ACF fields dynamically from server
+   */
+  loadACFFields: function loadACFFields(contentType) {
+    var _this14 = this;
+    if (typeof aieData === 'undefined') {
+      return;
+    }
+    jQuery.ajax({
+      url: aieData.ajaxUrl,
+      method: 'POST',
+      data: {
+        action: 'aie_get_acf_fields',
+        nonce: aieData.nonce,
+        post_type: contentType
+      },
+      success: function success(response) {
+        if (response.success && response.data.fields && response.data.fields.length > 0) {
+          _this14.renderACFFields(response.data.fields);
+        }
+      },
+      error: function error(xhr, status, _error) {
+        console.log('ACF fields load error:', _error);
+      }
+    });
+  },
+  /**
+   * Render ACF fields as target fields
+   */
+  renderACFFields: function renderACFFields(fields) {
+    var $container = jQuery('#aie-target-fields');
+
+    // Create ACF group
+    var html = "<div class=\"aie-field-group aie-acf-fields-group\">";
+    html += "<div class=\"aie-field-group-label\">\uD83D\uDD27 ACF Fields</div>";
+    fields.forEach(function (field) {
+      html += "\n\t\t\t\t<div class=\"aie-target-field\" data-target-field=\"acf_".concat(field.name, "\" data-field-type=\"").concat(field.type || 'string', "\">\n\t\t\t\t\t<div class=\"aie-field-icon\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-settings\"></span>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-field-info\">\n\t\t\t\t\t\t<div class=\"aie-field-label\">").concat(field.label, "</div>\n\t\t\t\t\t\t<span class=\"aie-field-type-badge\">acf:").concat(field.type, "</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t");
+    });
+    html += "</div>";
+
+    // Append to container
+    $container.append(html);
+  },
+  /**
+   * Load Yoast SEO fields dynamically from server
+   */
+  loadYoastFields: function loadYoastFields(contentType) {
+    var _this15 = this;
+    if (typeof aieData === 'undefined') {
+      return;
+    }
+
+    // Don't load Yoast for these content types
+    var excludedTypes = ['media', 'user', 'menu', 'block_theme_settings', 'taxonomy', 'database_table', 'woo_attribute', 'woo_coupon', 'woo_order'];
+    if (excludedTypes.includes(contentType)) {
+      return;
+    }
+    jQuery.ajax({
+      url: aieData.ajaxUrl,
+      method: 'POST',
+      data: {
+        action: 'aie_get_yoast_fields',
+        nonce: aieData.nonce,
+        post_type: contentType
+      },
+      success: function success(response) {
+        if (response.success && response.data.fields && response.data.fields.length > 0) {
+          _this15.renderYoastFields(response.data.fields);
+        }
+      },
+      error: function error(xhr, status, _error2) {
+        console.log('Yoast fields load error:', _error2);
+      }
+    });
+  },
+  /**
+   * Render Yoast SEO fields as target fields
+   */
+  renderYoastFields: function renderYoastFields(fields) {
+    var $container = jQuery('#aie-target-fields');
+
+    // Create Yoast group
+    var html = "<div class=\"aie-field-group aie-yoast-fields-group\">";
+    html += "<div class=\"aie-field-group-label\">\uD83D\uDCCA Yoast SEO</div>";
+    fields.forEach(function (field) {
+      // Clean up field name (remove _ prefix)
+      var fieldName = field.name.replace(/^_/, '');
+      html += "\n\t\t\t\t<div class=\"aie-target-field\" data-target-field=\"".concat(fieldName, "\" data-field-type=\"string\">\n\t\t\t\t\t<div class=\"aie-field-icon\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-chart-line\"></span>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-field-info\">\n\t\t\t\t\t\t<div class=\"aie-field-label\">").concat(field.label, "</div>\n\t\t\t\t\t\t<span class=\"aie-field-type-badge\">yoast</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t");
+    });
+    html += "</div>";
+
+    // Append to container
+    $container.append(html);
   }
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ImportModule);

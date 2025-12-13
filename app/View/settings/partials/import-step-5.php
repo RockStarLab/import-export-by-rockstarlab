@@ -17,82 +17,80 @@ defined( 'ABSPATH' ) || exit;
 
 	<div class="aie-step-content">
 		<table class="form-table">
+			<!-- Unique Field Selector -->
 			<tr>
 				<th scope="row">
-					<label><?php esc_html_e( 'Duplicate Handling', 'wp-aie' ); ?></label>
+					<label for="aie-unique-field"><?php esc_html_e( 'Check for Existing Items by Field', 'wp-aie' ); ?></label>
+				</th>
+				<td>
+					<select id="aie-unique-field" name="unique_field" class="regular-text">
+						<option value=""><?php esc_html_e( '-- Select Field --', 'wp-aie' ); ?></option>
+					</select>
+					<p class="description">
+						<?php esc_html_e( 'Select which field to use for checking if an item already exists (e.g., post_title, sku, user_email)', 'wp-aie' ); ?>
+					</p>
+				</td>
+			</tr>
+
+			<!-- Action if Match Found -->
+			<tr>
+				<th scope="row">
+					<label><?php esc_html_e( 'If Match Found', 'wp-aie' ); ?></label>
 				</th>
 				<td>
 					<fieldset>
 						<label>
-							<input type="radio" name="duplicate_handling" value="skip" checked>
-							<?php esc_html_e( 'Skip - Don\'t import duplicates', 'wp-aie' ); ?>
+							<input type="radio" name="if_exists" value="update" checked>
+							<strong><?php esc_html_e( 'Update', 'wp-aie' ); ?></strong> - 
+							<?php esc_html_e( 'Update existing item with new data', 'wp-aie' ); ?>
 						</label><br>
 						<label>
-							<input type="radio" name="duplicate_handling" value="update">
-							<?php esc_html_e( 'Update - Overwrite existing items', 'wp-aie' ); ?>
+							<input type="radio" name="if_exists" value="skip">
+							<strong><?php esc_html_e( 'Skip', 'wp-aie' ); ?></strong> - 
+							<?php esc_html_e( 'Skip import for this item', 'wp-aie' ); ?>
 						</label><br>
 						<label>
-							<input type="radio" name="duplicate_handling" value="create">
-							<?php esc_html_e( 'Create - Always create new items', 'wp-aie' ); ?>
+							<input type="radio" name="if_exists" value="ignore">
+							<strong><?php esc_html_e( 'Ignore', 'wp-aie' ); ?></strong> - 
+							<?php esc_html_e( 'Create new item anyway (ignore existing)', 'wp-aie' ); ?>
+						</label><br>
+						<label>
+							<input type="radio" name="if_exists" value="create">
+							<strong><?php esc_html_e( 'Create', 'wp-aie' ); ?></strong> - 
+							<?php esc_html_e( 'Always create new item', 'wp-aie' ); ?>
 						</label>
 					</fieldset>
+					<p class="description">
+						<?php esc_html_e( 'What to do when an item with matching field value is found', 'wp-aie' ); ?>
+					</p>
 				</td>
 			</tr>
 
-			<tr class="aie-post-options">
+			<!-- Action if No Match Found -->
+			<tr>
 				<th scope="row">
-					<label><?php esc_html_e( 'Post Status', 'wp-aie' ); ?></label>
+					<label><?php esc_html_e( 'If No Match Found', 'wp-aie' ); ?></label>
 				</th>
 				<td>
-					<select name="post_status" class="regular-text">
-						<option value="publish"><?php esc_html_e( 'Published', 'wp-aie' ); ?></option>
-						<option value="draft"><?php esc_html_e( 'Draft', 'wp-aie' ); ?></option>
-						<option value="pending"><?php esc_html_e( 'Pending Review', 'wp-aie' ); ?></option>
-						<option value="private"><?php esc_html_e( 'Private', 'wp-aie' ); ?></option>
-					</select>
+					<fieldset>
+						<label>
+							<input type="radio" name="if_not_exists" value="create" checked>
+							<strong><?php esc_html_e( 'Create', 'wp-aie' ); ?></strong> - 
+							<?php esc_html_e( 'Create new item', 'wp-aie' ); ?>
+						</label><br>
+						<label>
+							<input type="radio" name="if_not_exists" value="skip">
+							<strong><?php esc_html_e( 'Skip', 'wp-aie' ); ?></strong> - 
+							<?php esc_html_e( 'Skip import for this item', 'wp-aie' ); ?>
+						</label>
+					</fieldset>
+					<p class="description">
+						<?php esc_html_e( 'What to do when no matching item is found', 'wp-aie' ); ?>
+					</p>
 				</td>
 			</tr>
 
-			<tr class="aie-post-options">
-				<th scope="row">
-					<label><?php esc_html_e( 'Post Type', 'wp-aie' ); ?></label>
-				</th>
-				<td>
-					<select name="post_type" class="regular-text">
-						<option value="post"><?php esc_html_e( 'Post', 'wp-aie' ); ?></option>
-						<option value="page"><?php esc_html_e( 'Page', 'wp-aie' ); ?></option>
-						<?php
-						$post_types = get_post_types(
-							[
-								'public'   => true,
-								'_builtin' => false,
-							],
-							'objects'
-						);
-						foreach ( $post_types as $post_type ) {
-							printf(
-								'<option value="%s">%s</option>',
-								esc_attr( $post_type->name ),
-								esc_html( $post_type->label )
-							);
-						}
-						?>
-					</select>
-				</td>
-			</tr>
-
-			<tr class="aie-media-options" style="display:none;">
-				<th scope="row">
-					<label><?php esc_html_e( 'Download Remote Images', 'wp-aie' ); ?></label>
-				</th>
-				<td>
-					<label>
-						<input type="checkbox" name="download_images" checked>
-						<?php esc_html_e( 'Download images from URLs to media library', 'wp-aie' ); ?>
-					</label>
-				</td>
-			</tr>
-
+			<!-- Batch Size -->
 			<tr>
 				<th scope="row">
 					<label><?php esc_html_e( 'Batch Size', 'wp-aie' ); ?></label>
