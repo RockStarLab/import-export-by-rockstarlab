@@ -19,6 +19,7 @@ export default class FileUploader {
 		this.uploadedBytes = 0;
 		this.startTime = null;
 		this.aborted = false;
+		this.additionalData = options.additionalData || {}; // Additional data to send with finalize
 		
 		// Callbacks
 		this.onProgress = options.onProgress || (() => {});
@@ -135,6 +136,13 @@ export default class FileUploader {
 		formData.append('file_name', this.file.name);
 		formData.append('file_size', this.file.size);
 		formData.append('total_chunks', this.totalChunks);
+		
+		// Append additional data (CSV options, etc.)
+		for (const key in this.additionalData) {
+			if (this.additionalData.hasOwnProperty(key)) {
+				formData.append(key, this.additionalData[key]);
+			}
+		}
 
 		const response = await fetch(aieData.ajaxUrl, {
 			method: 'POST',

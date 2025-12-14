@@ -476,6 +476,8 @@
 		display: flex;
 		align-items: center;
 		gap: 10px;
+		width: 100%;
+		box-sizing: border-box;
 
 		&:hover {
 			border-color: #2271b1;
@@ -518,6 +520,8 @@
 		.aie-field-info {
 			flex: 1;
 			min-width: 0;
+			max-width: 100%;
+			overflow: hidden;
 
 			.aie-field-name {
 				font-weight: 600;
@@ -527,6 +531,7 @@
 				overflow: hidden;
 				text-overflow: ellipsis;
 				margin: 0;
+				max-width: 200px;
 			}
 
 			.aie-field-type {
@@ -814,4 +819,79 @@
 		}
 	}
 
+	// Custom Field Buttons
+	.aie-custom-field-template {
+		border: 2px dashed #c3c4c7 !important;
+		background: #f6f7f7 !important;
+
+		.aie-field-icon {
+			background: #2271b1 !important;
+
+			.dashicons {
+				color: #fff !important;
+			}
+		}
+
+		.aie-add-custom-field {
+			margin-top: 5px;
+			font-size: 12px;
+			padding: 2px 8px;
+			height: auto;
+			line-height: 1.4;
+		}
+	}
+
+	.aie-remove-custom-field {
+		background: none;
+		border: none;
+		padding: 0;
+		margin-left: 8px;
+		cursor: pointer;
+		font-size: 18px;
+		line-height: 1;
+		color: #d63638;
+		font-weight: bold;
+
+		&:hover {
+			color: #b32d2e;
+		}
+	}
+
 }
+
+// Custom Field Modal (uses same structure as function modal)
+.aie-custom-field-modal-content {
+	max-width: 550px;
+	
+	.aie-modal-body {
+		label {
+			display: block;
+			margin-bottom: 15px;
+
+			strong {
+				display: block;
+				margin-bottom: 8px;
+				font-size: 14px;
+				font-weight: 600;
+			}
+
+			.regular-text {
+				width: 100%;
+				box-sizing: border-box;
+			}
+
+			.description {
+				font-size: 13px;
+				color: #646970;
+				font-style: italic;
+				line-height: 1.5;
+			}
+
+			select.regular-text {
+				height: auto;
+				padding: 6px 10px;
+			}
+		}
+	}
+}
+
