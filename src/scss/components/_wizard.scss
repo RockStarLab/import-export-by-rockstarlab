@@ -347,6 +347,54 @@
 
 // Field Mapping Drag & Drop
 .wp-advanced-import-export {
+	.aie-post-type-selector {
+		padding: 15px;
+		background: #f0f6fc;
+		border: 1px solid #c3c4c7;
+		border-radius: 4px;
+		margin-bottom: 20px;
+
+		label {
+			display: block;
+			font-weight: 600;
+			margin-bottom: 8px;
+			color: #1d2327;
+		}
+
+		select {
+			width: 100%;
+			max-width: 400px;
+		}
+	}
+
+	.aie-database-table-selector {
+		padding: 15px;
+		background: #f0f6fc;
+		border: 1px solid #c3c4c7;
+		border-radius: 4px;
+		margin-bottom: 20px;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+
+		label {
+			font-weight: 600;
+			color: #1d2327;
+			margin: 0;
+			min-width: 150px;
+		}
+
+		select {
+			flex: 1;
+			max-width: 400px;
+		}
+
+		.spinner {
+			float: none;
+			margin: 0;
+		}
+	}
+
 	.aie-mapping-controls {
 		display: flex;
 		gap: 10px;

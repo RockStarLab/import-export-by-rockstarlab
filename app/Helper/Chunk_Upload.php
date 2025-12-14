@@ -104,6 +104,7 @@ class Chunk_Upload {
 		add_action( 'wp_ajax_aie_finalize_upload', array( $this, 'handle_finalize_upload' ) );
 		add_action( 'wp_ajax_aie_abort_upload', array( $this, 'handle_abort_upload' ) );
 		add_action( 'wp_ajax_aie_reload_preview', array( $this, 'handle_reload_preview' ) );
+		add_action( 'wp_ajax_aie_get_custom_post_types', array( $this, 'handle_get_custom_post_types' ) );
 
 		// Schedule cleanup
 		if ( ! wp_next_scheduled( 'aie_cleanup_old_chunks' ) ) {
@@ -647,5 +648,31 @@ class Chunk_Upload {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Get custom post types
+	 */
+	public function handle_get_custom_post_types() {
+		// Verify nonce
+		check_ajax_referer( 'aie_nonce', 'nonce' );
+
+		// Get all public custom post types
+		$args = array(
+			'public'   => true,
+			'_builtin' => false,
+		);
+
+		$post_types = get_post_types( $args, 'objects' );
+		$result     = array();
+
+		foreach ( $post_types as $post_type ) {
+			$result[] = array(
+				'name'  => $post_type->name,
+				'label' => $post_type->label,
+			);
+		}
+
+		wp_send_json_success( $result );
 	}
 }

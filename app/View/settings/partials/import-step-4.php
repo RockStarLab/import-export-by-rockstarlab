@@ -16,6 +16,56 @@ defined( 'ABSPATH' ) || exit;
 	</div>
 
 	<div class="aie-step-content">
+		<!-- Post Type Selector for Custom Post Types -->
+		<div class="aie-post-type-selector" style="display: none;">
+			<label for="aie-custom-post-type">
+				<?php esc_html_e( 'Choose post type:', 'wp-aie' ); ?>
+			</label>
+			<select id="aie-custom-post-type" class="regular-text">
+				<option value=""><?php esc_html_e( '-- Select Post Type --', 'wp-aie' ); ?></option>
+				<!-- Will be populated by JavaScript -->
+			</select>
+		</div>
+
+		<!-- Database Table Selection (shown only for database_table type) -->
+		<div class="aie-table-selection-section" style="display:none;">
+			<div class="aie-section-header">
+				<h3>
+					<span class="dashicons dashicons-database-view"></span>
+					<?php esc_html_e( 'Select Database Table', 'wp-aie' ); ?>
+				</h3>
+				<p class="description"><?php esc_html_e( 'Choose which database table you want to import data into', 'wp-aie' ); ?></p>
+			</div>
+
+			<div class="aie-table-selector">
+				<label for="aie-import-table-name"><?php esc_html_e( 'Database Table:', 'wp-aie' ); ?></label>
+				<select id="aie-import-table-name" name="table_name" class="aie-table-dropdown">
+					<option value=""><?php esc_html_e( 'Loading tables...', 'wp-aie' ); ?></option>
+				</select>
+				<span class="spinner" style="float:none;margin:0 10px;"></span>
+			</div>
+
+			<div class="aie-table-info" style="display:none;">
+				<div class="aie-info-card">
+					<h4><?php esc_html_e( 'Table Information', 'wp-aie' ); ?></h4>
+					<div class="aie-table-stats">
+						<div class="aie-stat">
+							<span class="label"><?php esc_html_e( 'Total Rows:', 'wp-aie' ); ?></span>
+							<span class="value aie-table-row-count">-</span>
+						</div>
+						<div class="aie-stat">
+							<span class="label"><?php esc_html_e( 'Total Columns:', 'wp-aie' ); ?></span>
+							<span class="value aie-table-column-count">-</span>
+						</div>
+					</div>
+					<div class="aie-table-columns">
+						<h5><?php esc_html_e( 'Available Columns:', 'wp-aie' ); ?></h5>
+						<div class="aie-columns-list"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<!-- Mapping Controls -->
 		<div class="aie-mapping-controls">
 			<button type="button" class="button aie-auto-map">
