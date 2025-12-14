@@ -16,8 +16,67 @@ defined( 'ABSPATH' ) || exit;
 class Chunk_Upload {
 
 	/**
-	 * Temporary directory for chunks
-	 *
+	 * Temporary d	public function handle_abort_upload() {
+		check_ajax_referer( 'aie_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Insufficient permissions', 'wp-aie' ) );
+		}
+
+		$upload_id = sanitize_text_field( $_POST['upload_id'] ?? '' );
+
+		if ( empty( $upload_id ) ) {
+			wp_send_json_error( __( 'Invalid parameters', 'wp-aie' ) );
+		}
+
+		$this->cleanup_upload( $upload_id );
+
+		wp_send_json_success( array( 'message' => __( 'Upload aborted', 'wp-aie' ) ) );
+	}
+
+	/**
+	 * Handle reload preview AJAX request
+	 */
+	public function handle_reload_preview() {
+		check_ajax_referer( 'aie_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Insufficient permissions', 'wp-aie' ) );
+		}
+
+		$file_path  = sanitize_text_field( $_POST['file_path'] ?? '' );
+		$delimiter  = isset( $_POST['delimiter'] ) ? $_POST['delimiter'] : ',';
+		$has_header = isset( $_POST['has_header'] ) ? filter_var( $_POST['has_header'], FILTER_VALIDATE_BOOLEAN ) : true;
+
+		if ( empty( $file_path ) || ! file_exists( $file_path ) ) {
+			wp_send_json_error( __( 'Invalid file path', 'wp-aie' ) );
+		}
+
+		// Prepare CSV options
+		$csv_options = array(
+			'delimiter'  => $delimiter,
+			'has_header' => $has_header,
+		);
+
+		// Regenerate preview with new options
+		$preview_data = $this->generate_preview( $file_path, 'csv', $csv_options );
+
+		if ( isset( $preview_data['error'] ) ) {
+			wp_send_json_error( $preview_data['error'] );
+		}
+
+		wp_send_json_success(
+			array(
+				'preview'    => $preview_data['preview'],
+				'columns'    => $preview_data['columns'],
+				'total_rows' => $preview_data['total_rows'],
+				'message'    => __( 'Preview reloaded successfully', 'wp-aie' ),
+			)
+		);
+	}
+
+	/**
+	 * Cleanup upload chunks	 *
 	 * @var string
 	 */
 	private $chunks_dir;
@@ -44,6 +103,7 @@ class Chunk_Upload {
 		add_action( 'wp_ajax_aie_upload_chunk', array( $this, 'handle_chunk_upload' ) );
 		add_action( 'wp_ajax_aie_finalize_upload', array( $this, 'handle_finalize_upload' ) );
 		add_action( 'wp_ajax_aie_abort_upload', array( $this, 'handle_abort_upload' ) );
+		add_action( 'wp_ajax_aie_reload_preview', array( $this, 'handle_reload_preview' ) );
 
 		// Schedule cleanup
 		if ( ! wp_next_scheduled( 'aie_cleanup_old_chunks' ) ) {
@@ -148,6 +208,12 @@ class Chunk_Upload {
 		$upload_id    = sanitize_text_field( $_POST['upload_id'] ?? '' );
 		$file_name    = sanitize_file_name( $_POST['file_name'] ?? '' );
 		$total_chunks = absint( $_POST['total_chunks'] ?? 0 );
+		
+		// Get CSV options if provided
+		$csv_options = array(
+			'delimiter'  => isset( $_POST['delimiter'] ) ? $_POST['delimiter'] : ',',
+			'has_header' => isset( $_POST['has_header'] ) ? filter_var( $_POST['has_header'], FILTER_VALIDATE_BOOLEAN ) : true,
+		);
 
 		if ( empty( $upload_id ) || empty( $file_name ) ) {
 			wp_send_json_error( __( 'Invalid parameters', 'wp-aie' ) );
@@ -208,8 +274,8 @@ class Chunk_Upload {
 		$file_url       = str_replace( wp_upload_dir()['basedir'], wp_upload_dir()['baseurl'], $final_file );
 		$file_extension = strtolower( pathinfo( $file_name, PATHINFO_EXTENSION ) );
 
-		// Generate preview
-		$preview_data = $this->generate_preview( $final_file, $file_extension );
+		// Generate preview with CSV options
+		$preview_data = $this->generate_preview( $final_file, $file_extension, $csv_options );
 
 		// Check if preview generation returned an error
 		if ( isset( $preview_data['error'] ) ) {
@@ -292,7 +358,7 @@ class Chunk_Upload {
 	 * @param string $format File format (csv, json).
 	 * @return array Preview data with headers and rows.
 	 */
-	private function generate_preview( $file_path, $format ) {
+	private function generate_preview( $file_path, $format, $csv_options = array() ) {
 		$preview_rows = 5; // Number of rows to preview
 		$preview      = array(
 			'headers' => array(),
@@ -302,7 +368,13 @@ class Chunk_Upload {
 		$columns      = array();
 
 		if ( 'csv' === $format ) {
-			// Parse CSV
+			// Parse CSV with specified delimiter
+			$delimiter  = isset( $csv_options['delimiter'] ) ? $csv_options['delimiter'] : ',';
+			$has_header = isset( $csv_options['has_header'] ) ? $csv_options['has_header'] : true;
+			
+			// Handle escape sequences in delimiter
+			$delimiter = str_replace( array( '\t', '\n', '\r' ), array( "\t", "\n", "\r" ), $delimiter );
+			
 			$handle = fopen( $file_path, 'r' );
 			if ( ! $handle ) {
 				return array(
@@ -312,23 +384,40 @@ class Chunk_Upload {
 				);
 			}
 
-			// Read header row
-			$headers = fgetcsv( $handle );
-			if ( $headers ) {
-				$preview['headers'] = $headers;
-				$columns            = $headers;
+			// Read first row
+			$first_row = fgetcsv( $handle, 0, $delimiter );
+			
+			if ( $first_row ) {
+				if ( $has_header ) {
+					// First row is header
+					$preview['headers'] = $first_row;
+					$columns            = $first_row;
+				} else {
+					// No header - generate column names
+					$col_count = count( $first_row );
+					for ( $i = 0; $i < $col_count; $i++ ) {
+						$columns[]            = 'Column ' . ( $i + 1 );
+						$preview['headers'][] = 'Column ' . ( $i + 1 );
+					}
+					// First row is data
+					$preview['data'][] = $first_row;
+				}
 			}
 
 			// Read preview rows
-			$row_count = 0;
-			while ( ( $row = fgetcsv( $handle ) ) !== false && $row_count < $preview_rows ) {
+			$row_count = $has_header ? 0 : 1; // Already have first row if no header
+			while ( ( $row = fgetcsv( $handle, 0, $delimiter ) ) !== false && $row_count < $preview_rows ) {
 				$preview['data'][] = $row;
 				++$row_count;
 			}
 
 			// Count total rows
-			$total_rows = $row_count + 1; // +1 for header
-			while ( fgetcsv( $handle ) !== false ) {
+			$total_rows = $row_count;
+			if ( $has_header ) {
+				++$total_rows; // +1 for header
+			}
+			
+			while ( fgetcsv( $handle, 0, $delimiter ) !== false ) {
 				++$total_rows;
 			}
 

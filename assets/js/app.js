@@ -1,6 +1,16 @@
 /******/ (() => { // webpackBootstrap
-/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
+
+/***/ "./node_modules/@babel/runtime/regenerator/index.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/@babel/runtime/regenerator/index.js ***!
+  \**********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/regenerator-runtime/runtime.js");
+
+
+/***/ }),
 
 /***/ "./src/js/app.js":
 /*!***********************!*\
@@ -8,6 +18,7 @@
   \***********************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modules_functions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./modules/functions */ "./src/js/modules/functions.js");
 /* harmony import */ var _modules_import__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modules/import */ "./src/js/modules/import.js");
@@ -54,19 +65,19 @@ jQuery(document).ready(function ($) {
   \****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ FileUploader)
 /* harmony export */ });
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
-function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
-function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
-function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
-function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
-function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 /**
  * FileUploader - Handles chunked file uploads to bypass PHP upload limits
  * 
@@ -89,6 +100,7 @@ var FileUploader = /*#__PURE__*/function () {
     this.uploadedBytes = 0;
     this.startTime = null;
     this.aborted = false;
+    this.additionalData = options.additionalData || {}; // Additional data to send with finalize
 
     // Callbacks
     this.onProgress = options.onProgress || function () {};
@@ -103,56 +115,58 @@ var FileUploader = /*#__PURE__*/function () {
    * @param {File} file File object to upload
    * @returns {Promise}
    */
-  return _createClass(FileUploader, [{
+  _createClass(FileUploader, [{
     key: "upload",
     value: (function () {
-      var _upload = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(file) {
+      var _upload = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee(file) {
         var chunk, result;
-        return _regeneratorRuntime().wrap(function _callee$(_context) {
-          while (1) switch (_context.prev = _context.next) {
-            case 0:
-              this.file = file;
-              this.uploadId = this.generateUploadId();
-              this.currentChunk = 0;
-              this.totalChunks = Math.ceil(file.size / this.chunkSize);
-              this.uploadedBytes = 0;
-              this.startTime = Date.now();
-              this.aborted = false;
-              _context.prev = 7;
-              chunk = 0;
-            case 9:
-              if (!(chunk < this.totalChunks)) {
-                _context.next = 18;
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                this.file = file;
+                this.uploadId = this.generateUploadId();
+                this.currentChunk = 0;
+                this.totalChunks = Math.ceil(file.size / this.chunkSize);
+                this.uploadedBytes = 0;
+                this.startTime = Date.now();
+                this.aborted = false;
+                _context.prev = 7;
+                chunk = 0;
+              case 9:
+                if (!(chunk < this.totalChunks)) {
+                  _context.next = 18;
+                  break;
+                }
+                if (!this.aborted) {
+                  _context.next = 12;
+                  break;
+                }
+                throw new Error('Upload aborted');
+              case 12:
+                this.currentChunk = chunk;
+                _context.next = 15;
+                return this.uploadChunk(chunk);
+              case 15:
+                chunk++;
+                _context.next = 9;
                 break;
-              }
-              if (!this.aborted) {
-                _context.next = 12;
-                break;
-              }
-              throw new Error('Upload aborted');
-            case 12:
-              this.currentChunk = chunk;
-              _context.next = 15;
-              return this.uploadChunk(chunk);
-            case 15:
-              chunk++;
-              _context.next = 9;
-              break;
-            case 18:
-              _context.next = 20;
-              return this.finalizeUpload();
-            case 20:
-              result = _context.sent;
-              this.onComplete(result);
-              return _context.abrupt("return", result);
-            case 25:
-              _context.prev = 25;
-              _context.t0 = _context["catch"](7);
-              this.onError(_context.t0);
-              throw _context.t0;
-            case 29:
-            case "end":
-              return _context.stop();
+              case 18:
+                _context.next = 20;
+                return this.finalizeUpload();
+              case 20:
+                result = _context.sent;
+                this.onComplete(result);
+                return _context.abrupt("return", result);
+              case 25:
+                _context.prev = 25;
+                _context.t0 = _context["catch"](7);
+                this.onError(_context.t0);
+                throw _context.t0;
+              case 29:
+              case "end":
+                return _context.stop();
+            }
           }
         }, _callee, this, [[7, 25]]);
       }));
@@ -171,66 +185,68 @@ var FileUploader = /*#__PURE__*/function () {
   }, {
     key: "uploadChunk",
     value: (function () {
-      var _uploadChunk = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(chunkIndex) {
+      var _uploadChunk = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee2(chunkIndex) {
         var start, end, chunk, formData, response, data, progress, elapsed, speed;
-        return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-          while (1) switch (_context2.prev = _context2.next) {
-            case 0:
-              start = chunkIndex * this.chunkSize;
-              end = Math.min(start + this.chunkSize, this.file.size);
-              chunk = this.file.slice(start, end);
-              formData = new FormData();
-              formData.append('action', 'aie_upload_chunk');
-              formData.append('nonce', aieData.nonce);
-              formData.append('upload_id', this.uploadId);
-              formData.append('chunk_index', chunkIndex);
-              formData.append('total_chunks', this.totalChunks);
-              formData.append('file_name', this.file.name);
-              formData.append('file_size', this.file.size);
-              formData.append('chunk', chunk);
-              _context2.next = 14;
-              return fetch(aieData.ajaxUrl, {
-                method: 'POST',
-                body: formData,
-                credentials: 'same-origin'
-              });
-            case 14:
-              response = _context2.sent;
-              if (response.ok) {
-                _context2.next = 17;
-                break;
-              }
-              throw new Error("HTTP error! status: ".concat(response.status));
-            case 17:
-              _context2.next = 19;
-              return response.json();
-            case 19:
-              data = _context2.sent;
-              if (data.success) {
-                _context2.next = 22;
-                break;
-              }
-              throw new Error(data.data || 'Failed to upload chunk');
-            case 22:
-              // Update progress
-              this.uploadedBytes = end;
-              progress = this.uploadedBytes / this.file.size * 100;
-              elapsed = (Date.now() - this.startTime) / 1000; // seconds
-              speed = this.uploadedBytes / elapsed; // bytes per second
-              this.onProgress({
-                progress: progress,
-                uploadedBytes: this.uploadedBytes,
-                totalBytes: this.file.size,
-                currentChunk: chunkIndex + 1,
-                totalChunks: this.totalChunks,
-                speed: speed,
-                elapsed: elapsed
-              });
-              this.onChunkComplete(chunkIndex, this.totalChunks);
-              return _context2.abrupt("return", data);
-            case 29:
-            case "end":
-              return _context2.stop();
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                start = chunkIndex * this.chunkSize;
+                end = Math.min(start + this.chunkSize, this.file.size);
+                chunk = this.file.slice(start, end);
+                formData = new FormData();
+                formData.append('action', 'aie_upload_chunk');
+                formData.append('nonce', aieData.nonce);
+                formData.append('upload_id', this.uploadId);
+                formData.append('chunk_index', chunkIndex);
+                formData.append('total_chunks', this.totalChunks);
+                formData.append('file_name', this.file.name);
+                formData.append('file_size', this.file.size);
+                formData.append('chunk', chunk);
+                _context2.next = 14;
+                return fetch(aieData.ajaxUrl, {
+                  method: 'POST',
+                  body: formData,
+                  credentials: 'same-origin'
+                });
+              case 14:
+                response = _context2.sent;
+                if (response.ok) {
+                  _context2.next = 17;
+                  break;
+                }
+                throw new Error("HTTP error! status: ".concat(response.status));
+              case 17:
+                _context2.next = 19;
+                return response.json();
+              case 19:
+                data = _context2.sent;
+                if (data.success) {
+                  _context2.next = 22;
+                  break;
+                }
+                throw new Error(data.data || 'Failed to upload chunk');
+              case 22:
+                // Update progress
+                this.uploadedBytes = end;
+                progress = this.uploadedBytes / this.file.size * 100;
+                elapsed = (Date.now() - this.startTime) / 1000; // seconds
+                speed = this.uploadedBytes / elapsed; // bytes per second
+                this.onProgress({
+                  progress: progress,
+                  uploadedBytes: this.uploadedBytes,
+                  totalBytes: this.file.size,
+                  currentChunk: chunkIndex + 1,
+                  totalChunks: this.totalChunks,
+                  speed: speed,
+                  elapsed: elapsed
+                });
+                this.onChunkComplete(chunkIndex, this.totalChunks);
+                return _context2.abrupt("return", data);
+              case 29:
+              case "end":
+                return _context2.stop();
+            }
           }
         }, _callee2, this);
       }));
@@ -248,46 +264,55 @@ var FileUploader = /*#__PURE__*/function () {
   }, {
     key: "finalizeUpload",
     value: (function () {
-      var _finalizeUpload = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
-        var formData, response, data;
-        return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-          while (1) switch (_context3.prev = _context3.next) {
-            case 0:
-              formData = new FormData();
-              formData.append('action', 'aie_finalize_upload');
-              formData.append('nonce', aieData.nonce);
-              formData.append('upload_id', this.uploadId);
-              formData.append('file_name', this.file.name);
-              formData.append('file_size', this.file.size);
-              formData.append('total_chunks', this.totalChunks);
-              _context3.next = 9;
-              return fetch(aieData.ajaxUrl, {
-                method: 'POST',
-                body: formData,
-                credentials: 'same-origin'
-              });
-            case 9:
-              response = _context3.sent;
-              if (response.ok) {
-                _context3.next = 12;
-                break;
-              }
-              throw new Error("HTTP error! status: ".concat(response.status));
-            case 12:
-              _context3.next = 14;
-              return response.json();
-            case 14:
-              data = _context3.sent;
-              if (data.success) {
-                _context3.next = 17;
-                break;
-              }
-              throw new Error(data.data || 'Failed to finalize upload');
-            case 17:
-              return _context3.abrupt("return", data.data);
-            case 18:
-            case "end":
-              return _context3.stop();
+      var _finalizeUpload = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee3() {
+        var formData, key, response, data;
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                formData = new FormData();
+                formData.append('action', 'aie_finalize_upload');
+                formData.append('nonce', aieData.nonce);
+                formData.append('upload_id', this.uploadId);
+                formData.append('file_name', this.file.name);
+                formData.append('file_size', this.file.size);
+                formData.append('total_chunks', this.totalChunks);
+
+                // Append additional data (CSV options, etc.)
+                for (key in this.additionalData) {
+                  if (this.additionalData.hasOwnProperty(key)) {
+                    formData.append(key, this.additionalData[key]);
+                  }
+                }
+                _context3.next = 10;
+                return fetch(aieData.ajaxUrl, {
+                  method: 'POST',
+                  body: formData,
+                  credentials: 'same-origin'
+                });
+              case 10:
+                response = _context3.sent;
+                if (response.ok) {
+                  _context3.next = 13;
+                  break;
+                }
+                throw new Error("HTTP error! status: ".concat(response.status));
+              case 13:
+                _context3.next = 15;
+                return response.json();
+              case 15:
+                data = _context3.sent;
+                if (data.success) {
+                  _context3.next = 18;
+                  break;
+                }
+                throw new Error(data.data || 'Failed to finalize upload');
+              case 18:
+                return _context3.abrupt("return", data.data);
+              case 19:
+              case "end":
+                return _context3.stop();
+            }
           }
         }, _callee3, this);
       }));
@@ -380,6 +405,7 @@ var FileUploader = /*#__PURE__*/function () {
       return minutes + 'm ' + secs + 's';
     }
   }]);
+  return FileUploader;
 }();
 
 
@@ -391,6 +417,7 @@ var FileUploader = /*#__PURE__*/function () {
   \*******************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
@@ -2124,22 +2151,20 @@ var ContentUpdater = {
   \*****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ ExportStep3)
 /* harmony export */ });
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
-function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
-function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
-function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
-function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 /**
  * Export Step 3: Field Selection with Drag & Drop
  */
@@ -2156,7 +2181,7 @@ var ExportStep3 = /*#__PURE__*/function () {
     console.log('ExportStep3 constructor: selectedFields initialized to:', this.selectedFields);
     this.init();
   }
-  return _createClass(ExportStep3, [{
+  _createClass(ExportStep3, [{
     key: "init",
     value: function init() {
       // Check dependencies
@@ -2381,14 +2406,14 @@ var ExportStep3 = /*#__PURE__*/function () {
         _this2 = this,
         _document$querySelect2;
       // Clear all fields
-      (_document$querySelect = document.querySelector('.aie-clear-all-fields')) === null || _document$querySelect === void 0 || _document$querySelect.addEventListener('click', function () {
+      (_document$querySelect = document.querySelector('.aie-clear-all-fields')) === null || _document$querySelect === void 0 ? void 0 : _document$querySelect.addEventListener('click', function () {
         if (confirm('Are you sure you want to remove all fields?')) {
           _this2.clearAllFields();
         }
       });
 
       // Add custom column
-      (_document$querySelect2 = document.querySelector('.aie-add-custom-column')) === null || _document$querySelect2 === void 0 || _document$querySelect2.addEventListener('click', function () {
+      (_document$querySelect2 = document.querySelector('.aie-add-custom-column')) === null || _document$querySelect2 === void 0 ? void 0 : _document$querySelect2.addEventListener('click', function () {
         _this2.addCustomColumn();
       });
     }
@@ -3264,25 +3289,25 @@ var ExportStep3 = /*#__PURE__*/function () {
       if (!modal) return;
 
       // Close modal
-      (_modal$querySelector = modal.querySelector('.aie-modal-close')) === null || _modal$querySelector === void 0 || _modal$querySelector.addEventListener('click', function () {
+      (_modal$querySelector = modal.querySelector('.aie-modal-close')) === null || _modal$querySelector === void 0 ? void 0 : _modal$querySelector.addEventListener('click', function () {
         _this21.closeFieldFunctionsModal();
       });
-      (_modal$querySelector2 = modal.querySelector('.aie-modal-cancel')) === null || _modal$querySelector2 === void 0 || _modal$querySelector2.addEventListener('click', function () {
+      (_modal$querySelector2 = modal.querySelector('.aie-modal-cancel')) === null || _modal$querySelector2 === void 0 ? void 0 : _modal$querySelector2.addEventListener('click', function () {
         _this21.closeFieldFunctionsModal();
       });
 
       // Save functions
-      (_modal$querySelector3 = modal.querySelector('.aie-save-field-functions')) === null || _modal$querySelector3 === void 0 || _modal$querySelector3.addEventListener('click', function () {
+      (_modal$querySelector3 = modal.querySelector('.aie-save-field-functions')) === null || _modal$querySelector3 === void 0 ? void 0 : _modal$querySelector3.addEventListener('click', function () {
         _this21.saveFieldFunctions();
       });
 
       // Test pipeline
-      (_modal$querySelector4 = modal.querySelector('.aie-test-pipeline')) === null || _modal$querySelector4 === void 0 || _modal$querySelector4.addEventListener('click', function () {
+      (_modal$querySelector4 = modal.querySelector('.aie-test-pipeline')) === null || _modal$querySelector4 === void 0 ? void 0 : _modal$querySelector4.addEventListener('click', function () {
         _this21.testFunctionPipeline();
       });
 
       // Functions search
-      (_modal$querySelector5 = modal.querySelector('#aie-functions-search')) === null || _modal$querySelector5 === void 0 || _modal$querySelector5.addEventListener('input', function (e) {
+      (_modal$querySelector5 = modal.querySelector('#aie-functions-search')) === null || _modal$querySelector5 === void 0 ? void 0 : _modal$querySelector5.addEventListener('input', function (e) {
         _this21.filterFunctions(e.target.value);
       });
 
@@ -3294,7 +3319,7 @@ var ExportStep3 = /*#__PURE__*/function () {
       });
 
       // Create new function button
-      (_modal$querySelector6 = modal.querySelector('.aie-create-new-function')) === null || _modal$querySelector6 === void 0 || _modal$querySelector6.addEventListener('click', function (e) {
+      (_modal$querySelector6 = modal.querySelector('.aie-create-new-function')) === null || _modal$querySelector6 === void 0 ? void 0 : _modal$querySelector6.addEventListener('click', function (e) {
         e.preventDefault();
         _this21.createNewFunction();
       });
@@ -3874,6 +3899,7 @@ var ExportStep3 = /*#__PURE__*/function () {
       }
     }
   }]);
+  return ExportStep3;
 }();
 
 
@@ -3885,19 +3911,20 @@ var ExportStep3 = /*#__PURE__*/function () {
   \**********************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/js/modules/utils.js");
-/* harmony import */ var _export_step_3__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./export-step-3 */ "./src/js/modules/export-step-3.js");
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
-function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
-function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./src/js/modules/utils.js");
+/* harmony import */ var _export_step_3__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./export-step-3 */ "./src/js/modules/export-step-3.js");
+var _ExportModule;
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 /**
  * Export Module
  *
@@ -3906,7 +3933,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
 
 
 
-var ExportModule = _defineProperty(_defineProperty(_defineProperty({
+var ExportModule = (_ExportModule = {
   currentStep: 1,
   totalSteps: 5,
   jobId: null,
@@ -3943,7 +3970,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
     }
 
     // Initialize Step 3 drag and drop
-    this.step3Instance = new _export_step_3__WEBPACK_IMPORTED_MODULE_1__["default"]();
+    this.step3Instance = new _export_step_3__WEBPACK_IMPORTED_MODULE_2__["default"]();
   },
   /**
    * Bind event handlers
@@ -3971,7 +3998,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
     });
 
     // Filters
-    $wizard.on('change', '.aie-export-filters input, .aie-export-filters select', _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+    $wizard.on('change', '.aie-export-filters input, .aie-export-filters select', _utils__WEBPACK_IMPORTED_MODULE_1__["default"].debounce(function () {
       return _this2.refreshCount(false);
     }, 500));
     $wizard.on('click', '.aie-step-2 .aie-refresh-count', function () {
@@ -4037,7 +4064,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
       // Update input type based on condition
       _this2.updateValueInputType($row);
       if (_this2.isFilterRowComplete($row)) {
-        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+        _utils__WEBPACK_IMPORTED_MODULE_1__["default"].debounce(function () {
           return _this2.refreshCount(false);
         }, 500)();
       }
@@ -4045,7 +4072,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
     $wizard.on('input', '.aie-filter-value', function (e) {
       var $row = jQuery(e.target).closest('.aie-filter-row');
       if (_this2.isFilterRowComplete($row)) {
-        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+        _utils__WEBPACK_IMPORTED_MODULE_1__["default"].debounce(function () {
           return _this2.refreshCount(false);
         }, 1000)();
       }
@@ -4053,7 +4080,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
     $wizard.on('change', '.aie-filter-value', function (e) {
       var $row = jQuery(e.target).closest('.aie-filter-row');
       if (_this2.isFilterRowComplete($row)) {
-        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+        _utils__WEBPACK_IMPORTED_MODULE_1__["default"].debounce(function () {
           return _this2.refreshCount(false);
         }, 500)();
       }
@@ -4230,87 +4257,89 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
   refreshCount: function refreshCount() {
     var _arguments = arguments,
       _this3 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee() {
       var showSpinner, $count, $spinner, $refreshBtn, contentType, options, $tableDropdown, dynamicFiltersData, _dynamicFiltersData, postType, response;
-      return _regeneratorRuntime().wrap(function _callee$(_context) {
-        while (1) switch (_context.prev = _context.next) {
-          case 0:
-            showSpinner = _arguments.length > 0 && _arguments[0] !== undefined ? _arguments[0] : true;
-            $count = jQuery('.aie-step-2 .aie-count-value');
-            $spinner = jQuery('.aie-step-2 .aie-item-count .spinner');
-            $refreshBtn = jQuery('.aie-step-2 .aie-refresh-count');
-            if (showSpinner) {
-              $spinner.addClass('is-active');
-            }
-            $refreshBtn.addClass('is-refreshing');
-            _context.prev = 6;
-            contentType = jQuery('input[name="content_type"]:checked').val(); // Prepare options based on content type
-            options = {};
-            if (contentType === 'database_table') {
-              // For database tables, get table name from dropdown
-              $tableDropdown = jQuery('#aie-table-name');
-              dynamicFiltersData = _this3.getDynamicFilters();
-              options = {
-                table_name: $tableDropdown.val(),
-                filters: dynamicFiltersData.filters
-              };
-            } else {
-              // For other types, use dynamic filters
-              _dynamicFiltersData = _this3.getDynamicFilters();
-              console.log('Dynamic filters data:', _dynamicFiltersData);
-
-              // Map content type to post_type for post-based exporters
-              postType = _this3.getPostTypeForContentType(contentType);
-              if (postType) {
-                options.post_type = postType;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              showSpinner = _arguments.length > 0 && _arguments[0] !== undefined ? _arguments[0] : true;
+              $count = jQuery('.aie-step-2 .aie-count-value');
+              $spinner = jQuery('.aie-step-2 .aie-item-count .spinner');
+              $refreshBtn = jQuery('.aie-step-2 .aie-refresh-count');
+              if (showSpinner) {
+                $spinner.addClass('is-active');
               }
+              $refreshBtn.addClass('is-refreshing');
+              _context.prev = 6;
+              contentType = jQuery('input[name="content_type"]:checked').val(); // Prepare options based on content type
+              options = {};
+              if (contentType === 'database_table') {
+                // For database tables, get table name from dropdown
+                $tableDropdown = jQuery('#aie-table-name');
+                dynamicFiltersData = _this3.getDynamicFilters();
+                options = {
+                  table_name: $tableDropdown.val(),
+                  filters: dynamicFiltersData.filters
+                };
+              } else {
+                // For other types, use dynamic filters
+                _dynamicFiltersData = _this3.getDynamicFilters();
+                console.log('Dynamic filters data:', _dynamicFiltersData);
 
-              // Add dynamic filters as query parameters
-              if (_dynamicFiltersData.filters.length > 0) {
-                options.filters = _dynamicFiltersData.filters;
+                // Map content type to post_type for post-based exporters
+                postType = _this3.getPostTypeForContentType(contentType);
+                if (postType) {
+                  options.post_type = postType;
+                }
+
+                // Add dynamic filters as query parameters
+                if (_dynamicFiltersData.filters.length > 0) {
+                  options.filters = _dynamicFiltersData.filters;
+                }
+
+                // Add custom field filters
+                if (_dynamicFiltersData.custom_fields.length > 0) {
+                  options.custom_fields = _dynamicFiltersData.custom_fields;
+                }
+
+                // Add taxonomy filters
+                if (_dynamicFiltersData.taxonomy.length > 0) {
+                  options.taxonomy = _dynamicFiltersData.taxonomy;
+                }
               }
+              console.log('Sending options to backend:', options);
+              _context.next = 13;
+              return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_export_get_count', {
+                export_type: contentType,
+                options: options
+              });
+            case 13:
+              response = _context.sent;
+              console.log('Received count response:', response);
+              $count.text(response.count || 0);
 
-              // Add custom field filters
-              if (_dynamicFiltersData.custom_fields.length > 0) {
-                options.custom_fields = _dynamicFiltersData.custom_fields;
-              }
+              // Update next button state based on count
+              _this3.updateStep2NextButton();
+              _context.next = 24;
+              break;
+            case 19:
+              _context.prev = 19;
+              _context.t0 = _context["catch"](6);
+              $count.text('-');
+              console.error('Count error:', _context.t0);
 
-              // Add taxonomy filters
-              if (_dynamicFiltersData.taxonomy.length > 0) {
-                options.taxonomy = _dynamicFiltersData.taxonomy;
-              }
-            }
-            console.log('Sending options to backend:', options);
-            _context.next = 13;
-            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_get_count', {
-              export_type: contentType,
-              options: options
-            });
-          case 13:
-            response = _context.sent;
-            console.log('Received count response:', response);
-            $count.text(response.count || 0);
-
-            // Update next button state based on count
-            _this3.updateStep2NextButton();
-            _context.next = 24;
-            break;
-          case 19:
-            _context.prev = 19;
-            _context.t0 = _context["catch"](6);
-            $count.text('-');
-            console.error('Count error:', _context.t0);
-
-            // Disable next button on error
-            _this3.updateStep2NextButton();
-          case 24:
-            _context.prev = 24;
-            $spinner.removeClass('is-active');
-            $refreshBtn.removeClass('is-refreshing');
-            return _context.finish(24);
-          case 28:
-          case "end":
-            return _context.stop();
+              // Disable next button on error
+              _this3.updateStep2NextButton();
+            case 24:
+              _context.prev = 24;
+              $spinner.removeClass('is-active');
+              $refreshBtn.removeClass('is-refreshing');
+              return _context.finish(24);
+            case 28:
+            case "end":
+              return _context.stop();
+          }
         }
       }, _callee, null, [[6, 19, 24, 28]]);
     }))();
@@ -4693,104 +4722,106 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
    */
   startExport: function startExport() {
     var _this5 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee2() {
       var fields, contentType, dynamicFiltersData, csvDelimiter, customDelimiter, data, convertedFunctions, $tableDropdown, tableName, response;
-      return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-        while (1) switch (_context2.prev = _context2.next) {
-          case 0:
-            fields = _this5.getSelectedFields(); // If no fields selected (or only pseudo-fields were filtered out), show error
-            if (!(fields.length === 0)) {
-              _context2.next = 4;
-              break;
-            }
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Please select at least one field to export', 'error');
-            return _context2.abrupt("return");
-          case 4:
-            _context2.prev = 4;
-            contentType = jQuery('input[name="content_type"]:checked').val();
-            dynamicFiltersData = _this5.getDynamicFilters(); // Get CSV delimiter
-            csvDelimiter = jQuery('[name="csv_delimiter"]').val();
-            if (!(csvDelimiter === 'custom')) {
-              _context2.next = 15;
-              break;
-            }
-            customDelimiter = jQuery('[name="csv_custom_delimiter"]').val();
-            if (customDelimiter) {
-              _context2.next = 14;
-              break;
-            }
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Please enter a custom delimiter', 'error');
-            // Set focus to the custom delimiter field
-            jQuery('[name="csv_custom_delimiter"]').focus();
-            return _context2.abrupt("return");
-          case 14:
-            csvDelimiter = customDelimiter;
-          case 15:
-            data = {
-              export_type: contentType,
-              filters: _this5.getFilters(),
-              fields: fields,
-              format: jQuery('input[name="format"]:checked').val(),
-              format_options: {
-                csv_delimiter: csvDelimiter,
-                csv_include_header: jQuery('[name="csv_include_header"]').is(':checked'),
-                json_pretty_print: jQuery('[name="json_pretty_print"]').is(':checked')
-              },
-              options: {
-                items_per_iteration: parseInt(jQuery('[name="items_per_iteration"]').val()) || 3
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee2$(_context2) {
+        while (1) {
+          switch (_context2.prev = _context2.next) {
+            case 0:
+              fields = _this5.getSelectedFields(); // If no fields selected (or only pseudo-fields were filtered out), show error
+              if (!(fields.length === 0)) {
+                _context2.next = 4;
+                break;
               }
-            }; // Add field functions if available
-            if (_this5.step3Instance && _this5.step3Instance.fieldFunctions) {
-              // Convert field functions from fieldKey (with timestamp) to actual field names
-              convertedFunctions = _this5.convertFieldFunctions(_this5.step3Instance.fieldFunctions, _this5.step3Instance.selectedFields);
-              if (Object.keys(convertedFunctions).length > 0) {
-                data.field_functions = convertedFunctions;
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Please select at least one field to export', 'error');
+              return _context2.abrupt("return");
+            case 4:
+              _context2.prev = 4;
+              contentType = jQuery('input[name="content_type"]:checked').val();
+              dynamicFiltersData = _this5.getDynamicFilters(); // Get CSV delimiter
+              csvDelimiter = jQuery('[name="csv_delimiter"]').val();
+              if (!(csvDelimiter === 'custom')) {
+                _context2.next = 15;
+                break;
               }
-            }
-
-            // Add dynamic filters
-            if (dynamicFiltersData.filters.length > 0) {
-              data.dynamic_filters = dynamicFiltersData.filters;
-            }
-
-            // Add custom field filters
-            if (dynamicFiltersData.custom_fields.length > 0) {
-              data.custom_fields = dynamicFiltersData.custom_fields;
-            }
-
-            // Add taxonomy filters
-            if (dynamicFiltersData.taxonomy.length > 0) {
-              data.taxonomy = dynamicFiltersData.taxonomy;
-            }
-
-            // For database_table, add table_name
-            if (contentType === 'database_table') {
-              $tableDropdown = jQuery('#aie-table-name');
-              tableName = $tableDropdown.val();
-              if (tableName) {
-                data.table_name = tableName;
+              customDelimiter = jQuery('[name="csv_custom_delimiter"]').val();
+              if (customDelimiter) {
+                _context2.next = 14;
+                break;
               }
-            }
-            _context2.next = 23;
-            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_start', data);
-          case 23:
-            response = _context2.sent;
-            _this5.jobId = response.job_id;
-            _this5.showStep(5);
-            _this5.startProgressTracking();
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Please enter a custom delimiter', 'error');
+              // Set focus to the custom delimiter field
+              jQuery('[name="csv_custom_delimiter"]').focus();
+              return _context2.abrupt("return");
+            case 14:
+              csvDelimiter = customDelimiter;
+            case 15:
+              data = {
+                export_type: contentType,
+                filters: _this5.getFilters(),
+                fields: fields,
+                format: jQuery('input[name="format"]:checked').val(),
+                format_options: {
+                  csv_delimiter: csvDelimiter,
+                  csv_include_header: jQuery('[name="csv_include_header"]').is(':checked'),
+                  json_pretty_print: jQuery('[name="json_pretty_print"]').is(':checked')
+                },
+                options: {
+                  items_per_iteration: parseInt(jQuery('[name="items_per_iteration"]').val()) || 3
+                }
+              }; // Add field functions if available
+              if (_this5.step3Instance && _this5.step3Instance.fieldFunctions) {
+                // Convert field functions from fieldKey (with timestamp) to actual field names
+                convertedFunctions = _this5.convertFieldFunctions(_this5.step3Instance.fieldFunctions, _this5.step3Instance.selectedFields);
+                if (Object.keys(convertedFunctions).length > 0) {
+                  data.field_functions = convertedFunctions;
+                }
+              }
 
-            // Trigger first batch processing
-            _this5.processNextBatch();
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Export started successfully', 'success');
-            _context2.next = 34;
-            break;
-          case 31:
-            _context2.prev = 31;
-            _context2.t0 = _context2["catch"](4);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context2.t0, 'Start export');
-          case 34:
-          case "end":
-            return _context2.stop();
+              // Add dynamic filters
+              if (dynamicFiltersData.filters.length > 0) {
+                data.dynamic_filters = dynamicFiltersData.filters;
+              }
+
+              // Add custom field filters
+              if (dynamicFiltersData.custom_fields.length > 0) {
+                data.custom_fields = dynamicFiltersData.custom_fields;
+              }
+
+              // Add taxonomy filters
+              if (dynamicFiltersData.taxonomy.length > 0) {
+                data.taxonomy = dynamicFiltersData.taxonomy;
+              }
+
+              // For database_table, add table_name
+              if (contentType === 'database_table') {
+                $tableDropdown = jQuery('#aie-table-name');
+                tableName = $tableDropdown.val();
+                if (tableName) {
+                  data.table_name = tableName;
+                }
+              }
+              _context2.next = 23;
+              return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_export_start', data);
+            case 23:
+              response = _context2.sent;
+              _this5.jobId = response.job_id;
+              _this5.showStep(5);
+              _this5.startProgressTracking();
+
+              // Trigger first batch processing
+              _this5.processNextBatch();
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Export started successfully', 'success');
+              _context2.next = 34;
+              break;
+            case 31:
+              _context2.prev = 31;
+              _context2.t0 = _context2["catch"](4);
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].handleError(_context2.t0, 'Start export');
+            case 34:
+            case "end":
+              return _context2.stop();
+          }
         }
       }, _callee2, null, [[4, 31]]);
     }))();
@@ -4800,41 +4831,43 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
    */
   processNextBatch: function processNextBatch() {
     var _this6 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee3() {
       var response;
-      return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-        while (1) switch (_context3.prev = _context3.next) {
-          case 0:
-            if (_this6.jobId) {
-              _context3.next = 2;
-              break;
-            }
-            return _context3.abrupt("return");
-          case 2:
-            _context3.prev = 2;
-            _context3.next = 5;
-            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_process_batch', {
-              job_id: _this6.jobId
-            });
-          case 5:
-            response = _context3.sent;
-            console.log('Batch processing response:', response);
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee3$(_context3) {
+        while (1) {
+          switch (_context3.prev = _context3.next) {
+            case 0:
+              if (_this6.jobId) {
+                _context3.next = 2;
+                break;
+              }
+              return _context3.abrupt("return");
+            case 2:
+              _context3.prev = 2;
+              _context3.next = 5;
+              return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_export_process_batch', {
+                job_id: _this6.jobId
+              });
+            case 5:
+              response = _context3.sent;
+              console.log('Batch processing response:', response);
 
-            // If not completed, process next batch after small delay
-            if (response && !response.completed) {
-              setTimeout(function () {
-                _this6.processNextBatch();
-              }, 100);
-            }
-            _context3.next = 13;
-            break;
-          case 10:
-            _context3.prev = 10;
-            _context3.t0 = _context3["catch"](2);
-            console.error('Batch processing error:', _context3.t0);
-          case 13:
-          case "end":
-            return _context3.stop();
+              // If not completed, process next batch after small delay
+              if (response && !response.completed) {
+                setTimeout(function () {
+                  _this6.processNextBatch();
+                }, 100);
+              }
+              _context3.next = 13;
+              break;
+            case 10:
+              _context3.prev = 10;
+              _context3.t0 = _context3["catch"](2);
+              console.error('Batch processing error:', _context3.t0);
+            case 13:
+            case "end":
+              return _context3.stop();
+          }
         }
       }, _callee3, null, [[2, 10]]);
     }))();
@@ -4853,33 +4886,35 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
    */
   updateProgress: function updateProgress() {
     var _this8 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee4() {
       var response;
-      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-        while (1) switch (_context4.prev = _context4.next) {
-          case 0:
-            _context4.prev = 0;
-            _context4.next = 3;
-            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_get_progress', {
-              job_id: _this8.jobId
-            });
-          case 3:
-            response = _context4.sent;
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].updateProgressBar(jQuery('.aie-step-5'), response);
-            if (response.status === 'completed') {
-              _this8.onExportComplete(response);
-            } else if (response.status === 'failed') {
-              _this8.onExportFailed(response);
-            }
-            _context4.next = 11;
-            break;
-          case 8:
-            _context4.prev = 8;
-            _context4.t0 = _context4["catch"](0);
-            console.error('Progress update error:', _context4.t0);
-          case 11:
-          case "end":
-            return _context4.stop();
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee4$(_context4) {
+        while (1) {
+          switch (_context4.prev = _context4.next) {
+            case 0:
+              _context4.prev = 0;
+              _context4.next = 3;
+              return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_export_get_progress', {
+                job_id: _this8.jobId
+              });
+            case 3:
+              response = _context4.sent;
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].updateProgressBar(jQuery('.aie-step-5'), response);
+              if (response.status === 'completed') {
+                _this8.onExportComplete(response);
+              } else if (response.status === 'failed') {
+                _this8.onExportFailed(response);
+              }
+              _context4.next = 11;
+              break;
+            case 8:
+              _context4.prev = 8;
+              _context4.t0 = _context4["catch"](0);
+              console.error('Progress update error:', _context4.t0);
+            case 11:
+            case "end":
+              return _context4.stop();
+          }
         }
       }, _callee4, null, [[0, 8]]);
     }))();
@@ -4909,48 +4944,50 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
 
     // Use data from result (progress response)
     jQuery('.aie-result-processed').text(result.processed || result.total || 0);
-    jQuery('.aie-result-filesize').text(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].formatFileSize(result.file_size || 0));
+    jQuery('.aie-result-filesize').text(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].formatFileSize(result.file_size || 0));
     jQuery('.aie-result-duration').text(((_result$estimates = result.estimates) === null || _result$estimates === void 0 ? void 0 : _result$estimates.elapsed_formatted) || '0s');
     jQuery('.aie-cancel-export').hide();
     jQuery('.aie-new-export').show();
-    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Export completed successfully!', 'success');
+    _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Export completed successfully!', 'success');
   },
   /**
    * Handle export failure
    */
   onExportFailed: function onExportFailed(result) {
     clearInterval(this.progressInterval);
-    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Export failed: ' + (result.error || 'Unknown error'), 'error');
+    _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Export failed: ' + (result.error || 'Unknown error'), 'error');
   },
   /**
    * Download export file
    */
   downloadFile: function downloadFile() {
     var _this9 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee5() {
       var response;
-      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-        while (1) switch (_context5.prev = _context5.next) {
-          case 0:
-            _context5.prev = 0;
-            _context5.next = 3;
-            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_download', {
-              job_id: _this9.jobId
-            });
-          case 3:
-            response = _context5.sent;
-            if (response.download_url) {
-              _utils__WEBPACK_IMPORTED_MODULE_0__["default"].downloadFile(response.download_url, response.filename);
-            }
-            _context5.next = 10;
-            break;
-          case 7:
-            _context5.prev = 7;
-            _context5.t0 = _context5["catch"](0);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context5.t0, 'Download file');
-          case 10:
-          case "end":
-            return _context5.stop();
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee5$(_context5) {
+        while (1) {
+          switch (_context5.prev = _context5.next) {
+            case 0:
+              _context5.prev = 0;
+              _context5.next = 3;
+              return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_export_download', {
+                job_id: _this9.jobId
+              });
+            case 3:
+              response = _context5.sent;
+              if (response.download_url) {
+                _utils__WEBPACK_IMPORTED_MODULE_1__["default"].downloadFile(response.download_url, response.filename);
+              }
+              _context5.next = 10;
+              break;
+            case 7:
+              _context5.prev = 7;
+              _context5.t0 = _context5["catch"](0);
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].handleError(_context5.t0, 'Download file');
+            case 10:
+            case "end":
+              return _context5.stop();
+          }
         }
       }, _callee5, null, [[0, 7]]);
     }))();
@@ -4960,34 +4997,36 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
    */
   cancelExport: function cancelExport() {
     var _this10 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
-      return _regeneratorRuntime().wrap(function _callee6$(_context6) {
-        while (1) switch (_context6.prev = _context6.next) {
-          case 0:
-            if (confirm('Are you sure you want to cancel this export?')) {
-              _context6.next = 2;
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee6() {
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee6$(_context6) {
+        while (1) {
+          switch (_context6.prev = _context6.next) {
+            case 0:
+              if (confirm('Are you sure you want to cancel this export?')) {
+                _context6.next = 2;
+                break;
+              }
+              return _context6.abrupt("return");
+            case 2:
+              _context6.prev = 2;
+              _context6.next = 5;
+              return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_export_cancel', {
+                job_id: _this10.jobId
+              });
+            case 5:
+              clearInterval(_this10.progressInterval);
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Export cancelled', 'info');
+              _this10.resetWizard();
+              _context6.next = 13;
               break;
-            }
-            return _context6.abrupt("return");
-          case 2:
-            _context6.prev = 2;
-            _context6.next = 5;
-            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_export_cancel', {
-              job_id: _this10.jobId
-            });
-          case 5:
-            clearInterval(_this10.progressInterval);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Export cancelled', 'info');
-            _this10.resetWizard();
-            _context6.next = 13;
-            break;
-          case 10:
-            _context6.prev = 10;
-            _context6.t0 = _context6["catch"](2);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context6.t0, 'Cancel export');
-          case 13:
-          case "end":
-            return _context6.stop();
+            case 10:
+              _context6.prev = 10;
+              _context6.t0 = _context6["catch"](2);
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].handleError(_context6.t0, 'Cancel export');
+            case 13:
+            case "end":
+              return _context6.stop();
+          }
         }
       }, _callee6, null, [[2, 10]]);
     }))();
@@ -5032,7 +5071,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
     jQuery('#aie-filters-list').append(clone);
 
     // Trigger count refresh (without spinner)
-    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+    _utils__WEBPACK_IMPORTED_MODULE_1__["default"].debounce(function () {
       return _this11.refreshCount(false);
     }, 500)();
   },
@@ -5044,7 +5083,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
     jQuery(e.target).closest('.aie-filter-row').remove();
 
     // Trigger count refresh (without spinner)
-    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+    _utils__WEBPACK_IMPORTED_MODULE_1__["default"].debounce(function () {
       return _this12.refreshCount(false);
     }, 500)();
   },
@@ -5079,14 +5118,14 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
           $valueGroup.show();
         }
         // Trigger count refresh on condition change
-        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+        _utils__WEBPACK_IMPORTED_MODULE_1__["default"].debounce(function () {
           return _this13.refreshCount(false);
         }, 500)();
       }.bind(this));
 
       // Add change event handlers to trigger count refresh
       $row.find('.aie-custom-field-name, .aie-custom-field-value').on('input change', function () {
-        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+        _utils__WEBPACK_IMPORTED_MODULE_1__["default"].debounce(function () {
           return _this14.refreshCount(false);
         }, 500)();
       });
@@ -5102,7 +5141,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
 
       // Add change event handlers to trigger count refresh
       $row.find('.aie-taxonomy-name, .aie-taxonomy-condition, .aie-taxonomy-terms').on('input change', function () {
-        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+        _utils__WEBPACK_IMPORTED_MODULE_1__["default"].debounce(function () {
           return _this14.refreshCount(false);
         }, 500)();
       });
@@ -5121,7 +5160,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
       var $select = jQuery('<select>').addClass('aie-filter-value aie-table-selector').attr('name', 'filter_value[]');
 
       // Fetch database tables via AJAX
-      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_get_database_tables', {}).then(function (tables) {
+      _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_get_database_tables', {}).then(function (tables) {
         $select.append(jQuery('<option>').val('').text('Select Table...'));
         if (tables && Array.isArray(tables)) {
           tables.forEach(function (table) {
@@ -5156,7 +5195,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
       var _$select = jQuery('<select>').addClass('aie-filter-value aie-post-type-selector').attr('name', 'filter_value[]');
 
       // Fetch post types via AJAX
-      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_get_post_types', {
+      _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_get_post_types', {
         include_hidden: true
       }).then(function (postTypes) {
         _$select.append(jQuery('<option>').val('').text('Select Post Type...'));
@@ -5167,7 +5206,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
 
           // When post type is selected, refresh count
           _$select.on('change', function () {
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+            _utils__WEBPACK_IMPORTED_MODULE_1__["default"].debounce(function () {
               return _this14.refreshCount(false);
             }, 500)();
 
@@ -5200,7 +5239,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
       var _$select2 = jQuery('<select>').addClass('aie-filter-value aie-taxonomy-selector').attr('name', 'filter_value[]');
 
       // Fetch taxonomies via AJAX
-      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_get_all_taxonomies', {}).then(function (taxonomies) {
+      _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_get_all_taxonomies', {}).then(function (taxonomies) {
         _$select2.append(jQuery('<option>').val('').text('Select Taxonomy...'));
         if (taxonomies && Array.isArray(taxonomies)) {
           taxonomies.forEach(function (taxonomy) {
@@ -5209,7 +5248,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
 
           // When taxonomy is selected, refresh count
           _$select2.on('change', function () {
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+            _utils__WEBPACK_IMPORTED_MODULE_1__["default"].debounce(function () {
               return _this14.refreshCount(false);
             }, 500)();
 
@@ -5294,7 +5333,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
     }
 
     // Trigger count refresh (without spinner)
-    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].debounce(function () {
+    _utils__WEBPACK_IMPORTED_MODULE_1__["default"].debounce(function () {
       return _this14.refreshCount(false);
     }, 500)();
   },
@@ -5303,7 +5342,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
    */
   loadTableColumns: function loadTableColumns(tableName) {
     var _this15 = this;
-    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_get_table_columns', {
+    _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_get_table_columns', {
       table_name: tableName
     }).then(function (columns) {
       if (columns && Array.isArray(columns)) {
@@ -6686,7 +6725,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
     $spinner.addClass('is-active');
 
     // Fetch tables via AJAX
-    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_get_database_tables', {}).then(function (response) {
+    _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_get_database_tables', {}).then(function (response) {
       console.log('Tables response:', response);
       var tables = response.tables || response || [];
       console.log('Parsed tables:', tables);
@@ -6728,7 +6767,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
       $spinner.removeClass('is-active');
     });
   }
-}, "loadTableColumns", function loadTableColumns(tableName) {
+}, _defineProperty(_ExportModule, "loadTableColumns", function loadTableColumns(tableName) {
   var _this17 = this;
   var $tableInfo = jQuery('.aie-table-info');
   var $columnsList = jQuery('.aie-columns-list');
@@ -6740,7 +6779,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
   $columnsList.html('<p>Loading columns...</p>');
 
   // Fetch columns via AJAX
-  _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_get_table_columns', {
+  _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_get_table_columns', {
     table_name: tableName
   }).then(function (response) {
     var columns = response.columns || [];
@@ -6770,7 +6809,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
     console.error('Error loading columns:', error);
     $columnsList.html('<p class="error">Error loading columns</p>');
   });
-}), "getColumnTypeIcon", function getColumnTypeIcon(column) {
+}), _defineProperty(_ExportModule, "getColumnTypeIcon", function getColumnTypeIcon(column) {
   if (column.is_primary) {
     return 'dashicons-admin-network';
   } else if (column.is_numeric) {
@@ -6781,7 +6820,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
     return 'dashicons-text';
   }
   return 'dashicons-marker';
-}), "convertFieldFunctions", function convertFieldFunctions(fieldFunctions, selectedFields) {
+}), _defineProperty(_ExportModule, "convertFieldFunctions", function convertFieldFunctions(fieldFunctions, selectedFields) {
   var converted = {};
   if (!fieldFunctions || !selectedFields) {
     return converted;
@@ -6801,7 +6840,7 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
     }
   });
   return converted;
-});
+}), _ExportModule);
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ExportModule);
 
 /***/ }),
@@ -6812,21 +6851,23 @@ var ExportModule = _defineProperty(_defineProperty(_defineProperty({
   \********************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _utils_notifications__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/notifications */ "./src/js/utils/notifications.js");
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _utils_notifications__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/notifications */ "./src/js/utils/notifications.js");
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 /**
  * Function Library Browser Module
  *
@@ -6851,38 +6892,40 @@ var FunctionLibrary = {
    */
   openLibrary: function openLibrary() {
     var _this = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee() {
       var modal;
-      return _regeneratorRuntime().wrap(function _callee$(_context) {
-        while (1) switch (_context.prev = _context.next) {
-          case 0:
-            modal = document.getElementById('aie-snippets-library-modal');
-            if (modal) {
-              _context.next = 3;
-              break;
-            }
-            return _context.abrupt("return");
-          case 3:
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              modal = document.getElementById('aie-snippets-library-modal');
+              if (modal) {
+                _context.next = 3;
+                break;
+              }
+              return _context.abrupt("return");
+            case 3:
+              modal.style.display = 'flex';
+              document.body.style.overflow = 'hidden';
 
-            // Load snippets if not loaded
-            if (!(Object.keys(_this.allSnippets).length === 0)) {
-              _context.next = 10;
+              // Load snippets if not loaded
+              if (!(Object.keys(_this.allSnippets).length === 0)) {
+                _context.next = 10;
+                break;
+              }
+              _context.next = 8;
+              return _this.loadSnippets();
+            case 8:
+              _context.next = 11;
               break;
-            }
-            _context.next = 8;
-            return _this.loadSnippets();
-          case 8:
-            _context.next = 11;
-            break;
-          case 10:
-            _this.renderSnippets();
-          case 11:
-            _this.bindLibraryEvents();
-          case 12:
-          case "end":
-            return _context.stop();
+            case 10:
+              _this.renderSnippets();
+            case 11:
+              _this.bindLibraryEvents();
+            case 12:
+            case "end":
+              return _context.stop();
+          }
         }
       }, _callee);
     }))();
@@ -6917,7 +6960,7 @@ var FunctionLibrary = {
     var previewModal = document.getElementById('aie-snippet-preview-modal');
     if (previewModal) {
       var _previewModal$querySe;
-      (_previewModal$querySe = previewModal.querySelector('.aie-customize-snippet')) === null || _previewModal$querySe === void 0 || _previewModal$querySe.addEventListener('click', function () {
+      (_previewModal$querySe = previewModal.querySelector('.aie-customize-snippet')) === null || _previewModal$querySe === void 0 ? void 0 : _previewModal$querySe.addEventListener('click', function () {
         _this2.importSnippet(_this2.currentSnippet, true);
       });
     }
@@ -6928,61 +6971,63 @@ var FunctionLibrary = {
   loadSnippets: function loadSnippets() {
     var _arguments = arguments,
       _this3 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
-      var _window$aieData;
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee2() {
+      var _window$aieData, _window$aieData$i18n;
       var category, grid, _window$aieData2, response, data, _data$data;
-      return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-        while (1) switch (_context2.prev = _context2.next) {
-          case 0:
-            category = _arguments.length > 0 && _arguments[0] !== undefined ? _arguments[0] : '';
-            grid = document.getElementById('aie-snippets-grid');
-            if (grid) {
-              _context2.next = 4;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee2$(_context2) {
+        while (1) {
+          switch (_context2.prev = _context2.next) {
+            case 0:
+              category = _arguments.length > 0 && _arguments[0] !== undefined ? _arguments[0] : '';
+              grid = document.getElementById('aie-snippets-grid');
+              if (grid) {
+                _context2.next = 4;
+                break;
+              }
+              return _context2.abrupt("return");
+            case 4:
+              // Show loading
+              grid.innerHTML = "\n\t\t\t<div class=\"aie-loading-snippets\">\n\t\t\t\t<span class=\"spinner is-active\"></span>\n\t\t\t\t<p>".concat(((_window$aieData = window.aieData) === null || _window$aieData === void 0 ? void 0 : (_window$aieData$i18n = _window$aieData.i18n) === null || _window$aieData$i18n === void 0 ? void 0 : _window$aieData$i18n.loading) || 'Loading snippets...', "</p>\n\t\t\t</div>\n\t\t");
+              _context2.prev = 5;
+              _context2.next = 8;
+              return fetch(window.aieData.ajaxUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                  action: 'aie_functions_get_snippets',
+                  nonce: ((_window$aieData2 = window.aieData) === null || _window$aieData2 === void 0 ? void 0 : _window$aieData2.nonce) || '',
+                  category: category
+                })
+              });
+            case 8:
+              response = _context2.sent;
+              _context2.next = 11;
+              return response.json();
+            case 11:
+              data = _context2.sent;
+              if (data.success) {
+                _context2.next = 14;
+                break;
+              }
+              throw new Error(((_data$data = data.data) === null || _data$data === void 0 ? void 0 : _data$data.message) || 'Failed to load snippets');
+            case 14:
+              _this3.allSnippets = data.data.snippets || {};
+              _this3.categories = data.data.categories || {};
+              _this3.renderCategories();
+              _this3.renderSnippets();
+              _context2.next = 24;
               break;
-            }
-            return _context2.abrupt("return");
-          case 4:
-            // Show loading
-            grid.innerHTML = "\n\t\t\t<div class=\"aie-loading-snippets\">\n\t\t\t\t<span class=\"spinner is-active\"></span>\n\t\t\t\t<p>".concat(((_window$aieData = window.aieData) === null || _window$aieData === void 0 || (_window$aieData = _window$aieData.i18n) === null || _window$aieData === void 0 ? void 0 : _window$aieData.loading) || 'Loading snippets...', "</p>\n\t\t\t</div>\n\t\t");
-            _context2.prev = 5;
-            _context2.next = 8;
-            return fetch(window.aieData.ajaxUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-              },
-              body: new URLSearchParams({
-                action: 'aie_functions_get_snippets',
-                nonce: ((_window$aieData2 = window.aieData) === null || _window$aieData2 === void 0 ? void 0 : _window$aieData2.nonce) || '',
-                category: category
-              })
-            });
-          case 8:
-            response = _context2.sent;
-            _context2.next = 11;
-            return response.json();
-          case 11:
-            data = _context2.sent;
-            if (data.success) {
-              _context2.next = 14;
-              break;
-            }
-            throw new Error(((_data$data = data.data) === null || _data$data === void 0 ? void 0 : _data$data.message) || 'Failed to load snippets');
-          case 14:
-            _this3.allSnippets = data.data.snippets || {};
-            _this3.categories = data.data.categories || {};
-            _this3.renderCategories();
-            _this3.renderSnippets();
-            _context2.next = 24;
-            break;
-          case 20:
-            _context2.prev = 20;
-            _context2.t0 = _context2["catch"](5);
-            console.error('Error loading snippets:', _context2.t0);
-            grid.innerHTML = "\n\t\t\t\t<div class=\"aie-error-message\">\n\t\t\t\t\t<span class=\"dashicons dashicons-warning\"></span>\n\t\t\t\t\t<p>".concat(_context2.t0.message, "</p>\n\t\t\t\t</div>\n\t\t\t");
-          case 24:
-          case "end":
-            return _context2.stop();
+            case 20:
+              _context2.prev = 20;
+              _context2.t0 = _context2["catch"](5);
+              console.error('Error loading snippets:', _context2.t0);
+              grid.innerHTML = "\n\t\t\t\t<div class=\"aie-error-message\">\n\t\t\t\t\t<span class=\"dashicons dashicons-warning\"></span>\n\t\t\t\t\t<p>".concat(_context2.t0.message, "</p>\n\t\t\t\t</div>\n\t\t\t");
+            case 24:
+            case "end":
+              return _context2.stop();
+          }
         }
       }, _callee2, null, [[5, 20]]);
     }))();
@@ -6992,13 +7037,14 @@ var FunctionLibrary = {
    */
   renderCategories: function renderCategories() {
     var _window$aieData3,
+      _window$aieData3$i18n,
       _this4 = this;
     var categoriesList = document.getElementById('aie-categories-list');
     if (!categoriesList) {
       return;
     }
     var totalSnippets = Object.keys(this.allSnippets).length;
-    var html = "\n\t\t\t<li class=\"aie-category-item ".concat(this.currentCategory === '' ? 'active' : '', "\" data-category=\"\">\n\t\t\t\t<span class=\"dashicons dashicons-category\"></span>\n\t\t\t\t<span class=\"aie-category-name\">").concat(((_window$aieData3 = window.aieData) === null || _window$aieData3 === void 0 || (_window$aieData3 = _window$aieData3.i18n) === null || _window$aieData3 === void 0 ? void 0 : _window$aieData3.all_snippets) || 'All Snippets', "</span>\n\t\t\t\t<span class=\"aie-category-count\">").concat(totalSnippets, "</span>\n\t\t\t</li>\n\t\t");
+    var html = "\n\t\t\t<li class=\"aie-category-item ".concat(this.currentCategory === '' ? 'active' : '', "\" data-category=\"\">\n\t\t\t\t<span class=\"dashicons dashicons-category\"></span>\n\t\t\t\t<span class=\"aie-category-name\">").concat(((_window$aieData3 = window.aieData) === null || _window$aieData3 === void 0 ? void 0 : (_window$aieData3$i18n = _window$aieData3.i18n) === null || _window$aieData3$i18n === void 0 ? void 0 : _window$aieData3$i18n.all_snippets) || 'All Snippets', "</span>\n\t\t\t\t<span class=\"aie-category-count\">").concat(totalSnippets, "</span>\n\t\t\t</li>\n\t\t");
     Object.entries(this.categories).forEach(function (_ref) {
       var _ref2 = _slicedToArray(_ref, 2),
         category = _ref2[0],
@@ -7032,8 +7078,8 @@ var FunctionLibrary = {
       });
     }
     if (snippets.length === 0) {
-      var _window$aieData4;
-      grid.innerHTML = "\n\t\t\t\t<div class=\"aie-no-snippets\">\n\t\t\t\t\t<span class=\"dashicons dashicons-info\" style=\"width: auto; height: auto;\"></span>\n\t\t\t\t\t<p>".concat(((_window$aieData4 = window.aieData) === null || _window$aieData4 === void 0 || (_window$aieData4 = _window$aieData4.i18n) === null || _window$aieData4 === void 0 ? void 0 : _window$aieData4.no_snippets) || 'No snippets found', "</p>\n\t\t\t\t</div>\n\t\t\t");
+      var _window$aieData4, _window$aieData4$i18n;
+      grid.innerHTML = "\n\t\t\t\t<div class=\"aie-no-snippets\">\n\t\t\t\t\t<span class=\"dashicons dashicons-info\" style=\"width: auto; height: auto;\"></span>\n\t\t\t\t\t<p>".concat(((_window$aieData4 = window.aieData) === null || _window$aieData4 === void 0 ? void 0 : (_window$aieData4$i18n = _window$aieData4.i18n) === null || _window$aieData4$i18n === void 0 ? void 0 : _window$aieData4$i18n.no_snippets) || 'No snippets found', "</p>\n\t\t\t\t</div>\n\t\t\t");
       return;
     }
 
@@ -7043,13 +7089,13 @@ var FunctionLibrary = {
     ];
     var showUseButton = allowedPages.includes(currentPage);
     grid.innerHTML = snippets.map(function (_ref5) {
-      var _window$aieData6, _window$aieData7;
+      var _window$aieData6, _window$aieData6$i18n, _window$aieData7, _window$aieData7$i18n;
       var _ref6 = _slicedToArray(_ref5, 2),
         key = _ref6[0],
         snippet = _ref6[1];
       return "\n\t\t\t<div class=\"aie-snippet-card\" data-snippet-key=\"".concat(key, "\">\n\t\t\t\t<div class=\"aie-snippet-header\">\n\t\t\t\t\t<h3 class=\"aie-snippet-name\">").concat(_this5.escapeHtml(snippet.name), "</h3>\n\t\t\t\t\t<span class=\"aie-snippet-category-badge\">").concat(_this5.getCategoryLabel(snippet.category), "</span>\n\t\t\t\t</div>\n\t\t\t\t<p class=\"aie-snippet-description\">").concat(_this5.escapeHtml(snippet.description), "</p>\n\t\t\t\t<div class=\"aie-snippet-tags\">\n\t\t\t\t\t").concat(snippet.tags ? snippet.tags.map(function (tag) {
         return "<span class=\"aie-tag\">".concat(_this5.escapeHtml(tag), "</span>");
-      }).join('') : '', "\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-snippet-actions\">\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-preview-snippet\" data-snippet-key=\"").concat(key, "\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-visibility\"></span>\n\t\t\t\t\t\t").concat(((_window$aieData6 = window.aieData) === null || _window$aieData6 === void 0 || (_window$aieData6 = _window$aieData6.i18n) === null || _window$aieData6 === void 0 ? void 0 : _window$aieData6.preview) || 'Preview', "\n\t\t\t\t\t</button>\n\t\t\t\t\t").concat(showUseButton ? "<button type=\"button\" class=\"button button-primary button-small aie-quick-import\" data-snippet-key=\"".concat(key, "\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-plus\"></span>\n\t\t\t\t\t\t").concat(((_window$aieData7 = window.aieData) === null || _window$aieData7 === void 0 || (_window$aieData7 = _window$aieData7.i18n) === null || _window$aieData7 === void 0 ? void 0 : _window$aieData7.customize) || 'Customize', "\n\t\t\t\t\t</button>") : '', "\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t");
+      }).join('') : '', "\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-snippet-actions\">\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-preview-snippet\" data-snippet-key=\"").concat(key, "\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-visibility\"></span>\n\t\t\t\t\t\t").concat(((_window$aieData6 = window.aieData) === null || _window$aieData6 === void 0 ? void 0 : (_window$aieData6$i18n = _window$aieData6.i18n) === null || _window$aieData6$i18n === void 0 ? void 0 : _window$aieData6$i18n.preview) || 'Preview', "\n\t\t\t\t\t</button>\n\t\t\t\t\t").concat(showUseButton ? "<button type=\"button\" class=\"button button-primary button-small aie-quick-import\" data-snippet-key=\"".concat(key, "\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-plus\"></span>\n\t\t\t\t\t\t").concat(((_window$aieData7 = window.aieData) === null || _window$aieData7 === void 0 ? void 0 : (_window$aieData7$i18n = _window$aieData7.i18n) === null || _window$aieData7$i18n === void 0 ? void 0 : _window$aieData7$i18n.customize) || 'Customize', "\n\t\t\t\t\t</button>") : '', "\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t");
     }).join('');
 
     // Bind snippet card events
@@ -7083,70 +7129,72 @@ var FunctionLibrary = {
    */
   searchSnippets: function searchSnippets(query) {
     var _this6 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
-      var _window$aieData8;
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee3() {
+      var _window$aieData8, _window$aieData8$i18n;
       var grid, _window$aieData9, response, data, _data$data2, originalSnippets;
-      return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-        while (1) switch (_context3.prev = _context3.next) {
-          case 0:
-            grid = document.getElementById('aie-snippets-grid');
-            if (grid) {
-              _context3.next = 3;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee3$(_context3) {
+        while (1) {
+          switch (_context3.prev = _context3.next) {
+            case 0:
+              grid = document.getElementById('aie-snippets-grid');
+              if (grid) {
+                _context3.next = 3;
+                break;
+              }
+              return _context3.abrupt("return");
+            case 3:
+              if (query.trim()) {
+                _context3.next = 6;
+                break;
+              }
+              // Reset to current category
+              _this6.renderSnippets();
+              return _context3.abrupt("return");
+            case 6:
+              // Show loading
+              grid.innerHTML = "\n\t\t\t<div class=\"aie-loading-snippets\">\n\t\t\t\t<span class=\"spinner is-active\"></span>\n\t\t\t\t<p>".concat(((_window$aieData8 = window.aieData) === null || _window$aieData8 === void 0 ? void 0 : (_window$aieData8$i18n = _window$aieData8.i18n) === null || _window$aieData8$i18n === void 0 ? void 0 : _window$aieData8$i18n.searching) || 'Searching...', "</p>\n\t\t\t</div>\n\t\t");
+              _context3.prev = 7;
+              _context3.next = 10;
+              return fetch(window.aieData.ajaxUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                  action: 'aie_functions_search',
+                  nonce: ((_window$aieData9 = window.aieData) === null || _window$aieData9 === void 0 ? void 0 : _window$aieData9.nonce) || '',
+                  query: query
+                })
+              });
+            case 10:
+              response = _context3.sent;
+              _context3.next = 13;
+              return response.json();
+            case 13:
+              data = _context3.sent;
+              if (data.success) {
+                _context3.next = 16;
+                break;
+              }
+              throw new Error(((_data$data2 = data.data) === null || _data$data2 === void 0 ? void 0 : _data$data2.message) || 'Search failed');
+            case 16:
+              // Temporarily replace snippets with search results
+              originalSnippets = _this6.allSnippets;
+              _this6.allSnippets = data.data.snippets || {};
+              _this6.currentCategory = ''; // Show all results
+              _this6.renderSnippets();
+              _this6.allSnippets = originalSnippets; // Restore
+              _context3.next = 27;
               break;
-            }
-            return _context3.abrupt("return");
-          case 3:
-            if (query.trim()) {
-              _context3.next = 6;
-              break;
-            }
-            // Reset to current category
-            _this6.renderSnippets();
-            return _context3.abrupt("return");
-          case 6:
-            // Show loading
-            grid.innerHTML = "\n\t\t\t<div class=\"aie-loading-snippets\">\n\t\t\t\t<span class=\"spinner is-active\"></span>\n\t\t\t\t<p>".concat(((_window$aieData8 = window.aieData) === null || _window$aieData8 === void 0 || (_window$aieData8 = _window$aieData8.i18n) === null || _window$aieData8 === void 0 ? void 0 : _window$aieData8.searching) || 'Searching...', "</p>\n\t\t\t</div>\n\t\t");
-            _context3.prev = 7;
-            _context3.next = 10;
-            return fetch(window.aieData.ajaxUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-              },
-              body: new URLSearchParams({
-                action: 'aie_functions_search',
-                nonce: ((_window$aieData9 = window.aieData) === null || _window$aieData9 === void 0 ? void 0 : _window$aieData9.nonce) || '',
-                query: query
-              })
-            });
-          case 10:
-            response = _context3.sent;
-            _context3.next = 13;
-            return response.json();
-          case 13:
-            data = _context3.sent;
-            if (data.success) {
-              _context3.next = 16;
-              break;
-            }
-            throw new Error(((_data$data2 = data.data) === null || _data$data2 === void 0 ? void 0 : _data$data2.message) || 'Search failed');
-          case 16:
-            // Temporarily replace snippets with search results
-            originalSnippets = _this6.allSnippets;
-            _this6.allSnippets = data.data.snippets || {};
-            _this6.currentCategory = ''; // Show all results
-            _this6.renderSnippets();
-            _this6.allSnippets = originalSnippets; // Restore
-            _context3.next = 27;
-            break;
-          case 23:
-            _context3.prev = 23;
-            _context3.t0 = _context3["catch"](7);
-            console.error('Error searching snippets:', _context3.t0);
-            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)(_context3.t0.message);
-          case 27:
-          case "end":
-            return _context3.stop();
+            case 23:
+              _context3.prev = 23;
+              _context3.t0 = _context3["catch"](7);
+              console.error('Error searching snippets:', _context3.t0);
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showError)(_context3.t0.message);
+            case 27:
+            case "end":
+              return _context3.stop();
+          }
         }
       }, _callee3, null, [[7, 23]]);
     }))();
@@ -7197,106 +7245,108 @@ var FunctionLibrary = {
   importSnippet: function importSnippet(snippetKey) {
     var _arguments2 = arguments,
       _this7 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
-      var customize, snippet, libraryModal, previewModal, editorModal, _window$aieData11, _window$aieData12, response, data, _data$data3;
-      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-        while (1) switch (_context4.prev = _context4.next) {
-          case 0:
-            customize = _arguments2.length > 1 && _arguments2[1] !== undefined ? _arguments2[1] : false;
-            snippet = _this7.allSnippets[snippetKey];
-            if (snippet) {
-              _context4.next = 4;
-              break;
-            }
-            return _context4.abrupt("return");
-          case 4:
-            if (!customize) {
-              _context4.next = 19;
-              break;
-            }
-            // Close library and preview modals
-            libraryModal = document.getElementById('aie-snippets-library-modal');
-            previewModal = document.getElementById('aie-snippet-preview-modal');
-            if (libraryModal) {
-              libraryModal.style.display = 'none';
-            }
-            if (previewModal) {
-              previewModal.style.display = 'none';
-            }
-            document.body.style.overflow = '';
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee4() {
+      var customize, snippet, libraryModal, previewModal, editorModal, _window$aieData11, _window$aieData12, _window$aieData12$i, response, data, _data$data3;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee4$(_context4) {
+        while (1) {
+          switch (_context4.prev = _context4.next) {
+            case 0:
+              customize = _arguments2.length > 1 && _arguments2[1] !== undefined ? _arguments2[1] : false;
+              snippet = _this7.allSnippets[snippetKey];
+              if (snippet) {
+                _context4.next = 4;
+                break;
+              }
+              return _context4.abrupt("return");
+            case 4:
+              if (!customize) {
+                _context4.next = 19;
+                break;
+              }
+              // Close library and preview modals
+              libraryModal = document.getElementById('aie-snippets-library-modal');
+              previewModal = document.getElementById('aie-snippet-preview-modal');
+              if (libraryModal) {
+                libraryModal.style.display = 'none';
+              }
+              if (previewModal) {
+                previewModal.style.display = 'none';
+              }
+              document.body.style.overflow = '';
 
-            // Use the FunctionsModule method to open editor with snippet data
-            if (!(_this7.functionsModule && _this7.functionsModule.openEditorWithSnippet)) {
-              _context4.next = 15;
+              // Use the FunctionsModule method to open editor with snippet data
+              if (!(_this7.functionsModule && _this7.functionsModule.openEditorWithSnippet)) {
+                _context4.next = 15;
+                break;
+              }
+              _context4.next = 13;
+              return _this7.functionsModule.openEditorWithSnippet(snippet);
+            case 13:
+              _context4.next = 17;
               break;
-            }
-            _context4.next = 13;
-            return _this7.functionsModule.openEditorWithSnippet(snippet);
-          case 13:
-            _context4.next = 17;
-            break;
-          case 15:
-            // Fallback: Open editor directly (old method)
-            editorModal = document.getElementById('aie-function-editor-modal');
-            if (editorModal) {
-              // Clear any previous errors
-              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.clearModalErrors)();
-              document.getElementById('aie-function-id').value = '';
-              document.getElementById('aie-function-name').value = snippet.name;
-              document.getElementById('aie-function-description').value = snippet.description;
-              document.getElementById('aie-function-category').value = 'custom'; // Always use 'custom' category
-              document.getElementById('aie-function-code').value = snippet.code;
-              document.getElementById('aie-function-status').value = 'active';
-              document.querySelector('.aie-modal-title').textContent = 'Customize Function';
-              editorModal.style.display = 'flex';
-              document.body.style.overflow = 'hidden';
-            }
-          case 17:
-            _context4.next = 37;
-            break;
-          case 19:
-            _context4.prev = 19;
-            _context4.next = 22;
-            return fetch(window.aieData.ajaxUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-              },
-              body: new URLSearchParams({
-                action: 'aie_functions_import',
-                nonce: ((_window$aieData11 = window.aieData) === null || _window$aieData11 === void 0 ? void 0 : _window$aieData11.nonce) || '',
-                snippet_key: snippetKey
-              })
-            });
-          case 22:
-            response = _context4.sent;
-            _context4.next = 25;
-            return response.json();
-          case 25:
-            data = _context4.sent;
-            if (data.success) {
-              _context4.next = 28;
+            case 15:
+              // Fallback: Open editor directly (old method)
+              editorModal = document.getElementById('aie-function-editor-modal');
+              if (editorModal) {
+                // Clear any previous errors
+                (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.clearModalErrors)();
+                document.getElementById('aie-function-id').value = '';
+                document.getElementById('aie-function-name').value = snippet.name;
+                document.getElementById('aie-function-description').value = snippet.description;
+                document.getElementById('aie-function-category').value = 'custom'; // Always use 'custom' category
+                document.getElementById('aie-function-code').value = snippet.code;
+                document.getElementById('aie-function-status').value = 'active';
+                document.querySelector('.aie-modal-title').textContent = 'Customize Function';
+                editorModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+              }
+            case 17:
+              _context4.next = 37;
               break;
-            }
-            throw new Error(((_data$data3 = data.data) === null || _data$data3 === void 0 ? void 0 : _data$data3.message) || 'Import failed');
-          case 28:
-            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showNotice)(((_window$aieData12 = window.aieData) === null || _window$aieData12 === void 0 || (_window$aieData12 = _window$aieData12.i18n) === null || _window$aieData12 === void 0 ? void 0 : _window$aieData12.snippet_imported) || 'Snippet imported successfully');
-            document.body.style.overflow = '';
+            case 19:
+              _context4.prev = 19;
+              _context4.next = 22;
+              return fetch(window.aieData.ajaxUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                  action: 'aie_functions_import',
+                  nonce: ((_window$aieData11 = window.aieData) === null || _window$aieData11 === void 0 ? void 0 : _window$aieData11.nonce) || '',
+                  snippet_key: snippetKey
+                })
+              });
+            case 22:
+              response = _context4.sent;
+              _context4.next = 25;
+              return response.json();
+            case 25:
+              data = _context4.sent;
+              if (data.success) {
+                _context4.next = 28;
+                break;
+              }
+              throw new Error(((_data$data3 = data.data) === null || _data$data3 === void 0 ? void 0 : _data$data3.message) || 'Import failed');
+            case 28:
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showNotice)(((_window$aieData12 = window.aieData) === null || _window$aieData12 === void 0 ? void 0 : (_window$aieData12$i = _window$aieData12.i18n) === null || _window$aieData12$i === void 0 ? void 0 : _window$aieData12$i.snippet_imported) || 'Snippet imported successfully');
+              document.body.style.overflow = '';
 
-            // Refresh functions list
-            if (_this7.functionsModule) {
-              _this7.functionsModule.loadFunctions();
-            }
-            _context4.next = 37;
-            break;
-          case 33:
-            _context4.prev = 33;
-            _context4.t0 = _context4["catch"](19);
-            console.error('Error importing snippet:', _context4.t0);
-            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)(_context4.t0.message);
-          case 37:
-          case "end":
-            return _context4.stop();
+              // Refresh functions list
+              if (_this7.functionsModule) {
+                _this7.functionsModule.loadFunctions();
+              }
+              _context4.next = 37;
+              break;
+            case 33:
+              _context4.prev = 33;
+              _context4.t0 = _context4["catch"](19);
+              console.error('Error importing snippet:', _context4.t0);
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showError)(_context4.t0.message);
+            case 37:
+            case "end":
+              return _context4.stop();
+          }
         }
       }, _callee4, null, [[19, 33]]);
     }))();
@@ -7336,16 +7386,18 @@ var FunctionLibrary = {
   \*************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _utils_notifications__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/notifications */ "./src/js/utils/notifications.js");
-/* harmony import */ var _function_library__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./function_library */ "./src/js/modules/function_library.js");
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _utils_notifications__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/notifications */ "./src/js/utils/notifications.js");
+/* harmony import */ var _function_library__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./function_library */ "./src/js/modules/function_library.js");
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 /**
  * Custom Functions Management Module
  *
@@ -7375,7 +7427,7 @@ var FunctionsModule = {
     this.loadFunctions();
 
     // Initialize library module
-    _function_library__WEBPACK_IMPORTED_MODULE_1__["default"].init(this);
+    _function_library__WEBPACK_IMPORTED_MODULE_2__["default"].init(this);
   },
   /**
    * Bind event handlers
@@ -7391,18 +7443,18 @@ var FunctionsModule = {
       _document$querySelect6,
       _document$querySelect7;
     // New function button
-    (_document$querySelect = document.querySelector('.aie-new-function')) === null || _document$querySelect === void 0 || _document$querySelect.addEventListener('click', function () {
+    (_document$querySelect = document.querySelector('.aie-new-function')) === null || _document$querySelect === void 0 ? void 0 : _document$querySelect.addEventListener('click', function () {
       _this.openEditorModal();
     });
 
     // Browse library button
-    (_document$querySelect2 = document.querySelector('.aie-browse-library')) === null || _document$querySelect2 === void 0 || _document$querySelect2.addEventListener('click', function () {
-      _function_library__WEBPACK_IMPORTED_MODULE_1__["default"].openLibrary();
+    (_document$querySelect2 = document.querySelector('.aie-browse-library')) === null || _document$querySelect2 === void 0 ? void 0 : _document$querySelect2.addEventListener('click', function () {
+      _function_library__WEBPACK_IMPORTED_MODULE_2__["default"].openLibrary();
     });
 
     // Search with debounce
     var searchTimeout;
-    (_document$getElementB = document.getElementById('aie-filter-search')) === null || _document$getElementB === void 0 || _document$getElementB.addEventListener('input', function (e) {
+    (_document$getElementB = document.getElementById('aie-filter-search')) === null || _document$getElementB === void 0 ? void 0 : _document$getElementB.addEventListener('input', function (e) {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(function () {
         _this.filters.search = e.target.value;
@@ -7412,18 +7464,18 @@ var FunctionsModule = {
     });
 
     // Clear filters
-    (_document$querySelect3 = document.querySelector('.aie-filter-clear')) === null || _document$querySelect3 === void 0 || _document$querySelect3.addEventListener('click', function () {
+    (_document$querySelect3 = document.querySelector('.aie-filter-clear')) === null || _document$querySelect3 === void 0 ? void 0 : _document$querySelect3.addEventListener('click', function () {
       _this.clearFilters();
     });
 
     // Pagination
-    (_document$querySelect4 = document.querySelector('.aie-prev-page')) === null || _document$querySelect4 === void 0 || _document$querySelect4.addEventListener('click', function () {
+    (_document$querySelect4 = document.querySelector('.aie-prev-page')) === null || _document$querySelect4 === void 0 ? void 0 : _document$querySelect4.addEventListener('click', function () {
       if (_this.currentPage > 1) {
         _this.currentPage--;
         _this.loadFunctions();
       }
     });
-    (_document$querySelect5 = document.querySelector('.aie-next-page')) === null || _document$querySelect5 === void 0 || _document$querySelect5.addEventListener('click', function () {
+    (_document$querySelect5 = document.querySelector('.aie-next-page')) === null || _document$querySelect5 === void 0 ? void 0 : _document$querySelect5.addEventListener('click', function () {
       if (_this.currentPage < _this.totalPages) {
         _this.currentPage++;
         _this.loadFunctions();
@@ -7441,12 +7493,12 @@ var FunctionsModule = {
     });
 
     // Save function
-    (_document$querySelect6 = document.querySelector('.aie-save-function')) === null || _document$querySelect6 === void 0 || _document$querySelect6.addEventListener('click', function () {
+    (_document$querySelect6 = document.querySelector('.aie-save-function')) === null || _document$querySelect6 === void 0 ? void 0 : _document$querySelect6.addEventListener('click', function () {
       _this.saveFunction();
     });
 
     // Test function
-    (_document$querySelect7 = document.querySelector('.aie-test-function')) === null || _document$querySelect7 === void 0 || _document$querySelect7.addEventListener('click', function () {
+    (_document$querySelect7 = document.querySelector('.aie-test-function')) === null || _document$querySelect7 === void 0 ? void 0 : _document$querySelect7.addEventListener('click', function () {
       _this.testFunction();
     });
 
@@ -7465,62 +7517,64 @@ var FunctionsModule = {
    */
   loadFunctions: function loadFunctions() {
     var _this2 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
-      var _window$aieData;
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee() {
+      var _window$aieData, _window$aieData$i18n;
       var tbody, _window$aieData2, response, data, _data$data;
-      return _regeneratorRuntime().wrap(function _callee$(_context) {
-        while (1) switch (_context.prev = _context.next) {
-          case 0:
-            tbody = document.getElementById('aie-functions-tbody');
-            if (tbody) {
-              _context.next = 3;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              tbody = document.getElementById('aie-functions-tbody');
+              if (tbody) {
+                _context.next = 3;
+                break;
+              }
+              return _context.abrupt("return");
+            case 3:
+              // Show loading
+              tbody.innerHTML = "\n\t\t\t<tr class=\"aie-loading-row\">\n\t\t\t\t<td colspan=\"3\" style=\"text-align:center;\">\n\t\t\t\t\t<span class=\"spinner is-active\"></span>\n\t\t\t\t\t".concat(((_window$aieData = window.aieData) === null || _window$aieData === void 0 ? void 0 : (_window$aieData$i18n = _window$aieData.i18n) === null || _window$aieData$i18n === void 0 ? void 0 : _window$aieData$i18n.loading) || 'Loading...', "\n\t\t\t\t</td>\n\t\t\t</tr>\n\t\t");
+              _context.prev = 4;
+              _context.next = 7;
+              return fetch(window.aieData.ajaxUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                  action: 'aie_functions_get_all',
+                  nonce: ((_window$aieData2 = window.aieData) === null || _window$aieData2 === void 0 ? void 0 : _window$aieData2.nonce) || '',
+                  search: _this2.filters.search,
+                  page: _this2.currentPage,
+                  per_page: _this2.perPage
+                })
+              });
+            case 7:
+              response = _context.sent;
+              _context.next = 10;
+              return response.json();
+            case 10:
+              data = _context.sent;
+              if (data.success) {
+                _context.next = 13;
+                break;
+              }
+              throw new Error(data.message || ((_data$data = data.data) === null || _data$data === void 0 ? void 0 : _data$data.message) || 'Failed to load functions');
+            case 13:
+              _this2.totalPages = data.data.total_pages || 1;
+              _this2.totalItems = data.data.total || 0;
+              _this2.renderTable(data.data.functions || []);
+              _this2.updatePagination();
+              _context.next = 23;
               break;
-            }
-            return _context.abrupt("return");
-          case 3:
-            // Show loading
-            tbody.innerHTML = "\n\t\t\t<tr class=\"aie-loading-row\">\n\t\t\t\t<td colspan=\"3\" style=\"text-align:center;\">\n\t\t\t\t\t<span class=\"spinner is-active\"></span>\n\t\t\t\t\t".concat(((_window$aieData = window.aieData) === null || _window$aieData === void 0 || (_window$aieData = _window$aieData.i18n) === null || _window$aieData === void 0 ? void 0 : _window$aieData.loading) || 'Loading...', "\n\t\t\t\t</td>\n\t\t\t</tr>\n\t\t");
-            _context.prev = 4;
-            _context.next = 7;
-            return fetch(window.aieData.ajaxUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-              },
-              body: new URLSearchParams({
-                action: 'aie_functions_get_all',
-                nonce: ((_window$aieData2 = window.aieData) === null || _window$aieData2 === void 0 ? void 0 : _window$aieData2.nonce) || '',
-                search: _this2.filters.search,
-                page: _this2.currentPage,
-                per_page: _this2.perPage
-              })
-            });
-          case 7:
-            response = _context.sent;
-            _context.next = 10;
-            return response.json();
-          case 10:
-            data = _context.sent;
-            if (data.success) {
-              _context.next = 13;
-              break;
-            }
-            throw new Error(data.message || ((_data$data = data.data) === null || _data$data === void 0 ? void 0 : _data$data.message) || 'Failed to load functions');
-          case 13:
-            _this2.totalPages = data.data.total_pages || 1;
-            _this2.totalItems = data.data.total || 0;
-            _this2.renderTable(data.data.functions || []);
-            _this2.updatePagination();
-            _context.next = 23;
-            break;
-          case 19:
-            _context.prev = 19;
-            _context.t0 = _context["catch"](4);
-            console.error('Error loading functions:', _context.t0);
-            tbody.innerHTML = "\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan=\"4\" style=\"text-align:center; color:#dc3232;\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-warning\"></span>\n\t\t\t\t\t\t".concat(_context.t0.message, "\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
-          case 23:
-          case "end":
-            return _context.stop();
+            case 19:
+              _context.prev = 19;
+              _context.t0 = _context["catch"](4);
+              console.error('Error loading functions:', _context.t0);
+              tbody.innerHTML = "\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan=\"4\" style=\"text-align:center; color:#dc3232;\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-warning\"></span>\n\t\t\t\t\t\t".concat(_context.t0.message, "\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
+            case 23:
+            case "end":
+              return _context.stop();
+          }
         }
       }, _callee, null, [[4, 19]]);
     }))();
@@ -7535,8 +7589,8 @@ var FunctionsModule = {
       return;
     }
     if (functions.length === 0) {
-      var _window$aieData3;
-      tbody.innerHTML = "\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan=\"4\" style=\"text-align:center; padding:40px;\">\n\t\t\t\t\t\t<div style=\"display:flex; flex-direction:column; align-items:center; gap:10px;\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-info\" style=\"font-size:48px; opacity:0.3;\"></span>\n\t\t\t\t\t\t\t<p style=\"margin:23px 0 0 0; color:#666;\">\n\t\t\t\t\t\t\t\t".concat(((_window$aieData3 = window.aieData) === null || _window$aieData3 === void 0 || (_window$aieData3 = _window$aieData3.i18n) === null || _window$aieData3 === void 0 ? void 0 : _window$aieData3.no_functions) || 'No functions found. Create your first function or browse the library.', "\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
+      var _window$aieData3, _window$aieData3$i18n;
+      tbody.innerHTML = "\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan=\"4\" style=\"text-align:center; padding:40px;\">\n\t\t\t\t\t\t<div style=\"display:flex; flex-direction:column; align-items:center; gap:10px;\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-info\" style=\"font-size:48px; opacity:0.3;\"></span>\n\t\t\t\t\t\t\t<p style=\"margin:23px 0 0 0; color:#666;\">\n\t\t\t\t\t\t\t\t".concat(((_window$aieData3 = window.aieData) === null || _window$aieData3 === void 0 ? void 0 : (_window$aieData3$i18n = _window$aieData3.i18n) === null || _window$aieData3$i18n === void 0 ? void 0 : _window$aieData3$i18n.no_functions) || 'No functions found. Create your first function or browse the library.', "\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
       return;
     }
     tbody.innerHTML = functions.map(function (func) {
@@ -7552,23 +7606,25 @@ var FunctionsModule = {
     });
     tbody.querySelectorAll('.aie-delete-function').forEach(function (btn) {
       btn.addEventListener('click', /*#__PURE__*/function () {
-        var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(e) {
-          var _window$aieData4;
+        var _ref = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee2(e) {
+          var _window$aieData4, _window$aieData4$i18n;
           var id, confirmed;
-          return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-            while (1) switch (_context2.prev = _context2.next) {
-              case 0:
-                id = e.currentTarget.dataset.id;
-                _context2.next = 3;
-                return (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.confirmDialog)(((_window$aieData4 = window.aieData) === null || _window$aieData4 === void 0 || (_window$aieData4 = _window$aieData4.i18n) === null || _window$aieData4 === void 0 ? void 0 : _window$aieData4.confirm_delete) || 'Are you sure you want to delete this function?');
-              case 3:
-                confirmed = _context2.sent;
-                if (confirmed) {
-                  _this3.deleteFunction(id);
-                }
-              case 5:
-              case "end":
-                return _context2.stop();
+          return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee2$(_context2) {
+            while (1) {
+              switch (_context2.prev = _context2.next) {
+                case 0:
+                  id = e.currentTarget.dataset.id;
+                  _context2.next = 3;
+                  return (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.confirmDialog)(((_window$aieData4 = window.aieData) === null || _window$aieData4 === void 0 ? void 0 : (_window$aieData4$i18n = _window$aieData4.i18n) === null || _window$aieData4$i18n === void 0 ? void 0 : _window$aieData4$i18n.confirm_delete) || 'Are you sure you want to delete this function?');
+                case 3:
+                  confirmed = _context2.sent;
+                  if (confirmed) {
+                    _this3.deleteFunction(id);
+                  }
+                case 5:
+                case "end":
+                  return _context2.stop();
+              }
             }
           }, _callee2);
         }));
@@ -7611,140 +7667,142 @@ var FunctionsModule = {
   openEditorModal: function openEditorModal() {
     var _arguments = arguments,
       _this4 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
-      var functionId, modal, title, form, codeTextarea, _window$aieData5, _window$aieData6, response, data, _data$data2, func, _window$aieData7, defaultCode;
-      return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-        while (1) switch (_context3.prev = _context3.next) {
-          case 0:
-            functionId = _arguments.length > 0 && _arguments[0] !== undefined ? _arguments[0] : null;
-            modal = document.getElementById('aie-function-editor-modal');
-            title = modal.querySelector('.aie-modal-title');
-            form = document.getElementById('aie-function-form');
-            codeTextarea = document.getElementById('aie-function-code');
-            if (!(!modal || !form || !codeTextarea)) {
-              _context3.next = 7;
-              break;
-            }
-            return _context3.abrupt("return");
-          case 7:
-            // Clear previous errors
-            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.clearModalErrors)(modal);
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee3() {
+      var functionId, modal, title, form, codeTextarea, _window$aieData5, _window$aieData5$i18n, _window$aieData6, response, data, _data$data2, func, _window$aieData7, _window$aieData7$i18n, defaultCode;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee3$(_context3) {
+        while (1) {
+          switch (_context3.prev = _context3.next) {
+            case 0:
+              functionId = _arguments.length > 0 && _arguments[0] !== undefined ? _arguments[0] : null;
+              modal = document.getElementById('aie-function-editor-modal');
+              title = modal.querySelector('.aie-modal-title');
+              form = document.getElementById('aie-function-form');
+              codeTextarea = document.getElementById('aie-function-code');
+              if (!(!modal || !form || !codeTextarea)) {
+                _context3.next = 7;
+                break;
+              }
+              return _context3.abrupt("return");
+            case 7:
+              // Clear previous errors
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.clearModalErrors)(modal);
 
-            // Reset form
-            form.reset();
-            document.getElementById('aie-function-id').value = '';
-            document.querySelector('.aie-test-results').style.display = 'none';
+              // Reset form
+              form.reset();
+              document.getElementById('aie-function-id').value = '';
+              document.querySelector('.aie-test-results').style.display = 'none';
 
-            // Clear textarea directly
-            codeTextarea.value = '';
+              // Clear textarea directly
+              codeTextarea.value = '';
 
-            // Show modal and initialize CodeMirror FIRST (before loading data)
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
+              // Show modal and initialize CodeMirror FIRST (before loading data)
+              modal.style.display = 'flex';
+              document.body.style.overflow = 'hidden';
 
-            // Initialize CodeMirror for code editor if not already initialized
-            if (!_this4.codeEditor && window.wp && window.wp.codeEditor) {
-              _this4.codeEditor = window.wp.codeEditor.initialize(codeTextarea, {
-                codemirror: {
-                  mode: 'php',
-                  lineNumbers: true,
-                  lineWrapping: true,
-                  indentUnit: 4,
-                  indentWithTabs: true,
-                  autoCloseBrackets: true,
-                  matchBrackets: true,
-                  styleActiveLine: true,
-                  continueComments: true
-                }
-              });
-            }
-
-            // Clear CodeMirror content after initialization
-            if (_this4.codeEditor && _this4.codeEditor.codemirror) {
-              _this4.codeEditor.codemirror.setValue('');
-              // Force refresh
-              _this4.codeEditor.codemirror.clearHistory();
-            }
-            if (!functionId) {
-              _context3.next = 42;
-              break;
-            }
-            // Edit mode - load function data
-            title.textContent = ((_window$aieData5 = window.aieData) === null || _window$aieData5 === void 0 || (_window$aieData5 = _window$aieData5.i18n) === null || _window$aieData5 === void 0 ? void 0 : _window$aieData5.edit_function) || 'Edit Function';
-            _context3.prev = 18;
-            _context3.next = 21;
-            return fetch(window.aieData.ajaxUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-              },
-              body: new URLSearchParams({
-                action: 'aie_functions_get',
-                nonce: ((_window$aieData6 = window.aieData) === null || _window$aieData6 === void 0 ? void 0 : _window$aieData6.nonce) || '',
-                id: functionId
-              })
-            });
-          case 21:
-            response = _context3.sent;
-            _context3.next = 24;
-            return response.json();
-          case 24:
-            data = _context3.sent;
-            if (data.success) {
-              _context3.next = 27;
-              break;
-            }
-            throw new Error(data.message || ((_data$data2 = data.data) === null || _data$data2 === void 0 ? void 0 : _data$data2.message) || 'Failed to load function');
-          case 27:
-            func = data.data;
-            document.getElementById('aie-function-id').value = func.id;
-            document.getElementById('aie-function-name').value = func.name;
-            document.getElementById('aie-function-description').value = func.description || '';
-            // Category is now computed (library/custom) - don't set from data
-            // document.getElementById( 'aie-function-category' ).value = func.category;
-            document.getElementById('aie-function-status').value = func.status;
-
-            // Update CodeMirror with the loaded code
-            if (_this4.codeEditor && _this4.codeEditor.codemirror) {
-              _this4.codeEditor.codemirror.setValue(func.code || '');
-            } else {
-              // Fallback to textarea if CodeMirror not initialized
-              document.getElementById('aie-function-code').value = func.code || '';
-            }
-            _context3.next = 40;
-            break;
-          case 35:
-            _context3.prev = 35;
-            _context3.t0 = _context3["catch"](18);
-            console.error('Error loading function:', _context3.t0);
-            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(_context3.t0.message, modal);
-            return _context3.abrupt("return");
-          case 40:
-            _context3.next = 45;
-            break;
-          case 42:
-            // Create mode - add default PHP opening tag
-            title.textContent = ((_window$aieData7 = window.aieData) === null || _window$aieData7 === void 0 || (_window$aieData7 = _window$aieData7.i18n) === null || _window$aieData7 === void 0 ? void 0 : _window$aieData7.new_function) || 'New Function';
-
-            // Set default PHP code template
-            defaultCode = '<?php\n\n';
-            if (_this4.codeEditor && _this4.codeEditor.codemirror) {
-              _this4.codeEditor.codemirror.setValue(defaultCode);
-              // Position cursor after the opening tag and empty lines
-              setTimeout(function () {
-                _this4.codeEditor.codemirror.setCursor({
-                  line: 2,
-                  ch: 0
+              // Initialize CodeMirror for code editor if not already initialized
+              if (!_this4.codeEditor && window.wp && window.wp.codeEditor) {
+                _this4.codeEditor = window.wp.codeEditor.initialize(codeTextarea, {
+                  codemirror: {
+                    mode: 'php',
+                    lineNumbers: true,
+                    lineWrapping: true,
+                    indentUnit: 4,
+                    indentWithTabs: true,
+                    autoCloseBrackets: true,
+                    matchBrackets: true,
+                    styleActiveLine: true,
+                    continueComments: true
+                  }
                 });
-                _this4.codeEditor.codemirror.focus();
-              }, 100);
-            } else {
-              // Fallback to textarea if CodeMirror not initialized
-              codeTextarea.value = defaultCode;
-            }
-          case 45:
-          case "end":
-            return _context3.stop();
+              }
+
+              // Clear CodeMirror content after initialization
+              if (_this4.codeEditor && _this4.codeEditor.codemirror) {
+                _this4.codeEditor.codemirror.setValue('');
+                // Force refresh
+                _this4.codeEditor.codemirror.clearHistory();
+              }
+              if (!functionId) {
+                _context3.next = 42;
+                break;
+              }
+              // Edit mode - load function data
+              title.textContent = ((_window$aieData5 = window.aieData) === null || _window$aieData5 === void 0 ? void 0 : (_window$aieData5$i18n = _window$aieData5.i18n) === null || _window$aieData5$i18n === void 0 ? void 0 : _window$aieData5$i18n.edit_function) || 'Edit Function';
+              _context3.prev = 18;
+              _context3.next = 21;
+              return fetch(window.aieData.ajaxUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                  action: 'aie_functions_get',
+                  nonce: ((_window$aieData6 = window.aieData) === null || _window$aieData6 === void 0 ? void 0 : _window$aieData6.nonce) || '',
+                  id: functionId
+                })
+              });
+            case 21:
+              response = _context3.sent;
+              _context3.next = 24;
+              return response.json();
+            case 24:
+              data = _context3.sent;
+              if (data.success) {
+                _context3.next = 27;
+                break;
+              }
+              throw new Error(data.message || ((_data$data2 = data.data) === null || _data$data2 === void 0 ? void 0 : _data$data2.message) || 'Failed to load function');
+            case 27:
+              func = data.data;
+              document.getElementById('aie-function-id').value = func.id;
+              document.getElementById('aie-function-name').value = func.name;
+              document.getElementById('aie-function-description').value = func.description || '';
+              // Category is now computed (library/custom) - don't set from data
+              // document.getElementById( 'aie-function-category' ).value = func.category;
+              document.getElementById('aie-function-status').value = func.status;
+
+              // Update CodeMirror with the loaded code
+              if (_this4.codeEditor && _this4.codeEditor.codemirror) {
+                _this4.codeEditor.codemirror.setValue(func.code || '');
+              } else {
+                // Fallback to textarea if CodeMirror not initialized
+                document.getElementById('aie-function-code').value = func.code || '';
+              }
+              _context3.next = 40;
+              break;
+            case 35:
+              _context3.prev = 35;
+              _context3.t0 = _context3["catch"](18);
+              console.error('Error loading function:', _context3.t0);
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(_context3.t0.message, modal);
+              return _context3.abrupt("return");
+            case 40:
+              _context3.next = 45;
+              break;
+            case 42:
+              // Create mode - add default PHP opening tag
+              title.textContent = ((_window$aieData7 = window.aieData) === null || _window$aieData7 === void 0 ? void 0 : (_window$aieData7$i18n = _window$aieData7.i18n) === null || _window$aieData7$i18n === void 0 ? void 0 : _window$aieData7$i18n.new_function) || 'New Function';
+
+              // Set default PHP code template
+              defaultCode = '<?php\n\n';
+              if (_this4.codeEditor && _this4.codeEditor.codemirror) {
+                _this4.codeEditor.codemirror.setValue(defaultCode);
+                // Position cursor after the opening tag and empty lines
+                setTimeout(function () {
+                  _this4.codeEditor.codemirror.setCursor({
+                    line: 2,
+                    ch: 0
+                  });
+                  _this4.codeEditor.codemirror.focus();
+                }, 100);
+              } else {
+                // Fallback to textarea if CodeMirror not initialized
+                codeTextarea.value = defaultCode;
+              }
+            case 45:
+            case "end":
+              return _context3.stop();
+          }
         }
       }, _callee3, null, [[18, 35]]);
     }))();
@@ -7754,79 +7812,81 @@ var FunctionsModule = {
    */
   openEditorWithSnippet: function openEditorWithSnippet(snippetData) {
     var _this5 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee4() {
       var modal, title, form, codeTextarea, code;
-      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-        while (1) switch (_context4.prev = _context4.next) {
-          case 0:
-            modal = document.getElementById('aie-function-editor-modal');
-            title = modal.querySelector('.aie-modal-title');
-            form = document.getElementById('aie-function-form');
-            codeTextarea = document.getElementById('aie-function-code');
-            if (!(!modal || !form || !codeTextarea)) {
-              _context4.next = 6;
-              break;
-            }
-            return _context4.abrupt("return");
-          case 6:
-            // Clear previous errors
-            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.clearModalErrors)(modal);
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee4$(_context4) {
+        while (1) {
+          switch (_context4.prev = _context4.next) {
+            case 0:
+              modal = document.getElementById('aie-function-editor-modal');
+              title = modal.querySelector('.aie-modal-title');
+              form = document.getElementById('aie-function-form');
+              codeTextarea = document.getElementById('aie-function-code');
+              if (!(!modal || !form || !codeTextarea)) {
+                _context4.next = 6;
+                break;
+              }
+              return _context4.abrupt("return");
+            case 6:
+              // Clear previous errors
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.clearModalErrors)(modal);
 
-            // Reset form
-            form.reset();
-            document.getElementById('aie-function-id').value = '';
-            document.querySelector('.aie-test-results').style.display = 'none';
+              // Reset form
+              form.reset();
+              document.getElementById('aie-function-id').value = '';
+              document.querySelector('.aie-test-results').style.display = 'none';
 
-            // Show modal FIRST
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
+              // Show modal FIRST
+              modal.style.display = 'flex';
+              document.body.style.overflow = 'hidden';
 
-            // Initialize CodeMirror if not already initialized
-            if (!_this5.codeEditor && window.wp && window.wp.codeEditor) {
-              _this5.codeEditor = window.wp.codeEditor.initialize(codeTextarea, {
-                codemirror: {
-                  mode: 'php',
-                  lineNumbers: true,
-                  lineWrapping: true,
-                  indentUnit: 4,
-                  indentWithTabs: true,
-                  autoCloseBrackets: true,
-                  matchBrackets: true,
-                  styleActiveLine: true,
-                  continueComments: true
-                }
-              });
-            }
+              // Initialize CodeMirror if not already initialized
+              if (!_this5.codeEditor && window.wp && window.wp.codeEditor) {
+                _this5.codeEditor = window.wp.codeEditor.initialize(codeTextarea, {
+                  codemirror: {
+                    mode: 'php',
+                    lineNumbers: true,
+                    lineWrapping: true,
+                    indentUnit: 4,
+                    indentWithTabs: true,
+                    autoCloseBrackets: true,
+                    matchBrackets: true,
+                    styleActiveLine: true,
+                    continueComments: true
+                  }
+                });
+              }
 
-            // Set title
-            title.textContent = 'Customize Function';
+              // Set title
+              title.textContent = 'Customize Function';
 
-            // Fill form with snippet data - always use 'custom' category
-            document.getElementById('aie-function-name').value = snippetData.name || '';
-            document.getElementById('aie-function-description').value = snippetData.description || '';
-            document.getElementById('aie-function-category').value = 'custom';
-            document.getElementById('aie-function-status').value = 'active';
+              // Fill form with snippet data - always use 'custom' category
+              document.getElementById('aie-function-name').value = snippetData.name || '';
+              document.getElementById('aie-function-description').value = snippetData.description || '';
+              document.getElementById('aie-function-category').value = 'custom';
+              document.getElementById('aie-function-status').value = 'active';
 
-            // Prepare code with <?php opening tag
-            code = snippetData.code || ''; // Only add <?php if it doesn't already start with it
-            if (code && !code.trim().startsWith('<?php') && !code.trim().startsWith('<?')) {
-              code = '<?php\n\n' + code;
-            }
+              // Prepare code with <?php opening tag
+              code = snippetData.code || ''; // Only add <?php if it doesn't already start with it
+              if (code && !code.trim().startsWith('<?php') && !code.trim().startsWith('<?')) {
+                code = '<?php\n\n' + code;
+              }
 
-            // Set code in CodeMirror
-            if (_this5.codeEditor && _this5.codeEditor.codemirror) {
-              _this5.codeEditor.codemirror.setValue(code);
-              // Force refresh to ensure proper rendering
-              setTimeout(function () {
-                _this5.codeEditor.codemirror.refresh();
-              }, 100);
-            } else {
-              // Fallback to textarea if CodeMirror not initialized
-              codeTextarea.value = code;
-            }
-          case 21:
-          case "end":
-            return _context4.stop();
+              // Set code in CodeMirror
+              if (_this5.codeEditor && _this5.codeEditor.codemirror) {
+                _this5.codeEditor.codemirror.setValue(code);
+                // Force refresh to ensure proper rendering
+                setTimeout(function () {
+                  _this5.codeEditor.codemirror.refresh();
+                }, 100);
+              } else {
+                // Fallback to textarea if CodeMirror not initialized
+                codeTextarea.value = code;
+              }
+            case 21:
+            case "end":
+              return _context4.stop();
+          }
         }
       }, _callee4);
     }))();
@@ -7843,126 +7903,128 @@ var FunctionsModule = {
    */
   saveFunction: function saveFunction() {
     var _this6 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee5() {
       var _window$aieData11;
-      var codeTextarea, code, name, category, _window$aieData8, _window$aieData9, _window$aieData10, functionId, formData, _window$aieData12, response, contentType, text, data, _data$data3, modal, errorMessage;
-      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-        while (1) switch (_context5.prev = _context5.next) {
-          case 0:
-            // Clear any previous modal errors
-            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.clearModalErrors)();
+      var codeTextarea, code, name, category, _window$aieData8, _window$aieData8$i18n, _window$aieData9, _window$aieData9$i18n, _window$aieData10, _window$aieData10$i, functionId, formData, _window$aieData12, _window$aieData12$i, response, contentType, text, data, _data$data3, modal, errorMessage;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee5$(_context5) {
+        while (1) {
+          switch (_context5.prev = _context5.next) {
+            case 0:
+              // Clear any previous modal errors
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.clearModalErrors)();
 
-            // Get code from CodeMirror if initialized and sync with textarea
-            codeTextarea = document.getElementById('aie-function-code');
-            code = codeTextarea.value;
-            if (_this6.codeEditor && _this6.codeEditor.codemirror) {
-              code = _this6.codeEditor.codemirror.getValue();
-              // Sync CodeMirror value back to textarea for validation
-              codeTextarea.value = code;
-            }
+              // Get code from CodeMirror if initialized and sync with textarea
+              codeTextarea = document.getElementById('aie-function-code');
+              code = codeTextarea.value;
+              if (_this6.codeEditor && _this6.codeEditor.codemirror) {
+                code = _this6.codeEditor.codemirror.getValue();
+                // Sync CodeMirror value back to textarea for validation
+                codeTextarea.value = code;
+              }
 
-            // Manual validation with user-friendly messages
-            name = document.getElementById('aie-function-name').value.trim();
-            category = document.getElementById('aie-function-category').value;
-            if (name) {
-              _context5.next = 10;
+              // Manual validation with user-friendly messages
+              name = document.getElementById('aie-function-name').value.trim();
+              category = document.getElementById('aie-function-category').value;
+              if (name) {
+                _context5.next = 10;
+                break;
+              }
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(((_window$aieData8 = window.aieData) === null || _window$aieData8 === void 0 ? void 0 : (_window$aieData8$i18n = _window$aieData8.i18n) === null || _window$aieData8$i18n === void 0 ? void 0 : _window$aieData8$i18n.name_required) || 'Please enter a function name.');
+              document.getElementById('aie-function-name').focus();
+              return _context5.abrupt("return");
+            case 10:
+              if (code.trim()) {
+                _context5.next = 14;
+                break;
+              }
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(((_window$aieData9 = window.aieData) === null || _window$aieData9 === void 0 ? void 0 : (_window$aieData9$i18n = _window$aieData9.i18n) === null || _window$aieData9$i18n === void 0 ? void 0 : _window$aieData9$i18n.code_required) || 'Please enter the PHP code for your function.');
+              // Focus on CodeMirror if available, otherwise on textarea
+              if (_this6.codeEditor && _this6.codeEditor.codemirror) {
+                _this6.codeEditor.codemirror.focus();
+              } else {
+                codeTextarea.focus();
+              }
+              return _context5.abrupt("return");
+            case 14:
+              if (category) {
+                _context5.next = 18;
+                break;
+              }
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(((_window$aieData10 = window.aieData) === null || _window$aieData10 === void 0 ? void 0 : (_window$aieData10$i = _window$aieData10.i18n) === null || _window$aieData10$i === void 0 ? void 0 : _window$aieData10$i.category_required) || 'Please select a category.');
+              document.getElementById('aie-function-category').focus();
+              return _context5.abrupt("return");
+            case 18:
+              // Normalize PHP code (add <?php if missing and wrap if needed)
+              code = _this6.normalizePhpCode(code);
+              functionId = document.getElementById('aie-function-id').value; // Use FormData instead of URLSearchParams to preserve newlines
+              formData = new FormData();
+              formData.append('action', functionId ? 'aie_functions_update' : 'aie_functions_create');
+              formData.append('nonce', ((_window$aieData11 = window.aieData) === null || _window$aieData11 === void 0 ? void 0 : _window$aieData11.nonce) || '');
+              formData.append('name', document.getElementById('aie-function-name').value);
+              formData.append('description', document.getElementById('aie-function-description').value);
+              formData.append('category', document.getElementById('aie-function-category').value);
+              formData.append('code', code);
+              formData.append('status', document.getElementById('aie-function-status').value);
+              if (functionId) {
+                formData.append('id', functionId);
+              }
+              _context5.prev = 29;
+              _context5.next = 32;
+              return fetch(window.aieData.ajaxUrl, {
+                method: 'POST',
+                body: formData
+              });
+            case 32:
+              response = _context5.sent;
+              // Check if response is JSON
+              contentType = response.headers.get('content-type');
+              if (!(!contentType || !contentType.includes('application/json'))) {
+                _context5.next = 40;
+                break;
+              }
+              _context5.next = 37;
+              return response.text();
+            case 37:
+              text = _context5.sent;
+              console.error('Non-JSON response:', text);
+              throw new Error('Server error: The function code contains errors that prevent it from being saved. Please check your PHP syntax.');
+            case 40:
+              _context5.next = 42;
+              return response.json();
+            case 42:
+              data = _context5.sent;
+              if (data.success) {
+                _context5.next = 46;
+                break;
+              }
+              console.error('Server response error:', data);
+              throw new Error(data.message || ((_data$data3 = data.data) === null || _data$data3 === void 0 ? void 0 : _data$data3.message) || 'Failed to save function');
+            case 46:
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showNotice)(((_window$aieData12 = window.aieData) === null || _window$aieData12 === void 0 ? void 0 : (_window$aieData12$i = _window$aieData12.i18n) === null || _window$aieData12$i === void 0 ? void 0 : _window$aieData12$i.function_saved) || 'Function saved successfully');
+              _this6.closeModal(document.getElementById('aie-function-editor-modal'));
+              _this6.loadFunctions();
+              _context5.next = 60;
               break;
-            }
-            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(((_window$aieData8 = window.aieData) === null || _window$aieData8 === void 0 || (_window$aieData8 = _window$aieData8.i18n) === null || _window$aieData8 === void 0 ? void 0 : _window$aieData8.name_required) || 'Please enter a function name.');
-            document.getElementById('aie-function-name').focus();
-            return _context5.abrupt("return");
-          case 10:
-            if (code.trim()) {
-              _context5.next = 14;
-              break;
-            }
-            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(((_window$aieData9 = window.aieData) === null || _window$aieData9 === void 0 || (_window$aieData9 = _window$aieData9.i18n) === null || _window$aieData9 === void 0 ? void 0 : _window$aieData9.code_required) || 'Please enter the PHP code for your function.');
-            // Focus on CodeMirror if available, otherwise on textarea
-            if (_this6.codeEditor && _this6.codeEditor.codemirror) {
-              _this6.codeEditor.codemirror.focus();
-            } else {
-              codeTextarea.focus();
-            }
-            return _context5.abrupt("return");
-          case 14:
-            if (category) {
-              _context5.next = 18;
-              break;
-            }
-            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(((_window$aieData10 = window.aieData) === null || _window$aieData10 === void 0 || (_window$aieData10 = _window$aieData10.i18n) === null || _window$aieData10 === void 0 ? void 0 : _window$aieData10.category_required) || 'Please select a category.');
-            document.getElementById('aie-function-category').focus();
-            return _context5.abrupt("return");
-          case 18:
-            // Normalize PHP code (add <?php if missing and wrap if needed)
-            code = _this6.normalizePhpCode(code);
-            functionId = document.getElementById('aie-function-id').value; // Use FormData instead of URLSearchParams to preserve newlines
-            formData = new FormData();
-            formData.append('action', functionId ? 'aie_functions_update' : 'aie_functions_create');
-            formData.append('nonce', ((_window$aieData11 = window.aieData) === null || _window$aieData11 === void 0 ? void 0 : _window$aieData11.nonce) || '');
-            formData.append('name', document.getElementById('aie-function-name').value);
-            formData.append('description', document.getElementById('aie-function-description').value);
-            formData.append('category', document.getElementById('aie-function-category').value);
-            formData.append('code', code);
-            formData.append('status', document.getElementById('aie-function-status').value);
-            if (functionId) {
-              formData.append('id', functionId);
-            }
-            _context5.prev = 29;
-            _context5.next = 32;
-            return fetch(window.aieData.ajaxUrl, {
-              method: 'POST',
-              body: formData
-            });
-          case 32:
-            response = _context5.sent;
-            // Check if response is JSON
-            contentType = response.headers.get('content-type');
-            if (!(!contentType || !contentType.includes('application/json'))) {
-              _context5.next = 40;
-              break;
-            }
-            _context5.next = 37;
-            return response.text();
-          case 37:
-            text = _context5.sent;
-            console.error('Non-JSON response:', text);
-            throw new Error('Server error: The function code contains errors that prevent it from being saved. Please check your PHP syntax.');
-          case 40:
-            _context5.next = 42;
-            return response.json();
-          case 42:
-            data = _context5.sent;
-            if (data.success) {
-              _context5.next = 46;
-              break;
-            }
-            console.error('Server response error:', data);
-            throw new Error(data.message || ((_data$data3 = data.data) === null || _data$data3 === void 0 ? void 0 : _data$data3.message) || 'Failed to save function');
-          case 46:
-            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showNotice)(((_window$aieData12 = window.aieData) === null || _window$aieData12 === void 0 || (_window$aieData12 = _window$aieData12.i18n) === null || _window$aieData12 === void 0 ? void 0 : _window$aieData12.function_saved) || 'Function saved successfully');
-            _this6.closeModal(document.getElementById('aie-function-editor-modal'));
-            _this6.loadFunctions();
-            _context5.next = 60;
-            break;
-          case 51:
-            _context5.prev = 51;
-            _context5.t0 = _context5["catch"](29);
-            console.error('Error saving function:', _context5.t0);
-            console.error('Error message:', _context5.t0.message);
-            modal = document.getElementById('aie-function-editor-modal'); // Improve error message for JSON parse errors
-            errorMessage = _context5.t0.message;
-            if (errorMessage.includes('Unexpected token') || errorMessage.includes('is not valid JSON')) {
-              errorMessage = 'Server error: Unable to save function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
-            }
-            console.log('Final error message:', errorMessage);
-            if (modal && modal.style.display === 'flex') {
-              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(errorMessage, modal);
-            } else {
-              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)(errorMessage);
-            }
-          case 60:
-          case "end":
-            return _context5.stop();
+            case 51:
+              _context5.prev = 51;
+              _context5.t0 = _context5["catch"](29);
+              console.error('Error saving function:', _context5.t0);
+              console.error('Error message:', _context5.t0.message);
+              modal = document.getElementById('aie-function-editor-modal'); // Improve error message for JSON parse errors
+              errorMessage = _context5.t0.message;
+              if (errorMessage.includes('Unexpected token') || errorMessage.includes('is not valid JSON')) {
+                errorMessage = 'Server error: Unable to save function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
+              }
+              console.log('Final error message:', errorMessage);
+              if (modal && modal.style.display === 'flex') {
+                (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(errorMessage, modal);
+              } else {
+                (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showError)(errorMessage);
+              }
+            case 60:
+            case "end":
+              return _context5.stop();
+          }
         }
       }, _callee5, null, [[29, 51]]);
     }))();
@@ -7972,48 +8034,50 @@ var FunctionsModule = {
    */
   deleteFunction: function deleteFunction(functionId) {
     var _this7 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
-      var _window$aieData13, _window$aieData14, response, data, _data$data4;
-      return _regeneratorRuntime().wrap(function _callee6$(_context6) {
-        while (1) switch (_context6.prev = _context6.next) {
-          case 0:
-            _context6.prev = 0;
-            _context6.next = 3;
-            return fetch(window.aieData.ajaxUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-              },
-              body: new URLSearchParams({
-                action: 'aie_functions_delete',
-                nonce: ((_window$aieData13 = window.aieData) === null || _window$aieData13 === void 0 ? void 0 : _window$aieData13.nonce) || '',
-                id: functionId
-              })
-            });
-          case 3:
-            response = _context6.sent;
-            _context6.next = 6;
-            return response.json();
-          case 6:
-            data = _context6.sent;
-            if (data.success) {
-              _context6.next = 9;
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee6() {
+      var _window$aieData13, _window$aieData14, _window$aieData14$i, response, data, _data$data4;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee6$(_context6) {
+        while (1) {
+          switch (_context6.prev = _context6.next) {
+            case 0:
+              _context6.prev = 0;
+              _context6.next = 3;
+              return fetch(window.aieData.ajaxUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                  action: 'aie_functions_delete',
+                  nonce: ((_window$aieData13 = window.aieData) === null || _window$aieData13 === void 0 ? void 0 : _window$aieData13.nonce) || '',
+                  id: functionId
+                })
+              });
+            case 3:
+              response = _context6.sent;
+              _context6.next = 6;
+              return response.json();
+            case 6:
+              data = _context6.sent;
+              if (data.success) {
+                _context6.next = 9;
+                break;
+              }
+              throw new Error(data.message || ((_data$data4 = data.data) === null || _data$data4 === void 0 ? void 0 : _data$data4.message) || 'Failed to delete function');
+            case 9:
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showNotice)(((_window$aieData14 = window.aieData) === null || _window$aieData14 === void 0 ? void 0 : (_window$aieData14$i = _window$aieData14.i18n) === null || _window$aieData14$i === void 0 ? void 0 : _window$aieData14$i.function_deleted) || 'Function deleted successfully');
+              _this7.loadFunctions();
+              _context6.next = 17;
               break;
-            }
-            throw new Error(data.message || ((_data$data4 = data.data) === null || _data$data4 === void 0 ? void 0 : _data$data4.message) || 'Failed to delete function');
-          case 9:
-            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showNotice)(((_window$aieData14 = window.aieData) === null || _window$aieData14 === void 0 || (_window$aieData14 = _window$aieData14.i18n) === null || _window$aieData14 === void 0 ? void 0 : _window$aieData14.function_deleted) || 'Function deleted successfully');
-            _this7.loadFunctions();
-            _context6.next = 17;
-            break;
-          case 13:
-            _context6.prev = 13;
-            _context6.t0 = _context6["catch"](0);
-            console.error('Error deleting function:', _context6.t0);
-            (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)(_context6.t0.message);
-          case 17:
-          case "end":
-            return _context6.stop();
+            case 13:
+              _context6.prev = 13;
+              _context6.t0 = _context6["catch"](0);
+              console.error('Error deleting function:', _context6.t0);
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showError)(_context6.t0.message);
+            case 17:
+            case "end":
+              return _context6.stop();
+          }
         }
       }, _callee6, null, [[0, 13]]);
     }))();
@@ -8023,102 +8087,104 @@ var FunctionsModule = {
    */
   testFunction: function testFunction() {
     var _this8 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee7() {
       var code, testValueInput, testValue, resultsDiv, modal, _window$aieData15, formData, response, contentType, text, data, _data$data5, errorMessage;
-      return _regeneratorRuntime().wrap(function _callee7$(_context7) {
-        while (1) switch (_context7.prev = _context7.next) {
-          case 0:
-            // Get code from CodeMirror if initialized
-            code = document.getElementById('aie-function-code').value;
-            if (_this8.codeEditor && _this8.codeEditor.codemirror) {
-              code = _this8.codeEditor.codemirror.getValue();
-            }
-            testValueInput = document.getElementById('aie-test-value');
-            testValue = testValueInput.value;
-            resultsDiv = document.querySelector('.aie-test-results');
-            modal = document.getElementById('aie-function-editor-modal');
-            if (code) {
-              _context7.next = 9;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee7$(_context7) {
+        while (1) {
+          switch (_context7.prev = _context7.next) {
+            case 0:
+              // Get code from CodeMirror if initialized
+              code = document.getElementById('aie-function-code').value;
+              if (_this8.codeEditor && _this8.codeEditor.codemirror) {
+                code = _this8.codeEditor.codemirror.getValue();
+              }
+              testValueInput = document.getElementById('aie-test-value');
+              testValue = testValueInput.value;
+              resultsDiv = document.querySelector('.aie-test-results');
+              modal = document.getElementById('aie-function-editor-modal');
+              if (code) {
+                _context7.next = 9;
+                break;
+              }
+              if (modal && modal.style.display === 'flex') {
+                (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)('Please enter function code first', modal);
+              } else {
+                (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showError)('Please enter function code first');
+              }
+              return _context7.abrupt("return");
+            case 9:
+              if (!(!testValue || !testValue.trim())) {
+                _context7.next = 13;
+                break;
+              }
+              testValueInput.focus();
+              testValueInput.select();
+              return _context7.abrupt("return");
+            case 13:
+              // Normalize PHP code (add <?php if missing)
+              code = _this8.normalizePhpCode(code);
+              _context7.prev = 14;
+              // Use FormData to preserve newlines
+              formData = new FormData();
+              formData.append('action', 'aie_functions_test');
+              formData.append('nonce', ((_window$aieData15 = window.aieData) === null || _window$aieData15 === void 0 ? void 0 : _window$aieData15.nonce) || '');
+              formData.append('code', code);
+              formData.append('value', testValue);
+              _context7.next = 22;
+              return fetch(window.aieData.ajaxUrl, {
+                method: 'POST',
+                body: formData
+              });
+            case 22:
+              response = _context7.sent;
+              // Check if response is JSON
+              contentType = response.headers.get('content-type');
+              if (!(!contentType || !contentType.includes('application/json'))) {
+                _context7.next = 30;
+                break;
+              }
+              _context7.next = 27;
+              return response.text();
+            case 27:
+              text = _context7.sent;
+              console.error('Non-JSON response:', text);
+              throw new Error('Server error: The function code contains errors. Please check your PHP syntax.');
+            case 30:
+              _context7.next = 32;
+              return response.json();
+            case 32:
+              data = _context7.sent;
+              if (data.success) {
+                _context7.next = 35;
+                break;
+              }
+              throw new Error(data.message || ((_data$data5 = data.data) === null || _data$data5 === void 0 ? void 0 : _data$data5.message) || 'Test failed');
+            case 35:
+              // Show results
+              document.querySelector('.aie-test-input').textContent = data.data.input !== undefined ? data.data.input : testValue;
+              document.querySelector('.aie-test-output').textContent = data.data.output !== undefined ? data.data.output : '';
+              resultsDiv.style.display = 'block';
+              _context7.next = 46;
               break;
-            }
-            if (modal && modal.style.display === 'flex') {
-              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)('Please enter function code first', modal);
-            } else {
-              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)('Please enter function code first');
-            }
-            return _context7.abrupt("return");
-          case 9:
-            if (!(!testValue || !testValue.trim())) {
-              _context7.next = 13;
-              break;
-            }
-            testValueInput.focus();
-            testValueInput.select();
-            return _context7.abrupt("return");
-          case 13:
-            // Normalize PHP code (add <?php if missing)
-            code = _this8.normalizePhpCode(code);
-            _context7.prev = 14;
-            // Use FormData to preserve newlines
-            formData = new FormData();
-            formData.append('action', 'aie_functions_test');
-            formData.append('nonce', ((_window$aieData15 = window.aieData) === null || _window$aieData15 === void 0 ? void 0 : _window$aieData15.nonce) || '');
-            formData.append('code', code);
-            formData.append('value', testValue);
-            _context7.next = 22;
-            return fetch(window.aieData.ajaxUrl, {
-              method: 'POST',
-              body: formData
-            });
-          case 22:
-            response = _context7.sent;
-            // Check if response is JSON
-            contentType = response.headers.get('content-type');
-            if (!(!contentType || !contentType.includes('application/json'))) {
-              _context7.next = 30;
-              break;
-            }
-            _context7.next = 27;
-            return response.text();
-          case 27:
-            text = _context7.sent;
-            console.error('Non-JSON response:', text);
-            throw new Error('Server error: The function code contains errors. Please check your PHP syntax.');
-          case 30:
-            _context7.next = 32;
-            return response.json();
-          case 32:
-            data = _context7.sent;
-            if (data.success) {
-              _context7.next = 35;
-              break;
-            }
-            throw new Error(data.message || ((_data$data5 = data.data) === null || _data$data5 === void 0 ? void 0 : _data$data5.message) || 'Test failed');
-          case 35:
-            // Show results
-            document.querySelector('.aie-test-input').textContent = data.data.input !== undefined ? data.data.input : testValue;
-            document.querySelector('.aie-test-output').textContent = data.data.output !== undefined ? data.data.output : '';
-            resultsDiv.style.display = 'block';
-            _context7.next = 46;
-            break;
-          case 40:
-            _context7.prev = 40;
-            _context7.t0 = _context7["catch"](14);
-            console.error('Error testing function:', _context7.t0);
+            case 40:
+              _context7.prev = 40;
+              _context7.t0 = _context7["catch"](14);
+              console.error('Error testing function:', _context7.t0);
 
-            // Improve error message for JSON parse errors
-            errorMessage = _context7.t0.message;
-            if (errorMessage.includes('Unexpected token') || errorMessage.includes('is not valid JSON')) {
-              errorMessage = 'Server error: Unable to test function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
-            }
-            if (modal && modal.style.display === 'flex') {
-              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showModalError)(errorMessage, modal);
-            } else {
-              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_0__.showError)(errorMessage);
-            }
-          case 46:
-          case "end":
-            return _context7.stop();
+              // Improve error message for JSON parse errors
+              errorMessage = _context7.t0.message;
+              if (errorMessage.includes('Unexpected token') || errorMessage.includes('is not valid JSON')) {
+                errorMessage = 'Server error: Unable to test function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
+              }
+              if (modal && modal.style.display === 'flex') {
+                (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(errorMessage, modal);
+              } else {
+                (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showError)(errorMessage);
+              }
+            case 46:
+            case "end":
+              return _context7.stop();
+          }
         }
       }, _callee7, null, [[14, 40]]);
     }))();
@@ -8226,22 +8292,25 @@ var FunctionsModule = {
   \**********************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/js/modules/utils.js");
-/* harmony import */ var _FileUploader__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./FileUploader */ "./src/js/modules/FileUploader.js");
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./src/js/modules/utils.js");
+/* harmony import */ var _FileUploader__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./FileUploader */ "./src/js/modules/FileUploader.js");
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 /**
  * Import Module
  *
@@ -8317,6 +8386,30 @@ var ImportModule = {
       }
     });
 
+    // CSV delimiter options
+    $wizard.on('change', '#csv_delimiter', function (e) {
+      _this.onDelimiterChange(e);
+      // Reload preview if file is already uploaded
+      if (_this.fileData && _this.fileData.file_path) {
+        _this.reloadFilePreview();
+      }
+    });
+    $wizard.on('input', '#csv_custom_delimiter', function () {
+      _this.validateCustomDelimiter();
+    });
+    $wizard.on('blur', '#csv_custom_delimiter', function () {
+      // Reload preview when custom delimiter is finalized
+      if (_this.fileData && _this.fileData.file_path) {
+        _this.reloadFilePreview();
+      }
+    });
+    $wizard.on('change', 'input[name="csv_has_header"]', function () {
+      // Reload preview when has_header changes
+      if (_this.fileData && _this.fileData.file_path) {
+        _this.reloadFilePreview();
+      }
+    });
+
     // Field mapping
     $wizard.on('click', '.aie-auto-map', function () {
       return _this.autoMapFields();
@@ -8370,7 +8463,7 @@ var ImportModule = {
         jQuery('.aie-json-preview-container').hide();
 
         // Show error in preview area
-        var errorHtml = "\n\t\t\t\t\t<div class=\"notice notice-error\" style=\"padding: 20px; margin: 20px 0;\">\n\t\t\t\t\t\t<h3 style=\"margin-top: 0;\">\u274C File Validation Failed</h3>\n\t\t\t\t\t\t<p style=\"font-size: 14px;\">".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(this.fileData.error), "</p>\n\t\t\t\t\t\t<p style=\"margin-bottom: 0;\">\n\t\t\t\t\t\t\t<button type=\"button\" class=\"button aie-prev-step\">\n\t\t\t\t\t\t\t\t\u2190 Go Back and Upload a Valid File\n\t\t\t\t\t\t\t</button>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t</div>\n\t\t\t\t");
+        var errorHtml = "\n\t\t\t\t\t<div class=\"notice notice-error\" style=\"padding: 20px; margin: 20px 0;\">\n\t\t\t\t\t\t<h3 style=\"margin-top: 0;\">\u274C File Validation Failed</h3>\n\t\t\t\t\t\t<p style=\"font-size: 14px;\">".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(this.fileData.error), "</p>\n\t\t\t\t\t\t<p style=\"margin-bottom: 0;\">\n\t\t\t\t\t\t\t<button type=\"button\" class=\"button aie-prev-step\">\n\t\t\t\t\t\t\t\t\u2190 Go Back and Upload a Valid File\n\t\t\t\t\t\t\t</button>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t</div>\n\t\t\t\t");
         jQuery('.aie-step-3 .aie-step-content').prepend(errorHtml);
 
         // Disable next button
@@ -8383,6 +8476,8 @@ var ImportModule = {
       // Disable Next button before building mapping
       jQuery('.aie-next-step').prop('disabled', true);
       this.buildFieldMapping();
+    } else if (step === 5) {
+      this.populateUniqueFieldOptions();
     }
   },
   /**
@@ -8411,15 +8506,25 @@ var ImportModule = {
     switch (step) {
       case 2:
         if (!this.uploadedFile) {
-          _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Please upload a file', 'error');
+          _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Please upload a file', 'error');
           return false;
+        }
+
+        // Validate custom delimiter if selected
+        var delimiter = jQuery('#csv_delimiter').val();
+        if (delimiter === 'custom') {
+          var customDelimiter = jQuery('#csv_custom_delimiter').val().trim();
+          if (customDelimiter === '') {
+            _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Please enter a custom delimiter', 'error');
+            return false;
+          }
         }
         break;
       case 4:
         // Validate field mapping
         var mappedFields = this.getFieldMapping();
         if (!mappedFields || mappedFields.length === 0) {
-          _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Please map at least one field', 'error');
+          _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Please map at least one field', 'error');
           return false;
         }
         break;
@@ -8442,6 +8547,43 @@ var ImportModule = {
     }
   },
   /**
+   * Handle delimiter dropdown change
+   */
+  onDelimiterChange: function onDelimiterChange(e) {
+    var delimiter = jQuery(e.target).val();
+    if (delimiter === 'custom') {
+      jQuery('.aie-custom-delimiter-wrapper').show();
+      // Validate immediately
+      this.validateCustomDelimiter();
+    } else {
+      jQuery('.aie-custom-delimiter-wrapper').hide();
+      // Re-enable next button if file is uploaded and processed
+      if (this.fileData && !this.fileData.hasError) {
+        jQuery('.aie-step-2 .aie-next-step').prop('disabled', false);
+      }
+    }
+  },
+  /**
+   * Validate custom delimiter input
+   */
+  validateCustomDelimiter: function validateCustomDelimiter() {
+    var customDelimiter = jQuery('#csv_custom_delimiter').val().trim();
+    var delimiter = jQuery('#csv_delimiter').val();
+
+    // Only validate if delimiter is set to custom
+    if (delimiter === 'custom') {
+      if (customDelimiter === '') {
+        // Disable next button if custom delimiter is empty
+        jQuery('.aie-step-2 .aie-next-step').prop('disabled', true);
+      } else {
+        // Enable next button if file is uploaded and custom delimiter is provided
+        if (this.fileData && !this.fileData.hasError) {
+          jQuery('.aie-step-2 .aie-next-step').prop('disabled', false);
+        }
+      }
+    }
+  },
+  /**
    * Handle file selection
    */
   onFileSelect: function onFileSelect(e) {
@@ -8458,7 +8600,7 @@ var ImportModule = {
     var allowedExtensions = ['.csv', '.json'];
     var fileExt = '.' + file.name.split('.').pop().toLowerCase();
     if (!allowedExtensions.includes(fileExt)) {
-      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Invalid file type. Please upload CSV or JSON files only.', 'error');
+      _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Invalid file type. Please upload CSV or JSON files only.', 'error');
       return;
     }
     this.uploadedFile = file;
@@ -8467,7 +8609,7 @@ var ImportModule = {
     jQuery('.aie-upload-placeholder').hide();
     jQuery('.aie-file-info').show();
     jQuery('.aie-file-name').text(file.name);
-    jQuery('.aie-file-size').text(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].formatFileSize(file.size));
+    jQuery('.aie-file-size').text(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].formatFileSize(file.size));
 
     // Detect format
     var format = this.detectFormat(file.name);
@@ -8483,6 +8625,15 @@ var ImportModule = {
     this.uploadFileInChunks(file);
   },
   /**
+   * Get actual delimiter value (convert 'tab' to \t)
+   */
+  getDelimiterValue: function getDelimiterValue(delimiter) {
+    if (delimiter === 'tab') {
+      return '\t';
+    }
+    return delimiter;
+  },
+  /**
    * Upload file in chunks
    */
   uploadFileInChunks: function uploadFileInChunks(file) {
@@ -8492,15 +8643,27 @@ var ImportModule = {
     jQuery('.aie-file-info').hide();
     jQuery('.aie-upload-progress').show();
 
+    // Collect CSV options if file is CSV
+    var fileExt = '.' + file.name.split('.').pop().toLowerCase();
+    var csvOptions = {};
+    if (fileExt === '.csv') {
+      var delimiter = jQuery('#csv_delimiter').val();
+      var actualDelimiter = delimiter === 'custom' ? jQuery('#csv_custom_delimiter').val().trim() : this.getDelimiterValue(delimiter);
+      csvOptions.delimiter = actualDelimiter;
+      csvOptions.has_header = jQuery('input[name="csv_has_header"]').is(':checked');
+    }
+
     // Create uploader instance
-    this.fileUploader = new _FileUploader__WEBPACK_IMPORTED_MODULE_1__["default"]({
+    this.fileUploader = new _FileUploader__WEBPACK_IMPORTED_MODULE_2__["default"]({
       chunkSize: 1024 * 1024,
       // 1MB chunks
+      additionalData: csvOptions,
+      // Pass CSV options to uploader
       onProgress: function onProgress(progress) {
         // Update progress bar
         jQuery('.aie-upload-progress .aie-progress-bar-fill').css('width', progress.progress + '%');
         jQuery('.aie-upload-percentage').text(Math.round(progress.progress) + '%');
-        jQuery('.aie-upload-speed').text(_FileUploader__WEBPACK_IMPORTED_MODULE_1__["default"].formatSpeed(progress.speed));
+        jQuery('.aie-upload-speed').text(_FileUploader__WEBPACK_IMPORTED_MODULE_2__["default"].formatSpeed(progress.speed));
       },
       onComplete: function onComplete(result) {
         console.log('Upload complete, result:', result);
@@ -8508,7 +8671,7 @@ var ImportModule = {
         // Check for validation errors
         if (result.error) {
           console.log('Validation error detected:', result.error);
-          _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(result.error, 'error');
+          _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(result.error, 'error');
 
           // Show file info but keep upload area visible
           jQuery('.aie-upload-progress').hide();
@@ -8533,20 +8696,22 @@ var ImportModule = {
         jQuery('.aie-upload-area').hide();
         jQuery('.aie-file-info').show();
 
-        // Enable next button
-        jQuery('.aie-step-2 .aie-next-step').prop('disabled', false);
+        // Enable next button only if custom delimiter validation passes
+        var delimiter = jQuery('#csv_delimiter').val();
+        var shouldDisable = delimiter === 'custom' && jQuery('#csv_custom_delimiter').val().trim() === '';
+        jQuery('.aie-step-2 .aie-next-step').prop('disabled', shouldDisable);
 
         // Show success message
-        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('File uploaded successfully', 'success');
+        _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('File uploaded successfully', 'success');
 
         // Show warning if present
         if (result.warning) {
-          _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(result.warning, 'warning');
+          _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(result.warning, 'warning');
         }
       },
       onError: function onError(error) {
         // Upload failed
-        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Upload failed: ' + error.message, 'error');
+        _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Upload failed: ' + error.message, 'error');
         _this2.removeFile();
       }
     });
@@ -8572,6 +8737,71 @@ var ImportModule = {
     jQuery('.aie-step-2 .aie-next-step').prop('disabled', true);
   },
   /**
+   * Reload file preview with updated CSV options
+   */
+  reloadFilePreview: function reloadFilePreview() {
+    var _this3 = this;
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee() {
+      var delimiter, actualDelimiter, csvOptions, response;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              if (!(!_this3.fileData || !_this3.fileData.file_path)) {
+                _context.next = 2;
+                break;
+              }
+              return _context.abrupt("return");
+            case 2:
+              if (!(_this3.fileData.format !== 'csv')) {
+                _context.next = 4;
+                break;
+              }
+              return _context.abrupt("return");
+            case 4:
+              // Collect current CSV options
+              delimiter = jQuery('#csv_delimiter').val();
+              actualDelimiter = delimiter === 'custom' ? jQuery('#csv_custom_delimiter').val().trim() : _this3.getDelimiterValue(delimiter);
+              csvOptions = {
+                delimiter: actualDelimiter,
+                has_header: jQuery('input[name="csv_has_header"]').is(':checked')
+              };
+              _context.prev = 7;
+              _context.next = 10;
+              return jQuery.ajax({
+                url: aieData.ajaxUrl,
+                method: 'POST',
+                data: {
+                  action: 'aie_reload_preview',
+                  nonce: aieData.nonce,
+                  file_path: _this3.fileData.file_path,
+                  delimiter: csvOptions.delimiter,
+                  has_header: csvOptions.has_header
+                }
+              });
+            case 10:
+              response = _context.sent;
+              if (response.success) {
+                // Update stored file data with new preview
+                _this3.fileData.preview = response.data.preview;
+                _this3.fileData.columns = response.data.columns;
+                _this3.fileData.total_rows = response.data.total_rows;
+              }
+              _context.next = 17;
+              break;
+            case 14:
+              _context.prev = 14;
+              _context.t0 = _context["catch"](7);
+              console.error('Error reloading preview:', _context.t0);
+            case 17:
+            case "end":
+              return _context.stop();
+          }
+        }
+      }, _callee, null, [[7, 14]]);
+    }))();
+  },
+  /**
    * Detect file format from filename
    */
   detectFormat: function detectFormat(filename) {
@@ -8582,51 +8812,53 @@ var ImportModule = {
    * Load data preview
    */
   loadPreview: function loadPreview() {
-    var _this3 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
-      var _this3$fileData$colum;
+    var _this4 = this;
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee2() {
+      var _this4$fileData$colum;
       var preview, format;
-      return _regeneratorRuntime().wrap(function _callee$(_context) {
-        while (1) switch (_context.prev = _context.next) {
-          case 0:
-            console.log('loadPreview called, fileData:', _this3.fileData);
-            if (_this3.fileData) {
-              _context.next = 4;
-              break;
-            }
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('No file data available', 'error');
-            return _context.abrupt("return");
-          case 4:
-            if (!_this3.fileData.hasError) {
-              _context.next = 7;
-              break;
-            }
-            console.log('File has validation error:', _this3.fileData.error);
-            return _context.abrupt("return");
-          case 7:
-            if (_this3.fileData.preview) {
-              _context.next = 10;
-              break;
-            }
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('No preview data available', 'error');
-            return _context.abrupt("return");
-          case 10:
-            preview = _this3.fileData.preview;
-            format = _this3.fileData.format || 'csv';
-            console.log('Preview data:', preview);
-            console.log('Format:', format);
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee2$(_context2) {
+        while (1) {
+          switch (_context2.prev = _context2.next) {
+            case 0:
+              console.log('loadPreview called, fileData:', _this4.fileData);
+              if (_this4.fileData) {
+                _context2.next = 4;
+                break;
+              }
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('No file data available', 'error');
+              return _context2.abrupt("return");
+            case 4:
+              if (!_this4.fileData.hasError) {
+                _context2.next = 7;
+                break;
+              }
+              console.log('File has validation error:', _this4.fileData.error);
+              return _context2.abrupt("return");
+            case 7:
+              if (_this4.fileData.preview) {
+                _context2.next = 10;
+                break;
+              }
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('No preview data available', 'error');
+              return _context2.abrupt("return");
+            case 10:
+              preview = _this4.fileData.preview;
+              format = _this4.fileData.format || 'csv';
+              console.log('Preview data:', preview);
+              console.log('Format:', format);
 
-            // Update stats
-            jQuery('.aie-total-rows').text(_this3.fileData.total_rows || 0);
-            jQuery('.aie-total-columns').text(((_this3$fileData$colum = _this3.fileData.columns) === null || _this3$fileData$colum === void 0 ? void 0 : _this3$fileData$colum.length) || 0);
+              // Update stats
+              jQuery('.aie-total-rows').text(_this4.fileData.total_rows || 0);
+              jQuery('.aie-total-columns').text(((_this4$fileData$colum = _this4.fileData.columns) === null || _this4$fileData$colum === void 0 ? void 0 : _this4$fileData$colum.length) || 0);
 
-            // Always show table preview (both CSV and JSON)
-            _this3.showTablePreview(preview);
-          case 17:
-          case "end":
-            return _context.stop();
+              // Always show table preview (both CSV and JSON)
+              _this4.showTablePreview(preview);
+            case 17:
+            case "end":
+              return _context2.stop();
+          }
         }
-      }, _callee);
+      }, _callee2);
     }))();
   },
   /**
@@ -8655,7 +8887,7 @@ var ImportModule = {
       var type = this.getValueType(value);
       var displayValue = this.formatJsonValue(value);
       html += '<tr>';
-      html += "<td><strong>".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(key), "</strong></td>");
+      html += "<td><strong>".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(key), "</strong></td>");
       html += "<td><code>".concat(type, "</code></td>");
       html += "<td>".concat(displayValue, "</td>");
       html += '</tr>';
@@ -8677,7 +8909,7 @@ var ImportModule = {
     var headerHtml = '<tr>';
     if (preview.headers) {
       preview.headers.forEach(function (header) {
-        headerHtml += "<th>".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(header), "</th>");
+        headerHtml += "<th>".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(header), "</th>");
       });
     }
     headerHtml += '</tr>';
@@ -8704,7 +8936,7 @@ var ImportModule = {
               cellContent += '...';
             }
           }
-          bodyHtml += "<td>".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(cellContent), "</td>");
+          bodyHtml += "<td>".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(cellContent), "</td>");
         });
         bodyHtml += '</tr>';
       });
@@ -8763,7 +8995,7 @@ var ImportModule = {
         return JSON.stringify(v);
       }).join(', ');
       var more = value.length > 3 ? " ... +".concat(value.length - 3) : '';
-      return "<code>[ ".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(preview)).concat(more, " ]</code>");
+      return "<code>[ ".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(preview)).concat(more, " ]</code>");
     }
     if (_typeof(value) === 'object') {
       var keys = Object.keys(value);
@@ -8772,7 +9004,7 @@ var ImportModule = {
       }
       var _preview = keys.slice(0, 2).join(', ');
       var _more = keys.length > 2 ? " ... +".concat(keys.length - 2) : '';
-      return "<code>{ ".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(_preview)).concat(_more, " }</code>");
+      return "<code>{ ".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(_preview)).concat(_more, " }</code>");
     }
     if (typeof value === 'boolean') {
       return "<code style=\"color: #0073aa;\">".concat(value, "</code>");
@@ -8784,7 +9016,7 @@ var ImportModule = {
     // String
     var strValue = String(value);
     var displayValue = strValue.length > 200 ? strValue.substring(0, 200) + '...' : strValue;
-    return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(displayValue);
+    return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(displayValue);
   },
   /**
    * Build field mapping interface (Drag & Drop)
@@ -8823,14 +9055,14 @@ var ImportModule = {
    * Build source fields from uploaded file
    */
   buildSourceFields: function buildSourceFields() {
-    var _this4 = this;
+    var _this5 = this;
     var $container = jQuery('#aie-source-fields');
     var html = '';
     this.fileData.columns.forEach(function (column, index) {
-      var _this4$fileData$previ;
-      var sampleData = ((_this4$fileData$previ = _this4.fileData.preview) === null || _this4$fileData$previ === void 0 || (_this4$fileData$previ = _this4$fileData$previ.data) === null || _this4$fileData$previ === void 0 || (_this4$fileData$previ = _this4$fileData$previ[0]) === null || _this4$fileData$previ === void 0 ? void 0 : _this4$fileData$previ[index]) || '';
+      var _this5$fileData$previ, _this5$fileData$previ2, _this5$fileData$previ3;
+      var sampleData = ((_this5$fileData$previ = _this5.fileData.preview) === null || _this5$fileData$previ === void 0 ? void 0 : (_this5$fileData$previ2 = _this5$fileData$previ.data) === null || _this5$fileData$previ2 === void 0 ? void 0 : (_this5$fileData$previ3 = _this5$fileData$previ2[0]) === null || _this5$fileData$previ3 === void 0 ? void 0 : _this5$fileData$previ3[index]) || '';
       var sampleDisplay = String(sampleData).substring(0, 30);
-      html += "\n\t\t\t\t<div class=\"aie-field-card\" draggable=\"true\" data-source-field=\"".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(column), "\" data-source-index=\"").concat(index, "\">\n\t\t\t\t\t<div class=\"aie-field-icon\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-media-spreadsheet\"></span>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-field-info\">\n\t\t\t\t\t\t<div class=\"aie-field-name\">").concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(column), "</div>\n\t\t\t\t\t\t").concat(sampleDisplay ? "<div class=\"aie-field-sample\">".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(sampleDisplay), "...</div>") : '', "\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t");
+      html += "\n\t\t\t\t<div class=\"aie-field-card\" draggable=\"true\" data-source-field=\"".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(column), "\" data-source-index=\"").concat(index, "\">\n\t\t\t\t\t<div class=\"aie-field-icon\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-media-spreadsheet\"></span>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-field-info\">\n\t\t\t\t\t\t<div class=\"aie-field-name\">").concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(column), "</div>\n\t\t\t\t\t\t").concat(sampleDisplay ? "<div class=\"aie-field-sample\">".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(sampleDisplay), "...</div>") : '', "\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t");
     });
     $container.html(html);
   },
@@ -8848,15 +9080,135 @@ var ImportModule = {
       html += "<div class=\"aie-field-group\">";
       html += "<div class=\"aie-field-group-label\">".concat(group.label, "</div>");
       group.options.forEach(function (field) {
-        // Skip special fields
-        if (field.value.startsWith('_')) {
+        // Skip special fields (except template field)
+        if (field.value.startsWith('_') && field.value !== '_wp_page_template') {
           return;
         }
-        html += "\n\t\t\t\t\t<div class=\"aie-target-field\" data-target-field=\"".concat(field.value, "\" data-field-type=\"").concat(field.type || 'string', "\">\n\t\t\t\t\t\t<div class=\"aie-field-icon\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-wordpress\"></span>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"aie-field-info\">\n\t\t\t\t\t\t\t<div class=\"aie-field-label\">").concat(field.label, "</div>\n\t\t\t\t\t\t\t<span class=\"aie-field-type-badge\">").concat(field.type || 'string', "</span>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t");
+
+        // Custom fields with add button
+        if (field.custom) {
+          html += "\n\t\t\t\t\t\t<div class=\"aie-target-field aie-custom-field-template\" data-field-type=\"".concat(field.type || 'string', "\" data-multiple=\"").concat(field.multiple || false, "\">\n\t\t\t\t\t\t\t<div class=\"aie-field-icon\">\n\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-plus\"></span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"aie-field-info\">\n\t\t\t\t\t\t\t\t<div class=\"aie-field-label\">").concat(field.label, "</div>\n\t\t\t\t\t\t\t\t<button type=\"button\" class=\"aie-add-custom-field button button-small\">+ Add</button>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t");
+        } else {
+          html += "\n\t\t\t\t\t\t<div class=\"aie-target-field\" data-target-field=\"".concat(field.value, "\" data-field-type=\"").concat(field.type || 'string', "\" data-multiple=\"").concat(field.multiple || false, "\">\n\t\t\t\t\t\t\t<div class=\"aie-field-icon\">\n\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-wordpress\"></span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"aie-field-info\">\n\t\t\t\t\t\t\t\t<div class=\"aie-field-label\">").concat(field.label, "</div>\n\t\t\t\t\t\t\t\t<span class=\"aie-field-type-badge\">").concat(field.type || 'string', "</span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t");
+        }
       });
       html += "</div>";
     });
     $container.html(html);
+
+    // Initialize custom field add buttons
+    this.initCustomFieldButtons();
+  },
+  /**
+   * Initialize custom field add buttons
+   */
+  initCustomFieldButtons: function initCustomFieldButtons() {
+    var self = this;
+    jQuery('.aie-add-custom-field').off('click').on('click', function () {
+      var $button = jQuery(this);
+      var $template = $button.closest('.aie-custom-field-template');
+      var fieldType = $template.data('field-type');
+      var isMultiple = $template.data('multiple');
+
+      // Show modal to add custom field
+      self.showCustomFieldModal($template, fieldType, isMultiple);
+    });
+  },
+  /**
+   * Show modal to add custom taxonomy or meta field
+   */
+  showCustomFieldModal: function showCustomFieldModal($template, fieldType, isMultiple) {
+    var self = this;
+    var isTaxonomy = fieldType === 'taxonomy';
+    var isMeta = fieldType === 'meta';
+    var title = isTaxonomy ? 'Add Taxonomy Field' : 'Add Custom Field';
+    var placeholder = isTaxonomy ? 'Enter taxonomy slug (e.g., category, post_tag, product_cat)' : 'Enter field key (e.g., _custom_price)';
+    var icon = isTaxonomy ? 'dashicons-category' : 'dashicons-admin-plugins';
+
+    // Taxonomy format options
+    var taxonomyFormatField = isTaxonomy ? "\n\t\t\t<label style=\"margin-top: 15px;\">\n\t\t\t\t<strong>Data Format:</strong>\n\t\t\t\t<select class=\"aie-taxonomy-format regular-text\">\n\t\t\t\t\t<option value=\"id\">Term ID (e.g., 5, 12, 23)</option>\n\t\t\t\t\t<option value=\"slug\">Term Slug (e.g., technology, news)</option>\n\t\t\t\t\t<option value=\"name\" selected>Term Name (e.g., Technology, News)</option>\n\t\t\t\t</select>\n\t\t\t\t<p class=\"description\" style=\"margin-top: 5px;\">\n\t\t\t\t\tSelect the format of taxonomy data in your CSV file.\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t" : '';
+
+    // Create modal HTML (same structure as function modal)
+    var modalHtml = "\n\t\t\t<div id=\"aie-custom-field-modal\" class=\"aie-modal\" style=\"display:flex;\">\n\t\t\t\t<div class=\"aie-modal-backdrop\"></div>\n\t\t\t\t<div class=\"aie-modal-content aie-custom-field-modal-content\">\n\t\t\t\t\t<div class=\"aie-modal-header\">\n\t\t\t\t\t\t<h2 class=\"aie-modal-title\">\n\t\t\t\t\t\t\t<span class=\"dashicons ".concat(icon, "\"></span>\n\t\t\t\t\t\t\t").concat(title, "\n\t\t\t\t\t\t</h2>\n\t\t\t\t\t\t<button type=\"button\" class=\"aie-modal-close\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-no-alt\"></span>\n\t\t\t\t\t\t</button>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-modal-body\">\n\t\t\t\t\t\t<label>\n\t\t\t\t\t\t\t<strong>Taxonomy Slug:</strong>\n\t\t\t\t\t\t\t<input type=\"text\" class=\"aie-custom-field-input regular-text\" placeholder=\"").concat(placeholder, "\" />\n\t\t\t\t\t\t\t").concat(isTaxonomy ? '<p class="description" style="margin-top: 5px;">The slug of the taxonomy (category, post_tag, or custom taxonomy).</p>' : '', "\n\t\t\t\t\t\t</label>\n\t\t\t\t\t\t").concat(taxonomyFormatField, "\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-modal-footer\">\n\t\t\t\t\t\t<button type=\"button\" class=\"button aie-modal-cancel\">Cancel</button>\n\t\t\t\t\t\t<button type=\"button\" class=\"button button-primary aie-modal-add\">Add Field</button>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t");
+
+    // Add modal to body
+    jQuery('body').append(modalHtml);
+    var $modal = jQuery('#aie-custom-field-modal');
+    var $backdrop = $modal.find('.aie-modal-backdrop');
+    var $input = $modal.find('.aie-custom-field-input');
+
+    // Focus input
+    setTimeout(function () {
+      return $input.focus();
+    }, 100);
+
+    // Close modal handlers
+    $modal.find('.aie-modal-close, .aie-modal-cancel').on('click', function () {
+      $modal.remove();
+    });
+    $backdrop.on('click', function () {
+      $modal.remove();
+    });
+
+    // Add field handler
+    $modal.find('.aie-modal-add').on('click', function () {
+      var fieldValue = $input.val().trim();
+      if (!fieldValue) {
+        alert('Please enter a field name');
+        return;
+      }
+
+      // Get taxonomy format if applicable
+      var taxonomyFormat = 'name';
+      if (isTaxonomy) {
+        taxonomyFormat = $modal.find('.aie-taxonomy-format').val();
+      }
+
+      // Create new field card
+      self.addCustomFieldToGroup($template, fieldValue, fieldType, isMultiple, taxonomyFormat);
+      $modal.remove();
+    });
+
+    // Enter key to add
+    $input.on('keypress', function (e) {
+      if (e.which === 13) {
+        $modal.find('.aie-modal-add').click();
+      }
+    });
+  },
+  /**
+   * Add custom field to group
+   */
+  addCustomFieldToGroup: function addCustomFieldToGroup($template, fieldValue, fieldType, isMultiple, taxonomyFormat) {
+    var $group = $template.closest('.aie-field-group');
+    var isTaxonomy = fieldType === 'taxonomy';
+
+    // Create label with format info for taxonomy
+    var label, badge;
+    if (isTaxonomy) {
+      var formatLabels = {
+        id: 'ID',
+        slug: 'Slug',
+        name: 'Name'
+      };
+      label = "".concat(fieldValue);
+      badge = "taxonomy (".concat(formatLabels[taxonomyFormat] || 'Name', ")");
+    } else {
+      label = fieldValue;
+      badge = 'meta';
+    }
+
+    // Store taxonomy format in data attribute
+    var taxonomyFormatAttr = isTaxonomy ? "data-taxonomy-format=\"".concat(taxonomyFormat, "\"") : '';
+    var fieldHtml = "\n\t\t\t<div class=\"aie-target-field\" data-target-field=\"".concat(fieldValue, "\" data-field-type=\"").concat(fieldType, "\" data-multiple=\"").concat(isMultiple, "\" ").concat(taxonomyFormatAttr, ">\n\t\t\t\t<div class=\"aie-field-icon\">\n\t\t\t\t\t<span class=\"dashicons ").concat(isTaxonomy ? 'dashicons-category' : 'dashicons-admin-plugins', "\"></span>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-field-info\">\n\t\t\t\t\t<div class=\"aie-field-label\">").concat(label, "</div>\n\t\t\t\t\t<span class=\"aie-field-type-badge\">").concat(badge, "</span>\n\t\t\t\t\t<button type=\"button\" class=\"aie-remove-custom-field\" title=\"Remove\">&times;</button>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t");
+
+    // Insert before template
+    $template.before(fieldHtml);
+
+    // Add remove handler
+    $group.find('.aie-remove-custom-field').off('click').on('click', function () {
+      jQuery(this).closest('.aie-target-field').remove();
+    });
   },
   /**
    * Get fields by content type (import-compatible fields)
@@ -8888,6 +9240,10 @@ var ImportModule = {
         value: 'post_name',
         label: 'Slug',
         type: 'string'
+      }, {
+        value: '_wp_page_template',
+        label: 'Template',
+        type: 'string'
       }]
     }, {
       label: 'Author',
@@ -8896,44 +9252,9 @@ var ImportModule = {
         label: 'Author ID',
         type: 'number'
       }, {
-        value: 'author_name',
-        label: 'Author Name',
-        type: 'string'
-      }, {
         value: 'author_email',
         label: 'Author Email',
         type: 'email'
-      }]
-    }, {
-      label: 'Taxonomy',
-      options: [{
-        value: 'categories',
-        label: 'Categories (names)',
-        type: 'array'
-      }, {
-        value: 'category_ids',
-        label: 'Category IDs',
-        type: 'array'
-      }, {
-        value: 'tags',
-        label: 'Tags (names)',
-        type: 'array'
-      }, {
-        value: 'tag_ids',
-        label: 'Tag IDs',
-        type: 'array'
-      }, {
-        value: 'term_id',
-        label: 'Term ID',
-        type: 'number'
-      }, {
-        value: 'term_name',
-        label: 'Term Name',
-        type: 'string'
-      }, {
-        value: 'term_slug',
-        label: 'Term Slug',
-        type: 'string'
       }]
     }, {
       label: 'Media',
@@ -8957,10 +9278,6 @@ var ImportModule = {
         label: 'Modified Date',
         type: 'date'
       }, {
-        value: '_wp_page_template',
-        label: 'Template',
-        type: 'string'
-      }, {
         value: 'menu_order',
         label: 'Menu Order',
         type: 'number'
@@ -8968,17 +9285,6 @@ var ImportModule = {
         value: 'post_parent',
         label: 'Parent ID',
         type: 'number'
-      }]
-    }, {
-      label: 'Custom Fields (Meta)',
-      options: [{
-        value: 'meta_key',
-        label: 'Meta Key (for any custom field)',
-        type: 'string'
-      }, {
-        value: 'meta_value',
-        label: 'Meta Value',
-        type: 'string'
       }]
     }];
 
@@ -9397,8 +9703,24 @@ var ImportModule = {
       }];
     }
 
-    // Default - return post fields
-    return baseFields;
+    // Default - return post fields with taxonomies and custom fields
+    return [].concat(baseFields, [{
+      label: 'Taxonomies',
+      options: [{
+        value: 'taxonomy',
+        label: 'Taxonomy',
+        type: 'taxonomy',
+        custom: true
+      }]
+    }, {
+      label: 'Custom Fields (Meta)',
+      options: [{
+        value: 'meta',
+        label: 'Custom Field',
+        type: 'meta',
+        custom: true
+      }]
+    }]);
   },
   /**
    * Initialize drag & drop functionality
@@ -9541,7 +9863,7 @@ var ImportModule = {
     $targetElement.find('.aie-mapped-source').remove();
 
     // Add mapped source indicator to target
-    var mappedHtml = "\n\t\t\t<div class=\"aie-mapped-source\">\n\t\t\t\t<span class=\"aie-source-name\">".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(sourceField), "</span>\n\t\t\t\t<span class=\"dashicons dashicons-no-alt aie-remove-mapping\"></span>\n\t\t\t</div>\n\t\t");
+    var mappedHtml = "\n\t\t\t<div class=\"aie-mapped-source\">\n\t\t\t\t<span class=\"aie-source-name\">".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(sourceField), "</span>\n\t\t\t\t<span class=\"dashicons dashicons-no-alt aie-remove-mapping\"></span>\n\t\t\t</div>\n\t\t");
     $targetElement.find('.aie-field-info').append(mappedHtml);
     $targetElement.addClass('has-mapping');
     $targetElement.data('mapped-source-index', sourceIndex);
@@ -9572,21 +9894,21 @@ var ImportModule = {
     if (functions.length > 0) {
       functionsHtml = '<div class="aie-mapping-functions">';
       functions.forEach(function (func, index) {
-        functionsHtml += "\n\t\t\t\t\t<span class=\"aie-function-badge\">\n\t\t\t\t\t\t".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(func.name), "\n\t\t\t\t\t\t<button type=\"button\" class=\"aie-remove-function\" data-function-index=\"").concat(index, "\">\xD7</button>\n\t\t\t\t\t</span>\n\t\t\t\t");
+        functionsHtml += "\n\t\t\t\t\t<span class=\"aie-function-badge\">\n\t\t\t\t\t\t".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(func.name), "\n\t\t\t\t\t\t<button type=\"button\" class=\"aie-remove-function\" data-function-index=\"").concat(index, "\">\xD7</button>\n\t\t\t\t\t</span>\n\t\t\t\t");
       });
       functionsHtml += '</div>';
     }
 
     // Add new row
-    var html = "\n\t\t\t<div class=\"aie-mapping-row\" data-source-index=\"".concat(sourceIndex, "\" data-target-field=\"").concat(targetField, "\">\n\t\t\t\t<div class=\"aie-source-col\">\n\t\t\t\t\t<span class=\"dashicons dashicons-media-spreadsheet\"></span>\n\t\t\t\t\t<strong>").concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(sourceField), "</strong>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-arrow\">\u2192</div>\n\t\t\t\t<div class=\"aie-target-col\">\n\t\t\t\t\t<span class=\"dashicons dashicons-wordpress\"></span>\n\t\t\t\t\t<strong>").concat(targetField, "</strong>\n\t\t\t\t</div>\n\t\t\t\t").concat(functionsHtml, "\n\t\t\t\t<div class=\"aie-mapping-actions\">\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-add-function\" data-source-index=\"").concat(sourceIndex, "\" data-target-field=\"").concat(targetField, "\" title=\"Add transformation function\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-tools\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-remove-row-mapping\" data-source-index=\"").concat(sourceIndex, "\" data-target-field=\"").concat(targetField, "\" title=\"Remove mapping\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-no-alt\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t");
+    var html = "\n\t\t\t<div class=\"aie-mapping-row\" data-source-index=\"".concat(sourceIndex, "\" data-target-field=\"").concat(targetField, "\">\n\t\t\t\t<div class=\"aie-source-col\">\n\t\t\t\t\t<span class=\"dashicons dashicons-media-spreadsheet\"></span>\n\t\t\t\t\t<strong>").concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(sourceField), "</strong>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-arrow\">\u2192</div>\n\t\t\t\t<div class=\"aie-target-col\">\n\t\t\t\t\t<span class=\"dashicons dashicons-wordpress\"></span>\n\t\t\t\t\t<strong>").concat(targetField, "</strong>\n\t\t\t\t</div>\n\t\t\t\t").concat(functionsHtml, "\n\t\t\t\t<div class=\"aie-mapping-actions\">\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-add-function\" data-source-index=\"").concat(sourceIndex, "\" data-target-field=\"").concat(targetField, "\" title=\"Add transformation function\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-tools\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-remove-row-mapping\" data-source-index=\"").concat(sourceIndex, "\" data-target-field=\"").concat(targetField, "\" title=\"Remove mapping\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-no-alt\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t");
     $container.append(html);
   },
   /**
    * Update mapping statistics
    */
   updateMappingStats: function updateMappingStats() {
-    var _this$fileData;
-    var totalFields = ((_this$fileData = this.fileData) === null || _this$fileData === void 0 || (_this$fileData = _this$fileData.columns) === null || _this$fileData === void 0 ? void 0 : _this$fileData.length) || 0;
+    var _this$fileData, _this$fileData$column;
+    var totalFields = ((_this$fileData = this.fileData) === null || _this$fileData === void 0 ? void 0 : (_this$fileData$column = _this$fileData.columns) === null || _this$fileData$column === void 0 ? void 0 : _this$fileData$column.length) || 0;
 
     // Count unique source fields that are used
     var usedSourceIndexes = new Set();
@@ -9611,53 +9933,55 @@ var ImportModule = {
    * Show function selector modal
    */
   showFunctionSelector: function showFunctionSelector(sourceIndex, targetField) {
-    var _this5 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+    var _this6 = this;
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee3() {
       var mappingKey, response;
-      return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-        while (1) switch (_context2.prev = _context2.next) {
-          case 0:
-            // Get mapping key
-            mappingKey = "".concat(sourceIndex, "-").concat(targetField); // Get current functions for this mapping
-            if (!_this5.mappingFunctions) {
-              _this5.mappingFunctions = {};
-            }
-            if (!_this5.mappingFunctions[mappingKey]) {
-              _this5.mappingFunctions[mappingKey] = [];
-            }
-
-            // Load functions from server
-            _context2.prev = 3;
-            _context2.next = 6;
-            return jQuery.ajax({
-              url: window.aieData.ajaxUrl,
-              type: 'POST',
-              data: {
-                action: 'aie_functions_get_snippets',
-                nonce: window.aieData.nonce
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee3$(_context3) {
+        while (1) {
+          switch (_context3.prev = _context3.next) {
+            case 0:
+              // Get mapping key
+              mappingKey = "".concat(sourceIndex, "-").concat(targetField); // Get current functions for this mapping
+              if (!_this6.mappingFunctions) {
+                _this6.mappingFunctions = {};
               }
-            });
-          case 6:
-            response = _context2.sent;
-            if (response.success) {
-              _context2.next = 10;
+              if (!_this6.mappingFunctions[mappingKey]) {
+                _this6.mappingFunctions[mappingKey] = [];
+              }
+
+              // Load functions from server
+              _context3.prev = 3;
+              _context3.next = 6;
+              return jQuery.ajax({
+                url: window.aieData.ajaxUrl,
+                type: 'POST',
+                data: {
+                  action: 'aie_functions_get_snippets',
+                  nonce: window.aieData.nonce
+                }
+              });
+            case 6:
+              response = _context3.sent;
+              if (response.success) {
+                _context3.next = 10;
+                break;
+              }
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Failed to load functions', 'error');
+              return _context3.abrupt("return");
+            case 10:
+              _this6.showFunctionModal(sourceIndex, targetField, response.data);
+              _context3.next = 16;
               break;
-            }
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Failed to load functions', 'error');
-            return _context2.abrupt("return");
-          case 10:
-            _this5.showFunctionModal(sourceIndex, targetField, response.data);
-            _context2.next = 16;
-            break;
-          case 13:
-            _context2.prev = 13;
-            _context2.t0 = _context2["catch"](3);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Error loading functions: ' + _context2.t0.message, 'error');
-          case 16:
-          case "end":
-            return _context2.stop();
+            case 13:
+              _context3.prev = 13;
+              _context3.t0 = _context3["catch"](3);
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Error loading functions: ' + _context3.t0.message, 'error');
+            case 16:
+            case "end":
+              return _context3.stop();
+          }
         }
-      }, _callee2, null, [[3, 13]]);
+      }, _callee3, null, [[3, 13]]);
     }))();
   },
   /**
@@ -9675,7 +9999,7 @@ var ImportModule = {
     };
 
     // Create modal HTML (EXACTLY like export modal structure)
-    var modalHtml = "\n\t\t\t<div id=\"aie-field-functions-modal\" class=\"aie-modal\" style=\"display:flex;\">\n\t\t\t\t<div class=\"aie-modal-backdrop\"></div>\n\t\t\t\t<div class=\"aie-modal-content aie-field-functions-modal-content\">\n\t\t\t\t\t<div class=\"aie-modal-header\">\n\t\t\t\t\t\t<h2 class=\"aie-modal-title\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-generic\"></span>\n\t\t\t\t\t\t\tField Transformation Functions\n\t\t\t\t\t\t</h2>\n\t\t\t\t\t\t<button type=\"button\" class=\"aie-modal-close\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-no-alt\"></span>\n\t\t\t\t\t\t</button>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-modal-body\">\n\t\t\t\t\t\t<!-- Field Info -->\n\t\t\t\t\t\t<div class=\"aie-field-info\">\n\t\t\t\t\t\t\t<div class=\"aie-field-info-item\">\n\t\t\t\t\t\t\t\t<strong>Field:</strong>\n\t\t\t\t\t\t\t\t<span class=\"aie-current-field-label\">".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(sourceField), "</span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"aie-field-info-item\">\n\t\t\t\t\t\t\t\t<strong>Type:</strong>\n\t\t\t\t\t\t\t\t<span class=\"aie-current-field-type\">").concat(targetField, "</span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t<!-- Applied Functions List -->\n\t\t\t\t\t\t<div class=\"aie-applied-functions\">\n\t\t\t\t\t\t\t<h3>\n\t\t\t\t\t\t\t\tApplied Functions\n\t\t\t\t\t\t\t\t<span class=\"aie-functions-count\">(0)</span>\n\t\t\t\t\t\t\t</h3>\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t<div class=\"aie-functions-pipeline\" id=\"aie-functions-pipeline\">\n\t\t\t\t\t\t\t\t<div class=\"aie-no-functions\">\n\t\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-info\"></span>\n\t\t\t\t\t\t\t\t\t<p>No functions applied yet. Add functions from the list below.</p>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t<div class=\"aie-function-items\" id=\"aie-function-items\">\n\t\t\t\t\t\t\t\t\t<!-- Functions will be added here -->\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t\t<div class=\"aie-pipeline-hint\">\n\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-info\"></span>\n\t\t\t\t\t\t\t\tFunctions are applied in order from top to bottom. Drag to reorder.\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t<!-- Available Functions -->\n\t\t\t\t\t\t<div class=\"aie-available-functions\">\n\t\t\t\t\t\t\t<h3>Available Functions</h3>\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t<!-- Search Functions -->\n\t\t\t\t\t\t\t<div class=\"aie-functions-search\">\n\t\t\t\t\t\t\t\t<input \n\t\t\t\t\t\t\t\t\ttype=\"text\" \n\t\t\t\t\t\t\t\t\tid=\"aie-functions-search\" \n\t\t\t\t\t\t\t\t\tclass=\"regular-text\" \n\t\t\t\t\t\t\t\t\tplaceholder=\"Search functions...\"\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-search\"></span>\n\t\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t\t<!-- Functions Filter -->\n\t\t\t\t\t\t\t<div class=\"aie-functions-filter\">\n\t\t\t\t\t\t\t\t<label>\n\t\t\t\t\t\t\t\t\t<input type=\"radio\" name=\"functions-filter\" value=\"all\" checked>\n\t\t\t\t\t\t\t\t\tAll\n\t\t\t\t\t\t\t\t</label>\n\t\t\t\t\t\t\t\t<label>\n\t\t\t\t\t\t\t\t\t<input type=\"radio\" name=\"functions-filter\" value=\"library\">\n\t\t\t\t\t\t\t\t\tLibrary\n\t\t\t\t\t\t\t\t</label>\n\t\t\t\t\t\t\t\t<label>\n\t\t\t\t\t\t\t\t\t<input type=\"radio\" name=\"functions-filter\" value=\"custom\">\n\t\t\t\t\t\t\t\t\tCustom\n\t\t\t\t\t\t\t\t</label>\n\t\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t\t<!-- Functions List -->\n\t\t\t\t\t\t\t<div class=\"aie-functions-list\" id=\"aie-functions-list\">\n\t\t\t\t\t\t\t\t<div class=\"aie-functions-loading\">\n\t\t\t\t\t\t\t\t\t<span class=\"spinner is-active\"></span>\n\t\t\t\t\t\t\t\t\t<p>Loading functions...</p>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t\t<!-- Quick Add Link -->\n\t\t\t\t\t\t\t<div class=\"aie-functions-quick-add\">\n\t\t\t\t\t\t\t\t<a href=\"#\" class=\"aie-create-new-function\">\n\t\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-plus-alt\"></span>\n\t\t\t\t\t\t\t\t\tCreate New Function\n\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t<!-- Preview Section -->\n\t\t\t\t\t\t<div class=\"aie-function-preview\">\n\t\t\t\t\t\t\t<h3>Preview Transformation</h3>\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t<div class=\"aie-preview-controls\">\n\t\t\t\t\t\t\t\t<div class=\"aie-preview-input-group\">\n\t\t\t\t\t\t\t\t\t<label for=\"aie-preview-input\">\n\t\t\t\t\t\t\t\t\t\tTest Value:\n\t\t\t\t\t\t\t\t\t</label>\n\t\t\t\t\t\t\t\t\t<input \n\t\t\t\t\t\t\t\t\t\ttype=\"text\" \n\t\t\t\t\t\t\t\t\t\tid=\"aie-preview-input\" \n\t\t\t\t\t\t\t\t\t\tclass=\"regular-text\" \n\t\t\t\t\t\t\t\t\t\tplaceholder=\"Enter test value...\"\n\t\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<button type=\"button\" class=\"button aie-test-pipeline\">\n\t\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-media-code\"></span>\n\t\t\t\t\t\t\t\t\tTest Pipeline\n\t\t\t\t\t\t\t\t</button>\n\t\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t\t<div class=\"aie-preview-result\" id=\"aie-preview-result\" style=\"display:none;\">\n\t\t\t\t\t\t\t\t<div class=\"aie-preview-steps\">\n\t\t\t\t\t\t\t\t\t<!-- Steps will be added dynamically -->\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-modal-footer\">\n\t\t\t\t\t\t<button type=\"button\" class=\"button button-secondary aie-modal-cancel\">\n\t\t\t\t\t\t\tCancel\n\t\t\t\t\t\t</button>\n\t\t\t\t\t\t<button type=\"button\" class=\"button button-primary aie-save-field-functions\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-yes\"></span>\n\t\t\t\t\t\t\tApply Functions\n\t\t\t\t\t\t</button>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t");
+    var modalHtml = "\n\t\t\t<div id=\"aie-field-functions-modal\" class=\"aie-modal\" style=\"display:flex;\">\n\t\t\t\t<div class=\"aie-modal-backdrop\"></div>\n\t\t\t\t<div class=\"aie-modal-content aie-field-functions-modal-content\">\n\t\t\t\t\t<div class=\"aie-modal-header\">\n\t\t\t\t\t\t<h2 class=\"aie-modal-title\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-generic\"></span>\n\t\t\t\t\t\t\tField Transformation Functions\n\t\t\t\t\t\t</h2>\n\t\t\t\t\t\t<button type=\"button\" class=\"aie-modal-close\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-no-alt\"></span>\n\t\t\t\t\t\t</button>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-modal-body\">\n\t\t\t\t\t\t<!-- Field Info -->\n\t\t\t\t\t\t<div class=\"aie-field-info\">\n\t\t\t\t\t\t\t<div class=\"aie-field-info-item\">\n\t\t\t\t\t\t\t\t<strong>Field:</strong>\n\t\t\t\t\t\t\t\t<span class=\"aie-current-field-label\">".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(sourceField), "</span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"aie-field-info-item\">\n\t\t\t\t\t\t\t\t<strong>Type:</strong>\n\t\t\t\t\t\t\t\t<span class=\"aie-current-field-type\">").concat(targetField, "</span>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t<!-- Applied Functions List -->\n\t\t\t\t\t\t<div class=\"aie-applied-functions\">\n\t\t\t\t\t\t\t<h3>\n\t\t\t\t\t\t\t\tApplied Functions\n\t\t\t\t\t\t\t\t<span class=\"aie-functions-count\">(0)</span>\n\t\t\t\t\t\t\t</h3>\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t<div class=\"aie-functions-pipeline\" id=\"aie-functions-pipeline\">\n\t\t\t\t\t\t\t\t<div class=\"aie-no-functions\">\n\t\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-info\"></span>\n\t\t\t\t\t\t\t\t\t<p>No functions applied yet. Add functions from the list below.</p>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t<div class=\"aie-function-items\" id=\"aie-function-items\">\n\t\t\t\t\t\t\t\t\t<!-- Functions will be added here -->\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t\t<div class=\"aie-pipeline-hint\">\n\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-info\"></span>\n\t\t\t\t\t\t\t\tFunctions are applied in order from top to bottom. Drag to reorder.\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t<!-- Available Functions -->\n\t\t\t\t\t\t<div class=\"aie-available-functions\">\n\t\t\t\t\t\t\t<h3>Available Functions</h3>\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t<!-- Search Functions -->\n\t\t\t\t\t\t\t<div class=\"aie-functions-search\">\n\t\t\t\t\t\t\t\t<input \n\t\t\t\t\t\t\t\t\ttype=\"text\" \n\t\t\t\t\t\t\t\t\tid=\"aie-functions-search\" \n\t\t\t\t\t\t\t\t\tclass=\"regular-text\" \n\t\t\t\t\t\t\t\t\tplaceholder=\"Search functions...\"\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-search\"></span>\n\t\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t\t<!-- Functions Filter -->\n\t\t\t\t\t\t\t<div class=\"aie-functions-filter\">\n\t\t\t\t\t\t\t\t<label>\n\t\t\t\t\t\t\t\t\t<input type=\"radio\" name=\"functions-filter\" value=\"all\" checked>\n\t\t\t\t\t\t\t\t\tAll\n\t\t\t\t\t\t\t\t</label>\n\t\t\t\t\t\t\t\t<label>\n\t\t\t\t\t\t\t\t\t<input type=\"radio\" name=\"functions-filter\" value=\"library\">\n\t\t\t\t\t\t\t\t\tLibrary\n\t\t\t\t\t\t\t\t</label>\n\t\t\t\t\t\t\t\t<label>\n\t\t\t\t\t\t\t\t\t<input type=\"radio\" name=\"functions-filter\" value=\"custom\">\n\t\t\t\t\t\t\t\t\tCustom\n\t\t\t\t\t\t\t\t</label>\n\t\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t\t<!-- Functions List -->\n\t\t\t\t\t\t\t<div class=\"aie-functions-list\" id=\"aie-functions-list\">\n\t\t\t\t\t\t\t\t<div class=\"aie-functions-loading\">\n\t\t\t\t\t\t\t\t\t<span class=\"spinner is-active\"></span>\n\t\t\t\t\t\t\t\t\t<p>Loading functions...</p>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t\t<!-- Quick Add Link -->\n\t\t\t\t\t\t\t<div class=\"aie-functions-quick-add\">\n\t\t\t\t\t\t\t\t<a href=\"#\" class=\"aie-create-new-function\">\n\t\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-plus-alt\"></span>\n\t\t\t\t\t\t\t\t\tCreate New Function\n\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t<!-- Preview Section -->\n\t\t\t\t\t\t<div class=\"aie-function-preview\">\n\t\t\t\t\t\t\t<h3>Preview Transformation</h3>\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t<div class=\"aie-preview-controls\">\n\t\t\t\t\t\t\t\t<div class=\"aie-preview-input-group\">\n\t\t\t\t\t\t\t\t\t<label for=\"aie-preview-input\">\n\t\t\t\t\t\t\t\t\t\tTest Value:\n\t\t\t\t\t\t\t\t\t</label>\n\t\t\t\t\t\t\t\t\t<input \n\t\t\t\t\t\t\t\t\t\ttype=\"text\" \n\t\t\t\t\t\t\t\t\t\tid=\"aie-preview-input\" \n\t\t\t\t\t\t\t\t\t\tclass=\"regular-text\" \n\t\t\t\t\t\t\t\t\t\tplaceholder=\"Enter test value...\"\n\t\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<button type=\"button\" class=\"button aie-test-pipeline\">\n\t\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-media-code\"></span>\n\t\t\t\t\t\t\t\t\tTest Pipeline\n\t\t\t\t\t\t\t\t</button>\n\t\t\t\t\t\t\t</div>\n\n\t\t\t\t\t\t\t<div class=\"aie-preview-result\" id=\"aie-preview-result\" style=\"display:none;\">\n\t\t\t\t\t\t\t\t<div class=\"aie-preview-steps\">\n\t\t\t\t\t\t\t\t\t<!-- Steps will be added dynamically -->\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-modal-footer\">\n\t\t\t\t\t\t<button type=\"button\" class=\"button button-secondary aie-modal-cancel\">\n\t\t\t\t\t\t\tCancel\n\t\t\t\t\t\t</button>\n\t\t\t\t\t\t<button type=\"button\" class=\"button button-primary aie-save-field-functions\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-yes\"></span>\n\t\t\t\t\t\t\tApply Functions\n\t\t\t\t\t\t</button>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t");
 
     // Remove existing modal
     jQuery('#aie-field-functions-modal').remove();
@@ -9697,11 +10021,11 @@ var ImportModule = {
    * Load current functions into pipeline
    */
   loadCurrentFunctions: function loadCurrentFunctions(currentFunctions) {
-    var _this6 = this;
+    var _this7 = this;
     var $container = jQuery('#aie-function-items');
     $container.empty();
     currentFunctions.forEach(function (func) {
-      _this6.addFunctionToPipeline(func, false);
+      _this7.addFunctionToPipeline(func, false);
     });
     this.updateFunctionsCount(currentFunctions.length);
     this.toggleNoFunctionsMessage();
@@ -9710,7 +10034,7 @@ var ImportModule = {
    * Render available functions (like export)
    */
   renderAvailableFunctions: function renderAvailableFunctions(functionsData) {
-    var _this7 = this;
+    var _this8 = this;
     var $container = jQuery('#aie-functions-list');
     $container.empty();
 
@@ -9727,9 +10051,9 @@ var ImportModule = {
       var _ref2 = _slicedToArray(_ref, 2),
         key = _ref2[0],
         snippet = _ref2[1];
-      var item = jQuery('<div>').addClass('aie-function-list-item').attr('data-function-id', key).attr('data-category', snippet.category || 'custom').html("\n\t\t\t\t\t<div class=\"aie-function-list-info\">\n\t\t\t\t\t\t<span class=\"aie-function-list-name\">".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(snippet.name), "</span>\n\t\t\t\t\t\t<span class=\"aie-function-list-desc\">").concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(snippet.description || ''), "</span>\n\t\t\t\t\t</div>\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-add-function-btn\">Add</button>\n\t\t\t\t"));
+      var item = jQuery('<div>').addClass('aie-function-list-item').attr('data-function-id', key).attr('data-category', snippet.category || 'custom').html("\n\t\t\t\t\t<div class=\"aie-function-list-info\">\n\t\t\t\t\t\t<span class=\"aie-function-list-name\">".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(snippet.name), "</span>\n\t\t\t\t\t\t<span class=\"aie-function-list-desc\">").concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(snippet.description || ''), "</span>\n\t\t\t\t\t</div>\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-add-function-btn\">Add</button>\n\t\t\t\t"));
       item.find('.aie-add-function-btn').on('click', function () {
-        _this7.addFunctionToPipeline({
+        _this8.addFunctionToPipeline({
           id: key,
           name: snippet.name
         }, true);
@@ -9741,16 +10065,16 @@ var ImportModule = {
    * Add function to pipeline
    */
   addFunctionToPipeline: function addFunctionToPipeline(func) {
-    var _this8 = this;
+    var _this9 = this;
     var updateArray = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
     var $container = jQuery('#aie-function-items');
-    var item = jQuery('<div>').addClass('aie-function-item').attr('data-function-id', func.id).html("\n\t\t\t\t<span class=\"aie-function-handle dashicons dashicons-menu\"></span>\n\t\t\t\t<div class=\"aie-function-info\">\n\t\t\t\t\t<strong class=\"aie-function-name\">".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(func.name), "</strong>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-function-actions\">\n\t\t\t\t\t<button type=\"button\" class=\"button-small aie-remove-function\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-no-alt\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t</div>\n\t\t\t"));
+    var item = jQuery('<div>').addClass('aie-function-item').attr('data-function-id', func.id).html("\n\t\t\t\t<span class=\"aie-function-handle dashicons dashicons-menu\"></span>\n\t\t\t\t<div class=\"aie-function-info\">\n\t\t\t\t\t<strong class=\"aie-function-name\">".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(func.name), "</strong>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-function-actions\">\n\t\t\t\t\t<button type=\"button\" class=\"button-small aie-remove-function\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-no-alt\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t</div>\n\t\t\t"));
 
     // Remove function event
     item.find('.aie-remove-function').on('click', function () {
       item.remove();
-      _this8.updateFunctionsCount();
-      _this8.toggleNoFunctionsMessage();
+      _this9.updateFunctionsCount();
+      _this9.toggleNoFunctionsMessage();
     });
     $container.append(item);
     if (updateArray) {
@@ -9829,14 +10153,14 @@ var ImportModule = {
     // Create new function
     jQuery('.aie-create-new-function').on('click', function (e) {
       e.preventDefault();
-      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Creating custom functions will be available in the Functions Library section', 'info');
+      _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Creating custom functions will be available in the Functions Library section', 'info');
     });
 
     // Test Pipeline
     jQuery('.aie-test-pipeline').on('click', function () {
       var testValue = jQuery('#aie-preview-input').val();
       if (!testValue) {
-        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Please enter a test value', 'warning');
+        _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Please enter a test value', 'warning');
         return;
       }
       var functions = [];
@@ -9844,7 +10168,7 @@ var ImportModule = {
         functions.push(jQuery(this).data('function-id'));
       });
       if (functions.length === 0) {
-        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Please add at least one function to test', 'warning');
+        _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Please add at least one function to test', 'warning');
         return;
       }
       self.testFunctionPipeline(testValue, functions);
@@ -9869,56 +10193,58 @@ var ImportModule = {
    * Test function pipeline
    */
   testFunctionPipeline: function testFunctionPipeline(testValue, functionIds) {
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee4() {
       var $result, $steps, response, html, _response$data;
-      return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-        while (1) switch (_context3.prev = _context3.next) {
-          case 0:
-            $result = jQuery('#aie-preview-result');
-            $steps = $result.find('.aie-preview-steps');
-            $steps.html('<div class="aie-preview-loading"><span class="spinner is-active"></span> Testing...</div>');
-            $result.show();
-            _context3.prev = 4;
-            _context3.next = 7;
-            return jQuery.ajax({
-              url: window.aieData.ajaxUrl,
-              type: 'POST',
-              data: {
-                action: 'aie_test_function_pipeline',
-                nonce: window.aieData.nonce,
-                test_value: testValue,
-                function_ids: functionIds
-              }
-            });
-          case 7:
-            response = _context3.sent;
-            if (response.success && response.data.steps) {
-              html = ''; // Initial value
-              html += "\n\t\t\t\t\t<div class=\"aie-preview-step\">\n\t\t\t\t\t\t<div class=\"aie-step-label\">Initial Value:</div>\n\t\t\t\t\t\t<div class=\"aie-step-value\">".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(response.data.initial || testValue), "</div>\n\t\t\t\t\t</div>\n\t\t\t\t");
-
-              // Each step
-              response.data.steps.forEach(function (step, index) {
-                var stepNum = index + 1;
-                html += "\n\t\t\t\t\t\t<div class=\"aie-preview-step\">\n\t\t\t\t\t\t\t<div class=\"aie-step-label\">".concat(stepNum, ". ").concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(step.function_name), ":</div>\n\t\t\t\t\t\t\t<div class=\"aie-step-value\">").concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(step.output), "</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t");
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee4$(_context4) {
+        while (1) {
+          switch (_context4.prev = _context4.next) {
+            case 0:
+              $result = jQuery('#aie-preview-result');
+              $steps = $result.find('.aie-preview-steps');
+              $steps.html('<div class="aie-preview-loading"><span class="spinner is-active"></span> Testing...</div>');
+              $result.show();
+              _context4.prev = 4;
+              _context4.next = 7;
+              return jQuery.ajax({
+                url: window.aieData.ajaxUrl,
+                type: 'POST',
+                data: {
+                  action: 'aie_test_function_pipeline',
+                  nonce: window.aieData.nonce,
+                  test_value: testValue,
+                  function_ids: functionIds
+                }
               });
+            case 7:
+              response = _context4.sent;
+              if (response.success && response.data.steps) {
+                html = ''; // Initial value
+                html += "\n\t\t\t\t\t<div class=\"aie-preview-step\">\n\t\t\t\t\t\t<div class=\"aie-step-label\">Initial Value:</div>\n\t\t\t\t\t\t<div class=\"aie-step-value\">".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(response.data.initial || testValue), "</div>\n\t\t\t\t\t</div>\n\t\t\t\t");
 
-              // Final result
-              html += "\n\t\t\t\t\t<div class=\"aie-preview-step aie-preview-final\">\n\t\t\t\t\t\t<div class=\"aie-step-label\">Final Result:</div>\n\t\t\t\t\t\t<div class=\"aie-step-value\"><strong>".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(response.data["final"]), "</strong></div>\n\t\t\t\t\t</div>\n\t\t\t\t");
-              $steps.html(html);
-            } else {
-              $steps.html("<div class=\"notice notice-error inline\"><p>".concat(((_response$data = response.data) === null || _response$data === void 0 ? void 0 : _response$data.message) || 'Failed to test pipeline', "</p></div>"));
-            }
-            _context3.next = 14;
-            break;
-          case 11:
-            _context3.prev = 11;
-            _context3.t0 = _context3["catch"](4);
-            $steps.html("<div class=\"notice notice-error inline\"><p>Error: ".concat(_context3.t0.message, "</p></div>"));
-          case 14:
-          case "end":
-            return _context3.stop();
+                // Each step
+                response.data.steps.forEach(function (step, index) {
+                  var stepNum = index + 1;
+                  html += "\n\t\t\t\t\t\t<div class=\"aie-preview-step\">\n\t\t\t\t\t\t\t<div class=\"aie-step-label\">".concat(stepNum, ". ").concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(step.function_name), ":</div>\n\t\t\t\t\t\t\t<div class=\"aie-step-value\">").concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(step.output), "</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t");
+                });
+
+                // Final result
+                html += "\n\t\t\t\t\t<div class=\"aie-preview-step aie-preview-final\">\n\t\t\t\t\t\t<div class=\"aie-step-label\">Final Result:</div>\n\t\t\t\t\t\t<div class=\"aie-step-value\"><strong>".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(response.data["final"]), "</strong></div>\n\t\t\t\t\t</div>\n\t\t\t\t");
+                $steps.html(html);
+              } else {
+                $steps.html("<div class=\"notice notice-error inline\"><p>".concat(((_response$data = response.data) === null || _response$data === void 0 ? void 0 : _response$data.message) || 'Failed to test pipeline', "</p></div>"));
+              }
+              _context4.next = 14;
+              break;
+            case 11:
+              _context4.prev = 11;
+              _context4.t0 = _context4["catch"](4);
+              $steps.html("<div class=\"notice notice-error inline\"><p>Error: ".concat(_context4.t0.message, "</p></div>"));
+            case 14:
+            case "end":
+              return _context4.stop();
+          }
         }
-      }, _callee3, null, [[4, 11]]);
+      }, _callee4, null, [[4, 11]]);
     }))();
   },
   /**
@@ -9948,7 +10274,7 @@ var ImportModule = {
     // Add functions display
     var functionsHtml = '<div class="aie-mapping-functions">';
     functions.forEach(function (func, index) {
-      functionsHtml += "\n\t\t\t\t<span class=\"aie-function-badge\">\n\t\t\t\t\t".concat(_utils__WEBPACK_IMPORTED_MODULE_0__["default"].escapeHtml(func.name), "\n\t\t\t\t\t<button type=\"button\" class=\"aie-remove-function\" data-function-index=\"").concat(index, "\">\xD7</button>\n\t\t\t\t</span>\n\t\t\t");
+      functionsHtml += "\n\t\t\t\t<span class=\"aie-function-badge\">\n\t\t\t\t\t".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(func.name), "\n\t\t\t\t\t<button type=\"button\" class=\"aie-remove-function\" data-function-index=\"").concat(index, "\">\xD7</button>\n\t\t\t\t</span>\n\t\t\t");
     });
     functionsHtml += '</div>';
 
@@ -9982,13 +10308,39 @@ var ImportModule = {
     });
 
     // Search target fields
-    jQuery('.aie-search-target').on('input', function () {
-      var query = jQuery(this).val().toLowerCase();
+    var performSearch = function performSearch() {
+      var query = jQuery(this).val().toLowerCase().trim();
+
+      // Store matched fields per group
+      var groupMatches = {};
+
+      // Filter fields and track which groups have matches
       jQuery('.aie-target-field').each(function () {
-        var fieldName = jQuery(this).find('.aie-field-label').text().toLowerCase();
-        jQuery(this).toggle(fieldName.includes(query));
+        var $field = jQuery(this);
+        var fieldName = $field.find('.aie-field-label').text().toLowerCase();
+        var matches = query === '' || fieldName.includes(query);
+
+        // Find parent group
+        var $group = $field.closest('.aie-field-group');
+        var groupIndex = $group.index();
+        if (!groupMatches[groupIndex]) {
+          groupMatches[groupIndex] = 0;
+        }
+        if (matches) {
+          groupMatches[groupIndex]++;
+        }
+        $field.toggle(matches);
       });
-    });
+
+      // Show/hide groups based on matched fields
+      jQuery('#aie-target-fields .aie-field-group').each(function () {
+        var $group = jQuery(this);
+        var groupIndex = $group.index();
+        var hasMatches = groupMatches[groupIndex] > 0;
+        $group.toggle(query === '' || hasMatches);
+      });
+    };
+    jQuery('.aie-search-target').on('keyup input', performSearch);
   },
   /**
    * Get target fields for content type
@@ -10049,7 +10401,7 @@ var ImportModule = {
    * Auto-map fields
    */
   autoMapFields: function autoMapFields() {
-    var _this9 = this;
+    var _this10 = this;
     var mappedCount = 0;
 
     // Clear existing mappings
@@ -10072,7 +10424,7 @@ var ImportModule = {
         // Check for exact or partial match
         if (sourceField === targetFieldValue || sourceField === targetLabel || sourceField.includes(targetFieldValue) || targetFieldValue.includes(sourceField) || sourceField.replace(/_/g, ' ') === targetLabel) {
           // Create mapping
-          _this9.createMapping($sourceCard.data('source-field'), sourceIndex, $targetField.data('target-field'), $targetField.data('field-type'), $targetField);
+          _this10.createMapping($sourceCard.data('source-field'), sourceIndex, $targetField.data('target-field'), $targetField.data('field-type'), $targetField);
           $sourceCard.addClass('mapped');
           matched = true;
           mappedCount++;
@@ -10080,7 +10432,7 @@ var ImportModule = {
       });
     });
     this.updateMappingStats();
-    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice("Auto-mapped ".concat(mappedCount, " fields"), 'success');
+    _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice("Auto-mapped ".concat(mappedCount, " fields"), 'success');
   },
   /**
    * Clear field mapping
@@ -10130,88 +10482,92 @@ var ImportModule = {
    * Start import
    */
   startImport: function startImport() {
-    var _this10 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+    var _this11 = this;
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee5() {
       var data, response;
-      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-        while (1) switch (_context4.prev = _context4.next) {
-          case 0:
-            _context4.prev = 0;
-            data = {
-              file_path: _this10.fileData.file_path,
-              content_type: jQuery('input[name="content_type"]:checked').val(),
-              format: _this10.fileData.format,
-              field_mapping: _this10.getFieldMapping(),
-              duplicate_handling: jQuery('input[name="duplicate_handling"]:checked').val(),
-              post_status: jQuery('[name="post_status"]').val(),
-              post_type: jQuery('[name="post_type"]').val(),
-              download_images: jQuery('[name="download_images"]').is(':checked'),
-              batch_size: parseInt(jQuery('[name="batch_size"]').val()) || 50
-            };
-            _context4.next = 4;
-            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_import_start', data);
-          case 4:
-            response = _context4.sent;
-            _this10.jobId = response.job_id;
-            _this10.showStep(6);
-            _this10.startProgressTracking();
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Import started successfully', 'success');
-            _context4.next = 14;
-            break;
-          case 11:
-            _context4.prev = 11;
-            _context4.t0 = _context4["catch"](0);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context4.t0, 'Start import');
-          case 14:
-          case "end":
-            return _context4.stop();
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee5$(_context5) {
+        while (1) {
+          switch (_context5.prev = _context5.next) {
+            case 0:
+              _context5.prev = 0;
+              data = {
+                file_path: _this11.fileData.file_path,
+                content_type: jQuery('input[name="content_type"]:checked').val(),
+                format: _this11.fileData.format,
+                field_mapping: _this11.getFieldMapping(),
+                duplicate_handling: jQuery('input[name="duplicate_handling"]:checked').val(),
+                post_status: jQuery('[name="post_status"]').val(),
+                post_type: jQuery('[name="post_type"]').val(),
+                download_images: jQuery('[name="download_images"]').is(':checked'),
+                batch_size: parseInt(jQuery('[name="batch_size"]').val()) || 50
+              };
+              _context5.next = 4;
+              return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_import_start', data);
+            case 4:
+              response = _context5.sent;
+              _this11.jobId = response.job_id;
+              _this11.showStep(6);
+              _this11.startProgressTracking();
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Import started successfully', 'success');
+              _context5.next = 14;
+              break;
+            case 11:
+              _context5.prev = 11;
+              _context5.t0 = _context5["catch"](0);
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].handleError(_context5.t0, 'Start import');
+            case 14:
+            case "end":
+              return _context5.stop();
+          }
         }
-      }, _callee4, null, [[0, 11]]);
+      }, _callee5, null, [[0, 11]]);
     }))();
   },
   /**
    * Start progress tracking
    */
   startProgressTracking: function startProgressTracking() {
-    var _this11 = this;
+    var _this12 = this;
     this.progressInterval = setInterval(function () {
-      _this11.updateProgress();
+      _this12.updateProgress();
     }, 2000);
   },
   /**
    * Update import progress
    */
   updateProgress: function updateProgress() {
-    var _this12 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+    var _this13 = this;
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee6() {
       var response;
-      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-        while (1) switch (_context5.prev = _context5.next) {
-          case 0:
-            _context5.prev = 0;
-            _context5.next = 3;
-            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_import_get_progress', {
-              job_id: _this12.jobId
-            });
-          case 3:
-            response = _context5.sent;
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].updateProgressBar(jQuery('.aie-step-6'), response);
-            if (response.status === 'completed') {
-              _this12.onImportComplete(response);
-            } else if (response.status === 'failed') {
-              _this12.onImportFailed(response);
-            }
-            _context5.next = 11;
-            break;
-          case 8:
-            _context5.prev = 8;
-            _context5.t0 = _context5["catch"](0);
-            console.error('Progress update error:', _context5.t0);
-          case 11:
-          case "end":
-            return _context5.stop();
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee6$(_context6) {
+        while (1) {
+          switch (_context6.prev = _context6.next) {
+            case 0:
+              _context6.prev = 0;
+              _context6.next = 3;
+              return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_import_get_progress', {
+                job_id: _this13.jobId
+              });
+            case 3:
+              response = _context6.sent;
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].updateProgressBar(jQuery('.aie-step-6'), response);
+              if (response.status === 'completed') {
+                _this13.onImportComplete(response);
+              } else if (response.status === 'failed') {
+                _this13.onImportFailed(response);
+              }
+              _context6.next = 11;
+              break;
+            case 8:
+              _context6.prev = 8;
+              _context6.t0 = _context6["catch"](0);
+              console.error('Progress update error:', _context6.t0);
+            case 11:
+            case "end":
+              return _context6.stop();
+          }
         }
-      }, _callee5, null, [[0, 8]]);
+      }, _callee6, null, [[0, 8]]);
     }))();
   },
   /**
@@ -10227,50 +10583,52 @@ var ImportModule = {
     jQuery('.aie-result-duration').text(((_result$estimates = result.estimates) === null || _result$estimates === void 0 ? void 0 : _result$estimates.elapsed_formatted) || '0s');
     jQuery('.aie-cancel-import').hide();
     jQuery('.aie-new-import').show();
-    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Import completed successfully!', 'success');
+    _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Import completed successfully!', 'success');
   },
   /**
    * Handle import failure
    */
   onImportFailed: function onImportFailed(result) {
     clearInterval(this.progressInterval);
-    _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Import failed: ' + (result.error || 'Unknown error'), 'error');
+    _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Import failed: ' + (result.error || 'Unknown error'), 'error');
   },
   /**
    * Cancel import
    */
   cancelImport: function cancelImport() {
-    var _this13 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
-      return _regeneratorRuntime().wrap(function _callee6$(_context6) {
-        while (1) switch (_context6.prev = _context6.next) {
-          case 0:
-            if (confirm('Are you sure you want to cancel this import?')) {
-              _context6.next = 2;
+    var _this14 = this;
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee7() {
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee7$(_context7) {
+        while (1) {
+          switch (_context7.prev = _context7.next) {
+            case 0:
+              if (confirm('Are you sure you want to cancel this import?')) {
+                _context7.next = 2;
+                break;
+              }
+              return _context7.abrupt("return");
+            case 2:
+              _context7.prev = 2;
+              _context7.next = 5;
+              return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_import_cancel', {
+                job_id: _this14.jobId
+              });
+            case 5:
+              clearInterval(_this14.progressInterval);
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Import cancelled', 'info');
+              _this14.resetWizard();
+              _context7.next = 13;
               break;
-            }
-            return _context6.abrupt("return");
-          case 2:
-            _context6.prev = 2;
-            _context6.next = 5;
-            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_import_cancel', {
-              job_id: _this13.jobId
-            });
-          case 5:
-            clearInterval(_this13.progressInterval);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Import cancelled', 'info');
-            _this13.resetWizard();
-            _context6.next = 13;
-            break;
-          case 10:
-            _context6.prev = 10;
-            _context6.t0 = _context6["catch"](2);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].handleError(_context6.t0, 'Cancel import');
-          case 13:
-          case "end":
-            return _context6.stop();
+            case 10:
+              _context7.prev = 10;
+              _context7.t0 = _context7["catch"](2);
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].handleError(_context7.t0, 'Cancel import');
+            case 13:
+            case "end":
+              return _context7.stop();
+          }
         }
-      }, _callee6, null, [[2, 10]]);
+      }, _callee7, null, [[2, 10]]);
     }))();
   },
   /**
@@ -10299,7 +10657,7 @@ var ImportModule = {
    * Load ACF fields dynamically from server
    */
   loadACFFields: function loadACFFields(contentType) {
-    var _this14 = this;
+    var _this15 = this;
     if (typeof aieData === 'undefined') {
       return;
     }
@@ -10313,7 +10671,7 @@ var ImportModule = {
       },
       success: function success(response) {
         if (response.success && response.data.fields && response.data.fields.length > 0) {
-          _this14.renderACFFields(response.data.fields);
+          _this15.renderACFFields(response.data.fields);
         }
       },
       error: function error(xhr, status, _error) {
@@ -10342,7 +10700,7 @@ var ImportModule = {
    * Load Yoast SEO fields dynamically from server
    */
   loadYoastFields: function loadYoastFields(contentType) {
-    var _this15 = this;
+    var _this16 = this;
     if (typeof aieData === 'undefined') {
       return;
     }
@@ -10362,7 +10720,7 @@ var ImportModule = {
       },
       success: function success(response) {
         if (response.success && response.data.fields && response.data.fields.length > 0) {
-          _this15.renderYoastFields(response.data.fields);
+          _this16.renderYoastFields(response.data.fields);
         }
       },
       error: function error(xhr, status, _error2) {
@@ -10388,6 +10746,65 @@ var ImportModule = {
 
     // Append to container
     $container.append(html);
+  },
+  /**
+   * Populate unique field options in Step 5
+   */
+  populateUniqueFieldOptions: function populateUniqueFieldOptions() {
+    var _this17 = this;
+    var $select = jQuery('#aie-unique-field');
+
+    // Clear existing options except first
+    $select.find('option:not(:first)').remove();
+
+    // Get all mapped target fields
+    var mappedFields = this.getFieldMapping();
+    if (!mappedFields || mappedFields.length === 0) {
+      return;
+    }
+
+    // Create unique set of target fields
+    var uniqueFields = new Set();
+    mappedFields.forEach(function (mapping) {
+      if (mapping.target_field) {
+        uniqueFields.add(mapping.target_field);
+      }
+    });
+
+    // Add options for each unique target field
+    uniqueFields.forEach(function (field) {
+      var label = _this17.getFieldLabel(field);
+      $select.append("<option value=\"".concat(field, "\">").concat(label, "</option>"));
+    });
+
+    // Select first field by default if only one
+    if (uniqueFields.size === 1) {
+      $select.find('option:eq(1)').prop('selected', true);
+    }
+  },
+  /**
+   * Get human-readable label for field
+   */
+  getFieldLabel: function getFieldLabel(fieldValue) {
+    // Try to find label from target fields
+    var label = fieldValue;
+    jQuery('.aie-target-field').each(function () {
+      if (jQuery(this).data('target-field') === fieldValue) {
+        var foundLabel = jQuery(this).find('.aie-field-label').text();
+        if (foundLabel) {
+          label = foundLabel;
+          return false; // break
+        }
+      }
+    });
+
+    // Fallback: convert field_name to Field Name
+    if (label === fieldValue) {
+      label = fieldValue.replace(/_/g, ' ').replace(/\b\w/g, function (l) {
+        return l.toUpperCase();
+      });
+    }
+    return label;
   }
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ImportModule);
@@ -10400,15 +10817,17 @@ var ImportModule = {
   \************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/js/modules/utils.js");
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator["return"] && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, "catch": function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./src/js/modules/utils.js");
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 /**
  * Jobs Log Module
  *
@@ -10524,58 +10943,60 @@ var JobsLogModule = {
    */
   loadJobs: function loadJobs() {
     var _this2 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee() {
       var $loading, $table, offset, response;
-      return _regeneratorRuntime().wrap(function _callee$(_context) {
-        while (1) switch (_context.prev = _context.next) {
-          case 0:
-            $loading = jQuery('.aie-jobs-loading');
-            $table = jQuery('.aie-jobs-table-wrapper');
-            $loading.show();
-            $table.hide();
-            _context.prev = 4;
-            offset = (_this2.currentPage - 1) * _this2.perPage;
-            console.log('Loading jobs with params:', {
-              type: _this2.filters.type,
-              status: _this2.filters.status,
-              limit: _this2.perPage,
-              offset: offset
-            });
-            _context.next = 9;
-            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_job_list', {
-              type: _this2.filters.type,
-              status: _this2.filters.status,
-              limit: _this2.perPage,
-              offset: offset
-            });
-          case 9:
-            response = _context.sent;
-            console.log('Jobs response:', response);
-            if (response && response.jobs) {
-              _this2.totalJobs = response.total || 0;
-              _this2.totalPages = Math.ceil(_this2.totalJobs / _this2.perPage);
-              _this2.renderJobs(response.jobs);
-              _this2.updatePagination();
-            } else {
-              console.error('Invalid response format:', response);
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              $loading = jQuery('.aie-jobs-loading');
+              $table = jQuery('.aie-jobs-table-wrapper');
+              $loading.show();
+              $table.hide();
+              _context.prev = 4;
+              offset = (_this2.currentPage - 1) * _this2.perPage;
+              console.log('Loading jobs with params:', {
+                type: _this2.filters.type,
+                status: _this2.filters.status,
+                limit: _this2.perPage,
+                offset: offset
+              });
+              _context.next = 9;
+              return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_job_list', {
+                type: _this2.filters.type,
+                status: _this2.filters.status,
+                limit: _this2.perPage,
+                offset: offset
+              });
+            case 9:
+              response = _context.sent;
+              console.log('Jobs response:', response);
+              if (response && response.jobs) {
+                _this2.totalJobs = response.total || 0;
+                _this2.totalPages = Math.ceil(_this2.totalJobs / _this2.perPage);
+                _this2.renderJobs(response.jobs);
+                _this2.updatePagination();
+              } else {
+                console.error('Invalid response format:', response);
+                _this2.renderJobs([]);
+              }
+              _context.next = 19;
+              break;
+            case 14:
+              _context.prev = 14;
+              _context.t0 = _context["catch"](4);
+              console.error('Error loading jobs:', _context.t0);
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Error loading jobs: ' + _context.t0.message, 'error');
               _this2.renderJobs([]);
-            }
-            _context.next = 19;
-            break;
-          case 14:
-            _context.prev = 14;
-            _context.t0 = _context["catch"](4);
-            console.error('Error loading jobs:', _context.t0);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Error loading jobs: ' + _context.t0.message, 'error');
-            _this2.renderJobs([]);
-          case 19:
-            _context.prev = 19;
-            $loading.hide();
-            $table.show();
-            return _context.finish(19);
-          case 23:
-          case "end":
-            return _context.stop();
+            case 19:
+              _context.prev = 19;
+              $loading.hide();
+              $table.show();
+              return _context.finish(19);
+            case 23:
+            case "end":
+              return _context.stop();
+          }
         }
       }, _callee, null, [[4, 14, 19, 23]]);
     }))();
@@ -10681,45 +11102,47 @@ var JobsLogModule = {
    */
   resumeJob: function resumeJob(e) {
     var _this4 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee2() {
       var $button, $row, jobId, response;
-      return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-        while (1) switch (_context2.prev = _context2.next) {
-          case 0:
-            $button = jQuery(e.currentTarget);
-            $row = $button.closest('tr');
-            jobId = $row.data('job-id');
-            if (confirm('Resume this job?')) {
-              _context2.next = 5;
-              break;
-            }
-            return _context2.abrupt("return");
-          case 5:
-            $button.prop('disabled', true);
-            _context2.prev = 6;
-            _context2.next = 9;
-            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_job_resume', {
-              job_id: jobId
-            });
-          case 9:
-            response = _context2.sent;
-            if (response && response.job_id) {
-              _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Job resumed successfully', 'success');
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee2$(_context2) {
+        while (1) {
+          switch (_context2.prev = _context2.next) {
+            case 0:
+              $button = jQuery(e.currentTarget);
+              $row = $button.closest('tr');
+              jobId = $row.data('job-id');
+              if (confirm('Resume this job?')) {
+                _context2.next = 5;
+                break;
+              }
+              return _context2.abrupt("return");
+            case 5:
+              $button.prop('disabled', true);
+              _context2.prev = 6;
+              _context2.next = 9;
+              return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_job_resume', {
+                job_id: jobId
+              });
+            case 9:
+              response = _context2.sent;
+              if (response && response.job_id) {
+                _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Job resumed successfully', 'success');
 
-              // Redirect based on job type
-              _this4.redirectToJobPage(response.type, response.job_id);
-            }
-            _context2.next = 18;
-            break;
-          case 13:
-            _context2.prev = 13;
-            _context2.t0 = _context2["catch"](6);
-            console.error('Error resuming job:', _context2.t0);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Error resuming job: ' + _context2.t0.message, 'error');
-            $button.prop('disabled', false);
-          case 18:
-          case "end":
-            return _context2.stop();
+                // Redirect based on job type
+                _this4.redirectToJobPage(response.type, response.job_id);
+              }
+              _context2.next = 18;
+              break;
+            case 13:
+              _context2.prev = 13;
+              _context2.t0 = _context2["catch"](6);
+              console.error('Error resuming job:', _context2.t0);
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Error resuming job: ' + _context2.t0.message, 'error');
+              $button.prop('disabled', false);
+            case 18:
+            case "end":
+              return _context2.stop();
+          }
         }
       }, _callee2, null, [[6, 13]]);
     }))();
@@ -10729,45 +11152,47 @@ var JobsLogModule = {
    */
   restartJob: function restartJob(e) {
     var _this5 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee3() {
       var $button, $row, jobId, response;
-      return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-        while (1) switch (_context3.prev = _context3.next) {
-          case 0:
-            $button = jQuery(e.currentTarget);
-            $row = $button.closest('tr');
-            jobId = $row.data('job-id');
-            if (confirm('Restart this job with the same settings?')) {
-              _context3.next = 5;
-              break;
-            }
-            return _context3.abrupt("return");
-          case 5:
-            $button.prop('disabled', true);
-            _context3.prev = 6;
-            _context3.next = 9;
-            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_job_restart', {
-              job_id: jobId
-            });
-          case 9:
-            response = _context3.sent;
-            if (response && response.job_id) {
-              _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Job restarted successfully', 'success');
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee3$(_context3) {
+        while (1) {
+          switch (_context3.prev = _context3.next) {
+            case 0:
+              $button = jQuery(e.currentTarget);
+              $row = $button.closest('tr');
+              jobId = $row.data('job-id');
+              if (confirm('Restart this job with the same settings?')) {
+                _context3.next = 5;
+                break;
+              }
+              return _context3.abrupt("return");
+            case 5:
+              $button.prop('disabled', true);
+              _context3.prev = 6;
+              _context3.next = 9;
+              return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_job_restart', {
+                job_id: jobId
+              });
+            case 9:
+              response = _context3.sent;
+              if (response && response.job_id) {
+                _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Job restarted successfully', 'success');
 
-              // Redirect based on job type
-              _this5.redirectToJobPage(response.type, response.job_id);
-            }
-            _context3.next = 18;
-            break;
-          case 13:
-            _context3.prev = 13;
-            _context3.t0 = _context3["catch"](6);
-            console.error('Error restarting job:', _context3.t0);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Error restarting job: ' + _context3.t0.message, 'error');
-            $button.prop('disabled', false);
-          case 18:
-          case "end":
-            return _context3.stop();
+                // Redirect based on job type
+                _this5.redirectToJobPage(response.type, response.job_id);
+              }
+              _context3.next = 18;
+              break;
+            case 13:
+              _context3.prev = 13;
+              _context3.t0 = _context3["catch"](6);
+              console.error('Error restarting job:', _context3.t0);
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Error restarting job: ' + _context3.t0.message, 'error');
+              $button.prop('disabled', false);
+            case 18:
+            case "end":
+              return _context3.stop();
+          }
         }
       }, _callee3, null, [[6, 13]]);
     }))();
@@ -10777,46 +11202,48 @@ var JobsLogModule = {
    */
   retryJob: function retryJob(e) {
     var _this6 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee4() {
       var $button, $row, jobId, response, errorMsg;
-      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-        while (1) switch (_context4.prev = _context4.next) {
-          case 0:
-            $button = jQuery(e.currentTarget);
-            $row = $button.closest('tr');
-            jobId = $row.data('job-id');
-            if (confirm('Retry this job with the same settings?')) {
-              _context4.next = 5;
-              break;
-            }
-            return _context4.abrupt("return");
-          case 5:
-            $button.prop('disabled', true);
-            _context4.prev = 6;
-            _context4.next = 9;
-            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_job_retry', {
-              job_id: jobId
-            });
-          case 9:
-            response = _context4.sent;
-            if (response && response.job_id && response.type) {
-              _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Job created, starting process...', 'success');
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee4$(_context4) {
+        while (1) {
+          switch (_context4.prev = _context4.next) {
+            case 0:
+              $button = jQuery(e.currentTarget);
+              $row = $button.closest('tr');
+              jobId = $row.data('job-id');
+              if (confirm('Retry this job with the same settings?')) {
+                _context4.next = 5;
+                break;
+              }
+              return _context4.abrupt("return");
+            case 5:
+              $button.prop('disabled', true);
+              _context4.prev = 6;
+              _context4.next = 9;
+              return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_job_retry', {
+                job_id: jobId
+              });
+            case 9:
+              response = _context4.sent;
+              if (response && response.job_id && response.type) {
+                _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Job created, starting process...', 'success');
 
-              // Redirect to job page with resume_job parameter to show progress
-              _this6.redirectToJobPage(response.type, response.job_id);
-            }
-            _context4.next = 19;
-            break;
-          case 13:
-            _context4.prev = 13;
-            _context4.t0 = _context4["catch"](6);
-            console.error('Error retrying job:', _context4.t0);
-            errorMsg = _context4.t0 && _context4.t0.message ? _context4.t0.message : 'Unknown error occurred';
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Error retrying job: ' + errorMsg, 'error');
-            $button.prop('disabled', false);
-          case 19:
-          case "end":
-            return _context4.stop();
+                // Redirect to job page with resume_job parameter to show progress
+                _this6.redirectToJobPage(response.type, response.job_id);
+              }
+              _context4.next = 19;
+              break;
+            case 13:
+              _context4.prev = 13;
+              _context4.t0 = _context4["catch"](6);
+              console.error('Error retrying job:', _context4.t0);
+              errorMsg = _context4.t0 && _context4.t0.message ? _context4.t0.message : 'Unknown error occurred';
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Error retrying job: ' + errorMsg, 'error');
+              $button.prop('disabled', false);
+            case 19:
+            case "end":
+              return _context4.stop();
+          }
         }
       }, _callee4, null, [[6, 13]]);
     }))();
@@ -10840,37 +11267,39 @@ var JobsLogModule = {
    */
   confirmDelete: function confirmDelete() {
     var _this7 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee5() {
       var jobId;
-      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-        while (1) switch (_context5.prev = _context5.next) {
-          case 0:
-            if (_this7.deleteJobId) {
-              _context5.next = 2;
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee5$(_context5) {
+        while (1) {
+          switch (_context5.prev = _context5.next) {
+            case 0:
+              if (_this7.deleteJobId) {
+                _context5.next = 2;
+                break;
+              }
+              return _context5.abrupt("return");
+            case 2:
+              jobId = _this7.deleteJobId;
+              _this7.closeModal();
+              _context5.prev = 4;
+              _context5.next = 7;
+              return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_job_delete', {
+                job_id: jobId
+              });
+            case 7:
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Job deleted successfully', 'success');
+              _this7.loadJobs(); // Reload list
+              _context5.next = 15;
               break;
-            }
-            return _context5.abrupt("return");
-          case 2:
-            jobId = _this7.deleteJobId;
-            _this7.closeModal();
-            _context5.prev = 4;
-            _context5.next = 7;
-            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_job_delete', {
-              job_id: jobId
-            });
-          case 7:
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Job deleted successfully', 'success');
-            _this7.loadJobs(); // Reload list
-            _context5.next = 15;
-            break;
-          case 11:
-            _context5.prev = 11;
-            _context5.t0 = _context5["catch"](4);
-            console.error('Error deleting job:', _context5.t0);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Error deleting job: ' + _context5.t0.message, 'error');
-          case 15:
-          case "end":
-            return _context5.stop();
+            case 11:
+              _context5.prev = 11;
+              _context5.t0 = _context5["catch"](4);
+              console.error('Error deleting job:', _context5.t0);
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Error deleting job: ' + _context5.t0.message, 'error');
+            case 15:
+            case "end":
+              return _context5.stop();
+          }
         }
       }, _callee5, null, [[4, 11]]);
     }))();
@@ -10909,34 +11338,36 @@ var JobsLogModule = {
    */
   viewJobDetails: function viewJobDetails(e) {
     var _this8 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+    return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee6() {
       var $button, $row, jobId, response;
-      return _regeneratorRuntime().wrap(function _callee6$(_context6) {
-        while (1) switch (_context6.prev = _context6.next) {
-          case 0:
-            $button = jQuery(e.currentTarget);
-            $row = $button.closest('tr');
-            jobId = $row.data('job-id');
-            _context6.prev = 3;
-            _context6.next = 6;
-            return _utils__WEBPACK_IMPORTED_MODULE_0__["default"].ajax('aie_job_get', {
-              job_id: jobId
-            });
-          case 6:
-            response = _context6.sent;
-            if (response) {
-              _this8.showJobDetailsModal(response);
-            }
-            _context6.next = 14;
-            break;
-          case 10:
-            _context6.prev = 10;
-            _context6.t0 = _context6["catch"](3);
-            console.error('Error loading job details:', _context6.t0);
-            _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Error loading job details: ' + _context6.t0.message, 'error');
-          case 14:
-          case "end":
-            return _context6.stop();
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee6$(_context6) {
+        while (1) {
+          switch (_context6.prev = _context6.next) {
+            case 0:
+              $button = jQuery(e.currentTarget);
+              $row = $button.closest('tr');
+              jobId = $row.data('job-id');
+              _context6.prev = 3;
+              _context6.next = 6;
+              return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_job_get', {
+                job_id: jobId
+              });
+            case 6:
+              response = _context6.sent;
+              if (response) {
+                _this8.showJobDetailsModal(response);
+              }
+              _context6.next = 14;
+              break;
+            case 10:
+              _context6.prev = 10;
+              _context6.t0 = _context6["catch"](3);
+              console.error('Error loading job details:', _context6.t0);
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Error loading job details: ' + _context6.t0.message, 'error');
+            case 14:
+            case "end":
+              return _context6.stop();
+          }
         }
       }, _callee6, null, [[3, 10]]);
     }))();
@@ -11022,18 +11453,19 @@ var JobsLogModule = {
   \**************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/js/modules/utils.js");
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 /**
  * Media Sync Module
  *
@@ -12053,19 +12485,17 @@ var MediaSyncModule = {
   \*********************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
-function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
-function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 /**
  * Utility Functions
  *
@@ -12379,6 +12809,7 @@ var Utils = {
   \***************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   clearModalErrors: () => (/* binding */ clearModalErrors),
@@ -12546,8 +12977,773 @@ function escapeHtml(text) {
   \***************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+"use strict";
 __webpack_require__.r(__webpack_exports__);
 // extracted by mini-css-extract-plugin
+
+
+/***/ }),
+
+/***/ "./node_modules/regenerator-runtime/runtime.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/regenerator-runtime/runtime.js ***!
+  \*****************************************************/
+/***/ ((module) => {
+
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+var runtime = (function (exports) {
+  "use strict";
+
+  var Op = Object.prototype;
+  var hasOwn = Op.hasOwnProperty;
+  var undefined; // More compressible than void 0.
+  var $Symbol = typeof Symbol === "function" ? Symbol : {};
+  var iteratorSymbol = $Symbol.iterator || "@@iterator";
+  var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
+  var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
+
+  function define(obj, key, value) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+    return obj[key];
+  }
+  try {
+    // IE 8 has a broken Object.defineProperty that only works on DOM objects.
+    define({}, "");
+  } catch (err) {
+    define = function(obj, key, value) {
+      return obj[key] = value;
+    };
+  }
+
+  function wrap(innerFn, outerFn, self, tryLocsList) {
+    // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
+    var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
+    var generator = Object.create(protoGenerator.prototype);
+    var context = new Context(tryLocsList || []);
+
+    // The ._invoke method unifies the implementations of the .next,
+    // .throw, and .return methods.
+    generator._invoke = makeInvokeMethod(innerFn, self, context);
+
+    return generator;
+  }
+  exports.wrap = wrap;
+
+  // Try/catch helper to minimize deoptimizations. Returns a completion
+  // record like context.tryEntries[i].completion. This interface could
+  // have been (and was previously) designed to take a closure to be
+  // invoked without arguments, but in all the cases we care about we
+  // already have an existing method we want to call, so there's no need
+  // to create a new function object. We can even get away with assuming
+  // the method takes exactly one argument, since that happens to be true
+  // in every case, so we don't have to touch the arguments object. The
+  // only additional allocation required is the completion record, which
+  // has a stable shape and so hopefully should be cheap to allocate.
+  function tryCatch(fn, obj, arg) {
+    try {
+      return { type: "normal", arg: fn.call(obj, arg) };
+    } catch (err) {
+      return { type: "throw", arg: err };
+    }
+  }
+
+  var GenStateSuspendedStart = "suspendedStart";
+  var GenStateSuspendedYield = "suspendedYield";
+  var GenStateExecuting = "executing";
+  var GenStateCompleted = "completed";
+
+  // Returning this object from the innerFn has the same effect as
+  // breaking out of the dispatch switch statement.
+  var ContinueSentinel = {};
+
+  // Dummy constructor functions that we use as the .constructor and
+  // .constructor.prototype properties for functions that return Generator
+  // objects. For full spec compliance, you may wish to configure your
+  // minifier not to mangle the names of these two functions.
+  function Generator() {}
+  function GeneratorFunction() {}
+  function GeneratorFunctionPrototype() {}
+
+  // This is a polyfill for %IteratorPrototype% for environments that
+  // don't natively support it.
+  var IteratorPrototype = {};
+  define(IteratorPrototype, iteratorSymbol, function () {
+    return this;
+  });
+
+  var getProto = Object.getPrototypeOf;
+  var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
+  if (NativeIteratorPrototype &&
+      NativeIteratorPrototype !== Op &&
+      hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
+    // This environment has a native %IteratorPrototype%; use it instead
+    // of the polyfill.
+    IteratorPrototype = NativeIteratorPrototype;
+  }
+
+  var Gp = GeneratorFunctionPrototype.prototype =
+    Generator.prototype = Object.create(IteratorPrototype);
+  GeneratorFunction.prototype = GeneratorFunctionPrototype;
+  define(Gp, "constructor", GeneratorFunctionPrototype);
+  define(GeneratorFunctionPrototype, "constructor", GeneratorFunction);
+  GeneratorFunction.displayName = define(
+    GeneratorFunctionPrototype,
+    toStringTagSymbol,
+    "GeneratorFunction"
+  );
+
+  // Helper for defining the .next, .throw, and .return methods of the
+  // Iterator interface in terms of a single ._invoke method.
+  function defineIteratorMethods(prototype) {
+    ["next", "throw", "return"].forEach(function(method) {
+      define(prototype, method, function(arg) {
+        return this._invoke(method, arg);
+      });
+    });
+  }
+
+  exports.isGeneratorFunction = function(genFun) {
+    var ctor = typeof genFun === "function" && genFun.constructor;
+    return ctor
+      ? ctor === GeneratorFunction ||
+        // For the native GeneratorFunction constructor, the best we can
+        // do is to check its .name property.
+        (ctor.displayName || ctor.name) === "GeneratorFunction"
+      : false;
+  };
+
+  exports.mark = function(genFun) {
+    if (Object.setPrototypeOf) {
+      Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
+    } else {
+      genFun.__proto__ = GeneratorFunctionPrototype;
+      define(genFun, toStringTagSymbol, "GeneratorFunction");
+    }
+    genFun.prototype = Object.create(Gp);
+    return genFun;
+  };
+
+  // Within the body of any async function, `await x` is transformed to
+  // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
+  // `hasOwn.call(value, "__await")` to determine if the yielded value is
+  // meant to be awaited.
+  exports.awrap = function(arg) {
+    return { __await: arg };
+  };
+
+  function AsyncIterator(generator, PromiseImpl) {
+    function invoke(method, arg, resolve, reject) {
+      var record = tryCatch(generator[method], generator, arg);
+      if (record.type === "throw") {
+        reject(record.arg);
+      } else {
+        var result = record.arg;
+        var value = result.value;
+        if (value &&
+            typeof value === "object" &&
+            hasOwn.call(value, "__await")) {
+          return PromiseImpl.resolve(value.__await).then(function(value) {
+            invoke("next", value, resolve, reject);
+          }, function(err) {
+            invoke("throw", err, resolve, reject);
+          });
+        }
+
+        return PromiseImpl.resolve(value).then(function(unwrapped) {
+          // When a yielded Promise is resolved, its final value becomes
+          // the .value of the Promise<{value,done}> result for the
+          // current iteration.
+          result.value = unwrapped;
+          resolve(result);
+        }, function(error) {
+          // If a rejected Promise was yielded, throw the rejection back
+          // into the async generator function so it can be handled there.
+          return invoke("throw", error, resolve, reject);
+        });
+      }
+    }
+
+    var previousPromise;
+
+    function enqueue(method, arg) {
+      function callInvokeWithMethodAndArg() {
+        return new PromiseImpl(function(resolve, reject) {
+          invoke(method, arg, resolve, reject);
+        });
+      }
+
+      return previousPromise =
+        // If enqueue has been called before, then we want to wait until
+        // all previous Promises have been resolved before calling invoke,
+        // so that results are always delivered in the correct order. If
+        // enqueue has not been called before, then it is important to
+        // call invoke immediately, without waiting on a callback to fire,
+        // so that the async generator function has the opportunity to do
+        // any necessary setup in a predictable way. This predictability
+        // is why the Promise constructor synchronously invokes its
+        // executor callback, and why async functions synchronously
+        // execute code before the first await. Since we implement simple
+        // async functions in terms of async generators, it is especially
+        // important to get this right, even though it requires care.
+        previousPromise ? previousPromise.then(
+          callInvokeWithMethodAndArg,
+          // Avoid propagating failures to Promises returned by later
+          // invocations of the iterator.
+          callInvokeWithMethodAndArg
+        ) : callInvokeWithMethodAndArg();
+    }
+
+    // Define the unified helper method that is used to implement .next,
+    // .throw, and .return (see defineIteratorMethods).
+    this._invoke = enqueue;
+  }
+
+  defineIteratorMethods(AsyncIterator.prototype);
+  define(AsyncIterator.prototype, asyncIteratorSymbol, function () {
+    return this;
+  });
+  exports.AsyncIterator = AsyncIterator;
+
+  // Note that simple async functions are implemented on top of
+  // AsyncIterator objects; they just return a Promise for the value of
+  // the final result produced by the iterator.
+  exports.async = function(innerFn, outerFn, self, tryLocsList, PromiseImpl) {
+    if (PromiseImpl === void 0) PromiseImpl = Promise;
+
+    var iter = new AsyncIterator(
+      wrap(innerFn, outerFn, self, tryLocsList),
+      PromiseImpl
+    );
+
+    return exports.isGeneratorFunction(outerFn)
+      ? iter // If outerFn is a generator, return the full iterator.
+      : iter.next().then(function(result) {
+          return result.done ? result.value : iter.next();
+        });
+  };
+
+  function makeInvokeMethod(innerFn, self, context) {
+    var state = GenStateSuspendedStart;
+
+    return function invoke(method, arg) {
+      if (state === GenStateExecuting) {
+        throw new Error("Generator is already running");
+      }
+
+      if (state === GenStateCompleted) {
+        if (method === "throw") {
+          throw arg;
+        }
+
+        // Be forgiving, per 25.3.3.3.3 of the spec:
+        // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
+        return doneResult();
+      }
+
+      context.method = method;
+      context.arg = arg;
+
+      while (true) {
+        var delegate = context.delegate;
+        if (delegate) {
+          var delegateResult = maybeInvokeDelegate(delegate, context);
+          if (delegateResult) {
+            if (delegateResult === ContinueSentinel) continue;
+            return delegateResult;
+          }
+        }
+
+        if (context.method === "next") {
+          // Setting context._sent for legacy support of Babel's
+          // function.sent implementation.
+          context.sent = context._sent = context.arg;
+
+        } else if (context.method === "throw") {
+          if (state === GenStateSuspendedStart) {
+            state = GenStateCompleted;
+            throw context.arg;
+          }
+
+          context.dispatchException(context.arg);
+
+        } else if (context.method === "return") {
+          context.abrupt("return", context.arg);
+        }
+
+        state = GenStateExecuting;
+
+        var record = tryCatch(innerFn, self, context);
+        if (record.type === "normal") {
+          // If an exception is thrown from innerFn, we leave state ===
+          // GenStateExecuting and loop back for another invocation.
+          state = context.done
+            ? GenStateCompleted
+            : GenStateSuspendedYield;
+
+          if (record.arg === ContinueSentinel) {
+            continue;
+          }
+
+          return {
+            value: record.arg,
+            done: context.done
+          };
+
+        } else if (record.type === "throw") {
+          state = GenStateCompleted;
+          // Dispatch the exception by looping back around to the
+          // context.dispatchException(context.arg) call above.
+          context.method = "throw";
+          context.arg = record.arg;
+        }
+      }
+    };
+  }
+
+  // Call delegate.iterator[context.method](context.arg) and handle the
+  // result, either by returning a { value, done } result from the
+  // delegate iterator, or by modifying context.method and context.arg,
+  // setting context.delegate to null, and returning the ContinueSentinel.
+  function maybeInvokeDelegate(delegate, context) {
+    var method = delegate.iterator[context.method];
+    if (method === undefined) {
+      // A .throw or .return when the delegate iterator has no .throw
+      // method always terminates the yield* loop.
+      context.delegate = null;
+
+      if (context.method === "throw") {
+        // Note: ["return"] must be used for ES3 parsing compatibility.
+        if (delegate.iterator["return"]) {
+          // If the delegate iterator has a return method, give it a
+          // chance to clean up.
+          context.method = "return";
+          context.arg = undefined;
+          maybeInvokeDelegate(delegate, context);
+
+          if (context.method === "throw") {
+            // If maybeInvokeDelegate(context) changed context.method from
+            // "return" to "throw", let that override the TypeError below.
+            return ContinueSentinel;
+          }
+        }
+
+        context.method = "throw";
+        context.arg = new TypeError(
+          "The iterator does not provide a 'throw' method");
+      }
+
+      return ContinueSentinel;
+    }
+
+    var record = tryCatch(method, delegate.iterator, context.arg);
+
+    if (record.type === "throw") {
+      context.method = "throw";
+      context.arg = record.arg;
+      context.delegate = null;
+      return ContinueSentinel;
+    }
+
+    var info = record.arg;
+
+    if (! info) {
+      context.method = "throw";
+      context.arg = new TypeError("iterator result is not an object");
+      context.delegate = null;
+      return ContinueSentinel;
+    }
+
+    if (info.done) {
+      // Assign the result of the finished delegate to the temporary
+      // variable specified by delegate.resultName (see delegateYield).
+      context[delegate.resultName] = info.value;
+
+      // Resume execution at the desired location (see delegateYield).
+      context.next = delegate.nextLoc;
+
+      // If context.method was "throw" but the delegate handled the
+      // exception, let the outer generator proceed normally. If
+      // context.method was "next", forget context.arg since it has been
+      // "consumed" by the delegate iterator. If context.method was
+      // "return", allow the original .return call to continue in the
+      // outer generator.
+      if (context.method !== "return") {
+        context.method = "next";
+        context.arg = undefined;
+      }
+
+    } else {
+      // Re-yield the result returned by the delegate method.
+      return info;
+    }
+
+    // The delegate iterator is finished, so forget it and continue with
+    // the outer generator.
+    context.delegate = null;
+    return ContinueSentinel;
+  }
+
+  // Define Generator.prototype.{next,throw,return} in terms of the
+  // unified ._invoke helper method.
+  defineIteratorMethods(Gp);
+
+  define(Gp, toStringTagSymbol, "Generator");
+
+  // A Generator should always return itself as the iterator object when the
+  // @@iterator function is called on it. Some browsers' implementations of the
+  // iterator prototype chain incorrectly implement this, causing the Generator
+  // object to not be returned from this call. This ensures that doesn't happen.
+  // See https://github.com/facebook/regenerator/issues/274 for more details.
+  define(Gp, iteratorSymbol, function() {
+    return this;
+  });
+
+  define(Gp, "toString", function() {
+    return "[object Generator]";
+  });
+
+  function pushTryEntry(locs) {
+    var entry = { tryLoc: locs[0] };
+
+    if (1 in locs) {
+      entry.catchLoc = locs[1];
+    }
+
+    if (2 in locs) {
+      entry.finallyLoc = locs[2];
+      entry.afterLoc = locs[3];
+    }
+
+    this.tryEntries.push(entry);
+  }
+
+  function resetTryEntry(entry) {
+    var record = entry.completion || {};
+    record.type = "normal";
+    delete record.arg;
+    entry.completion = record;
+  }
+
+  function Context(tryLocsList) {
+    // The root entry object (effectively a try statement without a catch
+    // or a finally block) gives us a place to store values thrown from
+    // locations where there is no enclosing try statement.
+    this.tryEntries = [{ tryLoc: "root" }];
+    tryLocsList.forEach(pushTryEntry, this);
+    this.reset(true);
+  }
+
+  exports.keys = function(object) {
+    var keys = [];
+    for (var key in object) {
+      keys.push(key);
+    }
+    keys.reverse();
+
+    // Rather than returning an object with a next method, we keep
+    // things simple and return the next function itself.
+    return function next() {
+      while (keys.length) {
+        var key = keys.pop();
+        if (key in object) {
+          next.value = key;
+          next.done = false;
+          return next;
+        }
+      }
+
+      // To avoid creating an additional object, we just hang the .value
+      // and .done properties off the next function object itself. This
+      // also ensures that the minifier will not anonymize the function.
+      next.done = true;
+      return next;
+    };
+  };
+
+  function values(iterable) {
+    if (iterable) {
+      var iteratorMethod = iterable[iteratorSymbol];
+      if (iteratorMethod) {
+        return iteratorMethod.call(iterable);
+      }
+
+      if (typeof iterable.next === "function") {
+        return iterable;
+      }
+
+      if (!isNaN(iterable.length)) {
+        var i = -1, next = function next() {
+          while (++i < iterable.length) {
+            if (hasOwn.call(iterable, i)) {
+              next.value = iterable[i];
+              next.done = false;
+              return next;
+            }
+          }
+
+          next.value = undefined;
+          next.done = true;
+
+          return next;
+        };
+
+        return next.next = next;
+      }
+    }
+
+    // Return an iterator with no values.
+    return { next: doneResult };
+  }
+  exports.values = values;
+
+  function doneResult() {
+    return { value: undefined, done: true };
+  }
+
+  Context.prototype = {
+    constructor: Context,
+
+    reset: function(skipTempReset) {
+      this.prev = 0;
+      this.next = 0;
+      // Resetting context._sent for legacy support of Babel's
+      // function.sent implementation.
+      this.sent = this._sent = undefined;
+      this.done = false;
+      this.delegate = null;
+
+      this.method = "next";
+      this.arg = undefined;
+
+      this.tryEntries.forEach(resetTryEntry);
+
+      if (!skipTempReset) {
+        for (var name in this) {
+          // Not sure about the optimal order of these conditions:
+          if (name.charAt(0) === "t" &&
+              hasOwn.call(this, name) &&
+              !isNaN(+name.slice(1))) {
+            this[name] = undefined;
+          }
+        }
+      }
+    },
+
+    stop: function() {
+      this.done = true;
+
+      var rootEntry = this.tryEntries[0];
+      var rootRecord = rootEntry.completion;
+      if (rootRecord.type === "throw") {
+        throw rootRecord.arg;
+      }
+
+      return this.rval;
+    },
+
+    dispatchException: function(exception) {
+      if (this.done) {
+        throw exception;
+      }
+
+      var context = this;
+      function handle(loc, caught) {
+        record.type = "throw";
+        record.arg = exception;
+        context.next = loc;
+
+        if (caught) {
+          // If the dispatched exception was caught by a catch block,
+          // then let that catch block handle the exception normally.
+          context.method = "next";
+          context.arg = undefined;
+        }
+
+        return !! caught;
+      }
+
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        var record = entry.completion;
+
+        if (entry.tryLoc === "root") {
+          // Exception thrown outside of any try block that could handle
+          // it, so set the completion value of the entire function to
+          // throw the exception.
+          return handle("end");
+        }
+
+        if (entry.tryLoc <= this.prev) {
+          var hasCatch = hasOwn.call(entry, "catchLoc");
+          var hasFinally = hasOwn.call(entry, "finallyLoc");
+
+          if (hasCatch && hasFinally) {
+            if (this.prev < entry.catchLoc) {
+              return handle(entry.catchLoc, true);
+            } else if (this.prev < entry.finallyLoc) {
+              return handle(entry.finallyLoc);
+            }
+
+          } else if (hasCatch) {
+            if (this.prev < entry.catchLoc) {
+              return handle(entry.catchLoc, true);
+            }
+
+          } else if (hasFinally) {
+            if (this.prev < entry.finallyLoc) {
+              return handle(entry.finallyLoc);
+            }
+
+          } else {
+            throw new Error("try statement without catch or finally");
+          }
+        }
+      }
+    },
+
+    abrupt: function(type, arg) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.tryLoc <= this.prev &&
+            hasOwn.call(entry, "finallyLoc") &&
+            this.prev < entry.finallyLoc) {
+          var finallyEntry = entry;
+          break;
+        }
+      }
+
+      if (finallyEntry &&
+          (type === "break" ||
+           type === "continue") &&
+          finallyEntry.tryLoc <= arg &&
+          arg <= finallyEntry.finallyLoc) {
+        // Ignore the finally entry if control is not jumping to a
+        // location outside the try/catch block.
+        finallyEntry = null;
+      }
+
+      var record = finallyEntry ? finallyEntry.completion : {};
+      record.type = type;
+      record.arg = arg;
+
+      if (finallyEntry) {
+        this.method = "next";
+        this.next = finallyEntry.finallyLoc;
+        return ContinueSentinel;
+      }
+
+      return this.complete(record);
+    },
+
+    complete: function(record, afterLoc) {
+      if (record.type === "throw") {
+        throw record.arg;
+      }
+
+      if (record.type === "break" ||
+          record.type === "continue") {
+        this.next = record.arg;
+      } else if (record.type === "return") {
+        this.rval = this.arg = record.arg;
+        this.method = "return";
+        this.next = "end";
+      } else if (record.type === "normal" && afterLoc) {
+        this.next = afterLoc;
+      }
+
+      return ContinueSentinel;
+    },
+
+    finish: function(finallyLoc) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.finallyLoc === finallyLoc) {
+          this.complete(entry.completion, entry.afterLoc);
+          resetTryEntry(entry);
+          return ContinueSentinel;
+        }
+      }
+    },
+
+    "catch": function(tryLoc) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.tryLoc === tryLoc) {
+          var record = entry.completion;
+          if (record.type === "throw") {
+            var thrown = record.arg;
+            resetTryEntry(entry);
+          }
+          return thrown;
+        }
+      }
+
+      // The context.catch method must only be called with a location
+      // argument that corresponds to a known catch block.
+      throw new Error("illegal catch attempt");
+    },
+
+    delegateYield: function(iterable, resultName, nextLoc) {
+      this.delegate = {
+        iterator: values(iterable),
+        resultName: resultName,
+        nextLoc: nextLoc
+      };
+
+      if (this.method === "next") {
+        // Deliberately forget the last sent value so that we don't
+        // accidentally pass it on to the delegate.
+        this.arg = undefined;
+      }
+
+      return ContinueSentinel;
+    }
+  };
+
+  // Regardless of whether this script is executing as a CommonJS module
+  // or not, return the runtime object so that we can declare the variable
+  // regeneratorRuntime in the outer scope, which allows this module to be
+  // injected easily by `bin/regenerator --include-runtime script.js`.
+  return exports;
+
+}(
+  // If this script is executing as a CommonJS module, use module.exports
+  // as the regeneratorRuntime namespace. Otherwise create a new empty
+  // object. Either way, the resulting object will be used to initialize
+  // the regeneratorRuntime variable at the top of this file.
+   true ? module.exports : 0
+));
+
+try {
+  regeneratorRuntime = runtime;
+} catch (accidentalStrictMode) {
+  // This module should not be running in strict mode, so the above
+  // assignment should always work unless something is misconfigured. Just
+  // in case runtime.js accidentally runs in strict mode, in modern engines
+  // we can explicitly access globalThis. In older engines we can escape
+  // strict mode using a global Function call. This could conceivably fail
+  // if a Content Security Policy forbids using Function, but in that case
+  // the proper solution is to fix the accidental strict mode problem. If
+  // you've misconfigured your bundler to force strict mode and applied a
+  // CSP to forbid Function, and you're not willing to fix either of those
+  // problems, please detail your unique predicament in a GitHub issue.
+  if (typeof globalThis === "object") {
+    globalThis.regeneratorRuntime = runtime;
+  } else {
+    Function("r", "regeneratorRuntime = r")(runtime);
+  }
+}
 
 
 /***/ })
@@ -12611,6 +13807,18 @@ __webpack_require__.r(__webpack_exports__);
 /******/ 				}
 /******/ 			}
 /******/ 			return result;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
 /******/ 		};
 /******/ 	})();
 /******/ 	

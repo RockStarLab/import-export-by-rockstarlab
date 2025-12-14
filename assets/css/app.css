@@ -652,6 +652,7 @@
   .aie-library-sidebar {
     width: 200px;
   }
+
   .aie-snippets-grid {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
@@ -660,12 +661,14 @@
   .aie-library-body {
     flex-direction: column;
   }
+
   .aie-library-sidebar {
     width: 100%;
     border-right: none;
     border-bottom: 1px solid #ddd;
     max-height: 200px;
   }
+
   .aie-snippets-grid {
     grid-template-columns: 1fr;
   }
@@ -2079,14 +2082,16 @@ body.aie-dragging {
     flex-direction: column;
   }
   .aie-step-3 .aie-step-3-columns .aie-csv-builder,
-  .aie-step-3 .aie-step-3-columns .aie-fields-library {
+.aie-step-3 .aie-step-3-columns .aie-fields-library {
     flex: 1 1 auto;
     width: 100%;
     max-height: none;
   }
+
   .aie-fields-grid {
     grid-template-columns: 1fr;
   }
+
   .aie-csv-columns {
     justify-content: center;
   }
@@ -3573,6 +3578,8 @@ body.aie-dragging {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .wp-advanced-import-export .aie-field-card:hover {
   border-color: #2271b1;
@@ -3609,6 +3616,8 @@ body.aie-dragging {
 .wp-advanced-import-export .aie-field-card .aie-field-info {
   flex: 1;
   min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 .wp-advanced-import-export .aie-field-card .aie-field-info .aie-field-name {
   font-weight: 600;
@@ -3618,6 +3627,7 @@ body.aie-dragging {
   overflow: hidden;
   text-overflow: ellipsis;
   margin: 0;
+  max-width: 200px;
 }
 .wp-advanced-import-export .aie-field-card .aie-field-info .aie-field-type {
   font-size: 11px;
@@ -3861,6 +3871,65 @@ body.aie-dragging {
 }
 .wp-advanced-import-export .aie-mapping-functions .aie-function-badge .aie-remove-function:hover {
   color: #b32d2e;
+}
+.wp-advanced-import-export .aie-custom-field-template {
+  border: 2px dashed #c3c4c7 !important;
+  background: #f6f7f7 !important;
+}
+.wp-advanced-import-export .aie-custom-field-template .aie-field-icon {
+  background: #2271b1 !important;
+}
+.wp-advanced-import-export .aie-custom-field-template .aie-field-icon .dashicons {
+  color: #fff !important;
+}
+.wp-advanced-import-export .aie-custom-field-template .aie-add-custom-field {
+  margin-top: 5px;
+  font-size: 12px;
+  padding: 2px 8px;
+  height: auto;
+  line-height: 1.4;
+}
+.wp-advanced-import-export .aie-remove-custom-field {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 8px;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: #d63638;
+  font-weight: bold;
+}
+.wp-advanced-import-export .aie-remove-custom-field:hover {
+  color: #b32d2e;
+}
+
+.aie-custom-field-modal-content {
+  max-width: 550px;
+}
+.aie-custom-field-modal-content .aie-modal-body label {
+  display: block;
+  margin-bottom: 15px;
+}
+.aie-custom-field-modal-content .aie-modal-body label strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.aie-custom-field-modal-content .aie-modal-body label .regular-text {
+  width: 100%;
+  box-sizing: border-box;
+}
+.aie-custom-field-modal-content .aie-modal-body label .description {
+  font-size: 13px;
+  color: #646970;
+  font-style: italic;
+  line-height: 1.5;
+}
+.aie-custom-field-modal-content .aie-modal-body label select.regular-text {
+  height: auto;
+  padding: 6px 10px;
 }
 
 /**
@@ -4557,13 +4626,13 @@ body.aie-dragging {
 }
 @media (max-width: 1024px) {
   .aie-import-results .aie-export-complete-card .aie-results-grid,
-  .aie-export-results .aie-export-complete-card .aie-results-grid {
+.aie-export-results .aie-export-complete-card .aie-results-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 @media (max-width: 640px) {
   .aie-import-results .aie-export-complete-card .aie-results-grid,
-  .aie-export-results .aie-export-complete-card .aie-results-grid {
+.aie-export-results .aie-export-complete-card .aie-results-grid {
     grid-template-columns: 1fr;
     gap: 15px;
   }

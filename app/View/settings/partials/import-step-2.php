@@ -67,21 +67,18 @@ defined( 'ABSPATH' ) || exit;
 			<div class="aie-csv-options" style="display:none;">
 				<label>
 					<?php esc_html_e( 'Delimiter', 'wp-aie' ); ?>
-					<select name="csv_delimiter" class="regular-text">
+					<select name="csv_delimiter" id="csv_delimiter" class="regular-text">
 						<option value=",">,<?php esc_html_e( ' (Comma)', 'wp-aie' ); ?></option>
 						<option value=";">; <?php esc_html_e( ' (Semicolon)', 'wp-aie' ); ?></option>
-						<option value="\t">\t <?php esc_html_e( ' (Tab)', 'wp-aie' ); ?></option>
+						<option value="tab">	<?php esc_html_e( ' (Tab)', 'wp-aie' ); ?></option>
 						<option value="|">| <?php esc_html_e( ' (Pipe)', 'wp-aie' ); ?></option>
+						<option value="custom"><?php esc_html_e( 'Custom', 'wp-aie' ); ?></option>
 					</select>
 				</label>
 
-				<label>
-					<?php esc_html_e( 'Encoding', 'wp-aie' ); ?>
-					<select name="csv_encoding" class="regular-text">
-						<option value="UTF-8">UTF-8</option>
-						<option value="ISO-8859-1">ISO-8859-1</option>
-						<option value="Windows-1252">Windows-1252</option>
-					</select>
+				<label class="aie-custom-delimiter-wrapper" style="display:none;">
+					<?php esc_html_e( 'Custom Delimiter', 'wp-aie' ); ?>
+					<input type="text" name="csv_custom_delimiter" id="csv_custom_delimiter" class="regular-text" maxlength="10" placeholder="<?php esc_attr_e( 'Enter custom delimiter', 'wp-aie' ); ?>">
 				</label>
 
 				<label>

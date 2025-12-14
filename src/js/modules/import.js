@@ -73,6 +73,30 @@ const ImportModule = {
 				}
 			} );
 
+		// CSV delimiter options
+		$wizard.on( 'change', '#csv_delimiter', ( e ) => {
+			this.onDelimiterChange( e );
+			// Reload preview if file is already uploaded
+			if ( this.fileData && this.fileData.file_path ) {
+				this.reloadFilePreview();
+			}
+		});
+		$wizard.on( 'input', '#csv_custom_delimiter', () => {
+			this.validateCustomDelimiter();
+		});
+		$wizard.on( 'blur', '#csv_custom_delimiter', () => {
+			// Reload preview when custom delimiter is finalized
+			if ( this.fileData && this.fileData.file_path ) {
+				this.reloadFilePreview();
+			}
+		});
+		$wizard.on( 'change', 'input[name="csv_has_header"]', () => {
+			// Reload preview when has_header changes
+			if ( this.fileData && this.fileData.file_path ) {
+				this.reloadFilePreview();
+			}
+		});
+
 		// Field mapping
 		$wizard.on( 'click', '.aie-auto-map', () => this.autoMapFields() );
 		$wizard.on( 'click', '.aie-clear-map', () => this.clearFieldMapping() );
@@ -180,6 +204,16 @@ const ImportModule = {
 					Utils.showNotice( 'Please upload a file', 'error' );
 					return false;
 				}
+				
+				// Validate custom delimiter if selected
+				const delimiter = jQuery( '#csv_delimiter' ).val();
+				if ( delimiter === 'custom' ) {
+					const customDelimiter = jQuery( '#csv_custom_delimiter' ).val().trim();
+					if ( customDelimiter === '' ) {
+						Utils.showNotice( 'Please enter a custom delimiter', 'error' );
+						return false;
+					}
+				}
 				break;
 			case 4:
 				// Validate field mapping
@@ -209,6 +243,46 @@ const ImportModule = {
 		} else {
 			jQuery( '.aie-post-options' ).show();
 			jQuery( '.aie-media-options' ).hide();
+		}
+	},
+
+	/**
+	 * Handle delimiter dropdown change
+	 */
+	onDelimiterChange( e ) {
+		const delimiter = jQuery( e.target ).val();
+		
+		if ( delimiter === 'custom' ) {
+			jQuery( '.aie-custom-delimiter-wrapper' ).show();
+			// Validate immediately
+			this.validateCustomDelimiter();
+		} else {
+			jQuery( '.aie-custom-delimiter-wrapper' ).hide();
+			// Re-enable next button if file is uploaded and processed
+			if ( this.fileData && ! this.fileData.hasError ) {
+				jQuery( '.aie-step-2 .aie-next-step' ).prop( 'disabled', false );
+			}
+		}
+	},
+
+	/**
+	 * Validate custom delimiter input
+	 */
+	validateCustomDelimiter() {
+		const customDelimiter = jQuery( '#csv_custom_delimiter' ).val().trim();
+		const delimiter = jQuery( '#csv_delimiter' ).val();
+		
+		// Only validate if delimiter is set to custom
+		if ( delimiter === 'custom' ) {
+			if ( customDelimiter === '' ) {
+				// Disable next button if custom delimiter is empty
+				jQuery( '.aie-step-2 .aie-next-step' ).prop( 'disabled', true );
+			} else {
+				// Enable next button if file is uploaded and custom delimiter is provided
+				if ( this.fileData && ! this.fileData.hasError ) {
+					jQuery( '.aie-step-2 .aie-next-step' ).prop( 'disabled', false );
+				}
+			}
 		}
 	},
 
@@ -261,6 +335,16 @@ const ImportModule = {
 	},
 
 	/**
+	 * Get actual delimiter value (convert 'tab' to \t)
+	 */
+	getDelimiterValue( delimiter ) {
+		if ( delimiter === 'tab' ) {
+			return '\t';
+		}
+		return delimiter;
+	},
+
+	/**
 	 * Upload file in chunks
 	 */
 	uploadFileInChunks( file ) {
@@ -269,9 +353,23 @@ const ImportModule = {
 		jQuery( '.aie-file-info' ).hide();
 		jQuery( '.aie-upload-progress' ).show();
 
+		// Collect CSV options if file is CSV
+		const fileExt = '.' + file.name.split( '.' ).pop().toLowerCase();
+		const csvOptions = {};
+		
+		if ( fileExt === '.csv' ) {
+			const delimiter = jQuery( '#csv_delimiter' ).val();
+			const actualDelimiter = delimiter === 'custom' ? 
+				jQuery( '#csv_custom_delimiter' ).val().trim() : 
+				this.getDelimiterValue( delimiter );
+			csvOptions.delimiter = actualDelimiter;
+			csvOptions.has_header = jQuery( 'input[name="csv_has_header"]' ).is( ':checked' );
+		}
+
 		// Create uploader instance
 		this.fileUploader = new FileUploader( {
 			chunkSize: 1024 * 1024, // 1MB chunks
+			additionalData: csvOptions, // Pass CSV options to uploader
 			onProgress: ( progress ) => {
 				// Update progress bar
 				jQuery( '.aie-upload-progress .aie-progress-bar-fill' ).css(
@@ -320,10 +418,14 @@ const ImportModule = {
 				jQuery( '.aie-upload-area' ).hide();
 				jQuery( '.aie-file-info' ).show();
 
-				// Enable next button
+				// Enable next button only if custom delimiter validation passes
+				const delimiter = jQuery( '#csv_delimiter' ).val();
+				const shouldDisable = delimiter === 'custom' && 
+					jQuery( '#csv_custom_delimiter' ).val().trim() === '';
+				
 				jQuery( '.aie-step-2 .aie-next-step' ).prop(
 					'disabled',
-					false
+					shouldDisable
 				);
 
 				// Show success message
@@ -366,6 +468,54 @@ const ImportModule = {
 		jQuery( '.aie-format-options' ).hide();
 		jQuery( '#aie-file-input' ).val( '' );
 		jQuery( '.aie-step-2 .aie-next-step' ).prop( 'disabled', true );
+	},
+
+	/**
+	 * Reload file preview with updated CSV options
+	 */
+	async reloadFilePreview() {
+		if ( ! this.fileData || ! this.fileData.file_path ) {
+			return;
+		}
+
+		// Only reload for CSV files
+		if ( this.fileData.format !== 'csv' ) {
+			return;
+		}
+
+		// Collect current CSV options
+		const delimiter = jQuery( '#csv_delimiter' ).val();
+		const actualDelimiter = delimiter === 'custom' ? 
+			jQuery( '#csv_custom_delimiter' ).val().trim() : 
+			this.getDelimiterValue( delimiter );
+		const csvOptions = {
+			delimiter: actualDelimiter,
+			has_header: jQuery( 'input[name="csv_has_header"]' ).is( ':checked' )
+		};
+
+		try {
+			// Send request to regenerate preview with new options
+			const response = await jQuery.ajax( {
+				url: aieData.ajaxUrl,
+				method: 'POST',
+				data: {
+					action: 'aie_reload_preview',
+					nonce: aieData.nonce,
+					file_path: this.fileData.file_path,
+					delimiter: csvOptions.delimiter,
+					has_header: csvOptions.has_header
+				}
+			} );
+
+			if ( response.success ) {
+				// Update stored file data with new preview
+				this.fileData.preview = response.data.preview;
+				this.fileData.columns = response.data.columns;
+				this.fileData.total_rows = response.data.total_rows;
+			}
+		} catch ( error ) {
+			console.error( 'Error reloading preview:', error );
+		}
 	},
 
 	/**
@@ -671,28 +821,215 @@ const ImportModule = {
 			html += `<div class="aie-field-group-label">${ group.label }</div>`;
 			
 			group.options.forEach( ( field ) => {
-				// Skip special fields
-				if ( field.value.startsWith( '_' ) ) {
+				// Skip special fields (except template field)
+				if ( field.value.startsWith( '_' ) && field.value !== '_wp_page_template' ) {
 					return;
 				}
 
-				html += `
-					<div class="aie-target-field" data-target-field="${ field.value }" data-field-type="${ field.type || 'string' }">
-						<div class="aie-field-icon">
-							<span class="dashicons dashicons-wordpress"></span>
+				// Custom fields with add button
+				if ( field.custom ) {
+					html += `
+						<div class="aie-target-field aie-custom-field-template" data-field-type="${ field.type || 'string' }" data-multiple="${ field.multiple || false }">
+							<div class="aie-field-icon">
+								<span class="dashicons dashicons-plus"></span>
+							</div>
+							<div class="aie-field-info">
+								<div class="aie-field-label">${ field.label }</div>
+								<button type="button" class="aie-add-custom-field button button-small">+ Add</button>
+							</div>
 						</div>
-						<div class="aie-field-info">
-							<div class="aie-field-label">${ field.label }</div>
-							<span class="aie-field-type-badge">${ field.type || 'string' }</span>
+					`;
+				} else {
+					html += `
+						<div class="aie-target-field" data-target-field="${ field.value }" data-field-type="${ field.type || 'string' }" data-multiple="${ field.multiple || false }">
+							<div class="aie-field-icon">
+								<span class="dashicons dashicons-wordpress"></span>
+							</div>
+							<div class="aie-field-info">
+								<div class="aie-field-label">${ field.label }</div>
+								<span class="aie-field-type-badge">${ field.type || 'string' }</span>
+							</div>
 						</div>
-					</div>
-				`;
+					`;
+				}
 			} );
 			
 			html += `</div>`;
 		} );
 
 		$container.html( html );
+		
+		// Initialize custom field add buttons
+		this.initCustomFieldButtons();
+	},
+
+	/**
+	 * Initialize custom field add buttons
+	 */
+	initCustomFieldButtons() {
+		const self = this;
+		
+		jQuery( '.aie-add-custom-field' ).off( 'click' ).on( 'click', function () {
+			const $button = jQuery( this );
+			const $template = $button.closest( '.aie-custom-field-template' );
+			const fieldType = $template.data( 'field-type' );
+			const isMultiple = $template.data( 'multiple' );
+			
+			// Show modal to add custom field
+			self.showCustomFieldModal( $template, fieldType, isMultiple );
+		} );
+	},
+
+	/**
+	 * Show modal to add custom taxonomy or meta field
+	 */
+	showCustomFieldModal( $template, fieldType, isMultiple ) {
+		const self = this;
+		const isTaxonomy = fieldType === 'taxonomy';
+		const isMeta = fieldType === 'meta';
+		
+		const title = isTaxonomy ? 'Add Taxonomy Field' : 'Add Custom Field';
+		const placeholder = isTaxonomy ? 'Enter taxonomy slug (e.g., category, post_tag, product_cat)' : 'Enter field key (e.g., _custom_price)';
+		const icon = isTaxonomy ? 'dashicons-category' : 'dashicons-admin-plugins';
+		
+		// Taxonomy format options
+		const taxonomyFormatField = isTaxonomy ? `
+			<label style="margin-top: 15px;">
+				<strong>Data Format:</strong>
+				<select class="aie-taxonomy-format regular-text">
+					<option value="id">Term ID (e.g., 5, 12, 23)</option>
+					<option value="slug">Term Slug (e.g., technology, news)</option>
+					<option value="name" selected>Term Name (e.g., Technology, News)</option>
+				</select>
+				<p class="description" style="margin-top: 5px;">
+					Select the format of taxonomy data in your CSV file.
+				</p>
+			</label>
+		` : '';
+		
+		// Create modal HTML (same structure as function modal)
+		const modalHtml = `
+			<div id="aie-custom-field-modal" class="aie-modal" style="display:flex;">
+				<div class="aie-modal-backdrop"></div>
+				<div class="aie-modal-content aie-custom-field-modal-content">
+					<div class="aie-modal-header">
+						<h2 class="aie-modal-title">
+							<span class="dashicons ${ icon }"></span>
+							${ title }
+						</h2>
+						<button type="button" class="aie-modal-close">
+							<span class="dashicons dashicons-no-alt"></span>
+						</button>
+					</div>
+					<div class="aie-modal-body">
+						<label>
+							<strong>Taxonomy Slug:</strong>
+							<input type="text" class="aie-custom-field-input regular-text" placeholder="${ placeholder }" />
+							${ isTaxonomy ? '<p class="description" style="margin-top: 5px;">The slug of the taxonomy (category, post_tag, or custom taxonomy).</p>' : '' }
+						</label>
+						${ taxonomyFormatField }
+					</div>
+					<div class="aie-modal-footer">
+						<button type="button" class="button aie-modal-cancel">Cancel</button>
+						<button type="button" class="button button-primary aie-modal-add">Add Field</button>
+					</div>
+				</div>
+			</div>
+		`;
+		
+		// Add modal to body
+		jQuery( 'body' ).append( modalHtml );
+		
+		const $modal = jQuery( '#aie-custom-field-modal' );
+		const $backdrop = $modal.find( '.aie-modal-backdrop' );
+		const $input = $modal.find( '.aie-custom-field-input' );
+		
+		// Focus input
+		setTimeout( () => $input.focus(), 100 );
+		
+		// Close modal handlers
+		$modal.find( '.aie-modal-close, .aie-modal-cancel' ).on( 'click', function () {
+			$modal.remove();
+		} );
+		
+		$backdrop.on( 'click', function () {
+			$modal.remove();
+		} );
+		
+		// Add field handler
+		$modal.find( '.aie-modal-add' ).on( 'click', function () {
+			const fieldValue = $input.val().trim();
+			
+			if ( ! fieldValue ) {
+				alert( 'Please enter a field name' );
+				return;
+			}
+			
+			// Get taxonomy format if applicable
+			let taxonomyFormat = 'name';
+			if ( isTaxonomy ) {
+				taxonomyFormat = $modal.find( '.aie-taxonomy-format' ).val();
+			}
+			
+			// Create new field card
+			self.addCustomFieldToGroup( $template, fieldValue, fieldType, isMultiple, taxonomyFormat );
+			
+			$modal.remove();
+		} );
+		
+		// Enter key to add
+		$input.on( 'keypress', function ( e ) {
+			if ( e.which === 13 ) {
+				$modal.find( '.aie-modal-add' ).click();
+			}
+		} );
+	},
+
+	/**
+	 * Add custom field to group
+	 */
+	addCustomFieldToGroup( $template, fieldValue, fieldType, isMultiple, taxonomyFormat ) {
+		const $group = $template.closest( '.aie-field-group' );
+		const isTaxonomy = fieldType === 'taxonomy';
+		
+		// Create label with format info for taxonomy
+		let label, badge;
+		if ( isTaxonomy ) {
+			const formatLabels = {
+				id: 'ID',
+				slug: 'Slug',
+				name: 'Name'
+			};
+			label = `${ fieldValue }`;
+			badge = `taxonomy (${ formatLabels[ taxonomyFormat ] || 'Name' })`;
+		} else {
+			label = fieldValue;
+			badge = 'meta';
+		}
+		
+		// Store taxonomy format in data attribute
+		const taxonomyFormatAttr = isTaxonomy ? `data-taxonomy-format="${ taxonomyFormat }"` : '';
+		
+		const fieldHtml = `
+			<div class="aie-target-field" data-target-field="${ fieldValue }" data-field-type="${ fieldType }" data-multiple="${ isMultiple }" ${ taxonomyFormatAttr }>
+				<div class="aie-field-icon">
+					<span class="dashicons ${ isTaxonomy ? 'dashicons-category' : 'dashicons-admin-plugins' }"></span>
+				</div>
+				<div class="aie-field-info">
+					<div class="aie-field-label">${ label }</div>
+					<span class="aie-field-type-badge">${ badge }</span>
+					<button type="button" class="aie-remove-custom-field" title="Remove">&times;</button>
+				</div>
+			</div>
+		`;
+		
+		// Insert before template
+		$template.before( fieldHtml );
+		
+		// Add remove handler
+		$group.find( '.aie-remove-custom-field' ).off( 'click' ).on( 'click', function () {
+			jQuery( this ).closest( '.aie-target-field' ).remove();
+		} );
 	},
 
 	/**
@@ -709,26 +1046,14 @@ const ImportModule = {
 					{ value: 'post_date', label: 'Date', type: 'date' },
 					{ value: 'post_status', label: 'Status', type: 'string' },
 					{ value: 'post_name', label: 'Slug', type: 'string' },
+					{ value: '_wp_page_template', label: 'Template', type: 'string' },
 				],
 			},
 			{
 				label: 'Author',
 				options: [
 					{ value: 'post_author', label: 'Author ID', type: 'number' },
-					{ value: 'author_name', label: 'Author Name', type: 'string' },
 					{ value: 'author_email', label: 'Author Email', type: 'email' },
-				],
-			},
-			{
-				label: 'Taxonomy',
-				options: [
-					{ value: 'categories', label: 'Categories (names)', type: 'array' },
-					{ value: 'category_ids', label: 'Category IDs', type: 'array' },
-					{ value: 'tags', label: 'Tags (names)', type: 'array' },
-					{ value: 'tag_ids', label: 'Tag IDs', type: 'array' },
-					{ value: 'term_id', label: 'Term ID', type: 'number' },
-					{ value: 'term_name', label: 'Term Name', type: 'string' },
-					{ value: 'term_slug', label: 'Term Slug', type: 'string' },
 				],
 			},
 			{
@@ -743,16 +1068,8 @@ const ImportModule = {
 				options: [
 					{ value: 'comment_status', label: 'Comment Status', type: 'string' },
 					{ value: 'post_modified', label: 'Modified Date', type: 'date' },
-					{ value: '_wp_page_template', label: 'Template', type: 'string' },
 					{ value: 'menu_order', label: 'Menu Order', type: 'number' },
 					{ value: 'post_parent', label: 'Parent ID', type: 'number' },
-				],
-			},
-			{
-				label: 'Custom Fields (Meta)',
-				options: [
-					{ value: 'meta_key', label: 'Meta Key (for any custom field)', type: 'string' },
-					{ value: 'meta_value', label: 'Meta Value', type: 'string' },
 				],
 			},
 		];
@@ -985,8 +1302,22 @@ const ImportModule = {
 			];
 		}
 
-		// Default - return post fields
-		return baseFields;
+		// Default - return post fields with taxonomies and custom fields
+		return [
+			...baseFields,
+			{
+				label: 'Taxonomies',
+				options: [
+					{ value: 'taxonomy', label: 'Taxonomy', type: 'taxonomy', custom: true },
+				],
+			},
+			{
+				label: 'Custom Fields (Meta)',
+				options: [
+					{ value: 'meta', label: 'Custom Field', type: 'meta', custom: true },
+				],
+			},
+		];
 	},
 
 	/**
@@ -1797,13 +2128,43 @@ const ImportModule = {
 		} );
 
 		// Search target fields
-		jQuery( '.aie-search-target' ).on( 'input', function () {
-			const query = jQuery( this ).val().toLowerCase();
+		const performSearch = function () {
+			const query = jQuery( this ).val().toLowerCase().trim();
+			
+			// Store matched fields per group
+			const groupMatches = {};
+			
+			// Filter fields and track which groups have matches
 			jQuery( '.aie-target-field' ).each( function () {
-				const fieldName = jQuery( this ).find( '.aie-field-label' ).text().toLowerCase();
-				jQuery( this ).toggle( fieldName.includes( query ) );
+				const $field = jQuery( this );
+				const fieldName = $field.find( '.aie-field-label' ).text().toLowerCase();
+				const matches = query === '' || fieldName.includes( query );
+				
+				// Find parent group
+				const $group = $field.closest( '.aie-field-group' );
+				const groupIndex = $group.index();
+				
+				if ( ! groupMatches[ groupIndex ] ) {
+					groupMatches[ groupIndex ] = 0;
+				}
+				
+				if ( matches ) {
+					groupMatches[ groupIndex ]++;
+				}
+				
+				$field.toggle( matches );
 			} );
-		} );
+			
+			// Show/hide groups based on matched fields
+			jQuery( '#aie-target-fields .aie-field-group' ).each( function () {
+				const $group = jQuery( this );
+				const groupIndex = $group.index();
+				const hasMatches = groupMatches[ groupIndex ] > 0;
+				$group.toggle( query === '' || hasMatches );
+			} );
+		};
+		
+		jQuery( '.aie-search-target' ).on( 'keyup input', performSearch );
 	},
 
 	/**
