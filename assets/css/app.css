@@ -3455,6 +3455,47 @@ body.aie-dragging {
   font-style: italic;
 }
 
+.wp-advanced-import-export .aie-post-type-selector {
+  padding: 15px;
+  background: #f0f6fc;
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+.wp-advanced-import-export .aie-post-type-selector label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #1d2327;
+}
+.wp-advanced-import-export .aie-post-type-selector select {
+  width: 100%;
+  max-width: 400px;
+}
+.wp-advanced-import-export .aie-database-table-selector {
+  padding: 15px;
+  background: #f0f6fc;
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.wp-advanced-import-export .aie-database-table-selector label {
+  font-weight: 600;
+  color: #1d2327;
+  margin: 0;
+  min-width: 150px;
+}
+.wp-advanced-import-export .aie-database-table-selector select {
+  flex: 1;
+  max-width: 400px;
+}
+.wp-advanced-import-export .aie-database-table-selector .spinner {
+  float: none;
+  margin: 0;
+}
 .wp-advanced-import-export .aie-mapping-controls {
   display: flex;
   gap: 10px;

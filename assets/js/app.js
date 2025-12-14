@@ -8487,7 +8487,14 @@ var ImportModule = {
     if (this.currentStep < this.totalSteps) {
       // Validate current step
       if (this.validateStep(this.currentStep)) {
-        this.showStep(this.currentStep + 1);
+        var contentType = jQuery('input[name="content_type"]:checked').val();
+
+        // For block_theme_settings, skip steps 4 and 5 (go from 3 to 6)
+        if (contentType === 'block_theme_settings' && this.currentStep === 3) {
+          this.showStep(6); // Skip to import execution
+        } else {
+          this.showStep(this.currentStep + 1);
+        }
       }
     }
   },
@@ -8496,7 +8503,14 @@ var ImportModule = {
    */
   prevStep: function prevStep() {
     if (this.currentStep > 1) {
-      this.showStep(this.currentStep - 1);
+      var contentType = jQuery('input[name="content_type"]:checked').val();
+
+      // For block_theme_settings, skip steps 5 and 4 when going back (go from 6 to 3)
+      if (contentType === 'block_theme_settings' && this.currentStep === 6) {
+        this.showStep(3); // Skip back to preview
+      } else {
+        this.showStep(this.currentStep - 1);
+      }
     }
   },
   /**
@@ -8521,6 +8535,16 @@ var ImportModule = {
         }
         break;
       case 4:
+        // Validate post type selection for custom post types
+        var contentType = jQuery('input[name="content_type"]:checked').val();
+        if (contentType === 'custom_post_types') {
+          var selectedPostType = jQuery('#aie-custom-post-type').val();
+          if (!selectedPostType) {
+            _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Please select a post type', 'error');
+            return false;
+          }
+        }
+
         // Validate field mapping
         var mappedFields = this.getFieldMapping();
         if (!mappedFields || mappedFields.length === 0) {
@@ -9030,11 +9054,22 @@ var ImportModule = {
     var contentType = jQuery('input[name="content_type"]:checked').val();
     console.log('Content type:', contentType);
 
+    // Show/hide post type selector for custom post types
+    this.togglePostTypeSelector(contentType);
+
+    // Show/hide database table selector
+    this.toggleDatabaseTableSelector(contentType);
+
     // Build source fields (from file)
     this.buildSourceFields();
 
-    // Build target fields (WordPress fields)
-    this.buildTargetFields(contentType);
+    // Build target fields (WordPress fields or database table columns)
+    if (contentType === 'database_table') {
+      // Table columns will be loaded after table selection
+      jQuery('#aie-target-fields').html('<div class="aie-info">Please select a database table above to see available columns</div>');
+    } else {
+      this.buildTargetFields(contentType);
+    }
 
     // Load dynamic ACF fields
     this.loadACFFields(contentType);
@@ -9065,6 +9100,211 @@ var ImportModule = {
       html += "\n\t\t\t\t<div class=\"aie-field-card\" draggable=\"true\" data-source-field=\"".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(column), "\" data-source-index=\"").concat(index, "\">\n\t\t\t\t\t<div class=\"aie-field-icon\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-media-spreadsheet\"></span>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-field-info\">\n\t\t\t\t\t\t<div class=\"aie-field-name\">").concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(column), "</div>\n\t\t\t\t\t\t").concat(sampleDisplay ? "<div class=\"aie-field-sample\">".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(sampleDisplay), "...</div>") : '', "\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t");
     });
     $container.html(html);
+  },
+  /**
+   * Toggle post type selector visibility
+   */
+  togglePostTypeSelector: function togglePostTypeSelector(contentType) {
+    var $selector = jQuery('.aie-post-type-selector');
+    console.log('togglePostTypeSelector called with:', contentType);
+    console.log('Selector found:', $selector.length);
+    console.log('Current display:', $selector.css('display'));
+    if (contentType === 'custom_post_types') {
+      console.log('Setting display to block');
+      $selector.css('display', 'block');
+      console.log('After setting, display:', $selector.css('display'));
+      this.loadCustomPostTypes();
+    } else {
+      $selector.css('display', 'none');
+    }
+  },
+  /**
+   * Load custom post types via AJAX
+   */
+  loadCustomPostTypes: function loadCustomPostTypes() {
+    var $select = jQuery('#aie-custom-post-type');
+
+    // If already loaded, skip
+    if ($select.find('option').length > 1) {
+      return;
+    }
+    jQuery.ajax({
+      url: window.aieData.ajaxUrl,
+      type: 'POST',
+      data: {
+        action: 'aie_get_custom_post_types',
+        nonce: window.aieData.nonce
+      },
+      success: function success(response) {
+        if (response.success && response.data) {
+          var options = '<option value="">-- Select Post Type --</option>';
+          response.data.forEach(function (postType) {
+            options += "<option value=\"".concat(postType.name, "\">").concat(postType.label, "</option>");
+          });
+          $select.html(options);
+        }
+      },
+      error: function error(xhr, status, _error) {
+        console.error('Error loading post types:', _error);
+      }
+    });
+  },
+  /**
+   * Toggle database table selector on Step 4
+   */
+  toggleDatabaseTableSelector: function toggleDatabaseTableSelector(contentType) {
+    var $selector = jQuery('.aie-table-selection-section');
+    if (contentType === 'database_table') {
+      $selector.show();
+      this.loadDatabaseTables();
+    } else {
+      $selector.hide();
+    }
+  },
+  /**
+   * Load database tables on Step 4
+   */
+  loadDatabaseTables: function loadDatabaseTables() {
+    var _this6 = this;
+    var $select = jQuery('#aie-import-table-name');
+    var $spinner = jQuery('.aie-table-selector .spinner');
+    var $section = jQuery('.aie-table-selection-section');
+
+    // If already loaded, skip
+    if ($select.find('option').length > 1) {
+      return;
+    }
+
+    // Show section
+    $section.show();
+
+    // Show loading
+    $select.prop('disabled', true);
+    $spinner.addClass('is-active');
+    jQuery.ajax({
+      url: window.aieData.ajaxUrl,
+      type: 'POST',
+      data: {
+        action: 'aie_get_database_tables',
+        nonce: window.aieData.nonce
+      },
+      success: function success(response) {
+        $spinner.removeClass('is-active');
+        if (response.success && response.data) {
+          var tables = response.data.tables || response.data || [];
+          $select.empty();
+          $select.append(jQuery('<option>').val('').text('Select a table...'));
+          if (!Array.isArray(tables) || tables.length === 0) {
+            $select.append(jQuery('<option>').val('').text('No tables found'));
+            $select.prop('disabled', true);
+            return;
+          }
+          tables.forEach(function (table) {
+            $select.append(jQuery('<option>').val(table.table_name).text(table.label));
+          });
+          $select.prop('disabled', false);
+
+          // Handle table selection
+          $select.off('change').on('change', function () {
+            var tableName = $select.val();
+            if (tableName) {
+              _this6.selectedTableName = tableName;
+              _this6.loadTableInfo(tableName);
+              _this6.loadTableColumnsForMapping();
+            } else {
+              jQuery('.aie-table-info').html('').hide();
+              jQuery('#aie-target-fields').html('<div class="aie-info">Please select a database table above to see available columns</div>');
+            }
+          });
+        } else {
+          $select.html('<option value="">No tables found</option>');
+        }
+      },
+      error: function error(xhr, status, _error2) {
+        console.error('Error loading tables:', _error2);
+        $spinner.removeClass('is-active');
+        $select.html('<option value="">Error loading tables</option>');
+      }
+    });
+  },
+  /**
+   * Load table info on Step 2
+   */
+  loadTableInfo: function loadTableInfo(tableName) {
+    var $tableInfo = jQuery('.aie-table-info');
+    var $columnsList = jQuery('.aie-columns-list');
+    var $rowCount = jQuery('.aie-table-row-count');
+    var $columnCount = jQuery('.aie-table-column-count');
+    $tableInfo.show();
+    $columnsList.html('<p>Loading...</p>');
+    jQuery.ajax({
+      url: window.aieData.ajaxUrl,
+      type: 'POST',
+      data: {
+        action: 'aie_get_table_columns',
+        nonce: window.aieData.nonce,
+        table_name: tableName
+      },
+      success: function success(response) {
+        if (response.success && response.data) {
+          var columns = response.data.columns || [];
+          var rowCount = response.data.row_count || 0;
+          $rowCount.text(rowCount.toLocaleString());
+          $columnCount.text(columns.length);
+          var html = '<div class="aie-column-badges">';
+          columns.forEach(function (column) {
+            html += "<span class=\"aie-column-badge\">".concat(column.name, "</span>");
+          });
+          html += '</div>';
+          $columnsList.html(html);
+        }
+      },
+      error: function error(xhr, status, _error3) {
+        console.error('Error loading table columns:', _error3);
+        $columnsList.html('<p>Error loading columns</p>');
+      }
+    });
+  },
+  /**
+   * Load table columns for Step 4 (field mapping)
+   */
+  loadTableColumnsForMapping: function loadTableColumnsForMapping() {
+    var _this7 = this;
+    if (!this.selectedTableName) {
+      return;
+    }
+    var $container = jQuery('#aie-target-fields');
+    $container.html('<div class="aie-loading">Loading table columns...</div>');
+    jQuery.ajax({
+      url: window.aieData.ajaxUrl,
+      type: 'POST',
+      data: {
+        action: 'aie_get_table_columns',
+        nonce: window.aieData.nonce,
+        table_name: this.selectedTableName
+      },
+      success: function success(response) {
+        if (response.success && response.data && response.data.columns) {
+          var columns = response.data.columns;
+          var html = '<div class="aie-field-group">';
+          html += '<div class="aie-field-group-label">Table Columns</div>';
+          columns.forEach(function (column) {
+            html += "\n\t\t\t\t\t\t\t<div class=\"aie-target-field\" data-target-field=\"".concat(column.name, "\" data-field-type=\"").concat(column.type || 'string', "\">\n\t\t\t\t\t\t\t\t<div class=\"aie-field-icon\">\n\t\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-database\"></span>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<div class=\"aie-field-info\">\n\t\t\t\t\t\t\t\t\t<div class=\"aie-field-label\">").concat(column.name, "</div>\n\t\t\t\t\t\t\t\t\t<span class=\"aie-field-type-badge\">").concat(column.type || 'string', "</span>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t");
+          });
+          html += '</div>';
+          $container.html(html);
+
+          // Re-initialize drag & drop
+          _this7.initializeDragDrop();
+        } else {
+          $container.html('<div class="aie-error">Error loading columns</div>');
+        }
+      },
+      error: function error(xhr, status, _error4) {
+        console.error('Error loading columns:', _error4);
+        $container.html('<div class="aie-error">Error loading table columns</div>');
+      }
+    });
   },
   /**
    * Build target WordPress fields
@@ -9310,38 +9550,22 @@ var ImportModule = {
           type: 'string'
         }]
       }, {
-        label: 'File Information',
+        label: 'File',
         options: [{
-          value: 'guid',
-          label: 'File URL (GUID)',
-          type: 'url'
-        }, {
           value: 'file_url',
           label: 'File URL',
           type: 'url'
-        }, {
-          value: 'file_path',
-          label: 'File Path (Relative)',
-          type: 'string'
         }, {
           value: 'file_name',
           label: 'File Name',
           type: 'string'
         }, {
-          value: 'file_extension',
-          label: 'File Extension',
-          type: 'string'
-        }, {
           value: 'post_mime_type',
           label: 'MIME Type',
           type: 'string'
-        }, {
-          value: 'file_size',
-          label: 'File Size (bytes)',
-          type: 'number'
         }]
       }, {
-        label: 'Image Dimensions',
+        label: 'Image',
         options: [{
           value: 'width',
           label: 'Width (px)',
@@ -9352,59 +9576,42 @@ var ImportModule = {
           type: 'number'
         }]
       }, {
-        label: 'Dates',
+        label: 'Other',
         options: [{
           value: 'post_date',
           label: 'Upload Date',
           type: 'date'
         }, {
-          value: 'post_modified',
-          label: 'Modified Date',
-          type: 'date'
-        }]
-      }, {
-        label: 'Author',
-        options: [{
           value: 'post_author',
           label: 'Author ID',
           type: 'number'
         }, {
-          value: 'author_name',
-          label: 'Author Name',
-          type: 'string'
-        }, {
-          value: 'author_email',
-          label: 'Author Email',
-          type: 'email'
-        }]
-      }, {
-        label: 'Attachment',
-        options: [{
           value: 'post_parent',
           label: 'Attached To (Post ID)',
           type: 'number'
-        }, {
-          value: 'attached_post_title',
-          label: 'Attached Post Title',
-          type: 'string'
         }]
       }, {
         label: 'Custom Fields (Meta)',
         options: [{
-          value: 'meta_key',
-          label: 'Meta Key (for any custom field)',
-          type: 'string'
-        }, {
-          value: 'meta_value',
-          label: 'Meta Value',
-          type: 'string'
+          value: 'meta',
+          label: 'Custom Field',
+          type: 'meta',
+          custom: true
         }]
       }];
     }
 
-    // Pages (uses base fields, no taxonomy section)
+    // Pages (no taxonomies, only custom fields)
     if (contentType === 'page') {
-      return baseFields;
+      return [].concat(baseFields, [{
+        label: 'Custom Fields (Meta)',
+        options: [{
+          value: 'meta',
+          label: 'Custom Field',
+          type: 'meta',
+          custom: true
+        }]
+      }]);
     }
 
     // Users
@@ -9418,6 +9625,10 @@ var ImportModule = {
         }, {
           value: 'user_email',
           label: 'Email',
+          type: 'email'
+        }, {
+          value: 'user_pass',
+          label: 'Password',
           type: 'string'
         }, {
           value: 'display_name',
@@ -9425,7 +9636,7 @@ var ImportModule = {
           type: 'string'
         }, {
           value: 'user_nicename',
-          label: 'Nice Name',
+          label: 'Nice Name (Slug)',
           type: 'string'
         }]
       }, {
@@ -9449,63 +9660,33 @@ var ImportModule = {
         }, {
           value: 'user_url',
           label: 'Website',
-          type: 'string'
-        }, {
-          value: 'avatar_url',
-          label: 'Avatar URL',
-          type: 'string'
+          type: 'url'
         }]
       }, {
-        label: 'Role & Permissions',
+        label: 'Role',
         options: [{
           value: 'role',
           label: 'Role',
           type: 'string'
-        }, {
-          value: 'capabilities',
-          label: 'Capabilities (Array)',
-          type: 'array'
         }]
       }, {
-        label: 'Preferences',
+        label: 'Other',
         options: [{
-          value: 'locale',
-          label: 'Language',
-          type: 'string'
-        }, {
-          value: 'admin_color',
-          label: 'Admin Color Scheme',
-          type: 'string'
-        }, {
-          value: 'rich_editing',
-          label: 'Visual Editor',
-          type: 'boolean'
-        }]
-      }, {
-        label: 'Stats',
-        options: [{
-          value: 'posts_count',
-          label: 'Posts Count',
-          type: 'number'
-        }, {
           value: 'user_registered',
           label: 'Registration Date',
           type: 'date'
         }, {
-          value: 'user_status',
-          label: 'User Status',
-          type: 'number'
+          value: 'locale',
+          label: 'Language',
+          type: 'string'
         }]
       }, {
         label: 'Custom Fields (User Meta)',
         options: [{
-          value: 'meta_key',
-          label: 'User Meta Key',
-          type: 'string'
-        }, {
-          value: 'meta_value',
-          label: 'User Meta Value',
-          type: 'string'
+          value: 'meta',
+          label: 'Custom Field',
+          type: 'meta',
+          custom: true
         }]
       }];
     }
@@ -9521,7 +9702,8 @@ var ImportModule = {
         }, {
           value: 'post_title',
           label: 'Product Name',
-          type: 'string'
+          type: 'string',
+          required: true
         }, {
           value: 'post_name',
           label: 'Slug',
@@ -9561,6 +9743,14 @@ var ImportModule = {
           label: 'Sale Price',
           type: 'number'
         }, {
+          value: 'date_on_sale_from',
+          label: 'Sale Start Date',
+          type: 'datetime'
+        }, {
+          value: 'date_on_sale_to',
+          label: 'Sale End Date',
+          type: 'datetime'
+        }, {
           value: 'tax_status',
           label: 'Tax Status',
           type: 'string'
@@ -9587,6 +9777,14 @@ var ImportModule = {
           value: 'backorders',
           label: 'Backorders',
           type: 'string'
+        }, {
+          value: 'sold_individually',
+          label: 'Sold Individually',
+          type: 'boolean'
+        }, {
+          value: 'low_stock_amount',
+          label: 'Low Stock Threshold',
+          type: 'number'
         }]
       }, {
         label: 'Product Type',
@@ -9630,22 +9828,41 @@ var ImportModule = {
         label: 'Media',
         options: [{
           value: 'featured_image',
-          label: 'Featured Image',
+          label: 'Featured Image URL',
           type: 'string'
+        }, {
+          value: 'featured_image_id',
+          label: 'Featured Image ID',
+          type: 'number'
         }, {
           value: 'product_gallery',
-          label: 'Gallery Images',
-          type: 'array'
+          label: 'Gallery Image URLs',
+          type: 'string'
         }]
       }, {
-        label: 'Taxonomy',
+        label: 'Linked Products',
         options: [{
-          value: 'product_cat',
-          label: 'Categories',
+          value: 'upsell_ids',
+          label: 'Upsell IDs',
           type: 'string'
         }, {
-          value: 'product_tag',
-          label: 'Tags',
+          value: 'cross_sell_ids',
+          label: 'Cross-sell IDs',
+          type: 'string'
+        }, {
+          value: 'parent_id',
+          label: 'Parent Product ID',
+          type: 'number'
+        }]
+      }, {
+        label: 'Attributes',
+        options: [{
+          value: 'attributes',
+          label: 'Product Attributes',
+          type: 'string'
+        }, {
+          value: 'default_attributes',
+          label: 'Default Attributes',
           type: 'string'
         }]
       }, {
@@ -9670,12 +9887,16 @@ var ImportModule = {
           label: 'Featured',
           type: 'boolean'
         }, {
-          value: 'visibility',
+          value: 'catalog_visibility',
           label: 'Catalog Visibility',
           type: 'string'
         }, {
           value: 'total_sales',
           label: 'Total Sales',
+          type: 'number'
+        }, {
+          value: 'menu_order',
+          label: 'Menu Order',
           type: 'number'
         }]
       }, {
@@ -9683,22 +9904,706 @@ var ImportModule = {
         options: [{
           value: 'post_date',
           label: 'Created Date',
-          type: 'date'
+          type: 'datetime'
         }, {
           value: 'post_modified',
           label: 'Modified Date',
-          type: 'date'
+          type: 'datetime'
+        }]
+      }, {
+        label: 'Taxonomies',
+        options: [{
+          value: 'taxonomy',
+          label: 'Taxonomy',
+          type: 'taxonomy',
+          custom: true
         }]
       }, {
         label: 'Custom Fields (Meta)',
         options: [{
-          value: 'meta_key',
-          label: 'Meta Key (for any custom field)',
+          value: 'meta',
+          label: 'Custom Field',
+          type: 'meta',
+          custom: true
+        }]
+      }];
+    }
+
+    // WooCommerce Orders
+    if (contentType === 'woo_order') {
+      return [{
+        label: 'Basic',
+        options: [{
+          value: 'order_id',
+          label: 'Order ID',
+          type: 'number'
+        }, {
+          value: 'order_number',
+          label: 'Order Number',
           type: 'string'
         }, {
-          value: 'meta_value',
-          label: 'Meta Value',
+          value: 'order_key',
+          label: 'Order Key',
           type: 'string'
+        }, {
+          value: 'status',
+          label: 'Order Status',
+          type: 'string'
+        }, {
+          value: 'currency',
+          label: 'Currency',
+          type: 'string'
+        }, {
+          value: 'payment_method',
+          label: 'Payment Method',
+          type: 'string'
+        }, {
+          value: 'payment_method_title',
+          label: 'Payment Method Title',
+          type: 'string'
+        }]
+      }, {
+        label: 'Customer',
+        options: [{
+          value: 'customer_id',
+          label: 'Customer ID',
+          type: 'number'
+        }, {
+          value: 'customer_email',
+          label: 'Customer Email',
+          type: 'email'
+        }, {
+          value: 'customer_user_agent',
+          label: 'User Agent',
+          type: 'string'
+        }, {
+          value: 'customer_ip_address',
+          label: 'Customer IP',
+          type: 'string'
+        }]
+      }, {
+        label: 'Billing Address',
+        options: [{
+          value: 'billing_first_name',
+          label: 'First Name',
+          type: 'string'
+        }, {
+          value: 'billing_last_name',
+          label: 'Last Name',
+          type: 'string'
+        }, {
+          value: 'billing_company',
+          label: 'Company',
+          type: 'string'
+        }, {
+          value: 'billing_address_1',
+          label: 'Address Line 1',
+          type: 'string'
+        }, {
+          value: 'billing_address_2',
+          label: 'Address Line 2',
+          type: 'string'
+        }, {
+          value: 'billing_city',
+          label: 'City',
+          type: 'string'
+        }, {
+          value: 'billing_state',
+          label: 'State/Province',
+          type: 'string'
+        }, {
+          value: 'billing_postcode',
+          label: 'Postcode',
+          type: 'string'
+        }, {
+          value: 'billing_country',
+          label: 'Country',
+          type: 'string'
+        }, {
+          value: 'billing_email',
+          label: 'Email',
+          type: 'email'
+        }, {
+          value: 'billing_phone',
+          label: 'Phone',
+          type: 'string'
+        }]
+      }, {
+        label: 'Shipping Address',
+        options: [{
+          value: 'shipping_first_name',
+          label: 'First Name',
+          type: 'string'
+        }, {
+          value: 'shipping_last_name',
+          label: 'Last Name',
+          type: 'string'
+        }, {
+          value: 'shipping_company',
+          label: 'Company',
+          type: 'string'
+        }, {
+          value: 'shipping_address_1',
+          label: 'Address Line 1',
+          type: 'string'
+        }, {
+          value: 'shipping_address_2',
+          label: 'Address Line 2',
+          type: 'string'
+        }, {
+          value: 'shipping_city',
+          label: 'City',
+          type: 'string'
+        }, {
+          value: 'shipping_state',
+          label: 'State/Province',
+          type: 'string'
+        }, {
+          value: 'shipping_postcode',
+          label: 'Postcode',
+          type: 'string'
+        }, {
+          value: 'shipping_country',
+          label: 'Country',
+          type: 'string'
+        }]
+      }, {
+        label: 'Order Items',
+        options: [{
+          value: 'line_items',
+          label: 'Line Items (JSON)',
+          type: 'string'
+        }, {
+          value: 'shipping_lines',
+          label: 'Shipping Lines (JSON)',
+          type: 'string'
+        }, {
+          value: 'fee_lines',
+          label: 'Fee Lines (JSON)',
+          type: 'string'
+        }, {
+          value: 'coupon_lines',
+          label: 'Coupon Lines (JSON)',
+          type: 'string'
+        }]
+      }, {
+        label: 'Totals',
+        options: [{
+          value: 'order_total',
+          label: 'Order Total',
+          type: 'number'
+        }, {
+          value: 'order_subtotal',
+          label: 'Subtotal',
+          type: 'number'
+        }, {
+          value: 'order_tax',
+          label: 'Tax Total',
+          type: 'number'
+        }, {
+          value: 'order_shipping',
+          label: 'Shipping Total',
+          type: 'number'
+        }, {
+          value: 'order_shipping_tax',
+          label: 'Shipping Tax',
+          type: 'number'
+        }, {
+          value: 'cart_discount',
+          label: 'Cart Discount',
+          type: 'number'
+        }, {
+          value: 'cart_discount_tax',
+          label: 'Cart Discount Tax',
+          type: 'number'
+        }]
+      }, {
+        label: 'Shipping',
+        options: [{
+          value: 'shipping_method',
+          label: 'Shipping Method',
+          type: 'string'
+        }, {
+          value: 'shipping_method_title',
+          label: 'Shipping Method Title',
+          type: 'string'
+        }]
+      }, {
+        label: 'Dates',
+        options: [{
+          value: 'date_created',
+          label: 'Date Created',
+          type: 'datetime'
+        }, {
+          value: 'date_modified',
+          label: 'Date Modified',
+          type: 'datetime'
+        }, {
+          value: 'date_completed',
+          label: 'Date Completed',
+          type: 'datetime'
+        }, {
+          value: 'date_paid',
+          label: 'Date Paid',
+          type: 'datetime'
+        }]
+      }, {
+        label: 'Other',
+        options: [{
+          value: 'transaction_id',
+          label: 'Transaction ID',
+          type: 'string'
+        }, {
+          value: 'customer_note',
+          label: 'Customer Note',
+          type: 'string'
+        }, {
+          value: 'created_via',
+          label: 'Created Via',
+          type: 'string'
+        }, {
+          value: 'version',
+          label: 'WooCommerce Version',
+          type: 'string'
+        }, {
+          value: 'prices_include_tax',
+          label: 'Prices Include Tax',
+          type: 'boolean'
+        }]
+      }, {
+        label: 'Custom Fields (Meta)',
+        options: [{
+          value: 'meta',
+          label: 'Custom Field',
+          type: 'meta',
+          custom: true
+        }]
+      }];
+    }
+
+    // WooCommerce Coupons
+    if (contentType === 'woo_coupon') {
+      return [{
+        label: 'Basic',
+        options: [{
+          value: 'coupon_code',
+          label: 'Coupon Code',
+          type: 'string',
+          required: true
+        }, {
+          value: 'description',
+          label: 'Description',
+          type: 'string'
+        }, {
+          value: 'discount_type',
+          label: 'Discount Type',
+          type: 'string'
+        }, {
+          value: 'coupon_amount',
+          label: 'Coupon Amount',
+          type: 'number'
+        }, {
+          value: 'free_shipping',
+          label: 'Free Shipping',
+          type: 'boolean'
+        }]
+      }, {
+        label: 'Usage Restrictions',
+        options: [{
+          value: 'minimum_amount',
+          label: 'Minimum Spend',
+          type: 'number'
+        }, {
+          value: 'maximum_amount',
+          label: 'Maximum Spend',
+          type: 'number'
+        }, {
+          value: 'individual_use',
+          label: 'Individual Use Only',
+          type: 'boolean'
+        }, {
+          value: 'exclude_sale_items',
+          label: 'Exclude Sale Items',
+          type: 'boolean'
+        }, {
+          value: 'product_ids',
+          label: 'Product IDs',
+          type: 'string'
+        }, {
+          value: 'excluded_product_ids',
+          label: 'Excluded Product IDs',
+          type: 'string'
+        }, {
+          value: 'product_categories',
+          label: 'Product Categories',
+          type: 'string'
+        }, {
+          value: 'excluded_product_categories',
+          label: 'Excluded Product Categories',
+          type: 'string'
+        }, {
+          value: 'email_restrictions',
+          label: 'Allowed Emails',
+          type: 'string'
+        }]
+      }, {
+        label: 'Usage Limits',
+        options: [{
+          value: 'usage_limit',
+          label: 'Usage Limit Per Coupon',
+          type: 'number'
+        }, {
+          value: 'usage_limit_per_user',
+          label: 'Usage Limit Per User',
+          type: 'number'
+        }, {
+          value: 'limit_usage_to_x_items',
+          label: 'Limit Usage to X Items',
+          type: 'number'
+        }, {
+          value: 'usage_count',
+          label: 'Usage Count',
+          type: 'number'
+        }]
+      }, {
+        label: 'Dates',
+        options: [{
+          value: 'date_expires',
+          label: 'Expiry Date',
+          type: 'datetime'
+        }, {
+          value: 'date_created',
+          label: 'Date Created',
+          type: 'datetime'
+        }, {
+          value: 'date_modified',
+          label: 'Date Modified',
+          type: 'datetime'
+        }]
+      }, {
+        label: 'Custom Fields (Meta)',
+        options: [{
+          value: 'meta',
+          label: 'Custom Field',
+          type: 'meta',
+          custom: true
+        }]
+      }];
+    }
+
+    // WooCommerce Attributes
+    if (contentType === 'woo_attribute') {
+      return [{
+        label: 'Attribute',
+        options: [{
+          value: 'attribute_name',
+          label: 'Attribute Name',
+          type: 'string',
+          required: true
+        }, {
+          value: 'attribute_label',
+          label: 'Attribute Label',
+          type: 'string'
+        }, {
+          value: 'attribute_type',
+          label: 'Attribute Type',
+          type: 'string'
+        }, {
+          value: 'attribute_orderby',
+          label: 'Order By',
+          type: 'string'
+        }, {
+          value: 'attribute_public',
+          label: 'Enable Archives',
+          type: 'boolean'
+        }]
+      }, {
+        label: 'Terms',
+        options: [{
+          value: 'terms',
+          label: 'Attribute Terms (comma-separated)',
+          type: 'string'
+        }]
+      }];
+    }
+
+    // Menus
+    if (contentType === 'menu') {
+      return [{
+        label: 'Menu Item',
+        options: [{
+          value: 'menu_item_title',
+          label: 'Title',
+          type: 'string'
+        }, {
+          value: 'menu_item_url',
+          label: 'URL',
+          type: 'url'
+        }, {
+          value: 'menu_item_type',
+          label: 'Type',
+          type: 'string'
+        }, {
+          value: 'menu_item_object',
+          label: 'Object',
+          type: 'string'
+        }, {
+          value: 'menu_item_object_id',
+          label: 'Object ID',
+          type: 'number'
+        }]
+      }, {
+        label: 'Structure',
+        options: [{
+          value: 'menu_item_parent',
+          label: 'Parent ID',
+          type: 'number'
+        }, {
+          value: 'menu_order',
+          label: 'Order',
+          type: 'number'
+        }]
+      }, {
+        label: 'Settings',
+        options: [{
+          value: 'menu_item_target',
+          label: 'Target (_blank, _self)',
+          type: 'string'
+        }, {
+          value: 'menu_item_classes',
+          label: 'CSS Classes',
+          type: 'string'
+        }, {
+          value: 'menu_item_xfn',
+          label: 'Link Relationship (XFN)',
+          type: 'string'
+        }, {
+          value: 'menu_item_description',
+          label: 'Description',
+          type: 'string'
+        }]
+      }, {
+        label: 'Custom Fields (Meta)',
+        options: [{
+          value: 'meta',
+          label: 'Custom Field',
+          type: 'meta',
+          custom: true
+        }]
+      }];
+    }
+
+    // Comments
+    if (contentType === 'comment') {
+      return [{
+        label: 'Basic',
+        options: [{
+          value: 'comment_content',
+          label: 'Comment Content',
+          type: 'string'
+        }, {
+          value: 'comment_author',
+          label: 'Author Name',
+          type: 'string'
+        }, {
+          value: 'comment_author_email',
+          label: 'Author Email',
+          type: 'email'
+        }, {
+          value: 'comment_author_url',
+          label: 'Author Website',
+          type: 'url'
+        }]
+      }, {
+        label: 'Status',
+        options: [{
+          value: 'comment_approved',
+          label: 'Status (0, 1, spam, trash)',
+          type: 'string'
+        }, {
+          value: 'comment_type',
+          label: 'Type (comment, pingback, trackback)',
+          type: 'string'
+        }]
+      }, {
+        label: 'Post',
+        options: [{
+          value: 'comment_post_ID',
+          label: 'Post ID',
+          type: 'number'
+        }]
+      }, {
+        label: 'Other',
+        options: [{
+          value: 'comment_date',
+          label: 'Date',
+          type: 'date'
+        }, {
+          value: 'comment_parent',
+          label: 'Parent Comment ID',
+          type: 'number'
+        }, {
+          value: 'comment_author_IP',
+          label: 'Author IP',
+          type: 'string'
+        }, {
+          value: 'user_id',
+          label: 'User ID',
+          type: 'number'
+        }]
+      }, {
+        label: 'Custom Fields (Comment Meta)',
+        options: [{
+          value: 'meta',
+          label: 'Custom Field',
+          type: 'meta',
+          custom: true
+        }]
+      }];
+    }
+
+    // Taxonomy Terms
+    if (contentType === 'taxonomy') {
+      return [{
+        label: 'Basic',
+        options: [{
+          value: 'term_name',
+          label: 'Name',
+          type: 'string'
+        }, {
+          value: 'term_slug',
+          label: 'Slug',
+          type: 'string'
+        }, {
+          value: 'term_description',
+          label: 'Description',
+          type: 'string'
+        }]
+      }, {
+        label: 'Taxonomy',
+        options: [{
+          value: 'taxonomy',
+          label: 'Taxonomy',
+          type: 'string'
+        }]
+      }, {
+        label: 'Hierarchy',
+        options: [{
+          value: 'parent_term_id',
+          label: 'Parent Term ID',
+          type: 'number'
+        }, {
+          value: 'parent_term_slug',
+          label: 'Parent Term Slug',
+          type: 'string'
+        }]
+      }, {
+        label: 'Custom Fields (Term Meta)',
+        options: [{
+          value: 'meta',
+          label: 'Custom Field',
+          type: 'meta',
+          custom: true
+        }]
+      }];
+    }
+    if (contentType === 'custom_post_types') {
+      return [{
+        label: 'Standard',
+        options: [{
+          value: 'post_title',
+          label: 'Title',
+          type: 'string',
+          required: true
+        }, {
+          value: 'post_content',
+          label: 'Content',
+          type: 'string'
+        }, {
+          value: 'post_excerpt',
+          label: 'Excerpt',
+          type: 'string'
+        }, {
+          value: 'post_status',
+          label: 'Status',
+          type: 'string'
+        }, {
+          value: 'post_date',
+          label: 'Date',
+          type: 'datetime'
+        }, {
+          value: 'post_modified',
+          label: 'Modified Date',
+          type: 'datetime'
+        }, {
+          value: 'menu_order',
+          label: 'Menu Order',
+          type: 'number'
+        }, {
+          value: 'post_slug',
+          label: 'Slug',
+          type: 'string'
+        }, {
+          value: 'comment_status',
+          label: 'Comment Status',
+          type: 'string'
+        }, {
+          value: 'ping_status',
+          label: 'Ping Status',
+          type: 'string'
+        }]
+      }, {
+        label: 'Author',
+        options: [{
+          value: 'author_id',
+          label: 'Author ID',
+          type: 'number'
+        }, {
+          value: 'author_login',
+          label: 'Author Login',
+          type: 'string'
+        }, {
+          value: 'author_email',
+          label: 'Author Email',
+          type: 'string'
+        }]
+      }, {
+        label: 'Media',
+        options: [{
+          value: 'featured_image',
+          label: 'Featured Image URL',
+          type: 'string'
+        }, {
+          value: 'featured_image_id',
+          label: 'Featured Image ID',
+          type: 'number'
+        }]
+      }, {
+        label: 'Other',
+        options: [{
+          value: 'post_parent',
+          label: 'Parent ID',
+          type: 'number'
+        }, {
+          value: 'post_parent_slug',
+          label: 'Parent Slug',
+          type: 'string'
+        }]
+      }, {
+        label: 'Taxonomies',
+        options: [{
+          value: 'taxonomy',
+          label: 'Taxonomy',
+          type: 'taxonomy',
+          custom: true
+        }]
+      }, {
+        label: 'Custom Fields',
+        options: [{
+          value: 'meta',
+          label: 'Custom Field',
+          type: 'meta',
+          custom: true
         }]
       }];
     }
@@ -9933,7 +10838,7 @@ var ImportModule = {
    * Show function selector modal
    */
   showFunctionSelector: function showFunctionSelector(sourceIndex, targetField) {
-    var _this6 = this;
+    var _this8 = this;
     return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee3() {
       var mappingKey, response;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee3$(_context3) {
@@ -9942,11 +10847,11 @@ var ImportModule = {
             case 0:
               // Get mapping key
               mappingKey = "".concat(sourceIndex, "-").concat(targetField); // Get current functions for this mapping
-              if (!_this6.mappingFunctions) {
-                _this6.mappingFunctions = {};
+              if (!_this8.mappingFunctions) {
+                _this8.mappingFunctions = {};
               }
-              if (!_this6.mappingFunctions[mappingKey]) {
-                _this6.mappingFunctions[mappingKey] = [];
+              if (!_this8.mappingFunctions[mappingKey]) {
+                _this8.mappingFunctions[mappingKey] = [];
               }
 
               // Load functions from server
@@ -9969,7 +10874,7 @@ var ImportModule = {
               _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Failed to load functions', 'error');
               return _context3.abrupt("return");
             case 10:
-              _this6.showFunctionModal(sourceIndex, targetField, response.data);
+              _this8.showFunctionModal(sourceIndex, targetField, response.data);
               _context3.next = 16;
               break;
             case 13:
@@ -10021,11 +10926,11 @@ var ImportModule = {
    * Load current functions into pipeline
    */
   loadCurrentFunctions: function loadCurrentFunctions(currentFunctions) {
-    var _this7 = this;
+    var _this9 = this;
     var $container = jQuery('#aie-function-items');
     $container.empty();
     currentFunctions.forEach(function (func) {
-      _this7.addFunctionToPipeline(func, false);
+      _this9.addFunctionToPipeline(func, false);
     });
     this.updateFunctionsCount(currentFunctions.length);
     this.toggleNoFunctionsMessage();
@@ -10034,7 +10939,7 @@ var ImportModule = {
    * Render available functions (like export)
    */
   renderAvailableFunctions: function renderAvailableFunctions(functionsData) {
-    var _this8 = this;
+    var _this10 = this;
     var $container = jQuery('#aie-functions-list');
     $container.empty();
 
@@ -10053,7 +10958,7 @@ var ImportModule = {
         snippet = _ref2[1];
       var item = jQuery('<div>').addClass('aie-function-list-item').attr('data-function-id', key).attr('data-category', snippet.category || 'custom').html("\n\t\t\t\t\t<div class=\"aie-function-list-info\">\n\t\t\t\t\t\t<span class=\"aie-function-list-name\">".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(snippet.name), "</span>\n\t\t\t\t\t\t<span class=\"aie-function-list-desc\">").concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(snippet.description || ''), "</span>\n\t\t\t\t\t</div>\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-add-function-btn\">Add</button>\n\t\t\t\t"));
       item.find('.aie-add-function-btn').on('click', function () {
-        _this8.addFunctionToPipeline({
+        _this10.addFunctionToPipeline({
           id: key,
           name: snippet.name
         }, true);
@@ -10065,7 +10970,7 @@ var ImportModule = {
    * Add function to pipeline
    */
   addFunctionToPipeline: function addFunctionToPipeline(func) {
-    var _this9 = this;
+    var _this11 = this;
     var updateArray = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
     var $container = jQuery('#aie-function-items');
     var item = jQuery('<div>').addClass('aie-function-item').attr('data-function-id', func.id).html("\n\t\t\t\t<span class=\"aie-function-handle dashicons dashicons-menu\"></span>\n\t\t\t\t<div class=\"aie-function-info\">\n\t\t\t\t\t<strong class=\"aie-function-name\">".concat(_utils__WEBPACK_IMPORTED_MODULE_1__["default"].escapeHtml(func.name), "</strong>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-function-actions\">\n\t\t\t\t\t<button type=\"button\" class=\"button-small aie-remove-function\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-no-alt\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t</div>\n\t\t\t"));
@@ -10073,8 +10978,8 @@ var ImportModule = {
     // Remove function event
     item.find('.aie-remove-function').on('click', function () {
       item.remove();
-      _this9.updateFunctionsCount();
-      _this9.toggleNoFunctionsMessage();
+      _this11.updateFunctionsCount();
+      _this11.toggleNoFunctionsMessage();
     });
     $container.append(item);
     if (updateArray) {
@@ -10401,7 +11306,7 @@ var ImportModule = {
    * Auto-map fields
    */
   autoMapFields: function autoMapFields() {
-    var _this10 = this;
+    var _this12 = this;
     var mappedCount = 0;
 
     // Clear existing mappings
@@ -10424,7 +11329,7 @@ var ImportModule = {
         // Check for exact or partial match
         if (sourceField === targetFieldValue || sourceField === targetLabel || sourceField.includes(targetFieldValue) || targetFieldValue.includes(sourceField) || sourceField.replace(/_/g, ' ') === targetLabel) {
           // Create mapping
-          _this10.createMapping($sourceCard.data('source-field'), sourceIndex, $targetField.data('target-field'), $targetField.data('field-type'), $targetField);
+          _this12.createMapping($sourceCard.data('source-field'), sourceIndex, $targetField.data('target-field'), $targetField.data('field-type'), $targetField);
           $sourceCard.addClass('mapped');
           matched = true;
           mappedCount++;
@@ -10482,61 +11387,65 @@ var ImportModule = {
    * Start import
    */
   startImport: function startImport() {
-    var _this11 = this;
+    var _this13 = this;
     return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee5() {
-      var data, response;
+      var contentType, data, response;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee5$(_context5) {
         while (1) {
           switch (_context5.prev = _context5.next) {
             case 0:
               _context5.prev = 0;
+              contentType = jQuery('input[name="content_type"]:checked').val();
               data = {
-                file_path: _this11.fileData.file_path,
-                content_type: jQuery('input[name="content_type"]:checked').val(),
-                format: _this11.fileData.format,
-                field_mapping: _this11.getFieldMapping(),
+                file_path: _this13.fileData.file_path,
+                content_type: contentType,
+                format: _this13.fileData.format,
+                field_mapping: _this13.getFieldMapping(),
                 duplicate_handling: jQuery('input[name="duplicate_handling"]:checked').val(),
                 post_status: jQuery('[name="post_status"]').val(),
                 post_type: jQuery('[name="post_type"]').val(),
                 download_images: jQuery('[name="download_images"]').is(':checked'),
                 batch_size: parseInt(jQuery('[name="batch_size"]').val()) || 50
-              };
-              _context5.next = 4;
+              }; // Add custom post type if selected
+              if (contentType === 'custom_post_types') {
+                data.custom_post_type = jQuery('#aie-custom-post-type').val();
+              }
+              _context5.next = 6;
               return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_import_start', data);
-            case 4:
+            case 6:
               response = _context5.sent;
-              _this11.jobId = response.job_id;
-              _this11.showStep(6);
-              _this11.startProgressTracking();
+              _this13.jobId = response.job_id;
+              _this13.showStep(6);
+              _this13.startProgressTracking();
               _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Import started successfully', 'success');
-              _context5.next = 14;
+              _context5.next = 16;
               break;
-            case 11:
-              _context5.prev = 11;
+            case 13:
+              _context5.prev = 13;
               _context5.t0 = _context5["catch"](0);
               _utils__WEBPACK_IMPORTED_MODULE_1__["default"].handleError(_context5.t0, 'Start import');
-            case 14:
+            case 16:
             case "end":
               return _context5.stop();
           }
         }
-      }, _callee5, null, [[0, 11]]);
+      }, _callee5, null, [[0, 13]]);
     }))();
   },
   /**
    * Start progress tracking
    */
   startProgressTracking: function startProgressTracking() {
-    var _this12 = this;
+    var _this14 = this;
     this.progressInterval = setInterval(function () {
-      _this12.updateProgress();
+      _this14.updateProgress();
     }, 2000);
   },
   /**
    * Update import progress
    */
   updateProgress: function updateProgress() {
-    var _this13 = this;
+    var _this15 = this;
     return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee6() {
       var response;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee6$(_context6) {
@@ -10546,15 +11455,15 @@ var ImportModule = {
               _context6.prev = 0;
               _context6.next = 3;
               return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_import_get_progress', {
-                job_id: _this13.jobId
+                job_id: _this15.jobId
               });
             case 3:
               response = _context6.sent;
               _utils__WEBPACK_IMPORTED_MODULE_1__["default"].updateProgressBar(jQuery('.aie-step-6'), response);
               if (response.status === 'completed') {
-                _this13.onImportComplete(response);
+                _this15.onImportComplete(response);
               } else if (response.status === 'failed') {
-                _this13.onImportFailed(response);
+                _this15.onImportFailed(response);
               }
               _context6.next = 11;
               break;
@@ -10596,7 +11505,7 @@ var ImportModule = {
    * Cancel import
    */
   cancelImport: function cancelImport() {
-    var _this14 = this;
+    var _this16 = this;
     return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee7() {
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee7$(_context7) {
         while (1) {
@@ -10611,12 +11520,12 @@ var ImportModule = {
               _context7.prev = 2;
               _context7.next = 5;
               return _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_import_cancel', {
-                job_id: _this14.jobId
+                job_id: _this16.jobId
               });
             case 5:
-              clearInterval(_this14.progressInterval);
+              clearInterval(_this16.progressInterval);
               _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Import cancelled', 'info');
-              _this14.resetWizard();
+              _this16.resetWizard();
               _context7.next = 13;
               break;
             case 10:
@@ -10657,7 +11566,7 @@ var ImportModule = {
    * Load ACF fields dynamically from server
    */
   loadACFFields: function loadACFFields(contentType) {
-    var _this15 = this;
+    var _this17 = this;
     if (typeof aieData === 'undefined') {
       return;
     }
@@ -10671,11 +11580,11 @@ var ImportModule = {
       },
       success: function success(response) {
         if (response.success && response.data.fields && response.data.fields.length > 0) {
-          _this15.renderACFFields(response.data.fields);
+          _this17.renderACFFields(response.data.fields);
         }
       },
-      error: function error(xhr, status, _error) {
-        console.log('ACF fields load error:', _error);
+      error: function error(xhr, status, _error5) {
+        console.log('ACF fields load error:', _error5);
       }
     });
   },
@@ -10700,13 +11609,13 @@ var ImportModule = {
    * Load Yoast SEO fields dynamically from server
    */
   loadYoastFields: function loadYoastFields(contentType) {
-    var _this16 = this;
+    var _this18 = this;
     if (typeof aieData === 'undefined') {
       return;
     }
 
     // Don't load Yoast for these content types
-    var excludedTypes = ['media', 'user', 'menu', 'block_theme_settings', 'taxonomy', 'database_table', 'woo_attribute', 'woo_coupon', 'woo_order'];
+    var excludedTypes = ['media', 'user', 'comment', 'menu', 'block_theme_settings', 'taxonomy', 'database_table', 'woo_attribute', 'woo_coupon', 'woo_order'];
     if (excludedTypes.includes(contentType)) {
       return;
     }
@@ -10720,11 +11629,11 @@ var ImportModule = {
       },
       success: function success(response) {
         if (response.success && response.data.fields && response.data.fields.length > 0) {
-          _this16.renderYoastFields(response.data.fields);
+          _this18.renderYoastFields(response.data.fields);
         }
       },
-      error: function error(xhr, status, _error2) {
-        console.log('Yoast fields load error:', _error2);
+      error: function error(xhr, status, _error6) {
+        console.log('Yoast fields load error:', _error6);
       }
     });
   },
@@ -10751,7 +11660,7 @@ var ImportModule = {
    * Populate unique field options in Step 5
    */
   populateUniqueFieldOptions: function populateUniqueFieldOptions() {
-    var _this17 = this;
+    var _this19 = this;
     var $select = jQuery('#aie-unique-field');
 
     // Clear existing options except first
@@ -10773,7 +11682,7 @@ var ImportModule = {
 
     // Add options for each unique target field
     uniqueFields.forEach(function (field) {
-      var label = _this17.getFieldLabel(field);
+      var label = _this19.getFieldLabel(field);
       $select.append("<option value=\"".concat(field, "\">").concat(label, "</option>"));
     });
 
