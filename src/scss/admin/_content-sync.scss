@@ -132,14 +132,29 @@
 			.aie-api-key-field {
 				display: flex;
 				gap: 10px;
+				align-items: center;
 
 				input {
 					flex: 1;
 				}
 
 				.button {
+					white-space: nowrap;
+					
 					.dashicons {
 						margin-top: 3px;
+					}
+				}
+
+				#aie-regenerate-my-key {
+					&:hover {
+						border-color: #d63638;
+						color: #d63638;
+					}
+
+					&:disabled {
+						opacity: 0.6;
+						cursor: not-allowed;
 					}
 				}
 			}

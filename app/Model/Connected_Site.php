@@ -235,10 +235,9 @@ class Connected_Site {
 		$table = $wpdb->prefix . self::$table_name;
 
 		$stats = array(
-			'total'    => 0,
-			'active'   => 0,
-			'inactive' => 0,
-			'error'    => 0,
+			'total'  => 0,
+			'active' => 0,
+			'error'  => 0,
 		);
 
 		$results = $wpdb->get_results(

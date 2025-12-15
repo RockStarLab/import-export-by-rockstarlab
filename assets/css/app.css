@@ -3272,12 +3272,24 @@ body.aie-dragging {
 #wp-aie-content-sync .aie-my-site-info .aie-info-item .aie-api-key-field {
   display: flex;
   gap: 10px;
+  align-items: center;
 }
 #wp-aie-content-sync .aie-my-site-info .aie-info-item .aie-api-key-field input {
   flex: 1;
 }
+#wp-aie-content-sync .aie-my-site-info .aie-info-item .aie-api-key-field .button {
+  white-space: nowrap;
+}
 #wp-aie-content-sync .aie-my-site-info .aie-info-item .aie-api-key-field .button .dashicons {
   margin-top: 3px;
+}
+#wp-aie-content-sync .aie-my-site-info .aie-info-item .aie-api-key-field #aie-regenerate-my-key:hover {
+  border-color: #d63638;
+  color: #d63638;
+}
+#wp-aie-content-sync .aie-my-site-info .aie-info-item .aie-api-key-field #aie-regenerate-my-key:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 #wp-aie-content-sync .aie-sites-table-wrapper {
   padding: 0;

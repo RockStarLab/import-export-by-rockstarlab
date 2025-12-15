@@ -37,16 +37,6 @@ defined( 'ABSPATH' ) || exit;
 		</div>
 
 		<div class="aie-stat-card">
-			<div class="aie-stat-icon aie-stat-inactive">
-				<span class="dashicons dashicons-dismiss"></span>
-			</div>
-			<div class="aie-stat-info">
-				<div class="aie-stat-value" id="aie-stat-inactive">0</div>
-				<div class="aie-stat-label"><?php esc_html_e( 'Inactive', 'wp-advanced-import-export' ); ?></div>
-			</div>
-		</div>
-
-		<div class="aie-stat-card">
 			<div class="aie-stat-icon aie-stat-error">
 				<span class="dashicons dashicons-warning"></span>
 			</div>
@@ -86,6 +76,10 @@ defined( 'ABSPATH' ) || exit;
 						<button type="button" class="button button-secondary" id="aie-copy-my-key">
 							<span class="dashicons dashicons-clipboard"></span>
 							<?php esc_html_e( 'Copy', 'wp-advanced-import-export' ); ?>
+						</button>
+						<button type="button" class="button button-secondary" id="aie-regenerate-my-key">
+							<span class="dashicons dashicons-update"></span>
+							<?php esc_html_e( 'Regenerate', 'wp-advanced-import-export' ); ?>
 						</button>
 					</div>
 					<p class="description">
