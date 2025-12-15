@@ -927,7 +927,7 @@ const ExportModule = {
 			// Trigger first batch processing
 			this.processNextBatch();
 
-			Utils.showNotice( 'Export started successfully', 'success' );
+			Utils.showNotice( window.aieData.i18n.exportStartedSuccess, 'success' );
 		} catch ( error ) {
 			Utils.handleError( error, 'Start export' );
 		}
@@ -1023,7 +1023,7 @@ const ExportModule = {
 		jQuery( '.aie-cancel-export' ).hide();
 		jQuery( '.aie-new-export' ).show();
 
-		Utils.showNotice( 'Export completed successfully!', 'success' );
+		Utils.showNotice( window.aieData.i18n.exportCompletedSuccess, 'success' );
 	},
 
 	/**
@@ -1058,14 +1058,14 @@ const ExportModule = {
 	 * Cancel export
 	 */
 	async cancelExport() {
-		if ( ! confirm( 'Are you sure you want to cancel this export?' ) ) {
+		if ( ! confirm( window.aieData.i18n.confirmCancelExport ) ) {
 			return;
 		}
 
 		try {
 			await Utils.ajax( 'aie_export_cancel', { job_id: this.jobId } );
 			clearInterval( this.progressInterval );
-			Utils.showNotice( 'Export cancelled', 'info' );
+			Utils.showNotice( window.aieData.i18n.exportCancelled, 'info' );
 			this.resetWizard();
 		} catch ( error ) {
 			Utils.handleError( error, 'Cancel export' );

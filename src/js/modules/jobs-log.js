@@ -121,7 +121,7 @@ const JobsLogModule = {
 			}
 		} catch ( error ) {
 			console.error( 'Error loading jobs:', error );
-			Utils.showNotice( 'Error loading jobs: ' + error.message, 'error' );
+			Utils.showNotice( window.aieData.i18n.errorLoadingJobs + error.message, 'error' );
 			this.renderJobs( [] );
 		} finally {
 			$loading.hide();
@@ -273,7 +273,7 @@ const JobsLogModule = {
 		const $row = $button.closest( 'tr' );
 		const jobId = $row.data( 'job-id' );
 
-		if ( ! confirm( 'Resume this job?' ) ) {
+		if ( ! confirm( window.aieData.i18n.confirmResumeJob ) ) {
 			return;
 		}
 
@@ -283,14 +283,14 @@ const JobsLogModule = {
 			const response = await Utils.ajax( 'aie_job_resume', { job_id: jobId } );
 
 			if ( response && response.job_id ) {
-				Utils.showNotice( 'Job resumed successfully', 'success' );
+				Utils.showNotice( window.aieData.i18n.jobResumedSuccess, 'success' );
 				
 				// Redirect based on job type
 				this.redirectToJobPage( response.type, response.job_id );
 			}
 		} catch ( error ) {
 			console.error( 'Error resuming job:', error );
-			Utils.showNotice( 'Error resuming job: ' + error.message, 'error' );
+			Utils.showNotice( window.aieData.i18n.errorResumingJob + error.message, 'error' );
 			$button.prop( 'disabled', false );
 		}
 	},
@@ -303,7 +303,7 @@ const JobsLogModule = {
 		const $row = $button.closest( 'tr' );
 		const jobId = $row.data( 'job-id' );
 
-		if ( ! confirm( 'Restart this job with the same settings?' ) ) {
+		if ( ! confirm( window.aieData.i18n.confirmRestartJob ) ) {
 			return;
 		}
 
@@ -313,14 +313,14 @@ const JobsLogModule = {
 			const response = await Utils.ajax( 'aie_job_restart', { job_id: jobId } );
 
 			if ( response && response.job_id ) {
-				Utils.showNotice( 'Job restarted successfully', 'success' );
+				Utils.showNotice( window.aieData.i18n.jobRestartedSuccess, 'success' );
 				
 				// Redirect based on job type
 				this.redirectToJobPage( response.type, response.job_id );
 			}
 		} catch ( error ) {
 			console.error( 'Error restarting job:', error );
-			Utils.showNotice( 'Error restarting job: ' + error.message, 'error' );
+			Utils.showNotice( window.aieData.i18n.errorRestartingJob + error.message, 'error' );
 			$button.prop( 'disabled', false );
 		}
 	},
@@ -333,7 +333,7 @@ const JobsLogModule = {
 		const $row = $button.closest( 'tr' );
 		const jobId = $row.data( 'job-id' );
 
-		if ( ! confirm( 'Retry this job with the same settings?' ) ) {
+		if ( ! confirm( window.aieData.i18n.confirmRetryJob ) ) {
 			return;
 		}
 
@@ -344,7 +344,7 @@ const JobsLogModule = {
 			const response = await Utils.ajax( 'aie_job_retry', { job_id: jobId } );
 
 			if ( response && response.job_id && response.type ) {
-				Utils.showNotice( 'Job created, starting process...', 'success' );
+				Utils.showNotice( window.aieData.i18n.jobCreatedStarting, 'success' );
 				
 				// Redirect to job page with resume_job parameter to show progress
 				this.redirectToJobPage( response.type, response.job_id );
@@ -352,7 +352,7 @@ const JobsLogModule = {
 		} catch ( error ) {
 			console.error( 'Error retrying job:', error );
 			const errorMsg = error && error.message ? error.message : 'Unknown error occurred';
-			Utils.showNotice( 'Error retrying job: ' + errorMsg, 'error' );
+			Utils.showNotice( window.aieData.i18n.errorRetryingJob + errorMsg, 'error' );
 			$button.prop( 'disabled', false );
 		}
 	},
@@ -386,11 +386,11 @@ const JobsLogModule = {
 		try {
 			await Utils.ajax( 'aie_job_delete', { job_id: jobId } );
 
-			Utils.showNotice( 'Job deleted successfully', 'success' );
+			Utils.showNotice( window.aieData.i18n.jobDeletedSuccess, 'success' );
 			this.loadJobs(); // Reload list
 		} catch ( error ) {
 			console.error( 'Error deleting job:', error );
-			Utils.showNotice( 'Error deleting job: ' + error.message, 'error' );
+			Utils.showNotice( window.aieData.i18n.errorDeletingJob + error.message, 'error' );
 		}
 	},
 
@@ -415,11 +415,11 @@ const JobsLogModule = {
 				if ( response.success && response.data.url ) {
 					window.location.href = response.data.url;
 				} else {
-					alert( response.data || 'Download failed' );
+					alert( response.data || window.aieData.i18n.downloadFailed );
 				}
 			},
 			error: () => {
-				alert( 'Failed to generate download URL' );
+				alert( window.aieData.i18n.failedGenerateDownloadUrl );
 			}
 		} );
 	},
@@ -440,7 +440,7 @@ const JobsLogModule = {
 			}
 		} catch ( error ) {
 			console.error( 'Error loading job details:', error );
-			Utils.showNotice( 'Error loading job details: ' + error.message, 'error' );
+			Utils.showNotice( window.aieData.i18n.errorLoadingJobDetails + error.message, 'error' );
 		}
 	},
 

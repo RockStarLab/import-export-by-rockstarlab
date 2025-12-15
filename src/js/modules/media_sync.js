@@ -157,7 +157,7 @@ const MediaSyncModule = {
 		let folderPath = jQuery( '#aie-folder-path' ).val().trim();
 
 		if ( ! folderPath ) {
-			Utils.showNotice( 'Please enter a folder path', 'error' );
+			Utils.showNotice( window.aieData.i18n.enterFolderPath, 'error' );
 			return;
 		}
 
@@ -227,7 +227,7 @@ const MediaSyncModule = {
 				}
 			} )
 			.fail( () => {
-				Utils.showNotice( 'Request failed', 'error' );
+				Utils.showNotice( window.aieData.i18n.requestFailed, 'error' );
 			} )
 			.always( () => {
 				jQuery( '#aie-scan-folder-btn' )
@@ -456,7 +456,7 @@ const MediaSyncModule = {
 	 */
 	startSync() {
 		if ( ! this.scannedFiles || this.scannedFiles.length === 0 ) {
-			Utils.showNotice( 'No files to sync. Please scan a folder first.', 'error' );
+			Utils.showNotice( window.aieData.i18n.noFilesToSync, 'error' );
 			return;
 		}
 
@@ -472,7 +472,7 @@ const MediaSyncModule = {
 		const folderPath = jQuery( '#aie-folder-path' ).val().trim();
 		
 		if ( ! folderPath ) {
-			Utils.showNotice( 'Invalid folder path', 'error' );
+			Utils.showNotice( window.aieData.i18n.invalidFolderPath, 'error' );
 			return;
 		}
 
@@ -530,7 +530,7 @@ const MediaSyncModule = {
 					// Trigger first batch processing immediately
 					this.triggerBatchProcessing();
 
-					Utils.showNotice( 'Synchronization started', 'success' );
+					Utils.showNotice( window.aieData.i18n.syncStarted, 'success' );
 				} else {
 					Utils.showNotice(
 						response.data?.message || 'Failed to start sync',
@@ -540,7 +540,7 @@ const MediaSyncModule = {
 				}
 			} )
 			.fail( () => {
-				Utils.showNotice( 'Request failed', 'error' );
+				Utils.showNotice( window.aieData.i18n.requestFailed, 'error' );
 				$btn.prop( 'disabled', false ).html( originalText );
 			} );
 	},
@@ -861,7 +861,7 @@ const MediaSyncModule = {
 				const $pauseBtn = jQuery( '#aie-pause-sync-btn' );
 				$pauseBtn.html( '<span class="dashicons dashicons-controls-play"></span> Resume' );
 				
-				Utils.showNotice( 'Sync paused', 'info' );
+				Utils.showNotice( window.aieData.i18n.syncPaused, 'info' );
 			}
 		} );
 	},
@@ -899,7 +899,7 @@ const MediaSyncModule = {
 				// Trigger batch processing to continue
 				this.triggerBatchProcessing();
 				
-				Utils.showNotice( 'Sync resumed', 'success' );
+				Utils.showNotice( window.aieData.i18n.syncResumed, 'success' );
 			}
 		} );
 	},
@@ -909,9 +909,7 @@ const MediaSyncModule = {
 	 */
 	cancelSync() {
 		if (
-			! confirm(
-				'Are you sure you want to cancel? This cannot be undone.'
-			)
+			! confirm( window.aieData.i18n.confirmCancelSync )
 		) {
 			return;
 		}
@@ -927,7 +925,7 @@ const MediaSyncModule = {
 		} ).done( ( response ) => {
 			if ( response.success ) {
 				clearInterval( this.progressInterval );
-				Utils.showNotice( 'Sync cancelled', 'warning' );
+				Utils.showNotice( window.aieData.i18n.syncCancelled, 'warning' );
 				this.resetPage();
 			}
 		} );
@@ -1070,7 +1068,7 @@ const MediaSyncModule = {
 					console.log( 'Full response text:', jqXHR.responseText );
 				}
 
-				let errorMsg = 'Request failed';
+				let errorMsg = window.aieData.i18n.requestFailed;
 				
 				// Check for WP_Error response
 				if ( jqXHR.responseJSON ) {
@@ -1094,7 +1092,7 @@ const MediaSyncModule = {
 					}
 				}
 				
-				if ( errorThrown && errorMsg === 'Request failed' ) {
+				if ( errorThrown && errorMsg === window.aieData.i18n.requestFailed ) {
 					errorMsg = 'Request failed: ' + errorThrown;
 				}
 

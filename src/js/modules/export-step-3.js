@@ -184,7 +184,7 @@ export default class ExportStep3 {
 		// Check if field already exists (prevent duplicates for unique fields)
 		const existingField = this.selectedFields.find(f => f.field === field);
 		if (existingField && field === 'ID') {
-			this.showNotice('This field is already added', 'warning');
+			this.showNotice(window.aieData.i18n.fieldAlreadyAdded, 'warning');
 			return;
 		}
 
@@ -256,7 +256,7 @@ export default class ExportStep3 {
 	initCsvBuilderActions() {
 		// Clear all fields
 		document.querySelector('.aie-clear-all-fields')?.addEventListener('click', () => {
-			if (confirm('Are you sure you want to remove all fields?')) {
+			if (confirm(window.aieData.i18n.confirmRemoveAllFields)) {
 				this.clearAllFields();
 			}
 		});
@@ -1406,7 +1406,7 @@ export default class ExportStep3 {
 		}
 
 		this.closeFieldFunctionsModal();
-		this.showNotice('Functions saved successfully', 'success');
+		this.showNotice(window.aieData.i18n.functionsSavedSuccess, 'success');
 	}
 
 	/**
@@ -1563,20 +1563,20 @@ export default class ExportStep3 {
 	testFunctionPipeline() {
 		const input = document.getElementById('aie-preview-input').value;
 		if (!input) {
-			this.showNotice('Please enter a test value', 'warning');
+			this.showNotice(window.aieData.i18n.enterTestValue, 'warning');
 			return;
 		}
 
 		const functionIds = this.fieldFunctions[this.currentEditingField] || [];
 		if (functionIds.length === 0) {
-			this.showNotice('No functions to test', 'warning');
+			this.showNotice(window.aieData.i18n.noFunctionsToTest, 'warning');
 			return;
 		}
 
 		// Check if aieData is available
 		if (typeof aieData === 'undefined') {
 			console.error('aieData is not defined');
-			this.showNotice('Configuration error: aieData not found', 'error');
+			this.showNotice(window.aieData.i18n.configErrorAieData, 'error');
 			return;
 		}
 
@@ -1594,11 +1594,11 @@ export default class ExportStep3 {
 				if (response.success) {
 					this.renderPipelinePreview(input, response.data.steps);
 				} else {
-					this.showNotice(response.data.message || 'Test failed', 'error');
+					this.showNotice(response.data.message || window.aieData.i18n.testFailed, 'error');
 				}
 			},
 			error: () => {
-				this.showNotice('Error testing pipeline', 'error');
+				this.showNotice(window.aieData.i18n.errorTestingPipeline, 'error');
 			}
 		});
 	}

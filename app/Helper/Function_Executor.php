@@ -321,7 +321,7 @@ class Function_Executor {
 		if ( empty( trim( $code ) ) ) {
 			return new \WP_Error(
 				'empty_code',
-				__( 'Function code cannot be empty', 'wp-aie' )
+				__( 'Function code cannot be empty', 'wp-advanced-import-export' )
 			);
 		}
 
@@ -334,7 +334,7 @@ class Function_Executor {
 		if ( empty( $clean_code ) ) {
 			return new \WP_Error(
 				'empty_code',
-				__( 'Function code cannot be empty', 'wp-aie' )
+				__( 'Function code cannot be empty', 'wp-advanced-import-export' )
 			);
 		}
 
@@ -343,7 +343,7 @@ class Function_Executor {
 			if ( preg_match( $pattern, $clean_code ) ) {
 				return new \WP_Error(
 					'dangerous_code',
-					__( 'Function contains dangerous or disallowed PHP constructs', 'wp-aie' )
+					__( 'Function contains dangerous or disallowed PHP constructs', 'wp-advanced-import-export' )
 				);
 			}
 		}
@@ -359,7 +359,7 @@ class Function_Executor {
 		if ( false === $tokens ) {
 			return new \WP_Error(
 				'parse_error',
-				__( 'Function code contains syntax errors', 'wp-aie' )
+				__( 'Function code contains syntax errors', 'wp-advanced-import-export' )
 			);
 		}
 
@@ -370,7 +370,7 @@ class Function_Executor {
 					'parse_error',
 					sprintf(
 						/* translators: %s: Error token */
-						__( 'Syntax error near: %s', 'wp-aie' ),
+						__( 'Syntax error near: %s', 'wp-advanced-import-export' ),
 						$token[1]
 					)
 				);
@@ -418,7 +418,7 @@ class Function_Executor {
 				'parse_error',
 				sprintf(
 					/* translators: %s: Error message */
-					__( 'PHP Syntax Error: %s', 'wp-aie' ),
+					__( 'PHP Syntax Error: %s', 'wp-advanced-import-export' ),
 					$syntax_error
 				)
 			);

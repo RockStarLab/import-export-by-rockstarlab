@@ -67,12 +67,12 @@ class Cron_Manager {
 	public function add_cron_schedules( $schedules ) {
 		$schedules['aie_every_minute'] = array(
 			'interval' => 60,
-			'display'  => __( 'Every Minute', 'wp-aie' ),
+			'display'  => __( 'Every Minute', 'wp-advanced-import-export' ),
 		);
 
 		$schedules['aie_every_five_minutes'] = array(
 			'interval' => 300,
-			'display'  => __( 'Every 5 Minutes', 'wp-aie' ),
+			'display'  => __( 'Every 5 Minutes', 'wp-advanced-import-export' ),
 		);
 
 		return $schedules;

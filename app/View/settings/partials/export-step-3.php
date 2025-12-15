@@ -11,8 +11,8 @@ defined( 'ABSPATH' ) || exit;
 <!-- Step 3: Select Fields -->
 <div class="aie-step aie-step-3" data-step="3">
 	<div class="aie-step-header">
-		<h2><?php esc_html_e( 'Step 3: Select Fields', 'wp-aie' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Drag and drop fields to build your export structure. Click on a field to assign functions.', 'wp-aie' ); ?></p>
+		<h2><?php esc_html_e( 'Step 3: Select Fields', 'wp-advanced-import-export' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Drag and drop fields to build your export structure. Click on a field to assign functions.', 'wp-advanced-import-export' ); ?></p>
 	</div>
 
 	<div class="aie-step-content">
@@ -22,16 +22,16 @@ defined( 'ABSPATH' ) || exit;
 			<div class="aie-csv-builder-header">
 				<h3>
 					<span class="dashicons dashicons-media-spreadsheet"></span>
-					<?php esc_html_e( 'Export File Structure', 'wp-aie' ); ?>
+					<?php esc_html_e( 'Export File Structure', 'wp-advanced-import-export' ); ?>
 				</h3>
 				<div class="aie-csv-builder-actions">
-					<button type="button" class="button button-small aie-clear-all-fields" title="<?php esc_attr_e( 'Clear all fields', 'wp-aie' ); ?>">
+					<button type="button" class="button button-small aie-clear-all-fields" title="<?php esc_attr_e( 'Clear all fields', 'wp-advanced-import-export' ); ?>">
 						<span class="dashicons dashicons-trash"></span>
-						<?php esc_html_e( 'Clear All', 'wp-aie' ); ?>
+						<?php esc_html_e( 'Clear All', 'wp-advanced-import-export' ); ?>
 					</button>
-					<button type="button" class="button button-small aie-add-custom-column" title="<?php esc_attr_e( 'Add custom column', 'wp-aie' ); ?>">
+					<button type="button" class="button button-small aie-add-custom-column" title="<?php esc_attr_e( 'Add custom column', 'wp-advanced-import-export' ); ?>">
 						<span class="dashicons dashicons-plus-alt2"></span>
-						<?php esc_html_e( 'Add Custom', 'wp-aie' ); ?>
+						<?php esc_html_e( 'Add Custom', 'wp-advanced-import-export' ); ?>
 					</button>
 				</div>
 			</div>
@@ -41,8 +41,8 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-csv-dropzone" id="aie-csv-dropzone">
 					<div class="aie-csv-dropzone-placeholder">
 						<span class="dashicons dashicons-download"></span>
-						<p><?php esc_html_e( 'Drag fields here to build your export file', 'wp-aie' ); ?></p>
-						<span class="aie-csv-hint"><?php esc_html_e( 'or click "Add Custom" to create a custom column', 'wp-aie' ); ?></span>
+						<p><?php esc_html_e( 'Drag fields here to build your export file', 'wp-advanced-import-export' ); ?></p>
+						<span class="aie-csv-hint"><?php esc_html_e( 'or click "Add Custom" to create a custom column', 'wp-advanced-import-export' ); ?></span>
 					</div>
 					
 					<!-- Selected Fields Container -->
@@ -54,7 +54,7 @@ defined( 'ABSPATH' ) || exit;
 				<!-- Field Counter -->
 				<div class="aie-csv-stats">
 					<span class="aie-field-count">
-						<strong><?php esc_html_e( 'Columns:', 'wp-aie' ); ?></strong> 
+						<strong><?php esc_html_e( 'Columns:', 'wp-advanced-import-export' ); ?></strong> 
 						<span class="aie-count-value aie-columns-count">0</span>
 					</span>
 				</div>
@@ -66,7 +66,7 @@ defined( 'ABSPATH' ) || exit;
 			<div class="aie-fields-library-header">
 				<h3>
 					<span class="dashicons dashicons-list-view"></span>
-					<?php esc_html_e( 'Available Fields', 'wp-aie' ); ?>
+					<?php esc_html_e( 'Available Fields', 'wp-advanced-import-export' ); ?>
 				</h3>
 			</div>
 			
@@ -76,7 +76,7 @@ defined( 'ABSPATH' ) || exit;
 					type="text" 
 					id="aie-fields-search" 
 					class="regular-text" 
-					placeholder="<?php esc_attr_e( 'Search fields...', 'wp-aie' ); ?>"
+					placeholder="<?php esc_attr_e( 'Search fields...', 'wp-advanced-import-export' ); ?>"
 				>
 				<span class="dashicons dashicons-search"></span>
 			</div>
@@ -89,9 +89,9 @@ defined( 'ABSPATH' ) || exit;
 							<h4 class="aie-field-category-title">
 								<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
 								<span class="dashicons dashicons-category"></span>
-								<?php esc_html_e( 'Taxonomies', 'wp-aie' ); ?>
-								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'wp-aie' ); ?>">
-									<?php esc_html_e( 'Add all', 'wp-aie' ); ?>
+								<?php esc_html_e( 'Taxonomies', 'wp-advanced-import-export' ); ?>
+								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'wp-advanced-import-export' ); ?>">
+									<?php esc_html_e( 'Add all', 'wp-advanced-import-export' ); ?>
 								</button>
 							</h4>
 							<div class="aie-fields-grid aie-taxonomies-grid">
@@ -104,9 +104,9 @@ defined( 'ABSPATH' ) || exit;
 							<h4 class="aie-field-category-title">
 								<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
 								<span class="dashicons dashicons-admin-generic"></span>
-								<?php esc_html_e( 'Custom Fields', 'wp-aie' ); ?>
-								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'wp-aie' ); ?>">
-									<?php esc_html_e( 'Add all', 'wp-aie' ); ?>
+								<?php esc_html_e( 'Custom Fields', 'wp-advanced-import-export' ); ?>
+								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'wp-advanced-import-export' ); ?>">
+									<?php esc_html_e( 'Add all', 'wp-advanced-import-export' ); ?>
 								</button>
 							</h4>
 							<div class="aie-fields-grid aie-custom-fields-grid">
@@ -119,15 +119,15 @@ defined( 'ABSPATH' ) || exit;
 							<h4 class="aie-field-category-title">
 								<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
 								<span class="dashicons dashicons-admin-settings"></span>
-								<?php esc_html_e( 'ACF Fields', 'wp-aie' ); ?>
-								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'wp-aie' ); ?>">
-									<?php esc_html_e( 'Add all', 'wp-aie' ); ?>
+								<?php esc_html_e( 'ACF Fields', 'wp-advanced-import-export' ); ?>
+								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'wp-advanced-import-export' ); ?>">
+									<?php esc_html_e( 'Add all', 'wp-advanced-import-export' ); ?>
 								</button>
 							</h4>
 							<div class="aie-fields-grid aie-acf-fields-grid">
 								<div class="aie-acf-loading">
 									<span class="spinner is-active"></span>
-									<p><?php esc_html_e( 'Loading ACF fields...', 'wp-aie' ); ?></p>
+									<p><?php esc_html_e( 'Loading ACF fields...', 'wp-advanced-import-export' ); ?></p>
 								</div>
 							</div>
 						</div>
@@ -137,15 +137,15 @@ defined( 'ABSPATH' ) || exit;
 							<h4 class="aie-field-category-title">
 								<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
 								<span class="dashicons dashicons-chart-line"></span>
-								<?php esc_html_e( 'Yoast SEO', 'wp-aie' ); ?>
-								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'wp-aie' ); ?>">
-									<?php esc_html_e( 'Add all', 'wp-aie' ); ?>
+								<?php esc_html_e( 'Yoast SEO', 'wp-advanced-import-export' ); ?>
+								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'wp-advanced-import-export' ); ?>">
+									<?php esc_html_e( 'Add all', 'wp-advanced-import-export' ); ?>
 								</button>
 							</h4>
 							<div class="aie-fields-grid aie-yoast-fields-grid">
 								<div class="aie-yoast-loading">
 									<span class="spinner is-active"></span>
-									<p><?php esc_html_e( 'Loading Yoast SEO fields...', 'wp-aie' ); ?></p>
+									<p><?php esc_html_e( 'Loading Yoast SEO fields...', 'wp-advanced-import-export' ); ?></p>
 								</div>
 							</div>
 						</div>
@@ -157,10 +157,10 @@ defined( 'ABSPATH' ) || exit;
 		<div class="aie-step-actions">
 			<button type="button" class="button button-secondary aie-prev-step">
 				<span class="dashicons dashicons-arrow-left-alt2"></span>
-				<?php esc_html_e( 'Previous', 'wp-aie' ); ?>
+				<?php esc_html_e( 'Previous', 'wp-advanced-import-export' ); ?>
 			</button>
 			<button type="button" class="button button-primary button-large aie-next-step" disabled>
-				<?php esc_html_e( 'Next Step', 'wp-aie' ); ?>
+				<?php esc_html_e( 'Next Step', 'wp-advanced-import-export' ); ?>
 				<span class="dashicons dashicons-arrow-right-alt2"></span>
 			</button>
 		</div>

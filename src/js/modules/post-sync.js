@@ -72,7 +72,7 @@ const PostSync = {
 
 		if (selectedIds.length === 0) {
 			console.log('AIE PostSync: No posts selected');
-			alert('Please select at least one post');
+			alert(window.aieData.i18n.selectAtLeastOnePost);
 			return;
 		}
 
@@ -135,12 +135,12 @@ const PostSync = {
 		const postIds = this.getSelectedPostIds();
 
 		if (!siteId) {
-			alert('Please select a site');
+			alert(window.aieData.i18n.selectSite);
 			return;
 		}
 
 		if (postIds.length === 0) {
-			alert('No posts selected');
+			alert(window.aieData.i18n.noPostsSelected);
 			return;
 		}
 

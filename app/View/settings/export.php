@@ -12,7 +12,7 @@ $resume_job_id = isset( $_GET['resume_job'] ) ? intval( $_GET['resume_job'] ) : 
 ?>
 
 <div id="wp-aie-export" class="wp-advanced-import-export wrap">
-<h1><?php esc_html_e( 'Export Data', 'wp-aie' ); ?></h1>
+<h1><?php esc_html_e( 'Export Data', 'wp-advanced-import-export' ); ?></h1>
 
 <div class="aie-export-wizard">
 

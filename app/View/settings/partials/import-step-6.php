@@ -11,8 +11,8 @@ defined( 'ABSPATH' ) || exit;
 <!-- Step 6: Import Progress -->
 <div class="aie-step aie-step-6" data-step="6">
 	<div class="aie-step-header">
-		<h2><?php esc_html_e( 'Import in Progress', 'wp-aie' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Please wait while your data is being imported', 'wp-aie' ); ?></p>
+		<h2><?php esc_html_e( 'Import in Progress', 'wp-advanced-import-export' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Please wait while your data is being imported', 'wp-advanced-import-export' ); ?></p>
 	</div>
 
 	<div class="aie-step-content">
@@ -24,21 +24,21 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-progress-percentage">0%</div>
 				<div class="aie-progress-details">
 					<span class="aie-processed">0</span> / <span class="aie-total">0</span>
-					<?php esc_html_e( 'items', 'wp-aie' ); ?>
+					<?php esc_html_e( 'items', 'wp-advanced-import-export' ); ?>
 				</div>
 			</div>
 			
 			<div class="aie-progress-estimates">
 				<div class="aie-estimate">
-					<span class="label"><?php esc_html_e( 'Elapsed:', 'wp-aie' ); ?></span>
+					<span class="label"><?php esc_html_e( 'Elapsed:', 'wp-advanced-import-export' ); ?></span>
 					<span class="value aie-elapsed-time">0s</span>
 				</div>
 				<div class="aie-estimate">
-					<span class="label"><?php esc_html_e( 'Remaining:', 'wp-aie' ); ?></span>
+					<span class="label"><?php esc_html_e( 'Remaining:', 'wp-advanced-import-export' ); ?></span>
 					<span class="value aie-remaining-time">-</span>
 				</div>
 				<div class="aie-estimate">
-					<span class="label"><?php esc_html_e( 'Speed:', 'wp-aie' ); ?></span>
+					<span class="label"><?php esc_html_e( 'Speed:', 'wp-advanced-import-export' ); ?></span>
 					<span class="value aie-items-per-second">-</span>
 				</div>
 			</div>
@@ -46,22 +46,22 @@ defined( 'ABSPATH' ) || exit;
 
 		<div class="aie-import-results" style="display:none;">
 			<div class="notice notice-success" style="display:none;">
-				<h3><?php esc_html_e( 'Import Completed!', 'wp-aie' ); ?></h3>
+				<h3><?php esc_html_e( 'Import Completed!', 'wp-advanced-import-export' ); ?></h3>
 				<ul class="aie-results-list">
 					<li>
-						<?php esc_html_e( 'Total Processed:', 'wp-aie' ); ?>
+						<?php esc_html_e( 'Total Processed:', 'wp-advanced-import-export' ); ?>
 						<strong class="aie-result-processed">0</strong>
 					</li>
 					<li>
-						<?php esc_html_e( 'Successful:', 'wp-aie' ); ?>
+						<?php esc_html_e( 'Successful:', 'wp-advanced-import-export' ); ?>
 						<strong class="aie-result-success">0</strong>
 					</li>
 					<li>
-						<?php esc_html_e( 'Failed:', 'wp-aie' ); ?>
+						<?php esc_html_e( 'Failed:', 'wp-advanced-import-export' ); ?>
 						<strong class="aie-result-failed">0</strong>
 					</li>
 					<li>
-						<?php esc_html_e( 'Duration:', 'wp-aie' ); ?>
+						<?php esc_html_e( 'Duration:', 'wp-advanced-import-export' ); ?>
 						<strong class="aie-result-duration">0s</strong>
 					</li>
 				</ul>
@@ -70,9 +70,9 @@ defined( 'ABSPATH' ) || exit;
 
 		<div class="aie-import-logs">
 			<h3>
-				<?php esc_html_e( 'Recent Logs', 'wp-aie' ); ?>
+				<?php esc_html_e( 'Recent Logs', 'wp-advanced-import-export' ); ?>
 				<button type="button" class="button button-small aie-toggle-logs">
-					<?php esc_html_e( 'Show/Hide', 'wp-aie' ); ?>
+					<?php esc_html_e( 'Show/Hide', 'wp-advanced-import-export' ); ?>
 				</button>
 			</h3>
 			<div class="aie-logs-container" style="display:none;">
@@ -83,11 +83,11 @@ defined( 'ABSPATH' ) || exit;
 		<div class="aie-step-actions">
 			<button type="button" class="button button-secondary aie-cancel-import">
 				<span class="dashicons dashicons-no"></span>
-				<?php esc_html_e( 'Cancel Import', 'wp-aie' ); ?>
+				<?php esc_html_e( 'Cancel Import', 'wp-advanced-import-export' ); ?>
 			</button>
 			<button type="button" class="button button-primary aie-new-import" style="display:none;">
 				<span class="dashicons dashicons-plus"></span>
-				<?php esc_html_e( 'New Import', 'wp-aie' ); ?>
+				<?php esc_html_e( 'New Import', 'wp-advanced-import-export' ); ?>
 			</button>
 		</div>
 	</div>

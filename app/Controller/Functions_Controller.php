@@ -182,14 +182,14 @@ class Functions_Controller extends Base_Controller {
 		$function_id = (int) $this->get_request_param( 'id', 0 );
 
 		if ( empty( $function_id ) ) {
-			$this->send_error( __( 'Function ID is required', 'wp-aie' ) );
+			$this->send_error( __( 'Function ID is required', 'wp-advanced-import-export' ) );
 		}
 
 		$model    = new Custom_Function();
 		$function = $model->get( $function_id );
 
 		if ( ! $function ) {
-			$this->send_error( __( 'Function not found', 'wp-aie' ) );
+			$this->send_error( __( 'Function not found', 'wp-advanced-import-export' ) );
 		}
 
 		$this->send_success( $function );
@@ -213,7 +213,7 @@ class Functions_Controller extends Base_Controller {
 		$status   = $this->get_request_param( 'status', 'active' );
 
 		if ( empty( $name ) || empty( $code ) ) {
-			$this->send_error( __( 'Name and code are required', 'wp-aie' ) );
+			$this->send_error( __( 'Name and code are required', 'wp-advanced-import-export' ) );
 		}
 
 		$model = new Custom_Function();
@@ -233,14 +233,14 @@ class Functions_Controller extends Base_Controller {
 		}
 
 		if ( ! $function_id ) {
-			$this->send_error( __( 'Failed to create function', 'wp-aie' ) );
+			$this->send_error( __( 'Failed to create function', 'wp-advanced-import-export' ) );
 		}
 
 		$function = $model->get( $function_id );
 
 		$this->send_success(
 			[
-				'message'  => __( 'Function created successfully', 'wp-aie' ),
+				'message'  => __( 'Function created successfully', 'wp-advanced-import-export' ),
 				'function' => $function,
 			]
 		);
@@ -258,14 +258,14 @@ class Functions_Controller extends Base_Controller {
 		$function_id = (int) $this->get_request_param( 'id', 0 );
 
 		if ( empty( $function_id ) ) {
-			$this->send_error( __( 'Function ID is required', 'wp-aie' ) );
+			$this->send_error( __( 'Function ID is required', 'wp-advanced-import-export' ) );
 		}
 
 		$model = new Custom_Function();
 
 		// Check if function exists and user can edit
 		if ( ! $model->can_edit_function( $function_id ) ) {
-			$this->send_error( __( 'You do not have permission to edit this function', 'wp-aie' ) );
+			$this->send_error( __( 'You do not have permission to edit this function', 'wp-advanced-import-export' ) );
 		}
 
 		$update_data = [];
@@ -298,7 +298,7 @@ class Functions_Controller extends Base_Controller {
 		}
 
 		if ( empty( $update_data ) ) {
-			$this->send_error( __( 'No data to update', 'wp-aie' ) );
+			$this->send_error( __( 'No data to update', 'wp-advanced-import-export' ) );
 		}
 
 		$result = $model->update( $function_id, $update_data );
@@ -308,14 +308,14 @@ class Functions_Controller extends Base_Controller {
 		}
 
 		if ( ! $result ) {
-			$this->send_error( __( 'Failed to update function', 'wp-aie' ) );
+			$this->send_error( __( 'Failed to update function', 'wp-advanced-import-export' ) );
 		}
 
 		$function = $model->get( $function_id );
 
 		$this->send_success(
 			[
-				'message'  => __( 'Function updated successfully', 'wp-aie' ),
+				'message'  => __( 'Function updated successfully', 'wp-advanced-import-export' ),
 				'function' => $function,
 			]
 		);
@@ -333,25 +333,25 @@ class Functions_Controller extends Base_Controller {
 		$function_id = (int) $this->get_request_param( 'id', 0 );
 
 		if ( empty( $function_id ) ) {
-			$this->send_error( __( 'Function ID is required', 'wp-aie' ) );
+			$this->send_error( __( 'Function ID is required', 'wp-advanced-import-export' ) );
 		}
 
 		$model = new Custom_Function();
 
 		// Check permissions
 		if ( ! $model->can_edit_function( $function_id ) ) {
-			$this->send_error( __( 'You do not have permission to delete this function', 'wp-aie' ) );
+			$this->send_error( __( 'You do not have permission to delete this function', 'wp-advanced-import-export' ) );
 		}
 
 		$result = $model->delete( $function_id );
 
 		if ( ! $result ) {
-			$this->send_error( __( 'Failed to delete function', 'wp-aie' ) );
+			$this->send_error( __( 'Failed to delete function', 'wp-advanced-import-export' ) );
 		}
 
 		$this->send_success(
 			[
-				'message' => __( 'Function deleted successfully', 'wp-aie' ),
+				'message' => __( 'Function deleted successfully', 'wp-advanced-import-export' ),
 			]
 		);
 	}
@@ -371,7 +371,7 @@ class Functions_Controller extends Base_Controller {
 		$value = $this->get_request_param( 'value', '' );
 
 		if ( empty( $code ) ) {
-			$this->send_error( __( 'Code is required', 'wp-aie' ) );
+			$this->send_error( __( 'Code is required', 'wp-advanced-import-export' ) );
 		}
 
 		$model  = new Custom_Function();
@@ -402,7 +402,7 @@ class Functions_Controller extends Base_Controller {
 		$function_ids = $this->get_request_array( 'functions' );
 
 		if ( empty( $function_ids ) ) {
-			$this->send_error( __( 'No functions provided', 'wp-aie' ) );
+			$this->send_error( __( 'No functions provided', 'wp-advanced-import-export' ) );
 		}
 
 		$model         = new Custom_Function();
@@ -554,7 +554,7 @@ class Functions_Controller extends Base_Controller {
 		$query = $this->get_request_param( 'query', '' );
 
 		if ( empty( $query ) ) {
-			$this->send_error( __( 'Search query is required', 'wp-aie' ) );
+			$this->send_error( __( 'Search query is required', 'wp-advanced-import-export' ) );
 		}
 
 		$library = new Function_Snippets();
@@ -582,7 +582,7 @@ class Functions_Controller extends Base_Controller {
 		$description = $this->get_request_param( 'description', '' );
 
 		if ( empty( $snippet_key ) ) {
-			$this->send_error( __( 'Snippet key is required', 'wp-aie' ) );
+			$this->send_error( __( 'Snippet key is required', 'wp-advanced-import-export' ) );
 		}
 
 		$model = new Custom_Function();
@@ -596,14 +596,14 @@ class Functions_Controller extends Base_Controller {
 		);
 
 		if ( ! $function_id ) {
-			$this->send_error( __( 'Failed to import snippet', 'wp-aie' ) );
+			$this->send_error( __( 'Failed to import snippet', 'wp-advanced-import-export' ) );
 		}
 
 		$function = $model->get( $function_id );
 
 		$this->send_success(
 			[
-				'message'  => __( 'Snippet imported successfully', 'wp-aie' ),
+				'message'  => __( 'Snippet imported successfully', 'wp-advanced-import-export' ),
 				'function' => $function,
 			]
 		);

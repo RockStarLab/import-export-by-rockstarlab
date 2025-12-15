@@ -61,12 +61,12 @@ class Custom_Function extends Model {
 
 		// Validate required fields
 		if ( empty( $data['name'] ) || empty( $data['code'] ) ) {
-			return new \WP_Error( 'missing_fields', __( 'Name and code are required', 'wp-aie' ) );
+			return new \WP_Error( 'missing_fields', __( 'Name and code are required', 'wp-advanced-import-export' ) );
 		}
 
 		// Check if function name already exists
 		if ( $this->function_name_exists( $data['name'] ) ) {
-			return new \WP_Error( 'duplicate_name', __( 'A function with this name already exists', 'wp-aie' ) );
+			return new \WP_Error( 'duplicate_name', __( 'A function with this name already exists', 'wp-advanced-import-export' ) );
 		}
 
 		// Decode HTML entities from code
@@ -121,7 +121,7 @@ class Custom_Function extends Model {
 
 		return new \WP_Error(
 			'db_error',
-			__( 'Database error: Failed to save function', 'wp-aie' ),
+			__( 'Database error: Failed to save function', 'wp-advanced-import-export' ),
 			array( 'db_error' => $wpdb->last_error )
 		);
 	}
@@ -139,18 +139,18 @@ class Custom_Function extends Model {
 		// Check if function exists
 		$existing = $this->get( $id );
 		if ( ! $existing ) {
-			return new \WP_Error( 'not_found', __( 'Function not found', 'wp-aie' ) );
+			return new \WP_Error( 'not_found', __( 'Function not found', 'wp-advanced-import-export' ) );
 		}
 
 		// Check permissions
 		if ( ! $this->can_edit_function( $id ) ) {
-			return new \WP_Error( 'permission_denied', __( 'You do not have permission to edit this function', 'wp-aie' ) );
+			return new \WP_Error( 'permission_denied', __( 'You do not have permission to edit this function', 'wp-advanced-import-export' ) );
 		}
 
 		// Check if function name is being changed and if new name already exists
 		if ( isset( $data['name'] ) && $data['name'] !== $existing['name'] ) {
 			if ( $this->function_name_exists( $data['name'], $id ) ) {
-				return new \WP_Error( 'duplicate_name', __( 'A function with this name already exists', 'wp-aie' ) );
+				return new \WP_Error( 'duplicate_name', __( 'A function with this name already exists', 'wp-advanced-import-export' ) );
 			}
 		}
 
@@ -215,7 +215,7 @@ class Custom_Function extends Model {
 
 		return new \WP_Error(
 			'db_error',
-			__( 'Database error: Failed to update function', 'wp-aie' ),
+			__( 'Database error: Failed to update function', 'wp-advanced-import-export' ),
 			array( 'db_error' => $wpdb->last_error )
 		);
 	}

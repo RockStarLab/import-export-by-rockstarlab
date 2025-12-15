@@ -534,11 +534,11 @@ var ContentSyncModule = {
           _this2.renderSites(response.data.sites);
           _this2.updateStats(response.data.stats);
         } else {
-          _this2.showNotice('error', response.data.message || 'Failed to load sites');
+          _this2.showNotice('error', response.data.message || window.aieData.i18n.failedLoadSites);
         }
       },
       error: function error() {
-        _this2.showNotice('error', 'Failed to load sites');
+        _this2.showNotice('error', window.aieData.i18n.failedLoadSites);
       }
     });
   },
@@ -765,7 +765,7 @@ var ContentSyncModule = {
    */
   deleteSite: function deleteSite(siteId) {
     var _this5 = this;
-    if (!confirm('Are you sure you want to delete this site connection?')) {
+    if (!confirm(window.aieData.i18n.confirmDeleteSiteConnection)) {
       return;
     }
     jQuery.ajax({
@@ -781,11 +781,11 @@ var ContentSyncModule = {
           _this5.showNotice('success', response.data.message);
           _this5.loadSites();
         } else {
-          _this5.showNotice('error', response.data.message || 'Failed to delete site');
+          _this5.showNotice('error', response.data.message || window.aieData.i18n.failedDeleteSite);
         }
       },
       error: function error() {
-        _this5.showNotice('error', 'Failed to delete site');
+        _this5.showNotice('error', window.aieData.i18n.failedDeleteSite);
       }
     });
   },
@@ -809,13 +809,13 @@ var ContentSyncModule = {
         if (response.success) {
           _this6.showNotice('success', response.data.message);
         } else {
-          _this6.showNotice('error', response.data.message || 'Connection test failed');
+          _this6.showNotice('error', response.data.message || window.aieData.i18n.connectionTestFailed);
         }
         // Always reload sites to update stats
         _this6.loadSites();
       },
       error: function error() {
-        _this6.showNotice('error', 'Connection test failed');
+        _this6.showNotice('error', window.aieData.i18n.connectionTestFailed);
         _this6.loadSites();
       },
       complete: function complete() {
@@ -828,7 +828,7 @@ var ContentSyncModule = {
    */
   regenerateKey: function regenerateKey(siteId) {
     var _this7 = this;
-    if (!confirm('Are you sure you want to regenerate the API key? The old key will no longer work.')) {
+    if (!confirm(window.aieData.i18n.confirmRegenerateSiteKey)) {
       return;
     }
     jQuery.ajax({
@@ -842,13 +842,13 @@ var ContentSyncModule = {
       success: function success(response) {
         if (response.success) {
           _this7.showNotice('success', response.data.message);
-          alert('New API Key: ' + response.data.api_key);
+          alert(window.aieData.i18n.newApiKey + response.data.api_key);
         } else {
-          _this7.showNotice('error', response.data.message || 'Failed to regenerate key');
+          _this7.showNotice('error', response.data.message || window.aieData.i18n.failedRegenerateKey);
         }
       },
       error: function error() {
-        _this7.showNotice('error', 'Failed to regenerate key');
+        _this7.showNotice('error', window.aieData.i18n.failedRegenerateKey);
       }
     });
   },
@@ -880,7 +880,7 @@ var ContentSyncModule = {
     setTimeout(function () {
       $btn.html(originalText);
     }, 2000);
-    this.showNotice('success', 'API key copied to clipboard');
+    this.showNotice('success', window.aieData.i18n.apiKeyCopied);
   },
   /**
    * Regenerate this site's API key
@@ -890,7 +890,7 @@ var ContentSyncModule = {
     var $ = jQuery;
 
     // Confirm action
-    if (!confirm('Are you sure you want to regenerate your API key?\n\nThis will invalidate the current key and all remote sites will need to update their connection settings with the new key.')) {
+    if (!confirm(window.aieData.i18n.confirmRegenerateMyKey)) {
       return;
     }
     var $btn = $('#aie-regenerate-my-key');
@@ -917,12 +917,12 @@ var ContentSyncModule = {
             $btn.html(originalText);
           }, 3000);
         } else {
-          _this8.showNotice('error', response.data.message || 'Failed to regenerate API key');
+          _this8.showNotice('error', response.data.message || window.aieData.i18n.failedRegenerateApiKey);
           $btn.html(originalText);
         }
       },
       error: function error() {
-        _this8.showNotice('error', 'Failed to regenerate API key');
+        _this8.showNotice('error', window.aieData.i18n.failedRegenerateApiKey);
         $btn.html(originalText);
       },
       complete: function complete() {
@@ -2941,7 +2941,7 @@ var ExportStep3 = /*#__PURE__*/function () {
         return f.field === field;
       });
       if (existingField && field === 'ID') {
-        this.showNotice('This field is already added', 'warning');
+        this.showNotice(window.aieData.i18n.fieldAlreadyAdded, 'warning');
         return;
       }
 
@@ -2995,7 +2995,7 @@ var ExportStep3 = /*#__PURE__*/function () {
         _document$querySelect2;
       // Clear all fields
       (_document$querySelect = document.querySelector('.aie-clear-all-fields')) === null || _document$querySelect === void 0 ? void 0 : _document$querySelect.addEventListener('click', function () {
-        if (confirm('Are you sure you want to remove all fields?')) {
+        if (confirm(window.aieData.i18n.confirmRemoveAllFields)) {
           _this2.clearAllFields();
         }
       });
@@ -4120,7 +4120,7 @@ var ExportStep3 = /*#__PURE__*/function () {
         }
       }
       this.closeFieldFunctionsModal();
-      this.showNotice('Functions saved successfully', 'success');
+      this.showNotice(window.aieData.i18n.functionsSavedSuccess, 'success');
     }
 
     /**
@@ -4264,19 +4264,19 @@ var ExportStep3 = /*#__PURE__*/function () {
       var _this27 = this;
       var input = document.getElementById('aie-preview-input').value;
       if (!input) {
-        this.showNotice('Please enter a test value', 'warning');
+        this.showNotice(window.aieData.i18n.enterTestValue, 'warning');
         return;
       }
       var functionIds = this.fieldFunctions[this.currentEditingField] || [];
       if (functionIds.length === 0) {
-        this.showNotice('No functions to test', 'warning');
+        this.showNotice(window.aieData.i18n.noFunctionsToTest, 'warning');
         return;
       }
 
       // Check if aieData is available
       if (typeof aieData === 'undefined') {
         console.error('aieData is not defined');
-        this.showNotice('Configuration error: aieData not found', 'error');
+        this.showNotice(window.aieData.i18n.configErrorAieData, 'error');
         return;
       }
 
@@ -4294,11 +4294,11 @@ var ExportStep3 = /*#__PURE__*/function () {
           if (response.success) {
             _this27.renderPipelinePreview(input, response.data.steps);
           } else {
-            _this27.showNotice(response.data.message || 'Test failed', 'error');
+            _this27.showNotice(response.data.message || window.aieData.i18n.testFailed, 'error');
           }
         },
         error: function error() {
-          _this27.showNotice('Error testing pipeline', 'error');
+          _this27.showNotice(window.aieData.i18n.errorTestingPipeline, 'error');
         }
       });
     }
@@ -5399,7 +5399,7 @@ var ExportModule = (_ExportModule = {
 
               // Trigger first batch processing
               _this5.processNextBatch();
-              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Export started successfully', 'success');
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(window.aieData.i18n.exportStartedSuccess, 'success');
               _context2.next = 34;
               break;
             case 31:
@@ -5536,7 +5536,7 @@ var ExportModule = (_ExportModule = {
     jQuery('.aie-result-duration').text(((_result$estimates = result.estimates) === null || _result$estimates === void 0 ? void 0 : _result$estimates.elapsed_formatted) || '0s');
     jQuery('.aie-cancel-export').hide();
     jQuery('.aie-new-export').show();
-    _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Export completed successfully!', 'success');
+    _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(window.aieData.i18n.exportCompletedSuccess, 'success');
   },
   /**
    * Handle export failure
@@ -5590,7 +5590,7 @@ var ExportModule = (_ExportModule = {
         while (1) {
           switch (_context6.prev = _context6.next) {
             case 0:
-              if (confirm('Are you sure you want to cancel this export?')) {
+              if (confirm(window.aieData.i18n.confirmCancelExport)) {
                 _context6.next = 2;
                 break;
               }
@@ -5603,7 +5603,7 @@ var ExportModule = (_ExportModule = {
               });
             case 5:
               clearInterval(_this10.progressInterval);
-              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Export cancelled', 'info');
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(window.aieData.i18n.exportCancelled, 'info');
               _this10.resetWizard();
               _context6.next = 13;
               break;
@@ -12483,7 +12483,7 @@ var JobsLogModule = {
               _context.prev = 14;
               _context.t0 = _context["catch"](4);
               console.error('Error loading jobs:', _context.t0);
-              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Error loading jobs: ' + _context.t0.message, 'error');
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(window.aieData.i18n.errorLoadingJobs + _context.t0.message, 'error');
               _this2.renderJobs([]);
             case 19:
               _context.prev = 19;
@@ -12608,7 +12608,7 @@ var JobsLogModule = {
               $button = jQuery(e.currentTarget);
               $row = $button.closest('tr');
               jobId = $row.data('job-id');
-              if (confirm('Resume this job?')) {
+              if (confirm(window.aieData.i18n.confirmResumeJob)) {
                 _context2.next = 5;
                 break;
               }
@@ -12623,7 +12623,7 @@ var JobsLogModule = {
             case 9:
               response = _context2.sent;
               if (response && response.job_id) {
-                _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Job resumed successfully', 'success');
+                _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(window.aieData.i18n.jobResumedSuccess, 'success');
 
                 // Redirect based on job type
                 _this4.redirectToJobPage(response.type, response.job_id);
@@ -12634,7 +12634,7 @@ var JobsLogModule = {
               _context2.prev = 13;
               _context2.t0 = _context2["catch"](6);
               console.error('Error resuming job:', _context2.t0);
-              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Error resuming job: ' + _context2.t0.message, 'error');
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(window.aieData.i18n.errorResumingJob + _context2.t0.message, 'error');
               $button.prop('disabled', false);
             case 18:
             case "end":
@@ -12658,7 +12658,7 @@ var JobsLogModule = {
               $button = jQuery(e.currentTarget);
               $row = $button.closest('tr');
               jobId = $row.data('job-id');
-              if (confirm('Restart this job with the same settings?')) {
+              if (confirm(window.aieData.i18n.confirmRestartJob)) {
                 _context3.next = 5;
                 break;
               }
@@ -12673,7 +12673,7 @@ var JobsLogModule = {
             case 9:
               response = _context3.sent;
               if (response && response.job_id) {
-                _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Job restarted successfully', 'success');
+                _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(window.aieData.i18n.jobRestartedSuccess, 'success');
 
                 // Redirect based on job type
                 _this5.redirectToJobPage(response.type, response.job_id);
@@ -12684,7 +12684,7 @@ var JobsLogModule = {
               _context3.prev = 13;
               _context3.t0 = _context3["catch"](6);
               console.error('Error restarting job:', _context3.t0);
-              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Error restarting job: ' + _context3.t0.message, 'error');
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(window.aieData.i18n.errorRestartingJob + _context3.t0.message, 'error');
               $button.prop('disabled', false);
             case 18:
             case "end":
@@ -12708,7 +12708,7 @@ var JobsLogModule = {
               $button = jQuery(e.currentTarget);
               $row = $button.closest('tr');
               jobId = $row.data('job-id');
-              if (confirm('Retry this job with the same settings?')) {
+              if (confirm(window.aieData.i18n.confirmRetryJob)) {
                 _context4.next = 5;
                 break;
               }
@@ -12723,7 +12723,7 @@ var JobsLogModule = {
             case 9:
               response = _context4.sent;
               if (response && response.job_id && response.type) {
-                _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Job created, starting process...', 'success');
+                _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(window.aieData.i18n.jobCreatedStarting, 'success');
 
                 // Redirect to job page with resume_job parameter to show progress
                 _this6.redirectToJobPage(response.type, response.job_id);
@@ -12735,7 +12735,7 @@ var JobsLogModule = {
               _context4.t0 = _context4["catch"](6);
               console.error('Error retrying job:', _context4.t0);
               errorMsg = _context4.t0 && _context4.t0.message ? _context4.t0.message : 'Unknown error occurred';
-              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Error retrying job: ' + errorMsg, 'error');
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(window.aieData.i18n.errorRetryingJob + errorMsg, 'error');
               $button.prop('disabled', false);
             case 19:
             case "end":
@@ -12784,7 +12784,7 @@ var JobsLogModule = {
                 job_id: jobId
               });
             case 7:
-              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Job deleted successfully', 'success');
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(window.aieData.i18n.jobDeletedSuccess, 'success');
               _this7.loadJobs(); // Reload list
               _context5.next = 15;
               break;
@@ -12792,7 +12792,7 @@ var JobsLogModule = {
               _context5.prev = 11;
               _context5.t0 = _context5["catch"](4);
               console.error('Error deleting job:', _context5.t0);
-              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Error deleting job: ' + _context5.t0.message, 'error');
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(window.aieData.i18n.errorDeletingJob + _context5.t0.message, 'error');
             case 15:
             case "end":
               return _context5.stop();
@@ -12822,11 +12822,11 @@ var JobsLogModule = {
         if (response.success && response.data.url) {
           window.location.href = response.data.url;
         } else {
-          alert(response.data || 'Download failed');
+          alert(response.data || window.aieData.i18n.downloadFailed);
         }
       },
       error: function error() {
-        alert('Failed to generate download URL');
+        alert(window.aieData.i18n.failedGenerateDownloadUrl);
       }
     });
   },
@@ -12860,7 +12860,7 @@ var JobsLogModule = {
               _context6.prev = 10;
               _context6.t0 = _context6["catch"](3);
               console.error('Error loading job details:', _context6.t0);
-              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Error loading job details: ' + _context6.t0.message, 'error');
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(window.aieData.i18n.errorLoadingJobDetails + _context6.t0.message, 'error');
             case 14:
             case "end":
               return _context6.stop();
@@ -13121,7 +13121,7 @@ var MediaSyncModule = {
     jQuery('#aie-sync-progress-section, #aie-sync-completion').hide();
     var folderPath = jQuery('#aie-folder-path').val().trim();
     if (!folderPath) {
-      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Please enter a folder path', 'error');
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(window.aieData.i18n.enterFolderPath, 'error');
       return;
     }
 
@@ -13175,7 +13175,7 @@ var MediaSyncModule = {
         _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(((_response$data = response.data) === null || _response$data === void 0 ? void 0 : _response$data.message) || 'Scan failed', 'error');
       }
     }).fail(function () {
-      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Request failed', 'error');
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(window.aieData.i18n.requestFailed, 'error');
     }).always(function () {
       jQuery('#aie-scan-folder-btn').prop('disabled', false).html('<span class="dashicons dashicons-search"></span> Scan Folder');
     });
@@ -13341,7 +13341,7 @@ var MediaSyncModule = {
       _window$aieData4,
       _this4 = this;
     if (!this.scannedFiles || this.scannedFiles.length === 0) {
-      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('No files to sync. Please scan a folder first.', 'error');
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(window.aieData.i18n.noFilesToSync, 'error');
       return;
     }
 
@@ -13355,7 +13355,7 @@ var MediaSyncModule = {
     this.isPaused = false;
     var folderPath = jQuery('#aie-folder-path').val().trim();
     if (!folderPath) {
-      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Invalid folder path', 'error');
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(window.aieData.i18n.invalidFolderPath, 'error');
       return;
     }
 
@@ -13407,14 +13407,14 @@ var MediaSyncModule = {
 
         // Trigger first batch processing immediately
         _this4.triggerBatchProcessing();
-        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Synchronization started', 'success');
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(window.aieData.i18n.syncStarted, 'success');
       } else {
         var _response$data2;
         _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(((_response$data2 = response.data) === null || _response$data2 === void 0 ? void 0 : _response$data2.message) || 'Failed to start sync', 'error');
         $btn.prop('disabled', false).html(originalText);
       }
     }).fail(function () {
-      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Request failed', 'error');
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(window.aieData.i18n.requestFailed, 'error');
       $btn.prop('disabled', false).html(originalText);
     });
   },
@@ -13681,7 +13681,7 @@ var MediaSyncModule = {
         jQuery('#aie-sync-status').text('Paused');
         var $pauseBtn = jQuery('#aie-pause-sync-btn');
         $pauseBtn.html('<span class="dashicons dashicons-controls-play"></span> Resume');
-        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Sync paused', 'info');
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(window.aieData.i18n.syncPaused, 'info');
       }
     });
   },
@@ -13719,7 +13719,7 @@ var MediaSyncModule = {
 
         // Trigger batch processing to continue
         _this10.triggerBatchProcessing();
-        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Sync resumed', 'success');
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(window.aieData.i18n.syncResumed, 'success');
       }
     });
   },
@@ -13730,7 +13730,7 @@ var MediaSyncModule = {
     var _window$aieData13,
       _window$aieData14,
       _this11 = this;
-    if (!confirm('Are you sure you want to cancel? This cannot be undone.')) {
+    if (!confirm(window.aieData.i18n.confirmCancelSync)) {
       return;
     }
     jQuery.ajax({
@@ -13744,7 +13744,7 @@ var MediaSyncModule = {
     }).done(function (response) {
       if (response.success) {
         clearInterval(_this11.progressInterval);
-        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice('Sync cancelled', 'warning');
+        _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(window.aieData.i18n.syncCancelled, 'warning');
         _this11.resetPage();
       }
     });
@@ -13877,7 +13877,7 @@ var MediaSyncModule = {
       if (jqXHR.responseText) {
         console.log('Full response text:', jqXHR.responseText);
       }
-      var errorMsg = 'Request failed';
+      var errorMsg = window.aieData.i18n.requestFailed;
 
       // Check for WP_Error response
       if (jqXHR.responseJSON) {
@@ -13900,7 +13900,7 @@ var MediaSyncModule = {
           }
         }
       }
-      if (errorThrown && errorMsg === 'Request failed') {
+      if (errorThrown && errorMsg === window.aieData.i18n.requestFailed) {
         errorMsg = 'Request failed: ' + errorThrown;
       }
 
@@ -14057,7 +14057,7 @@ var PostSync = {
     console.log('AIE PostSync: Modal element exists:', $('#aie-sync-modal').length);
     if (selectedIds.length === 0) {
       console.log('AIE PostSync: No posts selected');
-      alert('Please select at least one post');
+      alert(window.aieData.i18n.selectAtLeastOnePost);
       return;
     }
 
@@ -14112,11 +14112,11 @@ var PostSync = {
     var siteId = $('#aie-sync-site-select').val();
     var postIds = this.getSelectedPostIds();
     if (!siteId) {
-      alert('Please select a site');
+      alert(window.aieData.i18n.selectSite);
       return;
     }
     if (postIds.length === 0) {
-      alert('No posts selected');
+      alert(window.aieData.i18n.noPostsSelected);
       return;
     }
 
