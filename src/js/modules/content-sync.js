@@ -48,6 +48,9 @@ const ContentSyncModule = {
 		// Copy my API key
 		$('#aie-copy-my-key').on('click', () => this.copyMyApiKey());
 
+		// Regenerate my API key
+		$('#aie-regenerate-my-key').on('click', () => this.regenerateMyApiKey());
+
 		// Delegated events for dynamic content
 		$(document).on('click', '.aie-edit-site', (e) => {
 			const siteId = $(e.currentTarget).data('site-id');
@@ -184,7 +187,6 @@ const ContentSyncModule = {
 	updateStats(stats) {
 		jQuery('#aie-stat-total').text(stats.total || 0);
 		jQuery('#aie-stat-active').text(stats.active || 0);
-		jQuery('#aie-stat-inactive').text(stats.inactive || 0);
 		jQuery('#aie-stat-error').text(stats.error || 0);
 	},
 
@@ -419,13 +421,15 @@ const ContentSyncModule = {
 			success: (response) => {
 				if (response.success) {
 					this.showNotice('success', response.data.message);
-					this.loadSites();
 				} else {
 					this.showNotice('error', response.data.message || 'Connection test failed');
 				}
+				// Always reload sites to update stats
+				this.loadSites();
 			},
 			error: () => {
 				this.showNotice('error', 'Connection test failed');
+				this.loadSites();
 			},
 			complete: () => {
 				$btn.prop('disabled', false);
@@ -503,6 +507,56 @@ const ContentSyncModule = {
 		}, 2000);
 
 		this.showNotice('success', 'API key copied to clipboard');
+	},
+
+	/**
+	 * Regenerate this site's API key
+	 */
+	regenerateMyApiKey() {
+		const $ = jQuery;
+
+		// Confirm action
+		if (!confirm('Are you sure you want to regenerate your API key?\n\nThis will invalidate the current key and all remote sites will need to update their connection settings with the new key.')) {
+			return;
+		}
+
+		const $btn = $('#aie-regenerate-my-key');
+		const originalText = $btn.html();
+		$btn.prop('disabled', true).html('<span class="dashicons dashicons-update"></span> Regenerating...');
+
+		$.ajax({
+			url: ajaxurl,
+			type: 'POST',
+			data: {
+				action: 'aie_content_sync_regenerate_my_key',
+				nonce: aieContentSync.nonce,
+			},
+			success: (response) => {
+				if (response.success) {
+					// Update the API key field with new key
+					$('#aie-my-site-key').val(response.data.site_key);
+					
+					// Show success message
+					this.showNotice('success', response.data.message);
+					
+					// Briefly show success state on button
+					$btn.html('<span class="dashicons dashicons-yes"></span> Regenerated!');
+					setTimeout(() => {
+						$btn.html(originalText);
+					}, 3000);
+				} else {
+					this.showNotice('error', response.data.message || 'Failed to regenerate API key');
+					$btn.html(originalText);
+				}
+			},
+			error: () => {
+				this.showNotice('error', 'Failed to regenerate API key');
+				$btn.html(originalText);
+			},
+			complete: () => {
+				$btn.prop('disabled', false);
+			},
+		});
 	},
 
 	/**

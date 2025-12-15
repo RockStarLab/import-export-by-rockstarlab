@@ -484,6 +484,11 @@ var ContentSyncModule = {
       return _this.copyMyApiKey();
     });
 
+    // Regenerate my API key
+    $('#aie-regenerate-my-key').on('click', function () {
+      return _this.regenerateMyApiKey();
+    });
+
     // Delegated events for dynamic content
     $(document).on('click', '.aie-edit-site', function (e) {
       var siteId = $(e.currentTarget).data('site-id');
@@ -572,7 +577,6 @@ var ContentSyncModule = {
   updateStats: function updateStats(stats) {
     jQuery('#aie-stat-total').text(stats.total || 0);
     jQuery('#aie-stat-active').text(stats.active || 0);
-    jQuery('#aie-stat-inactive').text(stats.inactive || 0);
     jQuery('#aie-stat-error').text(stats.error || 0);
   },
   /**
@@ -794,13 +798,15 @@ var ContentSyncModule = {
       success: function success(response) {
         if (response.success) {
           _this6.showNotice('success', response.data.message);
-          _this6.loadSites();
         } else {
           _this6.showNotice('error', response.data.message || 'Connection test failed');
         }
+        // Always reload sites to update stats
+        _this6.loadSites();
       },
       error: function error() {
         _this6.showNotice('error', 'Connection test failed');
+        _this6.loadSites();
       },
       complete: function complete() {
         $btn.prop('disabled', false);
@@ -867,10 +873,58 @@ var ContentSyncModule = {
     this.showNotice('success', 'API key copied to clipboard');
   },
   /**
+   * Regenerate this site's API key
+   */
+  regenerateMyApiKey: function regenerateMyApiKey() {
+    var _this8 = this;
+    var $ = jQuery;
+
+    // Confirm action
+    if (!confirm('Are you sure you want to regenerate your API key?\n\nThis will invalidate the current key and all remote sites will need to update their connection settings with the new key.')) {
+      return;
+    }
+    var $btn = $('#aie-regenerate-my-key');
+    var originalText = $btn.html();
+    $btn.prop('disabled', true).html('<span class="dashicons dashicons-update"></span> Regenerating...');
+    $.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: {
+        action: 'aie_content_sync_regenerate_my_key',
+        nonce: aieContentSync.nonce
+      },
+      success: function success(response) {
+        if (response.success) {
+          // Update the API key field with new key
+          $('#aie-my-site-key').val(response.data.site_key);
+
+          // Show success message
+          _this8.showNotice('success', response.data.message);
+
+          // Briefly show success state on button
+          $btn.html('<span class="dashicons dashicons-yes"></span> Regenerated!');
+          setTimeout(function () {
+            $btn.html(originalText);
+          }, 3000);
+        } else {
+          _this8.showNotice('error', response.data.message || 'Failed to regenerate API key');
+          $btn.html(originalText);
+        }
+      },
+      error: function error() {
+        _this8.showNotice('error', 'Failed to regenerate API key');
+        $btn.html(originalText);
+      },
+      complete: function complete() {
+        $btn.prop('disabled', false);
+      }
+    });
+  },
+  /**
    * Show notice message in modal
    */
   showModalNotice: function showModalNotice(type, title, message) {
-    var _this8 = this;
+    var _this9 = this;
     var details = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : [];
     var $ = jQuery;
     var icons = {
@@ -885,7 +939,7 @@ var ContentSyncModule = {
     if (details.length > 0) {
       detailsHtml = '<ul>';
       details.forEach(function (detail) {
-        detailsHtml += "<li>".concat(_this8.escapeHtml(detail), "</li>");
+        detailsHtml += "<li>".concat(_this9.escapeHtml(detail), "</li>");
       });
       detailsHtml += '</ul>';
     }
@@ -916,9 +970,9 @@ var ContentSyncModule = {
 
     // Make dismissible
     $notice.on('click', '.notice-dismiss', function () {
-      var _this9 = this;
+      var _this10 = this;
       $(this).closest('.notice').fadeOut(function () {
-        return $(_this9).remove();
+        return $(_this10).remove();
       });
     });
   },

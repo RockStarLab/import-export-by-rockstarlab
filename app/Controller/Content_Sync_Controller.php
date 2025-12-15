@@ -27,13 +27,14 @@ class Content_Sync_Controller extends Base_Controller {
 	 */
 	protected function get_ajax_actions() {
 		return array(
-			'content_sync_get_sites'       => array( 'callback' => 'get_sites' ),
-			'content_sync_add_site'        => array( 'callback' => 'add_site' ),
-			'content_sync_update_site'     => array( 'callback' => 'update_site' ),
-			'content_sync_delete_site'     => array( 'callback' => 'delete_site' ),
-			'content_sync_regenerate_key'  => array( 'callback' => 'regenerate_key' ),
-			'content_sync_test_connection' => array( 'callback' => 'test_connection' ),
-			'content_sync_get_my_key'      => array( 'callback' => 'get_my_site_key' ),
+			'content_sync_get_sites'          => array( 'callback' => 'get_sites' ),
+			'content_sync_add_site'           => array( 'callback' => 'add_site' ),
+			'content_sync_update_site'        => array( 'callback' => 'update_site' ),
+			'content_sync_delete_site'        => array( 'callback' => 'delete_site' ),
+			'content_sync_regenerate_key'     => array( 'callback' => 'regenerate_key' ),
+			'content_sync_test_connection'    => array( 'callback' => 'test_connection' ),
+			'content_sync_get_my_key'         => array( 'callback' => 'get_my_site_key' ),
+			'content_sync_regenerate_my_key'  => array( 'callback' => 'regenerate_my_site_key' ),
 		);
 	}
 
@@ -341,36 +342,25 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( __( 'Site not found', 'wp-advanced-import-export' ) );
 		}
 
-		// Test connection using wp_remote_get
-		$response = wp_remote_get(
-			trailingslashit( $site['remote_url'] ) . 'wp-json/wp/v2',
+		// Test connection using our validation endpoint
+		$validation_result = $this->validate_remote_site( $site['remote_url'], $site['api_key'] );
+
+		if ( is_wp_error( $validation_result ) ) {
+			Connected_Site::update_last_sync( $site_id, $validation_result->get_error_message() );
+			// Update status to error
+			Connected_Site::update( $site_id, array( 'status' => 'error' ) );
+			$this->send_error( $validation_result->get_error_message() );
+		}
+
+		// Connection successful - update last sync and status
+		Connected_Site::update_last_sync( $site_id );
+		Connected_Site::update( $site_id, array( 'status' => 'active' ) );
+		
+		$this->send_success(
 			array(
-				'timeout' => 10,
-				'headers' => array(
-					'Authorization' => 'Bearer ' . $site['api_key'],
-				),
+				'message' => __( 'Connection successful. API key is valid.', 'wp-advanced-import-export' ),
 			)
 		);
-
-		if ( is_wp_error( $response ) ) {
-			Connected_Site::update_last_sync( $site_id, $response->get_error_message() );
-			$this->send_error( __( 'Connection failed: ', 'wp-advanced-import-export' ) . $response->get_error_message() );
-		}
-
-		$status_code = wp_remote_retrieve_response_code( $response );
-
-		if ( $status_code >= 200 && $status_code < 300 ) {
-			Connected_Site::update_last_sync( $site_id );
-			$this->send_success(
-				array(
-					'message' => __( 'Connection successful', 'wp-advanced-import-export' ),
-				)
-			);
-		} else {
-			$error_msg = sprintf( __( 'Connection failed with status code: %d', 'wp-advanced-import-export' ), $status_code );
-			Connected_Site::update_last_sync( $site_id, $error_msg );
-			$this->send_error( $error_msg );
-		}
 	}
 
 	/**
@@ -399,6 +389,27 @@ class Content_Sync_Controller extends Base_Controller {
 				'site_key'  => $site_key,
 				'site_url'  => $site_url,
 				'site_name' => $site_name,
+			)
+		);
+	}
+
+	/**
+	 * Regenerate this site's API key
+	 */
+	public function regenerate_my_site_key() {
+		$verify = $this->verify_request( 'content_sync_regenerate_my_key' );
+		if ( is_wp_error( $verify ) ) {
+			$this->send_error( $verify->get_error_message() );
+		}
+
+		// Generate new API key
+		$new_key = Connected_Site::generate_api_key();
+		update_option( 'aie_site_api_key', $new_key );
+
+		$this->send_success(
+			array(
+				'message'  => __( 'API key regenerated successfully. All remote sites will need to update their connection with the new key.', 'wp-advanced-import-export' ),
+				'site_key' => $new_key,
 			)
 		);
 	}
