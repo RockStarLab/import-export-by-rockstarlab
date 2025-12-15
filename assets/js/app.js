@@ -26,6 +26,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modules_media_sync__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./modules/media_sync */ "./src/js/modules/media_sync.js");
 /* harmony import */ var _modules_jobs_log__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./modules/jobs-log */ "./src/js/modules/jobs-log.js");
 /* harmony import */ var _modules_content_updater__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./modules/content-updater */ "./src/js/modules/content-updater.js");
+/* harmony import */ var _modules_content_sync__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./modules/content-sync */ "./src/js/modules/content-sync.js");
+
 
 
 
@@ -55,6 +57,9 @@ jQuery(document).ready(function ($) {
 
   // Initialize content updater module
   _modules_content_updater__WEBPACK_IMPORTED_MODULE_5__["default"].init();
+
+  // Initialize content sync module
+  _modules_content_sync__WEBPACK_IMPORTED_MODULE_6__["default"].init();
 });
 
 /***/ }),
@@ -408,6 +413,525 @@ var FileUploader = /*#__PURE__*/function () {
   return FileUploader;
 }();
 
+
+/***/ }),
+
+/***/ "./src/js/modules/content-sync.js":
+/*!****************************************!*\
+  !*** ./src/js/modules/content-sync.js ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/**
+ * Content Sync Module
+ *
+ * Handles content synchronization between sites
+ */
+
+var ContentSyncModule = {
+  /**
+   * Initialize module
+   */
+  init: function init() {
+    if (!jQuery('#wp-aie-content-sync').length) {
+      return;
+    }
+    this.bindEvents();
+    this.loadSites();
+    this.loadMySiteInfo();
+  },
+  /**
+   * Bind event handlers
+   */
+  bindEvents: function bindEvents() {
+    var _this = this;
+    var $ = jQuery;
+
+    // Add site button
+    $('#aie-add-site-btn').on('click', function () {
+      return _this.showAddSiteModal();
+    });
+
+    // Save site button
+    $('#aie-save-site-btn').on('click', function () {
+      return _this.saveSite();
+    });
+
+    // Modal close buttons
+    $('.aie-modal-close').on('click', function () {
+      $(this).closest('.aie-modal').hide();
+    });
+
+    // Close modal on outside click
+    $('.aie-modal').on('click', function (e) {
+      if ($(e.target).hasClass('aie-modal')) {
+        $(this).hide();
+      }
+    });
+
+    // Toggle my site info
+    $('#aie-toggle-my-site').on('click', function () {
+      return _this.toggleMySiteInfo();
+    });
+
+    // Copy my API key
+    $('#aie-copy-my-key').on('click', function () {
+      return _this.copyMyApiKey();
+    });
+
+    // Delegated events for dynamic content
+    $(document).on('click', '.aie-edit-site', function (e) {
+      var siteId = $(e.currentTarget).data('site-id');
+      _this.showEditSiteModal(siteId);
+    });
+    $(document).on('click', '.aie-delete-site', function (e) {
+      var siteId = $(e.currentTarget).data('site-id');
+      _this.deleteSite(siteId);
+    });
+    $(document).on('click', '.aie-test-connection', function (e) {
+      var siteId = $(e.currentTarget).data('site-id');
+      _this.testConnection(siteId);
+    });
+    $(document).on('click', '.aie-regenerate-key', function (e) {
+      var siteId = $(e.currentTarget).data('site-id');
+      _this.regenerateKey(siteId);
+    });
+  },
+  /**
+   * Load all connected sites
+   */
+  loadSites: function loadSites() {
+    var _this2 = this;
+    jQuery.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: {
+        action: 'aie_content_sync_get_sites',
+        nonce: aieContentSync.nonce
+      },
+      success: function success(response) {
+        if (response.success) {
+          _this2.renderSites(response.data.sites);
+          _this2.updateStats(response.data.stats);
+        } else {
+          _this2.showNotice('error', response.data.message || 'Failed to load sites');
+        }
+      },
+      error: function error() {
+        _this2.showNotice('error', 'Failed to load sites');
+      }
+    });
+  },
+  /**
+   * Load this site's information
+   */
+  loadMySiteInfo: function loadMySiteInfo() {
+    jQuery.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: {
+        action: 'aie_content_sync_get_my_key',
+        nonce: aieContentSync.nonce
+      },
+      success: function success(response) {
+        if (response.success) {
+          jQuery('#aie-my-site-name').val(response.data.site_name);
+          jQuery('#aie-my-site-url').val(response.data.site_url);
+          jQuery('#aie-my-site-key').val(response.data.site_key);
+        }
+      }
+    });
+  },
+  /**
+   * Render sites table
+   */
+  renderSites: function renderSites(sites) {
+    var _this3 = this;
+    var $ = jQuery;
+    var $tbody = $('#aie-sites-list');
+    $tbody.empty();
+    if (!sites || sites.length === 0) {
+      $tbody.html("\n\t\t\t\t<tr class=\"aie-no-sites\">\n\t\t\t\t\t<td colspan=\"5\" style=\"text-align: center; padding: 40px;\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-site\" style=\"font-size: 48px; opacity: 0.3;\"></span>\n\t\t\t\t\t\t<p style=\"margin-top: 40px\">No connected sites yet. Add your first connection!</p>\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
+      return;
+    }
+    sites.forEach(function (site) {
+      var statusClass = "aie-status-".concat(site.status);
+      var lastSync = site.last_sync_at ? new Date(site.last_sync_at).toLocaleString() : 'Never';
+      var row = "\n\t\t\t\t<tr data-site-id=\"".concat(site.id, "\">\n\t\t\t\t\t<td class=\"column-name\">\n\t\t\t\t\t\t<strong>").concat(_this3.escapeHtml(site.name), "</strong>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"column-url\">\n\t\t\t\t\t\t<a href=\"").concat(_this3.escapeHtml(site.remote_url), "\" target=\"_blank\" rel=\"noopener noreferrer\">\n\t\t\t\t\t\t\t").concat(_this3.escapeHtml(site.remote_url), "\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"column-status\">\n\t\t\t\t\t\t<span class=\"aie-status-badge ").concat(statusClass, "\">\n\t\t\t\t\t\t\t").concat(_this3.escapeHtml(site.status), "\n\t\t\t\t\t\t</span>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"column-last-sync\">\n\t\t\t\t\t\t").concat(lastSync, "\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"column-actions\">\n\t\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-test-connection\" data-site-id=\"").concat(site.id, "\" title=\"Test Connection\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-update\"></span>\n\t\t\t\t\t\t</button>\n\t\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-edit-site\" data-site-id=\"").concat(site.id, "\" title=\"Edit\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-edit\"></span>\n\t\t\t\t\t\t</button>\n\t\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-delete-site\" data-site-id=\"").concat(site.id, "\" title=\"Delete\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-trash\"></span>\n\t\t\t\t\t\t</button>\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
+      $tbody.append(row);
+    });
+  },
+  /**
+   * Update statistics
+   */
+  updateStats: function updateStats(stats) {
+    jQuery('#aie-stat-total').text(stats.total || 0);
+    jQuery('#aie-stat-active').text(stats.active || 0);
+    jQuery('#aie-stat-inactive').text(stats.inactive || 0);
+    jQuery('#aie-stat-error').text(stats.error || 0);
+  },
+  /**
+   * Show add site modal
+   */
+  showAddSiteModal: function showAddSiteModal() {
+    var $ = jQuery;
+    $('#aie-modal-title').text('Add New Site');
+    $('#aie-site-form')[0].reset();
+    $('#aie-site-id').val('');
+    $('#aie-site-api-key').prop('required', true);
+    this.hideModalNotice();
+    $('#aie-site-modal').show();
+  },
+  /**
+   * Show edit site modal
+   */
+  showEditSiteModal: function showEditSiteModal(siteId) {
+    var $ = jQuery;
+    var $row = $("tr[data-site-id=\"".concat(siteId, "\"]"));
+    var site = this.getSiteFromRow($row);
+    if (!site) return;
+    $('#aie-modal-title').text('Edit Site');
+    $('#aie-site-id').val(siteId);
+    $('#aie-site-name').val(site.name);
+    $('#aie-site-url').val(site.url);
+    $('#aie-site-api-key').prop('required', false).val('');
+    this.hideModalNotice();
+    $('#aie-site-modal').show();
+  },
+  /**
+   * Get site data from row
+   */
+  getSiteFromRow: function getSiteFromRow($row) {
+    if (!$row.length) return null;
+    return {
+      name: $row.find('.column-name strong').text(),
+      url: $row.find('.column-url a').attr('href')
+    };
+  },
+  /**
+   * Save site (add or update)
+   */
+  saveSite: function saveSite() {
+    var _this4 = this;
+    var $ = jQuery;
+    var $form = $('#aie-site-form');
+    var siteId = $('#aie-site-id').val();
+    var isEdit = !!siteId;
+
+    // Basic validation
+    if (!$form[0].checkValidity()) {
+      $form[0].reportValidity();
+      return;
+    }
+
+    // Hide any previous notifications
+    this.hideModalNotice();
+    var data = {
+      action: isEdit ? 'aie_content_sync_update_site' : 'aie_content_sync_add_site',
+      nonce: aieContentSync.nonce,
+      name: $('#aie-site-name').val(),
+      remote_url: $('#aie-site-url').val(),
+      direction: 'bidirectional' // Always bidirectional
+    };
+
+    // Get API key value
+    var apiKey = $('#aie-site-api-key').val();
+    if (isEdit) {
+      data.site_id = siteId;
+      // If API key was provided during edit, include it (to update/validate)
+      if (apiKey && apiKey.trim() !== '') {
+        data.api_key = apiKey;
+      }
+    } else {
+      data.api_key = apiKey;
+    }
+    var $saveBtn = $('#aie-save-site-btn');
+    // Check if we're validating API key
+    var hasApiKey = data.api_key && data.api_key.trim() !== '';
+    var buttonText = isEdit && !hasApiKey ? 'Updating...' : 'Validating & Saving...';
+    $saveBtn.prop('disabled', true).text(buttonText);
+
+    // Show info message when validating API key
+    if (hasApiKey) {
+      this.showModalNotice('info', 'Validating API key...', 'Please wait while we verify the connection to the remote site.');
+    }
+    $.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: data,
+      success: function success(response) {
+        if (response.success) {
+          var message = response.data.message || 'Operation completed successfully';
+
+          // Check if no changes were made
+          if (message.includes('No changes')) {
+            _this4.showModalNotice('info', 'No Changes', message);
+            // Close modal after delay
+            setTimeout(function () {
+              $('#aie-site-modal').hide();
+            }, 2000);
+          } else {
+            _this4.showModalNotice('success', 'Success!', message);
+            // Close modal after short delay
+            setTimeout(function () {
+              $('#aie-site-modal').hide();
+              _this4.loadSites();
+              _this4.showNotice('success', message);
+            }, 1500);
+          }
+        } else {
+          _this4.showModalNotice('error', 'Validation Failed', response.data.message || 'Failed to save site connection');
+        }
+      },
+      error: function error(xhr) {
+        var errorTitle = 'Connection Error';
+        var errorMessage = 'An unexpected error occurred while trying to save the site connection.';
+        var errorDetails = [];
+
+        // Check if we have a response from the server with error message
+        // WordPress AJAX sends: { success: false, message: "...", data: {...} }
+        if (xhr.responseJSON) {
+          // Try to get message from different possible locations
+          if (xhr.responseJSON.message) {
+            errorMessage = xhr.responseJSON.message;
+          } else if (xhr.responseJSON.data && xhr.responseJSON.data.message) {
+            errorMessage = xhr.responseJSON.data.message;
+          }
+
+          // Parse specific error types and add helpful details
+          if (errorMessage.includes('Cannot connect to remote site')) {
+            errorTitle = 'Connection Failed';
+            errorDetails.push('Possible reasons:');
+            errorDetails.push('- The URL is incorrect or not accessible');
+            errorDetails.push('- The remote site is offline');
+            errorDetails.push('- Network or firewall issues are blocking the connection');
+          } else if (errorMessage.includes('Invalid API key')) {
+            errorTitle = 'Invalid API Key';
+            errorDetails.push('To resolve this issue:');
+            errorDetails.push('- Go to Content Sync page on the remote site');
+            errorDetails.push('- Click "Show Details" to reveal the API key');
+            errorDetails.push('- Copy the entire key and paste it here');
+          } else if (errorMessage.includes('plugin is not installed') || errorMessage.includes('plugin is not active')) {
+            errorTitle = 'Plugin Not Found';
+            // No additional details needed, message is clear
+          } else if (errorMessage.includes('already connected')) {
+            errorTitle = 'Duplicate Connection';
+            errorDetails.push('This site URL is already in your connected sites list.');
+          } else if (errorMessage.includes('required')) {
+            errorTitle = 'Validation Error';
+            // Field validation errors are clear enough
+          } else {
+            errorTitle = 'Error';
+            // Use the server message as-is for other errors
+          }
+        } else if (xhr.status === 0) {
+          errorTitle = 'Network Error';
+          errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+        } else if (xhr.status >= 500) {
+          errorTitle = 'Server Error';
+          errorMessage = "The server returned an error (".concat(xhr.status, "). Please try again later.");
+        } else if (xhr.status === 404) {
+          errorTitle = 'Not Found';
+          errorMessage = 'The requested endpoint was not found. Please check if the plugin is properly installed.';
+        }
+        _this4.showModalNotice('error', errorTitle, errorMessage, errorDetails);
+      },
+      complete: function complete() {
+        $saveBtn.prop('disabled', false).text('Save Connection');
+      }
+    });
+  },
+  /**
+   * Delete site
+   */
+  deleteSite: function deleteSite(siteId) {
+    var _this5 = this;
+    if (!confirm('Are you sure you want to delete this site connection?')) {
+      return;
+    }
+    jQuery.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: {
+        action: 'aie_content_sync_delete_site',
+        nonce: aieContentSync.nonce,
+        site_id: siteId
+      },
+      success: function success(response) {
+        if (response.success) {
+          _this5.showNotice('success', response.data.message);
+          _this5.loadSites();
+        } else {
+          _this5.showNotice('error', response.data.message || 'Failed to delete site');
+        }
+      },
+      error: function error() {
+        _this5.showNotice('error', 'Failed to delete site');
+      }
+    });
+  },
+  /**
+   * Test connection to remote site
+   */
+  testConnection: function testConnection(siteId) {
+    var _this6 = this;
+    var $ = jQuery;
+    var $btn = $(".aie-test-connection[data-site-id=\"".concat(siteId, "\"]"));
+    $btn.prop('disabled', true);
+    $.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: {
+        action: 'aie_content_sync_test_connection',
+        nonce: aieContentSync.nonce,
+        site_id: siteId
+      },
+      success: function success(response) {
+        if (response.success) {
+          _this6.showNotice('success', response.data.message);
+          _this6.loadSites();
+        } else {
+          _this6.showNotice('error', response.data.message || 'Connection test failed');
+        }
+      },
+      error: function error() {
+        _this6.showNotice('error', 'Connection test failed');
+      },
+      complete: function complete() {
+        $btn.prop('disabled', false);
+      }
+    });
+  },
+  /**
+   * Regenerate API key for a site
+   */
+  regenerateKey: function regenerateKey(siteId) {
+    var _this7 = this;
+    if (!confirm('Are you sure you want to regenerate the API key? The old key will no longer work.')) {
+      return;
+    }
+    jQuery.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: {
+        action: 'aie_content_sync_regenerate_key',
+        nonce: aieContentSync.nonce,
+        site_id: siteId
+      },
+      success: function success(response) {
+        if (response.success) {
+          _this7.showNotice('success', response.data.message);
+          alert('New API Key: ' + response.data.api_key);
+        } else {
+          _this7.showNotice('error', response.data.message || 'Failed to regenerate key');
+        }
+      },
+      error: function error() {
+        _this7.showNotice('error', 'Failed to regenerate key');
+      }
+    });
+  },
+  /**
+   * Toggle my site info visibility
+   */
+  toggleMySiteInfo: function toggleMySiteInfo() {
+    var $ = jQuery;
+    var $info = $('.aie-my-site-info');
+    var $btn = $('#aie-toggle-my-site');
+    $info.slideToggle();
+    if ($info.is(':visible')) {
+      $btn.html('<span class="dashicons dashicons-hidden"></span> Hide Details');
+    } else {
+      $btn.html('<span class="dashicons dashicons-visibility"></span> Show Details');
+    }
+  },
+  /**
+   * Copy this site's API key to clipboard
+   */
+  copyMyApiKey: function copyMyApiKey() {
+    var $ = jQuery;
+    var $input = $('#aie-my-site-key');
+    $input.select();
+    document.execCommand('copy');
+    var $btn = $('#aie-copy-my-key');
+    var originalText = $btn.html();
+    $btn.html('<span class="dashicons dashicons-yes"></span> Copied!');
+    setTimeout(function () {
+      $btn.html(originalText);
+    }, 2000);
+    this.showNotice('success', 'API key copied to clipboard');
+  },
+  /**
+   * Show notice message in modal
+   */
+  showModalNotice: function showModalNotice(type, title, message) {
+    var _this8 = this;
+    var details = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : [];
+    var $ = jQuery;
+    var icons = {
+      error: 'warning',
+      success: 'yes-alt',
+      warning: 'info',
+      info: 'info-outline'
+    };
+    var icon = icons[type] || 'info';
+    var noticeClass = "notice-".concat(type);
+    var detailsHtml = '';
+    if (details.length > 0) {
+      detailsHtml = '<ul>';
+      details.forEach(function (detail) {
+        detailsHtml += "<li>".concat(_this8.escapeHtml(detail), "</li>");
+      });
+      detailsHtml += '</ul>';
+    }
+    var $notification = $("\n\t\t\t<div class=\"aie-modal-notification ".concat(noticeClass, "\">\n\t\t\t\t<span class=\"dashicons dashicons-").concat(icon, "\"></span>\n\t\t\t\t<div class=\"aie-notification-content\">\n\t\t\t\t\t<strong>").concat(this.escapeHtml(title), "</strong>\n\t\t\t\t\t<p>").concat(this.escapeHtml(message), "</p>\n\t\t\t\t\t").concat(detailsHtml, "\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t"));
+    $('#aie-modal-notification').html($notification).show();
+  },
+  /**
+   * Hide modal notice
+   */
+  hideModalNotice: function hideModalNotice() {
+    jQuery('#aie-modal-notification').hide().empty();
+  },
+  /**
+   * Show notice message
+   */
+  showNotice: function showNotice(type, message) {
+    var $ = jQuery;
+    var noticeClass = type === 'error' ? 'notice-error' : type === 'success' ? 'notice-success' : 'notice-info';
+    var $notice = $("\n\t\t\t<div class=\"notice ".concat(noticeClass, " is-dismissible\">\n\t\t\t\t<p>").concat(this.escapeHtml(message), "</p>\n\t\t\t</div>\n\t\t"));
+    $('#wp-aie-content-sync h1').after($notice);
+
+    // Auto-dismiss after 5 seconds
+    setTimeout(function () {
+      $notice.fadeOut(function () {
+        return $notice.remove();
+      });
+    }, 5000);
+
+    // Make dismissible
+    $notice.on('click', '.notice-dismiss', function () {
+      var _this9 = this;
+      $(this).closest('.notice').fadeOut(function () {
+        return $(_this9).remove();
+      });
+    });
+  },
+  /**
+   * Escape HTML to prevent XSS
+   */
+  escapeHtml: function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ContentSyncModule);
 
 /***/ }),
 

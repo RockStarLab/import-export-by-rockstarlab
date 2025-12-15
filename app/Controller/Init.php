@@ -63,6 +63,20 @@ class Init {
 	private $content_updater_controller;
 
 	/**
+	 * Content Sync Controller
+	 *
+	 * @var Content_Sync_Controller
+	 */
+	private $content_sync_controller;
+
+	/**
+	 * Content Sync API Controller
+	 *
+	 * @var Content_Sync_API_Controller
+	 */
+	private $content_sync_api_controller;
+
+	/**
 	 * Cron Manager
 	 *
 	 * @var \WP_AIE\Model\Queue\Cron_Manager
@@ -114,6 +128,19 @@ class Init {
 
 		$this->content_updater_controller = new Content_Updater_Controller();
 		$this->content_updater_controller->init();
+
+		$this->content_sync_controller = new Content_Sync_Controller();
+		$this->content_sync_controller->init();
+
+		// Initialize REST API controller (safe initialization)
+		try {
+			$this->content_sync_api_controller = new Content_Sync_API_Controller();
+		} catch ( \Exception $e ) {
+			// Log error but don't break plugin activation
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'WP_AIE: Failed to initialize Content_Sync_API_Controller: ' . $e->getMessage() );
+			}
+		}
 	}
 
 	/**
@@ -196,6 +223,17 @@ class Init {
 				),
 			)
 		);
+
+		// Localize script for Content Sync page
+		if ( 'advanced-import-export_page_wp-aie-content-sync' === $admin_page ) {
+			wp_localize_script(
+				'wp-advanced-import-export-scripts',
+				'aieContentSync',
+				array(
+					'nonce' => wp_create_nonce( 'aie_nonce' ),
+				)
+			);
+		}
 
 		wp_enqueue_style(
 			'wp-advanced-import-export-styles',

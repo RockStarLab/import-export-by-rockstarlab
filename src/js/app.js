@@ -4,6 +4,7 @@ import ExportModule from './modules/export';
 import MediaSyncModule from './modules/media_sync';
 import JobsLogModule from './modules/jobs-log';
 import ContentUpdaterModule from './modules/content-updater';
+import ContentSyncModule from './modules/content-sync';
 
 // Initialize modules when DOM is ready
 jQuery( document ).ready( function ( $ ) {
@@ -27,4 +28,7 @@ jQuery( document ).ready( function ( $ ) {
 
 	// Initialize content updater module
 	ContentUpdaterModule.init();
+
+	// Initialize content sync module
+	ContentSyncModule.init();
 } );
