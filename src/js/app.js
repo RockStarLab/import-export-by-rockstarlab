@@ -5,6 +5,7 @@ import MediaSyncModule from './modules/media_sync';
 import JobsLogModule from './modules/jobs-log';
 import ContentUpdaterModule from './modules/content-updater';
 import ContentSyncModule from './modules/content-sync';
+import PostSyncModule from './modules/post-sync';
 
 // Initialize modules when DOM is ready
 jQuery( document ).ready( function ( $ ) {
@@ -31,4 +32,12 @@ jQuery( document ).ready( function ( $ ) {
 
 	// Initialize content sync module
 	ContentSyncModule.init();
+
+	// Initialize post sync module
+	console.log('AIE: About to initialize PostSyncModule');
+	PostSyncModule.init();
+	console.log('AIE: PostSyncModule initialized');
+	
+	// Make it globally accessible for debugging
+	window.aiePostSyncModule = PostSyncModule;
 } );

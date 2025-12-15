@@ -27,6 +27,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modules_jobs_log__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./modules/jobs-log */ "./src/js/modules/jobs-log.js");
 /* harmony import */ var _modules_content_updater__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./modules/content-updater */ "./src/js/modules/content-updater.js");
 /* harmony import */ var _modules_content_sync__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./modules/content-sync */ "./src/js/modules/content-sync.js");
+/* harmony import */ var _modules_post_sync__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./modules/post-sync */ "./src/js/modules/post-sync.js");
+
 
 
 
@@ -60,6 +62,14 @@ jQuery(document).ready(function ($) {
 
   // Initialize content sync module
   _modules_content_sync__WEBPACK_IMPORTED_MODULE_6__["default"].init();
+
+  // Initialize post sync module
+  console.log('AIE: About to initialize PostSyncModule');
+  _modules_post_sync__WEBPACK_IMPORTED_MODULE_7__["default"].init();
+  console.log('AIE: PostSyncModule initialized');
+
+  // Make it globally accessible for debugging
+  window.aiePostSyncModule = _modules_post_sync__WEBPACK_IMPORTED_MODULE_7__["default"];
 });
 
 /***/ }),
@@ -13963,6 +13973,229 @@ var MediaSyncModule = {
   }
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (MediaSyncModule);
+
+/***/ }),
+
+/***/ "./src/js/modules/post-sync.js":
+/*!*************************************!*\
+  !*** ./src/js/modules/post-sync.js ***!
+  \*************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/**
+ * Post Sync Module
+ * 
+ * Handles content synchronization from post list screens
+ */
+
+var PostSync = {
+  /**
+   * Initialize the module
+   */
+  init: function init() {
+    console.log('AIE PostSync: Module initialized');
+    this.bindEvents();
+  },
+  /**
+   * Bind event handlers
+   */
+  bindEvents: function bindEvents() {
+    var _this = this;
+    var $ = jQuery;
+    console.log('AIE PostSync: Binding events');
+
+    // Open modal when sync button is clicked
+    $(document).on('click', '#aie-sync-content-btn', function (e) {
+      console.log('AIE PostSync: Sync button clicked in module', e);
+      e.preventDefault();
+      e.stopPropagation();
+      _this.openSyncModal();
+    });
+
+    // Close modal
+    $(document).on('click', '.aie-modal-close, .aie-modal', function (e) {
+      if (e.target === e.currentTarget) {
+        _this.closeSyncModal();
+      }
+    });
+
+    // Enable/disable sync buttons based on site selection
+    $(document).on('change', '#aie-sync-site-select', function () {
+      _this.updateSyncButtons();
+    });
+
+    // Handle Push button
+    $(document).on('click', '#aie-sync-push-btn', function () {
+      _this.syncContent('push');
+    });
+
+    // Handle Pull button
+    $(document).on('click', '#aie-sync-pull-btn', function () {
+      _this.syncContent('pull');
+    });
+
+    // Close modal on Escape key
+    $(document).on('keydown', function (e) {
+      if (e.key === 'Escape' && $('#aie-sync-modal').is(':visible')) {
+        _this.closeSyncModal();
+      }
+    });
+  },
+  /**
+   * Open sync modal
+   */
+  openSyncModal: function openSyncModal() {
+    console.log('AIE PostSync: Opening modal');
+    var $ = jQuery;
+    var selectedIds = this.getSelectedPostIds();
+    console.log('AIE PostSync: Selected IDs:', selectedIds);
+    console.log('AIE PostSync: Modal element exists:', $('#aie-sync-modal').length);
+    if (selectedIds.length === 0) {
+      console.log('AIE PostSync: No posts selected');
+      alert('Please select at least one post');
+      return;
+    }
+
+    // Update selected count
+    $('#aie-selected-count').text(selectedIds.length);
+    console.log('AIE PostSync: Updated selected count');
+
+    // Reset form
+    $('#aie-sync-site-select').val('');
+    $('#aie-sync-progress').hide();
+    $('#aie-sync-result').hide();
+    this.updateSyncButtons();
+    console.log('AIE PostSync: About to show modal');
+    // Show modal
+    $('#aie-sync-modal').fadeIn(200);
+    console.log('AIE PostSync: Modal fadeIn called');
+  },
+  /**
+   * Close sync modal
+   */
+  closeSyncModal: function closeSyncModal() {
+    jQuery('#aie-sync-modal').fadeOut(200);
+  },
+  /**
+   * Get selected post IDs
+   */
+  getSelectedPostIds: function getSelectedPostIds() {
+    var $ = jQuery;
+    var ids = [];
+    $('tbody .check-column input[type="checkbox"]:checked').each(function () {
+      var id = $(this).val();
+      if (id) {
+        ids.push(id);
+      }
+    });
+    return ids;
+  },
+  /**
+   * Update sync button states
+   */
+  updateSyncButtons: function updateSyncButtons() {
+    var $ = jQuery;
+    var siteSelected = $('#aie-sync-site-select').val() !== '';
+    $('#aie-sync-push-btn, #aie-sync-pull-btn').prop('disabled', !siteSelected);
+  },
+  /**
+   * Sync content (push or pull)
+   */
+  syncContent: function syncContent(direction) {
+    var _this2 = this;
+    var $ = jQuery;
+    var siteId = $('#aie-sync-site-select').val();
+    var postIds = this.getSelectedPostIds();
+    if (!siteId) {
+      alert('Please select a site');
+      return;
+    }
+    if (postIds.length === 0) {
+      alert('No posts selected');
+      return;
+    }
+
+    // Confirm action
+    var siteName = $('#aie-sync-site-select option:selected').text();
+    var action = direction === 'push' ? 'push to' : 'pull from';
+    var message = "Are you sure you want to ".concat(action, " ").concat(siteName, "?\n\nThis will affect ").concat(postIds.length, " post(s).");
+    if (!confirm(message)) {
+      return;
+    }
+
+    // Show progress
+    $('#aie-sync-progress').show();
+    $('#aie-sync-result').hide();
+    $('.aie-progress-fill').css('width', '0%');
+    $('.aie-progress-text').text("Starting ".concat(direction, "..."));
+
+    // Disable buttons
+    $('#aie-sync-push-btn, #aie-sync-pull-btn, #aie-sync-site-select').prop('disabled', true);
+
+    // Make AJAX request
+    $.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: {
+        action: "aie_content_sync_".concat(direction),
+        nonce: aieContentSync.nonce,
+        site_id: siteId,
+        post_ids: postIds
+      },
+      success: function success(response) {
+        if (response.success) {
+          $('.aie-progress-fill').css('width', '100%');
+          $('.aie-progress-text').text('Completed!');
+          setTimeout(function () {
+            $('#aie-sync-progress').hide();
+            _this2.showResult('success', response.data.message || 'Sync completed successfully');
+          }, 500);
+        } else {
+          $('#aie-sync-progress').hide();
+          _this2.showResult('error', response.data.message || 'Sync failed');
+        }
+      },
+      error: function error(xhr) {
+        $('#aie-sync-progress').hide();
+        var errorMessage = 'An error occurred during sync';
+        if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
+          errorMessage = xhr.responseJSON.data.message;
+        }
+        _this2.showResult('error', errorMessage);
+      },
+      complete: function complete() {
+        // Re-enable buttons
+        $('#aie-sync-push-btn, #aie-sync-pull-btn, #aie-sync-site-select').prop('disabled', false);
+        _this2.updateSyncButtons();
+      }
+    });
+  },
+  /**
+   * Show sync result
+   */
+  showResult: function showResult(type, message) {
+    var _this3 = this;
+    var $ = jQuery;
+    var $result = $('#aie-sync-result');
+    $result.removeClass('notice-success notice-error').addClass("notice notice-".concat(type)).html("<p>".concat(message, "</p>")).fadeIn(200);
+
+    // Auto-hide success messages
+    if (type === 'success') {
+      setTimeout(function () {
+        $result.fadeOut(200);
+        _this3.closeSyncModal();
+        // Reload page to show updated content
+        location.reload();
+      }, 2000);
+    }
+  }
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (PostSync);
 
 /***/ }),
 

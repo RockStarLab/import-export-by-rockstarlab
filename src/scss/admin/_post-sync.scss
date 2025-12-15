@@ -1,0 +1,210 @@
+/**
+ * Post Sync Styles
+ * 
+ * Styles for content synchronization on post list screens
+ */
+
+// Sync button on post list page
+.tablenav #aie-sync-content-btn {
+	margin-left: 10px;
+	
+	&:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+}
+
+// Sync button in post edit submitbox (Classic Editor)
+.aie-sync-section {
+	padding: 10px 12px;
+	border-top: 1px solid #f0f0f1;
+	
+	.dashicons {
+		float: none;
+		vertical-align: middle;
+	}
+	
+	#aie-sync-content-btn {
+		.dashicons {
+			float: left;
+		}
+	}
+}
+
+// Sync panel in Gutenberg
+.aie-gutenberg-sync-panel {
+	background: #fff;
+	border-bottom: 1px solid #ddd;
+	
+	// Panel header
+	.components-panel__body-title {
+		margin: 0;
+		
+		button {
+			width: 100%;
+			display: flex;
+			align-items: center;
+			padding: 16px;
+			background: transparent;
+			border: none;
+			cursor: pointer;
+			font-weight: 500;
+			color: #1e1e1e;
+			
+			&:hover {
+				background: #f0f0f0;
+			}
+			
+			// Arrow icon - no animation, just swap SVG paths
+			.components-panel__arrow {
+				fill: currentColor;
+			}
+		}
+	}
+	
+	// Sync button
+	#aie-sync-content-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 36px;
+		border: 1px solid #949494;
+		
+		.dashicons {
+			font-size: 18px;
+			height: 18px;
+			width: 18px;
+		}
+		
+		&:hover {
+			border-color: #2271b1;
+			color: #2271b1;
+		}
+	}
+}
+
+// Editor sidebar integration
+.edit-post-sidebar,
+.editor-sidebar,
+.interface-interface-skeleton__sidebar {
+	.aie-gutenberg-sync-panel {
+		border-top: 1px solid #ddd;
+	}
+}
+
+// Sync modal
+#aie-sync-modal {
+	.aie-sync-info {
+		padding: 15px;
+		background: #f0f0f1;
+		border-radius: 4px;
+		margin-bottom: 20px;
+		
+		p {
+			margin: 0;
+			
+			strong {
+				color: #1d2327;
+			}
+			
+			span {
+				color: #2271b1;
+				font-weight: 600;
+			}
+		}
+	}
+	
+	.aie-sync-direction {
+		display: flex;
+		gap: 10px;
+		margin-top: 20px;
+		
+		button {
+			flex: 1;
+			height: 45px;
+			font-size: 14px;
+			
+			.dashicons {
+				margin-top: 3px;
+			}
+			
+			&:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
+			}
+		}
+	}
+	
+	#aie-sync-progress {
+		margin-top: 20px;
+		
+		.aie-progress-bar {
+			height: 30px;
+			background: #f0f0f1;
+			border-radius: 4px;
+			overflow: hidden;
+			margin-bottom: 10px;
+			
+			.aie-progress-fill {
+				height: 100%;
+				background: linear-gradient(90deg, #2271b1 0%, #135e96 100%);
+				transition: width 0.3s ease;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				color: white;
+				font-weight: 600;
+			}
+		}
+		
+		.aie-progress-text {
+			text-align: center;
+			color: #50575e;
+			margin: 0;
+		}
+	}
+	
+	#aie-sync-result {
+		margin-top: 20px;
+		padding: 12px;
+		border-left: 4px solid;
+		
+		&.notice-success {
+			background: #f0f6fc;
+			border-color: #00a32a;
+			
+			p {
+				color: #1d2327;
+				margin: 0;
+			}
+		}
+		
+		&.notice-error {
+			background: #fcf0f1;
+			border-color: #d63638;
+			
+			p {
+				color: #1d2327;
+				margin: 0;
+			}
+		}
+	}
+}
+
+// Responsive adjustments
+@media screen and (max-width: 782px) {
+	#aie-sync-content-btn {
+		margin: 10px 0 0 0;
+		width: 100%;
+	}
+	
+	#aie-sync-modal {
+		.aie-sync-direction {
+			flex-direction: column;
+			
+			button {
+				width: 100%;
+			}
+		}
+	}
+}

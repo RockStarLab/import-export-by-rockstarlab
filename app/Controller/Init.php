@@ -131,6 +131,7 @@ class Init {
 
 		$this->content_sync_controller = new Content_Sync_Controller();
 		$this->content_sync_controller->init();
+		$this->content_sync_controller->register_post_list_hooks();
 
 		// Initialize REST API controller (safe initialization)
 		try {

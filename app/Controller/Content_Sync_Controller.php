@@ -35,6 +35,8 @@ class Content_Sync_Controller extends Base_Controller {
 			'content_sync_test_connection'    => array( 'callback' => 'test_connection' ),
 			'content_sync_get_my_key'         => array( 'callback' => 'get_my_site_key' ),
 			'content_sync_regenerate_my_key'  => array( 'callback' => 'regenerate_my_site_key' ),
+			'content_sync_push'               => array( 'callback' => 'push_content' ),
+			'content_sync_pull'               => array( 'callback' => 'pull_content' ),
 		);
 	}
 
@@ -500,5 +502,600 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Register hooks for post list screens
+	 */
+	public function register_post_list_hooks() {
+		// Load assets for post list screens
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_post_list_assets' ) );
+		
+		// Add sync button and modal to post list screens
+		add_action( 'admin_footer-edit.php', array( $this, 'render_sync_button_script' ) );
+		add_action( 'admin_footer-edit.php', array( $this, 'render_sync_modal' ) );
+		
+		// Add sync button to post edit screen
+		add_action( 'post_submitbox_misc_actions', array( $this, 'render_post_edit_sync_button' ) );
+		add_action( 'admin_footer-post.php', array( $this, 'render_gutenberg_sync_button' ) );
+		add_action( 'admin_footer-post-new.php', array( $this, 'render_gutenberg_sync_button' ) );
+		add_action( 'admin_footer-post.php', array( $this, 'render_sync_modal' ) );
+		add_action( 'admin_footer-post-new.php', array( $this, 'render_sync_modal' ) );
+	}
+
+	/**
+	 * Enqueue assets for post list screens
+	 */
+	public function enqueue_post_list_assets( $admin_page ) {
+		// Load on edit.php (post list) and post.php/post-new.php (edit post)
+		if ( ! in_array( $admin_page, array( 'edit.php', 'post.php', 'post-new.php' ) ) ) {
+			return;
+		}
+
+		// Enqueue post sync script
+		wp_enqueue_script(
+			'aie-post-sync',
+			plugins_url( 'assets/js/post-sync-standalone.js', WP_AIE_FILE ),
+			array( 'jquery' ),
+			filemtime( plugin_dir_path( WP_AIE_FILE ) . 'assets/js/post-sync-standalone.js' ),
+			true
+		);
+
+		// Localize script
+		wp_localize_script(
+			'aie-post-sync',
+			'aiePostSync',
+			array(
+				'nonce'   => wp_create_nonce( 'aie_nonce' ),
+				'ajaxurl' => admin_url( 'admin-ajax.php' ),
+			)
+		);
+
+		// Enqueue styles (reuse the main plugin styles)
+		wp_enqueue_style(
+			'aie-post-sync-styles',
+			plugins_url( 'assets/css/app.css', WP_AIE_FILE ),
+			array(),
+			filemtime( plugin_dir_path( WP_AIE_FILE ) . 'assets/css/app.css' )
+		);
+	}
+
+	/**
+	 * Add JavaScript for button rendering and state management
+	 */
+	public function render_sync_button_script() {
+		global $typenow;
+		
+		// Only show on post list screens
+		if ( empty( $typenow ) ) {
+			return;
+		}
+		?>
+		<script type="text/javascript">
+		jQuery(document).ready(function($) {
+			console.log('AIE: Initializing sync button...');
+			
+			// Add Sync Content button after Filter button
+			var syncButton = $('<button>')
+				.attr('type', 'button')
+				.attr('id', 'aie-sync-content-btn')
+				.addClass('button action')
+				.prop('disabled', true)
+				.css('margin-left', '5px')
+				.text('<?php esc_html_e( 'Sync Content', 'wp-advanced-import-export' ); ?>');
+			
+			// Try different selectors to find the right place
+			if ($('#post-query-submit').length) {
+				$('#post-query-submit').after(syncButton);
+				console.log('AIE: Sync button added after #post-query-submit');
+			} else if ($('.tablenav .actions:first').length) {
+				$('.tablenav .actions:first').append(syncButton);
+				console.log('AIE: Sync button added to first .actions');
+			} else {
+				console.log('AIE: Could not find place to add sync button');
+			}
+			
+			// Enable/disable button based on checkbox selection
+			function updateSyncButtonState() {
+				var checkedCount = $('tbody .check-column input[type="checkbox"]:checked').length;
+				$('#aie-sync-content-btn').prop('disabled', checkedCount === 0);
+				console.log('AIE: Sync button state updated, checked:', checkedCount);
+			}
+			
+			// Check on page load
+			updateSyncButtonState();
+			
+			// Update on checkbox change
+			$(document).on('change', 'tbody .check-column input[type="checkbox"]', updateSyncButtonState);
+			$(document).on('change', '#cb-select-all-1, #cb-select-all-2', updateSyncButtonState);
+		});
+		</script>
+		<?php
+	}
+
+	/**
+	 * Render sync modal
+	 */
+	public function render_sync_modal() {
+		global $typenow;
+		
+		// Only show on post list screens
+		if ( empty( $typenow ) ) {
+			return;
+		}
+
+		// Get connected sites
+		$sites = Connected_Site::get_all();
+		?>
+		<script>console.log('AIE: Rendering sync modal, typenow:', '<?php echo esc_js( $typenow ); ?>', 'sites count:', <?php echo count( $sites ); ?>);</script>
+		<div id="aie-sync-modal" class="aie-modal" style="display: none;">
+			<div class="aie-modal-content">
+				<div class="aie-modal-header">
+					<h2><?php esc_html_e( 'Sync Content', 'wp-advanced-import-export' ); ?></h2>
+					<button type="button" class="aie-modal-close">&times;</button>
+				</div>
+				<div class="aie-modal-body">
+					<div class="aie-sync-info">
+						<p>
+							<strong><?php esc_html_e( 'Selected posts:', 'wp-advanced-import-export' ); ?></strong>
+							<span id="aie-selected-count">0</span>
+						</p>
+					</div>
+					
+					<div class="aie-form-group">
+						<label for="aie-sync-site-select">
+							<?php esc_html_e( 'Select Site', 'wp-advanced-import-export' ); ?>
+						</label>
+						<select id="aie-sync-site-select" class="aie-form-control">
+							<option value=""><?php esc_html_e( '-- Select Site --', 'wp-advanced-import-export' ); ?></option>
+							<?php foreach ( $sites as $site ) : ?>
+								<option value="<?php echo esc_attr( $site['id'] ); ?>" data-site-name="<?php echo esc_attr( $site['name'] ); ?>">
+									<?php echo esc_html( $site['name'] ); ?>
+									(<?php echo esc_html( $site['remote_url'] ); ?>)
+								</option>
+							<?php endforeach; ?>
+						</select>
+					</div>
+
+					<div class="aie-sync-direction">
+						<button type="button" id="aie-sync-push-btn" class="button button-primary" disabled>
+							<span class="dashicons dashicons-upload"></span>
+							<?php esc_html_e( 'Push to Site', 'wp-advanced-import-export' ); ?>
+						</button>
+						<button type="button" id="aie-sync-pull-btn" class="button button-primary" disabled>
+							<span class="dashicons dashicons-download"></span>
+							<?php esc_html_e( 'Pull from Site', 'wp-advanced-import-export' ); ?>
+						</button>
+					</div>
+
+					<div id="aie-sync-progress" style="display: none;">
+						<div class="aie-progress-bar">
+							<div class="aie-progress-fill"></div>
+						</div>
+						<p class="aie-progress-text"></p>
+					</div>
+
+					<div id="aie-sync-result" style="display: none;"></div>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render sync button in post edit screen (Classic Editor)
+	 */
+	public function render_post_edit_sync_button() {
+		global $post;
+		
+		// Only show for published posts or posts being edited
+		if ( ! $post || ( 'auto-draft' === $post->post_status ) ) {
+			return;
+		}
+		?>
+		<div class="misc-pub-section aie-sync-section">
+			<span class="dashicons dashicons-update" style="color: #2271b1;"></span>
+			<strong><?php esc_html_e( 'Content Sync', 'wp-advanced-import-export' ); ?></strong>
+			<div style="margin-top: 8px;">
+				<button type="button" id="aie-sync-content-btn" class="button button-secondary" style="width: 100%;">
+					<span class="dashicons dashicons-update" style="margin-top: 3px;"></span>
+					<?php esc_html_e( 'Sync This Post', 'wp-advanced-import-export' ); ?>
+				</button>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render Gutenberg sync button
+	 */
+	public function render_gutenberg_sync_button() {
+		global $post;
+		
+		// Only show for posts being edited
+		if ( ! $post ) {
+			return;
+		}
+		?>
+		<script>
+		console.log('AIE: Loading Gutenberg sync button script');
+		console.log('AIE: wp object exists:', typeof wp !== 'undefined');
+		console.log('AIE: wp.data exists:', typeof wp !== 'undefined' && typeof wp.data !== 'undefined');
+		
+		// Add button to Gutenberg editor if present
+		jQuery(document).ready(function($) {
+			console.log('AIE: Document ready');
+			
+			// Function to add the button
+			function addGutenbergSyncButton() {
+				console.log('AIE: addGutenbergSyncButton called');
+				
+				// Check if we're in Gutenberg
+				if (typeof wp === 'undefined' || typeof wp.data === 'undefined') {
+					console.log('AIE: WordPress editor not detected');
+					return false;
+				}
+				
+				console.log('AIE: WordPress editor detected');
+				
+				// Try to find the sidebar
+				var $sidebar = $('.edit-post-sidebar, .editor-sidebar, .interface-interface-skeleton__sidebar');
+				console.log('AIE: Sidebar elements found:', $sidebar.length);
+				
+				if ($sidebar.length && !$('#aie-sync-content-btn').length) {
+					console.log('AIE: Sidebar found, creating sync panel');
+					
+				// Create panel container (like Yoast SEO) - opened by default
+				var $panel = $('<div>')
+					.addClass('components-panel__body aie-gutenberg-sync-panel is-opened')
+					.attr('id', 'aie-gutenberg-sync-panel');
+				
+				// Create panel header with arrow (same as Yoast SEO)
+					var $header = $('<h2>')
+						.addClass('components-panel__body-title')
+						.html('<button type="button" class="components-button components-panel__body-toggle" aria-expanded="true"><span aria-hidden="true"><svg class="components-panel__arrow" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17.5 11.6L12 16l-5.5-4.4.9-1.2L12 14l4.5-3.6 1 1.2z"></path></svg></span><?php esc_html_e( 'Sync Content', 'wp-advanced-import-export' ); ?></button></h2>');
+					
+				// Create panel content - visible by default
+				var $content = $('<div>').css({
+					'padding': '16px'
+				});					// Create sync button
+					var $button = $('<button>')
+						.attr('type', 'button')
+						.attr('id', 'aie-sync-content-btn')
+						.addClass('components-button is-secondary')
+						.css({
+							'width': '100%',
+							'justify-content': 'center',
+							'display': 'flex',
+							'align-items': 'center'
+						})
+						.html('<span class="dashicons dashicons-update" style="margin-right: 8px;"></span><?php esc_html_e( 'Sync This Post', 'wp-advanced-import-export' ); ?>');
+					
+					$content.append($button);
+					$panel.append($header).append($content);
+					
+					// Find insertion point - add after "Post" panel
+					var $insertPoint = null;
+					
+					// Try to find "Post" panel (where Publish button is)
+					$('.components-panel__body').each(function() {
+						var $this = $(this);
+						var $header = $this.find('.components-panel__body-title button');
+						if ($header.length && ($header.text().trim() === 'Post' || $header.text().trim() === 'Summary')) {
+							$insertPoint = $this;
+							console.log('AIE: Found insertion point after "' + $header.text().trim() + '" panel');
+							return false;
+						}
+					});
+					
+					// Fallback: add after first panel
+					if (!$insertPoint || !$insertPoint.length) {
+						$insertPoint = $sidebar.find('.components-panel__body').first();
+						console.log('AIE: Using first panel as insertion point');
+					}
+					
+					if ($insertPoint && $insertPoint.length) {
+						$insertPoint.after($panel);
+						console.log('AIE: Sync panel added to sidebar');
+					} else {
+						$sidebar.prepend($panel);
+						console.log('AIE: Sync panel prepended to sidebar');
+					}
+					
+				// Make panel collapsible
+				$header.find('button').on('click', function() {
+					$content.slideToggle(200);
+					var isExpanded = $(this).attr('aria-expanded') === 'true';
+					$(this).attr('aria-expanded', !isExpanded);
+					
+					// Toggle is-opened class on panel and swap arrow icon
+					if (isExpanded) {
+						$panel.removeClass('is-opened');
+						// Change to down arrow (closed state)
+						$(this).find('svg path').attr('d', 'M17.5 11.6L12 16l-5.5-4.4.9-1.2L12 14l4.5-3.6 1 1.2z');
+					} else {
+						$panel.addClass('is-opened');
+						// Change to up arrow (opened state)
+						$(this).find('svg path').attr('d', 'M6.5 12.4L12 8l5.5 4.4-.9 1.2L12 10l-4.5 3.6-1-1.2z');
+					}
+					
+					console.log('AIE: Panel toggled, is-opened:', !isExpanded);
+				});					return true;
+				}
+				
+				return false;
+			}
+			
+			// Try immediately
+			setTimeout(function() {
+				if (!addGutenbergSyncButton()) {
+					console.log('AIE: First attempt failed, retrying...');
+					
+					// Wait for sidebar to be ready
+					var attempts = 0;
+					var checkSidebar = setInterval(function() {
+						attempts++;
+						console.log('AIE: Attempt', attempts);
+						
+						if (addGutenbergSyncButton() || attempts >= 20) {
+							clearInterval(checkSidebar);
+							if (attempts >= 20) {
+								console.log('AIE: Max attempts reached, button not added');
+							}
+						}
+					}, 500);
+				}
+			}, 1000);
+		});
+		</script>
+		<?php
+	}
+
+	/**
+	 * Push content to remote site
+	 */
+	public function push_content() {
+		$verify = $this->verify_request( 'content_sync_push' );
+		if ( is_wp_error( $verify ) ) {
+			$this->send_error( $verify->get_error_message() );
+		}
+
+		$site_id  = $this->get_request_param( 'site_id', 0 );
+		$post_ids = $this->get_request_param( 'post_ids', array() );
+
+		// Validate input
+		if ( empty( $site_id ) ) {
+			$this->send_error( __( 'Site ID is required', 'wp-advanced-import-export' ) );
+		}
+
+		if ( empty( $post_ids ) || ! is_array( $post_ids ) ) {
+			$this->send_error( __( 'No posts selected', 'wp-advanced-import-export' ) );
+		}
+
+		// Get site details
+		$site = Connected_Site::get_by_id( $site_id );
+		if ( ! $site ) {
+			$this->send_error( __( 'Site not found', 'wp-advanced-import-export' ) );
+		}
+
+		// Prepare posts data
+		$posts_data = array();
+		foreach ( $post_ids as $post_id ) {
+			$post = get_post( $post_id );
+			if ( ! $post ) {
+				continue;
+			}
+
+			// Get post meta
+			$meta = get_post_meta( $post_id );
+			$prepared_meta = array();
+			foreach ( $meta as $key => $values ) {
+				$prepared_meta[ $key ] = maybe_unserialize( $values[0] );
+			}
+
+			// Get post terms
+			$taxonomies = get_object_taxonomies( $post->post_type );
+			$terms_data = array();
+			foreach ( $taxonomies as $taxonomy ) {
+				$terms = wp_get_post_terms( $post_id, $taxonomy );
+				if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+					$terms_data[ $taxonomy ] = wp_list_pluck( $terms, 'name' );
+				}
+			}
+
+			$posts_data[] = array(
+				'ID'            => $post->ID,
+				'post_title'    => $post->post_title,
+				'post_content'  => $post->post_content,
+				'post_excerpt'  => $post->post_excerpt,
+				'post_status'   => $post->post_status,
+				'post_type'     => $post->post_type,
+				'post_name'     => $post->post_name,
+				'post_date'     => $post->post_date,
+				'post_modified' => $post->post_modified,
+				'post_author'   => $post->post_author,
+				'meta'          => $prepared_meta,
+				'terms'         => $terms_data,
+			);
+		}
+
+		if ( empty( $posts_data ) ) {
+			$this->send_error( __( 'No valid posts to sync', 'wp-advanced-import-export' ) );
+		}
+
+		// Send to remote site
+		$response = wp_remote_post(
+			trailingslashit( $site['remote_url'] ) . 'wp-json/aie/v1/receive-content',
+			array(
+				'timeout' => 30,
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $site['api_key'],
+					'Content-Type'  => 'application/json',
+				),
+				'body'    => wp_json_encode(
+					array(
+						'posts' => $posts_data,
+					)
+				),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			$this->send_error( __( 'Failed to connect to remote site: ', 'wp-advanced-import-export' ) . $response->get_error_message() );
+		}
+
+		$status_code = wp_remote_retrieve_response_code( $response );
+		$body        = wp_remote_retrieve_body( $response );
+
+		if ( $status_code !== 200 ) {
+			$error_data = json_decode( $body, true );
+			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Push failed with status code: %d', 'wp-advanced-import-export' ), $status_code );
+			$this->send_error( $error_msg );
+		}
+
+		$data = json_decode( $body, true );
+		if ( ! isset( $data['success'] ) || ! $data['success'] ) {
+			$this->send_error( __( 'Remote site rejected the content', 'wp-advanced-import-export' ) );
+		}
+
+		$this->send_success(
+			array(
+				'message' => sprintf(
+					/* translators: %d: number of posts */
+					__( 'Successfully pushed %d post(s) to remote site', 'wp-advanced-import-export' ),
+					count( $posts_data )
+				),
+			)
+		);
+	}
+
+	/**
+	 * Pull content from remote site
+	 */
+	public function pull_content() {
+		$verify = $this->verify_request( 'content_sync_pull' );
+		if ( is_wp_error( $verify ) ) {
+			$this->send_error( $verify->get_error_message() );
+		}
+
+		$site_id  = $this->get_request_param( 'site_id', 0 );
+		$post_ids = $this->get_request_param( 'post_ids', array() );
+
+		// Validate input
+		if ( empty( $site_id ) ) {
+			$this->send_error( __( 'Site ID is required', 'wp-advanced-import-export' ) );
+		}
+
+		if ( empty( $post_ids ) || ! is_array( $post_ids ) ) {
+			$this->send_error( __( 'No posts selected', 'wp-advanced-import-export' ) );
+		}
+
+		// Get site details
+		$site = Connected_Site::get_by_id( $site_id );
+		if ( ! $site ) {
+			$this->send_error( __( 'Site not found', 'wp-advanced-import-export' ) );
+		}
+
+		// Request content from remote site
+		$response = wp_remote_post(
+			trailingslashit( $site['remote_url'] ) . 'wp-json/aie/v1/send-content',
+			array(
+				'timeout' => 30,
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $site['api_key'],
+					'Content-Type'  => 'application/json',
+				),
+				'body'    => wp_json_encode(
+					array(
+						'post_ids' => $post_ids,
+					)
+				),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			$this->send_error( __( 'Failed to connect to remote site: ', 'wp-advanced-import-export' ) . $response->get_error_message() );
+		}
+
+		$status_code = wp_remote_retrieve_response_code( $response );
+		$body        = wp_remote_retrieve_body( $response );
+
+		if ( $status_code !== 200 ) {
+			$error_data = json_decode( $body, true );
+			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Pull failed with status code: %d', 'wp-advanced-import-export' ), $status_code );
+			$this->send_error( $error_msg );
+		}
+
+		$data = json_decode( $body, true );
+		if ( ! isset( $data['success'] ) || ! $data['success'] || ! isset( $data['data']['posts'] ) ) {
+			$this->send_error( __( 'Remote site returned invalid data', 'wp-advanced-import-export' ) );
+		}
+
+		$posts_data = $data['data']['posts'];
+		if ( empty( $posts_data ) ) {
+			$this->send_error( __( 'No posts found on remote site', 'wp-advanced-import-export' ) );
+		}
+
+		// Import posts
+		$imported_count = 0;
+		foreach ( $posts_data as $post_data ) {
+			// Prepare post data
+			$post_args = array(
+				'post_title'    => $post_data['post_title'],
+				'post_content'  => $post_data['post_content'],
+				'post_excerpt'  => $post_data['post_excerpt'],
+				'post_status'   => $post_data['post_status'],
+				'post_type'     => $post_data['post_type'],
+				'post_name'     => $post_data['post_name'],
+				'post_date'     => $post_data['post_date'],
+				'post_author'   => get_current_user_id(),
+			);
+
+			// Check if post exists by name
+			$existing_post = get_page_by_path( $post_data['post_name'], OBJECT, $post_data['post_type'] );
+			
+			if ( $existing_post ) {
+				// Update existing post
+				$post_args['ID'] = $existing_post->ID;
+				$post_id         = wp_update_post( $post_args );
+			} else {
+				// Create new post
+				$post_id = wp_insert_post( $post_args );
+			}
+
+			if ( is_wp_error( $post_id ) || ! $post_id ) {
+				continue;
+			}
+
+			// Import meta
+			if ( ! empty( $post_data['meta'] ) ) {
+				foreach ( $post_data['meta'] as $key => $value ) {
+					// Skip internal WordPress meta
+					if ( strpos( $key, '_' ) === 0 ) {
+						continue;
+					}
+					update_post_meta( $post_id, $key, $value );
+				}
+			}
+
+			// Import terms
+			if ( ! empty( $post_data['terms'] ) ) {
+				foreach ( $post_data['terms'] as $taxonomy => $term_names ) {
+					wp_set_object_terms( $post_id, $term_names, $taxonomy );
+				}
+			}
+
+			$imported_count++;
+		}
+
+		$this->send_success(
+			array(
+				'message' => sprintf(
+					/* translators: %d: number of posts */
+					__( 'Successfully pulled %d post(s) from remote site', 'wp-advanced-import-export' ),
+					$imported_count
+				),
+			)
+		);
 	}
 }
