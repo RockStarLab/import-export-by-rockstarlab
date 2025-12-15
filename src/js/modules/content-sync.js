@@ -89,11 +89,11 @@ const ContentSyncModule = {
 					this.renderSites(response.data.sites);
 					this.updateStats(response.data.stats);
 				} else {
-					this.showNotice('error', response.data.message || 'Failed to load sites');
+					this.showNotice('error', response.data.message || window.aieData.i18n.failedLoadSites);
 				}
 			},
 			error: () => {
-				this.showNotice('error', 'Failed to load sites');
+				this.showNotice('error', window.aieData.i18n.failedLoadSites);
 			},
 		});
 	},
@@ -376,7 +376,7 @@ const ContentSyncModule = {
 	 * Delete site
 	 */
 	deleteSite(siteId) {
-		if (!confirm('Are you sure you want to delete this site connection?')) {
+		if (!confirm(window.aieData.i18n.confirmDeleteSiteConnection)) {
 			return;
 		}
 
@@ -393,11 +393,11 @@ const ContentSyncModule = {
 					this.showNotice('success', response.data.message);
 					this.loadSites();
 				} else {
-					this.showNotice('error', response.data.message || 'Failed to delete site');
+					this.showNotice('error', response.data.message || window.aieData.i18n.failedDeleteSite);
 				}
 			},
 			error: () => {
-				this.showNotice('error', 'Failed to delete site');
+				this.showNotice('error', window.aieData.i18n.failedDeleteSite);
 			},
 		});
 	},
@@ -422,13 +422,13 @@ const ContentSyncModule = {
 				if (response.success) {
 					this.showNotice('success', response.data.message);
 				} else {
-					this.showNotice('error', response.data.message || 'Connection test failed');
+					this.showNotice('error', response.data.message || window.aieData.i18n.connectionTestFailed);
 				}
 				// Always reload sites to update stats
 				this.loadSites();
 			},
 			error: () => {
-				this.showNotice('error', 'Connection test failed');
+				this.showNotice('error', window.aieData.i18n.connectionTestFailed);
 				this.loadSites();
 			},
 			complete: () => {
@@ -442,9 +442,7 @@ const ContentSyncModule = {
 	 */
 	regenerateKey(siteId) {
 		if (
-			!confirm(
-				'Are you sure you want to regenerate the API key? The old key will no longer work.'
-			)
+			!confirm(window.aieData.i18n.confirmRegenerateSiteKey)
 		) {
 			return;
 		}
@@ -460,13 +458,13 @@ const ContentSyncModule = {
 			success: (response) => {
 				if (response.success) {
 					this.showNotice('success', response.data.message);
-					alert('New API Key: ' + response.data.api_key);
+					alert(window.aieData.i18n.newApiKey + response.data.api_key);
 				} else {
-					this.showNotice('error', response.data.message || 'Failed to regenerate key');
+					this.showNotice('error', response.data.message || window.aieData.i18n.failedRegenerateKey);
 				}
 			},
 			error: () => {
-				this.showNotice('error', 'Failed to regenerate key');
+				this.showNotice('error', window.aieData.i18n.failedRegenerateKey);
 			},
 		});
 	},
@@ -506,7 +504,7 @@ const ContentSyncModule = {
 			$btn.html(originalText);
 		}, 2000);
 
-		this.showNotice('success', 'API key copied to clipboard');
+		this.showNotice('success', window.aieData.i18n.apiKeyCopied);
 	},
 
 	/**
@@ -516,7 +514,7 @@ const ContentSyncModule = {
 		const $ = jQuery;
 
 		// Confirm action
-		if (!confirm('Are you sure you want to regenerate your API key?\n\nThis will invalidate the current key and all remote sites will need to update their connection settings with the new key.')) {
+		if (!confirm(window.aieData.i18n.confirmRegenerateMyKey)) {
 			return;
 		}
 
@@ -545,12 +543,12 @@ const ContentSyncModule = {
 						$btn.html(originalText);
 					}, 3000);
 				} else {
-					this.showNotice('error', response.data.message || 'Failed to regenerate API key');
+					this.showNotice('error', response.data.message || window.aieData.i18n.failedRegenerateApiKey);
 					$btn.html(originalText);
 				}
 			},
 			error: () => {
-				this.showNotice('error', 'Failed to regenerate API key');
+				this.showNotice('error', window.aieData.i18n.failedRegenerateApiKey);
 				$btn.html(originalText);
 			},
 			complete: () => {

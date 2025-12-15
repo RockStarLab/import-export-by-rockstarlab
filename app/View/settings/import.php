@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 <div id="wp-aie-import" class="wp-advanced-import-export wrap">
-	<h1><?php esc_html_e( 'Import Data', 'wp-aie' ); ?></h1>
+	<h1><?php esc_html_e( 'Import Data', 'wp-advanced-import-export' ); ?></h1>
 
 	<div class="aie-import-wizard">
 

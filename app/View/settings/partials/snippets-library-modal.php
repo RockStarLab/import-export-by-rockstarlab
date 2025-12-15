@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 		<div class="aie-modal-header">
 			<h2 class="aie-modal-title">
 				<span class="dashicons dashicons-book"></span>
-				<?php esc_html_e( 'Function Library', 'wp-aie' ); ?>
+				<?php esc_html_e( 'Function Library', 'wp-advanced-import-export' ); ?>
 			</h2>
 			<button type="button" class="aie-modal-close">
 				<span class="dashicons dashicons-no-alt"></span>
@@ -23,17 +23,17 @@ defined( 'ABSPATH' ) || exit;
 		</div>
 
 		<div class="aie-library-search">
-			<input type="text" id="aie-snippet-search" class="widefat" placeholder="<?php esc_attr_e( 'Search snippets...', 'wp-aie' ); ?>">
+			<input type="text" id="aie-snippet-search" class="widefat" placeholder="<?php esc_attr_e( 'Search snippets...', 'wp-advanced-import-export' ); ?>">
 		</div>
 
 		<div class="aie-modal-body aie-library-body">
 			<!-- Sidebar with categories -->
 			<div class="aie-library-sidebar">
-				<h3><?php esc_html_e( 'Categories', 'wp-aie' ); ?></h3>
+				<h3><?php esc_html_e( 'Categories', 'wp-advanced-import-export' ); ?></h3>
 				<ul class="aie-categories-list" id="aie-categories-list">
 					<li class="aie-category-item active" data-category="">
 						<span class="dashicons dashicons-category"></span>
-						<?php esc_html_e( 'All Snippets', 'wp-aie' ); ?>
+						<?php esc_html_e( 'All Snippets', 'wp-advanced-import-export' ); ?>
 						<span class="aie-category-count">0</span>
 					</li>
 				</ul>
@@ -44,7 +44,7 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-snippets-grid" id="aie-snippets-grid">
 					<div class="aie-loading-snippets">
 						<span class="spinner is-active"></span>
-						<p><?php esc_html_e( 'Loading snippets...', 'wp-aie' ); ?></p>
+						<p><?php esc_html_e( 'Loading snippets...', 'wp-advanced-import-export' ); ?></p>
 					</div>
 				</div>
 			</div>

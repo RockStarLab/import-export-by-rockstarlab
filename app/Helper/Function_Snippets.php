@@ -27,38 +27,38 @@ class Function_Snippets {
 	public function get_categories() {
 		return [
 			'string'     => [
-				'name'        => __( 'String Operations', 'wp-aie' ),
-				'description' => __( 'Text transformation, case conversion, trimming', 'wp-aie' ),
+				'name'        => __( 'String Operations', 'wp-advanced-import-export' ),
+				'description' => __( 'Text transformation, case conversion, trimming', 'wp-advanced-import-export' ),
 				'icon'        => 'dashicons-editor-alignleft',
 			],
 			'date'       => [
-				'name'        => __( 'Date & Time', 'wp-aie' ),
-				'description' => __( 'Date formatting, conversion, extraction', 'wp-aie' ),
+				'name'        => __( 'Date & Time', 'wp-advanced-import-export' ),
+				'description' => __( 'Date formatting, conversion, extraction', 'wp-advanced-import-export' ),
 				'icon'        => 'dashicons-calendar-alt',
 			],
 			'numeric'    => [
-				'name'        => __( 'Numeric Operations', 'wp-aie' ),
-				'description' => __( 'Numbers, prices, calculations, formatting', 'wp-aie' ),
+				'name'        => __( 'Numeric Operations', 'wp-advanced-import-export' ),
+				'description' => __( 'Numbers, prices, calculations, formatting', 'wp-advanced-import-export' ),
 				'icon'        => 'dashicons-calculator',
 			],
 			'html'       => [
-				'name'        => __( 'HTML Operations', 'wp-aie' ),
-				'description' => __( 'HTML cleaning, sanitization, entities', 'wp-aie' ),
+				'name'        => __( 'HTML Operations', 'wp-advanced-import-export' ),
+				'description' => __( 'HTML cleaning, sanitization, entities', 'wp-advanced-import-export' ),
 				'icon'        => 'dashicons-editor-code',
 			],
 			'wordpress'  => [
-				'name'        => __( 'WordPress Functions', 'wp-aie' ),
-				'description' => __( 'Users, terms, categories, posts lookup', 'wp-aie' ),
+				'name'        => __( 'WordPress Functions', 'wp-advanced-import-export' ),
+				'description' => __( 'Users, terms, categories, posts lookup', 'wp-advanced-import-export' ),
 				'icon'        => 'dashicons-wordpress',
 			],
 			'validation' => [
-				'name'        => __( 'Validation', 'wp-aie' ),
-				'description' => __( 'Email, URL, required fields validation', 'wp-aie' ),
+				'name'        => __( 'Validation', 'wp-advanced-import-export' ),
+				'description' => __( 'Email, URL, required fields validation', 'wp-advanced-import-export' ),
 				'icon'        => 'dashicons-yes',
 			],
 			'advanced'   => [
-				'name'        => __( 'Advanced', 'wp-aie' ),
-				'description' => __( 'Conditional logic, mapping, complex transformations', 'wp-aie' ),
+				'name'        => __( 'Advanced', 'wp-advanced-import-export' ),
+				'description' => __( 'Conditional logic, mapping, complex transformations', 'wp-advanced-import-export' ),
 				'icon'        => 'dashicons-admin-generic',
 			],
 		];
@@ -155,8 +155,8 @@ class Function_Snippets {
 	private function get_string_snippets() {
 		return [
 			'uppercase'              => [
-				'name'        => __( 'Convert to Uppercase', 'wp-aie' ),
-				'description' => __( 'Transform text to UPPERCASE', 'wp-aie' ),
+				'name'        => __( 'Convert to Uppercase', 'wp-advanced-import-export' ),
+				'description' => __( 'Transform text to UPPERCASE', 'wp-advanced-import-export' ),
 				'category'    => 'string',
 				'code'        => 'return strtoupper($value);',
 				'example'     => [
@@ -166,8 +166,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'case', 'upper' ],
 			],
 			'lowercase'              => [
-				'name'        => __( 'Convert to Lowercase', 'wp-aie' ),
-				'description' => __( 'Transform text to lowercase', 'wp-aie' ),
+				'name'        => __( 'Convert to Lowercase', 'wp-advanced-import-export' ),
+				'description' => __( 'Transform text to lowercase', 'wp-advanced-import-export' ),
 				'category'    => 'string',
 				'code'        => 'return strtolower($value);',
 				'example'     => [
@@ -177,8 +177,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'case', 'lower' ],
 			],
 			'capitalize'             => [
-				'name'        => __( 'Capitalize First Letter', 'wp-aie' ),
-				'description' => __( 'First letter uppercase, rest lowercase', 'wp-aie' ),
+				'name'        => __( 'Capitalize First Letter', 'wp-advanced-import-export' ),
+				'description' => __( 'First letter uppercase, rest lowercase', 'wp-advanced-import-export' ),
 				'category'    => 'string',
 				'code'        => 'return ucfirst(strtolower($value));',
 				'example'     => [
@@ -188,8 +188,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'case', 'capitalize' ],
 			],
 			'title_case'             => [
-				'name'        => __( 'Title Case', 'wp-aie' ),
-				'description' => __( 'Capitalize first letter of each word', 'wp-aie' ),
+				'name'        => __( 'Title Case', 'wp-advanced-import-export' ),
+				'description' => __( 'Capitalize first letter of each word', 'wp-advanced-import-export' ),
 				'category'    => 'string',
 				'code'        => 'return ucwords(strtolower($value));',
 				'example'     => [
@@ -199,8 +199,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'case', 'title' ],
 			],
 			'trim'                   => [
-				'name'        => __( 'Trim Whitespace', 'wp-aie' ),
-				'description' => __( 'Remove spaces from start and end', 'wp-aie' ),
+				'name'        => __( 'Trim Whitespace', 'wp-advanced-import-export' ),
+				'description' => __( 'Remove spaces from start and end', 'wp-advanced-import-export' ),
 				'category'    => 'string',
 				'code'        => 'return trim($value);',
 				'example'     => [
@@ -210,8 +210,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'trim', 'spaces' ],
 			],
 			'remove_multiple_spaces' => [
-				'name'        => __( 'Remove Multiple Spaces', 'wp-aie' ),
-				'description' => __( 'Replace multiple spaces with single space', 'wp-aie' ),
+				'name'        => __( 'Remove Multiple Spaces', 'wp-advanced-import-export' ),
+				'description' => __( 'Replace multiple spaces with single space', 'wp-advanced-import-export' ),
 				'category'    => 'string',
 				'code'        => 'return preg_replace(\'/\s+/\', \' \', trim($value));',
 				'example'     => [
@@ -221,8 +221,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'spaces', 'clean' ],
 			],
 			'replace_dashes'         => [
-				'name'        => __( 'Replace Dashes with Spaces', 'wp-aie' ),
-				'description' => __( 'Convert dashes to spaces', 'wp-aie' ),
+				'name'        => __( 'Replace Dashes with Spaces', 'wp-advanced-import-export' ),
+				'description' => __( 'Convert dashes to spaces', 'wp-advanced-import-export' ),
 				'category'    => 'string',
 				'code'        => 'return str_replace([\'-\', \'_\'], \' \', $value);',
 				'example'     => [
@@ -232,8 +232,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'replace', 'dashes' ],
 			],
 			'truncate'               => [
-				'name'        => __( 'Truncate String', 'wp-aie' ),
-				'description' => __( 'Limit string length to 100 characters', 'wp-aie' ),
+				'name'        => __( 'Truncate String', 'wp-advanced-import-export' ),
+				'description' => __( 'Limit string length to 100 characters', 'wp-advanced-import-export' ),
 				'category'    => 'string',
 				'code'        => 'if (strlen($value) > 100) { return substr($value, 0, 97) . \'...\'; } return $value;',
 				'example'     => [
@@ -243,8 +243,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'truncate', 'limit' ],
 			],
 			'remove_special_chars'   => [
-				'name'        => __( 'Remove Special Characters', 'wp-aie' ),
-				'description' => __( 'Keep only letters, numbers, spaces', 'wp-aie' ),
+				'name'        => __( 'Remove Special Characters', 'wp-advanced-import-export' ),
+				'description' => __( 'Keep only letters, numbers, spaces', 'wp-advanced-import-export' ),
 				'category'    => 'string',
 				'code'        => 'return preg_replace(\'/[^a-zA-Z0-9\s]/\', \'\', $value);',
 				'example'     => [
@@ -254,8 +254,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'clean', 'special' ],
 			],
 			'slugify'                => [
-				'name'        => __( 'Generate Slug', 'wp-aie' ),
-				'description' => __( 'Create URL-friendly slug', 'wp-aie' ),
+				'name'        => __( 'Generate Slug', 'wp-advanced-import-export' ),
+				'description' => __( 'Create URL-friendly slug', 'wp-advanced-import-export' ),
 				'category'    => 'string',
 				'code'        => 'return sanitize_title($value);',
 				'example'     => [
@@ -275,8 +275,8 @@ class Function_Snippets {
 	private function get_date_snippets() {
 		return [
 			'date_mysql'       => [
-				'name'        => __( 'Format Date for MySQL', 'wp-aie' ),
-				'description' => __( 'Convert any date format to MySQL datetime', 'wp-aie' ),
+				'name'        => __( 'Format Date for MySQL', 'wp-advanced-import-export' ),
+				'description' => __( 'Convert any date format to MySQL datetime', 'wp-advanced-import-export' ),
 				'category'    => 'date',
 				'code'        => '$timestamp = strtotime($value); if ($timestamp === false) { return $value; } return date(\'Y-m-d H:i:s\', $timestamp);',
 				'example'     => [
@@ -286,8 +286,8 @@ class Function_Snippets {
 				'tags'        => [ 'date', 'mysql', 'format' ],
 			],
 			'date_dmy_to_ymd'  => [
-				'name'        => __( 'Convert DD/MM/YYYY to YYYY-MM-DD', 'wp-aie' ),
-				'description' => __( 'European date format to ISO format', 'wp-aie' ),
+				'name'        => __( 'Convert DD/MM/YYYY to YYYY-MM-DD', 'wp-advanced-import-export' ),
+				'description' => __( 'European date format to ISO format', 'wp-advanced-import-export' ),
 				'category'    => 'date',
 				'code'        => '$parts = explode(\'/\', $value); if (count($parts) === 3) { return sprintf(\'%s-%s-%s\', $parts[2], $parts[1], $parts[0]); } return $value;',
 				'example'     => [
@@ -297,8 +297,8 @@ class Function_Snippets {
 				'tags'        => [ 'date', 'convert', 'format' ],
 			],
 			'date_mdy_to_ymd'  => [
-				'name'        => __( 'Convert MM/DD/YYYY to YYYY-MM-DD', 'wp-aie' ),
-				'description' => __( 'US date format to ISO format', 'wp-aie' ),
+				'name'        => __( 'Convert MM/DD/YYYY to YYYY-MM-DD', 'wp-advanced-import-export' ),
+				'description' => __( 'US date format to ISO format', 'wp-advanced-import-export' ),
 				'category'    => 'date',
 				'code'        => '$parts = explode(\'/\', $value); if (count($parts) === 3) { return sprintf(\'%s-%s-%s\', $parts[2], $parts[0], $parts[1]); } return $value;',
 				'example'     => [
@@ -308,8 +308,8 @@ class Function_Snippets {
 				'tags'        => [ 'date', 'convert', 'format', 'us' ],
 			],
 			'add_current_time' => [
-				'name'        => __( 'Add Current Time to Date', 'wp-aie' ),
-				'description' => __( 'Append current time to date', 'wp-aie' ),
+				'name'        => __( 'Add Current Time to Date', 'wp-advanced-import-export' ),
+				'description' => __( 'Append current time to date', 'wp-advanced-import-export' ),
 				'category'    => 'date',
 				'code'        => '$date = strtotime($value); if ($date === false) { return $value; } return date(\'Y-m-d H:i:s\', $date);',
 				'example'     => [
@@ -319,8 +319,8 @@ class Function_Snippets {
 				'tags'        => [ 'date', 'time', 'current' ],
 			],
 			'add_days'         => [
-				'name'        => __( 'Add 7 Days to Date', 'wp-aie' ),
-				'description' => __( 'Add week to date', 'wp-aie' ),
+				'name'        => __( 'Add 7 Days to Date', 'wp-advanced-import-export' ),
+				'description' => __( 'Add week to date', 'wp-advanced-import-export' ),
 				'category'    => 'date',
 				'code'        => '$date = strtotime($value); if ($date === false) { return $value; } return date(\'Y-m-d\', strtotime(\'+7 days\', $date));',
 				'example'     => [
@@ -330,8 +330,8 @@ class Function_Snippets {
 				'tags'        => [ 'date', 'add', 'days' ],
 			],
 			'extract_year'     => [
-				'name'        => __( 'Extract Year from Date', 'wp-aie' ),
-				'description' => __( 'Get only year from date', 'wp-aie' ),
+				'name'        => __( 'Extract Year from Date', 'wp-advanced-import-export' ),
+				'description' => __( 'Get only year from date', 'wp-advanced-import-export' ),
 				'category'    => 'date',
 				'code'        => '$date = strtotime($value); if ($date === false) { return \'\'; } return date(\'Y\', $date);',
 				'example'     => [
@@ -341,8 +341,8 @@ class Function_Snippets {
 				'tags'        => [ 'date', 'extract', 'year' ],
 			],
 			'extract_month'    => [
-				'name'        => __( 'Extract Month from Date', 'wp-aie' ),
-				'description' => __( 'Get month number from date', 'wp-aie' ),
+				'name'        => __( 'Extract Month from Date', 'wp-advanced-import-export' ),
+				'description' => __( 'Get month number from date', 'wp-advanced-import-export' ),
 				'category'    => 'date',
 				'code'        => '$date = strtotime($value); if ($date === false) { return \'\'; } return date(\'m\', $date);',
 				'example'     => [
@@ -362,8 +362,8 @@ class Function_Snippets {
 	private function get_numeric_snippets() {
 		return [
 			'to_integer'     => [
-				'name'        => __( 'Convert to Integer', 'wp-aie' ),
-				'description' => __( 'Convert to whole number', 'wp-aie' ),
+				'name'        => __( 'Convert to Integer', 'wp-advanced-import-export' ),
+				'description' => __( 'Convert to whole number', 'wp-advanced-import-export' ),
 				'category'    => 'numeric',
 				'code'        => 'return intval($value);',
 				'example'     => [
@@ -373,8 +373,8 @@ class Function_Snippets {
 				'tags'        => [ 'number', 'integer', 'convert' ],
 			],
 			'to_float'       => [
-				'name'        => __( 'Convert to Float', 'wp-aie' ),
-				'description' => __( 'Convert to decimal number', 'wp-aie' ),
+				'name'        => __( 'Convert to Float', 'wp-advanced-import-export' ),
+				'description' => __( 'Convert to decimal number', 'wp-advanced-import-export' ),
 				'category'    => 'numeric',
 				'code'        => 'return floatval($value);',
 				'example'     => [
@@ -384,8 +384,8 @@ class Function_Snippets {
 				'tags'        => [ 'number', 'float', 'decimal' ],
 			],
 			'clean_price'    => [
-				'name'        => __( 'Clean Price', 'wp-aie' ),
-				'description' => __( 'Remove currency symbols and convert to decimal', 'wp-aie' ),
+				'name'        => __( 'Clean Price', 'wp-advanced-import-export' ),
+				'description' => __( 'Remove currency symbols and convert to decimal', 'wp-advanced-import-export' ),
 				'category'    => 'numeric',
 				'code'        => '$cleaned = preg_replace(\'/[^0-9.,]/\', \'\', $value); $cleaned = str_replace(\',\', \'.\', $cleaned); return floatval($cleaned);',
 				'example'     => [
@@ -395,8 +395,8 @@ class Function_Snippets {
 				'tags'        => [ 'number', 'price', 'currency', 'clean' ],
 			],
 			'format_price'   => [
-				'name'        => __( 'Format Price', 'wp-aie' ),
-				'description' => __( 'Format number as price with 2 decimals', 'wp-aie' ),
+				'name'        => __( 'Format Price', 'wp-advanced-import-export' ),
+				'description' => __( 'Format number as price with 2 decimals', 'wp-advanced-import-export' ),
 				'category'    => 'numeric',
 				'code'        => 'return number_format(floatval($value), 2, \'.\', \'\');',
 				'example'     => [
@@ -406,8 +406,8 @@ class Function_Snippets {
 				'tags'        => [ 'number', 'price', 'format' ],
 			],
 			'round_number'   => [
-				'name'        => __( 'Round to 2 Decimals', 'wp-aie' ),
-				'description' => __( 'Round number to 2 decimal places', 'wp-aie' ),
+				'name'        => __( 'Round to 2 Decimals', 'wp-advanced-import-export' ),
+				'description' => __( 'Round number to 2 decimal places', 'wp-advanced-import-export' ),
 				'category'    => 'numeric',
 				'code'        => 'return round(floatval($value), 2);',
 				'example'     => [
@@ -417,8 +417,8 @@ class Function_Snippets {
 				'tags'        => [ 'number', 'round', 'decimal' ],
 			],
 			'percentage'     => [
-				'name'        => __( 'Convert to Percentage', 'wp-aie' ),
-				'description' => __( 'Multiply by 100 and add % sign', 'wp-aie' ),
+				'name'        => __( 'Convert to Percentage', 'wp-advanced-import-export' ),
+				'description' => __( 'Multiply by 100 and add % sign', 'wp-advanced-import-export' ),
 				'category'    => 'numeric',
 				'code'        => 'return (floatval($value) * 100) . \'%\';',
 				'example'     => [
@@ -428,8 +428,8 @@ class Function_Snippets {
 				'tags'        => [ 'number', 'percentage', 'percent' ],
 			],
 			'absolute_value' => [
-				'name'        => __( 'Absolute Value', 'wp-aie' ),
-				'description' => __( 'Remove negative sign', 'wp-aie' ),
+				'name'        => __( 'Absolute Value', 'wp-advanced-import-export' ),
+				'description' => __( 'Remove negative sign', 'wp-advanced-import-export' ),
 				'category'    => 'numeric',
 				'code'        => 'return abs(floatval($value));',
 				'example'     => [
@@ -449,8 +449,8 @@ class Function_Snippets {
 	private function get_html_snippets() {
 		return [
 			'strip_html'           => [
-				'name'        => __( 'Strip HTML Tags', 'wp-aie' ),
-				'description' => __( 'Remove all HTML tags', 'wp-aie' ),
+				'name'        => __( 'Strip HTML Tags', 'wp-advanced-import-export' ),
+				'description' => __( 'Remove all HTML tags', 'wp-advanced-import-export' ),
 				'category'    => 'html',
 				'code'        => 'return wp_strip_all_tags($value);',
 				'example'     => [
@@ -460,8 +460,8 @@ class Function_Snippets {
 				'tags'        => [ 'html', 'strip', 'tags', 'clean' ],
 			],
 			'decode_html_entities' => [
-				'name'        => __( 'Decode HTML Entities', 'wp-aie' ),
-				'description' => __( 'Convert &amp; to & and similar', 'wp-aie' ),
+				'name'        => __( 'Decode HTML Entities', 'wp-advanced-import-export' ),
+				'description' => __( 'Convert &amp; to & and similar', 'wp-advanced-import-export' ),
 				'category'    => 'html',
 				'code'        => 'return html_entity_decode($value, ENT_QUOTES, \'UTF-8\');',
 				'example'     => [
@@ -471,8 +471,8 @@ class Function_Snippets {
 				'tags'        => [ 'html', 'entities', 'decode' ],
 			],
 			'encode_html_entities' => [
-				'name'        => __( 'Encode HTML Entities', 'wp-aie' ),
-				'description' => __( 'Convert & to &amp; and similar', 'wp-aie' ),
+				'name'        => __( 'Encode HTML Entities', 'wp-advanced-import-export' ),
+				'description' => __( 'Convert & to &amp; and similar', 'wp-advanced-import-export' ),
 				'category'    => 'html',
 				'code'        => 'return htmlentities($value, ENT_QUOTES, \'UTF-8\');',
 				'example'     => [
@@ -482,8 +482,8 @@ class Function_Snippets {
 				'tags'        => [ 'html', 'entities', 'encode' ],
 			],
 			'sanitize_text'        => [
-				'name'        => __( 'Sanitize Text', 'wp-aie' ),
-				'description' => __( 'Remove HTML and unsafe characters', 'wp-aie' ),
+				'name'        => __( 'Sanitize Text', 'wp-advanced-import-export' ),
+				'description' => __( 'Remove HTML and unsafe characters', 'wp-advanced-import-export' ),
 				'category'    => 'html',
 				'code'        => 'return sanitize_text_field($value);',
 				'example'     => [
@@ -493,8 +493,8 @@ class Function_Snippets {
 				'tags'        => [ 'html', 'sanitize', 'clean', 'security' ],
 			],
 			'escape_html'          => [
-				'name'        => __( 'Escape HTML', 'wp-aie' ),
-				'description' => __( 'Make safe for HTML output', 'wp-aie' ),
+				'name'        => __( 'Escape HTML', 'wp-advanced-import-export' ),
+				'description' => __( 'Make safe for HTML output', 'wp-advanced-import-export' ),
 				'category'    => 'html',
 				'code'        => 'return esc_html($value);',
 				'example'     => [
@@ -514,8 +514,8 @@ class Function_Snippets {
 	private function get_wordpress_snippets() {
 		return [
 			'find_user_by_email'   => [
-				'name'        => __( 'Find User ID by Email', 'wp-aie' ),
-				'description' => __( 'Convert email to user ID', 'wp-aie' ),
+				'name'        => __( 'Find User ID by Email', 'wp-advanced-import-export' ),
+				'description' => __( 'Convert email to user ID', 'wp-advanced-import-export' ),
 				'category'    => 'wordpress',
 				'code'        => '$user = get_user_by(\'email\', $value); return $user ? $user->ID : 0;',
 				'example'     => [
@@ -525,8 +525,8 @@ class Function_Snippets {
 				'tags'        => [ 'wordpress', 'user', 'email', 'find' ],
 			],
 			'find_user_by_login'   => [
-				'name'        => __( 'Find User ID by Login', 'wp-aie' ),
-				'description' => __( 'Convert username to user ID', 'wp-aie' ),
+				'name'        => __( 'Find User ID by Login', 'wp-advanced-import-export' ),
+				'description' => __( 'Convert username to user ID', 'wp-advanced-import-export' ),
 				'category'    => 'wordpress',
 				'code'        => '$user = get_user_by(\'login\', $value); return $user ? $user->ID : 0;',
 				'example'     => [
@@ -536,8 +536,8 @@ class Function_Snippets {
 				'tags'        => [ 'wordpress', 'user', 'login', 'find' ],
 			],
 			'find_term_by_name'    => [
-				'name'        => __( 'Find Term ID by Name', 'wp-aie' ),
-				'description' => __( 'Convert category/tag name to term ID', 'wp-aie' ),
+				'name'        => __( 'Find Term ID by Name', 'wp-advanced-import-export' ),
+				'description' => __( 'Convert category/tag name to term ID', 'wp-advanced-import-export' ),
 				'category'    => 'wordpress',
 				'code'        => '$term = get_term_by(\'name\', $value, \'category\'); return $term ? $term->term_id : 0;',
 				'example'     => [
@@ -547,8 +547,8 @@ class Function_Snippets {
 				'tags'        => [ 'wordpress', 'term', 'category', 'find' ],
 			],
 			'find_term_by_slug'    => [
-				'name'        => __( 'Find Term ID by Slug', 'wp-aie' ),
-				'description' => __( 'Convert category/tag slug to term ID', 'wp-aie' ),
+				'name'        => __( 'Find Term ID by Slug', 'wp-advanced-import-export' ),
+				'description' => __( 'Convert category/tag slug to term ID', 'wp-advanced-import-export' ),
 				'category'    => 'wordpress',
 				'code'        => '$term = get_term_by(\'slug\', $value, \'category\'); return $term ? $term->term_id : 0;',
 				'example'     => [
@@ -558,8 +558,8 @@ class Function_Snippets {
 				'tags'        => [ 'wordpress', 'term', 'category', 'slug', 'find' ],
 			],
 			'create_category'      => [
-				'name'        => __( 'Create Category if Not Exists', 'wp-aie' ),
-				'description' => __( 'Get existing or create new category', 'wp-aie' ),
+				'name'        => __( 'Create Category if Not Exists', 'wp-advanced-import-export' ),
+				'description' => __( 'Get existing or create new category', 'wp-advanced-import-export' ),
 				'category'    => 'wordpress',
 				'code'        => '$term = get_term_by(\'name\', $value, \'category\'); if ($term) { return $term->term_id; } $result = wp_insert_term($value, \'category\'); return is_wp_error($result) ? 0 : $result[\'term_id\'];',
 				'example'     => [
@@ -569,8 +569,8 @@ class Function_Snippets {
 				'tags'        => [ 'wordpress', 'category', 'create' ],
 			],
 			'get_post_id_by_title' => [
-				'name'        => __( 'Find Post ID by Title', 'wp-aie' ),
-				'description' => __( 'Convert post title to post ID', 'wp-aie' ),
+				'name'        => __( 'Find Post ID by Title', 'wp-advanced-import-export' ),
+				'description' => __( 'Convert post title to post ID', 'wp-advanced-import-export' ),
 				'category'    => 'wordpress',
 				'code'        => '$post = get_page_by_title($value, OBJECT, \'post\'); return $post ? $post->ID : 0;',
 				'example'     => [
@@ -590,8 +590,8 @@ class Function_Snippets {
 	private function get_validation_snippets() {
 		return [
 			'validate_email' => [
-				'name'        => __( 'Validate Email', 'wp-aie' ),
-				'description' => __( 'Return email if valid, empty if not', 'wp-aie' ),
+				'name'        => __( 'Validate Email', 'wp-advanced-import-export' ),
+				'description' => __( 'Return email if valid, empty if not', 'wp-advanced-import-export' ),
 				'category'    => 'validation',
 				'code'        => 'return is_email($value) ? $value : \'\';',
 				'example'     => [
@@ -601,8 +601,8 @@ class Function_Snippets {
 				'tags'        => [ 'validation', 'email', 'check' ],
 			],
 			'validate_url'   => [
-				'name'        => __( 'Validate URL', 'wp-aie' ),
-				'description' => __( 'Return URL if valid, empty if not', 'wp-aie' ),
+				'name'        => __( 'Validate URL', 'wp-advanced-import-export' ),
+				'description' => __( 'Return URL if valid, empty if not', 'wp-advanced-import-export' ),
 				'category'    => 'validation',
 				'code'        => 'return filter_var($value, FILTER_VALIDATE_URL) ? $value : \'\';',
 				'example'     => [
@@ -612,8 +612,8 @@ class Function_Snippets {
 				'tags'        => [ 'validation', 'url', 'check' ],
 			],
 			'require_value'  => [
-				'name'        => __( 'Require Non-Empty', 'wp-aie' ),
-				'description' => __( 'Return value or default if empty', 'wp-aie' ),
+				'name'        => __( 'Require Non-Empty', 'wp-advanced-import-export' ),
+				'description' => __( 'Return value or default if empty', 'wp-advanced-import-export' ),
 				'category'    => 'validation',
 				'code'        => 'return !empty($value) ? $value : \'N/A\';',
 				'example'     => [
@@ -623,8 +623,8 @@ class Function_Snippets {
 				'tags'        => [ 'validation', 'required', 'default' ],
 			],
 			'sanitize_email' => [
-				'name'        => __( 'Sanitize Email', 'wp-aie' ),
-				'description' => __( 'Clean and validate email address', 'wp-aie' ),
+				'name'        => __( 'Sanitize Email', 'wp-advanced-import-export' ),
+				'description' => __( 'Clean and validate email address', 'wp-advanced-import-export' ),
 				'category'    => 'validation',
 				'code'        => 'return sanitize_email($value);',
 				'example'     => [
@@ -634,8 +634,8 @@ class Function_Snippets {
 				'tags'        => [ 'validation', 'email', 'sanitize' ],
 			],
 			'validate_phone' => [
-				'name'        => __( 'Validate Phone Number', 'wp-aie' ),
-				'description' => __( 'Check if value contains only digits and common phone chars', 'wp-aie' ),
+				'name'        => __( 'Validate Phone Number', 'wp-advanced-import-export' ),
+				'description' => __( 'Check if value contains only digits and common phone chars', 'wp-advanced-import-export' ),
 				'category'    => 'validation',
 				'code'        => 'return preg_match(\'/^[0-9+\-\(\)\s]+$/\', $value) ? $value : \'\';',
 				'example'     => [
@@ -655,8 +655,8 @@ class Function_Snippets {
 	private function get_advanced_snippets() {
 		return [
 			'concat_prefix'      => [
-				'name'        => __( 'Add Prefix', 'wp-aie' ),
-				'description' => __( 'Add text before value', 'wp-aie' ),
+				'name'        => __( 'Add Prefix', 'wp-advanced-import-export' ),
+				'description' => __( 'Add text before value', 'wp-advanced-import-export' ),
 				'category'    => 'advanced',
 				'code'        => 'return \'PREFIX-\' . $value;',
 				'example'     => [
@@ -666,8 +666,8 @@ class Function_Snippets {
 				'tags'        => [ 'advanced', 'concat', 'prefix' ],
 			],
 			'concat_suffix'      => [
-				'name'        => __( 'Add Suffix', 'wp-aie' ),
-				'description' => __( 'Add text after value', 'wp-aie' ),
+				'name'        => __( 'Add Suffix', 'wp-advanced-import-export' ),
+				'description' => __( 'Add text after value', 'wp-advanced-import-export' ),
 				'category'    => 'advanced',
 				'code'        => 'return $value . \'-SUFFIX\';',
 				'example'     => [
@@ -677,8 +677,8 @@ class Function_Snippets {
 				'tags'        => [ 'advanced', 'concat', 'suffix' ],
 			],
 			'default_if_empty'   => [
-				'name'        => __( 'Default if Empty', 'wp-aie' ),
-				'description' => __( 'Use default value if empty', 'wp-aie' ),
+				'name'        => __( 'Default if Empty', 'wp-advanced-import-export' ),
+				'description' => __( 'Use default value if empty', 'wp-advanced-import-export' ),
 				'category'    => 'advanced',
 				'code'        => 'return !empty($value) ? $value : \'Default Value\';',
 				'example'     => [
@@ -688,8 +688,8 @@ class Function_Snippets {
 				'tags'        => [ 'advanced', 'default', 'empty', 'conditional' ],
 			],
 			'map_values'         => [
-				'name'        => __( 'Map Values', 'wp-aie' ),
-				'description' => __( 'Convert one value to another (Yes/No to 1/0)', 'wp-aie' ),
+				'name'        => __( 'Map Values', 'wp-advanced-import-export' ),
+				'description' => __( 'Convert one value to another (Yes/No to 1/0)', 'wp-advanced-import-export' ),
 				'category'    => 'advanced',
 				'code'        => '$map = [\'yes\' => 1, \'no\' => 0]; $key = strtolower($value); return isset($map[$key]) ? $map[$key] : $value;',
 				'example'     => [
@@ -699,8 +699,8 @@ class Function_Snippets {
 				'tags'        => [ 'advanced', 'map', 'convert', 'conditional' ],
 			],
 			'conditional_value'  => [
-				'name'        => __( 'Conditional Value', 'wp-aie' ),
-				'description' => __( 'Return different value based on condition', 'wp-aie' ),
+				'name'        => __( 'Conditional Value', 'wp-advanced-import-export' ),
+				'description' => __( 'Return different value based on condition', 'wp-advanced-import-export' ),
 				'category'    => 'advanced',
 				'code'        => 'return intval($value) > 100 ? \'High\' : \'Low\';',
 				'example'     => [
@@ -710,8 +710,8 @@ class Function_Snippets {
 				'tags'        => [ 'advanced', 'conditional', 'if' ],
 			],
 			'first_word'         => [
-				'name'        => __( 'Extract First Word', 'wp-aie' ),
-				'description' => __( 'Get first word from text', 'wp-aie' ),
+				'name'        => __( 'Extract First Word', 'wp-advanced-import-export' ),
+				'description' => __( 'Get first word from text', 'wp-advanced-import-export' ),
 				'category'    => 'advanced',
 				'code'        => '$words = explode(\' \', trim($value)); return $words[0] ?? \'\';',
 				'example'     => [
@@ -721,8 +721,8 @@ class Function_Snippets {
 				'tags'        => [ 'advanced', 'extract', 'word' ],
 			],
 			'json_decode_field'  => [
-				'name'        => __( 'Extract from JSON', 'wp-aie' ),
-				'description' => __( 'Parse JSON and extract field', 'wp-aie' ),
+				'name'        => __( 'Extract from JSON', 'wp-advanced-import-export' ),
+				'description' => __( 'Parse JSON and extract field', 'wp-advanced-import-export' ),
 				'category'    => 'advanced',
 				'code'        => '$data = json_decode($value, true); return $data[\'field_name\'] ?? \'\';',
 				'example'     => [
@@ -732,8 +732,8 @@ class Function_Snippets {
 				'tags'        => [ 'advanced', 'json', 'extract', 'parse' ],
 			],
 			'split_by_delimiter' => [
-				'name'        => __( 'Split by Delimiter', 'wp-aie' ),
-				'description' => __( 'Split by comma and take first part', 'wp-aie' ),
+				'name'        => __( 'Split by Delimiter', 'wp-advanced-import-export' ),
+				'description' => __( 'Split by comma and take first part', 'wp-advanced-import-export' ),
 				'category'    => 'advanced',
 				'code'        => '$parts = explode(\',\', $value); return trim($parts[0] ?? \'\');',
 				'example'     => [

@@ -11,23 +11,23 @@ defined( 'ABSPATH' ) || exit;
 <!-- Step 2: Upload File -->
 <div class="aie-step aie-step-2" data-step="2">
 	<div class="aie-step-header">
-		<h2><?php esc_html_e( 'Step 2: Upload File', 'wp-aie' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Upload your data file (CSV or JSON)', 'wp-aie' ); ?></p>
+		<h2><?php esc_html_e( 'Step 2: Upload File', 'wp-advanced-import-export' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Upload your data file (CSV or JSON)', 'wp-advanced-import-export' ); ?></p>
 	</div>
 
 	<div class="aie-step-content">
 		<div class="aie-upload-area" id="aie-upload-area">
 			<div class="aie-upload-placeholder">
 				<span class="dashicons dashicons-upload"></span>
-				<h3><?php esc_html_e( 'Drag & Drop your file here', 'wp-aie' ); ?></h3>
-				<p><?php esc_html_e( 'or', 'wp-aie' ); ?></p>
+				<h3><?php esc_html_e( 'Drag & Drop your file here', 'wp-advanced-import-export' ); ?></h3>
+				<p><?php esc_html_e( 'or', 'wp-advanced-import-export' ); ?></p>
 				<button type="button" class="button button-secondary" id="aie-select-file">
-					<?php esc_html_e( 'Select File', 'wp-aie' ); ?>
+					<?php esc_html_e( 'Select File', 'wp-advanced-import-export' ); ?>
 				</button>
 				<input type="file" id="aie-file-input" accept=".csv,.json" style="display:none;">
 				<p class="description">
-					<?php esc_html_e( 'Supported formats: CSV, JSON', 'wp-aie' ); ?><br>
-					<?php esc_html_e( 'No file size limit - large files supported via chunked upload', 'wp-aie' ); ?>
+					<?php esc_html_e( 'Supported formats: CSV, JSON', 'wp-advanced-import-export' ); ?><br>
+					<?php esc_html_e( 'No file size limit - large files supported via chunked upload', 'wp-advanced-import-export' ); ?>
 				</p>
 			</div>
 
@@ -35,7 +35,7 @@ defined( 'ABSPATH' ) || exit;
 			<div class="aie-upload-progress" style="display:none;">
 				<div class="aie-upload-status">
 					<span class="dashicons dashicons-upload"></span>
-					<span class="aie-upload-status-text"><?php esc_html_e( 'Uploading...', 'wp-aie' ); ?></span>
+					<span class="aie-upload-status-text"><?php esc_html_e( 'Uploading...', 'wp-advanced-import-export' ); ?></span>
 				</div>
 				<div class="aie-progress-bar">
 					<div class="aie-progress-bar-fill" style="width: 0%;"></div>
@@ -62,28 +62,28 @@ defined( 'ABSPATH' ) || exit;
 		</div>
 
 		<div class="aie-format-options" style="display:none;">
-			<h3><?php esc_html_e( 'Format Options', 'wp-aie' ); ?></h3>
+			<h3><?php esc_html_e( 'Format Options', 'wp-advanced-import-export' ); ?></h3>
 			
 			<div class="aie-csv-options" style="display:none;">
 				<label>
-					<?php esc_html_e( 'Delimiter', 'wp-aie' ); ?>
+					<?php esc_html_e( 'Delimiter', 'wp-advanced-import-export' ); ?>
 					<select name="csv_delimiter" id="csv_delimiter" class="regular-text">
-						<option value=",">,<?php esc_html_e( ' (Comma)', 'wp-aie' ); ?></option>
-						<option value=";">; <?php esc_html_e( ' (Semicolon)', 'wp-aie' ); ?></option>
-						<option value="tab">	<?php esc_html_e( ' (Tab)', 'wp-aie' ); ?></option>
-						<option value="|">| <?php esc_html_e( ' (Pipe)', 'wp-aie' ); ?></option>
-						<option value="custom"><?php esc_html_e( 'Custom', 'wp-aie' ); ?></option>
+						<option value=",">,<?php esc_html_e( ' (Comma)', 'wp-advanced-import-export' ); ?></option>
+						<option value=";">; <?php esc_html_e( ' (Semicolon)', 'wp-advanced-import-export' ); ?></option>
+						<option value="tab">	<?php esc_html_e( ' (Tab)', 'wp-advanced-import-export' ); ?></option>
+						<option value="|">| <?php esc_html_e( ' (Pipe)', 'wp-advanced-import-export' ); ?></option>
+						<option value="custom"><?php esc_html_e( 'Custom', 'wp-advanced-import-export' ); ?></option>
 					</select>
 				</label>
 
 				<label class="aie-custom-delimiter-wrapper" style="display:none;">
-					<?php esc_html_e( 'Custom Delimiter', 'wp-aie' ); ?>
-					<input type="text" name="csv_custom_delimiter" id="csv_custom_delimiter" class="regular-text" maxlength="10" placeholder="<?php esc_attr_e( 'Enter custom delimiter', 'wp-aie' ); ?>">
+					<?php esc_html_e( 'Custom Delimiter', 'wp-advanced-import-export' ); ?>
+					<input type="text" name="csv_custom_delimiter" id="csv_custom_delimiter" class="regular-text" maxlength="10" placeholder="<?php esc_attr_e( 'Enter custom delimiter', 'wp-advanced-import-export' ); ?>">
 				</label>
 
 				<label>
 					<input type="checkbox" name="csv_has_header" checked>
-					<?php esc_html_e( 'First row contains column names', 'wp-aie' ); ?>
+					<?php esc_html_e( 'First row contains column names', 'wp-advanced-import-export' ); ?>
 				</label>
 			</div>
 		</div>
@@ -91,10 +91,10 @@ defined( 'ABSPATH' ) || exit;
 		<div class="aie-step-actions">
 			<button type="button" class="button button-secondary aie-prev-step">
 				<span class="dashicons dashicons-arrow-left-alt2"></span>
-				<?php esc_html_e( 'Previous', 'wp-aie' ); ?>
+				<?php esc_html_e( 'Previous', 'wp-advanced-import-export' ); ?>
 			</button>
 			<button type="button" class="button button-primary button-large aie-next-step" disabled>
-				<?php esc_html_e( 'Next Step', 'wp-aie' ); ?>
+				<?php esc_html_e( 'Next Step', 'wp-advanced-import-export' ); ?>
 				<span class="dashicons dashicons-arrow-right-alt2"></span>
 			</button>
 		</div>

@@ -12,26 +12,26 @@ defined( 'ABSPATH' ) || exit;
 <div class="aie-steps-indicator">
 	<div class="aie-step-indicator active" data-step="1">
 		<div class="aie-step-number">1</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Content Type', 'wp-aie' ); ?></div>
+		<div class="aie-step-label"><?php esc_html_e( 'Content Type', 'wp-advanced-import-export' ); ?></div>
 	</div>
 	<div class="aie-step-indicator" data-step="2">
 		<div class="aie-step-number">2</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Upload', 'wp-aie' ); ?></div>
+		<div class="aie-step-label"><?php esc_html_e( 'Upload', 'wp-advanced-import-export' ); ?></div>
 	</div>
 	<div class="aie-step-indicator" data-step="3">
 		<div class="aie-step-number">3</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Preview', 'wp-aie' ); ?></div>
+		<div class="aie-step-label"><?php esc_html_e( 'Preview', 'wp-advanced-import-export' ); ?></div>
 	</div>
 	<div class="aie-step-indicator" data-step="4">
 		<div class="aie-step-number">4</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Mapping', 'wp-aie' ); ?></div>
+		<div class="aie-step-label"><?php esc_html_e( 'Mapping', 'wp-advanced-import-export' ); ?></div>
 	</div>
 	<div class="aie-step-indicator" data-step="5">
 		<div class="aie-step-number">5</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Options', 'wp-aie' ); ?></div>
+		<div class="aie-step-label"><?php esc_html_e( 'Options', 'wp-advanced-import-export' ); ?></div>
 	</div>
 	<div class="aie-step-indicator" data-step="6">
 		<div class="aie-step-number">6</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Import', 'wp-aie' ); ?></div>
+		<div class="aie-step-label"><?php esc_html_e( 'Import', 'wp-advanced-import-export' ); ?></div>
 	</div>
 </div>
