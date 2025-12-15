@@ -140,7 +140,7 @@ class Database_Migration {
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
             remote_url VARCHAR(500) NOT NULL,
-            api_key VARCHAR(100) NOT NULL UNIQUE,
+            api_key VARCHAR(100) NOT NULL,
             direction ENUM('pull', 'push', 'bidirectional') DEFAULT 'bidirectional',
             status ENUM('active', 'inactive', 'error') DEFAULT 'active',
             last_sync_at DATETIME,
@@ -148,7 +148,7 @@ class Database_Migration {
             created_by BIGINT(20) UNSIGNED NOT NULL,
             created_at DATETIME NOT NULL,
             updated_at DATETIME NOT NULL,
-            INDEX remote_url_idx (remote_url(255)),
+            UNIQUE KEY remote_url_unique (remote_url(255)),
             INDEX status_idx (status),
             INDEX created_by_idx (created_by)
         ) ENGINE=InnoDB $charset_collate;";
@@ -188,14 +188,23 @@ class Database_Migration {
         ) ENGINE=InnoDB $charset_collate;";
 
 		// Execute table creation
-		dbDelta( $sql_jobs );
-		dbDelta( $sql_logs );
-		dbDelta( $sql_field_maps );
-		dbDelta( $sql_custom_functions );
-		dbDelta( $sql_media_sync );
-		dbDelta( $sql_site_connections );
-		dbDelta( $sql_content_sync );
-		dbDelta( $sql_api_keys );
+		$results = array();
+		$results['jobs']              = dbDelta( $sql_jobs );
+		$results['logs']              = dbDelta( $sql_logs );
+		$results['field_maps']        = dbDelta( $sql_field_maps );
+		$results['custom_functions']  = dbDelta( $sql_custom_functions );
+		$results['media_sync']        = dbDelta( $sql_media_sync );
+		$results['site_connections']  = dbDelta( $sql_site_connections );
+		$results['content_sync']      = dbDelta( $sql_content_sync );
+		$results['api_keys']          = dbDelta( $sql_api_keys );
+
+		// Log any errors if debug mode is enabled
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			if ( $wpdb->last_error ) {
+				error_log( 'WP_AIE Database Migration Error: ' . $wpdb->last_error );
+			}
+			error_log( 'WP_AIE Database Migration Results: ' . print_r( $results, true ) );
+		}
 
 		// Update DB version
 		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
@@ -479,21 +488,35 @@ class Database_Migration {
 
 		// Load Custom_Function model and seed
 		if ( class_exists( '\WP_AIE\Model\Custom_Function' ) ) {
-			$custom_function_model = new \WP_AIE\Model\Custom_Function();
-			$stats                 = $custom_function_model->seed_builtin_functions();
+			try {
+				$custom_function_model = new \WP_AIE\Model\Custom_Function();
+				$stats                 = $custom_function_model->seed_builtin_functions();
 
-			// Mark as seeded
-			update_option( $seeded_option, true );
+				// Mark as seeded
+				update_option( $seeded_option, true );
 
-			// Log results
-			error_log(
-				sprintf(
-					'[WP_AIE] Built-in functions seeded: %d created, %d skipped, %d errors',
-					$stats['created'],
-					$stats['skipped'],
-					$stats['errors']
-				)
-			);
+				// Log results
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log(
+						sprintf(
+							'[WP_AIE] Built-in functions seeded: %d created, %d skipped, %d errors',
+							$stats['created'],
+							$stats['skipped'],
+							$stats['errors']
+						)
+					);
+				}
+			} catch ( \Exception $e ) {
+				// Log error but don't break migration
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[WP_AIE] Error seeding built-in functions: ' . $e->getMessage() );
+				}
+			} catch ( \Error $e ) {
+				// Log error but don't break migration
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[WP_AIE] Fatal error seeding built-in functions: ' . $e->getMessage() );
+				}
+			}
 		}
 	}
 
