@@ -467,7 +467,25 @@ class Content_Sync_Controller extends Base_Controller {
 			);
 		}
 
-		if ( 401 === $status_code || 403 === $status_code ) {
+		// Try to parse JSON response first to check for license errors
+		$data = json_decode( $body, true );
+		
+		if ( 403 === $status_code ) {
+			// Check if it's a license error
+			if ( is_array( $data ) && isset( $data['error_code'] ) && 'license_inactive' === $data['error_code'] ) {
+				return new \WP_Error(
+					'license_inactive',
+					__( 'Premium license is not active on the remote site. Content Sync requires an active premium license.', 'wp-advanced-import-export' )
+				);
+			}
+			
+			return new \WP_Error(
+				'invalid_api_key',
+				__( 'Access forbidden. Please check the API key and try again.', 'wp-advanced-import-export' )
+			);
+		}
+
+		if ( 401 === $status_code ) {
 			return new \WP_Error(
 				'invalid_api_key',
 				__( 'Invalid API key. Please check the API key and try again.', 'wp-advanced-import-export' )
@@ -484,9 +502,6 @@ class Content_Sync_Controller extends Base_Controller {
 				)
 			);
 		}
-
-		// Try to parse JSON response
-		$data = json_decode( $body, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
 			return new \WP_Error(
@@ -531,9 +546,10 @@ class Content_Sync_Controller extends Base_Controller {
 	/**
 	 * Enqueue assets for post list screens
 	 */
-	public function enqueue_post_list_assets( $admin_page ) {
+	public function enqueue_post_list_assets( $hook_suffix ) {
+		// Debug: log what hook we're on
 		// Load on edit.php (post list) and post.php/post-new.php (edit post)
-		if ( ! in_array( $admin_page, array( 'edit.php', 'post.php', 'post-new.php' ) ) ) {
+		if ( ! in_array( $hook_suffix, array( 'edit.php', 'post.php', 'post-new.php' ) ) ) {
 			return;
 		}
 
@@ -547,11 +563,13 @@ class Content_Sync_Controller extends Base_Controller {
 		);
 
 		// Localize script
+		$nonce = wp_create_nonce( 'aie_nonce' );
+		
 		wp_localize_script(
 			'aie-post-sync',
-			'aiePostSync',
+			'aiePostSyncData',
 			array(
-				'nonce'   => wp_create_nonce( 'aie_nonce' ),
+				'nonce'   => $nonce,
 				'ajaxurl' => admin_url( 'admin-ajax.php' ),
 			)
 		);
@@ -866,7 +884,7 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		$site_id  = $this->get_request_param( 'site_id', 0 );
-		$post_ids = $this->get_request_param( 'post_ids', array() );
+		$post_ids = $this->get_request_array( 'post_ids', array() );
 
 		// Validate input
 		if ( empty( $site_id ) ) {
@@ -883,32 +901,87 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( __( 'Site not found', 'wp-advanced-import-export' ) );
 		}
 
-		// Prepare posts data
-		$posts_data = array();
+		// Get source and target domains
+		$source_domain = get_site_url();
+		$target_domain = $site['remote_url'];
+
+		// Prepare posts data with images
+		$posts_data    = array();
+		$all_images    = array();
+		$image_context = array(); // Track which post each image belongs to
+
 		foreach ( $post_ids as $post_id ) {
 			$post = get_post( $post_id );
 			if ( ! $post ) {
 				continue;
 			}
 
+			// Extract all images from post
+			$post_images = \WP_AIE\Helper\Content_Sync_Media::extract_post_images( $post_id );
+			
+			// Store images with post context
+			foreach ( $post_images as $image ) {
+				$image_key                    = $image['attachment_id'];
+				$all_images[ $image_key ]     = $image;
+				$image_context[ $image_key ][] = $post_id;
+			}
+
 			// Get post meta
-			$meta = get_post_meta( $post_id );
+			$meta          = get_post_meta( $post_id );
 			$prepared_meta = array();
 			foreach ( $meta as $key => $values ) {
 				$prepared_meta[ $key ] = maybe_unserialize( $values[0] );
 			}
 
-			// Get post terms
+			// Get post terms with ACF fields
 			$taxonomies = get_object_taxonomies( $post->post_type );
 			$terms_data = array();
 			foreach ( $taxonomies as $taxonomy ) {
 				$terms = wp_get_post_terms( $post_id, $taxonomy );
 				if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
-					$terms_data[ $taxonomy ] = wp_list_pluck( $terms, 'name' );
+					$terms_data[ $taxonomy ] = array();
+					foreach ( $terms as $term ) {
+						$term_info = array(
+							'term_id' => $term->term_id,
+							'name'    => $term->name,
+							'slug'    => $term->slug,
+						);
+
+						// Get ACF fields for this term
+						if ( function_exists( 'get_field_objects' ) ) {
+							$acf_fields = get_field_objects( $taxonomy . '_' . $term->term_id );
+							if ( $acf_fields ) {
+								$term_info['acf'] = array();
+								foreach ( $acf_fields as $field_key => $field ) {
+									$term_info['acf'][ $field_key ] = $field['value'];
+								}
+							}
+						}
+
+						$terms_data[ $taxonomy ][] = $term_info;
+
+						// Extract images from term ACF fields
+						if ( ! empty( $term_info['acf'] ) ) {
+							$term_images = $this->extract_term_acf_images( $term_info['acf'] );
+							foreach ( $term_images as $image_id ) {
+								if ( ! isset( $all_images[ $image_id ] ) ) {
+									$image_data = array(
+										'attachment_id' => $image_id,
+										'url'           => wp_get_attachment_url( $image_id ),
+										'type'          => 'term_acf',
+										'term_id'       => $term->term_id,
+										'taxonomy'      => $taxonomy,
+									);
+									$all_images[ $image_id ]     = $image_data;
+									$image_context[ $image_id ][] = 'term_' . $term->term_id;
+								}
+							}
+						}
+					}
 				}
 			}
 
-			$posts_data[] = array(
+			$post_data = array(
 				'ID'            => $post->ID,
 				'post_title'    => $post->post_title,
 				'post_content'  => $post->post_content,
@@ -922,24 +995,40 @@ class Content_Sync_Controller extends Base_Controller {
 				'meta'          => $prepared_meta,
 				'terms'         => $terms_data,
 			);
+
+			$posts_data[] = $post_data;
 		}
 
 		if ( empty( $posts_data ) ) {
 			$this->send_error( __( 'No valid posts to sync', 'wp-advanced-import-export' ) );
 		}
 
+		// Upload images to remote site first
+		$image_map = $this->upload_images_to_remote( array_values( $all_images ), $site );
+
+		// Replace domains in post data
+		foreach ( $posts_data as &$post_data ) {
+			$post_data = \WP_AIE\Helper\Content_Sync_Replacer::replace_post_domains(
+				$post_data,
+				$source_domain,
+				$target_domain,
+				$image_map
+			);
+		}
+
 		// Send to remote site
 		$response = wp_remote_post(
 			trailingslashit( $site['remote_url'] ) . 'wp-json/aie/v1/receive-content',
 			array(
-				'timeout' => 30,
+				'timeout' => 60,
 				'headers' => array(
 					'Authorization' => 'Bearer ' . $site['api_key'],
 					'Content-Type'  => 'application/json',
 				),
 				'body'    => wp_json_encode(
 					array(
-						'posts' => $posts_data,
+						'posts'     => $posts_data,
+						'image_map' => $image_map,
 					)
 				),
 			)
@@ -965,13 +1054,105 @@ class Content_Sync_Controller extends Base_Controller {
 
 		$this->send_success(
 			array(
-				'message' => sprintf(
+				'message'       => sprintf(
 					/* translators: %d: number of posts */
 					__( 'Successfully pushed %d post(s) to remote site', 'wp-advanced-import-export' ),
 					count( $posts_data )
 				),
+				'images_synced' => count( $image_map ),
 			)
 		);
+	}
+
+	/**
+	 * Upload images to remote site
+	 *
+	 * @param array $images Array of image data.
+	 * @param array $site Site connection data.
+	 * @return array Mapping of old attachment IDs to new ones
+	 */
+	private function upload_images_to_remote( $images, $site ) {
+		$image_map = array();
+
+		if ( empty( $images ) ) {
+			return $image_map;
+		}
+
+		foreach ( $images as $image ) {
+			// Check if image already exists on remote
+			$existing_id = \WP_AIE\Helper\Content_Sync_Media::check_remote_image_exists(
+				$image['file_hash'],
+				$site['remote_url'],
+				$site['api_key']
+			);
+
+			if ( $existing_id ) {
+				// Image already exists, map old ID to existing ID
+				$image_map[ $image['attachment_id'] ] = $existing_id;
+				continue;
+			}
+
+			// Upload new image
+			$new_id = $this->upload_single_image_to_remote( $image, $site );
+			if ( $new_id ) {
+				$image_map[ $image['attachment_id'] ] = $new_id;
+			}
+		}
+
+		return $image_map;
+	}
+
+	/**
+	 * Upload single image to remote site
+	 *
+	 * @param array $image Image data.
+	 * @param array $site Site connection data.
+	 * @return int|false New attachment ID or false on failure
+	 */
+	private function upload_single_image_to_remote( $image, $site ) {
+		// Read file contents
+		$file_contents = @file_get_contents( $image['file_path'] );
+		
+		if ( false === $file_contents ) {
+			return false;
+		}
+
+		// Prepare image data for upload
+		$upload_data = array(
+			'file_name'   => $image['file_name'],
+			'file_data'   => base64_encode( $file_contents ),
+			'file_hash'   => $image['file_hash'],
+			'mime_type'   => $image['mime_type'],
+			'alt_text'    => $image['alt_text'],
+			'title'       => $image['title'],
+			'caption'     => $image['caption'],
+			'description' => $image['description'],
+		);
+
+		// Upload to remote
+		$response = wp_remote_post(
+			trailingslashit( $site['remote_url'] ) . 'wp-json/aie/v1/upload-media',
+			array(
+				'timeout' => 60,
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $site['api_key'],
+					'Content-Type'  => 'application/json',
+				),
+				'body'    => wp_json_encode( $upload_data ),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return false;
+		}
+
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( isset( $body['success'] ) && $body['success'] && isset( $body['attachment_id'] ) ) {
+			return (int) $body['attachment_id'];
+		}
+
+		return false;
 	}
 
 	/**
@@ -1102,5 +1283,43 @@ class Content_Sync_Controller extends Base_Controller {
 				),
 			)
 		);
+	}
+
+	/**
+	 * Extract image IDs from term ACF fields
+	 *
+	 * @param array $acf_data ACF field data.
+	 * @return array Array of image IDs
+	 */
+	private function extract_term_acf_images( $acf_data ) {
+		$image_ids = array();
+
+		foreach ( $acf_data as $key => $value ) {
+			// Single image field (numeric ID)
+			if ( is_numeric( $value ) && $value > 0 ) {
+				$attachment = get_post( $value );
+				if ( $attachment && 'attachment' === $attachment->post_type ) {
+					$image_ids[] = (int) $value;
+				}
+			}
+			// Gallery field (array of IDs)
+			elseif ( is_array( $value ) ) {
+				foreach ( $value as $item ) {
+					if ( is_numeric( $item ) && $item > 0 ) {
+						$attachment = get_post( $item );
+						if ( $attachment && 'attachment' === $attachment->post_type ) {
+							$image_ids[] = (int) $item;
+						}
+					}
+					// Nested arrays (repeater, flexible content)
+					elseif ( is_array( $item ) ) {
+						$nested_images = $this->extract_term_acf_images( $item );
+						$image_ids     = array_merge( $image_ids, $nested_images );
+					}
+				}
+			}
+		}
+
+		return array_unique( $image_ids );
 	}
 }

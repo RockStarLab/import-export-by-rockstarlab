@@ -69,6 +69,7 @@ abstract class Base_Controller {
 	protected function verify_request( $action, $capability = null ) {
 		// Check nonce - using general aie_nonce instead of action-specific
 		$nonce = $this->get_request_param( 'nonce', '' );
+		
 		if ( ! wp_verify_nonce( $nonce, 'aie_nonce' ) ) {
 			return new \WP_Error( 'invalid_nonce', __( 'Security check failed', 'wp-advanced-import-export' ) );
 		}
