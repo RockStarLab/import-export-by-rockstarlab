@@ -27,16 +27,18 @@ class Content_Sync_Controller extends Base_Controller {
 	 */
 	protected function get_ajax_actions() {
 		return array(
-			'content_sync_get_sites'          => array( 'callback' => 'get_sites' ),
-			'content_sync_add_site'           => array( 'callback' => 'add_site' ),
-			'content_sync_update_site'        => array( 'callback' => 'update_site' ),
-			'content_sync_delete_site'        => array( 'callback' => 'delete_site' ),
-			'content_sync_regenerate_key'     => array( 'callback' => 'regenerate_key' ),
-			'content_sync_test_connection'    => array( 'callback' => 'test_connection' ),
-			'content_sync_get_my_key'         => array( 'callback' => 'get_my_site_key' ),
-			'content_sync_regenerate_my_key'  => array( 'callback' => 'regenerate_my_site_key' ),
-			'content_sync_push'               => array( 'callback' => 'push_content' ),
-			'content_sync_pull'               => array( 'callback' => 'pull_content' ),
+			'content_sync_get_sites'             => array( 'callback' => 'get_sites' ),
+			'content_sync_add_site'              => array( 'callback' => 'add_site' ),
+			'content_sync_update_site'           => array( 'callback' => 'update_site' ),
+			'content_sync_delete_site'           => array( 'callback' => 'delete_site' ),
+			'content_sync_regenerate_key'        => array( 'callback' => 'regenerate_key' ),
+			'content_sync_test_connection'       => array( 'callback' => 'test_connection' ),
+			'content_sync_get_my_key'            => array( 'callback' => 'get_my_site_key' ),
+			'content_sync_regenerate_my_key'     => array( 'callback' => 'regenerate_my_site_key' ),
+			'content_sync_get_remote_posts'      => array( 'callback' => 'get_remote_posts' ),
+			'content_sync_get_children_posts'    => array( 'callback' => 'get_children_posts' ),
+			'content_sync_push'                  => array( 'callback' => 'push_content' ),
+			'content_sync_pull'                  => array( 'callback' => 'pull_content' ),
 		);
 	}
 
@@ -598,16 +600,13 @@ class Content_Sync_Controller extends Base_Controller {
 		jQuery(document).ready(function($) {
 			console.log('AIE: Initializing sync button...');
 			
-			// Add Sync Content button after Filter button
-			var syncButton = $('<button>')
-				.attr('type', 'button')
-				.attr('id', 'aie-sync-content-btn')
-				.addClass('button action')
-				.prop('disabled', true)
-				.css('margin-left', '5px')
-				.text('<?php esc_html_e( 'Sync Content', 'wp-advanced-import-export' ); ?>');
-			
-			// Try different selectors to find the right place
+		// Add Sync Content button after Filter button
+		var syncButton = $('<button>')
+			.attr('type', 'button')
+			.attr('id', 'aie-sync-content-btn')
+			.addClass('button action')
+			.css('margin-left', '5px')
+			.text('<?php esc_html_e( 'Sync Content', 'wp-advanced-import-export' ); ?>');			// Try different selectors to find the right place
 			if ($('#post-query-submit').length) {
 				$('#post-query-submit').after(syncButton);
 				console.log('AIE: Sync button added after #post-query-submit');
@@ -618,19 +617,8 @@ class Content_Sync_Controller extends Base_Controller {
 				console.log('AIE: Could not find place to add sync button');
 			}
 			
-			// Enable/disable button based on checkbox selection
-			function updateSyncButtonState() {
-				var checkedCount = $('tbody .check-column input[type="checkbox"]:checked').length;
-				$('#aie-sync-content-btn').prop('disabled', checkedCount === 0);
-				console.log('AIE: Sync button state updated, checked:', checkedCount);
-			}
-			
-			// Check on page load
-			updateSyncButtonState();
-			
-			// Update on checkbox change
-			$(document).on('change', 'tbody .check-column input[type="checkbox"]', updateSyncButtonState);
-			$(document).on('change', '#cb-select-all-1, #cb-select-all-2', updateSyncButtonState);
+			// Sync button is always enabled - can browse remote posts even without local selection
+			// No need to update button state based on checkbox selection
 		});
 		</script>
 		<?php
@@ -691,6 +679,32 @@ class Content_Sync_Controller extends Base_Controller {
 						</button>
 					</div>
 
+					<div class="aie-browse-section">
+						<div class="aie-sync-separator">
+							<span><?php esc_html_e( 'OR', 'wp-advanced-import-export' ); ?></span>
+						</div>
+
+						<div class="aie-browse-remote">
+							<button type="button" id="aie-browse-remote-btn" class="button button-secondary" disabled>
+								<span class="dashicons dashicons-search"></span>
+								<?php esc_html_e( 'Browse & Pull from Site', 'wp-advanced-import-export' ); ?>
+							</button>
+							<p class="description">
+								<?php esc_html_e( 'Browse and select posts from the remote site to pull', 'wp-advanced-import-export' ); ?>
+							</p>
+						</div>
+					</div>
+
+					<div class="aie-no-selection-message" style="display: none;">
+						<p class="description" style="text-align: center; margin-bottom: 15px;">
+							<?php esc_html_e( 'Select a site to browse and pull posts from remote site.', 'wp-advanced-import-export' ); ?>
+						</p>
+						<button type="button" id="aie-browse-remote-btn-alt" class="button button-primary" style="display: block; margin: 0 auto;" disabled>
+							<span class="dashicons dashicons-search"></span>
+							<?php esc_html_e( 'Browse Remote Posts', 'wp-advanced-import-export' ); ?>
+						</button>
+					</div>
+
 					<div id="aie-sync-progress" style="display: none;">
 						<div class="aie-progress-bar">
 							<div class="aie-progress-fill"></div>
@@ -699,6 +713,154 @@ class Content_Sync_Controller extends Base_Controller {
 					</div>
 
 					<div id="aie-sync-result" style="display: none;"></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Post Mapping Modal -->
+		<div id="aie-mapping-modal" class="aie-modal" style="display: none;">
+			<div class="aie-modal-content aie-modal-large">
+				<div class="aie-modal-header">
+					<h2><?php esc_html_e( 'Map Posts for Sync', 'wp-advanced-import-export' ); ?></h2>
+					<button type="button" class="aie-modal-close">&times;</button>
+				</div>
+				<div class="aie-modal-body">
+					<div class="aie-mapping-info">
+						<p><?php esc_html_e( 'Select which posts to update on the remote site, or create new ones:', 'wp-advanced-import-export' ); ?></p>
+						<div class="aie-mapping-actions">
+							<button type="button" id="aie-auto-match-btn" class="button">
+								<span class="dashicons dashicons-admin-links"></span>
+								<?php esc_html_e( 'Auto-match by Title', 'wp-advanced-import-export' ); ?>
+							</button>
+							<button type="button" id="aie-create-all-new-btn" class="button">
+								<span class="dashicons dashicons-plus-alt"></span>
+								<?php esc_html_e( 'Create All New', 'wp-advanced-import-export' ); ?>
+							</button>
+						</div>
+					</div>
+
+					<div id="aie-mapping-loading" class="aie-loading-state" style="display: none;">
+						<div class="aie-spinner"></div>
+						<p><?php esc_html_e( 'Loading posts from remote site...', 'wp-advanced-import-export' ); ?></p>
+					</div>
+
+					<div id="aie-mapping-table-container" style="display: none;">
+						<table class="aie-mapping-table wp-list-table widefat fixed striped">
+							<thead>
+								<tr>
+									<th class="aie-local-post"><?php esc_html_e( 'Local Post', 'wp-advanced-import-export' ); ?></th>
+									<th class="aie-sync-arrow"></th>
+									<th class="aie-remote-post"><?php esc_html_e( 'Remote Site Action', 'wp-advanced-import-export' ); ?></th>
+								</tr>
+							</thead>
+							<tbody id="aie-mapping-tbody">
+								<!-- Populated dynamically -->
+							</tbody>
+						</table>
+					</div>
+
+					<div class="aie-mapping-footer">
+						<button type="button" id="aie-mapping-cancel-btn" class="button">
+							<?php esc_html_e( 'Cancel', 'wp-advanced-import-export' ); ?>
+						</button>
+						<button type="button" id="aie-mapping-confirm-btn" class="button button-primary" disabled>
+							<span id="aie-mapping-btn-text"><?php esc_html_e( 'Confirm & Sync', 'wp-advanced-import-export' ); ?></span>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Browse Remote Posts Modal -->
+		<div id="aie-browse-modal" class="aie-modal aie-browse-library-modal" style="display: none;">
+			<div class="aie-modal-backdrop"></div>
+			<div class="aie-modal-content aie-browse-library-content">
+				<div class="aie-modal-header">
+					<h2 class="aie-modal-title">
+						<span class="dashicons dashicons-admin-post"></span>
+						<?php esc_html_e( 'Browse Remote Posts', 'wp-advanced-import-export' ); ?>
+					</h2>
+					<button type="button" class="aie-modal-close">
+						<span class="dashicons dashicons-no-alt"></span>
+					</button>
+				</div>
+
+				<div class="aie-browse-search-bar">
+					<input type="text" id="aie-browse-search" class="widefat" placeholder="<?php esc_attr_e( 'Search posts...', 'wp-advanced-import-export' ); ?>">
+				</div>
+
+				<div class="aie-modal-body aie-browse-body">
+					<!-- Sidebar with filters -->
+					<div class="aie-browse-sidebar">
+						<h3><?php esc_html_e( 'Filters', 'wp-advanced-import-export' ); ?></h3>
+						
+						<div class="aie-browse-filter-group">
+							<h4><?php esc_html_e( 'Status', 'wp-advanced-import-export' ); ?></h4>
+							<ul class="aie-filter-list" id="aie-browse-status-filter">
+								<li class="aie-filter-item active" data-status="">
+									<span class="dashicons dashicons-category"></span>
+									<?php esc_html_e( 'All', 'wp-advanced-import-export' ); ?>
+									<span class="aie-filter-count">0</span>
+								</li>
+								<li class="aie-filter-item" data-status="publish">
+									<span class="dashicons dashicons-yes"></span>
+									<?php esc_html_e( 'Published', 'wp-advanced-import-export' ); ?>
+									<span class="aie-filter-count">0</span>
+								</li>
+								<li class="aie-filter-item" data-status="draft">
+									<span class="dashicons dashicons-edit"></span>
+									<?php esc_html_e( 'Draft', 'wp-advanced-import-export' ); ?>
+									<span class="aie-filter-count">0</span>
+								</li>
+								<li class="aie-filter-item" data-status="pending">
+									<span class="dashicons dashicons-clock"></span>
+									<?php esc_html_e( 'Pending', 'wp-advanced-import-export' ); ?>
+									<span class="aie-filter-count">0</span>
+								</li>
+							</ul>
+						</div>
+
+						<div class="aie-browse-selection-info">
+							<strong><?php esc_html_e( 'Selected:', 'wp-advanced-import-export' ); ?></strong>
+							<span id="aie-browse-selected-count">0</span>
+						</div>
+					</div>
+
+					<!-- Main content area with posts tree -->
+					<div class="aie-browse-main">
+						<div id="aie-browse-loading" class="aie-loading-posts">
+							<span class="spinner is-active"></span>
+							<p><?php esc_html_e( 'Loading posts from remote site...', 'wp-advanced-import-export' ); ?></p>
+						</div>
+
+						<div id="aie-browse-posts-tree" class="aie-posts-tree" style="display: none;">
+							<!-- Tree will be populated dynamically -->
+						</div>
+
+						<div id="aie-browse-pagination" class="aie-browse-pagination" style="display: none;">
+							<button type="button" id="aie-browse-prev-page" class="button" disabled>
+								<span class="dashicons dashicons-arrow-left-alt2"></span>
+								<?php esc_html_e( 'Previous', 'wp-advanced-import-export' ); ?>
+							</button>
+							<span class="aie-pagination-info">
+								<span id="aie-browse-current-page">1</span> / <span id="aie-browse-total-pages">1</span>
+							</span>
+							<button type="button" id="aie-browse-next-page" class="button">
+								<?php esc_html_e( 'Next', 'wp-advanced-import-export' ); ?>
+								<span class="dashicons dashicons-arrow-right-alt2"></span>
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<div class="aie-modal-footer aie-browse-footer">
+					<button type="button" id="aie-browse-cancel-btn" class="button">
+						<?php esc_html_e( 'Cancel', 'wp-advanced-import-export' ); ?>
+					</button>
+					<button type="button" id="aie-browse-pull-btn" class="button button-primary" disabled>
+						<span class="dashicons dashicons-download"></span>
+						<?php esc_html_e( 'Pull Selected Posts', 'wp-advanced-import-export' ); ?>
+					</button>
 				</div>
 			</div>
 		</div>
@@ -875,6 +1037,152 @@ class Content_Sync_Controller extends Base_Controller {
 	}
 
 	/**
+	 * Get list of posts from remote site for mapping
+	 */
+	public function get_remote_posts() {
+		$verify = $this->verify_request( 'content_sync_get_remote_posts' );
+		if ( is_wp_error( $verify ) ) {
+			$this->send_error( $verify->get_error_message() );
+		}
+
+		$site_id   = $this->get_request_param( 'site_id', 0 );
+		$post_type = $this->get_request_param( 'post_type', 'any' );
+		$search    = $this->get_request_param( 'search', '' );
+		$status    = $this->get_request_param( 'status', '' );
+		$page      = $this->get_request_param( 'page', 1 );
+		$per_page  = $this->get_request_param( 'per_page', 20 );
+
+		// Validate input
+		if ( empty( $site_id ) ) {
+			$this->send_error( __( 'Site ID is required', 'wp-advanced-import-export' ) );
+		}
+
+		// Get site details
+		$site = Connected_Site::get_by_id( $site_id );
+		if ( ! $site ) {
+			$this->send_error( __( 'Site not found', 'wp-advanced-import-export' ) );
+		}
+
+		// Request posts list from remote site
+		$response = wp_remote_post(
+			trailingslashit( $site['remote_url'] ) . 'wp-json/aie/v1/list-posts',
+			array(
+				'timeout' => 30,
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $site['api_key'],
+					'Content-Type'  => 'application/json',
+				),
+				'body'    => wp_json_encode(
+					array(
+						'post_type' => $post_type,
+						'search'    => $search,
+						'status'    => $status,
+						'page'      => $page,
+						'per_page'  => $per_page,
+					)
+				),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			$this->send_error( __( 'Failed to connect to remote site: ', 'wp-advanced-import-export' ) . $response->get_error_message() );
+		}
+
+		$status_code = wp_remote_retrieve_response_code( $response );
+		$body        = wp_remote_retrieve_body( $response );
+
+		if ( $status_code !== 200 ) {
+			$error_data = json_decode( $body, true );
+			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Request failed with status code: %d', 'wp-advanced-import-export' ), $status_code );
+			$this->send_error( $error_msg );
+		}
+
+		$data = json_decode( $body, true );
+		if ( ! isset( $data['success'] ) || ! $data['success'] || ! isset( $data['posts'] ) ) {
+			$this->send_error( __( 'Remote site returned invalid data', 'wp-advanced-import-export' ) );
+		}
+
+		$this->send_success(
+			array(
+				'posts'         => $data['posts'],
+				'total'         => isset( $data['total'] ) ? $data['total'] : count( $data['posts'] ),
+				'pages'         => isset( $data['pages'] ) ? $data['pages'] : 1,
+				'current_page'  => isset( $data['current_page'] ) ? $data['current_page'] : 1,
+				'status_counts' => isset( $data['status_counts'] ) ? $data['status_counts'] : array(),
+			)
+		);
+	}
+
+	/**
+	 * Get children posts from remote site
+	 */
+	public function get_children_posts() {
+		$verify = $this->verify_request( 'content_sync_get_children_posts' );
+		if ( is_wp_error( $verify ) ) {
+			$this->send_error( $verify->get_error_message() );
+		}
+
+		$site_id   = $this->get_request_param( 'site_id', 0 );
+		$parent_id = $this->get_request_param( 'parent_id', 0 );
+
+		// Validate input
+		if ( empty( $site_id ) ) {
+			$this->send_error( __( 'Site ID is required', 'wp-advanced-import-export' ) );
+		}
+
+		if ( empty( $parent_id ) ) {
+			$this->send_error( __( 'Parent ID is required', 'wp-advanced-import-export' ) );
+		}
+
+		// Get site details
+		$site = Connected_Site::get_by_id( $site_id );
+		if ( ! $site ) {
+			$this->send_error( __( 'Site not found', 'wp-advanced-import-export' ) );
+		}
+
+		// Request children posts from remote site
+		$response = wp_remote_post(
+			trailingslashit( $site['remote_url'] ) . 'wp-json/aie/v1/get-children-posts',
+			array(
+				'timeout' => 30,
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $site['api_key'],
+					'Content-Type'  => 'application/json',
+				),
+				'body'    => wp_json_encode(
+					array(
+						'parent_id' => $parent_id,
+					)
+				),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			$this->send_error( __( 'Failed to connect to remote site: ', 'wp-advanced-import-export' ) . $response->get_error_message() );
+		}
+
+		$status_code = wp_remote_retrieve_response_code( $response );
+		$body        = wp_remote_retrieve_body( $response );
+
+		if ( $status_code !== 200 ) {
+			$error_data = json_decode( $body, true );
+			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Request failed with status code: %d', 'wp-advanced-import-export' ), $status_code );
+			$this->send_error( $error_msg );
+		}
+
+		$data = json_decode( $body, true );
+		if ( ! isset( $data['success'] ) || ! $data['success'] || ! isset( $data['children'] ) ) {
+			$this->send_error( __( 'Remote site returned invalid data', 'wp-advanced-import-export' ) );
+		}
+
+		$this->send_success(
+			array(
+				'children' => $data['children'],
+			)
+		);
+	}
+
+	/**
 	 * Push content to remote site
 	 */
 	public function push_content() {
@@ -883,8 +1191,9 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( $verify->get_error_message() );
 		}
 
-		$site_id  = $this->get_request_param( 'site_id', 0 );
-		$post_ids = $this->get_request_array( 'post_ids', array() );
+		$site_id      = $this->get_request_param( 'site_id', 0 );
+		$post_ids     = $this->get_request_array( 'post_ids', array() );
+		$post_mapping = $this->get_request_param( 'post_mapping', array() );
 
 		// Validate input
 		if ( empty( $site_id ) ) {
@@ -893,6 +1202,14 @@ class Content_Sync_Controller extends Base_Controller {
 
 		if ( empty( $post_ids ) || ! is_array( $post_ids ) ) {
 			$this->send_error( __( 'No posts selected', 'wp-advanced-import-export' ) );
+		}
+
+		// Parse post_mapping if it's a JSON string
+		if ( is_string( $post_mapping ) ) {
+			$post_mapping = json_decode( $post_mapping, true );
+		}
+		if ( ! is_array( $post_mapping ) ) {
+			$post_mapping = array();
 		}
 
 		// Get site details
@@ -1027,8 +1344,9 @@ class Content_Sync_Controller extends Base_Controller {
 				),
 				'body'    => wp_json_encode(
 					array(
-						'posts'     => $posts_data,
-						'image_map' => $image_map,
+						'posts'        => $posts_data,
+						'image_map'    => $image_map,
+						'post_mapping' => $post_mapping,
 					)
 				),
 			)
@@ -1164,8 +1482,9 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( $verify->get_error_message() );
 		}
 
-		$site_id  = $this->get_request_param( 'site_id', 0 );
-		$post_ids = $this->get_request_param( 'post_ids', array() );
+		$site_id      = $this->get_request_param( 'site_id', 0 );
+		$post_ids     = $this->get_request_array( 'post_ids', array() );
+		$post_mapping = $this->get_request_param( 'post_mapping', array() );
 
 		// Validate input
 		if ( empty( $site_id ) ) {
@@ -1176,17 +1495,29 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( __( 'No posts selected', 'wp-advanced-import-export' ) );
 		}
 
+		// Parse post_mapping if it's a JSON string
+		if ( is_string( $post_mapping ) ) {
+			$post_mapping = json_decode( $post_mapping, true );
+		}
+		if ( ! is_array( $post_mapping ) ) {
+			$post_mapping = array();
+		}
+
 		// Get site details
 		$site = Connected_Site::get_by_id( $site_id );
 		if ( ! $site ) {
 			$this->send_error( __( 'Site not found', 'wp-advanced-import-export' ) );
 		}
 
+		// Get domains for replacement
+		$source_domain = parse_url( $site['remote_url'], PHP_URL_HOST );
+		$target_domain = parse_url( home_url(), PHP_URL_HOST );
+
 		// Request content from remote site
 		$response = wp_remote_post(
 			trailingslashit( $site['remote_url'] ) . 'wp-json/aie/v1/send-content',
 			array(
-				'timeout' => 30,
+				'timeout' => 60,
 				'headers' => array(
 					'Authorization' => 'Bearer ' . $site['api_key'],
 					'Content-Type'  => 'application/json',
@@ -1222,9 +1553,54 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( __( 'No posts found on remote site', 'wp-advanced-import-export' ) );
 		}
 
+
+		// Get images from remote
+		$remote_images = isset( $data['data']['images'] ) ? $data['data']['images'] : array();
+
+		// Download images from remote site
+		$image_map = array();
+		if ( ! empty( $remote_images ) ) {
+			foreach ( $remote_images as $image ) {
+				$new_attachment_id = $this->download_image_from_remote( $image, $site );
+				if ( $new_attachment_id ) {
+					$image_map[ $image['attachment_id'] ] = $new_attachment_id;
+				}
+			}
+		}
+
+		// Replace domains and image IDs in post data
+		foreach ( $posts_data as &$post_data ) {
+			$post_data = \WP_AIE\Helper\Content_Sync_Replacer::replace_post_domains(
+				$post_data,
+				$source_domain,
+				$target_domain,
+				$image_map
+			);
+		}
+		unset( $post_data ); // Break the reference to avoid bugs in the next foreach loop
+
 		// Import posts
 		$imported_count = 0;
+		$updated_count  = 0;
+
 		foreach ( $posts_data as $post_data ) {
+			$remote_post_id = $post_data['ID'];
+			$local_post_id  = null;
+
+			// Check post mapping
+			if ( isset( $post_mapping[ $remote_post_id ] ) ) {
+				$mapped_value = $post_mapping[ $remote_post_id ];
+				
+				// If mapped to specific ID, use it
+				if ( is_numeric( $mapped_value ) && $mapped_value > 0 ) {
+					$local_post_id = (int) $mapped_value;
+				}
+				// If mapped to "new" or null, create new post (local_post_id stays null)
+			} else {
+				// No mapping provided, use default logic (find by same ID or meta)
+				$local_post_id = $this->find_existing_post_by_original_id( $remote_post_id );
+			}
+
 			// Prepare post data
 			$post_args = array(
 				'post_title'    => $post_data['post_title'],
@@ -1237,52 +1613,267 @@ class Content_Sync_Controller extends Base_Controller {
 				'post_author'   => get_current_user_id(),
 			);
 
-			// Check if post exists by name
-			$existing_post = get_page_by_path( $post_data['post_name'], OBJECT, $post_data['post_type'] );
-			
-			if ( $existing_post ) {
+			if ( $local_post_id ) {
 				// Update existing post
-				$post_args['ID'] = $existing_post->ID;
-				$post_id         = wp_update_post( $post_args );
+				$post_args['ID'] = $local_post_id;
+				$post_id         = wp_update_post( $post_args, true ); // true to get WP_Error on failure
+				if ( ! is_wp_error( $post_id ) && $post_id ) {
+					$updated_count++;
+				}
 			} else {
 				// Create new post
-				$post_id = wp_insert_post( $post_args );
+				$post_id = wp_insert_post( $post_args, true ); // true to get WP_Error on failure
+				if ( ! is_wp_error( $post_id ) && $post_id ) {
+					$imported_count++;
+				}
 			}
 
 			if ( is_wp_error( $post_id ) || ! $post_id ) {
 				continue;
 			}
 
+			// Store original post ID for future reference
+			update_post_meta( $post_id, '_aie_original_post_id', $remote_post_id );
+
 			// Import meta
 			if ( ! empty( $post_data['meta'] ) ) {
 				foreach ( $post_data['meta'] as $key => $value ) {
-					// Skip internal WordPress meta
-					if ( strpos( $key, '_' ) === 0 ) {
-						continue;
-					}
 					update_post_meta( $post_id, $key, $value );
 				}
 			}
 
-			// Import terms
+			// Import terms with ACF fields
 			if ( ! empty( $post_data['terms'] ) ) {
-				foreach ( $post_data['terms'] as $taxonomy => $term_names ) {
-					wp_set_object_terms( $post_id, $term_names, $taxonomy );
+				foreach ( $post_data['terms'] as $taxonomy => $terms_info ) {
+					if ( ! taxonomy_exists( $taxonomy ) ) {
+						continue;
+					}
+
+					$term_ids = array();
+					foreach ( $terms_info as $term_info ) {
+						// Validate term info
+						if ( empty( $term_info['name'] ) || empty( $term_info['slug'] ) ) {
+							continue;
+						}
+
+						// Get or create term
+						$term = term_exists( $term_info['slug'], $taxonomy );
+						if ( ! $term ) {
+							$term = wp_insert_term( $term_info['name'], $taxonomy, array( 'slug' => $term_info['slug'] ) );
+							if ( is_wp_error( $term ) ) {
+								continue;
+							}
+						}
+
+						$term_id = is_array( $term ) ? $term['term_id'] : $term;
+						
+						// Validate term_id
+						if ( empty( $term_id ) || ! is_numeric( $term_id ) ) {
+							continue;
+						}
+						
+						$term_ids[] = (int) $term_id;
+
+						// Import ACF fields for this term
+						if ( ! empty( $term_info['acf'] ) && function_exists( 'update_field' ) ) {
+							foreach ( $term_info['acf'] as $field_key => $field_value ) {
+								update_field( $field_key, $field_value, $taxonomy . '_' . $term_id );
+							}
+						}
+					}
+
+					// Assign terms to post only if we have valid term IDs
+					if ( ! empty( $term_ids ) ) {
+						wp_set_object_terms( $post_id, $term_ids, $taxonomy );
+					}
 				}
 			}
 
-			$imported_count++;
+			// Fix image URLs in content after import
+			$updated_content = $post_data['post_content'];
+			
+			foreach ( $image_map as $old_id => $new_id ) {
+				$new_url = wp_get_attachment_url( $new_id );
+				if ( $new_url ) {
+					
+					// Replace old image URL with new one
+					$pattern = '/(<img[^>]+src=")https?:\/\/[^\/]+\/wp-content\/uploads\/[^"]+(' . preg_quote( basename( $new_url ), '/' ) . ')(")/i';
+					$replacement = '${1}' . $new_url . '${3}';
+					$updated_content = preg_replace( $pattern, $replacement, $updated_content );
+					
+					// Also update wp:image block ID
+					$updated_content = str_replace( '"id":' . $old_id, '"id":' . $new_id, $updated_content );
+					$updated_content = str_replace( 'wp-image-' . $old_id, 'wp-image-' . $new_id, $updated_content );
+				}
+			}
+
+			if ( $updated_content !== $post_data['post_content'] ) {
+				
+				$update_result = wp_update_post(
+					array(
+						'ID'           => $post_id,
+						'post_content' => $updated_content,
+					),
+					true
+				);
+				
+			} else {
+			}
+		}
+
+		$total_processed = $imported_count + $updated_count;
+		$message         = array();
+		
+		if ( $imported_count > 0 ) {
+			$message[] = sprintf(
+				/* translators: %d: number of posts */
+				_n( 'Created %d post', 'Created %d posts', $imported_count, 'wp-advanced-import-export' ),
+				$imported_count
+			);
+		}
+		
+		if ( $updated_count > 0 ) {
+			$message[] = sprintf(
+				/* translators: %d: number of posts */
+				_n( 'Updated %d post', 'Updated %d posts', $updated_count, 'wp-advanced-import-export' ),
+				$updated_count
+			);
 		}
 
 		$this->send_success(
 			array(
-				'message' => sprintf(
-					/* translators: %d: number of posts */
-					__( 'Successfully pulled %d post(s) from remote site', 'wp-advanced-import-export' ),
-					$imported_count
-				),
+				'message' => ! empty( $message ) ? implode( ', ', $message ) : __( 'No posts were processed', 'wp-advanced-import-export' ),
 			)
 		);
+	}
+
+	/**
+	 * Download image from remote site
+	 *
+	 * @param array $image Image data from remote.
+	 * @param array $site Site connection data.
+	 * @return int|false New attachment ID or false on failure
+	 */
+	private function download_image_from_remote( $image, $site ) {
+		// Check if image already exists by hash
+		if ( ! empty( $image['file_hash'] ) ) {
+			$existing_id = $this->find_attachment_by_hash( $image['file_hash'] );
+			if ( $existing_id ) {
+				return $existing_id;
+			}
+		}
+
+		// Download file from remote URL
+		$image_url = $image['url'];
+		$response  = wp_remote_get( $image_url, array( 'timeout' => 30 ) );
+
+		if ( is_wp_error( $response ) ) {
+			return false;
+		}
+
+		$file_contents = wp_remote_retrieve_body( $response );
+		if ( empty( $file_contents ) ) {
+			return false;
+		}
+
+		// Get filename
+		$filename = isset( $image['file_name'] ) ? $image['file_name'] : basename( $image_url );
+
+		// Upload to WordPress
+		$upload = wp_upload_bits( $filename, null, $file_contents );
+		if ( $upload['error'] ) {
+			return false;
+		}
+
+		// Create attachment
+		$attachment = array(
+			'post_mime_type' => isset( $image['mime_type'] ) ? $image['mime_type'] : '',
+			'post_title'     => isset( $image['title'] ) ? $image['title'] : '',
+			'post_content'   => isset( $image['description'] ) ? $image['description'] : '',
+			'post_excerpt'   => isset( $image['caption'] ) ? $image['caption'] : '',
+			'post_status'    => 'inherit',
+		);
+
+		$attachment_id = wp_insert_attachment( $attachment, $upload['file'] );
+		if ( is_wp_error( $attachment_id ) || ! $attachment_id ) {
+			return false;
+		}
+
+		// Generate metadata
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+		$attach_data = wp_generate_attachment_metadata( $attachment_id, $upload['file'] );
+		wp_update_attachment_metadata( $attachment_id, $attach_data );
+
+		// Set alt text
+		if ( ! empty( $image['alt_text'] ) ) {
+			update_post_meta( $attachment_id, '_wp_attachment_image_alt', $image['alt_text'] );
+		}
+
+		// Store file hash
+		if ( ! empty( $image['file_hash'] ) ) {
+			update_post_meta( $attachment_id, '_aie_file_hash', $image['file_hash'] );
+		}
+
+		return $attachment_id;
+	}
+
+	/**
+	 * Find attachment by file hash
+	 *
+	 * @param string $file_hash File MD5 hash.
+	 * @return int|false Attachment ID or false if not found
+	 */
+	private function find_attachment_by_hash( $file_hash ) {
+		// Try to find by stored hash first
+		$attachments = get_posts(
+			array(
+				'post_type'      => 'attachment',
+				'post_status'    => 'any',
+				'posts_per_page' => 1,
+				'meta_key'       => '_aie_file_hash',
+				'meta_value'     => $file_hash,
+				'fields'         => 'ids',
+			)
+		);
+
+		if ( ! empty( $attachments ) ) {
+			return $attachments[0];
+		}
+
+		return false;
+	}
+
+	/**
+	 * Find existing post by original post ID
+	 *
+	 * @param int $original_post_id Original post ID from source site.
+	 * @return int|false Post ID or false if not found
+	 */
+	private function find_existing_post_by_original_id( $original_post_id ) {
+		
+		// First priority: check if post with same ID exists locally
+		$post = get_post( $original_post_id );
+		if ( $post && $post->ID == $original_post_id ) {
+			return $post->ID;
+		}
+
+		// Second priority: try to find by meta (if post was previously synced to different ID)
+		$posts = get_posts(
+			array(
+				'post_type'      => 'any',
+				'post_status'    => 'any',
+				'posts_per_page' => 1,
+				'meta_key'       => '_aie_original_post_id',
+				'meta_value'     => $original_post_id,
+				'fields'         => 'ids',
+			)
+		);
+
+		if ( ! empty( $posts ) ) {
+			return $posts[0];
+		}
+
+		return false;
 	}
 
 	/**
