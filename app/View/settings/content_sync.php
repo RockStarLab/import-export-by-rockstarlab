@@ -6,6 +6,9 @@
  */
 
 defined( 'ABSPATH' ) || exit;
+
+// Check if premium is active
+$is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
 ?>
 
 <div id="wp-aie-content-sync" class="wp-advanced-import-export wrap">
@@ -13,6 +16,25 @@ defined( 'ABSPATH' ) || exit;
 	<p class="description">
 		<?php esc_html_e( 'Manage connections between WordPress sites for content synchronization. Connect multiple sites and sync posts, pages, and other content types.', 'wp-advanced-import-export' ); ?>
 	</p>
+
+	<?php if ( ! $is_premium ) : ?>
+	<!-- Premium Notice -->
+	<div class="aie-premium-notice">
+		<div class="aie-premium-notice-icon">
+			<span class="dashicons dashicons-lock"></span>
+		</div>
+		<div class="aie-premium-notice-content">
+			<h3><?php esc_html_e( 'Premium Feature', 'wp-advanced-import-export' ); ?></h3>
+			<p><?php esc_html_e( 'Content Sync is a premium feature. Upgrade to unlock the ability to synchronize content between multiple WordPress sites seamlessly.', 'wp-advanced-import-export' ); ?></p>
+			<?php if ( function_exists( 'waie_fs' ) ) : ?>
+				<a href="<?php echo esc_url( waie_fs()->get_upgrade_url() ); ?>" class="button button-primary button-large">
+					<span class="dashicons dashicons-star-filled"></span>
+					<?php esc_html_e( 'Upgrade to Premium', 'wp-advanced-import-export' ); ?>
+				</a>
+			<?php endif; ?>
+		</div>
+	</div>
+	<?php endif; ?>
 
 	<!-- Stats Cards -->
 	<div class="aie-content-sync-stats">
@@ -48,6 +70,7 @@ defined( 'ABSPATH' ) || exit;
 	</div>
 
 	<!-- This Site Info Section -->
+	<?php if ( $is_premium ) : ?>
 	<div class="aie-content-sync-section aie-my-site-section">
 		<div class="aie-section-header">
 			<h2><?php esc_html_e( 'This Site Configuration', 'wp-advanced-import-export' ); ?></h2>
@@ -89,12 +112,13 @@ defined( 'ABSPATH' ) || exit;
 			</div>
 		</div>
 	</div>
+	<?php endif; ?>
 
 	<!-- Connected Sites Section -->
 	<div class="aie-content-sync-section">
 		<div class="aie-section-header">
 			<h2><?php esc_html_e( 'Connected Sites', 'wp-advanced-import-export' ); ?></h2>
-			<button type="button" class="button button-primary" id="aie-add-site-btn">
+			<button type="button" class="button button-primary" id="aie-add-site-btn" <?php echo ! $is_premium ? 'disabled' : ''; ?>>
 				<span class="dashicons dashicons-plus-alt"></span>
 				<?php esc_html_e( 'Add New Site', 'wp-advanced-import-export' ); ?>
 			</button>
@@ -109,12 +133,14 @@ defined( 'ABSPATH' ) || exit;
 						<th class="column-url"><?php esc_html_e( 'URL', 'wp-advanced-import-export' ); ?></th>
 						<th class="column-status"><?php esc_html_e( 'Status', 'wp-advanced-import-export' ); ?></th>
 						<th class="column-last-sync"><?php esc_html_e( 'Last Sync', 'wp-advanced-import-export' ); ?></th>
+						<?php if ( $is_premium ) : ?>
 						<th class="column-actions"><?php esc_html_e( 'Actions', 'wp-advanced-import-export' ); ?></th>
+						<?php endif; ?>
 					</tr>
 				</thead>
 				<tbody id="aie-sites-list">
 					<tr class="aie-no-sites">
-						<td colspan="5" style="text-align: center; padding: 40px;">
+						<td colspan="<?php echo $is_premium ? '5' : '4'; ?>" style="text-align: center; padding: 40px;">
 							<span class="dashicons dashicons-admin-site" style="font-size: 48px; opacity: 0.3;"></span>
 							<p style="margin-top: 40px"><?php esc_html_e( 'No connected sites yet. Add your first connection!', 'wp-advanced-import-export' ); ?></p>
 						</td>

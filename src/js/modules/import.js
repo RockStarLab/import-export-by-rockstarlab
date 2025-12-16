@@ -36,6 +36,11 @@ const ImportModule = {
 	bindEvents() {
 		const $wizard = jQuery( '#wp-aie-import' );
 
+		// Content type filter/search
+		$wizard.on( 'input', '#aie-content-type-search', ( e ) =>
+			this.filterContentTypes( e )
+		);
+
 		// Step navigation
 		$wizard.on( 'click', '.aie-next-step', () => this.nextStep() );
 		$wizard.on( 'click', '.aie-prev-step', () => this.prevStep() );
@@ -44,6 +49,22 @@ const ImportModule = {
 		$wizard.on( 'change', 'input[name="content_type"]', ( e ) =>
 			this.onContentTypeChange( e )
 		);
+
+		// Prevent selection of premium locked content types
+		$wizard.on( 'click', '.aie-content-type.aie-premium-locked', ( e ) => {
+			e.preventDefault();
+			e.stopPropagation();
+			
+			// Show upgrade message
+			const message = 'This content type is only available in the Premium version. Upgrade to unlock this feature.';
+			Utils.showNotice( message, 'warning' );
+			
+			// Prevent the radio button from being checked
+			const $input = jQuery( e.currentTarget ).find( 'input[type="radio"]' );
+			$input.prop( 'checked', false );
+			
+			return false;
+		} );
 
 		// File upload
 		jQuery( '#aie-select-file' ).on( 'click', () =>
@@ -267,6 +288,52 @@ const ImportModule = {
 		} else {
 			jQuery( '.aie-post-options' ).show();
 			jQuery( '.aie-media-options' ).hide();
+		}
+	},
+
+	/**
+	 * Filter content types based on search input
+	 */
+	filterContentTypes( e ) {
+		const searchTerm = jQuery( e.target ).val().toLowerCase().trim();
+		const $contentTypes = jQuery( '.aie-content-type' );
+		const $filterCount = jQuery( '.aie-filter-count' );
+		const $filterCountValue = jQuery( '.aie-filter-count-value' );
+		const $noResults = jQuery( '.aie-no-results' );
+		let visibleCount = 0;
+
+		if ( searchTerm === '' ) {
+			// Show all if search is empty
+			$contentTypes.show();
+			$filterCount.hide();
+			$noResults.hide();
+			return;
+		}
+
+		// Filter content types
+		$contentTypes.each( function () {
+			const $this = jQuery( this );
+			const title = $this.find( 'h3' ).text().toLowerCase();
+			const description = $this.find( 'p' ).text().toLowerCase();
+
+			// Check if search term matches title or description
+			if ( title.includes( searchTerm ) || description.includes( searchTerm ) ) {
+				$this.show();
+				visibleCount++;
+			} else {
+				$this.hide();
+			}
+		} );
+
+		// Update and show count
+		$filterCountValue.text( visibleCount );
+		$filterCount.show();
+
+		// Show/hide no results message
+		if ( visibleCount === 0 ) {
+			$noResults.show();
+		} else {
+			$noResults.hide();
 		}
 	},
 

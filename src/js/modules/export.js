@@ -69,6 +69,22 @@ const ExportModule = {
 			this.onContentTypeChange( e )
 		);
 
+		// Prevent selection of premium locked content types
+		$wizard.on( 'click', '.aie-content-type.aie-premium-locked', ( e ) => {
+			e.preventDefault();
+			e.stopPropagation();
+			
+			// Show upgrade message
+			const message = 'This content type is only available in the Premium version. Upgrade to unlock this feature.';
+			Utils.showNotice( message, 'warning' );
+			
+			// Prevent the radio button from being checked
+			const $input = jQuery( e.currentTarget ).find( 'input[type="radio"]' );
+			$input.prop( 'checked', false );
+			
+			return false;
+		} );
+
 		// Filters
 		$wizard.on(
 			'change',
