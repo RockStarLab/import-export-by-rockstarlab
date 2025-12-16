@@ -89,6 +89,26 @@ class Content_Sync_API_Controller {
 					'permission_callback' => array( $this, 'validate_api_key' ),
 				)
 			);
+
+			register_rest_route(
+				'aie/v1',
+				'/list-posts',
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'list_posts' ),
+					'permission_callback' => array( $this, 'validate_api_key' ),
+				)
+			);
+
+			register_rest_route(
+				'aie/v1',
+				'/get-children-posts',
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'get_children_posts' ),
+					'permission_callback' => array( $this, 'validate_api_key' ),
+				)
+			);
 		} catch ( \Exception $e ) {
 			// Log error but don't break the site
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -210,9 +230,9 @@ class Content_Sync_API_Controller {
 			);
 		}
 		
-		$posts_data = $request->get_param( 'posts' );
-		$image_map  = $request->get_param( 'image_map' );
-		
+		$posts_data   = $request->get_param( 'posts' );
+		$image_map    = $request->get_param( 'image_map' );
+		$post_mapping = $request->get_param( 'post_mapping' );
 
 		if ( empty( $posts_data ) || ! is_array( $posts_data ) ) {
 			return new \WP_REST_Response(
@@ -224,11 +244,32 @@ class Content_Sync_API_Controller {
 			);
 		}
 
+		// Parse post_mapping
+		if ( ! is_array( $post_mapping ) ) {
+			$post_mapping = array();
+		}
+
 		$imported_count = 0;
 		$updated_count  = 0;
 		$errors         = array();
 
 		foreach ( $posts_data as $post_data ) {
+			$source_post_id = $post_data['ID'];
+			$target_post_id = null;
+
+			// Check post mapping
+			if ( isset( $post_mapping[ $source_post_id ] ) ) {
+				$mapped_value = $post_mapping[ $source_post_id ];
+				
+				// If mapped to specific ID, use it
+				if ( is_numeric( $mapped_value ) && $mapped_value > 0 ) {
+					$target_post_id = (int) $mapped_value;
+				}
+				// If mapped to "new" or null, create new post (target_post_id stays null)
+			} else {
+				// No mapping provided, use default logic (find by original ID)
+				$target_post_id = $this->find_existing_post( $source_post_id );
+			}
 			
 			// Check if images referenced in content exist
 			if ( preg_match_all( '/wp-image-(\d+)/', $post_data['post_content'], $matches ) ) {
@@ -255,26 +296,32 @@ class Content_Sync_API_Controller {
 				'post_author'  => 1, // Admin user
 			);
 
-			// Check if post exists - try multiple methods
-			$existing_post = $this->find_existing_post( $post_data );
-			
-			if ( $existing_post ) {
-			} else {
-			}
-			
 			$is_update = false;
-			if ( $existing_post ) {
-				// Update existing post
-				$post_args['ID'] = $existing_post->ID;
-				$post_id         = wp_update_post( $post_args );
-				$is_update       = true;
+			
+			// Use target_post_id from mapping if available
+			if ( $target_post_id ) {
+				// Update specific post
+				$existing_post = get_post( $target_post_id );
+				if ( $existing_post ) {
+					$post_args['ID'] = $target_post_id;
+					$post_id         = wp_update_post( $post_args );
+					$is_update       = true;
+				} else {
+					// Mapped ID doesn't exist, create new post
+					$post_id = wp_insert_post( $post_args );
+					
+					// Store original ID for future sync operations
+					if ( ! is_wp_error( $post_id ) && $post_id ) {
+						update_post_meta( $post_id, '_aie_original_post_id', $source_post_id );
+					}
+				}
 			} else {
-				// Create new post
+				// Create new post (no mapping or mapped to "new")
 				$post_id = wp_insert_post( $post_args );
 				
 				// Store original ID for future sync operations
-				if ( ! is_wp_error( $post_id ) && $post_id && isset( $post_data['ID'] ) ) {
-					update_post_meta( $post_id, '_aie_original_post_id', $post_data['ID'] );
+				if ( ! is_wp_error( $post_id ) && $post_id ) {
+					update_post_meta( $post_id, '_aie_original_post_id', $source_post_id );
 				}
 			}
 			
@@ -506,6 +553,7 @@ class Content_Sync_API_Controller {
 		}
 
 		$posts_data = array();
+		$all_images = array();
 
 		foreach ( $post_ids as $post_id ) {
 			$post = get_post( $post_id );
@@ -513,20 +561,81 @@ class Content_Sync_API_Controller {
 				continue;
 			}
 
+			// Extract all images from post
+			$post_images = \WP_AIE\Helper\Content_Sync_Media::extract_post_images( $post_id );
+			
+			// Store images
+			foreach ( $post_images as $image ) {
+				$image_key                = $image['attachment_id'];
+				$all_images[ $image_key ] = $image;
+			}
+
 			// Get post meta
 			$meta          = get_post_meta( $post_id );
 			$prepared_meta = array();
+			
+			// Keys to skip (WordPress internal and potentially problematic)
+			$skip_keys = array(
+				'_edit_lock',
+				'_edit_last',
+				'_wp_old_slug',
+				'_wp_old_date',
+				'_aie_original_post_id', // Our own sync meta
+			);
+			
 			foreach ( $meta as $key => $values ) {
+				// Skip protected keys and certain internal WordPress keys
+				if ( in_array( $key, $skip_keys, true ) ) {
+					continue;
+				}
+				
 				$prepared_meta[ $key ] = maybe_unserialize( $values[0] );
 			}
 
-			// Get post terms
+			// Get post terms with ACF fields
 			$taxonomies = get_object_taxonomies( $post->post_type );
 			$terms_data = array();
 			foreach ( $taxonomies as $taxonomy ) {
 				$terms = wp_get_post_terms( $post_id, $taxonomy );
 				if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
-					$terms_data[ $taxonomy ] = wp_list_pluck( $terms, 'name' );
+					$terms_data[ $taxonomy ] = array();
+					foreach ( $terms as $term ) {
+						$term_info = array(
+							'term_id' => $term->term_id,
+							'name'    => $term->name,
+							'slug'    => $term->slug,
+						);
+
+						// Get ACF fields for this term
+						if ( function_exists( 'get_field_objects' ) ) {
+							$acf_fields = get_field_objects( $taxonomy . '_' . $term->term_id );
+							if ( $acf_fields ) {
+								$term_info['acf'] = array();
+								foreach ( $acf_fields as $field_key => $field ) {
+									$term_info['acf'][ $field_key ] = $field['value'];
+								}
+							}
+						}
+
+						$terms_data[ $taxonomy ][] = $term_info;
+
+						// Extract images from term ACF fields
+						if ( ! empty( $term_info['acf'] ) ) {
+							$term_images = $this->extract_term_acf_images( $term_info['acf'] );
+							foreach ( $term_images as $image_id ) {
+								if ( ! isset( $all_images[ $image_id ] ) ) {
+									$image_data = array(
+										'attachment_id' => $image_id,
+										'url'           => wp_get_attachment_url( $image_id ),
+										'type'          => 'term_acf',
+										'term_id'       => $term->term_id,
+										'taxonomy'      => $taxonomy,
+									);
+									$all_images[ $image_id ] = $image_data;
+								}
+							}
+						}
+					}
 				}
 			}
 
@@ -565,7 +674,8 @@ class Content_Sync_API_Controller {
 					count( $posts_data )
 				),
 				'data'    => array(
-					'posts' => $posts_data,
+					'posts'  => $posts_data,
+					'images' => array_values( $all_images ),
 				),
 			),
 			200
@@ -820,5 +930,258 @@ class Content_Sync_API_Controller {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Extract image IDs from term ACF fields
+	 *
+	 * @param array $acf_data ACF field data.
+	 * @return array Array of image IDs
+	 */
+	private function extract_term_acf_images( $acf_data ) {
+		$image_ids = array();
+
+		foreach ( $acf_data as $key => $value ) {
+			// Single image field (numeric ID)
+			if ( is_numeric( $value ) && $value > 0 ) {
+				$attachment = get_post( $value );
+				if ( $attachment && 'attachment' === $attachment->post_type ) {
+					$image_ids[] = (int) $value;
+				}
+			}
+			// Gallery field (array of IDs)
+			elseif ( is_array( $value ) ) {
+				foreach ( $value as $item ) {
+					if ( is_numeric( $item ) && $item > 0 ) {
+						$attachment = get_post( $item );
+						if ( $attachment && 'attachment' === $attachment->post_type ) {
+							$image_ids[] = (int) $item;
+						}
+					}
+					// Nested arrays (repeater, flexible content)
+					elseif ( is_array( $item ) ) {
+						$nested_images = $this->extract_term_acf_images( $item );
+						$image_ids     = array_merge( $image_ids, $nested_images );
+					}
+				}
+			}
+		}
+
+		return array_unique( $image_ids );
+	}
+
+	/**
+	 * List posts for mapping
+	 *
+	 * @param \WP_REST_Request $request Request object.
+	 * @return \WP_REST_Response
+	 */
+	public function list_posts( $request ) {
+		// Check if premium license is active
+		$is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
+		
+		if ( ! $is_premium ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Premium license is required for Content Sync feature.', 'wp-advanced-import-export' ),
+					'error_code' => 'license_inactive',
+				),
+				403
+			);
+		}
+
+		$post_type = $request->get_param( 'post_type' );
+		$search    = $request->get_param( 'search' );
+		$status    = $request->get_param( 'status' );
+		$page      = absint( $request->get_param( 'page' ) ?: 1 );
+		$per_page  = absint( $request->get_param( 'per_page' ) ?: 20 );
+
+		$args = array(
+			'post_type'      => $post_type ?: 'any',
+			'post_status'    => ! empty( $status ) ? $status : 'any',
+			'posts_per_page' => $per_page,
+			'paged'          => $page,
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+			'post_parent'    => 0, // Get only top-level posts
+		);
+
+		if ( ! empty( $search ) ) {
+			$args['s'] = $search;
+			unset( $args['post_parent'] ); // Search in all posts including children
+		}
+
+		$query      = new \WP_Query( $args );
+		$posts_list = array();
+		$total      = $query->found_posts;
+
+		foreach ( $query->posts as $post ) {
+			$post_data = array(
+				'ID'            => $post->ID,
+				'post_title'    => $post->post_title,
+				'post_type'     => $post->post_type,
+				'post_status'   => $post->post_status,
+				'post_date'     => $post->post_date,
+				'post_modified' => $post->post_modified,
+				'post_parent'   => $post->post_parent,
+			);
+
+			// Get children count
+			$children_count = 0;
+			if ( empty( $search ) ) {
+				$children_count = $this->count_children( $post->ID );
+			}
+			$post_data['children_count'] = $children_count;
+
+			$posts_list[] = $post_data;
+		}
+
+		// Get status counts for filters
+		$status_counts = $this->get_status_counts( $post_type );
+
+		return new \WP_REST_Response(
+			array(
+				'success'       => true,
+				'posts'         => $posts_list,
+				'total'         => $total,
+				'pages'         => ceil( $total / $per_page ),
+				'current_page'  => $page,
+				'per_page'      => $per_page,
+				'status_counts' => $status_counts,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Count direct children of a post
+	 *
+	 * @param int $post_id Post ID.
+	 * @return int Children count.
+	 */
+	private function count_children( $post_id ) {
+		$children = get_posts(
+			array(
+				'post_parent'    => $post_id,
+				'post_type'      => 'any',
+				'post_status'    => 'any',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+			)
+		);
+		return count( $children );
+	}
+
+	/**
+	 * Get status counts for filters
+	 *
+	 * @param string $post_type Post type.
+	 * @return array Status counts.
+	 */
+	private function get_status_counts( $post_type ) {
+		$counts = array(
+			'all'     => 0,
+			'publish' => 0,
+			'draft'   => 0,
+			'pending' => 0,
+		);
+
+		$statuses = array( 'publish', 'draft', 'pending', 'private', 'future' );
+
+		foreach ( $statuses as $status ) {
+			$count_query = new \WP_Query(
+				array(
+					'post_type'      => $post_type ?: 'any',
+					'post_status'    => $status,
+					'posts_per_page' => 1,
+					'fields'         => 'ids',
+				)
+			);
+
+			$count = $count_query->found_posts;
+
+			if ( $status === 'publish' || $status === 'private' || $status === 'future' ) {
+				$counts['publish'] += $count;
+			} elseif ( isset( $counts[ $status ] ) ) {
+				$counts[ $status ] = $count;
+			}
+
+			$counts['all'] += $count;
+		}
+
+		return $counts;
+	}
+
+	/**
+	 * Get children posts of a parent
+	 *
+	 * @param \WP_REST_Request $request Request object.
+	 * @return \WP_REST_Response Response.
+	 */
+	public function get_children_posts( $request ) {
+		// Check if premium license is active
+		$is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
+		
+		if ( ! $is_premium ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Premium license is required for Content Sync feature.', 'wp-advanced-import-export' ),
+					'error_code' => 'license_inactive',
+				),
+				403
+			);
+		}
+
+		$parent_id = absint( $request->get_param( 'parent_id' ) );
+
+		if ( empty( $parent_id ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Parent ID is required.', 'wp-advanced-import-export' ),
+				),
+				400
+			);
+		}
+
+		$children = get_posts(
+			array(
+				'post_parent'    => $parent_id,
+				'post_type'      => 'any',
+				'post_status'    => 'any',
+				'posts_per_page' => -1,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+			)
+		);
+
+		$children_list = array();
+
+		foreach ( $children as $child ) {
+			$child_data = array(
+				'ID'            => $child->ID,
+				'post_title'    => $child->post_title,
+				'post_type'     => $child->post_type,
+				'post_status'   => $child->post_status,
+				'post_date'     => $child->post_date,
+				'post_modified' => $child->post_modified,
+				'post_parent'   => $child->post_parent,
+			);
+
+			// Check if this child has children
+			$child_data['children_count'] = $this->count_children( $child->ID );
+
+			$children_list[] = $child_data;
+		}
+
+		return new \WP_REST_Response(
+			array(
+				'success'  => true,
+				'children' => $children_list,
+			),
+			200
+		);
 	}
 }
