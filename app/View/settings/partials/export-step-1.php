@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
 	<div class="aie-step-content">
 		<?php
 		// Check if premium is active
-		$is_premium = function_exists( 'waie_fs' ) && waie_fs()->is_premium();
+		$is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
 		?>
 		
 		<!-- Search/Filter Field -->
@@ -44,7 +44,7 @@ defined( 'ABSPATH' ) || exit;
 		</div>
 		
 		<div class="aie-content-types">
-			<!-- Free Features -->
+			<!-- Free Features: Blog Posts & Pages -->
 			<label class="aie-content-type">
 				<input type="radio" name="content_type" value="post" checked>
 				<div class="aie-content-type-card">
@@ -63,112 +63,148 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 			</label>
 
-			<label class="aie-content-type">
-				<input type="radio" name="content_type" value="media">
+			<!-- Premium Features -->
+			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
+				<input type="radio" name="content_type" value="custom_post_types"<?php echo $is_premium ? '' : ' disabled'; ?>>
+				<div class="aie-content-type-card">
+					<span class="dashicons dashicons-admin-generic"></span>
+					<h3><?php esc_html_e( 'Custom Post Types', 'wp-advanced-import-export' ); ?></h3>
+					<p><?php esc_html_e( 'Export custom post types', 'wp-advanced-import-export' ); ?></p>
+					<?php if ( ! $is_premium ) : ?>
+						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'wp-advanced-import-export' ); ?></span>
+					<?php endif; ?>
+				</div>
+			</label>
+
+			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
+				<input type="radio" name="content_type" value="media"<?php echo $is_premium ? '' : ' disabled'; ?>>
 				<div class="aie-content-type-card">
 					<span class="dashicons dashicons-admin-media"></span>
 					<h3><?php esc_html_e( 'Media', 'wp-advanced-import-export' ); ?></h3>
 					<p><?php esc_html_e( 'Export media files data', 'wp-advanced-import-export' ); ?></p>
+					<?php if ( ! $is_premium ) : ?>
+						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'wp-advanced-import-export' ); ?></span>
+					<?php endif; ?>
 				</div>
 			</label>
 
-			<label class="aie-content-type">
-				<input type="radio" name="content_type" value="menu">
+			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
+				<input type="radio" name="content_type" value="menu"<?php echo $is_premium ? '' : ' disabled'; ?>>
 				<div class="aie-content-type-card">
 					<span class="dashicons dashicons-menu"></span>
 					<h3><?php esc_html_e( 'Menus', 'wp-advanced-import-export' ); ?></h3>
 					<p><?php esc_html_e( 'Export navigation menus', 'wp-advanced-import-export' ); ?></p>
+					<?php if ( ! $is_premium ) : ?>
+						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'wp-advanced-import-export' ); ?></span>
+					<?php endif; ?>
 				</div>
 			</label>
 
-			<label class="aie-content-type">
-				<input type="radio" name="content_type" value="user">
+			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
+				<input type="radio" name="content_type" value="user"<?php echo $is_premium ? '' : ' disabled'; ?>>
 				<div class="aie-content-type-card">
 					<span class="dashicons dashicons-admin-users"></span>
 					<h3><?php esc_html_e( 'Users', 'wp-advanced-import-export' ); ?></h3>
 					<p><?php esc_html_e( 'Export user accounts', 'wp-advanced-import-export' ); ?></p>
+					<?php if ( ! $is_premium ) : ?>
+						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'wp-advanced-import-export' ); ?></span>
+					<?php endif; ?>
 				</div>
 			</label>
 
-			<label class="aie-content-type">
-				<input type="radio" name="content_type" value="comment">
+			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
+				<input type="radio" name="content_type" value="comment"<?php echo $is_premium ? '' : ' disabled'; ?>>
 				<div class="aie-content-type-card">
 					<span class="dashicons dashicons-admin-comments"></span>
 					<h3><?php esc_html_e( 'Comments', 'wp-advanced-import-export' ); ?></h3>
 					<p><?php esc_html_e( 'Export comments and reviews', 'wp-advanced-import-export' ); ?></p>
+					<?php if ( ! $is_premium ) : ?>
+						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'wp-advanced-import-export' ); ?></span>
+					<?php endif; ?>
 				</div>
 			</label>
 
-			<label class="aie-content-type">
-				<input type="radio" name="content_type" value="block_theme_settings">
+			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
+				<input type="radio" name="content_type" value="block_theme_settings"<?php echo $is_premium ? '' : ' disabled'; ?>>
 				<div class="aie-content-type-card">
 					<span class="dashicons dashicons-admin-customizer"></span>
 					<h3><?php esc_html_e( 'Block Theme Settings', 'wp-advanced-import-export' ); ?></h3>
 					<p><?php esc_html_e( 'Export block theme customizations', 'wp-advanced-import-export' ); ?></p>
+					<?php if ( ! $is_premium ) : ?>
+						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'wp-advanced-import-export' ); ?></span>
+					<?php endif; ?>
 				</div>
 			</label>
 
-			<label class="aie-content-type">
-				<input type="radio" name="content_type" value="taxonomy">
+			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
+				<input type="radio" name="content_type" value="taxonomy"<?php echo $is_premium ? '' : ' disabled'; ?>>
 				<div class="aie-content-type-card">
 					<span class="dashicons dashicons-category"></span>
 					<h3><?php esc_html_e( 'Taxonomy Terms', 'wp-advanced-import-export' ); ?></h3>
 					<p><?php esc_html_e( 'Export categories, tags, and custom taxonomies', 'wp-advanced-import-export' ); ?></p>
+					<?php if ( ! $is_premium ) : ?>
+						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'wp-advanced-import-export' ); ?></span>
+					<?php endif; ?>
 				</div>
 			</label>
 
-			<!-- Premium Features -->
-			<label class="aie-content-type">
-				<input type="radio" name="content_type" value="custom_post_types" <?php echo ! $is_premium ? 'disabled' : ''; ?>>
-				<div class="aie-content-type-card <?php echo ! $is_premium ? 'aie-disabled' : ''; ?>">
-					<span class="dashicons dashicons-admin-post"></span>
-					<h3><?php esc_html_e( 'Custom Post Types', 'wp-advanced-import-export' ); ?></h3>
-					<p><?php echo ! $is_premium ? esc_html__( 'Premium feature', 'wp-advanced-import-export' ) : esc_html__( 'Export custom post types', 'wp-advanced-import-export' ); ?></p>
-				</div>
-			</label>
-
-			<label class="aie-content-type">
-				<input type="radio" name="content_type" value="woo_product" <?php echo ! $is_premium ? 'disabled' : ''; ?>>
-				<div class="aie-content-type-card <?php echo ! $is_premium ? 'aie-disabled' : ''; ?>">
+			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
+				<input type="radio" name="content_type" value="woo_product"<?php echo $is_premium ? '' : ' disabled'; ?>>
+				<div class="aie-content-type-card">
 					<span class="dashicons dashicons-products"></span>
 					<h3><?php esc_html_e( 'WooCommerce Products', 'wp-advanced-import-export' ); ?></h3>
-					<p><?php echo ! $is_premium ? esc_html__( 'Premium feature', 'wp-advanced-import-export' ) : esc_html__( 'Export WooCommerce products', 'wp-advanced-import-export' ); ?></p>
+					<p><?php esc_html_e( 'Export WooCommerce products', 'wp-advanced-import-export' ); ?></p>
+					<?php if ( ! $is_premium ) : ?>
+						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'wp-advanced-import-export' ); ?></span>
+					<?php endif; ?>
 				</div>
 			</label>
 
-			<label class="aie-content-type">
-				<input type="radio" name="content_type" value="woo_order" <?php echo ! $is_premium ? 'disabled' : ''; ?>>
-				<div class="aie-content-type-card <?php echo ! $is_premium ? 'aie-disabled' : ''; ?>">
+			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
+				<input type="radio" name="content_type" value="woo_order"<?php echo $is_premium ? '' : ' disabled'; ?>>
+				<div class="aie-content-type-card">
 					<span class="dashicons dashicons-cart"></span>
 					<h3><?php esc_html_e( 'WooCommerce Orders (8.0+)', 'wp-advanced-import-export' ); ?></h3>
-					<p><?php echo ! $is_premium ? esc_html__( 'Premium feature', 'wp-advanced-import-export' ) : esc_html__( 'Export WooCommerce orders', 'wp-advanced-import-export' ); ?></p>
+					<p><?php esc_html_e( 'Export WooCommerce orders', 'wp-advanced-import-export' ); ?></p>
+					<?php if ( ! $is_premium ) : ?>
+						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'wp-advanced-import-export' ); ?></span>
+					<?php endif; ?>
 				</div>
 			</label>
 
-			<label class="aie-content-type">
-				<input type="radio" name="content_type" value="woo_coupon" <?php echo ! $is_premium ? 'disabled' : ''; ?>>
-				<div class="aie-content-type-card <?php echo ! $is_premium ? 'aie-disabled' : ''; ?>">
+			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
+				<input type="radio" name="content_type" value="woo_coupon"<?php echo $is_premium ? '' : ' disabled'; ?>>
+				<div class="aie-content-type-card">
 					<span class="dashicons dashicons-tickets-alt"></span>
 					<h3><?php esc_html_e( 'WooCommerce Coupons', 'wp-advanced-import-export' ); ?></h3>
-					<p><?php echo ! $is_premium ? esc_html__( 'Premium feature', 'wp-advanced-import-export' ) : esc_html__( 'Export WooCommerce coupons', 'wp-advanced-import-export' ); ?></p>
+					<p><?php esc_html_e( 'Export WooCommerce coupons', 'wp-advanced-import-export' ); ?></p>
+					<?php if ( ! $is_premium ) : ?>
+						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'wp-advanced-import-export' ); ?></span>
+					<?php endif; ?>
 				</div>
 			</label>
 
-			<label class="aie-content-type">
-				<input type="radio" name="content_type" value="woo_attribute" <?php echo ! $is_premium ? 'disabled' : ''; ?>>
-				<div class="aie-content-type-card <?php echo ! $is_premium ? 'aie-disabled' : ''; ?>">
+			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
+				<input type="radio" name="content_type" value="woo_attribute"<?php echo $is_premium ? '' : ' disabled'; ?>>
+				<div class="aie-content-type-card">
 					<span class="dashicons dashicons-tag"></span>
 					<h3><?php esc_html_e( 'WooCommerce Attributes', 'wp-advanced-import-export' ); ?></h3>
-					<p><?php echo ! $is_premium ? esc_html__( 'Premium feature', 'wp-advanced-import-export' ) : esc_html__( 'Export WooCommerce attributes', 'wp-advanced-import-export' ); ?></p>
+					<p><?php esc_html_e( 'Export WooCommerce attributes', 'wp-advanced-import-export' ); ?></p>
+					<?php if ( ! $is_premium ) : ?>
+						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'wp-advanced-import-export' ); ?></span>
+					<?php endif; ?>
 				</div>
 			</label>
 
-			<label class="aie-content-type">
-				<input type="radio" name="content_type" value="database_table" <?php echo ! $is_premium ? 'disabled' : ''; ?>>
-				<div class="aie-content-type-card <?php echo ! $is_premium ? 'aie-disabled' : ''; ?>">
+			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
+				<input type="radio" name="content_type" value="database_table"<?php echo $is_premium ? '' : ' disabled'; ?>>
+				<div class="aie-content-type-card">
 					<span class="dashicons dashicons-database-view"></span>
 					<h3><?php esc_html_e( 'MySQL Database Table', 'wp-advanced-import-export' ); ?></h3>
-					<p><?php echo ! $is_premium ? esc_html__( 'Premium feature', 'wp-advanced-import-export' ) : esc_html__( 'Export any MySQL table fields', 'wp-advanced-import-export' ); ?></p>
+					<p><?php esc_html_e( 'Export any MySQL table fields', 'wp-advanced-import-export' ); ?></p>
+					<?php if ( ! $is_premium ) : ?>
+						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'wp-advanced-import-export' ); ?></span>
+					<?php endif; ?>
 				</div>
 			</label>
 		</div>

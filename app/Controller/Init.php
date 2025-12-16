@@ -293,7 +293,8 @@ class Init {
 				'wp-advanced-import-export-scripts',
 				'aieContentSync',
 				array(
-					'nonce' => wp_create_nonce( 'aie_nonce' ),
+					'nonce'     => wp_create_nonce( 'aie_nonce' ),
+					'isPremium' => function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code(),
 				)
 			);
 		}

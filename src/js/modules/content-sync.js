@@ -145,6 +145,24 @@ const ContentSyncModule = {
 				? new Date(site.last_sync_at).toLocaleString()
 				: 'Never';
 
+			// Check if premium is active
+			const isPremium = typeof aieContentSync !== 'undefined' && aieContentSync.isPremium;
+
+			// Build actions column only for premium users
+			const actionsColumn = isPremium ? `
+				<td class="column-actions">
+					<button type="button" class="button button-small aie-test-connection" data-site-id="${site.id}" title="Test Connection">
+						<span class="dashicons dashicons-update"></span>
+					</button>
+					<button type="button" class="button button-small aie-edit-site" data-site-id="${site.id}" title="Edit">
+						<span class="dashicons dashicons-edit"></span>
+					</button>
+					<button type="button" class="button button-small aie-delete-site" data-site-id="${site.id}" title="Delete">
+						<span class="dashicons dashicons-trash"></span>
+					</button>
+				</td>
+			` : '';
+
 			const row = `
 				<tr data-site-id="${site.id}">
 					<td class="column-name">
@@ -163,17 +181,7 @@ const ContentSyncModule = {
 					<td class="column-last-sync">
 						${lastSync}
 					</td>
-					<td class="column-actions">
-						<button type="button" class="button button-small aie-test-connection" data-site-id="${site.id}" title="Test Connection">
-							<span class="dashicons dashicons-update"></span>
-						</button>
-						<button type="button" class="button button-small aie-edit-site" data-site-id="${site.id}" title="Edit">
-							<span class="dashicons dashicons-edit"></span>
-						</button>
-						<button type="button" class="button button-small aie-delete-site" data-site-id="${site.id}" title="Delete">
-							<span class="dashicons dashicons-trash"></span>
-						</button>
-					</td>
+					${actionsColumn}
 				</tr>
 			`;
 

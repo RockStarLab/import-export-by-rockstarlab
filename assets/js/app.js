@@ -577,7 +577,13 @@ var ContentSyncModule = {
     sites.forEach(function (site) {
       var statusClass = "aie-status-".concat(site.status);
       var lastSync = site.last_sync_at ? new Date(site.last_sync_at).toLocaleString() : 'Never';
-      var row = "\n\t\t\t\t<tr data-site-id=\"".concat(site.id, "\">\n\t\t\t\t\t<td class=\"column-name\">\n\t\t\t\t\t\t<strong>").concat(_this3.escapeHtml(site.name), "</strong>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"column-url\">\n\t\t\t\t\t\t<a href=\"").concat(_this3.escapeHtml(site.remote_url), "\" target=\"_blank\" rel=\"noopener noreferrer\">\n\t\t\t\t\t\t\t").concat(_this3.escapeHtml(site.remote_url), "\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"column-status\">\n\t\t\t\t\t\t<span class=\"aie-status-badge ").concat(statusClass, "\">\n\t\t\t\t\t\t\t").concat(_this3.escapeHtml(site.status), "\n\t\t\t\t\t\t</span>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"column-last-sync\">\n\t\t\t\t\t\t").concat(lastSync, "\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"column-actions\">\n\t\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-test-connection\" data-site-id=\"").concat(site.id, "\" title=\"Test Connection\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-update\"></span>\n\t\t\t\t\t\t</button>\n\t\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-edit-site\" data-site-id=\"").concat(site.id, "\" title=\"Edit\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-edit\"></span>\n\t\t\t\t\t\t</button>\n\t\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-delete-site\" data-site-id=\"").concat(site.id, "\" title=\"Delete\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-trash\"></span>\n\t\t\t\t\t\t</button>\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
+
+      // Check if premium is active
+      var isPremium = typeof aieContentSync !== 'undefined' && aieContentSync.isPremium;
+
+      // Build actions column only for premium users
+      var actionsColumn = isPremium ? "\n\t\t\t\t<td class=\"column-actions\">\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-test-connection\" data-site-id=\"".concat(site.id, "\" title=\"Test Connection\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-update\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-edit-site\" data-site-id=\"").concat(site.id, "\" title=\"Edit\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-edit\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-delete-site\" data-site-id=\"").concat(site.id, "\" title=\"Delete\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-trash\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t</td>\n\t\t\t") : '';
+      var row = "\n\t\t\t\t<tr data-site-id=\"".concat(site.id, "\">\n\t\t\t\t\t<td class=\"column-name\">\n\t\t\t\t\t\t<strong>").concat(_this3.escapeHtml(site.name), "</strong>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"column-url\">\n\t\t\t\t\t\t<a href=\"").concat(_this3.escapeHtml(site.remote_url), "\" target=\"_blank\" rel=\"noopener noreferrer\">\n\t\t\t\t\t\t\t").concat(_this3.escapeHtml(site.remote_url), "\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"column-status\">\n\t\t\t\t\t\t<span class=\"aie-status-badge ").concat(statusClass, "\">\n\t\t\t\t\t\t\t").concat(_this3.escapeHtml(site.status), "\n\t\t\t\t\t\t</span>\n\t\t\t\t\t</td>\n\t\t\t\t\t<td class=\"column-last-sync\">\n\t\t\t\t\t\t").concat(lastSync, "\n\t\t\t\t\t</td>\n\t\t\t\t\t").concat(actionsColumn, "\n\t\t\t\t</tr>\n\t\t\t");
       $tbody.append(row);
     });
   },
@@ -1065,6 +1071,21 @@ var ContentUpdater = {
     // Content type selection
     $wizard.on('change', 'input[name="updater_content_type"]', function (e) {
       return _this.onContentTypeChange(e);
+    });
+
+    // Prevent selection of premium locked content types
+    $wizard.on('click', '.aie-content-type.aie-premium-locked', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Show upgrade message
+      var message = 'This content type is only available in the Premium version. Upgrade to unlock this feature.';
+      _utils__WEBPACK_IMPORTED_MODULE_0__["default"].showNotice(message, 'warning');
+
+      // Prevent the radio button from being checked
+      var $input = jQuery(e.currentTarget).find('input[type="radio"]');
+      $input.prop('checked', false);
+      return false;
     });
 
     // Filter events (Step 2)
@@ -4583,6 +4604,21 @@ var ExportModule = (_ExportModule = {
     // Content type
     $wizard.on('change', 'input[name="content_type"]', function (e) {
       return _this2.onContentTypeChange(e);
+    });
+
+    // Prevent selection of premium locked content types
+    $wizard.on('click', '.aie-content-type.aie-premium-locked', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Show upgrade message
+      var message = 'This content type is only available in the Premium version. Upgrade to unlock this feature.';
+      _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(message, 'warning');
+
+      // Prevent the radio button from being checked
+      var $input = jQuery(e.currentTarget).find('input[type="radio"]');
+      $input.prop('checked', false);
+      return false;
     });
 
     // Filters
@@ -8934,6 +8970,11 @@ var ImportModule = {
     var _this = this;
     var $wizard = jQuery('#wp-aie-import');
 
+    // Content type filter/search
+    $wizard.on('input', '#aie-content-type-search', function (e) {
+      return _this.filterContentTypes(e);
+    });
+
     // Step navigation
     $wizard.on('click', '.aie-next-step', function () {
       return _this.nextStep();
@@ -8945,6 +8986,21 @@ var ImportModule = {
     // Content type selection
     $wizard.on('change', 'input[name="content_type"]', function (e) {
       return _this.onContentTypeChange(e);
+    });
+
+    // Prevent selection of premium locked content types
+    $wizard.on('click', '.aie-content-type.aie-premium-locked', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Show upgrade message
+      var message = 'This content type is only available in the Premium version. Upgrade to unlock this feature.';
+      _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(message, 'warning');
+
+      // Prevent the radio button from being checked
+      var $input = jQuery(e.currentTarget).find('input[type="radio"]');
+      $input.prop('checked', false);
+      return false;
     });
 
     // File upload
@@ -9156,6 +9212,50 @@ var ImportModule = {
     } else {
       jQuery('.aie-post-options').show();
       jQuery('.aie-media-options').hide();
+    }
+  },
+  /**
+   * Filter content types based on search input
+   */
+  filterContentTypes: function filterContentTypes(e) {
+    var searchTerm = jQuery(e.target).val().toLowerCase().trim();
+    var $contentTypes = jQuery('.aie-content-type');
+    var $filterCount = jQuery('.aie-filter-count');
+    var $filterCountValue = jQuery('.aie-filter-count-value');
+    var $noResults = jQuery('.aie-no-results');
+    var visibleCount = 0;
+    if (searchTerm === '') {
+      // Show all if search is empty
+      $contentTypes.show();
+      $filterCount.hide();
+      $noResults.hide();
+      return;
+    }
+
+    // Filter content types
+    $contentTypes.each(function () {
+      var $this = jQuery(this);
+      var title = $this.find('h3').text().toLowerCase();
+      var description = $this.find('p').text().toLowerCase();
+
+      // Check if search term matches title or description
+      if (title.includes(searchTerm) || description.includes(searchTerm)) {
+        $this.show();
+        visibleCount++;
+      } else {
+        $this.hide();
+      }
+    });
+
+    // Update and show count
+    $filterCountValue.text(visibleCount);
+    $filterCount.show();
+
+    // Show/hide no results message
+    if (visibleCount === 0) {
+      $noResults.show();
+    } else {
+      $noResults.hide();
     }
   },
   /**

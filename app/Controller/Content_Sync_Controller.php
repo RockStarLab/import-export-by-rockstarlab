@@ -508,6 +508,11 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Register hooks for post list screens
 	 */
 	public function register_post_list_hooks() {
+		// Only register hooks if premium is active
+		if ( ! function_exists( 'waie_fs' ) || ! waie_fs()->can_use_premium_code() ) {
+			return;
+		}
+
 		// Load assets for post list screens
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_post_list_assets' ) );
 		
