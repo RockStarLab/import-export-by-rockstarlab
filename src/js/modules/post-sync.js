@@ -153,40 +153,98 @@ const PostSync = {
 			return;
 		}
 
-		// Show progress
+		// Show enhanced progress
 		$('#aie-sync-progress').show();
 		$('#aie-sync-result').hide();
-		$('.aie-progress-fill').css('width', '0%');
-		$('.aie-progress-text').text(`Starting ${direction}...`);
+		this.updateProgress(0, `Preparing to ${direction} content...`, {
+			posts: 0,
+			images: 0,
+			total: postIds.length
+		});
 
 		// Disable buttons
 		$('#aie-sync-push-btn, #aie-sync-pull-btn, #aie-sync-site-select').prop('disabled', true);
 
+		// Simulate progress for better UX
+		let simulatedProgress = 10;
+		const progressInterval = setInterval(() => {
+			if (simulatedProgress < 90) {
+				simulatedProgress += 5;
+				this.updateProgress(simulatedProgress, `${direction === 'push' ? 'Uploading' : 'Downloading'} content...`, {
+					posts: Math.floor((postIds.length * simulatedProgress) / 100),
+					total: postIds.length
+				});
+			}
+		}, 300);
+
 		// Make AJAX request
+		const nonce = (typeof aiePostSyncData !== 'undefined' && aiePostSyncData.nonce) 
+			? aiePostSyncData.nonce 
+			: (typeof aieContentSync !== 'undefined' && aieContentSync.nonce) 
+				? aieContentSync.nonce 
+				: (typeof aieData !== 'undefined' && aieData.nonce) 
+					? aieData.nonce 
+					: '';
+
+		const ajaxUrl = (typeof ajaxurl !== 'undefined') 
+			? ajaxurl 
+			: (typeof aiePostSyncData !== 'undefined' && aiePostSyncData.ajaxurl) 
+				? aiePostSyncData.ajaxurl 
+				: '/wp-admin/admin-ajax.php';
+
+		console.log('AIE PostSync: Using nonce:', nonce);
+		console.log('AIE PostSync: Using ajaxUrl:', ajaxUrl);
+
+		const ajaxData = {
+			action: `aie_content_sync_${direction}`,
+			nonce: nonce,
+			site_id: siteId,
+			post_ids: postIds,
+		};
+
+		console.log('AIE PostSync: Sending data:', ajaxData);
+
 		$.ajax({
-			url: ajaxurl,
+			url: ajaxUrl,
 			type: 'POST',
-			data: {
-				action: `aie_content_sync_${direction}`,
-				nonce: aieContentSync.nonce,
-				site_id: siteId,
-				post_ids: postIds,
-			},
+			data: ajaxData,
 			success: (response) => {
+				clearInterval(progressInterval);
+				
 				if (response.success) {
-					$('.aie-progress-fill').css('width', '100%');
-					$('.aie-progress-text').text('Completed!');
+					const data = response.data || {};
+					const imageCount = data.images_synced || 0;
+					
+					this.updateProgress(100, 'Completed successfully!', {
+						posts: postIds.length,
+						images: imageCount,
+						total: postIds.length
+					});
 
 					setTimeout(() => {
 						$('#aie-sync-progress').hide();
-						this.showResult('success', response.data.message || 'Sync completed successfully');
-					}, 500);
+						
+						// Build detailed success message
+						let successMsg = response.data.message || 'Sync completed successfully';
+						if (data.created && data.updated) {
+							successMsg = `✓ Created ${data.created} post(s), Updated ${data.updated} post(s)`;
+						}
+						if (imageCount > 0) {
+							successMsg += `<br>✓ Synced ${imageCount} image(s)`;
+						}
+						
+						this.showResult('success', successMsg);
+					}, 800);
 				} else {
-					$('#aie-sync-progress').hide();
-					this.showResult('error', response.data.message || 'Sync failed');
+					this.updateProgress(0, 'Sync failed', {});
+					setTimeout(() => {
+						$('#aie-sync-progress').hide();
+						this.showResult('error', response.data.message || 'Sync failed');
+					}, 500);
 				}
 			},
 			error: (xhr) => {
+				clearInterval(progressInterval);
 				$('#aie-sync-progress').hide();
 				
 				let errorMessage = 'An error occurred during sync';
@@ -197,11 +255,38 @@ const PostSync = {
 				this.showResult('error', errorMessage);
 			},
 			complete: () => {
+				clearInterval(progressInterval);
 				// Re-enable buttons
 				$('#aie-sync-push-btn, #aie-sync-pull-btn, #aie-sync-site-select').prop('disabled', false);
 				this.updateSyncButtons();
 			},
 		});
+	},
+
+	/**
+	 * Update progress bar with details
+	 */
+	updateProgress(percent, message, details = {}) {
+		const $ = jQuery;
+		
+		$('.aie-progress-fill').css('width', `${percent}%`);
+		
+		// Build detailed progress message
+		let progressText = `<strong>${message}</strong>`;
+		
+		if (details.posts !== undefined && details.total) {
+			progressText += `<br><span class="progress-details">Posts: ${details.posts}/${details.total}</span>`;
+		}
+		
+		if (details.images !== undefined && details.images > 0) {
+			progressText += `<br><span class="progress-details">Images synced: ${details.images}</span>`;
+		}
+		
+		if (percent > 0 && percent < 100) {
+			progressText += `<br><span class="progress-percentage">${Math.round(percent)}%</span>`;
+		}
+		
+		$('.aie-progress-text').html(progressText);
 	},
 
 	/**

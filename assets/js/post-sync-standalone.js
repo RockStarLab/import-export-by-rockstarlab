@@ -175,12 +175,16 @@
       $('#aie-sync-push-btn, #aie-sync-pull-btn, #aie-sync-site-select').prop('disabled', true);
 
       // Make AJAX request
+      var nonce = typeof aiePostSyncData !== 'undefined' && aiePostSyncData.nonce ? aiePostSyncData.nonce : '';
+      var ajaxUrl = typeof aiePostSyncData !== 'undefined' && aiePostSyncData.ajaxurl ? aiePostSyncData.ajaxurl : ajaxurl;
+      console.log('AIE PostSync Standalone: Using nonce:', nonce);
+      console.log('AIE PostSync Standalone: Using ajaxUrl:', ajaxUrl);
       $.ajax({
-        url: ajaxurl,
+        url: ajaxUrl,
         type: 'POST',
         data: {
           action: "aie_content_sync_".concat(direction),
-          nonce: aiePostSync.nonce,
+          nonce: nonce,
           site_id: siteId,
           post_ids: postIds
         },
