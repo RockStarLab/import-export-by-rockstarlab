@@ -36,6 +36,7 @@ class Content_Sync_Controller extends Base_Controller {
 			'content_sync_get_my_key'            => array( 'callback' => 'get_my_site_key' ),
 			'content_sync_regenerate_my_key'     => array( 'callback' => 'regenerate_my_site_key' ),
 			'content_sync_get_remote_posts'      => array( 'callback' => 'get_remote_posts' ),
+			'content_sync_search_remote_posts'   => array( 'callback' => 'search_remote_posts' ),
 			'content_sync_get_children_posts'    => array( 'callback' => 'get_children_posts' ),
 			'content_sync_push'                  => array( 'callback' => 'push_content' ),
 			'content_sync_pull'                  => array( 'callback' => 'pull_content' ),
@@ -567,12 +568,25 @@ class Content_Sync_Controller extends Base_Controller {
 		// Localize script
 		$nonce = wp_create_nonce( 'aie_nonce' );
 		
+		// Get connected sites for Select2 AJAX
+		$sites = Connected_Site::get_all();
+		$sites_map = array();
+		foreach ( $sites as $site ) {
+			$sites_map[ $site['id'] ] = array(
+				'id'         => $site['id'],
+				'name'       => $site['name'],
+				'remote_url' => $site['remote_url'],
+				'api_key'    => $site['api_key'], // Needed for remote API calls
+			);
+		}
+		
 		wp_localize_script(
 			'aie-post-sync',
 			'aiePostSyncData',
 			array(
-				'nonce'   => $nonce,
-				'ajaxurl' => admin_url( 'admin-ajax.php' ),
+				'nonce'          => $nonce,
+				'ajaxurl'        => admin_url( 'admin-ajax.php' ),
+				'connectedSites' => $sites_map,
 			)
 		);
 
@@ -748,6 +762,14 @@ class Content_Sync_Controller extends Base_Controller {
 				'status_counts' => isset( $data['status_counts'] ) ? $data['status_counts'] : array(),
 			)
 		);
+	}
+
+	/**
+	 * Search remote posts with pagination (alias for get_remote_posts for Select2)
+	 */
+	public function search_remote_posts() {
+		// This is just an alias for get_remote_posts with a different action name
+		return $this->get_remote_posts();
 	}
 
 	/**

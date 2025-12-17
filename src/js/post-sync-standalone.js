@@ -5,6 +5,9 @@
  * This is a standalone version that doesn't require the main app.js
  */
 
+import 'select2';
+import 'select2/dist/css/select2.min.css';
+
 (function($) {
 	'use strict';
 
@@ -463,13 +466,7 @@
 			const $select = $('<select>').addClass('aie-remote-select').attr('data-local-id', postId);
 
 			// Add "Create New" option
-			$select.append(`<option value="new" class="aie-option-new">➕ Create New Post</option>`);
-			$select.append(`<option value="" disabled>──────────</option>`);
-
-			// Add remote posts options
-			remotePosts.forEach(post => {
-				$select.append(`<option value="${post.id}" class="aie-option-update">🔄 Update: ${post.title} (ID: ${post.id})</option>`);
-			});
+			$select.append(`<option value="new" selected class="aie-option-new">➕ Create New Post</option>`);
 
 			const $wrapper = $('<div>').addClass('aie-remote-select-wrapper aie-action-new');
 			$wrapper.append($select);
@@ -477,7 +474,109 @@
 
 			$row.append($localCol, $arrowCol, $remoteCol);
 
+			// Initialize Select2 after row is added to DOM
+			setTimeout(() => {
+				this.initializeSelect2($select, postTitle, postType);
+			}, 100);
+
 			return $row;
+		},
+
+		/**
+		 * Initialize Select2 on a select element with AJAX
+		 */
+		initializeSelect2($select, localPostTitle, localPostType) {
+			const siteId = this.currentSiteId;
+			const siteInfo = (typeof aiePostSyncData !== 'undefined' && aiePostSyncData.connectedSites) 
+				? aiePostSyncData.connectedSites[siteId] 
+				: null;
+			
+			if (!siteInfo) {
+				console.error('Site info not found for siteId:', siteId);
+				return;
+			}
+
+			const ajaxUrl = (typeof aiePostSyncData !== 'undefined' && aiePostSyncData.ajaxurl) 
+				? aiePostSyncData.ajaxurl 
+				: ajaxurl;
+			const nonce = (typeof aiePostSyncData !== 'undefined' && aiePostSyncData.nonce) 
+				? aiePostSyncData.nonce 
+				: '';
+
+			// Get human-readable post type label
+			const postTypeLabel = localPostType === 'post' ? 'post' : 
+								  localPostType === 'page' ? 'page' : 
+								  localPostType;
+
+			$select.select2({
+				placeholder: `Search for a ${postTypeLabel} to update...`,
+				allowClear: false,
+				width: '100%',
+				minimumInputLength: 0,
+				ajax: {
+					url: ajaxUrl,
+					dataType: 'json',
+					delay: 300,
+					data: (params) => {
+						return {
+							action: 'aie_content_sync_search_remote_posts',
+							nonce: nonce,
+							site_id: siteId,
+							search: params.term || '',
+							page: params.page || 1,
+							per_page: 10,
+							post_type: localPostType || 'post'
+						};
+					},
+					processResults: (response, params) => {
+						params.page = params.page || 1;
+						
+						if (!response.success || !response.data) {
+							return { results: [] };
+						}
+
+						const results = response.data.posts || [];
+						const formattedResults = results.map(post => ({
+							id: post.ID,
+							text: `🔄 Update: ${post.post_title} (ID: ${post.ID})`,
+							title: post.post_title,
+							post_type: post.post_type,
+							post_date: post.post_date
+						}));
+
+						// Add "Create New" option at the beginning if it's the first page
+						if (params.page === 1) {
+							formattedResults.unshift({
+								id: 'new',
+								text: '➕ Create New Post'
+							});
+						}
+
+						return {
+							results: formattedResults,
+							pagination: {
+								more: (params.page * 10) < (response.data.total || 0)
+							}
+						};
+					},
+					cache: true
+				},
+				escapeMarkup: (markup) => markup,
+				templateResult: (item) => {
+					if (!item.id) return item.text;
+					return $('<span>').html(item.text);
+				},
+				templateSelection: (item) => {
+					// Update wrapper class based on selection
+					const $wrapper = $select.closest('.aie-remote-select-wrapper');
+					if (item.id === 'new') {
+						$wrapper.removeClass('aie-action-update').addClass('aie-action-new');
+					} else {
+						$wrapper.removeClass('aie-action-new').addClass('aie-action-update');
+					}
+					return item.text;
+				}
+			});
 		},
 
 		/**
@@ -509,12 +608,6 @@
 				this.autoMatchByTitle();
 			});
 
-			// Create all new button
-			$(document).off('click', '#aie-create-all-new-btn').on('click', '#aie-create-all-new-btn', (e) => {
-				e.preventDefault();
-				$('.aie-remote-select').val('new').trigger('change');
-			});
-
 			// Select change
 			$(document).off('change', '.aie-remote-select').on('change', '.aie-remote-select', function() {
 				const value = $(this).val();
@@ -533,28 +626,76 @@
 		 * Auto-match posts by title
 		 */
 		autoMatchByTitle() {
+			const siteId = this.currentSiteId;
+			const ajaxUrl = (typeof aiePostSyncData !== 'undefined' && aiePostSyncData.ajaxurl) 
+				? aiePostSyncData.ajaxurl 
+				: ajaxurl;
+			const nonce = (typeof aiePostSyncData !== 'undefined' && aiePostSyncData.nonce) 
+				? aiePostSyncData.nonce 
+				: '';
+
+			// Process each select
 			$('.aie-remote-select').each((i, select) => {
 				const $select = $(select);
 				const localId = $select.data('local-id');
-				const localTitle = $(`[data-local-id="${localId}"] .aie-local-post-info h4`).text().trim().toLowerCase();
+				const $row = $(`tr[data-local-id="${localId}"]`);
+				const localTitle = $row.find('.aie-local-post-info h4').text().trim();
+				const localType = $row.find('.aie-post-type').text().trim();
 
-				// Find matching remote post by title
-				let matchFound = false;
-				$select.find('option').each(function() {
-					const optionText = $(this).text().toLowerCase();
-					const optionValue = $(this).val();
-					
-					if (optionValue !== 'new' && optionValue !== '' && optionText.includes(localTitle)) {
-						$select.val(optionValue).trigger('change');
-						matchFound = true;
-						return false; // break
+				// Search for remote post with exact title
+				$.ajax({
+					url: ajaxUrl,
+					type: 'POST',
+					data: {
+						action: 'aie_content_sync_search_remote_posts',
+						nonce: nonce,
+						site_id: siteId,
+						search: localTitle,
+						page: 1,
+						per_page: 5,
+						post_type: localType || 'post'
+					},
+					success: (response) => {
+						if (response.success && response.data && response.data.posts) {
+							const posts = response.data.posts;
+							let matchFound = false;
+
+							// Try to find exact title match
+							for (const post of posts) {
+								if (post.post_title.toLowerCase() === localTitle.toLowerCase()) {
+									// Create new option if it doesn't exist
+									const optionExists = $select.find(`option[value="${post.ID}"]`).length > 0;
+									if (!optionExists) {
+										const newOption = new Option(
+											`🔄 Update: ${post.post_title} (ID: ${post.ID})`,
+											post.ID,
+											false,
+											true
+										);
+										$select.append(newOption);
+									}
+									
+									// Set value and trigger change
+									$select.val(post.ID).trigger('change');
+									matchFound = true;
+									break;
+								}
+							}
+
+							// If no exact match found, keep "Create New"
+							if (!matchFound) {
+								$select.val('new').trigger('change');
+							}
+						} else {
+							// No results, keep "Create New"
+							$select.val('new').trigger('change');
+						}
+					},
+					error: () => {
+						// On error, keep "Create New"
+						$select.val('new').trigger('change');
 					}
 				});
-
-				// If no match, set to "new"
-				if (!matchFound) {
-					$select.val('new').trigger('change');
-				}
 			});
 		},
 
