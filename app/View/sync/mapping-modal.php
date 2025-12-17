@@ -6,7 +6,7 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 
-<div id="aie-mapping-modal" class="aie-modal" style="display: none;">
+<div id="aie-mapping-modal" class="aie-modal aie-mapping-modal" style="display: none;">
 	<div class="aie-modal-content aie-modal-large">
 		<div class="aie-modal-header">
 			<h2><?php esc_html_e( 'Map Posts for Sync', 'wp-advanced-import-export' ); ?></h2>
@@ -19,10 +19,6 @@ defined( 'ABSPATH' ) || exit;
 					<button type="button" id="aie-auto-match-btn" class="button">
 						<span class="dashicons dashicons-admin-links"></span>
 						<?php esc_html_e( 'Auto-match by Title', 'wp-advanced-import-export' ); ?>
-					</button>
-					<button type="button" id="aie-create-all-new-btn" class="button">
-						<span class="dashicons dashicons-plus-alt"></span>
-						<?php esc_html_e( 'Create All New', 'wp-advanced-import-export' ); ?>
 					</button>
 				</div>
 			</div>

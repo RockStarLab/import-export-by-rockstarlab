@@ -48,34 +48,6 @@ defined( 'ABSPATH' ) || exit;
 				</button>
 			</div>
 
-			<div class="aie-browse-section">
-				<div class="aie-sync-separator">
-					<span><?php esc_html_e( 'OR', 'wp-advanced-import-export' ); ?></span>
-				</div>
-
-				<div class="aie-browse-remote">
-					<button type="button" id="aie-browse-remote-btn" class="button button-secondary" disabled>
-						<span class="dashicons dashicons-search"></span>
-						<?php esc_html_e( 'Browse & Pull from Site', 'wp-advanced-import-export' ); ?>
-					</button>
-					<p class="description">
-						<?php esc_html_e( 'Browse and select posts from the remote site to pull', 'wp-advanced-import-export' ); ?>
-					</p>
-				</div>
-			</div>
-
-			<div class="aie-no-selection-message" style="display: none;">
-				<p class="description" style="text-align: center; margin-bottom: 15px;">
-					<?php esc_html_e( 'Select a site to browse and pull posts from remote site.', 'wp-advanced-import-export' ); ?>
-				</p>
-				<div style="display: flex; justify-content: center; align-items: center;">
-					<button type="button" id="aie-browse-remote-btn-alt" class="button button-primary" disabled>
-						<span class="dashicons dashicons-search"></span>
-						<?php esc_html_e( 'Browse Remote Posts', 'wp-advanced-import-export' ); ?>
-					</button>
-				</div>
-			</div>
-
 			<div id="aie-sync-progress" style="display: none;">
 				<div class="aie-progress-bar">
 					<div class="aie-progress-fill"></div>
