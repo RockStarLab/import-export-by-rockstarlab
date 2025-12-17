@@ -34,44 +34,42 @@
 				this.openSyncModal();
 			});
 
-			// Close modal
-			$(document).on('click', '.aie-modal-close', (e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				const $modal = $(e.currentTarget).closest('.aie-modal');
-				const modalId = $modal.attr('id');
-				
+		// Close modal
+		$(document).on('click', '.aie-modal-close', (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			const $modal = $(e.currentTarget).closest('.aie-modal');
+			const modalId = $modal.attr('id');
+			
+			if (modalId === 'aie-browse-modal') {
+				this.closeBrowseModal(false); // Close everything when clicking X button
+			} else if (modalId === 'aie-mapping-modal') {
+				this.closeMappingModal();
+			} else if (modalId === 'aie-sync-modal') {
+				this.closeSyncModal();
+			}
+		});
+
+		$(document).on('click', '.aie-modal', (e) => {
+			if (e.target === e.currentTarget) {
+				const modalId = $(e.target).attr('id');
 				if (modalId === 'aie-browse-modal') {
-					this.closeBrowseModal();
+					this.closeBrowseModal(false); // Close everything when clicking outside modal
 				} else if (modalId === 'aie-mapping-modal') {
 					this.closeMappingModal();
-				} else if (modalId === 'aie-sync-modal') {
+				} else {
 					this.closeSyncModal();
 				}
-			});
+			}
+		});
 
-			$(document).on('click', '.aie-modal', (e) => {
-				if (e.target === e.currentTarget) {
-					const modalId = $(e.target).attr('id');
-					if (modalId === 'aie-browse-modal') {
-						this.closeBrowseModal();
-					} else if (modalId === 'aie-mapping-modal') {
-						this.closeMappingModal();
-					} else {
-						this.closeSyncModal();
-					}
-				}
-			});
-
-			// Close modal on backdrop click
-			$(document).on('click', '.aie-modal-backdrop', (e) => {
-				const $modal = $(e.target).closest('.aie-modal');
-				if ($modal.attr('id') === 'aie-browse-modal') {
-					this.closeBrowseModal();
-				}
-			});
-
-			// Enable/disable sync buttons based on site selection
+		// Close modal on backdrop click
+		$(document).on('click', '.aie-modal-backdrop', (e) => {
+			const $modal = $(e.target).closest('.aie-modal');
+			if ($modal.attr('id') === 'aie-browse-modal') {
+				this.closeBrowseModal(false); // Close everything when clicking backdrop
+			}
+		});			// Enable/disable sync buttons based on site selection
 			$(document).on('change', '#aie-sync-site-select', () => {
 				this.updateSyncButtons();
 			});
@@ -194,7 +192,7 @@
 					this.closeSyncModal();
 				}
 				if (e.key === 'Escape' && $('#aie-browse-modal').is(':visible')) {
-					this.closeBrowseModal();
+					this.closeBrowseModal(false); // Close everything when pressing Escape
 				}
 			});
 		},
@@ -243,15 +241,25 @@
 		/**
 		 * Close sync modal
 		 */
-		closeSyncModal() {
+		closeSyncModal(keepSiteSelection = false) {
 			// Reset syncing flag
 			this.isSyncing = false;
 
 			$('#aie-sync-modal').fadeOut(200, () => {
+				// Reset site selection (unless specified to keep it)
+				if (!keepSiteSelection) {
+					$('#aie-sync-site-select').val('');
+				}
+				
 				// Reset modal state - show initial sections again
 				$('.aie-sync-info, .aie-form-group, .aie-sync-direction, .aie-browse-section').css('display', '');
 				$('#aie-sync-progress, #aie-sync-result, .aie-no-selection-message').css('display', 'none');
 				$('.aie-progress-fill').css('width', '0%');
+				
+				// Update button states (unless we're keeping site selection for browse modal)
+				if (!keepSiteSelection) {
+					this.updateSyncButtons();
+				}
 			});
 		},
 
@@ -311,7 +319,7 @@
 			// If we have a pending browse modal request and site is now selected, open it
 			if (this.pendingBrowseModal && siteSelected) {
 				this.pendingBrowseModal = false;
-				this.closeSyncModal();
+				this.closeSyncModal(true); // Keep site selection when transitioning to browse modal
 				// Small delay to allow modal close animation
 				setTimeout(() => {
 					this.openBrowseModal();
@@ -701,11 +709,21 @@
 
 		/**
 		 * Close browse modal
+		 * @param {boolean} returnToChooseSite - If true, return to Choose Site modal; if false, close everything
 		 */
-		closeBrowseModal() {
+		closeBrowseModal(returnToChooseSite = true) {
 			$('#aie-browse-modal').fadeOut(200, () => {
-				// Return back to Choose Site modal
-				$('#aie-sync-modal').fadeIn(200);
+				if (returnToChooseSite) {
+					// Return back to Choose Site modal with site selection preserved
+					$('#aie-sync-modal').fadeIn(200, () => {
+						// Update UI to reflect current state (hide Push/Pull if no posts selected)
+						this.updateSyncButtons();
+					});
+				} else {
+					// Close everything and reset
+					$('#aie-sync-site-select').val('').trigger('change');
+					this.updateSyncButtons();
+				}
 			});
 		},
 
