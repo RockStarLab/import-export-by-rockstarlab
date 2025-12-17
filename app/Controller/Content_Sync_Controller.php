@@ -534,7 +534,7 @@ class Content_Sync_Controller extends Base_Controller {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_post_list_assets' ) );
 		
 		// Add sync button and modal to post list screens
-		add_action( 'admin_footer-edit.php', array( $this, 'render_sync_button_script' ) );
+		add_action( 'restrict_manage_posts', array( $this, 'render_sync_button' ) );
 		add_action( 'admin_footer-edit.php', array( $this, 'render_sync_modal' ) );
 		
 		// Add sync button to post edit screen
@@ -583,45 +583,51 @@ class Content_Sync_Controller extends Base_Controller {
 			array(),
 			filemtime( plugin_dir_path( WP_AIE_FILE ) . 'assets/css/app.css' )
 		);
+		
+		// Enqueue Gutenberg sync script for post edit screens
+		if ( in_array( $hook_suffix, array( 'post.php', 'post-new.php' ) ) ) {
+			global $post;
+			
+			// Only show for posts being edited
+			if ( $post ) {
+				// Enqueue the Gutenberg sync script
+				wp_enqueue_script(
+					'aie-gutenberg-sync',
+					plugins_url( 'assets/js/gutenberg-sync.js', WP_AIE_FILE ),
+					array( 'jquery', 'wp-editor', 'wp-data', 'wp-element', 'wp-components' ),
+					filemtime( plugin_dir_path( WP_AIE_FILE ) . 'assets/js/gutenberg-sync.js' ),
+					true
+				);
+				
+				// Localize script with necessary data
+				wp_localize_script(
+					'aie-gutenberg-sync',
+					'aieData',
+					array(
+						'nonce'   => wp_create_nonce( 'aie_nonce' ),
+						'ajaxurl' => admin_url( 'admin-ajax.php' ),
+						'i18n'    => array(
+							'syncContent'  => __( 'Sync Content', 'wp-advanced-import-export' ),
+							'syncThisPost' => __( 'Sync This Post', 'wp-advanced-import-export' ),
+						),
+					)
+				);
+			}
+		}
 	}
 
 	/**
-	 * Add JavaScript for button rendering and state management
+	 * Render sync button on post list screen
 	 */
-	public function render_sync_button_script() {
+	public function render_sync_button() {
 		global $typenow;
 		
 		// Only show on post list screens
 		if ( empty( $typenow ) ) {
 			return;
 		}
-		?>
-		<script type="text/javascript">
-		jQuery(document).ready(function($) {
-			console.log('AIE: Initializing sync button...');
-			
-		// Add Sync Content button after Filter button
-		var syncButton = $('<button>')
-			.attr('type', 'button')
-			.attr('id', 'aie-sync-content-btn')
-			.addClass('button action')
-			.css('margin-left', '5px')
-			.text('<?php esc_html_e( 'Sync Content', 'wp-advanced-import-export' ); ?>');			// Try different selectors to find the right place
-			if ($('#post-query-submit').length) {
-				$('#post-query-submit').after(syncButton);
-				console.log('AIE: Sync button added after #post-query-submit');
-			} else if ($('.tablenav .actions:first').length) {
-				$('.tablenav .actions:first').append(syncButton);
-				console.log('AIE: Sync button added to first .actions');
-			} else {
-				console.log('AIE: Could not find place to add sync button');
-			}
-			
-			// Sync button is always enabled - can browse remote posts even without local selection
-			// No need to update button state based on checkbox selection
-		});
-		</script>
-		<?php
+		
+		require WP_AIE_PATH . '/app/View/sync/sync-button.php';
 	}
 
 	/**
@@ -637,234 +643,11 @@ class Content_Sync_Controller extends Base_Controller {
 
 		// Get connected sites
 		$sites = Connected_Site::get_all();
-		?>
-		<script>console.log('AIE: Rendering sync modal, typenow:', '<?php echo esc_js( $typenow ); ?>', 'sites count:', <?php echo count( $sites ); ?>);</script>
-		<div id="aie-sync-modal" class="aie-modal" style="display: none;">
-			<div class="aie-modal-content">
-				<div class="aie-modal-header">
-					<h2><?php esc_html_e( 'Sync Content', 'wp-advanced-import-export' ); ?></h2>
-					<button type="button" class="aie-modal-close">&times;</button>
-				</div>
-				<div class="aie-modal-body">
-					<div class="aie-sync-info">
-						<p>
-							<strong><?php esc_html_e( 'Selected posts:', 'wp-advanced-import-export' ); ?></strong>
-							<span id="aie-selected-count">0</span>
-						</p>
-					</div>
-					
-					<div class="aie-form-group">
-						<label for="aie-sync-site-select">
-							<?php esc_html_e( 'Select Site', 'wp-advanced-import-export' ); ?>
-						</label>
-						<select id="aie-sync-site-select" class="aie-form-control">
-							<option value=""><?php esc_html_e( '-- Select Site --', 'wp-advanced-import-export' ); ?></option>
-							<?php foreach ( $sites as $site ) : ?>
-								<option value="<?php echo esc_attr( $site['id'] ); ?>" data-site-name="<?php echo esc_attr( $site['name'] ); ?>">
-									<?php echo esc_html( $site['name'] ); ?>
-									(<?php echo esc_html( $site['remote_url'] ); ?>)
-								</option>
-							<?php endforeach; ?>
-						</select>
-					</div>
-
-					<div class="aie-sync-direction">
-						<button type="button" id="aie-sync-push-btn" class="button button-primary" disabled>
-							<span class="dashicons dashicons-upload"></span>
-							<?php esc_html_e( 'Push to Site', 'wp-advanced-import-export' ); ?>
-						</button>
-						<button type="button" id="aie-sync-pull-btn" class="button button-primary" disabled>
-							<span class="dashicons dashicons-download"></span>
-							<?php esc_html_e( 'Pull from Site', 'wp-advanced-import-export' ); ?>
-						</button>
-					</div>
-
-					<div class="aie-browse-section">
-						<div class="aie-sync-separator">
-							<span><?php esc_html_e( 'OR', 'wp-advanced-import-export' ); ?></span>
-						</div>
-
-						<div class="aie-browse-remote">
-							<button type="button" id="aie-browse-remote-btn" class="button button-secondary" disabled>
-								<span class="dashicons dashicons-search"></span>
-								<?php esc_html_e( 'Browse & Pull from Site', 'wp-advanced-import-export' ); ?>
-							</button>
-							<p class="description">
-								<?php esc_html_e( 'Browse and select posts from the remote site to pull', 'wp-advanced-import-export' ); ?>
-							</p>
-						</div>
-					</div>
-
-					<div class="aie-no-selection-message" style="display: none;">
-						<p class="description" style="text-align: center; margin-bottom: 15px;">
-							<?php esc_html_e( 'Select a site to browse and pull posts from remote site.', 'wp-advanced-import-export' ); ?>
-						</p>
-						<button type="button" id="aie-browse-remote-btn-alt" class="button button-primary" style="display: block; margin: 0 auto;" disabled>
-							<span class="dashicons dashicons-search"></span>
-							<?php esc_html_e( 'Browse Remote Posts', 'wp-advanced-import-export' ); ?>
-						</button>
-					</div>
-
-					<div id="aie-sync-progress" style="display: none;">
-						<div class="aie-progress-bar">
-							<div class="aie-progress-fill"></div>
-						</div>
-						<p class="aie-progress-text"></p>
-					</div>
-
-					<div id="aie-sync-result" style="display: none;"></div>
-				</div>
-			</div>
-		</div>
-
-		<!-- Post Mapping Modal -->
-		<div id="aie-mapping-modal" class="aie-modal" style="display: none;">
-			<div class="aie-modal-content aie-modal-large">
-				<div class="aie-modal-header">
-					<h2><?php esc_html_e( 'Map Posts for Sync', 'wp-advanced-import-export' ); ?></h2>
-					<button type="button" class="aie-modal-close">&times;</button>
-				</div>
-				<div class="aie-modal-body">
-					<div class="aie-mapping-info">
-						<p><?php esc_html_e( 'Select which posts to update on the remote site, or create new ones:', 'wp-advanced-import-export' ); ?></p>
-						<div class="aie-mapping-actions">
-							<button type="button" id="aie-auto-match-btn" class="button">
-								<span class="dashicons dashicons-admin-links"></span>
-								<?php esc_html_e( 'Auto-match by Title', 'wp-advanced-import-export' ); ?>
-							</button>
-							<button type="button" id="aie-create-all-new-btn" class="button">
-								<span class="dashicons dashicons-plus-alt"></span>
-								<?php esc_html_e( 'Create All New', 'wp-advanced-import-export' ); ?>
-							</button>
-						</div>
-					</div>
-
-					<div id="aie-mapping-loading" class="aie-loading-state" style="display: none;">
-						<div class="aie-spinner"></div>
-						<p><?php esc_html_e( 'Loading posts from remote site...', 'wp-advanced-import-export' ); ?></p>
-					</div>
-
-					<div id="aie-mapping-table-container" style="display: none;">
-						<table class="aie-mapping-table wp-list-table widefat fixed striped">
-							<thead>
-								<tr>
-									<th class="aie-local-post"><?php esc_html_e( 'Local Post', 'wp-advanced-import-export' ); ?></th>
-									<th class="aie-sync-arrow"></th>
-									<th class="aie-remote-post"><?php esc_html_e( 'Remote Site Action', 'wp-advanced-import-export' ); ?></th>
-								</tr>
-							</thead>
-							<tbody id="aie-mapping-tbody">
-								<!-- Populated dynamically -->
-							</tbody>
-						</table>
-					</div>
-
-					<div class="aie-mapping-footer">
-						<button type="button" id="aie-mapping-cancel-btn" class="button">
-							<?php esc_html_e( 'Cancel', 'wp-advanced-import-export' ); ?>
-						</button>
-						<button type="button" id="aie-mapping-confirm-btn" class="button button-primary" disabled>
-							<span id="aie-mapping-btn-text"><?php esc_html_e( 'Confirm & Sync', 'wp-advanced-import-export' ); ?></span>
-						</button>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<!-- Browse Remote Posts Modal -->
-		<div id="aie-browse-modal" class="aie-modal aie-browse-library-modal" style="display: none;">
-			<div class="aie-modal-backdrop"></div>
-			<div class="aie-modal-content aie-browse-library-content">
-				<div class="aie-modal-header">
-					<h2 class="aie-modal-title">
-						<span class="dashicons dashicons-admin-post"></span>
-						<?php esc_html_e( 'Browse Remote Posts', 'wp-advanced-import-export' ); ?>
-					</h2>
-					<button type="button" class="aie-modal-close">
-						<span class="dashicons dashicons-no-alt"></span>
-					</button>
-				</div>
-
-				<div class="aie-browse-search-bar">
-					<input type="text" id="aie-browse-search" class="widefat" placeholder="<?php esc_attr_e( 'Search posts...', 'wp-advanced-import-export' ); ?>">
-				</div>
-
-				<div class="aie-modal-body aie-browse-body">
-					<!-- Sidebar with filters -->
-					<div class="aie-browse-sidebar">
-						<h3><?php esc_html_e( 'Filters', 'wp-advanced-import-export' ); ?></h3>
-						
-						<div class="aie-browse-filter-group">
-							<h4><?php esc_html_e( 'Status', 'wp-advanced-import-export' ); ?></h4>
-							<ul class="aie-filter-list" id="aie-browse-status-filter">
-								<li class="aie-filter-item active" data-status="">
-									<span class="dashicons dashicons-category"></span>
-									<?php esc_html_e( 'All', 'wp-advanced-import-export' ); ?>
-									<span class="aie-filter-count">0</span>
-								</li>
-								<li class="aie-filter-item" data-status="publish">
-									<span class="dashicons dashicons-yes"></span>
-									<?php esc_html_e( 'Published', 'wp-advanced-import-export' ); ?>
-									<span class="aie-filter-count">0</span>
-								</li>
-								<li class="aie-filter-item" data-status="draft">
-									<span class="dashicons dashicons-edit"></span>
-									<?php esc_html_e( 'Draft', 'wp-advanced-import-export' ); ?>
-									<span class="aie-filter-count">0</span>
-								</li>
-								<li class="aie-filter-item" data-status="pending">
-									<span class="dashicons dashicons-clock"></span>
-									<?php esc_html_e( 'Pending', 'wp-advanced-import-export' ); ?>
-									<span class="aie-filter-count">0</span>
-								</li>
-							</ul>
-						</div>
-
-						<div class="aie-browse-selection-info">
-							<strong><?php esc_html_e( 'Selected:', 'wp-advanced-import-export' ); ?></strong>
-							<span id="aie-browse-selected-count">0</span>
-						</div>
-					</div>
-
-					<!-- Main content area with posts tree -->
-					<div class="aie-browse-main">
-						<div id="aie-browse-loading" class="aie-loading-posts">
-							<span class="spinner is-active"></span>
-							<p><?php esc_html_e( 'Loading posts from remote site...', 'wp-advanced-import-export' ); ?></p>
-						</div>
-
-						<div id="aie-browse-posts-tree" class="aie-posts-tree" style="display: none;">
-							<!-- Tree will be populated dynamically -->
-						</div>
-
-						<div id="aie-browse-pagination" class="aie-browse-pagination" style="display: none;">
-							<button type="button" id="aie-browse-prev-page" class="button" disabled>
-								<span class="dashicons dashicons-arrow-left-alt2"></span>
-								<?php esc_html_e( 'Previous', 'wp-advanced-import-export' ); ?>
-							</button>
-							<span class="aie-pagination-info">
-								<span id="aie-browse-current-page">1</span> / <span id="aie-browse-total-pages">1</span>
-							</span>
-							<button type="button" id="aie-browse-next-page" class="button">
-								<?php esc_html_e( 'Next', 'wp-advanced-import-export' ); ?>
-								<span class="dashicons dashicons-arrow-right-alt2"></span>
-							</button>
-						</div>
-					</div>
-				</div>
-
-				<div class="aie-modal-footer aie-browse-footer">
-					<button type="button" id="aie-browse-cancel-btn" class="button">
-						<?php esc_html_e( 'Cancel', 'wp-advanced-import-export' ); ?>
-					</button>
-					<button type="button" id="aie-browse-pull-btn" class="button button-primary" disabled>
-						<span class="dashicons dashicons-download"></span>
-						<?php esc_html_e( 'Pull Selected Posts', 'wp-advanced-import-export' ); ?>
-					</button>
-				</div>
-			</div>
-		</div>
-		<?php
+		
+		// Load view templates
+		require WP_AIE_PATH . '/app/View/sync/sync-modal.php';
+		require WP_AIE_PATH . '/app/View/sync/mapping-modal.php';
+		require WP_AIE_PATH . '/app/View/sync/browse-modal.php';
 	}
 
 	/**
@@ -877,163 +660,17 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( ! $post || ( 'auto-draft' === $post->post_status ) ) {
 			return;
 		}
-		?>
-		<div class="misc-pub-section aie-sync-section">
-			<span class="dashicons dashicons-update" style="color: #2271b1;"></span>
-			<strong><?php esc_html_e( 'Content Sync', 'wp-advanced-import-export' ); ?></strong>
-			<div style="margin-top: 8px;">
-				<button type="button" id="aie-sync-content-btn" class="button button-secondary" style="width: 100%;">
-					<span class="dashicons dashicons-update" style="margin-top: 3px;"></span>
-					<?php esc_html_e( 'Sync This Post', 'wp-advanced-import-export' ); ?>
-				</button>
-			</div>
-		</div>
-		<?php
+		
+		require WP_AIE_PATH . '/app/View/sync/post-edit-button.php';
 	}
 
 	/**
 	 * Render Gutenberg sync button
+	 * @deprecated Moved to enqueue_post_list_assets
 	 */
 	public function render_gutenberg_sync_button() {
-		global $post;
-		
-		// Only show for posts being edited
-		if ( ! $post ) {
-			return;
-		}
-		?>
-		<script>
-		console.log('AIE: Loading Gutenberg sync button script');
-		console.log('AIE: wp object exists:', typeof wp !== 'undefined');
-		console.log('AIE: wp.data exists:', typeof wp !== 'undefined' && typeof wp.data !== 'undefined');
-		
-		// Add button to Gutenberg editor if present
-		jQuery(document).ready(function($) {
-			console.log('AIE: Document ready');
-			
-			// Function to add the button
-			function addGutenbergSyncButton() {
-				console.log('AIE: addGutenbergSyncButton called');
-				
-				// Check if we're in Gutenberg
-				if (typeof wp === 'undefined' || typeof wp.data === 'undefined') {
-					console.log('AIE: WordPress editor not detected');
-					return false;
-				}
-				
-				console.log('AIE: WordPress editor detected');
-				
-				// Try to find the sidebar
-				var $sidebar = $('.edit-post-sidebar, .editor-sidebar, .interface-interface-skeleton__sidebar');
-				console.log('AIE: Sidebar elements found:', $sidebar.length);
-				
-				if ($sidebar.length && !$('#aie-sync-content-btn').length) {
-					console.log('AIE: Sidebar found, creating sync panel');
-					
-				// Create panel container (like Yoast SEO) - opened by default
-				var $panel = $('<div>')
-					.addClass('components-panel__body aie-gutenberg-sync-panel is-opened')
-					.attr('id', 'aie-gutenberg-sync-panel');
-				
-				// Create panel header with arrow (same as Yoast SEO)
-					var $header = $('<h2>')
-						.addClass('components-panel__body-title')
-						.html('<button type="button" class="components-button components-panel__body-toggle" aria-expanded="true"><span aria-hidden="true"><svg class="components-panel__arrow" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17.5 11.6L12 16l-5.5-4.4.9-1.2L12 14l4.5-3.6 1 1.2z"></path></svg></span><?php esc_html_e( 'Sync Content', 'wp-advanced-import-export' ); ?></button></h2>');
-					
-				// Create panel content - visible by default
-				var $content = $('<div>').css({
-					'padding': '16px'
-				});					// Create sync button
-					var $button = $('<button>')
-						.attr('type', 'button')
-						.attr('id', 'aie-sync-content-btn')
-						.addClass('components-button is-secondary')
-						.css({
-							'width': '100%',
-							'justify-content': 'center',
-							'display': 'flex',
-							'align-items': 'center'
-						})
-						.html('<span class="dashicons dashicons-update" style="margin-right: 8px;"></span><?php esc_html_e( 'Sync This Post', 'wp-advanced-import-export' ); ?>');
-					
-					$content.append($button);
-					$panel.append($header).append($content);
-					
-					// Find insertion point - add after "Post" panel
-					var $insertPoint = null;
-					
-					// Try to find "Post" panel (where Publish button is)
-					$('.components-panel__body').each(function() {
-						var $this = $(this);
-						var $header = $this.find('.components-panel__body-title button');
-						if ($header.length && ($header.text().trim() === 'Post' || $header.text().trim() === 'Summary')) {
-							$insertPoint = $this;
-							console.log('AIE: Found insertion point after "' + $header.text().trim() + '" panel');
-							return false;
-						}
-					});
-					
-					// Fallback: add after first panel
-					if (!$insertPoint || !$insertPoint.length) {
-						$insertPoint = $sidebar.find('.components-panel__body').first();
-						console.log('AIE: Using first panel as insertion point');
-					}
-					
-					if ($insertPoint && $insertPoint.length) {
-						$insertPoint.after($panel);
-						console.log('AIE: Sync panel added to sidebar');
-					} else {
-						$sidebar.prepend($panel);
-						console.log('AIE: Sync panel prepended to sidebar');
-					}
-					
-				// Make panel collapsible
-				$header.find('button').on('click', function() {
-					$content.slideToggle(200);
-					var isExpanded = $(this).attr('aria-expanded') === 'true';
-					$(this).attr('aria-expanded', !isExpanded);
-					
-					// Toggle is-opened class on panel and swap arrow icon
-					if (isExpanded) {
-						$panel.removeClass('is-opened');
-						// Change to down arrow (closed state)
-						$(this).find('svg path').attr('d', 'M17.5 11.6L12 16l-5.5-4.4.9-1.2L12 14l4.5-3.6 1 1.2z');
-					} else {
-						$panel.addClass('is-opened');
-						// Change to up arrow (opened state)
-						$(this).find('svg path').attr('d', 'M6.5 12.4L12 8l5.5 4.4-.9 1.2L12 10l-4.5 3.6-1-1.2z');
-					}
-					
-					console.log('AIE: Panel toggled, is-opened:', !isExpanded);
-				});					return true;
-				}
-				
-				return false;
-			}
-			
-			// Try immediately
-			setTimeout(function() {
-				if (!addGutenbergSyncButton()) {
-					console.log('AIE: First attempt failed, retrying...');
-					
-					// Wait for sidebar to be ready
-					var attempts = 0;
-					var checkSidebar = setInterval(function() {
-						attempts++;
-						console.log('AIE: Attempt', attempts);
-						
-						if (addGutenbergSyncButton() || attempts >= 20) {
-							clearInterval(checkSidebar);
-							if (attempts >= 20) {
-								console.log('AIE: Max attempts reached, button not added');
-							}
-						}
-					}, 500);
-				}
-			}, 1000);
-		});
-		</script>
-		<?php
+		// This method is kept for backwards compatibility but the functionality
+		// has been moved to enqueue_post_list_assets() for proper script enqueueing
 	}
 
 	/**

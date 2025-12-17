@@ -94,6 +94,14 @@
 
 // Sync modal
 #aie-sync-modal {
+	.aie-form-group {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		label {
+			margin-right: 10px;
+		}
+	}
 	.aie-sync-info {
 		padding: 15px;
 		background: #f0f0f1;

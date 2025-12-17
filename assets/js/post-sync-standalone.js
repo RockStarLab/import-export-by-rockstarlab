@@ -44,7 +44,7 @@
         var $modal = $(e.currentTarget).closest('.aie-modal');
         var modalId = $modal.attr('id');
         if (modalId === 'aie-browse-modal') {
-          _this.closeBrowseModal();
+          _this.closeBrowseModal(false); // Close everything when clicking X button
         } else if (modalId === 'aie-mapping-modal') {
           _this.closeMappingModal();
         } else if (modalId === 'aie-sync-modal') {
@@ -55,7 +55,7 @@
         if (e.target === e.currentTarget) {
           var modalId = $(e.target).attr('id');
           if (modalId === 'aie-browse-modal') {
-            _this.closeBrowseModal();
+            _this.closeBrowseModal(false); // Close everything when clicking outside modal
           } else if (modalId === 'aie-mapping-modal') {
             _this.closeMappingModal();
           } else {
@@ -68,11 +68,9 @@
       $(document).on('click', '.aie-modal-backdrop', function (e) {
         var $modal = $(e.target).closest('.aie-modal');
         if ($modal.attr('id') === 'aie-browse-modal') {
-          _this.closeBrowseModal();
+          _this.closeBrowseModal(false); // Close everything when clicking backdrop
         }
-      });
-
-      // Enable/disable sync buttons based on site selection
+      }); // Enable/disable sync buttons based on site selection
       $(document).on('change', '#aie-sync-site-select', function () {
         _this.updateSyncButtons();
       });
@@ -189,7 +187,7 @@
           _this.closeSyncModal();
         }
         if (e.key === 'Escape' && $('#aie-browse-modal').is(':visible')) {
-          _this.closeBrowseModal();
+          _this.closeBrowseModal(false); // Close everything when pressing Escape
         }
       });
     },
@@ -233,13 +231,25 @@
      * Close sync modal
      */
     closeSyncModal: function closeSyncModal() {
+      var _this2 = this;
+      var keepSiteSelection = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
       // Reset syncing flag
       this.isSyncing = false;
       $('#aie-sync-modal').fadeOut(200, function () {
+        // Reset site selection (unless specified to keep it)
+        if (!keepSiteSelection) {
+          $('#aie-sync-site-select').val('');
+        }
+
         // Reset modal state - show initial sections again
         $('.aie-sync-info, .aie-form-group, .aie-sync-direction, .aie-browse-section').css('display', '');
         $('#aie-sync-progress, #aie-sync-result, .aie-no-selection-message').css('display', 'none');
         $('.aie-progress-fill').css('width', '0%');
+
+        // Update button states (unless we're keeping site selection for browse modal)
+        if (!keepSiteSelection) {
+          _this2.updateSyncButtons();
+        }
       });
     },
     /**
@@ -268,7 +278,7 @@
      * Update sync button states
      */
     updateSyncButtons: function updateSyncButtons() {
-      var _this2 = this;
+      var _this3 = this;
       // Don't update UI if sync is in progress
       if (this.isSyncing) {
         return;
@@ -296,10 +306,10 @@
       // If we have a pending browse modal request and site is now selected, open it
       if (this.pendingBrowseModal && siteSelected) {
         this.pendingBrowseModal = false;
-        this.closeSyncModal();
+        this.closeSyncModal(true); // Keep site selection when transitioning to browse modal
         // Small delay to allow modal close animation
         setTimeout(function () {
-          _this2.openBrowseModal();
+          _this3.openBrowseModal();
         }, 250);
       }
     },
@@ -351,7 +361,7 @@
      * Load mapping data
      */
     loadMappingData: function loadMappingData(direction, siteId, postIds) {
-      var _this3 = this;
+      var _this4 = this;
       var nonce = typeof aiePostSyncData !== 'undefined' && aiePostSyncData.nonce ? aiePostSyncData.nonce : '';
       var ajaxUrl = typeof aiePostSyncData !== 'undefined' && aiePostSyncData.ajaxurl ? aiePostSyncData.ajaxurl : ajaxurl;
 
@@ -367,20 +377,20 @@
         },
         success: function success(response) {
           if (response.success && response.data.posts) {
-            _this3.remotePosts = response.data.posts;
-            _this3.renderMappingTable(postIds, response.data.posts);
+            _this4.remotePosts = response.data.posts;
+            _this4.renderMappingTable(postIds, response.data.posts);
             $('#aie-mapping-loading').hide();
             $('#aie-mapping-table-container').fadeIn(200);
             $('#aie-mapping-confirm-btn').prop('disabled', false);
           } else {
             var _response$data;
             alert('Failed to load remote posts: ' + (((_response$data = response.data) === null || _response$data === void 0 ? void 0 : _response$data.message) || 'Unknown error'));
-            _this3.closeMappingModal();
+            _this4.closeMappingModal();
           }
         },
         error: function error(xhr) {
           alert('Failed to connect to remote site');
-          _this3.closeMappingModal();
+          _this4.closeMappingModal();
         }
       });
     },
@@ -388,11 +398,11 @@
      * Render mapping table
      */
     renderMappingTable: function renderMappingTable(localPostIds, remotePosts) {
-      var _this4 = this;
+      var _this5 = this;
       var $tbody = $('#aie-mapping-tbody');
       $tbody.empty();
       localPostIds.forEach(function (postId) {
-        var row = _this4.createMappingRow(postId, remotePosts);
+        var row = _this5.createMappingRow(postId, remotePosts);
         $tbody.append(row);
       });
 
@@ -437,30 +447,30 @@
      * Bind mapping events
      */
     bindMappingEvents: function bindMappingEvents() {
-      var _this5 = this;
+      var _this6 = this;
       // Close mapping modal
       $(document).off('click', '.aie-modal-close').on('click', '.aie-modal-close', function (e) {
-        _this5.closeMappingModal();
+        _this6.closeMappingModal();
       });
 
       // Cancel button
       $(document).off('click', '#aie-mapping-cancel-btn').on('click', '#aie-mapping-cancel-btn', function (e) {
         e.preventDefault();
-        _this5.closeMappingModal();
+        _this6.closeMappingModal();
         // Reopen site selection modal
-        _this5.openSyncModal();
+        _this6.openSyncModal();
       });
 
       // Confirm button
       $(document).off('click', '#aie-mapping-confirm-btn').on('click', '#aie-mapping-confirm-btn', function (e) {
         e.preventDefault();
-        _this5.confirmMapping();
+        _this6.confirmMapping();
       });
 
       // Auto-match button
       $(document).off('click', '#aie-auto-match-btn').on('click', '#aie-auto-match-btn', function (e) {
         e.preventDefault();
-        _this5.autoMatchByTitle();
+        _this6.autoMatchByTitle();
       });
 
       // Create all new button
@@ -535,7 +545,7 @@
      * Perform actual sync
      */
     performSync: function performSync(direction, siteId, postIds, postMapping) {
-      var _this6 = this;
+      var _this7 = this;
       // Set syncing flag
       this.isSyncing = true;
 
@@ -571,11 +581,11 @@
             $('.aie-progress-text').text('Completed!');
             setTimeout(function () {
               $('#aie-sync-progress').hide();
-              _this6.showResult('success', response.data.message || 'Sync completed successfully');
+              _this7.showResult('success', response.data.message || 'Sync completed successfully');
             }, 500);
           } else {
             $('#aie-sync-progress').hide();
-            _this6.showResult('error', response.data.message || 'Sync failed');
+            _this7.showResult('error', response.data.message || 'Sync failed');
           }
         },
         error: function error(xhr) {
@@ -584,12 +594,12 @@
           if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
             errorMessage = xhr.responseJSON.data.message;
           }
-          _this6.showResult('error', errorMessage);
+          _this7.showResult('error', errorMessage);
         },
         complete: function complete() {
           // Re-enable buttons
           $('#aie-sync-push-btn, #aie-sync-pull-btn, #aie-sync-site-select').prop('disabled', false);
-          _this6.updateSyncButtons();
+          _this7.updateSyncButtons();
         }
       });
     },
@@ -645,11 +655,23 @@
     },
     /**
      * Close browse modal
+     * @param {boolean} returnToChooseSite - If true, return to Choose Site modal; if false, close everything
      */
     closeBrowseModal: function closeBrowseModal() {
+      var _this8 = this;
+      var returnToChooseSite = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
       $('#aie-browse-modal').fadeOut(200, function () {
-        // Return back to Choose Site modal
-        $('#aie-sync-modal').fadeIn(200);
+        if (returnToChooseSite) {
+          // Return back to Choose Site modal with site selection preserved
+          $('#aie-sync-modal').fadeIn(200, function () {
+            // Update UI to reflect current state (hide Push/Pull if no posts selected)
+            _this8.updateSyncButtons();
+          });
+        } else {
+          // Close everything and reset
+          $('#aie-sync-site-select').val('').trigger('change');
+          _this8.updateSyncButtons();
+        }
       });
     },
     /**
@@ -679,7 +701,7 @@
      * Load remote posts with pagination and filters
      */
     loadRemotePosts: function loadRemotePosts() {
-      var _this7 = this;
+      var _this9 = this;
       if (typeof aiePostSyncData === 'undefined') {
         this.showBrowseError('Plugin data not loaded. Please refresh the page.');
         return;
@@ -704,13 +726,13 @@
         success: function success(response) {
           console.log('Browse posts response:', response);
           if (response.success && response.data && response.data.posts) {
-            _this7.renderPostsTree(response.data.posts);
-            _this7.updatePagination(response.data);
-            _this7.updateFilterCounts(response.data.status_counts);
+            _this9.renderPostsTree(response.data.posts);
+            _this9.updatePagination(response.data);
+            _this9.updateFilterCounts(response.data.status_counts);
           } else {
             console.error('Invalid response:', response);
             var errorMsg = response.data && response.data.message ? response.data.message : 'Failed to load posts';
-            _this7.showBrowseError(errorMsg);
+            _this9.showBrowseError(errorMsg);
           }
         },
         error: function error(xhr) {
@@ -719,7 +741,7 @@
           if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
             errorMessage = xhr.responseJSON.data.message;
           }
-          _this7.showBrowseError(errorMessage);
+          _this9.showBrowseError(errorMessage);
         }
       });
     },
@@ -727,7 +749,7 @@
     * Render posts tree
     */
     renderPostsTree: function renderPostsTree(posts) {
-      var _this8 = this;
+      var _this10 = this;
       $('#aie-browse-loading').hide();
       if (!posts || posts.length === 0) {
         $('#aie-browse-posts-tree').html("\n\t\t\t\t\t<div class=\"aie-loading-posts\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-post\" style=\"font-size: 48px; opacity: 0.3; width: auto; height: auto;\"></span>\n\t\t\t\t\t\t<p>No posts found</p>\n\t\t\t\t\t</div>\n\t\t\t\t").show();
@@ -736,7 +758,7 @@
       var $tree = $('#aie-browse-posts-tree');
       $tree.empty();
       posts.forEach(function (post) {
-        var $item = _this8.createPostItem(post);
+        var $item = _this10.createPostItem(post);
         $tree.append($item);
       });
       $tree.show();
@@ -790,7 +812,7 @@
      * Load children posts
      */
     loadChildrenPosts: function loadChildrenPosts(parentId, $childrenContainer) {
-      var _this9 = this;
+      var _this11 = this;
       if (typeof aiePostSyncData === 'undefined') {
         $childrenContainer.html('<div style="padding: 10px; color: #d63638;">Plugin data not loaded</div>');
         return;
@@ -813,7 +835,7 @@
           if (response.success && response.data.children) {
             $childrenContainer.empty();
             response.data.children.forEach(function (child) {
-              var $childItem = _this9.createPostItem(child);
+              var $childItem = _this11.createPostItem(child);
               $childrenContainer.append($childItem);
             });
           } else {
@@ -897,7 +919,7 @@
      * Show sync result
      */
     showResult: function showResult(type, message) {
-      var _this10 = this;
+      var _this12 = this;
       // Reset syncing flag
       this.isSyncing = false;
       var $result = $('#aie-sync-result');
@@ -910,7 +932,7 @@
       if (type === 'success') {
         setTimeout(function () {
           $result.fadeOut(200);
-          _this10.closeSyncModal();
+          _this12.closeSyncModal();
           // Reload page to show updated content
           location.reload();
         }, 2000);
