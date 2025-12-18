@@ -721,8 +721,26 @@ import 'select2/dist/css/select2.min.css';
 			// Close mapping modal
 			this.closeMappingModal();
 
+			// For PULL: we need to send remote IDs, not local IDs
+			// For PUSH: we send local IDs
+			let postIdsToSync = this.currentPostIds;
+			
+			if (this.currentSyncDirection === 'pull') {
+				// Extract remote IDs from mapping for pull
+				postIdsToSync = [];
+				Object.keys(postMapping).forEach(localId => {
+					const remoteId = postMapping[localId];
+					if (remoteId && remoteId !== 'new' && remoteId !== null) {
+						postIdsToSync.push(remoteId);
+					}
+				});
+				
+				// If no valid remote IDs found (all are "new"), that's fine
+				// The backend will create new posts
+			}
+
 			// Start actual sync with mapping
-			this.performSync(this.currentSyncDirection, this.currentSiteId, this.currentPostIds, postMapping);
+			this.performSync(this.currentSyncDirection, this.currentSiteId, postIdsToSync, postMapping);
 		},
 
 		/**
@@ -980,6 +998,8 @@ import 'select2/dist/css/select2.min.css';
 			const date = new Date(post.post_modified);
 			const formattedDate = date.toLocaleDateString();
 
+			const $wrapper = $('<div class="aie-post-wrapper"></div>');
+
 			const $item = $(`
 				<div class="aie-post-item ${isSelected ? 'selected' : ''} ${hasChildren ? 'has-children' : ''}" data-post-id="${post.ID}">
 					${hasChildren ? `<button type="button" class="aie-post-toggle ${isExpanded ? 'expanded' : ''}">
@@ -1000,13 +1020,15 @@ import 'select2/dist/css/select2.min.css';
 				</div>
 			`);
 
+			$wrapper.append($item);
+
 			// Add children container if has children
 			if (hasChildren) {
 				const $children = $('<div class="aie-post-children" style="display: none;"></div>');
-				$item.after($children);
+				$wrapper.append($children);
 			}
 
-			return $item;
+			return $wrapper;
 		},
 
 		/**

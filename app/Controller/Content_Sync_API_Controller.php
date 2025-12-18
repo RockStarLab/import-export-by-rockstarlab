@@ -554,10 +554,12 @@ class Content_Sync_API_Controller {
 
 		$posts_data = array();
 		$all_images = array();
+		$not_found_ids = array();
 
 		foreach ( $post_ids as $post_id ) {
 			$post = get_post( $post_id );
 			if ( ! $post ) {
+				$not_found_ids[] = $post_id;
 				continue;
 			}
 
@@ -656,10 +658,18 @@ class Content_Sync_API_Controller {
 		}
 
 		if ( empty( $posts_data ) ) {
+			$error_message = __( 'No valid posts found', 'wp-advanced-import-export' );
+			if ( ! empty( $not_found_ids ) ) {
+				$error_message .= sprintf(
+					/* translators: %s: comma-separated list of post IDs */
+					__( '. Post IDs not found: %s', 'wp-advanced-import-export' ),
+					implode( ', ', $not_found_ids )
+				);
+			}
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'No valid posts found', 'wp-advanced-import-export' ),
+					'message' => $error_message,
 				),
 				404
 			);
@@ -997,19 +1007,27 @@ class Content_Sync_API_Controller {
 		$page      = absint( $request->get_param( 'page' ) ?: 1 );
 		$per_page  = absint( $request->get_param( 'per_page' ) ?: 20 );
 
+		// When searching, include all posts (parent and children)
+		// When not searching, show only parent posts (to maintain hierarchy)
+		$post_parent_filter = 0; // Default: only top-level posts
+		if ( ! empty( $search ) ) {
+			$post_parent_filter = ''; // Empty string means no parent filter - include all posts
+		}
+
 		$args = array(
-			'post_type'      => $post_type ?: 'any',
-			'post_status'    => ! empty( $status ) ? $status : 'any',
-			'posts_per_page' => $per_page,
-			'paged'          => $page,
-			'orderby'        => 'date',
-			'order'          => 'DESC',
-			'post_parent'    => 0, // Get only top-level posts
+			'post_type'           => $post_type ?: 'any',
+			'post_status'         => ! empty( $status ) ? $status : 'any',
+			'posts_per_page'      => $per_page,
+			'paged'               => $page,
+			'orderby'             => 'date',
+			'order'               => 'DESC',
+			'post_parent'         => $post_parent_filter,
+			'ignore_sticky_posts' => true, // Exclude sticky posts from results
+			'post__not_in'        => get_option( 'sticky_posts', array() ), // Exclude all sticky posts regardless of status
 		);
 
 		if ( ! empty( $search ) ) {
 			$args['s'] = $search;
-			unset( $args['post_parent'] ); // Search in all posts including children
 		}
 
 		$query      = new \WP_Query( $args );
@@ -1063,11 +1081,13 @@ class Content_Sync_API_Controller {
 	private function count_children( $post_id ) {
 		$children = get_posts(
 			array(
-				'post_parent'    => $post_id,
-				'post_type'      => 'any',
-				'post_status'    => 'any',
-				'posts_per_page' => -1,
-				'fields'         => 'ids',
+				'post_parent'         => $post_id,
+				'post_type'           => 'any',
+				'post_status'         => 'any',
+				'posts_per_page'      => -1,
+				'fields'              => 'ids',
+				'ignore_sticky_posts' => true,
+				'post__not_in'        => get_option( 'sticky_posts', array() ),
 			)
 		);
 		return count( $children );
@@ -1092,10 +1112,12 @@ class Content_Sync_API_Controller {
 		foreach ( $statuses as $status ) {
 			$count_query = new \WP_Query(
 				array(
-					'post_type'      => $post_type ?: 'any',
-					'post_status'    => $status,
-					'posts_per_page' => 1,
-					'fields'         => 'ids',
+					'post_type'           => $post_type ?: 'any',
+					'post_status'         => $status,
+					'posts_per_page'      => 1,
+					'fields'              => 'ids',
+					'ignore_sticky_posts' => true,
+					'post__not_in'        => get_option( 'sticky_posts', array() ),
 				)
 			);
 
@@ -1148,12 +1170,14 @@ class Content_Sync_API_Controller {
 
 		$children = get_posts(
 			array(
-				'post_parent'    => $parent_id,
-				'post_type'      => 'any',
-				'post_status'    => 'any',
-				'posts_per_page' => -1,
-				'orderby'        => 'date',
-				'order'          => 'DESC',
+				'post_parent'         => $parent_id,
+				'post_type'           => 'any',
+				'post_status'         => 'any',
+				'posts_per_page'      => -1,
+				'orderby'             => 'date',
+				'order'               => 'DESC',
+				'ignore_sticky_posts' => true,
+				'post__not_in'        => get_option( 'sticky_posts', array() ),
 			)
 		);
 

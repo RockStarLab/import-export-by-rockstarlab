@@ -341,22 +341,27 @@ class Job extends Model {
 		global $wpdb;
 		$table = $this->get_table_name();
 
-		$where_sql = '1=1';
+		// Build WHERE clause and collect values
+		$where_conditions = [];
+		$where_values = [];
+		
 		if ( ! empty( $where ) ) {
-			$conditions = [];
 			foreach ( $where as $key => $value ) {
-				$conditions[] = $wpdb->prepare( "{$key} = %s", $value );
+				$where_conditions[] = "{$key} = %s";
+				$where_values[] = $value;
 			}
-			$where_sql = implode( ' AND ', $conditions );
+			$where_sql = implode( ' AND ', $where_conditions );
+		} else {
+			$where_sql = '1=1';
 		}
 
+		// Prepare the query with all values
 		$sql = $wpdb->prepare(
 			"SELECT * FROM {$table} WHERE {$where_sql} ORDER BY {$order} LIMIT %d OFFSET %d",
-			$limit,
-			$offset
+			array_merge( $where_values, [ $limit, $offset ] )
 		);
 
-		return $wpdb->get_results( $sql );
+		return $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 
 	/**
@@ -369,16 +374,26 @@ class Job extends Model {
 		global $wpdb;
 		$table = $this->get_table_name();
 
-		$where_sql = '1=1';
+		// Build WHERE clause and collect values
+		$where_conditions = [];
+		$where_values = [];
+		
 		if ( ! empty( $where ) ) {
-			$conditions = [];
 			foreach ( $where as $key => $value ) {
-				$conditions[] = $wpdb->prepare( "{$key} = %s", $value );
+				$where_conditions[] = "{$key} = %s";
+				$where_values[] = $value;
 			}
-			$where_sql = implode( ' AND ', $conditions );
+			$where_sql = implode( ' AND ', $where_conditions );
+			
+			$sql = $wpdb->prepare(
+				"SELECT COUNT(*) FROM {$table} WHERE {$where_sql}",
+				...$where_values
+			);
+		} else {
+			$sql = "SELECT COUNT(*) FROM {$table}";
 		}
 
-		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE {$where_sql}" );
+		return (int) $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 
 	/**

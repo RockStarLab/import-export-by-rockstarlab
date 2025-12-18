@@ -193,7 +193,8 @@ abstract class Model {
 		}
 
 		$where_clause = implode( ' AND ', $conditions );
-		$query        = $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE {$where_clause}", $values );
+		// Use array spread operator to pass values as separate arguments
+		$query        = $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE {$where_clause}", ...$values );
 
 		return (int) $wpdb->get_var( $query );
 	}
