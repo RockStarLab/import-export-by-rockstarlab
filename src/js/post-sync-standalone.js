@@ -390,30 +390,57 @@ import 'select2/dist/css/select2.min.css';
 				? aiePostSyncData.ajaxurl 
 				: ajaxurl;
 
-			// Get remote posts list
+			// First, get local posts info
 			$.ajax({
 				url: ajaxUrl,
 				type: 'POST',
 				data: {
-					action: 'aie_content_sync_get_remote_posts',
+					action: 'aie_content_sync_get_local_posts_info',
 					nonce: nonce,
-					site_id: siteId,
-					post_type: 'any',
+					post_ids: postIds,
 				},
-				success: (response) => {
-					if (response.success && response.data.posts) {
-						this.remotePosts = response.data.posts;
-						this.renderMappingTable(postIds, response.data.posts);
-						$('#aie-mapping-loading').hide();
-						$('#aie-mapping-table-container').fadeIn(200);
-						$('#aie-mapping-confirm-btn').prop('disabled', false);
+				success: (localResponse) => {
+					if (localResponse.success && localResponse.data.posts) {
+						// Store local posts info
+						this.localPostsInfo = {};
+						localResponse.data.posts.forEach(post => {
+							this.localPostsInfo[post.ID] = post;
+						});
+
+						// Now get remote posts list
+						$.ajax({
+							url: ajaxUrl,
+							type: 'POST',
+							data: {
+								action: 'aie_content_sync_get_remote_posts',
+								nonce: nonce,
+								site_id: siteId,
+								post_type: 'any',
+							},
+							success: (response) => {
+								if (response.success && response.data.posts) {
+									this.remotePosts = response.data.posts;
+									this.renderMappingTable(postIds, response.data.posts);
+									$('#aie-mapping-loading').hide();
+									$('#aie-mapping-table-container').fadeIn(200);
+									$('#aie-mapping-confirm-btn').prop('disabled', false);
+								} else {
+									alert('Failed to load remote posts: ' + (response.data?.message || 'Unknown error'));
+									this.closeMappingModal();
+								}
+							},
+							error: (xhr) => {
+								alert('Failed to connect to remote site');
+								this.closeMappingModal();
+							}
+						});
 					} else {
-						alert('Failed to load remote posts: ' + (response.data?.message || 'Unknown error'));
+						alert('Failed to load local posts info: ' + (localResponse.data?.message || 'Unknown error'));
 						this.closeMappingModal();
 					}
 				},
 				error: (xhr) => {
-					alert('Failed to connect to remote site');
+					alert('Failed to load local posts info');
 					this.closeMappingModal();
 				}
 			});
@@ -439,11 +466,22 @@ import 'select2/dist/css/select2.min.css';
 		 * Create mapping table row
 		 */
 		createMappingRow(postId, remotePosts) {
-			// Get local post info
-			const postTitle = $(`#post-${postId} .row-title`).text() || 
-							  $('.editor-post-title__input').val() || 
-							  'Post #' + postId;
-			const postType = $('body').attr('class').match(/post-type-(\S+)/)?.[1] || 'post';
+			// Get local post info from AJAX response or fallback to DOM
+			let postTitle = 'Post #' + postId;
+			let postType = 'post';
+
+			if (this.localPostsInfo && this.localPostsInfo[postId]) {
+				postTitle = this.localPostsInfo[postId].post_title || postTitle;
+				postType = this.localPostsInfo[postId].post_type || postType;
+			} else {
+				// Fallback: Try multiple selectors for different editor contexts
+				postTitle = $(`#post-${postId} .row-title`).text() || 
+							$('.editor-post-title__input').val() || 
+							$('#title').val() ||
+							$('h1.wp-heading-inline').next('a.page-title-action').prev().text() ||
+							postTitle;
+				postType = $('body').attr('class').match(/post-type-(\S+)/)?.[1] || postType;
+			}
 
 			const $row = $('<tr>').attr('data-local-id', postId);
 

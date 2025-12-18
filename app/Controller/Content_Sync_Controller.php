@@ -38,6 +38,7 @@ class Content_Sync_Controller extends Base_Controller {
 			'content_sync_get_remote_posts'      => array( 'callback' => 'get_remote_posts' ),
 			'content_sync_search_remote_posts'   => array( 'callback' => 'search_remote_posts' ),
 			'content_sync_get_children_posts'    => array( 'callback' => 'get_children_posts' ),
+			'content_sync_get_local_posts_info'  => array( 'callback' => 'get_local_posts_info' ),
 			'content_sync_push'                  => array( 'callback' => 'push_content' ),
 			'content_sync_pull'                  => array( 'callback' => 'pull_content' ),
 		);
@@ -878,6 +879,44 @@ class Content_Sync_Controller extends Base_Controller {
 	}
 
 	/**
+	 * Get local posts info
+	 */
+	public function get_local_posts_info() {
+		$verify = $this->verify_request( 'content_sync_get_local_posts_info' );
+		if ( is_wp_error( $verify ) ) {
+			$this->send_error( $verify->get_error_message() );
+		}
+
+		$post_ids = $this->get_request_array( 'post_ids', array() );
+
+		// Validate input
+		if ( empty( $post_ids ) || ! is_array( $post_ids ) ) {
+			$this->send_error( __( 'Post IDs are required', 'wp-advanced-import-export' ) );
+		}
+
+		$posts_info = array();
+
+		foreach ( $post_ids as $post_id ) {
+			$post = get_post( $post_id );
+			if ( $post ) {
+				$posts_info[] = array(
+					'ID'         => $post->ID,
+					'post_title' => $post->post_title,
+					'post_type'  => $post->post_type,
+					'post_date'  => $post->post_date,
+					'post_status' => $post->post_status,
+				);
+			}
+		}
+
+		$this->send_success(
+			array(
+				'posts' => $posts_info,
+			)
+		);
+	}
+
+	/**
 	 * Push content to remote site
 	 */
 	public function push_content() {
@@ -1020,6 +1059,11 @@ class Content_Sync_Controller extends Base_Controller {
 				'meta'          => $prepared_meta,
 				'terms'         => $terms_data,
 			);
+			
+			// Debug: Log repeater field data before push
+			if ( isset( $prepared_meta['repeater'] ) ) {
+				error_log( 'WP_AIE PUSH: Post ID ' . $post->ID . ' - repeater field value: ' . $prepared_meta['repeater'] );
+			}
 
 			$posts_data[] = $post_data;
 		}
