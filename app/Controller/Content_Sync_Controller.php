@@ -526,11 +526,6 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Register hooks for post list screens
 	 */
 	public function register_post_list_hooks() {
-		// Only register hooks if premium is active
-		if ( ! function_exists( 'waie_fs' ) || ! waie_fs()->can_use_premium_code() ) {
-			return;
-		}
-
 		// Load assets for post list screens
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_post_list_assets' ) );
 		
@@ -553,6 +548,24 @@ class Content_Sync_Controller extends Base_Controller {
 		// Debug: log what hook we're on
 		// Load on edit.php (post list) and post.php/post-new.php (edit post)
 		if ( ! in_array( $hook_suffix, array( 'edit.php', 'post.php', 'post-new.php' ) ) ) {
+			return;
+		}
+
+		// Check if premium is active
+		$is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
+		
+		// Get current post type
+		global $typenow, $post;
+		$current_post_type = '';
+		
+		if ( 'edit.php' === $hook_suffix && ! empty( $typenow ) ) {
+			$current_post_type = $typenow;
+		} elseif ( in_array( $hook_suffix, array( 'post.php', 'post-new.php' ) ) && $post ) {
+			$current_post_type = $post->post_type;
+		}
+		
+		// In free version, only load for 'post' type
+		if ( ! $is_premium && 'post' !== $current_post_type ) {
 			return;
 		}
 
@@ -600,7 +613,6 @@ class Content_Sync_Controller extends Base_Controller {
 		
 		// Enqueue Gutenberg sync script for post edit screens
 		if ( in_array( $hook_suffix, array( 'post.php', 'post-new.php' ) ) ) {
-			global $post;
 			
 			// Only show for posts being edited
 			if ( $post ) {
@@ -641,6 +653,14 @@ class Content_Sync_Controller extends Base_Controller {
 			return;
 		}
 		
+		// Check if premium is active
+		$is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
+		
+		// In free version, only show for 'post' type
+		if ( ! $is_premium && 'post' !== $typenow ) {
+			return;
+		}
+		
 		require WP_AIE_PATH . '/app/View/sync/sync-button.php';
 	}
 
@@ -652,6 +672,14 @@ class Content_Sync_Controller extends Base_Controller {
 		
 		// Only show on post list screens
 		if ( empty( $typenow ) ) {
+			return;
+		}
+
+		// Check if premium is active
+		$is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
+		
+		// In free version, only show for 'post' type
+		if ( ! $is_premium && 'post' !== $typenow ) {
 			return;
 		}
 
@@ -672,6 +700,14 @@ class Content_Sync_Controller extends Base_Controller {
 		
 		// Only show for published posts or posts being edited
 		if ( ! $post || ( 'auto-draft' === $post->post_status ) ) {
+			return;
+		}
+		
+		// Check if premium is active
+		$is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
+		
+		// In free version, only show for 'post' type
+		if ( ! $is_premium && 'post' !== $post->post_type ) {
 			return;
 		}
 		
@@ -861,6 +897,19 @@ class Content_Sync_Controller extends Base_Controller {
 
 		if ( empty( $post_ids ) || ! is_array( $post_ids ) ) {
 			$this->send_error( __( 'No posts selected', 'wp-advanced-import-export' ) );
+		}
+
+		// Check if premium is active
+		$is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
+		
+		// In free version, validate that only 'post' type is being synced
+		if ( ! $is_premium ) {
+			foreach ( $post_ids as $post_id ) {
+				$post = get_post( $post_id );
+				if ( $post && 'post' !== $post->post_type ) {
+					$this->send_error( __( 'Premium license is required to sync Pages and Custom Post Types. Free version supports Posts only.', 'wp-advanced-import-export' ) );
+				}
+			}
 		}
 
 		// Parse post_mapping if it's a JSON string
@@ -1212,6 +1261,17 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( __( 'No posts found on remote site', 'wp-advanced-import-export' ) );
 		}
 
+		// Check if premium is active
+		$is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
+		
+		// In free version, validate that only 'post' type is being synced
+		if ( ! $is_premium ) {
+			foreach ( $posts_data as $post_data ) {
+				if ( isset( $post_data['post_type'] ) && 'post' !== $post_data['post_type'] ) {
+					$this->send_error( __( 'Premium license is required to sync Pages and Custom Post Types. Free version supports Posts only.', 'wp-advanced-import-export' ) );
+				}
+			}
+		}
 
 		// Get images from remote
 		$remote_images = isset( $data['data']['images'] ) ? $data['data']['images'] : array();
