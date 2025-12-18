@@ -275,6 +275,33 @@ class Content_Sync_Media {
 			}
 		}
 
+		// Handle file field (for images and other media)
+		if ( 'file' === $field['type'] && ! empty( $field['value'] ) ) {
+			$file_id = null;
+			if ( is_numeric( $field['value'] ) ) {
+				$file_id = $field['value'];
+			} elseif ( is_array( $field['value'] ) && isset( $field['value']['ID'] ) ) {
+				$file_id = $field['value']['ID'];
+			}
+			
+			if ( $file_id ) {
+				// Check if it's an image or other media type
+				$mime_type = get_post_mime_type( $file_id );
+				if ( $mime_type && strpos( $mime_type, 'image' ) === 0 ) {
+					$image_data = self::prepare_image_data( $file_id, 'acf_file_' . $field['name'] );
+					if ( $image_data ) {
+						$images[] = $image_data;
+					}
+				} else {
+					// For non-image files, still include them as media
+					$image_data = self::prepare_image_data( $file_id, 'acf_file_' . $field['name'] );
+					if ( $image_data ) {
+						$images[] = $image_data;
+					}
+				}
+			}
+		}
+
 		// Handle gallery field
 		if ( 'gallery' === $field['type'] && ! empty( $field['value'] ) && is_array( $field['value'] ) ) {
 			foreach ( $field['value'] as $image ) {
@@ -288,14 +315,48 @@ class Content_Sync_Media {
 			}
 		}
 
-		// Handle repeater and flexible content
-		if ( in_array( $field['type'], array( 'repeater', 'flexible_content' ), true ) && ! empty( $field['value'] ) && is_array( $field['value'] ) ) {
-			foreach ( $field['value'] as $row ) {
-				if ( is_array( $row ) ) {
-					foreach ( $row as $sub_field_name => $sub_field_value ) {
-						// Get sub field object
-						$sub_field = null;
-						if ( isset( $field['sub_fields'] ) ) {
+	// Handle repeater and flexible content
+	if ( in_array( $field['type'], array( 'repeater', 'flexible_content' ), true ) && ! empty( $field['value'] ) && is_array( $field['value'] ) ) {
+		foreach ( $field['value'] as $row ) {
+			if ( is_array( $row ) ) {
+				foreach ( $row as $sub_field_name => $sub_field_value ) {
+					// Skip ACF internal field (acf_fc_layout)
+					if ( $sub_field_name === 'acf_fc_layout' ) {
+						continue;
+					}
+					
+					// Get sub field object
+					$sub_field = null;
+					
+					// For flexible content, check layouts first
+					if ( $field['type'] === 'flexible_content' && isset( $field['layouts'] ) && isset( $row['acf_fc_layout'] ) ) {
+						$layout_name = $row['acf_fc_layout'];							// Find the layout
+							foreach ( $field['layouts'] as $layout ) {
+								if ( isset( $layout['name'] ) && $layout['name'] === $layout_name ) {
+									error_log( 'WP_AIE Media Extract: Found layout: ' . $layout['name'] );
+									// Find sub field in this layout
+									if ( isset( $layout['sub_fields'] ) ) {
+										error_log( 'WP_AIE Media Extract: Layout has ' . count( $layout['sub_fields'] ) . ' sub fields' );
+										foreach ( $layout['sub_fields'] as $sf ) {
+											if ( isset( $sf['name'] ) && $sf['name'] === $sub_field_name ) {
+												$sub_field        = $sf;
+												$sub_field['value'] = $sub_field_value;
+												error_log( 'WP_AIE Media Extract: Found sub field "' . $sub_field_name . '" with type: ' . $sf['type'] . ', value: ' . print_r( $sub_field_value, true ) );
+												break 2; // Break out of both loops
+											}
+										}
+									}
+									break;
+								}
+							}
+							
+							if ( ! $sub_field ) {
+								error_log( 'WP_AIE Media Extract: WARNING - Sub field "' . $sub_field_name . '" NOT FOUND in layout "' . $layout_name . '"' );
+							}
+						}
+						
+						// For repeater, check sub_fields
+						if ( ! $sub_field && isset( $field['sub_fields'] ) ) {
 							foreach ( $field['sub_fields'] as $sf ) {
 								if ( isset( $sf['name'] ) && $sf['name'] === $sub_field_name ) {
 									$sub_field        = $sf;
@@ -307,6 +368,9 @@ class Content_Sync_Media {
 
 						if ( $sub_field ) {
 							$sub_images = self::extract_acf_field_images( $sub_field, $post_id );
+							if ( ! empty( $sub_images ) ) {
+								error_log( 'WP_AIE Media Extract: Found ' . count( $sub_images ) . ' images in sub field "' . $sub_field['name'] . '"' );
+							}
 							$images     = array_merge( $images, $sub_images );
 						}
 					}

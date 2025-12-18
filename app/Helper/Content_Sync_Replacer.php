@@ -180,6 +180,18 @@ class Content_Sync_Replacer {
 				$value = $image_map[ $value ];
 				continue;
 			}
+			
+			// Replace ACF image/file fields (numeric attachment IDs)
+			if ( ! empty( $image_map ) && is_numeric( $value ) && $value > 0 && isset( $image_map[ $value ] ) ) {
+				error_log( 'WP_AIE Replacer meta: Checking key "' . $key . '" with numeric value ' . $value );
+				// Verify this is an attachment by checking if the new ID exists
+				$attachment = get_post( $image_map[ $value ] );
+				if ( $attachment && 'attachment' === $attachment->post_type ) {
+					error_log( 'WP_AIE Replacer meta: Replacing ' . $key . ' => ' . $value . ' to ' . $image_map[ $value ] );
+					$value = $image_map[ $value ];
+					continue;
+				}
+			}
 
 			// Handle different value types
 			if ( is_string( $value ) ) {
@@ -194,7 +206,8 @@ class Content_Sync_Replacer {
 					$value = self::replace_in_text( $value, $source_domain, $target_domain );
 				}
 			} elseif ( is_array( $value ) ) {
-				$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map );
+				error_log( 'WP_AIE Replacer meta: Processing array for key "' . $key . '", structure: ' . substr( print_r( $value, true ), 0, 500 ) );
+				$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map, 0 );
 			}
 
 			// Handle Elementor data
@@ -246,29 +259,40 @@ class Content_Sync_Replacer {
 	 * @param array  $image_map Image ID mapping.
 	 * @return array Modified array
 	 */
-	public static function replace_in_array( $array, $source_domain, $target_domain, $image_map = array() ) {
+	public static function replace_in_array( $array, $source_domain, $target_domain, $image_map = array(), $depth = 0 ) {
+		$indent = str_repeat( '  ', $depth );
+		
 		foreach ( $array as $key => &$value ) {
 			// Replace attachment IDs in common field names
-			if ( ! empty( $image_map ) && in_array( $key, array( 'id', 'ID', 'attachment_id', 'image_id', 'media_id', 'image', 'thumbnail_id' ), true ) ) {
+			if ( ! empty( $image_map ) && in_array( $key, array( 'id', 'ID', 'attachment_id', 'image_id', 'media_id', 'image', 'thumbnail_id', 'file' ), true ) ) {
 				if ( is_numeric( $value ) && isset( $image_map[ $value ] ) ) {
+					error_log( $indent . 'WP_AIE Replacer [depth ' . $depth . ']: Replacing ' . $key . ' ID ' . $value . ' => ' . $image_map[ $value ] );
 					$value = $image_map[ $value ];
 					continue;
 				}
 			}
 
 			// ACF gallery and repeater fields - replace numeric IDs
+			// This handles ACF image/file fields that store just the attachment ID
 			if ( ! empty( $image_map ) && is_numeric( $value ) && $value > 0 ) {
 				// Check if this looks like an attachment ID (positive integer)
+				// Verify it's actually in the image map to avoid replacing other numeric values
 				if ( isset( $image_map[ $value ] ) ) {
-					$value = $image_map[ $value ];
-					continue;
+					// Double check this is an attachment by checking if the mapped value exists
+					$attachment = get_post( $image_map[ $value ] );
+					if ( $attachment && 'attachment' === $attachment->post_type ) {
+						error_log( $indent . 'WP_AIE Replacer [depth ' . $depth . ']: Replacing numeric ID ' . $value . ' => ' . $image_map[ $value ] . ' (verified)' );
+						$value = $image_map[ $value ];
+						continue;
+					}
 				}
 			}
 
 			if ( is_string( $value ) ) {
 				$value = self::replace_in_text( $value, $source_domain, $target_domain );
 			} elseif ( is_array( $value ) ) {
-				$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map );
+				// Recursively process nested arrays
+				$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map, $depth + 1 );
 			}
 		}
 
