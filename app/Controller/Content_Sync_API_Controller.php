@@ -233,6 +233,11 @@ class Content_Sync_API_Controller {
 		$posts_data   = $request->get_param( 'posts' );
 		$image_map    = $request->get_param( 'image_map' );
 		$post_mapping = $request->get_param( 'post_mapping' );
+		
+		// Debug: Log received parameters
+		error_log( 'WP_AIE: receive_content called with ' . count( $posts_data ) . ' posts' );
+		error_log( 'WP_AIE: image_map provided: ' . ( ! empty( $image_map ) ? 'YES (' . count( $image_map ) . ' mappings)' : 'NO' ) );
+		error_log( 'WP_AIE: post_mapping provided: ' . ( ! empty( $post_mapping ) ? 'YES (' . count( $post_mapping ) . ' mappings)' : 'NO' ) );
 
 		if ( empty( $posts_data ) || ! is_array( $posts_data ) ) {
 			return new \WP_REST_Response(
@@ -374,31 +379,115 @@ class Content_Sync_API_Controller {
 				}
 			}
 
-			// Import meta (image IDs are already replaced by Content_Sync_Replacer before sending)
+			// Import meta
 			if ( ! empty( $post_data['meta'] ) ) {
 				
-				if ( isset( $post_data['meta']['_thumbnail_id'] ) ) {
+				// Replace image IDs in meta using image_map
+				if ( ! empty( $image_map ) ) {
+					error_log( 'WP_AIE: Replacing image IDs in meta for post ' . $post_id );
+					error_log( 'WP_AIE: Image map: ' . print_r( $image_map, true ) );
+					
+					$post_data['meta'] = \WP_AIE\Helper\Content_Sync_Replacer::replace_in_array(
+						$post_data['meta'],
+						'', // No domain replacement
+						'',
+						$image_map,
+						0 // Start at depth 0
+					);
+					
+					error_log( 'WP_AIE: Meta after replacement: ' . print_r( array_filter( $post_data['meta'], function( $key ) {
+						return in_array( $key, array( 'image', 'repeater' ) );
+					}, ARRAY_FILTER_USE_KEY ), true ) );
 				}
 				
+				// Check if ACF is available
+				$use_acf = function_exists( 'update_field' );
+				$acf_field_keys = array();
+				
+				// First pass: identify ACF field reference keys (those starting with _ that contain field_xxxxx)
+				if ( $use_acf ) {
+					foreach ( $post_data['meta'] as $key => $value ) {
+						if ( strpos( $key, '_' ) === 0 && is_string( $value ) && strpos( $value, 'field_' ) === 0 ) {
+							// This is an ACF field reference (e.g., _my_field => field_xxxxx)
+							$field_name = substr( $key, 1 ); // Remove leading underscore to get field name
+							$acf_field_keys[ $field_name ] = $value; // Store field key
+						}
+					}
+					
+					// Convert flat ACF structure to hierarchical for repeater/flexible content fields
+					$post_data['meta'] = $this->convert_acf_flat_to_hierarchical( $post_data['meta'], $acf_field_keys );
+				}
+				
+				// Group fields by parent (for repeater/flexible content sub-fields)
+				$top_level_fields = array();
+				$nested_fields = array();
+				
+				foreach ( $acf_field_keys as $field_name => $field_key ) {
+					// Check if this is a nested field (contains _0_, _1_, etc.)
+					if ( preg_match( '/_\d+_/', $field_name ) ) {
+						$nested_fields[ $field_name ] = $field_key;
+					} else {
+						$top_level_fields[ $field_name ] = $field_key;
+					}
+				}
+				
+				// Second pass: import all meta fields
+				// First, process top-level fields and complex fields (repeater, flex) - they will handle nested data
 				foreach ( $post_data['meta'] as $key => $value ) {
-					// Skip some internal WordPress meta but allow important ones
+					// Skip some internal WordPress meta
 					if ( in_array( $key, array( '_edit_lock', '_edit_last' ), true ) ) {
 						continue;
 					}
 					
-					if ( '_thumbnail_id' === $key ) {
-					}
-					
-					$result = update_post_meta( $post_id, $key, $value );
-					
-					if ( '_thumbnail_id' === $key ) {
-						$check = get_post_meta( $post_id, '_thumbnail_id', true );
+					// Check if this is a top-level ACF field
+					if ( $use_acf && isset( $top_level_fields[ $key ] ) ) {
+						// This is a top-level ACF field - use update_field()
+						$field_key = $top_level_fields[ $key ];
 						
-						// Verify the attachment exists
-						$attachment = get_post( $value );
-						if ( $attachment && 'attachment' === $attachment->post_type ) {
-						} else {
+						// Debug: Log field values with detailed structure
+						if ( in_array( $key, array( 'image', 'repeater', 'flexible_content' ) ) || strpos( $key, 'repeater' ) !== false ) {
+							error_log( '======================================' );
+							error_log( 'WP_AIE: Updating top-level ACF field "' . $key . '"' );
+							error_log( 'WP_AIE: Field key: ' . $field_key );
+							error_log( 'WP_AIE: Value type: ' . gettype( $value ) );
+							if ( is_array( $value ) ) {
+								error_log( 'WP_AIE: Array structure (first 2000 chars): ' . substr( print_r( $value, true ), 0, 2000 ) );
+							} else {
+								error_log( 'WP_AIE: Value: ' . $value );
+							}
+							error_log( '======================================' );
 						}
+						
+						// Try update_field with field key first
+						$result = update_field( $field_key, $value, $post_id );
+						
+						error_log( 'WP_AIE: update_field(' . $field_key . ', ..., ' . $post_id . ') result: ' . ( $result ? 'SUCCESS' : 'FAILED' ) );
+						
+						// If that failed, try with field name instead
+						if ( ! $result ) {
+							$result = update_field( $key, $value, $post_id );
+							error_log( 'WP_AIE: update_field(' . $key . ', ..., ' . $post_id . ') result: ' . ( $result ? 'SUCCESS' : 'FAILED' ) );
+						}
+						
+						// Also set the reference meta directly
+						update_post_meta( $post_id, '_' . $key, $field_key );
+						
+						// If update_field failed completely, fall back to direct meta update
+						if ( ! $result ) {
+							update_post_meta( $post_id, $key, $value );
+						}
+					} 
+					// Check if this is a nested ACF field
+					elseif ( $use_acf && isset( $nested_fields[ $key ] ) ) {
+						// This is a nested field - just save the reference, data is in parent field
+						$field_key = $nested_fields[ $key ];
+						update_post_meta( $post_id, '_' . $key, $field_key );
+						// Also save the value directly in case parent doesn't include it
+						update_post_meta( $post_id, $key, $value );
+					} 
+					else {
+						// Regular meta field or ACF reference field
+						update_post_meta( $post_id, $key, $value );
 					}
 				}
 			}
@@ -479,6 +568,164 @@ class Content_Sync_API_Controller {
 			),
 			200
 		);
+	}
+
+	/**
+	 * Convert flat ACF meta structure to hierarchical for repeater/flexible content fields
+	 *
+	 * @param array $meta Post meta array
+	 * @param array $acf_field_keys ACF field keys mapping
+	 * @return array Modified meta array
+	 */
+	private function convert_acf_flat_to_hierarchical( $meta, $acf_field_keys ) {
+		$processed_parents = array();
+		
+		// Find all repeater/flexible content parent fields
+		foreach ( $acf_field_keys as $field_name => $field_key ) {
+			// Skip nested fields
+			if ( preg_match( '/_\d+_/', $field_name ) ) {
+				continue;
+			}
+			
+			// Check if this field has a numeric value (count of rows) - typical for repeater
+			if ( isset( $meta[ $field_name ] ) && is_numeric( $meta[ $field_name ] ) ) {
+				$row_count = intval( $meta[ $field_name ] );
+				
+				// Verify this is actually a repeater by checking if sub-fields exist
+				// Look for pattern: field_name_0_*
+				$has_sub_fields = false;
+				$row_prefix = $field_name . '_0_';
+				foreach ( $meta as $meta_key => $meta_value ) {
+					if ( strpos( $meta_key, $row_prefix ) === 0 ) {
+						$has_sub_fields = true;
+						break;
+					}
+				}
+				
+				// If no sub-fields found, this is not a repeater (probably just a numeric field like image ID)
+				if ( ! $has_sub_fields ) {
+					error_log( 'WP_AIE ACF Convert: Skipping "' . $field_name . '" - numeric value but no sub-fields found (likely an image/file ID)' );
+					continue;
+				}
+				
+				error_log( 'WP_AIE ACF Convert: Found repeater/flex field "' . $field_name . '" with ' . $row_count . ' rows' );
+				error_log( 'WP_AIE ACF Convert: Looking for fields starting with "' . $field_name . '_0_"' );
+				
+				// Build hierarchical structure
+				$rows = array();
+				for ( $i = 0; $i < $row_count; $i++ ) {
+					$row_data = array();
+					$row_prefix = $field_name . '_' . $i . '_';
+					$found_fields = 0;
+					
+					// Find all fields for this row
+					foreach ( $meta as $meta_key => $meta_value ) {
+						if ( strpos( $meta_key, $row_prefix ) === 0 ) {
+							$found_fields++;
+							// Extract field name without row prefix
+							$sub_field_name = substr( $meta_key, strlen( $row_prefix ) );
+							
+							// Check if this is a nested repeater/flexible content
+							if ( isset( $acf_field_keys[ $field_name . '_' . $i . '_' . $sub_field_name ] ) && is_numeric( $meta_value ) ) {
+								// Verify nested repeater has sub-fields
+								$nested_prefix = $field_name . '_' . $i . '_' . $sub_field_name . '_0_';
+								$nested_has_sub_fields = false;
+								foreach ( $meta as $nested_key => $nested_val ) {
+									if ( strpos( $nested_key, $nested_prefix ) === 0 ) {
+										$nested_has_sub_fields = true;
+										break;
+									}
+								}
+								
+								if ( $nested_has_sub_fields ) {
+									// Recursively process nested repeater
+									$nested_rows = $this->extract_nested_repeater_data( $meta, $field_name . '_' . $i . '_' . $sub_field_name, $meta_value, $acf_field_keys );
+									$row_data[ $sub_field_name ] = $nested_rows;
+									error_log( 'WP_AIE ACF Convert: Added nested repeater "' . $sub_field_name . '" with ' . count( $nested_rows ) . ' rows' );
+								} else {
+									// Just a numeric value (like image ID)
+									$row_data[ $sub_field_name ] = $meta_value;
+									error_log( 'WP_AIE ACF Convert: Added field "' . $sub_field_name . '" = ' . $meta_value );
+								}
+							} else {
+								$row_data[ $sub_field_name ] = $meta_value;
+								if ( strlen( print_r( $meta_value, true ) ) < 100 ) {
+									error_log( 'WP_AIE ACF Convert: Added field "' . $sub_field_name . '" = ' . ( is_array( $meta_value ) ? json_encode( $meta_value ) : $meta_value ) );
+								}
+							}
+						}
+					}
+					
+					error_log( 'WP_AIE ACF Convert: Row ' . $i . ' - found ' . $found_fields . ' fields with prefix "' . $row_prefix . '"' );
+					$rows[] = $row_data;
+				}
+				
+				// Replace numeric count with actual data array
+				$meta[ $field_name ] = $rows;
+				$processed_parents[] = $field_name;
+				
+				error_log( 'WP_AIE ACF Convert: Converted "' . $field_name . '" to array with ' . count( $rows ) . ' rows' );
+				error_log( 'WP_AIE ACF Convert: Full structure: ' . substr( print_r( $rows, true ), 0, 2000 ) );
+			}
+		}
+		
+		return $meta;
+	}
+
+	/**
+	 * Extract nested repeater data recursively
+	 *
+	 * @param array $meta Post meta array
+	 * @param string $parent_prefix Parent field prefix (e.g., "repeater_0_nested_repeater")
+	 * @param int $row_count Number of rows
+	 * @param array $acf_field_keys ACF field keys mapping
+	 * @return array Nested rows data
+	 */
+	private function extract_nested_repeater_data( $meta, $parent_prefix, $row_count, $acf_field_keys ) {
+		$rows = array();
+		
+		for ( $i = 0; $i < $row_count; $i++ ) {
+			$row_data = array();
+			$row_prefix = $parent_prefix . '_' . $i . '_';
+			
+			foreach ( $meta as $meta_key => $meta_value ) {
+				if ( strpos( $meta_key, $row_prefix ) === 0 ) {
+					$sub_field_name = substr( $meta_key, strlen( $row_prefix ) );
+					
+					// Check for even deeper nesting
+					if ( isset( $acf_field_keys[ $parent_prefix . '_' . $i . '_' . $sub_field_name ] ) && is_numeric( $meta_value ) ) {
+						// Verify this nested field actually has sub-fields (is a real repeater)
+						$nested_prefix = $parent_prefix . '_' . $i . '_' . $sub_field_name . '_0_';
+						$has_nested_sub_fields = false;
+						foreach ( $meta as $check_key => $check_value ) {
+							if ( strpos( $check_key, $nested_prefix ) === 0 ) {
+								$has_nested_sub_fields = true;
+								break;
+							}
+						}
+						
+						if ( $has_nested_sub_fields ) {
+							// This is a nested repeater
+							$row_data[ $sub_field_name ] = $this->extract_nested_repeater_data( 
+								$meta, 
+								$parent_prefix . '_' . $i . '_' . $sub_field_name, 
+								$meta_value,
+								$acf_field_keys
+							);
+						} else {
+							// Just a numeric value (like image ID)
+							$row_data[ $sub_field_name ] = $meta_value;
+						}
+					} else {
+						$row_data[ $sub_field_name ] = $meta_value;
+					}
+				}
+			}
+			
+			$rows[] = $row_data;
+		}
+		
+		return $rows;
 	}
 
 	/**
