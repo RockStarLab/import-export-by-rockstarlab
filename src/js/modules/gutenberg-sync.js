@@ -78,8 +78,7 @@
 					.attr('id', 'aie-sync-content-btn')
 					.addClass('button button-secondary')
 					.css('width', '100%')
-					.html('<span class="dashicons dashicons-update" style="margin-top: 3px;"></span> ' + 
-						(window.aieData?.i18n?.syncThisPost || 'Sync This Post'));
+					.html( window.aieData?.i18n?.syncThisPost || 'Sync This Post' );
 				
 				$content.append($button);
 				$panel.append($header, $content);

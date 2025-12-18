@@ -551,6 +551,14 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( ! in_array( $hook_suffix, array( 'edit.php', 'post.php', 'post-new.php' ) ) ) {
 			return;
 		}
+		
+		// Don't load on trash page
+		if ( 'edit.php' === $hook_suffix ) {
+			$post_status = $this->get_request_param( 'post_status', '' );
+			if ( 'trash' === $post_status ) {
+				return;
+			}
+		}
 
 		// Check if premium is active
 		$is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
@@ -654,6 +662,12 @@ class Content_Sync_Controller extends Base_Controller {
 			return;
 		}
 		
+		// Don't show on trash page
+		$post_status = $this->get_request_param( 'post_status', '' );
+		if ( 'trash' === $post_status ) {
+			return;
+		}
+		
 		// Check if premium is active
 		$is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
 		
@@ -673,6 +687,12 @@ class Content_Sync_Controller extends Base_Controller {
 		
 		// Only show on post list screens
 		if ( empty( $typenow ) ) {
+			return;
+		}
+		
+		// Don't show on trash page
+		$post_status = $this->get_request_param( 'post_status', '' );
+		if ( 'trash' === $post_status ) {
 			return;
 		}
 
