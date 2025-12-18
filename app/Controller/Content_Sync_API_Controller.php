@@ -395,100 +395,21 @@ class Content_Sync_API_Controller {
 						0 // Start at depth 0
 					);
 					
-					error_log( 'WP_AIE: Meta after replacement: ' . print_r( array_filter( $post_data['meta'], function( $key ) {
-						return in_array( $key, array( 'image', 'repeater' ) );
+					error_log( 'WP_AIE: Meta after ID replacement: ' . print_r( array_filter( $post_data['meta'], function( $key ) {
+						return strpos( $key, 'repeater' ) !== false || in_array( $key, array( 'image', 'flexible_content' ) );
 					}, ARRAY_FILTER_USE_KEY ), true ) );
 				}
 				
-				// Check if ACF is available
-				$use_acf = function_exists( 'update_field' );
-				$acf_field_keys = array();
-				
-				// First pass: identify ACF field reference keys (those starting with _ that contain field_xxxxx)
-				if ( $use_acf ) {
-					foreach ( $post_data['meta'] as $key => $value ) {
-						if ( strpos( $key, '_' ) === 0 && is_string( $value ) && strpos( $value, 'field_' ) === 0 ) {
-							// This is an ACF field reference (e.g., _my_field => field_xxxxx)
-							$field_name = substr( $key, 1 ); // Remove leading underscore to get field name
-							$acf_field_keys[ $field_name ] = $value; // Store field key
-						}
-					}
-					
-					// Convert flat ACF structure to hierarchical for repeater/flexible content fields
-					$post_data['meta'] = $this->convert_acf_flat_to_hierarchical( $post_data['meta'], $acf_field_keys );
-				}
-				
-				// Group fields by parent (for repeater/flexible content sub-fields)
-				$top_level_fields = array();
-				$nested_fields = array();
-				
-				foreach ( $acf_field_keys as $field_name => $field_key ) {
-					// Check if this is a nested field (contains _0_, _1_, etc.)
-					if ( preg_match( '/_\d+_/', $field_name ) ) {
-						$nested_fields[ $field_name ] = $field_key;
-					} else {
-						$top_level_fields[ $field_name ] = $field_key;
-					}
-				}
-				
-				// Second pass: import all meta fields
-				// First, process top-level fields and complex fields (repeater, flex) - they will handle nested data
+				// Simplified approach: Import all meta fields directly with update_post_meta()
+				// ACF will automatically handle the processing of its fields
 				foreach ( $post_data['meta'] as $key => $value ) {
 					// Skip some internal WordPress meta
 					if ( in_array( $key, array( '_edit_lock', '_edit_last' ), true ) ) {
 						continue;
 					}
 					
-					// Check if this is a top-level ACF field
-					if ( $use_acf && isset( $top_level_fields[ $key ] ) ) {
-						// This is a top-level ACF field - use update_field()
-						$field_key = $top_level_fields[ $key ];
-						
-						// Debug: Log field values with detailed structure
-						if ( in_array( $key, array( 'image', 'repeater', 'flexible_content' ) ) || strpos( $key, 'repeater' ) !== false ) {
-							error_log( '======================================' );
-							error_log( 'WP_AIE: Updating top-level ACF field "' . $key . '"' );
-							error_log( 'WP_AIE: Field key: ' . $field_key );
-							error_log( 'WP_AIE: Value type: ' . gettype( $value ) );
-							if ( is_array( $value ) ) {
-								error_log( 'WP_AIE: Array structure (first 2000 chars): ' . substr( print_r( $value, true ), 0, 2000 ) );
-							} else {
-								error_log( 'WP_AIE: Value: ' . $value );
-							}
-							error_log( '======================================' );
-						}
-						
-						// Try update_field with field key first
-						$result = update_field( $field_key, $value, $post_id );
-						
-						error_log( 'WP_AIE: update_field(' . $field_key . ', ..., ' . $post_id . ') result: ' . ( $result ? 'SUCCESS' : 'FAILED' ) );
-						
-						// If that failed, try with field name instead
-						if ( ! $result ) {
-							$result = update_field( $key, $value, $post_id );
-							error_log( 'WP_AIE: update_field(' . $key . ', ..., ' . $post_id . ') result: ' . ( $result ? 'SUCCESS' : 'FAILED' ) );
-						}
-						
-						// Also set the reference meta directly
-						update_post_meta( $post_id, '_' . $key, $field_key );
-						
-						// If update_field failed completely, fall back to direct meta update
-						if ( ! $result ) {
-							update_post_meta( $post_id, $key, $value );
-						}
-					} 
-					// Check if this is a nested ACF field
-					elseif ( $use_acf && isset( $nested_fields[ $key ] ) ) {
-						// This is a nested field - just save the reference, data is in parent field
-						$field_key = $nested_fields[ $key ];
-						update_post_meta( $post_id, '_' . $key, $field_key );
-						// Also save the value directly in case parent doesn't include it
-						update_post_meta( $post_id, $key, $value );
-					} 
-					else {
-						// Regular meta field or ACF reference field
-						update_post_meta( $post_id, $key, $value );
-					}
+					// Import all fields directly - ACF handles its own fields automatically
+					update_post_meta( $post_id, $key, $value );
 				}
 			}
 
