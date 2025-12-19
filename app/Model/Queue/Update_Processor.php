@@ -170,17 +170,6 @@ class Update_Processor {
 			);
 
 			// Log batch results
-			$this->logger->log(
-				$job_id,
-				'info',
-				sprintf(
-					'Batch processed: %d items, %d updated, %d skipped, %d errors',
-					$batch_count,
-					$update_stats['updated'],
-					$update_stats['skipped'],
-					$update_stats['errors']
-				)
-			);
 
 			// Check if completed
 			$completed = ( $new_processed >= $total_count ) || ( $batch_count < $batch_size );
@@ -193,18 +182,6 @@ class Update_Processor {
 						'progress'     => 100,
 						'completed_at' => current_time( 'mysql' ),
 					]
-				);
-
-				$this->logger->log(
-					$job_id,
-					'info',
-					sprintf(
-						'Update completed: %d total items, %d updated, %d skipped, %d errors',
-						$new_processed,
-						$updated_items,
-						$skipped_items,
-						$error_items
-					)
 				);
 
 				return [
@@ -229,11 +206,6 @@ class Update_Processor {
 			];
 
 		} catch ( \Exception $e ) {
-			$this->logger->log(
-				$job_id,
-				'error',
-				sprintf( 'Update error: %s', $e->getMessage() )
-			);
 
 			$this->job_model->update(
 				$job_id,
@@ -271,13 +243,7 @@ class Update_Processor {
 				$updated = false;
 				$item_id = $this->get_item_id( $item, $content_type );
 
-				// Debug: Log item structure
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG && 0 === $item_id ) {
-					$this->logger->log(
-						0,
-						'error',
-						'Item ID is 0 - Item keys: ' . implode( ', ', array_keys( $item ) )
-					);
 				}
 
 				$original_item = $item; // Keep original for comparison
@@ -305,13 +271,7 @@ class Update_Processor {
 					$current_value = isset( $item[ $field ] ) ? $item[ $field ] : '';
 					$new_value     = $current_value;
 
-					// Debug logging
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						$this->logger->log(
-							0,
-							'debug',
-							sprintf( 'Processing field "%s" for item %s with %d function(s)', $field, $item_id, count( $functions_for_field ) )
-						);
 					}
 
 					// Execute functions in pipeline (one after another)
@@ -329,41 +289,19 @@ class Update_Processor {
 							}
 						}
 
-						// Debug logging
 						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							$this->logger->log(
-								0,
-								'debug',
-								sprintf( 'Executing function "%s" on field "%s", current value: "%s"', $function_id, $field, substr( (string) $new_value, 0, 100 ) )
-							);
 						}
 
 						// Execute function
 						$new_value = $this->function_executor->execute( $function_id, $new_value, $item );
 
 						if ( is_wp_error( $new_value ) ) {
-							$this->logger->log(
-								0,
-								'warning',
-								sprintf(
-									'Function execution failed for item %s, field %s: %s',
-									$item_id,
-									$field,
-									$new_value->get_error_message()
-								)
-							);
 							// Stop pipeline on error, revert to original
 							$new_value = $current_value;
 							break;
 						}
 
-						// Debug logging - after execution
 						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							$this->logger->log(
-								0,
-								'debug',
-								sprintf( 'Function "%s" executed, new value: "%s"', $function_id, substr( (string) $new_value, 0, 100 ) )
-							);
 						}
 					}
 
@@ -378,7 +316,6 @@ class Update_Processor {
 
 				// Save updated item if any changes were made
 				if ( $updated ) {
-					// Log what's being updated (only in debug mode)
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						$changes = [];
 						foreach ( $fields as $field ) {
@@ -389,26 +326,11 @@ class Update_Processor {
 								];
 							}
 						}
-						$this->logger->log(
-							0,
-							'info',
-							sprintf( 'Updating item %s', $item_id ),
-							$changes
-						);
 					}
 
 					$save_result = $this->save_item( $item_id, $item, $content_type, $fields );
 
 					if ( is_wp_error( $save_result ) ) {
-						$this->logger->log(
-							0,
-							'error',
-							sprintf(
-								'Failed to save item %s: %s',
-								$item_id,
-								$save_result->get_error_message()
-							)
-						);
 						++$stats['errors'];
 					} else {
 						++$stats['updated'];
@@ -417,11 +339,6 @@ class Update_Processor {
 					++$stats['skipped'];
 				}
 			} catch ( \Exception $e ) {
-				$this->logger->log(
-					0,
-					'error',
-					sprintf( 'Error updating item: %s', $e->getMessage() )
-				);
 				++$stats['errors'];
 			}
 		}

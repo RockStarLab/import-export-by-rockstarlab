@@ -385,7 +385,6 @@ const ExportModule = {
 			// For other types, use dynamic filters
 			const dynamicFiltersData = this.getDynamicFilters();
 			
-			console.log('Dynamic filters data:', dynamicFiltersData);
 			
 			// Map content type to post_type for post-based exporters
 			const postType = this.getPostTypeForContentType( contentType );
@@ -403,25 +402,21 @@ const ExportModule = {
 				options.custom_fields = dynamicFiltersData.custom_fields;
 			}
 			
-			// Add taxonomy filters
-			if ( dynamicFiltersData.taxonomy.length > 0 ) {
-				options.taxonomy = dynamicFiltersData.taxonomy;
-			}
+		// Add taxonomy filters
+		if ( dynamicFiltersData.taxonomy.length > 0 ) {
+			options.taxonomy = dynamicFiltersData.taxonomy;
 		}
+	}
 
-		console.log('Sending options to backend:', options);			const response = await Utils.ajax( 'aie_export_get_count', {
-				export_type: contentType,
-				options: options,
-			} );
+		const response = await Utils.ajax( 'aie_export_get_count', {
+			export_type: contentType,
+			options: options,
+		} );
 
-			console.log('Received count response:', response);
-			$count.text( response.count || 0 );
-			
-			// Update next button state based on count
+		$count.text( response.count || 0 );			// Update next button state based on count
 			this.updateStep2NextButton();
 		} catch ( error ) {
 			$count.text( '-' );
-			console.error( 'Count error:', error );
 			
 			// Disable next button on error
 			this.updateStep2NextButton();
@@ -962,7 +957,6 @@ const ExportModule = {
 				job_id: this.jobId,
 			} );
 			
-			console.log( 'Batch processing response:', response );
 
 			// If not completed, process next batch after small delay
 			if ( response && ! response.completed ) {
@@ -971,7 +965,6 @@ const ExportModule = {
 				}, 100 );
 			}
 		} catch ( error ) {
-			console.error( 'Batch processing error:', error );
 		}
 	},
 
@@ -1001,7 +994,6 @@ const ExportModule = {
 				this.onExportFailed( response );
 			}
 		} catch ( error ) {
-			console.error( 'Progress update error:', error );
 		}
 	},
 
@@ -1298,7 +1290,6 @@ const ExportModule = {
 					} );
 				}
 			} ).catch( ( error ) => {
-				console.error( 'Error loading tables:', error );
 				$select.append( jQuery( '<option>' ).val( '' ).text( 'Error loading tables' ) );
 			} );
 			
@@ -1348,7 +1339,6 @@ const ExportModule = {
 				} );
 			}
 		} ).catch( ( error ) => {
-			console.error( 'Error loading post types:', error );
 			$select.append( jQuery( '<option>' ).val( '' ).text( 'Error loading post types' ) );
 		} );
 		
@@ -1396,7 +1386,6 @@ const ExportModule = {
 					} );
 				}
 			} ).catch( ( error ) => {
-				console.error( 'Error loading taxonomies:', error );
 				$select.append( jQuery( '<option>' ).val( '' ).text( 'Error loading taxonomies' ) );
 			} );
 			
@@ -1518,7 +1507,6 @@ const ExportModule = {
 				} );
 			}
 		} ).catch( ( error ) => {
-			console.error( 'Error loading table columns:', error );
 		} );
 	},
 
@@ -2335,10 +2323,8 @@ const ExportModule = {
 		// Fetch tables via AJAX
 		Utils.ajax( 'aie_get_database_tables', {} )
 			.then( ( response ) => {
-				console.log( 'Tables response:', response );
 				const tables = response.tables || response || [];
 				
-				console.log( 'Parsed tables:', tables );
 				
 				// Clear and populate dropdown
 				$dropdown.empty();
@@ -2377,7 +2363,6 @@ const ExportModule = {
 				} );
 			} )
 			.catch( ( error ) => {
-				console.error( 'Error loading tables:', error );
 				$dropdown.empty();
 				$dropdown.append( jQuery( '<option>' ).val( '' ).text( 'Error loading tables' ) );
 				$dropdown.prop( 'disabled', true );
@@ -2435,7 +2420,6 @@ const ExportModule = {
 				this.refreshCount( false );
 			} )
 			.catch( ( error ) => {
-				console.error( 'Error loading columns:', error );
 				$columnsList.html( '<p class="error">Error loading columns</p>' );
 			} );
 	},

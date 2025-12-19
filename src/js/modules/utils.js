@@ -342,10 +342,6 @@ const Utils = {
 	 * @param {string} context Error context
 	 */
 	handleError( error, context = '' ) {
-		console.error(
-			`AIE Error${ context ? ' (' + context + ')' : '' }:`,
-			error
-		);
 
 		const message = error.message || error.toString();
 		this.showNotice( message, 'error' );

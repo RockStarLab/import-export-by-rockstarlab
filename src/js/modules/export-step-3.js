@@ -12,7 +12,6 @@ export default class ExportStep3 {
 		this.autoScrollInterval = null;
 		this.selectedPostType = null;
 		
-		console.log('ExportStep3 constructor: selectedFields initialized to:', this.selectedFields);
 		
 		this.init();
 	}
@@ -20,12 +19,10 @@ export default class ExportStep3 {
 	init() {
 		// Check dependencies
 		if (typeof jQuery === 'undefined') {
-			console.error('jQuery is not loaded');
 			return;
 		}
 
 		if (typeof aieData === 'undefined') {
-			console.error('aieData is not defined. Make sure scripts are enqueued properly.');
 		}
 
 		this.initDragAndDrop();
@@ -124,7 +121,6 @@ export default class ExportStep3 {
 					const fieldData = JSON.parse(data);
 					this.addFieldToCSV(fieldData);
 				} catch (error) {
-					console.error('Error adding field:', error);
 				}
 			}
 		});
@@ -367,7 +363,6 @@ export default class ExportStep3 {
 	updateCSVStats() {
 		const countElement = document.querySelector('.aie-step-3 .aie-columns-count');
 		if (countElement) {
-			console.log('Updating CSV stats. Selected fields:', this.selectedFields.length, this.selectedFields);
 			countElement.textContent = this.selectedFields.length;
 		}
 	}
@@ -602,7 +597,6 @@ export default class ExportStep3 {
 
 		// Check if aieData is available
 		if (typeof aieData === 'undefined') {
-			console.error('aieData is not defined');
 			return;
 		}
 
@@ -689,7 +683,6 @@ export default class ExportStep3 {
 	 * Load dynamic fields (Taxonomies, Custom Fields, ACF, Yoast)
 	 */
 	loadDynamicFields() {
-		console.log('loadDynamicFields called. Current selectedFields:', this.selectedFields.length);
 		
 		// Get selected post type from step 1
 		this.selectedPostType = this.getCurrentContentType();
@@ -728,7 +721,6 @@ export default class ExportStep3 {
 	 * Reload dynamic fields (when post type changes)
 	 */
 	reloadDynamicFields() {
-		console.log('reloadDynamicFields called - clearing and reloading...');
 		
 		// Hide and clear ALL dynamic categories (including static ones)
 		const allCategories = document.querySelectorAll('.aie-field-category');
@@ -789,14 +781,12 @@ export default class ExportStep3 {
 	loadStaticFields() {
 		// Get field definitions from parent export module
 		if (typeof window.aieExportModule === 'undefined' || !window.aieExportModule.getFieldsByContentType) {
-			console.error('Export module not found or getFieldsByContentType method missing');
 			return;
 		}
 		
 		const contentType = this.getCurrentRealContentType();
 		const fieldGroups = window.aieExportModule.getFieldsByContentType(contentType);
 		
-		console.log('Loading static fields for content type:', contentType, fieldGroups);
 		
 		// Find the container for static fields
 		const container = document.querySelector('.aie-fields-library-body');
@@ -916,7 +906,6 @@ export default class ExportStep3 {
 				post_type: this.selectedPostType
 			},
 			success: (response) => {
-				console.log('Taxonomies response:', response);
 				if (response.success && response.data.taxonomies && response.data.taxonomies.length > 0) {
 					this.renderTaxonomies(response.data.taxonomies);
 					// Show the category
@@ -933,7 +922,6 @@ export default class ExportStep3 {
 				}
 			},
 			error: (xhr, status, error) => {
-				console.error('Taxonomies AJAX error:', error, xhr.responseText);
 			}
 		});
 	}
@@ -1168,7 +1156,6 @@ export default class ExportStep3 {
 			this.saveFieldFunctions();
 		});
 
-		// Test pipeline
 		modal.querySelector('.aie-test-pipeline')?.addEventListener('click', () => {
 			this.testFunctionPipeline();
 		});
@@ -1415,7 +1402,6 @@ export default class ExportStep3 {
 	loadFunctions() {
 		// Check if aieData is available
 		if (typeof aieData === 'undefined') {
-			console.error('aieData is not defined');
 			return;
 		}
 
@@ -1575,12 +1561,10 @@ export default class ExportStep3 {
 
 		// Check if aieData is available
 		if (typeof aieData === 'undefined') {
-			console.error('aieData is not defined');
 			this.showNotice(window.aieData.i18n.configErrorAieData, 'error');
 			return;
 		}
 
-		// Make AJAX request to test pipeline
 		jQuery.ajax({
 			url: aieData.ajaxUrl,
 			method: 'POST',
@@ -1729,7 +1713,6 @@ export default class ExportStep3 {
 	 */
 	showNotice(message, type = 'info') {
 		// You can implement a toast notification system here
-		console.log(`[${type.toUpperCase()}] ${message}`);
 	}
 
 	/**

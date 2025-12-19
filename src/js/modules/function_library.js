@@ -124,7 +124,6 @@ const FunctionLibrary = {
 			this.renderCategories();
 			this.renderSnippets();
 		} catch ( error ) {
-			console.error( 'Error loading snippets:', error );
 			grid.innerHTML = `
 				<div class="aie-error-message">
 					<span class="dashicons dashicons-warning"></span>
@@ -341,7 +340,6 @@ const FunctionLibrary = {
 			this.renderSnippets();
 			this.allSnippets = originalSnippets; // Restore
 		} catch ( error ) {
-			console.error( 'Error searching snippets:', error );
 			showError( error.message );
 		}
 	},
@@ -495,7 +493,6 @@ const FunctionLibrary = {
 					this.functionsModule.loadFunctions();
 				}
 			} catch ( error ) {
-				console.error( 'Error importing snippet:', error );
 				showError( error.message );
 			}
 		}

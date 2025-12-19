@@ -36,7 +36,6 @@ class Logger {
 				$log_message .= ' | Data: ' . wp_json_encode( $data );
 			}
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( $log_message );
 			return true;
 		}
 

@@ -34,10 +34,7 @@ jQuery( document ).ready( function ( $ ) {
 	ContentSyncModule.init();
 
 	// Initialize post sync module
-	console.log('AIE: About to initialize PostSyncModule');
 	PostSyncModule.init();
-	console.log('AIE: PostSyncModule initialized');
 	
-	// Make it globally accessible for debugging
 	window.aiePostSyncModule = PostSyncModule;
 } );

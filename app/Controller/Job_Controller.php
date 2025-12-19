@@ -150,8 +150,6 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( $result, null, 500 );
 		}
 
-		$this->log( 'delete_job', [ 'job_id' => $job_id ] );
-
 		$this->send_success( null, __( 'Job deleted successfully', 'wp-advanced-import-export' ) );
 	}
 
@@ -218,14 +216,6 @@ class Job_Controller extends Base_Controller {
 			)
 		);
 
-		$this->log(
-			'cleanup_jobs',
-			[
-				'days'    => $days,
-				'deleted' => $deleted,
-			]
-		);
-
 		$this->send_success(
 			[
 				'deleted' => $deleted,
@@ -287,8 +277,6 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( $updated, null, 500 );
 		}
 
-		$this->log( 'resume_job', [ 'job_id' => $job_id ] );
-
 		// Parse parameters for frontend
 		$parameters = maybe_unserialize( $job_data->parameters );
 
@@ -347,14 +335,6 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( $new_job_id, null, 500 );
 		}
 
-		$this->log(
-			'restart_job',
-			[
-				'old_job_id' => $job_id,
-				'new_job_id' => $new_job_id,
-			]
-		);
-
 		$this->send_success(
 			[
 				'job_id'     => $new_job_id,
@@ -410,14 +390,6 @@ class Job_Controller extends Base_Controller {
 		if ( is_wp_error( $new_job_id ) ) {
 			$this->send_error( $new_job_id, null, 500 );
 		}
-
-		$this->log(
-			'retry_job',
-			[
-				'old_job_id' => $job_id,
-				'new_job_id' => $new_job_id,
-			]
-		);
 
 		$this->send_success(
 			[

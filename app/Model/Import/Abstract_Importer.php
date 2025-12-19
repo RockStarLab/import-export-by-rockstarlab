@@ -241,7 +241,6 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 */
 	protected function log_info( $message, $data = [] ) {
 		if ( $this->job_id ) {
-			Logger::info( $this->job_id, $message, $data );
 		}
 	}
 
@@ -253,7 +252,6 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 */
 	protected function log_warning( $message, $data = [] ) {
 		if ( $this->job_id ) {
-			Logger::warning( $this->job_id, $message, $data );
 		}
 	}
 
@@ -265,7 +263,6 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 */
 	protected function log_error( $message, $data = [] ) {
 		if ( $this->job_id ) {
-			Logger::error( $this->job_id, $message, $data );
 		}
 	}
 

@@ -12,12 +12,8 @@
 		 * Initialize
 		 */
 		init() {
-			console.log('AIE: Loading Gutenberg sync button script');
-			console.log('AIE: wp object exists:', typeof wp !== 'undefined');
-			console.log('AIE: wp.data exists:', typeof wp !== 'undefined' && typeof wp.data !== 'undefined');
 			
 			$(document).ready(() => {
-				console.log('AIE: Document ready');
 				this.addGutenbergSyncButton();
 			});
 		},
@@ -26,15 +22,12 @@
 		 * Add button to Gutenberg editor
 		 */
 		addGutenbergSyncButton() {
-			console.log('AIE: addGutenbergSyncButton called');
 			
 			// Check if we're in Gutenberg
 			if (typeof wp === 'undefined' || typeof wp.data === 'undefined') {
-				console.log('AIE: WordPress editor not detected');
 				return false;
 			}
 			
-			console.log('AIE: WordPress editor detected');
 			
 			// Try multiple selectors for the sidebar (different WordPress versions)
 			let $sidebar = $('.interface-interface-skeleton__sidebar .edit-post-sidebar');
@@ -51,11 +44,8 @@
 				$sidebar = $('.interface-complementary-area');
 			}
 			
-			console.log('AIE: Sidebar elements found:', $sidebar.length);
-			console.log('AIE: Sidebar HTML:', $sidebar.length ? $sidebar[0].className : 'none');
 			
 			if ($sidebar.length && !$('#aie-sync-content-btn').length) {
-				console.log('AIE: Sidebar found, creating sync panel');
 				
 				// Create panel container (like Yoast SEO) - opened by default
 				const $panel = $('<div>')
@@ -102,11 +92,9 @@
 					$content.slideToggle(200);
 				});
 				
-				console.log('AIE: Sync button added successfully');
 				return true;
 			}
 			
-			console.log('AIE: Sidebar not found or button already exists');
 			return false;
 		},
 
@@ -118,14 +106,12 @@
 			const baseDelay = 500;
 			
 			if (attempts >= maxAttempts) {
-				console.log('AIE: Max retry attempts reached');
 				return;
 			}
 			
 			const success = this.addGutenbergSyncButton();
 			if (!success) {
 				const delay = baseDelay * Math.pow(1.5, attempts);
-				console.log(`AIE: Retry attempt ${attempts + 1}/${maxAttempts} after ${delay}ms`);
 				setTimeout(() => this.retryAddButton(attempts + 1), delay);
 			}
 		}

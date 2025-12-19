@@ -171,11 +171,6 @@ class Function_Executor {
 		$function = $this->get_function( $function_id );
 
 		if ( ! $function ) {
-			$this->logger->log(
-				0,
-				'error',
-				sprintf( 'Custom function not found: ID %s', $function_id )
-			);
 			return $value;
 		}
 
@@ -202,15 +197,6 @@ class Function_Executor {
 		// Validate code security
 		$validation = $this->validate_function_code( $code );
 		if ( is_wp_error( $validation ) ) {
-			$this->logger->log(
-				0,
-				'error',
-				sprintf(
-					'Function validation failed (ID: %d): %s',
-					$function_id,
-					$validation->get_error_message()
-				)
-			);
 			return $value;
 		}
 
@@ -273,37 +259,12 @@ class Function_Executor {
 			@set_time_limit( (int) $original_time_limit ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
 		} catch ( \ParseError $e ) {
-			$this->logger->log(
-				0,
-				'error',
-				sprintf(
-					'Function parse error: %s at line %d',
-					$e->getMessage(),
-					$e->getLine()
-				)
-			);
 			$result = $value;
 
 		} catch ( \Error $e ) {
-			$this->logger->log(
-				0,
-				'error',
-				sprintf(
-					'Function error: %s',
-					$e->getMessage()
-				)
-			);
 			$result = $value;
 
 		} catch ( \Exception $e ) {
-			$this->logger->log(
-				0,
-				'error',
-				sprintf(
-					'Function exception: %s',
-					$e->getMessage()
-				)
-			);
 			$result = $value;
 		}
 
@@ -512,13 +473,9 @@ class Function_Executor {
 		// Decode HTML entities that may have been encoded during transmission
 		$code = html_entity_decode( $code, ENT_QUOTES, 'UTF-8' );
 
-		// Debug logging
-		error_log( 'TEST FUNCTION - Code received: ' . $code );
-
 		// Validate code
 		$validation = $this->validate_function_code( $code );
 		if ( is_wp_error( $validation ) ) {
-			error_log( 'TEST FUNCTION - Validation error: ' . $validation->get_error_message() );
 			return [
 				'success' => false,
 				'error'   => $validation->get_error_message(),
@@ -527,8 +484,6 @@ class Function_Executor {
 
 		// Execute and capture result
 		$result = $this->execute_in_sandbox( $code, $value, $context );
-
-		error_log( 'TEST FUNCTION - Result: ' . print_r( $result, true ) );
 
 		return [
 			'success' => true,

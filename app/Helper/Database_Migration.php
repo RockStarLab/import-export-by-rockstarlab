@@ -198,12 +198,9 @@ class Database_Migration {
 		$results['content_sync']      = dbDelta( $sql_content_sync );
 		$results['api_keys']          = dbDelta( $sql_api_keys );
 
-		// Log any errors if debug mode is enabled
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			if ( $wpdb->last_error ) {
-				error_log( 'WP_AIE Database Migration Error: ' . $wpdb->last_error );
 			}
-			error_log( 'WP_AIE Database Migration Results: ' . print_r( $results, true ) );
 		}
 
 		// Update DB version
@@ -497,24 +494,14 @@ class Database_Migration {
 
 				// Log results
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log(
-						sprintf(
-							'[WP_AIE] Built-in functions seeded: %d created, %d skipped, %d errors',
-							$stats['created'],
-							$stats['skipped'],
-							$stats['errors']
-						)
-					);
 				}
 			} catch ( \Exception $e ) {
 				// Log error but don't break migration
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[WP_AIE] Error seeding built-in functions: ' . $e->getMessage() );
 				}
 			} catch ( \Error $e ) {
 				// Log error but don't break migration
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( '[WP_AIE] Fatal error seeding built-in functions: ' . $e->getMessage() );
 				}
 			}
 		}

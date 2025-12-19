@@ -258,8 +258,6 @@ class Content_Updater_Controller extends Base_Controller {
 			$this->send_error( $job_id, null, 500 );
 		}
 
-		Logger::log( $job_id, 'info', sprintf( 'Content update job created for %s', $content_type ) );
-
 		$this->send_success(
 			[
 				'job_id'      => $job_id,
@@ -366,8 +364,6 @@ class Content_Updater_Controller extends Base_Controller {
 				500
 			);
 		}
-
-		Logger::log( $job_id, 'info', 'Content update job cancelled' );
 
 		$this->send_success( [ 'cancelled' => true ] );
 	}

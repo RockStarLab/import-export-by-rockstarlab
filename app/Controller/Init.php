@@ -139,7 +139,6 @@ class Init {
 		} catch ( \Exception $e ) {
 			// Log error but don't break plugin activation
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'WP_AIE: Failed to initialize Content_Sync_API_Controller: ' . $e->getMessage() );
 			}
 		}
 	}

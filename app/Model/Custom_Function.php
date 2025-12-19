@@ -110,12 +110,6 @@ class Custom_Function extends Model {
 		);      if ( $result ) {
 			$function_id = $wpdb->insert_id;
 
-			$this->logger->log(
-				0,
-				'info',
-				sprintf( 'Custom function created: %s (ID: %d)', $insert_data['name'], $function_id )
-			);
-
 			return $function_id;
 		}
 
@@ -205,11 +199,6 @@ class Custom_Function extends Model {
 		);
 
 		if ( false !== $result ) {
-			$this->logger->log(
-				0,
-				'info',
-				sprintf( 'Custom function updated: ID %d', $id )
-			);
 			return true;
 		}
 
@@ -241,11 +230,6 @@ class Custom_Function extends Model {
 		);
 
 		if ( $result ) {
-			$this->logger->log(
-				0,
-				'info',
-				sprintf( 'Custom function deleted: ID %d', $id )
-			);
 		}
 
 		return (bool) $result;

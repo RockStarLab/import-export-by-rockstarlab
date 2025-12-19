@@ -183,14 +183,6 @@ class Export_Controller extends Base_Controller {
 			$this->send_error( $job_id, null, 500 );
 		}
 
-		$this->log(
-			'start_export',
-			[
-				'job_id'      => $job_id,
-				'export_type' => $export_type,
-			]
-		);
-
 		$this->send_success(
 			[
 				'job_id' => $job_id,
@@ -357,14 +349,6 @@ class Export_Controller extends Base_Controller {
 			admin_url( 'admin-ajax.php' )
 		);
 
-		$this->log(
-			'prepare_download',
-			[
-				'job_id'   => $job_id,
-				'filename' => $filename,
-			]
-		);
-
 		$this->send_success(
 			[
 				'download_url' => $download_url,
@@ -442,8 +426,6 @@ class Export_Controller extends Base_Controller {
 		if ( is_wp_error( $job_result ) ) {
 			$this->send_error( $job_result, null, 500 );
 		}
-
-		$this->log( 'cancel_export', [ 'job_id' => $job_id ] );
 
 		$this->send_success( null, __( 'Export cancelled', 'wp-advanced-import-export' ) );
 	}
