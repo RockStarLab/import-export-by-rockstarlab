@@ -162,9 +162,9 @@ class Function_Executor {
 	/**
 	 * Execute a custom function by ID
 	 *
-	 * @param int   $function_id Function ID from database
-	 * @param mixed $value       Input value
-	 * @param array $context     Additional context (row data, field info, etc.)
+	 * @param int|string $function_id Function ID from database or snippet key
+	 * @param mixed      $value       Input value
+	 * @param array      $context     Additional context (row data, field info, etc.)
 	 * @return mixed Transformed value or original on error
 	 */
 	public function execute( $function_id, $value, $context = [] ) {
@@ -174,7 +174,7 @@ class Function_Executor {
 			$this->logger->log(
 				0,
 				'error',
-				sprintf( 'Custom function not found: ID %d', $function_id )
+				sprintf( 'Custom function not found: ID %s', $function_id )
 			);
 			return $value;
 		}
@@ -430,10 +430,16 @@ class Function_Executor {
 	/**
 	 * Get function from database
 	 *
-	 * @param int $function_id Function ID
+	 * @param int|string $function_id Function ID or snippet key
 	 * @return array|null Function data or null
 	 */
 	public function get_function( $function_id ) {
+		// Check if this is a snippet ID (string starting with "snippet_")
+		if ( is_string( $function_id ) && strpos( $function_id, 'snippet_' ) === 0 ) {
+			return $this->get_builtin_function( $function_id );
+		}
+
+		// Otherwise, try to get from database
 		global $wpdb;
 
 		$table = $wpdb->prefix . 'aie_custom_functions';
@@ -441,7 +447,7 @@ class Function_Executor {
 		$function = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT * FROM {$table} WHERE id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				$function_id
+				(int) $function_id
 			),
 			ARRAY_A
 		);
@@ -467,17 +473,31 @@ class Function_Executor {
 	/**
 	 * Get built-in function by ID (from Function_Snippets)
 	 *
-	 * @param int $function_id Function ID
+	 * @param int|string $function_id Function ID or snippet key (e.g., "snippet_uppercase")
 	 * @return array|null Function data or null
 	 */
 	private function get_builtin_function( $function_id ) {
-		// Check if it's a numeric string function ID (legacy support)
-		// Built-in functions were originally stored as snippets with string keys
-		// but may be referenced by auto-increment IDs
+		// Extract snippet key if it's in format "snippet_xxx"
+		$snippet_key = $function_id;
+		if ( is_string( $function_id ) && strpos( $function_id, 'snippet_' ) === 0 ) {
+			$snippet_key = substr( $function_id, 8 ); // Remove "snippet_" prefix
+		}
 
-		// For now, return null - built-in functions should be loaded to DB
-		// This is just a fallback
-		return null;
+		// Try to load from Function_Snippets library
+		$library = new Function_Snippets();
+		$snippet = $library->get_snippet( $snippet_key );
+
+		if ( ! $snippet ) {
+			return null;
+		}
+
+		// Convert snippet format to function format
+		return [
+			'id'     => $function_id,
+			'name'   => $snippet['name'],
+			'code'   => $snippet['code'],
+			'status' => 'active', // Snippets are always active
+		];
 	}
 
 	/**

@@ -305,11 +305,37 @@ class Update_Processor {
 					$current_value = isset( $item[ $field ] ) ? $item[ $field ] : '';
 					$new_value     = $current_value;
 
+					// Debug logging
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						$this->logger->log(
+							0,
+							'debug',
+							sprintf( 'Processing field "%s" for item %s with %d function(s)', $field, $item_id, count( $functions_for_field ) )
+						);
+					}
+
 					// Execute functions in pipeline (one after another)
 					foreach ( $functions_for_field as $function_id ) {
-						$function_id = (int) $function_id;
-						if ( $function_id <= 0 ) {
+						// Skip empty or invalid function IDs
+						if ( empty( $function_id ) || 'none' === $function_id ) {
 							continue;
+						}
+
+						// Support both integer IDs and string snippet IDs (e.g., "snippet_uppercase")
+						if ( is_numeric( $function_id ) ) {
+							$function_id = (int) $function_id;
+							if ( $function_id <= 0 ) {
+								continue;
+							}
+						}
+
+						// Debug logging
+						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+							$this->logger->log(
+								0,
+								'debug',
+								sprintf( 'Executing function "%s" on field "%s", current value: "%s"', $function_id, $field, substr( (string) $new_value, 0, 100 ) )
+							);
 						}
 
 						// Execute function
@@ -329,6 +355,15 @@ class Update_Processor {
 							// Stop pipeline on error, revert to original
 							$new_value = $current_value;
 							break;
+						}
+
+						// Debug logging - after execution
+						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+							$this->logger->log(
+								0,
+								'debug',
+								sprintf( 'Function "%s" executed, new value: "%s"', $function_id, substr( (string) $new_value, 0, 100 ) )
+							);
 						}
 					}
 
@@ -504,11 +539,16 @@ class Update_Processor {
 		// Update post if there are standard fields to update
 		if ( ! empty( $post_data ) ) {
 			$post_data['ID'] = $post_id;
-			$result          = wp_update_post( $post_data, true );
+			
+			// Disable filters to ensure content is saved as-is
+			$result = wp_update_post( $post_data, true );
 
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
+
+			// Clear post cache to ensure fresh data
+			clean_post_cache( $post_id );
 		}
 
 		// Update meta fields
