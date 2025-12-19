@@ -264,13 +264,12 @@ class Function_Executor {
 		} catch ( \Error $e ) {
 			$result = $value;
 
-		} catch ( \Exception $e ) {
-			$result = $value;
-		}
-
-		return $result;
+	} catch ( \Exception $e ) {
+		$result = $value;
 	}
 
+	return $result;
+	}
 	/**
 	 * Validate function code for security issues
 	 *
