@@ -128,12 +128,6 @@ class Background_Processor {
 				)
 			);
 
-			$this->logger->log(
-				$job_id,
-				'info',
-				sprintf( 'Started processing job #%d', $job_id )
-			);
-
 			// Parse parameters
 			$parameters = ! empty( $job['parameters'] ) ? json_decode( $job['parameters'], true ) : [];
 
@@ -144,41 +138,25 @@ class Background_Processor {
 				$result = $this->process_export_job( $job_id, $parameters );
 			} elseif ( 'media_sync' === $job['type'] ) {
 				$result = $this->process_media_sync_job( $job_id, $parameters );
-				error_log( sprintf( '[Background Processor] Media sync job #%d result: %s', $job_id, wp_json_encode( $result ) ) );
 			} else {
 				throw new \Exception( 'Invalid job type: ' . $job['type'] );
 			}           // Check if completed or needs to continue
 			if ( isset( $result['completed'] ) && $result['completed'] ) {
-				error_log( sprintf( '[Background Processor] Job #%d COMPLETED, calling complete_job()', $job_id ) );
 				$this->complete_job( $job_id, $result );
 			} else {
 				// Job still processing - schedule next batch immediately
-				error_log( sprintf( '[Background Processor] Job #%d NOT COMPLETED, scheduling next batch...', $job_id ) );
-
-				$this->logger->log(
-					$job_id,
-					'info',
-					sprintf(
-						'Job #%d batch completed, scheduling next batch (progress: %s%%)',
-						$job_id,
-						isset( $result['progress'] ) ? $result['progress'] : 'unknown'
-					)
-				);
 
 				// Schedule immediate next run for continued processing
 				$this->schedule_next_run( 0 );
-				error_log( sprintf( '[Background Processor] Scheduled next cron run for job #%d', $job_id ) );
 
 				// For local development: spawn immediate cron check
 				// This ensures processing continues even if WP-Cron is not triggered by page load
 				if ( defined( 'DOING_CRON' ) && ! DOING_CRON ) {
 					spawn_cron();
-					error_log( sprintf( '[Background Processor] Called spawn_cron() for job #%d', $job_id ) );
 				}
 
 				// Fallback: trigger via AJAX for reliability (non-blocking)
 				$this->trigger_ajax_processing( $job_id );
-				error_log( sprintf( '[Background Processor] Triggered AJAX processing for job #%d', $job_id ) );
 			}
 		} catch ( \Exception $e ) {
 			$this->handle_job_error( $job_id, $e );
@@ -343,18 +321,6 @@ class Background_Processor {
 			)
 		);
 
-		$this->logger->log(
-			$job_id,
-			'success',
-			sprintf(
-				'Job #%d completed. Processed: %d, Success: %d, Failed: %d',
-				$job_id,
-				$result['processed'] ?? 0,
-				$result['success'] ?? 0,
-				$result['failed'] ?? 0
-			)
-		);
-
 		// Update progress to 100%
 		$this->progress_tracker->update_progress( $job_id, 100 );
 	}
@@ -379,14 +345,6 @@ class Background_Processor {
 			)
 		);
 
-		$this->logger->log(
-			$job_id,
-			'info',
-			sprintf(
-				'Progress updated. Processed: %d items',
-				$result['processed'] ?? 0
-			)
-		);
 	}
 
 	/**
@@ -399,17 +357,6 @@ class Background_Processor {
 		// Get current retry count
 		$job     = $this->job_model->find( $job_id );
 		$retries = isset( $job->retries ) ? (int) $job->retries : 0;
-
-		$this->logger->log(
-			$job_id,
-			'error',
-			sprintf(
-				'Job error (retry %d/%d): %s',
-				$retries + 1,
-				$this->max_retries,
-				$e->getMessage()
-			)
-		);
 
 		// Check if should retry
 		if ( $retries < $this->max_retries ) {

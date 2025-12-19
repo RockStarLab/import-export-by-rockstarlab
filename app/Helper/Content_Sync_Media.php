@@ -333,15 +333,12 @@ class Content_Sync_Media {
 						$layout_name = $row['acf_fc_layout'];							// Find the layout
 							foreach ( $field['layouts'] as $layout ) {
 								if ( isset( $layout['name'] ) && $layout['name'] === $layout_name ) {
-									error_log( 'WP_AIE Media Extract: Found layout: ' . $layout['name'] );
 									// Find sub field in this layout
 									if ( isset( $layout['sub_fields'] ) ) {
-										error_log( 'WP_AIE Media Extract: Layout has ' . count( $layout['sub_fields'] ) . ' sub fields' );
 										foreach ( $layout['sub_fields'] as $sf ) {
 											if ( isset( $sf['name'] ) && $sf['name'] === $sub_field_name ) {
 												$sub_field        = $sf;
 												$sub_field['value'] = $sub_field_value;
-												error_log( 'WP_AIE Media Extract: Found sub field "' . $sub_field_name . '" with type: ' . $sf['type'] . ', value: ' . print_r( $sub_field_value, true ) );
 												break 2; // Break out of both loops
 											}
 										}
@@ -351,7 +348,6 @@ class Content_Sync_Media {
 							}
 							
 							if ( ! $sub_field ) {
-								error_log( 'WP_AIE Media Extract: WARNING - Sub field "' . $sub_field_name . '" NOT FOUND in layout "' . $layout_name . '"' );
 							}
 						}
 						
@@ -369,7 +365,6 @@ class Content_Sync_Media {
 						if ( $sub_field ) {
 							$sub_images = self::extract_acf_field_images( $sub_field, $post_id );
 							if ( ! empty( $sub_images ) ) {
-								error_log( 'WP_AIE Media Extract: Found ' . count( $sub_images ) . ' images in sub field "' . $sub_field['name'] . '"' );
 							}
 							$images     = array_merge( $images, $sub_images );
 						}

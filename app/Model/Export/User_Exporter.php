@@ -397,7 +397,6 @@ class User_Exporter extends Abstract_Exporter {
 
 		// Process dynamic filters
 		if ( ! empty( $options['filters'] ) && is_array( $options['filters'] ) ) {
-			// Log filters for debugging
 			$this->log_info( 'Applying dynamic filters', [ 'filters' => $options['filters'] ] );
 			$this->apply_dynamic_filters( $args, $options['filters'] );
 			// Log resulting args

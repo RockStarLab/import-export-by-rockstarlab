@@ -102,7 +102,6 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( __( 'This site is already connected', 'wp-advanced-import-export' ) );
 		}
 
-		// Validate API key by testing connection to remote site
 		$validation_result = $this->validate_remote_site( $remote_url, $api_key );
 		if ( is_wp_error( $validation_result ) ) {
 			$this->send_error( $validation_result->get_error_message() );
@@ -348,7 +347,6 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( __( 'Site not found', 'wp-advanced-import-export' ) );
 		}
 
-		// Test connection using our validation endpoint
 		$validation_result = $this->validate_remote_site( $site['remote_url'], $site['api_key'] );
 
 		if ( is_wp_error( $validation_result ) ) {
@@ -546,7 +544,6 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Enqueue assets for post list screens
 	 */
 	public function enqueue_post_list_assets( $hook_suffix ) {
-		// Debug: log what hook we're on
 		// Load on edit.php (post list) and post.php/post-new.php (edit post)
 		if ( ! in_array( $hook_suffix, array( 'edit.php', 'post.php', 'post-new.php' ) ) ) {
 			return;
@@ -1080,9 +1077,7 @@ class Content_Sync_Controller extends Base_Controller {
 				'terms'         => $terms_data,
 			);
 			
-			// Debug: Log repeater field data before push
 			if ( isset( $prepared_meta['repeater'] ) ) {
-				error_log( 'WP_AIE PUSH: Post ID ' . $post->ID . ' - repeater field value: ' . $prepared_meta['repeater'] );
 			}
 
 			$posts_data[] = $post_data;
@@ -1343,39 +1338,28 @@ class Content_Sync_Controller extends Base_Controller {
 		// Download images from remote site
 		$image_map = array();
 		if ( ! empty( $remote_images ) ) {
-			error_log( 'WP_AIE Pull: Found ' . count( $remote_images ) . ' images to download' );
 			foreach ( $remote_images as $image ) {
 				$new_attachment_id = $this->download_image_from_remote( $image, $site );
 				if ( $new_attachment_id ) {
 					$image_map[ $image['attachment_id'] ] = $new_attachment_id;
-					error_log( 'WP_AIE Pull: Mapped image ' . $image['attachment_id'] . ' => ' . $new_attachment_id );
 				} else {
-					error_log( 'WP_AIE Pull: Failed to download image ' . $image['attachment_id'] );
 				}
 			}
 		}
 		
-		error_log( 'WP_AIE Pull: Final image_map: ' . print_r( $image_map, true ) );
 
-		// Replace domains and image IDs in post data
-		foreach ( $posts_data as &$post_data ) {
-			error_log( 'WP_AIE Pull: Replacing domains in post ' . $post_data['ID'] );
-			error_log( 'WP_AIE Pull: Meta before replacement: ' . print_r( array_filter( $post_data['meta'], function( $key ) {
-				return in_array( $key, array( 'image', 'repeater' ) );
-			}, ARRAY_FILTER_USE_KEY ), true ) );
-			
-			$post_data = \WP_AIE\Helper\Content_Sync_Replacer::replace_post_domains(
-				$post_data,
-				$source_domain,
-				$target_domain,
-				$image_map
-			);
-			
-			error_log( 'WP_AIE Pull: Meta after replacement: ' . print_r( array_filter( $post_data['meta'], function( $key ) {
-				return in_array( $key, array( 'image', 'repeater' ) );
-			}, ARRAY_FILTER_USE_KEY ), true ) );
-		}
-		unset( $post_data ); // Break the reference to avoid bugs in the next foreach loop
+	
+
+	// Replace domains and image IDs in post data
+	foreach ( $posts_data as &$post_data ) {
+		$post_data = \WP_AIE\Helper\Content_Sync_Replacer::replace_post_domains(
+			$post_data,
+			$source_domain,
+			$target_domain,
+			$image_map
+		);
+	}
+	unset( $post_data ); // Break the reference to avoid bugs in the next foreach loop
 
 		// Import posts
 		$imported_count = 0;
@@ -1697,12 +1681,9 @@ class Content_Sync_Controller extends Base_Controller {
 				
 				// If no sub-fields found, this is not a repeater (probably just a numeric field like image ID)
 				if ( ! $has_sub_fields ) {
-					error_log( 'WP_AIE ACF Convert: Skipping "' . $field_name . '" - numeric value but no sub-fields found (likely an image/file ID)' );
 					continue;
 				}
 				
-				error_log( 'WP_AIE ACF Convert: Found repeater/flex field "' . $field_name . '" with ' . $row_count . ' rows' );
-				error_log( 'WP_AIE ACF Convert: Looking for fields starting with "' . $field_name . '_0_"' );
 				
 				// Build hierarchical structure
 				$rows = array();
@@ -1734,22 +1715,18 @@ class Content_Sync_Controller extends Base_Controller {
 									// Recursively process nested repeater
 									$nested_rows = $this->extract_nested_repeater_data( $meta, $field_name . '_' . $i . '_' . $sub_field_name, $meta_value, $acf_field_keys );
 									$row_data[ $sub_field_name ] = $nested_rows;
-									error_log( 'WP_AIE ACF Convert: Added nested repeater "' . $sub_field_name . '" with ' . count( $nested_rows ) . ' rows' );
 								} else {
 									// Just a numeric value (like image ID)
 									$row_data[ $sub_field_name ] = $meta_value;
-									error_log( 'WP_AIE ACF Convert: Added field "' . $sub_field_name . '" = ' . $meta_value );
 								}
 							} else {
 								$row_data[ $sub_field_name ] = $meta_value;
 								if ( strlen( print_r( $meta_value, true ) ) < 100 ) {
-									error_log( 'WP_AIE ACF Convert: Added field "' . $sub_field_name . '" = ' . ( is_array( $meta_value ) ? json_encode( $meta_value ) : $meta_value ) );
 								}
 							}
 						}
 					}
 					
-					error_log( 'WP_AIE ACF Convert: Row ' . $i . ' - found ' . $found_fields . ' fields with prefix "' . $row_prefix . '"' );
 					$rows[] = $row_data;
 				}
 				
@@ -1757,8 +1734,6 @@ class Content_Sync_Controller extends Base_Controller {
 				$meta[ $field_name ] = $rows;
 				$processed_parents[] = $field_name;
 				
-				error_log( 'WP_AIE ACF Convert: Converted "' . $field_name . '" to array with ' . count( $rows ) . ' rows' );
-				error_log( 'WP_AIE ACF Convert: Full structure: ' . substr( print_r( $rows, true ), 0, 2000 ) );
 			}
 		}
 		

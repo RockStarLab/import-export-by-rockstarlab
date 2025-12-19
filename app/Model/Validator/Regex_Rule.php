@@ -60,7 +60,6 @@ class Regex_Rule extends Validation_Rule {
 		// Convert value to string
 		$string_value = (string) $value;
 
-		// Test pattern
 		if ( ! preg_match( $pattern, $string_value ) ) {
 			$message = $this->get_option( 'message' );
 

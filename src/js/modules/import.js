@@ -475,11 +475,9 @@ const ImportModule = {
 				);
 			},
 			onComplete: ( result ) => {
-				console.log( 'Upload complete, result:', result );
 				
 				// Check for validation errors
 				if ( result.error ) {
-					console.log( 'Validation error detected:', result.error );
 					Utils.showNotice( result.error, 'error' );
 					
 					// Show file info but keep upload area visible
@@ -503,7 +501,6 @@ const ImportModule = {
 
 				// Upload complete
 				this.fileData = result;
-				console.log( 'File data stored:', this.fileData );
 				
 				// Hide upload area completely, show file info
 				jQuery( '.aie-upload-area' ).hide();
@@ -605,7 +602,6 @@ const ImportModule = {
 				this.fileData.total_rows = response.data.total_rows;
 			}
 		} catch ( error ) {
-			console.error( 'Error reloading preview:', error );
 		}
 	},
 
@@ -621,7 +617,6 @@ const ImportModule = {
 	 * Load data preview
 	 */
 	async loadPreview() {
-		console.log( 'loadPreview called, fileData:', this.fileData );
 		
 		if ( ! this.fileData ) {
 			Utils.showNotice( 'No file data available', 'error' );
@@ -630,7 +625,6 @@ const ImportModule = {
 
 		// Check if there's an error
 		if ( this.fileData.hasError ) {
-			console.log( 'File has validation error:', this.fileData.error );
 			return; // Error display is handled in showStep
 		}
 
@@ -641,9 +635,6 @@ const ImportModule = {
 
 		const preview = this.fileData.preview;
 		const format = this.fileData.format || 'csv';
-
-		console.log( 'Preview data:', preview );
-		console.log( 'Format:', format );
 
 		// Update stats
 		jQuery( '.aie-total-rows' ).text( this.fileData.total_rows || 0 );
@@ -836,15 +827,12 @@ const ImportModule = {
 	 * Build field mapping interface (Drag & Drop)
 	 */
 	buildFieldMapping() {
-		console.log( 'buildFieldMapping called' );
 		
 		if ( ! this.fileData || ! this.fileData.columns ) {
-			console.log( 'No file data or columns' );
 			return;
 		}
 
 		const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
-		console.log( 'Content type:', contentType );
 		
 		// Show/hide post type selector for custom post types
 		this.togglePostTypeSelector( contentType );
@@ -912,14 +900,9 @@ const ImportModule = {
 	togglePostTypeSelector( contentType ) {
 		const $selector = jQuery( '.aie-post-type-selector' );
 		
-		console.log( 'togglePostTypeSelector called with:', contentType );
-		console.log( 'Selector found:', $selector.length );
-		console.log( 'Current display:', $selector.css( 'display' ) );
 		
 		if ( contentType === 'custom_post_types' ) {
-			console.log( 'Setting display to block' );
 			$selector.css( 'display', 'block' );
-			console.log( 'After setting, display:', $selector.css( 'display' ) );
 			this.loadCustomPostTypes();
 		} else {
 			$selector.css( 'display', 'none' );
@@ -956,7 +939,6 @@ const ImportModule = {
 				}
 			},
 			error: ( xhr, status, error ) => {
-				console.error( 'Error loading post types:', error );
 			}
 		} );
 	},
@@ -1044,7 +1026,6 @@ const ImportModule = {
 				}
 			},
 			error: ( xhr, status, error ) => {
-				console.error( 'Error loading tables:', error );
 				$spinner.removeClass( 'is-active' );
 				$select.html( '<option value="">Error loading tables</option>' );
 			}
@@ -1089,7 +1070,6 @@ const ImportModule = {
 				}
 			},
 			error: ( xhr, status, error ) => {
-				console.error( 'Error loading table columns:', error );
 				$columnsList.html( '<p>Error loading columns</p>' );
 			}
 		} );
@@ -1146,7 +1126,6 @@ const ImportModule = {
 				}
 			},
 			error: ( xhr, status, error ) => {
-				console.error( 'Error loading columns:', error );
 				$container.html( '<div class="aie-error">Error loading table columns</div>' );
 			}
 		} );
@@ -1160,7 +1139,6 @@ const ImportModule = {
 		
 		// Get fields for content type
 		const fieldGroups = this.getFieldsByContentType( contentType );
-		console.log( 'Field groups:', fieldGroups );
 		
 		let html = '';
 
@@ -2652,7 +2630,6 @@ const ImportModule = {
 			Utils.showNotice( 'Creating custom functions will be available in the Functions Library section', 'info' );
 		} );
 
-		// Test Pipeline
 		jQuery( '.aie-test-pipeline' ).on( 'click', function () {
 			const testValue = jQuery( '#aie-preview-input' ).val();
 			
@@ -2998,7 +2975,6 @@ const ImportModule = {
 			}
 		} );
 
-		console.log( 'Field mapping:', mapping );
 		return mapping;
 	},
 
@@ -3069,7 +3045,6 @@ const ImportModule = {
 				this.onImportFailed( response );
 			}
 		} catch ( error ) {
-			console.error( 'Progress update error:', error );
 		}
 	},
 
@@ -3175,7 +3150,6 @@ const ImportModule = {
 				}
 			},
 			error: ( xhr, status, error ) => {
-				console.log( 'ACF fields load error:', error );
 			},
 		} );
 	},
@@ -3250,7 +3224,6 @@ const ImportModule = {
 				}
 			},
 			error: ( xhr, status, error ) => {
-				console.log( 'Yoast fields load error:', error );
 			},
 		} );
 	},

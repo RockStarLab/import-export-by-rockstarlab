@@ -183,11 +183,9 @@ class Content_Sync_Replacer {
 			
 			// Replace ACF image/file fields (numeric attachment IDs)
 			if ( ! empty( $image_map ) && is_numeric( $value ) && $value > 0 && isset( $image_map[ $value ] ) ) {
-				error_log( 'WP_AIE Replacer meta: Checking key "' . $key . '" with numeric value ' . $value );
 				// Verify this is an attachment by checking if the new ID exists
 				$attachment = get_post( $image_map[ $value ] );
 				if ( $attachment && 'attachment' === $attachment->post_type ) {
-					error_log( 'WP_AIE Replacer meta: Replacing ' . $key . ' => ' . $value . ' to ' . $image_map[ $value ] );
 					$value = $image_map[ $value ];
 					continue;
 				}
@@ -206,7 +204,6 @@ class Content_Sync_Replacer {
 					$value = self::replace_in_text( $value, $source_domain, $target_domain );
 				}
 			} elseif ( is_array( $value ) ) {
-				error_log( 'WP_AIE Replacer meta: Processing array for key "' . $key . '", structure: ' . substr( print_r( $value, true ), 0, 500 ) );
 				$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map, 0 );
 			}
 
@@ -266,7 +263,6 @@ class Content_Sync_Replacer {
 			// Replace attachment IDs in common field names
 			if ( ! empty( $image_map ) && in_array( $key, array( 'id', 'ID', 'attachment_id', 'image_id', 'media_id', 'image', 'thumbnail_id', 'file' ), true ) ) {
 				if ( is_numeric( $value ) && isset( $image_map[ $value ] ) ) {
-					error_log( $indent . 'WP_AIE Replacer [depth ' . $depth . ']: Replacing ' . $key . ' ID ' . $value . ' => ' . $image_map[ $value ] );
 					$value = $image_map[ $value ];
 					continue;
 				}
@@ -281,7 +277,6 @@ class Content_Sync_Replacer {
 					// Double check this is an attachment by checking if the mapped value exists
 					$attachment = get_post( $image_map[ $value ] );
 					if ( $attachment && 'attachment' === $attachment->post_type ) {
-						error_log( $indent . 'WP_AIE Replacer [depth ' . $depth . ']: Replacing numeric ID ' . $value . ' => ' . $image_map[ $value ] . ' (verified)' );
 						$value = $image_map[ $value ];
 						continue;
 					}

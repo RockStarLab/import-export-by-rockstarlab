@@ -292,7 +292,6 @@ abstract class Base_Controller {
 		// Log using WordPress error_log
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( sprintf( '[WP-AIE] %s: %s', strtoupper( $level ), wp_json_encode( $log_data ) ) );
 		}
 
 		/**

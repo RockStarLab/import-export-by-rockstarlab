@@ -102,15 +102,6 @@ class Import_Controller extends Base_Controller {
 		// Count total rows
 		$total_rows = $parser->count_rows( $file_path );
 
-		$this->log(
-			'upload_file',
-			[
-				'file'       => $upload_result['name'],
-				'format'     => $format,
-				'total_rows' => $total_rows,
-			]
-		);
-
 		$this->send_success(
 			[
 				'file_id'    => $upload_result['id'],
@@ -224,14 +215,6 @@ class Import_Controller extends Base_Controller {
 		// Start import in background
 		$this->process_import_job( $job_id );
 
-		$this->log(
-			'start_import',
-			[
-				'job_id'      => $job_id,
-				'import_type' => $import_type,
-			]
-		);
-
 		$this->send_success(
 			[
 				'job_id' => $job_id,
@@ -294,8 +277,6 @@ class Import_Controller extends Base_Controller {
 		if ( is_wp_error( $job_result ) ) {
 			$this->send_error( $job_result, null, 500 );
 		}
-
-		$this->log( 'cancel_import', [ 'job_id' => $job_id ] );
 
 		$this->send_success( null, __( 'Import cancelled', 'wp-advanced-import-export' ) );
 	}

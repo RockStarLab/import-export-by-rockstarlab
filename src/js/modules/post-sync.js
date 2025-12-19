@@ -9,7 +9,6 @@ const PostSync = {
 	 * Initialize the module
 	 */
 	init() {
-		console.log('AIE PostSync: Module initialized');
 		this.bindEvents();
 	},
 
@@ -19,11 +18,8 @@ const PostSync = {
 	bindEvents() {
 		const $ = jQuery;
 
-		console.log('AIE PostSync: Binding events');
-
 		// Open modal when sync button is clicked
 		$(document).on('click', '#aie-sync-content-btn', (e) => {
-			console.log('AIE PostSync: Sync button clicked in module', e);
 			e.preventDefault();
 			e.stopPropagation();
 			this.openSyncModal();
@@ -63,22 +59,16 @@ const PostSync = {
 	 * Open sync modal
 	 */
 	openSyncModal() {
-		console.log('AIE PostSync: Opening modal');
 		const $ = jQuery;
 		const selectedIds = this.getSelectedPostIds();
 
-		console.log('AIE PostSync: Selected IDs:', selectedIds);
-		console.log('AIE PostSync: Modal element exists:', $('#aie-sync-modal').length);
-
 		if (selectedIds.length === 0) {
-			console.log('AIE PostSync: No posts selected');
 			alert(window.aieData.i18n.selectAtLeastOnePost);
 			return;
 		}
 
 		// Update selected count
 		$('#aie-selected-count').text(selectedIds.length);
-		console.log('AIE PostSync: Updated selected count');
 
 		// Reset form
 		$('#aie-sync-site-select').val('');
@@ -86,10 +76,8 @@ const PostSync = {
 		$('#aie-sync-result').hide();
 		this.updateSyncButtons();
 
-		console.log('AIE PostSync: About to show modal');
 		// Show modal
 		$('#aie-sync-modal').fadeIn(200);
-		console.log('AIE PostSync: Modal fadeIn called');
 	},
 
 	/**
@@ -192,17 +180,12 @@ const PostSync = {
 				? aiePostSyncData.ajaxurl 
 				: '/wp-admin/admin-ajax.php';
 
-		console.log('AIE PostSync: Using nonce:', nonce);
-		console.log('AIE PostSync: Using ajaxUrl:', ajaxUrl);
-
 		const ajaxData = {
 			action: `aie_content_sync_${direction}`,
 			nonce: nonce,
 			site_id: siteId,
 			post_ids: postIds,
 		};
-
-		console.log('AIE PostSync: Sending data:', ajaxData);
 
 		$.ajax({
 			url: ajaxUrl,

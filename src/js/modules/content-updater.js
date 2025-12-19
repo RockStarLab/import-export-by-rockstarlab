@@ -117,7 +117,6 @@ const ContentUpdater = {
 			this.saveFieldFunctions();
 		} );
 
-		// Test pipeline
 		$modal.find( '.aie-test-updater-pipeline' ).on( 'click', () => {
 			this.testFunctionPipeline();
 		} );
@@ -190,7 +189,6 @@ const ContentUpdater = {
 		// Save filters when leaving step 2
 		if ( this.currentStep === 2 ) {
 			this.selectedFilters = this.collectFilters();
-			console.log( 'Saved filters:', this.selectedFilters );
 		}
 
 		if ( this.currentStep < this.totalSteps ) {
@@ -282,7 +280,6 @@ const ContentUpdater = {
 	 */
 	onContentTypeChange( e ) {
 		const contentType = jQuery( e.target ).val();
-		console.log( 'Content type changed:', contentType );
 		
 		// Reset selections for new content type
 		this.selectedFields = [];
@@ -295,16 +292,13 @@ const ContentUpdater = {
 	 * Load filters library for selected content type
 	 */
 	loadFiltersLibrary() {
-		console.log( 'loadFiltersLibrary called' );
 		
 		// Get selected content type
 		const contentType = jQuery( 'input[name="updater_content_type"]:checked' ).val();
 		if ( ! contentType ) {
-			console.error( 'No content type selected' );
 			return;
 		}
 		
-		console.log( 'Loading filters for content type:', contentType );
 		
 		// Clear existing filters
 		jQuery( '#aie-updater-filters-list' ).empty();
@@ -517,16 +511,13 @@ const ContentUpdater = {
 	 * Load fields library for selected content type
 	 */
 	loadFieldsLibrary() {
-		console.log( 'loadFieldsLibrary called' );
 		
 		// Get selected content type
 		const contentType = jQuery( 'input[name="updater_content_type"]:checked' ).val();
 		if ( ! contentType ) {
-			console.error( 'No content type selected' );
 			return;
 		}
 		
-		console.log( 'Loading fields for content type:', contentType );
 		
 		// Load static fields based on content type
 		this.loadStaticFields( contentType );
@@ -548,17 +539,14 @@ const ContentUpdater = {
 	loadStaticFields( contentType ) {
 		// Get field definitions from export module
 		if ( typeof window.aieExportModule === 'undefined' || ! window.aieExportModule.getFieldsByContentType ) {
-			console.error( 'Export module not found or getFieldsByContentType method missing' );
 			return;
 		}
 		
 		const fieldGroups = window.aieExportModule.getFieldsByContentType( contentType );
-		console.log( 'Loading static fields for content type:', contentType, fieldGroups );
 		
 		// Find the container
 		const $library = jQuery( '#aie-updater-fields-library' );
 		if ( ! $library.length ) {
-			console.error( 'Fields library container not found' );
 			return;
 		}
 		
@@ -733,7 +721,6 @@ const ContentUpdater = {
 				post_type: postType
 			},
 			success: ( response ) => {
-				console.log( 'Taxonomies response:', response );
 				if ( response.success && response.data.taxonomies && response.data.taxonomies.length > 0 ) {
 					this.renderTaxonomies( response.data.taxonomies );
 					jQuery( '.aie-taxonomies-category' ).show();
@@ -742,7 +729,6 @@ const ContentUpdater = {
 				}
 			},
 			error: ( xhr, status, error ) => {
-				console.error( 'Taxonomies AJAX error:', error, xhr.responseText );
 			}
 		} );
 	},
@@ -788,7 +774,6 @@ const ContentUpdater = {
 				post_type: postType
 			},
 			success: ( response ) => {
-				console.log( 'Custom fields response:', response );
 				if ( response.success && response.data.fields && response.data.fields.length > 0 ) {
 					this.renderCustomFields( response.data.fields );
 					jQuery( '.aie-custom-fields-category' ).show();
@@ -797,7 +782,6 @@ const ContentUpdater = {
 				}
 			},
 			error: ( xhr, status, error ) => {
-				console.error( 'Custom fields AJAX error:', error, xhr.responseText );
 			}
 		} );
 	},
@@ -843,7 +827,6 @@ const ContentUpdater = {
 				post_type: postType
 			},
 			success: ( response ) => {
-				console.log( 'ACF fields response:', response );
 				if ( response.success && response.data.fields && response.data.fields.length > 0 ) {
 					this.renderACFFields( response.data.fields );
 					jQuery( '.aie-acf-fields-category' ).show();
@@ -852,7 +835,6 @@ const ContentUpdater = {
 				}
 			},
 			error: ( xhr, status, error ) => {
-				console.error( 'ACF fields AJAX error:', error, xhr.responseText );
 			}
 		} );
 	},
@@ -898,7 +880,6 @@ const ContentUpdater = {
 				post_type: postType
 			},
 			success: ( response ) => {
-				console.log( 'Yoast fields response:', response );
 				if ( response.success && response.data.fields && response.data.fields.length > 0 ) {
 					this.renderYoastFields( response.data.fields );
 					jQuery( '.aie-yoast-fields-category' ).show();
@@ -907,7 +888,6 @@ const ContentUpdater = {
 				}
 			},
 			error: ( xhr, status, error ) => {
-				console.error( 'Yoast fields AJAX error:', error, xhr.responseText );
 			}
 		} );
 	},
@@ -1187,7 +1167,6 @@ const ContentUpdater = {
 
 		const $modal = jQuery( '#aie-updater-functions-modal' );
 		if ( ! $modal.length ) {
-			console.error( 'Functions modal not found' );
 			return;
 		}
 
@@ -1514,7 +1493,6 @@ const ContentUpdater = {
 			return;
 		}
 
-		// Test the function
 		jQuery.ajax( {
 			url: aieData.ajaxUrl,
 			method: 'POST',
@@ -1608,25 +1586,16 @@ const ContentUpdater = {
 		// Validate fields and functions
 		if ( ! this.selectedFields || this.selectedFields.length === 0 ) {
 			Utils.showNotice( 'No fields selected. Please go back and select fields to update.', 'error' );
-			console.error( 'selectedFields is empty:', this.selectedFields );
 			return;
 		}
 
 		if ( ! this.fieldFunctions || Object.keys( this.fieldFunctions ).length === 0 ) {
 			Utils.showNotice( 'No functions assigned. Please go back and assign functions to fields.', 'error' );
-			console.error( 'fieldFunctions is empty:', this.fieldFunctions );
 			return;
 		}
 
 		// Prepare field functions array (indexed by field position)
 		const fieldFunctionsArray = this.selectedFields.map( field => this.fieldFunctions[ field ] || [] );
-
-		console.log( 'Starting update with:', {
-			contentType,
-			selectedFields: this.selectedFields,
-			fieldFunctions: this.fieldFunctions,
-			fieldFunctionsArray
-		} );
 
 		// Show progress section
 		jQuery( '#aie-updater-config' ).hide();
@@ -1736,11 +1705,9 @@ const ContentUpdater = {
 						setTimeout( () => this.processNextBatch(), 500 );
 					}
 				} else {
-					console.error( 'Batch processing error:', response.data );
 				}
 			},
 			error: ( xhr ) => {
-				console.error( 'AJAX error:', xhr );
 			}
 		} );
 	},
@@ -1865,8 +1832,6 @@ const ContentUpdater = {
 			functionIds.push( jQuery( this ).data( 'function-id' ) );
 		} );
 
-		console.log( 'Test Pipeline - Function IDs:', functionIds );
-
 		if ( functionIds.length === 0 ) {
 			this.showNotice( 'No functions to test', 'warning' );
 			return;
@@ -1874,7 +1839,6 @@ const ContentUpdater = {
 
 		// Check if aieData is available
 		if ( typeof aieData === 'undefined' ) {
-			console.error( 'aieData is not defined' );
 			this.showNotice( 'Configuration error: aieData not found', 'error' );
 			return;
 		}
@@ -1886,23 +1850,18 @@ const ContentUpdater = {
 			value: testValue
 		};
 
-		console.log( 'Test Pipeline - Request data:', requestData );
-
 		jQuery.ajax( {
 			url: aieData.ajaxUrl,
 			method: 'POST',
 			data: requestData,
 			success: ( response ) => {
-				console.log( 'Test Pipeline - Response:', response );
 				if ( response.success ) {
 					this.renderPipelinePreview( testValue, response.data.steps );
 				} else {
 					this.showNotice( response.data.message || 'Test failed', 'error' );
-					console.error( 'Test Pipeline Error:', response.data );
 				}
 			},
 			error: ( xhr, status, error ) => {
-				console.error( 'Test Pipeline AJAX Error:', { xhr, status, error } );
 				this.showNotice( 'Error testing pipeline', 'error' );
 			}
 		} );
@@ -1960,7 +1919,6 @@ const ContentUpdater = {
 	 */
 	showNotice( message, type = 'info' ) {
 		// Log to console
-		console.log( `[${ type.toUpperCase() }] ${ message }` );
 	},
 
 	/**

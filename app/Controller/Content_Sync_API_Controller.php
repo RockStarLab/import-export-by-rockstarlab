@@ -112,7 +112,6 @@ class Content_Sync_API_Controller {
 		} catch ( \Exception $e ) {
 			// Log error but don't break the site
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'WP_AIE: Failed to register REST API routes: ' . $e->getMessage() );
 			}
 		}
 	}
@@ -234,10 +233,6 @@ class Content_Sync_API_Controller {
 		$image_map    = $request->get_param( 'image_map' );
 		$post_mapping = $request->get_param( 'post_mapping' );
 		
-		// Debug: Log received parameters
-		error_log( 'WP_AIE: receive_content called with ' . count( $posts_data ) . ' posts' );
-		error_log( 'WP_AIE: image_map provided: ' . ( ! empty( $image_map ) ? 'YES (' . count( $image_map ) . ' mappings)' : 'NO' ) );
-		error_log( 'WP_AIE: post_mapping provided: ' . ( ! empty( $post_mapping ) ? 'YES (' . count( $post_mapping ) . ' mappings)' : 'NO' ) );
 
 		if ( empty( $posts_data ) || ! is_array( $posts_data ) ) {
 			return new \WP_REST_Response(
@@ -384,23 +379,15 @@ class Content_Sync_API_Controller {
 				
 				// Replace image IDs in meta using image_map
 				if ( ! empty( $image_map ) ) {
-					error_log( 'WP_AIE: Replacing image IDs in meta for post ' . $post_id );
-					error_log( 'WP_AIE: Image map: ' . print_r( $image_map, true ) );
 					
-					$post_data['meta'] = \WP_AIE\Helper\Content_Sync_Replacer::replace_in_array(
-						$post_data['meta'],
-						'', // No domain replacement
-						'',
-						$image_map,
-						0 // Start at depth 0
-					);
-					
-					error_log( 'WP_AIE: Meta after ID replacement: ' . print_r( array_filter( $post_data['meta'], function( $key ) {
-						return strpos( $key, 'repeater' ) !== false || in_array( $key, array( 'image', 'flexible_content' ) );
-					}, ARRAY_FILTER_USE_KEY ), true ) );
-				}
-				
-				// Simplified approach: Import all meta fields directly with update_post_meta()
+			$post_data['meta'] = \WP_AIE\Helper\Content_Sync_Replacer::replace_in_array(
+					$post_data['meta'],
+					'', // No domain replacement
+					'',
+					$image_map,
+					0 // Start at depth 0
+				);
+			}				// Simplified approach: Import all meta fields directly with update_post_meta()
 				// ACF will automatically handle the processing of its fields
 				foreach ( $post_data['meta'] as $key => $value ) {
 					// Skip some internal WordPress meta
@@ -525,12 +512,9 @@ class Content_Sync_API_Controller {
 				
 				// If no sub-fields found, this is not a repeater (probably just a numeric field like image ID)
 				if ( ! $has_sub_fields ) {
-					error_log( 'WP_AIE ACF Convert: Skipping "' . $field_name . '" - numeric value but no sub-fields found (likely an image/file ID)' );
 					continue;
 				}
 				
-				error_log( 'WP_AIE ACF Convert: Found repeater/flex field "' . $field_name . '" with ' . $row_count . ' rows' );
-				error_log( 'WP_AIE ACF Convert: Looking for fields starting with "' . $field_name . '_0_"' );
 				
 				// Build hierarchical structure
 				$rows = array();
@@ -562,22 +546,18 @@ class Content_Sync_API_Controller {
 									// Recursively process nested repeater
 									$nested_rows = $this->extract_nested_repeater_data( $meta, $field_name . '_' . $i . '_' . $sub_field_name, $meta_value, $acf_field_keys );
 									$row_data[ $sub_field_name ] = $nested_rows;
-									error_log( 'WP_AIE ACF Convert: Added nested repeater "' . $sub_field_name . '" with ' . count( $nested_rows ) . ' rows' );
 								} else {
 									// Just a numeric value (like image ID)
 									$row_data[ $sub_field_name ] = $meta_value;
-									error_log( 'WP_AIE ACF Convert: Added field "' . $sub_field_name . '" = ' . $meta_value );
 								}
 							} else {
 								$row_data[ $sub_field_name ] = $meta_value;
 								if ( strlen( print_r( $meta_value, true ) ) < 100 ) {
-									error_log( 'WP_AIE ACF Convert: Added field "' . $sub_field_name . '" = ' . ( is_array( $meta_value ) ? json_encode( $meta_value ) : $meta_value ) );
 								}
 							}
 						}
 					}
 					
-					error_log( 'WP_AIE ACF Convert: Row ' . $i . ' - found ' . $found_fields . ' fields with prefix "' . $row_prefix . '"' );
 					$rows[] = $row_data;
 				}
 				
@@ -585,8 +565,6 @@ class Content_Sync_API_Controller {
 				$meta[ $field_name ] = $rows;
 				$processed_parents[] = $field_name;
 				
-				error_log( 'WP_AIE ACF Convert: Converted "' . $field_name . '" to array with ' . count( $rows ) . ' rows' );
-				error_log( 'WP_AIE ACF Convert: Full structure: ' . substr( print_r( $rows, true ), 0, 2000 ) );
 			}
 		}
 		
@@ -660,7 +638,6 @@ class Content_Sync_API_Controller {
 		if ( ! isset( $post_data['ID'] ) ) {
 			return null;
 		}
-
 
 		$posts = get_posts(
 			array(

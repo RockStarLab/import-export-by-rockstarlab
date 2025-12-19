@@ -229,11 +229,6 @@ class Export_Processor {
 			];
 
 		} catch ( \Exception $e ) {
-			$this->logger->log(
-				$job_id,
-				'error',
-				sprintf( 'Export error: %s', $e->getMessage() )
-			);
 
 			$this->job_model->update(
 				$job_id,
@@ -339,14 +334,11 @@ class Export_Processor {
 		$format_options = $parameters['format_options'] ?? [];
 		$export_type    = $parameters['export_type'];
 
-		$this->logger->log( $job_id, 'info', sprintf( 'Finalizing export: %d items, format: %s', count( $data ), $format ) );
-
 		// Prepare file path
 		$filename  = sprintf( 'export-%s-%d.%s', $export_type, $job_id, $format );
 		$file_info = Fs::get_export_file_path( $filename );
 
 		if ( is_wp_error( $file_info ) ) {
-			$this->logger->log( $job_id, 'error', 'Failed to get export file path: ' . $file_info->get_error_message() );
 			$this->job_model->update(
 				$job_id,
 				[
@@ -375,7 +367,6 @@ class Export_Processor {
 		$result    = $formatter->generate( $data, $file_info['path'], $formatter_options );
 
 		if ( is_wp_error( $result ) ) {
-			$this->logger->log( $job_id, 'error', 'Failed to generate export file: ' . $result->get_error_message() );
 			$this->job_model->update(
 				$job_id,
 				[
@@ -388,8 +379,6 @@ class Export_Processor {
 
 		// Get file size
 		$file_size = file_exists( $file_info['path'] ) ? filesize( $file_info['path'] ) : 0;
-
-		$this->logger->log( $job_id, 'info', sprintf( 'Export file created: %s (%d bytes)', $file_info['path'], $file_size ) );
 
 		// Update job as completed
 		$this->job_model->update(

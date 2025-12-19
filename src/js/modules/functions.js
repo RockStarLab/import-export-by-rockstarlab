@@ -114,7 +114,6 @@ const FunctionsModule = {
 				this.saveFunction();
 			} );
 
-		// Test function
 		document
 			.querySelector( '.aie-test-function' )
 			?.addEventListener( 'click', () => {
@@ -182,7 +181,6 @@ const FunctionsModule = {
 			this.renderTable( data.data.functions || [] );
 			this.updatePagination();
 		} catch ( error ) {
-			console.error( 'Error loading functions:', error );
 			tbody.innerHTML = `
 				<tr>
 					<td colspan="4" style="text-align:center; color:#dc3232;">
@@ -410,7 +408,6 @@ const FunctionsModule = {
 						func.code || '';
 				}
 			} catch ( error ) {
-				console.error( 'Error loading function:', error );
 				showModalError( error.message, modal );
 				return;
 			}
@@ -594,7 +591,6 @@ const FunctionsModule = {
 			) {
 				// Response is not JSON, probably a PHP error page
 				const text = await response.text();
-				console.error( 'Non-JSON response:', text );
 				throw new Error(
 					'Server error: The function code contains errors that prevent it from being saved. Please check your PHP syntax.'
 				);
@@ -603,7 +599,6 @@ const FunctionsModule = {
 			const data = await response.json();
 
 			if ( ! data.success ) {
-				console.error( 'Server response error:', data );
 				throw new Error(
 					data.message || data.data?.message || 'Failed to save function'
 				);
@@ -618,8 +613,6 @@ const FunctionsModule = {
 			);
 			this.loadFunctions();
 		} catch ( error ) {
-			console.error( 'Error saving function:', error );
-			console.error( 'Error message:', error.message );
 			const modal = document.getElementById(
 				'aie-function-editor-modal'
 			);
@@ -633,8 +626,6 @@ const FunctionsModule = {
 				errorMessage =
 					'Server error: Unable to save function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
 			}
-
-			console.log( 'Final error message:', errorMessage );
 
 			if ( modal && modal.style.display === 'flex' ) {
 				showModalError( errorMessage, modal );
@@ -675,7 +666,6 @@ const FunctionsModule = {
 			);
 			this.loadFunctions();
 		} catch ( error ) {
-			console.error( 'Error deleting function:', error );
 			showError( error.message );
 		}
 	},
@@ -704,7 +694,6 @@ const FunctionsModule = {
 			return;
 		}
 
-		// Check if test value is empty or only whitespace
 		if ( ! testValue || ! testValue.trim() ) {
 			testValueInput.focus();
 			testValueInput.select();
@@ -735,7 +724,6 @@ const FunctionsModule = {
 			) {
 				// Response is not JSON, probably a PHP error page
 				const text = await response.text();
-				console.error( 'Non-JSON response:', text );
 				throw new Error(
 					'Server error: The function code contains errors. Please check your PHP syntax.'
 				);
@@ -754,7 +742,6 @@ const FunctionsModule = {
 				data.data.output !== undefined ? data.data.output : '';
 			resultsDiv.style.display = 'block';
 		} catch ( error ) {
-			console.error( 'Error testing function:', error );
 
 			// Improve error message for JSON parse errors
 			let errorMessage = error.message;

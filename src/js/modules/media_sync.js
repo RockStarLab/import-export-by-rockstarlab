@@ -571,7 +571,6 @@ const MediaSyncModule = {
 				job_id: this.jobId,
 			},
 		} ).done( ( response ) => {
-			console.log( 'Batch processing response:', response );
 			
 			// If not completed, process next batch after small delay
 			if ( response.success && response.data && ! response.data.completed ) {
@@ -580,7 +579,6 @@ const MediaSyncModule = {
 				}, 100 );
 			}
 		} ).fail( ( xhr, status, error ) => {
-			console.error( 'Batch processing failed:', status, error );
 		} );
 	},
 
@@ -597,18 +595,11 @@ const MediaSyncModule = {
 				job_id: this.jobId,
 			},
 		} ).done( ( response ) => {
-			console.log( '=== Progress Response ===', response );
 			if ( response.success && response.data ) {
-				console.log( '  Status:', response.data.status );
-				console.log( '  Progress:', response.data.progress );
-				console.log( '  Result (raw):', response.data.result );
-				console.log( '  Result type:', typeof response.data.result );
 				this.updateProgress( response.data );
 			} else {
-				console.error( 'Progress error:', response );
 			}
 		} ).fail( ( xhr, status, error ) => {
-			console.error( 'Progress AJAX failed:', status, error );
 		} );
 	},
 
@@ -642,15 +633,11 @@ const MediaSyncModule = {
 	 * Update progress UI
 	 */
 	updateProgress( data ) {
-		console.log( '=== Update Progress Called ===' );
-		console.log( '  Raw data:', data );
 		
 		// Parse progress as integer (remove decimals)
 		const progress = Math.round( parseFloat( data.progress ) || 0 );
 		const status = data.status || 'processing';
 		
-		console.log( '  Parsed progress:', progress );
-		console.log( '  Status:', status );
 
 		// Update progress bar
 		jQuery( '#aie-progress-fill' ).css( 'width', progress + '%' );
@@ -659,16 +646,12 @@ const MediaSyncModule = {
 		// Update stats - handle both object and null
 		let result = data.result;
 		
-		console.log( '  Result (before parse):', result );
-		console.log( '  Result type:', typeof result );
 		
 		// If result is a string, try to parse it
 		if ( typeof result === 'string' ) {
 			try {
 				result = JSON.parse( result );
-				console.log( '  Result after JSON.parse:', result );
 			} catch ( e ) {
-				console.error( '  Failed to parse result:', result, e );
 				result = {};
 			}
 		}
@@ -676,11 +659,6 @@ const MediaSyncModule = {
 		// Ensure result is an object
 		result = result || {};
 		
-		console.log( '  Final result object:', result );
-		console.log( '  Processed:', result.processed );
-		console.log( '  Success:', result.success );
-		console.log( '  Skipped:', result.skipped );
-		console.log( '  Failed:', result.failed );
 
 		// Update stats with explicit checks
 		// Show 0 if undefined (processing hasn't generated results yet)
@@ -689,14 +667,12 @@ const MediaSyncModule = {
 		const skipped = result.skipped !== undefined ? result.skipped : 0;
 		const failed = result.failed !== undefined ? result.failed : 0;
 		
-		console.log( '  Setting values:', { processed, success, skipped, failed } );
 		
 		jQuery( '#aie-stat-processed' ).text( processed );
 		jQuery( '#aie-stat-success' ).text( success );
 		jQuery( '#aie-stat-skipped' ).text( skipped );
 		jQuery( '#aie-stat-failed' ).text( failed );
 		
-		console.log( '  DOM updated' );
 
 		// Update status text (fix selector - was #aie-progress-status, should be #aie-sync-status)
 		const statusTexts = {
@@ -709,7 +685,6 @@ const MediaSyncModule = {
 		};
 		
 		const statusText = statusTexts[ status ] || 'Processing...';
-		console.log( '  Setting status text:', statusText );
 		
 		// Update both possible selectors to be safe
 		jQuery( '#aie-sync-status' ).text( statusText );
@@ -1044,8 +1019,6 @@ const MediaSyncModule = {
 				if ( response.success && response.data ) {
 					this.displayFolders( response.data.folders, response.data.current_path );
 				} else {
-					// Debug output
-					console.error( 'Browse folders failed:', response );
 					
 					this.showBrowserError(
 						response.data?.message || 'Failed to load folders'
@@ -1053,19 +1026,8 @@ const MediaSyncModule = {
 				}
 			} )
 			.fail( ( jqXHR, textStatus, errorThrown ) => {
-				// Debug output
-				console.error( 'AJAX request failed:', {
-					status: jqXHR.status,
-					statusText: jqXHR.statusText,
-					responseJSON: jqXHR.responseJSON,
-					responseText: jqXHR.responseText,
-					textStatus: textStatus,
-					errorThrown: errorThrown,
-				} );
 
-				// Log the full response text for debugging
 				if ( jqXHR.responseText ) {
-					console.log( 'Full response text:', jqXHR.responseText );
 				}
 
 				let errorMsg = window.aieData.i18n.requestFailed;

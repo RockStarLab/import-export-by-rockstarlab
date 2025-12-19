@@ -94,12 +94,6 @@ const JobsLogModule = {
 		try {
 			const offset = ( this.currentPage - 1 ) * this.perPage;
 			
-			console.log( 'Loading jobs with params:', {
-				type: this.filters.type,
-				status: this.filters.status,
-				limit: this.perPage,
-				offset: offset,
-			} );
 			
 			const response = await Utils.ajax( 'aie_job_list', {
 				type: this.filters.type,
@@ -108,19 +102,15 @@ const JobsLogModule = {
 				offset: offset,
 			} );
 
-			console.log( 'Jobs response:', response );
-
 			if ( response && response.jobs ) {
 				this.totalJobs = response.total || 0;
 				this.totalPages = Math.ceil( this.totalJobs / this.perPage );
 				this.renderJobs( response.jobs );
 				this.updatePagination();
 			} else {
-				console.error( 'Invalid response format:', response );
 				this.renderJobs( [] );
 			}
 		} catch ( error ) {
-			console.error( 'Error loading jobs:', error );
 			Utils.showNotice( window.aieData.i18n.errorLoadingJobs + error.message, 'error' );
 			this.renderJobs( [] );
 		} finally {
@@ -289,7 +279,6 @@ const JobsLogModule = {
 				this.redirectToJobPage( response.type, response.job_id );
 			}
 		} catch ( error ) {
-			console.error( 'Error resuming job:', error );
 			Utils.showNotice( window.aieData.i18n.errorResumingJob + error.message, 'error' );
 			$button.prop( 'disabled', false );
 		}
@@ -319,7 +308,6 @@ const JobsLogModule = {
 				this.redirectToJobPage( response.type, response.job_id );
 			}
 		} catch ( error ) {
-			console.error( 'Error restarting job:', error );
 			Utils.showNotice( window.aieData.i18n.errorRestartingJob + error.message, 'error' );
 			$button.prop( 'disabled', false );
 		}
@@ -350,7 +338,6 @@ const JobsLogModule = {
 				this.redirectToJobPage( response.type, response.job_id );
 			}
 		} catch ( error ) {
-			console.error( 'Error retrying job:', error );
 			const errorMsg = error && error.message ? error.message : 'Unknown error occurred';
 			Utils.showNotice( window.aieData.i18n.errorRetryingJob + errorMsg, 'error' );
 			$button.prop( 'disabled', false );
@@ -389,7 +376,6 @@ const JobsLogModule = {
 			Utils.showNotice( window.aieData.i18n.jobDeletedSuccess, 'success' );
 			this.loadJobs(); // Reload list
 		} catch ( error ) {
-			console.error( 'Error deleting job:', error );
 			Utils.showNotice( window.aieData.i18n.errorDeletingJob + error.message, 'error' );
 		}
 	},
@@ -439,7 +425,6 @@ const JobsLogModule = {
 				this.showJobDetailsModal( response );
 			}
 		} catch ( error ) {
-			console.error( 'Error loading job details:', error );
 			Utils.showNotice( window.aieData.i18n.errorLoadingJobDetails + error.message, 'error' );
 		}
 	},

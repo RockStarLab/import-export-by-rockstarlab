@@ -346,9 +346,7 @@ class Post_Exporter extends Abstract_Exporter {
 	 * @return array Query arguments
 	 */
 	protected function build_query_args( $options ) {
-		// Debug logging
 		if ( ! empty( $options['taxonomy'] ) ) {
-			error_log( 'Post_Exporter: Received taxonomy filters: ' . print_r( $options['taxonomy'], true ) );
 		}
 
 		$args = [
@@ -483,10 +481,8 @@ class Post_Exporter extends Abstract_Exporter {
 	 *                       ]
 	 */
 	protected function apply_taxonomy_filters( &$args, $filters ) {
-		error_log( 'apply_taxonomy_filters called with filters: ' . print_r( $filters, true ) );
 
 		if ( empty( $filters ) || ! is_array( $filters ) ) {
-			error_log( 'apply_taxonomy_filters: filters empty or not array' );
 			return;
 		}
 
@@ -535,7 +531,6 @@ class Post_Exporter extends Abstract_Exporter {
 			$args['tax_query'][] = $tax_query_item;
 		}
 
-		error_log( 'apply_taxonomy_filters: Final tax_query: ' . print_r( $args['tax_query'], true ) );
 	}
 
 	/**

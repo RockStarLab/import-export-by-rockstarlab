@@ -19,7 +19,6 @@ import 'select2/dist/css/select2.min.css';
 		 * Initialize the module
 		 */
 		init() {
-			console.log('AIE PostSync Standalone: Module initialized');
 			this.bindEvents();
 		},
 
@@ -27,11 +26,9 @@ import 'select2/dist/css/select2.min.css';
 		 * Bind event handlers
 		 */
 		bindEvents() {
-			console.log('AIE PostSync Standalone: Binding events');
 
 			// Open modal when sync button is clicked
 			$(document).on('click', '#aie-sync-content-btn', (e) => {
-				console.log('AIE PostSync Standalone: Sync button clicked');
 				e.preventDefault();
 				e.stopPropagation();
 				this.openSyncModal();
@@ -204,14 +201,9 @@ import 'select2/dist/css/select2.min.css';
 		 * Open sync modal
 		 */
 		openSyncModal() {
-			console.log('AIE PostSync Standalone: Opening modal');
 			const selectedIds = this.getSelectedPostIds();
 
-			console.log('AIE PostSync Standalone: Selected IDs:', selectedIds);
-			console.log('AIE PostSync Standalone: Modal element exists:', $('#aie-sync-modal').length);
-
 			if (selectedIds.length === 0) {
-				console.log('AIE PostSync Standalone: No posts selected');
 				const isEditPage = $('#post_ID').length > 0;
 				// If we're on the post edit page, keep the original behavior (ask to save)
 				if (isEditPage) {
@@ -227,7 +219,6 @@ import 'select2/dist/css/select2.min.css';
 		const countText = selectedIds.length === 1 ? '1 post' : `${selectedIds.length} posts`;
 		$('#aie-selected-count').text(countText);
 		
-		console.log('AIE PostSync Standalone: Updated selected count');
 		
 		// Reset form
 		$('#aie-sync-site-select').val('');
@@ -235,10 +226,8 @@ import 'select2/dist/css/select2.min.css';
 		$('#aie-sync-result').hide();
 		this.updateSyncButtons();
 
-			console.log('AIE PostSync Standalone: About to show modal');
 			// Show modal
 			$('#aie-sync-modal').fadeIn(200);
-			console.log('AIE PostSync Standalone: Modal fadeIn called');
 		},
 
 		/**
@@ -530,7 +519,6 @@ import 'select2/dist/css/select2.min.css';
 				: null;
 			
 			if (!siteInfo) {
-				console.error('Site info not found for siteId:', siteId);
 				return;
 			}
 
@@ -754,8 +742,6 @@ import 'select2/dist/css/select2.min.css';
 				}
 			});
 
-			console.log('Post Mapping:', postMapping);
-
 			// Close mapping modal
 			this.closeMappingModal();
 
@@ -977,19 +963,16 @@ import 'select2/dist/css/select2.min.css';
 				per_page: 20,
 			},
 			success: (response) => {
-				console.log('Browse posts response:', response);
 				if (response.success && response.data && response.data.posts) {
 					this.renderPostsTree(response.data.posts);
 					this.updatePagination(response.data);
 					this.updateFilterCounts(response.data.status_counts);
 				} else {
-					console.error('Invalid response:', response);
 					const errorMsg = (response.data && response.data.message) ? response.data.message : 'Failed to load posts';
 					this.showBrowseError(errorMsg);
 				}
 			},
 			error: (xhr) => {
-				console.error('AJAX error:', xhr);
 				let errorMessage = 'An error occurred while loading posts';
 				if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
 					errorMessage = xhr.responseJSON.data.message;

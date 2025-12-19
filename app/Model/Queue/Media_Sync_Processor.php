@@ -78,11 +78,6 @@ class Media_Sync_Processor {
 
 			// Check if job is paused
 			if ( 'paused' === $job->status ) {
-				$this->logger->log(
-					$job_id,
-					'info',
-					sprintf( 'Job #%d is paused, skipping processing', $job_id )
-				);
 				return array(
 					'status'  => 'paused',
 					'message' => 'Job is paused',
@@ -96,12 +91,6 @@ class Media_Sync_Processor {
 					'status'     => 'processing',
 					'updated_at' => current_time( 'mysql' ),
 				)
-			);
-
-			$this->logger->log(
-				$job_id,
-				'info',
-				sprintf( 'Started processing media sync job #%d', $job_id )
 			);
 
 			// Parse settings
@@ -121,22 +110,7 @@ class Media_Sync_Processor {
 				'errors'    => array(),
 			);
 
-			// Debug logging
-			error_log(
-				sprintf(
-					'[Media Sync] Job #%d - Initial state: offset=%d, result=%s, cumulative=%s',
-					$job_id,
-					$offset,
-					$job->result ?? 'NULL',
-					wp_json_encode( $cumulative_result )
-				)
-			);            // Scan folder for files (if not already scanned)
 			if ( ! isset( $settings['total_files'] ) ) {
-				$this->logger->log(
-					$job_id,
-					'info',
-					sprintf( 'Scanning folder: %s', $folder_path )
-				);
 
 				$files_result = Media_Sync::scan_folder( $folder_path, $scan_options );
 
@@ -145,12 +119,6 @@ class Media_Sync_Processor {
 				}
 
 				$total_files = count( $files_result );
-
-				$this->logger->log(
-					$job_id,
-					'info',
-					sprintf( 'Found %d files in folder', $total_files )
-				);
 
 				// Update settings with total files count
 				$settings['total_files'] = $total_files;
@@ -185,28 +153,7 @@ class Media_Sync_Processor {
 				return $this->complete_job( $job_id, $processed_count, $cumulative_result );
 			}
 
-			$this->logger->log(
-				$job_id,
-				'info',
-				sprintf(
-					'Processing batch: files %d-%d of %d (batch size: %d)',
-					$offset + 1,
-					min( $offset + $chunk_size, $total_files ),
-					$total_files,
-					$chunk_size
-				)
-			);
-
 			// Log duplicate handling options
-			$this->logger->log(
-				$job_id,
-				'info',
-				sprintf(
-					'Duplicate options: handling=%s, check=%s',
-					$sync_options['duplicate_handling'] ?? 'NOT SET',
-					$sync_options['duplicate_check'] ?? 'NOT SET'
-				)
-			);
 
 			// Process batch
 			// Add base folder to sync options for structure preservation
@@ -222,16 +169,6 @@ class Media_Sync_Processor {
 				array_slice( $result['errors'], 0, 20 ) // Keep only last 20 errors
 			);
 
-			// Debug logging
-			error_log(
-				sprintf(
-					'[Media Sync] Job #%d - After batch: batch_result=%s, cumulative=%s',
-					$job_id,
-					wp_json_encode( $result ),
-					wp_json_encode( $cumulative_result )
-				)
-			);
-
 			// Calculate progress
 			$new_offset = $offset + count( $chunk );
 			$progress   = round( ( $new_offset / $total_files ) * 100 );
@@ -241,12 +178,10 @@ class Media_Sync_Processor {
 
 			// Check if completed
 			if ( $new_offset >= $total_files ) {
-				error_log( sprintf( '[Media Sync] Job #%d COMPLETING: new_offset=%d >= total_files=%d', $job_id, $new_offset, $total_files ) );
 				return $this->complete_job( $job_id, $new_offset, $cumulative_result );
 			}
 
 			// Not completed yet - need to process more batches
-			error_log( sprintf( '[Media Sync] Job #%d NOT COMPLETE: new_offset=%d < total_files=%d, will return completed=false', $job_id, $new_offset, $total_files ) );
 
 			// Update job settings with new offset
 			$settings['offset']          = $new_offset;
@@ -259,32 +194,7 @@ class Media_Sync_Processor {
 				'result'   => wp_json_encode( $cumulative_result ), // Save cumulative results
 			);
 
-			// Debug logging
-			error_log(
-				sprintf(
-					'[Media Sync] Updating job #%d: progress=%d%%, result=%s',
-					$job_id,
-					$progress,
-					wp_json_encode( $cumulative_result )
-				)
-			);
-
 			$this->job_model->update( $job_id, $update_data );
-
-			$this->logger->log(
-				$job_id,
-				'info',
-				sprintf(
-					'Batch completed. Progress: %d%%. Total: Processed: %d, Success: %d, Skipped: %d, Failed: %d',
-					$progress,
-					$cumulative_result['processed'],
-					$cumulative_result['success'],
-					$cumulative_result['skipped'],
-					$cumulative_result['failed']
-				)
-			);
-
-			error_log( sprintf( '[Media Sync] Job #%d returning completed=false, offset=%d, progress=%d%%', $job_id, $new_offset, $progress ) );
 
 			return array(
 				'completed' => false,
@@ -292,11 +202,6 @@ class Media_Sync_Processor {
 				'progress'  => $progress,
 				'result'    => $cumulative_result, // Return cumulative results
 			);      } catch ( \Exception $e ) {
-			$this->logger->log(
-				$job_id,
-				'error',
-				sprintf( 'Job error: %s', $e->getMessage() )
-			);
 
 			$this->job_model->update(
 				$job_id,
@@ -360,24 +265,9 @@ class Media_Sync_Processor {
 					$is_duplicate    = Media_Sync::check_duplicate( $file_path, $duplicate_check );
 
 					// Log duplicate check
-					$this->logger->log(
-						$job_id,
-						'info',
-						sprintf(
-							'Duplicate check for %s: method=%s, result=%s',
-							basename( $file_path ),
-							$duplicate_check,
-							$is_duplicate ? 'DUPLICATE (ID: ' . $is_duplicate . ')' : 'NOT DUPLICATE'
-						)
-					);
 
 					if ( $is_duplicate ) {
 						++$results['skipped'];
-						$this->logger->log(
-							$job_id,
-							'info',
-							sprintf( 'Skipped duplicate: %s', basename( $file_path ) )
-						);
 						continue;
 					}
 				}               // Import file
@@ -405,22 +295,8 @@ class Media_Sync_Processor {
 						$import_result->get_error_message()
 					);
 
-					$this->logger->log(
-						$job_id,
-						'error',
-						sprintf(
-							'Failed to import %s: %s',
-							basename( $file_path ),
-							$import_result->get_error_message()
-						)
-					);
 				} else {
 					++$results['success'];
-					$this->logger->log(
-						$job_id,
-						'info',
-						sprintf( 'Imported: %s (ID: %d)', basename( $file_path ), $import_result )
-					);
 				}
 			} catch ( \Exception $e ) {
 				++$results['failed'];
@@ -430,24 +306,10 @@ class Media_Sync_Processor {
 					$e->getMessage()
 				);
 
-				$this->logger->log(
-					$job_id,
-					'error',
-					sprintf(
-						'Exception while importing %s: %s',
-						basename( $file_path ),
-						$e->getMessage()
-					)
-				);
 			}
 
 			// Prevent memory overflow
 			if ( memory_get_usage() > ( $this->get_memory_limit() * 0.8 ) ) {
-				$this->logger->log(
-					$job_id,
-					'warning',
-					'Memory limit approaching, stopping batch early'
-				);
 				break;
 			}
 		}
@@ -483,19 +345,6 @@ class Media_Sync_Processor {
 				'completed_at' => current_time( 'mysql' ),
 				'progress'     => 100,
 				'result'       => wp_json_encode( $final_result ),
-			)
-		);
-
-		$this->logger->log(
-			$job_id,
-			'success',
-			sprintf(
-				'Media sync job #%d completed. Total: %d, Success: %d, Skipped: %d, Failed: %d',
-				$job_id,
-				$final_result['processed'],
-				$final_result['success'],
-				$final_result['skipped'],
-				$final_result['failed']
 			)
 		);
 

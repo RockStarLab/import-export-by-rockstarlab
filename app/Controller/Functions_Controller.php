@@ -432,11 +432,6 @@ class Functions_Controller extends Base_Controller {
 				$code          = isset( $snippet['code'] ) ? $snippet['code'] : '';
 				$function_name = isset( $snippet['name'] ) ? $snippet['name'] : 'Unknown';
 
-				// Debug logging
-				error_log( 'Test Pipeline - Snippet ID: ' . $snippet_id );
-				error_log( 'Test Pipeline - Snippet data: ' . print_r( $snippet, true ) );
-				error_log( 'Test Pipeline - Code: ' . $code );
-
 				// Check if code is empty
 				if ( empty( $code ) ) {
 					$steps[] = [
@@ -464,13 +459,6 @@ class Functions_Controller extends Base_Controller {
 				// Support both 'code' and 'function_code' field names
 				$code          = isset( $function->code ) ? $function->code : ( isset( $function->function_code ) ? $function->function_code : '' );
 				$function_name = $function->name;
-
-				// Debug logging
-				error_log( 'Test Pipeline - Custom Function ID: ' . $function_id );
-				error_log( 'Test Pipeline - Function name: ' . $function_name );
-				error_log( 'Test Pipeline - Function object: ' . print_r( $function, true ) );
-				error_log( 'Test Pipeline - Code length: ' . strlen( $code ) );
-				error_log( 'Test Pipeline - Code: ' . $code );
 
 				// Check if code is empty
 				if ( empty( trim( $code ) ) ) {
