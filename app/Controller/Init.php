@@ -84,6 +84,13 @@ class Init {
 	private $cron_manager;
 
 	/**
+	 * Settings Controller
+	 *
+	 * @var Settings_Controller
+	 */
+	private $settings_controller;
+
+	/**
 	 * Constructor
 	 **/
 	function __construct() {
@@ -141,6 +148,9 @@ class Init {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			}
 		}
+
+		$this->settings_controller = new Settings_Controller();
+		$this->settings_controller->init();
 	}
 
 	/**
@@ -174,6 +184,7 @@ class Init {
 				'advanced-import-export_page_wp-aie-jobs-log',
 				'advanced-import-export_page_wp-aie-media-sync',
 				'advanced-import-export_page_wp-aie-functions',
+				'advanced-import-export_page_wp-aie-plugin-options',
 			)
 		) ) {
 			return;
@@ -199,12 +210,14 @@ class Init {
 			'wp-advanced-import-export-scripts',
 			'aieData',
 			array(
-				'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
-				'nonce'        => wp_create_nonce( 'aie_nonce' ),
-				'pluginUrl'    => plugins_url( '', WP_AIE_FILE ),
-				'functionsUrl' => admin_url( 'admin.php?page=wp-aie-functions' ),
-				'currentPage'  => isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '',
-				'i18n'         => array(
+				'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
+				'nonce'          => wp_create_nonce( 'aie_nonce' ),
+				'pluginUrl'      => plugins_url( '', WP_AIE_FILE ),
+				'functionsUrl'   => admin_url( 'admin.php?page=wp-aie-functions' ),
+				'optionsUrl'     => admin_url( 'admin.php?page=wp-aie-plugin-options' ),
+				'currentPage'    => isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '',
+				'hasOpenAIApiKey' => \WP_AIE\Helper\AI_Function_Generator::has_api_key(),
+				'i18n'           => array(
 					// General
 					'skip'                       => __( 'Skip', 'wp-advanced-import-export' ),
 					'uploading'                  => __( 'Uploading...', 'wp-advanced-import-export' ),
@@ -383,6 +396,15 @@ class Init {
 			'wp-aie-jobs-log',
 			array( $this, 'display_jobs_log_page' )
 		);
+
+		add_submenu_page(
+			'wp-advanced-import-export',
+			__( 'Plugin Options', 'wp-advanced-import-export' ),
+			__( 'Plugin Options', 'wp-advanced-import-export' ),
+			'manage_options',
+			'wp-aie-plugin-options',
+			array( $this, 'display_plugin_options_page' )
+		);
 	}
 
 	/**
@@ -432,5 +454,12 @@ class Init {
 	 */
 	function display_settings_functions_page() {
 		WP_AIE()->View->load( 'settings/functions' );
+	}
+
+	/**
+	 * Display Plugin Options Page
+	 */
+	function display_plugin_options_page() {
+		WP_AIE()->View->load( 'settings/plugin_options' );
 	}
 }

@@ -47,6 +47,59 @@ defined( 'ABSPATH' ) || exit;
 						</td>
 					</tr>
 
+					<?php
+					$is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
+					$has_api_key = \WP_AIE\Helper\AI_Function_Generator::has_api_key();
+					?>
+					<tr class="aie-ai-generate-section">
+						<th scope="row">
+							<label><?php esc_html_e( 'AI Generator', 'wp-advanced-import-export' ); ?></label>
+						</th>
+						<td>
+							<?php if ( $is_premium ) : ?>
+								<button type="button" class="button aie-generate-with-ai">
+									<span class="dashicons dashicons-admin-generic"></span>
+									<?php esc_html_e( 'Generate function with AI', 'wp-advanced-import-export' ); ?>
+								</button>
+								<p class="description">
+									<?php esc_html_e( 'Describe what you want the function to do, and AI will generate the code for you.', 'wp-advanced-import-export' ); ?>
+								</p>
+								<?php if ( ! $has_api_key ) : ?>
+									<div class="notice notice-warning inline">
+										<p>
+											<?php
+											echo wp_kses_post(
+												sprintf(
+													/* translators: %s: plugin options URL */
+													__( '<strong>API Key Required:</strong> OpenAI API key is not configured. Please add it in <a href="%s">Plugin Options</a> to use AI generation.', 'wp-advanced-import-export' ),
+													esc_url( admin_url( 'admin.php?page=wp-aie-plugin-options' ) )
+												)
+											);
+											?>
+										</p>
+									</div>
+								<?php endif; ?>
+							<?php else : ?>
+								<button type="button" class="button aie-premium-locked" disabled>
+									<span class="dashicons dashicons-lock"></span>
+									<?php esc_html_e( 'Generate function with AI', 'wp-advanced-import-export' ); ?>
+									<span class="aie-premium-badge">Premium</span>
+								</button>
+								<p class="description">
+									<?php
+									echo wp_kses_post(
+										sprintf(
+											/* translators: %s: upgrade URL */
+											__( 'AI function generation is a premium feature. <a href="%s">Upgrade to Premium</a> to unlock this feature.', 'wp-advanced-import-export' ),
+											esc_url( waie_fs()->get_upgrade_url() )
+										)
+									);
+									?>
+								</p>
+							<?php endif; ?>
+						</td>
+					</tr>
+
 					<tr>
 						<th scope="row">
 							<label for="aie-function-code">
@@ -117,6 +170,83 @@ defined( 'ABSPATH' ) || exit;
 			<button type="button" class="button button-primary aie-save-function">
 				<span class="dashicons dashicons-yes"></span>
 				<?php esc_html_e( 'Save Function', 'wp-advanced-import-export' ); ?>
+			</button>
+		</div>
+	</div>
+</div>
+
+<!-- AI Function Generator Modal -->
+<div id="aie-ai-prompt-modal" class="aie-modal" style="display:none;">
+	<div class="aie-modal-backdrop"></div>
+	<div class="aie-modal-content aie-ai-prompt-modal-content">
+		<div class="aie-modal-header">
+			<h2 class="aie-modal-title">
+				<span class="dashicons dashicons-admin-generic"></span>
+				<?php esc_html_e( 'Generate Function with AI', 'wp-advanced-import-export' ); ?>
+			</h2>
+			<button type="button" class="aie-modal-close">
+				<span class="dashicons dashicons-no-alt"></span>
+			</button>
+		</div>
+
+		<div class="aie-modal-body">
+			<div class="aie-ai-prompt-container">
+				<label for="aie-ai-prompt">
+					<?php esc_html_e( 'Describe what you want the function to do:', 'wp-advanced-import-export' ); ?>
+					<span class="required">*</span>
+				</label>
+				<textarea 
+					id="aie-ai-prompt" 
+					class="large-text" 
+					rows="8" 
+					placeholder="<?php esc_attr_e( 'Example: Convert text to uppercase and remove all spaces', 'wp-advanced-import-export' ); ?>"
+				></textarea>
+				<p class="description">
+					<?php esc_html_e( 'Be as specific as possible. The AI will generate a PHP function based on your description.', 'wp-advanced-import-export' ); ?>
+				</p>
+
+				<div class="aie-ai-examples">
+					<strong><?php esc_html_e( 'Example prompts:', 'wp-advanced-import-export' ); ?></strong>
+					<ul>
+						<li>
+							<a href="#" class="aie-use-example" data-prompt="<?php esc_attr_e( 'Convert text to uppercase', 'wp-advanced-import-export' ); ?>">
+								<?php esc_html_e( 'Convert text to uppercase', 'wp-advanced-import-export' ); ?>
+							</a>
+						</li>
+						<li>
+							<a href="#" class="aie-use-example" data-prompt="<?php esc_attr_e( 'Remove all HTML tags and trim whitespace', 'wp-advanced-import-export' ); ?>">
+								<?php esc_html_e( 'Remove all HTML tags and trim whitespace', 'wp-advanced-import-export' ); ?>
+							</a>
+						</li>
+						<li>
+							<a href="#" class="aie-use-example" data-prompt="<?php esc_attr_e( 'Format phone number to (XXX) XXX-XXXX format', 'wp-advanced-import-export' ); ?>">
+								<?php esc_html_e( 'Format phone number to (XXX) XXX-XXXX format', 'wp-advanced-import-export' ); ?>
+							</a>
+						</li>
+						<li>
+							<a href="#" class="aie-use-example" data-prompt="<?php esc_attr_e( 'Extract domain from email address', 'wp-advanced-import-export' ); ?>">
+								<?php esc_html_e( 'Extract domain from email address', 'wp-advanced-import-export' ); ?>
+							</a>
+						</li>
+					</ul>
+				</div>
+
+				<div class="aie-ai-generating" style="display:none;">
+					<div class="aie-ai-loader">
+						<span class="spinner is-active"></span>
+						<p><?php esc_html_e( 'AI is generating your function...', 'wp-advanced-import-export' ); ?></p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="aie-modal-footer">
+			<button type="button" class="button button-secondary aie-modal-cancel">
+				<?php esc_html_e( 'Cancel', 'wp-advanced-import-export' ); ?>
+			</button>
+			<button type="button" class="button button-primary aie-generate-code">
+				<span class="dashicons dashicons-admin-generic"></span>
+				<?php esc_html_e( 'Generate Code', 'wp-advanced-import-export' ); ?>
 			</button>
 		</div>
 	</div>
