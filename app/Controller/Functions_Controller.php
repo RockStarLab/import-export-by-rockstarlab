@@ -135,42 +135,72 @@ class Functions_Controller extends Base_Controller {
 		}
 
 		if ( ! empty( $search ) ) {
-			$args['search'] = $search;
-		}
-
-		$functions = $model->get_all( $args );
-		$total     = $model->get_count( $args );
-
-		// Add library snippets
-		$library  = new Function_Snippets();
-		$snippets = $library->get_all_snippets();
-
-		$snippet_functions = [];
-		foreach ( $snippets as $key => $snippet ) {
-			$snippet_functions[] = [
-				'id'          => 'snippet_' . $key,
-				'name'        => $snippet['name'],
-				'description' => $snippet['description'],
-				'category'    => $snippet['category'],
-				'type'        => 'library',
-			];
-		}
-
-		// Merge custom functions and snippets
-		$all_functions = array_merge( $functions, $snippet_functions );
-
-		$this->send_success(
-			[
-				'functions'   => $all_functions,
-				'total'       => $total + count( $snippet_functions ),
-				'page'        => $page,
-				'per_page'    => $per_page,
-				'total_pages' => ceil( ( $total + count( $snippet_functions ) ) / $per_page ),
-			]
-		);
+		$args['search'] = $search;
 	}
 
-	/**
+	// Get all custom functions without pagination first
+	$all_custom_functions = $model->get_all( [ 'orderby' => 'name', 'order' => 'ASC' ] );
+	
+	// Add library snippets
+	$library  = new Function_Snippets();
+	$snippets = $library->get_all_snippets();
+
+	$snippet_functions = [];
+	foreach ( $snippets as $key => $snippet ) {
+		$snippet_functions[] = [
+			'id'          => 'snippet_' . $key,
+			'name'        => $snippet['name'],
+			'description' => $snippet['description'],
+			'category'    => $snippet['category'],
+			'type'        => 'library',
+		];
+	}
+
+	// Merge custom functions and snippets
+	$all_functions = array_merge( $all_custom_functions, $snippet_functions );
+	
+	// Apply filters
+	if ( ! empty( $search ) ) {
+		$all_functions = array_filter( $all_functions, function( $func ) use ( $search ) {
+			$search_lower = strtolower( $search );
+			return strpos( strtolower( $func['name'] ), $search_lower ) !== false ||
+			       ( isset( $func['description'] ) && strpos( strtolower( $func['description'] ), $search_lower ) !== false );
+		} );
+		$all_functions = array_values( $all_functions ); // Re-index array
+	}
+	
+	if ( ! empty( $category ) ) {
+		$all_functions = array_filter( $all_functions, function( $func ) use ( $category ) {
+			return isset( $func['category'] ) && $func['category'] === $category;
+		} );
+		$all_functions = array_values( $all_functions );
+	}
+	
+	if ( ! empty( $status ) && $status !== 'all' ) {
+		$all_functions = array_filter( $all_functions, function( $func ) use ( $status ) {
+			return isset( $func['status'] ) && $func['status'] === $status;
+		} );
+		$all_functions = array_values( $all_functions );
+	}
+	
+	// Calculate total and pagination
+	$total = count( $all_functions );
+	$total_pages = ceil( $total / $per_page );
+	
+	// Apply pagination
+	$offset = ( $page - 1 ) * $per_page;
+	$paginated_functions = array_slice( $all_functions, $offset, $per_page );
+
+	$this->send_success(
+		[
+			'functions'   => $paginated_functions,
+			'total'       => $total,
+			'page'        => $page,
+			'per_page'    => $per_page,
+			'total_pages' => $total_pages,
+		]
+	);
+}	/**
 	 * Get single function
 	 */
 	public function get_function() {
