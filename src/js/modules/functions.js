@@ -120,6 +120,13 @@ const FunctionsModule = {
 				this.testFunction();
 			} );
 
+		// AI Generate button
+		document
+			.querySelector( '.aie-generate-with-ai' )
+			?.addEventListener( 'click', () => {
+				this.openAIPromptModal();
+			} );
+
 		// Close modal on backdrop click
 		document
 			.querySelectorAll( '.aie-modal-backdrop' )
@@ -870,6 +877,186 @@ const FunctionsModule = {
 		const div = document.createElement( 'div' );
 		div.textContent = text;
 		return div.innerHTML;
+	},
+
+	/**
+	 * Open AI prompt modal
+	 */
+	openAIPromptModal() {
+		// Check if API key is configured
+		if ( ! window.aieData?.hasOpenAIApiKey ) {
+			const optionsUrl = window.aieData?.optionsUrl || 'admin.php?page=wp-aie-plugin-options';
+			const message = 'OpenAI API key is not configured. Please configure it in Plugin Options to use AI generation.\n\nDo you want to go to Plugin Options now?';
+			
+			if ( confirm( message ) ) {
+				window.location.href = optionsUrl;
+			}
+			return;
+		}
+
+		const modal = document.getElementById( 'aie-ai-prompt-modal' );
+		if ( ! modal ) {
+			return;
+		}
+
+		// Clear previous prompt
+		document.getElementById( 'aie-ai-prompt' ).value = '';
+		
+		// Hide generating state
+		const generatingDiv = modal.querySelector( '.aie-ai-generating' );
+		if ( generatingDiv ) {
+			generatingDiv.style.display = 'none';
+		}
+
+		// Show modal
+		modal.style.display = 'flex';
+		document.body.classList.add( 'aie-modal-open' );
+
+		// Focus on prompt textarea
+		setTimeout( () => {
+			document.getElementById( 'aie-ai-prompt' )?.focus();
+		}, 100 );
+
+		// Bind AI modal events (if not already bound)
+		this.bindAIModalEvents();
+	},
+
+	/**
+	 * Bind AI modal events
+	 */
+	bindAIModalEvents() {
+		// Prevent multiple bindings
+		if ( this.aiModalEventsBound ) {
+			return;
+		}
+		this.aiModalEventsBound = true;
+
+		const modal = document.getElementById( 'aie-ai-prompt-modal' );
+		if ( ! modal ) {
+			return;
+		}
+
+		// Example prompt links
+		modal.querySelectorAll( '.aie-use-example' ).forEach( ( link ) => {
+			link.addEventListener( 'click', ( e ) => {
+				e.preventDefault();
+				const prompt = e.target.dataset.prompt;
+				document.getElementById( 'aie-ai-prompt' ).value = prompt;
+			} );
+		} );
+
+		// Generate code button
+		const generateBtn = modal.querySelector( '.aie-generate-code' );
+		if ( generateBtn && ! generateBtn.dataset.bound ) {
+			generateBtn.dataset.bound = 'true';
+			generateBtn.addEventListener( 'click', () => {
+				this.generateFunctionWithAI();
+			} );
+		}
+	},
+
+	/**
+	 * Generate function with AI
+	 */
+	async generateFunctionWithAI() {
+		const modal = document.getElementById( 'aie-ai-prompt-modal' );
+		const prompt = document.getElementById( 'aie-ai-prompt' ).value.trim();
+
+		if ( ! prompt ) {
+			showModalError(
+				window.aieData?.i18n?.prompt_required ||
+					'Please describe what you want the function to do.'
+			);
+			document.getElementById( 'aie-ai-prompt' ).focus();
+			return;
+		}
+
+		clearModalErrors();
+
+		// Show generating state
+		const generatingDiv = modal.querySelector( '.aie-ai-generating' );
+		const generateBtn = modal.querySelector( '.aie-generate-code' );
+		
+		if ( generatingDiv ) {
+			generatingDiv.style.display = 'block';
+		}
+		
+		if ( generateBtn ) {
+			generateBtn.disabled = true;
+		}
+
+		try {
+			const response = await fetch( window.aieData.ajaxUrl, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
+				body: new URLSearchParams( {
+					action: 'aie_functions_generate_with_ai',
+					nonce: window.aieData?.nonce || '',
+					prompt: prompt,
+				} ),
+			} );
+
+			const data = await response.json();
+
+			if ( ! data.success ) {
+				throw new Error(
+					data.message || data.data?.message || 'Failed to generate function with AI'
+				);
+			}
+
+			// Insert generated code into the function editor
+			const codeTextarea = document.getElementById( 'aie-function-code' );
+			if ( codeTextarea ) {
+				// Prepend <?php tag and comment before generated code
+				const codeWithPhp = '<?php\n\n' + data.data.code;
+				
+				codeTextarea.value = codeWithPhp;
+				
+				// Update CodeMirror if available
+				if ( this.codeEditor && this.codeEditor.codemirror ) {
+					this.codeEditor.codemirror.setValue( codeWithPhp );
+				}
+			}
+
+			// Optionally set function name if provided
+			if ( data.data.name ) {
+				const nameInput = document.getElementById( 'aie-function-name' );
+				if ( nameInput && ! nameInput.value ) {
+					nameInput.value = data.data.name;
+				}
+			}
+
+			// Optionally set description if provided
+			if ( data.data.description ) {
+				const descInput = document.getElementById( 'aie-function-description' );
+				if ( descInput && ! descInput.value ) {
+					descInput.value = data.data.description;
+				}
+			}
+
+			// Close AI modal
+			this.closeModal( modal );
+
+			// Show success message
+			showNotice(
+				window.aieData?.i18n?.ai_generated ||
+					'AI has generated your function code! Please review and test it before saving.'
+			);
+
+		} catch ( error ) {
+			showModalError( error.message );
+		} finally {
+			// Hide generating state
+			if ( generatingDiv ) {
+				generatingDiv.style.display = 'none';
+			}
+			
+			if ( generateBtn ) {
+				generateBtn.disabled = false;
+			}
+		}
 	},
 };
 

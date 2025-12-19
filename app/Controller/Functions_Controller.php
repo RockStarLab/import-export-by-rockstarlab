@@ -33,17 +33,18 @@ class Functions_Controller extends Base_Controller {
 	 */
 	protected function get_ajax_actions() {
 		return [
-			'get_functions'          => [ 'callback' => 'get_functions_list' ],
-			'functions_get_all'      => [ 'callback' => 'get_all_functions' ],
-			'functions_get'          => [ 'callback' => 'get_function' ],
-			'functions_create'       => [ 'callback' => 'create_function' ],
-			'functions_update'       => [ 'callback' => 'update_function' ],
-			'functions_delete'       => [ 'callback' => 'delete_function' ],
-			'functions_test'         => [ 'callback' => 'test_function' ],
-			'test_function_pipeline' => [ 'callback' => 'test_function_pipeline' ],
-			'functions_get_snippets' => [ 'callback' => 'get_snippets' ],
-			'functions_search'       => [ 'callback' => 'search_snippets' ],
-			'functions_import'       => [ 'callback' => 'import_snippet' ],
+			'get_functions'             => [ 'callback' => 'get_functions_list' ],
+			'functions_get_all'         => [ 'callback' => 'get_all_functions' ],
+			'functions_get'             => [ 'callback' => 'get_function' ],
+			'functions_create'          => [ 'callback' => 'create_function' ],
+			'functions_update'          => [ 'callback' => 'update_function' ],
+			'functions_delete'          => [ 'callback' => 'delete_function' ],
+			'functions_test'            => [ 'callback' => 'test_function' ],
+			'test_function_pipeline'    => [ 'callback' => 'test_function_pipeline' ],
+			'functions_get_snippets'    => [ 'callback' => 'get_snippets' ],
+			'functions_search'          => [ 'callback' => 'search_snippets' ],
+			'functions_import'          => [ 'callback' => 'import_snippet' ],
+			'functions_generate_with_ai' => [ 'callback' => 'generate_function_with_ai' ],
 		];
 	}
 
@@ -623,6 +624,46 @@ class Functions_Controller extends Base_Controller {
 			[
 				'message'  => __( 'Snippet imported successfully', 'wp-advanced-import-export' ),
 				'function' => $function,
+			]
+		);
+	}
+
+	/**
+	 * Generate function code with AI
+	 */
+	public function generate_function_with_ai() {
+		$verify = $this->verify_request( 'nonce' );
+		if ( is_wp_error( $verify ) ) {
+			$this->send_error( $verify->get_error_message() );
+		}
+
+		// Check if premium
+		$is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
+		if ( ! $is_premium ) {
+			$this->send_error( __( 'AI function generation is a premium feature.', 'wp-advanced-import-export' ) );
+		}
+
+		$prompt = $this->get_request_param( 'prompt', '' );
+
+		if ( empty( $prompt ) ) {
+			$this->send_error( __( 'Prompt is required', 'wp-advanced-import-export' ) );
+		}
+
+		// Import AI helper
+		require_once __DIR__ . '/../Helper/AI_Function_Generator.php';
+		
+		$ai_generator = new \WP_AIE\Helper\AI_Function_Generator();
+		$result       = $ai_generator->generate_function( $prompt );
+
+		if ( is_wp_error( $result ) ) {
+			$this->send_error( $result->get_error_message() );
+		}
+
+		$this->send_success(
+			[
+				'code'        => $result['code'],
+				'name'        => $result['name'] ?? '',
+				'description' => $result['description'] ?? '',
 			]
 		);
 	}
