@@ -965,7 +965,8 @@ const FunctionsModule = {
 		if ( ! prompt ) {
 			showModalError(
 				window.aieData?.i18n?.prompt_required ||
-					'Please describe what you want the function to do.'
+					'Please describe what you want the function to do.',
+				modal
 			);
 			document.getElementById( 'aie-ai-prompt' ).focus();
 			return;
@@ -998,11 +999,38 @@ const FunctionsModule = {
 				} ),
 			} );
 
+			// Check HTTP status
+			if ( ! response.ok ) {
+				throw new Error(
+					window.aieData?.i18n?.ai_server_error ||
+					`Server error: ${response.status} ${response.statusText}`
+				);
+			}
+
+			// Check if response is JSON
+			const contentType = response.headers.get( 'content-type' );
+			if ( ! contentType || ! contentType.includes( 'application/json' ) ) {
+				throw new Error(
+					window.aieData?.i18n?.ai_invalid_response ||
+					'Invalid server response. Please try again or contact support.'
+				);
+			}
+
 			const data = await response.json();
 
 			if ( ! data.success ) {
+				// Extract error message with fallback
+				const errorMessage = data.message || data.data?.message || data.data || 
+					window.aieData?.i18n?.ai_generation_failed ||
+					'Failed to generate function with AI. Please try again.';
+				throw new Error( errorMessage );
+			}
+
+			// Validate response data
+			if ( ! data.data || ! data.data.code ) {
 				throw new Error(
-					data.message || data.data?.message || 'Failed to generate function with AI'
+					window.aieData?.i18n?.ai_no_code ||
+					'AI did not return any code. Please try a different prompt.'
 				);
 			}
 
@@ -1046,7 +1074,30 @@ const FunctionsModule = {
 			);
 
 		} catch ( error ) {
-			showModalError( error.message );
+			console.error( 'AI generation error:', error );
+			
+			// Determine appropriate error message
+			let errorMessage = error.message;
+			
+			// Handle network errors
+			if ( error.name === 'TypeError' && error.message.includes( 'fetch' ) ) {
+				errorMessage = window.aieData?.i18n?.ai_network_error ||
+					'Network error. Please check your internet connection and try again.';
+			}
+			
+			// Handle timeout errors
+			if ( error.name === 'AbortError' || error.message.includes( 'timeout' ) ) {
+				errorMessage = window.aieData?.i18n?.ai_timeout_error ||
+					'Request timed out. The AI service may be busy. Please try again.';
+			}
+			
+			// Handle JSON parse errors
+			if ( error.name === 'SyntaxError' && error.message.includes( 'JSON' ) ) {
+				errorMessage = window.aieData?.i18n?.ai_invalid_response ||
+					'Received invalid response from server. Please try again.';
+			}
+
+			showModalError( errorMessage, modal );
 		} finally {
 			// Hide generating state
 			if ( generatingDiv ) {

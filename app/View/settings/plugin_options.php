@@ -140,9 +140,9 @@ if ( ! empty( $openai_api_key ) ) {
 							</th>
 							<td>
 								<span class="aie-info-badge">GPT-4o-mini</span>
-								<p class="description">
+								<!-- <p class="description">
 									<?php esc_html_e( 'Fast and cost-effective model for function generation. ~$0.0001-0.0003 per function.', 'wp-advanced-import-export' ); ?>
-								</p>
+								</p> -->
 							</td>
 						</tr>
 					</table>
