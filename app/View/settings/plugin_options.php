@@ -184,12 +184,6 @@ if ( ! empty( $openai_api_key ) ) {
 					</div>
 
 					<div class="aie-info-card">
-						<span class="dashicons dashicons-money-alt"></span>
-						<h3><?php esc_html_e( 'Cost', 'wp-advanced-import-export' ); ?></h3>
-						<p><?php esc_html_e( 'Using GPT-4o-mini: ~$0.0001-0.0003 per function generation. Approximately $0.10-0.30 for 1000 functions.', 'wp-advanced-import-export' ); ?></p>
-					</div>
-
-					<div class="aie-info-card">
 						<span class="dashicons dashicons-star-filled"></span>
 						<h3><?php esc_html_e( 'Premium Feature', 'wp-advanced-import-export' ); ?></h3>
 						<p>
