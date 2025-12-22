@@ -396,6 +396,29 @@ const FunctionsModule = {
 				}
 
 				const func = data.data;
+				
+				// Check if this is a library snippet
+				const isLibrarySnippet = functionId.toString().startsWith( 'snippet_' );
+				
+				if ( isLibrarySnippet ) {
+					// Show info that editing a snippet will create a new custom function
+					title.textContent =
+						window.aieData?.i18n?.customize_snippet || 'Customize Snippet';
+					
+					const infoBox = document.createElement( 'div' );
+					infoBox.className = 'notice notice-info';
+					infoBox.style.marginTop = '15px';
+					infoBox.innerHTML = `
+						<p><strong>${ window.aieData?.i18n?.snippet_customize_title || 'Customizing Library Snippet' }</strong></p>
+						<p>${ window.aieData?.i18n?.snippet_customize_info || 
+							'You are customizing a library snippet. Your changes will be saved as a new custom function.' }</p>
+					`;
+					
+					const modalBody = modal.querySelector( '.aie-modal-body' );
+					const form = modalBody.querySelector( 'form' );
+					modalBody.insertBefore( infoBox, form );
+				}
+				
 				document.getElementById( 'aie-function-id' ).value = func.id;
 				document.getElementById( 'aie-function-name' ).value =
 					func.name;
@@ -519,6 +542,15 @@ const FunctionsModule = {
 	closeModal( modal ) {
 		modal.style.display = 'none';
 		document.body.style.overflow = '';
+		
+		// Remove any info boxes that were added (e.g., snippet customization info)
+		const infoBoxes = modal.querySelectorAll( '.aie-info-box, .notice' );
+		infoBoxes.forEach( box => {
+			// Only remove dynamically added info boxes, not permanent ones
+			if ( !box.hasAttribute( 'data-permanent' ) ) {
+				box.remove();
+			}
+		} );
 	},
 
 	/**

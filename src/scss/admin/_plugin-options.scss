@@ -195,6 +195,16 @@
 		color: #92400e;
 	}
 
+	&.aie-info {
+		background: #dbeafe;
+		border-left: 4px solid #60a5fa;
+		color: #1e40af;
+
+		.dashicons {
+			color: #2563eb;
+		}
+	}
+
 	&.aie-success {
 		background: #dcfce7;
 		border-left: 4px solid #86efac;
