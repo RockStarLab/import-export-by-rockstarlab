@@ -687,14 +687,12 @@ const ImportModule = {
 	 * Show table preview for CSV
 	 */
 	showTablePreview( preview ) {
-		// Show table, hide JSON preview
-		jQuery( '.aie-preview-table-container' ).show();
-		jQuery( '.aie-json-preview-container' ).hide();
-		jQuery( '.aie-preview-note' ).text( 'Showing first 5 rows' );
+	// Show table, hide JSON preview
+	jQuery( '.aie-preview-table-container' ).show();
+	jQuery( '.aie-json-preview-container' ).hide();
+	jQuery( '.aie-preview-note' ).text( window.aieData.i18n.showingFirstRows );
 
-		const $table = jQuery( '.aie-preview-table' );
-
-		// Build table header
+	const $table = jQuery( '.aie-preview-table' );		// Build table header
 		let headerHtml = '<tr>';
 		if ( preview.headers ) {
 			preview.headers.forEach( ( header ) => {
@@ -843,15 +841,14 @@ const ImportModule = {
 		// Build source fields (from file)
 		this.buildSourceFields();
 		
-		// Build target fields (WordPress fields or database table columns)
-		if ( contentType === 'database_table' ) {
-			// Table columns will be loaded after table selection
-			jQuery( '#aie-target-fields' ).html( '<div class="aie-info">Please select a database table above to see available columns</div>' );
-		} else {
-			this.buildTargetFields( contentType );
-		}
-		
-		// Load dynamic ACF fields
+	
+	// Build target fields (WordPress fields or database table columns)
+	if ( contentType === 'database_table' ) {
+		// Table columns will be loaded after table selection
+		jQuery( '#aie-target-fields' ).html( `<div class="aie-info">${window.aieData.i18n.pleaseSelectTable}</div>` );
+	} else {
+		this.buildTargetFields( contentType );
+	}		// Load dynamic ACF fields
 		this.loadACFFields( contentType );
 		
 		// Load dynamic Yoast fields
@@ -987,19 +984,17 @@ const ImportModule = {
 			success: ( response ) => {
 				$spinner.removeClass( 'is-active' );
 				
-				if ( response.success && response.data ) {
-					const tables = response.data.tables || response.data || [];
-					
-					$select.empty();
-					$select.append( jQuery( '<option>' ).val( '' ).text( 'Select a table...' ) );
-					
-					if ( !Array.isArray( tables ) || tables.length === 0 ) {
-						$select.append( jQuery( '<option>' ).val( '' ).text( 'No tables found' ) );
-						$select.prop( 'disabled', true );
-						return;
-					}
-					
-					tables.forEach( ( table ) => {
+			if ( response.success && response.data ) {
+				const tables = response.data.tables || response.data || [];
+				
+				$select.empty();
+				$select.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.selectTable ) );
+				
+				if ( !Array.isArray( tables ) || tables.length === 0 ) {
+					$select.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.noTablesFound ) );
+					$select.prop( 'disabled', true );
+					return;
+				}					tables.forEach( ( table ) => {
 						$select.append(
 							jQuery( '<option>' )
 								.val( table.table_name )
@@ -1022,12 +1017,12 @@ const ImportModule = {
 						}
 					} );
 				} else {
-					$select.html( '<option value="">No tables found</option>' );
+					$select.html( `<option value="">${window.aieData.i18n.noTablesFound}</option>` );
 				}
 			},
 			error: ( xhr, status, error ) => {
 				$spinner.removeClass( 'is-active' );
-				$select.html( '<option value="">Error loading tables</option>' );
+				$select.html( `<option value="">${window.aieData.i18n.errorLoadingTables}</option>` );
 			}
 		} );
 	},
@@ -1070,7 +1065,7 @@ const ImportModule = {
 				}
 			},
 			error: ( xhr, status, error ) => {
-				$columnsList.html( '<p>Error loading columns</p>' );
+				$columnsList.html( `<p>${window.aieData.i18n.errorLoadingColumns}</p>` );
 			}
 		} );
 	},
@@ -1085,7 +1080,7 @@ const ImportModule = {
 		
 		const $container = jQuery( '#aie-target-fields' );
 		
-		$container.html( '<div class="aie-loading">Loading table columns...</div>' );
+		$container.html( `<div class="aie-loading">${window.aieData.i18n.loadingTableColumns}</div>` );
 		
 		jQuery.ajax( {
 			url: window.aieData.ajaxUrl,
@@ -1122,11 +1117,11 @@ const ImportModule = {
 					// Re-initialize drag & drop
 					this.initializeDragDrop();
 				} else {
-					$container.html( '<div class="aie-error">Error loading columns</div>' );
+					$container.html( `<div class="aie-error">${window.aieData.i18n.errorLoadingColumns}</div>` );
 				}
 			},
 			error: ( xhr, status, error ) => {
-				$container.html( '<div class="aie-error">Error loading table columns</div>' );
+				$container.html( `<div class="aie-error">${window.aieData.i18n.errorLoadingColumns}</div>` );
 			}
 		} );
 	},
@@ -1286,12 +1281,10 @@ const ImportModule = {
 		$modal.find( '.aie-modal-add' ).on( 'click', function () {
 			const fieldValue = $input.val().trim();
 			
-			if ( ! fieldValue ) {
-				alert( 'Please enter a field name' );
-				return;
-			}
-			
-			// Get taxonomy format if applicable
+		if ( ! fieldValue ) {
+			alert( window.aieData.i18n.pleaseEnterFieldName );
+			return;
+		}			// Get taxonomy format if applicable
 			let taxonomyFormat = 'name';
 			if ( isTaxonomy ) {
 				taxonomyFormat = $modal.find( '.aie-taxonomy-format' ).val();
@@ -2677,7 +2670,7 @@ const ImportModule = {
 		const $result = jQuery( '#aie-preview-result' );
 		const $steps = $result.find( '.aie-preview-steps' );
 		
-		$steps.html( '<div class="aie-preview-loading"><span class="spinner is-active"></span> Testing...</div>' );
+		$steps.html( `<div class="aie-preview-loading"><span class="spinner is-active"></span> ${window.aieData.i18n.testing}</div>` );
 		$result.show();
 
 		try {
@@ -2724,10 +2717,10 @@ const ImportModule = {
 
 				$steps.html( html );
 			} else {
-				$steps.html( `<div class="notice notice-error inline"><p>${ response.data?.message || 'Failed to test pipeline' }</p></div>` );
+				$steps.html( `<div class="notice notice-error inline"><p>${ response.data?.message || window.aieData.i18n.failedTestPipeline }</p></div>` );
 			}
 		} catch ( error ) {
-			$steps.html( `<div class="notice notice-error inline"><p>Error: ${ error.message }</p></div>` );
+			$steps.html( `<div class="notice notice-error inline"><p>${window.aieData.i18n.error}: ${ error.message }</p></div>` );
 		}
 	},
 
@@ -3082,12 +3075,10 @@ const ImportModule = {
 	/**
 	 * Cancel import
 	 */
-	async cancelImport() {
-		if ( ! confirm( 'Are you sure you want to cancel this import?' ) ) {
-			return;
-		}
-
-		try {
+async cancelImport() {
+	if ( ! confirm( window.aieData.i18n.confirmCancelImportStep ) ) {
+		return;
+	}		try {
 			await Utils.ajax( 'aie_import_cancel', { job_id: this.jobId } );
 			clearInterval( this.progressInterval );
 			Utils.showNotice( 'Import cancelled', 'info' );

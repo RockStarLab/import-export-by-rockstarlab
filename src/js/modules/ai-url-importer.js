@@ -262,7 +262,7 @@ const AIURLImporter = {
 		} catch (error) {
 			console.error('Failed to load ACF fields:', error);
 			const $tree = jQuery('#aie-acf-field-tree');
-			$tree.html('<p class="description" style="color: #d63638;">Failed to load ACF fields. Please try again.</p>');
+			$tree.html(`<p class="description" style="color: #d63638;">${window.aieData.i18n.failedLoadAcfFields}</p>`);
 		}
 	},
 
@@ -273,7 +273,7 @@ const AIURLImporter = {
 		const $tree = jQuery('#aie-acf-field-tree');
 		
 		if (!fields || fields.length === 0) {
-			$tree.html('<p class="description">No ACF fields found for this post type.</p>');
+			$tree.html(`<p class="description">${window.aieData.i18n.noAcfFields}</p>`);
 			return;
 		}
 
@@ -383,7 +383,7 @@ const AIURLImporter = {
 		const $btn = jQuery('#aie-test-connection-btn');
 		const $result = jQuery('.aie-test-result');
 		
-		$btn.prop('disabled', true).text('Testing...');
+		$btn.prop('disabled', true).text(window.aieData.i18n.testing);
 		$result.hide();
 
 		try {
@@ -399,7 +399,7 @@ const AIURLImporter = {
 				.html(`<span class="dashicons dashicons-no"></span> ${message}`)
 				.show();
 		} finally {
-			$btn.prop('disabled', false).text('Test Connection');
+			$btn.prop('disabled', false).text(window.aieData.i18n.testConnection);
 		}
 	},
 
@@ -411,7 +411,7 @@ const AIURLImporter = {
 		const $regenerateBtn = jQuery('#aie-regenerate-preview-btn');
 		const $result = jQuery('.aie-preview-result');
 		
-		$btn.prop('disabled', true).text('Generating Preview...');
+		$btn.prop('disabled', true).text(window.aieData.i18n.generatingPreview);
 		$regenerateBtn.hide();
 		$result.hide();
 
@@ -427,7 +427,7 @@ const AIURLImporter = {
 		} catch (error) {
 			this.showError(error, '.aie-preview-section');
 		} finally {
-			$btn.prop('disabled', false).text('Generate Preview');
+			$btn.prop('disabled', false).text(window.aieData.i18n.generatePreview);
 		}
 	},
 
@@ -435,15 +435,15 @@ const AIURLImporter = {
 	 * Show error message with nice formatting
 	 */
 	showError(error, containerSelector) {
-		const message = error.message || error || 'An error occurred';
+		const message = error.message || error || window.aieData.i18n.errorOccurred;
 		const isRateLimit = message.toLowerCase().includes('rate limit');
 		
 		let noticeClass = 'notice notice-error';
-		let title = 'Error';
+		let title = window.aieData.i18n.error;
 		
 		if (isRateLimit) {
 			noticeClass = 'notice notice-warning';
-			title = 'Rate Limit Reached';
+			title = window.aieData.i18n.rateLimitReached;
 		}
 		
 		const errorHtml = `
@@ -488,7 +488,7 @@ const AIURLImporter = {
 				`);
 			});
 		} else {
-			$imagesList.html('<p>No images found</p>');
+			$imagesList.html(`<p>${window.aieData.i18n.noImagesFound}</p>`);
 		}
 		
 		// Display featured image
@@ -497,7 +497,7 @@ const AIURLImporter = {
 				<img src="${data.featured_image}" alt="Featured" style="max-width: 300px; height: auto;">
 			`);
 		} else {
-			jQuery('.preview-featured-image').html('<p>No featured image selected</p>');
+			jQuery('.preview-featured-image').html(`<p>${window.aieData.i18n.noFeaturedImage}</p>`);
 		}
 	},
 
@@ -594,22 +594,18 @@ const AIURLImporter = {
 			if (response.status === 'completed' || response.status === 'failed') {
 				this.stopProgressTracking();
 				
-				// Show completion UI
-				jQuery('#aie-cancel-import-btn').hide();
-				jQuery('#aie-start-new-import-btn, #aie-view-results-btn').show();
-				
-				if (response.status === 'completed') {
-					jQuery('.import-status-text').text(
-						`Import completed! ${response.success_count} URLs imported successfully.`
-					);
-				} else if (response.status === 'failed') {
-					jQuery('.import-status-text').text(
-						`Import failed: ${response.error}`
-					);
-				}
+			// Show completion UI
+			jQuery('#aie-cancel-import-btn').hide();
+			jQuery('#aie-start-new-import-btn, #aie-view-results-btn').show();
+			
+			if (response.status === 'completed') {
+				const completedText = window.aieData.i18n.importCompleted.replace('%s', response.success_count);
+				jQuery('.import-status-text').text(completedText);
+			} else if (response.status === 'failed') {
+				const failedText = window.aieData.i18n.importFailed.replace('%s', response.error);
+				jQuery('.import-status-text').text(failedText);
 			}
-
-		} catch (error) {
+		}		} catch (error) {
 			console.error('Error polling job progress:', error);
 			this.stopProgressTracking();
 		}
@@ -629,7 +625,7 @@ const AIURLImporter = {
 	 * Cancel import
 	 */
 	async cancelImport() {
-		if (!confirm('Are you sure you want to cancel this import?')) {
+		if (!confirm(window.aieData.i18n.confirmCancelImport)) {
 			return;
 		}
 
@@ -644,7 +640,7 @@ const AIURLImporter = {
 			this.goToStep(1);
 		} catch (error) {
 			console.error('Error cancelling job:', error);
-			alert('Failed to cancel the import. Please try again.');
+			alert(window.aieData.i18n.failedCancelImport);
 		}
 	},
 

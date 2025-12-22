@@ -221,10 +221,10 @@ export default class ExportStep3 {
 			<div class="aie-column-header">
 				<span class="aie-column-icon dashicons ${iconClass}"></span>
 				<div class="aie-column-actions">
-					<button type="button" class="aie-edit-column-functions" title="Assign functions" data-field-key="${fieldKey}">
+					<button type="button" class="aie-edit-column-functions" title="${window.aieData.i18n.assignFunctionsTitle}" data-field-key="${fieldKey}">
 						<span class="dashicons dashicons-admin-generic"></span>
 					</button>
-					<button type="button" class="aie-remove-column" title="Remove" data-field-key="${fieldKey}">
+					<button type="button" class="aie-remove-column" title="${window.aieData.i18n.remove}" data-field-key="${fieldKey}">
 						<span class="dashicons dashicons-no-alt"></span>
 					</button>
 				</div>
@@ -234,7 +234,7 @@ export default class ExportStep3 {
 			${hasFunctions ? `
 				<div class="aie-column-badge">
 					<span class="dashicons dashicons-admin-generic"></span>
-					${this.fieldFunctions[fieldKey].length} function(s)
+					${this.fieldFunctions[fieldKey].length} ${window.aieData.i18n.functions}
 				</div>
 			` : ''}
 		`;
@@ -327,7 +327,7 @@ export default class ExportStep3 {
 	 * Add custom column
 	 */
 	addCustomColumn() {
-		const label = prompt('Enter column name:');
+		const label = prompt(window.aieData.i18n.enterColumnName);
 		if (!label) return;
 
 		const field = 'custom_' + label.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -428,8 +428,8 @@ export default class ExportStep3 {
 					<span class="dashicons dashicons-warning"></span>
 				</div>
 				<div class="aie-pointer-content">
-					<h3>No Fields Selected</h3>
-					<p>Please select at least one field to continue with the export.</p>
+					<h3>${window.aieData.i18n.noFieldsSelected}</h3>
+					<p>${window.aieData.i18n.pleaseSelectFieldMessage}</p>
 				</div>
 			`);
 		
@@ -759,7 +759,7 @@ export default class ExportStep3 {
 			acfCategory.style.display = 'none';
 			const grid = acfCategory.querySelector('.aie-acf-fields-grid');
 			if (grid) {
-				grid.innerHTML = '<div class="aie-acf-loading"><span class="spinner is-active"></span><p>Loading ACF fields...</p></div>';
+				grid.innerHTML = `<div class="aie-acf-loading"><span class="spinner is-active"></span><p>${window.aieData.i18n.loadingAcfFields}</p></div>`;
 			}
 		}
 		
@@ -767,7 +767,7 @@ export default class ExportStep3 {
 			yoastCategory.style.display = 'none';
 			const grid = yoastCategory.querySelector('.aie-yoast-fields-grid');
 			if (grid) {
-				grid.innerHTML = '<div class="aie-yoast-loading"><span class="spinner is-active"></span><p>Loading Yoast SEO fields...</p></div>';
+				grid.innerHTML = `<div class="aie-yoast-loading"><span class="spinner is-active"></span><p>${window.aieData.i18n.loadingYoastFields}</p></div>`;
 			}
 		}
 		
@@ -832,8 +832,8 @@ export default class ExportStep3 {
 			<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
 			<span class="dashicons dashicons-admin-post"></span>
 			${this.escapeHtml(group.label)}
-			<button type="button" class="aie-add-all-fields" title="Add all fields from this category">
-				Add all
+			<button type="button" class="aie-add-all-fields" title="${window.aieData.i18n.addAllFieldsTitle}">
+				${window.aieData.i18n.addAll}
 			</button>
 		`;
 		
@@ -1383,7 +1383,7 @@ export default class ExportStep3 {
 				}
 				badge.innerHTML = `
 					<span class="dashicons dashicons-admin-generic"></span>
-					${functions.length} function(s)
+					${functions.length} ${window.aieData.i18n.functions}
 				`;
 			} else {
 				column.classList.remove('has-functions');
@@ -1439,8 +1439,8 @@ export default class ExportStep3 {
 			emptyState.className = 'aie-functions-empty-state';
 			emptyState.innerHTML = `
 				<span class="dashicons dashicons-info"></span>
-				<p>${this.escapeHtml('No functions available yet.')}</p>
-				<p>${this.escapeHtml('Create your first custom function to get started.')}</p>
+				<p>${window.aieData.i18n.noFunctionsAvailableYet}</p>
+				<p>${window.aieData.i18n.createFirstFunction}</p>
 			`;
 			container.appendChild(emptyState);
 			return;
@@ -1457,7 +1457,7 @@ export default class ExportStep3 {
 					<span class="aie-function-list-name">${this.escapeHtml(func.name)}</span>
 					<span class="aie-function-list-desc">${this.escapeHtml(func.description || '')}</span>
 				</div>
-				<button type="button" class="button button-small">Add</button>
+				<button type="button" class="button button-small">${window.aieData.i18n.add}</button>
 			`;
 
 			item.querySelector('button').addEventListener('click', () => {
@@ -1533,7 +1533,7 @@ export default class ExportStep3 {
 			const categoryLabel = category === 'library' ? 'library' : 'custom';
 			noResults.innerHTML = `
 				<span class="dashicons dashicons-info"></span>
-				<p>${this.escapeHtml(`No ${categoryLabel} functions found.`)}</p>
+				<p>${window.aieData.i18n.noFunctionsFound.replace('%s', categoryLabel)}</p>
 			`;
 			noResults.style.display = 'block';
 		} else {
@@ -1598,7 +1598,7 @@ export default class ExportStep3 {
 		stepsContainer.innerHTML = '';
 
 		// Initial value
-		stepsContainer.appendChild(this.createPreviewStep(0, 'Input', initialValue));
+		stepsContainer.appendChild(this.createPreviewStep(0, window.aieData.i18n.input, initialValue));
 
 		// Each function step
 		steps.forEach((step, index) => {
@@ -1627,7 +1627,7 @@ export default class ExportStep3 {
 			<div class="aie-preview-step-name">${this.escapeHtml(name)}</div>
 			<span class="aie-preview-step-arrow dashicons dashicons-arrow-right-alt"></span>
 			<div class="aie-preview-step-value ${error ? 'error' : ''}">
-				${this.escapeHtml(error ? `Error: ${value}` : value)}
+				${this.escapeHtml(error ? window.aieData.i18n.errorLabel.replace('%s', value) : value)}
 			</div>
 		`;
 

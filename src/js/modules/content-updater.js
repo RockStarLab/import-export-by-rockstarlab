@@ -56,7 +56,7 @@ const ContentUpdater = {
 			e.stopPropagation();
 			
 			// Show upgrade message
-			const message = 'This content type is only available in the Premium version. Upgrade to unlock this feature.';
+			const message = window.aieData.i18n.premiumOnlyFeature;
 			Utils.showNotice( message, 'warning' );
 			
 			// Prevent the radio button from being checked
@@ -213,7 +213,7 @@ const ContentUpdater = {
 			case 1:
 				// Content type must be selected
 				if ( ! jQuery( 'input[name="updater_content_type"]:checked' ).length ) {
-					Utils.showNotice( 'Please select a content type', 'error' );
+					Utils.showNotice( window.aieData.i18n.pleaseSelectContentType, 'error' );
 					return false;
 				}
 				return true;
@@ -225,7 +225,7 @@ const ContentUpdater = {
 			case 3:
 				// At least one field must be selected
 				if ( this.selectedFields.length === 0 ) {
-					Utils.showNotice( 'Please select at least one field to update', 'error' );
+					Utils.showNotice( window.aieData.i18n.pleaseSelectAtLeastOneField, 'error' );
 					return false;
 				}
 				return true;
@@ -236,7 +236,7 @@ const ContentUpdater = {
 					return Array.isArray( functions ) && functions.length > 0;
 				} );
 				if ( ! hasFunction ) {
-					Utils.showNotice( 'Please assign at least one function to a field', 'error' );
+					Utils.showNotice( window.aieData.i18n.pleaseAssignFunction, 'error' );
 					return false;
 				}
 				return true;
@@ -398,31 +398,31 @@ const ContentUpdater = {
 	 */
 	getConditionsByFieldType( fieldType ) {
 		const stringConditions = [
-			{ value: 'equals', label: 'Equals' },
-			{ value: 'not_equals', label: 'Not Equals' },
-			{ value: 'contains', label: 'Contains' },
-			{ value: 'not_contains', label: 'Not Contains' },
-			{ value: 'starts_with', label: 'Starts With' },
-			{ value: 'ends_with', label: 'Ends With' },
-			{ value: 'is_empty', label: 'Is Empty' },
-			{ value: 'is_not_empty', label: 'Is Not Empty' }
+			{ value: 'equals', label: window.aieData.i18n.equals },
+			{ value: 'not_equals', label: window.aieData.i18n.notEquals },
+			{ value: 'contains', label: window.aieData.i18n.contains },
+			{ value: 'not_contains', label: window.aieData.i18n.notContains },
+			{ value: 'starts_with', label: window.aieData.i18n.startsWith },
+			{ value: 'ends_with', label: window.aieData.i18n.endsWith },
+			{ value: 'is_empty', label: window.aieData.i18n.isEmpty },
+			{ value: 'is_not_empty', label: window.aieData.i18n.isNotEmpty }
 		];
 		
 		const numberConditions = [
-			{ value: 'equals', label: 'Equals' },
-			{ value: 'not_equals', label: 'Not Equals' },
-			{ value: 'greater', label: 'Greater Than' },
-			{ value: 'less', label: 'Less Than' },
-			{ value: 'equals_or_greater', label: 'Greater or Equal' },
-			{ value: 'equals_or_less', label: 'Less or Equal' },
-			{ value: 'between', label: 'Between' }
+			{ value: 'equals', label: window.aieData.i18n.equals },
+			{ value: 'not_equals', label: window.aieData.i18n.notEquals },
+			{ value: 'greater', label: window.aieData.i18n.greaterThan },
+			{ value: 'less', label: window.aieData.i18n.lessThan },
+			{ value: 'equals_or_greater', label: window.aieData.i18n.greaterOrEqual },
+			{ value: 'equals_or_less', label: window.aieData.i18n.lessOrEqual },
+			{ value: 'between', label: window.aieData.i18n.between }
 		];
 		
 		const dateConditions = [
-			{ value: 'equals', label: 'On Date' },
-			{ value: 'before', label: 'Before' },
-			{ value: 'after', label: 'After' },
-			{ value: 'between', label: 'Between' }
+			{ value: 'equals', label: window.aieData.i18n.onDate },
+			{ value: 'before', label: window.aieData.i18n.before },
+			{ value: 'after', label: window.aieData.i18n.after },
+			{ value: 'between', label: window.aieData.i18n.between }
 		];
 		
 		switch ( fieldType ) {
@@ -473,12 +473,12 @@ const ContentUpdater = {
 					// Save the filtered count for later use
 					this.filteredCount = response.data.count;
 				} else {
-					$countValue.text( 'Error' );
+					$countValue.text( window.aieData.i18n.error );
 				}
 			},
 			error: () => {
 				$spinner.removeClass( 'is-active' );
-				$countValue.text( 'Error' );
+				$countValue.text( window.aieData.i18n.error );
 			}
 		} );
 	},
@@ -985,7 +985,8 @@ const ContentUpdater = {
 	addField( field, label ) {
 		// Check if already added
 		if ( this.selectedFields.includes( field ) ) {
-			Utils.showNotice( `Field "${ label }" is already selected`, 'warning' );
+			const message = window.aieData.i18n.fieldAlreadySelected.replace('%s', label);
+			Utils.showNotice( message, 'warning' );
 			return;
 		}
 
@@ -1037,7 +1038,7 @@ const ContentUpdater = {
 	 * Clear all selected fields
 	 */
 	clearAllFields() {
-		if ( ! confirm( 'Are you sure you want to clear all selected fields?' ) ) {
+		if ( ! confirm( window.aieData.i18n.confirmClearFields ) ) {
 			return;
 		}
 
@@ -1106,7 +1107,7 @@ const ContentUpdater = {
 				<tr class="aie-no-fields-row">
 					<td colspan="4" class="aie-no-fields-message">
 						<span class="dashicons dashicons-info"></span>
-						No fields selected. Please go back and select fields first.
+						${ window.aieData.i18n.noFieldsSelected }
 					</td>
 				</tr>
 			` );
@@ -1138,7 +1139,7 @@ const ContentUpdater = {
 					<td class="aie-actions-col">
 						<button type="button" class="button button-small aie-assign-functions" data-field="${ field }">
 							<span class="dashicons dashicons-admin-generic"></span>
-							Assign Functions
+							${ window.aieData.i18n.assignFunctions }
 						</button>
 					</td>
 				</tr>
@@ -1338,7 +1339,7 @@ const ContentUpdater = {
 			$list.html( `
 				<div class="aie-no-functions-available">
 					<span class="dashicons dashicons-info"></span>
-					<p>No functions available. Create a custom function first.</p>
+					<p>${ window.aieData.i18n.noFunctionsAvailable }</p>
 				</div>
 			` );
 			return;
@@ -1356,7 +1357,7 @@ const ContentUpdater = {
 					</div>
 					<button type="button" class="button button-small aie-add-function-btn" data-function-id="${ func.id }">
 						<span class="dashicons dashicons-plus-alt"></span>
-						Add
+						${ window.aieData.i18n.add }
 					</button>
 				` );
 
@@ -1461,7 +1462,7 @@ const ContentUpdater = {
 	 * Clear all function assignments
 	 */
 	clearAllFunctions() {
-		if ( ! confirm( 'Are you sure you want to clear all function assignments?' ) ) {
+		if ( ! confirm( window.aieData.i18n.confirmClearFunctions ) ) {
 			return;
 		}
 
@@ -1472,7 +1473,7 @@ const ContentUpdater = {
 		} );
 
 		this.buildFunctionsTable();
-		Utils.showNotice( 'All function assignments cleared', 'success' );
+		Utils.showNotice( window.aieData.i18n.functionAssignmentsCleared, 'success' );
 	},
 
 	/**
@@ -1483,12 +1484,12 @@ const ContentUpdater = {
 		const functionId = this.fieldFunctions[ field ];
 
 		if ( ! functionId || functionId === 'none' ) {
-			Utils.showNotice( 'No function assigned to this field', 'warning' );
+			Utils.showNotice( window.aieData.i18n.noFunctionAssigned, 'warning' );
 			return;
 		}
 
 		// Show preview popup (simplified for now)
-		const testValue = prompt( 'Enter a test value:' );
+		const testValue = prompt( window.aieData.i18n.enterTestValue );
 		if ( testValue === null ) {
 			return;
 		}
@@ -1504,9 +1505,10 @@ const ContentUpdater = {
 			},
 			success: ( response ) => {
 				if ( response.success ) {
-					alert( `Output: ${ response.data.output }` );
+					const outputText = window.aieData.i18n.functionOutput.replace('%s', response.data.output);
+					alert( outputText );
 				} else {
-					Utils.showNotice( response.data.message || 'Function test failed', 'error' );
+					Utils.showNotice( response.data.message || window.aieData.i18n.functionTestFailed, 'error' );
 				}
 			}
 		} );
@@ -1567,11 +1569,11 @@ const ContentUpdater = {
 					// Save the filtered count
 					this.filteredCount = response.data.count;
 				} else {
-					$countValue.text( 'Error' );
+					$countValue.text( window.aieData.i18n.error );
 				}
 			},
 			error: () => {
-				$countValue.text( 'Error' );
+				$countValue.text( window.aieData.i18n.error );
 			}
 		} );
 	},
@@ -1585,12 +1587,12 @@ const ContentUpdater = {
 
 		// Validate fields and functions
 		if ( ! this.selectedFields || this.selectedFields.length === 0 ) {
-			Utils.showNotice( 'No fields selected. Please go back and select fields to update.', 'error' );
+			Utils.showNotice( window.aieData.i18n.noFieldsSelectedError, 'error' );
 			return;
 		}
 
 		if ( ! this.fieldFunctions || Object.keys( this.fieldFunctions ).length === 0 ) {
-			Utils.showNotice( 'No functions assigned. Please go back and assign functions to fields.', 'error' );
+			Utils.showNotice( window.aieData.i18n.noFunctionsAssigned, 'error' );
 			return;
 		}
 
@@ -1620,18 +1622,18 @@ const ContentUpdater = {
 			success: ( response ) => {
 				if ( response.success ) {
 					this.jobId = response.data.job_id;
-					Utils.showNotice( 'Update started successfully', 'success' );
+					Utils.showNotice( window.aieData.i18n.updateStarted, 'success' );
 					
 					// Start processing
 					this.startProgressTracking();
 					this.processNextBatch();
 				} else {
-					Utils.showNotice( response.data.message || 'Failed to start update', 'error' );
+					Utils.showNotice( response.data.message || window.aieData.i18n.failedStartUpdate, 'error' );
 					this.showResults( 'error' );
 				}
 			},
 			error: () => {
-				Utils.showNotice( 'Failed to start update', 'error' );
+				Utils.showNotice( window.aieData.i18n.failedStartUpdate, 'error' );
 				this.showResults( 'error' );
 			}
 		} );
@@ -1674,7 +1676,10 @@ const ContentUpdater = {
 					jQuery( '.aie-errors-count' ).text( progress.error_items );
 
 					// Update status
-					jQuery( '.aie-status-text' ).text( `Processing items... (${ progress.processed_items } / ${ progress.total_items })` );
+					const processingText = window.aieData.i18n.processingItems
+						.replace('%1$s', progress.processed_items)
+						.replace('%2$s', progress.total_items);
+					jQuery( '.aie-status-text' ).text( processingText );
 
 					// Check if completed
 					if ( progress.status === 'completed' || progress.status === 'failed' || progress.status === 'cancelled' ) {
@@ -1726,7 +1731,7 @@ const ContentUpdater = {
 	 * Cancel update
 	 */
 	cancelUpdate() {
-		if ( ! confirm( 'Are you sure you want to cancel the update?' ) ) {
+		if ( ! confirm( window.aieData.i18n.confirmCancelUpdate ) ) {
 			return;
 		}
 
@@ -1741,7 +1746,7 @@ const ContentUpdater = {
 			success: ( response ) => {
 				if ( response.success ) {
 					this.stopProgressTracking();
-					Utils.showNotice( 'Update cancelled', 'info' );
+					Utils.showNotice( window.aieData.i18n.updateCancelled, 'info' );
 					this.showResults( 'cancelled' );
 				}
 			}
@@ -1823,7 +1828,7 @@ const ContentUpdater = {
 		const testValue = $input.val();
 
 		if ( ! testValue ) {
-			this.showNotice( 'Please enter a test value', 'warning' );
+			this.showNotice( window.aieData.i18n.pleaseEnterTestValue, 'warning' );
 			return;
 		}
 
@@ -1833,13 +1838,13 @@ const ContentUpdater = {
 		} );
 
 		if ( functionIds.length === 0 ) {
-			this.showNotice( 'No functions to test', 'warning' );
+			this.showNotice( window.aieData.i18n.noFunctionsToTest, 'warning' );
 			return;
 		}
 
 		// Check if aieData is available
 		if ( typeof aieData === 'undefined' ) {
-			this.showNotice( 'Configuration error: aieData not found', 'error' );
+			this.showNotice( window.aieData.i18n.configurationError, 'error' );
 			return;
 		}
 
@@ -1858,11 +1863,11 @@ const ContentUpdater = {
 				if ( response.success ) {
 					this.renderPipelinePreview( testValue, response.data.steps );
 				} else {
-					this.showNotice( response.data.message || 'Test failed', 'error' );
+					this.showNotice( response.data.message || window.aieData.i18n.testFailed, 'error' );
 				}
 			},
 			error: ( xhr, status, error ) => {
-				this.showNotice( 'Error testing pipeline', 'error' );
+				this.showNotice( window.aieData.i18n.errorTestingPipeline, 'error' );
 			}
 		} );
 	},
@@ -1878,7 +1883,7 @@ const ContentUpdater = {
 		$stepsContainer.empty();
 
 		// Initial value
-		$stepsContainer.append( this.createPreviewStep( 0, 'Input', initialValue ) );
+		$stepsContainer.append( this.createPreviewStep( 0, window.aieData.i18n.input, initialValue ) );
 
 		// Each function step
 		if ( steps && steps.length > 0 ) {

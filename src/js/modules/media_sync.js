@@ -184,7 +184,7 @@ const MediaSyncModule = {
 				.filter( ( ext ) => ext );
 		}
 
-		jQuery( '#aie-scan-folder-btn' ).prop( 'disabled', true ).text( 'Scanning...' );
+		jQuery( '#aie-scan-folder-btn' ).prop( 'disabled', true ).text( window.aieData.i18n.scanning );
 
 		jQuery
 			.ajax( {
@@ -495,7 +495,7 @@ const MediaSyncModule = {
 		// Disable button and show loading state
 		const $btn = jQuery( '#aie-start-sync-btn' );
 		const originalText = $btn.html();
-		$btn.prop( 'disabled', true ).html( '<span class="dashicons dashicons-update aie-spin"></span> Starting...' );
+		$btn.prop( 'disabled', true ).html( `<span class="dashicons dashicons-update aie-spin"></span> ${window.aieData.i18n.starting}` );
 
 		jQuery
 			.ajax( {
@@ -522,7 +522,7 @@ const MediaSyncModule = {
 					// Initialize progress at 0%
 					jQuery( '#aie-progress-fill' ).css( 'width', '0%' );
 					jQuery( '#aie-progress-percentage' ).text( '0%' );
-					jQuery( '#aie-sync-status' ).text( 'Processing...' );
+					jQuery( '#aie-sync-status' ).text( window.aieData.i18n.processing );
 
 					// Start tracking progress
 					this.startProgressTracking();
@@ -827,14 +827,12 @@ const MediaSyncModule = {
 				
 				// Update UI
 				const $header = jQuery( '#aie-sync-progress-section .aie-card-header h2' );
-				$header.html( '<span class="dashicons dashicons-controls-pause"></span> Synchronization Paused' );
+				$header.html( `<span class="dashicons dashicons-controls-pause"></span> ${window.aieData.i18n.syncPaused}` );
 				
 				// Update status text
-				jQuery( '#aie-progress-status' ).text( 'Paused' );
-				jQuery( '#aie-sync-status' ).text( 'Paused' );
-				
-				const $pauseBtn = jQuery( '#aie-pause-sync-btn' );
-				$pauseBtn.html( '<span class="dashicons dashicons-controls-play"></span> Resume' );
+			jQuery( '#aie-progress-status' ).text( window.aieData.i18n.paused );
+			jQuery( '#aie-sync-status' ).text( window.aieData.i18n.paused );				const $pauseBtn = jQuery( '#aie-pause-sync-btn' );
+				$pauseBtn.html( `<span class="dashicons dashicons-controls-play"></span> ${window.aieData.i18n.resume}` );
 				
 				Utils.showNotice( window.aieData.i18n.syncPaused, 'info' );
 			}
@@ -859,14 +857,12 @@ const MediaSyncModule = {
 				
 				// Update UI
 				const $header = jQuery( '#aie-sync-progress-section .aie-card-header h2' );
-				$header.html( '<span class="dashicons dashicons-update aie-spin"></span> Synchronization in Progress' );
+				$header.html( `<span class="dashicons dashicons-update aie-spin"></span> ${window.aieData.i18n.syncInProgress}` );
 				
 				// Update status text
-				jQuery( '#aie-progress-status' ).text( 'Synchronization in Progress' );
-				jQuery( '#aie-sync-status' ).text( 'Synchronization in Progress' );
-				
-				const $pauseBtn = jQuery( '#aie-pause-sync-btn' );
-				$pauseBtn.html( '<span class="dashicons dashicons-controls-pause"></span> Pause' );
+			jQuery( '#aie-progress-status' ).text( window.aieData.i18n.syncInProgress );
+			jQuery( '#aie-sync-status' ).text( window.aieData.i18n.syncInProgress );				const $pauseBtn = jQuery( '#aie-pause-sync-btn' );
+				$pauseBtn.html( `<span class="dashicons dashicons-controls-pause"></span> ${window.aieData.i18n.pause}` );
 				
 				// Restart progress monitoring
 				this.startProgressTracking();
@@ -925,11 +921,11 @@ const MediaSyncModule = {
 		// Reset Start button
 		const $startBtn = jQuery( '#aie-start-sync-btn' );
 		$startBtn.prop( 'disabled', false );
-		$startBtn.html( '<span class="dashicons dashicons-controls-play"></span> Start Sync' );
+		$startBtn.html( `<span class="dashicons dashicons-controls-play"></span> ${window.aieData.i18n.startSync}` );
 		
 		// Reset Scan button
 		const $scanBtn = jQuery( '#aie-scan-folder-btn' );
-		$scanBtn.prop( 'disabled', false ).text( 'Scan Folder' );
+		$scanBtn.prop( 'disabled', false ).text( window.aieData.i18n.scanFolder );
 
 		// Reset progress bar and stats
 		jQuery( '#aie-progress-fill' ).css( 'width', '0%' );
