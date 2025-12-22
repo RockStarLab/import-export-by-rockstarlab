@@ -75,7 +75,7 @@ const ExportModule = {
 			e.stopPropagation();
 			
 			// Show upgrade message
-			const message = 'This content type is only available in the Premium version. Upgrade to unlock this feature.';
+			const message = window.aieData.i18n.premiumOnlyFeature;
 			Utils.showNotice( message, 'warning' );
 			
 			// Prevent the radio button from being checked
@@ -454,8 +454,8 @@ const ExportModule = {
 		// Check content type for special validation
 		const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
 		let isDisabled = false;
-		let tooltipTitle = 'No Data Available';
-		let tooltipMessage = 'Adjust your filters or select a different content type to continue with the export.';
+		let tooltipTitle = window.aieData.i18n.noDataAvailable;
+		let tooltipMessage = window.aieData.i18n.adjustFiltersMessage;
 		
 		// Remove previous event handlers
 		$nextBtn.off( 'mouseenter.tooltip mouseleave.tooltip' );
@@ -467,8 +467,8 @@ const ExportModule = {
 			
 			if ( ! selectedPostType || selectedPostType.trim() === '' ) {
 				isDisabled = true;
-				tooltipTitle = 'Post Type Required';
-				tooltipMessage = 'Please select a specific post type from the dropdown to continue.';
+				tooltipTitle = window.aieData.i18n.postTypeRequired;
+				tooltipMessage = window.aieData.i18n.pleaseSelectPostType;
 			}
 		}
 		
@@ -479,8 +479,8 @@ const ExportModule = {
 			
 			if ( ! selectedTaxonomy || selectedTaxonomy.trim() === '' ) {
 				isDisabled = true;
-				tooltipTitle = 'Taxonomy Required';
-				tooltipMessage = 'Please select a specific taxonomy from the dropdown to continue.';
+				tooltipTitle = window.aieData.i18n.taxonomyRequired;
+				tooltipMessage = window.aieData.i18n.pleaseSelectTaxonomy;
 			}
 		}
 		
@@ -491,8 +491,8 @@ const ExportModule = {
 			
 			if ( ! selectedTable || selectedTable.trim() === '' ) {
 				isDisabled = true;
-				tooltipTitle = 'Table Required';
-				tooltipMessage = 'Please select a database table from the dropdown to continue.';
+				tooltipTitle = window.aieData.i18n.tableRequired;
+				tooltipMessage = window.aieData.i18n.pleaseSelectTable;
 			}
 		}
 		
@@ -533,8 +533,8 @@ const ExportModule = {
 		jQuery( '.aie-custom-tooltip' ).remove();
 		
 		// Get custom tooltip data or use defaults
-		const tooltipTitle = $button.data( 'tooltip-title' ) || 'No Data Available';
-		const tooltipMessage = $button.data( 'tooltip-message' ) || 'Adjust your filters or select a different content type to continue with the export.';
+		const tooltipTitle = $button.data( 'tooltip-title' ) || window.aieData.i18n.noDataAvailable;
+		const tooltipMessage = $button.data( 'tooltip-message' ) || window.aieData.i18n.adjustFiltersMessage;
 		
 		// Create tooltip element
 		const $tooltip = jQuery( '<div>' )
@@ -851,7 +851,7 @@ const ExportModule = {
 		// If no fields selected (or only pseudo-fields were filtered out), show error
 		if ( fields.length === 0 ) {
 			Utils.showNotice(
-				'Please select at least one field to export',
+				window.aieData.i18n.pleaseSelectFieldToExport,
 				'error'
 			);
 			return;
@@ -867,7 +867,7 @@ const ExportModule = {
 				const customDelimiter = jQuery( '[name="csv_custom_delimiter"]' ).val();
 				if ( ! customDelimiter ) {
 					Utils.showNotice(
-						'Please enter a custom delimiter',
+						window.aieData.i18n.pleaseEnterCustomDelimiter,
 						'error'
 					);
 					// Set focus to the custom delimiter field
@@ -1040,7 +1040,7 @@ const ExportModule = {
 	onExportFailed( result ) {
 		clearInterval( this.progressInterval );
 		Utils.showNotice(
-			'Export failed: ' + ( result.error || 'Unknown error' ),
+			window.aieData.i18n.exportFailed + ': ' + ( result.error || window.aieData.i18n.unknownError ),
 			'error'
 		);
 	},
@@ -1171,29 +1171,29 @@ const ExportModule = {
 			$valueWrap.html( `
 				<div class="aie-custom-field-inputs">
 					<div class="aie-input-group">
-						<label>Field Name</label>
-						<input type="text" class="aie-custom-field-name" placeholder="Enter custom field name..." />
+						<label>${window.aieData.i18n.selectField}</label>
+						<input type="text" class="aie-custom-field-name" placeholder="${window.aieData.i18n.enterCustomFieldName}" />
 					</div>
 					<div class="aie-input-group">
-						<label>Condition</label>
+						<label>${window.aieData.i18n.condition}</label>
 						<select class="aie-custom-field-condition aie-filter-condition">
-							<option value="equals">Equals</option>
-							<option value="not_equals">Not Equals</option>
-							<option value="contains">Contains</option>
-							<option value="not_contains">Not Contains</option>
-							<option value="greater">Greater Than</option>
-							<option value="less">Less Than</option>
-							<option value="equals_or_greater">Greater or Equal</option>
-							<option value="equals_or_less">Less or Equal</option>
-							<option value="in">In (comma-separated)</option>
-							<option value="not_in">Not In (comma-separated)</option>
-							<option value="is_empty">Is Empty</option>
-							<option value="is_not_empty">Is Not Empty</option>
+							<option value="equals">${window.aieData.i18n.equals}</option>
+							<option value="not_equals">${window.aieData.i18n.notEquals}</option>
+							<option value="contains">${window.aieData.i18n.contains}</option>
+							<option value="not_contains">${window.aieData.i18n.notContains}</option>
+							<option value="greater">${window.aieData.i18n.greaterThan}</option>
+							<option value="less">${window.aieData.i18n.lessThan}</option>
+							<option value="equals_or_greater">${window.aieData.i18n.greaterOrEqual}</option>
+							<option value="equals_or_less">${window.aieData.i18n.lessOrEqual}</option>
+							<option value="in">${window.aieData.i18n.inComma}</option>
+							<option value="not_in">${window.aieData.i18n.notInComma}</option>
+							<option value="is_empty">${window.aieData.i18n.isEmpty}</option>
+							<option value="is_not_empty">${window.aieData.i18n.isNotEmpty}</option>
 						</select>
 					</div>
 					<div class="aie-input-group aie-custom-field-value-group">
-						<label>Value</label>
-						<input type="text" class="aie-custom-field-value aie-filter-value" placeholder="Enter value..." />
+						<label>${window.aieData.i18n.value}</label>
+						<input type="text" class="aie-custom-field-value aie-filter-value" placeholder="${window.aieData.i18n.enterFilterValue}" />
 					</div>
 				</div>
 			` );
@@ -1228,20 +1228,20 @@ const ExportModule = {
 				<div class="aie-taxonomy-filter-inputs">
 					<div class="aie-input-group">
 						<label>Taxonomy Name</label>
-						<input type="text" class="aie-taxonomy-name" placeholder="e.g., category, post_tag, product_cat..." />
+						<input type="text" class="aie-taxonomy-name" placeholder="${window.aieData.i18n.taxonomyPlaceholderExamples}" />
 					</div>
 					<div class="aie-input-group">
 						<label>Condition</label>
 						<select class="aie-taxonomy-condition aie-filter-condition">
-							<option value="in">Has Term(s) - IN</option>
-							<option value="not_in">Does Not Have Term(s) - NOT IN</option>
-							<option value="and">Has All Terms - AND</option>
+							<option value="in">${window.aieData.i18n.hasTermsIn}</option>
+							<option value="not_in">${window.aieData.i18n.doesNotHaveTermsNotIn}</option>
+							<option value="and">${window.aieData.i18n.hasAllTermsAnd}</option>
 						</select>
 					</div>
 					<div class="aie-input-group">
 						<label>Terms</label>
-						<input type="text" class="aie-taxonomy-terms aie-filter-value" placeholder="Enter term slugs (comma-separated)..." />
-						<small>Enter term slugs separated by commas</small>
+						<input type="text" class="aie-taxonomy-terms aie-filter-value" placeholder="${window.aieData.i18n.enterTermSlugs}" />
+						<small>${window.aieData.i18n.enterTermSlugs}</small>
 					</div>
 				</div>
 			` );
@@ -1403,7 +1403,7 @@ const ExportModule = {
 				.attr( 'type', 'text' )
 				.addClass( 'aie-filter-value' )
 				.attr( 'name', 'filter_value[]' )
-				.attr( 'placeholder', 'Enter value...' );
+				.attr( 'placeholder', window.aieData.i18n.enterFilterValue );
 			$value.replaceWith( $input );
 			// Update reference
 			$row.find( '.aie-filter-value' ).attr( 'type', fieldType === 'date' ? 'date' : ( fieldType === 'number' ? 'number' : 'text' ) );
@@ -1516,87 +1516,89 @@ const ExportModule = {
 	getFieldsByContentType( contentType ) {
 		const baseFields = [
 			{
-				label: 'Standard',
+				label: window.aieData.i18n.fieldGroupStandard,
 				options: [
-					{ value: 'post_title', label: 'Title', type: 'string' },
-					{ value: 'post_content', label: 'Content', type: 'string' },
-					{ value: 'post_excerpt', label: 'Excerpt', type: 'string' },
-					{ value: 'post_date', label: 'Date', type: 'date' },
-					{ value: 'post_status', label: 'Status', type: 'string' },
+					{ value: 'post_title', label: window.aieData.i18n.fieldTitle, type: 'string' },
+					{ value: 'post_content', label: window.aieData.i18n.fieldContent, type: 'string' },
+					{ value: 'post_excerpt', label: window.aieData.i18n.fieldExcerpt, type: 'string' },
+					{ value: 'post_date', label: window.aieData.i18n.fieldDate, type: 'date' },
+					{ value: 'post_status', label: window.aieData.i18n.fieldStatus, type: 'string' },
 				],
 			},
 		{
-			label: 'Other',
+			label: window.aieData.i18n.fieldGroupOther,
 			options: [
-				{ value: 'comment_status', label: 'Comment Status', type: 'string' },
-				{ value: 'post_modified', label: 'Modified Date', type: 'date' },
-				{ value: '_wp_page_template', label: 'Template', type: 'string' },
+				{ value: 'comment_status', label: window.aieData.i18n.fieldCommentStatus, type: 'string' },
+				{ value: 'post_modified', label: window.aieData.i18n.fieldModifiedDate, type: 'date' },
+				{ value: '_wp_page_template', label: window.aieData.i18n.fieldTemplate, type: 'string' },
 			],
 		},
 		{
-			label: 'Custom Filters',
+			label: window.aieData.i18n.fieldGroupCustomFilters,
 			options: [
-				{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
-				{ value: '_taxonomy_filter', label: '🏷️ Taxonomy Filter', type: 'taxonomy_filter' },
+				{ value: '_custom_field', label: window.aieData.i18n.fieldCustomFieldMeta, type: 'custom_field' },
+				{ value: '_taxonomy_filter', label: window.aieData.i18n.fieldTaxonomyFilter, type: 'taxonomy_filter' },
 			],
 		},
-	];		// Customize based on content type
+	];
+		
+		// Customize based on content type
 		if ( contentType === 'media' ) {
 			return [
 				{
-					label: 'Basic',
+					label: window.aieData.i18n.fieldGroupBasic,
 					options: [
-						{ value: 'post_title', label: 'Title', type: 'string' },
-						{ value: 'post_content', label: 'Description', type: 'string' },
-						{ value: 'post_excerpt', label: 'Caption', type: 'string' },
-						{ value: 'alt_text', label: 'Alt Text', type: 'string' },
+						{ value: 'post_title', label: window.aieData.i18n.fieldTitle, type: 'string' },
+						{ value: 'post_content', label: window.aieData.i18n.fieldDescription, type: 'string' },
+						{ value: 'post_excerpt', label: window.aieData.i18n.fieldCaption, type: 'string' },
+						{ value: 'alt_text', label: window.aieData.i18n.fieldAltText, type: 'string' },
 					],
 				},
 				{
-					label: 'File Information',
+					label: window.aieData.i18n.fieldGroupFileInformation,
 					options: [
-						{ value: 'guid', label: 'File URL (GUID)', type: 'url' },
-						{ value: 'file_url', label: 'File URL', type: 'url' },
-						{ value: 'file_path', label: 'File Path (Relative)', type: 'string' },
-						{ value: 'file_name', label: 'File Name', type: 'string' },
-						{ value: 'file_extension', label: 'File Extension', type: 'string' },
-						{ value: 'post_mime_type', label: 'MIME Type', type: 'string' },
-						{ value: 'file_size', label: 'File Size (bytes)', type: 'number' },
+						{ value: 'guid', label: window.aieData.i18n.fieldFileUrlGuid, type: 'url' },
+						{ value: 'file_url', label: window.aieData.i18n.fieldFileUrl, type: 'url' },
+						{ value: 'file_path', label: window.aieData.i18n.fieldFilePathRelative, type: 'string' },
+						{ value: 'file_name', label: window.aieData.i18n.fieldFileName, type: 'string' },
+						{ value: 'file_extension', label: window.aieData.i18n.fieldFileExtension, type: 'string' },
+						{ value: 'post_mime_type', label: window.aieData.i18n.fieldMimeType, type: 'string' },
+						{ value: 'file_size', label: window.aieData.i18n.fieldFileSizeBytes, type: 'number' },
 					],
 				},
 				{
-					label: 'Image Dimensions',
+					label: window.aieData.i18n.fieldGroupImageDimensions,
 					options: [
-						{ value: 'width', label: 'Width (px)', type: 'number' },
-						{ value: 'height', label: 'Height (px)', type: 'number' },
+						{ value: 'width', label: window.aieData.i18n.fieldWidthPx, type: 'number' },
+						{ value: 'height', label: window.aieData.i18n.fieldHeightPx, type: 'number' },
 					],
 				},
 				{
-					label: 'Dates',
+					label: window.aieData.i18n.fieldGroupDates,
 					options: [
-						{ value: 'post_date', label: 'Upload Date', type: 'date' },
-						{ value: 'post_modified', label: 'Modified Date', type: 'date' },
+						{ value: 'post_date', label: window.aieData.i18n.fieldUploadDate, type: 'date' },
+						{ value: 'post_modified', label: window.aieData.i18n.fieldModifiedDate, type: 'date' },
 					],
 				},
 				{
-					label: 'Author',
+					label: window.aieData.i18n.fieldGroupAuthor,
 					options: [
-						{ value: 'post_author', label: 'Author ID', type: 'number' },
-						{ value: 'author_name', label: 'Author Name', type: 'string' },
-						{ value: 'author_email', label: 'Author Email', type: 'email' },
+						{ value: 'post_author', label: window.aieData.i18n.fieldAuthorId, type: 'number' },
+						{ value: 'author_name', label: window.aieData.i18n.fieldAuthorName, type: 'string' },
+						{ value: 'author_email', label: window.aieData.i18n.fieldAuthorEmail, type: 'email' },
 					],
 				},
 				{
-					label: 'Attachment',
+					label: window.aieData.i18n.fieldGroupAttachment,
 					options: [
-						{ value: 'post_parent', label: 'Attached To (Post ID)', type: 'number' },
-						{ value: 'attached_post_title', label: 'Attached Post Title', type: 'string' },
+						{ value: 'post_parent', label: window.aieData.i18n.fieldAttachedToPostId, type: 'number' },
+						{ value: 'attached_post_title', label: window.aieData.i18n.fieldAttachedPostTitle, type: 'string' },
 					],
 				},
 				{
-					label: 'Custom Filters',
+					label: window.aieData.i18n.fieldGroupCustomFilters,
 					options: [
-						{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
+						{ value: '_custom_field', label: window.aieData.i18n.fieldCustomFieldMeta, type: 'custom_field' },
 					],
 				},
 			];
@@ -1604,31 +1606,31 @@ const ExportModule = {
 
 		// Pages don't have taxonomy section (but taxonomy_filter is still available in Custom Filters)
 		if ( contentType === 'page' ) {
-			return baseFields.filter( group => group.label !== 'Taxonomy' );
+			return baseFields.filter( group => group.label !== window.aieData.i18n.fieldGroupTaxonomy );
 		}
 
 		// Menus
 		if ( contentType === 'menu' ) {
 			return [
 				{
-					label: 'Basic',
+					label: window.aieData.i18n.fieldGroupBasic,
 					options: [
-						{ value: 'name', label: 'Menu Name', type: 'string' },
-						{ value: 'description', label: 'Description', type: 'string' },
-						{ value: 'menu_items', label: 'Menu Items (Array)', type: 'array' },
+						{ value: 'name', label: window.aieData.i18n.fieldMenuName, type: 'string' },
+						{ value: 'description', label: window.aieData.i18n.fieldDescription, type: 'string' },
+						{ value: 'menu_items', label: window.aieData.i18n.fieldMenuItemsArray, type: 'array' },
 					],
 				},
 				{
-					label: 'Details',
+					label: window.aieData.i18n.fieldGroupDetails,
 					options: [
-						{ value: 'count', label: 'Items Count', type: 'number' },
-						{ value: 'locations', label: 'Theme Locations', type: 'string' },
+						{ value: 'count', label: window.aieData.i18n.fieldItemsCount, type: 'number' },
+						{ value: 'locations', label: window.aieData.i18n.fieldThemeLocations, type: 'string' },
 					],
 				},
 				{
-					label: 'Custom Filters',
+					label: window.aieData.i18n.fieldGroupCustomFilters,
 					options: [
-						{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
+						{ value: '_custom_field', label: window.aieData.i18n.fieldCustomFieldMeta, type: 'custom_field' },
 					],
 				},
 			];
@@ -1638,52 +1640,52 @@ const ExportModule = {
 		if ( contentType === 'user' ) {
 			return [
 				{
-					label: 'Basic',
+					label: window.aieData.i18n.fieldGroupBasic,
 					options: [
-						{ value: 'user_login', label: 'Username', type: 'string' },
-						{ value: 'user_email', label: 'Email', type: 'string' },
-						{ value: 'display_name', label: 'Display Name', type: 'string' },
-						{ value: 'user_nicename', label: 'Nice Name', type: 'string' },
+						{ value: 'user_login', label: window.aieData.i18n.fieldUsername, type: 'string' },
+						{ value: 'user_email', label: window.aieData.i18n.fieldEmail, type: 'string' },
+						{ value: 'display_name', label: window.aieData.i18n.fieldDisplayName, type: 'string' },
+						{ value: 'user_nicename', label: window.aieData.i18n.fieldNiceName, type: 'string' },
 					],
 				},
 				{
-					label: 'Profile',
+					label: window.aieData.i18n.fieldGroupProfile,
 					options: [
-						{ value: 'first_name', label: 'First Name', type: 'string' },
-						{ value: 'last_name', label: 'Last Name', type: 'string' },
-						{ value: 'nickname', label: 'Nickname', type: 'string' },
-						{ value: 'description', label: 'Bio', type: 'string' },
-						{ value: 'user_url', label: 'Website', type: 'string' },
-						{ value: 'avatar_url', label: 'Avatar URL', type: 'string' },
+						{ value: 'first_name', label: window.aieData.i18n.fieldFirstName, type: 'string' },
+						{ value: 'last_name', label: window.aieData.i18n.fieldLastName, type: 'string' },
+						{ value: 'nickname', label: window.aieData.i18n.fieldNickname, type: 'string' },
+						{ value: 'description', label: window.aieData.i18n.fieldBio, type: 'string' },
+						{ value: 'user_url', label: window.aieData.i18n.fieldWebsite, type: 'string' },
+						{ value: 'avatar_url', label: window.aieData.i18n.fieldAvatarUrl, type: 'string' },
 					],
 				},
 				{
-					label: 'Role & Permissions',
+					label: window.aieData.i18n.fieldGroupRolePermissions,
 					options: [
-						{ value: 'role', label: 'Role', type: 'string' },
-						{ value: 'capabilities', label: 'Capabilities (Array)', type: 'array' },
+						{ value: 'role', label: window.aieData.i18n.fieldRole, type: 'string' },
+						{ value: 'capabilities', label: window.aieData.i18n.fieldCapabilitiesArray, type: 'array' },
 					],
 				},
 				{
-					label: 'Preferences',
+					label: window.aieData.i18n.fieldGroupPreferences,
 					options: [
-						{ value: 'locale', label: 'Language', type: 'string' },
-						{ value: 'admin_color', label: 'Admin Color Scheme', type: 'string' },
-						{ value: 'rich_editing', label: 'Visual Editor', type: 'boolean' },
+						{ value: 'locale', label: window.aieData.i18n.fieldLanguage, type: 'string' },
+						{ value: 'admin_color', label: window.aieData.i18n.fieldAdminColorScheme, type: 'string' },
+						{ value: 'rich_editing', label: window.aieData.i18n.fieldVisualEditor, type: 'boolean' },
 					],
 				},
 				{
-					label: 'Stats',
+					label: window.aieData.i18n.fieldGroupStats,
 					options: [
-						{ value: 'posts_count', label: 'Posts Count', type: 'number' },
-						{ value: 'user_registered', label: 'Registration Date', type: 'date' },
-						{ value: 'user_status', label: 'User Status', type: 'number' },
+						{ value: 'posts_count', label: window.aieData.i18n.fieldPostsCount, type: 'number' },
+						{ value: 'user_registered', label: window.aieData.i18n.fieldRegistrationDate, type: 'date' },
+						{ value: 'user_status', label: window.aieData.i18n.fieldUserStatus, type: 'number' },
 					],
 				},
 				{
-					label: 'Custom Filters',
+					label: window.aieData.i18n.fieldGroupCustomFilters,
 					options: [
-						{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
+						{ value: '_custom_field', label: window.aieData.i18n.fieldCustomFieldMeta, type: 'custom_field' },
 					],
 				},
 			];
@@ -1693,51 +1695,51 @@ const ExportModule = {
 		if ( contentType === 'comment' ) {
 			return [
 				{
-					label: 'Basic',
+					label: window.aieData.i18n.fieldGroupBasic,
 					options: [
-						{ value: 'comment_ID', label: 'Comment ID', type: 'number' },
-						{ value: 'comment_post_ID', label: 'Post ID', type: 'number' },
-						{ value: 'comment_content', label: 'Comment Content', type: 'string' },
-						{ value: 'comment_approved', label: 'Status', type: 'string' },
-						{ value: 'comment_type', label: 'Comment Type', type: 'string' },
+						{ value: 'comment_ID', label: window.aieData.i18n.fieldCommentId, type: 'number' },
+						{ value: 'comment_post_ID', label: window.aieData.i18n.fieldPostId, type: 'number' },
+						{ value: 'comment_content', label: window.aieData.i18n.fieldCommentContent, type: 'string' },
+						{ value: 'comment_approved', label: window.aieData.i18n.fieldStatus, type: 'string' },
+						{ value: 'comment_type', label: window.aieData.i18n.fieldCommentType, type: 'string' },
 					],
 				},
 				{
-					label: 'Author',
+					label: window.aieData.i18n.fieldGroupAuthor,
 					options: [
-						{ value: 'comment_author', label: 'Author Name', type: 'string' },
-						{ value: 'comment_author_email', label: 'Author Email', type: 'string' },
-						{ value: 'comment_author_url', label: 'Author URL', type: 'string' },
-						{ value: 'comment_author_IP', label: 'Author IP', type: 'string' },
-						{ value: 'user_id', label: 'User ID', type: 'number' },
-						{ value: 'comment_agent', label: 'User Agent', type: 'string' },
+						{ value: 'comment_author', label: window.aieData.i18n.fieldAuthorName, type: 'string' },
+						{ value: 'comment_author_email', label: window.aieData.i18n.fieldAuthorEmail, type: 'string' },
+						{ value: 'comment_author_url', label: window.aieData.i18n.fieldAuthorUrl, type: 'string' },
+						{ value: 'comment_author_IP', label: window.aieData.i18n.fieldAuthorIp, type: 'string' },
+						{ value: 'user_id', label: window.aieData.i18n.fieldUserId, type: 'number' },
+						{ value: 'comment_agent', label: window.aieData.i18n.fieldUserAgent, type: 'string' },
 					],
 				},
 				{
-					label: 'Related Post',
+					label: window.aieData.i18n.fieldGroupRelatedPost,
 					options: [
-						{ value: 'post_title', label: 'Post Title', type: 'string' },
-						{ value: 'post_author', label: 'Post Author ID', type: 'number' },
+						{ value: 'post_title', label: window.aieData.i18n.fieldPostTitle, type: 'string' },
+						{ value: 'post_author', label: window.aieData.i18n.fieldPostAuthorId, type: 'number' },
 					],
 				},
 				{
-					label: 'Dates',
+					label: window.aieData.i18n.fieldGroupDates,
 					options: [
-						{ value: 'comment_date', label: 'Comment Date', type: 'date' },
-						{ value: 'comment_date_gmt', label: 'Comment Date (GMT)', type: 'date' },
+						{ value: 'comment_date', label: window.aieData.i18n.fieldCommentDate, type: 'date' },
+						{ value: 'comment_date_gmt', label: window.aieData.i18n.fieldCommentDateGmt, type: 'date' },
 					],
 				},
 				{
-					label: 'Hierarchy',
+					label: window.aieData.i18n.fieldGroupHierarchy,
 					options: [
-						{ value: 'comment_parent', label: 'Parent Comment ID', type: 'number' },
-						{ value: 'comment_karma', label: 'Karma', type: 'number' },
+						{ value: 'comment_parent', label: window.aieData.i18n.fieldParentCommentId, type: 'number' },
+						{ value: 'comment_karma', label: window.aieData.i18n.fieldKarma, type: 'number' },
 					],
 				},
 				{
-					label: 'Custom Filters',
+					label: window.aieData.i18n.fieldGroupCustomFilters,
 					options: [
-						{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
+						{ value: '_custom_field', label: window.aieData.i18n.fieldCustomFieldMeta, type: 'custom_field' },
 					],
 				},
 			];
@@ -1747,13 +1749,13 @@ const ExportModule = {
 		if ( contentType === 'block_theme_settings' ) {
 			return [
 				{
-					label: 'Block Theme Components',
+					label: window.aieData.i18n.fieldGroupBlockThemeComponents,
 					options: [
-						{ value: 'global_styles', label: 'Global Styles (theme.json)', type: 'array' },
-						{ value: 'templates', label: 'Custom Templates', type: 'array' },
-						{ value: 'template_parts', label: 'Template Parts', type: 'array' },
-						{ value: 'theme_mods', label: 'Theme Modifications', type: 'array' },
-						{ value: 'custom_css', label: 'Custom CSS', type: 'string' },
+						{ value: 'global_styles', label: window.aieData.i18n.fieldGlobalStylesThemeJson, type: 'array' },
+						{ value: 'templates', label: window.aieData.i18n.fieldCustomTemplates, type: 'array' },
+						{ value: 'template_parts', label: window.aieData.i18n.fieldTemplateParts, type: 'array' },
+						{ value: 'theme_mods', label: window.aieData.i18n.fieldThemeModifications, type: 'array' },
+						{ value: 'custom_css', label: window.aieData.i18n.fieldCustomCss, type: 'string' },
 					],
 				},
 			];
@@ -1763,44 +1765,44 @@ const ExportModule = {
 		if ( contentType === 'custom_post_types' ) {
 			return [
 				{
-					label: 'Post Type Selection',
+					label: window.aieData.i18n.fieldGroupPostTypeSelection,
 					options: [
-						{ value: '_post_type', label: 'Post Type (select specific)', type: 'post_type_selector' },
+						{ value: '_post_type', label: window.aieData.i18n.fieldPostTypeSelectSpecific, type: 'post_type_selector' },
 					],
 				},
 				{
-					label: 'Standard',
+					label: window.aieData.i18n.fieldGroupStandard,
 					options: [
-						{ value: 'ID', label: 'ID', type: 'number' },
-						{ value: 'post_title', label: 'Title', type: 'string' },
-						{ value: 'post_content', label: 'Content', type: 'string' },
-						{ value: 'post_excerpt', label: 'Excerpt', type: 'string' },
-						{ value: 'post_date', label: 'Date', type: 'date' },
-						{ value: 'post_name', label: 'Slug', type: 'string' },
-						{ value: 'post_status', label: 'Status', type: 'string' },
+						{ value: 'ID', label: window.aieData.i18n.fieldId, type: 'number' },
+						{ value: 'post_title', label: window.aieData.i18n.fieldTitle, type: 'string' },
+						{ value: 'post_content', label: window.aieData.i18n.fieldContent, type: 'string' },
+						{ value: 'post_excerpt', label: window.aieData.i18n.fieldExcerpt, type: 'string' },
+						{ value: 'post_date', label: window.aieData.i18n.fieldDate, type: 'date' },
+						{ value: 'post_name', label: window.aieData.i18n.fieldSlug, type: 'string' },
+						{ value: 'post_status', label: window.aieData.i18n.fieldStatus, type: 'string' },
 					],
 				},
 				{
-					label: 'Author',
+					label: window.aieData.i18n.fieldGroupAuthor,
 					options: [
-						{ value: 'post_author', label: 'Author ID', type: 'number' },
-						{ value: 'author_name', label: 'Author Name', type: 'string' },
-						{ value: 'author_email', label: 'Author Email', type: 'string' },
+						{ value: 'post_author', label: window.aieData.i18n.fieldAuthorId, type: 'number' },
+						{ value: 'author_name', label: window.aieData.i18n.fieldAuthorName, type: 'string' },
+						{ value: 'author_email', label: window.aieData.i18n.fieldAuthorEmail, type: 'string' },
 					],
 				},
 			{
-				label: 'Other',
+				label: window.aieData.i18n.fieldGroupOther,
 				options: [
-					{ value: 'post_parent', label: 'Parent ID', type: 'number' },
-					{ value: 'post_modified', label: 'Modified Date', type: 'date' },
-					{ value: '_wp_page_template', label: 'Template', type: 'string' },
+					{ value: 'post_parent', label: window.aieData.i18n.fieldParentId, type: 'number' },
+					{ value: 'post_modified', label: window.aieData.i18n.fieldModifiedDate, type: 'date' },
+					{ value: '_wp_page_template', label: window.aieData.i18n.fieldTemplate, type: 'string' },
 				],
 			},
 			{
-				label: 'Custom Filters',
+				label: window.aieData.i18n.fieldGroupCustomFilters,
 				options: [
-					{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
-					{ value: '_taxonomy_filter', label: '🏷️ Taxonomy Filter', type: 'taxonomy_filter' },
+					{ value: '_custom_field', label: window.aieData.i18n.fieldCustomFieldMeta, type: 'custom_field' },
+					{ value: '_taxonomy_filter', label: window.aieData.i18n.fieldTaxonomyFilter, type: 'taxonomy_filter' },
 				],
 			},
 		];
@@ -1808,38 +1810,38 @@ const ExportModule = {
 		if ( contentType === 'taxonomy' ) {
 			return [
 				{
-					label: 'Taxonomy Selection',
+					label: window.aieData.i18n.fieldGroupTaxonomySelection,
 					options: [
-						{ value: '_taxonomy', label: 'Taxonomy (select specific)', type: 'taxonomy_selector' },
+						{ value: '_taxonomy', label: window.aieData.i18n.fieldTaxonomySelectSpecific, type: 'taxonomy_selector' },
 					],
 				},
 				{
-					label: 'Basic',
+					label: window.aieData.i18n.fieldGroupBasic,
 					options: [
-						{ value: 'term_id', label: 'Term ID', type: 'number' },
-						{ value: 'name', label: 'Term Name', type: 'string' },
-						{ value: 'slug', label: 'Term Slug', type: 'string' },
-						{ value: 'description', label: 'Description', type: 'string' },
+						{ value: 'term_id', label: window.aieData.i18n.fieldTermId, type: 'number' },
+						{ value: 'name', label: window.aieData.i18n.fieldTermName, type: 'string' },
+						{ value: 'slug', label: window.aieData.i18n.fieldTermSlug, type: 'string' },
+						{ value: 'description', label: window.aieData.i18n.fieldDescription, type: 'string' },
 					],
 				},
 				{
-					label: 'Taxonomy',
+					label: window.aieData.i18n.fieldGroupTaxonomy,
 					options: [
-						{ value: 'taxonomy', label: 'Taxonomy Type', type: 'string' },
-						{ value: 'term_taxonomy_id', label: 'Taxonomy ID', type: 'number' },
+						{ value: 'taxonomy', label: window.aieData.i18n.fieldTaxonomyType, type: 'string' },
+						{ value: 'term_taxonomy_id', label: window.aieData.i18n.fieldTaxonomyId, type: 'number' },
 					],
 				},
 				{
-					label: 'Hierarchy',
+					label: window.aieData.i18n.fieldGroupHierarchy,
 					options: [
-						{ value: 'parent', label: 'Parent Term ID', type: 'number' },
-						{ value: 'count', label: 'Posts Count', type: 'number' },
+						{ value: 'parent', label: window.aieData.i18n.fieldParentTermId, type: 'number' },
+						{ value: 'count', label: window.aieData.i18n.fieldPostsCount, type: 'number' },
 					],
 				},
 				{
-					label: 'Custom Filters',
+					label: window.aieData.i18n.fieldGroupCustomFilters,
 					options: [
-						{ value: '_custom_field', label: '🔧 Term Meta Field', type: 'custom_field' },
+						{ value: '_custom_field', label: window.aieData.i18n.fieldTermMetaField, type: 'custom_field' },
 					],
 				},
 			];
@@ -1849,101 +1851,101 @@ const ExportModule = {
 		if ( contentType === 'woo_product' ) {
 			return [
 				{
-					label: 'Basic',
+					label: window.aieData.i18n.fieldGroupBasic,
 					options: [
-						{ value: 'ID', label: 'Product ID', type: 'number' },
-						{ value: 'post_title', label: 'Product Name', type: 'string' },
-						{ value: 'post_name', label: 'Slug', type: 'string' },
-						{ value: 'post_status', label: 'Status', type: 'string' },
-						{ value: 'sku', label: 'SKU', type: 'string' },
-						{ value: 'post_author', label: 'Author ID', type: 'number' },
+						{ value: 'ID', label: window.aieData.i18n.fieldProductId, type: 'number' },
+						{ value: 'post_title', label: window.aieData.i18n.fieldProductName, type: 'string' },
+						{ value: 'post_name', label: window.aieData.i18n.fieldSlug, type: 'string' },
+						{ value: 'post_status', label: window.aieData.i18n.fieldStatus, type: 'string' },
+						{ value: 'sku', label: window.aieData.i18n.fieldSku, type: 'string' },
+						{ value: 'post_author', label: window.aieData.i18n.fieldAuthorId, type: 'number' },
 					],
 				},
 				{
-					label: 'Content',
+					label: window.aieData.i18n.fieldGroupContent,
 					options: [
-						{ value: 'post_content', label: 'Description', type: 'string' },
-						{ value: 'post_excerpt', label: 'Short Description', type: 'string' },
+						{ value: 'post_content', label: window.aieData.i18n.fieldDescription, type: 'string' },
+						{ value: 'post_excerpt', label: window.aieData.i18n.fieldShortDescription, type: 'string' },
 					],
 				},
 				{
-					label: 'Pricing',
+					label: window.aieData.i18n.fieldGroupPricing,
 					options: [
-						{ value: 'regular_price', label: 'Regular Price', type: 'number' },
-						{ value: 'sale_price', label: 'Sale Price', type: 'number' },
-						{ value: 'tax_status', label: 'Tax Status', type: 'string' },
-						{ value: 'tax_class', label: 'Tax Class', type: 'string' },
+						{ value: 'regular_price', label: window.aieData.i18n.fieldRegularPrice, type: 'number' },
+						{ value: 'sale_price', label: window.aieData.i18n.fieldSalePrice, type: 'number' },
+						{ value: 'tax_status', label: window.aieData.i18n.fieldTaxStatus, type: 'string' },
+						{ value: 'tax_class', label: window.aieData.i18n.fieldTaxClass, type: 'string' },
 					],
 				},
 				{
-					label: 'Inventory',
+					label: window.aieData.i18n.fieldGroupInventory,
 					options: [
-						{ value: 'stock_quantity', label: 'Stock Quantity', type: 'number' },
-						{ value: 'stock_status', label: 'Stock Status', type: 'string' },
-						{ value: 'manage_stock', label: 'Manage Stock', type: 'boolean' },
-						{ value: 'backorders', label: 'Backorders', type: 'string' },
+						{ value: 'stock_quantity', label: window.aieData.i18n.fieldStockQuantity, type: 'number' },
+						{ value: 'stock_status', label: window.aieData.i18n.fieldStockStatus, type: 'string' },
+						{ value: 'manage_stock', label: window.aieData.i18n.fieldManageStock, type: 'boolean' },
+						{ value: 'backorders', label: window.aieData.i18n.fieldBackorders, type: 'string' },
 					],
 				},
 				{
-					label: 'Product Type',
+					label: window.aieData.i18n.fieldGroupProductType,
 					options: [
-						{ value: 'product_type', label: 'Product Type', type: 'string' },
-						{ value: 'downloadable', label: 'Downloadable', type: 'boolean' },
-						{ value: 'virtual', label: 'Virtual', type: 'boolean' },
+						{ value: 'product_type', label: window.aieData.i18n.fieldProductType, type: 'string' },
+						{ value: 'downloadable', label: window.aieData.i18n.fieldDownloadable, type: 'boolean' },
+						{ value: 'virtual', label: window.aieData.i18n.fieldVirtual, type: 'boolean' },
 					],
 				},
 				{
-					label: 'Shipping',
+					label: window.aieData.i18n.fieldGroupShipping,
 					options: [
-						{ value: 'weight', label: 'Weight', type: 'number' },
-						{ value: 'length', label: 'Length', type: 'number' },
-						{ value: 'width', label: 'Width', type: 'number' },
-						{ value: 'height', label: 'Height', type: 'number' },
-						{ value: 'shipping_class', label: 'Shipping Class', type: 'string' },
+						{ value: 'weight', label: window.aieData.i18n.fieldWeight, type: 'number' },
+						{ value: 'length', label: window.aieData.i18n.fieldLength, type: 'number' },
+						{ value: 'width', label: window.aieData.i18n.fieldWidth, type: 'number' },
+						{ value: 'height', label: window.aieData.i18n.fieldHeight, type: 'number' },
+						{ value: 'shipping_class', label: window.aieData.i18n.fieldShippingClass, type: 'string' },
 					],
 				},
 				{
-					label: 'Media',
+					label: window.aieData.i18n.fieldGroupMedia,
 					options: [
-						{ value: 'featured_image', label: 'Featured Image', type: 'string' },
-						{ value: 'product_gallery', label: 'Gallery Images', type: 'array' },
+						{ value: 'featured_image', label: window.aieData.i18n.fieldFeaturedImage, type: 'string' },
+						{ value: 'product_gallery', label: window.aieData.i18n.fieldGalleryImages, type: 'array' },
 					],
 				},
 				{
-					label: 'Taxonomy',
+					label: window.aieData.i18n.fieldGroupTaxonomy,
 					options: [
-						{ value: 'product_cat', label: 'Categories', type: 'string' },
-						{ value: 'product_tag', label: 'Tags', type: 'string' },
+						{ value: 'product_cat', label: window.aieData.i18n.fieldCategories, type: 'string' },
+						{ value: 'product_tag', label: window.aieData.i18n.fieldTags, type: 'string' },
 					],
 				},
 				{
-					label: 'Reviews',
+					label: window.aieData.i18n.fieldGroupReviews,
 					options: [
-						{ value: 'average_rating', label: 'Average Rating', type: 'number' },
-						{ value: 'review_count', label: 'Review Count', type: 'number' },
-						{ value: 'comment_status', label: 'Reviews Enabled', type: 'string' },
+						{ value: 'average_rating', label: window.aieData.i18n.fieldAverageRating, type: 'number' },
+						{ value: 'review_count', label: window.aieData.i18n.fieldReviewCount, type: 'number' },
+						{ value: 'comment_status', label: window.aieData.i18n.fieldReviewsEnabled, type: 'string' },
 					],
 				},
 				{
-					label: 'Visibility',
+					label: window.aieData.i18n.fieldGroupVisibility,
 					options: [
-						{ value: 'featured', label: 'Featured', type: 'boolean' },
-						{ value: 'visibility', label: 'Catalog Visibility', type: 'string' },
-						{ value: 'total_sales', label: 'Total Sales', type: 'number' },
+						{ value: 'featured', label: window.aieData.i18n.fieldFeatured, type: 'boolean' },
+						{ value: 'visibility', label: window.aieData.i18n.fieldCatalogVisibility, type: 'string' },
+						{ value: 'total_sales', label: window.aieData.i18n.fieldTotalSales, type: 'number' },
 					],
 				},
 				{
-					label: 'Dates',
+					label: window.aieData.i18n.fieldGroupDates,
 					options: [
-						{ value: 'post_date', label: 'Created Date', type: 'date' },
-						{ value: 'post_modified', label: 'Modified Date', type: 'date' },
+						{ value: 'post_date', label: window.aieData.i18n.fieldCreatedDate, type: 'date' },
+						{ value: 'post_modified', label: window.aieData.i18n.fieldModifiedDate, type: 'date' },
 					],
 				},
 				{
-					label: 'Custom Filters',
+					label: window.aieData.i18n.fieldGroupCustomFilters,
 					options: [
-						{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
-						{ value: '_taxonomy_filter', label: '🏷️ Taxonomy Filter', type: 'taxonomy_filter' },
+						{ value: '_custom_field', label: window.aieData.i18n.fieldCustomFieldMeta, type: 'custom_field' },
+						{ value: '_taxonomy_filter', label: window.aieData.i18n.fieldTaxonomyFilter, type: 'taxonomy_filter' },
 					],
 				},
 			];
@@ -1953,101 +1955,101 @@ const ExportModule = {
 		if ( contentType === 'woo_order' ) {
 			return [
 				{
-					label: 'Basic',
+					label: window.aieData.i18n.fieldGroupBasic,
 					options: [
-						{ value: 'ID', label: 'Order ID', type: 'number' },
-						{ value: 'order_number', label: 'Order Number', type: 'string' },
-						{ value: 'order_status', label: 'Status', type: 'string' },
-						{ value: 'order_key', label: 'Order Key', type: 'string' },
-						{ value: 'currency', label: 'Currency', type: 'string' },
+						{ value: 'ID', label: window.aieData.i18n.fieldOrderId, type: 'number' },
+						{ value: 'order_number', label: window.aieData.i18n.fieldOrderNumber, type: 'string' },
+						{ value: 'order_status', label: window.aieData.i18n.fieldStatus, type: 'string' },
+						{ value: 'order_key', label: window.aieData.i18n.fieldOrderKey, type: 'string' },
+						{ value: 'currency', label: window.aieData.i18n.fieldCurrency, type: 'string' },
 					],
 				},
 				{
-					label: 'Amounts',
+					label: window.aieData.i18n.fieldGroupAmounts,
 					options: [
-						{ value: 'order_total', label: 'Order Total', type: 'number' },
-						{ value: 'order_subtotal', label: 'Subtotal', type: 'number' },
-						{ value: 'order_tax', label: 'Tax', type: 'number' },
-						{ value: 'order_shipping', label: 'Shipping', type: 'number' },
-						{ value: 'order_discount', label: 'Discount', type: 'number' },
+						{ value: 'order_total', label: window.aieData.i18n.fieldOrderTotal, type: 'number' },
+						{ value: 'order_subtotal', label: window.aieData.i18n.fieldSubtotal, type: 'number' },
+						{ value: 'order_tax', label: window.aieData.i18n.fieldTax, type: 'number' },
+						{ value: 'order_shipping', label: window.aieData.i18n.fieldShipping, type: 'number' },
+						{ value: 'order_discount', label: window.aieData.i18n.fieldDiscount, type: 'number' },
 					],
 				},
 				{
-					label: 'Customer',
+					label: window.aieData.i18n.fieldGroupCustomer,
 					options: [
-						{ value: 'customer_id', label: 'Customer ID', type: 'number' },
-						{ value: 'billing_email', label: 'Email', type: 'string' },
-						{ value: 'customer_note', label: 'Customer Note', type: 'string' },
+						{ value: 'customer_id', label: window.aieData.i18n.fieldCustomerId, type: 'number' },
+						{ value: 'billing_email', label: window.aieData.i18n.fieldEmail, type: 'string' },
+						{ value: 'customer_note', label: window.aieData.i18n.fieldCustomerNote, type: 'string' },
 					],
 				},
 				{
-					label: 'Billing Address',
+					label: window.aieData.i18n.fieldGroupBillingAddress,
 					options: [
-						{ value: 'billing_first_name', label: 'First Name', type: 'string' },
-						{ value: 'billing_last_name', label: 'Last Name', type: 'string' },
-						{ value: 'billing_company', label: 'Company', type: 'string' },
-						{ value: 'billing_address_1', label: 'Address 1', type: 'string' },
-						{ value: 'billing_address_2', label: 'Address 2', type: 'string' },
-						{ value: 'billing_city', label: 'City', type: 'string' },
-						{ value: 'billing_state', label: 'State', type: 'string' },
-						{ value: 'billing_postcode', label: 'Postcode', type: 'string' },
-						{ value: 'billing_country', label: 'Country', type: 'string' },
-						{ value: 'billing_phone', label: 'Phone', type: 'string' },
+						{ value: 'billing_first_name', label: window.aieData.i18n.fieldFirstName, type: 'string' },
+						{ value: 'billing_last_name', label: window.aieData.i18n.fieldLastName, type: 'string' },
+						{ value: 'billing_company', label: window.aieData.i18n.fieldCompany, type: 'string' },
+						{ value: 'billing_address_1', label: window.aieData.i18n.fieldAddress1, type: 'string' },
+						{ value: 'billing_address_2', label: window.aieData.i18n.fieldAddress2, type: 'string' },
+						{ value: 'billing_city', label: window.aieData.i18n.fieldCity, type: 'string' },
+						{ value: 'billing_state', label: window.aieData.i18n.fieldState, type: 'string' },
+						{ value: 'billing_postcode', label: window.aieData.i18n.fieldPostcode, type: 'string' },
+						{ value: 'billing_country', label: window.aieData.i18n.fieldCountry, type: 'string' },
+						{ value: 'billing_phone', label: window.aieData.i18n.fieldPhone, type: 'string' },
 					],
 				},
 				{
-					label: 'Shipping Address',
+					label: window.aieData.i18n.fieldGroupShippingAddress,
 					options: [
-						{ value: 'shipping_first_name', label: 'First Name', type: 'string' },
-						{ value: 'shipping_last_name', label: 'Last Name', type: 'string' },
-						{ value: 'shipping_company', label: 'Company', type: 'string' },
-						{ value: 'shipping_address_1', label: 'Address 1', type: 'string' },
-						{ value: 'shipping_address_2', label: 'Address 2', type: 'string' },
-						{ value: 'shipping_city', label: 'City', type: 'string' },
-						{ value: 'shipping_state', label: 'State', type: 'string' },
-						{ value: 'shipping_postcode', label: 'Postcode', type: 'string' },
-						{ value: 'shipping_country', label: 'Country', type: 'string' },
+						{ value: 'shipping_first_name', label: window.aieData.i18n.fieldFirstName, type: 'string' },
+						{ value: 'shipping_last_name', label: window.aieData.i18n.fieldLastName, type: 'string' },
+						{ value: 'shipping_company', label: window.aieData.i18n.fieldCompany, type: 'string' },
+						{ value: 'shipping_address_1', label: window.aieData.i18n.fieldAddress1, type: 'string' },
+						{ value: 'shipping_address_2', label: window.aieData.i18n.fieldAddress2, type: 'string' },
+						{ value: 'shipping_city', label: window.aieData.i18n.fieldCity, type: 'string' },
+						{ value: 'shipping_state', label: window.aieData.i18n.fieldState, type: 'string' },
+						{ value: 'shipping_postcode', label: window.aieData.i18n.fieldPostcode, type: 'string' },
+						{ value: 'shipping_country', label: window.aieData.i18n.fieldCountry, type: 'string' },
 					],
 				},
 				{
-					label: 'Order Items',
+					label: window.aieData.i18n.fieldGroupOrderItems,
 					options: [
-						{ value: 'order_items', label: 'Order Items (Array)', type: 'array' },
-						{ value: 'item_count', label: 'Item Count', type: 'number' },
+						{ value: 'order_items', label: window.aieData.i18n.fieldOrderItemsArray, type: 'array' },
+						{ value: 'item_count', label: window.aieData.i18n.fieldItemCount, type: 'number' },
 					],
 				},
 				{
-					label: 'Payment',
+					label: window.aieData.i18n.fieldGroupPayment,
 					options: [
-						{ value: 'payment_method', label: 'Payment Method', type: 'string' },
-						{ value: 'payment_method_title', label: 'Payment Method Title', type: 'string' },
-						{ value: 'transaction_id', label: 'Transaction ID', type: 'string' },
+						{ value: 'payment_method', label: window.aieData.i18n.fieldPaymentMethod, type: 'string' },
+						{ value: 'payment_method_title', label: window.aieData.i18n.fieldPaymentMethodTitle, type: 'string' },
+						{ value: 'transaction_id', label: window.aieData.i18n.fieldTransactionId, type: 'string' },
 					],
 				},
 				{
-					label: 'Shipping',
+					label: window.aieData.i18n.fieldGroupShipping,
 					options: [
-						{ value: 'shipping_method', label: 'Shipping Method', type: 'string' },
+						{ value: 'shipping_method', label: window.aieData.i18n.fieldShippingMethod, type: 'string' },
 					],
 				},
 				{
-					label: 'Dates',
+					label: window.aieData.i18n.fieldGroupDates,
 					options: [
-						{ value: 'order_date', label: 'Order Date', type: 'date' },
-						{ value: 'completed_date', label: 'Completed Date', type: 'date' },
-						{ value: 'paid_date', label: 'Paid Date', type: 'date' },
+						{ value: 'order_date', label: window.aieData.i18n.fieldOrderDate, type: 'date' },
+						{ value: 'completed_date', label: window.aieData.i18n.fieldCompletedDate, type: 'date' },
+						{ value: 'paid_date', label: window.aieData.i18n.fieldPaidDate, type: 'date' },
 					],
 				},
 				{
-					label: 'Notes',
+					label: window.aieData.i18n.fieldGroupNotes,
 					options: [
-						{ value: 'order_notes', label: 'Order Notes (Array)', type: 'array' },
+						{ value: 'order_notes', label: window.aieData.i18n.fieldOrderNotesArray, type: 'array' },
 					],
 				},
 				{
-					label: 'Custom Filters',
+					label: window.aieData.i18n.fieldGroupCustomFilters,
 					options: [
-						{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
+						{ value: '_custom_field', label: window.aieData.i18n.fieldCustomFieldMeta, type: 'custom_field' },
 					],
 				},
 			];
@@ -2057,66 +2059,66 @@ const ExportModule = {
 		if ( contentType === 'woo_coupon' ) {
 			return [
 				{
-					label: 'Basic',
+					label: window.aieData.i18n.fieldGroupBasic,
 					options: [
-						{ value: 'ID', label: 'Coupon ID', type: 'number' },
-						{ value: 'post_title', label: 'Coupon Code', type: 'string' },
-						{ value: 'post_excerpt', label: 'Description', type: 'string' },
-						{ value: 'post_status', label: 'Status', type: 'string' },
+						{ value: 'ID', label: window.aieData.i18n.fieldCouponId, type: 'number' },
+						{ value: 'post_title', label: window.aieData.i18n.fieldCouponCode, type: 'string' },
+						{ value: 'post_excerpt', label: window.aieData.i18n.fieldDescription, type: 'string' },
+						{ value: 'post_status', label: window.aieData.i18n.fieldStatus, type: 'string' },
 					],
 				},
 				{
-					label: 'Discount',
+					label: window.aieData.i18n.fieldGroupDiscount,
 					options: [
-						{ value: 'discount_type', label: 'Discount Type', type: 'string' },
-						{ value: 'coupon_amount', label: 'Coupon Amount', type: 'number' },
-						{ value: 'free_shipping', label: 'Free Shipping', type: 'boolean' },
+						{ value: 'discount_type', label: window.aieData.i18n.fieldDiscountType, type: 'string' },
+						{ value: 'coupon_amount', label: window.aieData.i18n.fieldCouponAmount, type: 'number' },
+						{ value: 'free_shipping', label: window.aieData.i18n.fieldFreeShipping, type: 'boolean' },
 					],
 				},
 				{
-					label: 'Usage Restrictions',
+					label: window.aieData.i18n.fieldGroupUsageRestrictions,
 					options: [
-						{ value: 'minimum_amount', label: 'Minimum Spend', type: 'number' },
-						{ value: 'maximum_amount', label: 'Maximum Spend', type: 'number' },
-						{ value: 'individual_use', label: 'Individual Use Only', type: 'boolean' },
-						{ value: 'exclude_sale_items', label: 'Exclude Sale Items', type: 'boolean' },
+						{ value: 'minimum_amount', label: window.aieData.i18n.fieldMinimumSpend, type: 'number' },
+						{ value: 'maximum_amount', label: window.aieData.i18n.fieldMaximumSpend, type: 'number' },
+						{ value: 'individual_use', label: window.aieData.i18n.fieldIndividualUseOnly, type: 'boolean' },
+						{ value: 'exclude_sale_items', label: window.aieData.i18n.fieldExcludeSaleItems, type: 'boolean' },
 					],
 				},
 				{
-					label: 'Product Restrictions',
+					label: window.aieData.i18n.fieldGroupProductRestrictions,
 					options: [
-						{ value: 'product_ids', label: 'Allowed Products', type: 'array' },
-						{ value: 'excluded_product_ids', label: 'Excluded Products', type: 'array' },
-						{ value: 'product_categories', label: 'Allowed Categories', type: 'array' },
-						{ value: 'excluded_product_categories', label: 'Excluded Categories', type: 'array' },
+						{ value: 'product_ids', label: window.aieData.i18n.fieldAllowedProducts, type: 'array' },
+						{ value: 'excluded_product_ids', label: window.aieData.i18n.fieldExcludedProducts, type: 'array' },
+						{ value: 'product_categories', label: window.aieData.i18n.fieldAllowedCategories, type: 'array' },
+						{ value: 'excluded_product_categories', label: window.aieData.i18n.fieldExcludedCategories, type: 'array' },
 					],
 				},
 				{
-					label: 'Email Restrictions',
+					label: window.aieData.i18n.fieldGroupEmailRestrictions,
 					options: [
-						{ value: 'allowed_emails', label: 'Allowed Emails', type: 'array' },
+						{ value: 'allowed_emails', label: window.aieData.i18n.fieldAllowedEmails, type: 'array' },
 					],
 				},
 				{
-					label: 'Usage Limits',
+					label: window.aieData.i18n.fieldGroupUsageLimits,
 					options: [
-						{ value: 'usage_count', label: 'Usage Count', type: 'number' },
-						{ value: 'usage_limit', label: 'Usage Limit Total', type: 'number' },
-						{ value: 'usage_limit_per_user', label: 'Usage Limit Per User', type: 'number' },
+						{ value: 'usage_count', label: window.aieData.i18n.fieldUsageCount, type: 'number' },
+						{ value: 'usage_limit', label: window.aieData.i18n.fieldUsageLimitTotal, type: 'number' },
+						{ value: 'usage_limit_per_user', label: window.aieData.i18n.fieldUsageLimitPerUser, type: 'number' },
 					],
 				},
 				{
-					label: 'Dates',
+					label: window.aieData.i18n.fieldGroupDates,
 					options: [
-						{ value: 'date_expires', label: 'Expiry Date', type: 'date' },
-						{ value: 'post_date', label: 'Created Date', type: 'date' },
-						{ value: 'post_modified', label: 'Modified Date', type: 'date' },
+						{ value: 'date_expires', label: window.aieData.i18n.fieldExpiryDate, type: 'date' },
+						{ value: 'post_date', label: window.aieData.i18n.fieldCreatedDate, type: 'date' },
+						{ value: 'post_modified', label: window.aieData.i18n.fieldModifiedDate, type: 'date' },
 					],
 				},
 				{
-					label: 'Custom Filters',
+					label: window.aieData.i18n.fieldGroupCustomFilters,
 					options: [
-						{ value: '_custom_field', label: '🔧 Custom Field (Meta)', type: 'custom_field' },
+						{ value: '_custom_field', label: window.aieData.i18n.fieldCustomFieldMeta, type: 'custom_field' },
 					],
 				},
 			];
@@ -2126,26 +2128,26 @@ const ExportModule = {
 		if ( contentType === 'woo_attribute' ) {
 			return [
 				{
-					label: 'Basic',
+					label: window.aieData.i18n.fieldGroupBasic,
 					options: [
-						{ value: 'attribute_id', label: 'Attribute ID', type: 'number' },
-						{ value: 'attribute_name', label: 'Attribute Name', type: 'string' },
-						{ value: 'attribute_label', label: 'Attribute Label', type: 'string' },
-						{ value: 'attribute_type', label: 'Attribute Type', type: 'string' },
+						{ value: 'attribute_id', label: window.aieData.i18n.fieldAttributeId, type: 'number' },
+						{ value: 'attribute_name', label: window.aieData.i18n.fieldAttributeName, type: 'string' },
+						{ value: 'attribute_label', label: window.aieData.i18n.fieldAttributeLabel, type: 'string' },
+						{ value: 'attribute_type', label: window.aieData.i18n.fieldAttributeType, type: 'string' },
 					],
 				},
 				{
-					label: 'Settings',
+					label: window.aieData.i18n.fieldGroupSettings,
 					options: [
-						{ value: 'attribute_orderby', label: 'Default Sort Order', type: 'string' },
-						{ value: 'attribute_public', label: 'Enable Archives', type: 'boolean' },
+						{ value: 'attribute_orderby', label: window.aieData.i18n.fieldDefaultSortOrder, type: 'string' },
+						{ value: 'attribute_public', label: window.aieData.i18n.fieldEnableArchives, type: 'boolean' },
 					],
 				},
 				{
-					label: 'Terms',
+					label: window.aieData.i18n.fieldGroupTerms,
 					options: [
-						{ value: 'term_count', label: 'Terms Count', type: 'number' },
-						{ value: 'attribute_terms', label: 'All Terms (Array)', type: 'array' },
+						{ value: 'term_count', label: window.aieData.i18n.fieldTermsCount, type: 'number' },
+						{ value: 'attribute_terms', label: window.aieData.i18n.fieldAllTermsArray, type: 'array' },
 					],
 				},
 			];
@@ -2166,7 +2168,7 @@ const ExportModule = {
 
 				return [
 					{
-						label: 'Table Columns',
+						label: window.aieData.i18n.fieldGroupTableColumns,
 						options: columnOptions
 					},
 				];
@@ -2175,9 +2177,9 @@ const ExportModule = {
 			// Otherwise show message to select table first
 			return [
 				{
-					label: 'Table Selection',
+					label: window.aieData.i18n.fieldGroupTableSelection,
 					options: [
-						{ value: '_select_table', label: '⚠️ Please select a database table first', type: 'info' },
+						{ value: '_select_table', label: window.aieData.i18n.fieldPleaseSelectTable, type: 'info' },
 					],
 				},
 			];
@@ -2239,14 +2241,14 @@ const ExportModule = {
 		// For 'in' and 'not_in' conditions, always use text input to allow comma-separated values
 		if ( condition === 'in' || condition === 'not_in' ) {
 			$value.attr( 'type', 'text' );
-			$value.attr( 'placeholder', 'Enter values separated by comma (e.g., 1,5,8 or test1,test2)' );
+			$value.attr( 'placeholder', window.aieData.i18n.enterValuesCommaSeparated );
 			return;
 		}
 		
 		// For 'between' condition on numbers, use text to allow comma-separated range
 		if ( condition === 'between' && fieldType === 'number' ) {
 			$value.attr( 'type', 'text' );
-			$value.attr( 'placeholder', 'Enter two numbers separated by comma (e.g., 10,100)' );
+			$value.attr( 'placeholder', window.aieData.i18n.enterTwoNumbersCommaSeparated );
 			return;
 		}
 		
@@ -2256,10 +2258,10 @@ const ExportModule = {
 			$value.attr( 'placeholder', '' );
 		} else if ( fieldType === 'number' ) {
 			$value.attr( 'type', 'number' );
-			$value.attr( 'placeholder', 'Enter number...' );
+			$value.attr( 'placeholder', window.aieData.i18n.enterNumberPlaceholder );
 		} else {
 			$value.attr( 'type', 'text' );
-			$value.attr( 'placeholder', 'Enter value...' );
+			$value.attr( 'placeholder', window.aieData.i18n.enterFilterValue );
 		}
 	},
 
@@ -2269,36 +2271,36 @@ const ExportModule = {
 	getConditionsByFieldType( fieldType ) {
 		const conditions = {
 			string: [
-				{ value: 'equals', label: 'Equals' },
-				{ value: 'not_equals', label: "Doesn't Equal" },
-				{ value: 'in', label: 'In' },
-				{ value: 'not_in', label: 'Not In' },
-				{ value: 'contains', label: 'Contains' },
-				{ value: 'not_contains', label: "Doesn't Contain" },
-				{ value: 'is_empty', label: 'Is Empty' },
-				{ value: 'is_not_empty', label: 'Is Not Empty' },
+				{ value: 'equals', label: window.aieData.i18n.equals },
+				{ value: 'not_equals', label: window.aieData.i18n.notEquals },
+				{ value: 'in', label: window.aieData.i18n.inFilter },
+				{ value: 'not_in', label: window.aieData.i18n.notInFilter },
+				{ value: 'contains', label: window.aieData.i18n.contains },
+				{ value: 'not_contains', label: window.aieData.i18n.notContains },
+				{ value: 'is_empty', label: window.aieData.i18n.isEmpty },
+				{ value: 'is_not_empty', label: window.aieData.i18n.isNotEmpty },
 			],
 			number: [
-				{ value: 'equals', label: 'Equals' },
-				{ value: 'not_equals', label: "Doesn't Equal" },
-				{ value: 'in', label: 'In' },
-				{ value: 'not_in', label: 'Not In' },
-				{ value: 'greater', label: 'Greater Than' },
-				{ value: 'equals_or_greater', label: 'Equal To Or Greater Than' },
-				{ value: 'less', label: 'Less Than' },
-				{ value: 'equals_or_less', label: 'Equal To Or Less Than' },
-				{ value: 'is_empty', label: 'Is Empty' },
-				{ value: 'is_not_empty', label: 'Is Not Empty' },
+				{ value: 'equals', label: window.aieData.i18n.equals },
+				{ value: 'not_equals', label: window.aieData.i18n.notEquals },
+				{ value: 'in', label: window.aieData.i18n.inFilter },
+				{ value: 'not_in', label: window.aieData.i18n.notInFilter },
+				{ value: 'greater', label: window.aieData.i18n.greaterThan },
+				{ value: 'equals_or_greater', label: window.aieData.i18n.greaterOrEqual },
+				{ value: 'less', label: window.aieData.i18n.lessThan },
+				{ value: 'equals_or_less', label: window.aieData.i18n.lessOrEqual },
+				{ value: 'is_empty', label: window.aieData.i18n.isEmpty },
+				{ value: 'is_not_empty', label: window.aieData.i18n.isNotEmpty },
 			],
 			date: [
-				{ value: 'equals', label: 'Equals' },
-				{ value: 'not_equals', label: "Doesn't Equal" },
-				{ value: 'greater', label: 'Newer Than' },
-				{ value: 'equals_or_greater', label: 'Equal To Or Newer Than' },
-				{ value: 'less', label: 'Older Than' },
-				{ value: 'equals_or_less', label: 'Equal To Or Older Than' },
-				{ value: 'is_empty', label: 'Is Empty' },
-				{ value: 'is_not_empty', label: 'Is Not Empty' },
+				{ value: 'equals', label: window.aieData.i18n.equals },
+				{ value: 'not_equals', label: window.aieData.i18n.notEquals },
+				{ value: 'greater', label: window.aieData.i18n.newerThan || window.aieData.i18n.greaterThan },
+				{ value: 'equals_or_greater', label: window.aieData.i18n.greaterOrEqual },
+				{ value: 'less', label: window.aieData.i18n.olderThan || window.aieData.i18n.lessThan },
+				{ value: 'equals_or_less', label: window.aieData.i18n.lessOrEqual },
+				{ value: 'is_empty', label: window.aieData.i18n.isEmpty },
+				{ value: 'is_not_empty', label: window.aieData.i18n.isNotEmpty },
 			],
 		};
 
@@ -2381,7 +2383,7 @@ const ExportModule = {
 
 		// Show loading state
 		$tableInfo.show();
-		$columnsList.html( '<p>Loading columns...</p>' );
+		$columnsList.html( `<p>${window.aieData.i18n.loadingTableColumns}</p>` );
 
 		// Fetch columns via AJAX
 		Utils.ajax( 'aie_get_table_columns', { table_name: tableName } )
@@ -2420,7 +2422,7 @@ const ExportModule = {
 				this.refreshCount( false );
 			} )
 			.catch( ( error ) => {
-				$columnsList.html( '<p class="error">Error loading columns</p>' );
+				$columnsList.html( `<p class="error">${window.aieData.i18n.errorLoadingColumns}</p>` );
 			} );
 	},
 

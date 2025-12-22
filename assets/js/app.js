@@ -5389,7 +5389,7 @@ var ExportModule = (_ExportModule = {
       e.stopPropagation();
 
       // Show upgrade message
-      var message = 'This content type is only available in the Premium version. Upgrade to unlock this feature.';
+      var message = window.aieData.i18n.premiumOnlyFeature;
       _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(message, 'warning');
 
       // Prevent the radio button from being checked
@@ -5764,8 +5764,8 @@ var ExportModule = (_ExportModule = {
     // Check content type for special validation
     var contentType = jQuery('input[name="content_type"]:checked').val();
     var isDisabled = false;
-    var tooltipTitle = 'No Data Available';
-    var tooltipMessage = 'Adjust your filters or select a different content type to continue with the export.';
+    var tooltipTitle = window.aieData.i18n.noDataAvailable;
+    var tooltipMessage = window.aieData.i18n.adjustFiltersMessage;
 
     // Remove previous event handlers
     $nextBtn.off('mouseenter.tooltip mouseleave.tooltip');
@@ -5776,8 +5776,8 @@ var ExportModule = (_ExportModule = {
       var selectedPostType = $postTypeSelector.val();
       if (!selectedPostType || selectedPostType.trim() === '') {
         isDisabled = true;
-        tooltipTitle = 'Post Type Required';
-        tooltipMessage = 'Please select a specific post type from the dropdown to continue.';
+        tooltipTitle = window.aieData.i18n.postTypeRequired;
+        tooltipMessage = window.aieData.i18n.pleaseSelectPostType;
       }
     }
 
@@ -5787,8 +5787,8 @@ var ExportModule = (_ExportModule = {
       var selectedTaxonomy = $taxonomySelector.val();
       if (!selectedTaxonomy || selectedTaxonomy.trim() === '') {
         isDisabled = true;
-        tooltipTitle = 'Taxonomy Required';
-        tooltipMessage = 'Please select a specific taxonomy from the dropdown to continue.';
+        tooltipTitle = window.aieData.i18n.taxonomyRequired;
+        tooltipMessage = window.aieData.i18n.pleaseSelectTaxonomy;
       }
     }
 
@@ -5798,8 +5798,8 @@ var ExportModule = (_ExportModule = {
       var selectedTable = $tableSelector.val();
       if (!selectedTable || selectedTable.trim() === '') {
         isDisabled = true;
-        tooltipTitle = 'Table Required';
-        tooltipMessage = 'Please select a database table from the dropdown to continue.';
+        tooltipTitle = window.aieData.i18n.tableRequired;
+        tooltipMessage = window.aieData.i18n.pleaseSelectTable;
       }
     }
 
@@ -5838,8 +5838,8 @@ var ExportModule = (_ExportModule = {
     jQuery('.aie-custom-tooltip').remove();
 
     // Get custom tooltip data or use defaults
-    var tooltipTitle = $button.data('tooltip-title') || 'No Data Available';
-    var tooltipMessage = $button.data('tooltip-message') || 'Adjust your filters or select a different content type to continue with the export.';
+    var tooltipTitle = $button.data('tooltip-title') || window.aieData.i18n.noDataAvailable;
+    var tooltipMessage = $button.data('tooltip-message') || window.aieData.i18n.adjustFiltersMessage;
 
     // Create tooltip element
     var $tooltip = jQuery('<div>').addClass('aie-custom-tooltip aie-custom-pointer').html("\n\t\t\t\t<div class=\"aie-pointer-icon\">\n\t\t\t\t\t<span class=\"dashicons dashicons-warning\"></span>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"aie-pointer-content\">\n\t\t\t\t\t<h3>".concat(tooltipTitle, "</h3>\n\t\t\t\t\t<p>").concat(tooltipMessage, "</p>\n\t\t\t\t</div>\n\t\t\t"));
@@ -6126,7 +6126,7 @@ var ExportModule = (_ExportModule = {
                 _context2.next = 4;
                 break;
               }
-              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Please select at least one field to export', 'error');
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(window.aieData.i18n.pleaseSelectFieldToExport, 'error');
               return _context2.abrupt("return");
             case 4:
               _context2.prev = 4;
@@ -6142,7 +6142,7 @@ var ExportModule = (_ExportModule = {
                 _context2.next = 14;
                 break;
               }
-              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Please enter a custom delimiter', 'error');
+              _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(window.aieData.i18n.pleaseEnterCustomDelimiter, 'error');
               // Set focus to the custom delimiter field
               jQuery('[name="csv_custom_delimiter"]').focus();
               return _context2.abrupt("return");
@@ -6344,7 +6344,7 @@ var ExportModule = (_ExportModule = {
    */
   onExportFailed: function onExportFailed(result) {
     clearInterval(this.progressInterval);
-    _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice('Export failed: ' + (result.error || 'Unknown error'), 'error');
+    _utils__WEBPACK_IMPORTED_MODULE_1__["default"].showNotice(window.aieData.i18n.exportFailed + ': ' + (result.error || window.aieData.i18n.unknownError), 'error');
   },
   /**
    * Download export file
@@ -6493,7 +6493,7 @@ var ExportModule = (_ExportModule = {
     if (fieldType === 'custom_field') {
       // Create custom interface for custom field filter
       $condition.closest('.aie-filter-condition-wrap').show();
-      $valueWrap.html("\n\t\t\t\t<div class=\"aie-custom-field-inputs\">\n\t\t\t\t\t<div class=\"aie-input-group\">\n\t\t\t\t\t\t<label>Field Name</label>\n\t\t\t\t\t\t<input type=\"text\" class=\"aie-custom-field-name\" placeholder=\"Enter custom field name...\" />\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-input-group\">\n\t\t\t\t\t\t<label>Condition</label>\n\t\t\t\t\t\t<select class=\"aie-custom-field-condition aie-filter-condition\">\n\t\t\t\t\t\t\t<option value=\"equals\">Equals</option>\n\t\t\t\t\t\t\t<option value=\"not_equals\">Not Equals</option>\n\t\t\t\t\t\t\t<option value=\"contains\">Contains</option>\n\t\t\t\t\t\t\t<option value=\"not_contains\">Not Contains</option>\n\t\t\t\t\t\t\t<option value=\"greater\">Greater Than</option>\n\t\t\t\t\t\t\t<option value=\"less\">Less Than</option>\n\t\t\t\t\t\t\t<option value=\"equals_or_greater\">Greater or Equal</option>\n\t\t\t\t\t\t\t<option value=\"equals_or_less\">Less or Equal</option>\n\t\t\t\t\t\t\t<option value=\"in\">In (comma-separated)</option>\n\t\t\t\t\t\t\t<option value=\"not_in\">Not In (comma-separated)</option>\n\t\t\t\t\t\t\t<option value=\"is_empty\">Is Empty</option>\n\t\t\t\t\t\t\t<option value=\"is_not_empty\">Is Not Empty</option>\n\t\t\t\t\t\t</select>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-input-group aie-custom-field-value-group\">\n\t\t\t\t\t\t<label>Value</label>\n\t\t\t\t\t\t<input type=\"text\" class=\"aie-custom-field-value aie-filter-value\" placeholder=\"Enter value...\" />\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t");
+      $valueWrap.html("\n\t\t\t\t<div class=\"aie-custom-field-inputs\">\n\t\t\t\t\t<div class=\"aie-input-group\">\n\t\t\t\t\t\t<label>".concat(window.aieData.i18n.selectField, "</label>\n\t\t\t\t\t\t<input type=\"text\" class=\"aie-custom-field-name\" placeholder=\"").concat(window.aieData.i18n.enterCustomFieldName, "\" />\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-input-group\">\n\t\t\t\t\t\t<label>").concat(window.aieData.i18n.condition, "</label>\n\t\t\t\t\t\t<select class=\"aie-custom-field-condition aie-filter-condition\">\n\t\t\t\t\t\t\t<option value=\"equals\">").concat(window.aieData.i18n.equals, "</option>\n\t\t\t\t\t\t\t<option value=\"not_equals\">").concat(window.aieData.i18n.notEquals, "</option>\n\t\t\t\t\t\t\t<option value=\"contains\">").concat(window.aieData.i18n.contains, "</option>\n\t\t\t\t\t\t\t<option value=\"not_contains\">").concat(window.aieData.i18n.notContains, "</option>\n\t\t\t\t\t\t\t<option value=\"greater\">").concat(window.aieData.i18n.greaterThan, "</option>\n\t\t\t\t\t\t\t<option value=\"less\">").concat(window.aieData.i18n.lessThan, "</option>\n\t\t\t\t\t\t\t<option value=\"equals_or_greater\">").concat(window.aieData.i18n.greaterOrEqual, "</option>\n\t\t\t\t\t\t\t<option value=\"equals_or_less\">").concat(window.aieData.i18n.lessOrEqual, "</option>\n\t\t\t\t\t\t\t<option value=\"in\">").concat(window.aieData.i18n.inComma, "</option>\n\t\t\t\t\t\t\t<option value=\"not_in\">").concat(window.aieData.i18n.notInComma, "</option>\n\t\t\t\t\t\t\t<option value=\"is_empty\">").concat(window.aieData.i18n.isEmpty, "</option>\n\t\t\t\t\t\t\t<option value=\"is_not_empty\">").concat(window.aieData.i18n.isNotEmpty, "</option>\n\t\t\t\t\t\t</select>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-input-group aie-custom-field-value-group\">\n\t\t\t\t\t\t<label>").concat(window.aieData.i18n.value, "</label>\n\t\t\t\t\t\t<input type=\"text\" class=\"aie-custom-field-value aie-filter-value\" placeholder=\"").concat(window.aieData.i18n.enterFilterValue, "\" />\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t"));
       $condition.closest('.aie-filter-condition-wrap').hide();
 
       // Handle condition change to show/hide value input
@@ -6525,7 +6525,7 @@ var ExportModule = (_ExportModule = {
     if (fieldType === 'taxonomy_filter') {
       // Create custom interface for taxonomy filter
       $condition.closest('.aie-filter-condition-wrap').show();
-      $valueWrap.html("\n\t\t\t\t<div class=\"aie-taxonomy-filter-inputs\">\n\t\t\t\t\t<div class=\"aie-input-group\">\n\t\t\t\t\t\t<label>Taxonomy Name</label>\n\t\t\t\t\t\t<input type=\"text\" class=\"aie-taxonomy-name\" placeholder=\"e.g., category, post_tag, product_cat...\" />\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-input-group\">\n\t\t\t\t\t\t<label>Condition</label>\n\t\t\t\t\t\t<select class=\"aie-taxonomy-condition aie-filter-condition\">\n\t\t\t\t\t\t\t<option value=\"in\">Has Term(s) - IN</option>\n\t\t\t\t\t\t\t<option value=\"not_in\">Does Not Have Term(s) - NOT IN</option>\n\t\t\t\t\t\t\t<option value=\"and\">Has All Terms - AND</option>\n\t\t\t\t\t\t</select>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-input-group\">\n\t\t\t\t\t\t<label>Terms</label>\n\t\t\t\t\t\t<input type=\"text\" class=\"aie-taxonomy-terms aie-filter-value\" placeholder=\"Enter term slugs (comma-separated)...\" />\n\t\t\t\t\t\t<small>Enter term slugs separated by commas</small>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t");
+      $valueWrap.html("\n\t\t\t\t<div class=\"aie-taxonomy-filter-inputs\">\n\t\t\t\t\t<div class=\"aie-input-group\">\n\t\t\t\t\t\t<label>Taxonomy Name</label>\n\t\t\t\t\t\t<input type=\"text\" class=\"aie-taxonomy-name\" placeholder=\"".concat(window.aieData.i18n.taxonomyPlaceholderExamples, "\" />\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-input-group\">\n\t\t\t\t\t\t<label>Condition</label>\n\t\t\t\t\t\t<select class=\"aie-taxonomy-condition aie-filter-condition\">\n\t\t\t\t\t\t\t<option value=\"in\">").concat(window.aieData.i18n.hasTermsIn, "</option>\n\t\t\t\t\t\t\t<option value=\"not_in\">").concat(window.aieData.i18n.doesNotHaveTermsNotIn, "</option>\n\t\t\t\t\t\t\t<option value=\"and\">").concat(window.aieData.i18n.hasAllTermsAnd, "</option>\n\t\t\t\t\t\t</select>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"aie-input-group\">\n\t\t\t\t\t\t<label>Terms</label>\n\t\t\t\t\t\t<input type=\"text\" class=\"aie-taxonomy-terms aie-filter-value\" placeholder=\"").concat(window.aieData.i18n.enterTermSlugs, "\" />\n\t\t\t\t\t\t<small>").concat(window.aieData.i18n.enterTermSlugs, "</small>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t"));
       $condition.closest('.aie-filter-condition-wrap').hide();
 
       // Add change event handlers to trigger count refresh
@@ -6661,7 +6661,7 @@ var ExportModule = (_ExportModule = {
 
     // If current input is a select (from post_type_selector or table_selector), replace with input
     if ($value.is('select')) {
-      var $input = jQuery('<input>').attr('type', 'text').addClass('aie-filter-value').attr('name', 'filter_value[]').attr('placeholder', 'Enter value...');
+      var $input = jQuery('<input>').attr('type', 'text').addClass('aie-filter-value').attr('name', 'filter_value[]').attr('placeholder', window.aieData.i18n.enterFilterValue);
       $value.replaceWith($input);
       // Update reference
       $row.find('.aie-filter-value').attr('type', fieldType === 'date' ? 'date' : fieldType === 'number' ? 'number' : 'text');
@@ -6762,159 +6762,161 @@ var ExportModule = (_ExportModule = {
    */
   getFieldsByContentType: function getFieldsByContentType(contentType) {
     var baseFields = [{
-      label: 'Standard',
+      label: window.aieData.i18n.fieldGroupStandard,
       options: [{
         value: 'post_title',
-        label: 'Title',
+        label: window.aieData.i18n.fieldTitle,
         type: 'string'
       }, {
         value: 'post_content',
-        label: 'Content',
+        label: window.aieData.i18n.fieldContent,
         type: 'string'
       }, {
         value: 'post_excerpt',
-        label: 'Excerpt',
+        label: window.aieData.i18n.fieldExcerpt,
         type: 'string'
       }, {
         value: 'post_date',
-        label: 'Date',
+        label: window.aieData.i18n.fieldDate,
         type: 'date'
       }, {
         value: 'post_status',
-        label: 'Status',
+        label: window.aieData.i18n.fieldStatus,
         type: 'string'
       }]
     }, {
-      label: 'Other',
+      label: window.aieData.i18n.fieldGroupOther,
       options: [{
         value: 'comment_status',
-        label: 'Comment Status',
+        label: window.aieData.i18n.fieldCommentStatus,
         type: 'string'
       }, {
         value: 'post_modified',
-        label: 'Modified Date',
+        label: window.aieData.i18n.fieldModifiedDate,
         type: 'date'
       }, {
         value: '_wp_page_template',
-        label: 'Template',
+        label: window.aieData.i18n.fieldTemplate,
         type: 'string'
       }]
     }, {
-      label: 'Custom Filters',
+      label: window.aieData.i18n.fieldGroupCustomFilters,
       options: [{
         value: '_custom_field',
-        label: '🔧 Custom Field (Meta)',
+        label: window.aieData.i18n.fieldCustomFieldMeta,
         type: 'custom_field'
       }, {
         value: '_taxonomy_filter',
-        label: '🏷️ Taxonomy Filter',
+        label: window.aieData.i18n.fieldTaxonomyFilter,
         type: 'taxonomy_filter'
       }]
-    }]; // Customize based on content type
+    }];
+
+    // Customize based on content type
     if (contentType === 'media') {
       return [{
-        label: 'Basic',
+        label: window.aieData.i18n.fieldGroupBasic,
         options: [{
           value: 'post_title',
-          label: 'Title',
+          label: window.aieData.i18n.fieldTitle,
           type: 'string'
         }, {
           value: 'post_content',
-          label: 'Description',
+          label: window.aieData.i18n.fieldDescription,
           type: 'string'
         }, {
           value: 'post_excerpt',
-          label: 'Caption',
+          label: window.aieData.i18n.fieldCaption,
           type: 'string'
         }, {
           value: 'alt_text',
-          label: 'Alt Text',
+          label: window.aieData.i18n.fieldAltText,
           type: 'string'
         }]
       }, {
-        label: 'File Information',
+        label: window.aieData.i18n.fieldGroupFileInformation,
         options: [{
           value: 'guid',
-          label: 'File URL (GUID)',
+          label: window.aieData.i18n.fieldFileUrlGuid,
           type: 'url'
         }, {
           value: 'file_url',
-          label: 'File URL',
+          label: window.aieData.i18n.fieldFileUrl,
           type: 'url'
         }, {
           value: 'file_path',
-          label: 'File Path (Relative)',
+          label: window.aieData.i18n.fieldFilePathRelative,
           type: 'string'
         }, {
           value: 'file_name',
-          label: 'File Name',
+          label: window.aieData.i18n.fieldFileName,
           type: 'string'
         }, {
           value: 'file_extension',
-          label: 'File Extension',
+          label: window.aieData.i18n.fieldFileExtension,
           type: 'string'
         }, {
           value: 'post_mime_type',
-          label: 'MIME Type',
+          label: window.aieData.i18n.fieldMimeType,
           type: 'string'
         }, {
           value: 'file_size',
-          label: 'File Size (bytes)',
+          label: window.aieData.i18n.fieldFileSizeBytes,
           type: 'number'
         }]
       }, {
-        label: 'Image Dimensions',
+        label: window.aieData.i18n.fieldGroupImageDimensions,
         options: [{
           value: 'width',
-          label: 'Width (px)',
+          label: window.aieData.i18n.fieldWidthPx,
           type: 'number'
         }, {
           value: 'height',
-          label: 'Height (px)',
+          label: window.aieData.i18n.fieldHeightPx,
           type: 'number'
         }]
       }, {
-        label: 'Dates',
+        label: window.aieData.i18n.fieldGroupDates,
         options: [{
           value: 'post_date',
-          label: 'Upload Date',
+          label: window.aieData.i18n.fieldUploadDate,
           type: 'date'
         }, {
           value: 'post_modified',
-          label: 'Modified Date',
+          label: window.aieData.i18n.fieldModifiedDate,
           type: 'date'
         }]
       }, {
-        label: 'Author',
+        label: window.aieData.i18n.fieldGroupAuthor,
         options: [{
           value: 'post_author',
-          label: 'Author ID',
+          label: window.aieData.i18n.fieldAuthorId,
           type: 'number'
         }, {
           value: 'author_name',
-          label: 'Author Name',
+          label: window.aieData.i18n.fieldAuthorName,
           type: 'string'
         }, {
           value: 'author_email',
-          label: 'Author Email',
+          label: window.aieData.i18n.fieldAuthorEmail,
           type: 'email'
         }]
       }, {
-        label: 'Attachment',
+        label: window.aieData.i18n.fieldGroupAttachment,
         options: [{
           value: 'post_parent',
-          label: 'Attached To (Post ID)',
+          label: window.aieData.i18n.fieldAttachedToPostId,
           type: 'number'
         }, {
           value: 'attached_post_title',
-          label: 'Attached Post Title',
+          label: window.aieData.i18n.fieldAttachedPostTitle,
           type: 'string'
         }]
       }, {
-        label: 'Custom Filters',
+        label: window.aieData.i18n.fieldGroupCustomFilters,
         options: [{
           value: '_custom_field',
-          label: '🔧 Custom Field (Meta)',
+          label: window.aieData.i18n.fieldCustomFieldMeta,
           type: 'custom_field'
         }]
       }];
@@ -6923,43 +6925,43 @@ var ExportModule = (_ExportModule = {
     // Pages don't have taxonomy section (but taxonomy_filter is still available in Custom Filters)
     if (contentType === 'page') {
       return baseFields.filter(function (group) {
-        return group.label !== 'Taxonomy';
+        return group.label !== window.aieData.i18n.fieldGroupTaxonomy;
       });
     }
 
     // Menus
     if (contentType === 'menu') {
       return [{
-        label: 'Basic',
+        label: window.aieData.i18n.fieldGroupBasic,
         options: [{
           value: 'name',
-          label: 'Menu Name',
+          label: window.aieData.i18n.fieldMenuName,
           type: 'string'
         }, {
           value: 'description',
-          label: 'Description',
+          label: window.aieData.i18n.fieldDescription,
           type: 'string'
         }, {
           value: 'menu_items',
-          label: 'Menu Items (Array)',
+          label: window.aieData.i18n.fieldMenuItemsArray,
           type: 'array'
         }]
       }, {
-        label: 'Details',
+        label: window.aieData.i18n.fieldGroupDetails,
         options: [{
           value: 'count',
-          label: 'Items Count',
+          label: window.aieData.i18n.fieldItemsCount,
           type: 'number'
         }, {
           value: 'locations',
-          label: 'Theme Locations',
+          label: window.aieData.i18n.fieldThemeLocations,
           type: 'string'
         }]
       }, {
-        label: 'Custom Filters',
+        label: window.aieData.i18n.fieldGroupCustomFilters,
         options: [{
           value: '_custom_field',
-          label: '🔧 Custom Field (Meta)',
+          label: window.aieData.i18n.fieldCustomFieldMeta,
           type: 'custom_field'
         }]
       }];
@@ -6968,97 +6970,97 @@ var ExportModule = (_ExportModule = {
     // Users
     if (contentType === 'user') {
       return [{
-        label: 'Basic',
+        label: window.aieData.i18n.fieldGroupBasic,
         options: [{
           value: 'user_login',
-          label: 'Username',
+          label: window.aieData.i18n.fieldUsername,
           type: 'string'
         }, {
           value: 'user_email',
-          label: 'Email',
+          label: window.aieData.i18n.fieldEmail,
           type: 'string'
         }, {
           value: 'display_name',
-          label: 'Display Name',
+          label: window.aieData.i18n.fieldDisplayName,
           type: 'string'
         }, {
           value: 'user_nicename',
-          label: 'Nice Name',
+          label: window.aieData.i18n.fieldNiceName,
           type: 'string'
         }]
       }, {
-        label: 'Profile',
+        label: window.aieData.i18n.fieldGroupProfile,
         options: [{
           value: 'first_name',
-          label: 'First Name',
+          label: window.aieData.i18n.fieldFirstName,
           type: 'string'
         }, {
           value: 'last_name',
-          label: 'Last Name',
+          label: window.aieData.i18n.fieldLastName,
           type: 'string'
         }, {
           value: 'nickname',
-          label: 'Nickname',
+          label: window.aieData.i18n.fieldNickname,
           type: 'string'
         }, {
           value: 'description',
-          label: 'Bio',
+          label: window.aieData.i18n.fieldBio,
           type: 'string'
         }, {
           value: 'user_url',
-          label: 'Website',
+          label: window.aieData.i18n.fieldWebsite,
           type: 'string'
         }, {
           value: 'avatar_url',
-          label: 'Avatar URL',
+          label: window.aieData.i18n.fieldAvatarUrl,
           type: 'string'
         }]
       }, {
-        label: 'Role & Permissions',
+        label: window.aieData.i18n.fieldGroupRolePermissions,
         options: [{
           value: 'role',
-          label: 'Role',
+          label: window.aieData.i18n.fieldRole,
           type: 'string'
         }, {
           value: 'capabilities',
-          label: 'Capabilities (Array)',
+          label: window.aieData.i18n.fieldCapabilitiesArray,
           type: 'array'
         }]
       }, {
-        label: 'Preferences',
+        label: window.aieData.i18n.fieldGroupPreferences,
         options: [{
           value: 'locale',
-          label: 'Language',
+          label: window.aieData.i18n.fieldLanguage,
           type: 'string'
         }, {
           value: 'admin_color',
-          label: 'Admin Color Scheme',
+          label: window.aieData.i18n.fieldAdminColorScheme,
           type: 'string'
         }, {
           value: 'rich_editing',
-          label: 'Visual Editor',
+          label: window.aieData.i18n.fieldVisualEditor,
           type: 'boolean'
         }]
       }, {
-        label: 'Stats',
+        label: window.aieData.i18n.fieldGroupStats,
         options: [{
           value: 'posts_count',
-          label: 'Posts Count',
+          label: window.aieData.i18n.fieldPostsCount,
           type: 'number'
         }, {
           value: 'user_registered',
-          label: 'Registration Date',
+          label: window.aieData.i18n.fieldRegistrationDate,
           type: 'date'
         }, {
           value: 'user_status',
-          label: 'User Status',
+          label: window.aieData.i18n.fieldUserStatus,
           type: 'number'
         }]
       }, {
-        label: 'Custom Filters',
+        label: window.aieData.i18n.fieldGroupCustomFilters,
         options: [{
           value: '_custom_field',
-          label: '🔧 Custom Field (Meta)',
+          label: window.aieData.i18n.fieldCustomFieldMeta,
           type: 'custom_field'
         }]
       }];
@@ -7067,93 +7069,93 @@ var ExportModule = (_ExportModule = {
     // Comments
     if (contentType === 'comment') {
       return [{
-        label: 'Basic',
+        label: window.aieData.i18n.fieldGroupBasic,
         options: [{
           value: 'comment_ID',
-          label: 'Comment ID',
+          label: window.aieData.i18n.fieldCommentId,
           type: 'number'
         }, {
           value: 'comment_post_ID',
-          label: 'Post ID',
+          label: window.aieData.i18n.fieldPostId,
           type: 'number'
         }, {
           value: 'comment_content',
-          label: 'Comment Content',
+          label: window.aieData.i18n.fieldCommentContent,
           type: 'string'
         }, {
           value: 'comment_approved',
-          label: 'Status',
+          label: window.aieData.i18n.fieldStatus,
           type: 'string'
         }, {
           value: 'comment_type',
-          label: 'Comment Type',
+          label: window.aieData.i18n.fieldCommentType,
           type: 'string'
         }]
       }, {
-        label: 'Author',
+        label: window.aieData.i18n.fieldGroupAuthor,
         options: [{
           value: 'comment_author',
-          label: 'Author Name',
+          label: window.aieData.i18n.fieldAuthorName,
           type: 'string'
         }, {
           value: 'comment_author_email',
-          label: 'Author Email',
+          label: window.aieData.i18n.fieldAuthorEmail,
           type: 'string'
         }, {
           value: 'comment_author_url',
-          label: 'Author URL',
+          label: window.aieData.i18n.fieldAuthorUrl,
           type: 'string'
         }, {
           value: 'comment_author_IP',
-          label: 'Author IP',
+          label: window.aieData.i18n.fieldAuthorIp,
           type: 'string'
         }, {
           value: 'user_id',
-          label: 'User ID',
+          label: window.aieData.i18n.fieldUserId,
           type: 'number'
         }, {
           value: 'comment_agent',
-          label: 'User Agent',
+          label: window.aieData.i18n.fieldUserAgent,
           type: 'string'
         }]
       }, {
-        label: 'Related Post',
+        label: window.aieData.i18n.fieldGroupRelatedPost,
         options: [{
           value: 'post_title',
-          label: 'Post Title',
+          label: window.aieData.i18n.fieldPostTitle,
           type: 'string'
         }, {
           value: 'post_author',
-          label: 'Post Author ID',
+          label: window.aieData.i18n.fieldPostAuthorId,
           type: 'number'
         }]
       }, {
-        label: 'Dates',
+        label: window.aieData.i18n.fieldGroupDates,
         options: [{
           value: 'comment_date',
-          label: 'Comment Date',
+          label: window.aieData.i18n.fieldCommentDate,
           type: 'date'
         }, {
           value: 'comment_date_gmt',
-          label: 'Comment Date (GMT)',
+          label: window.aieData.i18n.fieldCommentDateGmt,
           type: 'date'
         }]
       }, {
-        label: 'Hierarchy',
+        label: window.aieData.i18n.fieldGroupHierarchy,
         options: [{
           value: 'comment_parent',
-          label: 'Parent Comment ID',
+          label: window.aieData.i18n.fieldParentCommentId,
           type: 'number'
         }, {
           value: 'comment_karma',
-          label: 'Karma',
+          label: window.aieData.i18n.fieldKarma,
           type: 'number'
         }]
       }, {
-        label: 'Custom Filters',
+        label: window.aieData.i18n.fieldGroupCustomFilters,
         options: [{
           value: '_custom_field',
-          label: '🔧 Custom Field (Meta)',
+          label: window.aieData.i18n.fieldCustomFieldMeta,
           type: 'custom_field'
         }]
       }];
@@ -7162,26 +7164,26 @@ var ExportModule = (_ExportModule = {
     // Block Theme Settings
     if (contentType === 'block_theme_settings') {
       return [{
-        label: 'Block Theme Components',
+        label: window.aieData.i18n.fieldGroupBlockThemeComponents,
         options: [{
           value: 'global_styles',
-          label: 'Global Styles (theme.json)',
+          label: window.aieData.i18n.fieldGlobalStylesThemeJson,
           type: 'array'
         }, {
           value: 'templates',
-          label: 'Custom Templates',
+          label: window.aieData.i18n.fieldCustomTemplates,
           type: 'array'
         }, {
           value: 'template_parts',
-          label: 'Template Parts',
+          label: window.aieData.i18n.fieldTemplateParts,
           type: 'array'
         }, {
           value: 'theme_mods',
-          label: 'Theme Modifications',
+          label: window.aieData.i18n.fieldThemeModifications,
           type: 'array'
         }, {
           value: 'custom_css',
-          label: 'Custom CSS',
+          label: window.aieData.i18n.fieldCustomCss,
           type: 'string'
         }]
       }];
@@ -7190,140 +7192,140 @@ var ExportModule = (_ExportModule = {
     // Custom Post Types
     if (contentType === 'custom_post_types') {
       return [{
-        label: 'Post Type Selection',
+        label: window.aieData.i18n.fieldGroupPostTypeSelection,
         options: [{
           value: '_post_type',
-          label: 'Post Type (select specific)',
+          label: window.aieData.i18n.fieldPostTypeSelectSpecific,
           type: 'post_type_selector'
         }]
       }, {
-        label: 'Standard',
+        label: window.aieData.i18n.fieldGroupStandard,
         options: [{
           value: 'ID',
-          label: 'ID',
+          label: window.aieData.i18n.fieldId,
           type: 'number'
         }, {
           value: 'post_title',
-          label: 'Title',
+          label: window.aieData.i18n.fieldTitle,
           type: 'string'
         }, {
           value: 'post_content',
-          label: 'Content',
+          label: window.aieData.i18n.fieldContent,
           type: 'string'
         }, {
           value: 'post_excerpt',
-          label: 'Excerpt',
+          label: window.aieData.i18n.fieldExcerpt,
           type: 'string'
         }, {
           value: 'post_date',
-          label: 'Date',
+          label: window.aieData.i18n.fieldDate,
           type: 'date'
         }, {
           value: 'post_name',
-          label: 'Slug',
+          label: window.aieData.i18n.fieldSlug,
           type: 'string'
         }, {
           value: 'post_status',
-          label: 'Status',
+          label: window.aieData.i18n.fieldStatus,
           type: 'string'
         }]
       }, {
-        label: 'Author',
+        label: window.aieData.i18n.fieldGroupAuthor,
         options: [{
           value: 'post_author',
-          label: 'Author ID',
+          label: window.aieData.i18n.fieldAuthorId,
           type: 'number'
         }, {
           value: 'author_name',
-          label: 'Author Name',
+          label: window.aieData.i18n.fieldAuthorName,
           type: 'string'
         }, {
           value: 'author_email',
-          label: 'Author Email',
+          label: window.aieData.i18n.fieldAuthorEmail,
           type: 'string'
         }]
       }, {
-        label: 'Other',
+        label: window.aieData.i18n.fieldGroupOther,
         options: [{
           value: 'post_parent',
-          label: 'Parent ID',
+          label: window.aieData.i18n.fieldParentId,
           type: 'number'
         }, {
           value: 'post_modified',
-          label: 'Modified Date',
+          label: window.aieData.i18n.fieldModifiedDate,
           type: 'date'
         }, {
           value: '_wp_page_template',
-          label: 'Template',
+          label: window.aieData.i18n.fieldTemplate,
           type: 'string'
         }]
       }, {
-        label: 'Custom Filters',
+        label: window.aieData.i18n.fieldGroupCustomFilters,
         options: [{
           value: '_custom_field',
-          label: '🔧 Custom Field (Meta)',
+          label: window.aieData.i18n.fieldCustomFieldMeta,
           type: 'custom_field'
         }, {
           value: '_taxonomy_filter',
-          label: '🏷️ Taxonomy Filter',
+          label: window.aieData.i18n.fieldTaxonomyFilter,
           type: 'taxonomy_filter'
         }]
       }];
     } // Taxonomy
     if (contentType === 'taxonomy') {
       return [{
-        label: 'Taxonomy Selection',
+        label: window.aieData.i18n.fieldGroupTaxonomySelection,
         options: [{
           value: '_taxonomy',
-          label: 'Taxonomy (select specific)',
+          label: window.aieData.i18n.fieldTaxonomySelectSpecific,
           type: 'taxonomy_selector'
         }]
       }, {
-        label: 'Basic',
+        label: window.aieData.i18n.fieldGroupBasic,
         options: [{
           value: 'term_id',
-          label: 'Term ID',
+          label: window.aieData.i18n.fieldTermId,
           type: 'number'
         }, {
           value: 'name',
-          label: 'Term Name',
+          label: window.aieData.i18n.fieldTermName,
           type: 'string'
         }, {
           value: 'slug',
-          label: 'Term Slug',
+          label: window.aieData.i18n.fieldTermSlug,
           type: 'string'
         }, {
           value: 'description',
-          label: 'Description',
+          label: window.aieData.i18n.fieldDescription,
           type: 'string'
         }]
       }, {
-        label: 'Taxonomy',
+        label: window.aieData.i18n.fieldGroupTaxonomy,
         options: [{
           value: 'taxonomy',
-          label: 'Taxonomy Type',
+          label: window.aieData.i18n.fieldTaxonomyType,
           type: 'string'
         }, {
           value: 'term_taxonomy_id',
-          label: 'Taxonomy ID',
+          label: window.aieData.i18n.fieldTaxonomyId,
           type: 'number'
         }]
       }, {
-        label: 'Hierarchy',
+        label: window.aieData.i18n.fieldGroupHierarchy,
         options: [{
           value: 'parent',
-          label: 'Parent Term ID',
+          label: window.aieData.i18n.fieldParentTermId,
           type: 'number'
         }, {
           value: 'count',
-          label: 'Posts Count',
+          label: window.aieData.i18n.fieldPostsCount,
           type: 'number'
         }]
       }, {
-        label: 'Custom Filters',
+        label: window.aieData.i18n.fieldGroupCustomFilters,
         options: [{
           value: '_custom_field',
-          label: '🔧 Term Meta Field',
+          label: window.aieData.i18n.fieldTermMetaField,
           type: 'custom_field'
         }]
       }];
@@ -7332,191 +7334,191 @@ var ExportModule = (_ExportModule = {
     // WooCommerce Products
     if (contentType === 'woo_product') {
       return [{
-        label: 'Basic',
+        label: window.aieData.i18n.fieldGroupBasic,
         options: [{
           value: 'ID',
-          label: 'Product ID',
+          label: window.aieData.i18n.fieldProductId,
           type: 'number'
         }, {
           value: 'post_title',
-          label: 'Product Name',
+          label: window.aieData.i18n.fieldProductName,
           type: 'string'
         }, {
           value: 'post_name',
-          label: 'Slug',
+          label: window.aieData.i18n.fieldSlug,
           type: 'string'
         }, {
           value: 'post_status',
-          label: 'Status',
+          label: window.aieData.i18n.fieldStatus,
           type: 'string'
         }, {
           value: 'sku',
-          label: 'SKU',
+          label: window.aieData.i18n.fieldSku,
           type: 'string'
         }, {
           value: 'post_author',
-          label: 'Author ID',
+          label: window.aieData.i18n.fieldAuthorId,
           type: 'number'
         }]
       }, {
-        label: 'Content',
+        label: window.aieData.i18n.fieldGroupContent,
         options: [{
           value: 'post_content',
-          label: 'Description',
+          label: window.aieData.i18n.fieldDescription,
           type: 'string'
         }, {
           value: 'post_excerpt',
-          label: 'Short Description',
+          label: window.aieData.i18n.fieldShortDescription,
           type: 'string'
         }]
       }, {
-        label: 'Pricing',
+        label: window.aieData.i18n.fieldGroupPricing,
         options: [{
           value: 'regular_price',
-          label: 'Regular Price',
+          label: window.aieData.i18n.fieldRegularPrice,
           type: 'number'
         }, {
           value: 'sale_price',
-          label: 'Sale Price',
+          label: window.aieData.i18n.fieldSalePrice,
           type: 'number'
         }, {
           value: 'tax_status',
-          label: 'Tax Status',
+          label: window.aieData.i18n.fieldTaxStatus,
           type: 'string'
         }, {
           value: 'tax_class',
-          label: 'Tax Class',
+          label: window.aieData.i18n.fieldTaxClass,
           type: 'string'
         }]
       }, {
-        label: 'Inventory',
+        label: window.aieData.i18n.fieldGroupInventory,
         options: [{
           value: 'stock_quantity',
-          label: 'Stock Quantity',
+          label: window.aieData.i18n.fieldStockQuantity,
           type: 'number'
         }, {
           value: 'stock_status',
-          label: 'Stock Status',
+          label: window.aieData.i18n.fieldStockStatus,
           type: 'string'
         }, {
           value: 'manage_stock',
-          label: 'Manage Stock',
+          label: window.aieData.i18n.fieldManageStock,
           type: 'boolean'
         }, {
           value: 'backorders',
-          label: 'Backorders',
+          label: window.aieData.i18n.fieldBackorders,
           type: 'string'
         }]
       }, {
-        label: 'Product Type',
+        label: window.aieData.i18n.fieldGroupProductType,
         options: [{
           value: 'product_type',
-          label: 'Product Type',
+          label: window.aieData.i18n.fieldProductType,
           type: 'string'
         }, {
           value: 'downloadable',
-          label: 'Downloadable',
+          label: window.aieData.i18n.fieldDownloadable,
           type: 'boolean'
         }, {
           value: 'virtual',
-          label: 'Virtual',
+          label: window.aieData.i18n.fieldVirtual,
           type: 'boolean'
         }]
       }, {
-        label: 'Shipping',
+        label: window.aieData.i18n.fieldGroupShipping,
         options: [{
           value: 'weight',
-          label: 'Weight',
+          label: window.aieData.i18n.fieldWeight,
           type: 'number'
         }, {
           value: 'length',
-          label: 'Length',
+          label: window.aieData.i18n.fieldLength,
           type: 'number'
         }, {
           value: 'width',
-          label: 'Width',
+          label: window.aieData.i18n.fieldWidth,
           type: 'number'
         }, {
           value: 'height',
-          label: 'Height',
+          label: window.aieData.i18n.fieldHeight,
           type: 'number'
         }, {
           value: 'shipping_class',
-          label: 'Shipping Class',
+          label: window.aieData.i18n.fieldShippingClass,
           type: 'string'
         }]
       }, {
-        label: 'Media',
+        label: window.aieData.i18n.fieldGroupMedia,
         options: [{
           value: 'featured_image',
-          label: 'Featured Image',
+          label: window.aieData.i18n.fieldFeaturedImage,
           type: 'string'
         }, {
           value: 'product_gallery',
-          label: 'Gallery Images',
+          label: window.aieData.i18n.fieldGalleryImages,
           type: 'array'
         }]
       }, {
-        label: 'Taxonomy',
+        label: window.aieData.i18n.fieldGroupTaxonomy,
         options: [{
           value: 'product_cat',
-          label: 'Categories',
+          label: window.aieData.i18n.fieldCategories,
           type: 'string'
         }, {
           value: 'product_tag',
-          label: 'Tags',
+          label: window.aieData.i18n.fieldTags,
           type: 'string'
         }]
       }, {
-        label: 'Reviews',
+        label: window.aieData.i18n.fieldGroupReviews,
         options: [{
           value: 'average_rating',
-          label: 'Average Rating',
+          label: window.aieData.i18n.fieldAverageRating,
           type: 'number'
         }, {
           value: 'review_count',
-          label: 'Review Count',
+          label: window.aieData.i18n.fieldReviewCount,
           type: 'number'
         }, {
           value: 'comment_status',
-          label: 'Reviews Enabled',
+          label: window.aieData.i18n.fieldReviewsEnabled,
           type: 'string'
         }]
       }, {
-        label: 'Visibility',
+        label: window.aieData.i18n.fieldGroupVisibility,
         options: [{
           value: 'featured',
-          label: 'Featured',
+          label: window.aieData.i18n.fieldFeatured,
           type: 'boolean'
         }, {
           value: 'visibility',
-          label: 'Catalog Visibility',
+          label: window.aieData.i18n.fieldCatalogVisibility,
           type: 'string'
         }, {
           value: 'total_sales',
-          label: 'Total Sales',
+          label: window.aieData.i18n.fieldTotalSales,
           type: 'number'
         }]
       }, {
-        label: 'Dates',
+        label: window.aieData.i18n.fieldGroupDates,
         options: [{
           value: 'post_date',
-          label: 'Created Date',
+          label: window.aieData.i18n.fieldCreatedDate,
           type: 'date'
         }, {
           value: 'post_modified',
-          label: 'Modified Date',
+          label: window.aieData.i18n.fieldModifiedDate,
           type: 'date'
         }]
       }, {
-        label: 'Custom Filters',
+        label: window.aieData.i18n.fieldGroupCustomFilters,
         options: [{
           value: '_custom_field',
-          label: '🔧 Custom Field (Meta)',
+          label: window.aieData.i18n.fieldCustomFieldMeta,
           type: 'custom_field'
         }, {
           value: '_taxonomy_filter',
-          label: '🏷️ Taxonomy Filter',
+          label: window.aieData.i18n.fieldTaxonomyFilter,
           type: 'taxonomy_filter'
         }]
       }];
@@ -7525,208 +7527,208 @@ var ExportModule = (_ExportModule = {
     // WooCommerce Orders
     if (contentType === 'woo_order') {
       return [{
-        label: 'Basic',
+        label: window.aieData.i18n.fieldGroupBasic,
         options: [{
           value: 'ID',
-          label: 'Order ID',
+          label: window.aieData.i18n.fieldOrderId,
           type: 'number'
         }, {
           value: 'order_number',
-          label: 'Order Number',
+          label: window.aieData.i18n.fieldOrderNumber,
           type: 'string'
         }, {
           value: 'order_status',
-          label: 'Status',
+          label: window.aieData.i18n.fieldStatus,
           type: 'string'
         }, {
           value: 'order_key',
-          label: 'Order Key',
+          label: window.aieData.i18n.fieldOrderKey,
           type: 'string'
         }, {
           value: 'currency',
-          label: 'Currency',
+          label: window.aieData.i18n.fieldCurrency,
           type: 'string'
         }]
       }, {
-        label: 'Amounts',
+        label: window.aieData.i18n.fieldGroupAmounts,
         options: [{
           value: 'order_total',
-          label: 'Order Total',
+          label: window.aieData.i18n.fieldOrderTotal,
           type: 'number'
         }, {
           value: 'order_subtotal',
-          label: 'Subtotal',
+          label: window.aieData.i18n.fieldSubtotal,
           type: 'number'
         }, {
           value: 'order_tax',
-          label: 'Tax',
+          label: window.aieData.i18n.fieldTax,
           type: 'number'
         }, {
           value: 'order_shipping',
-          label: 'Shipping',
+          label: window.aieData.i18n.fieldShipping,
           type: 'number'
         }, {
           value: 'order_discount',
-          label: 'Discount',
+          label: window.aieData.i18n.fieldDiscount,
           type: 'number'
         }]
       }, {
-        label: 'Customer',
+        label: window.aieData.i18n.fieldGroupCustomer,
         options: [{
           value: 'customer_id',
-          label: 'Customer ID',
+          label: window.aieData.i18n.fieldCustomerId,
           type: 'number'
         }, {
           value: 'billing_email',
-          label: 'Email',
+          label: window.aieData.i18n.fieldEmail,
           type: 'string'
         }, {
           value: 'customer_note',
-          label: 'Customer Note',
+          label: window.aieData.i18n.fieldCustomerNote,
           type: 'string'
         }]
       }, {
-        label: 'Billing Address',
+        label: window.aieData.i18n.fieldGroupBillingAddress,
         options: [{
           value: 'billing_first_name',
-          label: 'First Name',
+          label: window.aieData.i18n.fieldFirstName,
           type: 'string'
         }, {
           value: 'billing_last_name',
-          label: 'Last Name',
+          label: window.aieData.i18n.fieldLastName,
           type: 'string'
         }, {
           value: 'billing_company',
-          label: 'Company',
+          label: window.aieData.i18n.fieldCompany,
           type: 'string'
         }, {
           value: 'billing_address_1',
-          label: 'Address 1',
+          label: window.aieData.i18n.fieldAddress1,
           type: 'string'
         }, {
           value: 'billing_address_2',
-          label: 'Address 2',
+          label: window.aieData.i18n.fieldAddress2,
           type: 'string'
         }, {
           value: 'billing_city',
-          label: 'City',
+          label: window.aieData.i18n.fieldCity,
           type: 'string'
         }, {
           value: 'billing_state',
-          label: 'State',
+          label: window.aieData.i18n.fieldState,
           type: 'string'
         }, {
           value: 'billing_postcode',
-          label: 'Postcode',
+          label: window.aieData.i18n.fieldPostcode,
           type: 'string'
         }, {
           value: 'billing_country',
-          label: 'Country',
+          label: window.aieData.i18n.fieldCountry,
           type: 'string'
         }, {
           value: 'billing_phone',
-          label: 'Phone',
+          label: window.aieData.i18n.fieldPhone,
           type: 'string'
         }]
       }, {
-        label: 'Shipping Address',
+        label: window.aieData.i18n.fieldGroupShippingAddress,
         options: [{
           value: 'shipping_first_name',
-          label: 'First Name',
+          label: window.aieData.i18n.fieldFirstName,
           type: 'string'
         }, {
           value: 'shipping_last_name',
-          label: 'Last Name',
+          label: window.aieData.i18n.fieldLastName,
           type: 'string'
         }, {
           value: 'shipping_company',
-          label: 'Company',
+          label: window.aieData.i18n.fieldCompany,
           type: 'string'
         }, {
           value: 'shipping_address_1',
-          label: 'Address 1',
+          label: window.aieData.i18n.fieldAddress1,
           type: 'string'
         }, {
           value: 'shipping_address_2',
-          label: 'Address 2',
+          label: window.aieData.i18n.fieldAddress2,
           type: 'string'
         }, {
           value: 'shipping_city',
-          label: 'City',
+          label: window.aieData.i18n.fieldCity,
           type: 'string'
         }, {
           value: 'shipping_state',
-          label: 'State',
+          label: window.aieData.i18n.fieldState,
           type: 'string'
         }, {
           value: 'shipping_postcode',
-          label: 'Postcode',
+          label: window.aieData.i18n.fieldPostcode,
           type: 'string'
         }, {
           value: 'shipping_country',
-          label: 'Country',
+          label: window.aieData.i18n.fieldCountry,
           type: 'string'
         }]
       }, {
-        label: 'Order Items',
+        label: window.aieData.i18n.fieldGroupOrderItems,
         options: [{
           value: 'order_items',
-          label: 'Order Items (Array)',
+          label: window.aieData.i18n.fieldOrderItemsArray,
           type: 'array'
         }, {
           value: 'item_count',
-          label: 'Item Count',
+          label: window.aieData.i18n.fieldItemCount,
           type: 'number'
         }]
       }, {
-        label: 'Payment',
+        label: window.aieData.i18n.fieldGroupPayment,
         options: [{
           value: 'payment_method',
-          label: 'Payment Method',
+          label: window.aieData.i18n.fieldPaymentMethod,
           type: 'string'
         }, {
           value: 'payment_method_title',
-          label: 'Payment Method Title',
+          label: window.aieData.i18n.fieldPaymentMethodTitle,
           type: 'string'
         }, {
           value: 'transaction_id',
-          label: 'Transaction ID',
+          label: window.aieData.i18n.fieldTransactionId,
           type: 'string'
         }]
       }, {
-        label: 'Shipping',
+        label: window.aieData.i18n.fieldGroupShipping,
         options: [{
           value: 'shipping_method',
-          label: 'Shipping Method',
+          label: window.aieData.i18n.fieldShippingMethod,
           type: 'string'
         }]
       }, {
-        label: 'Dates',
+        label: window.aieData.i18n.fieldGroupDates,
         options: [{
           value: 'order_date',
-          label: 'Order Date',
+          label: window.aieData.i18n.fieldOrderDate,
           type: 'date'
         }, {
           value: 'completed_date',
-          label: 'Completed Date',
+          label: window.aieData.i18n.fieldCompletedDate,
           type: 'date'
         }, {
           value: 'paid_date',
-          label: 'Paid Date',
+          label: window.aieData.i18n.fieldPaidDate,
           type: 'date'
         }]
       }, {
-        label: 'Notes',
+        label: window.aieData.i18n.fieldGroupNotes,
         options: [{
           value: 'order_notes',
-          label: 'Order Notes (Array)',
+          label: window.aieData.i18n.fieldOrderNotesArray,
           type: 'array'
         }]
       }, {
-        label: 'Custom Filters',
+        label: window.aieData.i18n.fieldGroupCustomFilters,
         options: [{
           value: '_custom_field',
-          label: '🔧 Custom Field (Meta)',
+          label: window.aieData.i18n.fieldCustomFieldMeta,
           type: 'custom_field'
         }]
       }];
@@ -7735,119 +7737,119 @@ var ExportModule = (_ExportModule = {
     // WooCommerce Coupons
     if (contentType === 'woo_coupon') {
       return [{
-        label: 'Basic',
+        label: window.aieData.i18n.fieldGroupBasic,
         options: [{
           value: 'ID',
-          label: 'Coupon ID',
+          label: window.aieData.i18n.fieldCouponId,
           type: 'number'
         }, {
           value: 'post_title',
-          label: 'Coupon Code',
+          label: window.aieData.i18n.fieldCouponCode,
           type: 'string'
         }, {
           value: 'post_excerpt',
-          label: 'Description',
+          label: window.aieData.i18n.fieldDescription,
           type: 'string'
         }, {
           value: 'post_status',
-          label: 'Status',
+          label: window.aieData.i18n.fieldStatus,
           type: 'string'
         }]
       }, {
-        label: 'Discount',
+        label: window.aieData.i18n.fieldGroupDiscount,
         options: [{
           value: 'discount_type',
-          label: 'Discount Type',
+          label: window.aieData.i18n.fieldDiscountType,
           type: 'string'
         }, {
           value: 'coupon_amount',
-          label: 'Coupon Amount',
+          label: window.aieData.i18n.fieldCouponAmount,
           type: 'number'
         }, {
           value: 'free_shipping',
-          label: 'Free Shipping',
+          label: window.aieData.i18n.fieldFreeShipping,
           type: 'boolean'
         }]
       }, {
-        label: 'Usage Restrictions',
+        label: window.aieData.i18n.fieldGroupUsageRestrictions,
         options: [{
           value: 'minimum_amount',
-          label: 'Minimum Spend',
+          label: window.aieData.i18n.fieldMinimumSpend,
           type: 'number'
         }, {
           value: 'maximum_amount',
-          label: 'Maximum Spend',
+          label: window.aieData.i18n.fieldMaximumSpend,
           type: 'number'
         }, {
           value: 'individual_use',
-          label: 'Individual Use Only',
+          label: window.aieData.i18n.fieldIndividualUseOnly,
           type: 'boolean'
         }, {
           value: 'exclude_sale_items',
-          label: 'Exclude Sale Items',
+          label: window.aieData.i18n.fieldExcludeSaleItems,
           type: 'boolean'
         }]
       }, {
-        label: 'Product Restrictions',
+        label: window.aieData.i18n.fieldGroupProductRestrictions,
         options: [{
           value: 'product_ids',
-          label: 'Allowed Products',
+          label: window.aieData.i18n.fieldAllowedProducts,
           type: 'array'
         }, {
           value: 'excluded_product_ids',
-          label: 'Excluded Products',
+          label: window.aieData.i18n.fieldExcludedProducts,
           type: 'array'
         }, {
           value: 'product_categories',
-          label: 'Allowed Categories',
+          label: window.aieData.i18n.fieldAllowedCategories,
           type: 'array'
         }, {
           value: 'excluded_product_categories',
-          label: 'Excluded Categories',
+          label: window.aieData.i18n.fieldExcludedCategories,
           type: 'array'
         }]
       }, {
-        label: 'Email Restrictions',
+        label: window.aieData.i18n.fieldGroupEmailRestrictions,
         options: [{
           value: 'allowed_emails',
-          label: 'Allowed Emails',
+          label: window.aieData.i18n.fieldAllowedEmails,
           type: 'array'
         }]
       }, {
-        label: 'Usage Limits',
+        label: window.aieData.i18n.fieldGroupUsageLimits,
         options: [{
           value: 'usage_count',
-          label: 'Usage Count',
+          label: window.aieData.i18n.fieldUsageCount,
           type: 'number'
         }, {
           value: 'usage_limit',
-          label: 'Usage Limit Total',
+          label: window.aieData.i18n.fieldUsageLimitTotal,
           type: 'number'
         }, {
           value: 'usage_limit_per_user',
-          label: 'Usage Limit Per User',
+          label: window.aieData.i18n.fieldUsageLimitPerUser,
           type: 'number'
         }]
       }, {
-        label: 'Dates',
+        label: window.aieData.i18n.fieldGroupDates,
         options: [{
           value: 'date_expires',
-          label: 'Expiry Date',
+          label: window.aieData.i18n.fieldExpiryDate,
           type: 'date'
         }, {
           value: 'post_date',
-          label: 'Created Date',
+          label: window.aieData.i18n.fieldCreatedDate,
           type: 'date'
         }, {
           value: 'post_modified',
-          label: 'Modified Date',
+          label: window.aieData.i18n.fieldModifiedDate,
           type: 'date'
         }]
       }, {
-        label: 'Custom Filters',
+        label: window.aieData.i18n.fieldGroupCustomFilters,
         options: [{
           value: '_custom_field',
-          label: '🔧 Custom Field (Meta)',
+          label: window.aieData.i18n.fieldCustomFieldMeta,
           type: 'custom_field'
         }]
       }];
@@ -7856,44 +7858,44 @@ var ExportModule = (_ExportModule = {
     // WooCommerce Attributes
     if (contentType === 'woo_attribute') {
       return [{
-        label: 'Basic',
+        label: window.aieData.i18n.fieldGroupBasic,
         options: [{
           value: 'attribute_id',
-          label: 'Attribute ID',
+          label: window.aieData.i18n.fieldAttributeId,
           type: 'number'
         }, {
           value: 'attribute_name',
-          label: 'Attribute Name',
+          label: window.aieData.i18n.fieldAttributeName,
           type: 'string'
         }, {
           value: 'attribute_label',
-          label: 'Attribute Label',
+          label: window.aieData.i18n.fieldAttributeLabel,
           type: 'string'
         }, {
           value: 'attribute_type',
-          label: 'Attribute Type',
+          label: window.aieData.i18n.fieldAttributeType,
           type: 'string'
         }]
       }, {
-        label: 'Settings',
+        label: window.aieData.i18n.fieldGroupSettings,
         options: [{
           value: 'attribute_orderby',
-          label: 'Default Sort Order',
+          label: window.aieData.i18n.fieldDefaultSortOrder,
           type: 'string'
         }, {
           value: 'attribute_public',
-          label: 'Enable Archives',
+          label: window.aieData.i18n.fieldEnableArchives,
           type: 'boolean'
         }]
       }, {
-        label: 'Terms',
+        label: window.aieData.i18n.fieldGroupTerms,
         options: [{
           value: 'term_count',
-          label: 'Terms Count',
+          label: window.aieData.i18n.fieldTermsCount,
           type: 'number'
         }, {
           value: 'attribute_terms',
-          label: 'All Terms (Array)',
+          label: window.aieData.i18n.fieldAllTermsArray,
           type: 'array'
         }]
       }];
@@ -7912,17 +7914,17 @@ var ExportModule = (_ExportModule = {
           };
         });
         return [{
-          label: 'Table Columns',
+          label: window.aieData.i18n.fieldGroupTableColumns,
           options: columnOptions
         }];
       }
 
       // Otherwise show message to select table first
       return [{
-        label: 'Table Selection',
+        label: window.aieData.i18n.fieldGroupTableSelection,
         options: [{
           value: '_select_table',
-          label: '⚠️ Please select a database table first',
+          label: window.aieData.i18n.fieldPleaseSelectTable,
           type: 'info'
         }]
       }];
@@ -7980,14 +7982,14 @@ var ExportModule = (_ExportModule = {
     // For 'in' and 'not_in' conditions, always use text input to allow comma-separated values
     if (condition === 'in' || condition === 'not_in') {
       $value.attr('type', 'text');
-      $value.attr('placeholder', 'Enter values separated by comma (e.g., 1,5,8 or test1,test2)');
+      $value.attr('placeholder', window.aieData.i18n.enterValuesCommaSeparated);
       return;
     }
 
     // For 'between' condition on numbers, use text to allow comma-separated range
     if (condition === 'between' && fieldType === 'number') {
       $value.attr('type', 'text');
-      $value.attr('placeholder', 'Enter two numbers separated by comma (e.g., 10,100)');
+      $value.attr('placeholder', window.aieData.i18n.enterTwoNumbersCommaSeparated);
       return;
     }
 
@@ -7997,10 +7999,10 @@ var ExportModule = (_ExportModule = {
       $value.attr('placeholder', '');
     } else if (fieldType === 'number') {
       $value.attr('type', 'number');
-      $value.attr('placeholder', 'Enter number...');
+      $value.attr('placeholder', window.aieData.i18n.enterNumberPlaceholder);
     } else {
       $value.attr('type', 'text');
-      $value.attr('placeholder', 'Enter value...');
+      $value.attr('placeholder', window.aieData.i18n.enterFilterValue);
     }
   },
   /**
@@ -8010,84 +8012,84 @@ var ExportModule = (_ExportModule = {
     var conditions = {
       string: [{
         value: 'equals',
-        label: 'Equals'
+        label: window.aieData.i18n.equals
       }, {
         value: 'not_equals',
-        label: "Doesn't Equal"
+        label: window.aieData.i18n.notEquals
       }, {
         value: 'in',
-        label: 'In'
+        label: window.aieData.i18n.inFilter
       }, {
         value: 'not_in',
-        label: 'Not In'
+        label: window.aieData.i18n.notInFilter
       }, {
         value: 'contains',
-        label: 'Contains'
+        label: window.aieData.i18n.contains
       }, {
         value: 'not_contains',
-        label: "Doesn't Contain"
+        label: window.aieData.i18n.notContains
       }, {
         value: 'is_empty',
-        label: 'Is Empty'
+        label: window.aieData.i18n.isEmpty
       }, {
         value: 'is_not_empty',
-        label: 'Is Not Empty'
+        label: window.aieData.i18n.isNotEmpty
       }],
       number: [{
         value: 'equals',
-        label: 'Equals'
+        label: window.aieData.i18n.equals
       }, {
         value: 'not_equals',
-        label: "Doesn't Equal"
+        label: window.aieData.i18n.notEquals
       }, {
         value: 'in',
-        label: 'In'
+        label: window.aieData.i18n.inFilter
       }, {
         value: 'not_in',
-        label: 'Not In'
+        label: window.aieData.i18n.notInFilter
       }, {
         value: 'greater',
-        label: 'Greater Than'
+        label: window.aieData.i18n.greaterThan
       }, {
         value: 'equals_or_greater',
-        label: 'Equal To Or Greater Than'
+        label: window.aieData.i18n.greaterOrEqual
       }, {
         value: 'less',
-        label: 'Less Than'
+        label: window.aieData.i18n.lessThan
       }, {
         value: 'equals_or_less',
-        label: 'Equal To Or Less Than'
+        label: window.aieData.i18n.lessOrEqual
       }, {
         value: 'is_empty',
-        label: 'Is Empty'
+        label: window.aieData.i18n.isEmpty
       }, {
         value: 'is_not_empty',
-        label: 'Is Not Empty'
+        label: window.aieData.i18n.isNotEmpty
       }],
       date: [{
         value: 'equals',
-        label: 'Equals'
+        label: window.aieData.i18n.equals
       }, {
         value: 'not_equals',
-        label: "Doesn't Equal"
+        label: window.aieData.i18n.notEquals
       }, {
         value: 'greater',
-        label: 'Newer Than'
+        label: window.aieData.i18n.newerThan || window.aieData.i18n.greaterThan
       }, {
         value: 'equals_or_greater',
-        label: 'Equal To Or Newer Than'
+        label: window.aieData.i18n.greaterOrEqual
       }, {
         value: 'less',
-        label: 'Older Than'
+        label: window.aieData.i18n.olderThan || window.aieData.i18n.lessThan
       }, {
         value: 'equals_or_less',
-        label: 'Equal To Or Older Than'
+        label: window.aieData.i18n.lessOrEqual
       }, {
         value: 'is_empty',
-        label: 'Is Empty'
+        label: window.aieData.i18n.isEmpty
       }, {
         value: 'is_not_empty',
-        label: 'Is Not Empty'
+        label: window.aieData.i18n.isNotEmpty
       }]
     };
     return conditions[fieldType] || conditions.string;
@@ -8157,7 +8159,7 @@ var ExportModule = (_ExportModule = {
 
   // Show loading state
   $tableInfo.show();
-  $columnsList.html('<p>Loading columns...</p>');
+  $columnsList.html("<p>".concat(window.aieData.i18n.loadingTableColumns, "</p>"));
 
   // Fetch columns via AJAX
   _utils__WEBPACK_IMPORTED_MODULE_1__["default"].ajax('aie_get_table_columns', {
@@ -8187,7 +8189,7 @@ var ExportModule = (_ExportModule = {
     // Refresh count to get row count
     _this17.refreshCount(false);
   })["catch"](function (error) {
-    $columnsList.html('<p class="error">Error loading columns</p>');
+    $columnsList.html("<p class=\"error\">".concat(window.aieData.i18n.errorLoadingColumns, "</p>"));
   });
 }), _defineProperty(_ExportModule, "getColumnTypeIcon", function getColumnTypeIcon(column) {
   if (column.is_primary) {
@@ -8732,15 +8734,16 @@ var FunctionLibrary = {
    * Get category label
    */
   getCategoryLabel: function getCategoryLabel(category) {
+    var _window$aieData13, _window$aieData13$i, _window$aieData14, _window$aieData14$i, _window$aieData15, _window$aieData15$i, _window$aieData16, _window$aieData16$i, _window$aieData17, _window$aieData17$i, _window$aieData18, _window$aieData18$i, _window$aieData19, _window$aieData19$i, _window$aieData20, _window$aieData20$i;
     var labels = {
-      string: 'String Operations',
-      date: 'Date & Time',
-      numeric: 'Numeric Operations',
-      html: 'HTML Operations',
-      wordpress: 'WordPress',
-      validation: 'Validation',
-      advanced: 'Advanced',
-      custom: 'Custom'
+      string: ((_window$aieData13 = window.aieData) === null || _window$aieData13 === void 0 ? void 0 : (_window$aieData13$i = _window$aieData13.i18n) === null || _window$aieData13$i === void 0 ? void 0 : _window$aieData13$i.categoryStringOperations) || 'String Operations',
+      date: ((_window$aieData14 = window.aieData) === null || _window$aieData14 === void 0 ? void 0 : (_window$aieData14$i = _window$aieData14.i18n) === null || _window$aieData14$i === void 0 ? void 0 : _window$aieData14$i.categoryDateTime) || 'Date & Time',
+      numeric: ((_window$aieData15 = window.aieData) === null || _window$aieData15 === void 0 ? void 0 : (_window$aieData15$i = _window$aieData15.i18n) === null || _window$aieData15$i === void 0 ? void 0 : _window$aieData15$i.categoryNumericOperations) || 'Numeric Operations',
+      html: ((_window$aieData16 = window.aieData) === null || _window$aieData16 === void 0 ? void 0 : (_window$aieData16$i = _window$aieData16.i18n) === null || _window$aieData16$i === void 0 ? void 0 : _window$aieData16$i.categoryHtmlOperations) || 'HTML Operations',
+      wordpress: ((_window$aieData17 = window.aieData) === null || _window$aieData17 === void 0 ? void 0 : (_window$aieData17$i = _window$aieData17.i18n) === null || _window$aieData17$i === void 0 ? void 0 : _window$aieData17$i.categoryWordPress) || 'WordPress',
+      validation: ((_window$aieData18 = window.aieData) === null || _window$aieData18 === void 0 ? void 0 : (_window$aieData18$i = _window$aieData18.i18n) === null || _window$aieData18$i === void 0 ? void 0 : _window$aieData18$i.categoryValidation) || 'Validation',
+      advanced: ((_window$aieData19 = window.aieData) === null || _window$aieData19 === void 0 ? void 0 : (_window$aieData19$i = _window$aieData19.i18n) === null || _window$aieData19$i === void 0 ? void 0 : _window$aieData19$i.categoryAdvanced) || 'Advanced',
+      custom: ((_window$aieData20 = window.aieData) === null || _window$aieData20 === void 0 ? void 0 : (_window$aieData20$i = _window$aieData20.i18n) === null || _window$aieData20$i === void 0 ? void 0 : _window$aieData20$i.categoryCustom) || 'Custom'
     };
     return labels[category] || category;
   },
@@ -8900,7 +8903,7 @@ var FunctionsModule = {
     var _this2 = this;
     return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee() {
       var _window$aieData, _window$aieData$i18n;
-      var tbody, _window$aieData2, response, data, _data$data;
+      var tbody, _window$aieData2, response, data, _data$data, _window$aieData3, _window$aieData3$i18n;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
@@ -8939,7 +8942,7 @@ var FunctionsModule = {
                 _context.next = 13;
                 break;
               }
-              throw new Error(data.message || ((_data$data = data.data) === null || _data$data === void 0 ? void 0 : _data$data.message) || 'Failed to load functions');
+              throw new Error(data.message || ((_data$data = data.data) === null || _data$data === void 0 ? void 0 : _data$data.message) || ((_window$aieData3 = window.aieData) === null || _window$aieData3 === void 0 ? void 0 : (_window$aieData3$i18n = _window$aieData3.i18n) === null || _window$aieData3$i18n === void 0 ? void 0 : _window$aieData3$i18n.failedToLoadFunctions) || 'Failed to load functions');
             case 13:
               _this2.totalPages = data.data.total_pages || 1;
               _this2.totalItems = data.data.total || 0;
@@ -8969,12 +8972,13 @@ var FunctionsModule = {
       return;
     }
     if (functions.length === 0) {
-      var _window$aieData3, _window$aieData3$i18n;
-      tbody.innerHTML = "\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan=\"4\" style=\"text-align:center; padding:40px;\">\n\t\t\t\t\t\t<div style=\"display:flex; flex-direction:column; align-items:center; gap:10px;\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-info\" style=\"font-size:48px; opacity:0.3;\"></span>\n\t\t\t\t\t\t\t<p style=\"margin:23px 0 0 0; color:#666;\">\n\t\t\t\t\t\t\t\t".concat(((_window$aieData3 = window.aieData) === null || _window$aieData3 === void 0 ? void 0 : (_window$aieData3$i18n = _window$aieData3.i18n) === null || _window$aieData3$i18n === void 0 ? void 0 : _window$aieData3$i18n.no_functions) || 'No functions found. Create your first function or browse the library.', "\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
+      var _window$aieData4, _window$aieData4$i18n;
+      tbody.innerHTML = "\n\t\t\t\t<tr>\n\t\t\t\t\t<td colspan=\"4\" style=\"text-align:center; padding:40px;\">\n\t\t\t\t\t\t<div style=\"display:flex; flex-direction:column; align-items:center; gap:10px;\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-info\" style=\"font-size:48px; opacity:0.3;\"></span>\n\t\t\t\t\t\t\t<p style=\"margin:23px 0 0 0; color:#666;\">\n\t\t\t\t\t\t\t\t".concat(((_window$aieData4 = window.aieData) === null || _window$aieData4 === void 0 ? void 0 : (_window$aieData4$i18n = _window$aieData4.i18n) === null || _window$aieData4$i18n === void 0 ? void 0 : _window$aieData4$i18n.no_functions) || 'No functions found. Create your first function or browse the library.', "\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t");
       return;
     }
     tbody.innerHTML = functions.map(function (func) {
-      return "\n\t\t\t<tr data-function-id=\"".concat(func.id, "\">\n\t\t\t\t<td class=\"column-name\">\n\t\t\t\t\t<strong>").concat(_this3.escapeHtml(func.name), "</strong>\n\t\t\t\t</td>\n\t\t\t\t<td class=\"column-description\">\n\t\t\t\t\t").concat(func.description ? _this3.escapeHtml(func.description) : '<em style="color:#999;">No description</em>', "\n\t\t\t\t</td>\n\t\t\t\t<td class=\"column-actions\">\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-edit-function\" data-id=\"").concat(func.id, "\" title=\"Edit\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-edit\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-delete-function\" data-id=\"").concat(func.id, "\" title=\"Delete\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-trash\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t</td>\n\t\t\t</tr>\n\t\t");
+      var _window$aieData5, _window$aieData5$i18n, _window$aieData6, _window$aieData6$i18n, _window$aieData7, _window$aieData7$i18n;
+      return "\n\t\t\t<tr data-function-id=\"".concat(func.id, "\">\n\t\t\t\t<td class=\"column-name\">\n\t\t\t\t\t<strong>").concat(_this3.escapeHtml(func.name), "</strong>\n\t\t\t\t</td>\n\t\t\t\t<td class=\"column-description\">\n\t\t\t\t\t").concat(func.description ? _this3.escapeHtml(func.description) : "<em style=\"color:#999;\">".concat(((_window$aieData5 = window.aieData) === null || _window$aieData5 === void 0 ? void 0 : (_window$aieData5$i18n = _window$aieData5.i18n) === null || _window$aieData5$i18n === void 0 ? void 0 : _window$aieData5$i18n.noDescription) || 'No description', "</em>"), "\n\t\t\t\t</td>\n\t\t\t\t<td class=\"column-actions\">\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-edit-function\" data-id=\"").concat(func.id, "\" title=\"").concat(((_window$aieData6 = window.aieData) === null || _window$aieData6 === void 0 ? void 0 : (_window$aieData6$i18n = _window$aieData6.i18n) === null || _window$aieData6$i18n === void 0 ? void 0 : _window$aieData6$i18n.editButton) || 'Edit', "\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-edit\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t\t<button type=\"button\" class=\"button button-small aie-delete-function\" data-id=\"").concat(func.id, "\" title=\"").concat(((_window$aieData7 = window.aieData) === null || _window$aieData7 === void 0 ? void 0 : (_window$aieData7$i18n = _window$aieData7.i18n) === null || _window$aieData7$i18n === void 0 ? void 0 : _window$aieData7$i18n.deleteButton) || 'Delete', "\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-trash\"></span>\n\t\t\t\t\t</button>\n\t\t\t\t</td>\n\t\t\t</tr>\n\t\t");
     }).join('');
 
     // Bind action buttons
@@ -8987,7 +8991,7 @@ var FunctionsModule = {
     tbody.querySelectorAll('.aie-delete-function').forEach(function (btn) {
       btn.addEventListener('click', /*#__PURE__*/function () {
         var _ref = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee2(e) {
-          var _window$aieData4, _window$aieData4$i18n;
+          var _window$aieData8, _window$aieData8$i18n;
           var id, confirmed;
           return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee2$(_context2) {
             while (1) {
@@ -8995,7 +8999,7 @@ var FunctionsModule = {
                 case 0:
                   id = e.currentTarget.dataset.id;
                   _context2.next = 3;
-                  return (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.confirmDialog)(((_window$aieData4 = window.aieData) === null || _window$aieData4 === void 0 ? void 0 : (_window$aieData4$i18n = _window$aieData4.i18n) === null || _window$aieData4$i18n === void 0 ? void 0 : _window$aieData4$i18n.confirm_delete) || 'Are you sure you want to delete this function?');
+                  return (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.confirmDialog)(((_window$aieData8 = window.aieData) === null || _window$aieData8 === void 0 ? void 0 : (_window$aieData8$i18n = _window$aieData8.i18n) === null || _window$aieData8$i18n === void 0 ? void 0 : _window$aieData8$i18n.confirm_delete) || 'Are you sure you want to delete this function?');
                 case 3:
                   confirmed = _context2.sent;
                   if (confirmed) {
@@ -9036,9 +9040,11 @@ var FunctionsModule = {
       nextBtn.disabled = this.currentPage >= this.totalPages;
     }
     if (paginationInfo) {
+      var _window$aieData9, _window$aieData9$i18n;
       var start = (this.currentPage - 1) * this.perPage + 1;
       var end = Math.min(this.currentPage * this.perPage, this.totalItems);
-      paginationInfo.textContent = "Showing ".concat(start, "-").concat(end, " of ").concat(this.totalItems, " functions");
+      var text = ((_window$aieData9 = window.aieData) === null || _window$aieData9 === void 0 ? void 0 : (_window$aieData9$i18n = _window$aieData9.i18n) === null || _window$aieData9$i18n === void 0 ? void 0 : _window$aieData9$i18n.showingFunctions) || 'Showing %1$s-%2$s of %3$s functions';
+      paginationInfo.textContent = text.replace('%1$s', start).replace('%2$s', end).replace('%3$s', this.totalItems);
     }
   },
   /**
@@ -9048,7 +9054,7 @@ var FunctionsModule = {
     var _arguments = arguments,
       _this4 = this;
     return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee3() {
-      var functionId, modal, title, form, codeTextarea, _window$aieData5, _window$aieData5$i18n, _window$aieData6, response, data, _data$data2, func, isLibrarySnippet, _window$aieData7, _window$aieData7$i18n, _window$aieData8, _window$aieData8$i18n, _window$aieData9, _window$aieData9$i18n, infoBox, modalBody, _form, _window$aieData10, _window$aieData10$i, defaultCode;
+      var functionId, modal, title, form, codeTextarea, _window$aieData10, _window$aieData10$i, _window$aieData11, response, data, _data$data2, _window$aieData12, _window$aieData12$i, func, isLibrarySnippet, _window$aieData13, _window$aieData13$i, _window$aieData14, _window$aieData14$i, _window$aieData15, _window$aieData15$i, infoBox, modalBody, _form, _window$aieData16, _window$aieData16$i, defaultCode;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee3$(_context3) {
         while (1) {
           switch (_context3.prev = _context3.next) {
@@ -9107,7 +9113,7 @@ var FunctionsModule = {
                 break;
               }
               // Edit mode - load function data
-              title.textContent = ((_window$aieData5 = window.aieData) === null || _window$aieData5 === void 0 ? void 0 : (_window$aieData5$i18n = _window$aieData5.i18n) === null || _window$aieData5$i18n === void 0 ? void 0 : _window$aieData5$i18n.edit_function) || 'Edit Function';
+              title.textContent = ((_window$aieData10 = window.aieData) === null || _window$aieData10 === void 0 ? void 0 : (_window$aieData10$i = _window$aieData10.i18n) === null || _window$aieData10$i === void 0 ? void 0 : _window$aieData10$i.edit_function) || 'Edit Function';
               _context3.prev = 18;
               _context3.next = 21;
               return fetch(window.aieData.ajaxUrl, {
@@ -9117,7 +9123,7 @@ var FunctionsModule = {
                 },
                 body: new URLSearchParams({
                   action: 'aie_functions_get',
-                  nonce: ((_window$aieData6 = window.aieData) === null || _window$aieData6 === void 0 ? void 0 : _window$aieData6.nonce) || '',
+                  nonce: ((_window$aieData11 = window.aieData) === null || _window$aieData11 === void 0 ? void 0 : _window$aieData11.nonce) || '',
                   id: functionId
                 })
               });
@@ -9131,17 +9137,17 @@ var FunctionsModule = {
                 _context3.next = 27;
                 break;
               }
-              throw new Error(data.message || ((_data$data2 = data.data) === null || _data$data2 === void 0 ? void 0 : _data$data2.message) || 'Failed to load function');
+              throw new Error(data.message || ((_data$data2 = data.data) === null || _data$data2 === void 0 ? void 0 : _data$data2.message) || ((_window$aieData12 = window.aieData) === null || _window$aieData12 === void 0 ? void 0 : (_window$aieData12$i = _window$aieData12.i18n) === null || _window$aieData12$i === void 0 ? void 0 : _window$aieData12$i.failedToLoadFunction) || 'Failed to load function');
             case 27:
               func = data.data; // Check if this is a library snippet
               isLibrarySnippet = functionId.toString().startsWith('snippet_');
               if (isLibrarySnippet) {
                 // Show info that editing a snippet will create a new custom function
-                title.textContent = ((_window$aieData7 = window.aieData) === null || _window$aieData7 === void 0 ? void 0 : (_window$aieData7$i18n = _window$aieData7.i18n) === null || _window$aieData7$i18n === void 0 ? void 0 : _window$aieData7$i18n.customize_snippet) || 'Customize Snippet';
+                title.textContent = ((_window$aieData13 = window.aieData) === null || _window$aieData13 === void 0 ? void 0 : (_window$aieData13$i = _window$aieData13.i18n) === null || _window$aieData13$i === void 0 ? void 0 : _window$aieData13$i.customize_snippet) || 'Customize Snippet';
                 infoBox = document.createElement('div');
                 infoBox.className = 'notice notice-info';
                 infoBox.style.marginTop = '15px';
-                infoBox.innerHTML = "\n\t\t\t\t\t\t<p><strong>".concat(((_window$aieData8 = window.aieData) === null || _window$aieData8 === void 0 ? void 0 : (_window$aieData8$i18n = _window$aieData8.i18n) === null || _window$aieData8$i18n === void 0 ? void 0 : _window$aieData8$i18n.snippet_customize_title) || 'Customizing Library Snippet', "</strong></p>\n\t\t\t\t\t\t<p>").concat(((_window$aieData9 = window.aieData) === null || _window$aieData9 === void 0 ? void 0 : (_window$aieData9$i18n = _window$aieData9.i18n) === null || _window$aieData9$i18n === void 0 ? void 0 : _window$aieData9$i18n.snippet_customize_info) || 'You are customizing a library snippet. Your changes will be saved as a new custom function.', "</p>\n\t\t\t\t\t");
+                infoBox.innerHTML = "\n\t\t\t\t\t\t<p><strong>".concat(((_window$aieData14 = window.aieData) === null || _window$aieData14 === void 0 ? void 0 : (_window$aieData14$i = _window$aieData14.i18n) === null || _window$aieData14$i === void 0 ? void 0 : _window$aieData14$i.snippet_customize_title) || 'Customizing Library Snippet', "</strong></p>\n\t\t\t\t\t\t<p>").concat(((_window$aieData15 = window.aieData) === null || _window$aieData15 === void 0 ? void 0 : (_window$aieData15$i = _window$aieData15.i18n) === null || _window$aieData15$i === void 0 ? void 0 : _window$aieData15$i.snippet_customize_info) || 'You are customizing a library snippet. Your changes will be saved as a new custom function.', "</p>\n\t\t\t\t\t");
                 modalBody = modal.querySelector('.aie-modal-body');
                 _form = modalBody.querySelector('form');
                 modalBody.insertBefore(infoBox, _form);
@@ -9172,7 +9178,7 @@ var FunctionsModule = {
               break;
             case 43:
               // Create mode - add default PHP opening tag
-              title.textContent = ((_window$aieData10 = window.aieData) === null || _window$aieData10 === void 0 ? void 0 : (_window$aieData10$i = _window$aieData10.i18n) === null || _window$aieData10$i === void 0 ? void 0 : _window$aieData10$i.new_function) || 'New Function';
+              title.textContent = ((_window$aieData16 = window.aieData) === null || _window$aieData16 === void 0 ? void 0 : (_window$aieData16$i = _window$aieData16.i18n) === null || _window$aieData16$i === void 0 ? void 0 : _window$aieData16$i.new_function) || 'New Function';
 
               // Set default PHP code template
               defaultCode = '<?php\n\n';
@@ -9204,6 +9210,7 @@ var FunctionsModule = {
   openEditorWithSnippet: function openEditorWithSnippet(snippetData) {
     var _this5 = this;
     return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee4() {
+      var _window$aieData17, _window$aieData17$i;
       var modal, title, form, codeTextarea, code;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee4$(_context4) {
         while (1) {
@@ -9249,7 +9256,7 @@ var FunctionsModule = {
               }
 
               // Set title
-              title.textContent = 'Customize Function';
+              title.textContent = ((_window$aieData17 = window.aieData) === null || _window$aieData17 === void 0 ? void 0 : (_window$aieData17$i = _window$aieData17.i18n) === null || _window$aieData17$i === void 0 ? void 0 : _window$aieData17$i.customizeFunction) || 'Customize Function';
 
               // Fill form with snippet data - always use 'custom' category
               document.getElementById('aie-function-name').value = snippetData.name || '';
@@ -9304,8 +9311,8 @@ var FunctionsModule = {
   saveFunction: function saveFunction() {
     var _this6 = this;
     return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee5() {
-      var _window$aieData14;
-      var codeTextarea, code, name, category, _window$aieData11, _window$aieData11$i, _window$aieData12, _window$aieData12$i, _window$aieData13, _window$aieData13$i, functionId, formData, _window$aieData15, _window$aieData15$i, response, contentType, text, data, _data$data3, modal, errorMessage;
+      var _window$aieData21;
+      var codeTextarea, code, name, category, _window$aieData18, _window$aieData18$i, _window$aieData19, _window$aieData19$i, _window$aieData20, _window$aieData20$i, functionId, formData, _window$aieData24, _window$aieData24$i, response, contentType, _window$aieData22, _window$aieData22$i, text, data, _data$data3, _window$aieData23, _window$aieData23$i, modal, errorMessage, _window$aieData25, _window$aieData25$i;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee5$(_context5) {
         while (1) {
           switch (_context5.prev = _context5.next) {
@@ -9329,7 +9336,7 @@ var FunctionsModule = {
                 _context5.next = 10;
                 break;
               }
-              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(((_window$aieData11 = window.aieData) === null || _window$aieData11 === void 0 ? void 0 : (_window$aieData11$i = _window$aieData11.i18n) === null || _window$aieData11$i === void 0 ? void 0 : _window$aieData11$i.name_required) || 'Please enter a function name.');
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(((_window$aieData18 = window.aieData) === null || _window$aieData18 === void 0 ? void 0 : (_window$aieData18$i = _window$aieData18.i18n) === null || _window$aieData18$i === void 0 ? void 0 : _window$aieData18$i.name_required) || 'Please enter a function name.');
               document.getElementById('aie-function-name').focus();
               return _context5.abrupt("return");
             case 10:
@@ -9337,7 +9344,7 @@ var FunctionsModule = {
                 _context5.next = 14;
                 break;
               }
-              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(((_window$aieData12 = window.aieData) === null || _window$aieData12 === void 0 ? void 0 : (_window$aieData12$i = _window$aieData12.i18n) === null || _window$aieData12$i === void 0 ? void 0 : _window$aieData12$i.code_required) || 'Please enter the PHP code for your function.');
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(((_window$aieData19 = window.aieData) === null || _window$aieData19 === void 0 ? void 0 : (_window$aieData19$i = _window$aieData19.i18n) === null || _window$aieData19$i === void 0 ? void 0 : _window$aieData19$i.code_required) || 'Please enter the PHP code for your function.');
               // Focus on CodeMirror if available, otherwise on textarea
               if (_this6.codeEditor && _this6.codeEditor.codemirror) {
                 _this6.codeEditor.codemirror.focus();
@@ -9350,7 +9357,7 @@ var FunctionsModule = {
                 _context5.next = 18;
                 break;
               }
-              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(((_window$aieData13 = window.aieData) === null || _window$aieData13 === void 0 ? void 0 : (_window$aieData13$i = _window$aieData13.i18n) === null || _window$aieData13$i === void 0 ? void 0 : _window$aieData13$i.category_required) || 'Please select a category.');
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(((_window$aieData20 = window.aieData) === null || _window$aieData20 === void 0 ? void 0 : (_window$aieData20$i = _window$aieData20.i18n) === null || _window$aieData20$i === void 0 ? void 0 : _window$aieData20$i.category_required) || 'Please select a category.');
               document.getElementById('aie-function-category').focus();
               return _context5.abrupt("return");
             case 18:
@@ -9359,7 +9366,7 @@ var FunctionsModule = {
               functionId = document.getElementById('aie-function-id').value; // Use FormData instead of URLSearchParams to preserve newlines
               formData = new FormData();
               formData.append('action', functionId ? 'aie_functions_update' : 'aie_functions_create');
-              formData.append('nonce', ((_window$aieData14 = window.aieData) === null || _window$aieData14 === void 0 ? void 0 : _window$aieData14.nonce) || '');
+              formData.append('nonce', ((_window$aieData21 = window.aieData) === null || _window$aieData21 === void 0 ? void 0 : _window$aieData21.nonce) || '');
               formData.append('name', document.getElementById('aie-function-name').value);
               formData.append('description', document.getElementById('aie-function-description').value);
               formData.append('category', document.getElementById('aie-function-category').value);
@@ -9386,7 +9393,7 @@ var FunctionsModule = {
               return response.text();
             case 37:
               text = _context5.sent;
-              throw new Error('Server error: The function code contains errors that prevent it from being saved. Please check your PHP syntax.');
+              throw new Error(((_window$aieData22 = window.aieData) === null || _window$aieData22 === void 0 ? void 0 : (_window$aieData22$i = _window$aieData22.i18n) === null || _window$aieData22$i === void 0 ? void 0 : _window$aieData22$i.serverErrorPhpSyntax) || 'Server error: The function code contains errors that prevent it from being saved. Please check your PHP syntax.');
             case 39:
               _context5.next = 41;
               return response.json();
@@ -9396,9 +9403,9 @@ var FunctionsModule = {
                 _context5.next = 44;
                 break;
               }
-              throw new Error(data.message || ((_data$data3 = data.data) === null || _data$data3 === void 0 ? void 0 : _data$data3.message) || 'Failed to save function');
+              throw new Error(data.message || ((_data$data3 = data.data) === null || _data$data3 === void 0 ? void 0 : _data$data3.message) || ((_window$aieData23 = window.aieData) === null || _window$aieData23 === void 0 ? void 0 : (_window$aieData23$i = _window$aieData23.i18n) === null || _window$aieData23$i === void 0 ? void 0 : _window$aieData23$i.failedToSaveFunction) || 'Failed to save function');
             case 44:
-              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showNotice)(((_window$aieData15 = window.aieData) === null || _window$aieData15 === void 0 ? void 0 : (_window$aieData15$i = _window$aieData15.i18n) === null || _window$aieData15$i === void 0 ? void 0 : _window$aieData15$i.function_saved) || 'Function saved successfully');
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showNotice)(((_window$aieData24 = window.aieData) === null || _window$aieData24 === void 0 ? void 0 : (_window$aieData24$i = _window$aieData24.i18n) === null || _window$aieData24$i === void 0 ? void 0 : _window$aieData24$i.function_saved) || 'Function saved successfully');
               _this6.closeModal(document.getElementById('aie-function-editor-modal'));
               _this6.loadFunctions();
               _context5.next = 55;
@@ -9409,7 +9416,7 @@ var FunctionsModule = {
               modal = document.getElementById('aie-function-editor-modal'); // Improve error message for JSON parse errors
               errorMessage = _context5.t0.message;
               if (errorMessage.includes('Unexpected token') || errorMessage.includes('is not valid JSON')) {
-                errorMessage = 'Server error: Unable to save function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
+                errorMessage = ((_window$aieData25 = window.aieData) === null || _window$aieData25 === void 0 ? void 0 : (_window$aieData25$i = _window$aieData25.i18n) === null || _window$aieData25$i === void 0 ? void 0 : _window$aieData25$i.serverErrorUnableToSave) || 'Server error: Unable to save function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
               }
               if (modal && modal.style.display === 'flex') {
                 (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(errorMessage, modal);
@@ -9430,7 +9437,7 @@ var FunctionsModule = {
   deleteFunction: function deleteFunction(functionId) {
     var _this7 = this;
     return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee6() {
-      var _window$aieData16, _window$aieData17, _window$aieData17$i, response, data, _data$data4;
+      var _window$aieData26, _window$aieData28, _window$aieData28$i, response, data, _data$data4, _window$aieData27, _window$aieData27$i;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee6$(_context6) {
         while (1) {
           switch (_context6.prev = _context6.next) {
@@ -9444,7 +9451,7 @@ var FunctionsModule = {
                 },
                 body: new URLSearchParams({
                   action: 'aie_functions_delete',
-                  nonce: ((_window$aieData16 = window.aieData) === null || _window$aieData16 === void 0 ? void 0 : _window$aieData16.nonce) || '',
+                  nonce: ((_window$aieData26 = window.aieData) === null || _window$aieData26 === void 0 ? void 0 : _window$aieData26.nonce) || '',
                   id: functionId
                 })
               });
@@ -9458,9 +9465,9 @@ var FunctionsModule = {
                 _context6.next = 9;
                 break;
               }
-              throw new Error(data.message || ((_data$data4 = data.data) === null || _data$data4 === void 0 ? void 0 : _data$data4.message) || 'Failed to delete function');
+              throw new Error(data.message || ((_data$data4 = data.data) === null || _data$data4 === void 0 ? void 0 : _data$data4.message) || ((_window$aieData27 = window.aieData) === null || _window$aieData27 === void 0 ? void 0 : (_window$aieData27$i = _window$aieData27.i18n) === null || _window$aieData27$i === void 0 ? void 0 : _window$aieData27$i.failedToDeleteFunction) || 'Failed to delete function');
             case 9:
-              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showNotice)(((_window$aieData17 = window.aieData) === null || _window$aieData17 === void 0 ? void 0 : (_window$aieData17$i = _window$aieData17.i18n) === null || _window$aieData17$i === void 0 ? void 0 : _window$aieData17$i.function_deleted) || 'Function deleted successfully');
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showNotice)(((_window$aieData28 = window.aieData) === null || _window$aieData28 === void 0 ? void 0 : (_window$aieData28$i = _window$aieData28.i18n) === null || _window$aieData28$i === void 0 ? void 0 : _window$aieData28$i.function_deleted) || 'Function deleted successfully');
               _this7.loadFunctions();
               _context6.next = 16;
               break;
@@ -9482,7 +9489,7 @@ var FunctionsModule = {
   testFunction: function testFunction() {
     var _this8 = this;
     return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee7() {
-      var code, testValueInput, testValue, resultsDiv, modal, _window$aieData18, formData, response, contentType, text, data, _data$data5, errorMessage;
+      var code, testValueInput, testValue, resultsDiv, modal, _window$aieData29, _window$aieData29$i, _window$aieData30, _window$aieData30$i, _window$aieData31, formData, response, contentType, _window$aieData32, _window$aieData32$i, text, data, _data$data5, _window$aieData33, _window$aieData33$i, errorMessage, _window$aieData34, _window$aieData34$i;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee7$(_context7) {
         while (1) {
           switch (_context7.prev = _context7.next) {
@@ -9501,9 +9508,9 @@ var FunctionsModule = {
                 break;
               }
               if (modal && modal.style.display === 'flex') {
-                (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)('Please enter function code first', modal);
+                (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(((_window$aieData29 = window.aieData) === null || _window$aieData29 === void 0 ? void 0 : (_window$aieData29$i = _window$aieData29.i18n) === null || _window$aieData29$i === void 0 ? void 0 : _window$aieData29$i.pleaseEnterFunctionCode) || 'Please enter function code first', modal);
               } else {
-                (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showError)('Please enter function code first');
+                (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showError)(((_window$aieData30 = window.aieData) === null || _window$aieData30 === void 0 ? void 0 : (_window$aieData30$i = _window$aieData30.i18n) === null || _window$aieData30$i === void 0 ? void 0 : _window$aieData30$i.pleaseEnterFunctionCode) || 'Please enter function code first');
               }
               return _context7.abrupt("return");
             case 9:
@@ -9521,7 +9528,7 @@ var FunctionsModule = {
               // Use FormData to preserve newlines
               formData = new FormData();
               formData.append('action', 'aie_functions_test');
-              formData.append('nonce', ((_window$aieData18 = window.aieData) === null || _window$aieData18 === void 0 ? void 0 : _window$aieData18.nonce) || '');
+              formData.append('nonce', ((_window$aieData31 = window.aieData) === null || _window$aieData31 === void 0 ? void 0 : _window$aieData31.nonce) || '');
               formData.append('code', code);
               formData.append('value', testValue);
               _context7.next = 22;
@@ -9541,7 +9548,7 @@ var FunctionsModule = {
               return response.text();
             case 27:
               text = _context7.sent;
-              throw new Error('Server error: The function code contains errors. Please check your PHP syntax.');
+              throw new Error(((_window$aieData32 = window.aieData) === null || _window$aieData32 === void 0 ? void 0 : (_window$aieData32$i = _window$aieData32.i18n) === null || _window$aieData32$i === void 0 ? void 0 : _window$aieData32$i.serverErrorFunctionErrors) || 'Server error: The function code contains errors. Please check your PHP syntax.');
             case 29:
               _context7.next = 31;
               return response.json();
@@ -9551,7 +9558,7 @@ var FunctionsModule = {
                 _context7.next = 34;
                 break;
               }
-              throw new Error(data.message || ((_data$data5 = data.data) === null || _data$data5 === void 0 ? void 0 : _data$data5.message) || 'Test failed');
+              throw new Error(data.message || ((_data$data5 = data.data) === null || _data$data5 === void 0 ? void 0 : _data$data5.message) || ((_window$aieData33 = window.aieData) === null || _window$aieData33 === void 0 ? void 0 : (_window$aieData33$i = _window$aieData33.i18n) === null || _window$aieData33$i === void 0 ? void 0 : _window$aieData33$i.testFailed) || 'Test failed');
             case 34:
               // Show results
               document.querySelector('.aie-test-input').textContent = data.data.input !== undefined ? data.data.input : testValue;
@@ -9565,7 +9572,7 @@ var FunctionsModule = {
               // Improve error message for JSON parse errors
               errorMessage = _context7.t0.message;
               if (errorMessage.includes('Unexpected token') || errorMessage.includes('is not valid JSON')) {
-                errorMessage = 'Server error: Unable to test function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
+                errorMessage = ((_window$aieData34 = window.aieData) === null || _window$aieData34 === void 0 ? void 0 : (_window$aieData34$i = _window$aieData34.i18n) === null || _window$aieData34$i === void 0 ? void 0 : _window$aieData34$i.serverErrorUnableToTest) || 'Server error: Unable to test function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
               }
               if (modal && modal.style.display === 'flex') {
                 (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(errorMessage, modal);
@@ -9595,15 +9602,16 @@ var FunctionsModule = {
    * Get category label
    */
   getCategoryLabel: function getCategoryLabel(category) {
+    var _window$aieData35, _window$aieData35$i, _window$aieData36, _window$aieData36$i, _window$aieData37, _window$aieData37$i, _window$aieData38, _window$aieData38$i, _window$aieData39, _window$aieData39$i, _window$aieData40, _window$aieData40$i, _window$aieData41, _window$aieData41$i, _window$aieData42, _window$aieData42$i;
     var labels = {
-      string: 'String Operations',
-      date: 'Date & Time',
-      numeric: 'Numeric Operations',
-      html: 'HTML Operations',
-      wordpress: 'WordPress',
-      validation: 'Validation',
-      advanced: 'Advanced',
-      custom: 'Custom'
+      string: ((_window$aieData35 = window.aieData) === null || _window$aieData35 === void 0 ? void 0 : (_window$aieData35$i = _window$aieData35.i18n) === null || _window$aieData35$i === void 0 ? void 0 : _window$aieData35$i.categoryStringOperations) || 'String Operations',
+      date: ((_window$aieData36 = window.aieData) === null || _window$aieData36 === void 0 ? void 0 : (_window$aieData36$i = _window$aieData36.i18n) === null || _window$aieData36$i === void 0 ? void 0 : _window$aieData36$i.categoryDateTime) || 'Date & Time',
+      numeric: ((_window$aieData37 = window.aieData) === null || _window$aieData37 === void 0 ? void 0 : (_window$aieData37$i = _window$aieData37.i18n) === null || _window$aieData37$i === void 0 ? void 0 : _window$aieData37$i.categoryNumericOperations) || 'Numeric Operations',
+      html: ((_window$aieData38 = window.aieData) === null || _window$aieData38 === void 0 ? void 0 : (_window$aieData38$i = _window$aieData38.i18n) === null || _window$aieData38$i === void 0 ? void 0 : _window$aieData38$i.categoryHtmlOperations) || 'HTML Operations',
+      wordpress: ((_window$aieData39 = window.aieData) === null || _window$aieData39 === void 0 ? void 0 : (_window$aieData39$i = _window$aieData39.i18n) === null || _window$aieData39$i === void 0 ? void 0 : _window$aieData39$i.categoryWordPress) || 'WordPress',
+      validation: ((_window$aieData40 = window.aieData) === null || _window$aieData40 === void 0 ? void 0 : (_window$aieData40$i = _window$aieData40.i18n) === null || _window$aieData40$i === void 0 ? void 0 : _window$aieData40$i.categoryValidation) || 'Validation',
+      advanced: ((_window$aieData41 = window.aieData) === null || _window$aieData41 === void 0 ? void 0 : (_window$aieData41$i = _window$aieData41.i18n) === null || _window$aieData41$i === void 0 ? void 0 : _window$aieData41$i.categoryAdvanced) || 'Advanced',
+      custom: ((_window$aieData42 = window.aieData) === null || _window$aieData42 === void 0 ? void 0 : (_window$aieData42$i = _window$aieData42.i18n) === null || _window$aieData42$i === void 0 ? void 0 : _window$aieData42$i.categoryCustom) || 'Custom'
     };
     return labels[category] || category;
   },
@@ -9611,10 +9619,12 @@ var FunctionsModule = {
    * Get category badge HTML
    */
   getCategoryBadge: function getCategoryBadge(category) {
+    var _window$aieData44, _window$aieData44$i;
     if (category === 'library') {
-      return '<span class="aie-badge aie-badge-library">Library</span>';
+      var _window$aieData43, _window$aieData43$i;
+      return "<span class=\"aie-badge aie-badge-library\">".concat(((_window$aieData43 = window.aieData) === null || _window$aieData43 === void 0 ? void 0 : (_window$aieData43$i = _window$aieData43.i18n) === null || _window$aieData43$i === void 0 ? void 0 : _window$aieData43$i.badgeLibrary) || 'Library', "</span>");
     }
-    return '<span class="aie-badge aie-badge-custom">Custom</span>';
+    return "<span class=\"aie-badge aie-badge-custom\">".concat(((_window$aieData44 = window.aieData) === null || _window$aieData44 === void 0 ? void 0 : (_window$aieData44$i = _window$aieData44.i18n) === null || _window$aieData44$i === void 0 ? void 0 : _window$aieData44$i.badgeCustom) || 'Custom', "</span>");
   },
   /**
    * Normalize PHP code - ensure it starts with <?php and wrap in function if needed
@@ -9650,19 +9660,23 @@ var FunctionsModule = {
    * Get source badge HTML
    */
   getSourceBadge: function getSourceBadge(source) {
+    var _window$aieData46, _window$aieData46$i;
     if (source.startsWith('library:')) {
-      return '<span class="aie-badge aie-badge-library">Library</span>';
+      var _window$aieData45, _window$aieData45$i;
+      return "<span class=\"aie-badge aie-badge-library\">".concat(((_window$aieData45 = window.aieData) === null || _window$aieData45 === void 0 ? void 0 : (_window$aieData45$i = _window$aieData45.i18n) === null || _window$aieData45$i === void 0 ? void 0 : _window$aieData45$i.badgeLibrary) || 'Library', "</span>");
     }
-    return '<span class="aie-badge aie-badge-custom">Custom</span>';
+    return "<span class=\"aie-badge aie-badge-custom\">".concat(((_window$aieData46 = window.aieData) === null || _window$aieData46 === void 0 ? void 0 : (_window$aieData46$i = _window$aieData46.i18n) === null || _window$aieData46$i === void 0 ? void 0 : _window$aieData46$i.badgeCustom) || 'Custom', "</span>");
   },
   /**
    * Get status badge HTML
    */
   getStatusBadge: function getStatusBadge(status) {
+    var _window$aieData48, _window$aieData48$i;
     if (status === 'active') {
-      return '<span class="aie-badge aie-badge-active">Active</span>';
+      var _window$aieData47, _window$aieData47$i;
+      return "<span class=\"aie-badge aie-badge-active\">".concat(((_window$aieData47 = window.aieData) === null || _window$aieData47 === void 0 ? void 0 : (_window$aieData47$i = _window$aieData47.i18n) === null || _window$aieData47$i === void 0 ? void 0 : _window$aieData47$i.badgeActive) || 'Active', "</span>");
     }
-    return '<span class="aie-badge aie-badge-inactive">Inactive</span>';
+    return "<span class=\"aie-badge aie-badge-inactive\">".concat(((_window$aieData48 = window.aieData) === null || _window$aieData48 === void 0 ? void 0 : (_window$aieData48$i = _window$aieData48.i18n) === null || _window$aieData48$i === void 0 ? void 0 : _window$aieData48$i.badgeInactive) || 'Inactive', "</span>");
   },
   /**
    * Escape HTML
@@ -9676,12 +9690,12 @@ var FunctionsModule = {
    * Open AI prompt modal
    */
   openAIPromptModal: function openAIPromptModal() {
-    var _window$aieData19;
+    var _window$aieData49;
     // Check if API key is configured
-    if (!((_window$aieData19 = window.aieData) !== null && _window$aieData19 !== void 0 && _window$aieData19.hasOpenAIApiKey)) {
-      var _window$aieData20;
-      var optionsUrl = ((_window$aieData20 = window.aieData) === null || _window$aieData20 === void 0 ? void 0 : _window$aieData20.optionsUrl) || 'admin.php?page=wp-aie-plugin-options';
-      var message = 'OpenAI API key is not configured. Please configure it in Plugin Options to use AI generation.\n\nDo you want to go to Plugin Options now?';
+    if (!((_window$aieData49 = window.aieData) !== null && _window$aieData49 !== void 0 && _window$aieData49.hasOpenAIApiKey)) {
+      var _window$aieData50, _window$aieData51, _window$aieData51$i;
+      var optionsUrl = ((_window$aieData50 = window.aieData) === null || _window$aieData50 === void 0 ? void 0 : _window$aieData50.optionsUrl) || 'admin.php?page=wp-aie-plugin-options';
+      var message = ((_window$aieData51 = window.aieData) === null || _window$aieData51 === void 0 ? void 0 : (_window$aieData51$i = _window$aieData51.i18n) === null || _window$aieData51$i === void 0 ? void 0 : _window$aieData51$i.apiKeyNotConfigured) || 'OpenAI API key is not configured. Please configure it in Plugin Options to use AI generation.\n\nDo you want to go to Plugin Options now?';
       if (confirm(message)) {
         window.location.href = optionsUrl;
       }
@@ -9753,7 +9767,7 @@ var FunctionsModule = {
   generateFunctionWithAI: function generateFunctionWithAI() {
     var _this10 = this;
     return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee8() {
-      var modal, prompt, _window$aieData21, _window$aieData21$i, generatingDiv, generateBtn, _window$aieData22, _window$aieData27, _window$aieData27$i, response, _window$aieData23, _window$aieData23$i, contentType, _window$aieData24, _window$aieData24$i, data, _data$data6, _window$aieData25, _window$aieData25$i, errorMessage, _window$aieData26, _window$aieData26$i, codeTextarea, codeWithPhp, nameInput, descInput, _errorMessage, _window$aieData28, _window$aieData28$i, _window$aieData29, _window$aieData29$i, _window$aieData30, _window$aieData30$i;
+      var modal, prompt, _window$aieData52, _window$aieData52$i, generatingDiv, generateBtn, _window$aieData53, _window$aieData58, _window$aieData58$i, response, _window$aieData54, _window$aieData54$i, contentType, _window$aieData55, _window$aieData55$i, data, _data$data6, _window$aieData56, _window$aieData56$i, errorMessage, _window$aieData57, _window$aieData57$i, codeTextarea, codeWithPhp, nameInput, descInput, _errorMessage, _window$aieData59, _window$aieData59$i, _window$aieData60, _window$aieData60$i, _window$aieData61, _window$aieData61$i;
       return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee8$(_context8) {
         while (1) {
           switch (_context8.prev = _context8.next) {
@@ -9764,7 +9778,7 @@ var FunctionsModule = {
                 _context8.next = 6;
                 break;
               }
-              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(((_window$aieData21 = window.aieData) === null || _window$aieData21 === void 0 ? void 0 : (_window$aieData21$i = _window$aieData21.i18n) === null || _window$aieData21$i === void 0 ? void 0 : _window$aieData21$i.prompt_required) || 'Please describe what you want the function to do.', modal);
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(((_window$aieData52 = window.aieData) === null || _window$aieData52 === void 0 ? void 0 : (_window$aieData52$i = _window$aieData52.i18n) === null || _window$aieData52$i === void 0 ? void 0 : _window$aieData52$i.prompt_required) || 'Please describe what you want the function to do.', modal);
               document.getElementById('aie-ai-prompt').focus();
               return _context8.abrupt("return");
             case 6:
@@ -9788,7 +9802,7 @@ var FunctionsModule = {
                 },
                 body: new URLSearchParams({
                   action: 'aie_functions_generate_with_ai',
-                  nonce: ((_window$aieData22 = window.aieData) === null || _window$aieData22 === void 0 ? void 0 : _window$aieData22.nonce) || '',
+                  nonce: ((_window$aieData53 = window.aieData) === null || _window$aieData53 === void 0 ? void 0 : _window$aieData53.nonce) || '',
                   prompt: prompt
                 })
               });
@@ -9798,7 +9812,7 @@ var FunctionsModule = {
                 _context8.next = 17;
                 break;
               }
-              throw new Error(((_window$aieData23 = window.aieData) === null || _window$aieData23 === void 0 ? void 0 : (_window$aieData23$i = _window$aieData23.i18n) === null || _window$aieData23$i === void 0 ? void 0 : _window$aieData23$i.ai_server_error) || "Server error: ".concat(response.status, " ").concat(response.statusText));
+              throw new Error(((_window$aieData54 = window.aieData) === null || _window$aieData54 === void 0 ? void 0 : (_window$aieData54$i = _window$aieData54.i18n) === null || _window$aieData54$i === void 0 ? void 0 : _window$aieData54$i.ai_server_error) || "Server error: ".concat(response.status, " ").concat(response.statusText));
             case 17:
               // Check if response is JSON
               contentType = response.headers.get('content-type');
@@ -9806,7 +9820,7 @@ var FunctionsModule = {
                 _context8.next = 20;
                 break;
               }
-              throw new Error(((_window$aieData24 = window.aieData) === null || _window$aieData24 === void 0 ? void 0 : (_window$aieData24$i = _window$aieData24.i18n) === null || _window$aieData24$i === void 0 ? void 0 : _window$aieData24$i.ai_invalid_response) || 'Invalid server response. Please try again or contact support.');
+              throw new Error(((_window$aieData55 = window.aieData) === null || _window$aieData55 === void 0 ? void 0 : (_window$aieData55$i = _window$aieData55.i18n) === null || _window$aieData55$i === void 0 ? void 0 : _window$aieData55$i.ai_invalid_response) || 'Invalid server response. Please try again or contact support.');
             case 20:
               _context8.next = 22;
               return response.json();
@@ -9817,14 +9831,14 @@ var FunctionsModule = {
                 break;
               }
               // Extract error message with fallback
-              errorMessage = data.message || ((_data$data6 = data.data) === null || _data$data6 === void 0 ? void 0 : _data$data6.message) || data.data || ((_window$aieData25 = window.aieData) === null || _window$aieData25 === void 0 ? void 0 : (_window$aieData25$i = _window$aieData25.i18n) === null || _window$aieData25$i === void 0 ? void 0 : _window$aieData25$i.ai_generation_failed) || 'Failed to generate function with AI. Please try again.';
+              errorMessage = data.message || ((_data$data6 = data.data) === null || _data$data6 === void 0 ? void 0 : _data$data6.message) || data.data || ((_window$aieData56 = window.aieData) === null || _window$aieData56 === void 0 ? void 0 : (_window$aieData56$i = _window$aieData56.i18n) === null || _window$aieData56$i === void 0 ? void 0 : _window$aieData56$i.ai_generation_failed) || 'Failed to generate function with AI. Please try again.';
               throw new Error(errorMessage);
             case 26:
               if (!(!data.data || !data.data.code)) {
                 _context8.next = 28;
                 break;
               }
-              throw new Error(((_window$aieData26 = window.aieData) === null || _window$aieData26 === void 0 ? void 0 : (_window$aieData26$i = _window$aieData26.i18n) === null || _window$aieData26$i === void 0 ? void 0 : _window$aieData26$i.ai_no_code) || 'AI did not return any code. Please try a different prompt.');
+              throw new Error(((_window$aieData57 = window.aieData) === null || _window$aieData57 === void 0 ? void 0 : (_window$aieData57$i = _window$aieData57.i18n) === null || _window$aieData57$i === void 0 ? void 0 : _window$aieData57$i.ai_no_code) || 'AI did not return any code. Please try a different prompt.');
             case 28:
               // Insert generated code into the function editor
               codeTextarea = document.getElementById('aie-function-code');
@@ -9859,7 +9873,7 @@ var FunctionsModule = {
               _this10.closeModal(modal);
 
               // Show success message
-              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showNotice)(((_window$aieData27 = window.aieData) === null || _window$aieData27 === void 0 ? void 0 : (_window$aieData27$i = _window$aieData27.i18n) === null || _window$aieData27$i === void 0 ? void 0 : _window$aieData27$i.ai_generated) || 'AI has generated your function code! Please review and test it before saving.');
+              (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showNotice)(((_window$aieData58 = window.aieData) === null || _window$aieData58 === void 0 ? void 0 : (_window$aieData58$i = _window$aieData58.i18n) === null || _window$aieData58$i === void 0 ? void 0 : _window$aieData58$i.ai_generated) || 'AI has generated your function code! Please review and test it before saving.');
               _context8.next = 44;
               break;
             case 36:
@@ -9870,17 +9884,17 @@ var FunctionsModule = {
               // Determine appropriate error message
               _errorMessage = _context8.t0.message; // Handle network errors
               if (_context8.t0.name === 'TypeError' && _context8.t0.message.includes('fetch')) {
-                _errorMessage = ((_window$aieData28 = window.aieData) === null || _window$aieData28 === void 0 ? void 0 : (_window$aieData28$i = _window$aieData28.i18n) === null || _window$aieData28$i === void 0 ? void 0 : _window$aieData28$i.ai_network_error) || 'Network error. Please check your internet connection and try again.';
+                _errorMessage = ((_window$aieData59 = window.aieData) === null || _window$aieData59 === void 0 ? void 0 : (_window$aieData59$i = _window$aieData59.i18n) === null || _window$aieData59$i === void 0 ? void 0 : _window$aieData59$i.ai_network_error) || 'Network error. Please check your internet connection and try again.';
               }
 
               // Handle timeout errors
               if (_context8.t0.name === 'AbortError' || _context8.t0.message.includes('timeout')) {
-                _errorMessage = ((_window$aieData29 = window.aieData) === null || _window$aieData29 === void 0 ? void 0 : (_window$aieData29$i = _window$aieData29.i18n) === null || _window$aieData29$i === void 0 ? void 0 : _window$aieData29$i.ai_timeout_error) || 'Request timed out. The AI service may be busy. Please try again.';
+                _errorMessage = ((_window$aieData60 = window.aieData) === null || _window$aieData60 === void 0 ? void 0 : (_window$aieData60$i = _window$aieData60.i18n) === null || _window$aieData60$i === void 0 ? void 0 : _window$aieData60$i.ai_timeout_error) || 'Request timed out. The AI service may be busy. Please try again.';
               }
 
               // Handle JSON parse errors
               if (_context8.t0.name === 'SyntaxError' && _context8.t0.message.includes('JSON')) {
-                _errorMessage = ((_window$aieData30 = window.aieData) === null || _window$aieData30 === void 0 ? void 0 : (_window$aieData30$i = _window$aieData30.i18n) === null || _window$aieData30$i === void 0 ? void 0 : _window$aieData30$i.ai_invalid_response) || 'Received invalid response from server. Please try again.';
+                _errorMessage = ((_window$aieData61 = window.aieData) === null || _window$aieData61 === void 0 ? void 0 : (_window$aieData61$i = _window$aieData61.i18n) === null || _window$aieData61$i === void 0 ? void 0 : _window$aieData61$i.ai_invalid_response) || 'Received invalid response from server. Please try again.';
               }
               (0,_utils_notifications__WEBPACK_IMPORTED_MODULE_1__.showModalError)(_errorMessage, modal);
             case 44:

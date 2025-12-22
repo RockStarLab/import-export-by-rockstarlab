@@ -178,7 +178,7 @@ const FunctionsModule = {
 
 			if ( ! data.success ) {
 				throw new Error(
-					data.message || data.data?.message || 'Failed to load functions'
+					data.message || data.data?.message || window.aieData?.i18n?.failedToLoadFunctions || 'Failed to load functions'
 				);
 			}
 
@@ -238,18 +238,18 @@ const FunctionsModule = {
 					${
 						func.description
 							? this.escapeHtml( func.description )
-							: '<em style="color:#999;">No description</em>'
+							: `<em style="color:#999;">${ window.aieData?.i18n?.noDescription || 'No description' }</em>`
 					}
 				</td>
 				<td class="column-actions">
 					<button type="button" class="button button-small aie-edit-function" data-id="${
 						func.id
-					}" title="Edit">
+					}" title="${ window.aieData?.i18n?.editButton || 'Edit' }">
 						<span class="dashicons dashicons-edit"></span>
 					</button>
 					<button type="button" class="button button-small aie-delete-function" data-id="${
 						func.id
-					}" title="Delete">
+					}" title="${ window.aieData?.i18n?.deleteButton || 'Delete' }">
 						<span class="dashicons dashicons-trash"></span>
 					</button>
 				</td>
@@ -310,7 +310,11 @@ const FunctionsModule = {
 				this.currentPage * this.perPage,
 				this.totalItems
 			);
-			paginationInfo.textContent = `Showing ${ start }-${ end } of ${ this.totalItems } functions`;
+			const text = window.aieData?.i18n?.showingFunctions || 'Showing %1$s-%2$s of %3$s functions';
+			paginationInfo.textContent = text
+				.replace( '%1$s', start )
+				.replace( '%2$s', end )
+				.replace( '%3$s', this.totalItems );
 		}
 	},
 
@@ -391,7 +395,7 @@ const FunctionsModule = {
 
 				if ( ! data.success ) {
 					throw new Error(
-						data.message || data.data?.message || 'Failed to load function'
+						data.message || data.data?.message || window.aieData?.i18n?.failedToLoadFunction || 'Failed to load function'
 					);
 				}
 
@@ -508,7 +512,7 @@ const FunctionsModule = {
 		}
 
 		// Set title
-		title.textContent = 'Customize Function';
+		title.textContent = window.aieData?.i18n?.customizeFunction || 'Customize Function';
 
 		// Fill form with snippet data - always use 'custom' category
 		document.getElementById( 'aie-function-name' ).value = snippetData.name || '';
@@ -631,6 +635,7 @@ const FunctionsModule = {
 				// Response is not JSON, probably a PHP error page
 				const text = await response.text();
 				throw new Error(
+					window.aieData?.i18n?.serverErrorPhpSyntax ||
 					'Server error: The function code contains errors that prevent it from being saved. Please check your PHP syntax.'
 				);
 			}
@@ -639,7 +644,7 @@ const FunctionsModule = {
 
 			if ( ! data.success ) {
 				throw new Error(
-					data.message || data.data?.message || 'Failed to save function'
+					data.message || data.data?.message || window.aieData?.i18n?.failedToSaveFunction || 'Failed to save function'
 				);
 			}
 
@@ -663,6 +668,7 @@ const FunctionsModule = {
 				errorMessage.includes( 'is not valid JSON' )
 			) {
 				errorMessage =
+					window.aieData?.i18n?.serverErrorUnableToSave ||
 					'Server error: Unable to save function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
 			}
 
@@ -695,7 +701,7 @@ const FunctionsModule = {
 
 			if ( ! data.success ) {
 				throw new Error(
-					data.message || data.data?.message || 'Failed to delete function'
+					data.message || data.data?.message || window.aieData?.i18n?.failedToDeleteFunction || 'Failed to delete function'
 				);
 			}
 
@@ -726,9 +732,9 @@ const FunctionsModule = {
 
 		if ( ! code ) {
 			if ( modal && modal.style.display === 'flex' ) {
-				showModalError( 'Please enter function code first', modal );
+				showModalError( window.aieData?.i18n?.pleaseEnterFunctionCode || 'Please enter function code first', modal );
 			} else {
-				showError( 'Please enter function code first' );
+				showError( window.aieData?.i18n?.pleaseEnterFunctionCode || 'Please enter function code first' );
 			}
 			return;
 		}
@@ -764,6 +770,7 @@ const FunctionsModule = {
 				// Response is not JSON, probably a PHP error page
 				const text = await response.text();
 				throw new Error(
+					window.aieData?.i18n?.serverErrorFunctionErrors ||
 					'Server error: The function code contains errors. Please check your PHP syntax.'
 				);
 			}
@@ -771,7 +778,7 @@ const FunctionsModule = {
 			const data = await response.json();
 
 			if ( ! data.success ) {
-				throw new Error( data.message || data.data?.message || 'Test failed' );
+				throw new Error( data.message || data.data?.message || window.aieData?.i18n?.testFailed || 'Test failed' );
 			}
 
 			// Show results
@@ -789,6 +796,7 @@ const FunctionsModule = {
 				errorMessage.includes( 'is not valid JSON' )
 			) {
 				errorMessage =
+					window.aieData?.i18n?.serverErrorUnableToTest ||
 					'Server error: Unable to test function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.';
 			}
 
@@ -815,14 +823,14 @@ const FunctionsModule = {
 	 */
 	getCategoryLabel( category ) {
 		const labels = {
-			string: 'String Operations',
-			date: 'Date & Time',
-			numeric: 'Numeric Operations',
-			html: 'HTML Operations',
-			wordpress: 'WordPress',
-			validation: 'Validation',
-			advanced: 'Advanced',
-			custom: 'Custom',
+			string: window.aieData?.i18n?.categoryStringOperations || 'String Operations',
+			date: window.aieData?.i18n?.categoryDateTime || 'Date & Time',
+			numeric: window.aieData?.i18n?.categoryNumericOperations || 'Numeric Operations',
+			html: window.aieData?.i18n?.categoryHtmlOperations || 'HTML Operations',
+			wordpress: window.aieData?.i18n?.categoryWordPress || 'WordPress',
+			validation: window.aieData?.i18n?.categoryValidation || 'Validation',
+			advanced: window.aieData?.i18n?.categoryAdvanced || 'Advanced',
+			custom: window.aieData?.i18n?.categoryCustom || 'Custom',
 		};
 		return labels[ category ] || category;
 	},
@@ -832,9 +840,9 @@ const FunctionsModule = {
 	 */
 	getCategoryBadge( category ) {
 		if ( category === 'library' ) {
-			return '<span class="aie-badge aie-badge-library">Library</span>';
+			return `<span class="aie-badge aie-badge-library">${ window.aieData?.i18n?.badgeLibrary || 'Library' }</span>`;
 		}
-		return '<span class="aie-badge aie-badge-custom">Custom</span>';
+		return `<span class="aie-badge aie-badge-custom">${ window.aieData?.i18n?.badgeCustom || 'Custom' }</span>`;
 	},
 
 	/**
@@ -887,9 +895,9 @@ const FunctionsModule = {
 	 */
 	getSourceBadge( source ) {
 		if ( source.startsWith( 'library:' ) ) {
-			return '<span class="aie-badge aie-badge-library">Library</span>';
+			return `<span class="aie-badge aie-badge-library">${ window.aieData?.i18n?.badgeLibrary || 'Library' }</span>`;
 		}
-		return '<span class="aie-badge aie-badge-custom">Custom</span>';
+		return `<span class="aie-badge aie-badge-custom">${ window.aieData?.i18n?.badgeCustom || 'Custom' }</span>`;
 	},
 
 	/**
@@ -897,9 +905,9 @@ const FunctionsModule = {
 	 */
 	getStatusBadge( status ) {
 		if ( status === 'active' ) {
-			return '<span class="aie-badge aie-badge-active">Active</span>';
+			return `<span class="aie-badge aie-badge-active">${ window.aieData?.i18n?.badgeActive || 'Active' }</span>`;
 		}
-		return '<span class="aie-badge aie-badge-inactive">Inactive</span>';
+		return `<span class="aie-badge aie-badge-inactive">${ window.aieData?.i18n?.badgeInactive || 'Inactive' }</span>`;
 	},
 
 	/**
@@ -918,7 +926,8 @@ const FunctionsModule = {
 		// Check if API key is configured
 		if ( ! window.aieData?.hasOpenAIApiKey ) {
 			const optionsUrl = window.aieData?.optionsUrl || 'admin.php?page=wp-aie-plugin-options';
-			const message = 'OpenAI API key is not configured. Please configure it in Plugin Options to use AI generation.\n\nDo you want to go to Plugin Options now?';
+			const message = window.aieData?.i18n?.apiKeyNotConfigured ||
+				'OpenAI API key is not configured. Please configure it in Plugin Options to use AI generation.\n\nDo you want to go to Plugin Options now?';
 			
 			if ( confirm( message ) ) {
 				window.location.href = optionsUrl;

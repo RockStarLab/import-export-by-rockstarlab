@@ -6949,12 +6949,14 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
      * Open sync modal
      */
     openSyncModal: function openSyncModal() {
+      var _aiePostSyncData, _aiePostSyncData$i18n, _aiePostSyncData2, _aiePostSyncData2$i;
       var selectedIds = this.getSelectedPostIds();
       if (selectedIds.length === 0) {
         var isEditPage = $('#post_ID').length > 0;
         // If we're on the post edit page, keep the original behavior (ask to save)
         if (isEditPage) {
-          alert('Please save the post first');
+          var message = typeof aiePostSyncData !== 'undefined' && aiePostSyncData.i18n ? aiePostSyncData.i18n.pleaseSavePost : 'Please save the post first';
+          alert(message);
           return;
         }
         // If we're on the posts list (no selection), open the Browse & Pull modal directly
@@ -6963,7 +6965,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       }
 
       // Update selected count with proper text
-      var countText = selectedIds.length === 1 ? '1 post' : "".concat(selectedIds.length, " posts");
+      var countText = selectedIds.length === 1 ? ((_aiePostSyncData = aiePostSyncData) === null || _aiePostSyncData === void 0 ? void 0 : (_aiePostSyncData$i18n = _aiePostSyncData.i18n) === null || _aiePostSyncData$i18n === void 0 ? void 0 : _aiePostSyncData$i18n.onePost) || '1 post' : (((_aiePostSyncData2 = aiePostSyncData) === null || _aiePostSyncData2 === void 0 ? void 0 : (_aiePostSyncData2$i = _aiePostSyncData2.i18n) === null || _aiePostSyncData2$i === void 0 ? void 0 : _aiePostSyncData2$i.postsCount) || '%s posts').replace('%s', selectedIds.length);
       $('#aie-selected-count').text(countText);
 
       // Reset form
@@ -7068,11 +7070,15 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       var siteId = $('#aie-sync-site-select').val();
       var postIds = this.getSelectedPostIds();
       if (!siteId) {
-        alert('Please select a site');
+        var _aiePostSyncData3, _aiePostSyncData3$i;
+        var message = ((_aiePostSyncData3 = aiePostSyncData) === null || _aiePostSyncData3 === void 0 ? void 0 : (_aiePostSyncData3$i = _aiePostSyncData3.i18n) === null || _aiePostSyncData3$i === void 0 ? void 0 : _aiePostSyncData3$i.pleaseSelectSite) || 'Please select a site';
+        alert(message);
         return;
       }
       if (postIds.length === 0) {
-        alert('No posts selected');
+        var _aiePostSyncData4, _aiePostSyncData4$i;
+        var _message = ((_aiePostSyncData4 = aiePostSyncData) === null || _aiePostSyncData4 === void 0 ? void 0 : (_aiePostSyncData4$i = _aiePostSyncData4.i18n) === null || _aiePostSyncData4$i === void 0 ? void 0 : _aiePostSyncData4$i.noPostsSelected) || 'No posts selected';
+        alert(_message);
         return;
       }
 
@@ -7148,24 +7154,32 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
                   $('#aie-mapping-table-container').fadeIn(200);
                   $('#aie-mapping-confirm-btn').prop('disabled', false);
                 } else {
-                  var _response$data;
-                  alert('Failed to load remote posts: ' + (((_response$data = response.data) === null || _response$data === void 0 ? void 0 : _response$data.message) || 'Unknown error'));
+                  var _response$data, _aiePostSyncData5, _aiePostSyncData5$i, _aiePostSyncData6, _aiePostSyncData6$i;
+                  var errorMsg = ((_response$data = response.data) === null || _response$data === void 0 ? void 0 : _response$data.message) || ((_aiePostSyncData5 = aiePostSyncData) === null || _aiePostSyncData5 === void 0 ? void 0 : (_aiePostSyncData5$i = _aiePostSyncData5.i18n) === null || _aiePostSyncData5$i === void 0 ? void 0 : _aiePostSyncData5$i.unknownError) || 'Unknown error';
+                  var message = (((_aiePostSyncData6 = aiePostSyncData) === null || _aiePostSyncData6 === void 0 ? void 0 : (_aiePostSyncData6$i = _aiePostSyncData6.i18n) === null || _aiePostSyncData6$i === void 0 ? void 0 : _aiePostSyncData6$i.failedLoadRemotePosts) || 'Failed to load remote posts') + ': ' + errorMsg;
+                  alert(message);
                   _this4.closeMappingModal();
                 }
               },
               error: function error(xhr) {
-                alert('Failed to connect to remote site');
+                var _aiePostSyncData7, _aiePostSyncData7$i;
+                var message = ((_aiePostSyncData7 = aiePostSyncData) === null || _aiePostSyncData7 === void 0 ? void 0 : (_aiePostSyncData7$i = _aiePostSyncData7.i18n) === null || _aiePostSyncData7$i === void 0 ? void 0 : _aiePostSyncData7$i.failedConnectRemote) || 'Failed to connect to remote site';
+                alert(message);
                 _this4.closeMappingModal();
               }
             });
           } else {
-            var _localResponse$data;
-            alert('Failed to load local posts info: ' + (((_localResponse$data = localResponse.data) === null || _localResponse$data === void 0 ? void 0 : _localResponse$data.message) || 'Unknown error'));
+            var _localResponse$data, _aiePostSyncData8, _aiePostSyncData8$i, _aiePostSyncData9, _aiePostSyncData9$i;
+            var errorMsg = ((_localResponse$data = localResponse.data) === null || _localResponse$data === void 0 ? void 0 : _localResponse$data.message) || ((_aiePostSyncData8 = aiePostSyncData) === null || _aiePostSyncData8 === void 0 ? void 0 : (_aiePostSyncData8$i = _aiePostSyncData8.i18n) === null || _aiePostSyncData8$i === void 0 ? void 0 : _aiePostSyncData8$i.unknownError) || 'Unknown error';
+            var message = (((_aiePostSyncData9 = aiePostSyncData) === null || _aiePostSyncData9 === void 0 ? void 0 : (_aiePostSyncData9$i = _aiePostSyncData9.i18n) === null || _aiePostSyncData9$i === void 0 ? void 0 : _aiePostSyncData9$i.failedLoadLocalPosts) || 'Failed to load local posts info') + ': ' + errorMsg;
+            alert(message);
             _this4.closeMappingModal();
           }
         },
         error: function error(xhr) {
-          alert('Failed to load local posts info');
+          var _aiePostSyncData10, _aiePostSyncData10$i;
+          var message = ((_aiePostSyncData10 = aiePostSyncData) === null || _aiePostSyncData10 === void 0 ? void 0 : (_aiePostSyncData10$i = _aiePostSyncData10.i18n) === null || _aiePostSyncData10$i === void 0 ? void 0 : _aiePostSyncData10$i.failedLoadLocalPosts) || 'Failed to load local posts info';
+          alert(message);
           _this4.closeMappingModal();
         }
       });
@@ -7189,9 +7203,16 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
      * Create mapping table row
      */
     createMappingRow: function createMappingRow(postId, remotePosts) {
-      var _this6 = this;
+      var _aiePostSyncData11,
+        _aiePostSyncData11$i,
+        _aiePostSyncData12,
+        _aiePostSyncData12$i,
+        _aiePostSyncData13,
+        _aiePostSyncData13$i,
+        _this6 = this;
       // Get local post info from AJAX response or fallback to DOM
-      var postTitle = 'Post #' + postId;
+      var postHashText = ((_aiePostSyncData11 = aiePostSyncData) === null || _aiePostSyncData11 === void 0 ? void 0 : (_aiePostSyncData11$i = _aiePostSyncData11.i18n) === null || _aiePostSyncData11$i === void 0 ? void 0 : _aiePostSyncData11$i.postHash) || 'Post #%s';
+      var postTitle = postHashText.replace('%s', postId);
       var postType = 'post';
       if (this.localPostsInfo && this.localPostsInfo[postId]) {
         postTitle = this.localPostsInfo[postId].post_title || postTitle;
@@ -7205,7 +7226,8 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       var $row = $('<tr>').attr('data-local-id', postId);
 
       // Local post column
-      var $localCol = $('<td>').addClass('aie-local-post').html("\n\t\t\t\t<div class=\"aie-local-post-info\">\n\t\t\t\t\t<h4>".concat(postTitle, "</h4>\n\t\t\t\t\t<div class=\"aie-post-meta\">\n\t\t\t\t\t\t<span class=\"aie-post-type\">").concat(postType, "</span>\n\t\t\t\t\t\t<span class=\"aie-post-id\">ID: ").concat(postId, "</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t"));
+      var idLabel = ((_aiePostSyncData12 = aiePostSyncData) === null || _aiePostSyncData12 === void 0 ? void 0 : (_aiePostSyncData12$i = _aiePostSyncData12.i18n) === null || _aiePostSyncData12$i === void 0 ? void 0 : _aiePostSyncData12$i.idLabel) || 'ID:';
+      var $localCol = $('<td>').addClass('aie-local-post').html("\n\t\t\t\t<div class=\"aie-local-post-info\">\n\t\t\t\t\t<h4>".concat(postTitle, "</h4>\n\t\t\t\t\t<div class=\"aie-post-meta\">\n\t\t\t\t\t\t<span class=\"aie-post-type\">").concat(postType, "</span>\n\t\t\t\t\t\t<span class=\"aie-post-id\">").concat(idLabel, " ").concat(postId, "</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t"));
 
       // Arrow column
       var $arrowCol = $('<td>').addClass('aie-sync-arrow').html('→');
@@ -7215,7 +7237,8 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       var $select = $('<select>').addClass('aie-remote-select').attr('data-local-id', postId);
 
       // Add "Create New" option
-      $select.append("<option value=\"new\" selected class=\"aie-option-new\">\u2795 Create New Post</option>");
+      var createNewText = ((_aiePostSyncData13 = aiePostSyncData) === null || _aiePostSyncData13 === void 0 ? void 0 : (_aiePostSyncData13$i = _aiePostSyncData13.i18n) === null || _aiePostSyncData13$i === void 0 ? void 0 : _aiePostSyncData13$i.createNewPost) || '➕ Create New Post';
+      $select.append("<option value=\"new\" selected class=\"aie-option-new\">".concat(createNewText, "</option>"));
       var $wrapper = $('<div>').addClass('aie-remote-select-wrapper aie-action-new');
       $wrapper.append($select);
       $remoteCol.append($wrapper);
@@ -7231,6 +7254,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
      * Initialize Select2 on a select element with AJAX
      */
     initializeSelect2: function initializeSelect2($select, localPostTitle, localPostType) {
+      var _aiePostSyncData14, _aiePostSyncData14$i;
       var siteId = this.currentSiteId;
       var siteInfo = typeof aiePostSyncData !== 'undefined' && aiePostSyncData.connectedSites ? aiePostSyncData.connectedSites[siteId] : null;
       if (!siteInfo) {
@@ -7241,8 +7265,9 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 
       // Get human-readable post type label
       var postTypeLabel = localPostType === 'post' ? 'post' : localPostType === 'page' ? 'page' : localPostType;
+      var searchPlaceholder = ((_aiePostSyncData14 = aiePostSyncData) === null || _aiePostSyncData14 === void 0 ? void 0 : (_aiePostSyncData14$i = _aiePostSyncData14.i18n) === null || _aiePostSyncData14$i === void 0 ? void 0 : _aiePostSyncData14$i.searchForUpdate) || 'Search for a %s to update...';
       $select.select2({
-        placeholder: "Search for a ".concat(postTypeLabel, " to update..."),
+        placeholder: searchPlaceholder.replace('%s', postTypeLabel),
         allowClear: false,
         width: '100%',
         minimumInputLength: 0,
@@ -7262,6 +7287,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
             };
           },
           processResults: function processResults(response, params) {
+            var _aiePostSyncData15, _aiePostSyncData15$i;
             params.page = params.page || 1;
             if (!response.success || !response.data) {
               return {
@@ -7269,10 +7295,11 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
               };
             }
             var results = response.data.posts || [];
+            var updateTemplate = ((_aiePostSyncData15 = aiePostSyncData) === null || _aiePostSyncData15 === void 0 ? void 0 : (_aiePostSyncData15$i = _aiePostSyncData15.i18n) === null || _aiePostSyncData15$i === void 0 ? void 0 : _aiePostSyncData15$i.updatePost) || '🔄 Update: %s (ID: %s)';
             var formattedResults = results.map(function (post) {
               return {
                 id: post.ID,
-                text: "\uD83D\uDD04 Update: ".concat(post.post_title, " (ID: ").concat(post.ID, ")"),
+                text: updateTemplate.replace('%s', post.post_title).replace('%s', post.ID),
                 title: post.post_title,
                 post_type: post.post_type,
                 post_date: post.post_date
@@ -7281,9 +7308,11 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 
             // Add "Create New" option at the beginning if it's the first page
             if (params.page === 1) {
+              var _aiePostSyncData16, _aiePostSyncData16$i;
+              var createNewText = ((_aiePostSyncData16 = aiePostSyncData) === null || _aiePostSyncData16 === void 0 ? void 0 : (_aiePostSyncData16$i = _aiePostSyncData16.i18n) === null || _aiePostSyncData16$i === void 0 ? void 0 : _aiePostSyncData16$i.createNewPost) || '➕ Create New Post';
               formattedResults.unshift({
                 id: 'new',
-                text: '➕ Create New Post'
+                text: createNewText
               });
             }
             return {
@@ -7400,7 +7429,10 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
                     // Create new option if it doesn't exist
                     var optionExists = $select.find("option[value=\"".concat(post.ID, "\"]")).length > 0;
                     if (!optionExists) {
-                      var newOption = new Option("\uD83D\uDD04 Update: ".concat(post.post_title, " (ID: ").concat(post.ID, ")"), post.ID, false, true);
+                      var _aiePostSyncData17, _aiePostSyncData17$i;
+                      var updateTemplate = ((_aiePostSyncData17 = aiePostSyncData) === null || _aiePostSyncData17 === void 0 ? void 0 : (_aiePostSyncData17$i = _aiePostSyncData17.i18n) === null || _aiePostSyncData17$i === void 0 ? void 0 : _aiePostSyncData17$i.updatePost) || '🔄 Update: %s (ID: %s)';
+                      var optionText = updateTemplate.replace('%s', post.post_title).replace('%s', post.ID);
+                      var newOption = new Option(optionText, post.ID, false, true);
                       $select.append(newOption);
                     }
 
@@ -7475,7 +7507,9 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
      * Perform actual sync
      */
     performSync: function performSync(direction, siteId, postIds, postMapping) {
-      var _this8 = this;
+      var _aiePostSyncData18,
+        _aiePostSyncData18$i,
+        _this8 = this;
       // Set syncing flag
       this.isSyncing = true;
 
@@ -7487,7 +7521,8 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       $('#aie-sync-progress').show();
       $('#aie-sync-result').hide();
       $('.aie-progress-fill').css('width', '0%');
-      $('.aie-progress-text').text("Starting ".concat(direction, "..."));
+      var startingText = ((_aiePostSyncData18 = aiePostSyncData) === null || _aiePostSyncData18 === void 0 ? void 0 : (_aiePostSyncData18$i = _aiePostSyncData18.i18n) === null || _aiePostSyncData18$i === void 0 ? void 0 : _aiePostSyncData18$i.starting) || 'Starting %s...';
+      $('.aie-progress-text').text(startingText.replace('%s', direction));
 
       // Disable buttons
       $('#aie-sync-push-btn, #aie-sync-pull-btn, #aie-sync-site-select').prop('disabled', true);
@@ -7507,20 +7542,27 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
         },
         success: function success(response) {
           if (response.success) {
+            var _aiePostSyncData19, _aiePostSyncData19$i;
             $('.aie-progress-fill').css('width', '100%');
-            $('.aie-progress-text').text('Completed!');
+            var completedText = ((_aiePostSyncData19 = aiePostSyncData) === null || _aiePostSyncData19 === void 0 ? void 0 : (_aiePostSyncData19$i = _aiePostSyncData19.i18n) === null || _aiePostSyncData19$i === void 0 ? void 0 : _aiePostSyncData19$i.completed) || 'Completed!';
+            $('.aie-progress-text').text(completedText);
             setTimeout(function () {
+              var _aiePostSyncData20, _aiePostSyncData20$i;
               $('#aie-sync-progress').hide();
-              _this8.showResult('success', response.data.message || 'Sync completed successfully');
+              var successMsg = response.data.message || ((_aiePostSyncData20 = aiePostSyncData) === null || _aiePostSyncData20 === void 0 ? void 0 : (_aiePostSyncData20$i = _aiePostSyncData20.i18n) === null || _aiePostSyncData20$i === void 0 ? void 0 : _aiePostSyncData20$i.syncCompletedSuccess) || 'Sync completed successfully';
+              _this8.showResult('success', successMsg);
             }, 500);
           } else {
+            var _aiePostSyncData21, _aiePostSyncData21$i;
             $('#aie-sync-progress').hide();
-            _this8.showResult('error', response.data.message || 'Sync failed');
+            var errorMsg = response.data.message || ((_aiePostSyncData21 = aiePostSyncData) === null || _aiePostSyncData21 === void 0 ? void 0 : (_aiePostSyncData21$i = _aiePostSyncData21.i18n) === null || _aiePostSyncData21$i === void 0 ? void 0 : _aiePostSyncData21$i.syncFailed) || 'Sync failed';
+            _this8.showResult('error', errorMsg);
           }
         },
         error: function error(xhr) {
+          var _aiePostSyncData22, _aiePostSyncData22$i;
           $('#aie-sync-progress').hide();
-          var errorMessage = 'An error occurred during sync';
+          var errorMessage = ((_aiePostSyncData22 = aiePostSyncData) === null || _aiePostSyncData22 === void 0 ? void 0 : (_aiePostSyncData22$i = _aiePostSyncData22.i18n) === null || _aiePostSyncData22$i === void 0 ? void 0 : _aiePostSyncData22$i.errorDuringSync) || 'An error occurred during sync';
           if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
             errorMessage = xhr.responseJSON.data.message;
           }
@@ -7633,7 +7675,9 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     loadRemotePosts: function loadRemotePosts() {
       var _this10 = this;
       if (typeof aiePostSyncData === 'undefined') {
-        this.showBrowseError('Plugin data not loaded. Please refresh the page.');
+        var _aiePostSyncData23, _aiePostSyncData23$i;
+        var errorMsg = ((_aiePostSyncData23 = aiePostSyncData) === null || _aiePostSyncData23 === void 0 ? void 0 : (_aiePostSyncData23$i = _aiePostSyncData23.i18n) === null || _aiePostSyncData23$i === void 0 ? void 0 : _aiePostSyncData23$i.pluginDataNotLoaded) || 'Plugin data not loaded. Please refresh the page.';
+        this.showBrowseError(errorMsg);
         return;
       }
       var ajaxUrl = aiePostSyncData.ajaxurl; // lowercase 'ajaxurl' to match PHP localization
@@ -7659,12 +7703,13 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
             _this10.updatePagination(response.data);
             _this10.updateFilterCounts(response.data.status_counts);
           } else {
-            var errorMsg = response.data && response.data.message ? response.data.message : 'Failed to load posts';
-            _this10.showBrowseError(errorMsg);
+            var _errorMsg = response.data && response.data.message ? response.data.message : 'Failed to load posts';
+            _this10.showBrowseError(_errorMsg);
           }
         },
         error: function error(xhr) {
-          var errorMessage = 'An error occurred while loading posts';
+          var _aiePostSyncData24, _aiePostSyncData24$i;
+          var errorMessage = ((_aiePostSyncData24 = aiePostSyncData) === null || _aiePostSyncData24 === void 0 ? void 0 : (_aiePostSyncData24$i = _aiePostSyncData24.i18n) === null || _aiePostSyncData24$i === void 0 ? void 0 : _aiePostSyncData24$i.errorLoadingPosts) || 'An error occurred while loading posts';
           if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
             errorMessage = xhr.responseJSON.data.message;
           }
@@ -7679,7 +7724,9 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       var _this11 = this;
       $('#aie-browse-loading').hide();
       if (!posts || posts.length === 0) {
-        $('#aie-browse-posts-tree').html("\n\t\t\t\t\t<div class=\"aie-loading-posts\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-post\" style=\"font-size: 48px; opacity: 0.3; width: auto; height: auto;\"></span>\n\t\t\t\t\t\t<p>No posts found</p>\n\t\t\t\t\t</div>\n\t\t\t\t").show();
+        var _aiePostSyncData25, _aiePostSyncData25$i;
+        var noPostsText = ((_aiePostSyncData25 = aiePostSyncData) === null || _aiePostSyncData25 === void 0 ? void 0 : (_aiePostSyncData25$i = _aiePostSyncData25.i18n) === null || _aiePostSyncData25$i === void 0 ? void 0 : _aiePostSyncData25$i.noPostsFound) || 'No posts found';
+        $('#aie-browse-posts-tree').html("\n\t\t\t\t\t<div class=\"aie-loading-posts\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-post\" style=\"font-size: 48px; opacity: 0.3; width: auto; height: auto;\"></span>\n\t\t\t\t\t\t<p>".concat(noPostsText, "</p>\n\t\t\t\t\t</div>\n\t\t\t\t")).show();
         return;
       }
       var $tree = $('#aie-browse-posts-tree');
@@ -7695,13 +7742,18 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
      * Create post item element
      */
     createPostItem: function createPostItem(post) {
+      var _aiePostSyncData26, _aiePostSyncData26$i;
       var hasChildren = post.children_count > 0;
       var isSelected = this.browseState.selectedPosts.has(post.ID);
       var isExpanded = this.browseState.expandedPosts.has(post.ID);
       var date = new Date(post.post_modified);
       var formattedDate = date.toLocaleDateString();
       var $wrapper = $('<div class="aie-post-wrapper"></div>');
-      var $item = $("\n\t\t\t\t<div class=\"aie-post-item ".concat(isSelected ? 'selected' : '', " ").concat(hasChildren ? 'has-children' : '', "\" data-post-id=\"").concat(post.ID, "\">\n\t\t\t\t\t").concat(hasChildren ? "<button type=\"button\" class=\"aie-post-toggle ".concat(isExpanded ? 'expanded' : '', "\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-arrow-right-alt2\"></span>\n\t\t\t\t\t</button>") : '<span style="width: 28px; display: inline-block;"></span>', "\n\t\t\t\t\t<input type=\"checkbox\" class=\"aie-post-checkbox\" value=\"").concat(post.ID, "\" ").concat(isSelected ? 'checked' : '', " />\n\t\t\t\t\t<span class=\"aie-post-icon\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-post\"></span>\n\t\t\t\t\t</span>\n\t\t\t\t\t<div class=\"aie-post-info\">\n\t\t\t\t\t\t<div class=\"aie-post-title\">").concat(this.escapeHtml(post.post_title || '(No title)'), "</div>\n\t\t\t\t\t\t<div class=\"aie-post-meta\">\n\t\t\t\t\t\t\t<span class=\"aie-post-status ").concat(post.post_status, "\">").concat(post.post_status, "</span>\n\t\t\t\t\t\t\t<span class=\"aie-post-date\">").concat(formattedDate, "</span>\n\t\t\t\t\t\t\t").concat(hasChildren ? "<span class=\"aie-post-children-count\">".concat(post.children_count, " ").concat(post.children_count === 1 ? 'child' : 'children', "</span>") : '', "\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t"));
+      var $item = $("\n\t\t\t\t<div class=\"aie-post-item ".concat(isSelected ? 'selected' : '', " ").concat(hasChildren ? 'has-children' : '', "\" data-post-id=\"").concat(post.ID, "\">\n\t\t\t\t\t").concat(hasChildren ? "<button type=\"button\" class=\"aie-post-toggle ".concat(isExpanded ? 'expanded' : '', "\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-arrow-right-alt2\"></span>\n\t\t\t\t\t</button>") : '<span style="width: 28px; display: inline-block;"></span>', "\n\t\t\t\t\t<input type=\"checkbox\" class=\"aie-post-checkbox\" value=\"").concat(post.ID, "\" ").concat(isSelected ? 'checked' : '', " />\n\t\t\t\t\t<span class=\"aie-post-icon\">\n\t\t\t\t\t\t<span class=\"dashicons dashicons-admin-post\"></span>\n\t\t\t\t\t</span>\n\t\t\t\t\t<div class=\"aie-post-info\">\n\t\t\t\t\t\t<div class=\"aie-post-title\">").concat(this.escapeHtml(post.post_title || ((_aiePostSyncData26 = aiePostSyncData) === null || _aiePostSyncData26 === void 0 ? void 0 : (_aiePostSyncData26$i = _aiePostSyncData26.i18n) === null || _aiePostSyncData26$i === void 0 ? void 0 : _aiePostSyncData26$i.noTitle) || '(No title)'), "</div>\n\t\t\t\t\t\t<div class=\"aie-post-meta\">\n\t\t\t\t\t\t\t<span class=\"aie-post-status ").concat(post.post_status, "\">").concat(post.post_status, "</span>\n\t\t\t\t\t\t\t<span class=\"aie-post-date\">").concat(formattedDate, "</span>\n\t\t\t\t\t\t\t").concat(hasChildren ? function (_aiePostSyncData27, _aiePostSyncData27$i, _aiePostSyncData28, _aiePostSyncData28$i) {
+        var count = post.children_count;
+        var childText = count === 1 ? ((_aiePostSyncData27 = aiePostSyncData) === null || _aiePostSyncData27 === void 0 ? void 0 : (_aiePostSyncData27$i = _aiePostSyncData27.i18n) === null || _aiePostSyncData27$i === void 0 ? void 0 : _aiePostSyncData27$i.child) || 'child' : ((_aiePostSyncData28 = aiePostSyncData) === null || _aiePostSyncData28 === void 0 ? void 0 : (_aiePostSyncData28$i = _aiePostSyncData28.i18n) === null || _aiePostSyncData28$i === void 0 ? void 0 : _aiePostSyncData28$i.children) || 'children';
+        return "<span class=\"aie-post-children-count\">".concat(count, " ").concat(childText, "</span>");
+      }() : '', "\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t"));
       $wrapper.append($item);
 
       // Add children container if has children
@@ -7743,7 +7795,9 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     loadChildrenPosts: function loadChildrenPosts(parentId, $childrenContainer) {
       var _this12 = this;
       if (typeof aiePostSyncData === 'undefined') {
-        $childrenContainer.html('<div style="padding: 10px; color: #d63638;">Plugin data not loaded</div>');
+        var _aiePostSyncData29, _aiePostSyncData29$i;
+        var errorMsg = ((_aiePostSyncData29 = aiePostSyncData) === null || _aiePostSyncData29 === void 0 ? void 0 : (_aiePostSyncData29$i = _aiePostSyncData29.i18n) === null || _aiePostSyncData29$i === void 0 ? void 0 : _aiePostSyncData29$i.pluginDataNotLoaded) || 'Plugin data not loaded';
+        $childrenContainer.html("<div style=\"padding: 10px; color: #d63638;\">".concat(errorMsg, "</div>"));
         return;
       }
       var ajaxUrl = aiePostSyncData.ajaxurl; // lowercase 'ajaxurl' to match PHP localization
@@ -7768,11 +7822,15 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
               $childrenContainer.append($childItem);
             });
           } else {
-            $childrenContainer.html('<div style="padding: 10px; color: #d63638;">Failed to load children</div>');
+            var _aiePostSyncData30, _aiePostSyncData30$i;
+            var _errorMsg2 = ((_aiePostSyncData30 = aiePostSyncData) === null || _aiePostSyncData30 === void 0 ? void 0 : (_aiePostSyncData30$i = _aiePostSyncData30.i18n) === null || _aiePostSyncData30$i === void 0 ? void 0 : _aiePostSyncData30$i.failedLoadChildren) || 'Failed to load children';
+            $childrenContainer.html("<div style=\"padding: 10px; color: #d63638;\">".concat(_errorMsg2, "</div>"));
           }
         },
         error: function error() {
-          $childrenContainer.html('<div style="padding: 10px; color: #d63638;">Error loading children</div>');
+          var _aiePostSyncData31, _aiePostSyncData31$i;
+          var errorMsg = ((_aiePostSyncData31 = aiePostSyncData) === null || _aiePostSyncData31 === void 0 ? void 0 : (_aiePostSyncData31$i = _aiePostSyncData31.i18n) === null || _aiePostSyncData31$i === void 0 ? void 0 : _aiePostSyncData31$i.errorLoadingChildren) || 'Error loading children';
+          $childrenContainer.html("<div style=\"padding: 10px; color: #d63638;\">".concat(errorMsg, "</div>"));
         }
       });
     },
@@ -7799,8 +7857,11 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
      * Pull selected posts from remote site
      */
     pullSelectedPosts: function pullSelectedPosts() {
+      var _aiePostSyncData33, _aiePostSyncData33$i;
       if (this.browseState.selectedPosts.size === 0) {
-        alert('Please select at least one post');
+        var _aiePostSyncData32, _aiePostSyncData32$i;
+        var message = ((_aiePostSyncData32 = aiePostSyncData) === null || _aiePostSyncData32 === void 0 ? void 0 : (_aiePostSyncData32$i = _aiePostSyncData32.i18n) === null || _aiePostSyncData32$i === void 0 ? void 0 : _aiePostSyncData32$i.pleaseSelectOnePost) || 'Please select at least one post';
+        alert(message);
         return;
       }
       var remoteIds = Array.from(this.browseState.selectedPosts);
@@ -7822,7 +7883,8 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       $('.aie-sync-info, .aie-form-group, .aie-sync-direction, .aie-browse-section, .aie-no-selection-message').css('display', 'none');
       $('#aie-sync-progress').show();
       $('.aie-progress-fill').css('width', '0%');
-      $('.aie-progress-text').text('Pulling posts...');
+      var pullingText = ((_aiePostSyncData33 = aiePostSyncData) === null || _aiePostSyncData33 === void 0 ? void 0 : (_aiePostSyncData33$i = _aiePostSyncData33.i18n) === null || _aiePostSyncData33$i === void 0 ? void 0 : _aiePostSyncData33$i.pullingPosts) || 'Pulling posts...';
+      $('.aie-progress-text').text(pullingText);
       $('#aie-sync-result').hide();
 
       // Disable buttons during sync
