@@ -85,20 +85,25 @@ const Utils = {
 	 */
 	formatDuration( seconds ) {
 		if ( seconds < 60 ) {
-			return Math.round( seconds ) + 's';
+			return (window.aieData?.i18n?.timeFormatSeconds || '%ds')
+				.replace('%d', Math.round( seconds ));
 		}
 
 		const minutes = Math.floor( seconds / 60 );
 		const secs = Math.round( seconds % 60 );
 
 		if ( minutes < 60 ) {
-			return `${ minutes }m ${ secs }s`;
+			return (window.aieData?.i18n?.timeFormatMinutesSeconds || '%1$sm %2$ss')
+				.replace('%1$s', minutes)
+				.replace('%2$s', secs);
 		}
 
 		const hours = Math.floor( minutes / 60 );
 		const mins = minutes % 60;
 
-		return `${ hours }h ${ mins }m`;
+		return (window.aieData?.i18n?.timeFormatHoursMinutes || '%1$sh %2$sm')
+			.replace('%1$s', hours)
+			.replace('%2$s', mins);
 	},
 
 	/**
@@ -124,17 +129,18 @@ const Utils = {
 	 * @param {string} type Notice type (success|error|warning|info)
 	 */
 	showNotice( message, type = 'info' ) {
-		const noticeClass = `notice notice-${ type } is-dismissible`;
-		const noticeHtml = `
-			<div class="${ noticeClass }">
-				<p>${ message }</p>
-				<button type="button" class="notice-dismiss">
-					<span class="screen-reader-text">Dismiss this notice.</span>
-				</button>
-			</div>
-		`;
-
-		const $notice = jQuery( noticeHtml );
+		const noticeClass = 'notice notice-' + type + ' is-dismissible';
+		const dismissText = window.aieData?.i18n?.dismissNotice || 'Dismiss this notice.';
+		
+		const $notice = jQuery(
+			'<div class="' + noticeClass + '">' +
+				'<p>' + message + '</p>' +
+				'<button type="button" class="notice-dismiss">' +
+					'<span class="screen-reader-text">' + dismissText + '</span>' +
+				'</button>' +
+			'</div>'
+		);
+		
 		jQuery( '.wrap > h1' ).after( $notice );
 
 		// Auto dismiss after 5 seconds
@@ -161,13 +167,10 @@ const Utils = {
 
 		// Check file size
 		if ( file.size > maxSize ) {
-			errors.push(
-				`File size (${ this.formatFileSize(
-					file.size
-				) }) exceeds maximum allowed size (${ this.formatFileSize(
-					maxSize
-				) })`
-			);
+			const fileSizeMsg = (window.aieData?.i18n?.fileSizeExceeds || 'File size (%1$s) exceeds maximum allowed size (%2$s)')
+				.replace('%1$s', this.formatFileSize(file.size))
+				.replace('%2$s', this.formatFileSize(maxSize));
+			errors.push(fileSizeMsg);
 		}
 
 		// Check file type
@@ -181,11 +184,10 @@ const Utils = {
 			} );
 
 			if ( ! isAllowed ) {
-				errors.push(
-					`File type .${ fileExt } is not allowed. Allowed types: ${ allowedTypes.join(
-						', '
-					) }`
-				);
+				const fileTypeMsg = (window.aieData?.i18n?.fileTypeNotAllowed || 'File type .%1$s is not allowed. Allowed types: %2$s')
+					.replace('%1$s', fileExt)
+					.replace('%2$s', allowedTypes.join(', '));
+				errors.push(fileTypeMsg);
 			}
 		}
 
@@ -293,19 +295,20 @@ const Utils = {
 	 * @returns {jQuery} Progress bar element
 	 */
 	createProgressBar() {
-		return jQuery( `
-			<div class="aie-progress-container">
-				<div class="aie-progress-bar">
-					<div class="aie-progress-bar-fill" style="width: 0%;"></div>
-				</div>
-				<div class="aie-progress-stats">
-					<div class="aie-progress-percentage">0%</div>
-					<div class="aie-progress-details">
-						<span class="aie-processed">0</span> / <span class="aie-total">0</span> items
-					</div>
-				</div>
-			</div>
-		` );
+		const itemsText = window.aieData?.i18n?.jobItems || 'items';
+		return jQuery( 
+			'<div class="aie-progress-container">' +
+				'<div class="aie-progress-bar">' +
+					'<div class="aie-progress-bar-fill" style="width: 0%;"></div>' +
+				'</div>' +
+				'<div class="aie-progress-stats">' +
+					'<div class="aie-progress-percentage">0%</div>' +
+					'<div class="aie-progress-details">' +
+						'<span class="aie-processed">0</span> / <span class="aie-total">0</span> ' + itemsText +
+					'</div>' +
+				'</div>' +
+			'</div>'
+		);
 	},
 
 	/**

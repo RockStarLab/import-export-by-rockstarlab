@@ -132,7 +132,7 @@ const ContentSyncModule = {
 				<tr class="aie-no-sites">
 					<td colspan="5" style="text-align: center; padding: 40px;">
 						<span class="dashicons dashicons-admin-site" style="font-size: 48px; opacity: 0.3;"></span>
-						<p style="margin-top: 40px">No connected sites yet. Add your first connection!</p>
+						<p style="margin-top: 40px">${window.aieData.i18n.noConnectedSites || 'No connected sites yet. Add your first connection!'}</p>
 					</td>
 				</tr>
 			`);
@@ -143,7 +143,7 @@ const ContentSyncModule = {
 			const statusClass = `aie-status-${site.status}`;
 			const lastSync = site.last_sync_at
 				? new Date(site.last_sync_at).toLocaleString()
-				: 'Never';
+				: window.aieData.i18n.never || 'Never';
 
 			const row = `
 				<tr data-site-id="${site.id}">
@@ -164,13 +164,13 @@ const ContentSyncModule = {
 						${lastSync}
 					</td>
 					<td class="column-actions">
-						<button type="button" class="button button-small aie-test-connection" data-site-id="${site.id}" title="Test Connection">
+						<button type="button" class="button button-small aie-test-connection" data-site-id="${site.id}" title="${window.aieData.i18n.testConnection || 'Test Connection'}">
 							<span class="dashicons dashicons-update"></span>
 						</button>
-						<button type="button" class="button button-small aie-edit-site" data-site-id="${site.id}" title="Edit">
+						<button type="button" class="button button-small aie-edit-site" data-site-id="${site.id}" title="${window.aieData.i18n.edit || 'Edit'}">
 							<span class="dashicons dashicons-edit"></span>
 						</button>
-						<button type="button" class="button button-small aie-delete-site" data-site-id="${site.id}" title="Delete">
+						<button type="button" class="button button-small aie-delete-site" data-site-id="${site.id}" title="${window.aieData.i18n.delete || 'Delete'}">
 							<span class="dashicons dashicons-trash"></span>
 						</button>
 					</td>
@@ -195,7 +195,7 @@ const ContentSyncModule = {
 	 */
 	showAddSiteModal() {
 		const $ = jQuery;
-		$('#aie-modal-title').text('Add New Site');
+		$('#aie-modal-title').text(window.aieData.i18n.addNewSite || 'Add New Site');
 		$('#aie-site-form')[0].reset();
 		$('#aie-site-id').val('');
 		$('#aie-site-api-key').prop('required', true);
@@ -213,7 +213,7 @@ const ContentSyncModule = {
 
 		if (!site) return;
 
-		$('#aie-modal-title').text('Edit Site');
+		$('#aie-modal-title').text(window.aieData.i18n.editSite || 'Edit Site');
 		$('#aie-site-id').val(siteId);
 		$('#aie-site-name').val(site.name);
 		$('#aie-site-url').val(site.url);
@@ -276,12 +276,12 @@ const ContentSyncModule = {
 		const $saveBtn = $('#aie-save-site-btn');
 		// Check if we're validating API key
 		const hasApiKey = data.api_key && data.api_key.trim() !== '';
-		const buttonText = (isEdit && !hasApiKey) ? 'Updating...' : 'Validating & Saving...';
+		const buttonText = (isEdit && !hasApiKey) ? (window.aieData.i18n.updating || 'Updating...') : (window.aieData.i18n.validatingSaving || 'Validating & Saving...');
 		$saveBtn.prop('disabled', true).text(buttonText);
 
 		// Show info message when validating API key
 		if (hasApiKey) {
-			this.showModalNotice('info', 'Validating API key...', 'Please wait while we verify the connection to the remote site.');
+			this.showModalNotice('info', window.aieData.i18n.validatingApiKey || 'Validating API key...', window.aieData.i18n.pleaseWaitVerifying || 'Please wait while we verify the connection to the remote site.');
 		}
 
 		$.ajax({
@@ -290,17 +290,17 @@ const ContentSyncModule = {
 			data: data,
 			success: (response) => {
 				if (response.success) {
-					const message = response.data.message || 'Operation completed successfully';
+					const message = response.data.message || window.aieData.i18n.operationCompleted || 'Operation completed successfully';
 					
 					// Check if no changes were made
 					if (message.includes('No changes')) {
-						this.showModalNotice('info', 'No Changes', message);
+						this.showModalNotice('info', window.aieData.i18n.noChanges || 'No Changes', message);
 						// Close modal after delay
 						setTimeout(() => {
 							$('#aie-site-modal').hide();
 						}, 2000);
 					} else {
-						this.showModalNotice('success', 'Success!', message);
+						this.showModalNotice('success', window.aieData.i18n.success || 'Success!', message);
 						// Close modal after short delay
 						setTimeout(() => {
 							$('#aie-site-modal').hide();
@@ -309,12 +309,12 @@ const ContentSyncModule = {
 						}, 1500);
 					}
 				} else {
-					this.showModalNotice('error', 'Validation Failed', response.data.message || 'Failed to save site connection');
+					this.showModalNotice('error', window.aieData.i18n.validationFailed || 'Validation Failed', response.data.message || window.aieData.i18n.failedSaveSiteConnection || 'Failed to save site connection');
 				}
 			},
 			error: (xhr) => {
-				let errorTitle = 'Connection Error';
-				let errorMessage = 'An unexpected error occurred while trying to save the site connection.';
+				let errorTitle = window.aieData.i18n.connectionError || 'Connection Error';
+				let errorMessage = window.aieData.i18n.unexpectedError || 'An unexpected error occurred while trying to save the site connection.';
 				let errorDetails = [];
 
 				// Check if we have a response from the server with error message
@@ -329,45 +329,45 @@ const ContentSyncModule = {
 					
 					// Parse specific error types and add helpful details
 					if (errorMessage.includes('Cannot connect to remote site')) {
-						errorTitle = 'Connection Failed';
-						errorDetails.push('Possible reasons:');
-						errorDetails.push('- The URL is incorrect or not accessible');
-						errorDetails.push('- The remote site is offline');
-						errorDetails.push('- Network or firewall issues are blocking the connection');
+						errorTitle = window.aieData.i18n.connectionFailed || 'Connection Failed';
+						errorDetails.push(window.aieData.i18n.possibleReasons || 'Possible reasons:');
+						errorDetails.push(window.aieData.i18n.urlIncorrect || '- The URL is incorrect or not accessible');
+						errorDetails.push(window.aieData.i18n.remoteSiteOffline || '- The remote site is offline');
+						errorDetails.push(window.aieData.i18n.networkFirewall || '- Network or firewall issues are blocking the connection');
 					} else if (errorMessage.includes('Invalid API key')) {
-						errorTitle = 'Invalid API Key';
-						errorDetails.push('To resolve this issue:');
-						errorDetails.push('- Go to Content Sync page on the remote site');
-						errorDetails.push('- Click "Show Details" to reveal the API key');
-						errorDetails.push('- Copy the entire key and paste it here');
+						errorTitle = window.aieData.i18n.invalidApiKey || 'Invalid API Key';
+						errorDetails.push(window.aieData.i18n.toResolveIssue || 'To resolve this issue:');
+						errorDetails.push(window.aieData.i18n.goToContentSync || '- Go to Content Sync page on the remote site');
+						errorDetails.push(window.aieData.i18n.clickShowDetails || '- Click "Show Details" to reveal the API key');
+						errorDetails.push(window.aieData.i18n.copyEntireKey || '- Copy the entire key and paste it here');
 					} else if (errorMessage.includes('plugin is not installed') || errorMessage.includes('plugin is not active')) {
-						errorTitle = 'Plugin Not Found';
+						errorTitle = window.aieData.i18n.pluginNotFound || 'Plugin Not Found';
 						// No additional details needed, message is clear
 					} else if (errorMessage.includes('already connected')) {
-						errorTitle = 'Duplicate Connection';
-						errorDetails.push('This site URL is already in your connected sites list.');
+						errorTitle = window.aieData.i18n.duplicateConnection || 'Duplicate Connection';
+						errorDetails.push(window.aieData.i18n.siteAlreadyConnected || 'This site URL is already in your connected sites list.');
 					} else if (errorMessage.includes('required')) {
-						errorTitle = 'Validation Error';
+						errorTitle = window.aieData.i18n.validationError || 'Validation Error';
 						// Field validation errors are clear enough
 					} else {
-						errorTitle = 'Error';
+						errorTitle = window.aieData.i18n.error || 'Error';
 						// Use the server message as-is for other errors
 					}
 				} else if (xhr.status === 0) {
-					errorTitle = 'Network Error';
-					errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+					errorTitle = window.aieData.i18n.networkError || 'Network Error';
+					errorMessage = window.aieData.i18n.unableConnectServer || 'Unable to connect to the server. Please check your internet connection.';
 				} else if (xhr.status >= 500) {
-					errorTitle = 'Server Error';
-					errorMessage = `The server returned an error (${xhr.status}). Please try again later.`;
+					errorTitle = window.aieData.i18n.serverError || 'Server Error';
+					errorMessage = (window.aieData.i18n.serverReturnedError || 'The server returned an error (%s). Please try again later.').replace('%s', xhr.status);
 				} else if (xhr.status === 404) {
-					errorTitle = 'Not Found';
-					errorMessage = 'The requested endpoint was not found. Please check if the plugin is properly installed.';
+					errorTitle = window.aieData.i18n.notFound || 'Not Found';
+					errorMessage = window.aieData.i18n.endpointNotFound || 'The requested endpoint was not found. Please check if the plugin is properly installed.';
 				}
 
 				this.showModalNotice('error', errorTitle, errorMessage, errorDetails);
 			},
 			complete: () => {
-				$saveBtn.prop('disabled', false).text('Save Connection');
+				$saveBtn.prop('disabled', false).text(window.aieData.i18n.saveConnection || 'Save Connection');
 			},
 		});
 	},
@@ -480,9 +480,9 @@ const ContentSyncModule = {
 		$info.slideToggle();
 
 		if ($info.is(':visible')) {
-			$btn.html('<span class="dashicons dashicons-hidden"></span> Hide Details');
+			$btn.html(`<span class="dashicons dashicons-hidden"></span> ${window.aieData.i18n.hideDetails || 'Hide Details'}`);
 		} else {
-			$btn.html('<span class="dashicons dashicons-visibility"></span> Show Details');
+			$btn.html(`<span class="dashicons dashicons-visibility"></span> ${window.aieData.i18n.showDetails || 'Show Details'}`);
 		}
 	},
 
@@ -498,7 +498,7 @@ const ContentSyncModule = {
 		const $btn = $('#aie-copy-my-key');
 		const originalText = $btn.html();
 
-		$btn.html('<span class="dashicons dashicons-yes"></span> Copied!');
+		$btn.html(`<span class="dashicons dashicons-yes"></span> ${window.aieData.i18n.copied || 'Copied!'}`);
 
 		setTimeout(() => {
 			$btn.html(originalText);
@@ -520,7 +520,7 @@ const ContentSyncModule = {
 
 		const $btn = $('#aie-regenerate-my-key');
 		const originalText = $btn.html();
-		$btn.prop('disabled', true).html('<span class="dashicons dashicons-update"></span> Regenerating...');
+		$btn.prop('disabled', true).html(`<span class="dashicons dashicons-update"></span> ${window.aieData.i18n.regenerating || 'Regenerating...'}`);
 
 		$.ajax({
 			url: ajaxurl,
@@ -538,7 +538,7 @@ const ContentSyncModule = {
 					this.showNotice('success', response.data.message);
 					
 					// Briefly show success state on button
-					$btn.html('<span class="dashicons dashicons-yes"></span> Regenerated!');
+					$btn.html(`<span class="dashicons dashicons-yes"></span> ${window.aieData.i18n.regenerated || 'Regenerated!'}`);
 					setTimeout(() => {
 						$btn.html(originalText);
 					}, 3000);

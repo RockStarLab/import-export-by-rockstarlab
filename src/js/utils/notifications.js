@@ -24,7 +24,7 @@ export function showNotice( message ) {
 	dismissButton.type = 'button';
 	dismissButton.className = 'notice-dismiss';
 	dismissButton.innerHTML =
-		'<span class="screen-reader-text">Dismiss this notice.</span>';
+		`<span class="screen-reader-text">${ window.aieData?.i18n?.dismissNotice || 'Dismiss this notice.' }</span>`;
 	dismissButton.addEventListener( 'click', () => {
 		notice.remove();
 	} );
@@ -52,7 +52,7 @@ export function showError( message ) {
 	dismissButton.type = 'button';
 	dismissButton.className = 'notice-dismiss';
 	dismissButton.innerHTML =
-		'<span class="screen-reader-text">Dismiss this notice.</span>';
+		`<span class="screen-reader-text">${ window.aieData?.i18n?.dismissNotice || 'Dismiss this notice.' }</span>`;
 	dismissButton.addEventListener( 'click', () => {
 		notice.remove();
 	} );
@@ -108,7 +108,7 @@ export function showModalError( message, modalElement = null ) {
 	dismissButton.type = 'button';
 	dismissButton.className = 'notice-dismiss';
 	dismissButton.innerHTML =
-		'<span class="screen-reader-text">Dismiss this notice.</span>';
+		`<span class="screen-reader-text">${ window.aieData?.i18n?.dismissNotice || 'Dismiss this notice.' }</span>`;
 	dismissButton.addEventListener( 'click', () => {
 		notice.remove();
 	} );

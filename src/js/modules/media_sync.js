@@ -205,14 +205,15 @@ const MediaSyncModule = {
 						// Show empty state message
 						this.showEmptyState();
 						Utils.showNotice(
-							'No files found matching the criteria',
+							window.aieData.i18n.noFilesFoundCriteria || 'No files found matching the criteria',
 							'info'
 						);
 					} else {
 						// Show summary instead of file list
 						this.displayScanSummary( this.scannedFiles );
+						const message = ( window.aieData.i18n.foundFilesReadyToSync || 'Found %d files ready to sync' ).replace( '%d', this.scannedFiles.length );
 						Utils.showNotice(
-							`Found ${ this.scannedFiles.length } files ready to sync`,
+							message,
 							'success'
 						);
 						
@@ -233,7 +234,7 @@ const MediaSyncModule = {
 				jQuery( '#aie-scan-folder-btn' )
 					.prop( 'disabled', false )
 					.html(
-						'<span class="dashicons dashicons-search"></span> Scan Folder'
+						`<span class="dashicons dashicons-search"></span> ${ window.aieData.i18n.scanFolder || 'Scan Folder' }`
 					);
 			} );
 	},
@@ -246,15 +247,15 @@ const MediaSyncModule = {
 		$list.html( `
 			<div class="aie-empty-state">
 				<span class="dashicons dashicons-search"></span>
-				<h3>No Files Found</h3>
-				<p>No files matching your criteria were found in the selected folder.</p>
+				<h3>${ window.aieData.i18n.noFilesFoundTitle || 'No Files Found' }</h3>
+				<p>${ window.aieData.i18n.noFilesFoundDesc || 'No files matching your criteria were found in the selected folder.' }</p>
 				<div class="aie-empty-suggestions">
-					<strong>Suggestions:</strong>
+					<strong>${ window.aieData.i18n.suggestions || 'Suggestions' }:</strong>
 					<ul>
-						<li>Check if the folder path is correct</li>
-						<li>Try enabling "Scan Recursive" to search in subfolders</li>
-						<li>Change the file type filter</li>
-						<li>Make sure the folder contains supported media files</li>
+						<li>${ window.aieData.i18n.checkFolderPath || 'Check if the folder path is correct' }</li>
+						<li>${ window.aieData.i18n.enableScanRecursive || 'Try enabling "Scan Recursive" to search in subfolders' }</li>
+						<li>${ window.aieData.i18n.changeFileTypeFilter || 'Change the file type filter' }</li>
+						<li>${ window.aieData.i18n.makeSureFolderContains || 'Make sure the folder contains supported media files' }</li>
 					</ul>
 				</div>
 			</div>
@@ -290,23 +291,27 @@ const MediaSyncModule = {
 
 		// Display summary
 		const $list = jQuery( '#aie-file-list' );
+		const foundMessage = ( window.aieData.i18n.foundFilesReadySync || 'Found %1$s files ready for synchronization (Total: %2$s)' )
+			.replace( '%1$s', `<strong>${ files.length }</strong>` )
+			.replace( '%2$s', `<strong>${ Utils.formatBytes( totalSize ) }</strong>` );
+		
 		$list.html( `
 			<div class="aie-scan-summary">
 				<div class="aie-summary-icon">
 					<span class="dashicons dashicons-yes-alt"></span>
 				</div>
 				<div class="aie-summary-content">
-					<h3>Scan Complete</h3>
-					<p>Found <strong>${ files.length } files</strong> ready for synchronization (Total: <strong>${ Utils.formatBytes( totalSize ) }</strong>)</p>
+					<h3>${ window.aieData.i18n.scanComplete || 'Scan Complete' }</h3>
+					<p>${ foundMessage }</p>
 					<div class="aie-file-types">
-						<strong>File Types:</strong>
+						<strong>${ window.aieData.i18n.fileTypes || 'File Types' }:</strong>
 						${ Object.entries( fileTypes ).map( ( [ ext, count ] ) => 
 							`<span class="aie-type-badge">${ ext.toUpperCase() } (${ count })</span>`
 						).join( '' ) }
 					</div>
 					<p class="aie-summary-note">
 						<span class="dashicons dashicons-info"></span>
-						All files will be processed in batches. Click "Start Sync" below to begin.
+						${ window.aieData.i18n.filesProcessedBatches || 'All files will be processed in batches. Click "Start Sync" below to begin.' }
 					</p>
 				</div>
 			</div>
@@ -676,12 +681,12 @@ const MediaSyncModule = {
 
 		// Update status text (fix selector - was #aie-progress-status, should be #aie-sync-status)
 		const statusTexts = {
-			pending: 'Starting...',
-			processing: 'Synchronization in Progress',
-			completed: 'Completed',
-			failed: 'Failed',
-			cancelled: 'Cancelled',
-			paused: 'Paused',
+			pending: window.aieData.i18n.starting || 'Starting...',
+			processing: window.aieData.i18n.syncInProgress || 'Synchronization in Progress',
+			completed: window.aieData.i18n.statusCompleted || 'Completed',
+			failed: window.aieData.i18n.statusFailed || 'Failed',
+			cancelled: window.aieData.i18n.statusCancelled || 'Cancelled',
+			paused: window.aieData.i18n.statusPaused || 'Paused',
 		};
 		
 		const statusText = statusTexts[ status ] || 'Processing...';
@@ -716,8 +721,9 @@ const MediaSyncModule = {
 		} );
 
 		if ( errors.length > 20 ) {
+			const moreErrorsMsg = ( window.aieData.i18n.andMoreErrors || '... and %d more errors' ).replace( '%d', errors.length - 20 );
 			$errorList.append(
-				`<li>... and ${ errors.length - 20 } more errors</li>`
+				`<li>${ moreErrorsMsg }</li>`
 			);
 		}
 
@@ -756,28 +762,32 @@ const MediaSyncModule = {
 		
 		if ( data.status === 'completed' ) {
 			// Success message with emoji and stats
+			const processedMsg = processed !== 1 
+				? ( window.aieData.i18n.successfullyProcessedPlural || 'Successfully processed %s files' ).replace( '%s', `<strong>${ processed }</strong>` )
+				: ( window.aieData.i18n.successfullyProcessed || 'Successfully processed %s file' ).replace( '%s', `<strong>${ processed }</strong>` );
+			
 			messageHtml = `
 				<div style="text-align: center; padding: 20px;">
 					<div style="font-size: 64px; margin-bottom: 15px;">🎉</div>
-					<h3 style="color: #00a32a; margin: 0 0 15px; font-size: 24px;">Synchronization Complete!</h3>
+					<h3 style="color: #00a32a; margin: 0 0 15px; font-size: 24px;">${ window.aieData.i18n.syncCompleteTitle || 'Synchronization Complete!' }</h3>
 					<p style="font-size: 16px; color: #1d2327; margin-bottom: 20px;">
-						Successfully processed <strong>${ processed }</strong> file${ processed !== 1 ? 's' : '' }
+						${ processedMsg }
 					</p>
 					<div style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap;">
 						<div style="text-align: center;">
 							<div style="font-size: 32px; color: #00a32a; font-weight: 600;">${ success }</div>
-							<div style="font-size: 12px; color: #646970; text-transform: uppercase;">✅ Imported</div>
+							<div style="font-size: 12px; color: #646970; text-transform: uppercase;">✅ ${ window.aieData.i18n.imported || 'Imported' }</div>
 						</div>
 						${ skipped > 0 ? `
 						<div style="text-align: center;">
 							<div style="font-size: 32px; color: #dba617; font-weight: 600;">${ skipped }</div>
-							<div style="font-size: 12px; color: #646970; text-transform: uppercase;">⏭️ Skipped</div>
+							<div style="font-size: 12px; color: #646970; text-transform: uppercase;">⏭️ ${ window.aieData.i18n.skipped || 'Skipped' }</div>
 						</div>
 						` : '' }
 						${ failed > 0 ? `
 						<div style="text-align: center;">
 							<div style="font-size: 32px; color: #d63638; font-weight: 600;">${ failed }</div>
-							<div style="font-size: 12px; color: #646970; text-transform: uppercase;">❌ Failed</div>
+							<div style="font-size: 12px; color: #646970; text-transform: uppercase;">❌ ${ window.aieData.i18n.statusFailed || 'Failed' }</div>
 						</div>
 						` : '' }
 					</div>
@@ -787,19 +797,23 @@ const MediaSyncModule = {
 			messageHtml = `
 				<div style="text-align: center; padding: 20px;">
 					<div style="font-size: 64px; margin-bottom: 15px;">⚠️</div>
-					<h3 style="color: #d63638; margin: 0 0 15px; font-size: 24px;">Synchronization Failed</h3>
+					<h3 style="color: #d63638; margin: 0 0 15px; font-size: 24px;">${ window.aieData.i18n.syncFailedTitle || 'Synchronization Failed' }</h3>
 					<p style="font-size: 16px; color: #646970;">
-						The synchronization process encountered an error and could not complete.
+						${ window.aieData.i18n.syncFailedDesc || 'The synchronization process encountered an error and could not complete.' }
 					</p>
 				</div>
 			`;
 		} else if ( data.status === 'cancelled' ) {
+			const cancelledMsg = processed !== 1
+				? ( window.aieData.i18n.processedBeforeCancellationPlural || 'Processed %s files before cancellation.' ).replace( '%s', `<strong>${ processed }</strong>` )
+				: ( window.aieData.i18n.processedBeforeCancellation || 'Processed %s file before cancellation.' ).replace( '%s', `<strong>${ processed }</strong>` );
+			
 			messageHtml = `
 				<div style="text-align: center; padding: 20px;">
 					<div style="font-size: 64px; margin-bottom: 15px;">🛑</div>
-					<h3 style="color: #dba617; margin: 0 0 15px; font-size: 24px;">Synchronization Cancelled</h3>
+					<h3 style="color: #dba617; margin: 0 0 15px; font-size: 24px;">${ window.aieData.i18n.syncCancelledTitle || 'Synchronization Cancelled' }</h3>
 					<p style="font-size: 16px; color: #646970;">
-						Processed <strong>${ processed }</strong> file${ processed !== 1 ? 's' : '' } before cancellation.
+						${ cancelledMsg }
 					</p>
 				</div>
 			`;
@@ -946,11 +960,11 @@ const MediaSyncModule = {
 		
 		// Reset pause button to default state
 		const $pauseBtn = jQuery( '#aie-pause-sync-btn' );
-		$pauseBtn.html( '<span class="dashicons dashicons-controls-pause"></span> Pause' );
+		$pauseBtn.html( `<span class="dashicons dashicons-controls-pause"></span> ${ window.aieData.i18n.pause || 'Pause' }` );
 		
 		// Reset header to default state
 		const $header = jQuery( '#aie-sync-progress-section .aie-card-header h2' );
-		$header.html( '<span class="dashicons dashicons-update aie-spin"></span> Synchronization in Progress' );
+		$header.html( `<span class="dashicons dashicons-update aie-spin"></span> ${ window.aieData.i18n.syncInProgress || 'Synchronization in Progress' }` );
 	},
 
 	/**
@@ -1108,7 +1122,7 @@ const MediaSyncModule = {
 				const $upButton = jQuery( `
 					<button type="button" id="aie-folder-up-btn" class="button" style="margin-bottom: 10px;">
 						<span class="dashicons dashicons-arrow-up-alt"></span>
-						Go Up
+						${ window.aieData.i18n.goUp || 'Go Up' }
 					</button>
 				` );
 				$upButton.insertBefore( $list );
@@ -1122,7 +1136,7 @@ const MediaSyncModule = {
 			<div class="aie-folder-item aie-folder-current" data-path="${ this.escapeHtml( currentPath ) }">
 				<span class="dashicons dashicons-location"></span>
 				<span class="aie-folder-name">
-					<strong>. (Use this folder)</strong>
+					<strong>${ window.aieData.i18n.useThisFolder || '. (Use this folder)' }</strong>
 				</span>
 			</div>
 		` );
