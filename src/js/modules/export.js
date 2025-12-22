@@ -1004,7 +1004,7 @@ const ExportModule = {
 		clearInterval( this.progressInterval );
 
 		// Update title
-		jQuery( '.aie-step-5 h2' ).text( 'Export Complete!' );
+		jQuery( '.aie-step-5 h2' ).text( window.aieData.i18n.exportComplete );
 		
 		// Hide the description text
 		jQuery( '.aie-step-5 .description' ).hide();
@@ -1261,7 +1261,7 @@ const ExportModule = {
 			$condition.closest( '.aie-filter-condition-wrap' ).hide();
 			
 			// Replace value input with table selector
-			$valueWrap.find( 'label' ).text( 'Select Table' );
+			$valueWrap.find( 'label' ).text( window.aieData.i18n.selectTable );
 			
 			// Create a select dropdown for tables
 			const $select = jQuery( '<select>' )
@@ -1270,7 +1270,7 @@ const ExportModule = {
 			
 			// Fetch database tables via AJAX
 			Utils.ajax( 'aie_get_database_tables', {} ).then( ( tables ) => {
-				$select.append( jQuery( '<option>' ).val( '' ).text( 'Select Table...' ) );
+				$select.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.selectTablePlaceholder ) );
 				
 				if ( tables && Array.isArray( tables ) ) {
 					tables.forEach( ( table ) => {
@@ -1290,7 +1290,7 @@ const ExportModule = {
 					} );
 				}
 			} ).catch( ( error ) => {
-				$select.append( jQuery( '<option>' ).val( '' ).text( 'Error loading tables' ) );
+				$select.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.errorLoadingTables ) );
 			} );
 			
 			$value.replaceWith( $select );
@@ -1303,7 +1303,7 @@ const ExportModule = {
 			$condition.closest( '.aie-filter-condition-wrap' ).hide();
 			
 		// Replace value input with post type selector
-		$valueWrap.find( 'label' ).text( 'Select Post Type' );
+		$valueWrap.find( 'label' ).text( window.aieData.i18n.selectPostType );
 		
 		// Create a select dropdown for post types
 		const $select = jQuery( '<select>' )
@@ -1314,7 +1314,7 @@ const ExportModule = {
 		Utils.ajax( 'aie_get_post_types', {
 			include_hidden: true,
 		} ).then( ( postTypes ) => {
-			$select.append( jQuery( '<option>' ).val( '' ).text( 'Select Post Type...' ) );
+			$select.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.selectPostTypePlaceholder ) );
 			
 			if ( postTypes && Array.isArray( postTypes ) ) {
 				postTypes.forEach( ( postType ) => {
@@ -1339,7 +1339,7 @@ const ExportModule = {
 				} );
 			}
 		} ).catch( ( error ) => {
-			$select.append( jQuery( '<option>' ).val( '' ).text( 'Error loading post types' ) );
+			$select.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.errorLoadingPostTypes ) );
 		} );
 		
 		$value.replaceWith( $select );
@@ -1352,7 +1352,7 @@ const ExportModule = {
 			$condition.closest( '.aie-filter-condition-wrap' ).hide();
 			
 			// Replace value input with taxonomy selector
-			$valueWrap.find( 'label' ).text( 'Select Taxonomy' );
+			$valueWrap.find( 'label' ).text( window.aieData.i18n.selectTaxonomy );
 			
 			// Create a select dropdown for taxonomies
 			const $select = jQuery( '<select>' )
@@ -1361,7 +1361,7 @@ const ExportModule = {
 			
 			// Fetch taxonomies via AJAX
 			Utils.ajax( 'aie_get_all_taxonomies', {} ).then( ( taxonomies ) => {
-				$select.append( jQuery( '<option>' ).val( '' ).text( 'Select Taxonomy...' ) );
+				$select.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.selectTaxonomyPlaceholder ) );
 				
 				if ( taxonomies && Array.isArray( taxonomies ) ) {
 					taxonomies.forEach( ( taxonomy ) => {
@@ -1386,7 +1386,7 @@ const ExportModule = {
 					} );
 				}
 			} ).catch( ( error ) => {
-				$select.append( jQuery( '<option>' ).val( '' ).text( 'Error loading taxonomies' ) );
+				$select.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.errorLoadingTaxonomies ) );
 			} );
 			
 			$value.replaceWith( $select );
@@ -1395,7 +1395,7 @@ const ExportModule = {
 
 		// Show condition dropdown for normal fields
 		$condition.closest( '.aie-filter-condition-wrap' ).show();
-		$valueWrap.find( 'label' ).text( 'Value' );
+		$valueWrap.find( 'label' ).text( window.aieData.i18n.value );
 
 		// If current input is a select (from post_type_selector or table_selector), replace with input
 		if ( $value.is( 'select' ) ) {
@@ -1488,7 +1488,7 @@ const ExportModule = {
 					
 					// Clear and rebuild options
 					$fieldSelect.empty();
-					$fieldSelect.append( jQuery( '<option>' ).val( '' ).text( 'Select Field...' ) );
+					$fieldSelect.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.selectField ) );
 					
 					// Add columns as options
 					columns.forEach( ( column ) => {
@@ -2328,10 +2328,10 @@ const ExportModule = {
 				
 				// Clear and populate dropdown
 				$dropdown.empty();
-				$dropdown.append( jQuery( '<option>' ).val( '' ).text( 'Select a table...' ) );
+				$dropdown.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.selectTable ) );
 
 				if ( !Array.isArray( tables ) || tables.length === 0 ) {
-					$dropdown.append( jQuery( '<option>' ).val( '' ).text( 'No tables found' ) );
+					$dropdown.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.noTablesFound ) );
 					$dropdown.prop( 'disabled', true );
 					$spinner.removeClass( 'is-active' );
 					return;
@@ -2364,7 +2364,7 @@ const ExportModule = {
 			} )
 			.catch( ( error ) => {
 				$dropdown.empty();
-				$dropdown.append( jQuery( '<option>' ).val( '' ).text( 'Error loading tables' ) );
+				$dropdown.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.errorLoadingTables ) );
 				$dropdown.prop( 'disabled', true );
 				$spinner.removeClass( 'is-active' );
 			} );

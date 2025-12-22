@@ -126,7 +126,7 @@ const JobsLogModule = {
 		const $tbody = jQuery( '#jobs-table-body' );
 		
 		if ( ! jobs || jobs.length === 0 ) {
-			$tbody.html( '<tr class="no-items"><td colspan="9">No jobs found.</td></tr>' );
+			$tbody.html( `<tr class="no-items"><td colspan="9">${window.aieData.i18n.noJobsFound}</td></tr>` );
 			return;
 		}
 
@@ -230,12 +230,14 @@ const JobsLogModule = {
 
 		$pagination.show();
 
-		// Update info text
-		const start = ( this.currentPage - 1 ) * this.perPage + 1;
-		const end = Math.min( this.currentPage * this.perPage, this.totalJobs );
-		jQuery( '.displaying-num' ).text( `Showing ${start}-${end} of ${this.totalJobs} jobs` );
-
-		// Update page numbers
+	// Update info text
+	const start = ( this.currentPage - 1 ) * this.perPage + 1;
+	const end = Math.min( this.currentPage * this.perPage, this.totalJobs );
+	const showingText = window.aieData.i18n.showingJobs
+		.replace('%1$s', start)
+		.replace('%2$s', end)
+		.replace('%3$s', this.totalJobs);
+	jQuery( '.displaying-num' ).text( showingText );		// Update page numbers
 		jQuery( '.current-page' ).text( this.currentPage );
 		jQuery( '.total-pages' ).text( this.totalPages );
 
