@@ -207,7 +207,10 @@ import 'select2/dist/css/select2.min.css';
 				const isEditPage = $('#post_ID').length > 0;
 				// If we're on the post edit page, keep the original behavior (ask to save)
 				if (isEditPage) {
-					alert('Please save the post first');
+					const message = (typeof aiePostSyncData !== 'undefined' && aiePostSyncData.i18n) 
+						? aiePostSyncData.i18n.pleaseSavePost 
+						: 'Please save the post first';
+					alert(message);
 					return;
 				}
 				// If we're on the posts list (no selection), open the Browse & Pull modal directly
@@ -216,7 +219,9 @@ import 'select2/dist/css/select2.min.css';
 			}
 
 		// Update selected count with proper text
-		const countText = selectedIds.length === 1 ? '1 post' : `${selectedIds.length} posts`;
+		const countText = selectedIds.length === 1 ? 
+			(aiePostSyncData?.i18n?.onePost || '1 post') : 
+			(aiePostSyncData?.i18n?.postsCount || '%s posts').replace('%s', selectedIds.length);
 		$('#aie-selected-count').text(countText);
 		
 		
@@ -327,12 +332,14 @@ import 'select2/dist/css/select2.min.css';
 			const postIds = this.getSelectedPostIds();
 
 			if (!siteId) {
-				alert('Please select a site');
+				const message = aiePostSyncData?.i18n?.pleaseSelectSite || 'Please select a site';
+				alert(message);
 				return;
 			}
 
 			if (postIds.length === 0) {
-				alert('No posts selected');
+				const message = aiePostSyncData?.i18n?.noPostsSelected || 'No posts selected';
+				alert(message);
 				return;
 			}
 
@@ -414,22 +421,30 @@ import 'select2/dist/css/select2.min.css';
 									$('#aie-mapping-table-container').fadeIn(200);
 									$('#aie-mapping-confirm-btn').prop('disabled', false);
 								} else {
-									alert('Failed to load remote posts: ' + (response.data?.message || 'Unknown error'));
+									const errorMsg = response.data?.message || 
+										(aiePostSyncData?.i18n?.unknownError || 'Unknown error');
+									const message = (aiePostSyncData?.i18n?.failedLoadRemotePosts || 'Failed to load remote posts') + ': ' + errorMsg;
+									alert(message);
 									this.closeMappingModal();
 								}
 							},
 							error: (xhr) => {
-								alert('Failed to connect to remote site');
+								const message = aiePostSyncData?.i18n?.failedConnectRemote || 'Failed to connect to remote site';
+								alert(message);
 								this.closeMappingModal();
 							}
 						});
 					} else {
-						alert('Failed to load local posts info: ' + (localResponse.data?.message || 'Unknown error'));
+						const errorMsg = localResponse.data?.message || 
+							(aiePostSyncData?.i18n?.unknownError || 'Unknown error');
+						const message = (aiePostSyncData?.i18n?.failedLoadLocalPosts || 'Failed to load local posts info') + ': ' + errorMsg;
+						alert(message);
 						this.closeMappingModal();
 					}
 				},
 				error: (xhr) => {
-					alert('Failed to load local posts info');
+					const message = aiePostSyncData?.i18n?.failedLoadLocalPosts || 'Failed to load local posts info';
+					alert(message);
 					this.closeMappingModal();
 				}
 			});
@@ -456,7 +471,8 @@ import 'select2/dist/css/select2.min.css';
 		 */
 		createMappingRow(postId, remotePosts) {
 			// Get local post info from AJAX response or fallback to DOM
-			let postTitle = 'Post #' + postId;
+			const postHashText = aiePostSyncData?.i18n?.postHash || 'Post #%s';
+			let postTitle = postHashText.replace('%s', postId);
 			let postType = 'post';
 
 			if (this.localPostsInfo && this.localPostsInfo[postId]) {
@@ -475,12 +491,13 @@ import 'select2/dist/css/select2.min.css';
 			const $row = $('<tr>').attr('data-local-id', postId);
 
 			// Local post column
+			const idLabel = aiePostSyncData?.i18n?.idLabel || 'ID:';
 			const $localCol = $('<td>').addClass('aie-local-post').html(`
 				<div class="aie-local-post-info">
 					<h4>${postTitle}</h4>
 					<div class="aie-post-meta">
 						<span class="aie-post-type">${postType}</span>
-						<span class="aie-post-id">ID: ${postId}</span>
+						<span class="aie-post-id">${idLabel} ${postId}</span>
 					</div>
 				</div>
 			`);
@@ -493,7 +510,8 @@ import 'select2/dist/css/select2.min.css';
 			const $select = $('<select>').addClass('aie-remote-select').attr('data-local-id', postId);
 
 			// Add "Create New" option
-			$select.append(`<option value="new" selected class="aie-option-new">➕ Create New Post</option>`);
+			const createNewText = aiePostSyncData?.i18n?.createNewPost || '➕ Create New Post';
+			$select.append(`<option value="new" selected class="aie-option-new">${createNewText}</option>`);
 
 			const $wrapper = $('<div>').addClass('aie-remote-select-wrapper aie-action-new');
 			$wrapper.append($select);
@@ -534,8 +552,9 @@ import 'select2/dist/css/select2.min.css';
 								  localPostType === 'page' ? 'page' : 
 								  localPostType;
 
+			const searchPlaceholder = aiePostSyncData?.i18n?.searchForUpdate || 'Search for a %s to update...';
 			$select.select2({
-				placeholder: `Search for a ${postTypeLabel} to update...`,
+				placeholder: searchPlaceholder.replace('%s', postTypeLabel),
 				allowClear: false,
 				width: '100%',
 				minimumInputLength: 0,
@@ -562,9 +581,10 @@ import 'select2/dist/css/select2.min.css';
 						}
 
 						const results = response.data.posts || [];
+						const updateTemplate = aiePostSyncData?.i18n?.updatePost || '🔄 Update: %s (ID: %s)';
 						const formattedResults = results.map(post => ({
 							id: post.ID,
-							text: `🔄 Update: ${post.post_title} (ID: ${post.ID})`,
+							text: updateTemplate.replace('%s', post.post_title).replace('%s', post.ID),
 							title: post.post_title,
 							post_type: post.post_type,
 							post_date: post.post_date
@@ -572,9 +592,10 @@ import 'select2/dist/css/select2.min.css';
 
 						// Add "Create New" option at the beginning if it's the first page
 						if (params.page === 1) {
+							const createNewText = aiePostSyncData?.i18n?.createNewPost || '➕ Create New Post';
 							formattedResults.unshift({
 								id: 'new',
-								text: '➕ Create New Post'
+								text: createNewText
 							});
 						}
 
@@ -692,8 +713,10 @@ import 'select2/dist/css/select2.min.css';
 									// Create new option if it doesn't exist
 									const optionExists = $select.find(`option[value="${post.ID}"]`).length > 0;
 									if (!optionExists) {
+										const updateTemplate = aiePostSyncData?.i18n?.updatePost || '🔄 Update: %s (ID: %s)';
+										const optionText = updateTemplate.replace('%s', post.post_title).replace('%s', post.ID);
 										const newOption = new Option(
-											`🔄 Update: ${post.post_title} (ID: ${post.ID})`,
+											optionText,
 											post.ID,
 											false,
 											true
@@ -782,7 +805,8 @@ import 'select2/dist/css/select2.min.css';
 			$('#aie-sync-progress').show();
 			$('#aie-sync-result').hide();
 			$('.aie-progress-fill').css('width', '0%');
-			$('.aie-progress-text').text(`Starting ${direction}...`);
+			const startingText = aiePostSyncData?.i18n?.starting || 'Starting %s...';
+			$('.aie-progress-text').text(startingText.replace('%s', direction));
 
 			// Disable buttons
 			$('#aie-sync-push-btn, #aie-sync-pull-btn, #aie-sync-site-select').prop('disabled', true);
@@ -808,21 +832,26 @@ import 'select2/dist/css/select2.min.css';
 				success: (response) => {
 					if (response.success) {
 						$('.aie-progress-fill').css('width', '100%');
-						$('.aie-progress-text').text('Completed!');
+						const completedText = aiePostSyncData?.i18n?.completed || 'Completed!';
+						$('.aie-progress-text').text(completedText);
 
 						setTimeout(() => {
 							$('#aie-sync-progress').hide();
-							this.showResult('success', response.data.message || 'Sync completed successfully');
+							const successMsg = response.data.message || 
+								(aiePostSyncData?.i18n?.syncCompletedSuccess || 'Sync completed successfully');
+							this.showResult('success', successMsg);
 						}, 500);
 					} else {
 						$('#aie-sync-progress').hide();
-						this.showResult('error', response.data.message || 'Sync failed');
+						const errorMsg = response.data.message || 
+							(aiePostSyncData?.i18n?.syncFailed || 'Sync failed');
+						this.showResult('error', errorMsg);
 					}
 				},
 				error: (xhr) => {
 					$('#aie-sync-progress').hide();
 					
-					let errorMessage = 'An error occurred during sync';
+					let errorMessage = aiePostSyncData?.i18n?.errorDuringSync || 'An error occurred during sync';
 					if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
 						errorMessage = xhr.responseJSON.data.message;
 					}
@@ -939,7 +968,9 @@ import 'select2/dist/css/select2.min.css';
 		 */
 		loadRemotePosts() {
 			if (typeof aiePostSyncData === 'undefined') {
-				this.showBrowseError('Plugin data not loaded. Please refresh the page.');
+				const errorMsg = aiePostSyncData?.i18n?.pluginDataNotLoaded || 
+					'Plugin data not loaded. Please refresh the page.';
+				this.showBrowseError(errorMsg);
 				return;
 			}
 
@@ -973,7 +1004,8 @@ import 'select2/dist/css/select2.min.css';
 				}
 			},
 			error: (xhr) => {
-				let errorMessage = 'An error occurred while loading posts';
+				let errorMessage = aiePostSyncData?.i18n?.errorLoadingPosts || 
+					'An error occurred while loading posts';
 				if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
 					errorMessage = xhr.responseJSON.data.message;
 				}
@@ -987,10 +1019,11 @@ import 'select2/dist/css/select2.min.css';
 			$('#aie-browse-loading').hide();
 
 			if (!posts || posts.length === 0) {
+				const noPostsText = aiePostSyncData?.i18n?.noPostsFound || 'No posts found';
 				$('#aie-browse-posts-tree').html(`
 					<div class="aie-loading-posts">
 						<span class="dashicons dashicons-admin-post" style="font-size: 48px; opacity: 0.3; width: auto; height: auto;"></span>
-						<p>No posts found</p>
+						<p>${noPostsText}</p>
 					</div>
 				`).show();
 				return;
@@ -1031,11 +1064,17 @@ import 'select2/dist/css/select2.min.css';
 						<span class="dashicons dashicons-admin-post"></span>
 					</span>
 					<div class="aie-post-info">
-						<div class="aie-post-title">${this.escapeHtml(post.post_title || '(No title)')}</div>
+						<div class="aie-post-title">${this.escapeHtml(post.post_title || (aiePostSyncData?.i18n?.noTitle || '(No title)'))}</div>
 						<div class="aie-post-meta">
 							<span class="aie-post-status ${post.post_status}">${post.post_status}</span>
 							<span class="aie-post-date">${formattedDate}</span>
-							${hasChildren ? `<span class="aie-post-children-count">${post.children_count} ${post.children_count === 1 ? 'child' : 'children'}</span>` : ''}
+							${hasChildren ? (() => {
+								const count = post.children_count;
+								const childText = count === 1 ? 
+									(aiePostSyncData?.i18n?.child || 'child') : 
+									(aiePostSyncData?.i18n?.children || 'children');
+								return `<span class="aie-post-children-count">${count} ${childText}</span>`;
+							})() : ''}
 						</div>
 					</div>
 				</div>
@@ -1090,7 +1129,9 @@ import 'select2/dist/css/select2.min.css';
 		 */
 		loadChildrenPosts(parentId, $childrenContainer) {
 			if (typeof aiePostSyncData === 'undefined') {
-				$childrenContainer.html('<div style="padding: 10px; color: #d63638;">Plugin data not loaded</div>');
+				const errorMsg = aiePostSyncData?.i18n?.pluginDataNotLoaded || 
+					'Plugin data not loaded';
+				$childrenContainer.html(`<div style="padding: 10px; color: #d63638;">${errorMsg}</div>`);
 				return;
 			}
 
@@ -1117,11 +1158,15 @@ import 'select2/dist/css/select2.min.css';
 							$childrenContainer.append($childItem);
 						});
 					} else {
-						$childrenContainer.html('<div style="padding: 10px; color: #d63638;">Failed to load children</div>');
+						const errorMsg = aiePostSyncData?.i18n?.failedLoadChildren || 
+							'Failed to load children';
+						$childrenContainer.html(`<div style="padding: 10px; color: #d63638;">${errorMsg}</div>`);
 					}
 				},
 				error: () => {
-					$childrenContainer.html('<div style="padding: 10px; color: #d63638;">Error loading children</div>');
+					const errorMsg = aiePostSyncData?.i18n?.errorLoadingChildren || 
+						'Error loading children';
+					$childrenContainer.html(`<div style="padding: 10px; color: #d63638;">${errorMsg}</div>`);
 				},
 			});
 		},
@@ -1157,7 +1202,9 @@ import 'select2/dist/css/select2.min.css';
 		 */
 		pullSelectedPosts() {
 			if (this.browseState.selectedPosts.size === 0) {
-				alert('Please select at least one post');
+				const message = aiePostSyncData?.i18n?.pleaseSelectOnePost || 
+					'Please select at least one post';
+				alert(message);
 				return;
 			}
 
@@ -1180,7 +1227,8 @@ import 'select2/dist/css/select2.min.css';
 			$('.aie-sync-info, .aie-form-group, .aie-sync-direction, .aie-browse-section, .aie-no-selection-message').css('display', 'none');
 			$('#aie-sync-progress').show();
 			$('.aie-progress-fill').css('width', '0%');
-			$('.aie-progress-text').text('Pulling posts...');
+			const pullingText = aiePostSyncData?.i18n?.pullingPosts || 'Pulling posts...';
+			$('.aie-progress-text').text(pullingText);
 			$('#aie-sync-result').hide();
 
 			// Disable buttons during sync

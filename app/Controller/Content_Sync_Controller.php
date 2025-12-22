@@ -606,6 +606,48 @@ class Content_Sync_Controller extends Base_Controller {
 				'nonce'          => $nonce,
 				'ajaxurl'        => admin_url( 'admin-ajax.php' ),
 				'connectedSites' => $sites_map,
+				'i18n'           => array(
+					// Alerts & Messages
+					'pleaseSavePost'              => __( 'Please save the post first', 'wp-advanced-import-export' ),
+					'pleaseSelectSite'            => __( 'Please select a site', 'wp-advanced-import-export' ),
+					'noPostsSelected'             => __( 'No posts selected', 'wp-advanced-import-export' ),
+					'failedLoadRemotePosts'       => __( 'Failed to load remote posts', 'wp-advanced-import-export' ),
+					'unknownError'                => __( 'Unknown error', 'wp-advanced-import-export' ),
+					'failedConnectRemote'         => __( 'Failed to connect to remote site', 'wp-advanced-import-export' ),
+					'failedLoadLocalPosts'        => __( 'Failed to load local posts info', 'wp-advanced-import-export' ),
+					'pleaseSelectOnePost'         => __( 'Please select at least one post', 'wp-advanced-import-export' ),
+					
+					// Count Text
+					'onePost'                     => __( '1 post', 'wp-advanced-import-export' ),
+					'postsCount'                  => __( '%s posts', 'wp-advanced-import-export' ),
+					
+					// Post Info
+					'postHash'                    => __( 'Post #%s', 'wp-advanced-import-export' ),
+					'idLabel'                     => __( 'ID:', 'wp-advanced-import-export' ),
+					'noTitle'                     => __( '(No title)', 'wp-advanced-import-export' ),
+					
+					// Actions
+					'createNewPost'               => __( '➕ Create New Post', 'wp-advanced-import-export' ),
+					'updatePost'                  => __( '🔄 Update: %s (ID: %s)', 'wp-advanced-import-export' ),
+					'searchForUpdate'             => __( 'Search for a %s to update...', 'wp-advanced-import-export' ),
+					
+					// Progress
+					'starting'                    => __( 'Starting %s...', 'wp-advanced-import-export' ),
+					'completed'                   => __( 'Completed!', 'wp-advanced-import-export' ),
+					'syncCompletedSuccess'        => __( 'Sync completed successfully', 'wp-advanced-import-export' ),
+					'pullingPosts'                => __( 'Pulling posts...', 'wp-advanced-import-export' ),
+					'syncFailed'                  => __( 'Sync failed', 'wp-advanced-import-export' ),
+					'errorDuringSync'             => __( 'An error occurred during sync', 'wp-advanced-import-export' ),
+					
+					// Browse
+					'noPostsFound'                => __( 'No posts found', 'wp-advanced-import-export' ),
+					'child'                       => __( 'child', 'wp-advanced-import-export' ),
+					'children'                    => __( 'children', 'wp-advanced-import-export' ),
+					'pluginDataNotLoaded'         => __( 'Plugin data not loaded. Please refresh the page.', 'wp-advanced-import-export' ),
+					'errorLoadingPosts'           => __( 'An error occurred while loading posts', 'wp-advanced-import-export' ),
+					'failedLoadChildren'          => __( 'Failed to load children', 'wp-advanced-import-export' ),
+					'errorLoadingChildren'        => __( 'Error loading children', 'wp-advanced-import-export' ),
+				),
 			)
 		);
 

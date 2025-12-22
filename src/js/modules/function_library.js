@@ -503,14 +503,14 @@ const FunctionLibrary = {
 	 */
 	getCategoryLabel( category ) {
 		const labels = {
-			string: 'String Operations',
-			date: 'Date & Time',
-			numeric: 'Numeric Operations',
-			html: 'HTML Operations',
-			wordpress: 'WordPress',
-			validation: 'Validation',
-			advanced: 'Advanced',
-			custom: 'Custom',
+			string: window.aieData?.i18n?.categoryStringOperations || 'String Operations',
+			date: window.aieData?.i18n?.categoryDateTime || 'Date & Time',
+			numeric: window.aieData?.i18n?.categoryNumericOperations || 'Numeric Operations',
+			html: window.aieData?.i18n?.categoryHtmlOperations || 'HTML Operations',
+			wordpress: window.aieData?.i18n?.categoryWordPress || 'WordPress',
+			validation: window.aieData?.i18n?.categoryValidation || 'Validation',
+			advanced: window.aieData?.i18n?.categoryAdvanced || 'Advanced',
+			custom: window.aieData?.i18n?.categoryCustom || 'Custom',
 		};
 		return labels[ category ] || category;
 	},
