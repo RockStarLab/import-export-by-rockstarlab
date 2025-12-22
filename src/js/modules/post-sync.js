@@ -134,8 +134,14 @@ const PostSync = {
 
 		// Confirm action
 		const siteName = $('#aie-sync-site-select option:selected').text();
-		const action = direction === 'push' ? 'push to' : 'pull from';
-		const message = `Are you sure you want to ${action} ${siteName}?\n\nThis will affect ${postIds.length} post(s).`;
+		const actionText = direction === 'push' 
+			? (window.aieData?.i18n?.pushTo || 'push to')
+			: (window.aieData?.i18n?.pullFrom || 'pull from');
+		
+		const message = (window.aieData?.i18n?.confirmSyncAction || 'Are you sure you want to %1$s %2$s?\n\nThis will affect %3$s post(s).')
+			.replace('%1$s', actionText)
+			.replace('%2$s', siteName)
+			.replace('%3$s', postIds.length);
 
 		if (!confirm(message)) {
 			return;
@@ -144,7 +150,12 @@ const PostSync = {
 		// Show enhanced progress
 		$('#aie-sync-progress').show();
 		$('#aie-sync-result').hide();
-		this.updateProgress(0, `Preparing to ${direction} content...`, {
+		
+		const preparingMsg = direction === 'push'
+			? (window.aieData?.i18n?.preparingToPush || 'Preparing to push content...')
+			: (window.aieData?.i18n?.preparingToPull || 'Preparing to pull content...');
+		
+		this.updateProgress(0, preparingMsg, {
 			posts: 0,
 			images: 0,
 			total: postIds.length
@@ -158,7 +169,11 @@ const PostSync = {
 		const progressInterval = setInterval(() => {
 			if (simulatedProgress < 90) {
 				simulatedProgress += 5;
-				this.updateProgress(simulatedProgress, `${direction === 'push' ? 'Uploading' : 'Downloading'} content...`, {
+				const progressMsg = direction === 'push'
+					? (window.aieData?.i18n?.uploadingContent || 'Uploading content...')
+					: (window.aieData?.i18n?.downloadingContent || 'Downloading content...');
+				
+				this.updateProgress(simulatedProgress, progressMsg, {
 					posts: Math.floor((postIds.length * simulatedProgress) / 100),
 					total: postIds.length
 				});
@@ -193,36 +208,40 @@ const PostSync = {
 			data: ajaxData,
 			success: (response) => {
 				clearInterval(progressInterval);
+						if (response.success) {
+				const data = response.data || {};
+				const imageCount = data.images_synced || 0;
 				
-				if (response.success) {
-					const data = response.data || {};
-					const imageCount = data.images_synced || 0;
-					
-					this.updateProgress(100, 'Completed successfully!', {
-						posts: postIds.length,
-						images: imageCount,
-						total: postIds.length
-					});
+				this.updateProgress(100, window.aieData?.i18n?.operationCompleted || 'Completed successfully!', {
+					posts: postIds.length,
+					images: imageCount,
+					total: postIds.length
+				});
 
 					setTimeout(() => {
 						$('#aie-sync-progress').hide();
 						
 						// Build detailed success message
-						let successMsg = response.data.message || 'Sync completed successfully';
+						let successMsg = response.data.message || (window.aieData?.i18n?.syncCompletedSuccessfully || 'Sync completed successfully');
 						if (data.created && data.updated) {
-							successMsg = `✓ Created ${data.created} post(s), Updated ${data.updated} post(s)`;
+							const createdUpdatedMsg = (window.aieData?.i18n?.createdPosts || '✓ Created %d post(s), Updated %d post(s)')
+								.replace('%d', data.created)
+								.replace('%d', data.updated);
+							successMsg = createdUpdatedMsg;
 						}
 						if (imageCount > 0) {
-							successMsg += `<br>✓ Synced ${imageCount} image(s)`;
+							const syncedImagesMsg = (window.aieData?.i18n?.syncedImages || '✓ Synced %d image(s)')
+								.replace('%d', imageCount);
+							successMsg += `<br>${syncedImagesMsg}`;
 						}
 						
 						this.showResult('success', successMsg);
 					}, 800);
 				} else {
-					this.updateProgress(0, 'Sync failed', {});
+					this.updateProgress(0, window.aieData?.i18n?.syncFailed || 'Sync failed', {});
 					setTimeout(() => {
 						$('#aie-sync-progress').hide();
-						this.showResult('error', response.data.message || 'Sync failed');
+						this.showResult('error', response.data.message || (window.aieData?.i18n?.syncFailed || 'Sync failed'));
 					}, 500);
 				}
 			},
@@ -230,7 +249,7 @@ const PostSync = {
 				clearInterval(progressInterval);
 				$('#aie-sync-progress').hide();
 				
-				let errorMessage = 'An error occurred during sync';
+				let errorMessage = window.aieData?.i18n?.errorOccurredDuringSync || 'An error occurred during sync';
 				if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
 					errorMessage = xhr.responseJSON.data.message;
 				}
@@ -258,11 +277,16 @@ const PostSync = {
 		let progressText = `<strong>${message}</strong>`;
 		
 		if (details.posts !== undefined && details.total) {
-			progressText += `<br><span class="progress-details">Posts: ${details.posts}/${details.total}</span>`;
+			const postsMsg = (window.aieData?.i18n?.postsProgress || 'Posts: %1$s/%2$s')
+				.replace('%1$s', details.posts)
+				.replace('%2$s', details.total);
+			progressText += `<br><span class="progress-details">${postsMsg}</span>`;
 		}
 		
 		if (details.images !== undefined && details.images > 0) {
-			progressText += `<br><span class="progress-details">Images synced: ${details.images}</span>`;
+			const imagesMsg = (window.aieData?.i18n?.imagesSyncedProgress || 'Images synced: %d')
+				.replace('%d', details.images);
+			progressText += `<br><span class="progress-details">${imagesMsg}</span>`;
 		}
 		
 		if (percent > 0 && percent < 100) {

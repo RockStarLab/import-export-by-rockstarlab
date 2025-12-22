@@ -56,7 +56,7 @@ const ImportModule = {
 			e.stopPropagation();
 			
 			// Show upgrade message
-			const message = 'This content type is only available in the Premium version. Upgrade to unlock this feature.';
+			const message = aieData.i18n.premiumOnlyFeature || 'This content type is only available in the Premium version. Upgrade to unlock this feature.';
 			Utils.showNotice( message, 'warning' );
 			
 			// Prevent the radio button from being checked
@@ -168,11 +168,11 @@ const ImportModule = {
 				// Show error in preview area
 				const errorHtml = `
 					<div class="notice notice-error" style="padding: 20px; margin: 20px 0;">
-						<h3 style="margin-top: 0;">❌ File Validation Failed</h3>
+						<h3 style="margin-top: 0;">❌ ${ aieData.i18n.fileValidationFailed || 'File Validation Failed' }</h3>
 						<p style="font-size: 14px;">${ Utils.escapeHtml( this.fileData.error ) }</p>
 						<p style="margin-bottom: 0;">
 							<button type="button" class="button aie-prev-step">
-								← Go Back and Upload a Valid File
+								← ${ aieData.i18n.goBackUploadValidFile || 'Go Back and Upload a Valid File' }
 							</button>
 						</p>
 					</div>
@@ -236,7 +236,7 @@ const ImportModule = {
 		switch ( step ) {
 			case 2:
 				if ( ! this.uploadedFile ) {
-					Utils.showNotice( 'Please upload a file', 'error' );
+					Utils.showNotice( aieData.i18n.pleaseUploadFile || 'Please upload a file', 'error' );
 					return false;
 				}
 				
@@ -245,7 +245,7 @@ const ImportModule = {
 				if ( delimiter === 'custom' ) {
 					const customDelimiter = jQuery( '#csv_custom_delimiter' ).val().trim();
 					if ( customDelimiter === '' ) {
-						Utils.showNotice( 'Please enter a custom delimiter', 'error' );
+						Utils.showNotice( aieData.i18n.pleaseEnterCustomDelimiter || 'Please enter a custom delimiter', 'error' );
 						return false;
 					}
 				}
@@ -256,7 +256,7 @@ const ImportModule = {
 				if ( contentType === 'custom_post_types' ) {
 					const selectedPostType = jQuery( '#aie-custom-post-type' ).val();
 					if ( ! selectedPostType ) {
-						Utils.showNotice( 'Please select a post type', 'error' );
+						Utils.showNotice( aieData.i18n.pleaseSelectPostType || 'Please select a post type', 'error' );
 						return false;
 					}
 				}
@@ -265,7 +265,7 @@ const ImportModule = {
 				const mappedFields = this.getFieldMapping();
 				if ( ! mappedFields || mappedFields.length === 0 ) {
 					Utils.showNotice(
-						'Please map at least one field',
+						aieData.i18n.mapFields || 'Please map at least one field',
 						'error'
 					);
 					return false;
@@ -397,7 +397,7 @@ const ImportModule = {
 		
 		if ( ! allowedExtensions.includes( fileExt ) ) {
 			Utils.showNotice(
-				'Invalid file type. Please upload CSV or JSON files only.',
+				aieData.i18n.invalidFileTypeCsvJson || 'Invalid file type. Please upload CSV or JSON files only.',
 				'error'
 			);
 			return;
@@ -517,7 +517,7 @@ const ImportModule = {
 				);
 
 				// Show success message
-				Utils.showNotice( 'File uploaded successfully', 'success' );
+				Utils.showNotice( aieData.i18n.fileUploadedSuccessfully || 'File uploaded successfully', 'success' );
 
 				// Show warning if present
 				if ( result.warning ) {
@@ -527,7 +527,7 @@ const ImportModule = {
 			onError: ( error ) => {
 				// Upload failed
 				Utils.showNotice(
-					'Upload failed: ' + error.message,
+					( aieData.i18n.uploadFailed || 'Upload failed' ) + ': ' + error.message,
 					'error'
 				);
 				this.removeFile();
@@ -619,7 +619,7 @@ const ImportModule = {
 	async loadPreview() {
 		
 		if ( ! this.fileData ) {
-			Utils.showNotice( 'No file data available', 'error' );
+			Utils.showNotice( aieData.i18n.noFileDataAvailable || 'No file data available', 'error' );
 			return;
 		}
 
@@ -629,7 +629,7 @@ const ImportModule = {
 		}
 
 		if ( ! this.fileData.preview ) {
-			Utils.showNotice( 'No preview data available', 'error' );
+			Utils.showNotice( aieData.i18n.noPreviewDataAvailable || 'No preview data available', 'error' );
 			return;
 		}
 
@@ -926,7 +926,7 @@ const ImportModule = {
 			},
 			success: ( response ) => {
 				if ( response.success && response.data ) {
-					let options = '<option value="">-- Select Post Type --</option>';
+					let options = '<option value="">-- ' + ( aieData.i18n.selectPostType || 'Select Post Type' ) + ' --</option>';
 					
 					response.data.forEach( ( postType ) => {
 						options += `<option value="${ postType.name }">${ postType.label }</option>`;
@@ -1008,17 +1008,16 @@ const ImportModule = {
 					$select.off( 'change' ).on( 'change', () => {
 						const tableName = $select.val();
 						if ( tableName ) {
-							this.selectedTableName = tableName;
-							this.loadTableInfo( tableName );
-							this.loadTableColumnsForMapping();
-						} else {
-							jQuery( '.aie-table-info' ).html('').hide();
-							jQuery( '#aie-target-fields' ).html( '<div class="aie-info">Please select a database table above to see available columns</div>' );
-						}
-					} );
-				} else {
-					$select.html( `<option value="">${window.aieData.i18n.noTablesFound}</option>` );
-				}
+							this.selectedTableName = tableName;						this.loadTableInfo( tableName );
+						this.loadTableColumnsForMapping();
+					} else {
+						jQuery( '.aie-table-info' ).html('').hide();
+						jQuery( '#aie-target-fields' ).html( '<div class="aie-info">' + ( window.aieData.i18n.pleaseSelectTable || 'Please select a database table above to see available columns' ) + '</div>' );
+					}
+				} );
+			} else {
+				$select.html( `<option value="">${window.aieData.i18n.noTablesFound}</option>` );
+			}
 			},
 			error: ( xhr, status, error ) => {
 				$spinner.removeClass( 'is-active' );
@@ -1095,7 +1094,7 @@ const ImportModule = {
 					const columns = response.data.columns;
 					
 					let html = '<div class="aie-field-group">';
-					html += '<div class="aie-field-group-label">Table Columns</div>';
+					html += '<div class="aie-field-group-label">' + ( window.aieData.i18n.fieldGroupTableColumns || 'Table Columns' ) + '</div>';
 					
 					columns.forEach( ( column ) => {
 						html += `
@@ -1144,39 +1143,38 @@ const ImportModule = {
 			group.options.forEach( ( field ) => {
 				// Skip special fields (except template field)
 				if ( field.value.startsWith( '_' ) && field.value !== '_wp_page_template' ) {
-					return;
-				}
+					return;			}
 
-				// Custom fields with add button
-				if ( field.custom ) {
-					html += `
-						<div class="aie-target-field aie-custom-field-template" data-field-type="${ field.type || 'string' }" data-multiple="${ field.multiple || false }">
-							<div class="aie-field-icon">
-								<span class="dashicons dashicons-plus"></span>
-							</div>
-							<div class="aie-field-info">
-								<div class="aie-field-label">${ field.label }</div>
-								<button type="button" class="aie-add-custom-field button button-small">+ Add</button>
-							</div>
+			// Custom fields with add button
+			if ( field.custom ) {
+				html += `
+					<div class="aie-target-field aie-custom-field-template" data-field-type="${ field.type || 'string' }" data-multiple="${ field.multiple || false }">
+						<div class="aie-field-icon">
+							<span class="dashicons dashicons-plus"></span>
 						</div>
-					`;
-				} else {
-					html += `
-						<div class="aie-target-field" data-target-field="${ field.value }" data-field-type="${ field.type || 'string' }" data-multiple="${ field.multiple || false }">
-							<div class="aie-field-icon">
-								<span class="dashicons dashicons-wordpress"></span>
-							</div>
-							<div class="aie-field-info">
-								<div class="aie-field-label">${ field.label }</div>
-								<span class="aie-field-type-badge">${ field.type || 'string' }</span>
-							</div>
+						<div class="aie-field-info">
+							<div class="aie-field-label">${ field.label }</div>
+							<button type="button" class="aie-add-custom-field button button-small">+ ${ window.aieData.i18n.add || 'Add' }</button>
 						</div>
-					`;
-				}
-			} );
-			
-			html += `</div>`;
+					</div>
+				`;
+			} else {
+				html += `
+					<div class="aie-target-field" data-target-field="${ field.value }" data-field-type="${ field.type || 'string' }" data-multiple="${ field.multiple || false }">
+						<div class="aie-field-icon">
+							<span class="dashicons dashicons-wordpress"></span>
+						</div>
+						<div class="aie-field-info">
+							<div class="aie-field-label">${ field.label }</div>
+							<span class="aie-field-type-badge">${ field.type || 'string' }</span>
+						</div>
+					</div>
+				`;
+			}
 		} );
+		
+		html += `</div>`;
+	} );
 
 		$container.html( html );
 		
@@ -1209,21 +1207,21 @@ const ImportModule = {
 		const isTaxonomy = fieldType === 'taxonomy';
 		const isMeta = fieldType === 'meta';
 		
-		const title = isTaxonomy ? 'Add Taxonomy Field' : 'Add Custom Field';
-		const placeholder = isTaxonomy ? 'Enter taxonomy slug (e.g., category, post_tag, product_cat)' : 'Enter field key (e.g., _custom_price)';
+		const title = isTaxonomy ? ( window.aieData.i18n.addTaxonomyField || 'Add Taxonomy Field' ) : ( window.aieData.i18n.addCustomField || 'Add Custom Field' );
+		const placeholder = isTaxonomy ? ( window.aieData.i18n.enterTaxonomySlug || 'Enter taxonomy slug (e.g., category, post_tag, product_cat)' ) : ( window.aieData.i18n.enterFieldKey || 'Enter field key (e.g., _custom_price)' );
 		const icon = isTaxonomy ? 'dashicons-category' : 'dashicons-admin-plugins';
 		
 		// Taxonomy format options
 		const taxonomyFormatField = isTaxonomy ? `
 			<label style="margin-top: 15px;">
-				<strong>Data Format:</strong>
+				<strong>${ window.aieData.i18n.dataFormat || 'Data Format' }:</strong>
 				<select class="aie-taxonomy-format regular-text">
-					<option value="id">Term ID (e.g., 5, 12, 23)</option>
-					<option value="slug">Term Slug (e.g., technology, news)</option>
-					<option value="name" selected>Term Name (e.g., Technology, News)</option>
+					<option value="id">${ window.aieData.i18n.termIdFormat || 'Term ID (e.g., 5, 12, 23)' }</option>
+					<option value="slug">${ window.aieData.i18n.termSlugFormat || 'Term Slug (e.g., technology, news)' }</option>
+					<option value="name" selected>${ window.aieData.i18n.termNameFormat || 'Term Name (e.g., Technology, News)' }</option>
 				</select>
 				<p class="description" style="margin-top: 5px;">
-					Select the format of taxonomy data in your CSV file.
+					${ window.aieData.i18n.selectTaxonomyDataFormat || 'Select the format of taxonomy data in your CSV file.' }
 				</p>
 			</label>
 		` : '';
@@ -1244,15 +1242,15 @@ const ImportModule = {
 					</div>
 					<div class="aie-modal-body">
 						<label>
-							<strong>Taxonomy Slug:</strong>
+							<strong>${ window.aieData.i18n.taxonomySlugLabel || 'Taxonomy Slug' }:</strong>
 							<input type="text" class="aie-custom-field-input regular-text" placeholder="${ placeholder }" />
-							${ isTaxonomy ? '<p class="description" style="margin-top: 5px;">The slug of the taxonomy (category, post_tag, or custom taxonomy).</p>' : '' }
+							${ isTaxonomy ? '<p class="description" style="margin-top: 5px;">' + ( window.aieData.i18n.taxonomySlugDescription || 'The slug of the taxonomy (category, post_tag, or custom taxonomy).' ) + '</p>' : '' }
 						</label>
 						${ taxonomyFormatField }
 					</div>
 					<div class="aie-modal-footer">
-						<button type="button" class="button aie-modal-cancel">Cancel</button>
-						<button type="button" class="button button-primary aie-modal-add">Add Field</button>
+						<button type="button" class="button aie-modal-cancel">${ window.aieData.i18n.cancel || 'Cancel' }</button>
+						<button type="button" class="button button-primary aie-modal-add">${ window.aieData.i18n.addField || 'Add Field' }</button>
 					</div>
 				</div>
 			</div>
@@ -1355,9 +1353,20 @@ const ImportModule = {
 	 * Get fields by content type (import-compatible fields)
 	 */
 	getFieldsByContentType( contentType ) {
+		// Helper function to get translated field group label
+		const t = ( key, fallback ) => window.aieData?.i18n?.[ 'fieldGroup' + key.replace(/[^A-Za-z]/g, '') ] || fallback;
+		
+		// Helper to translate field groups
+		const translateGroups = ( groups ) => {
+			return groups.map( group => ({
+				...group,
+				label: t( group.label, group.label )
+			}));
+		};
+		
 		const baseFields = [
 			{
-				label: 'Standard',
+				label: t( 'Standard', 'Standard' ),
 				options: [
 					{ value: 'post_title', label: 'Title', type: 'string' },
 					{ value: 'post_content', label: 'Content', type: 'string' },
@@ -1369,7 +1378,7 @@ const ImportModule = {
 				],
 			},
 			{
-				label: 'Author',
+				label: t( 'Author', 'Author' ),
 				options: [
 					{ value: 'post_author', label: 'Author ID', type: 'number' },
 					{ value: 'author_email', label: 'Author Email', type: 'email' },
@@ -1387,15 +1396,14 @@ const ImportModule = {
 				options: [
 					{ value: 'comment_status', label: 'Comment Status', type: 'string' },
 					{ value: 'post_modified', label: 'Modified Date', type: 'date' },
-					{ value: 'menu_order', label: 'Menu Order', type: 'number' },
-					{ value: 'post_parent', label: 'Parent ID', type: 'number' },
-				],
-			},
-		];
+					{ value: 'menu_order', label: 'Menu Order', type: 'number' },				{ value: 'post_parent', label: 'Parent ID', type: 'number' },
+			],
+		},
+	];
 
-		// Media
+	// Media
 		if ( contentType === 'media' ) {
-			return [
+			return translateGroups([
 				{
 					label: 'Basic',
 					options: [
@@ -1427,27 +1435,25 @@ const ImportModule = {
 						{ value: 'post_author', label: 'Author ID', type: 'number' },
 						{ value: 'post_parent', label: 'Attached To (Post ID)', type: 'number' },
 					],
-				},
-				{
-					label: 'Custom Fields (Meta)',
-					options: [
-						{ value: 'meta', label: 'Custom Field', type: 'meta', custom: true },
-					],
-				},
-			];
+				},			{
+				label: 'Custom Fields (Meta)',
+				options: [
+					{ value: 'meta', label: 'Custom Field', type: 'meta', custom: true },
+				],
+			},
+		]);
 		}
 
 		// Pages (no taxonomies, only custom fields)
 		if ( contentType === 'page' ) {
-			return [
+			return translateGroups([
 				...baseFields,
 				{
 					label: 'Custom Fields (Meta)',
-					options: [
-						{ value: 'meta', label: 'Custom Field', type: 'meta', custom: true },
-					],
-				},
-			];
+					options: [					{ value: 'meta', label: 'Custom Field', type: 'meta', custom: true },
+				],
+			},
+		]);
 		}
 
 		// Users
@@ -1971,11 +1977,11 @@ const ImportModule = {
 			];
 		}
 
-		// Default - return post fields with taxonomies and custom fields
-		return [
-			...baseFields,
-			{
-				label: 'Taxonomies',
+	// Default - return post fields with taxonomies and custom fields
+	return translateGroups([
+		...baseFields,
+		{
+			label: 'Taxonomies',
 				options: [
 					{ value: 'taxonomy', label: 'Taxonomy', type: 'taxonomy', custom: true },
 				],
@@ -1986,7 +1992,7 @@ const ImportModule = {
 					{ value: 'meta', label: 'Custom Field', type: 'meta', custom: true },
 				],
 			},
-		];
+		]);
 	},
 
 	/**
@@ -2195,19 +2201,18 @@ const ImportModule = {
 				</div>
 				<div class="aie-arrow">→</div>
 				<div class="aie-target-col">
-					<span class="dashicons dashicons-wordpress"></span>
-					<strong>${ targetField }</strong>
-				</div>
-				${ functionsHtml }
-				<div class="aie-mapping-actions">
-					<button type="button" class="button button-small aie-add-function" data-source-index="${ sourceIndex }" data-target-field="${ targetField }" title="Add transformation function">
-						<span class="dashicons dashicons-admin-tools"></span>
-					</button>
-					<button type="button" class="button button-small aie-remove-row-mapping" data-source-index="${ sourceIndex }" data-target-field="${ targetField }" title="Remove mapping">
-						<span class="dashicons dashicons-no-alt"></span>
-					</button>
-				</div>
+					<span class="dashicons dashicons-wordpress"></span>				<strong>${ targetField }</strong>
 			</div>
+			${ functionsHtml }
+			<div class="aie-mapping-actions">
+				<button type="button" class="button button-small aie-add-function" data-source-index="${ sourceIndex }" data-target-field="${ targetField }" title="${ window.aieData.i18n.addTransformationFunction || 'Add transformation function' }">
+					<span class="dashicons dashicons-admin-tools"></span>
+				</button>
+				<button type="button" class="button button-small aie-remove-row-mapping" data-source-index="${ sourceIndex }" data-target-field="${ targetField }" title="${ window.aieData.i18n.removeMapping || 'Remove mapping' }">
+					<span class="dashicons dashicons-no-alt"></span>
+				</button>
+			</div>
+		</div>
 		`;
 
 		$container.append( html );
@@ -2267,13 +2272,13 @@ const ImportModule = {
 			} );
 
 			if ( ! response.success ) {
-				Utils.showNotice( 'Failed to load functions', 'error' );
+				Utils.showNotice( aieData.i18n.failedToLoadFunctions || 'Failed to load functions', 'error' );
 				return;
 			}
 
 			this.showFunctionModal( sourceIndex, targetField, response.data );
 		} catch ( error ) {
-			Utils.showNotice( 'Error loading functions: ' + error.message, 'error' );
+			Utils.showNotice( ( aieData.i18n.errorLoadingFunctions || 'Error loading functions' ) + ': ' + error.message, 'error' );
 		}
 	},
 
@@ -2289,145 +2294,145 @@ const ImportModule = {
 		this.currentEditingMapping = { sourceIndex, targetField };
 
 		// Create modal HTML (EXACTLY like export modal structure)
-		const modalHtml = `
-			<div id="aie-field-functions-modal" class="aie-modal" style="display:flex;">
-				<div class="aie-modal-backdrop"></div>
-				<div class="aie-modal-content aie-field-functions-modal-content">
-					<div class="aie-modal-header">
-						<h2 class="aie-modal-title">
-							<span class="dashicons dashicons-admin-generic"></span>
-							Field Transformation Functions
-						</h2>
-						<button type="button" class="aie-modal-close">
-							<span class="dashicons dashicons-no-alt"></span>
-						</button>
+	const modalHtml = `
+		<div id="aie-field-functions-modal" class="aie-modal" style="display:flex;">
+			<div class="aie-modal-backdrop"></div>
+			<div class="aie-modal-content aie-field-functions-modal-content">
+				<div class="aie-modal-header">
+					<h2 class="aie-modal-title">
+						<span class="dashicons dashicons-admin-generic"></span>
+						${ window.aieData.i18n.fieldTransformationFunctions || 'Field Transformation Functions' }
+					</h2>
+					<button type="button" class="aie-modal-close">
+						<span class="dashicons dashicons-no-alt"></span>
+					</button>
+				</div>
+				<div class="aie-modal-body">
+					<!-- Field Info -->
+					<div class="aie-field-info">
+						<div class="aie-field-info-item">
+							<strong>${ window.aieData.i18n.field || 'Field' }:</strong>
+							<span class="aie-current-field-label">${ Utils.escapeHtml( sourceField ) }</span>
+						</div>
+						<div class="aie-field-info-item">
+							<strong>${ window.aieData.i18n.type || 'Type' }:</strong>
+							<span class="aie-current-field-type">${ targetField }</span>
+						</div>
 					</div>
-					<div class="aie-modal-body">
-						<!-- Field Info -->
-						<div class="aie-field-info">
-							<div class="aie-field-info-item">
-								<strong>Field:</strong>
-								<span class="aie-current-field-label">${ Utils.escapeHtml( sourceField ) }</span>
-							</div>
-							<div class="aie-field-info-item">
-								<strong>Type:</strong>
-								<span class="aie-current-field-type">${ targetField }</span>
-							</div>
-						</div>
 
-						<!-- Applied Functions List -->
-						<div class="aie-applied-functions">
-							<h3>
-								Applied Functions
-								<span class="aie-functions-count">(0)</span>
-							</h3>
-							
-							<div class="aie-functions-pipeline" id="aie-functions-pipeline">
-								<div class="aie-no-functions">
-									<span class="dashicons dashicons-info"></span>
-									<p>No functions applied yet. Add functions from the list below.</p>
-								</div>
-								
-								<div class="aie-function-items" id="aie-function-items">
-									<!-- Functions will be added here -->
-								</div>
-							</div>
-
-							<div class="aie-pipeline-hint">
+					<!-- Applied Functions List -->
+					<div class="aie-applied-functions">
+						<h3>
+							${ window.aieData.i18n.appliedFunctions || 'Applied Functions' }
+							<span class="aie-functions-count">(0)</span>
+						</h3>
+						
+						<div class="aie-functions-pipeline" id="aie-functions-pipeline">
+							<div class="aie-no-functions">
 								<span class="dashicons dashicons-info"></span>
-								Functions are applied in order from top to bottom. Drag to reorder.
+								<p>${ window.aieData.i18n.noFunctionsApplied || 'No functions applied yet. Add functions from the list below.' }</p>
+							</div>
+							
+							<div class="aie-function-items" id="aie-function-items">
+								<!-- Functions will be added here -->
 							</div>
 						</div>
 
-						<!-- Available Functions -->
-						<div class="aie-available-functions">
-							<h3>Available Functions</h3>
-							
-							<!-- Search Functions -->
-							<div class="aie-functions-search">
+						<div class="aie-pipeline-hint">
+							<span class="dashicons dashicons-info"></span>
+							${ window.aieData.i18n.functionsAppliedInOrder || 'Functions are applied in order from top to bottom. Drag to reorder.' }
+						</div>
+					</div>
+
+					<!-- Available Functions -->
+					<div class="aie-available-functions">
+						<h3>${ window.aieData.i18n.availableFunctions || 'Available Functions' }</h3>
+						
+						<!-- Search Functions -->
+						<div class="aie-functions-search">
+							<input 
+								type="text" 
+								id="aie-functions-search" 
+								class="regular-text" 
+								placeholder="${ window.aieData.i18n.searchFunctions || 'Search functions...' }"
+							>
+							<span class="dashicons dashicons-search"></span>
+						</div>
+
+						<!-- Functions Filter -->
+						<div class="aie-functions-filter">
+							<label>
+								<input type="radio" name="functions-filter" value="all" checked>
+								${ window.aieData.i18n.all || 'All' }
+							</label>
+							<label>
+								<input type="radio" name="functions-filter" value="library">
+								${ window.aieData.i18n.library || 'Library' }
+							</label>
+							<label>
+								<input type="radio" name="functions-filter" value="custom">
+								${ window.aieData.i18n.custom || 'Custom' }
+							</label>
+						</div>
+
+						<!-- Functions List -->
+						<div class="aie-functions-list" id="aie-functions-list">
+							<div class="aie-functions-loading">
+								<span class="spinner is-active"></span>
+								<p>${ window.aieData.i18n.loadingFunctions || 'Loading functions...' }</p>
+							</div>
+						</div>
+
+						<!-- Quick Add Link -->
+						<div class="aie-functions-quick-add">
+							<a href="#" class="aie-create-new-function">
+								<span class="dashicons dashicons-plus-alt"></span>
+								${ window.aieData.i18n.createNewFunction || 'Create New Function' }
+							</a>
+						</div>
+					</div>
+
+					<!-- Preview Section -->
+					<div class="aie-function-preview">
+						<h3>${ window.aieData.i18n.previewTransformation || 'Preview Transformation' }</h3>
+						
+						<div class="aie-preview-controls">
+							<div class="aie-preview-input-group">
+								<label for="aie-preview-input">
+									${ window.aieData.i18n.testValue || 'Test Value' }:
+								</label>
 								<input 
 									type="text" 
-									id="aie-functions-search" 
+									id="aie-preview-input" 
 									class="regular-text" 
-									placeholder="Search functions..."
+									placeholder="${ window.aieData.i18n.enterTestValue || 'Enter test value...' }"
 								>
-								<span class="dashicons dashicons-search"></span>
 							</div>
-
-							<!-- Functions Filter -->
-							<div class="aie-functions-filter">
-								<label>
-									<input type="radio" name="functions-filter" value="all" checked>
-									All
-								</label>
-								<label>
-									<input type="radio" name="functions-filter" value="library">
-									Library
-								</label>
-								<label>
-									<input type="radio" name="functions-filter" value="custom">
-									Custom
-								</label>
-							</div>
-
-							<!-- Functions List -->
-							<div class="aie-functions-list" id="aie-functions-list">
-								<div class="aie-functions-loading">
-									<span class="spinner is-active"></span>
-									<p>Loading functions...</p>
-								</div>
-							</div>
-
-							<!-- Quick Add Link -->
-							<div class="aie-functions-quick-add">
-								<a href="#" class="aie-create-new-function">
-									<span class="dashicons dashicons-plus-alt"></span>
-									Create New Function
-								</a>
-							</div>
+							<button type="button" class="button aie-test-pipeline">
+								<span class="dashicons dashicons-media-code"></span>
+								${ window.aieData.i18n.testPipeline || 'Test Pipeline' }
+							</button>
 						</div>
 
-						<!-- Preview Section -->
-						<div class="aie-function-preview">
-							<h3>Preview Transformation</h3>
-							
-							<div class="aie-preview-controls">
-								<div class="aie-preview-input-group">
-									<label for="aie-preview-input">
-										Test Value:
-									</label>
-									<input 
-										type="text" 
-										id="aie-preview-input" 
-										class="regular-text" 
-										placeholder="Enter test value..."
-									>
-								</div>
-								<button type="button" class="button aie-test-pipeline">
-									<span class="dashicons dashicons-media-code"></span>
-									Test Pipeline
-								</button>
-							</div>
-
-							<div class="aie-preview-result" id="aie-preview-result" style="display:none;">
-								<div class="aie-preview-steps">
-									<!-- Steps will be added dynamically -->
-								</div>
+						<div class="aie-preview-result" id="aie-preview-result" style="display:none;">
+							<div class="aie-preview-steps">
+								<!-- Steps will be added dynamically -->
 							</div>
 						</div>
-					</div>
-					<div class="aie-modal-footer">
-						<button type="button" class="button button-secondary aie-modal-cancel">
-							Cancel
-						</button>
-						<button type="button" class="button button-primary aie-save-field-functions">
-							<span class="dashicons dashicons-yes"></span>
-							Apply Functions
-						</button>
 					</div>
 				</div>
+				<div class="aie-modal-footer">
+					<button type="button" class="button button-secondary aie-modal-cancel">
+						${ window.aieData.i18n.cancel || 'Cancel' }
+					</button>
+					<button type="button" class="button button-primary aie-save-field-functions">
+						<span class="dashicons dashicons-yes"></span>
+						${ window.aieData.i18n.applyFunctions || 'Apply Functions' }
+					</button>
+				</div>
 			</div>
-		`;
+		</div>
+	`;
 
 		// Remove existing modal
 		jQuery( '#aie-field-functions-modal' ).remove();
@@ -2471,15 +2476,15 @@ const ImportModule = {
 		// Get all snippets
 		const snippets = functionsData.snippets || {};
 
-		if ( Object.keys( snippets ).length === 0 ) {
-			$container.html( `
-				<div class="aie-functions-empty-state">
-					<span class="dashicons dashicons-info"></span>
-					<p>No functions available yet.</p>
-				</div>
-			` );
-			return;
-		}
+	if ( Object.keys( snippets ).length === 0 ) {
+		$container.html( `
+			<div class="aie-functions-empty-state">
+				<span class="dashicons dashicons-info"></span>
+				<p>${ window.aieData.i18n.noFunctionsAvailableYet || 'No functions available yet.' }</p>
+			</div>
+		` );
+		return;
+	}
 
 		// Store for later use
 		this.availableFunctions = snippets;
@@ -2489,15 +2494,14 @@ const ImportModule = {
 				.addClass( 'aie-function-list-item' )
 				.attr( 'data-function-id', key )
 				.attr( 'data-category', snippet.category || 'custom' )
-				.html( `
-					<div class="aie-function-list-info">
-						<span class="aie-function-list-name">${ Utils.escapeHtml( snippet.name ) }</span>
-						<span class="aie-function-list-desc">${ Utils.escapeHtml( snippet.description || '' ) }</span>
-					</div>
-					<button type="button" class="button button-small aie-add-function-btn">Add</button>
-				` );
+				.html( `				<div class="aie-function-list-info">
+					<span class="aie-function-list-name">${ Utils.escapeHtml( snippet.name ) }</span>
+					<span class="aie-function-list-desc">${ Utils.escapeHtml( snippet.description || '' ) }</span>
+				</div>
+				<button type="button" class="button button-small aie-add-function-btn">${ window.aieData.i18n.add || 'Add' }</button>
+			` );
 
-			item.find( '.aie-add-function-btn' ).on( 'click', () => {
+		item.find( '.aie-add-function-btn' ).on( 'click', () => {
 				this.addFunctionToPipeline( { id: key, name: snippet.name }, true );
 			} );
 
@@ -2620,14 +2624,14 @@ const ImportModule = {
 		// Create new function
 		jQuery( '.aie-create-new-function' ).on( 'click', function ( e ) {
 			e.preventDefault();
-			Utils.showNotice( 'Creating custom functions will be available in the Functions Library section', 'info' );
+			Utils.showNotice( aieData.i18n.createFunctionsInLibrary || 'Creating custom functions will be available in the Functions Library section', 'info' );
 		} );
 
 		jQuery( '.aie-test-pipeline' ).on( 'click', function () {
 			const testValue = jQuery( '#aie-preview-input' ).val();
 			
 			if ( ! testValue ) {
-				Utils.showNotice( 'Please enter a test value', 'warning' );
+				Utils.showNotice( aieData.i18n.enterTestValue || 'Please enter a test value', 'warning' );
 				return;
 			}
 
@@ -2637,7 +2641,7 @@ const ImportModule = {
 			} );
 
 			if ( functions.length === 0 ) {
-				Utils.showNotice( 'Please add at least one function to test', 'warning' );
+				Utils.showNotice( aieData.i18n.pleaseAddAtLeastOneFunction || 'Please add at least one function to test', 'warning' );
 				return;
 			}
 
@@ -2684,39 +2688,38 @@ const ImportModule = {
 					function_ids: functionIds,
 				},
 			} );
+		if ( response.success && response.data.steps ) {
+			let html = '';
+			
+			// Initial value
+			html += `
+				<div class="aie-preview-step">
+					<div class="aie-step-label">${ window.aieData.i18n.initialValue || 'Initial Value' }:</div>
+					<div class="aie-step-value">${ Utils.escapeHtml( response.data.initial || testValue ) }</div>
+				</div>
+			`;
 
-			if ( response.success && response.data.steps ) {
-				let html = '';
-				
-				// Initial value
+			// Each step
+			response.data.steps.forEach( ( step, index ) => {
+				const stepNum = index + 1;
 				html += `
 					<div class="aie-preview-step">
-						<div class="aie-step-label">Initial Value:</div>
-						<div class="aie-step-value">${ Utils.escapeHtml( response.data.initial || testValue ) }</div>
+						<div class="aie-step-label">${ stepNum }. ${ Utils.escapeHtml( step.function_name ) }:</div>
+						<div class="aie-step-value">${ Utils.escapeHtml( step.output ) }</div>
 					</div>
 				`;
+			} );
 
-				// Each step
-				response.data.steps.forEach( ( step, index ) => {
-					const stepNum = index + 1;
-					html += `
-						<div class="aie-preview-step">
-							<div class="aie-step-label">${ stepNum }. ${ Utils.escapeHtml( step.function_name ) }:</div>
-							<div class="aie-step-value">${ Utils.escapeHtml( step.output ) }</div>
-						</div>
-					`;
-				} );
+			// Final result
+			html += `
+				<div class="aie-preview-step aie-preview-final">
+					<div class="aie-step-label">${ window.aieData.i18n.finalResult || 'Final Result' }:</div>
+					<div class="aie-step-value"><strong>${ Utils.escapeHtml( response.data.final ) }</strong></div>
+				</div>
+			`;
 
-				// Final result
-				html += `
-					<div class="aie-preview-step aie-preview-final">
-						<div class="aie-step-label">Final Result:</div>
-						<div class="aie-step-value"><strong>${ Utils.escapeHtml( response.data.final ) }</strong></div>
-					</div>
-				`;
-
-				$steps.html( html );
-			} else {
+			$steps.html( html );
+		} else {
 				$steps.html( `<div class="notice notice-error inline"><p>${ response.data?.message || window.aieData.i18n.failedTestPipeline }</p></div>` );
 			}
 		} catch ( error ) {
@@ -2841,23 +2844,23 @@ const ImportModule = {
 	getTargetFields( contentType ) {
 		const fields = {
 			post: [
-				{ value: 'post_title', label: 'Title' },
-				{ value: 'post_content', label: 'Content' },
-				{ value: 'post_excerpt', label: 'Excerpt' },
-				{ value: 'post_status', label: 'Status' },
-				{ value: 'post_author', label: 'Author' },
-				{ value: 'post_date', label: 'Date' },
-				{ value: 'post_name', label: 'Slug' },
-				{ value: 'categories', label: 'Categories' },
-				{ value: 'tags', label: 'Tags' },
-				{ value: 'featured_image', label: 'Featured Image' },
+				{ value: 'post_title', label: window.aieData.i18n.fieldTitle || 'Title' },
+				{ value: 'post_content', label: window.aieData.i18n.fieldContent || 'Content' },
+				{ value: 'post_excerpt', label: window.aieData.i18n.fieldExcerpt || 'Excerpt' },
+				{ value: 'post_status', label: window.aieData.i18n.fieldStatus || 'Status' },
+				{ value: 'post_author', label: window.aieData.i18n.fieldAuthor || 'Author' },
+				{ value: 'post_date', label: window.aieData.i18n.fieldDate || 'Date' },
+				{ value: 'post_name', label: window.aieData.i18n.fieldSlug || 'Slug' },
+				{ value: 'categories', label: window.aieData.i18n.fieldCategories || 'Categories' },
+				{ value: 'tags', label: window.aieData.i18n.fieldTags || 'Tags' },
+				{ value: 'featured_image', label: window.aieData.i18n.fieldFeaturedImage || 'Featured Image' },
 			],
 			media: [
-				{ value: 'post_title', label: 'Title' },
-				{ value: 'post_content', label: 'Description' },
-				{ value: 'post_excerpt', label: 'Caption' },
-				{ value: 'file_url', label: 'File URL' },
-				{ value: 'alt_text', label: 'Alt Text' },
+				{ value: 'post_title', label: window.aieData.i18n.fieldTitle || 'Title' },
+				{ value: 'post_content', label: window.aieData.i18n.fieldDescription || 'Description' },
+				{ value: 'post_excerpt', label: window.aieData.i18n.fieldCaption || 'Caption' },
+				{ value: 'file_url', label: window.aieData.i18n.fieldFileUrl || 'File URL' },
+				{ value: 'alt_text', label: window.aieData.i18n.fieldAltText || 'Alt Text' },
 			],
 		};
 
@@ -2914,7 +2917,8 @@ const ImportModule = {
 		} );
 
 		this.updateMappingStats();
-		Utils.showNotice( `Auto-mapped ${ mappedCount } fields`, 'success' );
+		const message = ( window.aieData.i18n.autoMappedFields || 'Auto-mapped %d fields' ).replace( '%d', mappedCount );
+		Utils.showNotice( message, 'success' );
 	},
 
 	/**
@@ -2936,7 +2940,7 @@ const ImportModule = {
 		jQuery( '.aie-mapped-fields' ).html( `
 			<div class="aie-empty-state">
 				<span class="dashicons dashicons-info"></span>
-				<p>Drag source columns to WordPress fields to create mappings</p>
+				<p>${ window.aieData.i18n.dragSourceColumns || 'Drag source columns to WordPress fields to create mappings' }</p>
 			</div>
 		` );
 
@@ -3006,7 +3010,7 @@ const ImportModule = {
 			this.showStep( 6 );
 			this.startProgressTracking();
 
-			Utils.showNotice( 'Import started successfully', 'success' );
+			Utils.showNotice( aieData.i18n.importStartedSuccessfully || 'Import started successfully', 'success' );
 		} catch ( error ) {
 			Utils.handleError( error, 'Start import' );
 		}
@@ -3058,7 +3062,7 @@ const ImportModule = {
 		jQuery( '.aie-cancel-import' ).hide();
 		jQuery( '.aie-new-import' ).show();
 
-		Utils.showNotice( 'Import completed successfully!', 'success' );
+		Utils.showNotice( aieData.i18n.importCompletedSuccessfully || 'Import completed successfully!', 'success' );
 	},
 
 	/**
@@ -3067,7 +3071,7 @@ const ImportModule = {
 	onImportFailed( result ) {
 		clearInterval( this.progressInterval );
 		Utils.showNotice(
-			'Import failed: ' + ( result.error || 'Unknown error' ),
+			( aieData.i18n.importFailed || 'Import failed' ) + ': ' + ( result.error || 'Unknown error' ),
 			'error'
 		);
 	},
@@ -3081,7 +3085,7 @@ async cancelImport() {
 	}		try {
 			await Utils.ajax( 'aie_import_cancel', { job_id: this.jobId } );
 			clearInterval( this.progressInterval );
-			Utils.showNotice( 'Import cancelled', 'info' );
+			Utils.showNotice( aieData.i18n.importCancelled || 'Import cancelled', 'info' );
 			this.resetWizard();
 		} catch ( error ) {
 			Utils.handleError( error, 'Cancel import' );
@@ -3190,14 +3194,13 @@ async cancelImport() {
 			'comment',
 			'menu',
 			'block_theme_settings',
-			'taxonomy',
-			'database_table',
-			'woo_attribute',
-			'woo_coupon',
-			'woo_order',
-		];
+			'taxonomy',		'database_table',
+		'woo_attribute',
+		'woo_coupon',
+		'woo_order',
+	];
 
-		if ( excludedTypes.includes( contentType ) ) {
+	if ( excludedTypes.includes( contentType ) ) {
 			return;
 		}
 
