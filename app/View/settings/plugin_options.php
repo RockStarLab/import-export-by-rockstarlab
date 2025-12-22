@@ -37,7 +37,7 @@ if ( ! empty( $openai_api_key ) ) {
 					<?php esc_html_e( 'AI Integration', 'wp-advanced-import-export' ); ?>
 				</h2>
 				<p class="description">
-					<?php esc_html_e( 'Configure AI features including function generation powered by OpenAI.', 'wp-advanced-import-export' ); ?>
+					<?php esc_html_e( 'Configure AI features powered by OpenAI.', 'wp-advanced-import-export' ); ?>
 				</p>
 			</div>
 
@@ -207,11 +207,6 @@ if ( ! empty( $openai_api_key ) ) {
 					</h3>
 					<ul>
 						<li>
-							<a href="https://platform.openai.com/docs/api-reference" target="_blank">
-								<?php esc_html_e( 'OpenAI API Documentation', 'wp-advanced-import-export' ); ?>
-							</a>
-						</li>
-						<li>
 							<a href="https://platform.openai.com/account/api-keys" target="_blank">
 								<?php esc_html_e( 'Manage API Keys', 'wp-advanced-import-export' ); ?>
 							</a>
@@ -219,6 +214,11 @@ if ( ! empty( $openai_api_key ) ) {
 						<li>
 							<a href="https://platform.openai.com/account/billing" target="_blank">
 								<?php esc_html_e( 'View Usage & Billing', 'wp-advanced-import-export' ); ?>
+							</a>
+						</li>
+						<li>
+							<a href="https://platform.openai.com/docs/api-reference" target="_blank">
+								<?php esc_html_e( 'OpenAI API Documentation', 'wp-advanced-import-export' ); ?>
 							</a>
 						</li>
 					</ul>
