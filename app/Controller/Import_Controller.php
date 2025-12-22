@@ -13,7 +13,6 @@ use WP_AIE\Model\Job;
 use WP_AIE\Model\Import\Importer_Factory;
 use WP_AIE\Model\Format\Format_Factory;
 use WP_AIE\Helper\Fs;
-use WP_AIE\Helper\Logger;
 
 /**
  * Import Controller Class

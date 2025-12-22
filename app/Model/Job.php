@@ -266,14 +266,6 @@ class Job extends Model {
 			)
 		);
 
-		// Delete orphaned logs
-		$logs_table = $wpdb->prefix . 'aie_logs';
-		$wpdb->query(
-			"DELETE l FROM {$logs_table} l
-			LEFT JOIN {$table} j ON l.job_id = j.id
-			WHERE j.id IS NULL"
-		);
-
 		do_action( 'aie_old_jobs_cleaned', $deleted );
 
 		return $deleted;

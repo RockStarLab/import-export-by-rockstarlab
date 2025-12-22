@@ -12,7 +12,6 @@ namespace WP_AIE\Controller;
 use WP_AIE\Model\Job;
 use WP_AIE\Model\Export\Exporter_Factory;
 use WP_AIE\Model\Queue\Update_Processor;
-use WP_AIE\Helper\Logger;
 
 /**
  * Content Updater Controller Class

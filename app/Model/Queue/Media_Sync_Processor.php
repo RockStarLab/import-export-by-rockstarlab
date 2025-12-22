@@ -10,7 +10,6 @@
 namespace WP_AIE\Model\Queue;
 
 use WP_AIE\Helper\Media_Sync;
-use WP_AIE\Helper\Logger;
 use WP_AIE\Helper\Progress_Tracker;
 use WP_AIE\Model\Job;
 
@@ -31,13 +30,6 @@ class Media_Sync_Processor {
 	protected $batch_processor;
 
 	/**
-	 * Logger instance
-	 *
-	 * @var Logger
-	 */
-	protected $logger;
-
-	/**
 	 * Progress tracker instance
 	 *
 	 * @var Progress_Tracker
@@ -56,7 +48,6 @@ class Media_Sync_Processor {
 	 */
 	public function __construct() {
 		$this->batch_processor  = new Batch_Processor( 20 ); // Process 20 files per batch
-		$this->logger           = new Logger();
 		$this->progress_tracker = new Progress_Tracker();
 		$this->job_model        = WP_AIE()->Model->job;
 	}

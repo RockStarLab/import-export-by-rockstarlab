@@ -9,7 +9,6 @@
 
 namespace WP_AIE\Model\Export;
 
-use WP_AIE\Helper\Logger;
 use WP_AIE\Helper\Data_Transformer;
 
 /**
