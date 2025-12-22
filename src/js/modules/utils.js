@@ -32,11 +32,27 @@ const Utils = {
 					if ( response.success ) {
 						resolve( response.data || response );
 					} else {
-						reject( response.data?.message || 'Request failed' );
+						reject( response.data?.message || response.data || 'Request failed' );
 					}
 				} )
 				.fail( ( jqXHR, textStatus, errorThrown ) => {
-					reject( `AJAX Error: ${ textStatus } - ${ errorThrown }` );
+					// Try to parse error response
+					let errorMessage = 'Request failed';
+					
+					if ( jqXHR.responseJSON && jqXHR.responseJSON.data && jqXHR.responseJSON.data.message ) {
+						errorMessage = jqXHR.responseJSON.data.message;
+					} else if ( jqXHR.responseText ) {
+						try {
+							const parsed = JSON.parse( jqXHR.responseText );
+							errorMessage = parsed.data?.message || parsed.message || errorMessage;
+						} catch ( e ) {
+							errorMessage = errorThrown || textStatus || errorMessage;
+						}
+					} else if ( errorThrown ) {
+						errorMessage = errorThrown;
+					}
+					
+					reject( errorMessage );
 				} );
 		} );
 	},

@@ -77,6 +77,13 @@ class Init {
 	private $content_sync_api_controller;
 
 	/**
+	 * AI URL Importer Controller
+	 *
+	 * @var AI_URL_Importer_Controller
+	 */
+	private $ai_url_importer_controller;
+
+	/**
 	 * Cron Manager
 	 *
 	 * @var \WP_AIE\Model\Queue\Cron_Manager
@@ -149,6 +156,9 @@ class Init {
 			}
 		}
 
+		$this->ai_url_importer_controller = new AI_URL_Importer_Controller();
+		$this->ai_url_importer_controller->init();
+
 		$this->settings_controller = new Settings_Controller();
 		$this->settings_controller->init();
 	}
@@ -183,6 +193,7 @@ class Init {
 				'advanced-import-export_page_wp-aie-content-updater',
 				'advanced-import-export_page_wp-aie-jobs-log',
 				'advanced-import-export_page_wp-aie-media-sync',
+				'advanced-import-export_page_wp-aie-ai-url-importer',
 				'advanced-import-export_page_wp-aie-functions',
 				'advanced-import-export_page_wp-aie-plugin-options',
 			)
@@ -381,6 +392,15 @@ class Init {
 
 		add_submenu_page(
 			'wp-advanced-import-export',
+			__( 'AI URL Importer', 'wp-advanced-import-export' ),
+			__( 'AI URL Importer', 'wp-advanced-import-export' ) . ' 🤖',
+			'manage_options',
+			'wp-aie-ai-url-importer',
+			array( $this, 'display_ai_url_importer_page' )
+		);
+
+		add_submenu_page(
+			'wp-advanced-import-export',
 			__( 'Functions', 'wp-advanced-import-export' ),
 			__( 'Functions', 'wp-advanced-import-export' ),
 			'manage_options',
@@ -440,6 +460,13 @@ class Init {
 	 */
 	function display_media_sync_page() {
 		WP_AIE()->View->load( 'settings/media_sync' );
+	}
+
+	/**
+	 * Display AI URL Importer Page
+	 */
+	function display_ai_url_importer_page() {
+		WP_AIE()->View->load( 'settings/ai_url_importer' );
 	}
 
 	/**

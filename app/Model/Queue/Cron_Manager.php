@@ -49,6 +49,9 @@ class Cron_Manager {
 		// Register media sync job cron action
 		add_action( 'aie_process_media_sync_job', array( $this, 'process_media_sync_job' ) );
 
+		// Register AI URL import job cron action
+		add_action( 'aie_process_ai_url_import', array( $this, 'process_ai_url_import' ) );
+
 		// Add custom cron schedule
 		add_filter( 'cron_schedules', array( $this, 'add_cron_schedules' ) );
 
@@ -173,6 +176,16 @@ class Cron_Manager {
 	 */
 	public function process_media_sync_job( $job_id ) {
 		$processor = new Media_Sync_Processor();
+		$processor->process( $job_id );
+	}
+
+	/**
+	 * Process AI URL import job
+	 *
+	 * @param int $job_id Job ID
+	 */
+	public function process_ai_url_import( $job_id ) {
+		$processor = new AI_URL_Import_Processor();
 		$processor->process( $job_id );
 	}
 }
