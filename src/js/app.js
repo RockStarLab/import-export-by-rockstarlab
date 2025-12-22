@@ -6,6 +6,7 @@ import JobsLogModule from './modules/jobs-log';
 import ContentUpdaterModule from './modules/content-updater';
 import ContentSyncModule from './modules/content-sync';
 import PostSyncModule from './modules/post-sync';
+import AIURLImporter from './modules/ai-url-importer';
 
 // Initialize modules when DOM is ready
 jQuery( document ).ready( function ( $ ) {
@@ -37,4 +38,7 @@ jQuery( document ).ready( function ( $ ) {
 	PostSyncModule.init();
 	
 	window.aiePostSyncModule = PostSyncModule;
+
+	// Initialize AI URL Importer module
+	AIURLImporter.init();
 } );
