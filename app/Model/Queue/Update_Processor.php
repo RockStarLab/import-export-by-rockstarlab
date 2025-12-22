@@ -11,7 +11,6 @@ namespace WP_AIE\Model\Queue;
 
 use WP_AIE\Model\Job;
 use WP_AIE\Model\Export\Exporter_Factory;
-use WP_AIE\Helper\Logger;
 use WP_AIE\Helper\Function_Executor;
 
 /**
@@ -22,13 +21,6 @@ use WP_AIE\Helper\Function_Executor;
  * @package WP_AIE\Model\Queue
  */
 class Update_Processor {
-
-	/**
-	 * Logger instance
-	 *
-	 * @var Logger
-	 */
-	protected $logger;
 
 	/**
 	 * Job model instance
@@ -48,7 +40,6 @@ class Update_Processor {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->logger            = new Logger();
 		$this->job_model         = WP_AIE()->Model->job;
 		$this->function_executor = new Function_Executor();
 	}

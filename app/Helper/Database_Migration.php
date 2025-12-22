@@ -69,20 +69,7 @@ class Database_Migration {
             INDEX created_at_idx (created_at)
         ) ENGINE=InnoDB $charset_collate;";
 
-		// 2. Logs table - execution logs
-		$sql_logs = "CREATE TABLE {$prefix}aie_logs (
-            id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            job_id BIGINT(20) UNSIGNED NOT NULL,
-            level ENUM('info', 'warning', 'error') DEFAULT 'info',
-            message TEXT NOT NULL,
-            data LONGTEXT,
-            created_at DATETIME NOT NULL,
-            INDEX job_id_idx (job_id),
-            INDEX level_idx (level),
-            INDEX created_at_idx (created_at)
-        ) ENGINE=InnoDB $charset_collate;";
-
-		// 3. Field Maps table - saved mapping presets
+		// 2. Field Maps table - saved mapping presets
 		$sql_field_maps = "CREATE TABLE {$prefix}aie_field_maps (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
@@ -190,7 +177,6 @@ class Database_Migration {
 		// Execute table creation
 		$results = array();
 		$results['jobs']              = dbDelta( $sql_jobs );
-		$results['logs']              = dbDelta( $sql_logs );
 		$results['field_maps']        = dbDelta( $sql_field_maps );
 		$results['custom_functions']  = dbDelta( $sql_custom_functions );
 		$results['media_sync']        = dbDelta( $sql_media_sync );
@@ -521,7 +507,6 @@ class Database_Migration {
 			"{$prefix}aie_content_sync",
 			"{$prefix}aie_site_connections",
 			"{$prefix}aie_media_sync",
-			"{$prefix}aie_logs",
 			"{$prefix}aie_api_keys",
 			"{$prefix}aie_custom_functions",
 			"{$prefix}aie_field_maps",

@@ -232,9 +232,6 @@ class Progress_Tracker {
 	 * @return int|WP_Error Number of rows affected or WP_Error
 	 */
 	public static function mark_failed( $job_id, $error_message = '' ) {
-		if ( $error_message ) {
-			WP_AIE()->Model->Log->error( $job_id, $error_message );
-		}
 		return WP_AIE()->Model->Job->mark_failed( $job_id );
 	}
 }

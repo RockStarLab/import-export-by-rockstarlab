@@ -13,7 +13,6 @@ use WP_AIE\Model\Job;
 use WP_AIE\Model\Export\Exporter_Factory;
 use WP_AIE\Model\Format\Format_Factory;
 use WP_AIE\Helper\Fs;
-use WP_AIE\Helper\Logger;
 
 /**
  * Export Processor Class
@@ -23,13 +22,6 @@ use WP_AIE\Helper\Logger;
  * @package WP_AIE\Model\Queue
  */
 class Export_Processor {
-
-	/**
-	 * Logger instance
-	 *
-	 * @var Logger
-	 */
-	protected $logger;
 
 	/**
 	 * Job model instance
@@ -42,7 +34,6 @@ class Export_Processor {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->logger    = new Logger();
 		$this->job_model = WP_AIE()->Model->job;
 	}
 

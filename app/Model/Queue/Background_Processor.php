@@ -10,7 +10,6 @@
 namespace WP_AIE\Model\Queue;
 
 use WP_AIE\Model\Job;
-use WP_AIE\Helper\Logger;
 use WP_AIE\Helper\Progress_Tracker;
 
 /**
@@ -37,13 +36,6 @@ class Background_Processor {
 	protected $batch_processor;
 
 	/**
-	 * Logger instance
-	 *
-	 * @var Logger
-	 */
-	protected $logger;
-
-	/**
 	 * Progress tracker
 	 *
 	 * @var Progress_Tracker
@@ -63,7 +55,6 @@ class Background_Processor {
 	public function __construct() {
 		$this->job_model        = WP_AIE()->Model->job;
 		$this->batch_processor  = new Batch_Processor();
-		$this->logger           = new Logger();
 		$this->progress_tracker = new Progress_Tracker();
 	}
 

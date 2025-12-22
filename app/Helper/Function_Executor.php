@@ -146,17 +146,10 @@ class Function_Executor {
 	];
 
 	/**
-	 * Logger instance
-	 *
-	 * @var Logger
-	 */
-	private $logger;
-
-	/**
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->logger = new Logger();
+		// Constructor intentionally left empty
 	}
 
 	/**

@@ -10,7 +10,6 @@
 namespace WP_AIE\Model;
 
 use WP_AIE\Helper\Function_Executor;
-use WP_AIE\Helper\Logger;
 
 /**
  * Custom Function Class
@@ -36,18 +35,10 @@ class Custom_Function extends Model {
 	private $executor;
 
 	/**
-	 * Logger instance
-	 *
-	 * @var Logger
-	 */
-	private $logger;
-
-	/**
 	 * Constructor
 	 */
 	public function __construct() {
 		$this->executor = new Function_Executor();
-		$this->logger   = new Logger();
 	}
 
 	/**

@@ -14,7 +14,6 @@ use WP_AIE\Model\Export\Exporter_Factory;
 use WP_AIE\Model\Format\Format_Factory;
 use WP_AIE\Model\Queue\Export_Processor;
 use WP_AIE\Helper\Fs;
-use WP_AIE\Helper\Logger;
 
 /**
  * Export Controller Class
