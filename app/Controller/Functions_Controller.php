@@ -210,14 +210,41 @@ class Functions_Controller extends Base_Controller {
 			$this->send_error( $verify->get_error_message() );
 		}
 
-		$function_id = (int) $this->get_request_param( 'id', 0 );
+		$function_id = $this->get_request_param( 'id', '' );
 
 		if ( empty( $function_id ) ) {
 			$this->send_error( __( 'Function ID is required', 'wp-advanced-import-export' ) );
 		}
 
-		$model    = new Custom_Function();
-		$function = $model->get( $function_id );
+		// Check if this is a library snippet
+		if ( strpos( $function_id, 'snippet_' ) === 0 ) {
+			$snippet_key = substr( $function_id, 8 ); // Remove 'snippet_' prefix
+			$library     = new Function_Snippets();
+			$snippet     = $library->get_snippet( $snippet_key );
+
+			if ( ! $snippet ) {
+				$this->send_error( __( 'Snippet not found', 'wp-advanced-import-export' ) );
+			}
+
+			// Format snippet as function for consistency
+			$function = [
+				'id'          => $function_id,
+				'name'        => $snippet['name'],
+				'description' => $snippet['description'],
+				'code'        => $snippet['code'],
+				'category'    => $snippet['category'],
+				'status'      => 'active',
+				'type'        => 'library',
+			];
+
+			$this->send_success( $function );
+			return;
+		}
+
+		// Otherwise, get custom function from database
+		$function_id_int = (int) $function_id;
+		$model           = new Custom_Function();
+		$function        = $model->get( $function_id_int );
 
 		if ( ! $function ) {
 			$this->send_error( __( 'Function not found', 'wp-advanced-import-export' ) );
@@ -286,16 +313,24 @@ class Functions_Controller extends Base_Controller {
 			$this->send_error( $verify->get_error_message() );
 		}
 
-		$function_id = (int) $this->get_request_param( 'id', 0 );
+		$function_id = $this->get_request_param( 'id', '' );
 
 		if ( empty( $function_id ) ) {
 			$this->send_error( __( 'Function ID is required', 'wp-advanced-import-export' ) );
 		}
 
-		$model = new Custom_Function();
+		// If trying to update a library snippet, create a new custom function instead
+		if ( strpos( $function_id, 'snippet_' ) === 0 ) {
+			// Redirect to create_function logic
+			$this->create_function();
+			return;
+		}
+
+		$function_id_int = (int) $function_id;
+		$model           = new Custom_Function();
 
 		// Check if function exists and user can edit
-		if ( ! $model->can_edit_function( $function_id ) ) {
+		if ( ! $model->can_edit_function( $function_id_int ) ) {
 			$this->send_error( __( 'You do not have permission to edit this function', 'wp-advanced-import-export' ) );
 		}
 
@@ -332,7 +367,7 @@ class Functions_Controller extends Base_Controller {
 			$this->send_error( __( 'No data to update', 'wp-advanced-import-export' ) );
 		}
 
-		$result = $model->update( $function_id, $update_data );
+		$result = $model->update( $function_id_int, $update_data );
 
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result->get_error_message() );
@@ -342,7 +377,7 @@ class Functions_Controller extends Base_Controller {
 			$this->send_error( __( 'Failed to update function', 'wp-advanced-import-export' ) );
 		}
 
-		$function = $model->get( $function_id );
+		$function = $model->get( $function_id_int );
 
 		$this->send_success(
 			[
@@ -361,20 +396,26 @@ class Functions_Controller extends Base_Controller {
 			$this->send_error( $verify->get_error_message() );
 		}
 
-		$function_id = (int) $this->get_request_param( 'id', 0 );
+		$function_id = $this->get_request_param( 'id', '' );
 
 		if ( empty( $function_id ) ) {
 			$this->send_error( __( 'Function ID is required', 'wp-advanced-import-export' ) );
 		}
 
-		$model = new Custom_Function();
+		// Cannot delete library snippets
+		if ( strpos( $function_id, 'snippet_' ) === 0 ) {
+			$this->send_error( __( 'Library snippets cannot be deleted', 'wp-advanced-import-export' ) );
+		}
+
+		$function_id_int = (int) $function_id;
+		$model           = new Custom_Function();
 
 		// Check permissions
-		if ( ! $model->can_edit_function( $function_id ) ) {
+		if ( ! $model->can_edit_function( $function_id_int ) ) {
 			$this->send_error( __( 'You do not have permission to delete this function', 'wp-advanced-import-export' ) );
 		}
 
-		$result = $model->delete( $function_id );
+		$result = $model->delete( $function_id_int );
 
 		if ( ! $result ) {
 			$this->send_error( __( 'Failed to delete function', 'wp-advanced-import-export' ) );

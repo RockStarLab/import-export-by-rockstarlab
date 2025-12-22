@@ -171,6 +171,13 @@ if ( ! empty( $openai_api_key ) ) {
 
 			<div class="aie-settings-section-body">
 				<div class="aie-info-cards">
+
+					<div class="aie-info-card">
+						<span class="dashicons dashicons-admin-links"></span>
+						<h3><?php esc_html_e( 'AI URL Importer', 'wp-advanced-import-export' ); ?></h3>
+						<p><?php esc_html_e( 'Import content directly from URLs using AI-powered extraction. Automatically extracts and structures content from web pages into WordPress posts.', 'wp-advanced-import-export' ); ?></p>
+					</div>
+
 					<div class="aie-info-card">
 						<span class="dashicons dashicons-admin-generic"></span>
 						<h3><?php esc_html_e( 'AI Function Generator', 'wp-advanced-import-export' ); ?></h3>
@@ -178,21 +185,17 @@ if ( ! empty( $openai_api_key ) ) {
 					</div>
 
 					<div class="aie-info-card">
-						<span class="dashicons dashicons-shield"></span>
-						<h3><?php esc_html_e( 'Security', 'wp-advanced-import-export' ); ?></h3>
-						<p><?php esc_html_e( 'AI-generated code is validated and sanitized. Dangerous functions (eval, exec, file operations) are blocked.', 'wp-advanced-import-export' ); ?></p>
-					</div>
-
-					<div class="aie-info-card">
-						<span class="dashicons dashicons-star-filled"></span>
-						<h3><?php esc_html_e( 'Premium Feature', 'wp-advanced-import-export' ); ?></h3>
+						<span class="dashicons dashicons-chart-area"></span>
+						<h3><?php esc_html_e( 'Pricing & Tokens', 'wp-advanced-import-export' ); ?></h3>
 						<p>
-							<?php esc_html_e( 'AI function generation is available for Premium users only.', 'wp-advanced-import-export' ); ?>
-							<?php if ( function_exists( 'waie_fs' ) && ! waie_fs()->can_use_premium_code() ) : ?>
-								<a href="<?php echo esc_url( waie_fs()->get_upgrade_url() ); ?>" class="aie-upgrade-link">
-									<?php esc_html_e( 'Upgrade to Premium', 'wp-advanced-import-export' ); ?>
-								</a>
-							<?php endif; ?>
+							<?php esc_html_e( 'AI features use OpenAI GPT-4o-mini model. Typical costs:', 'wp-advanced-import-export' ); ?>
+						</p>
+						<ul style="list-style: disc; margin: 10px 0; padding-left: 20px; font-size: 0.95em;">
+							<li><?php esc_html_e( 'Function generation: ~$0.0001-0.0003 per function', 'wp-advanced-import-export' ); ?></li>
+							<li><?php esc_html_e( 'URL import: ~$0.001-0.005 per page', 'wp-advanced-import-export' ); ?></li>
+						</ul>
+						<p style="font-size: 0.9em; color: #666;">
+							<?php esc_html_e( 'You pay OpenAI directly based on usage. Monitor costs in your OpenAI dashboard.', 'wp-advanced-import-export' ); ?>
 						</p>
 					</div>
 				</div>
