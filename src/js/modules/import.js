@@ -2984,24 +2984,26 @@ const ImportModule = {
 			
 			const data = {
 				file_path: this.fileData.file_path,
-				content_type: contentType,
+				import_type: contentType,
 				format: this.fileData.format,
-				field_mapping: this.getFieldMapping(),
-				duplicate_handling: jQuery(
-					'input[name="duplicate_handling"]:checked'
-				).val(),
-				post_status: jQuery( '[name="post_status"]' ).val(),
-				post_type: jQuery( '[name="post_type"]' ).val(),
-				download_images: jQuery( '[name="download_images"]' ).is(
-					':checked'
-				),
-				batch_size:
-					parseInt( jQuery( '[name="batch_size"]' ).val() ) || 50,
+				mapping: this.getFieldMapping(),
+				options: {
+					duplicate_handling: jQuery(
+						'input[name="duplicate_handling"]:checked'
+					).val(),
+					post_status: jQuery( '[name="post_status"]' ).val(),
+					post_type: jQuery( '[name="post_type"]' ).val(),
+					download_images: jQuery( '[name="download_images"]' ).is(
+						':checked'
+					),
+					batch_size:
+						parseInt( jQuery( '[name="batch_size"]' ).val() ) || 50,
+				}
 			};
 			
 			// Add custom post type if selected
 			if ( contentType === 'custom_post_types' ) {
-				data.custom_post_type = jQuery( '#aie-custom-post-type' ).val();
+				data.options.custom_post_type = jQuery( '#aie-custom-post-type' ).val();
 			}
 
 			const response = await Utils.ajax( 'aie_import_start', data );
