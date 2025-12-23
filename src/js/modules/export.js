@@ -1525,22 +1525,31 @@ const ExportModule = {
 					{ value: 'post_status', label: window.aieData.i18n.fieldStatus, type: 'string' },
 				],
 			},
-		{
-			label: window.aieData.i18n.fieldGroupOther,
-			options: [
-				{ value: 'comment_status', label: window.aieData.i18n.fieldCommentStatus, type: 'string' },
-				{ value: 'post_modified', label: window.aieData.i18n.fieldModifiedDate, type: 'date' },
-				{ value: '_wp_page_template', label: window.aieData.i18n.fieldTemplate, type: 'string' },
-			],
-		},
-		{
-			label: window.aieData.i18n.fieldGroupCustomFilters,
-			options: [
-				{ value: '_custom_field', label: window.aieData.i18n.fieldCustomFieldMeta, type: 'custom_field' },
-				{ value: '_taxonomy_filter', label: window.aieData.i18n.fieldTaxonomyFilter, type: 'taxonomy_filter' },
-			],
-		},
-	];
+			{
+				label: window.aieData.i18n.fieldGroupFeaturedImage || 'Featured Image',
+				options: [
+					{ value: 'featured_image_id', label: window.aieData.i18n.fieldFeaturedImageId || 'Featured Image ID', type: 'number' },
+					{ value: 'featured_image_url', label: window.aieData.i18n.fieldFeaturedImageUrl || 'Featured Image URL', type: 'url' },
+					{ value: 'featured_image_title', label: window.aieData.i18n.fieldFeaturedImageTitle || 'Featured Image Title', type: 'string' },
+					{ value: 'featured_image_caption', label: window.aieData.i18n.fieldFeaturedImageCaption || 'Featured Image Caption', type: 'string' },
+				],
+			},
+			{
+				label: window.aieData.i18n.fieldGroupOther,
+				options: [
+					{ value: 'comment_status', label: window.aieData.i18n.fieldCommentStatus, type: 'string' },
+					{ value: 'post_modified', label: window.aieData.i18n.fieldModifiedDate, type: 'date' },
+					{ value: '_wp_page_template', label: window.aieData.i18n.fieldTemplate, type: 'string' },
+				],
+			},
+			{
+				label: window.aieData.i18n.fieldGroupCustomFilters,
+				options: [
+					{ value: '_custom_field', label: window.aieData.i18n.fieldCustomFieldMeta, type: 'custom_field' },
+					{ value: '_taxonomy_filter', label: window.aieData.i18n.fieldTaxonomyFilter, type: 'taxonomy_filter' },
+				],
+			},
+		];
 		
 		// Customize based on content type
 		if ( contentType === 'media' ) {
@@ -1893,24 +1902,31 @@ const ExportModule = {
 						{ value: 'downloadable', label: window.aieData.i18n.fieldDownloadable, type: 'boolean' },
 						{ value: 'virtual', label: window.aieData.i18n.fieldVirtual, type: 'boolean' },
 					],
-				},
-				{
-					label: window.aieData.i18n.fieldGroupShipping,
-					options: [
-						{ value: 'weight', label: window.aieData.i18n.fieldWeight, type: 'number' },
-						{ value: 'length', label: window.aieData.i18n.fieldLength, type: 'number' },
-						{ value: 'width', label: window.aieData.i18n.fieldWidth, type: 'number' },
-						{ value: 'height', label: window.aieData.i18n.fieldHeight, type: 'number' },
-						{ value: 'shipping_class', label: window.aieData.i18n.fieldShippingClass, type: 'string' },
-					],
-				},
-				{
-					label: window.aieData.i18n.fieldGroupMedia,
-					options: [
-						{ value: 'featured_image', label: window.aieData.i18n.fieldFeaturedImage, type: 'string' },
-						{ value: 'product_gallery', label: window.aieData.i18n.fieldGalleryImages, type: 'array' },
-					],
-				},
+				},			{
+				label: window.aieData.i18n.fieldGroupShipping,
+				options: [
+					{ value: 'weight', label: window.aieData.i18n.fieldWeight, type: 'number' },
+					{ value: 'length', label: window.aieData.i18n.fieldLength, type: 'number' },
+					{ value: 'width', label: window.aieData.i18n.fieldWidth, type: 'number' },
+					{ value: 'height', label: window.aieData.i18n.fieldHeight, type: 'number' },
+					{ value: 'shipping_class', label: window.aieData.i18n.fieldShippingClass, type: 'string' },
+				],
+			},
+			{
+				label: window.aieData.i18n.fieldGroupFeaturedImage || 'Featured Image',
+				options: [
+					{ value: 'featured_image_id', label: window.aieData.i18n.fieldFeaturedImageId || 'Featured Image ID', type: 'number' },
+					{ value: 'featured_image_url', label: window.aieData.i18n.fieldFeaturedImageUrl || 'Featured Image URL', type: 'url' },
+					{ value: 'featured_image_title', label: window.aieData.i18n.fieldFeaturedImageTitle || 'Featured Image Title', type: 'string' },
+					{ value: 'featured_image_caption', label: window.aieData.i18n.fieldFeaturedImageCaption || 'Featured Image Caption', type: 'string' },
+				],
+			},
+			{
+				label: window.aieData.i18n.fieldGroupMedia,
+				options: [
+					{ value: 'product_gallery', label: window.aieData.i18n.fieldGalleryImages, type: 'array' },
+				],
+			},
 				{
 					label: window.aieData.i18n.fieldGroupTaxonomy,
 					options: [

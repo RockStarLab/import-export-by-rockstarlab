@@ -315,18 +315,18 @@
 		}
 
 		.aie-preview-table {
-			width: 100%;
+			width: auto;
 			min-width: 100%;
 			margin: 0;
 			border: none;
+			table-layout: auto;
 			
 			th, td {
 				padding: 10px 15px;
 				white-space: nowrap;
 				min-width: 120px;
-				max-width: 300px;
-				overflow: hidden;
-				text-overflow: ellipsis;
+				max-width: none;
+				overflow: visible;
 				border-right: 1px solid #dcdcde;
 
 				&:last-child {

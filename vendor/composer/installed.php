@@ -3,7 +3,7 @@
         'name' => 'rockstarlab/wp-advanced-import-export',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'd2dee87c3b5290862a38825c4feec1cb38b90e65',
+        'reference' => 'b55e5d4898fa167333a05406e58a39e1a6400270',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -49,7 +49,7 @@
         'rockstarlab/wp-advanced-import-export' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'd2dee87c3b5290862a38825c4feec1cb38b90e65',
+            'reference' => 'b55e5d4898fa167333a05406e58a39e1a6400270',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
