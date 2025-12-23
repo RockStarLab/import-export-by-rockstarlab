@@ -141,24 +141,16 @@ class Export_Processor {
 					'custom_fields'   => $parameters['custom_fields'] ?? [],
 					'taxonomy'        => $parameters['taxonomy'] ?? [],
 					'field_functions' => $parameters['field_functions'] ?? [],
-					'limit'           => $batch_size,
-					'offset'          => $current_offset,
-				]
-			);
-			
-			// Debug logging
-			error_log( sprintf( 
-				'[AIE Export Debug] Job #%d - Fields being exported: %s',
-				$job_id,
-				! empty( $fields ) ? implode( ', ', $fields ) : 'EMPTY'
-			) );
+					'limit'           => $batch_size,				'offset'          => $current_offset,
+			]
+		);
+		
+		// For database_table, add table_name to export_options
+		if ( 'database_table' === $export_type && ! empty( $parameters['table_name'] ) ) {
+			$export_options['table_name'] = $parameters['table_name'];
+		}
 
-			// For database_table, add table_name to export_options
-			if ( 'database_table' === $export_type && ! empty( $parameters['table_name'] ) ) {
-				$export_options['table_name'] = $parameters['table_name'];
-			}
-
-			// Get total count on first batch
+		// Get total count on first batch
 			if ( 0 === $current_offset ) {
 				$total_count = Exporter_Factory::get_count( $export_type, $export_options );
 
@@ -174,30 +166,19 @@ class Export_Processor {
 
 			// Export batch
 			$export_result = $exporter->export( $export_options );
+		if ( is_wp_error( $export_result ) ) {
+			throw new \Exception( $export_result->get_error_message() );
+		}
 
-			if ( is_wp_error( $export_result ) ) {
-				throw new \Exception( $export_result->get_error_message() );
-			}
+		$batch_data  = $export_result['data'] ?? [];
+		$batch_count = count( $batch_data );
 
-			$batch_data  = $export_result['data'] ?? [];
-			$batch_count = count( $batch_data );
+		// Append batch data to temp file
+		if ( ! empty( $batch_data ) ) {
+			$this->append_batch_data( $job_id, $batch_data );
+		}
 
-			// Append batch data to temp file
-			if ( ! empty( $batch_data ) ) {
-				// Debug logging
-				if ( ! empty( $batch_data ) ) {
-					$first_item = reset( $batch_data );
-					error_log( sprintf( 
-						'[AIE Export Debug] Job #%d - First item keys: %s',
-						$job_id,
-						implode( ', ', array_keys( $first_item ) )
-					) );
-				}
-				
-				$this->append_batch_data( $job_id, $batch_data );
-			}
-
-			// Update progress
+		// Update progress
 			$new_processed = $current_offset + $batch_count;
 			$progress      = $total_count > 0 ? ( $new_processed / $total_count ) * 100 : 0;
 
