@@ -1115,9 +1115,9 @@ const ExportModule = {
 		const clone = template.content.cloneNode( true );
 		const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
 
-		// Populate field options based on content type
+		// Populate field options based on content type (without Featured Image group)
 		const $fieldSelect = jQuery( clone ).find( '.aie-filter-field' );
-		const fields = this.getFieldsByContentType( contentType );
+		const fields = this.getFilterFieldsByContentType( contentType );
 
 		fields.forEach( ( group ) => {
 			const $optgroup = jQuery( '<optgroup>' ).attr(
@@ -2202,6 +2202,22 @@ const ExportModule = {
 		}
 
 		return baseFields;
+	},
+
+	/**
+	 * Get filter fields by content type (for Step 2: Filter Data)
+	 * Same as getFieldsByContentType but excludes Featured Image group
+	 */
+	getFilterFieldsByContentType( contentType ) {
+		// Get all fields first
+		const allFields = this.getFieldsByContentType( contentType );
+		
+		// Filter out the Featured Image group
+		return allFields.filter( group => {
+			const label = group.label;
+			const featuredImageLabel = window.aieData.i18n.fieldGroupFeaturedImage || 'Featured Image';
+			return label !== featuredImageLabel;
+		} );
 	},
 
 	/**

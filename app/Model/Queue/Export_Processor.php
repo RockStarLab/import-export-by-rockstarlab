@@ -131,13 +131,13 @@ class Export_Processor {
 			}
 
 			// Build export options
+			// Note: dynamic_filters from Step 2 should be passed as 'filters' to the exporter
 			$export_options = array_merge(
 				$options,
 				[
 					'post_type'       => $mapped_post_type,
-					'filters'         => $parameters['filters'] ?? [],
+					'filters'         => $parameters['dynamic_filters'] ?? [],  // Use dynamic_filters from Step 2
 					'fields'          => $fields,
-					'dynamic_filters' => $parameters['dynamic_filters'] ?? [],
 					'custom_fields'   => $parameters['custom_fields'] ?? [],
 					'taxonomy'        => $parameters['taxonomy'] ?? [],
 					'field_functions' => $parameters['field_functions'] ?? [],
@@ -145,6 +145,13 @@ class Export_Processor {
 					'offset'          => $current_offset,
 				]
 			);
+			
+			// Debug logging
+			error_log( sprintf( 
+				'[AIE Export Debug] Job #%d - Fields being exported: %s',
+				$job_id,
+				! empty( $fields ) ? implode( ', ', $fields ) : 'EMPTY'
+			) );
 
 			// For database_table, add table_name to export_options
 			if ( 'database_table' === $export_type && ! empty( $parameters['table_name'] ) ) {
@@ -177,6 +184,16 @@ class Export_Processor {
 
 			// Append batch data to temp file
 			if ( ! empty( $batch_data ) ) {
+				// Debug logging
+				if ( ! empty( $batch_data ) ) {
+					$first_item = reset( $batch_data );
+					error_log( sprintf( 
+						'[AIE Export Debug] Job #%d - First item keys: %s',
+						$job_id,
+						implode( ', ', array_keys( $first_item ) )
+					) );
+				}
+				
 				$this->append_batch_data( $job_id, $batch_data );
 			}
 
