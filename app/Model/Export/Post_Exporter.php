@@ -85,13 +85,29 @@ class Post_Exporter extends Abstract_Exporter {
 			'menu_order',
 			'comment_status',
 			'ping_status',
-			'post_password',
-			'guid',
-			'post_meta',
-			'taxonomies',
-			'featured_image',
-			'author_name',
-			'author_email',
+			'post_password',		'guid',
+		'post_meta',
+		'taxonomies',
+		'featured_image',
+		'featured_image_id',
+		'featured_image_url',
+		'featured_image_title',
+		'featured_image_caption',
+		'author_name',
+		'author_email',
+		// Yoast SEO fields
+		'_yoast_wpseo_title',
+		'_yoast_wpseo_metadesc',
+		'_yoast_wpseo_focuskw',
+		'_yoast_wpseo_canonical',
+		'_yoast_wpseo_meta-robots-noindex',
+		'_yoast_wpseo_meta-robots-nofollow',
+		'_yoast_wpseo_opengraph-title',
+		'_yoast_wpseo_opengraph-description',
+		'_yoast_wpseo_opengraph-image',
+		'_yoast_wpseo_twitter-title',
+		'_yoast_wpseo_twitter-description',
+		'_yoast_wpseo_twitter-image',
 		];
 	}
 
@@ -865,7 +881,7 @@ class Post_Exporter extends Abstract_Exporter {
 						'terms'    => $term_slugs,
 						'operator' => 'NOT IN',
 					];
-				} elseif ( $condition === 'is_empty' ) {
+				} else				if ( $condition === 'is_empty' ) {
 					// Posts without this taxonomy OR with only Uncategorized category
 					if ( $taxonomy === 'category' ) {
 						// Get default category ID (usually "Uncategorized")
@@ -896,22 +912,20 @@ class Post_Exporter extends Abstract_Exporter {
 					// Posts with any term in this taxonomy (excluding Uncategorized for categories)
 					if ( $taxonomy === 'category' ) {
 						// Get default category ID (usually "Uncategorized")
-						$default_category = get_option( 'default_category' );
-
-						// For categories, exclude default category
-						$args['tax_query'][] = [
-							'relation' => 'AND',
-							[
-								'taxonomy' => $taxonomy,
-								'operator' => 'EXISTS',
-							],
-							[
-								'taxonomy' => $taxonomy,
-								'field'    => 'term_id',
-								'terms'    => $default_category,
-								'operator' => 'NOT IN',
-							],
-						];
+						$default_category = get_option( 'default_category' );					// For categories, exclude default category
+					$args['tax_query'][] = [
+						'relation' => 'AND',
+						[
+							'taxonomy' => $taxonomy,
+							'operator' => 'EXISTS',
+						],
+						[
+							'taxonomy' => $taxonomy,
+							'field'    => 'term_id',
+							'terms'    => $default_category,
+							'operator' => 'NOT IN',
+						],
+					];
 					} else {
 						// For other taxonomies, just check if exists
 						$args['tax_query'][] = [
@@ -1187,6 +1201,18 @@ class Post_Exporter extends Abstract_Exporter {
 	 */
 	protected function prepare_post_data( $post, $fields ) {
 		$data = [];
+		
+		// Debug: Log which fields are being requested
+		$yoast_fields = array_filter( $fields, function( $field ) {
+			return strpos( $field, '_yoast_wpseo' ) === 0;
+		} );
+		if ( ! empty( $yoast_fields ) ) {
+			error_log( sprintf( 
+				'[AIE Export Debug] Post ID %d - Yoast fields requested: %s',
+				$post->ID,
+				implode( ', ', $yoast_fields )
+			) );
+		}
 
 		// Basic fields
 		$basic_fields = [
@@ -1245,6 +1271,85 @@ class Post_Exporter extends Abstract_Exporter {
 		if ( in_array( 'featured_image', $fields, true ) ) {
 			$data['featured_image'] = $this->get_featured_image( $post->ID );
 		}
+
+		// Individual featured image fields
+		$featured_image_fields = [ 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption' ];
+		$has_featured_fields   = array_intersect( $featured_image_fields, $fields );
+		
+		if ( ! empty( $has_featured_fields ) ) {
+			$thumbnail_id = get_post_thumbnail_id( $post->ID );
+			
+			if ( $thumbnail_id ) {
+				if ( in_array( 'featured_image_id', $fields, true ) ) {
+					$data['featured_image_id'] = $thumbnail_id;
+				}
+				
+				if ( in_array( 'featured_image_url', $fields, true ) ) {
+					$data['featured_image_url'] = wp_get_attachment_url( $thumbnail_id );
+				}
+				
+				if ( in_array( 'featured_image_title', $fields, true ) ) {
+					$image                          = get_post( $thumbnail_id );
+					$data['featured_image_title'] = $image ? $image->post_title : '';
+				}
+				
+				if ( in_array( 'featured_image_caption', $fields, true ) ) {
+					$image                            = get_post( $thumbnail_id );
+					$data['featured_image_caption'] = $image ? $image->post_excerpt : '';
+				}
+			} else {
+				// No featured image - set empty values
+				if ( in_array( 'featured_image_id', $fields, true ) ) {
+					$data['featured_image_id'] = '';
+				}
+				if ( in_array( 'featured_image_url', $fields, true ) ) {
+					$data['featured_image_url'] = '';
+				}
+				if ( in_array( 'featured_image_title', $fields, true ) ) {
+					$data['featured_image_title'] = '';
+				}
+				if ( in_array( 'featured_image_caption', $fields, true ) ) {
+					$data['featured_image_caption'] = '';
+				}
+			}
+		}
+
+		// Process individual taxonomy fields (taxonomy_category, taxonomy_post_tag, etc.)
+		foreach ( $fields as $field ) {
+			if ( strpos( $field, 'taxonomy_' ) === 0 ) {
+				$taxonomy_name = substr( $field, 9 ); // Remove 'taxonomy_' prefix
+				$terms         = wp_get_object_terms( $post->ID, $taxonomy_name, [ 'fields' => 'names' ] );
+				
+				if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+					$data[ $field ] = implode( ', ', $terms );
+				} else {
+					$data[ $field ] = '';
+				}
+			}
+		}
+	// Process individual meta fields (including _wp_page_template and other meta)
+	foreach ( $fields as $field ) {
+		// Check if it's a meta field (starts with _ or not in basic/special fields)
+		if ( ! in_array( $field, $basic_fields, true ) && 
+		     ! in_array( $field, [ 'author_name', 'author_email', 'post_meta', 'taxonomies', 'featured_image', 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption' ], true ) &&
+		     strpos( $field, 'taxonomy_' ) !== 0 ) {
+			
+			// Get meta value - always include the field if it was explicitly selected
+			$meta_value = get_post_meta( $post->ID, $field, true );
+			
+			// Debug logging for Yoast fields
+			if ( strpos( $field, '_yoast_wpseo' ) === 0 ) {
+				error_log( sprintf( 
+					'[AIE Export Debug] Post ID: %d, Field: %s, Value: %s',
+					$post->ID,
+					$field,
+					is_string( $meta_value ) ? $meta_value : print_r( $meta_value, true )
+				) );
+			}
+			
+			$data[ $field ] = $meta_value !== false ? $meta_value : '';
+		}
+	}
 
 		return $data;
 	}

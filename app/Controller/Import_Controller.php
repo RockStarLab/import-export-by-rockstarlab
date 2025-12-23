@@ -451,36 +451,35 @@ class Import_Controller extends Base_Controller {
 			[
 				'name'  => '_yoast_wpseo_meta-robots-noindex',
 				'label' => 'Meta Robots (Index)',
-			],
-			[
-				'name'  => '_yoast_wpseo_meta-robots-nofollow',
-				'label' => 'Meta Robots (Follow)',
-			],
-			[
-				'name'  => '_yoast_wpseo_opengraph-title',
-				'label' => 'Facebook Title',
-			],
-			[
-				'name'  => '_yoast_wpseo_opengraph-description',
-				'label' => 'Facebook Description',
-			],
-			[
-				'name'  => '_yoast_wpseo_opengraph-image',
-				'label' => 'Facebook Image',
-			],
-			[
-				'name'  => '_yoast_wpseo_twitter-title',
-				'label' => 'Twitter Title',
-			],
-			[
-				'name'  => '_yoast_wpseo_twitter-description',
-				'label' => 'Twitter Description',
-			],
-			[
-				'name'  => '_yoast_wpseo_twitter-image',
-				'label' => 'Twitter Image',
-			],
-		];
+			],		[
+			'name'  => '_yoast_wpseo_meta-robots-nofollow',
+			'label' => 'Meta Robots (Follow)',
+		],
+		[
+			'name'  => '_yoast_wpseo_opengraph-title',
+			'label' => 'Social Title',
+		],
+		[
+			'name'  => '_yoast_wpseo_opengraph-description',
+			'label' => 'Social Description',
+		],
+		[
+			'name'  => '_yoast_wpseo_opengraph-image',
+			'label' => 'Social Image',
+		],
+		[
+			'name'  => '_yoast_wpseo_twitter-title',
+			'label' => 'X (Twitter) Title',
+		],
+		[
+			'name'  => '_yoast_wpseo_twitter-description',
+			'label' => 'X (Twitter) Description',
+		],
+		[
+			'name'  => '_yoast_wpseo_twitter-image',
+			'label' => 'X (Twitter) Image',
+		],
+	];
 
 		$this->send_success( [ 'fields' => $fields ] );
 	}

@@ -61,9 +61,12 @@ class Importer_Factory {
 	 */
 	private static function get_importer_map() {
 		$default_map = [
-			'posts' => Post_Importer::class,
-			'pages' => Post_Importer::class,
-			'media' => Media_Importer::class,
+			'post'             => Post_Importer::class,
+			'posts'            => Post_Importer::class,
+			'page'             => Post_Importer::class,
+			'pages'            => Post_Importer::class,
+			'custom_post_type' => Post_Importer::class,
+			'media'            => Media_Importer::class,
 		];
 
 		/**
