@@ -332,22 +332,15 @@ class Post_Exporter extends Abstract_Exporter {
 
 		if ( ! $query->have_posts() ) {
 			return [];
-		}
+	}
 
-		$data   = [];
-		$fields = $this->get_option( 'fields', $this->get_default_fields() );
-		
-		// Debug logging
-		error_log( sprintf( 
-			'[AIE Export Debug] get_data - Fields count: %d, All fields: %s',
-			count( $fields ),
-			implode( ', ', $fields )
-		) );
-
-		// If fields is empty array, use default fields
-		if ( empty( $fields ) ) {
-			$fields = $this->get_default_fields();
-		}
+	$data   = [];
+	$fields = $this->get_option( 'fields', $this->get_default_fields() );
+	
+	// If fields is empty array, use default fields
+	if ( empty( $fields ) ) {
+		$fields = $this->get_default_fields();
+	}
 
 		while ( $query->have_posts() ) {
 			$query->the_post();
@@ -1208,18 +1201,6 @@ class Post_Exporter extends Abstract_Exporter {
 	 */
 	protected function prepare_post_data( $post, $fields ) {
 		$data = [];
-		
-		// Debug: Log which fields are being requested
-		$yoast_fields = array_filter( $fields, function( $field ) {
-			return strpos( $field, '_yoast_wpseo' ) === 0;
-		} );
-		if ( ! empty( $yoast_fields ) ) {
-			error_log( sprintf( 
-				'[AIE Export Debug] Post ID %d - Yoast fields requested: %s',
-				$post->ID,
-				implode( ', ', $yoast_fields )
-			) );
-		}
 
 		// Basic fields
 		$basic_fields = [
@@ -1339,6 +1320,95 @@ class Post_Exporter extends Abstract_Exporter {
 		if ( ! in_array( $field, $basic_fields, true ) && 
 		     ! in_array( $field, [ 'author_name', 'author_email', 'post_meta', 'taxonomies', 'featured_image', 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption' ], true ) &&
 		     strpos( $field, 'taxonomy_' ) !== 0 ) {
+					// Handle ACF fields (with acf_ prefix)
+		if ( strpos( $field, 'acf_' ) === 0 ) {
+			$acf_field_name = substr( $field, 4 ); // Remove 'acf_' prefix (4 characters)
+			
+			// Try get_field() first (handles complex fields like images, relationships)
+			$acf_value = false;
+			if ( function_exists( 'get_field' ) ) {
+				$acf_value = get_field( $acf_field_name, $post->ID );
+			}
+			
+			// If get_field() returns false (field definition not found), 
+			// fall back to direct get_post_meta() and collect all related meta
+			if ( $acf_value === false ) {
+				$acf_value = get_post_meta( $post->ID, $acf_field_name, true );
+				
+				// Check if this is a repeater/component field (numeric value AND has sub-fields)
+				if ( is_numeric( $acf_value ) && $acf_value > 0 ) {
+					global $wpdb;
+					$count = intval( $acf_value );
+					
+					// Check if there are sub-fields (check first row)
+					$pattern = $acf_field_name . '_0_%';
+					$has_sub_fields = $wpdb->get_var( $wpdb->prepare(
+						"SELECT COUNT(*) FROM {$wpdb->postmeta} 
+						WHERE post_id = %d AND meta_key LIKE %s",
+						$post->ID,
+						$pattern
+					) );
+					
+					// Only treat as repeater/component if sub-fields exist
+					if ( $has_sub_fields > 0 ) {
+						$repeater_data = [];
+						
+						for ( $i = 0; $i < $count; $i++ ) {
+							// Get all meta keys for this row
+							$pattern = $acf_field_name . '_' . $i . '_%';
+							$sub_fields = $wpdb->get_results( $wpdb->prepare(
+								"SELECT meta_key, meta_value FROM {$wpdb->postmeta} 
+								WHERE post_id = %d AND meta_key LIKE %s",
+								$post->ID,
+								$pattern
+							), ARRAY_A );
+							
+							if ( ! empty( $sub_fields ) ) {
+								$row_data = [];
+								foreach ( $sub_fields as $sub_field ) {
+									// Extract sub-field name (remove prefix)
+									$sub_field_name = str_replace( $acf_field_name . '_' . $i . '_', '', $sub_field['meta_key'] );
+									$row_data[ $sub_field_name ] = $sub_field['meta_value'];
+								}
+								$repeater_data[] = $row_data;
+							}
+						}
+						
+						// Use the repeater data
+						if ( ! empty( $repeater_data ) ) {
+							$acf_value = $repeater_data;
+						}
+					}
+					// Otherwise it's just a number field, keep the numeric value
+				}
+				// If it's a serialized array, unserialize it
+				elseif ( is_string( $acf_value ) && $acf_value !== '' ) {
+					$unserialized = @unserialize( $acf_value );
+					if ( $unserialized !== false || $acf_value === 'b:0;' ) {
+						$acf_value = $unserialized;
+					}
+				}
+			}
+			
+			// Convert ACF value to exportable format
+			if ( is_array( $acf_value ) ) {
+				// For arrays (images, files, etc.), try to get just the URL or serialize
+				if ( isset( $acf_value['url'] ) ) {
+					$data[ $field ] = $acf_value['url'];
+				} elseif ( isset( $acf_value['ID'] ) ) {
+					$data[ $field ] = $acf_value['ID'];
+				} else {
+					$data[ $field ] = maybe_serialize( $acf_value );
+				}
+			} elseif ( $acf_value === false || $acf_value === null || $acf_value === '' ) {
+				// Empty field
+				$data[ $field ] = '';
+			} else {
+				// String, number, or true boolean
+				$data[ $field ] = $acf_value;
+			}
+			continue;
+		}
 			
 			// Remove 'meta_' prefix if present (added by frontend for custom fields)
 			$meta_key = $field;
