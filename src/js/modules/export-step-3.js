@@ -1117,13 +1117,13 @@ export default class ExportStep3 {
 		// Clear grid completely (removes loading spinner and any existing fields)
 		grid.innerHTML = '';
 		
-		fields.forEach(field => {
-			const item = document.createElement('div');
-			item.className = 'aie-field-item';
-			item.draggable = true;
-			item.dataset.field = 'yoast_' + field.name;
-			item.dataset.label = field.label;
-			item.dataset.type = 'yoast';
+	fields.forEach(field => {
+		const item = document.createElement('div');
+		item.className = 'aie-field-item';
+		item.draggable = true;
+		item.dataset.field = field.name; // Use field name as-is, it already includes the full meta key
+		item.dataset.label = field.label;
+		item.dataset.type = 'yoast';
 
 			item.innerHTML = `
 				<span class="aie-field-icon dashicons dashicons-chart-line"></span>
