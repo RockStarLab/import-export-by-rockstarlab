@@ -147,6 +147,8 @@ body.aie-dragging {
 	grid-column-gap: 12px;
 	grid-row-gap: 12px;
 	padding: 10px 0;
+
+	
 	
 }
 
@@ -951,6 +953,62 @@ body.aie-dragging {
 }
 
 // Responsive
+// ============================================
+
+// Large screens (wide monitors)
+@media screen and (min-width: 1600px) {
+	.aie-csv-columns {
+		grid-template-columns: repeat(4, 1fr);
+	}
+}
+
+// Medium-large laptops (1200px - 1599px)
+@media screen and (max-width: 1599px) and (min-width: 1200px) {
+	.aie-csv-columns {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+// Small laptops / large tablets (992px - 1199px)
+@media screen and (max-width: 1199px) and (min-width: 992px) {
+	.aie-csv-columns {
+		grid-template-columns: repeat(3, 1fr);
+	}
+	
+	.aie-step-3 .aie-step-3-columns {
+		.aie-csv-builder {
+			flex: 0 0 60%;
+		}
+		
+		.aie-fields-library {
+			flex: 0 0 calc(40% - 20px);
+		}
+	}
+}
+
+// Tablets (783px - 991px)
+@media screen and (max-width: 991px) and (min-width: 783px) {
+	.aie-csv-columns {
+		grid-template-columns: repeat(2, 1fr);
+	}
+	
+	.aie-step-3 .aie-step-3-columns {
+		flex-direction: column;
+		
+		.aie-csv-builder,
+		.aie-fields-library {
+			flex: 1 1 auto;
+			width: 100%;
+			max-height: none;
+		}
+	}
+	
+	.aie-fields-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+// Mobile devices (max-width: 782px)
 @media screen and (max-width: 782px) {
 	// Stack columns on mobile
 	.aie-step-3 .aie-step-3-columns {
@@ -969,6 +1027,37 @@ body.aie-dragging {
 	}
 
 	.aie-csv-columns {
+		grid-template-columns: 1fr;
 		justify-content: center;
+	}
+	
+	.aie-csv-column {
+		max-width: 100%;
+	}
+}
+
+// Small mobile devices (max-width: 480px)
+@media screen and (max-width: 480px) {
+	.aie-csv-columns {
+		grid-column-gap: 8px;
+		grid-row-gap: 8px;
+		padding: 8px 0;
+	}
+	
+	.aie-csv-column {
+		padding: 10px;
+		min-width: 100%;
+	}
+	
+	.aie-field-item {
+		padding: 8px 10px;
+	}
+	
+	.aie-function-preview .aie-preview-controls {
+		flex-direction: column;
+		
+		button {
+			align-self: stretch;
+		}
 	}
 }
