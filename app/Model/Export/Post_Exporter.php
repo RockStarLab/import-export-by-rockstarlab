@@ -336,6 +336,13 @@ class Post_Exporter extends Abstract_Exporter {
 
 		$data   = [];
 		$fields = $this->get_option( 'fields', $this->get_default_fields() );
+		
+		// Debug logging
+		error_log( sprintf( 
+			'[AIE Export Debug] get_data - Fields count: %d, All fields: %s',
+			count( $fields ),
+			implode( ', ', $fields )
+		) );
 
 		// If fields is empty array, use default fields
 		if ( empty( $fields ) ) {
@@ -1326,26 +1333,21 @@ class Post_Exporter extends Abstract_Exporter {
 					$data[ $field ] = '';
 				}
 			}
-		}
-	// Process individual meta fields (including _wp_page_template and other meta)
+		}		// Process individual meta fields (including _wp_page_template and other meta)
 	foreach ( $fields as $field ) {
 		// Check if it's a meta field (starts with _ or not in basic/special fields)
 		if ( ! in_array( $field, $basic_fields, true ) && 
 		     ! in_array( $field, [ 'author_name', 'author_email', 'post_meta', 'taxonomies', 'featured_image', 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption' ], true ) &&
 		     strpos( $field, 'taxonomy_' ) !== 0 ) {
 			
-			// Get meta value - always include the field if it was explicitly selected
-			$meta_value = get_post_meta( $post->ID, $field, true );
-			
-			// Debug logging for Yoast fields
-			if ( strpos( $field, '_yoast_wpseo' ) === 0 ) {
-				error_log( sprintf( 
-					'[AIE Export Debug] Post ID: %d, Field: %s, Value: %s',
-					$post->ID,
-					$field,
-					is_string( $meta_value ) ? $meta_value : print_r( $meta_value, true )
-				) );
+			// Remove 'meta_' prefix if present (added by frontend for custom fields)
+			$meta_key = $field;
+			if ( strpos( $field, 'meta_' ) === 0 ) {
+				$meta_key = substr( $field, 5 ); // Remove 'meta_' prefix (5 characters)
 			}
+			
+			// Get meta value - always include the field if it was explicitly selected
+			$meta_value = get_post_meta( $post->ID, $meta_key, true );
 			
 			$data[ $field ] = $meta_value !== false ? $meta_value : '';
 		}
