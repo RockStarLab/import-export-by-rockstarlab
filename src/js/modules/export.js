@@ -1618,32 +1618,31 @@ const ExportModule = {
 			return baseFields.filter( group => group.label !== window.aieData.i18n.fieldGroupTaxonomy );
 		}
 
-		// Menus
-		if ( contentType === 'menu' ) {
-			return [
-				{
-					label: window.aieData.i18n.fieldGroupBasic,
-					options: [
-						{ value: 'name', label: window.aieData.i18n.fieldMenuName, type: 'string' },
-						{ value: 'description', label: window.aieData.i18n.fieldDescription, type: 'string' },
-						{ value: 'menu_items', label: window.aieData.i18n.fieldMenuItemsArray, type: 'array' },
-					],
-				},
-				{
-					label: window.aieData.i18n.fieldGroupDetails,
-					options: [
-						{ value: 'count', label: window.aieData.i18n.fieldItemsCount, type: 'number' },
-						{ value: 'locations', label: window.aieData.i18n.fieldThemeLocations, type: 'string' },
-					],
-				},
-				{
-					label: window.aieData.i18n.fieldGroupCustomFilters,
-					options: [
-						{ value: '_custom_field', label: window.aieData.i18n.fieldCustomFieldMeta, type: 'custom_field' },
-					],
-				},
-			];
-		}
+	// Menus
+	if ( contentType === 'menu' ) {
+		return [
+			{
+				label: window.aieData.i18n.fieldGroupBasic,
+				options: [
+					{ value: 'name', label: window.aieData.i18n.fieldMenuName, type: 'string' },
+					{ value: 'menu_items', label: window.aieData.i18n.fieldMenuItemsArray + ' ' + (window.aieData.i18n.includesAcfFields || '(includes ACF fields)'), type: 'array' },
+				],
+			},
+			{
+				label: window.aieData.i18n.fieldGroupDetails,
+				options: [
+					{ value: 'count', label: window.aieData.i18n.fieldItemsCount, type: 'number' },
+					{ value: 'locations', label: window.aieData.i18n.fieldThemeLocations, type: 'string' },
+				],
+			},
+			{
+				label: window.aieData.i18n.fieldGroupCustomFilters,
+				options: [
+					{ value: '_custom_field', label: window.aieData.i18n.fieldCustomFieldMeta, type: 'custom_field' },
+				],
+			},
+		];
+	}
 
 		// Users
 		if ( contentType === 'user' ) {
@@ -1651,9 +1650,10 @@ const ExportModule = {
 				{
 					label: window.aieData.i18n.fieldGroupBasic,
 					options: [
-						{ value: 'user_login', label: window.aieData.i18n.fieldUsername, type: 'string' },
-						{ value: 'user_email', label: window.aieData.i18n.fieldEmail, type: 'string' },
-						{ value: 'display_name', label: window.aieData.i18n.fieldDisplayName, type: 'string' },
+						{ value: 'ID', label: window.aieData.i18n.fieldId || 'ID', type: 'number' },
+						{ value: 'user_login', label: window.aieData.i18n.fieldUsername || 'Username', type: 'string' },
+						{ value: 'user_email', label: window.aieData.i18n.fieldEmail || 'Email', type: 'string' },
+						{ value: 'display_name', label: window.aieData.i18n.fieldDisplayName || 'Display name', type: 'string' },
 						{ value: 'user_nicename', label: window.aieData.i18n.fieldNiceName, type: 'string' },
 					],
 				},
@@ -1664,8 +1664,23 @@ const ExportModule = {
 						{ value: 'last_name', label: window.aieData.i18n.fieldLastName, type: 'string' },
 						{ value: 'nickname', label: window.aieData.i18n.fieldNickname, type: 'string' },
 						{ value: 'description', label: window.aieData.i18n.fieldBio, type: 'string' },
-						{ value: 'user_url', label: window.aieData.i18n.fieldWebsite, type: 'string' },
+						{ value: 'user_url', label: window.aieData.i18n.fieldWebsite || 'Website', type: 'string' },
 						{ value: 'avatar_url', label: window.aieData.i18n.fieldAvatarUrl, type: 'string' },
+					],
+				},
+				{
+					label: window.aieData.i18n.fieldGroupSocialMedia || 'Social Media',
+					options: [
+						{ value: 'facebook', label: window.aieData.i18n.fieldFacebook || 'Facebook profile URL', type: 'string' },
+						{ value: 'instagram', label: window.aieData.i18n.fieldInstagram || 'Instagram profile URL', type: 'string' },
+						{ value: 'linkedin', label: window.aieData.i18n.fieldLinkedIn || 'LinkedIn profile URL', type: 'string' },
+						{ value: 'myspace', label: window.aieData.i18n.fieldMySpace || 'MySpace profile URL', type: 'string' },
+						{ value: 'pinterest', label: window.aieData.i18n.fieldPinterest || 'Pinterest profile URL', type: 'string' },
+						{ value: 'soundcloud', label: window.aieData.i18n.fieldSoundCloud || 'SoundCloud profile URL', type: 'string' },
+						{ value: 'tumblr', label: window.aieData.i18n.fieldTumblr || 'Tumblr profile URL', type: 'string' },
+						{ value: 'wikipedia', label: window.aieData.i18n.fieldWikipedia || 'Wikipedia page about you', type: 'string' },
+						{ value: 'twitter', label: window.aieData.i18n.fieldTwitter || 'X username', type: 'string' },
+						{ value: 'youtube', label: window.aieData.i18n.fieldYouTube || 'YouTube profile URL', type: 'string' },
 					],
 				},
 				{
@@ -1678,7 +1693,7 @@ const ExportModule = {
 				{
 					label: window.aieData.i18n.fieldGroupPreferences,
 					options: [
-						{ value: 'locale', label: window.aieData.i18n.fieldLanguage, type: 'string' },
+						{ value: 'locale', label: window.aieData.i18n.fieldLanguage || 'Language', type: 'string' },
 						{ value: 'admin_color', label: window.aieData.i18n.fieldAdminColorScheme, type: 'string' },
 						{ value: 'rich_editing', label: window.aieData.i18n.fieldVisualEditor, type: 'boolean' },
 					],

@@ -75,7 +75,26 @@ class User_Exporter extends Abstract_Exporter {
 			'last_name',
 			'nickname',
 			'description',
+			'avatar_url',
+			'role',
 			'roles',
+			'capabilities',
+			'locale',
+			'admin_color',
+			'rich_editing',
+			'posts_count',
+			'user_status',
+			// Social media fields
+			'facebook',
+			'instagram',
+			'linkedin',
+			'myspace',
+			'pinterest',
+			'soundcloud',
+			'tumblr',
+			'wikipedia',
+			'twitter',
+			'youtube',
 			'user_meta',
 		];
 	}
@@ -288,26 +307,185 @@ class User_Exporter extends Abstract_Exporter {
 
 				case 'nickname':
 					$data['nickname'] = get_user_meta( $user->ID, 'nickname', true );
-					break;
+					break;			case 'description':
+				$data['description'] = get_user_meta( $user->ID, 'description', true );
+				break;
 
-				case 'description':
-					$data['description'] = get_user_meta( $user->ID, 'description', true );
-					break;
+			case 'avatar_url':
+				$data['avatar_url'] = get_avatar_url( $user->ID, [ 'size' => 96 ] );
+				break;
 
-				case 'roles':
-					$data['roles'] = implode( ',', $user->roles );
-					break;
+			case 'role':
+				// Get first role as primary role
+				$roles          = $user->roles;
+				$data['role']   = ! empty( $roles ) ? $roles[0] : '';
+				break;
 
-				case 'user_meta':
-					$data['user_meta'] = $this->get_user_meta( $user->ID, $options );
-					break;
+			case 'roles':
+				$data['roles'] = implode( ',', $user->roles );
+				break;
 
-				default:
+			case 'capabilities':
+				// Export capabilities as JSON string
+				$data['capabilities'] = ! empty( $user->allcaps ) ? wp_json_encode( $user->allcaps ) : '';
+				break;
+
+			case 'locale':
+				$data['locale'] = get_user_meta( $user->ID, 'locale', true );
+				break;
+
+			case 'admin_color':
+				$data['admin_color'] = get_user_meta( $user->ID, 'admin_color', true );
+				break;
+
+			case 'rich_editing':
+				$data['rich_editing'] = get_user_meta( $user->ID, 'rich_editing', true );
+				break;
+
+			case 'posts_count':
+				$data['posts_count'] = count_user_posts( $user->ID );
+				break;
+
+			case 'user_status':
+				$data['user_status'] = isset( $user->user_status ) ? $user->user_status : '0';
+				break;
+
+			// Social media fields
+			case 'facebook':
+				$data['facebook'] = get_user_meta( $user->ID, 'facebook', true );
+				break;
+
+			case 'instagram':
+				$data['instagram'] = get_user_meta( $user->ID, 'instagram', true );
+				break;
+
+			case 'linkedin':
+				$data['linkedin'] = get_user_meta( $user->ID, 'linkedin', true );
+				break;
+
+			case 'myspace':
+				$data['myspace'] = get_user_meta( $user->ID, 'myspace', true );
+				break;
+
+			case 'pinterest':
+				$data['pinterest'] = get_user_meta( $user->ID, 'pinterest', true );
+				break;
+
+			case 'soundcloud':
+				$data['soundcloud'] = get_user_meta( $user->ID, 'soundcloud', true );
+				break;
+
+			case 'tumblr':
+				$data['tumblr'] = get_user_meta( $user->ID, 'tumblr', true );
+				break;
+
+			case 'wikipedia':
+				$data['wikipedia'] = get_user_meta( $user->ID, 'wikipedia', true );
+				break;
+
+			case 'twitter':
+				$data['twitter'] = get_user_meta( $user->ID, 'twitter', true );
+				break;
+
+			case 'youtube':
+				$data['youtube'] = get_user_meta( $user->ID, 'youtube', true );
+				break;			case 'user_meta':
+				$data['user_meta'] = $this->get_user_meta( $user->ID, $options );
+				break;
+
+			default:
+				// Handle ACF fields (with acf_ prefix)
+				if ( strpos( $field, 'acf_' ) === 0 ) {
+					$acf_field_name = substr( $field, 4 ); // Remove 'acf_' prefix (4 characters)
+					
+					// Try get_field() first (handles complex fields like images, relationships)
+					$acf_value = false;
+					if ( function_exists( 'get_field' ) ) {
+						$acf_value = get_field( $acf_field_name, 'user_' . $user->ID );
+					}
+					
+					// If get_field() returns false (field definition not found), 
+					// fall back to direct get_user_meta() and collect all related meta
+					if ( $acf_value === false ) {
+						$acf_value = get_user_meta( $user->ID, $acf_field_name, true );
+						
+						// Check if this is a repeater/component field (numeric value AND has sub-fields)
+						if ( is_numeric( $acf_value ) && $acf_value > 0 ) {
+							global $wpdb;
+							$count = intval( $acf_value );
+							
+							// Check if there are sub-fields (check first row)
+							$pattern = $acf_field_name . '_0_%';
+							$has_sub_fields = $wpdb->get_var( $wpdb->prepare(
+								"SELECT COUNT(*) FROM {$wpdb->usermeta} 
+								WHERE user_id = %d AND meta_key LIKE %s",
+								$user->ID,
+								$pattern
+							) );
+							
+							// Only treat as repeater/component if sub-fields exist
+							if ( $has_sub_fields > 0 ) {
+								$repeater_data = [];
+								
+								for ( $i = 0; $i < $count; $i++ ) {
+									// Get all meta keys for this row
+									$pattern = $acf_field_name . '_' . $i . '_%';
+									$sub_fields = $wpdb->get_results( $wpdb->prepare(
+										"SELECT meta_key, meta_value FROM {$wpdb->usermeta} 
+										WHERE user_id = %d AND meta_key LIKE %s",
+										$user->ID,
+										$pattern
+									), ARRAY_A );
+									
+									if ( ! empty( $sub_fields ) ) {
+										$row_data = [];
+										foreach ( $sub_fields as $sub_field ) {
+											// Extract sub-field name (remove prefix)
+											$sub_field_name = str_replace( $acf_field_name . '_' . $i . '_', '', $sub_field['meta_key'] );
+											$row_data[ $sub_field_name ] = $sub_field['meta_value'];
+										}
+										$repeater_data[] = $row_data;
+									}
+								}
+								
+								// Use the repeater data
+								if ( ! empty( $repeater_data ) ) {
+									$acf_value = $repeater_data;
+								}
+							}
+							// Otherwise it's just a number field, keep the numeric value
+						}
+						// If it's a serialized array, unserialize it
+						elseif ( is_string( $acf_value ) && $acf_value !== '' ) {
+							$unserialized = @unserialize( $acf_value );
+							if ( $unserialized !== false || $acf_value === 'b:0;' ) {
+								$acf_value = $unserialized;
+							}
+						}
+					}
+					
+					// Convert ACF value to exportable format
+					if ( is_array( $acf_value ) ) {
+						// For arrays (images, files, etc.), try to get just the URL or serialize
+						if ( isset( $acf_value['url'] ) ) {
+							$data[ $field ] = $acf_value['url'];
+						} elseif ( isset( $acf_value['ID'] ) ) {
+							$data[ $field ] = $acf_value['ID'];
+						} else {
+							$data[ $field ] = wp_json_encode( $acf_value );
+						}
+					} elseif ( is_object( $acf_value ) ) {
+						$data[ $field ] = wp_json_encode( $acf_value );
+					} else {
+						$data[ $field ] = $acf_value;
+					}
+				} else {
 					// Allow custom fields via filter
 					$data[ $field ] = apply_filters( 'aie_user_export_field_value', '', $field, $user, $options );
-					break;
-			}
+				}
+				break;
 		}
+	}
 
 		return apply_filters( 'aie_user_export_data', $data, $user, $options );
 	}

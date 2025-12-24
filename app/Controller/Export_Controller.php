@@ -837,27 +837,38 @@ class Export_Controller extends Base_Controller {
 		}
 
 		// Determine the location rule based on content type
-		$location_args = [];
-		if ( $post_type === 'user' ) {
-			$location_args['user_form'] = 'all'; // ACF User fields
-		} else {
-			$location_args['post_type'] = $post_type;
-		}
-
-		// Get field groups for this location
-		$field_groups = acf_get_field_groups( $location_args );
-
 		$fields = [];
-		foreach ( $field_groups as $group ) {
-			$group_fields = acf_get_fields( $group['key'] );
-
-			if ( $group_fields ) {
-				foreach ( $group_fields as $field ) {
-					$fields[] = [
-						'name'  => $field['name'],
-						'label' => $field['label'],
-						'type'  => $field['type'],
-					];
+		
+		if ( $post_type === 'user' ) {
+			$location_args = ['user_form' => 'all'];
+			$field_groups = acf_get_field_groups( $location_args );
+			
+			foreach ( $field_groups as $group ) {
+				$group_fields = acf_get_fields( $group['key'] );
+				if ( $group_fields ) {
+					foreach ( $group_fields as $field ) {
+						$fields[] = [
+							'name'  => $field['name'],
+							'label' => $field['label'],
+							'type'  => $field['type'],
+						];
+					}
+				}
+			}
+		} else {
+			$location_args = ['post_type' => $post_type];
+			$field_groups = acf_get_field_groups( $location_args );
+			
+			foreach ( $field_groups as $group ) {
+				$group_fields = acf_get_fields( $group['key'] );
+				if ( $group_fields ) {
+					foreach ( $group_fields as $field ) {
+						$fields[] = [
+							'name'  => $field['name'],
+							'label' => $field['label'],
+							'type'  => $field['type'],
+						];
+					}
 				}
 			}
 		}
