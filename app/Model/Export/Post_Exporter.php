@@ -1546,42 +1546,85 @@ class Post_Exporter extends Abstract_Exporter {
 			$fields = $this->get_default_fields();
 		}
 
-		foreach ( $terms as $term ) {
-			// Get menu items for this menu
-			$menu_items = wp_get_nav_menu_items( $term->term_id );
+	foreach ( $terms as $term ) {
+		// Get menu items for this menu
+		$menu_items = wp_get_nav_menu_items( $term->term_id );
 
-			$menu_data = [
-				'term_id'     => $term->term_id,
-				'name'        => $term->name,
-				'slug'        => $term->slug,
-				'description' => $term->description,
-				'count'       => $term->count,
-				'menu_items'  => [],
-			];
+		$menu_data = [
+			'term_id'     => $term->term_id,
+			'name'        => $term->name,
+			'slug'        => $term->slug,
+			'count'       => $term->count,
+			'menu_items'  => [],
+		];
 
-			if ( ! empty( $menu_items ) ) {
-				foreach ( $menu_items as $item ) {
-					$menu_data['menu_items'][] = [
-						'ID'               => $item->ID,
-						'title'            => $item->title,
-						'url'              => $item->url,
-						'menu_order'       => $item->menu_order,
-						'menu_item_parent' => $item->menu_item_parent,
-						'object'           => $item->object,
-						'object_id'        => $item->object_id,
-						'type'             => $item->type,
-						'type_label'       => $item->type_label,
-						'target'           => $item->target,
-						'attr_title'       => $item->attr_title,
-						'classes'          => $item->classes,
-						'xfn'              => $item->xfn,
-						'description'      => $item->description,
-					];
+		// Process each field
+		foreach ( $fields as $field ) {
+			// Handle ACF fields (with acf_ prefix) for menu term
+			if ( strpos( $field, 'acf_' ) === 0 ) {
+				$acf_field_name = substr( $field, 4 ); // Remove 'acf_' prefix
+
+				// Try get_field() first (handles complex fields)
+				$acf_value = false;
+				if ( function_exists( 'get_field' ) ) {
+					$acf_value = get_field( $acf_field_name, 'term_' . $term->term_id );
+				}
+
+				// If get_field() returns false, try get_term_meta()
+				if ( $acf_value === false ) {
+					$acf_value = get_term_meta( $term->term_id, $acf_field_name, true );
+				}
+
+				// Convert ACF value to exportable format
+				if ( is_array( $acf_value ) ) {
+					if ( isset( $acf_value['url'] ) ) {
+						$menu_data[ $field ] = $acf_value['url'];
+					} elseif ( isset( $acf_value['ID'] ) ) {
+						$menu_data[ $field ] = $acf_value['ID'];
+					} else {
+						$menu_data[ $field ] = wp_json_encode( $acf_value );
+					}
+				} elseif ( is_object( $acf_value ) ) {
+					$menu_data[ $field ] = wp_json_encode( $acf_value );
+				} else {
+					$menu_data[ $field ] = $acf_value !== false ? $acf_value : '';
 				}
 			}
-
-			$data[] = $menu_data;
 		}
+
+		if ( ! empty( $menu_items ) ) {
+			foreach ( $menu_items as $item ) {
+				$item_data = [
+					'ID'               => $item->ID,
+					'title'            => $item->title,
+					'url'              => $item->url,
+					'menu_order'       => $item->menu_order,
+					'menu_item_parent' => $item->menu_item_parent,
+					'object'           => $item->object,
+					'object_id'        => $item->object_id,
+					'type'             => $item->type,
+					'type_label'       => $item->type_label,
+					'target'           => $item->target,
+					'attr_title'       => $item->attr_title,
+					'classes'          => $item->classes,
+					'xfn'              => $item->xfn,
+					'description'      => $item->description,
+				];
+
+				// Add ACF fields for the menu item as a nested array
+				if ( function_exists( 'get_fields' ) ) {
+					$item_acf_fields = get_fields( $item->ID );
+					if ( ! empty( $item_acf_fields ) && is_array( $item_acf_fields ) ) {
+						$item_data['acf_fields'] = $item_acf_fields;
+					}
+				}
+
+				$menu_data['menu_items'][] = $item_data;
+			}
+		}
+
+		$data[] = $menu_data;
+	}
 
 		return $data;
 	}

@@ -99,6 +99,16 @@ class Media_Exporter extends Abstract_Exporter {
 			'image_meta',
 			'sizes',
 			'author_name',
+			// Additional frontend-mapped fields
+			'file_url',
+			'file_path',
+			'file_name',
+			'file_extension',
+			'post_mime_type',
+			'width',
+			'height',
+			'author_email',
+			'attached_post_title',
 		];
 	}
 
@@ -942,6 +952,61 @@ class Media_Exporter extends Abstract_Exporter {
 		if ( in_array( 'author_name', $fields, true ) ) {
 			$author              = get_userdata( $attachment->post_author );
 			$data['author_name'] = $author ? $author->display_name : '';
+		}
+
+		// Frontend-mapped fields (aliases for better naming in frontend)
+		
+		// file_url (alias for 'url')
+		if ( in_array( 'file_url', $fields, true ) ) {
+			$data['file_url'] = wp_get_attachment_url( $attachment->ID );
+		}
+		
+		// file_path (alias for 'path')
+		if ( in_array( 'file_path', $fields, true ) ) {
+			$data['file_path'] = get_attached_file( $attachment->ID );
+		}
+		
+		// file_name (alias for 'filename')
+		if ( in_array( 'file_name', $fields, true ) ) {
+			$data['file_name'] = basename( get_attached_file( $attachment->ID ) );
+		}
+		
+		// file_extension
+		if ( in_array( 'file_extension', $fields, true ) ) {
+			$file_path              = get_attached_file( $attachment->ID );
+			$data['file_extension'] = $file_path ? pathinfo( $file_path, PATHINFO_EXTENSION ) : '';
+		}
+		
+		// post_mime_type (alias for 'mime_type')
+		if ( in_array( 'post_mime_type', $fields, true ) ) {
+			$data['post_mime_type'] = get_post_mime_type( $attachment->ID );
+		}
+		
+		// width and height (for images)
+		if ( in_array( 'width', $fields, true ) || in_array( 'height', $fields, true ) ) {
+			$metadata = wp_get_attachment_metadata( $attachment->ID );
+			if ( in_array( 'width', $fields, true ) ) {
+				$data['width'] = ! empty( $metadata['width'] ) ? $metadata['width'] : '';
+			}
+			if ( in_array( 'height', $fields, true ) ) {
+				$data['height'] = ! empty( $metadata['height'] ) ? $metadata['height'] : '';
+			}
+		}
+		
+		// author_email
+		if ( in_array( 'author_email', $fields, true ) ) {
+			$author               = get_userdata( $attachment->post_author );
+			$data['author_email'] = $author ? $author->user_email : '';
+		}
+		
+		// attached_post_title
+		if ( in_array( 'attached_post_title', $fields, true ) ) {
+			if ( $attachment->post_parent ) {
+				$parent_post                 = get_post( $attachment->post_parent );
+				$data['attached_post_title'] = $parent_post ? $parent_post->post_title : '';
+			} else {
+				$data['attached_post_title'] = '';
+			}
 		}
 
 		// Include file content if requested

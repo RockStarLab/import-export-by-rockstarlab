@@ -694,24 +694,39 @@ export default class ExportStep3 {
 		// Load taxonomies for this post type
 		this.loadTaxonomies();
 		
-		// Load custom fields for this post type
-		this.loadCustomFields();
-		
-		// Check if ACF is active and load ACF fields
+	// Load custom fields for this post type
+	this.loadCustomFields();
+	
+	// Check if ACF is active and load ACF fields (skip for non-supported types)
+	const acfExcludedTypes = [
+		'media', 
+		'user', 
+		'menu',
+		'comment',
+		'block_theme_settings', 
+		'taxonomy',
+		'database_table',
+		'woo_attribute',
+		'woo_coupon',
+		'woo_order'
+	];
+	if (!acfExcludedTypes.includes(contentType)) {
 		this.checkAndLoadACF();
-		
-		// Check if Yoast is active and load Yoast fields (skip for non-content types)
-		const excludedTypes = [
-			'media', 
-			'user', 
-			'menu', 
-			'block_theme_settings', 
-			'taxonomy',
-			'database_table',
-			'woo_attribute',
-			'woo_coupon',
-			'woo_order'
-		];
+	}
+	
+	// Check if Yoast is active and load Yoast fields (skip for non-content types)
+	const excludedTypes = [
+		'media', 
+		'user', 
+		'menu',
+		'comment',
+		'block_theme_settings', 
+		'taxonomy',
+		'database_table',
+		'woo_attribute',
+		'woo_coupon',
+		'woo_order'
+	];
 		if (!excludedTypes.includes(contentType)) {
 			this.checkAndLoadYoast();
 		}
@@ -1017,7 +1032,9 @@ export default class ExportStep3 {
 	 * Check if ACF is active and load ACF fields
 	 */
 	checkAndLoadACF() {
-		if (typeof aieData === 'undefined') return;
+		if (typeof aieData === 'undefined') {
+			return;
+		}
 		
 		jQuery.ajax({
 			url: aieData.ajaxUrl,
