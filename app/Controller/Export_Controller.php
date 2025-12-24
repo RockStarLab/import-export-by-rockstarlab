@@ -826,14 +826,15 @@ class Export_Controller extends Base_Controller {
 
 		$post_type = $this->get_request_param( 'post_type', 'post' );
 
-		// Map WooCommerce content types to actual post types
-		$woo_type_map = [
+		// Map content types to actual post types
+		$type_map = [
 			'woo_order'  => 'shop_order',
 			'woo_coupon' => 'shop_coupon',
+			'media'      => 'attachment',
 		];
 
-		if ( isset( $woo_type_map[ $post_type ] ) ) {
-			$post_type = $woo_type_map[ $post_type ];
+		if ( isset( $type_map[ $post_type ] ) ) {
+			$post_type = $type_map[ $post_type ];
 		}
 
 		// Determine the location rule based on content type
