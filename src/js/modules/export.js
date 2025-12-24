@@ -886,15 +886,13 @@ const ExportModule = {
 					csv_delimiter: csvDelimiter,
 					csv_include_header: jQuery(
 						'[name="csv_include_header"]'
-					).is( ':checked' ),
-					json_pretty_print: jQuery(
-						'[name="json_pretty_print"]'
-					).is( ':checked' ),
-				},
-				options: {
-					items_per_iteration: parseInt( jQuery( '[name="items_per_iteration"]' ).val() ) || 3,
-				},
-			};
+					).is( ':checked' ),				json_pretty_print: jQuery(
+					'[name="json_pretty_print"]'
+				).is( ':checked' ),			},
+		options: {
+			items_per_iteration: parseInt( jQuery( '[name="items_per_iteration"]' ).val() ) || 3,
+		},
+	};
 
 			// Add field functions if available
 			if (this.step3Instance && this.step3Instance.fieldFunctions) {

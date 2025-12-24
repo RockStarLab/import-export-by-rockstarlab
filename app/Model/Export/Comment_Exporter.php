@@ -83,6 +83,7 @@ class Comment_Exporter extends Abstract_Exporter {
 			'comment_parent',
 			'user_id',
 			'post_title',
+			'post_author',
 			'comment_meta',
 		];
 	}
@@ -124,6 +125,9 @@ class Comment_Exporter extends Abstract_Exporter {
 		// If we have other filters, we need to get all comments and manually filter them
 		// Otherwise use count mode for efficiency
 		if ( empty( $other_filters ) ) {
+			// Remove offset and number for count query - we want total count
+			unset( $query_args['offset'] );
+			unset( $query_args['number'] );
 			$query_args['count'] = true;
 
 			$this->log_info(
@@ -320,6 +324,11 @@ class Comment_Exporter extends Abstract_Exporter {
 					$data['post_title'] = $post ? $post->post_title : '';
 					break;
 
+				case 'post_author':
+					$post                = get_post( $comment->comment_post_ID );
+					$data['post_author'] = $post ? $post->post_author : '';
+					break;
+
 				case 'comment_meta':
 					$data['comment_meta'] = $this->get_comment_meta( $comment->comment_ID, $options );
 					break;
@@ -375,11 +384,13 @@ class Comment_Exporter extends Abstract_Exporter {
 			'status'  => 'all', // Get all comment statuses by default
 		];
 
-		// Number/limit - WP_Comment_Query doesn't accept -1, use empty or large number
+		// Number/limit - WP_Comment_Query requires explicit number to get all comments
+		// Use -1 to get all comments (WordPress standard)
 		if ( isset( $options['limit'] ) && $options['limit'] > 0 ) {
 			$args['number'] = $options['limit'];
+		} else {
+			$args['number'] = -1; // Get all comments
 		}
-		// If limit is -1 or not set, don't include 'number' parameter (gets all)
 
 		// Status filter
 		if ( ! empty( $options['status'] ) ) {
