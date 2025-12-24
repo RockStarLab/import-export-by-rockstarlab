@@ -83,7 +83,6 @@ class User_Exporter extends Abstract_Exporter {
 			'admin_color',
 			'rich_editing',
 			'posts_count',
-			'user_status',
 			// Social media fields
 			'facebook',
 			'instagram',
@@ -344,10 +343,6 @@ class User_Exporter extends Abstract_Exporter {
 
 			case 'posts_count':
 				$data['posts_count'] = count_user_posts( $user->ID );
-				break;
-
-			case 'user_status':
-				$data['user_status'] = isset( $user->user_status ) ? $user->user_status : '0';
 				break;
 
 			// Social media fields
