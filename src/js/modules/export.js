@@ -1703,7 +1703,6 @@ const ExportModule = {
 					options: [
 						{ value: 'posts_count', label: window.aieData.i18n.fieldPostsCount, type: 'number' },
 						{ value: 'user_registered', label: window.aieData.i18n.fieldRegistrationDate, type: 'date' },
-						{ value: 'user_status', label: window.aieData.i18n.fieldUserStatus, type: 'number' },
 					],
 				},
 				{
