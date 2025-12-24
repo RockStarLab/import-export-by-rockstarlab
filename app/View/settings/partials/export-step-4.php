@@ -92,7 +92,7 @@ defined( 'ABSPATH' ) || exit;
 					<tr>
 						<th><?php esc_html_e( 'Items per iteration', 'wp-advanced-import-export' ); ?></th>
 						<td>
-							<input type="number" name="items_per_iteration" value="3" min="1" max="100" class="small-text">
+							<input type="number" name="items_per_iteration" value="3" min="1" max="1000" class="small-text">
 							<p class="description"><?php esc_html_e( 'Number of items to process in each batch. Lower values are safer for large exports.', 'wp-advanced-import-export' ); ?></p>
 						</td>
 					</tr>

@@ -80,14 +80,12 @@ class Export_Processor {
 			$export_type = $parameters['export_type'];
 			$options     = $parameters['options'] ?? [];
 			$fields      = $parameters['fields'] ?? [];
+		// Get batch size (default to 3)
+		$batch_size = isset( $options['items_per_iteration'] ) ? (int) $options['items_per_iteration'] : 3;
+		// Get current offset
+		$current_offset = (int) ( $job->processed_items ?? 0 );
 
-			// Get batch size
-			$batch_size = isset( $options['items_per_iteration'] ) ? (int) $options['items_per_iteration'] : 3;
-
-			// Get current offset
-			$current_offset = (int) ( $job->processed_items ?? 0 );
-
-			// Get exporter
+		// Get exporter
 			$exporter = Exporter_Factory::get_exporter( $export_type, $job_id );
 			if ( is_wp_error( $exporter ) ) {
 				throw new \Exception( $exporter->get_error_message() );
@@ -191,7 +189,17 @@ class Export_Processor {
 			);
 
 			// Check if completed
-			$completed = ( $new_processed >= $total_count ) || ( $batch_count < $batch_size );
+			// Export is complete when: all items processed OR no items returned (end of data)
+			$completed = ( $new_processed >= $total_count ) || ( $batch_count === 0 );
+			
+			// Debug logging
+			error_log( sprintf( 
+				'Export_Processor: Completed check - new_processed=%d, total=%d, batch_count=%d, completed=%s',
+				$new_processed,
+				$total_count,
+				$batch_count,
+				$completed ? 'YES' : 'NO'
+			) );
 
 			if ( $completed ) {
 				// Get all accumulated data
