@@ -1018,6 +1018,76 @@ class Media_Exporter extends Abstract_Exporter {
 			}
 		}
 
+		// Handle ACF fields (with acf_ prefix)
+		foreach ( $fields as $field ) {
+			if ( strpos( $field, 'acf_' ) === 0 ) {
+				$acf_field_name = substr( $field, 4 ); // Remove 'acf_' prefix (4 characters)
+				
+				// Try get_field() first (handles complex fields like images, relationships)
+				$acf_value = false;
+				if ( function_exists( 'get_field' ) ) {
+					$acf_value = get_field( $acf_field_name, $attachment->ID );
+				}
+				
+				// If get_field() returns false (field definition not found), 
+				// fall back to direct get_post_meta() and collect all related meta
+				if ( $acf_value === false ) {
+					$acf_value = get_post_meta( $attachment->ID, $acf_field_name, true );
+					
+					// Check if this is a repeater/component field (numeric value AND has sub-fields)
+					if ( is_numeric( $acf_value ) && $acf_value > 0 ) {
+						global $wpdb;
+						$count = intval( $acf_value );
+						
+						// Check if there are sub-fields (check first row)
+						$pattern = $acf_field_name . '_0_%';
+						$has_sub_fields = $wpdb->get_var( $wpdb->prepare(
+							"SELECT COUNT(*) FROM {$wpdb->postmeta} 
+							WHERE post_id = %d AND meta_key LIKE %s",
+							$attachment->ID,
+							$pattern
+						) );
+						
+						// Only treat as repeater/component if sub-fields exist
+						if ( $has_sub_fields > 0 ) {
+							$repeater_data = [];
+							
+							for ( $i = 0; $i < $count; $i++ ) {
+								// Get all meta keys for this row
+								$pattern = $acf_field_name . '_' . $i . '_%';
+								$sub_fields = $wpdb->get_results( $wpdb->prepare(
+									"SELECT meta_key, meta_value FROM {$wpdb->postmeta} 
+									WHERE post_id = %d AND meta_key LIKE %s",
+									$attachment->ID,
+									$pattern
+								), ARRAY_A );
+								
+								if ( ! empty( $sub_fields ) ) {
+									$row_data = [];
+									foreach ( $sub_fields as $sub_field ) {
+										// Extract sub-field name (remove prefix)
+										$sub_field_name = str_replace( $acf_field_name . '_' . $i . '_', '', $sub_field['meta_key'] );
+										$row_data[ $sub_field_name ] = $sub_field['meta_value'];
+									}
+									$repeater_data[] = $row_data;
+								}
+							}
+							
+							// Use the repeater data
+							if ( ! empty( $repeater_data ) ) {
+								$acf_value = $repeater_data;
+							}
+						}
+					}
+				}
+				
+				// Add to data if value is not false (field exists)
+				if ( $acf_value !== false ) {
+					$data[ $field ] = $acf_value;
+				}
+			}
+		}
+
 		return $data;
 	}
 

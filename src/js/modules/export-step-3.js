@@ -699,7 +699,6 @@ export default class ExportStep3 {
 	
 	// Check if ACF is active and load ACF fields (skip for non-supported types)
 	const acfExcludedTypes = [
-		'media', 
 		'user', 
 		'menu',
 		'comment',
