@@ -61,7 +61,6 @@ class Exporter_Factory {
 			'menu'                 => Post_Exporter::class,
 			'user'                 => User_Exporter::class,
 			'comment'              => Comment_Exporter::class,
-			'block_theme_settings' => Block_Theme_Settings_Exporter::class,
 			'taxonomy'             => Taxonomy_Exporter::class,
 
 			// Premium features

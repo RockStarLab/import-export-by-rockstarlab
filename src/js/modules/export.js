@@ -257,7 +257,7 @@ const ExportModule = {
 		const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
 		
 		// Content types that don't need filtering (go straight from step 1 to step 3)
-		const noFilterTypes = [ 'block_theme_settings' ];
+		const noFilterTypes = [];
 		
 		return noFilterTypes.includes( contentType );
 	},
@@ -280,7 +280,6 @@ const ExportModule = {
 		}
 
 		// Show/hide custom filters section
-		// Note: block_theme_settings is excluded - it doesn't need filters (goes straight to step 3)
 		const filterableTypes = [ 
 			'post', 'page', 'media', 'menu', 'user', 'comment', 
 			'custom_post_types', 'taxonomy',
@@ -597,7 +596,6 @@ const ExportModule = {
 			menu: 'nav_menu_item',
 			comment: null, // Comments are not post type
 			user: null, // Users are not post type
-			block_theme_settings: 'wp_template',
 			taxonomy: null, // Taxonomies are not post type
 			custom_post_types: null, // Will be determined dynamically
 			woo_product: 'product',
@@ -1761,22 +1759,6 @@ const ExportModule = {
 					label: window.aieData.i18n.fieldGroupCustomFilters,
 					options: [
 						{ value: '_custom_field', label: window.aieData.i18n.fieldCustomFieldMeta, type: 'custom_field' },
-					],
-				},
-			];
-		}
-
-		// Block Theme Settings
-		if ( contentType === 'block_theme_settings' ) {
-			return [
-				{
-					label: window.aieData.i18n.fieldGroupBlockThemeComponents,
-					options: [
-						{ value: 'global_styles', label: window.aieData.i18n.fieldGlobalStylesThemeJson, type: 'array' },
-						{ value: 'templates', label: window.aieData.i18n.fieldCustomTemplates, type: 'array' },
-						{ value: 'template_parts', label: window.aieData.i18n.fieldTemplateParts, type: 'array' },
-						{ value: 'theme_mods', label: window.aieData.i18n.fieldThemeModifications, type: 'array' },
-						{ value: 'custom_css', label: window.aieData.i18n.fieldCustomCss, type: 'string' },
 					],
 				},
 			];
