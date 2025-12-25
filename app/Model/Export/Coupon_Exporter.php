@@ -137,22 +137,30 @@ class Coupon_Exporter extends Abstract_Exporter {
 		}
 
 		$args = $this->build_query_args( $options );
+		
+		// Remove offset and paged for count query - we want total count
+		unset( $args['offset'] );
+		unset( $args['paged'] );
+		
+		// Get all coupons for counting
+		$args['posts_per_page'] = -1;
+		$args['fields']         = 'ids';
 
-		$coupon_posts = get_posts( $args );
+		$coupon_ids = get_posts( $args );
 
-		if ( empty( $coupon_posts ) ) {
+		if ( empty( $coupon_ids ) ) {
 			return 0;
 		}
 
 		// Apply custom filters that need to be checked manually
 		$custom_filters = $options['filters'] ?? [];
 		if ( empty( $custom_filters ) ) {
-			return count( $coupon_posts );
+			return count( $coupon_ids );
 		}
 
 		$count = 0;
-		foreach ( $coupon_posts as $post ) {
-			$coupon = new \WC_Coupon( $post->ID );
+		foreach ( $coupon_ids as $coupon_id ) {
+			$coupon = new \WC_Coupon( $coupon_id );
 			if ( ! $coupon->get_id() ) {
 				continue;
 			}

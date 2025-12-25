@@ -151,7 +151,13 @@ class Order_Exporter extends Abstract_Exporter {
 			return 0;
 		}
 
-		$query_args           = $this->build_query_args( $options );
+		$query_args = $this->build_query_args( $options );
+		
+		// Remove offset and paged for count query - we want total count
+		unset( $query_args['offset'] );
+		unset( $query_args['paged'] );
+		unset( $query_args['page'] );
+		
 		$query_args['return'] = 'ids';
 		$query_args['limit']  = -1;
 

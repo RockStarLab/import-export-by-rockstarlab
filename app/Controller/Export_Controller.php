@@ -484,7 +484,6 @@ class Export_Controller extends Base_Controller {
 		$export_options = array_merge(
 			$options,
 			[
-				'post_type'       => $export_type,  // Add post_type from export_type
 				'filters'         => $filters,
 				'fields'          => $fields,
 				'dynamic_filters' => $dynamic_filters,
@@ -493,6 +492,12 @@ class Export_Controller extends Base_Controller {
 				'field_functions' => $field_functions,
 			]
 		);
+		
+		// Add post_type only for actual post types (not for menu, user, taxonomy, etc.)
+		$non_post_types = [ 'menu', 'user', 'taxonomy', 'comment', 'database_table', 'woo_attribute' ];
+		if ( ! in_array( $export_type, $non_post_types, true ) ) {
+			$export_options['post_type'] = $export_type;
+		}
 
 		// Get exporter
 		$exporter = Exporter_Factory::get_exporter( $export_type, $job_id );
@@ -824,51 +829,134 @@ class Export_Controller extends Base_Controller {
 			return;
 		}
 
-		$post_type = $this->get_request_param( 'post_type', 'post' );
+		$post_type = $this->get_request_param( 'post_type', '' );
+		$taxonomy  = $this->get_request_param( 'taxonomy', '' );
 
-		// Map content types to actual post types
-		$type_map = [
-			'woo_order'  => 'shop_order',
-			'woo_coupon' => 'shop_coupon',
-			'media'      => 'attachment',
-		];
-
-		if ( isset( $type_map[ $post_type ] ) ) {
-			$post_type = $type_map[ $post_type ];
-		}
-
-		// Determine the location rule based on content type
+		// Determine the location rule based on what was provided
 		$fields = [];
 		
-		if ( $post_type === 'user' ) {
-			$location_args = ['user_form' => 'all'];
-			$field_groups = acf_get_field_groups( $location_args );
+		// If taxonomy is provided, use taxonomy location
+		if ( ! empty( $taxonomy ) ) {
+			// Get all field groups and manually filter by location rules
+			$all_groups = acf_get_field_groups();
 			
-			foreach ( $field_groups as $group ) {
-				$group_fields = acf_get_fields( $group['key'] );
-				if ( $group_fields ) {
-					foreach ( $group_fields as $field ) {
-						$fields[] = [
-							'name'  => $field['name'],
-							'label' => $field['label'],
-							'type'  => $field['type'],
-						];
+			foreach ( $all_groups as $group ) {
+				if ( empty( $group['location'] ) ) {
+					continue;
+				}
+				
+				$group_matches = false;
+				
+				// Check location rules (OR groups of AND rules)
+				foreach ( $group['location'] as $or_rules ) {
+					foreach ( $or_rules as $rule ) {
+						if (
+							$rule['param'] === 'taxonomy' &&
+							$rule['operator'] === '==' &&
+							$rule['value'] === $taxonomy
+						) {
+							$group_matches = true;
+							break 2;
+						}
+					}
+				}
+				
+				if ( $group_matches ) {
+					$group_fields = acf_get_fields( $group['key'] );
+					if ( $group_fields ) {
+						foreach ( $group_fields as $field ) {
+							$fields[] = [
+								'name'  => $field['name'],
+								'label' => $field['label'],
+								'type'  => $field['type'],
+							];
+						}
 					}
 				}
 			}
-		} else {
-			$location_args = ['post_type' => $post_type];
-			$field_groups = acf_get_field_groups( $location_args );
+		} elseif ( $post_type === 'user' ) {
+			// Get all field groups and manually filter by user location rules
+			$all_groups = acf_get_field_groups();
 			
-			foreach ( $field_groups as $group ) {
-				$group_fields = acf_get_fields( $group['key'] );
-				if ( $group_fields ) {
-					foreach ( $group_fields as $field ) {
-						$fields[] = [
-							'name'  => $field['name'],
-							'label' => $field['label'],
-							'type'  => $field['type'],
-						];
+			foreach ( $all_groups as $group ) {
+				if ( empty( $group['location'] ) ) {
+					continue;
+				}
+				
+				$group_matches = false;
+				
+				// Check location rules for user forms
+				foreach ( $group['location'] as $or_rules ) {
+					foreach ( $or_rules as $rule ) {
+						if (
+							$rule['param'] === 'user_form' &&
+							$rule['operator'] === '=='
+						) {
+							$group_matches = true;
+							break 2;
+						}
+					}
+				}
+				
+				if ( $group_matches ) {
+					$group_fields = acf_get_fields( $group['key'] );
+					if ( $group_fields ) {
+						foreach ( $group_fields as $field ) {
+							$fields[] = [
+								'name'  => $field['name'],
+								'label' => $field['label'],
+								'type'  => $field['type'],
+							];
+						}
+					}
+				}
+			}
+		} elseif ( ! empty( $post_type ) ) {
+			// Map content types to actual post types
+			$type_map = [
+				'woo_order'  => 'shop_order',
+				'woo_coupon' => 'shop_coupon',
+				'media'      => 'attachment',
+			];
+
+			if ( isset( $type_map[ $post_type ] ) ) {
+				$post_type = $type_map[ $post_type ];
+			}
+			
+			// Get all field groups and manually filter by post type location rules
+			$all_groups = acf_get_field_groups();
+			
+			foreach ( $all_groups as $group ) {
+				if ( empty( $group['location'] ) ) {
+					continue;
+				}
+				
+				$group_matches = false;
+				
+				// Check location rules for post types
+				foreach ( $group['location'] as $or_rules ) {
+					foreach ( $or_rules as $rule ) {
+						if (
+							$rule['param'] === 'post_type' &&
+							$rule['operator'] === '==' &&
+							$rule['value'] === $post_type
+						) {
+							$group_matches = true;
+							break 2;
+						}
+					}
+				}
+				
+				if ( $group_matches ) {
+					$group_fields = acf_get_fields( $group['key'] );
+					if ( $group_fields ) {
+						foreach ( $group_fields as $field ) {
+							$fields[] = [
+								'name'  => $field['name'],
+								'label' => $field['label'],
+								'type'  => $field['type'],
+							];
+						}
 					}
 				}
 			}

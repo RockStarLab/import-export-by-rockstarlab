@@ -691,18 +691,31 @@ export default class ExportStep3 {
 		// Load static fields based on content type
 		this.loadStaticFields();
 		
-		// Load taxonomies for this post type
-		this.loadTaxonomies();
+		// Types that are not post types and should not load taxonomies/custom fields
+		const nonPostTypes = [
+			'taxonomy',
+			'user',
+			'menu',
+			'comment',
+			'database_table',
+			'woo_attribute'
+		];
 		
-	// Load custom fields for this post type
-	this.loadCustomFields();
+		// Load taxonomies only for actual post types
+		if (!nonPostTypes.includes(contentType)) {
+			this.loadTaxonomies();
+		}
+		
+		// Load custom fields only for actual post types
+		if (!nonPostTypes.includes(contentType)) {
+			this.loadCustomFields();
+		}
 	
 	// Check if ACF is active and load ACF fields (skip for non-supported types)
 	const acfExcludedTypes = [
-		'user', 
+		'taxonomy',
 		'menu',
 		'comment',
-		'taxonomy',
 		'database_table',
 		'woo_attribute',
 		'woo_coupon',
@@ -1033,14 +1046,34 @@ export default class ExportStep3 {
 			return;
 		}
 		
+		const contentType = this.getCurrentRealContentType();
+		const requestData = {
+			action: 'aie_get_acf_fields',
+			nonce: aieData.nonce
+		};
+		
+		// For taxonomy content type, send taxonomy parameter
+		if (contentType === 'taxonomy') {
+			const taxonomySelector = document.querySelector('.aie-taxonomy-selector');
+			if (taxonomySelector && taxonomySelector.value) {
+				requestData.taxonomy = taxonomySelector.value;
+			} else {
+				// If no taxonomy selected yet, hide ACF category
+				const category = document.querySelector('.aie-acf-fields-category');
+				if (category) {
+					category.style.display = 'none';
+				}
+				return;
+			}
+		} else {
+			// For other content types, send post_type parameter
+			requestData.post_type = this.selectedPostType;
+		}
+		
 		jQuery.ajax({
 			url: aieData.ajaxUrl,
 			method: 'POST',
-			data: {
-				action: 'aie_get_acf_fields',
-				nonce: aieData.nonce,
-				post_type: this.selectedPostType
-			},
+			data: requestData,
 			success: (response) => {
 				if (response.success && response.data.fields && response.data.fields.length > 0) {
 					this.renderACFFields(response.data.fields);
