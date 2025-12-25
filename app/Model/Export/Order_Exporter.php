@@ -70,12 +70,12 @@ class Order_Exporter extends Abstract_Exporter {
 			'ID',
 			'order_number',
 			'order_key',
-			'status',
+			'order_status',
 			'currency',
-			'date_created',
+			'order_date',
 			'date_modified',
-			'date_completed',
-			'date_paid',
+			'completed_date',
+			'paid_date',
 			'customer_id',
 			'billing_first_name',
 			'billing_last_name',
@@ -111,10 +111,13 @@ class Order_Exporter extends Abstract_Exporter {
 			'cart_tax',
 			'shipping_tax',
 			'total_tax',
-			'line_items',
+			'order_items',
+			'item_count',
+			'shipping_method',
 			'shipping_lines',
 			'fee_lines',
 			'coupon_lines',
+			'order_notes',
 			'order_meta',
 		];
 	}
@@ -128,8 +131,8 @@ class Order_Exporter extends Abstract_Exporter {
 		return [
 			'ID',
 			'order_number',
-			'status',
-			'date_created',
+			'order_status',
+			'order_date',
 			'customer_id',
 			'billing_email',
 			'billing_first_name',
@@ -217,7 +220,9 @@ class Order_Exporter extends Abstract_Exporter {
 	public function get_data( $options = [] ) {
 		// Check if WooCommerce is active
 		if ( ! function_exists( 'wc_get_orders' ) ) {
-			return new \WP_Error( 'woocommerce_inactive', __( 'WooCommerce is not active', 'wp-advanced-import-export' ) );
+			$error = new \WP_Error( 'woocommerce_inactive', __( 'WooCommerce is not active', 'wp-advanced-import-export' ) );
+			$this->log_error( 'WooCommerce is not active' );
+			return $error;
 		}
 
 		$query_args = $this->build_query_args( $options );
@@ -229,13 +234,16 @@ class Order_Exporter extends Abstract_Exporter {
 		$order_ids            = wc_get_orders( $query_args );
 
 		if ( empty( $order_ids ) ) {
+			$this->log_warning( 'No order IDs found' );
 			return [];
 		}
 
-		$this->log_info( 'Found ' . count( $order_ids ) . ' orders' );
+		$this->log_info( 'Found ' . count( $order_ids ) . ' order IDs' );
 
 		$data   = [];
 		$fields = $this->get_option( 'fields', $this->get_default_fields() );
+
+		$this->log_info( 'Fields to export: ' . implode( ', ', $fields ) );
 
 		// Get custom filters that need to be applied manually
 		$custom_filters = $options['filters'] ?? [];
@@ -243,6 +251,7 @@ class Order_Exporter extends Abstract_Exporter {
 		foreach ( $order_ids as $order_id ) {
 			$order = wc_get_order( $order_id );
 			if ( ! $order ) {
+				$this->log_warning( "Failed to load order #{$order_id}" );
 				continue;
 			}
 
@@ -275,7 +284,11 @@ class Order_Exporter extends Abstract_Exporter {
 			// Prepare order data
 			$item   = $this->prepare_order_data( $order, $fields );
 			$data[] = $item;
+
+			$this->log_info( "Prepared order #{$order_id} data" );
 		}
+
+		$this->log_info( 'Total orders prepared: ' . count( $data ) );
 
 		return $data;
 	}
@@ -405,9 +418,14 @@ class Order_Exporter extends Abstract_Exporter {
 			'paid_date'      => 'date_paid',
 			'order_status'   => 'status',
 			'order_id'       => 'ID',
+			'line_items'     => 'order_items',
+			// Keep backward compatibility
+			'status'         => 'order_status',
+			'date_created'   => 'order_date',
 		];
 
 		// Replace alias with actual field name
+		$original_field = $field_name;
 		if ( isset( $field_aliases[ $field_name ] ) ) {
 			$field_name = $field_aliases[ $field_name ];
 		}
@@ -417,12 +435,12 @@ class Order_Exporter extends Abstract_Exporter {
 			'ID'                   => 'get_id',
 			'order_number'         => 'get_order_number',
 			'order_key'            => 'get_order_key',
-			'status'               => 'get_status',
+			'order_status'         => 'get_status',
 			'currency'             => 'get_currency',
-			'date_created'         => 'get_date_created',
+			'order_date'           => 'get_date_created',
 			'date_modified'        => 'get_date_modified',
-			'date_completed'       => 'get_date_completed',
-			'date_paid'            => 'get_date_paid',
+			'completed_date'       => 'get_date_completed',
+			'paid_date'            => 'get_date_paid',
 			'customer_id'          => 'get_customer_id',
 			'billing_first_name'   => 'get_billing_first_name',
 			'billing_last_name'    => 'get_billing_last_name',
@@ -472,8 +490,21 @@ class Order_Exporter extends Abstract_Exporter {
 			return $value;
 		}
 
+		// Special fields that need custom handling
+		if ( $field_name === 'item_count' ) {
+			return $order->get_item_count();
+		}
+
+		if ( $field_name === 'shipping_method' ) {
+			$shipping_methods = [];
+			foreach ( $order->get_shipping_methods() as $shipping_item ) {
+				$shipping_methods[] = $shipping_item->get_method_title();
+			}
+			return ! empty( $shipping_methods ) ? implode( ', ', $shipping_methods ) : '';
+		}
+
 		// Try to get as meta
-		return $order->get_meta( $field_name );
+		return $order->get_meta( $original_field );
 	}
 
 	/**
@@ -486,6 +517,8 @@ class Order_Exporter extends Abstract_Exporter {
 	protected function prepare_order_data( $order, $fields ) {
 		$data = [];
 
+		$this->log_info( "Preparing data for order #{$order->get_id()}" );
+
 		foreach ( $fields as $field ) {
 			$field_name = is_array( $field ) ? ( $field['name'] ?? '' ) : $field;
 
@@ -493,37 +526,65 @@ class Order_Exporter extends Abstract_Exporter {
 				continue;
 			}
 
-			switch ( $field_name ) {
-				case 'line_items':
-					$data['line_items'] = $this->get_line_items( $order );
-					break;
+			// Handle field aliases
+			$field_aliases = [
+				'line_items' => 'order_items',
+			];
 
-				case 'shipping_lines':
-					$data['shipping_lines'] = $this->get_shipping_lines( $order );
-					break;
+			$export_field_name = $field_aliases[ $field_name ] ?? $field_name;
 
-				case 'fee_lines':
-					$data['fee_lines'] = $this->get_fee_lines( $order );
-					break;
+			try {
+				switch ( $field_name ) {
+					case 'order_items':
+					case 'line_items':
+						$items                 = $this->get_line_items( $order );
+						$data['order_items']   = is_array( $items ) ? wp_json_encode( $items ) : $items;
+						break;
 
-				case 'coupon_lines':
-					$data['coupon_lines'] = $this->get_coupon_lines( $order );
-					break;
+					case 'shipping_lines':
+						$lines                   = $this->get_shipping_lines( $order );
+						$data['shipping_lines']  = is_array( $lines ) ? wp_json_encode( $lines ) : $lines;
+						break;
 
-				case 'order_meta':
-					$data['order_meta'] = $this->get_order_meta( $order );
-					break;
+					case 'fee_lines':
+						$lines               = $this->get_fee_lines( $order );
+						$data['fee_lines']   = is_array( $lines ) ? wp_json_encode( $lines ) : $lines;
+						break;
 
-				default:
-					$value = $this->get_order_field_value( $order, $field_name );
+					case 'coupon_lines':
+						$lines                 = $this->get_coupon_lines( $order );
+						$data['coupon_lines']  = is_array( $lines ) ? wp_json_encode( $lines ) : $lines;
+						break;
 
-					// Convert DateTime objects to strings
-					if ( $value instanceof \WC_DateTime ) {
-						$value = $value->format( 'Y-m-d H:i:s' );
-					}
+					case 'order_notes':
+						$notes                = $this->get_order_notes( $order );
+						$data['order_notes']  = is_array( $notes ) ? wp_json_encode( $notes ) : $notes;
+						break;
 
-					$data[ $field_name ] = $value;
-					break;
+					case 'order_meta':
+						$meta                = $this->get_order_meta( $order );
+						$data['order_meta']  = is_array( $meta ) ? wp_json_encode( $meta ) : $meta;
+						break;
+
+					default:
+						$value = $this->get_order_field_value( $order, $field_name );
+
+						// Convert DateTime objects to strings
+						if ( $value instanceof \WC_DateTime ) {
+							$value = $value->format( 'Y-m-d H:i:s' );
+						}
+
+						// Convert arrays to JSON
+						if ( is_array( $value ) ) {
+							$value = wp_json_encode( $value );
+						}
+
+						$data[ $export_field_name ] = $value;
+						break;
+				}
+			} catch ( \Exception $e ) {
+				$this->log_error( "Error preparing field {$field_name} for order #{$order->get_id()}: " . $e->getMessage() );
+				$data[ $export_field_name ] = '';
 			}
 		}
 
@@ -628,22 +689,32 @@ class Order_Exporter extends Abstract_Exporter {
 	}
 
 	/**
-	 * Get item meta data
+	 * Get order notes
 	 *
-	 * @param \WC_Order_Item $item Order item
-	 * @return array Meta data
+	 * @param \WC_Order $order Order object
+	 * @return array Order notes
 	 */
-	protected function get_item_meta_data( $item ) {
-		$meta_data = [];
+	protected function get_order_notes( $order ) {
+		$notes      = [];
+		$order_notes = wc_get_order_notes(
+			[
+				'order_id' => $order->get_id(),
+				'orderby'  => 'date_created',
+				'order'    => 'ASC',
+			]
+		);
 
-		foreach ( $item->get_meta_data() as $meta ) {
-			$meta_data[] = [
-				'key'   => $meta->key,
-				'value' => $meta->value,
+		foreach ( $order_notes as $note ) {
+			$notes[] = [
+				'id'            => $note->id,
+				'date_created'  => $note->date_created,
+				'content'       => $note->content,
+				'customer_note' => $note->customer_note,
+				'added_by'      => $note->added_by,
 			];
 		}
 
-		return $meta_data;
+		return $notes;
 	}
 
 	/**
@@ -656,6 +727,27 @@ class Order_Exporter extends Abstract_Exporter {
 		$meta_data = [];
 
 		foreach ( $order->get_meta_data() as $meta ) {
+			// Skip internal meta
+			if ( '_' === substr( $meta->key, 0, 1 ) ) {
+				continue;
+			}
+
+			$meta_data[ $meta->key ] = $meta->value;
+		}
+
+		return $meta_data;
+	}
+
+	/**
+	 * Get item meta data
+	 *
+	 * @param \WC_Order_Item $item Order item object
+	 * @return array Meta data
+	 */
+	protected function get_item_meta_data( $item ) {
+		$meta_data = [];
+
+		foreach ( $item->get_meta_data() as $meta ) {
 			// Skip internal meta
 			if ( '_' === substr( $meta->key, 0, 1 ) ) {
 				continue;
