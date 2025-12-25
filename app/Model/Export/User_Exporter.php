@@ -124,6 +124,10 @@ class User_Exporter extends Abstract_Exporter {
 	 */
 	public function get_count( $options = [] ) {
 		$query_args                = $this->build_query_args( $options );
+		
+		// Remove offset and number for count query - we want total count
+		unset( $query_args['offset'] );
+		
 		$query_args['fields']      = 'all';
 		$query_args['number']      = -1;
 		$query_args['count_total'] = false;

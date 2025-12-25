@@ -105,6 +105,11 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 		if ( ! empty( $options['taxonomy'] ) && is_string( $options['taxonomy'] ) ) {
 			// Count terms in the specific taxonomy
 			$query_args           = $this->build_query_args( $options );
+			
+			// Remove offset and number for count query - we want total count
+			unset( $query_args['offset'] );
+			unset( $query_args['number'] );
+			
 			$query_args['fields'] = 'count';
 
 			$count = get_terms( $query_args );
@@ -309,11 +314,18 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 		$args = [
 			'taxonomy'   => $options['taxonomy'] ?? 'category',
 			'hide_empty' => isset( $options['hide_empty'] ) ? (bool) $options['hide_empty'] : false,
-			'number'     => $options['limit'] ?? 0,
 			'offset'     => $options['offset'] ?? 0,
 			'orderby'    => $options['orderby'] ?? 'name',
 			'order'      => $options['order'] ?? 'ASC',
 		];
+
+		// Number/limit - get_terms() requires explicit number to get all terms
+		// Use 0 to get all terms (get_terms standard, unlike WP_Comment_Query which uses -1)
+		if ( isset( $options['limit'] ) && $options['limit'] > 0 ) {
+			$args['number'] = $options['limit'];
+		} else {
+			$args['number'] = 0; // Get all terms (0 means no limit for get_terms)
+		}
 
 		// Parent filter
 		if ( isset( $options['parent'] ) ) {

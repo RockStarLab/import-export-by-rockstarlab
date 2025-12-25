@@ -80,8 +80,8 @@ class Export_Processor {
 			$export_type = $parameters['export_type'];
 			$options     = $parameters['options'] ?? [];
 			$fields      = $parameters['fields'] ?? [];
-		// Get batch size (default to 3)
-		$batch_size = isset( $options['items_per_iteration'] ) ? (int) $options['items_per_iteration'] : 3;
+		// Get batch size (default to 100 for better performance)
+		$batch_size = isset( $options['items_per_iteration'] ) ? (int) $options['items_per_iteration'] : 100;
 		// Get current offset
 		$current_offset = (int) ( $job->processed_items ?? 0 );
 
@@ -115,32 +115,39 @@ class Export_Processor {
 					}
 				}
 			}
-
-			if ( 'taxonomy' === $export_type ) {
-				// Look for taxonomy in dynamic_filters
-				$dynamic_filters = $parameters['dynamic_filters'] ?? [];
-				foreach ( $dynamic_filters as $filter ) {
-					if ( isset( $filter['field'] ) && $filter['field'] === 'taxonomy' && ! empty( $filter['value'] ) ) {
-						$mapped_post_type = $filter['value'];
-						break;
-					}
+		if ( 'taxonomy' === $export_type ) {
+			// Look for taxonomy in dynamic_filters
+			$dynamic_filters = $parameters['dynamic_filters'] ?? [];
+			foreach ( $dynamic_filters as $filter ) {
+				if ( isset( $filter['field'] ) && $filter['field'] === 'taxonomy' && ! empty( $filter['value'] ) ) {
+					$mapped_post_type = $filter['value'];
+					break;
 				}
 			}
+		}
 
-			// Build export options
-			// Note: dynamic_filters from Step 2 should be passed as 'filters' to the exporter
-			$export_options = array_merge(
-				$options,
-				[
-					'post_type'       => $mapped_post_type,
-					'filters'         => $parameters['dynamic_filters'] ?? [],  // Use dynamic_filters from Step 2
-					'fields'          => $fields,
-					'custom_fields'   => $parameters['custom_fields'] ?? [],
-					'taxonomy'        => $parameters['taxonomy'] ?? [],
-					'field_functions' => $parameters['field_functions'] ?? [],
-					'limit'           => $batch_size,				'offset'          => $current_offset,
+		// Build export options
+		// Note: dynamic_filters from Step 2 should be passed as 'filters' to the exporter
+		$export_options = array_merge(
+			$options,
+			[
+				'filters'         => $parameters['dynamic_filters'] ?? [],  // Use dynamic_filters from Step 2
+				'fields'          => $fields,
+				'custom_fields'   => $parameters['custom_fields'] ?? [],
+				'taxonomy'        => $parameters['taxonomy'] ?? [],
+				'field_functions' => $parameters['field_functions'] ?? [],
+				'limit'           => $batch_size,
+				'offset'          => $current_offset,
 			]
 		);
+
+		// For taxonomy export, add taxonomy name to export_options
+		if ( 'taxonomy' === $export_type && ! empty( $mapped_post_type ) ) {
+			$export_options['taxonomy'] = $mapped_post_type;
+		} else {
+			// For other types, use post_type
+			$export_options['post_type'] = $mapped_post_type;
+		}
 		
 		// For database_table, add table_name to export_options
 		if ( 'database_table' === $export_type && ! empty( $parameters['table_name'] ) ) {

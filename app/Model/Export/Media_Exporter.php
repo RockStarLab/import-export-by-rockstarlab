@@ -140,7 +140,12 @@ class Media_Exporter extends Abstract_Exporter {
 	 * @return int
 	 */
 	public function get_count( $options = [] ) {
-		$query_args                   = $this->build_query_args( $options );
+		$query_args = $this->build_query_args( $options );
+		
+		// Remove offset and paged for count query - we want total count
+		unset( $query_args['offset'] );
+		unset( $query_args['paged'] );
+		
 		$query_args['fields']         = 'ids';
 		$query_args['posts_per_page'] = -1;
 

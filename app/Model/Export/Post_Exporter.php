@@ -163,7 +163,12 @@ class Post_Exporter extends Abstract_Exporter {
 			return count( $terms );
 		}
 
-		$query_args                   = $this->build_query_args( $options );
+		$query_args = $this->build_query_args( $options );
+		
+		// Remove offset and paged for count query - we want total count
+		unset( $query_args['offset'] );
+		unset( $query_args['paged'] );
+		
 		$query_args['fields']         = 'ids';
 		$query_args['posts_per_page'] = -1;
 
