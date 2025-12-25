@@ -65,7 +65,8 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 			'attribute_type',
 			'attribute_orderby',
 			'attribute_public',
-			'terms',
+			'term_count',
+			'attribute_terms',
 		];
 	}
 
@@ -82,7 +83,8 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 			'attribute_type',
 			'attribute_orderby',
 			'attribute_public',
-			'terms',
+			'term_count',
+			'attribute_terms',
 		];
 	}
 
@@ -172,8 +174,16 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 		$fields = $options['fields'] ?? $this->get_default_fields();
 		$data   = [];
 
+		// Field aliases for backward compatibility
+		$field_aliases = [
+			'terms' => 'attribute_terms',
+		];
+
 		foreach ( $fields as $field ) {
-			switch ( $field ) {
+			// Check if field has an alias
+			$alias_field = $field_aliases[ $field ] ?? $field;
+
+			switch ( $alias_field ) {
 				case 'attribute_id':
 					$data['attribute_id'] = $attribute->attribute_id;
 					break;
@@ -198,16 +208,21 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 					$data['attribute_public'] = $attribute->attribute_public;
 					break;
 
-				case 'terms':
+				case 'term_count':
+					$taxonomy                = wc_attribute_taxonomy_name( $attribute->attribute_name );
+					$data['term_count'] = taxonomy_exists( $taxonomy ) ? wp_count_terms( [ 'taxonomy' => $taxonomy ] ) : 0;
+					break;
+
+				case 'attribute_terms':
 					$include_terms = $options['include_terms'] ?? true;
 					if ( $include_terms ) {
-						$data['terms'] = $this->get_attribute_terms( $attribute->attribute_name );
+						$data['attribute_terms'] = $this->get_attribute_terms( $attribute->attribute_name );
 					}
 					break;
 
 				default:
 					// Allow custom fields via filter
-					$data[ $field ] = apply_filters( 'aie_woo_attribute_export_field_value', '', $field, $attribute, $options );
+					$data[ $alias_field ] = apply_filters( 'aie_woo_attribute_export_field_value', '', $alias_field, $attribute, $options );
 					break;
 			}
 		}

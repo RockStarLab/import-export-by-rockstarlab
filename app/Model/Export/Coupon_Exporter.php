@@ -56,9 +56,9 @@ class Coupon_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'code'           => __( 'Coupon code', 'wp-advanced-import-export' ),
+			'post_title'     => __( 'Coupon code', 'wp-advanced-import-export' ),
 			'discount_type'  => __( 'Discount type (percent, fixed_cart, fixed_product)', 'wp-advanced-import-export' ),
-			'amount'         => __( 'Discount amount', 'wp-advanced-import-export' ),
+			'coupon_amount'  => __( 'Discount amount', 'wp-advanced-import-export' ),
 			'date_expires'   => __( 'Expiration date', 'wp-advanced-import-export' ),
 			'usage_count'    => __( 'Usage count', 'wp-advanced-import-export' ),
 			'usage_limit'    => __( 'Usage limit', 'wp-advanced-import-export' ),
@@ -75,13 +75,14 @@ class Coupon_Exporter extends Abstract_Exporter {
 	 */
 	public function get_available_fields() {
 		return [
-			'coupon_id',
-			'code',
+			'ID',
+			'post_title',
+			'post_excerpt',
+			'post_status',
+			'post_date',
+			'post_modified',
 			'discount_type',
-			'amount',
-			'description',
-			'date_created',
-			'date_modified',
+			'coupon_amount',
 			'date_expires',
 			'usage_count',
 			'usage_limit',
@@ -96,7 +97,7 @@ class Coupon_Exporter extends Abstract_Exporter {
 			'exclude_sale_items',
 			'minimum_amount',
 			'maximum_amount',
-			'email_restrictions',
+			'allowed_emails',
 			'used_by',
 		];
 	}
@@ -108,11 +109,11 @@ class Coupon_Exporter extends Abstract_Exporter {
 	 */
 	public function get_default_fields() {
 		return [
-			'coupon_id',
-			'code',
+			'ID',
+			'post_title',
 			'discount_type',
-			'amount',
-			'description',
+			'coupon_amount',
+			'post_excerpt',
 			'date_expires',
 			'usage_count',
 			'usage_limit',
@@ -290,11 +291,18 @@ class Coupon_Exporter extends Abstract_Exporter {
 	 * @return mixed Field value
 	 */
 	protected function get_coupon_field_value( $coupon, $field_name ) {
-		// Map field aliases
+		// Map field aliases (JS uses different names than WC methods)
 		$field_aliases = [
-			'coupon_id'       => 'id',
+			'coupon_id'       => 'ID',
+			'code'            => 'post_title',
+			'description'     => 'post_excerpt',
 			'expires_date'    => 'date_expires',
-			'discount_amount' => 'amount',
+			'discount_amount' => 'coupon_amount',
+			'amount'          => 'coupon_amount',
+			'date_created'    => 'post_date',
+			'date_modified'   => 'post_modified',
+			'status'          => 'post_status',
+			'email_restrictions' => 'allowed_emails',
 		];
 
 		// Replace alias with actual field name
@@ -304,13 +312,14 @@ class Coupon_Exporter extends Abstract_Exporter {
 
 		// Map common coupon fields to getter methods
 		$field_map = [
-			'id'                          => 'get_id',
-			'code'                        => 'get_code',
-			'amount'                      => 'get_amount',
+			'ID'                          => 'get_id',
+			'post_title'                  => 'get_code',
+			'post_excerpt'                => 'get_description',
+			'post_status'                 => 'get_status',
+			'post_date'                   => 'get_date_created',
+			'post_modified'               => 'get_date_modified',
+			'coupon_amount'               => 'get_amount',
 			'discount_type'               => 'get_discount_type',
-			'description'                 => 'get_description',
-			'date_created'                => 'get_date_created',
-			'date_modified'               => 'get_date_modified',
 			'date_expires'                => 'get_date_expires',
 			'usage_count'                 => 'get_usage_count',
 			'usage_limit'                 => 'get_usage_limit',
@@ -325,7 +334,7 @@ class Coupon_Exporter extends Abstract_Exporter {
 			'exclude_sale_items'          => 'get_exclude_sale_items',
 			'minimum_amount'              => 'get_minimum_amount',
 			'maximum_amount'              => 'get_maximum_amount',
-			'email_restrictions'          => 'get_email_restrictions',
+			'allowed_emails'              => 'get_email_restrictions',
 			'used_by'                     => 'get_used_by',
 		];
 
