@@ -181,6 +181,11 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 			$item = $this->apply_field_functions( $item, $this->options['field_functions'] );
 		}
 
+		// Apply field selection if specified
+		if ( is_array( $item ) && ! empty( $this->options['fields'] ) && ! in_array( '*', $this->options['fields'], true ) ) {
+			$item = $this->select_fields( $item, $this->options['fields'] );
+		}
+
 		// Default: return as-is
 		// Child classes can override for filtering, transformation, etc.
 		return $item;
