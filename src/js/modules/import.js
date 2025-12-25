@@ -201,14 +201,7 @@ const ImportModule = {
 		if ( this.currentStep < this.totalSteps ) {
 			// Validate current step
 			if ( this.validateStep( this.currentStep ) ) {
-				const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
-				
-				// For block_theme_settings, skip steps 4 and 5 (go from 3 to 6)
-				if ( contentType === 'block_theme_settings' && this.currentStep === 3 ) {
-					this.showStep( 6 ); // Skip to import execution
-				} else {
-					this.showStep( this.currentStep + 1 );
-				}
+				this.showStep( this.currentStep + 1 );
 			}
 		}
 	},
@@ -218,14 +211,7 @@ const ImportModule = {
 	 */
 	prevStep() {
 		if ( this.currentStep > 1 ) {
-			const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
-			
-			// For block_theme_settings, skip steps 5 and 4 when going back (go from 6 to 3)
-			if ( contentType === 'block_theme_settings' && this.currentStep === 6 ) {
-				this.showStep( 3 ); // Skip back to preview
-			} else {
-				this.showStep( this.currentStep - 1 );
-			}
+			this.showStep( this.currentStep - 1 );
 		}
 	},
 
@@ -3195,7 +3181,6 @@ async cancelImport() {
 			'user',
 			'comment',
 			'menu',
-			'block_theme_settings',
 			'taxonomy',		'database_table',
 		'woo_attribute',
 		'woo_coupon',

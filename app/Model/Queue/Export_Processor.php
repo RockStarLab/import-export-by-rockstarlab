@@ -93,14 +93,13 @@ class Export_Processor {
 
 			// Map logical export types to actual WP post_type when needed
 			$post_type_map = [
-				'post'                 => 'post',
-				'page'                 => 'page',
-				'media'                => 'attachment',
-				'menu'                 => 'nav_menu_item',
-				'block_theme_settings' => 'wp_template',
-				'woo_product'          => 'product',
-				'woo_order'            => 'shop_order',
-				'woo_coupon'           => 'shop_coupon',
+				'post'        => 'post',
+				'page'        => 'page',
+				'media'       => 'attachment',
+				'menu'        => 'nav_menu_item',
+				'woo_product' => 'product',
+				'woo_order'   => 'shop_order',
+				'woo_coupon'  => 'shop_coupon',
 			];
 
 			$mapped_post_type = isset( $post_type_map[ $export_type ] ) ? $post_type_map[ $export_type ] : $export_type;

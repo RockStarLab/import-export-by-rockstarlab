@@ -125,18 +125,6 @@ defined( 'ABSPATH' ) || exit;
 			</label>
 
 			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
-				<input type="radio" name="content_type" value="block_theme_settings"<?php echo $is_premium ? '' : ' disabled'; ?>>
-				<div class="aie-content-type-card">
-					<span class="dashicons dashicons-admin-customizer"></span>
-					<h3><?php esc_html_e( 'Block Theme Settings', 'wp-advanced-import-export' ); ?></h3>
-					<p><?php esc_html_e( 'Import block theme customizations', 'wp-advanced-import-export' ); ?></p>
-					<?php if ( ! $is_premium ) : ?>
-						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'wp-advanced-import-export' ); ?></span>
-					<?php endif; ?>
-				</div>
-			</label>
-
-			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
 				<input type="radio" name="content_type" value="taxonomy"<?php echo $is_premium ? '' : ' disabled'; ?>>
 				<div class="aie-content-type-card">
 					<span class="dashicons dashicons-category"></span>
