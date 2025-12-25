@@ -197,15 +197,6 @@ class Export_Processor {
 			// Check if completed
 			// Export is complete when: all items processed OR no items returned (end of data)
 			$completed = ( $new_processed >= $total_count ) || ( $batch_count === 0 );
-			
-			// Debug logging
-			error_log( sprintf( 
-				'Export_Processor: Completed check - new_processed=%d, total=%d, batch_count=%d, completed=%s',
-				$new_processed,
-				$total_count,
-				$batch_count,
-				$completed ? 'YES' : 'NO'
-			) );
 
 			if ( $completed ) {
 				// Get all accumulated data
