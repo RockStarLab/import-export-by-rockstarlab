@@ -85,29 +85,79 @@ class Post_Exporter extends Abstract_Exporter {
 			'menu_order',
 			'comment_status',
 			'ping_status',
-			'post_password',		'guid',
-		'post_meta',
-		'taxonomies',
-		'featured_image',
-		'featured_image_id',
-		'featured_image_url',
-		'featured_image_title',
-		'featured_image_caption',
-		'author_name',
-		'author_email',
-		// Yoast SEO fields
-		'_yoast_wpseo_title',
-		'_yoast_wpseo_metadesc',
-		'_yoast_wpseo_focuskw',
-		'_yoast_wpseo_canonical',
-		'_yoast_wpseo_meta-robots-noindex',
-		'_yoast_wpseo_meta-robots-nofollow',
-		'_yoast_wpseo_opengraph-title',
-		'_yoast_wpseo_opengraph-description',
-		'_yoast_wpseo_opengraph-image',
-		'_yoast_wpseo_twitter-title',
-		'_yoast_wpseo_twitter-description',
-		'_yoast_wpseo_twitter-image',
+			'post_password',
+			'guid',
+			'post_meta',
+			'taxonomies',
+			'featured_image',
+			'featured_image_id',
+			'featured_image_url',
+			'featured_image_title',
+			'featured_image_caption',
+			'author_name',
+			'author_email',
+			// WooCommerce Product fields (with underscore prefix)
+			'_sku',
+			'_regular_price',
+			'_sale_price',
+			'_tax_status',
+			'_tax_class',
+			'_stock',
+			'_stock_status',
+			'_manage_stock',
+			'_backorders',
+			'_product_type',
+			'_downloadable',
+			'_virtual',
+			'_weight',
+			'_length',
+			'_width',
+			'_height',
+			'_shipping_class',
+			'_product_image_gallery',
+			'_wc_average_rating',
+			'_wc_review_count',
+			'_featured',
+			'_visibility',
+			'total_sales',
+			// WooCommerce Product fields (alternative names without underscore)
+			'sku',
+			'regular_price',
+			'sale_price',
+			'tax_status',
+			'tax_class',
+			'stock_quantity',
+			'stock_status',
+			'manage_stock',
+			'backorders',
+			'downloadable',
+			'virtual',
+			'weight',
+			'length',
+			'width',
+			'height',
+			'shipping_class',
+			'product_gallery',
+			'average_rating',
+			'review_count',
+			'featured',
+			'visibility',
+			// WooCommerce taxonomies
+			'product_cat',
+			'product_tag',
+			// Yoast SEO fields
+			'_yoast_wpseo_title',
+			'_yoast_wpseo_metadesc',
+			'_yoast_wpseo_focuskw',
+			'_yoast_wpseo_canonical',
+			'_yoast_wpseo_meta-robots-noindex',
+			'_yoast_wpseo_meta-robots-nofollow',
+			'_yoast_wpseo_opengraph-title',
+			'_yoast_wpseo_opengraph-description',
+			'_yoast_wpseo_opengraph-image',
+			'_yoast_wpseo_twitter-title',
+			'_yoast_wpseo_twitter-description',
+			'_yoast_wpseo_twitter-image',
 		];
 	}
 
@@ -1307,7 +1357,7 @@ class Post_Exporter extends Abstract_Exporter {
 			}
 		}
 
-		// Process individual taxonomy fields (taxonomy_category, taxonomy_post_tag, etc.)
+		// Process individual taxonomy fields (taxonomy_category, taxonomy_post_tag, product_cat, product_tag, etc.)
 		foreach ( $fields as $field ) {
 			if ( strpos( $field, 'taxonomy_' ) === 0 ) {
 				$taxonomy_name = substr( $field, 9 ); // Remove 'taxonomy_' prefix
@@ -1319,12 +1369,29 @@ class Post_Exporter extends Abstract_Exporter {
 					$data[ $field ] = '';
 				}
 			}
+			// Handle direct taxonomy names (product_cat, product_tag, etc.)
+			elseif ( taxonomy_exists( $field ) ) {
+				$terms = wp_get_object_terms( $post->ID, $field, [ 'fields' => 'names' ] );
+				
+				if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+					$data[ $field ] = implode( ', ', $terms );
+				} else {
+					$data[ $field ] = '';
+				}
+			}
 		}		// Process individual meta fields (including _wp_page_template and other meta)
 	foreach ( $fields as $field ) {
+		// Skip if already processed
+		if ( isset( $data[ $field ] ) ) {
+			continue;
+		}
+		
 		// Check if it's a meta field (starts with _ or not in basic/special fields)
+		// Skip if already processed as taxonomy
 		if ( ! in_array( $field, $basic_fields, true ) && 
 		     ! in_array( $field, [ 'author_name', 'author_email', 'post_meta', 'taxonomies', 'featured_image', 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption' ], true ) &&
-		     strpos( $field, 'taxonomy_' ) !== 0 ) {
+		     strpos( $field, 'taxonomy_' ) !== 0 &&
+		     ! taxonomy_exists( $field ) ) {
 					// Handle ACF fields (with acf_ prefix)
 		if ( strpos( $field, 'acf_' ) === 0 ) {
 			$acf_field_name = substr( $field, 4 ); // Remove 'acf_' prefix (4 characters)
@@ -1419,6 +1486,108 @@ class Post_Exporter extends Abstract_Exporter {
 			$meta_key = $field;
 			if ( strpos( $field, 'meta_' ) === 0 ) {
 				$meta_key = substr( $field, 5 ); // Remove 'meta_' prefix (5 characters)
+			}
+			
+			// Special handling for WooCommerce fields - use WC_Product object
+			if ( $post->post_type === 'product' && class_exists( 'WC_Product' ) && function_exists( 'wc_get_product' ) ) {
+				$wc_product = wc_get_product( $post->ID );
+				
+				if ( $wc_product ) {
+					// Map field names to WooCommerce getter methods
+					$woo_field_map = [
+						'_sku'                   => 'get_sku',
+						'_regular_price'         => 'get_regular_price',
+						'_sale_price'            => 'get_sale_price',
+						'_tax_status'            => 'get_tax_status',
+						'_tax_class'             => 'get_tax_class',
+						'_stock'                 => 'get_stock_quantity',
+						'_stock_quantity'        => 'get_stock_quantity',
+						'_stock_status'          => 'get_stock_status',
+						'_manage_stock'          => 'get_manage_stock',
+						'_backorders'            => 'get_backorders',
+						'_downloadable'          => 'get_downloadable',
+						'_virtual'               => 'get_virtual',
+						'_weight'                => 'get_weight',
+						'_length'                => 'get_length',
+						'_width'                 => 'get_width',
+						'_height'                => 'get_height',
+						'_product_image_gallery' => 'get_gallery_image_ids',
+						'_wc_average_rating'     => 'get_average_rating',
+						'_wc_review_count'       => 'get_review_count',
+						'total_sales'            => 'get_total_sales',
+						// Add alternative field names without underscore
+						'sku'                    => 'get_sku',
+						'regular_price'          => 'get_regular_price',
+						'sale_price'             => 'get_sale_price',
+						'tax_status'             => 'get_tax_status',
+						'tax_class'              => 'get_tax_class',
+						'stock_quantity'         => 'get_stock_quantity',
+						'stock_status'           => 'get_stock_status',
+						'manage_stock'           => 'get_manage_stock',
+						'backorders'             => 'get_backorders',
+						'downloadable'           => 'get_downloadable',
+						'virtual'                => 'get_virtual',
+						'weight'                 => 'get_weight',
+						'length'                 => 'get_length',
+						'width'                  => 'get_width',
+						'height'                 => 'get_height',
+						'shipping_class'         => 'get_shipping_class',
+						'product_gallery'        => 'get_gallery_image_ids',
+						'average_rating'         => 'get_average_rating',
+						'review_count'           => 'get_review_count',
+					];
+					
+					// Check if this field is a WooCommerce field
+					if ( isset( $woo_field_map[ $field ] ) || isset( $woo_field_map[ $meta_key ] ) ) {
+						$method = $woo_field_map[ $field ] ?? $woo_field_map[ $meta_key ];
+						
+						if ( method_exists( $wc_product, $method ) ) {
+							$value = $wc_product->$method();
+							
+							// Convert boolean values to yes/no
+							if ( is_bool( $value ) ) {
+								$value = $value ? 'yes' : 'no';
+							}
+							// Convert array to comma-separated string (for gallery)
+							elseif ( is_array( $value ) ) {
+								$value = implode( ',', $value );
+							}
+							// Ensure empty strings for null values
+							elseif ( $value === null || $value === false ) {
+								$value = '';
+							}
+							
+							$data[ $field ] = $value;
+							continue;
+						}
+					}
+					
+					// Handle _featured / featured field
+					if ( $field === '_featured' || $meta_key === '_featured' || $field === 'featured' ) {
+						$data[ $field ] = $wc_product->get_featured() ? 'yes' : 'no';
+						continue;
+					}
+					
+					// Handle _visibility / visibility field
+					if ( $field === '_visibility' || $meta_key === '_visibility' || $field === 'visibility' ) {
+						$catalog_visibility = $wc_product->get_catalog_visibility();
+						$data[ $field ] = $catalog_visibility ? $catalog_visibility : 'visible';
+						continue;
+					}
+					
+					// Handle _product_type field
+					if ( $field === '_product_type' || $meta_key === '_product_type' ) {
+						$data[ $field ] = $wc_product->get_type();
+						continue;
+					}
+					
+					// Handle _shipping_class field (already in map but keep for backward compatibility)
+					if ( $field === '_shipping_class' || $meta_key === '_shipping_class' ) {
+						$shipping_class = $wc_product->get_shipping_class();
+						$data[ $field ] = $shipping_class ? $shipping_class : '';
+						continue;
+					}
+				}
 			}
 			
 			// Get meta value - always include the field if it was explicitly selected
