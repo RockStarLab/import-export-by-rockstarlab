@@ -126,6 +126,7 @@ class Job extends Model {
 	 *     @type int    $failed     Failed items
 	 *     @type float  $percentage Completion percentage (0-100)
 	 *     @type string $status     Current job status
+	 *     @type string $started_at When job processing started
 	 * }
 	 */
 	public function get_progress( $job_id ) {
@@ -142,6 +143,7 @@ class Job extends Model {
 			'failed'     => (int) $job->failed_items,
 			'percentage' => (float) $job->percentage,
 			'status'     => $job->status,
+			'started_at' => $job->started_at ?? null,
 		];
 	}
 

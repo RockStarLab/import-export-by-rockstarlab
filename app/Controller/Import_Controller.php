@@ -35,13 +35,16 @@ class Import_Controller extends Base_Controller {
 	 */
 	protected function get_ajax_actions() {
 		return [
-			'import_upload_file'   => [ 'callback' => 'upload_file' ],
-			'import_validate_data' => [ 'callback' => 'validate_data' ],
-			'import_start'         => [ 'callback' => 'start_import' ],
-			'import_get_progress'  => [ 'callback' => 'get_progress' ],
-			'import_cancel'        => [ 'callback' => 'cancel_import' ],
-			'get_acf_fields'       => [ 'callback' => 'get_acf_fields' ],
-			'get_yoast_fields'     => [ 'callback' => 'get_yoast_fields' ],
+			'import_upload_file'    => [ 'callback' => 'upload_file' ],
+			'import_validate_data'  => [ 'callback' => 'validate_data' ],
+			'import_start'          => [ 'callback' => 'start_import' ],
+			'import_process_batch'  => [ 'callback' => 'process_batch' ],
+			'import_get_progress'   => [ 'callback' => 'get_progress' ],
+			'import_cancel'         => [ 'callback' => 'cancel_import' ],
+			'get_acf_fields'        => [ 'callback' => 'get_acf_fields' ],
+			'get_yoast_fields'      => [ 'callback' => 'get_yoast_fields' ],
+			'get_database_tables'   => [ 'callback' => 'get_database_tables' ],
+			'get_table_columns'     => [ 'callback' => 'get_table_columns' ],
 		];
 	}
 
@@ -202,6 +205,7 @@ class Import_Controller extends Base_Controller {
 					'format'      => $format,
 					'mapping'     => $mapping,
 					'options'     => $options,
+					'offset'      => 0,
 				]
 			),
 		];
@@ -211,9 +215,7 @@ class Import_Controller extends Base_Controller {
 			$this->send_error( $job_id, null, 500 );
 		}
 
-		// Start import in background
-		$this->process_import_job( $job_id );
-
+		// Return job info immediately so UI can start batch processing
 		$this->send_success(
 			[
 				'job_id' => $job_id,
@@ -245,11 +247,30 @@ class Import_Controller extends Base_Controller {
 			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ), null, 404 );
 		}
 
+		// Parse result
+		$result = $job_data->result ? json_decode( $job_data->result, true ) : [];
+		
+		// Calculate processed and total
+		$processed = 0;
+		$total     = 0;
+		
+		if ( ! empty( $result ) ) {
+			$processed = ( $result['success'] ?? 0 ) + ( $result['failed'] ?? 0 ) + ( $result['skipped'] ?? 0 );
+			$total     = $result['total'] ?? $processed;
+		}
+		
+		// Get estimates
+		$estimates = \WP_AIE\Helper\Progress_Tracker::estimate_time_remaining( $job_id );
+
 		$this->send_success(
 			[
-				'status'   => $job_data->status,
-				'progress' => $job_data->progress,
-				'result'   => $job_data->result ? json_decode( $job_data->result, true ) : null,
+				'status'     => $job_data->status,
+				'progress'   => (int) $job_data->progress,
+				'percentage' => (int) $job_data->progress,
+				'processed'  => $processed,
+				'total'      => $total,
+				'result'     => $result,
+				'estimates'  => $estimates,
 			]
 		);
 	}
@@ -281,79 +302,216 @@ class Import_Controller extends Base_Controller {
 	}
 
 	/**
-	 * Process import job
-	 *
-	 * @param int $job_id Job ID
+	 * Process import batch
 	 */
-	private function process_import_job( $job_id ) {
+	public function process_batch() {
+		$verification = $this->verify_request( 'import_process_batch' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		$validation = $this->validate_required_params( [ 'job_id' ] );
+		if ( is_wp_error( $validation ) ) {
+			$this->send_error( $validation, null, 400 );
+		}
+
+		$job_id = (int) $this->get_request_param( 'job_id' );
+
 		$job_model = WP_AIE()->Model->job;
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			return;
+			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ), null, 404 );
 		}
 
-		// Update status to processing
-		$job_model->update( $job_id, [ 'status' => 'processing' ] );
+		// Check if job is paused or cancelled
+		if ( in_array( $job_data->status, [ 'paused', 'cancelled' ], true ) ) {
+			$this->send_success(
+				[
+					'completed' => true,
+					'status'    => $job_data->status,
+				]
+			);
+			return;
+		}
 
 		$parameters  = json_decode( $job_data->parameters, true );
 		$import_type = $parameters['import_type'];
 		$format      = $parameters['format'];
 		$mapping     = $parameters['mapping'];
 		$options     = $parameters['options'] ?? [];
+		$offset      = $parameters['offset'] ?? 0;
+		$batch_size  = isset( $options['batch_size'] ) ? (int) $options['batch_size'] : 50;
 
-		// Parse file
-		$parser = Format_Factory::create( $format );
-		$data   = $parser->parse( $job_data->file_path );
-
-		if ( is_wp_error( $data ) ) {
+		// On first batch, parse file and prepare data
+		if ( ! isset( $parameters['prepared_data'] ) ) {
+			// Set started_at
 			$job_model->update(
 				$job_id,
 				[
-					'status' => 'failed',
-					'result' => wp_json_encode( [ 'error' => $data->get_error_message() ] ),
+					'status'     => 'processing',
+					'started_at' => current_time( 'mysql' ),
+				]
+			);
+
+			// Parse file
+			$parser = Format_Factory::create( $format );
+			$data   = $parser->parse( $job_data->file_path );
+
+			if ( is_wp_error( $data ) ) {
+				$job_model->update(
+					$job_id,
+					[
+						'status' => 'failed',
+						'result' => wp_json_encode( [ 'error' => $data->get_error_message() ] ),
+					]
+				);
+				$this->send_error( $data, null, 500 );
+				return;
+			}
+
+			// Get importer
+			$importer = Importer_Factory::get_importer( $import_type, 0 );
+
+			if ( is_wp_error( $importer ) ) {
+				$job_model->update(
+					$job_id,
+					[
+						'status' => 'failed',
+						'result' => wp_json_encode( [ 'error' => $importer->get_error_message() ] ),
+					]
+				);
+				$this->send_error( $importer, null, 500 );
+				return;
+			}
+
+			// Prepare data
+			$prepared_data = $importer->prepare( $data, $mapping );
+			$total_items   = count( $prepared_data );
+
+			// Store prepared data and total in job parameters
+			$parameters['prepared_data'] = $prepared_data;
+			$parameters['total_items']   = $total_items;
+			$parameters['offset']        = 0;
+
+			// Initialize cumulative result
+			$parameters['cumulative_result'] = [
+				'total'   => $total_items,
+				'success' => 0,
+				'skipped' => 0,
+				'failed'  => 0,
+				'updated' => 0,
+				'created' => 0,
+				'errors'  => [],
+			];
+
+			$job_model->update(
+				$job_id,
+				[
+					'parameters' => wp_json_encode( $parameters ),
+				]
+			);
+
+			// Initialize progress
+			\WP_AIE\Helper\Progress_Tracker::update_progress( $job_id, $total_items, 0, 0, 0 );
+		}
+
+		$prepared_data     = $parameters['prepared_data'];
+		$total_items       = $parameters['total_items'];
+		$cumulative_result = $parameters['cumulative_result'];
+
+		// Get batch
+		$batch = array_slice( $prepared_data, $offset, $batch_size );
+
+		if ( empty( $batch ) ) {
+			// All items processed - complete job
+			$job_model->update(
+				$job_id,
+				[
+					'status'       => 'completed',
+					'progress'     => 100,
+					'result'       => wp_json_encode( $cumulative_result ),
+					'completed_at' => current_time( 'mysql' ),
+				]
+			);
+
+			$this->send_success(
+				[
+					'completed' => true,
+					'result'    => $cumulative_result,
 				]
 			);
 			return;
 		}
 
-		// Get importer
-		$importer = Importer_Factory::get_importer( $import_type, $job_id );
-
+		// Process batch
+		$importer = Importer_Factory::get_importer( $import_type, 0 );
 		if ( is_wp_error( $importer ) ) {
-			$job_model->update(
-				$job_id,
-				[
-					'status' => 'failed',
-					'result' => wp_json_encode( [ 'error' => $importer->get_error_message() ] ),
-				]
-			);
+			$this->send_error( $importer, null, 500 );
 			return;
 		}
 
-		// Prepare and import
-		$prepared_data = $importer->prepare( $data, $mapping );
-		$result        = $importer->import( $prepared_data, $options );
+		// Set importer options (CRITICAL for Database_Table_Importer)
+		$importer->set_options( $options );
 
-		if ( is_wp_error( $result ) ) {
-			$job_model->update(
-				$job_id,
-				[
-					'status'   => 'failed',
-					'progress' => 100,
-					'result'   => wp_json_encode( [ 'error' => $result->get_error_message() ] ),
-				]
-			);
-		} else {
-			$job_model->update(
-				$job_id,
-				[
-					'status'   => 'completed',
-					'progress' => 100,
-					'result'   => wp_json_encode( $result ),
-				]
-			);
+		// Process each item in batch
+		foreach ( $batch as $index => $item ) {
+			$result = $importer->import_item( $item, $offset + $index );
+
+			if ( is_wp_error( $result ) ) {
+				++$cumulative_result['failed'];
+				$cumulative_result['errors'][] = [
+					'row'     => $offset + $index + 1,
+					'message' => $result->get_error_message(),
+				];
+			} elseif ( 'skipped' === $result ) {
+				++$cumulative_result['skipped'];
+			} elseif ( 'updated' === $result ) {
+				++$cumulative_result['updated'];
+				++$cumulative_result['success'];
+			} else {
+				++$cumulative_result['created'];
+				++$cumulative_result['success'];
+			}
 		}
+
+		// Update offset
+		$new_offset = $offset + count( $batch );
+		$processed  = $cumulative_result['success'] + $cumulative_result['failed'] + $cumulative_result['skipped'];
+		$progress   = round( ( $new_offset / $total_items ) * 100 );
+
+		// Update parameters
+		$parameters['offset']            = $new_offset;
+		$parameters['cumulative_result'] = $cumulative_result;
+
+		// Update job
+		$job_model->update(
+			$job_id,
+			[
+				'parameters' => wp_json_encode( $parameters ),
+				'progress'   => $progress,
+				'result'     => wp_json_encode( $cumulative_result ),
+			]
+		);
+
+		// Update progress tracker
+		\WP_AIE\Helper\Progress_Tracker::update_progress(
+			$job_id,
+			$total_items,
+			$processed,
+			$cumulative_result['success'],
+			$cumulative_result['failed']
+		);
+
+		// Return response
+		$this->send_success(
+			[
+				'completed' => false,
+				'offset'    => $new_offset,
+				'progress'  => $progress,
+				'result'    => $cumulative_result,
+			]
+		);
 	}
 
 	/**
@@ -482,5 +640,57 @@ class Import_Controller extends Base_Controller {
 	];
 
 		$this->send_success( [ 'fields' => $fields ] );
+	}
+
+	/**
+	 * Get database tables
+	 */
+	public function get_database_tables() {
+		$verification = $this->verify_request( 'import_upload' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		// Use Database_Table_Exporter to get tables with row counts
+		$exporter = new \WP_AIE\Model\Export\Database_Table_Exporter();
+		$tables   = $exporter->get_available_tables();
+
+		$this->send_success( [ 'tables' => $tables ] );
+	}
+
+	/**
+	 * Get table columns with types
+	 */
+	public function get_table_columns() {
+		$verification = $this->verify_request( 'import_upload' );
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		$validation = $this->validate_required_params( [ 'table_name' ] );
+		if ( is_wp_error( $validation ) ) {
+			$this->send_error( $validation, null, 400 );
+		}
+
+		$table_name = $this->get_request_param( 'table_name' );
+
+		// Use Database_Table_Exporter to get columns
+		$exporter = new \WP_AIE\Model\Export\Database_Table_Exporter();
+		$columns  = $exporter->get_table_columns( $table_name );
+		
+		// Get row count
+		global $wpdb;
+		$row_count = $wpdb->get_var( "SELECT COUNT(*) FROM `{$table_name}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		if ( empty( $columns ) ) {
+			$this->send_error( __( 'Could not retrieve table columns', 'wp-advanced-import-export' ), null, 400 );
+		}
+
+		$this->send_success(
+			[
+				'columns'   => $columns,
+				'row_count' => (int) $row_count,
+			]
+		);
 	}
 }

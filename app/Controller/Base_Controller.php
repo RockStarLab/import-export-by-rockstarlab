@@ -213,7 +213,8 @@ abstract class Base_Controller {
 		$missing = [];
 
 		foreach ( $required as $param ) {
-			if ( empty( $this->get_request_param( $param ) ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			if ( ! isset( $_REQUEST[ $param ] ) || ( is_string( $_REQUEST[ $param ] ) && empty( $_REQUEST[ $param ] ) ) ) {
 				$missing[] = $param;
 			}
 		}
