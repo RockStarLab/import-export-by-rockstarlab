@@ -4,7 +4,8 @@
 	margin: 30px 0;
 
 	// Success card with modern design
-	.aie-export-complete-card {
+	.aie-export-complete-card,
+	.aie-import-complete-card {
 		background: #fff;
 		border: 2px solid #00a32a;
 		border-radius: 12px;
@@ -94,6 +95,31 @@
 						width: 24px;
 						height: 24px;
 						color: #fff;
+					}
+					
+					// Success icon (green)
+					&.aie-icon-success {
+						background: linear-gradient(135deg, #00a32a, #008a20);
+					}
+					
+					// Updated icon (blue)
+					&.aie-icon-updated {
+						background: linear-gradient(135deg, #2271b1, #135e96);
+					}
+					
+					// Created icon (purple)
+					&.aie-icon-created {
+						background: linear-gradient(135deg, #826eb4, #6b5a9e);
+					}
+					
+					// Skipped icon (orange)
+					&.aie-icon-skipped {
+						background: linear-gradient(135deg, #f0b849, #d99a1a);
+					}
+					
+					// Failed icon (red)
+					&.aie-icon-failed {
+						background: linear-gradient(135deg, #d63638, #b32d2e);
 					}
 				}
 

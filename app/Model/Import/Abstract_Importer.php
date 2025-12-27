@@ -194,7 +194,7 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 * @param int   $index Item index
 	 * @return int|string|WP_Error Item ID, 'skipped', 'updated', or WP_Error
 	 */
-	abstract protected function import_item( $item, $index );
+	abstract public function import_item( $item, $index );
 
 	/**
 	 * Get default import options
@@ -206,6 +206,21 @@ abstract class Abstract_Importer implements Importer_Interface {
 			'duplicate_mode' => 'skip', // skip, update, create
 			'batch_size'     => 100,
 		];
+	}
+
+	/**
+	 * Set importer options
+	 *
+	 * @param array $options Options to set
+	 * @return void
+	 */
+	public function set_options( $options ) {
+		$this->options = wp_parse_args( $options, $this->get_default_options() );
+		
+		// For Database_Table_Importer, set table_name
+		if ( method_exists( $this, 'get_name' ) && 'database_table' === $this->get_name() ) {
+			$this->table_name = $this->get_option( 'table_name', '' );
+		}
 	}
 
 	/**

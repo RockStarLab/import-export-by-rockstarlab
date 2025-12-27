@@ -45,38 +45,69 @@ defined( 'ABSPATH' ) || exit;
 		</div>
 
 		<div class="aie-import-results" style="display:none;">
-			<div class="notice notice-success" style="display:none;">
-				<h3><?php esc_html_e( 'Import Completed!', 'wp-advanced-import-export' ); ?></h3>
-				<ul class="aie-results-list">
-					<li>
-						<?php esc_html_e( 'Total Processed:', 'wp-advanced-import-export' ); ?>
-						<strong class="aie-result-processed">0</strong>
-					</li>
-					<li>
-						<?php esc_html_e( 'Successful:', 'wp-advanced-import-export' ); ?>
-						<strong class="aie-result-success">0</strong>
-					</li>
-					<li>
-						<?php esc_html_e( 'Failed:', 'wp-advanced-import-export' ); ?>
-						<strong class="aie-result-failed">0</strong>
-					</li>
-					<li>
-						<?php esc_html_e( 'Duration:', 'wp-advanced-import-export' ); ?>
-						<strong class="aie-result-duration">0s</strong>
-					</li>
-				</ul>
-			</div>
-		</div>
-
-		<div class="aie-import-logs">
-			<h3>
-				<?php esc_html_e( 'Recent Logs', 'wp-advanced-import-export' ); ?>
-				<button type="button" class="button button-small aie-toggle-logs">
-					<?php esc_html_e( 'Show/Hide', 'wp-advanced-import-export' ); ?>
-				</button>
-			</h3>
-			<div class="aie-logs-container" style="display:none;">
-				<ul class="aie-logs-list"></ul>
+			<div class="aie-import-complete-card" style="display:none;">
+				<div class="aie-complete-icon">
+					<span class="dashicons dashicons-yes-alt"></span>
+				</div>
+				<h3 class="aie-complete-title"><?php esc_html_e( 'Import Completed Successfully!', 'wp-advanced-import-export' ); ?></h3>
+				<p class="aie-complete-subtitle"><?php esc_html_e( 'Your data has been imported successfully', 'wp-advanced-import-export' ); ?></p>
+				
+				<div class="aie-results-grid">
+					<div class="aie-result-item">
+						<div class="aie-result-icon aie-icon-success">
+							<span class="dashicons dashicons-yes"></span>
+						</div>
+						<div class="aie-result-details">
+							<span class="aie-result-label"><?php esc_html_e( 'Successful', 'wp-advanced-import-export' ); ?></span>
+							<strong class="aie-result-value aie-result-success">0</strong>
+						</div>
+					</div>
+					<div class="aie-result-item">
+						<div class="aie-result-icon aie-icon-updated">
+							<span class="dashicons dashicons-update"></span>
+						</div>
+						<div class="aie-result-details">
+							<span class="aie-result-label"><?php esc_html_e( 'Updated', 'wp-advanced-import-export' ); ?></span>
+							<strong class="aie-result-value aie-result-updated">0</strong>
+						</div>
+					</div>
+					<div class="aie-result-item">
+						<div class="aie-result-icon aie-icon-created">
+							<span class="dashicons dashicons-plus-alt"></span>
+						</div>
+						<div class="aie-result-details">
+							<span class="aie-result-label"><?php esc_html_e( 'Created', 'wp-advanced-import-export' ); ?></span>
+							<strong class="aie-result-value aie-result-created">0</strong>
+						</div>
+					</div>
+					<div class="aie-result-item">
+						<div class="aie-result-icon aie-icon-skipped">
+							<span class="dashicons dashicons-minus"></span>
+						</div>
+						<div class="aie-result-details">
+							<span class="aie-result-label"><?php esc_html_e( 'Skipped', 'wp-advanced-import-export' ); ?></span>
+							<strong class="aie-result-value aie-result-skipped">0</strong>
+						</div>
+					</div>
+					<div class="aie-result-item">
+						<div class="aie-result-icon aie-icon-failed">
+							<span class="dashicons dashicons-no"></span>
+						</div>
+						<div class="aie-result-details">
+							<span class="aie-result-label"><?php esc_html_e( 'Failed', 'wp-advanced-import-export' ); ?></span>
+							<strong class="aie-result-value aie-result-failed">0</strong>
+						</div>
+					</div>
+					<div class="aie-result-item">
+						<div class="aie-result-icon">
+							<span class="dashicons dashicons-clock"></span>
+						</div>
+						<div class="aie-result-details">
+							<span class="aie-result-label"><?php esc_html_e( 'Duration', 'wp-advanced-import-export' ); ?></span>
+							<strong class="aie-result-value aie-result-duration">0s</strong>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 

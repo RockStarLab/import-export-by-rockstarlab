@@ -2967,6 +2967,16 @@ const ImportModule = {
 	async startImport() {
 		try {
 			const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
+			const uniqueField = jQuery( '#aie-unique-field' ).val();
+			
+			// Validate unique field selection (REQUIRED)
+			if ( ! uniqueField ) {
+				Utils.showNotice(
+					window.aieData.i18n.pleaseSelectUniqueField || 'Please select a field to check for existing items',
+					'error'
+				);
+				return;
+			}
 			
 			const data = {
 				file_path: this.fileData.file_path,
@@ -2975,8 +2985,11 @@ const ImportModule = {
 				mapping: this.getFieldMapping(),
 				options: {
 					duplicate_handling: jQuery(
-						'input[name="duplicate_handling"]:checked'
-					).val(),
+						'input[name="if_exists"]:checked'
+					).val() || 'update',
+					unique_field: uniqueField,
+					if_exists: jQuery( 'input[name="if_exists"]:checked' ).val() || 'update',
+					if_not_exists: jQuery( 'input[name="if_not_exists"]:checked' ).val() || 'create',
 					post_status: jQuery( '[name="post_status"]' ).val(),
 					post_type: jQuery( '[name="post_type"]' ).val(),
 					download_images: jQuery( '[name="download_images"]' ).is(
@@ -2991,12 +3004,17 @@ const ImportModule = {
 			if ( contentType === 'custom_post_types' ) {
 				data.options.custom_post_type = jQuery( '#aie-custom-post-type' ).val();
 			}
+			
+			// Add table name for database_table import
+			if ( contentType === 'database_table' ) {
+				data.options.table_name = this.selectedTableName || jQuery( '#aie-import-table-name' ).val();
+			}
 
 			const response = await Utils.ajax( 'aie_import_start', data );
 
 			this.jobId = response.job_id;
 			this.showStep( 6 );
-			this.startProgressTracking();
+			this.startBatchProcessing();
 
 			Utils.showNotice( aieData.i18n.importStartedSuccessfully || 'Import started successfully', 'success' );
 		} catch ( error ) {
@@ -3005,61 +3023,100 @@ const ImportModule = {
 	},
 
 	/**
+	 * Start batch processing
+	 */
+	async startBatchProcessing() {
+		try {
+			const response = await Utils.ajax( 'aie_import_process_batch', {
+				job_id: this.jobId,
+			} );
+
+			// Transform batch response to progress bar format
+			const progressData = {
+				percentage: response.progress || 0,
+				processed: response.offset || 0,
+				total: response.result?.total || 0,
+				estimates: {
+					elapsed_formatted: '',
+					remaining_formatted: '',
+					items_per_second: 0,
+				},
+			};
+
+			// Update progress
+			Utils.updateProgressBar( jQuery( '.aie-step-6' ), progressData );
+
+			if ( response.completed ) {
+				// Import completed
+				if ( response.result ) {
+					this.onImportComplete( response );
+				} else {
+					this.onImportFailed( response );
+				}
+			} else {
+				// Process next batch
+				setTimeout( () => {
+					this.startBatchProcessing();
+				}, 100 );
+			}
+		} catch ( error ) {
+			clearInterval( this.progressInterval );
+			Utils.handleError( error, 'Process batch' );
+		}
+	},
+
+	/**
 	 * Start progress tracking
 	 */
 	startProgressTracking() {
-		this.progressInterval = setInterval( () => {
-			this.updateProgress();
-		}, 2000 );
+		// Not used anymore - batch processing updates progress directly
 	},
 
 	/**
 	 * Update import progress
 	 */
 	async updateProgress() {
-		try {
-			const response = await Utils.ajax( 'aie_import_get_progress', {
-				job_id: this.jobId,
-			} );
-
-			Utils.updateProgressBar( jQuery( '.aie-step-6' ), response );
-
-			if ( response.status === 'completed' ) {
-				this.onImportComplete( response );
-			} else if ( response.status === 'failed' ) {
-				this.onImportFailed( response );
-			}
-		} catch ( error ) {
-		}
+		// Not used anymore - batch processing updates progress directly
 	},
 
 	/**
 	 * Handle import completion
 	 */
-	onImportComplete( result ) {
-		clearInterval( this.progressInterval );
-
+	onImportComplete( response ) {
+		const result = response.result || {};
+		
+		// Hide progress, show results
+		jQuery( '.aie-progress-container' ).hide();
 		jQuery( '.aie-import-results' ).show();
-		jQuery( '.aie-result-processed' ).text( result.processed || 0 );
+		jQuery( '.aie-import-complete-card' ).fadeIn();
+		
+		// Update statistics
 		jQuery( '.aie-result-success' ).text( result.success || 0 );
+		jQuery( '.aie-result-updated' ).text( result.updated || 0 );
+		jQuery( '.aie-result-created' ).text( result.created || 0 );
+		jQuery( '.aie-result-skipped' ).text( result.skipped || 0 );
 		jQuery( '.aie-result-failed' ).text( result.failed || 0 );
-		jQuery( '.aie-result-duration' ).text(
-			result.estimates?.elapsed_formatted || '0s'
-		);
-
+		
+		// Calculate duration
+		const jobData = response.job_data || {};
+		if ( jobData.started_at && jobData.completed_at ) {
+			const start = new Date( jobData.started_at );
+			const end = new Date( jobData.completed_at );
+			const duration = Math.round( ( end - start ) / 1000 );
+			jQuery( '.aie-result-duration' ).text( duration + 's' );
+		}
+		
+		// Update buttons
 		jQuery( '.aie-cancel-import' ).hide();
 		jQuery( '.aie-new-import' ).show();
-
-		Utils.showNotice( aieData.i18n.importCompletedSuccessfully || 'Import completed successfully!', 'success' );
 	},
 
 	/**
 	 * Handle import failure
 	 */
-	onImportFailed( result ) {
-		clearInterval( this.progressInterval );
+	onImportFailed( response ) {
 		Utils.showNotice(
-			( aieData.i18n.importFailed || 'Import failed' ) + ': ' + ( result.error || 'Unknown error' ),
+			( aieData.i18n.importFailed || 'Import failed' ) + ': ' + ( response.error || 'Unknown error' ),
 			'error'
 		);
 	},
@@ -3067,12 +3124,13 @@ const ImportModule = {
 	/**
 	 * Cancel import
 	 */
-async cancelImport() {
-	if ( ! confirm( window.aieData.i18n.confirmCancelImportStep ) ) {
-		return;
-	}		try {
+	async cancelImport() {
+		if ( ! confirm( window.aieData.i18n.confirmCancelImportStep ) ) {
+			return;
+		}
+		
+		try {
 			await Utils.ajax( 'aie_import_cancel', { job_id: this.jobId } );
-			clearInterval( this.progressInterval );
 			Utils.showNotice( aieData.i18n.importCancelled || 'Import cancelled', 'info' );
 			this.resetWizard();
 		} catch ( error ) {
@@ -3095,7 +3153,6 @@ async cancelImport() {
 		this.uploadedFile = null;
 		this.fileData = null;
 		this.jobId = null;
-		clearInterval( this.progressInterval );
 
 		jQuery(
 			'#wp-aie-import input[type="text"], #wp-aie-import input[type="file"]'
@@ -3275,6 +3332,28 @@ async cancelImport() {
 		// Select first field by default if only one
 		if ( uniqueFields.size === 1 ) {
 			$select.find( 'option:eq(1)' ).prop( 'selected', true );
+		}
+		
+		// Toggle button state initially
+		this.toggleStartImportButton();
+		
+		// Add change event handler to toggle button
+		$select.off( 'change.uniquefield' ).on( 'change.uniquefield', () => {
+			this.toggleStartImportButton();
+		} );
+	},
+	
+	/**
+	 * Toggle Start Import button based on unique field selection
+	 */
+	toggleStartImportButton() {
+		const $button = jQuery( '.aie-start-import' );
+		const uniqueField = jQuery( '#aie-unique-field' ).val();
+		
+		if ( uniqueField ) {
+			$button.prop( 'disabled', false ).removeClass( 'disabled' );
+		} else {
+			$button.prop( 'disabled', true ).addClass( 'disabled' );
 		}
 	},
 

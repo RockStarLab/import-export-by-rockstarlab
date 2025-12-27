@@ -67,6 +67,7 @@ class Importer_Factory {
 			'pages'            => Post_Importer::class,
 			'custom_post_type' => Post_Importer::class,
 			'media'            => Media_Importer::class,
+			'database_table'   => Database_Table_Importer::class,
 		];
 
 		/**
