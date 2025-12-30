@@ -68,6 +68,7 @@ class Importer_Factory {
 			'custom_post_type' => Post_Importer::class,
 			'media'            => Media_Importer::class,
 			'database_table'   => Database_Table_Importer::class,
+			'woo_attribute'    => Woo_Attribute_Importer::class,
 		];
 
 		/**
