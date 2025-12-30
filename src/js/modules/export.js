@@ -2108,15 +2108,15 @@ const ExportModule = {
 					options: [
 						{ value: 'allowed_emails', label: window.aieData.i18n.fieldAllowedEmails, type: 'array' },
 					],
-				},
-				{
-					label: window.aieData.i18n.fieldGroupUsageLimits,
-					options: [
-						{ value: 'usage_count', label: window.aieData.i18n.fieldUsageCount, type: 'number' },
-						{ value: 'usage_limit', label: window.aieData.i18n.fieldUsageLimitTotal, type: 'number' },
-						{ value: 'usage_limit_per_user', label: window.aieData.i18n.fieldUsageLimitPerUser, type: 'number' },
-					],
-				},
+				},			{
+				label: window.aieData.i18n.fieldGroupUsageLimits,
+				options: [
+					{ value: 'usage_count', label: window.aieData.i18n.fieldUsageCount, type: 'number' },
+					{ value: 'usage_limit', label: window.aieData.i18n.fieldUsageLimitTotal, type: 'number' },
+					{ value: 'usage_limit_per_user', label: window.aieData.i18n.fieldUsageLimitPerUser, type: 'number' },
+					{ value: 'limit_usage_to_x_items', label: 'Limit Usage to X Items', type: 'number' },
+				],
+			},
 				{
 					label: window.aieData.i18n.fieldGroupDates,
 					options: [

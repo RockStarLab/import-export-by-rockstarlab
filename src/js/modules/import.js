@@ -1224,15 +1224,14 @@ const ImportModule = {
 						</h2>
 						<button type="button" class="aie-modal-close">
 							<span class="dashicons dashicons-no-alt"></span>
-						</button>
-					</div>
-					<div class="aie-modal-body">
-						<label>
-							<strong>${ window.aieData.i18n.taxonomySlugLabel || 'Taxonomy Slug' }:</strong>
-							<input type="text" class="aie-custom-field-input regular-text" placeholder="${ placeholder }" />
-							${ isTaxonomy ? '<p class="description" style="margin-top: 5px;">' + ( window.aieData.i18n.taxonomySlugDescription || 'The slug of the taxonomy (category, post_tag, or custom taxonomy).' ) + '</p>' : '' }
-						</label>
-						${ taxonomyFormatField }
+						</button>				</div>
+				<div class="aie-modal-body">
+					<label>
+						<strong>${ isTaxonomy ? ( window.aieData.i18n.taxonomySlugLabel || 'Taxonomy Slug' ) : ( window.aieData.i18n.metaKeyLabel || 'Meta Key' ) }:</strong>
+						<input type="text" class="aie-custom-field-input regular-text" placeholder="${ placeholder }" />
+						${ isTaxonomy ? '<p class="description" style="margin-top: 5px;">' + ( window.aieData.i18n.taxonomySlugDescription || 'The slug of the taxonomy (category, post_tag, or custom taxonomy).' ) + '</p>' : ( isMeta ? '<p class="description" style="margin-top: 5px;">' + ( window.aieData.i18n.metaKeyDescription || 'The meta key for the custom field (e.g., _custom_price, my_custom_field).' ) + '</p>' : '' ) }
+					</label>
+					${ taxonomyFormatField }
 					</div>
 					<div class="aie-modal-footer">
 						<button type="button" class="button aie-modal-cancel">${ window.aieData.i18n.cancel || 'Cancel' }</button>
@@ -1726,8 +1725,9 @@ const ImportModule = {
 				{
 					label: 'Basic',
 					options: [
-						{ value: 'coupon_code', label: 'Coupon Code', type: 'string', required: true },
-						{ value: 'description', label: 'Description', type: 'string' },
+						{ value: 'post_title', label: 'Coupon Code', type: 'string', required: true },
+						{ value: 'post_excerpt', label: 'Description', type: 'string' },
+						{ value: 'post_status', label: 'Status', type: 'string' },
 						{ value: 'discount_type', label: 'Discount Type', type: 'string' },
 						{ value: 'coupon_amount', label: 'Coupon Amount', type: 'number' },
 						{ value: 'free_shipping', label: 'Free Shipping', type: 'boolean' },
@@ -1744,24 +1744,23 @@ const ImportModule = {
 						{ value: 'excluded_product_ids', label: 'Excluded Product IDs', type: 'string' },
 						{ value: 'product_categories', label: 'Product Categories', type: 'string' },
 						{ value: 'excluded_product_categories', label: 'Excluded Product Categories', type: 'string' },
-						{ value: 'email_restrictions', label: 'Allowed Emails', type: 'string' },
+						{ value: 'allowed_emails', label: 'Allowed Emails', type: 'string' },
 					],
-				},
-				{
-					label: 'Usage Limits',
-					options: [
-						{ value: 'usage_limit', label: 'Usage Limit Per Coupon', type: 'number' },
-						{ value: 'usage_limit_per_user', label: 'Usage Limit Per User', type: 'number' },
-						{ value: 'limit_usage_to_x_items', label: 'Limit Usage to X Items', type: 'number' },
-						{ value: 'usage_count', label: 'Usage Count', type: 'number' },
-					],
-				},
+				},			{
+				label: 'Usage Limits',
+				options: [
+					{ value: 'usage_count', label: 'Usage Count', type: 'number' },
+					{ value: 'usage_limit', label: 'Usage Limit Per Coupon', type: 'number' },
+					{ value: 'usage_limit_per_user', label: 'Usage Limit Per User', type: 'number' },
+					{ value: 'limit_usage_to_x_items', label: 'Limit Usage to X Items', type: 'number' },
+				],
+			},
 				{
 					label: 'Dates',
 					options: [
 						{ value: 'date_expires', label: 'Expiry Date', type: 'datetime' },
-						{ value: 'date_created', label: 'Date Created', type: 'datetime' },
-						{ value: 'date_modified', label: 'Date Modified', type: 'datetime' },
+						{ value: 'post_date', label: 'Date Created', type: 'datetime' },
+						{ value: 'post_modified', label: 'Date Modified', type: 'datetime' },
 					],
 				},
 				{
@@ -2208,17 +2207,22 @@ const ImportModule = {
 	 * Update mapping statistics
 	 */
 	updateMappingStats() {
-		const totalFields = this.fileData?.columns?.length || 0;
+		const totalSourceFields = this.fileData?.columns?.length || 0;
 		
 		// Count unique source fields that are used
 		const usedSourceIndexes = new Set();
 		jQuery( '.aie-mapping-row' ).each( function() {
-			usedSourceIndexes.add( jQuery( this ).data( 'source-index' ) );
+			const sourceIndex = jQuery( this ).data( 'source-index' );
+			// Only add if sourceIndex is defined (skip if undefined/null)
+			if ( sourceIndex !== undefined && sourceIndex !== null && sourceIndex !== '' ) {
+				usedSourceIndexes.add( sourceIndex );
+			}
 		} );
 		const mappedCount = usedSourceIndexes.size;
 
+		// Show: "X / Y fields mapped" where Y is total source columns
 		jQuery( '.aie-mapped-count' ).text( mappedCount );
-		jQuery( '.aie-total-fields' ).text( totalFields );
+		jQuery( '.aie-total-fields' ).text( totalSourceFields );
 
 		// Enable/disable Next button based on mapping count (only on Step 4)
 		if ( this.currentStep === 4 ) {
@@ -2857,16 +2861,19 @@ const ImportModule = {
 	 * Auto-map fields
 	 */
 	autoMapFields() {
-		let mappedCount = 0;
-
 		// Clear existing mappings
 		this.clearFieldMapping();
 
 		// Try to auto-match source to target fields
 		jQuery( '.aie-field-card' ).each( ( index, sourceCard ) => {
 			const $sourceCard = jQuery( sourceCard );
-			const sourceField = $sourceCard.data( 'source-field' ).toLowerCase();
+			const sourceField = $sourceCard.data( 'source-field' );
 			const sourceIndex = $sourceCard.data( 'source-index' );
+			
+			// Skip if source field is undefined
+			if ( ! sourceField ) return;
+			
+			const sourceFieldLower = sourceField.toLowerCase();
 
 			// Try to find matching target
 			let matched = false;
@@ -2875,16 +2882,21 @@ const ImportModule = {
 				if ( matched ) return;
 
 				const $targetField = jQuery( targetField );
-				const targetFieldValue = $targetField.data( 'target-field' ).toLowerCase();
+				const targetFieldData = $targetField.data( 'target-field' );
+				
+				// Skip template fields (custom field add buttons)
+				if ( ! targetFieldData ) return;
+				
+				const targetFieldValue = targetFieldData.toLowerCase();
 				const targetLabel = $targetField.find( '.aie-field-label' ).text().toLowerCase();
 
 				// Check for exact or partial match
 				if (
-					sourceField === targetFieldValue ||
-					sourceField === targetLabel ||
-					sourceField.includes( targetFieldValue ) ||
-					targetFieldValue.includes( sourceField ) ||
-					sourceField.replace( /_/g, ' ' ) === targetLabel
+					sourceFieldLower === targetFieldValue ||
+					sourceFieldLower === targetLabel ||
+					sourceFieldLower.includes( targetFieldValue ) ||
+					targetFieldValue.includes( sourceFieldLower ) ||
+					sourceFieldLower.replace( /_/g, ' ' ) === targetLabel
 				) {
 					// Create mapping
 					this.createMapping(
@@ -2897,14 +2909,24 @@ const ImportModule = {
 
 					$sourceCard.addClass( 'mapped' );
 					matched = true;
-					mappedCount++;
 				}
 			} );
 		} );
 
-		this.updateMappingStats();
-		const message = ( window.aieData.i18n.autoMappedFields || 'Auto-mapped %d fields' ).replace( '%d', mappedCount );
-		Utils.showNotice( message, 'success' );
+		// Use setTimeout to ensure DOM is fully updated before counting
+		setTimeout( () => {
+			this.updateMappingStats();
+			
+			// Count actual mapped fields from DOM
+			const usedSourceIndexes = new Set();
+			jQuery( '.aie-mapping-row' ).each( function() {
+				usedSourceIndexes.add( jQuery( this ).data( 'source-index' ) );
+			} );
+			const mappedCount = usedSourceIndexes.size;
+			
+			const message = ( window.aieData.i18n.autoMappedFields || 'Auto-mapped %d fields' ).replace( '%d', mappedCount );
+			Utils.showNotice( message, 'success' );
+		}, 100 );
 	},
 
 	/**
