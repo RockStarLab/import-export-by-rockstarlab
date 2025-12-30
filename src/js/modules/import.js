@@ -1789,7 +1789,7 @@ const ImportModule = {
 				{
 					label: 'Terms',
 					options: [
-						{ value: 'terms', label: 'Attribute Terms (comma-separated)', type: 'string' },
+						{ value: 'attribute_terms', label: 'Attribute Terms (JSON)', type: 'string' },
 					],
 				},
 			];
