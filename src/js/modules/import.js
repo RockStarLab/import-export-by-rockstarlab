@@ -1615,20 +1615,22 @@ const ImportModule = {
 				{
 					label: 'Basic',
 					options: [
-						{ value: 'order_id', label: 'Order ID', type: 'number' },
+						{ value: 'ID', label: 'Order ID', type: 'number' },
 						{ value: 'order_number', label: 'Order Number', type: 'string' },
 						{ value: 'order_key', label: 'Order Key', type: 'string' },
-						{ value: 'status', label: 'Order Status', type: 'string' },
+						{ value: 'order_status', label: 'Order Status', type: 'string' },
 						{ value: 'currency', label: 'Currency', type: 'string' },
 						{ value: 'payment_method', label: 'Payment Method', type: 'string' },
 						{ value: 'payment_method_title', label: 'Payment Method Title', type: 'string' },
+						{ value: 'transaction_id', label: 'Transaction ID', type: 'string' },
 					],
 				},
 				{
 					label: 'Customer',
 					options: [
 						{ value: 'customer_id', label: 'Customer ID', type: 'number' },
-						{ value: 'customer_email', label: 'Customer Email', type: 'email' },
+						{ value: 'billing_email', label: 'Billing Email', type: 'email' },
+						{ value: 'customer_note', label: 'Customer Note', type: 'string' },
 						{ value: 'customer_user_agent', label: 'User Agent', type: 'string' },
 						{ value: 'customer_ip_address', label: 'Customer IP', type: 'string' },
 					],
@@ -1666,7 +1668,8 @@ const ImportModule = {
 				{
 					label: 'Order Items',
 					options: [
-						{ value: 'line_items', label: 'Line Items (JSON)', type: 'string' },
+						{ value: 'order_items', label: 'Order Items (JSON)', type: 'string' },
+						{ value: 'item_count', label: 'Item Count', type: 'number' },
 						{ value: 'shipping_lines', label: 'Shipping Lines (JSON)', type: 'string' },
 						{ value: 'fee_lines', label: 'Fee Lines (JSON)', type: 'string' },
 						{ value: 'coupon_lines', label: 'Coupon Lines (JSON)', type: 'string' },
@@ -1678,36 +1681,33 @@ const ImportModule = {
 						{ value: 'order_total', label: 'Order Total', type: 'number' },
 						{ value: 'order_subtotal', label: 'Subtotal', type: 'number' },
 						{ value: 'order_tax', label: 'Tax Total', type: 'number' },
+						{ value: 'cart_tax', label: 'Cart Tax', type: 'number' },
 						{ value: 'order_shipping', label: 'Shipping Total', type: 'number' },
-						{ value: 'order_shipping_tax', label: 'Shipping Tax', type: 'number' },
-						{ value: 'cart_discount', label: 'Cart Discount', type: 'number' },
-						{ value: 'cart_discount_tax', label: 'Cart Discount Tax', type: 'number' },
+						{ value: 'shipping_tax', label: 'Shipping Tax', type: 'number' },
+						{ value: 'total_tax', label: 'Total Tax', type: 'number' },
+						{ value: 'order_discount', label: 'Discount', type: 'number' },
 					],
 				},
 				{
 					label: 'Shipping',
 					options: [
 						{ value: 'shipping_method', label: 'Shipping Method', type: 'string' },
-						{ value: 'shipping_method_title', label: 'Shipping Method Title', type: 'string' },
 					],
 				},
 				{
 					label: 'Dates',
 					options: [
-						{ value: 'date_created', label: 'Date Created', type: 'datetime' },
+						{ value: 'order_date', label: 'Order Date', type: 'datetime' },
 						{ value: 'date_modified', label: 'Date Modified', type: 'datetime' },
-						{ value: 'date_completed', label: 'Date Completed', type: 'datetime' },
-						{ value: 'date_paid', label: 'Date Paid', type: 'datetime' },
+						{ value: 'completed_date', label: 'Date Completed', type: 'datetime' },
+						{ value: 'paid_date', label: 'Date Paid', type: 'datetime' },
 					],
 				},
 				{
 					label: 'Other',
 					options: [
-						{ value: 'transaction_id', label: 'Transaction ID', type: 'string' },
-						{ value: 'customer_note', label: 'Customer Note', type: 'string' },
-						{ value: 'created_via', label: 'Created Via', type: 'string' },
-						{ value: 'version', label: 'WooCommerce Version', type: 'string' },
-						{ value: 'prices_include_tax', label: 'Prices Include Tax', type: 'boolean' },
+						{ value: 'order_notes', label: 'Order Notes (JSON)', type: 'string' },
+						{ value: 'order_meta', label: 'Order Meta (JSON)', type: 'string' },
 					],
 				},
 				{

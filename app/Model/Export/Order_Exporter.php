@@ -129,16 +129,79 @@ class Order_Exporter extends Abstract_Exporter {
 	 */
 	public function get_default_fields() {
 		return [
+			// Core Order Fields
 			'ID',
 			'order_number',
 			'order_status',
-			'order_date',
+			'order_key',
+			'currency',
+			
+			// Order Totals
+			'order_total',
+			'order_subtotal',
+			'order_tax',
+			'order_shipping',
+			'order_discount',
+			'cart_tax',
+			'shipping_tax',
+			'total_tax',
+			
+			// Customer Information
 			'customer_id',
 			'billing_email',
+			'customer_note',
+			
+			// Billing Address
 			'billing_first_name',
 			'billing_last_name',
-			'order_total',
+			'billing_company',
+			'billing_address_1',
+			'billing_address_2',
+			'billing_city',
+			'billing_state',
+			'billing_postcode',
+			'billing_country',
+			'billing_phone',
+			
+			// Shipping Address
+			'shipping_first_name',
+			'shipping_last_name',
+			'shipping_company',
+			'shipping_address_1',
+			'shipping_address_2',
+			'shipping_city',
+			'shipping_state',
+			'shipping_postcode',
+			'shipping_country',
+			
+			// Order Items
+			'order_items',
+			'item_count',
+			
+			// Payment & Shipping
 			'payment_method',
+			'payment_method_title',
+			'transaction_id',
+			'shipping_method',
+			
+			// Dates
+			'order_date',
+			'date_modified',
+			'completed_date',
+			'paid_date',
+			
+			// Additional Order Data
+			'customer_ip_address',
+			'customer_user_agent',
+			
+			// Additional Lines
+			'shipping_lines',
+			'fee_lines',
+			'coupon_lines',
+			
+			// Notes and Meta
+			'order_notes',
+			'order_meta',
 		];
 	}
 
@@ -242,6 +305,11 @@ class Order_Exporter extends Abstract_Exporter {
 
 		$data   = [];
 		$fields = $this->get_option( 'fields', $this->get_default_fields() );
+
+		// Merge with default fields to ensure all new fields are included
+		// This helps when user has old export settings without new fields
+		$default_fields = $this->get_default_fields();
+		$fields = array_unique( array_merge( $fields, $default_fields ) );
 
 		$this->log_info( 'Fields to export: ' . implode( ', ', $fields ) );
 
@@ -411,24 +479,8 @@ class Order_Exporter extends Abstract_Exporter {
 	 * @return mixed Field value
 	 */
 	protected function get_order_field_value( $order, $field_name ) {
-		// Map field aliases (JS uses different names than WC methods)
-		$field_aliases = [
-			'order_date'     => 'date_created',
-			'completed_date' => 'date_completed',
-			'paid_date'      => 'date_paid',
-			'order_status'   => 'status',
-			'order_id'       => 'ID',
-			'line_items'     => 'order_items',
-			// Keep backward compatibility
-			'status'         => 'order_status',
-			'date_created'   => 'order_date',
-		];
-
-		// Replace alias with actual field name
+		// Store original field name for meta lookup
 		$original_field = $field_name;
-		if ( isset( $field_aliases[ $field_name ] ) ) {
-			$field_name = $field_aliases[ $field_name ];
-		}
 
 		// Map common order fields to getter methods
 		$field_map = [
@@ -478,17 +530,27 @@ class Order_Exporter extends Abstract_Exporter {
 			'total_tax'            => 'get_total_tax',
 		];
 
-		if ( isset( $field_map[ $field_name ] ) ) {
-			$method = $field_map[ $field_name ];
-			$value  = $order->$method();
+	if ( isset( $field_map[ $field_name ] ) ) {
+		$method = $field_map[ $field_name ];
+		$value  = $order->$method();
 
-			// Convert DateTime objects to strings
-			if ( $value instanceof \WC_DateTime ) {
-				return $value->format( 'Y-m-d H:i:s' );
-			}
-
-			return $value;
+		// Convert DateTime objects to strings
+		if ( $value instanceof \WC_DateTime ) {
+			return $value->format( 'Y-m-d H:i:s' );
 		}
+
+		// Handle order_status - remove 'wc-' prefix if present
+		if ( $field_name === 'order_status' && ! empty( $value ) ) {
+			return str_replace( 'wc-', '', $value );
+		}
+
+		// Return empty string for null values (e.g., completed_date, paid_date when not set)
+		if ( $value === null ) {
+			return '';
+		}
+
+		return $value;
+	}
 
 		// Special fields that need custom handling
 		if ( $field_name === 'item_count' ) {
@@ -564,20 +626,23 @@ class Order_Exporter extends Abstract_Exporter {
 					case 'order_meta':
 						$meta                = $this->get_order_meta( $order );
 						$data['order_meta']  = is_array( $meta ) ? wp_json_encode( $meta ) : $meta;
-						break;
+						break;				default:
+					$value = $this->get_order_field_value( $order, $field_name );
 
-					default:
-						$value = $this->get_order_field_value( $order, $field_name );
+					// Convert DateTime objects to strings
+					if ( $value instanceof \WC_DateTime ) {
+						$value = $value->format( 'Y-m-d H:i:s' );
+					}
 
-						// Convert DateTime objects to strings
-						if ( $value instanceof \WC_DateTime ) {
-							$value = $value->format( 'Y-m-d H:i:s' );
-						}
+					// Convert null to empty string
+					if ( $value === null ) {
+						$value = '';
+					}
 
-						// Convert arrays to JSON
-						if ( is_array( $value ) ) {
-							$value = wp_json_encode( $value );
-						}
+					// Convert arrays to JSON
+					if ( is_array( $value ) ) {
+						$value = wp_json_encode( $value );
+					}
 
 						$data[ $export_field_name ] = $value;
 						break;

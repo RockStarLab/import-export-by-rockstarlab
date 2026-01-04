@@ -70,6 +70,8 @@ class Importer_Factory {
 			'database_table'   => Database_Table_Importer::class,
 			'woo_attribute'    => Woo_Attribute_Importer::class,
 			'woo_coupon'       => Woo_Coupon_Importer::class,
+			'woo_order'        => Woo_Order_Importer::class,
+			'woo_orders'       => Woo_Order_Importer::class,
 		];
 
 		/**
