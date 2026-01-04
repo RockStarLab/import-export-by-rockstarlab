@@ -1973,25 +1973,28 @@ const ExportModule = {
 						{ value: 'order_key', label: window.aieData.i18n.fieldOrderKey, type: 'string' },
 						{ value: 'currency', label: window.aieData.i18n.fieldCurrency, type: 'string' },
 					],
-				},
-				{
-					label: window.aieData.i18n.fieldGroupAmounts,
-					options: [
-						{ value: 'order_total', label: window.aieData.i18n.fieldOrderTotal, type: 'number' },
-						{ value: 'order_subtotal', label: window.aieData.i18n.fieldSubtotal, type: 'number' },
-						{ value: 'order_tax', label: window.aieData.i18n.fieldTax, type: 'number' },
-						{ value: 'order_shipping', label: window.aieData.i18n.fieldShipping, type: 'number' },
-						{ value: 'order_discount', label: window.aieData.i18n.fieldDiscount, type: 'number' },
-					],
-				},
-				{
-					label: window.aieData.i18n.fieldGroupCustomer,
-					options: [
-						{ value: 'customer_id', label: window.aieData.i18n.fieldCustomerId, type: 'number' },
-						{ value: 'billing_email', label: window.aieData.i18n.fieldEmail, type: 'string' },
-						{ value: 'customer_note', label: window.aieData.i18n.fieldCustomerNote, type: 'string' },
-					],
-				},
+				},			{
+				label: window.aieData.i18n.fieldGroupAmounts,
+				options: [
+					{ value: 'order_total', label: window.aieData.i18n.fieldOrderTotal, type: 'number' },
+					{ value: 'order_subtotal', label: window.aieData.i18n.fieldSubtotal, type: 'number' },
+					{ value: 'order_tax', label: window.aieData.i18n.fieldTax, type: 'number' },
+					{ value: 'order_shipping', label: window.aieData.i18n.fieldShipping, type: 'number' },
+					{ value: 'order_discount', label: window.aieData.i18n.fieldDiscount, type: 'number' },
+					{ value: 'cart_tax', label: 'Cart Tax', type: 'number' },
+					{ value: 'shipping_tax', label: 'Shipping Tax', type: 'number' },
+					{ value: 'total_tax', label: 'Total Tax', type: 'number' },
+				],
+			},			{
+				label: window.aieData.i18n.fieldGroupCustomer,
+				options: [
+					{ value: 'customer_id', label: window.aieData.i18n.fieldCustomerId, type: 'number' },
+					{ value: 'billing_email', label: window.aieData.i18n.fieldEmail, type: 'string' },
+					{ value: 'customer_note', label: window.aieData.i18n.fieldCustomerNote, type: 'string' },
+					{ value: 'customer_ip_address', label: 'Customer IP Address', type: 'string' },
+					{ value: 'customer_user_agent', label: 'Customer User Agent', type: 'string' },
+				],
+			},
 				{
 					label: window.aieData.i18n.fieldGroupBillingAddress,
 					options: [
@@ -2020,14 +2023,16 @@ const ExportModule = {
 						{ value: 'shipping_postcode', label: window.aieData.i18n.fieldPostcode, type: 'string' },
 						{ value: 'shipping_country', label: window.aieData.i18n.fieldCountry, type: 'string' },
 					],
-				},
-				{
-					label: window.aieData.i18n.fieldGroupOrderItems,
-					options: [
-						{ value: 'order_items', label: window.aieData.i18n.fieldOrderItemsArray, type: 'array' },
-						{ value: 'item_count', label: window.aieData.i18n.fieldItemCount, type: 'number' },
-					],
-				},
+				},			{
+				label: window.aieData.i18n.fieldGroupOrderItems,
+				options: [
+					{ value: 'order_items', label: window.aieData.i18n.fieldOrderItemsArray, type: 'array' },
+					{ value: 'item_count', label: window.aieData.i18n.fieldItemCount, type: 'number' },
+					{ value: 'shipping_lines', label: 'Shipping Lines', type: 'array' },
+					{ value: 'fee_lines', label: 'Fee Lines', type: 'array' },
+					{ value: 'coupon_lines', label: 'Coupon Lines', type: 'array' },
+				],
+			},
 				{
 					label: window.aieData.i18n.fieldGroupPayment,
 					options: [
@@ -2041,21 +2046,21 @@ const ExportModule = {
 					options: [
 						{ value: 'shipping_method', label: window.aieData.i18n.fieldShippingMethod, type: 'string' },
 					],
-				},
-				{
-					label: window.aieData.i18n.fieldGroupDates,
-					options: [
-						{ value: 'order_date', label: window.aieData.i18n.fieldOrderDate, type: 'date' },
-						{ value: 'completed_date', label: window.aieData.i18n.fieldCompletedDate, type: 'date' },
-						{ value: 'paid_date', label: window.aieData.i18n.fieldPaidDate, type: 'date' },
-					],
-				},
-				{
-					label: window.aieData.i18n.fieldGroupNotes,
-					options: [
-						{ value: 'order_notes', label: window.aieData.i18n.fieldOrderNotesArray, type: 'array' },
-					],
-				},
+				},			{
+				label: window.aieData.i18n.fieldGroupDates,
+				options: [
+					{ value: 'order_date', label: window.aieData.i18n.fieldOrderDate, type: 'date' },
+					{ value: 'date_modified', label: 'Date Modified', type: 'date' },
+					{ value: 'completed_date', label: window.aieData.i18n.fieldCompletedDate, type: 'date' },
+					{ value: 'paid_date', label: window.aieData.i18n.fieldPaidDate, type: 'date' },
+				],
+			},			{
+				label: window.aieData.i18n.fieldGroupNotes,
+				options: [
+					{ value: 'order_notes', label: window.aieData.i18n.fieldOrderNotesArray, type: 'array' },
+					{ value: 'order_meta', label: 'Order Meta', type: 'array' },
+				],
+			},
 				{
 					label: window.aieData.i18n.fieldGroupCustomFilters,
 					options: [
