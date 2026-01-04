@@ -1647,7 +1647,6 @@ const ImportModule = {
 						{ value: 'billing_state', label: 'State/Province', type: 'string' },
 						{ value: 'billing_postcode', label: 'Postcode', type: 'string' },
 						{ value: 'billing_country', label: 'Country', type: 'string' },
-						{ value: 'billing_email', label: 'Email', type: 'email' },
 						{ value: 'billing_phone', label: 'Phone', type: 'string' },
 					],
 				},
@@ -2864,54 +2863,103 @@ const ImportModule = {
 		// Clear existing mappings
 		this.clearFieldMapping();
 
-		// Try to auto-match source to target fields
-		jQuery( '.aie-field-card' ).each( ( index, sourceCard ) => {
-			const $sourceCard = jQuery( sourceCard );
-			const sourceField = $sourceCard.data( 'source-field' );
-			const sourceIndex = $sourceCard.data( 'source-index' );
-			
-			// Skip if source field is undefined
-			if ( ! sourceField ) return;
-			
-			const sourceFieldLower = sourceField.toLowerCase();
-
-			// Try to find matching target
-			let matched = false;
-
-			jQuery( '.aie-target-field' ).each( ( i, targetField ) => {
-				if ( matched ) return;
-
-				const $targetField = jQuery( targetField );
-				const targetFieldData = $targetField.data( 'target-field' );
+		// Wait for DOM to be fully ready before mapping
+		setTimeout( () => {
+			// PASS 1: Map exact matches first (highest priority)
+			jQuery( '.aie-field-card' ).each( ( index, sourceCard ) => {
+				const $sourceCard = jQuery( sourceCard );
+				const sourceField = $sourceCard.data( 'source-field' );
+				const sourceIndex = $sourceCard.data( 'source-index' );
 				
-				// Skip template fields (custom field add buttons)
-				if ( ! targetFieldData ) return;
+				if ( ! sourceField ) return;
 				
-				const targetFieldValue = targetFieldData.toLowerCase();
-				const targetLabel = $targetField.find( '.aie-field-label' ).text().toLowerCase();
+				const sourceFieldLower = sourceField.toLowerCase();
+				let matched = false;
 
-				// Check for exact or partial match
-				if (
-					sourceFieldLower === targetFieldValue ||
-					sourceFieldLower === targetLabel ||
-					sourceFieldLower.includes( targetFieldValue ) ||
-					targetFieldValue.includes( sourceFieldLower ) ||
-					sourceFieldLower.replace( /_/g, ' ' ) === targetLabel
-				) {
-					// Create mapping
-					this.createMapping(
-						$sourceCard.data( 'source-field' ),
-						sourceIndex,
-						$targetField.data( 'target-field' ),
-						$targetField.data( 'field-type' ),
-						$targetField
-					);
+				// Look for EXACT match only
+				jQuery( '.aie-target-field:not(.aie-custom-field-template)' ).each( ( i, targetField ) => {
+					if ( matched ) return;
 
-					$sourceCard.addClass( 'mapped' );
-					matched = true;
-				}
+					const $targetField = jQuery( targetField );
+					const targetFieldData = $targetField.data( 'target-field' );
+					
+					if ( ! targetFieldData ) return;
+					if ( $targetField.hasClass( 'has-mapping' ) ) return;
+					
+					const targetFieldValue = targetFieldData.toLowerCase();
+					
+					// ONLY exact match in pass 1
+					if ( sourceFieldLower === targetFieldValue ) {
+						this.createMapping(
+							$sourceCard.data( 'source-field' ),
+							sourceIndex,
+							$targetField.data( 'target-field' ),
+							$targetField.data( 'field-type' ),
+							$targetField
+						);
+
+						$sourceCard.addClass( 'mapped' );
+						matched = true;
+					}
+				} );
 			} );
-		} );
+			
+			// PASS 2: Map remaining fields with fuzzy matching
+			jQuery( '.aie-field-card:not(.mapped)' ).each( ( index, sourceCard ) => {
+				const $sourceCard = jQuery( sourceCard );
+				const sourceField = $sourceCard.data( 'source-field' );
+				const sourceIndex = $sourceCard.data( 'source-index' );
+				
+				if ( ! sourceField ) return;
+				
+				const sourceFieldLower = sourceField.toLowerCase();
+				let matched = false;
+
+				jQuery( '.aie-target-field:not(.aie-custom-field-template)' ).each( ( i, targetField ) => {
+					if ( matched ) return;
+
+					const $targetField = jQuery( targetField );
+					const targetFieldData = $targetField.data( 'target-field' );
+					
+					if ( ! targetFieldData ) return;
+					
+					// Skip already mapped target fields
+					if ( $targetField.hasClass( 'has-mapping' ) ) return;
+					
+					const targetFieldValue = targetFieldData.toLowerCase();
+					const targetLabel = $targetField.find( '.aie-field-label' ).text().toLowerCase();
+
+					// Fuzzy matching: label match, normalized match, or partial match
+					let matchType = null;
+					
+					if ( sourceFieldLower === targetLabel ) {
+						matchType = 'label';
+					}
+					else if ( sourceFieldLower.replace( /_/g, ' ' ) === targetLabel ) {
+						matchType = 'normalized';
+					}
+					else if ( sourceFieldLower.includes( targetFieldValue ) && targetFieldValue.length > 2 ) {
+						matchType = 'partial';
+					}
+					else if ( targetFieldValue.includes( sourceFieldLower ) && sourceFieldLower.length > 2 ) {
+						matchType = 'partial';
+					}
+					
+					if ( matchType ) {
+						this.createMapping(
+							$sourceCard.data( 'source-field' ),
+							sourceIndex,
+							$targetField.data( 'target-field' ),
+							$targetField.data( 'field-type' ),
+							$targetField
+						);
+
+						$sourceCard.addClass( 'mapped' );
+						matched = true;
+					}
+				} );
+			} );
+		}, 50 );
 
 		// Use setTimeout to ensure DOM is fully updated before counting
 		setTimeout( () => {
@@ -2926,7 +2974,7 @@ const ImportModule = {
 			
 			const message = ( window.aieData.i18n.autoMappedFields || 'Auto-mapped %d fields' ).replace( '%d', mappedCount );
 			Utils.showNotice( message, 'success' );
-		}, 100 );
+		}, 150 );
 	},
 
 	/**
