@@ -1514,11 +1514,21 @@ const ExportModule = {
 			{
 				label: window.aieData.i18n.fieldGroupStandard,
 				options: [
+					{ value: 'ID', label: window.aieData.i18n.fieldId, type: 'number' },
 					{ value: 'post_title', label: window.aieData.i18n.fieldTitle, type: 'string' },
 					{ value: 'post_content', label: window.aieData.i18n.fieldContent, type: 'string' },
 					{ value: 'post_excerpt', label: window.aieData.i18n.fieldExcerpt, type: 'string' },
 					{ value: 'post_date', label: window.aieData.i18n.fieldDate, type: 'date' },
+					{ value: 'post_name', label: window.aieData.i18n.fieldSlug, type: 'string' },
 					{ value: 'post_status', label: window.aieData.i18n.fieldStatus, type: 'string' },
+				],
+			},
+			{
+				label: window.aieData.i18n.fieldGroupAuthor,
+				options: [
+					{ value: 'post_author', label: window.aieData.i18n.fieldAuthorId, type: 'number' },
+					{ value: 'author_name', label: window.aieData.i18n.fieldAuthorName, type: 'string' },
+					{ value: 'author_email', label: window.aieData.i18n.fieldAuthorEmail, type: 'string' },
 				],
 			},
 			{
@@ -1533,6 +1543,8 @@ const ExportModule = {
 			{
 				label: window.aieData.i18n.fieldGroupOther,
 				options: [
+					{ value: 'post_parent', label: window.aieData.i18n.fieldParentId, type: 'number' },
+					{ value: 'menu_order', label: window.aieData.i18n.fieldMenuOrder || 'Menu Order', type: 'number' },
 					{ value: 'comment_status', label: window.aieData.i18n.fieldCommentStatus, type: 'string' },
 					{ value: 'post_modified', label: window.aieData.i18n.fieldModifiedDate, type: 'date' },
 					{ value: '_wp_page_template', label: window.aieData.i18n.fieldTemplate, type: 'string' },

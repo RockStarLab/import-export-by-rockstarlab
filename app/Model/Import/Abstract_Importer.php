@@ -116,6 +116,11 @@ abstract class Abstract_Importer implements Importer_Interface {
 			)
 		);
 
+		// Cleanup temporary files if method exists
+		if ( method_exists( $this, 'cleanup_temp_media_files' ) ) {
+			$this->cleanup_temp_media_files();
+		}
+
 		return $this->stats;
 	}
 

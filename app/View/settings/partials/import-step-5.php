@@ -100,6 +100,51 @@ defined( 'ABSPATH' ) || exit;
 					<p class="description"><?php esc_html_e( 'Number of items to process per batch', 'wp-advanced-import-export' ); ?></p>
 				</td>
 			</tr>
+
+			<!-- Auto Import Media (for posts, pages, products) -->
+			<tr class="aie-media-import-option" style="display: none;">
+				<th scope="row">
+					<label for="aie-auto-import-media"><?php esc_html_e( 'Automatically Import Media Files', 'wp-advanced-import-export' ); ?></label>
+				</th>
+				<td>
+					<label>
+						<input type="checkbox" id="aie-auto-import-media" name="auto_import_media" value="1">
+						<?php esc_html_e( 'Automatically download and import all media files from content to the media library', 'wp-advanced-import-export' ); ?>
+					</label>
+					<p class="description">
+						<?php esc_html_e( 'When enabled, all images and media files found in content will be downloaded to your media library', 'wp-advanced-import-export' ); ?>
+					</p>
+				</td>
+			</tr>
+
+			<!-- Media Duplicate Handling -->
+			<tr class="aie-media-duplicate-option" style="display: none;">
+				<th scope="row">
+					<label><?php esc_html_e( 'If Media File Already Exists', 'wp-advanced-import-export' ); ?></label>
+				</th>
+				<td>
+					<fieldset>
+						<label>
+							<input type="radio" name="media_duplicate_mode" value="skip" checked>
+							<strong><?php esc_html_e( 'Skip', 'wp-advanced-import-export' ); ?></strong> - 
+							<?php esc_html_e( 'Use existing media file (checked by filename, size, and hash)', 'wp-advanced-import-export' ); ?>
+						</label><br>
+						<label>
+							<input type="radio" name="media_duplicate_mode" value="create">
+							<strong><?php esc_html_e( 'Create New', 'wp-advanced-import-export' ); ?></strong> - 
+							<?php esc_html_e( 'Always import as new media file', 'wp-advanced-import-export' ); ?>
+						</label><br>
+						<label>
+							<input type="radio" name="media_duplicate_mode" value="replace">
+							<strong><?php esc_html_e( 'Replace', 'wp-advanced-import-export' ); ?></strong> - 
+							<?php esc_html_e( 'Replace existing media file with new one', 'wp-advanced-import-export' ); ?>
+						</label>
+					</fieldset>
+					<p class="description">
+						<?php esc_html_e( 'Duplicates are detected by comparing filename, file size, and MD5 hash for maximum accuracy', 'wp-advanced-import-export' ); ?>
+					</p>
+				</td>
+			</tr>
 		</table>
 
 		<div class="aie-step-actions">

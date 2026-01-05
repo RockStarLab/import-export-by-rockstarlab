@@ -561,6 +561,11 @@ class Import_Controller extends Base_Controller {
 
 			if ( $group_fields ) {
 				foreach ( $group_fields as $field ) {
+					// Skip UI-only fields that don't store data
+					if ( in_array( $field['type'], [ 'accordion', 'tab', 'message', 'clone' ], true ) ) {
+						continue;
+					}
+					
 					$fields[] = [
 						'name'  => $field['name'],
 						'label' => $field['label'],
