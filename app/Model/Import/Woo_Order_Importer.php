@@ -110,6 +110,82 @@ class Woo_Order_Importer extends Abstract_Importer {
 	}
 
 	/**
+	 * Get optional fields for import
+	 *
+	 * @return array
+	 */
+	public function get_optional_fields() {
+		return [
+			'ID',
+			'order_number',
+			'order_status',
+			'order_key',
+			'currency',
+			'order_total',
+			'order_subtotal',
+			'order_tax',
+			'order_shipping',
+			'order_discount',
+			'customer_id',
+			'billing_email',
+			'customer_note',
+			'billing_first_name',
+			'billing_last_name',
+			'billing_company',
+			'billing_address_1',
+			'billing_address_2',
+			'billing_city',
+			'billing_state',
+			'billing_postcode',
+			'billing_country',
+			'billing_phone',
+			'shipping_first_name',
+			'shipping_last_name',
+			'shipping_company',
+			'shipping_address_1',
+			'shipping_address_2',
+			'shipping_city',
+			'shipping_state',
+			'shipping_postcode',
+			'shipping_country',
+			'item_count',
+			'payment_method',
+			'payment_method_title',
+			'transaction_id',
+			'shipping_method',
+			'order_date',
+			'date_modified',
+			'completed_date',
+			'paid_date',
+			'customer_ip_address',
+			'customer_user_agent',
+			'cart_tax',
+			'shipping_tax',
+			'total_tax',
+			'shipping_lines',
+			'fee_lines',
+			'coupon_lines',
+			'order_notes',
+			'order_meta',
+		];
+	}
+
+	/**
+	 * Get supported import options
+	 *
+	 * @return array
+	 */
+	public function get_supported_options() {
+		return [
+			'duplicate_mode'  => 'How to handle duplicates: skip, update, create',
+			'duplicate_check' => 'Field to check for duplicates: order_number, ID',
+			'order_status'    => 'Default order status if not specified: pending, processing, completed',
+			'send_emails'     => 'Whether to send order emails: yes, no',
+			'update_stock'    => 'Whether to update stock levels: yes, no',
+		];
+	}
+
+	/**
 	 * Get available fields for import
 	 *
 	 * @return array
@@ -356,14 +432,12 @@ class Woo_Order_Importer extends Abstract_Importer {
 	 */
 	protected function get_default_options() {
 		return [
-			'update_existing'      => false,
-			'skip_duplicates'      => true,
-			'create_customers'     => false,
-			'match_by_email'       => true,
-			'calculate_totals'     => false,
-			'send_notifications'   => false,
-			'stock_management'     => true,
-			'preserve_order_dates' => true,
+			'duplicate_mode'       => 'update',  // skip, update, or create
+			'duplicate_check'      => 'ID',      // ID or order_number
+			'send_notifications'   => false,     // Don't send emails during import
+			'stock_management'     => false,     // Don't update stock on import
+			'preserve_order_dates' => true,      // Keep original order dates
+			'calculate_totals'     => false,     // Use imported totals, don't recalculate
 		];
 	}
 
@@ -404,32 +478,68 @@ class Woo_Order_Importer extends Abstract_Importer {
 	}
 
 	/**
+	 * Prepare data for import with field mapping
+	 * 
+	 * Override parent to handle object-based mapping format
+	 *
+	 * @param array $raw_data Raw data from file
+	 * @param array $mapping  Field mapping (array of objects with source_field and target_field)
+	 * @return array Prepared data
+	 */
+	public function prepare( $raw_data, $mapping = [] ) {
+		if ( empty( $mapping ) ) {
+			return $raw_data;
+		}
+
+		// Convert object-based mapping to simple array format
+		// Frontend sends: [{"source_field": "ID", "target_field": "ID"}, ...]
+		// We need: ["ID" => "ID", "order_number" => "order_number", ...]
+		$simple_mapping = [];
+		
+		foreach ( $mapping as $map_item ) {
+			if ( is_array( $map_item ) && isset( $map_item['source_field'], $map_item['target_field'] ) ) {
+				$simple_mapping[ $map_item['source_field'] ] = $map_item['target_field'];
+			} elseif ( is_object( $map_item ) && isset( $map_item->source_field, $map_item->target_field ) ) {
+				$simple_mapping[ $map_item->source_field ] = $map_item->target_field;
+			}
+		}
+
+		// Now use parent's prepare with simple mapping
+		return parent::prepare( $raw_data, $simple_mapping );
+	}
+
+	/**
 	 * Import a single order
 	 *
 	 * @param array $item  Item data
 	 * @param int   $index Item index
 	 * @return string|WP_Error 'created', 'updated', 'skipped', or WP_Error
 	 */
-	protected function import_item( $item, $index ) {
+	public function import_item( $item, $index ) {
 		try {
 			// Check for existing order
 			$existing_order = $this->find_existing_order( $item );
 
 			if ( $existing_order ) {
-				if ( ! $this->options['update_existing'] ) {
-					$this->log_info( sprintf( 'Order #%s already exists, skipping', $item['order_number'] ?? $existing_order->get_id() ) );
+				$duplicate_mode = $this->get_option( 'duplicate_mode', 'update' );
+
+				if ( 'skip' === $duplicate_mode ) {
 					return 'skipped';
 				}
 
-				// Update existing order
-				$order  = $existing_order;
-				$action = 'updated';
-				$this->log_info( sprintf( 'Updating existing order #%s', $order->get_id() ) );
+				if ( 'update' === $duplicate_mode ) {
+					// Update existing order
+					$order  = $existing_order;
+					$action = 'updated';
+				} else {
+					// 'create' mode - create new order even if duplicate exists
+					$order  = wc_create_order();
+					$action = 'created';
+				}
 			} else {
 				// Create new order
 				$order  = wc_create_order();
 				$action = 'created';
-				$this->log_info( 'Creating new order' );
 			}
 
 			if ( is_wp_error( $order ) ) {
@@ -497,8 +607,6 @@ class Woo_Order_Importer extends Abstract_Importer {
 				$order->save_meta_data();
 			}
 
-			$this->log_info( sprintf( 'Order #%d %s successfully', $order_id, $action ) );
-
 			return $action;
 
 		} catch ( \Exception $e ) {
@@ -513,31 +621,39 @@ class Woo_Order_Importer extends Abstract_Importer {
 	 * @return WC_Order|null
 	 */
 	protected function find_existing_order( $item ) {
-		// First try by ID
-		if ( ! empty( $item['ID'] ) ) {
-			$order = wc_get_order( $item['ID'] );
-			if ( $order && ! is_wp_error( $order ) ) {
-				return $order;
+		$duplicate_check = $this->get_option( 'duplicate_check', 'ID' );
+
+		// Try by ID first (most reliable)
+		if ( 'ID' === $duplicate_check || ! empty( $item['ID'] ) ) {
+			if ( ! empty( $item['ID'] ) ) {
+				$order = wc_get_order( $item['ID'] );
+				if ( $order && ! is_wp_error( $order ) ) {
+					return $order;
+				}
 			}
 		}
 
 		// Try by order number
-		if ( ! empty( $item['order_number'] ) ) {
-			$orders = wc_get_orders( [
-				'meta_key'   => '_order_number',
-				'meta_value' => $item['order_number'],
-				'limit'      => 1,
-			] );
+		if ( 'order_number' === $duplicate_check || ! empty( $item['order_number'] ) ) {
+			if ( ! empty( $item['order_number'] ) ) {
+				// First check if order_number is stored in custom meta
+				$orders = wc_get_orders( [
+					'meta_key'   => '_order_number',
+					'meta_value' => $item['order_number'],
+					'limit'      => 1,
+				] );
 
-			if ( ! empty( $orders ) ) {
-				return $orders[0];
-			}
+				if ( ! empty( $orders ) ) {
+					return $orders[0];
+				}
 
-			// Also try by ID if order_number is numeric
-			if ( is_numeric( $item['order_number'] ) ) {
-				$order = wc_get_order( $item['order_number'] );
-				if ( $order && ! is_wp_error( $order ) ) {
-					return $order;
+				// In WooCommerce, order number is typically the order ID
+				// Try to get order directly by ID if order_number is numeric
+				if ( is_numeric( $item['order_number'] ) ) {
+					$order = wc_get_order( $item['order_number'] );
+					if ( $order && ! is_wp_error( $order ) ) {
+						return $order;
+					}
 				}
 			}
 		}
@@ -562,7 +678,6 @@ class Woo_Order_Importer extends Abstract_Importer {
 				if ( $user ) {
 					$order->set_customer_id( $customer_id );
 				} else {
-					$this->log_warning( sprintf( 'Customer ID %d not found, creating guest order', $customer_id ) );
 					$order->set_customer_id( 0 );
 				}
 			} else {
@@ -710,12 +825,6 @@ class Woo_Order_Importer extends Abstract_Importer {
 			}
 
 			if ( ! $product ) {
-				$this->log_warning( sprintf(
-					'Product not found for item "%s" (ID: %s, SKU: %s), skipping',
-					$order_item_data['name'] ?? 'Unknown',
-					$order_item_data['product_id'] ?? 'N/A',
-					$order_item_data['sku'] ?? 'N/A'
-				) );
 				continue;
 			}
 
@@ -840,21 +949,12 @@ class Woo_Order_Importer extends Abstract_Importer {
 			$order->set_discount_total( $item['order_discount'] );
 		}
 
-		if ( isset( $item['order_tax'] ) || isset( $item['cart_tax'] ) ) {
-			$tax = $item['cart_tax'] ?? $item['order_tax'] ?? 0;
-			$order->set_cart_tax( $tax );
-		}
-
+		// Note: set_cart_tax(), set_shipping_tax(), and set_total_tax() are protected methods
+		// Tax totals are automatically calculated from line items and shipping
+		// If you need to override them, use update_meta_data() after save()
+		
 		if ( isset( $item['order_shipping'] ) ) {
 			$order->set_shipping_total( $item['order_shipping'] );
-		}
-
-		if ( isset( $item['shipping_tax'] ) ) {
-			$order->set_shipping_tax( $item['shipping_tax'] );
-		}
-
-		if ( isset( $item['total_tax'] ) ) {
-			$order->set_total_tax( $item['total_tax'] );
 		}
 	}
 
@@ -874,7 +974,7 @@ class Woo_Order_Importer extends Abstract_Importer {
 				$date = new \WC_DateTime( $item['order_date'] );
 				$order->set_date_created( $date );
 			} catch ( \Exception $e ) {
-				$this->log_warning( sprintf( 'Invalid order_date: %s', $e->getMessage() ) );
+				// Invalid date, skip
 			}
 		}
 
@@ -883,7 +983,7 @@ class Woo_Order_Importer extends Abstract_Importer {
 				$date = new \WC_DateTime( $item['date_modified'] );
 				$order->set_date_modified( $date );
 			} catch ( \Exception $e ) {
-				$this->log_warning( sprintf( 'Invalid date_modified: %s', $e->getMessage() ) );
+				// Invalid date, skip
 			}
 		}
 
@@ -892,7 +992,7 @@ class Woo_Order_Importer extends Abstract_Importer {
 				$date = new \WC_DateTime( $item['completed_date'] );
 				$order->set_date_completed( $date );
 			} catch ( \Exception $e ) {
-				$this->log_warning( sprintf( 'Invalid completed_date: %s', $e->getMessage() ) );
+				// Invalid date, skip
 			}
 		}
 
@@ -901,7 +1001,7 @@ class Woo_Order_Importer extends Abstract_Importer {
 				$date = new \WC_DateTime( $item['paid_date'] );
 				$order->set_date_paid( $date );
 			} catch ( \Exception $e ) {
-				$this->log_warning( sprintf( 'Invalid paid_date: %s', $e->getMessage() ) );
+				// Invalid date, skip
 			}
 		}
 	}
@@ -1304,8 +1404,6 @@ class Woo_Order_Importer extends Abstract_Importer {
 
 			// Update meta field using WooCommerce API (HPOS compatible)
 			$order->update_meta_data( $meta_key, $value );
-			
-			$this->log_info( sprintf( 'Set meta field "%s" for order #%d', $meta_key, $order->get_id() ) );
 		}
 	}
 
@@ -1313,10 +1411,12 @@ class Woo_Order_Importer extends Abstract_Importer {
 	 * Log info message
 	 *
 	 * @param string $message Message to log
+	 * @param array  $data    Additional data to log
 	 */
-	protected function log_info( $message ) {
+	protected function log_info( $message, $data = [] ) {
 		if ( function_exists( 'wc_get_logger' ) ) {
-			wc_get_logger()->info( $message, [ 'source' => 'woo-order-importer' ] );
+			$context = array_merge( [ 'source' => 'woo-order-importer' ], $data );
+			wc_get_logger()->info( $message, $context );
 		}
 	}
 
@@ -1324,10 +1424,12 @@ class Woo_Order_Importer extends Abstract_Importer {
 	 * Log warning message
 	 *
 	 * @param string $message Message to log
+	 * @param array  $data    Additional data to log
 	 */
-	protected function log_warning( $message ) {
+	protected function log_warning( $message, $data = [] ) {
 		if ( function_exists( 'wc_get_logger' ) ) {
-			wc_get_logger()->warning( $message, [ 'source' => 'woo-order-importer' ] );
+			$context = array_merge( [ 'source' => 'woo-order-importer' ], $data );
+			wc_get_logger()->warning( $message, $context );
 		}
 	}
 
@@ -1335,10 +1437,12 @@ class Woo_Order_Importer extends Abstract_Importer {
 	 * Log error message
 	 *
 	 * @param string $message Message to log
+	 * @param array  $data    Additional data to log
 	 */
-	protected function log_error( $message ) {
+	protected function log_error( $message, $data = [] ) {
 		if ( function_exists( 'wc_get_logger' ) ) {
-			wc_get_logger()->error( $message, [ 'source' => 'woo-order-importer' ] );
+			$context = array_merge( [ 'source' => 'woo-order-importer' ], $data );
+			wc_get_logger()->error( $message, $context );
 		}
 	}
 
