@@ -1398,18 +1398,23 @@ const ImportModule = {
 				{
 					label: 'Basic',
 					options: [
+						{ value: 'ID', label: 'ID', type: 'number' },
 						{ value: 'post_title', label: 'Title', type: 'string' },
 						{ value: 'post_content', label: 'Description', type: 'string' },
 						{ value: 'post_excerpt', label: 'Caption', type: 'string' },
 						{ value: 'alt_text', label: 'Alt Text', type: 'string' },
+						{ value: 'guid', label: 'GUID', type: 'string' },
 					],
 				},
 				{
 					label: 'File',
 					options: [
 						{ value: 'file_url', label: 'File URL', type: 'url' },
+						{ value: 'file_path', label: 'File Path', type: 'string' },
 						{ value: 'file_name', label: 'File Name', type: 'string' },
+						{ value: 'file_extension', label: 'File Extension', type: 'string' },
 						{ value: 'post_mime_type', label: 'MIME Type', type: 'string' },
+						{ value: 'file_size', label: 'File Size (bytes)', type: 'number' },
 					],
 				},
 				{
@@ -1420,19 +1425,23 @@ const ImportModule = {
 					],
 				},
 				{
+					label: 'Author',
+					options: [
+						{ value: 'post_author', label: 'Author ID', type: 'number' },
+						{ value: 'author_name', label: 'Author Name', type: 'string' },
+						{ value: 'author_email', label: 'Author Email', type: 'email' },
+					],
+				},
+				{
 					label: 'Other',
 					options: [
 						{ value: 'post_date', label: 'Upload Date', type: 'date' },
-						{ value: 'post_author', label: 'Author ID', type: 'number' },
+						{ value: 'post_modified', label: 'Modified Date', type: 'date' },
 						{ value: 'post_parent', label: 'Attached To (Post ID)', type: 'number' },
+						{ value: 'attached_post_title', label: 'Attached Post Title', type: 'string' },
 					],
-				},			{
-				label: 'Custom Fields (Meta)',
-				options: [
-					{ value: 'meta', label: 'Custom Field', type: 'meta', custom: true },
-				],
-			},
-		]);
+				},
+			]);
 		}
 
 		// Pages (no taxonomies, only custom fields)
@@ -2854,8 +2863,23 @@ const ImportModule = {
 				{ value: 'post_title', label: window.aieData.i18n.fieldTitle || 'Title' },
 				{ value: 'post_content', label: window.aieData.i18n.fieldDescription || 'Description' },
 				{ value: 'post_excerpt', label: window.aieData.i18n.fieldCaption || 'Caption' },
-				{ value: 'file_url', label: window.aieData.i18n.fieldFileUrl || 'File URL' },
 				{ value: 'alt_text', label: window.aieData.i18n.fieldAltText || 'Alt Text' },
+				{ value: 'file_url', label: window.aieData.i18n.fieldFileUrl || 'File URL' },
+				{ value: 'file_path', label: 'File Path' },
+				{ value: 'file_name', label: 'File Name' },
+				{ value: 'file_extension', label: 'File Extension' },
+				{ value: 'post_mime_type', label: 'MIME Type' },
+				{ value: 'file_size', label: 'File Size' },
+				{ value: 'width', label: 'Width' },
+				{ value: 'height', label: 'Height' },
+				{ value: 'post_date', label: window.aieData.i18n.fieldDate || 'Date' },
+				{ value: 'post_modified', label: 'Modified Date' },
+				{ value: 'post_author', label: window.aieData.i18n.fieldAuthor || 'Author' },
+				{ value: 'author_name', label: 'Author Name' },
+				{ value: 'author_email', label: 'Author Email' },
+				{ value: 'post_parent', label: 'Parent Post ID' },
+				{ value: 'attached_post_title', label: 'Attached Post Title' },
+				{ value: 'guid', label: 'GUID' },
 			],
 		};
 
@@ -3447,10 +3471,13 @@ const ImportModule = {
 		// Support all post types (posts, pages, products, custom post types, etc.)
 		const supportedTypes = [ 'posts', 'pages', 'products' ];
 		
+		// Exclude types that should NOT show media import options
+		const excludedTypes = [ 'users', 'terms', 'media' ];
+		
 		// For custom post types, we'll show media options by default
 		// if contentType is not explicitly in the list but looks like a post type
 		const shouldShowMediaOptions = supportedTypes.includes( contentType ) || 
-									   ( contentType && contentType !== 'users' && contentType !== 'terms' );
+									   ( contentType && ! excludedTypes.includes( contentType ) );
 		
 		if ( shouldShowMediaOptions ) {
 			$mediaImportOption.show();

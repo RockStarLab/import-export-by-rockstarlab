@@ -486,16 +486,16 @@ class Media_Exporter extends Abstract_Exporter {
 			return [];
 		}
 
-		$data   = [];
-		$fields = $this->get_option( 'fields', $this->get_default_fields() );
+	$data   = [];
+	$fields = $this->get_option( 'fields', $this->get_default_fields() );
 
-		while ( $query->have_posts() ) {
-			$query->the_post();
-			$attachment = get_post();
+	while ( $query->have_posts() ) {
+		$query->the_post();
+		$attachment = get_post();
 
-			$item   = $this->prepare_media_data( $attachment, $fields, $options );
-			$data[] = $item;
-		}
+		$item   = $this->prepare_media_data( $attachment, $fields, $options );
+		$data[] = $item;
+	}
 
 		wp_reset_postdata();
 
@@ -1084,23 +1084,44 @@ class Media_Exporter extends Abstract_Exporter {
 							}
 						}
 					}
+					// Otherwise it's just a number field, keep the numeric value
+				}
+				// If it's a serialized array, unserialize it
+				elseif ( is_string( $acf_value ) && $acf_value !== '' ) {
+					$unserialized = @unserialize( $acf_value );
+					if ( $unserialized !== false || $acf_value === 'b:0;' ) {
+						$acf_value = $unserialized;
+					}
 				}
 				
-				// Add to data if value is not false (field exists)
-				if ( $acf_value !== false ) {
+				// Convert ACF value to exportable format
+				if ( is_array( $acf_value ) ) {
+					// For arrays (images, files, etc.), try to get just the URL or serialize
+					if ( isset( $acf_value['url'] ) ) {
+						$data[ $field ] = $acf_value['url'];
+					} elseif ( isset( $acf_value['ID'] ) ) {
+						$data[ $field ] = $acf_value['ID'];
+					} else {
+						$data[ $field ] = maybe_serialize( $acf_value );
+					}
+				} elseif ( $acf_value === false || $acf_value === null || $acf_value === '' ) {
+					// Empty field
+					$data[ $field ] = '';
+				} else {
+					// String, number, or true boolean
 					$data[ $field ] = $acf_value;
 				}
 			}
 		}
 
-		return $data;
-	}
+	return $data;
+}
 
-	/**
-	 * Get image sizes information
-	 *
-	 * @param int $attachment_id Attachment ID
-	 * @return array
+/**
+ * Get image sizes information
+ *
+ * @param int $attachment_id Attachment ID
+ * @return array
 	 */
 	protected function get_image_sizes( $attachment_id ) {
 		$sizes       = [];

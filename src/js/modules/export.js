@@ -1565,6 +1565,7 @@ const ExportModule = {
 				{
 					label: window.aieData.i18n.fieldGroupBasic,
 					options: [
+						{ value: 'ID', label: window.aieData.i18n.fieldId || 'ID', type: 'number' },
 						{ value: 'post_title', label: window.aieData.i18n.fieldTitle, type: 'string' },
 						{ value: 'post_content', label: window.aieData.i18n.fieldDescription, type: 'string' },
 						{ value: 'post_excerpt', label: window.aieData.i18n.fieldCaption, type: 'string' },
