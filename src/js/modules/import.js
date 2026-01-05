@@ -1808,43 +1808,18 @@ const ImportModule = {
 			];
 		}
 
-		// Menus
-		if ( contentType === 'menu' ) {
-			return [
-				{
-					label: 'Menu Item',
-					options: [
-						{ value: 'menu_item_title', label: 'Title', type: 'string' },
-						{ value: 'menu_item_url', label: 'URL', type: 'url' },
-						{ value: 'menu_item_type', label: 'Type', type: 'string' },
-						{ value: 'menu_item_object', label: 'Object', type: 'string' },
-						{ value: 'menu_item_object_id', label: 'Object ID', type: 'number' },
-					],
-				},
-				{
-					label: 'Structure',
-					options: [
-						{ value: 'menu_item_parent', label: 'Parent ID', type: 'number' },
-						{ value: 'menu_order', label: 'Order', type: 'number' },
-					],
-				},
-				{
-					label: 'Settings',
-					options: [
-						{ value: 'menu_item_target', label: 'Target (_blank, _self)', type: 'string' },
-						{ value: 'menu_item_classes', label: 'CSS Classes', type: 'string' },
-						{ value: 'menu_item_xfn', label: 'Link Relationship (XFN)', type: 'string' },
-						{ value: 'menu_item_description', label: 'Description', type: 'string' },
-					],
-				},
-				{
-					label: 'Custom Fields (Meta)',
-					options: [
-						{ value: 'meta', label: 'Custom Field', type: 'meta', custom: true },
-					],
-				},
-			];
-		}
+	// Menus
+	if ( contentType === 'menu' ) {
+		return [
+			{
+				label: 'Menu',
+				options: [
+					{ value: 'name', label: 'Menu Name', type: 'string', required: true },
+					{ value: 'menu_items', label: 'Menu Items (Array)', type: 'json' },
+				],
+			},
+		];
+	}
 
 		// Comments
 		if ( contentType === 'comment' ) {
@@ -3467,17 +3442,11 @@ const ImportModule = {
 		const $mediaImportOption = jQuery( '.aie-media-import-option' );
 		const $mediaDuplicateOption = jQuery( '.aie-media-duplicate-option' );
 		
-		// Content types that support media import
-		// Support all post types (posts, pages, products, custom post types, etc.)
-		const supportedTypes = [ 'posts', 'pages', 'products' ];
+		// Content types that support media import - ONLY these types
+		const supportedTypes = [ 'post', 'page', 'custom_post_types', 'product' ];
 		
-		// Exclude types that should NOT show media import options
-		const excludedTypes = [ 'users', 'terms', 'media' ];
-		
-		// For custom post types, we'll show media options by default
-		// if contentType is not explicitly in the list but looks like a post type
-		const shouldShowMediaOptions = supportedTypes.includes( contentType ) || 
-									   ( contentType && ! excludedTypes.includes( contentType ) );
+		// Show media options ONLY if contentType is in the supported list
+		const shouldShowMediaOptions = supportedTypes.includes( contentType );
 		
 		if ( shouldShowMediaOptions ) {
 			$mediaImportOption.show();
