@@ -1462,6 +1462,7 @@ const ImportModule = {
 				{
 					label: 'Basic',
 					options: [
+						{ value: 'ID', label: 'User ID', type: 'number' },
 						{ value: 'user_login', label: 'Username', type: 'string' },
 						{ value: 'user_email', label: 'Email', type: 'email' },
 						{ value: 'user_pass', label: 'Password', type: 'string' },
@@ -1477,19 +1478,45 @@ const ImportModule = {
 						{ value: 'nickname', label: 'Nickname', type: 'string' },
 						{ value: 'description', label: 'Bio', type: 'string' },
 						{ value: 'user_url', label: 'Website', type: 'url' },
+						{ value: 'avatar_url', label: 'Avatar URL', type: 'url' },
 					],
 				},
 				{
-					label: 'Role',
+					label: 'Social Media',
+					options: [
+						{ value: 'facebook', label: 'Facebook', type: 'string' },
+						{ value: 'instagram', label: 'Instagram', type: 'string' },
+						{ value: 'linkedin', label: 'LinkedIn', type: 'string' },
+						{ value: 'myspace', label: 'MySpace', type: 'string' },
+						{ value: 'pinterest', label: 'Pinterest', type: 'string' },
+						{ value: 'soundcloud', label: 'SoundCloud', type: 'string' },
+						{ value: 'tumblr', label: 'Tumblr', type: 'string' },
+						{ value: 'wikipedia', label: 'Wikipedia', type: 'string' },
+						{ value: 'twitter', label: 'Twitter/X', type: 'string' },
+						{ value: 'youtube', label: 'YouTube', type: 'string' },
+					],
+				},
+				{
+					label: 'Role & Permissions',
 					options: [
 						{ value: 'role', label: 'Role', type: 'string' },
+						{ value: 'roles', label: 'Roles (comma-separated)', type: 'string' },
+						{ value: 'capabilities', label: 'Capabilities (JSON)', type: 'string' },
 					],
 				},
 				{
-					label: 'Other',
+					label: 'Preferences',
 					options: [
-						{ value: 'user_registered', label: 'Registration Date', type: 'date' },
 						{ value: 'locale', label: 'Language', type: 'string' },
+						{ value: 'admin_color', label: 'Admin Color Scheme', type: 'string' },
+						{ value: 'rich_editing', label: 'Visual Editor', type: 'boolean' },
+					],
+				},
+				{
+					label: 'Stats',
+					options: [
+						{ value: 'posts_count', label: 'Posts Count', type: 'number' },
+						{ value: 'user_registered', label: 'Registration Date', type: 'date' },
 					],
 				},
 				{

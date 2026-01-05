@@ -79,7 +79,7 @@ class Job extends Model {
 				'processed_items' => $processed,
 				'success_items'   => $success,
 				'failed_items'    => $failed,
-				'percentage'      => $percentage,
+				'progress'        => $percentage,
 				'updated_at'      => current_time( 'mysql' ),
 			]
 		);
@@ -141,7 +141,7 @@ class Job extends Model {
 			'processed'  => (int) $job->processed_items,
 			'success'    => (int) $job->success_items,
 			'failed'     => (int) $job->failed_items,
-			'percentage' => (float) $job->percentage,
+			'percentage' => (float) $job->progress,
 			'status'     => $job->status,
 			'started_at' => $job->started_at ?? null,
 		];
