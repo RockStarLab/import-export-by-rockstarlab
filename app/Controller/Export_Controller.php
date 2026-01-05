@@ -865,6 +865,11 @@ class Export_Controller extends Base_Controller {
 					$group_fields = acf_get_fields( $group['key'] );
 					if ( $group_fields ) {
 						foreach ( $group_fields as $field ) {
+							// Skip UI-only fields that don't store data
+							if ( in_array( $field['type'], [ 'accordion', 'tab', 'message', 'clone' ], true ) ) {
+								continue;
+							}
+							
 							$fields[] = [
 								'name'  => $field['name'],
 								'label' => $field['label'],
@@ -902,6 +907,11 @@ class Export_Controller extends Base_Controller {
 					$group_fields = acf_get_fields( $group['key'] );
 					if ( $group_fields ) {
 						foreach ( $group_fields as $field ) {
+							// Skip UI-only fields that don't store data
+							if ( in_array( $field['type'], [ 'accordion', 'tab', 'message', 'clone' ], true ) ) {
+								continue;
+							}
+							
 							$fields[] = [
 								'name'  => $field['name'],
 								'label' => $field['label'],
@@ -951,6 +961,11 @@ class Export_Controller extends Base_Controller {
 					$group_fields = acf_get_fields( $group['key'] );
 					if ( $group_fields ) {
 						foreach ( $group_fields as $field ) {
+							// Skip UI-only fields that don't store data
+							if ( in_array( $field['type'], [ 'accordion', 'tab', 'message', 'clone' ], true ) ) {
+								continue;
+							}
+							
 							$fields[] = [
 								'name'  => $field['name'],
 								'label' => $field['label'],

@@ -127,6 +127,11 @@ const ImportModule = {
 		$wizard.on( 'click', '.aie-cancel-import', () => this.cancelImport() );
 		$wizard.on( 'click', '.aie-new-import', () => this.resetWizard() );
 		$wizard.on( 'click', '.aie-toggle-logs', () => this.toggleLogs() );
+
+		// Media import options
+		$wizard.on( 'change', '#aie-auto-import-media', ( e ) => {
+			this.toggleMediaDuplicateOptions( e );
+		} );
 	},
 
 	/**
@@ -191,6 +196,7 @@ const ImportModule = {
 			this.buildFieldMapping();
 		} else if ( step === 5 ) {
 			this.populateUniqueFieldOptions();
+			this.handleMediaImportOptions();
 		}
 	},
 
@@ -3067,6 +3073,8 @@ const ImportModule = {
 					),
 					batch_size:
 						parseInt( jQuery( '[name="batch_size"]' ).val() ) || 50,
+					auto_import_media: jQuery( '#aie-auto-import-media' ).is( ':checked' ),
+					media_duplicate_mode: jQuery( 'input[name="media_duplicate_mode"]:checked' ).val() || 'skip',
 				}
 			};
 			
@@ -3424,6 +3432,51 @@ const ImportModule = {
 			$button.prop( 'disabled', false ).removeClass( 'disabled' );
 		} else {
 			$button.prop( 'disabled', true ).addClass( 'disabled' );
+		}
+	},
+
+	/**
+	 * Handle media import options visibility based on content type
+	 */
+	handleMediaImportOptions() {
+		const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
+		const $mediaImportOption = jQuery( '.aie-media-import-option' );
+		const $mediaDuplicateOption = jQuery( '.aie-media-duplicate-option' );
+		
+		// Content types that support media import
+		// Support all post types (posts, pages, products, custom post types, etc.)
+		const supportedTypes = [ 'posts', 'pages', 'products' ];
+		
+		// For custom post types, we'll show media options by default
+		// if contentType is not explicitly in the list but looks like a post type
+		const shouldShowMediaOptions = supportedTypes.includes( contentType ) || 
+									   ( contentType && contentType !== 'users' && contentType !== 'terms' );
+		
+		if ( shouldShowMediaOptions ) {
+			$mediaImportOption.show();
+			
+			// Show duplicate options only if checkbox is checked
+			const isChecked = jQuery( '#aie-auto-import-media' ).is( ':checked' );
+			if ( isChecked ) {
+				$mediaDuplicateOption.show();
+			}
+		} else {
+			$mediaImportOption.hide();
+			$mediaDuplicateOption.hide();
+		}
+	},
+
+	/**
+	 * Toggle media duplicate options when checkbox is changed
+	 */
+	toggleMediaDuplicateOptions( e ) {
+		const $checkbox = jQuery( e.target );
+		const $mediaDuplicateOption = jQuery( '.aie-media-duplicate-option' );
+		
+		if ( $checkbox.is( ':checked' ) ) {
+			$mediaDuplicateOption.slideDown( 200 );
+		} else {
+			$mediaDuplicateOption.slideUp( 200 );
 		}
 	},
 

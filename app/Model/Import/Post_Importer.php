@@ -62,6 +62,8 @@ class Post_Importer extends Abstract_Importer {
 			'post_status',
 			'post_type',
 			'post_author',
+			'author_name',
+			'author_email',
 			'post_date',
 			'post_name',
 			'post_parent',
@@ -82,13 +84,15 @@ class Post_Importer extends Abstract_Importer {
 	 */
 	public function get_supported_options() {
 		return [
-			'duplicate_mode'  => 'How to handle duplicates: skip, update, create',
-			'post_status'     => 'Default post status: publish, draft, pending',
-			'post_type'       => 'Post type to import as: post, page, or custom type',
-			'post_author'     => 'Default author ID if not specified in data',
-			'comment_status'  => 'Default comment status: open, closed',
-			'ping_status'     => 'Default ping status: open, closed',
-			'duplicate_check' => 'Field to check for duplicates: post_title, post_name, ID',
+			'duplicate_mode'       => 'How to handle duplicates: skip, update, create',
+			'post_status'          => 'Default post status: publish, draft, pending',
+			'post_type'            => 'Post type to import as: post, page, or custom type',
+			'post_author'          => 'Default author ID if not specified in data',
+			'comment_status'       => 'Default comment status: open, closed',
+			'ping_status'          => 'Default ping status: open, closed',
+			'duplicate_check'      => 'Field to check for duplicates: post_title, post_name, ID',
+			'auto_import_media'    => 'Automatically import media files from content: true, false',
+			'media_duplicate_mode' => 'How to handle duplicate media: skip, create, replace',
 		];
 	}
 
@@ -207,6 +211,11 @@ class Post_Importer extends Abstract_Importer {
 			$this->import_post_meta( $post_id, $item['post_meta'] );
 		}
 
+		// Auto-import media from ACF fields if enabled
+		if ( $this->get_option( 'auto_import_media', false ) ) {
+			$this->auto_import_acf_media( $post_id, $item );
+		}
+
 		// Import taxonomies
 		if ( ! empty( $item['taxonomies'] ) ) {
 			$this->import_taxonomies( $post_id, $item['taxonomies'] );
@@ -215,6 +224,11 @@ class Post_Importer extends Abstract_Importer {
 		// Import featured image
 		if ( ! empty( $item['featured_image'] ) ) {
 			$this->import_featured_image( $post_id, $item['featured_image'] );
+		}
+
+		// Auto-import media from content if enabled
+		if ( $this->get_option( 'auto_import_media', false ) && ! empty( $item['post_content'] ) ) {
+			$this->auto_import_content_media( $post_id, $item['post_content'] );
 		}
 
 		return $post_id;
@@ -242,6 +256,11 @@ class Post_Importer extends Abstract_Importer {
 			$this->import_post_meta( $post_id, $item['post_meta'] );
 		}
 
+		// Auto-import media from ACF fields if enabled
+		if ( $this->get_option( 'auto_import_media', false ) ) {
+			$this->auto_import_acf_media( $post_id, $item );
+		}
+
 		// Update taxonomies
 		if ( ! empty( $item['taxonomies'] ) ) {
 			$this->import_taxonomies( $post_id, $item['taxonomies'] );
@@ -250,6 +269,11 @@ class Post_Importer extends Abstract_Importer {
 		// Update featured image
 		if ( ! empty( $item['featured_image'] ) ) {
 			$this->import_featured_image( $post_id, $item['featured_image'] );
+		}
+
+		// Auto-import media from content if enabled
+		if ( $this->get_option( 'auto_import_media', false ) && ! empty( $item['post_content'] ) ) {
+			$this->auto_import_content_media( $post_id, $item['post_content'] );
 		}
 
 		return 'updated';
@@ -292,6 +316,21 @@ class Post_Importer extends Abstract_Importer {
 		foreach ( $allowed_fields as $field ) {
 			if ( isset( $item[ $field ] ) ) {
 				$post_data[ $field ] = $item[ $field ];
+			}
+		}
+
+		// Handle author_name or author_email if post_author is not set
+		if ( empty( $post_data['post_author'] ) ) {
+			if ( ! empty( $item['author_email'] ) ) {
+				$user = get_user_by( 'email', $item['author_email'] );
+				if ( $user ) {
+					$post_data['post_author'] = $user->ID;
+				}
+			} elseif ( ! empty( $item['author_name'] ) ) {
+				$user = get_user_by( 'login', $item['author_name'] );
+				if ( $user ) {
+					$post_data['post_author'] = $user->ID;
+				}
 			}
 		}
 
@@ -356,4 +395,682 @@ class Post_Importer extends Abstract_Importer {
 		// For now, just log a warning
 		$this->log_warning( sprintf( 'Featured image import not yet implemented for URLs: %s', $image ) );
 	}
+
+	/**
+	 * Auto-import media from ACF fields
+	 * Processes ACF image, gallery, and file fields including nested repeaters and flexible content
+	 *
+	 * @param int   $post_id Post ID
+	 * @param array $item    Import item data
+	 */
+	private function auto_import_acf_media( $post_id, $item ) {
+		// Check if ACF is active
+		if ( ! function_exists( 'get_field_object' ) ) {
+			return;
+		}
+
+		$media_duplicate_mode = $this->get_option( 'media_duplicate_mode', 'skip' );
+		$imported_count = 0;
+		$skipped_count = 0;
+		
+		// Get all post meta for this post
+		$all_meta = get_post_meta( $post_id );
+		
+		foreach ( $all_meta as $meta_key => $meta_values ) {
+			// Skip ACF reference keys (they start with _)
+			if ( strpos( $meta_key, '_' ) === 0 ) {
+				continue;
+			}
+			
+			$meta_value = $meta_values[0];
+			
+			// Try to get ACF field object to determine type
+			$field_object = get_field_object( $meta_key, $post_id );
+			
+			if ( ! $field_object ) {
+				// Not an ACF field or field not found
+				continue;
+			}
+			
+			$field_type = $field_object['type'] ?? '';
+			
+			// Handle different ACF field types
+			switch ( $field_type ) {
+				case 'image':
+				case 'file':
+					// Check if it's a URL (string) or ID (numeric)
+					if ( is_string( $meta_value ) && filter_var( $meta_value, FILTER_VALIDATE_URL ) ) {
+						// It's a URL - import it
+						$new_id = $this->import_and_replace_acf_media( $meta_value, $post_id, $meta_key, $media_duplicate_mode );
+						if ( $new_id ) {
+							$imported_count++;
+						} else {
+							$skipped_count++;
+						}
+					}
+					break;
+					
+				case 'gallery':
+					// Gallery stores array of IDs or URLs
+					$gallery_value = maybe_unserialize( $meta_value );
+					
+					if ( is_array( $gallery_value ) ) {
+						$new_gallery = [];
+						$changed = false;
+						
+						foreach ( $gallery_value as $item_value ) {
+							if ( is_string( $item_value ) && filter_var( $item_value, FILTER_VALIDATE_URL ) ) {
+								// It's a URL - import it
+								$new_id = $this->import_media_for_acf( $item_value, $post_id, $media_duplicate_mode );
+								if ( $new_id ) {
+									$new_gallery[] = $new_id;
+									$changed = true;
+									$imported_count++;
+								} else {
+									$new_gallery[] = $item_value;
+									$skipped_count++;
+								}
+							} else {
+								// Keep as is (probably already an ID)
+								$new_gallery[] = $item_value;
+							}
+						}
+						
+						// Update meta if changed
+						if ( $changed ) {
+							update_post_meta( $post_id, $meta_key, $new_gallery );
+						}
+					}
+					break;
+					
+				case 'repeater':
+				case 'flexible_content':
+					// Process nested fields recursively
+					$result = $this->process_acf_nested_field( $post_id, $meta_key, $meta_value, $media_duplicate_mode );
+					$imported_count += $result['imported'];
+					$skipped_count += $result['skipped'];
+					break;
+			}
+		}
+		
+		if ( $imported_count > 0 || $skipped_count > 0 ) {
+			$this->log_info( sprintf( 
+				'ACF media import for post %d: %d imported, %d skipped',
+				$post_id,
+				$imported_count,
+				$skipped_count
+			) );
+		}
+	}
+
+	/**
+	 * Process nested ACF field (repeater or flexible content)
+	 * Recursively handles media in nested structures
+	 *
+	 * @param int    $post_id              Post ID
+	 * @param string $field_name           Field name
+	 * @param mixed  $field_value          Field value
+	 * @param string $media_duplicate_mode Media duplicate mode
+	 * @return array Array with 'imported' and 'skipped' counts
+	 */
+	private function process_acf_nested_field( $post_id, $field_name, $field_value, $media_duplicate_mode ) {
+		$imported_count = 0;
+		$skipped_count = 0;
+		
+		// Repeater and flexible content store row count
+		$row_count = intval( $field_value );
+		
+		if ( $row_count <= 0 ) {
+			return [ 'imported' => 0, 'skipped' => 0 ];
+		}
+		
+		// Process each row
+		for ( $i = 0; $i < $row_count; $i++ ) {
+			// Get field object for this row
+			$field_object = get_field_object( $field_name, $post_id );
+			
+			if ( ! $field_object || empty( $field_object['sub_fields'] ) ) {
+				continue;
+			}
+			
+			// Process each sub field
+			foreach ( $field_object['sub_fields'] as $sub_field ) {
+				$sub_field_name = $sub_field['name'];
+				$sub_field_type = $sub_field['type'];
+				
+				// Construct meta key for this sub field
+				// Format: {field_name}_{row}_{sub_field_name}
+				$meta_key = "{$field_name}_{$i}_{$sub_field_name}";
+				
+				// Get the value
+				$meta_value = get_post_meta( $post_id, $meta_key, true );
+				
+				if ( empty( $meta_value ) ) {
+					continue;
+				}
+				
+				// Handle different sub field types
+				switch ( $sub_field_type ) {
+					case 'image':
+					case 'file':
+						if ( is_string( $meta_value ) && filter_var( $meta_value, FILTER_VALIDATE_URL ) ) {
+							$new_id = $this->import_and_replace_acf_media( $meta_value, $post_id, $meta_key, $media_duplicate_mode );
+							if ( $new_id ) {
+								$imported_count++;
+							} else {
+								$skipped_count++;
+							}
+						}
+						break;
+						
+					case 'gallery':
+						$gallery_value = maybe_unserialize( $meta_value );
+						
+						if ( is_array( $gallery_value ) ) {
+							$new_gallery = [];
+							$changed = false;
+							
+							foreach ( $gallery_value as $item_value ) {
+								if ( is_string( $item_value ) && filter_var( $item_value, FILTER_VALIDATE_URL ) ) {
+									$new_id = $this->import_media_for_acf( $item_value, $post_id, $media_duplicate_mode );
+									if ( $new_id ) {
+										$new_gallery[] = $new_id;
+										$changed = true;
+										$imported_count++;
+									} else {
+										$new_gallery[] = $item_value;
+										$skipped_count++;
+									}
+								} else {
+									$new_gallery[] = $item_value;
+								}
+							}
+							
+							if ( $changed ) {
+								update_post_meta( $post_id, $meta_key, $new_gallery );
+							}
+						}
+						break;
+						
+					case 'repeater':
+					case 'flexible_content':
+						// Nested repeater/flexible - process recursively
+						$nested_meta_key = $meta_key;
+						$result = $this->process_acf_nested_field( $post_id, $nested_meta_key, $meta_value, $media_duplicate_mode );
+						$imported_count += $result['imported'];
+						$skipped_count += $result['skipped'];
+						break;
+						
+					case 'group':
+						// Group field - process its sub fields
+						if ( ! empty( $sub_field['sub_fields'] ) ) {
+							foreach ( $sub_field['sub_fields'] as $group_sub_field ) {
+								$group_field_name = $group_sub_field['name'];
+								$group_field_type = $group_sub_field['type'];
+								$group_meta_key = "{$meta_key}_{$group_field_name}";
+								$group_meta_value = get_post_meta( $post_id, $group_meta_key, true );
+								
+								if ( empty( $group_meta_value ) ) {
+									continue;
+								}
+								
+								if ( in_array( $group_field_type, [ 'image', 'file' ], true ) ) {
+									if ( is_string( $group_meta_value ) && filter_var( $group_meta_value, FILTER_VALIDATE_URL ) ) {
+										$new_id = $this->import_and_replace_acf_media( $group_meta_value, $post_id, $group_meta_key, $media_duplicate_mode );
+										if ( $new_id ) {
+											$imported_count++;
+										} else {
+											$skipped_count++;
+										}
+									}
+								} elseif ( 'gallery' === $group_field_type ) {
+									$gallery_value = maybe_unserialize( $group_meta_value );
+									
+									if ( is_array( $gallery_value ) ) {
+										$new_gallery = [];
+										$changed = false;
+										
+										foreach ( $gallery_value as $item_value ) {
+											if ( is_string( $item_value ) && filter_var( $item_value, FILTER_VALIDATE_URL ) ) {
+												$new_id = $this->import_media_for_acf( $item_value, $post_id, $media_duplicate_mode );
+												if ( $new_id ) {
+													$new_gallery[] = $new_id;
+													$changed = true;
+													$imported_count++;
+												} else {
+													$new_gallery[] = $item_value;
+													$skipped_count++;
+												}
+											} else {
+												$new_gallery[] = $item_value;
+											}
+										}
+										
+										if ( $changed ) {
+											update_post_meta( $post_id, $group_meta_key, $new_gallery );
+										}
+									}
+								}
+							}
+						}
+						break;
+				}
+			}
+		}
+		
+		return [
+			'imported' => $imported_count,
+			'skipped'  => $skipped_count,
+		];
+	}
+
+	/**
+	 * Import media for ACF field and replace with new ID
+	 *
+	 * @param string $url                  Media URL
+	 * @param int    $post_id              Post ID
+	 * @param string $meta_key             Meta key to update
+	 * @param string $media_duplicate_mode Duplicate handling mode
+	 * @return int|false New attachment ID or false on failure
+	 */
+	private function import_and_replace_acf_media( $url, $post_id, $meta_key, $media_duplicate_mode ) {
+		$new_id = $this->import_media_for_acf( $url, $post_id, $media_duplicate_mode );
+		
+		if ( $new_id ) {
+			// Update the meta field with new ID
+			update_post_meta( $post_id, $meta_key, $new_id );
+			return $new_id;
+		}
+		
+		return false;
+	}
+
+	/**
+	 * Import media file for ACF field
+	 *
+	 * @param string $url                  Media URL
+	 * @param int    $post_id              Post ID
+	 * @param string $media_duplicate_mode Duplicate handling mode
+	 * @return int|false New attachment ID or false
+	 */
+	private function import_media_for_acf( $url, $post_id, $media_duplicate_mode ) {
+		// Skip if not a valid URL
+		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+			return false;
+		}
+
+		// Skip if it's already a local media URL
+		if ( strpos( $url, wp_upload_dir()['baseurl'] ) === 0 ) {
+			return false;
+		}
+
+		// Check for existing media
+		$filename = basename( parse_url( $url, PHP_URL_PATH ) );
+		$existing_attachment = $this->find_existing_media( $filename, $url );
+
+		if ( $existing_attachment ) {
+			// Handle duplicate based on mode
+			if ( 'skip' === $media_duplicate_mode ) {
+				$this->log_info( sprintf( 'Skipped duplicate ACF media: %s (using existing ID: %d)', $filename, $existing_attachment ) );
+				return $existing_attachment;
+			} elseif ( 'replace' === $media_duplicate_mode ) {
+				wp_delete_attachment( $existing_attachment, true );
+				$this->log_info( sprintf( 'Deleted existing ACF media for replacement: %s (ID: %d)', $filename, $existing_attachment ) );
+			}
+		}
+
+		// Import the media file
+		$attachment_id = $this->import_media_from_url( $url, $post_id );
+
+		if ( ! is_wp_error( $attachment_id ) && $attachment_id ) {
+			$this->log_info( sprintf( 'Imported ACF media: %s (new ID: %d)', $filename, $attachment_id ) );
+			return $attachment_id;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Auto-import media files from post content
+	 *
+	 * @param int    $post_id      Post ID
+	 * @param string $post_content Post content with media URLs
+	 */
+	private function auto_import_content_media( $post_id, $post_content ) {
+		$media_urls = [];
+		
+		// 1. Find traditional <img> tags
+		preg_match_all( '/<img[^>]+src=[\'"]([^\'"]+)[\'"][^>]*>/i', $post_content, $img_matches );
+		if ( ! empty( $img_matches[1] ) ) {
+			$media_urls = array_merge( $media_urls, $img_matches[1] );
+		}
+		
+		// 2. Find Gutenberg block image URLs (wp:image, wp:cover, wp:media-text, wp:gallery)
+		// Pattern: "url":"https://example.com/image.jpg"
+		preg_match_all( '/"url"\s*:\s*"([^"]+\.(jpg|jpeg|png|gif|webp|svg)[^"]*)"/i', $post_content, $gutenberg_matches );
+		if ( ! empty( $gutenberg_matches[1] ) ) {
+			$media_urls = array_merge( $media_urls, $gutenberg_matches[1] );
+		}
+		
+		// 3. Find background-image URLs in style attributes
+		preg_match_all( '/background-image\s*:\s*url\([\'"]?([^\'"()]+)[\'"]?\)/i', $post_content, $bg_matches );
+		if ( ! empty( $bg_matches[1] ) ) {
+			$media_urls = array_merge( $media_urls, $bg_matches[1] );
+		}
+		
+		// 4. Find srcset URLs (responsive images)
+		preg_match_all( '/srcset=[\'"]([^\'"]+)[\'"]/i', $post_content, $srcset_matches );
+		if ( ! empty( $srcset_matches[1] ) ) {
+			foreach ( $srcset_matches[1] as $srcset ) {
+				// Split by comma and extract URLs
+				$srcset_parts = explode( ',', $srcset );
+				foreach ( $srcset_parts as $part ) {
+					// Extract URL (before the width descriptor)
+					if ( preg_match( '/^\s*([^\s]+)/', trim( $part ), $url_match ) ) {
+						$media_urls[] = $url_match[1];
+					}
+				}
+			}
+		}
+		
+		// Remove duplicates and empty values
+		$media_urls = array_unique( array_filter( $media_urls ) );
+		
+		if ( empty( $media_urls ) ) {
+			return;
+		}
+
+		$media_duplicate_mode = $this->get_option( 'media_duplicate_mode', 'skip' );
+		$imported_count = 0;
+		$skipped_count = 0;
+		$error_count = 0;
+		$url_mapping = []; // Store old URL => new URL mappings
+		
+		foreach ( $media_urls as $url ) {
+			// Skip if not a valid URL
+			if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+				continue;
+			}
+
+			// Skip if it's already a local media URL
+			if ( strpos( $url, wp_upload_dir()['baseurl'] ) === 0 ) {
+				continue;
+			}
+			
+			// Skip data URIs
+			if ( strpos( $url, 'data:' ) === 0 ) {
+				continue;
+			}
+
+			// Check for existing media by filename, size and hash
+			$filename = basename( parse_url( $url, PHP_URL_PATH ) );
+			$existing_attachment = $this->find_existing_media( $filename, $url );
+
+			if ( $existing_attachment ) {
+				// Handle duplicate based on mode
+				if ( 'skip' === $media_duplicate_mode ) {
+					// Use existing media - store URL mapping
+					$new_url = wp_get_attachment_url( $existing_attachment );
+					$url_mapping[ $url ] = [
+						'url' => $new_url,
+						'id'  => $existing_attachment,
+					];
+					$skipped_count++;
+					$this->log_info( sprintf( 'Skipped duplicate media: %s (using existing ID: %d)', $filename, $existing_attachment ) );
+					continue;
+				} elseif ( 'replace' === $media_duplicate_mode ) {
+					// Delete existing and import new
+					wp_delete_attachment( $existing_attachment, true );
+					$this->log_info( sprintf( 'Deleted existing media for replacement: %s (ID: %d)', $filename, $existing_attachment ) );
+				}
+				// 'create' mode - fall through to import as new
+			}
+
+			// Import the media file
+			$attachment_id = $this->import_media_from_url( $url, $post_id );
+
+			if ( ! is_wp_error( $attachment_id ) && $attachment_id ) {
+				// Store URL mapping
+				$new_url = wp_get_attachment_url( $attachment_id );
+				$url_mapping[ $url ] = [
+					'url' => $new_url,
+					'id'  => $attachment_id,
+				];
+				$imported_count++;
+				$this->log_info( sprintf( 'Imported media: %s (new ID: %d)', $filename, $attachment_id ) );
+			} else {
+				$error_count++;
+				$error_message = is_wp_error( $attachment_id ) ? $attachment_id->get_error_message() : 'Unknown error';
+				$this->log_error( sprintf( 'Failed to import media: %s - %s', $filename, $error_message ) );
+			}
+		}
+
+		// Update post content with new media URLs and IDs
+		if ( ! empty( $url_mapping ) ) {
+			$post_content = $this->replace_media_urls_in_content( $post_content, $url_mapping );
+			
+			wp_update_post( [
+				'ID'           => $post_id,
+				'post_content' => $post_content,
+			] );
+		}
+
+		// Log summary
+		$this->log_info( sprintf( 
+			'Media import summary for post %d: %d imported, %d skipped, %d errors',
+			$post_id,
+			$imported_count,
+			$skipped_count,
+			$error_count
+		) );
+	}
+
+	/**
+	 * Replace media URLs and IDs in content
+	 * Handles both traditional HTML and Gutenberg blocks
+	 *
+	 * @param string $content     Post content
+	 * @param array  $url_mapping Array of old_url => ['url' => new_url, 'id' => new_id]
+	 * @return string Updated content
+	 */
+	private function replace_media_urls_in_content( $content, $url_mapping ) {
+		foreach ( $url_mapping as $old_url => $new_data ) {
+			$new_url = $new_data['url'];
+			$new_id = $new_data['id'];
+			
+			// Replace direct URL occurrences
+			$content = str_replace( $old_url, $new_url, $content );
+			
+			// Replace URL-encoded versions (common in Gutenberg)
+			$content = str_replace( urlencode( $old_url ), urlencode( $new_url ), $content );
+			
+			// Try to find and replace attachment IDs in Gutenberg blocks
+			// Pattern: "id":123 near the URL
+			$old_id_pattern = '/"id"\s*:\s*(\d+)([^}]*"url"\s*:\s*"' . preg_quote( $old_url, '/' ) . '")/';
+			$content = preg_replace(
+				$old_id_pattern,
+				'"id":' . $new_id . '$2',
+				$content
+			);
+			
+			// Also try reverse order: URL before ID
+			$old_id_pattern_reverse = '/("url"\s*:\s*"' . preg_quote( $old_url, '/' ) . '"[^}]*"id"\s*:\s*)(\d+)/';
+			$content = preg_replace(
+				$old_id_pattern_reverse,
+				'$1' . $new_id,
+				$content
+			);
+		}
+		
+		return $content;
+	}
+
+	/**
+	 * Find existing media by filename, size and hash
+	 *
+	 * @param string $filename  Media filename
+	 * @param string $url       Media URL to download and check
+	 * @return int|null Attachment ID or null
+	 */
+	private function find_existing_media( $filename, $url = '' ) {
+		global $wpdb;
+
+		// First, find all attachments with matching filename
+		$attachment_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT post_id FROM $wpdb->postmeta 
+				WHERE meta_key = '_wp_attached_file' 
+				AND meta_value LIKE %s",
+				'%' . $wpdb->esc_like( $filename )
+			)
+		);
+
+		if ( empty( $attachment_ids ) ) {
+			return null;
+		}
+
+		// If we only have one match, return it
+		if ( 1 === count( $attachment_ids ) ) {
+			return (int) $attachment_ids[0];
+		}
+
+		// If we have multiple matches and URL is provided, check by filesize and hash
+		if ( ! empty( $url ) ) {
+			// Get remote file size and hash
+			$remote_data = $this->get_remote_file_data( $url );
+			
+			if ( $remote_data ) {
+				foreach ( $attachment_ids as $attachment_id ) {
+					$local_file = get_attached_file( $attachment_id );
+					
+					if ( ! file_exists( $local_file ) ) {
+						continue;
+					}
+
+					$local_size = filesize( $local_file );
+					
+					// Check file size first (faster)
+					if ( $local_size === $remote_data['size'] ) {
+						// If size matches, verify with MD5 hash
+						$local_hash = md5_file( $local_file );
+						
+						if ( $local_hash === $remote_data['hash'] ) {
+							return (int) $attachment_id;
+						}
+					}
+				}
+			}
+		}
+
+		// Return first match if no exact match found
+		return (int) $attachment_ids[0];
+	}
+
+	/**
+	 * Get remote file data (size and hash) without full download
+	 *
+	 * @param string $url Remote file URL
+	 * @return array|null Array with 'size' and 'hash' or null on failure
+	 */
+	private function get_remote_file_data( $url ) {
+		// Download file to temp location
+		$temp_file = download_url( $url, 30 ); // 30 seconds timeout
+
+		if ( is_wp_error( $temp_file ) ) {
+			return null;
+		}
+
+		if ( ! file_exists( $temp_file ) ) {
+			return null;
+		}
+
+		$data = [
+			'size' => filesize( $temp_file ),
+			'hash' => md5_file( $temp_file ),
+		];
+
+		// Keep temp file for potential reuse in import_media_from_url
+		// Store in transient with URL as key
+		$transient_key = 'aie_temp_media_' . md5( $url );
+		set_transient( $transient_key, $temp_file, HOUR_IN_SECONDS );
+
+		return $data;
+	}
+
+	/**
+	 * Import media from URL
+	 *
+	 * @param string $url     Media URL
+	 * @param int    $post_id Post ID to attach media to
+	 * @return int|WP_Error Attachment ID or WP_Error
+	 */
+	private function import_media_from_url( $url, $post_id = 0 ) {
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+
+		// Check if we already downloaded this file during duplicate check
+		$transient_key = 'aie_temp_media_' . md5( $url );
+		$temp_file = get_transient( $transient_key );
+
+		// If not in transient or file doesn't exist, download it
+		if ( ! $temp_file || ! file_exists( $temp_file ) ) {
+			$temp_file = download_url( $url, 30 ); // 30 seconds timeout
+
+			if ( is_wp_error( $temp_file ) ) {
+				return $temp_file;
+			}
+		} else {
+			// Delete transient since we're using the file now
+			delete_transient( $transient_key );
+		}
+
+		// Prepare file array
+		$file = [
+			'name'     => basename( parse_url( $url, PHP_URL_PATH ) ),
+			'tmp_name' => $temp_file,
+		];
+
+		// Import the file
+		$attachment_id = media_handle_sideload( $file, $post_id );
+
+		// Clean up temp file
+		if ( file_exists( $temp_file ) ) {
+			@unlink( $temp_file );
+		}
+
+		return $attachment_id;
+	}
+
+	/**
+	 * Clean up old temporary media files from transients
+	 * Called at the end of import batch
+	 */
+	public function cleanup_temp_media_files() {
+		global $wpdb;
+
+		// Get all transients related to temporary media files
+		$transients = $wpdb->get_col(
+			"SELECT option_name FROM $wpdb->options 
+			WHERE option_name LIKE '_transient_aie_temp_media_%'"
+		);
+
+		$cleaned = 0;
+		foreach ( $transients as $transient_option ) {
+			$transient_key = str_replace( '_transient_', '', $transient_option );
+			$temp_file = get_transient( $transient_key );
+
+			if ( $temp_file && file_exists( $temp_file ) ) {
+				@unlink( $temp_file );
+				$cleaned++;
+			}
+
+			delete_transient( $transient_key );
+		}
+
+		if ( $cleaned > 0 ) {
+			$this->log_info( sprintf( 'Cleaned up %d temporary media files', $cleaned ) );
+		}
+	}
 }
+
