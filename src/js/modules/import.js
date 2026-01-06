@@ -1529,54 +1529,48 @@ const ImportModule = {
 		}
 
 		// WooCommerce Products
-		if ( contentType === 'woo_product' ) {
+		if ( contentType === 'product' || contentType === 'woo_product' ) {
 			return [
 				{
-					label: 'Basic',
+					label: 'Basic Info',
 					options: [
 						{ value: 'ID', label: 'Product ID', type: 'number' },
-						{ value: 'post_title', label: 'Product Name', type: 'string', required: true },
+						{ value: 'post_title', label: 'Product Title', type: 'string' },
 						{ value: 'post_name', label: 'Slug', type: 'string' },
-						{ value: 'post_status', label: 'Status', type: 'string' },
-						{ value: 'sku', label: 'SKU', type: 'string' },
+						{ value: 'post_status', label: 'Status (publish, draft, pending)', type: 'string' },
 						{ value: 'post_author', label: 'Author ID', type: 'number' },
-					],
-				},
-				{
-					label: 'Content',
-					options: [
 						{ value: 'post_content', label: 'Description', type: 'string' },
 						{ value: 'post_excerpt', label: 'Short Description', type: 'string' },
+						{ value: 'comment_status', label: 'Reviews Enabled', type: 'string' },
 					],
 				},
 				{
-					label: 'Pricing',
+					label: 'Product Data',
 					options: [
+						{ value: 'sku', label: 'SKU', type: 'string' },
 						{ value: 'regular_price', label: 'Regular Price', type: 'number' },
 						{ value: 'sale_price', label: 'Sale Price', type: 'number' },
-						{ value: 'date_on_sale_from', label: 'Sale Start Date', type: 'datetime' },
-						{ value: 'date_on_sale_to', label: 'Sale End Date', type: 'datetime' },
-						{ value: 'tax_status', label: 'Tax Status', type: 'string' },
-						{ value: 'tax_class', label: 'Tax Class', type: 'string' },
+						{ value: 'product_type', label: 'Product Type (simple, variable, grouped, external)', type: 'string' },
+						{ value: 'downloadable', label: 'Downloadable (yes, no)', type: 'string' },
+						{ value: 'virtual', label: 'Virtual (yes, no)', type: 'string' },
+						{ value: 'featured', label: 'Featured (yes, no)', type: 'string' },
+						{ value: 'visibility', label: 'Catalog Visibility', type: 'string' },
 					],
 				},
 				{
 					label: 'Inventory',
 					options: [
 						{ value: 'stock_quantity', label: 'Stock Quantity', type: 'number' },
-						{ value: 'stock_status', label: 'Stock Status', type: 'string' },
-						{ value: 'manage_stock', label: 'Manage Stock', type: 'boolean' },
-						{ value: 'backorders', label: 'Backorders', type: 'string' },
-						{ value: 'sold_individually', label: 'Sold Individually', type: 'boolean' },
-						{ value: 'low_stock_amount', label: 'Low Stock Threshold', type: 'number' },
+						{ value: 'stock_status', label: 'Stock Status (instock, outofstock, onbackorder)', type: 'string' },
+						{ value: 'manage_stock', label: 'Manage Stock (yes, no)', type: 'string' },
+						{ value: 'backorders', label: 'Backorders (yes, no, notify)', type: 'string' },
 					],
 				},
 				{
-					label: 'Product Type',
+					label: 'Tax',
 					options: [
-						{ value: 'product_type', label: 'Product Type', type: 'string' },
-						{ value: 'downloadable', label: 'Downloadable', type: 'boolean' },
-						{ value: 'virtual', label: 'Virtual', type: 'boolean' },
+						{ value: 'tax_status', label: 'Tax Status (taxable, shipping, none)', type: 'string' },
+						{ value: 'tax_class', label: 'Tax Class', type: 'string' },
 					],
 				},
 				{
@@ -1590,26 +1584,20 @@ const ImportModule = {
 					],
 				},
 				{
-					label: 'Media',
+					label: 'Images',
 					options: [
-						{ value: 'featured_image', label: 'Featured Image URL', type: 'string' },
 						{ value: 'featured_image_id', label: 'Featured Image ID', type: 'number' },
-						{ value: 'product_gallery', label: 'Gallery Image URLs', type: 'string' },
+						{ value: 'featured_image_url', label: 'Featured Image URL', type: 'url' },
+						{ value: 'featured_image_title', label: 'Featured Image Title', type: 'string' },
+						{ value: 'featured_image_caption', label: 'Featured Image Caption', type: 'string' },
+						{ value: 'product_gallery', label: 'Gallery Image IDs (comma-separated)', type: 'string' },
 					],
 				},
 				{
-					label: 'Linked Products',
+					label: 'Categories & Tags',
 					options: [
-						{ value: 'upsell_ids', label: 'Upsell IDs', type: 'string' },
-						{ value: 'cross_sell_ids', label: 'Cross-sell IDs', type: 'string' },
-						{ value: 'parent_id', label: 'Parent Product ID', type: 'number' },
-					],
-				},
-				{
-					label: 'Attributes',
-					options: [
-						{ value: 'attributes', label: 'Product Attributes', type: 'string' },
-						{ value: 'default_attributes', label: 'Default Attributes', type: 'string' },
+						{ value: 'product_cat', label: 'Categories (comma-separated)', type: 'string' },
+						{ value: 'product_tag', label: 'Tags (comma-separated)', type: 'string' },
 					],
 				},
 				{
@@ -1617,279 +1605,40 @@ const ImportModule = {
 					options: [
 						{ value: 'average_rating', label: 'Average Rating', type: 'number' },
 						{ value: 'review_count', label: 'Review Count', type: 'number' },
-						{ value: 'comment_status', label: 'Reviews Enabled', type: 'string' },
 					],
 				},
 				{
-					label: 'Visibility',
+					label: 'Stats',
 					options: [
-						{ value: 'featured', label: 'Featured', type: 'boolean' },
-						{ value: 'catalog_visibility', label: 'Catalog Visibility', type: 'string' },
 						{ value: 'total_sales', label: 'Total Sales', type: 'number' },
-						{ value: 'menu_order', label: 'Menu Order', type: 'number' },
 					],
 				},
 				{
 					label: 'Dates',
 					options: [
-						{ value: 'post_date', label: 'Created Date', type: 'datetime' },
-						{ value: 'post_modified', label: 'Modified Date', type: 'datetime' },
+						{ value: 'post_date', label: 'Created Date', type: 'date' },
+						{ value: 'post_modified', label: 'Modified Date', type: 'date' },
 					],
 				},
 				{
-					label: 'Taxonomies',
+					label: 'SEO (Yoast)',
 					options: [
-						{ value: 'taxonomy', label: 'Taxonomy', type: 'taxonomy', custom: true },
+						{ value: '_yoast_wpseo_title', label: 'SEO Title', type: 'string' },
+						{ value: '_yoast_wpseo_metadesc', label: 'Meta Description', type: 'string' },
+						{ value: '_yoast_wpseo_focuskw', label: 'Focus Keyword', type: 'string' },
+						{ value: '_yoast_wpseo_canonical', label: 'Canonical URL', type: 'url' },
+						{ value: '_yoast_wpseo_meta-robots-noindex', label: 'Meta Robots No Index', type: 'string' },
+						{ value: '_yoast_wpseo_meta-robots-nofollow', label: 'Meta Robots No Follow', type: 'string' },
+						{ value: '_yoast_wpseo_opengraph-title', label: 'OpenGraph Title', type: 'string' },
+						{ value: '_yoast_wpseo_opengraph-description', label: 'OpenGraph Description', type: 'string' },
+						{ value: '_yoast_wpseo_opengraph-image', label: 'OpenGraph Image', type: 'url' },
+						{ value: '_yoast_wpseo_twitter-title', label: 'Twitter Title', type: 'string' },
+						{ value: '_yoast_wpseo_twitter-description', label: 'Twitter Description', type: 'string' },
+						{ value: '_yoast_wpseo_twitter-image', label: 'Twitter Image', type: 'url' },
 					],
 				},
 				{
-					label: 'Custom Fields (Meta)',
-					options: [
-						{ value: 'meta', label: 'Custom Field', type: 'meta', custom: true },
-					],
-				},
-			];
-		}
-
-		// WooCommerce Orders
-		if ( contentType === 'woo_order' ) {
-			return [
-				{
-					label: 'Basic',
-					options: [
-						{ value: 'ID', label: 'Order ID', type: 'number' },
-						{ value: 'order_number', label: 'Order Number', type: 'string' },
-						{ value: 'order_key', label: 'Order Key', type: 'string' },
-						{ value: 'order_status', label: 'Order Status', type: 'string' },
-						{ value: 'currency', label: 'Currency', type: 'string' },
-						{ value: 'payment_method', label: 'Payment Method', type: 'string' },
-						{ value: 'payment_method_title', label: 'Payment Method Title', type: 'string' },
-						{ value: 'transaction_id', label: 'Transaction ID', type: 'string' },
-					],
-				},
-				{
-					label: 'Customer',
-					options: [
-						{ value: 'customer_id', label: 'Customer ID', type: 'number' },
-						{ value: 'billing_email', label: 'Billing Email', type: 'email' },
-						{ value: 'customer_note', label: 'Customer Note', type: 'string' },
-						{ value: 'customer_user_agent', label: 'User Agent', type: 'string' },
-						{ value: 'customer_ip_address', label: 'Customer IP', type: 'string' },
-					],
-				},
-				{
-					label: 'Billing Address',
-					options: [
-						{ value: 'billing_first_name', label: 'First Name', type: 'string' },
-						{ value: 'billing_last_name', label: 'Last Name', type: 'string' },
-						{ value: 'billing_company', label: 'Company', type: 'string' },
-						{ value: 'billing_address_1', label: 'Address Line 1', type: 'string' },
-						{ value: 'billing_address_2', label: 'Address Line 2', type: 'string' },
-						{ value: 'billing_city', label: 'City', type: 'string' },
-						{ value: 'billing_state', label: 'State/Province', type: 'string' },
-						{ value: 'billing_postcode', label: 'Postcode', type: 'string' },
-						{ value: 'billing_country', label: 'Country', type: 'string' },
-						{ value: 'billing_phone', label: 'Phone', type: 'string' },
-					],
-				},
-				{
-					label: 'Shipping Address',
-					options: [
-						{ value: 'shipping_first_name', label: 'First Name', type: 'string' },
-						{ value: 'shipping_last_name', label: 'Last Name', type: 'string' },
-						{ value: 'shipping_company', label: 'Company', type: 'string' },
-						{ value: 'shipping_address_1', label: 'Address Line 1', type: 'string' },
-						{ value: 'shipping_address_2', label: 'Address Line 2', type: 'string' },
-						{ value: 'shipping_city', label: 'City', type: 'string' },
-						{ value: 'shipping_state', label: 'State/Province', type: 'string' },
-						{ value: 'shipping_postcode', label: 'Postcode', type: 'string' },
-						{ value: 'shipping_country', label: 'Country', type: 'string' },
-					],
-				},
-				{
-					label: 'Order Items',
-					options: [
-						{ value: 'order_items', label: 'Order Items (JSON)', type: 'string' },
-						{ value: 'item_count', label: 'Item Count', type: 'number' },
-						{ value: 'shipping_lines', label: 'Shipping Lines (JSON)', type: 'string' },
-						{ value: 'fee_lines', label: 'Fee Lines (JSON)', type: 'string' },
-						{ value: 'coupon_lines', label: 'Coupon Lines (JSON)', type: 'string' },
-					],
-				},
-				{
-					label: 'Totals',
-					options: [
-						{ value: 'order_total', label: 'Order Total', type: 'number' },
-						{ value: 'order_subtotal', label: 'Subtotal', type: 'number' },
-						{ value: 'order_tax', label: 'Tax Total', type: 'number' },
-						{ value: 'cart_tax', label: 'Cart Tax', type: 'number' },
-						{ value: 'order_shipping', label: 'Shipping Total', type: 'number' },
-						{ value: 'shipping_tax', label: 'Shipping Tax', type: 'number' },
-						{ value: 'total_tax', label: 'Total Tax', type: 'number' },
-						{ value: 'order_discount', label: 'Discount', type: 'number' },
-					],
-				},
-				{
-					label: 'Shipping',
-					options: [
-						{ value: 'shipping_method', label: 'Shipping Method', type: 'string' },
-					],
-				},
-				{
-					label: 'Dates',
-					options: [
-						{ value: 'order_date', label: 'Order Date', type: 'datetime' },
-						{ value: 'date_modified', label: 'Date Modified', type: 'datetime' },
-						{ value: 'completed_date', label: 'Date Completed', type: 'datetime' },
-						{ value: 'paid_date', label: 'Date Paid', type: 'datetime' },
-					],
-				},
-				{
-					label: 'Other',
-					options: [
-						{ value: 'order_notes', label: 'Order Notes (JSON)', type: 'string' },
-						{ value: 'order_meta', label: 'Order Meta (JSON)', type: 'string' },
-					],
-				},
-				{
-					label: 'Custom Fields (Meta)',
-					options: [
-						{ value: 'meta', label: 'Custom Field', type: 'meta', custom: true },
-					],
-				},
-			];
-		}
-
-		// WooCommerce Coupons
-		if ( contentType === 'woo_coupon' ) {
-			return [
-				{
-					label: 'Basic',
-					options: [
-						{ value: 'post_title', label: 'Coupon Code', type: 'string', required: true },
-						{ value: 'post_excerpt', label: 'Description', type: 'string' },
-						{ value: 'post_status', label: 'Status', type: 'string' },
-						{ value: 'discount_type', label: 'Discount Type', type: 'string' },
-						{ value: 'coupon_amount', label: 'Coupon Amount', type: 'number' },
-						{ value: 'free_shipping', label: 'Free Shipping', type: 'boolean' },
-					],
-				},
-				{
-					label: 'Usage Restrictions',
-					options: [
-						{ value: 'minimum_amount', label: 'Minimum Spend', type: 'number' },
-						{ value: 'maximum_amount', label: 'Maximum Spend', type: 'number' },
-						{ value: 'individual_use', label: 'Individual Use Only', type: 'boolean' },
-						{ value: 'exclude_sale_items', label: 'Exclude Sale Items', type: 'boolean' },
-						{ value: 'product_ids', label: 'Product IDs', type: 'string' },
-						{ value: 'excluded_product_ids', label: 'Excluded Product IDs', type: 'string' },
-						{ value: 'product_categories', label: 'Product Categories', type: 'string' },
-						{ value: 'excluded_product_categories', label: 'Excluded Product Categories', type: 'string' },
-						{ value: 'allowed_emails', label: 'Allowed Emails', type: 'string' },
-					],
-				},			{
-				label: 'Usage Limits',
-				options: [
-					{ value: 'usage_count', label: 'Usage Count', type: 'number' },
-					{ value: 'usage_limit', label: 'Usage Limit Per Coupon', type: 'number' },
-					{ value: 'usage_limit_per_user', label: 'Usage Limit Per User', type: 'number' },
-					{ value: 'limit_usage_to_x_items', label: 'Limit Usage to X Items', type: 'number' },
-				],
-			},
-				{
-					label: 'Dates',
-					options: [
-						{ value: 'date_expires', label: 'Expiry Date', type: 'datetime' },
-						{ value: 'post_date', label: 'Date Created', type: 'datetime' },
-						{ value: 'post_modified', label: 'Date Modified', type: 'datetime' },
-					],
-				},
-				{
-					label: 'Custom Fields (Meta)',
-					options: [
-						{ value: 'meta', label: 'Custom Field', type: 'meta', custom: true },
-					],
-				},
-			];
-		}
-
-		// WooCommerce Attributes
-		if ( contentType === 'woo_attribute' ) {
-			return [
-				{
-					label: 'Attribute',
-					options: [
-						{ value: 'attribute_name', label: 'Attribute Name', type: 'string', required: true },
-						{ value: 'attribute_label', label: 'Attribute Label', type: 'string' },
-						{ value: 'attribute_type', label: 'Attribute Type', type: 'string' },
-						{ value: 'attribute_orderby', label: 'Order By', type: 'string' },
-						{ value: 'attribute_public', label: 'Enable Archives', type: 'boolean' },
-					],
-				},
-				{
-					label: 'Terms',
-					options: [
-						{ value: 'attribute_terms', label: 'Attribute Terms (JSON)', type: 'string' },
-					],
-				},
-			];
-		}
-
-	// Menus
-	if ( contentType === 'menu' ) {
-		return [
-			{
-				label: 'Menu',
-				options: [
-					{ value: 'name', label: 'Menu Name', type: 'string', required: true },
-					{ value: 'menu_items', label: 'Menu Items (Array)', type: 'json' },
-				],
-			},
-		];
-	}
-
-		// Comments
-		if ( contentType === 'comment' ) {
-			return [
-				{
-					label: 'Basic',
-					options: [
-						{ value: 'comment_ID', label: 'Comment ID', type: 'number' },
-						{ value: 'comment_post_ID', label: 'Post ID', type: 'number' },
-						{ value: 'comment_content', label: 'Comment Content', type: 'string' },
-						{ value: 'comment_approved', label: 'Status (0, 1, spam, trash)', type: 'string' },
-						{ value: 'comment_type', label: 'Type (comment, pingback, trackback)', type: 'string' },
-					],
-				},
-				{
-					label: 'Author',
-					options: [
-						{ value: 'comment_author', label: 'Author Name', type: 'string' },
-						{ value: 'comment_author_email', label: 'Author Email', type: 'email' },
-						{ value: 'comment_author_url', label: 'Author Website', type: 'url' },
-						{ value: 'comment_author_IP', label: 'Author IP', type: 'string' },
-						{ value: 'user_id', label: 'User ID', type: 'number' },
-					],
-				},
-				{
-					label: 'Dates',
-					options: [
-						{ value: 'comment_date', label: 'Comment Date', type: 'date' },
-						{ value: 'comment_date_gmt', label: 'Comment Date GMT', type: 'date' },
-					],
-				},
-				{
-					label: 'Other',
-					options: [
-						{ value: 'comment_parent', label: 'Parent Comment ID', type: 'number' },
-						{ value: 'comment_karma', label: 'Comment Karma', type: 'number' },
-						{ value: 'comment_agent', label: 'Comment Agent', type: 'string' },
-						{ value: 'post_title', label: 'Post Title (Reference)', type: 'string' },
-						{ value: 'post_author', label: 'Post Author (Reference)', type: 'number' },
-					],
-				},
-				{
-					label: 'Custom Fields (Comment Meta)',
+					label: 'Custom Fields (Product Meta)',
 					options: [
 						{ value: 'meta', label: 'Custom Field', type: 'meta', custom: true },
 					],
@@ -2872,21 +2621,6 @@ const ImportModule = {
 				{ value: 'post_content', label: window.aieData.i18n.fieldDescription || 'Description' },
 				{ value: 'post_excerpt', label: window.aieData.i18n.fieldCaption || 'Caption' },
 				{ value: 'alt_text', label: window.aieData.i18n.fieldAltText || 'Alt Text' },
-				{ value: 'file_url', label: window.aieData.i18n.fieldFileUrl || 'File URL' },
-				{ value: 'file_path', label: 'File Path' },
-				{ value: 'file_name', label: 'File Name' },
-				{ value: 'file_extension', label: 'File Extension' },
-				{ value: 'post_mime_type', label: 'MIME Type' },
-				{ value: 'file_size', label: 'File Size' },
-				{ value: 'width', label: 'Width' },
-				{ value: 'height', label: 'Height' },
-				{ value: 'post_date', label: window.aieData.i18n.fieldDate || 'Date' },
-				{ value: 'post_modified', label: 'Modified Date' },
-				{ value: 'post_author', label: window.aieData.i18n.fieldAuthor || 'Author' },
-				{ value: 'author_name', label: 'Author Name' },
-				{ value: 'author_email', label: 'Author Email' },
-				{ value: 'post_parent', label: 'Parent Post ID' },
-				{ value: 'attached_post_title', label: 'Attached Post Title' },
 				{ value: 'guid', label: 'GUID' },
 			],
 		};
