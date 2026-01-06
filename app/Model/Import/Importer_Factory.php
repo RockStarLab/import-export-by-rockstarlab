@@ -68,6 +68,8 @@ class Importer_Factory {
 			'custom_post_type' => Post_Importer::class,
 			'user'             => User_Importer::class,
 			'users'            => User_Importer::class,
+			'comment'          => Comment_Importer::class,
+			'comments'         => Comment_Importer::class,
 			'media'            => Media_Importer::class,
 			'menu'             => Menu_Importer::class,
 			'menus'            => Menu_Importer::class,

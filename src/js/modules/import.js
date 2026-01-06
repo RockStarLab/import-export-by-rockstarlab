@@ -1854,32 +1854,38 @@ const ImportModule = {
 				{
 					label: 'Basic',
 					options: [
+						{ value: 'comment_ID', label: 'Comment ID', type: 'number' },
+						{ value: 'comment_post_ID', label: 'Post ID', type: 'number' },
 						{ value: 'comment_content', label: 'Comment Content', type: 'string' },
-						{ value: 'comment_author', label: 'Author Name', type: 'string' },
-						{ value: 'comment_author_email', label: 'Author Email', type: 'email' },
-						{ value: 'comment_author_url', label: 'Author Website', type: 'url' },
-					],
-				},
-				{
-					label: 'Status',
-					options: [
 						{ value: 'comment_approved', label: 'Status (0, 1, spam, trash)', type: 'string' },
 						{ value: 'comment_type', label: 'Type (comment, pingback, trackback)', type: 'string' },
 					],
 				},
 				{
-					label: 'Post',
+					label: 'Author',
 					options: [
-						{ value: 'comment_post_ID', label: 'Post ID', type: 'number' },
+						{ value: 'comment_author', label: 'Author Name', type: 'string' },
+						{ value: 'comment_author_email', label: 'Author Email', type: 'email' },
+						{ value: 'comment_author_url', label: 'Author Website', type: 'url' },
+						{ value: 'comment_author_IP', label: 'Author IP', type: 'string' },
+						{ value: 'user_id', label: 'User ID', type: 'number' },
+					],
+				},
+				{
+					label: 'Dates',
+					options: [
+						{ value: 'comment_date', label: 'Comment Date', type: 'date' },
+						{ value: 'comment_date_gmt', label: 'Comment Date GMT', type: 'date' },
 					],
 				},
 				{
 					label: 'Other',
 					options: [
-						{ value: 'comment_date', label: 'Date', type: 'date' },
 						{ value: 'comment_parent', label: 'Parent Comment ID', type: 'number' },
-						{ value: 'comment_author_IP', label: 'Author IP', type: 'string' },
-						{ value: 'user_id', label: 'User ID', type: 'number' },
+						{ value: 'comment_karma', label: 'Comment Karma', type: 'number' },
+						{ value: 'comment_agent', label: 'Comment Agent', type: 'string' },
+						{ value: 'post_title', label: 'Post Title (Reference)', type: 'string' },
+						{ value: 'post_author', label: 'Post Author (Reference)', type: 'number' },
 					],
 				},
 				{
