@@ -116,6 +116,9 @@ class Init {
 
 		// Initialize cron manager
 		add_action( 'init', array( $this, 'init_cron_manager' ) );
+
+		// Handle welcome page redirect
+		add_action( 'admin_init', array( $this, 'welcome_redirect' ) );
 	}
 
 	/**
@@ -184,20 +187,21 @@ class Init {
 	 */
 	function load_admin_assets( $admin_page ) {
 
-		if ( ! in_array(
-			$admin_page,
-			array(
-				'toplevel_page_wp-advanced-import-export',
-				'advanced-import-export_page_wp-aie-export',
-				'advanced-import-export_page_wp-aie-content-sync',
-				'advanced-import-export_page_wp-aie-content-updater',
-				'advanced-import-export_page_wp-aie-jobs-log',
-				'advanced-import-export_page_wp-aie-media-sync',
-				'advanced-import-export_page_wp-aie-ai-url-importer',
-				'advanced-import-export_page_wp-aie-functions',
-				'advanced-import-export_page_wp-aie-plugin-options',
-			)
-		) ) {
+	if ( ! in_array(
+		$admin_page,
+		array(
+			'toplevel_page_wp-advanced-import-export',
+			'advanced-import-export_page_wp-aie-import',
+			'advanced-import-export_page_wp-aie-export',
+			'advanced-import-export_page_wp-aie-content-sync',
+			'advanced-import-export_page_wp-aie-content-updater',
+			'advanced-import-export_page_wp-aie-jobs-log',
+			'advanced-import-export_page_wp-aie-media-sync',
+			'advanced-import-export_page_wp-aie-ai-url-importer',
+			'advanced-import-export_page_wp-aie-functions',
+			'advanced-import-export_page_wp-aie-plugin-options',
+		)
+	) ) {
 			return;
 		}
 
@@ -933,26 +937,35 @@ class Init {
 	 */
 	function add_settings_pages() {
 
-		add_menu_page(
-			__( 'Advanced Import Export', 'wp-advanced-import-export' ),
-			__( 'Advanced Import Export', 'wp-advanced-import-export' ),
-			'manage_options',
-			'wp-advanced-import-export',
-			array( $this, 'display_settings_import_page' ),
-			'dashicons-update-alt',
-			99,
-		);
+	add_menu_page(
+		__( 'Advanced Import Export', 'wp-advanced-import-export' ),
+		__( 'Advanced Import Export', 'wp-advanced-import-export' ),
+		'manage_options',
+		'wp-advanced-import-export',
+		array( $this, 'display_welcome_page' ),
+		'dashicons-update-alt',
+		99,
+	);
 
-		add_submenu_page(
-			'wp-advanced-import-export',
-			__( 'Import', 'wp-advanced-import-export' ),
-			__( 'Import', 'wp-advanced-import-export' ),
-			'manage_options',
-			'wp-advanced-import-export',
-			array( $this, 'display_settings_import_page' )
-		);
+	add_submenu_page(
+		'wp-advanced-import-export',
+		__( 'Welcome', 'wp-advanced-import-export' ),
+		__( 'Welcome', 'wp-advanced-import-export' ) . ' 🎉',
+		'manage_options',
+		'wp-advanced-import-export',
+		array( $this, 'display_welcome_page' )
+	);
 
-		add_submenu_page(
+	add_submenu_page(
+		'wp-advanced-import-export',
+		__( 'Import', 'wp-advanced-import-export' ),
+		__( 'Import', 'wp-advanced-import-export' ),
+		'manage_options',
+		'wp-aie-import',
+		array( $this, 'display_settings_import_page' )
+	);
+
+	add_submenu_page(
 			'wp-advanced-import-export',
 			__( 'Export', 'wp-advanced-import-export' ),
 			__( 'Export', 'wp-advanced-import-export' ),
@@ -1086,5 +1099,28 @@ class Init {
 	 */
 	function display_plugin_options_page() {
 		WP_AIE()->View->load( 'settings/plugin_options' );
+	}
+
+	/**
+	 * Display Welcome Page
+	 */
+	function display_welcome_page() {
+		include WP_AIE_PATH . 'app/View/settings/welcome.php';
+	}
+
+	/**
+	 * Handle redirect to welcome page after activation
+	 */
+	function welcome_redirect() {
+		// Check if we should redirect
+		if ( get_transient( 'aie_activation_redirect' ) ) {
+			delete_transient( 'aie_activation_redirect' );
+			
+			// Don't redirect if activating multiple plugins at once
+			if ( ! isset( $_GET['activate-multi'] ) ) {
+				wp_safe_redirect( admin_url( 'admin.php?page=wp-advanced-import-export' ) );
+				exit;
+			}
+		}
 	}
 }
