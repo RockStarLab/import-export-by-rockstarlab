@@ -1647,27 +1647,34 @@ const ImportModule = {
 		}
 
 		// Taxonomy Terms
-		if ( contentType === 'taxonomy' ) {
+		if ( contentType === 'taxonomy' || contentType === 'taxonomy_term' || contentType === 'term' ) {
 			return [
 				{
 					label: 'Basic',
 					options: [
-						{ value: 'term_name', label: 'Name', type: 'string' },
-						{ value: 'term_slug', label: 'Slug', type: 'string' },
-						{ value: 'term_description', label: 'Description', type: 'string' },
+						{ value: 'term_id', label: 'Term ID', type: 'number' },
+						{ value: 'name', label: 'Name', type: 'string' },
+						{ value: 'slug', label: 'Slug', type: 'string' },
+						{ value: 'description', label: 'Description', type: 'string' },
 					],
 				},
 				{
 					label: 'Taxonomy',
 					options: [
 						{ value: 'taxonomy', label: 'Taxonomy', type: 'string' },
+						{ value: 'term_taxonomy_id', label: 'Term Taxonomy ID', type: 'number' },
 					],
 				},
 				{
 					label: 'Hierarchy',
 					options: [
-						{ value: 'parent_term_id', label: 'Parent Term ID', type: 'number' },
-						{ value: 'parent_term_slug', label: 'Parent Term Slug', type: 'string' },
+						{ value: 'parent', label: 'Parent Term ID', type: 'number' },
+					],
+				},
+				{
+					label: 'Stats',
+					options: [
+						{ value: 'count', label: 'Count', type: 'number' },
 					],
 				},
 				{
