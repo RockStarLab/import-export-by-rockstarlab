@@ -5,6 +5,7 @@
  */
 
 import Utils from './utils';
+import BackupWarningModal from './BackupWarningModal';
 
 const ContentUpdater = {
 	currentStep: 1,
@@ -186,6 +187,27 @@ const ContentUpdater = {
 			return;
 		}
 
+		// Show backup warning when leaving step 1 (content type selection)
+		if ( this.currentStep === 1 ) {
+			BackupWarningModal.show(
+				() => {
+					// User confirmed backup - proceed to next step
+					this.proceedToNextStep();
+				},
+				() => {
+					// User cancelled - stay on current step
+				}
+			);
+			return;
+		}
+
+		this.proceedToNextStep();
+	},
+
+	/**
+	 * Proceed to next step (after validation and backup warning)
+	 */
+	proceedToNextStep() {
 		// Save filters when leaving step 2
 		if ( this.currentStep === 2 ) {
 			this.selectedFilters = this.collectFilters();
@@ -1596,6 +1618,22 @@ const ContentUpdater = {
 			return;
 		}
 
+		// Show backup warning modal before starting update
+		BackupWarningModal.show(
+			() => {
+				// User confirmed backup - proceed with update
+				this.executeUpdate( contentType, itemsPerIteration );
+			},
+			() => {
+				// User cancelled - do nothing
+			}
+		);
+	},
+
+	/**
+	 * Execute update process (after backup confirmation)
+	 */
+	executeUpdate( contentType, itemsPerIteration ) {
 		// Prepare field functions array (indexed by field position)
 		const fieldFunctionsArray = this.selectedFields.map( field => this.fieldFunctions[ field ] || [] );
 

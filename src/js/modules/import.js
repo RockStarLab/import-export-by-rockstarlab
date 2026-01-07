@@ -6,6 +6,7 @@
 
 import Utils from './utils';
 import FileUploader from './FileUploader';
+import BackupWarningModal from './BackupWarningModal';
 
 const ImportModule = {
 	// Current wizard state
@@ -205,6 +206,23 @@ const ImportModule = {
 	 */
 	nextStep() {
 		if ( this.currentStep < this.totalSteps ) {
+			// Show backup warning when leaving step 1 (content type selection)
+			if ( this.currentStep === 1 ) {
+				BackupWarningModal.show(
+					() => {
+						// User confirmed backup - proceed to next step
+						if ( this.validateStep( this.currentStep ) ) {
+							this.showStep( this.currentStep + 1 );
+						}
+					},
+					() => {
+						// User cancelled - stay on current step
+						// Do nothing
+					}
+				);
+				return;
+			}
+
 			// Validate current step
 			if ( this.validateStep( this.currentStep ) ) {
 				this.showStep( this.currentStep + 1 );
