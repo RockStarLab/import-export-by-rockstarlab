@@ -28,6 +28,10 @@ $is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
 					<span class="dashicons dashicons-star-filled"></span>
 					<?php esc_html_e( 'Upgrade to Premium', 'wp-advanced-import-export' ); ?>
 				</a>
+				<a href="<?php echo esc_url( admin_url( 'plugins.php?aie-activate-license=1' ) ); ?>" class="button button-secondary button-large">
+					<span class="dashicons dashicons-admin-network"></span>
+					<?php esc_html_e( 'Activate License', 'wp-advanced-import-export' ); ?>
+				</a>
 			<?php endif; ?>
 		</div>
 	</div>

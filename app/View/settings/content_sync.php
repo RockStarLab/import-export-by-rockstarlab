@@ -24,12 +24,15 @@ $is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
 			<span class="dashicons dashicons-lock"></span>
 		</div>
 		<div class="aie-premium-notice-content">
-			<h3><?php esc_html_e( 'Premium Feature', 'wp-advanced-import-export' ); ?></h3>
-			<p><?php esc_html_e( 'In the Premium version, you can synchronize ALL Pages and Custom Post Types between WordPress sites. Free version supports Posts synchronization only.', 'wp-advanced-import-export' ); ?></p>
+			<h3><?php esc_html_e( 'Premium Feature', 'wp-advanced-import-export' ); ?></h3>			<p><?php esc_html_e( 'In the Premium version, you can synchronize ALL Pages and Custom Post Types between WordPress sites. Free version supports Posts synchronization only.', 'wp-advanced-import-export' ); ?></p>
 			<?php if ( function_exists( 'waie_fs' ) ) : ?>
 				<a href="<?php echo esc_url( waie_fs()->get_upgrade_url() ); ?>" class="button button-primary button-large">
 					<span class="dashicons dashicons-star-filled"></span>
 					<?php esc_html_e( 'Upgrade to Premium', 'wp-advanced-import-export' ); ?>
+				</a>
+				<a href="<?php echo esc_url( admin_url( 'plugins.php?aie-activate-license=1' ) ); ?>" class="button button-secondary button-large">
+					<span class="dashicons dashicons-admin-network"></span>
+					<?php esc_html_e( 'Activate License', 'wp-advanced-import-export' ); ?>
 				</a>
 			<?php endif; ?>
 		</div>

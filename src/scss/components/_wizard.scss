@@ -5,30 +5,31 @@
 // Premium Notice Banner
 .wp-advanced-import-export {
 	.aie-premium-notice {
-		display: flex;
-		gap: 20px;
 		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-		color: #fff;
-		padding: 25px 30px;
 		border-radius: 8px;
-		margin: 20px 0;
-		box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+		padding: 30px;
+		margin: 20px 0 30px 0;
+		display: flex;
 		align-items: center;
+		gap: 25px;
+		box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+		color: #fff;
 
 		.aie-premium-notice-icon {
 			flex-shrink: 0;
-			width: 60px;
-			height: 60px;
+			width: 70px;
+			height: 70px;
 			background: rgba(255, 255, 255, 0.2);
 			border-radius: 50%;
 			display: flex;
 			align-items: center;
 			justify-content: center;
+			backdrop-filter: blur(10px);
 
 			.dashicons {
-				font-size: 32px;
-				width: 32px;
-				height: 32px;
+				font-size: 36px;
+				width: 36px;
+				height: 36px;
 				color: #fff;
 			}
 		}
@@ -37,15 +38,15 @@
 			flex: 1;
 
 			h3 {
-				margin: 0 0 10px;
-				font-size: 20px;
+				margin: 0 0 10px 0;
+				font-size: 24px;
 				font-weight: 600;
 				color: #fff;
 			}
 
 			p {
-				margin: 0 0 15px;
-				font-size: 14px;
+				margin: 0 0 20px 0;
+				font-size: 15px;
 				line-height: 1.6;
 				color: rgba(255, 255, 255, 0.95);
 			}
@@ -54,12 +55,13 @@
 				background: #fff;
 				color: #667eea;
 				border: none;
+				padding: 10px 25px;
+				font-size: 15px;
 				font-weight: 600;
-				padding: 8px 20px;
-				height: auto;
-				line-height: 1.5;
+				border-radius: 5px;
 				box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-				transition: all 0.2s;
+				transition: all 0.3s ease;
+				margin: 0 5px;
 
 				&:hover {
 					background: #f8f9ff;
@@ -69,10 +71,88 @@
 				}
 
 				.dashicons {
-					color: #f59e0b;
+					color: #667eea;
+					margin-top: 3px;
+				}
+			}
+		}
+
+		// Mobile responsive styles
+		@media (max-width: 768px) {
+			flex-direction: column;
+			text-align: center;
+			padding: 25px 20px;
+			gap: 20px;
+
+			.aie-premium-notice-icon {
+				width: 60px;
+				height: 60px;
+
+				.dashicons {
+					font-size: 30px;
+					width: 30px;
+					height: 30px;
+				}
+			}
+
+			.aie-premium-notice-content {
+				h3 {
+					font-size: 20px;
+				}
+
+				p {
+					font-size: 14px;
+					margin: 0 0 15px 0;
+				}
+
+				.button {
+					display: inline-flex;
+					align-items: center;
+					justify-content: center;
+					gap: 8px;
+					width: 100%;
+					margin-bottom: 10px;
+					padding: 12px 20px;
+					font-size: 14px;
+
+					&:last-child {
+						margin-bottom: 0;
+					}
+
+					.dashicons {
+						margin-top: 0;
+					}
+				}
+			}
+		}
+
+		// Extra small mobile
+		@media (max-width: 480px) {
+			padding: 20px 15px;
+
+			.aie-premium-notice-icon {
+				width: 50px;
+				height: 50px;
+
+				.dashicons {
+					font-size: 26px;
+					width: 26px;
+					height: 26px;
+				}
+			}
+
+			.aie-premium-notice-content {
+				h3 {
 					font-size: 18px;
-					width: 18px;
-					height: 18px;
+				}
+
+				p {
+					font-size: 13px;
+				}
+
+				.button {
+					padding: 10px 15px;
+					font-size: 13px;
 				}
 			}
 		}
@@ -82,7 +162,7 @@
 // Wizard Container
 .wp-advanced-import-export {
 	max-width: 1200px;
-	margin: 20px 0;
+	margin: 20px 15px 20px 0;
 
 	.aie-import-wizard,
 	.aie-export-wizard,
