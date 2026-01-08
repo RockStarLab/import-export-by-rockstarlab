@@ -182,19 +182,23 @@ abstract class Model {
 		$values     = [];
 
 		foreach ( $where as $column => $value ) {
-			$conditions[] = "{$column} = %s";
+			$conditions[] = sanitize_key( $column ) . ' = %s';
 			$values[]     = $value;
 		}
 
+		$table = esc_sql( $table );
+
 		if ( empty( $conditions ) ) {
 			// No WHERE conditions, return total count
-			$query = "SELECT COUNT(*) FROM {$table}";
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$query = "SELECT COUNT(*) FROM `{$table}`";
 			return (int) $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		}
 
 		$where_clause = implode( ' AND ', $conditions );
 		// Use array spread operator to pass values as separate arguments
-		$query        = $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE {$where_clause}", ...$values );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$query = $wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE {$where_clause}", ...$values );
 
 		return (int) $wpdb->get_var( $query );
 	}

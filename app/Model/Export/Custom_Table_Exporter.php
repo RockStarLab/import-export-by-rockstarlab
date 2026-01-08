@@ -126,9 +126,12 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 			return 0;
 		}
 
-		$where_clause = $this->build_where_clause( $options['filters'] ?? [] );
+		$table_name   = sanitize_text_field( $options['table_name'] );
+		$where_clause = $this->build_where_clause( $options['filters'] ?? [], $table_name );
 
-		$query = "SELECT COUNT(*) FROM `{$options['table_name']}`";
+		// Build query with prepared statement
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$query = $wpdb->prepare( 'SELECT COUNT(*) FROM `%1s`', $table_name );
 		if ( ! empty( $where_clause ) ) {
 			$query .= ' WHERE ' . $where_clause;
 		}
@@ -154,18 +157,21 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 			return [];
 		}
 
-		$where_clause = $this->build_where_clause( $options['filters'] ?? [] );
+		$table_name   = sanitize_text_field( $options['table_name'] );
+		$where_clause = $this->build_where_clause( $options['filters'] ?? [], $table_name );
 
-		$query = "SELECT * FROM `{$options['table_name']}`";
+		// Build query with prepared statement
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$query = $wpdb->prepare( 'SELECT * FROM `%1s`', $table_name );
 		if ( ! empty( $where_clause ) ) {
 			$query .= ' WHERE ' . $where_clause;
 		}
 
 		// Add limit and offset
 		if ( ! empty( $options['limit'] ) ) {
-			$query .= ' LIMIT ' . absint( $options['limit'] );
+			$query .= $wpdb->prepare( ' LIMIT %d', absint( $options['limit'] ) );
 			if ( ! empty( $options['offset'] ) ) {
-				$query .= ' OFFSET ' . absint( $options['offset'] );
+				$query .= $wpdb->prepare( ' OFFSET %d', absint( $options['offset'] ) );
 			}
 		}
 
@@ -218,10 +224,11 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 	/**
 	 * Build WHERE clause from filters
 	 *
-	 * @param array $filters Filter array
+	 * @param array  $filters    Filter array
+	 * @param string $table_name Table name for field escaping
 	 * @return string
 	 */
-	private function build_where_clause( $filters ) {
+	private function build_where_clause( $filters, $table_name = '' ) {
 		if ( empty( $filters ) ) {
 			return '';
 		}
@@ -234,7 +241,7 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 				continue;
 			}
 
-			$field     = $filter['field'];
+			$field     = sanitize_key( $filter['field'] );
 			$condition = $filter['condition'];
 			$value     = $filter['value'] ?? '';
 
@@ -246,17 +253,21 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 				case 'equals':
 					if ( $is_date_field ) {
 						// For date fields, compare only the date part
-						$conditions[] = $wpdb->prepare( "DATE(`{$field}`) = %s", $value );
+						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						$conditions[] = $wpdb->prepare( 'DATE(`' . esc_sql( $field ) . '`) = %s', $value );
 					} else {
-						$conditions[] = $wpdb->prepare( "`{$field}` = %s", $value );
+						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						$conditions[] = $wpdb->prepare( '`' . esc_sql( $field ) . '` = %s', $value );
 					}
 					break;
 				case 'not_equals':
 					if ( $is_date_field ) {
 						// For date fields, compare only the date part
-						$conditions[] = $wpdb->prepare( "DATE(`{$field}`) != %s", $value );
+						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						$conditions[] = $wpdb->prepare( 'DATE(`' . esc_sql( $field ) . '`) != %s', $value );
 					} else {
-						$conditions[] = $wpdb->prepare( "`{$field}` != %s", $value );
+						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						$conditions[] = $wpdb->prepare( '`' . esc_sql( $field ) . '` != %s', $value );
 					}
 					break;
 				case 'in':
@@ -272,7 +283,8 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 					$values = array_filter( $values ); // Remove empty values
 					if ( ! empty( $values ) ) {
 						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
-						$conditions[] = $wpdb->prepare( "`{$field}` IN ($placeholders)", $values );
+						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						$conditions[] = $wpdb->prepare( '`' . esc_sql( $field ) . "` IN ($placeholders)", $values );
 					}
 					break;
 				case 'not_in':
@@ -288,63 +300,79 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 					$values = array_filter( $values ); // Remove empty values
 					if ( ! empty( $values ) ) {
 						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
-						$conditions[] = $wpdb->prepare( "`{$field}` NOT IN ($placeholders)", $values );
+						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						$conditions[] = $wpdb->prepare( '`' . esc_sql( $field ) . "` NOT IN ($placeholders)", $values );
 					}
 					break;
 				case 'contains':
-					$conditions[] = $wpdb->prepare( "`{$field}` LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' );
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$conditions[] = $wpdb->prepare( '`' . esc_sql( $field ) . '` LIKE %s', '%' . $wpdb->esc_like( $value ) . '%' );
 					break;
 				case 'not_contains':
-					$conditions[] = $wpdb->prepare( "`{$field}` NOT LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' );
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$conditions[] = $wpdb->prepare( '`' . esc_sql( $field ) . '` NOT LIKE %s', '%' . $wpdb->esc_like( $value ) . '%' );
 					break;
 				case 'starts_with':
-					$conditions[] = $wpdb->prepare( "`{$field}` LIKE %s", $wpdb->esc_like( $value ) . '%' );
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$conditions[] = $wpdb->prepare( '`' . esc_sql( $field ) . '` LIKE %s', $wpdb->esc_like( $value ) . '%' );
 					break;
 				case 'ends_with':
-					$conditions[] = $wpdb->prepare( "`{$field}` LIKE %s", '%' . $wpdb->esc_like( $value ) );
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$conditions[] = $wpdb->prepare( '`' . esc_sql( $field ) . '` LIKE %s', '%' . $wpdb->esc_like( $value ) );
 					break;
 				case 'greater':
 				case 'greater_than':
 					if ( $is_date_field ) {
-						$conditions[] = $wpdb->prepare( "DATE(`{$field}`) > %s", $value );
+						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						$conditions[] = $wpdb->prepare( 'DATE(`' . esc_sql( $field ) . '`) > %s', $value );
 					} else {
-						$conditions[] = $wpdb->prepare( "`{$field}` > %s", $value );
+						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						$conditions[] = $wpdb->prepare( '`' . esc_sql( $field ) . '` > %s', $value );
 					}
 					break;
 				case 'less':
 				case 'less_than':
 					if ( $is_date_field ) {
-						$conditions[] = $wpdb->prepare( "DATE(`{$field}`) < %s", $value );
+						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						$conditions[] = $wpdb->prepare( 'DATE(`' . esc_sql( $field ) . '`) < %s', $value );
 					} else {
-						$conditions[] = $wpdb->prepare( "`{$field}` < %s", $value );
+						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						$conditions[] = $wpdb->prepare( '`' . esc_sql( $field ) . '` < %s', $value );
 					}
 					break;
 				case 'equals_or_greater':
 				case 'greater_or_equal':
 					if ( $is_date_field ) {
-						$conditions[] = $wpdb->prepare( "DATE(`{$field}`) >= %s", $value );
+						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						$conditions[] = $wpdb->prepare( 'DATE(`' . esc_sql( $field ) . '`) >= %s', $value );
 					} else {
-						$conditions[] = $wpdb->prepare( "`{$field}` >= %s", $value );
+						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						$conditions[] = $wpdb->prepare( '`' . esc_sql( $field ) . '` >= %s', $value );
 					}
 					break;
 				case 'equals_or_less':
 				case 'less_or_equal':
 					if ( $is_date_field ) {
-						$conditions[] = $wpdb->prepare( "DATE(`{$field}`) <= %s", $value );
+						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						$conditions[] = $wpdb->prepare( 'DATE(`' . esc_sql( $field ) . '`) <= %s', $value );
 					} else {
-						$conditions[] = $wpdb->prepare( "`{$field}` <= %s", $value );
+						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						$conditions[] = $wpdb->prepare( '`' . esc_sql( $field ) . '` <= %s', $value );
 					}
 					break;
 				case 'is_empty':
-					$conditions[] = "(`{$field}` IS NULL OR `{$field}` = '')";
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$conditions[] = '(`' . esc_sql( $field ) . '` IS NULL OR `' . esc_sql( $field ) . "` = '')";
 					break;
 				case 'is_not_empty':
-					$conditions[] = "(`{$field}` IS NOT NULL AND `{$field}` != '')";
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$conditions[] = '(`' . esc_sql( $field ) . '` IS NOT NULL AND `' . esc_sql( $field ) . "` != '')";
 					break;
 				case 'between':
 					if ( ! empty( $filter['value_from'] ) && ! empty( $filter['value_to'] ) ) {
+						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 						$conditions[] = $wpdb->prepare(
-							"`{$field}` BETWEEN %s AND %s",
+							'`' . esc_sql( $field ) . '` BETWEEN %s AND %s',
 							$filter['value_from'],
 							$filter['value_to']
 						);

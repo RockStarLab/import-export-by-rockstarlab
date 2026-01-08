@@ -514,7 +514,8 @@ class Database_Migration {
 		];
 
 		foreach ( $tables as $table ) {
-			$wpdb->query( "DROP TABLE IF EXISTS {$table}" );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS `%1s`', $table ) );
 		}
 
 		// Delete DB version option
@@ -534,7 +535,7 @@ class Database_Migration {
 		$prefix = $wpdb->prefix;
 		$table  = "{$prefix}aie_jobs";
 
-		$result = $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" );
+		$result = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
 
 		return $result === $table;
 	}

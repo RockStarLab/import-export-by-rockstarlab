@@ -544,6 +544,7 @@ class Comment_Importer extends Abstract_Importer {
 		);
 
 		if ( $post_id ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$query = $wpdb->prepare(
 				"SELECT comment_ID FROM {$wpdb->comments} WHERE comment_content = %s AND comment_post_ID = %d",
 				$content,
@@ -551,6 +552,7 @@ class Comment_Importer extends Abstract_Importer {
 			);
 		}
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$comment_id = $wpdb->get_var( $query );
 
 		return $comment_id ? absint( $comment_id ) : null;

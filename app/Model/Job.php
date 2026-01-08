@@ -341,17 +341,21 @@ class Job extends Model {
 		
 		if ( ! empty( $where ) ) {
 			foreach ( $where as $key => $value ) {
-				$where_conditions[] = "{$key} = %s";
-				$where_values[] = $value;
+				$where_conditions[] = sanitize_key( $key ) . ' = %s';
+				$where_values[]     = $value;
 			}
 			$where_sql = implode( ' AND ', $where_conditions );
 		} else {
 			$where_sql = '1=1';
 		}
 
+		$table = esc_sql( $table );
+		$order = esc_sql( $order );
+
 		// Prepare the query with all values
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$sql = $wpdb->prepare(
-			"SELECT * FROM {$table} WHERE {$where_sql} ORDER BY {$order} LIMIT %d OFFSET %d",
+			"SELECT * FROM `{$table}` WHERE {$where_sql} ORDER BY {$order} LIMIT %d OFFSET %d",
 			array_merge( $where_values, [ $limit, $offset ] )
 		);
 
@@ -370,21 +374,25 @@ class Job extends Model {
 
 		// Build WHERE clause and collect values
 		$where_conditions = [];
-		$where_values = [];
+		$where_values     = [];
 		
 		if ( ! empty( $where ) ) {
 			foreach ( $where as $key => $value ) {
-				$where_conditions[] = "{$key} = %s";
-				$where_values[] = $value;
+				$where_conditions[] = sanitize_key( $key ) . ' = %s';
+				$where_values[]     = $value;
 			}
 			$where_sql = implode( ' AND ', $where_conditions );
 			
+			$table = esc_sql( $table );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$sql = $wpdb->prepare(
-				"SELECT COUNT(*) FROM {$table} WHERE {$where_sql}",
+				"SELECT COUNT(*) FROM `{$table}` WHERE {$where_sql}",
 				...$where_values
 			);
 		} else {
-			$sql = "SELECT COUNT(*) FROM {$table}";
+			$table = esc_sql( $table );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$sql = "SELECT COUNT(*) FROM `{$table}`";
 		}
 
 		return (int) $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared

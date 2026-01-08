@@ -25,8 +25,10 @@ delete_option( 'aie_plugin_version' );
 
 // Clean up transients
 global $wpdb;
-$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_aie_%'" );
-$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_timeout_aie_%'" );
+// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+$wpdb->query( $wpdb->prepare( "DELETE FROM `{$wpdb->options}` WHERE option_name LIKE %s", '_transient_aie_%' ) );
+// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+$wpdb->query( $wpdb->prepare( "DELETE FROM `{$wpdb->options}` WHERE option_name LIKE %s", '_transient_timeout_aie_%' ) );
 
 // Clean up uploaded files directory
 $upload_dir = wp_upload_dir();

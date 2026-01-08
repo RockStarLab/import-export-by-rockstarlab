@@ -217,8 +217,16 @@ class Database_Table_Exporter extends Abstract_Exporter {
 		global $wpdb;
 		$table_name = sanitize_text_field( $options['table_name'] );
 
+		// Validate table name exists
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) );
+		if ( ! $table_exists ) {
+			return 0;
+		}
+
 		// Fetch all rows for filtering
-		$rows = $wpdb->get_results( "SELECT * FROM `{$table_name}`", ARRAY_A );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM `%1s`', $table_name ), ARRAY_A );
 
 		if ( empty( $rows ) ) {
 			return 0;
@@ -275,7 +283,8 @@ class Database_Table_Exporter extends Abstract_Exporter {
 		$this->log_info( "Querying table: {$table_name}" );
 
 		// Fetch all rows
-		$rows = $wpdb->get_results( "SELECT * FROM `{$table_name}`", ARRAY_A );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM `%1s`', $table_name ), ARRAY_A );
 
 		if ( empty( $rows ) ) {
 			return [];
