@@ -15,28 +15,32 @@ $is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
 ?>
 
 <div id="wp-aie-export" class="wp-advanced-import-export wrap">
-<h1><?php esc_html_e( 'Export Data', 'wp-advanced-import-export' ); ?></h1>
+	<h1><?php esc_html_e( 'Export Data', 'wp-advanced-import-export' ); ?></h1>
 
-<?php if ( ! $is_premium ) : ?>
-<!-- Premium Notice -->
-<div class="aie-premium-notice">
-	<div class="aie-premium-notice-icon">
-		<span class="dashicons dashicons-lock"></span>
+	<?php if ( ! $is_premium ) : ?>
+	<!-- Premium Notice -->
+	<div class="aie-premium-notice">
+		<div class="aie-premium-notice-icon">
+			<span class="dashicons dashicons-lock"></span>
+		</div>
+		<div class="aie-premium-notice-content">
+			<h3><?php esc_html_e( 'Premium Feature Available', 'wp-advanced-import-export' ); ?></h3>
+			<p><?php esc_html_e( 'Export advanced content types with Premium version. Unlock the ability to export Custom Post Types, Media, Menus, Users, Comments, Taxonomy Terms, WooCommerce content and Any Database Table.', 'wp-advanced-import-export' ); ?></p>
+			<?php if ( function_exists( 'waie_fs' ) ) : ?>
+				<a href="<?php echo esc_url( waie_fs()->get_upgrade_url() ); ?>" class="button button-primary button-large">
+					<span class="dashicons dashicons-star-filled"></span>
+					<?php esc_html_e( 'Upgrade to Premium', 'wp-advanced-import-export' ); ?>
+				</a>
+				<a href="<?php echo esc_url( admin_url( 'plugins.php?aie-activate-license=1' ) ); ?>" class="button button-secondary button-large">
+					<span class="dashicons dashicons-admin-network"></span>
+					<?php esc_html_e( 'Activate License', 'wp-advanced-import-export' ); ?>
+				</a>
+			<?php endif; ?>
+		</div>
 	</div>
-	<div class="aie-premium-notice-content">
-		<h3><?php esc_html_e( 'Premium Feature Available', 'wp-advanced-import-export' ); ?></h3>
-		<p><?php esc_html_e( 'Export advanced content types with Premium version. Unlock the ability to export Custom Post Types, Media, Menus, Users, Comments, Taxonomy Terms, WooCommerce content and Any Database Table.', 'wp-advanced-import-export' ); ?></p>
-		<?php if ( function_exists( 'waie_fs' ) ) : ?>
-			<a href="<?php echo esc_url( waie_fs()->get_upgrade_url() ); ?>" class="button button-primary button-large">
-				<span class="dashicons dashicons-star-filled"></span>
-				<?php esc_html_e( 'Upgrade to Premium', 'wp-advanced-import-export' ); ?>
-			</a>
-		<?php endif; ?>
-	</div>
-</div>
-<?php endif; ?>
+	<?php endif; ?>
 
-<div class="aie-export-wizard">
+	<div class="aie-export-wizard">
 
 <?php if ( $resume_job_id ) : ?>
 	<style>

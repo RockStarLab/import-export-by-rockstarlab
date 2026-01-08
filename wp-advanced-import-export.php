@@ -96,6 +96,38 @@ if ( ! function_exists( 'waie_fs' ) ) {
 // Run the plugin
 WP_AIE()->run();
 
+// Handle license activation trigger on plugins page
+add_action( 'admin_footer-plugins.php', function() {
+	if ( ! isset( $_GET['aie-activate-license'] ) ) {
+		return;
+	}
+	?>
+	<script type="text/javascript">
+	jQuery(document).ready(function($) {
+		// Wait for page to fully load, then trigger Freemius activation
+		setTimeout(function() {
+			// Find the Freemius activation link for our plugin
+			var $activateLink = $('tr[data-slug="wp-advanced-import-export"] .fs-activate-license-trigger');
+			
+			if ($activateLink.length) {
+				// Trigger click on Freemius activation link
+				$activateLink[0].click();
+			} else {
+				// Fallback - look for any activation link in our plugin row
+				$('tr[data-slug="wp-advanced-import-export"] a').each(function() {
+					if ($(this).text().toLowerCase().indexOf('activate') !== -1 || 
+					    $(this).hasClass('fs-activate-license-trigger')) {
+						this.click();
+						return false;
+					}
+				});
+			}
+		}, 500);
+	});
+	</script>
+	<?php
+} );
+
 // Activation hook - create database tables
 register_activation_hook(
 	WP_AIE_FILE,
