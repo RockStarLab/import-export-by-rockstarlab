@@ -187,81 +187,20 @@ class Function_Executor {
 	 * @return mixed Transformed value or original on error
 	 */
 	public function execute_in_sandbox( $code, $value, $context = [], $function_id = 0 ) {
-		// Validate code security
-		$validation = $this->validate_function_code( $code );
-		if ( is_wp_error( $validation ) ) {
-			return $value;
+		// Use Safe_Code_Executor instead of eval()
+		require_once WP_AIE_PATH . 'app/Helper/Safe_Code_Executor.php';
+
+		$result = Safe_Code_Executor::execute( $code, $value );
+
+		if ( $result['error'] ) {
+			// Log error if function_id provided
+			if ( $function_id > 0 ) {
+				error_log( "AIE Function #{$function_id} error: " . $result['message'] );
+			}
+			return $value; // Return original value on error
 		}
 
-		// Set timeout
-		$original_time_limit = ini_get( 'max_execution_time' );
-		@set_time_limit( $this->timeout ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-
-		// Remove PHP tags if present (eval doesn't need them)
-		$clean_code = preg_replace( '/<\?php\s*/', '', $code );
-		$clean_code = preg_replace( '/<\?\s*/', '', $clean_code );
-		$clean_code = preg_replace( '/\?>/', '', $clean_code );
-		$clean_code = trim( $clean_code );
-
-		// Check if code is a complete function definition
-		$is_function = preg_match( '/^function\s+(\w+)\s*\(/i', $clean_code, $matches );
-
-		$result = $value; // Default to original value
-
-		try {
-			if ( $is_function ) {
-				// For function definitions, convert to anonymous function to avoid redeclaration errors
-				$function_name = $matches[1];
-
-				// Extract function body
-				// Replace function name with anonymous function
-				$anonymous_code  = preg_replace(
-					'/^function\s+' . preg_quote( $function_name, '/' ) . '\s*\(/i',
-					'$func = function(',
-					$clean_code,
-					1
-				);
-				$anonymous_code .= ';';
-
-				// Execute anonymous function definition
-				// phpcs:ignore Squiz.PHP.Eval.Discouraged
-				eval( $anonymous_code );
-
-				// Call the anonymous function if it exists
-				if ( isset( $func ) && is_callable( $func ) ) {
-					$result = $func( $value, $context );
-				}
-			} else {
-				// For non-function code (expressions), wrap in anonymous function
-				// Create isolated scope
-				$execute = function () use ( $clean_code, $value, $context ) {
-					// Make context variables available
-					if ( ! empty( $context ) ) {
-						extract( $context, EXTR_SKIP ); // phpcs:ignore WordPress.PHP.DontExtract.extract_extract
-					}
-
-					// Execute the code - it should return a value
-					// phpcs:ignore Squiz.PHP.Eval.Discouraged
-					return eval( $clean_code );
-				};
-
-				$result = $execute();
-			}
-
-			// Restore time limit
-			@set_time_limit( (int) $original_time_limit ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-
-		} catch ( \ParseError $e ) {
-			$result = $value;
-
-		} catch ( \Error $e ) {
-			$result = $value;
-
-	} catch ( \Exception $e ) {
-		$result = $value;
-	}
-
-	return $result;
+		return $result['output'];
 	}
 	/**
 	 * Validate function code for security issues
@@ -330,50 +269,16 @@ class Function_Executor {
 			}
 		}
 
-		// Advanced validation: Try to actually evaluate the code syntax
-		// This catches errors that token_get_all misses
-		// NOTE: eval() does NOT need <?php tag, it expects pure PHP code
-		$validation_code = sprintf(
-			'return true; if(false) { %s }',
-			$clean_code
-		);
+		// Use Safe_Code_Executor for validation instead of eval()
+		require_once WP_AIE_PATH . 'app/Helper/Safe_Code_Executor.php';
+		$test_result = Safe_Code_Executor::execute( $clean_code, 'test_value' );
 
-		$old_error_handler = set_error_handler(
-			function ( $errno, $errstr ) {
-				// Capture the error
-				return true;
-			}
-		);
-
-		$syntax_error = null;
-		ob_start();
-
-		$result = eval( $validation_code ); // phpcs:ignore Squiz.PHP.Eval.Discouraged
-		$output = ob_get_clean();
-
-		// Check for parse errors
-		$error = error_get_last();
-		if ( $error && ( E_PARSE === $error['type'] || E_COMPILE_ERROR === $error['type'] ) ) {
-			$syntax_error = $error['message'];
-		}
-
-		// Restore error handler
-		if ( $old_error_handler ) {
-			set_error_handler( $old_error_handler );
-		} else {
-			restore_error_handler();
-		}
-
-		if ( $syntax_error ) {
-			// Clean up the error message
-			$syntax_error = preg_replace( "/eval\(\)'d code/", 'code', $syntax_error );
+		if ( $test_result['error'] ) {
+			$error_message = $test_result['message'] ?? __( 'The function code contains errors. Please check your PHP syntax.', 'wp-advanced-import-export' );
+			
 			return new \WP_Error(
-				'parse_error',
-				sprintf(
-					/* translators: %s: Error message */
-					__( 'PHP Syntax Error: %s', 'wp-advanced-import-export' ),
-					$syntax_error
-				)
+				'validation_error',
+				$error_message
 			);
 		}
 
@@ -444,11 +349,17 @@ class Function_Executor {
 			return null;
 		}
 
+		// Add <?php tag to snippet code if not present (for editor syntax highlighting)
+		$code = $snippet['code'];
+		if ( ! preg_match( '/^<\?php/i', trim( $code ) ) ) {
+			$code = "<?php\n\n" . $code;
+		}
+
 		// Convert snippet format to function format
 		return [
 			'id'     => $function_id,
 			'name'   => $snippet['name'],
-			'code'   => $snippet['code'],
+			'code'   => $code,
 			'status' => 'active', // Snippets are always active
 		];
 	}

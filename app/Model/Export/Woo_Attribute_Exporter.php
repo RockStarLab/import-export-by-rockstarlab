@@ -100,7 +100,8 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 		}
 
 		global $wpdb;
-		$attributes = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}woocommerce_attribute_taxonomies" );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$attributes = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %1swoocommerce_attribute_taxonomies', $wpdb->prefix ) );
 
 		if ( empty( $attributes ) ) {
 			return 0;

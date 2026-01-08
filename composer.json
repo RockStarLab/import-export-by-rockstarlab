@@ -16,12 +16,12 @@
 		]
 	},
 	"require-dev": {
-		"squizlabs/php_codesniffer": "^3.7.2",
-		"wp-coding-standards/wpcs": "^3.0",
 		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+		"phpcompatibility/php-compatibility": "^9.3",
 		"phpcsstandards/phpcsextra": "^1.1",
 		"phpcsstandards/phpcsutils": "^1.0",
-		"phpcompatibility/php-compatibility": "^9.3"
+		"squizlabs/php_codesniffer": "^3.7.2",
+		"wp-coding-standards/wpcs": "^3.0"
 	},
 	"config": {
 		"allow-plugins": {
@@ -30,5 +30,8 @@
 		"preferred-install": "dist",
 		"optimize-autoloader": true,
 		"sort-packages": true
+	},
+	"require": {
+		"nikic/php-parser": "^5.7"
 	}
 }

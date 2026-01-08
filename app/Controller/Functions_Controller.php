@@ -226,12 +226,18 @@ class Functions_Controller extends Base_Controller {
 				$this->send_error( __( 'Snippet not found', 'wp-advanced-import-export' ) );
 			}
 
+			// Add <?php tag to snippet code if not present (for editor syntax highlighting)
+			$code = $snippet['code'];
+			if ( ! preg_match( '/^<\?php/i', trim( $code ) ) ) {
+				$code = "<?php\n\n" . $code;
+			}
+
 			// Format snippet as function for consistency
 			$function = [
 				'id'          => $function_id,
 				'name'        => $snippet['name'],
 				'description' => $snippet['description'],
-				'code'        => $snippet['code'],
+				'code'        => $code,
 				'category'    => $snippet['category'],
 				'status'      => 'active',
 				'type'        => 'library',
@@ -592,6 +598,13 @@ class Functions_Controller extends Base_Controller {
 			$snippets = $library->get_all_snippets();
 		}
 
+		// Add <?php tag to all snippet codes for editor syntax highlighting
+		foreach ( $snippets as $key => $snippet ) {
+			if ( isset( $snippet['code'] ) && ! preg_match( '/^<\?php/i', trim( $snippet['code'] ) ) ) {
+				$snippets[ $key ]['code'] = "<?php\n\n" . $snippet['code'];
+			}
+		}
+
 		$categories = $library->get_categories();
 
 		$this->send_success(
@@ -619,6 +632,13 @@ class Functions_Controller extends Base_Controller {
 
 		$library = new Function_Snippets();
 		$results = $library->search( $query );
+
+		// Add <?php tag to all snippet codes for editor syntax highlighting
+		foreach ( $results as $key => $snippet ) {
+			if ( isset( $snippet['code'] ) && ! preg_match( '/^<\?php/i', trim( $snippet['code'] ) ) ) {
+				$results[ $key ]['code'] = "<?php\n\n" . $snippet['code'];
+			}
+		}
 
 		$this->send_success(
 			[

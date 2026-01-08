@@ -264,12 +264,14 @@ class Connected_Site {
 		global $wpdb;
 		$table = $wpdb->prefix . self::$table_name;
 
-		$sql = $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE remote_url = %s", $remote_url );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$sql = $wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE remote_url = %s", $remote_url );
 
 		if ( $exclude_id ) {
 			$sql .= $wpdb->prepare( ' AND id != %d', $exclude_id );
 		}
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$count = $wpdb->get_var( $sql );
 
 		return $count > 0;

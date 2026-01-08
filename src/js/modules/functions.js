@@ -860,34 +860,12 @@ const FunctionsModule = {
 			trimmedCode.startsWith( '<?php' ) ||
 			trimmedCode.startsWith( '<?' )
 		) {
-			// Remove PHP tags for further processing
-			trimmedCode = trimmedCode
-				.replace( /^<\?php\s*/i, '' )
-				.replace( /^<\?\s*/, '' )
-				.trim(); // Trim again after removing tags
+			// Code already has PHP tags, just return as-is
+			return trimmedCode;
 		}
 
-		// Check if code is already a complete function
-		const isFunctionDefinition = /^function\s+\w+\s*\(/i.test(
-			trimmedCode
-		);
-
-		if ( isFunctionDefinition ) {
-			// Just add PHP tag
-			return '<?php\n' + trimmedCode;
-		}
-
-		// Wrap simple expressions/statements in a function
-		// Add indentation to each line of user code
-		const lines = trimmedCode.split( '\n' );
-		const indentedCode = lines
-			.map( ( line ) => '\t' + line )
-			.join( '\n' );
-
-		return '<?php\n' +
-			'function transform_value( $value, $args = array() ) {\n' +
-			indentedCode + '\n' +
-			'}';
+		// No PHP tags, add them
+		return '<?php\n' + trimmedCode;
 	},
 
 	/**

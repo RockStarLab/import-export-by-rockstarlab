@@ -69,11 +69,17 @@ class Custom_Function extends Model {
 			return $validation;
 		}
 
+		// Ensure code starts with <?php tag for storage (for editor syntax highlighting)
+		$code_to_store = trim( $data['code'] );
+		if ( ! preg_match( '/^<\?php/i', $code_to_store ) ) {
+			$code_to_store = "<?php\n\n" . $code_to_store;
+		}
+
 		// Prepare data
 		$insert_data    = [
 			'name'          => sanitize_text_field( $data['name'] ),
 			'description'   => ! empty( $data['description'] ) ? sanitize_textarea_field( $data['description'] ) : '',
-			'function_code' => $data['code'], // Store as-is, already validated and decoded
+			'function_code' => $code_to_store, // Store with <?php tag for editor
 			'source'        => ! empty( $data['source'] ) ? sanitize_text_field( $data['source'] ) : 'custom',
 			'input_type'    => ! empty( $data['input_type'] ) ? sanitize_text_field( $data['input_type'] ) : 'string',
 			'output_type'   => ! empty( $data['output_type'] ) ? sanitize_text_field( $data['output_type'] ) : 'string',
@@ -166,7 +172,12 @@ class Custom_Function extends Model {
 		}
 
 		if ( isset( $data['code'] ) ) {
-			$update_data['function_code'] = $data['code'];
+			// Ensure code starts with <?php tag for storage (for editor syntax highlighting)
+			$code_to_store = trim( $data['code'] );
+			if ( ! preg_match( '/^<\?php/i', $code_to_store ) ) {
+				$code_to_store = "<?php\n\n" . $code_to_store;
+			}
+			$update_data['function_code'] = $code_to_store;
 		}
 
 		if ( isset( $data['is_active'] ) ) {
