@@ -306,8 +306,16 @@ const JobsLogModule = {
 			if ( response && response.job_id ) {
 				Utils.showNotice( window.aieData.i18n.jobRestartedSuccess, 'success' );
 				
-				// Redirect based on job type
-				this.redirectToJobPage( response.type, response.job_id );
+				// For media_sync jobs, reload the page to show the new job
+				// For other job types, redirect to their specific pages
+				if ( response.type === 'media_sync' ) {
+					setTimeout( () => {
+						window.location.reload();
+					}, 1000 );
+				} else {
+					// Redirect based on job type
+					this.redirectToJobPage( response.type, response.job_id );
+				}
 			}
 		} catch ( error ) {
 			Utils.showNotice( window.aieData.i18n.errorRestartingJob + error.message, 'error' );
@@ -336,8 +344,17 @@ const JobsLogModule = {
 			if ( response && response.job_id && response.type ) {
 				Utils.showNotice( window.aieData.i18n.jobCreatedStarting, 'success' );
 				
-				// Redirect to job page with resume_job parameter to show progress
-				this.redirectToJobPage( response.type, response.job_id );
+				// For media_sync jobs, reload the page to show the processing job
+				// For other job types, redirect to their specific pages
+				if ( response.type === 'media_sync' ) {
+					// Reload current page to show the processing job in the list
+					setTimeout( () => {
+						window.location.reload();
+					}, 1000 );
+				} else {
+					// Redirect to job page with resume_job parameter to show progress
+					this.redirectToJobPage( response.type, response.job_id );
+				}
 			}
 		} catch ( error ) {
 			const errorMsg = error && error.message ? error.message : 'Unknown error occurred';

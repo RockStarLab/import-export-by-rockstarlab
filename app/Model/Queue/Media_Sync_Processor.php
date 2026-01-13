@@ -118,7 +118,8 @@ class Media_Sync_Processor {
 				$this->job_model->update(
 					$job_id,
 					array(
-						'settings' => wp_json_encode( $settings ),
+						'settings'    => wp_json_encode( $settings ),
+						'total_items' => $total_files,
 					)
 				);
 			} else {
@@ -180,9 +181,13 @@ class Media_Sync_Processor {
 
 			// Prepare update data
 			$update_data = array(
-				'settings' => wp_json_encode( $settings ),
-				'progress' => $progress,
-				'result'   => wp_json_encode( $cumulative_result ), // Save cumulative results
+				'settings'        => wp_json_encode( $settings ),
+				'progress'        => $progress,
+				'total_items'     => $total_files,
+				'processed_items' => $new_offset,
+				'success_items'   => $cumulative_result['success'],
+				'failed_items'    => $cumulative_result['failed'],
+				'result'          => wp_json_encode( $cumulative_result ), // Save cumulative results
 			);
 
 			$this->job_model->update( $job_id, $update_data );
@@ -192,16 +197,32 @@ class Media_Sync_Processor {
 				'offset'    => $new_offset,
 				'progress'  => $progress,
 				'result'    => $cumulative_result, // Return cumulative results
-			);      } catch ( \Exception $e ) {
+			);  		} catch ( \Exception $e ) {
+
+			// Get current progress before marking as failed
+			$job = $this->job_model->find( $job_id );
+			$current_result = $job && $job->result ? json_decode( $job->result, true ) : array(
+				'processed' => 0,
+				'success'   => 0,
+				'skipped'   => 0,
+				'failed'    => 0,
+				'errors'    => array(),
+			);
 
 			$this->job_model->update(
 				$job_id,
 				array(
-					'status'       => 'failed',
-					'completed_at' => current_time( 'mysql' ),
-					'result'       => wp_json_encode(
-						array(
-							'error' => $e->getMessage(),
+					'status'          => 'failed',
+					'completed_at'    => current_time( 'mysql' ),
+					'processed_items' => $current_result['processed'] ?? 0,
+					'success_items'   => $current_result['success'] ?? 0,
+					'failed_items'    => $current_result['failed'] ?? 0,
+					'result'          => wp_json_encode(
+						array_merge(
+							$current_result,
+							array(
+								'error' => $e->getMessage(),
+							)
 						)
 					),
 				)
@@ -211,7 +232,7 @@ class Media_Sync_Processor {
 				'completed' => true,
 				'error'     => $e->getMessage(),
 			);
-			}
+		}
 	}
 
 	/**
@@ -329,13 +350,18 @@ class Media_Sync_Processor {
 		// Ensure processed count is set correctly
 		$final_result['processed'] = $processed;
 
+		// Update job with complete statistics
 		$this->job_model->update(
 			$job_id,
 			array(
-				'status'       => 'completed',
-				'completed_at' => current_time( 'mysql' ),
-				'progress'     => 100,
-				'result'       => wp_json_encode( $final_result ),
+				'status'          => 'completed',
+				'completed_at'    => current_time( 'mysql' ),
+				'progress'        => 100,
+				'total_items'     => $processed,
+				'processed_items' => $processed,
+				'success_items'   => $final_result['success'],
+				'failed_items'    => $final_result['failed'],
+				'result'          => wp_json_encode( $final_result ),
 			)
 		);
 
