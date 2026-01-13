@@ -463,14 +463,14 @@ const JobsLogModule = {
 						<th>${ window.aieData.i18n.jobType || 'Type' }:</th>
 						<td>${this.getTypeLabel( job.type )}</td>
 					</tr>
-					<tr>
+					${job.data_type ? `<tr>
 						<th>${ window.aieData.i18n.jobDataType || 'Data Type' }:</th>
 						<td>${job.data_type}</td>
-					</tr>
-					<tr>
+					</tr>` : ''}
+					${job.file_format ? `<tr>
 						<th>${ window.aieData.i18n.jobFileFormat || 'File Format' }:</th>
 						<td>${job.file_format}</td>
-					</tr>
+					</tr>` : ''}
 					<tr>
 						<th>${ window.aieData.i18n.jobStatus || 'Status' }:</th>
 						<td><span class="job-status-badge job-status-${job.status}">${this.getStatusLabel( job.status )}</span></td>
@@ -483,22 +483,22 @@ const JobsLogModule = {
 						<th>${ window.aieData.i18n.jobItems || 'Items' }:</th>
 						<td>${job.processed_items} / ${job.total_items} (${ window.aieData.i18n.jobSuccess || 'Success' }: ${job.success_items}, ${ window.aieData.i18n.failed || 'Failed' }: ${job.failed_items})</td>
 					</tr>
-					<tr>
+					${job.created_at ? `<tr>
 						<th>${ window.aieData.i18n.jobCreated || 'Created' }:</th>
 						<td>${job.created_at}</td>
-					</tr>
-					<tr>
+					</tr>` : ''}
+					${job.started_at ? `<tr>
 						<th>${ window.aieData.i18n.jobStarted || 'Started' }:</th>
-						<td>${job.started_at || '-'}</td>
-					</tr>
-					<tr>
+						<td>${job.started_at}</td>
+					</tr>` : ''}
+					${job.completed_at ? `<tr>
 						<th>${ window.aieData.i18n.jobCompleted || 'Completed' }:</th>
-						<td>${job.completed_at || '-'}</td>
-					</tr>
-					<tr>
+						<td>${job.completed_at}</td>
+					</tr>` : ''}
+					${job.file_path ? `<tr>
 						<th>${ window.aieData.i18n.jobFile || 'File' }:</th>
-						<td>${job.file_path || '-'}</td>
-					</tr>
+						<td>${job.file_path}</td>
+					</tr>` : ''}
 					${job.file_size ? `<tr><th>${ window.aieData.i18n.jobFileSize || 'File Size' }:</th><td>${job.file_size_human}</td></tr>` : ''}
 				</table>
 				
