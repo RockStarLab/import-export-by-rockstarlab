@@ -265,13 +265,16 @@ class Custom_Function extends Model {
 	/**
 	 * Check if function name already exists
 	 *
-	 * @param string $name Function name
-	 * @param int    $exclude_id Optional ID to exclude from check (for updates)
-	 * @return bool True if name exists, false otherwise
+	 * Checks both custom functions in database and library snippets
+	 *
+	 * @param string $name       Function name to check
+	 * @param int    $exclude_id Optional function ID to exclude from check
+	 * @return bool True if name exists
 	 */
 	public function function_name_exists( $name, $exclude_id = 0 ) {
 		global $wpdb;
 
+		// Check in database (custom functions)
 		$query = $wpdb->prepare(
 			"SELECT COUNT(*) FROM {$this->get_table_name()} WHERE name = %s",
 			$name
@@ -287,7 +290,53 @@ class Custom_Function extends Model {
 
 		$count = (int) $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-		return $count > 0;
+		if ( $count > 0 ) {
+			return true;
+		}
+
+		// Check in library snippets
+		$snippets     = new \WP_AIE\Helper\Function_Snippets();
+		$all_snippets = $snippets->get_all_snippets();
+
+		foreach ( $all_snippets as $snippet ) {
+			if ( isset( $snippet['name'] ) && $snippet['name'] === $name ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Generate a unique function name
+	 *
+	 * If the name already exists, append (2), (3), etc. until a unique name is found
+	 *
+	 * @param string $base_name  Base function name
+	 * @param int    $exclude_id Optional function ID to exclude from check
+	 * @return string Unique function name
+	 */
+	public function generate_unique_name( $base_name, $exclude_id = 0 ) {
+		// If name doesn't exist, return as is
+		if ( ! $this->function_name_exists( $base_name, $exclude_id ) ) {
+			return $base_name;
+		}
+
+		// Extract existing number suffix if present
+		$pattern = '/^(.+?)\s*\((\d+)\)$/';
+		if ( preg_match( $pattern, $base_name, $matches ) ) {
+			$base_name = trim( $matches[1] );
+			$counter   = (int) $matches[2] + 1; // Start from next number
+		} else {
+			$counter = 2;
+		}
+
+		// Find next available number
+		while ( $this->function_name_exists( $base_name . ' (' . $counter . ')', $exclude_id ) ) {
+			$counter++;
+		}
+
+		return $base_name . ' (' . $counter . ')';
 	}
 
 	/**

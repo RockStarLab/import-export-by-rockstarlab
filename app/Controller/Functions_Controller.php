@@ -281,6 +281,14 @@ class Functions_Controller extends Base_Controller {
 		}
 
 		$model = new Custom_Function();
+		
+		// Check if this is coming from editing a library snippet
+		// If the name already exists, generate a unique name
+		$function_id = $this->get_request_param( 'id', '' );
+		if ( ! empty( $function_id ) && strpos( $function_id, 'snippet_' ) === 0 ) {
+			// This is editing a library snippet, generate unique name
+			$name = $model->generate_unique_name( $name );
+		}
 
 		$function_id = $model->create(
 			[
@@ -344,6 +352,19 @@ class Functions_Controller extends Base_Controller {
 
 		$name = $this->get_request_param( 'name', '' );
 		if ( ! empty( $name ) ) {
+			// Get the existing function to check if name is being changed
+			$existing_function = $model->get( $function_id_int );
+			
+			// If name is the same as existing (editing snippet without changing name)
+			// and the source is from library, generate a unique name
+			if ( $existing_function && 
+				 $name === $existing_function['name'] && 
+				 ! empty( $existing_function['source'] ) && 
+				 strpos( $existing_function['source'], 'library:' ) === 0 ) {
+				// Generate unique name like "Function Name (2)"
+				$name = $model->generate_unique_name( $name, $function_id_int );
+			}
+			
 			$update_data['name'] = $name;
 		}
 
