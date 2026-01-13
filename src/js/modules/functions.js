@@ -247,11 +247,19 @@ const FunctionsModule = {
 					}" title="${ window.aieData?.i18n?.editButton || 'Edit' }">
 						<span class="dashicons dashicons-edit"></span>
 					</button>
-					<button type="button" class="button button-small aie-delete-function" data-id="${
-						func.id
-					}" title="${ window.aieData?.i18n?.deleteButton || 'Delete' }">
-						<span class="dashicons dashicons-trash"></span>
-					</button>
+					${
+						// Hide delete button for library snippets
+						// Check type='library' or source starts with 'library:' or id starts with 'snippet_'
+						func.type !== 'library' && 
+						! ( func.source && func.source.startsWith( 'library:' ) ) &&
+						! ( func.id && func.id.toString().startsWith( 'snippet_' ) )
+							? `<button type="button" class="button button-small aie-delete-function" data-id="${
+									func.id
+								}" title="${ window.aieData?.i18n?.deleteButton || 'Delete' }">
+								<span class="dashicons dashicons-trash"></span>
+							</button>`
+							: ''
+					}
 				</td>
 			</tr>
 		`
@@ -648,10 +656,19 @@ const FunctionsModule = {
 				);
 			}
 
-			showNotice(
-				window.aieData?.i18n?.function_saved ||
-					'Function saved successfully'
-			);
+			// Check if the function name was automatically changed
+			const originalName = document.getElementById( 'aie-function-name' ).value.trim();
+			const savedFunction = data.data?.function;
+			
+			let successMessage = window.aieData?.i18n?.function_saved || 'Function saved successfully';
+			
+			if ( savedFunction && savedFunction.name && savedFunction.name !== originalName ) {
+				successMessage = ( window.aieData?.i18n?.function_saved_with_new_name || 
+					'Function saved successfully. Name was automatically changed to "{name}" to avoid conflicts.' )
+					.replace( '{name}', savedFunction.name );
+			}
+
+			showNotice( successMessage );
 			this.closeModal(
 				document.getElementById( 'aie-function-editor-modal' )
 			);
