@@ -313,10 +313,32 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ), null, 404 );
 		}
 
-		// Get job parameters
+		// Prepare settings - reset progress for media_sync jobs
+		$settings_to_use = $job_data->settings;
+		if ( 'media_sync' === $job_data->type && ! empty( $job_data->settings ) ) {
+			$settings = json_decode( $job_data->settings, true );
+			if ( is_array( $settings ) ) {
+				// Reset progress tracking fields but keep the original configuration
+				unset( $settings['offset'] );
+				unset( $settings['processed_count'] );
+				unset( $settings['total_files'] );
+				unset( $settings['all_files'] );
+				// Reset offset to 0 for fresh start
+				$settings['offset'] = 0;
+				$settings_to_use    = wp_json_encode( $settings );
+			}
+		}
+
+		// Get job parameters for response
 		$parameters = maybe_unserialize( $job_data->parameters );
-		if ( empty( $parameters ) ) {
-			$this->send_error( __( 'Job parameters not found', 'wp-advanced-import-export' ), null, 400 );
+		
+		// For media_sync, parameters might be empty but settings should contain all info
+		if ( empty( $parameters ) && 'media_sync' === $job_data->type ) {
+			$parameters = json_decode( $job_data->settings, true );
+		}
+
+		if ( empty( $parameters ) && empty( $settings_to_use ) ) {
+			$this->send_error( __( 'Job configuration not found', 'wp-advanced-import-export' ), null, 400 );
 		}
 
 		// Create new job with same settings
@@ -327,7 +349,7 @@ class Job_Controller extends Base_Controller {
 				'data_type'   => $job_data->data_type,
 				'file_format' => $job_data->file_format,
 				'parameters'  => $job_data->parameters,
-				'settings'    => $job_data->settings,
+				'settings'    => $settings_to_use,
 			]
 		);
 
@@ -368,10 +390,32 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ), null, 404 );
 		}
 
-		// Get job parameters
+		// Prepare settings - reset progress for media_sync jobs
+		$settings_to_use = $job_data->settings;
+		if ( 'media_sync' === $job_data->type && ! empty( $job_data->settings ) ) {
+			$settings = json_decode( $job_data->settings, true );
+			if ( is_array( $settings ) ) {
+				// Reset progress tracking fields but keep the original configuration
+				unset( $settings['offset'] );
+				unset( $settings['processed_count'] );
+				unset( $settings['total_files'] );
+				unset( $settings['all_files'] );
+				// Reset offset to 0 for fresh start
+				$settings['offset'] = 0;
+				$settings_to_use    = wp_json_encode( $settings );
+			}
+		}
+
+		// Get job parameters for response
 		$parameters = maybe_unserialize( $job_data->parameters );
-		if ( empty( $parameters ) ) {
-			$this->send_error( __( 'Job parameters not found', 'wp-advanced-import-export' ), null, 400 );
+		
+		// For media_sync, parameters might be empty but settings should contain all info
+		if ( empty( $parameters ) && 'media_sync' === $job_data->type ) {
+			$parameters = json_decode( $job_data->settings, true );
+		}
+
+		if ( empty( $parameters ) && empty( $settings_to_use ) ) {
+			$this->send_error( __( 'Job configuration not found', 'wp-advanced-import-export' ), null, 400 );
 		}
 
 		// Create new job with same settings but set status to processing
@@ -382,7 +426,7 @@ class Job_Controller extends Base_Controller {
 				'data_type'   => $job_data->data_type,
 				'file_format' => $job_data->file_format,
 				'parameters'  => $job_data->parameters,
-				'settings'    => $job_data->settings,
+				'settings'    => $settings_to_use,
 				'status'      => 'processing', // Set to processing immediately
 			]
 		);
