@@ -397,6 +397,16 @@ class Post_Exporter extends Abstract_Exporter {
 		$fields = $this->get_default_fields();
 	}
 
+	// CRITICAL: Force include ID for Content Updater
+	$force_include_id = $this->get_option( 'force_include_id', false );
+	if ( $force_include_id && ! in_array( 'ID', $fields, true ) ) {
+		// Prepend ID to fields array to ensure it's always included
+		array_unshift( $fields, 'ID' );
+		
+		// IMPORTANT: Also update options['fields'] so select_fields() doesn't remove ID
+		$this->options['fields'] = $fields;
+	}
+
 		while ( $query->have_posts() ) {
 			$query->the_post();
 			$post = get_post();
@@ -1279,12 +1289,9 @@ class Post_Exporter extends Abstract_Exporter {
 			'guid',
 		];
 
-		// Check if ID should be forced (for Content Updater)
-		$force_include_id = $this->get_option( 'force_include_id', false );
-
 		foreach ( $basic_fields as $field ) {
-			// Include field if it's in the fields list OR if it's ID and force_include_id is true
-			if ( in_array( $field, $fields, true ) || ( $field === 'ID' && $force_include_id ) ) {
+			// Include field if it's in the fields list
+			if ( in_array( $field, $fields, true ) ) {
 				$data[ $field ] = $post->$field;
 			}
 		}
@@ -1379,19 +1386,19 @@ class Post_Exporter extends Abstract_Exporter {
 					$data[ $field ] = '';
 				}
 			}
-		}		// Process individual meta fields (including _wp_page_template and other meta)
-	foreach ( $fields as $field ) {
-		// Skip if already processed
-		if ( isset( $data[ $field ] ) ) {
-			continue;
-		}
-		
-		// Check if it's a meta field (starts with _ or not in basic/special fields)
-		// Skip if already processed as taxonomy
-		if ( ! in_array( $field, $basic_fields, true ) && 
-		     ! in_array( $field, [ 'author_name', 'author_email', 'post_meta', 'taxonomies', 'featured_image', 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption' ], true ) &&
-		     strpos( $field, 'taxonomy_' ) !== 0 &&
-		     ! taxonomy_exists( $field ) ) {
+		}		// Process individual meta fields
+		foreach ( $fields as $field ) {
+			// Skip if already processed
+			if ( isset( $data[ $field ] ) ) {
+				continue;
+			}
+			
+			// Check if it's a meta field (starts with _ or not in basic/special fields)
+			// Skip if already processed as taxonomy
+			if ( ! in_array( $field, $basic_fields, true ) && 
+			     ! in_array( $field, [ 'author_name', 'author_email', 'post_meta', 'taxonomies', 'featured_image', 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption' ], true ) &&
+			     strpos( $field, 'taxonomy_' ) !== 0 &&
+			     ! taxonomy_exists( $field ) ) {
 					// Handle ACF fields (with acf_ prefix)
 		if ( strpos( $field, 'acf_' ) === 0 ) {
 			$acf_field_name = substr( $field, 4 ); // Remove 'acf_' prefix (4 characters)

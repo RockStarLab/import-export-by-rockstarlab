@@ -231,13 +231,14 @@ class Update_Processor {
 
 		foreach ( $items as $item ) {
 			try {
-				$updated = false;
-				$item_id = $this->get_item_id( $item, $content_type );
+				$has_functions = false;
+				$item_id       = $this->get_item_id( $item, $content_type );
 
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG && 0 === $item_id ) {
+				// Skip items without valid ID
+				if ( empty( $item_id ) || $item_id <= 0 ) {
+					++$stats['skipped'];
+					continue;
 				}
-
-				$original_item = $item; // Keep original for comparison
 
 				// Apply functions to each field
 				foreach ( $fields as $index => $field ) {
@@ -261,9 +262,7 @@ class Update_Processor {
 					// Get current field value
 					$current_value = isset( $item[ $field ] ) ? $item[ $field ] : '';
 					$new_value     = $current_value;
-
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					}
+					$field_updated = false;
 
 					// Execute functions in pipeline (one after another)
 					foreach ( $functions_for_field as $function_id ) {
@@ -280,9 +279,6 @@ class Update_Processor {
 							}
 						}
 
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						}
-
 						// Execute function
 						$new_value = $this->function_executor->execute( $function_id, $new_value, $item );
 
@@ -292,41 +288,36 @@ class Update_Processor {
 							break;
 						}
 
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						}
+						// Mark that function was successfully executed
+						$field_updated = true;
 					}
 
 					// Update field value
 					$item[ $field ] = $new_value;
 
-					// Mark as updated if value changed
-					if ( $current_value !== $new_value ) {
-						$updated = true;
+					// Mark that at least one field has functions
+					if ( $field_updated ) {
+						$has_functions = true;
 					}
 				}
 
-				// Save updated item if any changes were made
-				if ( $updated ) {
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						$changes = [];
-						foreach ( $fields as $field ) {
-							if ( isset( $original_item[ $field ] ) && isset( $item[ $field ] ) && $original_item[ $field ] !== $item[ $field ] ) {
-								$changes[ $field ] = [
-									'from' => $original_item[ $field ],
-									'to'   => $item[ $field ],
-								];
-							}
-						}
-					}
-
+				// Save item if any functions were executed successfully
+				if ( $has_functions ) {
 					$save_result = $this->save_item( $item_id, $item, $content_type, $fields );
 
 					if ( is_wp_error( $save_result ) ) {
-						++$stats['errors'];
+						// Skip items with validation errors
+						$error_code = $save_result->get_error_code();
+						if ( in_array( $error_code, [ 'empty_title', 'invalid_post_id', 'post_not_found' ], true ) ) {
+							++$stats['skipped'];
+						} else {
+							++$stats['errors'];
+						}
 					} else {
 						++$stats['updated'];
 					}
 				} else {
+					// No functions were executed (all skipped or failed)
 					++$stats['skipped'];
 				}
 			} catch ( \Exception $e ) {
@@ -425,6 +416,16 @@ class Update_Processor {
 	 * @return true|\WP_Error
 	 */
 	private function save_post_item( $post_id, $item, $fields ) {
+		// Validate post ID to prevent creating new posts
+		if ( empty( $post_id ) || ! is_numeric( $post_id ) || $post_id <= 0 ) {
+			return new \WP_Error( 'invalid_post_id', sprintf( 'Invalid post ID: %s', $post_id ) );
+		}
+
+		// Verify post exists
+		if ( ! get_post( $post_id ) ) {
+			return new \WP_Error( 'post_not_found', sprintf( 'Post #%d does not exist', $post_id ) );
+		}
+
 		$post_data = [];
 		$meta_data = [];
 
@@ -446,13 +447,32 @@ class Update_Processor {
 
 		// Update post if there are standard fields to update
 		if ( ! empty( $post_data ) ) {
-			$post_data['ID'] = $post_id;
-			
-			// Disable filters to ensure content is saved as-is
-			$result = wp_update_post( $post_data, true );
+			// Validate post_title if it's being updated - skip if empty
+			if ( isset( $post_data['post_title'] ) && trim( $post_data['post_title'] ) === '' ) {
+				return new \WP_Error( 'empty_title', 'Post title is empty' );
+			}
 
-			if ( is_wp_error( $result ) ) {
-				return $result;
+			// Use direct wpdb update to avoid WordPress validation of existing meta fields
+			// This way we only update the fields we want without triggering validation
+			global $wpdb;
+			
+			$update_data = [];
+			foreach ( $post_data as $key => $value ) {
+				$update_data[ $key ] = $value;
+			}
+			
+			if ( ! empty( $update_data ) ) {
+				$result = $wpdb->update(
+					$wpdb->posts,
+					$update_data,
+					[ 'ID' => $post_id ],
+					null,
+					[ '%d' ]
+				);
+				
+				if ( false === $result ) {
+					return new \WP_Error( 'db_update_error', 'Failed to update post in database' );
+				}
 			}
 
 			// Clear post cache to ensure fresh data
@@ -476,6 +496,16 @@ class Update_Processor {
 	 * @return true|\WP_Error
 	 */
 	private function save_user_item( $user_id, $item, $fields ) {
+		// CRITICAL: Validate user ID to prevent creating new users
+		if ( empty( $user_id ) || ! is_numeric( $user_id ) || $user_id <= 0 ) {
+			return new \WP_Error( 'invalid_user_id', sprintf( 'Invalid user ID: %s', $user_id ) );
+		}
+
+		// Verify user exists
+		if ( ! get_user_by( 'id', $user_id ) ) {
+			return new \WP_Error( 'user_not_found', sprintf( 'User #%d does not exist', $user_id ) );
+		}
+
 		$user_data = [];
 		$meta_data = [];
 
@@ -498,7 +528,8 @@ class Update_Processor {
 		// Update user if there are standard fields to update
 		if ( ! empty( $user_data ) ) {
 			$user_data['ID'] = $user_id;
-			$result          = wp_update_user( $user_data );
+			
+			$result = wp_update_user( $user_data );
 
 			if ( is_wp_error( $result ) ) {
 				return $result;
@@ -522,6 +553,16 @@ class Update_Processor {
 	 * @return true|\WP_Error
 	 */
 	private function save_comment_item( $comment_id, $item, $fields ) {
+		// CRITICAL: Validate comment ID to prevent creating new comments
+		if ( empty( $comment_id ) || ! is_numeric( $comment_id ) || $comment_id <= 0 ) {
+			return new \WP_Error( 'invalid_comment_id', sprintf( 'Invalid comment ID: %s', $comment_id ) );
+		}
+
+		// Verify comment exists
+		if ( ! get_comment( $comment_id ) ) {
+			return new \WP_Error( 'comment_not_found', sprintf( 'Comment #%d does not exist', $comment_id ) );
+		}
+
 		$comment_data = [];
 		$meta_data    = [];
 
@@ -544,7 +585,8 @@ class Update_Processor {
 		// Update comment if there are standard fields to update
 		if ( ! empty( $comment_data ) ) {
 			$comment_data['comment_ID'] = $comment_id;
-			$result                     = wp_update_comment( $comment_data, true );
+			
+			$result = wp_update_comment( $comment_data, true );
 
 			if ( is_wp_error( $result ) ) {
 				return $result;
@@ -568,6 +610,18 @@ class Update_Processor {
 	 * @return true|\WP_Error
 	 */
 	private function save_term_item( $term_id, $item, $fields ) {
+		// CRITICAL: Validate term ID to prevent creating new terms
+		if ( empty( $term_id ) || ! is_numeric( $term_id ) || $term_id <= 0 ) {
+			return new \WP_Error( 'invalid_term_id', sprintf( 'Invalid term ID: %s', $term_id ) );
+		}
+
+		$taxonomy = isset( $item['taxonomy'] ) ? $item['taxonomy'] : 'category';
+
+		// Verify term exists
+		if ( ! get_term( $term_id, $taxonomy ) ) {
+			return new \WP_Error( 'term_not_found', sprintf( 'Term #%d does not exist in taxonomy %s', $term_id, $taxonomy ) );
+		}
+
 		$term_data = [];
 		$meta_data = [];
 
