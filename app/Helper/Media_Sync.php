@@ -248,8 +248,6 @@ class Media_Sync {
 		$duplicate_check    = $options['duplicate_check'] ?? 'hash';
 		$existing_attach_id = null;
 
-		error_log( 'Media Sync import_file - duplicate_handling: ' . $duplicate_handling . ', file: ' . basename( $file_path ) );
-
 		if ( 'skip' === $duplicate_handling ) {
 			// Skip mode: check for duplicate and return error if found
 			$duplicate = self::check_duplicate( $file_path, $duplicate_check );

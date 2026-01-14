@@ -201,8 +201,10 @@ const JobsLogModule = {
 			actions.push( `<button class="button button-small job-action-resume" title="${ window.aieData.i18n.resume || 'Resume' }"><span class="dashicons dashicons-controls-play"></span></button>` );
 		}
 
-		// Retry - always available
-		actions.push( `<button class="button button-small job-action-retry" title="${ window.aieData.i18n.retry || 'Retry (Create new job with same parameters)' }"><span class="dashicons dashicons-update"></span></button>` );
+		// Retry - not available for media_sync jobs (files may have been moved)
+		if ( job.type !== 'media_sync' ) {
+			actions.push( `<button class="button button-small job-action-retry" title="${ window.aieData.i18n.retry || 'Retry (Create new job with same parameters)' }"><span class="dashicons dashicons-update"></span></button>` );
+		}
 
 		// Download (for exports)
 		if ( job.type === 'export' && job.file_path && job.status === 'completed' ) {
