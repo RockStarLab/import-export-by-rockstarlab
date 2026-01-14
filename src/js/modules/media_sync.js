@@ -37,7 +37,20 @@ const MediaSyncModule = {
 			} else {
 				jQuery( '#aie-custom-extensions' ).hide();
 			}
+			
+			// Re-scan if files already scanned
+			if ( this.scannedFiles.length > 0 ) {
+				this.scanFolder();
+			}
 		} );
+
+		// Custom extensions change - auto re-scan with debounce
+		$page.on( 'input', '#aie-custom-extensions-input', Utils.debounce( () => {
+			// Re-scan if files already scanned and custom type selected
+			if ( this.scannedFiles.length > 0 && jQuery( '#aie-file-types' ).val() === 'custom' ) {
+				this.scanFolder();
+			}
+		}, 500 ) );
 
 		// Scan folder button
 		$page.on( 'click', '#aie-scan-folder-btn', ( e ) => {
@@ -209,8 +222,8 @@ const MediaSyncModule = {
 							'info'
 						);
 					} else {
-						// Show summary instead of file list
-						this.displayScanSummary( this.scannedFiles );
+						// Show file list with checkboxes for selection
+						this.displayFiles( this.scannedFiles );
 						const message = ( window.aieData.i18n.foundFilesReadyToSync || 'Found %d files ready to sync' ).replace( '%d', this.scannedFiles.length );
 						Utils.showNotice(
 							message,
@@ -260,6 +273,9 @@ const MediaSyncModule = {
 				</div>
 			</div>
 		` );
+		
+		// Hide file selection controls
+		jQuery( '.aie-file-list-controls' ).hide();
 		
 		// Show scan results section but hide stats
 		jQuery( '#aie-scan-results .aie-scan-stats' ).hide();
@@ -320,6 +336,7 @@ const MediaSyncModule = {
 		// Update stats
 		jQuery( '#aie-total-files' ).text( files.length );
 		jQuery( '#aie-total-size' ).text( Utils.formatBytes( totalSize ) );
+		jQuery( '#aie-selected-count' ).text( files.length );
 		
 		// Show stats and scan results
 		jQuery( '#aie-scan-results .aie-scan-stats' ).show();
@@ -327,7 +344,7 @@ const MediaSyncModule = {
 	},
 
 	/**
-	 * Display scanned files (old method - keeping for compatibility)
+	 * Display scanned files with checkboxes for selection
 	 */
 	displayFiles( files ) {
 		const $list = jQuery( '#aie-file-list' );
@@ -366,6 +383,9 @@ const MediaSyncModule = {
 		// Update stats
 		jQuery( '#aie-total-files' ).text( files.length );
 		jQuery( '#aie-total-size' ).text( Utils.formatBytes( totalSize ) );
+		
+		// Show file selection controls
+		jQuery( '.aie-file-list-controls' ).show();
 		
 		// Show stats and scan results
 		jQuery( '#aie-scan-results .aie-scan-stats' ).show();
@@ -465,6 +485,14 @@ const MediaSyncModule = {
 			return;
 		}
 
+		// Get selected files
+		const selectedFiles = this.getSelectedFiles();
+		
+		if ( selectedFiles.length === 0 ) {
+			Utils.showNotice( window.aieData.i18n.noFilesSelected || 'Please select at least one file to sync', 'error' );
+			return;
+		}
+
 		// Clear any previous progress interval
 		if ( this.progressInterval ) {
 			clearInterval( this.progressInterval );
@@ -510,6 +538,7 @@ const MediaSyncModule = {
 					action: 'aie_start_media_sync',
 					nonce: window.aieData?.nonce || '',
 					folder_path: folderPath,
+					selected_files: selectedFiles, // Send selected files
 					scan_options: scanOptions,
 					sync_options: syncOptions,
 				},
@@ -931,6 +960,9 @@ const MediaSyncModule = {
 		// Reset form
 		jQuery( '#aie-folder-path' ).val( '' );
 		jQuery( '#aie-file-list' ).empty();
+		
+		// Show file selection controls again
+		jQuery( '.aie-file-list-controls' ).show();
 		
 		// Reset Start button
 		const $startBtn = jQuery( '#aie-start-sync-btn' );

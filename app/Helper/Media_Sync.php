@@ -27,7 +27,8 @@ class Media_Sync {
 	 * @return array|\WP_Error Array of files or WP_Error on failure.
 	 */
 	public static function scan_folder( $folder_path, $options = [] ) {
-		$recursive = ! empty( $options['recursive'] );
+		// Convert string 'false'/'true' to boolean
+		$recursive = filter_var( $options['recursive'] ?? false, FILTER_VALIDATE_BOOLEAN );
 
 		// Get file type filter
 		$file_type    = $options['file_types'] ?? 'all';
@@ -48,8 +49,13 @@ class Media_Sync {
 		}
 
 		$files = [];
-		$it    = new \RecursiveDirectoryIterator( $folder_path, \FilesystemIterator::SKIP_DOTS );
-		$ri    = $recursive ? new \RecursiveIteratorIterator( $it ) : $it;
+		
+		if ( $recursive ) {
+			$it = new \RecursiveDirectoryIterator( $folder_path, \FilesystemIterator::SKIP_DOTS );
+			$ri = new \RecursiveIteratorIterator( $it );
+		} else {
+			$ri = new \FilesystemIterator( $folder_path, \FilesystemIterator::SKIP_DOTS );
+		}
 
 		foreach ( $ri as $file ) {
 			if ( $file->isFile() ) {
@@ -229,81 +235,128 @@ class Media_Sync {
 			return new \WP_Error( 'file_not_found', __( 'File not found', 'wp-advanced-import-export' ) );
 		}
 
-		$filetype = wp_check_filetype( $file_path );
+		// Get allowed mime types (this will include SVG if SVG Support plugin is active)
+		$allowed_mimes = get_allowed_mime_types();
+		$filetype      = wp_check_filetype( $file_path, $allowed_mimes );
+		
 		if ( ! $filetype['type'] ) {
 			return new \WP_Error( 'invalid_file_type', __( 'Unsupported file type', 'wp-advanced-import-export' ) );
 		}
 
-		// Check for duplicates if requested.
-		if ( ! empty( $options['skip_duplicates'] ) ) {
-			$method    = $options['duplicate_method'] ?? 'hash';
-			$duplicate = self::check_duplicate( $file_path, $method );
+		// Handle duplicate checking based on duplicate_handling option
+		$duplicate_handling = $options['duplicate_handling'] ?? 'skip';
+		$duplicate_check    = $options['duplicate_check'] ?? 'hash';
+		$existing_attach_id = null;
+
+		error_log( 'Media Sync import_file - duplicate_handling: ' . $duplicate_handling . ', file: ' . basename( $file_path ) );
+
+		if ( 'skip' === $duplicate_handling ) {
+			// Skip mode: check for duplicate and return error if found
+			$duplicate = self::check_duplicate( $file_path, $duplicate_check );
 			if ( $duplicate ) {
 				return new \WP_Error( 'duplicate_file', __( 'File already exists in media library', 'wp-advanced-import-export' ), [ 'attachment_id' => $duplicate ] );
 			}
+		} elseif ( 'overwrite' === $duplicate_handling || 'override' === $duplicate_handling ) {
+			// Override/Overwrite mode: find existing attachment to update
+			$existing_attach_id = self::check_duplicate( $file_path, $duplicate_check );
 		}
+		// If duplicate_handling is 'import' (or any other value), always import without checking
 
 		// Determine file operation mode
 		$file_operation = $options['file_operation'] ?? 'keep';
 
-		// For 'keep' mode - use file in current location without copying/moving
-		if ( 'keep' === $file_operation ) {
-			$dest_path = $file_path;
-		} else {
-			// For 'copy' or 'move' modes - copy/move to uploads directory
-			// Get WordPress upload directory (uses year/month structure).
-			$uploads      = wp_upload_dir();
-			$uploads_root = trailingslashit( $uploads['basedir'] );
-
-			// Calculate relative path from uploads root to preserve structure
-			$relative_path = '';
-			$file_dir      = trailingslashit( dirname( $file_path ) );
-
-			// Get path relative to uploads root
-			if ( 0 === strpos( $file_dir, $uploads_root ) ) {
-				$relative_path = substr( $file_dir, strlen( $uploads_root ) );
-				$relative_path = trim( $relative_path, '/' );
-			}
-
-			// Build destination directory: uploads/YYYY/MM/relative/path
-			$dest_dir = $uploads['path'];
-			if ( ! empty( $relative_path ) ) {
-				$dest_dir = $dest_dir . '/' . $relative_path;
-				if ( ! file_exists( $dest_dir ) ) {
-					wp_mkdir_p( $dest_dir );
-				}
-			}
-
-			// Generate unique filename.
-			$dest_path = $dest_dir . '/' . wp_unique_filename( $dest_dir, basename( $file_path ) );
-
-			// Copy or move file based on option.
-			if ( 'move' === $file_operation ) {
-				if ( ! rename( $file_path, $dest_path ) ) {
-					return new \WP_Error( 'move_failed', __( 'Failed to move file to uploads directory', 'wp-advanced-import-export' ) );
-				}
+		// If override mode and existing attachment found, replace its file
+		if ( $existing_attach_id ) {
+			// Get existing attachment file path
+			$existing_file = get_attached_file( $existing_attach_id );
+			
+			// Replace the file
+			if ( 'keep' === $file_operation ) {
+				// For keep mode, we can't override (file is in different location)
+				// Fall through to create new attachment
+				$existing_attach_id = null;
+				$dest_path          = $file_path;
 			} else {
-				// Default to 'copy'
-				if ( ! copy( $file_path, $dest_path ) ) {
-					return new \WP_Error( 'copy_failed', __( 'Failed to copy file to uploads directory', 'wp-advanced-import-export' ) );
+				// Copy/move new file to replace existing
+				if ( 'move' === $file_operation ) {
+					if ( ! rename( $file_path, $existing_file ) ) {
+						return new \WP_Error( 'move_failed', __( 'Failed to move file to replace existing', 'wp-advanced-import-export' ) );
+					}
+				} else {
+					if ( ! copy( $file_path, $existing_file ) ) {
+						return new \WP_Error( 'copy_failed', __( 'Failed to copy file to replace existing', 'wp-advanced-import-export' ) );
+					}
+				}
+				
+				$dest_path = $existing_file;
+				$attach_id = $existing_attach_id;
+			}
+		}
+		
+		// For new attachments (not overriding existing), handle file location
+		if ( ! $existing_attach_id ) {
+			// For 'keep' mode - use file in current location without copying/moving
+			if ( 'keep' === $file_operation ) {
+				$dest_path = $file_path;
+			} else {
+				// For 'copy' or 'move' modes - copy/move to uploads directory
+				// Get WordPress upload directory (uses year/month structure).
+				$uploads      = wp_upload_dir();
+				$uploads_root = trailingslashit( $uploads['basedir'] );
+
+				// Calculate relative path from uploads root to preserve structure
+				$relative_path = '';
+				$file_dir      = trailingslashit( dirname( $file_path ) );
+
+				// Get path relative to uploads root
+				if ( 0 === strpos( $file_dir, $uploads_root ) ) {
+					$relative_path = substr( $file_dir, strlen( $uploads_root ) );
+					$relative_path = trim( $relative_path, '/' );
+				}
+
+				// Build destination directory: uploads/YYYY/MM/relative/path
+				$dest_dir = $uploads['path'];
+				if ( ! empty( $relative_path ) ) {
+					$dest_dir = $dest_dir . '/' . $relative_path;
+					if ( ! file_exists( $dest_dir ) ) {
+						wp_mkdir_p( $dest_dir );
+					}
+				}
+
+				// Generate unique filename.
+				$dest_path = $dest_dir . '/' . wp_unique_filename( $dest_dir, basename( $file_path ) );
+
+				// Copy or move file based on option.
+				if ( 'move' === $file_operation ) {
+					if ( ! rename( $file_path, $dest_path ) ) {
+						return new \WP_Error( 'move_failed', __( 'Failed to move file to uploads directory', 'wp-advanced-import-export' ) );
+					}
+				} else {
+					// Default to 'copy'
+					if ( ! copy( $file_path, $dest_path ) ) {
+						return new \WP_Error( 'copy_failed', __( 'Failed to copy file to uploads directory', 'wp-advanced-import-export' ) );
+					}
 				}
 			}
 		}
+		
+		// Create new attachment if not overriding existing
+		if ( ! $existing_attach_id ) {
+			// Create attachment.
+			$attachment = [
+				'post_mime_type' => $filetype['type'],
+				'post_title'     => sanitize_file_name( basename( $dest_path ) ),
+				'post_status'    => 'inherit',
+			];
 
-		// Create attachment.
-		$attachment = [
-			'post_mime_type' => $filetype['type'],
-			'post_title'     => sanitize_file_name( basename( $dest_path ) ),
-			'post_status'    => 'inherit',
-		];
-
-		$attach_id = wp_insert_attachment( $attachment, $dest_path );
-		if ( is_wp_error( $attach_id ) ) {
-			// Clean up file if attachment creation failed (only if we copied/moved it).
-			if ( 'keep' !== $file_operation && file_exists( $dest_path ) ) {
-				unlink( $dest_path );
+			$attach_id = wp_insert_attachment( $attachment, $dest_path );
+			if ( is_wp_error( $attach_id ) ) {
+				// Clean up file if attachment creation failed (only if we copied/moved it).
+				if ( 'keep' !== $file_operation && file_exists( $dest_path ) ) {
+					unlink( $dest_path );
+				}
+				return $attach_id;
 			}
-			return $attach_id;
 		}
 
 		// Generate metadata (thumbnails) if requested.
