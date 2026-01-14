@@ -36,10 +36,10 @@ const AIURLImporter = {
 		// Step 1: URL Input
 		jQuery('#aie-urls-textarea').on('input', () => self.handleURLInput());
 		jQuery('#aie-browse-csv-btn').on('click', () => jQuery('#aie-csv-file-input').click());
-		jQuery('#aie-csv-file-input').on('change', (e) => self.handleCSVUpload(e));
-		jQuery('.aie-remove-file').on('click', () => self.removeCSVFile());
+		jQuery('#aie-csv-file-input').on('change', (e) => self.handleTXTUpload(e));
+		jQuery('.aie-remove-file').on('click', () => self.removeTXTFile());
 
-		// CSV drag & drop
+		// TXT drag & drop
 		const $uploadArea = jQuery('#aie-csv-upload-area');
 		$uploadArea.on('dragover', (e) => {
 			e.preventDefault();
@@ -50,9 +50,9 @@ const AIURLImporter = {
 			e.preventDefault();
 			$uploadArea.removeClass('dragover');
 			const files = e.originalEvent.dataTransfer.files;
-			if (files.length > 0 && files[0].name.endsWith('.csv')) {
+			if (files.length > 0 && files[0].name.endsWith('.txt')) {
 				jQuery('#aie-csv-file-input')[0].files = files;
-				self.handleCSVUpload({ target: jQuery('#aie-csv-file-input')[0] });
+				self.handleTXTUpload({ target: jQuery('#aie-csv-file-input')[0] });
 			}
 		});
 
@@ -98,16 +98,16 @@ const AIURLImporter = {
 	},
 
 	/**
-	 * Handle CSV file upload
+	 * Handle TXT file upload
 	 */
-	async handleCSVUpload(e) {
+	async handleTXTUpload(e) {
 		const file = e.target.files[0];
 		if (!file) return;
 
 		const reader = new FileReader();
 		reader.onload = (event) => {
-			const csv = event.target.result;
-			const urls = this.parseCSV(csv);
+			const text = event.target.result;
+			const urls = this.parseTXT(text);
 			
 			this.urls = urls;
 			this.updateURLCount();
@@ -121,15 +121,14 @@ const AIURLImporter = {
 	},
 
 	/**
-	 * Parse CSV file
+	 * Parse TXT file (one URL per line)
 	 */
-	parseCSV(csv) {
-		const lines = csv.split('\n');
+	parseTXT(text) {
+		const lines = text.split('\n');
 		const urls = [];
 
 		lines.forEach(line => {
-			const columns = line.split(',');
-			const url = columns[0].trim();
+			const url = line.trim();
 			if (url && this.isValidURL(url)) {
 				urls.push(url);
 			}
@@ -168,9 +167,9 @@ const AIURLImporter = {
 	},
 
 	/**
-	 * Remove CSV file
+	 * Remove TXT file
 	 */
-	removeCSVFile() {
+	removeTXTFile() {
 		jQuery('#aie-csv-file-input').val('');
 		jQuery('.aie-file-info').hide();
 		jQuery('.aie-upload-placeholder').show();

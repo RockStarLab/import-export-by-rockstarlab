@@ -71,7 +71,7 @@ $has_api_key = \WP_AIE\Helper\AI_Function_Generator::has_api_key();
 			<div class="aie-step-header">
 				<h2><?php esc_html_e( 'Step 1: Add URLs', 'wp-advanced-import-export' ); ?></h2>
 				<p class="description">
-					<?php esc_html_e( 'Enter URLs to import (one per line) or upload a CSV file with URLs.', 'wp-advanced-import-export' ); ?>
+					<?php esc_html_e( 'Enter URLs to import (one per line) or upload a TXT file with URLs.', 'wp-advanced-import-export' ); ?>
 				</p>
 			</div>
 
@@ -86,7 +86,7 @@ $has_api_key = \WP_AIE\Helper\AI_Function_Generator::has_api_key();
 							placeholder="<?php esc_attr_e( 'Enter URLs, one per line...', 'wp-advanced-import-export' ); ?>"
 							<?php echo ! $feature_ready ? 'disabled' : ''; ?>></textarea>
 						<p class="description">
-							<?php esc_html_e( 'Example: https://example.com/article-1', 'wp-advanced-import-export' ); ?>
+							<?php esc_html_e( 'One URL per line, e.g.: https://example.com/article-1', 'wp-advanced-import-export' ); ?>
 						</p>
 					</div>
 
@@ -95,12 +95,12 @@ $has_api_key = \WP_AIE\Helper\AI_Function_Generator::has_api_key();
 					</div>
 
 					<div class="aie-input-method">
-						<h3><?php esc_html_e( 'Upload CSV File', 'wp-advanced-import-export' ); ?></h3>
+						<h3><?php esc_html_e( 'Upload TXT File', 'wp-advanced-import-export' ); ?></h3>
 						<div class="aie-file-upload-area" id="aie-csv-upload-area">
-							<input type="file" id="aie-csv-file-input" accept=".csv" style="display: none;" <?php echo ! $feature_ready ? 'disabled' : ''; ?>>
+							<input type="file" id="aie-csv-file-input" accept=".txt" style="display: none;" <?php echo ! $feature_ready ? 'disabled' : ''; ?>>
 							<div class="aie-upload-placeholder">
-								<span class="dashicons dashicons-media-spreadsheet"></span>
-								<p><?php esc_html_e( 'Click to upload or drag & drop CSV file', 'wp-advanced-import-export' ); ?></p>
+								<span class="dashicons dashicons-media-text"></span>
+								<p><?php esc_html_e( 'Click to upload or drag & drop TXT file', 'wp-advanced-import-export' ); ?></p>
 								<button type="button" class="button" id="aie-browse-csv-btn" <?php echo ! $feature_ready ? 'disabled' : ''; ?>>
 									<?php esc_html_e( 'Browse', 'wp-advanced-import-export' ); ?>
 								</button>
@@ -113,7 +113,7 @@ $has_api_key = \WP_AIE\Helper\AI_Function_Generator::has_api_key();
 							</div>
 						</div>
 						<p class="description">
-							<?php esc_html_e( 'CSV should have one URL per row in the first column.', 'wp-advanced-import-export' ); ?>
+							<?php esc_html_e( 'TXT file should have one URL per line.', 'wp-advanced-import-export' ); ?>
 						</p>
 					</div>
 				</div>
