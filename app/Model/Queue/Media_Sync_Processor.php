@@ -101,14 +101,18 @@ class Media_Sync_Processor {
 				'errors'    => array(),
 			);
 
-			if ( ! isset( $settings['total_files'] ) ) {
-
+			// Get all files from settings (already selected by user)
+			$all_files = $settings['all_files'] ?? array();
+			
+			// If no files in settings, scan folder (backward compatibility)
+			if ( empty( $all_files ) && ! isset( $settings['total_files'] ) ) {
 				$files_result = Media_Sync::scan_folder( $folder_path, $scan_options );
 
 				if ( is_wp_error( $files_result ) ) {
 					throw new \Exception( $files_result->get_error_message() );
 				}
 
+				$all_files   = $files_result;
 				$total_files = count( $files_result );
 
 				// Update settings with total files count
@@ -123,11 +127,8 @@ class Media_Sync_Processor {
 					)
 				);
 			} else {
-				$total_files = $settings['total_files'];
+				$total_files = $settings['total_files'] ?? count( $all_files );
 			}
-
-			// Get all files from settings
-			$all_files = $settings['all_files'] ?? array();
 
 			if ( empty( $all_files ) ) {
 				throw new \Exception( 'No files found in folder' );

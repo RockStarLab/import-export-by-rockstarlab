@@ -86,9 +86,10 @@ class Media_Sync_Controller extends Base_Controller {
 
 		$this->validate_required_params( [ 'folder_path' ] );
 
-		$folder_path  = $this->get_request_param( 'folder_path' );
-		$scan_options = $this->get_request_array( 'scan_options' );
-		$sync_options = $this->get_request_array( 'sync_options' );
+		$folder_path    = $this->get_request_param( 'folder_path' );
+		$selected_files = $this->get_request_array( 'selected_files' ); // Get selected files
+		$scan_options   = $this->get_request_array( 'scan_options' );
+		$sync_options   = $this->get_request_array( 'sync_options' );
 
 		// Validate folder path
 		$upload_dir  = wp_upload_dir();
@@ -108,7 +109,7 @@ class Media_Sync_Controller extends Base_Controller {
 			);
 		}
 
-		// Create job record with folder path and options
+		// Create job record with folder path, selected files and options
 		$job_model = WP_AIE()->Model->job;
 		$job_data  = [
 			'type'     => 'media_sync',
@@ -117,6 +118,8 @@ class Media_Sync_Controller extends Base_Controller {
 			'settings' => wp_json_encode(
 				[
 					'folder_path'  => $absolute_path,
+					'all_files'    => $selected_files, // Store selected files
+					'total_files'  => count( $selected_files ), // Store total count
 					'scan_options' => $scan_options,
 					'sync_options' => $sync_options,
 					'offset'       => 0,
@@ -129,8 +132,14 @@ class Media_Sync_Controller extends Base_Controller {
 			$this->send_error( $job_id );
 		}
 
-		// Update job to processing status
-		$job_model->update( $job_id, [ 'status' => 'processing' ] );
+		// Update job to processing status with total items
+		$job_model->update(
+			$job_id,
+			[
+				'status'      => 'processing',
+				'total_items' => count( $selected_files ),
+			]
+		);
 
 		// Return job info immediately so UI can open progress dialog
 		// JS will trigger the first processing request
