@@ -4,69 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WP Advanced Import Export - Complete Documentation</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --primary-color: #2271b1; --primary-dark: #135e96; --secondary-color: #646970;
-            --success-color: #00a32a; --warning-color: #dba617; --danger-color: #d63638;
-            --bg-color: #f0f0f1; --sidebar-bg: #1e1e1e; --content-bg: #ffffff;
-            --border-color: #dcdcde; --code-bg: #f6f7f7; --text-color: #1e1e1e; --text-secondary: #646970;
-        }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: var(--text-color); background: var(--bg-color); }
-        .wrapper { display: flex; min-height: 100vh; }
-        .sidebar { width: 280px; background: var(--sidebar-bg); color: #fff; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; }
-        .sidebar-header { padding: 30px 20px; background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); }
-        .sidebar-header h1 { font-size: 20px; font-weight: 600; margin-bottom: 5px; }
-        .sidebar-header .version { font-size: 12px; opacity: 0.8; }
-        .nav-menu { padding: 20px 0; }
-        .nav-section { margin-bottom: 20px; }
-        .nav-section-title { padding: 10px 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.5); }
-        .nav-menu ul { list-style: none; }
-        .nav-menu a { display: block; padding: 10px 20px 10px 35px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 14px; border-left: 3px solid transparent; transition: all 0.2s ease; }
-        .nav-menu a:hover { background: rgba(255,255,255,0.05); color: #fff; border-left-color: var(--primary-color); }
-        .nav-menu a.active { background: rgba(34, 113, 177, 0.2); color: #fff; border-left-color: var(--primary-color); font-weight: 500; }
-        .main-content { margin-left: 280px; flex: 1; padding: 40px; max-width: 1200px; }
-        .content-section { margin-bottom: 60px; background: var(--content-bg); padding: 40px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .content-section h2 { font-size: 32px; margin-bottom: 20px; border-bottom: 3px solid var(--primary-color); padding-bottom: 10px; }
-        .content-section h3 { font-size: 24px; margin: 30px 0 15px; }
-        .content-section h4 { font-size: 18px; margin: 25px 0 12px; color: var(--secondary-color); font-weight: 600; }
-        .content-section p { margin-bottom: 15px; color: var(--text-secondary); font-size: 15px; line-height: 1.7; }
-        .content-section ul, .content-section ol { margin: 15px 0 15px 25px; color: var(--text-secondary); }
-        .content-section li { margin-bottom: 8px; line-height: 1.6; }
-        code { background: var(--code-bg); padding: 2px 6px; border-radius: 3px; font-family: Monaco, monospace; font-size: 13px; color: #d63638; }
-        pre { background: var(--code-bg); border: 1px solid var(--border-color); border-radius: 5px; padding: 20px; overflow-x: auto; margin: 20px 0; }
-        pre code { background: none; padding: 0; color: var(--text-color); }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
-        table th, table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
-        table th { background: var(--code-bg); font-weight: 600; }
-        table tr:hover { background: #f9f9f9; }
-        .alert { padding: 15px 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid; }
-        .alert-info { background: #e5f5ff; border-color: var(--primary-color); color: #004085; }
-        .alert-success { background: #d4edda; border-color: var(--success-color); color: #155724; }
-        .alert-warning { background: #fff3cd; border-color: var(--warning-color); color: #856404; }
-        .alert-danger { background: #f8d7da; border-color: var(--danger-color); color: #721c24; }
-        .screenshot { background: var(--code-bg); border: 2px dashed var(--border-color); border-radius: 5px; padding: 60px 20px; text-align: center; margin: 20px 0; color: var(--text-secondary); font-style: italic; }
-        .screenshot::before { content: "📷 "; font-size: 30px; display: block; margin-bottom: 10px; }
-        .badge { display: inline-block; padding: 4px 10px; border-radius: 3px; font-size: 12px; font-weight: 600; margin-right: 5px; }
-        .badge-premium { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
-        .badge-new { background: var(--success-color); color: #fff; }
-        .badge-required { background: var(--danger-color); color: #fff; }
-        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 30px 0; }
-        .feature-card { background: var(--code-bg); padding: 20px; border-radius: 5px; border-left: 4px solid var(--primary-color); }
-        .feature-card h4 { margin-top: 0; color: var(--primary-color); }
-        .back-to-top { position: fixed; bottom: 30px; right: 30px; background: var(--primary-color); color: #fff; width: 50px; height: 50px; border-radius: 50%; border: none; cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: all 0.3s ease; }
-        .back-to-top:hover { background: var(--primary-dark); transform: translateY(-5px); }
-        .back-to-top.visible { display: flex; }
-        .menu-toggle { display: none; position: fixed; top: 20px; left: 20px; z-index: 1100; background: var(--primary-color); color: #fff; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 18px; }
-        @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
-            .sidebar.active { transform: translateX(0); }
-            .main-content { margin-left: 0; padding: 20px; }
-            .content-section { padding: 20px; }
-            .menu-toggle { display: block; }
-            .feature-grid { grid-template-columns: 1fr; }
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <button class="menu-toggle" onclick="toggleMenu()">☰</button>
@@ -83,7 +21,6 @@
                         <li><a href="#introduction" onclick="scrollToSection(event, 'introduction')">Introduction</a></li>
                         <li><a href="#requirements" onclick="scrollToSection(event, 'requirements')">System Requirements</a></li>
                         <li><a href="#installation" onclick="scrollToSection(event, 'installation')">Installation</a></li>
-                        <li><a href="#quick-start" onclick="scrollToSection(event, 'quick-start')">Quick Start</a></li>
                     </ul>
                 </div>
                 <div class="nav-section">
@@ -131,11 +68,11 @@
                 <p><strong>WP Advanced Import Export</strong> is a powerful WordPress plugin for professional data import, export, and synchronization operations.</p>
                 <h3>Key Features</h3>
                 <div class="feature-grid">
-                    <div class="feature-card"><h4>📥 Import/Export</h4><p>CSV, JSON, XML support with streaming for large files</p></div>
+                    <div class="feature-card"><h4>📥 Import/Export</h4><p>CSV and JSON support with streaming for large files. Works for any WordPress content types and even for any MySQL table</p></div>
                     <div class="feature-card"><h4>🔄 Synchronization</h4><p>Sync content between sites and media from FTP folders</p></div>
                     <div class="feature-card"><h4>⚡ Performance</h4><p>Background processing without memory limits</p></div>
                     <div class="feature-card"><h4>🎯 Field Mapping</h4><p>Intuitive field mapping with preview</p></div>
-                    <div class="feature-card"><h4>🛠️ Custom Functions</h4><p>Transform data with 50+ ready-made PHP functions</p></div>
+                    <div class="feature-card"><h4>🛠️ Custom Functions</h4><p>Transform data with 50+ ready-made PHP functions + write your own just in admin panel</p></div>
                     <div class="feature-card"><h4>🤖 AI Integration</h4><p>Auto content extraction and function generation</p></div>
                 </div>
                 <h3>Who Is This For?</h3>
@@ -146,7 +83,7 @@
                     <li><strong>E-commerce Owners</strong> — product catalog management</li>
                     <li><strong>SEO Specialists</strong> — bulk metadata updates</li>
                 </ul>
-                <div class="alert alert-info"><strong>💡 Tip:</strong> Start with "Quick Start" to learn the main features.</div>
+                <div class="alert alert-info"><strong>💡 Tip:</strong> Check out the Import and Export sections to get started.</div>
             </section>
 
             <section id="requirements" class="content-section">
@@ -165,21 +102,16 @@
                 <ul>
                     <li><code>mbstring</code> — multibyte strings <span class="badge badge-required">Required</span></li>
                     <li><code>json</code> — JSON support <span class="badge badge-required">Required</span></li>
-                    <li><code>xml</code> — XML support <span class="badge badge-required">Required</span></li>
                     <li><code>curl</code> — HTTP requests <span class="badge badge-required">Required</span></li>
                     <li><code>gd</code> or <code>imagick</code> — image processing</li>
-                    <li><code>zip</code> — archive handling</li>
                 </ul>
                 <h3>Plugin Compatibility</h3>
                 <ul>
                     <li>✅ <strong>WooCommerce</strong> — products and orders</li>
-                    <li>✅ <strong>ACF</strong> — custom fields</li>
-                    <li>✅ <strong>Real Media Library</strong> <span class="badge badge-premium">Premium</span></li>
+                    <li>✅ <strong>ACF & ACF Pro</strong> — custom fields</li>
+                    <li>✅ <strong>Real Media Library</strong> - virual folders for Media Library <span class="badge badge-premium">Premium</span></li>
                     <li>✅ <strong>Yoast SEO</strong> — SEO metadata</li>
-                    <li>✅ <strong>Rank Math</strong> — SEO metadata</li>
-                    <li>✅ <strong>WPML & Polylang</strong> — multilingual</li>
                 </ul>
-                <div class="alert alert-warning"><strong>⚠️ Warning:</strong> For large files (>100MB), increase PHP limits.</div>
             </section>
 
             <section id="installation" class="content-section">
@@ -190,7 +122,6 @@
                     <li>Search for "WP Advanced Import Export"</li>
                     <li>Click <strong>Install</strong> then <strong>Activate</strong></li>
                 </ol>
-                <div class="screenshot">Screenshot: Plugin installation</div>
                 <h3>Method 2: Upload ZIP</h3>
                 <ol>
                     <li>Download plugin ZIP</li>
@@ -203,86 +134,2546 @@
                     <li>Upload folder to <code>/wp-content/plugins/</code></li>
                     <li>Activate via Plugins menu</li>
                 </ol>
-                <div class="alert alert-success"><strong>✅ Done!</strong> Plugin is ready. See "Quick Start".</div>
+                <div class="alert alert-success"><strong>✅ Done!</strong> Plugin is ready. Check out the Import and Export sections below.</div>
             </section>
 
-            <section id="quick-start" class="content-section">
-                <h2>Quick Start</h2>
-                <h3>Your First Import</h3>
-                <h4>Step 1: Prepare CSV File</h4>
-                <pre><code>title,content,status,author
-"My First Post","Post content here","publish","admin"
-"Draft Post","Another post","draft","editor"</code></pre>
-                <h4>Step 2: Upload File</h4>
-                <ol>
-                    <li>Go to <strong>Import/Export → Import</strong></li>
-                    <li>Click <strong>Choose File</strong></li>
-                    <li>Select type: <strong>Posts</strong>, format: <strong>CSV</strong></li>
-                    <li>Click <strong>Next</strong></li>
-                </ol>
-                <div class="screenshot">Screenshot: File upload</div>
-                <h4>Step 3: Map Fields</h4>
+            <section id="import" class="content-section">
+                <h2>Data Import</h2>
+                <p>The import module supports CSV and JSON formats with advanced features for processing large files.</p>
+                
+                <h3>Supported Formats</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>📄 CSV</h4>
+                        <p>Comma/semicolon/tab delimiters, custom encoding (UTF-8, Windows-1251, etc.)</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📋 JSON</h4>
+                        <p>Nested structures, arrays, batch processing</p>
+                    </div>
+                </div>
+
+                <h3>Supported Content Types</h3>
                 <ul>
-                    <li><code>title</code> → <strong>Post Title</strong></li>
-                    <li><code>content</code> → <strong>Post Content</strong></li>
-                    <li><code>status</code> → <strong>Post Status</strong></li>
-                    <li><code>author</code> → <strong>Post Author</strong></li>
+                    <li><strong>Posts</strong> — blog posts</li>
+                    <li><strong>Pages</strong> — static pages</li>
+                    <li><strong>Custom post types</strong> — any of custom content types</li>
+										<li><strong>Media</strong> — import media files from URLs</li>
+										<li><strong>Menus</strong> — import WordPress menu items</li>
+										<li><strong>Users</strong> — user accounts with roles and meta</li>
+										<li><strong>Comments</strong> — with author and moderation status</li>
+										<li><strong>Taxonomy Terms</strong> — categories, tags, custom taxonomies</li>
+                    <li><strong>Products</strong> — WooCommerce simple/variable products</li>
+                    <li><strong>Orders</strong> — WooCommerce orders</li>
+										<li><strong>Coupons</strong> — WooCommerce coupons</li>
+										<li><strong>MySQL Tables</strong> — Any of custom MySQL database table</li>
                 </ul>
-                <div class="screenshot">Screenshot: Field mapping</div>
-                <h4>Step 4: Start Import</h4>
-                <ol>
-                    <li>Review preview</li>
-                    <li>Click <strong>Start Import</strong></li>
-                    <li>Wait for completion</li>
-                </ol>
-                <div class="alert alert-success"><strong>🎉 Success!</strong> Your first import is complete.</div>
+
+                <h3>Import Process</h3>
+                <h4>1. Choose a content type to import</h4>
+								<p>Select the type of content you want to import (e.g., Posts, Pages, etc.).</p>
+                <img class="screenshot" src="images/1.png" alt=""/>
+ 
+								<h4>2. Upload an import file</h4>
+								<p>Upload your CSV or JSON file from local computer or paste a URL.</p>
+								<img class="screenshot" src="images/2.png" alt=""/>
+
+                <h4>3. Check format settings</h4>
+								<img class="screenshot" src="images/3.png" alt=""/>
+                <p><strong>For CSV:</strong></p>
+                <ul>
+                    <li>Delimiter: comma, semicolon, tab, custom</li>
+                    <li>Enclosure: double quotes, single quotes, none</li>
+                    <li>Encoding: UTF-8, Windows-1251, ISO-8859-1, etc.</li>
+                    <li>Header row: use first row as headers or custom names</li>
+                </ul>
+                <pre><code>// Example CSV with custom delimiter
+title;content;status
+"Post 1";"Content here";"publish"
+"Post 2";"Another one";"draft"</code></pre>
+
+                <p><strong>For JSON:</strong></p>
+                <ul>
+                    <li>Root path: specify JSON path to data array</li>
+                    <li>Nested fields: dot notation support (e.g., <code>meta.price</code>)</li>
+                </ul>
+                <pre><code>{
+  "data": [
+    {"title": "Post 1", "content": "Content", "meta": {"views": 100}},
+    {"title": "Post 2", "content": "Text", "meta": {"views": 200}}
+  ]
+}</code></pre>
+
+								<h4>4. Data Preview</h4>
+								<p>This step shows first 5 rows of your import file for review. Check if the data is parsed correct.</p>
+								<img class="screenshot" src="images/4.png" alt=""/>
+
+                <h4>4. Field Mapping</h4>
+                <p>See detailed <a href="#field-mapping">Field Mapping</a> section.</p>
+
+                <h4>5. Import Options</h4>
+                <table>
+                    <tr><th>Option</th><th>Description</th></tr>
+                    <tr><td><strong>Update Existing</strong></td><td>Update posts by ID, slug, or title</td></tr>
+                    <tr><td><strong>Skip Duplicates</strong></td><td>Don't import existing entries</td></tr>
+                    <tr><td><strong>Delete Missing</strong></td><td>Remove posts not in import file</td></tr>
+                    <tr><td><strong>Batch Size</strong></td><td>Records per batch (default: 10)</td></tr>
+                    <tr><td><strong>Start From</strong></td><td>Skip first N records</td></tr>
+                    <tr><td><strong>Limit</strong></td><td>Import only N records</td></tr>
+                </table>
+
+                <h3>Background Processing</h3>
+                <p>Imports run in the background using WordPress cron:</p>
+                <ul>
+                    <li>✅ No timeout issues for large files</li>
+                    <li>✅ Progress tracking in real-time</li>
+                    <li>✅ Pause/resume support</li>
+                </ul>
+                <div class="screenshot">Screenshot: Import progress tracker</div>
+
+                <h3>Error Handling</h3>
+                <p>The plugin provides detailed error reporting:</p>
+                <ul>
+                    <li><strong>Row-level errors</strong> — see which rows failed and why</li>
+                    <li><strong>Validation errors</strong> — invalid data format or missing required fields</li>
+                    <li><strong>Download log</strong> — export error report as CSV</li>
+                    <li><strong>Rollback</strong> — undo import (Premium)</li>
+                </ul>
+
+                <div class="alert alert-info"><strong>💡 Pro Tip:</strong> Test with a small sample file (5-10 rows) before importing thousands of records.</div>
             </section>
 
-            <p style="text-align: center; color: var(--text-secondary); margin: 60px 0 40px;">
-                <em>📚 This is a template showing the complete English documentation structure.</em><br>
-                <em>All sections follow this English-only pattern with professional technical writing.</em><br>
-                <em>The full documentation includes all features: Import, Export, Field Mapping, Validation,</em><br>
-                <em>Media Sync, Content Sync, Custom Functions, AI Features, REST API, WP-CLI, and more.</em>
-            </p>
+            <section id="export" class="content-section">
+                <h2>Data Export</h2>
+                <p>Export WordPress data to CSV or JSON formats with flexible filtering and field selection.</p>
+
+                <h3>Export Wizard</h3>
+                <h4>Step 1: Select Content Type</h4>
+                <ul>
+                    <li>Posts (any post type)</li>
+                    <li>Products (WooCommerce)</li>
+                    <li>Users</li>
+                    <li>Comments</li>
+                    <li>Terms (categories, tags)</li>
+                    <li>Custom post types</li>
+                </ul>
+                <div class="screenshot">Screenshot: Export type selection</div>
+
+                <h4>Step 2: Configure Filters</h4>
+                <table>
+                    <tr><th>Filter</th><th>Options</th></tr>
+                    <tr><td><strong>Date Range</strong></td><td>Published/modified between dates</td></tr>
+                    <tr><td><strong>Status</strong></td><td>Publish, draft, pending, private</td></tr>
+                    <tr><td><strong>Author</strong></td><td>Select specific authors</td></tr>
+                    <tr><td><strong>Category</strong></td><td>Filter by taxonomy terms</td></tr>
+                    <tr><td><strong>Meta Query</strong></td><td>Custom field conditions</td></tr>
+                    <tr><td><strong>Search</strong></td><td>Keyword search in title/content</td></tr>
+                </table>
+
+                <h4>Step 3: Choose Fields</h4>
+                <p>Select which fields to export:</p>
+                <ul>
+                    <li><strong>Standard Fields</strong> — ID, title, content, status, date, author</li>
+                    <li><strong>Taxonomies</strong> — categories, tags, custom taxonomies</li>
+                    <li><strong>Custom Fields</strong> — ACF, meta fields</li>
+                    <li><strong>Media</strong> — featured image, attachments</li>
+                    <li><strong>SEO</strong> — Yoast/Rank Math metadata</li>
+                    <li><strong>WooCommerce</strong> — price, stock, variations</li>
+                </ul>
+                <div class="screenshot">Screenshot: Field selection</div>
+
+                <h4>Step 4: Format Settings</h4>
+                <p><strong>CSV Options:</strong></p>
+                <ul>
+                    <li>Delimiter: comma, semicolon, tab</li>
+                    <li>Enclosure: quotes or none</li>
+                    <li>Include BOM for Excel compatibility</li>
+                    <li>Date format customization</li>
+                </ul>
+
+                <p><strong>JSON Options:</strong></p>
+                <ul>
+                    <li>Pretty print (formatted) or minified</li>
+                    <li>Nested structure or flat</li>
+                    <li>Custom root key</li>
+                </ul>
+
+                <h3>Export Methods</h3>
+                <h4>Instant Download</h4>
+                <p>For small exports (&lt;1000 records), download immediately.</p>
+
+                <h4>Background Export</h4>
+                <p>For large datasets:</p>
+                <ul>
+                    <li>Export runs in background</li>
+                    <li>Email notification with download link</li>
+                    <li>File stored for 24 hours</li>
+                    <li>Resume support if interrupted</li>
+                </ul>
+                <div class="screenshot">Screenshot: Export progress</div>
+
+                <h4>Scheduled Export <span class="badge badge-premium">Premium</span></h4>
+                <p>Automate exports with scheduling:</p>
+                <ul>
+                    <li>Daily, weekly, monthly schedules</li>
+                    <li>Email delivery or FTP upload</li>
+                    <li>Incremental exports (new/updated only)</li>
+                    <li>Webhook notifications</li>
+                </ul>
+
+                <h3>Export Examples</h3>
+                <h4>Export All Published Posts</h4>
+                <pre><code>Content Type: Posts
+Status: Publish
+Fields: ID, Title, Content, Date, Author
+Format: CSV
+Result: 1,250 posts exported</code></pre>
+
+                <h4>Export WooCommerce Products with Stock</h4>
+                <pre><code>Content Type: Products
+Meta Query: _stock > 0
+Fields: SKU, Title, Price, Stock, Categories
+Format: CSV
+Result: Products in stock ready for inventory</code></pre>
+
+                <div class="alert alert-success"><strong>✅ Best Practice:</strong> Use export preview to verify field selection before large exports.</div>
+            </section>
+
+            <section id="field-mapping" class="content-section">
+                <h2>Field Mapping</h2>
+                <p>Field mapping connects your import file columns to WordPress database fields with transformation support.</p>
+
+                <h3>Mapping Interface</h3>
+                <img src="images/5.png" class="screenshot">
+                <p>The mapping interface provides:</p>
+                <ul>
+                    <li><strong>Drag & Drop</strong> — visually connect source to target fields</li>
+                    <li><strong>Auto-detect</strong> — smart matching based on field names</li>
+                    <li><strong>Data transformation</strong> — apply built-in transformations (e.g. date formatting, string replacement) or use your own functions</li>
+                </ul>
+
+								<img src="images/6.png" class="screenshot">
+								<p>Click on "Tools" icon to assign data transformation function for any of field.</p>
+
+								<img src="images/7.png" class="screenshot">
+								<p>Choose a function from library</p>
+
+								<img src="images/8.png" class="screenshot">
+								<p>Assigned functions are displayed near each field</p>
+
+                <h3>Available Target Fields</h3>
+                <h4>Post Fields</h4>
+                <table>
+                    <tr><th>Field</th><th>Description</th><th>Required</th></tr>
+                    <tr><td><code>post_title</code></td><td>Post title</td><td>✅</td></tr>
+                    <tr><td><code>post_content</code></td><td>Post content (HTML allowed)</td><td></td></tr>
+                    <tr><td><code>post_excerpt</code></td><td>Post excerpt</td><td></td></tr>
+                    <tr><td><code>post_status</code></td><td>publish, draft, pending, private</td><td></td></tr>
+                    <tr><td><code>post_type</code></td><td>post, page, or custom</td><td></td></tr>
+                    <tr><td><code>post_author</code></td><td>Author ID or username</td><td></td></tr>
+                    <tr><td><code>post_date</code></td><td>Publication date</td><td></td></tr>
+                    <tr><td><code>post_name</code></td><td>Post slug (URL)</td><td></td></tr>
+                    <tr><td><code>post_parent</code></td><td>Parent post ID</td><td></td></tr>
+                    <tr><td><code>menu_order</code></td><td>Sort order</td><td></td></tr>
+                    <tr><td><code>comment_status</code></td><td>open, closed</td><td></td></tr>
+                </table>
+
+                <h4>Taxonomy Fields</h4>
+                <ul>
+                    <li><code>category</code> — categories (comma-separated)</li>
+                    <li><code>post_tag</code> — tags (comma-separated)</li>
+                    <li><code>{taxonomy_name}</code> — custom taxonomies</li>
+                </ul>
+                <p>Format: <code>"Category 1, Category 2, Parent > Child"</code></p>
+
+                <h4>Media Fields</h4>
+                <ul>
+                    <li><code>featured_image</code> — URL or local path</li>
+                    <li><code>attachments</code> — multiple images (pipe-separated)</li>
+                    <li><code>gallery</code> — image gallery</li>
+                </ul>
+
+                <h4>Custom Fields (Meta)</h4>
+                <ul>
+                    <li><code>meta:{field_name}</code> — any custom field</li>
+                    <li><code>acf:{field_name}</code> — ACF fields</li>
+                    <li><code>_yoast_wpseo_title</code> — Yoast SEO title</li>
+                    <li><code>_thumbnail_id</code> — featured image ID</li>
+                </ul>
+
+                <h4>WooCommerce Fields</h4>
+                <table>
+                    <tr><th>Field</th><th>Description</th></tr>
+                    <tr><td><code>_sku</code></td><td>Product SKU</td></tr>
+                    <tr><td><code>_regular_price</code></td><td>Regular price</td></tr>
+                    <tr><td><code>_sale_price</code></td><td>Sale price</td></tr>
+                    <tr><td><code>_stock</code></td><td>Stock quantity</td></tr>
+                    <tr><td><code>_stock_status</code></td><td>instock, outofstock</td></tr>
+                    <tr><td><code>_weight</code></td><td>Product weight</td></tr>
+                    <tr><td><code>_length, _width, _height</code></td><td>Dimensions</td></tr>
+                    <tr><td><code>product_type</code></td><td>simple, variable, grouped</td></tr>
+                </table>
+
+                <h3>Data Transformation</h3>
+                <p>Apply functions to transform data during import:</p>
+                
+                <h4>Built-in Transformations</h4>
+                <ul>
+                    <li><code>uppercase()</code> — convert to UPPERCASE</li>
+                    <li><code>lowercase()</code> — convert to lowercase</li>
+                    <li><code>trim()</code> — remove extra spaces</li>
+                    <li><code>strip_tags()</code> — remove HTML tags</li>
+                    <li><code>sanitize_title()</code> — create URL-friendly slug</li>
+                    <li><code>date_format('Y-m-d')</code> — reformat dates</li>
+                    <li><code>number_format(2)</code> — format numbers</li>
+                    <li><code>multiply(1.2)</code> — math operations</li>
+                    <li><code>replace('old', 'new')</code> — find & replace</li>
+                    <li><code>split('|')[0]</code> — split and get first part</li>
+                </ul>
+
+                <h4>Custom Functions</h4>
+                <p>Use custom PHP functions (see <a href="#custom-functions">Custom Functions</a>):</p>
+                <pre><code>// Apply custom function to field
+Field: product_price
+Function: convert_currency_to_usd($value)</code></pre>
+                <div class="screenshot">Screenshot: Function selection in field mapper</div>
+
+                <h4>Conditional Mapping</h4>
+                <p>Map different values based on conditions:</p>
+                <pre><code>// Example: Map status values
+IF value == 'active' THEN 'publish'
+IF value == 'inactive' THEN 'draft'
+DEFAULT 'pending'</code></pre>
+
+                <h3>Mapping Templates</h3>
+                <p>Save and reuse mapping configurations:</p>
+                <ul>
+                    <li><strong>Save Template</strong> — store current mapping</li>
+                    <li><strong>Load Template</strong> — apply saved mapping</li>
+                    <li><strong>Share Templates</strong> — export/import as JSON</li>
+                    <li><strong>Auto-apply</strong> — automatically use template for similar files</li>
+                </ul>
+
+            <section id="validation" class="content-section">
+                <h2>Data Validation</h2>
+                <p>Built-in validation rules ensure data quality before import.</p>
+
+                <h3>Validation Rules</h3>
+                <table>
+                    <tr><th>Rule</th><th>Description</th><th>Example</th></tr>
+                    <tr><td><strong>Required</strong></td><td>Field must have a value</td><td>title is required</td></tr>
+                    <tr><td><strong>Unique</strong></td><td>No duplicate values allowed</td><td>email must be unique</td></tr>
+                    <tr><td><strong>Email</strong></td><td>Valid email format</td><td>user@example.com</td></tr>
+                    <tr><td><strong>URL</strong></td><td>Valid URL format</td><td>https://example.com</td></tr>
+                    <tr><td><strong>Date</strong></td><td>Valid date format</td><td>2026-01-19 or 19/01/2026</td></tr>
+                    <tr><td><strong>Numeric</strong></td><td>Numbers only</td><td>price: 99.99</td></tr>
+                    <tr><td><strong>Min/Max</strong></td><td>Value range</td><td>age between 18-100</td></tr>
+                    <tr><td><strong>Length</strong></td><td>String length</td><td>title max 200 chars</td></tr>
+                    <tr><td><strong>Regex</strong></td><td>Custom pattern</td><td>SKU: /^[A-Z]{3}-\d{4}$/</td></tr>
+                    <tr><td><strong>In List</strong></td><td>Value from allowed list</td><td>status: publish, draft, pending</td></tr>
+                </table>
+
+                <h3>Applying Validation Rules</h3>
+                <div class="screenshot">Screenshot: Validation rules configuration</div>
+                <p>Set rules for each field during mapping:</p>
+                <pre><code>Field: post_title
+✓ Required
+✓ Min Length: 10
+✓ Max Length: 200
+
+Field: email
+✓ Required
+✓ Email format
+✓ Unique
+
+Field: price
+✓ Numeric
+✓ Min: 0
+✓ Max: 999999</code></pre>
+
+                <h3>Validation Report</h3>
+                <p>Before import, plugin validates all data:</p>
+                <ul>
+                    <li><strong>Summary</strong> — total errors and warnings</li>
+                    <li><strong>Error List</strong> — row number, field, error message</li>
+                    <li><strong>Export Errors</strong> — download as CSV for correction</li>
+                    <li><strong>Skip Invalid</strong> — import only valid rows</li>
+                    <li><strong>Stop on Error</strong> — abort if any errors found</li>
+                </ul>
+                <div class="screenshot">Screenshot: Validation error report</div>
+
+                <h3>Custom Validation</h3>
+                <p>Create custom validation functions:</p>
+                <pre><code>// Custom validator: check if SKU exists
+function validate_sku_exists($value) {
+    global $wpdb;
+    $exists = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->postmeta} 
+         WHERE meta_key = '_sku' AND meta_value = %s",
+        $value
+    ));
+    
+    if ($exists > 0) {
+        return ['valid' => false, 'message' => 'SKU already exists'];
+    }
+    
+    return ['valid' => true];
+}</code></pre>
+
+                <div class="alert alert-warning"><strong>⚠️ Important:</strong> Always validate data before large imports to avoid database pollution.</div>
+            </section>
+
+            <section id="media-sync" class="content-section">
+                <h2>Media Sync</h2>
+                <p>Synchronize media files from FTP/local folders to WordPress Media Library with duplicate detection.</p>
+
+                <h3>Overview</h3>
+                <p>Media Sync allows you to:</p>
+                <ul>
+                    <li>Import thousands of images/files from server folders</li>
+                    <li>Detect duplicates by hash, filename, or filesize</li>
+                    <li>Organize into Real Media Library folders <span class="badge badge-premium">Premium</span></li>
+                    <li>Preserve original filenames and metadata</li>
+                    <li>Generate thumbnails automatically</li>
+                    <li>Update post attachments based on filename patterns</li>
+                </ul>
+
+                <h3>Setup</h3>
+                <h4>Step 1: Configure Source</h4>
+                <p>Go to <strong>Import/Export → Media Sync</strong></p>
+                <div class="screenshot">Screenshot: Media sync configuration</div>
+                <ul>
+                    <li><strong>Local Folder</strong> — absolute path on server</li>
+                    <li><strong>FTP Server</strong> — host, username, password, port</li>
+                    <li><strong>SFTP</strong> — secure FTP with SSH key support</li>
+                </ul>
+                <pre><code>// Example: Local folder
+/var/www/html/import-media/
+
+// Example: FTP
+ftp://username:password@ftp.example.com:21/images/</code></pre>
+
+                <h4>Step 2: Duplicate Detection</h4>
+                <p>Choose how to detect existing files:</p>
+                <table>
+                    <tr><th>Method</th><th>Description</th><th>Speed</th><th>Accuracy</th></tr>
+                    <tr><td><strong>MD5 Hash</strong></td><td>Compare file checksums</td><td>Slow</td><td>100%</td></tr>
+                    <tr><td><strong>Filename</strong></td><td>Match by filename</td><td>Fast</td><td>~90%</td></tr>
+                    <tr><td><strong>Filesize</strong></td><td>Match by size</td><td>Fast</td><td>~70%</td></tr>
+                    <tr><td><strong>Filename + Size</strong></td><td>Both conditions</td><td>Fast</td><td>~95%</td></tr>
+                </table>
+
+                <div class="alert alert-info"><strong>💡 Recommendation:</strong> Use MD5 hash for accurate duplicate detection, or filename for faster processing.</div>
+
+                <h4>Step 3: Sync Options</h4>
+                <ul>
+                    <li><strong>File Types</strong> — jpg, png, gif, pdf, mp4, etc.</li>
+                    <li><strong>Skip Duplicates</strong> — don't re-import existing files</li>
+                    <li><strong>Update Duplicates</strong> — replace existing files</li>
+                    <li><strong>Preserve Structure</strong> — keep folder hierarchy</li>
+                    <li><strong>Generate Metadata</strong> — extract EXIF, title, alt text</li>
+                    <li><strong>Organize by Date</strong> — YYYY/MM folder structure</li>
+                </ul>
+
+                <h3>Real Media Library Integration <span class="badge badge-premium">Premium</span></h3>
+                <p>Automatically organize imported media into RML folders:</p>
+                <ul>
+                    <li>Map source folders to RML folders</li>
+                    <li>Create folders automatically</li>
+                    <li>Preserve folder hierarchy</li>
+                </ul>
+                <div class="screenshot">Screenshot: RML folder mapping</div>
+                <pre><code>Source: /import-media/products/
+Target: RML Folder: Products
+
+Source: /import-media/blog/2026/
+Target: RML Folder: Blog → 2026</code></pre>
+
+                <h3>Attach to Posts</h3>
+                <p>Automatically attach media to posts based on patterns:</p>
+                <h4>By Filename Pattern</h4>
+                <pre><code>// Pattern: {post_id}-image.jpg
+123-featured.jpg → Attach to post #123
+
+// Pattern: {slug}-gallery-*.jpg
+my-post-gallery-1.jpg → Attach to post "my-post"</code></pre>
+
+                <h4>By Metadata</h4>
+                <ul>
+                    <li>Match post title to image IPTC title</li>
+                    <li>Match SKU to image filename</li>
+                    <li>Custom meta field matching</li>
+                </ul>
+
+                <h3>Progress & Monitoring</h3>
+                <div class="screenshot">Screenshot: Media sync progress</div>
+                <ul>
+                    <li><strong>Real-time Progress</strong> — files processed/total</li>
+                    <li><strong>Statistics</strong> — imported, skipped, errors</li>
+                    <li><strong>Speed</strong> — files per second</li>
+                    <li><strong>ETA</strong> — estimated time remaining</li>
+                    <li><strong>Memory Usage</strong> — current/peak memory</li>
+                </ul>
+
+                <h3>Use Cases</h3>
+                <h4>Case 1: Product Images Bulk Import</h4>
+                <pre><code>Scenario: 5,000 product images named by SKU
+Files: SKU-12345.jpg, SKU-67890.jpg
+Process:
+1. Upload to /tmp/product-images/
+2. Set pattern: SKU-{sku}.jpg
+3. Auto-attach to products by SKU meta
+Result: All products have featured images</code></pre>
+
+                <h4>Case 2: Blog Photos from FTP</h4>
+                <pre><code>Scenario: Photographer uploads to FTP daily
+Source: ftp://photos.example.com/daily/
+Schedule: Daily sync at 3 AM
+Action: Import new photos, skip existing
+Result: Automatic media library updates</code></pre>
+
+                <div class="alert alert-success"><strong>✅ Pro Tip:</strong> Use hash-based detection for production, filename for testing.</div>
+            </section>
+
+            <section id="content-sync" class="content-section">
+                <h2>Content Sync</h2>
+                <p>Synchronize content between multiple WordPress sites with bi-directional push/pull support.</p>
+
+                <h3>Overview</h3>
+                <p>Content Sync enables:</p>
+                <ul>
+                    <li>Multi-site content distribution</li>
+                    <li>Staging to production deployment</li>
+                    <li>Client site management</li>
+                    <li>Content backup and restore</li>
+                    <li>Real-time or scheduled synchronization</li>
+                </ul>
+
+                <h3>Setup Connected Sites</h3>
+                <h4>Step 1: Generate API Key</h4>
+                <p>On <strong>remote site</strong>:</p>
+                <ol>
+                    <li>Go to <strong>Import/Export → Content Sync → Settings</strong></li>
+                    <li>Click <strong>Generate API Key</strong></li>
+                    <li>Copy key and site URL</li>
+                </ol>
+                <div class="screenshot">Screenshot: API key generation</div>
+
+                <h4>Step 2: Add Connected Site</h4>
+                <p>On <strong>local site</strong>:</p>
+                <ol>
+                    <li>Go to <strong>Import/Export → Content Sync → Sites</strong></li>
+                    <li>Click <strong>Add Site</strong></li>
+                    <li>Enter site name, URL, and API key</li>
+                    <li>Click <strong>Test Connection</strong></li>
+                </ol>
+                <div class="screenshot">Screenshot: Adding connected site</div>
+                <pre><code>Site Name: Production
+Site URL: https://example.com
+API Key: aie_xxxxxxxxxxxxxxxxxxxx
+Status: ✅ Connected</code></pre>
+
+                <h3>Security Features</h3>
+                <ul>
+                    <li><strong>API Key Authentication</strong> — secure token-based auth</li>
+                    <li><strong>IP Whitelisting</strong> <span class="badge badge-premium">Premium</span> — restrict by IP</li>
+                    <li><strong>SSL Required</strong> — HTTPS only connections</li>
+                    <li><strong>Permission Check</strong> — verify user capabilities</li>
+                    <li><strong>Rate Limiting</strong> — prevent abuse</li>
+                    <li><strong>Audit Log</strong> — track all sync operations</li>
+                </ul>
+
+                <h3>Push Content</h3>
+                <p>Send content from local to remote site:</p>
+                <h4>Manual Push</h4>
+                <ol>
+                    <li>Select posts to sync</li>
+                    <li>Choose target site</li>
+                    <li>Configure options</li>
+                    <li>Click <strong>Push Now</strong></li>
+                </ol>
+                <div class="screenshot">Screenshot: Manual content push</div>
+
+                <h4>Push Options</h4>
+                <table>
+                    <tr><th>Option</th><th>Description</th></tr>
+                    <tr><td><strong>Content</strong></td><td>Post title, content, excerpt</td></tr>
+                    <tr><td><strong>Metadata</strong></td><td>Custom fields, ACF fields</td></tr>
+                    <tr><td><strong>Taxonomies</strong></td><td>Categories, tags (create if missing)</td></tr>
+                    <tr><td><strong>Media</strong></td><td>Featured image and attachments</td></tr>
+                    <tr><td><strong>SEO</strong></td><td>Yoast/Rank Math metadata</td></tr>
+                    <tr><td><strong>Author</strong></td><td>Map or preserve author</td></tr>
+                    <tr><td><strong>Status</strong></td><td>Keep status or force draft</td></tr>
+                </table>
+
+                <h3>Pull Content</h3>
+                <p>Fetch content from remote to local site:</p>
+                <ol>
+                    <li>Go to <strong>Content Sync → Pull</strong></li>
+                    <li>Select source site</li>
+                    <li>Filter content (date, status, category)</li>
+                    <li>Preview changes</li>
+                    <li>Click <strong>Pull Content</strong></li>
+                </ol>
+
+                <h3>Scheduled Sync <span class="badge badge-premium">Premium</span></h3>
+                <p>Automate content synchronization:</p>
+                <ul>
+                    <li><strong>Auto-push</strong> — send new posts automatically</li>
+                    <li><strong>Auto-pull</strong> — fetch updates from remote</li>
+                    <li><strong>Schedule</strong> — hourly, daily, weekly</li>
+                    <li><strong>Filters</strong> — sync only specific categories</li>
+                    <li><strong>Notifications</strong> — email alerts on sync</li>
+                </ul>
+                <div class="screenshot">Screenshot: Scheduled sync configuration</div>
+
+                <h3>Conflict Resolution</h3>
+                <p>Handle conflicts when same content exists on both sites:</p>
+                <ul>
+                    <li><strong>Use Local</strong> — keep local version</li>
+                    <li><strong>Use Remote</strong> — overwrite with remote</li>
+                    <li><strong>Merge</strong> — combine both versions</li>
+                    <li><strong>Skip</strong> — don't sync conflicting posts</li>
+                    <li><strong>Ask Each Time</strong> — manual review</li>
+                </ul>
+
+                <h3>Sync Report</h3>
+                <div class="screenshot">Screenshot: Sync completion report</div>
+                <pre><code>Sync Report
+────────────────────────────
+Direction: Local → Production
+Date: 2026-01-19 14:35:22
+
+Results:
+✓ 45 posts pushed successfully
+✓ 12 categories created
+✓ 67 images uploaded
+⚠ 3 posts skipped (conflicts)
+✗ 1 post failed (permission denied)
+
+Duration: 2 min 34 sec</code></pre>
+
+                <h3>Use Cases</h3>
+                <h4>Case 1: Staging to Production</h4>
+                <pre><code>Scenario: Test content on staging, deploy to live site
+Setup:
+- Staging: staging.example.com
+- Production: example.com
+Process:
+1. Create/edit posts on staging
+2. Review and test
+3. Push approved posts to production
+4. Auto-publish or keep as draft</code></pre>
+
+                <h4>Case 2: Multi-language Sites</h4>
+                <pre><code>Scenario: Manage content for 5 regional sites
+Master: en.example.com
+Regions: fr.example.com, de.example.com, etc.
+Process:
+1. Create content on master site (English)
+2. Push to all regional sites
+3. Translators edit local versions
+4. Each site has localized content</code></pre>
+
+                <h4>Case 3: Agency Client Management</h4>
+                <pre><code>Scenario: Distribute blog posts to 50 client sites
+Central: agency.com
+Clients: client1.com, client2.com, ...
+Process:
+1. Write blog post on central site
+2. Schedule push to all clients
+3. Auto-publish on client sites
+4. Clients have fresh content daily</code></pre>
+
+            <section id="custom-functions" class="content-section">
+                <h2>Custom Functions</h2>
+                <p>Transform and manipulate data during import/export using 50+ built-in PHP functions or create your own.</p>
+
+                <h3>Function Library</h3>
+                <p>Access to <strong>Function_Snippets</strong> — a collection of ready-to-use transformation functions.</p>
+
+                <h4>String Functions</h4>
+                <table>
+                    <tr><th>Function</th><th>Description</th><th>Example</th></tr>
+                    <tr><td><code>trim_whitespace($str)</code></td><td>Remove extra spaces</td><td>"  text  " → "text"</td></tr>
+                    <tr><td><code>uppercase($str)</code></td><td>Convert to UPPERCASE</td><td>"hello" → "HELLO"</td></tr>
+                    <tr><td><code>lowercase($str)</code></td><td>Convert to lowercase</td><td>"HELLO" → "hello"</td></tr>
+                    <tr><td><code>capitalize_words($str)</code></td><td>Title Case</td><td>"hello world" → "Hello World"</td></tr>
+                    <tr><td><code>remove_html($str)</code></td><td>Strip HTML tags</td><td>"&lt;p&gt;text&lt;/p&gt;" → "text"</td></tr>
+                    <tr><td><code>sanitize_filename($str)</code></td><td>Safe filename</td><td>"My File!.pdf" → "my-file.pdf"</td></tr>
+                    <tr><td><code>create_slug($str)</code></td><td>URL-friendly slug</td><td>"My Post Title" → "my-post-title"</td></tr>
+                    <tr><td><code>limit_chars($str, $limit)</code></td><td>Truncate string</td><td>(text, 50) → "text..."</td></tr>
+                    <tr><td><code>extract_numbers($str)</code></td><td>Get only numbers</td><td>"Price: $99.50" → "99.50"</td></tr>
+                    <tr><td><code>replace_text($str, $find, $replace)</code></td><td>Find & replace</td><td>("A-B", "-", "_") → "A_B"</td></tr>
+                </table>
+
+                <h4>Date Functions</h4>
+                <table>
+                    <tr><th>Function</th><th>Description</th><th>Example</th></tr>
+                    <tr><td><code>format_date($date, $format)</code></td><td>Change format</td><td>("01/19/2026", "Y-m-d") → "2026-01-19"</td></tr>
+                    <tr><td><code>date_to_timestamp($date)</code></td><td>To UNIX time</td><td>"2026-01-19" → 1768867200</td></tr>
+                    <tr><td><code>timestamp_to_date($ts, $format)</code></td><td>From UNIX time</td><td>(1768867200, "Y-m-d") → "2026-01-19"</td></tr>
+                    <tr><td><code>add_days($date, $days)</code></td><td>Add days</td><td>("2026-01-19", 7) → "2026-01-26"</td></tr>
+                    <tr><td><code>subtract_days($date, $days)</code></td><td>Subtract days</td><td>("2026-01-19", 5) → "2026-01-14"</td></tr>
+                    <tr><td><code>get_date_diff($date1, $date2)</code></td><td>Days between</td><td>("2026-01-19", "2026-01-01") → 18</td></tr>
+                </table>
+
+                <h4>Numeric Functions</h4>
+                <table>
+                    <tr><th>Function</th><th>Description</th><th>Example</th></tr>
+                    <tr><td><code>format_number($num, $decimals)</code></td><td>Format number</td><td>(1234.5, 2) → "1,234.50"</td></tr>
+                    <tr><td><code>round_number($num, $precision)</code></td><td>Round</td><td>(99.567, 2) → 99.57</td></tr>
+                    <tr><td><code>multiply($num, $multiplier)</code></td><td>Multiplication</td><td>(100, 1.2) → 120</td></tr>
+                    <tr><td><code>divide($num, $divisor)</code></td><td>Division</td><td>(100, 4) → 25</td></tr>
+                    <tr><td><code>add($num, $amount)</code></td><td>Addition</td><td>(100, 20) → 120</td></tr>
+                    <tr><td><code>subtract($num, $amount)</code></td><td>Subtraction</td><td>(100, 20) → 80</td></tr>
+                    <tr><td><code>percentage($num, $percent)</code></td><td>Calculate %</td><td>(200, 15) → 30</td></tr>
+                    <tr><td><code>add_percentage($num, $percent)</code></td><td>Add %</td><td>(100, 20) → 120</td></tr>
+                    <tr><td><code>convert_currency($amount, $rate)</code></td><td>Currency conv.</td><td>(100, 0.85) → 85</td></tr>
+                </table>
+
+                <h4>WordPress Functions</h4>
+                <table>
+                    <tr><th>Function</th><th>Description</th><th>Example</th></tr>
+                    <tr><td><code>get_user_by_login($username)</code></td><td>Get user ID</td><td>("admin") → 1</td></tr>
+                    <tr><td><code>get_user_by_email($email)</code></td><td>Get user by email</td><td>("user@site.com") → 5</td></tr>
+                    <tr><td><code>get_term_id($slug, $taxonomy)</code></td><td>Get term ID</td><td>("uncategorized", "category") → 1</td></tr>
+                    <tr><td><code>get_post_by_title($title)</code></td><td>Find post</td><td>("My Post") → 42</td></tr>
+                    <tr><td><code>get_image_id_by_url($url)</code></td><td>Get attachment ID</td><td>(URL) → 123</td></tr>
+                    <tr><td><code>download_image($url)</code></td><td>Import to library</td><td>(URL) → attachment_id</td></tr>
+                    <tr><td><code>create_category($name, $parent)</code></td><td>Create if missing</td><td>("News", 0) → term_id</td></tr>
+                </table>
+
+                <h4>Validation Functions</h4>
+                <table>
+                    <tr><th>Function</th><th>Description</th><th>Example</th></tr>
+                    <tr><td><code>is_email($value)</code></td><td>Valid email?</td><td>("test@test.com") → true</td></tr>
+                    <tr><td><code>is_url($value)</code></td><td>Valid URL?</td><td>("https://site.com") → true</td></tr>
+                    <tr><td><code>is_numeric($value)</code></td><td>Is number?</td><td>("123") → true</td></tr>
+                    <tr><td><code>is_date($value)</code></td><td>Valid date?</td><td>("2026-01-19") → true</td></tr>
+                    <tr><td><code>matches_pattern($value, $pattern)</code></td><td>Regex match?</td><td>("ABC123", "/^[A-Z]+\d+$/") → true</td></tr>
+                </table>
+
+                <h3>Creating Custom Functions</h3>
+                <p>Go to <strong>Import/Export → Functions</strong></p>
+                <div class="screenshot">Screenshot: Custom function editor</div>
+
+                <h4>Function Structure</h4>
+                <pre><code>/**
+ * Function name: convert_temperature
+ * Description: Convert Fahrenheit to Celsius
+ * Parameters: $fahrenheit (number)
+ * Returns: number
+ */
+function convert_temperature($fahrenheit) {
+    // Validation
+    if (!is_numeric($fahrenheit)) {
+        return 0;
+    }
+    
+    // Conversion formula
+    $celsius = ($fahrenheit - 32) * 5/9;
+    
+    // Round to 1 decimal
+    return round($celsius, 1);
+}</code></pre>
+
+                <h4>Function Features</h4>
+                <ul>
+                    <li><strong>Syntax Highlighting</strong> — PHP code editor</li>
+                    <li><strong>Validation</strong> — check for PHP errors</li>
+                    <li><strong>Testing</strong> — test with sample data</li>
+                    <li><strong>Versioning</strong> — save multiple versions</li>
+                    <li><strong>Import/Export</strong> — share functions between sites</li>
+                    <li><strong>Categories</strong> — organize functions</li>
+                </ul>
+
+                <h3>Testing Functions</h3>
+                <p>Before using in import, test with sample data:</p>
+                <div class="screenshot">Screenshot: Function testing interface</div>
+                <pre><code>Function: convert_temperature
+Test Input: 100
+Expected Output: 37.8
+Actual Output: 37.8
+Status: ✅ Passed
+
+Function: extract_numbers
+Test Input: "Price: $99.50 USD"
+Expected Output: "99.50"
+Actual Output: "99.50"
+Status: ✅ Passed</code></pre>
+
+                <h3>Advanced Examples</h3>
+                <h4>Example 1: Generate SKU</h4>
+                <pre><code>/**
+ * Generate unique SKU from product title
+ */
+function generate_sku_from_title($title) {
+    // Get first 3 letters
+    $prefix = strtoupper(substr($title, 0, 3));
+    
+    // Generate random number
+    $number = rand(1000, 9999);
+    
+    // Combine
+    $sku = $prefix . '-' . $number;
+    
+    // Check if exists
+    global $wpdb;
+    $exists = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->postmeta} 
+         WHERE meta_key = '_sku' AND meta_value = %s",
+        $sku
+    ));
+    
+    // Regenerate if duplicate
+    if ($exists > 0) {
+        return generate_sku_from_title($title);
+    }
+    
+    return $sku;
+}</code></pre>
+
+                <h4>Example 2: Parse Complex Data</h4>
+                <pre><code>/**
+ * Parse product options from string
+ * Input: "Size:L|Color:Red|Material:Cotton"
+ * Output: Array of options
+ */
+function parse_product_options($options_string) {
+    if (empty($options_string)) {
+        return [];
+    }
+    
+    $options = [];
+    $pairs = explode('|', $options_string);
+    
+    foreach ($pairs as $pair) {
+        list($key, $value) = explode(':', $pair);
+        $options[trim($key)] = trim($value);
+    }
+    
+    return $options;
+}</code></pre>
+
+                <h4>Example 3: Lookup External API</h4>
+                <pre><code>/**
+ * Get product price from external API
+ */
+function fetch_price_from_api($sku) {
+    $api_url = 'https://api.example.com/prices/' . $sku;
+    
+    $response = wp_remote_get($api_url, [
+        'headers' => [
+            'Authorization' => 'Bearer YOUR_API_KEY'
+        ],
+        'timeout' => 15
+    ]);
+    
+    if (is_wp_error($response)) {
+        return null;
+    }
+    
+    $body = json_decode(wp_remote_retrieve_body($response), true);
+    
+    return $body['price'] ?? null;
+}</code></pre>
+
+                <h3>Using Functions in Import</h3>
+                <p>Apply functions during field mapping:</p>
+                <ol>
+                    <li>Map your field (e.g., <code>temperature</code> → <code>meta:celsius</code>)</li>
+                    <li>Click <strong>Add Function</strong></li>
+                    <li>Select function: <code>convert_temperature</code></li>
+                    <li>Preview transformed data</li>
+                </ol>
+                <div class="screenshot">Screenshot: Applying function in field mapper</div>
+
+                <h3>Function Chaining</h3>
+                <p>Apply multiple functions in sequence:</p>
+                <pre><code>// Chain example
+Field: product_title
+Functions:
+1. trim_whitespace() → "  My Product  " → "My Product"
+2. lowercase() → "My Product" → "my product"
+3. create_slug() → "my product" → "my-product"
+
+Result: "my-product"</code></pre>
+
+                <div class="alert alert-warning"><strong>⚠️ Security:</strong> Custom functions execute PHP code. Only allow trusted users to create functions.</div>
+            </section>
+
+            <section id="ai-features" class="content-section">
+                <h2>AI Features <span class="badge badge-new">New</span></h2>
+                <p>Leverage AI for intelligent content extraction and automatic function generation.</p>
+
+                <h3>AI Content Extractor</h3>
+                <p>Automatically extract structured data from unstructured text or HTML.</p>
+
+                <h4>Use Cases</h4>
+                <ul>
+                    <li>Extract product details from HTML descriptions</li>
+                    <li>Parse addresses into street, city, zip components</li>
+                    <li>Extract specifications from text paragraphs</li>
+                    <li>Convert natural language to structured data</li>
+                </ul>
+
+                <h4>How It Works</h4>
+                <ol>
+                    <li>Provide sample input data</li>
+                    <li>Describe what to extract</li>
+                    <li>AI generates extraction pattern</li>
+                    <li>Review and refine</li>
+                    <li>Apply to all records</li>
+                </ol>
+                <div class="screenshot">Screenshot: AI content extractor interface</div>
+
+                <h4>Example: Extract Product Specs</h4>
+                <pre><code>Input:
+"iPhone 15 Pro - 256GB storage, 6.1 inch display, 
+ Space Black color, $999 price, 5G network support"
+
+AI Prompt:
+"Extract: model, storage, screen_size, color, price, features"
+
+Output:
+{
+  "model": "iPhone 15 Pro",
+  "storage": "256GB",
+  "screen_size": "6.1 inch",
+  "color": "Space Black",
+  "price": "$999",
+  "features": ["5G network support"]
+}</code></pre>
+
+                <h3>AI Function Generator</h3>
+                <p>Generate custom transformation functions using natural language.</p>
+
+                <h4>How to Use</h4>
+                <p>Go to <strong>Import/Export → Functions → Generate with AI</strong></p>
+                <ol>
+                    <li>Describe what function should do</li>
+                    <li>Provide input/output examples</li>
+                    <li>AI generates PHP code</li>
+                    <li>Review, test, and save</li>
+                </ol>
+                <div class="screenshot">Screenshot: AI function generator</div>
+
+                <h4>Example 1: Phone Number Formatter</h4>
+                <pre><code>Prompt:
+"Create a function that formats phone numbers to international format"
+
+Input Examples:
+- "(555) 123-4567" 
+- "555.123.4567"
+- "5551234567"
+
+Output Example:
+- "+1-555-123-4567"
+
+Generated Function:
+function format_phone_international($phone) {
+    // Remove all non-numeric characters
+    $phone = preg_replace('/\D/', '', $phone);
+    
+    // Check if it's a valid US number
+    if (strlen($phone) == 10) {
+        return '+1-' . substr($phone, 0, 3) . '-' . 
+               substr($phone, 3, 3) . '-' . 
+               substr($phone, 6);
+    }
+    
+    return $phone;
+}</code></pre>
+
+                <h4>Example 2: Parse Dimensions</h4>
+                <pre><code>Prompt:
+"Extract length, width, height from dimension strings"
+
+Input Examples:
+- "10 x 20 x 5 cm"
+- "12cm x 8cm x 3cm"
+- "15 × 10 × 4 inches"
+
+Generated Function:
+function parse_dimensions($dim_string) {
+    // Extract numbers
+    preg_match_all('/\d+/', $dim_string, $matches);
+    $numbers = $matches[0];
+    
+    if (count($numbers) < 3) {
+        return null;
+    }
+    
+    // Extract unit
+    preg_match('/(cm|inch|inches|mm)/i', $dim_string, $unit);
+    
+    return [
+        'length' => (int)$numbers[0],
+        'width' => (int)$numbers[1],
+        'height' => (int)$numbers[2],
+        'unit' => $unit[0] ?? 'cm'
+    ];
+}</code></pre>
+
+                <h3>AI-Powered Import Mapping</h3>
+                <p>Let AI suggest field mappings based on your data:</p>
+                <ol>
+                    <li>Upload your import file</li>
+                    <li>Click <strong>Smart Mapping (AI)</strong></li>
+                    <li>AI analyzes column names and data</li>
+                    <li>Suggests mappings with confidence score</li>
+                    <li>Review and adjust as needed</li>
+                </ol>
+                <div class="screenshot">Screenshot: AI field mapping suggestions</div>
+
+                <h3>Configuration</h3>
+                <p>To use AI features, configure your OpenAI API key:</p>
+                <ol>
+                    <li>Go to <strong>Settings → AI Features</strong></li>
+                    <li>Enter OpenAI API key</li>
+                    <li>Choose model: GPT-4, GPT-3.5-turbo</li>
+                    <li>Set temperature and token limits</li>
+                </ol>
+
+                <div class="alert alert-info"><strong>💡 Note:</strong> AI features require OpenAI API key (not included). Usage is billed by OpenAI.</div>
+            </section>
+
+            <section id="bulk-updater" class="content-section">
+                <h2>Bulk Content Updater</h2>
+                <p>Update thousands of posts, products, or pages without import/export files.</p>
+
+                <h3>Overview</h3>
+                <p>Bulk Updater allows you to:</p>
+                <ul>
+                    <li>Update specific fields for multiple posts at once</li>
+                    <li>Find and replace in content, titles, meta fields</li>
+                    <li>Recalculate or transform existing data</li>
+                    <li>Batch change status, author, categories</li>
+                    <li>Schedule price updates (e.g., apply discount)</li>
+                </ul>
+
+                <h3>Using Bulk Updater</h3>
+                <h4>Step 1: Select Content</h4>
+                <p>Go to <strong>Import/Export → Bulk Updater</strong></p>
+                <div class="screenshot">Screenshot: Content selection filters</div>
+                <p>Filter by:</p>
+                <ul>
+                    <li>Post type</li>
+                    <li>Status</li>
+                    <li>Date range</li>
+                    <li>Author</li>
+                    <li>Category/taxonomy</li>
+                    <li>Custom field conditions</li>
+                    <li>Search keyword</li>
+                </ul>
+
+                <h4>Step 2: Choose Update Action</h4>
+                <table>
+                    <tr><th>Action</th><th>Description</th></tr>
+                    <tr><td><strong>Set Value</strong></td><td>Set field to specific value</td></tr>
+                    <tr><td><strong>Find & Replace</strong></td><td>Replace text in fields</td></tr>
+                    <tr><td><strong>Append</strong></td><td>Add text to end</td></tr>
+                    <tr><td><strong>Prepend</strong></td><td>Add text to beginning</td></tr>
+                    <tr><td><strong>Math Operation</strong></td><td>Add, multiply, etc.</td></tr>
+                    <tr><td><strong>Apply Function</strong></td><td>Use custom transformation</td></tr>
+                    <tr><td><strong>Clear Field</strong></td><td>Empty field value</td></tr>
+                </table>
+
+                <h4>Step 3: Preview Changes</h4>
+                <div class="screenshot">Screenshot: Update preview table</div>
+                <p>Review before/after for first 10 records:</p>
+                <pre><code>Post ID | Current Value | New Value
+--------|---------------|-------------
+123     | $100.00       | $80.00
+124     | $50.00        | $40.00
+125     | $75.00        | $60.00
+
+Action: Multiply _regular_price by 0.8
+Affected: 1,250 products</code></pre>
+
+                <h4>Step 4: Execute Update</h4>
+                <p>Choose execution mode:</p>
+                <ul>
+                    <li><strong>Immediate</strong> — update now (for &lt;1000 records)</li>
+                    <li><strong>Background</strong> — process in batches</li>
+                    <li><strong>Scheduled</strong> — run at specific date/time</li>
+                </ul>
+
+                <h3>Update Examples</h3>
+                <h4>Example 1: Apply 20% Discount</h4>
+                <pre><code>Filter:
+- Post Type: product
+- Category: Summer Collection
+- Status: publish
+
+Action:
+- Field: _sale_price
+- Operation: Set to
+- Value: _regular_price * 0.8
+
+Result: 458 products discounted</code></pre>
+
+                <h4>Example 2: Update Author</h4>
+                <pre><code>Filter:
+- Author: old-username
+- Post Type: post
+- Date: Before 2025-01-01
+
+Action:
+- Field: post_author
+- Operation: Set to
+- Value: new-user-id (5)
+
+Result: 1,234 posts transferred</code></pre>
+
+                <h4>Example 3: Find & Replace Domain</h4>
+                <pre><code>Filter:
+- Post Type: any
+- Status: any
+
+Action:
+- Field: post_content
+- Operation: Find & Replace
+- Find: "oldsite.com"
+- Replace: "newsite.com"
+
+Result: 3,456 posts updated</code></pre>
+
+                <h4>Example 4: Recalculate Stock Value</h4>
+                <pre><code>Filter:
+- Post Type: product
+- Meta: _manage_stock = yes
+
+Action:
+- Field: _stock_value
+- Operation: Custom Function
+- Function: calculate_stock_value()
+  → multiply(_stock, _regular_price)
+
+Result: Stock values updated for 892 products</code></pre>
+
+                <h3>Safety Features</h3>
+                <ul>
+                    <li><strong>Backup Before Update</strong> — create restore point</li>
+                    <li><strong>Dry Run</strong> — test without making changes</li>
+                    <li><strong>Rollback</strong> — undo last bulk update</li>
+                    <li><strong>Change Log</strong> — track what was changed</li>
+                    <li><strong>Confirmation</strong> — require confirmation for >1000 records</li>
+                </ul>
+
+            <section id="rest-api" class="content-section">
+                <h2>REST API</h2>
+                <p>Complete REST API for programmatic import/export operations and remote management.</p>
+
+                <h3>Authentication</h3>
+                <p>All API requests require authentication via API key:</p>
+                <pre><code>// Generate API key in Settings → API
+Authorization: Bearer aie_your_api_key_here</code></pre>
+
+                <h4>Example Request</h4>
+                <pre><code>curl -X POST https://example.com/wp-json/aie/v1/import/start \
+  -H "Authorization: Bearer aie_xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"file_id": "abc123", "type": "post"}'</code></pre>
+
+                <h3>Import Endpoints</h3>
+                <h4>POST /aie/v1/import/upload</h4>
+                <p>Upload file for import</p>
+                <pre><code>// Request
+POST /wp-json/aie/v1/import/upload
+Content-Type: multipart/form-data
+
+file: [binary data]
+type: post
+format: csv
+
+// Response
+{
+  "success": true,
+  "file_id": "abc123",
+  "filename": "posts.csv",
+  "size": 1024000,
+  "rows": 500
+}</code></pre>
+
+                <h4>POST /aie/v1/import/start</h4>
+                <p>Start import process</p>
+                <pre><code>// Request
+{
+  "file_id": "abc123",
+  "type": "post",
+  "mapping": {
+    "title": "post_title",
+    "content": "post_content",
+    "status": "post_status"
+  },
+  "options": {
+    "update_existing": true,
+    "batch_size": 10
+  }
+}
+
+// Response
+{
+  "success": true,
+  "job_id": "job_xyz789",
+  "total_rows": 500,
+  "status": "processing"
+}</code></pre>
+
+                <h4>GET /aie/v1/import/status/{job_id}</h4>
+                <p>Get import progress</p>
+                <pre><code>// Response
+{
+  "job_id": "job_xyz789",
+  "status": "processing",
+  "progress": {
+    "total": 500,
+    "processed": 245,
+    "success": 240,
+    "failed": 5,
+    "percentage": 49
+  },
+  "eta_seconds": 120
+}</code></pre>
+
+                <h4>POST /aie/v1/import/cancel/{job_id}</h4>
+                <p>Cancel running import</p>
+                <pre><code>// Response
+{
+  "success": true,
+  "job_id": "job_xyz789",
+  "status": "cancelled",
+  "processed": 245
+}</code></pre>
+
+                <h3>Export Endpoints</h3>
+                <h4>POST /aie/v1/export/start</h4>
+                <p>Start export process</p>
+                <pre><code>// Request
+{
+  "type": "post",
+  "format": "csv",
+  "filters": {
+    "post_status": "publish",
+    "date_after": "2025-01-01"
+  },
+  "fields": [
+    "ID",
+    "post_title",
+    "post_content",
+    "post_date"
+  ]
+}
+
+// Response
+{
+  "success": true,
+  "job_id": "export_abc123",
+  "status": "processing",
+  "estimated_rows": 1250
+}</code></pre>
+
+                <h4>GET /aie/v1/export/status/{job_id}</h4>
+                <p>Get export progress</p>
+                <pre><code>// Response
+{
+  "job_id": "export_abc123",
+  "status": "completed",
+  "file_url": "https://example.com/wp-content/uploads/aie-exports/export-2026-01-19.csv",
+  "file_size": 2048000,
+  "rows": 1250,
+  "expires_at": "2026-01-20 14:30:00"
+}</code></pre>
+
+                <h4>GET /aie/v1/export/download/{job_id}</h4>
+                <p>Download export file</p>
+                <pre><code>// Response
+[File download with proper headers]
+Content-Type: text/csv
+Content-Disposition: attachment; filename="export-2026-01-19.csv"</code></pre>
+
+                <h3>Media Sync Endpoints</h3>
+                <h4>POST /aie/v1/media-sync/start</h4>
+                <p>Start media synchronization</p>
+                <pre><code>// Request
+{
+  "source_path": "/var/www/media-import/",
+  "duplicate_detection": "hash",
+  "file_types": ["jpg", "png", "gif"],
+  "create_thumbnails": true
+}
+
+// Response
+{
+  "success": true,
+  "job_id": "media_sync_123",
+  "total_files": 1500,
+  "status": "processing"
+}</code></pre>
+
+                <h4>GET /aie/v1/media-sync/status/{job_id}</h4>
+                <p>Get sync progress</p>
+                <pre><code>// Response
+{
+  "job_id": "media_sync_123",
+  "status": "processing",
+  "stats": {
+    "total": 1500,
+    "processed": 850,
+    "imported": 800,
+    "skipped": 45,
+    "errors": 5
+  },
+  "speed": 15 // files per second
+}</code></pre>
+
+                <h3>Content Sync Endpoints</h3>
+                <h4>POST /aie/v1/content-sync/push</h4>
+                <p>Push content to remote site</p>
+                <pre><code>// Request
+{
+  "site_id": "remote_site_123",
+  "post_ids": [10, 20, 30],
+  "include_media": true,
+  "include_meta": true,
+  "status": "draft"
+}
+
+// Response
+{
+  "success": true,
+  "job_id": "sync_push_456",
+  "posts_queued": 3
+}</code></pre>
+
+                <h4>POST /aie/v1/content-sync/pull</h4>
+                <p>Pull content from remote site</p>
+                <pre><code>// Request
+{
+  "site_id": "remote_site_123",
+  "filters": {
+    "post_type": "post",
+    "date_after": "2026-01-01"
+  }
+}
+
+// Response
+{
+  "success": true,
+  "job_id": "sync_pull_789",
+  "posts_found": 45
+}</code></pre>
+
+                <h3>Webhook Support</h3>
+                <p>Receive notifications when jobs complete:</p>
+                <h4>Setup Webhook</h4>
+                <pre><code>POST /aie/v1/webhooks
+{
+  "url": "https://yoursite.com/webhook",
+  "events": ["import.completed", "export.completed"],
+  "secret": "your_webhook_secret"
+}</code></pre>
+
+                <h4>Webhook Payload</h4>
+                <pre><code>// POST to your webhook URL
+{
+  "event": "import.completed",
+  "job_id": "job_xyz789",
+  "timestamp": "2026-01-19T14:30:00Z",
+  "data": {
+    "total": 500,
+    "success": 495,
+    "failed": 5,
+    "duration": 245
+  },
+  "signature": "sha256=..."
+}</code></pre>
+
+                <h3>Error Handling</h3>
+                <p>API returns standard HTTP status codes:</p>
+                <table>
+                    <tr><th>Code</th><th>Description</th></tr>
+                    <tr><td>200</td><td>Success</td></tr>
+                    <tr><td>201</td><td>Created (resource created)</td></tr>
+                    <tr><td>400</td><td>Bad Request (invalid parameters)</td></tr>
+                    <tr><td>401</td><td>Unauthorized (invalid API key)</td></tr>
+                    <tr><td>403</td><td>Forbidden (insufficient permissions)</td></tr>
+                    <tr><td>404</td><td>Not Found (resource doesn't exist)</td></tr>
+                    <tr><td>429</td><td>Too Many Requests (rate limited)</td></tr>
+                    <tr><td>500</td><td>Server Error</td></tr>
+                </table>
+
+                <h4>Error Response Format</h4>
+                <pre><code>{
+  "success": false,
+  "error": {
+    "code": "invalid_file",
+    "message": "File format not supported",
+    "details": {
+      "allowed_formats": ["csv", "json"]
+    }
+  }
+}</code></pre>
+
+                <h3>Rate Limiting</h3>
+                <p>API requests are rate limited:</p>
+                <ul>
+                    <li><strong>Free:</strong> 100 requests per hour</li>
+                    <li><strong>Premium:</strong> 1000 requests per hour</li>
+                </ul>
+                <p>Rate limit headers:</p>
+                <pre><code>X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1768867200</code></pre>
+
+                <div class="alert alert-info"><strong>💡 Tip:</strong> Use webhooks instead of polling for job status to reduce API calls.</div>
+            </section>
+
+            <section id="hooks" class="content-section">
+                <h2>Hooks & Filters</h2>
+                <p>Extend and customize plugin behavior using WordPress hooks.</p>
+
+                <h3>Import Hooks</h3>
+                <h4>aie_before_import</h4>
+                <p>Runs before import starts</p>
+                <pre><code>add_action('aie_before_import', function($job_id, $args) {
+    // Log import start
+    error_log("Import job {$job_id} starting");
+    
+    // Send notification
+    wp_mail('admin@example.com', 'Import Started', "Job: {$job_id}");
+}, 10, 2);</code></pre>
+
+                <h4>aie_before_import_row</h4>
+                <p>Runs before each row is imported</p>
+                <pre><code>add_action('aie_before_import_row', function($row_data, $row_number) {
+    // Log row number
+    if ($row_number % 100 == 0) {
+        error_log("Processing row {$row_number}");
+    }
+}, 10, 2);</code></pre>
+
+                <h4>aie_after_import_row</h4>
+                <p>Runs after each row is imported</p>
+                <pre><code>add_action('aie_after_import_row', function($post_id, $row_data) {
+    // Custom post-processing
+    if ($post_id) {
+        update_post_meta($post_id, '_imported_at', current_time('mysql'));
+    }
+}, 10, 2);</code></pre>
+
+                <h4>aie_after_import</h4>
+                <p>Runs after import completes</p>
+                <pre><code>add_action('aie_after_import', function($job_id, $stats) {
+    // Send completion notification
+    $message = sprintf(
+        "Import completed\nSuccess: %d\nFailed: %d",
+        $stats['success'],
+        $stats['failed']
+    );
+    wp_mail('admin@example.com', 'Import Complete', $message);
+}, 10, 2);</code></pre>
+
+                <h3>Import Filters</h3>
+                <h4>aie_import_row_data</h4>
+                <p>Modify row data before import</p>
+                <pre><code>add_filter('aie_import_row_data', function($row_data, $row_number) {
+    // Add prefix to all titles
+    if (isset($row_data['post_title'])) {
+        $row_data['post_title'] = '[Imported] ' . $row_data['post_title'];
+    }
+    
+    // Set default author
+    if (empty($row_data['post_author'])) {
+        $row_data['post_author'] = 1;
+    }
+    
+    return $row_data;
+}, 10, 2);</code></pre>
+
+                <h4>aie_import_post_args</h4>
+                <p>Modify post arguments before wp_insert_post</p>
+                <pre><code>add_filter('aie_import_post_args', function($post_args, $row_data) {
+    // Force all imports to draft
+    $post_args['post_status'] = 'draft';
+    
+    // Set custom post date
+    $post_args['post_date'] = current_time('mysql');
+    
+    return $post_args;
+}, 10, 2);</code></pre>
+
+                <h4>aie_skip_import_row</h4>
+                <p>Conditionally skip rows</p>
+                <pre><code>add_filter('aie_skip_import_row', function($skip, $row_data) {
+    // Skip if title contains "test"
+    if (stripos($row_data['post_title'], 'test') !== false) {
+        return true;
+    }
+    
+    // Skip if price is zero
+    if (isset($row_data['price']) && floatval($row_data['price']) == 0) {
+        return true;
+    }
+    
+    return $skip;
+}, 10, 2);</code></pre>
+
+                <h3>Export Hooks</h3>
+                <h4>aie_before_export</h4>
+                <p>Runs before export starts</p>
+                <pre><code>add_action('aie_before_export', function($job_id, $args) {
+    error_log("Export job {$job_id} starting");
+}, 10, 2);</code></pre>
+
+                <h4>aie_export_row</h4>
+                <p>Modify export row data</p>
+                <pre><code>add_filter('aie_export_row', function($row_data, $post) {
+    // Add custom field
+    $row_data['custom_field'] = get_post_meta($post->ID, '_custom', true);
+    
+    // Format price
+    if (isset($row_data['price'])) {
+        $row_data['price'] = number_format($row_data['price'], 2);
+    }
+    
+    return $row_data;
+}, 10, 2);</code></pre>
+
+                <h4>aie_after_export</h4>
+                <p>Runs after export completes</p>
+                <pre><code>add_action('aie_after_export', function($job_id, $file_path, $stats) {
+    // Upload to FTP
+    $ftp = ftp_connect('ftp.example.com');
+    ftp_login($ftp, 'username', 'password');
+    ftp_put($ftp, '/exports/latest.csv', $file_path, FTP_BINARY);
+    ftp_close($ftp);
+}, 10, 3);</code></pre>
+
+                <h3>Media Sync Hooks</h3>
+                <h4>aie_before_media_import</h4>
+                <p>Runs before media file is imported</p>
+                <pre><code>add_action('aie_before_media_import', function($file_path, $filename) {
+    // Validate file size
+    $size = filesize($file_path);
+    if ($size > 10000000) { // 10MB
+        throw new Exception("File too large: {$filename}");
+    }
+}, 10, 2);</code></pre>
+
+                <h4>aie_after_media_import</h4>
+                <p>Runs after media file is imported</p>
+                <pre><code>add_action('aie_after_media_import', function($attachment_id, $file_data) {
+    // Set custom metadata
+    update_post_meta($attachment_id, '_import_source', 'ftp_sync');
+    update_post_meta($attachment_id, '_original_path', $file_data['path']);
+}, 10, 2);</code></pre>
+
+                <h3>Content Sync Hooks</h3>
+                <h4>aie_before_sync_push</h4>
+                <p>Runs before pushing content to remote</p>
+                <pre><code>add_action('aie_before_sync_push', function($post_id, $site_id) {
+    // Mark post as synced
+    update_post_meta($post_id, '_synced_to_' . $site_id, time());
+}, 10, 2);</code></pre>
+
+                <h4>aie_sync_push_data</h4>
+                <p>Modify data before pushing</p>
+                <pre><code>add_filter('aie_sync_push_data', function($data, $post_id) {
+    // Remove sensitive meta
+    if (isset($data['meta'])) {
+        unset($data['meta']['_private_key']);
+    }
+    
+    // Add sync timestamp
+    $data['meta']['_synced_at'] = current_time('mysql');
+    
+    return $data;
+}, 10, 2);</code></pre>
+
+                <h3>Validation Hooks</h3>
+                <h4>aie_custom_validation</h4>
+                <p>Add custom validation rules</p>
+                <pre><code>add_filter('aie_custom_validation', function($errors, $row_data, $rules) {
+    // Custom SKU format validation
+    if (isset($row_data['sku'])) {
+        if (!preg_match('/^[A-Z]{3}-\d{4}$/', $row_data['sku'])) {
+            $errors[] = 'SKU must be format: ABC-1234';
+        }
+    }
+    
+    // Check if category exists
+    if (isset($row_data['category'])) {
+        if (!term_exists($row_data['category'], 'category')) {
+            $errors[] = "Category '{$row_data['category']}' doesn't exist";
+        }
+    }
+    
+    return $errors;
+}, 10, 3);</code></pre>
+
+                <div class="alert alert-success"><strong>✅ Pro Tip:</strong> Use hooks to integrate with other plugins or external systems.</div>
+            </section>
+
+            <section id="cli" class="content-section">
+                <h2>WP-CLI Commands</h2>
+                <p>Manage imports, exports, and sync operations via command line.</p>
+
+                <h3>Installation</h3>
+                <p>WP-CLI support is included. Ensure WP-CLI is installed:</p>
+                <pre><code>wp --version</code></pre>
+
+                <h3>Import Commands</h3>
+                <h4>wp aie import</h4>
+                <p>Start import from file</p>
+                <pre><code>// Basic import
+wp aie import --file=posts.csv --type=post
+
+// With mapping
+wp aie import \
+  --file=products.csv \
+  --type=product \
+  --mapping='{"title":"post_title","price":"_regular_price"}' \
+  --update-existing
+
+// From URL
+wp aie import \
+  --url=https://example.com/data.csv \
+  --type=post \
+  --batch-size=50</code></pre>
+
+                <h4>wp aie import status</h4>
+                <p>Check import progress</p>
+                <pre><code>wp aie import status --job-id=job_xyz789
+
+// Output:
+Job ID: job_xyz789
+Status: processing
+Progress: 245/500 (49%)
+Success: 240
+Failed: 5
+ETA: 2 minutes</code></pre>
+
+                <h4>wp aie import list</h4>
+                <p>List all import jobs</p>
+                <pre><code>wp aie import list
+
+// Output:
++-------------+-------------+---------+----------+
+| Job ID      | Type        | Status  | Progress |
++-------------+-------------+---------+----------+
+| job_xyz789  | post        | running | 49%      |
+| job_abc123  | product     | done    | 100%     |
+| job_def456  | user        | failed  | 23%      |
++-------------+-------------+---------+----------+</code></pre>
+
+                <h4>wp aie import cancel</h4>
+                <p>Cancel running import</p>
+                <pre><code>wp aie import cancel --job-id=job_xyz789</code></pre>
+
+                <h3>Export Commands</h3>
+                <h4>wp aie export</h4>
+                <p>Export content to file</p>
+                <pre><code>// Export all posts
+wp aie export \
+  --type=post \
+  --format=csv \
+  --output=posts-export.csv
+
+// With filters
+wp aie export \
+  --type=product \
+  --format=json \
+  --status=publish \
+  --date-after="2025-01-01" \
+  --output=products.json
+
+// Export specific fields
+wp aie export \
+  --type=post \
+  --fields=ID,post_title,post_date \
+  --output=posts-minimal.csv</code></pre>
+
+                <h4>wp aie export download</h4>
+                <p>Download completed export</p>
+                <pre><code>wp aie export download \
+  --job-id=export_abc123 \
+  --output=/path/to/save/file.csv</code></pre>
+
+                <h3>Media Sync Commands</h3>
+                <h4>wp aie media-sync</h4>
+                <p>Sync media from folder</p>
+                <pre><code>// Sync from local folder
+wp aie media-sync \
+  --source=/var/www/media-import/ \
+  --duplicate-detection=hash \
+  --file-types=jpg,png,gif
+
+// Sync from FTP
+wp aie media-sync \
+  --source=ftp://user:pass@ftp.example.com/images/ \
+  --skip-duplicates
+
+// Organize with RML
+wp aie media-sync \
+  --source=/import/ \
+  --rml-folder="Imported Media"</code></pre>
+
+                <h4>wp aie media-sync status</h4>
+                <p>Check sync progress</p>
+                <pre><code>wp aie media-sync status --job-id=media_sync_123</code></pre>
+
+                <h3>Content Sync Commands</h3>
+                <h4>wp aie sync push</h4>
+                <p>Push content to remote site</p>
+                <pre><code>// Push specific posts
+wp aie sync push \
+  --site=production \
+  --post-ids=10,20,30 \
+  --include-media
+
+// Push by query
+wp aie sync push \
+  --site=production \
+  --post-type=post \
+  --status=publish \
+  --category=news \
+  --date-after="2026-01-01"</code></pre>
+
+                <h4>wp aie sync pull</h4>
+                <p>Pull content from remote site</p>
+                <pre><code>wp aie sync pull \
+  --site=production \
+  --post-type=post \
+  --status=publish \
+  --date-after="2026-01-15"</code></pre>
+
+                <h4>wp aie sync sites</h4>
+                <p>List connected sites</p>
+                <pre><code>wp aie sync sites
+
+// Output:
++----+------------+-------------------------+-----------+
+| ID | Name       | URL                     | Status    |
++----+------------+-------------------------+-----------+
+| 1  | Production | https://example.com     | connected |
+| 2  | Staging    | https://staging.com     | connected |
++----+------------+-------------------------+-----------+</code></pre>
+
+                <h3>Bulk Update Commands</h3>
+                <h4>wp aie bulk-update</h4>
+                <p>Update multiple posts</p>
+                <pre><code>// Set all drafts to pending
+wp aie bulk-update \
+  --post-type=post \
+  --status=draft \
+  --set-field=post_status \
+  --value=pending
+
+// Find & replace
+wp aie bulk-update \
+  --post-type=any \
+  --field=post_content \
+  --find="oldsite.com" \
+  --replace="newsite.com"
+
+// Apply discount
+wp aie bulk-update \
+  --post-type=product \
+  --category="Summer Sale" \
+  --field=_sale_price \
+  --operation=multiply \
+  --value=0.8</code></pre>
+
+                <h3>Utility Commands</h3>
+                <h4>wp aie cleanup</h4>
+                <p>Clean up temporary files</p>
+                <pre><code>// Clean old imports
+wp aie cleanup --type=imports --older-than=7days
+
+// Clean old exports
+wp aie cleanup --type=exports --older-than=1day
+
+// Clean all
+wp aie cleanup --all</code></pre>
+
+                <h4>wp aie validate</h4>
+                <p>Validate import file</p>
+                <pre><code>wp aie validate \
+  --file=data.csv \
+  --type=post \
+  --rules='{"post_title": "required|max:200"}'
+
+// Output:
+✓ Row 1: Valid
+✗ Row 2: post_title is required
+✗ Row 3: post_title exceeds max length
+✓ Row 4: Valid
+
+Summary: 2 valid, 2 errors</code></pre>
+
+                <h3>Cron Commands</h3>
+                <h4>wp aie cron list</h4>
+                <p>List scheduled tasks</p>
+                <pre><code>wp aie cron list</code></pre>
+
+                <h4>wp aie cron run</h4>
+                <p>Manually run cron task</p>
+                <pre><code>wp aie cron run --task=process_import_queue</code></pre>
+
+            <section id="architecture" class="content-section">
+                <h2>Architecture</h2>
+                <p>Understanding plugin architecture for advanced customization and extension development.</p>
+
+                <h3>Plugin Structure</h3>
+                <pre><code>wp-advanced-import-export/
+├── app/
+│   ├── Controller/          # Request handlers
+│   │   ├── Import_Controller.php
+│   │   ├── Export_Controller.php
+│   │   ├── Media_Sync_Controller.php
+│   │   ├── Content_Sync_Controller.php
+│   │   ├── Functions_Controller.php
+│   │   └── ...
+│   ├── Model/              # Data models
+│   │   ├── Job.php
+│   │   ├── Custom_Function.php
+│   │   ├── Connected_Site.php
+│   │   └── ...
+│   ├── Helper/             # Utility classes
+│   │   ├── Function_Snippets.php
+│   │   ├── Data_Transformer.php
+│   │   ├── Media_Sync.php
+│   │   └── ...
+│   ├── View/               # Template files
+│   └── config.php          # Configuration
+├── src/                    # Frontend assets (JS/SCSS)
+├── assets/                 # Compiled assets
+└── vendor/                 # Dependencies</code></pre>
+
+                <h3>Class Architecture</h3>
+                <h4>Controllers</h4>
+                <p>Handle HTTP requests and coordinate between models and views.</p>
+                <pre><code>namespace AIE\Controller;
+
+class Import_Controller extends Base_Controller {
+    public function upload_file() {
+        // Handle file upload
+    }
+    
+    public function start_import() {
+        // Start background import
+    }
+    
+    public function get_progress() {
+        // Return job progress
+    }
+}</code></pre>
+
+                <h4>Models</h4>
+                <p>Represent data structures and database operations.</p>
+                <pre><code>namespace AIE\Model;
+
+class Job extends Model {
+    protected $table = 'aie_jobs';
+    
+    public function create($data) {
+        // Insert job record
+    }
+    
+    public function update_progress($job_id, $stats) {
+        // Update progress
+    }
+    
+    public function get_status($job_id) {
+        // Get job status
+    }
+}</code></pre>
+
+                <h4>Helpers</h4>
+                <p>Utility functions and complex business logic.</p>
+                <pre><code>namespace AIE\Helper;
+
+class Data_Transformer {
+    public static function transform($value, $function) {
+        // Apply transformation
+    }
+    
+    public static function validate($value, $rules) {
+        // Validate data
+    }
+}</code></pre>
+
+                <h3>Database Schema</h3>
+                <h4>aie_jobs Table</h4>
+                <pre><code>CREATE TABLE wp_aie_jobs (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    job_id VARCHAR(32) UNIQUE,
+    type VARCHAR(50),          -- import, export, media_sync, etc.
+    status VARCHAR(20),        -- pending, processing, completed, failed
+    file_path TEXT,
+    mapping TEXT,              -- JSON
+    options TEXT,              -- JSON
+    progress TEXT,             -- JSON stats
+    error_log LONGTEXT,
+    created_at DATETIME,
+    started_at DATETIME,
+    completed_at DATETIME,
+    user_id BIGINT,
+    INDEX (job_id),
+    INDEX (status),
+    INDEX (type)
+);</code></pre>
+
+                <h4>aie_functions Table</h4>
+                <pre><code>CREATE TABLE wp_aie_functions (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE,
+    description TEXT,
+    code LONGTEXT,
+    category VARCHAR(50),
+    parameters TEXT,           -- JSON
+    test_cases TEXT,           -- JSON
+    is_active TINYINT DEFAULT 1,
+    created_by BIGINT,
+    created_at DATETIME,
+    updated_at DATETIME
+);</code></pre>
+
+                <h4>aie_connected_sites Table</h4>
+                <pre><code>CREATE TABLE wp_aie_connected_sites (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    url VARCHAR(255),
+    api_key VARCHAR(100),
+    status VARCHAR(20),
+    last_sync DATETIME,
+    options TEXT,              -- JSON
+    created_at DATETIME
+);</code></pre>
+
+                <h3>Background Processing</h3>
+                <p>Plugin uses WordPress cron for background jobs:</p>
+                <pre><code>// Schedule background job
+wp_schedule_single_event(time(), 'aie_process_import', [
+    'job_id' => $job_id
+]);
+
+// Process in batches
+add_action('aie_process_import', function($job_id) {
+    $job = Job::get($job_id);
+    
+    // Process batch
+    $batch_size = 10;
+    $offset = $job->get_progress('processed');
+    $rows = $job->get_rows($offset, $batch_size);
+    
+    foreach ($rows as $row) {
+        // Import row
+        Import_Processor::process($row);
+    }
+    
+    // Schedule next batch
+    if (!$job->is_complete()) {
+        wp_schedule_single_event(time() + 5, 'aie_process_import', [
+            'job_id' => $job_id
+        ]);
+    }
+});</code></pre>
+
+                <h3>Event System</h3>
+                <p>Plugin uses WordPress hooks extensively:</p>
+                <pre><code>// Internal events
+do_action('aie_before_import', $job_id, $args);
+do_action('aie_before_import_row', $row_data, $row_number);
+do_action('aie_after_import_row', $post_id, $row_data);
+do_action('aie_after_import', $job_id, $stats);
+
+// Filters
+$row_data = apply_filters('aie_import_row_data', $row_data, $row_number);
+$post_args = apply_filters('aie_import_post_args', $post_args, $row_data);
+$skip = apply_filters('aie_skip_import_row', false, $row_data);</code></pre>
+
+                <h3>REST API Structure</h3>
+                <p>RESTful endpoints with versioning:</p>
+                <pre><code>// Register routes
+register_rest_route('aie/v1', '/import/start', [
+    'methods' => 'POST',
+    'callback' => [Import_Controller::class, 'rest_start_import'],
+    'permission_callback' => [Auth::class, 'check_api_key']
+]);
+
+// Controller method
+public static function rest_start_import(WP_REST_Request $request) {
+    $file_id = $request->get_param('file_id');
+    $mapping = $request->get_param('mapping');
+    
+    // Validate
+    if (!$file_id) {
+        return new WP_Error('missing_file', 'File ID required', [
+            'status' => 400
+        ]);
+    }
+    
+    // Start import
+    $job_id = Import_Processor::start($file_id, $mapping);
+    
+    return [
+        'success' => true,
+        'job_id' => $job_id
+    ];
+}</code></pre>
+
+                <h3>Frontend Architecture</h3>
+                <p>React components for admin interface:</p>
+                <pre><code>// src/js/app.js
+import ImportWizard from './modules/ImportWizard';
+import FieldMapper from './modules/FieldMapper';
+import ProgressTracker from './modules/ProgressTracker';
+
+// React component
+const ImportWizard = () => {
+    const [step, setStep] = useState(1);
+    const [fileId, setFileId] = useState(null);
+    
+    return (
+        &lt;div className="aie-wizard"&gt;
+            {step === 1 && &lt;FileUpload onUpload={handleUpload} /&gt;}
+            {step === 2 && &lt;FieldMapper fileId={fileId} /&gt;}
+            {step === 3 && &lt;ProgressTracker jobId={jobId} /&gt;}
+        &lt;/div&gt;
+    );
+};</code></pre>
+
+                <h3>Security Architecture</h3>
+                <ul>
+                    <li><strong>Nonce Verification</strong> — all AJAX requests verified</li>
+                    <li><strong>Capability Checks</strong> — user permission validation</li>
+                    <li><strong>API Key Authentication</strong> — secure REST API access</li>
+                    <li><strong>Input Sanitization</strong> — sanitize_text_field, wp_kses, etc.</li>
+                    <li><strong>SQL Injection Prevention</strong> — prepared statements</li>
+                    <li><strong>XSS Protection</strong> — escaping output (esc_html, esc_url)</li>
+                    <li><strong>CSRF Protection</strong> — nonce tokens</li>
+                </ul>
+
+                <div class="alert alert-success"><strong>✅ Best Practice:</strong> Always follow WordPress coding standards when extending the plugin.</div>
+            </section>
+
+            <section id="settings" class="content-section">
+                <h2>Settings</h2>
+                <p>Configure plugin behavior in <strong>Import/Export → Settings</strong></p>
+
+                <h3>General Settings</h3>
+                <div class="screenshot">Screenshot: General settings page</div>
+                <table>
+                    <tr><th>Setting</th><th>Description</th><th>Default</th></tr>
+                    <tr><td><strong>Batch Size</strong></td><td>Records processed per batch</td><td>10</td></tr>
+                    <tr><td><strong>Batch Delay</strong></td><td>Seconds between batches</td><td>5</td></tr>
+                    <tr><td><strong>Max Upload Size</strong></td><td>Maximum file size (MB)</td><td>100</td></tr>
+                    <tr><td><strong>Temp File Retention</strong></td><td>Days to keep uploaded files</td><td>7</td></tr>
+                    <tr><td><strong>Export File Retention</strong></td><td>Days to keep exports</td><td>1</td></tr>
+                    <tr><td><strong>Enable Logging</strong></td><td>Log operations to debug.log</td><td>Yes</td></tr>
+                    <tr><td><strong>Email Notifications</strong></td><td>Send completion emails</td><td>Yes</td></tr>
+                </table>
+
+                <h3>Import Settings</h3>
+                <table>
+                    <tr><th>Setting</th><th>Description</th></tr>
+                    <tr><td><strong>Default Import Author</strong></td><td>Assign imports to this user</td></tr>
+                    <tr><td><strong>Default Post Status</strong></td><td>Status for new posts (draft/publish)</td></tr>
+                    <tr><td><strong>Update Existing</strong></td><td>Default behavior for duplicates</td></tr>
+                    <tr><td><strong>Create Missing Terms</strong></td><td>Auto-create categories/tags</td></tr>
+                    <tr><td><strong>Download Remote Images</strong></td><td>Import images from URLs</td></tr>
+                    <tr><td><strong>Enable Validation</strong></td><td>Validate data before import</td></tr>
+                </table>
+
+                <h3>Export Settings</h3>
+                <table>
+                    <tr><th>Setting</th><th>Description</th></tr>
+                    <tr><td><strong>CSV Delimiter</strong></td><td>Default delimiter (comma/semicolon/tab)</td></tr>
+                    <tr><td><strong>CSV Enclosure</strong></td><td>Quote character</td></tr>
+                    <tr><td><strong>Include BOM</strong></td><td>Add UTF-8 BOM for Excel</td></tr>
+                    <tr><td><strong>Date Format</strong></td><td>Export date format</td></tr>
+                    <tr><td><strong>Export Media URLs</strong></td><td>Include full image URLs</td></tr>
+                </table>
+
+                <h3>Media Sync Settings</h3>
+                <table>
+                    <tr><th>Setting</th><th>Description</th></tr>
+                    <tr><td><strong>Duplicate Detection</strong></td><td>Method (hash/filename/size)</td></tr>
+                    <tr><td><strong>Allowed File Types</strong></td><td>jpg, png, gif, pdf, etc.</td></tr>
+                    <tr><td><strong>Max File Size</strong></td><td>Maximum media file size (MB)</td></tr>
+                    <tr><td><strong>Generate Thumbnails</strong></td><td>Create WordPress thumbnails</td></tr>
+                    <tr><td><strong>Extract EXIF</strong></td><td>Extract image metadata</td></tr>
+                    <tr><td><strong>Preserve Timestamps</strong></td><td>Keep original file dates</td></tr>
+                </table>
+
+                <h3>Content Sync Settings</h3>
+                <table>
+                    <tr><th>Setting</th><th>Description</th></tr>
+                    <tr><td><strong>API Timeout</strong></td><td>Connection timeout (seconds)</td></tr>
+                    <tr><td><strong>Verify SSL</strong></td><td>Verify HTTPS certificates</td></tr>
+                    <tr><td><strong>Include Media</strong></td><td>Sync featured images by default</td></tr>
+                    <tr><td><strong>Include Taxonomies</strong></td><td>Sync categories/tags</td></tr>
+                    <tr><td><strong>Include Meta</strong></td><td>Sync custom fields</td></tr>
+                    <tr><td><strong>Conflict Resolution</strong></td><td>Default conflict strategy</td></tr>
+                </table>
+
+                <h3>AI Settings</h3>
+                <div class="screenshot">Screenshot: AI configuration</div>
+                <table>
+                    <tr><th>Setting</th><th>Description</th></tr>
+                    <tr><td><strong>OpenAI API Key</strong></td><td>Your OpenAI API key</td></tr>
+                    <tr><td><strong>Model</strong></td><td>gpt-4, gpt-3.5-turbo</td></tr>
+                    <tr><td><strong>Temperature</strong></td><td>0.0 - 1.0 (creativity)</td></tr>
+                    <tr><td><strong>Max Tokens</strong></td><td>Maximum response length</td></tr>
+                    <tr><td><strong>Enable Content Extraction</strong></td><td>AI content parsing</td></tr>
+                    <tr><td><strong>Enable Function Generator</strong></td><td>AI code generation</td></tr>
+                </table>
+
+                <h3>Performance Settings</h3>
+                <table>
+                    <tr><th>Setting</th><th>Description</th></tr>
+                    <tr><td><strong>Memory Limit</strong></td><td>PHP memory limit for operations</td></tr>
+                    <tr><td><strong>Execution Time</strong></td><td>Maximum script runtime</td></tr>
+                    <tr><td><strong>Enable Caching</strong></td><td>Cache frequently accessed data</td></tr>
+                    <tr><td><strong>Parallel Processing</strong></td><td>Process multiple jobs simultaneously</td></tr>
+                </table>
+
+                <h3>Security Settings</h3>
+                <table>
+                    <tr><th>Setting</th><th>Description</th></tr>
+                    <tr><td><strong>API Access</strong></td><td>Enable/disable REST API</td></tr>
+                    <tr><td><strong>IP Whitelist</strong></td><td>Allowed IP addresses for API <span class="badge badge-premium">Premium</span></td></tr>
+                    <tr><td><strong>Rate Limiting</strong></td><td>API requests per hour</td></tr>
+                    <tr><td><strong>Require Capability</strong></td><td>Minimum user role (editor/admin)</td></tr>
+                    <tr><td><strong>Allow Custom Functions</strong></td><td>Enable custom PHP code execution</td></tr>
+                    <tr><td><strong>Sandbox Functions</strong></td><td>Run functions in sandboxed environment</td></tr>
+                </table>
+
+                <h3>Advanced Settings</h3>
+                <pre><code>// Define in wp-config.php
+
+// Override batch size
+define('AIE_BATCH_SIZE', 20);
+
+// Temp folder
+define('AIE_TEMP_DIR', WP_CONTENT_DIR . '/aie-temp/');
+
+// Disable cron (use server cron)
+define('AIE_DISABLE_WP_CRON', true);
+
+// Debug mode
+define('AIE_DEBUG', true);
+
+// API rate limit
+define('AIE_API_RATE_LIMIT', 500);</code></pre>
+
+                <div class="alert alert-warning"><strong>⚠️ Note:</strong> Changing performance settings may affect server resources. Monitor after changes.</div>
+            </section>
+
+            <section id="examples" class="content-section">
+                <h2>Use Cases & Examples</h2>
+                <p>Real-world scenarios and step-by-step guides.</p>
+
+                <h3>Use Case 1: Migrate from Old CMS</h3>
+                <h4>Scenario</h4>
+                <p>Migrate 5,000 blog posts from custom CMS to WordPress.</p>
+                <h4>Steps</h4>
+                <ol>
+                    <li><strong>Export from old CMS</strong> to CSV</li>
+                    <li><strong>Prepare CSV:</strong> Ensure columns match: title, content, date, author</li>
+                    <li><strong>Upload to plugin:</strong> Import/Export → Import</li>
+                    <li><strong>Map fields:</strong>
+                        <ul>
+                            <li>title → post_title</li>
+                            <li>content → post_content</li>
+                            <li>date → post_date</li>
+                            <li>author_email → post_author (use get_user_by_email function)</li>
+                        </ul>
+                    </li>
+                    <li><strong>Set options:</strong> Create missing authors, download remote images</li>
+                    <li><strong>Import:</strong> Background processing, completion in ~30 minutes</li>
+                </ol>
+                <div class="alert alert-success"><strong>Result:</strong> All posts migrated with preserved dates and authors.</div>
+
+                <h3>Use Case 2: WooCommerce Inventory Update</h3>
+                <h4>Scenario</h4>
+                <p>Update stock levels for 2,000 products from supplier CSV.</p>
+                <h4>Steps</h4>
+                <ol>
+                    <li><strong>Receive CSV from supplier:</strong> sku, stock_quantity</li>
+                    <li><strong>Upload:</strong> Import/Export → Import → Products</li>
+                    <li><strong>Map fields:</strong>
+                        <ul>
+                            <li>sku → _sku (match existing products)</li>
+                            <li>stock_quantity → _stock</li>
+                        </ul>
+                    </li>
+                    <li><strong>Options:</strong> Update existing only, match by SKU</li>
+                    <li><strong>Import:</strong> Complete in 3 minutes</li>
+                </ol>
+                <div class="alert alert-success"><strong>Result:</strong> Stock levels synchronized, no new products created.</div>
+
+                <h3>Use Case 3: Multi-site Content Distribution</h3>
+                <h4>Scenario</h4>
+                <p>Agency manages 50 client sites, needs to distribute blog posts.</p>
+                <h4>Setup</h4>
+                <ol>
+                    <li><strong>Central blog:</strong> agency.com</li>
+                    <li><strong>Client sites:</strong> client1.com, client2.com, ... client50.com</li>
+                    <li><strong>Connect all sites:</strong> Content Sync → Add Sites (add 50 sites with API keys)</li>
+                </ol>
+                <h4>Daily Distribution</h4>
+                <ol>
+                    <li><strong>Create post on central site</strong></li>
+                    <li><strong>Select post</strong> → Push to Sites → Select all clients</li>
+                    <li><strong>Options:</strong> Include featured image, publish immediately</li>
+                    <li><strong>Push:</strong> Content distributed in 5-10 minutes</li>
+                </ol>
+                <div class="alert alert-success"><strong>Result:</strong> Fresh content on all 50 client sites daily.</div>
+
+                <h3>Use Case 4: Product Image Bulk Import</h3>
+                <h4>Scenario</h4>
+                <p>3,000 product images named by SKU on FTP server.</p>
+                <h4>Steps</h4>
+                <ol>
+                    <li><strong>Organize images:</strong> Files named SKU-12345.jpg</li>
+                    <li><strong>Configure Media Sync:</strong>
+                        <ul>
+                            <li>Source: /ftp/product-images/</li>
+                            <li>Pattern: {sku}.jpg</li>
+                            <li>Duplicate: Skip by hash</li>
+                        </ul>
+                    </li>
+                    <li><strong>Auto-attach:</strong> Match by _sku meta field</li>
+                    <li><strong>Start sync:</strong> Background processing</li>
+                </ol>
+                <div class="alert alert-success"><strong>Result:</strong> All products have featured images, no duplicates.</div>
+
+                <h3>Use Case 5: SEO Metadata Migration</h3>
+                <h4>Scenario</h4>
+                <p>Switch from Yoast to Rank Math, migrate SEO data for 1,000 posts.</p>
+                <h4>Steps</h4>
+                <ol>
+                    <li><strong>Export with Yoast data:</strong>
+                        <ul>
+                            <li>Fields: ID, _yoast_wpseo_title, _yoast_wpseo_metadesc</li>
+                            <li>Format: CSV</li>
+                        </ul>
+                    </li>
+                    <li><strong>Transform data:</strong> Create custom functions
+                        <pre><code>function yoast_to_rankmath_title($yoast_title) {
+    return $yoast_title; // Same format
+}
+
+function yoast_to_rankmath_desc($yoast_desc) {
+    return $yoast_desc; // Same format
+}</code></pre>
+                    </li>
+                    <li><strong>Re-import:</strong>
+                        <ul>
+                            <li>Map: _yoast_wpseo_title → rank_math_title</li>
+                            <li>Map: _yoast_wpseo_metadesc → rank_math_description</li>
+                            <li>Option: Update existing</li>
+                        </ul>
+                    </li>
+                </ol>
+                <div class="alert alert-success"><strong>Result:</strong> SEO data migrated without manual work.</div>
+
+                <h3>Use Case 6: Scheduled Price Updates</h3>
+                <h4>Scenario</h4>
+                <p>Apply 15% discount every Friday, revert Monday.</p>
+                <h4>Setup</h4>
+                <ol>
+                    <li><strong>Create WP-CLI script:</strong>
+                        <pre><code>#!/bin/bash
+# friday-discount.sh
+wp aie bulk-update \
+  --post-type=product \
+  --category="Weekly Deals" \
+  --field=_sale_price \
+  --operation=multiply \
+  --value=0.85</code></pre>
+                    </li>
+                    <li><strong>Create revert script:</strong>
+                        <pre><code>#!/bin/bash
+# monday-revert.sh
+wp aie bulk-update \
+  --post-type=product \
+  --category="Weekly Deals" \
+  --field=_sale_price \
+  --operation=clear</code></pre>
+                    </li>
+                    <li><strong>Schedule with cron:</strong>
+                        <pre><code># Friday 9 AM
+0 9 * * 5 /path/to/friday-discount.sh
+
+# Monday 9 AM
+0 9 * * 1 /path/to/monday-revert.sh</code></pre>
+                    </li>
+                </ol>
+                <div class="alert alert-success"><strong>Result:</strong> Automated weekly discount cycle.</div>
+            </section>
+
+            <section id="faq" class="content-section">
+                <h2>FAQ</h2>
+                
+                <h3>General Questions</h3>
+                <h4>Q: Is there a record limit for imports?</h4>
+                <p><strong>A:</strong> No hard limit. Background processing handles files with millions of records. Tested with 1M+ posts successfully.</p>
+
+                <h4>Q: Can I schedule automated imports?</h4>
+                <p><strong>A:</strong> Yes, Premium version includes scheduled imports. Free version can use WP-CLI with server cron.</p>
+
+                <h4>Q: Does it work with custom post types?</h4>
+                <p><strong>A:</strong> Yes, fully supports all custom post types and taxonomies.</p>
+
+                <h4>Q: Can I undo an import?</h4>
+                <p><strong>A:</strong> Premium version includes rollback feature. Free version: use database backup before import.</p>
+
+                <h3>Import Questions</h3>
+                <h4>Q: My CSV has different encoding, will it work?</h4>
+                <p><strong>A:</strong> Yes, plugin supports UTF-8, Windows-1251, ISO-8859-1, and other encodings. Select during upload.</p>
+
+                <h4>Q: Can I import images from URLs?</h4>
+                <p><strong>A:</strong> Yes, provide image URLs in import file. Plugin downloads and adds to Media Library automatically.</p>
+
+                <h4>Q: How to update existing posts instead of creating duplicates?</h4>
+                <p><strong>A:</strong> Enable "Update Existing" option and choose match criteria (ID, slug, or title).</p>
+
+                <h4>Q: Import fails with timeout error?</h4>
+                <p><strong>A:</strong> Use background processing (enabled by default). For very large files, reduce batch size in settings.</p>
+
+                <h3>Export Questions</h3>
+                <h4>Q: Can I export ACF fields?</h4>
+                <p><strong>A:</strong> Yes, select ACF fields in field selector during export setup.</p>
+
+                <h4>Q: Excel shows garbled text in exported CSV?</h4>
+                <p><strong>A:</strong> Enable "Include BOM" in CSV export settings for Excel compatibility.</p>
+
+                <h4>Q: Can I export only changed posts since last export?</h4>
+                <p><strong>A:</strong> Yes, use date filter "Modified after: [last export date]".</p>
+
+                <h3>Media Sync Questions</h3>
+                <h4>Q: How does duplicate detection work?</h4>
+                <p><strong>A:</strong> Three methods: MD5 hash (100% accurate), filename match (~90%), filesize match (~70%).</p>
+
+                <h4>Q: Can I sync from external FTP server?</h4>
+                <p><strong>A:</strong> Yes, supports FTP and SFTP. Enter credentials in Media Sync settings.</p>
+
+                <h4>Q: Will it organize images in Real Media Library folders?</h4>
+                <p><strong>A:</strong> Yes, Premium version includes RML integration with folder mapping.</p>
+
+                <h3>Content Sync Questions</h3>
+                <h4>Q: Is Content Sync secure?</h4>
+                <p><strong>A:</strong> Yes, uses API key authentication, HTTPS required, IP whitelisting available (Premium).</p>
+
+                <h4>Q: Can I sync between different languages (WPML)?</h4>
+                <p><strong>A:</strong> Yes, plugin is WPML compatible. Syncs translations if both sites use WPML.</p>
+
+                <h4>Q: What happens if same post exists on both sites?</h4>
+                <p><strong>A:</strong> Choose conflict resolution: use local, use remote, merge, or skip.</p>
+
+                <h3>Technical Questions</h3>
+                <h4>Q: Does it work with WordPress Multisite?</h4>
+                <p><strong>A:</strong> Yes, fully compatible with multisite. Can be network activated.</p>
+
+                <h4>Q: Can I use it programmatically via code?</h4>
+                <p><strong>A:</strong> Yes, complete REST API and WP-CLI commands available.</p>
+
+                <h4>Q: Is it compatible with page builders (Elementor, Divi)?</h4>
+                <p><strong>A:</strong> Yes, imports/exports page builder content stored in post_content and meta fields.</p>
+
+                <h4>Q: Does it support custom taxonomies?</h4>
+                <p><strong>A:</strong> Yes, all custom taxonomies supported. Auto-creates terms if needed.</p>
+
+                <div class="alert alert-info"><strong>💡 More questions?</strong> Contact support at support@rockstarlab.com</div>
+            </section>
+
+            <section id="troubleshooting" class="content-section">
+                <h2>Troubleshooting</h2>
+                
+                <h3>Import Issues</h3>
+                <h4>Problem: Import stuck at 0%</h4>
+                <p><strong>Causes:</strong></p>
+                <ul>
+                    <li>WordPress cron not running</li>
+                    <li>Server blocking background requests</li>
+                    <li>PHP timeout too low</li>
+                </ul>
+                <p><strong>Solutions:</strong></p>
+                <ol>
+                    <li>Check if WP Cron is running: <code>wp cron event list</code></li>
+                    <li>Manually trigger cron: <code>wp cron event run --due-now</code></li>
+                    <li>Increase PHP max_execution_time to 300+ seconds</li>
+                    <li>Add to wp-config.php: <code>define('ALTERNATE_WP_CRON', true);</code></li>
+                </ol>
+
+                <h4>Problem: "Memory limit exhausted" error</h4>
+                <p><strong>Solution:</strong></p>
+                <ol>
+                    <li>Increase PHP memory_limit in php.ini: <code>memory_limit = 256M</code></li>
+                    <li>Or in wp-config.php: <code>define('WP_MEMORY_LIMIT', '256M');</code></li>
+                    <li>Reduce batch size in Settings → General → Batch Size to 5</li>
+                </ol>
+
+                <h4>Problem: Images not importing</h4>
+                <p><strong>Check:</strong></p>
+                <ul>
+                    <li>✓ Image URLs are accessible (not behind login)</li>
+                    <li>✓ Server can make external requests (check allow_url_fopen)</li>
+                    <li>✓ Uploads folder has write permissions (755 or 775)</li>
+                    <li>✓ Image URLs are complete (include https://)</li>
+                </ul>
+
+                <h4>Problem: CSV encoding issues (strange characters)</h4>
+                <p><strong>Solution:</strong></p>
+                <ol>
+                    <li>During upload, try different encodings: UTF-8, Windows-1251, ISO-8859-1</li>
+                    <li>Or convert CSV to UTF-8 before upload:
+                        <pre><code>iconv -f WINDOWS-1251 -t UTF-8 input.csv > output.csv</code></pre>
+                    </li>
+                </ol>
+
+                <h3>Export Issues</h3>
+                <h4>Problem: Export file is empty</h4>
+                <p><strong>Causes:</strong></p>
+                <ul>
+                    <li>No posts match filters</li>
+                    <li>Permissions issue</li>
+                </ul>
+                <p><strong>Solutions:</strong></p>
+                <ol>
+                    <li>Check export preview before generating</li>
+                    <li>Verify filters aren't too restrictive</li>
+                    <li>Check temp folder permissions: <code>/wp-content/uploads/aie-exports/</code></li>
+                </ol>
+
+                <h4>Problem: Excel shows wrong date format</h4>
+                <p><strong>Solution:</strong></p>
+                <ul>
+                    <li>Change date format in Settings → Export → Date Format to Excel-friendly: <code>Y-m-d</code></li>
+                    <li>Or format dates as text in CSV: <code>="2026-01-19"</code></li>
+                </ul>
+
+                <h3>Media Sync Issues</h3>
+                <h4>Problem: FTP connection fails</h4>
+                <p><strong>Solutions:</strong></p>
+                <ol>
+                    <li>Verify FTP credentials with FTP client (FileZilla)</li>
+                    <li>Check if PHP FTP extension is enabled: <code>php -m | grep ftp</code></li>
+                    <li>Try passive mode (FTP passive: yes)</li>
+                    <li>Check server firewall allows FTP connections</li>
+                </ol>
+
+                <h4>Problem: Duplicates still being imported</h4>
+                <p><strong>Solution:</strong></p>
+                <ul>
+                    <li>Change duplicate detection to "MD5 Hash" for 100% accuracy</li>
+                    <li>Rebuild media hash database: Settings → Media Sync → Rebuild Hash Index</li>
+                </ul>
+
+                <h3>Content Sync Issues</h3>
+                <h4>Problem: "API key invalid" error</h4>
+                <p><strong>Solutions:</strong></p>
+                <ol>
+                    <li>Regenerate API key on remote site</li>
+                    <li>Ensure plugin is activated on remote site</li>
+                    <li>Check .htaccess isn't blocking API requests</li>
+                    <li>Verify HTTPS is working (curl https://remotesite.com/wp-json/)</li>
+                </ol>
+
+                <h4>Problem: Sync timeout</h4>
+                <p><strong>Solutions:</strong></p>
+                <ol>
+                    <li>Increase API timeout: Settings → Content Sync → API Timeout to 60</li>
+                    <li>Reduce posts per sync batch</li>
+                    <li>Check remote server isn't overloaded</li>
+                </ol>
+
+                <h3>Performance Issues</h3>
+                <h4>Problem: Import is very slow</h4>
+                <p><strong>Optimizations:</strong></p>
+                <ul>
+                    <li>Increase batch size (if memory allows): Settings → Batch Size to 20</li>
+                    <li>Reduce batch delay: Settings → Batch Delay to 2 seconds</li>
+                    <li>Disable image downloading if not needed</li>
+                    <li>Disable validation if data is clean</li>
+                    <li>Use PHP 8.0+ for better performance</li>
+                </ul>
+
+                <h4>Problem: Website slow during import</h4>
+                <p><strong>Solutions:</strong></p>
+                <ol>
+                    <li>Reduce batch size to 5</li>
+                    <li>Increase batch delay to 10 seconds</li>
+                    <li>Run imports during off-peak hours</li>
+                    <li>Disable object caching temporarily</li>
+                </ol>
+
+                <h3>General Issues</h3>
+                <h4>Problem: Settings not saving</h4>
+                <p><strong>Solutions:</strong></p>
+                <ul>
+                    <li>Check user has admin capabilities</li>
+                    <li>Clear browser cache</li>
+                    <li>Check for JavaScript errors (F12 Console)</li>
+                    <li>Disable other plugins temporarily to check for conflicts</li>
+                </ul>
+
+                <h4>Problem: White screen (WSOD)</h4>
+                <p><strong>Solutions:</strong></p>
+                <ol>
+                    <li>Enable WordPress debugging in wp-config.php:
+                        <pre><code>define('WP_DEBUG', true);
+define('WP_DEBUG_LOG', true);
+define('WP_DEBUG_DISPLAY', false);</code></pre>
+                    </li>
+                    <li>Check debug.log: <code>/wp-content/debug.log</code></li>
+                    <li>Increase PHP memory: <code>define('WP_MEMORY_LIMIT', '512M');</code></li>
+                    <li>Deactivate plugin via FTP, check for conflicts</li>
+                </ol>
+
+                <h3>Debug Mode</h3>
+                <p>Enable debug logging for detailed troubleshooting:</p>
+                <pre><code>// In wp-config.php
+define('AIE_DEBUG', true);
+
+// View logs
+tail -f /wp-content/debug.log | grep "AIE:"</code></pre>
+
+                <h3>Getting Support</h3>
+                <p>If issues persist:</p>
+                <ol>
+                    <li><strong>Check logs:</strong> Settings → Logs</li>
+                    <li><strong>Export error report:</strong> Download error log as CSV</li>
+                    <li><strong>System info:</strong> Settings → System Info (copy to clipboard)</li>
+                    <li><strong>Contact support:</strong> support@rockstarlab.com
+                        <ul>
+                            <li>Include: WordPress version, PHP version, error messages, steps to reproduce</li>
+                            <li>Attach: error log, system info</li>
+                        </ul>
+                    </li>
+                </ol>
+
+                <div class="alert alert-info"><strong>💡 Pro Tip:</strong> Test with a small sample (10-20 rows) before importing thousands. This helps identify issues quickly.</div>
+            </section>
         </main>
     </div>
+    
+    <!-- Lightbox -->
+    <div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+        <div class="lightbox-content">
+            <button class="lightbox-close" onclick="closeLightbox(event)">×</button>
+            <img id="lightbox-image" class="lightbox-image" src="" alt="">
+            <div id="lightbox-caption" class="lightbox-caption"></div>
+        </div>
+    </div>
+    
     <button class="back-to-top" id="backToTop" onclick="scrollToTop()">↑</button>
-    <script>
-        function scrollToSection(e, id) {
-            e.preventDefault();
-            const el = document.getElementById(id);
-            const offset = el.getBoundingClientRect().top + window.pageYOffset - 20;
-            window.scrollTo({ top: offset, behavior: 'smooth' });
-            document.querySelectorAll('.nav-menu a').forEach(a => a.classList.remove('active'));
-            e.target.classList.add('active');
-            if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('active');
-        }
-        function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); }
-        function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-        const btn = document.getElementById('backToTop');
-        window.addEventListener('scroll', () => {
-            btn.classList.toggle('visible', window.pageYOffset > 300);
-            updateActiveMenuItem();
-        });
-        function updateActiveMenuItem() {
-            const sections = document.querySelectorAll('.content-section');
-            const scroll = window.pageYOffset + 100;
-            sections.forEach(sec => {
-                const top = sec.offsetTop, height = sec.offsetHeight, id = sec.getAttribute('id');
-                if (scroll >= top && scroll < top + height) {
-                    document.querySelectorAll('.nav-menu a').forEach(a => {
-                        a.classList.toggle('active', a.getAttribute('href') === '#' + id);
-                    });
-                }
-            });
-        }
-        document.addEventListener('click', e => {
-            const sidebar = document.getElementById('sidebar'), toggle = document.querySelector('.menu-toggle');
-            if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !toggle.contains(e.target) && sidebar.classList.contains('active')) {
-                sidebar.classList.remove('active');
-            }
-        });
-        window.addEventListener('load', updateActiveMenuItem);
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
