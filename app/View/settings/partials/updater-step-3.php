@@ -74,6 +74,9 @@ defined( 'ABSPATH' ) || exit;
 						placeholder="<?php esc_attr_e( 'Search fields...', 'wp-advanced-import-export' ); ?>"
 					>
 					<span class="dashicons dashicons-search"></span>
+					<button type="button" class="aie-clear-search" aria-label="<?php esc_attr_e( 'Clear search', 'wp-advanced-import-export' ); ?>">
+						<span class="dashicons dashicons-no-alt"></span>
+					</button>
 				</div>
 
 				<div class="aie-fields-library-body" id="aie-updater-fields-library">

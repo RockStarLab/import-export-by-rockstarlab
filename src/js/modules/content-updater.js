@@ -78,6 +78,13 @@ const ContentUpdater = {
 		// Field selection (Step 3)
 		$wizard.on( 'click', '.aie-updater-clear-all-fields', () => this.clearAllFields() );
 		$wizard.on( 'input', '#aie-updater-fields-search', ( e ) => this.filterFields( e ) );
+		$wizard.on( 'click', '.aie-clear-search', ( e ) => {
+			e.preventDefault();
+			const $search = jQuery( '#aie-updater-fields-search' );
+			$search.val( '' );
+			$search.trigger( 'input' );
+			$search.focus();
+		} );
 
 		// Function assignment (Step 3) - old handlers kept for compatibility
 		$wizard.on( 'change', '.aie-field-function-select', ( e ) => this.onFunctionChange( e ) );
@@ -550,8 +557,8 @@ const ContentUpdater = {
 		this.loadStaticFields( contentType );
 		
 		// Load dynamic fields for this content type (excluding taxonomies for Content Updater)
-		if ( contentType === 'post' || contentType.startsWith( 'post_type_' ) ) {
-			const postType = contentType === 'post' ? 'post' : contentType.replace( 'post_type_', '' );
+		const postType = this.getPostTypeForDynamicFields( contentType );
+		if ( postType ) {
 			// Skip taxonomies for Content Updater
 			// this.loadTaxonomies( postType );
 			this.loadCustomFields( postType );
@@ -784,6 +791,35 @@ const ContentUpdater = {
 			
 			$grid.append( $item );
 		} );
+	},
+
+	/**
+	 * Get real post type for loading dynamic fields (ACF/Yoast/Custom fields)
+	 *
+	 * @param {string} contentType
+	 * @return {string|null}
+	 */
+	getPostTypeForDynamicFields( contentType ) {
+		if ( contentType === 'post' || contentType === 'page' || contentType === 'custom_post_types' ) {
+			return contentType === 'custom_post_types' ? null : contentType;
+		}
+
+		const typeMap = {
+			woo_product: 'product',
+			woo_order: 'shop_order',
+			woo_coupon: 'shop_coupon',
+			media: 'attachment',
+		};
+
+		if ( typeMap[ contentType ] ) {
+			return typeMap[ contentType ];
+		}
+
+		if ( contentType.startsWith( 'post_type_' ) ) {
+			return contentType.replace( 'post_type_', '' );
+		}
+
+		return null;
 	},
 
 	/**
