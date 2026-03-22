@@ -119,6 +119,9 @@ class Init {
 
 		// Handle welcome page redirect
 		add_action( 'admin_init', array( $this, 'welcome_redirect' ) );
+
+		// Show 5-star review request notice (plugin pages only, after 1 week)
+		\WP_AIE\Helper\Review_Notice::init();
 	}
 
 	/**

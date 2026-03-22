@@ -137,6 +137,9 @@ register_activation_hook(
 	WP_AIE_FILE,
 	function () {
 		\WP_AIE\Helper\Database_Migration::create_tables();
+
+		// Record the install date for the review-notice timer (fires only once)
+		\WP_AIE\Helper\Review_Notice::set_install_date();
 	}
 );
 
