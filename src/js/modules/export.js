@@ -1399,6 +1399,48 @@ const ExportModule = {
 		$condition.closest( '.aie-filter-condition-wrap' ).show();
 		$valueWrap.find( 'label' ).text( window.aieData.i18n.value );
 
+		// Clear existing conditions and populate based on field type
+		$condition.empty();
+
+		// Populate conditions based on field type
+		const conditions = this.getConditionsByFieldType( fieldType );
+		
+		// Get the actual field name to filter out inappropriate conditions
+		const fieldName = $field.val();
+		
+		// Filter conditions based on field
+		const filteredConditions = conditions.filter( ( condition ) => {
+			// For ID fields, exclude is_empty and is_not_empty (ID cannot be empty)
+			if ( fieldName === 'ID' || fieldName === 'comment_ID' || fieldName === 'term_id' || fieldName === 'user_id' || fieldName === 'attribute_id' ) {
+				return condition.value !== 'is_empty' && condition.value !== 'is_not_empty';
+			}
+			
+			// For date fields, exclude is_empty and is_not_empty (dates typically always have values)
+			if ( fieldType === 'date' ) {
+				return condition.value !== 'is_empty' && condition.value !== 'is_not_empty';
+			}
+			
+			// For comment_status, exclude is_empty and is_not_empty (always has a value: open, closed, etc.)
+			if ( fieldName === 'comment_status' ) {
+				return condition.value !== 'is_empty' && condition.value !== 'is_not_empty';
+			}
+			
+			// For content and excerpt fields, exclude in and not_in (not practical for long text)
+			if ( fieldName === 'post_content' || fieldName === 'post_excerpt' ) {
+				return condition.value !== 'in' && condition.value !== 'not_in';
+			}
+			
+			return true;
+		} );
+		
+		filteredConditions.forEach( ( condition ) => {
+			$condition.append(
+				jQuery( '<option>' )
+					.val( condition.value )
+					.text( condition.label )
+			);
+		} );
+
 		// If current input is a select (from post_type_selector or table_selector), replace with input
 		if ( $value.is( 'select' ) ) {
 			const $input = jQuery( '<input>' )
@@ -1409,64 +1451,22 @@ const ExportModule = {
 			$value.replaceWith( $input );
 			// Update reference
 			$row.find( '.aie-filter-value' ).attr( 'type', fieldType === 'date' ? 'date' : ( fieldType === 'number' ? 'number' : 'text' ) );
-		} else {
-			// Clear existing conditions
-			$condition.empty();
-
-			// Populate conditions based on field type
-			const conditions = this.getConditionsByFieldType( fieldType );
-			
-			// Get the actual field name to filter out inappropriate conditions
-			const fieldName = $field.val();
-			
-			// Filter conditions based on field
-			const filteredConditions = conditions.filter( ( condition ) => {
-				// For ID fields, exclude is_empty and is_not_empty (ID cannot be empty)
-				if ( fieldName === 'ID' || fieldName === 'comment_ID' || fieldName === 'term_id' || fieldName === 'user_id' || fieldName === 'attribute_id' ) {
-					return condition.value !== 'is_empty' && condition.value !== 'is_not_empty';
-				}
-				
-				// For date fields, exclude is_empty and is_not_empty (dates typically always have values)
-				if ( fieldType === 'date' ) {
-					return condition.value !== 'is_empty' && condition.value !== 'is_not_empty';
-				}
-				
-				// For comment_status, exclude is_empty and is_not_empty (always has a value: open, closed, etc.)
-				if ( fieldName === 'comment_status' ) {
-					return condition.value !== 'is_empty' && condition.value !== 'is_not_empty';
-				}
-				
-				// For content and excerpt fields, exclude in and not_in (not practical for long text)
-				if ( fieldName === 'post_content' || fieldName === 'post_excerpt' ) {
-					return condition.value !== 'in' && condition.value !== 'not_in';
-				}
-				
-				return true;
-			} );
-			
-			filteredConditions.forEach( ( condition ) => {
-				$condition.append(
-					jQuery( '<option>' )
-						.val( condition.value )
-						.text( condition.label )
-				);
-			} );
-
-			// Clear the value when field changes
-			$value.val( '' );
-			
-			// Change value input type based on field type
-			if ( fieldType === 'date' ) {
-				$value.attr( 'type', 'date' );
-			} else if ( fieldType === 'number' ) {
-				$value.attr( 'type', 'number' );
-			} else {
-				$value.attr( 'type', 'text' );
-			}
-			
-			// Update input type based on current condition
-			this.updateValueInputType( $row );
 		}
+
+		// Clear the value when field changes
+		$value.val( '' );
+		
+		// Change value input type based on field type
+		if ( fieldType === 'date' ) {
+			$value.attr( 'type', 'date' );
+		} else if ( fieldType === 'number' ) {
+			$value.attr( 'type', 'number' );
+		} else {
+			$value.attr( 'type', 'text' );
+		}
+		
+		// Update input type based on current condition
+		this.updateValueInputType( $row );
 
 		// Trigger count refresh (without spinner)
 		Utils.debounce( () => this.refreshCount( false ), 500 )();
