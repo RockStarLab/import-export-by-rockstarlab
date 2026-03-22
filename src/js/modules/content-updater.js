@@ -13,6 +13,9 @@ const ContentUpdater = {
 	jobId: null,
 	progressInterval: null,
 	selectedFields: [],
+	selectedFieldTypes: {},
+	selectedTableName: '',
+	currentTableColumns: [],
 	fieldFunctions: {},
 	availableFunctions: [],
 	selectedFilters: [],  // New: Store selected filters
@@ -74,6 +77,7 @@ const ContentUpdater = {
 		$wizard.on( 'change', '.aie-updater-filter-condition', ( e ) => this.onFilterConditionChange( e ) );
 		$wizard.on( 'change', '.aie-updater-filter-value', () => Utils.debounce( () => this.refreshCount( false ), 500 )() );
 		$wizard.on( 'click', '.aie-updater-refresh-count', () => this.refreshCount( true ) );
+		$wizard.on( 'change', '#aie-updater-table-name', ( e ) => this.onDatabaseTableChange( e ) );
 
 		// Field selection (Step 3)
 		$wizard.on( 'click', '.aie-updater-clear-all-fields', () => this.clearAllFields() );
@@ -84,6 +88,10 @@ const ContentUpdater = {
 			$search.val( '' );
 			$search.trigger( 'input' );
 			$search.focus();
+		} );
+		$wizard.on( 'click', '.aie-add-all-fields', ( e ) => {
+			e.preventDefault();
+			this.addAllFieldsFromCategory( e.currentTarget );
 		} );
 
 		// Function assignment (Step 3) - old handlers kept for compatibility
@@ -248,6 +256,13 @@ const ContentUpdater = {
 				return true;
 
 			case 2:
+				// Database table must be selected for database_table type
+				if ( this.isDatabaseTableType() && ! this.getSelectedTableName() ) {
+					Utils.showNotice( window.aieData.i18n.pleaseSelectTable, 'error' );
+					jQuery( '#aie-updater-table-name' ).trigger( 'focus' );
+					return false;
+				}
+
 				// Filters are optional, always pass
 				return true;
 
@@ -317,9 +332,23 @@ const ContentUpdater = {
 		
 		// Reset selections for new content type
 		this.selectedFields = [];
+		this.selectedFieldTypes = {};
+		this.selectedTableName = '';
+		this.currentTableColumns = [];
 		this.fieldFunctions = {};
 		this.selectedFilters = [];
 		this.filteredCount = null;  // Reset filtered count when content type changes
+
+		if ( this.isDatabaseTableType( contentType ) ) {
+			jQuery( '.aie-table-selection-section' ).show();
+		} else {
+			jQuery( '.aie-table-selection-section' ).hide();
+			jQuery( '.aie-table-info' ).hide();
+			jQuery( '#aie-updater-table-name' ).val( '' );
+			if ( window.aieExportModule ) {
+				window.aieExportModule.currentTableColumns = [];
+			}
+		}
 	},
 
 	/**
@@ -336,9 +365,176 @@ const ContentUpdater = {
 		
 		// Clear existing filters
 		jQuery( '#aie-updater-filters-list' ).empty();
+
+		if ( this.isDatabaseTableType( contentType ) ) {
+			jQuery( '.aie-table-selection-section' ).show();
+			this.loadDatabaseTables();
+		} else {
+			jQuery( '.aie-table-selection-section' ).hide();
+			jQuery( '.aie-table-info' ).hide();
+		}
 		
 		// Refresh count
 		this.refreshCount( true );
+	},
+
+	/**
+	 * Check if selected type is database table
+	 */
+	isDatabaseTableType( contentType = null ) {
+		const selectedType = contentType || jQuery( 'input[name="updater_content_type"]:checked' ).val();
+		return selectedType === 'database_table';
+	},
+
+	/**
+	 * Get selected database table name
+	 */
+	getSelectedTableName() {
+		return this.selectedTableName || jQuery( '#aie-updater-table-name' ).val() || '';
+	},
+
+	/**
+	 * Build options payload for updater AJAX calls
+	 */
+	buildRequestOptions( contentType, extraOptions = {} ) {
+		const options = { ...extraOptions };
+
+		if ( this.isDatabaseTableType( contentType ) ) {
+			const tableName = this.getSelectedTableName();
+			if ( tableName ) {
+				options.table_name = tableName;
+			}
+		}
+
+		return options;
+	},
+
+	/**
+	 * Load database table list for updater
+	 */
+	loadDatabaseTables() {
+		const $dropdown = jQuery( '#aie-updater-table-name' );
+		const $spinner = jQuery( '.aie-table-selector .spinner' );
+
+		if ( ! $dropdown.length ) {
+			return;
+		}
+
+		$dropdown.prop( 'disabled', true );
+		$spinner.addClass( 'is-active' );
+
+		Utils.ajax( 'aie_get_database_tables', {} )
+			.then( ( response ) => {
+				const tables = response.tables || response || [];
+
+				$dropdown.empty();
+				$dropdown.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.selectTable ) );
+
+				if ( ! Array.isArray( tables ) || tables.length === 0 ) {
+					$dropdown.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.noTablesFound ) );
+					$dropdown.prop( 'disabled', true );
+					$spinner.removeClass( 'is-active' );
+					return;
+				}
+
+				tables.forEach( ( table ) => {
+					$dropdown.append(
+						jQuery( '<option>' )
+							.val( table.table_name )
+							.text( table.label )
+					);
+				} );
+
+				$dropdown.prop( 'disabled', false );
+				$spinner.removeClass( 'is-active' );
+
+				const currentTable = this.getSelectedTableName();
+				if ( currentTable ) {
+					$dropdown.val( currentTable );
+					if ( $dropdown.val() ) {
+						this.loadDatabaseTableColumns( currentTable );
+					}
+				}
+			} )
+			.catch( () => {
+				$dropdown.empty();
+				$dropdown.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.errorLoadingTables ) );
+				$dropdown.prop( 'disabled', true );
+				$spinner.removeClass( 'is-active' );
+			} );
+	},
+
+	/**
+	 * Handle selected database table change
+	 */
+	onDatabaseTableChange( e ) {
+		const tableName = jQuery( e.target ).val() || '';
+		this.selectedTableName = tableName;
+
+		if ( ! tableName ) {
+			this.currentTableColumns = [];
+			jQuery( '.aie-table-info' ).hide();
+			jQuery( '.aie-columns-list' ).empty();
+			jQuery( '.aie-table-row-count' ).text( '-' );
+			jQuery( '.aie-table-column-count' ).text( '-' );
+			if ( window.aieExportModule ) {
+				window.aieExportModule.currentTableColumns = [];
+			}
+			this.refreshCount( false );
+			return;
+		}
+
+		this.loadDatabaseTableColumns( tableName );
+	},
+
+	/**
+	 * Load selected database table columns and stats
+	 */
+	loadDatabaseTableColumns( tableName ) {
+		const $tableInfo = jQuery( '.aie-table-info' );
+		const $columnsList = jQuery( '.aie-columns-list' );
+		const $rowCount = jQuery( '.aie-table-row-count' );
+		const $columnCount = jQuery( '.aie-table-column-count' );
+
+		$tableInfo.show();
+		$columnsList.html( `<p>${ window.aieData.i18n.loadingTableColumns }</p>` );
+
+		Utils.ajax( 'aie_get_table_columns', { table_name: tableName } )
+			.then( ( response ) => {
+				const columns = response.columns || [];
+				const rowCount = response.row_count || 0;
+
+				this.currentTableColumns = columns;
+				if ( window.aieExportModule ) {
+					window.aieExportModule.currentTableColumns = columns;
+				}
+
+				$rowCount.text( rowCount );
+				$columnCount.text( columns.length );
+
+				$columnsList.empty();
+				const $list = jQuery( '<ul>' ).addClass( 'aie-column-type-list' );
+
+				columns.forEach( ( col ) => {
+					$list.append(
+						jQuery( '<li>' ).html(
+							`<strong>${ this.escapeHtml( col.name ) }</strong> <span class="column-type">(${ this.escapeHtml( col.type ) })</span>`
+						)
+					);
+				} );
+
+				$columnsList.append( $list );
+				this.refreshCount( false );
+			} )
+			.catch( () => {
+				this.currentTableColumns = [];
+				if ( window.aieExportModule ) {
+					window.aieExportModule.currentTableColumns = [];
+				}
+				$columnsList.html( `<p>${ window.aieData.i18n.errorLoadingColumns }</p>` );
+				$rowCount.text( '-' );
+				$columnCount.text( '-' );
+			} );
 	},
 
 	/**
@@ -348,6 +544,12 @@ const ContentUpdater = {
 		const template = document.getElementById( 'aie-updater-filter-row-template' );
 		const clone = template.content.cloneNode( true );
 		const contentType = jQuery( 'input[name="updater_content_type"]:checked' ).val();
+
+		if ( this.isDatabaseTableType( contentType ) && ! this.getSelectedTableName() ) {
+			Utils.showNotice( window.aieData.i18n.pleaseSelectTable, 'warning' );
+			jQuery( '#aie-updater-table-name' ).trigger( 'focus' );
+			return;
+		}
 
 		// Populate field options based on content type
 		const $fieldSelect = jQuery( clone ).find( '.aie-updater-filter-field' );
@@ -479,6 +681,12 @@ const ContentUpdater = {
 		if ( ! contentType ) {
 			return;
 		}
+
+		if ( this.isDatabaseTableType( contentType ) && ! this.getSelectedTableName() ) {
+			jQuery( '.aie-count-value' ).text( '-' );
+			this.filteredCount = null;
+			return;
+		}
 		
 		const $countValue = jQuery( '.aie-count-value' );
 		const $spinner = jQuery( '.aie-filter-summary-top .spinner' );
@@ -498,7 +706,7 @@ const ContentUpdater = {
 				nonce: aieData.nonce,
 				content_type: contentType,
 				filters: JSON.stringify( filters ),
-				options: {}
+				options: this.buildRequestOptions( contentType )
 			},
 			success: ( response ) => {
 				$spinner.removeClass( 'is-active' );
@@ -613,6 +821,9 @@ const ContentUpdater = {
 					<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
 					<span class="dashicons dashicons-admin-generic"></span>
 					Custom Fields
+					<button type="button" class="aie-add-all-fields" title="${ window.aieData.i18n.addAllFieldsTitle }">
+						${ window.aieData.i18n.addAll }
+					</button>
 				</h4>
 				<div class="aie-fields-grid aie-custom-fields-grid"></div>
 			</div>
@@ -621,6 +832,9 @@ const ContentUpdater = {
 					<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
 					<span class="dashicons dashicons-admin-settings"></span>
 					ACF Fields
+					<button type="button" class="aie-add-all-fields" title="${ window.aieData.i18n.addAllFieldsTitle }">
+						${ window.aieData.i18n.addAll }
+					</button>
 				</h4>
 				<div class="aie-fields-grid aie-acf-fields-grid">
 					<div class="aie-acf-loading"><span class="spinner is-active"></span><p>Loading ACF fields...</p></div>
@@ -631,6 +845,9 @@ const ContentUpdater = {
 					<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
 					<span class="dashicons dashicons-chart-line"></span>
 					Yoast SEO
+					<button type="button" class="aie-add-all-fields" title="${ window.aieData.i18n.addAllFieldsTitle }">
+						${ window.aieData.i18n.addAll }
+					</button>
 				</h4>
 				<div class="aie-fields-grid aie-yoast-fields-grid">
 					<div class="aie-yoast-loading"><span class="spinner is-active"></span><p>Loading Yoast SEO fields...</p></div>
@@ -658,6 +875,9 @@ const ContentUpdater = {
 			<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
 			<span class="dashicons dashicons-admin-post"></span>
 			${ this.escapeHtml( group.label ) }
+			<button type="button" class="aie-add-all-fields" title="${ window.aieData.i18n.addAllFieldsTitle }">
+				${ window.aieData.i18n.addAll }
+			</button>
 		` );
 		
 		const $grid = jQuery( '<div>' ).addClass( 'aie-fields-grid' );
@@ -1010,14 +1230,17 @@ const ContentUpdater = {
 		const $dropzone = jQuery( '#aie-updater-dropzone' );
 
 		$items.on( 'dragstart', ( e ) => {
-			const field = jQuery( e.currentTarget ).data( 'field' );
+			const $item = jQuery( e.currentTarget );
+			const field = $item.data( 'field' );
+			const type = $item.data( 'type' ) || 'text';
 			e.originalEvent.dataTransfer.setData( 'field', field );
-			e.originalEvent.dataTransfer.setData( 'label', jQuery( e.currentTarget ).find( '.aie-field-label' ).text() );
+			e.originalEvent.dataTransfer.setData( 'label', $item.find( '.aie-field-label' ).text() );
+			e.originalEvent.dataTransfer.setData( 'type', type );
 		} );
 
 		$items.on( 'click', ( e ) => {
 			const $item = jQuery( e.currentTarget );
-			this.addField( $item.data( 'field' ), $item.find( '.aie-field-label' ).text() );
+			this.addField( $item.data( 'field' ), $item.find( '.aie-field-label' ).text(), $item.data( 'type' ) || 'text' );
 		} );
 
 		$dropzone.on( 'dragover', ( e ) => {
@@ -1035,9 +1258,10 @@ const ContentUpdater = {
 
 			const field = e.originalEvent.dataTransfer.getData( 'field' );
 			const label = e.originalEvent.dataTransfer.getData( 'label' );
+			const type = e.originalEvent.dataTransfer.getData( 'type' ) || 'text';
 
 			if ( field ) {
-				this.addField( field, label );
+				this.addField( field, label, type );
 			}
 		} );
 	},
@@ -1045,7 +1269,7 @@ const ContentUpdater = {
 	/**
 	 * Add field to selected fields list
 	 */
-	addField( field, label ) {
+	addField( field, label, type = 'text' ) {
 		// Check if already added
 		if ( this.selectedFields.includes( field ) ) {
 			const message = window.aieData.i18n.fieldAlreadySelected.replace('%s', label);
@@ -1054,6 +1278,7 @@ const ContentUpdater = {
 		}
 
 		this.selectedFields.push( field );
+		this.selectedFieldTypes[ field ] = String( type || 'text' ).toLowerCase();
 		
 		const $list = jQuery( '#aie-updater-fields-list' );
 		const $placeholder = jQuery( '.aie-updater-dropzone-placeholder' );
@@ -1061,7 +1286,7 @@ const ContentUpdater = {
 		$placeholder.hide();
 
 		const fieldHtml = `
-			<div class="aie-selected-field" data-field="${ field }">
+			<div class="aie-selected-field" data-field="${ field }" data-type="${ this.escapeHtml( String( type || 'text' ).toLowerCase() ) }">
 				<span class="aie-field-drag-handle dashicons dashicons-menu"></span>
 				<span class="aie-field-name">${ label }</span>
 				<button type="button" class="aie-remove-field" title="Remove">
@@ -1080,12 +1305,36 @@ const ContentUpdater = {
 	},
 
 	/**
+	 * Add all fields from a category
+	 */
+	addAllFieldsFromCategory( button ) {
+		const $category = jQuery( button ).closest( '.aie-field-category' );
+		if ( ! $category.length ) {
+			return;
+		}
+
+		const $fieldItems = $category.find( '.aie-field-item:not([style*="display: none"])' );
+
+		$fieldItems.each( ( index, item ) => {
+			const $item = jQuery( item );
+			const field = String( $item.data( 'field' ) || '' );
+			const label = String( $item.data( 'label' ) || field );
+			const type = String( $item.data( 'type' ) || 'text' );
+
+			if ( field ) {
+				this.addField( field, label, type );
+			}
+		} );
+	},
+
+	/**
 	 * Remove field from selected fields
 	 */
 	removeField( field ) {
 		const index = this.selectedFields.indexOf( field );
 		if ( index > -1 ) {
 			this.selectedFields.splice( index, 1 );
+			delete this.selectedFieldTypes[ field ];
 			delete this.fieldFunctions[ field ];
 		}
 
@@ -1106,10 +1355,30 @@ const ContentUpdater = {
 		}
 
 		this.selectedFields = [];
+		this.selectedFieldTypes = {};
 		this.fieldFunctions = {};
 		jQuery( '#aie-updater-fields-list' ).empty();
 		jQuery( '.aie-updater-dropzone-placeholder' ).show();
 		this.updateFieldCount();
+	},
+
+	/**
+	 * Get normalized field type key
+	 */
+	getFieldTypeKey( field ) {
+		if ( this.selectedFieldTypes[ field ] ) {
+			return String( this.selectedFieldTypes[ field ] ).toLowerCase();
+		}
+
+		const domType = jQuery( `.aie-selected-field[data-field="${ field }"]` ).data( 'type' );
+		return String( domType || 'text' ).toLowerCase();
+	},
+
+	/**
+	 * Get display label for field type
+	 */
+	getFieldTypeLabel( field ) {
+		return this.getFieldTypeKey( field ).replace( /_/g, ' ' ).toUpperCase();
 	},
 
 	/**
@@ -1181,6 +1450,7 @@ const ContentUpdater = {
 			const functions = this.fieldFunctions[ field ] || [];
 			const functionsCount = Array.isArray( functions ) ? functions.length : 0;
 			const fieldLabel = jQuery( `.aie-selected-field[data-field="${ field }"] .aie-field-name` ).text() || field;
+			const fieldTypeLabel = this.getFieldTypeLabel( field );
 
 			let functionsText = 'None';
 			if ( functionsCount > 0 ) {
@@ -1194,7 +1464,7 @@ const ContentUpdater = {
 						<br><code>${ this.escapeHtml( field ) }</code>
 					</td>
 					<td class="aie-field-type-col">
-						<span class="aie-field-type-badge">Text</span>
+						<span class="aie-field-type-badge">${ this.escapeHtml( fieldTypeLabel ) }</span>
 					</td>
 					<td class="aie-functions-col">
 						<span class="aie-functions-count-badge">${ functionsText }</span>
@@ -1225,7 +1495,7 @@ const ContentUpdater = {
 	 */
 	openFieldFunctionsModal( fieldKey ) {
 		const fieldLabel = jQuery( `.aie-selected-field[data-field="${ fieldKey }"] .aie-field-name` ).text() || fieldKey;
-		const fieldType = 'text'; // Can be enhanced later
+		const fieldType = this.getFieldTypeLabel( fieldKey );
 		
 		this.currentEditingField = fieldKey;
 
@@ -1611,6 +1881,11 @@ const ContentUpdater = {
 		const contentType = jQuery( 'input[name="updater_content_type"]:checked' ).val();
 		const $countValue = jQuery( '.aie-total-items-summary' );
 
+		if ( this.isDatabaseTableType( contentType ) && ! this.getSelectedTableName() ) {
+			$countValue.text( '-' );
+			return;
+		}
+
 		$countValue.html( '<span class="spinner" style="float:none;margin:0;"></span>' );
 
 		// Include filters in the count request
@@ -1624,7 +1899,7 @@ const ContentUpdater = {
 				nonce: aieData.nonce,
 				content_type: contentType,
 				filters: JSON.stringify( filters ),
-				options: {}
+				options: this.buildRequestOptions( contentType )
 			},
 			success: ( response ) => {
 				if ( response.success ) {
@@ -1677,6 +1952,9 @@ const ContentUpdater = {
 	executeUpdate( contentType, itemsPerIteration ) {
 		// Prepare field functions array (indexed by field position)
 		const fieldFunctionsArray = this.selectedFields.map( field => this.fieldFunctions[ field ] || [] );
+		const options = this.buildRequestOptions( contentType, {
+			items_per_iteration: itemsPerIteration,
+		} );
 
 		// Show progress section
 		jQuery( '#aie-updater-config' ).hide();
@@ -1694,9 +1972,7 @@ const ContentUpdater = {
 				fields: JSON.stringify( this.selectedFields ),
 				field_functions: JSON.stringify( fieldFunctionsArray ),
 				filters: JSON.stringify( this.selectedFilters || [] ),
-				options: JSON.stringify( {
-					items_per_iteration: itemsPerIteration
-				} )
+				options: JSON.stringify( options )
 			},
 			success: ( response ) => {
 				if ( response.success ) {

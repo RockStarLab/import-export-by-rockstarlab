@@ -17,6 +17,45 @@ defined( 'ABSPATH' ) || exit;
 
 	<div class="aie-step-content">
 		
+		<!-- Database Table Selection (shown only for database_table type) -->
+		<div class="aie-table-selection-section" style="display:none;">
+			<div class="aie-section-header">
+				<h3>
+					<span class="dashicons dashicons-database-view"></span>
+					<?php esc_html_e( 'Select Database Table', 'wp-advanced-import-export' ); ?>
+				</h3>
+				<p class="description"><?php esc_html_e( 'Choose which database table you want to update', 'wp-advanced-import-export' ); ?></p>
+			</div>
+
+			<div class="aie-table-selector">
+				<label for="aie-updater-table-name"><?php esc_html_e( 'Database Table:', 'wp-advanced-import-export' ); ?></label>
+				<select id="aie-updater-table-name" name="table_name" class="aie-table-dropdown">
+					<option value=""><?php esc_html_e( 'Loading tables...', 'wp-advanced-import-export' ); ?></option>
+				</select>
+				<span class="spinner" style="float:none;margin:0 10px;"></span>
+			</div>
+
+			<div class="aie-table-info" style="display:none;">
+				<div class="aie-info-card">
+					<h4><?php esc_html_e( 'Table Information', 'wp-advanced-import-export' ); ?></h4>
+					<div class="aie-table-stats">
+						<div class="aie-stat">
+							<span class="label"><?php esc_html_e( 'Total Rows:', 'wp-advanced-import-export' ); ?></span>
+							<span class="value aie-table-row-count">-</span>
+						</div>
+						<div class="aie-stat">
+							<span class="label"><?php esc_html_e( 'Total Columns:', 'wp-advanced-import-export' ); ?></span>
+							<span class="value aie-table-column-count">-</span>
+						</div>
+					</div>
+					<div class="aie-table-columns">
+						<h5><?php esc_html_e( 'Available Columns:', 'wp-advanced-import-export' ); ?></h5>
+						<div class="aie-columns-list"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
 		<!-- Info Notice -->
 		<div class="aie-updater-filters-notice">
 			<div class="notice notice-info inline">
