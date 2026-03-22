@@ -92,6 +92,9 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-search-box">
 					<input type="text" class="aie-search-source" placeholder="<?php esc_attr_e( 'Search columns...', 'wp-advanced-import-export' ); ?>">
 					<span class="dashicons dashicons-search"></span>
+					<button type="button" class="aie-clear-search" title="<?php esc_attr_e( 'Clear search', 'wp-advanced-import-export' ); ?>">
+						<span class="dashicons dashicons-no-alt"></span>
+					</button>
 				</div>
 				<div class="aie-source-fields" id="aie-source-fields">
 					<!-- Populated by JavaScript -->
@@ -107,6 +110,9 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-search-box">
 					<input type="text" class="aie-search-target" placeholder="<?php esc_attr_e( 'Search fields...', 'wp-advanced-import-export' ); ?>">
 					<span class="dashicons dashicons-search"></span>
+					<button type="button" class="aie-clear-search" title="<?php esc_attr_e( 'Clear search', 'wp-advanced-import-export' ); ?>">
+						<span class="dashicons dashicons-no-alt"></span>
+					</button>
 				</div>
 				<div class="aie-target-fields" id="aie-target-fields">
 					<!-- Populated by JavaScript -->

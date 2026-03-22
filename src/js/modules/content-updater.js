@@ -274,6 +274,7 @@ const ContentUpdater = {
 	filterContentTypes( e ) {
 		const searchTerm = jQuery( e.target ).val().toLowerCase();
 		const $contentTypes = jQuery( '.aie-content-type' );
+		const $nextStepBtn = jQuery( '.aie-updater-step-1 .aie-next-step' );
 		let visibleCount = 0;
 
 		$contentTypes.each( function() {
@@ -292,8 +293,12 @@ const ContentUpdater = {
 		// Show/hide no results message
 		if ( visibleCount === 0 ) {
 			jQuery( '.aie-no-results' ).show();
+			// Disable Next button when no results found
+			$nextStepBtn.prop( 'disabled', true );
 		} else {
 			jQuery( '.aie-no-results' ).hide();
+			// Enable Next button when results are visible
+			$nextStepBtn.prop( 'disabled', false );
 		}
 	},
 
