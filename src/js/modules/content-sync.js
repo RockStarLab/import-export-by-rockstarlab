@@ -477,13 +477,13 @@ const ContentSyncModule = {
 		const $info = $('.aie-my-site-info');
 		const $btn = $('#aie-toggle-my-site');
 
-		$info.slideToggle();
-
-		if ($info.is(':visible')) {
-			$btn.html(`<span class="dashicons dashicons-hidden"></span> ${window.aieData.i18n.hideDetails || 'Hide Details'}`);
-		} else {
-			$btn.html(`<span class="dashicons dashicons-visibility"></span> ${window.aieData.i18n.showDetails || 'Show Details'}`);
-		}
+		$info.slideToggle(200, () => {
+			if ($info.is(':visible')) {
+				$btn.html(`<span class="dashicons dashicons-hidden"></span> ${window.aieData.i18n.hideDetails || 'Hide Details'}`);
+			} else {
+				$btn.html(`<span class="dashicons dashicons-visibility"></span> ${window.aieData.i18n.showDetails || 'Show Details'}`);
+			}
+		});
 	},
 
 	/**
