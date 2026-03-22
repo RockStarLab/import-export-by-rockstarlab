@@ -481,10 +481,22 @@ export default class ExportStep3 {
 		const searchInput = document.getElementById('aie-fields-search');
 		if (!searchInput) return;
 
+		// Search input handler
 		searchInput.addEventListener('input', (e) => {
 			const query = e.target.value.toLowerCase();
 			this.filterFields(query);
 		});
+
+		// Clear button handler
+		const clearBtn = searchInput.parentElement.querySelector('.aie-clear-search');
+		if (clearBtn) {
+			clearBtn.addEventListener('click', (e) => {
+				e.preventDefault();
+				searchInput.value = '';
+				searchInput.focus();
+				this.filterFields('');
+			});
+		}
 	}
 
 	/**
@@ -573,9 +585,18 @@ export default class ExportStep3 {
 				}
 			});
 		} else {
-			// Show all categories when not searching
+			// When clearing search, restore initial visibility state
 			categories.forEach(category => {
-				category.style.display = '';
+				// Check if category has any field items
+				const fieldItems = category.querySelectorAll('.aie-field-item');
+				
+				// If category has no field items (not loaded), keep it hidden
+				if (fieldItems.length === 0) {
+					category.style.display = 'none';
+				} else {
+					// If category has items, show it
+					category.style.display = '';
+				}
 			});
 		}
 	}

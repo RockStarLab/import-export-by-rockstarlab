@@ -314,6 +314,7 @@ const ExportModule = {
 		const $filterCount = jQuery( '.aie-filter-count' );
 		const $filterCountValue = jQuery( '.aie-filter-count-value' );
 		const $noResults = jQuery( '.aie-no-results' );
+		const $nextStepBtn = jQuery( '.aie-step-1 .aie-next-step' );
 		let visibleCount = 0;
 
 		if ( searchTerm === '' ) {
@@ -321,6 +322,7 @@ const ExportModule = {
 			$contentTypes.show();
 			$filterCount.hide();
 			$noResults.hide();
+			$nextStepBtn.prop( 'disabled', false );
 			return;
 		}
 
@@ -346,8 +348,12 @@ const ExportModule = {
 		// Show/hide no results message
 		if ( visibleCount === 0 ) {
 			$noResults.show();
+			// Disable Next button when no results found
+			$nextStepBtn.prop( 'disabled', true );
 		} else {
 			$noResults.hide();
+			// Enable Next button when results are visible
+			$nextStepBtn.prop( 'disabled', false );
 		}
 	},
 

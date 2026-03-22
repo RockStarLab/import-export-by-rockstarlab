@@ -11,7 +11,6 @@
 		flex: 1;
 		text-align: center;
 		position: relative;
-		cursor: pointer;
 
 		&:not(:last-child)::after {
 			content: "";

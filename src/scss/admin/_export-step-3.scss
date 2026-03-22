@@ -319,7 +319,7 @@ body.aie-dragging {
 
 		input {
 			width: 100%;
-			padding-right: 35px;
+			padding-right: 70px;
 		}
 
 		.dashicons {
@@ -329,6 +329,45 @@ body.aie-dragging {
 			transform: translateY(-50%);
 			color: #8c8f94;
 			pointer-events: none;
+		}
+
+		.aie-clear-search {
+			position: absolute;
+			right: 56px;
+			top: 50%;
+			transform: translateY(-50%);
+			background: none;
+			border: none;
+			padding: 4px;
+			cursor: pointer;
+			display: none;
+			align-items: center;
+			justify-content: center;
+			color: #8c8f94;
+			transition: color 0.2s;
+
+			&:hover {
+				color: #2271b1;
+			}
+
+			.dashicons {
+				font-size: 18px;
+				width: 18px;
+				height: 18px;
+				right: auto;
+				top: auto;
+				transform: none;
+				pointer-events: auto;
+			}
+
+			&:focus {
+				outline: none;
+				color: #2271b1;
+			}
+		}
+
+		input:not(:placeholder-shown) ~ .aie-clear-search {
+			display: flex;
 		}
 	}
 
