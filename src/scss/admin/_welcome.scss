@@ -1,491 +1,459 @@
 /**
- * Welcome Page Styles - WooCommerce Style
+ * Welcome Page — WordPress Dashboard style
+ * Matches the native WP admin dashboard look (index.php)
  */
 
+// ── Page wrapper ──────────────────────────────────────────────────────────────
 .aie-welcome-page {
-	max-width: 1200px;
-	margin: 20px auto;
-	padding: 0;
+	max-width: 1300px;
 }
 
-.aie-welcome-header {
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	border: none;
-	box-shadow: 0 2px 12px rgba(102, 126, 234, 0.25);
-	padding: 60px 40px;
-	border-radius: 8px;
-	margin: 0 0 30px;
-	text-align: center;
-	position: relative;
-	overflow: hidden;
-
-	// Background pattern
-	&::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-image: 
-			radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-			radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
-			radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
-		pointer-events: none;
-	}
-
-	.aie-welcome-header-icon {
-		display: inline-block;
-		margin-bottom: 20px;
-		color: #fff;
-		opacity: 0.95;
-		position: relative;
-		z-index: 1;
-		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-	}
-
-	h1 {
-		font-size: 36px;
-		font-weight: 600;
-		margin: 0 0 14px;
-		color: #fff;
-		line-height: 1.3;
-		position: relative;
-		z-index: 1;
-		text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-	}
-
-	.aie-welcome-subtitle {
-		font-size: 17px;
-		margin: 0;
-		color: rgba(255, 255, 255, 0.92);
-		line-height: 1.6;
-		max-width: 650px;
-		margin: 0 auto;
-		position: relative;
-		z-index: 1;
-		text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-	}
-}
-
-.aie-welcome-content {
-	padding: 0;
-}
-
-.aie-welcome-cards {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 24px;
-	margin-bottom: 24px;
-}
-
-.aie-welcome-card {
-	background: #fff;
-	border: 1px solid #e0e0e0;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-	border-radius: 8px;
-	padding: 32px 28px;
-	transition: all 0.25s ease;
-	position: relative;
-
-	&:hover {
-		box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-		border-color: #667eea;
-		transform: translateY(-2px);
-	}
-
-	.aie-welcome-card-icon {
-		color: #667eea;
-		margin-bottom: 18px;
-		display: inline-block;
-		opacity: 0.9;
-	}
-
-	h2 {
-		font-size: 20px;
-		font-weight: 600;
-		margin: 0 0 14px;
-		color: #1e1e1e;
-	}
-
-	p {
-		color: #666;
-		line-height: 1.7;
-		margin: 0 0 22px;
-		font-size: 15px;
-	}
-}
-
-.aie-welcome-card-wide {
-	grid-column: span 3;
-}
-
-.aie-welcome-card-premium {
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	color: white;
-	border: none;
-	box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
-	padding: 0;
-	overflow: hidden;
-	position: relative;
-
-	// Background pattern
-	&::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-image: 
-			radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.08) 0%, transparent 40%),
-			radial-gradient(circle at 15% 85%, rgba(255, 255, 255, 0.05) 0%, transparent 40%);
-		pointer-events: none;
-	}
-
-	&:hover {
-		box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-		border-color: transparent;
-		transform: translateY(-2px);
-	}
-
-	.aie-welcome-card-badge {
-		position: absolute;
-		top: 20px;
-		right: 20px;
-		background: rgba(255, 255, 255, 0.2);
-		backdrop-filter: blur(10px);
-		color: white;
-		padding: 8px 16px;
-		border-radius: 24px;
-		font-size: 13px;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.6px;
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		border: 1px solid rgba(255, 255, 255, 0.3);
-		z-index: 2;
-
-		svg {
-			width: 16px;
-			height: 16px;
-		}
-	}
-
-	.aie-premium-content {
-		display: flex;
-		align-items: center;
-		gap: 45px;
-		padding: 45px;
-		position: relative;
-		z-index: 1;
-	}
-
-	.aie-premium-icon {
-		flex-shrink: 0;
-		color: rgba(255, 255, 255, 0.9);
-		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-	}
-
-	.aie-premium-text {
-		flex: 1;
-	}
-
-	h2 {
-		color: white;
-		font-size: 26px;
-		margin: 0 0 14px;
-		font-weight: 600;
-		text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-	}
-
-	p {
-		color: rgba(255, 255, 255, 0.92);
-		margin: 0 0 28px;
-		font-size: 16px;
-		line-height: 1.6;
-	}
-}
-
-.aie-welcome-button {
-	display: inline-flex;
+// ── Page title ────────────────────────────────────────────────────────────────
+.aie-welcome-title {
+	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 12px 24px;
-	border-radius: 6px;
+	font-size: 23px;
+	font-weight: 400;
+	color: #1d2327;
+	margin: 0 0 20px;
+
+	.dashicons {
+		font-size: 26px;
+		width: 26px;
+		height: 26px;
+		color: #2271b1;
+	}
+}
+
+.aie-version-badge {
+	display: inline-block;
+	background: #f0f0f1;
+	border: 1px solid #c3c4c7;
+	color: #50575e;
+	font-size: 12px;
 	font-weight: 600;
-	text-decoration: none;
-	transition: all 0.25s ease;
-	border: none;
-	cursor: pointer;
-	font-size: 15px;
-	line-height: 1.5;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-	svg {
-		width: 20px;
-		height: 20px;
-		transition: transform 0.25s ease;
-	}
-
-	&:hover {
-		transform: translateY(-1px);
-		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-
-		svg {
-			transform: translateX(3px);
-		}
-	}
-}
-
-.aie-welcome-button-primary {
-	background: #667eea;
-	color: white;
-	border: 1px solid #667eea;
-
-	&:hover {
-		background: #5568d3;
-		border-color: #5568d3;
-		color: white;
-	}
-
-	&:focus {
-		box-shadow: 0 0 0 1px #fff, 0 0 0 3px #2271b1;
-	}
-}
-
-.aie-welcome-button-premium {
-	background: white;
-	color: #667eea;
-	border: 2px solid white;
-	font-weight: 700;
-
-	&:hover {
-		background: rgba(255, 255, 255, 0.95);
-		color: #5568d3;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-		border-color: rgba(255, 255, 255, 0.95);
-	}
-
-	&:focus {
-		box-shadow: 0 0 0 1px #667eea, 0 0 0 3px #fff;
-	}
-}
-
-.aie-welcome-badges {
-	display: flex;
-	gap: 10px;
-	flex-wrap: wrap;
-}
-
-.aie-badge {
-	padding: 6px 14px;
-	border-radius: 16px;
-	font-size: 13px;
-	font-weight: 600;
+	padding: 2px 8px;
+	border-radius: 3px;
+	margin-left: 4px;
+	vertical-align: middle;
 	letter-spacing: 0.3px;
 }
 
-.aie-badge-success {
-	background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-	color: white;
-	box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+// ── Welcome Panel  (mirrors .welcome-panel from WP core) ──────────────────────
+.aie-welcome-panel {
+	margin-bottom: 20px;
+	border: none;
+	background: #fff;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	padding: 0;
 }
 
-.aie-badge-info {
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	color: white;
-	box-shadow: 0 2px 4px rgba(102, 126, 234, 0.25);
-}
+// Dark variant — mirrors WP's "Welcome to WordPress!" panel
+.aie-welcome-panel-dark {
+	background: #1d2327;
+	border: none;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+	position: relative;
+	overflow: hidden;
 
-.aie-welcome-support-links {
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-}
-
-.aie-welcome-link {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	color: #667eea;
-	text-decoration: none;
-	font-weight: 500;
-	transition: all 0.25s ease;
-	padding: 10px 14px;
-	border-radius: 6px;
-	font-size: 15px;
-	border: 1px solid #e0e0e0;
-
-	&:hover {
-		background: #f9fafb;
-		color: #5568d3;
-		border-color: #667eea;
-		transform: translateX(4px);
+	// Subtle radial highlight top-left (same feel as WP core)
+	&::before {
+		content: '';
+		position: absolute;
+		top: -60px;
+		left: -60px;
+		width: 320px;
+		height: 320px;
+		background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
+		pointer-events: none;
 	}
 
-	svg {
-		flex-shrink: 0;
-		opacity: 0.8;
-	}
-}
-
-.aie-promo-code-container {
-	display: flex;
-	gap: 14px;
-	margin: 0 0 28px;
-	align-items: stretch;
-}
-
-.aie-promo-code {
-	flex: 1;
-	background: rgba(255, 255, 255, 0.15);
-	border: 2px dashed rgba(255, 255, 255, 0.6);
-	padding: 16px 24px;
-	border-radius: 8px;
-	font-size: 22px;
-	font-weight: 700;
-	letter-spacing: 4px;
-	text-align: center;
-	color: white;
-	font-family: 'Courier New', monospace;
-	backdrop-filter: blur(5px);
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.aie-copy-button {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding: 16px 28px;
-	background: rgba(255, 255, 255, 0.2);
-	border: 2px solid rgba(255, 255, 255, 0.6);
-	border-radius: 8px;
-	color: white;
-	cursor: pointer;
-	font-weight: 700;
-	transition: all 0.25s ease;
-	font-size: 15px;
-	white-space: nowrap;
-	backdrop-filter: blur(5px);
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-	&:hover {
-		background: rgba(255, 255, 255, 0.3);
-		border-color: white;
-		transform: translateY(-1px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	.aie-welcome-panel-header {
+		h2 { color: #fff; }
+		.about-description { color: rgba(255, 255, 255, 0.7); }
 	}
 
-	&:focus {
-		outline: 2px solid white;
-		outline-offset: 2px;
-	}
-
-	&.copied {
-		background: #10b981;
-		border-color: #10b981;
-	}
-}
-
-// Responsive Design
-@media (max-width: 1280px) {
-	.aie-welcome-page {
-		max-width: 100%;
-		margin: 20px 20px 20px 0;
-	}
-}
-
-@media (max-width: 1024px) {
-	.aie-welcome-cards {
-		grid-template-columns: 1fr;
-	}
-
-	.aie-welcome-card-wide {
-		grid-column: span 1;
-	}
-
-	.aie-welcome-header {
-		padding: 40px 30px;
-
-		h1 {
-			font-size: 28px;
-		}
-
-		.aie-welcome-subtitle {
-			font-size: 15px;
-		}
-	}
-
-	.aie-premium-content {
-		flex-direction: column;
-		text-align: center;
-		padding: 30px !important;
-		gap: 24px !important;
-
-		h2 {
-			font-size: 22px;
-		}
-	}
-
-	.aie-premium-icon {
-		svg {
-			width: 56px;
-			height: 56px;
-		}
-	}
-}
-
-@media (max-width: 768px) {
-	.aie-welcome-header {
-		padding: 30px 20px;
-
-		.aie-welcome-header-icon svg {
-			width: 60px;
-			height: 60px;
-		}
-
-		h1 {
-			font-size: 24px;
-		}
-
-		.aie-welcome-subtitle {
-			font-size: 14px;
-		}
-	}
-
-	.aie-premium-content {
-		padding: 25px !important;
-
-		h2 {
-			font-size: 20px;
-			line-height: 1.4;
+	.aie-welcome-panel-column {
+		h3 {
+			color: rgba(255, 255, 255, 0.5);
+			border-bottom-color: rgba(255, 255, 255, 0.12);
 		}
 
 		p {
-			font-size: 15px;
+			color: rgba(255, 255, 255, 0.7);
+			a {
+				color: #fff;
+				&:hover { color: rgba(255,255,255,0.8); }
+			}
+		}
+
+		ul li {
+			.dashicons { color: rgba(255, 255, 255, 0.5); }
+			a {
+				color: #fff;
+				&:hover { color: rgba(255,255,255,0.8); text-decoration: underline; }
+			}
 		}
 	}
 
-	.aie-premium-icon {
-		svg {
-			width: 48px;
-			height: 48px;
+	// Export button on dark bg — outlined white
+	.aie-btn-export {
+		background: transparent;
+		border-color: rgba(255, 255, 255, 0.6);
+		color: #fff;
+		&:hover {
+			background: rgba(255, 255, 255, 0.1);
+			border-color: #fff;
+			color: #fff;
+		}
+		&:focus {
+			box-shadow: 0 0 0 1px #fff;
+			outline: 2px solid transparent;
+		}
+	}
+}
+
+.aie-welcome-panel-content {
+	padding: 26px 26px 20px;
+}
+
+.aie-welcome-panel-header {
+	margin-bottom: 20px;
+
+	h2 {
+		font-size: 21px;
+		font-weight: 600;
+		color: #1d2327;
+		margin: 0 0 6px;
+	}
+
+	.about-description {
+		color: #50575e;
+		font-size: 14px;
+		margin: 0;
+	}
+}
+
+.aie-welcome-panel-column-container {
+	display: flex;
+	gap: 24px;
+	flex-wrap: wrap;
+}
+
+.aie-welcome-panel-column {
+	flex: 1 1 180px;
+	min-width: 160px;
+
+	h3 {
+		font-size: 13px;
+		font-weight: 600;
+		color: #1d2327;
+		text-transform: uppercase;
+		letter-spacing: 0.4px;
+		margin: 0 0 12px;
+		padding-bottom: 8px;
+		border-bottom: 1px solid #f0f0f1;
+	}
+
+	p {
+		margin: 10px 0 0;
+		font-size: 13px;
+		color: #50575e;
+
+		a {
+			color: #2271b1;
+			text-decoration: none;
+
+			&:hover { color: #135e96; text-decoration: underline; }
 		}
 	}
 
-	.aie-promo-code-container {
+	ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		li {
+			display: flex;
+			align-items: flex-start;
+			gap: 6px;
+			margin-bottom: 10px;
+			font-size: 13px;
+
+			.dashicons {
+				font-size: 18px;
+				width: 18px;
+				height: 18px;
+				color: #2271b1;
+				flex-shrink: 0;
+				margin-top: 1px;
+			}
+
+			a {
+				color: #2271b1;
+				text-decoration: none;
+				line-height: 1.4;
+
+				&:hover { color: #135e96; text-decoration: underline; }
+			}
+		}
+	}
+
+	.button-hero {
+		display: block;
+		width: 100%;
+		text-align: center;
+		box-sizing: border-box;
+		margin-bottom: 10px;
+
+		&:last-of-type { margin-bottom: 0; }
+	}
+}
+
+// ── Dashboard widget grid ─────────────────────────────────────────────────────
+.aie-dashboard-widgets-wrap {
+	margin-top: 0;
+}
+
+.aie-dashboard-widgets-holder {
+	display: flex;
+	gap: 20px;
+	align-items: stretch; // equal height columns
+}
+
+.aie-postbox-container {
+	flex: 1 1 0;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+
+	.postbox {
+		flex: 1 1 auto; // fill column height
+		margin-bottom: 0;
+		display: flex;
+		flex-direction: column;
+
+		.inside {
+			flex: 1 1 auto;
+		}
+	}
+}
+
+.aie-postbox-container-left,
+.aie-postbox-container-right { flex: 1 1 0; }
+
+// ── postbox overrides (WP ships base styles; we add our tweaks) ───────────────
+.aie-welcome-page {
+	.postbox {
+		border-top: 3px solid #2271b1;
+		box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+
+		.postbox-header {
+			border-bottom: 1px solid #f0f0f1;
+
+			.hndle {
+				display: flex;
+				align-items: center;
+				gap: 7px;
+				font-size: 14px;
+				font-weight: 600;
+				color: #1d2327;
+				padding: 10px 12px;
+				cursor: default;
+
+				.dashicons {
+					font-size: 18px;
+					width: 18px;
+					height: 18px;
+					color: #2271b1;
+				}
+			}
+		}
+
+		.inside {
+			padding: 12px 16px 16px;
+		}
+	}
+}
+
+// ── Features table ────────────────────────────────────────────────────────────
+.aie-features-table {
+	border: none !important;
+	box-shadow: none !important;
+
+	td {
+		vertical-align: top;
+		padding: 10px 8px !important;
+		font-size: 13px;
+		border: none;
+		background: transparent !important;
+	}
+
+	.aie-feature-icon {
+		width: 36px;
+		padding-right: 4px !important;
+
+		.dashicons {
+			font-size: 22px;
+			width: 22px;
+			height: 22px;
+			color: #2271b1;
+		}
+	}
+
+	strong {
+		display: block;
+		color: #1d2327;
+		margin-bottom: 2px;
+		font-size: 13px;
+	}
+
+	p {
+		margin: 0;
+		color: #50575e;
+		font-size: 12px;
+		line-height: 1.5;
+	}
+
+	tbody tr:last-child td {
+		border-bottom: none;
+	}
+}
+
+// ── Promo postbox ─────────────────────────────────────────────────────────────
+.aie-promo-postbox {
+	border-top-color: #d63638 !important; // WP red accent for "offer"
+}
+
+.aie-promo-intro {
+	font-size: 13px;
+	color: #3c434a;
+	margin: 0 0 14px;
+
+	strong { color: #1d2327; }
+}
+
+.aie-promo-code-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 14px;
+
+	.aie-promo-code {
+		flex: 1;
+		font-size: 18px;
+		font-weight: 700;
+		letter-spacing: 4px;
+		color: #1d2327;
+		background: #f6f7f7;
+		border: 1px solid #c3c4c7;
+		padding: 8px 14px;
+		border-radius: 3px;
+		font-family: Consolas, 'Courier New', monospace;
+		text-align: center;
+	}
+
+	.button {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		white-space: nowrap;
+
+		.dashicons {
+			font-size: 16px;
+			width: 16px;
+			height: 16px;
+			margin-top: -1px;
+		}
+	}
+
+	.button.aie-copied {
+		background: #00a32a;
+		border-color: #00a32a;
+		color: #fff;
+	}
+}
+
+.aie-promo-cta {
+	display: block;
+	text-align: center;
+	font-weight: 600;
+}
+
+// ── Support list ──────────────────────────────────────────────────────────────
+.aie-support-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+
+	li {
+		display: grid;
+		grid-template-columns: 20px 1fr;
+		grid-template-rows: auto auto;
+		column-gap: 8px;
+		padding: 9px 0;
+		border-bottom: 1px solid #f0f0f1;
+
+		&:last-child { border-bottom: none; }
+
+		.dashicons {
+			grid-row: span 2;
+			font-size: 18px;
+			width: 18px;
+			height: 18px;
+			color: #2271b1;
+			align-self: center;
+		}
+
+		a {
+			font-size: 13px;
+			font-weight: 600;
+			color: #2271b1;
+			text-decoration: none;
+			line-height: 1.4;
+
+			&:hover { color: #135e96; text-decoration: underline; }
+		}
+	}
+}
+
+.aie-support-desc {
+	display: block;
+	font-size: 12px;
+	color: #8c8f94;
+	line-height: 1.4;
+}
+
+// ── Status dots ───────────────────────────────────────────────────────────────
+.aie-status-dot {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	margin-right: 6px;
+	vertical-align: middle;
+}
+
+.aie-status-green { background: #00a32a; }
+.aie-status-blue  { background: #2271b1; }
+
+// ── Responsive ────────────────────────────────────────────────────────────────
+@media (max-width: 960px) {
+	.aie-dashboard-widgets-holder {
 		flex-direction: column;
 	}
 
-	.aie-copy-button {
-		justify-content: center;
-	}
-
-	.aie-promo-code {
-		font-size: 18px;
-		letter-spacing: 2px;
+	.aie-postbox-container-left,
+	.aie-postbox-container-right {
+		flex: 1 1 100%;
 	}
 }
+
+@media (max-width: 600px) {
+	.aie-welcome-panel-column-container {
+		flex-direction: column;
+		gap: 16px;
+	}
+}
+
