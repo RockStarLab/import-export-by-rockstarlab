@@ -213,7 +213,7 @@ class Init {
 		wp_enqueue_script(
 			'wp-advanced-import-export-scripts',
 			plugins_url( 'assets/js/app.js', WP_AIE_FILE ),
-			array( 'jquery' ),
+			array( 'jquery', 'jquery-ui-sortable' ),
 			filemtime( plugin_dir_path( WP_AIE_FILE ) . 'assets/js/app.js' ),
 			array(
 				'in_footer' => true,
@@ -243,7 +243,7 @@ class Init {
 					'errorOccurred'              => __( 'An error occurred', 'wp-advanced-import-export' ),
 					'fileTooLarge'               => __( 'File size exceeds maximum allowed', 'wp-advanced-import-export' ),
 					'invalidFileType'            => __( 'Invalid file type', 'wp-advanced-import-export' ),
-					'invalidFileTypeCsvJson'     => __( 'Invalid file type. Please upload CSV or JSON files only.', 'wp-advanced-import-export' ),
+					'invalidFileTypeCsv'         => __( 'Invalid file type. Please upload CSV files only.', 'wp-advanced-import-export' ),
 					'fileUploadedSuccessfully'   => __( 'File uploaded successfully', 'wp-advanced-import-export' ),
 					'uploadFailed'               => __( 'Upload failed', 'wp-advanced-import-export' ),
 					'noFileDataAvailable'        => __( 'No file data available', 'wp-advanced-import-export' ),

@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 <div class="aie-step aie-step-2" data-step="2">
 	<div class="aie-step-header">
 		<h2><?php esc_html_e( 'Step 2: Upload File', 'wp-advanced-import-export' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Upload your data file (CSV or JSON)', 'wp-advanced-import-export' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Upload your data file (CSV)', 'wp-advanced-import-export' ); ?></p>
 	</div>
 
 	<div class="aie-step-content">
@@ -24,9 +24,9 @@ defined( 'ABSPATH' ) || exit;
 				<button type="button" class="button button-secondary" id="aie-select-file">
 					<?php esc_html_e( 'Select File', 'wp-advanced-import-export' ); ?>
 				</button>
-				<input type="file" id="aie-file-input" accept=".csv,.json" style="display:none;">
+				<input type="file" id="aie-file-input" accept=".csv" style="display:none;">
 				<p class="description">
-					<?php esc_html_e( 'Supported formats: CSV, JSON', 'wp-advanced-import-export' ); ?><br>
+					<?php esc_html_e( 'Supported formats: CSV', 'wp-advanced-import-export' ); ?><br>
 					<?php esc_html_e( 'No file size limit - large files supported via chunked upload', 'wp-advanced-import-export' ); ?>
 				</p>
 			</div>

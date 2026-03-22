@@ -408,12 +408,12 @@ const ImportModule = {
 	 */
 	handleFile( file ) {
 		// Validate file extension only (no size limit with chunked upload)
-		const allowedExtensions = [ '.csv', '.json' ];
+		const allowedExtensions = [ '.csv' ];
 		const fileExt = '.' + file.name.split( '.' ).pop().toLowerCase();
 		
 		if ( ! allowedExtensions.includes( fileExt ) ) {
 			Utils.showNotice(
-				aieData.i18n.invalidFileTypeCsvJson || 'Invalid file type. Please upload CSV or JSON files only.',
+				aieData.i18n.invalidFileTypeCsv || 'Invalid file type. Please upload CSV files only.',
 				'error'
 			);
 			return;
@@ -627,8 +627,7 @@ const ImportModule = {
 	 * Detect file format from filename
 	 */
 	detectFormat( filename ) {
-		const ext = filename.split( '.' ).pop().toLowerCase();
-		return [ 'csv', 'json' ].includes( ext ) ? ext : 'csv';
+		return 'csv';
 	},
 
 	/**
@@ -1554,6 +1553,60 @@ const ImportModule = {
 			];
 		}
 
+		// Comments
+		if ( contentType === 'comment' || contentType === 'comments' ) {
+			return [
+				{
+					label: 'Basic',
+					options: [
+						{ value: 'comment_ID', label: 'Comment ID', type: 'number' },
+						{ value: 'comment_post_ID', label: 'Post ID', type: 'number' },
+						{ value: 'comment_content', label: 'Comment Content', type: 'string' },
+						{ value: 'comment_approved', label: 'Status (1/0/spam)', type: 'string' },
+						{ value: 'comment_type', label: 'Comment Type', type: 'string' },
+					],
+				},
+				{
+					label: 'Author',
+					options: [
+						{ value: 'comment_author', label: 'Author Name', type: 'string' },
+						{ value: 'comment_author_email', label: 'Author Email', type: 'email' },
+						{ value: 'comment_author_url', label: 'Author URL', type: 'url' },
+						{ value: 'comment_author_IP', label: 'Author IP', type: 'string' },
+						{ value: 'user_id', label: 'User ID', type: 'number' },
+						{ value: 'comment_agent', label: 'User Agent', type: 'string' },
+					],
+				},
+				{
+					label: 'Related Post',
+					options: [
+						{ value: 'post_title', label: 'Post Title', type: 'string' },
+						{ value: 'post_author', label: 'Post Author ID', type: 'number' },
+					],
+				},
+				{
+					label: 'Dates',
+					options: [
+						{ value: 'comment_date', label: 'Comment Date', type: 'datetime' },
+						{ value: 'comment_date_gmt', label: 'Comment Date (GMT)', type: 'datetime' },
+					],
+				},
+				{
+					label: 'Hierarchy',
+					options: [
+						{ value: 'comment_parent', label: 'Parent Comment ID', type: 'number' },
+						{ value: 'comment_karma', label: 'Karma', type: 'number' },
+					],
+				},
+				{
+					label: 'Custom Fields (Meta)',
+					options: [
+						{ value: 'meta', label: 'Custom Field', type: 'meta', custom: true },
+					],
+				},
+			];
+		}
+
 		// WooCommerce Products
 		if ( contentType === 'product' || contentType === 'woo_product' ) {
 			return [
@@ -2333,6 +2386,11 @@ const ImportModule = {
 
 		$container.append( item );
 
+		// Refresh sortable to include the new item
+		if ( $container.data( 'ui-sortable' ) ) {
+			$container.sortable( 'refresh' );
+		}
+
 		if ( updateArray ) {
 			this.updateFunctionsCount();
 		}
@@ -2418,7 +2476,11 @@ const ImportModule = {
 		// Create new function
 		jQuery( '.aie-create-new-function' ).on( 'click', function ( e ) {
 			e.preventDefault();
-			Utils.showNotice( aieData.i18n.createFunctionsInLibrary || 'Creating custom functions will be available in the Functions Library section', 'info' );
+			if ( typeof aieData !== 'undefined' && aieData.functionsUrl ) {
+				window.open( aieData.functionsUrl, '_blank' );
+			} else {
+				window.open( '/wp-admin/admin.php?page=wp-aie-functions', '_blank' );
+			}
 		} );
 
 		jQuery( '.aie-test-pipeline' ).on( 'click', function () {
@@ -2458,6 +2520,28 @@ const ImportModule = {
 
 			self.applyFunctionsToMapping( sourceIndex, targetField, selectedFunctions );
 			closeModal();
+		} );
+
+		// Initialize sortable for drag & drop reordering
+		this.initFunctionPipelineSortable();
+	},
+
+	/**
+	 * Initialize sortable for function pipeline
+	 */
+	initFunctionPipelineSortable() {
+		const $container = jQuery( '#aie-function-items' );
+		if ( ! $container.length || ! jQuery.fn.sortable ) return;
+
+		// Destroy existing instance if present
+		if ( $container.data( 'ui-sortable' ) ) {
+			$container.sortable( 'destroy' );
+		}
+
+		$container.sortable( {
+			handle: '.aie-function-handle',
+			placeholder: 'aie-function-item-placeholder',
+			axis: 'y',
 		} );
 	},
 
@@ -2717,14 +2801,14 @@ const ImportModule = {
 							$targetField
 						);
 
-						$sourceCard.addClass( 'mapped' );
+						$sourceCard.addClass( 'used mapped' );
 						matched = true;
 					}
 				} );
 			} );
 			
 			// PASS 2: Map remaining fields with fuzzy matching
-			jQuery( '.aie-field-card:not(.mapped)' ).each( ( index, sourceCard ) => {
+			jQuery( '.aie-field-card:not(.used)' ).each( ( index, sourceCard ) => {
 				const $sourceCard = jQuery( sourceCard );
 				const sourceField = $sourceCard.data( 'source-field' );
 				const sourceIndex = $sourceCard.data( 'source-index' );
@@ -2773,7 +2857,7 @@ const ImportModule = {
 							$targetField
 						);
 
-						$sourceCard.addClass( 'mapped' );
+						$sourceCard.addClass( 'used mapped' );
 						matched = true;
 					}
 				} );
@@ -2885,7 +2969,7 @@ const ImportModule = {
 						':checked'
 					),
 					batch_size:
-						parseInt( jQuery( '[name="batch_size"]' ).val() ) || 50,
+						parseInt( jQuery( '[name="batch_size"]' ).val() ) || ( contentType === 'media' ? 1 : 50 ),
 					auto_import_media: jQuery( '#aie-auto-import-media' ).is( ':checked' ),
 					media_duplicate_mode: jQuery( 'input[name="media_duplicate_mode"]:checked' ).val() || 'skip',
 				}
@@ -3255,7 +3339,15 @@ const ImportModule = {
 		const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
 		const $mediaImportOption = jQuery( '.aie-media-import-option' );
 		const $mediaDuplicateOption = jQuery( '.aie-media-duplicate-option' );
-		
+		const $batchSize = jQuery( '[name="batch_size"]' );
+
+		// Adjust batch size default: media downloads are slow, use 1; everything else uses 50.
+		if ( contentType === 'media' ) {
+			$batchSize.val( $batchSize.data( 'media-value' ) ?? 1 );
+		} else {
+			$batchSize.val( $batchSize.data( 'default-value' ) ?? 50 );
+		}
+
 		// Content types that support media import - ONLY these types
 		const supportedTypes = [ 'post', 'page', 'custom_post_types', 'product' ];
 		

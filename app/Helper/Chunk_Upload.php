@@ -152,11 +152,11 @@ class Chunk_Upload {
 		}
 
 		// Validate file extension
-		$allowed_extensions = array( 'csv', 'json' );
+		$allowed_extensions = array( 'csv' );
 		$file_extension     = strtolower( pathinfo( $file_name, PATHINFO_EXTENSION ) );
 
 		if ( ! in_array( $file_extension, $allowed_extensions, true ) ) {
-			wp_send_json_error( __( 'Invalid file type. Only CSV and JSON files are allowed.', 'wp-advanced-import-export' ) );
+			wp_send_json_error( __( 'Invalid file type. Only CSV files are allowed.', 'wp-advanced-import-export' ) );
 		}
 
 		// Check if chunk file was uploaded

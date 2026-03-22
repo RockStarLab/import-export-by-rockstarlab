@@ -146,7 +146,7 @@ class Media_Importer extends Abstract_Importer {
 	 * @param int   $index Item index
 	 * @return int|string|WP_Error Attachment ID, 'skipped', or WP_Error
 	 */
-	protected function import_item( $item, $index ) {
+	public function import_item( $item, $index ) {
 		// Normalize field aliases
 		$item = $this->normalize_item_fields( $item );
 		

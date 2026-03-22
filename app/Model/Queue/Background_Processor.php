@@ -88,13 +88,9 @@ class Background_Processor {
 		$table = $wpdb->prefix . 'aie_jobs';
 
 		// Get oldest pending or processing job
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name uses $wpdb->prefix, no user input
 		$job = $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT * FROM {$table} 
-				WHERE status IN ('pending', 'processing') 
-				ORDER BY created_at ASC 
-				LIMIT 1"
-			),
+			"SELECT * FROM {$table} WHERE status IN ('pending', 'processing') ORDER BY created_at ASC LIMIT 1",
 			ARRAY_A
 		);
 
@@ -170,6 +166,14 @@ class Background_Processor {
 		// Parse file data
 		$format_handler = \WP_AIE\Model\Format\Format_Factory::create( $format );
 		$data           = $format_handler->parse( $file_path );
+
+		if ( is_wp_error( $data ) ) {
+			throw new \Exception( $data->get_error_message() );
+		}
+
+		if ( ! is_array( $data ) ) {
+			throw new \Exception( 'Failed to parse import file: unexpected format.' );
+		}
 
 		// Get data chunk from offset
 		$chunk_size = $this->batch_processor->get_batch_size();
