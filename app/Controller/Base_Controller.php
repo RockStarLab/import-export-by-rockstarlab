@@ -266,6 +266,82 @@ abstract class Base_Controller {
 	}
 
 	/**
+	 * Get premium-only data/content types
+	 *
+	 * Returns all content type slugs that require an active premium license.
+	 *
+	 * @return string[] List of data type slugs that require a premium license
+	 */
+	protected function get_premium_data_types() {
+		return [
+			'custom_post_types',
+			'custom_post_type',
+			'media',
+			'menu',
+			'menus',
+			'nav_menu',
+			'user',
+			'users',
+			'comment',
+			'comments',
+			'taxonomy',
+			'taxonomy_term',
+			'taxonomy_terms',
+			'term',
+			'terms',
+			'category',
+			'categories',
+			'tag',
+			'tags',
+			'woo_product',
+			'product',
+			'products',
+			'woo_order',
+			'woo_orders',
+			'woo_coupon',
+			'woo_attribute',
+			'database_table',
+		];
+	}
+
+	/**
+	 * Check if an active premium license is present
+	 *
+	 * @return bool True if premium license is active
+	 */
+	protected function is_premium_active() {
+		return function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
+	}
+
+	/**
+	 * Verify a premium license is active for the given data/content type
+	 *
+	 * Returns WP_Error when a premium content type is requested but no valid
+	 * license is active, so callers can reject the request consistently.
+	 *
+	 * @param string $data_type Content/data type slug to check
+	 * @return true|\WP_Error True if allowed, WP_Error if premium license is required
+	 */
+	protected function verify_premium_for_type( $data_type ) {
+		if (
+			! empty( $data_type ) &&
+			in_array( strtolower( trim( $data_type ) ), $this->get_premium_data_types(), true ) &&
+			! $this->is_premium_active()
+		) {
+			return new \WP_Error(
+				'premium_required',
+				sprintf(
+					/* translators: %s: content/data type name */
+					__( 'A valid premium license is required to process "%s" content type. Please activate or renew your license.', 'wp-advanced-import-export' ),
+					esc_html( $data_type )
+				)
+			);
+		}
+
+		return true;
+	}
+
+	/**
 	 * Log controller action
 	 *
 	 * @param string $action  Action name

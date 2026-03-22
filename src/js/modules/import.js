@@ -27,8 +27,20 @@ const ImportModule = {
 			return;
 		}
 
+		// Check if resuming a job from Jobs Log BEFORE showing any step.
+		const urlParams    = new URLSearchParams( window.location.search );
+		const resumeJobId  = urlParams.get( 'resume_job' );
+
 		this.bindEvents();
-		this.showStep( 1 );
+
+		if ( resumeJobId ) {
+			// Resume job – go directly to step 6 (progress) and start batch processing.
+			this.jobId = parseInt( resumeJobId );
+			this.showStep( 6 );
+			this.startBatchProcessing();
+		} else {
+			this.showStep( 1 );
+		}
 	},
 
 	/**

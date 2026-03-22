@@ -445,6 +445,19 @@ class Export_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
+		// Load job to verify the premium license before doing any processing.
+		$job_model = WP_AIE()->Model->job;
+		$job_data  = $job_model->find( $job_id );
+
+		if ( ! $job_data ) {
+			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ), null, 404 );
+		}
+
+		$license_check = $this->verify_premium_for_type( $job_data->data_type ?? '' );
+		if ( is_wp_error( $license_check ) ) {
+			$this->send_error( $license_check, null, 403 );
+		}
+
 		// Process the job using Export_Processor
 		$processor = new Export_Processor();
 		$result    = $processor->process( $job_id );
