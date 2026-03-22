@@ -91,7 +91,11 @@ class JSON_Format implements File_Format_Interface {
 	 */
 	public function generate( $data, $file_path, $options = [] ) {
 		if ( empty( $data ) ) {
-			return new \WP_Error( 'empty_data', __( 'No data to export', 'wp-advanced-import-export' ) );
+			$result = file_put_contents( $file_path, '[]' );
+			if ( false === $result ) {
+				return new \WP_Error( 'file_write_error', __( 'Cannot write JSON file', 'wp-advanced-import-export' ) );
+			}
+			return true;
 		}
 
 		$flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;

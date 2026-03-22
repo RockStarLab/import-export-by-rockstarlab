@@ -178,15 +178,31 @@ class CSV_Format implements File_Format_Interface {
 	 * @return bool|WP_Error True on success or WP_Error on failure
 	 */
 	public function generate( $data, $file_path, $options = [] ) {
-		if ( empty( $data ) ) {
-			return new \WP_Error( 'empty_data', __( 'No data to export', 'wp-advanced-import-export' ) );
-		}
-
 		$delimiter = $options['delimiter'] ?? self::DEFAULT_DELIMITER;
 		$enclosure = $options['enclosure'] ?? self::DEFAULT_ENCLOSURE;
 		$escape    = $options['escape'] ?? self::DEFAULT_ESCAPE;
 		$headers   = $options['headers'] ?? null;
 		$use_bom   = $options['use_bom'] ?? false;
+
+		if ( empty( $data ) ) {
+			$handle = fopen( $file_path, 'w' );
+			if ( ! $handle ) {
+				return new \WP_Error( 'file_create_error', __( 'Cannot create CSV file', 'wp-advanced-import-export' ) );
+			}
+
+			// Write BOM for Excel compatibility
+			if ( $use_bom ) {
+				fprintf( $handle, chr( 0xEF ) . chr( 0xBB ) . chr( 0xBF ) );
+			}
+
+			if ( ! empty( $headers ) && is_array( $headers ) ) {
+				fputcsv( $handle, $headers, $delimiter, $enclosure, $escape );
+			}
+
+			fclose( $handle );
+
+			return true;
+		}
 
 		$handle = fopen( $file_path, 'w' );
 		if ( ! $handle ) {
