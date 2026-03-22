@@ -55,8 +55,8 @@ defined( 'ABSPATH' ) || exit;
 					<tr class="aie-custom-delimiter-row" style="display:none;">
 						<th><?php esc_html_e( 'Custom Delimiter', 'wp-advanced-import-export' ); ?></th>
 						<td>
-							<input type="text" name="csv_custom_delimiter" maxlength="1" class="regular-text" placeholder="<?php esc_attr_e( 'Enter a single character', 'wp-advanced-import-export' ); ?>">
-							<p class="description"><?php esc_html_e( 'Enter a single character to use as delimiter', 'wp-advanced-import-export' ); ?></p>
+						<input type="text" name="csv_custom_delimiter" class="regular-text" placeholder="<?php esc_attr_e( 'Enter a delimiter (any string)', 'wp-advanced-import-export' ); ?>">
+						<p class="description"><?php esc_html_e( 'No length limit; you can use multi-character delimiters like *****', 'wp-advanced-import-export' ); ?></p>
 						</td>
 					</tr>
 					<tr>

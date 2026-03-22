@@ -569,6 +569,8 @@ const ImportModule = {
 
 		jQuery( '.aie-file-info' ).hide();
 		jQuery( '.aie-upload-area' ).show();
+		jQuery( '.aie-upload-placeholder' ).show();
+		jQuery( '.aie-upload-progress' ).hide();
 		jQuery( '.aie-format-options' ).hide();
 		jQuery( '#aie-file-input' ).val( '' );
 		jQuery( '.aie-step-2 .aie-next-step' ).prop( 'disabled', true );

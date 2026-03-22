@@ -78,9 +78,7 @@ defined( 'ABSPATH' ) || exit;
 
 				<label class="aie-custom-delimiter-wrapper" style="display:none;">
 					<?php esc_html_e( 'Custom Delimiter', 'wp-advanced-import-export' ); ?>
-					<input type="text" name="csv_custom_delimiter" id="csv_custom_delimiter" class="regular-text" maxlength="10" placeholder="<?php esc_attr_e( 'Enter custom delimiter', 'wp-advanced-import-export' ); ?>">
-				</label>
-
+						<input type="text" name="csv_custom_delimiter" id="csv_custom_delimiter" class="regular-text" placeholder="<?php esc_attr_e( 'Enter custom delimiter (any string)', 'wp-advanced-import-export' ); ?>">
 				<label>
 					<input type="checkbox" name="csv_has_header" checked>
 					<?php esc_html_e( 'First row contains column names', 'wp-advanced-import-export' ); ?>
