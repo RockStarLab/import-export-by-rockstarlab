@@ -203,7 +203,15 @@ const JobsLogModule = {
 
 		// Retry - not available for media_sync jobs (files may have been moved)
 		if ( job.type !== 'media_sync' ) {
-			actions.push( `<button class="button button-small job-action-retry" title="${ window.aieData.i18n.retry || 'Retry (Create new job with same parameters)' }"><span class="dashicons dashicons-update"></span></button>` );
+			const isPremiumType = window.aieData.premiumDataTypes &&
+				window.aieData.premiumDataTypes.includes( job.data_type );
+			const licenseRequired = isPremiumType && ! window.aieData.isPremium;
+
+			if ( licenseRequired ) {
+				actions.push( `<button class="button button-small" disabled title="${ window.aieData.i18n.retryRequiresPremium || 'Premium license required to retry this job' }"><span class="dashicons dashicons-lock"></span></button>` );
+			} else {
+				actions.push( `<button class="button button-small job-action-retry" title="${ window.aieData.i18n.retry || 'Retry (Create new job with same parameters)' }"><span class="dashicons dashicons-update"></span></button>` );
+			}
 		}
 
 		// Download (for exports)
@@ -533,7 +541,7 @@ const JobsLogModule = {
 				page = 'wp-aie-export';
 				break;
 			case 'import':
-				page = 'wp-advanced-import-export';
+				page = 'wp-aie-import';
 				break;
 			case 'media_sync':
 				page = 'wp-aie-media-sync';

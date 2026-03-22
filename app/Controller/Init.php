@@ -232,6 +232,21 @@ class Init {
 				'optionsUrl'     => admin_url( 'admin.php?page=wp-aie-plugin-options' ),
 				'currentPage'    => isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '',
 				'hasOpenAIApiKey' => \WP_AIE\Helper\AI_Function_Generator::has_api_key(),
+				'isPremium'      => function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code(),
+				'premiumDataTypes' => [
+					'custom_post_types', 'custom_post_type',
+					'media',
+					'menu', 'menus', 'nav_menu',
+					'user', 'users',
+					'comment', 'comments',
+					'taxonomy', 'taxonomy_term', 'taxonomy_terms', 'term', 'terms',
+					'category', 'categories', 'tag', 'tags',
+					'woo_product', 'product', 'products',
+					'woo_order', 'woo_orders',
+					'woo_coupon',
+					'woo_attribute',
+					'database_table',
+				],
 				'i18n'           => array(
 					// General
 					'skip'                       => __( 'Skip', 'wp-advanced-import-export' ),
@@ -910,6 +925,7 @@ class Init {
 				// Jobs Log
 				'noJobsFound'                => __( 'No jobs found.', 'wp-advanced-import-export' ),
 				'showingJobs'                => __( 'Showing %1$s-%2$s of %3$s jobs', 'wp-advanced-import-export' ),
+				'retryRequiresPremium'       => __( 'A valid premium license is required to retry this job. Please activate or renew your license.', 'wp-advanced-import-export' ),
 			),
 		)
 	);		// Localize script for Content Sync page

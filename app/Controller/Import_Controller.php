@@ -348,6 +348,12 @@ class Import_Controller extends Base_Controller {
 		$offset      = $parameters['offset'] ?? 0;
 		$batch_size  = isset( $options['batch_size'] ) ? (int) $options['batch_size'] : 50;
 
+		// Verify premium license for premium content types.
+		$license_check = $this->verify_premium_for_type( $import_type );
+		if ( is_wp_error( $license_check ) ) {
+			$this->send_error( $license_check, null, 403 );
+		}
+
 		// On first batch, parse file and prepare data
 		if ( ! isset( $parameters['prepared_data'] ) ) {
 			// Set started_at
