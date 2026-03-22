@@ -116,13 +116,31 @@ class Post_Importer extends Abstract_Importer {
 	}
 
 	/**
+	 * Set options
+	 *
+	 * Overrides parent to handle custom_post_type → post_type mapping
+	 * when import_type is 'custom_post_types'.
+	 *
+	 * @param array $options Options to set.
+	 */
+	public function set_options( $options ) {
+		// When importing custom post types, the frontend sends 'custom_post_type'
+		// with the selected CPT slug. Map it to 'post_type' for the importer.
+		if ( ! empty( $options['custom_post_type'] ) && empty( $options['post_type'] ) ) {
+			$options['post_type'] = $options['custom_post_type'];
+		}
+
+		parent::set_options( $options );
+	}
+
+	/**
 	 * Import single post
 	 *
 	 * @param array $item  Post data
 	 * @param int   $index Item index
 	 * @return int|string|WP_Error Post ID, 'skipped', 'updated', or WP_Error
 	 */
-	protected function import_item( $item, $index ) {
+	public function import_item( $item, $index ) {
 		// Sanitize data
 		$item = $this->sanitize_item( $item );
 

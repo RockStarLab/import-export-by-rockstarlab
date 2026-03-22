@@ -96,7 +96,7 @@ defined( 'ABSPATH' ) || exit;
 					<label><?php esc_html_e( 'Batch Size', 'wp-advanced-import-export' ); ?></label>
 				</th>
 				<td>
-					<input type="number" name="batch_size" value="50" min="10" max="500" class="small-text">
+					<input type="number" name="batch_size" value="50" min="1" max="500" class="small-text" data-default-value="50" data-media-value="1">
 					<p class="description"><?php esc_html_e( 'Number of items to process per batch', 'wp-advanced-import-export' ); ?></p>
 				</td>
 			</tr>

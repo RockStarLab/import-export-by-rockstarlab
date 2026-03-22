@@ -164,6 +164,10 @@ abstract class Abstract_Importer implements Importer_Interface {
 	/**
 	 * Prepare raw data for import
 	 *
+	 * Supports two mapping formats:
+	 *  - Legacy: [ 'source_field' => 'target_field', ... ]
+	 *  - UI format: [ ['source_field' => 'col', 'target_field' => 'wp_field', 'function_id' => ''], ... ]
+	 *
 	 * @param array $raw_data Raw data from file
 	 * @param array $mapping  Optional. Field mapping
 	 * @return array Prepared data
@@ -173,12 +177,38 @@ abstract class Abstract_Importer implements Importer_Interface {
 			return $raw_data;
 		}
 
+		// Detect UI format: array of objects with 'source_field' / 'target_field' keys.
+		$is_ui_format = isset( $mapping[0] ) && is_array( $mapping[0] ) && array_key_exists( 'source_field', $mapping[0] );
+
+		// Normalise to a flat [ source => target ] map.
+		$flat_map = [];
+		if ( $is_ui_format ) {
+			foreach ( $mapping as $entry ) {
+				$src = $entry['source_field'] ?? '';
+				$tgt = $entry['target_field'] ?? '';
+				if ( $src !== '' && $tgt !== '' ) {
+					$flat_map[ $src ] = $tgt;
+				}
+			}
+		} else {
+			// Legacy format already is flat.
+			foreach ( $mapping as $src => $tgt ) {
+				if ( is_string( $src ) && is_string( $tgt ) && $src !== '' && $tgt !== '' ) {
+					$flat_map[ $src ] = $tgt;
+				}
+			}
+		}
+
+		if ( empty( $flat_map ) ) {
+			return $raw_data;
+		}
+
 		$prepared = [];
 
 		foreach ( $raw_data as $item ) {
 			$prepared_item = [];
 
-			foreach ( $mapping as $source_field => $target_field ) {
+			foreach ( $flat_map as $source_field => $target_field ) {
 				if ( isset( $item[ $source_field ] ) ) {
 					$prepared_item[ $target_field ] = $item[ $source_field ];
 				}
@@ -292,6 +322,13 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 * @return array Sanitized data
 	 */
 	protected function sanitize_item( $item ) {
+		// If $item is already an array (normal case), return as-is.
+		// sanitize_text_field() returns '' for arrays, which would destroy all field data.
+		// Individual field sanitization is handled by wp_insert_post() and the concrete importers.
+		if ( is_array( $item ) ) {
+			return $item;
+		}
+
 		return Data_Transformer::sanitize_data( $item );
 	}
 

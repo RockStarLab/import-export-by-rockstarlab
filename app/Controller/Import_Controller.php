@@ -75,6 +75,11 @@ class Import_Controller extends Base_Controller {
 			$this->send_error( __( 'Unsupported file format', 'wp-advanced-import-export' ), null, 400 );
 		}
 
+		// JSON is not supported for import
+		if ( 'json' === $format ) {
+			$this->send_error( __( 'JSON format is not supported for import. Please use CSV.', 'wp-advanced-import-export' ), null, 400 );
+		}
+
 		// Move file to upload directory
 		$upload_result = Fs::upload_file( $file );
 		if ( is_wp_error( $upload_result ) ) {

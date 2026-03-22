@@ -27,7 +27,7 @@ $plugin_version = defined( 'WP_AIE_VERSION' ) ? WP_AIE_VERSION : '1.0';
 			<div class="aie-welcome-panel-column-container">
 				<div class="aie-welcome-panel-column">
 					<h3><?php _e( 'Get Started', 'wp-advanced-import-export' ); ?></h3>
-					<a class="button button-primary button-hero" href="<?php echo esc_url( admin_url( 'admin.php?page=wp-aie-import' ) ); ?>">
+					<a class="button button-hero aie-btn-export" href="<?php echo esc_url( admin_url( 'admin.php?page=wp-aie-import' ) ); ?>">
 						<?php _e( 'Import Content', 'wp-advanced-import-export' ); ?>
 					</a>
 					<a class="button button-hero aie-btn-export" href="<?php echo esc_url( admin_url( 'admin.php?page=wp-aie-export' ) ); ?>">
