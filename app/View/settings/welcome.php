@@ -15,8 +15,8 @@ $plugin_version = defined( 'WP_AIE_VERSION' ) ? WP_AIE_VERSION : '1.0';
 		<span class="aie-version-badge"><?php echo esc_html( $plugin_version ); ?></span>
 	</h1>
 
-	<!-- Welcome Panel (matches WP Dashboard welcome-panel style) -->
-	<div class="aie-welcome-panel aie-welcome-panel-dark welcome-panel">
+	<!-- Welcome Panel -->
+	<div class="aie-welcome-panel welcome-panel">
 		<div class="aie-welcome-panel-content">
 			<div class="aie-welcome-panel-header">
 				<h2><?php _e( 'Welcome! Let\'s get started.', 'wp-advanced-import-export' ); ?></h2>
@@ -27,10 +27,10 @@ $plugin_version = defined( 'WP_AIE_VERSION' ) ? WP_AIE_VERSION : '1.0';
 			<div class="aie-welcome-panel-column-container">
 				<div class="aie-welcome-panel-column">
 					<h3><?php _e( 'Get Started', 'wp-advanced-import-export' ); ?></h3>
-					<a class="button button-hero aie-btn-export" href="<?php echo esc_url( admin_url( 'admin.php?page=wp-aie-import' ) ); ?>">
+					<a class="button button-hero button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=wp-aie-import' ) ); ?>">
 						<?php _e( 'Import Content', 'wp-advanced-import-export' ); ?>
 					</a>
-					<a class="button button-hero aie-btn-export" href="<?php echo esc_url( admin_url( 'admin.php?page=wp-aie-export' ) ); ?>">
+					<a class="button button-hero button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=wp-aie-export' ) ); ?>">
 						<?php _e( 'Export Content', 'wp-advanced-import-export' ); ?>
 					</a>
 				</div>
@@ -103,15 +103,14 @@ $plugin_version = defined( 'WP_AIE_VERSION' ) ? WP_AIE_VERSION : '1.0';
 			<!-- Left column: Special Offer -->
 			<div class="aie-postbox-container aie-postbox-container-left">
 
-				<!-- Promo postbox -->
-				<div class="postbox aie-promo-postbox">
-					<div class="postbox-header">
-						<h2 class="hndle">
+				<div class="aie-card aie-card--promo">
+					<div class="aie-card__header">
+						<h2 class="aie-card__title">
 							<span class="dashicons dashicons-awards"></span>
 							<?php _e( 'Special Offer', 'wp-advanced-import-export' ); ?>
 						</h2>
 					</div>
-					<div class="inside">
+					<div class="aie-card__body">
 						<p class="aie-promo-intro">
 							<?php _e( 'New users get <strong>4 weeks Premium for free</strong>. Use the code below at checkout:', 'wp-advanced-import-export' ); ?>
 						</p>
@@ -126,54 +125,53 @@ $plugin_version = defined( 'WP_AIE_VERSION' ) ? WP_AIE_VERSION : '1.0';
 							<?php _e( 'Activate Premium →', 'wp-advanced-import-export' ); ?>
 						</a>
 					</div>
-				</div><!-- .postbox -->
+				</div>
 
 			</div><!-- .aie-postbox-container-left -->
 
 			<!-- Right column: Help & Support -->
 			<div class="aie-postbox-container aie-postbox-container-right">
 
-				<!-- Support postbox -->
-				<div class="postbox">
-					<div class="postbox-header">
-						<h2 class="hndle">
+				<div class="aie-card">
+					<div class="aie-card__header">
+						<h2 class="aie-card__title">
 							<span class="dashicons dashicons-editor-help"></span>
 							<?php _e( 'Help &amp; Support', 'wp-advanced-import-export' ); ?>
 						</h2>
 					</div>
-					<div class="inside">
+					<div class="aie-card__body">
 						<ul class="aie-support-list">
 							<li>
-								<span class="dashicons dashicons-book-alt"></span>
-								<a href="https://docs.example.com" target="_blank">
-									<?php _e( 'Documentation', 'wp-advanced-import-export' ); ?>
-								</a>
-								<span class="aie-support-desc"><?php _e( 'Guides and tutorials', 'wp-advanced-import-export' ); ?></span>
+								<span class="aie-support-icon"><span class="dashicons dashicons-book-alt"></span></span>
+								<span class="aie-support-text">
+									<a href="https://docs.example.com" target="_blank"><?php _e( 'Documentation', 'wp-advanced-import-export' ); ?></a>
+									<span class="aie-support-desc"><?php _e( 'Guides and tutorials', 'wp-advanced-import-export' ); ?></span>
+								</span>
 							</li>
 							<li>
-								<span class="dashicons dashicons-wordpress"></span>
-								<a href="https://wordpress.org/support/plugin/wp-advanced-import-export/" target="_blank">
-									<?php _e( 'Support Forum', 'wp-advanced-import-export' ); ?>
-								</a>
-								<span class="aie-support-desc"><?php _e( 'Community help on WP.org', 'wp-advanced-import-export' ); ?></span>
+								<span class="aie-support-icon"><span class="dashicons dashicons-wordpress"></span></span>
+								<span class="aie-support-text">
+									<a href="https://wordpress.org/support/plugin/wp-advanced-import-export/" target="_blank"><?php _e( 'Support Forum', 'wp-advanced-import-export' ); ?></a>
+									<span class="aie-support-desc"><?php _e( 'Community help on WP.org', 'wp-advanced-import-export' ); ?></span>
+								</span>
 							</li>
 							<li>
-								<span class="dashicons dashicons-email-alt"></span>
-								<a href="<?php echo esc_url( admin_url( 'admin.php?page=wp-advanced-import-export-contact' ) ); ?>">
-									<?php _e( 'Email Support', 'wp-advanced-import-export' ); ?>
-								</a>
-								<span class="aie-support-desc"><?php _e( 'Direct help from the team', 'wp-advanced-import-export' ); ?></span>
+								<span class="aie-support-icon"><span class="dashicons dashicons-email-alt"></span></span>
+								<span class="aie-support-text">
+									<a href="<?php echo esc_url( admin_url( 'admin.php?page=wp-advanced-import-export-contact' ) ); ?>"><?php _e( 'Email Support', 'wp-advanced-import-export' ); ?></a>
+									<span class="aie-support-desc"><?php _e( 'Direct help from the team', 'wp-advanced-import-export' ); ?></span>
+								</span>
 							</li>
 							<li>
-								<span class="dashicons dashicons-star-half"></span>
-								<a href="https://wordpress.org/support/plugin/wp-advanced-import-export/reviews/#new-post" target="_blank">
-									<?php _e( 'Leave a Review', 'wp-advanced-import-export' ); ?>
-								</a>
-								<span class="aie-support-desc"><?php _e( 'Rate us on WordPress.org', 'wp-advanced-import-export' ); ?></span>
+								<span class="aie-support-icon"><span class="dashicons dashicons-star-half"></span></span>
+								<span class="aie-support-text">
+									<a href="https://wordpress.org/support/plugin/wp-advanced-import-export/reviews/#new-post" target="_blank"><?php _e( 'Leave a Review', 'wp-advanced-import-export' ); ?></a>
+									<span class="aie-support-desc"><?php _e( 'Rate us on WordPress.org', 'wp-advanced-import-export' ); ?></span>
+								</span>
 							</li>
 						</ul>
 					</div>
-				</div><!-- .postbox -->
+				</div>
 
 			</div><!-- .aie-postbox-container-right -->
 
