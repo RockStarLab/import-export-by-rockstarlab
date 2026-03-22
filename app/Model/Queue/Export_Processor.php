@@ -346,10 +346,26 @@ class Export_Processor {
 		// Map format_options
 		$formatter_options = [];
 		if ( 'csv' === $format ) {
+			$include_header = ! empty( $format_options['csv_include_header'] );
 			$formatter_options = [
 				'delimiter' => $format_options['csv_delimiter'] ?? ',',
-				'headers'   => ! empty( $format_options['csv_include_header'] ) ? null : false,
+				'headers'   => $include_header ? null : false,
 			];
+
+			// If there is no data, explicit headers are needed to avoid empty CSV file when header row is requested.
+			if ( $include_header && empty( $data ) ) {
+				$fields = $parameters['fields'] ?? [];
+				if ( empty( $fields ) ) {
+					$exporter = Exporter_Factory::get_exporter( $export_type, $job_id );
+					if ( ! is_wp_error( $exporter ) && method_exists( $exporter, 'get_default_fields' ) ) {
+						$fields = $exporter->get_default_fields();
+					}
+				}
+
+				if ( ! empty( $fields ) && is_array( $fields ) ) {
+					$formatter_options['headers'] = $fields;
+				}
+			}
 		} elseif ( 'json' === $format ) {
 			$formatter_options = [
 				'pretty_print' => ! empty( $format_options['json_pretty_print'] ),

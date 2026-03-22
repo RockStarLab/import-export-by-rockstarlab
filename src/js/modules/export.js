@@ -1041,8 +1041,12 @@ const ExportModule = {
 	 */
 	onExportFailed( result ) {
 		clearInterval( this.progressInterval );
+		const errorMessage =
+			result.error ||
+			( result.result && result.result.error ) ||
+			window.aieData.i18n.unknownError;
 		Utils.showNotice(
-			window.aieData.i18n.exportFailed + ': ' + ( result.error || window.aieData.i18n.unknownError ),
+			window.aieData.i18n.exportFailed + ': ' + errorMessage,
 			'error'
 		);
 	},

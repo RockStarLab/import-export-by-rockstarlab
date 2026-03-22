@@ -148,13 +148,32 @@ class XML_Format implements File_Format_Interface {
 	 * @return bool|WP_Error True on success or WP_Error on failure
 	 */
 	public function generate( $data, $file_path, $options = [] ) {
-		if ( empty( $data ) ) {
-			return new \WP_Error( 'empty_data', __( 'No data to export', 'wp-advanced-import-export' ) );
-		}
-
 		$root_tag = $options['root_tag'] ?? self::DEFAULT_ROOT;
 		$item_tag = $options['item_tag'] ?? self::DEFAULT_ITEM;
 		$pretty   = $options['pretty_print'] ?? true;
+
+		if ( empty( $data ) ) {
+			$xml = new \XMLWriter();
+			$xml->openMemory();
+			$xml->startDocument( '1.0', 'UTF-8' );
+
+			if ( $pretty ) {
+				$xml->setIndent( true );
+				$xml->setIndentString( '  ' );
+			}
+
+			$xml->startElement( $root_tag );
+			$xml->endElement();
+			$xml->endDocument();
+
+			$result = file_put_contents( $file_path, $xml->outputMemory() );
+
+			if ( false === $result ) {
+				return new \WP_Error( 'file_write_error', __( 'Cannot write XML file', 'wp-advanced-import-export' ) );
+			}
+
+			return true;
+		}
 
 		$xml = new \XMLWriter();
 		$xml->openMemory();
