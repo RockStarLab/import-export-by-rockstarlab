@@ -529,6 +529,8 @@ const ImportModule = {
 
 				// Upload complete
 				this.fileData = result;
+				// Store delimiter used so it can be passed to the import job
+				this.fileData.delimiter = csvOptions.delimiter || ',';
 				
 				// Hide upload area completely, show file info
 				jQuery( '.aie-upload-area' ).hide();
@@ -626,10 +628,11 @@ const ImportModule = {
 			} );
 
 			if ( response.success ) {
-				// Update stored file data with new preview
+				// Update stored file data with new preview AND delimiter
 				this.fileData.preview = response.data.preview;
 				this.fileData.columns = response.data.columns;
 				this.fileData.total_rows = response.data.total_rows;
+				this.fileData.delimiter = csvOptions.delimiter;
 			}
 		} catch ( error ) {
 		}
@@ -3066,6 +3069,7 @@ const ImportModule = {
 				file_path: this.fileData.file_path,
 				import_type: contentType,
 				format: this.fileData.format,
+				delimiter: this.fileData.delimiter || ',',
 				mapping: this.getFieldMapping(),
 				options: {
 					duplicate_handling: jQuery(

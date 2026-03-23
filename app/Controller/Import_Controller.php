@@ -141,6 +141,7 @@ class Import_Controller extends Base_Controller {
 		$import_type = $this->get_request_param( 'import_type' );
 		$mapping     = $this->get_request_array( 'mapping' );
 		$format      = $this->get_request_param( 'format', 'csv' );
+		$delimiter   = $this->get_request_param( 'delimiter', ',' );
 
 		// Parse file
 		$parser = Format_Factory::create( $format );
@@ -148,7 +149,7 @@ class Import_Controller extends Base_Controller {
 			$this->send_error( $parser, null, 500 );
 		}
 
-		$data = $parser->parse( $file_path );
+		$data = $parser->parse( $file_path, [ 'delimiter' => $delimiter ] );
 		if ( is_wp_error( $data ) ) {
 			$this->send_error( $data, null, 500 );
 		}
@@ -196,6 +197,7 @@ class Import_Controller extends Base_Controller {
 		$mapping     = $this->get_request_array( 'mapping' );
 		$options     = $this->get_request_array( 'options' );
 		$format      = $this->get_request_param( 'format', 'csv' );
+		$delimiter   = $this->get_request_param( 'delimiter', ',' );
 
 		// Create job
 		$job_model = WP_AIE()->Model->job;
@@ -208,6 +210,7 @@ class Import_Controller extends Base_Controller {
 				[
 					'import_type' => $import_type,
 					'format'      => $format,
+					'delimiter'   => $delimiter,
 					'mapping'     => $mapping,
 					'options'     => $options,
 					'offset'      => 0,
@@ -343,6 +346,7 @@ class Import_Controller extends Base_Controller {
 		$parameters  = json_decode( $job_data->parameters, true );
 		$import_type = $parameters['import_type'];
 		$format      = $parameters['format'];
+		$delimiter   = $parameters['delimiter'] ?? ',';
 		$mapping     = $parameters['mapping'];
 		$options     = $parameters['options'] ?? [];
 		$offset      = $parameters['offset'] ?? 0;
@@ -367,7 +371,7 @@ class Import_Controller extends Base_Controller {
 
 			// Parse file
 			$parser = Format_Factory::create( $format );
-			$data   = $parser->parse( $job_data->file_path );
+			$data   = $parser->parse( $job_data->file_path, [ 'delimiter' => $delimiter ] );
 
 			if ( is_wp_error( $data ) ) {
 				$job_model->update(
