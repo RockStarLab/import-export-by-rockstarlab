@@ -1831,6 +1831,105 @@ const ImportModule = {
 			];
 		}
 
+	// WooCommerce Attributes
+		if ( contentType === 'woo_attribute' ) {
+			return [
+				{
+					label: 'Basic',
+					options: [
+						{ value: 'attribute_id', label: 'Attribute ID', type: 'number' },
+						{ value: 'attribute_name', label: 'Attribute Name / Slug (e.g. color)', type: 'string' },
+						{ value: 'attribute_label', label: 'Attribute Label (e.g. Color)', type: 'string' },
+						{ value: 'attribute_type', label: 'Type (select, text)', type: 'string' },
+					],
+				},
+				{
+					label: 'Settings',
+					options: [
+						{ value: 'attribute_orderby', label: 'Order By (menu_order, name, name_num, id)', type: 'string' },
+						{ value: 'attribute_public', label: 'Enable Archives (1/0)', type: 'boolean' },
+					],
+				},
+				{
+					label: 'Terms',
+					options: [
+						{ value: 'attribute_terms', label: 'Attribute Terms (JSON array or comma-separated names)', type: 'string' },
+						{ value: 'term_count', label: 'Term Count', type: 'number' },
+					],
+				},
+			];
+		}
+
+	// WooCommerce Coupons
+		if ( contentType === 'woo_coupon' ) {
+			return [
+				{
+					label: 'Basic',
+					options: [
+						{ value: 'ID', label: 'Coupon ID', type: 'number' },
+						{ value: 'post_title', label: 'Coupon Code', type: 'string' },
+						{ value: 'post_excerpt', label: 'Description', type: 'string' },
+						{ value: 'post_status', label: 'Status (publish, draft, pending)', type: 'string' },
+					],
+				},
+				{
+					label: 'Discount',
+					options: [
+						{ value: 'discount_type', label: 'Discount Type (percent, fixed_cart, fixed_product)', type: 'string' },
+						{ value: 'coupon_amount', label: 'Amount', type: 'number' },
+						{ value: 'free_shipping', label: 'Free Shipping (1/0)', type: 'boolean' },
+					],
+				},
+				{
+					label: 'Usage Restrictions',
+					options: [
+						{ value: 'minimum_amount', label: 'Minimum Spend', type: 'number' },
+						{ value: 'maximum_amount', label: 'Maximum Spend', type: 'number' },
+						{ value: 'individual_use', label: 'Individual Use Only (1/0)', type: 'boolean' },
+						{ value: 'exclude_sale_items', label: 'Exclude Sale Items (1/0)', type: 'boolean' },
+					],
+				},
+				{
+					label: 'Product Restrictions',
+					options: [
+						{ value: 'product_ids', label: 'Allowed Products (JSON or comma-separated IDs)', type: 'string' },
+						{ value: 'excluded_product_ids', label: 'Excluded Products (JSON or comma-separated IDs)', type: 'string' },
+						{ value: 'product_categories', label: 'Allowed Categories (JSON or comma-separated IDs)', type: 'string' },
+						{ value: 'excluded_product_categories', label: 'Excluded Categories (JSON or comma-separated IDs)', type: 'string' },
+					],
+				},
+				{
+					label: 'Email Restrictions',
+					options: [
+						{ value: 'allowed_emails', label: 'Allowed Emails (JSON or comma-separated)', type: 'string' },
+					],
+				},
+				{
+					label: 'Usage Limits',
+					options: [
+						{ value: 'usage_limit', label: 'Usage Limit (total)', type: 'number' },
+						{ value: 'usage_limit_per_user', label: 'Usage Limit Per User', type: 'number' },
+						{ value: 'limit_usage_to_x_items', label: 'Limit Usage to X Items', type: 'number' },
+						{ value: 'usage_count', label: 'Usage Count', type: 'number' },
+					],
+				},
+				{
+					label: 'Dates',
+					options: [
+						{ value: 'date_expires', label: 'Expiry Date (YYYY-MM-DD)', type: 'date' },
+						{ value: 'post_date', label: 'Created Date', type: 'date' },
+						{ value: 'post_modified', label: 'Modified Date', type: 'date' },
+					],
+				},
+				{
+					label: 'Custom Fields (Meta)',
+					options: [
+						{ value: 'meta', label: 'Custom Field', type: 'meta', custom: true },
+					],
+				},
+			];
+		}
+
 	// Default - return post fields with taxonomies and custom fields
 	return translateGroups([
 		...baseFields,
