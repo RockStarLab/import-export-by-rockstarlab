@@ -112,11 +112,11 @@ $plugin_version = defined( 'WP_AIE_VERSION' ) ? WP_AIE_VERSION : '1.0';
 					</div>
 					<div class="aie-card__body">
 						<p class="aie-promo-intro">
-							<?php _e( 'New users get <strong>4 weeks Premium for free</strong>. Use the code below at checkout:', 'wp-advanced-import-export' ); ?>
+							<?php _e( 'All new users get <strong>4 weeks Premium Features for free</strong>. Use the code below at checkout:', 'wp-advanced-import-export' ); ?>
 						</p>
 						<div class="aie-promo-code-row">
 							<code class="aie-promo-code" id="aie-promo-code">NEW2026</code>
-							<button type="button" class="button" onclick="aieWelcome.copyPromoCode()">
+							<button type="button" class="button aie-copy-btn" onclick="aieWelcome.copyPromoCode()">
 								<span class="dashicons dashicons-clipboard"></span>
 								<?php _e( 'Copy', 'wp-advanced-import-export' ); ?>
 							</button>
@@ -128,6 +128,42 @@ $plugin_version = defined( 'WP_AIE_VERSION' ) ? WP_AIE_VERSION : '1.0';
 				</div>
 
 			</div><!-- .aie-postbox-container-left -->
+
+			<!-- Middle column: Active Development Notice -->
+			<div class="aie-postbox-container aie-postbox-container-middle">
+
+				<div class="aie-card aie-card--notice">
+					<div class="aie-card__header">
+						<h2 class="aie-card__title">
+							<span class="dashicons dashicons-megaphone"></span>
+							<?php _e( 'Active Development', 'wp-advanced-import-export' ); ?>
+						</h2>
+					</div>
+					<div class="aie-card__body">
+						<p class="aie-notice-badge">
+							<span class="dashicons dashicons-hammer"></span>
+							<?php _e( 'New &amp; Growing', 'wp-advanced-import-export' ); ?>
+						</p>
+						<p class="aie-notice-text">
+							<?php _e( 'This plugin is brand new and actively developed&nbsp;&mdash; new features and improvements are released regularly.', 'wp-advanced-import-export' ); ?>
+						</p>
+						<p class="aie-notice-text">
+							<?php _e( 'If you run into any issues, please reach out via the Support Forum or Email Support&nbsp;&mdash; we&rsquo;ll do our best to help you as quickly as possible.', 'wp-advanced-import-export' ); ?>
+						</p>
+						<div class="aie-notice-links">
+							<a href="https://wordpress.org/support/plugin/wp-advanced-import-export/" target="_blank" class="aie-notice-link">
+								<span class="dashicons dashicons-wordpress"></span>
+								<?php _e( 'Support Forum', 'wp-advanced-import-export' ); ?>
+							</a>
+							<a href="<?php echo esc_url( admin_url( 'admin.php?page=wp-advanced-import-export-contact' ) ); ?>" class="aie-notice-link">
+								<span class="dashicons dashicons-email-alt"></span>
+								<?php _e( 'Email Support', 'wp-advanced-import-export' ); ?>
+							</a>
+						</div>
+					</div>
+				</div>
+
+			</div><!-- .aie-postbox-container-middle -->
 
 			<!-- Right column: Help & Support -->
 			<div class="aie-postbox-container aie-postbox-container-right">
@@ -185,7 +221,7 @@ var aieWelcome = {
 	copyPromoCode: function() {
 		var codeEl = document.getElementById( 'aie-promo-code' );
 		var promoCode = codeEl ? codeEl.textContent.trim() : '';
-		var btn = document.querySelector( '.aie-promo-code-row .button' );
+		var btn = document.querySelector( '.aie-promo-code-row .aie-copy-btn' );
 		var copiedLabel = '<span class="dashicons dashicons-yes"></span> <?php echo esc_js( __( 'Copied!', 'wp-advanced-import-export' ) ); ?>';
 
 		function onSuccess() {
