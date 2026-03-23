@@ -103,7 +103,15 @@ $encoding   = $options['encoding'] ?? 'UTF-8';
 			}
 
 			if ( $has_header && ! empty( $headers ) ) {
-				$data[] = array_combine( $headers, $row );
+				// Skip rows where column count doesn't match headers (e.g. wrong delimiter)
+				if ( count( $row ) !== count( $headers ) ) {
+					// Pad or truncate row to match header count
+					$row = array_slice( array_pad( $row, count( $headers ), '' ), 0, count( $headers ) );
+				}
+				$combined = array_combine( $headers, $row );
+				if ( false !== $combined ) {
+					$data[] = $combined;
+				}
 			} else {
 				$data[] = $row;
 			}
@@ -188,7 +196,14 @@ while ( true ) {
 			}
 
 			if ( $has_header && ! empty( $headers ) ) {
-				$data[] = array_combine( $headers, $row );
+				// Pad or truncate row to match header count (wrong delimiter safety)
+				if ( count( $row ) !== count( $headers ) ) {
+					$row = array_slice( array_pad( $row, count( $headers ), '' ), 0, count( $headers ) );
+				}
+				$combined = array_combine( $headers, $row );
+				if ( false !== $combined ) {
+					$data[] = $combined;
+				}
 			} else {
 				$data[] = $row;
 			}
