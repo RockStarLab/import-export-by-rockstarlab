@@ -279,6 +279,9 @@ class AI_URL_Importer_Controller extends Base_Controller {
 
 		$result = array();
 		foreach ( $post_types as $post_type ) {
+			if ( 'attachment' === $post_type->name ) {
+				continue;
+			}
 			$result[] = array(
 				'value' => $post_type->name,
 				'label' => $post_type->label,
