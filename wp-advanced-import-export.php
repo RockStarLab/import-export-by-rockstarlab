@@ -140,6 +140,13 @@ register_activation_hook(
 
 		// Record the install date for the review-notice timer (fires only once)
 		\WP_AIE\Helper\Review_Notice::set_install_date();
+
+		// Automatically activate the free plan — skip the Freemius opt-in screen.
+		// skip_connection() stores the anonymous state in persistent storage, so on
+		// the next admin load is_activation_mode() returns false and no redirect occurs.
+		if ( function_exists( 'waie_fs' ) && ! waie_fs()->is_registered() && ! waie_fs()->is_anonymous() ) {
+			waie_fs()->skip_connection();
+		}
 	}
 );
 
