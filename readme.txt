@@ -122,6 +122,10 @@ Transform your data during import/export with custom PHP functions:
 
 == Frequently Asked Questions ==
 
+= Where is plugin documentation? =
+
+Fresh and actual documentation located here: https://wpimportexport.com/docs/
+
 = Can I import large files without timeout issues? =
 
 Yes! The plugin uses background processing to handle large files without memory or timeout issues.

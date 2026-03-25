@@ -41,30 +41,30 @@ class Media_Sync_Controller extends Base_Controller {
 		$folder_path = $this->get_request_param( 'folder_path' );
 		$options     = $this->get_request_array( 'options' );
 
-		// Convert relative path to absolute (relative to uploads directory)
+		// Convert path to absolute (supports absolute paths and relative-to-uploads)
 		$upload_dir = wp_upload_dir();
 		$base_dir   = $upload_dir['basedir'];
 
-		// Remove leading/trailing slashes
-		$folder_path = trim( $folder_path, '/' );
-
-		// Build absolute path
 		if ( empty( $folder_path ) ) {
 			// Root uploads directory
 			$absolute_path = $base_dir;
+		} elseif ( '/' === substr( $folder_path, 0, 1 ) ) {
+			// Already an absolute path
+			$absolute_path = $folder_path;
 		} else {
-			$absolute_path = $base_dir . '/' . $folder_path;
+			// Relative to uploads directory
+			$absolute_path = $base_dir . '/' . trim( $folder_path, '/' );
 		}
 
-		// Security check: ensure path is within uploads directory
-		$real_path = realpath( $absolute_path );
-		$real_base = realpath( $base_dir );
+		// Security check: ensure path is within WordPress installation
+		$real_path  = realpath( $absolute_path );
+		$real_limit = realpath( ABSPATH );
 
-		if ( false === $real_path || false === strpos( $real_path, $real_base ) ) {
+		if ( false === $real_path || false === $real_limit || 0 !== strpos( $real_path . '/', $real_limit . '/' ) ) {
 			$this->send_error(
 				new \WP_Error(
 					'invalid_path',
-					__( 'Invalid folder path. Path must be within uploads directory.', 'wp-advanced-import-export' )
+					__( 'Invalid folder path. Path must be within the WordPress directory.', 'wp-advanced-import-export' )
 				)
 			);
 		}
@@ -91,16 +91,24 @@ class Media_Sync_Controller extends Base_Controller {
 		$scan_options   = $this->get_request_array( 'scan_options' );
 		$sync_options   = $this->get_request_array( 'sync_options' );
 
-		// Validate folder path
-		$upload_dir  = wp_upload_dir();
-		$base_dir    = $upload_dir['basedir'];
-		$folder_path = trim( $folder_path, '/' );
+		// Validate folder path (supports absolute paths and relative-to-uploads)
+		$upload_dir = wp_upload_dir();
+		$base_dir   = $upload_dir['basedir'];
 
-		$absolute_path = empty( $folder_path ) ? $base_dir : $base_dir . '/' . $folder_path;
-		$real_path     = realpath( $absolute_path );
-		$real_base     = realpath( $base_dir );
+		if ( empty( $folder_path ) ) {
+			$absolute_path = $base_dir;
+		} elseif ( '/' === substr( $folder_path, 0, 1 ) ) {
+			// Already an absolute path
+			$absolute_path = $folder_path;
+		} else {
+			// Relative to uploads directory
+			$absolute_path = $base_dir . '/' . trim( $folder_path, '/' );
+		}
 
-		if ( false === $real_path || false === strpos( $real_path, $real_base ) ) {
+		$real_path  = realpath( $absolute_path );
+		$real_limit = realpath( ABSPATH );
+
+		if ( false === $real_path || false === $real_limit || 0 !== strpos( $real_path . '/', $real_limit . '/' ) ) {
 			$this->send_error(
 				new \WP_Error(
 					'invalid_path',
@@ -284,23 +292,26 @@ class Media_Sync_Controller extends Base_Controller {
 				);
 			}
 
-			$relative_path = $this->get_request_param( 'path', '' );
+			$path = $this->get_request_param( 'path', '' );
 
 			// Get uploads directory
 			$upload_dir = wp_upload_dir();
 			$base_dir   = $upload_dir['basedir'];
 
-			// Build absolute path
-			$relative_path = trim( $relative_path, '/' );
-			if ( empty( $relative_path ) ) {
+			// Determine absolute path: supports absolute paths and relative-to-uploads
+			if ( empty( $path ) ) {
 				$absolute_path = $base_dir;
+			} elseif ( '/' === substr( $path, 0, 1 ) ) {
+				// Already an absolute path
+				$absolute_path = $path;
 			} else {
-				$absolute_path = $base_dir . '/' . $relative_path;
+				// Relative to uploads (backward compatibility)
+				$absolute_path = $base_dir . '/' . trim( $path, '/' );
 			}
 
-			// Security check: ensure path is within uploads directory
-			$real_path = realpath( $absolute_path );
-			$real_base = realpath( $base_dir );
+			// Security check: must be within WordPress installation
+			$real_path  = realpath( $absolute_path );
+			$real_limit = realpath( ABSPATH );
 
 			if ( false === $real_path ) {
 				$this->send_error(
@@ -315,11 +326,11 @@ class Media_Sync_Controller extends Base_Controller {
 				);
 			}
 
-			if ( false === strpos( $real_path, $real_base ) ) {
+			if ( false === $real_limit || 0 !== strpos( $real_path . '/', $real_limit . '/' ) ) {
 				$this->send_error(
 					new \WP_Error(
 						'invalid_path',
-						__( 'Invalid path. Must be within uploads directory.', 'wp-advanced-import-export' )
+						__( 'Invalid path. Must be within the WordPress directory.', 'wp-advanced-import-export' )
 					)
 				);
 			}
@@ -349,12 +360,9 @@ class Media_Sync_Controller extends Base_Controller {
 
 					$item_path = $real_path . '/' . $item;
 					if ( is_dir( $item_path ) ) {
-						// Calculate relative path from base uploads dir
-						$item_relative = str_replace( $real_base . '/', '', $item_path );
-
 						$folders[] = [
 							'name' => $item,
-							'path' => $item_relative,
+							'path' => $item_path, // Absolute path
 						];
 					}
 				}
@@ -376,10 +384,17 @@ class Media_Sync_Controller extends Base_Controller {
 				);
 			}
 
+			// Determine whether the user can navigate up within the WordPress directory
+			$parent_path = dirname( $real_path );
+			$can_go_up   = ( $real_path !== $real_limit )
+				&& ( 0 === strpos( $parent_path . '/', $real_limit . '/' ) );
+
 			$this->send_success(
 				[
 					'folders'      => $folders,
-					'current_path' => $relative_path,
+					'current_path' => $real_path,  // Absolute path
+					'can_go_up'    => $can_go_up,
+					'parent_path'  => $can_go_up ? $parent_path : null,
 				]
 			);
 

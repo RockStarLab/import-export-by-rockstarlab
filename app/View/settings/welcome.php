@@ -86,7 +86,7 @@ $plugin_version = defined( 'WP_AIE_VERSION' ) ? WP_AIE_VERSION : '1.0';
 						</li>
 						<li>
 							<span class="dashicons dashicons-book-alt"></span>
-							<a href="https://docs.example.com" target="_blank">
+							<a href="hhttps://wpimportexport.com/docs/" target="_blank">
 								<?php _e( 'Documentation', 'wp-advanced-import-export' ); ?>
 							</a>
 						</li>
@@ -180,7 +180,7 @@ $plugin_version = defined( 'WP_AIE_VERSION' ) ? WP_AIE_VERSION : '1.0';
 							<li>
 								<span class="aie-support-icon"><span class="dashicons dashicons-book-alt"></span></span>
 								<span class="aie-support-text">
-									<a href="https://docs.example.com" target="_blank"><?php _e( 'Documentation', 'wp-advanced-import-export' ); ?></a>
+									<a href="https://wpimportexport.com/docs/" target="_blank"><?php _e( 'Documentation', 'wp-advanced-import-export' ); ?></a>
 									<span class="aie-support-desc"><?php _e( 'Guides and tutorials', 'wp-advanced-import-export' ); ?></span>
 								</span>
 							</li>

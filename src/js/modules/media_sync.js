@@ -136,11 +136,8 @@ const MediaSyncModule = {
 		// Go up button
 		$page.on( 'click', '#aie-folder-up-btn', ( e ) => {
 			e.preventDefault();
-			const currentPath = jQuery( '#aie-current-path' ).data( 'relative-path' );
-			if ( currentPath ) {
-				const parts = currentPath.split( '/' ).filter( ( p ) => p );
-				parts.pop();
-				const parentPath = parts.join( '/' );
+			const parentPath = jQuery( '#aie-folder-up-btn' ).data( 'parent' );
+			if ( parentPath ) {
 				this.browseFolders( parentPath );
 			}
 		} );
@@ -174,12 +171,7 @@ const MediaSyncModule = {
 			return;
 		}
 
-		// If path doesn't start with /, add it
-		if ( ! folderPath.startsWith( '/' ) ) {
-			folderPath = '/' + folderPath;
-		}
-
-		// Remove trailing slash if present
+		// Remove trailing slash if present (keep leading slash for absolute paths)
 		if ( folderPath.length > 1 && folderPath.endsWith( '/' ) ) {
 			folderPath = folderPath.slice( 0, -1 );
 		}
@@ -1059,7 +1051,12 @@ const MediaSyncModule = {
 			} )
 			.done( ( response ) => {
 				if ( response.success && response.data ) {
-					this.displayFolders( response.data.folders, response.data.current_path );
+					this.displayFolders(
+						response.data.folders,
+						response.data.current_path,
+						response.data.can_go_up,
+						response.data.parent_path
+					);
 				} else {
 					
 					this.showBrowserError(
@@ -1123,47 +1120,31 @@ const MediaSyncModule = {
 	/**
 	 * Display folders in browser
 	 */
-	displayFolders( folders, currentPath ) {
+	displayFolders( folders, currentPath, canGoUp, parentPath ) {
 		const $list = jQuery( '#aie-folder-browser-list' );
 		const $currentPath = jQuery( '#aie-current-path' );
-		const $upBtn = jQuery( '#aie-folder-up-btn' );
 
 		$list.empty();
 
-		// Store base uploads directory path once
-		if ( ! $currentPath.data( 'base-dir' ) ) {
-			const basePath = $currentPath.text().trim();
-			$currentPath.data( 'base-dir', basePath );
+		// Update current path display (currentPath is now an absolute server path)
+		$currentPath.text( currentPath );
+
+		// Remove any existing up button before re-rendering
+		jQuery( '#aie-folder-up-btn' ).remove();
+
+		// Show "Go Up" button when parent directory is accessible within WordPress
+		if ( canGoUp && parentPath ) {
+			const $upButton = jQuery( `
+				<button type="button" id="aie-folder-up-btn" class="button" data-parent="${ this.escapeHtml( parentPath ) }" style="margin-bottom: 10px;">
+					<span class="dashicons dashicons-arrow-up-alt"></span>
+					${ window.aieData.i18n.goUp || 'Go Up' }
+				</button>
+			` );
+			$upButton.insertBefore( $list );
 		}
 
-		const baseDir = $currentPath.data( 'base-dir' );
-		
-		// Update current path display
-		if ( currentPath ) {
-			$currentPath.text( baseDir + '/' + currentPath );
-		} else {
-			$currentPath.text( baseDir );
-		}
-		
-		// Store current relative path for navigation
-		$currentPath.data( 'relative-path', currentPath );
-
-		// Show/hide up button
-		if ( currentPath ) {
-			if ( ! $upBtn.length ) {
-				const $upButton = jQuery( `
-					<button type="button" id="aie-folder-up-btn" class="button" style="margin-bottom: 10px;">
-						<span class="dashicons dashicons-arrow-up-alt"></span>
-						${ window.aieData.i18n.goUp || 'Go Up' }
-					</button>
-				` );
-				$upButton.insertBefore( $list );
-			}
-		} else {
-			$upBtn.remove();
-		}
-
-		// Add "Use this folder" option
+		// Add "Use this folder" option — currentPath is always an absolute path (truthy),
+		// fixing the bug where selecting the root uploads folder did nothing.
 		const $rootOption = jQuery( `
 			<div class="aie-folder-item aie-folder-current" data-path="${ this.escapeHtml( currentPath ) }">
 				<span class="dashicons dashicons-location"></span>
@@ -1179,7 +1160,7 @@ const MediaSyncModule = {
 			return;
 		}
 
-		// Display folders
+		// Display subfolders
 		folders.forEach( ( folder ) => {
 			const $item = jQuery( `
 				<div class="aie-folder-item" data-path="${ this.escapeHtml( folder.path ) }">

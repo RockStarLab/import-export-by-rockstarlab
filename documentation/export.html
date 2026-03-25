@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exporting Data — WP Advanced Import Export Docs</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <img src="images/logo.png" alt="WP Advanced Import Export" />
+    <div>
+      <div class="sidebar-logo-name">WP Advanced Import&nbsp;Export</div>
+      <div class="sidebar-logo-sub">Documentation</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Getting Started</div>
+    <a href="index.html"><span class="nav-icon">👋</span> Welcome</a>
+    <a href="installation.html"><span class="nav-icon">📦</span> Installation</a>
+    <a href="license.html"><span class="nav-icon">🔑</span> License Activation</a>
+    <div class="nav-section-label">Core Features</div>
+    <a href="import.html"><span class="nav-icon">📥</span> Importing Data</a>
+    <a href="export.html" class="active"><span class="nav-icon">📤</span> Exporting Data</a>
+    <a href="content-sync.html"><span class="nav-icon">🔄</span> Content Sync</a>
+    <a href="content-updater.html"><span class="nav-icon">✏️</span> Content Updater</a>
+    <a href="media-sync.html"><span class="nav-icon">🖼️</span> Media Library Sync</a>
+    <a href="ai-url-importer.html"><span class="nav-icon">🤖</span> AI URL Importer</a>
+    <a href="functions.html"><span class="nav-icon">⚙️</span> Functions Library</a>
+    <a href="jobs-log.html"><span class="nav-icon">📋</span> Jobs Log</a>
+    <a href="plugin-options.html"><span class="nav-icon">🛠️</span> Plugin Options</a>
+  </nav>
+  <div class="sidebar-footer">
+    &copy; 2026 <a href="https://profiles.wordpress.org/rockstarlab/" target="_blank">RockstarLab</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="main-inner">
+
+    <div class="page-header">
+      <div class="breadcrumb">
+        <a href="index.html">Docs</a> <span>›</span> Core Features
+      </div>
+      <h1>📤 Exporting Data</h1>
+      <p>Export any WordPress content type, custom fields, or raw database table to CSV or JSON — with powerful filters and field selection.</p>
+    </div>
+
+    <h2>Supported Export Types</h2>
+    <ul>
+      <li>Posts, Pages, and any Custom Post Type</li>
+      <li>Taxonomies and Terms</li>
+      <li>Users and User Meta</li>
+      <li>Comments</li>
+      <li>Navigation Menus</li>
+      <li>Raw MySQL Tables</li>
+      <li>WooCommerce Products (including variations), Orders, Coupons, Attributes <span class="tag tag-pro">Pro</span></li>
+    </ul>
+
+    <h2>Output Formats</h2>
+    <ul>
+      <li><strong>CSV</strong> — Compatible with Excel, Google Sheets, and other import tools</li>
+      <li><strong>JSON</strong> — Suitable for developer workflows and API integrations</li>
+    </ul>
+
+    <hr class="divider" />
+
+    <h2>Export Workflow</h2>
+
+    <h3>Step 1 — Open the Export Screen</h3>
+    <p>Navigate to <strong>Import Export → Export</strong> in the WordPress admin sidebar.</p>
+
+    <figure class="screenshot">
+      <a href="images/export-page.png" target="_blank"><img src="images/export-page.png" alt="Export page" /></a>
+      <figcaption>The main Export screen</figcaption>
+    </figure>
+
+    <h3>Step 2 — Select Export Type</h3>
+    <p>
+      Choose the content type you want to export from the <strong>Export Type</strong> dropdown.
+      After selecting a type, the available filter and field options will update dynamically.
+    </p>
+
+    <h3>Step 3 — Filter Records</h3>
+    <p>
+      Narrow down which records to export using the filter panel. Available filters depend on the export type.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-filters.png" target="_blank"><img src="images/export-filters.png" alt="Filtering posts for export" /></a>
+      <figcaption>Applying filters to select specific posts for export</figcaption>
+    </figure>
+
+    <table class="options-table">
+      <thead>
+        <tr><th>Filter</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="opt-name">Post Status</td>
+          <td class="opt-desc">Export only published, draft, pending, or private posts.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Date Range</td>
+          <td class="opt-desc">Filter by <code>post_date</code> — export posts from a specific period.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Author</td>
+          <td class="opt-desc">Export posts by a specific author.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Taxonomy / Category</td>
+          <td class="opt-desc">Limit to posts in a specific category, tag, or custom taxonomy term.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Post IDs</td>
+          <td class="opt-desc">Manually enter specific post IDs to export only those records.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Custom Field Filter</td>
+          <td class="opt-desc">Filter by any meta key/value pair (e.g., export only products with <code>_stock_status = instock</code>).</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+      The <strong>Count</strong> button shows how many records match your current filters before you start the export.
+    </p>
+
+    <h3>Step 4 — Select Fields to Export</h3>
+    <p>
+      Choose which fields to include in the output. By default, all standard fields are selected.
+      You can add custom meta fields, ACF fields, or Yoast SEO fields using the field picker.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-fields.png" target="_blank"><img src="images/export-fields.png" alt="Selecting export fields" /></a>
+      <figcaption>Selecting which fields to include in the export file</figcaption>
+    </figure>
+
+    <h3>Step 5 — Configure Export Options</h3>
+
+    <figure class="screenshot">
+      <a href="images/export-options.png" target="_blank"><img src="images/export-options.png" alt="Additional export options" /></a>
+      <figcaption>Additional export options panel</figcaption>
+    </figure>
+
+    <table class="options-table">
+      <thead>
+        <tr><th>Option</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="opt-name">Output Format</td>
+          <td class="opt-desc">CSV or JSON.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">CSV Delimiter</td>
+          <td class="opt-desc">Comma <code>,</code> or semicolon <code>;</code>.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Include Header Row</td>
+          <td class="opt-desc">Adds a header row with field names as the first line of the CSV.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Batch Size</td>
+          <td class="opt-desc">Number of records to process per background batch.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Apply Functions</td>
+          <td class="opt-desc">Assign a <a href="functions.html">custom function</a> to transform field values before they are written to the file.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Send Email Notification</td>
+          <td class="opt-desc">Sends a download link to the admin email when the export finishes.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Step 6 — Run the Export &amp; Download</h3>
+    <p>
+      Click <strong>Start Export</strong>. The plugin creates a Job and processes the export in the background.
+      When complete, a <strong>Download File</strong> button appears. The file link is also available in the
+      <a href="jobs-log.html">Jobs Log</a> for later retrieval.
+    </p>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">💡 Large Exports</div>
+      Exports of tens of thousands of rows are handled efficiently using streaming. The file is written in
+      batches, so your server will never run out of memory regardless of the dataset size.
+    </div>
+
+    <hr class="divider" />
+
+    <h2>Exporting Raw MySQL Tables</h2>
+    <p>
+      Select <strong>MySQL Table</strong> as the export type, then choose the target table from the list of all
+      tables in your database. You can select which columns to include and apply filters by any column value.
+      This is especially useful for exporting custom plugin data or logs.
+    </p>
+
+    <hr class="divider" />
+
+    <h2>Secure Download Links</h2>
+    <p>
+      All exported files are stored in a protected upload directory. Download links are time-limited and
+      require authentication, preventing unauthorised access to potentially sensitive data.
+    </p>
+
+    <div class="doc-nav">
+      <a href="import.html" class="nav-prev">
+        ← <span>
+          <span class="nav-label">Previous</span>
+          📥 Importing Data
+        </span>
+      </a>
+      <a href="content-sync.html" class="nav-next">
+        <span>
+          <span class="nav-label">Next</span>
+          🔄 Content Sync
+        </span>
+        →
+      </a>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  document.addEventListener('click', function(e) {
+    const sidebar = document.querySelector('.sidebar');
+    const btn = document.querySelector('.mobile-menu-btn');
+    if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== btn) {
+      sidebar.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>
