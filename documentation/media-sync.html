@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Media Library Sync — WP Advanced Import Export Docs</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <img src="images/logo.png" alt="WP Advanced Import Export" />
+    <div>
+      <div class="sidebar-logo-name">WP Advanced Import&nbsp;Export</div>
+      <div class="sidebar-logo-sub">Documentation</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Getting Started</div>
+    <a href="index.html"><span class="nav-icon">👋</span> Welcome</a>
+    <a href="installation.html"><span class="nav-icon">📦</span> Installation</a>
+    <a href="license.html"><span class="nav-icon">🔑</span> License Activation</a>
+    <div class="nav-section-label">Core Features</div>
+    <a href="import.html"><span class="nav-icon">📥</span> Importing Data</a>
+    <a href="export.html"><span class="nav-icon">📤</span> Exporting Data</a>
+    <a href="content-sync.html"><span class="nav-icon">🔄</span> Content Sync</a>
+    <a href="content-updater.html"><span class="nav-icon">✏️</span> Content Updater</a>
+    <a href="media-sync.html" class="active"><span class="nav-icon">🖼️</span> Media Library Sync</a>
+    <a href="ai-url-importer.html"><span class="nav-icon">🤖</span> AI URL Importer</a>
+    <a href="functions.html"><span class="nav-icon">⚙️</span> Functions Library</a>
+    <a href="jobs-log.html"><span class="nav-icon">📋</span> Jobs Log</a>
+    <a href="plugin-options.html"><span class="nav-icon">🛠️</span> Plugin Options</a>
+  </nav>
+  <div class="sidebar-footer">
+    &copy; 2026 <a href="https://profiles.wordpress.org/rockstarlab/" target="_blank">RockstarLab</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="main-inner">
+
+    <div class="page-header">
+      <div class="breadcrumb">
+        <a href="index.html">Docs</a> <span>›</span> Core Features
+      </div>
+      <h1>🖼️ Media Library Synchronisation</h1>
+      <p>Scan any server folder for files uploaded via FTP/SFTP and register them into the WordPress Media Library — with duplicate detection.</p>
+    </div>
+
+    <h2>Why Use Media Library Sync?</h2>
+    <p>
+      Many developers and content teams upload large batches of images or documents directly to the server via
+      FTP or SFTP to bypass upload size limits or to migrate assets from another platform. Those files exist on
+      the server but are <em>invisible</em> to WordPress — they do not appear in the Media Library, cannot be
+      inserted into posts, and are not included in backups.
+    </p>
+    <p>
+      The Media Sync feature resolves this by scanning any server directory, detecting new files, and
+      creating WordPress <code>attachment</code> posts for each one.
+    </p>
+
+    <hr class="divider" />
+
+    <h2>Sync Workflow</h2>
+
+    <h3>Step 1 — Open the Media Sync Screen</h3>
+    <p>Navigate to <strong>WP Advanced Import Export → Media Sync</strong>.</p>
+
+    <figure class="screenshot">
+      <a href="images/media-sync-page.png" target="_blank"><img src="images/media-sync-page.png" alt="Media Sync page" /></a>
+      <figcaption>The main Media Library Sync screen</figcaption>
+    </figure>
+
+    <h3>Step 2 — Choose a Source Folder</h3>
+    <p>
+      Use the folder browser to select the server directory that contains the files you want to import.
+      The browser shows all directories within the server's file system that are accessible to PHP.
+      Enable <strong>Scan Subdirectories</strong> to include all sub-folders.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/media-sync-folder.png" target="_blank"><img src="images/media-sync-folder.png" alt="Folder browser" /></a>
+      <figcaption>Browsing and selecting the source folder on the server</figcaption>
+    </figure>
+
+    <h3>Step 3 — Configure Sync Options</h3>
+
+    <table class="options-table">
+      <thead>
+        <tr><th>Option</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="opt-name">File Types</td>
+          <td class="opt-desc">
+            Choose which file types to import: images only, all WordPress-allowed types, or a custom list
+            (e.g., <code>jpg, png, pdf, mp4</code>).
+          </td>
+        </tr>
+        <tr>
+          <td class="opt-name">Duplicate Detection Method</td>
+          <td class="opt-desc">
+            <strong>Hash</strong> — most accurate; computes an MD5 hash of the file content.<br>
+            <strong>Filename</strong> — fastest; checks if a file with the same name already exists.<br>
+            <strong>Filesize</strong> — balanced; compares file sizes.
+          </td>
+        </tr>
+        <tr>
+          <td class="opt-name">Preserve Folder Structure</td>
+          <td class="opt-desc">Maintain the original sub-folder hierarchy when creating attachments. Files are placed in the same relative path under <code>wp-content/uploads/</code>.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Batch Size</td>
+          <td class="opt-desc">Number of files to process per background batch. Reduce this if you encounter memory issues.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Real Media Library</td>
+          <td class="opt-desc">
+            <span class="tag tag-pro">Pro</span> — Automatically create a matching folder structure in
+            <strong>Real Media Library</strong> and assign each attachment to the corresponding folder.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Step 4 — Run</h3>
+    <p>
+      Choose files from scan results, then click <strong>Start Synchronization</strong> to begin processing.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/media-sync-progress.png" target="_blank"><img src="images/media-sync-progress.png" alt="Media sync progress" /></a>
+      <figcaption>Progress bar showing files processed and duplicates skipped</figcaption>
+    </figure>
+
+    <hr class="divider" />
+
+    <h2>Duplicate Detection In Detail</h2>
+    <table class="options-table">
+      <thead>
+        <tr><th>Method</th><th>How It Works</th><th>Best For</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="opt-name">Hash (MD5)</td>
+          <td class="opt-desc">Computes a checksum of the file contents. Detects exact duplicates even if the filename differs.</td>
+          <td class="opt-desc">Maximum accuracy; slower on large files</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Filename</td>
+          <td class="opt-desc">Checks whether an attachment with the same base filename already exists in the Media Library.</td>
+          <td class="opt-desc">Very fast; may miss renamed duplicates</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Filesize</td>
+          <td class="opt-desc">Compares file sizes in bytes. Quick and reasonably accurate for large media files.</td>
+          <td class="opt-desc">Good balance of speed and accuracy</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">💡 Combine Methods</div>
+      For the most reliable results when importing a large batch of images for the first time, use the
+      <strong>Hash</strong> method. For subsequent incremental syncs, switch to <strong>Filename</strong>
+      for speed.
+    </div>
+
+    <div class="doc-nav">
+      <a href="content-updater.html" class="nav-prev">
+        ← <span>
+          <span class="nav-label">Previous</span>
+          ✏️ Content Updater
+        </span>
+      </a>
+      <a href="ai-url-importer.html" class="nav-next">
+        <span>
+          <span class="nav-label">Next</span>
+          🤖 AI URL Importer
+        </span>
+        →
+      </a>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  document.addEventListener('click', function(e) {
+    const sidebar = document.querySelector('.sidebar');
+    const btn = document.querySelector('.mobile-menu-btn');
+    if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== btn) {
+      sidebar.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>

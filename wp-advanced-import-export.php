@@ -60,6 +60,7 @@ if ( ! function_exists( 'waie_fs' ) ) {
 				[
 					'id'                => '21998',
 					'slug'              => 'wp-advanced-import-export',
+					'premium_slug'      => 'wp-advanced-import-export',
 					'type'              => 'plugin',
 					'public_key'        => 'pk_c389cfb9437cdb5c934c0efd7e99c',
 					'is_premium'        => true,

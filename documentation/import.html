@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Importing Data — WP Advanced Import Export Docs</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <img src="images/logo.png" alt="WP Advanced Import Export" />
+    <div>
+      <div class="sidebar-logo-name">WP Advanced Import&nbsp;Export</div>
+      <div class="sidebar-logo-sub">Documentation</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Getting Started</div>
+    <a href="index.html"><span class="nav-icon">👋</span> Welcome</a>
+    <a href="installation.html"><span class="nav-icon">📦</span> Installation</a>
+    <a href="license.html"><span class="nav-icon">🔑</span> License Activation</a>
+    <div class="nav-section-label">Core Features</div>
+    <a href="import.html" class="active"><span class="nav-icon">📥</span> Importing Data</a>
+    <a href="export.html"><span class="nav-icon">📤</span> Exporting Data</a>
+    <a href="content-sync.html"><span class="nav-icon">🔄</span> Content Sync</a>
+    <a href="content-updater.html"><span class="nav-icon">✏️</span> Content Updater</a>
+    <a href="media-sync.html"><span class="nav-icon">🖼️</span> Media Library Sync</a>
+    <a href="ai-url-importer.html"><span class="nav-icon">🤖</span> AI URL Importer</a>
+    <a href="functions.html"><span class="nav-icon">⚙️</span> Functions Library</a>
+    <a href="jobs-log.html"><span class="nav-icon">📋</span> Jobs Log</a>
+    <a href="plugin-options.html"><span class="nav-icon">🛠️</span> Plugin Options</a>
+  </nav>
+  <div class="sidebar-footer">
+    &copy; 2026 <a href="https://profiles.wordpress.org/rockstarlab/" target="_blank">RockstarLab</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="main-inner">
+
+    <div class="page-header">
+      <div class="breadcrumb">
+        <a href="index.html">Docs</a> <span>›</span> Core Features
+      </div>
+      <h1>📥 Importing Data</h1>
+      <p>Import posts, pages, custom post types, users, WooCommerce products, and any MySQL table data from CSV files.</p>
+    </div>
+
+    <h2>Supported Content Types</h2>
+    <ul>
+      <li>Posts, Pages, and Custom Post Types (CPTs)</li>
+      <li>Taxonomies and Terms</li>
+      <li>Users and User Meta</li>
+      <li>Comments</li>
+      <li>Navigation Menus</li>
+      <li>Raw MySQL Tables</li>
+      <li>WooCommerce Products, Variations, Orders, Coupons <span class="tag tag-pro">Pro</span></li>
+      <li>Advanced Custom Fields (ACF) <span class="tag tag-pro">Pro</span></li>
+      <li>Yoast SEO Meta <span class="tag tag-pro">Pro</span></li>
+    </ul>
+
+    <h2>Supported File Formats</h2>
+    <ul>
+      <li><strong>CSV</strong> — Standard comma-separated values with streaming support for large files</li>
+    </ul>
+
+    <div class="callout callout-note">
+      <div class="callout-title">ℹ️ JSON Format</div>
+      JSON is currently supported for <strong>export only</strong>. To import data that is currently in JSON format,
+      convert it to CSV first.
+    </div>
+
+    <hr class="divider" />
+
+    <h2>Import Workflow</h2>
+
+    <h3>Step 1 — Open the Import Screen</h3>
+    <p>Navigate to <strong>Import Export → Import</strong> in the WordPress admin sidebar.</p>
+
+    <figure class="screenshot">
+      <a href="images/import-page.png" target="_blank"><img src="images/import-page.png" alt="Import page" /></a>
+      <figcaption>The main Import screen</figcaption>
+    </figure>
+
+    <h3>Step 2 — Choose Content Type &amp; Upload File</h3>
+    <p>
+      Select the <strong>Import Type</strong> (e.g., Posts, Users, MySQL Table) from the dropdown.
+      Then drag-and-drop your CSV file onto the upload area, or click <strong>Browse</strong> to pick a file.
+      The plugin supports chunked uploads so very large files will not time out.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/import-upload.png" target="_blank"><img src="images/import-upload.png" alt="File upload step" /></a>
+      <figcaption>Uploading a CSV file — drag and drop or browse</figcaption>
+    </figure>
+
+    <h3>Step 3 — Preview the Data</h3>
+    <p>
+      After uploading, the plugin parses the first five rows and shows a preview table. Verify that the data
+      looks correct before proceeding to field mapping.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/import-preview.png" target="_blank"><img src="images/import-preview.png" alt="Data preview" /></a>
+      <figcaption>Previewing the first rows of the uploaded file</figcaption>
+    </figure>
+
+    <h3>Step 4 — Map Fields</h3>
+    <p>
+      Map each column in your CSV to the corresponding WordPress field. The plugin automatically
+      suggests mappings based on column names. You can also assign a <a href="functions.html">custom function</a>
+      to any field to transform the value during import.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/import-mapping.png" target="_blank"><img src="images/import-mapping.png" alt="Field mapping screen" /></a>
+      <figcaption>Mapping CSV columns to WordPress fields</figcaption>
+    </figure>
+
+    <h4>Available WordPress Fields (Posts)</h4>
+    <table class="options-table">
+      <thead>
+        <tr><th>Field</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="opt-name">post_title</td><td class="opt-desc">Title of the post</td></tr>
+        <tr><td class="opt-name">post_content</td><td class="opt-desc">Main body content (HTML supported)</td></tr>
+        <tr><td class="opt-name">post_excerpt</td><td class="opt-desc">Short description / excerpt</td></tr>
+        <tr><td class="opt-name">post_status</td><td class="opt-desc">publish, draft, private, pending…</td></tr>
+        <tr><td class="opt-name">post_date</td><td class="opt-desc">Publication date (Y-m-d H:i:s)</td></tr>
+        <tr><td class="opt-name">post_author</td><td class="opt-desc">Author login or ID</td></tr>
+        <tr><td class="opt-name">post_name</td><td class="opt-desc">URL slug</td></tr>
+        <tr><td class="opt-name">post_parent</td><td class="opt-desc">Parent post ID (for pages &amp; CPTs)</td></tr>
+        <tr><td class="opt-name">featured_image</td><td class="opt-desc">URL or file path to the featured image</td></tr>
+        <tr><td class="opt-name">taxonomies</td><td class="opt-desc">Category, tag, or custom taxonomy values</td></tr>
+        <tr><td class="opt-name">meta_*</td><td class="opt-desc">Any post meta key (e.g., <code>meta_price</code>)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Step 5 — Set Import Options</h3>
+    <p>Before starting, configure the advanced import options:</p>
+
+    <figure class="screenshot">
+      <a href="images/import-options.png" target="_blank"><img src="images/import-options.png" alt="Additional import options" /></a>
+      <figcaption>Additional import options panel</figcaption>
+    </figure>
+
+    <table class="options-table">
+      <thead>
+        <tr><th>Option</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="opt-name">Duplicate Strategy</td>
+          <td class="opt-desc">
+            How to handle records that already exist:
+            <strong>Skip</strong> (do nothing), <strong>Update</strong> (overwrite existing fields),
+            or <strong>Duplicate</strong> (create a new record regardless).
+          </td>
+        </tr>
+        <tr>
+          <td class="opt-name">Duplicate Detection Key</td>
+          <td class="opt-desc">The field used to identify duplicates (e.g., <code>post_title</code>, <code>ID</code>, or any meta key).</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Default Post Status</td>
+          <td class="opt-desc">Fallback status when the CSV row does not include a <code>post_status</code> column.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Import Images</td>
+          <td class="opt-desc">When enabled, the plugin downloads and attaches images found in the <code>featured_image</code> column or inside post content.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Batch Size</td>
+          <td class="opt-desc">Number of rows to process per background batch. Lower values reduce memory usage on shared hosts.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Send Email Notification</td>
+          <td class="opt-desc">Sends an email to the admin when the import finishes.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Step 6 — Run the Import</h3>
+    <p>
+      Click <strong>Start Import</strong>. The plugin creates a <a href="jobs-log.html">Job</a> and begins
+      processing in the background using WordPress cron. A real-time progress bar shows rows processed,
+      successes, and errors.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/import-progress.png" target="_blank"><img src="images/import-progress.png" alt="Import progress bar" /></a>
+      <figcaption>Real-time progress tracking during import</figcaption>
+    </figure>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">💡 Re-run a Job</div>
+      Every import is saved in the <a href="jobs-log.html">Jobs Log</a>. You can re-run it at any time with one
+      click — no need to re-upload the file or reconfigure settings.
+    </div>
+
+    <hr class="divider" />
+
+    <h2>Importing Raw MySQL Tables</h2>
+    <p>
+      Select <strong>MySQL Table</strong> as the import type. The plugin will ask you to choose the target table
+      and then map your CSV columns to the table columns. This is useful for migrating custom plugin data, e-commerce
+      orders, or any non-standard data.
+    </p>
+
+    <div class="callout callout-warn">
+      <div class="callout-title">⚠️ Warning</div>
+      Writing directly to database tables can cause data integrity issues. Always create a full database backup
+      before running a raw MySQL import.
+    </div>
+
+    <hr class="divider" />
+
+    <h2>CSV File Requirements</h2>
+    <ul>
+      <li>Encoding: <strong>UTF-8</strong> (BOM optional)</li>
+      <li>Delimiter: comma <code>,</code> or semicolon <code>;</code> (auto-detected)</li>
+      <li>First row must be a <strong>header row</strong> with column names</li>
+      <li>Dates should be formatted as <code>Y-m-d</code> or <code>Y-m-d H:i:s</code></li>
+      <li>For multiple taxonomy values in one cell, separate them with a pipe <code>|</code></li>
+    </ul>
+
+    <div class="doc-nav">
+      <a href="license.html" class="nav-prev">
+        ← <span>
+          <span class="nav-label">Previous</span>
+          🔑 License Activation
+        </span>
+      </a>
+      <a href="export.html" class="nav-next">
+        <span>
+          <span class="nav-label">Next</span>
+          📤 Exporting Data
+        </span>
+        →
+      </a>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  document.addEventListener('click', function(e) {
+    const sidebar = document.querySelector('.sidebar');
+    const btn = document.querySelector('.mobile-menu-btn');
+    if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== btn) {
+      sidebar.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>
