@@ -1,6 +1,6 @@
 === WP Advanced Import Export ===
 Contributors: RockstarLab
-Tags: import, export, csv, xml, json, media sync, site sync, bulk import, data migration
+Tags: import, export, csv, site sync, media sync, bulk import, woocommerce import, data migration, wordpress migration
 Requires at least: 5.8
 Tested up to: 6.5.2
 Stable tag: 1.0.0
@@ -11,12 +11,52 @@ Advanced import and export solution for WordPress with custom functions, media f
 
 == Description ==
 
-**WP Advanced Import Export** is a powerful and flexible plugin for importing and exporting WordPress data with support for various content types and file formats.
+🚀 WP Advanced Import Export is the ultimate solution for managing your WordPress data with surgical precision. Whether you are migrating a website, syncing content between staging and production, or performing bulk data updates, this plugin provides a robust and flexible framework to handle even the most complex datasets.
+
+Tired of restrictive tools that only handle posts? Our WordPress Import Export Plugin is built for developers and store owners who need total control. From standard WordPress elements to raw MySQL tables and WooCommerce entities, move your data without the headache of manual SQL queries or broken serialized data. 📂
+
+Using advanced parsing logic and an AI-driven interface, WP Advanced Import Export ensures that your data arrives exactly where it needs to be, formatted exactly how you want it.
+
+== Features ==
+
+Our plugin is packed with tools to make data management seamless:
+
+Comprehensive Data Support: Import and Export Posts, Pages, Custom Post Types (CPT), Taxonomies, Media Files, Navigation Menus, Users, and Comments. 📝
+
+WooCommerce Mastery: Full support for WooCommerce Products (including variations), Attributes, Orders, and Coupons. Perfect for store migrations! 🛒
+
+Raw MySQL Power: Go beyond WordPress standards. Import and export data from any MySQL table within your database. 🗄️
+
+Intelligent Sync: Easily sync selected content between sites. Keep your Production and Staging environments in perfect harmony. 🔄
+
+Bulk Content Updater: Update data based on specific filters. Need to replace a specific link in all posts published last week? Done in seconds. ⚡
+
+SFTP Media Sync: Automatically detect and add media files uploaded via SFTP directly into the WordPress Media Library. 🖼️
+
+AI-Powered URL Importer: Give the plugin a URL, and our AI will parse the remote website to import content directly as any Post Type. 🤖
+
+Smart Jobs Log: Every action is saved. Re-run any import or export job with a single click without re-configuring parameters. 📜
+
+== Special Offer ==
+
+All new users get 4 weeks of all premium features! 🔥
+
+== Why Choose Our Import / Export Plugin? ==
+
+When searching for a reliable WordPress Import Export Addon, reliability and flexibility are key. Here is why RockstarLab built this to be the best in class:
+
+Developer Friendly: Use our Functions Library to apply custom PHP transformations to any field during the process.
+
+AI Integration: Don't know how to code a specific data transformation? Simply describe what you need (e.g., "Convert all titles to Uppercase"), and our AI assistant will write the function for you. 🧠
+
+Speed & Performance: Optimized to handle large XML, CSV, and JSON files without crashing your server or hitting timeout limits.
+
+No Data Left Behind: We handle complex metadata and hidden custom fields that other plugins often skip.
 
 = Core Features =
 
 * **Multiple Data Types**: Posts, Pages, Users, Comments, Media, Custom Post Types, Taxonomies
-* **File Formats**: CSV, JSON, XML with streaming support for large files
+* **File Formats**: CSV with streaming support for large files
 * **Background Processing**: Handle large datasets without memory limits
 * **Field Mapping**: Intuitive field mapping interface with preview
 * **Validation System**: Comprehensive data validation before import
@@ -26,18 +66,6 @@ Advanced import and export solution for WordPress with custom functions, media f
 * **Site-to-Site Sync**: Connect and sync content between two WordPress sites
 * **Progress Tracking**: Real-time progress bars and detailed logs
 * **History & Logs**: Complete history of all import/export operations
-
-= Media Folder Sync =
-
-Easily synchronize files from server folders (uploaded via FTP) to your WordPress Media Library:
-
-* **Scan Server Folders**: Browse and select folders with recursive scanning
-* **File Type Filters**: Choose specific file types or all WordPress-allowed types
-* **Duplicate Detection**: Three methods (Hash, Filename, Filesize) to skip duplicates
-* **Preserve Structure**: Maintain original folder hierarchy
-* **Batch Processing**: Handle large numbers of files efficiently
-* **Auto Alt Text**: Generate alt text from filenames
-* **Premium: Real Media Library**: Automatically create folder structure in Real Media Library
 
 = Site-to-Site Content Sync =
 
@@ -49,10 +77,19 @@ Synchronize content between two WordPress sites with secure API-based connection
 * **Selective Sync**: Filter by ID, date, author, status, taxonomy
 * **Conflict Resolution**: Skip, Update, or Duplicate strategies
 * **Media Sync**: Automatically download and sync media files
-* **Background Processing**: Large operations run without timeout
 * **Security**: Rate limiting, IP whitelisting, API key validation
-* **Sync History**: Track all operations with detailed logs
-* **Premium: Scheduled Sync**: Set up automatic recurring sync
+
+= Media Folder Sync =
+
+Easily synchronize files from server folders (uploaded via FTP/SFTP) to your WordPress Media Library:
+
+* **Scan Server Folders**: Browse and select folders with recursive scanning
+* **File Type Filters**: Choose specific file types or all WordPress-allowed types
+* **Duplicate Detection**: Three methods (Hash, Filename, Filesize) to skip duplicates
+* **Preserve Structure**: Maintain original folder hierarchy
+* **Batch Processing**: Handle large numbers of files efficiently
+* **Auto Alt Text**: Generate alt text from filenames
+* **Premium: Real Media Library**: Automatically create folder structure in Real Media Library
 
 = Custom Functions System =
 
@@ -67,12 +104,11 @@ Transform your data during import/export with custom PHP functions:
 
 = Premium Features =
 
-* **Real Media Library Integration**: Automatic folder creation and organization
-* **Scheduled Sync**: Set up automatic recurring content synchronization
-* **Priority Support**: Get help when you need it
-* **Advanced Scheduler**: Set up automatic recurring imports/exports
-* **WooCommerce Support**: Import/export products, orders, and variations
 * **ACF Integration**: Support for Advanced Custom Fields
+* **Real Media Library Integration**: Automatic folder creation and organization
+* **WooCommerce Support**: Import/export products, orders, and variations
+* **YOAST SEO Integration**: Support for YOAST SEO WordPress Plugin
+* **Priority Support**: Get help when you need it
 
 = Perfect For =
 
@@ -84,45 +120,11 @@ Transform your data during import/export with custom PHP functions:
 * **Media Organization**: Organizing FTP-uploaded files into Media Library
 * **WooCommerce**: Product catalog management
 
-= Developer Friendly =
-
-* **REST API**: Full REST API for programmatic access
-* **WP-CLI Commands**: Command-line interface for imports/exports
-* **Action & Filter Hooks**: Extensive hooks for customization
-* **PSR-4 Autoloading**: Clean, modern codebase
-* **Extensible Architecture**: Easy to add new importers/exporters
-
-== Installation ==
-
-1. Upload the plugin files to the `/wp-content/plugins/wp-advanced-import-export` directory, or install the plugin through the WordPress plugins screen directly.
-2. Activate the plugin through the 'Plugins' screen in WordPress
-3. Navigate to **Dashboard → Import/Export** to start using the plugin
-4. For Media Sync, go to **Dashboard → Media Sync**
-5. For Site-to-Site Sync, go to **Dashboard → Content Sync**
-
-= Minimum Requirements =
-
-* WordPress 5.8 or higher
-* PHP 7.4 or higher
-* MySQL 5.6 or MariaDB 10.1 or higher
-
 == Frequently Asked Questions ==
 
 = Can I import large files without timeout issues? =
 
 Yes! The plugin uses background processing to handle large files without memory or timeout issues.
-
-= How do I sync files uploaded via FTP? =
-
-1. Upload your files to any folder on the server
-2. Go to Media Sync page
-3. Select the folder and configure options
-4. Click "Start Sync"
-5. Files will be imported to Media Library
-
-= What file formats are supported? =
-
-CSV, JSON, and XML formats are fully supported with streaming capabilities for large files.
 
 = Can I transform data during import? =
 
@@ -136,71 +138,33 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 
 Real Media Library integration is a Premium feature. Upgrade to Premium to automatically create folder structures in RML.
 
-= Can I schedule automatic imports? =
-
-Yes, the Premium version includes an advanced scheduler for recurring imports and exports.
-
-= Is there an API for developers? =
-
-Yes! The plugin includes a full REST API and WP-CLI commands for programmatic access.
-
 = Can I sync content between two WordPress sites? =
 
-Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync posts, media, users, and more. Choose between Pull (import from remote) or Push (send to remote) operations.
+Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync posts or custom post types. Choose between Pull (import from remote) or Push (send to remote) operations.
 
-= How secure is Site-to-Site sync? =
-
-Very secure! We use 64-character API keys, rate limiting, IP whitelisting, and WordPress nonce verification. All requests are authenticated and logged.
-
-= Can I schedule automatic syncs between sites? =
-
-Yes, scheduled synchronization is available in the Premium version.
 
 == Screenshots ==
 
-1. Import page with field mapping
-2. Export configuration
-3. Custom Functions editor with snippets library
-4. Media Folder Sync interface
-5. Site-to-Site Content Sync with connection management
-6. Progress tracking with real-time updates
-7. Import/Export history with logs
-8. Settings page
+1. Import page 
+2. File upload
+3. Preview data
+4. Fields mapping
+5. Data transformation functions
+6. Additional import options
+7. Export page
+8. Filter posts for export
+9. Select fields to export
+10. Additional export options
+11. Content sync options page
+12. Page content sync with remote website
+13. Bulk content updater page
+14. Sync files from any folder with Media Library
+15. AI URL Importer
+16. AI URL Importer Options
+17. Functions library
+18. AI Functions Generator
+19. Jobs log
+20. Plugin options page
 
-== Changelog ==
 
-= 1.0.0 =
-* Initial release
-* Core import/export functionality
-* CSV, JSON, XML support
-* Background processing
-* Field mapping interface
-* Custom Functions System
-* Function Snippets Library (50+ examples)
-* Media Folder Sync
-* Site-to-Site Content Sync
-* Real Media Library integration (Premium)
-* REST API endpoints
-* Progress tracking and logging
-
-== Upgrade Notice ==
-
-= 1.0.0 =
-Initial release of WP Advanced Import Export with advanced features for data management, media synchronization, and site-to-site content sync.
-
-== Privacy Policy ==
-
-WP Advanced Import Export does not collect or store any user data outside of your WordPress installation. All import/export operations are performed locally on your server.
-
-== Support ==
-
-* Free Support: WordPress.org support forum
-* Premium Support: Available for Premium license holders
-* Documentation: Full documentation available in plugin folder
-* GitHub: Report issues and contribute
-
-== Credits ==
-
-* Built with modern WordPress standards
-* Uses Freemius SDK for licensing
-* Compatible with Real Media Library (Premium feature)
+`<?php code(); // goes in backticks ?>`
