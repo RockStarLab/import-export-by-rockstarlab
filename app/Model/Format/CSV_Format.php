@@ -9,14 +9,8 @@
 
 namespace WP_AIE\Model\Format;
 
-/**
- * CSV Format Handler Class
- *
- * Implements CSV file parsing, generation, and validation with support
- * for large files through chunked reading.
- *
- * @package WP_AIE\Model\Format
- */
+defined( 'ABSPATH' ) || exit;
+
 class CSV_Format implements File_Format_Interface {
 /**
  * Default delimiter
@@ -60,7 +54,7 @@ $encoding   = $options['encoding'] ?? 'UTF-8';
 
 		$use_custom_parser = strlen( $delimiter ) > 1;
 
-		$handle = fopen( $file_path, 'r' );
+		$handle = fopen( $file_path, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 		if ( ! $handle ) {
 			return new \WP_Error( 'file_open_error', __( 'Cannot open CSV file', 'wp-advanced-import-export' ) );
 		}
@@ -119,7 +113,7 @@ $encoding   = $options['encoding'] ?? 'UTF-8';
 			++$row_num;
 		}
 
-fclose( $handle );
+fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 
 return $data;
 }
@@ -145,7 +139,7 @@ $escape     = $options['escape'] ?? self::DEFAULT_ESCAPE;
 $has_header = $options['has_header'] ?? true;
 $encoding   = $options['encoding'] ?? 'UTF-8';
 
-$handle = fopen( $file_path, 'r' );
+$handle = fopen( $file_path, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 if ( ! $handle ) {
 return new \WP_Error( 'file_open_error', __( 'Cannot open CSV file', 'wp-advanced-import-export' ) );
 }
@@ -212,7 +206,7 @@ while ( true ) {
 			++$read;
 		}
 
-fclose( $handle );
+fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 
 return $data;
 }
@@ -233,7 +227,7 @@ $escape    = $options['escape'] ?? self::DEFAULT_ESCAPE;
 $headers   = $options['headers'] ?? null;
 $use_bom   = $options['use_bom'] ?? false;
 
-$handle = fopen( $file_path, 'w' );
+$handle = fopen( $file_path, 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 if ( ! $handle ) {
 return new \WP_Error( 'file_create_error', __( 'Cannot create CSV file', 'wp-advanced-import-export' ) );
 }
@@ -247,7 +241,7 @@ if ( ! empty( $headers ) && is_array( $headers ) ) {
 $this->write_csv_row( $handle, $headers, $delimiter, $enclosure, $escape );
 }
 
-fclose( $handle );
+fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 return true;
 }
 
@@ -289,7 +283,7 @@ $row
 $this->write_csv_row( $handle, $row, $delimiter, $enclosure, $escape );
 }
 
-fclose( $handle );
+fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 return true;
 }
 
@@ -346,7 +340,7 @@ $encoded_row[] = $value;
 }
 
 $line = implode( $delimiter, $encoded_row ) . "\n";
-return (bool) fwrite( $handle, $line );
+return (bool) fwrite( $handle, $line ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 }
 
 /** * Read a possibly multiline CSV record (for quoted fields containing newlines).
@@ -459,13 +453,13 @@ if ( ! in_array( $extension, $this->get_extensions(), true ) ) {
 return new \WP_Error( 'invalid_extension', __( 'Invalid CSV file extension', 'wp-advanced-import-export' ) );
 }
 
-$handle = fopen( $file_path, 'r' );
+$handle = fopen( $file_path, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 if ( ! $handle ) {
 return new \WP_Error( 'file_open_error', __( 'Cannot open CSV file', 'wp-advanced-import-export' ) );
 }
 
 $first_line = fgets( $handle );
-fclose( $handle );
+fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 
 if ( false === $first_line ) {
 return new \WP_Error( 'empty_file', __( 'CSV file is empty', 'wp-advanced-import-export' ) );
@@ -492,7 +486,7 @@ $enclosure = $options['enclosure'] ?? self::DEFAULT_ENCLOSURE;
 $escape    = $options['escape'] ?? self::DEFAULT_ESCAPE;
 $encoding  = $options['encoding'] ?? 'UTF-8';
 
-$handle = fopen( $file_path, 'r' );
+$handle = fopen( $file_path, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 if ( ! $handle ) {
 return new \WP_Error( 'file_open_error', __( 'Cannot open CSV file', 'wp-advanced-import-export' ) );
 }
@@ -504,7 +498,7 @@ if ( strlen( $delimiter ) === 1 ) {
 	$headers = false === $line ? false : $this->parse_csv_line( $line, $delimiter, $enclosure, $escape );
 }
 
-fclose( $handle );
+fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 
 if ( false === $headers ) {
 return new \WP_Error( 'read_error', __( 'Cannot read CSV headers', 'wp-advanced-import-export' ) );
@@ -533,7 +527,7 @@ if ( ! file_exists( $file_path ) ) {
 return new \WP_Error( 'file_not_found', __( 'CSV file not found', 'wp-advanced-import-export' ) );
 }
 
-$handle = fopen( $file_path, 'r' );
+$handle = fopen( $file_path, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 if ( ! $handle ) {
 return new \WP_Error( 'file_open_error', __( 'Cannot open CSV file', 'wp-advanced-import-export' ) );
 }
@@ -543,7 +537,7 @@ while ( fgets( $handle ) !== false ) {
 ++$count;
 }
 
-fclose( $handle );
+fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 
 return max( 0, $count - 1 );
 }

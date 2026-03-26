@@ -9,13 +9,8 @@
 
 namespace WP_AIE\Controller;
 
-/**
- * Content Sync API Controller Class
- *
- * Provides REST API endpoints for remote sites to connect and sync.
- *
- * @package WP_AIE\Controller
- */
+defined( 'ABSPATH' ) || exit;
+
 class Content_Sync_API_Controller {
 
 	/**
@@ -552,8 +547,6 @@ class Content_Sync_API_Controller {
 								}
 							} else {
 								$row_data[ $sub_field_name ] = $meta_value;
-								if ( strlen( print_r( $meta_value, true ) ) < 100 ) {
-								}
 							}
 						}
 					}
@@ -644,7 +637,7 @@ class Content_Sync_API_Controller {
 				'post_type'      => $post_data['post_type'],
 				'posts_per_page' => -1, // Get all to debug
 				'post_status'    => 'any',
-				'meta_query'     => array(
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 					array(
 						'key'   => '_aie_original_post_id',
 						'value' => $post_data['ID'],
@@ -1002,7 +995,7 @@ class Content_Sync_API_Controller {
 		$attachment_id = wp_insert_attachment( $attachment_data, $file_path );
 
 		if ( is_wp_error( $attachment_id ) || ! $attachment_id ) {
-			@unlink( $file_path );
+			@wp_delete_file( $file_path );
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
@@ -1046,7 +1039,7 @@ class Content_Sync_API_Controller {
 		global $wpdb;
 
 		// First check by stored hash meta
-		$attachment_id = $wpdb->get_var(
+		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
 				"SELECT post_id FROM {$wpdb->postmeta} 
 				WHERE meta_key = '_aie_file_hash' 
@@ -1168,7 +1161,7 @@ class Content_Sync_API_Controller {
 			'order'               => 'DESC',
 			'post_parent'         => $post_parent_filter,
 			'ignore_sticky_posts' => true, // Exclude sticky posts from results
-			'post__not_in'        => get_option( 'sticky_posts', array() ), // Exclude all sticky posts regardless of status
+			'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required to exclude sticky posts.
 		);
 
 		if ( ! empty( $search ) ) {
@@ -1232,7 +1225,7 @@ class Content_Sync_API_Controller {
 				'posts_per_page'      => -1,
 				'fields'              => 'ids',
 				'ignore_sticky_posts' => true,
-				'post__not_in'        => get_option( 'sticky_posts', array() ),
+				'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 			)
 		);
 		return count( $children );
@@ -1262,7 +1255,7 @@ class Content_Sync_API_Controller {
 					'posts_per_page'      => 1,
 					'fields'              => 'ids',
 					'ignore_sticky_posts' => true,
-					'post__not_in'        => get_option( 'sticky_posts', array() ),
+					'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 				)
 			);
 
@@ -1322,7 +1315,7 @@ class Content_Sync_API_Controller {
 				'orderby'             => 'date',
 				'order'               => 'DESC',
 				'ignore_sticky_posts' => true,
-				'post__not_in'        => get_option( 'sticky_posts', array() ),
+				'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 			)
 		);
 

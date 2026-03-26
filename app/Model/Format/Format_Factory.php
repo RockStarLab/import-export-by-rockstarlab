@@ -9,14 +9,8 @@
 
 namespace WP_AIE\Model\Format;
 
-/**
- * Format Factory Class
- *
- * Creates and manages format handler instances based on file type.
- * Provides centralized access to all supported formats.
- *
- * @package WP_AIE\Model\Format
- */
+defined( 'ABSPATH' ) || exit;
+
 class Format_Factory {
 
 	/**

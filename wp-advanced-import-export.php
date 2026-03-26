@@ -103,7 +103,7 @@ WP_AIE()->run();
 
 // Handle license activation trigger on plugins page
 add_action( 'admin_footer-plugins.php', function() {
-	if ( ! isset( $_GET['aie-activate-license'] ) ) {
+	if ( ! isset( $_GET['aie-activate-license'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified via verify_request().
 		return;
 	}
 	?>

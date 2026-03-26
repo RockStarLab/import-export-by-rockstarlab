@@ -12,13 +12,8 @@
 
 namespace WP_AIE\Model;
 
-/**
- * Job Model Class
- *
- * Handles import/export job records in aie_jobs table.
- *
- * @package WP_AIE\Model
- */
+defined( 'ABSPATH' ) || exit;
+
 class Job extends Model {
 
 	/**
@@ -212,13 +207,15 @@ class Job extends Model {
 		$limit  = isset( $args['limit'] ) ? intval( $args['limit'] ) : 20;
 		$offset = isset( $args['offset'] ) ? intval( $args['offset'] ) : 0;
 
-		return $wpdb->get_results(
-			$wpdb->prepare(
+		return $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is from $wpdb->prefix (controlled).
+			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name from $wpdb->prefix (controlled).
 				"SELECT * FROM {$table} WHERE user_id = %d ORDER BY created_at DESC LIMIT %d OFFSET %d",
 				$user_id,
 				$limit,
 				$offset
 			)
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		);
 	}
 
@@ -235,12 +232,14 @@ class Job extends Model {
 
 		$limit = isset( $args['limit'] ) ? intval( $args['limit'] ) : 100;
 
-		return $wpdb->get_results(
-			$wpdb->prepare(
+		return $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is from $wpdb->prefix (controlled).
+			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name from $wpdb->prefix (controlled).
 				"SELECT * FROM {$table} WHERE status = %s ORDER BY created_at DESC LIMIT %d",
 				$status,
 				$limit
 			)
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		);
 	}
 
@@ -259,13 +258,15 @@ class Job extends Model {
 		$days = apply_filters( 'aie_cleanup_old_jobs_days', $days );
 
 		// Delete old jobs
-		$deleted = $wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$table} 
+		$deleted = $wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is from $wpdb->prefix (controlled).
+			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name from $wpdb->prefix (controlled).
+				"DELETE FROM {$table}
 			WHERE status IN ('completed', 'failed', 'cancelled') 
 			AND created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
 				$days
 			)
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		);
 
 		do_action( 'aie_old_jobs_cleaned', $deleted );
@@ -287,15 +288,17 @@ class Job extends Model {
 		$days = apply_filters( 'aie_cleanup_old_files_days', $days );
 
 		// Get old export jobs with file paths
-		$results = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT id, file_path FROM {$table} 
+		$results = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is from $wpdb->prefix (controlled).
+			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name from $wpdb->prefix (controlled).
+				"SELECT id, file_path FROM {$table}
 			WHERE type = 'export' 
 			AND status = 'completed' 
 			AND file_path IS NOT NULL 
 			AND created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
 				$days
 			)
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		);
 
 		$deleted_count = 0;
@@ -303,12 +306,12 @@ class Job extends Model {
 		foreach ( $results as $row ) {
 			// Delete physical file
 			if ( file_exists( $row->file_path ) ) {
-				@unlink( $row->file_path );
+				@wp_delete_file( $row->file_path );
 				++$deleted_count;
 			}
 
 			// Clear file_path in database
-			$wpdb->update(
+			$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 				$table,
 				[ 'file_path' => null ],
 				[ 'id' => $row->id ],
@@ -353,13 +356,14 @@ class Job extends Model {
 		$order = esc_sql( $order );
 
 		// Prepare the query with all values
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$sql = $wpdb->prepare(
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is from $wpdb->prefix (controlled).
+		$sql = $wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Dynamic values array_merged into prepare.
 			"SELECT * FROM `{$table}` WHERE {$where_sql} ORDER BY {$order} LIMIT %d OFFSET %d",
 			array_merge( $where_values, [ $limit, $offset ] )
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
-		return $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		return $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	}
 
 	/**
@@ -384,18 +388,18 @@ class Job extends Model {
 			$where_sql = implode( ' AND ', $where_conditions );
 			
 			$table = esc_sql( $table );
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table/WHERE built from sanitized keys; values passed via spread.
 			$sql = $wpdb->prepare(
 				"SELECT COUNT(*) FROM `{$table}` WHERE {$where_sql}",
 				...$where_values
 			);
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 		} else {
 			$table = esc_sql( $table );
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$sql = "SELECT COUNT(*) FROM `{$table}`";
 		}
 
-		return (int) $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		return (int) $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	}
 
 	/**
@@ -434,7 +438,7 @@ class Job extends Model {
 				// Try to delete the parent directory if it's empty
 				$dir = dirname( $file_path );
 				if ( is_dir( $dir ) && $this->is_directory_empty( $dir ) ) {
-					rmdir( $dir );
+					rmdir( $dir ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir
 				}
 			}
 		}

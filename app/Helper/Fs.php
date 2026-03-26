@@ -10,13 +10,8 @@
 
 namespace WP_AIE\Helper;
 
-/**
- * File System Helper Class
- *
- * Provides file system operations for import/export files.
- *
- * @package WP_AIE\Helper
- */
+defined( 'ABSPATH' ) || exit;
+
 class FS {
 
 	/**
@@ -66,7 +61,8 @@ class FS {
 		$filename   = wp_unique_filename( $upload_dir['path'], $file['name'] );
 		$file_path  = $upload_dir['path'] . '/' . $filename;
 
-		if ( ! move_uploaded_file( $file['tmp_name'], $file_path ) ) {
+		// phpcs:ignore Generic.PHP.ForbiddenFunctions.Found -- move_uploaded_file is the correct function for securely handling uploaded files.
+		if ( ! move_uploaded_file( $file['tmp_name'], $file_path ) ) { // phpcs:ignore Generic.PHP.ForbiddenFunctions.Found
 			return new \WP_Error( 'upload_failed', 'Failed to move uploaded file.' );
 		}
 

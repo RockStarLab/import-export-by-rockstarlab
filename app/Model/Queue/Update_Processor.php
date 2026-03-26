@@ -13,13 +13,8 @@ use WP_AIE\Model\Job;
 use WP_AIE\Model\Export\Exporter_Factory;
 use WP_AIE\Helper\Function_Executor;
 
-/**
- * Update Processor Class
- *
- * Handles background processing of content update jobs
- *
- * @package WP_AIE\Model\Queue
- */
+defined( 'ABSPATH' ) || exit;
+
 class Update_Processor {
 
 	/**
@@ -462,7 +457,7 @@ class Update_Processor {
 			}
 			
 			if ( ! empty( $update_data ) ) {
-				$result = $wpdb->update(
+				$result = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct DB query required here.
 					$wpdb->posts,
 					$update_data,
 					[ 'ID' => $post_id ],

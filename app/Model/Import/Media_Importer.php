@@ -11,18 +11,8 @@ namespace WP_AIE\Model\Import;
 
 use WP_AIE\Helper\FS;
 
-/**
- * Media Importer Class
- *
- * Imports media files with support for:
- * - Upload from URL
- * - Upload from local file path
- * - Thumbnail generation
- * - Attachment metadata
- * - Parent post association
- *
- * @package WP_AIE\Model\Import
- */
+defined( 'ABSPATH' ) || exit;
+
 class Media_Importer extends Abstract_Importer {
 
 	/**
@@ -231,13 +221,13 @@ class Media_Importer extends Abstract_Importer {
 		}
 
 		// Get filename
-		$filename = $item['filename'] ?? basename( parse_url( $url, PHP_URL_PATH ) );
+		$filename = $item['filename'] ?? basename( wp_parse_url( $url, PHP_URL_PATH ) );
 
 		// Upload to media library
 		$attachment_id = $this->upload_file( $tmp_file, $filename, $item );
 
 		// Clean up temp file
-		@unlink( $tmp_file );
+		@wp_delete_file( $tmp_file );
 
 		return $attachment_id;
 	}
@@ -251,6 +241,7 @@ class Media_Importer extends Abstract_Importer {
 	 */
 	private function import_from_path( $file_path, $item ) {
 		if ( ! file_exists( $file_path ) ) {
+			// translators: %s is a dynamic value.
 			return new \WP_Error( 'file_not_found', sprintf( __( 'File not found: %s', 'wp-advanced-import-export' ), $file_path ) );
 		}
 
@@ -480,7 +471,7 @@ class Media_Importer extends Abstract_Importer {
 	 */
 	private function find_existing_by_filename( $filename ) {
 		global $wpdb;
-
+ // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 		$attachment_id = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT post_id FROM $wpdb->postmeta 
@@ -503,8 +494,8 @@ class Media_Importer extends Abstract_Importer {
 	private function find_existing_by_url( $url ) {
 		global $wpdb;
 
-		$filename = basename( parse_url( $url, PHP_URL_PATH ) );
-
+		$filename = basename( wp_parse_url( $url, PHP_URL_PATH ) );
+ // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 		$attachment_id = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT post_id FROM $wpdb->postmeta 

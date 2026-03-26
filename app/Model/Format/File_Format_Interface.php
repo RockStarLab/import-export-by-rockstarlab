@@ -9,14 +9,8 @@
 
 namespace WP_AIE\Model\Format;
 
-/**
- * File Format Interface
- *
- * All format handlers must implement this interface to ensure consistent API
- * for parsing and generating files in different formats.
- *
- * @package WP_AIE\Model\Format
- */
+defined( 'ABSPATH' ) || exit;
+
 interface File_Format_Interface {
 
 	/**

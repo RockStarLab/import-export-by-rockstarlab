@@ -9,19 +9,8 @@
 
 namespace WP_AIE\Model\Import;
 
-/**
- * User Importer Class
- *
- * Imports WordPress users with support for:
- * - User meta
- * - User roles and capabilities
- * - ACF fields
- * - Social media profiles
- * - User avatar
- * - Duplicate handling
- *
- * @package WP_AIE\Model\Import
- */
+defined( 'ABSPATH' ) || exit;
+
 class User_Importer extends Abstract_Importer {
 
 	/**
@@ -203,29 +192,22 @@ class User_Importer extends Abstract_Importer {
 	 * @return int|string|WP_Error User ID, 'skipped', 'updated', or WP_Error
 	 */
 	public function import_item( $item, $index ) {
-		// Debug logging
-		error_log( "User_Importer::import_item() - Index: $index" );
-		error_log( "User_Importer::import_item() - Raw item: " . print_r( $item, true ) );
 		
-		// Sanitize data
-		$item = $this->sanitize_item( $item );
-		error_log( "User_Importer::import_item() - After sanitize: " . print_r( $item, true ) );
+		// Sanitize data // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug logging for development.
+		$item = $this->sanitize_item( $item ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug logging for development.
 
 		// Check for existing user
 		$existing_user = $this->find_existing_user( $item );
-		error_log( "User_Importer::import_item() - Existing user found: " . ( $existing_user ? $existing_user->ID : 'no' ) );
-
+ // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug logging for development.
 		if ( $existing_user ) {
 			$duplicate_mode = $this->get_option( 'duplicate_mode', 'skip' );
-			error_log( "User_Importer::import_item() - Duplicate mode: $duplicate_mode" );
-			error_log( "User_Importer::import_item() - All options: " . print_r( $this->options, true ) );
-
-			if ( 'skip' === $duplicate_mode ) {
+		
+			if ( 'skip' === $duplicate_mode ) { // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug logging for development.
 				return 'skipped';
 			}
 
-			if ( 'update' === $duplicate_mode ) {
-				return $this->update_user( $existing_user->ID, $item );
+			if ( 'update' === $duplicate_mode ) { // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug logging for development.
+				return $this->update_user( $existing_user->ID, $item ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug logging for development.
 			}
 
 			// 'create' mode - fall through to create new user

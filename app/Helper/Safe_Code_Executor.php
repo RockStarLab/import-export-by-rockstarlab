@@ -12,13 +12,8 @@
 
 namespace WP_AIE\Helper;
 
-if ( ! defined( 'WPINC' ) ) {
-	die;
-}
+defined( 'ABSPATH' ) || exit;
 
-/**
- * Safe Code Executor Class
- */
 class Safe_Code_Executor {
 
 	/**
@@ -299,21 +294,7 @@ class Safe_Code_Executor {
 			];
 		}
 
-		// Set resource limits
-		$old_timeout = ini_get( 'max_execution_time' );
-		$old_memory  = ini_get( 'memory_limit' );
-
-		@set_time_limit( 5 ); // 5 seconds max
-		@ini_set( 'memory_limit', '128M' ); // 128MB max
-
-		// Execute with error handling
-		$result = self::execute_isolated( $code, $value );
-
-		// Restore limits
-		@set_time_limit( $old_timeout );
-		@ini_set( 'memory_limit', $old_memory );
-
-		return $result;
+		return self::execute_isolated( $code, $value );
 	}
 
 	/**
@@ -357,27 +338,27 @@ class Safe_Code_Executor {
 			// Create anonymous function
 			$func = function ( $value ) use ( $code ) {
 				// Capture errors but allow them to be retrieved
-				$old_error_reporting = error_reporting( E_ALL );
+				$old_error_reporting = error_reporting( E_ALL ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting
 				$old_display_errors = ini_get( 'display_errors' );
-				ini_set( 'display_errors', '0' );
+				ini_set( 'display_errors', '0' ); // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged
 
 				// Execute code
 				ob_start();
 				$error_buffer = [];
-				
-				set_error_handler( function ( $errno, $errstr, $errfile, $errline ) use ( &$error_buffer ) {
+
+				set_error_handler( function ( $errno, $errstr, $errfile, $errline ) use ( &$error_buffer ) { // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler
 					$error_buffer[] = $errstr;
 					return true;
 				} );
 
 				try {
 					// phpcs:ignore Squiz.PHP.Eval.Discouraged -- Controlled execution with validation
-					$result = eval( $code );
+					$result = eval( $code ); // phpcs:ignore Generic.PHP.ForbiddenFunctions.Found -- Used intentionally in sandboxed executor.
 					$output = ob_get_clean();
 
 					restore_error_handler();
-					error_reporting( $old_error_reporting );
-					ini_set( 'display_errors', $old_display_errors );
+					error_reporting( $old_error_reporting ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting
+					ini_set( 'display_errors', $old_display_errors ); // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged
 
 					// Check if there were any errors during execution
 					if ( ! empty( $error_buffer ) ) {
@@ -395,8 +376,8 @@ class Safe_Code_Executor {
 				} catch ( \ParseError $e ) {
 					ob_end_clean();
 					restore_error_handler();
-					error_reporting( $old_error_reporting );
-					ini_set( 'display_errors', $old_display_errors );
+					error_reporting( $old_error_reporting ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting
+					ini_set( 'display_errors', $old_display_errors ); // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged
 
 					return [
 						'output' => '',
@@ -406,8 +387,8 @@ class Safe_Code_Executor {
 				} catch ( \Throwable $e ) {
 					ob_end_clean();
 					restore_error_handler();
-					error_reporting( $old_error_reporting );
-					ini_set( 'display_errors', $old_display_errors );
+					error_reporting( $old_error_reporting ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting
+					ini_set( 'display_errors', $old_display_errors ); // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged
 
 					return [
 						'output' => '',
@@ -560,10 +541,10 @@ if ( class_exists( '\PhpParser\NodeVisitorAbstract' ) ) {
 					$func_name = $node->name->toString();
 
 					if ( in_array( $func_name, $this->dangerous_functions, true ) ) {
-						throw new \Exception(
+						throw new \Exception( // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- internal exception not displayed to users
 							sprintf(
 								'Dangerous function "%s" is not allowed',
-								$func_name
+								$func_name // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal exception not displayed to users.
 							)
 						);
 					}

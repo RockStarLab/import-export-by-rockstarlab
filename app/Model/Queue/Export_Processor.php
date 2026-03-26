@@ -14,13 +14,8 @@ use WP_AIE\Model\Export\Exporter_Factory;
 use WP_AIE\Model\Format\Format_Factory;
 use WP_AIE\Helper\Fs;
 
-/**
- * Export Processor Class
- *
- * Handles background processing of export jobs
- *
- * @package WP_AIE\Model\Queue
- */
+defined( 'ABSPATH' ) || exit;
+
 class Export_Processor {
 
 	/**
@@ -255,12 +250,12 @@ class Export_Processor {
 		}
 
 		// Append data as JSON lines (one JSON object per line)
-		$handle = fopen( $temp_file, 'a' );
+		$handle = fopen( $temp_file, 'a' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 		if ( $handle ) {
 			foreach ( $batch_data as $item ) {
-				fwrite( $handle, json_encode( $item ) . "\n" );
+				fwrite( $handle, json_encode( $item ) . "\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 			}
-			fclose( $handle );
+			fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 		}
 	}
 
@@ -278,7 +273,7 @@ class Export_Processor {
 		}
 
 		$data   = [];
-		$handle = fopen( $temp_file, 'r' );
+		$handle = fopen( $temp_file, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 		if ( $handle ) {
 			while ( ( $line = fgets( $handle ) ) !== false ) {
 				$item = json_decode( trim( $line ), true );
@@ -286,7 +281,7 @@ class Export_Processor {
 					$data[] = $item;
 				}
 			}
-			fclose( $handle );
+			fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 		}
 
 		return $data;
@@ -300,7 +295,7 @@ class Export_Processor {
 	private function cleanup_temp_file( $job_id ) {
 		$temp_file = $this->get_temp_file_path( $job_id );
 		if ( file_exists( $temp_file ) ) {
-			unlink( $temp_file );
+			wp_delete_file( $temp_file );
 		}
 	}
 

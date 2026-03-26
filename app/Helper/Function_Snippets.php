@@ -9,14 +9,8 @@
 
 namespace WP_AIE\Helper;
 
-/**
- * Function Snippets Class
- *
- * Provides library of 50+ ready-to-use transformation functions
- * organized by categories with search and filtering capabilities.
- *
- * @package WP_AIE\Helper
- */
+defined( 'ABSPATH' ) || exit;
+
 class Function_Snippets {
 
 	/**

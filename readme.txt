@@ -1,13 +1,13 @@
 === WP Advanced Import Export ===
 Contributors: RockstarLab
-Tags: import, export, csv, site sync, media sync, bulk import, woocommerce import, data migration, wordpress migration
+Tags: import, export, csv, site sync, data migration
 Requires at least: 5.8
-Tested up to: 6.5.2
+Tested up to: 6.9
 Stable tag: 1.0.0
 Requires PHP: 7.4
 License: GPL v2 or later
 
-Advanced import and export solution for WordPress with custom functions, media folder sync, site-to-site content sync, and premium Real Media Library integration.
+Advanced import/export for WordPress: custom functions, media sync, site-to-site content sync, and Real Media Library integration.
 
 == Description ==
 

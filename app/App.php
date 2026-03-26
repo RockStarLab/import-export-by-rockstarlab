@@ -1,9 +1,4 @@
 <?php
-
-namespace WP_AIE;
-
-defined( 'ABSPATH' ) or exit;
-
 /**
  * Main App Class
  *
@@ -11,6 +6,10 @@ defined( 'ABSPATH' ) or exit;
  *
  * @package WP_AIE
  */
+namespace WP_AIE;
+
+defined( 'ABSPATH' ) or exit;
+
 class App {
 
 	private static $instance = null;

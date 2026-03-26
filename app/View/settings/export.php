@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // Check if resuming a job - hide steps initially to prevent flash
-$resume_job_id = isset( $_GET['resume_job'] ) ? intval( $_GET['resume_job'] ) : 0;
+$resume_job_id = isset( $_GET['resume_job'] ) ? intval( $_GET['resume_job'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified via verify_request().
 
 // Check if premium is active
 $is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();

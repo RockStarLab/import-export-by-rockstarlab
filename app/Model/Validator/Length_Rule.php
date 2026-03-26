@@ -9,13 +9,8 @@
 
 namespace WP_AIE\Model\Validator;
 
-/**
- * Length Rule Class
- *
- * Validates that a string's length is within specified min/max bounds.
- *
- * @package WP_AIE\Model\Validator
- */
+defined( 'ABSPATH' ) || exit;
+
 class Length_Rule extends Validation_Rule {
 
 	/**

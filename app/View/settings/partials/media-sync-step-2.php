@@ -100,7 +100,10 @@ defined( 'ABSPATH' ) || exit;
 					<?php if ( waie_fs()->can_use_premium_code() ) : ?>
 						<label>
 							<input type="checkbox" id="aie-rml-integration">
-							<?php printf( esc_html__( 'Create virtual folders in %s plugin', 'wp-advanced-import-export' ), '<a href="https://devowl.io/wordpress-real-media-library/" target="_blank">Real Media Library</a>' ); ?>
+							<?php
+							// translators: %s is the Real Media Library plugin link.
+							printf( esc_html__( 'Create virtual folders in %s plugin', 'wp-advanced-import-export' ), '<a href="https://devowl.io/wordpress-real-media-library/" target="_blank">Real Media Library</a>' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML link is hardcoded.
+							?>
 						</label>
 						<p class="description">
 							<?php esc_html_e( 'Automatically create folders in Real Media Library and organize imported files based on their folder structure.', 'wp-advanced-import-export' ); ?>

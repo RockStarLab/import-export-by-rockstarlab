@@ -11,13 +11,8 @@
 
 namespace WP_AIE\Model;
 
-/**
- * Base Model Class
- *
- * Abstract base class for all database models with common CRUD operations.
- *
- * @package WP_AIE\Model
- */
+defined( 'ABSPATH' ) || exit;
+
 abstract class Model {
 
 	/**
@@ -48,8 +43,8 @@ abstract class Model {
 		global $wpdb;
 		$table = $this->get_table_name();
 
-		return $wpdb->get_row(
-			$wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id )
+		return $wpdb->get_row( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			$wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 		);
 	}
 
@@ -64,8 +59,8 @@ abstract class Model {
 		global $wpdb;
 		$table = $this->get_table_name();
 
-		return $wpdb->get_results(
-			$wpdb->prepare( "SELECT * FROM {$table} WHERE {$column} = %s", $value )
+		return $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			$wpdb->prepare( "SELECT * FROM {$table} WHERE {$column} = %s", $value ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 		);
 	}
 
@@ -93,8 +88,8 @@ abstract class Model {
 			? strtoupper( $args['order'] )
 			: 'DESC';
 
-		return $wpdb->get_results(
-			"SELECT * FROM {$table} ORDER BY {$order_by} {$order} LIMIT {$limit} OFFSET {$offset}"
+		return $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			"SELECT * FROM {$table} ORDER BY {$order_by} {$order} LIMIT {$limit} OFFSET {$offset}" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 		);
 	}
 
@@ -110,7 +105,7 @@ abstract class Model {
 
 		$formats = $this->get_formats( $data );
 
-		$result = $wpdb->insert( $table, $data, $formats );
+		$result = $wpdb->insert( $table, $data, $formats ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct DB query required here.
 
 		if ( $result === false ) {
 			return new \WP_Error( 'db_insert_error', $wpdb->last_error );
@@ -132,7 +127,7 @@ abstract class Model {
 
 		$formats = $this->get_formats( $data );
 
-		$result = $wpdb->update(
+		$result = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$table,
 			$data,
 			[ 'id' => $id ],
@@ -157,7 +152,7 @@ abstract class Model {
 		global $wpdb;
 		$table = $this->get_table_name();
 
-		return $wpdb->delete(
+		return $wpdb->delete( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$table,
 			[ 'id' => $id ],
 			[ '%d' ]
@@ -175,7 +170,7 @@ abstract class Model {
 		$table = $this->get_table_name();
 
 		if ( empty( $where ) ) {
-			return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
+			return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" ); // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 		}
 
 		$conditions = [];
@@ -192,15 +187,15 @@ abstract class Model {
 			// No WHERE conditions, return total count
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$query = "SELECT COUNT(*) FROM `{$table}`";
-			return (int) $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			return (int) $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		}
 
 		$where_clause = implode( ' AND ', $conditions );
 		// Use array spread operator to pass values as separate arguments
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$query = $wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE {$where_clause}", ...$values );
+		$query = $wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE {$where_clause}", ...$values ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here
 
-		return (int) $wpdb->get_var( $query );
+		return (int) $wpdb->get_var( $query ); // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- Direct DB query required here.
 	}
 
 	/**

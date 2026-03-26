@@ -9,14 +9,8 @@
 
 namespace WP_AIE\Model\Format;
 
-/**
- * JSON Format Handler Class
- *
- * Implements JSON file parsing, generation, and validation with support
- * for large files through streaming.
- *
- * @package WP_AIE\Model\Format
- */
+defined( 'ABSPATH' ) || exit;
+
 class JSON_Format implements File_Format_Interface {
 
 	/**

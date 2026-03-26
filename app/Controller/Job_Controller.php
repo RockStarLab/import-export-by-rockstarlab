@@ -12,17 +12,8 @@ namespace WP_AIE\Controller;
 use WP_AIE\Model\Job;
 use WP_AIE\Model\Log;
 
-/**
- * Job Controller Class
- *
- * Manages import/export jobs:
- * - List jobs
- * - Get job details
- * - Delete jobs
- * - Get job logs
- *
- * @package WP_AIE\Controller
- */
+defined( 'ABSPATH' ) or exit;
+
 class Job_Controller extends Base_Controller {
 
 	/**
@@ -209,9 +200,9 @@ class Job_Controller extends Base_Controller {
 		$table_name = $wpdb->prefix . 'aie_jobs';
 
 		// Delete old completed jobs
-		$deleted = $wpdb->query(
+		$deleted = $wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
-				"DELETE FROM {$table_name} WHERE status IN ('completed', 'failed', 'cancelled') AND created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
+				"DELETE FROM {$table_name} WHERE status IN ('completed', 'failed', 'cancelled') AND created_at < DATE_SUB(NOW(), INTERVAL %d DAY)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 				$days
 			)
 		);

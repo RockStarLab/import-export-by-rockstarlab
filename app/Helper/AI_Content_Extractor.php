@@ -10,13 +10,8 @@
 
 namespace WP_AIE\Helper;
 
-/**
- * AI Content Extractor Class
- *
- * Uses OpenAI GPT-4 to intelligently extract article content from web pages
- *
- * @package WP_AIE\Helper
- */
+defined( 'ABSPATH' ) || exit;
+
 class AI_Content_Extractor {
 
 	/**
@@ -400,7 +395,7 @@ class AI_Content_Extractor {
 			return $url;
 		}
 
-		$base_parts = parse_url( $base_url );
+		$base_parts = wp_parse_url( $base_url );
 
 		// Protocol-relative URL
 		if ( substr( $url, 0, 2 ) === '//' ) {
@@ -444,14 +439,14 @@ class AI_Content_Extractor {
 		}
 
 		// Get filename
-		$file_name = basename( parse_url( $image_url, PHP_URL_PATH ) );
+		$file_name = basename( wp_parse_url( $image_url, PHP_URL_PATH ) );
 
 		// Check for duplicate by file hash
 		$file_hash     = md5_file( $tmp );
 		$existing_hash = $this->find_image_by_hash( $file_hash );
 
 		if ( $existing_hash ) {
-			@unlink( $tmp );
+			@wp_delete_file( $tmp );
 			return $existing_hash;
 		}
 
@@ -465,7 +460,7 @@ class AI_Content_Extractor {
 		$id = media_handle_sideload( $file_array, 0 );
 
 		if ( is_wp_error( $id ) ) {
-			@unlink( $tmp );
+			@wp_delete_file( $tmp );
 			return $id;
 		}
 
@@ -492,7 +487,7 @@ class AI_Content_Extractor {
 	private function find_image_by_url( $url ) {
 		global $wpdb;
 
-		$attachment_id = $wpdb->get_var(
+		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
 				"SELECT post_id FROM {$wpdb->postmeta} 
 				WHERE meta_key = '_aie_source_url' 
@@ -514,7 +509,7 @@ class AI_Content_Extractor {
 	private function find_image_by_hash( $hash ) {
 		global $wpdb;
 
-		$attachment_id = $wpdb->get_var(
+		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
 				"SELECT post_id FROM {$wpdb->postmeta} 
 				WHERE meta_key = '_aie_image_hash' 

@@ -9,16 +9,8 @@
 
 namespace WP_AIE\Model\Queue;
 
-/**
- * Batch Processor Class
- *
- * Handles chunked processing of large datasets with monitoring of:
- * - Memory usage
- * - Execution time
- * - Progress tracking
- *
- * @package WP_AIE\Model\Queue
- */
+defined( 'ABSPATH' ) || exit;
+
 class Batch_Processor {
 
 	/**

@@ -67,19 +67,8 @@
 
 namespace WP_AIE\Model\Import;
 
-/**
- * WooCommerce Order Importer Class
- *
- * Imports orders with support for:
- * - All order statuses
- * - Order items with products and variations
- * - Customer assignment
- * - Billing and shipping addresses
- * - Order notes and metadata
- * - Payment and shipping methods
- *
- * @package WP_AIE\Model\Import
- */
+defined( 'ABSPATH' ) || exit;
+
 class Woo_Order_Importer extends Abstract_Importer {
 
 	/**
@@ -638,8 +627,8 @@ class Woo_Order_Importer extends Abstract_Importer {
 			if ( ! empty( $item['order_number'] ) ) {
 				// First check if order_number is stored in custom meta
 				$orders = wc_get_orders( [
-					'meta_key'   => '_order_number',
-					'meta_value' => $item['order_number'],
+					'meta_key'   => '_order_number', // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+					'meta_value' => $item['order_number'], // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 					'limit'      => 1,
 				] );
 

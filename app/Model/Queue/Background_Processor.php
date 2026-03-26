@@ -12,13 +12,8 @@ namespace WP_AIE\Model\Queue;
 use WP_AIE\Model\Job;
 use WP_AIE\Helper\Progress_Tracker;
 
-/**
- * Background Processor Class
- *
- * Handles background processing of import/export jobs
- *
- * @package WP_AIE\Model\Queue
- */
+defined( 'ABSPATH' ) || exit;
+
 class Background_Processor {
 
 	/**
@@ -89,8 +84,8 @@ class Background_Processor {
 
 		// Get oldest pending or processing job
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name uses $wpdb->prefix, no user input
-		$job = $wpdb->get_row(
-			"SELECT * FROM {$table} WHERE status IN ('pending', 'processing') ORDER BY created_at ASC LIMIT 1",
+		$job = $wpdb->get_row( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			"SELECT * FROM {$table} WHERE status IN ('pending', 'processing') ORDER BY created_at ASC LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 			ARRAY_A
 		);
 
@@ -168,7 +163,7 @@ class Background_Processor {
 		$data           = $format_handler->parse( $file_path );
 
 		if ( is_wp_error( $data ) ) {
-			throw new \Exception( $data->get_error_message() );
+			throw new \Exception( esc_html( $data->get_error_message() ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 		}
 
 		if ( ! is_array( $data ) ) {

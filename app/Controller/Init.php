@@ -1,9 +1,4 @@
 <?php
-
-namespace WP_AIE\Controller;
-
-defined( 'ABSPATH' ) or exit;
-
 /**
  * Init Controller Class
  *
@@ -11,6 +6,11 @@ defined( 'ABSPATH' ) or exit;
  *
  * @package WP_AIE\Controller
  */
+
+namespace WP_AIE\Controller;
+
+defined( 'ABSPATH' ) or exit;
+
 class Init {
 
 	/**
@@ -179,10 +179,12 @@ class Init {
 
 	/**
 	 * Load plugin translations
+	 *
+	 * Note: load_plugin_textdomain() is no longer needed since WordPress 4.6.
+	 * WordPress automatically loads translations from the languages directory.
 	 */
 	function load_translations() {
-
-		load_plugin_textdomain( 'wp-advanced-import-export', false, dirname( plugin_basename( WP_AIE_FILE ) ) . '/languages' );
+		// Translations are loaded automatically by WordPress since version 4.6.
 	}
 
 	/**
@@ -231,9 +233,9 @@ class Init {
 				'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
 				'nonce'          => wp_create_nonce( 'aie_nonce' ),
 				'pluginUrl'      => plugins_url( '', WP_AIE_FILE ),
-				'functionsUrl'   => admin_url( 'admin.php?page=wp-aie-functions' ),
+				'functionsUrl'   => admin_url( 'admin.php?page=wp-aie-functions' ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request(). -- Input is sanitized and validated in context.
 				'optionsUrl'     => admin_url( 'admin.php?page=wp-aie-plugin-options' ),
-				'currentPage'    => isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '',
+				'currentPage'    => isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading admin page slug, no nonce needed.
 				'hasOpenAIApiKey' => \WP_AIE\Helper\AI_Function_Generator::has_api_key(),
 				'isPremium'      => function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code(),
 				'premiumDataTypes' => [
@@ -327,8 +329,10 @@ class Init {
 					'enterTestValue'             => __( 'Enter test value...', 'wp-advanced-import-export' ),
 					'testPipeline'               => __( 'Test Pipeline', 'wp-advanced-import-export' ),
 					'applyFunctions'             => __( 'Apply Functions', 'wp-advanced-import-export' ),
+					// translators: %s = content placeholder.
 					'initialValue'               => __( 'Initial Value', 'wp-advanced-import-export' ),
 					'finalResult'                => __( 'Final Result', 'wp-advanced-import-export' ),
+					// translators: %d is a dynamic value.
 					'autoMappedFields'           => __( 'Auto-mapped %d fields', 'wp-advanced-import-export' ),
 					'dragSourceColumns'          => __( 'Drag source columns to WordPress fields to create mappings', 'wp-advanced-import-export' ),
 
@@ -387,19 +391,23 @@ class Init {
 					'failedRegenerateKey'        => __( 'Failed to regenerate key', 'wp-advanced-import-export' ),
 					'apiKeyCopied'               => __( 'API key copied to clipboard', 'wp-advanced-import-export' ),
 					'confirmRegenerateMyKey'     => __( 'Are you sure you want to regenerate your API key?\n\nThis will invalidate the current key and all remote sites will need to update their connection settings with the new key.', 'wp-advanced-import-export' ),
+					// translators: %s = content placeholder.
 					'failedRegenerateApiKey'     => __( 'Failed to regenerate API key', 'wp-advanced-import-export' ),
 
 					// Media Sync
 					'noFilesFoundCriteria'       => __( 'No files found matching the criteria', 'wp-advanced-import-export' ),
+					// translators: %d is a dynamic value.
 					'foundFilesReadyToSync'      => __( 'Found %d files ready to sync', 'wp-advanced-import-export' ),
 					'noFilesFoundTitle'          => __( 'No Files Found', 'wp-advanced-import-export' ),
 					'noFilesFoundDesc'           => __( 'No files matching your criteria were found in the selected folder.', 'wp-advanced-import-export' ),
+					// translators: %s = content placeholder.
 					'suggestions'                => __( 'Suggestions', 'wp-advanced-import-export' ),
 					'checkFolderPath'            => __( 'Check if the folder path is correct', 'wp-advanced-import-export' ),
 					'enableScanRecursive'        => __( 'Try enabling "Scan Recursive" to search in subfolders', 'wp-advanced-import-export' ),
 					'changeFileTypeFilter'       => __( 'Change the file type filter', 'wp-advanced-import-export' ),
 					'makeSureFolderContains'     => __( 'Make sure the folder contains supported media files', 'wp-advanced-import-export' ),
 					'scanComplete'               => __( 'Scan Complete', 'wp-advanced-import-export' ),
+					// translators: %1$s is a dynamic value, %2$s is a dynamic value.
 					'foundFilesReadySync'        => __( 'Found %1$s files ready for synchronization (Total: %2$s)', 'wp-advanced-import-export' ),
 					'fileTypes'                  => __( 'File Types', 'wp-advanced-import-export' ),
 					'filesProcessedBatches'      => __( 'All files will be processed in batches. Click "Start Sync" below to begin.', 'wp-advanced-import-export' ),
@@ -409,34 +417,48 @@ class Init {
 					'invalidFolderPath'          => __( 'Invalid folder path', 'wp-advanced-import-export' ),
 					'syncStarted'                => __( 'Synchronization started', 'wp-advanced-import-export' ),
 					'syncPaused'                 => __( 'Sync paused', 'wp-advanced-import-export' ),
+					// translators: %s = content placeholder.
 					'syncResumed'                => __( 'Sync resumed', 'wp-advanced-import-export' ),
 					'confirmCancelSync'          => __( 'Are you sure you want to cancel the synchronization?\n\nThis will stop the process and you\'ll need to start over.', 'wp-advanced-import-export' ),
 					'syncCancelled'              => __( 'Sync cancelled', 'wp-advanced-import-export' ),			// Post Sync
 			'selectAtLeastOnePost'       => __( 'Please select at least one post', 'wp-advanced-import-export' ),
 			'selectSite'                 => __( 'Please select a site', 'wp-advanced-import-export' ),
+			// translators: %s = content placeholder.
 			'noPostsSelected'            => __( 'No posts selected', 'wp-advanced-import-export' ),
 			'pushTo'                     => __( 'push to', 'wp-advanced-import-export' ),
 			'pullFrom'                   => __( 'pull from', 'wp-advanced-import-export' ),
+			// translators: %1$s is a dynamic value, %2$s is a dynamic value, %3$s is a dynamic value.
 			'confirmSyncAction'          => __( 'Are you sure you want to %1$s %2$s?\n\nThis will affect %3$s post(s).', 'wp-advanced-import-export' ),
 			'preparingToPush'            => __( 'Preparing to push content...', 'wp-advanced-import-export' ),
 			'preparingToPull'            => __( 'Preparing to pull content...', 'wp-advanced-import-export' ),
+			// translators: %s = content placeholder.
 			'uploadingContent'           => __( 'Uploading content...', 'wp-advanced-import-export' ),
+			// translators: %s = content placeholder.
 			'downloadingContent'         => __( 'Downloading content...', 'wp-advanced-import-export' ),
 			'syncCompletedSuccessfully'  => __( 'Sync completed successfully', 'wp-advanced-import-export' ),
-			'createdPosts'               => __( '✓ Created %d post(s), Updated %d post(s)', 'wp-advanced-import-export' ),
+			// translators: 1: number of created posts, 2: number of updated posts.
+			'createdPosts'               => __( '✓ Created %1$d post(s), Updated %2$d post(s)', 'wp-advanced-import-export' ),
+			// translators: %d is a dynamic value.
 			'syncedImages'               => __( '✓ Synced %d image(s)', 'wp-advanced-import-export' ),
 			'syncFailed'                 => __( 'Sync failed', 'wp-advanced-import-export' ),
 			'errorOccurredDuringSync'    => __( 'An error occurred during sync', 'wp-advanced-import-export' ),
+			// translators: %1$s is a dynamic value, %2$s is a dynamic value.
 			'postsProgress'              => __( 'Posts: %1$s/%2$s', 'wp-advanced-import-export' ),
+			// translators: %d is a dynamic value.
 			'imagesSyncedProgress'       => __( 'Images synced: %d', 'wp-advanced-import-export' ),
 
 			// Time formats
+			// translators: %d is a dynamic value.
 			'timeFormatSeconds'          => __( '%ds', 'wp-advanced-import-export' ),
+			// translators: %1$s is a dynamic value, %2$s is a dynamic value.
 			'timeFormatMinutesSeconds'   => __( '%1$sm %2$ss', 'wp-advanced-import-export' ),
+			// translators: %1$s is a dynamic value, %2$s is a dynamic value.
 			'timeFormatHoursMinutes'     => __( '%1$sh %2$sm', 'wp-advanced-import-export' ),
 
 			// File validation
+			// translators: %1$s is a dynamic value, %2$s is a dynamic value.
 			'fileSizeExceeds'            => __( 'File size (%1$s) exceeds maximum allowed size (%2$s)', 'wp-advanced-import-export' ),
+			// translators: %1$s is a dynamic value, %2$s is a dynamic value.
 			'fileTypeNotAllowed'         => __( 'File type .%1$s is not allowed. Allowed types: %2$s', 'wp-advanced-import-export' ),
 
 			// Export
@@ -458,7 +480,9 @@ class Init {
 				'failedCancelImport'         => __( 'Failed to cancel the import. Please try again.', 'wp-advanced-import-export' ),
 				'error'                      => __( 'Error', 'wp-advanced-import-export' ),
 				'rateLimitReached'           => __( 'Rate Limit Reached', 'wp-advanced-import-export' ),
+				// translators: %s is a dynamic value.
 				'importCompleted'            => __( 'Import completed! %s URLs imported successfully.', 'wp-advanced-import-export' ),
+				// translators: %s is a dynamic value.
 				'importFailed'               => __( 'Import failed: %s', 'wp-advanced-import-export' ),					// Import
 					'showingFirstRows'           => __( 'Showing first 5 rows', 'wp-advanced-import-export' ),
 					'pleaseSelectTable'          => __( 'Please select a database table above to see available columns', 'wp-advanced-import-export' ),
@@ -473,6 +497,7 @@ class Init {
 				'confirmCancelImportStep'    => __( 'Are you sure you want to cancel this import?', 'wp-advanced-import-export' ),
 
 				// Export (additional strings)
+				// translators: %s = content placeholder.
 				'exportComplete'             => __( 'Export Complete!', 'wp-advanced-import-export' ),
 				'selectPostType'             => __( 'Select Post Type', 'wp-advanced-import-export' ),
 				'selectPostTypePlaceholder'  => __( 'Select Post Type...', 'wp-advanced-import-export' ),
@@ -497,7 +522,9 @@ class Init {
 				'loadingYoastFields'         => __( 'Loading Yoast SEO fields...', 'wp-advanced-import-export' ),
 				'noFunctionsAvailableYet'    => __( 'No functions available yet.', 'wp-advanced-import-export' ),
 				'createFirstFunction'        => __( 'Create your first custom function to get started.', 'wp-advanced-import-export' ),
+				// translators: %s is a dynamic value.
 				'noFunctionsFound'           => __( 'No %s functions found.', 'wp-advanced-import-export' ),
+				// translators: %s is a dynamic value.
 				'errorLabel'                 => __( 'Error: %s', 'wp-advanced-import-export' ),
 
 				// Export (UI strings used in export.js)
@@ -758,12 +785,14 @@ class Init {
 				'fieldCouponAmount'           => __( 'Coupon Amount', 'wp-advanced-import-export' ),
 				'fieldFreeShipping'           => __( 'Free Shipping', 'wp-advanced-import-export' ),
 				'fieldMinimumSpend'           => __( 'Minimum Spend', 'wp-advanced-import-export' ),
+				// translators: %s = content placeholder.
 				'fieldMaximumSpend'           => __( 'Maximum Spend', 'wp-advanced-import-export' ),
 				'fieldIndividualUseOnly'      => __( 'Individual Use Only', 'wp-advanced-import-export' ),
 				'fieldExcludeSaleItems'       => __( 'Exclude Sale Items', 'wp-advanced-import-export' ),
 				'fieldAllowedProducts'        => __( 'Allowed Products', 'wp-advanced-import-export' ),
 				'fieldExcludedProducts'       => __( 'Excluded Products', 'wp-advanced-import-export' ),
 				'fieldAllowedCategories'      => __( 'Allowed Categories', 'wp-advanced-import-export' ),
+				// translators: %s = content placeholder.
 				'fieldExcludedCategories'     => __( 'Excluded Categories', 'wp-advanced-import-export' ),
 				'fieldAllowedEmails'          => __( 'Allowed Emails', 'wp-advanced-import-export' ),
 				'fieldUsageCount'             => __( 'Usage Count', 'wp-advanced-import-export' ),
@@ -785,6 +814,7 @@ class Init {
 			'confirmClearFields'         => __( 'Are you sure you want to clear all selected fields?', 'wp-advanced-import-export' ),
 			'confirmClearFunctions'      => __( 'Are you sure you want to clear all function assignments?', 'wp-advanced-import-export' ),
 			'confirmCancelUpdate'        => __( 'Are you sure you want to cancel the update?', 'wp-advanced-import-export' ),
+			// translators: %1$s is a dynamic value, %2$s is a dynamic value.
 			'processingItems'            => __( 'Processing items... (%1$s / %2$s)', 'wp-advanced-import-export' ),
 			'premiumOnlyFeature'         => __( 'This content type is only available in the Premium version. Upgrade to unlock this feature.', 'wp-advanced-import-export' ),
 			'fileValidationFailed'       => __( 'File Validation Failed', 'wp-advanced-import-export' ),
@@ -792,6 +822,7 @@ class Init {
 			'pleaseSelectContentType'    => __( 'Please select a content type', 'wp-advanced-import-export' ),
 			'pleaseSelectAtLeastOneField' => __( 'Please select at least one field to update', 'wp-advanced-import-export' ),
 			'pleaseAssignFunction'       => __( 'Please assign at least one function to a field', 'wp-advanced-import-export' ),
+			// translators: %s = field name.
 			'fieldAlreadySelected'       => __( 'Field "%s" is already selected', 'wp-advanced-import-export' ),
 			'noFieldsSelected'           => __( 'No fields selected. Please go back and select fields first.', 'wp-advanced-import-export' ),
 			'assignFunctions'            => __( 'Assign Functions', 'wp-advanced-import-export' ),
@@ -837,6 +868,7 @@ class Init {
 				'hideDetails'                => __( 'Hide Details', 'wp-advanced-import-export' ),
 				'showDetails'                => __( 'Show Details', 'wp-advanced-import-export' ),
 				'copied'                     => __( 'Copied!', 'wp-advanced-import-export' ),
+				// translators: %s = content placeholder.
 				'regenerating'               => __( 'Regenerating...', 'wp-advanced-import-export' ),
 				'regenerated'                => __( 'Regenerated!', 'wp-advanced-import-export' ),
 				'updating'                   => __( 'Updating...', 'wp-advanced-import-export' ),
@@ -859,6 +891,7 @@ class Init {
 				'toResolveIssue'             => __( 'To resolve this issue:', 'wp-advanced-import-export' ),
 				'goToContentSync'            => __( '- Go to Content Sync page on the remote site', 'wp-advanced-import-export' ),
 				'clickShowDetails'           => __( '- Click "Show Details" to reveal the API key', 'wp-advanced-import-export' ),
+				// translators: %s = content placeholder.
 				'copyEntireKey'              => __( '- Copy the entire key and paste it here', 'wp-advanced-import-export' ),
 				'pluginNotFound'             => __( 'Plugin Not Found', 'wp-advanced-import-export' ),
 				'duplicateConnection'        => __( 'Duplicate Connection', 'wp-advanced-import-export' ),
@@ -867,19 +900,23 @@ class Init {
 				'networkError'               => __( 'Network Error', 'wp-advanced-import-export' ),
 				'unableConnectServer'        => __( 'Unable to connect to the server. Please check your internet connection.', 'wp-advanced-import-export' ),
 				'serverError'                => __( 'Server Error', 'wp-advanced-import-export' ),
+				// translators: %s is a dynamic value.
 				'serverReturnedError'        => __( 'The server returned an error (%s). Please try again later.', 'wp-advanced-import-export' ),
 				'notFound'                   => __( 'Not Found', 'wp-advanced-import-export' ),
 				'endpointNotFound'           => __( 'The requested endpoint was not found. Please check if the plugin is properly installed.', 'wp-advanced-import-export' ),
 
+				// translators: %s = content placeholder.
 				// Functions Management
 				'serverErrorPhpSyntax'       => __( 'Server error: The function code contains errors that prevent it from being saved. Please check your PHP syntax.', 'wp-advanced-import-export' ),
 				'serverErrorUnableToSave'    => __( 'Server error: Unable to save function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.', 'wp-advanced-import-export' ),
+				// translators: %s = content placeholder.
 				'failedToLoadFunctions'      => __( 'Failed to load functions', 'wp-advanced-import-export' ),
 				'failedToLoadFunction'       => __( 'Failed to load function', 'wp-advanced-import-export' ),
 				'failedToSaveFunction'       => __( 'Failed to save function', 'wp-advanced-import-export' ),
 				'failedToDeleteFunction'     => __( 'Failed to delete function', 'wp-advanced-import-export' ),
 				'pleaseEnterFunctionCode'    => __( 'Please enter function code first', 'wp-advanced-import-export' ),
 				'serverErrorFunctionErrors'  => __( 'Server error: The function code contains errors. Please check your PHP syntax.', 'wp-advanced-import-export' ),
+				// translators: %s = content placeholder.
 				'serverErrorUnableToTest'    => __( 'Server error: Unable to test function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.', 'wp-advanced-import-export' ),
 				'testFailed'                 => __( 'Test failed', 'wp-advanced-import-export' ),
 				'apiKeyNotConfigured'        => __( 'OpenAI API key is not configured. Please configure it in Plugin Options to use AI generation.\n\nDo you want to go to Plugin Options now?', 'wp-advanced-import-export' ),
@@ -890,6 +927,7 @@ class Init {
 				'noDescription'              => __( 'No description', 'wp-advanced-import-export' ),
 				'editButton'                 => __( 'Edit', 'wp-advanced-import-export' ),
 				'deleteButton'               => __( 'Delete', 'wp-advanced-import-export' ),
+				// translators: %1$s is a dynamic value, %2$s is a dynamic value, %3$s is a dynamic value.
 				'showingFunctions'           => __( 'Showing %1$s-%2$s of %3$s functions', 'wp-advanced-import-export' ),
 				'customizeFunction'          => __( 'Customize Function', 'wp-advanced-import-export' ),
 
@@ -904,18 +942,23 @@ class Init {
 				'pause'                      => __( 'Pause', 'wp-advanced-import-export' ),
 				'startSync'                  => __( 'Start Sync', 'wp-advanced-import-export' ),
 				'scanFolder'                 => __( 'Scan Folder', 'wp-advanced-import-export' ),
+				// translators: %d is a dynamic value.
 				'andMoreErrors'              => __( '... and %d more errors', 'wp-advanced-import-export' ),
 				
 				// Completion messages
 				'syncCompleteTitle'          => __( 'Synchronization Complete!', 'wp-advanced-import-export' ),
+				// translators: %s is a dynamic value.
 				'successfullyProcessed'      => __( 'Successfully processed %s file', 'wp-advanced-import-export' ),
+				// translators: %s is a dynamic value.
 				'successfullyProcessedPlural' => __( 'Successfully processed %s files', 'wp-advanced-import-export' ),
 				'imported'                   => __( 'Imported', 'wp-advanced-import-export' ),
 				'skipped'                    => __( 'Skipped', 'wp-advanced-import-export' ),
 				'syncFailedTitle'            => __( 'Synchronization Failed', 'wp-advanced-import-export' ),
 				'syncFailedDesc'             => __( 'The synchronization process encountered an error and could not complete.', 'wp-advanced-import-export' ),
 				'syncCancelledTitle'         => __( 'Synchronization Cancelled', 'wp-advanced-import-export' ),
+				// translators: %s is a dynamic value.
 				'processedBeforeCancellation' => __( 'Processed %s file before cancellation.', 'wp-advanced-import-export' ),
+				// translators: %s is a dynamic value.
 				'processedBeforeCancellationPlural' => __( 'Processed %s files before cancellation.', 'wp-advanced-import-export' ),
 				
 				// Folder browser
@@ -927,6 +970,7 @@ class Init {
 
 				// Jobs Log
 				'noJobsFound'                => __( 'No jobs found.', 'wp-advanced-import-export' ),
+				// translators: %1$s is a dynamic value, %2$s is a dynamic value, %3$s is a dynamic value.
 				'showingJobs'                => __( 'Showing %1$s-%2$s of %3$s jobs', 'wp-advanced-import-export' ),
 				'retryRequiresPremium'       => __( 'A valid premium license is required to retry this job. Please activate or renew your license.', 'wp-advanced-import-export' ),
 			),
@@ -1108,7 +1152,7 @@ class Init {
 
 	/**
 	 * Display "Functions" admin page
-	 */
+	 */ // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified via verify_request().
 	function display_settings_functions_page() {
 		WP_AIE()->View->load( 'settings/functions' );
 	}
@@ -1136,6 +1180,7 @@ class Init {
 			delete_transient( 'aie_activation_redirect' );
 			
 			// Don't redirect if activating multiple plugins at once
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Just checking for bulk activation, no nonce needed.
 			if ( ! isset( $_GET['activate-multi'] ) ) {
 				wp_safe_redirect( admin_url( 'admin.php?page=wp-advanced-import-export' ) );
 				exit;

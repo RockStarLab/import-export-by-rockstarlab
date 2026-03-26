@@ -11,9 +11,7 @@ namespace WP_AIE\Controller;
 
 use WP_AIE\Helper\Media_Hash;
 
-if ( ! defined( 'WPINC' ) ) {
-	die;
-}
+defined( 'ABSPATH' ) or exit;
 
 class Media_Hash_Controller extends Base_Controller {
 

@@ -9,17 +9,8 @@
 
 namespace WP_AIE\Model\Import;
 
-/**
- * Database Table Importer Class
- *
- * Imports data directly into WordPress database tables with support for:
- * - Direct table inserts
- * - Duplicate handling
- * - Data validation
- * - Batch processing
- *
- * @package WP_AIE\Model\Import
- */
+defined( 'ABSPATH' ) || exit;
+
 class Database_Table_Importer extends Abstract_Importer {
 
 	/**
@@ -211,7 +202,7 @@ class Database_Table_Importer extends Abstract_Importer {
 
 				case 'update':
 					// Update existing row
-					$result = $wpdb->update(
+					$result = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 						$table_name,
 						$data,
 						$update_where
@@ -232,7 +223,7 @@ class Database_Table_Importer extends Abstract_Importer {
 
 				case 'replace':
 					// Delete and insert
-					$wpdb->delete(
+					$wpdb->delete( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 						$table_name,
 						$update_where
 					);
@@ -254,7 +245,7 @@ class Database_Table_Importer extends Abstract_Importer {
 		}
 
 		// Insert new row (if not skipped)
-		$result = $wpdb->insert( $table_name, $data );
+		$result = $wpdb->insert( $table_name, $data ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct DB query required here.
 
 		if ( false === $result ) {
 			return new \WP_Error(
@@ -308,7 +299,7 @@ class Database_Table_Importer extends Abstract_Importer {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$result = $wpdb->get_var(
+		$result = $wpdb->get_var( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here
 			$wpdb->prepare(
 				"SELECT {$key_field} FROM {$table_name} WHERE {$key_field} = %s LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$key_value

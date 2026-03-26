@@ -42,18 +42,8 @@
 
 namespace WP_AIE\Model\Import;
 
-/**
- * WooCommerce Coupon Importer Class
- *
- * Imports discount coupons with support for:
- * - All coupon types (percent, fixed_cart, fixed_product)
- * - Discount amounts and restrictions
- * - Usage limits and tracking
- * - Product/category restrictions
- * - Email restrictions
- *
- * @package WP_AIE\Model\Import
- */
+defined( 'ABSPATH' ) || exit;
+
 class Woo_Coupon_Importer extends Abstract_Importer {
 
 	/**

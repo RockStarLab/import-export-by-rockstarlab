@@ -9,13 +9,8 @@
 
 namespace WP_AIE\Helper;
 
-/**
- * Content Sync Replacer Helper Class
- *
- * Replaces source domain with target domain in content, meta, and serialized data
- *
- * @package WP_AIE\Helper
- */
+defined( 'ABSPATH' ) || exit;
+
 class Content_Sync_Replacer {
 
 	/**

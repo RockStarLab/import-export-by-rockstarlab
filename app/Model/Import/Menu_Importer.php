@@ -9,18 +9,8 @@
 
 namespace WP_AIE\Model\Import;
 
-/**
- * Menu Importer Class
- *
- * Imports WordPress navigation menus with support for:
- * - Menu creation/update
- * - Menu items (pages, custom links, categories, taxonomies)
- * - Menu item hierarchy and ordering
- * - Menu item metadata and ACF fields
- * - Duplicate handling
- *
- * @package WP_AIE\Model\Import
- */
+defined( 'ABSPATH' ) || exit;
+
 class Menu_Importer extends Abstract_Importer {
 
 	/**

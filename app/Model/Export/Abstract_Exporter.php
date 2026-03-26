@@ -11,14 +11,8 @@ namespace WP_AIE\Model\Export;
 
 use WP_AIE\Helper\Data_Transformer;
 
-/**
- * Abstract Exporter Class
- *
- * Provides common functionality for all exporters including
- * logging, error handling, pagination, and filtering.
- *
- * @package WP_AIE\Model\Export
- */
+defined( 'ABSPATH' ) || exit;
+
 abstract class Abstract_Exporter implements Exporter_Interface {
 
 	/**

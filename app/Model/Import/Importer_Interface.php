@@ -9,14 +9,8 @@
 
 namespace WP_AIE\Model\Import;
 
-/**
- * Importer Interface
- *
- * All importers must implement this interface to ensure consistent API
- * for importing different types of WordPress content.
- *
- * @package WP_AIE\Model\Import
- */
+defined( 'ABSPATH' ) || exit;
+
 interface Importer_Interface {
 
 	/**

@@ -9,14 +9,8 @@
 
 namespace WP_AIE\Helper;
 
-/**
- * Function Executor Class
- *
- * Provides secure execution environment for custom user functions
- * with timeout protection, whitelist/blacklist validation, and error handling.
- *
- * @package WP_AIE\Helper
- */
+defined( 'ABSPATH' ) || exit;
+
 class Function_Executor {
 
 	/**
@@ -195,7 +189,7 @@ class Function_Executor {
 		if ( $result['error'] ) {
 			// Log error if function_id provided
 			if ( $function_id > 0 ) {
-				error_log( "AIE Function #{$function_id} error: " . $result['message'] );
+				error_log( "AIE Function #{$function_id} error: " . $result['message'] ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug logging for development.
 			}
 			return $value; // Return original value on error
 		}
@@ -244,9 +238,9 @@ class Function_Executor {
 		$test_code = '<?php ' . $clean_code;
 
 		// Suppress errors during parsing
-		$old_error_level = error_reporting( 0 );
+		$old_error_level = error_reporting( 0 ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting -- error_reporting used intentionally for sandboxed execution.
 		$tokens          = @token_get_all( $test_code ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		error_reporting( $old_error_level );
+		error_reporting( $old_error_level ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting -- error_reporting used intentionally for sandboxed execution.
 
 		if ( false === $tokens ) {
 			return new \WP_Error(
@@ -302,7 +296,7 @@ class Function_Executor {
 
 		$table = $wpdb->prefix . 'aie_custom_functions';
 
-		$function = $wpdb->get_row(
+		$function = $wpdb->get_row( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
 				"SELECT * FROM {$table} WHERE id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				(int) $function_id

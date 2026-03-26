@@ -9,22 +9,8 @@
 
 namespace WP_AIE\Model\Import;
 
-/**
- * Product Importer Class
- *
- * Imports WooCommerce products with support for:
- * - Simple, Variable, Grouped, External products
- * - Product metadata (SKU, price, stock, dimensions, etc.)
- * - Product categories and tags
- * - Product gallery images
- * - Featured image
- * - Product attributes
- * - Duplicate handling
- * - ACF fields
- * - Yoast SEO meta
- *
- * @package WP_AIE\Model\Import
- */
+defined( 'ABSPATH' ) || exit;
+
 class Product_Importer extends Abstract_Importer {
 
 	/**
@@ -754,7 +740,7 @@ class Product_Importer extends Abstract_Importer {
 	private function find_product_by_title( $title ) {
 		global $wpdb;
 
-		$product_id = $wpdb->get_var(
+		$product_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
 				"SELECT ID FROM {$wpdb->posts} WHERE post_title = %s AND post_type = 'product' LIMIT 1",
 				$title

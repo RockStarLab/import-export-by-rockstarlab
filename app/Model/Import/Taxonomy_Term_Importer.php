@@ -9,18 +9,8 @@
 
 namespace WP_AIE\Model\Import;
 
-/**
- * Taxonomy Term Importer Class
- *
- * Imports taxonomy terms with support for:
- * - Categories, tags, and custom taxonomies
- * - Parent/child relationships (hierarchical taxonomies)
- * - Term metadata
- * - Duplicate handling
- * - ACF fields
- *
- * @package WP_AIE\Model\Import
- */
+defined( 'ABSPATH' ) || exit;
+
 class Taxonomy_Term_Importer extends Abstract_Importer {
 
 	/**

@@ -14,10 +14,10 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 // Load the database migration helper
-require_once plugin_dir_path( __FILE__ ) . 'app/helper/database_migration.php';
+require_once plugin_dir_path( __FILE__ ) . 'app/Helper/Database_Migration.php';
 
 // Drop all custom tables
-\WP_AIE\helper\database_migration::drop_tables();
+\WP_AIE\Helper\Database_Migration::drop_tables();
 
 // Clean up options
 delete_option( 'aie_db_version' );
@@ -25,10 +25,10 @@ delete_option( 'aie_plugin_version' );
 
 // Clean up transients
 global $wpdb;
-// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-$wpdb->query( $wpdb->prepare( "DELETE FROM `{$wpdb->options}` WHERE option_name LIKE %s", '_transient_aie_%' ) );
-// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-$wpdb->query( $wpdb->prepare( "DELETE FROM `{$wpdb->options}` WHERE option_name LIKE %s", '_transient_timeout_aie_%' ) );
+// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $wpdb->options is a controlled WordPress table name.
+$wpdb->query( $wpdb->prepare( "DELETE FROM `{$wpdb->options}` WHERE option_name LIKE %s", '_transient_aie_%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+$wpdb->query( $wpdb->prepare( "DELETE FROM `{$wpdb->options}` WHERE option_name LIKE %s", '_transient_timeout_aie_%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 // Clean up uploaded files directory
 $upload_dir = wp_upload_dir();
@@ -49,11 +49,11 @@ if ( is_dir( $aie_upload_dir ) ) {
             if ( is_dir( $path ) ) {
                 aie_delete_directory( $path );
             } else {
-                @unlink( $path );
+                @wp_delete_file( $path );
             }
         }
         
-        return @rmdir( $dir );
+        return @rmdir( $dir ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir
     }
     
     aie_delete_directory( $aie_upload_dir );

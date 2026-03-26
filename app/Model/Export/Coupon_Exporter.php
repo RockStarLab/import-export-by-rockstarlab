@@ -9,19 +9,8 @@
 
 namespace WP_AIE\Model\Export;
 
-/**
- * Coupon Exporter Class
- *
- * Exports WooCommerce coupons with support for:
- * - All coupon types (percent, fixed_cart, fixed_product)
- * - Discount amounts and restrictions
- * - Usage limits and tracking
- * - Product/category restrictions
- * - Email restrictions
- * - Date restrictions
- *
- * @package WP_AIE\Model\Export
- */
+defined( 'ABSPATH' ) || exit;
+
 class Coupon_Exporter extends Abstract_Exporter {
 
 	/**

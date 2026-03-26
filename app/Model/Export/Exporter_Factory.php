@@ -9,13 +9,8 @@
 
 namespace WP_AIE\Model\Export;
 
-/**
- * Exporter Factory Class
- *
- * Creates and manages exporter instances based on content type.
- *
- * @package WP_AIE\Model\Export
- */
+defined( 'ABSPATH' ) || exit;
+
 class Exporter_Factory {
 
 	/**

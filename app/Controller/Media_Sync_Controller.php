@@ -11,9 +11,7 @@ use WP_AIE\Helper\Media_Sync;
 use WP_AIE\Model\Job;
 use WP_AIE\Model\Queue\Media_Sync_Processor;
 
-if ( ! defined( 'WPINC' ) ) {
-	die;
-}
+defined( 'ABSPATH' ) or exit;
 
 class Media_Sync_Controller extends Base_Controller {
 
