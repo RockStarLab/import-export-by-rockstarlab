@@ -12,11 +12,11 @@
 
 <aside class="sidebar">
   <div class="sidebar-logo">
-    <img src="images/logo.png" alt="WP Advanced Import Export" />
-    <div>
+    <a href="https://wordpress.org/plugins/wp-advanced-import-export/" target="_blank" class="sidebar-logo-link">
+      <img src="images/logo.png" alt="WP Advanced Import Export" />
       <div class="sidebar-logo-name">WP Advanced Import&nbsp;Export</div>
-      <div class="sidebar-logo-sub">Documentation</div>
-    </div>
+    </a>
+    <div class="sidebar-logo-sub">Documentation</div>
   </div>
   <nav class="sidebar-nav">
     <div class="nav-section-label">Getting Started</div>
@@ -47,14 +47,14 @@
         <a href="index.html">Docs</a> <span>›</span> Core Features
       </div>
       <h1>🔄 Content Synchronisation Between Sites</h1>
-      <p>Connect two WordPress sites with a secure API key and sync posts, pages, custom post types, and media bidirectionally — without exporting a single file.</p>
+      <p>Connect two or more WordPress sites with a secure API key and sync posts, pages, custom post types, and media bidirectionally — without exporting a single file.</p>
     </div>
 
     <h2>Overview</h2>
     <p>
-      The Content Sync feature establishes a secure API connection between two WordPress sites.
-      Once connected, you can <strong>Pull</strong> content from the remote site into the local one, or
-      <strong>Push</strong> content from the local site to the remote one — perfect for keeping staging and
+      The Content Sync feature establishes a secure API connection between WordPress sites.
+      Once connected, you can <strong>Pull</strong> content from a remote site or
+      <strong>Push</strong> content to a remote site — perfect for keeping staging, development, and
       production environments in sync.
     </p>
 
@@ -62,17 +62,12 @@
       <div class="feature-card">
         <div class="feature-card-icon">⬇️</div>
         <h3>Pull</h3>
-        <p>Fetch selected posts from a remote site and import them locally.</p>
+        <p>Fetch selected posts from a remote site and import them.</p>
       </div>
       <div class="feature-card">
         <div class="feature-card-icon">⬆️</div>
         <h3>Push</h3>
-        <p>Send selected local posts to a connected remote site.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-card-icon">🔁</div>
-        <h3>Bidirectional</h3>
-        <p>Configure a connection to support both Pull and Push operations.</p>
+        <p>Send selected posts to a connected remote site.</p>
       </div>
       <div class="feature-card">
         <div class="feature-card-icon">🖼️</div>
@@ -87,7 +82,7 @@
 
     <h3>Step 1 — Get Your Site API Key</h3>
     <p>
-      On each WordPress site, navigate to <strong>Import Export → Content Sync</strong>. The plugin
+      On each WordPress site, navigate to <strong>WP Advanced Import Export → Content Sync</strong>. The plugin
       generates a unique 64-character API key for your site. Share this key with the administrator of
       the remote site so they can connect to you.
     </p>
@@ -125,10 +120,6 @@
           <td class="opt-name">API Key</td>
           <td class="opt-desc">The 64-character API key obtained from the remote site's Content Sync screen.</td>
         </tr>
-        <tr>
-          <td class="opt-name">Direction</td>
-          <td class="opt-desc"><strong>Pull only</strong>, <strong>Push only</strong>, or <strong>Bidirectional</strong>.</td>
-        </tr>
       </tbody>
     </table>
 
@@ -143,90 +134,45 @@
 
     <h2>Syncing Content</h2>
 
-    <h3>Step 1 — Open the Sync Panel</h3>
+    <p>There are two ways to trigger a sync — directly from the post editor, or in bulk from the posts list screen.</p>
+
+    <h3>Option A — Sync a Single Post from the Editor</h3>
     <p>
-      Select a connected site from your list and click <strong>Sync Content</strong>. Choose whether
-      you want to <strong>Pull</strong> (import from remote) or <strong>Push</strong> (export to remote).
+      Open any post or page in the WordPress editor. In the sidebar on the right, locate the
+      <strong>Sync Content</strong> button and click it.
     </p>
 
     <figure class="screenshot">
-      <a href="images/sync-options.png" target="_blank"><img src="images/sync-options.png" alt="Sync options panel" /></a>
-      <figcaption>Configuring a content sync operation</figcaption>
+      <a href="images/sync-one-page.png" target="_blank"><img src="images/sync-one-page.png" alt="Sync Content button in the post editor sidebar" /></a>
+      <figcaption>The Sync Content button in the post editor sidebar</figcaption>
     </figure>
 
-    <h3>Step 2 — Configure Sync Options</h3>
-
-    <table class="options-table">
-      <thead>
-        <tr><th>Option</th><th>Description</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="opt-name">Post Type</td>
-          <td class="opt-desc">Select the post type to sync (Posts, Pages, any CPT).</td>
-        </tr>
-        <tr>
-          <td class="opt-name">Filter by Date</td>
-          <td class="opt-desc">Only sync posts created or modified within a specific date range.</td>
-        </tr>
-        <tr>
-          <td class="opt-name">Filter by Author</td>
-          <td class="opt-desc">Limit the sync to posts by a specific author.</td>
-        </tr>
-        <tr>
-          <td class="opt-name">Filter by Status</td>
-          <td class="opt-desc">Only pull/push published, draft, or other statuses.</td>
-        </tr>
-        <tr>
-          <td class="opt-name">Filter by Taxonomy</td>
-          <td class="opt-desc">Limit to posts in a specific category or taxonomy term.</td>
-        </tr>
-        <tr>
-          <td class="opt-name">Conflict Strategy</td>
-          <td class="opt-desc">
-            When a matching post already exists on the destination:
-            <strong>Skip</strong> — leave it unchanged;
-            <strong>Update</strong> — overwrite it;
-            <strong>Duplicate</strong> — create a new post.
-          </td>
-        </tr>
-        <tr>
-          <td class="opt-name">Sync Media</td>
-          <td class="opt-desc">Download and import media files (featured images, gallery images) referenced in the post content.</td>
-        </tr>
-        <tr>
-          <td class="opt-name">Sync Taxonomies</td>
-          <td class="opt-desc">Create missing taxonomy terms on the destination site before assigning them to posts.</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h3>Step 3 — Select Posts &amp; Run</h3>
+    <h3>Option B — Sync Multiple Posts from the Posts List</h3>
     <p>
-      The plugin fetches a list of matching posts from the remote (or local) site and displays them in a table.
-      Select individual posts or click <strong>Select All</strong>, then click <strong>Sync Selected</strong>.
+      Navigate to the posts list screen (e.g., <strong>Pages</strong> or any custom post type list).
+      Select one or more posts using the checkboxes, then click the <strong>Sync Content</strong> button
+      that appears above the list.
     </p>
 
     <figure class="screenshot">
-      <a href="images/sync-post-list.png" target="_blank"><img src="images/sync-post-list.png" alt="Selecting posts to sync" /></a>
-      <figcaption>Selecting posts to sync from the remote site</figcaption>
+      <a href="images/sync-multiple-pages.png" target="_blank"><img src="images/sync-multiple-pages.png" alt="Selecting multiple posts for sync from the list screen" /></a>
+      <figcaption>Selecting multiple posts to sync from the posts list</figcaption>
     </figure>
 
-    <hr class="divider" />
-
-    <h2>Security</h2>
+    <h3>Step 2 — Choose Site and Direction</h3>
+    <p>
+      In both cases, a <strong>Sync Content</strong> dialog will appear. Select the connected site you
+      want to sync with, then click one of the two action buttons:
+    </p>
     <ul>
-      <li><strong>API Key Validation</strong> — All requests are authenticated with the 64-character key.</li>
-      <li><strong>Rate Limiting</strong> — The API endpoint enforces rate limits to prevent abuse.</li>
-      <li><strong>IP Whitelisting</strong> — Optionally restrict API access to specific IP addresses in the plugin options.</li>
-      <li><strong>HTTPS Recommended</strong> — Always use HTTPS on both sites when syncing sensitive content.</li>
+      <li><strong>Push to Site</strong> — send the selected post(s) to the remote site.</li>
+      <li><strong>Pull from Site</strong> — fetch and import the matching post(s) from the remote site.</li>
     </ul>
 
-    <div class="callout callout-note">
-      <div class="callout-title">ℹ️ Both Sites Must Have the Plugin</div>
-      Content Sync requires WP Advanced Import Export to be installed and active on <strong>both</strong> sites.
-      Both sites must be publicly accessible over the internet.
-    </div>
+    <figure class="screenshot">
+      <a href="images/sync-dialog.png" target="_blank"><img src="images/sync-dialog.png" alt="Sync Content dialog" /></a>
+      <figcaption>The Sync Content dialog — select a site and choose Push or Pull</figcaption>
+    </figure>
 
     <div class="doc-nav">
       <a href="export.html" class="nav-prev">

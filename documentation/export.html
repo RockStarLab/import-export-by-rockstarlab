@@ -12,11 +12,11 @@
 
 <aside class="sidebar">
   <div class="sidebar-logo">
-    <img src="images/logo.png" alt="WP Advanced Import Export" />
-    <div>
+    <a href="https://wordpress.org/plugins/wp-advanced-import-export/" target="_blank" class="sidebar-logo-link">
+      <img src="images/logo.png" alt="WP Advanced Import Export" />
       <div class="sidebar-logo-name">WP Advanced Import&nbsp;Export</div>
-      <div class="sidebar-logo-sub">Documentation</div>
-    </div>
+    </a>
+    <div class="sidebar-logo-sub">Documentation</div>
   </div>
   <nav class="sidebar-nav">
     <div class="nav-section-label">Getting Started</div>
@@ -58,7 +58,7 @@
       <li>Comments</li>
       <li>Navigation Menus</li>
       <li>Raw MySQL Tables</li>
-      <li>WooCommerce Products (including variations), Orders, Coupons, Attributes <span class="tag tag-pro">Pro</span></li>
+      <li>WooCommerce Products, Orders, Coupons, Attributes</li>
     </ul>
 
     <h2>Output Formats</h2>
@@ -74,142 +74,178 @@
     <h3>Step 1 — Open the Export Screen</h3>
     <p>Navigate to <strong>Import Export → Export</strong> in the WordPress admin sidebar.</p>
 
-    <figure class="screenshot">
-      <a href="images/export-page.png" target="_blank"><img src="images/export-page.png" alt="Export page" /></a>
-      <figcaption>The main Export screen</figcaption>
-    </figure>
-
-    <h3>Step 2 — Select Export Type</h3>
+    <h4>1. Select Content Type</h4>
     <p>
-      Choose the content type you want to export from the <strong>Export Type</strong> dropdown.
-      After selecting a type, the available filter and field options will update dynamically.
-    </p>
-
-    <h3>Step 3 — Filter Records</h3>
-    <p>
-      Narrow down which records to export using the filter panel. Available filters depend on the export type.
+      Choose the type of content you want to export from the available options —
+      for example, Posts, Pages, Users, WooCommerce Products, or a raw MySQL Table.
     </p>
 
     <figure class="screenshot">
-      <a href="images/export-filters.png" target="_blank"><img src="images/export-filters.png" alt="Filtering posts for export" /></a>
-      <figcaption>Applying filters to select specific posts for export</figcaption>
+      <a href="images/export-select-content-type.png" target="_blank"><img src="images/export-select-content-type.png" alt="Select export content type" /></a>
+      <figcaption>Selecting the content type to export</figcaption>
     </figure>
 
-    <table class="options-table">
-      <thead>
-        <tr><th>Filter</th><th>Description</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="opt-name">Post Status</td>
-          <td class="opt-desc">Export only published, draft, pending, or private posts.</td>
-        </tr>
-        <tr>
-          <td class="opt-name">Date Range</td>
-          <td class="opt-desc">Filter by <code>post_date</code> — export posts from a specific period.</td>
-        </tr>
-        <tr>
-          <td class="opt-name">Author</td>
-          <td class="opt-desc">Export posts by a specific author.</td>
-        </tr>
-        <tr>
-          <td class="opt-name">Taxonomy / Category</td>
-          <td class="opt-desc">Limit to posts in a specific category, tag, or custom taxonomy term.</td>
-        </tr>
-        <tr>
-          <td class="opt-name">Post IDs</td>
-          <td class="opt-desc">Manually enter specific post IDs to export only those records.</td>
-        </tr>
-        <tr>
-          <td class="opt-name">Custom Field Filter</td>
-          <td class="opt-desc">Filter by any meta key/value pair (e.g., export only products with <code>_stock_status = instock</code>).</td>
-        </tr>
-      </tbody>
-    </table>
-
+    <h4>2. Proceed to the Next Step</h4>
     <p>
-      The <strong>Count</strong> button shows how many records match your current filters before you start the export.
-    </p>
-
-    <h3>Step 4 — Select Fields to Export</h3>
-    <p>
-      Choose which fields to include in the output. By default, all standard fields are selected.
-      You can add custom meta fields, ACF fields, or Yoast SEO fields using the field picker.
+      Once a content type is selected, click the <strong>Next Step</strong> button to continue
+      configuring the export.
     </p>
 
     <figure class="screenshot">
-      <a href="images/export-fields.png" target="_blank"><img src="images/export-fields.png" alt="Selecting export fields" /></a>
-      <figcaption>Selecting which fields to include in the export file</figcaption>
+      <a href="images/export-next-step.png" target="_blank"><img src="images/export-next-step.png" alt="Next Step button" /></a>
+      <figcaption>Clicking Next Step to proceed</figcaption>
     </figure>
 
-    <h3>Step 5 — Configure Export Options</h3>
+    <h3>Step 2 — Filter Export Data</h3>
+    <p>
+      On the next screen you can optionally narrow down which records get exported by adding filters.
+      If no filters are added, <strong>all content</strong> of the selected type will be exported.
+    </p>
 
     <figure class="screenshot">
-      <a href="images/export-options.png" target="_blank"><img src="images/export-options.png" alt="Additional export options" /></a>
-      <figcaption>Additional export options panel</figcaption>
+      <a href="images/export-filter-data.png" target="_blank"><img src="images/export-filter-data.png" alt="Export filters screen" /></a>
+      <figcaption>The filter screen — leave empty to export all records</figcaption>
     </figure>
 
-    <table class="options-table">
-      <thead>
-        <tr><th>Option</th><th>Description</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="opt-name">Output Format</td>
-          <td class="opt-desc">CSV or JSON.</td>
-        </tr>
-        <tr>
-          <td class="opt-name">CSV Delimiter</td>
-          <td class="opt-desc">Comma <code>,</code> or semicolon <code>;</code>.</td>
-        </tr>
-        <tr>
-          <td class="opt-name">Include Header Row</td>
-          <td class="opt-desc">Adds a header row with field names as the first line of the CSV.</td>
-        </tr>
-        <tr>
-          <td class="opt-name">Batch Size</td>
-          <td class="opt-desc">Number of records to process per background batch.</td>
-        </tr>
-        <tr>
-          <td class="opt-name">Apply Functions</td>
-          <td class="opt-desc">Assign a <a href="functions.html">custom function</a> to transform field values before they are written to the file.</td>
-        </tr>
-        <tr>
-          <td class="opt-name">Send Email Notification</td>
-          <td class="opt-desc">Sends a download link to the admin email when the export finishes.</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h3>Step 6 — Run the Export &amp; Download</h3>
     <p>
-      Click <strong>Start Export</strong>. The plugin creates a Job and processes the export in the background.
-      When complete, a <strong>Download File</strong> button appears. The file link is also available in the
-      <a href="jobs-log.html">Jobs Log</a> for later retrieval.
+      Filters let you export only the records that match specific criteria — for example,
+      only posts with a <strong>Publish</strong> status, or only records created within a certain date range.
+      You can add an <strong>unlimited number of filters</strong> to fine-tune your export.
     </p>
+
+    <h4>Adding a Filter</h4>
+    <p>Click the <strong>Add Filter</strong> button to add a new filter row.</p>
+
+    <figure class="screenshot">
+      <a href="images/export-add-filter.png" target="_blank"><img src="images/export-add-filter.png" alt="Add Filter button" /></a>
+      <figcaption>Clicking Add Filter to create a new filter condition</figcaption>
+    </figure>
+
+    <p>
+      For each filter, select the <strong>field</strong> you want to filter by and the
+      <strong>condition</strong> it must meet (e.g., equals, contains, greater than, etc.).
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-select-contidion.png" target="_blank"><img src="images/export-select-contidion.png" alt="Selecting filter field and condition" /></a>
+      <figcaption>Selecting the field and condition for the filter</figcaption>
+    </figure>
+
+    <p>
+      Once all filters are configured, click the <strong>Next Step</strong> button to continue.
+    </p>
+
+    <h3>Step 3 — Configure Export Fields</h3>
+    <p>
+      In this step you choose exactly which fields will be included in the exported file and how they are structured.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-choose-fields.png" target="_blank"><img src="images/export-choose-fields.png" alt="Choose export fields" /></a>
+      <figcaption>Choosing which fields to include in the export</figcaption>
+    </figure>
+
+    <h4>Building the Export File Structure</h4>
+    <p>
+      Drag the fields you need from the right-hand sidebar — which lists all available WordPress fields —
+      into the <strong>Export File Structure</strong> area. You can reorder the columns at any time
+      by dragging them into the desired position.
+    </p>
+
+    <h4>Adding a Custom Column</h4>
+    <p>
+      If you need to include data that is not directly tied to a WordPress field, you can add a
+      <strong>custom column</strong> with any arbitrary value.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-add-custom-column.png" target="_blank"><img src="images/export-add-custom-column.png" alt="Add custom column" /></a>
+      <figcaption>Adding a custom column to the export structure</figcaption>
+    </figure>
+
+    <h4>Assigning Functions to Fields</h4>
+    <p>
+      You can transform the exported content for any field by assigning one or more
+      <a href="functions.html">functions</a> to it. This is useful for formatting values,
+      converting units, or applying any custom transformation during export.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-assign-functions.png" target="_blank"><img src="images/export-assign-functions.png" alt="Assign functions to a field" /></a>
+      <figcaption>Function assignment panel for an export field</figcaption>
+    </figure>
+
+    <p>
+      Click the <strong>gear icon ⚙</strong> on any field in the export structure to open the function picker,
+      then select one or more functions to apply during export.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-assign-fn.png" target="_blank"><img src="images/export-assign-fn.png" alt="Selecting functions for a field" /></a>
+      <figcaption>Selecting the functions to apply to the field</figcaption>
+    </figure>
+
+    <p>
+      After selecting the functions, click <strong>Apply Functions</strong> to confirm.
+      The field will then display an indicator showing that functions have been assigned.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-apply-functions.png" target="_blank"><img src="images/export-apply-functions.png" alt="Apply Functions button" /></a>
+      <figcaption>Clicking Apply Functions to confirm the selection</figcaption>
+    </figure>
+
+    <figure class="screenshot">
+      <a href="images/export-functions-applied.png" target="_blank"><img src="images/export-functions-applied.png" alt="Functions applied to field" /></a>
+      <figcaption>The field now shows the assigned functions</figcaption>
+    </figure>
 
     <div class="callout callout-tip">
-      <div class="callout-title">💡 Large Exports</div>
-      Exports of tens of thousands of rows are handled efficiently using streaming. The file is written in
-      batches, so your server will never run out of memory regardless of the dataset size.
+      <div class="callout-title">💡 Custom Functions</div>
+      The plugin comes with a built-in <strong>Functions Library</strong> where you can create your own
+      PHP functions and reuse them across imports and exports. Custom functions are perfect for
+      advanced transformations — such as reformatting dates, splitting or merging field values,
+      or applying any business logic to your data.
+      <br /><br />
+      Learn more in the <a href="functions.html">⚙️ Functions Library</a> documentation.
     </div>
 
-    <hr class="divider" />
-
-    <h2>Exporting Raw MySQL Tables</h2>
     <p>
-      Select <strong>MySQL Table</strong> as the export type, then choose the target table from the list of all
-      tables in your database. You can select which columns to include and apply filters by any column value.
-      This is especially useful for exporting custom plugin data or logs.
+      When all fields are configured, click <strong>Next Step</strong> to proceed.
     </p>
 
-    <hr class="divider" />
-
-    <h2>Secure Download Links</h2>
+    <h3>Step 4 — Choose Export Format</h3>
     <p>
-      All exported files are stored in a protected upload directory. Download links are time-limited and
-      require authentication, preventing unauthorised access to potentially sensitive data.
+      Select the format in which you want to export your data:
     </p>
+    <ul>
+      <li><strong>CSV</strong> — Compatible with Excel, Google Sheets, and other spreadsheet tools</li>
+      <li><strong>JSON</strong> — Suitable for developer workflows and API integrations</li>
+    </ul>
+    <p>
+      When <strong>CSV</strong> is selected, additional options are available to customize the
+      <strong>delimiter</strong> character used to separate values in the file (e.g., comma, semicolon, tab).
+      This is useful when your data contains commas or when the target application expects a specific separator.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-choose-format.png" target="_blank"><img src="images/export-choose-format.png" alt="Choose export format" /></a>
+      <figcaption>Selecting the export format and delimiter options</figcaption>
+    </figure>
+
+    <p>
+      Once the format is configured, click <strong>Start Export</strong> to begin the export process.
+    </p>
+
+    <p>
+      The export will run in the background. Once completed, you will see a success message confirming
+      that the export file has been generated — you can then download it directly from that screen.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-done.png" target="_blank"><img src="images/export-done.png" alt="Export completed" /></a>
+      <figcaption>Export completed — download the generated file</figcaption>
+    </figure>
 
     <div class="doc-nav">
       <a href="import.html" class="nav-prev">

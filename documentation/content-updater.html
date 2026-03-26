@@ -12,11 +12,11 @@
 
 <aside class="sidebar">
   <div class="sidebar-logo">
-    <img src="images/logo.png" alt="WP Advanced Import Export" />
-    <div>
+    <a href="https://wordpress.org/plugins/wp-advanced-import-export/" target="_blank" class="sidebar-logo-link">
+      <img src="images/logo.png" alt="WP Advanced Import Export" />
       <div class="sidebar-logo-name">WP Advanced Import&nbsp;Export</div>
-      <div class="sidebar-logo-sub">Documentation</div>
-    </div>
+    </a>
+    <div class="sidebar-logo-sub">Documentation</div>
   </div>
   <nav class="sidebar-nav">
     <div class="nav-section-label">Getting Started</div>
@@ -54,7 +54,6 @@
     <p>
       The Content Updater lets you select a content type, filter which records to target, choose specific fields,
       and then apply <a href="functions.html">PHP transformation functions</a> to each field value.
-      All changes are processed in the background in batches, so even very large sites are handled safely.
     </p>
 
     <p><strong>Example use cases:</strong></p>
@@ -66,110 +65,166 @@
       <li>Format all phone numbers stored in user meta to a consistent pattern</li>
     </ul>
 
+
+
+    <div class="callout callout-warn">
+      <div class="callout-title">⚠️ Always Back Up Before Making Bulk Changes</div>
+      The Content Updater directly modifies database records in bulk — these changes <strong>cannot be undone</strong> from within the plugin.
+      Before running any update, make sure you have a full site backup.
+      Here are several popular WordPress backup plugins:<br><br>
+      <ul>
+        <li><a href="https://wordpress.org/plugins/updraftplus/" target="_blank">UpdraftPlus</a> — most widely used; supports cloud storage (Google Drive, Dropbox, S3)</li>
+        <li><a href="https://wordpress.org/plugins/all-in-one-wp-migration/" target="_blank">All-in-One WP Migration</a> — simple one-click backup &amp; restore</li>
+        <li><a href="https://wordpress.org/plugins/backwpup/" target="_blank">BackWPup</a> — scheduled backups to cloud or local storage</li>
+        <li><a href="https://wordpress.org/plugins/duplicator/" target="_blank">Duplicator</a> — backup, migrate, and clone your site</li>
+        <li><a href="https://wordpress.org/plugins/jetpack/" target="_blank">Jetpack (VaultPress Backup)</a> — real-time cloud backups by Automattic</li>
+      </ul>
+    </div>
+
     <hr class="divider" />
 
     <h2>Update Workflow</h2>
 
-    <h3>Step 1 — Open the Content Updater</h3>
-    <p>Navigate to <strong>Import Export → Content Updater</strong>.</p>
+    <h3>Step 1 — Select Content Type</h3>
+    <p>
+      Navigate to <strong>Import Export → Content Updater</strong>.
+      Choose the content type you want to update — for example, Posts, Pages, Products, or Users.
+    </p>
 
     <figure class="screenshot">
-      <a href="images/updater-page.png" target="_blank"><img src="images/updater-page.png" alt="Content Updater page" /></a>
-      <figcaption>The main Content Updater screen</figcaption>
+      <a href="images/updater-choose-content-type.png" target="_blank"><img src="images/updater-choose-content-type.png" alt="Choose content type" /></a>
+      <figcaption>Select the content type to update</figcaption>
     </figure>
 
-    <h3>Step 2 — Select Content Type</h3>
-    <p>
-      Choose the content type you want to update from the dropdown (e.g., Post, Page, Product, User).
-      The available field options will update accordingly.
-    </p>
-
-    <h3>Step 3 — Apply Filters</h3>
-    <p>
-      Use the filter panel to narrow down which records will be affected. The same filtering options
-      as the Export feature are available:
-    </p>
-    <ul>
-      <li>Post status</li>
-      <li>Date range (created or modified)</li>
-      <li>Author</li>
-      <li>Taxonomy / category</li>
-      <li>Specific post IDs</li>
-      <li>Custom meta field value</li>
-    </ul>
-    <p>Click <strong>Count</strong> to see how many records match your filters before proceeding.</p>
-
-    <h3>Step 4 — Select Fields and Assign Functions</h3>
-    <p>
-      Choose one or more fields to update. For each field, assign a
-      <a href="functions.html">transformation function</a> that will be applied to the current value.
-    </p>
+    <p>Once you have selected the content type, click <strong>Next Step</strong> to proceed.</p>
 
     <figure class="screenshot">
-      <a href="images/updater-fields.png" target="_blank"><img src="images/updater-fields.png" alt="Selecting fields and functions" /></a>
-      <figcaption>Assigning functions to fields in the Content Updater</figcaption>
-    </figure>
-
-    <div class="callout callout-tip">
-      <div class="callout-title">💡 Using the AI Function Generator</div>
-      Not sure how to write the transformation you need? Open the
-      <a href="functions.html">Functions Library</a>, click <strong>Generate with AI</strong>, and describe
-      the transformation in plain English. The AI will write the PHP function for you.
-    </div>
-
-    <h3>Step 5 — Preview Changes</h3>
-    <p>
-      Click <strong>Preview</strong> to see a side-by-side comparison of the current value and the
-      transformed value for the first few records. This lets you confirm the function behaves as expected
-      before applying it to the full dataset.
-    </p>
-
-    <h3>Step 6 — Run the Update</h3>
-    <p>
-      Click <strong>Start Update</strong>. The plugin creates a background Job and processes the records
-      in batches. A real-time progress bar shows the number of records updated, skipped, and any errors.
-    </p>
-
-    <figure class="screenshot">
-      <a href="images/updater-progress.png" target="_blank"><img src="images/updater-progress.png" alt="Update progress" /></a>
-      <figcaption>Real-time progress while the update runs in the background</figcaption>
+      <a href="images/updater-next-step.png" target="_blank"><img src="images/updater-next-step.png" alt="Next Step button" /></a>
+      <figcaption>Click Next Step to continue</figcaption>
     </figure>
 
     <hr class="divider" />
 
-    <h2>Available Updatable Fields</h2>
-    <table class="options-table">
-      <thead>
-        <tr><th>Category</th><th>Fields</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="opt-name">Post Core</td>
-          <td class="opt-desc"><code>post_title</code>, <code>post_content</code>, <code>post_excerpt</code>, <code>post_status</code>, <code>post_name</code>, <code>post_date</code></td>
-        </tr>
-        <tr>
-          <td class="opt-name">Post Meta</td>
-          <td class="opt-desc">Any custom meta key registered on the selected post type</td>
-        </tr>
-        <tr>
-          <td class="opt-name">User Core</td>
-          <td class="opt-desc"><code>user_email</code>, <code>display_name</code>, <code>first_name</code>, <code>last_name</code></td>
-        </tr>
-        <tr>
-          <td class="opt-name">User Meta</td>
-          <td class="opt-desc">Any user meta key</td>
-        </tr>
-        <tr>
-          <td class="opt-name">ACF Fields</td>
-          <td class="opt-desc">All registered ACF fields for the selected post type <span class="tag tag-pro">Pro</span></td>
-        </tr>
-      </tbody>
-    </table>
+    <h3>Step 2 — Filter Data</h3>
+    <p>
+      On the <strong>Step 2: Filter Data</strong> page you can narrow down exactly which records the update
+      will be applied to. For example, you may want to update only posts that were published within the
+      last month.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/updater-add-filters.png" target="_blank"><img src="images/updater-add-filters.png" alt="Filter Data page" /></a>
+      <figcaption>The Filter Data step lets you target a specific subset of records</figcaption>
+    </figure>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">💡 No Filters? All Records Will Be Updated</div>
+      If you skip this step and do not add any filters, the update will be applied to
+      <strong>all records</strong> of the content type you selected in Step 1.
+    </div>
+
+    <p>
+      To add a filter, click <strong>Add Filter</strong>, then select the field you want to filter by
+      and set the condition. You can add multiple filters to fine-tune your selection.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/updater-filters.png" target="_blank"><img src="images/updater-filters.png" alt="Adding filters" /></a>
+      <figcaption>Select a field and condition to filter records</figcaption>
+    </figure>
+
+    <p>
+      As you add or change filters, the record counter updates in real time so you can see exactly
+      how many records will be affected before moving on.
+    </p>
+
+    <p>When you are satisfied with the filters, click <strong>Next Step</strong>.</p>
+
+    <hr class="divider" />
+
+    <h3>Step 3 — Select Fields to Update</h3>
+    <p>
+      Choose which fields the update will be applied to. Fields are selected using a drag-and-drop interface:
+      drag the desired field from the <strong>right panel</strong> (available fields) into the
+      <strong>left panel</strong> (selected fields). For example, to update the post title, drag
+      <strong>Post Title</strong> from the right side to the left, as shown in the screenshot below.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/updater-choose-fields.png" target="_blank"><img src="images/updater-choose-fields.png" alt="Selecting fields to update" /></a>
+      <figcaption>Drag fields from the right panel to the left to select them for updating</figcaption>
+    </figure>
+
+    <p>Once you have selected all the fields you want to update, click <strong>Next Step</strong>.</p>
+
+    <hr class="divider" />
+
+    <h3>Step 4 — Assign Functions to Fields</h3>
+    <p>
+      This step displays all the fields you selected in the previous step. For each field you can assign
+      one or more <strong>transformation functions</strong> that will be applied to its value during the update.
+    </p>
+    <p>
+      Click the <strong>Assign Functions</strong> button next to a field to open the function selector.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/updater-assign-functions.png" target="_blank"><img src="images/updater-assign-functions.png" alt="Assign Functions button" /></a>
+      <figcaption>Click Assign Functions to open the function selector for a field</figcaption>
+    </figure>
+
+    <p>
+      In the dialog that appears, select the transformation functions you want to apply to the field.
+      For example, you can choose a function to convert the field value <strong>to uppercase</strong>.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/updater-assign-fn.png" target="_blank"><img src="images/updater-assign-fn.png" alt="Selecting transformation functions" /></a>
+      <figcaption>Select one or more transformation functions to apply to the field</figcaption>
+    </figure>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">💡 Multiple Functions per Field</div>
+      You can assign more than one function to a single field. Functions are applied sequentially
+      in the order they appear — the output of one function becomes the input for the next.
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">💡 Create Your Own Transformation Functions</div>
+      Not finding the function you need in the list? You can write and save your own custom PHP
+      transformation functions in the <a href="functions.html">Functions Library</a>. Once saved,
+      your custom functions will appear in the selector here alongside the built-in ones.
+    </div>
+
+    <p>
+      After selecting the functions, click <strong>Apply Functions</strong> to confirm your selection.
+      Repeat for any other fields as needed, then click <strong>Next Step</strong> to proceed.
+    </p>
+
+    <hr class="divider" />
+
+    <h3>Step 5 — Start Update</h3>
+    <p>
+      The final step shows a summary of all the settings you have configured — content type, applied filters,
+      selected fields, and assigned transformation functions. Review everything carefully before proceeding.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/updater-preview.png" target="_blank"><img src="images/updater-preview.png" alt="Update summary" /></a>
+      <figcaption>Review the summary of your update settings before running</figcaption>
+    </figure>
+
+    <p>
+      Once you are satisfied that everything looks correct, click <strong>Start Update</strong> to begin
+      the bulk update process. The plugin will process records in the background and display real-time progress.
+    </p>
+
+    <hr class="divider" />
 
     <div class="callout callout-warn">
       <div class="callout-title">⚠️ This Action Cannot Be Undone Automatically</div>
       Always back up your database before running a bulk update. While the Jobs Log records what was done,
-      automatic rollback is not available. Use the <strong>Preview</strong> step to validate your function first.
+      automatic rollback is not available.
     </div>
 
     <div class="doc-nav">
