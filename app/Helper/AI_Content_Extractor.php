@@ -162,7 +162,50 @@ class AI_Content_Extractor {
 			);
 		}
 
-		return wp_remote_retrieve_body( $response );
+		$body = wp_remote_retrieve_body( $response );
+
+		// Detect charset from headers or meta tags and convert to UTF-8 if needed.
+		$charset = $this->detect_charset( $response, $body );
+		if ( $charset && strtoupper( str_replace( '-', '', $charset ) ) !== 'UTF8' ) {
+			$converted = mb_convert_encoding( $body, 'UTF-8', $charset );
+			if ( false !== $converted ) {
+				$body = $converted;
+			}
+		}
+
+		return $body;
+	}
+
+	/**
+	 * Detect charset from HTTP response headers or HTML meta tags
+	 *
+	 * @param array  $response HTTP response array.
+	 * @param string $body     Response body.
+	 * @return string|null Detected charset or null.
+	 */
+	private function detect_charset( $response, $body ) {
+		// 1. Check Content-Type response header.
+		$content_type = wp_remote_retrieve_header( $response, 'content-type' );
+		if ( $content_type && preg_match( '/charset=([^\s;"\']+)/i', $content_type, $matches ) ) {
+			return trim( $matches[1], ' "\'' );
+		}
+
+		// 2. Check <meta charset="..."> (HTML5).
+		if ( preg_match( '/<meta[^>]+charset=["\']?([^"\';\s>]+)/i', $body, $matches ) ) {
+			return trim( $matches[1], ' "\'' );
+		}
+
+		// 3. Check <meta http-equiv="Content-Type" content="...; charset=...">.
+		if ( preg_match( '/<meta[^>]+content=["\'][^"\']*charset=([^"\';\s]+)/i', $body, $matches ) ) {
+			return trim( $matches[1], ' "\'' );
+		}
+
+		// 4. Check XML declaration encoding (<?xml ... encoding="...") for XHTML.
+		if ( preg_match( '/<\?xml[^>]+encoding=["\']([^"\']+)["\']/i', $body, $matches ) ) {
+			return trim( $matches[1], ' "\'' );
+		}
+
+		return null;
 	}
 
 	/**
@@ -272,8 +315,8 @@ class AI_Content_Extractor {
 		$html = preg_replace( '/\s+/', ' ', $html );
 		
 		// Limit length to fit in context window (approximately 100k characters for GPT-4)
-		if ( strlen( $html ) > 100000 ) {
-			$html = substr( $html, 0, 100000 );
+		if ( mb_strlen( $html, 'UTF-8' ) > 100000 ) {
+			$html = mb_substr( $html, 0, 100000, 'UTF-8' );
 		}
 
 		return $html;

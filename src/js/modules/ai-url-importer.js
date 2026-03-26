@@ -189,12 +189,20 @@ const AIURLImporter = {
 	 * Go to specific step
 	 */
 	goToStep(step) {
+		const prevStep = this.currentStep;
+
 		jQuery('.aie-step').hide().removeClass('aie-step-active');
 		jQuery(`.aie-step-${step}`).show().addClass('aie-step-active');
 		this.currentStep = step;
 
-		// Special handling for step 3
+		// Reset Step 3 preview whenever entering it (URL may have changed)
 		if (step === 3) {
+			this.previewData = null;
+			jQuery('.aie-preview-result').hide();
+			jQuery('.aie-inline-notice').remove();
+			jQuery('#aie-preview-btn').show().prop('disabled', false).text(window.aieData.i18n.generatePreview);
+			jQuery('#aie-regenerate-preview-btn').hide();
+			jQuery('#aie-start-import-btn').prop('disabled', true);
 			jQuery('#aie-preview-url').text(this.urls[0]);
 		}
 	},
@@ -409,8 +417,9 @@ const AIURLImporter = {
 		const $btn = jQuery('#aie-preview-btn');
 		const $regenerateBtn = jQuery('#aie-regenerate-preview-btn');
 		const $result = jQuery('.aie-preview-result');
-		
-		$btn.prop('disabled', true).text(window.aieData.i18n.generatingPreview);
+
+		// Always show the primary button in loading state, hide regenerate while loading
+		$btn.show().prop('disabled', true).text(window.aieData.i18n.generatingPreview);
 		$regenerateBtn.hide();
 		$result.hide();
 
@@ -421,11 +430,13 @@ const AIURLImporter = {
 			this.displayPreview(response);
 			
 			$result.show();
+			// After success: replace Generate with Regenerate
+			$btn.hide();
 			$regenerateBtn.show();
 			jQuery('#aie-start-import-btn').prop('disabled', false);
 		} catch (error) {
 			this.showError(error, '.aie-preview-section');
-		} finally {
+			// On error: restore Generate button
 			$btn.prop('disabled', false).text(window.aieData.i18n.generatePreview);
 		}
 	},
@@ -549,15 +560,19 @@ const AIURLImporter = {
 			});
 
 			if (response.completed) {
-				// Job is completed
+				// Job is completed — stop interval and force a final UI update
 				this.stopProgressTracking();
+				await this.updateProgress();
 			} else {
 				// Continue processing with a small delay
 				setTimeout(() => this.processNextBatch(), 500);
 			}
 		} catch (error) {
 			console.error('Error processing batch:', error);
-			this.stopProgressTracking();
+			// Don't stop progress tracking on error — let the polling interval
+			// detect the final job status (completed / failed) from the DB.
+			// Force an immediate progress check right now.
+			await this.updateProgress();
 		}
 	},
 

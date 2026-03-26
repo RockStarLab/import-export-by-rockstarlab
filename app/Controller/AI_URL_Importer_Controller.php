@@ -380,6 +380,9 @@ class AI_URL_Importer_Controller extends Base_Controller {
 			);
 		}
 
+		// Allow enough time for URL fetch + OpenAI API call.
+		@set_time_limit( 300 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+
 		// Process the batch
 		$processor = new \WP_AIE\Model\Queue\AI_URL_Import_Processor();
 		$result    = $processor->process( $job_id );
