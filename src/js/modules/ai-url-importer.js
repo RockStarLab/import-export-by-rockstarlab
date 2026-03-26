@@ -483,6 +483,20 @@ const AIURLImporter = {
 		jQuery('.preview-title-content').html(`<h3>${data.title}</h3>`);
 		jQuery('.preview-excerpt-content').html(`<p>${data.excerpt}</p>`);
 		jQuery('.preview-content-html').html(data.content);
+
+		// Show content stats and truncation warning
+		const contentText = jQuery('.preview-content-html').text();
+		const charCount = contentText.length;
+		const wordCount = contentText.trim().split(/\s+/).filter(w => w.length > 0).length;
+
+		let statsHtml = `<p class="aie-content-stats">📄 ${wordCount} ${window.aieData.i18n.words || 'words'}, ${charCount.toLocaleString()} ${window.aieData.i18n.characters || 'characters'}</p>`;
+
+		if (data.truncated) {
+			statsHtml += `<div class="aie-truncation-warning notice notice-warning inline"><p>⚠️ ${window.aieData.i18n.contentTruncated || 'Warning: the article content was truncated by the AI because it exceeded the token limit. The imported post will contain incomplete content. Consider using a shorter article or a more powerful model.'}</p></div>`;
+		}
+
+		jQuery('.aie-preview-content-stats').remove();
+		jQuery('.preview-content-html').after(`<div class="aie-preview-content-stats">${statsHtml}</div>`);
 		
 		// Display images
 		const $imagesList = jQuery('.preview-images-list');
@@ -666,7 +680,7 @@ const AIURLImporter = {
 		this.previewData = null;
 		this.jobId = null;
 		jQuery('#aie-urls-textarea').val('');
-		this.removeCSVFile();
+		this.removeTXTFile();
 		this.goToStep(1);
 	},
 

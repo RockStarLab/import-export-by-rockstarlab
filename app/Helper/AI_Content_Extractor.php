@@ -236,7 +236,7 @@ class AI_Content_Extractor {
 						'messages'    => array(
 							array(
 								'role'    => 'system',
-								'content' => 'You are a content extraction assistant. Extract article title and main content from HTML, removing sidebars, comments, ads, and navigation. Return valid JSON only.',
+								'content' => 'You are a content extraction assistant. Extract article title and COMPLETE main content from HTML, removing sidebars, comments, ads, and navigation. NEVER truncate or shorten the article text — reproduce every paragraph in full. Return valid JSON only.',
 							),
 							array(
 								'role'    => 'user',
@@ -244,7 +244,7 @@ class AI_Content_Extractor {
 							),
 						),
 						'temperature' => 0.3,
-						'max_tokens'  => 4000,
+						'max_tokens'  => 16000,
 						'response_format' => array( 'type' => 'json_object' ),
 					)
 				),
@@ -272,6 +272,10 @@ class AI_Content_Extractor {
 			);
 		}
 
+		// Detect if OpenAI truncated the response due to token limit.
+		$finish_reason = $body['choices'][0]['finish_reason'] ?? 'stop';
+		$was_truncated = ( 'length' === $finish_reason );
+
 		// Parse JSON response
 		$content_json = json_decode( $body['choices'][0]['message']['content'], true );
 
@@ -292,11 +296,16 @@ class AI_Content_Extractor {
 			'images'         => $images,
 			'featured_image' => $this->get_featured_image( $images ),
 			'source_url'     => $url,
+			'truncated'      => $was_truncated,
 		);
 	}
 
 	/**
 	 * Clean HTML to reduce tokens
+	 *
+	 * Aggressively strips noise elements, removes all HTML attributes except
+	 * essential ones (src/alt on img, href on a), and applies a character limit.
+	 * This ensures that the actual article content fits within the context window.
 	 *
 	 * @param string $html Raw HTML
 	 * @return string Cleaned HTML
@@ -304,17 +313,54 @@ class AI_Content_Extractor {
 	private function clean_html( $html ) {
 		// Remove scripts
 		$html = preg_replace( '/<script\b[^>]*>.*?<\/script>/is', '', $html );
-		
+
 		// Remove styles
 		$html = preg_replace( '/<style\b[^>]*>.*?<\/style>/is', '', $html );
-		
-		// Remove comments
+
+		// Remove HTML comments
 		$html = preg_replace( '/<!--.*?-->/s', '', $html );
-		
+
+		// Remove common noise block elements (nav, header, footer, aside, etc.)
+		$noise_tags = array( 'nav', 'header', 'footer', 'aside', 'form', 'iframe', 'noscript', 'svg', 'canvas', 'figure' );
+		foreach ( $noise_tags as $tag ) {
+			$html = preg_replace( '/<' . $tag . '\b[^>]*>.*?<\/' . $tag . '>/is', '', $html );
+		}
+
+		// Strip all HTML attributes except essential ones:
+		// - src and alt are kept on <img>
+		// - href is kept on <a>
+		// Everything else (class, id, style, data-*, aria-*, etc.) is removed.
+		$html = preg_replace_callback(
+			'/<([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)>/i',
+			function ( $matches ) {
+				$tag   = strtolower( $matches[1] );
+				$attrs = $matches[2];
+				$kept  = '';
+
+				if ( 'img' === $tag ) {
+					if ( preg_match( '/\bsrc=["\']((?:(?!["\']).)*)["\']/i', $attrs, $m ) ) {
+						$kept .= ' src="' . $m[1] . '"';
+					}
+					if ( preg_match( '/\balt=["\']((?:(?!["\'])[^>])*)["\']/i', $attrs, $m ) ) {
+						$kept .= ' alt="' . $m[1] . '"';
+					}
+				} elseif ( 'a' === $tag ) {
+					if ( preg_match( '/\bhref=["\']((?:(?!["\']).)*)["\']/i', $attrs, $m ) ) {
+						$kept .= ' href="' . $m[1] . '"';
+					}
+				}
+
+				return '<' . $tag . $kept . '>';
+			},
+			$html
+		);
+
 		// Remove excessive whitespace
 		$html = preg_replace( '/\s+/', ' ', $html );
-		
-		// Limit length to fit in context window (approximately 100k characters for GPT-4)
+
+		// Limit length to fit in context window.
+		// After attribute stripping the HTML is typically 60-80% smaller,
+		// so 100k characters now represents substantially more actual content.
 		if ( mb_strlen( $html, 'UTF-8' ) > 100000 ) {
 			$html = mb_substr( $html, 0, 100000, 'UTF-8' );
 		}
@@ -339,8 +385,7 @@ class AI_Content_Extractor {
 			"}\n\n" .
 			"Rules:\n" .
 			"- Remove navigation, sidebars, comments, ads, footers, headers\n" .
-			"- Keep only the main article text and related images\n" .
-			"- Preserve paragraph structure and formatting\n" .
+			"- Keep only the main article text and related images\n" .		"- Include the COMPLETE article — every paragraph, do not cut off or truncate\n" .			"- Preserve paragraph structure and formatting\n" .
 			"- Keep image tags with src attributes\n" .
 			"- Make image URLs absolute (based on: %s)\n" .
 			"- Return valid JSON only\n\n" .
