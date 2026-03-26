@@ -321,8 +321,23 @@ class Safe_Code_Executor {
 			];
 		}
 
+		// Check if the first meaningful token (ignoring comments/whitespace) is T_RETURN.
+		// A plain stripos() check fails when comments precede the return statement.
+		$tokens = @token_get_all( '<?php ' . $code ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		$first_meaningful_token = null;
+		foreach ( $tokens as $token ) {
+			if ( is_array( $token ) ) {
+				if ( T_OPEN_TAG === $token[0] || T_WHITESPACE === $token[0] || T_COMMENT === $token[0] || T_DOC_COMMENT === $token[0] ) {
+					continue;
+				}
+				$first_meaningful_token = $token[0];
+			}
+			break;
+		}
+		$starts_with_return = ( T_RETURN === $first_meaningful_token );
+
 		// If code doesn't start with return, wrap it
-		if ( stripos( $code, 'return' ) !== 0 ) {
+		if ( ! $starts_with_return ) {
 			// Remove trailing semicolon if exists before wrapping
 			$code = rtrim( $code, '; ' );
 			$code = 'return ' . $code . ';';
