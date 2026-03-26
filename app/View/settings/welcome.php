@@ -86,7 +86,7 @@ $plugin_version = defined( 'WP_AIE_VERSION' ) ? WP_AIE_VERSION : '1.0';
 						</li>
 						<li>
 							<span class="dashicons dashicons-book-alt"></span>
-							<a href="hhttps://wpimportexport.com/docs/" target="_blank">
+							<a href="https://wpimportexport.com/docs/" target="_blank">
 								<?php _e( 'Documentation', 'wp-advanced-import-export' ); ?>
 							</a>
 						</li>
