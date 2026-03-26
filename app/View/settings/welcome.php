@@ -121,7 +121,7 @@ $plugin_version = defined( 'WP_AIE_VERSION' ) ? WP_AIE_VERSION : '1.0';
 								<?php esc_html_e( 'Copy', 'wp-advanced-import-export' ); ?>
 							</button>
 						</div>
-						<a href="<?php echo esc_url( admin_url( 'admin.php?page=wp-advanced-import-export-pricing&checkout=true&plan_id=36762&plan_name=unlimited&billing_cycle=monthly&pricing_id=48039&currency=usd' ) ); ?>" class="button button-primary aie-promo-cta">
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=wp-advanced-import-export-pricing' ) ); ?>" class="button button-primary aie-promo-cta">
 							<?php esc_html_e( 'Activate Premium →', 'wp-advanced-import-export' ); ?>
 						</a>
 					</div>
