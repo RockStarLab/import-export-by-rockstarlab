@@ -606,6 +606,10 @@ const ContentUpdater = {
 				jQuery( '<option>' ).val( condition.value ).text( condition.label )
 			);
 		} );
+
+		// Clear value and update input type based on field type
+		$row.find( '.aie-updater-filter-value' ).val( '' );
+		this.updateValueInputType( $row );
 		
 		Utils.debounce( () => this.refreshCount( false ), 500 )();
 	},
@@ -625,8 +629,50 @@ const ContentUpdater = {
 		} else {
 			$valueWrap.show();
 		}
+
+		// Update input type based on condition and field type
+		this.updateValueInputType( $row );
 		
 		Utils.debounce( () => this.refreshCount( false ), 500 )();
+	},
+
+	/**
+	 * Update value input type based on condition and field type
+	 */
+	updateValueInputType( $row ) {
+		const $field = $row.find( '.aie-updater-filter-field' );
+		const $condition = $row.find( '.aie-updater-filter-condition' );
+		const $value = $row.find( '.aie-updater-filter-value' );
+
+		const selectedOption = $field.find( 'option:selected' );
+		const fieldType = selectedOption.data( 'type' ) || 'string';
+		const condition = $condition.val();
+
+		// Skip if value is not an input field
+		if ( ! $value.is( 'input' ) ) {
+			return;
+		}
+
+		// For 'is_empty' and 'is_not_empty', hide the value input
+		const noValueConditions = [ 'is_empty', 'is_not_empty' ];
+		if ( noValueConditions.includes( condition ) ) {
+			$value.closest( '.aie-filter-value-wrap' ).hide();
+			return;
+		} else {
+			$value.closest( '.aie-filter-value-wrap' ).show();
+		}
+
+		// Set input type based on field type
+		if ( fieldType === 'date' || fieldType === 'datetime' ) {
+			$value.attr( 'type', 'date' );
+			$value.attr( 'placeholder', '' );
+		} else if ( fieldType === 'number' || fieldType === 'id' ) {
+			$value.attr( 'type', 'number' );
+			$value.attr( 'placeholder', window.aieData.i18n.enterNumberPlaceholder || '' );
+		} else {
+			$value.attr( 'type', 'text' );
+			$value.attr( 'placeholder', window.aieData.i18n.enterFilterValue || '' );
+		}
 	},
 
 	/**
@@ -655,10 +701,14 @@ const ContentUpdater = {
 		];
 		
 		const dateConditions = [
-			{ value: 'equals', label: window.aieData.i18n.onDate },
-			{ value: 'before', label: window.aieData.i18n.before },
-			{ value: 'after', label: window.aieData.i18n.after },
-			{ value: 'between', label: window.aieData.i18n.between }
+			{ value: 'equals', label: window.aieData.i18n.equals },
+			{ value: 'not_equals', label: window.aieData.i18n.notEquals },
+			{ value: 'greater', label: window.aieData.i18n.newerThan || window.aieData.i18n.greaterThan },
+			{ value: 'equals_or_greater', label: window.aieData.i18n.greaterOrEqual },
+			{ value: 'less', label: window.aieData.i18n.olderThan || window.aieData.i18n.lessThan },
+			{ value: 'equals_or_less', label: window.aieData.i18n.lessOrEqual },
+			{ value: 'is_empty', label: window.aieData.i18n.isEmpty },
+			{ value: 'is_not_empty', label: window.aieData.i18n.isNotEmpty },
 		];
 		
 		switch ( fieldType ) {
