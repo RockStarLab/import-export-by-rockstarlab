@@ -66,6 +66,21 @@ body {
   z-index: 100;
 }
 
+.sidebar-logo-link,
+.sidebar-logo-link:visited {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.sidebar-logo-link:hover {
+  text-decoration: none;
+  opacity: .85;
+}
+
 .sidebar-logo {
   padding: 24px 20px 16px;
   border-bottom: 1px solid rgba(255,255,255,.08);
