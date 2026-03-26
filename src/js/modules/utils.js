@@ -131,7 +131,10 @@ const Utils = {
 	showNotice( message, type = 'info' ) {
 		const noticeClass = 'notice notice-' + type + ' is-dismissible';
 		const dismissText = window.aieData?.i18n?.dismissNotice || 'Dismiss this notice.';
-		
+
+		// Remove all existing notices to show only one at a time
+		jQuery( '.wrap > .notice' ).remove();
+
 		const $notice = jQuery(
 			'<div class="' + noticeClass + '">' +
 				'<p>' + message + '</p>' +
