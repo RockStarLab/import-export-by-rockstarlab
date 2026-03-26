@@ -13,17 +13,8 @@ use WP_AIE\Model\Custom_Function;
 use WP_AIE\Helper\Function_Snippets;
 use WP_AIE\Helper\Function_Executor;
 
-/**
- * Functions Controller Class
- *
- * Manages custom functions via AJAX:
- * - CRUD operations
- * - Testing functions
- * - Browsing snippet library
- * - Importing snippets
- *
- * @package WP_AIE\Controller
- */
+defined( 'ABSPATH' ) || exit;
+
 class Functions_Controller extends Base_Controller {
 
 	/**
@@ -272,7 +263,7 @@ class Functions_Controller extends Base_Controller {
 		$description = $this->get_request_param( 'description', '' );
 		// Don't use get_request_param for code - it uses sanitize_text_field which removes newlines
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$code     = isset( $_REQUEST['code'] ) ? wp_unslash( $_REQUEST['code'] ) : '';
+		$code     = isset( $_REQUEST['code'] ) ? wp_unslash( $_REQUEST['code'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Input is handled/validated via verify_request(). -- Nonce verified via verify_request().
 		$category = $this->get_request_param( 'category', 'custom' );
 		$status   = $this->get_request_param( 'status', 'active' );
 
@@ -375,7 +366,7 @@ class Functions_Controller extends Base_Controller {
 
 		// Don't use get_request_param for code - it uses sanitize_text_field which removes newlines
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$code = isset( $_REQUEST['code'] ) ? wp_unslash( $_REQUEST['code'] ) : '';
+		$code = isset( $_REQUEST['code'] ) ? wp_unslash( $_REQUEST['code'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Input is handled/validated via verify_request(). -- Nonce verified via verify_request().
 		if ( ! empty( $code ) ) {
 			$update_data['code'] = $code;
 		}
@@ -466,7 +457,7 @@ class Functions_Controller extends Base_Controller {
 
 		// Don't use get_request_param for code - it uses sanitize_text_field which removes newlines
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$code  = isset( $_REQUEST['code'] ) ? wp_unslash( $_REQUEST['code'] ) : '';
+		$code  = isset( $_REQUEST['code'] ) ? wp_unslash( $_REQUEST['code'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Input is handled/validated via verify_request(). -- Nonce verified via verify_request().
 		$value = $this->get_request_param( 'value', '' );
 
 		if ( empty( $code ) ) {
@@ -536,7 +527,7 @@ class Functions_Controller extends Base_Controller {
 					$steps[] = [
 						'function_id'   => $function_id,
 						'function_name' => $function_name,
-						'output'        => 'Function code cannot be empty. Snippet data: ' . print_r( $snippet, true ),
+						'output'        => 'Function code cannot be empty.',
 						'error'         => true,
 					];
 					break;

@@ -9,19 +9,8 @@
 
 namespace WP_AIE\Model\Export;
 
-/**
- * Order Exporter Class
- *
- * Exports WooCommerce orders with support for:
- * - HPOS (High-Performance Order Storage)
- * - Order meta data
- * - Billing and shipping information
- * - Order items and line items
- * - Order status filtering
- * - Date range filtering
- *
- * @package WP_AIE\Model\Export
- */
+defined( 'ABSPATH' ) || exit;
+
 class Order_Exporter extends Abstract_Exporter {
 
 	/**

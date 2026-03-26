@@ -9,18 +9,8 @@
 
 namespace WP_AIE\Model\Export;
 
-/**
- * Attribute Exporter Class
- *
- * Exports WooCommerce product attributes with support for:
- * - ID filtering
- * - Name filtering
- * - Label filtering
- * - Type filtering
- * - Order filtering
- *
- * @package WP_AIE\Model\Export
- */
+defined( 'ABSPATH' ) || exit;
+
 class Attribute_Exporter extends Abstract_Exporter {
 
 	/**
@@ -144,7 +134,7 @@ class Attribute_Exporter extends Abstract_Exporter {
 	protected function get_all_attributes() {
 		global $wpdb;
 
-		$results = $wpdb->get_results(
+		$results = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			"SELECT * FROM {$wpdb->prefix}woocommerce_attribute_taxonomies ORDER BY attribute_id ASC"
 		);
 

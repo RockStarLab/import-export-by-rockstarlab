@@ -9,18 +9,8 @@
 
 namespace WP_AIE\Model\Import;
 
-/**
- * Post Importer Class
- *
- * Imports WordPress posts with support for:
- * - Post meta
- * - Taxonomies (categories, tags, custom taxonomies)
- * - Featured images
- * - Post status and visibility
- * - Duplicate handling
- *
- * @package WP_AIE\Model\Import
- */
+defined( 'ABSPATH' ) || exit;
+
 class Post_Importer extends Abstract_Importer {
 
 	/**
@@ -723,7 +713,7 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		// Check for existing media
-		$filename = basename( parse_url( $url, PHP_URL_PATH ) );
+		$filename = basename( wp_parse_url( $url, PHP_URL_PATH ) );
 		$existing_attachment = $this->find_existing_media( $filename, $url );
 
 		if ( $existing_attachment ) {
@@ -821,7 +811,7 @@ class Post_Importer extends Abstract_Importer {
 			}
 
 			// Check for existing media by filename, size and hash
-			$filename = basename( parse_url( $url, PHP_URL_PATH ) );
+			$filename = basename( wp_parse_url( $url, PHP_URL_PATH ) );
 			$existing_attachment = $this->find_existing_media( $filename, $url );
 
 			if ( $existing_attachment ) {
@@ -934,7 +924,7 @@ class Post_Importer extends Abstract_Importer {
 		global $wpdb;
 
 		// First, find all attachments with matching filename
-		$attachment_ids = $wpdb->get_col(
+		$attachment_ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
 				"SELECT post_id FROM $wpdb->postmeta 
 				WHERE meta_key = '_wp_attached_file' 
@@ -1045,7 +1035,7 @@ class Post_Importer extends Abstract_Importer {
 
 		// Prepare file array
 		$file = [
-			'name'     => basename( parse_url( $url, PHP_URL_PATH ) ),
+			'name'     => basename( wp_parse_url( $url, PHP_URL_PATH ) ),
 			'tmp_name' => $temp_file,
 		];
 
@@ -1054,7 +1044,7 @@ class Post_Importer extends Abstract_Importer {
 
 		// Clean up temp file
 		if ( file_exists( $temp_file ) ) {
-			@unlink( $temp_file );
+			@wp_delete_file( $temp_file );
 		}
 
 		return $attachment_id;
@@ -1068,7 +1058,7 @@ class Post_Importer extends Abstract_Importer {
 		global $wpdb;
 
 		// Get all transients related to temporary media files
-		$transients = $wpdb->get_col(
+		$transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			"SELECT option_name FROM $wpdb->options 
 			WHERE option_name LIKE '_transient_aie_temp_media_%'"
 		);
@@ -1079,7 +1069,7 @@ class Post_Importer extends Abstract_Importer {
 			$temp_file = get_transient( $transient_key );
 
 			if ( $temp_file && file_exists( $temp_file ) ) {
-				@unlink( $temp_file );
+				@wp_delete_file( $temp_file );
 				$cleaned++;
 			}
 

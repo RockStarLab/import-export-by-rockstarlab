@@ -9,17 +9,8 @@
 
 namespace WP_AIE\Model\Export;
 
-/**
- * Database Table Exporter Class
- *
- * Exports data from any database table with support for:
- * - Dynamic table selection
- * - Dynamic field detection
- * - All standard filter conditions
- * - Column type detection
- *
- * @package WP_AIE\Model\Export
- */
+defined( 'ABSPATH' ) || exit;
+
 class Database_Table_Exporter extends Abstract_Exporter {
 
 	/**
@@ -61,7 +52,7 @@ class Database_Table_Exporter extends Abstract_Exporter {
 	public function get_available_tables() {
 		global $wpdb;
 
-		$tables = $wpdb->get_results( 'SHOW TABLES', ARRAY_N );
+		$tables = $wpdb->get_results( 'SHOW TABLES', ARRAY_N ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 
 		if ( empty( $tables ) ) {
 			$this->log_info( 'No tables found in database' );
@@ -73,7 +64,7 @@ class Database_Table_Exporter extends Abstract_Exporter {
 			$table_name = $table[0];
 
 			// Get row count - use direct query since table names can't be prepared
-			$count = $wpdb->get_var( "SELECT COUNT(*) FROM `{$table_name}`" );
+			$count = $wpdb->get_var( "SELECT COUNT(*) FROM `{$table_name}`" ); // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 
 			$result[] = [
 				'table_name' => $table_name,
@@ -103,7 +94,7 @@ class Database_Table_Exporter extends Abstract_Exporter {
 		$table_name = sanitize_text_field( $table_name );
 
 		// Get column information
-		$columns = $wpdb->get_results(
+		$columns = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
 				'SELECT 
 					COLUMN_NAME as name,
@@ -219,14 +210,14 @@ class Database_Table_Exporter extends Abstract_Exporter {
 
 		// Validate table name exists
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) );
+		$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 		if ( ! $table_exists ) {
 			return 0;
 		}
 
 		// Fetch all rows for filtering
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM `%1s`', $table_name ), ARRAY_A );
+		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM `%1s`', $table_name ), ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQLPlaceholders.UnquotedComplexPlaceholder -- Direct DB query required here.
 
 		if ( empty( $rows ) ) {
 			return 0;
@@ -264,7 +255,7 @@ class Database_Table_Exporter extends Abstract_Exporter {
 		$table_name = sanitize_text_field( $options['table_name'] );
 
 		// Check if table exists
-		$table_exists = $wpdb->get_var(
+		$table_exists = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
 				'SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES 
 				WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s',
@@ -276,6 +267,7 @@ class Database_Table_Exporter extends Abstract_Exporter {
 		if ( ! $table_exists ) {
 			return new \WP_Error(
 				'table_not_found',
+				// translators: %s is a dynamic value.
 				sprintf( __( 'Table %s not found', 'wp-advanced-import-export' ), $table_name )
 			);
 		}
@@ -284,7 +276,7 @@ class Database_Table_Exporter extends Abstract_Exporter {
 
 		// Fetch all rows
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM `%1s`', $table_name ), ARRAY_A );
+		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM `%1s`', $table_name ), ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQLPlaceholders.UnquotedComplexPlaceholder -- Direct DB query required here. Placeholder handled correctly.
 
 		if ( empty( $rows ) ) {
 			return [];

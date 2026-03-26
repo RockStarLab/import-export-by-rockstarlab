@@ -50,17 +50,8 @@
 
 namespace WP_AIE\Model\Import;
 
-/**
- * WooCommerce Attribute Importer Class
- *
- * Imports product attributes with support for:
- * - Creating/updating global attributes
- * - Creating/updating attribute terms
- * - Handling duplicate attributes and terms
- * - Preserving term IDs where possible
- *
- * @package WP_AIE\Model\Import
- */
+defined( 'ABSPATH' ) || exit;
+
 class Woo_Attribute_Importer extends Abstract_Importer {
 
 	/**
@@ -352,7 +343,7 @@ class Woo_Attribute_Importer extends Abstract_Importer {
 			'attribute_public'  => isset( $item['attribute_public'] ) ? (int) $item['attribute_public'] : 0,
 		];
 
-		$result = $wpdb->insert(
+		$result = $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct DB query required here.
 			$wpdb->prefix . 'woocommerce_attribute_taxonomies',
 			$data,
 			[ '%s', '%s', '%s', '%s', '%d' ]
@@ -402,7 +393,7 @@ class Woo_Attribute_Importer extends Abstract_Importer {
 			'attribute_public'  => isset( $item['attribute_public'] ) ? (int) $item['attribute_public'] : 0,
 		];
 
-		$result = $wpdb->update(
+		$result = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prefix . 'woocommerce_attribute_taxonomies',
 			$data,
 			[ 'attribute_id' => $attribute_id ],
@@ -532,7 +523,7 @@ class Woo_Attribute_Importer extends Abstract_Importer {
 	protected function get_attribute_id_by_name( $attribute_name ) {
 		global $wpdb;
 
-		$attribute_id = $wpdb->get_var(
+		$attribute_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
 				"SELECT attribute_id FROM {$wpdb->prefix}woocommerce_attribute_taxonomies WHERE attribute_name = %s",
 				$attribute_name
@@ -557,10 +548,15 @@ class Woo_Attribute_Importer extends Abstract_Importer {
 		$labels = [
 			'name'          => $attribute_name,
 			'singular_name' => $attribute_name,
+			// translators: %s is a dynamic value.
 			'search_items'  => sprintf( __( 'Search %s', 'wp-advanced-import-export' ), $attribute_name ),
+			// translators: %s is a dynamic value.
 			'all_items'     => sprintf( __( 'All %s', 'wp-advanced-import-export' ), $attribute_name ),
+			// translators: %s is a dynamic value.
 			'edit_item'     => sprintf( __( 'Edit %s', 'wp-advanced-import-export' ), $attribute_name ),
+			// translators: %s is a dynamic value.
 			'update_item'   => sprintf( __( 'Update %s', 'wp-advanced-import-export' ), $attribute_name ),
+			// translators: %s is a dynamic value.
 			'add_new_item'  => sprintf( __( 'Add new %s', 'wp-advanced-import-export' ), $attribute_name ),
 		];
 

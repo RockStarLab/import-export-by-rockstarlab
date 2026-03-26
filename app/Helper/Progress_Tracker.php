@@ -10,13 +10,8 @@
 
 namespace WP_AIE\Helper;
 
-/**
- * Progress Tracker Helper Class
- *
- * Facade for job progress tracking operations.
- *
- * @package WP_AIE\Helper
- */
+defined( 'ABSPATH' ) || exit;
+
 class Progress_Tracker {
 
 	/**
@@ -51,7 +46,7 @@ class Progress_Tracker {
 		global $wpdb;
 		$table = $wpdb->prefix . 'aie_jobs';
 
-		$result = $wpdb->update(
+		$result = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$table,
 			array( 'progress' => $percentage ),
 			array( 'id' => $job_id ),
@@ -102,7 +97,7 @@ class Progress_Tracker {
 			'elapsed_formatted'    => self::format_duration( $elapsed ),
 			'remaining_seconds'    => $remaining_time,
 			'remaining_formatted'  => self::format_duration( $remaining_time ),
-			'estimated_completion' => date( 'Y-m-d H:i:s', $estimated_completion ),
+			'estimated_completion' => gmdate( 'Y-m-d H:i:s', $estimated_completion ),
 			'items_per_second'     => $elapsed > 0 ? round( $processed / $elapsed, 2 ) : 0,
 			'percentage'           => round( ( $processed / $total ) * 100 ),
 		);

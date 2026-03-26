@@ -13,17 +13,8 @@ use WP_AIE\Model\Job;
 use WP_AIE\Model\Export\Exporter_Factory;
 use WP_AIE\Model\Queue\Update_Processor;
 
-/**
- * Content Updater Controller Class
- *
- * Manages content update workflow:
- * 1. Select content type
- * 2. Select fields
- * 3. Assign functions to fields
- * 4. Process updates in batches
- *
- * @package WP_AIE\Controller
- */
+defined( 'ABSPATH' ) || exit;
+
 class Content_Updater_Controller extends Base_Controller {
 
 	/**

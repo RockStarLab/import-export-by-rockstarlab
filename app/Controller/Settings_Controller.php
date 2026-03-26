@@ -9,15 +9,8 @@
 
 namespace WP_AIE\Controller;
 
-/**
- * Settings Controller Class
- *
- * Manages plugin settings via AJAX:
- * - OpenAI API Key
- * - Other plugin options
- *
- * @package WP_AIE\Controller
- */
+defined( 'ABSPATH' ) or exit;
+
 class Settings_Controller extends Base_Controller {
 
 	/**

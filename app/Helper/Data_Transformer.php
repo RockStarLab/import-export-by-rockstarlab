@@ -10,13 +10,8 @@
 
 namespace WP_AIE\Helper;
 
-/**
- * Data Transformer Helper Class
- *
- * Provides data sanitization, validation, and transformation utilities.
- *
- * @package WP_AIE\Helper
- */
+defined( 'ABSPATH' ) || exit;
+
 class Data_Transformer {
 
 	/**
@@ -181,11 +176,11 @@ class Data_Transformer {
 	 * @return string CSV line without trailing newline
 	 */
 	public static function array_to_csv( $data, $delimiter = ',', $enclosure = '"' ) {
-		$output = fopen( 'php://temp', 'r+' );
+		$output = fopen( 'php://temp', 'r+' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 		fputcsv( $output, $data, $delimiter, $enclosure );
 		rewind( $output );
 		$csv = stream_get_contents( $output );
-		fclose( $output );
+		fclose( $output ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 
 		return rtrim( $csv );
 	}

@@ -9,13 +9,8 @@
 
 namespace WP_AIE\Model\Validator;
 
-/**
- * Regex Rule Class
- *
- * Validates that a value matches a specified regular expression pattern.
- *
- * @package WP_AIE\Model\Validator
- */
+defined( 'ABSPATH' ) || exit;
+
 class Regex_Rule extends Validation_Rule {
 
 	/**

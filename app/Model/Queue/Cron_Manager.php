@@ -9,13 +9,8 @@
 
 namespace WP_AIE\Model\Queue;
 
-/**
- * Cron Manager Class
- *
- * Handles registration and execution of background jobs via WP Cron
- *
- * @package WP_AIE\Model\Queue
- */
+defined( 'ABSPATH' ) || exit;
+
 class Cron_Manager {
 
 	/**

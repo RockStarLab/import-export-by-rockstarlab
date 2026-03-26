@@ -9,6 +9,8 @@
 
 namespace WP_AIE\Controller;
 
+defined( 'ABSPATH' ) || exit;
+
 use WP_AIE\Model\Connected_Site;
 
 /**
@@ -617,21 +619,29 @@ class Content_Sync_Controller extends Base_Controller {
 					'failedLoadLocalPosts'        => __( 'Failed to load local posts info', 'wp-advanced-import-export' ),
 					'pleaseSelectOnePost'         => __( 'Please select at least one post', 'wp-advanced-import-export' ),
 					
+					// translators: %s = content placeholder.
 					// Count Text
 					'onePost'                     => __( '1 post', 'wp-advanced-import-export' ),
+					// translators: %s is a dynamic value.
 					'postsCount'                  => __( '%s posts', 'wp-advanced-import-export' ),
 					
 					// Post Info
+					// translators: %s is a dynamic value.
 					'postHash'                    => __( 'Post #%s', 'wp-advanced-import-export' ),
+					// translators: %s = content placeholder.
 					'idLabel'                     => __( 'ID:', 'wp-advanced-import-export' ),
 					'noTitle'                     => __( '(No title)', 'wp-advanced-import-export' ),
 					
+					// translators: %s = content placeholder.
 					// Actions
 					'createNewPost'               => __( '➕ Create New Post', 'wp-advanced-import-export' ),
-					'updatePost'                  => __( '🔄 Update: %s (ID: %s)', 'wp-advanced-import-export' ),
+					// translators: 1: post title or name, 2: post ID.
+					'updatePost'                  => __( '🔄 Update: %1$s (ID: %2$s)', 'wp-advanced-import-export' ),
+					// translators: %s is a dynamic value.
 					'searchForUpdate'             => __( 'Search for a %s to update...', 'wp-advanced-import-export' ),
 					
 					// Progress
+					// translators: %s is a dynamic value.
 					'starting'                    => __( 'Starting %s...', 'wp-advanced-import-export' ),
 					'completed'                   => __( 'Completed!', 'wp-advanced-import-export' ),
 					'syncCompletedSuccess'        => __( 'Sync completed successfully', 'wp-advanced-import-export' ),
@@ -830,6 +840,7 @@ class Content_Sync_Controller extends Base_Controller {
 				),
 			)
 		);
+// translators: %s = content placeholder.
 
 		if ( is_wp_error( $response ) ) {
 			$this->send_error( __( 'Failed to connect to remote site: ', 'wp-advanced-import-export' ) . $response->get_error_message() );
@@ -840,6 +851,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 		if ( $status_code !== 200 ) {
 			$error_data = json_decode( $body, true );
+			// translators: %d is a dynamic value.
 			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Request failed with status code: %d', 'wp-advanced-import-export' ), $status_code );
 			$this->send_error( $error_msg );
 		}
@@ -909,6 +921,7 @@ class Content_Sync_Controller extends Base_Controller {
 						'parent_id' => $parent_id,
 					)
 				),
+			// translators: %s = content placeholder.
 			)
 		);
 
@@ -921,6 +934,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 		if ( $status_code !== 200 ) {
 			$error_data = json_decode( $body, true );
+			// translators: %d is a dynamic value.
 			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Request failed with status code: %d', 'wp-advanced-import-export' ), $status_code );
 			$this->send_error( $error_msg );
 		}
@@ -1156,6 +1170,7 @@ class Content_Sync_Controller extends Base_Controller {
 						'posts'        => $posts_data,
 						'image_map'    => $image_map,
 						'post_mapping' => $post_mapping,
+					// translators: %s = content placeholder.
 					)
 				),
 			)
@@ -1170,6 +1185,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 		if ( $status_code !== 200 ) {
 			$error_data = json_decode( $body, true );
+			// translators: %d is a dynamic value.
 			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Push failed with status code: %d', 'wp-advanced-import-export' ), $status_code );
 			$this->send_error( $error_msg );
 		}
@@ -1319,8 +1335,8 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		// Get domains for replacement
-		$source_domain = parse_url( $site['remote_url'], PHP_URL_HOST );
-		$target_domain = parse_url( home_url(), PHP_URL_HOST );
+		$source_domain = wp_parse_url( $site['remote_url'], PHP_URL_HOST );
+		$target_domain = wp_parse_url( home_url(), PHP_URL_HOST );
 
 		// Request content from remote site
 		$response = wp_remote_post(
@@ -1332,6 +1348,7 @@ class Content_Sync_Controller extends Base_Controller {
 					'Content-Type'  => 'application/json',
 				),
 				'body'    => wp_json_encode(
+					// translators: %s = content placeholder.
 					array(
 						'post_ids' => $post_ids,
 					)
@@ -1348,6 +1365,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 		if ( $status_code !== 200 ) {
 			$error_data = json_decode( $body, true );
+			// translators: %d is a dynamic value.
 			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Pull failed with status code: %d', 'wp-advanced-import-export' ), $status_code );
 			$this->send_error( $error_msg );
 		}
@@ -1641,8 +1659,8 @@ class Content_Sync_Controller extends Base_Controller {
 
 	/**
 	 * Find attachment by file hash
-	 *
-	 * @param string $file_hash File MD5 hash.
+	 * // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+	 * @param string $file_hash File MD5 hash. // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 	 * @return int|false Attachment ID or false if not found
 	 */
 	private function find_attachment_by_hash( $file_hash ) {
@@ -1652,8 +1670,8 @@ class Content_Sync_Controller extends Base_Controller {
 				'post_type'      => 'attachment',
 				'post_status'    => 'any',
 				'posts_per_page' => 1,
-				'meta_key'       => '_aie_file_hash',
-				'meta_value'     => $file_hash,
+				'meta_key'       => '_aie_file_hash', // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_key required for filtering.
+				'meta_value'     => $file_hash, // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_value required for filtering.
 				'fields'         => 'ids',
 			)
 		);
@@ -1763,8 +1781,6 @@ class Content_Sync_Controller extends Base_Controller {
 								}
 							} else {
 								$row_data[ $sub_field_name ] = $meta_value;
-								if ( strlen( print_r( $meta_value, true ) ) < 100 ) {
-								}
 							}
 						}
 					}
@@ -1849,8 +1865,8 @@ class Content_Sync_Controller extends Base_Controller {
 		// First priority: check if post with same ID exists locally
 		$post = get_post( $original_post_id );
 		if ( $post && $post->ID == $original_post_id ) {
-			return $post->ID;
-		}
+			return $post->ID; // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+		} // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 
 		// Second priority: try to find by meta (if post was previously synced to different ID)
 		$posts = get_posts(
@@ -1858,8 +1874,8 @@ class Content_Sync_Controller extends Base_Controller {
 				'post_type'      => 'any',
 				'post_status'    => 'any',
 				'posts_per_page' => 1,
-				'meta_key'       => '_aie_original_post_id',
-				'meta_value'     => $original_post_id,
+				'meta_key'       => '_aie_original_post_id', // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_key required for filtering.
+				'meta_value'     => $original_post_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_value required for filtering.
 				'fields'         => 'ids',
 			)
 		);

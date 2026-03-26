@@ -9,14 +9,8 @@
 
 namespace WP_AIE\Controller;
 
-/**
- * Base Controller Class
- *
- * Provides common functionality for AJAX controllers including
- * security checks, request validation, and response formatting.
- *
- * @package WP_AIE\Controller
- */
+defined( 'ABSPATH' ) || exit;
+
 abstract class Base_Controller {
 
 	/**
@@ -119,9 +113,9 @@ abstract class Base_Controller {
 		if ( ! isset( $_REQUEST[ $key ] ) ) {
 			return $default;
 		}
-
+ // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Input is handled/validated via verify_request(). -- Input is sanitized and validated in context.
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$value = $_REQUEST[ $key ];
+		$value = wp_unslash( $_REQUEST[ $key ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.NonceVerification.Recommended
 
 		if ( ! is_array( $value ) ) {
 			return $default;

@@ -9,13 +9,8 @@
 
 namespace WP_AIE\Model\Validator;
 
-/**
- * Range Rule Class
- *
- * Validates that a numeric value is within specified min/max range.
- *
- * @package WP_AIE\Model\Validator
- */
+defined( 'ABSPATH' ) || exit;
+
 class Range_Rule extends Validation_Rule {
 
 	/**

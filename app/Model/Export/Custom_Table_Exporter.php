@@ -9,13 +9,8 @@
 
 namespace WP_AIE\Model\Export;
 
-/**
- * Custom Table Exporter Class
- *
- * Handles export of custom database tables.
- *
- * @package WP_AIE\Model\Export
- */
+defined( 'ABSPATH' ) || exit;
+
 class Custom_Table_Exporter extends Abstract_Exporter {
 
 	/**
@@ -131,13 +126,13 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 
 		// Build query with prepared statement
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$query = $wpdb->prepare( 'SELECT COUNT(*) FROM `%1s`', $table_name );
+		$query = $wpdb->prepare( 'SELECT COUNT(*) FROM `%1s`', $table_name ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnquotedComplexPlaceholder -- Direct DB query required here.
 		if ( ! empty( $where_clause ) ) {
 			$query .= ' WHERE ' . $where_clause;
 		}
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$count = $wpdb->get_var( $query );
+		$count = $wpdb->get_var( $query ); // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- Direct DB query required here
 
 		return absint( $count );
 	}
@@ -162,7 +157,7 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 
 		// Build query with prepared statement
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$query = $wpdb->prepare( 'SELECT * FROM `%1s`', $table_name );
+		$query = $wpdb->prepare( 'SELECT * FROM `%1s`', $table_name ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnquotedComplexPlaceholder -- Direct DB query required here.
 		if ( ! empty( $where_clause ) ) {
 			$query .= ' WHERE ' . $where_clause;
 		}
@@ -176,7 +171,7 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 		}
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$results = $wpdb->get_results( $query, ARRAY_A );
+		$results = $wpdb->get_results( $query, ARRAY_A ); // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- Direct DB query required here
 
 		return $results ?: [];
 	}
@@ -202,7 +197,7 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 	private function get_table_columns( $table_name ) {
 		global $wpdb;
 
-		$columns = $wpdb->get_results(
+		$columns = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
 				'SELECT COLUMN_NAME 
 				FROM INFORMATION_SCHEMA.COLUMNS 
@@ -284,7 +279,7 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 					if ( ! empty( $values ) ) {
 						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
 						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-						$conditions[] = $wpdb->prepare( '`' . esc_sql( $field ) . "` IN ($placeholders)", $values );
+						$conditions[] = $wpdb->prepare( '`' . esc_sql( $field ) . "` IN ($placeholders)", $values ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here
 					}
 					break;
 				case 'not_in':
@@ -301,7 +296,7 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 					if ( ! empty( $values ) ) {
 						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
 						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-						$conditions[] = $wpdb->prepare( '`' . esc_sql( $field ) . "` NOT IN ($placeholders)", $values );
+						$conditions[] = $wpdb->prepare( '`' . esc_sql( $field ) . "` NOT IN ($placeholders)", $values ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here
 					}
 					break;
 				case 'contains':

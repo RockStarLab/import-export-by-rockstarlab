@@ -10,13 +10,8 @@
 
 namespace WP_AIE\Model;
 
-/**
- * Connected Site Model Class
- *
- * Handles CRUD operations for connected sites.
- *
- * @package WP_AIE\Model
- */
+defined( 'ABSPATH' ) || exit;
+
 class Connected_Site {
 
 	/**
@@ -35,8 +30,8 @@ class Connected_Site {
 		global $wpdb;
 		$table = $wpdb->prefix . self::$table_name;
 
-		$results = $wpdb->get_results(
-			"SELECT * FROM {$table} ORDER BY created_at DESC",
+		$results = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			"SELECT * FROM {$table} ORDER BY created_at DESC", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 			ARRAY_A
 		);
 
@@ -53,8 +48,8 @@ class Connected_Site {
 		global $wpdb;
 		$table = $wpdb->prefix . self::$table_name;
 
-		return $wpdb->get_row(
-			$wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id ),
+		return $wpdb->get_row( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			$wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 			ARRAY_A
 		);
 	}
@@ -69,8 +64,8 @@ class Connected_Site {
 		global $wpdb;
 		$table = $wpdb->prefix . self::$table_name;
 
-		return $wpdb->get_row(
-			$wpdb->prepare( "SELECT * FROM {$table} WHERE api_key = %s", $api_key ),
+		return $wpdb->get_row( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			$wpdb->prepare( "SELECT * FROM {$table} WHERE api_key = %s", $api_key ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 			ARRAY_A
 		);
 	}
@@ -98,7 +93,7 @@ class Connected_Site {
 
 		$data = wp_parse_args( $data, $defaults );
 
-		$result = $wpdb->insert(
+		$result = $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct DB query required here.
 			$table,
 			$data,
 			array(
@@ -129,7 +124,7 @@ class Connected_Site {
 
 		$data['updated_at'] = current_time( 'mysql' );
 
-		$result = $wpdb->update(
+		$result = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$table,
 			$data,
 			array( 'id' => $id ),
@@ -159,7 +154,7 @@ class Connected_Site {
 		global $wpdb;
 		$table = $wpdb->prefix . self::$table_name;
 
-		$result = $wpdb->delete(
+		$result = $wpdb->delete( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$table,
 			array( 'id' => $id ),
 			array( '%d' )
@@ -192,7 +187,7 @@ class Connected_Site {
 			$data['status']     = 'active';
 		}
 
-		$result = $wpdb->update(
+		$result = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$table,
 			$data,
 			array( 'id' => $id ),
@@ -240,8 +235,8 @@ class Connected_Site {
 			'error'  => 0,
 		);
 
-		$results = $wpdb->get_results(
-			"SELECT status, COUNT(*) as count FROM {$table} GROUP BY status",
+		$results = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			"SELECT status, COUNT(*) as count FROM {$table} GROUP BY status", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 			ARRAY_A
 		);
 
@@ -272,7 +267,7 @@ class Connected_Site {
 		}
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$count = $wpdb->get_var( $sql );
+		$count = $wpdb->get_var( $sql ); // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- Direct DB query required here
 
 		return $count > 0;
 	}

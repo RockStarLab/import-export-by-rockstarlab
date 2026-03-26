@@ -13,13 +13,8 @@ use WP_AIE\Helper\Media_Sync;
 use WP_AIE\Helper\Progress_Tracker;
 use WP_AIE\Model\Job;
 
-/**
- * Media Sync Processor Class
- *
- * Handles background processing of media sync jobs
- *
- * @package WP_AIE\Model\Queue
- */
+defined( 'ABSPATH' ) || exit;
+
 class Media_Sync_Processor {
 
 	/**

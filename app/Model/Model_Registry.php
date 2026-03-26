@@ -10,13 +10,8 @@
 
 namespace WP_AIE\Model;
 
-/**
- * Model Registry Class
- *
- * Manages model instances for dynamic access via WP_AIE()->model->name.
- *
- * @package WP_AIE\Model
- */
+defined( 'ABSPATH' ) || exit;
+
 class Model_Registry {
 
 	/**

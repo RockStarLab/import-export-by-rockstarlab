@@ -9,14 +9,8 @@
 
 namespace WP_AIE\Model\Format;
 
-/**
- * XML Format Handler Class
- *
- * Implements XML file parsing, generation, and validation with support
- * for large files through XMLReader.
- *
- * @package WP_AIE\Model\Format
- */
+defined( 'ABSPATH' ) || exit;
+
 class XML_Format implements File_Format_Interface {
 
 	/**

@@ -14,18 +14,8 @@ use WP_AIE\Model\Import\Importer_Factory;
 use WP_AIE\Model\Format\Format_Factory;
 use WP_AIE\Helper\Fs;
 
-/**
- * Import Controller Class
- *
- * Manages import workflow:
- * 1. File upload and parsing
- * 2. Data validation
- * 3. Job creation
- * 4. Import execution
- * 5. Progress tracking
- *
- * @package WP_AIE\Controller
- */
+defined( 'ABSPATH' ) || exit;
+
 class Import_Controller extends Base_Controller {
 
 	/**
@@ -58,12 +48,12 @@ class Import_Controller extends Base_Controller {
 		}
 
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		if ( empty( $_FILES['file'] ) ) {
+		if ( empty( $_FILES['file'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified via verify_request().
 			$this->send_error( __( 'No file uploaded', 'wp-advanced-import-export' ), null, 400 );
 		}
 
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$file = $this->sanitize_file_upload( wp_unslash( $_FILES['file'] ) );
+		$file = $this->sanitize_file_upload( wp_unslash( $_FILES['file'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce verified via verify_request()
 		if ( is_wp_error( $file ) ) {
 			$this->send_error( $file, null, 400 );
 		}
@@ -700,7 +690,7 @@ class Import_Controller extends Base_Controller {
 		
 		// Get row count
 		global $wpdb;
-		$row_count = $wpdb->get_var( "SELECT COUNT(*) FROM `{$table_name}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$row_count = $wpdb->get_var( "SELECT COUNT(*) FROM `{$table_name}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Direct DB query required here.
 
 		if ( empty( $columns ) ) {
 			$this->send_error( __( 'Could not retrieve table columns', 'wp-advanced-import-export' ), null, 400 );

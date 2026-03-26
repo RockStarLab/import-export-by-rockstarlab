@@ -9,18 +9,8 @@
 
 namespace WP_AIE\Model\Export;
 
-/**
- * Post Exporter Class
- *
- * Exports posts with support for:
- * - Multiple post types (post, page, custom)
- * - Filtering by status, date, author, taxonomy
- * - Post meta export
- * - Taxonomy terms export
- * - Featured image export
- *
- * @package WP_AIE\Model\Export
- */
+defined( 'ABSPATH' ) || exit;
+
 class Post_Exporter extends Abstract_Exporter {
 
 	/**
@@ -50,10 +40,10 @@ class Post_Exporter extends Abstract_Exporter {
 		return [
 			'post_type'     => __( 'Post type (post, page, or custom post type)', 'wp-advanced-import-export' ),
 			'post_status'   => __( 'Post status (publish, draft, pending, etc.)', 'wp-advanced-import-export' ),
-			'author'        => __( 'Author ID or array of IDs', 'wp-advanced-import-export' ),
-			'date_query'    => __( 'Date query parameters', 'wp-advanced-import-export' ),
-			'tax_query'     => __( 'Taxonomy query parameters', 'wp-advanced-import-export' ),
-			'meta_query'    => __( 'Meta query parameters', 'wp-advanced-import-export' ),
+			'author'        => __( 'Author ID or array of IDs', 'wp-advanced-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+			'date_query'    => __( 'Date query parameters', 'wp-advanced-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+			'tax_query'     => __( 'Taxonomy query parameters', 'wp-advanced-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- tax_query required for filtering.
+			'meta_query'    => __( 'Meta query parameters', 'wp-advanced-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
 			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'wp-advanced-import-export' ),
 			'taxonomy'      => __( 'Taxonomy filters: array of [taxonomy, terms, condition]', 'wp-advanced-import-export' ),
 			's'             => __( 'Search query', 'wp-advanced-import-export' ),
@@ -454,14 +444,14 @@ class Post_Exporter extends Abstract_Exporter {
 			$args['date_query'] = $options['date_query'];
 		}
 
-		// Tax query
+		// Tax query // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 		if ( ! empty( $options['tax_query'] ) ) {
-			$args['tax_query'] = $options['tax_query'];
+			$args['tax_query'] = $options['tax_query']; // phpcs:ignore WordPress.DB.SlowDBQuery -- tax_query required for filtering.
 		}
 
-		// Meta query
+		// Meta query // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 		if ( ! empty( $options['meta_query'] ) ) {
-			$args['meta_query'] = $options['meta_query'];
+			$args['meta_query'] = $options['meta_query']; // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
 		}
 
 		// Custom field filters
@@ -500,9 +490,9 @@ class Post_Exporter extends Abstract_Exporter {
 			return;
 		}
 
-		// Initialize meta_query if not exists
+		// Initialize meta_query if not exists // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 		if ( ! isset( $args['meta_query'] ) ) {
-			$args['meta_query'] = [];
+			$args['meta_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
 		}
 
 		foreach ( $filters as $filter ) {
@@ -567,9 +557,9 @@ class Post_Exporter extends Abstract_Exporter {
 			return;
 		}
 
-		// Initialize tax_query if not exists
+		// Initialize tax_query if not exists // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 		if ( ! isset( $args['tax_query'] ) ) {
-			$args['tax_query'] = [];
+			$args['tax_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery -- tax_query required for filtering.
 		}
 
 		foreach ( $filters as $filter ) {
@@ -663,9 +653,9 @@ class Post_Exporter extends Abstract_Exporter {
 			}
 
 			// Handle featured as product_visibility taxonomy
-			if ( $field === 'featured' ) {
+			if ( $field === 'featured' ) { // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				if ( ! isset( $args['tax_query'] ) ) {
-					$args['tax_query'] = [];
+					$args['tax_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery -- tax_query required for filtering.
 				}
 
 				// Featured is a term in product_visibility taxonomy
@@ -709,9 +699,9 @@ class Post_Exporter extends Abstract_Exporter {
 			}
 
 			// Handle visibility as product_visibility taxonomy
-			if ( $field === 'visibility' ) {
+			if ( $field === 'visibility' ) { // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				if ( ! isset( $args['tax_query'] ) ) {
-					$args['tax_query'] = [];
+					$args['tax_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery -- tax_query required for filtering.
 				}
 
 				// Visibility values: visible, catalog, search, hidden
@@ -762,9 +752,9 @@ class Post_Exporter extends Abstract_Exporter {
 
 			// Handle product_type as taxonomy
 			if ( $field === 'product_type' ) {
-				// product_type is actually a taxonomy in WooCommerce
+				// product_type is actually a taxonomy in WooCommerce // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				if ( ! isset( $args['tax_query'] ) ) {
-					$args['tax_query'] = [];
+					$args['tax_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery -- tax_query required for filtering.
 				}
 
 				if ( $condition === 'equals' ) {
@@ -823,13 +813,13 @@ class Post_Exporter extends Abstract_Exporter {
 			if ( $field === 'ID' ) {
 				// ID filtering
 				if ( $condition === 'equals' ) {
-					$args['post__in'] = [ absint( $value ) ];
+					$args['post__in'] = [ absint( $value ) ]; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 				} elseif ( $condition === 'not_equals' ) {
-					$args['post__not_in'] = [ absint( $value ) ];
+					$args['post__not_in'] = [ absint( $value ) ]; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct export filtering.
 				} elseif ( $condition === 'in' ) {
-					$args['post__in'] = array_map( 'absint', explode( ',', $value ) );
+					$args['post__in'] = array_map( 'absint', explode( ',', $value ) ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 				} elseif ( $condition === 'not_in' ) {
-					$args['post__not_in'] = array_map( 'absint', explode( ',', $value ) );
+					$args['post__not_in'] = array_map( 'absint', explode( ',', $value ) ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct export filtering.
 				} elseif ( $condition === 'is_empty' ) {
 					// ID cannot be empty - return no results
 					$args['post__in'] = [ 0 ];
@@ -904,9 +894,9 @@ class Post_Exporter extends Abstract_Exporter {
 			];
 
 			if ( isset( $taxonomy_map[ $field ] ) ) {
-				$taxonomy = $taxonomy_map[ $field ];                // Initialize tax_query if not exists
+				$taxonomy = $taxonomy_map[ $field ];                // Initialize tax_query if not exists // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				if ( ! isset( $args['tax_query'] ) ) {
-					$args['tax_query'] = [];
+					$args['tax_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery -- tax_query required for filtering.
 				}
 
 				// Handle different conditions for taxonomies
@@ -1033,9 +1023,9 @@ class Post_Exporter extends Abstract_Exporter {
 				$meta_query[] = $meta_query_item;
 			}
 		}
-
+ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 		if ( ! empty( $meta_query ) ) {
-			$args['meta_query'] = $meta_query;
+			$args['meta_query'] = $meta_query; // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
 		}
 	}
 
@@ -1085,19 +1075,19 @@ class Post_Exporter extends Abstract_Exporter {
 
 			switch ( $condition ) {
 				case 'equals':
-					if ( $is_date_field ) {
+					if ( $is_date_field ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 						// For date fields, compare only the date part (ignore time)
-						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) = %s", $value );
+						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) = %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 					} else {
-						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} = %s", $value );
+						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} = %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
 					}
 					break;
 				case 'not_equals':
-					if ( $is_date_field ) {
+					if ( $is_date_field ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 						// For date fields, compare only the date part (ignore time)
-						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) != %s", $value );
+						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) != %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 					} else {
-						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} != %s", $value );
+						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} != %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
 					}
 					break;
 				case 'in':
@@ -1111,9 +1101,9 @@ class Post_Exporter extends Abstract_Exporter {
 						explode( ',', $value )
 					);
 					$values = array_filter( $values ); // Remove empty values
-					if ( ! empty( $values ) ) {
+					if ( ! empty( $values ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Direct DB query required here.
 						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
-						$where       .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} IN ($placeholders)", $values );
+						$where       .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} IN ($placeholders)", $values ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table/column name is controlled, not user input. Placeholder handled correctly.
 					}
 					break;
 				case 'not_in':
@@ -1127,16 +1117,16 @@ class Post_Exporter extends Abstract_Exporter {
 						explode( ',', $value )
 					);
 					$values = array_filter( $values ); // Remove empty values
-					if ( ! empty( $values ) ) {
+					if ( ! empty( $values ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Direct DB query required here.
 						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
-						$where       .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} NOT IN ($placeholders)", $values );
+						$where       .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} NOT IN ($placeholders)", $values ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table/column name is controlled, not user input. Placeholder handled correctly.
 					}
-					break;
+					break; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 				case 'contains':
-					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' );
-					break;
+					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
+					break; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 				case 'not_contains':
-					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} NOT LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' );
+					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} NOT LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
 					break;
 				case 'is_empty':
 					$where .= " AND ({$wpdb->posts}.{$field} IS NULL OR {$wpdb->posts}.{$field} = '')";
@@ -1145,35 +1135,35 @@ class Post_Exporter extends Abstract_Exporter {
 					$where .= " AND ({$wpdb->posts}.{$field} IS NOT NULL AND {$wpdb->posts}.{$field} != '')";
 					break;
 				case 'greater':
-					if ( $is_date_field ) {
+					if ( $is_date_field ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 						// For date fields, compare only the date part
-						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) > %s", $value );
+						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) > %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 					} else {
-						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} > %s", $value );
+						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} > %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
 					}
 					break;
 				case 'less':
-					if ( $is_date_field ) {
+					if ( $is_date_field ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 						// For date fields, compare only the date part
-						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) < %s", $value );
+						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) < %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 					} else {
-						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} < %s", $value );
+						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} < %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
 					}
 					break;
 				case 'equals_or_greater':
-					if ( $is_date_field ) {
+					if ( $is_date_field ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 						// For date fields, compare only the date part
-						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) >= %s", $value );
+						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) >= %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 					} else {
-						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} >= %s", $value );
+						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} >= %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
 					}
 					break;
 				case 'equals_or_less':
-					if ( $is_date_field ) {
+					if ( $is_date_field ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 						// For date fields, compare only the date part
-						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) <= %s", $value );
+						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) <= %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 					} else {
-						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} <= %s", $value );
+						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} <= %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
 					}
 					break;
 			}
@@ -1200,12 +1190,12 @@ class Post_Exporter extends Abstract_Exporter {
 			// Map field to users table column
 			$user_field = $field === 'author_name' ? 'display_name' : 'user_email';
 
-			switch ( $condition ) {
+			switch ( $condition ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 				case 'equals':
-					$where .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} = %s", $value );
-					break;
+					$where .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} = %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
+					break; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 				case 'not_equals':
-					$where .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} != %s", $value );
+					$where .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} != %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
 					break;
 				case 'in':
 					// Split by comma and prepare IN clause
@@ -1218,9 +1208,9 @@ class Post_Exporter extends Abstract_Exporter {
 						explode( ',', $value )
 					);
 					$values = array_filter( $values ); // Remove empty values
-					if ( ! empty( $values ) ) {
+					if ( ! empty( $values ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Direct DB query required here.
 						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
-						$where       .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} IN ($placeholders)", $values );
+						$where       .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} IN ($placeholders)", $values ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table/column name is controlled, not user input. Placeholder handled correctly.
 					}
 					break;
 				case 'not_in':
@@ -1234,16 +1224,16 @@ class Post_Exporter extends Abstract_Exporter {
 						explode( ',', $value )
 					);
 					$values = array_filter( $values ); // Remove empty values
-					if ( ! empty( $values ) ) {
+					if ( ! empty( $values ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Direct DB query required here.
 						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
-						$where       .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} NOT IN ($placeholders)", $values );
+						$where       .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} NOT IN ($placeholders)", $values ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table/column name is controlled, not user input. Placeholder handled correctly.
 					}
-					break;
+					break; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 				case 'contains':
-					$where .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' );
-					break;
+					$where .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
+					break; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 				case 'not_contains':
-					$where .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} NOT LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' );
+					$where .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} NOT LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
 					break;
 				case 'is_empty':
 					$where .= " AND ({$wpdb->users}.{$user_field} IS NULL OR {$wpdb->users}.{$user_field} = '')";
@@ -1419,9 +1409,9 @@ class Post_Exporter extends Abstract_Exporter {
 					global $wpdb;
 					$count = intval( $acf_value );
 					
-					// Check if there are sub-fields (check first row)
+					// Check if there are sub-fields (check first row) // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 					$pattern = $acf_field_name . '_0_%';
-					$has_sub_fields = $wpdb->get_var( $wpdb->prepare(
+					$has_sub_fields = $wpdb->get_var( $wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 						"SELECT COUNT(*) FROM {$wpdb->postmeta} 
 						WHERE post_id = %d AND meta_key LIKE %s",
 						$post->ID,
@@ -1433,9 +1423,9 @@ class Post_Exporter extends Abstract_Exporter {
 						$repeater_data = [];
 						
 						for ( $i = 0; $i < $count; $i++ ) {
-							// Get all meta keys for this row
+							// Get all meta keys for this row // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 							$pattern = $acf_field_name . '_' . $i . '_%';
-							$sub_fields = $wpdb->get_results( $wpdb->prepare(
+							$sub_fields = $wpdb->get_results( $wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 								"SELECT meta_key, meta_value FROM {$wpdb->postmeta} 
 								WHERE post_id = %d AND meta_key LIKE %s",
 								$post->ID,

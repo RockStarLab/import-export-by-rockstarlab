@@ -9,17 +9,8 @@
 
 namespace WP_AIE\Model\Export;
 
-/**
- * Taxonomy Exporter Class
- *
- * Exports taxonomy terms with support for:
- * - Multiple taxonomies (categories, tags, custom)
- * - Hierarchical structure
- * - Term meta export
- * - Parent/child relationships
- *
- * @package WP_AIE\Model\Export
- */
+defined( 'ABSPATH' ) || exit;
+
 class Taxonomy_Exporter extends Abstract_Exporter {
 
 	/**
@@ -370,7 +361,7 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 
 		// Initialize meta_query if not exists
 		if ( ! isset( $args['meta_query'] ) ) {
-			$args['meta_query'] = [];
+			$args['meta_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 		}
 
 		foreach ( $filters as $filter ) {
@@ -462,11 +453,11 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 				if ( $condition === 'equals' ) {
 					$args['include'] = [ absint( $value ) ];
 				} elseif ( $condition === 'not_equals' ) {
-					$args['exclude'] = [ absint( $value ) ];
+					$args['exclude'] = [ absint( $value ) ]; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- post__not_in required for correct filtering.
 				} elseif ( $condition === 'in' ) {
 					$args['include'] = array_map( 'absint', explode( ',', $value ) );
 				} elseif ( $condition === 'not_in' ) {
-					$args['exclude'] = array_map( 'absint', explode( ',', $value ) );
+					$args['exclude'] = array_map( 'absint', explode( ',', $value ) ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- post__not_in required for correct filtering.
 				}
 				continue;
 			}

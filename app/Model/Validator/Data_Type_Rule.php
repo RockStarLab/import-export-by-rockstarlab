@@ -9,13 +9,8 @@
 
 namespace WP_AIE\Model\Validator;
 
-/**
- * Data Type Rule Class
- *
- * Validates data types: string, integer, float, boolean, email, url, date
- *
- * @package WP_AIE\Model\Validator
- */
+defined( 'ABSPATH' ) || exit;
+
 class Data_Type_Rule extends Validation_Rule {
 
 	/**

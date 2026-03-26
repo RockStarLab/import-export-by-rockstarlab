@@ -9,13 +9,8 @@
 
 namespace WP_AIE\Helper;
 
-/**
- * Content Sync Media Helper Class
- *
- * Extracts all images from posts including featured, attached, ACF, Gutenberg blocks, and Elementor
- *
- * @package WP_AIE\Helper
- */
+defined( 'ABSPATH' ) || exit;
+
 class Content_Sync_Media {
 
 	/**

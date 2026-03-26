@@ -15,18 +15,8 @@ use WP_AIE\Model\Format\Format_Factory;
 use WP_AIE\Model\Queue\Export_Processor;
 use WP_AIE\Helper\Fs;
 
-/**
- * Export Controller Class
- *
- * Manages export workflow:
- * 1. Configure export options
- * 2. Get preview/count
- * 3. Job creation
- * 4. Export execution
- * 5. File generation and download
- *
- * @package WP_AIE\Controller
- */
+defined( 'ABSPATH' ) || exit;
+
 class Export_Controller extends Base_Controller {
 
 	/**
@@ -803,7 +793,8 @@ class Export_Controller extends Base_Controller {
 		$post_type = $this->get_request_param( 'post_type', 'post' );
 
 		// Get unique meta keys for this post type
-		$meta_keys = $wpdb->get_results(
+		// phpcs:disable WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery -- \\_% is a valid SQL LIKE escape pattern, not a printf-style placeholder.
+		$meta_keys = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
 				"SELECT DISTINCT pm.meta_key 
 				FROM {$wpdb->postmeta} pm
@@ -815,6 +806,7 @@ class Export_Controller extends Base_Controller {
 				$post_type
 			)
 		);
+		// phpcs:enable WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery
 
 		$fields = [];
 		foreach ( $meta_keys as $meta ) {

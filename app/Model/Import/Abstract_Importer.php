@@ -11,14 +11,8 @@ namespace WP_AIE\Model\Import;
 
 use WP_AIE\Helper\Data_Transformer;
 
-/**
- * Abstract Importer Class
- *
- * Provides common functionality for all importers including
- * logging, error handling, and batch processing.
- *
- * @package WP_AIE\Model\Import
- */
+defined( 'ABSPATH' ) || exit;
+
 abstract class Abstract_Importer implements Importer_Interface {
 
 	/**

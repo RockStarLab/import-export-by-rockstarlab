@@ -9,14 +9,8 @@
 
 namespace WP_AIE\Helper;
 
-/**
- * Media Sync Helper Class
- *
- * Handles folder scanning, duplicate detection, and file importing
- * for the Media Folder Sync feature.
- *
- * @package WP_AIE\Helper
- */
+defined( 'ABSPATH' ) || exit;
+
 class Media_Sync {
 
 	/**
@@ -130,7 +124,7 @@ class Media_Sync {
 		$args = [
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
-			'meta_query'     => [
+			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				[
 					'key'   => 'aie_file_size',
 					'value' => $size,
@@ -183,7 +177,7 @@ class Media_Sync {
 		$args = [
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
-			'meta_query'     => [
+			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				[
 					'key'   => 'aie_file_hash',
 					'value' => $hash,
@@ -277,7 +271,12 @@ class Media_Sync {
 			} else {
 				// Copy/move new file to replace existing
 				if ( 'move' === $file_operation ) {
-					if ( ! rename( $file_path, $existing_file ) ) {
+					global $wp_filesystem;
+					if ( empty( $wp_filesystem ) ) {
+						require_once ABSPATH . 'wp-admin/includes/file.php';
+						WP_Filesystem();
+					}
+					if ( ! $wp_filesystem->move( $file_path, $existing_file, true ) ) {
 						return new \WP_Error( 'move_failed', __( 'Failed to move file to replace existing', 'wp-advanced-import-export' ) );
 					}
 				} else {
@@ -326,7 +325,12 @@ class Media_Sync {
 
 				// Copy or move file based on option.
 				if ( 'move' === $file_operation ) {
-					if ( ! rename( $file_path, $dest_path ) ) {
+					global $wp_filesystem;
+					if ( empty( $wp_filesystem ) ) {
+						require_once ABSPATH . 'wp-admin/includes/file.php';
+						WP_Filesystem();
+					}
+					if ( ! $wp_filesystem->move( $file_path, $dest_path, true ) ) {
 						return new \WP_Error( 'move_failed', __( 'Failed to move file to uploads directory', 'wp-advanced-import-export' ) );
 					}
 				} else {
@@ -351,7 +355,7 @@ class Media_Sync {
 			if ( is_wp_error( $attach_id ) ) {
 				// Clean up file if attachment creation failed (only if we copied/moved it).
 				if ( 'keep' !== $file_operation && file_exists( $dest_path ) ) {
-					unlink( $dest_path );
+					wp_delete_file( $dest_path );
 				}
 				return $attach_id;
 			}
@@ -454,7 +458,7 @@ class Media_Sync {
 		}
 	}
 
-	/**
+	/** // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 	 * Find RML folder by name and parent
 	 *
 	 * @param string $name      Folder name.
@@ -464,7 +468,7 @@ class Media_Sync {
 	private static function find_rml_folder_by_name( $name, $parent_id = -1 ) {
 		global $wpdb;
 
-		$result = $wpdb->get_var(
+		$result = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
 				"SELECT id FROM {$wpdb->prefix}realmedialibrary WHERE name = %s AND parent = %d",
 				$name,

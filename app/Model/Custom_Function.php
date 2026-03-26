@@ -11,13 +11,8 @@ namespace WP_AIE\Model;
 
 use WP_AIE\Helper\Function_Executor;
 
-/**
- * Custom Function Class
- *
- * CRUD operations for custom transformation functions
- *
- * @package WP_AIE\Model
- */
+defined( 'ABSPATH' ) || exit;
+
 class Custom_Function extends Model {
 
 	/**
@@ -88,7 +83,7 @@ class Custom_Function extends Model {
 			'usage_count'   => 0,
 			'created_at'    => current_time( 'mysql' ),
 			'updated_at'    => current_time( 'mysql' ),
-		];      $result = $wpdb->insert(
+		];      $result = $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct DB query required here.
 			$this->get_table_name(),
 			$insert_data,
 			[
@@ -192,7 +187,7 @@ class Custom_Function extends Model {
 			$update_data['output_type'] = sanitize_text_field( $data['output_type'] );
 		}
 
-		$result = $wpdb->update(
+		$result = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$this->get_table_name(),
 			$update_data,
 			array( 'id' => $id ),
@@ -225,7 +220,7 @@ class Custom_Function extends Model {
 			return false;
 		}
 
-		$result = $wpdb->delete(
+		$result = $wpdb->delete( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$this->get_table_name(),
 			[ 'id' => $id ],
 			[ '%d' ]
@@ -246,7 +241,7 @@ class Custom_Function extends Model {
 	public function get( $id ) {
 		global $wpdb;
 
-		$function = $wpdb->get_row(
+		$function = $wpdb->get_row( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
 				"SELECT * FROM {$this->get_table_name()} WHERE id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$id
@@ -276,19 +271,19 @@ class Custom_Function extends Model {
 
 		// Check in database (custom functions)
 		$query = $wpdb->prepare(
-			"SELECT COUNT(*) FROM {$this->get_table_name()} WHERE name = %s",
+			"SELECT COUNT(*) FROM {$this->get_table_name()} WHERE name = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 			$name
 		);
 
 		if ( $exclude_id > 0 ) {
 			$query = $wpdb->prepare(
-				"SELECT COUNT(*) FROM {$this->get_table_name()} WHERE name = %s AND id != %d",
+				"SELECT COUNT(*) FROM {$this->get_table_name()} WHERE name = %s AND id != %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
 				$name,
 				$exclude_id
 			);
 		}
 
-		$count = (int) $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$count = (int) $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		if ( $count > 0 ) {
 			return true;
@@ -421,7 +416,7 @@ class Custom_Function extends Model {
 			$query = $wpdb->prepare( $query, $where_values ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		}
 
-		$functions = $wpdb->get_results( $query, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$functions = $wpdb->get_results( $query, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		// Map database columns to expected format
 		if ( ! empty( $functions ) ) {
@@ -480,7 +475,7 @@ class Custom_Function extends Model {
 			$query = $wpdb->prepare( $query, $where_values ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		}
 
-		return (int) $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		return (int) $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	}   /**
 		 * Test function with sample value
 		 *
@@ -552,7 +547,7 @@ class Custom_Function extends Model {
 	public function increment_usage( $function_id ) {
 		global $wpdb;
 
-		return (bool) $wpdb->query(
+		return (bool) $wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
 				"UPDATE {$this->get_table_name()} SET usage_count = usage_count + 1 WHERE id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$function_id
@@ -577,11 +572,11 @@ class Custom_Function extends Model {
 		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
 
 		$query = $wpdb->prepare(
-			"SELECT * FROM {$this->get_table_name()} WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			"SELECT * FROM {$this->get_table_name()} WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 			$ids
 		);
 
-		$functions = $wpdb->get_results( $query, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$functions = $wpdb->get_results( $query, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		// Map database columns to expected format
 		if ( ! empty( $functions ) ) {

@@ -9,16 +9,8 @@
 
 namespace WP_AIE\Model\Export;
 
-/**
- * WooCommerce Attribute Exporter Class
- *
- * Exports product attributes with support for:
- * - Global attributes
- * - Attribute terms
- * - Attribute properties (type, orderby, etc.)
- *
- * @package WP_AIE\Model\Export
- */
+defined( 'ABSPATH' ) || exit;
+
 class Woo_Attribute_Exporter extends Abstract_Exporter {
 
 	/**
@@ -101,7 +93,7 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 
 		global $wpdb;
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$attributes = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %1swoocommerce_attribute_taxonomies', $wpdb->prefix ) );
+		$attributes = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %1swoocommerce_attribute_taxonomies', $wpdb->prefix ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQLPlaceholders.UnquotedComplexPlaceholder -- Direct DB query required here.
 
 		if ( empty( $attributes ) ) {
 			return 0;
@@ -138,7 +130,7 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 		$this->log_info( 'Querying WooCommerce attributes' );
 
 		global $wpdb;
-		$attributes = $wpdb->get_results(
+		$attributes = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			"SELECT * FROM {$wpdb->prefix}woocommerce_attribute_taxonomies ORDER BY attribute_name"
 		);
 

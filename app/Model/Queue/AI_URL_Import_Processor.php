@@ -12,13 +12,8 @@ namespace WP_AIE\Model\Queue;
 use WP_AIE\Model\Job;
 use WP_AIE\Helper\AI_Content_Extractor;
 
-/**
- * AI URL Import Processor Class
- *
- * Handles background processing of AI URL import jobs
- *
- * @package WP_AIE\Model\Queue
- */
+defined( 'ABSPATH' ) || exit;
+
 class AI_URL_Import_Processor {
 
 	/**

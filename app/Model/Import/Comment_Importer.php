@@ -9,19 +9,8 @@
 
 namespace WP_AIE\Model\Import;
 
-/**
- * Comment Importer Class
- *
- * Imports WordPress comments with support for:
- * - Comment metadata
- * - Comment status (approved, pending, spam, trash)
- * - Comment type
- * - Parent/child relationships
- * - Duplicate handling
- * - ACF fields
- *
- * @package WP_AIE\Model\Import
- */
+defined( 'ABSPATH' ) || exit;
+
 class Comment_Importer extends Abstract_Importer {
 
 	/**
@@ -234,6 +223,7 @@ class Comment_Importer extends Abstract_Importer {
 					// Create placeholder post
 					$new_post_id = wp_insert_post(
 						[
+							// translators: %d is a dynamic value.
 							'post_title'   => $item['post_title'] ?? sprintf( __( 'Imported Post %d', 'wp-advanced-import-export' ), $post_id ),
 							'post_status'  => 'draft',
 							'post_content' => '',
@@ -553,7 +543,7 @@ class Comment_Importer extends Abstract_Importer {
 		}
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$comment_id = $wpdb->get_var( $query );
+		$comment_id = $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- Direct DB query required here.
 
 		return $comment_id ? absint( $comment_id ) : null;
 	}

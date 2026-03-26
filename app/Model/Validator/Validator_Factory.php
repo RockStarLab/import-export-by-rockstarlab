@@ -9,13 +9,8 @@
 
 namespace WP_AIE\Model\Validator;
 
-/**
- * Validator Factory Class
- *
- * Provides convenient methods to create validation rule chains.
- *
- * @package WP_AIE\Model\Validator
- */
+defined( 'ABSPATH' ) || exit;
+
 class Validator_Factory {
 
 	/**

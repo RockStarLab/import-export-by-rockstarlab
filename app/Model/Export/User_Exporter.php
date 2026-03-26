@@ -9,16 +9,8 @@
 
 namespace WP_AIE\Model\Export;
 
-/**
- * User Exporter Class
- *
- * Exports users with support for:
- * - Role filtering
- * - User meta export
- * - Custom field filters
- *
- * @package WP_AIE\Model\Export
- */
+defined( 'ABSPATH' ) || exit;
+
 class User_Exporter extends Abstract_Exporter {
 
 	/**
@@ -47,9 +39,9 @@ class User_Exporter extends Abstract_Exporter {
 	public function get_supported_filters() {
 		return [
 			'role'          => __( 'User role', 'wp-advanced-import-export' ),
-			'role__in'      => __( 'Array of roles', 'wp-advanced-import-export' ),
+			'role__in'      => __( 'Array of roles', 'wp-advanced-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 			'role__not_in'  => __( 'Array of roles to exclude', 'wp-advanced-import-export' ),
-			'meta_query'    => __( 'Meta query parameters', 'wp-advanced-import-export' ),
+			'meta_query'    => __( 'Meta query parameters', 'wp-advanced-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
 			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'wp-advanced-import-export' ),
 			'search'        => __( 'Search query', 'wp-advanced-import-export' ),
 			'orderby'       => __( 'Order by field', 'wp-advanced-import-export' ),
@@ -413,9 +405,9 @@ class User_Exporter extends Abstract_Exporter {
 							global $wpdb;
 							$count = intval( $acf_value );
 							
-							// Check if there are sub-fields (check first row)
+							// Check if there are sub-fields (check first row) // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 							$pattern = $acf_field_name . '_0_%';
-							$has_sub_fields = $wpdb->get_var( $wpdb->prepare(
+							$has_sub_fields = $wpdb->get_var( $wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 								"SELECT COUNT(*) FROM {$wpdb->usermeta} 
 								WHERE user_id = %d AND meta_key LIKE %s",
 								$user->ID,
@@ -427,9 +419,9 @@ class User_Exporter extends Abstract_Exporter {
 								$repeater_data = [];
 								
 								for ( $i = 0; $i < $count; $i++ ) {
-									// Get all meta keys for this row
+									// Get all meta keys for this row // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 									$pattern = $acf_field_name . '_' . $i . '_%';
-									$sub_fields = $wpdb->get_results( $wpdb->prepare(
+									$sub_fields = $wpdb->get_results( $wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 										"SELECT meta_key, meta_value FROM {$wpdb->usermeta} 
 										WHERE user_id = %d AND meta_key LIKE %s",
 										$user->ID,
@@ -562,9 +554,9 @@ class User_Exporter extends Abstract_Exporter {
 			$args['search'] = '*' . $options['search'] . '*';
 		}
 
-		// Meta query
+		// Meta query // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 		if ( ! empty( $options['meta_query'] ) ) {
-			$args['meta_query'] = $options['meta_query'];
+			$args['meta_query'] = $options['meta_query']; // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
 		}
 
 		// Custom field filters
@@ -601,9 +593,9 @@ class User_Exporter extends Abstract_Exporter {
 			return;
 		}
 
-		// Initialize meta_query if not exists
+		// Initialize meta_query if not exists // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 		if ( ! isset( $args['meta_query'] ) ) {
-			$args['meta_query'] = [];
+			$args['meta_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
 		}
 
 		foreach ( $filters as $filter ) {
@@ -686,13 +678,13 @@ class User_Exporter extends Abstract_Exporter {
 			// Handle user ID field with all conditions
 			if ( $field === 'ID' ) {
 				if ( $condition === 'equals' ) {
-					$args['include'] = [ absint( $value ) ];
+					$args['include'] = [ absint( $value ) ]; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 				} elseif ( $condition === 'not_equals' ) {
-					$args['exclude'] = [ absint( $value ) ];
+					$args['exclude'] = [ absint( $value ) ]; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- exclude required for correct export filtering.
 				} elseif ( $condition === 'in' ) {
-					$args['include'] = array_map( 'absint', explode( ',', $value ) );
+					$args['include'] = array_map( 'absint', explode( ',', $value ) ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 				} elseif ( $condition === 'not_in' ) {
-					$args['exclude'] = array_map( 'absint', explode( ',', $value ) );
+					$args['exclude'] = array_map( 'absint', explode( ',', $value ) ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- exclude required for correct export filtering.
 				} elseif ( in_array( $condition, [ 'greater', 'less', 'equals_or_greater', 'equals_or_less', 'between' ], true ) ) {
 					// For numeric comparisons, we need custom WHERE clause
 					if ( ! isset( $args['_custom_id_filters'] ) ) {
@@ -822,9 +814,9 @@ class User_Exporter extends Abstract_Exporter {
 
 			// Handle user meta filters (first_name, last_name, nickname, description)
 			$user_meta_fields = [ 'first_name', 'last_name', 'nickname', 'description' ];
-			if ( in_array( $field, $user_meta_fields, true ) ) {
+			if ( in_array( $field, $user_meta_fields, true ) ) { // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				if ( ! isset( $args['meta_query'] ) ) {
-					$args['meta_query'] = [];
+					$args['meta_query'] = []; // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
 				}
 
 				$meta_query = [

@@ -9,9 +9,7 @@
 
 namespace WP_AIE\Helper;
 
-if ( ! defined( 'WPINC' ) ) {
-	die;
-}
+defined( 'ABSPATH' ) || exit;
 
 class Media_Hash {
 
@@ -111,7 +109,7 @@ class Media_Hash {
 		$args = [
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
-			'meta_query'     => [
+			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				[
 					'key'   => 'aie_file_hash',
 					'value' => $hash,
@@ -161,7 +159,7 @@ class Media_Hash {
 		$args = [
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
-			'meta_query'     => [
+			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				[
 					'key'     => 'aie_file_hash',
 					'compare' => 'NOT EXISTS',
@@ -201,7 +199,7 @@ class Media_Hash {
 		$total_args  = [
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
-			'meta_query'     => [
+			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				[
 					'key'     => 'aie_file_hash',
 					'compare' => 'NOT EXISTS',
@@ -241,7 +239,7 @@ class Media_Hash {
 		$hashed_args  = [
 			'post_type'      => 'attachment',
 			'post_status'    => 'inherit',
-			'meta_query'     => [
+			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				[
 					'key'     => 'aie_file_hash',
 					'compare' => 'EXISTS',

@@ -9,13 +9,8 @@
 
 namespace WP_AIE\Model\Import;
 
-/**
- * Importer Factory Class
- *
- * Creates and manages importer instances based on content type.
- *
- * @package WP_AIE\Model\Import
- */
+defined( 'ABSPATH' ) || exit;
+
 class Importer_Factory {
 
 	/**

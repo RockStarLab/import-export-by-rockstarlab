@@ -9,13 +9,8 @@
 
 namespace WP_AIE\Helper;
 
-/**
- * AI Function Generator Class
- *
- * Handles AI-powered generation of PHP transformation functions
- *
- * @package WP_AIE\Helper
- */
+defined( 'ABSPATH' ) || exit;
+
 class AI_Function_Generator {
 
 	/**

@@ -9,14 +9,8 @@
 
 namespace WP_AIE\Model\Validator;
 
-/**
- * Validation Rule Abstract Class
- *
- * Provides base functionality for validation rules with chainable execution.
- * Each rule can pass validation to the next rule in the chain.
- *
- * @package WP_AIE\Model\Validator
- */
+defined( 'ABSPATH' ) || exit;
+
 abstract class Validation_Rule {
 
 	/**

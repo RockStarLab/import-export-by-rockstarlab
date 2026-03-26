@@ -9,13 +9,8 @@
 
 namespace WP_AIE\Model\Validator;
 
-/**
- * Required Rule Class
- *
- * Validates that a value is present and not empty.
- *
- * @package WP_AIE\Model\Validator
- */
+defined( 'ABSPATH' ) || exit;
+
 class Required_Rule extends Validation_Rule {
 
 	/**

@@ -9,14 +9,8 @@
 
 namespace WP_AIE\Model\Export;
 
-/**
- * Exporter Interface
- *
- * All exporters must implement this interface to ensure consistent API
- * for exporting different types of WordPress content.
- *
- * @package WP_AIE\Model\Export
- */
+defined( 'ABSPATH' ) || exit;
+
 interface Exporter_Interface {
 
 	/**

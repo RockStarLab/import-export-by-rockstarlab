@@ -1,9 +1,4 @@
 <?php
-
-namespace WP_AIE\View;
-
-defined( 'ABSPATH' ) or exit;
-
 /**
  * View Class
  *
@@ -11,6 +6,11 @@ defined( 'ABSPATH' ) or exit;
  *
  * @package WP_AIE\View
  */
+
+namespace WP_AIE\View;
+
+defined( 'ABSPATH' ) or exit;
+
 class View {
 
 	/**
@@ -35,7 +35,8 @@ class View {
 		if ( file_exists( $full_path ) ) {
 			require $full_path;
 		} else {
-			throw new \Exception( 'The view path ' . $full_path . ' can not be found.' );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- $full_path is a server-side path, not user output.
+			throw new \Exception( 'The view path ' . esc_html( $full_path ) . ' can not be found.' );
 		}
 
 		if ( $return ) {
