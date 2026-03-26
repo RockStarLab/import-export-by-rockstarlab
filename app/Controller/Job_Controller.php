@@ -275,6 +275,7 @@ class Job_Controller extends Base_Controller {
 			[
 				'job_id'     => $job_id,
 				'type'       => $job_data->type,
+				'data_type'  => $job_data->data_type,
 				'parameters' => $parameters,
 			],
 			__( 'Job resumed successfully', 'wp-advanced-import-export' )
@@ -365,6 +366,7 @@ class Job_Controller extends Base_Controller {
 			[
 				'job_id'     => $new_job_id,
 				'type'       => $job_data->type,
+				'data_type'  => $job_data->data_type,
 				'parameters' => $parameters,
 			],
 			__( 'Job restarted successfully', 'wp-advanced-import-export' )
@@ -456,6 +458,7 @@ class Job_Controller extends Base_Controller {
 			[
 				'job_id'     => $new_job_id,
 				'type'       => $job_data->type,
+				'data_type'  => $job_data->data_type,
 				'parameters' => $parameters,
 			],
 			__( 'Job created and ready to process', 'wp-advanced-import-export' )

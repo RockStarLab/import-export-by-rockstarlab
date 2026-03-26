@@ -288,7 +288,7 @@ const JobsLogModule = {
 				Utils.showNotice( window.aieData.i18n.jobResumedSuccess, 'success' );
 				
 				// Redirect based on job type
-				this.redirectToJobPage( response.type, response.job_id );
+				this.redirectToJobPage( response.type, response.job_id, response.data_type );
 			}
 		} catch ( error ) {
 			Utils.showNotice( window.aieData.i18n.errorResumingJob + error.message, 'error' );
@@ -324,7 +324,7 @@ const JobsLogModule = {
 					}, 1000 );
 				} else {
 					// Redirect based on job type
-					this.redirectToJobPage( response.type, response.job_id );
+					this.redirectToJobPage( response.type, response.job_id, response.data_type );
 				}
 			}
 		} catch ( error ) {
@@ -351,7 +351,7 @@ const JobsLogModule = {
 			// Create new job with processing status
 			const response = await Utils.ajax( 'aie_job_retry', { job_id: jobId } );
 
-			if ( response && response.job_id && response.type ) {
+				if ( response && response.job_id && response.type ) {
 				Utils.showNotice( window.aieData.i18n.jobCreatedStarting, 'success' );
 				
 				// For media_sync jobs, reload the page to show the processing job
@@ -363,7 +363,7 @@ const JobsLogModule = {
 					}, 1000 );
 				} else {
 					// Redirect to job page with resume_job parameter to show progress
-					this.redirectToJobPage( response.type, response.job_id );
+					this.redirectToJobPage( response.type, response.job_id, response.data_type );
 				}
 			}
 		} catch ( error ) {
@@ -534,18 +534,24 @@ const JobsLogModule = {
 	/**
 	 * Redirect to job page
 	 */
-	redirectToJobPage( type, jobId ) {
+	redirectToJobPage( type, jobId, dataType ) {
 		let page = '';
-		switch ( type ) {
-			case 'export':
-				page = 'wp-aie-export';
-				break;
-			case 'import':
-				page = 'wp-aie-import';
-				break;
-			case 'media_sync':
-				page = 'wp-aie-media-sync';
-				break;
+
+		// AI URL importer jobs have type='import' but data_type='ai_url'
+		if ( type === 'import' && dataType === 'ai_url' ) {
+			page = 'wp-aie-ai-url-importer';
+		} else {
+			switch ( type ) {
+				case 'export':
+					page = 'wp-aie-export';
+					break;
+				case 'import':
+					page = 'wp-aie-import';
+					break;
+				case 'media_sync':
+					page = 'wp-aie-media-sync';
+					break;
+			}
 		}
 
 		if ( page ) {

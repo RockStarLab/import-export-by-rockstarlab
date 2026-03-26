@@ -25,6 +25,16 @@ const AIURLImporter = {
 
 		this.bindEvents();
 		this.loadPostTypes();
+
+		// Check if resuming a job from Jobs Log
+		const urlParams = new URLSearchParams(window.location.search);
+		const resumeJobId = urlParams.get('resume_job');
+		if (resumeJobId) {
+			this.jobId = parseInt(resumeJobId);
+			this.goToStep(4);
+			this.startProgressTracking();
+			this.processNextBatch();
+		}
 	},
 
 	/**
