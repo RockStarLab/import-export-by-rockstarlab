@@ -175,8 +175,11 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 			$item = $this->apply_field_functions( $item, $this->options['field_functions'] );
 		}
 
-		// Apply field selection if specified
-		if ( is_array( $item ) && ! empty( $this->options['fields'] ) && ! in_array( '*', $this->options['fields'], true ) ) {
+		// Apply field selection if specified.
+		// Skip when force_include_id is set (Content Updater mode) — the processor
+		// needs ID fields present to identify items and handles its own update scope.
+		if ( is_array( $item ) && ! empty( $this->options['fields'] ) && ! in_array( '*', $this->options['fields'], true )
+			&& empty( $this->options['force_include_id'] ) ) {
 			$item = $this->select_fields( $item, $this->options['fields'] );
 		}
 

@@ -404,6 +404,45 @@ class Database_Table_Exporter extends Abstract_Exporter {
 	}
 
 	/**
+	 * Process single item — overrides parent to keep the primary-key column
+	 * in the result even when only a subset of fields is selected.
+	 *
+	 * The Content Updater passes force_include_id = true so that save helpers
+	 * can identify which row to UPDATE.  For a DB table the "ID" is always the
+	 * first column returned by the query.
+	 *
+	 * @param mixed $item  Row data (associative array)
+	 * @param int   $index Row index
+	 * @return mixed
+	 */
+	protected function process_item( $item, $index ) {
+		$force_include_id = $this->get_option( 'force_include_id', false );
+
+		// Remember the primary-key column (first column) before field filtering.
+		$pk_column = null;
+		$pk_value  = null;
+		if ( $force_include_id && is_array( $item ) && ! empty( $item ) ) {
+			$pk_column = array_key_first( $item );
+			$pk_value  = $item[ $pk_column ];
+		}
+
+		$result = parent::process_item( $item, $index );
+
+		// Re-inject the PK as the first key so get_item_id() and
+		// save_database_item() can always find it.
+		if ( $force_include_id && $pk_column !== null && is_array( $result ) ) {
+			if ( ! array_key_exists( $pk_column, $result ) ) {
+				$result = array_merge( [ $pk_column => $pk_value ], $result );
+			} else {
+				// Ensure it's first
+				$result = array_merge( [ $pk_column => $result[ $pk_column ] ], $result );
+			}
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Format data for export
 	 *
 	 * @param mixed $item   Data item

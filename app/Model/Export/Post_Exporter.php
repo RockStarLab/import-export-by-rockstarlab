@@ -420,14 +420,31 @@ class Post_Exporter extends Abstract_Exporter {
 		if ( ! empty( $options['taxonomy'] ) ) {
 		}
 
+		$post_type = $options['post_type'] ?? 'any';
+
+		// Map virtual content-type identifiers to real WordPress post_types
+		$post_type_map = [
+			'woo_product' => 'product',
+			'woo_order'   => 'shop_order',
+			'woo_coupon'  => 'shop_coupon',
+		];
+		if ( isset( $post_type_map[ $post_type ] ) ) {
+			$post_type = $post_type_map[ $post_type ];
+		}
+
 		$args = [
-			'post_type'      => $options['post_type'] ?? 'any',  // Changed from 'post' to 'any' to show all post types by default
+			'post_type'      => $post_type,
 			'post_status'    => $options['post_status'] ?? 'any',
 			'posts_per_page' => $options['limit'] ?? -1,
 			'offset'         => $options['offset'] ?? 0,
 			'orderby'        => $options['orderby'] ?? 'date',
 			'order'          => $options['order'] ?? 'DESC',
 		];
+
+		// When querying products, exclude variations (child post_type = product_variation)
+		if ( $post_type === 'product' ) {
+			$args['post_parent'] = 0; // Only top-level products, no variations
+		}
 
 		// Author filter
 		if ( ! empty( $options['author'] ) ) {
@@ -811,15 +828,17 @@ class Post_Exporter extends Abstract_Exporter {
 
 			// Handle specific post fields
 			if ( $field === 'ID' ) {
-				// ID filtering
+				// ID filtering — accumulate so multiple filters OR together
 				if ( $condition === 'equals' ) {
-					$args['post__in'] = [ absint( $value ) ]; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
+					$args['post__in'] = array_merge( $args['post__in'] ?? [], [ absint( $value ) ] ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 				} elseif ( $condition === 'not_equals' ) {
-					$args['post__not_in'] = [ absint( $value ) ]; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct export filtering.
+					$args['post__not_in'] = array_merge( $args['post__not_in'] ?? [], [ absint( $value ) ] ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct export filtering.
 				} elseif ( $condition === 'in' ) {
-					$args['post__in'] = array_map( 'absint', explode( ',', $value ) ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
+					$new_ids = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
+					$args['post__in'] = array_merge( $args['post__in'] ?? [], $new_ids ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 				} elseif ( $condition === 'not_in' ) {
-					$args['post__not_in'] = array_map( 'absint', explode( ',', $value ) ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct export filtering.
+					$new_ids = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
+					$args['post__not_in'] = array_merge( $args['post__not_in'] ?? [], $new_ids ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct export filtering.
 				} elseif ( $condition === 'is_empty' ) {
 					// ID cannot be empty - return no results
 					$args['post__in'] = [ 0 ];
@@ -1055,6 +1074,40 @@ class Post_Exporter extends Abstract_Exporter {
 	}
 
 	/**
+	 * Normalize a date value to YYYY-MM-DD format
+	 *
+	 * Accepts any format that PHP's strtotime() understands, including:
+	 * - MM/DD/YYYY (from jQuery UI datepicker)
+	 * - DD/MM/YYYY
+	 * - YYYY-MM-DD (already correct)
+	 * - YYYY-MM-DD HH:MM:SS (strips time)
+	 *
+	 * @param string $value Raw date value from user input
+	 * @return string Date formatted as YYYY-MM-DD, or original value if parsing fails
+	 */
+	protected function normalize_date_value( $value ) {
+		if ( empty( $value ) ) {
+			return $value;
+		}
+
+		$value = trim( $value );
+
+		// Already YYYY-MM-DD (with optional time part) — just return the date portion
+		if ( preg_match( '/^(\d{4}-\d{2}-\d{2})/', $value, $m ) ) {
+			return $m[1];
+		}
+
+		// Try strtotime for any other format (e.g. MM/DD/YYYY from jQuery datepicker)
+		$ts = strtotime( $value );
+		if ( false !== $ts ) {
+			return gmdate( 'Y-m-d', $ts );
+		}
+
+		// Fallback: return as-is and let MySQL deal with it
+		return $value;
+	}
+
+	/**
 	 * Build WHERE clause for custom field filters
 	 *
 	 * @param array $filters Custom field filters
@@ -1072,6 +1125,11 @@ class Post_Exporter extends Abstract_Exporter {
 			// Date fields that need special handling
 			$date_fields   = [ 'post_date', 'post_modified', 'post_date_gmt', 'post_modified_gmt' ];
 			$is_date_field = in_array( $field, $date_fields, true );
+
+			// Normalize date value to YYYY-MM-DD before using in SQL
+			if ( $is_date_field ) {
+				$value = $this->normalize_date_value( $value );
+			}
 
 			switch ( $condition ) {
 				case 'equals':

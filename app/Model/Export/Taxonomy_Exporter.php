@@ -92,23 +92,69 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 	 * @return int
 	 */
 	public function get_count( $options = [] ) {
-		// Check if a specific taxonomy is requested
-		if ( ! empty( $options['taxonomy'] ) && is_string( $options['taxonomy'] ) ) {
+		// Check if a specific taxonomy is requested (directly or via a filters row)
+		$taxonomy = $options['taxonomy'] ?? null;
+		if ( empty( $taxonomy ) && ! empty( $options['filters'] ) && is_array( $options['filters'] ) ) {
+			foreach ( $options['filters'] as $filter ) {
+				if ( ( $filter['field'] ?? '' ) === 'taxonomy' && ( $filter['condition'] ?? '' ) === 'equals' ) {
+					$taxonomy = $filter['value'] ?? null;
+					break;
+				}
+			}
+		}
+
+		if ( ! empty( $taxonomy ) && is_string( $taxonomy ) ) {
+			// Ensure taxonomy is set so build_query_args() picks it up
+			$options['taxonomy'] = $taxonomy;
 			// Count terms in the specific taxonomy
-			$query_args           = $this->build_query_args( $options );
-			
+			$query_args = $this->build_query_args( $options );
+
+			// Extract PHP-side post-filters
+			$count_filter       = null;
+			$description_filter = null;
+			if ( isset( $query_args['_count_filter'] ) ) {
+				$count_filter = $query_args['_count_filter'];
+				unset( $query_args['_count_filter'] );
+			}
+			if ( isset( $query_args['_description_filter'] ) ) {
+				$description_filter = $query_args['_description_filter'];
+				unset( $query_args['_description_filter'] );
+			}
+
 			// Remove offset and number for count query - we want total count
 			unset( $query_args['offset'] );
 			unset( $query_args['number'] );
-			
-			$query_args['fields'] = 'count';
 
+			if ( $count_filter || $description_filter ) {
+				// Must fetch all terms and count after PHP filter
+				$query_args['fields'] = 'all';
+				$terms = get_terms( $query_args );
+				if ( is_wp_error( $terms ) ) {
+					return 0;
+				}
+				if ( $count_filter ) {
+					$terms = array_filter( $terms, function( $term ) use ( $count_filter ) {
+						return $this->apply_numeric_op( (int) $term->count, $count_filter['op'], $count_filter['val'] );
+					} );
+				}
+				if ( $description_filter ) {
+					$terms = array_filter( $terms, function( $term ) use ( $description_filter ) {
+						return $this->apply_string_condition( $term->description, $description_filter['op'], $description_filter['val'] );
+					} );
+				}
+				return count( $terms );
+			}
+
+			$query_args['fields'] = 'count';
 			$count = get_terms( $query_args );
 
 			return is_wp_error( $count ) ? 0 : (int) $count;
 		}
 
-		// Count unique taxonomies (not terms)
+		// No taxonomy specified — require the user to pick one before showing results
+		return 0;
+
+		// Count unique taxonomies (not terms) — unreachable, kept for reference
 		$taxonomies = get_taxonomies(
 			[
 				'public'   => true,
@@ -171,6 +217,18 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 	public function get_data( $options = [] ) {
 		$query_args = $this->build_query_args( $options );
 
+		// Extract PHP-side post-filters (not native get_terms() args)
+		$count_filter       = null;
+		$description_filter = null;
+		if ( isset( $query_args['_count_filter'] ) ) {
+			$count_filter = $query_args['_count_filter'];
+			unset( $query_args['_count_filter'] );
+		}
+		if ( isset( $query_args['_description_filter'] ) ) {
+			$description_filter = $query_args['_description_filter'];
+			unset( $query_args['_description_filter'] );
+		}
+
 		$this->log_info( 'Querying taxonomy terms', $query_args );
 
 		$terms = get_terms( $query_args );
@@ -181,6 +239,20 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 
 		if ( empty( $terms ) ) {
 			return [];
+		}
+
+		// Apply PHP-side count filter
+		if ( $count_filter ) {
+			$terms = array_values( array_filter( $terms, function( $term ) use ( $count_filter ) {
+				return $this->apply_numeric_op( (int) $term->count, $count_filter['op'], $count_filter['val'] );
+			} ) );
+		}
+
+		// Apply PHP-side description filter
+		if ( $description_filter ) {
+			$terms = array_values( array_filter( $terms, function( $term ) use ( $description_filter ) {
+				return $this->apply_string_condition( $term->description, $description_filter['op'], $description_filter['val'] );
+			} ) );
 		}
 
 		$data = [];
@@ -214,6 +286,12 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 		// Add term_id if requested or forced
 		if ( in_array( 'term_id', $fields, true ) || $force_include_id ) {
 			$data['term_id'] = $term->term_id;
+		}
+
+		// Always include taxonomy when in Content Updater mode so save_term_item() knows
+		// which taxonomy to pass to wp_update_term() regardless of selected fields.
+		if ( $force_include_id && ! in_array( 'taxonomy', $fields, true ) ) {
+			$data['taxonomy'] = $term->taxonomy;
 		}
 
 		foreach ( $fields as $field ) {
@@ -448,23 +526,41 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 			$condition = $filter['condition'];
 			$value     = $filter['value'] ?? '';
 
+			// Handle taxonomy filter — sets the taxonomy to query
+			if ( $field === 'taxonomy' ) {
+				if ( $condition === 'equals' ) {
+					$args['taxonomy'] = sanitize_text_field( $value );
+				} elseif ( $condition === 'in' ) {
+					$args['taxonomy'] = array_map( 'sanitize_text_field', array_map( 'trim', explode( ',', $value ) ) );
+				}
+				continue;
+			}
+
 			// Handle term fields
 			if ( $field === 'term_id' ) {
+				// Accumulate so multiple equals filters OR together
 				if ( $condition === 'equals' ) {
-					$args['include'] = [ absint( $value ) ];
+					$args['include'] = array_merge( $args['include'] ?? [], [ absint( $value ) ] );
 				} elseif ( $condition === 'not_equals' ) {
-					$args['exclude'] = [ absint( $value ) ]; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- post__not_in required for correct filtering.
+					$args['exclude'] = array_merge( $args['exclude'] ?? [], [ absint( $value ) ] ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- post__not_in required for correct filtering.
 				} elseif ( $condition === 'in' ) {
-					$args['include'] = array_map( 'absint', explode( ',', $value ) );
+					$new_ids = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
+					$args['include'] = array_merge( $args['include'] ?? [], $new_ids );
 				} elseif ( $condition === 'not_in' ) {
-					$args['exclude'] = array_map( 'absint', explode( ',', $value ) ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- post__not_in required for correct filtering.
+					$new_ids = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
+					$args['exclude'] = array_merge( $args['exclude'] ?? [], $new_ids ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- post__not_in required for correct filtering.
 				}
 				continue;
 			}
 
 			if ( $field === 'name' ) {
-				if ( $condition === 'contains' || $condition === 'equals' ) {
+				if ( $condition === 'equals' ) {
+					// Exact name match — WP supports 'name' parameter since 4.2
+					$args['name'] = sanitize_text_field( $value );
+				} elseif ( $condition === 'contains' ) {
 					$args['search'] = sanitize_text_field( $value );
+				} elseif ( $condition === 'in' ) {
+					$args['name'] = array_map( 'sanitize_text_field', array_map( 'trim', explode( ',', $value ) ) );
 				}
 				continue;
 			}
@@ -484,6 +580,61 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 				}
 				continue;
 			}
+
+			if ( $field === 'description' ) {
+				// Store as PHP post-filter; also hint DB with LIKE for contains-style
+				$args['_description_filter'] = [ 'op' => $condition, 'val' => $value ];
+				if ( in_array( $condition, [ 'contains', 'starts_with', 'ends_with' ], true ) ) {
+					$args['description__like'] = $value;
+				}
+				continue;
+			}
+
+			if ( $field === 'count' ) {
+				// get_terms() has no native count range filter — store for post-filter.
+				// Also set hide_empty accordingly for common cases.
+				$int_value = absint( $value );
+				if ( $condition === 'equals' ) {
+					$args['_count_filter'] = [ 'op' => '=', 'val' => $int_value ];
+					if ( $int_value === 0 ) {
+						$args['hide_empty'] = false;
+					}
+				} elseif ( $condition === 'not_equals' ) {
+					$args['_count_filter'] = [ 'op' => '!=', 'val' => $int_value ];
+				} elseif ( $condition === 'greater' ) {
+					$args['_count_filter'] = [ 'op' => '>', 'val' => $int_value ];
+					$args['hide_empty']    = true;
+				} elseif ( $condition === 'less' ) {
+					$args['_count_filter'] = [ 'op' => '<', 'val' => $int_value ];
+					$args['hide_empty']    = false;
+				} elseif ( $condition === 'equals_or_greater' ) {
+					$args['_count_filter'] = [ 'op' => '>=', 'val' => $int_value ];
+				} elseif ( $condition === 'equals_or_less' ) {
+					$args['_count_filter'] = [ 'op' => '<=', 'val' => $int_value ];
+					$args['hide_empty']    = false;
+				}
+				continue;
+			}
+		}
+	}
+
+	/**
+	 * Compare two integers using an operator string.
+	 *
+	 * @param int    $a  Left-hand value.
+	 * @param string $op Operator: =, !=, >, <, >=, <=
+	 * @param int    $b  Right-hand value.
+	 * @return bool
+	 */
+	protected function apply_numeric_op( $a, $op, $b ) {
+		switch ( $op ) {
+			case '=':  return $a === $b;
+			case '!=': return $a !== $b;
+			case '>':  return $a > $b;
+			case '<':  return $a < $b;
+			case '>=': return $a >= $b;
+			case '<=': return $a <= $b;
+			default:   return true;
 		}
 	}
 
