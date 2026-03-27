@@ -288,8 +288,9 @@ class Media_Sync_Processor {
 				// file_operation is passed directly: 'keep', 'copy', or 'move'
 				// No need to convert, helper now uses file_operation directly
 
-				// Enable RML folder structure if RML integration is enabled
-				if ( ! empty( $options['rml_integration'] ) ) {
+				// Enable RML folder structure if RML integration is enabled.
+				// Use filter_var to handle the string "false" that jQuery AJAX serializes from a boolean false.
+				if ( filter_var( $options['rml_integration'] ?? false, FILTER_VALIDATE_BOOLEAN ) ) {
 					$import_options['rml_folder_structure'] = true;
 				}
 
