@@ -725,11 +725,20 @@ const ExportModule = {
 
 			// Handle regular filters
 			const condition = $row.find( '.aie-filter-condition' ).val();
-			const value = $row.find( '.aie-filter-value' ).val();
+			let value = $row.find( '.aie-filter-value' ).val();
 
 			// Skip empty or incomplete filters
 			if ( ! field || ! condition ) {
 				return;
+			}
+
+			// Normalize date values to YYYY-MM-DD regardless of datepicker locale format
+			const fieldTypeForDate = $row.find( '.aie-filter-field option:selected' ).data( 'type' );
+			if ( ( fieldTypeForDate === 'date' || fieldTypeForDate === 'datetime' ) && value ) {
+				const parsed = new Date( value );
+				if ( ! isNaN( parsed.getTime() ) ) {
+					value = parsed.toISOString().slice( 0, 10 );
+				}
 			}
 
 			// For conditions that don't need value
@@ -1753,15 +1762,12 @@ const ExportModule = {
 						{ value: 'comment_author_email', label: window.aieData.i18n.fieldAuthorEmail, type: 'string' },
 						{ value: 'comment_author_url', label: window.aieData.i18n.fieldAuthorUrl, type: 'string' },
 						{ value: 'comment_author_IP', label: window.aieData.i18n.fieldAuthorIp, type: 'string' },
-						{ value: 'user_id', label: window.aieData.i18n.fieldUserId, type: 'number' },
-						{ value: 'comment_agent', label: window.aieData.i18n.fieldUserAgent, type: 'string' },
 					],
 				},
 				{
 					label: window.aieData.i18n.fieldGroupRelatedPost,
 					options: [
 						{ value: 'post_title', label: window.aieData.i18n.fieldPostTitle, type: 'string' },
-						{ value: 'post_author', label: window.aieData.i18n.fieldPostAuthorId, type: 'number' },
 					],
 				},
 				{
@@ -1776,12 +1782,6 @@ const ExportModule = {
 					options: [
 						{ value: 'comment_parent', label: window.aieData.i18n.fieldParentCommentId, type: 'number' },
 						{ value: 'comment_karma', label: window.aieData.i18n.fieldKarma, type: 'number' },
-					],
-				},
-				{
-					label: window.aieData.i18n.fieldGroupCustomFilters,
-					options: [
-						{ value: '_custom_field', label: window.aieData.i18n.fieldCustomFieldMeta, type: 'custom_field' },
 					],
 				},
 			];
@@ -1851,23 +1851,10 @@ const ExportModule = {
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupTaxonomy,
-					options: [
-						{ value: 'taxonomy', label: window.aieData.i18n.fieldTaxonomyType, type: 'string' },
-						{ value: 'term_taxonomy_id', label: window.aieData.i18n.fieldTaxonomyId, type: 'number' },
-					],
-				},
-				{
 					label: window.aieData.i18n.fieldGroupHierarchy,
 					options: [
 						{ value: 'parent', label: window.aieData.i18n.fieldParentTermId, type: 'number' },
 						{ value: 'count', label: window.aieData.i18n.fieldPostsCount, type: 'number' },
-					],
-				},
-				{
-					label: window.aieData.i18n.fieldGroupCustomFilters,
-					options: [
-						{ value: '_custom_field', label: window.aieData.i18n.fieldTermMetaField, type: 'custom_field' },
 					],
 				},
 			];
@@ -2234,12 +2221,24 @@ const ExportModule = {
 		// Get all fields first
 		const allFields = this.getFieldsByContentType( contentType );
 		
-		// Filter out the Featured Image group
-		return allFields.filter( group => {
-			const label = group.label;
-			const featuredImageLabel = window.aieData.i18n.fieldGroupFeaturedImage || 'Featured Image';
-			return label !== featuredImageLabel;
-		} );
+		// Groups to always exclude
+		const excludedLabels = [
+			window.aieData.i18n.fieldGroupFeaturedImage || 'Featured Image',
+		];
+
+		// For woo_coupon, also exclude these groups from filters
+		if ( contentType === 'woo_coupon' ) {
+			excludedLabels.push(
+				window.aieData.i18n.fieldGroupDiscount,
+				window.aieData.i18n.fieldGroupUsageRestrictions,
+				window.aieData.i18n.fieldGroupProductRestrictions,
+				window.aieData.i18n.fieldGroupEmailRestrictions,
+				window.aieData.i18n.fieldGroupUsageLimits,
+				window.aieData.i18n.fieldGroupCustomFilters
+			);
+		}
+
+		return allFields.filter( group => ! excludedLabels.includes( group.label ) );
 	},
 
 	/**

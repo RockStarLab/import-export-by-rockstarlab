@@ -62,6 +62,18 @@ class Content_Updater_Controller extends Base_Controller {
 			$options['filters'] = $filters;
 		}
 
+		// Get taxonomy filters
+		$taxonomy_json = $this->get_request_param( 'taxonomy', '[]' );
+		$taxonomy      = json_decode( $taxonomy_json, true );
+		if ( ! is_array( $taxonomy ) ) {
+			$taxonomy = [];
+		}
+
+		// Add taxonomy filters to options
+		if ( ! empty( $taxonomy ) ) {
+			$options['taxonomy'] = $taxonomy;
+		}
+
 		// Map content_type to appropriate exporter type and options
 		$exporter_type = $this->map_content_type_to_exporter( $content_type, $options );
 
@@ -166,6 +178,18 @@ class Content_Updater_Controller extends Base_Controller {
 		// Add filters to options
 		if ( ! empty( $filters ) ) {
 			$options['filters'] = $filters;
+		}
+
+		// Get taxonomy filters
+		$taxonomy_json = $this->get_request_param( 'taxonomy', '[]' );
+		$taxonomy      = json_decode( $taxonomy_json, true );
+		if ( ! is_array( $taxonomy ) ) {
+			$taxonomy = [];
+		}
+
+		// Add taxonomy filters to options
+		if ( ! empty( $taxonomy ) ) {
+			$options['taxonomy'] = $taxonomy;
 		}
 
 		// Validate fields and functions are not empty
@@ -395,6 +419,17 @@ class Content_Updater_Controller extends Base_Controller {
 			if ( ! isset( $options['post_type'] ) ) {
 				$options['post_type'] = $content_type;
 			}
+		}
+
+		// Map WooCommerce content types to real WordPress post_types
+		$woo_post_type_map = [
+			'woo_product' => 'product',
+			'woo_order'   => 'shop_order',
+			'woo_coupon'  => 'shop_coupon',
+		];
+
+		if ( isset( $woo_post_type_map[ $content_type ] ) && ! isset( $options['post_type'] ) ) {
+			$options['post_type'] = $woo_post_type_map[ $content_type ];
 		}
 
 		return $exporter_type;

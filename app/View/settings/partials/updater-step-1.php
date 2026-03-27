@@ -88,18 +88,6 @@ defined( 'ABSPATH' ) || exit;
 			</label>
 
 			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
-				<input type="radio" name="updater_content_type" value="menu"<?php echo $is_premium ? '' : ' disabled'; ?>>
-				<div class="aie-content-type-card">
-					<span class="dashicons dashicons-menu"></span>
-					<h3><?php esc_html_e( 'Menus', 'wp-advanced-import-export' ); ?></h3>
-					<p><?php esc_html_e( 'Update navigation menus', 'wp-advanced-import-export' ); ?></p>
-					<?php if ( ! $is_premium ) : ?>
-						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'wp-advanced-import-export' ); ?></span>
-					<?php endif; ?>
-				</div>
-			</label>
-
-			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
 				<input type="radio" name="updater_content_type" value="user"<?php echo $is_premium ? '' : ' disabled'; ?>>
 			<div class="aie-content-type-card">
 				<span class="dashicons dashicons-admin-users"></span>
@@ -146,29 +134,6 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 			</label>
 
-			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
-				<input type="radio" name="updater_content_type" value="woo_order"<?php echo $is_premium ? '' : ' disabled'; ?>>
-				<div class="aie-content-type-card">
-					<span class="dashicons dashicons-cart"></span>
-					<h3><?php esc_html_e( 'WooCommerce Orders', 'wp-advanced-import-export' ); ?></h3>
-					<p><?php esc_html_e( 'Update WooCommerce orders', 'wp-advanced-import-export' ); ?></p>
-					<?php if ( ! $is_premium ) : ?>
-						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'wp-advanced-import-export' ); ?></span>
-					<?php endif; ?>
-				</div>
-			</label>
-
-			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
-				<input type="radio" name="updater_content_type" value="woo_coupon"<?php echo $is_premium ? '' : ' disabled'; ?>>
-					<div class="aie-content-type-card">
-						<span class="dashicons dashicons-tickets-alt"></span>
-						<h3><?php esc_html_e( 'WooCommerce Coupons', 'wp-advanced-import-export' ); ?></h3>
-						<p><?php esc_html_e( 'Update WooCommerce coupons', 'wp-advanced-import-export' ); ?></p>
-						<?php if ( ! $is_premium ) : ?>
-							<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'wp-advanced-import-export' ); ?></span>
-						<?php endif; ?>
-					</div>
-				</label>
 			<?php endif; ?>
 
 			<!-- Database Table -->

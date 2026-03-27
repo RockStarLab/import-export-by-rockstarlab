@@ -548,6 +548,9 @@ const JobsLogModule = {
 				case 'import':
 					page = 'wp-aie-import';
 					break;
+				case 'update':
+					page = 'wp-aie-content-updater';
+					break;
 				case 'media_sync':
 					page = 'wp-aie-media-sync';
 					break;
@@ -566,6 +569,7 @@ const JobsLogModule = {
 		const labels = {
 			'import': window.aieData.i18n.typeImport || 'Import',
 			'export': window.aieData.i18n.typeExport || 'Export',
+			'update': window.aieData.i18n.typeUpdate || 'Update',
 			'media_sync': window.aieData.i18n.typeMediaSync || 'Media Sync',
 		};
 		return labels[ type ] || type;

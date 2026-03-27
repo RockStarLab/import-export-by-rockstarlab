@@ -550,12 +550,6 @@ class Comment_Exporter extends Abstract_Exporter {
 				continue;
 			}
 
-			// Store all non-ID filters for manual checking and skip SQL filtering
-			if ( $field !== 'comment_ID' ) {
-				$args['_other_filters'][] = $filter;
-				continue; // Skip old SQL filtering logic - we'll handle manually
-			}
-
 			// Handle comment ID with numeric comparisons
 			if ( $field === 'comment_ID' ) {
 				// Only basic conditions (equals, in, not_equals, not_in) use SQL
@@ -566,14 +560,17 @@ class Comment_Exporter extends Abstract_Exporter {
 				}
 
 				// Apply simple ID filters via SQL
+				// Accumulate so multiple equals filters OR together
 				if ( $condition === 'equals' ) {
-					$args['comment__in'] = [ absint( $value ) ];
+					$args['comment__in'] = array_merge( $args['comment__in'] ?? [], [ absint( $value ) ] );
 				} elseif ( $condition === 'not_equals' ) {
-					$args['comment__not_in'] = [ absint( $value ) ];
+					$args['comment__not_in'] = array_merge( $args['comment__not_in'] ?? [], [ absint( $value ) ] );
 				} elseif ( $condition === 'in' ) {
-					$args['comment__in'] = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
+					$new_ids = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
+					$args['comment__in'] = array_merge( $args['comment__in'] ?? [], $new_ids );
 				} elseif ( $condition === 'not_in' ) {
-					$args['comment__not_in'] = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
+					$new_ids = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
+					$args['comment__not_in'] = array_merge( $args['comment__not_in'] ?? [], $new_ids );
 				}
 				continue;
 			}
@@ -978,6 +975,15 @@ class Comment_Exporter extends Abstract_Exporter {
 		if ( isset( $field_map[ $field_name ] ) ) {
 			$property = $field_map[ $field_name ];
 			return $comment->$property ?? '';
+		}
+
+		// Computed fields from the related post
+		if ( $field_name === 'post_title' || $field_name === 'post_author' ) {
+			$post = get_post( $comment->comment_post_ID );
+			if ( ! $post ) {
+				return '';
+			}
+			return $field_name === 'post_title' ? $post->post_title : $post->post_author;
 		}
 
 		// Check if it's a meta field

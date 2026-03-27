@@ -158,6 +158,15 @@ class Coupon_Exporter extends Abstract_Exporter {
 			return count( $coupon_ids );
 		}
 
+		// Group filters by field: OR within same field, AND across different fields
+		$filters_by_field = [];
+		foreach ( $custom_filters as $filter ) {
+			if ( empty( $filter['field'] ) || empty( $filter['condition'] ) ) {
+				continue;
+			}
+			$filters_by_field[ $filter['field'] ][] = $filter;
+		}
+
 		$count = 0;
 		foreach ( $coupon_ids as $coupon_id ) {
 			$coupon = new \WC_Coupon( $coupon_id );
@@ -165,21 +174,18 @@ class Coupon_Exporter extends Abstract_Exporter {
 				continue;
 			}
 
-			// Check if coupon passes all filters
+			// Check if coupon passes all filter groups
 			$passes_filters = true;
-			foreach ( $custom_filters as $filter ) {
-				if ( empty( $filter['field'] ) || empty( $filter['condition'] ) ) {
-					continue;
+			foreach ( $filters_by_field as $field_name => $field_filters ) {
+				$field_value  = $this->get_coupon_field_value( $coupon, $field_name );
+				$field_passes = false;
+				foreach ( $field_filters as $filter ) {
+					if ( $this->check_condition( $field_value, $filter['condition'], $filter['value'] ?? '' ) ) {
+						$field_passes = true;
+						break;
+					}
 				}
-
-				$field_name = $filter['field'];
-				$condition  = $filter['condition'];
-				$value      = $filter['value'] ?? '';
-
-				// Get field value from coupon
-				$field_value = $this->get_coupon_field_value( $coupon, $field_name );
-
-				if ( ! $this->check_condition( $field_value, $condition, $value ) ) {
+				if ( ! $field_passes ) {
 					$passes_filters = false;
 					break;
 				}
@@ -220,8 +226,27 @@ class Coupon_Exporter extends Abstract_Exporter {
 		$data   = [];
 		$fields = $this->get_option( 'fields', $this->get_default_fields() );
 
+		// CRITICAL: Force include ID for Content Updater
+		$force_include_id = $this->get_option( 'force_include_id', false );
+		if ( $force_include_id && ! in_array( 'ID', $fields, true ) ) {
+			// Prepend ID to fields array to ensure it's always included
+			array_unshift( $fields, 'ID' );
+
+			// IMPORTANT: Also update options['fields'] so select_fields() doesn't remove ID
+			$this->options['fields'] = $fields;
+		}
+
 		// Get custom filters that need to be applied manually
 		$custom_filters = $options['filters'] ?? [];
+
+		// Group filters by field: OR within same field, AND across different fields
+		$filters_by_field = [];
+		foreach ( $custom_filters as $filter ) {
+			if ( empty( $filter['field'] ) || empty( $filter['condition'] ) ) {
+				continue;
+			}
+			$filters_by_field[ $filter['field'] ][] = $filter;
+		}
 
 		foreach ( $coupon_posts as $post ) {
 			$coupon = new \WC_Coupon( $post->ID );
@@ -230,21 +255,18 @@ class Coupon_Exporter extends Abstract_Exporter {
 			}
 
 			// Apply custom filters if any
-			if ( ! empty( $custom_filters ) ) {
+			if ( ! empty( $filters_by_field ) ) {
 				$passes_filters = true;
-				foreach ( $custom_filters as $filter ) {
-					if ( empty( $filter['field'] ) || empty( $filter['condition'] ) ) {
-						continue;
+				foreach ( $filters_by_field as $field_name => $field_filters ) {
+					$field_value  = $this->get_coupon_field_value( $coupon, $field_name );
+					$field_passes = false;
+					foreach ( $field_filters as $filter ) {
+						if ( $this->check_condition( $field_value, $filter['condition'], $filter['value'] ?? '' ) ) {
+							$field_passes = true;
+							break;
+						}
 					}
-
-					$field_name = $filter['field'];
-					$condition  = $filter['condition'];
-					$value      = $filter['value'] ?? '';
-
-					// Get field value from coupon
-					$field_value = $this->get_coupon_field_value( $coupon, $field_name );
-
-					if ( ! $this->check_condition( $field_value, $condition, $value ) ) {
+					if ( ! $field_passes ) {
 						$passes_filters = false;
 						break;
 					}

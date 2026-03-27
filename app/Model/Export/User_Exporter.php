@@ -677,14 +677,17 @@ class User_Exporter extends Abstract_Exporter {
 
 			// Handle user ID field with all conditions
 			if ( $field === 'ID' ) {
+				// Accumulate so multiple equals filters OR together
 				if ( $condition === 'equals' ) {
-					$args['include'] = [ absint( $value ) ]; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
+					$args['include'] = array_merge( $args['include'] ?? [], [ absint( $value ) ] ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 				} elseif ( $condition === 'not_equals' ) {
-					$args['exclude'] = [ absint( $value ) ]; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- exclude required for correct export filtering.
+					$args['exclude'] = array_merge( $args['exclude'] ?? [], [ absint( $value ) ] ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- exclude required for correct export filtering.
 				} elseif ( $condition === 'in' ) {
-					$args['include'] = array_map( 'absint', explode( ',', $value ) ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
+					$new_ids = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
+					$args['include'] = array_merge( $args['include'] ?? [], $new_ids ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 				} elseif ( $condition === 'not_in' ) {
-					$args['exclude'] = array_map( 'absint', explode( ',', $value ) ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- exclude required for correct export filtering.
+					$new_ids = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
+					$args['exclude'] = array_merge( $args['exclude'] ?? [], $new_ids ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- exclude required for correct export filtering.
 				} elseif ( in_array( $condition, [ 'greater', 'less', 'equals_or_greater', 'equals_or_less', 'between' ], true ) ) {
 					// For numeric comparisons, we need custom WHERE clause
 					if ( ! isset( $args['_custom_id_filters'] ) ) {

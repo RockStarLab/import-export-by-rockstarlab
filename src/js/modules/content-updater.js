@@ -18,8 +18,9 @@ const ContentUpdater = {
 	currentTableColumns: [],
 	fieldFunctions: {},
 	availableFunctions: [],
-	selectedFilters: [],  // New: Store selected filters
-	filteredCount: null,  // New: Store filtered item count
+	selectedFilters: [],          // Store selected filters
+	selectedTaxonomyFilters: [],  // Store selected taxonomy filters
+	filteredCount: null,          // Store filtered item count
 
 	/**
 	 * Initialize module
@@ -29,8 +30,35 @@ const ContentUpdater = {
 			return;
 		}
 
+		// Check if resuming a job from Jobs Log
+		const urlParams = new URLSearchParams( window.location.search );
+		const resumeJobId = urlParams.get( 'resume_job' );
+
 		this.bindEvents();
-		this.showStep( 1 );
+
+		if ( resumeJobId ) {
+			this.jobId = parseInt( resumeJobId, 10 );
+			if ( Number.isNaN( this.jobId ) ) {
+				this.showStep( 1 );
+				this.loadAvailableFunctions();
+				return;
+			}
+			this.showStep( 5 );
+
+			// Show progress UI immediately when resuming
+			jQuery( '#aie-updater-config' ).hide();
+			jQuery( '#aie-updater-progress' ).show();
+			jQuery( '#aie-updater-prev-from-step-4' ).hide();
+
+			// Get current state and continue processing
+			this.updateProgress().then( () => {
+				this.startProgressTracking();
+				this.processNextBatch();
+			} );
+		} else {
+			this.showStep( 1 );
+		}
+
 		this.loadAvailableFunctions();
 	},
 
@@ -225,7 +253,9 @@ const ContentUpdater = {
 	proceedToNextStep() {
 		// Save filters when leaving step 2
 		if ( this.currentStep === 2 ) {
-			this.selectedFilters = this.collectFilters();
+			const collectedFilters = this.collectFilters();
+			this.selectedFilters = collectedFilters.filters;
+			this.selectedTaxonomyFilters = collectedFilters.taxonomy;
 		}
 
 		if ( this.currentStep < this.totalSteps ) {
@@ -263,7 +293,12 @@ const ContentUpdater = {
 					return false;
 				}
 
-				// Filters are optional, always pass
+				// Taxonomy terms require at least one taxonomy filter
+				if ( this.requiresFilter() && ! this.hasRequiredFilter() ) {
+					Utils.showNotice( window.aieData.i18n.pleaseAddFilter || 'Please add at least one filter to narrow down the items.', 'error' );
+					return false;
+				}
+
 				return true;
 
 			case 3:
@@ -337,6 +372,7 @@ const ContentUpdater = {
 		this.currentTableColumns = [];
 		this.fieldFunctions = {};
 		this.selectedFilters = [];
+		this.selectedTaxonomyFilters = [];
 		this.filteredCount = null;  // Reset filtered count when content type changes
 
 		if ( this.isDatabaseTableType( contentType ) ) {
@@ -373,9 +409,49 @@ const ContentUpdater = {
 			jQuery( '.aie-table-selection-section' ).hide();
 			jQuery( '.aie-table-info' ).hide();
 		}
+
+		// Immediately update Next button state (may disable it for types that require a filter)
+		this.updateStep2NextButton();
 		
 		// Refresh count
 		this.refreshCount( true );
+	},
+
+	/**
+	 * Returns true for content types that must have at least one filter before proceeding
+	 */
+	requiresFilter( contentType = null ) {
+		const ct = contentType || jQuery( 'input[name="updater_content_type"]:checked' ).val();
+		return ct === 'taxonomy';
+	},
+
+	/**
+	 * Returns true when the required filter for the current content type is present and has a value
+	 */
+	hasRequiredFilter() {
+		const collectedFilters = this.collectFilters();
+		// For taxonomy: need at least one filter with field === 'taxonomy' and a non-empty value
+		const taxonomyFilter = collectedFilters.filters.find(
+			( f ) => f.field === 'taxonomy' && ( f.value || '' ).trim() !== ''
+		);
+		return !! taxonomyFilter;
+	},
+
+	/**
+	 * Enable / disable the Step 2 "Next Step" button based on filter requirements
+	 */
+	updateStep2NextButton() {
+		if ( this.currentStep !== 2 ) {
+			return;
+		}
+		const $btn = jQuery( '.aie-updater-step-2 .aie-updater-next-step' );
+		if ( $btn.length === 0 ) {
+			return;
+		}
+		const needsFilter = this.requiresFilter();
+		const hasFilter = needsFilter ? this.hasRequiredFilter() : true;
+		$btn.prop( 'disabled', ! hasFilter );
+		$btn.toggleClass( 'button-disabled', ! hasFilter );
 	},
 
 	/**
@@ -554,9 +630,9 @@ const ContentUpdater = {
 		// Populate field options based on content type
 		const $fieldSelect = jQuery( clone ).find( '.aie-updater-filter-field' );
 		
-		// Use export module's getFieldsByContentType if available
-		if ( typeof window.aieExportModule !== 'undefined' && window.aieExportModule.getFieldsByContentType ) {
-			const fields = window.aieExportModule.getFieldsByContentType( contentType );
+		// Use export module's getFilterFieldsByContentType if available (excludes Featured Image group)
+		if ( typeof window.aieExportModule !== 'undefined' && window.aieExportModule.getFilterFieldsByContentType ) {
+			const fields = window.aieExportModule.getFilterFieldsByContentType( contentType );
 			
 			fields.forEach( ( group ) => {
 				const $optgroup = jQuery( '<optgroup>' ).attr( 'label', group.label );
@@ -593,10 +669,136 @@ const ContentUpdater = {
 		const $field = jQuery( e.target );
 		const $row = $field.closest( '.aie-filter-row' );
 		const $condition = $row.find( '.aie-updater-filter-condition' );
+		const $conditionWrap = $condition.closest( '.aie-filter-condition-wrap' );
+		const $valueWrap = $row.find( '.aie-filter-value-wrap' );
 		
 		const selectedOption = $field.find( 'option:selected' );
 		const fieldType = selectedOption.data( 'type' ) || 'string';
-		
+
+		// Remove any previously injected custom UIs when switching field type
+		$row.find( '.aie-updater-meta-key-wrap' ).remove();
+		$row.find( '.aie-taxonomy-filter-inputs' ).closest( '.aie-filter-value-wrap' ).find( '.aie-taxonomy-filter-inputs' ).remove();
+
+		// Restore standard condition/value wrap if they were hidden by a previous custom type
+		$conditionWrap.show();
+		$valueWrap.show().html(
+			`<label>${ window.aieData.i18n.value || 'Value' }</label>
+			<input type="text" class="aie-updater-filter-value" name="updater_filter_value[]" placeholder="${ window.aieData.i18n.enterFilterValue || '' }">`
+		);
+
+		// Special handling for post_type_selector — replicate export.js behaviour
+		if ( fieldType === 'post_type_selector' ) {
+			$conditionWrap.hide();
+			$valueWrap.find( 'label' ).text( window.aieData.i18n.selectPostType || 'Post Type' );
+
+			// Replace text input with a <select> populated from AJAX
+			const $select = jQuery( '<select>' )
+				.addClass( 'aie-updater-filter-value aie-post-type-selector' )
+				.attr( 'name', 'updater_filter_value[]' );
+
+			Utils.ajax( 'aie_get_post_types', { include_hidden: true } )
+				.then( ( postTypes ) => {
+					$select.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.selectPostTypePlaceholder || '— Select post type —' ) );
+					if ( postTypes && Array.isArray( postTypes ) ) {
+						postTypes.forEach( ( pt ) => {
+							$select.append(
+								jQuery( '<option>' ).val( pt.name ).text( pt.label + ' (' + pt.name + ')' )
+							);
+						} );
+					}
+					$select.on( 'change', () => {
+						Utils.debounce( () => this.refreshCount( false ), 500 )();
+					} );
+				} )
+				.catch( () => {
+					$select.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.errorLoadingPostTypes || 'Error loading post types' ) );
+				} );
+
+			$valueWrap.find( '.aie-updater-filter-value' ).replaceWith( $select );
+			return;
+		}
+
+		// Special handling for taxonomy_selector — replicate export.js behaviour
+		if ( fieldType === 'taxonomy_selector' ) {
+			$conditionWrap.hide();
+			$valueWrap.find( 'label' ).text( window.aieData.i18n.selectTaxonomy || 'Select Taxonomy' );
+
+			const $select = jQuery( '<select>' )
+				.addClass( 'aie-updater-filter-value aie-taxonomy-selector' )
+				.attr( 'name', 'updater_filter_value[]' );
+
+			Utils.ajax( 'aie_get_all_taxonomies', {} ).then( ( taxonomies ) => {
+				$select.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.selectTaxonomyPlaceholder || '— Select taxonomy —' ) );
+				if ( taxonomies && Array.isArray( taxonomies ) ) {
+					taxonomies.forEach( ( taxonomy ) => {
+						$select.append(
+							jQuery( '<option>' )
+								.val( taxonomy.name )
+								.text( taxonomy.label + ' (' + taxonomy.name + ')' )
+						);
+					} );
+				}
+				$select.on( 'change', () => {
+					Utils.debounce( () => this.refreshCount( false ), 500 )();
+				} );
+			} ).catch( () => {
+				$select.append( jQuery( '<option>' ).val( '' ).text( window.aieData.i18n.errorLoadingTaxonomies || 'Error loading taxonomies' ) );
+			} );
+
+			$valueWrap.find( '.aie-updater-filter-value' ).replaceWith( $select );
+			return;
+		}
+
+		// Special handling for taxonomy_filter — replicate export.js behaviour
+		if ( fieldType === 'taxonomy_filter' ) {
+			$conditionWrap.hide();
+			$valueWrap.html( `
+				<div class="aie-taxonomy-filter-inputs">
+					<div class="aie-input-group">
+						<label>${ window.aieData.i18n.taxonomyName || 'Taxonomy Name' }</label>
+						<input type="text" class="aie-taxonomy-name" placeholder="${ window.aieData.i18n.taxonomyPlaceholderExamples }" />
+					</div>
+					<div class="aie-input-group">
+						<label>${ window.aieData.i18n.condition || 'Condition' }</label>
+						<select class="aie-taxonomy-condition aie-updater-filter-condition">
+							<option value="in">${ window.aieData.i18n.hasTermsIn }</option>
+							<option value="not_in">${ window.aieData.i18n.doesNotHaveTermsNotIn }</option>
+							<option value="and">${ window.aieData.i18n.hasAllTermsAnd }</option>
+						</select>
+					</div>
+					<div class="aie-input-group">
+						<label>${ window.aieData.i18n.terms || 'Terms' }</label>
+						<input type="text" class="aie-taxonomy-terms aie-updater-filter-value" placeholder="${ window.aieData.i18n.enterTermSlugs }" />
+						<small class="description">${ window.aieData.i18n.enterTermSlugs }</small>
+					</div>
+				</div>
+			` );
+
+			// Trigger count refresh when any taxonomy filter field changes
+			$row.find( '.aie-taxonomy-name, .aie-taxonomy-condition, .aie-taxonomy-terms' ).on( 'input change', () => {
+				Utils.debounce( () => this.refreshCount( false ), 500 )();
+			} );
+
+			return;
+		}
+
+		// Handle custom_field type — show a text input for the actual meta key name
+		if ( fieldType === 'custom_field' ) {
+			const label = window.aieData.i18n.customFieldName || 'Meta Key';
+			const placeholder = window.aieData.i18n.enterCustomFieldName || 'Enter meta key name…';
+			const $metaKeyWrap = jQuery(
+				`<div class="aie-filter-field-wrap aie-updater-meta-key-wrap">
+					<label>${ label }</label>
+					<input type="text" class="aie-updater-custom-meta-key" placeholder="${ placeholder }" />
+				</div>`
+			);
+			$row.find( '.aie-filter-field-wrap' ).after( $metaKeyWrap );
+			// Refresh count when the meta key name changes
+			$metaKeyWrap.find( '.aie-updater-custom-meta-key' ).on( 'input', () => {
+				Utils.debounce( () => this.refreshCount( false ), 500 )();
+			} );
+		}
+
 		// Populate condition dropdown based on field type
 		$condition.empty();
 		
@@ -662,6 +864,13 @@ const ContentUpdater = {
 			$value.closest( '.aie-filter-value-wrap' ).show();
 		}
 
+		// For 'in' and 'not_in', always use text to allow comma-separated values
+		if ( condition === 'in' || condition === 'not_in' ) {
+			$value.attr( 'type', 'text' );
+			$value.attr( 'placeholder', window.aieData.i18n.enterValuesCommaSeparated || 'value1, value2, ...' );
+			return;
+		}
+
 		// Set input type based on field type
 		if ( fieldType === 'date' || fieldType === 'datetime' ) {
 			$value.attr( 'type', 'date' );
@@ -682,6 +891,8 @@ const ContentUpdater = {
 		const stringConditions = [
 			{ value: 'equals', label: window.aieData.i18n.equals },
 			{ value: 'not_equals', label: window.aieData.i18n.notEquals },
+			{ value: 'in', label: window.aieData.i18n.inFilter || 'In (comma-separated)' },
+			{ value: 'not_in', label: window.aieData.i18n.notInFilter || 'Not In (comma-separated)' },
 			{ value: 'contains', label: window.aieData.i18n.contains },
 			{ value: 'not_contains', label: window.aieData.i18n.notContains },
 			{ value: 'starts_with', label: window.aieData.i18n.startsWith },
@@ -693,6 +904,8 @@ const ContentUpdater = {
 		const numberConditions = [
 			{ value: 'equals', label: window.aieData.i18n.equals },
 			{ value: 'not_equals', label: window.aieData.i18n.notEquals },
+			{ value: 'in', label: window.aieData.i18n.inFilter || 'In (comma-separated)' },
+			{ value: 'not_in', label: window.aieData.i18n.notInFilter || 'Not In (comma-separated)' },
 			{ value: 'greater', label: window.aieData.i18n.greaterThan },
 			{ value: 'less', label: window.aieData.i18n.lessThan },
 			{ value: 'equals_or_greater', label: window.aieData.i18n.greaterOrEqual },
@@ -718,6 +931,23 @@ const ContentUpdater = {
 			case 'date':
 			case 'datetime':
 				return dateConditions;
+			case 'custom_field':
+				return [
+					{ value: 'equals', label: window.aieData.i18n.equals },
+					{ value: 'not_equals', label: window.aieData.i18n.notEquals },
+					{ value: 'contains', label: window.aieData.i18n.contains },
+					{ value: 'not_contains', label: window.aieData.i18n.notContains },
+					{ value: 'starts_with', label: window.aieData.i18n.startsWith },
+					{ value: 'ends_with', label: window.aieData.i18n.endsWith },
+					{ value: 'greater', label: window.aieData.i18n.greaterThan },
+					{ value: 'less', label: window.aieData.i18n.lessThan },
+					{ value: 'equals_or_greater', label: window.aieData.i18n.greaterOrEqual },
+					{ value: 'equals_or_less', label: window.aieData.i18n.lessOrEqual },
+					{ value: 'in', label: window.aieData.i18n.inComma || 'In (comma-separated)' },
+					{ value: 'not_in', label: window.aieData.i18n.notInComma || 'Not In (comma-separated)' },
+					{ value: 'is_empty', label: window.aieData.i18n.isEmpty },
+					{ value: 'is_not_empty', label: window.aieData.i18n.isNotEmpty },
+				];
 			default:
 				return stringConditions;
 		}
@@ -746,7 +976,7 @@ const ContentUpdater = {
 		}
 		
 		// Collect filters
-		const filters = this.collectFilters();
+		const collectedFilters = this.collectFilters();
 		
 		jQuery.ajax( {
 			url: aieData.ajaxUrl,
@@ -755,7 +985,8 @@ const ContentUpdater = {
 				action: 'aie_updater_get_count',
 				nonce: aieData.nonce,
 				content_type: contentType,
-				filters: JSON.stringify( filters ),
+				filters: JSON.stringify( collectedFilters.filters ),
+				taxonomy: JSON.stringify( collectedFilters.taxonomy ),
 				options: this.buildRequestOptions( contentType )
 			},
 			success: ( response ) => {
@@ -767,6 +998,8 @@ const ContentUpdater = {
 				} else {
 					$countValue.text( window.aieData.i18n.error );
 				}
+				// Update Step 2 Next button state for types that require filters
+				this.updateStep2NextButton();
 			},
 			error: () => {
 				$spinner.removeClass( 'is-active' );
@@ -777,16 +1010,70 @@ const ContentUpdater = {
 
 	/**
 	 * Collect filters from UI
+	 *
+	 * @return {{ filters: Array, taxonomy: Array }}
 	 */
 	collectFilters() {
 		const filters = [];
+		const taxonomyFilters = [];
 		
 		jQuery( '.aie-filter-row' ).each( function() {
 			const $row = jQuery( this );
-			const field = $row.find( '.aie-updater-filter-field' ).val();
+			const $fieldSelect = $row.find( '.aie-updater-filter-field' );
+			let field = $fieldSelect.val();
+			const fieldType = $fieldSelect.find( 'option:selected' ).data( 'type' );
+
+			// Handle post_type_selector type — map _post_type → post_type filter
+			if ( fieldType === 'post_type_selector' ) {
+				const value = ( $row.find( '.aie-updater-filter-value' ).val() || '' ).trim();
+				if ( value ) {
+					filters.push( { field: 'post_type', condition: 'equals', value } );
+				}
+				return;
+			}
+
+			// Handle taxonomy_selector type — map _taxonomy → taxonomy filter
+			if ( fieldType === 'taxonomy_selector' ) {
+				const value = ( $row.find( '.aie-updater-filter-value' ).val() || '' ).trim();
+				if ( value ) {
+					filters.push( { field: 'taxonomy', condition: 'equals', value } );
+				}
+				return;
+			}
+
+			// Handle taxonomy_filter type — collect into taxonomy array
+			if ( fieldType === 'taxonomy_filter' ) {
+				const taxonomy = ( $row.find( '.aie-taxonomy-name' ).val() || '' ).trim();
+				const condition = $row.find( '.aie-taxonomy-condition' ).val();
+				const terms = ( $row.find( '.aie-taxonomy-terms' ).val() || '' ).trim();
+
+				if ( taxonomy && condition && terms ) {
+					taxonomyFilters.push( { taxonomy, condition, terms } );
+				}
+				return; // skip regular filter processing
+			}
+
 			const condition = $row.find( '.aie-updater-filter-condition' ).val();
-			const value = $row.find( '.aie-updater-filter-value' ).val();
-			
+			let value = $row.find( '.aie-updater-filter-value' ).val();
+
+			// When the "Custom Field / Meta" placeholder is selected, use the
+			// actual meta key that the user typed into the extra input.
+			if ( field === '_custom_field' ) {
+				field = ( $row.find( '.aie-updater-custom-meta-key' ).val() || '' ).trim();
+				if ( ! field ) {
+					return; // Skip this row — no meta key entered yet
+				}
+			}
+
+			// Normalize date values to YYYY-MM-DD so the backend SQL comparison works
+			// regardless of the locale format the datepicker uses (e.g. 03/27/2026 → 2026-03-27)
+			if ( ( fieldType === 'date' || fieldType === 'datetime' ) && value ) {
+				const parsed = new Date( value );
+				if ( ! isNaN( parsed.getTime() ) ) {
+					value = parsed.toISOString().slice( 0, 10 );
+				}
+			}
+
 			if ( field && condition ) {
 				filters.push( {
 					field: field,
@@ -796,7 +1083,7 @@ const ContentUpdater = {
 			}
 		} );
 		
-		return filters;
+		return { filters, taxonomy: taxonomyFilters };
 	},
 
 	/**
@@ -1273,13 +1560,23 @@ const ContentUpdater = {
 	},
 
 	/**
-	 * Setup drag and drop handlers for field items
+	 * Setup drag and drop handlers for field items.
+	 *
+	 * Uses event delegation on the library container so that items added
+	 * asynchronously (ACF, Yoast, custom fields loaded via AJAX after the
+	 * initial render) are automatically covered without needing to re-bind.
 	 */
 	setupFieldsDragAndDrop() {
-		const $items = jQuery( '.aie-field-item' );
+		const $library = jQuery( '#aie-updater-fields-library' );
 		const $dropzone = jQuery( '#aie-updater-dropzone' );
 
-		$items.on( 'dragstart', ( e ) => {
+		// Remove any previously-attached delegated handlers to avoid duplicates
+		// when the library is rebuilt (e.g. content-type change).
+		$library.off( 'dragstart.aie-dnd click.aie-dnd' );
+
+		// Delegated dragstart — fires for every .aie-field-item inside the library,
+		// including ones added later by renderACFFields / renderYoastFields / renderCustomFields.
+		$library.on( 'dragstart.aie-dnd', '.aie-field-item', ( e ) => {
 			const $item = jQuery( e.currentTarget );
 			const field = $item.data( 'field' );
 			const type = $item.data( 'type' ) || 'text';
@@ -1288,21 +1585,25 @@ const ContentUpdater = {
 			e.originalEvent.dataTransfer.setData( 'type', type );
 		} );
 
-		$items.on( 'click', ( e ) => {
+		// Delegated click — click-to-add also works for dynamic items.
+		$library.on( 'click.aie-dnd', '.aie-field-item', ( e ) => {
 			const $item = jQuery( e.currentTarget );
 			this.addField( $item.data( 'field' ), $item.find( '.aie-field-label' ).text(), $item.data( 'type' ) || 'text' );
 		} );
 
-		$dropzone.on( 'dragover', ( e ) => {
+		// Dropzone handlers — also remove before re-adding to prevent duplicate fires.
+		$dropzone.off( 'dragover.aie-dnd dragleave.aie-dnd drop.aie-dnd' );
+
+		$dropzone.on( 'dragover.aie-dnd', ( e ) => {
 			e.preventDefault();
 			$dropzone.addClass( 'aie-drag-over' );
 		} );
 
-		$dropzone.on( 'dragleave', () => {
+		$dropzone.on( 'dragleave.aie-dnd', () => {
 			$dropzone.removeClass( 'aie-drag-over' );
 		} );
 
-		$dropzone.on( 'drop', ( e ) => {
+		$dropzone.on( 'drop.aie-dnd', ( e ) => {
 			e.preventDefault();
 			$dropzone.removeClass( 'aie-drag-over' );
 
@@ -1940,6 +2241,7 @@ const ContentUpdater = {
 
 		// Include filters in the count request
 		const filters = this.selectedFilters || [];
+		const taxonomy = this.selectedTaxonomyFilters || [];
 
 		jQuery.ajax( {
 			url: aieData.ajaxUrl,
@@ -1949,6 +2251,7 @@ const ContentUpdater = {
 				nonce: aieData.nonce,
 				content_type: contentType,
 				filters: JSON.stringify( filters ),
+				taxonomy: JSON.stringify( taxonomy ),
 				options: this.buildRequestOptions( contentType )
 			},
 			success: ( response ) => {
@@ -2022,6 +2325,7 @@ const ContentUpdater = {
 				fields: JSON.stringify( this.selectedFields ),
 				field_functions: JSON.stringify( fieldFunctionsArray ),
 				filters: JSON.stringify( this.selectedFilters || [] ),
+				taxonomy: JSON.stringify( this.selectedTaxonomyFilters || [] ),
 				options: JSON.stringify( options )
 			},
 			success: ( response ) => {

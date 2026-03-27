@@ -32,6 +32,13 @@ class Update_Processor {
 	protected $function_executor;
 
 	/**
+	 * Current job options (used by save helpers that need e.g. table_name)
+	 *
+	 * @var array
+	 */
+	protected $current_options = [];
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -84,6 +91,9 @@ class Update_Processor {
 			$options         = $parameters['options'] ?? [];
 			$fields          = $parameters['fields'] ?? [];
 			$field_functions = $parameters['field_functions'] ?? [];
+
+			// Store for use by save helpers (e.g. table_name for database_table)
+			$this->current_options = $options;
 
 			// Get batch size
 			$batch_size = isset( $options['items_per_iteration'] ) ? (int) $options['items_per_iteration'] : 10;
@@ -229,8 +239,13 @@ class Update_Processor {
 				$has_functions = false;
 				$item_id       = $this->get_item_id( $item, $content_type );
 
-				// Skip items without valid ID
-				if ( empty( $item_id ) || $item_id <= 0 ) {
+				// Skip items without valid ID.
+				// For database_table the PK can be any non-empty scalar (string UUIDs, etc.).
+				$id_is_empty = ( 'database_table' === $content_type )
+					? ( $item_id === null || $item_id === '' || $item_id === false )
+					: ( empty( $item_id ) || $item_id <= 0 );
+
+				if ( $id_is_empty ) {
 					++$stats['skipped'];
 					continue;
 				}
@@ -352,8 +367,9 @@ class Update_Processor {
 				return isset( $item['term_id'] ) ? $item['term_id'] : 0;
 
 			case 'database_table':
-				// For database tables, use first column value as ID
-				return reset( $item );
+				// The primary-key column is always injected as the first key by
+				// Database_Table_Exporter::process_item when force_include_id = true.
+				return ! empty( $item ) ? reset( $item ) : 0;
 
 			default:
 				return isset( $item['ID'] ) ? $item['ID'] : 0;
@@ -379,8 +395,10 @@ class Update_Processor {
 				case 'menu':
 				case 'woo_product':
 				case 'woo_order':
-				case 'woo_coupon':
 					return $this->save_post_item( $item_id, $item, $fields );
+
+				case 'woo_coupon':
+					return $this->save_coupon_item( $item_id, $item, $fields );
 
 				case 'user':
 					return $this->save_user_item( $item_id, $item, $fields );
@@ -474,9 +492,140 @@ class Update_Processor {
 			clean_post_cache( $post_id );
 		}
 
-		// Update meta fields
+		// Update meta fields (strip acf_/meta_ prefixes added by the field library)
 		foreach ( $meta_data as $meta_key => $meta_value ) {
-			update_post_meta( $post_id, $meta_key, $meta_value );
+			$resolved = $this->resolve_meta_key( $meta_key );
+			$real_key = $resolved['key'];
+			if ( $resolved['is_acf'] && function_exists( 'update_field' ) ) {
+				update_field( $real_key, $meta_value, $post_id );
+			} else {
+				update_post_meta( $post_id, $real_key, $meta_value );
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Save WooCommerce coupon item using WC_Coupon API
+	 *
+	 * @param int   $coupon_id Coupon ID
+	 * @param array $item      Item data
+	 * @param array $fields    Fields to update
+	 * @return true|\WP_Error
+	 */
+	private function save_coupon_item( $coupon_id, $item, $fields ) {
+		if ( empty( $coupon_id ) || ! is_numeric( $coupon_id ) || $coupon_id <= 0 ) {
+			return new \WP_Error( 'invalid_coupon_id', sprintf( 'Invalid coupon ID: %s', $coupon_id ) );
+		}
+
+		if ( ! class_exists( 'WC_Coupon' ) ) {
+			// Fallback to generic post saving if WooCommerce is not active
+			return $this->save_post_item( $coupon_id, $item, $fields );
+		}
+
+		$coupon = new \WC_Coupon( $coupon_id );
+		if ( ! $coupon->get_id() ) {
+			return new \WP_Error( 'coupon_not_found', sprintf( 'Coupon #%d does not exist', $coupon_id ) );
+		}
+
+		// Map field names to WC_Coupon setter methods
+		$setter_map = [
+			'post_title'                  => 'set_code',
+			'post_excerpt'                => 'set_description',
+			'post_status'                 => 'set_status',
+			'coupon_amount'               => 'set_amount',
+			'discount_type'               => 'set_discount_type',
+			'date_expires'                => 'set_date_expires',
+			'usage_count'                 => 'set_usage_count',
+			'usage_limit'                 => 'set_usage_limit',
+			'usage_limit_per_user'        => 'set_usage_limit_per_user',
+			'limit_usage_to_x_items'      => 'set_limit_usage_to_x_items',
+			'individual_use'              => 'set_individual_use',
+			'product_ids'                 => 'set_product_ids',
+			'excluded_product_ids'        => 'set_excluded_product_ids',
+			'product_categories'          => 'set_product_categories',
+			'excluded_product_categories' => 'set_excluded_product_categories',
+			'free_shipping'               => 'set_free_shipping',
+			'exclude_sale_items'          => 'set_exclude_sale_items',
+			'minimum_amount'              => 'set_minimum_amount',
+			'maximum_amount'              => 'set_maximum_amount',
+			'allowed_emails'              => 'set_email_restrictions',
+		];
+
+		// Boolean fields — exported as '0'/'1', WC stores as 'yes'/'no'
+		$boolean_fields = [ 'individual_use', 'free_shipping', 'exclude_sale_items' ];
+
+		// Array fields — exported as JSON strings, must be decoded to PHP array
+		$array_fields = [
+			'product_ids',
+			'excluded_product_ids',
+			'product_categories',
+			'excluded_product_categories',
+			'allowed_emails',
+		];
+
+		// Collect post-level fields that WC_Coupon doesn't expose as setters
+		$post_data = [];
+
+		foreach ( $fields as $field ) {
+			if ( ! array_key_exists( $field, $item ) ) {
+				continue;
+			}
+
+			$value = $item[ $field ];
+
+			// post_date / post_modified must be updated directly on the posts table
+			if ( in_array( $field, [ 'post_date', 'post_modified' ], true ) ) {
+				$post_data[ $field ] = $value;
+				continue;
+			}
+
+			if ( ! isset( $setter_map[ $field ] ) ) {
+				// Unknown / custom field — store as post meta
+				update_post_meta( $coupon_id, $field, $value );
+				continue;
+			}
+
+			$method = $setter_map[ $field ];
+
+			// Convert boolean fields: '0'/'1' / true/false → 'yes'/'no'
+			if ( in_array( $field, $boolean_fields, true ) ) {
+				$value = ( 'yes' === $value || '1' === $value || true === $value ) ? 'yes' : 'no';
+			}
+
+			// Convert array fields: JSON string → PHP array
+			if ( in_array( $field, $array_fields, true ) ) {
+				if ( is_string( $value ) ) {
+					$decoded = json_decode( $value, true );
+					if ( is_array( $decoded ) ) {
+						$value = $decoded;
+					} else {
+						// Fallback: treat as comma-separated
+						$value = array_values( array_filter( array_map( 'trim', explode( ',', $value ) ) ) );
+					}
+				}
+			}
+
+			if ( method_exists( $coupon, $method ) ) {
+				$coupon->$method( $value );
+			}
+		}
+
+		// Persist via WooCommerce data layer (writes correct _meta keys, clears cache)
+		$coupon->save();
+
+		// Update post_date / post_modified directly if needed
+		if ( ! empty( $post_data ) ) {
+			global $wpdb;
+			$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+				$wpdb->posts,
+				$post_data,
+				[ 'ID' => $coupon_id ],
+				null,
+				[ '%d' ]
+			);
+			clean_post_cache( $coupon_id );
 		}
 
 		return true;
@@ -531,9 +680,10 @@ class Update_Processor {
 			}
 		}
 
-		// Update meta fields
+		// Update meta fields (strip acf_/meta_ prefixes added by the field library)
 		foreach ( $meta_data as $meta_key => $meta_value ) {
-			update_user_meta( $user_id, $meta_key, $meta_value );
+			$resolved = $this->resolve_meta_key( $meta_key );
+			update_user_meta( $user_id, $resolved['key'], $meta_value );
 		}
 
 		return true;
@@ -588,9 +738,10 @@ class Update_Processor {
 			}
 		}
 
-		// Update meta fields
+		// Update meta fields (strip acf_/meta_ prefixes added by the field library)
 		foreach ( $meta_data as $meta_key => $meta_value ) {
-			update_comment_meta( $comment_id, $meta_key, $meta_value );
+			$resolved = $this->resolve_meta_key( $meta_key );
+			update_comment_meta( $comment_id, $resolved['key'], $meta_value );
 		}
 
 		return true;
@@ -647,33 +798,107 @@ class Update_Processor {
 			}
 		}
 
-		// Update meta fields
+		// Update meta fields (strip acf_/meta_ prefixes added by the field library)
 		foreach ( $meta_data as $meta_key => $meta_value ) {
-			update_term_meta( $term_id, $meta_key, $meta_value );
+			$resolved = $this->resolve_meta_key( $meta_key );
+			update_term_meta( $term_id, $resolved['key'], $meta_value );
 		}
 
 		return true;
 	}
 
 	/**
+	 * Resolve the real meta key from a possibly-prefixed field name.
+	 *
+	 * Field names in the Content Updater carry prefixes that identify their
+	 * origin (e.g. 'acf_dadada', 'meta_some_key'). These prefixes must be
+	 * stripped before writing back to the database.
+	 *
+	 * @param string $field Prefixed field name.
+	 * @return array { key: string, is_acf: bool }
+	 */
+	private function resolve_meta_key( $field ) {
+		if ( strpos( $field, 'acf_' ) === 0 ) {
+			return [ 'key' => substr( $field, 4 ), 'is_acf' => true ];
+		}
+		if ( strpos( $field, 'meta_' ) === 0 ) {
+			return [ 'key' => substr( $field, 5 ), 'is_acf' => false ];
+		}
+		return [ 'key' => $field, 'is_acf' => false ];
+	}
+
+	/**
 	 * Save database table item
 	 *
 	 * @param mixed $item_id Item ID (primary key value)
-	 * @param array $item    Item data
-	 * @param array $fields  Fields to update
+	 * @param array $item    Item data — first key is always the PK column
+	 * @param array $fields  Fields selected by the user (to update)
 	 * @return true|\WP_Error
 	 */
 	private function save_database_item( $item_id, $item, $fields ) {
 		global $wpdb;
 
-		// Note: For database tables, we need the table name and primary key
-		// These should be passed in the item data or stored in job parameters
-		// For now, we'll skip direct database updates as they're more complex
-		// and require knowing the table structure
+		$table_name = $this->current_options['table_name'] ?? '';
+		if ( empty( $table_name ) ) {
+			return new \WP_Error(
+				'missing_table_name',
+				__( 'Table name is required for database table updates', 'wp-advanced-import-export' )
+			);
+		}
 
-		return new \WP_Error(
-			'not_implemented',
-			__( 'Direct database table updates are not yet supported', 'wp-advanced-import-export' )
+		$table_name = sanitize_text_field( $table_name );
+
+		// The first key in $item is always the primary-key column (injected by
+		// Database_Table_Exporter::process_item when force_include_id is set).
+		$pk_column = array_key_first( $item );
+		if ( empty( $pk_column ) ) {
+			return new \WP_Error(
+				'no_pk_column',
+				__( 'Could not determine primary key column for table update', 'wp-advanced-import-export' )
+			);
+		}
+
+		// Build SET data from the user-selected fields (skip the PK column)
+		$update_data   = [];
+		$update_format = [];
+		foreach ( $fields as $field ) {
+			if ( $field === $pk_column ) {
+				continue; // Never overwrite the primary key
+			}
+			if ( array_key_exists( $field, $item ) ) {
+				$update_data[ $field ] = $item[ $field ];
+				$update_format[]       = '%s';
+			}
+		}
+
+		if ( empty( $update_data ) ) {
+			return new \WP_Error(
+				'no_fields_to_update',
+				__( 'No updatable fields found in item', 'wp-advanced-import-export' )
+			);
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->update(
+			$table_name,
+			$update_data,
+			[ $pk_column => $item_id ],
+			$update_format,
+			[ '%s' ]
 		);
+
+		if ( false === $result ) {
+			return new \WP_Error(
+				'db_update_error',
+				sprintf(
+					/* translators: 1: table name, 2: database error */
+					__( 'Failed to update row in table %1$s: %2$s', 'wp-advanced-import-export' ),
+					$table_name,
+					$wpdb->last_error
+				)
+			);
+		}
+
+		return true;
 	}
 }
