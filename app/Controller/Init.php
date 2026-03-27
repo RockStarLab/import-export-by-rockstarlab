@@ -122,6 +122,9 @@ class Init {
 
 		// Show 5-star review request notice (plugin pages only, after 1 week)
 		\WP_AIE\Helper\Review_Notice::init();
+
+		// Fix attachment URLs for "keep in current directory" mode files outside uploads.
+		add_filter( 'wp_get_attachment_url', array( $this, 'fix_keep_mode_attachment_url' ), 10, 2 );
 	}
 
 	/**
@@ -1186,5 +1189,23 @@ class Init {
 				exit;
 			}
 		}
+	}
+
+	/**
+	 * Filter wp_get_attachment_url to return the correct URL for attachments
+	 * imported with "keep in current directory" mode where the file lives outside
+	 * the uploads directory. WordPress would otherwise prepend the uploads base URL
+	 * to the stored absolute path, producing double-slashes and a wrong URL.
+	 *
+	 * @param string $url     Current attachment URL.
+	 * @param int    $post_id Attachment post ID.
+	 * @return string Correct URL.
+	 */
+	public function fix_keep_mode_attachment_url( $url, $post_id ) {
+		$custom_url = get_post_meta( $post_id, 'aie_file_url', true );
+		if ( ! empty( $custom_url ) ) {
+			return $custom_url;
+		}
+		return $url;
 	}
 }

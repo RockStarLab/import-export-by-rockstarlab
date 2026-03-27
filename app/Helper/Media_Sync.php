@@ -359,6 +359,24 @@ class Media_Sync {
 				}
 				return $attach_id;
 			}
+
+			// Fix URL for "keep" mode: if the file lives outside the uploads directory,
+			// WordPress incorrectly prepends the uploads base URL to the absolute path,
+			// producing double-slashes and a wrong URL. Store the correct URL as meta so
+			// the wp_get_attachment_url filter in Init.php can return it instead.
+			if ( 'keep' === $file_operation ) {
+				$uploads_check = wp_upload_dir();
+				$uploads_base  = trailingslashit( $uploads_check['basedir'] );
+				if ( 0 !== strpos( $dest_path, $uploads_base ) ) {
+					// File is outside uploads dir — derive URL relative to ABSPATH.
+					$abspath = trailingslashit( ABSPATH );
+					if ( 0 === strpos( $dest_path, $abspath ) ) {
+						$relative    = substr( $dest_path, strlen( $abspath ) );
+						$correct_url = trailingslashit( site_url() ) . $relative;
+						update_post_meta( $attach_id, 'aie_file_url', $correct_url );
+					}
+				}
+			}
 		}
 
 		// Generate metadata (thumbnails) if requested.
@@ -383,7 +401,8 @@ class Media_Sync {
 		update_post_meta( $attach_id, 'aie_original_path', $file_path );
 
 		// Assign to Real Media Library folder if requested.
-		if ( ! empty( $options['rml_integration'] ) && ! empty( $options['rml_folder_structure'] ) ) {
+		// Use filter_var to handle the string "false" that jQuery AJAX serializes from a boolean false.
+		if ( filter_var( $options['rml_integration'] ?? false, FILTER_VALIDATE_BOOLEAN ) && ! empty( $options['rml_folder_structure'] ) ) {
 			self::assign_to_rml_folder( $attach_id, $file_path, $options );
 		}
 
@@ -412,23 +431,29 @@ class Media_Sync {
 		$uploads      = wp_upload_dir();
 		$uploads_root = trailingslashit( $uploads['basedir'] );
 
-		// Determine which path to use for RML structure:
-		// - If file_operation = 'keep', use original file_path (e.g., /uploads/ftp/ddd/file.jpg)
-		// - If file_operation = 'copy' or 'move', file is now in /uploads/YYYY/MM/ftp/ddd/file.jpg
-		// But we still want RML structure based on ORIGINAL location (ftp -> ddd)
-
-		// Use original file location to determine RML structure
+		// Use original file location to determine RML structure.
 		$file_dir = dirname( $file_path );
 
-		// Calculate relative path from uploads root
+		// Strategy 1: compute relative path from the uploads root (files already inside uploads).
 		$relative_dir = '';
 		if ( 0 === strpos( $file_dir, $uploads_root ) ) {
 			$relative_dir = substr( $file_dir, strlen( $uploads_root ) );
 			$relative_dir = trim( $relative_dir, '/' );
 		}
 
+		// Strategy 2: if file is outside uploads (e.g. "keep" mode with an external directory),
+		// compute the relative path from the base_folder the user selected instead.
+		// Example: base=/home/.../imgs, file=/home/.../imgs/222/333/file.jpg → relative=222/333
+		if ( ( empty( $relative_dir ) || '.' === $relative_dir ) && ! empty( $base_folder ) ) {
+			$base_folder_slash = trailingslashit( $base_folder );
+			if ( 0 === strpos( trailingslashit( $file_dir ), $base_folder_slash ) ) {
+				$relative_dir = substr( $file_dir, strlen( $base_folder_slash ) );
+				$relative_dir = trim( $relative_dir, '/' );
+			}
+		}
+
 		if ( empty( $relative_dir ) || '.' === $relative_dir ) {
-			return; // No subfolder - file is in uploads root.
+			return; // No subfolder - file is directly in root/base folder.
 		}
 
 		// Create RML folder hierarchy from uploads root.
