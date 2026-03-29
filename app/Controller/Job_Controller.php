@@ -73,6 +73,10 @@ class Job_Controller extends Base_Controller {
 
 			// Can retry: any job
 			$job->can_retry = true;
+
+			// Aliases for JS layer (DB uses imported_items / error_items)
+			$job->success_items = (int) ( $job->imported_items ?? 0 );
+			$job->failed_items  = (int) ( $job->error_items ?? 0 );
 		}
 
 		// Get total count
@@ -114,6 +118,10 @@ class Job_Controller extends Base_Controller {
 		// Parse parameters and result
 		$job_data->parameters = json_decode( $job_data->parameters, true );
 		$job_data->result     = json_decode( $job_data->result, true );
+
+		// Aliases for JS layer (DB uses imported_items / error_items)
+		$job_data->success_items = (int) ( $job_data->imported_items ?? 0 );
+		$job_data->failed_items  = (int) ( $job_data->error_items ?? 0 );
 
 		$this->send_success( $job_data );
 	}
