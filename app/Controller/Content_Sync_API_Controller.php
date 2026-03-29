@@ -397,6 +397,18 @@ class Content_Sync_API_Controller {
 
 			// Import terms with ACF fields
 			if ( ! empty( $post_data['terms'] ) ) {
+				// Build a map of source_term_id → local_term_id so we can fix
+				// ACF taxonomy fields in meta that still hold source-site IDs.
+				$term_id_map = array();
+
+				// Clear ALL existing term assignments for every taxonomy the source
+				// sent (including empty ones) so stale remote terms are removed.
+				foreach ( array_keys( $post_data['terms'] ) as $taxonomy_to_clear ) {
+					if ( taxonomy_exists( $taxonomy_to_clear ) ) {
+						wp_set_object_terms( $post_id, array(), $taxonomy_to_clear );
+					}
+				}
+
 				foreach ( $post_data['terms'] as $taxonomy => $terms_info ) {
 					// Check if taxonomy exists
 					if ( ! taxonomy_exists( $taxonomy ) ) {
@@ -405,17 +417,30 @@ class Content_Sync_API_Controller {
 
 					$term_ids = array();
 					foreach ( $terms_info as $term_info ) {
-						// Get or create term
-						$term = term_exists( $term_info['slug'], $taxonomy );
-						if ( ! $term ) {
-							$term = wp_insert_term( $term_info['name'], $taxonomy, array( 'slug' => $term_info['slug'] ) );
-							if ( is_wp_error( $term ) ) {
-								continue;
-							}
+						// Validate term info
+						if ( empty( $term_info['name'] ) || empty( $term_info['slug'] ) ) {
+							continue;
 						}
 
-						$term_id = is_array( $term ) ? $term['term_id'] : $term;
-						$term_ids[] = $term_id;
+						// Find by slug and update name, or create if not found.
+						$existing_term = get_term_by( 'slug', $term_info['slug'], $taxonomy );
+						if ( $existing_term ) {
+							wp_update_term( $existing_term->term_id, $taxonomy, array( 'name' => $term_info['name'] ) );
+							$term_id = $existing_term->term_id;
+						} else {
+							$new_term = wp_insert_term( $term_info['name'], $taxonomy, array( 'slug' => $term_info['slug'] ) );
+							if ( is_wp_error( $new_term ) ) {
+								continue;
+							}
+							$term_id = $new_term['term_id'];
+						}
+
+						$term_ids[] = (int) $term_id;
+
+						// Record source → local term ID mapping.
+						if ( ! empty( $term_info['term_id'] ) ) {
+							$term_id_map[ (int) $term_info['term_id'] ] = (int) $term_id;
+						}
 
 						// Import ACF fields for this term
 						if ( ! empty( $term_info['acf'] ) && function_exists( 'update_field' ) ) {
@@ -435,6 +460,15 @@ class Content_Sync_API_Controller {
 
 					// Assign terms to post
 					wp_set_object_terms( $post_id, $term_ids, $taxonomy );
+				}
+
+				// Re-save ACF taxonomy fields with correct local term IDs.
+				if ( ! empty( $term_id_map ) && ! empty( $post_data['meta'] ) ) {
+					\WP_AIE\Helper\Content_Sync_Replacer::translate_acf_taxonomy_fields_in_meta(
+						$post_data['meta'],
+						$post_id,
+						$term_id_map
+					);
 				}
 			}
 		}
@@ -775,6 +809,57 @@ class Content_Sync_API_Controller {
 								}
 							}
 						}
+					}
+				}
+			}
+
+			// Augment $terms_data with terms referenced inside ACF taxonomy fields.
+			// ACF's "save_terms" option defaults to disabled, meaning term IDs are stored
+			// only in post_meta and never appear in wp_term_relationships / wp_get_post_terms.
+			if ( function_exists( 'acf_get_field' ) ) {
+				foreach ( $prepared_meta as $meta_key => $meta_value ) {
+					if ( strpos( $meta_key, '_' ) === 0 ) {
+						continue;
+					}
+					$field_ref_key = '_' . $meta_key;
+					if ( ! isset( $prepared_meta[ $field_ref_key ] ) ) {
+						continue;
+					}
+					$field_ref = $prepared_meta[ $field_ref_key ];
+					if ( ! is_string( $field_ref ) || strpos( $field_ref, 'field_' ) !== 0 ) {
+						continue;
+					}
+					$field_obj = acf_get_field( $field_ref );
+					if ( ! $field_obj || ! isset( $field_obj['type'] ) || $field_obj['type'] !== 'taxonomy' ) {
+						continue;
+					}
+					$acf_taxonomy = isset( $field_obj['taxonomy'] ) ? $field_obj['taxonomy'] : '';
+					if ( ! $acf_taxonomy || ! taxonomy_exists( $acf_taxonomy ) ) {
+						continue;
+					}
+					$raw_ids = is_array( $meta_value ) ? $meta_value : array( $meta_value );
+					if ( ! isset( $terms_data[ $acf_taxonomy ] ) ) {
+						$terms_data[ $acf_taxonomy ] = array();
+					}
+					$known_ids = array_column( $terms_data[ $acf_taxonomy ], 'term_id' );
+					foreach ( $raw_ids as $raw_id ) {
+						if ( ! is_numeric( $raw_id ) || (int) $raw_id <= 0 ) {
+							continue;
+						}
+						$raw_id = (int) $raw_id;
+						if ( in_array( $raw_id, $known_ids, true ) ) {
+							continue;
+						}
+						$term = get_term( $raw_id, $acf_taxonomy );
+						if ( ! $term || is_wp_error( $term ) ) {
+							continue;
+						}
+						$terms_data[ $acf_taxonomy ][] = array(
+							'term_id' => $term->term_id,
+							'name'    => $term->name,
+							'slug'    => $term->slug,
+						);
+						$known_ids[] = $raw_id;
 					}
 				}
 			}
