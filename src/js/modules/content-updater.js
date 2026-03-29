@@ -1119,9 +1119,13 @@ const ContentUpdater = {
 		if ( postType ) {
 			// Skip taxonomies for Content Updater
 			// this.loadTaxonomies( postType );
-			this.loadCustomFields( postType );
-			this.checkAndLoadACF( postType );
-			if ( contentType !== 'user' ) {
+			if ( contentType !== 'media' ) {
+				this.loadCustomFields( postType );
+			}
+			if ( contentType !== 'media' ) {
+				this.checkAndLoadACF( postType );
+			}
+			if ( contentType !== 'user' && contentType !== 'media' ) {
 				this.checkAndLoadYoast( postType );
 			}
 		}
@@ -1396,8 +1400,13 @@ const ContentUpdater = {
 	 * @return {string|null}
 	 */
 	getPostTypeForDynamicFields( contentType ) {
-		if ( contentType === 'post' || contentType === 'page' || contentType === 'custom_post_types' ) {
-			return contentType === 'custom_post_types' ? null : contentType;
+		if ( contentType === 'post' || contentType === 'page' ) {
+			return contentType;
+		}
+
+		if ( contentType === 'custom_post_types' ) {
+			const $ptSelector = jQuery( '.aie-post-type-selector' );
+			return $ptSelector.length ? ( $ptSelector.val() || null ) : null;
 		}
 
 		const typeMap = {

@@ -497,7 +497,11 @@ class Update_Processor {
 			$resolved = $this->resolve_meta_key( $meta_key );
 			$real_key = $resolved['key'];
 			if ( $resolved['is_acf'] && function_exists( 'update_field' ) ) {
+				// update_field returns false when ACF can't resolve the field by name
+				// (e.g. field group stored as PHP/JSON file, or value unchanged).
+				// Always fall back to update_post_meta to guarantee the raw meta is saved.
 				update_field( $real_key, $meta_value, $post_id );
+				update_post_meta( $post_id, $real_key, $meta_value );
 			} else {
 				update_post_meta( $post_id, $real_key, $meta_value );
 			}

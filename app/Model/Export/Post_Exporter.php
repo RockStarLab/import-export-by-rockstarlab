@@ -1457,9 +1457,9 @@ class Post_Exporter extends Abstract_Exporter {
 				$acf_value = get_field( $acf_field_name, $post->ID );
 			}
 			
-			// If get_field() returns false (field definition not found), 
+			// If get_field() returns false or null (field not found / ACF 6.x empty field),
 			// fall back to direct get_post_meta() and collect all related meta
-			if ( $acf_value === false ) {
+			if ( $acf_value === false || $acf_value === null ) {
 				$acf_value = get_post_meta( $post->ID, $acf_field_name, true );
 				
 				// Check if this is a repeater/component field (numeric value AND has sub-fields)
