@@ -581,10 +581,10 @@ import 'select2/dist/css/select2.min.css';
 						}
 
 						const results = response.data.posts || [];
-						const updateTemplate = aiePostSyncData?.i18n?.updatePost || '🔄 Update: %s (ID: %s)';
+						const updateTemplate = aiePostSyncData?.i18n?.updatePost || '🔄 Update: %1$s (ID: %2$s)';
 						const formattedResults = results.map(post => ({
 							id: post.ID,
-							text: updateTemplate.replace('%s', post.post_title).replace('%s', post.ID),
+							text: updateTemplate.replace('%1$s', post.post_title).replace('%2$s', post.ID),
 							title: post.post_title,
 							post_type: post.post_type,
 							post_date: post.post_date
@@ -713,8 +713,8 @@ import 'select2/dist/css/select2.min.css';
 									// Create new option if it doesn't exist
 									const optionExists = $select.find(`option[value="${post.ID}"]`).length > 0;
 									if (!optionExists) {
-										const updateTemplate = aiePostSyncData?.i18n?.updatePost || '🔄 Update: %s (ID: %s)';
-										const optionText = updateTemplate.replace('%s', post.post_title).replace('%s', post.ID);
+										const updateTemplate = aiePostSyncData?.i18n?.updatePost || '🔄 Update: %1$s (ID: %2$s)';
+										const optionText = updateTemplate.replace('%1$s', post.post_title).replace('%2$s', post.ID);
 										const newOption = new Option(
 											optionText,
 											post.ID,
