@@ -297,6 +297,31 @@ class Content_Sync_Media {
 			}
 		}
 
+		// Handle WYSIWYG field - extract images embedded in the HTML content
+		if ( 'wysiwyg' === $field['type'] && ! empty( $field['value'] ) && is_string( $field['value'] ) ) {
+			// Collect by wp-image-ID class
+			if ( preg_match_all( '/wp-image-(\d+)/i', $field['value'], $matches ) ) {
+				foreach ( $matches[1] as $image_id ) {
+					$image_data = self::prepare_image_data( (int) $image_id, 'acf_wysiwyg_' . $field['name'] );
+					if ( $image_data ) {
+						$images[] = $image_data;
+					}
+				}
+			}
+			// Also collect by src URL (covers cases without wp-image class)
+			if ( preg_match_all( '/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $field['value'], $url_matches ) ) {
+				foreach ( $url_matches[1] as $url ) {
+					$attachment_id = attachment_url_to_postid( $url );
+					if ( $attachment_id ) {
+						$image_data = self::prepare_image_data( $attachment_id, 'acf_wysiwyg_src_' . $field['name'] );
+						if ( $image_data ) {
+							$images[] = $image_data;
+						}
+					}
+				}
+			}
+		}
+
 		// Handle gallery field
 		if ( 'gallery' === $field['type'] && ! empty( $field['value'] ) && is_array( $field['value'] ) ) {
 			foreach ( $field['value'] as $image ) {
@@ -525,6 +550,62 @@ class Content_Sync_Media {
 		}
 
 		return $unique;
+	}
+
+	/**
+	 * Ensure all registered image sizes exist for an attachment.
+	 *
+	 * Checks each registered intermediate size against both the stored metadata
+	 * and the physical file on disk. If any are missing, regenerates all sizes
+	 * via wp_generate_attachment_metadata().
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @return void
+	 */
+	public static function ensure_image_sizes( $attachment_id ) {
+		$file_path = get_attached_file( $attachment_id );
+		if ( ! $file_path || ! file_exists( $file_path ) ) {
+			return;
+		}
+
+		// Only process rasterised images (skip SVG etc.)
+		$mime_type = get_post_mime_type( $attachment_id );
+		if ( ! $mime_type || 0 !== strpos( $mime_type, 'image/' ) ) {
+			return;
+		}
+		if ( in_array( $mime_type, array( 'image/svg+xml', 'image/svg' ), true ) ) {
+			return;
+		}
+
+		$meta             = wp_get_attachment_metadata( $attachment_id );
+		$registered_sizes = get_intermediate_image_sizes();
+		$needs_regen      = false;
+
+		if ( ! is_array( $meta ) || empty( $meta['file'] ) ) {
+			$needs_regen = true;
+		} else {
+			$upload_base = trailingslashit( dirname( $file_path ) );
+
+			foreach ( $registered_sizes as $size_name ) {
+				// Missing from metadata
+				if ( ! isset( $meta['sizes'][ $size_name ] ) ) {
+					$needs_regen = true;
+					break;
+				}
+				// File missing on disk
+				$size_file = $upload_base . $meta['sizes'][ $size_name ]['file'];
+				if ( ! file_exists( $size_file ) ) {
+					$needs_regen = true;
+					break;
+				}
+			}
+		}
+
+		if ( $needs_regen ) {
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+			$new_meta = wp_generate_attachment_metadata( $attachment_id, $file_path );
+			wp_update_attachment_metadata( $attachment_id, $new_meta );
+		}
 	}
 
 	/**

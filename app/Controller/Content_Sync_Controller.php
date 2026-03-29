@@ -891,6 +891,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 		$site_id   = $this->get_request_param( 'site_id', 0 );
 		$parent_id = $this->get_request_param( 'parent_id', 0 );
+		$post_type = $this->get_request_param( 'post_type', '' );
 
 		// Validate input
 		if ( empty( $site_id ) ) {
@@ -919,6 +920,7 @@ class Content_Sync_Controller extends Base_Controller {
 				'body'    => wp_json_encode(
 					array(
 						'parent_id' => $parent_id,
+						'post_type' => $post_type,
 					)
 				),
 			// translators: %s = content placeholder.
@@ -1688,6 +1690,7 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( ! empty( $image['file_hash'] ) ) {
 			$existing_id = $this->find_attachment_by_hash( $image['file_hash'] );
 			if ( $existing_id ) {
+				\WP_AIE\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
 				return $existing_id;
 			}
 		}
