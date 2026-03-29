@@ -155,6 +155,19 @@ class Content_Sync_Replacer {
 	}
 
 	/**
+	 * Public wrapper for replace_in_meta, used by receive_content on push path.
+	 *
+	 * @param array  $meta Post meta array.
+	 * @param string $source_domain Source domain.
+	 * @param string $target_domain Target domain.
+	 * @param array  $image_map Image ID mapping.
+	 * @return array Modified meta
+	 */
+	public static function replace_in_meta_public( $meta, $source_domain, $target_domain, $image_map = array() ) {
+		return self::replace_in_meta( $meta, $source_domain, $target_domain, $image_map );
+	}
+
+	/**
 	 * Replace domain in post meta
 	 *
 	 * @param array  $meta Post meta array.
@@ -181,7 +194,24 @@ class Content_Sync_Replacer {
 			// counts: during Pull, $image_map keys are remote attachment IDs which can be
 			// small numbers (1, 2, 3…) that accidentally match a repeater's row count value.
 			if ( ! empty( $image_map ) && is_numeric( $value ) && $value > 0 && isset( $image_map[ $value ] ) ) {
-				if ( self::is_acf_image_or_file_field( $key, $meta ) ) {
+				$confirmed_image = self::is_acf_image_or_file_field( $key, $meta );
+				if ( ! $confirmed_image ) {
+					// ACF couldn't confirm the field type (field group may not exist on this
+					// site). Fall back to verifying the MAPPED value is really an attachment.
+					// We still require the meta key to have an ACF field-key reference so we
+					// do not accidentally remap unrelated numeric meta like post_views_count.
+					$field_ref_key = '_' . $key;
+					$has_acf_ref   = isset( $meta[ $field_ref_key ] )
+						&& is_string( $meta[ $field_ref_key ] )
+						&& strpos( $meta[ $field_ref_key ], 'field_' ) === 0;
+					if ( $has_acf_ref ) {
+						$attachment = get_post( $image_map[ $value ] );
+						if ( $attachment && 'attachment' === $attachment->post_type ) {
+							$confirmed_image = true;
+						}
+					}
+				}
+				if ( $confirmed_image ) {
 					$attachment = get_post( $image_map[ $value ] );
 					if ( $attachment && 'attachment' === $attachment->post_type ) {
 						$value = $image_map[ $value ];
@@ -201,6 +231,85 @@ class Content_Sync_Replacer {
 					}
 				} else {
 					$value = self::replace_in_text( $value, $source_domain, $target_domain );
+					// Replace wp-image-X attachment IDs and src URLs in HTML values (e.g. ACF WYSIWYG).
+					//
+					// Strategy: match <img> tags by their wp-image-{new_id} class (set in step 1
+					// below), then look up the correct local URL by matching the WxH dimensions
+					// extracted from the current src against the local attachment metadata sizes.
+					//
+					// We deliberately do NOT match by filename because WordPress may rename the
+					// file when it re-scales an already-scaled image on import (e.g. remote has
+					// "image-scaled.jpg" which locally becomes "image-scaled-1.jpg"), so the
+					// basenames between remote and local can differ completely.
+					if ( ! empty( $image_map ) && false !== strpos( $value, '<img' ) ) {
+						foreach ( $image_map as $old_id => $new_id ) {
+							// Step 1: Replace wp-image-{old_id} class reference.
+							$value = preg_replace( '/\bwp-image-' . $old_id . '\b/', 'wp-image-' . $new_id, $value );
+
+							$new_url = wp_get_attachment_url( $new_id );
+							if ( ! $new_url ) {
+								continue;
+							}
+
+							// Build a "WxH" → local URL map from the local attachment metadata.
+							// NOTE: must NOT use $meta here — that variable is the outer function
+							// parameter (post meta array) being iterated; shadowing it would
+							// corrupt the loop and cause replace_in_meta to return garbage.
+							$size_dim_map = array();
+							$att_meta     = wp_get_attachment_metadata( $new_id );
+							if ( is_array( $att_meta ) && ! empty( $att_meta['sizes'] ) && ! empty( $att_meta['file'] ) ) {
+								$upload_dir = wp_upload_dir();
+								$dir_prefix = trailingslashit( $upload_dir['baseurl'] )
+									. ltrim( dirname( $att_meta['file'] ), '/' ) . '/';
+								foreach ( $att_meta['sizes'] as $size_data ) {
+									if ( ! empty( $size_data['file'] )
+										&& isset( $size_data['width'], $size_data['height'] ) ) {
+										$dim_key                  = $size_data['width'] . 'x' . $size_data['height'];
+										$size_dim_map[ $dim_key ] = $dir_prefix . $size_data['file'];
+									}
+								}
+							}
+
+							// Step 2: For every <img> whose class now contains wp-image-{new_id},
+							// replace its src with the correct local URL.
+							// We match by class (not by filename) so the replacement works even
+							// when local and remote filenames differ after WP re-scaling.
+							$value = preg_replace_callback(
+								'/<img\b[^>]*\bwp-image-' . $new_id . '\b[^>]*>/i',
+								function ( $img_match ) use ( $new_id, $new_url, $size_dim_map ) {
+									$img_tag = $img_match[0];
+
+									// Extract current src attribute.
+									if ( ! preg_match( '/\bsrc=(["\'])([^"\']+)\1/i', $img_tag, $src_m ) ) {
+										return $img_tag;
+									}
+									$quote   = $src_m[1];
+									$src     = $src_m[2];
+
+									// Determine which local URL to use.
+									// Try to extract WxH dimensions from the src filename
+									// (e.g. "image-200x300.jpg" → "200x300") and look up the
+									// corresponding local size. Fall back to full-size URL.
+									$local_url = $new_url;
+									$basename  = basename( wp_parse_url( $src, PHP_URL_PATH ) );
+									if ( preg_match( '/-(\d+x\d+)\.[^.]+$/i', $basename, $dim_m ) ) {
+										$dim_key = $dim_m[1];
+										if ( isset( $size_dim_map[ $dim_key ] ) ) {
+											$local_url = $size_dim_map[ $dim_key ];
+										}
+									}
+
+									// Replace src attribute value in the img tag.
+									return preg_replace(
+										'/\bsrc=(["\'])[^"\']+\1/i',
+										'src=' . $quote . $local_url . $quote,
+										$img_tag
+									);
+								},
+								$value
+							);
+						}
+					}
 				}
 			} elseif ( is_array( $value ) ) {
 				$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map, 0 );
@@ -256,29 +365,40 @@ class Content_Sync_Replacer {
 	 * @return array Modified array
 	 */
 	public static function replace_in_array( $array, $source_domain, $target_domain, $image_map = array(), $depth = 0 ) {
-		$indent = str_repeat( '  ', $depth );
-		
+		// Keys whose numeric values are definitely attachment IDs.
+		$attachment_id_keys = array( 'id', 'ID', 'attachment_id', 'image_id', 'media_id', 'image', 'thumbnail_id', 'file' );
+
+		// Detect if this looks like a flat gallery-style array: a sequential list where
+		// every element is a positive integer (e.g. ACF gallery stored as [123, 456, 789]).
+		// In that case ALL values are treated as potential attachment IDs.
+		$is_flat_id_list = ! empty( $image_map ) && ! empty( $array ) && array_keys( $array ) === range( 0, count( $array ) - 1 );
+		if ( $is_flat_id_list ) {
+			foreach ( $array as $v ) {
+				if ( ! is_int( $v ) && ! ( is_string( $v ) && ctype_digit( $v ) ) ) {
+					$is_flat_id_list = false;
+					break;
+				}
+			}
+		}
+
 		foreach ( $array as $key => &$value ) {
-			// Replace attachment IDs in common field names
-			if ( ! empty( $image_map ) && in_array( $key, array( 'id', 'ID', 'attachment_id', 'image_id', 'media_id', 'image', 'thumbnail_id', 'file' ), true ) ) {
-				if ( is_numeric( $value ) && isset( $image_map[ $value ] ) ) {
-					$value = $image_map[ $value ];
-					continue;
+			// Replace attachment IDs for well-known attachment-ID keys.
+			if ( ! empty( $image_map ) && in_array( $key, $attachment_id_keys, true ) ) {
+				if ( is_numeric( $value ) && isset( $image_map[ (int) $value ] ) ) {
+					$attachment = get_post( $image_map[ (int) $value ] );
+					if ( $attachment && 'attachment' === $attachment->post_type ) {
+						$value = $image_map[ (int) $value ];
+						continue;
+					}
 				}
 			}
 
-			// ACF gallery and repeater fields - replace numeric IDs
-			// This handles ACF image/file fields that store just the attachment ID
-			if ( ! empty( $image_map ) && is_numeric( $value ) && $value > 0 ) {
-				// Check if this looks like an attachment ID (positive integer)
-				// Verify it's actually in the image map to avoid replacing other numeric values
-				if ( isset( $image_map[ $value ] ) ) {
-					// Double check this is an attachment by checking if the mapped value exists
-					$attachment = get_post( $image_map[ $value ] );
-					if ( $attachment && 'attachment' === $attachment->post_type ) {
-						$value = $image_map[ $value ];
-						continue;
-					}
+			// Replace IDs in flat sequential lists of integers (ACF gallery fields etc.)
+			if ( $is_flat_id_list && is_numeric( $value ) && isset( $image_map[ (int) $value ] ) ) {
+				$attachment = get_post( $image_map[ (int) $value ] );
+				if ( $attachment && 'attachment' === $attachment->post_type ) {
+					$value = $image_map[ (int) $value ];
+					continue;
 				}
 			}
 

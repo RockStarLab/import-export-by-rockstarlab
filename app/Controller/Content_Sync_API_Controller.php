@@ -372,17 +372,19 @@ class Content_Sync_API_Controller {
 			// Import meta
 			if ( ! empty( $post_data['meta'] ) ) {
 				
-				// Replace image IDs in meta using image_map
+				// Replace image IDs and domain in meta using the proper meta-aware replacer.
+				// replace_in_meta correctly handles _thumbnail_id, ACF image/file fields
+				// (using field-type introspection), flat ACF repeater keys, etc.
 				if ( ! empty( $image_map ) ) {
-					
-			$post_data['meta'] = \WP_AIE\Helper\Content_Sync_Replacer::replace_in_array(
-					$post_data['meta'],
-					'', // No domain replacement
-					'',
-					$image_map,
-					0 // Start at depth 0
-				);
-			}				// Simplified approach: Import all meta fields directly with update_post_meta()
+					$post_data['meta'] = \WP_AIE\Helper\Content_Sync_Replacer::replace_in_meta_public(
+						$post_data['meta'],
+						'', // No domain replacement needed for push (already replaced on sender)
+						'',
+						$image_map
+					);
+				}
+
+				// Simplified approach: Import all meta fields directly with update_post_meta()
 				// ACF will automatically handle the processing of its fields
 				foreach ( $post_data['meta'] as $key => $value ) {
 					// Skip some internal WordPress meta
@@ -1014,6 +1016,7 @@ class Content_Sync_API_Controller {
 		// Check if file already exists
 		$existing_attachment = $this->find_attachment_by_hash( $file_hash );
 		if ( $existing_attachment ) {
+			\WP_AIE\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
 			return new \WP_REST_Response(
 				array(
 					'success'       => true,
@@ -1268,10 +1271,10 @@ class Content_Sync_API_Controller {
 				'post_parent'   => $post->post_parent,
 			);
 
-			// Get children count
+			// Get children count (same post type only, excluding attachments)
 			$children_count = 0;
 			if ( empty( $search ) ) {
-				$children_count = $this->count_children( $post->ID );
+				$children_count = $this->count_children( $post->ID, $post->post_type );
 			}
 			$post_data['children_count'] = $children_count;
 
@@ -1301,12 +1304,12 @@ class Content_Sync_API_Controller {
 	 * @param int $post_id Post ID.
 	 * @return int Children count.
 	 */
-	private function count_children( $post_id ) {
+	private function count_children( $post_id, $post_type = '' ) {
 		$children = get_posts(
 			array(
 				'post_parent'         => $post_id,
-				'post_type'           => 'any',
-				'post_status'         => 'any',
+				'post_type'           => ! empty( $post_type ) ? $post_type : 'any',
+				'post_status'         => array( 'publish', 'draft', 'pending', 'private', 'future' ),
 				'posts_per_page'      => -1,
 				'fields'              => 'ids',
 				'ignore_sticky_posts' => true,
@@ -1380,6 +1383,13 @@ class Content_Sync_API_Controller {
 		}
 
 		$parent_id = absint( $request->get_param( 'parent_id' ) );
+		$post_type = sanitize_text_field( $request->get_param( 'post_type' ) ?: '' );
+
+		// If no post_type provided, derive it from the parent post type.
+		if ( empty( $post_type ) ) {
+			$parent = get_post( $parent_id );
+			$post_type = $parent ? $parent->post_type : '';
+		}
 
 		if ( empty( $parent_id ) ) {
 			return new \WP_REST_Response(
@@ -1394,8 +1404,8 @@ class Content_Sync_API_Controller {
 		$children = get_posts(
 			array(
 				'post_parent'         => $parent_id,
-				'post_type'           => 'any',
-				'post_status'         => 'any',
+				'post_type'           => ! empty( $post_type ) ? $post_type : 'any',
+				'post_status'         => array( 'publish', 'draft', 'pending', 'private', 'future' ),
 				'posts_per_page'      => -1,
 				'orderby'             => 'date',
 				'order'               => 'DESC',
@@ -1417,8 +1427,8 @@ class Content_Sync_API_Controller {
 				'post_parent'   => $child->post_parent,
 			);
 
-			// Check if this child has children
-			$child_data['children_count'] = $this->count_children( $child->ID );
+			// Check if this child has children (same post type only)
+			$child_data['children_count'] = $this->count_children( $child->ID, $child->post_type );
 
 			$children_list[] = $child_data;
 		}

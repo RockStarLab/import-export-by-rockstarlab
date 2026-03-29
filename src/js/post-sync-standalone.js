@@ -1149,6 +1149,7 @@ import 'select2/dist/css/select2.min.css';
 					nonce: nonce,
 					site_id: this.browseState.siteId,
 					parent_id: parentId,
+					post_type: this.browseState.postType,
 				},
 				success: (response) => {
 					if (response.success && response.data.children) {
