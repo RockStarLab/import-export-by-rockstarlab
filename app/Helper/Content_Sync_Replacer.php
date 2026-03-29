@@ -175,14 +175,18 @@ class Content_Sync_Replacer {
 				$value = $image_map[ $value ];
 				continue;
 			}
-			
-			// Replace ACF image/file fields (numeric attachment IDs)
+
+			// Replace ACF image/file fields (numeric attachment IDs).
+			// We MUST check the ACF field type first to avoid corrupting ACF repeater row
+			// counts: during Pull, $image_map keys are remote attachment IDs which can be
+			// small numbers (1, 2, 3…) that accidentally match a repeater's row count value.
 			if ( ! empty( $image_map ) && is_numeric( $value ) && $value > 0 && isset( $image_map[ $value ] ) ) {
-				// Verify this is an attachment by checking if the new ID exists
-				$attachment = get_post( $image_map[ $value ] );
-				if ( $attachment && 'attachment' === $attachment->post_type ) {
-					$value = $image_map[ $value ];
-					continue;
+				if ( self::is_acf_image_or_file_field( $key, $meta ) ) {
+					$attachment = get_post( $image_map[ $value ] );
+					if ( $attachment && 'attachment' === $attachment->post_type ) {
+						$value = $image_map[ $value ];
+						continue;
+					}
 				}
 			}
 
@@ -376,6 +380,118 @@ class Content_Sync_Replacer {
 		$domain = rtrim( $domain, '/' );
 
 		return $domain;
+	}
+
+	/**
+	 * Check if a meta key corresponds to an ACF image or file field.
+	 *
+	 * ACF stores a field-key reference in the "_fieldname" meta entry.
+	 * We use that reference to look up the field type and confirm it is
+	 * an 'image' or 'file' type before replacing a numeric meta value
+	 * with an attachment ID.  This prevents repeater row-count values
+	 * (e.g. my_repeater = 3) from being wrongly replaced with an
+	 * attachment ID that happens to share the same number.
+	 *
+	 * @param string $key  Meta key being evaluated.
+	 * @param array  $meta Full meta array (used to look up the ACF field reference).
+	 * @return bool True only when ACF confirms this is an image or file field.
+	 */
+	private static function is_acf_image_or_file_field( $key, $meta ) {
+		if ( ! function_exists( 'acf_get_field' ) ) {
+			return false;
+		}
+
+		$field_ref_key = '_' . $key;
+		if ( ! isset( $meta[ $field_ref_key ] ) ) {
+			return false;
+		}
+
+		$field_ref = $meta[ $field_ref_key ];
+		if ( ! is_string( $field_ref ) || 0 !== strpos( $field_ref, 'field_' ) ) {
+			return false;
+		}
+
+		$field_obj = acf_get_field( $field_ref );
+		if ( ! $field_obj || ! isset( $field_obj['type'] ) ) {
+			return false;
+		}
+
+		return in_array( $field_obj['type'], array( 'image', 'file' ), true );
+	}
+
+	/**
+	 * After importing terms, re-save any ACF taxonomy fields in post meta so they
+	 * reference the correct local term IDs instead of the source-site term IDs.
+	 *
+	 * Strategy: any ACF field (identified by a companion "_fieldname" = "field_xxx"
+	 * meta entry) whose value is a term ID — or an array of term IDs — that exists
+	 * in $term_id_map gets its value rewritten to the corresponding local term ID.
+	 *
+	 * acf_get_field() is used opportunistically: if it can resolve the field object
+	 * we use the type to SKIP known non-taxonomy fields (images, repeater counts…).
+	 * If it cannot resolve the field (field group not imported on target site) we
+	 * still proceed with the heuristic translation, which is safe because
+	 * $term_id_map only contains the specific source term IDs being synced.
+	 *
+	 * @param array $meta        Full post meta array (key → value, already deserialized).
+	 * @param int   $post_id     Target post ID.
+	 * @param array $term_id_map Map of source_term_id => local_term_id.
+	 */
+	public static function translate_acf_taxonomy_fields_in_meta( $meta, $post_id, $term_id_map ) {
+		if ( empty( $term_id_map ) ) {
+			return;
+		}
+
+		foreach ( $meta as $key => $value ) {
+			// Only process non-underscore-prefixed keys (skip ACF reference entries).
+			if ( strpos( $key, '_' ) === 0 ) {
+				continue;
+			}
+
+			// Must have an ACF field-key reference to be an ACF field at all.
+			$field_ref_key = '_' . $key;
+			if ( ! isset( $meta[ $field_ref_key ] ) ) {
+				continue;
+			}
+			$field_ref = $meta[ $field_ref_key ];
+			if ( ! is_string( $field_ref ) || strpos( $field_ref, 'field_' ) !== 0 ) {
+				continue;
+			}
+
+			// If ACF is available and the field definition exists on this site,
+			// skip any field type that is definitely NOT a taxonomy field.
+			if ( function_exists( 'acf_get_field' ) ) {
+				$field_obj = acf_get_field( $field_ref );
+				if ( $field_obj && isset( $field_obj['type'] ) && $field_obj['type'] !== 'taxonomy' ) {
+					continue;
+				}
+				// $field_obj === false → field not registered here → fall through and translate.
+			}
+
+			// Translate single term ID.
+			if ( is_numeric( $value ) && (int) $value > 0 && isset( $term_id_map[ (int) $value ] ) ) {
+				update_post_meta( $post_id, $key, $term_id_map[ (int) $value ] );
+				continue;
+			}
+
+			// Translate array of term IDs (multi-select taxonomy field).
+			if ( is_array( $value ) ) {
+				$changed    = false;
+				$translated = array();
+				foreach ( $value as $item ) {
+					$int_item = (int) $item;
+					if ( is_numeric( $item ) && $int_item > 0 && isset( $term_id_map[ $int_item ] ) ) {
+						$translated[] = $term_id_map[ $int_item ];
+						$changed      = true;
+					} else {
+						$translated[] = $item;
+					}
+				}
+				if ( $changed ) {
+					update_post_meta( $post_id, $key, $translated );
+				}
+			}
+		}
 	}
 
 	/**
