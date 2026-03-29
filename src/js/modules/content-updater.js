@@ -632,8 +632,19 @@ const ContentUpdater = {
 		
 		// Use export module's getFilterFieldsByContentType if available (excludes Featured Image group)
 		if ( typeof window.aieExportModule !== 'undefined' && window.aieExportModule.getFilterFieldsByContentType ) {
-			const fields = window.aieExportModule.getFilterFieldsByContentType( contentType );
-			
+			let fields = window.aieExportModule.getFilterFieldsByContentType( contentType );
+
+			// Exclude certain fields from Content Updater filters for the 'user' content type
+			if ( contentType === 'user' ) {
+				const userExcludedFields = [ 'capabilities', 'user_registered', 'posts_count', 'rich_editing', 'admin_color', 'locale' ];
+				fields = fields
+					.map( ( group ) => ( {
+						...group,
+						options: group.options.filter( ( opt ) => ! userExcludedFields.includes( opt.value ) ),
+					} ) )
+					.filter( ( group ) => group.options.length > 0 );
+			}
+
 			fields.forEach( ( group ) => {
 				const $optgroup = jQuery( '<optgroup>' ).attr( 'label', group.label );
 				group.options.forEach( ( option ) => {
@@ -677,6 +688,7 @@ const ContentUpdater = {
 
 		// Remove any previously injected custom UIs when switching field type
 		$row.find( '.aie-updater-meta-key-wrap' ).remove();
+		$row.find( '.aie-filter-row-inner' ).removeClass( 'has-meta-key' );
 		$row.find( '.aie-taxonomy-filter-inputs' ).closest( '.aie-filter-value-wrap' ).find( '.aie-taxonomy-filter-inputs' ).remove();
 
 		// Restore standard condition/value wrap if they were hidden by a previous custom type
@@ -787,11 +799,12 @@ const ContentUpdater = {
 			const label = window.aieData.i18n.customFieldName || 'Meta Key';
 			const placeholder = window.aieData.i18n.enterCustomFieldName || 'Enter meta key name…';
 			const $metaKeyWrap = jQuery(
-				`<div class="aie-filter-field-wrap aie-updater-meta-key-wrap">
+				`<div class="aie-updater-meta-key-wrap">
 					<label>${ label }</label>
 					<input type="text" class="aie-updater-custom-meta-key" placeholder="${ placeholder }" />
 				</div>`
 			);
+			$row.find( '.aie-filter-row-inner' ).addClass( 'has-meta-key' );
 			$row.find( '.aie-filter-field-wrap' ).after( $metaKeyWrap );
 			// Refresh count when the meta key name changes
 			$metaKeyWrap.find( '.aie-updater-custom-meta-key' ).on( 'input', () => {
@@ -1108,7 +1121,9 @@ const ContentUpdater = {
 			// this.loadTaxonomies( postType );
 			this.loadCustomFields( postType );
 			this.checkAndLoadACF( postType );
-			this.checkAndLoadYoast( postType );
+			if ( contentType !== 'user' ) {
+				this.checkAndLoadYoast( postType );
+			}
 		}
 	},
 
@@ -1136,6 +1151,13 @@ const ContentUpdater = {
 		$library.append( '<div class="aie-fields-library-body"></div>' );
 		const $body = $library.find( '.aie-fields-library-body' );
 		
+		// Groups / fields to exclude for specific content types
+		const userExcludedGroups = [
+			window.aieData.i18n.fieldGroupPreferences,
+			window.aieData.i18n.fieldGroupStats,
+		];
+		const userExcludedFields = [ 'capabilities' ];
+
 		// Render each field group as a category
 		fieldGroups.forEach( ( group, index ) => {
 			// Skip Custom Filters, selector groups, Taxonomy and Author categories for Content Updater
@@ -1146,8 +1168,25 @@ const ContentUpdater = {
 				group.label === 'Author' ) {
 				return;
 			}
+
+			// For user content type: skip excluded groups
+			if ( contentType === 'user' && userExcludedGroups.includes( group.label ) ) {
+				return;
+			}
+
+			// For user content type: filter out excluded fields within a group
+			let renderGroup = group;
+			if ( contentType === 'user' && userExcludedFields.length ) {
+				renderGroup = {
+					...group,
+					options: group.options.filter( ( opt ) => ! userExcludedFields.includes( opt.value ) ),
+				};
+				if ( renderGroup.options.length === 0 ) {
+					return;
+				}
+			}
 			
-			const $category = this.createFieldCategory( group, index === 0 );
+			const $category = this.createFieldCategory( renderGroup, index === 0 );
 			$body.append( $category );
 		} );
 		
@@ -1366,6 +1405,7 @@ const ContentUpdater = {
 			woo_order: 'shop_order',
 			woo_coupon: 'shop_coupon',
 			media: 'attachment',
+			user: 'user',
 		};
 
 		if ( typeMap[ contentType ] ) {

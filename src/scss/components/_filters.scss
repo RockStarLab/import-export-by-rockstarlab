@@ -151,6 +151,38 @@
 			grid-template-columns: 1fr 1fr 1.5fr auto;
 			gap: 15px;
 			align-items: start;
+
+			&.has-meta-key {
+				grid-template-columns: 1fr 1fr 1fr 1.5fr auto;
+			}
+		}
+
+		.aie-updater-meta-key-wrap {
+			label {
+				display: block;
+				font-size: 12px;
+				font-weight: 500;
+				color: #646970;
+				margin-bottom: 6px;
+				text-transform: uppercase;
+				letter-spacing: 0.3px;
+			}
+
+			input[type="text"] {
+				width: 100%;
+				padding: 8px 12px;
+				border: 1px solid #8c8f94;
+				border-radius: 4px;
+				font-size: 14px;
+				box-sizing: border-box;
+				transition: border-color 0.2s;
+
+				&:focus {
+					border-color: #2271b1;
+					box-shadow: 0 0 0 1px #2271b1;
+					outline: none;
+				}
+			}
 		}
 
 		.aie-filter-field-wrap,
