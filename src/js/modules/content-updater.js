@@ -1160,7 +1160,8 @@ const ContentUpdater = {
 			window.aieData.i18n.fieldGroupPreferences,
 			window.aieData.i18n.fieldGroupStats,
 		];
-		const userExcludedFields = [ 'capabilities' ];
+		const userExcludedFields = [ 'capabilities', 'user_login' ];
+		const commentExcludedFields = [ 'post_title' ];
 
 		// Render each field group as a category
 		fieldGroups.forEach( ( group, index ) => {
@@ -1184,6 +1185,28 @@ const ContentUpdater = {
 				renderGroup = {
 					...group,
 					options: group.options.filter( ( opt ) => ! userExcludedFields.includes( opt.value ) ),
+				};
+				if ( renderGroup.options.length === 0 ) {
+					return;
+				}
+			}
+
+			// For comment content type: filter out excluded fields within a group
+			if ( contentType === 'comment' && commentExcludedFields.length && Array.isArray( renderGroup.options ) ) {
+				renderGroup = {
+					...renderGroup,
+					options: renderGroup.options.filter( ( opt ) => ! commentExcludedFields.includes( opt.value ) ),
+				};
+				if ( renderGroup.options.length === 0 ) {
+					return;
+				}
+			}
+
+			// For taxonomy content type: hide computed fields that should not be updated directly
+			if ( contentType === 'taxonomy' && Array.isArray( renderGroup.options ) ) {
+				renderGroup = {
+					...renderGroup,
+					options: renderGroup.options.filter( ( opt ) => opt.value !== 'count' ),
 				};
 				if ( renderGroup.options.length === 0 ) {
 					return;

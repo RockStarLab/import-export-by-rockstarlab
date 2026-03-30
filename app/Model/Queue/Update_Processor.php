@@ -393,9 +393,11 @@ class Update_Processor {
 				case 'custom_post_types':
 				case 'media':
 				case 'menu':
-				case 'woo_product':
 				case 'woo_order':
 					return $this->save_post_item( $item_id, $item, $fields );
+
+				case 'woo_product':
+					return $this->save_product_item( $item_id, $item, $fields );
 
 				case 'woo_coupon':
 					return $this->save_coupon_item( $item_id, $item, $fields );
@@ -441,20 +443,29 @@ class Update_Processor {
 
 		$post_data = [];
 		$meta_data = [];
+		$featured_updates = [];
 
 		// Separate post fields from meta fields
-		$standard_fields = [ 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_author', 'post_date', 'post_modified' ];
+		$standard_fields = [ 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_author', 'post_date', 'post_modified', 'comment_status', 'post_parent', 'menu_order' ];
+		$featured_fields = [ 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption' ];
 
 		foreach ( $fields as $field ) {
 			if ( ! isset( $item[ $field ] ) ) {
 				continue;
 			}
 
+			$value = $item[ $field ];
+
+			if ( in_array( $field, $featured_fields, true ) ) {
+				$featured_updates[ $field ] = $value;
+				continue;
+			}
+
 			if ( in_array( $field, $standard_fields, true ) ) {
-				$post_data[ $field ] = $item[ $field ];
+				$post_data[ $field ] = $value;
 			} else {
 				// Treat as meta field
-				$meta_data[ $field ] = $item[ $field ];
+				$meta_data[ $field ] = $value;
 			}
 		}
 
@@ -493,9 +504,18 @@ class Update_Processor {
 		}
 
 		// Update meta fields (strip acf_/meta_ prefixes added by the field library)
+		$post_type = get_post_type( $post_id );
+		$is_product = in_array( $post_type, [ 'product', 'product_variation' ], true );
+
 		foreach ( $meta_data as $meta_key => $meta_value ) {
 			$resolved = $this->resolve_meta_key( $meta_key );
 			$real_key = $resolved['key'];
+			if ( $is_product && $real_key === 'regular_price' ) {
+				$price = function_exists( 'wc_format_decimal' ) ? wc_format_decimal( $meta_value ) : $meta_value;
+				update_post_meta( $post_id, '_regular_price', $price );
+				update_post_meta( $post_id, '_price', $price );
+				continue;
+			}
 			if ( $resolved['is_acf'] && function_exists( 'update_field' ) ) {
 				// update_field returns false when ACF can't resolve the field by name
 				// (e.g. field group stored as PHP/JSON file, or value unchanged).
@@ -504,6 +524,43 @@ class Update_Processor {
 				update_post_meta( $post_id, $real_key, $meta_value );
 			} else {
 				update_post_meta( $post_id, $real_key, $meta_value );
+			}
+		}
+
+		if ( ! empty( $featured_updates ) ) {
+			$image_id = null;
+
+			if ( isset( $featured_updates['featured_image_id'] ) ) {
+				$image_id = (int) $featured_updates['featured_image_id'];
+				if ( $image_id > 0 ) {
+					set_post_thumbnail( $post_id, $image_id );
+				} else {
+					delete_post_thumbnail( $post_id );
+				}
+			} elseif ( isset( $featured_updates['featured_image_url'] ) ) {
+				$url = trim( (string) $featured_updates['featured_image_url'] );
+				if ( '' !== $url ) {
+					$image_id = attachment_url_to_postid( $url );
+					if ( $image_id ) {
+						set_post_thumbnail( $post_id, $image_id );
+					}
+				}
+			}
+
+			if ( isset( $featured_updates['featured_image_title'] ) || isset( $featured_updates['featured_image_caption'] ) ) {
+				if ( null === $image_id ) {
+					$image_id = get_post_thumbnail_id( $post_id );
+				}
+				if ( $image_id ) {
+					$attachment_update = [ 'ID' => $image_id ];
+					if ( isset( $featured_updates['featured_image_title'] ) ) {
+						$attachment_update['post_title'] = (string) $featured_updates['featured_image_title'];
+					}
+					if ( isset( $featured_updates['featured_image_caption'] ) ) {
+						$attachment_update['post_excerpt'] = (string) $featured_updates['featured_image_caption'];
+					}
+					wp_update_post( $attachment_update );
+				}
 			}
 		}
 
@@ -636,6 +693,179 @@ class Update_Processor {
 	}
 
 	/**
+	 * Save WooCommerce product item using WC_Product API
+	 *
+	 * @param int   $product_id Product ID
+	 * @param array $item       Item data
+	 * @param array $fields     Fields to update
+	 * @return true|\WP_Error
+	 */
+	private function save_product_item( $product_id, $item, $fields ) {
+		if ( empty( $product_id ) || ! is_numeric( $product_id ) || $product_id <= 0 ) {
+			return new \WP_Error( 'invalid_product_id', sprintf( 'Invalid product ID: %s', $product_id ) );
+		}
+
+		if ( ! class_exists( 'WC_Product' ) || ! function_exists( 'wc_get_product' ) ) {
+			return $this->save_post_item( $product_id, $item, $fields );
+		}
+
+		$product = wc_get_product( $product_id );
+		if ( ! $product ) {
+			return new \WP_Error( 'product_not_found', sprintf( 'Product #%d does not exist', $product_id ) );
+		}
+
+		$setter_map = [
+			'post_title'       => 'set_name',
+			'post_content'     => 'set_description',
+			'post_excerpt'     => 'set_short_description',
+			'post_status'      => 'set_status',
+			'post_name'        => 'set_slug',
+			'sku'              => 'set_sku',
+			'regular_price'    => 'set_regular_price',
+			'sale_price'       => 'set_sale_price',
+			'tax_status'       => 'set_tax_status',
+			'tax_class'        => 'set_tax_class',
+			'stock_quantity'   => 'set_stock_quantity',
+			'stock_status'     => 'set_stock_status',
+			'manage_stock'     => 'set_manage_stock',
+			'backorders'       => 'set_backorders',
+			'downloadable'     => 'set_downloadable',
+			'virtual'          => 'set_virtual',
+			'weight'           => 'set_weight',
+			'length'           => 'set_length',
+			'width'            => 'set_width',
+			'height'           => 'set_height',
+			'shipping_class'   => 'set_shipping_class_id',
+			'featured'         => 'set_featured',
+			'visibility'       => 'set_catalog_visibility',
+			'product_gallery'  => 'set_gallery_image_ids',
+			'featured_image_id' => 'set_image_id',
+			'comment_status'   => 'set_reviews_allowed',
+		];
+
+		$boolean_fields = [ 'manage_stock', 'downloadable', 'virtual', 'featured', 'comment_status' ];
+		$array_fields   = [ 'product_gallery' ];
+
+		$post_data = [];
+		$meta_data = [];
+		$featured_updates = [];
+		$featured_fields  = [ 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption' ];
+
+		foreach ( $fields as $field ) {
+			if ( ! array_key_exists( $field, $item ) ) {
+				continue;
+			}
+
+			$value = $item[ $field ];
+
+			if ( in_array( $field, $featured_fields, true ) ) {
+				$featured_updates[ $field ] = $value;
+				if ( 'featured_image_id' !== $field ) {
+					continue;
+				}
+			}
+
+			// Read-only fields (computed by WooCommerce)
+			if ( in_array( $field, [ 'average_rating', 'review_count', 'total_sales', 'product_type' ], true ) ) {
+				continue;
+			}
+
+			if ( in_array( $field, [ 'post_date', 'post_modified' ], true ) ) {
+				$post_data[ $field ] = $value;
+				continue;
+			}
+
+			if ( isset( $setter_map[ $field ] ) && method_exists( $product, $setter_map[ $field ] ) ) {
+				if ( in_array( $field, $boolean_fields, true ) ) {
+					if ( 'comment_status' === $field ) {
+						$value = ( 'open' === $value || 'yes' === $value || '1' === $value || true === $value );
+					} else {
+						$value = ( 'yes' === $value || '1' === $value || true === $value );
+					}
+				}
+
+				if ( in_array( $field, $array_fields, true ) ) {
+					if ( is_string( $value ) ) {
+						$value = array_values( array_filter( array_map( 'trim', explode( ',', $value ) ) ) );
+					}
+					if ( is_array( $value ) ) {
+						$value = array_map( 'intval', $value );
+					}
+				}
+
+				if ( 'shipping_class' === $field ) {
+					$term = get_term_by( 'slug', $value, 'product_shipping_class' );
+					$value = $term ? (int) $term->term_id : 0;
+				}
+
+				if ( in_array( $field, [ 'stock_quantity', 'featured_image_id' ], true ) ) {
+					$value = ( '' === $value || null === $value ) ? null : (int) $value;
+				}
+
+				$product->{$setter_map[ $field ]}( $value );
+				continue;
+			}
+
+			$meta_data[ $field ] = $value;
+		}
+
+		if ( isset( $featured_updates['featured_image_url'] ) && empty( $featured_updates['featured_image_id'] ) ) {
+			$url = trim( (string) $featured_updates['featured_image_url'] );
+			if ( '' !== $url ) {
+				$resolved_id = attachment_url_to_postid( $url );
+				if ( $resolved_id ) {
+					$product->set_image_id( (int) $resolved_id );
+					$featured_updates['featured_image_id'] = (int) $resolved_id;
+				}
+			}
+		}
+
+		$product->save();
+
+		if ( ! empty( $post_data ) ) {
+			global $wpdb;
+			$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+				$wpdb->posts,
+				$post_data,
+				[ 'ID' => $product_id ],
+				null,
+				[ '%d' ]
+			);
+			clean_post_cache( $product_id );
+		}
+
+		foreach ( $meta_data as $meta_key => $meta_value ) {
+			$resolved = $this->resolve_meta_key( $meta_key );
+			$real_key = $resolved['key'];
+			if ( $resolved['is_acf'] && function_exists( 'update_field' ) ) {
+				update_field( $real_key, $meta_value, $product_id );
+				update_post_meta( $product_id, $real_key, $meta_value );
+			} else {
+				update_post_meta( $product_id, $real_key, $meta_value );
+			}
+		}
+
+		if ( isset( $featured_updates['featured_image_title'] ) || isset( $featured_updates['featured_image_caption'] ) ) {
+			$image_id = ! empty( $featured_updates['featured_image_id'] ) ? (int) $featured_updates['featured_image_id'] : 0;
+			if ( $image_id <= 0 ) {
+				$image_id = (int) get_post_thumbnail_id( $product_id );
+			}
+			if ( $image_id > 0 ) {
+				$attachment_update = [ 'ID' => $image_id ];
+				if ( isset( $featured_updates['featured_image_title'] ) ) {
+					$attachment_update['post_title'] = (string) $featured_updates['featured_image_title'];
+				}
+				if ( isset( $featured_updates['featured_image_caption'] ) ) {
+					$attachment_update['post_excerpt'] = (string) $featured_updates['featured_image_caption'];
+				}
+				wp_update_post( $attachment_update );
+			}
+		}
+
+		return true;
+	}
+
+	/**
 	 * Save user item
 	 *
 	 * @param int   $user_id User ID
@@ -716,15 +946,36 @@ class Update_Processor {
 		$meta_data    = [];
 
 		// Separate comment fields from meta fields
-		$standard_fields = [ 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_content', 'comment_approved' ];
+		$standard_fields = [
+			'comment_author',
+			'comment_author_email',
+			'comment_author_url',
+			'comment_content',
+			'comment_approved',
+			'comment_type',
+			'comment_post_ID',
+			'comment_parent',
+			'comment_karma',
+			'comment_date',
+			'comment_date_gmt',
+		];
 
 		foreach ( $fields as $field ) {
 			if ( ! isset( $item[ $field ] ) ) {
 				continue;
 			}
 
+			if ( $field === 'post_title' ) {
+				// The comment "post_title" field is read-only (derived from the related post).
+				continue;
+			}
+
 			if ( in_array( $field, $standard_fields, true ) ) {
-				$comment_data[ $field ] = $item[ $field ];
+				if ( in_array( $field, [ 'comment_post_ID', 'comment_parent', 'comment_karma' ], true ) ) {
+					$comment_data[ $field ] = (int) $item[ $field ];
+				} else {
+					$comment_data[ $field ] = $item[ $field ];
+				}
 			} else {
 				// Treat as meta field
 				$meta_data[ $field ] = $item[ $field ];
@@ -776,7 +1027,7 @@ class Update_Processor {
 		$meta_data = [];
 
 		// Separate term fields from meta fields
-		$standard_fields = [ 'name', 'slug', 'description' ];
+		$standard_fields = [ 'name', 'slug', 'description', 'parent' ];
 
 		$taxonomy = isset( $item['taxonomy'] ) ? $item['taxonomy'] : 'category';
 
@@ -785,8 +1036,17 @@ class Update_Processor {
 				continue;
 			}
 
+			if ( $field === 'count' ) {
+				// Term counts are calculated by WordPress and should not be updated directly.
+				continue;
+			}
+
 			if ( in_array( $field, $standard_fields, true ) ) {
-				$term_data[ $field ] = $item[ $field ];
+				if ( $field === 'parent' ) {
+					$term_data[ $field ] = (int) $item[ $field ];
+				} else {
+					$term_data[ $field ] = $item[ $field ];
+				}
 			} else {
 				// Treat as meta field
 				$meta_data[ $field ] = $item[ $field ];
@@ -827,6 +1087,10 @@ class Update_Processor {
 		}
 		if ( strpos( $field, 'meta_' ) === 0 ) {
 			return [ 'key' => substr( $field, 5 ), 'is_acf' => false ];
+		}
+		if ( strpos( $field, 'yoast__' ) === 0 ) {
+			$yoast_key = substr( $field, 7 );
+			return [ 'key' => '_' . ltrim( $yoast_key, '_' ), 'is_acf' => false ];
 		}
 		return [ 'key' => $field, 'is_acf' => false ];
 	}

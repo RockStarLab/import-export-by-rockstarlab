@@ -148,6 +148,9 @@ class Comment_Exporter extends Abstract_Exporter {
 			]
 		);
 
+		unset( $query_args['offset'] );
+		unset( $query_args['number'] );
+
 		$comment_query = new \WP_Comment_Query( $query_args );
 		$comments      = $comment_query->get_comments();
 
@@ -189,6 +192,13 @@ class Comment_Exporter extends Abstract_Exporter {
 		// Extract other filters for manual checking
 		$other_filters = $query_args['_other_filters'] ?? [];
 		unset( $query_args['_other_filters'] );
+
+		// WP_Comment_Query does not treat number = -1 as "all comments" the same
+		// way post queries do, so for manual filtering we must omit the limit args.
+		if ( ! empty( $other_filters ) ) {
+			unset( $query_args['offset'] );
+			unset( $query_args['number'] );
+		}
 
 		$this->log_info( 'Querying comments', $query_args );
 
@@ -578,15 +588,12 @@ class Comment_Exporter extends Abstract_Exporter {
 			// Handle comment status
 			if ( $field === 'comment_approved' || $field === 'status' ) {
 				if ( $condition === 'equals' ) {
-					$args['status'] = sanitize_text_field( $value );
-				} elseif ( $condition === 'not_equals' ) {
-					$args['status__not_in'] = [ sanitize_text_field( $value ) ];
+					$args['status'] = $this->normalize_comment_status_value( $value );
 				} elseif ( $condition === 'in' ) {
 					$values         = array_map( 'trim', explode( ',', $value ) );
-					$args['status'] = array_map( 'sanitize_text_field', $values );
-				} elseif ( $condition === 'not_in' ) {
-					$values                 = array_map( 'trim', explode( ',', $value ) );
-					$args['status__not_in'] = array_map( 'sanitize_text_field', $values );
+					$args['status'] = array_map( [ $this, 'normalize_comment_status_value' ], $values );
+				} elseif ( in_array( $condition, [ 'not_equals', 'not_in' ], true ) ) {
+					$args['_other_filters'][] = $filter;
 				}
 				continue;
 			}
@@ -1099,6 +1106,34 @@ class Comment_Exporter extends Abstract_Exporter {
 			default:
 				return true;
 		}
+	}
+
+	/**
+	 * Normalize UI comment status values to WP_Comment_Query status values.
+	 *
+	 * WordPress stores approved comments as "1" in the database, but
+	 * WP_Comment_Query expects "approve". Likewise, pending comments are
+	 * stored as "0" and queried via "hold".
+	 *
+	 * @param string $value Raw status value from the UI filter.
+	 * @return string
+	 */
+	protected function normalize_comment_status_value( $value ) {
+		$value = sanitize_text_field( (string) $value );
+
+		$status_map = [
+			'1'        => 'approve',
+			'0'        => 'hold',
+			'approve'  => 'approve',
+			'approved' => 'approve',
+			'hold'     => 'hold',
+			'pending'  => 'hold',
+			'spam'     => 'spam',
+			'trash'    => 'trash',
+			'all'      => 'all',
+		];
+
+		return $status_map[ $value ] ?? $value;
 	}
 
 	/**
