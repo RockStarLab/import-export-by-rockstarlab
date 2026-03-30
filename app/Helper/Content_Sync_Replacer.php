@@ -68,6 +68,23 @@ class Content_Sync_Replacer {
 					$content
 				);
 			}
+
+			// Replace attachment IDs inside shortcode `ids` attributes.
+			// Handles classic [gallery ids="90,89"] and similar shortcodes.
+			$content = preg_replace_callback(
+				'/\b(ids=["\'])([\d,\s]+)(["\'])/i',
+				function ( $m ) use ( $image_map ) {
+					$ids = array_map( 'intval', explode( ',', $m[2] ) );
+					$ids = array_map(
+						function ( $id ) use ( $image_map ) {
+							return isset( $image_map[ $id ] ) ? (int) $image_map[ $id ] : $id;
+						},
+						$ids
+					);
+					return $m[1] . implode( ',', $ids ) . $m[3];
+				},
+				$content
+			);
 		}
 
 		return $content;
