@@ -38,6 +38,32 @@ class Content_Sync_Replacer {
 			$post_data['meta'] = self::replace_in_meta( $post_data['meta'], $source_domain, $target_domain, $image_map );
 		}
 
+		// Replace domain and image IDs in variation meta (variable products).
+		if ( ! empty( $post_data['variations'] ) && is_array( $post_data['variations'] ) ) {
+			foreach ( $post_data['variations'] as &$variation ) {
+				if ( ! empty( $variation['meta'] ) && is_array( $variation['meta'] ) ) {
+					$variation['meta'] = self::replace_in_meta( $variation['meta'], $source_domain, $target_domain, $image_map );
+				}
+			}
+			unset( $variation );
+		}
+
+		// Replace domain and image IDs in grouped product children meta.
+		if ( ! empty( $post_data['grouped_children'] ) && is_array( $post_data['grouped_children'] ) ) {
+			foreach ( $post_data['grouped_children'] as &$grouped_child ) {
+				if ( ! empty( $grouped_child['meta'] ) && is_array( $grouped_child['meta'] ) ) {
+					$grouped_child['meta'] = self::replace_in_meta( $grouped_child['meta'], $source_domain, $target_domain, $image_map );
+				}
+				if ( ! empty( $grouped_child['post_content'] ) ) {
+					$grouped_child['post_content'] = self::replace_in_content( $grouped_child['post_content'], $source_domain, $target_domain, $image_map );
+				}
+				if ( ! empty( $grouped_child['post_excerpt'] ) ) {
+					$grouped_child['post_excerpt'] = self::replace_in_text( $grouped_child['post_excerpt'], $source_domain, $target_domain );
+				}
+			}
+			unset( $grouped_child );
+		}
+
 		return $post_data;
 	}
 

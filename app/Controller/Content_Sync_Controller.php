@@ -577,6 +577,11 @@ class Content_Sync_Controller extends Base_Controller {
 			return;
 		}
 
+		// Never show sync button on WooCommerce Coupons screen.
+		if ( 'shop_coupon' === $current_post_type ) {
+			return;
+		}
+
 		// Enqueue post sync script
 		wp_enqueue_script(
 			'aie-post-sync',
@@ -722,6 +727,11 @@ class Content_Sync_Controller extends Base_Controller {
 		
 		// In free version, only show for 'post' type
 		if ( ! $is_premium && 'post' !== $typenow ) {
+			return;
+		}
+
+		// Never show sync button on WooCommerce Coupons screen.
+		if ( 'shop_coupon' === $typenow ) {
 			return;
 		}
 		
@@ -1196,6 +1206,118 @@ class Content_Sync_Controller extends Base_Controller {
 			);
 			
 			if ( isset( $prepared_meta['repeater'] ) ) {
+			}
+
+			// Collect WooCommerce product variations for variable products.
+			// Variations are separate posts (post_type=product_variation) and must be
+			// synced together with their parent so the remote site can show the correct
+			// price range.
+			if ( 'product' === $post->post_type
+				&& class_exists( 'WC_Product' )
+				&& function_exists( 'wc_get_product' )
+			) {
+				$wc_product = wc_get_product( $post->ID );
+				if ( $wc_product && $wc_product->is_type( 'variable' ) ) {
+					$variation_ids   = $wc_product->get_children();
+					$variations_data = array();
+
+					foreach ( $variation_ids as $variation_id ) {
+						$variation_post = get_post( $variation_id );
+						if ( ! $variation_post ) {
+							continue;
+						}
+
+						// Include variation images in the global image upload queue.
+						$var_images = \WP_AIE\Helper\Content_Sync_Media::extract_post_images( $variation_id );
+						foreach ( $var_images as $var_img ) {
+							$var_img_key                       = $var_img['attachment_id'];
+							$all_images[ $var_img_key ]         = $var_img;
+							$image_context[ $var_img_key ][]   = $post_id;
+						}
+
+						// Collect variation meta.
+						$var_raw_meta  = get_post_meta( $variation_id );
+						$var_prep_meta = array();
+						foreach ( $var_raw_meta as $vk => $vv ) {
+							$var_prep_meta[ $vk ] = maybe_unserialize( $vv[0] );
+						}
+
+						$variations_data[] = array(
+							'ID'          => $variation_post->ID,
+							'post_title'  => $variation_post->post_title,
+							'post_name'   => $variation_post->post_name,
+							'post_status' => $variation_post->post_status,
+							'post_type'   => $variation_post->post_type,
+							'menu_order'  => $variation_post->menu_order,
+							'meta'        => $var_prep_meta,
+						);
+					}
+
+					$post_data['variations'] = $variations_data;
+				}
+
+				// Collect WooCommerce grouped product children.
+				// Children are regular `product` posts linked via _children meta.
+				// We ship their data so the remote site can create/update them and
+				// the _children meta can be remapped to correct local IDs.
+				if ( $wc_product->is_type( 'grouped' ) ) {
+					$child_ids    = $wc_product->get_children();
+					$children_data = array();
+
+					foreach ( $child_ids as $child_id ) {
+						$child_post = get_post( $child_id );
+						if ( ! $child_post ) {
+							continue;
+						}
+
+						// Include child images in the global upload queue.
+						$child_imgs = \WP_AIE\Helper\Content_Sync_Media::extract_post_images( $child_id );
+						foreach ( $child_imgs as $child_img ) {
+							$cimg_key                     = $child_img['attachment_id'];
+							$all_images[ $cimg_key ]       = $child_img;
+							$image_context[ $cimg_key ][] = $post_id;
+						}
+
+						// Collect child meta.
+						$child_raw_meta  = get_post_meta( $child_id );
+						$child_prep_meta = array();
+						foreach ( $child_raw_meta as $ck => $cv ) {
+							$child_prep_meta[ $ck ] = maybe_unserialize( $cv[0] );
+						}
+
+						// Collect child terms.
+						$child_taxonomies = get_object_taxonomies( $child_post->post_type );
+						$child_terms      = array();
+						foreach ( $child_taxonomies as $child_tax ) {
+							$c_terms                  = wp_get_post_terms( $child_id, $child_tax );
+							$child_terms[ $child_tax ] = array();
+							if ( ! is_wp_error( $c_terms ) ) {
+								foreach ( $c_terms as $c_term ) {
+									$child_terms[ $child_tax ][] = array(
+										'term_id' => $c_term->term_id,
+										'name'    => $c_term->name,
+										'slug'    => $c_term->slug,
+									);
+								}
+							}
+						}
+
+						$children_data[] = array(
+							'ID'           => $child_post->ID,
+							'post_title'   => $child_post->post_title,
+							'post_name'    => $child_post->post_name,
+							'post_content' => $child_post->post_content,
+							'post_excerpt' => $child_post->post_excerpt,
+							'post_status'  => $child_post->post_status,
+							'post_type'    => $child_post->post_type,
+							'menu_order'   => $child_post->menu_order,
+							'meta'         => $child_prep_meta,
+							'terms'        => $child_terms,
+						);
+					}
+
+					$post_data['grouped_children'] = $children_data;
+				}
 			}
 
 			$posts_data[] = $post_data;
