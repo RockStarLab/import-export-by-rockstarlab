@@ -110,6 +110,43 @@ class Content_Sync_Media {
 		$html_images = self::extract_images_from_html( $post->post_content );
 		$images      = array_merge( $images, $html_images );
 
+		// Extract images from classic-editor shortcodes: [gallery ids="1,2,3"]
+		// Covers any shortcode that uses an `ids` attribute with a comma-separated
+		// list of attachment IDs (gallery, playlist, etc.).
+		$shortcode_images = self::extract_images_from_shortcodes( $post->post_content );
+		$images           = array_merge( $images, $shortcode_images );
+
+		return $images;
+	}
+
+	/**
+	 * Extract images referenced in shortcode `ids` attributes.
+	 *
+	 * Handles classic WP gallery shortcode `[gallery ids="90,89"]` and any
+	 * other shortcode that stores attachment IDs in an `ids` attribute.
+	 *
+	 * @param string $content Post content.
+	 * @return array Array of image data
+	 */
+	private static function extract_images_from_shortcodes( $content ) {
+		$images = array();
+
+		// Match shortcodes that have an `ids` attribute, e.g.
+		// [gallery ids="90,89"] or [gallery ids='90,89' columns="2"]
+		if ( ! preg_match_all( '/\[\w[^\]]*\bids=["\']([\d,\s]+)["\'][^\]]*\]/i', $content, $matches ) ) {
+			return $images;
+		}
+
+		foreach ( $matches[1] as $ids_string ) {
+			$ids = array_filter( array_map( 'intval', explode( ',', $ids_string ) ) );
+			foreach ( $ids as $attachment_id ) {
+				$image_data = self::prepare_image_data( $attachment_id, 'shortcode_gallery' );
+				if ( $image_data ) {
+					$images[] = $image_data;
+				}
+			}
+		}
+
 		return $images;
 	}
 
