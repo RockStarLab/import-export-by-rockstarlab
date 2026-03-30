@@ -137,6 +137,27 @@ class Database_Table_Exporter extends Abstract_Exporter {
 	}
 
 	/**
+	 * Get a stable column name for ordering results.
+	 *
+	 * @param string $table_name Table name.
+	 * @return string
+	 */
+	protected function get_order_column( $table_name ) {
+		$columns = $this->get_table_columns( $table_name );
+		if ( empty( $columns ) ) {
+			return '';
+		}
+
+		foreach ( $columns as $column ) {
+			if ( ! empty( $column['is_primary'] ) ) {
+				return $column['name'];
+			}
+		}
+
+		return $columns[0]['name'] ?? '';
+	}
+
+	/**
 	 * Check if column type is numeric
 	 *
 	 * @param string $type Column type
@@ -274,9 +295,15 @@ class Database_Table_Exporter extends Abstract_Exporter {
 
 		$this->log_info( "Querying table: {$table_name}" );
 
-		// Fetch all rows
+		// Fetch all rows (stable ordering for deterministic exports).
+		$order_column = $this->get_order_column( $table_name );
+		$sql          = 'SELECT * FROM `%1s`';
+		if ( ! empty( $order_column ) ) {
+			$sql .= " ORDER BY `{$order_column}`";
+		}
+
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM `%1s`', $table_name ), ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQLPlaceholders.UnquotedComplexPlaceholder -- Direct DB query required here. Placeholder handled correctly.
+		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $table_name ), ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQLPlaceholders.UnquotedComplexPlaceholder -- Direct DB query required here. Placeholder handled correctly.
 
 		if ( empty( $rows ) ) {
 			return [];

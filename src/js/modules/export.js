@@ -418,13 +418,27 @@ const ExportModule = {
 			options: options,
 		} );
 
-		$count.text( response.count || 0 );			// Update next button state based on count
-			this.updateStep2NextButton();
-		} catch ( error ) {
-			$count.text( '-' );
-			
-			// Disable next button on error
-			this.updateStep2NextButton();
+		$count.text( response.count || 0 );
+		// If database table is selected, also update table row count in the info panel
+		if ( contentType === 'database_table' ) {
+			const $tableRowCount = jQuery( '.aie-table-row-count' );
+			if ( $tableRowCount.length ) {
+				$tableRowCount.text( response.count || 0 );
+			}
+		}
+		// Update next button state based on count
+		this.updateStep2NextButton();
+	} catch ( error ) {
+		$count.text( '-' );
+		if ( contentType === 'database_table' ) {
+			const $tableRowCount = jQuery( '.aie-table-row-count' );
+			if ( $tableRowCount.length ) {
+				$tableRowCount.text( '-' );
+			}
+		}
+		
+		// Disable next button on error
+		this.updateStep2NextButton();
 		} finally {
 			$spinner.removeClass( 'is-active' );
 			$refreshBtn.removeClass( 'is-refreshing' );
