@@ -7,3 +7,5 @@ npm-debug.log*
 .AppleDouble
 .LSOverride
 temp
+e2e
+*.e2e
