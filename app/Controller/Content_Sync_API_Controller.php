@@ -263,7 +263,7 @@ class Content_Sync_API_Controller {
 				// If mapped to "new" or null, create new post (target_post_id stays null)
 			} else {
 				// No mapping provided, use default logic (find by original ID)
-				$target_post_id = $this->find_existing_post( $source_post_id );
+				$target_post_id = $this->find_existing_post( $post_data );
 			}
 			
 			// Check if images referenced in content exist
@@ -473,6 +473,30 @@ class Content_Sync_API_Controller {
 					);
 				}
 			}
+
+			// Import WooCommerce product variations and recalculate the variable
+			// product price range so the remote site shows the correct prices.
+			if ( 'product' === $post_data['post_type']
+				&& ! empty( $post_data['variations'] )
+				&& class_exists( 'WC_Product' )
+				&& function_exists( 'wc_get_product' )
+			) {
+				$this->import_product_variations( $post_id, $post_data['variations'], (array) $image_map );
+			}
+
+			// Import WooCommerce grouped product children and remap _children meta.
+			// Children are regular products whose IDs differ between sites, so we
+			// must import them and rewrite the _children meta with local IDs.
+			if ( 'product' === $post_data['post_type']
+				&& ! empty( $post_data['grouped_children'] )
+				&& class_exists( 'WC_Product' )
+				&& function_exists( 'wc_get_product' )
+			) {
+				$local_child_ids = $this->import_grouped_children( $post_id, $post_data['grouped_children'], (array) $image_map );
+				if ( ! empty( $local_child_ids ) ) {
+					update_post_meta( $post_id, '_children', $local_child_ids );
+				}
+			}
 		}
 
 		$total_processed = $imported_count + $updated_count;
@@ -657,21 +681,244 @@ class Content_Sync_API_Controller {
 	}
 
 	/**
-	 * Find existing post by original post ID only
+	 * Import WooCommerce product variations and recalculate the variable product
+	 * price range so the remote site displays the correct prices.
 	 *
-	 * @param array $post_data Post data from remote site.
-	 * @return \WP_Post|null Existing post or null
+	 * @param int   $parent_post_id Local product post ID.
+	 * @param array $variations     Variation data from the source site.
+	 * @param array $image_map      Source attachment ID → local attachment ID map.
+	 * @return void
+	 */
+	private function import_product_variations( $parent_post_id, $variations, $image_map ) {
+		if ( empty( $variations ) ) {
+			return;
+		}
+
+		// Build a map of source-variation-ID → existing local variation ID so we
+		// can update existing variations instead of always creating new ones.
+		$source_to_local = array();
+		$existing_local_var_ids = get_posts(
+			array(
+				'post_type'      => 'product_variation',
+				'post_parent'    => $parent_post_id,
+				'post_status'    => 'any',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+			)
+		);
+
+		foreach ( $existing_local_var_ids as $local_var_id ) {
+			$orig_id = (int) get_post_meta( $local_var_id, '_aie_original_post_id', true );
+			if ( $orig_id ) {
+				$source_to_local[ $orig_id ] = (int) $local_var_id;
+			}
+		}
+
+		// Track which source variation IDs were processed so we can remove stale ones.
+		$processed_source_ids = array();
+
+		foreach ( $variations as $variation_data ) {
+			$source_var_id = (int) ( isset( $variation_data['ID'] ) ? $variation_data['ID'] : 0 );
+
+			$variation_args = array(
+				'post_title'  => isset( $variation_data['post_title'] )  ? $variation_data['post_title']  : '',
+				'post_name'   => isset( $variation_data['post_name'] )   ? $variation_data['post_name']   : '',
+				'post_status' => isset( $variation_data['post_status'] ) ? $variation_data['post_status'] : 'publish',
+				'post_type'   => 'product_variation',
+				'post_parent' => $parent_post_id,
+				'menu_order'  => isset( $variation_data['menu_order'] )  ? (int) $variation_data['menu_order'] : 0,
+			);
+
+			if ( $source_var_id && isset( $source_to_local[ $source_var_id ] ) ) {
+				// Update existing variation.
+				$variation_args['ID'] = $source_to_local[ $source_var_id ];
+				$local_var_id         = wp_update_post( $variation_args );
+			} else {
+				// Create new variation.
+				$local_var_id = wp_insert_post( $variation_args );
+				if ( $local_var_id && ! is_wp_error( $local_var_id ) && $source_var_id ) {
+					update_post_meta( $local_var_id, '_aie_original_post_id', $source_var_id );
+				}
+			}
+
+			if ( is_wp_error( $local_var_id ) || ! $local_var_id ) {
+				continue;
+			}
+
+			if ( $source_var_id ) {
+				$processed_source_ids[] = $source_var_id;
+			}
+
+			// Import variation meta.
+			if ( ! empty( $variation_data['meta'] ) ) {
+				$var_meta = $variation_data['meta'];
+
+				// Replace source attachment IDs with local ones.
+				if ( ! empty( $image_map ) ) {
+					$var_meta = \WP_AIE\Helper\Content_Sync_Replacer::replace_in_meta_public(
+						$var_meta,
+						'', // Domain replacement already done on the sender side.
+						'',
+						$image_map
+					);
+				}
+
+				foreach ( $var_meta as $key => $value ) {
+					if ( in_array( $key, array( '_edit_lock', '_edit_last' ), true ) ) {
+						continue;
+					}
+					update_post_meta( $local_var_id, $key, $value );
+				}
+			}
+		}
+
+		// Delete stale local variations that no longer exist on the source site.
+		foreach ( $existing_local_var_ids as $local_var_id ) {
+			$orig_id = (int) get_post_meta( $local_var_id, '_aie_original_post_id', true );
+			if ( $orig_id && ! in_array( $orig_id, $processed_source_ids, true ) ) {
+				wp_delete_post( (int) $local_var_id, true );
+			}
+		}
+
+		// Recalculate the variable product's price range from the synced variations.
+		// This updates _price, _min_variation_price, _max_variation_price, etc.
+		if ( function_exists( 'wc_get_product' ) && class_exists( 'WC_Product_Variable' ) ) {
+			$wc_product = wc_get_product( $parent_post_id );
+			if ( $wc_product && $wc_product->is_type( 'variable' ) ) {
+				\WC_Product_Variable::sync( $wc_product );
+			}
+		}
+	}
+
+	/**
+	 * Import WooCommerce grouped product children (regular product posts) and
+	 * return an array of local post IDs in the same order as the source list.
+	 *
+	 * @param int   $parent_post_id Local grouped product post ID.
+	 * @param array $children       Array of child product data from the source site.
+	 * @param array $image_map      Source attachment ID → local attachment ID map.
+	 * @return int[] Array of local child product post IDs.
+	 */
+	private function import_grouped_children( $parent_post_id, $children, $image_map ) {
+		$local_child_ids = array();
+
+		foreach ( $children as $child_data ) {
+			$source_child_id = (int) ( $child_data['ID'] ?? 0 );
+
+			// Try to find an existing local product that was previously synced
+			// from this source child.
+			$local_child_id = null;
+			if ( $source_child_id ) {
+				$existing = get_posts(
+					array(
+						'post_type'      => 'product',
+						'posts_per_page' => 1,
+						'post_status'    => 'any',
+						'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery
+							array(
+								'key'   => '_aie_original_post_id',
+								'value' => $source_child_id,
+							),
+						),
+					)
+				);
+				if ( ! empty( $existing ) ) {
+					$local_child_id = (int) $existing[0]->ID;
+				}
+			}
+
+			$child_args = array(
+				'post_title'   => $child_data['post_title']   ?? '',
+				'post_name'    => $child_data['post_name']    ?? '',
+				'post_content' => $child_data['post_content'] ?? '',
+				'post_excerpt' => $child_data['post_excerpt'] ?? '',
+				'post_status'  => $child_data['post_status']  ?? 'publish',
+				'post_type'    => 'product',
+				'menu_order'   => (int) ( $child_data['menu_order'] ?? 0 ),
+			);
+
+			if ( $local_child_id ) {
+				$child_args['ID'] = $local_child_id;
+				$result           = wp_update_post( $child_args );
+			} else {
+				$result = wp_insert_post( $child_args );
+				if ( $result && ! is_wp_error( $result ) && $source_child_id ) {
+					update_post_meta( $result, '_aie_original_post_id', $source_child_id );
+				}
+				$local_child_id = $result;
+			}
+
+			if ( is_wp_error( $result ) || ! $result ) {
+				continue;
+			}
+
+			// Import child meta.
+			if ( ! empty( $child_data['meta'] ) ) {
+				$child_meta = $child_data['meta'];
+				if ( ! empty( $image_map ) ) {
+					$child_meta = \WP_AIE\Helper\Content_Sync_Replacer::replace_in_meta_public(
+						$child_meta,
+						'',
+						'',
+						$image_map
+					);
+				}
+				foreach ( $child_meta as $key => $value ) {
+					if ( in_array( $key, array( '_edit_lock', '_edit_last' ), true ) ) {
+						continue;
+					}
+					update_post_meta( $local_child_id, $key, $value );
+				}
+			}
+
+			// Import child terms.
+			if ( ! empty( $child_data['terms'] ) ) {
+				foreach ( $child_data['terms'] as $taxonomy => $terms_info ) {
+					if ( ! taxonomy_exists( $taxonomy ) ) {
+						continue;
+					}
+					$term_ids = array();
+					foreach ( $terms_info as $term_info ) {
+						if ( empty( $term_info['name'] ) || empty( $term_info['slug'] ) ) {
+							continue;
+						}
+						$existing_term = get_term_by( 'slug', $term_info['slug'], $taxonomy );
+						if ( $existing_term ) {
+							wp_update_term( $existing_term->term_id, $taxonomy, array( 'name' => $term_info['name'] ) );
+							$term_ids[] = (int) $existing_term->term_id;
+						} else {
+							$new_term = wp_insert_term( $term_info['name'], $taxonomy, array( 'slug' => $term_info['slug'] ) );
+							if ( ! is_wp_error( $new_term ) ) {
+								$term_ids[] = (int) $new_term['term_id'];
+							}
+						}
+					}
+					wp_set_object_terms( $local_child_id, $term_ids, $taxonomy );
+				}
+			}
+
+			$local_child_ids[] = (int) $local_child_id;
+		}
+
+		return $local_child_ids;
+	}
+
+	/**
+	 * Find an existing local post that was previously synced from the given source post.
+	 *
+	 * @param array $post_data Post data from the remote site (must contain 'ID' and 'post_type').
+	 * @return int|null Local post ID if found, null otherwise.
 	 */
 	private function find_existing_post( $post_data ) {
 		// Only search by original post ID stored in meta
-		if ( ! isset( $post_data['ID'] ) ) {
+		if ( ! isset( $post_data['ID'] ) || ! isset( $post_data['post_type'] ) ) {
 			return null;
 		}
 
 		$posts = get_posts(
 			array(
 				'post_type'      => $post_data['post_type'],
-				'posts_per_page' => -1, // Get all to debug
+				'posts_per_page' => 1,
 				'post_status'    => 'any',
 				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 					array(
@@ -682,12 +929,8 @@ class Content_Sync_API_Controller {
 			)
 		);
 
-		
 		if ( ! empty( $posts ) ) {
-			foreach ( $posts as $post ) {
-				$original_id = get_post_meta( $post->ID, '_aie_original_post_id', true );
-			}
-			return $posts[0];
+			return (int) $posts[0]->ID;
 		}
 
 		return null;
