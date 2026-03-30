@@ -800,13 +800,18 @@ class Content_Sync_API_Controller {
 							$term_images = $this->extract_term_acf_images( $term_info['acf'] );
 							foreach ( $term_images as $image_id ) {
 								if ( ! isset( $all_images[ $image_id ] ) ) {
-									$image_data = array(
-										'attachment_id' => $image_id,
-										'url'           => wp_get_attachment_url( $image_id ),
-										'type'          => 'term_acf',
-										'term_id'       => $term->term_id,
-										'taxonomy'      => $taxonomy,
-									);
+									// Use prepare_image_data to include file_hash for proper dedup on receiving side.
+									$image_data = \WP_AIE\Helper\Content_Sync_Media::prepare_image_data( $image_id, 'term_acf' );
+									if ( ! $image_data ) {
+										// Fallback if file is missing on disk.
+										$image_data = array(
+											'attachment_id' => $image_id,
+											'url'           => wp_get_attachment_url( $image_id ),
+											'type'          => 'term_acf',
+										);
+									}
+									$image_data['term_id']  = $term->term_id;
+									$image_data['taxonomy'] = $taxonomy;
 									$all_images[ $image_id ] = $image_data;
 								}
 							}
