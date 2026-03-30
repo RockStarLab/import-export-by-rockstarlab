@@ -498,7 +498,7 @@ class Content_Sync_Media {
 	 * @param string $context Context where image was found.
 	 * @return array|null Image data or null
 	 */
-	private static function prepare_image_data( $attachment_id, $context = '' ) {
+	public static function prepare_image_data( $attachment_id, $context = '' ) {
 		$attachment = get_post( $attachment_id );
 
 		if ( ! $attachment || 'attachment' !== $attachment->post_type ) {

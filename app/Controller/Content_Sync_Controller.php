@@ -1106,13 +1106,18 @@ class Content_Sync_Controller extends Base_Controller {
 							$term_images = $this->extract_term_acf_images( $term_info['acf'] );
 							foreach ( $term_images as $image_id ) {
 								if ( ! isset( $all_images[ $image_id ] ) ) {
-									$image_data = array(
-										'attachment_id' => $image_id,
-										'url'           => wp_get_attachment_url( $image_id ),
-										'type'          => 'term_acf',
-										'term_id'       => $term->term_id,
-										'taxonomy'      => $taxonomy,
-									);
+									// Use prepare_image_data to include file_hash for proper dedup on receiving side.
+									$image_data = \WP_AIE\Helper\Content_Sync_Media::prepare_image_data( $image_id, 'term_acf' );
+									if ( ! $image_data ) {
+										// Fallback if file is missing on disk.
+										$image_data = array(
+											'attachment_id' => $image_id,
+											'url'           => wp_get_attachment_url( $image_id ),
+											'type'          => 'term_acf',
+										);
+									}
+									$image_data['term_id']  = $term->term_id;
+									$image_data['taxonomy'] = $taxonomy;
 									$all_images[ $image_id ]     = $image_data;
 									$image_context[ $image_id ][] = 'term_' . $term->term_id;
 								}
@@ -1686,7 +1691,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * @return int|false New attachment ID or false on failure
 	 */
 	private function download_image_from_remote( $image, $site ) {
-		// Check if image already exists by hash
+		// Check if image already exists by hash (fast path using stored meta).
 		if ( ! empty( $image['file_hash'] ) ) {
 			$existing_id = $this->find_attachment_by_hash( $image['file_hash'] );
 			if ( $existing_id ) {
@@ -1706,6 +1711,20 @@ class Content_Sync_Controller extends Base_Controller {
 		$file_contents = wp_remote_retrieve_body( $response );
 		if ( empty( $file_contents ) ) {
 			return false;
+		}
+
+		// Compute actual hash from downloaded bytes.
+		// This covers two scenarios:
+		// 1. file_hash was missing in the request (e.g. term-ACF images from older remotes).
+		// 2. Race condition: two concurrent pull requests both passed the initial hash
+		//    check above before either saved the attachment. Re-checking here after the
+		//    download gives the second request a chance to detect the attachment created
+		//    by the first one and reuse it instead of creating a duplicate.
+		$actual_hash  = md5( $file_contents );
+		$existing_id  = $this->find_attachment_by_hash( $actual_hash );
+		if ( $existing_id ) {
+			\WP_AIE\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
+			return $existing_id;
 		}
 
 		// Get filename
@@ -1741,35 +1760,63 @@ class Content_Sync_Controller extends Base_Controller {
 			update_post_meta( $attachment_id, '_wp_attachment_image_alt', $image['alt_text'] );
 		}
 
-		// Store file hash
-		if ( ! empty( $image['file_hash'] ) ) {
-			update_post_meta( $attachment_id, '_aie_file_hash', $image['file_hash'] );
-		}
+		// Always store the actual hash (covers missing file_hash in request).
+		update_post_meta( $attachment_id, '_aie_file_hash', $actual_hash );
 
 		return $attachment_id;
 	}
 
 	/**
 	 * Find attachment by file hash
-	 * // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-	 * @param string $file_hash File MD5 hash. // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+	 *
+	 * First checks for a stored _aie_file_hash meta (fast).
+	 * Falls back to scanning all attachments on disk so that images already
+	 * present in the library (uploaded manually or before hash storage was
+	 * introduced) are detected and not duplicated.
+	 *
+	 * @param string $file_hash File MD5 hash.
 	 * @return int|false Attachment ID or false if not found
 	 */
 	private function find_attachment_by_hash( $file_hash ) {
-		// Try to find by stored hash first
-		$attachments = get_posts(
+		global $wpdb;
+
+		// Fast path: look up stored hash meta.
+		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			$wpdb->prepare(
+				"SELECT post_id FROM {$wpdb->postmeta}
+				WHERE meta_key = '_aie_file_hash'
+				AND meta_value = %s
+				LIMIT 1",
+				$file_hash
+			)
+		);
+
+		if ( $attachment_id ) {
+			return (int) $attachment_id;
+		}
+
+		// Slow fallback: hash every attachment file on disk.
+		// This handles images that existed before _aie_file_hash was stored
+		// (e.g. manually uploaded or imported by another plugin).
+		$all_attachment_ids = get_posts(
 			array(
 				'post_type'      => 'attachment',
 				'post_status'    => 'any',
-				'posts_per_page' => 1,
-				'meta_key'       => '_aie_file_hash', // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_key required for filtering.
-				'meta_value'     => $file_hash, // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_value required for filtering.
+				'posts_per_page' => -1,
 				'fields'         => 'ids',
 			)
 		);
 
-		if ( ! empty( $attachments ) ) {
-			return $attachments[0];
+		foreach ( $all_attachment_ids as $att_id ) {
+			$file_path = get_attached_file( $att_id );
+			if ( $file_path && file_exists( $file_path ) ) {
+				$hash = md5_file( $file_path );
+				if ( $hash === $file_hash ) {
+					// Cache the hash so future lookups are instant.
+					update_post_meta( $att_id, '_aie_file_hash', $file_hash );
+					return $att_id;
+				}
+			}
 		}
 
 		return false;
