@@ -1264,11 +1264,19 @@ const ContentUpdater = {
 		
 		// Add fields
 		if ( group.options && Array.isArray( group.options ) ) {
+			// ID fields that must not be editable in the Content Updater
+			const idFields = [ 'ID', 'comment_ID', 'term_id' ];
+
 			group.options.forEach( option => {
 				// Skip special filter types
 				if ( option.type === 'custom_field' || option.type === 'taxonomy_filter' || 
 					option.type === 'post_type_selector' || option.type === 'taxonomy_selector' || 
 					option.type === 'table_selector' ) {
+					return;
+				}
+
+				// Skip ID fields — record IDs must not be updated
+				if ( idFields.includes( option.value ) ) {
 					return;
 				}
 				
