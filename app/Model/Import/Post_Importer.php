@@ -124,6 +124,98 @@ class Post_Importer extends Abstract_Importer {
 	}
 
 	/**
+	 * Normalize flat prefixed columns into nested structures.
+	 *
+	 * When the auto-mapper maps CSV columns such as `taxonomy_category`,
+	 * `taxonomy_post_tag`, `meta_button_group`, `acf_text_field`, etc. it
+	 * keeps them as top-level keys in the prepared item.  This method
+	 * collects those keys and moves their values into the `taxonomies` and
+	 * `post_meta` sub-arrays that the rest of the importer expects.
+	 *
+	 * Rules:
+	 *  - `taxonomy_<slug>`  → $item['taxonomies']['<slug>']
+	 *  - `meta_<key>`       → $item['post_meta']['<key>']
+	 *  - `acf_<key>`        → $item['post_meta']['<key>']   (ACF stores values as regular post meta)
+	 *
+	 * @param array $item Prepared item data.
+	 * @return array Item with taxonomies / post_meta populated.
+	 */
+	private function normalize_prefixed_columns( array $item ): array {
+		$taxonomy_formats = $item['_taxonomy_formats'] ?? [];
+		unset( $item['_taxonomy_formats'] );
+
+		if ( ! isset( $item['post_meta'] ) || ! is_array( $item['post_meta'] ) ) {
+			$item['post_meta'] = [];
+		}
+		if ( ! isset( $item['taxonomies'] ) || ! is_array( $item['taxonomies'] ) ) {
+			$item['taxonomies'] = [];
+		}
+		// Track which post_meta keys came from acf_* columns so the importer
+		// can use update_field() for them (stores the ACF reference key _field_name).
+		if ( ! isset( $item['_acf_field_names'] ) || ! is_array( $item['_acf_field_names'] ) ) {
+			$item['_acf_field_names'] = [];
+		}
+
+		// ── Pass 1: taxonomy_* and meta_* (lower priority) ────────────────────
+		foreach ( array_keys( $item ) as $key ) {
+			$value = $item[ $key ] ?? '';
+			if ( '' === $value || null === $value ) {
+				if ( 0 === strpos( $key, 'taxonomy_' ) || 0 === strpos( $key, 'meta_' ) ) {
+					unset( $item[ $key ] );
+				}
+				continue;
+			}
+
+			if ( 0 === strpos( $key, 'taxonomy_' ) ) {
+				$taxonomy = substr( $key, strlen( 'taxonomy_' ) );
+				if ( '' !== $taxonomy && ! isset( $item['taxonomies'][ $taxonomy ] ) ) {
+					$item['taxonomies'][ $taxonomy ] = [
+						'terms'  => $value,
+						'format' => $taxonomy_formats[ $key ] ?? 'name',
+					];
+				}
+				unset( $item[ $key ] );
+				continue;
+			}
+
+			if ( 0 === strpos( $key, 'meta_' ) ) {
+				$meta_key = substr( $key, strlen( 'meta_' ) );
+				if ( '' !== $meta_key && ! isset( $item['post_meta'][ $meta_key ] ) ) {
+					$item['post_meta'][ $meta_key ] = $value;
+				}
+				unset( $item[ $key ] );
+				continue;
+			}
+		}
+
+		// ── Pass 2: acf_* (higher priority — overrides meta_* for same key) ───
+		// acf_* columns export more portable data: URLs for images/files,
+		// typed JSON {acf_type:"gallery/relation/taxonomy",...} for complex fields.
+		foreach ( array_keys( $item ) as $key ) {
+			$value = $item[ $key ] ?? '';
+			if ( '' === $value || null === $value ) {
+				if ( 0 === strpos( $key, 'acf_' ) ) {
+					unset( $item[ $key ] );
+				}
+				continue;
+			}
+
+			if ( 0 === strpos( $key, 'acf_' ) ) {
+				$meta_key = substr( $key, strlen( 'acf_' ) );
+				if ( '' !== $meta_key ) {
+					// Always override meta_* values: acf_* data is more portable
+					$item['post_meta'][ $meta_key ]    = $value;
+					$item['_acf_field_names'][ $meta_key ] = true;
+				}
+				unset( $item[ $key ] );
+				continue;
+			}
+		}
+
+		return $item;
+	}
+
+	/**
 	 * Import single post
 	 *
 	 * @param array $item  Post data
@@ -133,6 +225,10 @@ class Post_Importer extends Abstract_Importer {
 	public function import_item( $item, $index ) {
 		// Sanitize data
 		$item = $this->sanitize_item( $item );
+
+		// Normalize flat prefixed columns produced by the auto-mapper
+		// (e.g. taxonomy_category, meta_*, acf_*) into nested structures.
+		$item = $this->normalize_prefixed_columns( $item );
 
 		// Check for duplicates
 		$existing_post = $this->find_existing_post( $item );
@@ -216,7 +312,7 @@ class Post_Importer extends Abstract_Importer {
 
 		// Import post meta
 		if ( ! empty( $item['post_meta'] ) ) {
-			$this->import_post_meta( $post_id, $item['post_meta'] );
+			$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? [] );
 		}
 
 		// Auto-import media from ACF fields if enabled
@@ -261,7 +357,7 @@ class Post_Importer extends Abstract_Importer {
 
 		// Update post meta
 		if ( ! empty( $item['post_meta'] ) ) {
-			$this->import_post_meta( $post_id, $item['post_meta'] );
+			$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? [] );
 		}
 
 		// Auto-import media from ACF fields if enabled
@@ -348,17 +444,164 @@ class Post_Importer extends Abstract_Importer {
 	/**
 	 * Import post meta
 	 *
-	 * @param int   $post_id Post ID
-	 * @param array $meta    Meta data (key => value)
+	 * @param int   $post_id   Post ID
+	 * @param array $meta      Meta data (key => value)
+	 * @param array $acf_keys  Keys that originated from acf_* CSV columns.
+	 *                         When ACF is active, update_field() is used for these
+	 *                         keys so the ACF reference meta (_field_name) is stored
+	 *                         automatically and the field is recognised on this site.
 	 */
-	private function import_post_meta( $post_id, $meta ) {
+	private function import_post_meta( $post_id, $meta, $acf_keys = [] ) {
 		if ( ! is_array( $meta ) ) {
 			return;
 		}
 
+		$has_acf = function_exists( 'update_field' );
+
 		foreach ( $meta as $key => $value ) {
-			update_post_meta( $post_id, $key, $value );
+			// The CSV stores complex ACF values (arrays/objects) in two formats:
+			//
+			// 1. PHP serialized — "a:2:{s:4:"type";...}" — written by the ACF exporter
+			//    branch that calls maybe_serialize() for array values without 'url'/'ID'.
+			//    update_post_meta() also calls maybe_serialize() internally, so passing a
+			//    serialized string produces DOUBLE serialization.
+			//
+			// 2. JSON — '{"type":"dashicons","value":"..."}' or the typed format produced by
+			//    our improved exporter: {"acf_type":"gallery/relation/taxonomy","values":[...]}
+			//
+			// Restore both formats to native PHP types, then resolve ACF-specific structures.
+			if ( is_string( $value ) && '' !== $value ) {
+				if ( is_serialized( $value ) ) {
+					// PHP serialized → array / scalar
+					$value = maybe_unserialize( $value );
+				} elseif ( ( '{' === $value[0] || '[' === $value[0] ) ) {
+					// Looks like JSON — try to decode.
+					$decoded = json_decode( $value, true );
+					if ( null !== $decoded ) {
+						$value = $decoded;
+					}
+				}
+			}
+
+			// Resolve ACF-specific structures (typed JSON, media URLs, etc.)
+			$value = $this->resolve_acf_meta_value( $value, $post_id );
+
+			// For ACF fields, use update_field() so ACF stores the reference key
+			// (_field_name = 'field_abc123') automatically.  This makes the field
+			// visible and editable in the WordPress admin on this site.
+			if ( $has_acf && isset( $acf_keys[ $key ] ) ) {
+				update_field( $key, $value, $post_id );
+			} else {
+				update_post_meta( $post_id, $key, $value );
+			}
 		}
+	}
+
+	/**
+	 * Resolve an ACF meta value to its importable form.
+	 *
+	 * Handles three cases after unserialize/JSON-decode:
+	 *
+	 *  1. Typed JSON array from our improved exporter:
+	 *     {"acf_type":"gallery",  "values":["url1","url2",...]}  → downloads each URL, returns int[]
+	 *     {"acf_type":"relation", "values":["slug1","slug2",...]} → looks up post IDs by slug
+	 *     {"acf_type":"taxonomy", "values":["Name1",...], "taxonomy":"cat"} → finds/creates term IDs
+	 *
+	 *  2. Single string that is a media-file URL (jpg/png/pdf/etc.) → downloads, returns int ID
+	 *
+	 *  3. Everything else → returned unchanged.
+	 *
+	 * @param mixed $value   Already-decoded meta value.
+	 * @param int   $post_id Post ID (used as attachment parent).
+	 * @return mixed Resolved value ready for update_post_meta().
+	 */
+	private function resolve_acf_meta_value( $value, int $post_id ) {
+		// ── 1. Typed JSON from our improved exporter ──────────────────────────
+		if ( is_array( $value ) && isset( $value['acf_type'] ) ) {
+			$type   = $value['acf_type'];
+			$values = $value['values'] ?? [];
+
+			switch ( $type ) {
+				case 'gallery':
+					// Array of image/file URLs → download each and collect new attachment IDs.
+					$ids = [];
+					foreach ( $values as $url ) {
+						if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+							continue;
+						}
+						$id = $this->import_media_from_url( $url, $post_id );
+						if ( $id && ! is_wp_error( $id ) ) {
+							$ids[] = (int) $id;
+						}
+					}
+					return $ids;
+
+				case 'relation':
+					// Array of post slugs → look up post IDs on this site.
+					$ids = [];
+					foreach ( $values as $slug ) {
+						$posts = get_posts(
+							[
+								'name'           => sanitize_title( $slug ),
+								'post_type'      => 'any',
+								'posts_per_page' => 1,
+								'fields'         => 'ids',
+							]
+						);
+						if ( ! empty( $posts ) ) {
+							$ids[] = (int) $posts[0];
+						}
+					}
+					return ! empty( $ids ) ? $ids : $values;
+
+				case 'taxonomy':
+					// Array of term names → find or create terms, return IDs.
+					$taxonomy = $value['taxonomy'] ?? '';
+					$ids      = [];
+					foreach ( $values as $name ) {
+						$name = trim( (string) $name );
+						if ( '' === $name ) {
+							continue;
+						}
+						// Search across all taxonomies if none specified
+						if ( $taxonomy ) {
+							$term = get_term_by( 'name', $name, $taxonomy );
+							if ( ! $term ) {
+								$result = wp_insert_term( $name, $taxonomy );
+								$term   = ! is_wp_error( $result ) ? get_term( $result['term_id'] ) : null;
+							}
+						} else {
+							// No taxonomy hint — try a broad search
+							$terms = get_terms( [ 'name' => $name, 'hide_empty' => false ] );
+							$term  = ! is_wp_error( $terms ) && ! empty( $terms ) ? $terms[0] : null;
+						}
+						if ( $term ) {
+							$ids[] = (int) $term->term_id;
+						}
+					}
+					return ! empty( $ids ) ? $ids : $values;
+			}
+		}
+
+		// ── 2. Single string that looks like a downloadable media URL ─────────
+		// Applies to ACF image and file fields exported as bare URLs
+		// (e.g. acf_image_field = 'http://source.local/.../photo.jpg').
+		// We detect media by file extension to avoid downloading page/oembed URLs.
+		if ( is_string( $value ) && '' !== $value && filter_var( $value, FILTER_VALIDATE_URL ) ) {
+			$ext = strtolower( pathinfo( wp_parse_url( $value, PHP_URL_PATH ) ?? '', PATHINFO_EXTENSION ) );
+			$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
+			if ( in_array( $ext, $media_exts, true ) ) {
+				// Skip if already on this site
+				if ( 0 !== strpos( $value, site_url() ) ) {
+					$id = $this->import_media_from_url( $value, $post_id );
+					if ( $id && ! is_wp_error( $id ) ) {
+						return (int) $id;
+					}
+				}
+			}
+		}
+
+		return $value;
 	}
 
 	/**
@@ -372,17 +615,75 @@ class Post_Importer extends Abstract_Importer {
 			return;
 		}
 
-		foreach ( $taxonomies as $taxonomy => $terms ) {
+		foreach ( $taxonomies as $taxonomy => $terms_data ) {
 			if ( ! taxonomy_exists( $taxonomy ) ) {
 				continue;
 			}
 
-			// Terms can be array of IDs, names, or slugs
-			if ( is_string( $terms ) ) {
-				$terms = array_map( 'trim', explode( ',', $terms ) );
+			// Support both plain value and enriched [ 'terms' => ..., 'format' => ... ] from normalize_prefixed_columns.
+			$format = 'name';
+			if ( is_array( $terms_data ) && isset( $terms_data['terms'] ) ) {
+				$format     = $terms_data['format'] ?? 'name';
+				$terms_data = $terms_data['terms'];
 			}
 
-			wp_set_object_terms( $post_id, $terms, $taxonomy );
+			// Terms can be array of IDs, names, or slugs
+			if ( is_string( $terms_data ) ) {
+				$terms_data = array_map( 'trim', explode( ',', $terms_data ) );
+			}
+
+			// Remove empty values that come from empty CSV cells
+			$terms_data = array_filter( $terms_data, fn( $t ) => '' !== (string) $t );
+
+			if ( empty( $terms_data ) ) {
+				continue;
+			}
+
+			// Resolve terms by the declared format so we always pass IDs to
+			// wp_set_object_terms (most reliable approach).
+			$term_ids = [];
+			foreach ( $terms_data as $term_value ) {
+				$term_value = trim( (string) $term_value );
+				if ( '' === $term_value ) {
+					continue;
+				}
+
+				switch ( $format ) {
+					case 'id':
+						$term_ids[] = (int) $term_value;
+						break;
+
+					case 'slug':
+						$term = get_term_by( 'slug', $term_value, $taxonomy );
+						if ( $term ) {
+							$term_ids[] = $term->term_id;
+						} else {
+							// Create term with this slug
+							$result = wp_insert_term( $term_value, $taxonomy, [ 'slug' => $term_value ] );
+							if ( ! is_wp_error( $result ) ) {
+								$term_ids[] = $result['term_id'];
+							}
+						}
+						break;
+
+					default: // 'name' and fallback
+						$term = get_term_by( 'name', $term_value, $taxonomy );
+						if ( $term ) {
+							$term_ids[] = $term->term_id;
+						} else {
+							// Create term with this name
+							$result = wp_insert_term( $term_value, $taxonomy );
+							if ( ! is_wp_error( $result ) ) {
+								$term_ids[] = $result['term_id'];
+							}
+						}
+						break;
+				}
+			}
+
+			if ( ! empty( $term_ids ) ) {
+				wp_set_object_terms( $post_id, $term_ids, $taxonomy );
+			}
 		}
 	}
 
@@ -393,15 +694,37 @@ class Post_Importer extends Abstract_Importer {
 	 * @param string|int $image   Image URL, path, or attachment ID
 	 */
 	private function import_featured_image( $post_id, $image ) {
-		// If it's already an attachment ID
+		// Already a local attachment ID
 		if ( is_numeric( $image ) && get_post( $image ) ) {
 			set_post_thumbnail( $post_id, $image );
 			return;
 		}
 
-		// If it's a URL or path, we'd need Media_Importer
-		// For now, just log a warning
-		$this->log_warning( sprintf( 'Featured image import not yet implemented for URLs: %s', $image ) );
+		// URL — download and create attachment
+		if ( is_string( $image ) && filter_var( $image, FILTER_VALIDATE_URL ) ) {
+			// Skip if already on this site
+			if ( 0 === strpos( $image, site_url() ) ) {
+				// Might be a local URL, try to find attachment by URL
+				global $wpdb;
+				$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+					$wpdb->prepare(
+						"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key='_wp_attached_file' AND meta_value LIKE %s LIMIT 1",
+						'%' . $wpdb->esc_like( basename( $image ) )
+					)
+				);
+				if ( $attachment_id ) {
+					set_post_thumbnail( $post_id, (int) $attachment_id );
+					return;
+				}
+			}
+
+			$attachment_id = $this->import_media_from_url( $image, $post_id );
+			if ( $attachment_id && ! is_wp_error( $attachment_id ) ) {
+				set_post_thumbnail( $post_id, $attachment_id );
+			} else {
+				$this->log_warning( sprintf( 'Failed to import featured image from URL: %s', $image ) );
+			}
+		}
 	}
 
 	/**
