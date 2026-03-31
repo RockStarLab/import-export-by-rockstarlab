@@ -160,7 +160,7 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 *
 	 * Supports two mapping formats:
 	 *  - Legacy: [ 'source_field' => 'target_field', ... ]
-	 *  - UI format: [ ['source_field' => 'col', 'target_field' => 'wp_field', 'function_id' => ''], ... ]
+	 *  - UI format: [ ['source_field' => 'col', 'target_field' => 'wp_field', 'function_id' => '', 'taxonomy_format' => 'name'], ... ]
 	 *
 	 * @param array $raw_data Raw data from file
 	 * @param array $mapping  Optional. Field mapping
@@ -175,13 +175,18 @@ abstract class Abstract_Importer implements Importer_Interface {
 		$is_ui_format = isset( $mapping[0] ) && is_array( $mapping[0] ) && array_key_exists( 'source_field', $mapping[0] );
 
 		// Normalise to a flat [ source => target ] map.
-		$flat_map = [];
+		// Also collect taxonomy_format per target field.
+		$flat_map        = [];
+		$taxonomy_formats = []; // [ target_field => 'name'|'slug'|'id' ]
 		if ( $is_ui_format ) {
 			foreach ( $mapping as $entry ) {
 				$src = $entry['source_field'] ?? '';
 				$tgt = $entry['target_field'] ?? '';
 				if ( $src !== '' && $tgt !== '' ) {
 					$flat_map[ $src ] = $tgt;
+					if ( ! empty( $entry['taxonomy_format'] ) ) {
+						$taxonomy_formats[ $tgt ] = $entry['taxonomy_format'];
+					}
 				}
 			}
 		} else {
@@ -206,6 +211,11 @@ abstract class Abstract_Importer implements Importer_Interface {
 				if ( isset( $item[ $source_field ] ) ) {
 					$prepared_item[ $target_field ] = $item[ $source_field ];
 				}
+			}
+
+			// Carry taxonomy format info so importers can resolve term by name/slug/id.
+			if ( ! empty( $taxonomy_formats ) ) {
+				$prepared_item['_taxonomy_formats'] = $taxonomy_formats;
 			}
 
 			$prepared[] = $prepared_item;

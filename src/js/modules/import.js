@@ -18,6 +18,7 @@ const ImportModule = {
 	progressInterval: null,
 	fileUploader: null,
 	mappingFunctions: {},
+	importStartTime: null,
 
 	/**
 	 * Initialize module
@@ -2882,6 +2883,39 @@ const ImportModule = {
 
 		// Wait for DOM to be fully ready before mapping
 		setTimeout( () => {
+			// PASS 0: Auto-create target fields for prefixed source columns
+			// (taxonomy_*, meta_*, acf_*) that don't yet have a matching target.
+			// This lets Pass 1 (exact match) pick them up automatically.
+			jQuery( '.aie-field-card' ).each( ( index, sourceCard ) => {
+				const $sourceCard = jQuery( sourceCard );
+				const sourceField = $sourceCard.data( 'source-field' );
+				if ( ! sourceField ) return;
+
+				// Skip if a target field with this exact name already exists.
+				if ( jQuery( `.aie-target-field[data-target-field="${ sourceField }"]` ).length ) return;
+
+				let fieldType = null;
+				if ( sourceField.startsWith( 'taxonomy_' ) ) {
+					fieldType = 'taxonomy';
+				} else if ( sourceField.startsWith( 'acf_' ) ) {
+					fieldType = 'meta';
+				} else if ( sourceField.startsWith( 'meta_' ) ) {
+					fieldType = 'meta';
+				}
+
+				if ( ! fieldType ) return;
+
+				// Find the template group for this field type.
+				const $template = jQuery( `.aie-custom-field-template[data-field-type="${ fieldType }"]` ).first();
+				if ( ! $template.length ) return;
+
+				// For taxonomy fields, default format is 'name' (how this plugin exports terms).
+				const taxonomyFormat = ( fieldType === 'taxonomy' ) ? 'name' : '';
+
+				// Add a real target field with the full prefixed name so Pass 1 can exact-match it.
+				this.addCustomFieldToGroup( $template, sourceField, fieldType, false, taxonomyFormat );
+			} );
+
 			// PASS 1: Map exact matches first (highest priority)
 			jQuery( '.aie-field-card' ).each( ( index, sourceCard ) => {
 				const $sourceCard = jQuery( sourceCard );
@@ -3036,12 +3070,20 @@ const ImportModule = {
 			const sourceField = jQuery( `.aie-field-card[data-source-index="${ sourceIndex }"]` ).data( 'source-field' );
 
 			if ( sourceField && targetField ) {
-				mapping.push( {
+				const entry = {
 					source_index: sourceIndex,
 					source_field: sourceField,
 					target_field: targetField,
 					function_id: $row.data( 'function-id' ) || null,
-				} );
+				};
+
+				// Include taxonomy format when the target is a taxonomy field
+				const $targetEl = jQuery( `.aie-target-field[data-target-field="${ targetField }"]` );
+				if ( $targetEl.data( 'field-type' ) === 'taxonomy' || $targetEl.data( 'taxonomy-format' ) ) {
+					entry.taxonomy_format = $targetEl.data( 'taxonomy-format' ) || 'name';
+				}
+
+				mapping.push( entry );
 			}
 		} );
 
@@ -3084,7 +3126,7 @@ const ImportModule = {
 						':checked'
 					),
 					batch_size:
-						parseInt( jQuery( '[name="batch_size"]' ).val() ) || ( contentType === 'media' ? 1 : 50 ),
+						parseInt( jQuery( '[name="batch_size"]' ).val() ) || 1,
 					auto_import_media: jQuery( '#aie-auto-import-media' ).is( ':checked' ),
 					media_duplicate_mode: jQuery( 'input[name="media_duplicate_mode"]:checked' ).val() || 'skip',
 				}
@@ -3103,6 +3145,7 @@ const ImportModule = {
 			const response = await Utils.ajax( 'aie_import_start', data );
 
 			this.jobId = response.job_id;
+			this.importStartTime = Date.now();
 			this.showStep( 6 );
 			this.startBatchProcessing();
 
@@ -3122,14 +3165,35 @@ const ImportModule = {
 			} );
 
 			// Transform batch response to progress bar format
+			const elapsedSec = this.importStartTime ? ( Date.now() - this.importStartTime ) / 1000 : 0;
+			const percentage  = response.progress || 0;
+			const processed   = response.offset || 0;
+			const total       = response.result?.total || 0;
+
+			// items/sec based on elapsed time
+			const itemsPerSec = elapsedSec > 0 ? processed / elapsedSec : 0;
+
+			// Remaining estimate: based on items/sec and remaining items
+			let remainingSec = 0;
+			if ( itemsPerSec > 0 && total > processed ) {
+				remainingSec = ( total - processed ) / itemsPerSec;
+			}
+
+			const formatTime = ( sec ) => {
+				sec = Math.round( sec );
+				if ( sec < 60 )   return sec + 's';
+				if ( sec < 3600 ) return Math.floor( sec / 60 ) + 'm ' + ( sec % 60 ) + 's';
+				return Math.floor( sec / 3600 ) + 'h ' + Math.floor( ( sec % 3600 ) / 60 ) + 'm';
+			};
+
 			const progressData = {
-				percentage: response.progress || 0,
-				processed: response.offset || 0,
-				total: response.result?.total || 0,
+				percentage,
+				processed,
+				total,
 				estimates: {
-					elapsed_formatted: '',
-					remaining_formatted: '',
-					items_per_second: 0,
+					elapsed_formatted:   formatTime( elapsedSec ),
+					remaining_formatted: remainingSec > 0 ? formatTime( remainingSec ) : '-',
+					items_per_second:    itemsPerSec,
 				},
 			};
 
@@ -3187,13 +3251,24 @@ const ImportModule = {
 		jQuery( '.aie-result-skipped' ).text( result.skipped || 0 );
 		jQuery( '.aie-result-failed' ).text( result.failed || 0 );
 		
-		// Calculate duration
-		const jobData = response.job_data || {};
-		if ( jobData.started_at && jobData.completed_at ) {
-			const start = new Date( jobData.started_at );
-			const end = new Date( jobData.completed_at );
-			const duration = Math.round( ( end - start ) / 1000 );
-			jQuery( '.aie-result-duration' ).text( duration + 's' );
+		// Calculate duration using the client-side start time for accuracy.
+		// Fallback to server job timestamps only when the page was refreshed
+		// mid-import (start time not in memory).
+		const formatDuration = ( sec ) => {
+			sec = Math.max( 0, Math.round( sec ) );
+			if ( sec < 60 )   return sec + 's';
+			if ( sec < 3600 ) return Math.floor( sec / 60 ) + 'm ' + ( sec % 60 ) + 's';
+			return Math.floor( sec / 3600 ) + 'h ' + Math.floor( ( sec % 3600 ) / 60 ) + 'm';
+		};
+		if ( this.importStartTime ) {
+			const durSec = ( Date.now() - this.importStartTime ) / 1000;
+			jQuery( '.aie-result-duration' ).text( formatDuration( durSec ) );
+		} else {
+			const jobData = response.job_data || {};
+			if ( jobData.started_at && jobData.completed_at ) {
+				const durSec = ( new Date( jobData.completed_at ) - new Date( jobData.started_at ) ) / 1000;
+				jQuery( '.aie-result-duration' ).text( formatDuration( durSec ) );
+			}
 		}
 		
 		// Update buttons
@@ -3243,6 +3318,7 @@ const ImportModule = {
 		this.uploadedFile = null;
 		this.fileData = null;
 		this.jobId = null;
+		this.importStartTime = null;
 
 		jQuery(
 			'#wp-aie-import input[type="text"], #wp-aie-import input[type="file"]'
@@ -3460,7 +3536,7 @@ const ImportModule = {
 		if ( contentType === 'media' ) {
 			$batchSize.val( $batchSize.data( 'media-value' ) ?? 1 );
 		} else {
-			$batchSize.val( $batchSize.data( 'default-value' ) ?? 50 );
+			$batchSize.val( $batchSize.data( 'default-value' ) ?? 1 );
 		}
 
 		// Content types that support media import - ONLY these types

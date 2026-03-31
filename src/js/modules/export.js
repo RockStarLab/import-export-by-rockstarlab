@@ -12,6 +12,7 @@ const ExportModule = {
 	totalSteps: 5,
 	jobId: null,
 	progressInterval: null,
+	exportStartTime: null,
 	step3Instance: null,
 
 	/**
@@ -957,6 +958,7 @@ const ExportModule = {
 			const response = await Utils.ajax( 'aie_export_start', data );
 
 			this.jobId = response.job_id;
+			this.exportStartTime = Date.now();
 			this.showStep( 5 );
 			this.startProgressTracking();
 
@@ -981,13 +983,45 @@ const ExportModule = {
 			const response = await Utils.ajax( 'aie_export_process_batch', {
 				job_id: this.jobId,
 			} );
-			
+
+			// Update UI directly on each batch — don't rely solely on 2s polling.
+			if ( response ) {
+				const elapsedSec   = this.exportStartTime ? ( Date.now() - this.exportStartTime ) / 1000 : 0;
+				const processed    = response.processed || 0;
+				const total        = response.total || 0;
+				const percentage   = response.progress || ( total > 0 ? ( processed / total ) * 100 : 0 );
+				const itemsPerSec  = elapsedSec > 0 ? processed / elapsedSec : 0;
+				const remainingSec = itemsPerSec > 0 && total > processed ? ( total - processed ) / itemsPerSec : 0;
+
+				const formatTime = ( sec ) => {
+					sec = Math.round( sec );
+					if ( sec < 60 )   return sec + 's';
+					if ( sec < 3600 ) return Math.floor( sec / 60 ) + 'm ' + ( sec % 60 ) + 's';
+					return Math.floor( sec / 3600 ) + 'h ' + Math.floor( ( sec % 3600 ) / 60 ) + 'm';
+				};
+
+				Utils.updateProgressBar( jQuery( '.aie-step-5' ), {
+					percentage,
+					processed,
+					total,
+					estimates: {
+						elapsed_formatted:   formatTime( elapsedSec ),
+						remaining_formatted: remainingSec > 0 ? formatTime( remainingSec ) : '-',
+						items_per_second:    itemsPerSec,
+					},
+				} );
+			}
 
 			// If not completed, process next batch after small delay
 			if ( response && ! response.completed ) {
 				setTimeout( () => {
 					this.processNextBatch();
 				}, 100 );
+			} else if ( response && response.completed ) {
+				// Stop polling — we'll get the final state from the progress endpoint.
+				clearInterval( this.progressInterval );
+				// Fetch final state to show results (file size, duration, etc.)
+				this.updateProgress();
 			}
 		} catch ( error ) {
 		}
@@ -1049,8 +1083,19 @@ const ExportModule = {
 		jQuery( '.aie-result-filesize' ).text(
 			Utils.formatFileSize( result.file_size || 0 )
 		);
+		const formatExportDuration = ( sec ) => {
+			sec = Math.max( 0, Math.round( sec ) );
+			if ( sec < 60 )   return sec + 's';
+			if ( sec < 3600 ) return Math.floor( sec / 60 ) + 'm ' + ( sec % 60 ) + 's';
+			return Math.floor( sec / 3600 ) + 'h ' + Math.floor( ( sec % 3600 ) / 60 ) + 'm';
+		};
+		const exportDurSec = this.exportStartTime
+			? ( Date.now() - this.exportStartTime ) / 1000
+			: 0;
 		jQuery( '.aie-result-duration' ).text(
-			result.estimates?.elapsed_formatted || '0s'
+			exportDurSec > 0
+				? formatExportDuration( exportDurSec )
+				: ( result.estimates?.elapsed_formatted || '0s' )
 		);
 
 		jQuery( '.aie-cancel-export' ).hide();
@@ -1122,6 +1167,7 @@ const ExportModule = {
 	resetWizard() {
 		this.currentStep = 1;
 		this.jobId = null;
+		this.exportStartTime = null;
 		clearInterval( this.progressInterval );
 
 		jQuery(

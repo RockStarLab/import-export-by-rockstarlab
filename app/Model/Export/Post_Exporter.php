@@ -1525,7 +1525,7 @@ class Post_Exporter extends Abstract_Exporter {
 				} elseif ( isset( $acf_value['ID'] ) ) {
 					$data[ $field ] = $acf_value['ID'];
 				} else {
-					$data[ $field ] = maybe_serialize( $acf_value );
+					$data[ $field ] = $this->export_acf_complex_array( $acf_value, $acf_field_name, $post->ID );
 				}
 			} elseif ( $acf_value === false || $acf_value === null || $acf_value === '' ) {
 				// Empty field
@@ -1653,6 +1653,163 @@ class Post_Exporter extends Abstract_Exporter {
 	}
 
 		return $data;
+	}
+
+	/**
+	 * Export a complex ACF array value in a portable, typed JSON format.
+	 *
+	 * Instead of PHP-serializing the raw ACF array (which contains source-site IDs
+	 * that won't exist on the target site), this method converts:
+	 *  - gallery field       → {"acf_type":"gallery","values":["url1","url2",...]} 
+	 *  - relationship/post_object → {"acf_type":"relation","values":["slug1","slug2",...]}
+	 *  - taxonomy field      → {"acf_type":"taxonomy","taxonomy":"cat","values":["Term Name",...]}
+	 * Falls back to maybe_serialize() for unknown/unresolvable structures.
+	 *
+	 * @param array  $value      ACF array value.
+	 * @param string $field_name ACF field name (without 'acf_' prefix).
+	 * @param int    $post_id    Post ID.
+	 * @return string Encoded string for CSV cell.
+	 */
+	private function export_acf_complex_array( array $value, string $field_name, int $post_id ): string {
+		if ( empty( $value ) ) {
+			return '';
+		}
+
+		// ── Determine definitive field type via ACF field object ──────────────
+		// IMPORTANT: Only use heuristics when field_type is empty (unknown).
+		// Heuristic guessing from ID values is unreliable because:
+		//   - term IDs and post IDs overlap on every site
+		//   - attachment IDs can match relation post IDs
+		//   - repeater rows can contain a 'url' sub-field that looks like a gallery
+		$field_type     = '';
+		$field_taxonomy = '';
+		if ( function_exists( 'get_field_object' ) ) {
+			// First attempt: look up by field name (works when ACF has loaded the field group).
+			$field_obj = get_field_object( $field_name, $post_id );
+			if ( is_array( $field_obj ) ) {
+				$field_type     = $field_obj['type'] ?? '';
+				$field_taxonomy = $field_obj['taxonomy'] ?? '';
+			}
+
+			// Second attempt: ACF stores the field key as `_<field_name>` in post meta
+			// (e.g. `_relation_field` → `field_abc123`).  Using the key is more reliable
+			// than using the name because it works even when the field group is not loaded.
+			if ( '' === $field_type ) {
+				$field_key = get_post_meta( $post_id, "_{$field_name}", true );
+				if ( $field_key && 0 === strpos( $field_key, 'field_' ) ) {
+					$field_obj2 = get_field_object( $field_key );
+					if ( is_array( $field_obj2 ) ) {
+						$field_type     = $field_obj2['type'] ?? '';
+						$field_taxonomy = $field_obj2['taxonomy'] ?? '';
+					}
+				}
+			}
+		}
+
+		$first = reset( $value );
+
+		// ── Repeater / Flexible Content / Group ───────────────────────────────
+		// Export raw JSON so the structure is preserved.  Sub-field media IDs
+		// are source-site-specific and are handled separately via meta_* flat
+		// columns which are also exported.
+		if ( in_array( $field_type, [ 'repeater', 'flexible_content', 'group' ], true ) ) {
+			return wp_json_encode( $value );
+		}
+
+		// ── Gallery ───────────────────────────────────────────────────────────
+		// Trigger ONLY when:
+		//   a) ACF confirms type = 'gallery' / 'image' / 'file', OR
+		//   b) type is unknown AND first item looks exactly like an ACF attachment
+		//      array: has both 'url' AND a numeric 'ID' key.
+		//      ACF image/gallery/file arrays always include 'ID' as an integer.
+		//      Repeater row arrays use user-defined sub-field names and do NOT
+		//      have an 'ID' key, so they are excluded by this check.
+		$is_gallery_by_type  = in_array( $field_type, [ 'gallery', 'image', 'file' ], true );
+		$is_gallery_by_shape = '' === $field_type
+			&& is_array( $first )
+			&& isset( $first['url'], $first['ID'] )
+			&& is_numeric( $first['ID'] )
+			&& ! isset( $first['post_name'] )
+			&& ! isset( $first['term_id'] );
+
+		if ( $is_gallery_by_type || $is_gallery_by_shape ) {
+			$urls = [];
+			foreach ( $value as $item ) {
+				if ( is_array( $item ) && isset( $item['url'] ) ) {
+					$urls[] = $item['url'];
+				} elseif ( is_numeric( $item ) ) {
+					$url = wp_get_attachment_url( (int) $item );
+					if ( $url ) {
+						$urls[] = $url;
+					}
+				}
+			}
+			if ( ! empty( $urls ) ) {
+				return wp_json_encode( [ 'acf_type' => 'gallery', 'values' => $urls ] );
+			}
+		}
+
+		// ── Relationship / Post Object ────────────────────────────────────────
+		// Trigger ONLY when ACF confirms type OR first item IS a WP_Post object.
+		// Do NOT trigger on plain integer arrays without a confirmed type —
+		// integer IDs that happen to match posts are indistinguishable from
+		// term IDs or ACF field-config post IDs.
+		$is_relation = in_array( $field_type, [ 'relationship', 'post_object' ], true )
+			|| ( '' === $field_type && $first instanceof \WP_Post );
+
+		if ( $is_relation ) {
+			$slugs = [];
+			foreach ( $value as $item ) {
+				if ( $item instanceof \WP_Post ) {
+					$slugs[] = $item->post_name;
+				} elseif ( is_array( $item ) && isset( $item['post_name'] ) ) {
+					$slugs[] = $item['post_name'];
+				} elseif ( is_numeric( $item ) && '' !== $field_type ) {
+					// Only resolve IDs to slugs when the type is confirmed by ACF.
+					$p = get_post( (int) $item );
+					if ( $p ) {
+						$slugs[] = $p->post_name;
+					}
+				}
+			}
+			if ( ! empty( $slugs ) ) {
+				return wp_json_encode( [ 'acf_type' => 'relation', 'values' => $slugs ] );
+			}
+		}
+
+		// ── Taxonomy ─────────────────────────────────────────────────────────
+		// Same rule: only resolve integer IDs to term names when type is confirmed.
+		$is_taxonomy = 'taxonomy' === $field_type
+			|| ( '' === $field_type && $first instanceof \WP_Term );
+
+		if ( $is_taxonomy ) {
+			$names = [];
+			foreach ( $value as $item ) {
+				if ( $item instanceof \WP_Term ) {
+					$names[] = $item->name;
+				} elseif ( is_array( $item ) && isset( $item['name'] ) && isset( $item['term_id'] ) ) {
+					$names[] = $item['name'];
+				} elseif ( is_numeric( $item ) && '' !== $field_type ) {
+					$t = get_term( (int) $item );
+					if ( ! is_wp_error( $t ) && $t ) {
+						$names[] = $t->name;
+					}
+				}
+			}
+			if ( ! empty( $names ) ) {
+				$encoded = [ 'acf_type' => 'taxonomy', 'values' => $names ];
+				if ( $field_taxonomy ) {
+					$encoded['taxonomy'] = $field_taxonomy;
+				}
+				return wp_json_encode( $encoded );
+			}
+		}
+
+		// ── Fallback: raw JSON ────────────────────────────────────────────────
+		// Use wp_json_encode (not maybe_serialize) to avoid double-serialization
+		// on import: update_post_meta() would serialize a PHP-serialized string
+		// a second time, causing ACF to receive a string instead of an array.
+		return wp_json_encode( $value );
 	}
 
 	/**
