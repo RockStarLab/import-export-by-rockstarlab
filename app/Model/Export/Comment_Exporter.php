@@ -59,6 +59,9 @@ class Comment_Exporter extends Abstract_Exporter {
 		return [
 			'comment_ID',
 			'comment_post_ID',
+			'post_permalink',
+			'post_type',
+			'post_slug',
 			'comment_author',
 			'comment_author_email',
 			'comment_author_url',
@@ -252,6 +255,25 @@ class Comment_Exporter extends Abstract_Exporter {
 		// Check if ID should be forced (for Content Updater)
 		$force_include_id = $options['force_include_id'] ?? false;
 
+		// Ensure portable post hints are always exported when comment_post_ID is present.
+		if ( is_array( $fields ) && in_array( 'comment_post_ID', $fields, true ) ) {
+			foreach ( [ 'post_permalink', 'post_type', 'post_slug' ] as $hint_field ) {
+				if ( ! in_array( $hint_field, $fields, true ) ) {
+					$fields[] = $hint_field;
+				}
+			}
+		}
+
+		// Parent relationships require a stable per-row source identifier.
+		if ( is_array( $fields ) && in_array( 'comment_parent', $fields, true ) && ! in_array( 'comment_ID', $fields, true ) ) {
+			$fields[] = 'comment_ID';
+		}
+
+		// IMPORTANT: also update exporter options so Abstract_Exporter::select_fields() doesn't drop auto-added fields.
+		if ( is_array( $fields ) ) {
+			$this->options['fields'] = $fields;
+		}
+
 		// Add comment_ID if requested or forced
 		if ( in_array( 'comment_ID', $fields, true ) || $force_include_id ) {
 			$data['comment_ID'] = $comment->comment_ID;
@@ -265,6 +287,21 @@ class Comment_Exporter extends Abstract_Exporter {
 
 				case 'comment_post_ID':
 					$data['comment_post_ID'] = $comment->comment_post_ID;
+					break;
+
+				case 'post_permalink':
+					$data['post_permalink'] = get_permalink( $comment->comment_post_ID );
+					break;
+
+				case 'post_type':
+					$post              = get_post( $comment->comment_post_ID );
+					$data['post_type'] = $post ? $post->post_type : '';
+					break;
+
+				case 'post_slug':
+					$post              = get_post( $comment->comment_post_ID );
+					// Use full path for hierarchical post types (pages) so importer can resolve cross-site IDs.
+					$data['post_slug'] = $post ? get_page_uri( (int) $post->ID ) : '';
 					break;
 
 				case 'comment_author':

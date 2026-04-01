@@ -1989,6 +1989,7 @@ const ExportModule = {
 				label: window.aieData.i18n.fieldGroupMedia,
 				options: [
 					{ value: 'product_gallery', label: window.aieData.i18n.fieldGalleryImages, type: 'array' },
+					{ value: 'variations', label: window.aieData.i18n.fieldVariations || 'Variations (JSON)', type: 'json' },
 				],
 			},
 				{

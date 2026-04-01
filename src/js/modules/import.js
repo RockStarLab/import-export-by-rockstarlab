@@ -1645,9 +1645,9 @@ const ImportModule = {
 			];
 		}
 
-		// WooCommerce Products
-		if ( contentType === 'product' || contentType === 'woo_product' ) {
-			return [
+			// WooCommerce Products
+			if ( contentType === 'product' || contentType === 'woo_product' ) {
+				return [
 				{
 					label: 'Basic Info',
 					options: [
@@ -1708,6 +1708,7 @@ const ImportModule = {
 						{ value: 'featured_image_title', label: 'Featured Image Title', type: 'string' },
 						{ value: 'featured_image_caption', label: 'Featured Image Caption', type: 'string' },
 						{ value: 'product_gallery', label: 'Gallery Image IDs (comma-separated)', type: 'string' },
+						{ value: 'variations', label: 'Variations (JSON)', type: 'json' },
 					],
 				},
 				{
@@ -1760,12 +1761,116 @@ const ImportModule = {
 						{ value: 'meta', label: 'Custom Field', type: 'meta', custom: true },
 					],
 				},
-			];
-		}
+				];
+			}
 
-		// Taxonomy Terms
-		if ( contentType === 'taxonomy' || contentType === 'taxonomy_term' || contentType === 'term' ) {
-			return [
+			// WooCommerce Orders
+			if ( contentType === 'woo_order' || contentType === 'order' ) {
+				return [
+					{
+						label: 'Basic',
+						options: [
+							{ value: 'ID', label: 'Order ID', type: 'number' },
+							{ value: 'order_number', label: 'Order Number', type: 'string' },
+							{ value: 'order_key', label: 'Order Key', type: 'string' },
+							{ value: 'order_status', label: 'Order Status (pending, processing, completed, ...)', type: 'string' },
+							{ value: 'currency', label: 'Currency', type: 'string' },
+						],
+					},
+					{
+						label: 'Dates',
+						options: [
+							{ value: 'order_date', label: 'Order Date', type: 'datetime' },
+							{ value: 'date_modified', label: 'Modified Date', type: 'datetime' },
+							{ value: 'paid_date', label: 'Paid Date', type: 'datetime' },
+							{ value: 'completed_date', label: 'Completed Date', type: 'datetime' },
+						],
+					},
+					{
+						label: 'Customer',
+						options: [
+							{ value: 'customer_id', label: 'Customer ID', type: 'number' },
+							{ value: 'billing_email', label: 'Billing Email', type: 'email' },
+							{ value: 'billing_phone', label: 'Billing Phone', type: 'string' },
+							{ value: 'customer_note', label: 'Customer Note', type: 'string' },
+							{ value: 'customer_ip_address', label: 'Customer IP Address', type: 'string' },
+							{ value: 'customer_user_agent', label: 'Customer User Agent', type: 'string' },
+						],
+					},
+					{
+						label: 'Billing Address',
+						options: [
+							{ value: 'billing_first_name', label: 'First Name', type: 'string' },
+							{ value: 'billing_last_name', label: 'Last Name', type: 'string' },
+							{ value: 'billing_company', label: 'Company', type: 'string' },
+							{ value: 'billing_address_1', label: 'Address 1', type: 'string' },
+							{ value: 'billing_address_2', label: 'Address 2', type: 'string' },
+							{ value: 'billing_city', label: 'City', type: 'string' },
+							{ value: 'billing_state', label: 'State', type: 'string' },
+							{ value: 'billing_postcode', label: 'Postcode', type: 'string' },
+							{ value: 'billing_country', label: 'Country', type: 'string' },
+						],
+					},
+					{
+						label: 'Shipping Address',
+						options: [
+							{ value: 'shipping_first_name', label: 'First Name', type: 'string' },
+							{ value: 'shipping_last_name', label: 'Last Name', type: 'string' },
+							{ value: 'shipping_company', label: 'Company', type: 'string' },
+							{ value: 'shipping_address_1', label: 'Address 1', type: 'string' },
+							{ value: 'shipping_address_2', label: 'Address 2', type: 'string' },
+							{ value: 'shipping_city', label: 'City', type: 'string' },
+							{ value: 'shipping_state', label: 'State', type: 'string' },
+							{ value: 'shipping_postcode', label: 'Postcode', type: 'string' },
+							{ value: 'shipping_country', label: 'Country', type: 'string' },
+						],
+					},
+					{
+						label: 'Payment',
+						options: [
+							{ value: 'payment_method', label: 'Payment Method', type: 'string' },
+							{ value: 'payment_method_title', label: 'Payment Method Title', type: 'string' },
+							{ value: 'transaction_id', label: 'Transaction ID', type: 'string' },
+						],
+					},
+					{
+						label: 'Totals',
+						options: [
+							{ value: 'order_total', label: 'Order Total', type: 'number' },
+							{ value: 'order_subtotal', label: 'Subtotal', type: 'number' },
+							{ value: 'order_tax', label: 'Order Tax', type: 'number' },
+							{ value: 'order_shipping', label: 'Order Shipping', type: 'number' },
+							{ value: 'order_discount', label: 'Order Discount', type: 'number' },
+							{ value: 'cart_tax', label: 'Cart Tax', type: 'number' },
+							{ value: 'shipping_tax', label: 'Shipping Tax', type: 'number' },
+							{ value: 'total_tax', label: 'Total Tax', type: 'number' },
+						],
+					},
+					{
+						label: 'Lines',
+						options: [
+							{ value: 'order_items', label: 'Order Items (JSON)', type: 'json' },
+							{ value: 'item_count', label: 'Item Count', type: 'number' },
+							{ value: 'shipping_method', label: 'Shipping Method', type: 'string' },
+							{ value: 'shipping_lines', label: 'Shipping Lines (JSON)', type: 'json' },
+							{ value: 'fee_lines', label: 'Fee Lines (JSON)', type: 'json' },
+							{ value: 'coupon_lines', label: 'Coupon Lines (JSON)', type: 'json' },
+						],
+					},
+					{
+						label: 'Notes & Meta',
+						options: [
+							{ value: 'order_notes', label: 'Order Notes (JSON)', type: 'json' },
+							{ value: 'order_meta', label: 'Order Meta (JSON)', type: 'json' },
+							{ value: 'meta', label: 'Custom Field', type: 'meta', custom: true },
+						],
+					},
+				];
+			}
+
+			// Taxonomy Terms
+			if ( contentType === 'taxonomy' || contentType === 'taxonomy_term' || contentType === 'term' ) {
+				return [
 				{
 					label: 'Basic',
 					options: [

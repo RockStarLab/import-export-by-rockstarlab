@@ -92,6 +92,8 @@ class Post_Exporter extends Abstract_Exporter {
 			'featured_image_caption',
 			'author_name',
 			'author_email',
+			// WooCommerce: variable product variations (JSON)
+			'variations',
 			// WooCommerce Product fields (with underscore prefix)
 			'_sku',
 			'_regular_price',
@@ -1418,6 +1420,11 @@ class Post_Exporter extends Abstract_Exporter {
 			}
 		}
 
+		// WooCommerce variable product variations (export as JSON in a single column).
+		if ( 'product' === $post->post_type && in_array( 'variations', $fields, true ) ) {
+			$data['variations'] = $this->get_product_variations_json( (int) $post->ID );
+		}
+
 		// Process individual taxonomy fields (taxonomy_category, taxonomy_post_tag, product_cat, product_tag, etc.)
 		foreach ( $fields as $field ) {
 			if ( strpos( $field, 'taxonomy_' ) === 0 ) {
@@ -1676,7 +1683,22 @@ class Post_Exporter extends Abstract_Exporter {
 							}
 							// Convert array to comma-separated string (for gallery)
 							elseif ( is_array( $value ) ) {
-								$value = implode( ',', $value );
+								// Make gallery portable across sites: export attachment URLs instead of IDs.
+								if ( 'get_gallery_image_ids' === $method ) {
+									$urls = [];
+									foreach ( $value as $id ) {
+										if ( ! is_numeric( $id ) ) {
+											continue;
+										}
+										$url = wp_get_attachment_url( (int) $id );
+										if ( $url ) {
+											$urls[] = $url;
+										}
+									}
+									$value = implode( ',', $urls );
+								} else {
+									$value = implode( ',', $value );
+								}
 							}
 							// Ensure empty strings for null values
 							elseif ( $value === null || $value === false ) {
@@ -2839,6 +2861,75 @@ class Post_Exporter extends Abstract_Exporter {
 		}
 
 		return array_values( $filtered ); // Re-index array
+	}
+
+	/**
+	 * Export WooCommerce variations for a variable product as JSON.
+	 *
+	 * @param int $product_id Parent product ID.
+	 * @return string JSON string or empty string.
+	 */
+	private function get_product_variations_json( int $product_id ): string {
+		if ( $product_id <= 0 || ! function_exists( 'wc_get_product' ) || ! class_exists( 'WC_Product' ) ) {
+			return '';
+		}
+
+		$wc_product = wc_get_product( $product_id );
+		if ( ! $wc_product || ! method_exists( $wc_product, 'is_type' ) || ! $wc_product->is_type( 'variable' ) ) {
+			return '';
+		}
+
+		$variation_ids = method_exists( $wc_product, 'get_children' ) ? $wc_product->get_children() : [];
+		if ( empty( $variation_ids ) ) {
+			return '';
+		}
+
+		$variations_data = [];
+
+		foreach ( $variation_ids as $variation_id ) {
+			$variation_id = absint( $variation_id );
+			if ( $variation_id <= 0 ) {
+				continue;
+			}
+
+			$variation_post = get_post( $variation_id );
+			if ( ! $variation_post || 'product_variation' !== $variation_post->post_type ) {
+				continue;
+			}
+
+			$raw_meta = get_post_meta( $variation_id );
+			$meta     = [];
+			foreach ( $raw_meta as $vk => $vv ) {
+				if ( ! isset( $vv[0] ) ) {
+					continue;
+				}
+				$meta[ $vk ] = maybe_unserialize( $vv[0] );
+			}
+
+			// Add portable URL for the variation thumbnail when present.
+			if ( isset( $meta['_thumbnail_id'] ) && is_numeric( $meta['_thumbnail_id'] ) ) {
+				$url = wp_get_attachment_url( (int) $meta['_thumbnail_id'] );
+				if ( $url ) {
+					$meta['_thumbnail_url'] = $url;
+				}
+			}
+
+			$variations_data[] = [
+				'ID'          => (int) $variation_post->ID,
+				'post_title'  => (string) $variation_post->post_title,
+				'post_name'   => (string) $variation_post->post_name,
+				'post_status' => (string) $variation_post->post_status,
+				'menu_order'  => (int) $variation_post->menu_order,
+				'meta'        => $meta,
+			];
+		}
+
+		if ( empty( $variations_data ) ) {
+			return '';
+		}
+
+		$json = wp_json_encode( $variations_data );
+		return $json ? $json : '';
 	}
 
 	/**

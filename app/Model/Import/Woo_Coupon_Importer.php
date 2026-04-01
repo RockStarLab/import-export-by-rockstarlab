@@ -265,7 +265,21 @@ class Woo_Coupon_Importer extends Abstract_Importer {
 		];
 
 		if ( in_array( $field, $array_fields, true ) ) {
-			return $this->parse_array_field( $value );
+			$parsed = $this->parse_array_field( $value );
+
+			// Make exported coupons portable across sites (IDs differ):
+			// Coupon exporter may output product/category restrictions as refs:
+			// - sku:ABC123
+			// - slug:my-product
+			// - id:123
+			if ( in_array( $field, [ 'product_ids', 'excluded_product_ids' ], true ) ) {
+				return $this->resolve_coupon_product_ids( $parsed );
+			}
+			if ( in_array( $field, [ 'product_categories', 'excluded_product_categories' ], true ) ) {
+				return $this->resolve_coupon_product_cat_ids( $parsed );
+			}
+
+			return $parsed;
 		}
 
 		// Boolean fields
@@ -299,6 +313,196 @@ class Woo_Coupon_Importer extends Abstract_Importer {
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Resolve coupon product restriction values to product IDs.
+	 *
+	 * @param array $values Parsed values.
+	 * @return int[] Product IDs.
+	 */
+	protected function resolve_coupon_product_ids( $values ) {
+		if ( empty( $values ) || ! is_array( $values ) ) {
+			return [];
+		}
+
+		$out  = [];
+		$seen = [];
+
+		foreach ( $values as $ref ) {
+			$id = $this->resolve_coupon_product_id_ref( $ref );
+			if ( $id > 0 && ! isset( $seen[ $id ] ) ) {
+				$seen[ $id ] = true;
+				$out[]       = $id;
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Resolve coupon product_cat restriction values to term IDs.
+	 *
+	 * @param array $values Parsed values.
+	 * @return int[] Term IDs.
+	 */
+	protected function resolve_coupon_product_cat_ids( $values ) {
+		if ( empty( $values ) || ! is_array( $values ) ) {
+			return [];
+		}
+
+		$out  = [];
+		$seen = [];
+
+		foreach ( $values as $ref ) {
+			$id = $this->resolve_coupon_product_cat_id_ref( $ref );
+			if ( $id > 0 && ! isset( $seen[ $id ] ) ) {
+				$seen[ $id ] = true;
+				$out[]       = $id;
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Resolve a single portable product reference to a product/variation ID.
+	 *
+	 * @param mixed $ref Portable ref (sku:..., slug:..., id:...) or legacy int/string.
+	 * @return int Product ID.
+	 */
+	protected function resolve_coupon_product_id_ref( $ref ) {
+		if ( is_int( $ref ) ) {
+			return $ref > 0 ? $ref : 0;
+		}
+
+		$raw = trim( (string) $ref );
+		if ( '' === $raw ) {
+			return 0;
+		}
+
+		$prefix  = '';
+		$payload = $raw;
+		if ( false !== strpos( $raw, ':' ) ) {
+			$parts = explode( ':', $raw, 2 );
+			if ( 2 === count( $parts ) ) {
+				$prefix  = strtolower( trim( $parts[0] ) );
+				$payload = trim( $parts[1] );
+			}
+		}
+
+		if ( 'sku' === $prefix && '' !== $payload && function_exists( 'wc_get_product_id_by_sku' ) ) {
+			$id = (int) wc_get_product_id_by_sku( $payload );
+			return $id > 0 ? $id : 0;
+		}
+
+		if ( 'slug' === $prefix && '' !== $payload ) {
+			$ids = get_posts(
+				[
+					'name'           => $payload,
+					'post_type'      => [ 'product', 'product_variation' ],
+					'post_status'    => 'any',
+					'posts_per_page' => 1,
+					'fields'         => 'ids',
+				]
+			);
+			if ( ! empty( $ids ) ) {
+				return (int) $ids[0];
+			}
+			return 0;
+		}
+
+		if ( 'id' === $prefix && is_numeric( $payload ) ) {
+			$id = (int) $payload;
+			return $id > 0 ? $id : 0;
+		}
+
+		// Backwards compatibility: plain value (try SKU first, then ID, then slug).
+		if ( function_exists( 'wc_get_product_id_by_sku' ) ) {
+			$id = (int) wc_get_product_id_by_sku( $raw );
+			if ( $id > 0 ) {
+				return $id;
+			}
+		}
+
+		if ( is_numeric( $raw ) && function_exists( 'wc_get_product' ) ) {
+			$id      = (int) $raw;
+			$product = $id > 0 ? wc_get_product( $id ) : null;
+			if ( $product ) {
+				return $id;
+			}
+		}
+
+		$ids = get_posts(
+			[
+				'name'           => $raw,
+				'post_type'      => [ 'product', 'product_variation' ],
+				'post_status'    => 'any',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+			]
+		);
+		if ( ! empty( $ids ) ) {
+			return (int) $ids[0];
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Resolve a single portable product_cat reference to a term ID.
+	 *
+	 * @param mixed $ref Portable ref (slug:..., id:...) or legacy int/string.
+	 * @return int Term ID.
+	 */
+	protected function resolve_coupon_product_cat_id_ref( $ref ) {
+		if ( is_int( $ref ) ) {
+			return $ref > 0 ? $ref : 0;
+		}
+
+		$raw = trim( (string) $ref );
+		if ( '' === $raw ) {
+			return 0;
+		}
+
+		$prefix  = '';
+		$payload = $raw;
+		if ( false !== strpos( $raw, ':' ) ) {
+			$parts = explode( ':', $raw, 2 );
+			if ( 2 === count( $parts ) ) {
+				$prefix  = strtolower( trim( $parts[0] ) );
+				$payload = trim( $parts[1] );
+			}
+		}
+
+		if ( 'slug' === $prefix && '' !== $payload ) {
+			$term = get_term_by( 'slug', $payload, 'product_cat' );
+			return ( $term && ! is_wp_error( $term ) ) ? (int) $term->term_id : 0;
+		}
+
+		if ( 'id' === $prefix && is_numeric( $payload ) ) {
+			$term = get_term( (int) $payload, 'product_cat' );
+			return ( $term && ! is_wp_error( $term ) ) ? (int) $term->term_id : 0;
+		}
+
+		if ( is_numeric( $raw ) ) {
+			$term = get_term( (int) $raw, 'product_cat' );
+			if ( $term && ! is_wp_error( $term ) ) {
+				return (int) $term->term_id;
+			}
+		}
+
+		$term = get_term_by( 'slug', $raw, 'product_cat' );
+		if ( $term && ! is_wp_error( $term ) ) {
+			return (int) $term->term_id;
+		}
+
+		$term = get_term_by( 'name', $raw, 'product_cat' );
+		if ( $term && ! is_wp_error( $term ) ) {
+			return (int) $term->term_id;
+		}
+
+		return 0;
 	}
 
 	/**

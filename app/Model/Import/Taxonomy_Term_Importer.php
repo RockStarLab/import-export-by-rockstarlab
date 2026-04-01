@@ -14,6 +14,13 @@ defined( 'ABSPATH' ) || exit;
 class Taxonomy_Term_Importer extends Abstract_Importer {
 
 	/**
+	 * Term source-id meta key used for cross-site dedupe and hierarchy fixups.
+	 *
+	 * @var string
+	 */
+	const SOURCE_ID_META_KEY = '_aie_source_term_id';
+
+	/**
 	 * Get importer name
 	 *
 	 * @return string
@@ -170,6 +177,10 @@ class Taxonomy_Term_Importer extends Abstract_Importer {
 		// Sanitize data
 		$item = $this->sanitize_item( $item );
 
+		$source_term_id       = absint( $item['_aie_source_term_id'] ?? ( $item['term_id'] ?? 0 ) );
+		$source_parent_term_id = absint( $item['_aie_source_parent_term_id'] ?? ( $item['parent'] ?? 0 ) );
+		$source_parent_slug   = isset( $item['_aie_source_parent_slug'] ) ? (string) $item['_aie_source_parent_slug'] : ( (string) ( $item['parent_slug'] ?? '' ) );
+
 		// Validate required fields
 		if ( empty( $item['name'] ) ) {
 			return new \WP_Error(
@@ -186,6 +197,11 @@ class Taxonomy_Term_Importer extends Abstract_Importer {
 		}
 
 		$taxonomy = $item['taxonomy'];
+
+		// Always defer parent mapping for job-based imports: source IDs don't exist on target.
+		if ( ! empty( $this->job_id ) ) {
+			$item['parent'] = 0;
+		}
 
 		// Check if taxonomy exists
 		if ( ! taxonomy_exists( $taxonomy ) ) {
@@ -209,11 +225,22 @@ class Taxonomy_Term_Importer extends Abstract_Importer {
 		$duplicate_check  = $this->get_option( 'duplicate_check', 'term_id' );
 
 		if ( 'term_id' === $duplicate_check ) {
-			$term_id = absint( $item['term_id'] ?? 0 );
-			if ( $term_id ) {
-				$existing_term = get_term( $term_id, $taxonomy );
-				if ( $existing_term && ! is_wp_error( $existing_term ) ) {
-					$existing_term_id = $term_id;
+			// Interpret term_id as SOURCE site ID; de-dupe using stored term meta when available.
+			if ( $source_term_id ) {
+				$existing_term_id = $this->find_existing_term_by_source_id( $taxonomy, $source_term_id );
+			}
+
+			// Fallback for same-site imports: allow direct ID match only when it also matches slug (if provided).
+			if ( ! $existing_term_id ) {
+				$term_id = absint( $item['term_id'] ?? 0 );
+				if ( $term_id ) {
+					$existing_term = get_term( $term_id, $taxonomy );
+					if ( $existing_term && ! is_wp_error( $existing_term ) ) {
+						$slug = isset( $item['slug'] ) ? (string) $item['slug'] : '';
+						if ( $slug === '' || (string) $existing_term->slug === $slug ) {
+							$existing_term_id = $term_id;
+						}
+					}
 				}
 			}
 		} elseif ( 'slug' === $duplicate_check ) {
@@ -235,15 +262,134 @@ class Taxonomy_Term_Importer extends Abstract_Importer {
 			$duplicate_mode = $this->get_option( 'duplicate_mode', 'skip' );
 
 			if ( 'skip' === $duplicate_mode ) {
+				$this->record_source_id_map( $taxonomy, $source_term_id, $existing_term_id );
 				return 'skipped';
 			} elseif ( 'update' === $duplicate_mode || $this->get_option( 'update_existing', false ) ) {
-				return $this->update_term( $existing_term_id, $item );
+				$result = $this->update_term( $existing_term_id, $item );
+				if ( ! is_wp_error( $result ) ) {
+					$this->store_source_term_meta( $existing_term_id, $taxonomy, $source_term_id, $source_parent_term_id, $source_parent_slug );
+					$this->record_source_id_map( $taxonomy, $source_term_id, $existing_term_id );
+				}
+				return $result;
 			}
 			// If 'create' mode, continue to create new term
 		}
 
 		// Create new term
-		return $this->create_term( $item );
+		$created = $this->create_term( $item );
+		if ( is_int( $created ) && $created > 0 ) {
+			$this->store_source_term_meta( $created, $taxonomy, $source_term_id, $source_parent_term_id, $source_parent_slug );
+			$this->record_source_id_map( $taxonomy, $source_term_id, $created );
+		}
+		return $created;
+	}
+
+	/**
+	 * Store source IDs as term meta for cross-site dedupe and parent fixups.
+	 *
+	 * @param int    $term_id               Target term ID.
+	 * @param string $taxonomy              Taxonomy.
+	 * @param int    $source_term_id        Source site term_id.
+	 * @param int    $source_parent_term_id Source site parent term_id.
+	 * @param string $source_parent_slug    Source site parent slug (portable hint).
+	 * @return void
+	 */
+	private function store_source_term_meta( $term_id, $taxonomy, $source_term_id, $source_parent_term_id, $source_parent_slug ) {
+		$term_id = absint( $term_id );
+		if ( $term_id <= 0 ) {
+			return;
+		}
+
+		$source_term_id = absint( $source_term_id );
+		if ( $source_term_id > 0 ) {
+			update_term_meta( $term_id, self::SOURCE_ID_META_KEY, (string) $source_term_id );
+		}
+
+		$source_parent_term_id = absint( $source_parent_term_id );
+		if ( $source_parent_term_id > 0 ) {
+			update_term_meta( $term_id, '_aie_source_parent_term_id', (string) $source_parent_term_id );
+		}
+
+		$source_parent_slug = trim( (string) $source_parent_slug );
+		if ( $source_parent_slug !== '' ) {
+			update_term_meta( $term_id, '_aie_source_parent_slug', $source_parent_slug );
+		}
+	}
+
+	/**
+	 * Find an existing target term by stored source ID (taxonomy-scoped).
+	 *
+	 * @param string $taxonomy       Taxonomy.
+	 * @param int    $source_term_id Source site term_id.
+	 * @return int|null Target term_id or null.
+	 */
+	private function find_existing_term_by_source_id( $taxonomy, $source_term_id ) {
+		global $wpdb;
+
+		$taxonomy       = (string) $taxonomy;
+		$source_term_id = absint( $source_term_id );
+		if ( $taxonomy === '' || $source_term_id <= 0 ) {
+			return null;
+		}
+
+		$term_id = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT tm.term_id
+				 FROM {$wpdb->termmeta} tm
+				 JOIN {$wpdb->term_taxonomy} tt ON tt.term_id = tm.term_id
+				 WHERE tm.meta_key = %s AND tm.meta_value = %s AND tt.taxonomy = %s
+				 ORDER BY tm.term_id DESC
+				 LIMIT 1",
+				self::SOURCE_ID_META_KEY,
+				(string) $source_term_id,
+				$taxonomy
+			)
+		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+
+		return $term_id ? absint( $term_id ) : null;
+	}
+
+	/**
+	 * Persist a source->target term ID map for this import job (taxonomy-scoped).
+	 *
+	 * @param string $taxonomy   Taxonomy.
+	 * @param int    $source_id  Source term_id.
+	 * @param int    $target_id  Target term_id.
+	 * @return void
+	 */
+	private function record_source_id_map( $taxonomy, $source_id, $target_id ) {
+		$taxonomy = sanitize_key( (string) $taxonomy );
+		$source_id = absint( $source_id );
+		$target_id = absint( $target_id );
+
+		if ( $taxonomy === '' || $source_id <= 0 || $target_id <= 0 ) {
+			return;
+		}
+
+		if ( empty( $this->job_id ) ) {
+			return;
+		}
+
+		$key = $this->get_job_id_map_key();
+		$map = get_transient( $key );
+		if ( ! is_array( $map ) ) {
+			$map = [];
+		}
+		if ( ! isset( $map[ $taxonomy ] ) || ! is_array( $map[ $taxonomy ] ) ) {
+			$map[ $taxonomy ] = [];
+		}
+
+		$map[ $taxonomy ][ (string) $source_id ] = $target_id;
+		set_transient( $key, $map, DAY_IN_SECONDS );
+	}
+
+	/**
+	 * Get transient key for this job's term ID map.
+	 *
+	 * @return string
+	 */
+	private function get_job_id_map_key() {
+		return 'aie_import_term_id_map_' . absint( $this->job_id );
 	}
 
 	/**

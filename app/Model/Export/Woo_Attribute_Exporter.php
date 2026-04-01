@@ -19,7 +19,7 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_name() {
-		return 'woo_attributes';
+		return __( 'WooCommerce Attributes', 'wp-advanced-import-export' );
 	}
 
 	/**
@@ -92,8 +92,9 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 		}
 
 		global $wpdb;
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$attributes = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %1swoocommerce_attribute_taxonomies', $wpdb->prefix ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQLPlaceholders.UnquotedComplexPlaceholder -- Direct DB query required here.
+		$attributes = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			"SELECT * FROM {$wpdb->prefix}woocommerce_attribute_taxonomies"
+		);
 
 		if ( empty( $attributes ) ) {
 			return 0;
@@ -254,10 +255,91 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 				'name'        => $term->name,
 				'slug'        => $term->slug,
 				'description' => $term->description,
+				'meta'        => $this->get_term_meta_portable( $term->term_id ),
 			];
 		}
 
 		return $formatted_terms;
+	}
+
+	/**
+	 * Get term meta in a portable format (attachment IDs → file:<filename>).
+	 *
+	 * @param int $term_id Term ID.
+	 * @return array
+	 */
+	protected function get_term_meta_portable( $term_id ) {
+		$term_id = (int) $term_id;
+		if ( $term_id <= 0 ) {
+			return [];
+		}
+
+		$raw = get_term_meta( $term_id );
+		if ( empty( $raw ) || ! is_array( $raw ) ) {
+			return [];
+		}
+
+		$out = [];
+		foreach ( $raw as $key => $values ) {
+			if ( ! is_array( $values ) ) {
+				continue;
+			}
+
+			// Normalize "array of one" to scalar for readability.
+			if ( 1 === count( $values ) ) {
+				$out[ $key ] = $this->normalize_meta_value_for_export( $values[0] );
+			} else {
+				$out[ $key ] = array_map( [ $this, 'normalize_meta_value_for_export' ], $values );
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Normalize meta values for export (unserialize, map attachment IDs).
+	 *
+	 * @param mixed $value Meta value.
+	 * @return mixed
+	 */
+	protected function normalize_meta_value_for_export( $value ) {
+		$value = maybe_unserialize( $value );
+
+		if ( is_array( $value ) ) {
+			foreach ( $value as $k => $v ) {
+				$value[ $k ] = $this->normalize_meta_value_for_export( $v );
+			}
+			return $value;
+		}
+
+		if ( is_object( $value ) ) {
+			if ( $value instanceof \stdClass ) {
+				return $this->normalize_meta_value_for_export( (array) $value );
+			}
+			return (string) $value;
+		}
+
+		// Attachment ID → file:<filename>
+		if ( is_numeric( $value ) ) {
+			$id = (int) $value;
+			if ( $id > 0 && 'attachment' === get_post_type( $id ) ) {
+				$url = wp_get_attachment_url( $id );
+				if ( ! empty( $url ) ) {
+					$path = wp_parse_url( $url, PHP_URL_PATH );
+					$base = $path ? wp_basename( $path ) : wp_basename( $url );
+					if ( ! empty( $base ) ) {
+						return 'file:' . $base;
+					}
+				}
+
+				$file = get_post_meta( $id, '_wp_attached_file', true );
+				if ( ! empty( $file ) ) {
+					return 'file:' . wp_basename( (string) $file );
+				}
+			}
+		}
+
+		return $value;
 	}
 
 	/**

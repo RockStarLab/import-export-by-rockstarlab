@@ -553,20 +553,17 @@ class Woo_Order_Importer extends Abstract_Importer {
 			// Set payment method
 			$this->set_payment_method( $order, $item );
 
-			// Set shipping method
-			$this->set_shipping_method( $order, $item );
+				// Set shipping method (fallback only; detailed shipping_lines take precedence).
+				$this->set_shipping_method( $order, $item );
 
-			// Set order notes
-			$this->set_order_notes( $order, $item );
+				// Set shipping lines
+				$this->set_shipping_lines( $order, $item );
 
-			// Set shipping lines
-			$this->set_shipping_lines( $order, $item );
+				// Set fee lines
+				$this->set_fee_lines( $order, $item );
 
-			// Set fee lines
-			$this->set_fee_lines( $order, $item );
-
-			// Set coupon lines
-			$this->set_coupon_lines( $order, $item );
+				// Set coupon lines
+				$this->set_coupon_lines( $order, $item );
 		// Set order meta
 		$this->set_order_meta( $order, $item );
 
@@ -581,22 +578,27 @@ class Woo_Order_Importer extends Abstract_Importer {
 				$this->set_order_totals( $order, $item );
 			}
 
-			// Set dates
-			$this->set_order_dates( $order, $item );
+					// Set status (may create system notes / paid/completed dates).
+					$this->set_order_status( $order, $item );
 
-			// Set status
-			$this->set_order_status( $order, $item );
+					// Set order notes (includes system/private notes from export).
+					$this->set_order_notes( $order, $item );
 
-			// Save order
-			$order_id = $order->save();
+					// Store source order_number (portable) for future updates.
+					if ( ! empty( $item['order_number'] ) ) {
+						$order->update_meta_data( '_order_number', (string) $item['order_number'] );
+					}
 
-			// Set order number if provided
-			if ( ! empty( $item['order_number'] ) && method_exists( $order, 'set_order_number' ) ) {
-				$order->update_meta_data( '_order_number', $item['order_number'] );
-				$order->save_meta_data();
-			}
+					// Set dates last to preserve imported values (and clear auto-set dates when source is empty).
+					$this->set_order_dates( $order, $item );
 
-			return $action;
+					// Save order (may add a system note for status transitions).
+					$order_id = $order->save();
+
+					// De-dupe notes after save to remove duplicates created by status transitions.
+					$this->dedupe_order_notes( $order );
+
+					return $action;
 
 		} catch ( \Exception $e ) {
 			return new \WP_Error( 'import_failed', $e->getMessage() );
@@ -611,6 +613,21 @@ class Woo_Order_Importer extends Abstract_Importer {
 	 */
 	protected function find_existing_order( $item ) {
 		$duplicate_check = $this->get_option( 'duplicate_check', 'ID' );
+
+		// Try by order key (portable across sites; works with HPOS too).
+		if ( 'order_key' === $duplicate_check || ! empty( $item['order_key'] ) ) {
+			if ( ! empty( $item['order_key'] ) && function_exists( 'wc_get_orders' ) ) {
+				$orders = wc_get_orders(
+					[
+						'order_key' => (string) $item['order_key'],
+						'limit'     => 1,
+					]
+				);
+				if ( ! empty( $orders ) ) {
+					return $orders[0];
+				}
+			}
+		}
 
 		// Try by ID first (most reliable)
 		if ( 'ID' === $duplicate_check || ! empty( $item['ID'] ) ) {
@@ -905,6 +922,22 @@ class Woo_Order_Importer extends Abstract_Importer {
 	 * @param array    $item  Item data
 	 */
 	protected function set_shipping_method( $order, $item ) {
+		// If detailed shipping_lines are provided, they should be the source of truth.
+		// Avoid creating an extra "shipping_method" item that can't be removed before save (ID=0),
+		// which leads to duplicate shipping lines after import.
+		if ( isset( $item['shipping_lines'] ) && '' !== $item['shipping_lines'] ) {
+			$shipping_lines = $item['shipping_lines'];
+			if ( is_string( $shipping_lines ) ) {
+				$decoded = json_decode( $shipping_lines, true );
+				if ( json_last_error() === JSON_ERROR_NONE ) {
+					$shipping_lines = $decoded;
+				}
+			}
+			if ( is_array( $shipping_lines ) && ! empty( $shipping_lines ) ) {
+				return;
+			}
+		}
+
 		if ( empty( $item['shipping_method'] ) && empty( $item['order_shipping'] ) ) {
 			return;
 		}
@@ -958,7 +991,9 @@ class Woo_Order_Importer extends Abstract_Importer {
 			return;
 		}
 
-		if ( ! empty( $item['order_date'] ) ) {
+		if ( array_key_exists( 'order_date', $item ) && '' === $item['order_date'] ) {
+			// Keep WooCommerce default created date.
+		} elseif ( ! empty( $item['order_date'] ) ) {
 			try {
 				$date = new \WC_DateTime( $item['order_date'] );
 				$order->set_date_created( $date );
@@ -967,7 +1002,10 @@ class Woo_Order_Importer extends Abstract_Importer {
 			}
 		}
 
-		if ( ! empty( $item['date_modified'] ) ) {
+		if ( array_key_exists( 'date_modified', $item ) && '' === $item['date_modified'] ) {
+			// Clear modified date so it doesn't reflect import time.
+			$order->set_date_modified( null );
+		} elseif ( ! empty( $item['date_modified'] ) ) {
 			try {
 				$date = new \WC_DateTime( $item['date_modified'] );
 				$order->set_date_modified( $date );
@@ -976,7 +1014,9 @@ class Woo_Order_Importer extends Abstract_Importer {
 			}
 		}
 
-		if ( ! empty( $item['completed_date'] ) ) {
+		if ( array_key_exists( 'completed_date', $item ) && '' === $item['completed_date'] ) {
+			$order->set_date_completed( null );
+		} elseif ( ! empty( $item['completed_date'] ) ) {
 			try {
 				$date = new \WC_DateTime( $item['completed_date'] );
 				$order->set_date_completed( $date );
@@ -985,7 +1025,9 @@ class Woo_Order_Importer extends Abstract_Importer {
 			}
 		}
 
-		if ( ! empty( $item['paid_date'] ) ) {
+		if ( array_key_exists( 'paid_date', $item ) && '' === $item['paid_date'] ) {
+			$order->set_date_paid( null );
+		} elseif ( ! empty( $item['paid_date'] ) ) {
 			try {
 				$date = new \WC_DateTime( $item['paid_date'] );
 				$order->set_date_paid( $date );
@@ -1061,6 +1103,61 @@ class Woo_Order_Importer extends Abstract_Importer {
 	}
 
 	/**
+	 * Remove duplicate order notes (same content + type/customer flag).
+	 *
+	 * WooCommerce creates a system note on status transitions; when importing exported
+	 * order_notes this can lead to duplicates.
+	 *
+	 * @param WC_Order $order Order object
+	 * @return void
+	 */
+	protected function dedupe_order_notes( $order ) {
+		if ( ! function_exists( 'wc_get_order_notes' ) ) {
+			return;
+		}
+
+		$order_id = $order->get_id();
+		if ( ! $order_id ) {
+			return;
+		}
+
+		$notes = wc_get_order_notes( [ 'order_id' => $order_id ] );
+		if ( empty( $notes ) || ! is_array( $notes ) ) {
+			return;
+		}
+
+		$seen = [];
+		foreach ( $notes as $note ) {
+			$content  = isset( $note->content ) ? trim( (string) $note->content ) : '';
+			$type     = isset( $note->type ) ? (string) $note->type : '';
+			$customer = ! empty( $note->customer_note ) ? '1' : '0';
+			$key      = $type . '|' . $customer . '|' . $content;
+
+			if ( isset( $seen[ $key ] ) ) {
+				$note_id = 0;
+				if ( isset( $note->id ) ) {
+					$note_id = absint( $note->id );
+				} elseif ( isset( $note->comment_id ) ) {
+					$note_id = absint( $note->comment_id );
+				} elseif ( isset( $note->comment_ID ) ) {
+					$note_id = absint( $note->comment_ID );
+				}
+
+				if ( $note_id > 0 ) {
+					if ( function_exists( 'wc_delete_order_note' ) ) {
+						wc_delete_order_note( $note_id );
+					} else {
+						wp_delete_comment( $note_id, true );
+					}
+				}
+				continue;
+			}
+
+			$seen[ $key ] = true;
+		}
+	}
+
+	/**
 	 * Set shipping lines
 	 *
 	 * @param WC_Order $order Order object
@@ -1105,13 +1202,21 @@ class Woo_Order_Importer extends Abstract_Importer {
 				$shipping->set_method_id( $line_data['method_id'] );
 			}
 			
-			if ( isset( $line_data['total'] ) ) {
-				$shipping->set_total( $line_data['total'] );
-			}
+				if ( isset( $line_data['total'] ) ) {
+					$shipping->set_total( $line_data['total'] );
+				}
 
-			if ( isset( $line_data['tax'] ) ) {
-				$shipping->set_total_tax( $line_data['tax'] );
-			}
+				if ( isset( $line_data['tax'] ) ) {
+					// WC_Order_Item_Shipping::set_total_tax() is protected; set taxes via set_taxes().
+					$tax_total = wc_format_decimal( $line_data['tax'] );
+					$shipping->set_taxes(
+						[
+							'total' => [
+								0 => $tax_total,
+							],
+						]
+					);
+				}
 
 			// Set meta data
 			if ( ! empty( $line_data['meta_data'] ) ) {
