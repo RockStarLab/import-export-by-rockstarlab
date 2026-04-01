@@ -12,6 +12,12 @@ namespace WP_AIE\Model\Export;
 defined( 'ABSPATH' ) || exit;
 
 class Post_Exporter extends Abstract_Exporter {
+	/**
+	 * Cache of ACF field configs loaded from DB (field_key => config|null).
+	 *
+	 * @var array<string, array|null>
+	 */
+	private $acf_field_config_cache = [];
 
 	/**
 	 * Get exporter name
@@ -1448,13 +1454,56 @@ class Post_Exporter extends Abstract_Exporter {
 			     strpos( $field, 'taxonomy_' ) !== 0 &&
 			     ! taxonomy_exists( $field ) ) {
 					// Handle ACF fields (with acf_ prefix)
-		if ( strpos( $field, 'acf_' ) === 0 ) {
-			$acf_field_name = substr( $field, 4 ); // Remove 'acf_' prefix (4 characters)
-			
-			// Try get_field() first (handles complex fields like images, relationships)
+			if ( strpos( $field, 'acf_' ) === 0 ) {
+				$acf_field_name = substr( $field, 4 ); // Remove 'acf_' prefix (4 characters)
+
+				// Export ACF values using raw meta + ACF field definitions from DB.
+				// This avoids relying on ACF runtime APIs (get_field/get_field_object)
+				// which can become unreliable in export/background contexts, especially
+				// for nested fields like repeaters.
+				$field_key_ref = get_post_meta( $post->ID, "_{$acf_field_name}", true );
+				if ( $field_key_ref && 0 === strpos( $field_key_ref, 'field_' ) ) {
+					$field_cfg = $this->acf_db_load_field_config_by_key( $field_key_ref );
+					if ( $field_cfg ) {
+						$exported = $this->acf_export_value_from_meta( $post->ID, $field_cfg, $acf_field_name );
+						if ( is_array( $exported ) || is_object( $exported ) ) {
+							$data[ $field ] = wp_json_encode( $exported );
+						} elseif ( $exported === null || $exported === false ) {
+							$data[ $field ] = '';
+						} else {
+							$data[ $field ] = $exported;
+						}
+						continue;
+					}
+				}
+				
+				// Try get_field() first (handles complex fields like images, relationships).
+				// Prefer using the ACF field KEY when available — it is more reliable than
+				// using the name on non-edit screens (repeaters in particular can return
+			// false when ACF can't resolve the reference by name).
 			$acf_value = false;
+			$field_key = '';
 			if ( function_exists( 'get_field' ) ) {
-				$acf_value = get_field( $acf_field_name, $post->ID );
+				$field_key = get_post_meta( $post->ID, "_{$acf_field_name}", true );
+				if ( $field_key && 0 === strpos( $field_key, 'field_' ) ) {
+					$acf_value = get_field( $field_key, $post->ID );
+				}
+				if ( $acf_value === false || $acf_value === null ) {
+					$acf_value = get_field( $acf_field_name, $post->ID );
+				}
+			}
+
+			// Some environments (background/cron/ajax) can cause get_field() to return
+			// false for nested fields (repeaters/flexible/group) even when the field
+			// reference key is present.  Fall back to ACF internals to load and format
+			// the field by KEY.
+			if ( ( $acf_value === false || $acf_value === null ) && $field_key && function_exists( 'acf_get_field' )
+				&& function_exists( 'acf_get_value' ) && function_exists( 'acf_format_value' ) ) {
+				$field_obj = acf_get_field( $field_key );
+				if ( is_array( $field_obj ) ) {
+					$raw       = acf_get_value( $post->ID, $field_obj );
+					$acf_value = acf_format_value( $raw, $post->ID, $field_obj );
+				}
 			}
 			
 			// If get_field() returns false or null (field not found / ACF 6.x empty field),
@@ -1541,6 +1590,28 @@ class Post_Exporter extends Abstract_Exporter {
 			$meta_key = $field;
 			if ( strpos( $field, 'meta_' ) === 0 ) {
 				$meta_key = substr( $field, 5 ); // Remove 'meta_' prefix (5 characters)
+			}
+
+			// If this meta key belongs to an ACF field, export it in a portable format.
+			// This is important for edge cases like nested fields with empty names
+			// (their meta key ends with an underscore, so there is no matching acf_* column).
+			$field_key_ref = get_post_meta( $post->ID, "_{$meta_key}", true );
+			if ( $field_key_ref && 0 === strpos( $field_key_ref, 'field_' ) ) {
+				$field_cfg = $this->acf_db_load_field_config_by_key( $field_key_ref );
+				$field_type = is_array( $field_cfg ) ? ( $field_cfg['type'] ?? '' ) : '';
+
+				// Only apply to field types where portability matters across sites.
+				if ( $field_cfg && in_array( $field_type, [ 'image', 'file', 'gallery', 'relationship', 'post_object', 'taxonomy', 'user' ], true ) ) {
+					$exported = $this->acf_export_value_from_meta( $post->ID, $field_cfg, $meta_key );
+					if ( is_array( $exported ) || is_object( $exported ) ) {
+						$data[ $field ] = wp_json_encode( $exported );
+					} elseif ( $exported === null || $exported === false ) {
+						$data[ $field ] = '';
+					} else {
+						$data[ $field ] = $exported;
+					}
+					continue;
+				}
 			}
 			
 			// Special handling for WooCommerce fields - use WC_Product object
@@ -1683,36 +1754,43 @@ class Post_Exporter extends Abstract_Exporter {
 		//   - repeater rows can contain a 'url' sub-field that looks like a gallery
 		$field_type     = '';
 		$field_taxonomy = '';
-		if ( function_exists( 'get_field_object' ) ) {
-			// First attempt: look up by field name (works when ACF has loaded the field group).
-			$field_obj = get_field_object( $field_name, $post_id );
+		$field_obj      = null;
+
+		// Prefer resolving the field by its reference KEY stored in post meta.
+		// Looking up by name can be ambiguous, especially after ACF has loaded
+		// nested sub-fields in the current request.
+		$field_key_ref = get_post_meta( $post_id, "_{$field_name}", true );
+
+		if ( $field_key_ref && 0 === strpos( $field_key_ref, 'field_' ) ) {
+			if ( function_exists( 'get_field_object' ) ) {
+				$field_obj = get_field_object( $field_key_ref );
+			}
+			if ( ! is_array( $field_obj ) && function_exists( 'acf_get_field' ) ) {
+				$field_obj = acf_get_field( $field_key_ref );
+			}
 			if ( is_array( $field_obj ) ) {
 				$field_type     = $field_obj['type'] ?? '';
 				$field_taxonomy = $field_obj['taxonomy'] ?? '';
 			}
-
-			// Second attempt: ACF stores the field key as `_<field_name>` in post meta
-			// (e.g. `_relation_field` → `field_abc123`).  Using the key is more reliable
-			// than using the name because it works even when the field group is not loaded.
-			if ( '' === $field_type ) {
-				$field_key = get_post_meta( $post_id, "_{$field_name}", true );
-				if ( $field_key && 0 === strpos( $field_key, 'field_' ) ) {
-					$field_obj2 = get_field_object( $field_key );
-					if ( is_array( $field_obj2 ) ) {
-						$field_type     = $field_obj2['type'] ?? '';
-						$field_taxonomy = $field_obj2['taxonomy'] ?? '';
-					}
-				}
+		} elseif ( function_exists( 'get_field_object' ) ) {
+			// Fallback: resolve by field name (works when reference meta is missing).
+			$field_obj = get_field_object( $field_name, $post_id );
+			if ( is_array( $field_obj ) ) {
+				$field_type     = $field_obj['type'] ?? '';
+				$field_taxonomy = $field_obj['taxonomy'] ?? '';
 			}
 		}
 
 		$first = reset( $value );
 
 		// ── Repeater / Flexible Content / Group ───────────────────────────────
-		// Export raw JSON so the structure is preserved.  Sub-field media IDs
-		// are source-site-specific and are handled separately via meta_* flat
-		// columns which are also exported.
+		// Export nested structures as JSON, but convert nested media/relations
+		// to portable values (URLs/slugs/names) so imports work cross-site.
 		if ( in_array( $field_type, [ 'repeater', 'flexible_content', 'group' ], true ) ) {
+			if ( is_array( $field_obj ) ) {
+				$portable = $this->export_acf_portable_nested_value( $value, $field_obj, $post_id );
+				return wp_json_encode( $portable );
+			}
 			return wp_json_encode( $value );
 		}
 
@@ -1732,7 +1810,10 @@ class Post_Exporter extends Abstract_Exporter {
 			&& ! isset( $first['post_name'] )
 			&& ! isset( $first['term_id'] );
 
-		if ( $is_gallery_by_type || $is_gallery_by_shape ) {
+		// Even if ACF reports type=gallery/image/file, do NOT treat the value as
+		// media unless it actually looks like a list of attachments.  This
+		// prevents mis-detecting repeaters (rows often contain a 'url' sub-field).
+		if ( ( $is_gallery_by_type || $is_gallery_by_shape ) && $this->acf_array_looks_like_gallery( $value ) ) {
 			$urls = [];
 			foreach ( $value as $item ) {
 				if ( is_array( $item ) && isset( $item['url'] ) ) {
@@ -1761,13 +1842,35 @@ class Post_Exporter extends Abstract_Exporter {
 			$slugs = [];
 			foreach ( $value as $item ) {
 				if ( $item instanceof \WP_Post ) {
-					$slugs[] = $item->post_name;
+					if ( 'attachment' === $item->post_type ) {
+						$url = wp_get_attachment_url( $item->ID );
+						if ( $url ) {
+							$slugs[] = $url;
+						}
+					} else {
+						$slugs[] = $item->post_name;
+					}
 				} elseif ( is_array( $item ) && isset( $item['post_name'] ) ) {
+					// Best-effort: attachment arrays include an ID key.
+					if ( isset( $item['ID'] ) && is_numeric( $item['ID'] ) ) {
+						$url = wp_get_attachment_url( (int) $item['ID'] );
+						if ( $url ) {
+							$slugs[] = $url;
+							continue;
+						}
+					}
 					$slugs[] = $item['post_name'];
 				} elseif ( is_numeric( $item ) && '' !== $field_type ) {
 					// Only resolve IDs to slugs when the type is confirmed by ACF.
 					$p = get_post( (int) $item );
 					if ( $p ) {
+						if ( 'attachment' === $p->post_type ) {
+							$url = wp_get_attachment_url( $p->ID );
+							if ( $url ) {
+								$slugs[] = $url;
+								continue;
+							}
+						}
 						$slugs[] = $p->post_name;
 					}
 				}
@@ -1813,6 +1916,663 @@ class Post_Exporter extends Abstract_Exporter {
 	}
 
 	/**
+	 * Does this array look like a gallery/media list?
+	 *
+	 * Guard against mis-detecting repeater rows (arrays that happen to contain
+	 * a 'url' sub-field) as gallery items.
+	 *
+	 * @param array $value Candidate array.
+	 * @return bool
+	 */
+	private function acf_array_looks_like_gallery( array $value ): bool {
+		if ( empty( $value ) ) {
+			return false;
+		}
+
+		// Gallery values should be list-like: [item0, item1, ...]
+		if ( ! $this->acf_is_list_array( $value ) ) {
+			return false;
+		}
+
+		foreach ( $value as $item ) {
+			if ( is_numeric( $item ) ) {
+				continue;
+			}
+
+			if ( is_array( $item ) && isset( $item['url'] ) && ( isset( $item['ID'] ) || isset( $item['id'] ) ) ) {
+				$id = $item['ID'] ?? $item['id'];
+				if ( is_numeric( $id ) ) {
+					continue;
+				}
+			}
+
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Export nested ACF values (repeater / group / flexible content) into a
+	 * portable structure (URLs/slugs/names) that can be imported cross-site.
+	 *
+	 * @param mixed $value     Field value.
+	 * @param array $field_obj ACF field object array.
+	 * @param int   $post_id   Post ID (for resolving attachment URLs).
+	 * @return mixed Portable value (to be encoded as JSON by the caller).
+	 */
+	private function export_acf_portable_nested_value( $value, array $field_obj, int $post_id ) {
+		$type = $field_obj['type'] ?? '';
+
+		switch ( $type ) {
+			case 'image':
+			case 'file':
+				return $this->acf_export_media_url( $value, $post_id );
+
+			case 'gallery':
+				$urls = [];
+				if ( is_array( $value ) ) {
+					foreach ( $value as $item ) {
+						$url = $this->acf_export_media_url( $item, $post_id );
+						if ( $url ) {
+							$urls[] = $url;
+						}
+					}
+				}
+				return ! empty( $urls ) ? [ 'acf_type' => 'gallery', 'values' => $urls ] : [];
+
+			case 'relationship':
+			case 'post_object':
+				$items = is_array( $value ) ? $value : [ $value ];
+				$slugs = [];
+				foreach ( $items as $item ) {
+					if ( $item instanceof \WP_Post ) {
+						$slugs[] = $item->post_name;
+					} elseif ( is_array( $item ) && isset( $item['post_name'] ) ) {
+						$slugs[] = $item['post_name'];
+					} elseif ( is_numeric( $item ) ) {
+						$p = get_post( (int) $item );
+						if ( $p ) {
+							$slugs[] = $p->post_name;
+						}
+					}
+				}
+				$slugs   = array_values( array_filter( array_map( 'sanitize_title', $slugs ) ) );
+				$payload = [ 'acf_type' => 'relation', 'values' => $slugs ];
+				// post_object can be single or multiple; relationship is always multiple.
+				if ( 'post_object' === $type && empty( $field_obj['multiple'] ) ) {
+					$payload['single'] = true;
+				}
+				return $payload;
+
+			case 'taxonomy':
+				$taxonomy = $field_obj['taxonomy'] ?? '';
+				$items    = is_array( $value ) ? $value : [ $value ];
+				$names    = [];
+				foreach ( $items as $item ) {
+					if ( $item instanceof \WP_Term ) {
+						$names[] = $item->name;
+					} elseif ( is_array( $item ) && isset( $item['name'] ) && isset( $item['term_id'] ) ) {
+						$names[] = $item['name'];
+					} elseif ( is_numeric( $item ) ) {
+						$t = get_term( (int) $item );
+						if ( ! is_wp_error( $t ) && $t ) {
+							$names[] = $t->name;
+						}
+					}
+				}
+				$names   = array_values( array_filter( array_map( 'trim', $names ) ) );
+				$payload = [ 'acf_type' => 'taxonomy', 'values' => $names ];
+				if ( $taxonomy ) {
+					$payload['taxonomy'] = $taxonomy;
+				}
+				// Preserve single-selection fields.
+				if ( ! is_array( $value ) ) {
+					$payload['single'] = true;
+				}
+				return $payload;
+
+			case 'group':
+				if ( ! is_array( $value ) ) {
+					return $value;
+				}
+				$out = [];
+				foreach ( ( $field_obj['sub_fields'] ?? [] ) as $sub ) {
+					$name = $sub['name'] ?? '';
+					if ( '' === $name ) {
+						continue;
+					}
+					$sub_value    = array_key_exists( $name, $value ) ? $value[ $name ] : null;
+					$out[ $name ] = $this->export_acf_portable_nested_value( $sub_value, $sub, $post_id );
+				}
+				return $out;
+
+			case 'repeater':
+				if ( ! is_array( $value ) ) {
+					return $value;
+				}
+				$sub_fields = $field_obj['sub_fields'] ?? [];
+				$sub_by_name = [];
+				foreach ( $sub_fields as $sub ) {
+					$name = $sub['name'] ?? '';
+					if ( '' !== $name ) {
+						$sub_by_name[ $name ] = $sub;
+					}
+				}
+
+				$rows = [];
+				foreach ( $value as $row ) {
+					if ( ! is_array( $row ) ) {
+						continue;
+					}
+					$row_out = [];
+					foreach ( $sub_by_name as $name => $sub ) {
+						$sub_value        = array_key_exists( $name, $row ) ? $row[ $name ] : null;
+						$row_out[ $name ] = $this->export_acf_portable_nested_value( $sub_value, $sub, $post_id );
+					}
+					$rows[] = $row_out;
+				}
+				return $rows;
+
+			case 'flexible_content':
+				if ( ! is_array( $value ) ) {
+					return $value;
+				}
+
+				$layouts_by_name = [];
+				foreach ( ( $field_obj['layouts'] ?? [] ) as $layout ) {
+					if ( ! empty( $layout['name'] ) ) {
+						$layouts_by_name[ $layout['name'] ] = $layout;
+					}
+				}
+
+				$out_rows = [];
+				foreach ( $value as $row ) {
+					if ( ! is_array( $row ) ) {
+						continue;
+					}
+
+					$layout_name = $row['acf_fc_layout'] ?? '';
+					$layout_obj  = $layouts_by_name[ $layout_name ] ?? null;
+
+					$row_out = [ 'acf_fc_layout' => $layout_name ];
+					foreach ( ( is_array( $layout_obj ) ? ( $layout_obj['sub_fields'] ?? [] ) : [] ) as $sub ) {
+						$name = $sub['name'] ?? '';
+						if ( '' === $name ) {
+							continue;
+						}
+						$sub_value        = array_key_exists( $name, $row ) ? $row[ $name ] : null;
+						$row_out[ $name ] = $this->export_acf_portable_nested_value( $sub_value, $sub, $post_id );
+					}
+
+					$out_rows[] = $row_out;
+				}
+
+				return $out_rows;
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Convert an ACF media value (image/file) into a URL for portable export.
+	 *
+	 * @param mixed $value   Field value.
+	 * @param int   $post_id Post ID (unused, kept for signature symmetry).
+	 * @return string Media URL or empty string.
+	 */
+	private function acf_export_media_url( $value, int $post_id ): string {
+		unset( $post_id );
+
+		if ( is_array( $value ) && isset( $value['url'] ) && filter_var( $value['url'], FILTER_VALIDATE_URL ) ) {
+			return (string) $value['url'];
+		}
+
+		if ( is_numeric( $value ) ) {
+			$url = wp_get_attachment_url( (int) $value );
+			return $url ? (string) $url : '';
+		}
+
+		if ( is_string( $value ) && '' !== $value && filter_var( $value, FILTER_VALIDATE_URL ) ) {
+			return $value;
+		}
+
+		return '';
+	}
+
+	/**
+	 * Check if an array is list-like (0..n-1 numeric keys).
+	 *
+	 * @param array $arr Array.
+	 * @return bool
+	 */
+	private function acf_is_list_array( array $arr ): bool {
+		if ( [] === $arr ) {
+			return true;
+		}
+
+		$keys = array_keys( $arr );
+		return $keys === range( 0, count( $keys ) - 1 );
+	}
+
+	/**
+	 * Load an ACF field config directly from the DB by its field KEY.
+	 *
+	 * Avoids ACF runtime caches/APIs which can become unreliable during long
+	 * export requests with nested fields.
+	 *
+	 * @param string $field_key ACF field key (field_...).
+	 * @return array|null Field config or null when not found.
+	 */
+	private function acf_db_load_field_config_by_key( string $field_key ): ?array {
+		if ( '' === $field_key || 0 !== strpos( $field_key, 'field_' ) ) {
+			return null;
+		}
+
+		if ( array_key_exists( $field_key, $this->acf_field_config_cache ) ) {
+			return $this->acf_field_config_cache[ $field_key ];
+		}
+
+		global $wpdb;
+
+		$row = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- ACF field definitions are stored in wp_posts.
+			$wpdb->prepare(
+				"SELECT ID, post_title, post_excerpt, post_content
+				 FROM {$wpdb->posts}
+				 WHERE post_type = 'acf-field' AND post_name = %s
+				 LIMIT 1",
+				$field_key
+			),
+			ARRAY_A
+		);
+
+		if ( ! $row ) {
+			$this->acf_field_config_cache[ $field_key ] = null;
+			return null;
+		}
+
+		$settings = @unserialize( (string) $row['post_content'] );
+		if ( ! is_array( $settings ) ) {
+			$settings = [];
+		}
+
+		$type = $settings['type'] ?? '';
+
+		$cfg = [
+			'key'           => $field_key,
+			'name'          => (string) ( $row['post_excerpt'] ?? '' ),
+			'label'         => (string) ( $row['post_title'] ?? '' ),
+			'type'          => (string) $type,
+			'taxonomy'      => (string) ( $settings['taxonomy'] ?? '' ),
+			'multiple'      => ! empty( $settings['multiple'] ),
+			'return_format' => (string) ( $settings['return_format'] ?? '' ),
+			'field_type'    => (string) ( $settings['field_type'] ?? '' ),
+			'settings'      => $settings,
+			'sub_fields'    => [],
+			'layouts'       => $settings['layouts'] ?? [],
+			'_post_id'      => (int) ( $row['ID'] ?? 0 ),
+		];
+
+		if ( in_array( $cfg['type'], [ 'repeater', 'group' ], true ) ) {
+			$cfg['sub_fields'] = $this->acf_db_load_child_field_configs( (int) $cfg['_post_id'] );
+		}
+
+		$this->acf_field_config_cache[ $field_key ] = $cfg;
+		return $cfg;
+	}
+
+	/**
+	 * Load child ACF field configs for a parent acf-field post ID.
+	 *
+	 * @param int $parent_field_post_id Parent acf-field post ID.
+	 * @return array List of field configs.
+	 */
+	private function acf_db_load_child_field_configs( int $parent_field_post_id ): array {
+		if ( $parent_field_post_id <= 0 ) {
+			return [];
+		}
+
+		global $wpdb;
+
+		$keys = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Reading field definitions.
+			$wpdb->prepare(
+				"SELECT post_name
+				 FROM {$wpdb->posts}
+				 WHERE post_type = 'acf-field' AND post_parent = %d
+				 ORDER BY menu_order ASC, ID ASC",
+				$parent_field_post_id
+			)
+		);
+
+		$out = [];
+		foreach ( $keys as $key ) {
+			$cfg = $this->acf_db_load_field_config_by_key( (string) $key );
+			if ( $cfg ) {
+				$out[] = $cfg;
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Export an ACF field value from raw post meta using a DB-loaded field config.
+	 *
+	 * Returns a portable structure:
+	 * - image/file  → URL string
+	 * - gallery     → {acf_type:"gallery", values:[urls]}
+	 * - relation    → {acf_type:"relation", values:[slugs], single?:true}
+	 * - taxonomy    → {acf_type:"taxonomy", values:[names], taxonomy?:..., single?:true}
+	 * - user        → {acf_type:"user", values:[logins], single?:true}
+	 * - repeater/group → nested arrays (will be JSON-encoded by caller)
+	 *
+	 * @param int    $post_id       Post ID.
+	 * @param array  $field_cfg     Field config.
+	 * @param string $base_meta_key Meta key that stores this field's value (for nested fields includes row/group prefixes).
+	 * @return mixed Portable value.
+	 */
+	private function acf_export_value_from_meta( int $post_id, array $field_cfg, string $base_meta_key ) {
+		$type = $field_cfg['type'] ?? '';
+
+		switch ( $type ) {
+			case 'wysiwyg':
+			case 'textarea':
+			case 'text':
+				$raw = get_post_meta( $post_id, $base_meta_key, true );
+				if ( is_string( $raw ) && '' !== $raw ) {
+					return $this->acf_export_string_with_gallery_tokens( $raw );
+				}
+				return $raw;
+
+			case 'repeater':
+				$count_raw = get_post_meta( $post_id, $base_meta_key, true );
+				$count     = is_numeric( $count_raw ) ? (int) $count_raw : 0;
+				if ( $count <= 0 ) {
+					return [];
+				}
+
+				$rows = [];
+				for ( $i = 0; $i < $count; $i++ ) {
+					$row_out = [];
+					foreach ( ( $field_cfg['sub_fields'] ?? [] ) as $sub ) {
+						$sub_name = $sub['name'] ?? '';
+						if ( '' === $sub_name ) {
+							continue;
+						}
+						$sub_base            = $base_meta_key . '_' . $i . '_' . $sub_name;
+						$row_out[ $sub_name ] = $this->acf_export_value_from_meta( $post_id, $sub, $sub_base );
+					}
+					$rows[] = $row_out;
+				}
+
+				return $rows;
+
+			case 'group':
+				$out = [];
+				foreach ( ( $field_cfg['sub_fields'] ?? [] ) as $sub ) {
+					$sub_name = $sub['name'] ?? '';
+					if ( '' === $sub_name ) {
+						continue;
+					}
+					$sub_base         = $base_meta_key . '_' . $sub_name;
+					$out[ $sub_name ] = $this->acf_export_value_from_meta( $post_id, $sub, $sub_base );
+				}
+				return $out;
+
+			case 'image':
+			case 'file':
+				return $this->acf_export_media_url( get_post_meta( $post_id, $base_meta_key, true ), $post_id );
+
+			case 'gallery':
+				$raw  = get_post_meta( $post_id, $base_meta_key, true );
+				$ids  = maybe_unserialize( $raw );
+				$list = [];
+				if ( is_numeric( $ids ) ) {
+					$list = [ (int) $ids ];
+				} elseif ( is_array( $ids ) ) {
+					$list = $ids;
+				} elseif ( is_string( $ids ) && '' !== $ids ) {
+					$list = array_map( 'trim', explode( ',', $ids ) );
+				}
+
+				$urls = [];
+				foreach ( $list as $id ) {
+					$url = $this->acf_export_media_url( $id, $post_id );
+					if ( $url ) {
+						$urls[] = $url;
+					}
+				}
+
+				return ! empty( $urls ) ? [ 'acf_type' => 'gallery', 'values' => $urls ] : [];
+
+			case 'relationship':
+				$raw = get_post_meta( $post_id, $base_meta_key, true );
+				$ids = maybe_unserialize( $raw );
+				if ( is_numeric( $ids ) ) {
+					$ids = [ (int) $ids ];
+				}
+				$values = $this->acf_export_relation_values_from_ids( is_array( $ids ) ? $ids : [] );
+				return [ 'acf_type' => 'relation', 'values' => $values ];
+
+			case 'post_object':
+				$raw      = get_post_meta( $post_id, $base_meta_key, true );
+				$multiple = ! empty( $field_cfg['multiple'] );
+
+				if ( $multiple ) {
+					$ids = maybe_unserialize( $raw );
+					if ( is_numeric( $ids ) ) {
+						$ids = [ (int) $ids ];
+					}
+					$values = $this->acf_export_relation_values_from_ids( is_array( $ids ) ? $ids : [] );
+					return [ 'acf_type' => 'relation', 'values' => $values ];
+				}
+
+				$values = $this->acf_export_relation_values_from_ids( [ $raw ] );
+				return [ 'acf_type' => 'relation', 'values' => $values, 'single' => true ];
+
+			case 'taxonomy':
+				$raw     = get_post_meta( $post_id, $base_meta_key, true );
+				$decoded = maybe_unserialize( $raw );
+				$single  = ! is_array( $decoded );
+				if ( is_numeric( $decoded ) ) {
+					$decoded = [ (int) $decoded ];
+				}
+				$taxonomy = $field_cfg['taxonomy'] ?? '';
+				$names    = $this->acf_export_term_names_from_ids( is_array( $decoded ) ? $decoded : [], (string) $taxonomy );
+
+				$payload = [ 'acf_type' => 'taxonomy', 'values' => $names ];
+				if ( $taxonomy ) {
+					$payload['taxonomy'] = (string) $taxonomy;
+				}
+				if ( $single ) {
+					$payload['single'] = true;
+				}
+				return $payload;
+
+			case 'user':
+				$raw     = get_post_meta( $post_id, $base_meta_key, true );
+				$decoded = maybe_unserialize( $raw );
+				$single  = ! is_array( $decoded );
+				if ( is_numeric( $decoded ) ) {
+					$decoded = [ (int) $decoded ];
+				}
+				$logins = $this->acf_export_user_logins_from_ids( is_array( $decoded ) ? $decoded : [] );
+				$payload = [ 'acf_type' => 'user', 'values' => $logins ];
+				if ( $single ) {
+					$payload['single'] = true;
+				}
+				return $payload;
+
+			case 'page_link':
+				$raw = get_post_meta( $post_id, $base_meta_key, true );
+				$val = maybe_unserialize( $raw );
+				if ( is_numeric( $val ) ) {
+					$url = get_permalink( (int) $val );
+					return $url ? $url : (string) $val;
+				}
+				return $val;
+		}
+
+		// Default: return raw meta, decoding serialized arrays/objects.
+		$raw = get_post_meta( $post_id, $base_meta_key, true );
+		return maybe_unserialize( $raw );
+	}
+
+	/**
+	 * Replace `[gallery ids="1,2,3"]` shortcodes inside a string with portable tokens.
+	 *
+	 * The importer will download the referenced media (via URLs) and reconstruct
+	 * the shortcode with the target-site attachment IDs.
+	 *
+	 * Token format: [[AIE:<base64(json)>]]
+	 * JSON payload:
+	 *  - acf_type: "gallery_shortcode"
+	 *  - shortcode: original matched shortcode string
+	 *  - urls: list of attachment URLs
+	 *
+	 * @param string $value String that may contain gallery shortcodes.
+	 * @return string
+	 */
+	private function acf_export_string_with_gallery_tokens( string $value ): string {
+		if ( false === stripos( $value, '[gallery' ) ) {
+			return $value;
+		}
+
+		$pattern = '/\\[gallery\\b[^\\]]*\\bids=(["\'])([^"\']+)\\1[^\\]]*\\]/i';
+		return preg_replace_callback(
+			$pattern,
+			function ( array $m ) {
+				$shortcode = $m[0] ?? '';
+				$ids_raw   = $m[2] ?? '';
+
+				$ids = array_filter(
+					array_map(
+						'trim',
+						preg_split( '/\\s*,\\s*/', (string) $ids_raw ) ?: []
+					),
+					fn( $x ) => '' !== $x
+				);
+
+				$urls = [];
+				foreach ( $ids as $id ) {
+					if ( ! is_numeric( $id ) ) {
+						continue;
+					}
+					$url = wp_get_attachment_url( (int) $id );
+					if ( $url ) {
+						$urls[] = $url;
+					}
+				}
+
+				if ( empty( $urls ) ) {
+					return $shortcode;
+				}
+
+				$payload = [
+					'acf_type'   => 'gallery_shortcode',
+					'shortcode'  => $shortcode,
+					'urls'       => array_values( $urls ),
+				];
+
+				$json  = wp_json_encode( $payload );
+				$token = base64_encode( $json ? $json : '' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+				if ( '' === $token ) {
+					return $shortcode;
+				}
+
+				return '[[AIE:' . $token . ']]';
+			},
+			$value
+		);
+	}
+
+	/**
+	 * Convert post IDs into portable relation values.
+	 *
+	 * - Attachments are exported as absolute URLs (so the importer can download them)
+	 * - Other post types are exported as slugs (post_name)
+	 *
+	 * @param array $ids IDs (may be numeric strings).
+	 * @return array Values (URLs and/or slugs).
+	 */
+	private function acf_export_relation_values_from_ids( array $ids ): array {
+		$values = [];
+		foreach ( $ids as $id ) {
+			if ( ! is_numeric( $id ) ) {
+				continue;
+			}
+			$p = get_post( (int) $id );
+			if ( ! $p ) {
+				continue;
+			}
+
+			if ( 'attachment' === $p->post_type ) {
+				$url = wp_get_attachment_url( $p->ID );
+				if ( $url ) {
+					$values[] = $url;
+				}
+				continue;
+			}
+
+			if ( ! empty( $p->post_name ) ) {
+				$values[] = $p->post_name;
+			}
+		}
+
+		$out = [];
+		foreach ( $values as $v ) {
+			if ( is_string( $v ) && filter_var( $v, FILTER_VALIDATE_URL ) ) {
+				$out[] = $v;
+			} else {
+				$out[] = sanitize_title( (string) $v );
+			}
+		}
+
+		return array_values( array_filter( $out ) );
+	}
+
+	/**
+	 * Convert term IDs into term names.
+	 *
+	 * @param array  $ids      Term IDs (may be numeric strings).
+	 * @param string $taxonomy Optional taxonomy hint.
+	 * @return array Term names.
+	 */
+	private function acf_export_term_names_from_ids( array $ids, string $taxonomy = '' ): array {
+		$names = [];
+		foreach ( $ids as $id ) {
+			if ( ! is_numeric( $id ) ) {
+				continue;
+			}
+			$term = $taxonomy ? get_term( (int) $id, $taxonomy ) : get_term( (int) $id );
+			if ( $term && ! is_wp_error( $term ) && ! empty( $term->name ) ) {
+				$names[] = $term->name;
+			}
+		}
+		return array_values( array_filter( array_map( 'trim', $names ) ) );
+	}
+
+	/**
+	 * Convert user IDs into user logins.
+	 *
+	 * @param array $ids User IDs (may be numeric strings).
+	 * @return array User logins.
+	 */
+	private function acf_export_user_logins_from_ids( array $ids ): array {
+		$logins = [];
+		foreach ( $ids as $id ) {
+			if ( ! is_numeric( $id ) ) {
+				continue;
+			}
+			$user = get_userdata( (int) $id );
+			if ( $user && ! empty( $user->user_login ) ) {
+				$logins[] = $user->user_login;
+			}
+		}
+		return array_values( array_filter( array_map( 'sanitize_user', $logins ) ) );
+	}
+
+	/**
 	 * Get post meta data
 	 *
 	 * @param int $post_id Post ID
@@ -1823,8 +2583,13 @@ class Post_Exporter extends Abstract_Exporter {
 		$meta     = [];
 
 		foreach ( $all_meta as $key => $values ) {
-			// Skip internal WordPress meta
+			// Skip internal WordPress meta, but KEEP ACF reference keys
+			// (e.g. `_my_field` = `field_abc123`) so imports can restore ACF fields
+			// even when a field name is empty or when only meta_* columns are mapped.
 			if ( '_' === substr( $key, 0, 1 ) ) {
+				if ( 1 === count( $values ) && is_string( $values[0] ) && 0 === strpos( $values[0], 'field_' ) ) {
+					$meta[ $key ] = $values[0];
+				}
 				continue;
 			}
 

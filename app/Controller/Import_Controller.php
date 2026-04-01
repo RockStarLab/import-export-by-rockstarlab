@@ -185,7 +185,7 @@ class Import_Controller extends Base_Controller {
 		$file_path   = $this->get_request_param( 'file_path' );
 		$import_type = $this->get_request_param( 'import_type' );
 		$mapping     = $this->get_request_array( 'mapping' );
-		$options     = $this->get_request_array( 'options' );
+		$options     = $this->normalize_post_options( $import_type, $this->get_request_array( 'options' ) );
 		$format      = $this->get_request_param( 'format', 'csv' );
 		$delimiter   = $this->get_request_param( 'delimiter', ',' );
 
@@ -338,7 +338,7 @@ class Import_Controller extends Base_Controller {
 		$format      = $parameters['format'];
 		$delimiter   = $parameters['delimiter'] ?? ',';
 		$mapping     = $parameters['mapping'];
-		$options     = $parameters['options'] ?? [];
+		$options     = $this->normalize_post_options( $import_type, $parameters['options'] ?? [] );
 		$offset      = $parameters['offset'] ?? 0;
 		$batch_size  = isset( $options['batch_size'] ) ? (int) $options['batch_size'] : 50;
 
@@ -702,5 +702,37 @@ class Import_Controller extends Base_Controller {
 				'row_count' => (int) $row_count,
 			]
 		);
+	}
+
+	/**
+	 * Normalize import options for post-based import types.
+	 *
+	 * Some UI flows (e.g. importing Pages) do not always send a `post_type`
+	 * option. When importing posts/pages via Post_Importer we should default
+	 * to the selected content type to prevent importing Pages as Posts.
+	 *
+	 * @param string $import_type Importer type from the request/job.
+	 * @param array  $options     Options array.
+	 * @return array Normalized options.
+	 */
+	private function normalize_post_options( $import_type, $options ) {
+		if ( ! is_array( $options ) ) {
+			$options = [];
+		}
+
+		$import_type = strtolower( trim( (string) $import_type ) );
+
+		$map = [
+			'post'  => 'post',
+			'posts' => 'post',
+			'page'  => 'page',
+			'pages' => 'page',
+		];
+
+		if ( empty( $options['post_type'] ) && isset( $map[ $import_type ] ) ) {
+			$options['post_type'] = $map[ $import_type ];
+		}
+
+		return $options;
 	}
 }

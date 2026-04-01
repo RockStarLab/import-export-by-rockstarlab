@@ -50,11 +50,6 @@ defined( 'ABSPATH' ) || exit;
 							<?php esc_html_e( 'Skip import for this item', 'wp-advanced-import-export' ); ?>
 						</label><br>
 						<label>
-							<input type="radio" name="if_exists" value="ignore">
-							<strong><?php esc_html_e( 'Ignore', 'wp-advanced-import-export' ); ?></strong> - 
-							<?php esc_html_e( 'Create new item anyway (ignore existing)', 'wp-advanced-import-export' ); ?>
-						</label><br>
-						<label>
 							<input type="radio" name="if_exists" value="create">
 							<strong><?php esc_html_e( 'Create', 'wp-advanced-import-export' ); ?></strong> - 
 							<?php esc_html_e( 'Always create new item', 'wp-advanced-import-export' ); ?>
