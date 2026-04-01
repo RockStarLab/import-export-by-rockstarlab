@@ -252,23 +252,76 @@ class Post_Importer extends Abstract_Importer {
 
 		// Check for duplicates
 		$existing_post = $this->find_existing_post( $item );
+		$source_id     = isset( $item['_aie_source_id'] ) ? absint( $item['_aie_source_id'] ) : 0;
 
 		if ( $existing_post ) {
 			$duplicate_mode = $this->get_option( 'duplicate_mode', 'skip' );
 
 			if ( 'skip' === $duplicate_mode ) {
+				$this->record_source_id_map( $source_id, $existing_post->ID );
 				return 'skipped';
 			}
 
 			if ( 'update' === $duplicate_mode ) {
-				return $this->update_post( $existing_post->ID, $item );
+				$result = $this->update_post( $existing_post->ID, $item );
+				if ( ! is_wp_error( $result ) ) {
+					$this->record_source_id_map( $source_id, $existing_post->ID );
+				}
+				return $result;
 			}
 
 			// 'create' mode - fall through to create new post
 		}
 
 		// Create new post
-		return $this->create_post( $item );
+		$created = $this->create_post( $item );
+		if ( is_int( $created ) && $created > 0 ) {
+			$this->record_source_id_map( $source_id, $created );
+		}
+		return $created;
+	}
+
+	/**
+	 * Persist a source->target ID mapping for this import job.
+	 *
+	 * Used for post-import fixups like resolving cross-site post_parent IDs.
+	 *
+	 * @param int $source_id Source site post ID from the import file.
+	 * @param int $target_id Target site post ID created/updated.
+	 * @return void
+	 */
+	private function record_source_id_map( $source_id, $target_id ) {
+		$source_id = absint( $source_id );
+		$target_id = absint( $target_id );
+
+		if ( $source_id <= 0 || $target_id <= 0 ) {
+			return;
+		}
+
+		if ( empty( $this->job_id ) ) {
+			// No job context available; skip persisting.
+			return;
+		}
+
+		$key = $this->get_job_id_map_key();
+		$map = get_transient( $key );
+		if ( ! is_array( $map ) ) {
+			$map = [];
+		}
+
+		$map[ (string) $source_id ] = $target_id;
+
+		// Keep around long enough for the final batch to run fixups.
+		set_transient( $key, $map, DAY_IN_SECONDS );
+	}
+
+	/**
+	 * Get the transient key for the current job's ID map.
+	 *
+	 * @return string
+	 */
+	private function get_job_id_map_key() {
+		return 'aie_import_post_id_map_' . absint( $this->job_id );
 	}
 
 	/**

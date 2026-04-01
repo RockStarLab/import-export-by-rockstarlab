@@ -1485,6 +1485,27 @@ const ImportModule = {
 			]);
 		}
 
+		// Menus (classic nav_menu / nav_menu_item export)
+		if ( contentType === 'menu' || contentType === 'menus' || contentType === 'nav_menu' ) {
+			return translateGroups([
+				{
+					label: 'Basic',
+					options: [
+						{ value: 'name', label: 'Menu Name', type: 'string' },
+						{ value: 'slug', label: 'Menu Slug', type: 'string' },
+						{ value: 'description', label: 'Description', type: 'string' },
+						{ value: 'count', label: 'Item Count', type: 'number' },
+					],
+				},
+				{
+					label: 'Items',
+					options: [
+						{ value: 'menu_items', label: 'Menu Items (JSON)', type: 'json' },
+					],
+				},
+			]);
+		}
+
 		// Pages (no taxonomies, only custom fields)
 		if ( contentType === 'page' ) {
 			return translateGroups([

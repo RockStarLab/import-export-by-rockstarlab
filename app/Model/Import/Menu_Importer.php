@@ -484,10 +484,12 @@ class Menu_Importer extends Abstract_Importer {
 			return $error;
 		}
 
+		$item_type   = isset( $item['type'] ) ? sanitize_text_field( $item['type'] ) : '';
+		$item_object = isset( $item['object'] ) ? sanitize_text_field( $item['object'] ) : '';
+
 		// Prepare menu item data
 		$menu_item_data = [
 			'menu-item-title'       => isset( $item['title'] ) ? sanitize_text_field( $item['title'] ) : '',
-			'menu-item-url'         => isset( $item['url'] ) ? esc_url_raw( $item['url'] ) : '',
 			'menu-item-status'      => 'publish',
 			'menu-item-position'    => isset( $item['menu_order'] ) ? intval( $item['menu_order'] ) : 0,
 			'menu-item-target'      => isset( $item['target'] ) ? sanitize_text_field( $item['target'] ) : '',
@@ -498,17 +500,28 @@ class Menu_Importer extends Abstract_Importer {
 		];
 
 		// Handle menu item type
-		if ( isset( $item['type'] ) ) {
-			$menu_item_data['menu-item-type'] = sanitize_text_field( $item['type'] );
+		if ( $item_type !== '' ) {
+			$menu_item_data['menu-item-type'] = $item_type;
 		}
 
 		// Handle object (post_type, taxonomy, custom)
-		if ( isset( $item['object'] ) ) {
-			$menu_item_data['menu-item-object'] = sanitize_text_field( $item['object'] );
+		if ( $item_object !== '' ) {
+			$menu_item_data['menu-item-object'] = $item_object;
 		}
 
-		// Handle object ID
-		if ( isset( $item['object_id'] ) && ! empty( $item['object_id'] ) ) {
+		// For custom links, URL matters; for post_type/taxonomy WP derives the URL from object-id.
+		if ( 'custom' === $item_type ) {
+			if ( isset( $item['url'] ) ) {
+				$menu_item_data['menu-item-url'] = $this->rewrite_url_to_local_site( (string) $item['url'] );
+			}
+		}
+
+		// Handle object ID (cross-site safe)
+		$resolved_object_id = $this->resolve_menu_item_object_id( $item_type, $item_object, $item );
+		if ( $resolved_object_id > 0 ) {
+			$menu_item_data['menu-item-object-id'] = $resolved_object_id;
+		} elseif ( isset( $item['object_id'] ) && ! empty( $item['object_id'] ) && 'custom' === $item_type ) {
+			// Custom links sometimes carry object_id=0; ignore otherwise.
 			$menu_item_data['menu-item-object-id'] = intval( $item['object_id'] );
 		}
 
@@ -548,6 +561,165 @@ class Menu_Importer extends Abstract_Importer {
 		}
 
 		return $new_item_id;
+	}
+
+	/**
+	 * Rewrite an absolute URL from another site to the current site's origin.
+	 *
+	 * Keeps path/query/fragment intact; only replaces scheme/host/port when the URL is absolute.
+	 *
+	 * @param string $url Raw URL from the import file.
+	 * @return string URL rewritten to current site, or original if not absolute/parseable.
+	 */
+	protected function rewrite_url_to_local_site( $url ) {
+		$url = trim( (string) $url );
+		if ( $url === '' ) {
+			return '';
+		}
+
+		$parsed = wp_parse_url( $url );
+		if ( empty( $parsed['host'] ) ) {
+			// Relative or unparseable; return as-is.
+			return esc_url_raw( $url );
+		}
+
+		$home        = home_url();
+		$home_parsed = wp_parse_url( $home );
+		if ( empty( $home_parsed['host'] ) ) {
+			return esc_url_raw( $url );
+		}
+
+		$scheme = $home_parsed['scheme'] ?? 'http';
+		$host   = $home_parsed['host'];
+		$port   = isset( $home_parsed['port'] ) ? ':' . (int) $home_parsed['port'] : '';
+
+		$path     = $parsed['path'] ?? '';
+		$query    = isset( $parsed['query'] ) ? '?' . $parsed['query'] : '';
+		$fragment = isset( $parsed['fragment'] ) ? '#' . $parsed['fragment'] : '';
+
+		return esc_url_raw( $scheme . '://' . $host . $port . $path . $query . $fragment );
+	}
+
+	/**
+	 * Resolve cross-site object IDs for post_type/taxonomy menu items.
+	 *
+	 * @param string $type   Menu item type (post_type|taxonomy|custom).
+	 * @param string $object Menu item object (post type or taxonomy slug).
+	 * @param array  $item   Raw item data from file.
+	 * @return int Resolved local object ID or 0 if not found / not applicable.
+	 */
+	protected function resolve_menu_item_object_id( $type, $object, $item ) {
+		$type   = (string) $type;
+		$object = (string) $object;
+
+		if ( $type === 'post_type' ) {
+			return $this->resolve_post_type_object_id( $object, $item );
+		}
+
+		if ( $type === 'taxonomy' ) {
+			return $this->resolve_taxonomy_object_id( $object, $item );
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Resolve a post ID for a post_type menu item using URL/path/title.
+	 *
+	 * @param string $post_type Post type slug.
+	 * @param array  $item      Raw menu item data.
+	 * @return int Post ID or 0.
+	 */
+	protected function resolve_post_type_object_id( $post_type, $item ) {
+		$post_type = sanitize_key( (string) $post_type );
+		if ( $post_type === '' ) {
+			return 0;
+		}
+
+		$url = isset( $item['url'] ) ? (string) $item['url'] : '';
+		if ( $url !== '' ) {
+			$local_url = $this->rewrite_url_to_local_site( $url );
+			$post_id   = url_to_postid( $local_url );
+			if ( $post_id > 0 ) {
+				return (int) $post_id;
+			}
+
+			$path = wp_parse_url( $local_url, PHP_URL_PATH );
+			if ( is_string( $path ) ) {
+				$path = trim( $path, '/' );
+				if ( $path !== '' ) {
+					$post = get_page_by_path( $path, OBJECT, $post_type );
+					if ( $post ) {
+						return (int) $post->ID;
+					}
+				}
+			}
+		}
+
+		// Backward-compatible extra hints if exporter provides them.
+		$object_path = isset( $item['object_path'] ) ? trim( (string) $item['object_path'], '/' ) : '';
+		if ( $object_path !== '' ) {
+			$post = get_page_by_path( $object_path, OBJECT, $post_type );
+			if ( $post ) {
+				return (int) $post->ID;
+			}
+		}
+
+		$object_name = isset( $item['object_name'] ) ? sanitize_title( (string) $item['object_name'] ) : '';
+		if ( $object_name !== '' ) {
+			$post = get_page_by_path( $object_name, OBJECT, $post_type );
+			if ( $post ) {
+				return (int) $post->ID;
+			}
+		}
+
+		$title = isset( $item['title'] ) ? (string) $item['title'] : '';
+		if ( $title !== '' ) {
+			$post = get_page_by_title( $title, OBJECT, $post_type );
+			if ( $post ) {
+				return (int) $post->ID;
+			}
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Resolve a term ID for a taxonomy menu item using slug/name.
+	 *
+	 * @param string $taxonomy Taxonomy slug.
+	 * @param array  $item     Raw menu item data.
+	 * @return int Term ID or 0.
+	 */
+	protected function resolve_taxonomy_object_id( $taxonomy, $item ) {
+		$taxonomy = sanitize_key( (string) $taxonomy );
+		if ( $taxonomy === '' ) {
+			return 0;
+		}
+
+		$slug = '';
+		if ( isset( $item['term_slug'] ) ) {
+			$slug = sanitize_title( (string) $item['term_slug'] );
+		} elseif ( isset( $item['object_slug'] ) ) {
+			$slug = sanitize_title( (string) $item['object_slug'] );
+		}
+
+		if ( $slug !== '' ) {
+			$term = get_term_by( 'slug', $slug, $taxonomy );
+			if ( $term && ! is_wp_error( $term ) ) {
+				return (int) $term->term_id;
+			}
+		}
+
+		$name = isset( $item['term_name'] ) ? (string) $item['term_name'] : ( isset( $item['title'] ) ? (string) $item['title'] : '' );
+		if ( $name !== '' ) {
+			$term = get_term_by( 'name', $name, $taxonomy );
+			if ( $term && ! is_wp_error( $term ) ) {
+				return (int) $term->term_id;
+			}
+		}
+
+		return 0;
 	}
 
 	/**
