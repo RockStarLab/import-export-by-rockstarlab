@@ -12,6 +12,55 @@ namespace WP_AIE\Model\Export;
 defined( 'ABSPATH' ) || exit;
 
 class Coupon_Exporter extends Abstract_Exporter {
+	/**
+	 * Convert a product ID to a portable reference.
+	 *
+	 * @param int $product_id Product ID.
+	 * @return string Portable reference (sku:..., slug:..., id:...).
+	 */
+	protected function format_product_ref( $product_id ) {
+		$product_id = (int) $product_id;
+		if ( $product_id <= 0 ) {
+			return '';
+		}
+
+		if ( function_exists( 'wc_get_product' ) ) {
+			$product = wc_get_product( $product_id );
+			if ( $product ) {
+				$sku = $product->get_sku();
+				if ( ! empty( $sku ) ) {
+					return 'sku:' . (string) $sku;
+				}
+			}
+		}
+
+		$slug = get_post_field( 'post_name', $product_id );
+		if ( ! empty( $slug ) ) {
+			return 'slug:' . (string) $slug;
+		}
+
+		return 'id:' . (string) $product_id;
+	}
+
+	/**
+	 * Convert a product_cat term ID to a portable reference.
+	 *
+	 * @param int $term_id Term ID.
+	 * @return string Portable reference (slug:..., id:...).
+	 */
+	protected function format_product_cat_ref( $term_id ) {
+		$term_id = (int) $term_id;
+		if ( $term_id <= 0 ) {
+			return '';
+		}
+
+		$term = get_term( $term_id, 'product_cat' );
+		if ( $term && ! is_wp_error( $term ) && ! empty( $term->slug ) ) {
+			return 'slug:' . (string) $term->slug;
+		}
+
+		return 'id:' . (string) $term_id;
+	}
 
 	/**
 	 * Content type
@@ -363,6 +412,33 @@ class Coupon_Exporter extends Abstract_Exporter {
 			$method = $field_map[ $field_name ];
 			if ( method_exists( $coupon, $method ) ) {
 				$value = $coupon->$method();
+
+				// Make product/category restrictions portable across sites (IDs differ).
+				if ( is_array( $value ) ) {
+					if ( in_array( $field_name, [ 'product_ids', 'excluded_product_ids' ], true ) ) {
+						$value = array_values(
+							array_filter(
+								array_map(
+									function ( $id ) {
+										return $this->format_product_ref( $id );
+									},
+									$value
+								)
+							)
+						);
+					} elseif ( in_array( $field_name, [ 'product_categories', 'excluded_product_categories' ], true ) ) {
+						$value = array_values(
+							array_filter(
+								array_map(
+									function ( $id ) {
+										return $this->format_product_cat_ref( $id );
+									},
+									$value
+								)
+							)
+						);
+					}
+				}
 
 				// Convert WC_DateTime to string
 				if ( $value instanceof \WC_DateTime ) {

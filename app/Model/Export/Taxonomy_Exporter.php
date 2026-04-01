@@ -63,6 +63,7 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 			'taxonomy',
 			'description',
 			'parent',
+			'parent_slug',
 			'count',
 			'term_meta',
 		];
@@ -283,6 +284,26 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 		// Check if ID should be forced (for Content Updater)
 		$force_include_id = $options['force_include_id'] ?? false;
 
+		// Always include taxonomy so the export file is importable across sites.
+		if ( is_array( $fields ) && ! in_array( 'taxonomy', $fields, true ) ) {
+			$fields[] = 'taxonomy';
+		}
+
+		// Ensure portable parent hints are always exported when parent is present.
+		if ( is_array( $fields ) && in_array( 'parent', $fields, true ) && ! in_array( 'parent_slug', $fields, true ) ) {
+			$fields[] = 'parent_slug';
+		}
+
+		// Parent relationships require a stable per-row source identifier.
+		if ( is_array( $fields ) && in_array( 'parent', $fields, true ) && ! in_array( 'term_id', $fields, true ) ) {
+			$fields[] = 'term_id';
+		}
+
+		// IMPORTANT: also update exporter options so Abstract_Exporter::select_fields() doesn't drop auto-added fields.
+		if ( is_array( $fields ) ) {
+			$this->options['fields'] = $fields;
+		}
+
 		// Add term_id if requested or forced
 		if ( in_array( 'term_id', $fields, true ) || $force_include_id ) {
 			$data['term_id'] = $term->term_id;
@@ -326,6 +347,15 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 
 				case 'parent':
 					$data['parent'] = $term->parent;
+					break;
+
+				case 'parent_slug':
+					if ( $term->parent ) {
+						$parent_term = get_term( (int) $term->parent, $term->taxonomy );
+						$data['parent_slug'] = ( $parent_term && ! is_wp_error( $parent_term ) ) ? (string) $parent_term->slug : '';
+					} else {
+						$data['parent_slug'] = '';
+					}
 					break;
 
 				case 'count':

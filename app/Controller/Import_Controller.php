@@ -407,6 +407,51 @@ class Import_Controller extends Base_Controller {
 				unset( $prepared_row );
 			}
 
+			// Preserve source IDs + portable post hints for cross-site comment relationships.
+			if ( $importer instanceof \WP_AIE\Model\Import\Comment_Importer ) {
+				foreach ( $prepared_data as $row_index => &$prepared_row ) {
+					// Ensure core date fields are available even if the UI mapping omits them.
+					if ( isset( $data[ $row_index ]['comment_date'] ) && ( ! isset( $prepared_row['comment_date'] ) || '' === $prepared_row['comment_date'] ) ) {
+						$prepared_row['comment_date'] = (string) $data[ $row_index ]['comment_date'];
+					}
+					if ( isset( $data[ $row_index ]['comment_date_gmt'] ) && ( ! isset( $prepared_row['comment_date_gmt'] ) || '' === $prepared_row['comment_date_gmt'] ) ) {
+						$prepared_row['comment_date_gmt'] = (string) $data[ $row_index ]['comment_date_gmt'];
+					}
+					if ( isset( $data[ $row_index ]['comment_ID'] ) ) {
+						$prepared_row['_aie_source_comment_id'] = absint( $data[ $row_index ]['comment_ID'] );
+					}
+					if ( isset( $data[ $row_index ]['comment_parent'] ) ) {
+						$prepared_row['_aie_source_comment_parent_id'] = absint( $data[ $row_index ]['comment_parent'] );
+					}
+					if ( isset( $data[ $row_index ]['post_permalink'] ) ) {
+						$prepared_row['_aie_source_post_permalink'] = (string) $data[ $row_index ]['post_permalink'];
+					}
+					if ( isset( $data[ $row_index ]['post_slug'] ) ) {
+						$prepared_row['_aie_source_post_slug'] = (string) $data[ $row_index ]['post_slug'];
+					}
+					if ( isset( $data[ $row_index ]['post_type'] ) ) {
+						$prepared_row['_aie_source_post_type'] = (string) $data[ $row_index ]['post_type'];
+					}
+				}
+				unset( $prepared_row );
+			}
+
+			// Preserve source IDs + portable parent hints for cross-site term hierarchy fixups.
+			if ( $importer instanceof \WP_AIE\Model\Import\Taxonomy_Term_Importer ) {
+				foreach ( $prepared_data as $row_index => &$prepared_row ) {
+					if ( isset( $data[ $row_index ]['term_id'] ) ) {
+						$prepared_row['_aie_source_term_id'] = absint( $data[ $row_index ]['term_id'] );
+					}
+					if ( isset( $data[ $row_index ]['parent'] ) ) {
+						$prepared_row['_aie_source_parent_term_id'] = absint( $data[ $row_index ]['parent'] );
+					}
+					if ( isset( $data[ $row_index ]['parent_slug'] ) ) {
+						$prepared_row['_aie_source_parent_slug'] = (string) $data[ $row_index ]['parent_slug'];
+					}
+				}
+				unset( $prepared_row );
+			}
+
 			// Store prepared data and total in job parameters
 			$parameters['prepared_data'] = $prepared_data;
 			$parameters['total_items']   = $total_items;
@@ -444,6 +489,8 @@ class Import_Controller extends Base_Controller {
 		if ( empty( $batch ) ) {
 			// Post-import fixups for relationship fields (best-effort).
 			$this->fix_post_parent_relationships( $job_id, $prepared_data );
+			$this->fix_comment_parent_relationships( $job_id, $prepared_data );
+			$this->fix_term_parent_relationships( $job_id, $prepared_data );
 
 			// All items processed - complete job
 			$job_model->update(
@@ -805,6 +852,138 @@ class Import_Controller extends Base_Controller {
 		}
 
 		// Prevent stale maps affecting future jobs.
+		delete_transient( $key );
+	}
+
+	/**
+	 * Best-effort fix for cross-site comment_parent relationships after a Comment_Importer job.
+	 *
+	 * The CSV stores source-site comment IDs in `comment_parent`. We import comments with
+	 * parent=0 and store a source->target comment ID map in a transient keyed by job_id.
+	 * Once all comments are created, we rewrite comment_parent to the correct target IDs.
+	 *
+	 * @param int   $job_id        Job ID.
+	 * @param array $prepared_data Prepared items.
+	 * @return void
+	 */
+	private function fix_comment_parent_relationships( $job_id, $prepared_data ) {
+		global $wpdb;
+
+		$job_id = absint( $job_id );
+		if ( $job_id <= 0 || ! is_array( $prepared_data ) || empty( $prepared_data ) ) {
+			return;
+		}
+
+		$key = 'aie_import_comment_id_map_' . $job_id;
+		$map = get_transient( $key );
+		if ( ! is_array( $map ) || empty( $map ) ) {
+			return;
+		}
+
+		foreach ( $prepared_data as $row ) {
+			$source_id     = isset( $row['_aie_source_comment_id'] ) ? absint( $row['_aie_source_comment_id'] ) : absint( $row['comment_ID'] ?? 0 );
+			$source_parent = isset( $row['_aie_source_comment_parent_id'] ) ? absint( $row['_aie_source_comment_parent_id'] ) : absint( $row['comment_parent'] ?? 0 );
+
+			$target_id     = $source_id ? absint( $map[ (string) $source_id ] ?? 0 ) : 0;
+			$target_parent = $source_parent ? absint( $map[ (string) $source_parent ] ?? 0 ) : 0;
+
+			if ( $target_id <= 0 || $source_parent <= 0 || $target_parent <= 0 ) {
+				continue;
+			}
+
+			$comment = get_comment( $target_id );
+			if ( ! $comment ) {
+				continue;
+			}
+
+			if ( (int) $comment->comment_parent === $target_parent ) {
+				continue;
+			}
+
+			// Use direct DB update to avoid wp_update_comment recomputing comment_date_gmt based on site timezone.
+			$wpdb->update(
+				$wpdb->comments,
+				[ 'comment_parent' => $target_parent ],
+				[ 'comment_ID' => $target_id ],
+				[ '%d' ],
+				[ '%d' ]
+			); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional.
+
+			clean_comment_cache( $target_id );
+		}
+
+		delete_transient( $key );
+	}
+
+	/**
+	 * Best-effort fix for cross-site term parent relationships after a Taxonomy_Term_Importer job.
+	 *
+	 * Terms are exported with source-site `term_id`/`parent` IDs. On import we store a source->target
+	 * map in a transient keyed by job_id and then rewrite parents once all terms exist.
+	 *
+	 * @param int   $job_id        Job ID.
+	 * @param array $prepared_data Prepared items.
+	 * @return void
+	 */
+	private function fix_term_parent_relationships( $job_id, $prepared_data ) {
+		$job_id = absint( $job_id );
+		if ( $job_id <= 0 || ! is_array( $prepared_data ) || empty( $prepared_data ) ) {
+			return;
+		}
+
+		$key = 'aie_import_term_id_map_' . $job_id;
+		$map = get_transient( $key );
+		if ( ! is_array( $map ) || empty( $map ) ) {
+			return;
+		}
+
+		foreach ( $prepared_data as $row ) {
+			$taxonomy = isset( $row['taxonomy'] ) ? sanitize_key( (string) $row['taxonomy'] ) : '';
+			if ( $taxonomy === '' ) {
+				continue;
+			}
+
+			$tax_map = isset( $map[ $taxonomy ] ) && is_array( $map[ $taxonomy ] ) ? $map[ $taxonomy ] : [];
+			if ( empty( $tax_map ) ) {
+				continue;
+			}
+
+			$source_id     = isset( $row['_aie_source_term_id'] ) ? absint( $row['_aie_source_term_id'] ) : absint( $row['term_id'] ?? 0 );
+			$source_parent = isset( $row['_aie_source_parent_term_id'] ) ? absint( $row['_aie_source_parent_term_id'] ) : absint( $row['parent'] ?? 0 );
+
+			$target_id     = $source_id ? absint( $tax_map[ (string) $source_id ] ?? 0 ) : 0;
+			$target_parent = $source_parent ? absint( $tax_map[ (string) $source_parent ] ?? 0 ) : 0;
+
+			// Fallback: resolve parent by exported parent_slug when ID mapping is missing.
+			if ( $target_parent <= 0 && ! empty( $row['_aie_source_parent_slug'] ) ) {
+				$parent_slug = sanitize_title( (string) $row['_aie_source_parent_slug'] );
+				if ( $parent_slug !== '' ) {
+					$parent_term = get_term_by( 'slug', $parent_slug, $taxonomy );
+					if ( $parent_term && ! is_wp_error( $parent_term ) ) {
+						$target_parent = (int) $parent_term->term_id;
+					}
+				}
+			}
+
+			if ( $target_id <= 0 || $source_parent <= 0 || $target_parent <= 0 ) {
+				continue;
+			}
+
+			$current = get_term( $target_id, $taxonomy );
+			if ( ! $current || is_wp_error( $current ) ) {
+				continue;
+			}
+
+			if ( (int) $current->parent === $target_parent ) {
+				continue;
+			}
+
+			$result = wp_update_term( $target_id, $taxonomy, [ 'parent' => $target_parent ] );
+			if ( is_wp_error( $result ) ) {
+				continue;
+			}
+		}
+
 		delete_transient( $key );
 	}
 }

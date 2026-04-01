@@ -12,6 +12,27 @@ namespace WP_AIE\Model\Export;
 defined( 'ABSPATH' ) || exit;
 
 class Database_Table_Exporter extends Abstract_Exporter {
+	/**
+	 * Strictly normalize a table name for safe identifier interpolation.
+	 *
+	 * Database table identifiers cannot be safely passed through $wpdb->prepare()
+	 * because placeholders are quoted. Instead we validate the table name and
+	 * then interpolate it inside backticks.
+	 *
+	 * @param string $table_name Raw table name.
+	 * @return string Normalized table name or empty string if invalid.
+	 */
+	protected function normalize_table_name( $table_name ) {
+		$table_name = sanitize_text_field( (string) $table_name );
+		$table_name = trim( $table_name );
+
+		// Allow only typical MySQL identifier characters.
+		if ( '' === $table_name || ! preg_match( '/^[A-Za-z0-9_]+$/', $table_name ) ) {
+			return '';
+		}
+
+		return $table_name;
+	}
 
 	/**
 	 * Get exporter name
@@ -198,7 +219,8 @@ class Database_Table_Exporter extends Abstract_Exporter {
 	public function get_available_fields() {
 		// If table is specified in options, return its columns
 		if ( ! empty( $this->options['table_name'] ) ) {
-			$columns = $this->get_table_columns( $this->options['table_name'] );
+			$table_name = $this->normalize_table_name( $this->options['table_name'] );
+			$columns    = $table_name ? $this->get_table_columns( $table_name ) : [];
 			return array_column( $columns, 'name' );
 		}
 
@@ -227,35 +249,39 @@ class Database_Table_Exporter extends Abstract_Exporter {
 		}
 
 		global $wpdb;
-		$table_name = sanitize_text_field( $options['table_name'] );
+		$table_name = $this->normalize_table_name( $options['table_name'] );
+		if ( '' === $table_name ) {
+			return 0;
+		}
 
 		// Validate table name exists
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+		$table_exists = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			$wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name )
+		);
 		if ( ! $table_exists ) {
 			return 0;
 		}
 
+		// Fast path: no custom filters — use COUNT(*) directly.
+		if ( empty( $options['filters'] ) || ! is_array( $options['filters'] ) ) {
+			$count = $wpdb->get_var( "SELECT COUNT(*) FROM `{$table_name}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier validated above.
+			return (int) $count;
+		}
+
 		// Fetch all rows for filtering
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM `%1s`', $table_name ), ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQLPlaceholders.UnquotedComplexPlaceholder -- Direct DB query required here.
+		$rows = $wpdb->get_results( "SELECT * FROM `{$table_name}`", ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier validated above.
 
 		if ( empty( $rows ) ) {
 			return 0;
 		}
 
-		// Apply filters if present
-		if ( ! empty( $options['filters'] ) && is_array( $options['filters'] ) ) {
-			$count = 0;
-			foreach ( $rows as $row ) {
-				if ( $this->passes_all_filters( $row, $options['filters'] ) ) {
-					++$count;
-				}
+		$count = 0;
+		foreach ( $rows as $row ) {
+			if ( $this->passes_all_filters( $row, $options['filters'] ) ) {
+				++$count;
 			}
-			return $count;
 		}
-
-		return count( $rows );
+		return $count;
 	}
 
 	/**
@@ -273,7 +299,13 @@ class Database_Table_Exporter extends Abstract_Exporter {
 		}
 
 		global $wpdb;
-		$table_name = sanitize_text_field( $options['table_name'] );
+		$table_name = $this->normalize_table_name( $options['table_name'] );
+		if ( '' === $table_name ) {
+			return new \WP_Error(
+				'invalid_table_name',
+				__( 'Invalid table name', 'wp-advanced-import-export' )
+			);
+		}
 
 		// Check if table exists
 		$table_exists = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
@@ -297,13 +329,13 @@ class Database_Table_Exporter extends Abstract_Exporter {
 
 		// Fetch all rows (stable ordering for deterministic exports).
 		$order_column = $this->get_order_column( $table_name );
-		$sql          = 'SELECT * FROM `%1s`';
+		$sql          = "SELECT * FROM `{$table_name}`";
 		if ( ! empty( $order_column ) ) {
+			// $order_column is read from INFORMATION_SCHEMA, safe to use as identifier.
 			$sql .= " ORDER BY `{$order_column}`";
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $table_name ), ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQLPlaceholders.UnquotedComplexPlaceholder -- Direct DB query required here. Placeholder handled correctly.
+		$rows = $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier validated above.
 
 		if ( empty( $rows ) ) {
 			return [];

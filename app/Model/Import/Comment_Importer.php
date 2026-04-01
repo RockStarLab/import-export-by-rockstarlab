@@ -12,6 +12,12 @@ namespace WP_AIE\Model\Import;
 defined( 'ABSPATH' ) || exit;
 
 class Comment_Importer extends Abstract_Importer {
+	/**
+	 * Comment source-id meta key used for cross-site dedupe and comparisons.
+	 *
+	 * @var string
+	 */
+	const SOURCE_ID_META_KEY = '_aie_source_comment_id';
 
 	/**
 	 * Constructor
@@ -192,6 +198,27 @@ class Comment_Importer extends Abstract_Importer {
 		// Sanitize data
 		$item = $this->sanitize_item( $item );
 
+		$source_comment_id       = absint( $item['_aie_source_comment_id'] ?? ( $item['comment_ID'] ?? 0 ) );
+		$source_comment_parent   = absint( $item['_aie_source_comment_parent_id'] ?? ( $item['comment_parent'] ?? 0 ) );
+
+		$has_post_hints = $this->has_post_hints( $item );
+
+		// Resolve post ID across sites when hints are present in the file.
+		$resolved_post_id = $this->resolve_comment_post_id( $item );
+		if ( $resolved_post_id > 0 ) {
+			$item['comment_post_ID'] = $resolved_post_id;
+		} elseif ( $has_post_hints ) {
+			// Avoid accidentally attaching to a random local post that happens to share the same numeric ID.
+			$item['comment_post_ID'] = 0;
+		}
+
+		// Resolve user_id: imported IDs are from the source site. Prefer local user by email.
+		$item['user_id'] = $this->resolve_comment_user_id( $item );
+
+		// Always defer parent mapping to a post-import fixup; source comment IDs
+		// do not exist on the target site.
+		$item['comment_parent'] = 0;
+
 		// Validate required fields
 		if ( empty( $item['comment_content'] ) ) {
 			return new \WP_Error(
@@ -263,13 +290,8 @@ class Comment_Importer extends Abstract_Importer {
 		$duplicate_check     = $this->get_option( 'duplicate_check', 'comment_ID' );
 
 		if ( 'comment_ID' === $duplicate_check ) {
-			$comment_id = absint( $item['comment_ID'] ?? 0 );
-			if ( $comment_id ) {
-				$existing_comment = get_comment( $comment_id );
-				if ( $existing_comment ) {
-					$existing_comment_id = $comment_id;
-				}
-			}
+			// Interpret comment_ID as the SOURCE site ID; we de-dupe by comment meta.
+			$existing_comment_id = $this->find_existing_comment_by_source_id( $source_comment_id );
 		} elseif ( 'comment_content' === $duplicate_check ) {
 			$existing_comment_id = $this->find_comment_by_content(
 				$item['comment_content'] ?? '',
@@ -282,15 +304,24 @@ class Comment_Importer extends Abstract_Importer {
 			$duplicate_mode = $this->get_option( 'duplicate_mode', 'skip' );
 
 			if ( 'skip' === $duplicate_mode ) {
+				$this->record_source_id_map( $source_comment_id, $existing_comment_id );
 				return 'skipped';
 			} elseif ( 'update' === $duplicate_mode || $this->get_option( 'update_existing', false ) ) {
-				return $this->update_comment( $existing_comment_id, $item );
+				$result = $this->update_comment( $existing_comment_id, $item, $source_comment_id );
+				if ( ! is_wp_error( $result ) ) {
+					$this->record_source_id_map( $source_comment_id, $existing_comment_id );
+				}
+				return $result;
 			}
 			// If 'create' mode, continue to create new comment
 		}
 
 		// Create new comment
-		return $this->create_comment( $item );
+		$created = $this->create_comment( $item, $source_comment_id, $source_comment_parent );
+		if ( is_int( $created ) && $created > 0 ) {
+			$this->record_source_id_map( $source_comment_id, $created );
+		}
+		return $created;
 	}
 
 	/**
@@ -299,7 +330,7 @@ class Comment_Importer extends Abstract_Importer {
 	 * @param array $item Comment data
 	 * @return int|WP_Error Comment ID or WP_Error
 	 */
-	private function create_comment( $item ) {
+	private function create_comment( $item, $source_comment_id = 0, $source_comment_parent = 0 ) {
 		$comment_data = $this->prepare_comment_data( $item );
 
 		// Remove comment_ID if present to force creation
@@ -317,6 +348,16 @@ class Comment_Importer extends Abstract_Importer {
 		// Import metadata
 		$this->import_comment_meta( $comment_id, $item );
 
+		// Persist source IDs so subsequent imports can update instead of duplicating.
+		$this->store_source_comment_meta( $comment_id, $source_comment_id, $source_comment_parent );
+
+		// wp_insert_comment/wp_filter_comment may mutate stored HTML (e.g. add rel="nofollow ugc").
+		// Preserve the source value from the file for accurate migrations.
+		$this->force_update_comment_content( $comment_id, $item );
+
+		// wp_insert_comment may recompute date fields based on site timezone; force exact values from file.
+		$this->force_update_comment_dates( $comment_id, $item );
+
 		return $comment_id;
 	}
 
@@ -327,7 +368,7 @@ class Comment_Importer extends Abstract_Importer {
 	 * @param array $item       Comment data
 	 * @return string|WP_Error 'updated' or WP_Error
 	 */
-	private function update_comment( $comment_id, $item ) {
+	private function update_comment( $comment_id, $item, $source_comment_id = 0 ) {
 		$comment_data                = $this->prepare_comment_data( $item );
 		$comment_data['comment_ID']  = $comment_id;
 
@@ -344,8 +385,325 @@ class Comment_Importer extends Abstract_Importer {
 
 		// Update metadata
 		$this->import_comment_meta( $comment_id, $item );
+		$this->store_source_comment_meta( $comment_id, $source_comment_id, absint( $item['_aie_source_comment_parent_id'] ?? 0 ) );
+
+		// Preserve raw source HTML for accurate migrations.
+		$this->force_update_comment_content( $comment_id, $item );
+
+		// Ensure dates match the import file exactly (timezone-independent).
+		$this->force_update_comment_dates( $comment_id, $item );
 
 		return 'updated';
+	}
+
+	/**
+	 * Whether the import row includes portable post identification hints.
+	 *
+	 * @param array $item Prepared comment row.
+	 * @return bool
+	 */
+	private function has_post_hints( $item ) {
+		$permalink = isset( $item['_aie_source_post_permalink'] ) ? (string) $item['_aie_source_post_permalink'] : ( (string) ( $item['post_permalink'] ?? '' ) );
+		$slug      = isset( $item['_aie_source_post_slug'] ) ? (string) $item['_aie_source_post_slug'] : ( (string) ( $item['post_slug'] ?? '' ) );
+		$type      = isset( $item['_aie_source_post_type'] ) ? (string) $item['_aie_source_post_type'] : ( (string) ( $item['post_type'] ?? '' ) );
+		$title     = isset( $item['post_title'] ) ? (string) $item['post_title'] : '';
+
+		return trim( $permalink ) !== '' || trim( $slug ) !== '' || trim( $type ) !== '' || trim( $title ) !== '';
+	}
+
+	/**
+	 * Store source IDs as comment meta for cross-site dedupe and parent fixups.
+	 *
+	 * @param int $comment_id            Target comment ID.
+	 * @param int $source_comment_id     Source site comment_ID.
+	 * @param int $source_comment_parent Source site comment_parent ID.
+	 * @return void
+	 */
+	private function store_source_comment_meta( $comment_id, $source_comment_id, $source_comment_parent ) {
+		$comment_id = absint( $comment_id );
+		if ( $comment_id <= 0 ) {
+			return;
+		}
+
+		$source_comment_id = absint( $source_comment_id );
+		if ( $source_comment_id > 0 ) {
+			update_comment_meta( $comment_id, self::SOURCE_ID_META_KEY, (string) $source_comment_id );
+		}
+
+		$source_comment_parent = absint( $source_comment_parent );
+		if ( $source_comment_parent > 0 ) {
+			update_comment_meta( $comment_id, '_aie_source_comment_parent_id', (string) $source_comment_parent );
+		}
+	}
+
+	/**
+	 * Find an existing target comment by stored source ID.
+	 *
+	 * @param int $source_comment_id Source site comment_ID.
+	 * @return int|null Target comment ID or null.
+	 */
+	private function find_existing_comment_by_source_id( $source_comment_id ) {
+		global $wpdb;
+
+		$source_comment_id = absint( $source_comment_id );
+		if ( $source_comment_id <= 0 ) {
+			return null;
+		}
+
+		$comment_id = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT comment_id FROM {$wpdb->commentmeta} WHERE meta_key = %s AND meta_value = %s ORDER BY comment_id DESC LIMIT 1",
+				self::SOURCE_ID_META_KEY,
+				(string) $source_comment_id
+			)
+		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+
+		return $comment_id ? absint( $comment_id ) : null;
+	}
+
+	/**
+	 * Resolve a comment's post ID across sites using portable hints from export.
+	 *
+	 * @param array $item Prepared comment data.
+	 * @return int Target post ID or 0.
+	 */
+	private function resolve_comment_post_id( $item ) {
+		$post_id = absint( $item['comment_post_ID'] ?? 0 );
+
+		$post_permalink = isset( $item['_aie_source_post_permalink'] ) ? (string) $item['_aie_source_post_permalink'] : ( (string) ( $item['post_permalink'] ?? '' ) );
+		if ( $post_permalink !== '' ) {
+			$local_url = $this->rewrite_url_to_local_site( $post_permalink );
+			$mapped    = url_to_postid( $local_url );
+			if ( $mapped > 0 ) {
+				return (int) $mapped;
+			}
+
+			// Fallback: if the source also provided comment_post_ID and it points to a post with the same permalink.
+			if ( $post_id > 0 && get_post( $post_id ) ) {
+				$current_permalink = get_permalink( $post_id );
+				if ( $current_permalink && untrailingslashit( $current_permalink ) === untrailingslashit( $local_url ) ) {
+					return $post_id;
+				}
+			}
+
+			// When a permalink is provided but cannot be mapped, do not trust raw IDs.
+			return 0;
+		}
+
+		$post_slug = isset( $item['_aie_source_post_slug'] ) ? (string) $item['_aie_source_post_slug'] : ( (string) ( $item['post_slug'] ?? '' ) );
+		$post_type = isset( $item['_aie_source_post_type'] ) ? (string) $item['_aie_source_post_type'] : ( (string) ( $item['post_type'] ?? '' ) );
+		if ( $post_slug !== '' ) {
+			$post_slug = trim( $post_slug, '/' );
+			$post_type = $post_type !== '' ? sanitize_key( $post_type ) : 'any';
+
+			$post = get_page_by_path( $post_slug, OBJECT, $post_type === 'any' ? [ 'post', 'page', 'attachment' ] : $post_type );
+			if ( $post ) {
+				return (int) $post->ID;
+			}
+
+			// A slug hint was provided but we couldn't map it; don't trust raw IDs.
+			return 0;
+		}
+
+		// Fallback: accept comment_post_ID only when no portable hints are present.
+		if ( $post_id > 0 && get_post( $post_id ) ) {
+			return $post_id;
+		}
+
+		// Last resort: try post_title.
+		$title = isset( $item['post_title'] ) ? (string) $item['post_title'] : '';
+		if ( $title !== '' ) {
+			$post = get_page_by_title( $title, OBJECT, 'post' );
+			if ( $post ) {
+				return (int) $post->ID;
+			}
+			$page = get_page_by_title( $title, OBJECT, 'page' );
+			if ( $page ) {
+				return (int) $page->ID;
+			}
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Force comment_date/comment_date_gmt to match file values exactly.
+	 *
+	 * WordPress core may recompute `comment_date_gmt` based on the current site's
+	 * timezone when inserting/updating. For migration use-cases we want to preserve
+	 * the source values.
+	 *
+	 * @param int   $comment_id Target comment ID.
+	 * @param array $item       Prepared item.
+	 * @return void
+	 */
+	private function force_update_comment_dates( $comment_id, $item ) {
+		global $wpdb;
+
+		$comment_id = absint( $comment_id );
+		if ( $comment_id <= 0 ) {
+			return;
+		}
+
+		$date     = isset( $item['comment_date'] ) ? trim( (string) $item['comment_date'] ) : '';
+		$date_gmt = isset( $item['comment_date_gmt'] ) ? trim( (string) $item['comment_date_gmt'] ) : '';
+
+		if ( $date !== '' && $date_gmt === '' ) {
+			$date_gmt = get_gmt_from_date( $date );
+		} elseif ( $date === '' && $date_gmt !== '' ) {
+			$date = get_date_from_gmt( $date_gmt );
+		}
+
+		$update = [];
+		$format = [];
+		if ( $date !== '' ) {
+			$update['comment_date'] = $date;
+			$format[]              = '%s';
+		}
+		if ( $date_gmt !== '' ) {
+			$update['comment_date_gmt'] = $date_gmt;
+			$format[]                  = '%s';
+		}
+
+		if ( empty( $update ) ) {
+			return;
+		}
+
+		$wpdb->update(
+			$wpdb->comments,
+			$update,
+			[ 'comment_ID' => $comment_id ],
+			$format,
+			[ '%d' ]
+		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional to preserve exact values.
+
+		clean_comment_cache( $comment_id );
+	}
+
+	/**
+	 * Force comment_content to match file value exactly.
+	 *
+	 * @param int   $comment_id Target comment ID.
+	 * @param array $item       Prepared item.
+	 * @return void
+	 */
+	private function force_update_comment_content( $comment_id, $item ) {
+		global $wpdb;
+
+		$comment_id = absint( $comment_id );
+		if ( $comment_id <= 0 ) {
+			return;
+		}
+
+		$content = isset( $item['comment_content'] ) ? (string) $item['comment_content'] : '';
+		if ( $content === '' ) {
+			return;
+		}
+
+		$wpdb->update(
+			$wpdb->comments,
+			[ 'comment_content' => $content ],
+			[ 'comment_ID' => $comment_id ],
+			[ '%s' ],
+			[ '%d' ]
+		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional to preserve exact values.
+
+		clean_comment_cache( $comment_id );
+	}
+
+	/**
+	 * Resolve user_id for a comment using local users (email-based).
+	 *
+	 * @param array $item Prepared comment data.
+	 * @return int Local user ID or 0.
+	 */
+	private function resolve_comment_user_id( $item ) {
+		$user_id = absint( $item['user_id'] ?? 0 );
+		if ( $user_id > 0 && get_user_by( 'id', $user_id ) ) {
+			return $user_id;
+		}
+
+		$email = isset( $item['comment_author_email'] ) ? (string) $item['comment_author_email'] : '';
+		if ( $email !== '' && is_email( $email ) ) {
+			$user = get_user_by( 'email', $email );
+			if ( $user ) {
+				return (int) $user->ID;
+			}
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Rewrite an absolute URL from another site to the current site's origin.
+	 *
+	 * @param string $url Raw URL from the import file.
+	 * @return string URL rewritten to current site, or original if not absolute/parseable.
+	 */
+	private function rewrite_url_to_local_site( $url ) {
+		$url = trim( (string) $url );
+		if ( $url === '' ) {
+			return '';
+		}
+
+		$parsed = wp_parse_url( $url );
+		if ( empty( $parsed['host'] ) ) {
+			return esc_url_raw( $url );
+		}
+
+		$home        = home_url();
+		$home_parsed = wp_parse_url( $home );
+		if ( empty( $home_parsed['host'] ) ) {
+			return esc_url_raw( $url );
+		}
+
+		$scheme = $home_parsed['scheme'] ?? 'http';
+		$host   = $home_parsed['host'];
+		$port   = isset( $home_parsed['port'] ) ? ':' . (int) $home_parsed['port'] : '';
+
+		$path     = $parsed['path'] ?? '';
+		$query    = isset( $parsed['query'] ) ? '?' . $parsed['query'] : '';
+		$fragment = isset( $parsed['fragment'] ) ? '#' . $parsed['fragment'] : '';
+
+		return esc_url_raw( $scheme . '://' . $host . $port . $path . $query . $fragment );
+	}
+
+	/**
+	 * Persist a source->target comment ID map for this import job.
+	 *
+	 * @param int $source_id Source site comment_ID.
+	 * @param int $target_id Target site comment_ID.
+	 * @return void
+	 */
+	private function record_source_id_map( $source_id, $target_id ) {
+		$source_id = absint( $source_id );
+		$target_id = absint( $target_id );
+
+		if ( $source_id <= 0 || $target_id <= 0 ) {
+			return;
+		}
+
+		if ( empty( $this->job_id ) ) {
+			return;
+		}
+
+		$key = $this->get_job_id_map_key();
+		$map = get_transient( $key );
+		if ( ! is_array( $map ) ) {
+			$map = [];
+		}
+
+		$map[ (string) $source_id ] = $target_id;
+		set_transient( $key, $map, DAY_IN_SECONDS );
+	}
+
+	/**
+	 * Get transient key for this job's comment ID map.
+	 *
+	 * @return string
+	 */
+	private function get_job_id_map_key() {
+		return 'aie_import_comment_id_map_' . absint( $this->job_id );
 	}
 
 	/**

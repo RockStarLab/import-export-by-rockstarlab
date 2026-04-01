@@ -471,6 +471,7 @@ class Woo_Attribute_Importer extends Abstract_Importer {
 					);
 
 					if ( ! is_wp_error( $result ) ) {
+						$this->import_attribute_term_meta( (int) $existing_term['term_id'], $term_data );
 						++$updated_count;
 					}
 				} else {
@@ -488,6 +489,10 @@ class Woo_Attribute_Importer extends Abstract_Importer {
 				);
 
 				if ( ! is_wp_error( $result ) ) {
+					$term_id = is_array( $result ) && isset( $result['term_id'] ) ? (int) $result['term_id'] : 0;
+					if ( $term_id > 0 ) {
+						$this->import_attribute_term_meta( $term_id, $term_data );
+					}
 					++$imported_count;
 				} else {
 					$this->log_error(
@@ -512,6 +517,102 @@ class Woo_Attribute_Importer extends Abstract_Importer {
 		);
 
 		return true;
+	}
+
+	/**
+	 * Import portable term meta.
+	 *
+	 * Exporter can store attachment IDs as "file:<filename>" so imports can resolve
+	 * the correct attachment ID on the target site.
+	 *
+	 * @param int   $term_id   Term ID.
+	 * @param array $term_data Term data array.
+	 * @return void
+	 */
+	protected function import_attribute_term_meta( $term_id, $term_data ) {
+		$term_id = (int) $term_id;
+		if ( $term_id <= 0 ) {
+			return;
+		}
+
+		if ( empty( $term_data['meta'] ) || ! is_array( $term_data['meta'] ) ) {
+			return;
+		}
+
+		foreach ( $term_data['meta'] as $key => $value ) {
+			if ( '' === $key || null === $key ) {
+				continue;
+			}
+
+			$resolved = $this->resolve_meta_attachments_recursive( $value );
+			update_term_meta( $term_id, (string) $key, $resolved );
+		}
+	}
+
+	/**
+	 * Recursively resolve attachment references in meta values.
+	 *
+	 * @param mixed $value Meta value.
+	 * @return mixed
+	 */
+	protected function resolve_meta_attachments_recursive( $value ) {
+		if ( is_array( $value ) ) {
+			foreach ( $value as $k => $v ) {
+				$value[ $k ] = $this->resolve_meta_attachments_recursive( $v );
+			}
+			return $value;
+		}
+
+		if ( is_object( $value ) ) {
+			if ( $value instanceof \stdClass ) {
+				return $this->resolve_meta_attachments_recursive( (array) $value );
+			}
+			return $value;
+		}
+
+		if ( is_string( $value ) && 0 === strpos( $value, 'file:' ) ) {
+			$filename = trim( substr( $value, 5 ) );
+			if ( '' !== $filename ) {
+				$id = $this->resolve_attachment_id_by_filename( $filename );
+				if ( $id > 0 ) {
+					return $id;
+				}
+			}
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Resolve attachment by basename.
+	 *
+	 * @param string $filename Basename, e.g. image.jpg.
+	 * @return int Attachment ID or 0.
+	 */
+	protected function resolve_attachment_id_by_filename( $filename ) {
+		$filename = wp_basename( (string) $filename );
+		if ( '' === $filename ) {
+			return 0;
+		}
+
+		global $wpdb;
+		$like = '%' . $wpdb->esc_like( $filename );
+
+		$id = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			$wpdb->prepare(
+				"SELECT p.ID
+				FROM {$wpdb->posts} p
+				INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID
+				WHERE p.post_type = 'attachment'
+				AND pm.meta_key = '_wp_attached_file'
+				AND pm.meta_value LIKE %s
+				ORDER BY p.ID DESC
+				LIMIT 1",
+				$like
+			)
+		);
+
+		return $id > 0 ? $id : 0;
 	}
 
 	/**
