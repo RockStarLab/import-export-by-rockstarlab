@@ -114,6 +114,33 @@ class Media_Importer extends Abstract_Importer {
 	}
 
 	/**
+	 * Set options
+	 *
+	 * Maps UI option names to the internal option names used by this importer.
+	 *
+	 * @param array $options Options to set.
+	 */
+	public function set_options( $options ) {
+		// UI sends: duplicate_handling and/or if_exists, plus unique_field.
+		if ( isset( $options['duplicate_handling'] ) && ! isset( $options['duplicate_mode'] ) ) {
+			$options['duplicate_mode'] = $options['duplicate_handling'];
+		}
+		if ( isset( $options['if_exists'] ) && ! isset( $options['duplicate_mode'] ) ) {
+			$options['duplicate_mode'] = $options['if_exists'];
+		}
+		if ( isset( $options['unique_field'] ) && ! isset( $options['duplicate_check'] ) ) {
+			$options['duplicate_check'] = $options['unique_field'];
+		}
+
+		// Back-compat: UI previously supported 'ignore'. Treat it as 'update'.
+		if ( isset( $options['duplicate_mode'] ) && 'ignore' === $options['duplicate_mode'] ) {
+			$options['duplicate_mode'] = 'update';
+		}
+
+		parent::set_options( $options );
+	}
+
+	/**
 	 * Get default options
 	 *
 	 * @return array
@@ -210,8 +237,19 @@ class Media_Importer extends Abstract_Importer {
 	private function import_from_url( $url, $item ) {
 		// Check for existing attachment
 		$existing = $this->find_existing_attachment( $item, $url );
-		if ( $existing && 'skip' === $this->get_option( 'duplicate_mode', 'skip' ) ) {
-			return 'skipped';
+		if ( $existing ) {
+			$duplicate_mode = $this->get_option( 'duplicate_mode', 'skip' );
+
+			if ( 'skip' === $duplicate_mode ) {
+				return 'skipped';
+			}
+
+			if ( 'update' === $duplicate_mode ) {
+				$this->set_attachment_metadata( (int) $existing, $item );
+				return 'updated';
+			}
+
+			// 'create' falls through to create new attachment.
 		}
 
 		// Download file
@@ -452,14 +490,92 @@ class Media_Importer extends Abstract_Importer {
 
 		// Check by file_url (filename)
 		if ( 'file_url' === $check_field && ! empty( $url ) ) {
-			return $this->find_existing_by_url( $url );
+			// Fast path: exact basename match.
+			$exact = $this->find_existing_by_url( $url );
+			if ( $exact ) {
+				return $exact;
+			}
+
+			// Fallback: handle WordPress auto-renaming (e.g. logo.jpg → logo-1.jpg)
+			// by comparing the remote file hash/size against candidates.
+			return $this->find_existing_by_remote_hash( $url );
 		}
 
 		// Check by filename
 		if ( 'filename' === $check_field && ! empty( $item['filename'] ) ) {
-			return $this->find_existing_by_filename( $item['filename'] );
+			$exact = $this->find_existing_by_filename( $item['filename'] );
+			if ( $exact ) {
+				return $exact;
+			}
+
+			// Best-effort fallback: treat as URL-like filename match.
+			if ( ! empty( $url ) ) {
+				return $this->find_existing_by_remote_hash( $url );
+			}
 		}
 
+		return null;
+	}
+
+	/**
+	 * Find existing attachment by comparing remote file hash/size to local files.
+	 *
+	 * This helps detect duplicates even when WordPress generated a unique filename
+	 * on upload (e.g. "logo.jpg" becomes "logo-1.jpg").
+	 *
+	 * @param string $url Remote file URL.
+	 * @return int|null Attachment ID or null.
+	 */
+	private function find_existing_by_remote_hash( $url ) {
+		$filename = basename( wp_parse_url( $url, PHP_URL_PATH ) );
+		$base     = pathinfo( $filename, PATHINFO_FILENAME );
+
+		if ( '' === $base ) {
+			return null;
+		}
+
+		global $wpdb;
+
+		// Candidate attachments: anything whose _wp_attached_file contains the base.
+		$candidate_ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"SELECT post_id FROM $wpdb->postmeta
+				WHERE meta_key = '_wp_attached_file'
+				AND meta_value LIKE %s",
+				'%' . $wpdb->esc_like( $base ) . '%'
+			)
+		);
+
+		if ( empty( $candidate_ids ) ) {
+			return null;
+		}
+
+		$tmp_file = $this->download_file( $url );
+		if ( is_wp_error( $tmp_file ) || ! file_exists( $tmp_file ) ) {
+			return null;
+		}
+
+		$remote_size = filesize( $tmp_file );
+		$remote_hash = md5_file( $tmp_file );
+
+		foreach ( $candidate_ids as $candidate_id ) {
+			$local_file = get_attached_file( (int) $candidate_id );
+			if ( ! $local_file || ! file_exists( $local_file ) ) {
+				continue;
+			}
+
+			// Quick size check first.
+			if ( filesize( $local_file ) !== $remote_size ) {
+				continue;
+			}
+
+			if ( md5_file( $local_file ) === $remote_hash ) {
+				@wp_delete_file( $tmp_file );
+				return (int) $candidate_id;
+			}
+		}
+
+		@wp_delete_file( $tmp_file );
 		return null;
 	}
 

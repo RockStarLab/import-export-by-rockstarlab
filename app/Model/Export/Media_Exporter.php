@@ -879,14 +879,16 @@ class Media_Exporter extends Abstract_Exporter {
 		}
 
 		// File information
-		if ( in_array( 'file', $fields, true ) || in_array( 'path', $fields, true ) ) {
-			$file_path = get_attached_file( $attachment->ID );
-			if ( in_array( 'file', $fields, true ) ) {
-				$data['file'] = $file_path;
-			}
-			if ( in_array( 'path', $fields, true ) ) {
-				$data['path'] = $file_path;
-			}
+		//
+		// IMPORTANT: The Media_Importer expects the required `file` field to be
+		// a portable source (URL or local path). Exporting server-local paths
+		// (get_attached_file) breaks cross-site imports. Keep `path` for local
+		// server path, but export `file` as the attachment URL.
+		if ( in_array( 'file', $fields, true ) ) {
+			$data['file'] = wp_get_attachment_url( $attachment->ID );
+		}
+		if ( in_array( 'path', $fields, true ) ) {
+			$data['path'] = get_attached_file( $attachment->ID );
 		}
 
 		if ( in_array( 'url', $fields, true ) ) {
