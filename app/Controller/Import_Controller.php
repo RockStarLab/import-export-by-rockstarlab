@@ -376,7 +376,7 @@ class Import_Controller extends Base_Controller {
 			}
 
 			// Get importer
-			$importer = Importer_Factory::get_importer( $import_type, 0 );
+			$importer = Importer_Factory::get_importer( $import_type, $job_id );
 
 			if ( is_wp_error( $importer ) ) {
 				$job_model->update(
@@ -393,6 +393,19 @@ class Import_Controller extends Base_Controller {
 			// Prepare data
 			$prepared_data = $importer->prepare( $data, $mapping );
 			$total_items   = count( $prepared_data );
+
+			// Preserve source IDs for cross-site relationship fixups (e.g. post_parent).
+			if ( $importer instanceof \WP_AIE\Model\Import\Post_Importer ) {
+				foreach ( $prepared_data as $row_index => &$prepared_row ) {
+					if ( isset( $data[ $row_index ]['ID'] ) ) {
+						$prepared_row['_aie_source_id'] = absint( $data[ $row_index ]['ID'] );
+					}
+					if ( isset( $data[ $row_index ]['post_parent'] ) ) {
+						$prepared_row['_aie_source_parent_id'] = absint( $data[ $row_index ]['post_parent'] );
+					}
+				}
+				unset( $prepared_row );
+			}
 
 			// Store prepared data and total in job parameters
 			$parameters['prepared_data'] = $prepared_data;
@@ -429,6 +442,9 @@ class Import_Controller extends Base_Controller {
 		$batch = array_slice( $prepared_data, $offset, $batch_size );
 
 		if ( empty( $batch ) ) {
+			// Post-import fixups for relationship fields (best-effort).
+			$this->fix_post_parent_relationships( $job_id, $prepared_data );
+
 			// All items processed - complete job
 			$job_model->update(
 				$job_id,
@@ -450,7 +466,7 @@ class Import_Controller extends Base_Controller {
 		}
 
 		// Process batch
-		$importer = Importer_Factory::get_importer( $import_type, 0 );
+		$importer = Importer_Factory::get_importer( $import_type, $job_id );
 		if ( is_wp_error( $importer ) ) {
 			$this->send_error( $importer, null, 500 );
 			return;
@@ -734,5 +750,61 @@ class Import_Controller extends Base_Controller {
 		}
 
 		return $options;
+	}
+
+	/**
+	 * Best-effort fix for cross-site post_parent IDs after a Post_Importer job.
+	 *
+	 * When exporting posts/pages, `post_parent` is an ID from the source site.
+	 * During import into another site those numeric IDs usually point to the wrong
+	 * objects. Post_Importer records a source->target ID map (per job) and we
+	 * use it here to rewrite `post_parent` to the correct target IDs once all
+	 * items have been created/updated.
+	 *
+	 * @param int   $job_id        Job ID.
+	 * @param array $prepared_data Prepared items (includes `_aie_source_*` keys when available).
+	 * @return void
+	 */
+	private function fix_post_parent_relationships( $job_id, $prepared_data ) {
+		$job_id = absint( $job_id );
+		if ( $job_id <= 0 || ! is_array( $prepared_data ) || empty( $prepared_data ) ) {
+			return;
+		}
+
+		$key = 'aie_import_post_id_map_' . $job_id;
+		$map = get_transient( $key );
+		if ( ! is_array( $map ) || empty( $map ) ) {
+			return;
+		}
+
+		foreach ( $prepared_data as $row ) {
+			$source_id       = isset( $row['_aie_source_id'] ) ? absint( $row['_aie_source_id'] ) : 0;
+			$source_parent   = isset( $row['_aie_source_parent_id'] ) ? absint( $row['_aie_source_parent_id'] ) : 0;
+			$target_id       = $source_id ? absint( $map[ (string) $source_id ] ?? 0 ) : 0;
+			$target_parent   = $source_parent ? absint( $map[ (string) $source_parent ] ?? 0 ) : 0;
+
+			if ( $target_id <= 0 || $source_parent <= 0 || $target_parent <= 0 ) {
+				continue;
+			}
+
+			$post = get_post( $target_id );
+			if ( ! $post ) {
+				continue;
+			}
+
+			if ( (int) $post->post_parent === $target_parent ) {
+				continue;
+			}
+
+			wp_update_post(
+				[
+					'ID'          => $target_id,
+					'post_parent' => $target_parent,
+				]
+			);
+		}
+
+		// Prevent stale maps affecting future jobs.
+		delete_transient( $key );
 	}
 }

@@ -2762,6 +2762,21 @@ class Post_Exporter extends Abstract_Exporter {
 					'description'      => $item->description,
 				];
 
+				// Extra hints to allow cross-site ID mapping on import.
+				if ( $item->type === 'post_type' && ! empty( $item->object ) && ! empty( $item->object_id ) ) {
+					$post = get_post( (int) $item->object_id );
+					if ( $post ) {
+						$item_data['object_name'] = $post->post_name;
+						$item_data['object_path'] = get_page_uri( (int) $item->object_id );
+					}
+				} elseif ( $item->type === 'taxonomy' && ! empty( $item->object ) && ! empty( $item->object_id ) ) {
+					$term = get_term( (int) $item->object_id, $item->object );
+					if ( $term && ! is_wp_error( $term ) ) {
+						$item_data['term_slug'] = $term->slug;
+						$item_data['term_name'] = $term->name;
+					}
+				}
+
 				// Add ACF fields for the menu item as a nested array
 				if ( function_exists( 'get_fields' ) ) {
 					$item_acf_fields = get_fields( $item->ID );
