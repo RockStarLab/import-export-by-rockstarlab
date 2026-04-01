@@ -77,6 +77,7 @@ class User_Importer extends Abstract_Importer {
 			'wikipedia',
 			'twitter',
 			'youtube',
+			'user_meta',
 		];
 	}
 
@@ -455,6 +456,8 @@ class User_Importer extends Abstract_Importer {
 	 * @param array $item    User data
 	 */
 	protected function import_user_meta( $user_id, $item ) {
+		global $wpdb;
+
 		// User meta fields
 		$meta_fields = [
 			'admin_color',
@@ -470,7 +473,54 @@ class User_Importer extends Abstract_Importer {
 		if ( ! empty( $item['capabilities'] ) ) {
 			$capabilities = $this->parse_capabilities( $item['capabilities'] );
 			if ( is_array( $capabilities ) && ! empty( $capabilities ) ) {
-				update_user_meta( $user_id, 'wp_capabilities', $capabilities );
+				$cap_key = $wpdb ? ( $wpdb->get_blog_prefix() . 'capabilities' ) : 'wp_capabilities';
+				update_user_meta( $user_id, $cap_key, $capabilities );
+			}
+		}
+
+		// Bulk user meta (portable custom meta blob from exporter).
+		if ( isset( $item['user_meta'] ) && '' !== $item['user_meta'] && null !== $item['user_meta'] ) {
+			$meta = $item['user_meta'];
+
+			if ( is_string( $meta ) ) {
+				$trimmed = trim( $meta );
+				if ( $trimmed !== '' && ( '{' === $trimmed[0] || '[' === $trimmed[0] ) ) {
+					$decoded = json_decode( $trimmed, true );
+					if ( json_last_error() === JSON_ERROR_NONE ) {
+						$meta = $decoded;
+					}
+				} elseif ( $trimmed !== '' && is_serialized( $trimmed ) ) {
+					$meta = maybe_unserialize( $trimmed );
+				}
+			}
+
+			if ( is_array( $meta ) ) {
+				$exclude_keys = [
+					'session_tokens',
+					'capabilities',
+					'user_level',
+					'dismissed_wp_pointers',
+				];
+
+				$cap_key  = $wpdb ? ( $wpdb->get_blog_prefix() . 'capabilities' ) : 'wp_capabilities';
+				$level_key = $wpdb ? ( $wpdb->get_blog_prefix() . 'user_level' ) : 'wp_user_level';
+				$exclude_keys[] = $cap_key;
+				$exclude_keys[] = $level_key;
+
+				foreach ( $meta as $key => $value ) {
+					$key = (string) $key;
+					if ( $key === '' ) {
+						continue;
+					}
+					if ( in_array( $key, $exclude_keys, true ) ) {
+						continue;
+					}
+					if ( strpos( $key, '_' ) === 0 ) {
+						continue;
+					}
+
+					update_user_meta( $user_id, $key, $value );
+				}
 			}
 		}
 	}
@@ -651,6 +701,7 @@ class User_Importer extends Abstract_Importer {
 
 				case 'description':
 				case 'user_pass':
+				case 'user_meta':
 					$sanitized[ $key ] = $value; // Keep as is
 					break;
 

@@ -12681,6 +12681,10 @@ var ImportModule = {
       }, {
         label: 'Custom Fields (User Meta)',
         options: [{
+          value: 'user_meta',
+          label: 'User Meta (JSON)',
+          type: 'json'
+        }, {
           value: 'meta',
           label: 'Custom Field',
           type: 'meta',
