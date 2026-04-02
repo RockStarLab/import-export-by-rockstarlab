@@ -266,15 +266,15 @@ class Database_Table_Exporter extends Abstract_Exporter {
 
 			// Fast path: no custom filters — use COUNT(*) directly.
 			if ( empty( $options['filters'] ) || ! is_array( $options['filters'] ) ) {
-				$count = $wpdb->get_var( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier validated above.
-					$wpdb->prepare( "SELECT COUNT(*) FROM `{$table_name}` WHERE 1 = %d", 1 )
+				$count = $wpdb->get_var( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Identifier validated above.
+					$wpdb->prepare( "SELECT COUNT(*) FROM `{$table_name}` WHERE 1 = %d", 1 ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier validated above.
 				);
 				return (int) $count;
 			}
 
-			// Fetch all rows for filtering
-			$rows = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier validated above.
-				$wpdb->prepare( "SELECT * FROM `{$table_name}` WHERE 1 = %d", 1 ),
+			// Fetch all rows for filtering.
+			$rows = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Identifier validated above.
+				$wpdb->prepare( "SELECT * FROM `{$table_name}` WHERE 1 = %d", 1 ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier validated above.
 				ARRAY_A
 			);
 
@@ -338,13 +338,13 @@ class Database_Table_Exporter extends Abstract_Exporter {
 			$order_column = $this->get_order_column( $table_name );
 			if ( ! empty( $order_column ) && preg_match( '/^[A-Za-z0-9_]+$/', (string) $order_column ) ) {
 				// $order_column is read from INFORMATION_SCHEMA and validated as a safe identifier.
-				$rows = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifiers validated above.
-					$wpdb->prepare( "SELECT * FROM `{$table_name}` WHERE 1 = %d ORDER BY `{$order_column}`", 1 ),
+				$rows = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Identifiers validated above.
+					$wpdb->prepare( "SELECT * FROM `{$table_name}` WHERE 1 = %d ORDER BY `{$order_column}`", 1 ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifiers validated above.
 					ARRAY_A
 				);
 			} else {
-				$rows = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier validated above.
-					$wpdb->prepare( "SELECT * FROM `{$table_name}` WHERE 1 = %d", 1 ),
+				$rows = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Identifier validated above.
+					$wpdb->prepare( "SELECT * FROM `{$table_name}` WHERE 1 = %d", 1 ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier validated above.
 					ARRAY_A
 				);
 			}

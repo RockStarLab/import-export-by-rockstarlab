@@ -764,7 +764,7 @@ class Product_Importer extends Abstract_Importer {
 				'update_post_term_cache' => false,
 				'orderby'                => 'ID',
 				'order'                  => 'DESC',
-				'meta_query'             => [
+				'meta_query'             => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Targeted fallback lookup by _wp_attached_file.
 					[
 						'key'     => '_wp_attached_file',
 						'value'   => $filename,

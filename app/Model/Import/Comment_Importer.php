@@ -448,17 +448,17 @@ class Comment_Importer extends Abstract_Importer {
 			return null;
 		}
 
-		$comment_ids = get_comments(
+		$comment_ids = get_comments( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Targeted lookup by importer-specific meta key.
 			[
 				'number'     => 1,
-				'orderby'    => 'comment_ID',
-				'order'      => 'DESC',
-				'fields'     => 'ids',
-				'status'     => 'all',
-				'meta_key'   => self::SOURCE_ID_META_KEY,
-				'meta_value' => (string) $source_comment_id,
-			]
-		);
+					'orderby'    => 'comment_ID',
+					'order'      => 'DESC',
+					'fields'     => 'ids',
+					'status'     => 'all',
+					'meta_key'   => self::SOURCE_ID_META_KEY, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Targeted lookup by importer-specific meta key.
+					'meta_value' => (string) $source_comment_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Targeted lookup by importer-specific meta key.
+				]
+			);
 
 		return ! empty( $comment_ids[0] ) ? absint( $comment_ids[0] ) : null;
 	}
