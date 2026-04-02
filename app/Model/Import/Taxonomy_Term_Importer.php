@@ -324,29 +324,35 @@ class Taxonomy_Term_Importer extends Abstract_Importer {
 	 * @return int|null Target term_id or null.
 	 */
 	private function find_existing_term_by_source_id( $taxonomy, $source_term_id ) {
-		global $wpdb;
-
 		$taxonomy       = (string) $taxonomy;
 		$source_term_id = absint( $source_term_id );
 		if ( $taxonomy === '' || $source_term_id <= 0 ) {
 			return null;
 		}
 
-		$term_id = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT tm.term_id
-				 FROM {$wpdb->termmeta} tm
-				 JOIN {$wpdb->term_taxonomy} tt ON tt.term_id = tm.term_id
-				 WHERE tm.meta_key = %s AND tm.meta_value = %s AND tt.taxonomy = %s
-				 ORDER BY tm.term_id DESC
-				 LIMIT 1",
-				self::SOURCE_ID_META_KEY,
-				(string) $source_term_id,
-				$taxonomy
-			)
-		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+		$term_ids = get_terms(
+			[
+				'taxonomy'   => $taxonomy,
+				'hide_empty' => false,
+				'fields'     => 'ids',
+				'number'     => 1,
+				'orderby'    => 'term_id',
+				'order'      => 'DESC',
+				'meta_query' => [
+					[
+						'key'     => self::SOURCE_ID_META_KEY,
+						'value'   => (string) $source_term_id,
+						'compare' => '=',
+					],
+				],
+			]
+		);
 
-		return $term_id ? absint( $term_id ) : null;
+		if ( is_wp_error( $term_ids ) || empty( $term_ids ) ) {
+			return null;
+		}
+
+		return absint( $term_ids[0] );
 	}
 
 	/**
