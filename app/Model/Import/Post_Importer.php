@@ -170,11 +170,17 @@ class Post_Importer extends Abstract_Importer {
 		if ( ! isset( $item['taxonomies'] ) || ! is_array( $item['taxonomies'] ) ) {
 			$item['taxonomies'] = [];
 		}
-		// Track which post_meta keys came from acf_* columns so the importer
-		// can use update_field() for them (stores the ACF reference key _field_name).
-		if ( ! isset( $item['_acf_field_names'] ) || ! is_array( $item['_acf_field_names'] ) ) {
-			$item['_acf_field_names'] = [];
-		}
+			// Track which post_meta keys came from acf_* columns so the importer
+			// can use update_field() for them (stores the ACF reference key _field_name).
+			if ( ! isset( $item['_acf_field_names'] ) || ! is_array( $item['_acf_field_names'] ) ) {
+				$item['_acf_field_names'] = [];
+			}
+			// Backup raw meta_* values that may be overridden by portable acf_* values.
+			// When ACF field definitions are missing on the target site, update_field()
+			// can fail; in that case we should fall back to the raw ACF storage format.
+			if ( ! isset( $item['_aie_raw_post_meta'] ) || ! is_array( $item['_aie_raw_post_meta'] ) ) {
+				$item['_aie_raw_post_meta'] = [];
+			}
 
 		// ── Pass 1: taxonomy_* and meta_* (lower priority) ────────────────────
 		foreach ( array_keys( $item ) as $key ) {
@@ -220,13 +226,16 @@ class Post_Importer extends Abstract_Importer {
 				continue;
 			}
 
-			if ( 0 === strpos( $key, 'acf_' ) ) {
-				$meta_key = substr( $key, strlen( 'acf_' ) );
-				if ( '' !== $meta_key ) {
-					// Always override meta_* values: acf_* data is more portable
-					$item['post_meta'][ $meta_key ]    = $value;
-					$item['_acf_field_names'][ $meta_key ] = true;
-				}
+				if ( 0 === strpos( $key, 'acf_' ) ) {
+					$meta_key = substr( $key, strlen( 'acf_' ) );
+					if ( '' !== $meta_key ) {
+						if ( array_key_exists( $meta_key, $item['post_meta'] ) && ! array_key_exists( $meta_key, $item['_aie_raw_post_meta'] ) ) {
+							$item['_aie_raw_post_meta'][ $meta_key ] = $item['post_meta'][ $meta_key ];
+						}
+						// Always override meta_* values: acf_* data is more portable
+						$item['post_meta'][ $meta_key ]    = $value;
+						$item['_acf_field_names'][ $meta_key ] = true;
+					}
 				unset( $item[ $key ] );
 				continue;
 			}
@@ -250,11 +259,11 @@ class Post_Importer extends Abstract_Importer {
 		// (e.g. taxonomy_category, meta_*, acf_*) into nested structures.
 		$item = $this->normalize_prefixed_columns( $item );
 
-		// Check for duplicates
-		$existing_post = $this->find_existing_post( $item );
-		$source_id     = isset( $item['_aie_source_id'] ) ? absint( $item['_aie_source_id'] ) : 0;
+			// Check for duplicates
+			$existing_post = $this->find_existing_post( $item );
+			$source_id     = isset( $item['_aie_source_id'] ) ? absint( $item['_aie_source_id'] ) : 0;
 
-		if ( $existing_post ) {
+			if ( $existing_post ) {
 			$duplicate_mode = $this->get_option( 'duplicate_mode', 'skip' );
 
 			if ( 'skip' === $duplicate_mode ) {
@@ -270,14 +279,20 @@ class Post_Importer extends Abstract_Importer {
 				return $result;
 			}
 
-			// 'create' mode - fall through to create new post
-		}
+				// 'create' mode - fall through to create new post
+			}
 
-		// Create new post
-		$created = $this->create_post( $item );
-		if ( is_int( $created ) && $created > 0 ) {
-			$this->record_source_id_map( $source_id, $created );
-		}
+			// No existing item found — honor "If No Match Found" option.
+			$if_not_exists = $this->get_option( 'if_not_exists', 'create' );
+			if ( 'skip' === $if_not_exists ) {
+				return 'skipped';
+			}
+
+			// Create new post
+			$created = $this->create_post( $item );
+			if ( is_int( $created ) && $created > 0 ) {
+				$this->record_source_id_map( $source_id, $created );
+			}
 		return $created;
 	}
 
@@ -330,8 +345,8 @@ class Post_Importer extends Abstract_Importer {
 	 * @param array $item Post data
 	 * @return WP_Post|null Existing post or null
 	 */
-	private function find_existing_post( $item ) {
-		$check_field = $this->get_option( 'duplicate_check', 'post_title' );
+		private function find_existing_post( $item ) {
+			$check_field = $this->get_option( 'duplicate_check', 'post_title' );
 
 		// Check by ID
 		if ( 'ID' === $check_field && ! empty( $item['ID'] ) ) {
@@ -353,22 +368,34 @@ class Post_Importer extends Abstract_Importer {
 			return ! empty( $posts ) ? get_post( $posts[0] ) : null;
 		}
 
-		// Check by post_title
-		if ( 'post_title' === $check_field && ! empty( $item['post_title'] ) ) {
-			$args = [
-				'title'          => $item['post_title'],
-				'post_type'      => $this->get_option( 'post_type', 'post' ),
-				'post_status'    => 'any',
-				'posts_per_page' => 1,
-				'fields'         => 'ids',
-			];
+			// Check by post_title
+			if ( 'post_title' === $check_field && ! empty( $item['post_title'] ) ) {
+				global $wpdb;
 
-			$posts = get_posts( $args );
-			return ! empty( $posts ) ? get_post( $posts[0] ) : null;
+				$post_type = (string) $this->get_option( 'post_type', 'post' );
+				$title     = (string) $item['post_title'];
+
+				// WP_Query does not support a strict "title" argument in get_posts().
+				// Use a direct, exact-match lookup so "update by Title" actually works.
+				$post_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Exact match lookup.
+					$wpdb->prepare(
+						"SELECT ID
+						 FROM {$wpdb->posts}
+						 WHERE post_type = %s
+						   AND post_title = %s
+						   AND post_status <> 'trash'
+						 ORDER BY ID DESC
+						 LIMIT 1",
+						$post_type,
+						$title
+					)
+				);
+
+				return $post_id ? get_post( (int) $post_id ) : null;
+			}
+
+			return null;
 		}
-
-		return null;
-	}
 
 	/**
 	 * Create new post
@@ -376,8 +403,8 @@ class Post_Importer extends Abstract_Importer {
 	 * @param array $item Post data
 	 * @return int|WP_Error Post ID or WP_Error
 	 */
-	private function create_post( $item ) {
-		$post_data = $this->prepare_post_data( $item );
+		private function create_post( $item ) {
+			$post_data = $this->prepare_post_data( $item );
 
 		// wp_insert_post() expects slashed data; without this, backslashes can be
 		// stripped from content (e.g. ASCII art like "(\_/)" in markup pages).
@@ -387,25 +414,25 @@ class Post_Importer extends Abstract_Importer {
 			return $post_id;
 		}
 
-		// Import post meta
-		if ( ! empty( $item['post_meta'] ) ) {
-			$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? [] );
-		}
+			// Import post meta
+			if ( ! empty( $item['post_meta'] ) ) {
+				$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? [], $item['_aie_raw_post_meta'] ?? [] );
+			}
 
 		// Auto-import media from ACF fields if enabled
 		if ( $this->get_option( 'auto_import_media', false ) ) {
 			$this->auto_import_acf_media( $post_id, $item );
 		}
 
-		// Import taxonomies
-		if ( ! empty( $item['taxonomies'] ) ) {
-			$this->import_taxonomies( $post_id, $item['taxonomies'] );
-		}
+			// Import taxonomies
+			if ( ! empty( $item['taxonomies'] ) ) {
+				$this->import_taxonomies( $post_id, $item['taxonomies'] );
+			}
 
-		// Import featured image
-		if ( ! empty( $item['featured_image'] ) ) {
-			$this->import_featured_image( $post_id, $item['featured_image'] );
-		}
+			// Import featured image (honor Step 5 "Automatically Import Media Files")
+			if ( $this->get_option( 'auto_import_media', false ) && ! empty( $item['featured_image'] ) ) {
+				$this->import_featured_image( $post_id, $item['featured_image'] );
+			}
 
 		// Auto-import media from content if enabled
 		if ( $this->get_option( 'auto_import_media', false ) && ! empty( $item['post_content'] ) ) {
@@ -422,7 +449,7 @@ class Post_Importer extends Abstract_Importer {
 	 * @param array $item    Post data
 	 * @return string|WP_Error 'updated' or WP_Error
 	 */
-	private function update_post( $post_id, $item ) {
+		private function update_post( $post_id, $item ) {
 		$post_data       = $this->prepare_post_data( $item );
 		$post_data['ID'] = $post_id;
 
@@ -433,25 +460,25 @@ class Post_Importer extends Abstract_Importer {
 			return $result;
 		}
 
-		// Update post meta
-		if ( ! empty( $item['post_meta'] ) ) {
-			$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? [] );
-		}
+			// Update post meta
+			if ( ! empty( $item['post_meta'] ) ) {
+				$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? [], $item['_aie_raw_post_meta'] ?? [] );
+			}
 
 		// Auto-import media from ACF fields if enabled
 		if ( $this->get_option( 'auto_import_media', false ) ) {
 			$this->auto_import_acf_media( $post_id, $item );
 		}
 
-		// Update taxonomies
-		if ( ! empty( $item['taxonomies'] ) ) {
-			$this->import_taxonomies( $post_id, $item['taxonomies'] );
-		}
+			// Update taxonomies
+			if ( ! empty( $item['taxonomies'] ) ) {
+				$this->import_taxonomies( $post_id, $item['taxonomies'] );
+			}
 
-		// Update featured image
-		if ( ! empty( $item['featured_image'] ) ) {
-			$this->import_featured_image( $post_id, $item['featured_image'] );
-		}
+			// Update featured image (honor Step 5 "Automatically Import Media Files")
+			if ( $this->get_option( 'auto_import_media', false ) && ! empty( $item['featured_image'] ) ) {
+				$this->import_featured_image( $post_id, $item['featured_image'] );
+			}
 
 		// Auto-import media from content if enabled
 		if ( $this->get_option( 'auto_import_media', false ) && ! empty( $item['post_content'] ) ) {
@@ -523,16 +550,17 @@ class Post_Importer extends Abstract_Importer {
 	 * Import post meta
 	 *
 	 * @param int   $post_id   Post ID
-	 * @param array $meta      Meta data (key => value)
-	 * @param array $acf_keys  Keys that originated from acf_* CSV columns.
-	 *                         When ACF is active, update_field() is used for these
-	 *                         keys so the ACF reference meta (_field_name) is stored
-	 *                         automatically and the field is recognised on this site.
-	 */
-	private function import_post_meta( $post_id, $meta, $acf_keys = [] ) {
-		if ( ! is_array( $meta ) ) {
-			return;
-		}
+		 * @param array $meta      Meta data (key => value)
+		 * @param array $acf_keys  Keys that originated from acf_* CSV columns.
+		 *                         When ACF is active, update_field() is used for these
+		 *                         keys so the ACF reference meta (_field_name) is stored
+		 *                         automatically and the field is recognised on this site.
+		 * @param array $raw_meta_backup Raw meta_* values overridden by acf_* (key => value).
+		 */
+		private function import_post_meta( $post_id, $meta, $acf_keys = [], $raw_meta_backup = [] ) {
+			if ( ! is_array( $meta ) ) {
+				return;
+			}
 
 		$has_acf = function_exists( 'update_field' );
 
@@ -594,11 +622,25 @@ class Post_Importer extends Abstract_Importer {
 			}
 		}
 
-		foreach ( $meta as $key => $value ) {
-			// Skip nested meta keys that should be written by ACF itself.
-			if ( ! empty( $skip_meta_keys ) && in_array( $key, $skip_meta_keys, true ) ) {
-				continue;
-			}
+			foreach ( $meta as $key => $value ) {
+				// ACF stores field reference meta keys as "_<field_name>" = "field_XXXX".
+				// Those keys are site-specific and must NOT be imported from another site,
+				// otherwise they break get_field_object()/update_field() resolution.
+				//
+				// Detect these keys by the standard ACF pairing pattern: if "_foo" exists
+				// alongside "foo" in the same import payload, "_foo" is almost certainly an
+				// ACF reference key and should be skipped.
+				if ( $has_acf && is_string( $key ) && '' !== $key && '_' === $key[0] ) {
+					$plain = substr( $key, 1 );
+					if ( '' !== $plain && array_key_exists( $plain, $meta ) ) {
+						continue;
+					}
+				}
+
+				// Skip nested meta keys that should be written by ACF itself.
+				if ( ! empty( $skip_meta_keys ) && in_array( $key, $skip_meta_keys, true ) ) {
+					continue;
+				}
 			// Do not skip keys that end with "_" (empty sub-field names can produce
 			// meta keys like "repeater_0_group_" that ACF won't populate via update_field()).
 			if ( ! empty( $skip_meta_key_patterns ) && is_string( $key ) && '' !== $key && '_' !== substr( $key, -1 ) ) {
@@ -674,35 +716,72 @@ class Post_Importer extends Abstract_Importer {
 					? update_field( $acf_field_key, $value, $post_id )
 					: update_field( $key, $value, $post_id );
 
-				// If the field group doesn't exist on the target site (or ACF can't
-				// resolve the field by name), update_field() can fail and write nothing.
-				// Fall back to raw meta so the data isn't silently lost.
-				if ( false === $updated ) {
-					update_post_meta( $post_id, $key, $value );
-				}
+					// If the field group doesn't exist on the target site (or ACF can't
+					// resolve the field by name), update_field() can fail and write nothing.
+					// Fall back to raw meta so the data isn't silently lost.
+					if ( false === $updated ) {
+						// Prefer the original meta_* value when available. This preserves
+						// ACF's native storage format for complex fields (repeaters/flexible)
+						// even when field definitions are missing on the target site.
+						if ( is_array( $raw_meta_backup ) && array_key_exists( $key, $raw_meta_backup ) ) {
+							update_post_meta( $post_id, $key, $raw_meta_backup[ $key ] );
+						} else {
+							update_post_meta( $post_id, $key, $value );
+						}
+					}
 
-				// Safety net: some complex fields (repeaters in particular) can end up
-				// stored as a serialized array in a single meta key when they were not
-				// properly recognised by ACF. Detect and re-apply update_field().
-				$field_type = '';
+					// Some installations have ACF enabled but no field group definitions
+					// on the target site. In that case update_field() can return true while
+					// simply storing the portable array into the main meta key (e.g.
+					// `repeater` becomes an array of rows instead of a row-count integer).
+					//
+					// Detect this "stored portable array" scenario and prefer the original
+					// meta_* value when available.
+					if ( true === $updated && is_array( $raw_meta_backup ) && array_key_exists( $key, $raw_meta_backup ) && is_array( $value ) ) {
+						$first_val = reset( $value );
+						if ( is_array( $first_val ) ) {
+							update_post_meta( $post_id, $key, $raw_meta_backup[ $key ] );
+						}
+					}
+
+					// Safety net: some complex fields (repeaters in particular) can end up
+					// stored as a serialized array in a single meta key when they were not
+					// properly recognised by ACF. Detect and re-apply update_field().
+					$field_type = '';
 				if ( isset( $field_object ) && is_array( $field_object ) && ! empty( $field_object['type'] ) ) {
 					$field_type = (string) $field_object['type'];
 				} elseif ( is_array( $db_field ) && ! empty( $db_field['type'] ) ) {
 					$field_type = (string) $db_field['type'];
 				}
 
-				if ( in_array( $field_type, [ 'repeater', 'flexible_content' ], true ) ) {
-					$stored = get_post_meta( $post_id, (string) $key, true );
-					if ( is_array( $stored ) ) {
-						$force_key = ( '' !== $acf_field_key && 0 === strpos( $acf_field_key, 'field_' ) ) ? $acf_field_key : $key;
-						update_field( $force_key, $value, $post_id );
+					if ( in_array( $field_type, [ 'repeater', 'flexible_content' ], true ) ) {
+						$stored = get_post_meta( $post_id, (string) $key, true );
+
+						$looks_like_rows = false;
+						if ( 'repeater' === $field_type ) {
+							// Correct repeater storage is an integer row count; arrays indicate failure.
+							$looks_like_rows = is_array( $stored );
+						} elseif ( 'flexible_content' === $field_type ) {
+							// Correct flexible content storage is an array of layout names (strings).
+							// Arrays of row objects indicate failure.
+							$first = is_array( $stored ) ? reset( $stored ) : null;
+							$looks_like_rows = is_array( $first );
+						}
+
+						if ( $looks_like_rows ) {
+							$force_key = ( '' !== $acf_field_key && 0 === strpos( $acf_field_key, 'field_' ) ) ? $acf_field_key : $key;
+							update_field( $force_key, $value, $post_id );
+						}
+					}
+				} else {
+					if ( is_array( $raw_meta_backup ) && array_key_exists( $key, $raw_meta_backup ) ) {
+						update_post_meta( $post_id, $key, $raw_meta_backup[ $key ] );
+					} else {
+						update_post_meta( $post_id, $key, $value );
 					}
 				}
-			} else {
-				update_post_meta( $post_id, $key, $value );
 			}
 		}
-	}
 
 	/**
 	 * Resolve an ACF meta value to its importable form.
@@ -722,65 +801,73 @@ class Post_Importer extends Abstract_Importer {
 	 * @param int   $post_id Post ID (used as attachment parent).
 	 * @return mixed Resolved value ready for update_post_meta().
 	 */
-	private function resolve_acf_meta_value( $value, int $post_id ) {
-		// ── 0. Gallery shortcode tokens (portable) ───────────────────────────
-		if ( is_string( $value ) && '' !== $value && false !== strpos( $value, '[[AIE:' ) ) {
-			$value = $this->resolve_gallery_shortcode_tokens( $value, $post_id );
-		}
+		private function resolve_acf_meta_value( $value, int $post_id ) {
+			// ── 0. Gallery shortcode tokens (portable) ───────────────────────────
+			if ( is_string( $value ) && '' !== $value && false !== strpos( $value, '[[AIE:' ) ) {
+				$value = $this->resolve_gallery_shortcode_tokens( $value, $post_id );
+			}
 
-		// ── 1. Typed JSON from our improved exporter ──────────────────────────
-		if ( is_array( $value ) && isset( $value['acf_type'] ) ) {
-			$type   = $value['acf_type'];
-			$values = $value['values'] ?? [];
+			$auto_import_media    = (bool) $this->get_option( 'auto_import_media', false );
+			$media_duplicate_mode = (string) $this->get_option( 'media_duplicate_mode', 'skip' );
 
-			switch ( $type ) {
-				case 'gallery':
-					// Array of image/file URLs → download each and collect new attachment IDs.
-					$ids = [];
-					foreach ( $values as $url ) {
-						if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
-							continue;
+			// ── 1. Typed JSON from our improved exporter ──────────────────────────
+			if ( is_array( $value ) && isset( $value['acf_type'] ) ) {
+				$type   = $value['acf_type'];
+				$values = $value['values'] ?? [];
+
+				switch ( $type ) {
+					case 'gallery':
+						if ( ! $auto_import_media ) {
+							return $value;
 						}
+
+						// Array of image/file URLs → download each and collect new attachment IDs.
+						$ids = [];
+						foreach ( $values as $url ) {
+							if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+								continue;
+							}
 
 						// Avoid downloading non-media URLs (HTML pages, oembed, etc.).
 						$ext = strtolower( pathinfo( wp_parse_url( $url, PHP_URL_PATH ) ?? '', PATHINFO_EXTENSION ) );
 						$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
-						if ( '' === $ext || ! in_array( $ext, $media_exts, true ) ) {
-							continue;
-						}
+							if ( '' === $ext || ! in_array( $ext, $media_exts, true ) ) {
+								continue;
+							}
 
-						$id = $this->import_media_from_url( $url, $post_id );
-						if ( $id && ! is_wp_error( $id ) ) {
-							$ids[] = (int) $id;
+							$id = $this->import_media_for_acf( $url, $post_id, $media_duplicate_mode );
+							if ( $id ) {
+								$ids[] = (int) $id;
+							}
 						}
-					}
-					return $ids;
+						return $ids;
 
-				case 'relation':
+					case 'relation':
 					// Array of post slugs OR attachment URLs:
 					// - slug  → look up post ID by post_name (including attachments)
 					// - URL   → download media and return attachment ID
 					$ids = [];
-					foreach ( $values as $raw ) {
-						$raw = (string) $raw;
+						foreach ( $values as $raw ) {
+							$raw = (string) $raw;
 
-						// URL values are assumed to point to media (most commonly when a
-						// relationship/post_object field references an attachment).
-						if ( '' !== $raw && filter_var( $raw, FILTER_VALIDATE_URL ) ) {
-							$ext = strtolower( pathinfo( wp_parse_url( $raw, PHP_URL_PATH ) ?? '', PATHINFO_EXTENSION ) );
-							$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
-							if ( '' !== $ext && in_array( $ext, $media_exts, true ) && 0 !== strpos( $raw, site_url() ) ) {
-								$new_id = $this->import_media_from_url( $raw, $post_id );
-								if ( $new_id && ! is_wp_error( $new_id ) ) {
-									$ids[] = (int) $new_id;
-									continue;
+							// URL values are assumed to point to media (most commonly when a
+							// relationship/post_object field references an attachment).
+							if ( '' !== $raw && filter_var( $raw, FILTER_VALIDATE_URL ) ) {
+								$ext = strtolower( pathinfo( wp_parse_url( $raw, PHP_URL_PATH ) ?? '', PATHINFO_EXTENSION ) );
+								$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
+								if ( $auto_import_media && '' !== $ext && in_array( $ext, $media_exts, true ) ) {
+									$new_id = $this->import_media_for_acf( $raw, $post_id, $media_duplicate_mode );
+									if ( $new_id ) {
+										$ids[] = (int) $new_id;
+									}
 								}
+								// Do not treat a URL as a post slug.
+								continue;
 							}
-						}
 
-						$slug = sanitize_title( $raw );
-						if ( '' === $slug ) {
-							continue;
+							$slug = sanitize_title( $raw );
+							if ( '' === $slug ) {
+								continue;
 						}
 
 						$posts = get_posts(
@@ -831,7 +918,7 @@ class Post_Importer extends Abstract_Importer {
 					}
 					return $ids;
 
-				case 'user':
+					case 'user':
 					// Array of user logins → look up (or create) users on this site.
 					$ids = [];
 					foreach ( $values as $login ) {
@@ -880,24 +967,28 @@ class Post_Importer extends Abstract_Importer {
 						return ! empty( $ids ) ? $ids[0] : '';
 					}
 					return $ids;
+				}
 			}
-		}
 
-		// ── 1b. ACF attachment array (image/file return_format=array) ─────────
-		if ( is_array( $value ) && isset( $value['url'] ) && ( isset( $value['ID'] ) || isset( $value['id'] ) ) ) {
-			$url = $value['url'];
-			$id  = $value['ID'] ?? $value['id'];
-			if ( is_string( $url ) && filter_var( $url, FILTER_VALIDATE_URL ) && is_numeric( $id ) ) {
-				$ext = strtolower( pathinfo( wp_parse_url( $url, PHP_URL_PATH ) ?? '', PATHINFO_EXTENSION ) );
-				$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
-				if ( '' !== $ext && in_array( $ext, $media_exts, true ) && 0 !== strpos( $url, site_url() ) ) {
-					$new_id = $this->import_media_from_url( $url, $post_id );
-					if ( $new_id && ! is_wp_error( $new_id ) ) {
-						return (int) $new_id;
+			// ── 1b. ACF attachment array (image/file return_format=array) ─────────
+			if ( is_array( $value ) && isset( $value['url'] ) && ( isset( $value['ID'] ) || isset( $value['id'] ) ) ) {
+				if ( ! $auto_import_media ) {
+					return $value;
+				}
+
+				$url = $value['url'];
+				$id  = $value['ID'] ?? $value['id'];
+				if ( is_string( $url ) && filter_var( $url, FILTER_VALIDATE_URL ) && is_numeric( $id ) ) {
+					$ext = strtolower( pathinfo( wp_parse_url( $url, PHP_URL_PATH ) ?? '', PATHINFO_EXTENSION ) );
+					$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
+					if ( '' !== $ext && in_array( $ext, $media_exts, true ) ) {
+						$new_id = $this->import_media_for_acf( $url, $post_id, $media_duplicate_mode );
+						if ( $new_id ) {
+							return (int) $new_id;
+						}
 					}
 				}
 			}
-		}
 
 		// ── 1c. Recurse into nested arrays (repeaters/groups/flexible content) ─
 		if ( is_array( $value ) ) {
@@ -908,26 +999,23 @@ class Post_Importer extends Abstract_Importer {
 			return $out;
 		}
 
-		// ── 2. Single string that looks like a downloadable media URL ─────────
-		// Applies to ACF image and file fields exported as bare URLs
-		// (e.g. acf_image_field = 'http://source.local/.../photo.jpg').
-		// We detect media by file extension to avoid downloading page/oembed URLs.
-		if ( is_string( $value ) && '' !== $value && filter_var( $value, FILTER_VALIDATE_URL ) ) {
-			$ext = strtolower( pathinfo( wp_parse_url( $value, PHP_URL_PATH ) ?? '', PATHINFO_EXTENSION ) );
-			$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
-			if ( in_array( $ext, $media_exts, true ) ) {
-				// Skip if already on this site
-				if ( 0 !== strpos( $value, site_url() ) ) {
-					$id = $this->import_media_from_url( $value, $post_id );
-					if ( $id && ! is_wp_error( $id ) ) {
+			// ── 2. Single string that looks like a downloadable media URL ─────────
+			// Applies to ACF image and file fields exported as bare URLs
+			// (e.g. acf_image_field = 'http://source.local/.../photo.jpg').
+			// We detect media by file extension to avoid downloading page/oembed URLs.
+			if ( $auto_import_media && is_string( $value ) && '' !== $value && filter_var( $value, FILTER_VALIDATE_URL ) ) {
+				$ext = strtolower( pathinfo( wp_parse_url( $value, PHP_URL_PATH ) ?? '', PATHINFO_EXTENSION ) );
+				$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
+				if ( in_array( $ext, $media_exts, true ) ) {
+					$id = $this->import_media_for_acf( $value, $post_id, $media_duplicate_mode );
+					if ( $id ) {
 						return (int) $id;
 					}
 				}
 			}
-		}
 
-		return $value;
-	}
+			return $value;
+		}
 
 	/**
 	 * Resolve exported gallery shortcode tokens back into `[gallery ids="..."]`.
@@ -944,16 +1032,18 @@ class Post_Importer extends Abstract_Importer {
 	 * @param int    $post_id Post ID (attachment parent).
 	 * @return string
 	 */
-	private function resolve_gallery_shortcode_tokens( string $value, int $post_id ): string {
-		$pattern = '/\\[\\[AIE:([A-Za-z0-9+\\/=]+)\\]\\]/';
+		private function resolve_gallery_shortcode_tokens( string $value, int $post_id ): string {
+			$pattern = '/\\[\\[AIE:([A-Za-z0-9+\\/=]+)\\]\\]/';
 
-		return preg_replace_callback(
-			$pattern,
-			function ( array $m ) use ( $post_id ) {
-				$blob = $m[1] ?? '';
-				if ( '' === $blob ) {
-					return $m[0] ?? '';
-				}
+			$media_duplicate_mode = (string) $this->get_option( 'media_duplicate_mode', 'skip' );
+
+			return preg_replace_callback(
+				$pattern,
+				function ( array $m ) use ( $post_id, $media_duplicate_mode ) {
+					$blob = $m[1] ?? '';
+					if ( '' === $blob ) {
+						return $m[0] ?? '';
+					}
 
 				$json = base64_decode( $blob, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 				if ( false === $json || '' === $json ) {
@@ -976,16 +1066,16 @@ class Post_Importer extends Abstract_Importer {
 					return $shortcode;
 				}
 
-				$new_ids = [];
-				foreach ( $urls as $url ) {
-					if ( ! is_string( $url ) || ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
-						continue;
+					$new_ids = [];
+					foreach ( $urls as $url ) {
+						if ( ! is_string( $url ) || ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+							continue;
+						}
+						$id = $this->import_media_for_acf( $url, $post_id, $media_duplicate_mode );
+						if ( $id ) {
+							$new_ids[] = (int) $id;
+						}
 					}
-					$id = $this->import_media_from_url( $url, $post_id );
-					if ( $id && ! is_wp_error( $id ) ) {
-						$new_ids[] = (int) $id;
-					}
-				}
 
 				if ( empty( $new_ids ) ) {
 					return $shortcode;
@@ -1036,10 +1126,14 @@ class Post_Importer extends Abstract_Importer {
 				ARRAY_A
 			);
 
-			if ( ! $row ) {
-				$cache[ $field_name ] = null;
-				return null;
-			}
+				if ( ! $row ) {
+					// Not stored in DB. Many setups register fields via local JSON/PHP
+					// (acf_add_local_field_group) so there may be no acf-field posts.
+					// Fall back to scanning runtime field groups.
+					$runtime = $this->acf_runtime_find_field_by_name( $field_name );
+					$cache[ $field_name ] = $runtime;
+					return $runtime;
+				}
 
 			$settings = @unserialize( (string) $row['post_content'] );
 			if ( ! is_array( $settings ) ) {
@@ -1070,9 +1164,93 @@ class Post_Importer extends Abstract_Importer {
 				}
 			}
 
-			$cache[ $field_name ] = $result;
-			return $result;
-		}
+				$cache[ $field_name ] = $result;
+				return $result;
+			}
+
+			/**
+			 * Find an ACF field definition registered at runtime by field name.
+			 *
+			 * Supports installations where ACF fields are registered via local JSON/PHP
+			 * and are not present as `acf-field` posts in the database.
+			 *
+			 * @param string $field_name ACF field name.
+			 * @return array|null { id, key, type, sub_field_names? } or null.
+			 */
+			private function acf_runtime_find_field_by_name( string $field_name ): ?array {
+				static $index = null;
+
+				if ( null === $index ) {
+					$index = [];
+
+					if ( function_exists( 'acf_get_field_groups' ) && function_exists( 'acf_get_fields' ) ) {
+						$groups = acf_get_field_groups();
+
+						$walk = function ( $fields ) use ( &$walk, &$index ) {
+							if ( ! is_array( $fields ) ) {
+								return;
+							}
+
+							foreach ( $fields as $field ) {
+								if ( ! is_array( $field ) ) {
+									continue;
+								}
+
+								$name = (string) ( $field['name'] ?? '' );
+								if ( '' !== $name && ! isset( $index[ $name ] ) ) {
+									$index[ $name ] = $field;
+								}
+
+								$type = (string) ( $field['type'] ?? '' );
+								if ( in_array( $type, [ 'repeater', 'group' ], true ) && ! empty( $field['sub_fields'] ) ) {
+									$walk( $field['sub_fields'] );
+								}
+
+								if ( 'flexible_content' === $type && ! empty( $field['layouts'] ) && is_array( $field['layouts'] ) ) {
+									foreach ( $field['layouts'] as $layout ) {
+										if ( is_array( $layout ) && ! empty( $layout['sub_fields'] ) ) {
+											$walk( $layout['sub_fields'] );
+										}
+									}
+								}
+							}
+						};
+
+						foreach ( $groups as $group ) {
+							$fields = acf_get_fields( $group );
+							$walk( $fields );
+						}
+					}
+				}
+
+				if ( ! isset( $index[ $field_name ] ) ) {
+					return null;
+				}
+
+				$field = $index[ $field_name ];
+
+				$type = (string) ( $field['type'] ?? '' );
+
+				$result = [
+					'id'              => 0,
+					'key'             => (string) ( $field['key'] ?? '' ),
+					'type'            => $type,
+					'sub_field_names' => [],
+				];
+
+				if ( 'group' === $type && ! empty( $field['sub_fields'] ) && is_array( $field['sub_fields'] ) ) {
+					$result['sub_field_names'] = array_values(
+						array_filter(
+							array_map(
+								fn( $sub ) => is_array( $sub ) ? (string) ( $sub['name'] ?? '' ) : '',
+								$field['sub_fields']
+							)
+						)
+					);
+				}
+
+				return $result;
+			}
 
 		/**
 		 * Import taxonomies
@@ -1163,39 +1341,25 @@ class Post_Importer extends Abstract_Importer {
 	 * @param int        $post_id Post ID
 	 * @param string|int $image   Image URL, path, or attachment ID
 	 */
-	private function import_featured_image( $post_id, $image ) {
-		// Already a local attachment ID
-		if ( is_numeric( $image ) && get_post( $image ) ) {
-			set_post_thumbnail( $post_id, $image );
-			return;
-		}
+		private function import_featured_image( $post_id, $image ) {
+			// Already a local attachment ID
+			if ( is_numeric( $image ) && get_post( $image ) ) {
+				set_post_thumbnail( $post_id, $image );
+				return;
+			}
 
-		// URL — download and create attachment
-		if ( is_string( $image ) && filter_var( $image, FILTER_VALIDATE_URL ) ) {
-			// Skip if already on this site
-			if ( 0 === strpos( $image, site_url() ) ) {
-				// Might be a local URL, try to find attachment by URL
-				global $wpdb;
-				$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-					$wpdb->prepare(
-						"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key='_wp_attached_file' AND meta_value LIKE %s LIMIT 1",
-						'%' . $wpdb->esc_like( basename( $image ) )
-					)
-				);
+			// URL — download and create attachment
+			if ( is_string( $image ) && filter_var( $image, FILTER_VALIDATE_URL ) ) {
+				$media_duplicate_mode = $this->get_option( 'media_duplicate_mode', 'skip' );
+				$attachment_id        = $this->import_media_for_acf( $image, $post_id, $media_duplicate_mode );
+
 				if ( $attachment_id ) {
 					set_post_thumbnail( $post_id, (int) $attachment_id );
-					return;
+				} else {
+					$this->log_warning( sprintf( 'Failed to import featured image from URL: %s', $image ) );
 				}
 			}
-
-			$attachment_id = $this->import_media_from_url( $image, $post_id );
-			if ( $attachment_id && ! is_wp_error( $attachment_id ) ) {
-				set_post_thumbnail( $post_id, $attachment_id );
-			} else {
-				$this->log_warning( sprintf( 'Failed to import featured image from URL: %s', $image ) );
-			}
 		}
-	}
 
 	/**
 	 * Auto-import media from ACF fields
@@ -1494,42 +1658,60 @@ class Post_Importer extends Abstract_Importer {
 	 * @param string $media_duplicate_mode Duplicate handling mode
 	 * @return int|false New attachment ID or false
 	 */
-	private function import_media_for_acf( $url, $post_id, $media_duplicate_mode ) {
-		// Skip if not a valid URL
-		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
-			return false;
-		}
+		private function import_media_for_acf( $url, $post_id, $media_duplicate_mode ) {
+			static $url_to_attachment_cache = [];
 
-		// Skip if it's already a local media URL
-		if ( strpos( $url, wp_upload_dir()['baseurl'] ) === 0 ) {
-			return false;
-		}
+			// Skip if not a valid URL
+			if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+				return false;
+			}
+
+			// Avoid importing the same URL multiple times within a single request/job.
+			// This also prevents duplicate attachments when the same media is referenced
+			// by multiple fields in the same item.
+			if ( isset( $url_to_attachment_cache[ $url ] ) ) {
+				return (int) $url_to_attachment_cache[ $url ];
+			}
+
+			// If it's already a local media URL, try to map it back to an attachment ID
+			// without downloading. This keeps ACF fields functional when importing a file
+			// that references media already present on this site.
+			if ( strpos( $url, wp_upload_dir()['baseurl'] ) === 0 ) {
+				$existing = attachment_url_to_postid( $url );
+				if ( $existing ) {
+					$url_to_attachment_cache[ $url ] = (int) $existing;
+					return (int) $existing;
+				}
+				return false;
+			}
 
 		// Check for existing media
 		$filename = basename( wp_parse_url( $url, PHP_URL_PATH ) );
-		$existing_attachment = $this->find_existing_media( $filename, $url );
+			$existing_attachment = $this->find_existing_media( $filename, $url );
 
-		if ( $existing_attachment ) {
-			// Handle duplicate based on mode
-			if ( 'skip' === $media_duplicate_mode ) {
-				$this->log_info( sprintf( 'Skipped duplicate ACF media: %s (using existing ID: %d)', $filename, $existing_attachment ) );
-				return $existing_attachment;
-			} elseif ( 'replace' === $media_duplicate_mode ) {
-				wp_delete_attachment( $existing_attachment, true );
-				$this->log_info( sprintf( 'Deleted existing ACF media for replacement: %s (ID: %d)', $filename, $existing_attachment ) );
+			if ( $existing_attachment ) {
+				// Handle duplicate based on mode
+				if ( 'skip' === $media_duplicate_mode ) {
+					$this->log_info( sprintf( 'Skipped duplicate ACF media: %s (using existing ID: %d)', $filename, $existing_attachment ) );
+					$url_to_attachment_cache[ $url ] = (int) $existing_attachment;
+					return $existing_attachment;
+				} elseif ( 'replace' === $media_duplicate_mode ) {
+					wp_delete_attachment( $existing_attachment, true );
+					$this->log_info( sprintf( 'Deleted existing ACF media for replacement: %s (ID: %d)', $filename, $existing_attachment ) );
+				}
 			}
-		}
 
 		// Import the media file
-		$attachment_id = $this->import_media_from_url( $url, $post_id );
+			$attachment_id = $this->import_media_from_url( $url, $post_id );
 
-		if ( ! is_wp_error( $attachment_id ) && $attachment_id ) {
-			$this->log_info( sprintf( 'Imported ACF media: %s (new ID: %d)', $filename, $attachment_id ) );
-			return $attachment_id;
+			if ( ! is_wp_error( $attachment_id ) && $attachment_id ) {
+				$this->log_info( sprintf( 'Imported ACF media: %s (new ID: %d)', $filename, $attachment_id ) );
+				$url_to_attachment_cache[ $url ] = (int) $attachment_id;
+				return $attachment_id;
+			}
+
+			return false;
 		}
-
-		return false;
-	}
 
 	/**
 	 * Auto-import media files from post content
@@ -1713,14 +1895,27 @@ class Post_Importer extends Abstract_Importer {
 	 * @param string $url       Media URL to download and check
 	 * @return int|null Attachment ID or null
 	 */
-	private function find_existing_media( $filename, $url = '' ) {
-		global $wpdb;
+		private function find_existing_media( $filename, $url = '' ) {
+			global $wpdb;
 
-		// First, find all attachments with matching filename
-		$attachment_ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			$wpdb->prepare(
-				"SELECT post_id FROM $wpdb->postmeta 
-				WHERE meta_key = '_wp_attached_file' 
+			$remote_data = null;
+			if ( ! empty( $url ) ) {
+				// Prefer hash-based duplicate detection (works even when WP renames files
+				// to "-1", "-2", etc. and the filename no longer matches the source).
+				$remote_data = $this->get_remote_file_data( $url );
+				if ( $remote_data && ! empty( $remote_data['hash'] ) && class_exists( '\\WP_AIE\\Helper\\Media_Hash' ) ) {
+					$by_hash = \WP_AIE\Helper\Media_Hash::get_attachment_by_hash( (string) $remote_data['hash'] );
+					if ( $by_hash ) {
+						return (int) $by_hash;
+					}
+				}
+			}
+
+			// First, find all attachments with matching filename
+			$attachment_ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+				$wpdb->prepare(
+					"SELECT post_id FROM $wpdb->postmeta 
+					WHERE meta_key = '_wp_attached_file' 
 				AND meta_value LIKE %s",
 				'%' . $wpdb->esc_like( $filename )
 			)
@@ -1733,17 +1928,19 @@ class Post_Importer extends Abstract_Importer {
 		// If we only have one match, return it
 		if ( 1 === count( $attachment_ids ) ) {
 			return (int) $attachment_ids[0];
-		}
+			}
 
-		// If we have multiple matches and URL is provided, check by filesize and hash
-		if ( ! empty( $url ) ) {
-			// Get remote file size and hash
-			$remote_data = $this->get_remote_file_data( $url );
-			
-			if ( $remote_data ) {
-				foreach ( $attachment_ids as $attachment_id ) {
-					$local_file = get_attached_file( $attachment_id );
-					
+			// If we have multiple matches and URL is provided, check by filesize and hash
+			if ( ! empty( $url ) ) {
+				// Get remote file size and hash (may already be downloaded above)
+				if ( ! $remote_data ) {
+					$remote_data = $this->get_remote_file_data( $url );
+				}
+
+				if ( $remote_data ) {
+					foreach ( $attachment_ids as $attachment_id ) {
+						$local_file = get_attached_file( $attachment_id );
+						
 					if ( ! file_exists( $local_file ) ) {
 						continue;
 					}
@@ -1773,13 +1970,28 @@ class Post_Importer extends Abstract_Importer {
 	 * @param string $url Remote file URL
 	 * @return array|null Array with 'size' and 'hash' or null on failure
 	 */
-	private function get_remote_file_data( $url ) {
-		// Download file to temp location
-		$temp_file = download_url( $url, 30 ); // 30 seconds timeout
+		private function get_remote_file_data( $url ) {
+			// Download file to temp location
+			$temp_file = download_url( $url, 30 ); // 30 seconds timeout
 
-		if ( is_wp_error( $temp_file ) ) {
-			return null;
-		}
+			if ( is_wp_error( $temp_file ) ) {
+				$host = wp_parse_url( $url, PHP_URL_HOST );
+				$is_dev_host = is_string( $host ) && preg_match( '/\\.(local|test|localhost)$/i', $host );
+
+				// In local/dev environments, WordPress can reject ".local"/".test" hosts as
+				// "unsafe" and return "A valid URL was not provided." even though the URL
+				// is reachable. Retry with `reject_unsafe_urls=false` for common dev TLDs.
+				if ( $is_dev_host && 'http_request_failed' === $temp_file->get_error_code() ) {
+					$retry = $this->download_url_unrestricted( (string) $url, 30 );
+					if ( ! is_wp_error( $retry ) ) {
+						$temp_file = $retry;
+					}
+				}
+
+				if ( is_wp_error( $temp_file ) ) {
+					return null;
+				}
+			}
 
 		if ( ! file_exists( $temp_file ) ) {
 			return null;
