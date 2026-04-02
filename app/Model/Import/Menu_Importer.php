@@ -675,9 +675,49 @@ class Menu_Importer extends Abstract_Importer {
 
 		$title = isset( $item['title'] ) ? (string) $item['title'] : '';
 		if ( $title !== '' ) {
-			$post = get_page_by_title( $title, OBJECT, $post_type );
-			if ( $post ) {
-				return (int) $post->ID;
+			$post_id_by_title = $this->find_post_id_by_title( $title, $post_type );
+			if ( $post_id_by_title > 0 ) {
+				return $post_id_by_title;
+			}
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Best-effort title lookup using WP_Query (get_page_by_title() is deprecated).
+	 *
+	 * @param string       $title     Post title.
+	 * @param string|array $post_type Post type(s).
+	 * @return int Post ID or 0.
+	 */
+	private function find_post_id_by_title( $title, $post_type ) {
+		$title = trim( (string) $title );
+		if ( '' === $title ) {
+			return 0;
+		}
+
+		$query = new \WP_Query(
+			[
+				'post_type'              => $post_type,
+				'post_status'            => 'any',
+				'posts_per_page'         => 10,
+				's'                      => $title,
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			]
+		);
+
+		if ( empty( $query->posts ) ) {
+			return 0;
+		}
+
+		foreach ( $query->posts as $candidate_id ) {
+			$candidate = get_post( $candidate_id );
+			if ( $candidate && (string) $candidate->post_title === $title ) {
+				return (int) $candidate_id;
 			}
 		}
 

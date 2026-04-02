@@ -443,22 +443,24 @@ class Comment_Importer extends Abstract_Importer {
 	 * @return int|null Target comment ID or null.
 	 */
 	private function find_existing_comment_by_source_id( $source_comment_id ) {
-		global $wpdb;
-
 		$source_comment_id = absint( $source_comment_id );
 		if ( $source_comment_id <= 0 ) {
 			return null;
 		}
 
-		$comment_id = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT comment_id FROM {$wpdb->commentmeta} WHERE meta_key = %s AND meta_value = %s ORDER BY comment_id DESC LIMIT 1",
-				self::SOURCE_ID_META_KEY,
-				(string) $source_comment_id
-			)
-		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+		$comment_ids = get_comments(
+			[
+				'number'     => 1,
+				'orderby'    => 'comment_ID',
+				'order'      => 'DESC',
+				'fields'     => 'ids',
+				'status'     => 'all',
+				'meta_key'   => self::SOURCE_ID_META_KEY,
+				'meta_value' => (string) $source_comment_id,
+			]
+		);
 
-		return $comment_id ? absint( $comment_id ) : null;
+		return ! empty( $comment_ids[0] ) ? absint( $comment_ids[0] ) : null;
 	}
 
 	/**
@@ -513,13 +515,54 @@ class Comment_Importer extends Abstract_Importer {
 		// Last resort: try post_title.
 		$title = isset( $item['post_title'] ) ? (string) $item['post_title'] : '';
 		if ( $title !== '' ) {
-			$post = get_page_by_title( $title, OBJECT, 'post' );
-			if ( $post ) {
-				return (int) $post->ID;
+			$post_id_by_title = $this->find_post_id_by_title( $title, 'post' );
+			if ( $post_id_by_title > 0 ) {
+				return $post_id_by_title;
 			}
-			$page = get_page_by_title( $title, OBJECT, 'page' );
-			if ( $page ) {
-				return (int) $page->ID;
+
+			$page_id_by_title = $this->find_post_id_by_title( $title, 'page' );
+			if ( $page_id_by_title > 0 ) {
+				return $page_id_by_title;
+			}
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Best-effort title lookup using WP_Query (for environments where get_page_by_title() is deprecated).
+	 *
+	 * @param string       $title     Post title.
+	 * @param string|array $post_type Post type(s).
+	 * @return int Post ID or 0.
+	 */
+	private function find_post_id_by_title( $title, $post_type ) {
+		$title = trim( (string) $title );
+		if ( '' === $title ) {
+			return 0;
+		}
+
+		$query = new \WP_Query(
+			[
+				'post_type'              => $post_type,
+				'post_status'            => 'any',
+				'posts_per_page'         => 10,
+				's'                      => $title,
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			]
+		);
+
+		if ( empty( $query->posts ) ) {
+			return 0;
+		}
+
+		foreach ( $query->posts as $candidate_id ) {
+			$candidate = get_post( $candidate_id );
+			if ( $candidate && (string) $candidate->post_title === $title ) {
+				return (int) $candidate_id;
 			}
 		}
 
@@ -538,8 +581,6 @@ class Comment_Importer extends Abstract_Importer {
 	 * @return void
 	 */
 	private function force_update_comment_dates( $comment_id, $item ) {
-		global $wpdb;
-
 		$comment_id = absint( $comment_id );
 		if ( $comment_id <= 0 ) {
 			return;
@@ -555,27 +596,19 @@ class Comment_Importer extends Abstract_Importer {
 		}
 
 		$update = [];
-		$format = [];
 		if ( $date !== '' ) {
 			$update['comment_date'] = $date;
-			$format[]              = '%s';
 		}
 		if ( $date_gmt !== '' ) {
 			$update['comment_date_gmt'] = $date_gmt;
-			$format[]                  = '%s';
 		}
 
 		if ( empty( $update ) ) {
 			return;
 		}
 
-		$wpdb->update(
-			$wpdb->comments,
-			$update,
-			[ 'comment_ID' => $comment_id ],
-			$format,
-			[ '%d' ]
-		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional to preserve exact values.
+		$commentarr = [ 'comment_ID' => $comment_id ] + $update;
+		wp_update_comment( wp_slash( $commentarr ) );
 
 		clean_comment_cache( $comment_id );
 	}
@@ -588,8 +621,6 @@ class Comment_Importer extends Abstract_Importer {
 	 * @return void
 	 */
 	private function force_update_comment_content( $comment_id, $item ) {
-		global $wpdb;
-
 		$comment_id = absint( $comment_id );
 		if ( $comment_id <= 0 ) {
 			return;
@@ -600,13 +631,14 @@ class Comment_Importer extends Abstract_Importer {
 			return;
 		}
 
-		$wpdb->update(
-			$wpdb->comments,
-			[ 'comment_content' => $content ],
-			[ 'comment_ID' => $comment_id ],
-			[ '%s' ],
-			[ '%d' ]
-		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional to preserve exact values.
+		wp_update_comment(
+			wp_slash(
+				[
+					'comment_ID'      => $comment_id,
+					'comment_content' => $content,
+				]
+			)
+		);
 
 		clean_comment_cache( $comment_id );
 	}

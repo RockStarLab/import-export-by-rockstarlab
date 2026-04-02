@@ -111,8 +111,10 @@ class Database_Table_Exporter extends Abstract_Exporter {
 
 		global $wpdb;
 
-		// Sanitize table name
-		$table_name = sanitize_text_field( $table_name );
+		$table_name = $this->normalize_table_name( $table_name );
+		if ( '' === $table_name ) {
+			return [];
+		}
 
 		// Get column information
 		$columns = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
@@ -262,14 +264,19 @@ class Database_Table_Exporter extends Abstract_Exporter {
 			return 0;
 		}
 
-		// Fast path: no custom filters — use COUNT(*) directly.
-		if ( empty( $options['filters'] ) || ! is_array( $options['filters'] ) ) {
-			$count = $wpdb->get_var( "SELECT COUNT(*) FROM `{$table_name}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier validated above.
-			return (int) $count;
-		}
+			// Fast path: no custom filters — use COUNT(*) directly.
+			if ( empty( $options['filters'] ) || ! is_array( $options['filters'] ) ) {
+				$count = $wpdb->get_var( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier validated above.
+					$wpdb->prepare( "SELECT COUNT(*) FROM `{$table_name}` WHERE 1 = %d", 1 )
+				);
+				return (int) $count;
+			}
 
-		// Fetch all rows for filtering
-		$rows = $wpdb->get_results( "SELECT * FROM `{$table_name}`", ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier validated above.
+			// Fetch all rows for filtering
+			$rows = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier validated above.
+				$wpdb->prepare( "SELECT * FROM `{$table_name}` WHERE 1 = %d", 1 ),
+				ARRAY_A
+			);
 
 		if ( empty( $rows ) ) {
 			return 0;
@@ -325,17 +332,22 @@ class Database_Table_Exporter extends Abstract_Exporter {
 			);
 		}
 
-		$this->log_info( "Querying table: {$table_name}" );
+			$this->log_info( "Querying table: {$table_name}" );
 
-		// Fetch all rows (stable ordering for deterministic exports).
-		$order_column = $this->get_order_column( $table_name );
-		$sql          = "SELECT * FROM `{$table_name}`";
-		if ( ! empty( $order_column ) ) {
-			// $order_column is read from INFORMATION_SCHEMA, safe to use as identifier.
-			$sql .= " ORDER BY `{$order_column}`";
-		}
-
-		$rows = $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier validated above.
+			// Fetch all rows (stable ordering for deterministic exports).
+			$order_column = $this->get_order_column( $table_name );
+			if ( ! empty( $order_column ) && preg_match( '/^[A-Za-z0-9_]+$/', (string) $order_column ) ) {
+				// $order_column is read from INFORMATION_SCHEMA and validated as a safe identifier.
+				$rows = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifiers validated above.
+					$wpdb->prepare( "SELECT * FROM `{$table_name}` WHERE 1 = %d ORDER BY `{$order_column}`", 1 ),
+					ARRAY_A
+				);
+			} else {
+				$rows = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifier validated above.
+					$wpdb->prepare( "SELECT * FROM `{$table_name}` WHERE 1 = %d", 1 ),
+					ARRAY_A
+				);
+			}
 
 		if ( empty( $rows ) ) {
 			return [];

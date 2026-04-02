@@ -867,8 +867,6 @@ class Import_Controller extends Base_Controller {
 	 * @return void
 	 */
 	private function fix_comment_parent_relationships( $job_id, $prepared_data ) {
-		global $wpdb;
-
 		$job_id = absint( $job_id );
 		if ( $job_id <= 0 || ! is_array( $prepared_data ) || empty( $prepared_data ) ) {
 			return;
@@ -900,14 +898,17 @@ class Import_Controller extends Base_Controller {
 				continue;
 			}
 
-			// Use direct DB update to avoid wp_update_comment recomputing comment_date_gmt based on site timezone.
-			$wpdb->update(
-				$wpdb->comments,
-				[ 'comment_parent' => $target_parent ],
-				[ 'comment_ID' => $target_id ],
-				[ '%d' ],
-				[ '%d' ]
-			); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional.
+			// Preserve existing dates when updating parent relationship.
+			wp_update_comment(
+				wp_slash(
+					[
+						'comment_ID'       => $target_id,
+						'comment_parent'   => $target_parent,
+						'comment_date'     => (string) $comment->comment_date,
+						'comment_date_gmt' => (string) $comment->comment_date_gmt,
+					]
+				)
+			);
 
 			clean_comment_cache( $target_id );
 		}

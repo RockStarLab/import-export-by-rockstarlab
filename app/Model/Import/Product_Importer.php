@@ -753,18 +753,28 @@ class Product_Importer extends Abstract_Importer {
 			return 0;
 		}
 
-		global $wpdb;
-		$like = '%' . $wpdb->esc_like( $filename );
-		$found = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT post_id FROM {$wpdb->postmeta} pm JOIN {$wpdb->posts} p ON p.ID = pm.post_id
-				 WHERE pm.meta_key = '_wp_attached_file' AND pm.meta_value LIKE %s AND p.post_type = 'attachment'
-				 ORDER BY post_id DESC LIMIT 1",
-				$like
-			)
-		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required for fallback mapping.
+		$query = new \WP_Query(
+			[
+				'post_type'              => 'attachment',
+				'post_status'            => 'inherit',
+				'posts_per_page'         => 1,
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'orderby'                => 'ID',
+				'order'                  => 'DESC',
+				'meta_query'             => [
+					[
+						'key'     => '_wp_attached_file',
+						'value'   => $filename,
+						'compare' => 'LIKE',
+					],
+				],
+			]
+		);
 
-		return $found ? absint( $found ) : 0;
+		return ! empty( $query->posts[0] ) ? absint( $query->posts[0] ) : 0;
 	}
 
 	/**
