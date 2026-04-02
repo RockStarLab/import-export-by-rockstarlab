@@ -675,7 +675,12 @@ class Product_Importer extends Abstract_Importer {
 		if ( ! empty( $item['featured_image_url'] ) ) {
 			$thumb_id = $resolve_attachment_id( $item['featured_image_url'] );
 		}
-		if ( ! $thumb_id && ! empty( $item['featured_image_id'] ) && get_post( absint( $item['featured_image_id'] ) ) ) {
+
+		// IMPORTANT: Do not treat `featured_image_id` as a target-site attachment ID when a URL is available.
+		// In cross-site imports the numeric IDs refer to the SOURCE site and can accidentally point to an
+		// unrelated attachment on the target site, resulting in wrong thumbnails.
+		// Only use `featured_image_id` as a fallback when the file provides no URL.
+		if ( ! $thumb_id && empty( $item['featured_image_url'] ) && ! empty( $item['featured_image_id'] ) && get_post( absint( $item['featured_image_id'] ) ) ) {
 			$thumb_id = absint( $item['featured_image_id'] );
 		}
 
@@ -931,19 +936,87 @@ class Product_Importer extends Abstract_Importer {
 	 * @return int|false Attachment ID or false on failure
 	 */
 	private function download_image( $url, $product_id ) {
-		if ( ! function_exists( 'media_sideload_image' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/media.php';
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-			require_once ABSPATH . 'wp-admin/includes/image.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+
+		$tmp_file = download_url( $url, 30 );
+
+		// In local/dev environments, WordPress can reject ".local"/".test" hosts as
+		// "unsafe" and return "A valid URL was not provided." even though the URL
+		// is reachable. Retry with `reject_unsafe_urls=false` for common dev TLDs.
+		if ( is_wp_error( $tmp_file ) ) {
+			$host        = wp_parse_url( $url, PHP_URL_HOST );
+			$is_dev_host = is_string( $host ) && preg_match( '/\\.(local|test|localhost)$/i', $host );
+
+			if ( $is_dev_host && 'http_request_failed' === $tmp_file->get_error_code() ) {
+				$retry = $this->download_url_unrestricted( (string) $url, 30 );
+				if ( ! is_wp_error( $retry ) ) {
+					$tmp_file = $retry;
+				}
+			}
 		}
 
-		$image_id = media_sideload_image( $url, $product_id, null, 'id' );
-
-		if ( is_wp_error( $image_id ) ) {
+		if ( is_wp_error( $tmp_file ) || ! $tmp_file || ! file_exists( $tmp_file ) ) {
 			return false;
 		}
 
-		return $image_id;
+		$file = [
+			'name'     => basename( wp_parse_url( $url, PHP_URL_PATH ) ),
+			'tmp_name' => $tmp_file,
+		];
+
+		$attachment_id = media_handle_sideload( $file, (int) $product_id );
+
+		// Clean up temp file.
+		if ( file_exists( $tmp_file ) ) {
+			@wp_delete_file( $tmp_file );
+		}
+
+		if ( is_wp_error( $attachment_id ) ) {
+			return false;
+		}
+
+		return (int) $attachment_id;
+	}
+
+	/**
+	 * Download a URL to a temporary file without WordPress "unsafe URL" rejection.
+	 *
+	 * This is a fallback only for dev domains like *.local / *.test.
+	 *
+	 * @param string $url     Remote file URL.
+	 * @param int    $timeout Timeout in seconds.
+	 * @return string|\WP_Error Path to the temporary file or WP_Error.
+	 */
+	private function download_url_unrestricted( string $url, int $timeout ) {
+		$tmp = wp_tempnam( $url );
+		if ( ! $tmp ) {
+			return new \WP_Error( 'aie_temp_file_failed', __( 'Could not create a temporary file for download.', 'wp-advanced-import-export' ) );
+		}
+
+		$response = wp_remote_get(
+			$url,
+			[
+				'timeout'            => $timeout,
+				'stream'             => true,
+				'filename'           => $tmp,
+				'reject_unsafe_urls' => false,
+			]
+		);
+
+		if ( is_wp_error( $response ) ) {
+			@wp_delete_file( $tmp );
+			return $response;
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		if ( $code < 200 || $code >= 300 ) {
+			@wp_delete_file( $tmp );
+			return new \WP_Error( 'aie_download_failed', sprintf( 'Download failed with HTTP %d', $code ) );
+		}
+
+		return $tmp;
 	}
 
 	/**
