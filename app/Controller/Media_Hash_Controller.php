@@ -78,7 +78,7 @@ class Media_Hash_Controller extends Base_Controller {
 			$this->send_error(
 				new \WP_Error(
 					'invalid_path',
-					__( 'Invalid file path. Path must be within uploads directory.', 'wp-advanced-import-export' )
+					__( 'Invalid file path. Path must be within uploads directory.', 'advanced-import-export' )
 				)
 			);
 		}

@@ -126,7 +126,7 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 */
 	public function validate( $data ) {
 		if ( empty( $data ) || ! is_array( $data ) ) {
-			return new \WP_Error( 'empty_data', __( 'No data to import', 'wp-advanced-import-export' ) );
+			return new \WP_Error( 'empty_data', __( 'No data to import', 'advanced-import-export' ) );
 		}
 
 		$required_fields = $this->get_required_fields();
@@ -146,7 +146,7 @@ abstract class Abstract_Importer implements Importer_Interface {
 				'missing_required_fields',
 				sprintf(
 					/* translators: %s: comma-separated list of missing fields */
-					__( 'Missing required fields: %s', 'wp-advanced-import-export' ),
+					__( 'Missing required fields: %s', 'advanced-import-export' ),
 					implode( ', ', $missing_fields )
 				)
 			);

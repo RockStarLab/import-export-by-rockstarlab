@@ -36,7 +36,7 @@ class Media_Sync {
 				'folder_not_found',
 				sprintf(
 					/* translators: %s: folder path */
-					__( 'Folder %s not found', 'wp-advanced-import-export' ),
+					__( 'Folder %s not found', 'advanced-import-export' ),
 					$folder_path
 				)
 			);
@@ -226,7 +226,7 @@ class Media_Sync {
 	 */
 	public static function import_file( $file_path, $options = [] ) {
 		if ( ! file_exists( $file_path ) ) {
-			return new \WP_Error( 'file_not_found', __( 'File not found', 'wp-advanced-import-export' ) );
+			return new \WP_Error( 'file_not_found', __( 'File not found', 'advanced-import-export' ) );
 		}
 
 		// Get allowed mime types (this will include SVG if SVG Support plugin is active)
@@ -234,7 +234,7 @@ class Media_Sync {
 		$filetype      = wp_check_filetype( $file_path, $allowed_mimes );
 		
 		if ( ! $filetype['type'] ) {
-			return new \WP_Error( 'invalid_file_type', __( 'Unsupported file type', 'wp-advanced-import-export' ) );
+			return new \WP_Error( 'invalid_file_type', __( 'Unsupported file type', 'advanced-import-export' ) );
 		}
 
 		// Handle duplicate checking based on duplicate_handling option
@@ -246,7 +246,7 @@ class Media_Sync {
 			// Skip mode: check for duplicate and return error if found
 			$duplicate = self::check_duplicate( $file_path, $duplicate_check );
 			if ( $duplicate ) {
-				return new \WP_Error( 'duplicate_file', __( 'File already exists in media library', 'wp-advanced-import-export' ), [ 'attachment_id' => $duplicate ] );
+				return new \WP_Error( 'duplicate_file', __( 'File already exists in media library', 'advanced-import-export' ), [ 'attachment_id' => $duplicate ] );
 			}
 		} elseif ( 'overwrite' === $duplicate_handling || 'override' === $duplicate_handling ) {
 			// Override/Overwrite mode: find existing attachment to update
@@ -277,11 +277,11 @@ class Media_Sync {
 						WP_Filesystem();
 					}
 					if ( ! $wp_filesystem->move( $file_path, $existing_file, true ) ) {
-						return new \WP_Error( 'move_failed', __( 'Failed to move file to replace existing', 'wp-advanced-import-export' ) );
+						return new \WP_Error( 'move_failed', __( 'Failed to move file to replace existing', 'advanced-import-export' ) );
 					}
 				} else {
 					if ( ! copy( $file_path, $existing_file ) ) {
-						return new \WP_Error( 'copy_failed', __( 'Failed to copy file to replace existing', 'wp-advanced-import-export' ) );
+						return new \WP_Error( 'copy_failed', __( 'Failed to copy file to replace existing', 'advanced-import-export' ) );
 					}
 				}
 				
@@ -331,12 +331,12 @@ class Media_Sync {
 						WP_Filesystem();
 					}
 					if ( ! $wp_filesystem->move( $file_path, $dest_path, true ) ) {
-						return new \WP_Error( 'move_failed', __( 'Failed to move file to uploads directory', 'wp-advanced-import-export' ) );
+						return new \WP_Error( 'move_failed', __( 'Failed to move file to uploads directory', 'advanced-import-export' ) );
 					}
 				} else {
 					// Default to 'copy'
 					if ( ! copy( $file_path, $dest_path ) ) {
-						return new \WP_Error( 'copy_failed', __( 'Failed to copy file to uploads directory', 'wp-advanced-import-export' ) );
+						return new \WP_Error( 'copy_failed', __( 'Failed to copy file to uploads directory', 'advanced-import-export' ) );
 					}
 				}
 			}

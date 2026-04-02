@@ -28,7 +28,7 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WordPress taxonomy terms', 'wp-advanced-import-export' );
+		return __( 'Export WordPress taxonomy terms', 'advanced-import-export' );
 	}
 
 	/**
@@ -38,13 +38,13 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'taxonomy'      => __( 'Taxonomy name', 'wp-advanced-import-export' ),
-			'hide_empty'    => __( 'Hide empty terms', 'wp-advanced-import-export' ),
-			'parent'        => __( 'Parent term ID', 'wp-advanced-import-export' ),
-			'search'        => __( 'Search query', 'wp-advanced-import-export' ),
-			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'wp-advanced-import-export' ),
-			'orderby'       => __( 'Order by field', 'wp-advanced-import-export' ),
-			'order'         => __( 'Order direction (ASC or DESC)', 'wp-advanced-import-export' ),
+			'taxonomy'      => __( 'Taxonomy name', 'advanced-import-export' ),
+			'hide_empty'    => __( 'Hide empty terms', 'advanced-import-export' ),
+			'parent'        => __( 'Parent term ID', 'advanced-import-export' ),
+			'search'        => __( 'Search query', 'advanced-import-export' ),
+			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'advanced-import-export' ),
+			'orderby'       => __( 'Order by field', 'advanced-import-export' ),
+			'order'         => __( 'Order direction (ASC or DESC)', 'advanced-import-export' ),
 		];
 	}
 
@@ -718,7 +718,7 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 					'invalid_taxonomy',
 					sprintf(
 						/* translators: %s: taxonomy name */
-						__( 'Invalid taxonomy: %s', 'wp-advanced-import-export' ),
+						__( 'Invalid taxonomy: %s', 'advanced-import-export' ),
 						$options['taxonomy']
 					)
 				);

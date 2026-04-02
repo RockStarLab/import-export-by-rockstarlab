@@ -1,4 +1,4 @@
-=== WP Advanced Import Export ===
+=== Advanced Import Export ===
 Contributors: RockstarLab
 Tags: import, export, csv, site sync, data migration
 Requires at least: 5.8

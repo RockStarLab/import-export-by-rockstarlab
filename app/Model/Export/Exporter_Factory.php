@@ -30,7 +30,7 @@ class Exporter_Factory {
 				'unknown_exporter',
 				sprintf(
 					/* translators: %s: exporter type */
-					__( 'Unknown exporter type: %s', 'wp-advanced-import-export' ),
+					__( 'Unknown exporter type: %s', 'advanced-import-export' ),
 					$type
 				)
 			);

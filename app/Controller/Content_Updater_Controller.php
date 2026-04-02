@@ -197,7 +197,7 @@ class Content_Updater_Controller extends Base_Controller {
 			$this->send_error(
 				new \WP_Error(
 					'no_fields_selected',
-					__( 'No fields selected. Please select at least one field to update.', 'wp-advanced-import-export' )
+					__( 'No fields selected. Please select at least one field to update.', 'advanced-import-export' )
 				),
 				null,
 				400
@@ -208,7 +208,7 @@ class Content_Updater_Controller extends Base_Controller {
 			$this->send_error(
 				new \WP_Error(
 					'no_functions_assigned',
-					__( 'No functions assigned. Please assign at least one function to a field.', 'wp-advanced-import-export' )
+					__( 'No functions assigned. Please assign at least one function to a field.', 'advanced-import-export' )
 				),
 				null,
 				400
@@ -228,7 +228,7 @@ class Content_Updater_Controller extends Base_Controller {
 			$this->send_error(
 				new \WP_Error(
 					'no_functions_assigned',
-					__( 'Please assign at least one function to a field', 'wp-advanced-import-export' )
+					__( 'Please assign at least one function to a field', 'advanced-import-export' )
 				),
 				null,
 				400
@@ -327,7 +327,7 @@ class Content_Updater_Controller extends Base_Controller {
 
 		if ( ! $job ) {
 			$this->send_error(
-				new \WP_Error( 'job_not_found', __( 'Job not found', 'wp-advanced-import-export' ) ),
+				new \WP_Error( 'job_not_found', __( 'Job not found', 'advanced-import-export' ) ),
 				null,
 				404
 			);
@@ -373,7 +373,7 @@ class Content_Updater_Controller extends Base_Controller {
 
 		if ( ! $updated ) {
 			$this->send_error(
-				new \WP_Error( 'update_failed', __( 'Failed to cancel update', 'wp-advanced-import-export' ) ),
+				new \WP_Error( 'update_failed', __( 'Failed to cancel update', 'advanced-import-export' ) ),
 				null,
 				500
 			);

@@ -35,7 +35,7 @@ class Taxonomy_Term_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Import taxonomy terms (categories, tags, custom taxonomies) with metadata and ACF fields', 'wp-advanced-import-export' );
+		return __( 'Import taxonomy terms (categories, tags, custom taxonomies) with metadata and ACF fields', 'advanced-import-export' );
 	}
 
 	/**
@@ -185,14 +185,14 @@ class Taxonomy_Term_Importer extends Abstract_Importer {
 		if ( empty( $item['name'] ) ) {
 			return new \WP_Error(
 				'missing_term_name',
-				__( 'Term name is required', 'wp-advanced-import-export' )
+				__( 'Term name is required', 'advanced-import-export' )
 			);
 		}
 
 		if ( empty( $item['taxonomy'] ) ) {
 			return new \WP_Error(
 				'missing_taxonomy',
-				__( 'Taxonomy is required', 'wp-advanced-import-export' )
+				__( 'Taxonomy is required', 'advanced-import-export' )
 			);
 		}
 
@@ -213,7 +213,7 @@ class Taxonomy_Term_Importer extends Abstract_Importer {
 					'taxonomy_not_found',
 					sprintf(
 						/* translators: %s: taxonomy name */
-						__( 'Taxonomy "%s" does not exist', 'wp-advanced-import-export' ),
+						__( 'Taxonomy "%s" does not exist', 'advanced-import-export' ),
 						$taxonomy
 					)
 				);

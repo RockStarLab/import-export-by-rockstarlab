@@ -21,11 +21,11 @@ if ( ! empty( $openai_api_key ) ) {
 <div id="wp-aie-plugin-options" class="wrap">
 	<h1>
 		<span class="dashicons dashicons-admin-settings"></span>
-		<?php esc_html_e( 'Plugin Options', 'wp-advanced-import-export' ); ?>
+		<?php esc_html_e( 'Plugin Options', 'advanced-import-export' ); ?>
 	</h1>
 
 	<p class="description">
-		<?php esc_html_e( 'Configure plugin-wide settings and integrations.', 'wp-advanced-import-export' ); ?>
+		<?php esc_html_e( 'Configure plugin-wide settings and integrations.', 'advanced-import-export' ); ?>
 	</p>
 
 	<div class="aie-settings-container">
@@ -34,10 +34,10 @@ if ( ! empty( $openai_api_key ) ) {
 			<div class="aie-settings-section-header">
 				<h2>
 					<span class="dashicons dashicons-admin-generic"></span>
-					<?php esc_html_e( 'AI Integration', 'wp-advanced-import-export' ); ?>
+					<?php esc_html_e( 'AI Integration', 'advanced-import-export' ); ?>
 				</h2>
 				<p class="description">
-					<?php esc_html_e( 'Configure AI features powered by OpenAI.', 'wp-advanced-import-export' ); ?>
+					<?php esc_html_e( 'Configure AI features powered by OpenAI.', 'advanced-import-export' ); ?>
 				</p>
 			</div>
 
@@ -47,7 +47,7 @@ if ( ! empty( $openai_api_key ) ) {
 						<tr>
 							<th scope="row">
 								<label for="aie-openai-api-key">
-									<?php esc_html_e( 'OpenAI API Key', 'wp-advanced-import-export' ); ?>
+									<?php esc_html_e( 'OpenAI API Key', 'advanced-import-export' ); ?>
 								</label>
 							</th>
 							<td>
@@ -55,8 +55,8 @@ if ( ! empty( $openai_api_key ) ) {
 									<div class="aie-info-box aie-warning">
 										<span class="dashicons dashicons-info"></span>
 										<div>
-											<strong><?php esc_html_e( 'API Key is defined in wp-config.php', 'wp-advanced-import-export' ); ?></strong>
-											<p><?php esc_html_e( 'The API key is set via WP_AIE_OPENAI_API_KEY constant and cannot be changed here. Remove the constant from wp-config.php to manage it through this interface.', 'wp-advanced-import-export' ); ?></p>
+											<strong><?php esc_html_e( 'API Key is defined in wp-config.php', 'advanced-import-export' ); ?></strong>
+											<p><?php esc_html_e( 'The API key is set via WP_AIE_OPENAI_API_KEY constant and cannot be changed here. Remove the constant from wp-config.php to manage it through this interface.', 'advanced-import-export' ); ?></p>
 										</div>
 									</div>
 									<input 
@@ -86,7 +86,7 @@ if ( ! empty( $openai_api_key ) ) {
 											echo esc_html(
 												sprintf(
 													/* translators: %s: masked API key */
-													__( 'Current key: %s', 'wp-advanced-import-export' ),
+													__( 'Current key: %s', 'advanced-import-export' ),
 													$masked_api_key
 												)
 											);
@@ -98,7 +98,7 @@ if ( ! empty( $openai_api_key ) ) {
 										echo wp_kses_post(
 											sprintf(
 												/* translators: %s: OpenAI platform URL */
-												__( 'Get your API key from <a href="%s" target="_blank">OpenAI Platform</a>. Required for AI-powered function generation.', 'wp-advanced-import-export' ),
+												__( 'Get your API key from <a href="%s" target="_blank">OpenAI Platform</a>. Required for AI-powered function generation.', 'advanced-import-export' ),
 												'https://platform.openai.com/api-keys'
 											)
 										);
@@ -110,23 +110,23 @@ if ( ! empty( $openai_api_key ) ) {
 
 						<tr>
 							<th scope="row">
-								<?php esc_html_e( 'API Status', 'wp-advanced-import-export' ); ?>
+								<?php esc_html_e( 'API Status', 'advanced-import-export' ); ?>
 							</th>
 							<td>
 								<div id="aie-api-status" class="aie-api-status">
 									<?php if ( ! empty( $openai_api_key ) || $has_constant_key ) : ?>
 										<span class="aie-status-badge aie-status-configured">
 											<span class="dashicons dashicons-yes-alt"></span>
-											<?php esc_html_e( 'Configured', 'wp-advanced-import-export' ); ?>
+											<?php esc_html_e( 'Configured', 'advanced-import-export' ); ?>
 										</span>
 										<button type="button" class="button button-secondary aie-test-api-key">
 											<span class="dashicons dashicons-update"></span>
-											<?php esc_html_e( 'Test Connection', 'wp-advanced-import-export' ); ?>
+											<?php esc_html_e( 'Test Connection', 'advanced-import-export' ); ?>
 										</button>
 									<?php else : ?>
 										<span class="aie-status-badge aie-status-not-configured">
 											<span class="dashicons dashicons-warning"></span>
-											<?php esc_html_e( 'Not Configured', 'wp-advanced-import-export' ); ?>
+											<?php esc_html_e( 'Not Configured', 'advanced-import-export' ); ?>
 										</span>
 									<?php endif; ?>
 								</div>
@@ -136,12 +136,12 @@ if ( ! empty( $openai_api_key ) ) {
 
 						<tr>
 							<th scope="row">
-								<?php esc_html_e( 'Model', 'wp-advanced-import-export' ); ?>
+								<?php esc_html_e( 'Model', 'advanced-import-export' ); ?>
 							</th>
 							<td>
 								<span class="aie-info-badge">GPT-4o-mini</span>
 								<!-- <p class="description">
-									<?php esc_html_e( 'Fast and cost-effective model for function generation. ~$0.0001-0.0003 per function.', 'wp-advanced-import-export' ); ?>
+									<?php esc_html_e( 'Fast and cost-effective model for function generation. ~$0.0001-0.0003 per function.', 'advanced-import-export' ); ?>
 								</p> -->
 							</td>
 						</tr>
@@ -151,7 +151,7 @@ if ( ! empty( $openai_api_key ) ) {
 						<div class="aie-settings-footer">
 							<button type="submit" class="button button-primary aie-save-settings">
 								<span class="dashicons dashicons-yes"></span>
-								<?php esc_html_e( 'Save Settings', 'wp-advanced-import-export' ); ?>
+								<?php esc_html_e( 'Save Settings', 'advanced-import-export' ); ?>
 							</button>
 							<span class="aie-settings-status"></span>
 						</div>
@@ -165,7 +165,7 @@ if ( ! empty( $openai_api_key ) ) {
 			<div class="aie-settings-section-header">
 				<h2>
 					<span class="dashicons dashicons-info"></span>
-					<?php esc_html_e( 'About AI Features', 'wp-advanced-import-export' ); ?>
+					<?php esc_html_e( 'About AI Features', 'advanced-import-export' ); ?>
 				</h2>
 			</div>
 
@@ -174,28 +174,28 @@ if ( ! empty( $openai_api_key ) ) {
 
 					<div class="aie-info-card">
 						<span class="dashicons dashicons-admin-links"></span>
-						<h3><?php esc_html_e( 'AI URL Importer', 'wp-advanced-import-export' ); ?></h3>
-						<p><?php esc_html_e( 'Import content directly from URLs using AI-powered extraction. Automatically extracts and structures content from web pages into WordPress posts.', 'wp-advanced-import-export' ); ?></p>
+						<h3><?php esc_html_e( 'AI URL Importer', 'advanced-import-export' ); ?></h3>
+						<p><?php esc_html_e( 'Import content directly from URLs using AI-powered extraction. Automatically extracts and structures content from web pages into WordPress posts.', 'advanced-import-export' ); ?></p>
 					</div>
 
 					<div class="aie-info-card">
 						<span class="dashicons dashicons-admin-generic"></span>
-						<h3><?php esc_html_e( 'AI Function Generator', 'wp-advanced-import-export' ); ?></h3>
-						<p><?php esc_html_e( 'Generate PHP transformation functions using natural language descriptions. Perfect for data transformation during import/export.', 'wp-advanced-import-export' ); ?></p>
+						<h3><?php esc_html_e( 'AI Function Generator', 'advanced-import-export' ); ?></h3>
+						<p><?php esc_html_e( 'Generate PHP transformation functions using natural language descriptions. Perfect for data transformation during import/export.', 'advanced-import-export' ); ?></p>
 					</div>
 
 					<div class="aie-info-card">
 						<span class="dashicons dashicons-chart-area"></span>
-						<h3><?php esc_html_e( 'Pricing & Tokens', 'wp-advanced-import-export' ); ?></h3>
+						<h3><?php esc_html_e( 'Pricing & Tokens', 'advanced-import-export' ); ?></h3>
 						<p>
-							<?php esc_html_e( 'AI features use OpenAI GPT-4o-mini model. Typical costs:', 'wp-advanced-import-export' ); ?>
+							<?php esc_html_e( 'AI features use OpenAI GPT-4o-mini model. Typical costs:', 'advanced-import-export' ); ?>
 						</p>
 						<ul style="list-style: disc; margin: 10px 0; padding-left: 20px; font-size: 0.95em;">
-							<li><?php esc_html_e( 'Function generation: ~$0.0001-0.0003 per function', 'wp-advanced-import-export' ); ?></li>
-							<li><?php esc_html_e( 'URL import: ~$0.001-0.005 per page', 'wp-advanced-import-export' ); ?></li>
+							<li><?php esc_html_e( 'Function generation: ~$0.0001-0.0003 per function', 'advanced-import-export' ); ?></li>
+							<li><?php esc_html_e( 'URL import: ~$0.001-0.005 per page', 'advanced-import-export' ); ?></li>
 						</ul>
 						<p style="font-size: 0.9em; color: #666;">
-							<?php esc_html_e( 'You pay OpenAI directly based on usage. Monitor costs in your OpenAI dashboard.', 'wp-advanced-import-export' ); ?>
+							<?php esc_html_e( 'You pay OpenAI directly based on usage. Monitor costs in your OpenAI dashboard.', 'advanced-import-export' ); ?>
 						</p>
 					</div>
 				</div>
@@ -203,22 +203,22 @@ if ( ! empty( $openai_api_key ) ) {
 				<div class="aie-help-section">
 					<h3>
 						<span class="dashicons dashicons-editor-help"></span>
-						<?php esc_html_e( 'Need Help?', 'wp-advanced-import-export' ); ?>
+						<?php esc_html_e( 'Need Help?', 'advanced-import-export' ); ?>
 					</h3>
 					<ul>
 						<li>
 							<a href="https://platform.openai.com/account/api-keys" target="_blank">
-								<?php esc_html_e( 'Manage API Keys', 'wp-advanced-import-export' ); ?>
+								<?php esc_html_e( 'Manage API Keys', 'advanced-import-export' ); ?>
 							</a>
 						</li>
 						<li>
 							<a href="https://platform.openai.com/account/billing" target="_blank">
-								<?php esc_html_e( 'View Usage & Billing', 'wp-advanced-import-export' ); ?>
+								<?php esc_html_e( 'View Usage & Billing', 'advanced-import-export' ); ?>
 							</a>
 						</li>
 						<li>
 							<a href="https://platform.openai.com/docs/api-reference" target="_blank">
-								<?php esc_html_e( 'OpenAI API Documentation', 'wp-advanced-import-export' ); ?>
+								<?php esc_html_e( 'OpenAI API Documentation', 'advanced-import-export' ); ?>
 							</a>
 						</li>
 					</ul>

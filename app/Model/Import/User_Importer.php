@@ -28,7 +28,7 @@ class User_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Import WordPress users with roles, meta, and ACF fields', 'wp-advanced-import-export' );
+		return __( 'Import WordPress users with roles, meta, and ACF fields', 'advanced-import-export' );
 	}
 
 	/**
@@ -265,7 +265,7 @@ class User_Importer extends Abstract_Importer {
 		if ( empty( $userdata['user_login'] ) ) {
 			return new \WP_Error(
 				'missing_user_login',
-				__( 'User login is required for creating a new user', 'wp-advanced-import-export' )
+				__( 'User login is required for creating a new user', 'advanced-import-export' )
 			);
 		}
 
@@ -280,7 +280,7 @@ class User_Importer extends Abstract_Importer {
 				'invalid_email',
 				sprintf(
 					/* translators: %s: email address */
-					__( 'Invalid email address: %s', 'wp-advanced-import-export' ),
+					__( 'Invalid email address: %s', 'advanced-import-export' ),
 					$userdata['user_email']
 				)
 			);
@@ -331,7 +331,7 @@ class User_Importer extends Abstract_Importer {
 				'user_not_found',
 				sprintf(
 					/* translators: %d: user ID */
-					__( 'User with ID %d not found', 'wp-advanced-import-export' ),
+					__( 'User with ID %d not found', 'advanced-import-export' ),
 					$user_id
 				)
 			);
@@ -352,7 +352,7 @@ class User_Importer extends Abstract_Importer {
 				'invalid_email',
 				sprintf(
 					/* translators: %s: email address */
-					__( 'Invalid email address: %s', 'wp-advanced-import-export' ),
+					__( 'Invalid email address: %s', 'advanced-import-export' ),
 					$userdata['user_email']
 				)
 			);
@@ -724,7 +724,7 @@ class User_Importer extends Abstract_Importer {
 		if ( empty( $data ) || ! is_array( $data ) ) {
 			return new \WP_Error(
 				'empty_data',
-				__( 'No data provided for import', 'wp-advanced-import-export' )
+				__( 'No data provided for import', 'advanced-import-export' )
 			);
 		}
 
@@ -740,7 +740,7 @@ class User_Importer extends Abstract_Importer {
 		if ( ! $has_valid_item ) {
 			return new \WP_Error(
 				'missing_required_fields',
-				__( 'No items with required field "user_login" found', 'wp-advanced-import-export' )
+				__( 'No items with required field "user_login" found', 'advanced-import-export' )
 			);
 		}
 

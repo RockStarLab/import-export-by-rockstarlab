@@ -28,7 +28,7 @@ class User_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WordPress users', 'wp-advanced-import-export' );
+		return __( 'Export WordPress users', 'advanced-import-export' );
 	}
 
 	/**
@@ -38,14 +38,14 @@ class User_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'role'          => __( 'User role', 'wp-advanced-import-export' ),
-			'role__in'      => __( 'Array of roles', 'wp-advanced-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-			'role__not_in'  => __( 'Array of roles to exclude', 'wp-advanced-import-export' ),
-			'meta_query'    => __( 'Meta query parameters', 'wp-advanced-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
-			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'wp-advanced-import-export' ),
-			'search'        => __( 'Search query', 'wp-advanced-import-export' ),
-			'orderby'       => __( 'Order by field', 'wp-advanced-import-export' ),
-			'order'         => __( 'Order direction (ASC or DESC)', 'wp-advanced-import-export' ),
+			'role'          => __( 'User role', 'advanced-import-export' ),
+			'role__in'      => __( 'Array of roles', 'advanced-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+			'role__not_in'  => __( 'Array of roles to exclude', 'advanced-import-export' ),
+			'meta_query'    => __( 'Meta query parameters', 'advanced-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
+			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'advanced-import-export' ),
+			'search'        => __( 'Search query', 'advanced-import-export' ),
+			'orderby'       => __( 'Order by field', 'advanced-import-export' ),
+			'order'         => __( 'Order direction (ASC or DESC)', 'advanced-import-export' ),
 		];
 	}
 
@@ -1088,7 +1088,7 @@ class User_Exporter extends Abstract_Exporter {
 					'invalid_role',
 					sprintf(
 						/* translators: %s: role name */
-						__( 'Invalid user role: %s', 'wp-advanced-import-export' ),
+						__( 'Invalid user role: %s', 'advanced-import-export' ),
 						$options['role']
 					)
 				);

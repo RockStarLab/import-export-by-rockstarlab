@@ -86,7 +86,7 @@ class Woo_Order_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Import WooCommerce orders with items, customer data, and complete order information', 'wp-advanced-import-export' );
+		return __( 'Import WooCommerce orders with items, customer data, and complete order information', 'advanced-import-export' );
 	}
 
 	/**
@@ -183,233 +183,233 @@ class Woo_Order_Importer extends Abstract_Importer {
 		return [
 			// Core Order Fields
 			'ID'                    => [
-				'label'       => __( 'Order ID', 'wp-advanced-import-export' ),
-				'description' => __( 'Existing order ID (optional, for updates)', 'wp-advanced-import-export' ),
+				'label'       => __( 'Order ID', 'advanced-import-export' ),
+				'description' => __( 'Existing order ID (optional, for updates)', 'advanced-import-export' ),
 			],
 			'order_number'          => [
-				'label'       => __( 'Order Number', 'wp-advanced-import-export' ),
-				'description' => __( 'Unique order number (used for duplicate detection)', 'wp-advanced-import-export' ),
+				'label'       => __( 'Order Number', 'advanced-import-export' ),
+				'description' => __( 'Unique order number (used for duplicate detection)', 'advanced-import-export' ),
 			],
 			'order_status'          => [
-				'label'       => __( 'Order Status', 'wp-advanced-import-export' ),
-				'description' => __( 'Status: pending, processing, on-hold, completed, cancelled, refunded, failed', 'wp-advanced-import-export' ),
+				'label'       => __( 'Order Status', 'advanced-import-export' ),
+				'description' => __( 'Status: pending, processing, on-hold, completed, cancelled, refunded, failed', 'advanced-import-export' ),
 			],
 			'order_key'             => [
-				'label'       => __( 'Order Key', 'wp-advanced-import-export' ),
-				'description' => __( 'Unique order key', 'wp-advanced-import-export' ),
+				'label'       => __( 'Order Key', 'advanced-import-export' ),
+				'description' => __( 'Unique order key', 'advanced-import-export' ),
 			],
 			'currency'              => [
-				'label'       => __( 'Currency', 'wp-advanced-import-export' ),
-				'description' => __( 'Currency code (USD, EUR, etc.)', 'wp-advanced-import-export' ),
+				'label'       => __( 'Currency', 'advanced-import-export' ),
+				'description' => __( 'Currency code (USD, EUR, etc.)', 'advanced-import-export' ),
 			],
 
 			// Order Totals
 			'order_total'           => [
-				'label'       => __( 'Order Total', 'wp-advanced-import-export' ),
-				'description' => __( 'Total order amount', 'wp-advanced-import-export' ),
+				'label'       => __( 'Order Total', 'advanced-import-export' ),
+				'description' => __( 'Total order amount', 'advanced-import-export' ),
 			],
 			'order_subtotal'        => [
-				'label'       => __( 'Subtotal', 'wp-advanced-import-export' ),
-				'description' => __( 'Order subtotal before tax and shipping', 'wp-advanced-import-export' ),
+				'label'       => __( 'Subtotal', 'advanced-import-export' ),
+				'description' => __( 'Order subtotal before tax and shipping', 'advanced-import-export' ),
 			],
 			'order_tax'             => [
-				'label'       => __( 'Tax', 'wp-advanced-import-export' ),
-				'description' => __( 'Total tax amount', 'wp-advanced-import-export' ),
+				'label'       => __( 'Tax', 'advanced-import-export' ),
+				'description' => __( 'Total tax amount', 'advanced-import-export' ),
 			],
 			'order_shipping'        => [
-				'label'       => __( 'Shipping', 'wp-advanced-import-export' ),
-				'description' => __( 'Shipping cost', 'wp-advanced-import-export' ),
+				'label'       => __( 'Shipping', 'advanced-import-export' ),
+				'description' => __( 'Shipping cost', 'advanced-import-export' ),
 			],
 			'order_discount'        => [
-				'label'       => __( 'Discount', 'wp-advanced-import-export' ),
-				'description' => __( 'Discount amount', 'wp-advanced-import-export' ),
+				'label'       => __( 'Discount', 'advanced-import-export' ),
+				'description' => __( 'Discount amount', 'advanced-import-export' ),
 			],
 
 			// Customer Information
 			'customer_id'           => [
-				'label'       => __( 'Customer ID', 'wp-advanced-import-export' ),
-				'description' => __( 'WordPress user ID (0 for guest)', 'wp-advanced-import-export' ),
+				'label'       => __( 'Customer ID', 'advanced-import-export' ),
+				'description' => __( 'WordPress user ID (0 for guest)', 'advanced-import-export' ),
 			],
 			'billing_email'         => [
-				'label'       => __( 'Billing Email', 'wp-advanced-import-export' ),
-				'description' => __( 'Customer email address', 'wp-advanced-import-export' ),
+				'label'       => __( 'Billing Email', 'advanced-import-export' ),
+				'description' => __( 'Customer email address', 'advanced-import-export' ),
 			],
 			'customer_note'         => [
-				'label'       => __( 'Customer Note', 'wp-advanced-import-export' ),
-				'description' => __( 'Note from customer', 'wp-advanced-import-export' ),
+				'label'       => __( 'Customer Note', 'advanced-import-export' ),
+				'description' => __( 'Note from customer', 'advanced-import-export' ),
 			],
 
 			// Billing Address
 			'billing_first_name'    => [
-				'label'       => __( 'Billing First Name', 'wp-advanced-import-export' ),
-				'description' => __( 'First name', 'wp-advanced-import-export' ),
+				'label'       => __( 'Billing First Name', 'advanced-import-export' ),
+				'description' => __( 'First name', 'advanced-import-export' ),
 			],
 			'billing_last_name'     => [
-				'label'       => __( 'Billing Last Name', 'wp-advanced-import-export' ),
-				'description' => __( 'Last name', 'wp-advanced-import-export' ),
+				'label'       => __( 'Billing Last Name', 'advanced-import-export' ),
+				'description' => __( 'Last name', 'advanced-import-export' ),
 			],
 			'billing_company'       => [
-				'label'       => __( 'Billing Company', 'wp-advanced-import-export' ),
-				'description' => __( 'Company name', 'wp-advanced-import-export' ),
+				'label'       => __( 'Billing Company', 'advanced-import-export' ),
+				'description' => __( 'Company name', 'advanced-import-export' ),
 			],
 			'billing_address_1'     => [
-				'label'       => __( 'Billing Address 1', 'wp-advanced-import-export' ),
-				'description' => __( 'Street address', 'wp-advanced-import-export' ),
+				'label'       => __( 'Billing Address 1', 'advanced-import-export' ),
+				'description' => __( 'Street address', 'advanced-import-export' ),
 			],
 			'billing_address_2'     => [
-				'label'       => __( 'Billing Address 2', 'wp-advanced-import-export' ),
-				'description' => __( 'Apartment, suite, etc.', 'wp-advanced-import-export' ),
+				'label'       => __( 'Billing Address 2', 'advanced-import-export' ),
+				'description' => __( 'Apartment, suite, etc.', 'advanced-import-export' ),
 			],
 			'billing_city'          => [
-				'label'       => __( 'Billing City', 'wp-advanced-import-export' ),
-				'description' => __( 'City', 'wp-advanced-import-export' ),
+				'label'       => __( 'Billing City', 'advanced-import-export' ),
+				'description' => __( 'City', 'advanced-import-export' ),
 			],
 			'billing_state'         => [
-				'label'       => __( 'Billing State', 'wp-advanced-import-export' ),
-				'description' => __( 'State or province code', 'wp-advanced-import-export' ),
+				'label'       => __( 'Billing State', 'advanced-import-export' ),
+				'description' => __( 'State or province code', 'advanced-import-export' ),
 			],
 			'billing_postcode'      => [
-				'label'       => __( 'Billing Postcode', 'wp-advanced-import-export' ),
-				'description' => __( 'Postal code', 'wp-advanced-import-export' ),
+				'label'       => __( 'Billing Postcode', 'advanced-import-export' ),
+				'description' => __( 'Postal code', 'advanced-import-export' ),
 			],
 			'billing_country'       => [
-				'label'       => __( 'Billing Country', 'wp-advanced-import-export' ),
-				'description' => __( 'Country code (US, GB, etc.)', 'wp-advanced-import-export' ),
+				'label'       => __( 'Billing Country', 'advanced-import-export' ),
+				'description' => __( 'Country code (US, GB, etc.)', 'advanced-import-export' ),
 			],
 			'billing_phone'         => [
-				'label'       => __( 'Billing Phone', 'wp-advanced-import-export' ),
-				'description' => __( 'Phone number', 'wp-advanced-import-export' ),
+				'label'       => __( 'Billing Phone', 'advanced-import-export' ),
+				'description' => __( 'Phone number', 'advanced-import-export' ),
 			],
 
 			// Shipping Address
 			'shipping_first_name'   => [
-				'label'       => __( 'Shipping First Name', 'wp-advanced-import-export' ),
-				'description' => __( 'First name', 'wp-advanced-import-export' ),
+				'label'       => __( 'Shipping First Name', 'advanced-import-export' ),
+				'description' => __( 'First name', 'advanced-import-export' ),
 			],
 			'shipping_last_name'    => [
-				'label'       => __( 'Shipping Last Name', 'wp-advanced-import-export' ),
-				'description' => __( 'Last name', 'wp-advanced-import-export' ),
+				'label'       => __( 'Shipping Last Name', 'advanced-import-export' ),
+				'description' => __( 'Last name', 'advanced-import-export' ),
 			],
 			'shipping_company'      => [
-				'label'       => __( 'Shipping Company', 'wp-advanced-import-export' ),
-				'description' => __( 'Company name', 'wp-advanced-import-export' ),
+				'label'       => __( 'Shipping Company', 'advanced-import-export' ),
+				'description' => __( 'Company name', 'advanced-import-export' ),
 			],
 			'shipping_address_1'    => [
-				'label'       => __( 'Shipping Address 1', 'wp-advanced-import-export' ),
-				'description' => __( 'Street address', 'wp-advanced-import-export' ),
+				'label'       => __( 'Shipping Address 1', 'advanced-import-export' ),
+				'description' => __( 'Street address', 'advanced-import-export' ),
 			],
 			'shipping_address_2'    => [
-				'label'       => __( 'Shipping Address 2', 'wp-advanced-import-export' ),
-				'description' => __( 'Apartment, suite, etc.', 'wp-advanced-import-export' ),
+				'label'       => __( 'Shipping Address 2', 'advanced-import-export' ),
+				'description' => __( 'Apartment, suite, etc.', 'advanced-import-export' ),
 			],
 			'shipping_city'         => [
-				'label'       => __( 'Shipping City', 'wp-advanced-import-export' ),
-				'description' => __( 'City', 'wp-advanced-import-export' ),
+				'label'       => __( 'Shipping City', 'advanced-import-export' ),
+				'description' => __( 'City', 'advanced-import-export' ),
 			],
 			'shipping_state'        => [
-				'label'       => __( 'Shipping State', 'wp-advanced-import-export' ),
-				'description' => __( 'State or province code', 'wp-advanced-import-export' ),
+				'label'       => __( 'Shipping State', 'advanced-import-export' ),
+				'description' => __( 'State or province code', 'advanced-import-export' ),
 			],
 			'shipping_postcode'     => [
-				'label'       => __( 'Shipping Postcode', 'wp-advanced-import-export' ),
-				'description' => __( 'Postal code', 'wp-advanced-import-export' ),
+				'label'       => __( 'Shipping Postcode', 'advanced-import-export' ),
+				'description' => __( 'Postal code', 'advanced-import-export' ),
 			],
 			'shipping_country'      => [
-				'label'       => __( 'Shipping Country', 'wp-advanced-import-export' ),
-				'description' => __( 'Country code (US, GB, etc.)', 'wp-advanced-import-export' ),
+				'label'       => __( 'Shipping Country', 'advanced-import-export' ),
+				'description' => __( 'Country code (US, GB, etc.)', 'advanced-import-export' ),
 			],
 
 			// Order Items
 			'order_items'           => [
-				'label'       => __( 'Order Items', 'wp-advanced-import-export' ),
-				'description' => __( 'JSON array of order items with product details', 'wp-advanced-import-export' ),
+				'label'       => __( 'Order Items', 'advanced-import-export' ),
+				'description' => __( 'JSON array of order items with product details', 'advanced-import-export' ),
 				'required'    => true,
 			],
 			'item_count'            => [
-				'label'       => __( 'Item Count', 'wp-advanced-import-export' ),
-				'description' => __( 'Total number of items', 'wp-advanced-import-export' ),
+				'label'       => __( 'Item Count', 'advanced-import-export' ),
+				'description' => __( 'Total number of items', 'advanced-import-export' ),
 			],
 
 			// Payment & Shipping
 			'payment_method'        => [
-				'label'       => __( 'Payment Method', 'wp-advanced-import-export' ),
-				'description' => __( 'Payment method ID', 'wp-advanced-import-export' ),
+				'label'       => __( 'Payment Method', 'advanced-import-export' ),
+				'description' => __( 'Payment method ID', 'advanced-import-export' ),
 			],
 			'payment_method_title'  => [
-				'label'       => __( 'Payment Method Title', 'wp-advanced-import-export' ),
-				'description' => __( 'Payment method display name', 'wp-advanced-import-export' ),
+				'label'       => __( 'Payment Method Title', 'advanced-import-export' ),
+				'description' => __( 'Payment method display name', 'advanced-import-export' ),
 			],
 			'transaction_id'        => [
-				'label'       => __( 'Transaction ID', 'wp-advanced-import-export' ),
-				'description' => __( 'Payment transaction ID', 'wp-advanced-import-export' ),
+				'label'       => __( 'Transaction ID', 'advanced-import-export' ),
+				'description' => __( 'Payment transaction ID', 'advanced-import-export' ),
 			],
 			'shipping_method'       => [
-				'label'       => __( 'Shipping Method', 'wp-advanced-import-export' ),
-				'description' => __( 'Shipping method used', 'wp-advanced-import-export' ),
+				'label'       => __( 'Shipping Method', 'advanced-import-export' ),
+				'description' => __( 'Shipping method used', 'advanced-import-export' ),
 			],
 
 			// Dates
 			'order_date'            => [
-				'label'       => __( 'Order Date', 'wp-advanced-import-export' ),
-				'description' => __( 'Date order was created (YYYY-MM-DD HH:MM:SS)', 'wp-advanced-import-export' ),
+				'label'       => __( 'Order Date', 'advanced-import-export' ),
+				'description' => __( 'Date order was created (YYYY-MM-DD HH:MM:SS)', 'advanced-import-export' ),
 			],
 			'date_modified'         => [
-				'label'       => __( 'Date Modified', 'wp-advanced-import-export' ),
-				'description' => __( 'Date order was last modified', 'wp-advanced-import-export' ),
+				'label'       => __( 'Date Modified', 'advanced-import-export' ),
+				'description' => __( 'Date order was last modified', 'advanced-import-export' ),
 			],
 			'completed_date'        => [
-				'label'       => __( 'Completed Date', 'wp-advanced-import-export' ),
-				'description' => __( 'Date order was completed', 'wp-advanced-import-export' ),
+				'label'       => __( 'Completed Date', 'advanced-import-export' ),
+				'description' => __( 'Date order was completed', 'advanced-import-export' ),
 			],
 			'paid_date'             => [
-				'label'       => __( 'Paid Date', 'wp-advanced-import-export' ),
-				'description' => __( 'Date payment was received', 'wp-advanced-import-export' ),
+				'label'       => __( 'Paid Date', 'advanced-import-export' ),
+				'description' => __( 'Date payment was received', 'advanced-import-export' ),
 			],
 
 			// Additional Order Data
 			'customer_ip_address'   => [
-				'label'       => __( 'Customer IP Address', 'wp-advanced-import-export' ),
-				'description' => __( 'IP address of customer', 'wp-advanced-import-export' ),
+				'label'       => __( 'Customer IP Address', 'advanced-import-export' ),
+				'description' => __( 'IP address of customer', 'advanced-import-export' ),
 			],
 			'customer_user_agent'   => [
-				'label'       => __( 'Customer User Agent', 'wp-advanced-import-export' ),
-				'description' => __( 'Browser user agent string', 'wp-advanced-import-export' ),
+				'label'       => __( 'Customer User Agent', 'advanced-import-export' ),
+				'description' => __( 'Browser user agent string', 'advanced-import-export' ),
 			],
 			'cart_tax'              => [
-				'label'       => __( 'Cart Tax', 'wp-advanced-import-export' ),
-				'description' => __( 'Tax amount for cart items', 'wp-advanced-import-export' ),
+				'label'       => __( 'Cart Tax', 'advanced-import-export' ),
+				'description' => __( 'Tax amount for cart items', 'advanced-import-export' ),
 			],
 			'shipping_tax'          => [
-				'label'       => __( 'Shipping Tax', 'wp-advanced-import-export' ),
-				'description' => __( 'Tax amount for shipping', 'wp-advanced-import-export' ),
+				'label'       => __( 'Shipping Tax', 'advanced-import-export' ),
+				'description' => __( 'Tax amount for shipping', 'advanced-import-export' ),
 			],
 			'total_tax'             => [
-				'label'       => __( 'Total Tax', 'wp-advanced-import-export' ),
-				'description' => __( 'Total tax amount', 'wp-advanced-import-export' ),
+				'label'       => __( 'Total Tax', 'advanced-import-export' ),
+				'description' => __( 'Total tax amount', 'advanced-import-export' ),
 			],
 
 			// Additional Lines
 			'shipping_lines'        => [
-				'label'       => __( 'Shipping Lines', 'wp-advanced-import-export' ),
-				'description' => __( 'JSON array of shipping line items', 'wp-advanced-import-export' ),
+				'label'       => __( 'Shipping Lines', 'advanced-import-export' ),
+				'description' => __( 'JSON array of shipping line items', 'advanced-import-export' ),
 			],
 			'fee_lines'             => [
-				'label'       => __( 'Fee Lines', 'wp-advanced-import-export' ),
-				'description' => __( 'JSON array of fee line items', 'wp-advanced-import-export' ),
+				'label'       => __( 'Fee Lines', 'advanced-import-export' ),
+				'description' => __( 'JSON array of fee line items', 'advanced-import-export' ),
 			],
 			'coupon_lines'          => [
-				'label'       => __( 'Coupon Lines', 'wp-advanced-import-export' ),
-				'description' => __( 'JSON array of applied coupons', 'wp-advanced-import-export' ),
+				'label'       => __( 'Coupon Lines', 'advanced-import-export' ),
+				'description' => __( 'JSON array of applied coupons', 'advanced-import-export' ),
 			],
 
 			// Notes and Meta
 			'order_notes'           => [
-				'label'       => __( 'Order Notes', 'wp-advanced-import-export' ),
-				'description' => __( 'JSON array of order notes', 'wp-advanced-import-export' ),
+				'label'       => __( 'Order Notes', 'advanced-import-export' ),
+				'description' => __( 'JSON array of order notes', 'advanced-import-export' ),
 			],
 			'order_meta'            => [
-				'label'       => __( 'Order Meta', 'wp-advanced-import-export' ),
-				'description' => __( 'JSON array of custom order metadata', 'wp-advanced-import-export' ),
+				'label'       => __( 'Order Meta', 'advanced-import-export' ),
+				'description' => __( 'JSON array of custom order metadata', 'advanced-import-export' ),
 			],
 		];
 	}
@@ -438,11 +438,11 @@ class Woo_Order_Importer extends Abstract_Importer {
 	 */
 	public function validate( $data ) {
 		if ( empty( $data ) ) {
-			return new \WP_Error( 'empty_data', __( 'No data provided for import', 'wp-advanced-import-export' ) );
+			return new \WP_Error( 'empty_data', __( 'No data provided for import', 'advanced-import-export' ) );
 		}
 
 		if ( ! function_exists( 'WC' ) || ! class_exists( 'WooCommerce' ) ) {
-			return new \WP_Error( 'woocommerce_not_active', __( 'WooCommerce is not active', 'wp-advanced-import-export' ) );
+			return new \WP_Error( 'woocommerce_not_active', __( 'WooCommerce is not active', 'advanced-import-export' ) );
 		}
 
 		// Validate required fields
@@ -454,7 +454,7 @@ class Woo_Order_Importer extends Abstract_Importer {
 						'missing_required_field',
 						sprintf(
 							/* translators: 1: field name, 2: row number */
-							__( 'Required field "%1$s" is missing in row %2$d', 'wp-advanced-import-export' ),
+							__( 'Required field "%1$s" is missing in row %2$d', 'advanced-import-export' ),
 							$field,
 							$index + 1
 						)
@@ -793,7 +793,7 @@ class Woo_Order_Importer extends Abstract_Importer {
 	 */
 	protected function set_order_items( $order, $item, $action ) {
 		if ( empty( $item['order_items'] ) ) {
-			return new \WP_Error( 'no_order_items', __( 'No order items provided', 'wp-advanced-import-export' ) );
+			return new \WP_Error( 'no_order_items', __( 'No order items provided', 'advanced-import-export' ) );
 		}
 
 		// Parse order items
@@ -885,7 +885,7 @@ class Woo_Order_Importer extends Abstract_Importer {
 			if ( json_last_error() !== JSON_ERROR_NONE ) {
 				return new \WP_Error( 'invalid_json', sprintf(
 					/* translators: %s: JSON error message */
-					__( 'Invalid JSON in order_items: %s', 'wp-advanced-import-export' ),
+					__( 'Invalid JSON in order_items: %s', 'advanced-import-export' ),
 					json_last_error_msg()
 				) );
 			}
@@ -893,7 +893,7 @@ class Woo_Order_Importer extends Abstract_Importer {
 		}
 
 		if ( ! is_array( $order_items ) ) {
-			return new \WP_Error( 'invalid_items', __( 'Order items must be an array', 'wp-advanced-import-export' ) );
+			return new \WP_Error( 'invalid_items', __( 'Order items must be an array', 'advanced-import-export' ) );
 		}
 
 		return $order_items;
@@ -950,7 +950,7 @@ class Woo_Order_Importer extends Abstract_Importer {
 		// Add shipping item
 		if ( ! empty( $item['shipping_method'] ) || ! empty( $item['order_shipping'] ) ) {
 			$shipping = new \WC_Order_Item_Shipping();
-			$shipping->set_method_title( $item['shipping_method'] ?? __( 'Shipping', 'wp-advanced-import-export' ) );
+			$shipping->set_method_title( $item['shipping_method'] ?? __( 'Shipping', 'advanced-import-export' ) );
 			$shipping->set_total( $item['order_shipping'] ?? 0 );
 			$order->add_item( $shipping );
 		}

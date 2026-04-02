@@ -48,7 +48,7 @@ class Regex_Rule extends Validation_Rule {
 		if ( empty( $pattern ) ) {
 			return $this->create_error(
 				'no_pattern',
-				__( 'No regex pattern specified', 'wp-advanced-import-export' )
+				__( 'No regex pattern specified', 'advanced-import-export' )
 			);
 		}
 
@@ -61,7 +61,7 @@ class Regex_Rule extends Validation_Rule {
 			if ( empty( $message ) ) {
 				$message = sprintf(
 					/* translators: %s: field name */
-					__( '%s format is invalid', 'wp-advanced-import-export' ),
+					__( '%s format is invalid', 'advanced-import-export' ),
 					$field_name
 				);
 			}
