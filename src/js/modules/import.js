@@ -3441,6 +3441,9 @@ const ImportModule = {
 	 * Reset wizard
 	 */
 	resetWizard() {
+		// Fully reset Step 2 upload UI (it can be hidden after a successful upload).
+		this.removeFile();
+
 		this.currentStep = 1;
 		this.uploadedFile = null;
 		this.fileData = null;
@@ -3455,7 +3458,10 @@ const ImportModule = {
 			true
 		);
 		jQuery( '.aie-file-info' ).hide();
+		jQuery( '.aie-upload-area' ).show();
 		jQuery( '.aie-upload-placeholder' ).show();
+		jQuery( '.aie-upload-progress' ).hide();
+		jQuery( '.aie-format-options' ).hide();
 		jQuery( '.aie-import-results' ).hide();
 
 		this.showStep( 1 );
