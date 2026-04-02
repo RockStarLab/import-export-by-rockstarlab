@@ -1,4 +1,4 @@
-=== Advanced Import Export ===
+=== Amplified Import Export ===
 Contributors: RockstarLab
 Tags: import, export, csv, site sync, data migration
 Requires at least: 5.8
@@ -11,11 +11,11 @@ Advanced import/export for WordPress: custom functions, media sync, site-to-site
 
 == Description ==
 
-🚀 WP Advanced Import Export is the ultimate solution for managing your WordPress data with surgical precision. Whether you are migrating a website, syncing content between staging and production, or performing bulk data updates, this plugin provides a robust and flexible framework to handle even the most complex datasets.
+🚀 Amplified Import Export is the ultimate solution for managing your WordPress data with surgical precision. Whether you are migrating a website, syncing content between staging and production, or performing bulk data updates, this plugin provides a robust and flexible framework to handle even the most complex datasets.
 
 Tired of restrictive tools that only handle posts? Our WordPress Import Export Plugin is built for developers and store owners who need total control. From standard WordPress elements to raw MySQL tables and WooCommerce entities, move your data without the headache of manual SQL queries or broken serialized data. 📂
 
-Using advanced parsing logic and an AI-driven interface, WP Advanced Import Export ensures that your data arrives exactly where it needs to be, formatted exactly how you want it.
+Using advanced parsing logic and an AI-driven interface, Amplified Import Export ensures that your data arrives exactly where it needs to be, formatted exactly how you want it.
 
 == Features ==
 

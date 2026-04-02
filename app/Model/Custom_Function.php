@@ -47,12 +47,12 @@ class Custom_Function extends Model {
 
 		// Validate required fields
 		if ( empty( $data['name'] ) || empty( $data['code'] ) ) {
-			return new \WP_Error( 'missing_fields', __( 'Name and code are required', 'advanced-import-export' ) );
+			return new \WP_Error( 'missing_fields', __( 'Name and code are required', 'amplified-import-export' ) );
 		}
 
 		// Check if function name already exists
 		if ( $this->function_name_exists( $data['name'] ) ) {
-			return new \WP_Error( 'duplicate_name', __( 'A function with this name already exists', 'advanced-import-export' ) );
+			return new \WP_Error( 'duplicate_name', __( 'A function with this name already exists', 'amplified-import-export' ) );
 		}
 
 		// Decode HTML entities from code
@@ -107,7 +107,7 @@ class Custom_Function extends Model {
 
 		return new \WP_Error(
 			'db_error',
-			__( 'Database error: Failed to save function', 'advanced-import-export' ),
+			__( 'Database error: Failed to save function', 'amplified-import-export' ),
 			array( 'db_error' => $wpdb->last_error )
 		);
 	}
@@ -125,18 +125,18 @@ class Custom_Function extends Model {
 		// Check if function exists
 		$existing = $this->get( $id );
 		if ( ! $existing ) {
-			return new \WP_Error( 'not_found', __( 'Function not found', 'advanced-import-export' ) );
+			return new \WP_Error( 'not_found', __( 'Function not found', 'amplified-import-export' ) );
 		}
 
 		// Check permissions
 		if ( ! $this->can_edit_function( $id ) ) {
-			return new \WP_Error( 'permission_denied', __( 'You do not have permission to edit this function', 'advanced-import-export' ) );
+			return new \WP_Error( 'permission_denied', __( 'You do not have permission to edit this function', 'amplified-import-export' ) );
 		}
 
 		// Check if function name is being changed and if new name already exists
 		if ( isset( $data['name'] ) && $data['name'] !== $existing['name'] ) {
 			if ( $this->function_name_exists( $data['name'], $id ) ) {
-				return new \WP_Error( 'duplicate_name', __( 'A function with this name already exists', 'advanced-import-export' ) );
+				return new \WP_Error( 'duplicate_name', __( 'A function with this name already exists', 'amplified-import-export' ) );
 			}
 		}
 
@@ -201,7 +201,7 @@ class Custom_Function extends Model {
 
 		return new \WP_Error(
 			'db_error',
-			__( 'Database error: Failed to update function', 'advanced-import-export' ),
+			__( 'Database error: Failed to update function', 'amplified-import-export' ),
 			array( 'db_error' => $wpdb->last_error )
 		);
 	}

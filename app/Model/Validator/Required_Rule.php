@@ -28,7 +28,7 @@ class Required_Rule extends Validation_Rule {
 				'required_field',
 				sprintf(
 					/* translators: %s: field name */
-					__( '%s is required', 'advanced-import-export' ),
+					__( '%s is required', 'amplified-import-export' ),
 					$field_name
 				),
 				[

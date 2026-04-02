@@ -19,7 +19,7 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_name() {
-		return __( 'Custom MySQL Table', 'advanced-import-export' );
+		return __( 'Custom MySQL Table', 'amplified-import-export' );
 	}
 
 	/**
@@ -28,7 +28,7 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export data from custom database tables', 'advanced-import-export' );
+		return __( 'Export data from custom database tables', 'amplified-import-export' );
 	}
 
 	/**
@@ -38,8 +38,8 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'table_name' => __( 'Table Name', 'advanced-import-export' ),
-			'filters'    => __( 'Column Filters', 'advanced-import-export' ),
+			'table_name' => __( 'Table Name', 'amplified-import-export' ),
+			'filters'    => __( 'Column Filters', 'amplified-import-export' ),
 		];
 	}
 
@@ -90,7 +90,7 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 		if ( empty( $options['table_name'] ) ) {
 			return new \WP_Error(
 				'missing_table_name',
-				__( 'Table name is required', 'advanced-import-export' )
+				__( 'Table name is required', 'amplified-import-export' )
 			);
 		}
 
@@ -99,7 +99,7 @@ class Custom_Table_Exporter extends Abstract_Exporter {
 		if ( strpos( $options['table_name'], $wpdb->prefix ) !== 0 ) {
 			return new \WP_Error(
 				'invalid_table',
-				__( 'Invalid table name', 'advanced-import-export' )
+				__( 'Invalid table name', 'amplified-import-export' )
 			);
 		}
 

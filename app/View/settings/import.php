@@ -11,8 +11,8 @@ defined( 'ABSPATH' ) || exit;
 $is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
 ?>
 
-<div id="wp-aie-import" class="advanced-import-export wrap">
-	<h1><?php esc_html_e( 'Import Data', 'advanced-import-export' ); ?></h1>
+<div id="wp-aie-import" class="amplified-import-export wrap">
+	<h1><?php esc_html_e( 'Import Data', 'amplified-import-export' ); ?></h1>
 
 	<?php if ( ! $is_premium ) : ?>
 	<!-- Premium Notice -->
@@ -21,16 +21,16 @@ $is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
 			<span class="dashicons dashicons-lock"></span>
 		</div>
 		<div class="aie-premium-notice-content">
-			<h3><?php esc_html_e( 'Premium Feature Available', 'advanced-import-export' ); ?></h3>
-			<p><?php esc_html_e( 'Import advanced content types with Premium version. Unlock the ability to import Custom Post Types, Media, Menus, Users, Comments, Taxonomy Terms, WooCommerce content and Any Database Table.', 'advanced-import-export' ); ?></p>
+			<h3><?php esc_html_e( 'Premium Feature Available', 'amplified-import-export' ); ?></h3>
+			<p><?php esc_html_e( 'Import advanced content types with Premium version. Unlock the ability to import Custom Post Types, Media, Menus, Users, Comments, Taxonomy Terms, WooCommerce content and Any Database Table.', 'amplified-import-export' ); ?></p>
 			<?php if ( function_exists( 'aie_fs' ) ) : ?>
 				<a href="<?php echo esc_url( aie_fs()->get_upgrade_url() ); ?>" class="button button-primary button-large">
 					<span class="dashicons dashicons-star-filled"></span>
-					<?php esc_html_e( 'Upgrade to Premium', 'advanced-import-export' ); ?>
+					<?php esc_html_e( 'Upgrade to Premium', 'amplified-import-export' ); ?>
 				</a>
 				<a href="<?php echo esc_url( admin_url( 'plugins.php?aie-activate-license=1' ) ); ?>" class="button button-secondary button-large">
 					<span class="dashicons dashicons-admin-network"></span>
-					<?php esc_html_e( 'Activate License', 'advanced-import-export' ); ?>
+					<?php esc_html_e( 'Activate License', 'amplified-import-export' ); ?>
 				</a>
 			<?php endif; ?>
 		</div>

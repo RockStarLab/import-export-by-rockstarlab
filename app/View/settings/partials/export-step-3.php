@@ -11,8 +11,8 @@ defined( 'ABSPATH' ) || exit;
 <!-- Step 3: Select Fields -->
 <div class="aie-step aie-step-3" data-step="3">
 	<div class="aie-step-header">
-		<h2><?php esc_html_e( 'Step 3: Select Fields', 'advanced-import-export' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Drag and drop fields to build your export structure. Click on a field to assign functions.', 'advanced-import-export' ); ?></p>
+		<h2><?php esc_html_e( 'Step 3: Select Fields', 'amplified-import-export' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Drag and drop fields to build your export structure. Click on a field to assign functions.', 'amplified-import-export' ); ?></p>
 	</div>
 
 	<div class="aie-step-content">
@@ -22,16 +22,16 @@ defined( 'ABSPATH' ) || exit;
 			<div class="aie-csv-builder-header">
 				<h3>
 					<span class="dashicons dashicons-media-spreadsheet"></span>
-					<?php esc_html_e( 'Export File Structure', 'advanced-import-export' ); ?>
+					<?php esc_html_e( 'Export File Structure', 'amplified-import-export' ); ?>
 				</h3>
 				<div class="aie-csv-builder-actions">
-					<button type="button" class="button button-small aie-clear-all-fields" title="<?php esc_attr_e( 'Clear all fields', 'advanced-import-export' ); ?>">
+					<button type="button" class="button button-small aie-clear-all-fields" title="<?php esc_attr_e( 'Clear all fields', 'amplified-import-export' ); ?>">
 						<span class="dashicons dashicons-trash"></span>
-						<?php esc_html_e( 'Clear All', 'advanced-import-export' ); ?>
+						<?php esc_html_e( 'Clear All', 'amplified-import-export' ); ?>
 					</button>
-					<button type="button" class="button button-small aie-add-custom-column" title="<?php esc_attr_e( 'Add custom column', 'advanced-import-export' ); ?>">
+					<button type="button" class="button button-small aie-add-custom-column" title="<?php esc_attr_e( 'Add custom column', 'amplified-import-export' ); ?>">
 						<span class="dashicons dashicons-plus-alt2"></span>
-						<?php esc_html_e( 'Add Custom', 'advanced-import-export' ); ?>
+						<?php esc_html_e( 'Add Custom', 'amplified-import-export' ); ?>
 					</button>
 				</div>
 			</div>
@@ -41,8 +41,8 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-csv-dropzone" id="aie-csv-dropzone">
 					<div class="aie-csv-dropzone-placeholder">
 						<span class="dashicons dashicons-download"></span>
-						<p><?php esc_html_e( 'Drag fields here to build your export file', 'advanced-import-export' ); ?></p>
-						<span class="aie-csv-hint"><?php esc_html_e( 'or click "Add Custom" to create a custom column', 'advanced-import-export' ); ?></span>
+						<p><?php esc_html_e( 'Drag fields here to build your export file', 'amplified-import-export' ); ?></p>
+						<span class="aie-csv-hint"><?php esc_html_e( 'or click "Add Custom" to create a custom column', 'amplified-import-export' ); ?></span>
 					</div>
 					
 					<!-- Selected Fields Container -->
@@ -54,7 +54,7 @@ defined( 'ABSPATH' ) || exit;
 				<!-- Field Counter -->
 				<div class="aie-csv-stats">
 					<span class="aie-field-count">
-						<strong><?php esc_html_e( 'Columns:', 'advanced-import-export' ); ?></strong> 
+						<strong><?php esc_html_e( 'Columns:', 'amplified-import-export' ); ?></strong> 
 						<span class="aie-count-value aie-columns-count">0</span>
 					</span>
 				</div>
@@ -66,7 +66,7 @@ defined( 'ABSPATH' ) || exit;
 			<div class="aie-fields-library-header">
 				<h3>
 					<span class="dashicons dashicons-list-view"></span>
-					<?php esc_html_e( 'Available Fields', 'advanced-import-export' ); ?>
+					<?php esc_html_e( 'Available Fields', 'amplified-import-export' ); ?>
 				</h3>
 			</div>
 			
@@ -76,10 +76,10 @@ defined( 'ABSPATH' ) || exit;
 					type="text" 
 					id="aie-fields-search" 
 					class="regular-text" 
-					placeholder="<?php esc_attr_e( 'Search fields...', 'advanced-import-export' ); ?>"
+					placeholder="<?php esc_attr_e( 'Search fields...', 'amplified-import-export' ); ?>"
 				>
 				<span class="dashicons dashicons-search"></span>
-				<button type="button" class="aie-clear-search" title="<?php esc_attr_e( 'Clear search', 'advanced-import-export' ); ?>">
+				<button type="button" class="aie-clear-search" title="<?php esc_attr_e( 'Clear search', 'amplified-import-export' ); ?>">
 					<span class="dashicons dashicons-no-alt"></span>
 				</button>
 			</div>
@@ -92,9 +92,9 @@ defined( 'ABSPATH' ) || exit;
 							<h4 class="aie-field-category-title">
 								<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
 								<span class="dashicons dashicons-category"></span>
-								<?php esc_html_e( 'Taxonomies', 'advanced-import-export' ); ?>
-								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'advanced-import-export' ); ?>">
-									<?php esc_html_e( 'Add all', 'advanced-import-export' ); ?>
+								<?php esc_html_e( 'Taxonomies', 'amplified-import-export' ); ?>
+								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'amplified-import-export' ); ?>">
+									<?php esc_html_e( 'Add all', 'amplified-import-export' ); ?>
 								</button>
 							</h4>
 							<div class="aie-fields-grid aie-taxonomies-grid">
@@ -107,9 +107,9 @@ defined( 'ABSPATH' ) || exit;
 							<h4 class="aie-field-category-title">
 								<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
 								<span class="dashicons dashicons-admin-generic"></span>
-								<?php esc_html_e( 'Custom Fields', 'advanced-import-export' ); ?>
-								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'advanced-import-export' ); ?>">
-									<?php esc_html_e( 'Add all', 'advanced-import-export' ); ?>
+								<?php esc_html_e( 'Custom Fields', 'amplified-import-export' ); ?>
+								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'amplified-import-export' ); ?>">
+									<?php esc_html_e( 'Add all', 'amplified-import-export' ); ?>
 								</button>
 							</h4>
 							<div class="aie-fields-grid aie-custom-fields-grid">
@@ -122,15 +122,15 @@ defined( 'ABSPATH' ) || exit;
 							<h4 class="aie-field-category-title">
 								<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
 								<span class="dashicons dashicons-admin-settings"></span>
-								<?php esc_html_e( 'ACF Fields', 'advanced-import-export' ); ?>
-								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'advanced-import-export' ); ?>">
-									<?php esc_html_e( 'Add all', 'advanced-import-export' ); ?>
+								<?php esc_html_e( 'ACF Fields', 'amplified-import-export' ); ?>
+								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'amplified-import-export' ); ?>">
+									<?php esc_html_e( 'Add all', 'amplified-import-export' ); ?>
 								</button>
 							</h4>
 							<div class="aie-fields-grid aie-acf-fields-grid">
 								<div class="aie-acf-loading">
 									<span class="spinner is-active"></span>
-									<p><?php esc_html_e( 'Loading ACF fields...', 'advanced-import-export' ); ?></p>
+									<p><?php esc_html_e( 'Loading ACF fields...', 'amplified-import-export' ); ?></p>
 								</div>
 							</div>
 						</div>
@@ -140,15 +140,15 @@ defined( 'ABSPATH' ) || exit;
 							<h4 class="aie-field-category-title">
 								<span class="dashicons dashicons-arrow-down-alt2 aie-category-toggle"></span>
 								<span class="dashicons dashicons-chart-line"></span>
-								<?php esc_html_e( 'Yoast SEO', 'advanced-import-export' ); ?>
-								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'advanced-import-export' ); ?>">
-									<?php esc_html_e( 'Add all', 'advanced-import-export' ); ?>
+								<?php esc_html_e( 'Yoast SEO', 'amplified-import-export' ); ?>
+								<button type="button" class="aie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'amplified-import-export' ); ?>">
+									<?php esc_html_e( 'Add all', 'amplified-import-export' ); ?>
 								</button>
 							</h4>
 							<div class="aie-fields-grid aie-yoast-fields-grid">
 								<div class="aie-yoast-loading">
 									<span class="spinner is-active"></span>
-									<p><?php esc_html_e( 'Loading Yoast SEO fields...', 'advanced-import-export' ); ?></p>
+									<p><?php esc_html_e( 'Loading Yoast SEO fields...', 'amplified-import-export' ); ?></p>
 								</div>
 							</div>
 						</div>
@@ -160,10 +160,10 @@ defined( 'ABSPATH' ) || exit;
 		<div class="aie-step-actions">
 			<button type="button" class="button button-secondary aie-prev-step">
 				<span class="dashicons dashicons-arrow-left-alt2"></span>
-				<?php esc_html_e( 'Previous', 'advanced-import-export' ); ?>
+				<?php esc_html_e( 'Previous', 'amplified-import-export' ); ?>
 			</button>
 			<button type="button" class="button button-primary button-large aie-next-step" disabled>
-				<?php esc_html_e( 'Next Step', 'advanced-import-export' ); ?>
+				<?php esc_html_e( 'Next Step', 'amplified-import-export' ); ?>
 				<span class="dashicons dashicons-arrow-right-alt2"></span>
 			</button>
 		</div>

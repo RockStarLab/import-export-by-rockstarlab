@@ -34,7 +34,7 @@ class Post_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WordPress posts, pages, and custom post types', 'advanced-import-export' );
+		return __( 'Export WordPress posts, pages, and custom post types', 'amplified-import-export' );
 	}
 
 	/**
@@ -44,17 +44,17 @@ class Post_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'post_type'     => __( 'Post type (post, page, or custom post type)', 'advanced-import-export' ),
-			'post_status'   => __( 'Post status (publish, draft, pending, etc.)', 'advanced-import-export' ),
-			'author'        => __( 'Author ID or array of IDs', 'advanced-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-			'date_query'    => __( 'Date query parameters', 'advanced-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-			'tax_query'     => __( 'Taxonomy query parameters', 'advanced-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- tax_query required for filtering.
-			'meta_query'    => __( 'Meta query parameters', 'advanced-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
-			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'advanced-import-export' ),
-			'taxonomy'      => __( 'Taxonomy filters: array of [taxonomy, terms, condition]', 'advanced-import-export' ),
-			's'             => __( 'Search query', 'advanced-import-export' ),
-			'orderby'       => __( 'Order by field', 'advanced-import-export' ),
-			'order'         => __( 'Order direction (ASC or DESC)', 'advanced-import-export' ),
+			'post_type'     => __( 'Post type (post, page, or custom post type)', 'amplified-import-export' ),
+			'post_status'   => __( 'Post status (publish, draft, pending, etc.)', 'amplified-import-export' ),
+			'author'        => __( 'Author ID or array of IDs', 'amplified-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+			'date_query'    => __( 'Date query parameters', 'amplified-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+			'tax_query'     => __( 'Taxonomy query parameters', 'amplified-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- tax_query required for filtering.
+			'meta_query'    => __( 'Meta query parameters', 'amplified-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
+			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'amplified-import-export' ),
+			'taxonomy'      => __( 'Taxonomy filters: array of [taxonomy, terms, condition]', 'amplified-import-export' ),
+			's'             => __( 'Search query', 'amplified-import-export' ),
+			'orderby'       => __( 'Order by field', 'amplified-import-export' ),
+			'order'         => __( 'Order direction (ASC or DESC)', 'amplified-import-export' ),
 		];
 	}
 

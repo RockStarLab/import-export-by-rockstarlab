@@ -6,7 +6,7 @@
  * Appears only on plugin pages, 1 week after installation.
  *
  * 🔑 Secret test URL (bypass the 1-week wait):
- *    /wp-admin/admin.php?page=advanced-import-export&aie_review_test=1
+ *    /wp-admin/admin.php?page=amplified-import-export&aie_review_test=1
  *
  * @package WP_AIE\Helper
  */
@@ -30,7 +30,7 @@ class Review_Notice {
 	/**
 	 * WordPress.org review URL for this plugin.
 	 */
-	const REVIEW_URL = 'https://wordpress.org/support/plugin/advanced-import-export/reviews/#new-post';
+	const REVIEW_URL = 'https://wordpress.org/support/plugin/amplified-import-export/reviews/#new-post';
 
 	/**
 	 * All admin page slugs that belong to this plugin.
@@ -38,7 +38,7 @@ class Review_Notice {
 	 * @var string[]
 	 */
 	private static array $plugin_pages = [
-		'advanced-import-export',
+		'amplified-import-export',
 		'wp-aie-import',
 		'wp-aie-export',
 		'wp-aie-content-sync',
@@ -170,10 +170,10 @@ class Review_Notice {
 			<div class="aie-review-notice__body">
 				<span class="aie-review-notice__rating-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
 				<h3 class="aie-review-notice__title">
-					<?php esc_html_e( 'Enjoying WP Advanced Import Export?', 'advanced-import-export' ); ?>
+					<?php esc_html_e( 'Enjoying Amplified Import Export?', 'amplified-import-export' ); ?>
 				</h3>
 				<p class="aie-review-notice__text">
-					<?php esc_html_e( "You've been using the plugin for over a week — awesome! If it's been helpful, would you take 2 minutes to leave a ★★★★★ review on WordPress.org? It keeps us motivated and helps others discover the plugin. 🙏", 'advanced-import-export' ); ?>
+					<?php esc_html_e( "You've been using the plugin for over a week — awesome! If it's been helpful, would you take 2 minutes to leave a ★★★★★ review on WordPress.org? It keeps us motivated and helps others discover the plugin. 🙏", 'amplified-import-export' ); ?>
 				</p>
 				<div class="aie-review-notice__actions">
 					<a href="<?php echo esc_url( self::REVIEW_URL ); ?>"
@@ -182,17 +182,17 @@ class Review_Notice {
 					   class="aie-review-notice__btn aie-review-notice__btn--primary aie-review-dismiss"
 					   data-nonce="<?php echo esc_attr( $nonce ); ?>">
 						<span class="dashicons dashicons-external" aria-hidden="true"></span>
-						<?php esc_html_e( 'Yes, I\'d love to! ⭐', 'advanced-import-export' ); ?>
+						<?php esc_html_e( 'Yes, I\'d love to! ⭐', 'amplified-import-export' ); ?>
 					</a>
 					<button type="button"
 					        class="aie-review-notice__btn aie-review-notice__btn--secondary aie-review-dismiss"
 					        data-nonce="<?php echo esc_attr( $nonce ); ?>">
-						<?php esc_html_e( 'Maybe later', 'advanced-import-export' ); ?>
+						<?php esc_html_e( 'Maybe later', 'amplified-import-export' ); ?>
 					</button>
 					<button type="button"
 					        class="aie-review-notice__btn aie-review-notice__btn--link aie-review-dismiss"
 					        data-nonce="<?php echo esc_attr( $nonce ); ?>">
-						<?php esc_html_e( 'I\'ve already left a review', 'advanced-import-export' ); ?>
+						<?php esc_html_e( 'I\'ve already left a review', 'amplified-import-export' ); ?>
 					</button>
 				</div>
 			</div>
@@ -200,7 +200,7 @@ class Review_Notice {
 			<button type="button"
 			        class="aie-review-notice__close aie-review-dismiss"
 			        data-nonce="<?php echo esc_attr( $nonce ); ?>"
-			        aria-label="<?php esc_attr_e( 'Dismiss this notice', 'advanced-import-export' ); ?>">
+			        aria-label="<?php esc_attr_e( 'Dismiss this notice', 'amplified-import-export' ); ?>">
 				<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
 			</button>
 

@@ -36,7 +36,7 @@ class Validator_Factory {
 				'unknown_rule',
 				sprintf(
 					/* translators: %s: rule name */
-					__( 'Unknown validation rule: %s', 'advanced-import-export' ),
+					__( 'Unknown validation rule: %s', 'amplified-import-export' ),
 					$rule_name
 				)
 			);
@@ -55,7 +55,7 @@ class Validator_Factory {
 	 */
 	public static function create_chain( $rules ) {
 		if ( empty( $rules ) ) {
-			return new \WP_Error( 'empty_rules', __( 'No validation rules provided', 'advanced-import-export' ) );
+			return new \WP_Error( 'empty_rules', __( 'No validation rules provided', 'amplified-import-export' ) );
 		}
 
 		$first_rule    = null;

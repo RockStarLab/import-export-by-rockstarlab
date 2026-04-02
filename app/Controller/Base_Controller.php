@@ -65,13 +65,13 @@ abstract class Base_Controller {
 		$nonce = $this->get_request_param( 'nonce', '' );
 		
 		if ( ! wp_verify_nonce( $nonce, 'aie_nonce' ) ) {
-			return new \WP_Error( 'invalid_nonce', __( 'Security check failed', 'advanced-import-export' ) );
+			return new \WP_Error( 'invalid_nonce', __( 'Security check failed', 'amplified-import-export' ) );
 		}
 
 		// Check capability
 		$required_cap = $capability ?? $this->required_capability;
 		if ( ! current_user_can( $required_cap ) ) {
-			return new \WP_Error( 'insufficient_permissions', __( 'You do not have permission to perform this action', 'advanced-import-export' ) );
+			return new \WP_Error( 'insufficient_permissions', __( 'You do not have permission to perform this action', 'amplified-import-export' ) );
 		}
 
 		return true;
@@ -218,7 +218,7 @@ abstract class Base_Controller {
 				'missing_parameters',
 				sprintf(
 					/* translators: %s: comma-separated list of missing parameters */
-					__( 'Missing required parameters: %s', 'advanced-import-export' ),
+					__( 'Missing required parameters: %s', 'amplified-import-export' ),
 					implode( ', ', $missing )
 				)
 			);
@@ -235,11 +235,11 @@ abstract class Base_Controller {
 	 */
 	protected function sanitize_file_upload( $file ) {
 		if ( empty( $file ) || ! isset( $file['tmp_name'] ) ) {
-			return new \WP_Error( 'no_file', __( 'No file uploaded', 'advanced-import-export' ) );
+			return new \WP_Error( 'no_file', __( 'No file uploaded', 'amplified-import-export' ) );
 		}
 
 		if ( UPLOAD_ERR_OK !== $file['error'] ) {
-			return new \WP_Error( 'upload_error', __( 'File upload failed', 'advanced-import-export' ) );
+			return new \WP_Error( 'upload_error', __( 'File upload failed', 'amplified-import-export' ) );
 		}
 
 		return [
@@ -326,7 +326,7 @@ abstract class Base_Controller {
 				'premium_required',
 				sprintf(
 					/* translators: %s: content/data type name */
-					__( 'A valid premium license is required to process "%s" content type. Please activate or renew your license.', 'advanced-import-export' ),
+					__( 'A valid premium license is required to process "%s" content type. Please activate or renew your license.', 'amplified-import-export' ),
 					esc_html( $data_type )
 				)
 			);

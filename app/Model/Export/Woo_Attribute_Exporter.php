@@ -19,7 +19,7 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_name() {
-		return __( 'WooCommerce Attributes', 'advanced-import-export' );
+		return __( 'WooCommerce Attributes', 'amplified-import-export' );
 	}
 
 	/**
@@ -28,7 +28,7 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WooCommerce product attributes', 'advanced-import-export' );
+		return __( 'Export WooCommerce product attributes', 'amplified-import-export' );
 	}
 
 	/**
@@ -38,9 +38,9 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'include_terms' => __( 'Include attribute terms', 'advanced-import-export' ),
-			'orderby'       => __( 'Order by field', 'advanced-import-export' ),
-			'order'         => __( 'Order direction (ASC or DESC)', 'advanced-import-export' ),
+			'include_terms' => __( 'Include attribute terms', 'amplified-import-export' ),
+			'orderby'       => __( 'Order by field', 'amplified-import-export' ),
+			'order'         => __( 'Order direction (ASC or DESC)', 'amplified-import-export' ),
 		];
 	}
 
@@ -124,7 +124,7 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			return new \WP_Error(
 				'woocommerce_not_active',
-				__( 'WooCommerce is not active', 'advanced-import-export' )
+				__( 'WooCommerce is not active', 'amplified-import-export' )
 			);
 		}
 
@@ -480,7 +480,7 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			return new \WP_Error(
 				'woocommerce_not_active',
-				__( 'WooCommerce is not active', 'advanced-import-export' )
+				__( 'WooCommerce is not active', 'amplified-import-export' )
 			);
 		}
 

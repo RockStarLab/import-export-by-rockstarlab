@@ -1319,7 +1319,7 @@ class Update_Processor {
 		if ( empty( $table_name ) ) {
 			return new \WP_Error(
 				'missing_table_name',
-				__( 'Table name is required for database table updates', 'advanced-import-export' )
+				__( 'Table name is required for database table updates', 'amplified-import-export' )
 			);
 		}
 
@@ -1331,7 +1331,7 @@ class Update_Processor {
 		if ( empty( $pk_column ) ) {
 			return new \WP_Error(
 				'no_pk_column',
-				__( 'Could not determine primary key column for table update', 'advanced-import-export' )
+				__( 'Could not determine primary key column for table update', 'amplified-import-export' )
 			);
 		}
 
@@ -1351,7 +1351,7 @@ class Update_Processor {
 		if ( empty( $update_data ) ) {
 			return new \WP_Error(
 				'no_fields_to_update',
-				__( 'No updatable fields found in item', 'advanced-import-export' )
+				__( 'No updatable fields found in item', 'amplified-import-export' )
 			);
 		}
 
@@ -1369,7 +1369,7 @@ class Update_Processor {
 				'db_update_error',
 				sprintf(
 					/* translators: 1: table name, 2: database error */
-					__( 'Failed to update row in table %1$s: %2$s', 'advanced-import-export' ),
+					__( 'Failed to update row in table %1$s: %2$s', 'amplified-import-export' ),
 					$table_name,
 					$wpdb->last_error
 				)

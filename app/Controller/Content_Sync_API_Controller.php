@@ -156,7 +156,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'advanced-import-export' ),
+					'message' => __( 'Premium license is required for Content Sync feature.', 'amplified-import-export' ),
 					'error_code' => 'license_inactive',
 				),
 				403
@@ -166,7 +166,7 @@ class Content_Sync_API_Controller {
 		return new \WP_REST_Response(
 			array(
 				'success' => true,
-				'message' => __( 'Connection validated successfully', 'advanced-import-export' ),
+				'message' => __( 'Connection validated successfully', 'amplified-import-export' ),
 				'data'    => array(
 					'site_name'    => get_bloginfo( 'name' ),
 					'site_url'     => get_site_url(),
@@ -217,7 +217,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'advanced-import-export' ),
+					'message' => __( 'Premium license is required for Content Sync feature.', 'amplified-import-export' ),
 					'error_code' => 'license_inactive',
 				),
 				403
@@ -233,7 +233,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'No posts data provided', 'advanced-import-export' ),
+					'message' => __( 'No posts data provided', 'amplified-import-export' ),
 				),
 				400
 			);
@@ -324,7 +324,7 @@ class Content_Sync_API_Controller {
 			if ( is_wp_error( $post_id ) || ! $post_id ) {
 				$errors[] = sprintf(
 					/* translators: %s: post title */
-					__( 'Failed to import post: %s', 'advanced-import-export' ),
+					__( 'Failed to import post: %s', 'amplified-import-export' ),
 					$post_data['post_title']
 				);
 				continue;
@@ -505,7 +505,7 @@ class Content_Sync_API_Controller {
 		if ( $imported_count > 0 ) {
 			$message[] = sprintf(
 				/* translators: %d: number of posts */
-				_n( 'Created %d post', 'Created %d posts', $imported_count, 'advanced-import-export' ),
+				_n( 'Created %d post', 'Created %d posts', $imported_count, 'amplified-import-export' ),
 				$imported_count
 			);
 		}
@@ -513,7 +513,7 @@ class Content_Sync_API_Controller {
 		if ( $updated_count > 0 ) {
 			$message[] = sprintf(
 				/* translators: %d: number of posts */
-				_n( 'Updated %d post', 'Updated %d posts', $updated_count, 'advanced-import-export' ),
+				_n( 'Updated %d post', 'Updated %d posts', $updated_count, 'amplified-import-export' ),
 				$updated_count
 			);
 		}
@@ -950,7 +950,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'advanced-import-export' ),
+					'message' => __( 'Premium license is required for Content Sync feature.', 'amplified-import-export' ),
 					'error_code' => 'license_inactive',
 				),
 				403
@@ -963,7 +963,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'No post IDs provided', 'advanced-import-export' ),
+					'message' => __( 'No post IDs provided', 'amplified-import-export' ),
 				),
 				400
 			);
@@ -1131,11 +1131,11 @@ class Content_Sync_API_Controller {
 		}
 
 		if ( empty( $posts_data ) ) {
-			$error_message = __( 'No valid posts found', 'advanced-import-export' );
+			$error_message = __( 'No valid posts found', 'amplified-import-export' );
 			if ( ! empty( $not_found_ids ) ) {
 				$error_message .= sprintf(
 					/* translators: %s: comma-separated list of post IDs */
-					__( '. Post IDs not found: %s', 'advanced-import-export' ),
+					__( '. Post IDs not found: %s', 'amplified-import-export' ),
 					implode( ', ', $not_found_ids )
 				);
 			}
@@ -1153,7 +1153,7 @@ class Content_Sync_API_Controller {
 				'success' => true,
 				'message' => sprintf(
 					/* translators: %d: number of posts */
-					__( 'Found %d post(s)', 'advanced-import-export' ),
+					__( 'Found %d post(s)', 'amplified-import-export' ),
 					count( $posts_data )
 				),
 				'data'    => array(
@@ -1179,7 +1179,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'advanced-import-export' ),
+					'message' => __( 'Premium license is required for Content Sync feature.', 'amplified-import-export' ),
 					'error_code' => 'license_inactive',
 				),
 				403
@@ -1192,7 +1192,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'File hash is required', 'advanced-import-export' ),
+					'message' => __( 'File hash is required', 'amplified-import-export' ),
 				),
 				400
 			);
@@ -1235,7 +1235,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'advanced-import-export' ),
+					'message' => __( 'Premium license is required for Content Sync feature.', 'amplified-import-export' ),
 					'error_code' => 'license_inactive',
 				),
 				403
@@ -1255,7 +1255,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Missing required file data', 'advanced-import-export' ),
+					'message' => __( 'Missing required file data', 'amplified-import-export' ),
 				),
 				400
 			);
@@ -1269,7 +1269,7 @@ class Content_Sync_API_Controller {
 				array(
 					'success'       => true,
 					'attachment_id' => $existing_attachment,
-					'message'       => __( 'Media already exists', 'advanced-import-export' ),
+					'message'       => __( 'Media already exists', 'amplified-import-export' ),
 				),
 				200
 			);
@@ -1282,7 +1282,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Invalid file data', 'advanced-import-export' ),
+					'message' => __( 'Invalid file data', 'amplified-import-export' ),
 				),
 				400
 			);
@@ -1293,7 +1293,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'File hash mismatch', 'advanced-import-export' ),
+					'message' => __( 'File hash mismatch', 'amplified-import-export' ),
 				),
 				400
 			);
@@ -1312,7 +1312,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Failed to save file', 'advanced-import-export' ),
+					'message' => __( 'Failed to save file', 'amplified-import-export' ),
 				),
 				500
 			);
@@ -1335,7 +1335,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Failed to create attachment', 'advanced-import-export' ),
+					'message' => __( 'Failed to create attachment', 'amplified-import-export' ),
 				),
 				500
 			);
@@ -1359,7 +1359,7 @@ class Content_Sync_API_Controller {
 				'success'       => true,
 				'attachment_id' => $attachment_id,
 				'url'           => wp_get_attachment_url( $attachment_id ),
-				'message'       => __( 'Media uploaded successfully', 'advanced-import-export' ),
+				'message'       => __( 'Media uploaded successfully', 'amplified-import-export' ),
 			),
 			200
 		);
@@ -1468,7 +1468,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'advanced-import-export' ),
+					'message' => __( 'Premium license is required for Content Sync feature.', 'amplified-import-export' ),
 					'error_code' => 'license_inactive',
 				),
 				403
@@ -1623,7 +1623,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'advanced-import-export' ),
+					'message' => __( 'Premium license is required for Content Sync feature.', 'amplified-import-export' ),
 					'error_code' => 'license_inactive',
 				),
 				403
@@ -1643,7 +1643,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Parent ID is required.', 'advanced-import-export' ),
+					'message' => __( 'Parent ID is required.', 'amplified-import-export' ),
 				),
 				400
 			);

@@ -415,7 +415,7 @@ class Job extends Model {
 		$job = $this->find( $id );
 
 		if ( ! $job ) {
-			return new \WP_Error( 'job_not_found', __( 'Job not found', 'advanced-import-export' ) );
+			return new \WP_Error( 'job_not_found', __( 'Job not found', 'amplified-import-export' ) );
 		}
 
 		// Delete associated export file if exists

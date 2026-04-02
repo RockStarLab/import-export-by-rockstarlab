@@ -8,10 +8,10 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 
-<div id="wp-aie-media-sync" class="advanced-import-export wrap">
-<h1><?php esc_html_e( 'Media Sync', 'advanced-import-export' ); ?></h1>
+<div id="wp-aie-media-sync" class="amplified-import-export wrap">
+<h1><?php esc_html_e( 'Media Sync', 'amplified-import-export' ); ?></h1>
 <p class="description">
-<?php esc_html_e( 'Synchronize media files from server folders to WordPress Media Library. Helpful to migrate Media Library from non-WP sites and keeping previous Media Library structure.', 'advanced-import-export' ); ?>
+<?php esc_html_e( 'Synchronize media files from server folders to WordPress Media Library. Helpful to migrate Media Library from non-WP sites and keeping previous Media Library structure.', 'amplified-import-export' ); ?>
 </p>
 
 <div class="aie-media-sync-container">

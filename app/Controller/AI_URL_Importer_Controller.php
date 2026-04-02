@@ -73,7 +73,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 			if ( ! function_exists( 'aie_fs' ) || ! aie_fs()->can_use_premium_code() ) {
 				return new \WP_Error(
 					'premium_required',
-					__( 'AI URL Importer is a premium feature. Please upgrade to access this functionality.', 'advanced-import-export' )
+					__( 'AI URL Importer is a premium feature. Please upgrade to access this functionality.', 'amplified-import-export' )
 				);
 		}
 
@@ -81,7 +81,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 		if ( ! \WP_AIE\Helper\AI_Function_Generator::has_api_key() ) {
 			return new \WP_Error(
 				'api_key_required',
-				__( 'OpenAI API key is required. Please add your API key in Plugin Options.', 'advanced-import-export' )
+				__( 'OpenAI API key is required. Please add your API key in Plugin Options.', 'amplified-import-export' )
 			);
 		}
 
@@ -111,7 +111,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 
 		$this->send_success(
 			array(
-				'message' => __( 'OpenAI API connection successful!', 'advanced-import-export' ),
+				'message' => __( 'OpenAI API connection successful!', 'amplified-import-export' ),
 				'model'   => $test_result,
 			)
 		);
@@ -135,7 +135,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 
 		if ( empty( $url ) ) {
 			$this->send_error(
-				new \WP_Error( 'missing_url', __( 'URL is required', 'advanced-import-export' ) )
+				new \WP_Error( 'missing_url', __( 'URL is required', 'amplified-import-export' ) )
 			);
 		}
 
@@ -163,7 +163,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 		// Check if ACF is active
 		if ( ! function_exists( 'acf_get_field_groups' ) ) {
 			$this->send_error(
-				new \WP_Error( 'acf_not_active', __( 'ACF plugin is not active', 'advanced-import-export' ) )
+				new \WP_Error( 'acf_not_active', __( 'ACF plugin is not active', 'amplified-import-export' ) )
 			);
 		}
 
@@ -309,7 +309,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 
 		if ( empty( $urls ) ) {
 			$this->send_error(
-				new \WP_Error( 'missing_urls', __( 'URLs are required', 'advanced-import-export' ) )
+				new \WP_Error( 'missing_urls', __( 'URLs are required', 'amplified-import-export' ) )
 			);
 		}
 
@@ -352,7 +352,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 		$this->send_success(
 			array(
 				'job_id'  => $job_id,
-				'message' => __( 'Import job created successfully', 'advanced-import-export' ),
+				'message' => __( 'Import job created successfully', 'amplified-import-export' ),
 			)
 		);
 	}
@@ -376,7 +376,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 
 		if ( ! $job_id ) {
 			$this->send_error(
-				new \WP_Error( 'missing_job_id', __( 'Job ID is required', 'advanced-import-export' ) )
+				new \WP_Error( 'missing_job_id', __( 'Job ID is required', 'amplified-import-export' ) )
 			);
 		}
 
@@ -405,7 +405,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 
 		if ( ! $job_id ) {
 			$this->send_error(
-				new \WP_Error( 'missing_job_id', __( 'Job ID is required', 'advanced-import-export' ) )
+				new \WP_Error( 'missing_job_id', __( 'Job ID is required', 'amplified-import-export' ) )
 			);
 		}
 
@@ -415,7 +415,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 
 		if ( ! $job ) {
 			$this->send_error(
-				new \WP_Error( 'job_not_found', __( 'Job not found', 'advanced-import-export' ) )
+				new \WP_Error( 'job_not_found', __( 'Job not found', 'amplified-import-export' ) )
 			);
 		}
 

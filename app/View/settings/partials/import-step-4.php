@@ -11,18 +11,18 @@ defined( 'ABSPATH' ) || exit;
 <!-- Step 4: Field Mapping -->
 <div class="aie-step aie-step-4" data-step="4">
 	<div class="aie-step-header">
-		<h2><?php esc_html_e( 'Step 4: Field Mapping', 'advanced-import-export' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Drag columns from your file to WordPress fields', 'advanced-import-export' ); ?></p>
+		<h2><?php esc_html_e( 'Step 4: Field Mapping', 'amplified-import-export' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Drag columns from your file to WordPress fields', 'amplified-import-export' ); ?></p>
 	</div>
 
 	<div class="aie-step-content">
 		<!-- Post Type Selector for Custom Post Types -->
 		<div class="aie-post-type-selector" style="display: none;">
 			<label for="aie-custom-post-type">
-				<?php esc_html_e( 'Choose post type:', 'advanced-import-export' ); ?>
+				<?php esc_html_e( 'Choose post type:', 'amplified-import-export' ); ?>
 			</label>
 			<select id="aie-custom-post-type" class="regular-text">
-				<option value=""><?php esc_html_e( '-- Select Post Type --', 'advanced-import-export' ); ?></option>
+				<option value=""><?php esc_html_e( '-- Select Post Type --', 'amplified-import-export' ); ?></option>
 				<!-- Will be populated by JavaScript -->
 			</select>
 		</div>
@@ -32,34 +32,34 @@ defined( 'ABSPATH' ) || exit;
 			<div class="aie-section-header">
 				<h3>
 					<span class="dashicons dashicons-database-view"></span>
-					<?php esc_html_e( 'Select Database Table', 'advanced-import-export' ); ?>
+					<?php esc_html_e( 'Select Database Table', 'amplified-import-export' ); ?>
 				</h3>
-				<p class="description"><?php esc_html_e( 'Choose which database table you want to import data into', 'advanced-import-export' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Choose which database table you want to import data into', 'amplified-import-export' ); ?></p>
 			</div>
 
 			<div class="aie-table-selector">
-				<label for="aie-import-table-name"><?php esc_html_e( 'Database Table:', 'advanced-import-export' ); ?></label>
+				<label for="aie-import-table-name"><?php esc_html_e( 'Database Table:', 'amplified-import-export' ); ?></label>
 				<select id="aie-import-table-name" name="table_name" class="aie-table-dropdown">
-					<option value=""><?php esc_html_e( 'Loading tables...', 'advanced-import-export' ); ?></option>
+					<option value=""><?php esc_html_e( 'Loading tables...', 'amplified-import-export' ); ?></option>
 				</select>
 				<span class="spinner" style="float:none;margin:0 10px;"></span>
 			</div>
 
 			<div class="aie-table-info" style="display:none;">
 				<div class="aie-info-card">
-					<h4><?php esc_html_e( 'Table Information', 'advanced-import-export' ); ?></h4>
+					<h4><?php esc_html_e( 'Table Information', 'amplified-import-export' ); ?></h4>
 					<div class="aie-table-stats">
 						<div class="aie-stat">
-							<span class="label"><?php esc_html_e( 'Total Rows:', 'advanced-import-export' ); ?></span>
+							<span class="label"><?php esc_html_e( 'Total Rows:', 'amplified-import-export' ); ?></span>
 							<span class="value aie-table-row-count">-</span>
 						</div>
 						<div class="aie-stat">
-							<span class="label"><?php esc_html_e( 'Total Columns:', 'advanced-import-export' ); ?></span>
+							<span class="label"><?php esc_html_e( 'Total Columns:', 'amplified-import-export' ); ?></span>
 							<span class="value aie-table-column-count">-</span>
 						</div>
 					</div>
 					<div class="aie-table-columns">
-						<h5><?php esc_html_e( 'Available Columns:', 'advanced-import-export' ); ?></h5>
+						<h5><?php esc_html_e( 'Available Columns:', 'amplified-import-export' ); ?></h5>
 						<div class="aie-columns-list"></div>
 					</div>
 				</div>
@@ -70,14 +70,14 @@ defined( 'ABSPATH' ) || exit;
 		<div class="aie-mapping-controls">
 			<button type="button" class="button aie-auto-map">
 				<span class="dashicons dashicons-admin-generic"></span>
-				<?php esc_html_e( 'Auto Map', 'advanced-import-export' ); ?>
+				<?php esc_html_e( 'Auto Map', 'amplified-import-export' ); ?>
 			</button>
 			<button type="button" class="button aie-clear-map">
 				<span class="dashicons dashicons-dismiss"></span>
-				<?php esc_html_e( 'Clear All', 'advanced-import-export' ); ?>
+				<?php esc_html_e( 'Clear All', 'amplified-import-export' ); ?>
 			</button>
 			<div class="aie-mapping-stats">
-				<span class="aie-mapped-count">0</span> / <span class="aie-total-fields">0</span> <?php esc_html_e( 'fields mapped', 'advanced-import-export' ); ?>
+				<span class="aie-mapped-count">0</span> / <span class="aie-total-fields">0</span> <?php esc_html_e( 'fields mapped', 'amplified-import-export' ); ?>
 			</div>
 		</div>
 
@@ -87,12 +87,12 @@ defined( 'ABSPATH' ) || exit;
 			<div class="aie-mapping-source">
 				<h3>
 					<span class="dashicons dashicons-media-spreadsheet"></span>
-					<?php esc_html_e( 'Your File Columns', 'advanced-import-export' ); ?>
+					<?php esc_html_e( 'Your File Columns', 'amplified-import-export' ); ?>
 				</h3>
 				<div class="aie-search-box">
-					<input type="text" class="aie-search-source" placeholder="<?php esc_attr_e( 'Search columns...', 'advanced-import-export' ); ?>">
+					<input type="text" class="aie-search-source" placeholder="<?php esc_attr_e( 'Search columns...', 'amplified-import-export' ); ?>">
 					<span class="dashicons dashicons-search"></span>
-					<button type="button" class="aie-clear-search" title="<?php esc_attr_e( 'Clear search', 'advanced-import-export' ); ?>">
+					<button type="button" class="aie-clear-search" title="<?php esc_attr_e( 'Clear search', 'amplified-import-export' ); ?>">
 						<span class="dashicons dashicons-no-alt"></span>
 					</button>
 				</div>
@@ -105,12 +105,12 @@ defined( 'ABSPATH' ) || exit;
 			<div class="aie-mapping-target">
 				<h3>
 					<span class="dashicons dashicons-wordpress"></span>
-					<?php esc_html_e( 'WordPress Fields', 'advanced-import-export' ); ?>
+					<?php esc_html_e( 'WordPress Fields', 'amplified-import-export' ); ?>
 				</h3>
 				<div class="aie-search-box">
-					<input type="text" class="aie-search-target" placeholder="<?php esc_attr_e( 'Search fields...', 'advanced-import-export' ); ?>">
+					<input type="text" class="aie-search-target" placeholder="<?php esc_attr_e( 'Search fields...', 'amplified-import-export' ); ?>">
 					<span class="dashicons dashicons-search"></span>
-					<button type="button" class="aie-clear-search" title="<?php esc_attr_e( 'Clear search', 'advanced-import-export' ); ?>">
+					<button type="button" class="aie-clear-search" title="<?php esc_attr_e( 'Clear search', 'amplified-import-export' ); ?>">
 						<span class="dashicons dashicons-no-alt"></span>
 					</button>
 				</div>
@@ -124,12 +124,12 @@ defined( 'ABSPATH' ) || exit;
 		<div class="aie-mapped-fields-section">
 			<h3>
 				<span class="dashicons dashicons-yes-alt"></span>
-				<?php esc_html_e( 'Mapped Fields', 'advanced-import-export' ); ?>
+				<?php esc_html_e( 'Mapped Fields', 'amplified-import-export' ); ?>
 			</h3>
 			<div class="aie-mapped-fields" id="aie-mapped-fields">
 				<div class="aie-empty-state">
 					<span class="dashicons dashicons-info"></span>
-					<p><?php esc_html_e( 'Drag source columns to WordPress fields to create mappings', 'advanced-import-export' ); ?></p>
+					<p><?php esc_html_e( 'Drag source columns to WordPress fields to create mappings', 'amplified-import-export' ); ?></p>
 				</div>
 			</div>
 		</div>
@@ -137,10 +137,10 @@ defined( 'ABSPATH' ) || exit;
 		<div class="aie-step-actions">
 			<button type="button" class="button button-secondary aie-prev-step">
 				<span class="dashicons dashicons-arrow-left-alt2"></span>
-				<?php esc_html_e( 'Previous', 'advanced-import-export' ); ?>
+				<?php esc_html_e( 'Previous', 'amplified-import-export' ); ?>
 			</button>
 			<button type="button" class="button button-primary button-large aie-next-step">
-				<?php esc_html_e( 'Next Step', 'advanced-import-export' ); ?>
+				<?php esc_html_e( 'Next Step', 'amplified-import-export' ); ?>
 				<span class="dashicons dashicons-arrow-right-alt2"></span>
 			</button>
 		</div>

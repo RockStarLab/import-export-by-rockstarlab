@@ -41,7 +41,7 @@ class Format_Factory {
 			'unsupported_format',
 			sprintf(
 				/* translators: %s: file extension */
-				__( 'Unsupported file format: %s', 'advanced-import-export' ),
+				__( 'Unsupported file format: %s', 'amplified-import-export' ),
 				$extension
 			)
 		);
@@ -68,7 +68,7 @@ class Format_Factory {
 			'unsupported_mime',
 			sprintf(
 				/* translators: %s: MIME type */
-				__( 'Unsupported MIME type: %s', 'advanced-import-export' ),
+				__( 'Unsupported MIME type: %s', 'amplified-import-export' ),
 				$mime_type
 			)
 		);
@@ -84,7 +84,7 @@ class Format_Factory {
 	 */
 	public static function get_handler_by_file( $file_path ) {
 		if ( ! file_exists( $file_path ) ) {
-			return new \WP_Error( 'file_not_found', __( 'File not found', 'advanced-import-export' ) );
+			return new \WP_Error( 'file_not_found', __( 'File not found', 'amplified-import-export' ) );
 		}
 
 		$extension = pathinfo( $file_path, PATHINFO_EXTENSION );
@@ -112,7 +112,7 @@ class Format_Factory {
 				'invalid_format',
 				sprintf(
 					/* translators: %s: format name */
-					__( 'Invalid format: %s', 'advanced-import-export' ),
+					__( 'Invalid format: %s', 'amplified-import-export' ),
 					$format
 				)
 			);

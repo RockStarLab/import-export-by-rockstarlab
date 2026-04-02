@@ -1,6 +1,6 @@
 <?php return array(
     'root' => array(
-        'name' => 'rockstarlab/advanced-import-export',
+        'name' => 'rockstarlab/amplified-import-export',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
         'reference' => 'b3d4a00d531b30503550085c8cd0563efe46e52c',
@@ -55,7 +55,7 @@
             'aliases' => array(),
             'dev_requirement' => true,
         ),
-        'rockstarlab/advanced-import-export' => array(
+        'rockstarlab/amplified-import-export' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
             'reference' => 'b3d4a00d531b30503550085c8cd0563efe46e52c',

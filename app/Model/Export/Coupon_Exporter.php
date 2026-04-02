@@ -75,7 +75,7 @@ class Coupon_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_name() {
-		return __( 'WooCommerce Coupons', 'advanced-import-export' );
+		return __( 'WooCommerce Coupons', 'amplified-import-export' );
 	}
 
 	/**
@@ -84,7 +84,7 @@ class Coupon_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WooCommerce discount coupons with all settings and restrictions', 'advanced-import-export' );
+		return __( 'Export WooCommerce discount coupons with all settings and restrictions', 'amplified-import-export' );
 	}
 
 	/**
@@ -94,15 +94,15 @@ class Coupon_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'post_title'     => __( 'Coupon code', 'advanced-import-export' ),
-			'discount_type'  => __( 'Discount type (percent, fixed_cart, fixed_product)', 'advanced-import-export' ),
-			'coupon_amount'  => __( 'Discount amount', 'advanced-import-export' ),
-			'date_expires'   => __( 'Expiration date', 'advanced-import-export' ),
-			'usage_count'    => __( 'Usage count', 'advanced-import-export' ),
-			'usage_limit'    => __( 'Usage limit', 'advanced-import-export' ),
-			'free_shipping'  => __( 'Free shipping enabled', 'advanced-import-export' ),
-			'minimum_amount' => __( 'Minimum spend amount', 'advanced-import-export' ),
-			'maximum_amount' => __( 'Maximum spend amount', 'advanced-import-export' ),
+			'post_title'     => __( 'Coupon code', 'amplified-import-export' ),
+			'discount_type'  => __( 'Discount type (percent, fixed_cart, fixed_product)', 'amplified-import-export' ),
+			'coupon_amount'  => __( 'Discount amount', 'amplified-import-export' ),
+			'date_expires'   => __( 'Expiration date', 'amplified-import-export' ),
+			'usage_count'    => __( 'Usage count', 'amplified-import-export' ),
+			'usage_limit'    => __( 'Usage limit', 'amplified-import-export' ),
+			'free_shipping'  => __( 'Free shipping enabled', 'amplified-import-export' ),
+			'minimum_amount' => __( 'Minimum spend amount', 'amplified-import-export' ),
+			'maximum_amount' => __( 'Maximum spend amount', 'amplified-import-export' ),
 		];
 	}
 
@@ -257,7 +257,7 @@ class Coupon_Exporter extends Abstract_Exporter {
 	public function get_data( $options = [] ) {
 		// Check if WooCommerce is active
 		if ( ! class_exists( 'WC_Coupon' ) ) {
-			return new \WP_Error( 'woocommerce_inactive', __( 'WooCommerce is not active', 'advanced-import-export' ) );
+			return new \WP_Error( 'woocommerce_inactive', __( 'WooCommerce is not active', 'amplified-import-export' ) );
 		}
 
 		$args = $this->build_query_args( $options );

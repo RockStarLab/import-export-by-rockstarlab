@@ -28,7 +28,7 @@ class Media_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WordPress media attachments', 'advanced-import-export' );
+		return __( 'Export WordPress media attachments', 'amplified-import-export' );
 	}
 
 	/**
@@ -38,15 +38,15 @@ class Media_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'mime_type'     => __( 'MIME type (image/jpeg, image/png, etc.) or type group (image, video, audio, document)', 'advanced-import-export' ),
-			'post_parent'   => __( 'Parent post ID (0 for unattached)', 'advanced-import-export' ),
-			'date_query'    => __( 'Date query parameters', 'advanced-import-export' ),
-			'author'        => __( 'Author ID or array of IDs', 'advanced-import-export' ),
-			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'advanced-import-export' ),
-			's'             => __( 'Search query', 'advanced-import-export' ),
-			'orderby'       => __( 'Order by field', 'advanced-import-export' ),
-			'order'         => __( 'Order direction (ASC or DESC)', 'advanced-import-export' ),
-			'include_file'  => __( 'Include file content (base64 encoded)', 'advanced-import-export' ),
+			'mime_type'     => __( 'MIME type (image/jpeg, image/png, etc.) or type group (image, video, audio, document)', 'amplified-import-export' ),
+			'post_parent'   => __( 'Parent post ID (0 for unattached)', 'amplified-import-export' ),
+			'date_query'    => __( 'Date query parameters', 'amplified-import-export' ),
+			'author'        => __( 'Author ID or array of IDs', 'amplified-import-export' ),
+			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'amplified-import-export' ),
+			's'             => __( 'Search query', 'amplified-import-export' ),
+			'orderby'       => __( 'Order by field', 'amplified-import-export' ),
+			'order'         => __( 'Order direction (ASC or DESC)', 'amplified-import-export' ),
+			'include_file'  => __( 'Include file content (base64 encoded)', 'amplified-import-export' ),
 		];
 	}
 
