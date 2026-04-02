@@ -43,7 +43,7 @@ class Comment_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Import WordPress comments with metadata and ACF fields', 'wp-advanced-import-export' );
+		return __( 'Import WordPress comments with metadata and ACF fields', 'advanced-import-export' );
 	}
 
 	/**
@@ -223,7 +223,7 @@ class Comment_Importer extends Abstract_Importer {
 		if ( empty( $item['comment_content'] ) ) {
 			return new \WP_Error(
 				'missing_comment_content',
-				__( 'Comment content is required', 'wp-advanced-import-export' )
+				__( 'Comment content is required', 'advanced-import-export' )
 			);
 		}
 
@@ -233,7 +233,7 @@ class Comment_Importer extends Abstract_Importer {
 		if ( ! $post_id ) {
 			return new \WP_Error(
 				'missing_post_id',
-				__( 'Post ID is required', 'wp-advanced-import-export' )
+				__( 'Post ID is required', 'advanced-import-export' )
 			);
 		}
 		
@@ -251,7 +251,7 @@ class Comment_Importer extends Abstract_Importer {
 					$new_post_id = wp_insert_post(
 						[
 							// translators: %d is a dynamic value.
-							'post_title'   => $item['post_title'] ?? sprintf( __( 'Imported Post %d', 'wp-advanced-import-export' ), $post_id ),
+							'post_title'   => $item['post_title'] ?? sprintf( __( 'Imported Post %d', 'advanced-import-export' ), $post_id ),
 							'post_status'  => 'draft',
 							'post_content' => '',
 						]
@@ -261,7 +261,7 @@ class Comment_Importer extends Abstract_Importer {
 							'post_creation_failed',
 							sprintf(
 								/* translators: %s: error message */
-								__( 'Failed to create missing post: %s', 'wp-advanced-import-export' ),
+								__( 'Failed to create missing post: %s', 'advanced-import-export' ),
 								$new_post_id->get_error_message()
 							)
 						);
@@ -277,7 +277,7 @@ class Comment_Importer extends Abstract_Importer {
 						'post_not_found',
 						sprintf(
 							/* translators: %d: post ID */
-							__( 'Post ID %d does not exist', 'wp-advanced-import-export' ),
+							__( 'Post ID %d does not exist', 'advanced-import-export' ),
 							$post_id
 						)
 					);
@@ -341,7 +341,7 @@ class Comment_Importer extends Abstract_Importer {
 		if ( ! $comment_id ) {
 			return new \WP_Error(
 				'comment_creation_failed',
-				__( 'Failed to create comment', 'wp-advanced-import-export' )
+				__( 'Failed to create comment', 'advanced-import-export' )
 			);
 		}
 

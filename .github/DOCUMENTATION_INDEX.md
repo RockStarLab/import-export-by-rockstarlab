@@ -759,7 +759,7 @@ GPL v2 or later - see [license.txt](../license.txt)
 ## 🗺️ File Structure
 
 ```
-wp-advanced-import-export/
+advanced-import-export/
 ├── .github/
 │   ├── DOCUMENTATION_INDEX.md          ← You are here
 │   ├── MEDIA_SYNC_CARD.md             ← Quick reference
@@ -786,7 +786,7 @@ wp-advanced-import-export/
 ├── copilot-instructions.md             ← AI coding rules
 ├── readme.txt                          ← WordPress.org readme
 │
-└── wp-advanced-import-export.php       ← Main plugin file
+└── advanced-import-export.php       ← Main plugin file
 ```
 
 ---

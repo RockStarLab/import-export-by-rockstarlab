@@ -204,7 +204,7 @@ class Functions_Controller extends Base_Controller {
 		$function_id = $this->get_request_param( 'id', '' );
 
 		if ( empty( $function_id ) ) {
-			$this->send_error( __( 'Function ID is required', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'Function ID is required', 'advanced-import-export' ) );
 		}
 
 		// Check if this is a library snippet
@@ -214,7 +214,7 @@ class Functions_Controller extends Base_Controller {
 			$snippet     = $library->get_snippet( $snippet_key );
 
 			if ( ! $snippet ) {
-				$this->send_error( __( 'Snippet not found', 'wp-advanced-import-export' ) );
+				$this->send_error( __( 'Snippet not found', 'advanced-import-export' ) );
 			}
 
 			// Add <?php tag to snippet code if not present (for editor syntax highlighting)
@@ -244,7 +244,7 @@ class Functions_Controller extends Base_Controller {
 		$function        = $model->get( $function_id_int );
 
 		if ( ! $function ) {
-			$this->send_error( __( 'Function not found', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'Function not found', 'advanced-import-export' ) );
 		}
 
 		$this->send_success( $function );
@@ -268,7 +268,7 @@ class Functions_Controller extends Base_Controller {
 		$status   = $this->get_request_param( 'status', 'active' );
 
 		if ( empty( $name ) || empty( $code ) ) {
-			$this->send_error( __( 'Name and code are required', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'Name and code are required', 'advanced-import-export' ) );
 		}
 
 		$model = new Custom_Function();
@@ -296,14 +296,14 @@ class Functions_Controller extends Base_Controller {
 		}
 
 		if ( ! $function_id ) {
-			$this->send_error( __( 'Failed to create function', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'Failed to create function', 'advanced-import-export' ) );
 		}
 
 		$function = $model->get( $function_id );
 
 		$this->send_success(
 			[
-				'message'  => __( 'Function created successfully', 'wp-advanced-import-export' ),
+				'message'  => __( 'Function created successfully', 'advanced-import-export' ),
 				'function' => $function,
 			]
 		);
@@ -321,7 +321,7 @@ class Functions_Controller extends Base_Controller {
 		$function_id = $this->get_request_param( 'id', '' );
 
 		if ( empty( $function_id ) ) {
-			$this->send_error( __( 'Function ID is required', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'Function ID is required', 'advanced-import-export' ) );
 		}
 
 		// If trying to update a library snippet, create a new custom function instead
@@ -336,7 +336,7 @@ class Functions_Controller extends Base_Controller {
 
 		// Check if function exists and user can edit
 		if ( ! $model->can_edit_function( $function_id_int ) ) {
-			$this->send_error( __( 'You do not have permission to edit this function', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'You do not have permission to edit this function', 'advanced-import-export' ) );
 		}
 
 		$update_data = [];
@@ -382,7 +382,7 @@ class Functions_Controller extends Base_Controller {
 		}
 
 		if ( empty( $update_data ) ) {
-			$this->send_error( __( 'No data to update', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'No data to update', 'advanced-import-export' ) );
 		}
 
 		$result = $model->update( $function_id_int, $update_data );
@@ -392,14 +392,14 @@ class Functions_Controller extends Base_Controller {
 		}
 
 		if ( ! $result ) {
-			$this->send_error( __( 'Failed to update function', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'Failed to update function', 'advanced-import-export' ) );
 		}
 
 		$function = $model->get( $function_id_int );
 
 		$this->send_success(
 			[
-				'message'  => __( 'Function updated successfully', 'wp-advanced-import-export' ),
+				'message'  => __( 'Function updated successfully', 'advanced-import-export' ),
 				'function' => $function,
 			]
 		);
@@ -417,12 +417,12 @@ class Functions_Controller extends Base_Controller {
 		$function_id = $this->get_request_param( 'id', '' );
 
 		if ( empty( $function_id ) ) {
-			$this->send_error( __( 'Function ID is required', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'Function ID is required', 'advanced-import-export' ) );
 		}
 
 		// Cannot delete library snippets
 		if ( strpos( $function_id, 'snippet_' ) === 0 ) {
-			$this->send_error( __( 'Library snippets cannot be deleted', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'Library snippets cannot be deleted', 'advanced-import-export' ) );
 		}
 
 		$function_id_int = (int) $function_id;
@@ -430,18 +430,18 @@ class Functions_Controller extends Base_Controller {
 
 		// Check permissions
 		if ( ! $model->can_edit_function( $function_id_int ) ) {
-			$this->send_error( __( 'You do not have permission to delete this function', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'You do not have permission to delete this function', 'advanced-import-export' ) );
 		}
 
 		$result = $model->delete( $function_id_int );
 
 		if ( ! $result ) {
-			$this->send_error( __( 'Failed to delete function', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'Failed to delete function', 'advanced-import-export' ) );
 		}
 
 		$this->send_success(
 			[
-				'message' => __( 'Function deleted successfully', 'wp-advanced-import-export' ),
+				'message' => __( 'Function deleted successfully', 'advanced-import-export' ),
 			]
 		);
 	}
@@ -461,7 +461,7 @@ class Functions_Controller extends Base_Controller {
 		$value = $this->get_request_param( 'value', '' );
 
 		if ( empty( $code ) ) {
-			$this->send_error( __( 'Code is required', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'Code is required', 'advanced-import-export' ) );
 		}
 
 		$model  = new Custom_Function();
@@ -492,7 +492,7 @@ class Functions_Controller extends Base_Controller {
 		$function_ids = $this->get_request_array( 'functions' );
 
 		if ( empty( $function_ids ) ) {
-			$this->send_error( __( 'No functions provided', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'No functions provided', 'advanced-import-export' ) );
 		}
 
 		$model         = new Custom_Function();
@@ -639,7 +639,7 @@ class Functions_Controller extends Base_Controller {
 		$query = $this->get_request_param( 'query', '' );
 
 		if ( empty( $query ) ) {
-			$this->send_error( __( 'Search query is required', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'Search query is required', 'advanced-import-export' ) );
 		}
 
 		$library = new Function_Snippets();
@@ -674,7 +674,7 @@ class Functions_Controller extends Base_Controller {
 		$description = $this->get_request_param( 'description', '' );
 
 		if ( empty( $snippet_key ) ) {
-			$this->send_error( __( 'Snippet key is required', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'Snippet key is required', 'advanced-import-export' ) );
 		}
 
 		$model = new Custom_Function();
@@ -688,14 +688,14 @@ class Functions_Controller extends Base_Controller {
 		);
 
 		if ( ! $function_id ) {
-			$this->send_error( __( 'Failed to import snippet', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'Failed to import snippet', 'advanced-import-export' ) );
 		}
 
 		$function = $model->get( $function_id );
 
 		$this->send_success(
 			[
-				'message'  => __( 'Snippet imported successfully', 'wp-advanced-import-export' ),
+				'message'  => __( 'Snippet imported successfully', 'advanced-import-export' ),
 				'function' => $function,
 			]
 		);
@@ -711,15 +711,15 @@ class Functions_Controller extends Base_Controller {
 		}
 
 		// Check if premium
-		$is_premium = function_exists( 'waie_fs' ) && waie_fs()->can_use_premium_code();
+		$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
 		if ( ! $is_premium ) {
-			$this->send_error( __( 'AI function generation is a premium feature.', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'AI function generation is a premium feature.', 'advanced-import-export' ) );
 		}
 
 		$prompt = $this->get_request_param( 'prompt', '' );
 
 		if ( empty( $prompt ) ) {
-			$this->send_error( __( 'Prompt is required', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'Prompt is required', 'advanced-import-export' ) );
 		}
 
 		// Import AI helper

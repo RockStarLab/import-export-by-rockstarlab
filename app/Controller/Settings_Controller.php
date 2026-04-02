@@ -35,7 +35,7 @@ class Settings_Controller extends Base_Controller {
 
 		// Check permissions
 		if ( ! current_user_can( 'manage_options' ) ) {
-			$this->send_error( __( 'You do not have permission to manage settings', 'wp-advanced-import-export' ) );
+			$this->send_error( __( 'You do not have permission to manage settings', 'advanced-import-export' ) );
 		}
 
 		$openai_api_key = $this->get_request_param( 'openai_api_key', '' );
@@ -44,7 +44,7 @@ class Settings_Controller extends Base_Controller {
 		if ( ! empty( $openai_api_key ) ) {
 			// Validate API key format
 			if ( ! $this->validate_openai_api_key( $openai_api_key ) ) {
-				$this->send_error( __( 'Invalid OpenAI API key format. Key should start with "sk-"', 'wp-advanced-import-export' ) );
+				$this->send_error( __( 'Invalid OpenAI API key format. Key should start with "sk-"', 'advanced-import-export' ) );
 			}
 
 			update_option( 'wp_aie_openai_api_key', sanitize_text_field( $openai_api_key ) );
@@ -55,7 +55,7 @@ class Settings_Controller extends Base_Controller {
 
 		$this->send_success(
 			[
-				'message' => __( 'Settings saved successfully', 'wp-advanced-import-export' ),
+				'message' => __( 'Settings saved successfully', 'advanced-import-export' ),
 			]
 		);
 	}

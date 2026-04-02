@@ -12,22 +12,22 @@ defined( 'ABSPATH' ) || exit;
 <div class="aie-steps-indicator">
 	<div class="aie-step-indicator active" data-step="1">
 		<div class="aie-step-number">1</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Content Type', 'wp-advanced-import-export' ); ?></div>
+		<div class="aie-step-label"><?php esc_html_e( 'Content Type', 'advanced-import-export' ); ?></div>
 	</div>
 	<div class="aie-step-indicator" data-step="2">
 		<div class="aie-step-number">2</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Filters', 'wp-advanced-import-export' ); ?></div>
+		<div class="aie-step-label"><?php esc_html_e( 'Filters', 'advanced-import-export' ); ?></div>
 	</div>
 	<div class="aie-step-indicator" data-step="3">
 		<div class="aie-step-number">3</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Fields', 'wp-advanced-import-export' ); ?></div>
+		<div class="aie-step-label"><?php esc_html_e( 'Fields', 'advanced-import-export' ); ?></div>
 	</div>
 	<div class="aie-step-indicator" data-step="4">
 		<div class="aie-step-number">4</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Format', 'wp-advanced-import-export' ); ?></div>
+		<div class="aie-step-label"><?php esc_html_e( 'Format', 'advanced-import-export' ); ?></div>
 	</div>
 	<div class="aie-step-indicator" data-step="5">
 		<div class="aie-step-number">5</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Export', 'wp-advanced-import-export' ); ?></div>
+		<div class="aie-step-label"><?php esc_html_e( 'Export', 'advanced-import-export' ); ?></div>
 	</div>
 </div>

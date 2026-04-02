@@ -9619,7 +9619,7 @@ var FunctionLibrary = {
 
     // Check if "Use" button should be shown
     var currentPage = ((_window$aieData5 = window.aieData) === null || _window$aieData5 === void 0 ? void 0 : _window$aieData5.currentPage) || '';
-    var allowedPages = ['wp-advanced-import-export', 'wp-aie-export', 'wp-aie-content-sync', 'wp-aie-functions' // Add Functions page
+    var allowedPages = ['advanced-import-export', 'wp-aie-export', 'wp-aie-content-sync', 'wp-aie-functions' // Add Functions page
     ];
     var showUseButton = allowedPages.includes(currentPage);
     grid.innerHTML = snippets.map(function (_ref5) {
@@ -9767,7 +9767,7 @@ var FunctionLibrary = {
     if (useButton) {
       var _window$aieData10;
       var currentPage = ((_window$aieData10 = window.aieData) === null || _window$aieData10 === void 0 ? void 0 : _window$aieData10.currentPage) || '';
-      var allowedPages = ['wp-advanced-import-export', 'wp-aie-export', 'wp-aie-content-sync'];
+      var allowedPages = ['advanced-import-export', 'wp-aie-export', 'wp-aie-content-sync'];
       useButton.style.display = allowedPages.includes(currentPage) ? '' : 'none';
     }
     modal.style.display = 'flex';

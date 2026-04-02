@@ -139,7 +139,7 @@ class Export_Controller extends Base_Controller {
 
 		// Validate format
 		if ( ! Format_Factory::is_supported( $format ) ) {
-			$this->send_error( __( 'Unsupported export format', 'wp-advanced-import-export' ), null, 400 );
+			$this->send_error( __( 'Unsupported export format', 'advanced-import-export' ), null, 400 );
 		}
 
 		// Create job
@@ -176,7 +176,7 @@ class Export_Controller extends Base_Controller {
 			[
 				'job_id' => $job_id,
 			],
-			__( 'Export started successfully', 'wp-advanced-import-export' )
+			__( 'Export started successfully', 'advanced-import-export' )
 		);
 	}
 
@@ -200,7 +200,7 @@ class Export_Controller extends Base_Controller {
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ), null, 404 );
+			$this->send_error( __( 'Job not found', 'advanced-import-export' ), null, 404 );
 		}
 
 		// Calculate progress metrics
@@ -312,13 +312,13 @@ class Export_Controller extends Base_Controller {
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data || empty( $job_data->file_path ) ) {
-			$this->send_error( __( 'Export file not found', 'wp-advanced-import-export' ), null, 404 );
+			$this->send_error( __( 'Export file not found', 'advanced-import-export' ), null, 404 );
 		}
 
 		$file_path = $job_data->file_path;
 
 		if ( ! file_exists( $file_path ) ) {
-			$this->send_error( __( 'Export file does not exist', 'wp-advanced-import-export' ), null, 404 );
+			$this->send_error( __( 'Export file does not exist', 'advanced-import-export' ), null, 404 );
 		}
 
 		// Generate download URL with nonce for security
@@ -357,7 +357,7 @@ class Export_Controller extends Base_Controller {
 		$nonce  = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
 
 		if ( ! wp_verify_nonce( $nonce, 'aie_download_' . $job_id ) ) {
-			wp_die( esc_html__( 'Security check failed', 'wp-advanced-import-export' ), 403 );
+			wp_die( esc_html__( 'Security check failed', 'advanced-import-export' ), 403 );
 		}
 
 		// Get job
@@ -365,13 +365,13 @@ class Export_Controller extends Base_Controller {
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data || empty( $job_data->file_path ) ) {
-			wp_die( esc_html__( 'Export file not found', 'wp-advanced-import-export' ), 404 );
+			wp_die( esc_html__( 'Export file not found', 'advanced-import-export' ), 404 );
 		}
 
 		$file_path = $job_data->file_path;
 
 		if ( ! file_exists( $file_path ) ) {
-			wp_die( esc_html__( 'Export file does not exist', 'wp-advanced-import-export' ), 404 );
+			wp_die( esc_html__( 'Export file does not exist', 'advanced-import-export' ), 404 );
 		}
 
 		// Send file for download
@@ -416,7 +416,7 @@ class Export_Controller extends Base_Controller {
 			$this->send_error( $job_result, null, 500 );
 		}
 
-		$this->send_success( null, __( 'Export cancelled', 'wp-advanced-import-export' ) );
+		$this->send_success( null, __( 'Export cancelled', 'advanced-import-export' ) );
 	}
 
 	/**
@@ -440,7 +440,7 @@ class Export_Controller extends Base_Controller {
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			$this->send_error( __( 'Job not found', 'wp-advanced-import-export' ), null, 404 );
+			$this->send_error( __( 'Job not found', 'advanced-import-export' ), null, 404 );
 		}
 
 		$license_check = $this->verify_premium_for_type( $job_data->data_type ?? '' );
@@ -684,7 +684,7 @@ class Export_Controller extends Base_Controller {
 		$columns  = $exporter->get_table_columns( $table_name );
 
 		if ( empty( $columns ) ) {
-			$this->send_error( __( 'Could not retrieve table columns', 'wp-advanced-import-export' ), null, 400 );
+			$this->send_error( __( 'Could not retrieve table columns', 'advanced-import-export' ), null, 400 );
 		}
 
 		$this->send_success( [ 'columns' => $columns ] );

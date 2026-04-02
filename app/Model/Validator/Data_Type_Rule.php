@@ -63,7 +63,7 @@ class Data_Type_Rule extends Validation_Rule {
 					'unknown_type',
 					sprintf(
 						/* translators: %s: data type */
-						__( 'Unknown data type: %s', 'wp-advanced-import-export' ),
+						__( 'Unknown data type: %s', 'advanced-import-export' ),
 						$type
 					)
 				);
@@ -84,7 +84,7 @@ class Data_Type_Rule extends Validation_Rule {
 				'invalid_string',
 				sprintf(
 					/* translators: %s: field name */
-					__( '%s must be a string', 'wp-advanced-import-export' ),
+					__( '%s must be a string', 'advanced-import-export' ),
 					$field_name
 				),
 				[ 'field' => $context['field_name'] ?? null ]
@@ -108,7 +108,7 @@ class Data_Type_Rule extends Validation_Rule {
 				'invalid_integer',
 				sprintf(
 					/* translators: %s: field name */
-					__( '%s must be an integer', 'wp-advanced-import-export' ),
+					__( '%s must be an integer', 'advanced-import-export' ),
 					$field_name
 				),
 				[ 'field' => $context['field_name'] ?? null ]
@@ -132,7 +132,7 @@ class Data_Type_Rule extends Validation_Rule {
 				'invalid_float',
 				sprintf(
 					/* translators: %s: field name */
-					__( '%s must be a number', 'wp-advanced-import-export' ),
+					__( '%s must be a number', 'advanced-import-export' ),
 					$field_name
 				),
 				[ 'field' => $context['field_name'] ?? null ]
@@ -158,7 +158,7 @@ class Data_Type_Rule extends Validation_Rule {
 				'invalid_boolean',
 				sprintf(
 					/* translators: %s: field name */
-					__( '%s must be a boolean value', 'wp-advanced-import-export' ),
+					__( '%s must be a boolean value', 'advanced-import-export' ),
 					$field_name
 				),
 				[ 'field' => $context['field_name'] ?? null ]
@@ -182,7 +182,7 @@ class Data_Type_Rule extends Validation_Rule {
 				'invalid_email',
 				sprintf(
 					/* translators: %s: field name */
-					__( '%s must be a valid email address', 'wp-advanced-import-export' ),
+					__( '%s must be a valid email address', 'advanced-import-export' ),
 					$field_name
 				),
 				[
@@ -209,7 +209,7 @@ class Data_Type_Rule extends Validation_Rule {
 				'invalid_url',
 				sprintf(
 					/* translators: %s: field name */
-					__( '%s must be a valid URL', 'wp-advanced-import-export' ),
+					__( '%s must be a valid URL', 'advanced-import-export' ),
 					$field_name
 				),
 				[
@@ -240,7 +240,7 @@ class Data_Type_Rule extends Validation_Rule {
 				'invalid_date',
 				sprintf(
 					/* translators: 1: field name, 2: expected format */
-					__( '%1$s must be a valid date in format %2$s', 'wp-advanced-import-export' ),
+					__( '%1$s must be a valid date in format %2$s', 'advanced-import-export' ),
 					$field_name,
 					$format
 				),
@@ -273,7 +273,7 @@ class Data_Type_Rule extends Validation_Rule {
 				'invalid_datetime',
 				sprintf(
 					/* translators: 1: field name, 2: expected format */
-					__( '%1$s must be a valid datetime in format %2$s', 'wp-advanced-import-export' ),
+					__( '%1$s must be a valid datetime in format %2$s', 'advanced-import-export' ),
 					$field_name,
 					$format
 				),

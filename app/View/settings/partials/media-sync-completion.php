@@ -13,14 +13,14 @@ defined( 'ABSPATH' ) || exit;
 	<div class="aie-card-header">
 		<h2>
 			<span class="dashicons dashicons-yes-alt"></span>
-			<?php esc_html_e( 'Synchronization Complete', 'wp-advanced-import-export' ); ?>
+			<?php esc_html_e( 'Synchronization Complete', 'advanced-import-export' ); ?>
 		</h2>
 	</div>
 
 	<div class="aie-card-body">
 		<div class="notice notice-success inline">
 			<p id="aie-completion-message">
-				<?php esc_html_e( 'Media synchronization has been completed successfully!', 'wp-advanced-import-export' ); ?>
+				<?php esc_html_e( 'Media synchronization has been completed successfully!', 'advanced-import-export' ); ?>
 			</p>
 		</div>
 
@@ -31,11 +31,11 @@ defined( 'ABSPATH' ) || exit;
 		<div class="aie-actions">
 			<a href="<?php echo esc_url( admin_url( 'upload.php' ) ); ?>" class="button button-primary">
 				<span class="dashicons dashicons-admin-media"></span>
-				<?php esc_html_e( 'View Media Library', 'wp-advanced-import-export' ); ?>
+				<?php esc_html_e( 'View Media Library', 'advanced-import-export' ); ?>
 			</a>
 			<button type="button" id="aie-sync-another-btn" class="button">
 				<span class="dashicons dashicons-image-rotate"></span>
-				<?php esc_html_e( 'Sync Another Folder', 'wp-advanced-import-export' ); ?>
+				<?php esc_html_e( 'Sync Another Folder', 'advanced-import-export' ); ?>
 			</button>
 		</div>
 	</div>

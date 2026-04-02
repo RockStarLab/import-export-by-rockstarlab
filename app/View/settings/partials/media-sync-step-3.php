@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 	<div class="aie-card-header">
 		<h2>
 			<span class="dashicons dashicons-update aie-spin"></span>
-			<?php esc_html_e( 'Synchronization in Progress', 'wp-advanced-import-export' ); ?>
+			<?php esc_html_e( 'Synchronization in Progress', 'advanced-import-export' ); ?>
 		</h2>
 	</div>
 
@@ -24,25 +24,25 @@ defined( 'ABSPATH' ) || exit;
 			</div>
 			<div class="aie-progress-text">
 				<span id="aie-progress-percentage">0%</span>
-				<span id="aie-progress-status"><?php esc_html_e( 'Starting...', 'wp-advanced-import-export' ); ?></span>
+				<span id="aie-progress-status"><?php esc_html_e( 'Starting...', 'advanced-import-export' ); ?></span>
 			</div>
 		</div>
 
 		<div class="aie-sync-stats">
 			<div class="aie-stat-item">
-				<span class="aie-stat-label"><?php esc_html_e( 'Processed:', 'wp-advanced-import-export' ); ?></span>
+				<span class="aie-stat-label"><?php esc_html_e( 'Processed:', 'advanced-import-export' ); ?></span>
 				<span id="aie-stat-processed" class="aie-stat-value">0</span>
 			</div>
 			<div class="aie-stat-item aie-stat-success">
-				<span class="aie-stat-label"><?php esc_html_e( 'Success:', 'wp-advanced-import-export' ); ?></span>
+				<span class="aie-stat-label"><?php esc_html_e( 'Success:', 'advanced-import-export' ); ?></span>
 				<span id="aie-stat-success" class="aie-stat-value">0</span>
 			</div>
 			<div class="aie-stat-item aie-stat-skipped">
-				<span class="aie-stat-label"><?php esc_html_e( 'Skipped:', 'wp-advanced-import-export' ); ?></span>
+				<span class="aie-stat-label"><?php esc_html_e( 'Skipped:', 'advanced-import-export' ); ?></span>
 				<span id="aie-stat-skipped" class="aie-stat-value">0</span>
 			</div>
 			<div class="aie-stat-item aie-stat-failed">
-				<span class="aie-stat-label"><?php esc_html_e( 'Failed:', 'wp-advanced-import-export' ); ?></span>
+				<span class="aie-stat-label"><?php esc_html_e( 'Failed:', 'advanced-import-export' ); ?></span>
 				<span id="aie-stat-failed" class="aie-stat-value">0</span>
 			</div>
 		</div>
@@ -50,18 +50,18 @@ defined( 'ABSPATH' ) || exit;
 		<div class="aie-progress-actions">
 			<button type="button" id="aie-pause-sync-btn" class="button">
 				<span class="dashicons dashicons-controls-pause"></span>
-				<?php esc_html_e( 'Pause', 'wp-advanced-import-export' ); ?>
+				<?php esc_html_e( 'Pause', 'advanced-import-export' ); ?>
 			</button>
 			<button type="button" id="aie-cancel-sync-btn" class="button">
 				<span class="dashicons dashicons-no"></span>
-				<?php esc_html_e( 'Cancel', 'wp-advanced-import-export' ); ?>
+				<?php esc_html_e( 'Cancel', 'advanced-import-export' ); ?>
 			</button>
 		</div>
 
 		<!-- Error Log -->
 		<div id="aie-error-log" style="display: none;">
 			<hr>
-			<h3><?php esc_html_e( 'Errors', 'wp-advanced-import-export' ); ?></h3>
+			<h3><?php esc_html_e( 'Errors', 'advanced-import-export' ); ?></h3>
 			<ul id="aie-error-list" class="aie-error-list"></ul>
 		</div>
 	</div>

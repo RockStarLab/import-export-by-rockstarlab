@@ -210,7 +210,7 @@ class Safe_Code_Executor {
 					'error'  => true,
 					'message' => sprintf(
 						/* translators: %s: function name */
-						__( 'Function "%s" is not allowed. Only whitelisted functions are permitted.', 'wp-advanced-import-export' ),
+						__( 'Function "%s" is not allowed. Only whitelisted functions are permitted.', 'advanced-import-export' ),
 						$func
 					),
 				];
@@ -262,7 +262,7 @@ class Safe_Code_Executor {
 				'error'  => true,
 				'message' => sprintf(
 					/* translators: %s: parse error message */
-					__( 'PHP Syntax Error: %s', 'wp-advanced-import-export' ),
+					__( 'PHP Syntax Error: %s', 'advanced-import-export' ),
 					$e->getMessage()
 				),
 			];
@@ -317,7 +317,7 @@ class Safe_Code_Executor {
 			return [
 				'output' => '',
 				'error'  => true,
-				'message' => __( 'Function code is empty after processing', 'wp-advanced-import-export' ),
+				'message' => __( 'Function code is empty after processing', 'advanced-import-export' ),
 			];
 		}
 
@@ -440,7 +440,7 @@ class Safe_Code_Executor {
 					'dangerous_function',
 					sprintf(
 						/* translators: %s: function name */
-						__( 'Dangerous function "%s" is not allowed for security reasons.', 'wp-advanced-import-export' ),
+						__( 'Dangerous function "%s" is not allowed for security reasons.', 'advanced-import-export' ),
 						$func
 					)
 				);
@@ -451,7 +451,7 @@ class Safe_Code_Executor {
 		if ( strpos( $code, '`' ) !== false ) {
 			return new \WP_Error(
 				'dangerous_syntax',
-				__( 'Shell execution syntax (backticks) is not allowed.', 'wp-advanced-import-export' )
+				__( 'Shell execution syntax (backticks) is not allowed.', 'advanced-import-export' )
 			);
 		}
 
@@ -459,7 +459,7 @@ class Safe_Code_Executor {
 		if ( preg_match( '/\$\$/', $code ) ) {
 			return new \WP_Error(
 				'dangerous_syntax',
-				__( 'Variable variables ($$var) are not allowed.', 'wp-advanced-import-export' )
+				__( 'Variable variables ($$var) are not allowed.', 'advanced-import-export' )
 			);
 		}
 

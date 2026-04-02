@@ -49,7 +49,7 @@ class Database_Table_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export data from any MySQL database table', 'wp-advanced-import-export' );
+		return __( 'Export data from any MySQL database table', 'advanced-import-export' );
 	}
 
 	/**
@@ -59,9 +59,9 @@ class Database_Table_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'table_name' => __( 'Table name to export', 'wp-advanced-import-export' ),
-			'limit'      => __( 'Number of records to export', 'wp-advanced-import-export' ),
-			'offset'     => __( 'Number of records to skip', 'wp-advanced-import-export' ),
+			'table_name' => __( 'Table name to export', 'advanced-import-export' ),
+			'limit'      => __( 'Number of records to export', 'advanced-import-export' ),
+			'offset'     => __( 'Number of records to skip', 'advanced-import-export' ),
 		];
 	}
 
@@ -301,7 +301,7 @@ class Database_Table_Exporter extends Abstract_Exporter {
 		if ( empty( $options['table_name'] ) ) {
 			return new \WP_Error(
 				'no_table_selected',
-				__( 'No table selected for export', 'wp-advanced-import-export' )
+				__( 'No table selected for export', 'advanced-import-export' )
 			);
 		}
 
@@ -310,7 +310,7 @@ class Database_Table_Exporter extends Abstract_Exporter {
 		if ( '' === $table_name ) {
 			return new \WP_Error(
 				'invalid_table_name',
-				__( 'Invalid table name', 'wp-advanced-import-export' )
+				__( 'Invalid table name', 'advanced-import-export' )
 			);
 		}
 
@@ -328,7 +328,7 @@ class Database_Table_Exporter extends Abstract_Exporter {
 			return new \WP_Error(
 				'table_not_found',
 				// translators: %s is a dynamic value.
-				sprintf( __( 'Table %s not found', 'wp-advanced-import-export' ), $table_name )
+				sprintf( __( 'Table %s not found', 'advanced-import-export' ), $table_name )
 			);
 		}
 
@@ -535,7 +535,7 @@ class Database_Table_Exporter extends Abstract_Exporter {
 		if ( empty( $options['table_name'] ) ) {
 			return new \WP_Error(
 				'missing_table_name',
-				__( 'Table name is required', 'wp-advanced-import-export' )
+				__( 'Table name is required', 'advanced-import-export' )
 			);
 		}
 

@@ -178,13 +178,13 @@ To set up the environment, you need to have Node.js and npm installed. Then, run
 
 ## Project Structure
 
-The project follows the standard WordPress structure, with the main application logic encapsulated within the `wp-advanced-import-export` plugin.
+The project follows the standard WordPress structure, with the main application logic encapsulated within the `advanced-import-export` plugin.
 
 ```
 .
 ├── wp-content/
 │   ├── plugins/
-│   │   ├── wp-advanced-import-export/
+│   │   ├── advanced-import-export/
 │   │   │   ├── app/                 						# Core application logic (MVC)
 │   │   │   │   ├── controller/      						# Controllers (business logic)
 │   │   │   │   ├── model/           						# Models (data handling)
@@ -200,7 +200,7 @@ The project follows the standard WordPress structure, with the main application 
 │   │   │   ├── src/                  					# Source files (uncompiled)
 │   │   │   │   ├── scss/
 │   │   │   │   └── js/
-│   │   │   ├── wp-advanced-import-export.php		# Main plugin initialization file
+│   │   │   ├── advanced-import-export.php		# Main plugin initialization file
 │   │   └── ... (other plugins)
 │   └── ... (other wp-content folders)
 └── ... (other WordPress root files)
@@ -208,7 +208,7 @@ The project follows the standard WordPress structure, with the main application 
 
 ### Architecture Overview
 
-The `wp-advanced-import-export` plugin follows a **custom MVC-like architecture** with object-oriented principles:
+The `advanced-import-export` plugin follows a **custom MVC-like architecture** with object-oriented principles:
 
 #### Core Components
 
@@ -262,7 +262,7 @@ app/
 
 ## Important Notes
 
-- The plugin uses a singleton pattern for its core application class (`wp-advanced-import-export\app`), which can be accessed globally via the `WP_AIE()` function.
-- The autoloader in `wp-advanced-import-export.php` follows PSR-4 standards, so you don't need to manually include class files.
+- The plugin uses a singleton pattern for its core application class (`advanced-import-export\app`), which can be accessed globally via the `WP_AIE()` function.
+- The autoloader in `advanced-import-export.php` follows PSR-4 standards, so you don't need to manually include class files.
 - When adding new controllers, remember to update the `$controllers` array in `app/app.php` to ensure they are loaded correctly.
 - Plugin uses Freemius for licensing and updates; ensure to follow their guidelines when making changes related to licensing.

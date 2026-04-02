@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
-        'name' => 'rockstarlab/wp-advanced-import-export',
+        'name' => 'rockstarlab/advanced-import-export',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '01d17512825acb4f5bc44cc10da4c0a1d5295ed5',
+        'reference' => 'b3d4a00d531b30503550085c8cd0563efe46e52c',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -55,10 +55,10 @@
             'aliases' => array(),
             'dev_requirement' => true,
         ),
-        'rockstarlab/wp-advanced-import-export' => array(
+        'rockstarlab/advanced-import-export' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '01d17512825acb4f5bc44cc10da4c0a1d5295ed5',
+            'reference' => 'b3d4a00d531b30503550085c8cd0563efe46e52c',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

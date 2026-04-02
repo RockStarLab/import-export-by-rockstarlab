@@ -9,10 +9,10 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 <div class="misc-pub-section aie-sync-section">
-	<strong><?php esc_html_e( 'Content Sync', 'wp-advanced-import-export' ); ?></strong>
+	<strong><?php esc_html_e( 'Content Sync', 'advanced-import-export' ); ?></strong>
 	<div>
 		<button type="button" id="aie-sync-content-btn" class="button button-secondary" style="width: 100%;">
-			<?php esc_html_e( 'Sync This Post', 'wp-advanced-import-export' ); ?>
+			<?php esc_html_e( 'Sync This Post', 'advanced-import-export' ); ?>
 		</button>
 	</div>
 </div>

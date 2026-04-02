@@ -207,7 +207,7 @@ class Function_Executor {
 		if ( empty( trim( $code ) ) ) {
 			return new \WP_Error(
 				'empty_code',
-				__( 'Function code cannot be empty', 'wp-advanced-import-export' )
+				__( 'Function code cannot be empty', 'advanced-import-export' )
 			);
 		}
 
@@ -220,7 +220,7 @@ class Function_Executor {
 		if ( empty( $clean_code ) ) {
 			return new \WP_Error(
 				'empty_code',
-				__( 'Function code cannot be empty', 'wp-advanced-import-export' )
+				__( 'Function code cannot be empty', 'advanced-import-export' )
 			);
 		}
 
@@ -229,7 +229,7 @@ class Function_Executor {
 			if ( preg_match( $pattern, $clean_code ) ) {
 				return new \WP_Error(
 					'dangerous_code',
-					__( 'Function contains dangerous or disallowed PHP constructs', 'wp-advanced-import-export' )
+					__( 'Function contains dangerous or disallowed PHP constructs', 'advanced-import-export' )
 				);
 			}
 		}
@@ -245,7 +245,7 @@ class Function_Executor {
 		if ( false === $tokens ) {
 			return new \WP_Error(
 				'parse_error',
-				__( 'Function code contains syntax errors', 'wp-advanced-import-export' )
+				__( 'Function code contains syntax errors', 'advanced-import-export' )
 			);
 		}
 
@@ -256,7 +256,7 @@ class Function_Executor {
 					'parse_error',
 					sprintf(
 						/* translators: %s: Error token */
-						__( 'Syntax error near: %s', 'wp-advanced-import-export' ),
+						__( 'Syntax error near: %s', 'advanced-import-export' ),
 						$token[1]
 					)
 				);
@@ -268,7 +268,7 @@ class Function_Executor {
 		$test_result = Safe_Code_Executor::execute( $clean_code, 'test_value' );
 
 		if ( $test_result['error'] ) {
-			$error_message = $test_result['message'] ?? __( 'The function code contains errors. Please check your PHP syntax.', 'wp-advanced-import-export' );
+			$error_message = $test_result['message'] ?? __( 'The function code contains errors. Please check your PHP syntax.', 'advanced-import-export' );
 			
 			return new \WP_Error(
 				'validation_error',

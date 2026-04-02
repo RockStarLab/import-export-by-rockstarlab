@@ -28,7 +28,7 @@ class Order_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WooCommerce orders', 'wp-advanced-import-export' );
+		return __( 'Export WooCommerce orders', 'advanced-import-export' );
 	}
 
 	/**
@@ -38,14 +38,14 @@ class Order_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'status'         => __( 'Order status (completed, processing, pending, etc.)', 'wp-advanced-import-export' ),
-			'date_created'   => __( 'Date created range', 'wp-advanced-import-export' ),
-			'date_modified'  => __( 'Date modified range', 'wp-advanced-import-export' ),
-			'customer_id'    => __( 'Customer user ID', 'wp-advanced-import-export' ),
-			'billing_email'  => __( 'Billing email', 'wp-advanced-import-export' ),
-			'payment_method' => __( 'Payment method', 'wp-advanced-import-export' ),
-			'total'          => __( 'Order total', 'wp-advanced-import-export' ),
-			'order_key'      => __( 'Order key', 'wp-advanced-import-export' ),
+			'status'         => __( 'Order status (completed, processing, pending, etc.)', 'advanced-import-export' ),
+			'date_created'   => __( 'Date created range', 'advanced-import-export' ),
+			'date_modified'  => __( 'Date modified range', 'advanced-import-export' ),
+			'customer_id'    => __( 'Customer user ID', 'advanced-import-export' ),
+			'billing_email'  => __( 'Billing email', 'advanced-import-export' ),
+			'payment_method' => __( 'Payment method', 'advanced-import-export' ),
+			'total'          => __( 'Order total', 'advanced-import-export' ),
+			'order_key'      => __( 'Order key', 'advanced-import-export' ),
 		];
 	}
 
@@ -272,7 +272,7 @@ class Order_Exporter extends Abstract_Exporter {
 	public function get_data( $options = [] ) {
 		// Check if WooCommerce is active
 		if ( ! function_exists( 'wc_get_orders' ) ) {
-			$error = new \WP_Error( 'woocommerce_inactive', __( 'WooCommerce is not active', 'wp-advanced-import-export' ) );
+			$error = new \WP_Error( 'woocommerce_inactive', __( 'WooCommerce is not active', 'advanced-import-export' ) );
 			$this->log_error( 'WooCommerce is not active' );
 			return $error;
 		}

@@ -28,7 +28,7 @@ class Product_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Import WooCommerce products with all metadata, categories, tags, and images', 'wp-advanced-import-export' );
+		return __( 'Import WooCommerce products with all metadata, categories, tags, and images', 'advanced-import-export' );
 	}
 
 	/**
@@ -243,7 +243,7 @@ class Product_Importer extends Abstract_Importer {
 		if ( empty( $item['post_title'] ) ) {
 			return new \WP_Error(
 				'missing_product_title',
-				__( 'Product title is required', 'wp-advanced-import-export' )
+				__( 'Product title is required', 'advanced-import-export' )
 			);
 		}
 
@@ -1002,7 +1002,7 @@ class Product_Importer extends Abstract_Importer {
 	private function download_url_unrestricted( string $url, int $timeout ) {
 		$tmp = wp_tempnam( $url );
 		if ( ! $tmp ) {
-			return new \WP_Error( 'aie_temp_file_failed', __( 'Could not create a temporary file for download.', 'wp-advanced-import-export' ) );
+			return new \WP_Error( 'aie_temp_file_failed', __( 'Could not create a temporary file for download.', 'advanced-import-export' ) );
 		}
 
 		$response = wp_remote_get(

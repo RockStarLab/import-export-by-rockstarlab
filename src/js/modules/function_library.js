@@ -207,7 +207,7 @@ const FunctionLibrary = {
 		// Check if "Use" button should be shown
 	const currentPage = window.aieData?.currentPage || '';
 	const allowedPages = [
-		'wp-advanced-import-export',
+		'advanced-import-export',
 		'wp-aie-export',
 		'wp-aie-content-sync',
 		'wp-aie-functions', // Add Functions page
@@ -392,7 +392,7 @@ const FunctionLibrary = {
 		if ( useButton ) {
 			const currentPage = window.aieData?.currentPage || '';
 			const allowedPages = [
-				'wp-advanced-import-export',
+				'advanced-import-export',
 				'wp-aie-export',
 				'wp-aie-content-sync',
 			];

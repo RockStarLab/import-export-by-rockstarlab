@@ -11,8 +11,8 @@ defined( 'ABSPATH' ) || exit;
 <!-- Step 5: Export Progress -->
 <div class="aie-step aie-step-5" data-step="5">
 	<div class="aie-step-header">
-		<h2><?php esc_html_e( 'Export in Progress', 'wp-advanced-import-export' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Please wait while your data is being exported', 'wp-advanced-import-export' ); ?></p>
+		<h2><?php esc_html_e( 'Export in Progress', 'advanced-import-export' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Please wait while your data is being exported', 'advanced-import-export' ); ?></p>
 	</div>
 
 	<div class="aie-step-content">
@@ -24,21 +24,21 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-progress-percentage">0%</div>
 				<div class="aie-progress-details">
 					<span class="aie-processed">0</span> / <span class="aie-total">0</span>
-					<?php esc_html_e( 'items', 'wp-advanced-import-export' ); ?>
+					<?php esc_html_e( 'items', 'advanced-import-export' ); ?>
 				</div>
 			</div>
 			
 			<div class="aie-progress-estimates">
 				<div class="aie-estimate">
-					<span class="label"><?php esc_html_e( 'Elapsed:', 'wp-advanced-import-export' ); ?></span>
+					<span class="label"><?php esc_html_e( 'Elapsed:', 'advanced-import-export' ); ?></span>
 					<span class="value aie-elapsed-time">0s</span>
 				</div>
 				<div class="aie-estimate">
-					<span class="label"><?php esc_html_e( 'Remaining:', 'wp-advanced-import-export' ); ?></span>
+					<span class="label"><?php esc_html_e( 'Remaining:', 'advanced-import-export' ); ?></span>
 					<span class="value aie-remaining-time">-</span>
 				</div>
 				<div class="aie-estimate">
-					<span class="label"><?php esc_html_e( 'Speed:', 'wp-advanced-import-export' ); ?></span>
+					<span class="label"><?php esc_html_e( 'Speed:', 'advanced-import-export' ); ?></span>
 					<span class="value aie-items-per-second">-</span>
 				</div>
 			</div>
@@ -49,8 +49,8 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-complete-icon">
 					<span class="dashicons dashicons-yes-alt"></span>
 				</div>
-				<h3 class="aie-complete-title"><?php esc_html_e( 'Export Completed Successfully!', 'wp-advanced-import-export' ); ?></h3>
-				<p class="aie-complete-subtitle"><?php esc_html_e( 'Your data has been exported and is ready to download', 'wp-advanced-import-export' ); ?></p>
+				<h3 class="aie-complete-title"><?php esc_html_e( 'Export Completed Successfully!', 'advanced-import-export' ); ?></h3>
+				<p class="aie-complete-subtitle"><?php esc_html_e( 'Your data has been exported and is ready to download', 'advanced-import-export' ); ?></p>
 				
 				<div class="aie-results-grid">
 					<div class="aie-result-item">
@@ -58,7 +58,7 @@ defined( 'ABSPATH' ) || exit;
 							<span class="dashicons dashicons-database-export"></span>
 						</div>
 						<div class="aie-result-details">
-							<span class="aie-result-label"><?php esc_html_e( 'Items Exported', 'wp-advanced-import-export' ); ?></span>
+							<span class="aie-result-label"><?php esc_html_e( 'Items Exported', 'advanced-import-export' ); ?></span>
 							<strong class="aie-result-value aie-result-processed">0</strong>
 						</div>
 					</div>
@@ -67,7 +67,7 @@ defined( 'ABSPATH' ) || exit;
 							<span class="dashicons dashicons-media-document"></span>
 						</div>
 						<div class="aie-result-details">
-							<span class="aie-result-label"><?php esc_html_e( 'File Size', 'wp-advanced-import-export' ); ?></span>
+							<span class="aie-result-label"><?php esc_html_e( 'File Size', 'advanced-import-export' ); ?></span>
 							<strong class="aie-result-value aie-result-filesize">0 KB</strong>
 						</div>
 					</div>
@@ -76,7 +76,7 @@ defined( 'ABSPATH' ) || exit;
 							<span class="dashicons dashicons-clock"></span>
 						</div>
 						<div class="aie-result-details">
-							<span class="aie-result-label"><?php esc_html_e( 'Duration', 'wp-advanced-import-export' ); ?></span>
+							<span class="aie-result-label"><?php esc_html_e( 'Duration', 'advanced-import-export' ); ?></span>
 							<strong class="aie-result-value aie-result-duration">0s</strong>
 						</div>
 					</div>
@@ -85,7 +85,7 @@ defined( 'ABSPATH' ) || exit;
 				<p class="aie-download-action">
 					<button type="button" class="button button-primary button-hero aie-download-file">
 						<span class="dashicons dashicons-download"></span>
-						<?php esc_html_e( 'Download Export File', 'wp-advanced-import-export' ); ?>
+						<?php esc_html_e( 'Download Export File', 'advanced-import-export' ); ?>
 					</button>
 				</p>
 			</div>
@@ -94,11 +94,11 @@ defined( 'ABSPATH' ) || exit;
 		<div class="aie-step-actions">
 			<button type="button" class="button button-secondary aie-cancel-export">
 				<span class="dashicons dashicons-no"></span>
-				<?php esc_html_e( 'Cancel Export', 'wp-advanced-import-export' ); ?>
+				<?php esc_html_e( 'Cancel Export', 'advanced-import-export' ); ?>
 			</button>
 			<button type="button" class="button button-primary aie-new-export" style="display:none;">
 				<span class="dashicons dashicons-plus"></span>
-				<?php esc_html_e( 'New Export', 'wp-advanced-import-export' ); ?>
+				<?php esc_html_e( 'New Export', 'advanced-import-export' ); ?>
 			</button>
 		</div>
 	</div>
