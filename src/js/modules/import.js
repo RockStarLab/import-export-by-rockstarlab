@@ -80,33 +80,30 @@ const ImportModule = {
 			return false;
 		} );
 
-		// File upload
-		jQuery( '#aie-select-file' ).on( 'click', () =>
-			jQuery( '#aie-file-input' ).click()
-		);
-		jQuery( '#aie-file-input' ).on( 'change', ( e ) =>
-			this.onFileSelect( e )
-		);
-		jQuery( '.aie-remove-file' ).on( 'click', () => this.removeFile() );
+		// File upload (delegated so it keeps working after wizard resets / partial re-renders).
+		$wizard.on( 'click', '#aie-select-file', () => {
+			$wizard.find( '#aie-file-input' ).trigger( 'click' );
+		} );
+		$wizard.on( 'change', '#aie-file-input', ( e ) => this.onFileSelect( e ) );
+		$wizard.on( 'click', '.aie-remove-file', () => this.removeFile() );
 
-		// Drag & drop
-		const $dropZone = jQuery( '#aie-upload-area' );
-		$dropZone
-			.on( 'dragover', ( e ) => {
-				e.preventDefault();
-				$dropZone.addClass( 'aie-dragover' );
-			} )
-			.on( 'dragleave', () => {
-				$dropZone.removeClass( 'aie-dragover' );
-			} )
-			.on( 'drop', ( e ) => {
-				e.preventDefault();
-				$dropZone.removeClass( 'aie-dragover' );
-				const files = e.originalEvent.dataTransfer.files;
-				if ( files.length > 0 ) {
-					this.handleFile( files[ 0 ] );
-				}
-			} );
+		// Drag & drop (delegated for resilience).
+		$wizard.on( 'dragover', '#aie-upload-area', ( e ) => {
+			e.preventDefault();
+			jQuery( e.currentTarget ).addClass( 'aie-dragover' );
+		} );
+		$wizard.on( 'dragleave', '#aie-upload-area', ( e ) => {
+			jQuery( e.currentTarget ).removeClass( 'aie-dragover' );
+		} );
+		$wizard.on( 'drop', '#aie-upload-area', ( e ) => {
+			e.preventDefault();
+			const $dropZone = jQuery( e.currentTarget );
+			$dropZone.removeClass( 'aie-dragover' );
+			const files = e.originalEvent.dataTransfer.files;
+			if ( files.length > 0 ) {
+				this.handleFile( files[ 0 ] );
+			}
+		} );
 
 		// CSV delimiter options
 		$wizard.on( 'change', '#csv_delimiter', ( e ) => {

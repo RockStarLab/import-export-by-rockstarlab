@@ -298,14 +298,26 @@ class Media_Importer extends Abstract_Importer {
 	private function download_file( $url ) {
 		$timeout = $this->get_option( 'download_timeout', 30 );
 
-		$response = wp_remote_get(
-			$url,
-			[
-				'timeout'  => $timeout,
-				'stream'   => true,
-				'filename' => wp_tempnam( $url ),
-			]
-		);
+		$args = [
+			'timeout'  => $timeout,
+			'stream'   => true,
+			'filename' => wp_tempnam( $url ),
+		];
+
+		$response = wp_remote_get( $url, $args );
+
+		// In local/dev environments, WordPress can reject ".local"/".test" hosts as
+		// "unsafe" and return "A valid URL was not provided." even though the URL
+		// is reachable. Retry with `reject_unsafe_urls=false` for common dev TLDs.
+		if ( is_wp_error( $response ) ) {
+			$host       = wp_parse_url( $url, PHP_URL_HOST );
+			$is_dev_host = is_string( $host ) && preg_match( '/\\.(local|test|localhost)$/i', $host );
+
+			if ( $is_dev_host ) {
+				$args['reject_unsafe_urls'] = false;
+				$response                  = wp_remote_get( $url, $args );
+			}
+		}
 
 		if ( is_wp_error( $response ) ) {
 			return $response;
