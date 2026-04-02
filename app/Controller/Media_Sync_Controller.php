@@ -62,7 +62,7 @@ class Media_Sync_Controller extends Base_Controller {
 			$this->send_error(
 				new \WP_Error(
 					'invalid_path',
-					__( 'Invalid folder path. Path must be within the WordPress directory.', 'advanced-import-export' )
+					__( 'Invalid folder path. Path must be within the WordPress directory.', 'amplified-import-export' )
 				)
 			);
 		}
@@ -110,7 +110,7 @@ class Media_Sync_Controller extends Base_Controller {
 			$this->send_error(
 				new \WP_Error(
 					'invalid_path',
-					__( 'Invalid folder path', 'advanced-import-export' )
+					__( 'Invalid folder path', 'amplified-import-export' )
 				)
 			);
 		}
@@ -159,7 +159,7 @@ class Media_Sync_Controller extends Base_Controller {
 
 		$this->send_success(
 			$response_data,
-			__( 'Media sync job started', 'advanced-import-export' )
+			__( 'Media sync job started', 'amplified-import-export' )
 		);
 	}
 
@@ -176,7 +176,7 @@ class Media_Sync_Controller extends Base_Controller {
 		$data      = $job_model->find( $job_id );
 
 		if ( ! $data ) {
-			$this->send_error( __( 'Job not found', 'advanced-import-export' ) );
+			$this->send_error( __( 'Job not found', 'amplified-import-export' ) );
 		}
 
 		// Get result, handle if column doesn't exist or is null
@@ -279,14 +279,14 @@ class Media_Sync_Controller extends Base_Controller {
 
 			if ( ! wp_verify_nonce( $nonce, 'aie_nonce' ) ) {
 				$this->send_error(
-					new \WP_Error( 'invalid_nonce', __( 'Security check failed', 'advanced-import-export' ) )
+					new \WP_Error( 'invalid_nonce', __( 'Security check failed', 'amplified-import-export' ) )
 				);
 			}
 
 			// Check capability
 			if ( ! current_user_can( $this->required_capability ) ) {
 				$this->send_error(
-					new \WP_Error( 'insufficient_permissions', __( 'You do not have permission to perform this action', 'advanced-import-export' ) )
+					new \WP_Error( 'insufficient_permissions', __( 'You do not have permission to perform this action', 'amplified-import-export' ) )
 				);
 			}
 
@@ -317,7 +317,7 @@ class Media_Sync_Controller extends Base_Controller {
 						'directory_not_found',
 						sprintf(
 						/* translators: %s: directory path */
-							__( 'Directory not found: %s', 'advanced-import-export' ),
+							__( 'Directory not found: %s', 'amplified-import-export' ),
 							$absolute_path
 						)
 					)
@@ -328,7 +328,7 @@ class Media_Sync_Controller extends Base_Controller {
 				$this->send_error(
 					new \WP_Error(
 						'invalid_path',
-						__( 'Invalid path. Must be within the WordPress directory.', 'advanced-import-export' )
+						__( 'Invalid path. Must be within the WordPress directory.', 'amplified-import-export' )
 					)
 				);
 			}
@@ -338,7 +338,7 @@ class Media_Sync_Controller extends Base_Controller {
 				$this->send_error(
 					new \WP_Error(
 						'not_directory',
-						__( 'Path is not a directory.', 'advanced-import-export' )
+						__( 'Path is not a directory.', 'amplified-import-export' )
 					)
 				);
 			}

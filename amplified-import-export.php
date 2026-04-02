@@ -1,13 +1,13 @@
 <?php
 /*
-	Plugin Name:                Advanced Import Export
+	Plugin Name:                Amplified Import Export
 	Plugin URI:                 https://profiles.wordpress.org/rockstarlab/
 	Description:                A powerful advanced plugin for importing and exporting WordPress content.
 	Version:                    1.0.0
 	Requires at least:          5.8
 	Author:                     RockstarLab
 	Author URI:                 https://profiles.wordpress.org/rockstarlab/profile/
-	Text Domain:                advanced-import-export
+	Text Domain:                amplified-import-export
 	Domain Path:                /languages
 	License:                    GPL v2 or later
 	License URI:                https://www.gnu.org/licenses/gpl-2.0.html
@@ -59,8 +59,8 @@ if ( ! function_exists( 'aie_fs' ) ) {
 			$aie_fs = fs_dynamic_init(
 				[
 					'id'                => '21998',
-					'slug'              => 'advanced-import-export',
-					'premium_slug'      => 'advanced-import-export',
+					'slug'              => 'amplified-import-export',
+					'premium_slug'      => 'amplified-import-export',
 					'type'              => 'plugin',
 					'public_key'        => 'pk_c389cfb9437cdb5c934c0efd7e99c',
 					'is_premium'        => true,
@@ -73,8 +73,8 @@ if ( ! function_exists( 'aie_fs' ) ) {
 						'is_require_payment' => true,
 					],
 					'menu'              => [
-						'slug'       => 'advanced-import-export',
-						'first-path' => 'admin.php?page=advanced-import-export',
+						'slug'       => 'amplified-import-export',
+						'first-path' => 'admin.php?page=amplified-import-export',
 					],
 				]
 			);
@@ -112,14 +112,14 @@ add_action( 'admin_footer-plugins.php', function() {
 		// Wait for page to fully load, then trigger Freemius activation
 		setTimeout(function() {
 			// Find the Freemius activation link for our plugin
-			var $activateLink = $('tr[data-slug="advanced-import-export"] .fs-activate-license-trigger');
+			var $activateLink = $('tr[data-slug="amplified-import-export"] .fs-activate-license-trigger');
 			
 			if ($activateLink.length) {
 				// Trigger click on Freemius activation link
 				$activateLink[0].click();
 			} else {
 				// Fallback - look for any activation link in our plugin row
-				$('tr[data-slug="advanced-import-export"] a').each(function() {
+				$('tr[data-slug="amplified-import-export"] a').each(function() {
 					if ($(this).text().toLowerCase().indexOf('activate') !== -1 || 
 					    $(this).hasClass('fs-activate-license-trigger')) {
 						this.click();

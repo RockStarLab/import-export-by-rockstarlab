@@ -90,7 +90,7 @@ abstract class Validation_Rule {
 	 * @return string Field name or 'Field'
 	 */
 	protected function get_field_name( $context ) {
-		return $context['field_name'] ?? __( 'Field', 'advanced-import-export' );
+		return $context['field_name'] ?? __( 'Field', 'amplified-import-export' );
 	}
 
 	/**

@@ -97,7 +97,7 @@ class AI_Function_Generator {
 		if ( empty( $this->api_key ) ) {
 			return new \WP_Error(
 				'no_api_key',
-				__( 'OpenAI API key is not configured. Please add it to wp-config.php as WP_AIE_OPENAI_API_KEY or configure it in settings.', 'advanced-import-export' )
+				__( 'OpenAI API key is not configured. Please add it to wp-config.php as WP_AIE_OPENAI_API_KEY or configure it in settings.', 'amplified-import-export' )
 			);
 		}
 
@@ -216,7 +216,7 @@ Remember:
 				'api_error',
 				sprintf(
 					/* translators: %s: error message */
-					__( 'Failed to connect to OpenAI API: %s', 'advanced-import-export' ),
+					__( 'Failed to connect to OpenAI API: %s', 'amplified-import-export' ),
 					$response->get_error_message()
 				)
 			);
@@ -227,13 +227,13 @@ Remember:
 
 		if ( 200 !== $response_code ) {
 			$error_data = json_decode( $response_body, true );
-			$error_message = $error_data['error']['message'] ?? __( 'Unknown API error', 'advanced-import-export' );
+			$error_message = $error_data['error']['message'] ?? __( 'Unknown API error', 'amplified-import-export' );
 
 			return new \WP_Error(
 				'api_error',
 				sprintf(
 					/* translators: 1: HTTP code, 2: error message */
-					__( 'OpenAI API returned error %1$d: %2$s', 'advanced-import-export' ),
+					__( 'OpenAI API returned error %1$d: %2$s', 'amplified-import-export' ),
 					$response_code,
 					$error_message
 				)
@@ -245,7 +245,7 @@ Remember:
 		if ( ! isset( $data['choices'][0]['message']['content'] ) ) {
 			return new \WP_Error(
 				'invalid_response',
-				__( 'Invalid response from OpenAI API', 'advanced-import-export' )
+				__( 'Invalid response from OpenAI API', 'amplified-import-export' )
 			);
 		}
 
@@ -274,7 +274,7 @@ Remember:
 				'parse_error',
 				sprintf(
 					/* translators: %s: JSON error message */
-					__( 'Failed to parse AI response: %s', 'advanced-import-export' ),
+					__( 'Failed to parse AI response: %s', 'amplified-import-export' ),
 					json_last_error_msg()
 				)
 			);
@@ -283,7 +283,7 @@ Remember:
 		if ( ! isset( $data['code'] ) || empty( $data['code'] ) ) {
 			return new \WP_Error(
 				'missing_code',
-				__( 'AI did not generate valid code', 'advanced-import-export' )
+				__( 'AI did not generate valid code', 'amplified-import-export' )
 			);
 		}
 
@@ -298,7 +298,7 @@ Remember:
 		if ( stripos( $code, 'return' ) === false ) {
 			return new \WP_Error(
 				'invalid_code',
-				__( 'Generated code must contain a return statement', 'advanced-import-export' )
+				__( 'Generated code must contain a return statement', 'amplified-import-export' )
 			);
 		}
 

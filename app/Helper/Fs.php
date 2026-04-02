@@ -75,7 +75,7 @@ class FS {
 	/**
 	 * Get export file path
 	 * Prepares path for export file in a secure subdirectory
-	 * Path: wp-content/uploads/advanced-import-export-files/{secure_hash}/
+	 * Path: wp-content/uploads/amplified-import-export-files/{secure_hash}/
 	 *
 	 * @param string $filename Desired filename
 	 * @return array|WP_Error {
@@ -91,7 +91,7 @@ class FS {
 		$upload = wp_upload_dir();
 
 		// Create base directory for exports
-		$base_dir = $upload['basedir'] . '/advanced-import-export-files';
+		$base_dir = $upload['basedir'] . '/amplified-import-export-files';
 		if ( ! file_exists( $base_dir ) ) {
 			wp_mkdir_p( $base_dir );
 

@@ -49,7 +49,7 @@ class Import_Controller extends Base_Controller {
 
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		if ( empty( $_FILES['file'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified via verify_request().
-			$this->send_error( __( 'No file uploaded', 'advanced-import-export' ), null, 400 );
+			$this->send_error( __( 'No file uploaded', 'amplified-import-export' ), null, 400 );
 		}
 
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
@@ -62,12 +62,12 @@ class Import_Controller extends Base_Controller {
 
 		// Validate format
 		if ( ! Format_Factory::is_supported( $format ) ) {
-			$this->send_error( __( 'Unsupported file format', 'advanced-import-export' ), null, 400 );
+			$this->send_error( __( 'Unsupported file format', 'amplified-import-export' ), null, 400 );
 		}
 
 		// JSON is not supported for import
 		if ( 'json' === $format ) {
-			$this->send_error( __( 'JSON format is not supported for import. Please use CSV.', 'advanced-import-export' ), null, 400 );
+			$this->send_error( __( 'JSON format is not supported for import. Please use CSV.', 'amplified-import-export' ), null, 400 );
 		}
 
 		// Move file to upload directory
@@ -109,7 +109,7 @@ class Import_Controller extends Base_Controller {
 				'preview'    => $preview,
 				'total_rows' => $total_rows,
 			],
-			__( 'File uploaded successfully', 'advanced-import-export' )
+			__( 'File uploaded successfully', 'amplified-import-export' )
 		);
 	}
 
@@ -164,7 +164,7 @@ class Import_Controller extends Base_Controller {
 				'valid'       => true,
 				'total_items' => count( $prepared_data ),
 			],
-			__( 'Data validation passed', 'advanced-import-export' )
+			__( 'Data validation passed', 'amplified-import-export' )
 		);
 	}
 
@@ -218,7 +218,7 @@ class Import_Controller extends Base_Controller {
 			[
 				'job_id' => $job_id,
 			],
-			__( 'Import started successfully', 'advanced-import-export' )
+			__( 'Import started successfully', 'amplified-import-export' )
 		);
 	}
 
@@ -242,7 +242,7 @@ class Import_Controller extends Base_Controller {
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			$this->send_error( __( 'Job not found', 'advanced-import-export' ), null, 404 );
+			$this->send_error( __( 'Job not found', 'amplified-import-export' ), null, 404 );
 		}
 
 		// Parse result
@@ -296,7 +296,7 @@ class Import_Controller extends Base_Controller {
 			$this->send_error( $job_result, null, 500 );
 		}
 
-		$this->send_success( null, __( 'Import cancelled', 'advanced-import-export' ) );
+		$this->send_success( null, __( 'Import cancelled', 'amplified-import-export' ) );
 	}
 
 	/**
@@ -319,7 +319,7 @@ class Import_Controller extends Base_Controller {
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			$this->send_error( __( 'Job not found', 'advanced-import-export' ), null, 404 );
+			$this->send_error( __( 'Job not found', 'amplified-import-export' ), null, 404 );
 		}
 
 		// Check if job is paused or cancelled
@@ -756,7 +756,7 @@ class Import_Controller extends Base_Controller {
 		$row_count = $wpdb->get_var( "SELECT COUNT(*) FROM `{$table_name}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Direct DB query required here.
 
 		if ( empty( $columns ) ) {
-			$this->send_error( __( 'Could not retrieve table columns', 'advanced-import-export' ), null, 400 );
+			$this->send_error( __( 'Could not retrieve table columns', 'amplified-import-export' ), null, 400 );
 		}
 
 		$this->send_success(

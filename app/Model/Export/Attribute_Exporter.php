@@ -28,7 +28,7 @@ class Attribute_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WooCommerce product attributes', 'advanced-import-export' );
+		return __( 'Export WooCommerce product attributes', 'amplified-import-export' );
 	}
 
 	/**
@@ -38,12 +38,12 @@ class Attribute_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'attribute_id'      => __( 'Attribute ID', 'advanced-import-export' ),
-			'attribute_name'    => __( 'Attribute Name', 'advanced-import-export' ),
-			'attribute_label'   => __( 'Attribute Label', 'advanced-import-export' ),
-			'attribute_type'    => __( 'Attribute Type', 'advanced-import-export' ),
-			'attribute_orderby' => __( 'Order By', 'advanced-import-export' ),
-			'attribute_public'  => __( 'Public', 'advanced-import-export' ),
+			'attribute_id'      => __( 'Attribute ID', 'amplified-import-export' ),
+			'attribute_name'    => __( 'Attribute Name', 'amplified-import-export' ),
+			'attribute_label'   => __( 'Attribute Label', 'amplified-import-export' ),
+			'attribute_type'    => __( 'Attribute Type', 'amplified-import-export' ),
+			'attribute_orderby' => __( 'Order By', 'amplified-import-export' ),
+			'attribute_public'  => __( 'Public', 'amplified-import-export' ),
 		];
 	}
 
@@ -316,7 +316,7 @@ class Attribute_Exporter extends Abstract_Exporter {
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			return new \WP_Error(
 				'woocommerce_not_active',
-				__( 'WooCommerce is not active', 'advanced-import-export' )
+				__( 'WooCommerce is not active', 'amplified-import-export' )
 			);
 		}
 

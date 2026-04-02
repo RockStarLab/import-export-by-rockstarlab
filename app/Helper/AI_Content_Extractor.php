@@ -56,7 +56,7 @@ class AI_Content_Extractor {
 		if ( empty( $this->api_key ) ) {
 			return new \WP_Error(
 				'no_api_key',
-				__( 'OpenAI API key is not set', 'advanced-import-export' )
+				__( 'OpenAI API key is not set', 'amplified-import-export' )
 			);
 		}
 
@@ -92,7 +92,7 @@ class AI_Content_Extractor {
 		if ( isset( $body['error'] ) ) {
 			return new \WP_Error(
 				'api_error',
-				$body['error']['message'] ?? __( 'Unknown API error', 'advanced-import-export' )
+				$body['error']['message'] ?? __( 'Unknown API error', 'amplified-import-export' )
 			);
 		}
 
@@ -109,7 +109,7 @@ class AI_Content_Extractor {
 		if ( empty( $this->api_key ) ) {
 			return new \WP_Error(
 				'no_api_key',
-				__( 'OpenAI API key is not set', 'advanced-import-export' )
+				__( 'OpenAI API key is not set', 'amplified-import-export' )
 			);
 		}
 
@@ -156,7 +156,7 @@ class AI_Content_Extractor {
 				'http_error',
 				sprintf(
 					/* translators: %d: HTTP status code */
-					__( 'HTTP error %d when fetching URL', 'advanced-import-export' ),
+					__( 'HTTP error %d when fetching URL', 'amplified-import-export' ),
 					$status_code
 				)
 			);
@@ -261,14 +261,14 @@ class AI_Content_Extractor {
 		if ( isset( $body['error'] ) ) {
 			return new \WP_Error(
 				'api_error',
-				$body['error']['message'] ?? __( 'Unknown API error', 'advanced-import-export' )
+				$body['error']['message'] ?? __( 'Unknown API error', 'amplified-import-export' )
 			);
 		}
 
 		if ( ! isset( $body['choices'][0]['message']['content'] ) ) {
 			return new \WP_Error(
 				'invalid_response',
-				__( 'Invalid response from OpenAI API', 'advanced-import-export' )
+				__( 'Invalid response from OpenAI API', 'amplified-import-export' )
 			);
 		}
 
@@ -282,7 +282,7 @@ class AI_Content_Extractor {
 		if ( ! $content_json ) {
 			return new \WP_Error(
 				'invalid_json',
-				__( 'Failed to parse AI response', 'advanced-import-export' )
+				__( 'Failed to parse AI response', 'amplified-import-export' )
 			);
 		}
 

@@ -34,7 +34,7 @@ class Range_Rule extends Validation_Rule {
 				'not_numeric',
 				sprintf(
 					/* translators: %s: field name */
-					__( '%s must be a number', 'advanced-import-export' ),
+					__( '%s must be a number', 'amplified-import-export' ),
 					$field_name
 				),
 				[ 'field' => $context['field_name'] ?? null ]
@@ -51,7 +51,7 @@ class Range_Rule extends Validation_Rule {
 				'min_value',
 				sprintf(
 					/* translators: 1: field name, 2: minimum value */
-					__( '%1$s must be at least %2$s', 'advanced-import-export' ),
+					__( '%1$s must be at least %2$s', 'amplified-import-export' ),
 					$field_name,
 					$min
 				),
@@ -69,7 +69,7 @@ class Range_Rule extends Validation_Rule {
 				'max_value',
 				sprintf(
 					/* translators: 1: field name, 2: maximum value */
-					__( '%1$s must not exceed %2$s', 'advanced-import-export' ),
+					__( '%1$s must not exceed %2$s', 'amplified-import-export' ),
 					$field_name,
 					$max
 				),

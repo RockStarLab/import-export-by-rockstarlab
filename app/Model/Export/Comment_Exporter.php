@@ -28,7 +28,7 @@ class Comment_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WordPress comments', 'advanced-import-export' );
+		return __( 'Export WordPress comments', 'amplified-import-export' );
 	}
 
 	/**
@@ -38,15 +38,15 @@ class Comment_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'status'        => __( 'Comment status', 'advanced-import-export' ),
-			'type'          => __( 'Comment type', 'advanced-import-export' ),
-			'post_id'       => __( 'Post ID', 'advanced-import-export' ),
-			'author'        => __( 'Author name or email', 'advanced-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-			'date_query'    => __( 'Date query parameters', 'advanced-import-export' ),
-			'meta_query'    => __( 'Meta query parameters', 'advanced-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
-			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'advanced-import-export' ),
-			'orderby'       => __( 'Order by field', 'advanced-import-export' ),
-			'order'         => __( 'Order direction (ASC or DESC)', 'advanced-import-export' ),
+			'status'        => __( 'Comment status', 'amplified-import-export' ),
+			'type'          => __( 'Comment type', 'amplified-import-export' ),
+			'post_id'       => __( 'Post ID', 'amplified-import-export' ),
+			'author'        => __( 'Author name or email', 'amplified-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+			'date_query'    => __( 'Date query parameters', 'amplified-import-export' ),
+			'meta_query'    => __( 'Meta query parameters', 'amplified-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
+			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'amplified-import-export' ),
+			'orderby'       => __( 'Order by field', 'amplified-import-export' ),
+			'order'         => __( 'Order direction (ASC or DESC)', 'amplified-import-export' ),
 		];
 	}
 
@@ -853,7 +853,7 @@ class Comment_Exporter extends Abstract_Exporter {
 					'invalid_status',
 					sprintf(
 						/* translators: %s: status name */
-						__( 'Invalid comment status: %s', 'advanced-import-export' ),
+						__( 'Invalid comment status: %s', 'amplified-import-export' ),
 						$options['status']
 					)
 				);

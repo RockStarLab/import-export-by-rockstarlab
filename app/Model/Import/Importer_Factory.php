@@ -37,7 +37,7 @@ class Importer_Factory {
 				'unknown_importer',
 				sprintf(
 					/* translators: %s: importer type */
-					__( 'Unknown importer type: %s', 'advanced-import-export' ),
+					__( 'Unknown importer type: %s', 'amplified-import-export' ),
 					$type
 				)
 			);

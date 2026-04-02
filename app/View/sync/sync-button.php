@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 <button type="button" id="aie-sync-content-btn" class="button action" style="margin-left: 5px;">
-	<?php esc_html_e( 'Sync Content', 'advanced-import-export' ); ?>
+	<?php esc_html_e( 'Sync Content', 'amplified-import-export' ); ?>
 </button>
 
 <script type="text/javascript">

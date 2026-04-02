@@ -112,7 +112,7 @@ class Job_Controller extends Base_Controller {
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			$this->send_error( __( 'Job not found', 'advanced-import-export' ), null, 404 );
+			$this->send_error( __( 'Job not found', 'amplified-import-export' ), null, 404 );
 		}
 
 		// Parse parameters and result
@@ -149,7 +149,7 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( $result, null, 500 );
 		}
 
-		$this->send_success( null, __( 'Job deleted successfully', 'advanced-import-export' ) );
+		$this->send_success( null, __( 'Job deleted successfully', 'amplified-import-export' ) );
 	}
 
 	/**
@@ -201,7 +201,7 @@ class Job_Controller extends Base_Controller {
 		$days = (int) $this->get_request_param( 'days', 30 );
 
 		if ( $days < 1 ) {
-			$this->send_error( __( 'Days must be greater than 0', 'advanced-import-export' ), null, 400 );
+			$this->send_error( __( 'Days must be greater than 0', 'amplified-import-export' ), null, 400 );
 		}
 
 		global $wpdb;
@@ -221,7 +221,7 @@ class Job_Controller extends Base_Controller {
 			],
 			sprintf(
 			/* translators: %d: number of deleted jobs */
-				__( 'Deleted %d old jobs', 'advanced-import-export' ),
+				__( 'Deleted %d old jobs', 'amplified-import-export' ),
 				$deleted
 			)
 		);
@@ -247,7 +247,7 @@ class Job_Controller extends Base_Controller {
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			$this->send_error( __( 'Job not found', 'advanced-import-export' ), null, 404 );
+			$this->send_error( __( 'Job not found', 'amplified-import-export' ), null, 404 );
 		}
 
 		// Check if job can be resumed
@@ -255,7 +255,7 @@ class Job_Controller extends Base_Controller {
 			$this->send_error(
 				sprintf(
 					/* translators: %s: current job status */
-					__( 'Job cannot be resumed. Current status: %s', 'advanced-import-export' ),
+					__( 'Job cannot be resumed. Current status: %s', 'amplified-import-export' ),
 					$job_data->status
 				),
 				null,
@@ -286,7 +286,7 @@ class Job_Controller extends Base_Controller {
 				'data_type'  => $job_data->data_type,
 				'parameters' => $parameters,
 			],
-			__( 'Job resumed successfully', 'advanced-import-export' )
+			__( 'Job resumed successfully', 'amplified-import-export' )
 		);
 	}
 
@@ -310,7 +310,7 @@ class Job_Controller extends Base_Controller {
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			$this->send_error( __( 'Job not found', 'advanced-import-export' ), null, 404 );
+			$this->send_error( __( 'Job not found', 'amplified-import-export' ), null, 404 );
 		}
 
 		// Verify premium license for premium content types.
@@ -351,7 +351,7 @@ class Job_Controller extends Base_Controller {
 		}
 
 		if ( empty( $parameters ) && empty( $settings_to_use ) ) {
-			$this->send_error( __( 'Job configuration not found', 'advanced-import-export' ), null, 400 );
+			$this->send_error( __( 'Job configuration not found', 'amplified-import-export' ), null, 400 );
 		}
 
 		// Create new job with same settings
@@ -377,7 +377,7 @@ class Job_Controller extends Base_Controller {
 				'data_type'  => $job_data->data_type,
 				'parameters' => $parameters,
 			],
-			__( 'Job restarted successfully', 'advanced-import-export' )
+			__( 'Job restarted successfully', 'amplified-import-export' )
 		);
 	}
 
@@ -401,7 +401,7 @@ class Job_Controller extends Base_Controller {
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			$this->send_error( __( 'Job not found', 'advanced-import-export' ), null, 404 );
+			$this->send_error( __( 'Job not found', 'amplified-import-export' ), null, 404 );
 		}
 
 		// Verify premium license for premium content types.
@@ -442,7 +442,7 @@ class Job_Controller extends Base_Controller {
 		}
 
 		if ( empty( $parameters ) && empty( $settings_to_use ) ) {
-			$this->send_error( __( 'Job configuration not found', 'advanced-import-export' ), null, 400 );
+			$this->send_error( __( 'Job configuration not found', 'amplified-import-export' ), null, 400 );
 		}
 
 		// Create new job with same settings but set status to processing
@@ -469,7 +469,7 @@ class Job_Controller extends Base_Controller {
 				'data_type'  => $job_data->data_type,
 				'parameters' => $parameters,
 			],
-			__( 'Job created and ready to process', 'advanced-import-export' )
+			__( 'Job created and ready to process', 'amplified-import-export' )
 		);
 	}
 
@@ -486,7 +486,7 @@ class Job_Controller extends Base_Controller {
 
 		if ( empty( $job_id ) ) {
 			$this->send_error(
-				new \WP_Error( 'missing_job_id', __( 'Job ID is required', 'advanced-import-export' ) ),
+				new \WP_Error( 'missing_job_id', __( 'Job ID is required', 'amplified-import-export' ) ),
 				null,
 				400
 			);
@@ -498,7 +498,7 @@ class Job_Controller extends Base_Controller {
 
 		if ( ! $job_data ) {
 			$this->send_error(
-				new \WP_Error( 'job_not_found', __( 'Job not found', 'advanced-import-export' ) ),
+				new \WP_Error( 'job_not_found', __( 'Job not found', 'amplified-import-export' ) ),
 				null,
 				404
 			);
@@ -520,7 +520,7 @@ class Job_Controller extends Base_Controller {
 				'url'   => $url,
 				'nonce' => $nonce,
 			],
-			__( 'Download URL generated', 'advanced-import-export' )
+			__( 'Download URL generated', 'amplified-import-export' )
 		);
 	}
 }
