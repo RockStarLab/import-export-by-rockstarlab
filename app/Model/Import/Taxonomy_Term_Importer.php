@@ -330,19 +330,19 @@ class Taxonomy_Term_Importer extends Abstract_Importer {
 			return null;
 		}
 
-		$term_ids = get_terms(
+		$term_ids = get_terms( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Targeted lookup by importer-specific meta key.
 			[
 				'taxonomy'   => $taxonomy,
 				'hide_empty' => false,
 				'fields'     => 'ids',
-				'number'     => 1,
-				'orderby'    => 'term_id',
-				'order'      => 'DESC',
-				'meta_query' => [
-					[
-						'key'     => self::SOURCE_ID_META_KEY,
-						'value'   => (string) $source_term_id,
-						'compare' => '=',
+					'number'     => 1,
+					'orderby'    => 'term_id',
+					'order'      => 'DESC',
+					'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Targeted lookup by importer-specific meta key.
+						[
+							'key'     => self::SOURCE_ID_META_KEY,
+							'value'   => (string) $source_term_id,
+							'compare' => '=',
 					],
 				],
 			]
