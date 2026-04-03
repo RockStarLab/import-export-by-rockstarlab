@@ -1917,7 +1917,8 @@ const ImportModule = {
 						{ value: 'post_date', label: 'Date', type: 'datetime' },
 						{ value: 'post_modified', label: 'Modified Date', type: 'datetime' },
 						{ value: 'menu_order', label: 'Menu Order', type: 'number' },
-						{ value: 'post_slug', label: 'Slug', type: 'string' },
+						// Keep naming consistent with the Post_Importer (expects `post_name`).
+						{ value: 'post_name', label: 'Slug', type: 'string' },
 						{ value: 'comment_status', label: 'Comment Status', type: 'string' },
 						{ value: 'ping_status', label: 'Ping Status', type: 'string' },
 					],
@@ -1925,8 +1926,10 @@ const ImportModule = {
 				{
 					label: 'Author',
 					options: [
-						{ value: 'author_id', label: 'Author ID', type: 'number' },
-						{ value: 'author_login', label: 'Author Login', type: 'string' },
+						// Keep naming consistent with the Post_Importer (expects `post_author`,
+						// plus optional `author_name`/`author_email` fallbacks).
+						{ value: 'post_author', label: 'Author ID', type: 'number' },
+						{ value: 'author_name', label: 'Author Login', type: 'string' },
 						{ value: 'author_email', label: 'Author Email', type: 'string' },
 					],
 				},
@@ -3024,6 +3027,10 @@ const ImportModule = {
 				} else if ( sourceField.startsWith( 'acf_' ) ) {
 					fieldType = 'meta';
 				} else if ( sourceField.startsWith( 'meta_' ) ) {
+					fieldType = 'meta';
+				} else if ( sourceField.startsWith( '_' ) ) {
+					// Portable meta keys (Yoast, templates, etc.) are exported without a `meta_` prefix.
+					// Auto-create a meta target so they can be exact-mapped in Pass 1.
 					fieldType = 'meta';
 				}
 
