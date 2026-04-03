@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Amplified Import Export — Advanced WordPress Import/Export & Sync</title>
+    <meta
+      name="description"
+      content="Advanced import/export for WordPress: custom functions, media sync, site-to-site content sync, AI URL importer, WooCommerce + ACF support, and jobs log."
+    />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="topbar" data-topbar>
+      <div class="container topbar-inner">
+        <a class="brand" href="#top" aria-label="Amplified Import Export">
+          <img class="brand-logo" src="assets/img/logo.png" alt="" width="36" height="36" />
+          <span class="brand-name">Amplified Import Export</span>
+        </a>
+
+        <button class="nav-toggle" type="button" aria-controls="nav" aria-expanded="false" data-nav-toggle>
+          <span class="nav-toggle-lines" aria-hidden="true"></span>
+          <span class="nav-toggle-label">Menu</span>
+        </button>
+
+        <nav class="nav" id="nav" data-nav>
+          <a class="nav-link" href="#features">Features</a>
+          <a class="nav-link" href="#workflows">Workflows</a>
+          <a class="nav-link" href="#screens">Screens</a>
+          <a class="nav-link" href="#pricing">Pricing</a>
+          <a class="nav-link" href="#faq">FAQ</a>
+          <a
+            class="btn btn-sm btn-primary"
+            href="https://wordpress.org/plugins/amplified-import-export/"
+            target="_blank"
+            rel="noreferrer"
+            >Download</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top">
+        <div class="container hero-grid">
+          <div class="hero-copy reveal">
+            <div class="pill">
+              <span class="pill-dot" aria-hidden="true"></span>
+              <span>WordPress 5.8+ · PHP 7.4+ · Tested up to WP 6.9</span>
+            </div>
+
+            <h1 class="hero-title">
+              Import. Export. Sync.
+              <span class="hero-title-accent">With developer-grade control.</span>
+            </h1>
+            <p class="hero-subtitle">
+              Import, export, and sync WordPress content with a powerful WordPress Import Export plugin: import large CSV files, export data to CSV or JSON, sync content between two WordPress sites, bulk update posts with PHP transformation functions, and sync FTP/SFTP folders into the WordPress Media Library.
+            </p>
+
+            <div class="cta">
+              <a class="btn btn-primary" href="https://wordpress.org/plugins/amplified-import-export/">Get it now</a>
+              <a class="btn btn-ghost" href="https://wpimportexport.com/docs/" target="_blank" rel="noreferrer"
+                >Read Docs</a
+              >
+       
+            </div>
+
+            <div class="micro">
+              <div class="micro-item">
+                <div class="micro-k">Special offer</div>
+                <div class="micro-v">Try all features with no cost</div>
+              </div>
+              <div class="micro-item">
+                <div class="micro-k">Integrations</div>
+                <div class="micro-v">ACF · Yoast · WooCommerce · MySQL tables</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-visual reveal" aria-hidden="true">
+            <div class="hero-card">
+              <svg class="hero-illustration" viewBox="0 0 640 520" role="img" aria-label="">
+                <defs>
+                  <linearGradient id="flow" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#4f46e5" />
+                    <stop offset="1" stop-color="#7c3aed" />
+                  </linearGradient>
+                  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="5" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+
+                <g opacity="0.92">
+                  <path
+                    class="flow-line"
+                    d="M130 145 C 220 145, 260 120, 305 120 C 380 120, 418 165, 505 165"
+                    fill="none"
+                    stroke="url(#flow)"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    filter="url(#glow)"
+                  />
+                  <path
+                    class="flow-line flow-line-2"
+                    d="M130 300 C 230 300, 255 340, 330 340 C 400 340, 430 292, 505 292"
+                    fill="none"
+                    stroke="url(#flow)"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    filter="url(#glow)"
+                  />
+                  <path
+                    class="flow-line flow-line-3"
+                    d="M330 340 C 350 420, 390 455, 505 455"
+                    fill="none"
+                    stroke="url(#flow)"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    filter="url(#glow)"
+                  />
+                </g>
+
+                <g class="node node-file">
+                  <rect x="70" y="105" rx="14" ry="14" width="120" height="84" />
+                  <text x="130" y="143" text-anchor="middle">CSV</text>
+                  <text class="node-sub" x="130" y="165" text-anchor="middle">streaming</text>
+                </g>
+
+                <g class="node node-wp">
+                  <rect x="250" y="78" rx="14" ry="14" width="160" height="92" />
+                  <text x="330" y="120" text-anchor="middle">Map</text>
+                  <text class="node-sub" x="330" y="145" text-anchor="middle">Fields</text>
+                </g>
+
+                <g class="node node-tools">
+                  <rect x="250" y="295" rx="14" ry="14" width="160" height="92" />
+                  <text x="330" y="338" text-anchor="middle">Data</text>
+                  <text class="node-sub" x="330" y="363" text-anchor="middle">transform</text>
+                </g>
+
+                <g class="node node-out">
+                  <rect x="470" y="130" rx="14" ry="14" width="140" height="78" />
+                  <text x="540" y="165" text-anchor="middle">CSV / JSON</text>
+                  <text class="node-sub" x="540" y="188" text-anchor="middle">export</text>
+                </g>
+
+                <g class="node node-sync">
+                  <rect x="470" y="255" rx="14" ry="14" width="140" height="78" />
+                  <text x="540" y="290" text-anchor="middle">Sync</text>
+                  <text class="node-sub" x="540" y="313" text-anchor="middle">push · pull</text>
+                </g>
+
+                <g class="node node-media">
+                  <rect x="470" y="418" rx="14" ry="14" width="140" height="78" />
+                  <text x="540" y="453" text-anchor="middle">Media</text>
+                  <text class="node-sub" x="540" y="476" text-anchor="middle">sync</text>
+                </g>
+
+                <g class="sparkles">
+                  <circle class="spark s1" cx="210" cy="84" r="5" />
+                  <circle class="spark s2" cx="420" cy="220" r="4" />
+                  <circle class="spark s3" cx="210" cy="410" r="4" />
+                  <circle class="spark s4" cx="585" cy="105" r="5" />
+                </g>
+              </svg>
+
+              <div class="hero-card-bottom">
+                <div class="hero-stat">
+                  <div class="hero-stat-k">Built for complex data</div>
+                  <div class="hero-stat-v">Custom fields & custom post types</div>
+                </div>
+                <div class="hero-stat">
+                  <div class="hero-stat-k">Keep history</div>
+                  <div class="hero-stat-v">Jobs log + one‑click rerun</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-bg" aria-hidden="true"></div>
+      </section>
+
+      <section class="section section-muted">
+        <div class="container reveal">
+          <div class="bar">
+            <div class="bar-item">
+              <div class="bar-emoji" aria-hidden="true">🧩</div>
+              <div class="bar-text">
+                <strong>All the WordPress bits</strong>
+                <span>Posts, Pages, Custom Post Types, Users, Comments, Taxonomies, Menus</span>
+              </div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-emoji" aria-hidden="true">🛒</div>
+              <div class="bar-text">
+                <strong>WooCommerce ready</strong>
+                <span>Products, variations, orders, coupons</span>
+              </div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-emoji" aria-hidden="true">🗄️</div>
+              <div class="bar-text">
+                <strong>Raw MySQL tables</strong>
+                <span>Import/export any MySQL table</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>Everything you need to move data safely</h2>
+            <p>Designed for migrations, staging ⇄ production sync, bulk updates, and content operations at scale.</p>
+          </div>
+
+          <div class="grid features">
+            <a class="card reveal" href="../documentation/import.html">
+              <div class="card-icon">📥</div>
+              <h3>CSV Import</h3>
+              <p>Stream large files, preview rows, map fields, validate data, and run in the background.</p>
+              <span class="card-link">Read import docs</span>
+            </a>
+
+            <a class="card reveal" href="../documentation/export.html">
+              <div class="card-icon">📤</div>
+              <h3>Export to CSV / JSON</h3>
+              <p>Filter by IDs, date, status, taxonomy; choose fields; generate datasets you can trust.</p>
+              <span class="card-link">Read export docs</span>
+            </a>
+
+            <a class="card reveal" href="../documentation/content-sync.html">
+              <div class="card-icon">🔄</div>
+              <h3>Site‑to‑Site Sync</h3>
+              <p>Connect two sites with API keys and push/pull content with conflict strategies and media sync.</p>
+              <span class="card-link">Read sync docs</span>
+            </a>
+
+            <a class="card reveal" href="../documentation/content-updater.html">
+              <div class="card-icon">✏️</div>
+              <h3>Bulk Content Updater</h3>
+              <p>Apply transformations to thousands of records using filters — no manual SQL, no brittle scripts.</p>
+              <span class="card-link">Read updater docs</span>
+            </a>
+
+            <a class="card reveal" href="../documentation/media-sync.html">
+              <div class="card-icon">🖼️</div>
+              <h3>Media Folder Sync</h3>
+              <p>Scan server folders (FTP/SFTP uploads) and register files into Media Library with duplicate detection.</p>
+              <span class="card-link">Read media sync docs</span>
+            </a>
+
+            <a class="card reveal" href="../documentation/ai-url-importer.html">
+              <div class="card-icon">🤖</div>
+              <h3>AI URL Importer</h3>
+              <p>Give a URL, let AI parse the page, and import content as any post type — fast and flexible.</p>
+              <span class="card-link">Read AI importer docs</span>
+            </a>
+
+            <a class="card reveal" href="../documentation/functions.html">
+              <div class="card-icon">⚙️</div>
+              <h3>Functions Library</h3>
+              <p>Write and reuse PHP transformation functions with a built‑in editor, testing, and examples.</p>
+              <span class="card-link">Read functions docs</span>
+            </a>
+
+            <a class="card reveal" href="../documentation/jobs-log.html">
+              <div class="card-icon">📋</div>
+              <h3>Jobs Log</h3>
+              <p>Every run is saved — review results, rerun jobs, or use history as a safety net.</p>
+              <span class="card-link">Read jobs log docs</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <div class="wave" aria-hidden="true">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <path
+            class="wave-path wave-1"
+            d="M0,32 C120,52 240,72 360,64 C480,56 600,20 720,24 C840,28 960,68 1080,76 C1140,80 1170,76 1200,72 L1200,120 L0,120 Z"
+          ></path>
+          <path
+            class="wave-path wave-2"
+            d="M0,44 C140,64 280,84 400,74 C520,64 600,22 720,28 C840,34 980,86 1100,92 C1156,95 1178,92 1200,88 L1200,120 L0,120 Z"
+          ></path>
+        </svg>
+      </div>
+
+      <section class="section section-muted" id="workflows">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>Workflows that match real projects</h2>
+            <p>From “move content once” to “keep sites in sync” — choose the path that fits.</p>
+          </div>
+
+          <div class="tabs reveal" data-tabs>
+            <div class="tablist" role="tablist" aria-label="Workflows">
+              <button class="tab" type="button" role="tab" aria-selected="true" data-tab="import">Import</button>
+              <button class="tab" type="button" role="tab" aria-selected="false" data-tab="export">Export</button>
+              <button class="tab" type="button" role="tab" aria-selected="false" data-tab="sync">Sync</button>
+              <button class="tab" type="button" role="tab" aria-selected="false" data-tab="update">Bulk update</button>
+            </div>
+
+            <div class="panels">
+              <div class="panel" role="tabpanel" data-panel="import">
+                <ol class="steps">
+                  <li><strong>Select content type</strong> (posts, CPT, users, WooCommerce, or raw tables).</li>
+                  <li><strong>Upload CSV</strong> (delimiter support + streaming for large files).</li>
+                  <li><strong>Preview & map</strong> fields with validation.</li>
+                  <li><strong>Transform</strong> values using PHP functions when needed.</li>
+                  <li><strong>Run in background</strong> and review results in Jobs Log.</li>
+                </ol>
+                <div class="panel-cta">
+                  <a class="btn btn-sm btn-primary" href="../documentation/import.html">Import documentation</a>
+                </div>
+              </div>
+
+              <div class="panel" role="tabpanel" hidden data-panel="export">
+                <ol class="steps">
+                  <li><strong>Pick a dataset</strong> (content types or raw MySQL tables).</li>
+                  <li><strong>Filter precisely</strong> by IDs, date ranges, authors, taxonomies, statuses.</li>
+                  <li><strong>Select fields</strong> to keep exports lean and useful.</li>
+                  <li><strong>Export</strong> to CSV (or JSON) for backups, analysis, or migrations.</li>
+                  <li><strong>Rerun anytime</strong> from Jobs Log with one click.</li>
+                </ol>
+                <div class="panel-cta">
+                  <a class="btn btn-sm btn-primary" href="../documentation/export.html">Export documentation</a>
+                </div>
+              </div>
+
+              <div class="panel" role="tabpanel" hidden data-panel="sync">
+                <ol class="steps">
+                  <li><strong>Connect sites</strong> using secure API keys.</li>
+                  <li><strong>Choose direction</strong>: pull from remote or push to it.</li>
+                  <li><strong>Sync selectively</strong> by filters — not everything, only what you need.</li>
+                  <li><strong>Resolve conflicts</strong> with skip/update/duplicate strategies.</li>
+                  <li><strong>Include media</strong> so attachments arrive with content.</li>
+                </ol>
+                <div class="panel-cta">
+                  <a class="btn btn-sm btn-primary" href="../documentation/content-sync.html">Sync documentation</a>
+                </div>
+              </div>
+
+              <div class="panel" role="tabpanel" hidden data-panel="update">
+                <ol class="steps">
+                  <li><strong>Filter records</strong> (date, status, taxonomy, author, IDs).</li>
+                  <li><strong>Select fields</strong> you want to change.</li>
+                  <li><strong>Apply functions</strong> to transform values (string, HTML, date, WP helpers).</li>
+                  <li><strong>Preview</strong> changes before executing.</li>
+                  <li><strong>Execute</strong> and track everything in Jobs Log.</li>
+                </ol>
+                <div class="panel-cta">
+                  <a class="btn btn-sm btn-primary" href="../documentation/content-updater.html">Updater documentation</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout reveal">
+            <div class="callout-icon" aria-hidden="true">🛡️</div>
+            <div class="callout-body">
+              <p class="callout-text">
+                <strong>Pro tip:</strong> these workflows can modify lots of records quickly. Always take a full backup
+                before big imports or bulk updates.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="screens">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>UI snapshots</h2>
+            <p>Clean steps, live progress, and reusable jobs — built for daily use.</p>
+          </div>
+
+          <div class="gallery">
+            <button
+              class="shot reveal"
+              type="button"
+              data-lightbox
+              data-src="assets/screens/import-map-fields.png"
+              data-alt="Import: map fields"
+            >
+              <img src="assets/screens/import-map-fields.png" alt="Import: map fields" loading="lazy" />
+              <span class="shot-cap">Import · Field mapping</span>
+            </button>
+            <button
+              class="shot reveal"
+              type="button"
+              data-lightbox
+              data-src="assets/screens/export-choose-fields.png"
+              data-alt="Export: choose fields"
+            >
+              <img src="assets/screens/export-choose-fields.png" alt="Export: choose fields" loading="lazy" />
+              <span class="shot-cap">Export · Choose fields</span>
+            </button>
+            <button
+              class="shot reveal"
+              type="button"
+              data-lightbox
+              data-src="assets/screens/sync-dialog.png"
+              data-alt="Sync: direction and options"
+            >
+              <img src="assets/screens/sync-dialog.png" alt="Sync: direction and options" loading="lazy" />
+              <span class="shot-cap">Sync · Push / Pull dialog</span>
+            </button>
+            <button
+              class="shot reveal"
+              type="button"
+              data-lightbox
+              data-src="assets/screens/updater-preview.png"
+              data-alt="Bulk updater: preview changes"
+            >
+              <img src="assets/screens/updater-preview.png" alt="Bulk updater: preview changes" loading="lazy" />
+              <span class="shot-cap">Updater · Preview</span>
+            </button>
+            <button
+              class="shot reveal"
+              type="button"
+              data-lightbox
+              data-src="assets/screens/media-sync-page.png"
+              data-alt="Media sync page"
+            >
+              <img src="assets/screens/media-sync-page.png" alt="Media sync page" loading="lazy" />
+              <span class="shot-cap">Media · Folder sync</span>
+            </button>
+            <button
+              class="shot reveal"
+              type="button"
+              data-lightbox
+              data-src="assets/screens/ai-importer-preview.png"
+              data-alt="AI URL importer preview"
+            >
+              <img src="assets/screens/ai-importer-preview.png" alt="AI URL importer preview" loading="lazy" />
+              <span class="shot-cap">AI · URL import preview</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-muted" id="pricing">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>Pricing</h2>
+            <p>Three simple plans for running premium features across your sites.</p>
+            <p class="subnote">New users get <strong>1 month free</strong> with access to all premium features.</p>
+          </div>
+
+          <div class="grid pricing">
+            <div class="card price-card reveal">
+              <div class="price-top">
+                <h3 class="price-title">2 sites</h3>
+                <div class="price">
+                  <span class="price-currency">$</span><span class="price-value">9.99</span>
+                </div>
+              </div>
+              <ul class="checklist" aria-label="Plan features">
+                <li>All Data Types</li>
+                <li>Sync Content Between Sites</li>
+                <li>AI Tools</li>
+              </ul>
+       
+            </div>
+
+            <div class="card price-card price-card-popular reveal">
+              <div class="price-top">
+                <h3 class="price-title">10 sites</h3>
+                <div class="price">
+                  <span class="price-currency">$</span><span class="price-value">29.99</span>
+                </div>
+              </div>
+              <ul class="checklist" aria-label="Plan features">
+                <li>All Data Types</li>
+                <li>Sync Content Between Sites</li>
+                <li>AI Tools</li>
+              </ul>
+         
+            </div>
+
+            <div class="card price-card reveal">
+              <div class="price-top">
+                <h3 class="price-title">Unlimited sites</h3>
+                <div class="price">
+                  <span class="price-currency">$</span><span class="price-value">99.99</span>
+                  <span class="price-period">/ month</span>
+                </div>
+              </div>
+              <ul class="checklist" aria-label="Plan features">
+                <li>All Data Types</li>
+                <li>Sync Content Between Sites</li>
+                <li>AI Tools</li>
+              </ul>
+       
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-muted" id="get-started">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>Get started in minutes</h2>
+            <p>Install, activate, and choose your workflow — import/export/sync/update.</p>
+          </div>
+
+          <div class="grid start">
+            <div class="card reveal">
+              <div class="card-icon">📦</div>
+              <h3>Install</h3>
+              <p>Upload the plugin in WordPress Admin → Plugins, then activate it.</p>
+              <a class="card-link" href="../documentation/installation.html">Installation docs</a>
+            </div>
+            <div class="card reveal">
+              <div class="card-icon">🔑</div>
+              <h3>Activate license</h3>
+              <p>Enable premium features and manage activation in the License screen.</p>
+              <a class="card-link" href="../documentation/license.html">License docs</a>
+            </div>
+            <div class="card reveal">
+              <div class="card-icon">🚀</div>
+              <h3>Run your first job</h3>
+              <p>Import a CSV, export a dataset, or connect a remote site — then review the Jobs Log.</p>
+              <a class="card-link" href="../documentation/jobs-log.html">Jobs log docs</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="faq">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>FAQ</h2>
+            <p>Quick answers to common questions from users and developers.</p>
+          </div>
+
+          <div class="faq reveal">
+            <details class="faq-item">
+              <summary>Where is the plugin documentation?</summary>
+              <div class="faq-body">
+                The online docs live at
+                <a href="https://wpimportexport.com/docs/" target="_blank" rel="noreferrer">wpimportexport.com/docs</a>.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Can I import large files without timeout issues?</summary>
+              <div class="faq-body">
+                Yes — the plugin uses background processing and CSV streaming patterns to handle large datasets more
+                reliably.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Can I transform data during import?</summary>
+              <div class="faq-body">
+                Yes. Use the Functions Library to apply custom PHP transformations to any mapped field. You can also
+                reuse saved functions across jobs.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>How do I avoid importing duplicate media files?</summary>
+              <div class="faq-body">
+                Use Media Folder Sync with duplicate detection. Choose Hash (most accurate), Filename (fastest), or
+                Filesize (balanced).
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Can I sync content between two WordPress sites?</summary>
+              <div class="faq-body">
+                Yes. Connect sites using secure API keys and choose Pull (import from remote) or Push (send to remote).
+                You can filter what to sync and include media attachments.
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-gradient">
+        <div class="container reveal">
+          <div class="final-cta">
+            <h2>Ready to ship migrations and syncs with confidence?</h2>
+            <p>Start with docs, run a job, and keep every run in history for reruns and audits.</p>
+            <div class="cta">
+              <a
+                class="btn btn-primary"
+                href="https://wordpress.org/plugins/amplified-import-export/"
+                target="_blank"
+                rel="noreferrer"
+                >Download</a
+              >
+              <a
+                class="btn btn-ghost"
+                href="https://wpimportexport.com/docs/"
+                target="_blank"
+                rel="noreferrer"
+                >Documentation</a
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-inner">
+        <div class="footer-left">
+          <div class="footer-brand">
+            <img src="assets/img/logo.png" alt="" width="28" height="28" />
+            <span>Amplified Import Export</span>
+          </div>
+          <div class="footer-meta">
+            &copy; <span data-year></span> RockstarLab 
+          </div>
+        </div>
+        <div class="footer-right">
+          <a class="footer-link" href="#top">Back to top</a>
+        </div>
+      </div>
+    </footer>
+
+    <div class="lightbox" hidden data-lightbox-root aria-modal="true" role="dialog" aria-label="Screenshot viewer">
+      <button class="lightbox-close" type="button" aria-label="Close" data-lightbox-close>×</button>
+      <figure class="lightbox-figure">
+        <img data-lightbox-img alt="" />
+        <figcaption class="lightbox-cap" data-lightbox-cap></figcaption>
+      </figure>
+    </div>
+
+    <script src="assets/js/main.js" defer></script>
+  </body>
+</html>
