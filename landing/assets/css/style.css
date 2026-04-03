@@ -433,7 +433,6 @@ code {
   font-weight: 700;
   fill: rgba(71, 85, 105, 0.95);
   letter-spacing: 0.03em;
-  text-transform: uppercase;
 }
 
 .flow-line {
@@ -1072,10 +1071,18 @@ code {
   }
 }
 
+#features, #screens, #faq {
+	padding-top: 0;
+}
+
 @media (max-width: 720px) {
   .section {
     padding: 64px 0;
   }
+
+	#features, #screens, #faq {
+		padding-top: 0;
+	}
 
   .micro {
     grid-template-columns: 1fr;
