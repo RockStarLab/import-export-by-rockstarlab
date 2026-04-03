@@ -526,9 +526,9 @@ class Content_Sync_Controller extends Base_Controller {
 	/**
 	 * Register hooks for post list screens
 	 */
-	public function register_post_list_hooks() {
-		// Load assets for post list screens
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_post_list_assets' ) );
+		public function register_post_list_hooks() {
+			// Load assets for post list screens
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_post_list_assets' ) );
 		
 		// Add sync button and modal to post list screens
 		add_action( 'restrict_manage_posts', array( $this, 'render_sync_button' ) );
@@ -538,17 +538,21 @@ class Content_Sync_Controller extends Base_Controller {
 		add_action( 'post_submitbox_misc_actions', array( $this, 'render_post_edit_sync_button' ) );
 		add_action( 'admin_footer-post.php', array( $this, 'render_gutenberg_sync_button' ) );
 		add_action( 'admin_footer-post-new.php', array( $this, 'render_gutenberg_sync_button' ) );
-		add_action( 'admin_footer-post.php', array( $this, 'render_sync_modal' ) );
-		add_action( 'admin_footer-post-new.php', array( $this, 'render_sync_modal' ) );
-	}
+			add_action( 'admin_footer-post.php', array( $this, 'render_sync_modal' ) );
+			add_action( 'admin_footer-post-new.php', array( $this, 'render_sync_modal' ) );
+			// Some admin contexts (notably the block editor) can behave differently with
+			// hook-suffixed footer actions. Also hook into generic admin_footer and guard
+			// against duplicate rendering inside render_sync_modal().
+			add_action( 'admin_footer', array( $this, 'render_sync_modal' ) );
+		}
 
 	/**
 	 * Enqueue assets for post list screens
 	 */
-	public function enqueue_post_list_assets( $hook_suffix ) {
-		// Load on edit.php (post list) and post.php/post-new.php (edit post)
-		if ( ! in_array( $hook_suffix, array( 'edit.php', 'post.php', 'post-new.php' ) ) ) {
-			return;
+		public function enqueue_post_list_assets( $hook_suffix ) {
+			// Load on edit.php (post list) and post.php/post-new.php (edit post)
+			if ( ! in_array( $hook_suffix, array( 'edit.php', 'post.php', 'post-new.php' ) ) ) {
+				return;
 		}
 		
 		// Don't load on trash page
@@ -562,15 +566,31 @@ class Content_Sync_Controller extends Base_Controller {
 		// Check if premium is active
 		$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
 		
-		// Get current post type
-		global $typenow, $post;
-		$current_post_type = '';
-		
-		if ( 'edit.php' === $hook_suffix && ! empty( $typenow ) ) {
-			$current_post_type = $typenow;
-		} elseif ( in_array( $hook_suffix, array( 'post.php', 'post-new.php' ) ) && $post ) {
-			$current_post_type = $post->post_type;
-		}
+			// Get current post type
+			global $typenow, $post;
+			$current_post_type = '';
+			
+			if ( 'edit.php' === $hook_suffix && ! empty( $typenow ) ) {
+				$current_post_type = $typenow;
+			} elseif ( in_array( $hook_suffix, array( 'post.php', 'post-new.php' ), true ) ) {
+				// On post.php, $post may not yet be populated during admin_enqueue_scripts.
+				// Derive post type from request params as a fallback.
+				if ( $post ) {
+					$current_post_type = $post->post_type;
+				} else {
+					$post_id = $this->get_request_param( 'post', 0 );
+					if ( $post_id ) {
+						$maybe_post = get_post( (int) $post_id );
+						if ( $maybe_post ) {
+							$current_post_type = $maybe_post->post_type;
+						}
+					}
+					// post-new.php uses post_type query arg; default to 'post'.
+					if ( empty( $current_post_type ) ) {
+						$current_post_type = $this->get_request_param( 'post_type', 'post' );
+					}
+				}
+			}
 		
 		// In free version, only load for 'post' type
 		if ( ! $is_premium && 'post' !== $current_post_type ) {
@@ -582,14 +602,18 @@ class Content_Sync_Controller extends Base_Controller {
 			return;
 		}
 
-		// Enqueue post sync script
-		wp_enqueue_script(
-			'aie-post-sync',
-			plugins_url( 'assets/js/post-sync-standalone.js', WP_AIE_FILE ),
-			array( 'jquery' ),
-			filemtime( plugin_dir_path( WP_AIE_FILE ) . 'assets/js/post-sync-standalone.js' ),
-			true
-		);
+			// Enqueue post sync script
+			// Note: on Gutenberg post editor screens, admin footer scripts are not always printed
+			// the same way as on list screens. Load in header for post.php/post-new.php so the
+			// sync UI is reliably available.
+			$in_footer = ( 'edit.php' === $hook_suffix );
+			wp_enqueue_script(
+				'aie-post-sync',
+				plugins_url( 'assets/js/post-sync-standalone.js', WP_AIE_FILE ),
+				array( 'jquery' ),
+				filemtime( plugin_dir_path( WP_AIE_FILE ) . 'assets/js/post-sync-standalone.js' ),
+				$in_footer
+			);
 
 		// Localize script
 		$nonce = wp_create_nonce( 'aie_nonce' );
@@ -680,13 +704,13 @@ class Content_Sync_Controller extends Base_Controller {
 			// Only show for posts being edited
 			if ( $post ) {
 				// Enqueue the Gutenberg sync script
-				wp_enqueue_script(
-					'aie-gutenberg-sync',
-					plugins_url( 'assets/js/gutenberg-sync.js', WP_AIE_FILE ),
-					array( 'jquery', 'wp-editor', 'wp-data', 'wp-element', 'wp-components' ),
-					filemtime( plugin_dir_path( WP_AIE_FILE ) . 'assets/js/gutenberg-sync.js' ),
-					true
-				);
+					wp_enqueue_script(
+						'aie-gutenberg-sync',
+						plugins_url( 'assets/js/gutenberg-sync.js', WP_AIE_FILE ),
+						array( 'jquery', 'wp-editor', 'wp-data', 'wp-element', 'wp-components' ),
+						filemtime( plugin_dir_path( WP_AIE_FILE ) . 'assets/js/gutenberg-sync.js' ),
+						false
+					);
 				
 				// Localize script with necessary data
 				wp_localize_script(
@@ -705,25 +729,25 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 	}
 
-	/**
-	 * Render sync button on post list screen
-	 */
-	public function render_sync_button() {
-		global $typenow;
-		
-		// Only show on post list screens
-		if ( empty( $typenow ) ) {
-			return;
-		}
-		
-		// Don't show on trash page
-		$post_status = $this->get_request_param( 'post_status', '' );
-		if ( 'trash' === $post_status ) {
-			return;
-		}
-		
-		// Check if premium is active
-		$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+		/**
+		 * Render sync button on post list screen
+		 */
+		public function render_sync_button() {
+			global $typenow;
+			
+			// Only show on post list screens
+			if ( empty( $typenow ) ) {
+				return;
+			}
+			
+			// Don't show on trash page
+			$post_status = $this->get_request_param( 'post_status', '' );
+			if ( 'trash' === $post_status ) {
+				return;
+			}
+			
+			// Check if premium is active
+			$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
 		
 		// In free version, only show for 'post' type
 		if ( ! $is_premium && 'post' !== $typenow ) {
@@ -738,39 +762,72 @@ class Content_Sync_Controller extends Base_Controller {
 		require WP_AIE_PATH . '/app/View/sync/sync-button.php';
 	}
 
-	/**
-	 * Render sync modal
-	 */
-	public function render_sync_modal() {
-		global $typenow;
-		
-		// Only show on post list screens
-		if ( empty( $typenow ) ) {
-			return;
-		}
-		
-		// Don't show on trash page
-		$post_status = $this->get_request_param( 'post_status', '' );
-		if ( 'trash' === $post_status ) {
-			return;
-		}
+		/**
+		 * Render sync modal
+		 */
+		public function render_sync_modal() {
+			static $rendered = false;
+			if ( $rendered ) {
+				return;
+			}
 
-		// Check if premium is active
-		$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
-		
-		// In free version, only show for 'post' type
-		if ( ! $is_premium && 'post' !== $typenow ) {
-			return;
-		}
+			global $typenow, $post;
+			$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 
-		// Get connected sites
-		$sites = Connected_Site::get_all();
-		
-		// Load view templates
-		require WP_AIE_PATH . '/app/View/sync/sync-modal.php';
-		require WP_AIE_PATH . '/app/View/sync/mapping-modal.php';
-		require WP_AIE_PATH . '/app/View/sync/browse-modal.php';
-	}
+			// Determine current post type for both list and edit screens.
+			$current_post_type = '';
+			if ( $screen && ! empty( $screen->post_type ) ) {
+				$current_post_type = $screen->post_type;
+			} elseif ( ! empty( $typenow ) ) {
+				$current_post_type = $typenow;
+			} elseif ( $post ) {
+				$current_post_type = $post->post_type;
+			} else {
+				$post_id = $this->get_request_param( 'post', 0 );
+				if ( $post_id ) {
+					$maybe_post = get_post( (int) $post_id );
+					if ( $maybe_post ) {
+						$current_post_type = $maybe_post->post_type;
+					}
+				}
+				if ( empty( $current_post_type ) ) {
+					$current_post_type = $this->get_request_param( 'post_type', '' );
+				}
+			}
+
+			if ( empty( $current_post_type ) ) {
+				return;
+			}
+			
+			// Don't show on trash page
+			$post_status = $this->get_request_param( 'post_status', '' );
+			if ( 'trash' === $post_status ) {
+				return;
+			}
+
+			// Check if premium is active
+			$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+			
+			// In free version, only show for 'post' type
+			if ( ! $is_premium && 'post' !== $current_post_type ) {
+				return;
+			}
+
+			// Never show sync modal on WooCommerce Coupons screen.
+			if ( 'shop_coupon' === $current_post_type ) {
+				return;
+			}
+
+			// Get connected sites
+			$sites = Connected_Site::get_all();
+			
+			$rendered = true;
+
+			// Load view templates
+			require WP_AIE_PATH . '/app/View/sync/sync-modal.php';
+			require WP_AIE_PATH . '/app/View/sync/mapping-modal.php';
+			require WP_AIE_PATH . '/app/View/sync/browse-modal.php';
+		}
 
 	/**
 	 * Render sync button in post edit screen (Classic Editor)
@@ -1078,7 +1135,19 @@ class Content_Sync_Controller extends Base_Controller {
 			// Get post meta
 			$meta          = get_post_meta( $post_id );
 			$prepared_meta = array();
+			$skip_meta_keys = array(
+				'_edit_lock',
+				'_edit_last',
+				'_wp_old_slug',
+				'_wp_old_date',
+				// Internal Content Sync meta: must never be pushed to remote, otherwise it
+				// overwrites the receiving site's own "_aie_original_post_id" mapping.
+				'_aie_original_post_id',
+			);
 			foreach ( $meta as $key => $values ) {
+				if ( in_array( $key, $skip_meta_keys, true ) ) {
+					continue;
+				}
 				$prepared_meta[ $key ] = maybe_unserialize( $values[0] );
 			}
 

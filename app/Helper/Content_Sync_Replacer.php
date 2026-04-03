@@ -600,10 +600,10 @@ class Content_Sync_Replacer {
 	 * @param int   $post_id     Target post ID.
 	 * @param array $term_id_map Map of source_term_id => local_term_id.
 	 */
-	public static function translate_acf_taxonomy_fields_in_meta( $meta, $post_id, $term_id_map ) {
-		if ( empty( $term_id_map ) ) {
-			return;
-		}
+		public static function translate_acf_taxonomy_fields_in_meta( $meta, $post_id, $term_id_map ) {
+			if ( empty( $term_id_map ) ) {
+				return;
+			}
 
 		foreach ( $meta as $key => $value ) {
 			// Only process non-underscore-prefixed keys (skip ACF reference entries).
@@ -658,10 +658,117 @@ class Content_Sync_Replacer {
 	}
 
 	/**
-	 * Check if string is serialized
-	 *
-	 * @param string $data Data to check.
-	 * @return bool True if serialized
+		 * After importing posts, re-save any ACF post-reference fields (post_object / relationship)
+		 * so they reference the correct local post IDs instead of the source-site IDs.
+		 *
+		 * Strategy: identify ACF fields via the companion "_fieldname" = "field_xxx" meta entry,
+		 * resolve the field definition with acf_get_field(), and only translate known reference
+		 * field types. Each numeric ID is translated via:
+		 * - self-reference: if it equals $source_post_id, rewrite to $post_id
+		 * - otherwise: find a local post with meta "_aie_original_post_id" = source_id
+		 *
+		 * If a referenced post has not been synced (no mapping exists), the value is left intact.
+		 *
+		 * @param array $meta           Full post meta array (key → value, already deserialized).
+		 * @param int   $post_id        Target post ID.
+		 * @param int   $source_post_id Source-site post ID for this post.
+		 */
+		public static function translate_acf_post_reference_fields_in_meta( $meta, $post_id, $source_post_id ) {
+			if ( empty( $meta ) || ! function_exists( 'acf_get_field' ) ) {
+				return;
+			}
+
+			$post_id        = (int) $post_id;
+			$source_post_id = (int) $source_post_id;
+
+			$map_id = static function ( $maybe_source_id ) use ( $post_id, $source_post_id ) {
+				$maybe_source_id = (int) $maybe_source_id;
+				if ( $maybe_source_id <= 0 ) {
+					return 0;
+				}
+
+				// Self-reference: this post is guaranteed to exist locally now.
+				if ( $source_post_id > 0 && $maybe_source_id === $source_post_id ) {
+					return $post_id;
+				}
+
+				$found = get_posts(
+					array(
+						'post_type'      => 'any',
+						'post_status'    => 'any',
+						'posts_per_page' => 1,
+						'fields'         => 'ids',
+						'meta_query'     => array(
+							array(
+								'key'   => '_aie_original_post_id',
+								'value' => $maybe_source_id,
+							),
+						),
+					)
+				);
+
+				return ! empty( $found ) ? (int) $found[0] : 0;
+			};
+
+			foreach ( $meta as $key => $value ) {
+				// Only process non-underscore-prefixed keys (skip ACF reference entries).
+				if ( strpos( $key, '_' ) === 0 ) {
+					continue;
+				}
+
+				$field_ref_key = '_' . $key;
+				if ( ! isset( $meta[ $field_ref_key ] ) ) {
+					continue;
+				}
+				$field_ref = $meta[ $field_ref_key ];
+				if ( ! is_string( $field_ref ) || strpos( $field_ref, 'field_' ) !== 0 ) {
+					continue;
+				}
+
+				$field_obj = acf_get_field( $field_ref );
+				if ( ! $field_obj || empty( $field_obj['type'] ) ) {
+					continue;
+				}
+
+				if ( ! in_array( $field_obj['type'], array( 'post_object', 'relationship' ), true ) ) {
+					continue;
+				}
+
+				// Translate single post ID.
+				if ( is_numeric( $value ) && (int) $value > 0 ) {
+					$mapped = $map_id( $value );
+					if ( $mapped > 0 && $mapped !== (int) $value ) {
+						update_post_meta( $post_id, $key, $mapped );
+					}
+					continue;
+				}
+
+				// Translate array of post IDs.
+				if ( is_array( $value ) ) {
+					$changed    = false;
+					$translated = array();
+					foreach ( $value as $item ) {
+						if ( is_numeric( $item ) && (int) $item > 0 ) {
+							$mapped = $map_id( $item );
+							if ( $mapped > 0 ) {
+								$translated[] = $mapped;
+								$changed      = $changed || ( $mapped !== (int) $item );
+								continue;
+							}
+						}
+						$translated[] = $item;
+					}
+					if ( $changed ) {
+						update_post_meta( $post_id, $key, $translated );
+					}
+				}
+			}
+		}
+	/**
+		 * Check if string is serialized
+		 *
+		 * @param string $data Data to check.
+		 * @return bool True if serialized
 	 */
 	private static function is_serialized( $data ) {
 		if ( ! is_string( $data ) ) {
