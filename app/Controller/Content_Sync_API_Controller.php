@@ -475,13 +475,14 @@ class Content_Sync_API_Controller {
 				}
 
 				// Re-save ACF post reference fields (post_object / relationship) with correct local IDs.
-				if ( ! empty( $post_data['meta'] ) ) {
-					\WP_AIE\Helper\Content_Sync_Replacer::translate_acf_post_reference_fields_in_meta(
-						$post_data['meta'],
-						$post_id,
-						$source_post_id
-					);
-				}
+					if ( ! empty( $post_data['meta'] ) ) {
+						\WP_AIE\Helper\Content_Sync_Replacer::translate_acf_post_reference_fields_in_meta(
+							$post_data['meta'],
+							$post_id,
+							$source_post_id,
+							isset( $post_data['post_refs'] ) ? $post_data['post_refs'] : array()
+						);
+					}
 
 				// Import WooCommerce product variations and recalculate the variable
 				// product price range so the remote site shows the correct prices.
@@ -1123,20 +1124,21 @@ class Content_Sync_API_Controller {
 				}
 			}
 
-			$posts_data[] = array(
-				'ID'            => $post->ID,
-				'post_title'    => $post->post_title,
-				'post_content'  => $post->post_content,
+				$posts_data[] = array(
+					'ID'            => $post->ID,
+					'post_title'    => $post->post_title,
+					'post_content'  => $post->post_content,
 				'post_excerpt'  => $post->post_excerpt,
 				'post_status'   => $post->post_status,
 				'post_type'     => $post->post_type,
 				'post_name'     => $post->post_name,
 				'post_date'     => $post->post_date,
-				'post_modified' => $post->post_modified,
-				'post_author'   => $post->post_author,
-				'meta'          => $prepared_meta,
-				'terms'         => $terms_data,
-			);
+					'post_modified' => $post->post_modified,
+					'post_author'   => $post->post_author,
+					'meta'          => $prepared_meta,
+					'post_refs'     => \WP_AIE\Helper\Content_Sync_Replacer::collect_acf_post_reference_map_from_meta( $prepared_meta ),
+					'terms'         => $terms_data,
+				);
 		}
 
 		if ( empty( $posts_data ) ) {
