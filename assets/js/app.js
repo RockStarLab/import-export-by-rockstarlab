@@ -13383,7 +13383,8 @@ var ImportModule = {
           label: 'Menu Order',
           type: 'number'
         }, {
-          value: 'post_slug',
+          // Keep naming consistent with the Post_Importer (expects `post_name`).
+          value: 'post_name',
           label: 'Slug',
           type: 'string'
         }, {
@@ -13398,11 +13399,13 @@ var ImportModule = {
       }, {
         label: 'Author',
         options: [{
-          value: 'author_id',
+          // Keep naming consistent with the Post_Importer (expects `post_author`,
+          // plus optional `author_name`/`author_email` fallbacks).
+          value: 'post_author',
           label: 'Author ID',
           type: 'number'
         }, {
-          value: 'author_login',
+          value: 'author_name',
           label: 'Author Login',
           type: 'string'
         }, {
@@ -14390,6 +14393,10 @@ var ImportModule = {
         } else if (sourceField.startsWith('acf_')) {
           fieldType = 'meta';
         } else if (sourceField.startsWith('meta_')) {
+          fieldType = 'meta';
+        } else if (sourceField.startsWith('_')) {
+          // Portable meta keys (Yoast, templates, etc.) are exported without a `meta_` prefix.
+          // Auto-create a meta target so they can be exact-mapped in Pass 1.
           fieldType = 'meta';
         }
         if (!fieldType) return;

@@ -580,7 +580,9 @@ class Post_Importer extends Abstract_Importer {
 					// Fall through to DB lookup below.
 				}
 
-				$field_object = function_exists( 'get_field_object' ) ? get_field_object( $acf_field_name, $post_id ) : null;
+				// Avoid formatting values while importing; some field types (e.g. icon_picker)
+				// can fatal if the stored value is not yet in the expected shape.
+				$field_object = function_exists( 'get_field_object' ) ? get_field_object( $acf_field_name, $post_id, false, false ) : null;
 				$field_type   = is_array( $field_object ) ? ( $field_object['type'] ?? '' ) : '';
 
 				// Fallback: resolve field type from ACF field definitions in DB.
@@ -694,7 +696,8 @@ class Post_Importer extends Abstract_Importer {
 			$db_field      = null;
 
 			if ( $has_acf ) {
-				$field_object = function_exists( 'get_field_object' ) ? get_field_object( $key, $post_id ) : null;
+				// Avoid formatting values while importing; see note above.
+				$field_object = function_exists( 'get_field_object' ) ? get_field_object( $key, $post_id, false, false ) : null;
 				if ( is_array( $field_object ) && ! empty( $field_object['key'] ) ) {
 					$acf_field_key = (string) $field_object['key'];
 				}
@@ -802,6 +805,20 @@ class Post_Importer extends Abstract_Importer {
 	 * @return mixed Resolved value ready for update_post_meta().
 	 */
 		private function resolve_acf_meta_value( $value, int $post_id ) {
+			// Some import pipelines may pass JSON as raw strings (e.g. '["a","b"]' or
+			// '{"acf_type":"taxonomy",...}'). Decode here as a safety net so all code paths
+			// (including auto-import media and direct meta updates) can resolve typed ACF
+			// values into native PHP structures.
+			if ( is_string( $value ) && '' !== $value ) {
+				$trimmed = ltrim( $value );
+				if ( '' !== $trimmed && ( '{' === $trimmed[0] || '[' === $trimmed[0] ) ) {
+					$decoded = json_decode( $trimmed, true );
+					if ( is_array( $decoded ) ) {
+						$value = $decoded;
+					}
+				}
+			}
+
 			// ── 0. Gallery shortcode tokens (portable) ───────────────────────────
 			if ( is_string( $value ) && '' !== $value && false !== strpos( $value, '[[AIE:' ) ) {
 				$value = $this->resolve_gallery_shortcode_tokens( $value, $post_id );
@@ -1390,7 +1407,9 @@ class Post_Importer extends Abstract_Importer {
 			$meta_value = $meta_values[0];
 			
 			// Try to get ACF field object to determine type
-			$field_object = get_field_object( $meta_key, $post_id );
+			// We only need field settings (type/sub_fields). Formatting can fatal for some
+			// field types when values are in a portable form (e.g. strings for icon_picker).
+			$field_object = get_field_object( $meta_key, $post_id, false, false );
 			
 			if ( ! $field_object ) {
 				// Not an ACF field or field not found
@@ -1398,6 +1417,25 @@ class Post_Importer extends Abstract_Importer {
 			}
 			
 			$field_type = $field_object['type'] ?? '';
+
+			// Safety net: if some ACF fields were stored as portable JSON strings (e.g.
+			// {"acf_type":"relation",...} or ["a","b"]), resolve them into native PHP
+			// values and re-apply via update_field() so the field remains functional.
+			//
+			// This is especially important for fields like post_object/user where the
+			// importer must look up local IDs by slug/login.
+			if ( is_string( $meta_value ) && '' !== $meta_value && in_array( $field_type, [ 'post_object', 'relationship', 'taxonomy', 'user', 'checkbox', 'google_map', 'gallery' ], true ) ) {
+				$resolved = $this->resolve_acf_meta_value( $meta_value, $post_id );
+				if ( $resolved !== $meta_value ) {
+					$acf_key = is_array( $field_object ) && ! empty( $field_object['key'] ) ? (string) $field_object['key'] : '';
+					if ( '' !== $acf_key && 0 === strpos( $acf_key, 'field_' ) ) {
+						update_field( $acf_key, $resolved, $post_id );
+					} else {
+						update_field( $meta_key, $resolved, $post_id );
+					}
+					$meta_value = $resolved;
+				}
+			}
 			
 			// Handle different ACF field types
 			switch ( $field_type ) {
@@ -1492,7 +1530,8 @@ class Post_Importer extends Abstract_Importer {
 		// Process each row
 		for ( $i = 0; $i < $row_count; $i++ ) {
 			// Get field object for this row
-			$field_object = get_field_object( $field_name, $post_id );
+			// Field definition only; do not format values during import.
+			$field_object = get_field_object( $field_name, $post_id, false, false );
 			
 			if ( ! $field_object || empty( $field_object['sub_fields'] ) ) {
 				continue;
