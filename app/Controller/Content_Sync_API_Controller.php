@@ -388,7 +388,7 @@ class Content_Sync_API_Controller {
 				// ACF will automatically handle the processing of its fields
 				foreach ( $post_data['meta'] as $key => $value ) {
 					// Skip some internal WordPress meta
-					if ( in_array( $key, array( '_edit_lock', '_edit_last' ), true ) ) {
+					if ( in_array( $key, array( '_edit_lock', '_edit_last', '_aie_original_post_id' ), true ) ) {
 						continue;
 					}
 					
@@ -465,18 +465,27 @@ class Content_Sync_API_Controller {
 				}
 
 				// Re-save ACF taxonomy fields with correct local term IDs.
-				if ( ! empty( $term_id_map ) && ! empty( $post_data['meta'] ) ) {
-					\WP_AIE\Helper\Content_Sync_Replacer::translate_acf_taxonomy_fields_in_meta(
+					if ( ! empty( $term_id_map ) && ! empty( $post_data['meta'] ) ) {
+						\WP_AIE\Helper\Content_Sync_Replacer::translate_acf_taxonomy_fields_in_meta(
+							$post_data['meta'],
+							$post_id,
+							$term_id_map
+						);
+					}
+				}
+
+				// Re-save ACF post reference fields (post_object / relationship) with correct local IDs.
+				if ( ! empty( $post_data['meta'] ) ) {
+					\WP_AIE\Helper\Content_Sync_Replacer::translate_acf_post_reference_fields_in_meta(
 						$post_data['meta'],
 						$post_id,
-						$term_id_map
+						$source_post_id
 					);
 				}
-			}
 
-			// Import WooCommerce product variations and recalculate the variable
-			// product price range so the remote site shows the correct prices.
-			if ( 'product' === $post_data['post_type']
+				// Import WooCommerce product variations and recalculate the variable
+				// product price range so the remote site shows the correct prices.
+				if ( 'product' === $post_data['post_type']
 				&& ! empty( $post_data['variations'] )
 				&& class_exists( 'WC_Product' )
 				&& function_exists( 'wc_get_product' )
