@@ -1259,20 +1259,21 @@ class Content_Sync_Controller extends Base_Controller {
 				}
 			}
 
-			$post_data = array(
-				'ID'            => $post->ID,
-				'post_title'    => $post->post_title,
-				'post_content'  => $post->post_content,
+				$post_data = array(
+					'ID'            => $post->ID,
+					'post_title'    => $post->post_title,
+					'post_content'  => $post->post_content,
 				'post_excerpt'  => $post->post_excerpt,
 				'post_status'   => $post->post_status,
 				'post_type'     => $post->post_type,
 				'post_name'     => $post->post_name,
 				'post_date'     => $post->post_date,
-				'post_modified' => $post->post_modified,
-				'post_author'   => $post->post_author,
-				'meta'          => $prepared_meta,
-				'terms'         => $terms_data,
-			);
+					'post_modified' => $post->post_modified,
+					'post_author'   => $post->post_author,
+					'meta'          => $prepared_meta,
+					'post_refs'     => \WP_AIE\Helper\Content_Sync_Replacer::collect_acf_post_reference_map_from_meta( $prepared_meta ),
+					'terms'         => $terms_data,
+				);
 			
 			if ( isset( $prepared_meta['repeater'] ) ) {
 			}
@@ -1806,19 +1807,29 @@ class Content_Sync_Controller extends Base_Controller {
 				}
 			}
 
-			// Re-save ACF taxonomy fields with correct local term IDs.
-			if ( ! empty( $term_id_map ) && ! empty( $post_data['meta'] ) ) {
-				\WP_AIE\Helper\Content_Sync_Replacer::translate_acf_taxonomy_fields_in_meta(
+				// Re-save ACF taxonomy fields with correct local term IDs.
+				if ( ! empty( $term_id_map ) && ! empty( $post_data['meta'] ) ) {
+					\WP_AIE\Helper\Content_Sync_Replacer::translate_acf_taxonomy_fields_in_meta(
+						$post_data['meta'],
+						$post_id,
+						$term_id_map
+					);
+				}
+			}
+
+			// Re-save ACF post reference fields (post_object / relationship / page_link) with correct local IDs.
+			if ( ! empty( $post_data['meta'] ) ) {
+				\WP_AIE\Helper\Content_Sync_Replacer::translate_acf_post_reference_fields_in_meta(
 					$post_data['meta'],
 					$post_id,
-					$term_id_map
+					$remote_post_id,
+					isset( $post_data['post_refs'] ) ? $post_data['post_refs'] : array()
 				);
 			}
-		}
 
-			// Fix image URLs in content after import
-			$updated_content = $post_data['post_content'];
-			
+				// Fix image URLs in content after import
+				$updated_content = $post_data['post_content'];
+				
 			foreach ( $image_map as $old_id => $new_id ) {
 				$new_url = wp_get_attachment_url( $new_id );
 				if ( $new_url ) {

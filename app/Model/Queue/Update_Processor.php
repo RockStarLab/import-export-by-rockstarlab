@@ -345,20 +345,23 @@ class Update_Processor {
 	 * @param string $content_type Content type
 	 * @return mixed Item ID
 	 */
-	private function get_item_id( $item, $content_type ) {
-		switch ( $content_type ) {
-			case 'post':
-			case 'page':
-			case 'custom_post_types':
-			case 'media':
-			case 'menu':
-			case 'woo_product':
-			case 'woo_order':
-			case 'woo_coupon':
-				return isset( $item['ID'] ) ? $item['ID'] : ( isset( $item['id'] ) ? $item['id'] : 0 );
+		private function get_item_id( $item, $content_type ) {
+			switch ( $content_type ) {
+				case 'post':
+				case 'page':
+				case 'custom_post_types':
+				case 'media':
+				case 'woo_product':
+				case 'woo_order':
+				case 'woo_coupon':
+					return isset( $item['ID'] ) ? $item['ID'] : ( isset( $item['id'] ) ? $item['id'] : 0 );
 
-			case 'user':
-				return isset( $item['ID'] ) ? $item['ID'] : ( isset( $item['user_id'] ) ? $item['user_id'] : 0 );
+				case 'menu':
+					// Menu exports represent nav_menu TERMS, not nav_menu_item posts.
+					return isset( $item['term_id'] ) ? $item['term_id'] : ( isset( $item['ID'] ) ? $item['ID'] : ( isset( $item['id'] ) ? $item['id'] : 0 ) );
+
+				case 'user':
+					return isset( $item['ID'] ) ? $item['ID'] : ( isset( $item['user_id'] ) ? $item['user_id'] : 0 );
 
 			case 'comment':
 				return isset( $item['comment_ID'] ) ? $item['comment_ID'] : 0;
@@ -385,19 +388,27 @@ class Update_Processor {
 	 * @param array  $fields       Fields that were updated
 	 * @return true|\WP_Error
 	 */
-	private function save_item( $item_id, $item, $content_type, $fields ) {
-		try {
-			switch ( $content_type ) {
-				case 'post':
-				case 'page':
-				case 'custom_post_types':
-				case 'media':
-				case 'menu':
-				case 'woo_order':
-					return $this->save_post_item( $item_id, $item, $fields );
+		private function save_item( $item_id, $item, $content_type, $fields ) {
+			try {
+				switch ( $content_type ) {
+					case 'post':
+					case 'page':
+					case 'custom_post_types':
+					case 'media':
+						return $this->save_post_item( $item_id, $item, $fields );
 
-				case 'woo_product':
-					return $this->save_product_item( $item_id, $item, $fields );
+					case 'menu':
+						// Menus are stored as nav_menu terms.
+						if ( empty( $item['taxonomy'] ) ) {
+							$item['taxonomy'] = 'nav_menu';
+						}
+						return $this->save_term_item( $item_id, $item, $fields );
+
+					case 'woo_order':
+						return $this->save_order_item( $item_id, $item, $fields );
+
+					case 'woo_product':
+						return $this->save_product_item( $item_id, $item, $fields );
 
 				case 'woo_coupon':
 					return $this->save_coupon_item( $item_id, $item, $fields );
@@ -850,7 +861,7 @@ class Update_Processor {
 	 * @param mixed $ref Portable ref (slug:..., id:...) or legacy int/string.
 	 * @return int Term ID.
 	 */
-	private function resolve_coupon_product_cat_id_ref( $ref ) {
+		private function resolve_coupon_product_cat_id_ref( $ref ) {
 		if ( is_int( $ref ) ) {
 			return $ref > 0 ? $ref : 0;
 		}
@@ -898,13 +909,132 @@ class Update_Processor {
 			return (int) $term->term_id;
 		}
 
-		return 0;
-	}
+			return 0;
+		}
 
-	/**
-	 * Save WooCommerce product item using WC_Product API
-	 *
-	 * @param int   $product_id Product ID
+		/**
+		 * Save WooCommerce order item using WC_Order API (HPOS compatible).
+		 *
+		 * @param int   $order_id Order ID.
+		 * @param array $item     Item data.
+		 * @param array $fields   Fields to update.
+		 * @return true|\WP_Error
+		 */
+		private function save_order_item( $order_id, $item, $fields ) {
+			if ( empty( $order_id ) || ! is_numeric( $order_id ) || $order_id <= 0 ) {
+				return new \WP_Error( 'invalid_order_id', sprintf( 'Invalid order ID: %s', $order_id ) );
+			}
+
+			if ( ! function_exists( 'wc_get_order' ) ) {
+				// Backwards compatibility fallback (non-HPOS installs still store orders as posts).
+				return $this->save_post_item( $order_id, $item, $fields );
+			}
+
+			$order = wc_get_order( (int) $order_id );
+			if ( ! $order ) {
+				return new \WP_Error( 'order_not_found', sprintf( 'Order #%d does not exist', $order_id ) );
+			}
+
+			$setter_map = [
+				'order_status'          => 'set_status',
+				'customer_note'         => 'set_customer_note',
+				'billing_first_name'    => 'set_billing_first_name',
+				'billing_last_name'     => 'set_billing_last_name',
+				'billing_company'       => 'set_billing_company',
+				'billing_address_1'     => 'set_billing_address_1',
+				'billing_address_2'     => 'set_billing_address_2',
+				'billing_city'          => 'set_billing_city',
+				'billing_state'         => 'set_billing_state',
+				'billing_postcode'      => 'set_billing_postcode',
+				'billing_country'       => 'set_billing_country',
+				'billing_email'         => 'set_billing_email',
+				'billing_phone'         => 'set_billing_phone',
+				'shipping_first_name'   => 'set_shipping_first_name',
+				'shipping_last_name'    => 'set_shipping_last_name',
+				'shipping_company'      => 'set_shipping_company',
+				'shipping_address_1'    => 'set_shipping_address_1',
+				'shipping_address_2'    => 'set_shipping_address_2',
+				'shipping_city'         => 'set_shipping_city',
+				'shipping_state'        => 'set_shipping_state',
+				'shipping_postcode'     => 'set_shipping_postcode',
+				'shipping_country'      => 'set_shipping_country',
+				'payment_method'        => 'set_payment_method',
+				'payment_method_title'  => 'set_payment_method_title',
+				'transaction_id'        => 'set_transaction_id',
+			];
+
+			$touched = false;
+			foreach ( $fields as $field ) {
+				if ( ! isset( $item[ $field ] ) ) {
+					continue;
+				}
+
+				$value = $item[ $field ];
+
+				// Skip read-only/derived fields.
+				if ( in_array(
+					$field,
+					[
+						'ID',
+						'order_number',
+						'order_key',
+						'order_total',
+						'order_subtotal',
+						'order_tax',
+						'order_shipping',
+						'order_discount',
+						'cart_tax',
+						'shipping_tax',
+						'total_tax',
+						'order_items',
+						'item_count',
+						'shipping_lines',
+						'fee_lines',
+						'coupon_lines',
+						'order_notes',
+						'order_meta',
+						'currency',
+						'order_date',
+						'date_modified',
+						'completed_date',
+						'paid_date',
+					],
+					true
+				) ) {
+					continue;
+				}
+
+				if ( isset( $setter_map[ $field ] ) && method_exists( $order, $setter_map[ $field ] ) ) {
+					$method = $setter_map[ $field ];
+
+					if ( 'set_status' === $method ) {
+						// Allow both "processing" and "wc-processing".
+						$value = is_string( $value ) ? preg_replace( '/^wc-/', '', $value ) : $value;
+					}
+
+					$order->$method( $value );
+					$touched = true;
+					continue;
+				}
+
+				// Fallback: treat as order meta (supports acf_/meta_/yoast__ prefixes too).
+				$resolved = $this->resolve_meta_key( $field );
+				$meta_value = is_array( $value ) ? wp_json_encode( $value ) : $value;
+				$order->update_meta_data( $resolved['key'], $meta_value );
+				$touched = true;
+			}
+
+			if ( $touched ) {
+				$order->save();
+			}
+
+			return true;
+		}
+
+		/**
+		 * Save WooCommerce product item using WC_Product API
+		 *
+		 * @param int   $product_id Product ID
 	 * @param array $item       Item data
 	 * @param array $fields     Fields to update
 	 * @return true|\WP_Error
