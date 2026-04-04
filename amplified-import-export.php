@@ -67,7 +67,7 @@ if ( ! function_exists( 'aie_fs' ) ) {
 					'is_premium_only'   => false,
 					'has_addons'        => false,
 					'has_paid_plans'    => true,
-					'wp_org_gatekeeper' => 'OA7#BoRiBNqdf52FvzEf!!074aRLPs8fspif$7K1#4u4Csys1fQlCecVcUTOs2mcpeVHi#C2j9d09fOTvbC0HloPT7fFee5WdS3G',
+					'has_affiliation'		=> 'all',
 					'trial' => [
 						'days' => 30,
 						'is_require_payment' => true,
