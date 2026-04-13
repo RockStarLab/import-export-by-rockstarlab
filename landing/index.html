@@ -4,13 +4,56 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
-    <title>Amplified Import Export — Advanced WordPress Import/Export & Sync</title>
+    <title>Amplified Import Export — WordPress CSV Import, Export & Content Sync Plugin</title>
     <meta
       name="description"
-      content="Advanced import/export for WordPress: custom functions, media sync, site-to-site content sync, AI URL importer, WooCommerce + ACF support, and jobs log."
+      content="The most powerful WordPress import export plugin. Import large CSV files, export to CSV/JSON, sync content between sites, bulk update posts, and sync media folders. Supports WooCommerce, ACF, custom post types."
     />
+    <link rel="canonical" href="https://wpimportexport.com/" />
+
+    <!-- Open Graph / Social sharing -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://wpimportexport.com/" />
+    <meta property="og:title" content="Amplified Import Export — WordPress CSV Import, Export & Content Sync Plugin" />
+    <meta property="og:description" content="Import large CSV files, export to CSV/JSON, sync content between WordPress sites, bulk update posts, and sync media folders. WooCommerce & ACF ready." />
+    <meta property="og:image" content="assets/screens/import-map-fields.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Amplified Import Export — WordPress Import Export Plugin" />
+    <meta name="twitter:description" content="Import CSV, export to JSON, sync between WordPress sites, bulk update posts. WooCommerce & ACF ready." />
+    <meta name="twitter:image" content="assets/screens/import-map-fields.png" />
+
+    <!-- Structured data: SoftwareApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Amplified Import Export",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "WordPress",
+      "url": "https://wordpress.org/plugins/amplified-import-export/",
+      "description": "Advanced WordPress import export plugin. Import large CSV files, export to CSV or JSON, sync content between sites, bulk update posts, and sync media folders. Supports WooCommerce, ACF, custom post types.",
+      "offers": [
+        {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Free version on WordPress.org"
+        },
+        {
+          "@type": "Offer",
+          "price": "9.99",
+          "priceCurrency": "USD",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "billingDuration": "P1M"
+          },
+          "description": "Premium — 2 sites"
+        }
+      ]
+    }
+    </script>
     <link rel="icon" href="favicon.png" type="image/png" />
-    <link rel="stylesheet" href="assets/css/style.css" />
+    <link rel="stylesheet" href="assets/css/style.min.css" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -18,6 +61,7 @@
     <header class="topbar" data-topbar>
       <div class="container topbar-inner">
         <a class="brand" href="#top" aria-label="Amplified Import Export">
+          <img class="brand-logo" src="assets/img/logo.png" alt="Amplified Import Export plugin for WordPress" width="32" height="32" />
           <span class="brand-name">WP Amplified Import Export</span>
         </a>
 
@@ -28,9 +72,11 @@
 
         <nav class="nav" id="nav" data-nav>
           <a class="nav-link" href="#features">Features</a>
+          <a class="nav-link" href="#use-cases">Use&nbsp;Cases</a>
           <a class="nav-link" href="#workflows">Workflows</a>
           <a class="nav-link" href="#screens">Screens</a>
           <a class="nav-link" href="#pricing">Pricing</a>
+          <a class="nav-link" href="#affiliate">Affiliates</a>
           <a class="nav-link" href="#faq">FAQ</a>
           <a
             class="btn btn-sm btn-primary"
@@ -53,10 +99,21 @@
             </div> -->
 
             <h1 class="hero-title">
-              Advanced <span class="hero-title-accent">Import, Export and Content Sync</span> WordPress Plugin
+              <span class="hero-title-static">Advanced</span>
+              <span class="hero-title-accent hero-title-flipper" aria-live="polite" data-flipper='["Import, Export &amp; Sync","Site-to-Site Sync","Bulk Content Updates","Media Folder Sync","AI URL Importing"]'>
+                <span class="flipper-track">
+                  <span class="flipper-word">Import, Export &amp; Sync</span>
+                  <span class="flipper-word">Site-to-Site Sync</span>
+                  <span class="flipper-word">Bulk Content Updates</span>
+                  <span class="flipper-word">Media Folder Sync</span>
+                  <span class="flipper-word">AI URL Importing</span>
+                </span>
+              </span>
+              <span class="hero-title-static">WordPress Plugin</span>
             </h1>
             <p class="hero-subtitle">
-              Import, export, and sync WordPress content with a powerful WordPress Import Export plugin: import large CSV files, export data to CSV or JSON, sync content between two or more WordPress sites, bulk update posts with data transformation functions, and sync server folders into the WordPress Media Library.
+              The most complete WordPress import export plugin — import large CSV files, export data to CSV or JSON, and bulk update thousands of posts with custom transformation functions.<br>
+              Need more? Connect WordPress sites and sync content in both directions, or scan server folders into the Media Library. Full WooCommerce, ACF, and custom post type support included.
             </p>
 
             <div class="cta">
@@ -75,8 +132,8 @@
               <svg class="hero-illustration" viewBox="0 0 640 520" role="img" aria-label="">
                 <defs>
                   <linearGradient id="flow" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#4f46e5" />
-                    <stop offset="1" stop-color="#7c3aed" />
+                    <stop offset="0" stop-color="#00b896" />
+                    <stop offset="1" stop-color="#00d4aa" />
                   </linearGradient>
                   <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
                     <feGaussianBlur stdDeviation="5" result="blur" />
@@ -164,11 +221,11 @@
               <div class="hero-card-bottom">
                 <div class="hero-stat">
                   <div class="hero-stat-k">Built for complex data</div>
-                  <div class="hero-stat-v">Custom fields & custom post types</div>
+                  <div class="hero-stat-v">Custom Fields & Custom Post Types</div>
                 </div>
                 <div class="hero-stat">
                   <div class="hero-stat-k">Integrations</div>
-                  <div class="hero-stat-v">ACF · Yoast · WooCommerce</div>
+                  <div class="hero-stat-v">ACF · YOAST · WooCommerce</div>
                 </div>
               </div>
             </div>
@@ -209,7 +266,7 @@
       <section class="section" id="features">
         <div class="container">
           <div class="section-head reveal">
-            <h2>Everything you need to move data safely</h2>
+            <h2>Everything you need to import, export & sync WordPress data</h2>
             <p>Designed for migrations, staging ⇄ production sync, bulk updates, and content operations at scale.</p>
           </div>
 
@@ -381,9 +438,9 @@
               type="button"
               data-lightbox
               data-src="assets/screens/import-map-fields.png"
-              data-alt="Import: map fields"
+              data-alt="WordPress CSV import: map fields to post meta"
             >
-              <img src="assets/screens/import-map-fields.png" alt="Import: map fields" loading="lazy" />
+              <img src="assets/screens/import-map-fields.png" alt="WordPress CSV import plugin — field mapping screen" loading="lazy" />
               <span class="shot-cap">Import · Field mapping</span>
             </button>
             <button
@@ -391,9 +448,9 @@
               type="button"
               data-lightbox
               data-src="assets/screens/export-choose-fields.png"
-              data-alt="Export: choose fields"
+              data-alt="WordPress export plugin: choose fields to export to CSV or JSON"
             >
-              <img src="assets/screens/export-choose-fields.png" alt="Export: choose fields" loading="lazy" />
+              <img src="assets/screens/export-choose-fields.png" alt="WordPress export plugin — choose fields for CSV or JSON export" loading="lazy" />
               <span class="shot-cap">Export · Choose fields</span>
             </button>
             <button
@@ -401,9 +458,9 @@
               type="button"
               data-lightbox
               data-src="assets/screens/sync-dialog.png"
-              data-alt="Sync: direction and options"
+              data-alt="WordPress site-to-site content sync: push or pull dialog"
             >
-              <img src="assets/screens/sync-dialog.png" alt="Sync: direction and options" loading="lazy" />
+              <img src="assets/screens/sync-dialog.png" alt="WordPress content sync plugin — push/pull direction dialog between sites" loading="lazy" />
               <span class="shot-cap">Sync · Push / Pull dialog</span>
             </button>
             <button
@@ -411,9 +468,9 @@
               type="button"
               data-lightbox
               data-src="assets/screens/updater-preview.png"
-              data-alt="Bulk updater: preview changes"
+              data-alt="WordPress bulk content updater: preview changes before executing"
             >
-              <img src="assets/screens/updater-preview.png" alt="Bulk updater: preview changes" loading="lazy" />
+              <img src="assets/screens/updater-preview.png" alt="WordPress bulk post updater — preview changes across thousands of records" loading="lazy" />
               <span class="shot-cap">Updater · Preview</span>
             </button>
             <button
@@ -421,9 +478,9 @@
               type="button"
               data-lightbox
               data-src="assets/screens/media-sync-page.png"
-              data-alt="Media sync page"
+              data-alt="WordPress media folder sync: register server files into Media Library"
             >
-              <img src="assets/screens/media-sync-page.png" alt="Media sync page" loading="lazy" />
+              <img src="assets/screens/media-sync-page.png" alt="WordPress media folder sync — scan server folders and import files into Media Library" loading="lazy" />
               <span class="shot-cap">Media · Folder sync</span>
             </button>
             <button
@@ -431,9 +488,9 @@
               type="button"
               data-lightbox
               data-src="assets/screens/ai-importer-preview.png"
-              data-alt="AI URL importer preview"
+              data-alt="AI URL importer for WordPress: paste a URL and import content automatically"
             >
-              <img src="assets/screens/ai-importer-preview.png" alt="AI URL importer preview" loading="lazy" />
+              <img src="assets/screens/ai-importer-preview.png" alt="WordPress AI URL importer — paste a URL and import content as any post type" loading="lazy" />
               <span class="shot-cap">AI · URL import preview</span>
             </button>
           </div>
@@ -443,10 +500,25 @@
       <section class="section section-muted" id="pricing">
         <div class="container">
           <div class="section-head reveal">
-            <h2>Pricing</h2>
-            <p>Three simple plans for running premium features across your sites.</p>
+            <h2>Simple, transparent pricing</h2>
+            <p>Three plans for running premium features across your sites.</p>
             <p class="subnote"><strong>Try it for free!</strong> New users get <strong>1 month</strong> with access to all premium features.</p>
           </div>
+
+          <!-- <div class="social-proof reveal">
+            <div class="sp-item">
+              <span class="sp-num">10,000+</span>
+              <span class="sp-label">Active installs</span>
+            </div>
+            <div class="sp-item">
+              <span class="sp-num">★ 4.8</span>
+              <span class="sp-label">WordPress.org rating</span>
+            </div>
+            <div class="sp-item">
+              <span class="sp-num">Free</span>
+              <span class="sp-label">Core version available</span>
+            </div>
+          </div> -->
 
           <div class="grid pricing">
             <div class="card price-card reveal">
@@ -462,7 +534,7 @@
                 <li>Sync Content Between Sites</li>
                 <li>AI Tools</li>
               </ul>
-       
+              <a class="btn btn-sm btn-primary price-btn" href="https://wordpress.org/plugins/amplified-import-export/" target="_blank" rel="noreferrer">Get started</a>
             </div>
 
             <div class="card price-card price-card-popular reveal">
@@ -478,7 +550,7 @@
                 <li>Sync Content Between Sites</li>
                 <li>AI Tools</li>
               </ul>
-         
+              <a class="btn btn-sm btn-primary price-btn" href="https://wordpress.org/plugins/amplified-import-export/" target="_blank" rel="noreferrer">Get started</a>
             </div>
 
             <div class="card price-card reveal">
@@ -494,7 +566,7 @@
                 <li>Sync Content Between Sites</li>
                 <li>AI Tools</li>
               </ul>
-       
+              <a class="btn btn-sm btn-primary price-btn" href="https://wordpress.org/plugins/amplified-import-export/" target="_blank" rel="noreferrer">Get started</a>
             </div>
           </div>
         </div>
@@ -530,10 +602,124 @@
         </div>
       </section>
 
+      <!-- ══ Use Cases ══════════════════════════════════════════ -->
+      <section class="section section-muted" id="use-cases">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>Who uses Amplified Import Export?</h2>
+            <p>Real workflows for agencies, developers, store owners, and content teams.</p>
+          </div>
+
+          <div class="use-cases reveal">
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">🏗️</div>
+              <div class="uc-body">
+                <h3>Agency site migrations</h3>
+                <p>Moving a client from one host to another? Export all posts, pages, custom fields, and media from the old site and import everything cleanly into the new WordPress install — no manual copy-pasting.</p>
+              </div>
+            </div>
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">🔁</div>
+              <div class="uc-body">
+                <h3>Staging → Production sync</h3>
+                <p>Built new landing pages on staging? Use Site-to-Site Sync to push only the changed content to production — without overwriting posts that already exist there.</p>
+              </div>
+            </div>
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">🛒</div>
+              <div class="uc-body">
+                <h3>WooCommerce product imports</h3>
+                <p>Got a 50,000-row supplier CSV? Map product title, SKU, price, stock, and attributes in minutes. Run in the background and check results in the Jobs Log when it's done.</p>
+              </div>
+            </div>
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">✏️</div>
+              <div class="uc-body">
+                <h3>Bulk price or content updates</h3>
+                <p>Need to apply a 10% price increase across all products, or update hundreds of post excerpts? Use the Bulk Content Updater with a custom PHP function — no SQL, no risk.</p>
+              </div>
+            </div>
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">🖼️</div>
+              <div class="uc-body">
+                <h3>FTP folder → Media Library</h3>
+                <p>Uploaded thousands of images via FTP? Media Folder Sync scans your server directories and registers every file into the WordPress Media Library with duplicate detection.</p>
+              </div>
+            </div>
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">🤖</div>
+              <div class="uc-body">
+                <h3>AI-powered content import</h3>
+                <p>Paste any public URL and the AI importer extracts the content, maps it to your post type fields, and creates a draft — great for migrating content from legacy CMSes or competitor sites.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+
+      <!-- ══ Affiliate Program ═══════════════════════════════════ -->
+      <section class="section section-muted" id="affiliate">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>Earn with our Affiliate Program</h2>
+            <p>Recommend Amplified Import Export to your audience and earn a commission on every sale you refer.</p>
+          </div>
+
+          <div class="aff-grid reveal">
+            <div class="aff-highlight">
+              <div class="aff-highlight-inner">
+                <div class="aff-stat">
+                  <span class="aff-stat-num">20%</span>
+                  <span class="aff-stat-label">Commission per sale</span>
+                </div>
+                <div class="aff-stat">
+                  <span class="aff-stat-num">30 days</span>
+                  <span class="aff-stat-label">Cookie duration</span>
+                </div>
+                <div class="aff-stat">
+                  <span class="aff-stat-num">Monthly</span>
+                  <span class="aff-stat-label">Payouts via PayPal</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="aff-steps">
+              <div class="aff-step">
+                <div class="aff-step-num" aria-hidden="true">1</div>
+                <div class="aff-step-body">
+                  <strong>Apply for free</strong>
+                  <span>Sign up with your email directly in WP Admin Panel &rarr; Amplified Import Export &rarr; Affiliation</span>
+                </div>
+              </div>
+              <div class="aff-step">
+                <div class="aff-step-num" aria-hidden="true">2</div>
+                <div class="aff-step-body">
+                  <strong>Get your unique link</strong>
+                  <span>Share it in blog posts, YouTube videos, tutorials, or social media networks.</span>
+                </div>
+              </div>
+              <div class="aff-step">
+                <div class="aff-step-num" aria-hidden="true">3</div>
+                <div class="aff-step-body">
+                  <strong>Earn on every referral</strong>
+                  <span>Get 20% commission on each new premium subscription you refer.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="aff-cta reveal">
+            <a class="btn btn-primary" href="https://wordpress.org/plugins/amplified-import-export/">Download to become an affiliate</a>
+          </div>
+        </div>
+      </section>
+
       <section class="section" id="faq">
         <div class="container">
           <div class="section-head reveal">
-            <h2>FAQ</h2>
+            <h2>Frequently asked questions</h2>
             <p>Quick answers to common questions from users and developers.</p>
           </div>
 
@@ -546,31 +732,51 @@
               </div>
             </details>
             <details class="faq-item">
-              <summary>Can I import large files without timeout issues?</summary>
+              <summary>Can I import large CSV files into WordPress without timeout issues?</summary>
               <div class="faq-body">
-                Yes — the plugin uses background processing and CSV streaming patterns to handle large datasets more
-                reliably.
+                Yes — the plugin uses background processing and CSV streaming to handle files with hundreds of thousands of rows without hitting PHP timeout limits.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Does it support WooCommerce import and export?</summary>
+              <div class="faq-body">
+                Yes. You can import and export WooCommerce products, product variations, orders, and coupons — including all custom meta and attributes.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Can I import and export ACF (Advanced Custom Fields) data?</summary>
+              <div class="faq-body">
+                Yes. ACF fields are fully supported for both import and export across all field types, including repeaters and flexible content.
               </div>
             </details>
             <details class="faq-item">
               <summary>Can I transform data during import?</summary>
               <div class="faq-body">
-                Yes. Use the Functions Library to apply custom PHP transformations to any mapped field. You can also
-                reuse saved functions across jobs.
+                Yes. Use the built-in Functions Library to write custom PHP transformations for any mapped field. Functions are reusable across jobs.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>How do I migrate content between two WordPress sites?</summary>
+              <div class="faq-body">
+                Use the Site-to-Site Sync feature. Connect sites with secure API keys, choose Push or Pull direction, filter what to sync, and optionally include media attachments.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Can I export WordPress posts to CSV or JSON?</summary>
+              <div class="faq-body">
+                Yes. Export any content type — posts, pages, custom post types, users, or raw MySQL tables — to CSV or JSON. Filter by date, status, author, taxonomy, or IDs.
               </div>
             </details>
             <details class="faq-item">
               <summary>How do I avoid importing duplicate media files?</summary>
               <div class="faq-body">
-                Use Media Folder Sync with duplicate detection. Choose Hash (most accurate), Filename (fastest), or
-                Filesize (balanced).
+                Use Media Folder Sync with duplicate detection. Choose Hash (most accurate), Filename (fastest), or Filesize (balanced) as the detection strategy.
               </div>
             </details>
             <details class="faq-item">
-              <summary>Can I sync content between two WordPress sites?</summary>
+              <summary>Is there a free version available?</summary>
               <div class="faq-body">
-                Yes. Connect sites using secure API keys and choose Pull (import from remote) or Push (send to remote).
-                You can filter what to sync and include media attachments.
+                Yes — the core plugin is free on <a href="https://wordpress.org/plugins/amplified-import-export/" target="_blank" rel="noreferrer">WordPress.org</a>. Premium plans unlock Content Sync, AI tools, and advanced features. New users get 1 free month of premium.
               </div>
             </details>
           </div>
@@ -627,6 +833,6 @@
       </figure>
     </div>
 
-    <script src="assets/js/main.js" defer></script>
+    <script src="assets/js/main.min.js" defer></script>
   </body>
 </html>
