@@ -9,10 +9,6 @@
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -37,10 +33,25 @@ body {
   --shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 12px 30px rgba(15, 23, 42, 0.08);
   --radius: 14px;
   --container: 1120px;
+  --topbar-h: 66px;
 }
 
-a {
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--topbar-h);
+}
+
+/* Offset anchor targets so they aren't hidden under the sticky topbar */
+[id] {
+  scroll-margin-top: var(--topbar-h);
+}a {
   color: inherit;
+}
+
+@media (max-width: 1000px) {
+	#faq, #pricing, #screens, #use-cases, #features {
+		scroll-margin-top: 0;
+	}
 }
 
 img {
@@ -139,6 +150,12 @@ code {
 .nav-link:hover {
   background: rgba(0, 184, 150, 0.08);
   color: var(--text);
+}
+
+.nav-link.is-active {
+  background: rgba(0, 184, 150, 0.10);
+  color: var(--text);
+  font-weight: 700;
 }
 
 .nav-toggle {
@@ -863,6 +880,13 @@ code {
   font-weight: 800;
   align-self: flex-start;
   text-decoration: none;
+  border-bottom: 1.5px solid rgba(0, 184, 150, 0.3);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.card-link:hover {
+  color: var(--primary-dk);
+  border-bottom-color: var(--primary);
 }
 
 /* ── Tabs ──────────────────────────────────────────────── */
@@ -1059,6 +1083,14 @@ code {
 .faq-body a {
   color: rgba(0, 184, 150, 1);
   font-weight: 800;
+  text-decoration: none;
+  border-bottom: 1.5px solid rgba(0, 184, 150, 0.3);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.faq-body a:hover {
+  color: var(--primary-dk);
+  border-bottom-color: var(--primary);
 }
 
 /* ── Final CTA ─────────────────────────────────────────── */
@@ -1115,20 +1147,26 @@ code {
 .footer-meta a {
   color: rgba(0, 184, 150, 1);
   text-decoration: none;
+  border-bottom: 1.5px solid rgba(0, 184, 150, 0.3);
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 .footer-meta a:hover {
-  text-decoration: underline;
+  color: var(--primary-dk);
+  border-bottom-color: var(--primary);
 }
 
 .footer-link {
   color: rgba(71, 85, 105, 0.95);
   text-decoration: none;
   font-weight: 900;
+  border-bottom: 1.5px solid transparent;
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 .footer-link:hover {
-  text-decoration: underline;
+  color: var(--text);
+  border-bottom-color: rgba(71, 85, 105, 0.4);
 }
 
 /* ── Use Cases ─────────────────────────────────────────── */
@@ -1391,8 +1429,14 @@ code {
 
 .aff-note a {
   color: var(--primary);
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration: none;
+  border-bottom: 1.5px solid rgba(0, 184, 150, 0.3);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.aff-note a:hover {
+  color: var(--primary-dk);
+  border-bottom-color: var(--primary);
 }
 
 /* ── Responsive additions ──────────────────────────────── */
@@ -1400,8 +1444,12 @@ code {
 /* ── Responsive ────────────────────────────────────────── */
 @media (max-width: 1000px) {
 
-	#affiliate, #get-started, #use-cases, #features {
-		padding-top: 0;
+	#get-started, #wordpress-bits, #workflows, #affiliate {
+		padding-top: 0 !important;
+	}
+
+	#top {
+		padding-top: 30px !important;
 	}
 
   .hero-grid {
@@ -1536,7 +1584,7 @@ code {
   translate: none;
 }
 
-#affiliate, #get-started, #use-cases {
+#get-started {
 	padding-top: 0;
 }
 
