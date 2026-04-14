@@ -1440,6 +1440,9 @@ code {
 }
 
 /* ── Responsive additions ──────────────────────────────── */
+#workflows, #affiliate {
+	padding-top: 0;
+}
 
 /* ── Responsive ────────────────────────────────────────── */
 @media (max-width: 1000px) {

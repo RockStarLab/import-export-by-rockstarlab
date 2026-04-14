@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>404 — Page Not Found | Amplified Import Export</title>
+    <link rel="icon" href="favicon.png" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <style>
+      /* ── 404 page override ─────────────────────────────── */
+      body {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+      }
+
+      .page-404 {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 60px 24px 80px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* ── Ambient background blobs ──────────────────────── */
+      .bg-blobs {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      .blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(72px);
+        opacity: 0.55;
+      }
+
+      .blob-1 {
+        width: 560px;
+        height: 360px;
+        background: radial-gradient(circle, rgba(0,184,150,0.22), transparent 70%);
+        top: -80px;
+        left: -120px;
+        animation: blobDrift1 14s ease-in-out infinite alternate;
+      }
+
+      .blob-2 {
+        width: 480px;
+        height: 320px;
+        background: radial-gradient(circle, rgba(0,212,170,0.15), transparent 70%);
+        bottom: 0px;
+        right: -100px;
+        animation: blobDrift2 18s ease-in-out infinite alternate;
+      }
+
+      .blob-3 {
+        width: 320px;
+        height: 220px;
+        background: radial-gradient(circle, rgba(15,23,42,0.06), transparent 70%);
+        top: 40%;
+        left: 40%;
+        animation: blobDrift3 22s ease-in-out infinite alternate;
+      }
+
+      @keyframes blobDrift1 {
+        from { transform: translate(0, 0) scale(1); }
+        to   { transform: translate(60px, 40px) scale(1.12); }
+      }
+      @keyframes blobDrift2 {
+        from { transform: translate(0, 0) scale(1); }
+        to   { transform: translate(-50px, -30px) scale(1.08); }
+      }
+      @keyframes blobDrift3 {
+        from { transform: translate(0, 0) scale(1); }
+        to   { transform: translate(40px, -40px) scale(0.9); }
+      }
+
+      /* ── Main content ──────────────────────────────────── */
+      .content-404 {
+        position: relative;
+        z-index: 1;
+        max-width: 680px;
+      }
+
+      /* ── SVG scene ─────────────────────────────────────── */
+      .svg-scene {
+        width: min(520px, 100%);
+        height: auto;
+        margin: 0 auto 36px;
+        display: block;
+        filter: drop-shadow(0 24px 48px rgba(0,184,150,0.14));
+      }
+
+      /* ── Floating particles ────────────────────────────── */
+      .particle {
+        animation: particleFloat linear infinite;
+        opacity: 0;
+      }
+
+      @keyframes particleFloat {
+        0%   { transform: translateY(0)   scale(1);    opacity: 0; }
+        10%  { opacity: 0.85; }
+        90%  { opacity: 0.6; }
+        100% { transform: translateY(-220px) scale(0.4); opacity: 0; }
+      }
+
+      /* ── 404 digits pulse glow ─────────────────────────── */
+      .digit-glow {
+        animation: digitPulse 3.2s ease-in-out infinite;
+      }
+      @keyframes digitPulse {
+        0%,100% { filter: drop-shadow(0 0 0px rgba(0,212,170,0)); }
+        50%     { filter: drop-shadow(0 0 28px rgba(0,212,170,0.55)); }
+      }
+
+      /* ── Orbit rings ───────────────────────────────────── */
+      .orbit {
+        transform-origin: 260px 180px;
+        animation: orbitSpin linear infinite;
+      }
+      .orbit-1 { animation-duration: 12s; }
+      .orbit-2 { animation-duration: 20s; animation-direction: reverse; }
+      .orbit-3 { animation-duration: 30s; }
+
+      @keyframes orbitSpin {
+        to { transform: rotate(360deg); }
+      }
+
+      /* ── Dashed data lines ─────────────────────────────── */
+      .data-line {
+        stroke-dasharray: 8 14;
+        animation: dataDash 3s linear infinite;
+      }
+      .data-line-2 { animation-duration: 4.5s; }
+      .data-line-3 { animation-duration: 6s; }
+
+      @keyframes dataDash {
+        to { stroke-dashoffset: -120; }
+      }
+
+      /* ── Floating icon ─────────────────────────────────── */
+      .float-icon {
+        animation: floatIcon 4s ease-in-out infinite;
+        transform-origin: 260px 195px;
+      }
+      @keyframes floatIcon {
+        0%,100% { transform: translateY(0); }
+        50%     { transform: translateY(-14px); }
+      }
+
+      /* ── File fragments ────────────────────────────────── */
+      .frag {
+        animation: fragDrift ease-in-out infinite;
+      }
+      .frag-1 { animation-duration: 5s;  animation-delay: 0s;   transform-origin: 130px 70px; }
+      .frag-2 { animation-duration: 6.5s; animation-delay: 0.8s; transform-origin: 390px 90px; }
+      .frag-3 { animation-duration: 4.5s; animation-delay: 1.5s; transform-origin: 70px 220px; }
+      .frag-4 { animation-duration: 7s;  animation-delay: 0.4s; transform-origin: 440px 240px; }
+
+      @keyframes fragDrift {
+        0%,100% { transform: rotate(0deg) translateY(0); }
+        25%     { transform: rotate(6deg) translateY(-8px); }
+        75%     { transform: rotate(-4deg) translateY(6px); }
+      }
+
+      /* ── Scanline shimmer ──────────────────────────────── */
+      .scanline {
+        animation: scanMove 2.8s linear infinite;
+      }
+      @keyframes scanMove {
+        0%   { transform: translateY(-60px); opacity: 0; }
+        10%  { opacity: 0.6; }
+        90%  { opacity: 0.6; }
+        100% { transform: translateY(120px); opacity: 0; }
+      }
+
+      /* ── Text ──────────────────────────────────────────── */
+      .error-code {
+        font-size: 13px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: var(--primary);
+        margin: 0 0 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .error-code::before,
+      .error-code::after {
+        content: "";
+        display: block;
+        width: 28px;
+        height: 1.5px;
+        background: rgba(0,184,150,0.35);
+        border-radius: 2px;
+      }
+
+      .error-title {
+        margin: 0 0 14px;
+        font-size: clamp(28px, 4vw, 42px);
+        letter-spacing: -0.04em;
+        line-height: 1.1;
+        color: var(--text);
+      }
+
+      .error-sub {
+        color: var(--muted);
+        font-size: 16px;
+        margin: 0 0 32px;
+        max-width: 52ch;
+        margin-inline: auto;
+        line-height: 1.65;
+      }
+
+      .error-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+      }
+
+      /* ── Inline breadcrumb ─────────────────────────────── */
+      .lost-path {
+        margin-top: 32px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+        font-size: 13px;
+        color: rgba(71,85,105,0.65);
+        font-weight: 600;
+      }
+
+      .lost-path-sep {
+        opacity: 0.4;
+      }
+
+      .lost-path a {
+        color: var(--primary);
+        text-decoration: none;
+        border-bottom: 1.5px solid rgba(0,184,150,0.3);
+        transition: border-color 0.15s, color 0.15s;
+      }
+      .lost-path a:hover {
+        color: var(--primary-dk);
+        border-bottom-color: var(--primary);
+      }
+
+      /* ── Footer note ───────────────────────────────────── */
+      .footer-note {
+        padding: 22px 0;
+        border-top: 1px solid rgba(226,232,240,1);
+        text-align: center;
+        color: rgba(71,85,105,0.65);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .footer-note a {
+        color: var(--primary);
+        text-decoration: none;
+        border-bottom: 1.5px solid rgba(0,184,150,0.3);
+        transition: border-color 0.15s, color 0.15s;
+      }
+      .footer-note a:hover {
+        color: var(--primary-dk);
+        border-bottom-color: var(--primary);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .blob, .orbit, .data-line, .float-icon, .frag, .scanline, .particle, .digit-glow {
+          animation: none !important;
+        }
+        .float-icon { transform: none; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- ── Topbar ──────────────────────────────────────── -->
+    <header class="topbar" role="banner">
+      <div class="container">
+        <div class="topbar-inner">
+          <a class="brand" href="index.html" aria-label="Amplified Import Export — Home">
+            <img src="favicon.png" width="34" height="34" alt="" class="brand-logo" />
+            <span class="brand-name">Amplified Import Export</span>
+          </a>
+          <nav class="nav" aria-label="Primary">
+            <a class="nav-link" href="index.html">Home</a>
+            <a class="nav-link" href="index.html#features">Features</a>
+            <a class="nav-link" href="index.html#pricing">Pricing</a>
+            <a class="nav-link btn btn-primary btn-sm" href="https://wordpress.org/plugins/amplified-import-export/" target="_blank" rel="noopener">Get Plugin</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── 404 Main ────────────────────────────────────── -->
+    <main class="page-404" id="main">
+
+      <!-- Ambient blobs -->
+      <div class="bg-blobs" aria-hidden="true">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+      </div>
+
+      <div class="content-404">
+
+        <!-- ── SVG Illustration ───────────────────────── -->
+        <svg
+          class="svg-scene"
+          viewBox="0 0 520 360"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+          role="img"
+        >
+          <defs>
+            <!-- Glow filter -->
+            <filter id="glow404" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="6" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+
+            <!-- Soft inner glow for digits -->
+            <filter id="digitGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+              <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+
+            <!-- Grid pattern -->
+            <pattern id="grid404" width="28" height="28" patternUnits="userSpaceOnUse">
+              <path d="M 28 0 L 0 0 0 28" fill="none" stroke="rgba(0,184,150,0.09)" stroke-width="0.8"/>
+            </pattern>
+
+            <!-- Radial fade mask for grid -->
+            <radialGradient id="gridMask" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="white" stop-opacity="1"/>
+              <stop offset="100%" stop-color="white" stop-opacity="0"/>
+            </radialGradient>
+            <mask id="gridFade">
+              <rect width="520" height="360" fill="url(#gridMask)"/>
+            </mask>
+
+            <!-- Gradient fills -->
+            <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#00b896"/>
+              <stop offset="100%" stop-color="#00d4aa"/>
+            </linearGradient>
+
+            <linearGradient id="darkGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#0f172a"/>
+              <stop offset="100%" stop-color="#1e293b"/>
+            </linearGradient>
+
+            <linearGradient id="digitGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#0f172a"/>
+              <stop offset="100%" stop-color="#334155"/>
+            </linearGradient>
+
+            <!-- Clip for card -->
+            <clipPath id="cardClip">
+              <rect x="140" y="100" width="240" height="170" rx="18"/>
+            </clipPath>
+          </defs>
+
+          <!-- Grid background -->
+          <rect width="520" height="360" fill="url(#grid404)" mask="url(#gridFade)" opacity="0.8"/>
+
+          <!-- ── Orbit rings ── -->
+          <g class="orbit orbit-1">
+            <ellipse cx="260" cy="180" rx="230" ry="70" fill="none" stroke="rgba(0,184,150,0.10)" stroke-width="1.2" stroke-dasharray="5 9"/>
+            <circle cx="490" cy="180" r="5" fill="rgba(0,212,170,0.5)" filter="url(#glow404)"/>
+          </g>
+          <g class="orbit orbit-2">
+            <ellipse cx="260" cy="180" rx="190" ry="52" fill="none" stroke="rgba(0,184,150,0.07)" stroke-width="1" stroke-dasharray="4 12"/>
+            <circle cx="260" cy="128" r="4" fill="rgba(0,184,150,0.55)" filter="url(#glow404)"/>
+          </g>
+          <g class="orbit orbit-3">
+            <ellipse cx="260" cy="180" rx="250" ry="86" fill="none" stroke="rgba(15,23,42,0.04)" stroke-width="0.8" stroke-dasharray="3 15"/>
+            <circle cx="10" cy="180" r="3.5" fill="rgba(0,212,170,0.35)" filter="url(#glow404)"/>
+          </g>
+
+          <!-- ── Floating file fragments ── -->
+          <!-- Frag 1 — CSV file chip -->
+          <g class="frag frag-1">
+            <rect x="102" y="52" width="56" height="36" rx="10" fill="rgba(255,255,255,0.9)" stroke="rgba(226,232,240,1)" stroke-width="1.2"/>
+            <text x="130" y="64" text-anchor="middle" font-size="8" font-weight="800" fill="rgba(71,85,105,0.7)" letter-spacing="0.08em">CSV</text>
+            <text x="130" y="77" text-anchor="middle" font-size="6.5" fill="rgba(71,85,105,0.45)">data.csv</text>
+            <circle cx="112" cy="58" r="3.5" fill="rgba(0,184,150,0.45)"/>
+          </g>
+
+          <!-- Frag 2 — JSON chip -->
+          <g class="frag frag-2">
+            <rect x="360" y="68" width="56" height="36" rx="10" fill="rgba(255,255,255,0.9)" stroke="rgba(226,232,240,1)" stroke-width="1.2"/>
+            <text x="388" y="80" text-anchor="middle" font-size="8" font-weight="800" fill="rgba(71,85,105,0.7)" letter-spacing="0.08em">JSON</text>
+            <text x="388" y="93" text-anchor="middle" font-size="6.5" fill="rgba(71,85,105,0.45)">export.json</text>
+            <circle cx="370" cy="74" r="3.5" fill="rgba(0,212,170,0.5)"/>
+          </g>
+
+          <!-- Frag 3 — WP chip -->
+          <g class="frag frag-3">
+            <rect x="42" y="228" width="52" height="36" rx="10" fill="rgba(255,255,255,0.9)" stroke="rgba(226,232,240,1)" stroke-width="1.2"/>
+            <text x="68" y="240" text-anchor="middle" font-size="8" font-weight="800" fill="rgba(71,85,105,0.7)" letter-spacing="0.04em">WP</text>
+            <text x="68" y="253" text-anchor="middle" font-size="6.5" fill="rgba(71,85,105,0.45)">posts.xml</text>
+            <circle cx="52" cy="234" r="3.5" fill="rgba(0,184,150,0.4)"/>
+          </g>
+
+          <!-- Frag 4 — SYNC chip -->
+          <g class="frag frag-4">
+            <rect x="426" y="224" width="56" height="36" rx="10" fill="rgba(255,255,255,0.9)" stroke="rgba(226,232,240,1)" stroke-width="1.2"/>
+            <text x="454" y="236" text-anchor="middle" font-size="8" font-weight="800" fill="rgba(71,85,105,0.7)" letter-spacing="0.04em">SYNC</text>
+            <text x="454" y="249" text-anchor="middle" font-size="6.5" fill="rgba(71,85,105,0.45)">media.zip</text>
+            <circle cx="436" cy="230" r="3.5" fill="rgba(0,212,170,0.4)"/>
+          </g>
+
+          <!-- ── Data stream lines ── -->
+          <line class="data-line" x1="158" y1="88" x2="180" y2="122" stroke="rgba(0,184,150,0.30)" stroke-width="1.4"/>
+          <line class="data-line data-line-2" x1="360" y1="104" x2="336" y2="124" stroke="rgba(0,212,170,0.25)" stroke-width="1.4"/>
+          <line class="data-line data-line-3" x1="94" y1="246" x2="148" y2="224" stroke="rgba(0,184,150,0.20)" stroke-width="1.2"/>
+          <line class="data-line" x1="426" y1="242" x2="370" y2="224" stroke="rgba(0,212,170,0.20)" stroke-width="1.2"/>
+
+          <!-- ── Main card ── -->
+          <rect x="140" y="100" width="240" height="170" rx="18"
+            fill="rgba(255,255,255,0.94)"
+            stroke="rgba(226,232,240,1)"
+            stroke-width="1.4"
+            filter="url(#digitGlow)"
+          />
+
+          <!-- Card scanline shimmer -->
+          <g clip-path="url(#cardClip)">
+            <rect class="scanline" x="140" y="100" width="240" height="8" rx="4"
+              fill="rgba(0,212,170,0.08)"/>
+          </g>
+
+          <!-- Card top bar -->
+          <rect x="140" y="100" width="240" height="36" rx="18" fill="rgba(248,250,252,0.9)"/>
+          <rect x="140" y="118" width="240" height="18" fill="rgba(248,250,252,0.9)"/>
+          <rect x="141" y="135" width="238" height="1" fill="rgba(226,232,240,1)"/>
+
+          <!-- Window dots -->
+          <circle cx="162" cy="118" r="5" fill="rgba(239,68,68,0.7)"/>
+          <circle cx="178" cy="118" r="5" fill="rgba(251,191,36,0.7)"/>
+          <circle cx="194" cy="118" r="5" fill="rgba(34,197,94,0.7)"/>
+
+          <!-- ── 404 digits ── -->
+          <g class="digit-glow float-icon">
+            <!-- "4" left -->
+            <text x="175" y="210" text-anchor="middle"
+              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+              font-size="68"
+              font-weight="900"
+              letter-spacing="-0.05em"
+              fill="url(#digitGrad)"
+            >4</text>
+
+            <!-- "0" middle — accent colored ring digit -->
+            <text x="260" y="210" text-anchor="middle"
+              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+              font-size="68"
+              font-weight="900"
+              letter-spacing="-0.05em"
+              fill="url(#accentGrad)"
+            >0</text>
+
+            <!-- "4" right -->
+            <text x="347" y="210" text-anchor="middle"
+              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+              font-size="68"
+              font-weight="900"
+              letter-spacing="-0.05em"
+              fill="url(#digitGrad)"
+            >4</text>
+
+            <!-- Caption under digits -->
+            <text x="260" y="236" text-anchor="middle"
+              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+              font-size="10"
+              font-weight="800"
+              letter-spacing="0.16em"
+              fill="rgba(100,116,139,0.7)"
+              text-transform="uppercase"
+            >PAGE NOT FOUND</text>
+          </g>
+
+          <!-- ── Floating particles ── -->
+          <circle class="particle" cx="172" cy="290" r="3.5" fill="rgba(0,184,150,0.7)" style="animation-duration:4.2s;animation-delay:0s"/>
+          <circle class="particle" cx="220" cy="300" r="2.5" fill="rgba(0,212,170,0.6)" style="animation-duration:5.5s;animation-delay:0.7s"/>
+          <circle class="particle" cx="260" cy="285" r="4"   fill="rgba(0,184,150,0.5)" style="animation-duration:3.8s;animation-delay:1.3s"/>
+          <circle class="particle" cx="300" cy="295" r="2.2" fill="rgba(0,212,170,0.65)" style="animation-duration:6s;animation-delay:0.4s"/>
+          <circle class="particle" cx="348" cy="288" r="3"   fill="rgba(0,184,150,0.55)" style="animation-duration:4.8s;animation-delay:1.8s"/>
+          <circle class="particle" cx="190" cy="310" r="2"   fill="rgba(0,212,170,0.4)" style="animation-duration:5.1s;animation-delay:2.2s"/>
+          <circle class="particle" cx="330" cy="305" r="2.8" fill="rgba(0,184,150,0.45)" style="animation-duration:4s;animation-delay:0.9s"/>
+
+          <!-- ── Magnifying glass icon — "lost search" ── -->
+          <g style="opacity:0.13">
+            <circle cx="400" cy="72" r="28" fill="none" stroke="rgba(0,184,150,1)" stroke-width="5"/>
+            <line x1="420" y1="92" x2="438" y2="110" stroke="rgba(0,184,150,1)" stroke-width="5" stroke-linecap="round"/>
+            <line x1="392" y1="72" x2="408" y2="72" stroke="rgba(0,184,150,1)" stroke-width="3.5" stroke-linecap="round"/>
+            <line x1="400" y1="64" x2="400" y2="80" stroke="rgba(0,184,150,1)" stroke-width="3.5" stroke-linecap="round"/>
+          </g>
+        </svg>
+
+        <!-- ── Text content ── -->
+        <p class="error-code">Error 404</p>
+
+        <h1 class="error-title">This page got lost<br>during import</h1>
+
+        <p class="error-sub">
+          Looks like this URL wasn't found in our database.
+          Maybe it was deleted, renamed, or never existed.
+          Let's get you back on track.
+        </p>
+
+        <div class="error-actions">
+          <a href="index.html" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Back to Home
+          </a>
+          <a href="index.html#features" class="btn btn-ghost">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Explore Features
+          </a>
+          <a href="index.html#pricing" class="btn btn-ghost">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            Pricing
+          </a>
+        </div>
+
+        <div class="lost-path" aria-label="Breadcrumb">
+          <a href="index.html">Home</a>
+          <span class="lost-path-sep" aria-hidden="true">/</span>
+          <span aria-current="page">404 — Not Found</span>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- ── Footer ─────────────────────────────────────── -->
+    <footer class="footer-note">
+      &copy; <span id="yr"></span> Amplified Import Export &mdash;
+      <a href="https://wordpress.org/plugins/amplified-import-export/" target="_blank" rel="noopener">WordPress Plugin</a>
+    </footer>
+
+    <script>
+      document.getElementById('yr').textContent = new Date().getFullYear();
+
+      // Topbar scroll effect
+      const topbar = document.querySelector('.topbar');
+      window.addEventListener('scroll', () => {
+        topbar.classList.toggle('is-scrolled', window.scrollY > 10);
+      }, { passive: true });
+    </script>
+  </body>
+</html>
