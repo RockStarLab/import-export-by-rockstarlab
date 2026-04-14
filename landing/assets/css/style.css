@@ -97,7 +97,8 @@ code {
   z-index: 50;
   backdrop-filter: blur(10px);
   background: rgba(248, 250, 252, 0.72);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+  border-bottom: none;
+  box-shadow: 0 1px 0 rgba(226, 232, 240, 0.7);
 }
 
 .topbar.is-scrolled {
@@ -162,14 +163,7 @@ code {
   font-weight: 700;
 }
 
-@media (max-width: 900px) {
-  .nav-link.is-active {
-    background: transparent;
-    box-shadow: inset 3px 0 0 var(--primary);
-    color: var(--primary);
-    padding-left: 14px;
-  }
-}
+
 
 .nav-toggle {
   display: none;
@@ -892,14 +886,15 @@ code {
   color: var(--primary);
   font-weight: 800;
   align-self: flex-start;
-  text-decoration: none;
-  border-bottom: 1.5px solid rgba(0, 184, 150, 0.3);
-  transition: border-color 0.15s ease, color 0.15s ease;
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 184, 150, 0.3);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s ease, color 0.15s ease;
 }
 
 .card-link:hover {
   color: var(--primary-dk);
-  border-bottom-color: var(--primary);
+  text-decoration-color: var(--primary);
 }
 
 /* ── Tabs ──────────────────────────────────────────────── */
@@ -1096,14 +1091,15 @@ code {
 .faq-body a {
   color: rgba(0, 184, 150, 1);
   font-weight: 800;
-  text-decoration: none;
-  border-bottom: 1.5px solid rgba(0, 184, 150, 0.3);
-  transition: border-color 0.15s ease, color 0.15s ease;
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 184, 150, 0.3);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s ease, color 0.15s ease;
 }
 
 .faq-body a:hover {
   color: var(--primary-dk);
-  border-bottom-color: var(--primary);
+  text-decoration-color: var(--primary);
 }
 
 /* ── Final CTA ─────────────────────────────────────────── */
@@ -1159,27 +1155,29 @@ code {
 
 .footer-meta a {
   color: rgba(0, 184, 150, 1);
-  text-decoration: none;
-  border-bottom: 1.5px solid rgba(0, 184, 150, 0.3);
-  transition: border-color 0.15s ease, color 0.15s ease;
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 184, 150, 0.3);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s ease, color 0.15s ease;
 }
 
 .footer-meta a:hover {
   color: var(--primary-dk);
-  border-bottom-color: var(--primary);
+  text-decoration-color: var(--primary);
 }
 
 .footer-link {
   color: rgba(71, 85, 105, 0.95);
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
   font-weight: 900;
-  border-bottom: 1.5px solid transparent;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: text-decoration-color 0.15s ease, color 0.15s ease;
 }
 
 .footer-link:hover {
   color: var(--text);
-  border-bottom-color: rgba(71, 85, 105, 0.4);
+  text-decoration-color: rgba(71, 85, 105, 0.4);
 }
 
 /* ── Use Cases ─────────────────────────────────────────── */
@@ -1442,14 +1440,15 @@ code {
 
 .aff-note a {
   color: var(--primary);
-  text-decoration: none;
-  border-bottom: 1.5px solid rgba(0, 184, 150, 0.3);
-  transition: border-color 0.15s ease, color 0.15s ease;
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 184, 150, 0.3);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s ease, color 0.15s ease;
 }
 
 .aff-note a:hover {
   color: var(--primary-dk);
-  border-bottom-color: var(--primary);
+  text-decoration-color: var(--primary);
 }
 
 /* ── Responsive additions ──────────────────────────────── */
@@ -1641,7 +1640,7 @@ code {
     gap: 6px;
     padding: 10px;
     background: rgba(248, 250, 252, 0.96);
-    border: 1px solid rgba(226, 232, 240, 1);
+    border: none;
     border-radius: 16px;
     box-shadow: var(--shadow);
   }
