@@ -1551,6 +1551,9 @@ code {
   right: 18px;
   width: 44px;
   height: 44px;
+	padding: 0;
+	text-align: center;
+	align-items: center;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(15, 23, 42, 0.7);
