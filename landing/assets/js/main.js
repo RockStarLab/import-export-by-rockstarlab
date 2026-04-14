@@ -300,26 +300,31 @@
       });
     };
 
-    // Tracks which sections are currently intersecting
-    const visible = new Set();
+    const update = () => {
+      // Trigger line = 40% down the viewport — section is "active" when its
+      // top has crossed this line (i.e. rect.top <= triggerY) and no later
+      // section has also crossed it yet.
+      const triggerY = window.innerHeight * 0.4;
+      let best = null;
 
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            visible.add(entry.target.id);
-          } else {
-            visible.delete(entry.target.id);
-          }
+      for (const s of sections) {
+        const rect = s.getBoundingClientRect();
+        if (rect.top <= triggerY) {
+          best = s; // keep overwriting — last one wins = lowest section above trigger
         }
-        // Pick the section that appears first in DOM order among visible ones
-        const active = sections.find((s) => visible.has(s.id));
-        if (active) setActive(active.id);
-      },
-      { rootMargin: "-20% 0px -60% 0px", threshold: 0 }
-    );
+      }
 
-    sections.forEach((s) => io.observe(s));
+      // Nothing past trigger yet — we're in the hero, clear all highlights
+      if (!best) {
+        links.forEach((a) => a.classList.remove("is-active"));
+        return;
+      }
+      setActive(best.id);
+    };
+
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
+    update();
   };
 
   setYear();

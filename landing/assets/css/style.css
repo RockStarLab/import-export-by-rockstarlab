@@ -48,6 +48,10 @@ html {
   color: inherit;
 }
 
+#faq, #pricing, #screens, #use-cases, #features {
+	scroll-margin-top: 0;
+}
+
 @media (max-width: 1000px) {
 	#faq, #pricing, #screens, #use-cases, #features {
 		scroll-margin-top: 0;
