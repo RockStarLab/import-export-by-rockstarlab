@@ -72,7 +72,7 @@
 
         <nav class="nav" id="nav" data-nav>
           <a class="nav-link" href="#features">Features</a>
-          <a class="nav-link" href="#use-cases">Use&nbsp;Cases</a>
+					<a class="nav-link" href="#use-cases">Use&nbsp;Cases</a>
           <a class="nav-link" href="#workflows">Workflows</a>
           <a class="nav-link" href="#screens">Screens</a>
           <a class="nav-link" href="#pricing">Pricing</a>
@@ -235,7 +235,7 @@
         <div class="hero-bg" aria-hidden="true"></div>
       </section>
 
-      <section class="section section-muted">
+      <section class="section section-muted" id="wordpress-bits">
         <div class="container reveal">
           <div class="bar">
             <div class="bar-item">
@@ -271,56 +271,56 @@
           </div>
 
           <div class="grid features">
-            <a class="card reveal" href="../documentation/import.html">
+            <a class="card reveal" href="/docs/import.html">
               <div class="card-icon">📥</div>
               <h3>CSV Import</h3>
               <p>Stream large files, preview rows, map fields, validate data, and run in the background.</p>
               <span class="card-link">Read import docs</span>
             </a>
 
-            <a class="card reveal" href="../documentation/export.html">
+            <a class="card reveal" href="/docs/export.html">
               <div class="card-icon">📤</div>
               <h3>Export to CSV / JSON</h3>
               <p>Filter by IDs, date, status, taxonomy; choose fields; generate datasets you can trust.</p>
               <span class="card-link">Read export docs</span>
             </a>
 
-            <a class="card reveal" href="../documentation/content-sync.html">
+            <a class="card reveal" href="/docs/content-sync.html">
               <div class="card-icon">🔄</div>
               <h3>Site‑to‑Site Sync</h3>
               <p>Connect two sites with API keys and push/pull content with conflict strategies and media sync.</p>
               <span class="card-link">Read sync docs</span>
             </a>
 
-            <a class="card reveal" href="../documentation/content-updater.html">
+            <a class="card reveal" href="/docs/content-updater.html">
               <div class="card-icon">✏️</div>
               <h3>Bulk Content Updater</h3>
               <p>Apply transformations to thousands of records using filters — no manual SQL, no brittle scripts.</p>
               <span class="card-link">Read updater docs</span>
             </a>
 
-            <a class="card reveal" href="../documentation/media-sync.html">
+            <a class="card reveal" href="/docs/media-sync.html">
               <div class="card-icon">🖼️</div>
               <h3>Media Folder Sync</h3>
               <p>Scan server folders (FTP/SFTP uploads) and register files into Media Library with duplicate detection.</p>
               <span class="card-link">Read media sync docs</span>
             </a>
 
-            <a class="card reveal" href="../documentation/ai-url-importer.html">
+            <a class="card reveal" href="/docs/ai-url-importer.html">
               <div class="card-icon">🤖</div>
               <h3>AI URL Importer</h3>
               <p>Give a URL, let AI parse the page, and import content as any post type — fast and flexible.</p>
               <span class="card-link">Read AI importer docs</span>
             </a>
 
-            <a class="card reveal" href="../documentation/functions.html">
+            <a class="card reveal" href="/docs/functions.html">
               <div class="card-icon">⚙️</div>
               <h3>Functions Library</h3>
               <p>Write and reuse PHP transformation functions with a built‑in editor, testing, and examples.</p>
               <span class="card-link">Read functions docs</span>
             </a>
 
-            <a class="card reveal" href="../documentation/jobs-log.html">
+            <a class="card reveal" href="/docs/jobs-log.html">
               <div class="card-icon">📋</div>
               <h3>Jobs Log</h3>
               <p>Every run is saved — review results, rerun jobs, or use history as a safety net.</p>
@@ -342,6 +342,61 @@
           ></path>
         </svg>
       </div>
+
+     <!-- ══ Use Cases ══════════════════════════════════════════ -->
+      <section class="section section-muted" id="use-cases">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>Who uses Amplified Import Export?</h2>
+            <p>Real workflows for agencies, developers, store owners, and content teams.</p>
+          </div>
+
+          <div class="use-cases reveal">
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">🏗️</div>
+              <div class="uc-body">
+                <h3>Agency site migrations</h3>
+                <p>Moving a client from one host to another? Export all posts, pages, custom fields, and media from the old site and import everything cleanly into the new WordPress install — no manual copy-pasting.</p>
+              </div>
+            </div>
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">🔁</div>
+              <div class="uc-body">
+                <h3>Staging → Production sync</h3>
+                <p>Built new landing pages on staging? Use Site-to-Site Sync to push only the changed content to production — without overwriting posts that already exist there.</p>
+              </div>
+            </div>
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">🛒</div>
+              <div class="uc-body">
+                <h3>WooCommerce product imports</h3>
+                <p>Got a 50,000-row supplier CSV? Map product title, SKU, price, stock, and attributes in minutes. Run in the background and check results in the Jobs Log when it's done.</p>
+              </div>
+            </div>
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">✏️</div>
+              <div class="uc-body">
+                <h3>Bulk price or content updates</h3>
+                <p>Need to apply a 10% price increase across all products, or update hundreds of post excerpts? Use the Bulk Content Updater with a custom PHP function — no SQL, no risk.</p>
+              </div>
+            </div>
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">🖼️</div>
+              <div class="uc-body">
+                <h3>FTP folder → Media Library</h3>
+                <p>Uploaded thousands of images via FTP? Media Folder Sync scans your server directories and registers every file into the WordPress Media Library with duplicate detection.</p>
+              </div>
+            </div>
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">🤖</div>
+              <div class="uc-body">
+                <h3>AI-powered content import</h3>
+                <p>Paste any public URL and the AI importer extracts the content, maps it to your post type fields, and creates a draft — great for migrating content from legacy CMSes or competitor sites.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section class="section section-muted" id="workflows">
         <div class="container">
@@ -368,7 +423,7 @@
                   <li><strong>Run in background</strong> and review results in Jobs Log.</li>
                 </ol>
                 <div class="panel-cta">
-                  <a class="btn btn-sm btn-primary" href="../documentation/import.html">Import documentation</a>
+                  <a class="btn btn-sm btn-primary" href="/docs/import.html">Import documentation</a>
                 </div>
               </div>
 
@@ -381,7 +436,7 @@
                   <li><strong>Rerun anytime</strong> from Jobs Log with one click.</li>
                 </ol>
                 <div class="panel-cta">
-                  <a class="btn btn-sm btn-primary" href="../documentation/export.html">Export documentation</a>
+                  <a class="btn btn-sm btn-primary" href="/docs/export.html">Export documentation</a>
                 </div>
               </div>
 
@@ -394,7 +449,7 @@
                   <li><strong>Include media</strong> so attachments arrive with content.</li>
                 </ol>
                 <div class="panel-cta">
-                  <a class="btn btn-sm btn-primary" href="../documentation/content-sync.html">Sync documentation</a>
+                  <a class="btn btn-sm btn-primary" href="/docs/content-sync.html">Sync documentation</a>
                 </div>
               </div>
 
@@ -407,7 +462,7 @@
                   <li><strong>Execute</strong> and track everything in Jobs Log.</li>
                 </ol>
                 <div class="panel-cta">
-                  <a class="btn btn-sm btn-primary" href="../documentation/content-updater.html">Updater documentation</a>
+                  <a class="btn btn-sm btn-primary" href="/docs/content-updater.html">Updater documentation</a>
                 </div>
               </div>
             </div>
@@ -584,80 +639,23 @@
               <div class="card-icon">📦</div>
               <h3>Install</h3>
               <p>Upload the plugin in WordPress Admin → Plugins, then activate it.</p>
-              <a class="card-link" href="../documentation/installation.html">Installation docs</a>
+              <a class="card-link" href="/docs/installation.html">Installation docs</a>
             </div>
             <div class="card reveal">
               <div class="card-icon">🔑</div>
               <h3>Activate license</h3>
               <p>Enable premium features and manage activation in the License screen.</p>
-              <a class="card-link" href="../documentation/license.html">License docs</a>
+              <a class="card-link" href="/docs/license.html">License docs</a>
             </div>
             <div class="card reveal">
               <div class="card-icon">🚀</div>
               <h3>Run your first job</h3>
               <p>Import a CSV, export a dataset, or connect a remote site — then review the Jobs Log.</p>
-              <a class="card-link" href="../documentation/jobs-log.html">Jobs log docs</a>
+              <a class="card-link" href="/docs/jobs-log.html">Jobs log docs</a>
             </div>
           </div>
         </div>
       </section>
-
-      <!-- ══ Use Cases ══════════════════════════════════════════ -->
-      <section class="section section-muted" id="use-cases">
-        <div class="container">
-          <div class="section-head reveal">
-            <h2>Who uses Amplified Import Export?</h2>
-            <p>Real workflows for agencies, developers, store owners, and content teams.</p>
-          </div>
-
-          <div class="use-cases reveal">
-            <div class="uc-item">
-              <div class="uc-icon" aria-hidden="true">🏗️</div>
-              <div class="uc-body">
-                <h3>Agency site migrations</h3>
-                <p>Moving a client from one host to another? Export all posts, pages, custom fields, and media from the old site and import everything cleanly into the new WordPress install — no manual copy-pasting.</p>
-              </div>
-            </div>
-            <div class="uc-item">
-              <div class="uc-icon" aria-hidden="true">🔁</div>
-              <div class="uc-body">
-                <h3>Staging → Production sync</h3>
-                <p>Built new landing pages on staging? Use Site-to-Site Sync to push only the changed content to production — without overwriting posts that already exist there.</p>
-              </div>
-            </div>
-            <div class="uc-item">
-              <div class="uc-icon" aria-hidden="true">🛒</div>
-              <div class="uc-body">
-                <h3>WooCommerce product imports</h3>
-                <p>Got a 50,000-row supplier CSV? Map product title, SKU, price, stock, and attributes in minutes. Run in the background and check results in the Jobs Log when it's done.</p>
-              </div>
-            </div>
-            <div class="uc-item">
-              <div class="uc-icon" aria-hidden="true">✏️</div>
-              <div class="uc-body">
-                <h3>Bulk price or content updates</h3>
-                <p>Need to apply a 10% price increase across all products, or update hundreds of post excerpts? Use the Bulk Content Updater with a custom PHP function — no SQL, no risk.</p>
-              </div>
-            </div>
-            <div class="uc-item">
-              <div class="uc-icon" aria-hidden="true">🖼️</div>
-              <div class="uc-body">
-                <h3>FTP folder → Media Library</h3>
-                <p>Uploaded thousands of images via FTP? Media Folder Sync scans your server directories and registers every file into the WordPress Media Library with duplicate detection.</p>
-              </div>
-            </div>
-            <div class="uc-item">
-              <div class="uc-icon" aria-hidden="true">🤖</div>
-              <div class="uc-body">
-                <h3>AI-powered content import</h3>
-                <p>Paste any public URL and the AI importer extracts the content, maps it to your post type fields, and creates a draft — great for migrating content from legacy CMSes or competitor sites.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
 
       <!-- ══ Affiliate Program ═══════════════════════════════════ -->
       <section class="section section-muted" id="affiliate">

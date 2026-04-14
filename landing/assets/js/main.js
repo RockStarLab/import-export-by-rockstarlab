@@ -282,8 +282,49 @@
     holdTimer = setTimeout(advance, HOLD);
   };
 
+  const setupNavHighlight = () => {
+    const links = Array.from(document.querySelectorAll(".nav-link[href^='#']"));
+    if (!links.length) return;
+
+    const sectionIds = links.map((a) => a.getAttribute("href").slice(1));
+    const sections = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter(Boolean);
+
+    if (!sections.length) return;
+
+    const setActive = (id) => {
+      links.forEach((a) => {
+        const isActive = a.getAttribute("href") === "#" + id;
+        a.classList.toggle("is-active", isActive);
+      });
+    };
+
+    // Tracks which sections are currently intersecting
+    const visible = new Set();
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            visible.add(entry.target.id);
+          } else {
+            visible.delete(entry.target.id);
+          }
+        }
+        // Pick the section that appears first in DOM order among visible ones
+        const active = sections.find((s) => visible.has(s.id));
+        if (active) setActive(active.id);
+      },
+      { rootMargin: "-20% 0px -60% 0px", threshold: 0 }
+    );
+
+    sections.forEach((s) => io.observe(s));
+  };
+
   setYear();
   setupNav();
+  setupNavHighlight();
   setupReveal();
   setupTabs();
   setupLightbox();
