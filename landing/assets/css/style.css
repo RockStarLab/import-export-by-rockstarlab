@@ -310,7 +310,6 @@ code {
 .section-head p {
   margin: 10px 0 0;
   color: var(--muted);
-  max-width: 70ch;
 }
 
 .section-head .subnote {
