@@ -70,6 +70,9 @@ class App {
 			}
 		}
 
+		// Ensure built-in function snippets exist even if the schema was created earlier.
+		\RockStarLab\ImportExport\Helper\Database_Migration::ensure_builtin_functions();
+
 		// Initialize Media Hash helper to add MD5 hashes to all uploads
 		\RockStarLab\ImportExport\Helper\Media_Hash::init();
 

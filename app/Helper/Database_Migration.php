@@ -198,9 +198,43 @@ class Database_Migration {
 		self::maybe_update_type_enum();
 		self::maybe_add_update_columns();
 
-		// Seed built-in functions
-		self::seed_builtin_functions();
-	}
+			// Seed built-in functions
+			self::ensure_builtin_functions();
+		}
+
+		/**
+		 * Ensure built-in function snippets are present in the database.
+		 *
+		 * Safe to call multiple times.
+		 */
+		public static function ensure_builtin_functions() {
+			global $wpdb;
+
+			$table_name = $wpdb->prefix . 'rsl_ie_custom_functions';
+
+			$exists = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+				$wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name )
+			);
+			if ( $exists !== $table_name ) {
+				return;
+			}
+
+			$seeded_option = 'rsl_ie_builtin_functions_seeded';
+
+			$library_count = (int) $wpdb->get_var( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+				"SELECT COUNT(*) FROM {$table_name} WHERE source LIKE 'library:%'" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			);
+
+			if ( $library_count > 0 ) {
+				if ( ! get_option( $seeded_option, false ) ) {
+					update_option( $seeded_option, true );
+				}
+				return;
+			}
+
+			self::seed_builtin_functions();
+			update_option( $seeded_option, true );
+		}
 
 	/**
 	 * Add progress column to jobs table if it doesn't exist
@@ -475,25 +509,16 @@ class Database_Migration {
 	/**
 	 * Seed built-in functions into database
 	 */
-	private static function seed_builtin_functions() {
-		// Check if already seeded (to avoid duplicates on every migration)
-		$seeded_option = 'rsl_ie_builtin_functions_seeded';
-		if ( get_option( $seeded_option, false ) ) {
-			return; // Already seeded
-		}
+		private static function seed_builtin_functions() {
+			// Load Custom_Function model and seed
+			if ( class_exists( '\RockStarLab\ImportExport\Model\Custom_Function' ) ) {
+				try {
+					$custom_function_model = new \RockStarLab\ImportExport\Model\Custom_Function();
+					$stats                 = $custom_function_model->seed_builtin_functions();
 
-		// Load Custom_Function model and seed
-		if ( class_exists( '\RockStarLab\ImportExport\Model\Custom_Function' ) ) {
-			try {
-				$custom_function_model = new \RockStarLab\ImportExport\Model\Custom_Function();
-				$stats                 = $custom_function_model->seed_builtin_functions();
-
-				// Mark as seeded
-				update_option( $seeded_option, true );
-
-				// Log results
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				}
+					// Log results
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					}
 			} catch ( \Exception $e ) {
 				// Log error but don't break migration
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -546,11 +571,24 @@ class Database_Migration {
 		global $wpdb;
 
 		$prefix = $wpdb->prefix;
-		$table  = "{$prefix}rsl_ie_jobs";
+		$tables = [
+			"{$prefix}rsl_ie_jobs",
+			"{$prefix}rsl_ie_field_maps",
+			"{$prefix}rsl_ie_custom_functions",
+			"{$prefix}rsl_ie_media_sync",
+			"{$prefix}rsl_ie_site_connections",
+			"{$prefix}rsl_ie_content_sync",
+			"{$prefix}rsl_ie_api_keys",
+		];
 
-		$result = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+		foreach ( $tables as $table ) {
+			$result = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			if ( $result !== $table ) {
+				return false;
+			}
+		}
 
-		return $result === $table;
+		return true;
 	}
 
 	/**
