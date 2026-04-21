@@ -102,13 +102,13 @@ const FunctionLibrary = {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: new URLSearchParams( {
-					action: 'aie_functions_get_snippets',
-					nonce: window.aieData?.nonce || '',
-					category: category,
-				} ),
-			} );
+					},
+					body: new URLSearchParams( {
+						action: 'rsl_ie_functions_get_snippets',
+						nonce: window.aieData?.nonce || '',
+						category: category,
+					} ),
+				} );
 
 			const data = await response.json();
 
@@ -319,13 +319,13 @@ const FunctionLibrary = {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: new URLSearchParams( {
-					action: 'aie_functions_search',
-					nonce: window.aieData?.nonce || '',
-					query: query,
-				} ),
-			} );
+					},
+					body: new URLSearchParams( {
+						action: 'rsl_ie_functions_search',
+						nonce: window.aieData?.nonce || '',
+						query: query,
+					} ),
+				} );
 
 			const data = await response.json();
 
@@ -468,13 +468,13 @@ const FunctionLibrary = {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/x-www-form-urlencoded',
-					},
-					body: new URLSearchParams( {
-						action: 'aie_functions_import',
-						nonce: window.aieData?.nonce || '',
-						snippet_key: snippetKey,
-					} ),
-				} );
+						},
+						body: new URLSearchParams( {
+							action: 'rsl_ie_functions_import',
+							nonce: window.aieData?.nonce || '',
+							snippet_key: snippetKey,
+						} ),
+					} );
 
 				const data = await response.json();
 

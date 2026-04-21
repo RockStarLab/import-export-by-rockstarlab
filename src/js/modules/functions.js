@@ -165,12 +165,12 @@ const FunctionsModule = {
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
 				},
-				body: new URLSearchParams( {
-					action: 'aie_functions_get_all',
-					nonce: window.aieData?.nonce || '',
-					search: this.filters.search,
-					page: this.currentPage,
-					per_page: this.perPage,
+					body: new URLSearchParams( {
+						action: 'rsl_ie_functions_get_all',
+						nonce: window.aieData?.nonce || '',
+						search: this.filters.search,
+						page: this.currentPage,
+						per_page: this.perPage,
 				} ),
 			} );
 
@@ -392,11 +392,11 @@ const FunctionsModule = {
 					headers: {
 						'Content-Type': 'application/x-www-form-urlencoded',
 					},
-					body: new URLSearchParams( {
-						action: 'aie_functions_get',
-						nonce: window.aieData?.nonce || '',
-						id: functionId,
-					} ),
+						body: new URLSearchParams( {
+							action: 'rsl_ie_functions_get',
+							nonce: window.aieData?.nonce || '',
+							id: functionId,
+						} ),
 				} );
 
 				const data = await response.json();
@@ -614,13 +614,13 @@ const FunctionsModule = {
 
 		const functionId = document.getElementById( 'aie-function-id' ).value;
 		
-		// Use FormData instead of URLSearchParams to preserve newlines
-		const formData = new FormData();
-		formData.append( 'action', functionId ? 'aie_functions_update' : 'aie_functions_create' );
-		formData.append( 'nonce', window.aieData?.nonce || '' );
-		formData.append( 'name', document.getElementById( 'aie-function-name' ).value );
-		formData.append( 'description', document.getElementById( 'aie-function-description' ).value );
-		formData.append( 'category', document.getElementById( 'aie-function-category' ).value );
+			// Use FormData instead of URLSearchParams to preserve newlines
+			const formData = new FormData();
+			formData.append( 'action', functionId ? 'rsl_ie_functions_update' : 'rsl_ie_functions_create' );
+			formData.append( 'nonce', window.aieData?.nonce || '' );
+			formData.append( 'name', document.getElementById( 'aie-function-name' ).value );
+			formData.append( 'description', document.getElementById( 'aie-function-description' ).value );
+			formData.append( 'category', document.getElementById( 'aie-function-category' ).value );
 		formData.append( 'code', code );
 		formData.append( 'status', document.getElementById( 'aie-function-status' ).value );
 
@@ -707,11 +707,11 @@ const FunctionsModule = {
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
 				},
-				body: new URLSearchParams( {
-					action: 'aie_functions_delete',
-					nonce: window.aieData?.nonce || '',
-					id: functionId,
-				} ),
+					body: new URLSearchParams( {
+						action: 'rsl_ie_functions_delete',
+						nonce: window.aieData?.nonce || '',
+						id: functionId,
+					} ),
 			} );
 
 			const data = await response.json();
@@ -767,11 +767,11 @@ const FunctionsModule = {
 
 		try {
 			// Use FormData to preserve newlines
-			const formData = new FormData();
-			formData.append( 'action', 'aie_functions_test' );
-			formData.append( 'nonce', window.aieData?.nonce || '' );
-			formData.append( 'code', code );
-			formData.append( 'value', testValue );
+				const formData = new FormData();
+				formData.append( 'action', 'rsl_ie_functions_test' );
+				formData.append( 'nonce', window.aieData?.nonce || '' );
+				formData.append( 'code', code );
+				formData.append( 'value', testValue );
 
 			const response = await fetch( window.aieData.ajaxUrl, {
 				method: 'POST',
@@ -1028,11 +1028,11 @@ const FunctionsModule = {
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
 				},
-				body: new URLSearchParams( {
-					action: 'aie_functions_generate_with_ai',
-					nonce: window.aieData?.nonce || '',
-					prompt: prompt,
-				} ),
+					body: new URLSearchParams( {
+						action: 'rsl_ie_functions_generate_with_ai',
+						nonce: window.aieData?.nonce || '',
+						prompt: prompt,
+					} ),
 			} );
 
 			// Check HTTP status
