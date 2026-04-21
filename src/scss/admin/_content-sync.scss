@@ -4,7 +4,7 @@
  * Styles for the Content Sync admin page
  */
 
-#wp-aie-content-sync {
+#rsl-ie-content-sync {
 	// Premium Notice Banner
 	.aie-premium-notice {
 		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -611,13 +611,13 @@
 }
 
 // WordPress Admin Notices
-#wp-aie-content-sync .notice {
+#rsl-ie-content-sync .notice {
 	margin: 20px 0;
 }
 
 // Responsive
 @media screen and (max-width: 782px) {
-	#wp-aie-content-sync {
+	#rsl-ie-content-sync {
 		.aie-content-sync-stats {
 			grid-template-columns: 1fr;
 		}

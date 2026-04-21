@@ -4,12 +4,12 @@
  *
  * AJAX endpoints for managing media file hashes
  *
- * @package WP_AIE\Controller
+ * @package RockStarLab\ImportExport\Controller
  */
 
-namespace WP_AIE\Controller;
+namespace RockStarLab\ImportExport\Controller;
 
-use WP_AIE\Helper\Media_Hash;
+use RockStarLab\ImportExport\Helper\Media_Hash;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -27,7 +27,7 @@ class Media_Hash_Controller extends Base_Controller {
 	 * Get statistics about hashed media files
 	 */
 	public function get_hash_statistics() {
-		$verification = $this->verify_request( 'aie_media_hash_stats' );
+		$verification = $this->verify_request( 'get_hash_statistics' );
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -40,7 +40,7 @@ class Media_Hash_Controller extends Base_Controller {
 	 * Bulk add hashes to existing media files
 	 */
 	public function bulk_add_hashes() {
-		$verification = $this->verify_request( 'aie_bulk_add_hashes' );
+		$verification = $this->verify_request( 'bulk_add_hashes' );
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -60,7 +60,7 @@ class Media_Hash_Controller extends Base_Controller {
 	 * Check if file is a duplicate based on hash
 	 */
 	public function check_duplicate_hash() {
-		$verification = $this->verify_request( 'aie_check_duplicate' );
+		$verification = $this->verify_request( 'check_duplicate_hash' );
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -78,7 +78,7 @@ class Media_Hash_Controller extends Base_Controller {
 			$this->send_error(
 				new \WP_Error(
 					'invalid_path',
-					__( 'Invalid file path. Path must be within uploads directory.', 'amplified-import-export' )
+					__( 'Invalid file path. Path must be within uploads directory.', 'import-export-by-rockstarlab' )
 				)
 			);
 		}

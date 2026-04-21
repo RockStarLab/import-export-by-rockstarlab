@@ -4,21 +4,21 @@
  *
  * Handles AJAX requests for content synchronization between sites
  *
- * @package WP_AIE\Controller
+ * @package RockStarLab\ImportExport\Controller
  */
 
-namespace WP_AIE\Controller;
+namespace RockStarLab\ImportExport\Controller;
 
 defined( 'ABSPATH' ) || exit;
 
-use WP_AIE\Model\Connected_Site;
+use RockStarLab\ImportExport\Model\Connected_Site;
 
 /**
  * Content Sync Controller Class
  *
  * Manages connected sites and synchronization operations.
  *
- * @package WP_AIE\Controller
+ * @package RockStarLab\ImportExport\Controller
  */
 class Content_Sync_Controller extends Base_Controller {
 
@@ -82,26 +82,26 @@ class Content_Sync_Controller extends Base_Controller {
 
 		// Validate input
 		if ( empty( $name ) ) {
-			$this->send_error( __( 'Site name is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site name is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( empty( $remote_url ) ) {
-			$this->send_error( __( 'Remote URL is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Remote URL is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( empty( $api_key ) ) {
-			$this->send_error( __( 'API key is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'API key is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Validate URL
 		$remote_url = esc_url_raw( $remote_url );
 		if ( ! filter_var( $remote_url, FILTER_VALIDATE_URL ) ) {
-			$this->send_error( __( 'Invalid URL format', 'amplified-import-export' ) );
+			$this->send_error( __( 'Invalid URL format', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if URL already exists
 		if ( Connected_Site::exists_by_url( $remote_url ) ) {
-			$this->send_error( __( 'This site is already connected', 'amplified-import-export' ) );
+			$this->send_error( __( 'This site is already connected', 'import-export-by-rockstarlab' ) );
 		}
 
 		$validation_result = $this->validate_remote_site( $remote_url, $api_key );
@@ -125,14 +125,14 @@ class Content_Sync_Controller extends Base_Controller {
 		$site_id = Connected_Site::create( $data );
 
 		if ( ! $site_id ) {
-			$this->send_error( __( 'Failed to add site connection', 'amplified-import-export' ) );
+			$this->send_error( __( 'Failed to add site connection', 'import-export-by-rockstarlab' ) );
 		}
 
 		$site = Connected_Site::get_by_id( $site_id );
 
 		$this->send_success(
 			array(
-				'message' => __( 'Site connection added successfully', 'amplified-import-export' ),
+				'message' => __( 'Site connection added successfully', 'import-export-by-rockstarlab' ),
 				'site'    => $site,
 			)
 		);
@@ -155,13 +155,13 @@ class Content_Sync_Controller extends Base_Controller {
 		$status     = $this->get_request_param( 'status', 'active', 'post' );
 
 		if ( ! $site_id ) {
-			$this->send_error( __( 'Site ID is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if site exists
 		$site = Connected_Site::get_by_id( $site_id );
 		if ( ! $site ) {
-			$this->send_error( __( 'Site not found', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		$data = array();
@@ -176,12 +176,12 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( ! empty( $remote_url ) ) {
 			$remote_url = esc_url_raw( $remote_url );
 			if ( ! filter_var( $remote_url, FILTER_VALIDATE_URL ) ) {
-				$this->send_error( __( 'Invalid URL format', 'amplified-import-export' ) );
+				$this->send_error( __( 'Invalid URL format', 'import-export-by-rockstarlab' ) );
 			}
 
 			// Check if URL already exists (excluding current site)
 			if ( Connected_Site::exists_by_url( $remote_url, $site_id ) ) {
-				$this->send_error( __( 'This site is already connected', 'amplified-import-export' ) );
+				$this->send_error( __( 'This site is already connected', 'import-export-by-rockstarlab' ) );
 			}
 
 			$data['remote_url'] = $remote_url;
@@ -214,7 +214,7 @@ class Content_Sync_Controller extends Base_Controller {
 			// No changes made - return current site data
 			$this->send_success(
 				array(
-					'message' => __( 'No changes were made', 'amplified-import-export' ),
+					'message' => __( 'No changes were made', 'import-export-by-rockstarlab' ),
 					'site'    => $site,
 				)
 			);
@@ -223,29 +223,29 @@ class Content_Sync_Controller extends Base_Controller {
 		$result = Connected_Site::update( $site_id, $data );
 
 		if ( ! $result ) {
-			$this->send_error( __( 'Failed to update site connection', 'amplified-import-export' ) );
+			$this->send_error( __( 'Failed to update site connection', 'import-export-by-rockstarlab' ) );
 		}
 
 		$updated_site = Connected_Site::get_by_id( $site_id );
 
 		// Create detailed message about what was updated
 		$updated_fields = array_keys( $data );
-		$message        = __( 'Site connection updated successfully', 'amplified-import-export' );
+		$message        = __( 'Site connection updated successfully', 'import-export-by-rockstarlab' );
 		
 		if ( count( $updated_fields ) === 1 ) {
 			$field_name = $updated_fields[0];
 			$field_labels = array(
-				'name'       => __( 'name', 'amplified-import-export' ),
-				'remote_url' => __( 'URL', 'amplified-import-export' ),
-				'direction'  => __( 'direction', 'amplified-import-export' ),
-				'status'     => __( 'status', 'amplified-import-export' ),
-				'api_key'    => __( 'API key', 'amplified-import-export' ),
+				'name'       => __( 'name', 'import-export-by-rockstarlab' ),
+				'remote_url' => __( 'URL', 'import-export-by-rockstarlab' ),
+				'direction'  => __( 'direction', 'import-export-by-rockstarlab' ),
+				'status'     => __( 'status', 'import-export-by-rockstarlab' ),
+				'api_key'    => __( 'API key', 'import-export-by-rockstarlab' ),
 			);
 			
 			if ( isset( $field_labels[ $field_name ] ) ) {
 				$message = sprintf(
 					/* translators: %s: field name that was updated */
-					__( 'Site %s updated successfully', 'amplified-import-export' ),
+					__( 'Site %s updated successfully', 'import-export-by-rockstarlab' ),
 					$field_labels[ $field_name ]
 				);
 			}
@@ -271,24 +271,24 @@ class Content_Sync_Controller extends Base_Controller {
 		$site_id = $this->get_request_param( 'site_id', 0 );
 
 		if ( ! $site_id ) {
-			$this->send_error( __( 'Site ID is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if site exists
 		$site = Connected_Site::get_by_id( $site_id );
 		if ( ! $site ) {
-			$this->send_error( __( 'Site not found', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		$result = Connected_Site::delete( $site_id );
 
 		if ( ! $result ) {
-			$this->send_error( __( 'Failed to delete site connection', 'amplified-import-export' ) );
+			$this->send_error( __( 'Failed to delete site connection', 'import-export-by-rockstarlab' ) );
 		}
 
 		$this->send_success(
 			array(
-				'message' => __( 'Site connection deleted successfully', 'amplified-import-export' ),
+				'message' => __( 'Site connection deleted successfully', 'import-export-by-rockstarlab' ),
 			)
 		);
 	}
@@ -305,24 +305,24 @@ class Content_Sync_Controller extends Base_Controller {
 		$site_id = $this->get_request_param( 'site_id', 0 );
 
 		if ( ! $site_id ) {
-			$this->send_error( __( 'Site ID is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if site exists
 		$site = Connected_Site::get_by_id( $site_id );
 		if ( ! $site ) {
-			$this->send_error( __( 'Site not found', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		$new_key = Connected_Site::regenerate_api_key( $site_id );
 
 		if ( ! $new_key ) {
-			$this->send_error( __( 'Failed to regenerate API key', 'amplified-import-export' ) );
+			$this->send_error( __( 'Failed to regenerate API key', 'import-export-by-rockstarlab' ) );
 		}
 
 		$this->send_success(
 			array(
-				'message' => __( 'API key regenerated successfully', 'amplified-import-export' ),
+				'message' => __( 'API key regenerated successfully', 'import-export-by-rockstarlab' ),
 				'api_key' => $new_key,
 			)
 		);
@@ -340,13 +340,13 @@ class Content_Sync_Controller extends Base_Controller {
 		$site_id = $this->get_request_param( 'site_id', 0 );
 
 		if ( ! $site_id ) {
-			$this->send_error( __( 'Site ID is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if site exists
 		$site = Connected_Site::get_by_id( $site_id );
 		if ( ! $site ) {
-			$this->send_error( __( 'Site not found', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		$validation_result = $this->validate_remote_site( $site['remote_url'], $site['api_key'] );
@@ -364,7 +364,7 @@ class Content_Sync_Controller extends Base_Controller {
 		
 		$this->send_success(
 			array(
-				'message' => __( 'Connection successful. API key is valid.', 'amplified-import-export' ),
+				'message' => __( 'Connection successful. API key is valid.', 'import-export-by-rockstarlab' ),
 			)
 		);
 	}
@@ -379,12 +379,12 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		// Get or create API key for this site
-		$site_key = get_option( 'aie_site_api_key' );
+		$site_key = get_option( 'rsl_ie_site_api_key' );
 
 		if ( ! $site_key ) {
 			// Generate new API key for this site
 			$site_key = Connected_Site::generate_api_key();
-			update_option( 'aie_site_api_key', $site_key );
+			update_option( 'rsl_ie_site_api_key', $site_key );
 		}
 
 		$site_url  = get_site_url();
@@ -410,11 +410,11 @@ class Content_Sync_Controller extends Base_Controller {
 
 		// Generate new API key
 		$new_key = Connected_Site::generate_api_key();
-		update_option( 'aie_site_api_key', $new_key );
+		update_option( 'rsl_ie_site_api_key', $new_key );
 
 		$this->send_success(
 			array(
-				'message'  => __( 'API key regenerated successfully. All remote sites will need to update their connection with the new key.', 'amplified-import-export' ),
+				'message'  => __( 'API key regenerated successfully. All remote sites will need to update their connection with the new key.', 'import-export-by-rockstarlab' ),
 				'site_key' => $new_key,
 			)
 		);
@@ -428,12 +428,9 @@ class Content_Sync_Controller extends Base_Controller {
 	 * @return true|\WP_Error True if valid, WP_Error on failure.
 	 */
 	private function validate_remote_site( $remote_url, $api_key ) {
-		// Build the validation endpoint URL
-		$endpoint_url = trailingslashit( $remote_url ) . 'wp-json/aie/v1/validate';
-
-		// Make request to remote site
-		$response = wp_remote_post(
-			$endpoint_url,
+		$response = \RockStarLab\ImportExport\Helper\Remote_API::post(
+			$remote_url,
+			'validate',
 			array(
 				'timeout' => 15,
 				'headers' => array(
@@ -454,7 +451,7 @@ class Content_Sync_Controller extends Base_Controller {
 				'connection_failed',
 				sprintf(
 					/* translators: %s: error message */
-					__( 'Cannot connect to remote site: %s', 'amplified-import-export' ),
+					__( 'Cannot connect to remote site: %s', 'import-export-by-rockstarlab' ),
 					$response->get_error_message()
 				)
 			);
@@ -467,7 +464,7 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( 404 === $status_code ) {
 			return new \WP_Error(
 				'plugin_not_installed',
-				__( 'Amplified Import Export plugin is not installed or activated on the remote site.', 'amplified-import-export' )
+				__( 'Import Export by RockStarLab plugin is not installed or activated on the remote site.', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -479,20 +476,20 @@ class Content_Sync_Controller extends Base_Controller {
 			if ( is_array( $data ) && isset( $data['error_code'] ) && 'license_inactive' === $data['error_code'] ) {
 				return new \WP_Error(
 					'license_inactive',
-					__( 'Premium license is not active on the remote site. Content Sync requires an active premium license.', 'amplified-import-export' )
+					__( 'Premium license is not active on the remote site. Content Sync requires an active premium license.', 'import-export-by-rockstarlab' )
 				);
 			}
 			
 			return new \WP_Error(
 				'invalid_api_key',
-				__( 'Access forbidden. Please check the API key and try again.', 'amplified-import-export' )
+				__( 'Access forbidden. Please check the API key and try again.', 'import-export-by-rockstarlab' )
 			);
 		}
 
 		if ( 401 === $status_code ) {
 			return new \WP_Error(
 				'invalid_api_key',
-				__( 'Invalid API key. Please check the API key and try again.', 'amplified-import-export' )
+				__( 'Invalid API key. Please check the API key and try again.', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -501,7 +498,7 @@ class Content_Sync_Controller extends Base_Controller {
 				'connection_error',
 				sprintf(
 					/* translators: %d: HTTP status code */
-					__( 'Remote site returned error status: %d', 'amplified-import-export' ),
+					__( 'Remote site returned error status: %d', 'import-export-by-rockstarlab' ),
 					$status_code
 				)
 			);
@@ -510,13 +507,13 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
 			return new \WP_Error(
 				'invalid_response',
-				__( 'Remote site returned invalid response format.', 'amplified-import-export' )
+				__( 'Remote site returned invalid response format.', 'import-export-by-rockstarlab' )
 			);
 		}
 
 		// Check if response indicates success
 		if ( ! isset( $data['success'] ) || ! $data['success'] ) {
-			$error_message = isset( $data['message'] ) ? $data['message'] : __( 'Unknown error from remote site.', 'amplified-import-export' );
+			$error_message = isset( $data['message'] ) ? $data['message'] : __( 'Unknown error from remote site.', 'import-export-by-rockstarlab' );
 			return new \WP_Error( 'validation_failed', $error_message );
 		}
 
@@ -564,7 +561,7 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		// Check if premium is active
-		$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
 		
 			// Get current post type
 			global $typenow, $post;
@@ -609,14 +606,14 @@ class Content_Sync_Controller extends Base_Controller {
 			$in_footer = ( 'edit.php' === $hook_suffix );
 			wp_enqueue_script(
 				'aie-post-sync',
-				plugins_url( 'assets/js/post-sync-standalone.js', WP_AIE_FILE ),
+				plugins_url( 'assets/js/post-sync-standalone.js', RSL_IE_FILE ),
 				array( 'jquery' ),
-				filemtime( plugin_dir_path( WP_AIE_FILE ) . 'assets/js/post-sync-standalone.js' ),
+				filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/js/post-sync-standalone.js' ),
 				$in_footer
 			);
 
 		// Localize script
-		$nonce = wp_create_nonce( 'aie_nonce' );
+		$nonce = wp_create_nonce( 'rsl_ie_nonce' );
 		
 		// Get connected sites for Select2 AJAX
 		$sites = Connected_Site::get_all();
@@ -639,53 +636,53 @@ class Content_Sync_Controller extends Base_Controller {
 				'connectedSites' => $sites_map,
 				'i18n'           => array(
 					// Alerts & Messages
-					'pleaseSavePost'              => __( 'Please save the post first', 'amplified-import-export' ),
-					'pleaseSelectSite'            => __( 'Please select a site', 'amplified-import-export' ),
-					'noPostsSelected'             => __( 'No posts selected', 'amplified-import-export' ),
-					'failedLoadRemotePosts'       => __( 'Failed to load remote posts', 'amplified-import-export' ),
-					'unknownError'                => __( 'Unknown error', 'amplified-import-export' ),
-					'failedConnectRemote'         => __( 'Failed to connect to remote site', 'amplified-import-export' ),
-					'failedLoadLocalPosts'        => __( 'Failed to load local posts info', 'amplified-import-export' ),
-					'pleaseSelectOnePost'         => __( 'Please select at least one post', 'amplified-import-export' ),
+					'pleaseSavePost'              => __( 'Please save the post first', 'import-export-by-rockstarlab' ),
+					'pleaseSelectSite'            => __( 'Please select a site', 'import-export-by-rockstarlab' ),
+					'noPostsSelected'             => __( 'No posts selected', 'import-export-by-rockstarlab' ),
+					'failedLoadRemotePosts'       => __( 'Failed to load remote posts', 'import-export-by-rockstarlab' ),
+					'unknownError'                => __( 'Unknown error', 'import-export-by-rockstarlab' ),
+					'failedConnectRemote'         => __( 'Failed to connect to remote site', 'import-export-by-rockstarlab' ),
+					'failedLoadLocalPosts'        => __( 'Failed to load local posts info', 'import-export-by-rockstarlab' ),
+					'pleaseSelectOnePost'         => __( 'Please select at least one post', 'import-export-by-rockstarlab' ),
 					
 					// translators: %s = content placeholder.
 					// Count Text
-					'onePost'                     => __( '1 post', 'amplified-import-export' ),
+					'onePost'                     => __( '1 post', 'import-export-by-rockstarlab' ),
 					// translators: %s is a dynamic value.
-					'postsCount'                  => __( '%s posts', 'amplified-import-export' ),
+					'postsCount'                  => __( '%s posts', 'import-export-by-rockstarlab' ),
 					
 					// Post Info
 					// translators: %s is a dynamic value.
-					'postHash'                    => __( 'Post #%s', 'amplified-import-export' ),
+					'postHash'                    => __( 'Post #%s', 'import-export-by-rockstarlab' ),
 					// translators: %s = content placeholder.
-					'idLabel'                     => __( 'ID:', 'amplified-import-export' ),
-					'noTitle'                     => __( '(No title)', 'amplified-import-export' ),
+					'idLabel'                     => __( 'ID:', 'import-export-by-rockstarlab' ),
+					'noTitle'                     => __( '(No title)', 'import-export-by-rockstarlab' ),
 					
 					// translators: %s = content placeholder.
 					// Actions
-					'createNewPost'               => __( '➕ Create New Post', 'amplified-import-export' ),
+					'createNewPost'               => __( '➕ Create New Post', 'import-export-by-rockstarlab' ),
 					// translators: 1: post title or name, 2: post ID.
-					'updatePost'                  => __( '🔄 Update: %1$s (ID: %2$s)', 'amplified-import-export' ),
+					'updatePost'                  => __( '🔄 Update: %1$s (ID: %2$s)', 'import-export-by-rockstarlab' ),
 					// translators: %s is a dynamic value.
-					'searchForUpdate'             => __( 'Search for a %s to update...', 'amplified-import-export' ),
+					'searchForUpdate'             => __( 'Search for a %s to update...', 'import-export-by-rockstarlab' ),
 					
 					// Progress
 					// translators: %s is a dynamic value.
-					'starting'                    => __( 'Starting %s...', 'amplified-import-export' ),
-					'completed'                   => __( 'Completed!', 'amplified-import-export' ),
-					'syncCompletedSuccess'        => __( 'Sync completed successfully', 'amplified-import-export' ),
-					'pullingPosts'                => __( 'Pulling posts...', 'amplified-import-export' ),
-					'syncFailed'                  => __( 'Sync failed', 'amplified-import-export' ),
-					'errorDuringSync'             => __( 'An error occurred during sync', 'amplified-import-export' ),
+					'starting'                    => __( 'Starting %s...', 'import-export-by-rockstarlab' ),
+					'completed'                   => __( 'Completed!', 'import-export-by-rockstarlab' ),
+					'syncCompletedSuccess'        => __( 'Sync completed successfully', 'import-export-by-rockstarlab' ),
+					'pullingPosts'                => __( 'Pulling posts...', 'import-export-by-rockstarlab' ),
+					'syncFailed'                  => __( 'Sync failed', 'import-export-by-rockstarlab' ),
+					'errorDuringSync'             => __( 'An error occurred during sync', 'import-export-by-rockstarlab' ),
 					
 					// Browse
-					'noPostsFound'                => __( 'No posts found', 'amplified-import-export' ),
-					'child'                       => __( 'child', 'amplified-import-export' ),
-					'children'                    => __( 'children', 'amplified-import-export' ),
-					'pluginDataNotLoaded'         => __( 'Plugin data not loaded. Please refresh the page.', 'amplified-import-export' ),
-					'errorLoadingPosts'           => __( 'An error occurred while loading posts', 'amplified-import-export' ),
-					'failedLoadChildren'          => __( 'Failed to load children', 'amplified-import-export' ),
-					'errorLoadingChildren'        => __( 'Error loading children', 'amplified-import-export' ),
+					'noPostsFound'                => __( 'No posts found', 'import-export-by-rockstarlab' ),
+					'child'                       => __( 'child', 'import-export-by-rockstarlab' ),
+					'children'                    => __( 'children', 'import-export-by-rockstarlab' ),
+					'pluginDataNotLoaded'         => __( 'Plugin data not loaded. Please refresh the page.', 'import-export-by-rockstarlab' ),
+					'errorLoadingPosts'           => __( 'An error occurred while loading posts', 'import-export-by-rockstarlab' ),
+					'failedLoadChildren'          => __( 'Failed to load children', 'import-export-by-rockstarlab' ),
+					'errorLoadingChildren'        => __( 'Error loading children', 'import-export-by-rockstarlab' ),
 				),
 			)
 		);
@@ -693,9 +690,9 @@ class Content_Sync_Controller extends Base_Controller {
 		// Enqueue styles (reuse the main plugin styles)
 		wp_enqueue_style(
 			'aie-post-sync-styles',
-			plugins_url( 'assets/css/app.css', WP_AIE_FILE ),
+			plugins_url( 'assets/css/app.css', RSL_IE_FILE ),
 			array(),
-			filemtime( plugin_dir_path( WP_AIE_FILE ) . 'assets/css/app.css' )
+			filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/css/app.css' )
 		);
 		
 		// Enqueue Gutenberg sync script for post edit screens
@@ -706,9 +703,9 @@ class Content_Sync_Controller extends Base_Controller {
 				// Enqueue the Gutenberg sync script
 					wp_enqueue_script(
 						'aie-gutenberg-sync',
-						plugins_url( 'assets/js/gutenberg-sync.js', WP_AIE_FILE ),
+						plugins_url( 'assets/js/gutenberg-sync.js', RSL_IE_FILE ),
 						array( 'jquery', 'wp-editor', 'wp-data', 'wp-element', 'wp-components' ),
-						filemtime( plugin_dir_path( WP_AIE_FILE ) . 'assets/js/gutenberg-sync.js' ),
+						filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/js/gutenberg-sync.js' ),
 						false
 					);
 				
@@ -717,11 +714,11 @@ class Content_Sync_Controller extends Base_Controller {
 					'aie-gutenberg-sync',
 					'aieData',
 					array(
-						'nonce'   => wp_create_nonce( 'aie_nonce' ),
+						'nonce'   => wp_create_nonce( 'rsl_ie_nonce' ),
 						'ajaxurl' => admin_url( 'admin-ajax.php' ),
 						'i18n'    => array(
-							'syncContent'  => __( 'Sync Content', 'amplified-import-export' ),
-							'syncThisPost' => __( 'Sync This Post', 'amplified-import-export' ),
+							'syncContent'  => __( 'Sync Content', 'import-export-by-rockstarlab' ),
+							'syncThisPost' => __( 'Sync This Post', 'import-export-by-rockstarlab' ),
 						),
 					)
 				);
@@ -747,7 +744,7 @@ class Content_Sync_Controller extends Base_Controller {
 			}
 			
 			// Check if premium is active
-			$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+			$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
 		
 		// In free version, only show for 'post' type
 		if ( ! $is_premium && 'post' !== $typenow ) {
@@ -759,7 +756,7 @@ class Content_Sync_Controller extends Base_Controller {
 			return;
 		}
 		
-		require WP_AIE_PATH . '/app/View/sync/sync-button.php';
+		require RSL_IE_PATH . '/app/View/sync/sync-button.php';
 	}
 
 		/**
@@ -806,7 +803,7 @@ class Content_Sync_Controller extends Base_Controller {
 			}
 
 			// Check if premium is active
-			$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+			$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
 			
 			// In free version, only show for 'post' type
 			if ( ! $is_premium && 'post' !== $current_post_type ) {
@@ -824,9 +821,9 @@ class Content_Sync_Controller extends Base_Controller {
 			$rendered = true;
 
 			// Load view templates
-			require WP_AIE_PATH . '/app/View/sync/sync-modal.php';
-			require WP_AIE_PATH . '/app/View/sync/mapping-modal.php';
-			require WP_AIE_PATH . '/app/View/sync/browse-modal.php';
+			require RSL_IE_PATH . '/app/View/sync/sync-modal.php';
+			require RSL_IE_PATH . '/app/View/sync/mapping-modal.php';
+			require RSL_IE_PATH . '/app/View/sync/browse-modal.php';
 		}
 
 	/**
@@ -841,14 +838,14 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 		
 		// Check if premium is active
-		$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
 		
 		// In free version, only show for 'post' type
 		if ( ! $is_premium && 'post' !== $post->post_type ) {
 			return;
 		}
 		
-		require WP_AIE_PATH . '/app/View/sync/post-edit-button.php';
+		require RSL_IE_PATH . '/app/View/sync/post-edit-button.php';
 	}
 
 	/**
@@ -878,18 +875,19 @@ class Content_Sync_Controller extends Base_Controller {
 
 		// Validate input
 		if ( empty( $site_id ) ) {
-			$this->send_error( __( 'Site ID is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Get site details
 		$site = Connected_Site::get_by_id( $site_id );
 		if ( ! $site ) {
-			$this->send_error( __( 'Site not found', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Request posts list from remote site
-		$response = wp_remote_post(
-			trailingslashit( $site['remote_url'] ) . 'wp-json/aie/v1/list-posts',
+		$response = \RockStarLab\ImportExport\Helper\Remote_API::post(
+			$site['remote_url'],
+			'list-posts',
 			array(
 				'timeout' => 30,
 				'headers' => array(
@@ -910,7 +908,7 @@ class Content_Sync_Controller extends Base_Controller {
 // translators: %s = content placeholder.
 
 		if ( is_wp_error( $response ) ) {
-			$this->send_error( __( 'Failed to connect to remote site: ', 'amplified-import-export' ) . $response->get_error_message() );
+			$this->send_error( __( 'Failed to connect to remote site: ', 'import-export-by-rockstarlab' ) . $response->get_error_message() );
 		}
 
 		$status_code = wp_remote_retrieve_response_code( $response );
@@ -919,13 +917,13 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( $status_code !== 200 ) {
 			$error_data = json_decode( $body, true );
 			// translators: %d is a dynamic value.
-			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Request failed with status code: %d', 'amplified-import-export' ), $status_code );
+			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Request failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
 			$this->send_error( $error_msg );
 		}
 
 		$data = json_decode( $body, true );
 		if ( ! isset( $data['success'] ) || ! $data['success'] || ! isset( $data['posts'] ) ) {
-			$this->send_error( __( 'Remote site returned invalid data', 'amplified-import-export' ) );
+			$this->send_error( __( 'Remote site returned invalid data', 'import-export-by-rockstarlab' ) );
 		}
 
 		$this->send_success(
@@ -962,27 +960,28 @@ class Content_Sync_Controller extends Base_Controller {
 
 		// Validate input
 		if ( empty( $site_id ) ) {
-			$this->send_error( __( 'Site ID is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( empty( $parent_id ) ) {
-			$this->send_error( __( 'Parent ID is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Parent ID is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Get site details
 		$site = Connected_Site::get_by_id( $site_id );
 		if ( ! $site ) {
-			$this->send_error( __( 'Site not found', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
 
-		// Request children posts from remote site
-		$response = wp_remote_post(
-			trailingslashit( $site['remote_url'] ) . 'wp-json/aie/v1/get-children-posts',
-			array(
-				'timeout' => 30,
-				'headers' => array(
-					'Authorization' => 'Bearer ' . $site['api_key'],
-					'Content-Type'  => 'application/json',
+			// Request children posts from remote site
+			$response = \RockStarLab\ImportExport\Helper\Remote_API::post(
+				$site['remote_url'],
+				'get-children-posts',
+				array(
+					'timeout' => 30,
+					'headers' => array(
+						'Authorization' => 'Bearer ' . $site['api_key'],
+						'Content-Type'  => 'application/json',
 				),
 				'body'    => wp_json_encode(
 					array(
@@ -990,12 +989,12 @@ class Content_Sync_Controller extends Base_Controller {
 						'post_type' => $post_type,
 					)
 				),
-			// translators: %s = content placeholder.
-			)
-		);
+				// translators: %s = content placeholder.
+				)
+			);
 
 		if ( is_wp_error( $response ) ) {
-			$this->send_error( __( 'Failed to connect to remote site: ', 'amplified-import-export' ) . $response->get_error_message() );
+			$this->send_error( __( 'Failed to connect to remote site: ', 'import-export-by-rockstarlab' ) . $response->get_error_message() );
 		}
 
 		$status_code = wp_remote_retrieve_response_code( $response );
@@ -1004,13 +1003,13 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( $status_code !== 200 ) {
 			$error_data = json_decode( $body, true );
 			// translators: %d is a dynamic value.
-			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Request failed with status code: %d', 'amplified-import-export' ), $status_code );
+			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Request failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
 			$this->send_error( $error_msg );
 		}
 
 		$data = json_decode( $body, true );
 		if ( ! isset( $data['success'] ) || ! $data['success'] || ! isset( $data['children'] ) ) {
-			$this->send_error( __( 'Remote site returned invalid data', 'amplified-import-export' ) );
+			$this->send_error( __( 'Remote site returned invalid data', 'import-export-by-rockstarlab' ) );
 		}
 
 		$this->send_success(
@@ -1033,7 +1032,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 		// Validate input
 		if ( empty( $post_ids ) || ! is_array( $post_ids ) ) {
-			$this->send_error( __( 'Post IDs are required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Post IDs are required', 'import-export-by-rockstarlab' ) );
 		}
 
 		$posts_info = array();
@@ -1073,22 +1072,22 @@ class Content_Sync_Controller extends Base_Controller {
 
 		// Validate input
 		if ( empty( $site_id ) ) {
-			$this->send_error( __( 'Site ID is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( empty( $post_ids ) || ! is_array( $post_ids ) ) {
-			$this->send_error( __( 'No posts selected', 'amplified-import-export' ) );
+			$this->send_error( __( 'No posts selected', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if premium is active
-		$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
 		
 		// In free version, validate that only 'post' type is being synced
 		if ( ! $is_premium ) {
 			foreach ( $post_ids as $post_id ) {
 				$post = get_post( $post_id );
 				if ( $post && 'post' !== $post->post_type ) {
-					$this->send_error( __( 'Premium license is required to sync Pages and Custom Post Types. Free version supports Posts only.', 'amplified-import-export' ) );
+					$this->send_error( __( 'Premium license is required to sync Pages and Custom Post Types. Free version supports Posts only.', 'import-export-by-rockstarlab' ) );
 				}
 			}
 		}
@@ -1104,7 +1103,7 @@ class Content_Sync_Controller extends Base_Controller {
 		// Get site details
 		$site = Connected_Site::get_by_id( $site_id );
 		if ( ! $site ) {
-			$this->send_error( __( 'Site not found', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Get source and target domains
@@ -1123,7 +1122,7 @@ class Content_Sync_Controller extends Base_Controller {
 			}
 
 			// Extract all images from post
-			$post_images = \WP_AIE\Helper\Content_Sync_Media::extract_post_images( $post_id );
+			$post_images = \RockStarLab\ImportExport\Helper\Content_Sync_Media::extract_post_images( $post_id );
 			
 			// Store images with post context
 			foreach ( $post_images as $image ) {
@@ -1186,7 +1185,7 @@ class Content_Sync_Controller extends Base_Controller {
 							foreach ( $term_images as $image_id ) {
 								if ( ! isset( $all_images[ $image_id ] ) ) {
 									// Use prepare_image_data to include file_hash for proper dedup on receiving side.
-									$image_data = \WP_AIE\Helper\Content_Sync_Media::prepare_image_data( $image_id, 'term_acf' );
+									$image_data = \RockStarLab\ImportExport\Helper\Content_Sync_Media::prepare_image_data( $image_id, 'term_acf' );
 									if ( ! $image_data ) {
 										// Fallback if file is missing on disk.
 										$image_data = array(
@@ -1271,7 +1270,7 @@ class Content_Sync_Controller extends Base_Controller {
 					'post_modified' => $post->post_modified,
 					'post_author'   => $post->post_author,
 					'meta'          => $prepared_meta,
-					'post_refs'     => \WP_AIE\Helper\Content_Sync_Replacer::collect_acf_post_reference_map_from_meta( $prepared_meta ),
+					'post_refs'     => \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::collect_acf_post_reference_map_from_meta( $prepared_meta ),
 					'terms'         => $terms_data,
 				);
 			
@@ -1298,7 +1297,7 @@ class Content_Sync_Controller extends Base_Controller {
 						}
 
 						// Include variation images in the global image upload queue.
-						$var_images = \WP_AIE\Helper\Content_Sync_Media::extract_post_images( $variation_id );
+						$var_images = \RockStarLab\ImportExport\Helper\Content_Sync_Media::extract_post_images( $variation_id );
 						foreach ( $var_images as $var_img ) {
 							$var_img_key                       = $var_img['attachment_id'];
 							$all_images[ $var_img_key ]         = $var_img;
@@ -1341,7 +1340,7 @@ class Content_Sync_Controller extends Base_Controller {
 						}
 
 						// Include child images in the global upload queue.
-						$child_imgs = \WP_AIE\Helper\Content_Sync_Media::extract_post_images( $child_id );
+						$child_imgs = \RockStarLab\ImportExport\Helper\Content_Sync_Media::extract_post_images( $child_id );
 						foreach ( $child_imgs as $child_img ) {
 							$cimg_key                     = $child_img['attachment_id'];
 							$all_images[ $cimg_key ]       = $child_img;
@@ -1394,7 +1393,7 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		if ( empty( $posts_data ) ) {
-			$this->send_error( __( 'No valid posts to sync', 'amplified-import-export' ) );
+			$this->send_error( __( 'No valid posts to sync', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Upload images to remote site first
@@ -1402,7 +1401,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 		// Replace domains in post data
 		foreach ( $posts_data as &$post_data ) {
-			$post_data = \WP_AIE\Helper\Content_Sync_Replacer::replace_post_domains(
+			$post_data = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_post_domains(
 				$post_data,
 				$source_domain,
 				$target_domain,
@@ -1411,8 +1410,9 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		// Send to remote site
-		$response = wp_remote_post(
-			trailingslashit( $site['remote_url'] ) . 'wp-json/aie/v1/receive-content',
+		$response = \RockStarLab\ImportExport\Helper\Remote_API::post(
+			$site['remote_url'],
+			'receive-content',
 			array(
 				'timeout' => 60,
 				'headers' => array(
@@ -1431,7 +1431,7 @@ class Content_Sync_Controller extends Base_Controller {
 		);
 
 		if ( is_wp_error( $response ) ) {
-			$this->send_error( __( 'Failed to connect to remote site: ', 'amplified-import-export' ) . $response->get_error_message() );
+			$this->send_error( __( 'Failed to connect to remote site: ', 'import-export-by-rockstarlab' ) . $response->get_error_message() );
 		}
 
 		$status_code = wp_remote_retrieve_response_code( $response );
@@ -1440,20 +1440,20 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( $status_code !== 200 ) {
 			$error_data = json_decode( $body, true );
 			// translators: %d is a dynamic value.
-			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Push failed with status code: %d', 'amplified-import-export' ), $status_code );
+			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Push failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
 			$this->send_error( $error_msg );
 		}
 
 		$data = json_decode( $body, true );
 		if ( ! isset( $data['success'] ) || ! $data['success'] ) {
-			$this->send_error( __( 'Remote site rejected the content', 'amplified-import-export' ) );
+			$this->send_error( __( 'Remote site rejected the content', 'import-export-by-rockstarlab' ) );
 		}
 
 		$this->send_success(
 			array(
 				'message'       => sprintf(
 					/* translators: %d: number of posts */
-					__( 'Successfully pushed %d post(s) to remote site', 'amplified-import-export' ),
+					__( 'Successfully pushed %d post(s) to remote site', 'import-export-by-rockstarlab' ),
 					count( $posts_data )
 				),
 				'images_synced' => count( $image_map ),
@@ -1477,7 +1477,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 		foreach ( $images as $image ) {
 			// Check if image already exists on remote
-			$existing_id = \WP_AIE\Helper\Content_Sync_Media::check_remote_image_exists(
+			$existing_id = \RockStarLab\ImportExport\Helper\Content_Sync_Media::check_remote_image_exists(
 				$image['file_hash'],
 				$site['remote_url'],
 				$site['api_key']
@@ -1526,18 +1526,19 @@ class Content_Sync_Controller extends Base_Controller {
 			'description' => $image['description'],
 		);
 
-		// Upload to remote
-		$response = wp_remote_post(
-			trailingslashit( $site['remote_url'] ) . 'wp-json/aie/v1/upload-media',
-			array(
-				'timeout' => 60,
-				'headers' => array(
-					'Authorization' => 'Bearer ' . $site['api_key'],
-					'Content-Type'  => 'application/json',
+			// Upload to remote
+			$response = \RockStarLab\ImportExport\Helper\Remote_API::post(
+				$site['remote_url'],
+				'upload-media',
+				array(
+					'timeout' => 60,
+					'headers' => array(
+						'Authorization' => 'Bearer ' . $site['api_key'],
+						'Content-Type'  => 'application/json',
 				),
 				'body'    => wp_json_encode( $upload_data ),
-			)
-		);
+				)
+			);
 
 		if ( is_wp_error( $response ) ) {
 			return false;
@@ -1567,11 +1568,11 @@ class Content_Sync_Controller extends Base_Controller {
 
 		// Validate input
 		if ( empty( $site_id ) ) {
-			$this->send_error( __( 'Site ID is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( empty( $post_ids ) || ! is_array( $post_ids ) ) {
-			$this->send_error( __( 'No posts selected', 'amplified-import-export' ) );
+			$this->send_error( __( 'No posts selected', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Parse post_mapping if it's a JSON string
@@ -1585,21 +1586,22 @@ class Content_Sync_Controller extends Base_Controller {
 		// Get site details
 		$site = Connected_Site::get_by_id( $site_id );
 		if ( ! $site ) {
-			$this->send_error( __( 'Site not found', 'amplified-import-export' ) );
+			$this->send_error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Get domains for replacement
 		$source_domain = wp_parse_url( $site['remote_url'], PHP_URL_HOST );
 		$target_domain = wp_parse_url( home_url(), PHP_URL_HOST );
 
-		// Request content from remote site
-		$response = wp_remote_post(
-			trailingslashit( $site['remote_url'] ) . 'wp-json/aie/v1/send-content',
-			array(
-				'timeout' => 60,
-				'headers' => array(
-					'Authorization' => 'Bearer ' . $site['api_key'],
-					'Content-Type'  => 'application/json',
+			// Request content from remote site
+			$response = \RockStarLab\ImportExport\Helper\Remote_API::post(
+				$site['remote_url'],
+				'send-content',
+				array(
+					'timeout' => 60,
+					'headers' => array(
+						'Authorization' => 'Bearer ' . $site['api_key'],
+						'Content-Type'  => 'application/json',
 				),
 				'body'    => wp_json_encode(
 					// translators: %s = content placeholder.
@@ -1611,7 +1613,7 @@ class Content_Sync_Controller extends Base_Controller {
 		);
 
 		if ( is_wp_error( $response ) ) {
-			$this->send_error( __( 'Failed to connect to remote site: ', 'amplified-import-export' ) . $response->get_error_message() );
+			$this->send_error( __( 'Failed to connect to remote site: ', 'import-export-by-rockstarlab' ) . $response->get_error_message() );
 		}
 
 		$status_code = wp_remote_retrieve_response_code( $response );
@@ -1620,28 +1622,28 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( $status_code !== 200 ) {
 			$error_data = json_decode( $body, true );
 			// translators: %d is a dynamic value.
-			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Pull failed with status code: %d', 'amplified-import-export' ), $status_code );
+			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Pull failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
 			$this->send_error( $error_msg );
 		}
 
 		$data = json_decode( $body, true );
 		if ( ! isset( $data['success'] ) || ! $data['success'] || ! isset( $data['data']['posts'] ) ) {
-			$this->send_error( __( 'Remote site returned invalid data', 'amplified-import-export' ) );
+			$this->send_error( __( 'Remote site returned invalid data', 'import-export-by-rockstarlab' ) );
 		}
 
 		$posts_data = $data['data']['posts'];
 		if ( empty( $posts_data ) ) {
-			$this->send_error( __( 'No posts found on remote site', 'amplified-import-export' ) );
+			$this->send_error( __( 'No posts found on remote site', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if premium is active
-		$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
 		
 		// In free version, validate that only 'post' type is being synced
 		if ( ! $is_premium ) {
 			foreach ( $posts_data as $post_data ) {
 				if ( isset( $post_data['post_type'] ) && 'post' !== $post_data['post_type'] ) {
-					$this->send_error( __( 'Premium license is required to sync Pages and Custom Post Types. Free version supports Posts only.', 'amplified-import-export' ) );
+					$this->send_error( __( 'Premium license is required to sync Pages and Custom Post Types. Free version supports Posts only.', 'import-export-by-rockstarlab' ) );
 				}
 			}
 		}
@@ -1666,7 +1668,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 	// Replace domains and image IDs in post data
 	foreach ( $posts_data as &$post_data ) {
-		$post_data = \WP_AIE\Helper\Content_Sync_Replacer::replace_post_domains(
+		$post_data = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_post_domains(
 			$post_data,
 			$source_domain,
 			$target_domain,
@@ -1809,7 +1811,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 				// Re-save ACF taxonomy fields with correct local term IDs.
 				if ( ! empty( $term_id_map ) && ! empty( $post_data['meta'] ) ) {
-					\WP_AIE\Helper\Content_Sync_Replacer::translate_acf_taxonomy_fields_in_meta(
+					\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::translate_acf_taxonomy_fields_in_meta(
 						$post_data['meta'],
 						$post_id,
 						$term_id_map
@@ -1819,7 +1821,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 			// Re-save ACF post reference fields (post_object / relationship / page_link) with correct local IDs.
 			if ( ! empty( $post_data['meta'] ) ) {
-				\WP_AIE\Helper\Content_Sync_Replacer::translate_acf_post_reference_fields_in_meta(
+				\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::translate_acf_post_reference_fields_in_meta(
 					$post_data['meta'],
 					$post_id,
 					$remote_post_id,
@@ -1865,7 +1867,7 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( $imported_count > 0 ) {
 			$message[] = sprintf(
 				/* translators: %d: number of posts */
-				_n( 'Created %d post', 'Created %d posts', $imported_count, 'amplified-import-export' ),
+				_n( 'Created %d post', 'Created %d posts', $imported_count, 'import-export-by-rockstarlab' ),
 				$imported_count
 			);
 		}
@@ -1873,14 +1875,14 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( $updated_count > 0 ) {
 			$message[] = sprintf(
 				/* translators: %d: number of posts */
-				_n( 'Updated %d post', 'Updated %d posts', $updated_count, 'amplified-import-export' ),
+				_n( 'Updated %d post', 'Updated %d posts', $updated_count, 'import-export-by-rockstarlab' ),
 				$updated_count
 			);
 		}
 
 		$this->send_success(
 			array(
-				'message' => ! empty( $message ) ? implode( ', ', $message ) : __( 'No posts were processed', 'amplified-import-export' ),
+				'message' => ! empty( $message ) ? implode( ', ', $message ) : __( 'No posts were processed', 'import-export-by-rockstarlab' ),
 			)
 		);
 	}
@@ -1897,7 +1899,7 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( ! empty( $image['file_hash'] ) ) {
 			$existing_id = $this->find_attachment_by_hash( $image['file_hash'] );
 			if ( $existing_id ) {
-				\WP_AIE\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
+				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
 				return $existing_id;
 			}
 		}
@@ -1925,7 +1927,7 @@ class Content_Sync_Controller extends Base_Controller {
 		$actual_hash  = md5( $file_contents );
 		$existing_id  = $this->find_attachment_by_hash( $actual_hash );
 		if ( $existing_id ) {
-			\WP_AIE\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
+			\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
 			return $existing_id;
 		}
 
@@ -1963,7 +1965,7 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		// Always store the actual hash (covers missing file_hash in request).
-		update_post_meta( $attachment_id, '_aie_file_hash', $actual_hash );
+		update_post_meta( $attachment_id, '_rsl_ie_file_hash', $actual_hash );
 
 		return $attachment_id;
 	}
@@ -1971,7 +1973,7 @@ class Content_Sync_Controller extends Base_Controller {
 	/**
 	 * Find attachment by file hash
 	 *
-	 * First checks for a stored _aie_file_hash meta (fast).
+	 * First checks for a stored _rsl_ie_file_hash meta (fast).
 	 * Falls back to scanning all attachments on disk so that images already
 	 * present in the library (uploaded manually or before hash storage was
 	 * introduced) are detected and not duplicated.
@@ -1986,7 +1988,7 @@ class Content_Sync_Controller extends Base_Controller {
 		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
 				"SELECT post_id FROM {$wpdb->postmeta}
-				WHERE meta_key = '_aie_file_hash'
+				WHERE meta_key = '_rsl_ie_file_hash'
 				AND meta_value = %s
 				LIMIT 1",
 				$file_hash
@@ -1998,7 +2000,7 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		// Slow fallback: hash every attachment file on disk.
-		// This handles images that existed before _aie_file_hash was stored
+		// This handles images that existed before _rsl_ie_file_hash was stored
 		// (e.g. manually uploaded or imported by another plugin).
 		$all_attachment_ids = get_posts(
 			array(
@@ -2015,7 +2017,7 @@ class Content_Sync_Controller extends Base_Controller {
 				$hash = md5_file( $file_path );
 				if ( $hash === $file_hash ) {
 					// Cache the hash so future lookups are instant.
-					update_post_meta( $att_id, '_aie_file_hash', $file_hash );
+					update_post_meta( $att_id, '_rsl_ie_file_hash', $file_hash );
 					return $att_id;
 				}
 			}

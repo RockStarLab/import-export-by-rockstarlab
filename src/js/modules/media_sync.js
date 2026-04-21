@@ -16,7 +16,7 @@ const MediaSyncModule = {
 	 * Initialize module
 	 */
 	init() {
-		if ( ! jQuery( '#wp-aie-media-sync' ).length ) {
+		if ( ! jQuery( '#rsl-ie-media-sync' ).length ) {
 			return;
 		}
 
@@ -27,7 +27,7 @@ const MediaSyncModule = {
 	 * Bind event handlers
 	 */
 	bindEvents() {
-		const $page = jQuery( '#wp-aie-media-sync' );
+		const $page = jQuery( '#rsl-ie-media-sync' );
 
 		// File type selection
 		$page.on( 'change', '#aie-file-types', ( e ) => {

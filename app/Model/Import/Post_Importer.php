@@ -4,10 +4,10 @@
  *
  * Handles importing WordPress posts, pages, and custom post types
  *
- * @package WP_AIE\Model\Import
+ * @package RockStarLab\ImportExport\Model\Import
  */
 
-namespace WP_AIE\Model\Import;
+namespace RockStarLab\ImportExport\Model\Import;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -28,7 +28,7 @@ class Post_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Import WordPress posts, pages, and custom post types', 'amplified-import-export' );
+		return __( 'Import WordPress posts, pages, and custom post types', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -336,7 +336,7 @@ class Post_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	private function get_job_id_map_key() {
-		return 'aie_import_post_id_map_' . absint( $this->job_id );
+		return 'rsl_ie_import_post_id_map_' . absint( $this->job_id );
 	}
 
 	/**
@@ -1942,8 +1942,8 @@ class Post_Importer extends Abstract_Importer {
 				// Prefer hash-based duplicate detection (works even when WP renames files
 				// to "-1", "-2", etc. and the filename no longer matches the source).
 				$remote_data = $this->get_remote_file_data( $url );
-				if ( $remote_data && ! empty( $remote_data['hash'] ) && class_exists( '\\WP_AIE\\Helper\\Media_Hash' ) ) {
-					$by_hash = \WP_AIE\Helper\Media_Hash::get_attachment_by_hash( (string) $remote_data['hash'] );
+				if ( $remote_data && ! empty( $remote_data['hash'] ) && class_exists( '\\RockStarLab\ImportExport\\Helper\\Media_Hash' ) ) {
+					$by_hash = \RockStarLab\ImportExport\Helper\Media_Hash::get_attachment_by_hash( (string) $remote_data['hash'] );
 					if ( $by_hash ) {
 						return (int) $by_hash;
 					}
@@ -2043,7 +2043,7 @@ class Post_Importer extends Abstract_Importer {
 
 		// Keep temp file for potential reuse in import_media_from_url
 		// Store in transient with URL as key
-		$transient_key = 'aie_temp_media_' . md5( $url );
+			$transient_key = 'rsl_ie_temp_media_' . md5( $url );
 		set_transient( $transient_key, $temp_file, HOUR_IN_SECONDS );
 
 		return $data;
@@ -2062,7 +2062,7 @@ class Post_Importer extends Abstract_Importer {
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 
 		// Check if we already downloaded this file during duplicate check
-		$transient_key = 'aie_temp_media_' . md5( $url );
+			$transient_key = 'rsl_ie_temp_media_' . md5( $url );
 		$temp_file = get_transient( $transient_key );
 
 		// If not in transient or file doesn't exist, download it
@@ -2121,7 +2121,7 @@ class Post_Importer extends Abstract_Importer {
 	private function download_url_unrestricted( string $url, int $timeout ) {
 		$tmp = wp_tempnam( $url );
 		if ( ! $tmp ) {
-			return new \WP_Error( 'aie_temp_file_failed', __( 'Could not create a temporary file for download.', 'amplified-import-export' ) );
+				return new \WP_Error( 'rsl_ie_temp_file_failed', __( 'Could not create a temporary file for download.', 'import-export-by-rockstarlab' ) );
 		}
 
 		$response = wp_remote_get(
@@ -2142,7 +2142,7 @@ class Post_Importer extends Abstract_Importer {
 		$code = (int) wp_remote_retrieve_response_code( $response );
 		if ( $code < 200 || $code >= 300 ) {
 			@wp_delete_file( $tmp );
-			return new \WP_Error( 'aie_download_failed', sprintf( 'Download failed with HTTP %d', $code ) );
+			return new \WP_Error( 'rsl_ie_download_failed', sprintf( 'Download failed with HTTP %d', $code ) );
 		}
 
 		return $tmp;
@@ -2156,10 +2156,10 @@ class Post_Importer extends Abstract_Importer {
 		global $wpdb;
 
 		// Get all transients related to temporary media files
-		$transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			"SELECT option_name FROM $wpdb->options 
-			WHERE option_name LIKE '_transient_aie_temp_media_%'"
-		);
+			$transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+				"SELECT option_name FROM $wpdb->options 
+					WHERE option_name LIKE '_transient_rsl_ie_temp_media_%'"
+				);
 
 		$cleaned = 0;
 		foreach ( $transients as $transient_option ) {

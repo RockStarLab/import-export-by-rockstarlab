@@ -4,12 +4,12 @@
  *
  * Manages custom user functions in database
  *
- * @package WP_AIE\Model
+ * @package RockStarLab\ImportExport\Model
  */
 
-namespace WP_AIE\Model;
+namespace RockStarLab\ImportExport\Model;
 
-use WP_AIE\Helper\Function_Executor;
+use RockStarLab\ImportExport\Helper\Function_Executor;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -20,7 +20,7 @@ class Custom_Function extends Model {
 	 *
 	 * @var string
 	 */
-	protected $table_name = 'aie_custom_functions';
+	protected $table_name = 'rsl_ie_custom_functions';
 
 	/**
 	 * Function Executor instance
@@ -47,12 +47,12 @@ class Custom_Function extends Model {
 
 		// Validate required fields
 		if ( empty( $data['name'] ) || empty( $data['code'] ) ) {
-			return new \WP_Error( 'missing_fields', __( 'Name and code are required', 'amplified-import-export' ) );
+			return new \WP_Error( 'missing_fields', __( 'Name and code are required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if function name already exists
 		if ( $this->function_name_exists( $data['name'] ) ) {
-			return new \WP_Error( 'duplicate_name', __( 'A function with this name already exists', 'amplified-import-export' ) );
+			return new \WP_Error( 'duplicate_name', __( 'A function with this name already exists', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Decode HTML entities from code
@@ -107,7 +107,7 @@ class Custom_Function extends Model {
 
 		return new \WP_Error(
 			'db_error',
-			__( 'Database error: Failed to save function', 'amplified-import-export' ),
+			__( 'Database error: Failed to save function', 'import-export-by-rockstarlab' ),
 			array( 'db_error' => $wpdb->last_error )
 		);
 	}
@@ -125,18 +125,18 @@ class Custom_Function extends Model {
 		// Check if function exists
 		$existing = $this->get( $id );
 		if ( ! $existing ) {
-			return new \WP_Error( 'not_found', __( 'Function not found', 'amplified-import-export' ) );
+			return new \WP_Error( 'not_found', __( 'Function not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check permissions
 		if ( ! $this->can_edit_function( $id ) ) {
-			return new \WP_Error( 'permission_denied', __( 'You do not have permission to edit this function', 'amplified-import-export' ) );
+			return new \WP_Error( 'permission_denied', __( 'You do not have permission to edit this function', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if function name is being changed and if new name already exists
 		if ( isset( $data['name'] ) && $data['name'] !== $existing['name'] ) {
 			if ( $this->function_name_exists( $data['name'], $id ) ) {
-				return new \WP_Error( 'duplicate_name', __( 'A function with this name already exists', 'amplified-import-export' ) );
+				return new \WP_Error( 'duplicate_name', __( 'A function with this name already exists', 'import-export-by-rockstarlab' ) );
 			}
 		}
 
@@ -201,7 +201,7 @@ class Custom_Function extends Model {
 
 		return new \WP_Error(
 			'db_error',
-			__( 'Database error: Failed to update function', 'amplified-import-export' ),
+			__( 'Database error: Failed to update function', 'import-export-by-rockstarlab' ),
 			array( 'db_error' => $wpdb->last_error )
 		);
 	}
@@ -290,7 +290,7 @@ class Custom_Function extends Model {
 		}
 
 		// Check in library snippets
-		$snippets     = new \WP_AIE\Helper\Function_Snippets();
+		$snippets     = new \RockStarLab\ImportExport\Helper\Function_Snippets();
 		$all_snippets = $snippets->get_all_snippets();
 
 		foreach ( $all_snippets as $snippet ) {
@@ -497,7 +497,7 @@ class Custom_Function extends Model {
 	 */
 	public function create_from_snippet( $snippet_key, $data = [] ) {
 		// Get snippet from library
-		$snippets = new \WP_AIE\Helper\Function_Snippets();
+		$snippets = new \RockStarLab\ImportExport\Helper\Function_Snippets();
 		$snippet  = $snippets->get_snippet( $snippet_key );
 
 		if ( ! $snippet ) {
@@ -702,7 +702,7 @@ class Custom_Function extends Model {
 	 * @return array Array with 'created' and 'skipped' counts
 	 */
 	public function seed_builtin_functions() {
-		$snippets     = new \WP_AIE\Helper\Function_Snippets();
+		$snippets     = new \RockStarLab\ImportExport\Helper\Function_Snippets();
 		$all_snippets = $snippets->get_all_functions();
 
 		$stats = [

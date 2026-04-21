@@ -6,10 +6,10 @@
  * Handles database interactions with wpdb.
  * All child models should extend this class and define $table_name.
  *
- * @package WP_AIE\Model
+ * @package RockStarLab\ImportExport\Model
  */
 
-namespace WP_AIE\Model;
+namespace RockStarLab\ImportExport\Model;
 
 defined( 'ABSPATH' ) || exit;
 

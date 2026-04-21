@@ -3,12 +3,12 @@
  * Model Registry
  *
  * Manages model instances and provides access to them
- * Models are accessed as properties: WP_AIE()->model->job
+ * Models are accessed as properties: rsl_ie()->model->job
  *
- * @package WP_AIE\Model
+ * @package RockStarLab\ImportExport\Model
  */
 
-namespace WP_AIE\Model;
+namespace RockStarLab\ImportExport\Model;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -48,7 +48,7 @@ class Model_Registry {
 
 		// Convert name to PascalCase for class name (ucfirst + any underscores)
 		$class_name = str_replace( ' ', '', ucwords( str_replace( '_', ' ', $name ) ) );
-		$class      = "WP_AIE\\Model\\{$class_name}";
+		$class      = "RockStarLab\ImportExport\\Model\\{$class_name}";
 
 		if ( class_exists( $class ) ) {
 			$this->models[ $lookup_name ] = new $class();

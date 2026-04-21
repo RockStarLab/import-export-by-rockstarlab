@@ -4,10 +4,10 @@
  *
  * Handles exporting WooCommerce product attributes
  *
- * @package WP_AIE\Model\Export
+ * @package RockStarLab\ImportExport\Model\Export
  */
 
-namespace WP_AIE\Model\Export;
+namespace RockStarLab\ImportExport\Model\Export;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -19,7 +19,7 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_name() {
-		return __( 'WooCommerce Attributes', 'amplified-import-export' );
+		return __( 'WooCommerce Attributes', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -28,7 +28,7 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WooCommerce product attributes', 'amplified-import-export' );
+		return __( 'Export WooCommerce product attributes', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -38,9 +38,9 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'include_terms' => __( 'Include attribute terms', 'amplified-import-export' ),
-			'orderby'       => __( 'Order by field', 'amplified-import-export' ),
-			'order'         => __( 'Order direction (ASC or DESC)', 'amplified-import-export' ),
+			'include_terms' => __( 'Include attribute terms', 'import-export-by-rockstarlab' ),
+			'orderby'       => __( 'Order by field', 'import-export-by-rockstarlab' ),
+			'order'         => __( 'Order direction (ASC or DESC)', 'import-export-by-rockstarlab' ),
 		];
 	}
 
@@ -124,7 +124,7 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			return new \WP_Error(
 				'woocommerce_not_active',
-				__( 'WooCommerce is not active', 'amplified-import-export' )
+				__( 'WooCommerce is not active', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -216,12 +216,12 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 
 				default:
 					// Allow custom fields via filter
-					$data[ $alias_field ] = apply_filters( 'aie_woo_attribute_export_field_value', '', $alias_field, $attribute, $options );
+					$data[ $alias_field ] = apply_filters( 'rsl_ie_woo_attribute_export_field_value', '', $alias_field, $attribute, $options );
 					break;
 			}
 		}
 
-		return apply_filters( 'aie_woo_attribute_export_data', $data, $attribute, $options );
+		return apply_filters( 'rsl_ie_woo_attribute_export_data', $data, $attribute, $options );
 	}
 
 	/**
@@ -480,7 +480,7 @@ class Woo_Attribute_Exporter extends Abstract_Exporter {
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			return new \WP_Error(
 				'woocommerce_not_active',
-				__( 'WooCommerce is not active', 'amplified-import-export' )
+				__( 'WooCommerce is not active', 'import-export-by-rockstarlab' )
 			);
 		}
 

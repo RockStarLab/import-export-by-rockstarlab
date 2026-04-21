@@ -4,12 +4,12 @@
  *
  * Base class for all importers with common functionality
  *
- * @package WP_AIE\Model\Import
+ * @package RockStarLab\ImportExport\Model\Import
  */
 
-namespace WP_AIE\Model\Import;
+namespace RockStarLab\ImportExport\Model\Import;
 
-use WP_AIE\Helper\Data_Transformer;
+use RockStarLab\ImportExport\Helper\Data_Transformer;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -126,7 +126,7 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 */
 	public function validate( $data ) {
 		if ( empty( $data ) || ! is_array( $data ) ) {
-			return new \WP_Error( 'empty_data', __( 'No data to import', 'amplified-import-export' ) );
+			return new \WP_Error( 'empty_data', __( 'No data to import', 'import-export-by-rockstarlab' ) );
 		}
 
 		$required_fields = $this->get_required_fields();
@@ -146,7 +146,7 @@ abstract class Abstract_Importer implements Importer_Interface {
 				'missing_required_fields',
 				sprintf(
 					/* translators: %s: comma-separated list of missing fields */
-					__( 'Missing required fields: %s', 'amplified-import-export' ),
+					__( 'Missing required fields: %s', 'import-export-by-rockstarlab' ),
 					implode( ', ', $missing_fields )
 				)
 			);

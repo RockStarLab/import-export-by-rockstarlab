@@ -4,10 +4,10 @@
  *
  * Safely executes custom user functions with security validation
  *
- * @package WP_AIE\Helper
+ * @package RockStarLab\ImportExport\Helper
  */
 
-namespace WP_AIE\Helper;
+namespace RockStarLab\ImportExport\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -182,7 +182,7 @@ class Function_Executor {
 	 */
 	public function execute_in_sandbox( $code, $value, $context = [], $function_id = 0 ) {
 		// Use Safe_Code_Executor instead of eval()
-		require_once WP_AIE_PATH . 'app/Helper/Safe_Code_Executor.php';
+		require_once RSL_IE_PATH . 'app/Helper/Safe_Code_Executor.php';
 
 		$result = Safe_Code_Executor::execute( $code, $value );
 
@@ -207,7 +207,7 @@ class Function_Executor {
 		if ( empty( trim( $code ) ) ) {
 			return new \WP_Error(
 				'empty_code',
-				__( 'Function code cannot be empty', 'amplified-import-export' )
+				__( 'Function code cannot be empty', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -220,7 +220,7 @@ class Function_Executor {
 		if ( empty( $clean_code ) ) {
 			return new \WP_Error(
 				'empty_code',
-				__( 'Function code cannot be empty', 'amplified-import-export' )
+				__( 'Function code cannot be empty', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -229,7 +229,7 @@ class Function_Executor {
 			if ( preg_match( $pattern, $clean_code ) ) {
 				return new \WP_Error(
 					'dangerous_code',
-					__( 'Function contains dangerous or disallowed PHP constructs', 'amplified-import-export' )
+					__( 'Function contains dangerous or disallowed PHP constructs', 'import-export-by-rockstarlab' )
 				);
 			}
 		}
@@ -245,7 +245,7 @@ class Function_Executor {
 		if ( false === $tokens ) {
 			return new \WP_Error(
 				'parse_error',
-				__( 'Function code contains syntax errors', 'amplified-import-export' )
+				__( 'Function code contains syntax errors', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -256,7 +256,7 @@ class Function_Executor {
 					'parse_error',
 					sprintf(
 						/* translators: %s: Error token */
-						__( 'Syntax error near: %s', 'amplified-import-export' ),
+						__( 'Syntax error near: %s', 'import-export-by-rockstarlab' ),
 						$token[1]
 					)
 				);
@@ -264,11 +264,11 @@ class Function_Executor {
 		}
 
 		// Use Safe_Code_Executor for validation instead of eval()
-		require_once WP_AIE_PATH . 'app/Helper/Safe_Code_Executor.php';
+		require_once RSL_IE_PATH . 'app/Helper/Safe_Code_Executor.php';
 		$test_result = Safe_Code_Executor::execute( $clean_code, 'test_value' );
 
 		if ( $test_result['error'] ) {
-			$error_message = $test_result['message'] ?? __( 'The function code contains errors. Please check your PHP syntax.', 'amplified-import-export' );
+			$error_message = $test_result['message'] ?? __( 'The function code contains errors. Please check your PHP syntax.', 'import-export-by-rockstarlab' );
 			
 			return new \WP_Error(
 				'validation_error',
@@ -294,7 +294,7 @@ class Function_Executor {
 		// Otherwise, try to get from database
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'aie_custom_functions';
+		$table = $wpdb->prefix . 'rsl_ie_custom_functions';
 
 		$function = $wpdb->get_row( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(

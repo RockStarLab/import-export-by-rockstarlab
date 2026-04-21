@@ -4,14 +4,14 @@
  *
  * Processes media synchronization jobs in batches
  *
- * @package WP_AIE\Model\Queue
+ * @package RockStarLab\ImportExport\Model\Queue
  */
 
-namespace WP_AIE\Model\Queue;
+namespace RockStarLab\ImportExport\Model\Queue;
 
-use WP_AIE\Helper\Media_Sync;
-use WP_AIE\Helper\Progress_Tracker;
-use WP_AIE\Model\Job;
+use RockStarLab\ImportExport\Helper\Media_Sync;
+use RockStarLab\ImportExport\Helper\Progress_Tracker;
+use RockStarLab\ImportExport\Model\Job;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -44,7 +44,7 @@ class Media_Sync_Processor {
 	public function __construct() {
 		$this->batch_processor  = new Batch_Processor( 20 ); // Process 20 files per batch
 		$this->progress_tracker = new Progress_Tracker();
-		$this->job_model        = WP_AIE()->Model->job;
+		$this->job_model        = rsl_ie()->Model->job;
 	}
 
 	/**

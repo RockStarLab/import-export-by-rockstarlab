@@ -26,7 +26,7 @@ const ContentUpdater = {
 	 * Initialize module
 	 */
 	init() {
-		if ( ! jQuery( '#wp-aie-content-updater' ).length ) {
+		if ( ! jQuery( '#rsl-ie-content-updater' ).length ) {
 			return;
 		}
 
@@ -66,7 +66,7 @@ const ContentUpdater = {
 	 * Bind event handlers
 	 */
 	bindEvents() {
-		const $wizard = jQuery( '#wp-aie-content-updater' );
+		const $wizard = jQuery( '#rsl-ie-content-updater' );
 
 		// Content type search
 		$wizard.on( 'input', '#aie-updater-content-type-search', ( e ) =>
@@ -186,7 +186,7 @@ const ContentUpdater = {
 	 * Show specific step
 	 */
 	showStep( step ) {
-		const $wizard = jQuery( '#wp-aie-content-updater' );
+		const $wizard = jQuery( '#rsl-ie-content-updater' );
 
 		// Hide all steps
 		$wizard.find( '.aie-step' ).removeClass( 'active' );
@@ -2724,7 +2724,7 @@ const ContentUpdater = {
 			window.open( aieData.functionsUrl, '_blank' );
 		} else {
 			// Fallback - go to admin page
-			window.open( '/wp-admin/admin.php?page=wp-aie-functions', '_blank' );
+			window.open( '/wp-admin/admin.php?page=rsl-ie-functions', '_blank' );
 		}
 	}
 };

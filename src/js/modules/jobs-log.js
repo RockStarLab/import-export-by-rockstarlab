@@ -20,7 +20,7 @@ const JobsLogModule = {
 	 * Initialize module
 	 */
 	init() {
-		if ( ! jQuery( '#wp-aie-jobs-log' ).length ) {
+		if ( ! jQuery( '#rsl-ie-jobs-log' ).length ) {
 			return;
 		}
 
@@ -32,7 +32,7 @@ const JobsLogModule = {
 	 * Bind event handlers
 	 */
 	bindEvents() {
-		const $page = jQuery( '#wp-aie-jobs-log' );
+		const $page = jQuery( '#rsl-ie-jobs-log' );
 
 		// Filter buttons
 		$page.on( 'click', '.aie-filter-apply', () => this.applyFilters() );
@@ -539,20 +539,20 @@ const JobsLogModule = {
 
 		// AI URL importer jobs have type='import' but data_type='ai_url'
 		if ( type === 'import' && dataType === 'ai_url' ) {
-			page = 'wp-aie-ai-url-importer';
+			page = 'rsl-ie-ai-url-importer';
 		} else {
 			switch ( type ) {
 				case 'export':
-					page = 'wp-aie-export';
+					page = 'rsl-ie-export';
 					break;
 				case 'import':
-					page = 'wp-aie-import';
+					page = 'rsl-ie-import';
 					break;
 				case 'update':
-					page = 'wp-aie-content-updater';
+					page = 'rsl-ie-content-updater';
 					break;
 				case 'media_sync':
-					page = 'wp-aie-media-sync';
+					page = 'rsl-ie-media-sync';
 					break;
 			}
 		}

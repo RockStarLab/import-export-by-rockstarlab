@@ -4,14 +4,19 @@
  *
  * Base class for all AJAX controllers with common functionality
  *
- * @package WP_AIE\Controller
+ * @package RockStarLab\ImportExport\Controller
  */
 
-namespace WP_AIE\Controller;
+namespace RockStarLab\ImportExport\Controller;
 
 defined( 'ABSPATH' ) || exit;
 
 abstract class Base_Controller {
+
+	/**
+	 * AJAX action prefix (sent via `action` to admin-ajax.php).
+	 */
+	protected const AJAX_PREFIX = 'rsl_ie_';
 
 	/**
 	 * Required capability for this controller
@@ -33,11 +38,11 @@ abstract class Base_Controller {
 			$nopriv   = $config['nopriv'] ?? false;
 
 			// Admin AJAX
-			add_action( 'wp_ajax_aie_' . $action, [ $this, $callback ] );
+			add_action( 'wp_ajax_' . self::AJAX_PREFIX . $action, [ $this, $callback ] );
 
 			// Non-admin AJAX (if allowed)
 			if ( $nopriv ) {
-				add_action( 'wp_ajax_nopriv_aie_' . $action, [ $this, $callback ] );
+				add_action( 'wp_ajax_nopriv_' . self::AJAX_PREFIX . $action, [ $this, $callback ] );
 			}
 		}
 	}
@@ -61,17 +66,17 @@ abstract class Base_Controller {
 	 * @return true|WP_Error True if valid or WP_Error
 	 */
 	protected function verify_request( $action, $capability = null ) {
-		// Check nonce - using general aie_nonce instead of action-specific
+		// Check nonce - using general rsl_ie_nonce instead of action-specific
 		$nonce = $this->get_request_param( 'nonce', '' );
-		
-		if ( ! wp_verify_nonce( $nonce, 'aie_nonce' ) ) {
-			return new \WP_Error( 'invalid_nonce', __( 'Security check failed', 'amplified-import-export' ) );
+
+		if ( ! wp_verify_nonce( $nonce, 'rsl_ie_nonce' ) ) {
+			return new \WP_Error( 'invalid_nonce', __( 'Security check failed', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check capability
 		$required_cap = $capability ?? $this->required_capability;
 		if ( ! current_user_can( $required_cap ) ) {
-			return new \WP_Error( 'insufficient_permissions', __( 'You do not have permission to perform this action', 'amplified-import-export' ) );
+			return new \WP_Error( 'insufficient_permissions', __( 'You do not have permission to perform this action', 'import-export-by-rockstarlab' ) );
 		}
 
 		return true;
@@ -218,7 +223,7 @@ abstract class Base_Controller {
 				'missing_parameters',
 				sprintf(
 					/* translators: %s: comma-separated list of missing parameters */
-					__( 'Missing required parameters: %s', 'amplified-import-export' ),
+					__( 'Missing required parameters: %s', 'import-export-by-rockstarlab' ),
 					implode( ', ', $missing )
 				)
 			);
@@ -235,11 +240,11 @@ abstract class Base_Controller {
 	 */
 	protected function sanitize_file_upload( $file ) {
 		if ( empty( $file ) || ! isset( $file['tmp_name'] ) ) {
-			return new \WP_Error( 'no_file', __( 'No file uploaded', 'amplified-import-export' ) );
+			return new \WP_Error( 'no_file', __( 'No file uploaded', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( UPLOAD_ERR_OK !== $file['error'] ) {
-			return new \WP_Error( 'upload_error', __( 'File upload failed', 'amplified-import-export' ) );
+			return new \WP_Error( 'upload_error', __( 'File upload failed', 'import-export-by-rockstarlab' ) );
 		}
 
 		return [
@@ -304,7 +309,7 @@ abstract class Base_Controller {
 	 * @return bool True if premium license is active
 	 */
 	protected function is_premium_active() {
-		return function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+		return function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
 	}
 
 	/**
@@ -326,7 +331,7 @@ abstract class Base_Controller {
 				'premium_required',
 				sprintf(
 					/* translators: %s: content/data type name */
-					__( 'A valid premium license is required to process "%s" content type. Please activate or renew your license.', 'amplified-import-export' ),
+					__( 'A valid premium license is required to process "%s" content type. Please activate or renew your license.', 'import-export-by-rockstarlab' ),
 					esc_html( $data_type )
 				)
 			);
@@ -358,7 +363,7 @@ abstract class Base_Controller {
 		 * @param string $action   Action name
 		 * @param object $controller Controller instance
 		 */
-		$log_data = apply_filters( 'aie_controller_log_data', $log_data, $action, $this );
+		$log_data = apply_filters( 'rsl_ie_controller_log_data', $log_data, $action, $this );
 
 		// Log using WordPress error_log
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
@@ -372,6 +377,6 @@ abstract class Base_Controller {
 		 * @param string $level    Log level
 		 * @param string $action   Action name
 		 */
-		do_action( 'aie_controller_log', $log_data, $level, $action );
+		do_action( 'rsl_ie_controller_log', $log_data, $level, $action );
 	}
 }

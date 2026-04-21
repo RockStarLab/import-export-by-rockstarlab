@@ -4,10 +4,10 @@
  *
  * Provides folder scanning and file importing for Media Folder Sync feature.
  *
- * @package WP_AIE\Helper
+ * @package RockStarLab\ImportExport\Helper
  */
 
-namespace WP_AIE\Helper;
+namespace RockStarLab\ImportExport\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -36,7 +36,7 @@ class Media_Sync {
 				'folder_not_found',
 				sprintf(
 					/* translators: %s: folder path */
-					__( 'Folder %s not found', 'amplified-import-export' ),
+					__( 'Folder %s not found', 'import-export-by-rockstarlab' ),
 					$folder_path
 				)
 			);
@@ -126,7 +126,7 @@ class Media_Sync {
 			'post_status'    => 'inherit',
 			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				[
-					'key'   => 'aie_file_size',
+					'key'   => 'rsl_ie_file_size',
 					'value' => $size,
 				],
 			],
@@ -179,7 +179,7 @@ class Media_Sync {
 			'post_status'    => 'inherit',
 			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				[
-					'key'   => 'aie_file_hash',
+					'key'   => 'rsl_ie_file_hash',
 					'value' => $hash,
 				],
 			],
@@ -226,7 +226,7 @@ class Media_Sync {
 	 */
 	public static function import_file( $file_path, $options = [] ) {
 		if ( ! file_exists( $file_path ) ) {
-			return new \WP_Error( 'file_not_found', __( 'File not found', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_not_found', __( 'File not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Get allowed mime types (this will include SVG if SVG Support plugin is active)
@@ -234,7 +234,7 @@ class Media_Sync {
 		$filetype      = wp_check_filetype( $file_path, $allowed_mimes );
 		
 		if ( ! $filetype['type'] ) {
-			return new \WP_Error( 'invalid_file_type', __( 'Unsupported file type', 'amplified-import-export' ) );
+			return new \WP_Error( 'invalid_file_type', __( 'Unsupported file type', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Handle duplicate checking based on duplicate_handling option
@@ -246,7 +246,7 @@ class Media_Sync {
 			// Skip mode: check for duplicate and return error if found
 			$duplicate = self::check_duplicate( $file_path, $duplicate_check );
 			if ( $duplicate ) {
-				return new \WP_Error( 'duplicate_file', __( 'File already exists in media library', 'amplified-import-export' ), [ 'attachment_id' => $duplicate ] );
+				return new \WP_Error( 'duplicate_file', __( 'File already exists in media library', 'import-export-by-rockstarlab' ), [ 'attachment_id' => $duplicate ] );
 			}
 		} elseif ( 'overwrite' === $duplicate_handling || 'override' === $duplicate_handling ) {
 			// Override/Overwrite mode: find existing attachment to update
@@ -277,11 +277,11 @@ class Media_Sync {
 						WP_Filesystem();
 					}
 					if ( ! $wp_filesystem->move( $file_path, $existing_file, true ) ) {
-						return new \WP_Error( 'move_failed', __( 'Failed to move file to replace existing', 'amplified-import-export' ) );
+						return new \WP_Error( 'move_failed', __( 'Failed to move file to replace existing', 'import-export-by-rockstarlab' ) );
 					}
 				} else {
 					if ( ! copy( $file_path, $existing_file ) ) {
-						return new \WP_Error( 'copy_failed', __( 'Failed to copy file to replace existing', 'amplified-import-export' ) );
+						return new \WP_Error( 'copy_failed', __( 'Failed to copy file to replace existing', 'import-export-by-rockstarlab' ) );
 					}
 				}
 				
@@ -331,12 +331,12 @@ class Media_Sync {
 						WP_Filesystem();
 					}
 					if ( ! $wp_filesystem->move( $file_path, $dest_path, true ) ) {
-						return new \WP_Error( 'move_failed', __( 'Failed to move file to uploads directory', 'amplified-import-export' ) );
+						return new \WP_Error( 'move_failed', __( 'Failed to move file to uploads directory', 'import-export-by-rockstarlab' ) );
 					}
 				} else {
 					// Default to 'copy'
 					if ( ! copy( $file_path, $dest_path ) ) {
-						return new \WP_Error( 'copy_failed', __( 'Failed to copy file to uploads directory', 'amplified-import-export' ) );
+						return new \WP_Error( 'copy_failed', __( 'Failed to copy file to uploads directory', 'import-export-by-rockstarlab' ) );
 					}
 				}
 			}
@@ -373,7 +373,7 @@ class Media_Sync {
 					if ( 0 === strpos( $dest_path, $abspath ) ) {
 						$relative    = substr( $dest_path, strlen( $abspath ) );
 						$correct_url = trailingslashit( site_url() ) . $relative;
-						update_post_meta( $attach_id, 'aie_file_url', $correct_url );
+						update_post_meta( $attach_id, 'rsl_ie_file_url', $correct_url );
 					}
 				}
 			}
@@ -396,9 +396,9 @@ class Media_Sync {
 
 		// Store metadata for duplicate detection.
 		$hash = md5_file( $dest_path );
-		update_post_meta( $attach_id, 'aie_file_hash', $hash );
-		update_post_meta( $attach_id, 'aie_file_size', filesize( $dest_path ) );
-		update_post_meta( $attach_id, 'aie_original_path', $file_path );
+		update_post_meta( $attach_id, 'rsl_ie_file_hash', $hash );
+		update_post_meta( $attach_id, 'rsl_ie_file_size', filesize( $dest_path ) );
+		update_post_meta( $attach_id, 'rsl_ie_original_path', $file_path );
 
 		// Assign to Real Media Library folder if requested.
 		// Use filter_var to handle the string "false" that jQuery AJAX serializes from a boolean false.

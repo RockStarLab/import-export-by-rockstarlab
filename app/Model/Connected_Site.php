@@ -4,11 +4,11 @@
  *
  * Model for managing connected sites for content synchronization
  *
- * @package WP_AIE
+ * @package RockStarLab\ImportExport
  * @subpackage Model
  */
 
-namespace WP_AIE\Model;
+namespace RockStarLab\ImportExport\Model;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -19,7 +19,7 @@ class Connected_Site {
 	 *
 	 * @var string
 	 */
-	private static $table_name = 'aie_site_connections';
+	private static $table_name = 'rsl_ie_site_connections';
 
 	/**
 	 * Get all connected sites

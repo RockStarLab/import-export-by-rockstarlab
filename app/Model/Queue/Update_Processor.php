@@ -4,14 +4,14 @@
  *
  * Processes content update jobs in batches
  *
- * @package WP_AIE\Model\Queue
+ * @package RockStarLab\ImportExport\Model\Queue
  */
 
-namespace WP_AIE\Model\Queue;
+namespace RockStarLab\ImportExport\Model\Queue;
 
-use WP_AIE\Model\Job;
-use WP_AIE\Model\Export\Exporter_Factory;
-use WP_AIE\Helper\Function_Executor;
+use RockStarLab\ImportExport\Model\Job;
+use RockStarLab\ImportExport\Model\Export\Exporter_Factory;
+use RockStarLab\ImportExport\Helper\Function_Executor;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -42,7 +42,7 @@ class Update_Processor {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->job_model         = WP_AIE()->Model->job;
+		$this->job_model         = rsl_ie()->Model->job;
 		$this->function_executor = new Function_Executor();
 	}
 
@@ -1449,7 +1449,7 @@ class Update_Processor {
 		if ( empty( $table_name ) ) {
 			return new \WP_Error(
 				'missing_table_name',
-				__( 'Table name is required for database table updates', 'amplified-import-export' )
+				__( 'Table name is required for database table updates', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -1461,7 +1461,7 @@ class Update_Processor {
 		if ( empty( $pk_column ) ) {
 			return new \WP_Error(
 				'no_pk_column',
-				__( 'Could not determine primary key column for table update', 'amplified-import-export' )
+				__( 'Could not determine primary key column for table update', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -1481,7 +1481,7 @@ class Update_Processor {
 		if ( empty( $update_data ) ) {
 			return new \WP_Error(
 				'no_fields_to_update',
-				__( 'No updatable fields found in item', 'amplified-import-export' )
+				__( 'No updatable fields found in item', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -1499,7 +1499,7 @@ class Update_Processor {
 				'db_update_error',
 				sprintf(
 					/* translators: 1: table name, 2: database error */
-					__( 'Failed to update row in table %1$s: %2$s', 'amplified-import-export' ),
+					__( 'Failed to update row in table %1$s: %2$s', 'import-export-by-rockstarlab' ),
 					$table_name,
 					$wpdb->last_error
 				)

@@ -4,10 +4,10 @@
  *
  * Handles exporting WooCommerce coupons
  *
- * @package WP_AIE\Model\Export
+ * @package RockStarLab\ImportExport\Model\Export
  */
 
-namespace WP_AIE\Model\Export;
+namespace RockStarLab\ImportExport\Model\Export;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -75,7 +75,7 @@ class Coupon_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_name() {
-		return __( 'WooCommerce Coupons', 'amplified-import-export' );
+		return __( 'WooCommerce Coupons', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -84,7 +84,7 @@ class Coupon_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WooCommerce discount coupons with all settings and restrictions', 'amplified-import-export' );
+		return __( 'Export WooCommerce discount coupons with all settings and restrictions', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -94,15 +94,15 @@ class Coupon_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'post_title'     => __( 'Coupon code', 'amplified-import-export' ),
-			'discount_type'  => __( 'Discount type (percent, fixed_cart, fixed_product)', 'amplified-import-export' ),
-			'coupon_amount'  => __( 'Discount amount', 'amplified-import-export' ),
-			'date_expires'   => __( 'Expiration date', 'amplified-import-export' ),
-			'usage_count'    => __( 'Usage count', 'amplified-import-export' ),
-			'usage_limit'    => __( 'Usage limit', 'amplified-import-export' ),
-			'free_shipping'  => __( 'Free shipping enabled', 'amplified-import-export' ),
-			'minimum_amount' => __( 'Minimum spend amount', 'amplified-import-export' ),
-			'maximum_amount' => __( 'Maximum spend amount', 'amplified-import-export' ),
+			'post_title'     => __( 'Coupon code', 'import-export-by-rockstarlab' ),
+			'discount_type'  => __( 'Discount type (percent, fixed_cart, fixed_product)', 'import-export-by-rockstarlab' ),
+			'coupon_amount'  => __( 'Discount amount', 'import-export-by-rockstarlab' ),
+			'date_expires'   => __( 'Expiration date', 'import-export-by-rockstarlab' ),
+			'usage_count'    => __( 'Usage count', 'import-export-by-rockstarlab' ),
+			'usage_limit'    => __( 'Usage limit', 'import-export-by-rockstarlab' ),
+			'free_shipping'  => __( 'Free shipping enabled', 'import-export-by-rockstarlab' ),
+			'minimum_amount' => __( 'Minimum spend amount', 'import-export-by-rockstarlab' ),
+			'maximum_amount' => __( 'Maximum spend amount', 'import-export-by-rockstarlab' ),
 		];
 	}
 
@@ -257,7 +257,7 @@ class Coupon_Exporter extends Abstract_Exporter {
 	public function get_data( $options = [] ) {
 		// Check if WooCommerce is active
 		if ( ! class_exists( 'WC_Coupon' ) ) {
-			return new \WP_Error( 'woocommerce_inactive', __( 'WooCommerce is not active', 'amplified-import-export' ) );
+			return new \WP_Error( 'woocommerce_inactive', __( 'WooCommerce is not active', 'import-export-by-rockstarlab' ) );
 		}
 
 		$args = $this->build_query_args( $options );

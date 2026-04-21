@@ -1,4 +1,4 @@
-=== Amplified Import Export ===
+=== Import Export by RockStarLab ===
 Contributors: RockstarLab
 Tags: import, export, csv, site sync, data migration
 Requires at least: 5.8
@@ -11,11 +11,11 @@ Advanced import/export for WordPress: custom functions, media sync, site-to-site
 
 == Description ==
 
-🚀 Amplified Import Export is the ultimate solution for managing your WordPress data with surgical precision. Whether you are migrating a website, syncing content between staging and production, or performing bulk data updates, this plugin provides a robust and flexible framework to handle even the most complex datasets.
+Import Export by RockStarLab helps you move WordPress data between sites and environments. It supports CSV-based import/export workflows, custom field mapping, optional PHP transformations, and background jobs for large datasets.
 
 Tired of restrictive tools that only handle posts? Our WordPress Import Export Plugin is built for developers and store owners who need total control. From standard WordPress elements to raw MySQL tables and WooCommerce entities, move your data without the headache of manual SQL queries or broken serialized data. 📂
 
-Using advanced parsing logic and an AI-driven interface, Amplified Import Export ensures that your data arrives exactly where it needs to be, formatted exactly how you want it.
+It also includes optional AI-assisted tools (when configured) to help generate transformation functions and extract content from URLs.
 
 == Features ==
 
@@ -43,7 +43,7 @@ All new users get 4 weeks of all premium features! 🔥
 
 == Why Choose Our Import / Export Plugin? ==
 
-When searching for a reliable WordPress Import Export Addon, reliability and flexibility are key. Here is why RockstarLab built this to be the best in class:
+When searching for a reliable WordPress import/export plugin, reliability and flexibility are key. Here is why RockstarLab built this:
 
 Developer Friendly: Use our Functions Library to apply custom PHP transformations to any field during the process.
 
@@ -119,6 +119,26 @@ Transform your data during import/export with custom PHP functions:
 * **Content Management**: Exporting for backup or analysis
 * **Media Organization**: Organizing FTP-uploaded files into Media Library
 * **WooCommerce**: Product catalog management
+
+== External services ==
+
+This plugin connects to the following external services:
+
+= OpenAI API =
+
+Used for AI-powered features:
+
+* AI Function Generator (generates PHP transformation functions from your prompt)
+* AI URL Importer (extracts clean content from a URL)
+
+What data is sent and when:
+
+* When you use the AI Function Generator, the plugin sends your text prompt to OpenAI.
+* When you use the AI URL Importer, the plugin fetches the target URL content and sends the cleaned page content and the URL to OpenAI for extraction.
+
+Service provider:
+
+* OpenAI (terms: https://openai.com/policies/terms-of-use, privacy: https://openai.com/policies/privacy-policy)
 
 == Frequently Asked Questions ==
 

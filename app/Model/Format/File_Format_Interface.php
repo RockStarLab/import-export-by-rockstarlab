@@ -4,10 +4,10 @@
  *
  * Defines the contract for all file format handlers (CSV, JSON, XML)
  *
- * @package WP_AIE\Model\Format
+ * @package RockStarLab\ImportExport\Model\Format
  */
 
-namespace WP_AIE\Model\Format;
+namespace RockStarLab\ImportExport\Model\Format;
 
 defined( 'ABSPATH' ) || exit;
 

@@ -140,7 +140,7 @@ async function selectContentTypeOnStep1(page, contentType) {
 }
 
 async function exportAllItems(page, source, contentType) {
-  await gotoAdminPage(page, source, '/wp-admin/admin.php?page=wp-aie-export');
+  await gotoAdminPage(page, source, '/wp-admin/admin.php?page=rsl-ie-export');
 
   // Step 1: content type
   await page.waitForSelector('.aie-step-1.active', { timeout: 30_000 });
@@ -206,7 +206,7 @@ async function exportAllItems(page, source, contentType) {
 }
 
 async function importItems(page, target, csvPath, contentType) {
-  await gotoAdminPage(page, target, '/wp-admin/admin.php?page=wp-aie-import');
+  await gotoAdminPage(page, target, '/wp-admin/admin.php?page=rsl-ie-import');
 
   // Step 1: content type
   await page.waitForSelector('.aie-step-1.active', { timeout: 30_000 });

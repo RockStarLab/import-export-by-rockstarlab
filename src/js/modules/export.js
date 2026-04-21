@@ -19,7 +19,7 @@ const ExportModule = {
 	 * Initialize module
 	 */
 	init() {
-		if ( ! jQuery( '#wp-aie-export' ).length ) {
+		if ( ! jQuery( '#rsl-ie-export' ).length ) {
 			return;
 		}
 
@@ -35,6 +35,9 @@ const ExportModule = {
 			
 			// Show step 5 immediately (don't hide first, let showStep handle it)
 			this.showStep( 5 );
+
+			// Remove the anti-flash class once we're on the correct step.
+			jQuery( '#rsl-ie-export' ).removeClass( 'aie-resuming-job' );
 			
 			// Get initial progress first, then start tracking and processing
 			this.updateProgress().then( () => {
@@ -54,7 +57,7 @@ const ExportModule = {
 	 * Bind event handlers
 	 */
 	bindEvents() {
-		const $wizard = jQuery( '#wp-aie-export' );
+		const $wizard = jQuery( '#rsl-ie-export' );
 
 		// Content type filter/search
 		$wizard.on( 'input', '#aie-content-type-search', ( e ) =>
@@ -165,7 +168,7 @@ const ExportModule = {
 	 * Show specific step
 	 */
 	showStep( step ) {
-		const $wizard = jQuery( '#wp-aie-export' );
+		const $wizard = jQuery( '#rsl-ie-export' );
 
 		$wizard.find( '.aie-step' ).removeClass( 'active' );
 		$wizard.find( `.aie-step-${ step }` ).addClass( 'active' );
@@ -1158,7 +1161,7 @@ const ExportModule = {
 	 * Start new export - reload the page
 	 */
 	newExport() {
-		window.location.href = '/wp-admin/admin.php?page=wp-aie-export';
+		window.location.href = '/wp-admin/admin.php?page=rsl-ie-export';
 	},
 
 	/**
@@ -1171,9 +1174,9 @@ const ExportModule = {
 		clearInterval( this.progressInterval );
 
 		jQuery(
-			'#wp-aie-export input[type="text"], #wp-aie-export input[type="date"]'
+			'#rsl-ie-export input[type="text"], #rsl-ie-export input[type="date"]'
 		).val( '' );
-		jQuery( '#wp-aie-export input[type="radio"]:first' ).prop(
+		jQuery( '#rsl-ie-export input[type="radio"]:first' ).prop(
 			'checked',
 			true
 		);

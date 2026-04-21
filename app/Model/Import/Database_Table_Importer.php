@@ -4,10 +4,10 @@
  *
  * Handles importing data directly into WordPress database tables
  *
- * @package WP_AIE\Model\Import
+ * @package RockStarLab\ImportExport\Model\Import
  */
 
-namespace WP_AIE\Model\Import;
+namespace RockStarLab\ImportExport\Model\Import;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -35,7 +35,7 @@ class Database_Table_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Import data directly into WordPress database tables', 'amplified-import-export' );
+		return __( 'Import data directly into WordPress database tables', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -103,7 +103,7 @@ class Database_Table_Importer extends Abstract_Importer {
 		if ( empty( $this->table_name ) ) {
 			return new \WP_Error(
 				'missing_table_name',
-				__( 'Target table name is required', 'amplified-import-export' )
+				__( 'Target table name is required', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -113,7 +113,7 @@ class Database_Table_Importer extends Abstract_Importer {
 				'table_not_found',
 				sprintf(
 					/* translators: %s: table name */
-					__( 'Table does not exist: %s', 'amplified-import-export' ),
+					__( 'Table does not exist: %s', 'import-export-by-rockstarlab' ),
 					$this->table_name
 				)
 			);
@@ -144,7 +144,7 @@ class Database_Table_Importer extends Abstract_Importer {
 		if ( empty( $data ) ) {
 			return new \WP_Error(
 				'empty_data',
-				__( 'No valid data to import', 'amplified-import-export' )
+				__( 'No valid data to import', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -213,7 +213,7 @@ class Database_Table_Importer extends Abstract_Importer {
 							'update_failed',
 							sprintf(
 								/* translators: %s: database error message */
-								__( 'Failed to update row: %s', 'amplified-import-export' ),
+								__( 'Failed to update row: %s', 'import-export-by-rockstarlab' ),
 								$wpdb->last_error
 							)
 						);
@@ -252,7 +252,7 @@ class Database_Table_Importer extends Abstract_Importer {
 				'insert_failed',
 				sprintf(
 					/* translators: %s: database error message */
-					__( 'Failed to insert row: %s', 'amplified-import-export' ),
+					__( 'Failed to insert row: %s', 'import-export-by-rockstarlab' ),
 					$wpdb->last_error
 				)
 			);
@@ -354,7 +354,7 @@ class Database_Table_Importer extends Abstract_Importer {
 		if ( ! is_array( $data ) || empty( $data ) ) {
 			return new \WP_Error(
 				'invalid_data',
-				__( 'Import data must be a non-empty array', 'amplified-import-export' )
+				__( 'Import data must be a non-empty array', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -365,7 +365,7 @@ class Database_Table_Importer extends Abstract_Importer {
 					'invalid_item',
 					sprintf(
 						/* translators: %d: row number */
-						__( 'Row %d must be an array', 'amplified-import-export' ),
+						__( 'Row %d must be an array', 'import-export-by-rockstarlab' ),
 						$index + 1
 					)
 				);

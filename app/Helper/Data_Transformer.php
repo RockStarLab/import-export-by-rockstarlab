@@ -5,10 +5,10 @@
  * Provides data sanitization, validation, and transformation utilities.
  * Handles various data types and transformations for import/export operations.
  *
- * @package WP_AIE\Helper
+ * @package RockStarLab\ImportExport\Helper
  */
 
-namespace WP_AIE\Helper;
+namespace RockStarLab\ImportExport\Helper;
 
 defined( 'ABSPATH' ) || exit;
 

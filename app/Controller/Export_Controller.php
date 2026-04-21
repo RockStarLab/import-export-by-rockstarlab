@@ -4,16 +4,16 @@
  *
  * Handles export operations via AJAX
  *
- * @package WP_AIE\Controller
+ * @package RockStarLab\ImportExport\Controller
  */
 
-namespace WP_AIE\Controller;
+namespace RockStarLab\ImportExport\Controller;
 
-use WP_AIE\Model\Job;
-use WP_AIE\Model\Export\Exporter_Factory;
-use WP_AIE\Model\Format\Format_Factory;
-use WP_AIE\Model\Queue\Export_Processor;
-use WP_AIE\Helper\Fs;
+use RockStarLab\ImportExport\Model\Job;
+use RockStarLab\ImportExport\Model\Export\Exporter_Factory;
+use RockStarLab\ImportExport\Model\Format\Format_Factory;
+use RockStarLab\ImportExport\Model\Queue\Export_Processor;
+use RockStarLab\ImportExport\Helper\Fs;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -139,11 +139,11 @@ class Export_Controller extends Base_Controller {
 
 		// Validate format
 		if ( ! Format_Factory::is_supported( $format ) ) {
-			$this->send_error( __( 'Unsupported export format', 'amplified-import-export' ), null, 400 );
+			$this->send_error( __( 'Unsupported export format', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
 		// Create job
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_data  = [
 			'type'        => 'export',
 			'status'      => 'pending',
@@ -176,7 +176,7 @@ class Export_Controller extends Base_Controller {
 			[
 				'job_id' => $job_id,
 			],
-			__( 'Export started successfully', 'amplified-import-export' )
+			__( 'Export started successfully', 'import-export-by-rockstarlab' )
 		);
 	}
 
@@ -196,11 +196,11 @@ class Export_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			$this->send_error( __( 'Job not found', 'amplified-import-export' ), null, 404 );
+			$this->send_error( __( 'Job not found', 'import-export-by-rockstarlab' ), null, 404 );
 		}
 
 		// Calculate progress metrics
@@ -308,17 +308,17 @@ class Export_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data || empty( $job_data->file_path ) ) {
-			$this->send_error( __( 'Export file not found', 'amplified-import-export' ), null, 404 );
+			$this->send_error( __( 'Export file not found', 'import-export-by-rockstarlab' ), null, 404 );
 		}
 
 		$file_path = $job_data->file_path;
 
 		if ( ! file_exists( $file_path ) ) {
-			$this->send_error( __( 'Export file does not exist', 'amplified-import-export' ), null, 404 );
+			$this->send_error( __( 'Export file does not exist', 'import-export-by-rockstarlab' ), null, 404 );
 		}
 
 		// Generate download URL with nonce for security
@@ -327,14 +327,14 @@ class Export_Controller extends Base_Controller {
 		$filename   = sprintf( 'export-%s.%s', gmdate( 'Y-m-d-His' ), $format );
 
 		// Generate secure download nonce
-		$download_nonce = wp_create_nonce( 'aie_download_' . $job_id );
+			$download_nonce = wp_create_nonce( 'rsl_ie_download_' . $job_id );
 
 		$download_url = add_query_arg(
 			[
-				'action'   => 'aie_secure_download',
-				'job_id'   => $job_id,
-				'_wpnonce' => $download_nonce,
-			],
+					'action'   => 'rsl_ie_secure_download',
+					'job_id'   => $job_id,
+					'_wpnonce' => $download_nonce,
+				],
 			admin_url( 'admin-ajax.php' )
 		);
 
@@ -356,22 +356,27 @@ class Export_Controller extends Base_Controller {
 		$job_id = isset( $_GET['job_id'] ) ? (int) $_GET['job_id'] : 0;
 		$nonce  = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
 
-		if ( ! wp_verify_nonce( $nonce, 'aie_download_' . $job_id ) ) {
-			wp_die( esc_html__( 'Security check failed', 'amplified-import-export' ), 403 );
+			if ( ! wp_verify_nonce( $nonce, 'rsl_ie_download_' . $job_id ) ) {
+				wp_die( esc_html__( 'Security check failed', 'import-export-by-rockstarlab' ), 403 );
+			}
+
+		// Check permissions
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Insufficient permissions', 'import-export-by-rockstarlab' ), 403 );
 		}
 
 		// Get job
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data || empty( $job_data->file_path ) ) {
-			wp_die( esc_html__( 'Export file not found', 'amplified-import-export' ), 404 );
+			wp_die( esc_html__( 'Export file not found', 'import-export-by-rockstarlab' ), 404 );
 		}
 
 		$file_path = $job_data->file_path;
 
 		if ( ! file_exists( $file_path ) ) {
-			wp_die( esc_html__( 'Export file does not exist', 'amplified-import-export' ), 404 );
+			wp_die( esc_html__( 'Export file does not exist', 'import-export-by-rockstarlab' ), 404 );
 		}
 
 		// Send file for download
@@ -409,14 +414,14 @@ class Export_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model  = WP_AIE()->Model->job;
+		$job_model  = rsl_ie()->Model->job;
 		$job_result = $job_model->update( $job_id, [ 'status' => 'cancelled' ] );
 
 		if ( is_wp_error( $job_result ) ) {
 			$this->send_error( $job_result, null, 500 );
 		}
 
-		$this->send_success( null, __( 'Export cancelled', 'amplified-import-export' ) );
+		$this->send_success( null, __( 'Export cancelled', 'import-export-by-rockstarlab' ) );
 	}
 
 	/**
@@ -436,11 +441,11 @@ class Export_Controller extends Base_Controller {
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
 		// Load job to verify the premium license before doing any processing.
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			$this->send_error( __( 'Job not found', 'amplified-import-export' ), null, 404 );
+			$this->send_error( __( 'Job not found', 'import-export-by-rockstarlab' ), null, 404 );
 		}
 
 		$license_check = $this->verify_premium_for_type( $job_data->data_type ?? '' );
@@ -461,7 +466,7 @@ class Export_Controller extends Base_Controller {
 	 * @param int $job_id Job ID
 	 */
 	private function process_export_job( $job_id ) {
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
@@ -657,7 +662,7 @@ class Export_Controller extends Base_Controller {
 		}
 
 		// Use Database_Table_Exporter to get tables with row counts
-		$exporter = new \WP_AIE\Model\Export\Database_Table_Exporter();
+		$exporter = new \RockStarLab\ImportExport\Model\Export\Database_Table_Exporter();
 		$tables   = $exporter->get_available_tables();
 
 		$this->send_success( [ 'tables' => $tables ] );
@@ -680,11 +685,11 @@ class Export_Controller extends Base_Controller {
 		$table_name = $this->get_request_param( 'table_name' );
 
 		// Use Database_Table_Exporter to get columns
-		$exporter = new \WP_AIE\Model\Export\Database_Table_Exporter();
+		$exporter = new \RockStarLab\ImportExport\Model\Export\Database_Table_Exporter();
 		$columns  = $exporter->get_table_columns( $table_name );
 
 		if ( empty( $columns ) ) {
-			$this->send_error( __( 'Could not retrieve table columns', 'amplified-import-export' ), null, 400 );
+			$this->send_error( __( 'Could not retrieve table columns', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
 		$this->send_success( [ 'columns' => $columns ] );

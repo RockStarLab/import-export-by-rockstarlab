@@ -4,10 +4,10 @@
  *
  * Validates string length against min/max constraints
  *
- * @package WP_AIE\Model\Validator
+ * @package RockStarLab\ImportExport\Model\Validator
  */
 
-namespace WP_AIE\Model\Validator;
+namespace RockStarLab\ImportExport\Model\Validator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -40,7 +40,7 @@ class Length_Rule extends Validation_Rule {
 				'min_length',
 				sprintf(
 					/* translators: 1: field name, 2: minimum length */
-					__( '%1$s must be at least %2$d characters', 'amplified-import-export' ),
+					__( '%1$s must be at least %2$d characters', 'import-export-by-rockstarlab' ),
 					$field_name,
 					$min
 				),
@@ -58,7 +58,7 @@ class Length_Rule extends Validation_Rule {
 				'max_length',
 				sprintf(
 					/* translators: 1: field name, 2: maximum length */
-					__( '%1$s must not exceed %2$d characters', 'amplified-import-export' ),
+					__( '%1$s must not exceed %2$d characters', 'import-export-by-rockstarlab' ),
 					$field_name,
 					$max
 				),
@@ -77,7 +77,7 @@ class Length_Rule extends Validation_Rule {
 				'exact_length',
 				sprintf(
 					/* translators: 1: field name, 2: exact length */
-					__( '%1$s must be exactly %2$d characters', 'amplified-import-export' ),
+					__( '%1$s must be exactly %2$d characters', 'import-export-by-rockstarlab' ),
 					$field_name,
 					$exact
 				),

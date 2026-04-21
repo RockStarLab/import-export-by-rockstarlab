@@ -2,7 +2,7 @@
 /**
  * Function Editor Modal
  *
- * @package WP_AIE\View
+ * @package RockStarLab\ImportExport\View
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 	<div class="aie-modal-backdrop"></div>
 	<div class="aie-modal-content">
 		<div class="aie-modal-header">
-			<h2 class="aie-modal-title"><?php esc_html_e( 'Edit Function', 'amplified-import-export' ); ?></h2>
+			<h2 class="aie-modal-title"><?php esc_html_e( 'Edit Function', 'import-export-by-rockstarlab' ); ?></h2>
 			<button type="button" class="aie-modal-close">
 				<span class="dashicons dashicons-no-alt"></span>
 			</button>
@@ -27,42 +27,42 @@ defined( 'ABSPATH' ) || exit;
 					<tr>
 						<th scope="row">
 							<label for="aie-function-name">
-								<?php esc_html_e( 'Function Name', 'amplified-import-export' ); ?>
+								<?php esc_html_e( 'Function Name', 'import-export-by-rockstarlab' ); ?>
 								<span class="required">*</span>
 							</label>
 						</th>
 						<td>
 							<input type="text" id="aie-function-name" class="regular-text">
-							<p class="description"><?php esc_html_e( 'A descriptive name for this function', 'amplified-import-export' ); ?></p>
+							<p class="description"><?php esc_html_e( 'A descriptive name for this function', 'import-export-by-rockstarlab' ); ?></p>
 						</td>
 					</tr>
 
 					<tr>
 						<th scope="row">
-							<label for="aie-function-description"><?php esc_html_e( 'Description', 'amplified-import-export' ); ?></label>
+							<label for="aie-function-description"><?php esc_html_e( 'Description', 'import-export-by-rockstarlab' ); ?></label>
 						</th>
 						<td>
 							<textarea id="aie-function-description" class="large-text" rows="3"></textarea>
-							<p class="description"><?php esc_html_e( 'Optional description of what this function does', 'amplified-import-export' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Optional description of what this function does', 'import-export-by-rockstarlab' ); ?></p>
 						</td>
 					</tr>
 
 					<?php
-					$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
-					$has_api_key = \WP_AIE\Helper\AI_Function_Generator::has_api_key();
+					$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
+					$has_api_key = \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_key();
 					?>
 					<tr class="aie-ai-generate-section">
 						<th scope="row">
-							<label><?php esc_html_e( 'AI Generator', 'amplified-import-export' ); ?></label>
+							<label><?php esc_html_e( 'AI Generator', 'import-export-by-rockstarlab' ); ?></label>
 						</th>
 						<td>
 							<?php if ( $is_premium ) : ?>
 								<button type="button" class="button aie-generate-with-ai">
 									<span class="dashicons dashicons-admin-generic"></span>
-									<?php esc_html_e( 'Generate function with AI', 'amplified-import-export' ); ?>
+									<?php esc_html_e( 'Generate function with AI', 'import-export-by-rockstarlab' ); ?>
 								</button>
 								<p class="description">
-									<?php esc_html_e( 'Describe what you want the function to do, and AI will generate the code for you.', 'amplified-import-export' ); ?>
+									<?php esc_html_e( 'Describe what you want the function to do, and AI will generate the code for you.', 'import-export-by-rockstarlab' ); ?>
 								</p>
 								<?php if ( ! $has_api_key ) : ?>
 									<div class="notice notice-warning inline">
@@ -71,8 +71,8 @@ defined( 'ABSPATH' ) || exit;
 											echo wp_kses_post(
 												sprintf(
 													/* translators: %s: plugin options URL */
-													__( '<strong>API Key Required:</strong> OpenAI API key is not configured. Please add it in <a href="%s">Plugin Options</a> to use AI generation.', 'amplified-import-export' ),
-													esc_url( admin_url( 'admin.php?page=wp-aie-plugin-options' ) )
+													__( '<strong>API Key Required:</strong> OpenAI API key is not configured. Please add it in <a href="%s">Plugin Options</a> to use AI generation.', 'import-export-by-rockstarlab' ),
+													esc_url( admin_url( 'admin.php?page=rsl-ie-plugin-options' ) )
 												)
 											);
 											?>
@@ -82,7 +82,7 @@ defined( 'ABSPATH' ) || exit;
 							<?php else : ?>
 								<button type="button" class="button aie-premium-locked" disabled>
 									<span class="dashicons dashicons-lock"></span>
-									<?php esc_html_e( 'Generate function with AI', 'amplified-import-export' ); ?>
+									<?php esc_html_e( 'Generate function with AI', 'import-export-by-rockstarlab' ); ?>
 									<span class="aie-premium-badge">Premium</span>
 								</button>
 								<p class="description">
@@ -90,8 +90,8 @@ defined( 'ABSPATH' ) || exit;
 									echo wp_kses_post(
 										sprintf(
 											/* translators: %s: upgrade URL */
-											__( 'AI function generation is a premium feature. <a href="%s">Upgrade to Premium</a> to unlock this feature.', 'amplified-import-export' ),
-											esc_url( aie_fs()->get_upgrade_url() )
+											__( 'AI function generation is a premium feature. <a href="%s">Upgrade to Premium</a> to unlock this feature.', 'import-export-by-rockstarlab' ),
+											esc_url( rsl_ie_fs()->get_upgrade_url() )
 										)
 									);
 									?>
@@ -103,54 +103,54 @@ defined( 'ABSPATH' ) || exit;
 					<tr>
 						<th scope="row">
 							<label for="aie-function-code">
-								<?php esc_html_e( 'PHP Code', 'amplified-import-export' ); ?>
+								<?php esc_html_e( 'PHP Code', 'import-export-by-rockstarlab' ); ?>
 								<span class="required">*</span>
 							</label>
 						</th>
 						<td>
 							<textarea id="aie-function-code" class="large-text code" rows="10" spellcheck="false"></textarea>
 							<p class="description">
-								<?php esc_html_e( 'Enter PHP code without opening/closing tags. Use $value for input. Example:', 'amplified-import-export' ); ?>
+								<?php esc_html_e( 'Enter PHP code without opening/closing tags. Use $value for input. Example:', 'import-export-by-rockstarlab' ); ?>
 								<code>return strtoupper($value);</code>
 							</p>
 							<p class="description">
-								<strong><?php esc_html_e( 'Security:', 'amplified-import-export' ); ?></strong>
-								<?php esc_html_e( 'Dangerous functions (eval, exec, file operations) are blocked.', 'amplified-import-export' ); ?>
+								<strong><?php esc_html_e( 'Security:', 'import-export-by-rockstarlab' ); ?></strong>
+								<?php esc_html_e( 'Dangerous functions (eval, exec, file operations) are blocked.', 'import-export-by-rockstarlab' ); ?>
 							</p>
 						</td>
 					</tr>
 
 					<tr style="display:none;">
 						<th scope="row">
-							<label for="aie-function-status"><?php esc_html_e( 'Status', 'amplified-import-export' ); ?></label>
+							<label for="aie-function-status"><?php esc_html_e( 'Status', 'import-export-by-rockstarlab' ); ?></label>
 						</th>
 						<td>
 							<select id="aie-function-status">
-								<option value="active"><?php esc_html_e( 'Active', 'amplified-import-export' ); ?></option>
-								<option value="inactive"><?php esc_html_e( 'Inactive', 'amplified-import-export' ); ?></option>
+								<option value="active"><?php esc_html_e( 'Active', 'import-export-by-rockstarlab' ); ?></option>
+								<option value="inactive"><?php esc_html_e( 'Inactive', 'import-export-by-rockstarlab' ); ?></option>
 							</select>
 						</td>
 					</tr>
 
 					<tr class="aie-test-section">
 						<th scope="row">
-							<label for="aie-test-value"><?php esc_html_e( 'Test Function', 'amplified-import-export' ); ?></label>
+							<label for="aie-test-value"><?php esc_html_e( 'Test Function', 'import-export-by-rockstarlab' ); ?></label>
 						</th>
 						<td>
 							<div class="aie-test-controls">
-								<input type="text" id="aie-test-value" class="regular-text" placeholder="<?php esc_attr_e( 'Enter test value...', 'amplified-import-export' ); ?>">
+								<input type="text" id="aie-test-value" class="regular-text" placeholder="<?php esc_attr_e( 'Enter test value...', 'import-export-by-rockstarlab' ); ?>">
 								<button type="button" class="button aie-test-function">
 									<span class="dashicons dashicons-media-code"></span>
-									<?php esc_html_e( 'Test', 'amplified-import-export' ); ?>
+									<?php esc_html_e( 'Test', 'import-export-by-rockstarlab' ); ?>
 								</button>
 							</div>
 							<div class="aie-test-results" style="display:none;">
 								<div class="aie-test-result">
-									<strong><?php esc_html_e( 'Input:', 'amplified-import-export' ); ?></strong>
+									<strong><?php esc_html_e( 'Input:', 'import-export-by-rockstarlab' ); ?></strong>
 									<code class="aie-test-input"></code>
 								</div>
 								<div class="aie-test-result">
-									<strong><?php esc_html_e( 'Output:', 'amplified-import-export' ); ?></strong>
+									<strong><?php esc_html_e( 'Output:', 'import-export-by-rockstarlab' ); ?></strong>
 									<code class="aie-test-output"></code>
 								</div>
 							</div>
@@ -165,11 +165,11 @@ defined( 'ABSPATH' ) || exit;
 
 		<div class="aie-modal-footer">
 			<button type="button" class="button button-secondary aie-modal-cancel">
-				<?php esc_html_e( 'Cancel', 'amplified-import-export' ); ?>
+				<?php esc_html_e( 'Cancel', 'import-export-by-rockstarlab' ); ?>
 			</button>
 			<button type="button" class="button button-primary aie-save-function">
 				<span class="dashicons dashicons-yes"></span>
-				<?php esc_html_e( 'Save Function', 'amplified-import-export' ); ?>
+				<?php esc_html_e( 'Save Function', 'import-export-by-rockstarlab' ); ?>
 			</button>
 		</div>
 	</div>
@@ -182,7 +182,7 @@ defined( 'ABSPATH' ) || exit;
 		<div class="aie-modal-header">
 			<h2 class="aie-modal-title">
 				<span class="dashicons dashicons-admin-generic"></span>
-				<?php esc_html_e( 'Generate Function with AI', 'amplified-import-export' ); ?>
+				<?php esc_html_e( 'Generate Function with AI', 'import-export-by-rockstarlab' ); ?>
 			</h2>
 			<button type="button" class="aie-modal-close">
 				<span class="dashicons dashicons-no-alt"></span>
@@ -192,40 +192,40 @@ defined( 'ABSPATH' ) || exit;
 		<div class="aie-modal-body">
 			<div class="aie-ai-prompt-container">
 				<label for="aie-ai-prompt">
-					<?php esc_html_e( 'Describe what you want the function to do:', 'amplified-import-export' ); ?>
+					<?php esc_html_e( 'Describe what you want the function to do:', 'import-export-by-rockstarlab' ); ?>
 					<span class="required">*</span>
 				</label>
 				<textarea 
 					id="aie-ai-prompt" 
 					class="large-text" 
 					rows="8" 
-					placeholder="<?php esc_attr_e( 'Example: Convert text to uppercase and remove all spaces', 'amplified-import-export' ); ?>"
+					placeholder="<?php esc_attr_e( 'Example: Convert text to uppercase and remove all spaces', 'import-export-by-rockstarlab' ); ?>"
 				></textarea>
 				<p class="description">
-					<?php esc_html_e( 'Be as specific as possible. The AI will generate a PHP function based on your description.', 'amplified-import-export' ); ?>
+					<?php esc_html_e( 'Be as specific as possible. The AI will generate a PHP function based on your description.', 'import-export-by-rockstarlab' ); ?>
 				</p>
 
 				<div class="aie-ai-examples">
-					<strong><?php esc_html_e( 'Example prompts:', 'amplified-import-export' ); ?></strong>
+					<strong><?php esc_html_e( 'Example prompts:', 'import-export-by-rockstarlab' ); ?></strong>
 					<ul>
 						<li>
-							<a href="#" class="aie-use-example" data-prompt="<?php esc_attr_e( 'Convert text to uppercase', 'amplified-import-export' ); ?>">
-								<?php esc_html_e( 'Convert text to uppercase', 'amplified-import-export' ); ?>
+							<a href="#" class="aie-use-example" data-prompt="<?php esc_attr_e( 'Convert text to uppercase', 'import-export-by-rockstarlab' ); ?>">
+								<?php esc_html_e( 'Convert text to uppercase', 'import-export-by-rockstarlab' ); ?>
 							</a>
 						</li>
 						<li>
-							<a href="#" class="aie-use-example" data-prompt="<?php esc_attr_e( 'Remove all HTML tags and trim whitespace', 'amplified-import-export' ); ?>">
-								<?php esc_html_e( 'Remove all HTML tags and trim whitespace', 'amplified-import-export' ); ?>
+							<a href="#" class="aie-use-example" data-prompt="<?php esc_attr_e( 'Remove all HTML tags and trim whitespace', 'import-export-by-rockstarlab' ); ?>">
+								<?php esc_html_e( 'Remove all HTML tags and trim whitespace', 'import-export-by-rockstarlab' ); ?>
 							</a>
 						</li>
 						<li>
-							<a href="#" class="aie-use-example" data-prompt="<?php esc_attr_e( 'Format phone number to (XXX) XXX-XXXX format', 'amplified-import-export' ); ?>">
-								<?php esc_html_e( 'Format phone number to (XXX) XXX-XXXX format', 'amplified-import-export' ); ?>
+							<a href="#" class="aie-use-example" data-prompt="<?php esc_attr_e( 'Format phone number to (XXX) XXX-XXXX format', 'import-export-by-rockstarlab' ); ?>">
+								<?php esc_html_e( 'Format phone number to (XXX) XXX-XXXX format', 'import-export-by-rockstarlab' ); ?>
 							</a>
 						</li>
 						<li>
-							<a href="#" class="aie-use-example" data-prompt="<?php esc_attr_e( 'Extract domain from email address', 'amplified-import-export' ); ?>">
-								<?php esc_html_e( 'Extract domain from email address', 'amplified-import-export' ); ?>
+							<a href="#" class="aie-use-example" data-prompt="<?php esc_attr_e( 'Extract domain from email address', 'import-export-by-rockstarlab' ); ?>">
+								<?php esc_html_e( 'Extract domain from email address', 'import-export-by-rockstarlab' ); ?>
 							</a>
 						</li>
 					</ul>
@@ -234,7 +234,7 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-ai-generating" style="display:none;">
 					<div class="aie-ai-loader">
 						<span class="spinner is-active"></span>
-						<p><?php esc_html_e( 'AI is generating your function...', 'amplified-import-export' ); ?></p>
+						<p><?php esc_html_e( 'AI is generating your function...', 'import-export-by-rockstarlab' ); ?></p>
 					</div>
 				</div>
 			</div>
@@ -242,11 +242,11 @@ defined( 'ABSPATH' ) || exit;
 
 		<div class="aie-modal-footer">
 			<button type="button" class="button button-secondary aie-modal-cancel">
-				<?php esc_html_e( 'Cancel', 'amplified-import-export' ); ?>
+				<?php esc_html_e( 'Cancel', 'import-export-by-rockstarlab' ); ?>
 			</button>
 			<button type="button" class="button button-primary aie-generate-code">
 				<span class="dashicons dashicons-admin-generic"></span>
-				<?php esc_html_e( 'Generate Code', 'amplified-import-export' ); ?>
+				<?php esc_html_e( 'Generate Code', 'import-export-by-rockstarlab' ); ?>
 			</button>
 		</div>
 	</div>

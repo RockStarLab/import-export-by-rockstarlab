@@ -4,10 +4,10 @@
  *
  * Handles importing WooCommerce products
  *
- * @package WP_AIE\Model\Import
+ * @package RockStarLab\ImportExport\Model\Import
  */
 
-namespace WP_AIE\Model\Import;
+namespace RockStarLab\ImportExport\Model\Import;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -28,7 +28,7 @@ class Product_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Import WooCommerce products with all metadata, categories, tags, and images', 'amplified-import-export' );
+		return __( 'Import WooCommerce products with all metadata, categories, tags, and images', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -243,7 +243,7 @@ class Product_Importer extends Abstract_Importer {
 		if ( empty( $item['post_title'] ) ) {
 			return new \WP_Error(
 				'missing_product_title',
-				__( 'Product title is required', 'amplified-import-export' )
+				__( 'Product title is required', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -1002,7 +1002,7 @@ class Product_Importer extends Abstract_Importer {
 	private function download_url_unrestricted( string $url, int $timeout ) {
 		$tmp = wp_tempnam( $url );
 		if ( ! $tmp ) {
-			return new \WP_Error( 'aie_temp_file_failed', __( 'Could not create a temporary file for download.', 'amplified-import-export' ) );
+			return new \WP_Error( 'rsl_ie_temp_file_failed', __( 'Could not create a temporary file for download.', 'import-export-by-rockstarlab' ) );
 		}
 
 		$response = wp_remote_get(
@@ -1023,7 +1023,7 @@ class Product_Importer extends Abstract_Importer {
 		$code = (int) wp_remote_retrieve_response_code( $response );
 		if ( $code < 200 || $code >= 300 ) {
 			@wp_delete_file( $tmp );
-			return new \WP_Error( 'aie_download_failed', sprintf( 'Download failed with HTTP %d', $code ) );
+			return new \WP_Error( 'rsl_ie_download_failed', sprintf( 'Download failed with HTTP %d', $code ) );
 		}
 
 		return $tmp;

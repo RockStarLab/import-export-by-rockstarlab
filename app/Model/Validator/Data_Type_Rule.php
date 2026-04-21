@@ -4,10 +4,10 @@
  *
  * Validates that a value matches the expected data type
  *
- * @package WP_AIE\Model\Validator
+ * @package RockStarLab\ImportExport\Model\Validator
  */
 
-namespace WP_AIE\Model\Validator;
+namespace RockStarLab\ImportExport\Model\Validator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -63,7 +63,7 @@ class Data_Type_Rule extends Validation_Rule {
 					'unknown_type',
 					sprintf(
 						/* translators: %s: data type */
-						__( 'Unknown data type: %s', 'amplified-import-export' ),
+						__( 'Unknown data type: %s', 'import-export-by-rockstarlab' ),
 						$type
 					)
 				);
@@ -84,7 +84,7 @@ class Data_Type_Rule extends Validation_Rule {
 				'invalid_string',
 				sprintf(
 					/* translators: %s: field name */
-					__( '%s must be a string', 'amplified-import-export' ),
+					__( '%s must be a string', 'import-export-by-rockstarlab' ),
 					$field_name
 				),
 				[ 'field' => $context['field_name'] ?? null ]
@@ -108,7 +108,7 @@ class Data_Type_Rule extends Validation_Rule {
 				'invalid_integer',
 				sprintf(
 					/* translators: %s: field name */
-					__( '%s must be an integer', 'amplified-import-export' ),
+					__( '%s must be an integer', 'import-export-by-rockstarlab' ),
 					$field_name
 				),
 				[ 'field' => $context['field_name'] ?? null ]
@@ -132,7 +132,7 @@ class Data_Type_Rule extends Validation_Rule {
 				'invalid_float',
 				sprintf(
 					/* translators: %s: field name */
-					__( '%s must be a number', 'amplified-import-export' ),
+					__( '%s must be a number', 'import-export-by-rockstarlab' ),
 					$field_name
 				),
 				[ 'field' => $context['field_name'] ?? null ]
@@ -158,7 +158,7 @@ class Data_Type_Rule extends Validation_Rule {
 				'invalid_boolean',
 				sprintf(
 					/* translators: %s: field name */
-					__( '%s must be a boolean value', 'amplified-import-export' ),
+					__( '%s must be a boolean value', 'import-export-by-rockstarlab' ),
 					$field_name
 				),
 				[ 'field' => $context['field_name'] ?? null ]
@@ -182,7 +182,7 @@ class Data_Type_Rule extends Validation_Rule {
 				'invalid_email',
 				sprintf(
 					/* translators: %s: field name */
-					__( '%s must be a valid email address', 'amplified-import-export' ),
+					__( '%s must be a valid email address', 'import-export-by-rockstarlab' ),
 					$field_name
 				),
 				[
@@ -209,7 +209,7 @@ class Data_Type_Rule extends Validation_Rule {
 				'invalid_url',
 				sprintf(
 					/* translators: %s: field name */
-					__( '%s must be a valid URL', 'amplified-import-export' ),
+					__( '%s must be a valid URL', 'import-export-by-rockstarlab' ),
 					$field_name
 				),
 				[
@@ -240,7 +240,7 @@ class Data_Type_Rule extends Validation_Rule {
 				'invalid_date',
 				sprintf(
 					/* translators: 1: field name, 2: expected format */
-					__( '%1$s must be a valid date in format %2$s', 'amplified-import-export' ),
+					__( '%1$s must be a valid date in format %2$s', 'import-export-by-rockstarlab' ),
 					$field_name,
 					$format
 				),
@@ -273,7 +273,7 @@ class Data_Type_Rule extends Validation_Rule {
 				'invalid_datetime',
 				sprintf(
 					/* translators: 1: field name, 2: expected format */
-					__( '%1$s must be a valid datetime in format %2$s', 'amplified-import-export' ),
+					__( '%1$s must be a valid datetime in format %2$s', 'import-export-by-rockstarlab' ),
 					$field_name,
 					$format
 				),

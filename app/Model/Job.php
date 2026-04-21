@@ -2,15 +2,15 @@
 /**
  * Job Model
  *
- * Handles import/export job records in aie_jobs table.
+ * Handles import/export job records in rsl_ie_jobs table.
  * Manages job creation, progress tracking, and status updates.
  *
- * Usage: WP_AIE()->model->job->find( $id )
+ * Usage: rsl_ie()->model->job->find( $id )
  *
- * @package WP_AIE\Model
+ * @package RockStarLab\ImportExport\Model
  */
 
-namespace WP_AIE\Model;
+namespace RockStarLab\ImportExport\Model;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -21,7 +21,7 @@ class Job extends Model {
 	 *
 	 * @var string
 	 */
-	protected $table_name = 'aie_jobs';
+	protected $table_name = 'rsl_ie_jobs';
 
 	/**
 	 * Create a new job record
@@ -255,7 +255,7 @@ class Job extends Model {
 		global $wpdb;
 		$table = $this->get_table_name();
 
-		$days = apply_filters( 'aie_cleanup_old_jobs_days', $days );
+		$days = apply_filters( 'rsl_ie_cleanup_old_jobs_days', $days );
 
 		// Delete old jobs
 		$deleted = $wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
@@ -269,7 +269,7 @@ class Job extends Model {
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		);
 
-		do_action( 'aie_old_jobs_cleaned', $deleted );
+		do_action( 'rsl_ie_old_jobs_cleaned', $deleted );
 
 		return $deleted;
 	}
@@ -285,7 +285,7 @@ class Job extends Model {
 		global $wpdb;
 		$table = $this->get_table_name();
 
-		$days = apply_filters( 'aie_cleanup_old_files_days', $days );
+		$days = apply_filters( 'rsl_ie_cleanup_old_files_days', $days );
 
 		// Get old export jobs with file paths
 		$results = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
@@ -320,7 +320,7 @@ class Job extends Model {
 			);
 		}
 
-		do_action( 'aie_old_files_cleaned', $deleted_count );
+		do_action( 'rsl_ie_old_files_cleaned', $deleted_count );
 
 		return $deleted_count;
 	}
@@ -415,7 +415,7 @@ class Job extends Model {
 		$job = $this->find( $id );
 
 		if ( ! $job ) {
-			return new \WP_Error( 'job_not_found', __( 'Job not found', 'amplified-import-export' ) );
+			return new \WP_Error( 'job_not_found', __( 'Job not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Delete associated export file if exists

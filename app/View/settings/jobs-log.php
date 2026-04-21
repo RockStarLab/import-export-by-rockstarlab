@@ -2,51 +2,51 @@
 /**
  * Jobs Log Page
  *
- * @package WP_AIE\View
+ * @package RockStarLab\ImportExport\View
  */
 
 defined( 'ABSPATH' ) || exit;
 ?>
 
-<div id="wp-aie-jobs-log" class="amplified-import-export wrap">
-	<h1><?php esc_html_e( 'Jobs Log', 'amplified-import-export' ); ?></h1>
+<div id="rsl-ie-jobs-log" class="import-export-by-rockstarlab wrap">
+	<h1><?php esc_html_e( 'Jobs Log', 'import-export-by-rockstarlab' ); ?></h1>
 
 	<div class="aie-jobs-log">
 		<!-- Filters -->
 		<div class="aie-jobs-filters">
 			<div class="aie-filter-group">
-				<label for="filter-type"><?php esc_html_e( 'Type:', 'amplified-import-export' ); ?></label>
+				<label for="filter-type"><?php esc_html_e( 'Type:', 'import-export-by-rockstarlab' ); ?></label>
 				<select id="filter-type" class="aie-filter-select">
-					<option value=""><?php esc_html_e( 'All Types', 'amplified-import-export' ); ?></option>
-					<option value="import"><?php esc_html_e( 'Import', 'amplified-import-export' ); ?></option>
-					<option value="export"><?php esc_html_e( 'Export', 'amplified-import-export' ); ?></option>
-					<option value="media_sync"><?php esc_html_e( 'Media Sync', 'amplified-import-export' ); ?></option>
+					<option value=""><?php esc_html_e( 'All Types', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="import"><?php esc_html_e( 'Import', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="export"><?php esc_html_e( 'Export', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="media_sync"><?php esc_html_e( 'Media Sync', 'import-export-by-rockstarlab' ); ?></option>
 				</select>
 			</div>
 
 			<div class="aie-filter-group">
-				<label for="filter-status"><?php esc_html_e( 'Status:', 'amplified-import-export' ); ?></label>
+				<label for="filter-status"><?php esc_html_e( 'Status:', 'import-export-by-rockstarlab' ); ?></label>
 				<select id="filter-status" class="aie-filter-select">
-					<option value=""><?php esc_html_e( 'All Statuses', 'amplified-import-export' ); ?></option>
-					<option value="pending"><?php esc_html_e( 'Pending', 'amplified-import-export' ); ?></option>
-					<option value="processing"><?php esc_html_e( 'Processing', 'amplified-import-export' ); ?></option>
-					<option value="completed"><?php esc_html_e( 'Completed', 'amplified-import-export' ); ?></option>
-					<option value="failed"><?php esc_html_e( 'Failed', 'amplified-import-export' ); ?></option>
-					<option value="paused"><?php esc_html_e( 'Paused', 'amplified-import-export' ); ?></option>
-					<option value="cancelled"><?php esc_html_e( 'Cancelled', 'amplified-import-export' ); ?></option>
+					<option value=""><?php esc_html_e( 'All Statuses', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="pending"><?php esc_html_e( 'Pending', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="processing"><?php esc_html_e( 'Processing', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="completed"><?php esc_html_e( 'Completed', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="failed"><?php esc_html_e( 'Failed', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="paused"><?php esc_html_e( 'Paused', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="cancelled"><?php esc_html_e( 'Cancelled', 'import-export-by-rockstarlab' ); ?></option>
 				</select>
 			</div>
 
 			<div class="aie-filter-buttons">
-				<button class="button aie-filter-apply"><?php esc_html_e( 'Apply Filters', 'amplified-import-export' ); ?></button>
-				<button class="button aie-filter-reset"><?php esc_html_e( 'Reset', 'amplified-import-export' ); ?></button>
+				<button class="button aie-filter-apply"><?php esc_html_e( 'Apply Filters', 'import-export-by-rockstarlab' ); ?></button>
+				<button class="button aie-filter-reset"><?php esc_html_e( 'Reset', 'import-export-by-rockstarlab' ); ?></button>
 			</div>
 		</div>
 
 		<!-- Loading state -->
 		<div class="aie-jobs-loading" style="display: none;">
 			<span class="spinner is-active"></span>
-			<p><?php esc_html_e( 'Loading jobs...', 'amplified-import-export' ); ?></p>
+			<p><?php esc_html_e( 'Loading jobs...', 'import-export-by-rockstarlab' ); ?></p>
 		</div>
 
 		<!-- Jobs table -->
@@ -54,20 +54,20 @@ defined( 'ABSPATH' ) || exit;
 			<table class="wp-list-table widefat fixed striped aie-jobs-table">
 				<thead>
 					<tr>
-						<th class="column-id"><?php esc_html_e( 'ID', 'amplified-import-export' ); ?></th>
-						<th class="column-type"><?php esc_html_e( 'Type', 'amplified-import-export' ); ?></th>
-						<th class="column-data-type"><?php esc_html_e( 'Data Type', 'amplified-import-export' ); ?></th>
-						<th class="column-status"><?php esc_html_e( 'Status', 'amplified-import-export' ); ?></th>
-						<th class="column-progress"><?php esc_html_e( 'Progress', 'amplified-import-export' ); ?></th>
-						<th class="column-items"><?php esc_html_e( 'Items', 'amplified-import-export' ); ?></th>
-						<th class="column-created"><?php esc_html_e( 'Created', 'amplified-import-export' ); ?></th>
-						<th class="column-elapsed"><?php esc_html_e( 'Elapsed', 'amplified-import-export' ); ?></th>
-						<th class="column-actions"><?php esc_html_e( 'Actions', 'amplified-import-export' ); ?></th>
+						<th class="column-id"><?php esc_html_e( 'ID', 'import-export-by-rockstarlab' ); ?></th>
+						<th class="column-type"><?php esc_html_e( 'Type', 'import-export-by-rockstarlab' ); ?></th>
+						<th class="column-data-type"><?php esc_html_e( 'Data Type', 'import-export-by-rockstarlab' ); ?></th>
+						<th class="column-status"><?php esc_html_e( 'Status', 'import-export-by-rockstarlab' ); ?></th>
+						<th class="column-progress"><?php esc_html_e( 'Progress', 'import-export-by-rockstarlab' ); ?></th>
+						<th class="column-items"><?php esc_html_e( 'Items', 'import-export-by-rockstarlab' ); ?></th>
+						<th class="column-created"><?php esc_html_e( 'Created', 'import-export-by-rockstarlab' ); ?></th>
+						<th class="column-elapsed"><?php esc_html_e( 'Elapsed', 'import-export-by-rockstarlab' ); ?></th>
+						<th class="column-actions"><?php esc_html_e( 'Actions', 'import-export-by-rockstarlab' ); ?></th>
 					</tr>
 				</thead>
 				<tbody id="jobs-table-body">
 					<tr class="no-items">
-						<td colspan="9"><?php esc_html_e( 'No jobs found.', 'amplified-import-export' ); ?></td>
+						<td colspan="9"><?php esc_html_e( 'No jobs found.', 'import-export-by-rockstarlab' ); ?></td>
 					</tr>
 				</tbody>
 			</table>
@@ -94,14 +94,14 @@ defined( 'ABSPATH' ) || exit;
 	<div class="aie-modal-overlay"></div>
 	<div class="aie-modal-content">
 		<div class="aie-modal-header">
-			<h2><?php esc_html_e( 'Job Details', 'amplified-import-export' ); ?></h2>
+			<h2><?php esc_html_e( 'Job Details', 'import-export-by-rockstarlab' ); ?></h2>
 			<button class="aie-modal-close">&times;</button>
 		</div>
 		<div class="aie-modal-body">
 			<div id="job-details-content"></div>
 		</div>
 		<div class="aie-modal-footer">
-			<button class="button aie-modal-close"><?php esc_html_e( 'Close', 'amplified-import-export' ); ?></button>
+			<button class="button aie-modal-close"><?php esc_html_e( 'Close', 'import-export-by-rockstarlab' ); ?></button>
 		</div>
 	</div>
 </div>
@@ -111,16 +111,16 @@ defined( 'ABSPATH' ) || exit;
 	<div class="aie-modal-overlay"></div>
 	<div class="aie-modal-content aie-modal-small">
 		<div class="aie-modal-header">
-			<h2><?php esc_html_e( 'Confirm Delete', 'amplified-import-export' ); ?></h2>
+			<h2><?php esc_html_e( 'Confirm Delete', 'import-export-by-rockstarlab' ); ?></h2>
 			<button class="aie-modal-close">&times;</button>
 		</div>
 		<div class="aie-modal-body">
-			<p><?php esc_html_e( 'Are you sure you want to delete this job? This action cannot be undone.', 'amplified-import-export' ); ?></p>
-			<p class="description"><?php esc_html_e( 'Associated files will also be deleted.', 'amplified-import-export' ); ?></p>
+			<p><?php esc_html_e( 'Are you sure you want to delete this job? This action cannot be undone.', 'import-export-by-rockstarlab' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Associated files will also be deleted.', 'import-export-by-rockstarlab' ); ?></p>
 		</div>
 		<div class="aie-modal-footer">
-			<button class="button aie-modal-close"><?php esc_html_e( 'Cancel', 'amplified-import-export' ); ?></button>
-			<button class="button button-primary aie-confirm-delete"><?php esc_html_e( 'Delete', 'amplified-import-export' ); ?></button>
+			<button class="button aie-modal-close"><?php esc_html_e( 'Cancel', 'import-export-by-rockstarlab' ); ?></button>
+			<button class="button button-primary aie-confirm-delete"><?php esc_html_e( 'Delete', 'import-export-by-rockstarlab' ); ?></button>
 		</div>
 	</div>
 </div>

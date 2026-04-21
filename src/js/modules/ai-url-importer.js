@@ -19,7 +19,7 @@ const AIURLImporter = {
 	 * Initialize module
 	 */
 	init() {
-		if (jQuery('#wp-aie-ai-url-importer').length === 0) {
+		if (jQuery('#rsl-ie-ai-url-importer').length === 0) {
 			return;
 		}
 

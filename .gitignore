@@ -9,3 +9,4 @@ npm-debug.log*
 temp
 e2e
 *.e2e
+dist

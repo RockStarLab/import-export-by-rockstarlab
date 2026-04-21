@@ -4,14 +4,19 @@
  *
  * Handles REST API endpoints for content synchronization
  *
- * @package WP_AIE\Controller
+ * @package RockStarLab\ImportExport\Controller
  */
 
-namespace WP_AIE\Controller;
+namespace RockStarLab\ImportExport\Controller;
 
 defined( 'ABSPATH' ) || exit;
 
 class Content_Sync_API_Controller {
+
+	/**
+	 * Current REST API namespace.
+	 */
+	private const REST_NAMESPACE = 'rsl-ie/v1';
 
 	/**
 	 * Constructor
@@ -25,85 +30,28 @@ class Content_Sync_API_Controller {
 	 */
 	public function register_routes() {
 		try {
-			register_rest_route(
-				'aie/v1',
-				'/validate',
-				array(
-					'methods'             => 'POST',
-					'callback'            => array( $this, 'validate_connection' ),
-					'permission_callback' => array( $this, 'validate_api_key' ),
-				)
+			$routes = array(
+				'/validate'           => array( 'methods' => 'POST', 'callback' => array( $this, 'validate_connection' ) ),
+				'/info'               => array( 'methods' => 'GET', 'callback' => array( $this, 'get_site_info' ) ),
+				'/receive-content'    => array( 'methods' => 'POST', 'callback' => array( $this, 'receive_content' ) ),
+				'/send-content'       => array( 'methods' => 'POST', 'callback' => array( $this, 'send_content' ) ),
+				'/check-media'        => array( 'methods' => 'POST', 'callback' => array( $this, 'check_media' ) ),
+				'/upload-media'       => array( 'methods' => 'POST', 'callback' => array( $this, 'upload_media' ) ),
+				'/list-posts'         => array( 'methods' => 'POST', 'callback' => array( $this, 'list_posts' ) ),
+				'/get-children-posts' => array( 'methods' => 'POST', 'callback' => array( $this, 'get_children_posts' ) ),
 			);
 
-			register_rest_route(
-				'aie/v1',
-				'/info',
-				array(
-					'methods'             => 'GET',
-					'callback'            => array( $this, 'get_site_info' ),
-					'permission_callback' => array( $this, 'validate_api_key' ),
-				)
-			);
-
-			register_rest_route(
-				'aie/v1',
-				'/receive-content',
-				array(
-					'methods'             => 'POST',
-					'callback'            => array( $this, 'receive_content' ),
-					'permission_callback' => array( $this, 'validate_api_key' ),
-				)
-			);
-
-			register_rest_route(
-				'aie/v1',
-				'/send-content',
-				array(
-					'methods'             => 'POST',
-					'callback'            => array( $this, 'send_content' ),
-					'permission_callback' => array( $this, 'validate_api_key' ),
-				)
-			);
-
-			register_rest_route(
-				'aie/v1',
-				'/check-media',
-				array(
-					'methods'             => 'POST',
-					'callback'            => array( $this, 'check_media' ),
-					'permission_callback' => array( $this, 'validate_api_key' ),
-				)
-			);
-
-			register_rest_route(
-				'aie/v1',
-				'/upload-media',
-				array(
-					'methods'             => 'POST',
-					'callback'            => array( $this, 'upload_media' ),
-					'permission_callback' => array( $this, 'validate_api_key' ),
-				)
-			);
-
-			register_rest_route(
-				'aie/v1',
-				'/list-posts',
-				array(
-					'methods'             => 'POST',
-					'callback'            => array( $this, 'list_posts' ),
-					'permission_callback' => array( $this, 'validate_api_key' ),
-				)
-			);
-
-			register_rest_route(
-				'aie/v1',
-				'/get-children-posts',
-				array(
-					'methods'             => 'POST',
-					'callback'            => array( $this, 'get_children_posts' ),
-					'permission_callback' => array( $this, 'validate_api_key' ),
-				)
-			);
+			foreach ( $routes as $route => $config ) {
+				register_rest_route(
+					self::REST_NAMESPACE,
+					$route,
+					array(
+						'methods'             => $config['methods'],
+						'callback'            => $config['callback'],
+						'permission_callback' => array( $this, 'validate_api_key' ),
+					)
+				);
+			}
 		} catch ( \Exception $e ) {
 			// Log error but don't break the site
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -132,7 +80,7 @@ class Content_Sync_API_Controller {
 		}
 
 		// Get this site's API key
-		$site_key = get_option( 'aie_site_api_key' );
+		$site_key = get_option( 'rsl_ie_site_api_key' );
 
 		if ( empty( $site_key ) ) {
 			return false;
@@ -150,13 +98,13 @@ class Content_Sync_API_Controller {
 	 */
 	public function validate_connection( $request ) {
 		// Check if premium license is active
-		$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
 		
 		if ( ! $is_premium ) {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'amplified-import-export' ),
+					'message' => __( 'Premium license is required for Content Sync feature.', 'import-export-by-rockstarlab' ),
 					'error_code' => 'license_inactive',
 				),
 				403
@@ -166,12 +114,12 @@ class Content_Sync_API_Controller {
 		return new \WP_REST_Response(
 			array(
 				'success' => true,
-				'message' => __( 'Connection validated successfully', 'amplified-import-export' ),
+				'message' => __( 'Connection validated successfully', 'import-export-by-rockstarlab' ),
 				'data'    => array(
 					'site_name'    => get_bloginfo( 'name' ),
 					'site_url'     => get_site_url(),
 					'wp_version'   => get_bloginfo( 'version' ),
-					'plugin_version' => defined( 'WP_AIE_VERSION' ) ? WP_AIE_VERSION : '1.0.0',
+					'plugin_version' => defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '1.0.0',
 				),
 			),
 			200
@@ -193,7 +141,7 @@ class Content_Sync_API_Controller {
 					'site_url'       => get_site_url(),
 					'description'    => get_bloginfo( 'description' ),
 					'wp_version'     => get_bloginfo( 'version' ),
-					'plugin_version' => defined( 'WP_AIE_VERSION' ) ? WP_AIE_VERSION : '1.0.0',
+					'plugin_version' => defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '1.0.0',
 					'timezone'       => get_option( 'timezone_string' ),
 					'date_format'    => get_option( 'date_format' ),
 					'time_format'    => get_option( 'time_format' ),
@@ -211,13 +159,13 @@ class Content_Sync_API_Controller {
 	 */
 	public function receive_content( $request ) {
 		// Check if premium license is active
-		$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
 		
 		if ( ! $is_premium ) {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'amplified-import-export' ),
+					'message' => __( 'Premium license is required for Content Sync feature.', 'import-export-by-rockstarlab' ),
 					'error_code' => 'license_inactive',
 				),
 				403
@@ -233,7 +181,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'No posts data provided', 'amplified-import-export' ),
+					'message' => __( 'No posts data provided', 'import-export-by-rockstarlab' ),
 				),
 				400
 			);
@@ -324,7 +272,7 @@ class Content_Sync_API_Controller {
 			if ( is_wp_error( $post_id ) || ! $post_id ) {
 				$errors[] = sprintf(
 					/* translators: %s: post title */
-					__( 'Failed to import post: %s', 'amplified-import-export' ),
+					__( 'Failed to import post: %s', 'import-export-by-rockstarlab' ),
 					$post_data['post_title']
 				);
 				continue;
@@ -376,7 +324,7 @@ class Content_Sync_API_Controller {
 				// replace_in_meta correctly handles _thumbnail_id, ACF image/file fields
 				// (using field-type introspection), flat ACF repeater keys, etc.
 				if ( ! empty( $image_map ) ) {
-					$post_data['meta'] = \WP_AIE\Helper\Content_Sync_Replacer::replace_in_meta_public(
+					$post_data['meta'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_in_meta_public(
 						$post_data['meta'],
 						'', // No domain replacement needed for push (already replaced on sender)
 						'',
@@ -447,7 +395,7 @@ class Content_Sync_API_Controller {
 						// Import ACF fields for this term
 						if ( ! empty( $term_info['acf'] ) && function_exists( 'update_field' ) ) {
 							// Replace image IDs in term ACF fields
-							$term_acf = \WP_AIE\Helper\Content_Sync_Replacer::replace_in_array(
+							$term_acf = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_in_array(
 								$term_info['acf'],
 								'', // No domain replacement needed for term meta
 								'',
@@ -466,7 +414,7 @@ class Content_Sync_API_Controller {
 
 				// Re-save ACF taxonomy fields with correct local term IDs.
 					if ( ! empty( $term_id_map ) && ! empty( $post_data['meta'] ) ) {
-						\WP_AIE\Helper\Content_Sync_Replacer::translate_acf_taxonomy_fields_in_meta(
+						\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::translate_acf_taxonomy_fields_in_meta(
 							$post_data['meta'],
 							$post_id,
 							$term_id_map
@@ -476,7 +424,7 @@ class Content_Sync_API_Controller {
 
 				// Re-save ACF post reference fields (post_object / relationship) with correct local IDs.
 					if ( ! empty( $post_data['meta'] ) ) {
-						\WP_AIE\Helper\Content_Sync_Replacer::translate_acf_post_reference_fields_in_meta(
+						\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::translate_acf_post_reference_fields_in_meta(
 							$post_data['meta'],
 							$post_id,
 							$source_post_id,
@@ -515,7 +463,7 @@ class Content_Sync_API_Controller {
 		if ( $imported_count > 0 ) {
 			$message[] = sprintf(
 				/* translators: %d: number of posts */
-				_n( 'Created %d post', 'Created %d posts', $imported_count, 'amplified-import-export' ),
+				_n( 'Created %d post', 'Created %d posts', $imported_count, 'import-export-by-rockstarlab' ),
 				$imported_count
 			);
 		}
@@ -523,7 +471,7 @@ class Content_Sync_API_Controller {
 		if ( $updated_count > 0 ) {
 			$message[] = sprintf(
 				/* translators: %d: number of posts */
-				_n( 'Updated %d post', 'Updated %d posts', $updated_count, 'amplified-import-export' ),
+				_n( 'Updated %d post', 'Updated %d posts', $updated_count, 'import-export-by-rockstarlab' ),
 				$updated_count
 			);
 		}
@@ -765,7 +713,7 @@ class Content_Sync_API_Controller {
 
 				// Replace source attachment IDs with local ones.
 				if ( ! empty( $image_map ) ) {
-					$var_meta = \WP_AIE\Helper\Content_Sync_Replacer::replace_in_meta_public(
+					$var_meta = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_in_meta_public(
 						$var_meta,
 						'', // Domain replacement already done on the sender side.
 						'',
@@ -866,7 +814,7 @@ class Content_Sync_API_Controller {
 			if ( ! empty( $child_data['meta'] ) ) {
 				$child_meta = $child_data['meta'];
 				if ( ! empty( $image_map ) ) {
-					$child_meta = \WP_AIE\Helper\Content_Sync_Replacer::replace_in_meta_public(
+					$child_meta = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_in_meta_public(
 						$child_meta,
 						'',
 						'',
@@ -954,13 +902,13 @@ class Content_Sync_API_Controller {
 	 */
 	public function send_content( $request ) {
 		// Check if premium license is active
-		$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
 		
 		if ( ! $is_premium ) {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'amplified-import-export' ),
+					'message' => __( 'Premium license is required for Content Sync feature.', 'import-export-by-rockstarlab' ),
 					'error_code' => 'license_inactive',
 				),
 				403
@@ -973,7 +921,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'No post IDs provided', 'amplified-import-export' ),
+					'message' => __( 'No post IDs provided', 'import-export-by-rockstarlab' ),
 				),
 				400
 			);
@@ -991,7 +939,7 @@ class Content_Sync_API_Controller {
 			}
 
 			// Extract all images from post
-			$post_images = \WP_AIE\Helper\Content_Sync_Media::extract_post_images( $post_id );
+			$post_images = \RockStarLab\ImportExport\Helper\Content_Sync_Media::extract_post_images( $post_id );
 			
 			// Store images
 			foreach ( $post_images as $image ) {
@@ -1054,7 +1002,7 @@ class Content_Sync_API_Controller {
 							foreach ( $term_images as $image_id ) {
 								if ( ! isset( $all_images[ $image_id ] ) ) {
 									// Use prepare_image_data to include file_hash for proper dedup on receiving side.
-									$image_data = \WP_AIE\Helper\Content_Sync_Media::prepare_image_data( $image_id, 'term_acf' );
+									$image_data = \RockStarLab\ImportExport\Helper\Content_Sync_Media::prepare_image_data( $image_id, 'term_acf' );
 									if ( ! $image_data ) {
 										// Fallback if file is missing on disk.
 										$image_data = array(
@@ -1136,17 +1084,17 @@ class Content_Sync_API_Controller {
 					'post_modified' => $post->post_modified,
 					'post_author'   => $post->post_author,
 					'meta'          => $prepared_meta,
-					'post_refs'     => \WP_AIE\Helper\Content_Sync_Replacer::collect_acf_post_reference_map_from_meta( $prepared_meta ),
+					'post_refs'     => \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::collect_acf_post_reference_map_from_meta( $prepared_meta ),
 					'terms'         => $terms_data,
 				);
 		}
 
 		if ( empty( $posts_data ) ) {
-			$error_message = __( 'No valid posts found', 'amplified-import-export' );
+			$error_message = __( 'No valid posts found', 'import-export-by-rockstarlab' );
 			if ( ! empty( $not_found_ids ) ) {
 				$error_message .= sprintf(
 					/* translators: %s: comma-separated list of post IDs */
-					__( '. Post IDs not found: %s', 'amplified-import-export' ),
+					__( '. Post IDs not found: %s', 'import-export-by-rockstarlab' ),
 					implode( ', ', $not_found_ids )
 				);
 			}
@@ -1164,7 +1112,7 @@ class Content_Sync_API_Controller {
 				'success' => true,
 				'message' => sprintf(
 					/* translators: %d: number of posts */
-					__( 'Found %d post(s)', 'amplified-import-export' ),
+					__( 'Found %d post(s)', 'import-export-by-rockstarlab' ),
 					count( $posts_data )
 				),
 				'data'    => array(
@@ -1184,13 +1132,13 @@ class Content_Sync_API_Controller {
 	 */
 	public function check_media( $request ) {
 		// Check if premium license is active
-		$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
 		
 		if ( ! $is_premium ) {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'amplified-import-export' ),
+					'message' => __( 'Premium license is required for Content Sync feature.', 'import-export-by-rockstarlab' ),
 					'error_code' => 'license_inactive',
 				),
 				403
@@ -1203,7 +1151,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'File hash is required', 'amplified-import-export' ),
+					'message' => __( 'File hash is required', 'import-export-by-rockstarlab' ),
 				),
 				400
 			);
@@ -1240,13 +1188,13 @@ class Content_Sync_API_Controller {
 	 */
 	public function upload_media( $request ) {
 		// Check if premium license is active
-		$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
 		
 		if ( ! $is_premium ) {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'amplified-import-export' ),
+					'message' => __( 'Premium license is required for Content Sync feature.', 'import-export-by-rockstarlab' ),
 					'error_code' => 'license_inactive',
 				),
 				403
@@ -1266,7 +1214,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Missing required file data', 'amplified-import-export' ),
+					'message' => __( 'Missing required file data', 'import-export-by-rockstarlab' ),
 				),
 				400
 			);
@@ -1275,12 +1223,12 @@ class Content_Sync_API_Controller {
 		// Check if file already exists
 		$existing_attachment = $this->find_attachment_by_hash( $file_hash );
 		if ( $existing_attachment ) {
-			\WP_AIE\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
+			\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
 			return new \WP_REST_Response(
 				array(
 					'success'       => true,
 					'attachment_id' => $existing_attachment,
-					'message'       => __( 'Media already exists', 'amplified-import-export' ),
+					'message'       => __( 'Media already exists', 'import-export-by-rockstarlab' ),
 				),
 				200
 			);
@@ -1293,7 +1241,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Invalid file data', 'amplified-import-export' ),
+					'message' => __( 'Invalid file data', 'import-export-by-rockstarlab' ),
 				),
 				400
 			);
@@ -1304,7 +1252,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'File hash mismatch', 'amplified-import-export' ),
+					'message' => __( 'File hash mismatch', 'import-export-by-rockstarlab' ),
 				),
 				400
 			);
@@ -1323,7 +1271,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Failed to save file', 'amplified-import-export' ),
+					'message' => __( 'Failed to save file', 'import-export-by-rockstarlab' ),
 				),
 				500
 			);
@@ -1346,7 +1294,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Failed to create attachment', 'amplified-import-export' ),
+					'message' => __( 'Failed to create attachment', 'import-export-by-rockstarlab' ),
 				),
 				500
 			);
@@ -1363,14 +1311,14 @@ class Content_Sync_API_Controller {
 		}
 
 		// Store file hash for future lookups
-		update_post_meta( $attachment_id, '_aie_file_hash', $file_hash );
+		update_post_meta( $attachment_id, '_rsl_ie_file_hash', $file_hash );
 
 		return new \WP_REST_Response(
 			array(
 				'success'       => true,
 				'attachment_id' => $attachment_id,
 				'url'           => wp_get_attachment_url( $attachment_id ),
-				'message'       => __( 'Media uploaded successfully', 'amplified-import-export' ),
+				'message'       => __( 'Media uploaded successfully', 'import-export-by-rockstarlab' ),
 			),
 			200
 		);
@@ -1389,7 +1337,7 @@ class Content_Sync_API_Controller {
 		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
 				"SELECT post_id FROM {$wpdb->postmeta} 
-				WHERE meta_key = '_aie_file_hash' 
+				WHERE meta_key = '_rsl_ie_file_hash' 
 				AND meta_value = %s 
 				LIMIT 1",
 				$file_hash
@@ -1418,7 +1366,7 @@ class Content_Sync_API_Controller {
 				
 				if ( $hash === $file_hash ) {
 					// Store hash for future lookups
-					update_post_meta( $attachment_id, '_aie_file_hash', $file_hash );
+					update_post_meta( $attachment_id, '_rsl_ie_file_hash', $file_hash );
 					return $attachment_id;
 				}
 			}
@@ -1473,13 +1421,13 @@ class Content_Sync_API_Controller {
 	 */
 	public function list_posts( $request ) {
 		// Check if premium license is active
-		$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
 		
 		if ( ! $is_premium ) {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'amplified-import-export' ),
+					'message' => __( 'Premium license is required for Content Sync feature.', 'import-export-by-rockstarlab' ),
 					'error_code' => 'license_inactive',
 				),
 				403
@@ -1628,13 +1576,13 @@ class Content_Sync_API_Controller {
 	 */
 	public function get_children_posts( $request ) {
 		// Check if premium license is active
-		$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
 		
 		if ( ! $is_premium ) {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'amplified-import-export' ),
+					'message' => __( 'Premium license is required for Content Sync feature.', 'import-export-by-rockstarlab' ),
 					'error_code' => 'license_inactive',
 				),
 				403
@@ -1654,7 +1602,7 @@ class Content_Sync_API_Controller {
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Parent ID is required.', 'amplified-import-export' ),
+					'message' => __( 'Parent ID is required.', 'import-export-by-rockstarlab' ),
 				),
 				400
 			);

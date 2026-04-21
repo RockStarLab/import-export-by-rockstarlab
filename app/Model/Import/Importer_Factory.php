@@ -4,10 +4,10 @@
  *
  * Factory class for creating importer instances
  *
- * @package WP_AIE\Model\Import
+ * @package RockStarLab\ImportExport\Model\Import
  */
 
-namespace WP_AIE\Model\Import;
+namespace RockStarLab\ImportExport\Model\Import;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -37,7 +37,7 @@ class Importer_Factory {
 				'unknown_importer',
 				sprintf(
 					/* translators: %s: importer type */
-					__( 'Unknown importer type: %s', 'amplified-import-export' ),
+					__( 'Unknown importer type: %s', 'import-export-by-rockstarlab' ),
 					$type
 				)
 			);
@@ -95,7 +95,7 @@ class Importer_Factory {
 		 *
 		 * @param array $importers Map of type => class
 		 */
-		return apply_filters( 'aie_importer_map', $default_map );
+		return apply_filters( 'rsl_ie_importer_map', $default_map );
 	}
 
 	/**

@@ -4,13 +4,13 @@
  *
  * Processes AI URL import jobs in background
  *
- * @package WP_AIE\Model\Queue
+ * @package RockStarLab\ImportExport\Model\Queue
  */
 
-namespace WP_AIE\Model\Queue;
+namespace RockStarLab\ImportExport\Model\Queue;
 
-use WP_AIE\Model\Job;
-use WP_AIE\Helper\AI_Content_Extractor;
+use RockStarLab\ImportExport\Model\Job;
+use RockStarLab\ImportExport\Helper\AI_Content_Extractor;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -34,7 +34,7 @@ class AI_URL_Import_Processor {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->job_model    = WP_AIE()->Model->job;
+		$this->job_model    = rsl_ie()->Model->job;
 		$this->ai_extractor = new AI_Content_Extractor();
 	}
 

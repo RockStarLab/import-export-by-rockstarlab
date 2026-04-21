@@ -27,7 +27,7 @@ const FunctionsModule = {
 	 * Initialize the module
 	 */
 	init() {
-		if ( ! document.getElementById( 'wp-aie-functions' ) ) {
+		if ( ! document.getElementById( 'rsl-ie-functions' ) ) {
 			return;
 		}
 
@@ -920,7 +920,7 @@ const FunctionsModule = {
 	openAIPromptModal() {
 		// Check if API key is configured
 		if ( ! window.aieData?.hasOpenAIApiKey ) {
-			const optionsUrl = window.aieData?.optionsUrl || 'admin.php?page=wp-aie-plugin-options';
+			const optionsUrl = window.aieData?.optionsUrl || 'admin.php?page=rsl-ie-plugin-options';
 			const message = window.aieData?.i18n?.apiKeyNotConfigured ||
 				'OpenAI API key is not configured. Please configure it in Plugin Options to use AI generation.\n\nDo you want to go to Plugin Options now?';
 			

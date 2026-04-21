@@ -4,14 +4,14 @@
  *
  * Handles custom functions AJAX operations
  *
- * @package WP_AIE\Controller
+ * @package RockStarLab\ImportExport\Controller
  */
 
-namespace WP_AIE\Controller;
+namespace RockStarLab\ImportExport\Controller;
 
-use WP_AIE\Model\Custom_Function;
-use WP_AIE\Helper\Function_Snippets;
-use WP_AIE\Helper\Function_Executor;
+use RockStarLab\ImportExport\Model\Custom_Function;
+use RockStarLab\ImportExport\Helper\Function_Snippets;
+use RockStarLab\ImportExport\Helper\Function_Executor;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -204,7 +204,7 @@ class Functions_Controller extends Base_Controller {
 		$function_id = $this->get_request_param( 'id', '' );
 
 		if ( empty( $function_id ) ) {
-			$this->send_error( __( 'Function ID is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Function ID is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if this is a library snippet
@@ -214,7 +214,7 @@ class Functions_Controller extends Base_Controller {
 			$snippet     = $library->get_snippet( $snippet_key );
 
 			if ( ! $snippet ) {
-				$this->send_error( __( 'Snippet not found', 'amplified-import-export' ) );
+				$this->send_error( __( 'Snippet not found', 'import-export-by-rockstarlab' ) );
 			}
 
 			// Add <?php tag to snippet code if not present (for editor syntax highlighting)
@@ -244,7 +244,7 @@ class Functions_Controller extends Base_Controller {
 		$function        = $model->get( $function_id_int );
 
 		if ( ! $function ) {
-			$this->send_error( __( 'Function not found', 'amplified-import-export' ) );
+			$this->send_error( __( 'Function not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		$this->send_success( $function );
@@ -268,7 +268,7 @@ class Functions_Controller extends Base_Controller {
 		$status   = $this->get_request_param( 'status', 'active' );
 
 		if ( empty( $name ) || empty( $code ) ) {
-			$this->send_error( __( 'Name and code are required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Name and code are required', 'import-export-by-rockstarlab' ) );
 		}
 
 		$model = new Custom_Function();
@@ -296,14 +296,14 @@ class Functions_Controller extends Base_Controller {
 		}
 
 		if ( ! $function_id ) {
-			$this->send_error( __( 'Failed to create function', 'amplified-import-export' ) );
+			$this->send_error( __( 'Failed to create function', 'import-export-by-rockstarlab' ) );
 		}
 
 		$function = $model->get( $function_id );
 
 		$this->send_success(
 			[
-				'message'  => __( 'Function created successfully', 'amplified-import-export' ),
+				'message'  => __( 'Function created successfully', 'import-export-by-rockstarlab' ),
 				'function' => $function,
 			]
 		);
@@ -321,7 +321,7 @@ class Functions_Controller extends Base_Controller {
 		$function_id = $this->get_request_param( 'id', '' );
 
 		if ( empty( $function_id ) ) {
-			$this->send_error( __( 'Function ID is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Function ID is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// If trying to update a library snippet, create a new custom function instead
@@ -336,7 +336,7 @@ class Functions_Controller extends Base_Controller {
 
 		// Check if function exists and user can edit
 		if ( ! $model->can_edit_function( $function_id_int ) ) {
-			$this->send_error( __( 'You do not have permission to edit this function', 'amplified-import-export' ) );
+			$this->send_error( __( 'You do not have permission to edit this function', 'import-export-by-rockstarlab' ) );
 		}
 
 		$update_data = [];
@@ -382,7 +382,7 @@ class Functions_Controller extends Base_Controller {
 		}
 
 		if ( empty( $update_data ) ) {
-			$this->send_error( __( 'No data to update', 'amplified-import-export' ) );
+			$this->send_error( __( 'No data to update', 'import-export-by-rockstarlab' ) );
 		}
 
 		$result = $model->update( $function_id_int, $update_data );
@@ -392,14 +392,14 @@ class Functions_Controller extends Base_Controller {
 		}
 
 		if ( ! $result ) {
-			$this->send_error( __( 'Failed to update function', 'amplified-import-export' ) );
+			$this->send_error( __( 'Failed to update function', 'import-export-by-rockstarlab' ) );
 		}
 
 		$function = $model->get( $function_id_int );
 
 		$this->send_success(
 			[
-				'message'  => __( 'Function updated successfully', 'amplified-import-export' ),
+				'message'  => __( 'Function updated successfully', 'import-export-by-rockstarlab' ),
 				'function' => $function,
 			]
 		);
@@ -417,12 +417,12 @@ class Functions_Controller extends Base_Controller {
 		$function_id = $this->get_request_param( 'id', '' );
 
 		if ( empty( $function_id ) ) {
-			$this->send_error( __( 'Function ID is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Function ID is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Cannot delete library snippets
 		if ( strpos( $function_id, 'snippet_' ) === 0 ) {
-			$this->send_error( __( 'Library snippets cannot be deleted', 'amplified-import-export' ) );
+			$this->send_error( __( 'Library snippets cannot be deleted', 'import-export-by-rockstarlab' ) );
 		}
 
 		$function_id_int = (int) $function_id;
@@ -430,18 +430,18 @@ class Functions_Controller extends Base_Controller {
 
 		// Check permissions
 		if ( ! $model->can_edit_function( $function_id_int ) ) {
-			$this->send_error( __( 'You do not have permission to delete this function', 'amplified-import-export' ) );
+			$this->send_error( __( 'You do not have permission to delete this function', 'import-export-by-rockstarlab' ) );
 		}
 
 		$result = $model->delete( $function_id_int );
 
 		if ( ! $result ) {
-			$this->send_error( __( 'Failed to delete function', 'amplified-import-export' ) );
+			$this->send_error( __( 'Failed to delete function', 'import-export-by-rockstarlab' ) );
 		}
 
 		$this->send_success(
 			[
-				'message' => __( 'Function deleted successfully', 'amplified-import-export' ),
+				'message' => __( 'Function deleted successfully', 'import-export-by-rockstarlab' ),
 			]
 		);
 	}
@@ -461,7 +461,7 @@ class Functions_Controller extends Base_Controller {
 		$value = $this->get_request_param( 'value', '' );
 
 		if ( empty( $code ) ) {
-			$this->send_error( __( 'Code is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Code is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		$model  = new Custom_Function();
@@ -492,7 +492,7 @@ class Functions_Controller extends Base_Controller {
 		$function_ids = $this->get_request_array( 'functions' );
 
 		if ( empty( $function_ids ) ) {
-			$this->send_error( __( 'No functions provided', 'amplified-import-export' ) );
+			$this->send_error( __( 'No functions provided', 'import-export-by-rockstarlab' ) );
 		}
 
 		$model         = new Custom_Function();
@@ -639,7 +639,7 @@ class Functions_Controller extends Base_Controller {
 		$query = $this->get_request_param( 'query', '' );
 
 		if ( empty( $query ) ) {
-			$this->send_error( __( 'Search query is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Search query is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		$library = new Function_Snippets();
@@ -674,7 +674,7 @@ class Functions_Controller extends Base_Controller {
 		$description = $this->get_request_param( 'description', '' );
 
 		if ( empty( $snippet_key ) ) {
-			$this->send_error( __( 'Snippet key is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Snippet key is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		$model = new Custom_Function();
@@ -688,14 +688,14 @@ class Functions_Controller extends Base_Controller {
 		);
 
 		if ( ! $function_id ) {
-			$this->send_error( __( 'Failed to import snippet', 'amplified-import-export' ) );
+			$this->send_error( __( 'Failed to import snippet', 'import-export-by-rockstarlab' ) );
 		}
 
 		$function = $model->get( $function_id );
 
 		$this->send_success(
 			[
-				'message'  => __( 'Snippet imported successfully', 'amplified-import-export' ),
+				'message'  => __( 'Snippet imported successfully', 'import-export-by-rockstarlab' ),
 				'function' => $function,
 			]
 		);
@@ -711,21 +711,21 @@ class Functions_Controller extends Base_Controller {
 		}
 
 		// Check if premium
-		$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
 		if ( ! $is_premium ) {
-			$this->send_error( __( 'AI function generation is a premium feature.', 'amplified-import-export' ) );
+			$this->send_error( __( 'AI function generation is a premium feature.', 'import-export-by-rockstarlab' ) );
 		}
 
 		$prompt = $this->get_request_param( 'prompt', '' );
 
 		if ( empty( $prompt ) ) {
-			$this->send_error( __( 'Prompt is required', 'amplified-import-export' ) );
+			$this->send_error( __( 'Prompt is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Import AI helper
 		require_once __DIR__ . '/../Helper/AI_Function_Generator.php';
 		
-		$ai_generator = new \WP_AIE\Helper\AI_Function_Generator();
+		$ai_generator = new \RockStarLab\ImportExport\Helper\AI_Function_Generator();
 		$result       = $ai_generator->generate_function( $prompt );
 
 		if ( is_wp_error( $result ) ) {

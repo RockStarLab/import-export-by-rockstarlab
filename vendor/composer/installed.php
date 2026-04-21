@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
-        'name' => 'rockstarlab/amplified-import-export',
+        'name' => 'rockstarlab/import-export-by-rockstarlab',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'b3d4a00d531b30503550085c8cd0563efe46e52c',
+        'reference' => 'bb945caeac8ded40d4fb03770a641d77fd6058ac',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -55,10 +55,10 @@
             'aliases' => array(),
             'dev_requirement' => true,
         ),
-        'rockstarlab/amplified-import-export' => array(
+        'rockstarlab/import-export-by-rockstarlab' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'b3d4a00d531b30503550085c8cd0563efe46e52c',
+            'reference' => 'bb945caeac8ded40d4fb03770a641d77fd6058ac',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

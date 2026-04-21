@@ -4,10 +4,10 @@
  *
  * Generates PHP transformation functions using AI (OpenAI/Claude)
  *
- * @package WP_AIE\Helper
+ * @package RockStarLab\ImportExport\Helper
  */
 
-namespace WP_AIE\Helper;
+namespace RockStarLab\ImportExport\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -52,19 +52,19 @@ class AI_Function_Generator {
 	 */
 	private function get_api_key() {
 		// First check options (user-defined in Plugin Options page)
-		$api_key = get_option( 'wp_aie_openai_api_key', '' );
+		$api_key = get_option( 'rsl_ie_openai_api_key', '' );
 		
 		if ( ! empty( $api_key ) ) {
 			return $api_key;
 		}
 
-		// Fallback to constant if defined
-		if ( defined( 'WP_AIE_OPENAI_API_KEY' ) ) {
-			return WP_AIE_OPENAI_API_KEY;
-		}
+			// Fallback to constant if defined
+			if ( defined( 'RSL_IE_OPENAI_API_KEY' ) ) {
+				return RSL_IE_OPENAI_API_KEY;
+			}
 
-		return '';
-	}
+			return '';
+		}
 
 	/**
 	 * Check if API key is configured
@@ -73,19 +73,19 @@ class AI_Function_Generator {
 	 */
 	public static function has_api_key() {
 		// Check options first
-		$api_key = get_option( 'wp_aie_openai_api_key', '' );
+		$api_key = get_option( 'rsl_ie_openai_api_key', '' );
 		
 		if ( ! empty( $api_key ) ) {
 			return true;
 		}
 
-		// Check constant
-		if ( defined( 'WP_AIE_OPENAI_API_KEY' ) && ! empty( WP_AIE_OPENAI_API_KEY ) ) {
-			return true;
-		}
+			// Check constant
+			if ( defined( 'RSL_IE_OPENAI_API_KEY' ) && ! empty( RSL_IE_OPENAI_API_KEY ) ) {
+				return true;
+			}
 
-		return false;
-	}
+			return false;
+		}
 
 	/**
 	 * Generate function from prompt
@@ -97,7 +97,7 @@ class AI_Function_Generator {
 		if ( empty( $this->api_key ) ) {
 			return new \WP_Error(
 				'no_api_key',
-				__( 'OpenAI API key is not configured. Please add it to wp-config.php as WP_AIE_OPENAI_API_KEY or configure it in settings.', 'amplified-import-export' )
+				__( 'OpenAI API key is not configured. Please add it to wp-config.php as RSL_IE_OPENAI_API_KEY or configure it in settings.', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -216,7 +216,7 @@ Remember:
 				'api_error',
 				sprintf(
 					/* translators: %s: error message */
-					__( 'Failed to connect to OpenAI API: %s', 'amplified-import-export' ),
+					__( 'Failed to connect to OpenAI API: %s', 'import-export-by-rockstarlab' ),
 					$response->get_error_message()
 				)
 			);
@@ -227,13 +227,13 @@ Remember:
 
 		if ( 200 !== $response_code ) {
 			$error_data = json_decode( $response_body, true );
-			$error_message = $error_data['error']['message'] ?? __( 'Unknown API error', 'amplified-import-export' );
+			$error_message = $error_data['error']['message'] ?? __( 'Unknown API error', 'import-export-by-rockstarlab' );
 
 			return new \WP_Error(
 				'api_error',
 				sprintf(
 					/* translators: 1: HTTP code, 2: error message */
-					__( 'OpenAI API returned error %1$d: %2$s', 'amplified-import-export' ),
+					__( 'OpenAI API returned error %1$d: %2$s', 'import-export-by-rockstarlab' ),
 					$response_code,
 					$error_message
 				)
@@ -245,7 +245,7 @@ Remember:
 		if ( ! isset( $data['choices'][0]['message']['content'] ) ) {
 			return new \WP_Error(
 				'invalid_response',
-				__( 'Invalid response from OpenAI API', 'amplified-import-export' )
+				__( 'Invalid response from OpenAI API', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -274,7 +274,7 @@ Remember:
 				'parse_error',
 				sprintf(
 					/* translators: %s: JSON error message */
-					__( 'Failed to parse AI response: %s', 'amplified-import-export' ),
+					__( 'Failed to parse AI response: %s', 'import-export-by-rockstarlab' ),
 					json_last_error_msg()
 				)
 			);
@@ -283,7 +283,7 @@ Remember:
 		if ( ! isset( $data['code'] ) || empty( $data['code'] ) ) {
 			return new \WP_Error(
 				'missing_code',
-				__( 'AI did not generate valid code', 'amplified-import-export' )
+				__( 'AI did not generate valid code', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -298,7 +298,7 @@ Remember:
 		if ( stripos( $code, 'return' ) === false ) {
 			return new \WP_Error(
 				'invalid_code',
-				__( 'Generated code must contain a return statement', 'amplified-import-export' )
+				__( 'Generated code must contain a return statement', 'import-export-by-rockstarlab' )
 			);
 		}
 

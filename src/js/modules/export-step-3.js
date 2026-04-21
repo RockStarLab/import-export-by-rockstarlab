@@ -1792,7 +1792,7 @@ export default class ExportStep3 {
 			window.open(aieData.functionsUrl, '_blank');
 		} else {
 			// Fallback - go to admin page
-			window.open('/wp-admin/admin.php?page=wp-aie-functions', '_blank');
+			window.open('/wp-admin/admin.php?page=rsl-ie-functions', '_blank');
 		}
 	}
 

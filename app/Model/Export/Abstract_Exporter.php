@@ -4,12 +4,12 @@
  *
  * Base class for all exporters with common functionality
  *
- * @package WP_AIE\Model\Export
+ * @package RockStarLab\ImportExport\Model\Export
  */
 
-namespace WP_AIE\Model\Export;
+namespace RockStarLab\ImportExport\Model\Export;
 
-use WP_AIE\Helper\Data_Transformer;
+use RockStarLab\ImportExport\Helper\Data_Transformer;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -140,11 +140,11 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	public function validate_options( $options ) {
 		// Basic validation - can be extended by child classes
 		if ( isset( $options['limit'] ) && ! is_numeric( $options['limit'] ) ) {
-			return new \WP_Error( 'invalid_limit', __( 'Limit must be a number', 'amplified-import-export' ) );
+			return new \WP_Error( 'invalid_limit', __( 'Limit must be a number', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( isset( $options['offset'] ) && ! is_numeric( $options['offset'] ) ) {
-			return new \WP_Error( 'invalid_offset', __( 'Offset must be a number', 'amplified-import-export' ) );
+			return new \WP_Error( 'invalid_offset', __( 'Offset must be a number', 'import-export-by-rockstarlab' ) );
 		}
 
 		return true;
@@ -201,7 +201,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 		}
 
 		// Initialize Function_Executor
-		$function_executor = new \WP_AIE\Helper\Function_Executor();
+		$function_executor = new \RockStarLab\ImportExport\Helper\Function_Executor();
 
 		foreach ( $field_functions as $field_key => $function_ids ) {
 			// Skip if field doesn't exist in item or no functions assigned

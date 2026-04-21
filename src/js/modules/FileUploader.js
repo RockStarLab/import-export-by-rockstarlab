@@ -72,13 +72,15 @@ export default class FileUploader {
 	 * @returns {Promise}
 	 */
 	async uploadChunk(chunkIndex) {
+		const clientData = window.aieData || window.rslIeData || {};
+
 		const start = chunkIndex * this.chunkSize;
 		const end = Math.min(start + this.chunkSize, this.file.size);
 		const chunk = this.file.slice(start, end);
 
 		const formData = new FormData();
-		formData.append('action', 'aie_upload_chunk');
-		formData.append('nonce', aieData.nonce);
+		formData.append('action', 'rsl_ie_upload_chunk');
+		formData.append('nonce', clientData.nonce || '');
 		formData.append('upload_id', this.uploadId);
 		formData.append('chunk_index', chunkIndex);
 		formData.append('total_chunks', this.totalChunks);
@@ -86,7 +88,7 @@ export default class FileUploader {
 		formData.append('file_size', this.file.size);
 		formData.append('chunk', chunk);
 
-		const response = await fetch(aieData.ajaxUrl, {
+		const response = await fetch(clientData.ajaxUrl || '/wp-admin/admin-ajax.php', {
 			method: 'POST',
 			body: formData,
 			credentials: 'same-origin'
@@ -129,9 +131,11 @@ export default class FileUploader {
 	 * @returns {Promise}
 	 */
 	async finalizeUpload() {
+		const clientData = window.aieData || window.rslIeData || {};
+
 		const formData = new FormData();
-		formData.append('action', 'aie_finalize_upload');
-		formData.append('nonce', aieData.nonce);
+		formData.append('action', 'rsl_ie_finalize_upload');
+		formData.append('nonce', clientData.nonce || '');
 		formData.append('upload_id', this.uploadId);
 		formData.append('file_name', this.file.name);
 		formData.append('file_size', this.file.size);
@@ -144,7 +148,7 @@ export default class FileUploader {
 			}
 		}
 
-		const response = await fetch(aieData.ajaxUrl, {
+		const response = await fetch(clientData.ajaxUrl || '/wp-admin/admin-ajax.php', {
 			method: 'POST',
 			body: formData,
 			credentials: 'same-origin'
@@ -167,20 +171,22 @@ export default class FileUploader {
 	 * Abort current upload
 	 */
 	abort() {
+		const clientData = window.aieData || window.rslIeData || {};
+
 		this.aborted = true;
 		
 		// Clean up on server
-		if (this.uploadId) {
-			const formData = new FormData();
-			formData.append('action', 'aie_abort_upload');
-			formData.append('nonce', aieData.nonce);
-			formData.append('upload_id', this.uploadId);
+			if (this.uploadId) {
+				const formData = new FormData();
+				formData.append('action', 'rsl_ie_abort_upload');
+				formData.append('nonce', clientData.nonce || '');
+				formData.append('upload_id', this.uploadId);
 
-			fetch(aieData.ajaxUrl, {
-				method: 'POST',
-				body: formData,
-				credentials: 'same-origin'
-			}).catch(() => {
+				fetch(clientData.ajaxUrl || '/wp-admin/admin-ajax.php', {
+					method: 'POST',
+					body: formData,
+					credentials: 'same-origin'
+				}).catch(() => {
 				// Ignore errors on abort
 			});
 		}

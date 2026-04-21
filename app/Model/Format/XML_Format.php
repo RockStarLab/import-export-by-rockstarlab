@@ -4,10 +4,10 @@
  *
  * Handles parsing and generation of XML files
  *
- * @package WP_AIE\Model\Format
+ * @package RockStarLab\ImportExport\Model\Format
  */
 
-namespace WP_AIE\Model\Format;
+namespace RockStarLab\ImportExport\Model\Format;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -36,7 +36,7 @@ class XML_Format implements File_Format_Interface {
 	 */
 	public function parse( $file_path, $options = [] ) {
 		if ( ! file_exists( $file_path ) ) {
-			return new \WP_Error( 'file_not_found', __( 'XML file not found', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_not_found', __( 'XML file not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		$item_tag = $options['item_tag'] ?? self::DEFAULT_ITEM;
@@ -46,7 +46,7 @@ class XML_Format implements File_Format_Interface {
 		$result = $reader->open( $file_path );
 
 		if ( ! $result ) {
-			return new \WP_Error( 'file_open_error', __( 'Cannot open XML file', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_open_error', __( 'Cannot open XML file', 'import-export-by-rockstarlab' ) );
 		}
 
 		$data = [];
@@ -77,7 +77,7 @@ class XML_Format implements File_Format_Interface {
 	 */
 	public function parse_chunk( $file_path, $offset, $limit, $options = [] ) {
 		if ( ! file_exists( $file_path ) ) {
-			return new \WP_Error( 'file_not_found', __( 'XML file not found', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_not_found', __( 'XML file not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		$item_tag = $options['item_tag'] ?? self::DEFAULT_ITEM;
@@ -86,7 +86,7 @@ class XML_Format implements File_Format_Interface {
 		$result = $reader->open( $file_path );
 
 		if ( ! $result ) {
-			return new \WP_Error( 'file_open_error', __( 'Cannot open XML file', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_open_error', __( 'Cannot open XML file', 'import-export-by-rockstarlab' ) );
 		}
 
 		$data    = [];
@@ -163,7 +163,7 @@ class XML_Format implements File_Format_Interface {
 			$result = file_put_contents( $file_path, $xml->outputMemory() );
 
 			if ( false === $result ) {
-				return new \WP_Error( 'file_write_error', __( 'Cannot write XML file', 'amplified-import-export' ) );
+				return new \WP_Error( 'file_write_error', __( 'Cannot write XML file', 'import-export-by-rockstarlab' ) );
 			}
 
 			return true;
@@ -195,7 +195,7 @@ class XML_Format implements File_Format_Interface {
 		$result = file_put_contents( $file_path, $xml->outputMemory() );
 
 		if ( false === $result ) {
-			return new \WP_Error( 'file_write_error', __( 'Cannot write XML file', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_write_error', __( 'Cannot write XML file', 'import-export-by-rockstarlab' ) );
 		}
 
 		return true;
@@ -235,17 +235,17 @@ class XML_Format implements File_Format_Interface {
 	 */
 	public function validate( $file_path ) {
 		if ( ! file_exists( $file_path ) ) {
-			return new \WP_Error( 'file_not_found', __( 'XML file not found', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_not_found', __( 'XML file not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( ! is_readable( $file_path ) ) {
-			return new \WP_Error( 'file_not_readable', __( 'XML file is not readable', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_not_readable', __( 'XML file is not readable', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check file extension
 		$extension = strtolower( pathinfo( $file_path, PATHINFO_EXTENSION ) );
 		if ( ! in_array( $extension, $this->get_extensions(), true ) ) {
-			return new \WP_Error( 'invalid_extension', __( 'Invalid XML file extension', 'amplified-import-export' ) );
+			return new \WP_Error( 'invalid_extension', __( 'Invalid XML file extension', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Try to parse with error handling
@@ -267,7 +267,7 @@ class XML_Format implements File_Format_Interface {
 				'xml_invalid',
 				sprintf(
 					/* translators: %s: XML error messages */
-					__( 'Invalid XML: %s', 'amplified-import-export' ),
+					__( 'Invalid XML: %s', 'import-export-by-rockstarlab' ),
 					implode( ', ', $error_messages )
 				)
 			);
@@ -311,7 +311,7 @@ class XML_Format implements File_Format_Interface {
 	 */
 	public function count_rows( $file_path ) {
 		if ( ! file_exists( $file_path ) ) {
-			return new \WP_Error( 'file_not_found', __( 'XML file not found', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_not_found', __( 'XML file not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		$item_tag = self::DEFAULT_ITEM;
@@ -320,7 +320,7 @@ class XML_Format implements File_Format_Interface {
 		$result = $reader->open( $file_path );
 
 		if ( ! $result ) {
-			return new \WP_Error( 'file_open_error', __( 'Cannot open XML file', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_open_error', __( 'Cannot open XML file', 'import-export-by-rockstarlab' ) );
 		}
 
 		$count = 0;
