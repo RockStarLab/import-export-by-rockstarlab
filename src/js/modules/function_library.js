@@ -207,10 +207,10 @@ const FunctionLibrary = {
 		// Check if "Use" button should be shown
 	const currentPage = window.aieData?.currentPage || '';
 	const allowedPages = [
-		'amplified-import-export',
-		'wp-aie-export',
-		'wp-aie-content-sync',
-		'wp-aie-functions', // Add Functions page
+		'import-export-by-rockstarlab',
+		'rsl-ie-export',
+		'rsl-ie-content-sync',
+		'rsl-ie-functions', // Add Functions page
 	];
 	const showUseButton = allowedPages.includes( currentPage );		grid.innerHTML = snippets
 			.map(
@@ -392,9 +392,9 @@ const FunctionLibrary = {
 		if ( useButton ) {
 			const currentPage = window.aieData?.currentPage || '';
 			const allowedPages = [
-				'amplified-import-export',
-				'wp-aie-export',
-				'wp-aie-content-sync',
+				'import-export-by-rockstarlab',
+				'rsl-ie-export',
+				'rsl-ie-content-sync',
 			];
 
 			useButton.style.display = allowedPages.includes( currentPage )

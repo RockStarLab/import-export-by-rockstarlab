@@ -4,10 +4,10 @@
  *
  * Abstract base class for all validation rules using Chain of Responsibility pattern
  *
- * @package WP_AIE\Model\Validator
+ * @package RockStarLab\ImportExport\Model\Validator
  */
 
-namespace WP_AIE\Model\Validator;
+namespace RockStarLab\ImportExport\Model\Validator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -90,7 +90,7 @@ abstract class Validation_Rule {
 	 * @return string Field name or 'Field'
 	 */
 	protected function get_field_name( $context ) {
-		return $context['field_name'] ?? __( 'Field', 'amplified-import-export' );
+		return $context['field_name'] ?? __( 'Field', 'import-export-by-rockstarlab' );
 	}
 
 	/**

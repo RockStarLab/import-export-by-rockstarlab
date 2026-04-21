@@ -4,7 +4,7 @@
 
 // Global button styles for all buttons in the interface
 .aie-modal,
-.amplified-import-export,
+.import-export-by-rockstarlab,
 .aie-functions-table-container {
 	.button,
 	button[type="button"],
@@ -21,7 +21,7 @@
 }
 
 // Functions page container
-#wp-aie-functions {
+#rsl-ie-functions {
 	h1 {
 		display: inline-flex;
 		align-items: center;

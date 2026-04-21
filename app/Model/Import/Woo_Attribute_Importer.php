@@ -45,10 +45,10 @@
  * - Set skip_existing_terms = true
  * - Only new terms (by slug) will be created
  *
- * @package WP_AIE\Model\Import
+ * @package RockStarLab\ImportExport\Model\Import
  */
 
-namespace WP_AIE\Model\Import;
+namespace RockStarLab\ImportExport\Model\Import;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -69,7 +69,7 @@ class Woo_Attribute_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Import WooCommerce product attributes with terms', 'amplified-import-export' );
+		return __( 'Import WooCommerce product attributes with terms', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -104,29 +104,29 @@ class Woo_Attribute_Importer extends Abstract_Importer {
 	public function get_available_fields() {
 		return [
 			'attribute_name'    => [
-				'label'       => __( 'Attribute Name', 'amplified-import-export' ),
-				'description' => __( 'Unique attribute slug (e.g., "color", "size")', 'amplified-import-export' ),
+				'label'       => __( 'Attribute Name', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Unique attribute slug (e.g., "color", "size")', 'import-export-by-rockstarlab' ),
 				'required'    => true,
 			],
 			'attribute_label'   => [
-				'label'       => __( 'Attribute Label', 'amplified-import-export' ),
-				'description' => __( 'Human-readable label (e.g., "Color", "Size")', 'amplified-import-export' ),
+				'label'       => __( 'Attribute Label', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Human-readable label (e.g., "Color", "Size")', 'import-export-by-rockstarlab' ),
 			],
 			'attribute_type'    => [
-				'label'       => __( 'Attribute Type', 'amplified-import-export' ),
-				'description' => __( 'Type of attribute (select, text)', 'amplified-import-export' ),
+				'label'       => __( 'Attribute Type', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Type of attribute (select, text)', 'import-export-by-rockstarlab' ),
 			],
 			'attribute_orderby' => [
-				'label'       => __( 'Order By', 'amplified-import-export' ),
-				'description' => __( 'Default sort order (menu_order, name, name_num, id)', 'amplified-import-export' ),
+				'label'       => __( 'Order By', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Default sort order (menu_order, name, name_num, id)', 'import-export-by-rockstarlab' ),
 			],
 			'attribute_public'  => [
-				'label'       => __( 'Enable Archives', 'amplified-import-export' ),
-				'description' => __( 'Enable archives for this attribute (0 or 1)', 'amplified-import-export' ),
+				'label'       => __( 'Enable Archives', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Enable archives for this attribute (0 or 1)', 'import-export-by-rockstarlab' ),
 			],
 			'attribute_terms'   => [
-				'label'       => __( 'Attribute Terms', 'amplified-import-export' ),
-				'description' => __( 'JSON array of terms with name, slug, and description OR comma-separated list of term names', 'amplified-import-export' ),
+				'label'       => __( 'Attribute Terms', 'import-export-by-rockstarlab' ),
+				'description' => __( 'JSON array of terms with name, slug, and description OR comma-separated list of term names', 'import-export-by-rockstarlab' ),
 			],
 		];
 	}
@@ -138,9 +138,9 @@ class Woo_Attribute_Importer extends Abstract_Importer {
 	 */
 	public function get_supported_options() {
 		return [
-			'update_existing'     => __( 'Update existing attributes if found', 'amplified-import-export' ),
-			'update_terms'        => __( 'Update existing terms if found', 'amplified-import-export' ),
-			'skip_existing_terms' => __( 'Skip existing terms (don\'t update them)', 'amplified-import-export' ),
+			'update_existing'     => __( 'Update existing attributes if found', 'import-export-by-rockstarlab' ),
+			'update_terms'        => __( 'Update existing terms if found', 'import-export-by-rockstarlab' ),
+			'skip_existing_terms' => __( 'Skip existing terms (don\'t update them)', 'import-export-by-rockstarlab' ),
 		];
 	}
 
@@ -265,7 +265,7 @@ class Woo_Attribute_Importer extends Abstract_Importer {
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			return new \WP_Error(
 				'woocommerce_not_active',
-				__( 'WooCommerce is not active', 'amplified-import-export' )
+				__( 'WooCommerce is not active', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -273,7 +273,7 @@ class Woo_Attribute_Importer extends Abstract_Importer {
 		if ( empty( $item['attribute_name'] ) ) {
 			return new \WP_Error(
 				'missing_attribute_name',
-				__( 'Attribute name is required', 'amplified-import-export' )
+				__( 'Attribute name is required', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -354,7 +354,7 @@ class Woo_Attribute_Importer extends Abstract_Importer {
 				'db_insert_error',
 				sprintf(
 					/* translators: %s: attribute name */
-					__( 'Failed to create attribute: %s', 'amplified-import-export' ),
+					__( 'Failed to create attribute: %s', 'import-export-by-rockstarlab' ),
 					$attribute_name
 				)
 			);
@@ -406,7 +406,7 @@ class Woo_Attribute_Importer extends Abstract_Importer {
 				'db_update_error',
 				sprintf(
 					/* translators: %s: attribute name */
-					__( 'Failed to update attribute: %s', 'amplified-import-export' ),
+					__( 'Failed to update attribute: %s', 'import-export-by-rockstarlab' ),
 					$attribute_name
 				)
 			);
@@ -650,15 +650,15 @@ class Woo_Attribute_Importer extends Abstract_Importer {
 			'name'          => $attribute_name,
 			'singular_name' => $attribute_name,
 			// translators: %s is a dynamic value.
-			'search_items'  => sprintf( __( 'Search %s', 'amplified-import-export' ), $attribute_name ),
+			'search_items'  => sprintf( __( 'Search %s', 'import-export-by-rockstarlab' ), $attribute_name ),
 			// translators: %s is a dynamic value.
-			'all_items'     => sprintf( __( 'All %s', 'amplified-import-export' ), $attribute_name ),
+			'all_items'     => sprintf( __( 'All %s', 'import-export-by-rockstarlab' ), $attribute_name ),
 			// translators: %s is a dynamic value.
-			'edit_item'     => sprintf( __( 'Edit %s', 'amplified-import-export' ), $attribute_name ),
+			'edit_item'     => sprintf( __( 'Edit %s', 'import-export-by-rockstarlab' ), $attribute_name ),
 			// translators: %s is a dynamic value.
-			'update_item'   => sprintf( __( 'Update %s', 'amplified-import-export' ), $attribute_name ),
+			'update_item'   => sprintf( __( 'Update %s', 'import-export-by-rockstarlab' ), $attribute_name ),
 			// translators: %s is a dynamic value.
-			'add_new_item'  => sprintf( __( 'Add new %s', 'amplified-import-export' ), $attribute_name ),
+			'add_new_item'  => sprintf( __( 'Add new %s', 'import-export-by-rockstarlab' ), $attribute_name ),
 		];
 
 		register_taxonomy(
@@ -685,7 +685,7 @@ class Woo_Attribute_Importer extends Abstract_Importer {
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			return new \WP_Error(
 				'woocommerce_not_active',
-				__( 'WooCommerce is not active', 'amplified-import-export' )
+				__( 'WooCommerce is not active', 'import-export-by-rockstarlab' )
 			);
 		}
 

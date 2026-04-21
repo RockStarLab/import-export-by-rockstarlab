@@ -4,10 +4,10 @@
  *
  * Handles importing WordPress navigation menus
  *
- * @package WP_AIE\Model\Import
+ * @package RockStarLab\ImportExport\Model\Import
  */
 
-namespace WP_AIE\Model\Import;
+namespace RockStarLab\ImportExport\Model\Import;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -28,7 +28,7 @@ class Menu_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Import WordPress navigation menus', 'amplified-import-export' );
+		return __( 'Import WordPress navigation menus', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -58,26 +58,26 @@ class Menu_Importer extends Abstract_Importer {
 	public function get_available_fields() {
 		return [
 			'name'        => [
-				'label'       => __( 'Menu Name', 'amplified-import-export' ),
-				'description' => __( 'The name of the menu', 'amplified-import-export' ),
+				'label'       => __( 'Menu Name', 'import-export-by-rockstarlab' ),
+				'description' => __( 'The name of the menu', 'import-export-by-rockstarlab' ),
 				'required'    => true,
 			],
 			'menu_items'  => [
-				'label'       => __( 'Menu Items (Array)', 'amplified-import-export' ),
-				'description' => __( 'JSON array of menu items with hierarchy', 'amplified-import-export' ),
+				'label'       => __( 'Menu Items (Array)', 'import-export-by-rockstarlab' ),
+				'description' => __( 'JSON array of menu items with hierarchy', 'import-export-by-rockstarlab' ),
 				'type'        => 'json',
 			],
 			'slug'        => [
-				'label'       => __( 'Menu Slug', 'amplified-import-export' ),
-				'description' => __( 'URL-friendly menu identifier', 'amplified-import-export' ),
+				'label'       => __( 'Menu Slug', 'import-export-by-rockstarlab' ),
+				'description' => __( 'URL-friendly menu identifier', 'import-export-by-rockstarlab' ),
 			],
 			'description' => [
-				'label'       => __( 'Description', 'amplified-import-export' ),
-				'description' => __( 'Menu description', 'amplified-import-export' ),
+				'label'       => __( 'Description', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Menu description', 'import-export-by-rockstarlab' ),
 			],
 			'count'       => [
-				'label'       => __( 'Item Count', 'amplified-import-export' ),
-				'description' => __( 'Number of menu items (informational)', 'amplified-import-export' ),
+				'label'       => __( 'Item Count', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Number of menu items (informational)', 'import-export-by-rockstarlab' ),
 			],
 		];
 	}
@@ -265,7 +265,7 @@ class Menu_Importer extends Abstract_Importer {
 		if ( empty( $data ) || ! is_array( $data ) ) {
 			return new \WP_Error(
 				'invalid_data',
-				__( 'Menu data is empty or invalid', 'amplified-import-export' )
+				__( 'Menu data is empty or invalid', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -275,7 +275,7 @@ class Menu_Importer extends Abstract_Importer {
 					'invalid_item',
 					sprintf(
 						/* translators: %d: row number */
-						__( 'Row %d is not a valid array', 'amplified-import-export' ),
+						__( 'Row %d is not a valid array', 'import-export-by-rockstarlab' ),
 						$index + 1
 					)
 				);
@@ -286,7 +286,7 @@ class Menu_Importer extends Abstract_Importer {
 					'missing_required_field',
 					sprintf(
 						/* translators: %d: row number */
-						__( 'Row %d is missing required field: name', 'amplified-import-export' ),
+						__( 'Row %d is missing required field: name', 'import-export-by-rockstarlab' ),
 						$index + 1
 					)
 				);
@@ -332,7 +332,7 @@ class Menu_Importer extends Abstract_Importer {
 	protected function create_menu( $item ) {
 		// Validate menu name
 		if ( empty( $item['name'] ) ) {
-			$error = new \WP_Error( 'empty_menu_name', __( 'Menu name is required', 'amplified-import-export' ) );
+			$error = new \WP_Error( 'empty_menu_name', __( 'Menu name is required', 'import-export-by-rockstarlab' ) );
 			$this->log_error( sprintf( 'Failed to create menu: %s', $error->get_error_message() ), $item );
 			return $error;
 		}
@@ -479,7 +479,7 @@ class Menu_Importer extends Abstract_Importer {
 	protected function import_single_menu_item( $menu_id, $item, $id_map ) {
 		// Validate menu item has title
 		if ( empty( $item['title'] ) ) {
-			$error = new \WP_Error( 'empty_menu_item_title', __( 'Menu item title is required', 'amplified-import-export' ) );
+			$error = new \WP_Error( 'empty_menu_item_title', __( 'Menu item title is required', 'import-export-by-rockstarlab' ) );
 			$this->log_error( 'Failed to import menu item: title is empty', $item );
 			return $error;
 		}

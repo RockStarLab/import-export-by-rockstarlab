@@ -3,10 +3,10 @@
  * Chunk Upload Handler
  * Handles chunked file uploads to bypass PHP upload limits
  *
- * @package WP_AIE\Helper
+ * @package RockStarLab\ImportExport\Helper
  */
 
-namespace WP_AIE\Helper;
+namespace RockStarLab\ImportExport\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -31,24 +31,24 @@ private $upload_dir;
  */
 public function __construct() {
 $upload_dir       = wp_upload_dir();
-$this->upload_dir = trailingslashit( $upload_dir['basedir'] ) . 'wp-aie-imports/';
-$this->chunks_dir = trailingslashit( $upload_dir['basedir'] ) . 'wp-aie-chunks/';
+$this->upload_dir = trailingslashit( $upload_dir['basedir'] ) . 'rsl-ie-imports/';
+$this->chunks_dir = trailingslashit( $upload_dir['basedir'] ) . 'rsl-ie-chunks/';
 
 // Create directories if they don't exist
 $this->ensure_directories();
 
 // Register AJAX handlers
-add_action( 'wp_ajax_aie_upload_chunk', array( $this, 'handle_chunk_upload' ) );
-add_action( 'wp_ajax_aie_finalize_upload', array( $this, 'handle_finalize_upload' ) );
-add_action( 'wp_ajax_aie_abort_upload', array( $this, 'handle_abort_upload' ) );
-add_action( 'wp_ajax_aie_reload_preview', array( $this, 'handle_reload_preview' ) );
-add_action( 'wp_ajax_aie_get_custom_post_types', array( $this, 'handle_get_custom_post_types' ) );
+add_action( 'wp_ajax_rsl_ie_upload_chunk', array( $this, 'handle_chunk_upload' ) );
+add_action( 'wp_ajax_rsl_ie_finalize_upload', array( $this, 'handle_finalize_upload' ) );
+add_action( 'wp_ajax_rsl_ie_abort_upload', array( $this, 'handle_abort_upload' ) );
+add_action( 'wp_ajax_rsl_ie_reload_preview', array( $this, 'handle_reload_preview' ) );
+add_action( 'wp_ajax_rsl_ie_get_custom_post_types', array( $this, 'handle_get_custom_post_types' ) );
 
 // Schedule cleanup
-if ( ! wp_next_scheduled( 'aie_cleanup_old_chunks' ) ) {
-wp_schedule_event( time(), 'daily', 'aie_cleanup_old_chunks' );
+if ( ! wp_next_scheduled( 'rsl_ie_cleanup_old_chunks' ) ) {
+wp_schedule_event( time(), 'daily', 'rsl_ie_cleanup_old_chunks' );
 }
-add_action( 'aie_cleanup_old_chunks', array( $this, 'cleanup_old_chunks' ) );
+add_action( 'rsl_ie_cleanup_old_chunks', array( $this, 'cleanup_old_chunks' ) );
 }
 
 /**
@@ -72,10 +72,10 @@ file_put_contents( $this->chunks_dir . 'index.php', '<?php // Silence is golden'
  * Handle chunk upload AJAX request
  */
 public function handle_chunk_upload() {
-check_ajax_referer( 'aie_nonce', 'nonce' );
+check_ajax_referer( 'rsl_ie_nonce', 'nonce' );
 
 if ( ! current_user_can( 'manage_options' ) ) {
-wp_send_json_error( __( 'Insufficient permissions', 'amplified-import-export' ) );
+wp_send_json_error( __( 'Insufficient permissions', 'import-export-by-rockstarlab' ) );
 }
 
 // Validate required parameters
@@ -86,7 +86,7 @@ $file_name    = sanitize_file_name( wp_unslash( $_POST['file_name'] ?? '' ) ); /
 $file_size    = absint( $_POST['file_size'] ?? 0 );
 
 if ( empty( $upload_id ) || empty( $file_name ) || $total_chunks === 0 ) {
-wp_send_json_error( __( 'Invalid parameters', 'amplified-import-export' ) );
+wp_send_json_error( __( 'Invalid parameters', 'import-export-by-rockstarlab' ) );
 }
 
 // Validate file extension
@@ -94,12 +94,12 @@ $allowed_extensions = array( 'csv' );
 $file_extension     = strtolower( pathinfo( $file_name, PATHINFO_EXTENSION ) );
 
 if ( ! in_array( $file_extension, $allowed_extensions, true ) ) {
-wp_send_json_error( __( 'Invalid file type. Only CSV files are allowed.', 'amplified-import-export' ) );
+wp_send_json_error( __( 'Invalid file type. Only CSV files are allowed.', 'import-export-by-rockstarlab' ) );
 }
 
 // Check if chunk file was uploaded
 if ( ! isset( $_FILES['chunk'] ) || $_FILES['chunk']['error'] !== UPLOAD_ERR_OK ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
-wp_send_json_error( __( 'Failed to upload chunk', 'amplified-import-export' ) );
+wp_send_json_error( __( 'Failed to upload chunk', 'import-export-by-rockstarlab' ) );
 }
 
 // Create upload directory for this upload
@@ -119,15 +119,46 @@ file_put_contents( $upload_path . 'metadata.json', wp_json_encode( $metadata ) )
 }
 
 // Save chunk
-$chunk_file = $upload_path . 'chunk_' . str_pad( $chunk_index, 6, '0', STR_PAD_LEFT );
+$chunk_filename = 'chunk_' . str_pad( $chunk_index, 6, '0', STR_PAD_LEFT ) . '.csv';
+$chunk_file     = $upload_path . $chunk_filename;
 
 if ( ! isset( $_FILES['chunk']['tmp_name'] ) || ! is_uploaded_file( $_FILES['chunk']['tmp_name'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- File upload validated above.
-wp_send_json_error( __( 'Invalid file upload', 'amplified-import-export' ) );
+wp_send_json_error( __( 'Invalid file upload', 'import-export-by-rockstarlab' ) );
 }
 
-// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- move_uploaded_file is the correct function for handling uploaded files.
-if ( ! move_uploaded_file( $_FILES['chunk']['tmp_name'], $chunk_file ) ) { // phpcs:ignore Generic.PHP.ForbiddenFunctions.Found,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- move_uploaded_file required for secure file handling.
-wp_send_json_error( __( 'Failed to save chunk', 'amplified-import-export' ) );
+// Use WordPress upload handler for core checks/filters.
+if ( file_exists( $chunk_file ) ) {
+	wp_delete_file( $chunk_file );
+}
+
+// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- Uploaded file array validated above.
+$chunk_upload         = $_FILES['chunk'];
+$chunk_upload['name'] = $chunk_filename;
+
+$upload_dir = wp_upload_dir();
+$chunk_url  = str_replace( $upload_dir['basedir'], $upload_dir['baseurl'], untrailingslashit( $upload_path ) );
+
+$upload_dir_filter = static function ( $dirs ) use ( $upload_path, $chunk_url ) {
+	$dirs['path']   = untrailingslashit( $upload_path );
+	$dirs['url']    = untrailingslashit( $chunk_url );
+	$dirs['subdir'] = '';
+	return $dirs;
+};
+
+add_filter( 'upload_dir', $upload_dir_filter );
+$upload_result = wp_handle_upload(
+	$chunk_upload,
+	array(
+		'test_form'               => false,
+		'unique_filename_callback' => static function ( $dir, $name, $ext ) use ( $chunk_filename ) {
+			return $chunk_filename;
+		},
+	)
+);
+remove_filter( 'upload_dir', $upload_dir_filter );
+
+if ( isset( $upload_result['error'] ) ) {
+	wp_send_json_error( __( 'Failed to save chunk', 'import-export-by-rockstarlab' ) );
 }
 
 wp_send_json_success(
@@ -135,7 +166,7 @@ array(
 'chunk_index'  => $chunk_index,
 'total_chunks' => $total_chunks,
 // translators: %1$d is current chunk number, %2$d is total chunks count.
-'message'      => sprintf( __( 'Chunk %1$d of %2$d uploaded', 'amplified-import-export' ), $chunk_index + 1, $total_chunks ),
+'message'      => sprintf( __( 'Chunk %1$d of %2$d uploaded', 'import-export-by-rockstarlab' ), $chunk_index + 1, $total_chunks ),
 )
 );
 }
@@ -144,10 +175,10 @@ array(
  * Handle finalize upload AJAX request
  */
 public function handle_finalize_upload() {
-check_ajax_referer( 'aie_nonce', 'nonce' );
+check_ajax_referer( 'rsl_ie_nonce', 'nonce' );
 
 if ( ! current_user_can( 'manage_options' ) ) {
-wp_send_json_error( __( 'Insufficient permissions', 'amplified-import-export' ) );
+wp_send_json_error( __( 'Insufficient permissions', 'import-export-by-rockstarlab' ) );
 }
 
 $upload_id    = sanitize_text_field( wp_unslash( $_POST['upload_id'] ?? '' ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Input is sanitized and validated in context.
@@ -161,21 +192,21 @@ $csv_options = array(
 );
 
 if ( empty( $upload_id ) || empty( $file_name ) ) {
-wp_send_json_error( __( 'Invalid parameters', 'amplified-import-export' ) );
+wp_send_json_error( __( 'Invalid parameters', 'import-export-by-rockstarlab' ) );
 }
 
 $upload_path = $this->chunks_dir . $upload_id . '/';
 
 if ( ! file_exists( $upload_path ) ) {
-wp_send_json_error( __( 'Upload not found', 'amplified-import-export' ) );
+wp_send_json_error( __( 'Upload not found', 'import-export-by-rockstarlab' ) );
 }
 
 // Verify all chunks are present
 for ( $i = 0; $i < $total_chunks; $i++ ) {
-$chunk_file = $upload_path . 'chunk_' . str_pad( $i, 6, '0', STR_PAD_LEFT );
+$chunk_file = $upload_path . 'chunk_' . str_pad( $i, 6, '0', STR_PAD_LEFT ) . '.csv';
 if ( ! file_exists( $chunk_file ) ) {
 // translators: %d is the missing chunk number.
-wp_send_json_error( sprintf( __( 'Chunk %d is missing', 'amplified-import-export' ), $i ) );
+wp_send_json_error( sprintf( __( 'Chunk %d is missing', 'import-export-by-rockstarlab' ), $i ) );
 }
 }
 
@@ -192,19 +223,19 @@ $final_file = $this->upload_dir . $file_name;
 $final_handle = fopen( $final_file, 'wb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Stream required for chunked merge.
 
 if ( ! $final_handle ) {
-wp_send_json_error( __( 'Failed to create final file', 'amplified-import-export' ) );
+wp_send_json_error( __( 'Failed to create final file', 'import-export-by-rockstarlab' ) );
 }
 
 // Merge all chunks
 for ( $i = 0; $i < $total_chunks; $i++ ) {
-$chunk_file = $upload_path . 'chunk_' . str_pad( $i, 6, '0', STR_PAD_LEFT );
+$chunk_file = $upload_path . 'chunk_' . str_pad( $i, 6, '0', STR_PAD_LEFT ) . '.csv';
 $chunk_data = file_get_contents( $chunk_file );
 
 if ( $chunk_data === false ) {
 fclose( $final_handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing stream opened above.
 wp_delete_file( $final_file );
 // translators: %d is the chunk number that failed to read.
-wp_send_json_error( sprintf( __( 'Failed to read chunk %d', 'amplified-import-export' ), $i ) );
+wp_send_json_error( sprintf( __( 'Failed to read chunk %d', 'import-export-by-rockstarlab' ), $i ) );
 }
 
 fwrite( $final_handle, $chunk_data ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- Writing to stream opened above.
@@ -247,7 +278,7 @@ $response = array(
 'preview'    => $preview_data['preview'],
 'total_rows' => $preview_data['total_rows'],
 'columns'    => $preview_data['columns'],
-'message'    => __( 'File uploaded successfully', 'amplified-import-export' ),
+'message'    => __( 'File uploaded successfully', 'import-export-by-rockstarlab' ),
 );
 
 // Add warning if present
@@ -262,31 +293,31 @@ wp_send_json_success( $response );
  * Handle abort upload AJAX request
  */
 public function handle_abort_upload() {
-check_ajax_referer( 'aie_nonce', 'nonce' );
+check_ajax_referer( 'rsl_ie_nonce', 'nonce' );
 
 if ( ! current_user_can( 'manage_options' ) ) {
-wp_send_json_error( __( 'Insufficient permissions', 'amplified-import-export' ) );
+wp_send_json_error( __( 'Insufficient permissions', 'import-export-by-rockstarlab' ) );
 }
 
 $upload_id = sanitize_text_field( wp_unslash( $_POST['upload_id'] ?? '' ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Input is sanitized and validated in context.
 
 if ( empty( $upload_id ) ) {
-wp_send_json_error( __( 'Invalid parameters', 'amplified-import-export' ) );
+wp_send_json_error( __( 'Invalid parameters', 'import-export-by-rockstarlab' ) );
 }
 
 $this->cleanup_upload( $upload_id );
 
-wp_send_json_success( array( 'message' => __( 'Upload aborted', 'amplified-import-export' ) ) );
+wp_send_json_success( array( 'message' => __( 'Upload aborted', 'import-export-by-rockstarlab' ) ) );
 }
 
 /**
  * Handle reload preview AJAX request
  */
 public function handle_reload_preview() {
-check_ajax_referer( 'aie_nonce', 'nonce' );
+check_ajax_referer( 'rsl_ie_nonce', 'nonce' );
 
 if ( ! current_user_can( 'manage_options' ) ) {
-wp_send_json_error( __( 'Insufficient permissions', 'amplified-import-export' ) );
+wp_send_json_error( __( 'Insufficient permissions', 'import-export-by-rockstarlab' ) );
 }
 
 $file_path  = sanitize_text_field( wp_unslash( $_POST['file_path'] ?? '' ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Input is sanitized and validated in context.
@@ -294,7 +325,7 @@ $delimiter  = isset( $_POST['delimiter'] ) ? sanitize_text_field( wp_unslash( $_
 $has_header = isset( $_POST['has_header'] ) ? filter_var( wp_unslash( $_POST['has_header'] ), FILTER_VALIDATE_BOOLEAN ) : true; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Input is sanitized and validated in context.
 
 if ( empty( $file_path ) || ! file_exists( $file_path ) ) {
-wp_send_json_error( __( 'Invalid file path', 'amplified-import-export' ) );
+wp_send_json_error( __( 'Invalid file path', 'import-export-by-rockstarlab' ) );
 }
 
 // Prepare CSV options
@@ -315,7 +346,7 @@ array(
 'preview'    => $preview_data['preview'],
 'columns'    => $preview_data['columns'],
 'total_rows' => $preview_data['total_rows'],
-'message'    => __( 'Preview reloaded successfully', 'amplified-import-export' ),
+'message'    => __( 'Preview reloaded successfully', 'import-export-by-rockstarlab' ),
 )
 );
 }
@@ -419,7 +450,7 @@ $data         = json_decode( $json_content, true );
 
 if ( json_last_error() !== JSON_ERROR_NONE ) {
 return array(
-'error'      => __( 'Invalid JSON format', 'amplified-import-export' ),
+'error'      => __( 'Invalid JSON format', 'import-export-by-rockstarlab' ),
 'preview'    => $preview,
 'total_rows' => 0,
 'columns'    => array(),
@@ -504,7 +535,7 @@ private function validate_json_structure( $data ) {
 if ( ! is_array( $data ) ) {
 return array(
 'valid' => false,
-'error' => __( 'JSON must be an array of objects. Example: [{"field1": "value1"}, {"field2": "value2"}]', 'amplified-import-export' ),
+'error' => __( 'JSON must be an array of objects. Example: [{"field1": "value1"}, {"field2": "value2"}]', 'import-export-by-rockstarlab' ),
 );
 }
 
@@ -512,7 +543,7 @@ return array(
 if ( empty( $data ) ) {
 return array(
 'valid' => false,
-'error' => __( 'JSON file is empty', 'amplified-import-export' ),
+'error' => __( 'JSON file is empty', 'import-export-by-rockstarlab' ),
 );
 }
 
@@ -521,7 +552,7 @@ $first_item = reset( $data );
 if ( ! is_array( $first_item ) ) {
 return array(
 'valid' => false,
-'error' => __( 'JSON must contain an array of objects (associative arrays). Each item should have key-value pairs.', 'amplified-import-export' ),
+'error' => __( 'JSON must contain an array of objects (associative arrays). Each item should have key-value pairs.', 'import-export-by-rockstarlab' ),
 );
 }
 
@@ -529,7 +560,7 @@ return array(
 if ( array_values( $first_item ) === $first_item ) {
 return array(
 'valid' => false,
-'error' => __( 'JSON objects must have named fields (keys). Numeric arrays are not supported.', 'amplified-import-export' ),
+'error' => __( 'JSON objects must have named fields (keys). Numeric arrays are not supported.', 'import-export-by-rockstarlab' ),
 );
 }
 
@@ -544,7 +575,7 @@ return array(
 'valid' => false,
 'error' => sprintf(
 /* translators: %d: current nesting depth */
-__( 'JSON structure is too deeply nested (depth: %d). Maximum allowed: array of flat objects with values. Nested values (objects/arrays) will be imported as serialized data. Example: [{"id": 1, "meta": {"key": "value"}}]', 'amplified-import-export' ),
+__( 'JSON structure is too deeply nested (depth: %d). Maximum allowed: array of flat objects with values. Nested values (objects/arrays) will be imported as serialized data. Example: [{"id": 1, "meta": {"key": "value"}}]', 'import-export-by-rockstarlab' ),
 $max_depth
 ),
 );
@@ -560,7 +591,7 @@ return array(
 'valid' => false,
 'error' => sprintf(
 /* translators: %d: item index */
-__( 'Item at index %d is not an object. All items must be objects with the same structure.', 'amplified-import-export' ),
+__( 'Item at index %d is not an object. All items must be objects with the same structure.', 'import-export-by-rockstarlab' ),
 $index
 ),
 );
@@ -576,7 +607,7 @@ $inconsistent = true;
 // Return success with optional warning
 return array(
 'valid'   => true,
-'warning' => $inconsistent ? __( 'Note: Some objects have different fields. Missing fields will be treated as empty values.', 'amplified-import-export' ) : null,
+'warning' => $inconsistent ? __( 'Note: Some objects have different fields. Missing fields will be treated as empty values.', 'import-export-by-rockstarlab' ) : null,
 );
 }
 
@@ -643,7 +674,7 @@ $this->cleanup_upload( $upload_id );
  */
 public function handle_get_custom_post_types() {
 // Verify nonce
-check_ajax_referer( 'aie_nonce', 'nonce' );
+check_ajax_referer( 'rsl_ie_nonce', 'nonce' );
 
 // Get all public custom post types
 $args = array(

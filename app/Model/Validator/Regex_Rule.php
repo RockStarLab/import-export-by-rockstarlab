@@ -4,10 +4,10 @@
  *
  * Validates values against regular expression patterns
  *
- * @package WP_AIE\Model\Validator
+ * @package RockStarLab\ImportExport\Model\Validator
  */
 
-namespace WP_AIE\Model\Validator;
+namespace RockStarLab\ImportExport\Model\Validator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -48,7 +48,7 @@ class Regex_Rule extends Validation_Rule {
 		if ( empty( $pattern ) ) {
 			return $this->create_error(
 				'no_pattern',
-				__( 'No regex pattern specified', 'amplified-import-export' )
+				__( 'No regex pattern specified', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -61,7 +61,7 @@ class Regex_Rule extends Validation_Rule {
 			if ( empty( $message ) ) {
 				$message = sprintf(
 					/* translators: %s: field name */
-					__( '%s format is invalid', 'amplified-import-export' ),
+					__( '%s format is invalid', 'import-export-by-rockstarlab' ),
 					$field_name
 				);
 			}

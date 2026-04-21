@@ -4,11 +4,11 @@
  *
  * Handles creation and management of custom database tables
  *
- * @package WP_AIE
+ * @package RockStarLab\ImportExport
  * @subpackage Helper
  */
 
-namespace WP_AIE\Helper;
+namespace RockStarLab\ImportExport\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -23,7 +23,7 @@ class Database_Migration {
 	/**
 	 * Database version option name
 	 */
-	const DB_VERSION_OPTION = 'aie_db_version';
+	const DB_VERSION_OPTION = 'rsl_ie_db_version';
 
 	/**
 	 * Create all custom tables
@@ -38,7 +38,7 @@ class Database_Migration {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		// 1. Jobs table - import/export history
-		$sql_jobs = "CREATE TABLE {$prefix}aie_jobs (
+		$sql_jobs = "CREATE TABLE {$prefix}rsl_ie_jobs (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             user_id BIGINT(20) UNSIGNED NOT NULL,
             type ENUM('import', 'export', 'media_sync', 'update') NOT NULL,
@@ -65,7 +65,7 @@ class Database_Migration {
         ) ENGINE=InnoDB $charset_collate;";
 
 		// 2. Field Maps table - saved mapping presets
-		$sql_field_maps = "CREATE TABLE {$prefix}aie_field_maps (
+		$sql_field_maps = "CREATE TABLE {$prefix}rsl_ie_field_maps (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
             data_type VARCHAR(50) NOT NULL,
@@ -77,7 +77,7 @@ class Database_Migration {
         ) ENGINE=InnoDB $charset_collate;";
 
 		// 4. Custom Functions table - user-defined functions
-		$sql_custom_functions = "CREATE TABLE {$prefix}aie_custom_functions (
+		$sql_custom_functions = "CREATE TABLE {$prefix}rsl_ie_custom_functions (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(100) NOT NULL UNIQUE,
             description TEXT,
@@ -98,7 +98,7 @@ class Database_Migration {
         ) ENGINE=InnoDB $charset_collate;";
 
 		// 5. Media Sync table - media folder synchronization
-		$sql_media_sync = "CREATE TABLE {$prefix}aie_media_sync (
+		$sql_media_sync = "CREATE TABLE {$prefix}rsl_ie_media_sync (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             job_id BIGINT(20) UNSIGNED NOT NULL,
             folder_path VARCHAR(500) NOT NULL,
@@ -118,7 +118,7 @@ class Database_Migration {
         ) ENGINE=InnoDB $charset_collate;";
 
 		// 6. Site Connections table - site-to-site connections
-		$sql_site_connections = "CREATE TABLE {$prefix}aie_site_connections (
+		$sql_site_connections = "CREATE TABLE {$prefix}rsl_ie_site_connections (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
             remote_url VARCHAR(500) NOT NULL,
@@ -136,7 +136,7 @@ class Database_Migration {
         ) ENGINE=InnoDB $charset_collate;";
 
 		// 7. Content Sync table - content synchronization history
-		$sql_content_sync = "CREATE TABLE {$prefix}aie_content_sync (
+		$sql_content_sync = "CREATE TABLE {$prefix}rsl_ie_content_sync (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             job_id BIGINT(20) UNSIGNED NOT NULL,
             connection_id BIGINT(20) UNSIGNED NOT NULL,
@@ -155,7 +155,7 @@ class Database_Migration {
         ) ENGINE=InnoDB $charset_collate;";
 
 		// 8. API Keys table - API keys for incoming connections
-		$sql_api_keys = "CREATE TABLE {$prefix}aie_api_keys (
+		$sql_api_keys = "CREATE TABLE {$prefix}rsl_ie_api_keys (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
             api_key VARCHAR(100) NOT NULL UNIQUE,
@@ -187,7 +187,7 @@ class Database_Migration {
 		// Update DB version
 		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
 
-		do_action( 'aie_tables_created' );
+		do_action( 'rsl_ie_tables_created' );
 
 		// Run migrations for existing tables
 		self::maybe_add_progress_column();
@@ -208,7 +208,7 @@ class Database_Migration {
 	private static function maybe_add_progress_column() {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'aie_jobs';
+		$table_name = $wpdb->prefix . 'rsl_ie_jobs';
 
 		// Check if column already exists
 		$column_exists = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
@@ -240,7 +240,7 @@ class Database_Migration {
 	private static function maybe_add_result_column() {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'aie_jobs';
+		$table_name = $wpdb->prefix . 'rsl_ie_jobs';
 
 		// Check if column already exists
 		$column_exists = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
@@ -272,7 +272,7 @@ class Database_Migration {
 	private static function maybe_add_parameters_column() {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'aie_jobs';
+		$table_name = $wpdb->prefix . 'rsl_ie_jobs';
 
 		// Check if column already exists
 		$column_exists = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
@@ -304,7 +304,7 @@ class Database_Migration {
 	private static function maybe_add_started_at_column() {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'aie_jobs';
+		$table_name = $wpdb->prefix . 'rsl_ie_jobs';
 
 		// Check if column already exists
 		$column_exists = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
@@ -336,7 +336,7 @@ class Database_Migration {
 	private static function maybe_add_retries_column() {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'aie_jobs';
+		$table_name = $wpdb->prefix . 'rsl_ie_jobs';
 
 		// Check if column already exists
 		$column_exists = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
@@ -368,7 +368,7 @@ class Database_Migration {
 	private static function maybe_update_type_enum() {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'aie_jobs';
+		$table_name = $wpdb->prefix . 'rsl_ie_jobs';
 
 		// Get current column definition
 		$column_info = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
@@ -403,7 +403,7 @@ class Database_Migration {
 	private static function maybe_add_update_columns() {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'aie_jobs';
+		$table_name = $wpdb->prefix . 'rsl_ie_jobs';
 
 		// Add imported_items column
 		$column_exists = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
@@ -477,15 +477,15 @@ class Database_Migration {
 	 */
 	private static function seed_builtin_functions() {
 		// Check if already seeded (to avoid duplicates on every migration)
-		$seeded_option = 'aie_builtin_functions_seeded';
+		$seeded_option = 'rsl_ie_builtin_functions_seeded';
 		if ( get_option( $seeded_option, false ) ) {
 			return; // Already seeded
 		}
 
 		// Load Custom_Function model and seed
-		if ( class_exists( '\WP_AIE\Model\Custom_Function' ) ) {
+		if ( class_exists( '\RockStarLab\ImportExport\Model\Custom_Function' ) ) {
 			try {
-				$custom_function_model = new \WP_AIE\Model\Custom_Function();
+				$custom_function_model = new \RockStarLab\ImportExport\Model\Custom_Function();
 				$stats                 = $custom_function_model->seed_builtin_functions();
 
 				// Mark as seeded
@@ -517,13 +517,13 @@ class Database_Migration {
 
 		// Drop tables in reverse order (respect foreign keys)
 		$tables = [
-			"{$prefix}aie_content_sync",
-			"{$prefix}aie_site_connections",
-			"{$prefix}aie_media_sync",
-			"{$prefix}aie_api_keys",
-			"{$prefix}aie_custom_functions",
-			"{$prefix}aie_field_maps",
-			"{$prefix}aie_jobs",
+			"{$prefix}rsl_ie_content_sync",
+			"{$prefix}rsl_ie_site_connections",
+			"{$prefix}rsl_ie_media_sync",
+			"{$prefix}rsl_ie_api_keys",
+			"{$prefix}rsl_ie_custom_functions",
+			"{$prefix}rsl_ie_field_maps",
+			"{$prefix}rsl_ie_jobs",
 		];
 
 		foreach ( $tables as $table ) {
@@ -534,7 +534,7 @@ class Database_Migration {
 		// Delete DB version option
 		delete_option( self::DB_VERSION_OPTION );
 
-		do_action( 'aie_tables_dropped' );
+		do_action( 'rsl_ie_tables_dropped' );
 	}
 
 	/**
@@ -546,7 +546,7 @@ class Database_Migration {
 		global $wpdb;
 
 		$prefix = $wpdb->prefix;
-		$table  = "{$prefix}aie_jobs";
+		$table  = "{$prefix}rsl_ie_jobs";
 
 		$result = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 

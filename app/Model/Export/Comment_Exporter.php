@@ -4,10 +4,10 @@
  *
  * Handles exporting WordPress comments
  *
- * @package WP_AIE\Model\Export
+ * @package RockStarLab\ImportExport\Model\Export
  */
 
-namespace WP_AIE\Model\Export;
+namespace RockStarLab\ImportExport\Model\Export;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -28,7 +28,7 @@ class Comment_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WordPress comments', 'amplified-import-export' );
+		return __( 'Export WordPress comments', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -38,15 +38,15 @@ class Comment_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'status'        => __( 'Comment status', 'amplified-import-export' ),
-			'type'          => __( 'Comment type', 'amplified-import-export' ),
-			'post_id'       => __( 'Post ID', 'amplified-import-export' ),
-			'author'        => __( 'Author name or email', 'amplified-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-			'date_query'    => __( 'Date query parameters', 'amplified-import-export' ),
-			'meta_query'    => __( 'Meta query parameters', 'amplified-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
-			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'amplified-import-export' ),
-			'orderby'       => __( 'Order by field', 'amplified-import-export' ),
-			'order'         => __( 'Order direction (ASC or DESC)', 'amplified-import-export' ),
+			'status'        => __( 'Comment status', 'import-export-by-rockstarlab' ),
+			'type'          => __( 'Comment type', 'import-export-by-rockstarlab' ),
+			'post_id'       => __( 'Post ID', 'import-export-by-rockstarlab' ),
+			'author'        => __( 'Author name or email', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+			'date_query'    => __( 'Date query parameters', 'import-export-by-rockstarlab' ),
+			'meta_query'    => __( 'Meta query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
+			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'import-export-by-rockstarlab' ),
+			'orderby'       => __( 'Order by field', 'import-export-by-rockstarlab' ),
+			'order'         => __( 'Order direction (ASC or DESC)', 'import-export-by-rockstarlab' ),
 		];
 	}
 
@@ -372,12 +372,12 @@ class Comment_Exporter extends Abstract_Exporter {
 
 				default:
 					// Allow custom fields via filter
-					$data[ $field ] = apply_filters( 'aie_comment_export_field_value', '', $field, $comment, $options );
+					$data[ $field ] = apply_filters( 'rsl_ie_comment_export_field_value', '', $field, $comment, $options );
 					break;
 			}
 		}
 
-		return apply_filters( 'aie_comment_export_data', $data, $comment, $options );
+		return apply_filters( 'rsl_ie_comment_export_data', $data, $comment, $options );
 	}
 
 	/**
@@ -853,7 +853,7 @@ class Comment_Exporter extends Abstract_Exporter {
 					'invalid_status',
 					sprintf(
 						/* translators: %s: status name */
-						__( 'Invalid comment status: %s', 'amplified-import-export' ),
+						__( 'Invalid comment status: %s', 'import-export-by-rockstarlab' ),
 						$options['status']
 					)
 				);

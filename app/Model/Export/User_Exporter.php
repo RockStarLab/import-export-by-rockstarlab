@@ -4,10 +4,10 @@
  *
  * Handles exporting WordPress users
  *
- * @package WP_AIE\Model\Export
+ * @package RockStarLab\ImportExport\Model\Export
  */
 
-namespace WP_AIE\Model\Export;
+namespace RockStarLab\ImportExport\Model\Export;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -28,7 +28,7 @@ class User_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WordPress users', 'amplified-import-export' );
+		return __( 'Export WordPress users', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -38,14 +38,14 @@ class User_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'role'          => __( 'User role', 'amplified-import-export' ),
-			'role__in'      => __( 'Array of roles', 'amplified-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-			'role__not_in'  => __( 'Array of roles to exclude', 'amplified-import-export' ),
-			'meta_query'    => __( 'Meta query parameters', 'amplified-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
-			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'amplified-import-export' ),
-			'search'        => __( 'Search query', 'amplified-import-export' ),
-			'orderby'       => __( 'Order by field', 'amplified-import-export' ),
-			'order'         => __( 'Order direction (ASC or DESC)', 'amplified-import-export' ),
+			'role'          => __( 'User role', 'import-export-by-rockstarlab' ),
+			'role__in'      => __( 'Array of roles', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+			'role__not_in'  => __( 'Array of roles to exclude', 'import-export-by-rockstarlab' ),
+			'meta_query'    => __( 'Meta query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
+			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'import-export-by-rockstarlab' ),
+			'search'        => __( 'Search query', 'import-export-by-rockstarlab' ),
+			'orderby'       => __( 'Order by field', 'import-export-by-rockstarlab' ),
+			'order'         => __( 'Order direction (ASC or DESC)', 'import-export-by-rockstarlab' ),
 		];
 	}
 
@@ -472,13 +472,13 @@ class User_Exporter extends Abstract_Exporter {
 					}
 				} else {
 					// Allow custom fields via filter
-					$data[ $field ] = apply_filters( 'aie_user_export_field_value', '', $field, $user, $options );
+					$data[ $field ] = apply_filters( 'rsl_ie_user_export_field_value', '', $field, $user, $options );
 				}
 				break;
 		}
 	}
 
-		return apply_filters( 'aie_user_export_data', $data, $user, $options );
+		return apply_filters( 'rsl_ie_user_export_data', $data, $user, $options );
 	}
 
 	/**
@@ -502,7 +502,7 @@ class User_Exporter extends Abstract_Exporter {
 			'dismissed_wp_pointers',
 		];
 
-		$exclude_keys = apply_filters( 'aie_user_export_exclude_meta_keys', $exclude_keys );
+		$exclude_keys = apply_filters( 'rsl_ie_user_export_exclude_meta_keys', $exclude_keys );
 
 		$formatted_meta = [];
 		foreach ( $meta as $key => $values ) {
@@ -1088,7 +1088,7 @@ class User_Exporter extends Abstract_Exporter {
 					'invalid_role',
 					sprintf(
 						/* translators: %s: role name */
-						__( 'Invalid user role: %s', 'amplified-import-export' ),
+						__( 'Invalid user role: %s', 'import-export-by-rockstarlab' ),
 						$options['role']
 					)
 				);

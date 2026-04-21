@@ -4,9 +4,9 @@
  *
  * Singleton class for plugin initialization and global access.
  *
- * @package WP_AIE
+ * @package RockStarLab\ImportExport
  */
-namespace WP_AIE;
+namespace RockStarLab\ImportExport;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -20,7 +20,7 @@ class App {
 	public $Config;
 
 	/**
-	 * @var \WP_AIE\View\View View instance
+	 * @var \RockStarLab\ImportExport\View\View View instance
 	 */
 	public $View;
 
@@ -30,7 +30,7 @@ class App {
 	public $Controller;
 
 	/**
-	 * @var \WP_AIE\Model\Model_Registry Model registry instance
+	 * @var \RockStarLab\ImportExport\Model\Model_Registry Model registry instance
 	 */
 	public $Model;
 
@@ -47,7 +47,7 @@ class App {
 
 	private function __construct() {
 		// Initialize model registry
-		$this->Model = new \WP_AIE\Model\Model_Registry();
+		$this->Model = new \RockStarLab\ImportExport\Model\Model_Registry();
 	}
 
 	private function __clone() {
@@ -58,23 +58,23 @@ class App {
 	 **/
 	public function run() {
 		// Check if database tables exist and create if needed
-		if ( ! \WP_AIE\Helper\Database_Migration::tables_exist() ) {
-			\WP_AIE\Helper\Database_Migration::create_tables();
+		if ( ! \RockStarLab\ImportExport\Helper\Database_Migration::tables_exist() ) {
+			\RockStarLab\ImportExport\Helper\Database_Migration::create_tables();
 		} else {
 			// Check if database needs migration (version changed)
-			$current_version = \WP_AIE\Helper\Database_Migration::get_version();
-			$latest_version  = \WP_AIE\Helper\Database_Migration::DB_VERSION;
+			$current_version = \RockStarLab\ImportExport\Helper\Database_Migration::get_version();
+			$latest_version  = \RockStarLab\ImportExport\Helper\Database_Migration::DB_VERSION;
 
 			if ( version_compare( $current_version, $latest_version, '<' ) ) {
-				\WP_AIE\Helper\Database_Migration::create_tables();
+				\RockStarLab\ImportExport\Helper\Database_Migration::create_tables();
 			}
 		}
 
 		// Initialize Media Hash helper to add MD5 hashes to all uploads
-		\WP_AIE\Helper\Media_Hash::init();
+		\RockStarLab\ImportExport\Helper\Media_Hash::init();
 
 		// Initialize Chunk Upload handler for large file uploads
-		new \WP_AIE\Helper\Chunk_Upload();
+		new \RockStarLab\ImportExport\Helper\Chunk_Upload();
 
 		// Load core classes
 		$this->_dispatch();
@@ -86,10 +86,10 @@ class App {
 	 **/
 	private function _dispatch() {
 
-		$this->Config = require_once WP_AIE_PATH . '/app/config.php';
+		$this->Config = require_once RSL_IE_PATH . '/app/config.php';
 
 		$this->Controller = new \stdClass();
-		$this->View       = new \WP_AIE\View\View();
+		$this->View       = new \RockStarLab\ImportExport\View\View();
 
 		// Load controllers manually
 		$controllers = [
@@ -108,7 +108,7 @@ class App {
 	 **/
 	private function _load_modules( $layer, $dir = '/' ) {
 
-		$directory = WP_AIE_PATH . '/app/' . $layer . $dir;
+		$directory = RSL_IE_PATH . '/app/' . $layer . $dir;
 		$handle    = opendir( $directory );
 
 		if ( count( glob( "$directory/*" ) ) === 0 ) {
@@ -124,7 +124,7 @@ class App {
 
 				// Avoid recursion
 				if ( $class !== get_class( $this ) ) {
-					$classPath            = "\\WP_AIE\\{$layer}\\{$class}";
+					$classPath            = "\\RockStarLab\ImportExport\\{$layer}\\{$class}";
 					$this->$layer->$class = new $classPath();
 				}
 			}
@@ -136,7 +136,7 @@ class App {
 	 */
 	private function _load_controllers( $list ) {
 
-		$directory = WP_AIE_PATH . '/app/Controller/';
+		$directory = RSL_IE_PATH . '/app/Controller/';
 
 		foreach ( $list as $controller_name ) {
 
@@ -146,7 +146,7 @@ class App {
 
 				// Avoid recursion
 				if ( $class !== get_class( $this ) ) {
-					$classPath                          = "\\WP_AIE\\Controller\\{$class}";
+					$classPath                          = "\\RockStarLab\ImportExport\\Controller\\{$class}";
 					$this->Controller->$controller_name = new $classPath();
 				}
 			}

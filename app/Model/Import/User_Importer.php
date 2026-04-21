@@ -4,10 +4,10 @@
  *
  * Handles importing WordPress users
  *
- * @package WP_AIE\Model\Import
+ * @package RockStarLab\ImportExport\Model\Import
  */
 
-namespace WP_AIE\Model\Import;
+namespace RockStarLab\ImportExport\Model\Import;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -28,7 +28,7 @@ class User_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Import WordPress users with roles, meta, and ACF fields', 'amplified-import-export' );
+		return __( 'Import WordPress users with roles, meta, and ACF fields', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -265,7 +265,7 @@ class User_Importer extends Abstract_Importer {
 		if ( empty( $userdata['user_login'] ) ) {
 			return new \WP_Error(
 				'missing_user_login',
-				__( 'User login is required for creating a new user', 'amplified-import-export' )
+				__( 'User login is required for creating a new user', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -280,7 +280,7 @@ class User_Importer extends Abstract_Importer {
 				'invalid_email',
 				sprintf(
 					/* translators: %s: email address */
-					__( 'Invalid email address: %s', 'amplified-import-export' ),
+					__( 'Invalid email address: %s', 'import-export-by-rockstarlab' ),
 					$userdata['user_email']
 				)
 			);
@@ -331,7 +331,7 @@ class User_Importer extends Abstract_Importer {
 				'user_not_found',
 				sprintf(
 					/* translators: %d: user ID */
-					__( 'User with ID %d not found', 'amplified-import-export' ),
+					__( 'User with ID %d not found', 'import-export-by-rockstarlab' ),
 					$user_id
 				)
 			);
@@ -352,7 +352,7 @@ class User_Importer extends Abstract_Importer {
 				'invalid_email',
 				sprintf(
 					/* translators: %s: email address */
-					__( 'Invalid email address: %s', 'amplified-import-export' ),
+					__( 'Invalid email address: %s', 'import-export-by-rockstarlab' ),
 					$userdata['user_email']
 				)
 			);
@@ -724,7 +724,7 @@ class User_Importer extends Abstract_Importer {
 		if ( empty( $data ) || ! is_array( $data ) ) {
 			return new \WP_Error(
 				'empty_data',
-				__( 'No data provided for import', 'amplified-import-export' )
+				__( 'No data provided for import', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -740,7 +740,7 @@ class User_Importer extends Abstract_Importer {
 		if ( ! $has_valid_item ) {
 			return new \WP_Error(
 				'missing_required_fields',
-				__( 'No items with required field "user_login" found', 'amplified-import-export' )
+				__( 'No items with required field "user_login" found', 'import-export-by-rockstarlab' )
 			);
 		}
 

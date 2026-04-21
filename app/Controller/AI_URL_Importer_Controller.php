@@ -5,13 +5,13 @@
  * Handles AI-powered content extraction from URLs
  * Premium feature requiring OpenAI API key
  *
- * @package WP_AIE\Controller
+ * @package RockStarLab\ImportExport\Controller
  */
 
-namespace WP_AIE\Controller;
+namespace RockStarLab\ImportExport\Controller;
 
-use WP_AIE\Helper\AI_Content_Extractor;
-use WP_AIE\Model\Job;
+use RockStarLab\ImportExport\Helper\AI_Content_Extractor;
+use RockStarLab\ImportExport\Model\Job;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -70,18 +70,18 @@ class AI_URL_Importer_Controller extends Base_Controller {
 	 */
 	private function check_feature_availability() {
 		// Check if premium
-			if ( ! function_exists( 'aie_fs' ) || ! aie_fs()->can_use_premium_code() ) {
+			if ( ! function_exists( 'rsl_ie_fs' ) || ! rsl_ie_fs()->can_use_premium_code() ) {
 				return new \WP_Error(
 					'premium_required',
-					__( 'AI URL Importer is a premium feature. Please upgrade to access this functionality.', 'amplified-import-export' )
+					__( 'AI URL Importer is a premium feature. Please upgrade to access this functionality.', 'import-export-by-rockstarlab' )
 				);
 		}
 
 		// Check if OpenAI API key is set
-		if ( ! \WP_AIE\Helper\AI_Function_Generator::has_api_key() ) {
+		if ( ! \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_key() ) {
 			return new \WP_Error(
 				'api_key_required',
-				__( 'OpenAI API key is required. Please add your API key in Plugin Options.', 'amplified-import-export' )
+				__( 'OpenAI API key is required. Please add your API key in Plugin Options.', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -111,7 +111,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 
 		$this->send_success(
 			array(
-				'message' => __( 'OpenAI API connection successful!', 'amplified-import-export' ),
+				'message' => __( 'OpenAI API connection successful!', 'import-export-by-rockstarlab' ),
 				'model'   => $test_result,
 			)
 		);
@@ -135,7 +135,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 
 		if ( empty( $url ) ) {
 			$this->send_error(
-				new \WP_Error( 'missing_url', __( 'URL is required', 'amplified-import-export' ) )
+				new \WP_Error( 'missing_url', __( 'URL is required', 'import-export-by-rockstarlab' ) )
 			);
 		}
 
@@ -163,7 +163,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 		// Check if ACF is active
 		if ( ! function_exists( 'acf_get_field_groups' ) ) {
 			$this->send_error(
-				new \WP_Error( 'acf_not_active', __( 'ACF plugin is not active', 'amplified-import-export' ) )
+				new \WP_Error( 'acf_not_active', __( 'ACF plugin is not active', 'import-export-by-rockstarlab' ) )
 			);
 		}
 
@@ -309,7 +309,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 
 		if ( empty( $urls ) ) {
 			$this->send_error(
-				new \WP_Error( 'missing_urls', __( 'URLs are required', 'amplified-import-export' ) )
+				new \WP_Error( 'missing_urls', __( 'URLs are required', 'import-export-by-rockstarlab' ) )
 			);
 		}
 
@@ -352,7 +352,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 		$this->send_success(
 			array(
 				'job_id'  => $job_id,
-				'message' => __( 'Import job created successfully', 'amplified-import-export' ),
+				'message' => __( 'Import job created successfully', 'import-export-by-rockstarlab' ),
 			)
 		);
 	}
@@ -376,12 +376,12 @@ class AI_URL_Importer_Controller extends Base_Controller {
 
 		if ( ! $job_id ) {
 			$this->send_error(
-				new \WP_Error( 'missing_job_id', __( 'Job ID is required', 'amplified-import-export' ) )
+				new \WP_Error( 'missing_job_id', __( 'Job ID is required', 'import-export-by-rockstarlab' ) )
 			);
 		}
 
 		// Process the batch
-		$processor = new \WP_AIE\Model\Queue\AI_URL_Import_Processor();
+		$processor = new \RockStarLab\ImportExport\Model\Queue\AI_URL_Import_Processor();
 		$result    = $processor->process( $job_id );
 
 		if ( is_wp_error( $result ) ) {
@@ -405,7 +405,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 
 		if ( ! $job_id ) {
 			$this->send_error(
-				new \WP_Error( 'missing_job_id', __( 'Job ID is required', 'amplified-import-export' ) )
+				new \WP_Error( 'missing_job_id', __( 'Job ID is required', 'import-export-by-rockstarlab' ) )
 			);
 		}
 
@@ -415,7 +415,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 
 		if ( ! $job ) {
 			$this->send_error(
-				new \WP_Error( 'job_not_found', __( 'Job not found', 'amplified-import-export' ) )
+				new \WP_Error( 'job_not_found', __( 'Job not found', 'import-export-by-rockstarlab' ) )
 			);
 		}
 

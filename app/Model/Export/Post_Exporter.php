@@ -4,10 +4,10 @@
  *
  * Handles exporting WordPress posts, pages, and custom post types
  *
- * @package WP_AIE\Model\Export
+ * @package RockStarLab\ImportExport\Model\Export
  */
 
-namespace WP_AIE\Model\Export;
+namespace RockStarLab\ImportExport\Model\Export;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -34,7 +34,7 @@ class Post_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WordPress posts, pages, and custom post types', 'amplified-import-export' );
+		return __( 'Export WordPress posts, pages, and custom post types', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -44,17 +44,17 @@ class Post_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'post_type'     => __( 'Post type (post, page, or custom post type)', 'amplified-import-export' ),
-			'post_status'   => __( 'Post status (publish, draft, pending, etc.)', 'amplified-import-export' ),
-			'author'        => __( 'Author ID or array of IDs', 'amplified-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-			'date_query'    => __( 'Date query parameters', 'amplified-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-			'tax_query'     => __( 'Taxonomy query parameters', 'amplified-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- tax_query required for filtering.
-			'meta_query'    => __( 'Meta query parameters', 'amplified-import-export' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
-			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'amplified-import-export' ),
-			'taxonomy'      => __( 'Taxonomy filters: array of [taxonomy, terms, condition]', 'amplified-import-export' ),
-			's'             => __( 'Search query', 'amplified-import-export' ),
-			'orderby'       => __( 'Order by field', 'amplified-import-export' ),
-			'order'         => __( 'Order direction (ASC or DESC)', 'amplified-import-export' ),
+			'post_type'     => __( 'Post type (post, page, or custom post type)', 'import-export-by-rockstarlab' ),
+			'post_status'   => __( 'Post status (publish, draft, pending, etc.)', 'import-export-by-rockstarlab' ),
+			'author'        => __( 'Author ID or array of IDs', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+			'date_query'    => __( 'Date query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+			'tax_query'     => __( 'Taxonomy query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- tax_query required for filtering.
+			'meta_query'    => __( 'Meta query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
+			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'import-export-by-rockstarlab' ),
+			'taxonomy'      => __( 'Taxonomy filters: array of [taxonomy, terms, condition]', 'import-export-by-rockstarlab' ),
+			's'             => __( 'Search query', 'import-export-by-rockstarlab' ),
+			'orderby'       => __( 'Order by field', 'import-export-by-rockstarlab' ),
+			'order'         => __( 'Order direction (ASC or DESC)', 'import-export-by-rockstarlab' ),
 		];
 	}
 

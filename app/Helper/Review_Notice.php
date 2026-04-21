@@ -6,12 +6,12 @@
  * Appears only on plugin pages, 1 week after installation.
  *
  * 🔑 Secret test URL (bypass the 1-week wait):
- *    /wp-admin/admin.php?page=amplified-import-export&aie_review_test=1
+ *    /wp-admin/admin.php?page=import-export-by-rockstarlab&rsl_ie_review_test=1
  *
- * @package WP_AIE\Helper
+ * @package RockStarLab\ImportExport\Helper
  */
 
-namespace WP_AIE\Helper;
+namespace RockStarLab\ImportExport\Helper;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -20,17 +20,17 @@ class Review_Notice {
 	/**
 	 * Option key — stores whether the notice was dismissed.
 	 */
-	const OPTION_DISMISSED = 'wp_aie_review_dismissed';
+	const OPTION_DISMISSED = 'rsl_ie_review_dismissed';
 
 	/**
 	 * Option key — stores the Unix timestamp of first activation.
 	 */
-	const OPTION_INSTALL_DATE = 'wp_aie_install_date';
+	const OPTION_INSTALL_DATE = 'rsl_ie_install_date';
 
 	/**
 	 * WordPress.org review URL for this plugin.
 	 */
-	const REVIEW_URL = 'https://wordpress.org/support/plugin/amplified-import-export/reviews/#new-post';
+	const REVIEW_URL = 'https://wordpress.org/support/plugin/import-export-by-rockstarlab/reviews/#new-post';
 
 	/**
 	 * All admin page slugs that belong to this plugin.
@@ -38,16 +38,16 @@ class Review_Notice {
 	 * @var string[]
 	 */
 	private static array $plugin_pages = [
-		'amplified-import-export',
-		'wp-aie-import',
-		'wp-aie-export',
-		'wp-aie-content-sync',
-		'wp-aie-content-updater',
-		'wp-aie-jobs-log',
-		'wp-aie-media-sync',
-		'wp-aie-ai-url-importer',
-		'wp-aie-functions',
-		'wp-aie-plugin-options',
+		'import-export-by-rockstarlab',
+		'rsl-ie-import',
+		'rsl-ie-export',
+		'rsl-ie-content-sync',
+		'rsl-ie-content-updater',
+		'rsl-ie-jobs-log',
+		'rsl-ie-media-sync',
+		'rsl-ie-ai-url-importer',
+		'rsl-ie-functions',
+		'rsl-ie-plugin-options',
 	];
 
 	/**
@@ -56,7 +56,7 @@ class Review_Notice {
 	public static function init(): void {
 		add_action( 'admin_notices', [ __CLASS__, 'maybe_show_notice' ] );
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_assets' ] );
-		add_action( 'wp_ajax_aie_dismiss_review_notice', [ __CLASS__, 'handle_dismiss' ] );
+		add_action( 'wp_ajax_rsl_ie_dismiss_review_notice', [ __CLASS__, 'handle_dismiss' ] );
 	}
 
 	/**
@@ -83,8 +83,8 @@ class Review_Notice {
 	 * Check if enough time has passed (or the secret test param is present).
 	 */
 	private static function is_ready_to_show(): bool {
-		// 🔑 Secret test bypass: ?aie_review_test=1
-		if ( isset( $_GET['aie_review_test'] ) && '1' === $_GET['aie_review_test'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified via verify_request().
+		// 🔑 Secret test bypass: ?rsl_ie_review_test=1
+		if ( isset( $_GET['rsl_ie_review_test'] ) && '1' === $_GET['rsl_ie_review_test'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified via verify_request().
 			return true;
 		}
 
@@ -107,7 +107,7 @@ class Review_Notice {
 			return;
 		}
 
-		$is_test = isset( $_GET['aie_review_test'] ) && '1' === $_GET['aie_review_test']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified via verify_request().
+		$is_test = isset( $_GET['rsl_ie_review_test'] ) && '1' === $_GET['rsl_ie_review_test']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified via verify_request().
 
 		// 🔑 Test mode: wipe dismiss flag so the notice always appears
 		if ( $is_test ) {
@@ -146,7 +146,7 @@ class Review_Notice {
 	 * AJAX handler — saves the dismissed flag and sends JSON success.
 	 */
 	public static function handle_dismiss(): void {
-		check_ajax_referer( 'aie_dismiss_review', 'nonce' );
+		check_ajax_referer( 'rsl_ie_dismiss_review', 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( [ 'message' => 'Unauthorized' ], 403 );
@@ -163,17 +163,17 @@ class Review_Notice {
 	 * Output the notice HTML.
 	 */
 	public static function render(): void {
-		$nonce = wp_create_nonce( 'aie_dismiss_review' );
+		$nonce = wp_create_nonce( 'rsl_ie_dismiss_review' );
 		?>
 		<div class="aie-review-notice" id="aie-review-notice" data-nonce="<?php echo esc_attr( $nonce ); ?>">
 
 			<div class="aie-review-notice__body">
 				<span class="aie-review-notice__rating-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
 				<h3 class="aie-review-notice__title">
-					<?php esc_html_e( 'Enjoying Amplified Import Export?', 'amplified-import-export' ); ?>
+					<?php esc_html_e( 'Enjoying Import Export by RockStarLab?', 'import-export-by-rockstarlab' ); ?>
 				</h3>
 				<p class="aie-review-notice__text">
-					<?php esc_html_e( "You've been using the plugin for over a week — awesome! If it's been helpful, would you take 2 minutes to leave a ★★★★★ review on WordPress.org? It keeps us motivated and helps others discover the plugin. 🙏", 'amplified-import-export' ); ?>
+					<?php esc_html_e( "You've been using the plugin for over a week — awesome! If it's been helpful, would you take 2 minutes to leave a ★★★★★ review on WordPress.org? It keeps us motivated and helps others discover the plugin. 🙏", 'import-export-by-rockstarlab' ); ?>
 				</p>
 				<div class="aie-review-notice__actions">
 					<a href="<?php echo esc_url( self::REVIEW_URL ); ?>"
@@ -182,17 +182,17 @@ class Review_Notice {
 					   class="aie-review-notice__btn aie-review-notice__btn--primary aie-review-dismiss"
 					   data-nonce="<?php echo esc_attr( $nonce ); ?>">
 						<span class="dashicons dashicons-external" aria-hidden="true"></span>
-						<?php esc_html_e( 'Yes, I\'d love to! ⭐', 'amplified-import-export' ); ?>
+						<?php esc_html_e( 'Yes, I\'d love to! ⭐', 'import-export-by-rockstarlab' ); ?>
 					</a>
 					<button type="button"
 					        class="aie-review-notice__btn aie-review-notice__btn--secondary aie-review-dismiss"
 					        data-nonce="<?php echo esc_attr( $nonce ); ?>">
-						<?php esc_html_e( 'Maybe later', 'amplified-import-export' ); ?>
+						<?php esc_html_e( 'Maybe later', 'import-export-by-rockstarlab' ); ?>
 					</button>
 					<button type="button"
 					        class="aie-review-notice__btn aie-review-notice__btn--link aie-review-dismiss"
 					        data-nonce="<?php echo esc_attr( $nonce ); ?>">
-						<?php esc_html_e( 'I\'ve already left a review', 'amplified-import-export' ); ?>
+						<?php esc_html_e( 'I\'ve already left a review', 'import-export-by-rockstarlab' ); ?>
 					</button>
 				</div>
 			</div>
@@ -200,7 +200,7 @@ class Review_Notice {
 			<button type="button"
 			        class="aie-review-notice__close aie-review-dismiss"
 			        data-nonce="<?php echo esc_attr( $nonce ); ?>"
-			        aria-label="<?php esc_attr_e( 'Dismiss this notice', 'amplified-import-export' ); ?>">
+			        aria-label="<?php esc_attr_e( 'Dismiss this notice', 'import-export-by-rockstarlab' ); ?>">
 				<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
 			</button>
 
@@ -221,7 +221,7 @@ jQuery(function($) {
         }
         var nonce = $('#aie-review-notice').data('nonce');
         $.post(ajaxurl, {
-            action: 'aie_dismiss_review_notice',
+            action: 'rsl_ie_dismiss_review_notice',
             nonce:  nonce
         });
         $('#aie-review-notice').fadeOut(350, function() {

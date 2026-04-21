@@ -4,10 +4,10 @@
  *
  * Handles importing taxonomy terms (categories, tags, custom taxonomies)
  *
- * @package WP_AIE\Model\Import
+ * @package RockStarLab\ImportExport\Model\Import
  */
 
-namespace WP_AIE\Model\Import;
+namespace RockStarLab\ImportExport\Model\Import;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -35,7 +35,7 @@ class Taxonomy_Term_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Import taxonomy terms (categories, tags, custom taxonomies) with metadata and ACF fields', 'amplified-import-export' );
+		return __( 'Import taxonomy terms (categories, tags, custom taxonomies) with metadata and ACF fields', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -185,14 +185,14 @@ class Taxonomy_Term_Importer extends Abstract_Importer {
 		if ( empty( $item['name'] ) ) {
 			return new \WP_Error(
 				'missing_term_name',
-				__( 'Term name is required', 'amplified-import-export' )
+				__( 'Term name is required', 'import-export-by-rockstarlab' )
 			);
 		}
 
 		if ( empty( $item['taxonomy'] ) ) {
 			return new \WP_Error(
 				'missing_taxonomy',
-				__( 'Taxonomy is required', 'amplified-import-export' )
+				__( 'Taxonomy is required', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -213,7 +213,7 @@ class Taxonomy_Term_Importer extends Abstract_Importer {
 					'taxonomy_not_found',
 					sprintf(
 						/* translators: %s: taxonomy name */
-						__( 'Taxonomy "%s" does not exist', 'amplified-import-export' ),
+						__( 'Taxonomy "%s" does not exist', 'import-export-by-rockstarlab' ),
 						$taxonomy
 					)
 				);
@@ -395,7 +395,7 @@ class Taxonomy_Term_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	private function get_job_id_map_key() {
-		return 'aie_import_term_id_map_' . absint( $this->job_id );
+		return 'rsl_ie_import_term_id_map_' . absint( $this->job_id );
 	}
 
 	/**

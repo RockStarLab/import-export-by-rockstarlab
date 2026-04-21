@@ -4,10 +4,10 @@
  *
  * Automatically adds MD5 hash to all media uploads for duplicate detection
  *
- * @package WP_AIE\Helper
+ * @package RockStarLab\ImportExport\Helper
  */
 
-namespace WP_AIE\Helper;
+namespace RockStarLab\ImportExport\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -48,9 +48,9 @@ class Media_Hash {
 		// Calculate and store MD5 hash
 		$hash = md5_file( $file_path );
 		if ( $hash ) {
-			update_post_meta( $attachment_id, 'aie_file_hash', $hash );
-			update_post_meta( $attachment_id, 'aie_file_size', filesize( $file_path ) );
-			update_post_meta( $attachment_id, 'aie_hash_added', current_time( 'mysql' ) );
+			update_post_meta( $attachment_id, 'rsl_ie_file_hash', $hash );
+			update_post_meta( $attachment_id, 'rsl_ie_file_size', filesize( $file_path ) );
+			update_post_meta( $attachment_id, 'rsl_ie_hash_added', current_time( 'mysql' ) );
 		}
 
 		return $metadata;
@@ -67,7 +67,7 @@ class Media_Hash {
 	 */
 	public static function add_hash_to_attachment_fallback( $attachment_id ) {
 		// Check if hash already exists (from main hook)
-		$existing_hash = get_post_meta( $attachment_id, 'aie_file_hash', true );
+		$existing_hash = get_post_meta( $attachment_id, 'rsl_ie_file_hash', true );
 		if ( ! empty( $existing_hash ) ) {
 			return; // Already processed
 		}
@@ -81,9 +81,9 @@ class Media_Hash {
 		// Calculate and store MD5 hash
 		$hash = md5_file( $file_path );
 		if ( $hash ) {
-			update_post_meta( $attachment_id, 'aie_file_hash', $hash );
-			update_post_meta( $attachment_id, 'aie_file_size', filesize( $file_path ) );
-			update_post_meta( $attachment_id, 'aie_hash_added', current_time( 'mysql' ) );
+			update_post_meta( $attachment_id, 'rsl_ie_file_hash', $hash );
+			update_post_meta( $attachment_id, 'rsl_ie_file_size', filesize( $file_path ) );
+			update_post_meta( $attachment_id, 'rsl_ie_hash_added', current_time( 'mysql' ) );
 		}
 	}
 
@@ -94,9 +94,9 @@ class Media_Hash {
 	 * @return void
 	 */
 	public static function cleanup_hash_meta( $attachment_id ) {
-		delete_post_meta( $attachment_id, 'aie_file_hash' );
-		delete_post_meta( $attachment_id, 'aie_file_size' );
-		delete_post_meta( $attachment_id, 'aie_hash_added' );
+		delete_post_meta( $attachment_id, 'rsl_ie_file_hash' );
+		delete_post_meta( $attachment_id, 'rsl_ie_file_size' );
+		delete_post_meta( $attachment_id, 'rsl_ie_hash_added' );
 	}
 
 	/**
@@ -111,7 +111,7 @@ class Media_Hash {
 			'post_status'    => 'inherit',
 			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				[
-					'key'   => 'aie_file_hash',
+					'key'   => 'rsl_ie_file_hash',
 					'value' => $hash,
 				],
 			],
@@ -161,7 +161,7 @@ class Media_Hash {
 			'post_status'    => 'inherit',
 			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				[
-					'key'     => 'aie_file_hash',
+					'key'     => 'rsl_ie_file_hash',
 					'compare' => 'NOT EXISTS',
 				],
 			],
@@ -182,9 +182,9 @@ class Media_Hash {
 				if ( $file_path && file_exists( $file_path ) ) {
 					$hash = md5_file( $file_path );
 					if ( $hash ) {
-						update_post_meta( $attachment_id, 'aie_file_hash', $hash );
-						update_post_meta( $attachment_id, 'aie_file_size', filesize( $file_path ) );
-						update_post_meta( $attachment_id, 'aie_hash_added', current_time( 'mysql' ) );
+						update_post_meta( $attachment_id, 'rsl_ie_file_hash', $hash );
+						update_post_meta( $attachment_id, 'rsl_ie_file_size', filesize( $file_path ) );
+						update_post_meta( $attachment_id, 'rsl_ie_hash_added', current_time( 'mysql' ) );
 						++$processed;
 					} else {
 						++$errors;
@@ -201,7 +201,7 @@ class Media_Hash {
 			'post_status'    => 'inherit',
 			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				[
-					'key'     => 'aie_file_hash',
+					'key'     => 'rsl_ie_file_hash',
 					'compare' => 'NOT EXISTS',
 				],
 			],
@@ -241,7 +241,7 @@ class Media_Hash {
 			'post_status'    => 'inherit',
 			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 				[
-					'key'     => 'aie_file_hash',
+					'key'     => 'rsl_ie_file_hash',
 					'compare' => 'EXISTS',
 				],
 			],

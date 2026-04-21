@@ -4,10 +4,10 @@
  *
  * Factory class for creating format handler instances
  *
- * @package WP_AIE\Model\Format
+ * @package RockStarLab\ImportExport\Model\Format
  */
 
-namespace WP_AIE\Model\Format;
+namespace RockStarLab\ImportExport\Model\Format;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -41,7 +41,7 @@ class Format_Factory {
 			'unsupported_format',
 			sprintf(
 				/* translators: %s: file extension */
-				__( 'Unsupported file format: %s', 'amplified-import-export' ),
+				__( 'Unsupported file format: %s', 'import-export-by-rockstarlab' ),
 				$extension
 			)
 		);
@@ -68,7 +68,7 @@ class Format_Factory {
 			'unsupported_mime',
 			sprintf(
 				/* translators: %s: MIME type */
-				__( 'Unsupported MIME type: %s', 'amplified-import-export' ),
+				__( 'Unsupported MIME type: %s', 'import-export-by-rockstarlab' ),
 				$mime_type
 			)
 		);
@@ -84,7 +84,7 @@ class Format_Factory {
 	 */
 	public static function get_handler_by_file( $file_path ) {
 		if ( ! file_exists( $file_path ) ) {
-			return new \WP_Error( 'file_not_found', __( 'File not found', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_not_found', __( 'File not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		$extension = pathinfo( $file_path, PATHINFO_EXTENSION );
@@ -112,7 +112,7 @@ class Format_Factory {
 				'invalid_format',
 				sprintf(
 					/* translators: %s: format name */
-					__( 'Invalid format: %s', 'amplified-import-export' ),
+					__( 'Invalid format: %s', 'import-export-by-rockstarlab' ),
 					$format
 				)
 			);

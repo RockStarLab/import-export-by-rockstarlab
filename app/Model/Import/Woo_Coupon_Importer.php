@@ -37,10 +37,10 @@
  * - Set update_existing = true to update if code exists
  * - Set update_existing = false to skip existing coupons
  *
- * @package WP_AIE\Model\Import
+ * @package RockStarLab\ImportExport\Model\Import
  */
 
-namespace WP_AIE\Model\Import;
+namespace RockStarLab\ImportExport\Model\Import;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -61,7 +61,7 @@ class Woo_Coupon_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Import WooCommerce discount coupons with all settings and restrictions', 'amplified-import-export' );
+		return __( 'Import WooCommerce discount coupons with all settings and restrictions', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -81,85 +81,85 @@ class Woo_Coupon_Importer extends Abstract_Importer {
 	public function get_available_fields() {
 		return [
 			'post_title'                  => [
-				'label'       => __( 'Coupon Code', 'amplified-import-export' ),
-				'description' => __( 'Unique coupon code', 'amplified-import-export' ),
+				'label'       => __( 'Coupon Code', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Unique coupon code', 'import-export-by-rockstarlab' ),
 				'required'    => true,
 			],
 			'post_excerpt'                => [
-				'label'       => __( 'Description', 'amplified-import-export' ),
-				'description' => __( 'Coupon description', 'amplified-import-export' ),
+				'label'       => __( 'Description', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Coupon description', 'import-export-by-rockstarlab' ),
 			],
 			'post_status'                 => [
-				'label'       => __( 'Status', 'amplified-import-export' ),
-				'description' => __( 'Coupon status (publish, draft, pending)', 'amplified-import-export' ),
+				'label'       => __( 'Status', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Coupon status (publish, draft, pending)', 'import-export-by-rockstarlab' ),
 			],
 			'discount_type'               => [
-				'label'       => __( 'Discount Type', 'amplified-import-export' ),
-				'description' => __( 'Type: percent, fixed_cart, fixed_product', 'amplified-import-export' ),
+				'label'       => __( 'Discount Type', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Type: percent, fixed_cart, fixed_product', 'import-export-by-rockstarlab' ),
 			],
 			'coupon_amount'               => [
-				'label'       => __( 'Amount', 'amplified-import-export' ),
-				'description' => __( 'Discount amount', 'amplified-import-export' ),
+				'label'       => __( 'Amount', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Discount amount', 'import-export-by-rockstarlab' ),
 			],
 			'date_expires'                => [
-				'label'       => __( 'Expiry Date', 'amplified-import-export' ),
-				'description' => __( 'Format: YYYY-MM-DD or YYYY-MM-DD HH:MM:SS', 'amplified-import-export' ),
+				'label'       => __( 'Expiry Date', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Format: YYYY-MM-DD or YYYY-MM-DD HH:MM:SS', 'import-export-by-rockstarlab' ),
 			],
 			'usage_limit'                 => [
-				'label'       => __( 'Usage Limit', 'amplified-import-export' ),
-				'description' => __( 'Maximum number of times coupon can be used', 'amplified-import-export' ),
+				'label'       => __( 'Usage Limit', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Maximum number of times coupon can be used', 'import-export-by-rockstarlab' ),
 			],
 			'usage_count'                 => [
-				'label'       => __( 'Usage Count', 'amplified-import-export' ),
-				'description' => __( 'Current number of times coupon has been used', 'amplified-import-export' ),
+				'label'       => __( 'Usage Count', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Current number of times coupon has been used', 'import-export-by-rockstarlab' ),
 			],
 			'usage_limit_per_user'        => [
-				'label'       => __( 'Usage Limit Per User', 'amplified-import-export' ),
-				'description' => __( 'Maximum uses per user', 'amplified-import-export' ),
+				'label'       => __( 'Usage Limit Per User', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Maximum uses per user', 'import-export-by-rockstarlab' ),
 			],
 			'limit_usage_to_x_items'      => [
-				'label'       => __( 'Limit Usage to X Items', 'amplified-import-export' ),
-				'description' => __( 'Limit discount to X items in cart', 'amplified-import-export' ),
+				'label'       => __( 'Limit Usage to X Items', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Limit discount to X items in cart', 'import-export-by-rockstarlab' ),
 			],
 			'individual_use'              => [
-				'label'       => __( 'Individual Use', 'amplified-import-export' ),
-				'description' => __( 'Can\'t be used with other coupons (1 or 0)', 'amplified-import-export' ),
+				'label'       => __( 'Individual Use', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Can\'t be used with other coupons (1 or 0)', 'import-export-by-rockstarlab' ),
 			],
 			'free_shipping'               => [
-				'label'       => __( 'Free Shipping', 'amplified-import-export' ),
-				'description' => __( 'Grant free shipping (1 or 0)', 'amplified-import-export' ),
+				'label'       => __( 'Free Shipping', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Grant free shipping (1 or 0)', 'import-export-by-rockstarlab' ),
 			],
 			'exclude_sale_items'          => [
-				'label'       => __( 'Exclude Sale Items', 'amplified-import-export' ),
-				'description' => __( 'Exclude items on sale (1 or 0)', 'amplified-import-export' ),
+				'label'       => __( 'Exclude Sale Items', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Exclude items on sale (1 or 0)', 'import-export-by-rockstarlab' ),
 			],
 			'product_ids'                 => [
-				'label'       => __( 'Product IDs', 'amplified-import-export' ),
-				'description' => __( 'JSON array or comma-separated product IDs', 'amplified-import-export' ),
+				'label'       => __( 'Product IDs', 'import-export-by-rockstarlab' ),
+				'description' => __( 'JSON array or comma-separated product IDs', 'import-export-by-rockstarlab' ),
 			],
 			'excluded_product_ids'        => [
-				'label'       => __( 'Excluded Product IDs', 'amplified-import-export' ),
-				'description' => __( 'JSON array or comma-separated excluded product IDs', 'amplified-import-export' ),
+				'label'       => __( 'Excluded Product IDs', 'import-export-by-rockstarlab' ),
+				'description' => __( 'JSON array or comma-separated excluded product IDs', 'import-export-by-rockstarlab' ),
 			],
 			'product_categories'          => [
-				'label'       => __( 'Product Categories', 'amplified-import-export' ),
-				'description' => __( 'JSON array or comma-separated category IDs', 'amplified-import-export' ),
+				'label'       => __( 'Product Categories', 'import-export-by-rockstarlab' ),
+				'description' => __( 'JSON array or comma-separated category IDs', 'import-export-by-rockstarlab' ),
 			],
 			'excluded_product_categories' => [
-				'label'       => __( 'Excluded Categories', 'amplified-import-export' ),
-				'description' => __( 'JSON array or comma-separated excluded category IDs', 'amplified-import-export' ),
+				'label'       => __( 'Excluded Categories', 'import-export-by-rockstarlab' ),
+				'description' => __( 'JSON array or comma-separated excluded category IDs', 'import-export-by-rockstarlab' ),
 			],
 			'minimum_amount'              => [
-				'label'       => __( 'Minimum Amount', 'amplified-import-export' ),
-				'description' => __( 'Minimum order amount required', 'amplified-import-export' ),
+				'label'       => __( 'Minimum Amount', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Minimum order amount required', 'import-export-by-rockstarlab' ),
 			],
 			'maximum_amount'              => [
-				'label'       => __( 'Maximum Amount', 'amplified-import-export' ),
-				'description' => __( 'Maximum order amount allowed', 'amplified-import-export' ),
+				'label'       => __( 'Maximum Amount', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Maximum order amount allowed', 'import-export-by-rockstarlab' ),
 			],
 			'allowed_emails'              => [
-				'label'       => __( 'Allowed Emails', 'amplified-import-export' ),
-				'description' => __( 'JSON array or comma-separated email addresses', 'amplified-import-export' ),
+				'label'       => __( 'Allowed Emails', 'import-export-by-rockstarlab' ),
+				'description' => __( 'JSON array or comma-separated email addresses', 'import-export-by-rockstarlab' ),
 			],
 		];
 	}
@@ -181,8 +181,8 @@ class Woo_Coupon_Importer extends Abstract_Importer {
 	 */
 	public function get_supported_options() {
 		return [
-			'update_existing'      => __( 'Update existing coupons if found', 'amplified-import-export' ),
-			'preserve_usage_count' => __( 'Keep existing usage count when updating', 'amplified-import-export' ),
+			'update_existing'      => __( 'Update existing coupons if found', 'import-export-by-rockstarlab' ),
+			'preserve_usage_count' => __( 'Keep existing usage count when updating', 'import-export-by-rockstarlab' ),
 		];
 	}
 
@@ -576,7 +576,7 @@ class Woo_Coupon_Importer extends Abstract_Importer {
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			return new \WP_Error(
 				'woocommerce_not_active',
-				__( 'WooCommerce is not active', 'amplified-import-export' )
+				__( 'WooCommerce is not active', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -584,7 +584,7 @@ class Woo_Coupon_Importer extends Abstract_Importer {
 		if ( empty( $item['post_title'] ) ) {
 			return new \WP_Error(
 				'missing_coupon_code',
-				__( 'Coupon code is required', 'amplified-import-export' )
+				__( 'Coupon code is required', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -718,7 +718,7 @@ class Woo_Coupon_Importer extends Abstract_Importer {
 				'coupon_create_failed',
 				sprintf(
 					/* translators: %s: coupon code */
-					__( 'Failed to create coupon: %s', 'amplified-import-export' ),
+					__( 'Failed to create coupon: %s', 'import-export-by-rockstarlab' ),
 					$item['post_title']
 				)
 			);
@@ -747,7 +747,7 @@ class Woo_Coupon_Importer extends Abstract_Importer {
 				'coupon_not_found',
 				sprintf(
 					/* translators: %s: coupon ID */
-					__( 'Coupon not found: %s', 'amplified-import-export' ),
+					__( 'Coupon not found: %s', 'import-export-by-rockstarlab' ),
 					$coupon_id
 				)
 			);
@@ -937,7 +937,7 @@ class Woo_Coupon_Importer extends Abstract_Importer {
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			return new \WP_Error(
 				'woocommerce_not_active',
-				__( 'WooCommerce is not active', 'amplified-import-export' )
+				__( 'WooCommerce is not active', 'import-export-by-rockstarlab' )
 			);
 		}
 

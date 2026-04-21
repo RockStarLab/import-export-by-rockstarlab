@@ -24,7 +24,7 @@ const ImportModule = {
 	 * Initialize module
 	 */
 	init() {
-		if ( ! jQuery( '#wp-aie-import' ).length ) {
+		if ( ! jQuery( '#rsl-ie-import' ).length ) {
 			return;
 		}
 
@@ -48,7 +48,7 @@ const ImportModule = {
 	 * Bind event handlers
 	 */
 	bindEvents() {
-		const $wizard = jQuery( '#wp-aie-import' );
+		const $wizard = jQuery( '#rsl-ie-import' );
 
 		// Content type filter/search
 		$wizard.on( 'input', '#aie-content-type-search', ( e ) =>
@@ -149,7 +149,7 @@ const ImportModule = {
 	 * Show specific step
 	 */
 	showStep( step ) {
-		const $wizard = jQuery( '#wp-aie-import' );
+		const $wizard = jQuery( '#rsl-ie-import' );
 
 		// Hide all steps
 		$wizard.find( '.aie-step' ).removeClass( 'active' );
@@ -2721,7 +2721,7 @@ const ImportModule = {
 			if ( typeof aieData !== 'undefined' && aieData.functionsUrl ) {
 				window.open( aieData.functionsUrl, '_blank' );
 			} else {
-				window.open( '/wp-admin/admin.php?page=wp-aie-functions', '_blank' );
+				window.open( '/wp-admin/admin.php?page=rsl-ie-functions', '_blank' );
 			}
 		} );
 
@@ -3455,9 +3455,9 @@ const ImportModule = {
 		this.importStartTime = null;
 
 		jQuery(
-			'#wp-aie-import input[type="text"], #wp-aie-import input[type="file"]'
+			'#rsl-ie-import input[type="text"], #rsl-ie-import input[type="file"]'
 		).val( '' );
-		jQuery( '#wp-aie-import input[type="radio"]:first' ).prop(
+		jQuery( '#rsl-ie-import input[type="radio"]:first' ).prop(
 			'checked',
 			true
 		);

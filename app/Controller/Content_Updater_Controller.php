@@ -4,14 +4,14 @@
  *
  * Handles content update operations via AJAX
  *
- * @package WP_AIE\Controller
+ * @package RockStarLab\ImportExport\Controller
  */
 
-namespace WP_AIE\Controller;
+namespace RockStarLab\ImportExport\Controller;
 
-use WP_AIE\Model\Job;
-use WP_AIE\Model\Export\Exporter_Factory;
-use WP_AIE\Model\Queue\Update_Processor;
+use RockStarLab\ImportExport\Model\Job;
+use RockStarLab\ImportExport\Model\Export\Exporter_Factory;
+use RockStarLab\ImportExport\Model\Queue\Update_Processor;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -197,7 +197,7 @@ class Content_Updater_Controller extends Base_Controller {
 			$this->send_error(
 				new \WP_Error(
 					'no_fields_selected',
-					__( 'No fields selected. Please select at least one field to update.', 'amplified-import-export' )
+					__( 'No fields selected. Please select at least one field to update.', 'import-export-by-rockstarlab' )
 				),
 				null,
 				400
@@ -208,7 +208,7 @@ class Content_Updater_Controller extends Base_Controller {
 			$this->send_error(
 				new \WP_Error(
 					'no_functions_assigned',
-					__( 'No functions assigned. Please assign at least one function to a field.', 'amplified-import-export' )
+					__( 'No functions assigned. Please assign at least one function to a field.', 'import-export-by-rockstarlab' )
 				),
 				null,
 				400
@@ -228,7 +228,7 @@ class Content_Updater_Controller extends Base_Controller {
 			$this->send_error(
 				new \WP_Error(
 					'no_functions_assigned',
-					__( 'Please assign at least one function to a field', 'amplified-import-export' )
+					__( 'Please assign at least one function to a field', 'import-export-by-rockstarlab' )
 				),
 				null,
 				400
@@ -246,7 +246,7 @@ class Content_Updater_Controller extends Base_Controller {
 		}
 
 		// Create job
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 
 		$parameters = [
 			'content_type'    => $content_type,
@@ -322,12 +322,12 @@ class Content_Updater_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job       = $job_model->find( $job_id );
 
 		if ( ! $job ) {
 			$this->send_error(
-				new \WP_Error( 'job_not_found', __( 'Job not found', 'amplified-import-export' ) ),
+				new \WP_Error( 'job_not_found', __( 'Job not found', 'import-export-by-rockstarlab' ) ),
 				null,
 				404
 			);
@@ -362,7 +362,7 @@ class Content_Updater_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$updated   = $job_model->update(
 			$job_id,
 			[
@@ -373,7 +373,7 @@ class Content_Updater_Controller extends Base_Controller {
 
 		if ( ! $updated ) {
 			$this->send_error(
-				new \WP_Error( 'update_failed', __( 'Failed to cancel update', 'amplified-import-export' ) ),
+				new \WP_Error( 'update_failed', __( 'Failed to cancel update', 'import-export-by-rockstarlab' ) ),
 				null,
 				500
 			);

@@ -2,14 +2,14 @@
 /**
  * Media Sync Controller (AJAX endpoints skeleton)
  *
- * @package WP_AIE\Controller
+ * @package RockStarLab\ImportExport\Controller
  */
 
-namespace WP_AIE\Controller;
+namespace RockStarLab\ImportExport\Controller;
 
-use WP_AIE\Helper\Media_Sync;
-use WP_AIE\Model\Job;
-use WP_AIE\Model\Queue\Media_Sync_Processor;
+use RockStarLab\ImportExport\Helper\Media_Sync;
+use RockStarLab\ImportExport\Model\Job;
+use RockStarLab\ImportExport\Model\Queue\Media_Sync_Processor;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -29,7 +29,7 @@ class Media_Sync_Controller extends Base_Controller {
 	}
 
 	public function scan_folder() {
-		$verification = $this->verify_request( 'aie_scan_folder' );
+		$verification = $this->verify_request( 'scan_folder' );
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -62,7 +62,7 @@ class Media_Sync_Controller extends Base_Controller {
 			$this->send_error(
 				new \WP_Error(
 					'invalid_path',
-					__( 'Invalid folder path. Path must be within the WordPress directory.', 'amplified-import-export' )
+					__( 'Invalid folder path. Path must be within the WordPress directory.', 'import-export-by-rockstarlab' )
 				)
 			);
 		}
@@ -77,7 +77,7 @@ class Media_Sync_Controller extends Base_Controller {
 	}
 
 	public function start_media_sync() {
-		$verification = $this->verify_request( 'aie_start_media_sync' );
+		$verification = $this->verify_request( 'start_media_sync' );
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -110,13 +110,13 @@ class Media_Sync_Controller extends Base_Controller {
 			$this->send_error(
 				new \WP_Error(
 					'invalid_path',
-					__( 'Invalid folder path', 'amplified-import-export' )
+					__( 'Invalid folder path', 'import-export-by-rockstarlab' )
 				)
 			);
 		}
 
 		// Create job record with folder path, selected files and options
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_data  = [
 			'type'     => 'media_sync',
 			'status'   => 'pending',
@@ -159,12 +159,12 @@ class Media_Sync_Controller extends Base_Controller {
 
 		$this->send_success(
 			$response_data,
-			__( 'Media sync job started', 'amplified-import-export' )
+			__( 'Media sync job started', 'import-export-by-rockstarlab' )
 		);
 	}
 
 	public function get_sync_progress() {
-		$verification = $this->verify_request( 'aie_get_sync_progress' );
+		$verification = $this->verify_request( 'get_sync_progress' );
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -172,11 +172,11 @@ class Media_Sync_Controller extends Base_Controller {
 		$this->validate_required_params( [ 'job_id' ] );
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$data      = $job_model->find( $job_id );
 
 		if ( ! $data ) {
-			$this->send_error( __( 'Job not found', 'amplified-import-export' ) );
+			$this->send_error( __( 'Job not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Get result, handle if column doesn't exist or is null
@@ -192,7 +192,7 @@ class Media_Sync_Controller extends Base_Controller {
 	}
 
 	public function pause_media_sync() {
-		$verification = $this->verify_request( 'aie_pause_media_sync' );
+		$verification = $this->verify_request( 'pause_media_sync' );
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -200,14 +200,14 @@ class Media_Sync_Controller extends Base_Controller {
 		$this->validate_required_params( [ 'job_id' ] );
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_model->update( $job_id, [ 'status' => 'paused' ] );
 
 		$this->send_success();
 	}
 
 	public function resume_media_sync() {
-		$verification = $this->verify_request( 'aie_resume_media_sync' );
+		$verification = $this->verify_request( 'resume_media_sync' );
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -215,14 +215,14 @@ class Media_Sync_Controller extends Base_Controller {
 		$this->validate_required_params( [ 'job_id' ] );
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_model->update( $job_id, [ 'status' => 'processing' ] );
 
 		$this->send_success();
 	}
 
 	public function cancel_media_sync() {
-		$verification = $this->verify_request( 'aie_cancel_media_sync' );
+		$verification = $this->verify_request( 'cancel_media_sync' );
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -230,15 +230,15 @@ class Media_Sync_Controller extends Base_Controller {
 		$this->validate_required_params( [ 'job_id' ] );
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 
 		// Update status to cancelled
 		$job_model->update( $job_id, [ 'status' => 'cancelled' ] );
 
 		// Clear any scheduled cron events for this job
-		$timestamp = wp_next_scheduled( 'aie_process_media_sync_job', array( $job_id ) );
+		$timestamp = wp_next_scheduled( 'rsl_ie_process_media_sync_job', array( $job_id ) );
 		if ( $timestamp ) {
-			wp_unschedule_event( $timestamp, 'aie_process_media_sync_job', array( $job_id ) );
+			wp_unschedule_event( $timestamp, 'rsl_ie_process_media_sync_job', array( $job_id ) );
 		}
 
 		// Optionally delete the job record to clean up
@@ -252,7 +252,7 @@ class Media_Sync_Controller extends Base_Controller {
 	 * Process media sync batch (called via AJAX for async processing)
 	 */
 	public function process_media_sync_batch() {
-		$verification = $this->verify_request( 'aie_process_media_sync_batch' );
+		$verification = $this->verify_request( 'process_media_sync_batch' );
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -261,7 +261,7 @@ class Media_Sync_Controller extends Base_Controller {
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
 		// Process the job
-		$processor = new \WP_AIE\Model\Queue\Media_Sync_Processor();
+		$processor = new \RockStarLab\ImportExport\Model\Queue\Media_Sync_Processor();
 		$result    = $processor->process( $job_id );
 
 		$this->send_success( $result );
@@ -277,16 +277,16 @@ class Media_Sync_Controller extends Base_Controller {
 			// Manual verification using the general nonce
 			$nonce = $this->get_request_param( 'nonce', '' );
 
-			if ( ! wp_verify_nonce( $nonce, 'aie_nonce' ) ) {
+			if ( ! wp_verify_nonce( $nonce, 'rsl_ie_nonce' ) ) {
 				$this->send_error(
-					new \WP_Error( 'invalid_nonce', __( 'Security check failed', 'amplified-import-export' ) )
+					new \WP_Error( 'invalid_nonce', __( 'Security check failed', 'import-export-by-rockstarlab' ) )
 				);
 			}
 
 			// Check capability
 			if ( ! current_user_can( $this->required_capability ) ) {
 				$this->send_error(
-					new \WP_Error( 'insufficient_permissions', __( 'You do not have permission to perform this action', 'amplified-import-export' ) )
+					new \WP_Error( 'insufficient_permissions', __( 'You do not have permission to perform this action', 'import-export-by-rockstarlab' ) )
 				);
 			}
 
@@ -317,7 +317,7 @@ class Media_Sync_Controller extends Base_Controller {
 						'directory_not_found',
 						sprintf(
 						/* translators: %s: directory path */
-							__( 'Directory not found: %s', 'amplified-import-export' ),
+							__( 'Directory not found: %s', 'import-export-by-rockstarlab' ),
 							$absolute_path
 						)
 					)
@@ -328,7 +328,7 @@ class Media_Sync_Controller extends Base_Controller {
 				$this->send_error(
 					new \WP_Error(
 						'invalid_path',
-						__( 'Invalid path. Must be within the WordPress directory.', 'amplified-import-export' )
+						__( 'Invalid path. Must be within the WordPress directory.', 'import-export-by-rockstarlab' )
 					)
 				);
 			}
@@ -338,7 +338,7 @@ class Media_Sync_Controller extends Base_Controller {
 				$this->send_error(
 					new \WP_Error(
 						'not_directory',
-						__( 'Path is not a directory.', 'amplified-import-export' )
+						__( 'Path is not a directory.', 'import-export-by-rockstarlab' )
 					)
 				);
 			}

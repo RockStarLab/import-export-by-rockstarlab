@@ -4,15 +4,15 @@
  *
  * Handles import operations via AJAX
  *
- * @package WP_AIE\Controller
+ * @package RockStarLab\ImportExport\Controller
  */
 
-namespace WP_AIE\Controller;
+namespace RockStarLab\ImportExport\Controller;
 
-use WP_AIE\Model\Job;
-use WP_AIE\Model\Import\Importer_Factory;
-use WP_AIE\Model\Format\Format_Factory;
-use WP_AIE\Helper\Fs;
+use RockStarLab\ImportExport\Model\Job;
+use RockStarLab\ImportExport\Model\Import\Importer_Factory;
+use RockStarLab\ImportExport\Model\Format\Format_Factory;
+use RockStarLab\ImportExport\Helper\Fs;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -49,7 +49,7 @@ class Import_Controller extends Base_Controller {
 
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		if ( empty( $_FILES['file'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified via verify_request().
-			$this->send_error( __( 'No file uploaded', 'amplified-import-export' ), null, 400 );
+			$this->send_error( __( 'No file uploaded', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
@@ -62,12 +62,12 @@ class Import_Controller extends Base_Controller {
 
 		// Validate format
 		if ( ! Format_Factory::is_supported( $format ) ) {
-			$this->send_error( __( 'Unsupported file format', 'amplified-import-export' ), null, 400 );
+			$this->send_error( __( 'Unsupported file format', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
 		// JSON is not supported for import
 		if ( 'json' === $format ) {
-			$this->send_error( __( 'JSON format is not supported for import. Please use CSV.', 'amplified-import-export' ), null, 400 );
+			$this->send_error( __( 'JSON format is not supported for import. Please use CSV.', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
 		// Move file to upload directory
@@ -109,7 +109,7 @@ class Import_Controller extends Base_Controller {
 				'preview'    => $preview,
 				'total_rows' => $total_rows,
 			],
-			__( 'File uploaded successfully', 'amplified-import-export' )
+			__( 'File uploaded successfully', 'import-export-by-rockstarlab' )
 		);
 	}
 
@@ -164,7 +164,7 @@ class Import_Controller extends Base_Controller {
 				'valid'       => true,
 				'total_items' => count( $prepared_data ),
 			],
-			__( 'Data validation passed', 'amplified-import-export' )
+			__( 'Data validation passed', 'import-export-by-rockstarlab' )
 		);
 	}
 
@@ -190,7 +190,7 @@ class Import_Controller extends Base_Controller {
 		$delimiter   = $this->get_request_param( 'delimiter', ',' );
 
 		// Create job
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_data  = [
 			'type'       => 'import',
 			'status'     => 'pending',
@@ -218,7 +218,7 @@ class Import_Controller extends Base_Controller {
 			[
 				'job_id' => $job_id,
 			],
-			__( 'Import started successfully', 'amplified-import-export' )
+			__( 'Import started successfully', 'import-export-by-rockstarlab' )
 		);
 	}
 
@@ -238,11 +238,11 @@ class Import_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			$this->send_error( __( 'Job not found', 'amplified-import-export' ), null, 404 );
+			$this->send_error( __( 'Job not found', 'import-export-by-rockstarlab' ), null, 404 );
 		}
 
 		// Parse result
@@ -258,7 +258,7 @@ class Import_Controller extends Base_Controller {
 		}
 		
 		// Get estimates
-		$estimates = \WP_AIE\Helper\Progress_Tracker::estimate_time_remaining( $job_id );
+		$estimates = \RockStarLab\ImportExport\Helper\Progress_Tracker::estimate_time_remaining( $job_id );
 
 		$this->send_success(
 			[
@@ -289,14 +289,14 @@ class Import_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model  = WP_AIE()->Model->job;
+		$job_model  = rsl_ie()->Model->job;
 		$job_result = $job_model->update( $job_id, [ 'status' => 'cancelled' ] );
 
 		if ( is_wp_error( $job_result ) ) {
 			$this->send_error( $job_result, null, 500 );
 		}
 
-		$this->send_success( null, __( 'Import cancelled', 'amplified-import-export' ) );
+		$this->send_success( null, __( 'Import cancelled', 'import-export-by-rockstarlab' ) );
 	}
 
 	/**
@@ -315,11 +315,11 @@ class Import_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			$this->send_error( __( 'Job not found', 'amplified-import-export' ), null, 404 );
+			$this->send_error( __( 'Job not found', 'import-export-by-rockstarlab' ), null, 404 );
 		}
 
 		// Check if job is paused or cancelled
@@ -395,7 +395,7 @@ class Import_Controller extends Base_Controller {
 			$total_items   = count( $prepared_data );
 
 			// Preserve source IDs for cross-site relationship fixups (e.g. post_parent).
-			if ( $importer instanceof \WP_AIE\Model\Import\Post_Importer ) {
+			if ( $importer instanceof \RockStarLab\ImportExport\Model\Import\Post_Importer ) {
 				foreach ( $prepared_data as $row_index => &$prepared_row ) {
 					if ( isset( $data[ $row_index ]['ID'] ) ) {
 						$prepared_row['_aie_source_id'] = absint( $data[ $row_index ]['ID'] );
@@ -408,7 +408,7 @@ class Import_Controller extends Base_Controller {
 			}
 
 			// Preserve source IDs + portable post hints for cross-site comment relationships.
-			if ( $importer instanceof \WP_AIE\Model\Import\Comment_Importer ) {
+			if ( $importer instanceof \RockStarLab\ImportExport\Model\Import\Comment_Importer ) {
 				foreach ( $prepared_data as $row_index => &$prepared_row ) {
 					// Ensure core date fields are available even if the UI mapping omits them.
 					if ( isset( $data[ $row_index ]['comment_date'] ) && ( ! isset( $prepared_row['comment_date'] ) || '' === $prepared_row['comment_date'] ) ) {
@@ -437,7 +437,7 @@ class Import_Controller extends Base_Controller {
 			}
 
 			// Preserve source IDs + portable parent hints for cross-site term hierarchy fixups.
-			if ( $importer instanceof \WP_AIE\Model\Import\Taxonomy_Term_Importer ) {
+			if ( $importer instanceof \RockStarLab\ImportExport\Model\Import\Taxonomy_Term_Importer ) {
 				foreach ( $prepared_data as $row_index => &$prepared_row ) {
 					if ( isset( $data[ $row_index ]['term_id'] ) ) {
 						$prepared_row['_aie_source_term_id'] = absint( $data[ $row_index ]['term_id'] );
@@ -476,7 +476,7 @@ class Import_Controller extends Base_Controller {
 			);
 
 			// Initialize progress
-			\WP_AIE\Helper\Progress_Tracker::update_progress( $job_id, $total_items, 0, 0, 0 );
+			\RockStarLab\ImportExport\Helper\Progress_Tracker::update_progress( $job_id, $total_items, 0, 0, 0 );
 		}
 
 		$prepared_data     = $parameters['prepared_data'];
@@ -563,7 +563,7 @@ class Import_Controller extends Base_Controller {
 		);
 
 		// Update progress tracker
-		\WP_AIE\Helper\Progress_Tracker::update_progress(
+		\RockStarLab\ImportExport\Helper\Progress_Tracker::update_progress(
 			$job_id,
 			$total_items,
 			$processed,
@@ -725,7 +725,7 @@ class Import_Controller extends Base_Controller {
 		}
 
 		// Use Database_Table_Exporter to get tables with row counts
-		$exporter = new \WP_AIE\Model\Export\Database_Table_Exporter();
+		$exporter = new \RockStarLab\ImportExport\Model\Export\Database_Table_Exporter();
 		$tables   = $exporter->get_available_tables();
 
 		$this->send_success( [ 'tables' => $tables ] );
@@ -748,7 +748,7 @@ class Import_Controller extends Base_Controller {
 		$table_name = $this->get_request_param( 'table_name' );
 
 		// Use Database_Table_Exporter to get columns
-		$exporter = new \WP_AIE\Model\Export\Database_Table_Exporter();
+		$exporter = new \RockStarLab\ImportExport\Model\Export\Database_Table_Exporter();
 		$columns  = $exporter->get_table_columns( $table_name );
 		
 		// Get row count
@@ -756,7 +756,7 @@ class Import_Controller extends Base_Controller {
 		$row_count = $wpdb->get_var( "SELECT COUNT(*) FROM `{$table_name}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Direct DB query required here.
 
 		if ( empty( $columns ) ) {
-			$this->send_error( __( 'Could not retrieve table columns', 'amplified-import-export' ), null, 400 );
+			$this->send_error( __( 'Could not retrieve table columns', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
 		$this->send_success(
@@ -818,7 +818,7 @@ class Import_Controller extends Base_Controller {
 			return;
 		}
 
-		$key = 'aie_import_post_id_map_' . $job_id;
+		$key = 'rsl_ie_import_post_id_map_' . $job_id;
 		$map = get_transient( $key );
 		if ( ! is_array( $map ) || empty( $map ) ) {
 			return;
@@ -872,7 +872,7 @@ class Import_Controller extends Base_Controller {
 			return;
 		}
 
-		$key = 'aie_import_comment_id_map_' . $job_id;
+		$key = 'rsl_ie_import_comment_id_map_' . $job_id;
 		$map = get_transient( $key );
 		if ( ! is_array( $map ) || empty( $map ) ) {
 			return;
@@ -932,7 +932,7 @@ class Import_Controller extends Base_Controller {
 			return;
 		}
 
-		$key = 'aie_import_term_id_map_' . $job_id;
+		$key = 'rsl_ie_import_term_id_map_' . $job_id;
 		$map = get_transient( $key );
 		if ( ! is_array( $map ) || empty( $map ) ) {
 			return;

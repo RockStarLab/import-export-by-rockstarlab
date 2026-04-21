@@ -2,7 +2,7 @@
 /**
  * Content Updater Step 2: Select Fields
  *
- * @package WP_AIE\View
+ * @package RockStarLab\ImportExport\View
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -11,8 +11,8 @@ defined( 'ABSPATH' ) || exit;
 <!-- Step 3: Select Fields -->
 <div class="aie-step aie-updater-step-3" data-step="3">
 	<div class="aie-step-header">
-		<h2><?php esc_html_e( 'Step 3: Select Fields to Update', 'amplified-import-export' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Choose which fields you want to update', 'amplified-import-export' ); ?></p>
+		<h2><?php esc_html_e( 'Step 3: Select Fields to Update', 'import-export-by-rockstarlab' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Choose which fields you want to update', 'import-export-by-rockstarlab' ); ?></p>
 	</div>
 
 	<div class="aie-step-content">
@@ -22,12 +22,12 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-selected-fields-header">
 					<h3>
 						<span class="dashicons dashicons-yes-alt"></span>
-						<?php esc_html_e( 'Selected Fields', 'amplified-import-export' ); ?>
+						<?php esc_html_e( 'Selected Fields', 'import-export-by-rockstarlab' ); ?>
 					</h3>
 					<div class="aie-selected-fields-actions">
-						<button type="button" class="button button-small aie-updater-clear-all-fields" title="<?php esc_attr_e( 'Clear all fields', 'amplified-import-export' ); ?>">
+						<button type="button" class="button button-small aie-updater-clear-all-fields" title="<?php esc_attr_e( 'Clear all fields', 'import-export-by-rockstarlab' ); ?>">
 							<span class="dashicons dashicons-trash"></span>
-							<?php esc_html_e( 'Clear All', 'amplified-import-export' ); ?>
+							<?php esc_html_e( 'Clear All', 'import-export-by-rockstarlab' ); ?>
 						</button>
 					</div>
 				</div>
@@ -37,7 +37,7 @@ defined( 'ABSPATH' ) || exit;
 					<div class="aie-updater-dropzone" id="aie-updater-dropzone">
 						<div class="aie-updater-dropzone-placeholder">
 							<span class="dashicons dashicons-download"></span>
-							<p><?php esc_html_e( 'Drag fields here to select for updating', 'amplified-import-export' ); ?></p>
+							<p><?php esc_html_e( 'Drag fields here to select for updating', 'import-export-by-rockstarlab' ); ?></p>
 						</div>
 						
 						<!-- Selected Fields Container -->
@@ -49,7 +49,7 @@ defined( 'ABSPATH' ) || exit;
 					<!-- Field Counter -->
 					<div class="aie-updater-stats">
 						<span class="aie-field-count">
-							<strong><?php esc_html_e( 'Fields Selected:', 'amplified-import-export' ); ?></strong> 
+							<strong><?php esc_html_e( 'Fields Selected:', 'import-export-by-rockstarlab' ); ?></strong> 
 							<span class="aie-count-value aie-fields-count">0</span>
 						</span>
 					</div>
@@ -61,7 +61,7 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-fields-library-header">
 					<h3>
 						<span class="dashicons dashicons-list-view"></span>
-						<?php esc_html_e( 'Available Fields', 'amplified-import-export' ); ?>
+						<?php esc_html_e( 'Available Fields', 'import-export-by-rockstarlab' ); ?>
 					</h3>
 				</div>
 				
@@ -71,10 +71,10 @@ defined( 'ABSPATH' ) || exit;
 						type="text" 
 						id="aie-updater-fields-search" 
 						class="regular-text" 
-						placeholder="<?php esc_attr_e( 'Search fields...', 'amplified-import-export' ); ?>"
+						placeholder="<?php esc_attr_e( 'Search fields...', 'import-export-by-rockstarlab' ); ?>"
 					>
 					<span class="dashicons dashicons-search"></span>
-					<button type="button" class="aie-clear-search" aria-label="<?php esc_attr_e( 'Clear search', 'amplified-import-export' ); ?>">
+					<button type="button" class="aie-clear-search" aria-label="<?php esc_attr_e( 'Clear search', 'import-export-by-rockstarlab' ); ?>">
 						<span class="dashicons dashicons-no-alt"></span>
 					</button>
 				</div>
@@ -82,7 +82,7 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-fields-library-body" id="aie-updater-fields-library">
 					<div class="aie-fields-loading">
 						<span class="spinner is-active"></span>
-						<p><?php esc_html_e( 'Loading fields...', 'amplified-import-export' ); ?></p>
+						<p><?php esc_html_e( 'Loading fields...', 'import-export-by-rockstarlab' ); ?></p>
 					</div>
 					<!-- Fields will be loaded dynamically based on content type -->
 				</div>
@@ -92,10 +92,10 @@ defined( 'ABSPATH' ) || exit;
 		<div class="aie-step-actions">
 			<button type="button" class="button button-secondary aie-updater-prev-step">
 				<span class="dashicons dashicons-arrow-left-alt2"></span>
-				<?php esc_html_e( 'Previous', 'amplified-import-export' ); ?>
+				<?php esc_html_e( 'Previous', 'import-export-by-rockstarlab' ); ?>
 			</button>
 			<button type="button" class="button button-primary button-large aie-updater-next-step">
-				<?php esc_html_e( 'Next Step', 'amplified-import-export' ); ?>
+				<?php esc_html_e( 'Next Step', 'import-export-by-rockstarlab' ); ?>
 				<span class="dashicons dashicons-arrow-right-alt2"></span>
 			</button>
 		</div>

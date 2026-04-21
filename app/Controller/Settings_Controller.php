@@ -4,10 +4,10 @@
  *
  * Handles plugin settings operations
  *
- * @package WP_AIE\Controller
+ * @package RockStarLab\ImportExport\Controller
  */
 
-namespace WP_AIE\Controller;
+namespace RockStarLab\ImportExport\Controller;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -35,7 +35,7 @@ class Settings_Controller extends Base_Controller {
 
 		// Check permissions
 		if ( ! current_user_can( 'manage_options' ) ) {
-			$this->send_error( __( 'You do not have permission to manage settings', 'amplified-import-export' ) );
+			$this->send_error( __( 'You do not have permission to manage settings', 'import-export-by-rockstarlab' ) );
 		}
 
 		$openai_api_key = $this->get_request_param( 'openai_api_key', '' );
@@ -44,18 +44,18 @@ class Settings_Controller extends Base_Controller {
 		if ( ! empty( $openai_api_key ) ) {
 			// Validate API key format
 			if ( ! $this->validate_openai_api_key( $openai_api_key ) ) {
-				$this->send_error( __( 'Invalid OpenAI API key format. Key should start with "sk-"', 'amplified-import-export' ) );
+				$this->send_error( __( 'Invalid OpenAI API key format. Key should start with "sk-"', 'import-export-by-rockstarlab' ) );
 			}
 
-			update_option( 'wp_aie_openai_api_key', sanitize_text_field( $openai_api_key ) );
+			update_option( 'rsl_ie_openai_api_key', sanitize_text_field( $openai_api_key ) );
 		} else {
 			// Remove API key if empty
-			delete_option( 'wp_aie_openai_api_key' );
+			delete_option( 'rsl_ie_openai_api_key' );
 		}
 
 		$this->send_success(
 			[
-				'message' => __( 'Settings saved successfully', 'amplified-import-export' ),
+				'message' => __( 'Settings saved successfully', 'import-export-by-rockstarlab' ),
 			]
 		);
 	}

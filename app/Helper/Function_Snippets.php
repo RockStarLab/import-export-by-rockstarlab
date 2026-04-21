@@ -4,10 +4,10 @@
  *
  * Ready-to-use code snippets for data transformation
  *
- * @package WP_AIE\Helper
+ * @package RockStarLab\ImportExport\Helper
  */
 
-namespace WP_AIE\Helper;
+namespace RockStarLab\ImportExport\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -21,38 +21,38 @@ class Function_Snippets {
 	public function get_categories() {
 		return [
 			'string'     => [
-				'name'        => __( 'String Operations', 'amplified-import-export' ),
-				'description' => __( 'Text transformation, case conversion, trimming', 'amplified-import-export' ),
+				'name'        => __( 'String Operations', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Text transformation, case conversion, trimming', 'import-export-by-rockstarlab' ),
 				'icon'        => 'dashicons-editor-alignleft',
 			],
 			'date'       => [
-				'name'        => __( 'Date & Time', 'amplified-import-export' ),
-				'description' => __( 'Date formatting, conversion, extraction', 'amplified-import-export' ),
+				'name'        => __( 'Date & Time', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Date formatting, conversion, extraction', 'import-export-by-rockstarlab' ),
 				'icon'        => 'dashicons-calendar-alt',
 			],
 			'numeric'    => [
-				'name'        => __( 'Numeric Operations', 'amplified-import-export' ),
-				'description' => __( 'Numbers, prices, calculations, formatting', 'amplified-import-export' ),
+				'name'        => __( 'Numeric Operations', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Numbers, prices, calculations, formatting', 'import-export-by-rockstarlab' ),
 				'icon'        => 'dashicons-calculator',
 			],
 			'html'       => [
-				'name'        => __( 'HTML Operations', 'amplified-import-export' ),
-				'description' => __( 'HTML cleaning, sanitization, entities', 'amplified-import-export' ),
+				'name'        => __( 'HTML Operations', 'import-export-by-rockstarlab' ),
+				'description' => __( 'HTML cleaning, sanitization, entities', 'import-export-by-rockstarlab' ),
 				'icon'        => 'dashicons-editor-code',
 			],
 			'wordpress'  => [
-				'name'        => __( 'WordPress Functions', 'amplified-import-export' ),
-				'description' => __( 'Users, terms, categories, posts lookup', 'amplified-import-export' ),
+				'name'        => __( 'WordPress Functions', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Users, terms, categories, posts lookup', 'import-export-by-rockstarlab' ),
 				'icon'        => 'dashicons-wordpress',
 			],
 			'validation' => [
-				'name'        => __( 'Validation', 'amplified-import-export' ),
-				'description' => __( 'Email, URL, required fields validation', 'amplified-import-export' ),
+				'name'        => __( 'Validation', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Email, URL, required fields validation', 'import-export-by-rockstarlab' ),
 				'icon'        => 'dashicons-yes',
 			],
 			'advanced'   => [
-				'name'        => __( 'Advanced', 'amplified-import-export' ),
-				'description' => __( 'Conditional logic, mapping, complex transformations', 'amplified-import-export' ),
+				'name'        => __( 'Advanced', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Conditional logic, mapping, complex transformations', 'import-export-by-rockstarlab' ),
 				'icon'        => 'dashicons-admin-generic',
 			],
 		];
@@ -149,8 +149,8 @@ class Function_Snippets {
 	private function get_string_snippets() {
 		return [
 			'uppercase'              => [
-				'name'        => __( 'Convert to Uppercase', 'amplified-import-export' ),
-				'description' => __( 'Transform text to UPPERCASE', 'amplified-import-export' ),
+				'name'        => __( 'Convert to Uppercase', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Transform text to UPPERCASE', 'import-export-by-rockstarlab' ),
 				'category'    => 'string',
 				'code'        => 'return strtoupper($value);',
 				'example'     => [
@@ -160,8 +160,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'case', 'upper' ],
 			],
 			'lowercase'              => [
-				'name'        => __( 'Convert to Lowercase', 'amplified-import-export' ),
-				'description' => __( 'Transform text to lowercase', 'amplified-import-export' ),
+				'name'        => __( 'Convert to Lowercase', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Transform text to lowercase', 'import-export-by-rockstarlab' ),
 				'category'    => 'string',
 				'code'        => 'return strtolower($value);',
 				'example'     => [
@@ -171,8 +171,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'case', 'lower' ],
 			],
 			'capitalize'             => [
-				'name'        => __( 'Capitalize First Letter', 'amplified-import-export' ),
-				'description' => __( 'First letter uppercase, rest lowercase', 'amplified-import-export' ),
+				'name'        => __( 'Capitalize First Letter', 'import-export-by-rockstarlab' ),
+				'description' => __( 'First letter uppercase, rest lowercase', 'import-export-by-rockstarlab' ),
 				'category'    => 'string',
 				'code'        => 'return ucfirst(strtolower($value));',
 				'example'     => [
@@ -182,8 +182,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'case', 'capitalize' ],
 			],
 			'title_case'             => [
-				'name'        => __( 'Title Case', 'amplified-import-export' ),
-				'description' => __( 'Capitalize first letter of each word', 'amplified-import-export' ),
+				'name'        => __( 'Title Case', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Capitalize first letter of each word', 'import-export-by-rockstarlab' ),
 				'category'    => 'string',
 				'code'        => 'return ucwords(strtolower($value));',
 				'example'     => [
@@ -193,8 +193,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'case', 'title' ],
 			],
 			'trim'                   => [
-				'name'        => __( 'Trim Whitespace', 'amplified-import-export' ),
-				'description' => __( 'Remove spaces from start and end', 'amplified-import-export' ),
+				'name'        => __( 'Trim Whitespace', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Remove spaces from start and end', 'import-export-by-rockstarlab' ),
 				'category'    => 'string',
 				'code'        => 'return trim($value);',
 				'example'     => [
@@ -204,8 +204,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'trim', 'spaces' ],
 			],
 			'remove_multiple_spaces' => [
-				'name'        => __( 'Remove Multiple Spaces', 'amplified-import-export' ),
-				'description' => __( 'Replace multiple spaces with single space', 'amplified-import-export' ),
+				'name'        => __( 'Remove Multiple Spaces', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Replace multiple spaces with single space', 'import-export-by-rockstarlab' ),
 				'category'    => 'string',
 				'code'        => 'return preg_replace(\'/\s+/\', \' \', trim($value));',
 				'example'     => [
@@ -215,8 +215,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'spaces', 'clean' ],
 			],
 			'replace_dashes'         => [
-				'name'        => __( 'Replace Dashes with Spaces', 'amplified-import-export' ),
-				'description' => __( 'Convert dashes to spaces', 'amplified-import-export' ),
+				'name'        => __( 'Replace Dashes with Spaces', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Convert dashes to spaces', 'import-export-by-rockstarlab' ),
 				'category'    => 'string',
 				'code'        => 'return str_replace([\'-\', \'_\'], \' \', $value);',
 				'example'     => [
@@ -226,8 +226,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'replace', 'dashes' ],
 			],
 			'truncate'               => [
-				'name'        => __( 'Truncate String', 'amplified-import-export' ),
-				'description' => __( 'Limit string length to 100 characters', 'amplified-import-export' ),
+				'name'        => __( 'Truncate String', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Limit string length to 100 characters', 'import-export-by-rockstarlab' ),
 				'category'    => 'string',
 				'code'        => 'if (strlen($value) > 100) { return substr($value, 0, 97) . \'...\'; } return $value;',
 				'example'     => [
@@ -237,8 +237,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'truncate', 'limit' ],
 			],
 			'remove_special_chars'   => [
-				'name'        => __( 'Remove Special Characters', 'amplified-import-export' ),
-				'description' => __( 'Keep only letters, numbers, spaces', 'amplified-import-export' ),
+				'name'        => __( 'Remove Special Characters', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Keep only letters, numbers, spaces', 'import-export-by-rockstarlab' ),
 				'category'    => 'string',
 				'code'        => 'return preg_replace(\'/[^a-zA-Z0-9\s]/\', \'\', $value);',
 				'example'     => [
@@ -248,8 +248,8 @@ class Function_Snippets {
 				'tags'        => [ 'text', 'clean', 'special' ],
 			],
 			'slugify'                => [
-				'name'        => __( 'Generate Slug', 'amplified-import-export' ),
-				'description' => __( 'Create URL-friendly slug', 'amplified-import-export' ),
+				'name'        => __( 'Generate Slug', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Create URL-friendly slug', 'import-export-by-rockstarlab' ),
 				'category'    => 'string',
 				'code'        => 'return sanitize_title($value);',
 				'example'     => [
@@ -269,8 +269,8 @@ class Function_Snippets {
 	private function get_date_snippets() {
 		return [
 			'date_mysql'       => [
-				'name'        => __( 'Format Date for MySQL', 'amplified-import-export' ),
-				'description' => __( 'Convert any date format to MySQL datetime', 'amplified-import-export' ),
+				'name'        => __( 'Format Date for MySQL', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Convert any date format to MySQL datetime', 'import-export-by-rockstarlab' ),
 				'category'    => 'date',
 				'code'        => '$timestamp = strtotime($value); if ($timestamp === false) { return $value; } return date(\'Y-m-d H:i:s\', $timestamp);',
 				'example'     => [
@@ -280,8 +280,8 @@ class Function_Snippets {
 				'tags'        => [ 'date', 'mysql', 'format' ],
 			],
 			'date_dmy_to_ymd'  => [
-				'name'        => __( 'Convert DD/MM/YYYY to YYYY-MM-DD', 'amplified-import-export' ),
-				'description' => __( 'European date format to ISO format', 'amplified-import-export' ),
+				'name'        => __( 'Convert DD/MM/YYYY to YYYY-MM-DD', 'import-export-by-rockstarlab' ),
+				'description' => __( 'European date format to ISO format', 'import-export-by-rockstarlab' ),
 				'category'    => 'date',
 				'code'        => '$parts = explode(\'/\', $value); if (count($parts) === 3) { return sprintf(\'%s-%s-%s\', $parts[2], $parts[1], $parts[0]); } return $value;',
 				'example'     => [
@@ -291,8 +291,8 @@ class Function_Snippets {
 				'tags'        => [ 'date', 'convert', 'format' ],
 			],
 			'date_mdy_to_ymd'  => [
-				'name'        => __( 'Convert MM/DD/YYYY to YYYY-MM-DD', 'amplified-import-export' ),
-				'description' => __( 'US date format to ISO format', 'amplified-import-export' ),
+				'name'        => __( 'Convert MM/DD/YYYY to YYYY-MM-DD', 'import-export-by-rockstarlab' ),
+				'description' => __( 'US date format to ISO format', 'import-export-by-rockstarlab' ),
 				'category'    => 'date',
 				'code'        => '$parts = explode(\'/\', $value); if (count($parts) === 3) { return sprintf(\'%s-%s-%s\', $parts[2], $parts[0], $parts[1]); } return $value;',
 				'example'     => [
@@ -302,8 +302,8 @@ class Function_Snippets {
 				'tags'        => [ 'date', 'convert', 'format', 'us' ],
 			],
 			'add_current_time' => [
-				'name'        => __( 'Add Current Time to Date', 'amplified-import-export' ),
-				'description' => __( 'Append current time to date', 'amplified-import-export' ),
+				'name'        => __( 'Add Current Time to Date', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Append current time to date', 'import-export-by-rockstarlab' ),
 				'category'    => 'date',
 				'code'        => '$date = strtotime($value); if ($date === false) { return $value; } return date(\'Y-m-d H:i:s\', $date);',
 				'example'     => [
@@ -313,8 +313,8 @@ class Function_Snippets {
 				'tags'        => [ 'date', 'time', 'current' ],
 			],
 			'add_days'         => [
-				'name'        => __( 'Add 7 Days to Date', 'amplified-import-export' ),
-				'description' => __( 'Add week to date', 'amplified-import-export' ),
+				'name'        => __( 'Add 7 Days to Date', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Add week to date', 'import-export-by-rockstarlab' ),
 				'category'    => 'date',
 				'code'        => '$date = strtotime($value); if ($date === false) { return $value; } return date(\'Y-m-d\', strtotime(\'+7 days\', $date));',
 				'example'     => [
@@ -324,8 +324,8 @@ class Function_Snippets {
 				'tags'        => [ 'date', 'add', 'days' ],
 			],
 			'extract_year'     => [
-				'name'        => __( 'Extract Year from Date', 'amplified-import-export' ),
-				'description' => __( 'Get only year from date', 'amplified-import-export' ),
+				'name'        => __( 'Extract Year from Date', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Get only year from date', 'import-export-by-rockstarlab' ),
 				'category'    => 'date',
 				'code'        => '$date = strtotime($value); if ($date === false) { return \'\'; } return date(\'Y\', $date);',
 				'example'     => [
@@ -335,8 +335,8 @@ class Function_Snippets {
 				'tags'        => [ 'date', 'extract', 'year' ],
 			],
 			'extract_month'    => [
-				'name'        => __( 'Extract Month from Date', 'amplified-import-export' ),
-				'description' => __( 'Get month number from date', 'amplified-import-export' ),
+				'name'        => __( 'Extract Month from Date', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Get month number from date', 'import-export-by-rockstarlab' ),
 				'category'    => 'date',
 				'code'        => '$date = strtotime($value); if ($date === false) { return \'\'; } return date(\'m\', $date);',
 				'example'     => [
@@ -356,8 +356,8 @@ class Function_Snippets {
 	private function get_numeric_snippets() {
 		return [
 			'to_integer'     => [
-				'name'        => __( 'Convert to Integer', 'amplified-import-export' ),
-				'description' => __( 'Convert to whole number', 'amplified-import-export' ),
+				'name'        => __( 'Convert to Integer', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Convert to whole number', 'import-export-by-rockstarlab' ),
 				'category'    => 'numeric',
 				'code'        => 'return intval($value);',
 				'example'     => [
@@ -367,8 +367,8 @@ class Function_Snippets {
 				'tags'        => [ 'number', 'integer', 'convert' ],
 			],
 			'to_float'       => [
-				'name'        => __( 'Convert to Float', 'amplified-import-export' ),
-				'description' => __( 'Convert to decimal number', 'amplified-import-export' ),
+				'name'        => __( 'Convert to Float', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Convert to decimal number', 'import-export-by-rockstarlab' ),
 				'category'    => 'numeric',
 				'code'        => 'return floatval($value);',
 				'example'     => [
@@ -378,8 +378,8 @@ class Function_Snippets {
 				'tags'        => [ 'number', 'float', 'decimal' ],
 			],
 			'clean_price'    => [
-				'name'        => __( 'Clean Price', 'amplified-import-export' ),
-				'description' => __( 'Remove currency symbols and convert to decimal', 'amplified-import-export' ),
+				'name'        => __( 'Clean Price', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Remove currency symbols and convert to decimal', 'import-export-by-rockstarlab' ),
 				'category'    => 'numeric',
 				'code'        => '$cleaned = preg_replace(\'/[^0-9.,]/\', \'\', $value); $cleaned = str_replace(\',\', \'.\', $cleaned); return floatval($cleaned);',
 				'example'     => [
@@ -389,8 +389,8 @@ class Function_Snippets {
 				'tags'        => [ 'number', 'price', 'currency', 'clean' ],
 			],
 			'format_price'   => [
-				'name'        => __( 'Format Price', 'amplified-import-export' ),
-				'description' => __( 'Format number as price with 2 decimals', 'amplified-import-export' ),
+				'name'        => __( 'Format Price', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Format number as price with 2 decimals', 'import-export-by-rockstarlab' ),
 				'category'    => 'numeric',
 				'code'        => 'return number_format(floatval($value), 2, \'.\', \'\');',
 				'example'     => [
@@ -400,8 +400,8 @@ class Function_Snippets {
 				'tags'        => [ 'number', 'price', 'format' ],
 			],
 			'round_number'   => [
-				'name'        => __( 'Round to 2 Decimals', 'amplified-import-export' ),
-				'description' => __( 'Round number to 2 decimal places', 'amplified-import-export' ),
+				'name'        => __( 'Round to 2 Decimals', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Round number to 2 decimal places', 'import-export-by-rockstarlab' ),
 				'category'    => 'numeric',
 				'code'        => 'return round(floatval($value), 2);',
 				'example'     => [
@@ -411,8 +411,8 @@ class Function_Snippets {
 				'tags'        => [ 'number', 'round', 'decimal' ],
 			],
 			'percentage'     => [
-				'name'        => __( 'Convert to Percentage', 'amplified-import-export' ),
-				'description' => __( 'Multiply by 100 and add % sign', 'amplified-import-export' ),
+				'name'        => __( 'Convert to Percentage', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Multiply by 100 and add % sign', 'import-export-by-rockstarlab' ),
 				'category'    => 'numeric',
 				'code'        => 'return (floatval($value) * 100) . \'%\';',
 				'example'     => [
@@ -422,8 +422,8 @@ class Function_Snippets {
 				'tags'        => [ 'number', 'percentage', 'percent' ],
 			],
 			'absolute_value' => [
-				'name'        => __( 'Absolute Value', 'amplified-import-export' ),
-				'description' => __( 'Remove negative sign', 'amplified-import-export' ),
+				'name'        => __( 'Absolute Value', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Remove negative sign', 'import-export-by-rockstarlab' ),
 				'category'    => 'numeric',
 				'code'        => 'return abs(floatval($value));',
 				'example'     => [
@@ -443,8 +443,8 @@ class Function_Snippets {
 	private function get_html_snippets() {
 		return [
 			'strip_html'           => [
-				'name'        => __( 'Strip HTML Tags', 'amplified-import-export' ),
-				'description' => __( 'Remove all HTML tags', 'amplified-import-export' ),
+				'name'        => __( 'Strip HTML Tags', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Remove all HTML tags', 'import-export-by-rockstarlab' ),
 				'category'    => 'html',
 				'code'        => 'return wp_strip_all_tags($value);',
 				'example'     => [
@@ -454,8 +454,8 @@ class Function_Snippets {
 				'tags'        => [ 'html', 'strip', 'tags', 'clean' ],
 			],
 			'decode_html_entities' => [
-				'name'        => __( 'Decode HTML Entities', 'amplified-import-export' ),
-				'description' => __( 'Convert &amp; to & and similar', 'amplified-import-export' ),
+				'name'        => __( 'Decode HTML Entities', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Convert &amp; to & and similar', 'import-export-by-rockstarlab' ),
 				'category'    => 'html',
 				'code'        => 'return html_entity_decode($value, ENT_QUOTES, \'UTF-8\');',
 				'example'     => [
@@ -465,8 +465,8 @@ class Function_Snippets {
 				'tags'        => [ 'html', 'entities', 'decode' ],
 			],
 			'encode_html_entities' => [
-				'name'        => __( 'Encode HTML Entities', 'amplified-import-export' ),
-				'description' => __( 'Convert & to &amp; and similar', 'amplified-import-export' ),
+				'name'        => __( 'Encode HTML Entities', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Convert & to &amp; and similar', 'import-export-by-rockstarlab' ),
 				'category'    => 'html',
 				'code'        => 'return htmlentities($value, ENT_QUOTES, \'UTF-8\');',
 				'example'     => [
@@ -476,24 +476,24 @@ class Function_Snippets {
 				'tags'        => [ 'html', 'entities', 'encode' ],
 			],
 			'sanitize_text'        => [
-				'name'        => __( 'Sanitize Text', 'amplified-import-export' ),
-				'description' => __( 'Remove HTML and unsafe characters', 'amplified-import-export' ),
+				'name'        => __( 'Sanitize Text', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Remove HTML and unsafe characters', 'import-export-by-rockstarlab' ),
 				'category'    => 'html',
 				'code'        => 'return sanitize_text_field($value);',
 				'example'     => [
-					'input'  => '<script>alert("test")</script>Hello',
+					'input'  => '<b>Hello</b>',
 					'output' => 'Hello',
 				],
 				'tags'        => [ 'html', 'sanitize', 'clean', 'security' ],
 			],
 			'escape_html'          => [
-				'name'        => __( 'Escape HTML', 'amplified-import-export' ),
-				'description' => __( 'Make safe for HTML output', 'amplified-import-export' ),
+				'name'        => __( 'Escape HTML', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Make safe for HTML output', 'import-export-by-rockstarlab' ),
 				'category'    => 'html',
 				'code'        => 'return esc_html($value);',
 				'example'     => [
-					'input'  => '<script>alert("test")</script>',
-					'output' => '&lt;script&gt;alert("test")&lt;/script&gt;',
+					'input'  => '<b>Hello</b>',
+					'output' => '&lt;b&gt;Hello&lt;/b&gt;',
 				],
 				'tags'        => [ 'html', 'escape', 'security' ],
 			],
@@ -508,8 +508,8 @@ class Function_Snippets {
 	private function get_wordpress_snippets() {
 		return [
 			'find_user_by_email'   => [
-				'name'        => __( 'Find User ID by Email', 'amplified-import-export' ),
-				'description' => __( 'Convert email to user ID', 'amplified-import-export' ),
+				'name'        => __( 'Find User ID by Email', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Convert email to user ID', 'import-export-by-rockstarlab' ),
 				'category'    => 'wordpress',
 				'code'        => '$user = get_user_by(\'email\', $value); return $user ? $user->ID : 0;',
 				'example'     => [
@@ -519,8 +519,8 @@ class Function_Snippets {
 				'tags'        => [ 'wordpress', 'user', 'email', 'find' ],
 			],
 			'find_user_by_login'   => [
-				'name'        => __( 'Find User ID by Login', 'amplified-import-export' ),
-				'description' => __( 'Convert username to user ID', 'amplified-import-export' ),
+				'name'        => __( 'Find User ID by Login', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Convert username to user ID', 'import-export-by-rockstarlab' ),
 				'category'    => 'wordpress',
 				'code'        => '$user = get_user_by(\'login\', $value); return $user ? $user->ID : 0;',
 				'example'     => [
@@ -530,8 +530,8 @@ class Function_Snippets {
 				'tags'        => [ 'wordpress', 'user', 'login', 'find' ],
 			],
 			'find_term_by_name'    => [
-				'name'        => __( 'Find Term ID by Name', 'amplified-import-export' ),
-				'description' => __( 'Convert category/tag name to term ID', 'amplified-import-export' ),
+				'name'        => __( 'Find Term ID by Name', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Convert category/tag name to term ID', 'import-export-by-rockstarlab' ),
 				'category'    => 'wordpress',
 				'code'        => '$term = get_term_by(\'name\', $value, \'category\'); return $term ? $term->term_id : 0;',
 				'example'     => [
@@ -541,8 +541,8 @@ class Function_Snippets {
 				'tags'        => [ 'wordpress', 'term', 'category', 'find' ],
 			],
 			'find_term_by_slug'    => [
-				'name'        => __( 'Find Term ID by Slug', 'amplified-import-export' ),
-				'description' => __( 'Convert category/tag slug to term ID', 'amplified-import-export' ),
+				'name'        => __( 'Find Term ID by Slug', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Convert category/tag slug to term ID', 'import-export-by-rockstarlab' ),
 				'category'    => 'wordpress',
 				'code'        => '$term = get_term_by(\'slug\', $value, \'category\'); return $term ? $term->term_id : 0;',
 				'example'     => [
@@ -552,8 +552,8 @@ class Function_Snippets {
 				'tags'        => [ 'wordpress', 'term', 'category', 'slug', 'find' ],
 			],
 			'create_category'      => [
-				'name'        => __( 'Create Category if Not Exists', 'amplified-import-export' ),
-				'description' => __( 'Get existing or create new category', 'amplified-import-export' ),
+				'name'        => __( 'Create Category if Not Exists', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Get existing or create new category', 'import-export-by-rockstarlab' ),
 				'category'    => 'wordpress',
 				'code'        => '$term = get_term_by(\'name\', $value, \'category\'); if ($term) { return $term->term_id; } $result = wp_insert_term($value, \'category\'); return is_wp_error($result) ? 0 : $result[\'term_id\'];',
 				'example'     => [
@@ -563,8 +563,8 @@ class Function_Snippets {
 				'tags'        => [ 'wordpress', 'category', 'create' ],
 			],
 			'get_post_id_by_title' => [
-				'name'        => __( 'Find Post ID by Title', 'amplified-import-export' ),
-				'description' => __( 'Convert post title to post ID', 'amplified-import-export' ),
+				'name'        => __( 'Find Post ID by Title', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Convert post title to post ID', 'import-export-by-rockstarlab' ),
 				'category'    => 'wordpress',
 				'code'        => '$post = get_page_by_title($value, OBJECT, \'post\'); return $post ? $post->ID : 0;',
 				'example'     => [
@@ -584,8 +584,8 @@ class Function_Snippets {
 	private function get_validation_snippets() {
 		return [
 			'validate_email' => [
-				'name'        => __( 'Validate Email', 'amplified-import-export' ),
-				'description' => __( 'Return email if valid, empty if not', 'amplified-import-export' ),
+				'name'        => __( 'Validate Email', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Return email if valid, empty if not', 'import-export-by-rockstarlab' ),
 				'category'    => 'validation',
 				'code'        => 'return is_email($value) ? $value : \'\';',
 				'example'     => [
@@ -595,8 +595,8 @@ class Function_Snippets {
 				'tags'        => [ 'validation', 'email', 'check' ],
 			],
 			'validate_url'   => [
-				'name'        => __( 'Validate URL', 'amplified-import-export' ),
-				'description' => __( 'Return URL if valid, empty if not', 'amplified-import-export' ),
+				'name'        => __( 'Validate URL', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Return URL if valid, empty if not', 'import-export-by-rockstarlab' ),
 				'category'    => 'validation',
 				'code'        => 'return filter_var($value, FILTER_VALIDATE_URL) ? $value : \'\';',
 				'example'     => [
@@ -606,8 +606,8 @@ class Function_Snippets {
 				'tags'        => [ 'validation', 'url', 'check' ],
 			],
 			'require_value'  => [
-				'name'        => __( 'Require Non-Empty', 'amplified-import-export' ),
-				'description' => __( 'Return value or default if empty', 'amplified-import-export' ),
+				'name'        => __( 'Require Non-Empty', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Return value or default if empty', 'import-export-by-rockstarlab' ),
 				'category'    => 'validation',
 				'code'        => 'return !empty($value) ? $value : \'N/A\';',
 				'example'     => [
@@ -617,8 +617,8 @@ class Function_Snippets {
 				'tags'        => [ 'validation', 'required', 'default' ],
 			],
 			'sanitize_email' => [
-				'name'        => __( 'Sanitize Email', 'amplified-import-export' ),
-				'description' => __( 'Clean and validate email address', 'amplified-import-export' ),
+				'name'        => __( 'Sanitize Email', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Clean and validate email address', 'import-export-by-rockstarlab' ),
 				'category'    => 'validation',
 				'code'        => 'return sanitize_email($value);',
 				'example'     => [
@@ -628,8 +628,8 @@ class Function_Snippets {
 				'tags'        => [ 'validation', 'email', 'sanitize' ],
 			],
 			'validate_phone' => [
-				'name'        => __( 'Validate Phone Number', 'amplified-import-export' ),
-				'description' => __( 'Check if value contains only digits and common phone chars', 'amplified-import-export' ),
+				'name'        => __( 'Validate Phone Number', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Check if value contains only digits and common phone chars', 'import-export-by-rockstarlab' ),
 				'category'    => 'validation',
 				'code'        => 'return preg_match(\'/^[0-9+\-\(\)\s]+$/\', $value) ? $value : \'\';',
 				'example'     => [
@@ -649,8 +649,8 @@ class Function_Snippets {
 	private function get_advanced_snippets() {
 		return [
 			'concat_prefix'      => [
-				'name'        => __( 'Add Prefix', 'amplified-import-export' ),
-				'description' => __( 'Add text before value', 'amplified-import-export' ),
+				'name'        => __( 'Add Prefix', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Add text before value', 'import-export-by-rockstarlab' ),
 				'category'    => 'advanced',
 				'code'        => 'return \'PREFIX-\' . $value;',
 				'example'     => [
@@ -660,8 +660,8 @@ class Function_Snippets {
 				'tags'        => [ 'advanced', 'concat', 'prefix' ],
 			],
 			'concat_suffix'      => [
-				'name'        => __( 'Add Suffix', 'amplified-import-export' ),
-				'description' => __( 'Add text after value', 'amplified-import-export' ),
+				'name'        => __( 'Add Suffix', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Add text after value', 'import-export-by-rockstarlab' ),
 				'category'    => 'advanced',
 				'code'        => 'return $value . \'-SUFFIX\';',
 				'example'     => [
@@ -671,8 +671,8 @@ class Function_Snippets {
 				'tags'        => [ 'advanced', 'concat', 'suffix' ],
 			],
 			'default_if_empty'   => [
-				'name'        => __( 'Default if Empty', 'amplified-import-export' ),
-				'description' => __( 'Use default value if empty', 'amplified-import-export' ),
+				'name'        => __( 'Default if Empty', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Use default value if empty', 'import-export-by-rockstarlab' ),
 				'category'    => 'advanced',
 				'code'        => 'return !empty($value) ? $value : \'Default Value\';',
 				'example'     => [
@@ -682,8 +682,8 @@ class Function_Snippets {
 				'tags'        => [ 'advanced', 'default', 'empty', 'conditional' ],
 			],
 			'map_values'         => [
-				'name'        => __( 'Map Values', 'amplified-import-export' ),
-				'description' => __( 'Convert one value to another (Yes/No to 1/0)', 'amplified-import-export' ),
+				'name'        => __( 'Map Values', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Convert one value to another (Yes/No to 1/0)', 'import-export-by-rockstarlab' ),
 				'category'    => 'advanced',
 				'code'        => '$map = [\'yes\' => 1, \'no\' => 0]; $key = strtolower($value); return isset($map[$key]) ? $map[$key] : $value;',
 				'example'     => [
@@ -693,8 +693,8 @@ class Function_Snippets {
 				'tags'        => [ 'advanced', 'map', 'convert', 'conditional' ],
 			],
 			'conditional_value'  => [
-				'name'        => __( 'Conditional Value', 'amplified-import-export' ),
-				'description' => __( 'Return different value based on condition', 'amplified-import-export' ),
+				'name'        => __( 'Conditional Value', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Return different value based on condition', 'import-export-by-rockstarlab' ),
 				'category'    => 'advanced',
 				'code'        => 'return intval($value) > 100 ? \'High\' : \'Low\';',
 				'example'     => [
@@ -704,8 +704,8 @@ class Function_Snippets {
 				'tags'        => [ 'advanced', 'conditional', 'if' ],
 			],
 			'first_word'         => [
-				'name'        => __( 'Extract First Word', 'amplified-import-export' ),
-				'description' => __( 'Get first word from text', 'amplified-import-export' ),
+				'name'        => __( 'Extract First Word', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Get first word from text', 'import-export-by-rockstarlab' ),
 				'category'    => 'advanced',
 				'code'        => '$words = explode(\' \', trim($value)); return $words[0] ?? \'\';',
 				'example'     => [
@@ -715,8 +715,8 @@ class Function_Snippets {
 				'tags'        => [ 'advanced', 'extract', 'word' ],
 			],
 			'json_decode_field'  => [
-				'name'        => __( 'Extract from JSON', 'amplified-import-export' ),
-				'description' => __( 'Parse JSON and extract field', 'amplified-import-export' ),
+				'name'        => __( 'Extract from JSON', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Parse JSON and extract field', 'import-export-by-rockstarlab' ),
 				'category'    => 'advanced',
 				'code'        => '$data = json_decode($value, true); return $data[\'field_name\'] ?? \'\';',
 				'example'     => [
@@ -726,8 +726,8 @@ class Function_Snippets {
 				'tags'        => [ 'advanced', 'json', 'extract', 'parse' ],
 			],
 			'split_by_delimiter' => [
-				'name'        => __( 'Split by Delimiter', 'amplified-import-export' ),
-				'description' => __( 'Split by comma and take first part', 'amplified-import-export' ),
+				'name'        => __( 'Split by Delimiter', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Split by comma and take first part', 'import-export-by-rockstarlab' ),
 				'category'    => 'advanced',
 				'code'        => '$parts = explode(\',\', $value); return trim($parts[0] ?? \'\');',
 				'example'     => [

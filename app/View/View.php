@@ -4,10 +4,10 @@
  *
  * Handles loading and rendering of view templates.
  *
- * @package WP_AIE\View
+ * @package RockStarLab\ImportExport\View
  */
 
-namespace WP_AIE\View;
+namespace RockStarLab\ImportExport\View;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -21,9 +21,9 @@ class View {
 	function load( $path = '', $data = [], $return = false, $base = null ) {
 
 		if ( is_null( $base ) ) {
-			$base = WP_AIE_PATH . '/app/View/';
+			$base = RSL_IE_PATH . '/app/View/';
 		} else {
-			$base = wp_normalize_path( WP_AIE_PATH . '/' . $base );
+			$base = wp_normalize_path( RSL_IE_PATH . '/' . $base );
 		}
 
 		$full_path = $base . $path . '.php';

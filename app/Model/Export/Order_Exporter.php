@@ -4,10 +4,10 @@
  *
  * Handles exporting WooCommerce orders with HPOS support
  *
- * @package WP_AIE\Model\Export
+ * @package RockStarLab\ImportExport\Model\Export
  */
 
-namespace WP_AIE\Model\Export;
+namespace RockStarLab\ImportExport\Model\Export;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -28,7 +28,7 @@ class Order_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WooCommerce orders', 'amplified-import-export' );
+		return __( 'Export WooCommerce orders', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -38,14 +38,14 @@ class Order_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'status'         => __( 'Order status (completed, processing, pending, etc.)', 'amplified-import-export' ),
-			'date_created'   => __( 'Date created range', 'amplified-import-export' ),
-			'date_modified'  => __( 'Date modified range', 'amplified-import-export' ),
-			'customer_id'    => __( 'Customer user ID', 'amplified-import-export' ),
-			'billing_email'  => __( 'Billing email', 'amplified-import-export' ),
-			'payment_method' => __( 'Payment method', 'amplified-import-export' ),
-			'total'          => __( 'Order total', 'amplified-import-export' ),
-			'order_key'      => __( 'Order key', 'amplified-import-export' ),
+			'status'         => __( 'Order status (completed, processing, pending, etc.)', 'import-export-by-rockstarlab' ),
+			'date_created'   => __( 'Date created range', 'import-export-by-rockstarlab' ),
+			'date_modified'  => __( 'Date modified range', 'import-export-by-rockstarlab' ),
+			'customer_id'    => __( 'Customer user ID', 'import-export-by-rockstarlab' ),
+			'billing_email'  => __( 'Billing email', 'import-export-by-rockstarlab' ),
+			'payment_method' => __( 'Payment method', 'import-export-by-rockstarlab' ),
+			'total'          => __( 'Order total', 'import-export-by-rockstarlab' ),
+			'order_key'      => __( 'Order key', 'import-export-by-rockstarlab' ),
 		];
 	}
 
@@ -272,7 +272,7 @@ class Order_Exporter extends Abstract_Exporter {
 	public function get_data( $options = [] ) {
 		// Check if WooCommerce is active
 		if ( ! function_exists( 'wc_get_orders' ) ) {
-			$error = new \WP_Error( 'woocommerce_inactive', __( 'WooCommerce is not active', 'amplified-import-export' ) );
+			$error = new \WP_Error( 'woocommerce_inactive', __( 'WooCommerce is not active', 'import-export-by-rockstarlab' ) );
 			$this->log_error( 'WooCommerce is not active' );
 			return $error;
 		}

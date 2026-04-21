@@ -5,10 +5,10 @@
  * Extracts clean article content from URLs using OpenAI API
  * Removes sidebars, comments, banners, and other clutter
  *
- * @package WP_AIE\Helper
+ * @package RockStarLab\ImportExport\Helper
  */
 
-namespace WP_AIE\Helper;
+namespace RockStarLab\ImportExport\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -39,11 +39,11 @@ class AI_Content_Extractor {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->api_key = get_option( 'wp_aie_openai_api_key', '' );
+		$this->api_key = get_option( 'rsl_ie_openai_api_key', '' );
 
 		// Fallback to constant if not set in options
-		if ( empty( $this->api_key ) && defined( 'WP_AIE_OPENAI_API_KEY' ) ) {
-			$this->api_key = WP_AIE_OPENAI_API_KEY;
+		if ( empty( $this->api_key ) && defined( 'RSL_IE_OPENAI_API_KEY' ) ) {
+			$this->api_key = RSL_IE_OPENAI_API_KEY;
 		}
 	}
 
@@ -56,7 +56,7 @@ class AI_Content_Extractor {
 		if ( empty( $this->api_key ) ) {
 			return new \WP_Error(
 				'no_api_key',
-				__( 'OpenAI API key is not set', 'amplified-import-export' )
+				__( 'OpenAI API key is not set', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -92,7 +92,7 @@ class AI_Content_Extractor {
 		if ( isset( $body['error'] ) ) {
 			return new \WP_Error(
 				'api_error',
-				$body['error']['message'] ?? __( 'Unknown API error', 'amplified-import-export' )
+				$body['error']['message'] ?? __( 'Unknown API error', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -109,7 +109,7 @@ class AI_Content_Extractor {
 		if ( empty( $this->api_key ) ) {
 			return new \WP_Error(
 				'no_api_key',
-				__( 'OpenAI API key is not set', 'amplified-import-export' )
+				__( 'OpenAI API key is not set', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -156,7 +156,7 @@ class AI_Content_Extractor {
 				'http_error',
 				sprintf(
 					/* translators: %d: HTTP status code */
-					__( 'HTTP error %d when fetching URL', 'amplified-import-export' ),
+					__( 'HTTP error %d when fetching URL', 'import-export-by-rockstarlab' ),
 					$status_code
 				)
 			);
@@ -261,14 +261,14 @@ class AI_Content_Extractor {
 		if ( isset( $body['error'] ) ) {
 			return new \WP_Error(
 				'api_error',
-				$body['error']['message'] ?? __( 'Unknown API error', 'amplified-import-export' )
+				$body['error']['message'] ?? __( 'Unknown API error', 'import-export-by-rockstarlab' )
 			);
 		}
 
 		if ( ! isset( $body['choices'][0]['message']['content'] ) ) {
 			return new \WP_Error(
 				'invalid_response',
-				__( 'Invalid response from OpenAI API', 'amplified-import-export' )
+				__( 'Invalid response from OpenAI API', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -282,7 +282,7 @@ class AI_Content_Extractor {
 		if ( ! $content_json ) {
 			return new \WP_Error(
 				'invalid_json',
-				__( 'Failed to parse AI response', 'amplified-import-export' )
+				__( 'Failed to parse AI response', 'import-export-by-rockstarlab' )
 			);
 		}
 

@@ -19,7 +19,20 @@ import 'select2/dist/css/select2.min.css';
 		 * Initialize the module
 		 */
 		init() {
+			this.positionSyncButton();
 			this.bindEvents();
+		},
+
+		/**
+		 * Ensure the Sync button sits next to the Filter button.
+		 */
+		positionSyncButton() {
+			const $btn = $( '#aie-sync-content-btn' );
+			const $filterBtn = $( '#post-query-submit' );
+
+			if ( $btn.length && $filterBtn.length ) {
+				$btn.insertAfter( $filterBtn );
+			}
 		},
 
 		/**

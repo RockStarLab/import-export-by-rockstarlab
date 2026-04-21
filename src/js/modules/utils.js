@@ -4,6 +4,50 @@
  * Common utilities used across the plugin
  */
 
+const LEGACY_AJAX_PREFIX = 'aie_';
+const AJAX_PREFIX = 'rsl_ie_';
+
+const getClientData = () => window.aieData || window.rslIeData || {};
+
+const normalizeAjaxAction = ( action ) => {
+	if ( ! action || typeof action !== 'string' ) {
+		return action;
+	}
+
+	if ( action.startsWith( AJAX_PREFIX ) ) {
+		return action;
+	}
+
+	if ( action.startsWith( LEGACY_AJAX_PREFIX ) ) {
+		return AJAX_PREFIX + action.slice( LEGACY_AJAX_PREFIX.length );
+	}
+
+	return AJAX_PREFIX + action;
+};
+
+// Normalize legacy `aie_` admin-ajax actions across the bundle.
+if ( typeof window !== 'undefined' && window.jQuery && ! window.__rslIeAjaxPrefilterAdded ) {
+	window.__rslIeAjaxPrefilterAdded = true;
+
+	window.jQuery.ajaxPrefilter( ( options ) => {
+		if ( ! options || ! options.data ) {
+			return;
+		}
+
+		if ( typeof options.data === 'string' ) {
+			options.data = options.data.replace(
+				/(^|&)action=aie_/,
+				`$1action=${ AJAX_PREFIX }`
+			);
+			return;
+		}
+
+		if ( typeof options.data === 'object' && options.data.action ) {
+			options.data.action = normalizeAjaxAction( options.data.action );
+		}
+	} );
+}
+
 const Utils = {
 	/**
 	 * Make AJAX request
@@ -15,15 +59,17 @@ const Utils = {
 	 */
 	ajax( action, data = {}, method = 'POST' ) {
 		return new Promise( ( resolve, reject ) => {
+			const clientData = getClientData();
+
 			const ajaxData = {
-				action: action,
-				nonce: window.aieData?.nonce || '',
+				action: normalizeAjaxAction( action ),
+				nonce: clientData?.nonce || '',
 				...data,
 			};
 
 			jQuery
 				.ajax( {
-					url: window.aieData?.ajaxUrl || '/wp-admin/admin-ajax.php',
+					url: clientData?.ajaxUrl || '/wp-admin/admin-ajax.php',
 					type: method,
 					data: ajaxData,
 					dataType: 'json',

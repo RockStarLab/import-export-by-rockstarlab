@@ -2,13 +2,13 @@
 /**
  * Functions Settings Page
  *
- * @package WP_AIE\View
+ * @package RockStarLab\ImportExport\View
  */
 
 defined( 'ABSPATH' ) || exit;
 ?>
 
-<div id="wp-aie-functions" class="wrap">
+<div id="rsl-ie-functions" class="wrap">
 	<?php
 		require __DIR__ . '/partials/functions-header.php';
 		require __DIR__ . '/partials/functions-table.php';

@@ -2,7 +2,7 @@
 /**
  * Plugin Configuration
  *
- * @package WP_AIE
+ * @package RockStarLab\ImportExport
  */
 
 defined( 'ABSPATH' ) || exit;

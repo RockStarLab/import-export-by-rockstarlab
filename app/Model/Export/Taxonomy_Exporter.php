@@ -4,10 +4,10 @@
  *
  * Handles exporting WordPress taxonomy terms
  *
- * @package WP_AIE\Model\Export
+ * @package RockStarLab\ImportExport\Model\Export
  */
 
-namespace WP_AIE\Model\Export;
+namespace RockStarLab\ImportExport\Model\Export;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -28,7 +28,7 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WordPress taxonomy terms', 'amplified-import-export' );
+		return __( 'Export WordPress taxonomy terms', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -38,13 +38,13 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'taxonomy'      => __( 'Taxonomy name', 'amplified-import-export' ),
-			'hide_empty'    => __( 'Hide empty terms', 'amplified-import-export' ),
-			'parent'        => __( 'Parent term ID', 'amplified-import-export' ),
-			'search'        => __( 'Search query', 'amplified-import-export' ),
-			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'amplified-import-export' ),
-			'orderby'       => __( 'Order by field', 'amplified-import-export' ),
-			'order'         => __( 'Order direction (ASC or DESC)', 'amplified-import-export' ),
+			'taxonomy'      => __( 'Taxonomy name', 'import-export-by-rockstarlab' ),
+			'hide_empty'    => __( 'Hide empty terms', 'import-export-by-rockstarlab' ),
+			'parent'        => __( 'Parent term ID', 'import-export-by-rockstarlab' ),
+			'search'        => __( 'Search query', 'import-export-by-rockstarlab' ),
+			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'import-export-by-rockstarlab' ),
+			'orderby'       => __( 'Order by field', 'import-export-by-rockstarlab' ),
+			'order'         => __( 'Order direction (ASC or DESC)', 'import-export-by-rockstarlab' ),
 		];
 	}
 
@@ -368,12 +368,12 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 
 				default:
 					// Allow custom fields via filter
-					$data[ $field ] = apply_filters( 'aie_taxonomy_export_field_value', '', $field, $term, $options );
+					$data[ $field ] = apply_filters( 'rsl_ie_taxonomy_export_field_value', '', $field, $term, $options );
 					break;
 			}
 		}
 
-		return apply_filters( 'aie_taxonomy_export_data', $data, $term, $options );
+		return apply_filters( 'rsl_ie_taxonomy_export_data', $data, $term, $options );
 	}
 
 	/**
@@ -718,7 +718,7 @@ class Taxonomy_Exporter extends Abstract_Exporter {
 					'invalid_taxonomy',
 					sprintf(
 						/* translators: %s: taxonomy name */
-						__( 'Invalid taxonomy: %s', 'amplified-import-export' ),
+						__( 'Invalid taxonomy: %s', 'import-export-by-rockstarlab' ),
 						$options['taxonomy']
 					)
 				);

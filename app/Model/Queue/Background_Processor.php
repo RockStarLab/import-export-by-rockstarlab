@@ -4,13 +4,13 @@
  *
  * Processes jobs in the background using WP Cron
  *
- * @package WP_AIE\Model\Queue
+ * @package RockStarLab\ImportExport\Model\Queue
  */
 
-namespace WP_AIE\Model\Queue;
+namespace RockStarLab\ImportExport\Model\Queue;
 
-use WP_AIE\Model\Job;
-use WP_AIE\Helper\Progress_Tracker;
+use RockStarLab\ImportExport\Model\Job;
+use RockStarLab\ImportExport\Helper\Progress_Tracker;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -48,7 +48,7 @@ class Background_Processor {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->job_model        = WP_AIE()->Model->job;
+		$this->job_model        = rsl_ie()->Model->job;
 		$this->batch_processor  = new Batch_Processor();
 		$this->progress_tracker = new Progress_Tracker();
 	}
@@ -80,7 +80,7 @@ class Background_Processor {
 	protected function get_next_job() {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'aie_jobs';
+		$table = $wpdb->prefix . 'rsl_ie_jobs';
 
 		// Get oldest pending or processing job
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name uses $wpdb->prefix, no user input
@@ -159,7 +159,7 @@ class Background_Processor {
 		$offset      = $parameters['offset'] ?? 0;
 
 		// Parse file data
-		$format_handler = \WP_AIE\Model\Format\Format_Factory::create( $format );
+		$format_handler = \RockStarLab\ImportExport\Model\Format\Format_Factory::create( $format );
 		$data           = $format_handler->parse( $file_path );
 
 		if ( is_wp_error( $data ) ) {
@@ -182,7 +182,7 @@ class Background_Processor {
 		}
 
 		// Get importer
-		$importer = \WP_AIE\Model\Import\Importer_Factory::create( $import_type );
+		$importer = \RockStarLab\ImportExport\Model\Import\Importer_Factory::create( $import_type );
 		$importer->set_duplicate_handling( $parameters['duplicate_handling'] ?? 'skip' );
 
 		// Process batch
@@ -214,7 +214,7 @@ class Background_Processor {
 		$offset      = $parameters['offset'] ?? 0;
 
 		// Get exporter
-		$exporter = \WP_AIE\Model\Export\Exporter_Factory::get_exporter( $export_type, $job_id );
+		$exporter = \RockStarLab\ImportExport\Model\Export\Exporter_Factory::get_exporter( $export_type, $job_id );
 
 		if ( is_wp_error( $exporter ) ) {
 			return array(
@@ -265,13 +265,13 @@ class Background_Processor {
 	 */
 	protected function append_export_data( $job_id, $format, $data, $first_batch = false ) {
 		$upload_dir = wp_upload_dir();
-		$file_path  = $upload_dir['basedir'] . '/wp-aie-exports/job-' . $job_id . '.' . $format;
+		$file_path  = $upload_dir['basedir'] . '/rsl-ie-exports/job-' . $job_id . '.' . $format;
 
 		// Create directory if needed
 		wp_mkdir_p( dirname( $file_path ) );
 
 		// Get format handler
-		$format_handler = \WP_AIE\Model\Format\Format_Factory::create( $format );
+		$format_handler = \RockStarLab\ImportExport\Model\Format\Format_Factory::create( $format );
 
 		// Generate content (note: this is legacy code, new exports use Export_Processor)
 		$result = $format_handler->generate( $data, $file_path );
@@ -399,10 +399,10 @@ class Background_Processor {
 	protected function schedule_next_run( $delay = 0 ) {
 		// Always schedule immediate processing for continued jobs
 		// Don't check for existing scheduled events - we want to trigger NOW
-		wp_schedule_single_event(
-			time() + $delay,
-			'aie_process_queue'
-		);
+			wp_schedule_single_event(
+				time() + $delay,
+				'rsl_ie_process_queue'
+			);
 	}
 
 	/**
@@ -423,12 +423,12 @@ class Background_Processor {
 			array(
 				'timeout'   => 0.01,
 				'blocking'  => false,
-				'sslverify' => false,
-				'body'      => array(
-					'action' => 'aie_process_media_sync_batch',
-					'nonce'  => wp_create_nonce( 'aie_process_media_sync_batch' ),
-					'job_id' => $job_id,
-				),
+					'sslverify' => false,
+					'body'      => array(
+						'action' => 'rsl_ie_process_media_sync_batch',
+						'nonce'  => wp_create_nonce( 'rsl_ie_nonce' ),
+						'job_id' => $job_id,
+					),
 				'cookies'   => $_COOKIE,
 			)
 		);

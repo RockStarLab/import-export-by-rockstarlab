@@ -4,13 +4,13 @@
  *
  * Handles job management operations via AJAX
  *
- * @package WP_AIE\Controller
+ * @package RockStarLab\ImportExport\Controller
  */
 
-namespace WP_AIE\Controller;
+namespace RockStarLab\ImportExport\Controller;
 
-use WP_AIE\Model\Job;
-use WP_AIE\Model\Log;
+use RockStarLab\ImportExport\Model\Job;
+use RockStarLab\ImportExport\Model\Log;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -49,7 +49,7 @@ class Job_Controller extends Base_Controller {
 		$limit  = (int) $this->get_request_param( 'limit', 20 );
 		$offset = (int) $this->get_request_param( 'offset', 0 );
 
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$where     = [];
 
 		if ( ! empty( $type ) ) {
@@ -108,11 +108,11 @@ class Job_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			$this->send_error( __( 'Job not found', 'amplified-import-export' ), null, 404 );
+			$this->send_error( __( 'Job not found', 'import-export-by-rockstarlab' ), null, 404 );
 		}
 
 		// Parse parameters and result
@@ -142,14 +142,14 @@ class Job_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$result    = $job_model->delete( $job_id );
 
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result, null, 500 );
 		}
 
-		$this->send_success( null, __( 'Job deleted successfully', 'amplified-import-export' ) );
+		$this->send_success( null, __( 'Job deleted successfully', 'import-export-by-rockstarlab' ) );
 	}
 
 	/**
@@ -170,7 +170,7 @@ class Job_Controller extends Base_Controller {
 		$level  = $this->get_request_param( 'level', 'all' ); // all, info, warning, error
 		$limit  = (int) $this->get_request_param( 'limit', 100 );
 
-		$log_model = WP_AIE()->Model->log;
+		$log_model = rsl_ie()->Model->log;
 		$where     = 'job_id = %d';
 		$params    = [ $job_id ];
 
@@ -201,11 +201,11 @@ class Job_Controller extends Base_Controller {
 		$days = (int) $this->get_request_param( 'days', 30 );
 
 		if ( $days < 1 ) {
-			$this->send_error( __( 'Days must be greater than 0', 'amplified-import-export' ), null, 400 );
+			$this->send_error( __( 'Days must be greater than 0', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'aie_jobs';
+		$table_name = $wpdb->prefix . 'rsl_ie_jobs';
 
 		// Delete old completed jobs
 		$deleted = $wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
@@ -221,7 +221,7 @@ class Job_Controller extends Base_Controller {
 			],
 			sprintf(
 			/* translators: %d: number of deleted jobs */
-				__( 'Deleted %d old jobs', 'amplified-import-export' ),
+				__( 'Deleted %d old jobs', 'import-export-by-rockstarlab' ),
 				$deleted
 			)
 		);
@@ -243,11 +243,11 @@ class Job_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			$this->send_error( __( 'Job not found', 'amplified-import-export' ), null, 404 );
+			$this->send_error( __( 'Job not found', 'import-export-by-rockstarlab' ), null, 404 );
 		}
 
 		// Check if job can be resumed
@@ -255,7 +255,7 @@ class Job_Controller extends Base_Controller {
 			$this->send_error(
 				sprintf(
 					/* translators: %s: current job status */
-					__( 'Job cannot be resumed. Current status: %s', 'amplified-import-export' ),
+					__( 'Job cannot be resumed. Current status: %s', 'import-export-by-rockstarlab' ),
 					$job_data->status
 				),
 				null,
@@ -286,7 +286,7 @@ class Job_Controller extends Base_Controller {
 				'data_type'  => $job_data->data_type,
 				'parameters' => $parameters,
 			],
-			__( 'Job resumed successfully', 'amplified-import-export' )
+			__( 'Job resumed successfully', 'import-export-by-rockstarlab' )
 		);
 	}
 
@@ -306,11 +306,11 @@ class Job_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			$this->send_error( __( 'Job not found', 'amplified-import-export' ), null, 404 );
+			$this->send_error( __( 'Job not found', 'import-export-by-rockstarlab' ), null, 404 );
 		}
 
 		// Verify premium license for premium content types.
@@ -351,7 +351,7 @@ class Job_Controller extends Base_Controller {
 		}
 
 		if ( empty( $parameters ) && empty( $settings_to_use ) ) {
-			$this->send_error( __( 'Job configuration not found', 'amplified-import-export' ), null, 400 );
+			$this->send_error( __( 'Job configuration not found', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
 		// Create new job with same settings
@@ -377,7 +377,7 @@ class Job_Controller extends Base_Controller {
 				'data_type'  => $job_data->data_type,
 				'parameters' => $parameters,
 			],
-			__( 'Job restarted successfully', 'amplified-import-export' )
+			__( 'Job restarted successfully', 'import-export-by-rockstarlab' )
 		);
 	}
 
@@ -397,11 +397,11 @@ class Job_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
-			$this->send_error( __( 'Job not found', 'amplified-import-export' ), null, 404 );
+			$this->send_error( __( 'Job not found', 'import-export-by-rockstarlab' ), null, 404 );
 		}
 
 		// Verify premium license for premium content types.
@@ -442,7 +442,7 @@ class Job_Controller extends Base_Controller {
 		}
 
 		if ( empty( $parameters ) && empty( $settings_to_use ) ) {
-			$this->send_error( __( 'Job configuration not found', 'amplified-import-export' ), null, 400 );
+			$this->send_error( __( 'Job configuration not found', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
 		// Create new job with same settings but set status to processing
@@ -469,7 +469,7 @@ class Job_Controller extends Base_Controller {
 				'data_type'  => $job_data->data_type,
 				'parameters' => $parameters,
 			],
-			__( 'Job created and ready to process', 'amplified-import-export' )
+			__( 'Job created and ready to process', 'import-export-by-rockstarlab' )
 		);
 	}
 
@@ -486,32 +486,32 @@ class Job_Controller extends Base_Controller {
 
 		if ( empty( $job_id ) ) {
 			$this->send_error(
-				new \WP_Error( 'missing_job_id', __( 'Job ID is required', 'amplified-import-export' ) ),
+				new \WP_Error( 'missing_job_id', __( 'Job ID is required', 'import-export-by-rockstarlab' ) ),
 				null,
 				400
 			);
 		}
 
 		// Verify job exists
-		$job_model = WP_AIE()->Model->job;
+		$job_model = rsl_ie()->Model->job;
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
 			$this->send_error(
-				new \WP_Error( 'job_not_found', __( 'Job not found', 'amplified-import-export' ) ),
+				new \WP_Error( 'job_not_found', __( 'Job not found', 'import-export-by-rockstarlab' ) ),
 				null,
 				404
 			);
 		}
 
 		// Generate nonce for this specific job
-		$nonce = wp_create_nonce( 'aie_download_' . $job_id );
+		$nonce = wp_create_nonce( 'rsl_ie_download_' . $job_id );
 		$url   = add_query_arg(
 			[
-				'action'   => 'aie_secure_download',
-				'job_id'   => $job_id,
-				'_wpnonce' => $nonce,
-			],
+					'action'   => 'rsl_ie_secure_download',
+					'job_id'   => $job_id,
+					'_wpnonce' => $nonce,
+				],
 			admin_url( 'admin-ajax.php' )
 		);
 
@@ -520,7 +520,7 @@ class Job_Controller extends Base_Controller {
 				'url'   => $url,
 				'nonce' => $nonce,
 			],
-			__( 'Download URL generated', 'amplified-import-export' )
+			__( 'Download URL generated', 'import-export-by-rockstarlab' )
 		);
 	}
 }

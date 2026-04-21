@@ -4,10 +4,10 @@
  *
  * Manages WP Cron schedules and background job processing
  *
- * @package WP_AIE\Model\Queue
+ * @package RockStarLab\ImportExport\Model\Queue
  */
 
-namespace WP_AIE\Model\Queue;
+namespace RockStarLab\ImportExport\Model\Queue;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -25,7 +25,7 @@ class Cron_Manager {
 	 *
 	 * @var string
 	 */
-	const CRON_HOOK = 'aie_process_queue';
+	const CRON_HOOK = 'rsl_ie_process_queue';
 
 	/**
 	 * Constructor
@@ -42,17 +42,17 @@ class Cron_Manager {
 		add_action( self::CRON_HOOK, array( $this, 'process_queue' ) );
 
 		// Register media sync job cron action
-		add_action( 'aie_process_media_sync_job', array( $this, 'process_media_sync_job' ) );
+		add_action( 'rsl_ie_process_media_sync_job', array( $this, 'process_media_sync_job' ) );
 
 		// Register AI URL import job cron action
-		add_action( 'aie_process_ai_url_import', array( $this, 'process_ai_url_import' ) );
+		add_action( 'rsl_ie_process_ai_url_import', array( $this, 'process_ai_url_import' ) );
 
 		// Add custom cron schedule
 		add_filter( 'cron_schedules', array( $this, 'add_cron_schedules' ) );
 
 		// Schedule cron if not already scheduled
 		if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
-			wp_schedule_event( time(), 'aie_every_minute', self::CRON_HOOK );
+			wp_schedule_event( time(), 'rsl_ie_every_minute', self::CRON_HOOK );
 		}
 	}
 
@@ -63,14 +63,14 @@ class Cron_Manager {
 	 * @return array Modified schedules
 	 */
 	public function add_cron_schedules( $schedules ) {
-		$schedules['aie_every_minute'] = array(
+		$schedules['rsl_ie_every_minute'] = array(
 			'interval' => 60,
-			'display'  => __( 'Every Minute', 'amplified-import-export' ),
+			'display'  => __( 'Every Minute', 'import-export-by-rockstarlab' ),
 		);
 
-		$schedules['aie_every_five_minutes'] = array(
+		$schedules['rsl_ie_every_five_minutes'] = array(
 			'interval' => 300,
-			'display'  => __( 'Every 5 Minutes', 'amplified-import-export' ),
+			'display'  => __( 'Every 5 Minutes', 'import-export-by-rockstarlab' ),
 		);
 
 		return $schedules;
@@ -134,7 +134,7 @@ class Cron_Manager {
 	 * @return bool
 	 */
 	public function is_running() {
-		return (bool) get_transient( 'aie_cron_running' );
+		return (bool) get_transient( 'rsl_ie_cron_running' );
 	}
 
 	/**

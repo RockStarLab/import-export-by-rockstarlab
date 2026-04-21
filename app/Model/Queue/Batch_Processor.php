@@ -4,10 +4,10 @@
  *
  * Processes data in batches to prevent memory overflow and timeouts
  *
- * @package WP_AIE\Model\Queue
+ * @package RockStarLab\ImportExport\Model\Queue
  */
 
-namespace WP_AIE\Model\Queue;
+namespace RockStarLab\ImportExport\Model\Queue;
 
 defined( 'ABSPATH' ) || exit;
 

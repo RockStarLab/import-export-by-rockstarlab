@@ -4,10 +4,10 @@
  *
  * Handles extraction and processing of media files during content sync
  *
- * @package WP_AIE\Helper
+ * @package RockStarLab\ImportExport\Helper
  */
 
-namespace WP_AIE\Helper;
+namespace RockStarLab\ImportExport\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -654,8 +654,9 @@ class Content_Sync_Media {
 	 * @return int|false Attachment ID if exists, false otherwise
 	 */
 	public static function check_remote_image_exists( $file_hash, $remote_url, $api_key ) {
-		$response = wp_remote_post(
-			trailingslashit( $remote_url ) . 'wp-json/aie/v1/check-media',
+		$response = \RockStarLab\ImportExport\Helper\Remote_API::post(
+			$remote_url,
+			'check-media',
 			array(
 				'timeout' => 15,
 				'headers' => array(

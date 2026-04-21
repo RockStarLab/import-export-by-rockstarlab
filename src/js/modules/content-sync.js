@@ -9,7 +9,7 @@ const ContentSyncModule = {
 	 * Initialize module
 	 */
 	init() {
-		if (!jQuery('#wp-aie-content-sync').length) {
+		if (!jQuery('#rsl-ie-content-sync').length) {
 			return;
 		}
 
@@ -616,7 +616,7 @@ const ContentSyncModule = {
 			</div>
 		`);
 
-		$('#wp-aie-content-sync h1').after($notice);
+		$('#rsl-ie-content-sync h1').after($notice);
 
 		// Auto-dismiss after 5 seconds
 		setTimeout(() => {

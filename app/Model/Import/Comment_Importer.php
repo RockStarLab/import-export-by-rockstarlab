@@ -4,10 +4,10 @@
  *
  * Handles importing WordPress comments
  *
- * @package WP_AIE\Model\Import
+ * @package RockStarLab\ImportExport\Model\Import
  */
 
-namespace WP_AIE\Model\Import;
+namespace RockStarLab\ImportExport\Model\Import;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -43,7 +43,7 @@ class Comment_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Import WordPress comments with metadata and ACF fields', 'amplified-import-export' );
+		return __( 'Import WordPress comments with metadata and ACF fields', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -223,7 +223,7 @@ class Comment_Importer extends Abstract_Importer {
 		if ( empty( $item['comment_content'] ) ) {
 			return new \WP_Error(
 				'missing_comment_content',
-				__( 'Comment content is required', 'amplified-import-export' )
+				__( 'Comment content is required', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -233,7 +233,7 @@ class Comment_Importer extends Abstract_Importer {
 		if ( ! $post_id ) {
 			return new \WP_Error(
 				'missing_post_id',
-				__( 'Post ID is required', 'amplified-import-export' )
+				__( 'Post ID is required', 'import-export-by-rockstarlab' )
 			);
 		}
 		
@@ -251,7 +251,7 @@ class Comment_Importer extends Abstract_Importer {
 					$new_post_id = wp_insert_post(
 						[
 							// translators: %d is a dynamic value.
-							'post_title'   => $item['post_title'] ?? sprintf( __( 'Imported Post %d', 'amplified-import-export' ), $post_id ),
+							'post_title'   => $item['post_title'] ?? sprintf( __( 'Imported Post %d', 'import-export-by-rockstarlab' ), $post_id ),
 							'post_status'  => 'draft',
 							'post_content' => '',
 						]
@@ -261,7 +261,7 @@ class Comment_Importer extends Abstract_Importer {
 							'post_creation_failed',
 							sprintf(
 								/* translators: %s: error message */
-								__( 'Failed to create missing post: %s', 'amplified-import-export' ),
+								__( 'Failed to create missing post: %s', 'import-export-by-rockstarlab' ),
 								$new_post_id->get_error_message()
 							)
 						);
@@ -277,7 +277,7 @@ class Comment_Importer extends Abstract_Importer {
 						'post_not_found',
 						sprintf(
 							/* translators: %d: post ID */
-							__( 'Post ID %d does not exist', 'amplified-import-export' ),
+							__( 'Post ID %d does not exist', 'import-export-by-rockstarlab' ),
 							$post_id
 						)
 					);
@@ -341,7 +341,7 @@ class Comment_Importer extends Abstract_Importer {
 		if ( ! $comment_id ) {
 			return new \WP_Error(
 				'comment_creation_failed',
-				__( 'Failed to create comment', 'amplified-import-export' )
+				__( 'Failed to create comment', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -735,7 +735,7 @@ class Comment_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	private function get_job_id_map_key() {
-		return 'aie_import_comment_id_map_' . absint( $this->job_id );
+		return 'rsl_ie_import_comment_id_map_' . absint( $this->job_id );
 	}
 
 	/**

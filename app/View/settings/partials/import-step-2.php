@@ -2,7 +2,7 @@
 /**
  * Import Step 2: Upload File
  *
- * @package WP_AIE\View
+ * @package RockStarLab\ImportExport\View
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -11,23 +11,23 @@ defined( 'ABSPATH' ) || exit;
 <!-- Step 2: Upload File -->
 <div class="aie-step aie-step-2" data-step="2">
 	<div class="aie-step-header">
-		<h2><?php esc_html_e( 'Step 2: Upload File', 'amplified-import-export' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Upload your data file (CSV)', 'amplified-import-export' ); ?></p>
+		<h2><?php esc_html_e( 'Step 2: Upload File', 'import-export-by-rockstarlab' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Upload your data file (CSV)', 'import-export-by-rockstarlab' ); ?></p>
 	</div>
 
 	<div class="aie-step-content">
 		<div class="aie-upload-area" id="aie-upload-area">
 			<div class="aie-upload-placeholder">
 				<span class="dashicons dashicons-upload"></span>
-				<h3><?php esc_html_e( 'Drag & Drop your file here', 'amplified-import-export' ); ?></h3>
-				<p><?php esc_html_e( 'or', 'amplified-import-export' ); ?></p>
+				<h3><?php esc_html_e( 'Drag & Drop your file here', 'import-export-by-rockstarlab' ); ?></h3>
+				<p><?php esc_html_e( 'or', 'import-export-by-rockstarlab' ); ?></p>
 				<button type="button" class="button button-secondary" id="aie-select-file">
-					<?php esc_html_e( 'Select File', 'amplified-import-export' ); ?>
+					<?php esc_html_e( 'Select File', 'import-export-by-rockstarlab' ); ?>
 				</button>
 				<input type="file" id="aie-file-input" accept=".csv" style="display:none;">
 				<p class="description">
-					<?php esc_html_e( 'Supported formats: CSV', 'amplified-import-export' ); ?><br>
-					<?php esc_html_e( 'No file size limit - large files supported via chunked upload', 'amplified-import-export' ); ?>
+					<?php esc_html_e( 'Supported formats: CSV', 'import-export-by-rockstarlab' ); ?><br>
+					<?php esc_html_e( 'No file size limit - large files supported via chunked upload', 'import-export-by-rockstarlab' ); ?>
 				</p>
 			</div>
 
@@ -35,7 +35,7 @@ defined( 'ABSPATH' ) || exit;
 			<div class="aie-upload-progress" style="display:none;">
 				<div class="aie-upload-status">
 					<span class="dashicons dashicons-upload"></span>
-					<span class="aie-upload-status-text"><?php esc_html_e( 'Uploading...', 'amplified-import-export' ); ?></span>
+					<span class="aie-upload-status-text"><?php esc_html_e( 'Uploading...', 'import-export-by-rockstarlab' ); ?></span>
 				</div>
 				<div class="aie-progress-bar">
 					<div class="aie-progress-bar-fill" style="width: 0%;"></div>
@@ -62,26 +62,26 @@ defined( 'ABSPATH' ) || exit;
 		</div>
 
 		<div class="aie-format-options" style="display:none;">
-			<h3><?php esc_html_e( 'Format Options', 'amplified-import-export' ); ?></h3>
+			<h3><?php esc_html_e( 'Format Options', 'import-export-by-rockstarlab' ); ?></h3>
 			
 			<div class="aie-csv-options" style="display:none;">
 				<label>
-					<?php esc_html_e( 'Delimiter', 'amplified-import-export' ); ?>
+					<?php esc_html_e( 'Delimiter', 'import-export-by-rockstarlab' ); ?>
 					<select name="csv_delimiter" id="csv_delimiter" class="regular-text">
-						<option value=",">,<?php esc_html_e( ' (Comma)', 'amplified-import-export' ); ?></option>
-						<option value=";">; <?php esc_html_e( ' (Semicolon)', 'amplified-import-export' ); ?></option>
-						<option value="tab">	<?php esc_html_e( ' (Tab)', 'amplified-import-export' ); ?></option>
-						<option value="|">| <?php esc_html_e( ' (Pipe)', 'amplified-import-export' ); ?></option>
-						<option value="custom"><?php esc_html_e( 'Custom', 'amplified-import-export' ); ?></option>
+						<option value=",">,<?php esc_html_e( ' (Comma)', 'import-export-by-rockstarlab' ); ?></option>
+						<option value=";">; <?php esc_html_e( ' (Semicolon)', 'import-export-by-rockstarlab' ); ?></option>
+						<option value="tab">	<?php esc_html_e( ' (Tab)', 'import-export-by-rockstarlab' ); ?></option>
+						<option value="|">| <?php esc_html_e( ' (Pipe)', 'import-export-by-rockstarlab' ); ?></option>
+						<option value="custom"><?php esc_html_e( 'Custom', 'import-export-by-rockstarlab' ); ?></option>
 					</select>
 				</label>
 
 				<label class="aie-custom-delimiter-wrapper" style="display:none;">
-					<?php esc_html_e( 'Custom Delimiter', 'amplified-import-export' ); ?>
-						<input type="text" name="csv_custom_delimiter" id="csv_custom_delimiter" class="regular-text" placeholder="<?php esc_attr_e( 'Enter custom delimiter (any string)', 'amplified-import-export' ); ?>">
+					<?php esc_html_e( 'Custom Delimiter', 'import-export-by-rockstarlab' ); ?>
+						<input type="text" name="csv_custom_delimiter" id="csv_custom_delimiter" class="regular-text" placeholder="<?php esc_attr_e( 'Enter custom delimiter (any string)', 'import-export-by-rockstarlab' ); ?>">
 				<label>
 					<input type="checkbox" name="csv_has_header" checked>
-					<?php esc_html_e( 'First row contains column names', 'amplified-import-export' ); ?>
+					<?php esc_html_e( 'First row contains column names', 'import-export-by-rockstarlab' ); ?>
 				</label>
 			</div>
 		</div>
@@ -89,10 +89,10 @@ defined( 'ABSPATH' ) || exit;
 		<div class="aie-step-actions">
 			<button type="button" class="button button-secondary aie-prev-step">
 				<span class="dashicons dashicons-arrow-left-alt2"></span>
-				<?php esc_html_e( 'Previous', 'amplified-import-export' ); ?>
+				<?php esc_html_e( 'Previous', 'import-export-by-rockstarlab' ); ?>
 			</button>
 			<button type="button" class="button button-primary button-large aie-next-step" disabled>
-				<?php esc_html_e( 'Next Step', 'amplified-import-export' ); ?>
+				<?php esc_html_e( 'Next Step', 'import-export-by-rockstarlab' ); ?>
 				<span class="dashicons dashicons-arrow-right-alt2"></span>
 			</button>
 		</div>

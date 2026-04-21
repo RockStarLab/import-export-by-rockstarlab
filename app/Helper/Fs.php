@@ -5,10 +5,10 @@
  * Provides file system operations for import/export files.
  * Handles uploads, validation, cleanup, and file path management.
  *
- * @package WP_AIE\Helper
+ * @package RockStarLab\ImportExport\Helper
  */
 
-namespace WP_AIE\Helper;
+namespace RockStarLab\ImportExport\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -27,16 +27,16 @@ class FS {
 	 */
 	public static function get_upload_dir() {
 		$upload  = wp_upload_dir();
-		$aie_dir = $upload['basedir'] . '/aie-uploads';
-		$aie_url = $upload['baseurl'] . '/aie-uploads';
+		$rsl_ie_dir = $upload['basedir'] . '/rsl-ie-uploads';
+		$rsl_ie_url = $upload['baseurl'] . '/rsl-ie-uploads';
 
-		if ( ! file_exists( $aie_dir ) ) {
-			wp_mkdir_p( $aie_dir );
+		if ( ! file_exists( $rsl_ie_dir ) ) {
+			wp_mkdir_p( $rsl_ie_dir );
 		}
 
 		return [
-			'path' => $aie_dir,
-			'url'  => $aie_url,
+			'path' => $rsl_ie_dir,
+			'url'  => $rsl_ie_url,
 		];
 	}
 
@@ -57,13 +57,35 @@ class FS {
 			return new \WP_Error( 'invalid_upload', 'Invalid file upload.' );
 		}
 
-		$upload_dir = self::get_upload_dir();
-		$filename   = wp_unique_filename( $upload_dir['path'], $file['name'] );
-		$file_path  = $upload_dir['path'] . '/' . $filename;
+		// Use WordPress upload handling to keep uploads within WP's checks and filters.
+		$upload        = wp_upload_dir();
+		$upload_subdir = '/rsl-ie-uploads';
 
-		// phpcs:ignore Generic.PHP.ForbiddenFunctions.Found -- move_uploaded_file is the correct function for securely handling uploaded files.
-		if ( ! move_uploaded_file( $file['tmp_name'], $file_path ) ) { // phpcs:ignore Generic.PHP.ForbiddenFunctions.Found
-			return new \WP_Error( 'upload_failed', 'Failed to move uploaded file.' );
+		$upload_dir_filter = static function ( $dirs ) use ( $upload, $upload_subdir ) {
+			$dirs['subdir'] = $upload_subdir;
+			$dirs['path']   = $upload['basedir'] . $upload_subdir;
+			$dirs['url']    = $upload['baseurl'] . $upload_subdir;
+			return $dirs;
+		};
+
+		add_filter( 'upload_dir', $upload_dir_filter );
+		$result = wp_handle_upload(
+			$file,
+			array(
+				'test_form' => false,
+			)
+		);
+		remove_filter( 'upload_dir', $upload_dir_filter );
+
+		if ( isset( $result['error'] ) ) {
+			return new \WP_Error( 'upload_failed', $result['error'] );
+		}
+
+		$filename  = isset( $result['file'] ) ? wp_basename( $result['file'] ) : '';
+		$file_path = $result['file'] ?? '';
+
+		if ( empty( $filename ) || empty( $file_path ) ) {
+			return new \WP_Error( 'upload_failed', 'Failed to process uploaded file.' );
 		}
 
 		return [
@@ -73,9 +95,28 @@ class FS {
 	}
 
 	/**
+	 * Back-compat wrapper for older call sites.
+	 *
+	 * @param array $file File array from $_FILES (sanitized).
+	 * @return array|WP_Error
+	 */
+	public static function upload_file( $file ) {
+		$result = self::handle_upload( $file );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return [
+			'id'   => wp_generate_uuid4(),
+			'name' => $result['file'],
+			'path' => $result['path'],
+		];
+	}
+
+	/**
 	 * Get export file path
 	 * Prepares path for export file in a secure subdirectory
-	 * Path: wp-content/uploads/amplified-import-export-files/{secure_hash}/
+	 * Path: wp-content/uploads/import-export-by-rockstarlab-files/{secure_hash}/
 	 *
 	 * @param string $filename Desired filename
 	 * @return array|WP_Error {
@@ -91,7 +132,7 @@ class FS {
 		$upload = wp_upload_dir();
 
 		// Create base directory for exports
-		$base_dir = $upload['basedir'] . '/amplified-import-export-files';
+		$base_dir = $upload['basedir'] . '/import-export-by-rockstarlab-files';
 		if ( ! file_exists( $base_dir ) ) {
 			wp_mkdir_p( $base_dir );
 

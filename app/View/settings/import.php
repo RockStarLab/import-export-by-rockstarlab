@@ -2,17 +2,20 @@
 /**
  * Import Settings Page
  *
- * @package WP_AIE\View
+ * @package RockStarLab\ImportExport\View
  */
 
 defined( 'ABSPATH' ) || exit;
 
 // Check if premium is active
-$is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
+$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
+
+$activate_license_url = add_query_arg( 'rsl-ie-activate-license', '1', admin_url( 'plugins.php' ) );
+$activate_license_url = wp_nonce_url( $activate_license_url, 'rsl_ie_activate_license', '_wpnonce' );
 ?>
 
-<div id="wp-aie-import" class="amplified-import-export wrap">
-	<h1><?php esc_html_e( 'Import Data', 'amplified-import-export' ); ?></h1>
+<div id="rsl-ie-import" class="import-export-by-rockstarlab wrap">
+	<h1><?php esc_html_e( 'Import Data', 'import-export-by-rockstarlab' ); ?></h1>
 
 	<?php if ( ! $is_premium ) : ?>
 	<!-- Premium Notice -->
@@ -21,16 +24,16 @@ $is_premium = function_exists( 'aie_fs' ) && aie_fs()->can_use_premium_code();
 			<span class="dashicons dashicons-lock"></span>
 		</div>
 		<div class="aie-premium-notice-content">
-			<h3><?php esc_html_e( 'Premium Feature Available', 'amplified-import-export' ); ?></h3>
-			<p><?php esc_html_e( 'Import advanced content types with Premium version. Unlock the ability to import Custom Post Types, Media, Menus, Users, Comments, Taxonomy Terms, WooCommerce content and Any Database Table.', 'amplified-import-export' ); ?></p>
-			<?php if ( function_exists( 'aie_fs' ) ) : ?>
-				<a href="<?php echo esc_url( aie_fs()->get_upgrade_url() ); ?>" class="button button-primary button-large">
+			<h3><?php esc_html_e( 'Premium Feature Available', 'import-export-by-rockstarlab' ); ?></h3>
+			<p><?php esc_html_e( 'Import advanced content types with Premium version. Unlock the ability to import Custom Post Types, Media, Menus, Users, Comments, Taxonomy Terms, WooCommerce content and Any Database Table.', 'import-export-by-rockstarlab' ); ?></p>
+			<?php if ( function_exists( 'rsl_ie_fs' ) ) : ?>
+				<a href="<?php echo esc_url( rsl_ie_fs()->get_upgrade_url() ); ?>" class="button button-primary button-large">
 					<span class="dashicons dashicons-star-filled"></span>
-					<?php esc_html_e( 'Upgrade to Premium', 'amplified-import-export' ); ?>
+					<?php esc_html_e( 'Upgrade to Premium', 'import-export-by-rockstarlab' ); ?>
 				</a>
-				<a href="<?php echo esc_url( admin_url( 'plugins.php?aie-activate-license=1' ) ); ?>" class="button button-secondary button-large">
+				<a href="<?php echo esc_url( $activate_license_url ); ?>" class="button button-secondary button-large">
 					<span class="dashicons dashicons-admin-network"></span>
-					<?php esc_html_e( 'Activate License', 'amplified-import-export' ); ?>
+					<?php esc_html_e( 'Activate License', 'import-export-by-rockstarlab' ); ?>
 				</a>
 			<?php endif; ?>
 		</div>

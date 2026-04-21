@@ -2,7 +2,7 @@
 /**
  * Content Updater Steps Indicator
  *
- * @package WP_AIE\View
+ * @package RockStarLab\ImportExport\View
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -12,22 +12,22 @@ defined( 'ABSPATH' ) || exit;
 <div class="aie-steps-indicator">
 	<div class="aie-step-indicator active" data-step="1">
 		<div class="aie-step-number">1</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Content Type', 'amplified-import-export' ); ?></div>
+		<div class="aie-step-label"><?php esc_html_e( 'Content Type', 'import-export-by-rockstarlab' ); ?></div>
 	</div>
 	<div class="aie-step-indicator" data-step="2">
 		<div class="aie-step-number">2</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Filters', 'amplified-import-export' ); ?></div>
+		<div class="aie-step-label"><?php esc_html_e( 'Filters', 'import-export-by-rockstarlab' ); ?></div>
 	</div>
 	<div class="aie-step-indicator" data-step="3">
 		<div class="aie-step-number">3</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Select Fields', 'amplified-import-export' ); ?></div>
+		<div class="aie-step-label"><?php esc_html_e( 'Select Fields', 'import-export-by-rockstarlab' ); ?></div>
 	</div>
 	<div class="aie-step-indicator" data-step="4">
 		<div class="aie-step-number">4</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Assign Functions', 'amplified-import-export' ); ?></div>
+		<div class="aie-step-label"><?php esc_html_e( 'Assign Functions', 'import-export-by-rockstarlab' ); ?></div>
 	</div>
 	<div class="aie-step-indicator" data-step="5">
 		<div class="aie-step-number">5</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Start Update', 'amplified-import-export' ); ?></div>
+		<div class="aie-step-label"><?php esc_html_e( 'Start Update', 'import-export-by-rockstarlab' ); ?></div>
 	</div>
 </div>

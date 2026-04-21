@@ -62,10 +62,10 @@
  * - Ensure all product_ids and variation_ids exist
  * - Provide complete billing and shipping addresses
  *
- * @package WP_AIE\Model\Import
+ * @package RockStarLab\ImportExport\Model\Import
  */
 
-namespace WP_AIE\Model\Import;
+namespace RockStarLab\ImportExport\Model\Import;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -86,7 +86,7 @@ class Woo_Order_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Import WooCommerce orders with items, customer data, and complete order information', 'amplified-import-export' );
+		return __( 'Import WooCommerce orders with items, customer data, and complete order information', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -183,233 +183,233 @@ class Woo_Order_Importer extends Abstract_Importer {
 		return [
 			// Core Order Fields
 			'ID'                    => [
-				'label'       => __( 'Order ID', 'amplified-import-export' ),
-				'description' => __( 'Existing order ID (optional, for updates)', 'amplified-import-export' ),
+				'label'       => __( 'Order ID', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Existing order ID (optional, for updates)', 'import-export-by-rockstarlab' ),
 			],
 			'order_number'          => [
-				'label'       => __( 'Order Number', 'amplified-import-export' ),
-				'description' => __( 'Unique order number (used for duplicate detection)', 'amplified-import-export' ),
+				'label'       => __( 'Order Number', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Unique order number (used for duplicate detection)', 'import-export-by-rockstarlab' ),
 			],
 			'order_status'          => [
-				'label'       => __( 'Order Status', 'amplified-import-export' ),
-				'description' => __( 'Status: pending, processing, on-hold, completed, cancelled, refunded, failed', 'amplified-import-export' ),
+				'label'       => __( 'Order Status', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Status: pending, processing, on-hold, completed, cancelled, refunded, failed', 'import-export-by-rockstarlab' ),
 			],
 			'order_key'             => [
-				'label'       => __( 'Order Key', 'amplified-import-export' ),
-				'description' => __( 'Unique order key', 'amplified-import-export' ),
+				'label'       => __( 'Order Key', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Unique order key', 'import-export-by-rockstarlab' ),
 			],
 			'currency'              => [
-				'label'       => __( 'Currency', 'amplified-import-export' ),
-				'description' => __( 'Currency code (USD, EUR, etc.)', 'amplified-import-export' ),
+				'label'       => __( 'Currency', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Currency code (USD, EUR, etc.)', 'import-export-by-rockstarlab' ),
 			],
 
 			// Order Totals
 			'order_total'           => [
-				'label'       => __( 'Order Total', 'amplified-import-export' ),
-				'description' => __( 'Total order amount', 'amplified-import-export' ),
+				'label'       => __( 'Order Total', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Total order amount', 'import-export-by-rockstarlab' ),
 			],
 			'order_subtotal'        => [
-				'label'       => __( 'Subtotal', 'amplified-import-export' ),
-				'description' => __( 'Order subtotal before tax and shipping', 'amplified-import-export' ),
+				'label'       => __( 'Subtotal', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Order subtotal before tax and shipping', 'import-export-by-rockstarlab' ),
 			],
 			'order_tax'             => [
-				'label'       => __( 'Tax', 'amplified-import-export' ),
-				'description' => __( 'Total tax amount', 'amplified-import-export' ),
+				'label'       => __( 'Tax', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Total tax amount', 'import-export-by-rockstarlab' ),
 			],
 			'order_shipping'        => [
-				'label'       => __( 'Shipping', 'amplified-import-export' ),
-				'description' => __( 'Shipping cost', 'amplified-import-export' ),
+				'label'       => __( 'Shipping', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Shipping cost', 'import-export-by-rockstarlab' ),
 			],
 			'order_discount'        => [
-				'label'       => __( 'Discount', 'amplified-import-export' ),
-				'description' => __( 'Discount amount', 'amplified-import-export' ),
+				'label'       => __( 'Discount', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Discount amount', 'import-export-by-rockstarlab' ),
 			],
 
 			// Customer Information
 			'customer_id'           => [
-				'label'       => __( 'Customer ID', 'amplified-import-export' ),
-				'description' => __( 'WordPress user ID (0 for guest)', 'amplified-import-export' ),
+				'label'       => __( 'Customer ID', 'import-export-by-rockstarlab' ),
+				'description' => __( 'WordPress user ID (0 for guest)', 'import-export-by-rockstarlab' ),
 			],
 			'billing_email'         => [
-				'label'       => __( 'Billing Email', 'amplified-import-export' ),
-				'description' => __( 'Customer email address', 'amplified-import-export' ),
+				'label'       => __( 'Billing Email', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Customer email address', 'import-export-by-rockstarlab' ),
 			],
 			'customer_note'         => [
-				'label'       => __( 'Customer Note', 'amplified-import-export' ),
-				'description' => __( 'Note from customer', 'amplified-import-export' ),
+				'label'       => __( 'Customer Note', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Note from customer', 'import-export-by-rockstarlab' ),
 			],
 
 			// Billing Address
 			'billing_first_name'    => [
-				'label'       => __( 'Billing First Name', 'amplified-import-export' ),
-				'description' => __( 'First name', 'amplified-import-export' ),
+				'label'       => __( 'Billing First Name', 'import-export-by-rockstarlab' ),
+				'description' => __( 'First name', 'import-export-by-rockstarlab' ),
 			],
 			'billing_last_name'     => [
-				'label'       => __( 'Billing Last Name', 'amplified-import-export' ),
-				'description' => __( 'Last name', 'amplified-import-export' ),
+				'label'       => __( 'Billing Last Name', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Last name', 'import-export-by-rockstarlab' ),
 			],
 			'billing_company'       => [
-				'label'       => __( 'Billing Company', 'amplified-import-export' ),
-				'description' => __( 'Company name', 'amplified-import-export' ),
+				'label'       => __( 'Billing Company', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Company name', 'import-export-by-rockstarlab' ),
 			],
 			'billing_address_1'     => [
-				'label'       => __( 'Billing Address 1', 'amplified-import-export' ),
-				'description' => __( 'Street address', 'amplified-import-export' ),
+				'label'       => __( 'Billing Address 1', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Street address', 'import-export-by-rockstarlab' ),
 			],
 			'billing_address_2'     => [
-				'label'       => __( 'Billing Address 2', 'amplified-import-export' ),
-				'description' => __( 'Apartment, suite, etc.', 'amplified-import-export' ),
+				'label'       => __( 'Billing Address 2', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Apartment, suite, etc.', 'import-export-by-rockstarlab' ),
 			],
 			'billing_city'          => [
-				'label'       => __( 'Billing City', 'amplified-import-export' ),
-				'description' => __( 'City', 'amplified-import-export' ),
+				'label'       => __( 'Billing City', 'import-export-by-rockstarlab' ),
+				'description' => __( 'City', 'import-export-by-rockstarlab' ),
 			],
 			'billing_state'         => [
-				'label'       => __( 'Billing State', 'amplified-import-export' ),
-				'description' => __( 'State or province code', 'amplified-import-export' ),
+				'label'       => __( 'Billing State', 'import-export-by-rockstarlab' ),
+				'description' => __( 'State or province code', 'import-export-by-rockstarlab' ),
 			],
 			'billing_postcode'      => [
-				'label'       => __( 'Billing Postcode', 'amplified-import-export' ),
-				'description' => __( 'Postal code', 'amplified-import-export' ),
+				'label'       => __( 'Billing Postcode', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Postal code', 'import-export-by-rockstarlab' ),
 			],
 			'billing_country'       => [
-				'label'       => __( 'Billing Country', 'amplified-import-export' ),
-				'description' => __( 'Country code (US, GB, etc.)', 'amplified-import-export' ),
+				'label'       => __( 'Billing Country', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Country code (US, GB, etc.)', 'import-export-by-rockstarlab' ),
 			],
 			'billing_phone'         => [
-				'label'       => __( 'Billing Phone', 'amplified-import-export' ),
-				'description' => __( 'Phone number', 'amplified-import-export' ),
+				'label'       => __( 'Billing Phone', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Phone number', 'import-export-by-rockstarlab' ),
 			],
 
 			// Shipping Address
 			'shipping_first_name'   => [
-				'label'       => __( 'Shipping First Name', 'amplified-import-export' ),
-				'description' => __( 'First name', 'amplified-import-export' ),
+				'label'       => __( 'Shipping First Name', 'import-export-by-rockstarlab' ),
+				'description' => __( 'First name', 'import-export-by-rockstarlab' ),
 			],
 			'shipping_last_name'    => [
-				'label'       => __( 'Shipping Last Name', 'amplified-import-export' ),
-				'description' => __( 'Last name', 'amplified-import-export' ),
+				'label'       => __( 'Shipping Last Name', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Last name', 'import-export-by-rockstarlab' ),
 			],
 			'shipping_company'      => [
-				'label'       => __( 'Shipping Company', 'amplified-import-export' ),
-				'description' => __( 'Company name', 'amplified-import-export' ),
+				'label'       => __( 'Shipping Company', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Company name', 'import-export-by-rockstarlab' ),
 			],
 			'shipping_address_1'    => [
-				'label'       => __( 'Shipping Address 1', 'amplified-import-export' ),
-				'description' => __( 'Street address', 'amplified-import-export' ),
+				'label'       => __( 'Shipping Address 1', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Street address', 'import-export-by-rockstarlab' ),
 			],
 			'shipping_address_2'    => [
-				'label'       => __( 'Shipping Address 2', 'amplified-import-export' ),
-				'description' => __( 'Apartment, suite, etc.', 'amplified-import-export' ),
+				'label'       => __( 'Shipping Address 2', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Apartment, suite, etc.', 'import-export-by-rockstarlab' ),
 			],
 			'shipping_city'         => [
-				'label'       => __( 'Shipping City', 'amplified-import-export' ),
-				'description' => __( 'City', 'amplified-import-export' ),
+				'label'       => __( 'Shipping City', 'import-export-by-rockstarlab' ),
+				'description' => __( 'City', 'import-export-by-rockstarlab' ),
 			],
 			'shipping_state'        => [
-				'label'       => __( 'Shipping State', 'amplified-import-export' ),
-				'description' => __( 'State or province code', 'amplified-import-export' ),
+				'label'       => __( 'Shipping State', 'import-export-by-rockstarlab' ),
+				'description' => __( 'State or province code', 'import-export-by-rockstarlab' ),
 			],
 			'shipping_postcode'     => [
-				'label'       => __( 'Shipping Postcode', 'amplified-import-export' ),
-				'description' => __( 'Postal code', 'amplified-import-export' ),
+				'label'       => __( 'Shipping Postcode', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Postal code', 'import-export-by-rockstarlab' ),
 			],
 			'shipping_country'      => [
-				'label'       => __( 'Shipping Country', 'amplified-import-export' ),
-				'description' => __( 'Country code (US, GB, etc.)', 'amplified-import-export' ),
+				'label'       => __( 'Shipping Country', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Country code (US, GB, etc.)', 'import-export-by-rockstarlab' ),
 			],
 
 			// Order Items
 			'order_items'           => [
-				'label'       => __( 'Order Items', 'amplified-import-export' ),
-				'description' => __( 'JSON array of order items with product details', 'amplified-import-export' ),
+				'label'       => __( 'Order Items', 'import-export-by-rockstarlab' ),
+				'description' => __( 'JSON array of order items with product details', 'import-export-by-rockstarlab' ),
 				'required'    => true,
 			],
 			'item_count'            => [
-				'label'       => __( 'Item Count', 'amplified-import-export' ),
-				'description' => __( 'Total number of items', 'amplified-import-export' ),
+				'label'       => __( 'Item Count', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Total number of items', 'import-export-by-rockstarlab' ),
 			],
 
 			// Payment & Shipping
 			'payment_method'        => [
-				'label'       => __( 'Payment Method', 'amplified-import-export' ),
-				'description' => __( 'Payment method ID', 'amplified-import-export' ),
+				'label'       => __( 'Payment Method', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Payment method ID', 'import-export-by-rockstarlab' ),
 			],
 			'payment_method_title'  => [
-				'label'       => __( 'Payment Method Title', 'amplified-import-export' ),
-				'description' => __( 'Payment method display name', 'amplified-import-export' ),
+				'label'       => __( 'Payment Method Title', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Payment method display name', 'import-export-by-rockstarlab' ),
 			],
 			'transaction_id'        => [
-				'label'       => __( 'Transaction ID', 'amplified-import-export' ),
-				'description' => __( 'Payment transaction ID', 'amplified-import-export' ),
+				'label'       => __( 'Transaction ID', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Payment transaction ID', 'import-export-by-rockstarlab' ),
 			],
 			'shipping_method'       => [
-				'label'       => __( 'Shipping Method', 'amplified-import-export' ),
-				'description' => __( 'Shipping method used', 'amplified-import-export' ),
+				'label'       => __( 'Shipping Method', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Shipping method used', 'import-export-by-rockstarlab' ),
 			],
 
 			// Dates
 			'order_date'            => [
-				'label'       => __( 'Order Date', 'amplified-import-export' ),
-				'description' => __( 'Date order was created (YYYY-MM-DD HH:MM:SS)', 'amplified-import-export' ),
+				'label'       => __( 'Order Date', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Date order was created (YYYY-MM-DD HH:MM:SS)', 'import-export-by-rockstarlab' ),
 			],
 			'date_modified'         => [
-				'label'       => __( 'Date Modified', 'amplified-import-export' ),
-				'description' => __( 'Date order was last modified', 'amplified-import-export' ),
+				'label'       => __( 'Date Modified', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Date order was last modified', 'import-export-by-rockstarlab' ),
 			],
 			'completed_date'        => [
-				'label'       => __( 'Completed Date', 'amplified-import-export' ),
-				'description' => __( 'Date order was completed', 'amplified-import-export' ),
+				'label'       => __( 'Completed Date', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Date order was completed', 'import-export-by-rockstarlab' ),
 			],
 			'paid_date'             => [
-				'label'       => __( 'Paid Date', 'amplified-import-export' ),
-				'description' => __( 'Date payment was received', 'amplified-import-export' ),
+				'label'       => __( 'Paid Date', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Date payment was received', 'import-export-by-rockstarlab' ),
 			],
 
 			// Additional Order Data
 			'customer_ip_address'   => [
-				'label'       => __( 'Customer IP Address', 'amplified-import-export' ),
-				'description' => __( 'IP address of customer', 'amplified-import-export' ),
+				'label'       => __( 'Customer IP Address', 'import-export-by-rockstarlab' ),
+				'description' => __( 'IP address of customer', 'import-export-by-rockstarlab' ),
 			],
 			'customer_user_agent'   => [
-				'label'       => __( 'Customer User Agent', 'amplified-import-export' ),
-				'description' => __( 'Browser user agent string', 'amplified-import-export' ),
+				'label'       => __( 'Customer User Agent', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Browser user agent string', 'import-export-by-rockstarlab' ),
 			],
 			'cart_tax'              => [
-				'label'       => __( 'Cart Tax', 'amplified-import-export' ),
-				'description' => __( 'Tax amount for cart items', 'amplified-import-export' ),
+				'label'       => __( 'Cart Tax', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Tax amount for cart items', 'import-export-by-rockstarlab' ),
 			],
 			'shipping_tax'          => [
-				'label'       => __( 'Shipping Tax', 'amplified-import-export' ),
-				'description' => __( 'Tax amount for shipping', 'amplified-import-export' ),
+				'label'       => __( 'Shipping Tax', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Tax amount for shipping', 'import-export-by-rockstarlab' ),
 			],
 			'total_tax'             => [
-				'label'       => __( 'Total Tax', 'amplified-import-export' ),
-				'description' => __( 'Total tax amount', 'amplified-import-export' ),
+				'label'       => __( 'Total Tax', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Total tax amount', 'import-export-by-rockstarlab' ),
 			],
 
 			// Additional Lines
 			'shipping_lines'        => [
-				'label'       => __( 'Shipping Lines', 'amplified-import-export' ),
-				'description' => __( 'JSON array of shipping line items', 'amplified-import-export' ),
+				'label'       => __( 'Shipping Lines', 'import-export-by-rockstarlab' ),
+				'description' => __( 'JSON array of shipping line items', 'import-export-by-rockstarlab' ),
 			],
 			'fee_lines'             => [
-				'label'       => __( 'Fee Lines', 'amplified-import-export' ),
-				'description' => __( 'JSON array of fee line items', 'amplified-import-export' ),
+				'label'       => __( 'Fee Lines', 'import-export-by-rockstarlab' ),
+				'description' => __( 'JSON array of fee line items', 'import-export-by-rockstarlab' ),
 			],
 			'coupon_lines'          => [
-				'label'       => __( 'Coupon Lines', 'amplified-import-export' ),
-				'description' => __( 'JSON array of applied coupons', 'amplified-import-export' ),
+				'label'       => __( 'Coupon Lines', 'import-export-by-rockstarlab' ),
+				'description' => __( 'JSON array of applied coupons', 'import-export-by-rockstarlab' ),
 			],
 
 			// Notes and Meta
 			'order_notes'           => [
-				'label'       => __( 'Order Notes', 'amplified-import-export' ),
-				'description' => __( 'JSON array of order notes', 'amplified-import-export' ),
+				'label'       => __( 'Order Notes', 'import-export-by-rockstarlab' ),
+				'description' => __( 'JSON array of order notes', 'import-export-by-rockstarlab' ),
 			],
 			'order_meta'            => [
-				'label'       => __( 'Order Meta', 'amplified-import-export' ),
-				'description' => __( 'JSON array of custom order metadata', 'amplified-import-export' ),
+				'label'       => __( 'Order Meta', 'import-export-by-rockstarlab' ),
+				'description' => __( 'JSON array of custom order metadata', 'import-export-by-rockstarlab' ),
 			],
 		];
 	}
@@ -438,11 +438,11 @@ class Woo_Order_Importer extends Abstract_Importer {
 	 */
 	public function validate( $data ) {
 		if ( empty( $data ) ) {
-			return new \WP_Error( 'empty_data', __( 'No data provided for import', 'amplified-import-export' ) );
+			return new \WP_Error( 'empty_data', __( 'No data provided for import', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( ! function_exists( 'WC' ) || ! class_exists( 'WooCommerce' ) ) {
-			return new \WP_Error( 'woocommerce_not_active', __( 'WooCommerce is not active', 'amplified-import-export' ) );
+			return new \WP_Error( 'woocommerce_not_active', __( 'WooCommerce is not active', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Validate required fields
@@ -454,7 +454,7 @@ class Woo_Order_Importer extends Abstract_Importer {
 						'missing_required_field',
 						sprintf(
 							/* translators: 1: field name, 2: row number */
-							__( 'Required field "%1$s" is missing in row %2$d', 'amplified-import-export' ),
+							__( 'Required field "%1$s" is missing in row %2$d', 'import-export-by-rockstarlab' ),
 							$field,
 							$index + 1
 						)
@@ -793,7 +793,7 @@ class Woo_Order_Importer extends Abstract_Importer {
 	 */
 	protected function set_order_items( $order, $item, $action ) {
 		if ( empty( $item['order_items'] ) ) {
-			return new \WP_Error( 'no_order_items', __( 'No order items provided', 'amplified-import-export' ) );
+			return new \WP_Error( 'no_order_items', __( 'No order items provided', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Parse order items
@@ -885,7 +885,7 @@ class Woo_Order_Importer extends Abstract_Importer {
 			if ( json_last_error() !== JSON_ERROR_NONE ) {
 				return new \WP_Error( 'invalid_json', sprintf(
 					/* translators: %s: JSON error message */
-					__( 'Invalid JSON in order_items: %s', 'amplified-import-export' ),
+					__( 'Invalid JSON in order_items: %s', 'import-export-by-rockstarlab' ),
 					json_last_error_msg()
 				) );
 			}
@@ -893,7 +893,7 @@ class Woo_Order_Importer extends Abstract_Importer {
 		}
 
 		if ( ! is_array( $order_items ) ) {
-			return new \WP_Error( 'invalid_items', __( 'Order items must be an array', 'amplified-import-export' ) );
+			return new \WP_Error( 'invalid_items', __( 'Order items must be an array', 'import-export-by-rockstarlab' ) );
 		}
 
 		return $order_items;
@@ -950,7 +950,7 @@ class Woo_Order_Importer extends Abstract_Importer {
 		// Add shipping item
 		if ( ! empty( $item['shipping_method'] ) || ! empty( $item['order_shipping'] ) ) {
 			$shipping = new \WC_Order_Item_Shipping();
-			$shipping->set_method_title( $item['shipping_method'] ?? __( 'Shipping', 'amplified-import-export' ) );
+			$shipping->set_method_title( $item['shipping_method'] ?? __( 'Shipping', 'import-export-by-rockstarlab' ) );
 			$shipping->set_total( $item['order_shipping'] ?? 0 );
 			$order->add_item( $shipping );
 		}

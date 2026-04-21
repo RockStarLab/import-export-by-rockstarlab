@@ -4,10 +4,10 @@
  *
  * Validates that a field has a non-empty value
  *
- * @package WP_AIE\Model\Validator
+ * @package RockStarLab\ImportExport\Model\Validator
  */
 
-namespace WP_AIE\Model\Validator;
+namespace RockStarLab\ImportExport\Model\Validator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -28,7 +28,7 @@ class Required_Rule extends Validation_Rule {
 				'required_field',
 				sprintf(
 					/* translators: %s: field name */
-					__( '%s is required', 'amplified-import-export' ),
+					__( '%s is required', 'import-export-by-rockstarlab' ),
 					$field_name
 				),
 				[

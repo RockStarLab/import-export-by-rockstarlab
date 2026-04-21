@@ -4,10 +4,10 @@
  *
  * Handles exporting data from any MySQL table with dynamic field detection
  *
- * @package WP_AIE\Model\Export
+ * @package RockStarLab\ImportExport\Model\Export
  */
 
-namespace WP_AIE\Model\Export;
+namespace RockStarLab\ImportExport\Model\Export;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -49,7 +49,7 @@ class Database_Table_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export data from any MySQL database table', 'amplified-import-export' );
+		return __( 'Export data from any MySQL database table', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -59,9 +59,9 @@ class Database_Table_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'table_name' => __( 'Table name to export', 'amplified-import-export' ),
-			'limit'      => __( 'Number of records to export', 'amplified-import-export' ),
-			'offset'     => __( 'Number of records to skip', 'amplified-import-export' ),
+			'table_name' => __( 'Table name to export', 'import-export-by-rockstarlab' ),
+			'limit'      => __( 'Number of records to export', 'import-export-by-rockstarlab' ),
+			'offset'     => __( 'Number of records to skip', 'import-export-by-rockstarlab' ),
 		];
 	}
 
@@ -301,7 +301,7 @@ class Database_Table_Exporter extends Abstract_Exporter {
 		if ( empty( $options['table_name'] ) ) {
 			return new \WP_Error(
 				'no_table_selected',
-				__( 'No table selected for export', 'amplified-import-export' )
+				__( 'No table selected for export', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -310,7 +310,7 @@ class Database_Table_Exporter extends Abstract_Exporter {
 		if ( '' === $table_name ) {
 			return new \WP_Error(
 				'invalid_table_name',
-				__( 'Invalid table name', 'amplified-import-export' )
+				__( 'Invalid table name', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -328,7 +328,7 @@ class Database_Table_Exporter extends Abstract_Exporter {
 			return new \WP_Error(
 				'table_not_found',
 				// translators: %s is a dynamic value.
-				sprintf( __( 'Table %s not found', 'amplified-import-export' ), $table_name )
+				sprintf( __( 'Table %s not found', 'import-export-by-rockstarlab' ), $table_name )
 			);
 		}
 
@@ -535,7 +535,7 @@ class Database_Table_Exporter extends Abstract_Exporter {
 		if ( empty( $options['table_name'] ) ) {
 			return new \WP_Error(
 				'missing_table_name',
-				__( 'Table name is required', 'amplified-import-export' )
+				__( 'Table name is required', 'import-export-by-rockstarlab' )
 			);
 		}
 

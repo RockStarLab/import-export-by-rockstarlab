@@ -4,12 +4,12 @@
  *
  * Handles importing media files (images, documents, etc.)
  *
- * @package WP_AIE\Model\Import
+ * @package RockStarLab\ImportExport\Model\Import
  */
 
-namespace WP_AIE\Model\Import;
+namespace RockStarLab\ImportExport\Model\Import;
 
-use WP_AIE\Helper\FS;
+use RockStarLab\ImportExport\Helper\FS;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -30,7 +30,7 @@ class Media_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Import media files (images, documents, videos)', 'amplified-import-export' );
+		return __( 'Import media files (images, documents, videos)', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -171,7 +171,7 @@ class Media_Importer extends Abstract_Importer {
 		$file_source = $item['file'] ?? $item['file_url'] ?? $item['file_path'] ?? $item['url'] ?? $item['path'] ?? '';
 		
 		if ( empty( $file_source ) ) {
-			return new \WP_Error( 'missing_file', __( 'File source is required', 'amplified-import-export' ) );
+			return new \WP_Error( 'missing_file', __( 'File source is required', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if file is URL or local path
@@ -280,7 +280,7 @@ class Media_Importer extends Abstract_Importer {
 	private function import_from_path( $file_path, $item ) {
 		if ( ! file_exists( $file_path ) ) {
 			// translators: %s is a dynamic value.
-			return new \WP_Error( 'file_not_found', sprintf( __( 'File not found: %s', 'amplified-import-export' ), $file_path ) );
+			return new \WP_Error( 'file_not_found', sprintf( __( 'File not found: %s', 'import-export-by-rockstarlab' ), $file_path ) );
 		}
 
 		$filename      = $item['filename'] ?? basename( $file_path );
@@ -328,7 +328,7 @@ class Media_Importer extends Abstract_Importer {
 				'download_failed',
 				sprintf(
 					/* translators: %s: HTTP status code */
-					__( 'Failed to download file. HTTP status: %s', 'amplified-import-export' ),
+					__( 'Failed to download file. HTTP status: %s', 'import-export-by-rockstarlab' ),
 					wp_remote_retrieve_response_code( $response )
 				)
 			);

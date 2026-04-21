@@ -7,6 +7,8 @@ import ContentUpdaterModule from './modules/content-updater';
 import ContentSyncModule from './modules/content-sync';
 import PostSyncModule from './modules/post-sync';
 import AIURLImporter from './modules/ai-url-importer';
+import PluginOptionsModule from './modules/plugin-options';
+import WelcomeModule from './modules/welcome';
 
 // Initialize modules when DOM is ready
 jQuery( document ).ready( function ( $ ) {
@@ -41,4 +43,10 @@ jQuery( document ).ready( function ( $ ) {
 
 	// Initialize AI URL Importer module
 	AIURLImporter.init();
+
+	// Initialize plugin options module
+	PluginOptionsModule.init();
+
+	// Initialize welcome module
+	WelcomeModule.init();
 } );

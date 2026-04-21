@@ -2,7 +2,7 @@
 /**
  * Content Updater Step 4: Start Update
  *
- * @package WP_AIE\View
+ * @package RockStarLab\ImportExport\View
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -11,8 +11,8 @@ defined( 'ABSPATH' ) || exit;
 <!-- Step 5: Start Update -->
 <div class="aie-step aie-updater-step-5" data-step="5">
 	<div class="aie-step-header">
-		<h2><?php esc_html_e( 'Step 5: Start Update', 'amplified-import-export' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Review settings and start the update process', 'amplified-import-export' ); ?></p>
+		<h2><?php esc_html_e( 'Step 5: Start Update', 'import-export-by-rockstarlab' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Review settings and start the update process', 'import-export-by-rockstarlab' ); ?></p>
 	</div>
 
 	<div class="aie-step-content">
@@ -23,26 +23,26 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-summary-header">
 					<h3>
 						<span class="dashicons dashicons-info"></span>
-						<?php esc_html_e( 'Update Summary', 'amplified-import-export' ); ?>
+						<?php esc_html_e( 'Update Summary', 'import-export-by-rockstarlab' ); ?>
 					</h3>
 				</div>
 				<div class="aie-summary-body">
 					<div class="aie-summary-row">
-						<span class="aie-summary-label"><?php esc_html_e( 'Content Type:', 'amplified-import-export' ); ?></span>
+						<span class="aie-summary-label"><?php esc_html_e( 'Content Type:', 'import-export-by-rockstarlab' ); ?></span>
 						<span class="aie-summary-value aie-content-type-summary">-</span>
 					</div>
 					<div class="aie-summary-row">
-						<span class="aie-summary-label"><?php esc_html_e( 'Total Items:', 'amplified-import-export' ); ?></span>
+						<span class="aie-summary-label"><?php esc_html_e( 'Total Items:', 'import-export-by-rockstarlab' ); ?></span>
 						<span class="aie-summary-value aie-total-items-summary">
 							<span class="spinner" style="float:none;margin:0;"></span>
 						</span>
 					</div>
 					<div class="aie-summary-row">
-						<span class="aie-summary-label"><?php esc_html_e( 'Fields to Update:', 'amplified-import-export' ); ?></span>
+						<span class="aie-summary-label"><?php esc_html_e( 'Fields to Update:', 'import-export-by-rockstarlab' ); ?></span>
 						<span class="aie-summary-value aie-fields-summary">-</span>
 					</div>
 					<div class="aie-summary-row">
-						<span class="aie-summary-label"><?php esc_html_e( 'Functions Applied:', 'amplified-import-export' ); ?></span>
+						<span class="aie-summary-label"><?php esc_html_e( 'Functions Applied:', 'import-export-by-rockstarlab' ); ?></span>
 						<span class="aie-summary-value aie-functions-summary">-</span>
 					</div>
 				</div>
@@ -53,14 +53,14 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-settings-header">
 					<h3>
 						<span class="dashicons dashicons-admin-settings"></span>
-						<?php esc_html_e( 'Update Settings', 'amplified-import-export' ); ?>
+						<?php esc_html_e( 'Update Settings', 'import-export-by-rockstarlab' ); ?>
 					</h3>
 				</div>
 				<div class="aie-settings-body">
 					<div class="aie-setting-row">
 						<label for="aie-updater-items-per-iteration">
-							<?php esc_html_e( 'Items per Iteration:', 'amplified-import-export' ); ?>
-							<span class="aie-tooltip" title="<?php esc_attr_e( 'Number of items to process in each batch. Lower values are safer for large datasets.', 'amplified-import-export' ); ?>">
+							<?php esc_html_e( 'Items per Iteration:', 'import-export-by-rockstarlab' ); ?>
+							<span class="aie-tooltip" title="<?php esc_attr_e( 'Number of items to process in each batch. Lower values are safer for large datasets.', 'import-export-by-rockstarlab' ); ?>">
 								<span class="dashicons dashicons-editor-help"></span>
 							</span>
 						</label>
@@ -73,7 +73,7 @@ defined( 'ABSPATH' ) || exit;
 							max="100" 
 							class="small-text"
 						>
-						<p class="description"><?php esc_html_e( 'Recommended: 10-50 items', 'amplified-import-export' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Recommended: 10-50 items', 'import-export-by-rockstarlab' ); ?></p>
 					</div>
 
 				</div>
@@ -83,7 +83,7 @@ defined( 'ABSPATH' ) || exit;
 			<div class="aie-updater-start-actions">
 				<button type="button" class="button button-primary button-large button-hero aie-start-update-btn">
 					<span class="dashicons dashicons-update"></span>
-					<?php esc_html_e( 'Start Update', 'amplified-import-export' ); ?>
+					<?php esc_html_e( 'Start Update', 'import-export-by-rockstarlab' ); ?>
 				</button>
 			</div>
 		</div>
@@ -93,9 +93,9 @@ defined( 'ABSPATH' ) || exit;
 			<div class="aie-progress-header">
 				<h3>
 					<span class="dashicons dashicons-update aie-spin"></span>
-					<?php esc_html_e( 'Updating Content...', 'amplified-import-export' ); ?>
+					<?php esc_html_e( 'Updating Content...', 'import-export-by-rockstarlab' ); ?>
 				</h3>
-				<p class="description"><?php esc_html_e( 'Please wait while your content is being updated', 'amplified-import-export' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Please wait while your content is being updated', 'import-export-by-rockstarlab' ); ?></p>
 			</div>
 
 			<!-- Progress Bar -->
@@ -112,7 +112,7 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-stat-card">
 					<span class="aie-stat-icon dashicons dashicons-database"></span>
 					<div class="aie-stat-content">
-						<span class="aie-stat-label"><?php esc_html_e( 'Processed', 'amplified-import-export' ); ?></span>
+						<span class="aie-stat-label"><?php esc_html_e( 'Processed', 'import-export-by-rockstarlab' ); ?></span>
 						<span class="aie-stat-value">
 							<span class="aie-processed-count">0</span> / <span class="aie-total-count">0</span>
 						</span>
@@ -121,21 +121,21 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-stat-card">
 					<span class="aie-stat-icon dashicons dashicons-yes-alt"></span>
 					<div class="aie-stat-content">
-						<span class="aie-stat-label"><?php esc_html_e( 'Updated', 'amplified-import-export' ); ?></span>
+						<span class="aie-stat-label"><?php esc_html_e( 'Updated', 'import-export-by-rockstarlab' ); ?></span>
 						<span class="aie-stat-value aie-updated-count">0</span>
 					</div>
 				</div>
 				<div class="aie-stat-card">
 					<span class="aie-stat-icon dashicons dashicons-dismiss"></span>
 					<div class="aie-stat-content">
-						<span class="aie-stat-label"><?php esc_html_e( 'Skipped', 'amplified-import-export' ); ?></span>
+						<span class="aie-stat-label"><?php esc_html_e( 'Skipped', 'import-export-by-rockstarlab' ); ?></span>
 						<span class="aie-stat-value aie-skipped-count">0</span>
 					</div>
 				</div>
 				<div class="aie-stat-card">
 					<span class="aie-stat-icon dashicons dashicons-warning"></span>
 					<div class="aie-stat-content">
-						<span class="aie-stat-label"><?php esc_html_e( 'Errors', 'amplified-import-export' ); ?></span>
+						<span class="aie-stat-label"><?php esc_html_e( 'Errors', 'import-export-by-rockstarlab' ); ?></span>
 						<span class="aie-stat-value aie-errors-count">0</span>
 					</div>
 				</div>
@@ -145,7 +145,7 @@ defined( 'ABSPATH' ) || exit;
 			<div class="aie-progress-status">
 				<p class="aie-status-message">
 					<span class="dashicons dashicons-update aie-spin"></span>
-					<span class="aie-status-text"><?php esc_html_e( 'Initializing...', 'amplified-import-export' ); ?></span>
+					<span class="aie-status-text"><?php esc_html_e( 'Initializing...', 'import-export-by-rockstarlab' ); ?></span>
 				</p>
 			</div>
 
@@ -153,7 +153,7 @@ defined( 'ABSPATH' ) || exit;
 			<div class="aie-progress-actions">
 				<button type="button" class="button button-secondary aie-cancel-update-btn">
 					<span class="dashicons dashicons-no"></span>
-					<?php esc_html_e( 'Cancel Update', 'amplified-import-export' ); ?>
+					<?php esc_html_e( 'Cancel Update', 'import-export-by-rockstarlab' ); ?>
 				</button>
 			</div>
 		</div>
@@ -163,7 +163,7 @@ defined( 'ABSPATH' ) || exit;
 			<div class="aie-results-header">
 				<h3>
 					<span class="dashicons dashicons-yes-alt aie-success-icon"></span>
-					<?php esc_html_e( 'Update Complete!', 'amplified-import-export' ); ?>
+					<?php esc_html_e( 'Update Complete!', 'import-export-by-rockstarlab' ); ?>
 				</h3>
 			</div>
 
@@ -172,28 +172,28 @@ defined( 'ABSPATH' ) || exit;
 				<div class="aie-result-card">
 					<span class="aie-result-icon dashicons dashicons-database"></span>
 					<div class="aie-result-content">
-						<span class="aie-result-label"><?php esc_html_e( 'Total Processed', 'amplified-import-export' ); ?></span>
+						<span class="aie-result-label"><?php esc_html_e( 'Total Processed', 'import-export-by-rockstarlab' ); ?></span>
 						<span class="aie-result-value aie-final-processed">0</span>
 					</div>
 				</div>
 				<div class="aie-result-card aie-success">
 					<span class="aie-result-icon dashicons dashicons-yes-alt"></span>
 					<div class="aie-result-content">
-						<span class="aie-result-label"><?php esc_html_e( 'Successfully Updated', 'amplified-import-export' ); ?></span>
+						<span class="aie-result-label"><?php esc_html_e( 'Successfully Updated', 'import-export-by-rockstarlab' ); ?></span>
 						<span class="aie-result-value aie-final-updated">0</span>
 					</div>
 				</div>
 				<div class="aie-result-card aie-warning">
 					<span class="aie-result-icon dashicons dashicons-dismiss"></span>
 					<div class="aie-result-content">
-						<span class="aie-result-label"><?php esc_html_e( 'Skipped', 'amplified-import-export' ); ?></span>
+						<span class="aie-result-label"><?php esc_html_e( 'Skipped', 'import-export-by-rockstarlab' ); ?></span>
 						<span class="aie-result-value aie-final-skipped">0</span>
 					</div>
 				</div>
 				<div class="aie-result-card aie-error">
 					<span class="aie-result-icon dashicons dashicons-warning"></span>
 					<div class="aie-result-content">
-						<span class="aie-result-label"><?php esc_html_e( 'Errors', 'amplified-import-export' ); ?></span>
+						<span class="aie-result-label"><?php esc_html_e( 'Errors', 'import-export-by-rockstarlab' ); ?></span>
 						<span class="aie-result-value aie-final-errors">0</span>
 					</div>
 				</div>
@@ -203,11 +203,11 @@ defined( 'ABSPATH' ) || exit;
 			<div class="aie-results-actions">
 				<button type="button" class="button button-primary aie-start-new-update">
 					<span class="dashicons dashicons-update"></span>
-					<?php esc_html_e( 'Start New Update', 'amplified-import-export' ); ?>
+					<?php esc_html_e( 'Start New Update', 'import-export-by-rockstarlab' ); ?>
 				</button>
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=wp-aie-jobs-log' ) ); ?>" class="button button-secondary">
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-jobs-log' ) ); ?>" class="button button-secondary">
 					<span class="dashicons dashicons-list-view"></span>
-					<?php esc_html_e( 'View Job Log', 'amplified-import-export' ); ?>
+					<?php esc_html_e( 'View Job Log', 'import-export-by-rockstarlab' ); ?>
 				</a>
 			</div>
 		</div>
@@ -215,7 +215,7 @@ defined( 'ABSPATH' ) || exit;
 		<div class="aie-step-actions">
 			<button type="button" class="button button-secondary aie-updater-prev-step" id="aie-updater-prev-from-step-4">
 				<span class="dashicons dashicons-arrow-left-alt2"></span>
-				<?php esc_html_e( 'Previous', 'amplified-import-export' ); ?>
+				<?php esc_html_e( 'Previous', 'import-export-by-rockstarlab' ); ?>
 			</button>
 		</div>
 	</div>

@@ -4,10 +4,10 @@
  *
  * Factory class for creating exporter instances
  *
- * @package WP_AIE\Model\Export
+ * @package RockStarLab\ImportExport\Model\Export
  */
 
-namespace WP_AIE\Model\Export;
+namespace RockStarLab\ImportExport\Model\Export;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -30,7 +30,7 @@ class Exporter_Factory {
 				'unknown_exporter',
 				sprintf(
 					/* translators: %s: exporter type */
-					__( 'Unknown exporter type: %s', 'amplified-import-export' ),
+					__( 'Unknown exporter type: %s', 'import-export-by-rockstarlab' ),
 					$type
 				)
 			);
@@ -74,7 +74,7 @@ class Exporter_Factory {
 		 *
 		 * @param array $exporters Map of type => class
 		 */
-		return apply_filters( 'aie_exporter_map', $default_map );
+		return apply_filters( 'rsl_ie_exporter_map', $default_map );
 	}
 
 	/**

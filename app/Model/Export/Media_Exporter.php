@@ -4,10 +4,10 @@
  *
  * Handles exporting WordPress media attachments
  *
- * @package WP_AIE\Model\Export
+ * @package RockStarLab\ImportExport\Model\Export
  */
 
-namespace WP_AIE\Model\Export;
+namespace RockStarLab\ImportExport\Model\Export;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -28,7 +28,7 @@ class Media_Exporter extends Abstract_Exporter {
 	 * @return string
 	 */
 	public function get_description() {
-		return __( 'Export WordPress media attachments', 'amplified-import-export' );
+		return __( 'Export WordPress media attachments', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -38,15 +38,15 @@ class Media_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'mime_type'     => __( 'MIME type (image/jpeg, image/png, etc.) or type group (image, video, audio, document)', 'amplified-import-export' ),
-			'post_parent'   => __( 'Parent post ID (0 for unattached)', 'amplified-import-export' ),
-			'date_query'    => __( 'Date query parameters', 'amplified-import-export' ),
-			'author'        => __( 'Author ID or array of IDs', 'amplified-import-export' ),
-			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'amplified-import-export' ),
-			's'             => __( 'Search query', 'amplified-import-export' ),
-			'orderby'       => __( 'Order by field', 'amplified-import-export' ),
-			'order'         => __( 'Order direction (ASC or DESC)', 'amplified-import-export' ),
-			'include_file'  => __( 'Include file content (base64 encoded)', 'amplified-import-export' ),
+			'mime_type'     => __( 'MIME type (image/jpeg, image/png, etc.) or type group (image, video, audio, document)', 'import-export-by-rockstarlab' ),
+			'post_parent'   => __( 'Parent post ID (0 for unattached)', 'import-export-by-rockstarlab' ),
+			'date_query'    => __( 'Date query parameters', 'import-export-by-rockstarlab' ),
+			'author'        => __( 'Author ID or array of IDs', 'import-export-by-rockstarlab' ),
+			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'import-export-by-rockstarlab' ),
+			's'             => __( 'Search query', 'import-export-by-rockstarlab' ),
+			'orderby'       => __( 'Order by field', 'import-export-by-rockstarlab' ),
+			'order'         => __( 'Order direction (ASC or DESC)', 'import-export-by-rockstarlab' ),
+			'include_file'  => __( 'Include file content (base64 encoded)', 'import-export-by-rockstarlab' ),
 		];
 	}
 

@@ -4,15 +4,15 @@
  *
  * Processes export jobs in batches
  *
- * @package WP_AIE\Model\Queue
+ * @package RockStarLab\ImportExport\Model\Queue
  */
 
-namespace WP_AIE\Model\Queue;
+namespace RockStarLab\ImportExport\Model\Queue;
 
-use WP_AIE\Model\Job;
-use WP_AIE\Model\Export\Exporter_Factory;
-use WP_AIE\Model\Format\Format_Factory;
-use WP_AIE\Helper\Fs;
+use RockStarLab\ImportExport\Model\Job;
+use RockStarLab\ImportExport\Model\Export\Exporter_Factory;
+use RockStarLab\ImportExport\Model\Format\Format_Factory;
+use RockStarLab\ImportExport\Helper\Fs;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -29,7 +29,7 @@ class Export_Processor {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->job_model = WP_AIE()->Model->job;
+		$this->job_model = rsl_ie()->Model->job;
 	}
 
 	/**
@@ -307,7 +307,7 @@ class Export_Processor {
 	 */
 	private function get_temp_file_path( $job_id ) {
 		$upload_dir = wp_upload_dir();
-		$temp_dir   = $upload_dir['basedir'] . '/wp-aie/temp';
+		$temp_dir   = $upload_dir['basedir'] . '/rsl-ie/temp';
 		return $temp_dir . '/export-' . $job_id . '.jsonl';
 	}
 

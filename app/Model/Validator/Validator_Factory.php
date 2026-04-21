@@ -4,10 +4,10 @@
  *
  * Factory class for creating and chaining validation rules
  *
- * @package WP_AIE\Model\Validator
+ * @package RockStarLab\ImportExport\Model\Validator
  */
 
-namespace WP_AIE\Model\Validator;
+namespace RockStarLab\ImportExport\Model\Validator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -36,7 +36,7 @@ class Validator_Factory {
 				'unknown_rule',
 				sprintf(
 					/* translators: %s: rule name */
-					__( 'Unknown validation rule: %s', 'amplified-import-export' ),
+					__( 'Unknown validation rule: %s', 'import-export-by-rockstarlab' ),
 					$rule_name
 				)
 			);
@@ -55,7 +55,7 @@ class Validator_Factory {
 	 */
 	public static function create_chain( $rules ) {
 		if ( empty( $rules ) ) {
-			return new \WP_Error( 'empty_rules', __( 'No validation rules provided', 'amplified-import-export' ) );
+			return new \WP_Error( 'empty_rules', __( 'No validation rules provided', 'import-export-by-rockstarlab' ) );
 		}
 
 		$first_rule    = null;

@@ -4,10 +4,10 @@
  *
  * Handles parsing and generation of JSON files
  *
- * @package WP_AIE\Model\Format
+ * @package RockStarLab\ImportExport\Model\Format
  */
 
-namespace WP_AIE\Model\Format;
+namespace RockStarLab\ImportExport\Model\Format;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -22,12 +22,12 @@ class JSON_Format implements File_Format_Interface {
 	 */
 	public function parse( $file_path, $options = [] ) {
 		if ( ! file_exists( $file_path ) ) {
-			return new \WP_Error( 'file_not_found', __( 'JSON file not found', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_not_found', __( 'JSON file not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		$content = file_get_contents( $file_path );
 		if ( false === $content ) {
-			return new \WP_Error( 'file_read_error', __( 'Cannot read JSON file', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_read_error', __( 'Cannot read JSON file', 'import-export-by-rockstarlab' ) );
 		}
 
 		$depth = $options['depth'] ?? 512;
@@ -40,7 +40,7 @@ class JSON_Format implements File_Format_Interface {
 				'json_parse_error',
 				sprintf(
 					/* translators: %s: JSON error message */
-					__( 'JSON parse error: %s', 'amplified-import-export' ),
+					__( 'JSON parse error: %s', 'import-export-by-rockstarlab' ),
 					json_last_error_msg()
 				)
 			);
@@ -48,7 +48,7 @@ class JSON_Format implements File_Format_Interface {
 
 		// Ensure data is array of items
 		if ( ! is_array( $data ) ) {
-			return new \WP_Error( 'invalid_format', __( 'JSON file must contain an array', 'amplified-import-export' ) );
+			return new \WP_Error( 'invalid_format', __( 'JSON file must contain an array', 'import-export-by-rockstarlab' ) );
 		}
 
 		return $data;
@@ -87,7 +87,7 @@ class JSON_Format implements File_Format_Interface {
 		if ( empty( $data ) ) {
 			$result = file_put_contents( $file_path, '[]' );
 			if ( false === $result ) {
-				return new \WP_Error( 'file_write_error', __( 'Cannot write JSON file', 'amplified-import-export' ) );
+				return new \WP_Error( 'file_write_error', __( 'Cannot write JSON file', 'import-export-by-rockstarlab' ) );
 			}
 			return true;
 		}
@@ -109,7 +109,7 @@ class JSON_Format implements File_Format_Interface {
 				'json_encode_error',
 				sprintf(
 					/* translators: %s: JSON error message */
-					__( 'JSON encode error: %s', 'amplified-import-export' ),
+					__( 'JSON encode error: %s', 'import-export-by-rockstarlab' ),
 					json_last_error_msg()
 				)
 			);
@@ -118,7 +118,7 @@ class JSON_Format implements File_Format_Interface {
 		$result = file_put_contents( $file_path, $json );
 
 		if ( false === $result ) {
-			return new \WP_Error( 'file_write_error', __( 'Cannot write JSON file', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_write_error', __( 'Cannot write JSON file', 'import-export-by-rockstarlab' ) );
 		}
 
 		return true;
@@ -132,27 +132,27 @@ class JSON_Format implements File_Format_Interface {
 	 */
 	public function validate( $file_path ) {
 		if ( ! file_exists( $file_path ) ) {
-			return new \WP_Error( 'file_not_found', __( 'JSON file not found', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_not_found', __( 'JSON file not found', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( ! is_readable( $file_path ) ) {
-			return new \WP_Error( 'file_not_readable', __( 'JSON file is not readable', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_not_readable', __( 'JSON file is not readable', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check file extension
 		$extension = strtolower( pathinfo( $file_path, PATHINFO_EXTENSION ) );
 		if ( ! in_array( $extension, $this->get_extensions(), true ) ) {
-			return new \WP_Error( 'invalid_extension', __( 'Invalid JSON file extension', 'amplified-import-export' ) );
+			return new \WP_Error( 'invalid_extension', __( 'Invalid JSON file extension', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Try to parse
 		$content = file_get_contents( $file_path );
 		if ( false === $content ) {
-			return new \WP_Error( 'file_read_error', __( 'Cannot read JSON file', 'amplified-import-export' ) );
+			return new \WP_Error( 'file_read_error', __( 'Cannot read JSON file', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( empty( trim( $content ) ) ) {
-			return new \WP_Error( 'empty_file', __( 'JSON file is empty', 'amplified-import-export' ) );
+			return new \WP_Error( 'empty_file', __( 'JSON file is empty', 'import-export-by-rockstarlab' ) );
 		}
 
 		json_decode( $content );
@@ -162,7 +162,7 @@ class JSON_Format implements File_Format_Interface {
 				'json_invalid',
 				sprintf(
 					/* translators: %s: JSON error message */
-					__( 'Invalid JSON: %s', 'amplified-import-export' ),
+					__( 'Invalid JSON: %s', 'import-export-by-rockstarlab' ),
 					json_last_error_msg()
 				)
 			);
@@ -192,7 +192,7 @@ class JSON_Format implements File_Format_Interface {
 		$first_item = $data[0];
 
 		if ( ! is_array( $first_item ) ) {
-			return new \WP_Error( 'invalid_structure', __( 'JSON items must be objects/arrays', 'amplified-import-export' ) );
+			return new \WP_Error( 'invalid_structure', __( 'JSON items must be objects/arrays', 'import-export-by-rockstarlab' ) );
 		}
 
 		return array_keys( $first_item );

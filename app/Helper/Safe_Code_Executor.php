@@ -7,10 +7,10 @@
  * 2. AST validation mode (balanced)
  * 3. Sandboxed execution (most flexible)
  *
- * @package WP_AIE\Helper
+ * @package RockStarLab\ImportExport\Helper
  */
 
-namespace WP_AIE\Helper;
+namespace RockStarLab\ImportExport\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -155,7 +155,7 @@ class Safe_Code_Executor {
 	 */
 	public static function execute( $code, $value ) {
 		// Allow filtering execution mode
-		$mode = apply_filters( 'aie_code_execution_mode', self::$execution_mode );
+		$mode = apply_filters( 'rsl_ie_code_execution_mode', self::$execution_mode );
 
 		// Validate mode
 		if ( ! in_array( $mode, [ 'whitelist', 'ast', 'sandbox' ], true ) ) {
@@ -201,7 +201,7 @@ class Safe_Code_Executor {
 		$used_functions = self::extract_function_calls( $code );
 
 		// Step 3: Validate all functions are in whitelist
-		$allowed = apply_filters( 'aie_allowed_functions', self::$allowed_functions );
+		$allowed = apply_filters( 'rsl_ie_allowed_functions', self::$allowed_functions );
 
 		foreach ( $used_functions as $func ) {
 			if ( ! in_array( $func, $allowed, true ) && ! in_array( $func, [ 'return', 'if', 'else', 'elseif', 'empty', 'isset' ], true ) ) {
@@ -210,7 +210,7 @@ class Safe_Code_Executor {
 					'error'  => true,
 					'message' => sprintf(
 						/* translators: %s: function name */
-						__( 'Function "%s" is not allowed. Only whitelisted functions are permitted.', 'amplified-import-export' ),
+						__( 'Function "%s" is not allowed. Only whitelisted functions are permitted.', 'import-export-by-rockstarlab' ),
 						$func
 					),
 				];
@@ -262,7 +262,7 @@ class Safe_Code_Executor {
 				'error'  => true,
 				'message' => sprintf(
 					/* translators: %s: parse error message */
-					__( 'PHP Syntax Error: %s', 'amplified-import-export' ),
+					__( 'PHP Syntax Error: %s', 'import-export-by-rockstarlab' ),
 					$e->getMessage()
 				),
 			];
@@ -317,7 +317,7 @@ class Safe_Code_Executor {
 			return [
 				'output' => '',
 				'error'  => true,
-				'message' => __( 'Function code is empty after processing', 'amplified-import-export' ),
+				'message' => __( 'Function code is empty after processing', 'import-export-by-rockstarlab' ),
 			];
 		}
 
@@ -431,7 +431,7 @@ class Safe_Code_Executor {
 	 * @return true|\WP_Error
 	 */
 	private static function check_dangerous_functions( $code ) {
-		$dangerous = apply_filters( 'aie_dangerous_functions', self::$dangerous_functions );
+		$dangerous = apply_filters( 'rsl_ie_dangerous_functions', self::$dangerous_functions );
 
 		foreach ( $dangerous as $func ) {
 			// Check for function call
@@ -440,7 +440,7 @@ class Safe_Code_Executor {
 					'dangerous_function',
 					sprintf(
 						/* translators: %s: function name */
-						__( 'Dangerous function "%s" is not allowed for security reasons.', 'amplified-import-export' ),
+						__( 'Dangerous function "%s" is not allowed for security reasons.', 'import-export-by-rockstarlab' ),
 						$func
 					)
 				);
@@ -451,7 +451,7 @@ class Safe_Code_Executor {
 		if ( strpos( $code, '`' ) !== false ) {
 			return new \WP_Error(
 				'dangerous_syntax',
-				__( 'Shell execution syntax (backticks) is not allowed.', 'amplified-import-export' )
+				__( 'Shell execution syntax (backticks) is not allowed.', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -459,7 +459,7 @@ class Safe_Code_Executor {
 		if ( preg_match( '/\$\$/', $code ) ) {
 			return new \WP_Error(
 				'dangerous_syntax',
-				__( 'Variable variables ($$var) are not allowed.', 'amplified-import-export' )
+				__( 'Variable variables ($$var) are not allowed.', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -491,7 +491,7 @@ class Safe_Code_Executor {
 	 * @return string
 	 */
 	public static function get_mode() {
-		return apply_filters( 'aie_code_execution_mode', self::$execution_mode );
+		return apply_filters( 'rsl_ie_code_execution_mode', self::$execution_mode );
 	}
 
 	/**
@@ -500,7 +500,7 @@ class Safe_Code_Executor {
 	 * @return array
 	 */
 	public static function get_allowed_functions() {
-		return apply_filters( 'aie_allowed_functions', self::$allowed_functions );
+		return apply_filters( 'rsl_ie_allowed_functions', self::$allowed_functions );
 	}
 
 	/**

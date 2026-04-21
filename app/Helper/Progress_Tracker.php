@@ -5,10 +5,10 @@
  * Facade for job progress tracking operations.
  * Provides convenient static methods for updating job progress and status.
  *
- * @package WP_AIE\Helper
+ * @package RockStarLab\ImportExport\Helper
  */
 
-namespace WP_AIE\Helper;
+namespace RockStarLab\ImportExport\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -25,7 +25,7 @@ class Progress_Tracker {
 	 * @return int|WP_Error Number of rows affected or WP_Error
 	 */
 	public static function update_progress( $job_id, $total, $processed, $success, $failed ) {
-		return WP_AIE()->Model->Job->update_progress( $job_id, $total, $processed, $success, $failed );
+		return rsl_ie()->Model->Job->update_progress( $job_id, $total, $processed, $success, $failed );
 	}
 
 	/**
@@ -44,7 +44,7 @@ class Progress_Tracker {
 		$percentage = min( 100, round( ( $processed / $total ) * 100 ) );
 
 		global $wpdb;
-		$table = $wpdb->prefix . 'aie_jobs';
+		$table = $wpdb->prefix . 'rsl_ie_jobs';
 
 		$result = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$table,
@@ -183,7 +183,7 @@ class Progress_Tracker {
 	 * @return int|WP_Error|false Number of rows affected or false
 	 */
 	public static function increment( $job_id, $success = true ) {
-		return WP_AIE()->Model->Job->increment( $job_id, $success );
+		return rsl_ie()->Model->Job->increment( $job_id, $success );
 	}
 
 	/**
@@ -193,7 +193,7 @@ class Progress_Tracker {
 	 * @return array|null Progress information array or null
 	 */
 	public static function get_progress( $job_id ) {
-		return WP_AIE()->Model->Job->get_progress( $job_id );
+		return rsl_ie()->Model->Job->get_progress( $job_id );
 	}
 
 	/**
@@ -205,8 +205,8 @@ class Progress_Tracker {
 	 */
 	public static function mark_complete( $job_id, $success = true ) {
 		return $success
-			? WP_AIE()->Model->Job->mark_completed( $job_id )
-			: WP_AIE()->Model->Job->mark_failed( $job_id );
+			? rsl_ie()->Model->Job->mark_completed( $job_id )
+			: rsl_ie()->Model->Job->mark_failed( $job_id );
 	}
 
 	/**
@@ -216,7 +216,7 @@ class Progress_Tracker {
 	 * @return int|WP_Error Number of rows affected or WP_Error
 	 */
 	public static function mark_running( $job_id ) {
-		return WP_AIE()->Model->Job->mark_running( $job_id );
+		return rsl_ie()->Model->Job->mark_running( $job_id );
 	}
 
 	/**
@@ -227,6 +227,6 @@ class Progress_Tracker {
 	 * @return int|WP_Error Number of rows affected or WP_Error
 	 */
 	public static function mark_failed( $job_id, $error_message = '' ) {
-		return WP_AIE()->Model->Job->mark_failed( $job_id );
+		return rsl_ie()->Model->Job->mark_failed( $job_id );
 	}
 }

@@ -2,7 +2,7 @@
 /**
  * Snippet Preview Modal
  *
- * @package WP_AIE\View
+ * @package RockStarLab\ImportExport\View
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -24,28 +24,28 @@ defined( 'ABSPATH' ) || exit;
 
 			<div class="aie-snippet-details">
 				<div class="aie-snippet-detail">
-					<strong><?php esc_html_e( 'Category:', 'amplified-import-export' ); ?></strong>
+					<strong><?php esc_html_e( 'Category:', 'import-export-by-rockstarlab' ); ?></strong>
 					<span class="aie-snippet-category"></span>
 				</div>
 				<div class="aie-snippet-detail">
-					<strong><?php esc_html_e( 'Tags:', 'amplified-import-export' ); ?></strong>
+					<strong><?php esc_html_e( 'Tags:', 'import-export-by-rockstarlab' ); ?></strong>
 					<span class="aie-snippet-tags"></span>
 				</div>
 			</div>
 
-			<h3><?php esc_html_e( 'Code:', 'amplified-import-export' ); ?></h3>
+			<h3><?php esc_html_e( 'Code:', 'import-export-by-rockstarlab' ); ?></h3>
 			<pre><code class="aie-snippet-code"></code></pre>
 
 			<div class="aie-snippet-example">
-				<h3><?php esc_html_e( 'Example:', 'amplified-import-export' ); ?></h3>
+				<h3><?php esc_html_e( 'Example:', 'import-export-by-rockstarlab' ); ?></h3>
 				<div class="aie-example-io">
 					<div class="aie-example-input">
-						<strong><?php esc_html_e( 'Input:', 'amplified-import-export' ); ?></strong>
+						<strong><?php esc_html_e( 'Input:', 'import-export-by-rockstarlab' ); ?></strong>
 						<code class="aie-example-input-value"></code>
 					</div>
 					<span class="dashicons dashicons-arrow-right-alt"></span>
 					<div class="aie-example-output">
-						<strong><?php esc_html_e( 'Output:', 'amplified-import-export' ); ?></strong>
+						<strong><?php esc_html_e( 'Output:', 'import-export-by-rockstarlab' ); ?></strong>
 						<code class="aie-example-output-value"></code>
 					</div>
 				</div>
@@ -54,11 +54,11 @@ defined( 'ABSPATH' ) || exit;
 
 		<div class="aie-modal-footer">
 			<button type="button" class="button button-secondary aie-modal-cancel">
-				<?php esc_html_e( 'Close', 'amplified-import-export' ); ?>
+				<?php esc_html_e( 'Close', 'import-export-by-rockstarlab' ); ?>
 			</button>
 			<button type="button" class="button button-primary aie-customize-snippet">
 				<span class="dashicons dashicons-edit"></span>
-				<?php esc_html_e( 'Customize', 'amplified-import-export' ); ?>
+				<?php esc_html_e( 'Customize', 'import-export-by-rockstarlab' ); ?>
 			</button>
 		</div>
 	</div>
