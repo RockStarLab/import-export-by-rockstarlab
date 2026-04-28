@@ -28,10 +28,10 @@ defined( 'ABSPATH' ) || exit;
 				</label>
 				<select id="aie-sync-site-select" class="aie-form-control">
 					<option value=""><?php esc_html_e( '-- Select Site --', 'import-export-by-rockstarlab' ); ?></option>
-					<?php foreach ( $sites as $site ) : ?>
-						<option value="<?php echo esc_attr( $site['id'] ); ?>" data-site-name="<?php echo esc_attr( $site['name'] ); ?>">
-							<?php echo esc_html( $site['name'] ); ?>
-							(<?php echo esc_html( $site['remote_url'] ); ?>)
+					<?php foreach ( $sites as $rsl_ie_site ) : ?>
+						<option value="<?php echo esc_attr( $rsl_ie_site['id'] ); ?>" data-site-name="<?php echo esc_attr( $rsl_ie_site['name'] ); ?>">
+							<?php echo esc_html( $rsl_ie_site['name'] ); ?>
+							(<?php echo esc_html( $rsl_ie_site['remote_url'] ); ?>)
 						</option>
 					<?php endforeach; ?>
 				</select>

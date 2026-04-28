@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // Check if API key is available
-$has_api_key = \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_key();
+$rsl_ie_has_api_key = \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_key();
 ?>
 
 <div id="rsl-ie-ai-url-importer" class="import-export-by-rockstarlab wrap">
@@ -19,7 +19,7 @@ $has_api_key = \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_k
 		<?php esc_html_e( 'Import clean content from URLs using AI. Automatically extracts titles, content, and images while removing sidebars, ads, and clutter.', 'import-export-by-rockstarlab' ); ?>
 	</p>
 
-	<?php if ( ! $has_api_key ) : ?>
+	<?php if ( ! $rsl_ie_has_api_key ) : ?>
 		<!-- API Key Notice -->
 		<div class="aie-premium-notice aie-api-key-notice">
 			<div class="aie-premium-notice-icon">
@@ -38,10 +38,10 @@ $has_api_key = \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_k
 
 		<?php
 		// Check if feature is ready to use
-		$feature_ready = $has_api_key;
+		$rsl_ie_feature_ready = $rsl_ie_has_api_key;
 		?>
 
-	<div class="aie-ai-url-importer-container <?php echo ! $feature_ready ? 'aie-disabled' : ''; ?>">
+	<div class="aie-ai-url-importer-container <?php echo ! $rsl_ie_feature_ready ? 'aie-disabled' : ''; ?>">
 
 		<!-- Step 1: URL Input -->
 		<div class="aie-step aie-step-1 aie-step-active" data-step="1">
@@ -61,7 +61,7 @@ $has_api_key = \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_k
 							class="large-text" 
 							rows="10" 
 							placeholder="<?php esc_attr_e( 'Enter URLs, one per line...', 'import-export-by-rockstarlab' ); ?>"
-							<?php echo ! $feature_ready ? 'disabled' : ''; ?>></textarea>
+							<?php echo ! $rsl_ie_feature_ready ? 'disabled' : ''; ?>></textarea>
 						<p class="description">
 							<?php esc_html_e( 'One URL per line, e.g.: https://example.com/article-1', 'import-export-by-rockstarlab' ); ?>
 						</p>
@@ -78,13 +78,13 @@ $has_api_key = \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_k
 							<div class="aie-upload-placeholder">
 								<span class="dashicons dashicons-media-text"></span>
 								<p><?php esc_html_e( 'Click to upload or drag & drop TXT file', 'import-export-by-rockstarlab' ); ?></p>
-								<button type="button" class="button" id="aie-browse-csv-btn" <?php echo ! $feature_ready ? 'disabled' : ''; ?>>
+								<button type="button" class="button" id="aie-browse-csv-btn" <?php echo ! $rsl_ie_feature_ready ? 'disabled' : ''; ?>>
 									<?php esc_html_e( 'Browse', 'import-export-by-rockstarlab' ); ?>
 								</button>
 							</div>
 							<div class="aie-file-info" style="display: none;">
 								<span class="file-name"></span>
-								<button type="button" class="button aie-remove-file" <?php echo ! $feature_ready ? 'disabled' : ''; ?>>
+								<button type="button" class="button aie-remove-file" <?php echo ! $rsl_ie_feature_ready ? 'disabled' : ''; ?>>
 									<?php esc_html_e( 'Remove', 'import-export-by-rockstarlab' ); ?>
 								</button>
 							</div>

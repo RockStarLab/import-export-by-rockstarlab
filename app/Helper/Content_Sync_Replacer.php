@@ -37,7 +37,7 @@ class Content_Sync_Replacer {
 				continue;
 			}
 
-			$field_obj = null;
+			$field_obj     = null;
 			$field_ref_key = '_' . $key;
 			if ( isset( $meta[ $field_ref_key ] ) && is_string( $meta[ $field_ref_key ] ) ) {
 				$field_ref = $meta[ $field_ref_key ];
@@ -404,8 +404,8 @@ class Content_Sync_Replacer {
 									if ( ! preg_match( '/\bsrc=(["\'])([^"\']+)\1/i', $img_tag, $src_m ) ) {
 										return $img_tag;
 									}
-									$quote   = $src_m[1];
-									$src     = $src_m[2];
+									$quote = $src_m[1];
+									$src   = $src_m[2];
 
 									// Determine which local URL to use.
 									// Try to extract WxH dimensions from the src filename
@@ -599,7 +599,7 @@ class Content_Sync_Replacer {
 		$replacements = array(
 			'https://' . $source_domain => 'https://' . $target_domain,
 			'http://' . $source_domain  => 'http://' . $target_domain,
-			'//' . $source_domain        => '//' . $target_domain,
+			'//' . $source_domain       => '//' . $target_domain,
 		);
 
 		$text = str_replace( array_keys( $replacements ), array_values( $replacements ), $text );
@@ -616,7 +616,7 @@ class Content_Sync_Replacer {
 	private static function normalize_domain( $domain ) {
 		// Remove protocol
 		$domain = preg_replace( '#^https?://#i', '', $domain );
-		
+
 		// Remove trailing slash
 		$domain = rtrim( $domain, '/' );
 
@@ -678,10 +678,10 @@ class Content_Sync_Replacer {
 	 * @param int   $post_id     Target post ID.
 	 * @param array $term_id_map Map of source_term_id => local_term_id.
 	 */
-		public static function translate_acf_taxonomy_fields_in_meta( $meta, $post_id, $term_id_map ) {
-			if ( empty( $term_id_map ) ) {
-				return;
-			}
+	public static function translate_acf_taxonomy_fields_in_meta( $meta, $post_id, $term_id_map ) {
+		if ( empty( $term_id_map ) ) {
+			return;
+		}
 
 		foreach ( $meta as $key => $value ) {
 			// Only process non-underscore-prefixed keys (skip ACF reference entries).
@@ -736,169 +736,171 @@ class Content_Sync_Replacer {
 	}
 
 	/**
-		 * After importing posts, re-save any ACF post-reference fields (post_object / relationship)
-		 * so they reference the correct local post IDs instead of the source-site IDs.
-		 *
-		 * Strategy: identify ACF fields via the companion "_fieldname" = "field_xxx" meta entry,
-		 * resolve the field definition with acf_get_field(), and only translate known reference
-		 * field types. Each numeric ID is translated via:
-		 * - self-reference: if it equals $source_post_id, rewrite to $post_id
-		 * - otherwise: find a local post with meta "_aie_original_post_id" = source_id
-		 *
-		 * If a referenced post has not been synced (no mapping exists), the value is left intact.
-		 *
-		 * @param array $meta           Full post meta array (key → value, already deserialized).
-		 * @param int   $post_id        Target post ID.
-		 * @param int   $source_post_id Source-site post ID for this post.
-		 */
-		public static function translate_acf_post_reference_fields_in_meta( $meta, $post_id, $source_post_id, $post_ref_map = array() ) {
-			if ( empty( $meta ) || ! function_exists( 'acf_get_field' ) ) {
-				return;
+	 * After importing posts, re-save any ACF post-reference fields (post_object / relationship)
+	 * so they reference the correct local post IDs instead of the source-site IDs.
+	 *
+	 * Strategy: identify ACF fields via the companion "_fieldname" = "field_xxx" meta entry,
+	 * resolve the field definition with acf_get_field(), and only translate known reference
+	 * field types. Each numeric ID is translated via:
+	 * - self-reference: if it equals $source_post_id, rewrite to $post_id
+	 * - otherwise: find a local post with meta "_aie_original_post_id" = source_id
+	 *
+	 * If a referenced post has not been synced (no mapping exists), the value is left intact.
+	 *
+	 * @param array $meta           Full post meta array (key → value, already deserialized).
+	 * @param int   $post_id        Target post ID.
+	 * @param int   $source_post_id Source-site post ID for this post.
+	 */
+	public static function translate_acf_post_reference_fields_in_meta( $meta, $post_id, $source_post_id, $post_ref_map = array() ) {
+		if ( empty( $meta ) || ! function_exists( 'acf_get_field' ) ) {
+			return;
+		}
+
+		$post_id        = (int) $post_id;
+		$source_post_id = (int) $source_post_id;
+		$post_ref_map   = is_array( $post_ref_map ) ? $post_ref_map : array();
+
+		$map_id = static function ( $maybe_source_id ) use ( $post_id, $source_post_id ) {
+			$maybe_source_id = (int) $maybe_source_id;
+			if ( $maybe_source_id <= 0 ) {
+				return 0;
 			}
 
-			$post_id        = (int) $post_id;
-			$source_post_id = (int) $source_post_id;
-			$post_ref_map   = is_array( $post_ref_map ) ? $post_ref_map : array();
+			// Self-reference: this post is guaranteed to exist locally now.
+			if ( $source_post_id > 0 && $maybe_source_id === $source_post_id ) {
+				return $post_id;
+			}
 
-			$map_id = static function ( $maybe_source_id ) use ( $post_id, $source_post_id ) {
+			// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Indexed meta_key lookup, hard-limited to 1 ID.
+			$found = get_posts(
+				array(
+					'post_type'              => 'any',
+					'post_status'            => 'any',
+					'posts_per_page'         => 1,
+					'fields'                 => 'ids',
+					'no_found_rows'          => true,
+					'cache_results'          => false,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+					'meta_key'               => '_aie_original_post_id',
+					'meta_value'             => $maybe_source_id,
+				)
+			);
+			// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+
+			return ! empty( $found ) ? (int) $found[0] : 0;
+		};
+
+		foreach ( $meta as $key => $value ) {
+			// Only process non-underscore-prefixed keys (skip ACF reference entries).
+			if ( strpos( $key, '_' ) === 0 ) {
+				continue;
+			}
+
+			$field_obj     = null;
+			$field_ref_key = '_' . $key;
+			if ( isset( $meta[ $field_ref_key ] ) && is_string( $meta[ $field_ref_key ] ) ) {
+				$field_ref = $meta[ $field_ref_key ];
+				if ( strpos( $field_ref, 'field_' ) === 0 ) {
+					$field_obj = acf_get_field( $field_ref );
+				}
+			}
+			if ( ! $field_obj ) {
+				// Fallback: resolve by field name on the receiving site (field keys differ across sites).
+				$field_obj = acf_get_field( $key );
+			}
+			if ( ! $field_obj || empty( $field_obj['type'] ) ) {
+				continue;
+			}
+
+			if ( ! in_array( $field_obj['type'], array( 'post_object', 'relationship', 'page_link' ), true ) ) {
+				continue;
+			}
+
+			// Ensure the ACF field-key reference meta matches THIS site (field keys differ across sites).
+			if ( ! empty( $field_obj['key'] ) && is_string( $field_obj['key'] ) ) {
+				$existing_ref = get_post_meta( $post_id, '_' . $key, true );
+				if ( $existing_ref !== $field_obj['key'] ) {
+					update_post_meta( $post_id, '_' . $key, $field_obj['key'] );
+				}
+			}
+
+			$map_id_with_fallbacks = static function ( $maybe_source_id ) use ( $map_id, $post_ref_map ) {
 				$maybe_source_id = (int) $maybe_source_id;
 				if ( $maybe_source_id <= 0 ) {
 					return 0;
 				}
 
-				// Self-reference: this post is guaranteed to exist locally now.
-				if ( $source_post_id > 0 && $maybe_source_id === $source_post_id ) {
-					return $post_id;
+				$mapped = $map_id( $maybe_source_id );
+				if ( $mapped > 0 ) {
+					return $mapped;
 				}
 
-				$found = get_posts(
-					array(
-						'post_type'      => 'any',
-						'post_status'    => 'any',
-						'posts_per_page' => 1,
-						'fields'         => 'ids',
-						'meta_query'     => array(
-							array(
-								'key'   => '_aie_original_post_id',
-								'value' => $maybe_source_id,
-							),
-						),
-					)
-				);
+				// Fallback: resolve by slug when sender provided a portable reference.
+				if ( isset( $post_ref_map[ $maybe_source_id ] ) && is_array( $post_ref_map[ $maybe_source_id ] ) ) {
+					$ref  = $post_ref_map[ $maybe_source_id ];
+					$pt   = isset( $ref['post_type'] ) ? (string) $ref['post_type'] : '';
+					$slug = isset( $ref['post_name'] ) ? (string) $ref['post_name'] : '';
 
-				return ! empty( $found ) ? (int) $found[0] : 0;
+					if ( $pt && $slug ) {
+						$by_path = get_page_by_path( $slug, OBJECT, $pt );
+						if ( $by_path && ! empty( $by_path->ID ) ) {
+							return (int) $by_path->ID;
+						}
+
+						$found = get_posts(
+							array(
+								'post_type'      => $pt,
+								'post_status'    => 'any',
+								'posts_per_page' => 1,
+								'fields'         => 'ids',
+								'name'           => $slug,
+							)
+						);
+						if ( ! empty( $found ) ) {
+							return (int) $found[0];
+						}
+					}
+				}
+
+				return 0;
 			};
 
-			foreach ( $meta as $key => $value ) {
-				// Only process non-underscore-prefixed keys (skip ACF reference entries).
-				if ( strpos( $key, '_' ) === 0 ) {
-					continue;
-				}
-
-				$field_obj = null;
-				$field_ref_key = '_' . $key;
-				if ( isset( $meta[ $field_ref_key ] ) && is_string( $meta[ $field_ref_key ] ) ) {
-					$field_ref = $meta[ $field_ref_key ];
-					if ( strpos( $field_ref, 'field_' ) === 0 ) {
-						$field_obj = acf_get_field( $field_ref );
-					}
-				}
-				if ( ! $field_obj ) {
-					// Fallback: resolve by field name on the receiving site (field keys differ across sites).
-					$field_obj = acf_get_field( $key );
-				}
-				if ( ! $field_obj || empty( $field_obj['type'] ) ) {
-					continue;
-				}
-
-				if ( ! in_array( $field_obj['type'], array( 'post_object', 'relationship', 'page_link' ), true ) ) {
-					continue;
-				}
-
-				// Ensure the ACF field-key reference meta matches THIS site (field keys differ across sites).
-				if ( ! empty( $field_obj['key'] ) && is_string( $field_obj['key'] ) ) {
-					$existing_ref = get_post_meta( $post_id, '_' . $key, true );
-					if ( $existing_ref !== $field_obj['key'] ) {
-						update_post_meta( $post_id, '_' . $key, $field_obj['key'] );
-					}
-				}
-
-				$map_id_with_fallbacks = static function ( $maybe_source_id ) use ( $map_id, $post_ref_map ) {
-					$maybe_source_id = (int) $maybe_source_id;
-					if ( $maybe_source_id <= 0 ) {
-						return 0;
-					}
-
-					$mapped = $map_id( $maybe_source_id );
-					if ( $mapped > 0 ) {
-						return $mapped;
-					}
-
-					// Fallback: resolve by slug when sender provided a portable reference.
-					if ( isset( $post_ref_map[ $maybe_source_id ] ) && is_array( $post_ref_map[ $maybe_source_id ] ) ) {
-						$ref = $post_ref_map[ $maybe_source_id ];
-						$pt  = isset( $ref['post_type'] ) ? (string) $ref['post_type'] : '';
-						$slug = isset( $ref['post_name'] ) ? (string) $ref['post_name'] : '';
-
-						if ( $pt && $slug ) {
-							$by_path = get_page_by_path( $slug, OBJECT, $pt );
-							if ( $by_path && ! empty( $by_path->ID ) ) {
-								return (int) $by_path->ID;
-							}
-
-							$found = get_posts(
-								array(
-									'post_type'      => $pt,
-									'post_status'    => 'any',
-									'posts_per_page' => 1,
-									'fields'         => 'ids',
-									'name'           => $slug,
-								)
-							);
-							if ( ! empty( $found ) ) {
-								return (int) $found[0];
-							}
-						}
-					}
-
-					return 0;
-				};
-
 				// Translate single post ID.
-				if ( is_numeric( $value ) && (int) $value > 0 ) {
-					$mapped = $map_id_with_fallbacks( $value );
-					if ( $mapped > 0 && $mapped !== (int) $value ) {
-						update_post_meta( $post_id, $key, $mapped );
-					}
-					continue;
+			if ( is_numeric( $value ) && (int) $value > 0 ) {
+				$mapped = $map_id_with_fallbacks( $value );
+				if ( $mapped > 0 && $mapped !== (int) $value ) {
+					update_post_meta( $post_id, $key, $mapped );
 				}
+				continue;
+			}
 
 				// Translate array of post IDs.
-				if ( is_array( $value ) ) {
-					$changed    = false;
-					$translated = array();
-					foreach ( $value as $item ) {
-						if ( is_numeric( $item ) && (int) $item > 0 ) {
-							$mapped = $map_id_with_fallbacks( $item );
-							if ( $mapped > 0 ) {
-								$translated[] = $mapped;
-								$changed      = $changed || ( $mapped !== (int) $item );
-								continue;
-							}
+			if ( is_array( $value ) ) {
+				$changed    = false;
+				$translated = array();
+				foreach ( $value as $item ) {
+					if ( is_numeric( $item ) && (int) $item > 0 ) {
+						$mapped = $map_id_with_fallbacks( $item );
+						if ( $mapped > 0 ) {
+							$translated[] = $mapped;
+							$changed      = $changed || ( $mapped !== (int) $item );
+							continue;
 						}
-						$translated[] = $item;
 					}
-					if ( $changed ) {
-						update_post_meta( $post_id, $key, $translated );
-					}
+					$translated[] = $item;
+				}
+				if ( $changed ) {
+					update_post_meta( $post_id, $key, $translated );
 				}
 			}
 		}
+	}
 	/**
-		 * Check if string is serialized
-		 *
-		 * @param string $data Data to check.
-		 * @return bool True if serialized
+	 * Check if string is serialized
+	 *
+	 * @param string $data Data to check.
+	 * @return bool True if serialized
 	 */
 	private static function is_serialized( $data ) {
 		if ( ! is_string( $data ) ) {

@@ -4,7 +4,7 @@
  */
 defined( 'ABSPATH' ) or exit;
 
-$plugin_version = defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '1.0';
+$rsl_ie_plugin_version = defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '1.0';
 ?>
 
 <div class="wrap aie-welcome-page">
@@ -12,7 +12,7 @@ $plugin_version = defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '1.0';
 	<h1 class="aie-welcome-title">
 		<span class="dashicons dashicons-update-alt"></span>
 		<?php esc_html_e( 'Import Export by RockStarLab', 'import-export-by-rockstarlab' ); ?>
-		<span class="aie-version-badge"><?php echo esc_html( $plugin_version ); ?></span>
+		<span class="aie-version-badge"><?php echo esc_html( $rsl_ie_plugin_version ); ?></span>
 	</h1>
 
 	<!-- Welcome Panel -->
