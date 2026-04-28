@@ -9,6 +9,7 @@ import PostSyncModule from './modules/post-sync';
 import AIURLImporter from './modules/ai-url-importer';
 import PluginOptionsModule from './modules/plugin-options';
 import WelcomeModule from './modules/welcome';
+import ProPromoModule from './modules/pro-promo';
 
 // Initialize modules when DOM is ready
 jQuery( document ).ready( function ( $ ) {
@@ -17,7 +18,7 @@ jQuery( document ).ready( function ( $ ) {
 
 	// Initialize export module
 	ExportModule.init();
-	
+
 	// Make export module globally accessible for step 3
 	window.aieExportModule = ExportModule;
 
@@ -38,7 +39,7 @@ jQuery( document ).ready( function ( $ ) {
 
 	// Initialize post sync module
 	PostSyncModule.init();
-	
+
 	window.aiePostSyncModule = PostSyncModule;
 
 	// Initialize AI URL Importer module
@@ -49,4 +50,7 @@ jQuery( document ).ready( function ( $ ) {
 
 	// Initialize welcome module
 	WelcomeModule.init();
+
+	// Initialize PRO promo helpers (promo-code copy button)
+	ProPromoModule.init();
 } );

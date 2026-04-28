@@ -107,22 +107,22 @@ $plugin_version = defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '1.0';
 					<div class="aie-card__header">
 						<h2 class="aie-card__title">
 							<span class="dashicons dashicons-awards"></span>
-							<?php esc_html_e( 'Special Offer', 'import-export-by-rockstarlab' ); ?>
+							<?php esc_html_e( 'Import Export PRO Addon', 'import-export-by-rockstarlab' ); ?>
 						</h2>
 					</div>
 					<div class="aie-card__body">
 						<p class="aie-promo-intro">
-							<?php echo wp_kses_post( __( 'All new users get <strong>4 weeks Premium Features for free</strong>. Use the code below at checkout:', 'import-export-by-rockstarlab' ) ); ?>
+							<?php echo wp_kses_post( __( 'All new users get <strong>PRO addon for free for 1 month</strong>. Try the full power of this addon, starting your free 30-days trial.', 'import-export-by-rockstarlab' ) ); ?>
 						</p>
-						<div class="aie-promo-code-row">
+						<!-- <div class="aie-promo-code-row">
 							<code class="aie-promo-code" id="aie-promo-code">NEW2026</code>
 							<button type="button" class="button aie-copy-btn aie-copy-promo-code">
 								<span class="dashicons dashicons-clipboard"></span>
 								<?php esc_html_e( 'Copy', 'import-export-by-rockstarlab' ); ?>
 							</button>
-						</div>
-						<a href="<?php echo esc_url( admin_url( 'admin.php?page=import-export-by-rockstarlab-pricing' ) ); ?>" class="button button-primary aie-promo-cta">
-							<?php esc_html_e( 'Activate Premium →', 'import-export-by-rockstarlab' ); ?>
+						</div> -->
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=import-export-by-rockstarlab-addons' ) ); ?>" class="button button-primary aie-promo-cta">
+							<?php esc_html_e( 'Get PRO Addon →', 'import-export-by-rockstarlab' ); ?>
 						</a>
 					</div>
 				</div>

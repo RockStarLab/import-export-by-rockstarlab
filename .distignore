@@ -6,10 +6,21 @@
 .husky
 .env*
 .gitignore
+.distignore
+copilot-instructions.md
+.huskyrc.js
+.env.e2e
+.nvmrc
+.phpcs.xml.dist
+letter.txt
 
 node_modules
 e2e
 temp
+documentation
+landing
+dist
+scripts
 
 # Dev-only vendor packages (built via composer require-dev)
 vendor/dealerdirect

@@ -1,5 +1,13 @@
 #!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
+HUSKY_SH="$(dirname "$0")/_/husky.sh"
+if [ -f "$HUSKY_SH" ]; then
+    . "$HUSKY_SH"
+fi
+
+# If this directory isn't a Git repository, skip checks (e.g. plugin copied into wp-content).
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    exit 0
+fi
 
 # Detect OS for platform-specific paths
 OS="$(uname -s 2>/dev/null || echo Unknown)"
@@ -135,7 +143,7 @@ if ! command_exists php; then
     fi
 else
     # Check PHP files
-    STAGED_PHP_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "^wp-content/themes/ofm/.*\.(php)$" || true)
+    STAGED_PHP_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "\\.php$" | grep -E "^(app/|import-export-by-rockstarlab\\.php|uninstall\\.php|index\\.php)" || true)
 
     if [ ! -z "$STAGED_PHP_FILES" ] && [ "$SKIP_PHPCBF" -eq 0 ]; then
         echo "Checking PHP files..."
@@ -144,14 +152,14 @@ else
         if php_tool_exists "phpcs" && php_tool_exists "phpcbf"; then
             # First, try to fix automatically
             echo "🔧 Running PHPCBF for automatic fixing..."
-            echo "$STAGED_PHP_FILES" | xargs ./vendor/bin/phpcbf --standard=wp-content/themes/ofm/.phpcs.xml.dist || true
+            echo "$STAGED_PHP_FILES" | xargs ./vendor/bin/phpcbf --standard=./.phpcs.xml.dist || true
 
             # Add fixed files to the index
             echo "$STAGED_PHP_FILES" | xargs git add
 
             # Run PHPCS for checking, but explicitly ignore the return code
             echo "🔍 Checking remaining issues with PHPCS (informative)..."
-            echo "$STAGED_PHP_FILES" | xargs ./vendor/bin/phpcs --standard=wp-content/themes/ofm/.phpcs.xml.dist --report=summary -q || true
+            echo "$STAGED_PHP_FILES" | xargs ./vendor/bin/phpcs --standard=./.phpcs.xml.dist --report=summary -q || true
 
             echo "✅ PHP check completed. Some errors may have been automatically fixed."
             echo "⚠️ If there are remaining errors, you can fix them manually or use SKIP_PHPCBF=1 before committing to skip the check."
@@ -212,7 +220,7 @@ if package_exists "eslint" || package_exists "stylelint" || package_exists "pret
     echo "🔍 Running JS/CSS/other file checks..."
 
     # Handle JavaScript files
-    STAGED_JS_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "^wp-content/themes/ofm/src/.*\.js$" || true)
+    STAGED_JS_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "^(src/|scripts/|documentation/|landing/).*(\\.(js|mjs))$" || true)
     if [ ! -z "$STAGED_JS_FILES" ]; then
         echo "Checking JavaScript files..."
         echo "$STAGED_JS_FILES"
@@ -239,7 +247,7 @@ if package_exists "eslint" || package_exists "stylelint" || package_exists "pret
     fi
 
     # Handle CSS/SCSS files
-    STAGED_STYLE_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "^wp-content/themes/ofm/src/.*\.(scss|css)$" || true)
+    STAGED_STYLE_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "^(src/|documentation/|landing/).*(\\.(scss|css))$" || true)
     if [ ! -z "$STAGED_STYLE_FILES" ]; then
         echo "Checking style files..."
         echo "$STAGED_STYLE_FILES"

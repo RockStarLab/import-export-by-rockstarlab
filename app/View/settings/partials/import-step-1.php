@@ -17,8 +17,15 @@ defined( 'ABSPATH' ) || exit;
 
 	<div class="aie-step-content">
 		<?php
-		// Check if premium is active
-		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
+		$pro_active      = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active();
+		$promo_cta       = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_cta();
+		$promo_dismissed = (bool) get_user_meta( get_current_user_id(), 'rsl_ie_dismiss_pro_promo_import', true );
+
+		$promo_title = __( 'Need more features? Buy PRO addon', 'import-export-by-rockstarlab' );
+		$promo_desc  = __( 'Get additional import content types by installing the PRO addon.', 'import-export-by-rockstarlab' );
+
+		$promo_features = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_features( 'import' );
+		$trial_note     = __( 'Free 30-day PRO Addon trial is available for all new users.', 'import-export-by-rockstarlab' );
 		?>
 		
 		<!-- Search/Filter Field -->
@@ -63,138 +70,78 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 			</label>
 
-			<!-- Premium Features -->
-			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
-				<input type="radio" name="content_type" value="custom_post_types"<?php echo $is_premium ? '' : ' disabled'; ?>>
-				<div class="aie-content-type-card">
-					<span class="dashicons dashicons-admin-generic"></span>
-					<h3><?php esc_html_e( 'Custom Post Types', 'import-export-by-rockstarlab' ); ?></h3>
-					<p><?php esc_html_e( 'Import custom post types', 'import-export-by-rockstarlab' ); ?></p>
-					<?php if ( ! $is_premium ) : ?>
-						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'import-export-by-rockstarlab' ); ?></span>
-					<?php endif; ?>
-				</div>
-			</label>
+			<?php if ( $pro_active ) : ?>
+				<?php
+				$pro_types  = \RockStarLab\ImportExport\Helper\Pro_Addon::get_pro_content_type_cards( 'import' );
+				$pro_types  = apply_filters( 'rsl_ie_pro_import_content_types', $pro_types );
+				$pro_locked = false;
+				foreach ( $pro_types as $type ) :
+					?>
+					<label class="aie-content-type <?php echo $pro_locked ? 'aie-premium-locked' : ''; ?>">
+						<input type="radio" name="content_type" value="<?php echo esc_attr( $type['value'] ); ?>" <?php echo $pro_locked ? 'disabled' : ''; ?>>
+						<div class="aie-content-type-card">
+							<span class="dashicons <?php echo esc_attr( $type['icon'] ?? 'dashicons-star-filled' ); ?>"></span>
+							<h3><?php echo esc_html( $type['title'] ?? '' ); ?></h3>
+							<p><?php echo esc_html( $type['description'] ?? '' ); ?></p>
+						</div>
+					</label>
+				<?php endforeach; ?>
+			<?php elseif ( ! $promo_dismissed ) : ?>
+				<div class="aie-content-type aie-pro-addon-card">
+					<div class="aie-content-type-card">
+						<div class="aie-pro-addon-header">
+							<div class="aie-pro-addon-icon">
+								<span class="dashicons dashicons-star-filled"></span>
+							</div>
+							<div class="aie-pro-addon-copy">
+								<h3><?php echo esc_html( $promo_title ); ?></h3>
+								<p><?php echo esc_html( $promo_desc ); ?></p>
+							</div>
+						</div>
 
-			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
-				<input type="radio" name="content_type" value="media"<?php echo $is_premium ? '' : ' disabled'; ?>>
-				<div class="aie-content-type-card">
-					<span class="dashicons dashicons-admin-media"></span>
-					<h3><?php esc_html_e( 'Media', 'import-export-by-rockstarlab' ); ?></h3>
-					<p><?php esc_html_e( 'Import media files data', 'import-export-by-rockstarlab' ); ?></p>
-					<?php if ( ! $is_premium ) : ?>
-						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'import-export-by-rockstarlab' ); ?></span>
-					<?php endif; ?>
-				</div>
-			</label>
+						<?php if ( ! $pro_active ) : ?>
+							<div class="aie-pro-addon-trial">
+								<span class="dashicons dashicons-calendar-alt"></span>
+								<span class="aie-pro-addon-trial-text"><?php echo esc_html( $trial_note ); ?></span>
+							</div>
+						<?php endif; ?>
 
-			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
-				<input type="radio" name="content_type" value="menu"<?php echo $is_premium ? '' : ' disabled'; ?>>
-				<div class="aie-content-type-card">
-					<span class="dashicons dashicons-menu"></span>
-					<h3><?php esc_html_e( 'Menus', 'import-export-by-rockstarlab' ); ?></h3>
-					<p><?php esc_html_e( 'Import navigation menus', 'import-export-by-rockstarlab' ); ?></p>
-					<?php if ( ! $is_premium ) : ?>
-						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'import-export-by-rockstarlab' ); ?></span>
-					<?php endif; ?>
-				</div>
-			</label>
+						<?php if ( ! $pro_active && ! empty( $promo_features ) ) : ?>
+							<ul class="aie-pro-addon-features">
+								<?php foreach ( $promo_features as $feature ) : ?>
+									<li>
+										<span class="dashicons dashicons-yes-alt"></span>
+										<div class="aie-pro-addon-feature-text">
+											<strong><?php echo esc_html( $feature['title'] ?? '' ); ?></strong>
+											<span><?php echo esc_html( $feature['description'] ?? '' ); ?></span>
+										</div>
+									</li>
+								<?php endforeach; ?>
+							</ul>
+						<?php endif; ?>
 
-			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
-				<input type="radio" name="content_type" value="user"<?php echo $is_premium ? '' : ' disabled'; ?>>
-				<div class="aie-content-type-card">
-					<span class="dashicons dashicons-admin-users"></span>
-					<h3><?php esc_html_e( 'Users', 'import-export-by-rockstarlab' ); ?></h3>
-					<p><?php esc_html_e( 'Import user accounts', 'import-export-by-rockstarlab' ); ?></p>
-					<?php if ( ! $is_premium ) : ?>
-						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'import-export-by-rockstarlab' ); ?></span>
-					<?php endif; ?>
-				</div>
-			</label>
+						<a
+							href="<?php echo esc_url( $promo_cta['url'] ); ?>"
+							class="button button-primary aie-pro-addon-cta"
+							target="_blank" rel="noopener noreferrer"
+						>
+							<?php echo esc_html( $promo_cta['label'] ); ?>
+						</a>
 
-			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
-				<input type="radio" name="content_type" value="comment"<?php echo $is_premium ? '' : ' disabled'; ?>>
-				<div class="aie-content-type-card">
-					<span class="dashicons dashicons-admin-comments"></span>
-					<h3><?php esc_html_e( 'Comments', 'import-export-by-rockstarlab' ); ?></h3>
-					<p><?php esc_html_e( 'Import comments and reviews', 'import-export-by-rockstarlab' ); ?></p>
-					<?php if ( ! $is_premium ) : ?>
-						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'import-export-by-rockstarlab' ); ?></span>
-					<?php endif; ?>
+						<?php if ( ! $pro_active ) : ?>
+							<div class="aie-pro-addon-dismiss">
+								<button type="button" class="button-link aie-pro-addon-hide" data-context="import">
+									<?php esc_html_e( 'Hide', 'import-export-by-rockstarlab' ); ?>
+								</button>
+								<span class="aie-pro-addon-dismiss-sep">·</span>
+								<button type="button" class="button-link aie-pro-addon-dismiss-forever" data-context="import">
+									<?php esc_html_e( "Don't show again", 'import-export-by-rockstarlab' ); ?>
+								</button>
+							</div>
+						<?php endif; ?>
+					</div>
 				</div>
-			</label>
-
-			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
-				<input type="radio" name="content_type" value="taxonomy"<?php echo $is_premium ? '' : ' disabled'; ?>>
-				<div class="aie-content-type-card">
-					<span class="dashicons dashicons-category"></span>
-					<h3><?php esc_html_e( 'Taxonomy Terms', 'import-export-by-rockstarlab' ); ?></h3>
-					<p><?php esc_html_e( 'Import categories, tags, and custom taxonomies', 'import-export-by-rockstarlab' ); ?></p>
-					<?php if ( ! $is_premium ) : ?>
-						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'import-export-by-rockstarlab' ); ?></span>
-					<?php endif; ?>
-				</div>
-			</label>
-
-			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
-				<input type="radio" name="content_type" value="woo_product"<?php echo $is_premium ? '' : ' disabled'; ?>>
-				<div class="aie-content-type-card">
-					<span class="dashicons dashicons-products"></span>
-					<h3><?php esc_html_e( 'WooCommerce Products', 'import-export-by-rockstarlab' ); ?></h3>
-					<p><?php esc_html_e( 'Import WooCommerce products', 'import-export-by-rockstarlab' ); ?></p>
-					<?php if ( ! $is_premium ) : ?>
-						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'import-export-by-rockstarlab' ); ?></span>
-					<?php endif; ?>
-				</div>
-			</label>
-
-			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
-				<input type="radio" name="content_type" value="woo_order"<?php echo $is_premium ? '' : ' disabled'; ?>>
-				<div class="aie-content-type-card">
-					<span class="dashicons dashicons-cart"></span>
-					<h3><?php esc_html_e( 'WooCommerce Orders (8.0+)', 'import-export-by-rockstarlab' ); ?></h3>
-					<p><?php esc_html_e( 'Import WooCommerce orders', 'import-export-by-rockstarlab' ); ?></p>
-					<?php if ( ! $is_premium ) : ?>
-						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'import-export-by-rockstarlab' ); ?></span>
-					<?php endif; ?>
-				</div>
-			</label>
-
-			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
-				<input type="radio" name="content_type" value="woo_coupon"<?php echo $is_premium ? '' : ' disabled'; ?>>
-				<div class="aie-content-type-card">
-					<span class="dashicons dashicons-tickets-alt"></span>
-					<h3><?php esc_html_e( 'WooCommerce Coupons', 'import-export-by-rockstarlab' ); ?></h3>
-					<p><?php esc_html_e( 'Import WooCommerce coupons', 'import-export-by-rockstarlab' ); ?></p>
-					<?php if ( ! $is_premium ) : ?>
-						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'import-export-by-rockstarlab' ); ?></span>
-					<?php endif; ?>
-				</div>
-			</label>
-
-			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
-				<input type="radio" name="content_type" value="woo_attribute"<?php echo $is_premium ? '' : ' disabled'; ?>>
-				<div class="aie-content-type-card">
-					<span class="dashicons dashicons-tag"></span>
-					<h3><?php esc_html_e( 'WooCommerce Attributes', 'import-export-by-rockstarlab' ); ?></h3>
-					<p><?php esc_html_e( 'Import WooCommerce attributes', 'import-export-by-rockstarlab' ); ?></p>
-					<?php if ( ! $is_premium ) : ?>
-						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'import-export-by-rockstarlab' ); ?></span>
-					<?php endif; ?>
-				</div>
-			</label>
-
-			<label class="aie-content-type<?php echo $is_premium ? '' : ' aie-premium-locked'; ?>">
-				<input type="radio" name="content_type" value="database_table"<?php echo $is_premium ? '' : ' disabled'; ?>>
-				<div class="aie-content-type-card">
-					<span class="dashicons dashicons-database-view"></span>
-					<h3><?php esc_html_e( 'MySQL Database Table', 'import-export-by-rockstarlab' ); ?></h3>
-					<p><?php esc_html_e( 'Import to any MySQL table', 'import-export-by-rockstarlab' ); ?></p>
-					<?php if ( ! $is_premium ) : ?>
-						<span class="aie-premium-badge"><?php esc_html_e( 'Premium', 'import-export-by-rockstarlab' ); ?></span>
-					<?php endif; ?>
-				</div>
-			</label>
+			<?php endif; ?>
 		</div>
 
 		<div class="aie-step-actions">
