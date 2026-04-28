@@ -24,17 +24,17 @@ class Functions_Controller extends Base_Controller {
 	 */
 	protected function get_ajax_actions() {
 		return [
-			'get_functions'             => [ 'callback' => 'get_functions_list' ],
-			'functions_get_all'         => [ 'callback' => 'get_all_functions' ],
-			'functions_get'             => [ 'callback' => 'get_function' ],
-			'functions_create'          => [ 'callback' => 'create_function' ],
-			'functions_update'          => [ 'callback' => 'update_function' ],
-			'functions_delete'          => [ 'callback' => 'delete_function' ],
-			'functions_test'            => [ 'callback' => 'test_function' ],
-			'test_function_pipeline'    => [ 'callback' => 'test_function_pipeline' ],
-			'functions_get_snippets'    => [ 'callback' => 'get_snippets' ],
-			'functions_search'          => [ 'callback' => 'search_snippets' ],
-			'functions_import'          => [ 'callback' => 'import_snippet' ],
+			'get_functions'              => [ 'callback' => 'get_functions_list' ],
+			'functions_get_all'          => [ 'callback' => 'get_all_functions' ],
+			'functions_get'              => [ 'callback' => 'get_function' ],
+			'functions_create'           => [ 'callback' => 'create_function' ],
+			'functions_update'           => [ 'callback' => 'update_function' ],
+			'functions_delete'           => [ 'callback' => 'delete_function' ],
+			'functions_test'             => [ 'callback' => 'test_function' ],
+			'test_function_pipeline'     => [ 'callback' => 'test_function_pipeline' ],
+			'functions_get_snippets'     => [ 'callback' => 'get_snippets' ],
+			'functions_search'           => [ 'callback' => 'search_snippets' ],
+			'functions_import'           => [ 'callback' => 'import_snippet' ],
 			'functions_generate_with_ai' => [ 'callback' => 'generate_function_with_ai' ],
 		];
 	}
@@ -127,74 +127,88 @@ class Functions_Controller extends Base_Controller {
 		}
 
 		if ( ! empty( $search ) ) {
-		$args['search'] = $search;
-	}
+			$args['search'] = $search;
+		}
 
-	// Get all custom functions without pagination first
-	$all_custom_functions = $model->get_all( [ 'orderby' => 'name', 'order' => 'ASC' ] );
-	
-	// Add library snippets
-	$library  = new Function_Snippets();
-	$snippets = $library->get_all_snippets();
+		// Get all custom functions without pagination first
+		$all_custom_functions = $model->get_all(
+			[
+				'orderby' => 'name',
+				'order'   => 'ASC',
+			]
+		);
 
-	$snippet_functions = [];
-	foreach ( $snippets as $key => $snippet ) {
-		$snippet_functions[] = [
-			'id'          => 'snippet_' . $key,
-			'name'        => $snippet['name'],
-			'description' => $snippet['description'],
-			'category'    => $snippet['category'],
-			'type'        => 'library',
-		];
-	}
+		// Add library snippets
+		$library  = new Function_Snippets();
+		$snippets = $library->get_all_snippets();
 
-	// Merge custom functions and snippets
-	$all_functions = array_merge( $all_custom_functions, $snippet_functions );
-	
-	// Apply filters
-	if ( ! empty( $search ) ) {
-		$all_functions = array_filter( $all_functions, function( $func ) use ( $search ) {
-			$search_lower = strtolower( $search );
-			return strpos( strtolower( $func['name'] ), $search_lower ) !== false ||
-			       ( isset( $func['description'] ) && strpos( strtolower( $func['description'] ), $search_lower ) !== false );
-		} );
-		$all_functions = array_values( $all_functions ); // Re-index array
-	}
-	
-	if ( ! empty( $category ) ) {
-		$all_functions = array_filter( $all_functions, function( $func ) use ( $category ) {
-			return isset( $func['category'] ) && $func['category'] === $category;
-		} );
-		$all_functions = array_values( $all_functions );
-	}
-	
-	if ( ! empty( $status ) && $status !== 'all' ) {
-		$all_functions = array_filter( $all_functions, function( $func ) use ( $status ) {
-			return isset( $func['status'] ) && $func['status'] === $status;
-		} );
-		$all_functions = array_values( $all_functions );
-	}
-	
-	// Calculate total and pagination
-	$total = count( $all_functions );
-	$total_pages = ceil( $total / $per_page );
-	
-	// Apply pagination
-	$offset = ( $page - 1 ) * $per_page;
-	$paginated_functions = array_slice( $all_functions, $offset, $per_page );
+		$snippet_functions = [];
+		foreach ( $snippets as $key => $snippet ) {
+			$snippet_functions[] = [
+				'id'          => 'snippet_' . $key,
+				'name'        => $snippet['name'],
+				'description' => $snippet['description'],
+				'category'    => $snippet['category'],
+				'type'        => 'library',
+			];
+		}
 
-	$this->send_success(
-		[
-			'functions'   => $paginated_functions,
-			'total'       => $total,
-			'page'        => $page,
-			'per_page'    => $per_page,
-			'total_pages' => $total_pages,
-		]
-	);
-}	/**
-	 * Get single function
-	 */
+		// Merge custom functions and snippets
+		$all_functions = array_merge( $all_custom_functions, $snippet_functions );
+
+		// Apply filters
+		if ( ! empty( $search ) ) {
+			$all_functions = array_filter(
+				$all_functions,
+				function ( $func ) use ( $search ) {
+					$search_lower = strtolower( $search );
+					return strpos( strtolower( $func['name'] ), $search_lower ) !== false ||
+						( isset( $func['description'] ) && strpos( strtolower( $func['description'] ), $search_lower ) !== false );
+				}
+			);
+			$all_functions = array_values( $all_functions ); // Re-index array
+		}
+
+		if ( ! empty( $category ) ) {
+			$all_functions = array_filter(
+				$all_functions,
+				function ( $func ) use ( $category ) {
+					return isset( $func['category'] ) && $func['category'] === $category;
+				}
+			);
+			$all_functions = array_values( $all_functions );
+		}
+
+		if ( ! empty( $status ) && $status !== 'all' ) {
+			$all_functions = array_filter(
+				$all_functions,
+				function ( $func ) use ( $status ) {
+					return isset( $func['status'] ) && $func['status'] === $status;
+				}
+			);
+			$all_functions = array_values( $all_functions );
+		}
+
+		// Calculate total and pagination
+		$total       = count( $all_functions );
+		$total_pages = ceil( $total / $per_page );
+
+		// Apply pagination
+		$offset              = ( $page - 1 ) * $per_page;
+		$paginated_functions = array_slice( $all_functions, $offset, $per_page );
+
+		$this->send_success(
+			[
+				'functions'   => $paginated_functions,
+				'total'       => $total,
+				'page'        => $page,
+				'per_page'    => $per_page,
+				'total_pages' => $total_pages,
+			]
+		);
+	}   /**
+		 * Get single function
+		 */
 	public function get_function() {
 		$verify = $this->verify_request( 'nonce' );
 		if ( is_wp_error( $verify ) ) {
@@ -272,7 +286,7 @@ class Functions_Controller extends Base_Controller {
 		}
 
 		$model = new Custom_Function();
-		
+
 		// Check if this is coming from editing a library snippet
 		// If the name already exists, generate a unique name
 		$function_id = $this->get_request_param( 'id', '' );
@@ -345,17 +359,17 @@ class Functions_Controller extends Base_Controller {
 		if ( ! empty( $name ) ) {
 			// Get the existing function to check if name is being changed
 			$existing_function = $model->get( $function_id_int );
-			
+
 			// If name is the same as existing (editing snippet without changing name)
 			// and the source is from library, generate a unique name
-			if ( $existing_function && 
-				 $name === $existing_function['name'] && 
-				 ! empty( $existing_function['source'] ) && 
-				 strpos( $existing_function['source'], 'library:' ) === 0 ) {
+			if ( $existing_function &&
+				$name === $existing_function['name'] &&
+				! empty( $existing_function['source'] ) &&
+				strpos( $existing_function['source'], 'library:' ) === 0 ) {
 				// Generate unique name like "Function Name (2)"
 				$name = $model->generate_unique_name( $name, $function_id_int );
 			}
-			
+
 			$update_data['name'] = $name;
 		}
 
@@ -710,12 +724,6 @@ class Functions_Controller extends Base_Controller {
 			$this->send_error( $verify->get_error_message() );
 		}
 
-		// Check if premium
-		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
-		if ( ! $is_premium ) {
-			$this->send_error( __( 'AI function generation is a premium feature.', 'import-export-by-rockstarlab' ) );
-		}
-
 		$prompt = $this->get_request_param( 'prompt', '' );
 
 		if ( empty( $prompt ) ) {
@@ -724,7 +732,7 @@ class Functions_Controller extends Base_Controller {
 
 		// Import AI helper
 		require_once __DIR__ . '/../Helper/AI_Function_Generator.php';
-		
+
 		$ai_generator = new \RockStarLab\ImportExport\Helper\AI_Function_Generator();
 		$result       = $ai_generator->generate_function( $prompt );
 

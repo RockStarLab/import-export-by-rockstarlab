@@ -56,36 +56,11 @@ class Importer_Factory {
 	 */
 	private static function get_importer_map() {
 		$default_map = [
-			'post'             => Post_Importer::class,
-			'posts'            => Post_Importer::class,
-			'page'             => Post_Importer::class,
-			'pages'            => Post_Importer::class,
-			'custom_post_type'  => Post_Importer::class,
-			'custom_post_types' => Post_Importer::class,
-			'user'              => User_Importer::class,
-			'users'            => User_Importer::class,
-			'comment'          => Comment_Importer::class,
-			'comments'         => Comment_Importer::class,		'product'          => Product_Importer::class,
-		'products'         => Product_Importer::class,
-		'woo_product'      => Product_Importer::class,
-		'taxonomy'         => Taxonomy_Term_Importer::class,
-		'taxonomy_term'    => Taxonomy_Term_Importer::class,
-		'taxonomy_terms'   => Taxonomy_Term_Importer::class,
-		'term'             => Taxonomy_Term_Importer::class,
-		'terms'            => Taxonomy_Term_Importer::class,
-		'category'         => Taxonomy_Term_Importer::class,
-		'categories'       => Taxonomy_Term_Importer::class,
-		'tag'              => Taxonomy_Term_Importer::class,
-		'tags'             => Taxonomy_Term_Importer::class,
-		'media'            => Media_Importer::class,
-			'menu'             => Menu_Importer::class,
-			'menus'            => Menu_Importer::class,
-			'nav_menu'         => Menu_Importer::class,
-			'database_table'   => Database_Table_Importer::class,
-			'woo_attribute'    => Woo_Attribute_Importer::class,
-			'woo_coupon'       => Woo_Coupon_Importer::class,
-			'woo_order'        => Woo_Order_Importer::class,
-			'woo_orders'       => Woo_Order_Importer::class,
+			// Free plugin content types.
+			'post'  => Post_Importer::class,
+			'posts' => Post_Importer::class,
+			'page'  => Post_Importer::class,
+			'pages' => Post_Importer::class,
 		];
 
 		/**

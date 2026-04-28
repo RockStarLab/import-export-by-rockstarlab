@@ -322,16 +322,51 @@ abstract class Base_Controller {
 	 * @return true|\WP_Error True if allowed, WP_Error if premium license is required
 	 */
 	protected function verify_premium_for_type( $data_type ) {
-		if (
-			! empty( $data_type ) &&
-			in_array( strtolower( trim( $data_type ) ), $this->get_premium_data_types(), true ) &&
-			! $this->is_premium_active()
-		) {
+		return $this->verify_premium_for_type_in_context( $data_type, '' );
+	}
+
+	/**
+	 * Verify a PRO addon + license is active for the given data/content type in a context.
+	 *
+	 * Some data types are free in one context (e.g. "comment" in Content Updater)
+	 * but may be premium in another (e.g. "comment" import/export). This helper
+	 * lets controllers pass an explicit context to avoid false positives.
+	 *
+	 * Context values used in this plugin: import|export|update (matches Job type).
+	 *
+	 * @param string $data_type Content/data type slug to check.
+	 * @param string $context   Optional. Context string.
+	 * @return true|\WP_Error True if allowed, WP_Error if PRO addon + license is required.
+	 */
+	protected function verify_premium_for_type_in_context( $data_type, $context = '' ) {
+		$data_type = strtolower( trim( (string) $data_type ) );
+		$context   = strtolower( trim( (string) $context ) );
+
+		if ( '' === $data_type ) {
+			return true;
+		}
+
+		$free_by_context = [
+			'import' => [ 'post', 'posts', 'page', 'pages' ],
+			'export' => [ 'post', 'page' ],
+			'update' => [ 'post', 'comment', 'comments' ],
+		];
+
+		if ( isset( $free_by_context[ $context ] ) && in_array( $data_type, $free_by_context[ $context ], true ) ) {
+			return true;
+		}
+
+		$is_premium_type = in_array( $data_type, $this->get_premium_data_types(), true );
+		if ( ! $is_premium_type ) {
+			return true;
+		}
+
+		if ( ! \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ) {
 			return new \WP_Error(
-				'premium_required',
+				'pro_required',
 				sprintf(
 					/* translators: %s: content/data type name */
-					__( 'A valid premium license is required to process "%s" content type. Please activate or renew your license.', 'import-export-by-rockstarlab' ),
+					__( 'This feature requires the PRO addon to process "%s".', 'import-export-by-rockstarlab' ),
 					esc_html( $data_type )
 				)
 			);

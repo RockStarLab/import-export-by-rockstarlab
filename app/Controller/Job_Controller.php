@@ -321,7 +321,7 @@ class Job_Controller extends Base_Controller {
 			$data_type = $params['import_type'] ?? $params['export_type'] ?? '';
 		}
 
-		$license_check = $this->verify_premium_for_type( $data_type );
+		$license_check = $this->verify_premium_for_type_in_context( $data_type, $job_data->type ?? '' );
 		if ( is_wp_error( $license_check ) ) {
 			$this->send_error( $license_check, null, 403 );
 		}
@@ -344,7 +344,7 @@ class Job_Controller extends Base_Controller {
 
 		// Get job parameters for response
 		$parameters = maybe_unserialize( $job_data->parameters );
-		
+
 		// For media_sync, parameters might be empty but settings should contain all info
 		if ( empty( $parameters ) && 'media_sync' === $job_data->type ) {
 			$parameters = json_decode( $job_data->settings, true );
@@ -412,7 +412,7 @@ class Job_Controller extends Base_Controller {
 			$data_type = $params['import_type'] ?? $params['export_type'] ?? '';
 		}
 
-		$license_check = $this->verify_premium_for_type( $data_type );
+		$license_check = $this->verify_premium_for_type_in_context( $data_type, $job_data->type ?? '' );
 		if ( is_wp_error( $license_check ) ) {
 			$this->send_error( $license_check, null, 403 );
 		}
@@ -435,7 +435,7 @@ class Job_Controller extends Base_Controller {
 
 		// Get job parameters for response
 		$parameters = maybe_unserialize( $job_data->parameters );
-		
+
 		// For media_sync, parameters might be empty but settings should contain all info
 		if ( empty( $parameters ) && 'media_sync' === $job_data->type ) {
 			$parameters = json_decode( $job_data->settings, true );
@@ -508,10 +508,10 @@ class Job_Controller extends Base_Controller {
 		$nonce = wp_create_nonce( 'rsl_ie_download_' . $job_id );
 		$url   = add_query_arg(
 			[
-					'action'   => 'rsl_ie_secure_download',
-					'job_id'   => $job_id,
-					'_wpnonce' => $nonce,
-				],
+				'action'   => 'rsl_ie_secure_download',
+				'job_id'   => $job_id,
+				'_wpnonce' => $nonce,
+			],
 			admin_url( 'admin-ajax.php' )
 		);
 

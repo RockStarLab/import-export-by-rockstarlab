@@ -92,7 +92,9 @@
 
 	.aie-content-type {
 		cursor: pointer;
-		transition: opacity 0.3s ease, transform 0.2s ease;
+		transition:
+			opacity 0.3s ease,
+			transform 0.2s ease;
 
 		&:not([style*="display: none"]) {
 			animation: fadeIn 0.3s ease;
@@ -219,6 +221,217 @@
 			&:hover {
 				opacity: 0.5 !important;
 				transform: none !important;
+			}
+		}
+
+		&.aie-pro-addon-card {
+			cursor: default;
+			grid-column: 1 / -1;
+
+			.aie-content-type-card {
+				min-height: 0;
+				align-items: stretch;
+				text-align: left;
+				justify-content: flex-start;
+				border-style: solid;
+				border-width: 2px;
+				border-color: transparent;
+				border-radius: 8px;
+				padding: 22px 22px;
+				background:
+					linear-gradient(#ffffff, #ffffff) padding-box,
+					linear-gradient(135deg, #2271b1 0%, #f97316 100%) border-box;
+				box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+
+				&:hover {
+					border-color: transparent;
+					box-shadow: 0 10px 26px rgba(0, 0, 0, 0.1);
+					transform: translateY(-1px);
+				}
+			}
+
+			.aie-pro-addon-header {
+				display: flex;
+				align-items: flex-start;
+				gap: 14px;
+				margin-bottom: 14px;
+			}
+
+			.aie-pro-addon-icon {
+				width: 42px;
+				height: 42px;
+				border-radius: 10px;
+				background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+				box-shadow: 0 6px 16px rgba(245, 158, 11, 0.25);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+
+				.dashicons {
+					font-size: 22px;
+					width: 22px;
+					height: 22px;
+					color: #fff;
+				}
+			}
+
+			.aie-pro-addon-copy {
+				flex: 1;
+
+				h3 {
+					margin: 0 0 6px;
+					font-size: 18px;
+				}
+
+				p {
+					margin: 0;
+					color: #50575e;
+					font-size: 13px;
+					line-height: 1.5;
+				}
+			}
+
+			.aie-pro-addon-trial {
+				margin: 12px 0 14px;
+				display: flex;
+				flex-wrap: wrap;
+				align-items: center;
+				gap: 8px;
+				padding: 8px 10px;
+				border-radius: 12px;
+				background: #f0f6fc;
+				color: #1d2327;
+				font-size: 12px;
+				font-weight: 600;
+
+				.dashicons {
+					color: #f97316;
+				}
+			}
+
+			.aie-pro-addon-trial-text {
+				font-weight: 700;
+			}
+
+			.aie-pro-addon-trial-hint {
+				font-weight: 600;
+				color: #50575e;
+			}
+
+			button.aie-pro-addon-trial-code {
+				border: 0;
+				cursor: pointer;
+				display: inline-flex;
+				align-items: center;
+				gap: 6px;
+				padding: 4px 8px;
+				border-radius: 999px;
+				background: #1d2327;
+				color: #fff;
+				transition:
+					transform 0.15s ease,
+					box-shadow 0.15s ease,
+					background-color 0.15s ease;
+				box-shadow: 0 3px 10px rgba(0, 0, 0, 0.14);
+				line-height: 1;
+
+				&:hover {
+					transform: translateY(-1px);
+					box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+				}
+
+				&:active {
+					transform: translateY(0);
+				}
+
+				.aie-pro-addon-trial-code-text {
+					font-family: ui-monospace, SFMono-Regular, Menlo, Monaco,
+						Consolas, "Liberation Mono", "Courier New", monospace;
+					font-size: 11px;
+				}
+
+				.dashicons {
+					color: #fff;
+					font-size: 14px;
+					width: 14px;
+					height: 14px;
+				}
+			}
+
+			button.aie-pro-addon-trial-code.aie-pro-addon-trial-copied {
+				background: #00a32a;
+			}
+
+			.aie-pro-addon-features {
+				margin: 0;
+				padding: 0;
+				list-style: none;
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+				gap: 10px 18px;
+			}
+
+			.aie-pro-addon-features li {
+				display: flex;
+				gap: 10px;
+				align-items: flex-start;
+				padding: 10px 10px;
+				border: 1px solid #eef0f3;
+				border-radius: 8px;
+				background: #fafbfc;
+
+				.dashicons {
+					color: #00a32a;
+					margin-top: 2px;
+				}
+			}
+
+			.aie-pro-addon-feature-text {
+				display: flex;
+				flex-direction: column;
+				gap: 2px;
+
+				strong {
+					font-size: 13px;
+					color: #1d2327;
+				}
+
+				span {
+					font-size: 12px;
+					color: #50575e;
+					line-height: 1.4;
+				}
+			}
+
+			.aie-pro-addon-cta {
+				margin-top: 12px;
+				align-self: flex-start;
+			}
+
+			.aie-pro-addon-dismiss {
+				margin-top: 10px;
+				color: #646970;
+				font-size: 12px;
+
+				.button-link {
+					padding: 0;
+					font-size: 12px;
+					line-height: 1.2;
+					text-decoration: none;
+				}
+			}
+
+			.aie-pro-addon-dismiss-sep {
+				margin: 0 6px;
+				color: #c3c4c7;
+			}
+
+			.aie-pro-license-cta {
+				grid-column: 1 / -1;
+				display: flex;
+				justify-content: flex-start;
+				margin-top: -6px;
+				margin-bottom: 6px;
 			}
 		}
 	}

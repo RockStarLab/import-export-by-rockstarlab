@@ -20,6 +20,25 @@ defined( 'ABSPATH' ) || exit;
 class Export_Controller extends Base_Controller {
 
 	/**
+	 * Check whether an export type is allowed in the current setup.
+	 *
+	 * Free plugin supports only basic types; PRO addon unlocks more.
+	 *
+	 * @param string $export_type Export type.
+	 * @return bool
+	 */
+	private function is_export_type_allowed( $export_type ) {
+		$export_type = strtolower( trim( (string) $export_type ) );
+
+		$free_types = [ 'post', 'page' ];
+		if ( in_array( $export_type, $free_types, true ) ) {
+			return true;
+		}
+
+		return \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active();
+	}
+
+	/**
 	 * Get AJAX actions
 	 *
 	 * @return array
@@ -62,6 +81,17 @@ class Export_Controller extends Base_Controller {
 		$export_type = $this->get_request_param( 'export_type' );
 		$options     = $this->get_request_array( 'options' );
 
+		if ( ! $this->is_export_type_allowed( $export_type ) ) {
+			$this->send_error(
+				new \WP_Error(
+					'pro_required',
+					__( 'This export type requires the PRO addon.', 'import-export-by-rockstarlab' )
+				),
+				null,
+				403
+			);
+		}
+
 		$count = Exporter_Factory::get_count( $export_type, $options );
 
 		if ( is_wp_error( $count ) ) {
@@ -87,6 +117,17 @@ class Export_Controller extends Base_Controller {
 
 		$export_type = $this->get_request_param( 'export_type' );
 		$options     = $this->get_request_array( 'options' );
+
+		if ( ! $this->is_export_type_allowed( $export_type ) ) {
+			$this->send_error(
+				new \WP_Error(
+					'pro_required',
+					__( 'This export type requires the PRO addon.', 'import-export-by-rockstarlab' )
+				),
+				null,
+				403
+			);
+		}
 
 		// Limit preview to 10 items
 		$preview_options = array_merge( $options, [ 'limit' => 10 ] );
@@ -126,6 +167,17 @@ class Export_Controller extends Base_Controller {
 		$export_type = $this->get_request_param( 'export_type' );
 		$format      = $this->get_request_param( 'format' );
 		$options     = $this->get_request_array( 'options' );
+
+		if ( ! $this->is_export_type_allowed( $export_type ) ) {
+			$this->send_error(
+				new \WP_Error(
+					'pro_required',
+					__( 'This export type requires the PRO addon.', 'import-export-by-rockstarlab' )
+				),
+				null,
+				403
+			);
+		}
 
 		// Get all export parameters
 		$filters         = $this->get_request_array( 'filters' );
@@ -331,10 +383,10 @@ class Export_Controller extends Base_Controller {
 
 		$download_url = add_query_arg(
 			[
-					'action'   => 'rsl_ie_secure_download',
-					'job_id'   => $job_id,
-					'_wpnonce' => $download_nonce,
-				],
+				'action'   => 'rsl_ie_secure_download',
+				'job_id'   => $job_id,
+				'_wpnonce' => $download_nonce,
+			],
 			admin_url( 'admin-ajax.php' )
 		);
 
@@ -356,9 +408,9 @@ class Export_Controller extends Base_Controller {
 		$job_id = isset( $_GET['job_id'] ) ? (int) $_GET['job_id'] : 0;
 		$nonce  = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
 
-			if ( ! wp_verify_nonce( $nonce, 'rsl_ie_download_' . $job_id ) ) {
-				wp_die( esc_html__( 'Security check failed', 'import-export-by-rockstarlab' ), 403 );
-			}
+		if ( ! wp_verify_nonce( $nonce, 'rsl_ie_download_' . $job_id ) ) {
+			wp_die( esc_html__( 'Security check failed', 'import-export-by-rockstarlab' ), 403 );
+		}
 
 		// Check permissions
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -448,7 +500,7 @@ class Export_Controller extends Base_Controller {
 			$this->send_error( __( 'Job not found', 'import-export-by-rockstarlab' ), null, 404 );
 		}
 
-		$license_check = $this->verify_premium_for_type( $job_data->data_type ?? '' );
+		$license_check = $this->verify_premium_for_type_in_context( $job_data->data_type ?? '', 'export' );
 		if ( is_wp_error( $license_check ) ) {
 			$this->send_error( $license_check, null, 403 );
 		}
@@ -500,7 +552,7 @@ class Export_Controller extends Base_Controller {
 				'field_functions' => $field_functions,
 			]
 		);
-		
+
 		// Add post_type only for actual post types (not for menu, user, taxonomy, etc.)
 		$non_post_types = [ 'menu', 'user', 'taxonomy', 'comment', 'database_table', 'woo_attribute' ];
 		if ( ! in_array( $export_type, $non_post_types, true ) ) {
@@ -661,6 +713,17 @@ class Export_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
+		if ( ! \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ) {
+			$this->send_error(
+				new \WP_Error(
+					'pro_required',
+					__( 'This feature requires the PRO addon.', 'import-export-by-rockstarlab' )
+				),
+				null,
+				403
+			);
+		}
+
 		// Use Database_Table_Exporter to get tables with row counts
 		$exporter = new \RockStarLab\ImportExport\Model\Export\Database_Table_Exporter();
 		$tables   = $exporter->get_available_tables();
@@ -675,6 +738,17 @@ class Export_Controller extends Base_Controller {
 		$verification = $this->verify_request( 'export_count' );
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
+		}
+
+		if ( ! \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ) {
+			$this->send_error(
+				new \WP_Error(
+					'pro_required',
+					__( 'This feature requires the PRO addon.', 'import-export-by-rockstarlab' )
+				),
+				null,
+				403
+			);
 		}
 
 		$validation = $this->validate_required_params( [ 'table_name' ] );
@@ -844,19 +918,19 @@ class Export_Controller extends Base_Controller {
 
 		// Determine the location rule based on what was provided
 		$fields = [];
-		
+
 		// If taxonomy is provided, use taxonomy location
 		if ( ! empty( $taxonomy ) ) {
 			// Get all field groups and manually filter by location rules
 			$all_groups = acf_get_field_groups();
-			
+
 			foreach ( $all_groups as $group ) {
 				if ( empty( $group['location'] ) ) {
 					continue;
 				}
-				
+
 				$group_matches = false;
-				
+
 				// Check location rules (OR groups of AND rules)
 				foreach ( $group['location'] as $or_rules ) {
 					foreach ( $or_rules as $rule ) {
@@ -870,7 +944,7 @@ class Export_Controller extends Base_Controller {
 						}
 					}
 				}
-				
+
 				if ( $group_matches ) {
 					$group_fields = acf_get_fields( $group['key'] );
 					if ( $group_fields ) {
@@ -879,7 +953,7 @@ class Export_Controller extends Base_Controller {
 							if ( in_array( $field['type'], [ 'accordion', 'tab', 'message', 'clone' ], true ) ) {
 								continue;
 							}
-							
+
 							$fields[] = [
 								'name'  => $field['name'],
 								'label' => $field['label'],
@@ -892,14 +966,14 @@ class Export_Controller extends Base_Controller {
 		} elseif ( $post_type === 'user' ) {
 			// Get all field groups and manually filter by user location rules
 			$all_groups = acf_get_field_groups();
-			
+
 			foreach ( $all_groups as $group ) {
 				if ( empty( $group['location'] ) ) {
 					continue;
 				}
-				
+
 				$group_matches = false;
-				
+
 				// Check location rules for user forms
 				foreach ( $group['location'] as $or_rules ) {
 					foreach ( $or_rules as $rule ) {
@@ -912,7 +986,7 @@ class Export_Controller extends Base_Controller {
 						}
 					}
 				}
-				
+
 				if ( $group_matches ) {
 					$group_fields = acf_get_fields( $group['key'] );
 					if ( $group_fields ) {
@@ -921,7 +995,7 @@ class Export_Controller extends Base_Controller {
 							if ( in_array( $field['type'], [ 'accordion', 'tab', 'message', 'clone' ], true ) ) {
 								continue;
 							}
-							
+
 							$fields[] = [
 								'name'  => $field['name'],
 								'label' => $field['label'],
@@ -942,17 +1016,17 @@ class Export_Controller extends Base_Controller {
 			if ( isset( $type_map[ $post_type ] ) ) {
 				$post_type = $type_map[ $post_type ];
 			}
-			
+
 			// Get all field groups and manually filter by post type location rules
 			$all_groups = acf_get_field_groups();
-			
+
 			foreach ( $all_groups as $group ) {
 				if ( empty( $group['location'] ) ) {
 					continue;
 				}
-				
+
 				$group_matches = false;
-				
+
 				// Check location rules for post types
 				foreach ( $group['location'] as $or_rules ) {
 					foreach ( $or_rules as $rule ) {
@@ -966,7 +1040,7 @@ class Export_Controller extends Base_Controller {
 						}
 					}
 				}
-				
+
 				if ( $group_matches ) {
 					$group_fields = acf_get_fields( $group['key'] );
 					if ( $group_fields ) {
@@ -975,7 +1049,7 @@ class Export_Controller extends Base_Controller {
 							if ( in_array( $field['type'], [ 'accordion', 'tab', 'message', 'clone' ], true ) ) {
 								continue;
 							}
-							
+
 							$fields[] = [
 								'name'  => $field['name'],
 								'label' => $field['label'],
@@ -1026,35 +1100,36 @@ class Export_Controller extends Base_Controller {
 			[
 				'name'  => '_yoast_wpseo_meta-robots-noindex',
 				'label' => 'Meta Robots (Index)',
-			],		[
-			'name'  => '_yoast_wpseo_meta-robots-nofollow',
-			'label' => 'Meta Robots (Follow)',
-		],
-		[
-			'name'  => '_yoast_wpseo_opengraph-title',
-			'label' => 'Social Title',
-		],
-		[
-			'name'  => '_yoast_wpseo_opengraph-description',
-			'label' => 'Social Description',
-		],
-		[
-			'name'  => '_yoast_wpseo_opengraph-image',
-			'label' => 'Social Image',
-		],
-		[
-			'name'  => '_yoast_wpseo_twitter-title',
-			'label' => 'X (Twitter) Title',
-		],
-		[
-			'name'  => '_yoast_wpseo_twitter-description',
-			'label' => 'X (Twitter) Description',
-		],
-		[
-			'name'  => '_yoast_wpseo_twitter-image',
-			'label' => 'X (Twitter) Image',
-		],
-	];
+			],
+			[
+				'name'  => '_yoast_wpseo_meta-robots-nofollow',
+				'label' => 'Meta Robots (Follow)',
+			],
+			[
+				'name'  => '_yoast_wpseo_opengraph-title',
+				'label' => 'Social Title',
+			],
+			[
+				'name'  => '_yoast_wpseo_opengraph-description',
+				'label' => 'Social Description',
+			],
+			[
+				'name'  => '_yoast_wpseo_opengraph-image',
+				'label' => 'Social Image',
+			],
+			[
+				'name'  => '_yoast_wpseo_twitter-title',
+				'label' => 'X (Twitter) Title',
+			],
+			[
+				'name'  => '_yoast_wpseo_twitter-description',
+				'label' => 'X (Twitter) Description',
+			],
+			[
+				'name'  => '_yoast_wpseo_twitter-image',
+				'label' => 'X (Twitter) Image',
+			],
+		];
 
 		$this->send_success( [ 'fields' => $fields ] );
 	}

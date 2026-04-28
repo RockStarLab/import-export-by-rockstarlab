@@ -20,7 +20,8 @@ class Settings_Controller extends Base_Controller {
 	 */
 	protected function get_ajax_actions() {
 		return [
-			'settings_save' => [ 'callback' => 'save_settings' ],
+			'settings_save'     => [ 'callback' => 'save_settings' ],
+			'dismiss_pro_promo' => [ 'callback' => 'dismiss_pro_promo' ],
 		];
 	}
 
@@ -56,6 +57,39 @@ class Settings_Controller extends Base_Controller {
 		$this->send_success(
 			[
 				'message' => __( 'Settings saved successfully', 'import-export-by-rockstarlab' ),
+			]
+		);
+	}
+
+	/**
+	 * Permanently dismiss the PRO promo card for the current user.
+	 */
+	public function dismiss_pro_promo() {
+		$verify = $this->verify_request( 'dismiss_pro_promo' );
+		if ( is_wp_error( $verify ) ) {
+			$this->send_error( $verify->get_error_message(), null, 403 );
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			$this->send_error( __( 'You do not have permission to perform this action', 'import-export-by-rockstarlab' ), null, 403 );
+		}
+
+		$context = strtolower( trim( (string) $this->get_request_param( 'context', '' ) ) );
+		$allowed = [ 'import', 'export', 'updater' ];
+		if ( ! in_array( $context, $allowed, true ) ) {
+			$this->send_error( __( 'Invalid context', 'import-export-by-rockstarlab' ), null, 400 );
+		}
+
+		$user_id = get_current_user_id();
+		if ( $user_id <= 0 ) {
+			$this->send_error( __( 'User not found', 'import-export-by-rockstarlab' ), null, 400 );
+		}
+
+		update_user_meta( $user_id, 'rsl_ie_dismiss_pro_promo_' . $context, 1 );
+
+		$this->send_success(
+			[
+				'dismissed' => true,
 			]
 		);
 	}

@@ -3,7 +3,7 @@
  * AI URL Importer Controller
  *
  * Handles AI-powered content extraction from URLs
- * Premium feature requiring OpenAI API key
+ * Requires OpenAI API key
  *
  * @package RockStarLab\ImportExport\Controller
  */
@@ -69,14 +69,6 @@ class AI_URL_Importer_Controller extends Base_Controller {
 	 * @return bool|\WP_Error
 	 */
 	private function check_feature_availability() {
-		// Check if premium
-			if ( ! function_exists( 'rsl_ie_fs' ) || ! rsl_ie_fs()->can_use_premium_code() ) {
-				return new \WP_Error(
-					'premium_required',
-					__( 'AI URL Importer is a premium feature. Please upgrade to access this functionality.', 'import-export-by-rockstarlab' )
-				);
-		}
-
 		// Check if OpenAI API key is set
 		if ( ! \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_key() ) {
 			return new \WP_Error(
@@ -221,7 +213,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 	private function format_acf_field( $field, $group_title, $level = 0 ) {
 		// Allowed field types for content
 		$allowed_types = array( 'text', 'textarea', 'wysiwyg' );
-		
+
 		$formatted = array(
 			'key'        => $field['key'],
 			'name'       => $field['name'],
@@ -300,11 +292,11 @@ class AI_URL_Importer_Controller extends Base_Controller {
 		}
 
 		// Get parameters
-		$urls         = isset( $_POST['urls'] ) ? array_map( 'esc_url_raw', $_POST['urls'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request()
-		$post_type    = isset( $_POST['post_type'] ) ? sanitize_text_field( wp_unslash( $_POST['post_type'] ) ) : 'post'; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request()
-		$content_field = isset( $_POST['content_field'] ) ? sanitize_text_field( wp_unslash( $_POST['content_field'] ) ) : 'post_content'; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request()
-		$timeout      = isset( $_POST['timeout'] ) ? absint( $_POST['timeout'] ) : 2; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified via verify_request().
-		$acf_field    = isset( $_POST['acf_field'] ) ? sanitize_text_field( wp_unslash( $_POST['acf_field'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request()
+		$urls              = isset( $_POST['urls'] ) ? array_map( 'esc_url_raw', $_POST['urls'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request()
+		$post_type         = isset( $_POST['post_type'] ) ? sanitize_text_field( wp_unslash( $_POST['post_type'] ) ) : 'post'; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request()
+		$content_field     = isset( $_POST['content_field'] ) ? sanitize_text_field( wp_unslash( $_POST['content_field'] ) ) : 'post_content'; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request()
+		$timeout           = isset( $_POST['timeout'] ) ? absint( $_POST['timeout'] ) : 2; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified via verify_request().
+		$acf_field         = isset( $_POST['acf_field'] ) ? sanitize_text_field( wp_unslash( $_POST['acf_field'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request()
 		$custom_field_name = isset( $_POST['custom_field_name'] ) ? sanitize_text_field( wp_unslash( $_POST['custom_field_name'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request()
 
 		if ( empty( $urls ) ) {
@@ -327,12 +319,12 @@ class AI_URL_Importer_Controller extends Base_Controller {
 		$job_model = new Job();
 		$job_id    = $job_model->create(
 			array(
-				'type'       => 'import',
-				'data_type'  => 'ai_url',
+				'type'        => 'import',
+				'data_type'   => 'ai_url',
 				'file_format' => 'url',
-				'status'     => 'pending',
+				'status'      => 'pending',
 				'total_items' => count( $urls ),
-				'parameters' => wp_json_encode(
+				'parameters'  => wp_json_encode(
 					array(
 						'urls'          => $urls,
 						'post_type'     => $post_type,

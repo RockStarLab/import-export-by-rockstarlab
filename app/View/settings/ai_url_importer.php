@@ -7,12 +7,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
-// Check if premium and API key is available
-$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
+// Check if API key is available
 $has_api_key = \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_key();
-
-$activate_license_url = add_query_arg( 'rsl-ie-activate-license', '1', admin_url( 'plugins.php' ) );
-$activate_license_url = wp_nonce_url( $activate_license_url, 'rsl_ie_activate_license', '_wpnonce' );
 ?>
 
 <div id="rsl-ie-ai-url-importer" class="import-export-by-rockstarlab wrap">
@@ -23,29 +19,7 @@ $activate_license_url = wp_nonce_url( $activate_license_url, 'rsl_ie_activate_li
 		<?php esc_html_e( 'Import clean content from URLs using AI. Automatically extracts titles, content, and images while removing sidebars, ads, and clutter.', 'import-export-by-rockstarlab' ); ?>
 	</p>
 
-	<?php if ( ! $is_premium ) : ?>
-		<!-- Premium Notice -->
-		<div class="aie-premium-notice">
-			<div class="aie-premium-notice-icon">
-				<span class="dashicons dashicons-lock"></span>
-			</div>
-			<div class="aie-premium-notice-content">
-				<h3><?php esc_html_e( 'Premium Feature', 'import-export-by-rockstarlab' ); ?></h3>				<p><?php esc_html_e( 'AI URL Importer is a premium feature. Upgrade to unlock the ability to import clean content from URLs using AI-powered extraction that automatically removes sidebars, ads, and clutter.', 'import-export-by-rockstarlab' ); ?></p>
-				<?php if ( function_exists( 'rsl_ie_fs' ) ) : ?>
-					<a href="<?php echo esc_url( rsl_ie_fs()->get_upgrade_url() ); ?>" class="button button-primary button-large">
-						<span class="dashicons dashicons-star-filled"></span>
-						<?php esc_html_e( 'Upgrade to Premium', 'import-export-by-rockstarlab' ); ?>
-					</a>
-					<a href="<?php echo esc_url( $activate_license_url ); ?>" class="button button-secondary button-large">
-						<span class="dashicons dashicons-admin-network"></span>
-						<?php esc_html_e( 'Activate License', 'import-export-by-rockstarlab' ); ?>
-					</a>
-				<?php endif; ?>
-			</div>
-		</div>
-	<?php endif; ?>
-
-	<?php if ( ! $has_api_key && $is_premium ) : ?>
+	<?php if ( ! $has_api_key ) : ?>
 		<!-- API Key Notice -->
 		<div class="aie-premium-notice aie-api-key-notice">
 			<div class="aie-premium-notice-icon">
@@ -62,10 +36,10 @@ $activate_license_url = wp_nonce_url( $activate_license_url, 'rsl_ie_activate_li
 		</div>
 	<?php endif; ?>
 
-	<?php
-	// Check if feature is ready to use
-	$feature_ready = $is_premium && $has_api_key;
-	?>
+		<?php
+		// Check if feature is ready to use
+		$feature_ready = $has_api_key;
+		?>
 
 	<div class="aie-ai-url-importer-container <?php echo ! $feature_ready ? 'aie-disabled' : ''; ?>">
 

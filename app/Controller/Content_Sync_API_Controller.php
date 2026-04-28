@@ -31,14 +31,38 @@ class Content_Sync_API_Controller {
 	public function register_routes() {
 		try {
 			$routes = array(
-				'/validate'           => array( 'methods' => 'POST', 'callback' => array( $this, 'validate_connection' ) ),
-				'/info'               => array( 'methods' => 'GET', 'callback' => array( $this, 'get_site_info' ) ),
-				'/receive-content'    => array( 'methods' => 'POST', 'callback' => array( $this, 'receive_content' ) ),
-				'/send-content'       => array( 'methods' => 'POST', 'callback' => array( $this, 'send_content' ) ),
-				'/check-media'        => array( 'methods' => 'POST', 'callback' => array( $this, 'check_media' ) ),
-				'/upload-media'       => array( 'methods' => 'POST', 'callback' => array( $this, 'upload_media' ) ),
-				'/list-posts'         => array( 'methods' => 'POST', 'callback' => array( $this, 'list_posts' ) ),
-				'/get-children-posts' => array( 'methods' => 'POST', 'callback' => array( $this, 'get_children_posts' ) ),
+				'/validate'           => array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'validate_connection' ),
+				),
+				'/info'               => array(
+					'methods'  => 'GET',
+					'callback' => array( $this, 'get_site_info' ),
+				),
+				'/receive-content'    => array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'receive_content' ),
+				),
+				'/send-content'       => array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'send_content' ),
+				),
+				'/check-media'        => array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'check_media' ),
+				),
+				'/upload-media'       => array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'upload_media' ),
+				),
+				'/list-posts'         => array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'list_posts' ),
+				),
+				'/get-children-posts' => array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'get_children_posts' ),
+				),
 			);
 
 			foreach ( $routes as $route => $config ) {
@@ -97,28 +121,14 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response Response object.
 	 */
 	public function validate_connection( $request ) {
-		// Check if premium license is active
-		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
-		
-		if ( ! $is_premium ) {
-			return new \WP_REST_Response(
-				array(
-					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'import-export-by-rockstarlab' ),
-					'error_code' => 'license_inactive',
-				),
-				403
-			);
-		}
-		
 		return new \WP_REST_Response(
 			array(
 				'success' => true,
 				'message' => __( 'Connection validated successfully', 'import-export-by-rockstarlab' ),
 				'data'    => array(
-					'site_name'    => get_bloginfo( 'name' ),
-					'site_url'     => get_site_url(),
-					'wp_version'   => get_bloginfo( 'version' ),
+					'site_name'      => get_bloginfo( 'name' ),
+					'site_url'       => get_site_url(),
+					'wp_version'     => get_bloginfo( 'version' ),
 					'plugin_version' => defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '1.0.0',
 				),
 			),
@@ -158,24 +168,9 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response Response object.
 	 */
 	public function receive_content( $request ) {
-		// Check if premium license is active
-		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
-		
-		if ( ! $is_premium ) {
-			return new \WP_REST_Response(
-				array(
-					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'import-export-by-rockstarlab' ),
-					'error_code' => 'license_inactive',
-				),
-				403
-			);
-		}
-		
 		$posts_data   = $request->get_param( 'posts' );
 		$image_map    = $request->get_param( 'image_map' );
 		$post_mapping = $request->get_param( 'post_mapping' );
-		
 
 		if ( empty( $posts_data ) || ! is_array( $posts_data ) ) {
 			return new \WP_REST_Response(
@@ -203,7 +198,7 @@ class Content_Sync_API_Controller {
 			// Check post mapping
 			if ( isset( $post_mapping[ $source_post_id ] ) ) {
 				$mapped_value = $post_mapping[ $source_post_id ];
-				
+
 				// If mapped to specific ID, use it
 				if ( is_numeric( $mapped_value ) && $mapped_value > 0 ) {
 					$target_post_id = (int) $mapped_value;
@@ -213,20 +208,20 @@ class Content_Sync_API_Controller {
 				// No mapping provided, use default logic (find by original ID)
 				$target_post_id = $this->find_existing_post( $post_data );
 			}
-			
+
 			// Check if images referenced in content exist
 			if ( preg_match_all( '/wp-image-(\d+)/', $post_data['post_content'], $matches ) ) {
 				foreach ( $matches[1] as $img_id ) {
 					$attachment = get_post( $img_id );
 					if ( $attachment && 'attachment' === $attachment->post_type ) {
-						$url = wp_get_attachment_url( $img_id );
-						$file_path = get_attached_file( $img_id );
+						$url         = wp_get_attachment_url( $img_id );
+						$file_path   = get_attached_file( $img_id );
 						$file_exists = file_exists( $file_path );
 					} else {
 					}
 				}
 			}
-			
+
 			// Prepare post data
 			$post_args = array(
 				'post_title'   => $post_data['post_title'],
@@ -240,7 +235,7 @@ class Content_Sync_API_Controller {
 			);
 
 			$is_update = false;
-			
+
 			// Use target_post_id from mapping if available
 			if ( $target_post_id ) {
 				// Update specific post
@@ -252,7 +247,7 @@ class Content_Sync_API_Controller {
 				} else {
 					// Mapped ID doesn't exist, create new post
 					$post_id = wp_insert_post( $post_args );
-					
+
 					// Store original ID for future sync operations
 					if ( ! is_wp_error( $post_id ) && $post_id ) {
 						update_post_meta( $post_id, '_aie_original_post_id', $source_post_id );
@@ -261,13 +256,12 @@ class Content_Sync_API_Controller {
 			} else {
 				// Create new post (no mapping or mapped to "new")
 				$post_id = wp_insert_post( $post_args );
-				
+
 				// Store original ID for future sync operations
 				if ( ! is_wp_error( $post_id ) && $post_id ) {
 					update_post_meta( $post_id, '_aie_original_post_id', $source_post_id );
 				}
 			}
-			
 
 			if ( is_wp_error( $post_id ) || ! $post_id ) {
 				$errors[] = sprintf(
@@ -280,32 +274,32 @@ class Content_Sync_API_Controller {
 
 			// Count created vs updated
 			if ( $is_update ) {
-				$updated_count++;
+				++$updated_count;
 			} else {
-				$imported_count++;
+				++$imported_count;
 			}
-			
+
 			// Fix image URLs in content after import (replace with correct attachment URLs)
 			if ( ! empty( $image_map ) ) {
-				$post_content = get_post_field( 'post_content', $post_id );
+				$post_content    = get_post_field( 'post_content', $post_id );
 				$content_updated = false;
-				
+
 				foreach ( $image_map as $old_id => $new_id ) {
 					$new_url = wp_get_attachment_url( $new_id );
 					if ( $new_url ) {
 						// Find and replace old image URLs with new ones
 						// This handles the case where upload date folder changed
-						$pattern = '/(<img[^>]+src=")([^"]*\/)[^"\/]+(\.(?:jpg|jpeg|png|gif|webp|svg))("[^>]*class="[^"]*wp-image-' . $new_id . '[^"]*"[^>]*>)/i';
+						$pattern     = '/(<img[^>]+src=")([^"]*\/)[^"\/]+(\.(?:jpg|jpeg|png|gif|webp|svg))("[^>]*class="[^"]*wp-image-' . $new_id . '[^"]*"[^>]*>)/i';
 						$replacement = '$1' . $new_url . '$4';
 						$new_content = preg_replace( $pattern, $replacement, $post_content );
-						
+
 						if ( $new_content && $new_content !== $post_content ) {
-							$post_content = $new_content;
+							$post_content    = $new_content;
 							$content_updated = true;
 						}
 					}
 				}
-				
+
 				// Update post content if URLs were fixed
 				if ( $content_updated ) {
 					wp_update_post(
@@ -319,7 +313,7 @@ class Content_Sync_API_Controller {
 
 			// Import meta
 			if ( ! empty( $post_data['meta'] ) ) {
-				
+
 				// Replace image IDs and domain in meta using the proper meta-aware replacer.
 				// replace_in_meta correctly handles _thumbnail_id, ACF image/file fields
 				// (using field-type introspection), flat ACF repeater keys, etc.
@@ -339,7 +333,7 @@ class Content_Sync_API_Controller {
 					if ( in_array( $key, array( '_edit_lock', '_edit_last', '_aie_original_post_id' ), true ) ) {
 						continue;
 					}
-					
+
 					// Import all fields directly - ACF handles its own fields automatically
 					update_post_meta( $post_id, $key, $value );
 				}
@@ -413,28 +407,28 @@ class Content_Sync_API_Controller {
 				}
 
 				// Re-save ACF taxonomy fields with correct local term IDs.
-					if ( ! empty( $term_id_map ) && ! empty( $post_data['meta'] ) ) {
-						\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::translate_acf_taxonomy_fields_in_meta(
-							$post_data['meta'],
-							$post_id,
-							$term_id_map
-						);
-					}
+				if ( ! empty( $term_id_map ) && ! empty( $post_data['meta'] ) ) {
+					\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::translate_acf_taxonomy_fields_in_meta(
+						$post_data['meta'],
+						$post_id,
+						$term_id_map
+					);
 				}
+			}
 
 				// Re-save ACF post reference fields (post_object / relationship) with correct local IDs.
-					if ( ! empty( $post_data['meta'] ) ) {
-						\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::translate_acf_post_reference_fields_in_meta(
-							$post_data['meta'],
-							$post_id,
-							$source_post_id,
-							isset( $post_data['post_refs'] ) ? $post_data['post_refs'] : array()
-						);
-					}
+			if ( ! empty( $post_data['meta'] ) ) {
+				\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::translate_acf_post_reference_fields_in_meta(
+					$post_data['meta'],
+					$post_id,
+					$source_post_id,
+					isset( $post_data['post_refs'] ) ? $post_data['post_refs'] : array()
+				);
+			}
 
 				// Import WooCommerce product variations and recalculate the variable
 				// product price range so the remote site shows the correct prices.
-				if ( 'product' === $post_data['post_type']
+			if ( 'product' === $post_data['post_type']
 				&& ! empty( $post_data['variations'] )
 				&& class_exists( 'WC_Product' )
 				&& function_exists( 'wc_get_product' )
@@ -459,7 +453,7 @@ class Content_Sync_API_Controller {
 
 		$total_processed = $imported_count + $updated_count;
 		$message         = array();
-		
+
 		if ( $imported_count > 0 ) {
 			$message[] = sprintf(
 				/* translators: %d: number of posts */
@@ -467,7 +461,7 @@ class Content_Sync_API_Controller {
 				$imported_count
 			);
 		}
-		
+
 		if ( $updated_count > 0 ) {
 			$message[] = sprintf(
 				/* translators: %d: number of posts */
@@ -500,53 +494,52 @@ class Content_Sync_API_Controller {
 	 */
 	private function convert_acf_flat_to_hierarchical( $meta, $acf_field_keys ) {
 		$processed_parents = array();
-		
+
 		// Find all repeater/flexible content parent fields
 		foreach ( $acf_field_keys as $field_name => $field_key ) {
 			// Skip nested fields
 			if ( preg_match( '/_\d+_/', $field_name ) ) {
 				continue;
 			}
-			
+
 			// Check if this field has a numeric value (count of rows) - typical for repeater
 			if ( isset( $meta[ $field_name ] ) && is_numeric( $meta[ $field_name ] ) ) {
 				$row_count = intval( $meta[ $field_name ] );
-				
+
 				// Verify this is actually a repeater by checking if sub-fields exist
 				// Look for pattern: field_name_0_*
 				$has_sub_fields = false;
-				$row_prefix = $field_name . '_0_';
+				$row_prefix     = $field_name . '_0_';
 				foreach ( $meta as $meta_key => $meta_value ) {
 					if ( strpos( $meta_key, $row_prefix ) === 0 ) {
 						$has_sub_fields = true;
 						break;
 					}
 				}
-				
+
 				// If no sub-fields found, this is not a repeater (probably just a numeric field like image ID)
 				if ( ! $has_sub_fields ) {
 					continue;
 				}
-				
-				
+
 				// Build hierarchical structure
 				$rows = array();
 				for ( $i = 0; $i < $row_count; $i++ ) {
-					$row_data = array();
-					$row_prefix = $field_name . '_' . $i . '_';
+					$row_data     = array();
+					$row_prefix   = $field_name . '_' . $i . '_';
 					$found_fields = 0;
-					
+
 					// Find all fields for this row
 					foreach ( $meta as $meta_key => $meta_value ) {
 						if ( strpos( $meta_key, $row_prefix ) === 0 ) {
-							$found_fields++;
+							++$found_fields;
 							// Extract field name without row prefix
 							$sub_field_name = substr( $meta_key, strlen( $row_prefix ) );
-							
+
 							// Check if this is a nested repeater/flexible content
 							if ( isset( $acf_field_keys[ $field_name . '_' . $i . '_' . $sub_field_name ] ) && is_numeric( $meta_value ) ) {
 								// Verify nested repeater has sub-fields
-								$nested_prefix = $field_name . '_' . $i . '_' . $sub_field_name . '_0_';
+								$nested_prefix         = $field_name . '_' . $i . '_' . $sub_field_name . '_0_';
 								$nested_has_sub_fields = false;
 								foreach ( $meta as $nested_key => $nested_val ) {
 									if ( strpos( $nested_key, $nested_prefix ) === 0 ) {
@@ -554,10 +547,10 @@ class Content_Sync_API_Controller {
 										break;
 									}
 								}
-								
+
 								if ( $nested_has_sub_fields ) {
 									// Recursively process nested repeater
-									$nested_rows = $this->extract_nested_repeater_data( $meta, $field_name . '_' . $i . '_' . $sub_field_name, $meta_value, $acf_field_keys );
+									$nested_rows                 = $this->extract_nested_repeater_data( $meta, $field_name . '_' . $i . '_' . $sub_field_name, $meta_value, $acf_field_keys );
 									$row_data[ $sub_field_name ] = $nested_rows;
 								} else {
 									// Just a numeric value (like image ID)
@@ -568,44 +561,44 @@ class Content_Sync_API_Controller {
 							}
 						}
 					}
-					
+
 					$rows[] = $row_data;
 				}
-				
+
 				// Replace numeric count with actual data array
 				$meta[ $field_name ] = $rows;
 				$processed_parents[] = $field_name;
-				
+
 			}
 		}
-		
+
 		return $meta;
 	}
 
 	/**
 	 * Extract nested repeater data recursively
 	 *
-	 * @param array $meta Post meta array
+	 * @param array  $meta Post meta array
 	 * @param string $parent_prefix Parent field prefix (e.g., "repeater_0_nested_repeater")
-	 * @param int $row_count Number of rows
-	 * @param array $acf_field_keys ACF field keys mapping
+	 * @param int    $row_count Number of rows
+	 * @param array  $acf_field_keys ACF field keys mapping
 	 * @return array Nested rows data
 	 */
 	private function extract_nested_repeater_data( $meta, $parent_prefix, $row_count, $acf_field_keys ) {
 		$rows = array();
-		
+
 		for ( $i = 0; $i < $row_count; $i++ ) {
-			$row_data = array();
+			$row_data   = array();
 			$row_prefix = $parent_prefix . '_' . $i . '_';
-			
+
 			foreach ( $meta as $meta_key => $meta_value ) {
 				if ( strpos( $meta_key, $row_prefix ) === 0 ) {
 					$sub_field_name = substr( $meta_key, strlen( $row_prefix ) );
-					
+
 					// Check for even deeper nesting
 					if ( isset( $acf_field_keys[ $parent_prefix . '_' . $i . '_' . $sub_field_name ] ) && is_numeric( $meta_value ) ) {
 						// Verify this nested field actually has sub-fields (is a real repeater)
-						$nested_prefix = $parent_prefix . '_' . $i . '_' . $sub_field_name . '_0_';
+						$nested_prefix         = $parent_prefix . '_' . $i . '_' . $sub_field_name . '_0_';
 						$has_nested_sub_fields = false;
 						foreach ( $meta as $check_key => $check_value ) {
 							if ( strpos( $check_key, $nested_prefix ) === 0 ) {
@@ -613,12 +606,12 @@ class Content_Sync_API_Controller {
 								break;
 							}
 						}
-						
+
 						if ( $has_nested_sub_fields ) {
 							// This is a nested repeater
-							$row_data[ $sub_field_name ] = $this->extract_nested_repeater_data( 
-								$meta, 
-								$parent_prefix . '_' . $i . '_' . $sub_field_name, 
+							$row_data[ $sub_field_name ] = $this->extract_nested_repeater_data(
+								$meta,
+								$parent_prefix . '_' . $i . '_' . $sub_field_name,
 								$meta_value,
 								$acf_field_keys
 							);
@@ -631,10 +624,10 @@ class Content_Sync_API_Controller {
 					}
 				}
 			}
-			
+
 			$rows[] = $row_data;
 		}
-		
+
 		return $rows;
 	}
 
@@ -654,7 +647,7 @@ class Content_Sync_API_Controller {
 
 		// Build a map of source-variation-ID → existing local variation ID so we
 		// can update existing variations instead of always creating new ones.
-		$source_to_local = array();
+		$source_to_local        = array();
 		$existing_local_var_ids = get_posts(
 			array(
 				'post_type'      => 'product_variation',
@@ -679,12 +672,12 @@ class Content_Sync_API_Controller {
 			$source_var_id = (int) ( isset( $variation_data['ID'] ) ? $variation_data['ID'] : 0 );
 
 			$variation_args = array(
-				'post_title'  => isset( $variation_data['post_title'] )  ? $variation_data['post_title']  : '',
-				'post_name'   => isset( $variation_data['post_name'] )   ? $variation_data['post_name']   : '',
+				'post_title'  => isset( $variation_data['post_title'] ) ? $variation_data['post_title'] : '',
+				'post_name'   => isset( $variation_data['post_name'] ) ? $variation_data['post_name'] : '',
 				'post_status' => isset( $variation_data['post_status'] ) ? $variation_data['post_status'] : 'publish',
 				'post_type'   => 'product_variation',
 				'post_parent' => $parent_post_id,
-				'menu_order'  => isset( $variation_data['menu_order'] )  ? (int) $variation_data['menu_order'] : 0,
+				'menu_order'  => isset( $variation_data['menu_order'] ) ? (int) $variation_data['menu_order'] : 0,
 			);
 
 			if ( $source_var_id && isset( $source_to_local[ $source_var_id ] ) ) {
@@ -786,11 +779,11 @@ class Content_Sync_API_Controller {
 			}
 
 			$child_args = array(
-				'post_title'   => $child_data['post_title']   ?? '',
-				'post_name'    => $child_data['post_name']    ?? '',
+				'post_title'   => $child_data['post_title'] ?? '',
+				'post_name'    => $child_data['post_name'] ?? '',
 				'post_content' => $child_data['post_content'] ?? '',
 				'post_excerpt' => $child_data['post_excerpt'] ?? '',
-				'post_status'  => $child_data['post_status']  ?? 'publish',
+				'post_status'  => $child_data['post_status'] ?? 'publish',
 				'post_type'    => 'product',
 				'menu_order'   => (int) ( $child_data['menu_order'] ?? 0 ),
 			);
@@ -901,20 +894,6 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response Response object.
 	 */
 	public function send_content( $request ) {
-		// Check if premium license is active
-		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
-		
-		if ( ! $is_premium ) {
-			return new \WP_REST_Response(
-				array(
-					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'import-export-by-rockstarlab' ),
-					'error_code' => 'license_inactive',
-				),
-				403
-			);
-		}
-		
 		$post_ids = $request->get_param( 'post_ids' );
 
 		if ( empty( $post_ids ) || ! is_array( $post_ids ) ) {
@@ -927,8 +906,8 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-		$posts_data = array();
-		$all_images = array();
+		$posts_data    = array();
+		$all_images    = array();
 		$not_found_ids = array();
 
 		foreach ( $post_ids as $post_id ) {
@@ -940,7 +919,7 @@ class Content_Sync_API_Controller {
 
 			// Extract all images from post
 			$post_images = \RockStarLab\ImportExport\Helper\Content_Sync_Media::extract_post_images( $post_id );
-			
+
 			// Store images
 			foreach ( $post_images as $image ) {
 				$image_key                = $image['attachment_id'];
@@ -950,7 +929,7 @@ class Content_Sync_API_Controller {
 			// Get post meta
 			$meta          = get_post_meta( $post_id );
 			$prepared_meta = array();
-			
+
 			// Keys to skip (WordPress internal and potentially problematic)
 			$skip_keys = array(
 				'_edit_lock',
@@ -959,13 +938,13 @@ class Content_Sync_API_Controller {
 				'_wp_old_date',
 				'_aie_original_post_id', // Our own sync meta
 			);
-			
+
 			foreach ( $meta as $key => $values ) {
 				// Skip protected keys and certain internal WordPress keys
 				if ( in_array( $key, $skip_keys, true ) ) {
 					continue;
 				}
-				
+
 				$prepared_meta[ $key ] = maybe_unserialize( $values[0] );
 			}
 
@@ -1007,12 +986,12 @@ class Content_Sync_API_Controller {
 										// Fallback if file is missing on disk.
 										$image_data = array(
 											'attachment_id' => $image_id,
-											'url'           => wp_get_attachment_url( $image_id ),
-											'type'          => 'term_acf',
+											'url'  => wp_get_attachment_url( $image_id ),
+											'type' => 'term_acf',
 										);
 									}
-									$image_data['term_id']  = $term->term_id;
-									$image_data['taxonomy'] = $taxonomy;
+									$image_data['term_id']   = $term->term_id;
+									$image_data['taxonomy']  = $taxonomy;
 									$all_images[ $image_id ] = $image_data;
 								}
 							}
@@ -1067,7 +1046,7 @@ class Content_Sync_API_Controller {
 							'name'    => $term->name,
 							'slug'    => $term->slug,
 						);
-						$known_ids[] = $raw_id;
+						$known_ids[]                   = $raw_id;
 					}
 				}
 			}
@@ -1076,11 +1055,11 @@ class Content_Sync_API_Controller {
 					'ID'            => $post->ID,
 					'post_title'    => $post->post_title,
 					'post_content'  => $post->post_content,
-				'post_excerpt'  => $post->post_excerpt,
-				'post_status'   => $post->post_status,
-				'post_type'     => $post->post_type,
-				'post_name'     => $post->post_name,
-				'post_date'     => $post->post_date,
+					'post_excerpt'  => $post->post_excerpt,
+					'post_status'   => $post->post_status,
+					'post_type'     => $post->post_type,
+					'post_name'     => $post->post_name,
+					'post_date'     => $post->post_date,
 					'post_modified' => $post->post_modified,
 					'post_author'   => $post->post_author,
 					'meta'          => $prepared_meta,
@@ -1131,20 +1110,6 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response Response object.
 	 */
 	public function check_media( $request ) {
-		// Check if premium license is active
-		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
-		
-		if ( ! $is_premium ) {
-			return new \WP_REST_Response(
-				array(
-					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'import-export-by-rockstarlab' ),
-					'error_code' => 'license_inactive',
-				),
-				403
-			);
-		}
-
 		$file_hash = $request->get_param( 'file_hash' );
 
 		if ( empty( $file_hash ) ) {
@@ -1187,20 +1152,6 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response Response object.
 	 */
 	public function upload_media( $request ) {
-		// Check if premium license is active
-		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
-		
-		if ( ! $is_premium ) {
-			return new \WP_REST_Response(
-				array(
-					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'import-export-by-rockstarlab' ),
-					'error_code' => 'license_inactive',
-				),
-				403
-			);
-		}
-
 		$file_name   = $request->get_param( 'file_name' );
 		$file_data   = $request->get_param( 'file_data' );
 		$file_hash   = $request->get_param( 'file_hash' );
@@ -1236,7 +1187,7 @@ class Content_Sync_API_Controller {
 
 		// Decode base64 data
 		$file_contents = base64_decode( $file_data );
-		
+
 		if ( false === $file_contents ) {
 			return new \WP_REST_Response(
 				array(
@@ -1276,7 +1227,6 @@ class Content_Sync_API_Controller {
 				500
 			);
 		}
-		
 
 		// Create attachment
 		$attachment_data = array(
@@ -1360,10 +1310,10 @@ class Content_Sync_API_Controller {
 
 		foreach ( $attachments as $attachment_id ) {
 			$file_path = get_attached_file( $attachment_id );
-			
+
 			if ( $file_path && file_exists( $file_path ) ) {
 				$hash = md5_file( $file_path );
-				
+
 				if ( $hash === $file_hash ) {
 					// Store hash for future lookups
 					update_post_meta( $attachment_id, '_rsl_ie_file_hash', $file_hash );
@@ -1420,20 +1370,6 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function list_posts( $request ) {
-		// Check if premium license is active
-		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
-		
-		if ( ! $is_premium ) {
-			return new \WP_REST_Response(
-				array(
-					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'import-export-by-rockstarlab' ),
-					'error_code' => 'license_inactive',
-				),
-				403
-			);
-		}
-
 		$post_type = $request->get_param( 'post_type' );
 		$search    = $request->get_param( 'search' );
 		$status    = $request->get_param( 'status' );
@@ -1575,26 +1511,12 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response Response.
 	 */
 	public function get_children_posts( $request ) {
-		// Check if premium license is active
-		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
-		
-		if ( ! $is_premium ) {
-			return new \WP_REST_Response(
-				array(
-					'success' => false,
-					'message' => __( 'Premium license is required for Content Sync feature.', 'import-export-by-rockstarlab' ),
-					'error_code' => 'license_inactive',
-				),
-				403
-			);
-		}
-
 		$parent_id = absint( $request->get_param( 'parent_id' ) );
 		$post_type = sanitize_text_field( $request->get_param( 'post_type' ) ?: '' );
 
 		// If no post_type provided, derive it from the parent post type.
 		if ( empty( $post_type ) ) {
-			$parent = get_post( $parent_id );
+			$parent    = get_post( $parent_id );
 			$post_type = $parent ? $parent->post_type : '';
 		}
 

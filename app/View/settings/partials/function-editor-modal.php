@@ -48,54 +48,35 @@ defined( 'ABSPATH' ) || exit;
 					</tr>
 
 					<?php
-					$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
-					$has_api_key = \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_key();
+					$has_api_key   = \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_key();
+					$feature_ready = $has_api_key;
 					?>
 					<tr class="aie-ai-generate-section">
 						<th scope="row">
 							<label><?php esc_html_e( 'AI Generator', 'import-export-by-rockstarlab' ); ?></label>
 						</th>
 						<td>
-							<?php if ( $is_premium ) : ?>
-								<button type="button" class="button aie-generate-with-ai">
+								<button type="button" class="button aie-generate-with-ai" <?php echo ! $feature_ready ? 'disabled' : ''; ?>>
 									<span class="dashicons dashicons-admin-generic"></span>
 									<?php esc_html_e( 'Generate function with AI', 'import-export-by-rockstarlab' ); ?>
 								</button>
 								<p class="description">
 									<?php esc_html_e( 'Describe what you want the function to do, and AI will generate the code for you.', 'import-export-by-rockstarlab' ); ?>
 								</p>
-								<?php if ( ! $has_api_key ) : ?>
-									<div class="notice notice-warning inline">
-										<p>
-											<?php
-											echo wp_kses_post(
-												sprintf(
-													/* translators: %s: plugin options URL */
-													__( '<strong>API Key Required:</strong> OpenAI API key is not configured. Please add it in <a href="%s">Plugin Options</a> to use AI generation.', 'import-export-by-rockstarlab' ),
-													esc_url( admin_url( 'admin.php?page=rsl-ie-plugin-options' ) )
-												)
-											);
-											?>
-										</p>
-									</div>
-								<?php endif; ?>
-							<?php else : ?>
-								<button type="button" class="button aie-premium-locked" disabled>
-									<span class="dashicons dashicons-lock"></span>
-									<?php esc_html_e( 'Generate function with AI', 'import-export-by-rockstarlab' ); ?>
-									<span class="aie-premium-badge">Premium</span>
-								</button>
-								<p class="description">
-									<?php
-									echo wp_kses_post(
-										sprintf(
-											/* translators: %s: upgrade URL */
-											__( 'AI function generation is a premium feature. <a href="%s">Upgrade to Premium</a> to unlock this feature.', 'import-export-by-rockstarlab' ),
-											esc_url( rsl_ie_fs()->get_upgrade_url() )
-										)
-									);
-									?>
-								</p>
+							<?php if ( ! $has_api_key ) : ?>
+								<div class="notice notice-warning inline">
+									<p>
+										<?php
+										echo wp_kses_post(
+											sprintf(
+												/* translators: %s: plugin options URL */
+												__( '<strong>API Key Required:</strong> OpenAI API key is not configured. Please add it in <a href="%s">Plugin Options</a> to use AI generation.', 'import-export-by-rockstarlab' ),
+												esc_url( admin_url( 'admin.php?page=rsl-ie-plugin-options' ) )
+											)
+										);
+										?>
+									</p>
+								</div>
 							<?php endif; ?>
 						</td>
 					</tr>

@@ -25,16 +25,16 @@ class Import_Controller extends Base_Controller {
 	 */
 	protected function get_ajax_actions() {
 		return [
-			'import_upload_file'    => [ 'callback' => 'upload_file' ],
-			'import_validate_data'  => [ 'callback' => 'validate_data' ],
-			'import_start'          => [ 'callback' => 'start_import' ],
-			'import_process_batch'  => [ 'callback' => 'process_batch' ],
-			'import_get_progress'   => [ 'callback' => 'get_progress' ],
-			'import_cancel'         => [ 'callback' => 'cancel_import' ],
-			'get_acf_fields'        => [ 'callback' => 'get_acf_fields' ],
-			'get_yoast_fields'      => [ 'callback' => 'get_yoast_fields' ],
-			'get_database_tables'   => [ 'callback' => 'get_database_tables' ],
-			'get_table_columns'     => [ 'callback' => 'get_table_columns' ],
+			'import_upload_file'   => [ 'callback' => 'upload_file' ],
+			'import_validate_data' => [ 'callback' => 'validate_data' ],
+			'import_start'         => [ 'callback' => 'start_import' ],
+			'import_process_batch' => [ 'callback' => 'process_batch' ],
+			'import_get_progress'  => [ 'callback' => 'get_progress' ],
+			'import_cancel'        => [ 'callback' => 'cancel_import' ],
+			'get_acf_fields'       => [ 'callback' => 'get_acf_fields' ],
+			'get_yoast_fields'     => [ 'callback' => 'get_yoast_fields' ],
+			'get_database_tables'  => [ 'callback' => 'get_database_tables' ],
+			'get_table_columns'    => [ 'callback' => 'get_table_columns' ],
 		];
 	}
 
@@ -247,16 +247,16 @@ class Import_Controller extends Base_Controller {
 
 		// Parse result
 		$result = $job_data->result ? json_decode( $job_data->result, true ) : [];
-		
+
 		// Calculate processed and total
 		$processed = 0;
 		$total     = 0;
-		
+
 		if ( ! empty( $result ) ) {
 			$processed = ( $result['success'] ?? 0 ) + ( $result['failed'] ?? 0 ) + ( $result['skipped'] ?? 0 );
 			$total     = $result['total'] ?? $processed;
 		}
-		
+
 		// Get estimates
 		$estimates = \RockStarLab\ImportExport\Helper\Progress_Tracker::estimate_time_remaining( $job_id );
 
@@ -342,8 +342,8 @@ class Import_Controller extends Base_Controller {
 		$offset      = $parameters['offset'] ?? 0;
 		$batch_size  = isset( $options['batch_size'] ) ? (int) $options['batch_size'] : 50;
 
-		// Verify premium license for premium content types.
-		$license_check = $this->verify_premium_for_type( $import_type );
+		// Verify PRO addon + license for premium content types.
+		$license_check = $this->verify_premium_for_type_in_context( $import_type, 'import' );
 		if ( is_wp_error( $license_check ) ) {
 			$this->send_error( $license_check, null, 403 );
 		}
@@ -408,7 +408,7 @@ class Import_Controller extends Base_Controller {
 			}
 
 			// Preserve source IDs + portable post hints for cross-site comment relationships.
-			if ( $importer instanceof \RockStarLab\ImportExport\Model\Import\Comment_Importer ) {
+			if ( class_exists( \RockStarLab\ImportExport\Model\Import\Comment_Importer::class ) && $importer instanceof \RockStarLab\ImportExport\Model\Import\Comment_Importer ) {
 				foreach ( $prepared_data as $row_index => &$prepared_row ) {
 					// Ensure core date fields are available even if the UI mapping omits them.
 					if ( isset( $data[ $row_index ]['comment_date'] ) && ( ! isset( $prepared_row['comment_date'] ) || '' === $prepared_row['comment_date'] ) ) {
@@ -437,7 +437,7 @@ class Import_Controller extends Base_Controller {
 			}
 
 			// Preserve source IDs + portable parent hints for cross-site term hierarchy fixups.
-			if ( $importer instanceof \RockStarLab\ImportExport\Model\Import\Taxonomy_Term_Importer ) {
+			if ( class_exists( \RockStarLab\ImportExport\Model\Import\Taxonomy_Term_Importer::class ) && $importer instanceof \RockStarLab\ImportExport\Model\Import\Taxonomy_Term_Importer ) {
 				foreach ( $prepared_data as $row_index => &$prepared_row ) {
 					if ( isset( $data[ $row_index ]['term_id'] ) ) {
 						$prepared_row['_aie_source_term_id'] = absint( $data[ $row_index ]['term_id'] );
@@ -633,7 +633,7 @@ class Import_Controller extends Base_Controller {
 					if ( in_array( $field['type'], [ 'accordion', 'tab', 'message', 'clone' ], true ) ) {
 						continue;
 					}
-					
+
 					$fields[] = [
 						'name'  => $field['name'],
 						'label' => $field['label'],
@@ -682,35 +682,36 @@ class Import_Controller extends Base_Controller {
 			[
 				'name'  => '_yoast_wpseo_meta-robots-noindex',
 				'label' => 'Meta Robots (Index)',
-			],		[
-			'name'  => '_yoast_wpseo_meta-robots-nofollow',
-			'label' => 'Meta Robots (Follow)',
-		],
-		[
-			'name'  => '_yoast_wpseo_opengraph-title',
-			'label' => 'Social Title',
-		],
-		[
-			'name'  => '_yoast_wpseo_opengraph-description',
-			'label' => 'Social Description',
-		],
-		[
-			'name'  => '_yoast_wpseo_opengraph-image',
-			'label' => 'Social Image',
-		],
-		[
-			'name'  => '_yoast_wpseo_twitter-title',
-			'label' => 'X (Twitter) Title',
-		],
-		[
-			'name'  => '_yoast_wpseo_twitter-description',
-			'label' => 'X (Twitter) Description',
-		],
-		[
-			'name'  => '_yoast_wpseo_twitter-image',
-			'label' => 'X (Twitter) Image',
-		],
-	];
+			],
+			[
+				'name'  => '_yoast_wpseo_meta-robots-nofollow',
+				'label' => 'Meta Robots (Follow)',
+			],
+			[
+				'name'  => '_yoast_wpseo_opengraph-title',
+				'label' => 'Social Title',
+			],
+			[
+				'name'  => '_yoast_wpseo_opengraph-description',
+				'label' => 'Social Description',
+			],
+			[
+				'name'  => '_yoast_wpseo_opengraph-image',
+				'label' => 'Social Image',
+			],
+			[
+				'name'  => '_yoast_wpseo_twitter-title',
+				'label' => 'X (Twitter) Title',
+			],
+			[
+				'name'  => '_yoast_wpseo_twitter-description',
+				'label' => 'X (Twitter) Description',
+			],
+			[
+				'name'  => '_yoast_wpseo_twitter-image',
+				'label' => 'X (Twitter) Image',
+			],
+		];
 
 		$this->send_success( [ 'fields' => $fields ] );
 	}
@@ -722,6 +723,17 @@ class Import_Controller extends Base_Controller {
 		$verification = $this->verify_request( 'import_upload' );
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
+		}
+
+		if ( ! \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ) {
+			$this->send_error(
+				new \WP_Error(
+					'pro_required',
+					__( 'This feature requires the PRO addon.', 'import-export-by-rockstarlab' )
+				),
+				null,
+				403
+			);
 		}
 
 		// Use Database_Table_Exporter to get tables with row counts
@@ -740,6 +752,17 @@ class Import_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
+		if ( ! \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ) {
+			$this->send_error(
+				new \WP_Error(
+					'pro_required',
+					__( 'This feature requires the PRO addon.', 'import-export-by-rockstarlab' )
+				),
+				null,
+				403
+			);
+		}
+
 		$validation = $this->validate_required_params( [ 'table_name' ] );
 		if ( is_wp_error( $validation ) ) {
 			$this->send_error( $validation, null, 400 );
@@ -750,7 +773,7 @@ class Import_Controller extends Base_Controller {
 		// Use Database_Table_Exporter to get columns
 		$exporter = new \RockStarLab\ImportExport\Model\Export\Database_Table_Exporter();
 		$columns  = $exporter->get_table_columns( $table_name );
-		
+
 		// Get row count
 		global $wpdb;
 		$row_count = $wpdb->get_var( "SELECT COUNT(*) FROM `{$table_name}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Direct DB query required here.
@@ -825,10 +848,10 @@ class Import_Controller extends Base_Controller {
 		}
 
 		foreach ( $prepared_data as $row ) {
-			$source_id       = isset( $row['_aie_source_id'] ) ? absint( $row['_aie_source_id'] ) : 0;
-			$source_parent   = isset( $row['_aie_source_parent_id'] ) ? absint( $row['_aie_source_parent_id'] ) : 0;
-			$target_id       = $source_id ? absint( $map[ (string) $source_id ] ?? 0 ) : 0;
-			$target_parent   = $source_parent ? absint( $map[ (string) $source_parent ] ?? 0 ) : 0;
+			$source_id     = isset( $row['_aie_source_id'] ) ? absint( $row['_aie_source_id'] ) : 0;
+			$source_parent = isset( $row['_aie_source_parent_id'] ) ? absint( $row['_aie_source_parent_id'] ) : 0;
+			$target_id     = $source_id ? absint( $map[ (string) $source_id ] ?? 0 ) : 0;
+			$target_parent = $source_parent ? absint( $map[ (string) $source_parent ] ?? 0 ) : 0;
 
 			if ( $target_id <= 0 || $source_parent <= 0 || $target_parent <= 0 ) {
 				continue;

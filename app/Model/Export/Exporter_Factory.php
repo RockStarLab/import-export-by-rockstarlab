@@ -49,22 +49,10 @@ class Exporter_Factory {
 	 */
 	private static function get_exporter_map() {
 		$default_map = [
-			// Core content types
-			'post'                 => Post_Exporter::class,
-			'page'                 => Post_Exporter::class,
-			'media'                => Media_Exporter::class,
-			'menu'                 => Post_Exporter::class,
-			'user'                 => User_Exporter::class,
-			'comment'              => Comment_Exporter::class,
-			'taxonomy'             => Taxonomy_Exporter::class,
-
-			// Premium features
-			'custom_post_types'    => Post_Exporter::class,
-			'woo_product'          => Post_Exporter::class,
-			'woo_order'            => Order_Exporter::class,
-			'woo_coupon'           => Coupon_Exporter::class,
-			'woo_attribute'        => Woo_Attribute_Exporter::class,
-			'database_table'       => Database_Table_Exporter::class,
+			// Free plugin content types.
+			'post'    => Post_Exporter::class,
+			'page'    => Post_Exporter::class,
+			'comment' => Comment_Exporter::class,
 		];
 
 		/**

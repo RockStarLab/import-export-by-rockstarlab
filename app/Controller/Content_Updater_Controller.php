@@ -18,6 +18,23 @@ defined( 'ABSPATH' ) || exit;
 class Content_Updater_Controller extends Base_Controller {
 
 	/**
+	 * Check whether an updater content type is allowed in the current setup.
+	 *
+	 * @param string $content_type Updater content type.
+	 * @return bool
+	 */
+	private function is_updater_content_type_allowed( $content_type ) {
+		$content_type = strtolower( trim( (string) $content_type ) );
+
+		$free_types = [ 'post', 'comment' ];
+		if ( in_array( $content_type, $free_types, true ) ) {
+			return true;
+		}
+
+		return \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active();
+	}
+
+	/**
 	 * Get AJAX actions
 	 *
 	 * @return array
@@ -49,6 +66,17 @@ class Content_Updater_Controller extends Base_Controller {
 
 		$content_type = $this->get_request_param( 'content_type' );
 		$options      = $this->get_request_array( 'options' );
+
+		if ( ! $this->is_updater_content_type_allowed( $content_type ) ) {
+			$this->send_error(
+				new \WP_Error(
+					'pro_required',
+					__( 'This content type requires the PRO addon.', 'import-export-by-rockstarlab' )
+				),
+				null,
+				403
+			);
+		}
 
 		// Get filters
 		$filters_json = $this->get_request_param( 'filters', '[]' );
@@ -105,6 +133,17 @@ class Content_Updater_Controller extends Base_Controller {
 		$options      = $this->get_request_array( 'options' );
 		$fields       = $this->get_request_array( 'fields' );
 
+		if ( ! $this->is_updater_content_type_allowed( $content_type ) ) {
+			$this->send_error(
+				new \WP_Error(
+					'pro_required',
+					__( 'This content type requires the PRO addon.', 'import-export-by-rockstarlab' )
+				),
+				null,
+				403
+			);
+		}
+
 		// Get preview data (limited to 5 items)
 		$preview_options           = $options;
 		$preview_options['limit']  = 5;
@@ -149,6 +188,17 @@ class Content_Updater_Controller extends Base_Controller {
 		}
 
 		$content_type = $this->get_request_param( 'content_type' );
+
+		if ( ! $this->is_updater_content_type_allowed( $content_type ) ) {
+			$this->send_error(
+				new \WP_Error(
+					'pro_required',
+					__( 'This content type requires the PRO addon.', 'import-export-by-rockstarlab' )
+				),
+				null,
+				403
+			);
+		}
 
 		// Decode JSON strings from frontend
 		$fields_json = $this->get_request_param( 'fields' );

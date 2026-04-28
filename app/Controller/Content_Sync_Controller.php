@@ -29,20 +29,20 @@ class Content_Sync_Controller extends Base_Controller {
 	 */
 	protected function get_ajax_actions() {
 		return array(
-			'content_sync_get_sites'             => array( 'callback' => 'get_sites' ),
-			'content_sync_add_site'              => array( 'callback' => 'add_site' ),
-			'content_sync_update_site'           => array( 'callback' => 'update_site' ),
-			'content_sync_delete_site'           => array( 'callback' => 'delete_site' ),
-			'content_sync_regenerate_key'        => array( 'callback' => 'regenerate_key' ),
-			'content_sync_test_connection'       => array( 'callback' => 'test_connection' ),
-			'content_sync_get_my_key'            => array( 'callback' => 'get_my_site_key' ),
-			'content_sync_regenerate_my_key'     => array( 'callback' => 'regenerate_my_site_key' ),
-			'content_sync_get_remote_posts'      => array( 'callback' => 'get_remote_posts' ),
-			'content_sync_search_remote_posts'   => array( 'callback' => 'search_remote_posts' ),
-			'content_sync_get_children_posts'    => array( 'callback' => 'get_children_posts' ),
-			'content_sync_get_local_posts_info'  => array( 'callback' => 'get_local_posts_info' ),
-			'content_sync_push'                  => array( 'callback' => 'push_content' ),
-			'content_sync_pull'                  => array( 'callback' => 'pull_content' ),
+			'content_sync_get_sites'            => array( 'callback' => 'get_sites' ),
+			'content_sync_add_site'             => array( 'callback' => 'add_site' ),
+			'content_sync_update_site'          => array( 'callback' => 'update_site' ),
+			'content_sync_delete_site'          => array( 'callback' => 'delete_site' ),
+			'content_sync_regenerate_key'       => array( 'callback' => 'regenerate_key' ),
+			'content_sync_test_connection'      => array( 'callback' => 'test_connection' ),
+			'content_sync_get_my_key'           => array( 'callback' => 'get_my_site_key' ),
+			'content_sync_regenerate_my_key'    => array( 'callback' => 'regenerate_my_site_key' ),
+			'content_sync_get_remote_posts'     => array( 'callback' => 'get_remote_posts' ),
+			'content_sync_search_remote_posts'  => array( 'callback' => 'search_remote_posts' ),
+			'content_sync_get_children_posts'   => array( 'callback' => 'get_children_posts' ),
+			'content_sync_get_local_posts_info' => array( 'callback' => 'get_local_posts_info' ),
+			'content_sync_push'                 => array( 'callback' => 'push_content' ),
+			'content_sync_pull'                 => array( 'callback' => 'pull_content' ),
 		);
 	}
 
@@ -231,9 +231,9 @@ class Content_Sync_Controller extends Base_Controller {
 		// Create detailed message about what was updated
 		$updated_fields = array_keys( $data );
 		$message        = __( 'Site connection updated successfully', 'import-export-by-rockstarlab' );
-		
+
 		if ( count( $updated_fields ) === 1 ) {
-			$field_name = $updated_fields[0];
+			$field_name   = $updated_fields[0];
 			$field_labels = array(
 				'name'       => __( 'name', 'import-export-by-rockstarlab' ),
 				'remote_url' => __( 'URL', 'import-export-by-rockstarlab' ),
@@ -241,7 +241,7 @@ class Content_Sync_Controller extends Base_Controller {
 				'status'     => __( 'status', 'import-export-by-rockstarlab' ),
 				'api_key'    => __( 'API key', 'import-export-by-rockstarlab' ),
 			);
-			
+
 			if ( isset( $field_labels[ $field_name ] ) ) {
 				$message = sprintf(
 					/* translators: %s: field name that was updated */
@@ -361,7 +361,7 @@ class Content_Sync_Controller extends Base_Controller {
 		// Connection successful - update last sync and status
 		Connected_Site::update_last_sync( $site_id );
 		Connected_Site::update( $site_id, array( 'status' => 'active' ) );
-		
+
 		$this->send_success(
 			array(
 				'message' => __( 'Connection successful. API key is valid.', 'import-export-by-rockstarlab' ),
@@ -437,7 +437,7 @@ class Content_Sync_Controller extends Base_Controller {
 					'Content-Type'  => 'application/json',
 					'Authorization' => 'Bearer ' . $api_key,
 				),
-				'body' => wp_json_encode(
+				'body'    => wp_json_encode(
 					array(
 						'action' => 'validate_connection',
 					)
@@ -468,18 +468,10 @@ class Content_Sync_Controller extends Base_Controller {
 			);
 		}
 
-		// Try to parse JSON response first to check for license errors
+		// Try to parse JSON response.
 		$data = json_decode( $body, true );
-		
+
 		if ( 403 === $status_code ) {
-			// Check if it's a license error
-			if ( is_array( $data ) && isset( $data['error_code'] ) && 'license_inactive' === $data['error_code'] ) {
-				return new \WP_Error(
-					'license_inactive',
-					__( 'Premium license is not active on the remote site. Content Sync requires an active premium license.', 'import-export-by-rockstarlab' )
-				);
-			}
-			
 			return new \WP_Error(
 				'invalid_api_key',
 				__( 'Access forbidden. Please check the API key and try again.', 'import-export-by-rockstarlab' )
@@ -523,35 +515,35 @@ class Content_Sync_Controller extends Base_Controller {
 	/**
 	 * Register hooks for post list screens
 	 */
-		public function register_post_list_hooks() {
-			// Load assets for post list screens
-			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_post_list_assets' ) );
-		
+	public function register_post_list_hooks() {
+		// Load assets for post list screens
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_post_list_assets' ) );
+
 		// Add sync button and modal to post list screens
 		add_action( 'restrict_manage_posts', array( $this, 'render_sync_button' ) );
 		add_action( 'admin_footer-edit.php', array( $this, 'render_sync_modal' ) );
-		
+
 		// Add sync button to post edit screen
 		add_action( 'post_submitbox_misc_actions', array( $this, 'render_post_edit_sync_button' ) );
 		add_action( 'admin_footer-post.php', array( $this, 'render_gutenberg_sync_button' ) );
 		add_action( 'admin_footer-post-new.php', array( $this, 'render_gutenberg_sync_button' ) );
-			add_action( 'admin_footer-post.php', array( $this, 'render_sync_modal' ) );
-			add_action( 'admin_footer-post-new.php', array( $this, 'render_sync_modal' ) );
-			// Some admin contexts (notably the block editor) can behave differently with
-			// hook-suffixed footer actions. Also hook into generic admin_footer and guard
-			// against duplicate rendering inside render_sync_modal().
-			add_action( 'admin_footer', array( $this, 'render_sync_modal' ) );
-		}
+		add_action( 'admin_footer-post.php', array( $this, 'render_sync_modal' ) );
+		add_action( 'admin_footer-post-new.php', array( $this, 'render_sync_modal' ) );
+		// Some admin contexts (notably the block editor) can behave differently with
+		// hook-suffixed footer actions. Also hook into generic admin_footer and guard
+		// against duplicate rendering inside render_sync_modal().
+		add_action( 'admin_footer', array( $this, 'render_sync_modal' ) );
+	}
 
 	/**
 	 * Enqueue assets for post list screens
 	 */
-		public function enqueue_post_list_assets( $hook_suffix ) {
-			// Load on edit.php (post list) and post.php/post-new.php (edit post)
-			if ( ! in_array( $hook_suffix, array( 'edit.php', 'post.php', 'post-new.php' ) ) ) {
-				return;
+	public function enqueue_post_list_assets( $hook_suffix ) {
+		// Load on edit.php (post list) and post.php/post-new.php (edit post)
+		if ( ! in_array( $hook_suffix, array( 'edit.php', 'post.php', 'post-new.php' ) ) ) {
+			return;
 		}
-		
+
 		// Don't load on trash page
 		if ( 'edit.php' === $hook_suffix ) {
 			$post_status = $this->get_request_param( 'post_status', '' );
@@ -560,38 +552,30 @@ class Content_Sync_Controller extends Base_Controller {
 			}
 		}
 
-		// Check if premium is active
-		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
-		
-			// Get current post type
-			global $typenow, $post;
-			$current_post_type = '';
-			
-			if ( 'edit.php' === $hook_suffix && ! empty( $typenow ) ) {
-				$current_post_type = $typenow;
-			} elseif ( in_array( $hook_suffix, array( 'post.php', 'post-new.php' ), true ) ) {
-				// On post.php, $post may not yet be populated during admin_enqueue_scripts.
-				// Derive post type from request params as a fallback.
-				if ( $post ) {
-					$current_post_type = $post->post_type;
-				} else {
-					$post_id = $this->get_request_param( 'post', 0 );
-					if ( $post_id ) {
-						$maybe_post = get_post( (int) $post_id );
-						if ( $maybe_post ) {
-							$current_post_type = $maybe_post->post_type;
-						}
-					}
-					// post-new.php uses post_type query arg; default to 'post'.
-					if ( empty( $current_post_type ) ) {
-						$current_post_type = $this->get_request_param( 'post_type', 'post' );
+		// Get current post type
+		global $typenow, $post;
+		$current_post_type = '';
+
+		if ( 'edit.php' === $hook_suffix && ! empty( $typenow ) ) {
+			$current_post_type = $typenow;
+		} elseif ( in_array( $hook_suffix, array( 'post.php', 'post-new.php' ), true ) ) {
+			// On post.php, $post may not yet be populated during admin_enqueue_scripts.
+			// Derive post type from request params as a fallback.
+			if ( $post ) {
+				$current_post_type = $post->post_type;
+			} else {
+				$post_id = $this->get_request_param( 'post', 0 );
+				if ( $post_id ) {
+					$maybe_post = get_post( (int) $post_id );
+					if ( $maybe_post ) {
+						$current_post_type = $maybe_post->post_type;
 					}
 				}
+				// post-new.php uses post_type query arg; default to 'post'.
+				if ( empty( $current_post_type ) ) {
+					$current_post_type = $this->get_request_param( 'post_type', 'post' );
+				}
 			}
-		
-		// In free version, only load for 'post' type
-		if ( ! $is_premium && 'post' !== $current_post_type ) {
-			return;
 		}
 
 		// Never show sync button on WooCommerce Coupons screen.
@@ -599,24 +583,24 @@ class Content_Sync_Controller extends Base_Controller {
 			return;
 		}
 
-			// Enqueue post sync script
-			// Note: on Gutenberg post editor screens, admin footer scripts are not always printed
-			// the same way as on list screens. Load in header for post.php/post-new.php so the
-			// sync UI is reliably available.
-			$in_footer = ( 'edit.php' === $hook_suffix );
-			wp_enqueue_script(
-				'aie-post-sync',
-				plugins_url( 'assets/js/post-sync-standalone.js', RSL_IE_FILE ),
-				array( 'jquery' ),
-				filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/js/post-sync-standalone.js' ),
-				$in_footer
-			);
+		// Enqueue post sync script
+		// Note: on Gutenberg post editor screens, admin footer scripts are not always printed
+		// the same way as on list screens. Load in header for post.php/post-new.php so the
+		// sync UI is reliably available.
+		$in_footer = ( 'edit.php' === $hook_suffix );
+		wp_enqueue_script(
+			'aie-post-sync',
+			plugins_url( 'assets/js/post-sync-standalone.js', RSL_IE_FILE ),
+			array( 'jquery' ),
+			filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/js/post-sync-standalone.js' ),
+			$in_footer
+		);
 
 		// Localize script
 		$nonce = wp_create_nonce( 'rsl_ie_nonce' );
-		
+
 		// Get connected sites for Select2 AJAX
-		$sites = Connected_Site::get_all();
+		$sites     = Connected_Site::get_all();
 		$sites_map = array();
 		foreach ( $sites as $site ) {
 			$sites_map[ $site['id'] ] = array(
@@ -626,7 +610,7 @@ class Content_Sync_Controller extends Base_Controller {
 				'api_key'    => $site['api_key'], // Needed for remote API calls
 			);
 		}
-		
+
 		wp_localize_script(
 			'aie-post-sync',
 			'aiePostSyncData',
@@ -636,53 +620,53 @@ class Content_Sync_Controller extends Base_Controller {
 				'connectedSites' => $sites_map,
 				'i18n'           => array(
 					// Alerts & Messages
-					'pleaseSavePost'              => __( 'Please save the post first', 'import-export-by-rockstarlab' ),
-					'pleaseSelectSite'            => __( 'Please select a site', 'import-export-by-rockstarlab' ),
-					'noPostsSelected'             => __( 'No posts selected', 'import-export-by-rockstarlab' ),
-					'failedLoadRemotePosts'       => __( 'Failed to load remote posts', 'import-export-by-rockstarlab' ),
-					'unknownError'                => __( 'Unknown error', 'import-export-by-rockstarlab' ),
-					'failedConnectRemote'         => __( 'Failed to connect to remote site', 'import-export-by-rockstarlab' ),
-					'failedLoadLocalPosts'        => __( 'Failed to load local posts info', 'import-export-by-rockstarlab' ),
-					'pleaseSelectOnePost'         => __( 'Please select at least one post', 'import-export-by-rockstarlab' ),
-					
+					'pleaseSavePost'        => __( 'Please save the post first', 'import-export-by-rockstarlab' ),
+					'pleaseSelectSite'      => __( 'Please select a site', 'import-export-by-rockstarlab' ),
+					'noPostsSelected'       => __( 'No posts selected', 'import-export-by-rockstarlab' ),
+					'failedLoadRemotePosts' => __( 'Failed to load remote posts', 'import-export-by-rockstarlab' ),
+					'unknownError'          => __( 'Unknown error', 'import-export-by-rockstarlab' ),
+					'failedConnectRemote'   => __( 'Failed to connect to remote site', 'import-export-by-rockstarlab' ),
+					'failedLoadLocalPosts'  => __( 'Failed to load local posts info', 'import-export-by-rockstarlab' ),
+					'pleaseSelectOnePost'   => __( 'Please select at least one post', 'import-export-by-rockstarlab' ),
+
 					// translators: %s = content placeholder.
 					// Count Text
-					'onePost'                     => __( '1 post', 'import-export-by-rockstarlab' ),
+					'onePost'               => __( '1 post', 'import-export-by-rockstarlab' ),
 					// translators: %s is a dynamic value.
-					'postsCount'                  => __( '%s posts', 'import-export-by-rockstarlab' ),
-					
+					'postsCount'            => __( '%s posts', 'import-export-by-rockstarlab' ),
+
 					// Post Info
 					// translators: %s is a dynamic value.
-					'postHash'                    => __( 'Post #%s', 'import-export-by-rockstarlab' ),
+					'postHash'              => __( 'Post #%s', 'import-export-by-rockstarlab' ),
 					// translators: %s = content placeholder.
-					'idLabel'                     => __( 'ID:', 'import-export-by-rockstarlab' ),
-					'noTitle'                     => __( '(No title)', 'import-export-by-rockstarlab' ),
-					
+					'idLabel'               => __( 'ID:', 'import-export-by-rockstarlab' ),
+					'noTitle'               => __( '(No title)', 'import-export-by-rockstarlab' ),
+
 					// translators: %s = content placeholder.
 					// Actions
-					'createNewPost'               => __( '➕ Create New Post', 'import-export-by-rockstarlab' ),
+					'createNewPost'         => __( '➕ Create New Post', 'import-export-by-rockstarlab' ),
 					// translators: 1: post title or name, 2: post ID.
-					'updatePost'                  => __( '🔄 Update: %1$s (ID: %2$s)', 'import-export-by-rockstarlab' ),
+					'updatePost'            => __( '🔄 Update: %1$s (ID: %2$s)', 'import-export-by-rockstarlab' ),
 					// translators: %s is a dynamic value.
-					'searchForUpdate'             => __( 'Search for a %s to update...', 'import-export-by-rockstarlab' ),
-					
+					'searchForUpdate'       => __( 'Search for a %s to update...', 'import-export-by-rockstarlab' ),
+
 					// Progress
 					// translators: %s is a dynamic value.
-					'starting'                    => __( 'Starting %s...', 'import-export-by-rockstarlab' ),
-					'completed'                   => __( 'Completed!', 'import-export-by-rockstarlab' ),
-					'syncCompletedSuccess'        => __( 'Sync completed successfully', 'import-export-by-rockstarlab' ),
-					'pullingPosts'                => __( 'Pulling posts...', 'import-export-by-rockstarlab' ),
-					'syncFailed'                  => __( 'Sync failed', 'import-export-by-rockstarlab' ),
-					'errorDuringSync'             => __( 'An error occurred during sync', 'import-export-by-rockstarlab' ),
-					
+					'starting'              => __( 'Starting %s...', 'import-export-by-rockstarlab' ),
+					'completed'             => __( 'Completed!', 'import-export-by-rockstarlab' ),
+					'syncCompletedSuccess'  => __( 'Sync completed successfully', 'import-export-by-rockstarlab' ),
+					'pullingPosts'          => __( 'Pulling posts...', 'import-export-by-rockstarlab' ),
+					'syncFailed'            => __( 'Sync failed', 'import-export-by-rockstarlab' ),
+					'errorDuringSync'       => __( 'An error occurred during sync', 'import-export-by-rockstarlab' ),
+
 					// Browse
-					'noPostsFound'                => __( 'No posts found', 'import-export-by-rockstarlab' ),
-					'child'                       => __( 'child', 'import-export-by-rockstarlab' ),
-					'children'                    => __( 'children', 'import-export-by-rockstarlab' ),
-					'pluginDataNotLoaded'         => __( 'Plugin data not loaded. Please refresh the page.', 'import-export-by-rockstarlab' ),
-					'errorLoadingPosts'           => __( 'An error occurred while loading posts', 'import-export-by-rockstarlab' ),
-					'failedLoadChildren'          => __( 'Failed to load children', 'import-export-by-rockstarlab' ),
-					'errorLoadingChildren'        => __( 'Error loading children', 'import-export-by-rockstarlab' ),
+					'noPostsFound'          => __( 'No posts found', 'import-export-by-rockstarlab' ),
+					'child'                 => __( 'child', 'import-export-by-rockstarlab' ),
+					'children'              => __( 'children', 'import-export-by-rockstarlab' ),
+					'pluginDataNotLoaded'   => __( 'Plugin data not loaded. Please refresh the page.', 'import-export-by-rockstarlab' ),
+					'errorLoadingPosts'     => __( 'An error occurred while loading posts', 'import-export-by-rockstarlab' ),
+					'failedLoadChildren'    => __( 'Failed to load children', 'import-export-by-rockstarlab' ),
+					'errorLoadingChildren'  => __( 'Error loading children', 'import-export-by-rockstarlab' ),
 				),
 			)
 		);
@@ -694,10 +678,10 @@ class Content_Sync_Controller extends Base_Controller {
 			array(),
 			filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/css/app.css' )
 		);
-		
+
 		// Enqueue Gutenberg sync script for post edit screens
 		if ( in_array( $hook_suffix, array( 'post.php', 'post-new.php' ) ) ) {
-			
+
 			// Only show for posts being edited
 			if ( $post ) {
 				// Enqueue the Gutenberg sync script
@@ -708,7 +692,7 @@ class Content_Sync_Controller extends Base_Controller {
 						filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/js/gutenberg-sync.js' ),
 						false
 					);
-				
+
 				// Localize script with necessary data
 				wp_localize_script(
 					'aie-gutenberg-sync',
@@ -729,25 +713,17 @@ class Content_Sync_Controller extends Base_Controller {
 		/**
 		 * Render sync button on post list screen
 		 */
-		public function render_sync_button() {
-			global $typenow;
-			
-			// Only show on post list screens
-			if ( empty( $typenow ) ) {
-				return;
-			}
-			
-			// Don't show on trash page
-			$post_status = $this->get_request_param( 'post_status', '' );
-			if ( 'trash' === $post_status ) {
-				return;
-			}
-			
-			// Check if premium is active
-			$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
-		
-		// In free version, only show for 'post' type
-		if ( ! $is_premium && 'post' !== $typenow ) {
+	public function render_sync_button() {
+		global $typenow;
+
+		// Only show on post list screens
+		if ( empty( $typenow ) ) {
+			return;
+		}
+
+		// Don't show on trash page
+		$post_status = $this->get_request_param( 'post_status', '' );
+		if ( 'trash' === $post_status ) {
 			return;
 		}
 
@@ -755,101 +731,86 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( 'shop_coupon' === $typenow ) {
 			return;
 		}
-		
+
 		require RSL_IE_PATH . '/app/View/sync/sync-button.php';
 	}
 
 		/**
 		 * Render sync modal
 		 */
-		public function render_sync_modal() {
-			static $rendered = false;
-			if ( $rendered ) {
-				return;
-			}
-
-			global $typenow, $post;
-			$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-
-			// Determine current post type for both list and edit screens.
-			$current_post_type = '';
-			if ( $screen && ! empty( $screen->post_type ) ) {
-				$current_post_type = $screen->post_type;
-			} elseif ( ! empty( $typenow ) ) {
-				$current_post_type = $typenow;
-			} elseif ( $post ) {
-				$current_post_type = $post->post_type;
-			} else {
-				$post_id = $this->get_request_param( 'post', 0 );
-				if ( $post_id ) {
-					$maybe_post = get_post( (int) $post_id );
-					if ( $maybe_post ) {
-						$current_post_type = $maybe_post->post_type;
-					}
-				}
-				if ( empty( $current_post_type ) ) {
-					$current_post_type = $this->get_request_param( 'post_type', '' );
-				}
-			}
-
-			if ( empty( $current_post_type ) ) {
-				return;
-			}
-			
-			// Don't show on trash page
-			$post_status = $this->get_request_param( 'post_status', '' );
-			if ( 'trash' === $post_status ) {
-				return;
-			}
-
-			// Check if premium is active
-			$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
-			
-			// In free version, only show for 'post' type
-			if ( ! $is_premium && 'post' !== $current_post_type ) {
-				return;
-			}
-
-			// Never show sync modal on WooCommerce Coupons screen.
-			if ( 'shop_coupon' === $current_post_type ) {
-				return;
-			}
-
-			// Get connected sites
-			$sites = Connected_Site::get_all();
-			
-			$rendered = true;
-
-			// Load view templates
-			require RSL_IE_PATH . '/app/View/sync/sync-modal.php';
-			require RSL_IE_PATH . '/app/View/sync/mapping-modal.php';
-			require RSL_IE_PATH . '/app/View/sync/browse-modal.php';
+	public function render_sync_modal() {
+		static $rendered = false;
+		if ( $rendered ) {
+			return;
 		}
+
+		global $typenow, $post;
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+		// Determine current post type for both list and edit screens.
+		$current_post_type = '';
+		if ( $screen && ! empty( $screen->post_type ) ) {
+			$current_post_type = $screen->post_type;
+		} elseif ( ! empty( $typenow ) ) {
+			$current_post_type = $typenow;
+		} elseif ( $post ) {
+			$current_post_type = $post->post_type;
+		} else {
+			$post_id = $this->get_request_param( 'post', 0 );
+			if ( $post_id ) {
+				$maybe_post = get_post( (int) $post_id );
+				if ( $maybe_post ) {
+					$current_post_type = $maybe_post->post_type;
+				}
+			}
+			if ( empty( $current_post_type ) ) {
+				$current_post_type = $this->get_request_param( 'post_type', '' );
+			}
+		}
+
+		if ( empty( $current_post_type ) ) {
+			return;
+		}
+
+		// Don't show on trash page
+		$post_status = $this->get_request_param( 'post_status', '' );
+		if ( 'trash' === $post_status ) {
+			return;
+		}
+
+		// Never show sync modal on WooCommerce Coupons screen.
+		if ( 'shop_coupon' === $current_post_type ) {
+			return;
+		}
+
+		// Get connected sites
+		$sites = Connected_Site::get_all();
+
+		$rendered = true;
+
+		// Load view templates
+		require RSL_IE_PATH . '/app/View/sync/sync-modal.php';
+		require RSL_IE_PATH . '/app/View/sync/mapping-modal.php';
+		require RSL_IE_PATH . '/app/View/sync/browse-modal.php';
+	}
 
 	/**
 	 * Render sync button in post edit screen (Classic Editor)
 	 */
 	public function render_post_edit_sync_button() {
 		global $post;
-		
+
 		// Only show for published posts or posts being edited
 		if ( ! $post || ( 'auto-draft' === $post->post_status ) ) {
 			return;
 		}
-		
-		// Check if premium is active
-		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
-		
-		// In free version, only show for 'post' type
-		if ( ! $is_premium && 'post' !== $post->post_type ) {
-			return;
-		}
-		
+
 		require RSL_IE_PATH . '/app/View/sync/post-edit-button.php';
 	}
 
 	/**
 	 * Render Gutenberg sync button
+	 *
 	 * @deprecated Moved to enqueue_post_list_assets
 	 */
 	public function render_gutenberg_sync_button() {
@@ -905,7 +866,7 @@ class Content_Sync_Controller extends Base_Controller {
 				),
 			)
 		);
-// translators: %s = content placeholder.
+		// translators: %s = content placeholder.
 
 		if ( is_wp_error( $response ) ) {
 			$this->send_error( __( 'Failed to connect to remote site: ', 'import-export-by-rockstarlab' ) . $response->get_error_message() );
@@ -917,7 +878,7 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( $status_code !== 200 ) {
 			$error_data = json_decode( $body, true );
 			// translators: %d is a dynamic value.
-			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Request failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
+			$error_msg = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Request failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
 			$this->send_error( $error_msg );
 		}
 
@@ -982,13 +943,13 @@ class Content_Sync_Controller extends Base_Controller {
 					'headers' => array(
 						'Authorization' => 'Bearer ' . $site['api_key'],
 						'Content-Type'  => 'application/json',
-				),
-				'body'    => wp_json_encode(
-					array(
-						'parent_id' => $parent_id,
-						'post_type' => $post_type,
-					)
-				),
+					),
+					'body'    => wp_json_encode(
+						array(
+							'parent_id' => $parent_id,
+							'post_type' => $post_type,
+						)
+					),
 				// translators: %s = content placeholder.
 				)
 			);
@@ -1003,7 +964,7 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( $status_code !== 200 ) {
 			$error_data = json_decode( $body, true );
 			// translators: %d is a dynamic value.
-			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Request failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
+			$error_msg = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Request failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
 			$this->send_error( $error_msg );
 		}
 
@@ -1041,10 +1002,10 @@ class Content_Sync_Controller extends Base_Controller {
 			$post = get_post( $post_id );
 			if ( $post ) {
 				$posts_info[] = array(
-					'ID'         => $post->ID,
-					'post_title' => $post->post_title,
-					'post_type'  => $post->post_type,
-					'post_date'  => $post->post_date,
+					'ID'          => $post->ID,
+					'post_title'  => $post->post_title,
+					'post_type'   => $post->post_type,
+					'post_date'   => $post->post_date,
 					'post_status' => $post->post_status,
 				);
 			}
@@ -1079,19 +1040,6 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( __( 'No posts selected', 'import-export-by-rockstarlab' ) );
 		}
 
-		// Check if premium is active
-		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
-		
-		// In free version, validate that only 'post' type is being synced
-		if ( ! $is_premium ) {
-			foreach ( $post_ids as $post_id ) {
-				$post = get_post( $post_id );
-				if ( $post && 'post' !== $post->post_type ) {
-					$this->send_error( __( 'Premium license is required to sync Pages and Custom Post Types. Free version supports Posts only.', 'import-export-by-rockstarlab' ) );
-				}
-			}
-		}
-
 		// Parse post_mapping if it's a JSON string
 		if ( is_string( $post_mapping ) ) {
 			$post_mapping = json_decode( $post_mapping, true );
@@ -1123,17 +1071,17 @@ class Content_Sync_Controller extends Base_Controller {
 
 			// Extract all images from post
 			$post_images = \RockStarLab\ImportExport\Helper\Content_Sync_Media::extract_post_images( $post_id );
-			
+
 			// Store images with post context
 			foreach ( $post_images as $image ) {
-				$image_key                    = $image['attachment_id'];
-				$all_images[ $image_key ]     = $image;
+				$image_key                     = $image['attachment_id'];
+				$all_images[ $image_key ]      = $image;
 				$image_context[ $image_key ][] = $post_id;
 			}
 
 			// Get post meta
-			$meta          = get_post_meta( $post_id );
-			$prepared_meta = array();
+			$meta           = get_post_meta( $post_id );
+			$prepared_meta  = array();
 			$skip_meta_keys = array(
 				'_edit_lock',
 				'_edit_last',
@@ -1156,7 +1104,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$taxonomies = get_object_taxonomies( $post->post_type );
 			$terms_data = array();
 			foreach ( $taxonomies as $taxonomy ) {
-				$terms = wp_get_post_terms( $post_id, $taxonomy );
+				$terms                   = wp_get_post_terms( $post_id, $taxonomy );
 				$terms_data[ $taxonomy ] = array(); // always initialise, even when empty
 				if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
 					foreach ( $terms as $term ) {
@@ -1190,13 +1138,13 @@ class Content_Sync_Controller extends Base_Controller {
 										// Fallback if file is missing on disk.
 										$image_data = array(
 											'attachment_id' => $image_id,
-											'url'           => wp_get_attachment_url( $image_id ),
-											'type'          => 'term_acf',
+											'url'  => wp_get_attachment_url( $image_id ),
+											'type' => 'term_acf',
 										);
 									}
-									$image_data['term_id']  = $term->term_id;
-									$image_data['taxonomy'] = $taxonomy;
-									$all_images[ $image_id ]     = $image_data;
+									$image_data['term_id']        = $term->term_id;
+									$image_data['taxonomy']       = $taxonomy;
+									$all_images[ $image_id ]      = $image_data;
 									$image_context[ $image_id ][] = 'term_' . $term->term_id;
 								}
 							}
@@ -1253,7 +1201,7 @@ class Content_Sync_Controller extends Base_Controller {
 							'name'    => $term->name,
 							'slug'    => $term->slug,
 						);
-						$known_ids[] = $raw_id;
+						$known_ids[]                   = $raw_id;
 					}
 				}
 			}
@@ -1262,134 +1210,134 @@ class Content_Sync_Controller extends Base_Controller {
 					'ID'            => $post->ID,
 					'post_title'    => $post->post_title,
 					'post_content'  => $post->post_content,
-				'post_excerpt'  => $post->post_excerpt,
-				'post_status'   => $post->post_status,
-				'post_type'     => $post->post_type,
-				'post_name'     => $post->post_name,
-				'post_date'     => $post->post_date,
+					'post_excerpt'  => $post->post_excerpt,
+					'post_status'   => $post->post_status,
+					'post_type'     => $post->post_type,
+					'post_name'     => $post->post_name,
+					'post_date'     => $post->post_date,
 					'post_modified' => $post->post_modified,
 					'post_author'   => $post->post_author,
 					'meta'          => $prepared_meta,
 					'post_refs'     => \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::collect_acf_post_reference_map_from_meta( $prepared_meta ),
 					'terms'         => $terms_data,
 				);
-			
-			if ( isset( $prepared_meta['repeater'] ) ) {
-			}
 
-			// Collect WooCommerce product variations for variable products.
-			// Variations are separate posts (post_type=product_variation) and must be
-			// synced together with their parent so the remote site can show the correct
-			// price range.
-			if ( 'product' === $post->post_type
+				if ( isset( $prepared_meta['repeater'] ) ) {
+				}
+
+				// Collect WooCommerce product variations for variable products.
+				// Variations are separate posts (post_type=product_variation) and must be
+				// synced together with their parent so the remote site can show the correct
+				// price range.
+				if ( 'product' === $post->post_type
 				&& class_exists( 'WC_Product' )
 				&& function_exists( 'wc_get_product' )
-			) {
-				$wc_product = wc_get_product( $post->ID );
-				if ( $wc_product && $wc_product->is_type( 'variable' ) ) {
-					$variation_ids   = $wc_product->get_children();
-					$variations_data = array();
+				) {
+					$wc_product = wc_get_product( $post->ID );
+					if ( $wc_product && $wc_product->is_type( 'variable' ) ) {
+						$variation_ids   = $wc_product->get_children();
+						$variations_data = array();
 
-					foreach ( $variation_ids as $variation_id ) {
-						$variation_post = get_post( $variation_id );
-						if ( ! $variation_post ) {
-							continue;
+						foreach ( $variation_ids as $variation_id ) {
+							$variation_post = get_post( $variation_id );
+							if ( ! $variation_post ) {
+								continue;
+							}
+
+							// Include variation images in the global image upload queue.
+							$var_images = \RockStarLab\ImportExport\Helper\Content_Sync_Media::extract_post_images( $variation_id );
+							foreach ( $var_images as $var_img ) {
+								$var_img_key                     = $var_img['attachment_id'];
+								$all_images[ $var_img_key ]      = $var_img;
+								$image_context[ $var_img_key ][] = $post_id;
+							}
+
+							// Collect variation meta.
+							$var_raw_meta  = get_post_meta( $variation_id );
+							$var_prep_meta = array();
+							foreach ( $var_raw_meta as $vk => $vv ) {
+								$var_prep_meta[ $vk ] = maybe_unserialize( $vv[0] );
+							}
+
+							$variations_data[] = array(
+								'ID'          => $variation_post->ID,
+								'post_title'  => $variation_post->post_title,
+								'post_name'   => $variation_post->post_name,
+								'post_status' => $variation_post->post_status,
+								'post_type'   => $variation_post->post_type,
+								'menu_order'  => $variation_post->menu_order,
+								'meta'        => $var_prep_meta,
+							);
 						}
 
-						// Include variation images in the global image upload queue.
-						$var_images = \RockStarLab\ImportExport\Helper\Content_Sync_Media::extract_post_images( $variation_id );
-						foreach ( $var_images as $var_img ) {
-							$var_img_key                       = $var_img['attachment_id'];
-							$all_images[ $var_img_key ]         = $var_img;
-							$image_context[ $var_img_key ][]   = $post_id;
-						}
-
-						// Collect variation meta.
-						$var_raw_meta  = get_post_meta( $variation_id );
-						$var_prep_meta = array();
-						foreach ( $var_raw_meta as $vk => $vv ) {
-							$var_prep_meta[ $vk ] = maybe_unserialize( $vv[0] );
-						}
-
-						$variations_data[] = array(
-							'ID'          => $variation_post->ID,
-							'post_title'  => $variation_post->post_title,
-							'post_name'   => $variation_post->post_name,
-							'post_status' => $variation_post->post_status,
-							'post_type'   => $variation_post->post_type,
-							'menu_order'  => $variation_post->menu_order,
-							'meta'        => $var_prep_meta,
-						);
+						$post_data['variations'] = $variations_data;
 					}
 
-					$post_data['variations'] = $variations_data;
-				}
+					// Collect WooCommerce grouped product children.
+					// Children are regular `product` posts linked via _children meta.
+					// We ship their data so the remote site can create/update them and
+					// the _children meta can be remapped to correct local IDs.
+					if ( $wc_product->is_type( 'grouped' ) ) {
+						$child_ids     = $wc_product->get_children();
+						$children_data = array();
 
-				// Collect WooCommerce grouped product children.
-				// Children are regular `product` posts linked via _children meta.
-				// We ship their data so the remote site can create/update them and
-				// the _children meta can be remapped to correct local IDs.
-				if ( $wc_product->is_type( 'grouped' ) ) {
-					$child_ids    = $wc_product->get_children();
-					$children_data = array();
+						foreach ( $child_ids as $child_id ) {
+							$child_post = get_post( $child_id );
+							if ( ! $child_post ) {
+								continue;
+							}
 
-					foreach ( $child_ids as $child_id ) {
-						$child_post = get_post( $child_id );
-						if ( ! $child_post ) {
-							continue;
-						}
+							// Include child images in the global upload queue.
+							$child_imgs = \RockStarLab\ImportExport\Helper\Content_Sync_Media::extract_post_images( $child_id );
+							foreach ( $child_imgs as $child_img ) {
+								$cimg_key                     = $child_img['attachment_id'];
+								$all_images[ $cimg_key ]      = $child_img;
+								$image_context[ $cimg_key ][] = $post_id;
+							}
 
-						// Include child images in the global upload queue.
-						$child_imgs = \RockStarLab\ImportExport\Helper\Content_Sync_Media::extract_post_images( $child_id );
-						foreach ( $child_imgs as $child_img ) {
-							$cimg_key                     = $child_img['attachment_id'];
-							$all_images[ $cimg_key ]       = $child_img;
-							$image_context[ $cimg_key ][] = $post_id;
-						}
+							// Collect child meta.
+							$child_raw_meta  = get_post_meta( $child_id );
+							$child_prep_meta = array();
+							foreach ( $child_raw_meta as $ck => $cv ) {
+								$child_prep_meta[ $ck ] = maybe_unserialize( $cv[0] );
+							}
 
-						// Collect child meta.
-						$child_raw_meta  = get_post_meta( $child_id );
-						$child_prep_meta = array();
-						foreach ( $child_raw_meta as $ck => $cv ) {
-							$child_prep_meta[ $ck ] = maybe_unserialize( $cv[0] );
-						}
-
-						// Collect child terms.
-						$child_taxonomies = get_object_taxonomies( $child_post->post_type );
-						$child_terms      = array();
-						foreach ( $child_taxonomies as $child_tax ) {
-							$c_terms                  = wp_get_post_terms( $child_id, $child_tax );
-							$child_terms[ $child_tax ] = array();
-							if ( ! is_wp_error( $c_terms ) ) {
-								foreach ( $c_terms as $c_term ) {
-									$child_terms[ $child_tax ][] = array(
-										'term_id' => $c_term->term_id,
-										'name'    => $c_term->name,
-										'slug'    => $c_term->slug,
-									);
+							// Collect child terms.
+							$child_taxonomies = get_object_taxonomies( $child_post->post_type );
+							$child_terms      = array();
+							foreach ( $child_taxonomies as $child_tax ) {
+								$c_terms                   = wp_get_post_terms( $child_id, $child_tax );
+								$child_terms[ $child_tax ] = array();
+								if ( ! is_wp_error( $c_terms ) ) {
+									foreach ( $c_terms as $c_term ) {
+										$child_terms[ $child_tax ][] = array(
+											'term_id' => $c_term->term_id,
+											'name'    => $c_term->name,
+											'slug'    => $c_term->slug,
+										);
+									}
 								}
 							}
+
+							$children_data[] = array(
+								'ID'           => $child_post->ID,
+								'post_title'   => $child_post->post_title,
+								'post_name'    => $child_post->post_name,
+								'post_content' => $child_post->post_content,
+								'post_excerpt' => $child_post->post_excerpt,
+								'post_status'  => $child_post->post_status,
+								'post_type'    => $child_post->post_type,
+								'menu_order'   => $child_post->menu_order,
+								'meta'         => $child_prep_meta,
+								'terms'        => $child_terms,
+							);
 						}
 
-						$children_data[] = array(
-							'ID'           => $child_post->ID,
-							'post_title'   => $child_post->post_title,
-							'post_name'    => $child_post->post_name,
-							'post_content' => $child_post->post_content,
-							'post_excerpt' => $child_post->post_excerpt,
-							'post_status'  => $child_post->post_status,
-							'post_type'    => $child_post->post_type,
-							'menu_order'   => $child_post->menu_order,
-							'meta'         => $child_prep_meta,
-							'terms'        => $child_terms,
-						);
+						$post_data['grouped_children'] = $children_data;
 					}
-
-					$post_data['grouped_children'] = $children_data;
 				}
-			}
 
-			$posts_data[] = $post_data;
+				$posts_data[] = $post_data;
 		}
 
 		if ( empty( $posts_data ) ) {
@@ -1440,7 +1388,7 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( $status_code !== 200 ) {
 			$error_data = json_decode( $body, true );
 			// translators: %d is a dynamic value.
-			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Push failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
+			$error_msg = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Push failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
 			$this->send_error( $error_msg );
 		}
 
@@ -1509,7 +1457,7 @@ class Content_Sync_Controller extends Base_Controller {
 	private function upload_single_image_to_remote( $image, $site ) {
 		// Read file contents
 		$file_contents = @file_get_contents( $image['file_path'] );
-		
+
 		if ( false === $file_contents ) {
 			return false;
 		}
@@ -1535,8 +1483,8 @@ class Content_Sync_Controller extends Base_Controller {
 					'headers' => array(
 						'Authorization' => 'Bearer ' . $site['api_key'],
 						'Content-Type'  => 'application/json',
-				),
-				'body'    => wp_json_encode( $upload_data ),
+					),
+					'body'    => wp_json_encode( $upload_data ),
 				)
 			);
 
@@ -1602,15 +1550,15 @@ class Content_Sync_Controller extends Base_Controller {
 					'headers' => array(
 						'Authorization' => 'Bearer ' . $site['api_key'],
 						'Content-Type'  => 'application/json',
-				),
-				'body'    => wp_json_encode(
-					// translators: %s = content placeholder.
-					array(
-						'post_ids' => $post_ids,
-					)
-				),
-			)
-		);
+					),
+					'body'    => wp_json_encode(
+						// translators: %s = content placeholder.
+						array(
+							'post_ids' => $post_ids,
+						)
+					),
+				)
+			);
 
 		if ( is_wp_error( $response ) ) {
 			$this->send_error( __( 'Failed to connect to remote site: ', 'import-export-by-rockstarlab' ) . $response->get_error_message() );
@@ -1622,7 +1570,7 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( $status_code !== 200 ) {
 			$error_data = json_decode( $body, true );
 			// translators: %d is a dynamic value.
-			$error_msg  = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Pull failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
+			$error_msg = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Pull failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
 			$this->send_error( $error_msg );
 		}
 
@@ -1634,18 +1582,6 @@ class Content_Sync_Controller extends Base_Controller {
 		$posts_data = $data['data']['posts'];
 		if ( empty( $posts_data ) ) {
 			$this->send_error( __( 'No posts found on remote site', 'import-export-by-rockstarlab' ) );
-		}
-
-		// Check if premium is active
-		$is_premium = function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
-		
-		// In free version, validate that only 'post' type is being synced
-		if ( ! $is_premium ) {
-			foreach ( $posts_data as $post_data ) {
-				if ( isset( $post_data['post_type'] ) && 'post' !== $post_data['post_type'] ) {
-					$this->send_error( __( 'Premium license is required to sync Pages and Custom Post Types. Free version supports Posts only.', 'import-export-by-rockstarlab' ) );
-				}
-			}
 		}
 
 		// Get images from remote
@@ -1662,20 +1598,17 @@ class Content_Sync_Controller extends Base_Controller {
 				}
 			}
 		}
-		
 
-	
-
-	// Replace domains and image IDs in post data
-	foreach ( $posts_data as &$post_data ) {
-		$post_data = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_post_domains(
-			$post_data,
-			$source_domain,
-			$target_domain,
-			$image_map
-		);
-	}
-	unset( $post_data ); // Break the reference to avoid bugs in the next foreach loop
+		// Replace domains and image IDs in post data
+		foreach ( $posts_data as &$post_data ) {
+			$post_data = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_post_domains(
+				$post_data,
+				$source_domain,
+				$target_domain,
+				$image_map
+			);
+		}
+		unset( $post_data ); // Break the reference to avoid bugs in the next foreach loop
 
 		// Import posts
 		$imported_count = 0;
@@ -1711,14 +1644,14 @@ class Content_Sync_Controller extends Base_Controller {
 
 			// Prepare post data
 			$post_args = array(
-				'post_title'    => $post_data['post_title'],
-				'post_content'  => $post_data['post_content'],
-				'post_excerpt'  => $post_data['post_excerpt'],
-				'post_status'   => $post_data['post_status'],
-				'post_type'     => $post_data['post_type'],
-				'post_name'     => $post_data['post_name'],
-				'post_date'     => $post_data['post_date'],
-				'post_author'   => get_current_user_id(),
+				'post_title'   => $post_data['post_title'],
+				'post_content' => $post_data['post_content'],
+				'post_excerpt' => $post_data['post_excerpt'],
+				'post_status'  => $post_data['post_status'],
+				'post_type'    => $post_data['post_type'],
+				'post_name'    => $post_data['post_name'],
+				'post_date'    => $post_data['post_date'],
+				'post_author'  => get_current_user_id(),
 			);
 
 			if ( $local_post_id ) {
@@ -1726,13 +1659,13 @@ class Content_Sync_Controller extends Base_Controller {
 				$post_args['ID'] = $local_post_id;
 				$post_id         = wp_update_post( $post_args, true ); // true to get WP_Error on failure
 				if ( ! is_wp_error( $post_id ) && $post_id ) {
-					$updated_count++;
+					++$updated_count;
 				}
 			} else {
 				// Create new post
 				$post_id = wp_insert_post( $post_args, true ); // true to get WP_Error on failure
 				if ( ! is_wp_error( $post_id ) && $post_id ) {
-					$imported_count++;
+					++$imported_count;
 				}
 			}
 
@@ -1743,71 +1676,71 @@ class Content_Sync_Controller extends Base_Controller {
 			// Store original post ID for future reference
 			update_post_meta( $post_id, '_aie_original_post_id', $remote_post_id );
 
-		// Import meta - simple approach: save all fields as-is, ACF will handle them
-		if ( ! empty( $post_data['meta'] ) ) {
-			foreach ( $post_data['meta'] as $key => $value ) {
-				update_post_meta( $post_id, $key, $value );
-			}
-		}
-
-		// Import terms with ACF fields
-		if ( ! empty( $post_data['terms'] ) ) {
-			// Build source_term_id → local_term_id map to fix ACF taxonomy fields.
-			$term_id_map = array();
-
-			// Clear ALL existing term assignments for every taxonomy the source
-			// sent (including empty ones) so stale local terms are removed.
-			foreach ( array_keys( $post_data['terms'] ) as $taxonomy_to_clear ) {
-				if ( taxonomy_exists( $taxonomy_to_clear ) ) {
-					wp_set_object_terms( $post_id, array(), $taxonomy_to_clear );
+			// Import meta - simple approach: save all fields as-is, ACF will handle them
+			if ( ! empty( $post_data['meta'] ) ) {
+				foreach ( $post_data['meta'] as $key => $value ) {
+					update_post_meta( $post_id, $key, $value );
 				}
 			}
 
-			foreach ( $post_data['terms'] as $taxonomy => $terms_info ) {
-				if ( ! taxonomy_exists( $taxonomy ) ) {
-					continue;
+			// Import terms with ACF fields
+			if ( ! empty( $post_data['terms'] ) ) {
+				// Build source_term_id → local_term_id map to fix ACF taxonomy fields.
+				$term_id_map = array();
+
+				// Clear ALL existing term assignments for every taxonomy the source
+				// sent (including empty ones) so stale local terms are removed.
+				foreach ( array_keys( $post_data['terms'] ) as $taxonomy_to_clear ) {
+					if ( taxonomy_exists( $taxonomy_to_clear ) ) {
+						wp_set_object_terms( $post_id, array(), $taxonomy_to_clear );
+					}
 				}
 
-				$term_ids = array();
-				foreach ( $terms_info as $term_info ) {
-					// Validate term info
-					if ( empty( $term_info['name'] ) || empty( $term_info['slug'] ) ) {
+				foreach ( $post_data['terms'] as $taxonomy => $terms_info ) {
+					if ( ! taxonomy_exists( $taxonomy ) ) {
 						continue;
 					}
 
-					// Find by slug and update name, or create if not found.
-					$existing_term = get_term_by( 'slug', $term_info['slug'], $taxonomy );
-					if ( $existing_term ) {
-						wp_update_term( $existing_term->term_id, $taxonomy, array( 'name' => $term_info['name'] ) );
-						$term_id = $existing_term->term_id;
-					} else {
-						$new_term = wp_insert_term( $term_info['name'], $taxonomy, array( 'slug' => $term_info['slug'] ) );
-						if ( is_wp_error( $new_term ) ) {
+					$term_ids = array();
+					foreach ( $terms_info as $term_info ) {
+						// Validate term info
+						if ( empty( $term_info['name'] ) || empty( $term_info['slug'] ) ) {
 							continue;
 						}
-						$term_id = $new_term['term_id'];
-					}
 
-					$term_ids[] = (int) $term_id;
+						// Find by slug and update name, or create if not found.
+						$existing_term = get_term_by( 'slug', $term_info['slug'], $taxonomy );
+						if ( $existing_term ) {
+							wp_update_term( $existing_term->term_id, $taxonomy, array( 'name' => $term_info['name'] ) );
+							$term_id = $existing_term->term_id;
+						} else {
+							$new_term = wp_insert_term( $term_info['name'], $taxonomy, array( 'slug' => $term_info['slug'] ) );
+							if ( is_wp_error( $new_term ) ) {
+								continue;
+							}
+							$term_id = $new_term['term_id'];
+						}
 
-					// Record source → local term ID mapping.
-					if ( ! empty( $term_info['term_id'] ) ) {
-						$term_id_map[ (int) $term_info['term_id'] ] = (int) $term_id;
-					}
+						$term_ids[] = (int) $term_id;
 
-					// Import ACF fields for this term
-					if ( ! empty( $term_info['acf'] ) && function_exists( 'update_field' ) ) {
-						foreach ( $term_info['acf'] as $field_key => $field_value ) {
-							update_field( $field_key, $field_value, $taxonomy . '_' . $term_id );
+						// Record source → local term ID mapping.
+						if ( ! empty( $term_info['term_id'] ) ) {
+							$term_id_map[ (int) $term_info['term_id'] ] = (int) $term_id;
+						}
+
+						// Import ACF fields for this term
+						if ( ! empty( $term_info['acf'] ) && function_exists( 'update_field' ) ) {
+							foreach ( $term_info['acf'] as $field_key => $field_value ) {
+								update_field( $field_key, $field_value, $taxonomy . '_' . $term_id );
+							}
 						}
 					}
-				}
 
-				// Assign terms to post only if we have valid term IDs
-				if ( ! empty( $term_ids ) ) {
-					wp_set_object_terms( $post_id, $term_ids, $taxonomy );
+					// Assign terms to post only if we have valid term IDs
+					if ( ! empty( $term_ids ) ) {
+						wp_set_object_terms( $post_id, $term_ids, $taxonomy );
+					}
 				}
-			}
 
 				// Re-save ACF taxonomy fields with correct local term IDs.
 				if ( ! empty( $term_id_map ) && ! empty( $post_data['meta'] ) ) {
@@ -1831,16 +1764,16 @@ class Content_Sync_Controller extends Base_Controller {
 
 				// Fix image URLs in content after import
 				$updated_content = $post_data['post_content'];
-				
+
 			foreach ( $image_map as $old_id => $new_id ) {
 				$new_url = wp_get_attachment_url( $new_id );
 				if ( $new_url ) {
-					
+
 					// Replace old image URL with new one
-					$pattern = '/(<img[^>]+src=")https?:\/\/[^\/]+\/wp-content\/uploads\/[^"]+(' . preg_quote( basename( $new_url ), '/' ) . ')(")/i';
-					$replacement = '${1}' . $new_url . '${3}';
+					$pattern         = '/(<img[^>]+src=")https?:\/\/[^\/]+\/wp-content\/uploads\/[^"]+(' . preg_quote( basename( $new_url ), '/' ) . ')(")/i';
+					$replacement     = '${1}' . $new_url . '${3}';
 					$updated_content = preg_replace( $pattern, $replacement, $updated_content );
-					
+
 					// Also update wp:image block ID
 					$updated_content = str_replace( '"id":' . $old_id, '"id":' . $new_id, $updated_content );
 					$updated_content = str_replace( 'wp-image-' . $old_id, 'wp-image-' . $new_id, $updated_content );
@@ -1848,7 +1781,7 @@ class Content_Sync_Controller extends Base_Controller {
 			}
 
 			if ( $updated_content !== $post_data['post_content'] ) {
-				
+
 				$update_result = wp_update_post(
 					array(
 						'ID'           => $post_id,
@@ -1856,14 +1789,14 @@ class Content_Sync_Controller extends Base_Controller {
 					),
 					true
 				);
-				
+
 			} else {
 			}
 		}
 
 		$total_processed = $imported_count + $updated_count;
 		$message         = array();
-		
+
 		if ( $imported_count > 0 ) {
 			$message[] = sprintf(
 				/* translators: %d: number of posts */
@@ -1871,7 +1804,7 @@ class Content_Sync_Controller extends Base_Controller {
 				$imported_count
 			);
 		}
-		
+
 		if ( $updated_count > 0 ) {
 			$message[] = sprintf(
 				/* translators: %d: number of posts */
@@ -1921,11 +1854,11 @@ class Content_Sync_Controller extends Base_Controller {
 		// This covers two scenarios:
 		// 1. file_hash was missing in the request (e.g. term-ACF images from older remotes).
 		// 2. Race condition: two concurrent pull requests both passed the initial hash
-		//    check above before either saved the attachment. Re-checking here after the
-		//    download gives the second request a chance to detect the attachment created
-		//    by the first one and reuse it instead of creating a duplicate.
-		$actual_hash  = md5( $file_contents );
-		$existing_id  = $this->find_attachment_by_hash( $actual_hash );
+		// check above before either saved the attachment. Re-checking here after the
+		// download gives the second request a chance to detect the attachment created
+		// by the first one and reuse it instead of creating a duplicate.
+		$actual_hash = md5( $file_contents );
+		$existing_id = $this->find_attachment_by_hash( $actual_hash );
 		if ( $existing_id ) {
 			\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
 			return $existing_id;
@@ -2041,12 +1974,12 @@ class Content_Sync_Controller extends Base_Controller {
 			}
 			return $value;
 		}
-		
+
 		// Convert numeric strings to integers (important for attachment IDs)
 		if ( is_string( $value ) && is_numeric( $value ) && strpos( $value, '.' ) === false ) {
 			return intval( $value );
 		}
-		
+
 		return $value;
 	}
 
@@ -2059,53 +1992,52 @@ class Content_Sync_Controller extends Base_Controller {
 	 */
 	private function convert_acf_flat_to_hierarchical( $meta, $acf_field_keys ) {
 		$processed_parents = array();
-		
+
 		// Find all repeater/flexible content parent fields
 		foreach ( $acf_field_keys as $field_name => $field_key ) {
 			// Skip nested fields
 			if ( preg_match( '/_\d+_/', $field_name ) ) {
 				continue;
 			}
-			
+
 			// Check if this field has a numeric value (count of rows) - typical for repeater
 			if ( isset( $meta[ $field_name ] ) && is_numeric( $meta[ $field_name ] ) ) {
 				$row_count = intval( $meta[ $field_name ] );
-				
+
 				// Verify this is actually a repeater by checking if sub-fields exist
 				// Look for pattern: field_name_0_*
 				$has_sub_fields = false;
-				$row_prefix = $field_name . '_0_';
+				$row_prefix     = $field_name . '_0_';
 				foreach ( $meta as $meta_key => $meta_value ) {
 					if ( strpos( $meta_key, $row_prefix ) === 0 ) {
 						$has_sub_fields = true;
 						break;
 					}
 				}
-				
+
 				// If no sub-fields found, this is not a repeater (probably just a numeric field like image ID)
 				if ( ! $has_sub_fields ) {
 					continue;
 				}
-				
-				
+
 				// Build hierarchical structure
 				$rows = array();
 				for ( $i = 0; $i < $row_count; $i++ ) {
-					$row_data = array();
-					$row_prefix = $field_name . '_' . $i . '_';
+					$row_data     = array();
+					$row_prefix   = $field_name . '_' . $i . '_';
 					$found_fields = 0;
-					
+
 					// Find all fields for this row
 					foreach ( $meta as $meta_key => $meta_value ) {
 						if ( strpos( $meta_key, $row_prefix ) === 0 ) {
-							$found_fields++;
+							++$found_fields;
 							// Extract field name without row prefix
 							$sub_field_name = substr( $meta_key, strlen( $row_prefix ) );
-							
+
 							// Check if this is a nested repeater/flexible content
 							if ( isset( $acf_field_keys[ $field_name . '_' . $i . '_' . $sub_field_name ] ) && is_numeric( $meta_value ) ) {
 								// Verify nested repeater has sub-fields
-								$nested_prefix = $field_name . '_' . $i . '_' . $sub_field_name . '_0_';
+								$nested_prefix         = $field_name . '_' . $i . '_' . $sub_field_name . '_0_';
 								$nested_has_sub_fields = false;
 								foreach ( $meta as $nested_key => $nested_val ) {
 									if ( strpos( $nested_key, $nested_prefix ) === 0 ) {
@@ -2113,10 +2045,10 @@ class Content_Sync_Controller extends Base_Controller {
 										break;
 									}
 								}
-								
+
 								if ( $nested_has_sub_fields ) {
 									// Recursively process nested repeater
-									$nested_rows = $this->extract_nested_repeater_data( $meta, $field_name . '_' . $i . '_' . $sub_field_name, $meta_value, $acf_field_keys );
+									$nested_rows                 = $this->extract_nested_repeater_data( $meta, $field_name . '_' . $i . '_' . $sub_field_name, $meta_value, $acf_field_keys );
 									$row_data[ $sub_field_name ] = $nested_rows;
 								} else {
 									// Just a numeric value (like image ID)
@@ -2127,44 +2059,44 @@ class Content_Sync_Controller extends Base_Controller {
 							}
 						}
 					}
-					
+
 					$rows[] = $row_data;
 				}
-				
+
 				// Replace numeric count with actual data array
 				$meta[ $field_name ] = $rows;
 				$processed_parents[] = $field_name;
-				
+
 			}
 		}
-		
+
 		return $meta;
 	}
 
 	/**
 	 * Extract nested repeater data recursively
 	 *
-	 * @param array $meta Post meta array
+	 * @param array  $meta Post meta array
 	 * @param string $parent_prefix Parent field prefix (e.g., "repeater_0_nested_repeater")
-	 * @param int $row_count Number of rows
-	 * @param array $acf_field_keys ACF field keys mapping
+	 * @param int    $row_count Number of rows
+	 * @param array  $acf_field_keys ACF field keys mapping
 	 * @return array Nested rows data
 	 */
 	private function extract_nested_repeater_data( $meta, $parent_prefix, $row_count, $acf_field_keys ) {
 		$rows = array();
-		
+
 		for ( $i = 0; $i < $row_count; $i++ ) {
-			$row_data = array();
+			$row_data   = array();
 			$row_prefix = $parent_prefix . '_' . $i . '_';
-			
+
 			foreach ( $meta as $meta_key => $meta_value ) {
 				if ( strpos( $meta_key, $row_prefix ) === 0 ) {
 					$sub_field_name = substr( $meta_key, strlen( $row_prefix ) );
-					
+
 					// Check for even deeper nesting
 					if ( isset( $acf_field_keys[ $parent_prefix . '_' . $i . '_' . $sub_field_name ] ) && is_numeric( $meta_value ) ) {
 						// Verify this nested field actually has sub-fields (is a real repeater)
-						$nested_prefix = $parent_prefix . '_' . $i . '_' . $sub_field_name . '_0_';
+						$nested_prefix         = $parent_prefix . '_' . $i . '_' . $sub_field_name . '_0_';
 						$has_nested_sub_fields = false;
 						foreach ( $meta as $check_key => $check_value ) {
 							if ( strpos( $check_key, $nested_prefix ) === 0 ) {
@@ -2172,12 +2104,12 @@ class Content_Sync_Controller extends Base_Controller {
 								break;
 							}
 						}
-						
+
 						if ( $has_nested_sub_fields ) {
 							// This is a nested repeater
-							$row_data[ $sub_field_name ] = $this->extract_nested_repeater_data( 
-								$meta, 
-								$parent_prefix . '_' . $i . '_' . $sub_field_name, 
+							$row_data[ $sub_field_name ] = $this->extract_nested_repeater_data(
+								$meta,
+								$parent_prefix . '_' . $i . '_' . $sub_field_name,
 								$meta_value,
 								$acf_field_keys
 							);
@@ -2190,10 +2122,10 @@ class Content_Sync_Controller extends Base_Controller {
 					}
 				}
 			}
-			
+
 			$rows[] = $row_data;
 		}
-		
+
 		return $rows;
 	}
 
@@ -2204,7 +2136,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * @return int|false Post ID or false if not found
 	 */
 	private function find_existing_post_by_original_id( $original_post_id ) {
-		
+
 		// First priority: check if post with same ID exists locally
 		$post = get_post( $original_post_id );
 		if ( $post && $post->ID == $original_post_id ) {

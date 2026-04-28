@@ -40,24 +40,42 @@ const JobsLogModule = {
 
 		// Pagination
 		$page.on( 'click', '.first-page', () => this.goToPage( 1 ) );
-		$page.on( 'click', '.prev-page', () => this.goToPage( this.currentPage - 1 ) );
-		$page.on( 'click', '.next-page', () => this.goToPage( this.currentPage + 1 ) );
-		$page.on( 'click', '.last-page', () => this.goToPage( this.totalPages ) );
+		$page.on( 'click', '.prev-page', () =>
+			this.goToPage( this.currentPage - 1 )
+		);
+		$page.on( 'click', '.next-page', () =>
+			this.goToPage( this.currentPage + 1 )
+		);
+		$page.on( 'click', '.last-page', () =>
+			this.goToPage( this.totalPages )
+		);
 
 		// Job actions
 		$page.on( 'click', '.job-action-resume', ( e ) => this.resumeJob( e ) );
-		$page.on( 'click', '.job-action-restart', ( e ) => this.restartJob( e ) );
+		$page.on( 'click', '.job-action-restart', ( e ) =>
+			this.restartJob( e )
+		);
 		$page.on( 'click', '.job-action-retry', ( e ) => this.retryJob( e ) );
 		$page.on( 'click', '.job-action-delete', ( e ) => this.deleteJob( e ) );
-		$page.on( 'click', '.job-action-download', ( e ) => this.downloadFile( e ) );
-		$page.on( 'click', '.job-action-view', ( e ) => this.viewJobDetails( e ) );
+		$page.on( 'click', '.job-action-download', ( e ) =>
+			this.downloadFile( e )
+		);
+		$page.on( 'click', '.job-action-view', ( e ) =>
+			this.viewJobDetails( e )
+		);
 
 		// Modal close - bind to document for modals outside page container
-		jQuery( document ).on( 'click', '.aie-modal-close', () => this.closeModal() );
-		jQuery( document ).on( 'click', '.aie-modal-overlay', () => this.closeModal() );
+		jQuery( document ).on( 'click', '.aie-modal-close', () =>
+			this.closeModal()
+		);
+		jQuery( document ).on( 'click', '.aie-modal-overlay', () =>
+			this.closeModal()
+		);
 
 		// Confirm delete
-		jQuery( document ).on( 'click', '.aie-confirm-delete', () => this.confirmDelete() );
+		jQuery( document ).on( 'click', '.aie-confirm-delete', () =>
+			this.confirmDelete()
+		);
 	},
 
 	/**
@@ -93,8 +111,7 @@ const JobsLogModule = {
 
 		try {
 			const offset = ( this.currentPage - 1 ) * this.perPage;
-			
-			
+
 			const response = await Utils.ajax( 'aie_job_list', {
 				type: this.filters.type,
 				status: this.filters.status,
@@ -111,7 +128,10 @@ const JobsLogModule = {
 				this.renderJobs( [] );
 			}
 		} catch ( error ) {
-			Utils.showNotice( window.aieData.i18n.errorLoadingJobs + error.message, 'error' );
+			Utils.showNotice(
+				window.aieData.i18n.errorLoadingJobs + error.message,
+				'error'
+			);
 			this.renderJobs( [] );
 		} finally {
 			$loading.hide();
@@ -124,9 +144,11 @@ const JobsLogModule = {
 	 */
 	renderJobs( jobs ) {
 		const $tbody = jQuery( '#jobs-table-body' );
-		
+
 		if ( ! jobs || jobs.length === 0 ) {
-			$tbody.html( `<tr class="no-items"><td colspan="9">${window.aieData.i18n.noJobsFound}</td></tr>` );
+			$tbody.html(
+				`<tr class="no-items"><td colspan="9">${ window.aieData.i18n.noJobsFound }</td></tr>`
+			);
 			return;
 		}
 
@@ -149,25 +171,33 @@ const JobsLogModule = {
 		const actions = this.renderActions( job );
 
 		return `
-			<tr class="job-row ${statusClass}" data-job-id="${job.id}">
-				<td class="column-id">${job.id}</td>
+			<tr class="job-row ${ statusClass }" data-job-id="${ job.id }">
+				<td class="column-id">${ job.id }</td>
 				<td class="column-type">
-					<span class="job-type-badge job-type-${job.type}">${typeLabel}</span>
+					<span class="job-type-badge job-type-${ job.type }">${ typeLabel }</span>
 				</td>
-				<td class="column-data-type">${job.data_type}</td>
+				<td class="column-data-type">${ job.data_type }</td>
 				<td class="column-status">
-					<span class="job-status-badge job-status-${job.status}">${statusLabel}</span>
+					<span class="job-status-badge job-status-${
+						job.status
+					}">${ statusLabel }</span>
 				</td>
-				<td class="column-progress">${progressBar}</td>
+				<td class="column-progress">${ progressBar }</td>
 				<td class="column-items">
 					<div class="items-info">
-						<div><strong>${job.processed_items}</strong> / ${job.total_items}</div>
-						${job.failed_items > 0 ? `<div class="failed-count">${window.aieData.i18n.failed || 'Failed'}: ${job.failed_items}</div>` : ''}
+						<div><strong>${ job.processed_items }</strong> / ${ job.total_items }</div>
+						${
+							job.failed_items > 0
+								? `<div class="failed-count">${
+										window.aieData.i18n.failed || 'Failed'
+								  }: ${ job.failed_items }</div>`
+								: ''
+						}
 					</div>
 				</td>
-				<td class="column-created">${this.formatDate( job.created_at )}</td>
-				<td class="column-elapsed">${job.elapsed_time || '-'}</td>
-				<td class="column-actions">${actions}</td>
+				<td class="column-created">${ this.formatDate( job.created_at ) }</td>
+				<td class="column-elapsed">${ job.elapsed_time || '-' }</td>
+				<td class="column-actions">${ actions }</td>
 			</tr>
 		`;
 	},
@@ -180,9 +210,9 @@ const JobsLogModule = {
 		return `
 			<div class="progress-bar-wrapper">
 				<div class="progress-bar">
-					<div class="progress-bar-fill" style="width: ${progress}%"></div>
+					<div class="progress-bar-fill" style="width: ${ progress }%"></div>
 				</div>
-				<span class="progress-text">${progress}%</span>
+				<span class="progress-text">${ progress }%</span>
 			</div>
 		`;
 	},
@@ -194,37 +224,78 @@ const JobsLogModule = {
 		let actions = [];
 
 		// View details
-		actions.push( `<button class="button button-small job-action-view" title="${ window.aieData.i18n.viewDetails || 'View Details' }"><span class="dashicons dashicons-visibility"></span></button>` );
+		actions.push(
+			`<button class="button button-small job-action-view" title="${
+				window.aieData.i18n.viewDetails || 'View Details'
+			}"><span class="dashicons dashicons-visibility"></span></button>`
+		);
 
 		// Resume
 		if ( job.can_resume ) {
-			actions.push( `<button class="button button-small job-action-resume" title="${ window.aieData.i18n.resume || 'Resume' }"><span class="dashicons dashicons-controls-play"></span></button>` );
+			actions.push(
+				`<button class="button button-small job-action-resume" title="${
+					window.aieData.i18n.resume || 'Resume'
+				}"><span class="dashicons dashicons-controls-play"></span></button>`
+			);
 		}
 
 		// Retry - not available for media_sync jobs (files may have been moved)
 		if ( job.type !== 'media_sync' ) {
-			const isPremiumType = window.aieData.premiumDataTypes &&
-				window.aieData.premiumDataTypes.includes( job.data_type );
-			const licenseRequired = isPremiumType && ! window.aieData.isPremium;
+			const jobType = ( job.type || '' ).toLowerCase();
+			const dataType = ( job.data_type || '' ).toLowerCase();
+			const proEnabled = !! window.aieData.isProEnabled;
 
-			if ( licenseRequired ) {
-				actions.push( `<button class="button button-small" disabled title="${ window.aieData.i18n.retryRequiresPremium || 'Premium license required to retry this job' }"><span class="dashicons dashicons-lock"></span></button>` );
+			const freeByType = {
+				export: [ 'post', 'page' ],
+				import: [ 'post', 'posts', 'page', 'pages' ],
+				update: [ 'post', 'comment', 'comments' ],
+			};
+
+			const freeTypes = freeByType[ jobType ] || null;
+			const proRequired = Array.isArray( freeTypes )
+				? ! freeTypes.includes( dataType )
+				: false;
+
+			if ( proRequired && ! proEnabled ) {
+				actions.push(
+					`<button class="button button-small" disabled title="${
+						window.aieData.i18n.retryRequiresPremium ||
+						'The PRO addon is required to retry this job'
+					}"><span class="dashicons dashicons-lock"></span></button>`
+				);
 			} else {
-				actions.push( `<button class="button button-small job-action-retry" title="${ window.aieData.i18n.retry || 'Retry (Create new job with same parameters)' }"><span class="dashicons dashicons-update"></span></button>` );
+				actions.push(
+					`<button class="button button-small job-action-retry" title="${
+						window.aieData.i18n.retry ||
+						'Retry (Create new job with same parameters)'
+					}"><span class="dashicons dashicons-update"></span></button>`
+				);
 			}
 		}
 
 		// Download (for exports)
-		if ( job.type === 'export' && job.file_path && job.status === 'completed' ) {
-			actions.push( `<button class="button button-small job-action-download" title="${ window.aieData.i18n.download || 'Download' }"><span class="dashicons dashicons-download"></span></button>` );
+		if (
+			job.type === 'export' &&
+			job.file_path &&
+			job.status === 'completed'
+		) {
+			actions.push(
+				`<button class="button button-small job-action-download" title="${
+					window.aieData.i18n.download || 'Download'
+				}"><span class="dashicons dashicons-download"></span></button>`
+			);
 		}
 
 		// Delete
 		if ( job.can_delete ) {
-			actions.push( `<button class="button button-small job-action-delete" title="${ window.aieData.i18n.delete || 'Delete' }"><span class="dashicons dashicons-trash"></span></button>` );
+			actions.push(
+				`<button class="button button-small job-action-delete" title="${
+					window.aieData.i18n.delete || 'Delete'
+				}"><span class="dashicons dashicons-trash"></span></button>`
+			);
 		}
 
-		return `<div class="job-actions">${actions.join( '' )}</div>`;
+		return `<div class="job-actions">${ actions.join( '' ) }</div>`;
 	},
 
 	/**
@@ -232,7 +303,7 @@ const JobsLogModule = {
 	 */
 	updatePagination() {
 		const $pagination = jQuery( '.aie-jobs-pagination' );
-		
+
 		if ( this.totalJobs === 0 ) {
 			$pagination.hide();
 			return;
@@ -240,20 +311,26 @@ const JobsLogModule = {
 
 		$pagination.show();
 
-	// Update info text
-	const start = ( this.currentPage - 1 ) * this.perPage + 1;
-	const end = Math.min( this.currentPage * this.perPage, this.totalJobs );
-	const showingText = window.aieData.i18n.showingJobs
-		.replace('%1$s', start)
-		.replace('%2$s', end)
-		.replace('%3$s', this.totalJobs);
-	jQuery( '.displaying-num' ).text( showingText );		// Update page numbers
+		// Update info text
+		const start = ( this.currentPage - 1 ) * this.perPage + 1;
+		const end = Math.min( this.currentPage * this.perPage, this.totalJobs );
+		const showingText = window.aieData.i18n.showingJobs
+			.replace( '%1$s', start )
+			.replace( '%2$s', end )
+			.replace( '%3$s', this.totalJobs );
+		jQuery( '.displaying-num' ).text( showingText ); // Update page numbers
 		jQuery( '.current-page' ).text( this.currentPage );
 		jQuery( '.total-pages' ).text( this.totalPages );
 
 		// Update button states
-		jQuery( '.first-page, .prev-page' ).prop( 'disabled', this.currentPage === 1 );
-		jQuery( '.next-page, .last-page' ).prop( 'disabled', this.currentPage >= this.totalPages );
+		jQuery( '.first-page, .prev-page' ).prop(
+			'disabled',
+			this.currentPage === 1
+		);
+		jQuery( '.next-page, .last-page' ).prop(
+			'disabled',
+			this.currentPage >= this.totalPages
+		);
 	},
 
 	/**
@@ -282,16 +359,28 @@ const JobsLogModule = {
 		$button.prop( 'disabled', true );
 
 		try {
-			const response = await Utils.ajax( 'aie_job_resume', { job_id: jobId } );
+			const response = await Utils.ajax( 'aie_job_resume', {
+				job_id: jobId,
+			} );
 
 			if ( response && response.job_id ) {
-				Utils.showNotice( window.aieData.i18n.jobResumedSuccess, 'success' );
-				
+				Utils.showNotice(
+					window.aieData.i18n.jobResumedSuccess,
+					'success'
+				);
+
 				// Redirect based on job type
-				this.redirectToJobPage( response.type, response.job_id, response.data_type );
+				this.redirectToJobPage(
+					response.type,
+					response.job_id,
+					response.data_type
+				);
 			}
 		} catch ( error ) {
-			Utils.showNotice( window.aieData.i18n.errorResumingJob + error.message, 'error' );
+			Utils.showNotice(
+				window.aieData.i18n.errorResumingJob + error.message,
+				'error'
+			);
 			$button.prop( 'disabled', false );
 		}
 	},
@@ -311,11 +400,16 @@ const JobsLogModule = {
 		$button.prop( 'disabled', true );
 
 		try {
-			const response = await Utils.ajax( 'aie_job_restart', { job_id: jobId } );
+			const response = await Utils.ajax( 'aie_job_restart', {
+				job_id: jobId,
+			} );
 
 			if ( response && response.job_id ) {
-				Utils.showNotice( window.aieData.i18n.jobRestartedSuccess, 'success' );
-				
+				Utils.showNotice(
+					window.aieData.i18n.jobRestartedSuccess,
+					'success'
+				);
+
 				// For media_sync jobs, reload the page to show the new job
 				// For other job types, redirect to their specific pages
 				if ( response.type === 'media_sync' ) {
@@ -324,11 +418,18 @@ const JobsLogModule = {
 					}, 1000 );
 				} else {
 					// Redirect based on job type
-					this.redirectToJobPage( response.type, response.job_id, response.data_type );
+					this.redirectToJobPage(
+						response.type,
+						response.job_id,
+						response.data_type
+					);
 				}
 			}
 		} catch ( error ) {
-			Utils.showNotice( window.aieData.i18n.errorRestartingJob + error.message, 'error' );
+			Utils.showNotice(
+				window.aieData.i18n.errorRestartingJob + error.message,
+				'error'
+			);
 			$button.prop( 'disabled', false );
 		}
 	},
@@ -349,11 +450,16 @@ const JobsLogModule = {
 
 		try {
 			// Create new job with processing status
-			const response = await Utils.ajax( 'aie_job_retry', { job_id: jobId } );
+			const response = await Utils.ajax( 'aie_job_retry', {
+				job_id: jobId,
+			} );
 
-				if ( response && response.job_id && response.type ) {
-				Utils.showNotice( window.aieData.i18n.jobCreatedStarting, 'success' );
-				
+			if ( response && response.job_id && response.type ) {
+				Utils.showNotice(
+					window.aieData.i18n.jobCreatedStarting,
+					'success'
+				);
+
 				// For media_sync jobs, reload the page to show the processing job
 				// For other job types, redirect to their specific pages
 				if ( response.type === 'media_sync' ) {
@@ -363,12 +469,22 @@ const JobsLogModule = {
 					}, 1000 );
 				} else {
 					// Redirect to job page with resume_job parameter to show progress
-					this.redirectToJobPage( response.type, response.job_id, response.data_type );
+					this.redirectToJobPage(
+						response.type,
+						response.job_id,
+						response.data_type
+					);
 				}
 			}
 		} catch ( error ) {
-			const errorMsg = error && error.message ? error.message : 'Unknown error occurred';
-			Utils.showNotice( window.aieData.i18n.errorRetryingJob + errorMsg, 'error' );
+			const errorMsg =
+				error && error.message
+					? error.message
+					: 'Unknown error occurred';
+			Utils.showNotice(
+				window.aieData.i18n.errorRetryingJob + errorMsg,
+				'error'
+			);
 			$button.prop( 'disabled', false );
 		}
 	},
@@ -402,10 +518,16 @@ const JobsLogModule = {
 		try {
 			await Utils.ajax( 'aie_job_delete', { job_id: jobId } );
 
-			Utils.showNotice( window.aieData.i18n.jobDeletedSuccess, 'success' );
+			Utils.showNotice(
+				window.aieData.i18n.jobDeletedSuccess,
+				'success'
+			);
 			this.loadJobs(); // Reload list
 		} catch ( error ) {
-			Utils.showNotice( window.aieData.i18n.errorDeletingJob + error.message, 'error' );
+			Utils.showNotice(
+				window.aieData.i18n.errorDeletingJob + error.message,
+				'error'
+			);
 		}
 	},
 
@@ -424,18 +546,20 @@ const JobsLogModule = {
 			data: {
 				action: 'aie_job_download_url',
 				job_id: jobId,
-				nonce: aieData.nonce
+				nonce: aieData.nonce,
 			},
 			success: ( response ) => {
 				if ( response.success && response.data.url ) {
 					window.location.href = response.data.url;
 				} else {
-					alert( response.data || window.aieData.i18n.downloadFailed );
+					alert(
+						response.data || window.aieData.i18n.downloadFailed
+					);
 				}
 			},
 			error: () => {
 				alert( window.aieData.i18n.failedGenerateDownloadUrl );
-			}
+			},
 		} );
 	},
 
@@ -448,13 +572,18 @@ const JobsLogModule = {
 		const jobId = $row.data( 'job-id' );
 
 		try {
-			const response = await Utils.ajax( 'aie_job_get', { job_id: jobId } );
+			const response = await Utils.ajax( 'aie_job_get', {
+				job_id: jobId,
+			} );
 
 			if ( response ) {
 				this.showJobDetailsModal( response );
 			}
 		} catch ( error ) {
-			Utils.showNotice( window.aieData.i18n.errorLoadingJobDetails + error.message, 'error' );
+			Utils.showNotice(
+				window.aieData.i18n.errorLoadingJobDetails + error.message,
+				'error'
+			);
 		}
 	},
 
@@ -467,55 +596,96 @@ const JobsLogModule = {
 				<table class="form-table">
 					<tr>
 						<th>${ window.aieData.i18n.jobId || 'ID' }:</th>
-						<td>${job.id}</td>
+						<td>${ job.id }</td>
 					</tr>
 					<tr>
 						<th>${ window.aieData.i18n.jobType || 'Type' }:</th>
-						<td>${this.getTypeLabel( job.type )}</td>
+						<td>${ this.getTypeLabel( job.type ) }</td>
 					</tr>
-					${job.data_type ? `<tr>
+					${
+						job.data_type
+							? `<tr>
 						<th>${ window.aieData.i18n.jobDataType || 'Data Type' }:</th>
-						<td>${job.data_type}</td>
-					</tr>` : ''}
-					${job.file_format ? `<tr>
+						<td>${ job.data_type }</td>
+					</tr>`
+							: ''
+					}
+					${
+						job.file_format
+							? `<tr>
 						<th>${ window.aieData.i18n.jobFileFormat || 'File Format' }:</th>
-						<td>${job.file_format}</td>
-					</tr>` : ''}
+						<td>${ job.file_format }</td>
+					</tr>`
+							: ''
+					}
 					<tr>
 						<th>${ window.aieData.i18n.jobStatus || 'Status' }:</th>
-						<td><span class="job-status-badge job-status-${job.status}">${this.getStatusLabel( job.status )}</span></td>
+						<td><span class="job-status-badge job-status-${
+							job.status
+						}">${ this.getStatusLabel( job.status ) }</span></td>
 					</tr>
 					<tr>
 						<th>${ window.aieData.i18n.jobProgress || 'Progress' }:</th>
-						<td>${job.progress || 0}%</td>
+						<td>${ job.progress || 0 }%</td>
 					</tr>
 					<tr>
 						<th>${ window.aieData.i18n.jobItems || 'Items' }:</th>
-						<td>${job.processed_items} / ${job.total_items} (${ window.aieData.i18n.jobSuccess || 'Success' }: ${job.success_items}, ${ window.aieData.i18n.failed || 'Failed' }: ${job.failed_items})</td>
+						<td>${ job.processed_items } / ${ job.total_items } (${
+							window.aieData.i18n.jobSuccess || 'Success'
+						}: ${ job.success_items }, ${
+							window.aieData.i18n.failed || 'Failed'
+						}: ${ job.failed_items })</td>
 					</tr>
-					${job.created_at ? `<tr>
+					${
+						job.created_at
+							? `<tr>
 						<th>${ window.aieData.i18n.jobCreated || 'Created' }:</th>
-						<td>${job.created_at}</td>
-					</tr>` : ''}
-					${job.started_at ? `<tr>
+						<td>${ job.created_at }</td>
+					</tr>`
+							: ''
+					}
+					${
+						job.started_at
+							? `<tr>
 						<th>${ window.aieData.i18n.jobStarted || 'Started' }:</th>
-						<td>${job.started_at}</td>
-					</tr>` : ''}
-					${job.completed_at ? `<tr>
+						<td>${ job.started_at }</td>
+					</tr>`
+							: ''
+					}
+					${
+						job.completed_at
+							? `<tr>
 						<th>${ window.aieData.i18n.jobCompleted || 'Completed' }:</th>
-						<td>${job.completed_at}</td>
-					</tr>` : ''}
-					${job.file_path ? `<tr>
+						<td>${ job.completed_at }</td>
+					</tr>`
+							: ''
+					}
+					${
+						job.file_path
+							? `<tr>
 						<th>${ window.aieData.i18n.jobFile || 'File' }:</th>
-						<td>${job.file_path}</td>
-					</tr>` : ''}
-					${job.file_size ? `<tr><th>${ window.aieData.i18n.jobFileSize || 'File Size' }:</th><td>${job.file_size_human}</td></tr>` : ''}
+						<td>${ job.file_path }</td>
+					</tr>`
+							: ''
+					}
+					${
+						job.file_size
+							? `<tr><th>${
+									window.aieData.i18n.jobFileSize ||
+									'File Size'
+							  }:</th><td>${ job.file_size_human }</td></tr>`
+							: ''
+					}
 				</table>
 				
-				${job.parameters ? `
+				${
+					job.parameters
+						? `
 					<h3>${ window.aieData.i18n.jobParameters || 'Parameters' }</h3>
-					<pre class="job-parameters">${JSON.stringify( job.parameters, null, 2 )}</pre>
-				` : ''}
+					<pre class="job-parameters">${ JSON.stringify( job.parameters, null, 2 ) }</pre>
+				`
+						: ''
+				}
 			</div>
 		`;
 
@@ -558,7 +728,8 @@ const JobsLogModule = {
 		}
 
 		if ( page ) {
-			window.location.href = 'admin.php?page=' + page + '&resume_job=' + jobId;
+			window.location.href =
+				'admin.php?page=' + page + '&resume_job=' + jobId;
 		}
 	},
 
@@ -567,10 +738,10 @@ const JobsLogModule = {
 	 */
 	getTypeLabel( type ) {
 		const labels = {
-			'import': window.aieData.i18n.typeImport || 'Import',
-			'export': window.aieData.i18n.typeExport || 'Export',
-			'update': window.aieData.i18n.typeUpdate || 'Update',
-			'media_sync': window.aieData.i18n.typeMediaSync || 'Media Sync',
+			import: window.aieData.i18n.typeImport || 'Import',
+			export: window.aieData.i18n.typeExport || 'Export',
+			update: window.aieData.i18n.typeUpdate || 'Update',
+			media_sync: window.aieData.i18n.typeMediaSync || 'Media Sync',
 		};
 		return labels[ type ] || type;
 	},
@@ -580,12 +751,12 @@ const JobsLogModule = {
 	 */
 	getStatusLabel( status ) {
 		const labels = {
-			'pending': window.aieData.i18n.statusPending || 'Pending',
-			'processing': window.aieData.i18n.statusProcessing || 'Processing',
-			'completed': window.aieData.i18n.statusCompleted || 'Completed',
-			'failed': window.aieData.i18n.statusFailed || 'Failed',
-			'paused': window.aieData.i18n.statusPaused || 'Paused',
-			'cancelled': window.aieData.i18n.statusCancelled || 'Cancelled',
+			pending: window.aieData.i18n.statusPending || 'Pending',
+			processing: window.aieData.i18n.statusProcessing || 'Processing',
+			completed: window.aieData.i18n.statusCompleted || 'Completed',
+			failed: window.aieData.i18n.statusFailed || 'Failed',
+			paused: window.aieData.i18n.statusPaused || 'Paused',
+			cancelled: window.aieData.i18n.statusCancelled || 'Cancelled',
 		};
 		return labels[ status ] || status;
 	},
