@@ -2,18 +2,18 @@
 Contributors: RockstarLab
 Tags: import, export, csv, site sync, data migration
 Requires at least: 5.8
-Tested up to: 6.9.4
+Tested up to: 6.9
 Stable tag: 1.0.0
 Requires PHP: 7.4
 License: GPL v2 or later
 
-Advanced import/export for WordPress: custom functions, media sync, site-to-site content sync, and Real Media Library integration.
+Advanced import/export for WordPress: custom functions, media sync, and site-to-site content sync.
 
 == Description ==
 
 Import Export by RockStarLab helps you move WordPress data between sites and environments. It supports CSV-based import/export workflows, custom field mapping, optional PHP transformations, and background jobs for large datasets.
 
-Tired of restrictive tools that only handle posts? Our WordPress Import Export Plugin is built for developers and store owners who need total control. From standard WordPress elements to raw MySQL tables and WooCommerce entities, move your data without the headache of manual SQL queries or broken serialized data. 📂
+Import and export WordPress content with a flexible workflow that scales to large datasets. Use mapping, background jobs, and optional PHP transformations to move data reliably. 📂
 
 It also includes optional AI-assisted tools (when configured) to help generate transformation functions and extract content from URLs.
 
@@ -21,11 +21,7 @@ It also includes optional AI-assisted tools (when configured) to help generate t
 
 Our plugin is packed with tools to make data management seamless:
 
-Comprehensive Data Support: Import and Export Posts, Pages, Custom Post Types (CPT), Taxonomies, Media Files, Navigation Menus, Users, and Comments. 📝
-
-WooCommerce Mastery: Full support for WooCommerce Products (including variations), Attributes, Orders, and Coupons. Perfect for store migrations! 🛒
-
-Raw MySQL Power: Go beyond WordPress standards. Import and export data from any MySQL table within your database. 🗄️
+Core Data Support: Import and Export Posts and Pages with field mapping and background processing. 📝
 
 Intelligent Sync: Easily sync selected content between sites. Keep your Production and Staging environments in perfect harmony. 🔄
 
@@ -37,9 +33,9 @@ AI-Powered URL Importer: Give the plugin a URL, and our AI will parse the remote
 
 Smart Jobs Log: Every action is saved. Re-run any import or export job with a single click without re-configuring parameters. 📜
 
-== Special Offer ==
+== PRO Addon ==
 
-All new users get 4 weeks of all premium features! 🔥
+This plugin has an optional PRO addon plugin that adds additional content types for Import, Export, and Content Updater.
 
 == Why Choose Our Import / Export Plugin? ==
 
@@ -51,11 +47,11 @@ AI Integration: Don't know how to code a specific data transformation? Simply de
 
 Speed & Performance: Optimized to handle large XML, CSV, and JSON files without crashing your server or hitting timeout limits.
 
-No Data Left Behind: We handle complex metadata and hidden custom fields that other plugins often skip.
+Data Integrity: Handles metadata and custom fields during import/export workflows.
 
 = Core Features =
 
-* **Multiple Data Types**: Posts, Pages, Users, Comments, Media, Custom Post Types, Taxonomies
+* **Multiple Data Types**: Posts and Pages (additional content types via the optional PRO addon)
 * **File Formats**: CSV with streaming support for large files
 * **Background Processing**: Handle large datasets without memory limits
 * **Field Mapping**: Intuitive field mapping interface with preview
@@ -73,7 +69,7 @@ Synchronize content between two WordPress sites with secure API-based connection
 
 * **API Key Connection**: Connect sites with secure 64-character API keys
 * **Bidirectional Sync**: Pull from remote site or push to it
-* **All Content Types**: Posts, Pages, CPT, Users, Media, Terms, Comments
+* **Content Types**: Posts and Pages (additional content types via the optional PRO addon)
 * **Selective Sync**: Filter by ID, date, author, status, taxonomy
 * **Conflict Resolution**: Skip, Update, or Duplicate strategies
 * **Media Sync**: Automatically download and sync media files
@@ -89,7 +85,7 @@ Easily synchronize files from server folders (uploaded via FTP/SFTP) to your Wor
 * **Preserve Structure**: Maintain original folder hierarchy
 * **Batch Processing**: Handle large numbers of files efficiently
 * **Auto Alt Text**: Generate alt text from filenames
-* **Premium: Real Media Library**: Automatically create folder structure in Real Media Library
+* **PRO Addon: Real Media Library**: Automatically create folder structure in Real Media Library
 
 = Custom Functions System =
 
@@ -102,13 +98,9 @@ Transform your data during import/export with custom PHP functions:
 * **Safe Execution**: Sandboxed execution with whitelist/blacklist
 * **Reusable**: Save and reuse functions across different imports
 
-= Premium Features =
+= What the PRO Addon adds =
 
-* **ACF Integration**: Support for Advanced Custom Fields
-* **Real Media Library Integration**: Automatic folder creation and organization
-* **WooCommerce Support**: Import/export products, orders, and variations
-* **YOAST SEO Integration**: Support for YOAST SEO WordPress Plugin
-* **Priority Support**: Get help when you need it
+The PRO addon extends Import, Export, and Content Updater with additional content types (for example: Custom Post Types, Taxonomy Terms, Users, Comments, Media, and more).
 
 = Perfect For =
 
@@ -118,7 +110,7 @@ Transform your data during import/export with custom PHP functions:
 * **Data Integration**: Importing data from external systems
 * **Content Management**: Exporting for backup or analysis
 * **Media Organization**: Organizing FTP-uploaded files into Media Library
-* **WooCommerce**: Product catalog management
+* **WooCommerce**: Product catalog management (via the optional PRO addon)
 
 == External services ==
 
@@ -160,7 +152,7 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 
 = Is Real Media Library integration included? =
 
-Real Media Library integration is a Premium feature. Upgrade to Premium to automatically create folder structures in RML.
+Real Media Library integration is available via the optional PRO addon.
 
 = Can I sync content between two WordPress sites? =
 

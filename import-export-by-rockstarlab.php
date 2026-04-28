@@ -63,21 +63,20 @@ if ( ! function_exists( 'rsl_ie_fs' ) ) {
 
 			$rsl_ie_fs = fs_dynamic_init(
 				array(
-					'id'              => '21998',
-					'slug'            => 'import-export-by-rockstarlab',
-					'premium_slug'    => 'import-export-pro-by-rockstarlab',
-					'type'            => 'plugin',
-					'public_key'      => 'pk_c389cfb9437cdb5c934c0efd7e99c',
-					'is_premium'      => true,
-					'is_premium_only' => false,
-					'has_addons'      => true,
-					'has_paid_plans'  => false,
-					'has_affiliation' => 'all',
-					'trial'           => array(
-						'days'               => 30,
-						'is_require_payment' => true,
-					),
-					'menu'            => array(
+					'id'               => '21998',
+					'slug'             => 'import-export-by-rockstarlab',
+					'premium_slug'     => 'import-export-pro-by-rockstarlab',
+					'type'             => 'plugin',
+					'public_key'       => 'pk_c389cfb9437cdb5c934c0efd7e99c',
+					// WP.org compliance: the directory-hosted plugin must not be "premium".
+					'is_premium'       => false,
+					'is_premium_only'  => false,
+					'has_addons'       => true,
+					'has_paid_plans'   => false,
+					// Freemius WP.org compatibility mode.
+					'is_org_compliant' => true,
+					'has_affiliation'  => 'all',
+					'menu'             => array(
 						'slug'       => 'import-export-by-rockstarlab',
 						'first-path' => 'admin.php?page=import-export-by-rockstarlab',
 					),
