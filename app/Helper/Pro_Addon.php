@@ -47,7 +47,12 @@ class Pro_Addon {
 	 * @return bool
 	 */
 	public static function has_valid_license() {
-		return function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
+		if ( function_exists( 'rsl_ie_pro_fs' ) ) {
+			$fs = rsl_ie_pro_fs();
+			return is_object( $fs ) && method_exists( $fs, 'can_use_premium_code' ) && (bool) $fs->can_use_premium_code();
+		}
+
+		return false;
 	}
 
 	/**
