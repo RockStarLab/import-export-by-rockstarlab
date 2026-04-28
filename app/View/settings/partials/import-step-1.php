@@ -17,15 +17,15 @@ defined( 'ABSPATH' ) || exit;
 
 	<div class="aie-step-content">
 		<?php
-		$pro_active      = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active();
-		$promo_cta       = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_cta();
-		$promo_dismissed = (bool) get_user_meta( get_current_user_id(), 'rsl_ie_dismiss_pro_promo_import', true );
+		$rsl_ie_pro_active      = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active();
+		$rsl_ie_promo_cta       = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_cta();
+		$rsl_ie_promo_dismissed = (bool) get_user_meta( get_current_user_id(), 'rsl_ie_dismiss_pro_promo_import', true );
 
-		$promo_title = __( 'Need more features? Buy PRO addon', 'import-export-by-rockstarlab' );
-		$promo_desc  = __( 'Get additional import content types by installing the PRO addon.', 'import-export-by-rockstarlab' );
+		$rsl_ie_promo_title = __( 'Need more features? Buy PRO addon', 'import-export-by-rockstarlab' );
+		$rsl_ie_promo_desc  = __( 'Get additional import content types by installing the PRO addon.', 'import-export-by-rockstarlab' );
 
-		$promo_features = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_features( 'import' );
-		$trial_note     = __( 'Free 30-day PRO Addon trial is available for all new users.', 'import-export-by-rockstarlab' );
+		$rsl_ie_promo_features = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_features( 'import' );
+		$rsl_ie_trial_note     = __( 'Free 30-day PRO Addon trial is available for all new users.', 'import-export-by-rockstarlab' );
 		?>
 		
 		<!-- Search/Filter Field -->
@@ -70,23 +70,23 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 			</label>
 
-			<?php if ( $pro_active ) : ?>
+			<?php if ( $rsl_ie_pro_active ) : ?>
 				<?php
-				$pro_types  = \RockStarLab\ImportExport\Helper\Pro_Addon::get_pro_content_type_cards( 'import' );
-				$pro_types  = apply_filters( 'rsl_ie_pro_import_content_types', $pro_types );
-				$pro_locked = false;
-				foreach ( $pro_types as $type ) :
+				$rsl_ie_pro_types  = \RockStarLab\ImportExport\Helper\Pro_Addon::get_pro_content_type_cards( 'import' );
+				$rsl_ie_pro_types  = apply_filters( 'rsl_ie_pro_import_content_types', $rsl_ie_pro_types );
+				$rsl_ie_pro_locked = false;
+				foreach ( $rsl_ie_pro_types as $rsl_ie_type ) :
 					?>
-					<label class="aie-content-type <?php echo $pro_locked ? 'aie-premium-locked' : ''; ?>">
-						<input type="radio" name="content_type" value="<?php echo esc_attr( $type['value'] ); ?>" <?php echo $pro_locked ? 'disabled' : ''; ?>>
+					<label class="aie-content-type <?php echo $rsl_ie_pro_locked ? 'aie-premium-locked' : ''; ?>">
+						<input type="radio" name="content_type" value="<?php echo esc_attr( $rsl_ie_type['value'] ); ?>" <?php echo $rsl_ie_pro_locked ? 'disabled' : ''; ?>>
 						<div class="aie-content-type-card">
-							<span class="dashicons <?php echo esc_attr( $type['icon'] ?? 'dashicons-star-filled' ); ?>"></span>
-							<h3><?php echo esc_html( $type['title'] ?? '' ); ?></h3>
-							<p><?php echo esc_html( $type['description'] ?? '' ); ?></p>
+							<span class="dashicons <?php echo esc_attr( $rsl_ie_type['icon'] ?? 'dashicons-star-filled' ); ?>"></span>
+							<h3><?php echo esc_html( $rsl_ie_type['title'] ?? '' ); ?></h3>
+							<p><?php echo esc_html( $rsl_ie_type['description'] ?? '' ); ?></p>
 						</div>
 					</label>
 				<?php endforeach; ?>
-			<?php elseif ( ! $promo_dismissed ) : ?>
+			<?php elseif ( ! $rsl_ie_promo_dismissed ) : ?>
 				<div class="aie-content-type aie-pro-addon-card">
 					<div class="aie-content-type-card">
 						<div class="aie-pro-addon-header">
@@ -94,26 +94,26 @@ defined( 'ABSPATH' ) || exit;
 								<span class="dashicons dashicons-star-filled"></span>
 							</div>
 							<div class="aie-pro-addon-copy">
-								<h3><?php echo esc_html( $promo_title ); ?></h3>
-								<p><?php echo esc_html( $promo_desc ); ?></p>
+								<h3><?php echo esc_html( $rsl_ie_promo_title ); ?></h3>
+								<p><?php echo esc_html( $rsl_ie_promo_desc ); ?></p>
 							</div>
 						</div>
 
-						<?php if ( ! $pro_active ) : ?>
+						<?php if ( ! $rsl_ie_pro_active ) : ?>
 							<div class="aie-pro-addon-trial">
 								<span class="dashicons dashicons-calendar-alt"></span>
-								<span class="aie-pro-addon-trial-text"><?php echo esc_html( $trial_note ); ?></span>
+								<span class="aie-pro-addon-trial-text"><?php echo esc_html( $rsl_ie_trial_note ); ?></span>
 							</div>
 						<?php endif; ?>
 
-						<?php if ( ! $pro_active && ! empty( $promo_features ) ) : ?>
+						<?php if ( ! $rsl_ie_pro_active && ! empty( $rsl_ie_promo_features ) ) : ?>
 							<ul class="aie-pro-addon-features">
-								<?php foreach ( $promo_features as $feature ) : ?>
+								<?php foreach ( $rsl_ie_promo_features as $rsl_ie_feature ) : ?>
 									<li>
 										<span class="dashicons dashicons-yes-alt"></span>
 										<div class="aie-pro-addon-feature-text">
-											<strong><?php echo esc_html( $feature['title'] ?? '' ); ?></strong>
-											<span><?php echo esc_html( $feature['description'] ?? '' ); ?></span>
+											<strong><?php echo esc_html( $rsl_ie_feature['title'] ?? '' ); ?></strong>
+											<span><?php echo esc_html( $rsl_ie_feature['description'] ?? '' ); ?></span>
 										</div>
 									</li>
 								<?php endforeach; ?>
@@ -121,14 +121,14 @@ defined( 'ABSPATH' ) || exit;
 						<?php endif; ?>
 
 						<a
-							href="<?php echo esc_url( $promo_cta['url'] ); ?>"
+							href="<?php echo esc_url( $rsl_ie_promo_cta['url'] ); ?>"
 							class="button button-primary aie-pro-addon-cta"
 							target="_blank" rel="noopener noreferrer"
 						>
-							<?php echo esc_html( $promo_cta['label'] ); ?>
+							<?php echo esc_html( $rsl_ie_promo_cta['label'] ); ?>
 						</a>
 
-						<?php if ( ! $pro_active ) : ?>
+						<?php if ( ! $rsl_ie_pro_active ) : ?>
 							<div class="aie-pro-addon-dismiss">
 								<button type="button" class="button-link aie-pro-addon-hide" data-context="import">
 									<?php esc_html_e( 'Hide', 'import-export-by-rockstarlab' ); ?>

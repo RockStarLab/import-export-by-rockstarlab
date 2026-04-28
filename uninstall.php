@@ -1,16 +1,16 @@
 <?php
 /**
  * Uninstall script
- * 
+ *
  * Fired when the plugin is uninstalled.
  * Drops all custom tables and cleans up options.
- * 
+ *
  * @package RockStarLab\ImportExport
  */
 
 // If uninstall not called from WordPress, exit
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-    exit;
+	exit;
 }
 
 // Load the database migration helper
@@ -34,8 +34,8 @@ $wpdb->query( $wpdb->prepare( "DELETE FROM `{$wpdb->options}` WHERE option_name 
 // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 // Clean up uploaded files directory
-$upload_dir = wp_upload_dir();
-$rsl_ie_upload_dir = $upload_dir['basedir'] . '/rsl-ie-uploads/';
+$rsl_ie_upload_dir_info = wp_upload_dir();
+$rsl_ie_upload_dir      = $rsl_ie_upload_dir_info['basedir'] . '/rsl-ie-uploads/';
 
 if ( ! function_exists( 'rsl_ie_delete_directory' ) ) {
 	/**

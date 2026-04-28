@@ -8,19 +8,19 @@
 defined( 'ABSPATH' ) || exit;
 
 // Get current settings
-$openai_api_key = get_option( 'rsl_ie_openai_api_key', '' );
+$rsl_ie_openai_api_key = get_option( 'rsl_ie_openai_api_key', '' );
 
-$constant_key_value = '';
+$rsl_ie_constant_key_value = '';
 if ( defined( 'RSL_IE_OPENAI_API_KEY' ) && ! empty( RSL_IE_OPENAI_API_KEY ) ) {
-	$constant_key_value = RSL_IE_OPENAI_API_KEY;
+	$rsl_ie_constant_key_value = RSL_IE_OPENAI_API_KEY;
 }
 
-$has_constant_key = ! empty( $constant_key_value );
+$rsl_ie_has_constant_key = ! empty( $rsl_ie_constant_key_value );
 
 // Mask the API key for display
-$masked_api_key = '';
-if ( ! empty( $openai_api_key ) ) {
-	$masked_api_key = substr( $openai_api_key, 0, 7 ) . '...' . substr( $openai_api_key, -4 );
+$rsl_ie_masked_api_key = '';
+if ( ! empty( $rsl_ie_openai_api_key ) ) {
+	$rsl_ie_masked_api_key = substr( $rsl_ie_openai_api_key, 0, 7 ) . '...' . substr( $rsl_ie_openai_api_key, -4 );
 }
 ?>
 
@@ -57,7 +57,7 @@ if ( ! empty( $openai_api_key ) ) {
 								</label>
 							</th>
 							<td>
-								<?php if ( $has_constant_key ) : ?>
+								<?php if ( $rsl_ie_has_constant_key ) : ?>
 									<div class="aie-info-box aie-warning">
 										<span class="dashicons dashicons-info"></span>
 										<div>
@@ -70,7 +70,7 @@ if ( ! empty( $openai_api_key ) ) {
 										id="aie-openai-api-key" 
 										name="openai_api_key"
 										class="regular-text" 
-										value="<?php echo esc_attr( substr( $constant_key_value, 0, 7 ) . '...' . substr( $constant_key_value, -4 ) ); ?>"
+										value="<?php echo esc_attr( substr( $rsl_ie_constant_key_value, 0, 7 ) . '...' . substr( $rsl_ie_constant_key_value, -4 ) ); ?>"
 										disabled
 										readonly
 									>
@@ -80,20 +80,20 @@ if ( ! empty( $openai_api_key ) ) {
 										id="aie-openai-api-key" 
 										name="openai_api_key"
 										class="regular-text" 
-										value="<?php echo esc_attr( $openai_api_key ); ?>"
+										value="<?php echo esc_attr( $rsl_ie_openai_api_key ); ?>"
 										placeholder="sk-proj-..."
 									>
 									<button type="button" class="button aie-toggle-password" data-target="aie-openai-api-key">
 										<span class="dashicons dashicons-visibility"></span>
 									</button>
-									<?php if ( ! empty( $openai_api_key ) ) : ?>
+									<?php if ( ! empty( $rsl_ie_openai_api_key ) ) : ?>
 										<p class="description">
 											<?php
 											echo esc_html(
 												sprintf(
 													/* translators: %s: masked API key */
 													__( 'Current key: %s', 'import-export-by-rockstarlab' ),
-													$masked_api_key
+													$rsl_ie_masked_api_key
 												)
 											);
 											?>
@@ -120,7 +120,7 @@ if ( ! empty( $openai_api_key ) ) {
 							</th>
 							<td>
 								<div id="aie-api-status" class="aie-api-status">
-									<?php if ( ! empty( $openai_api_key ) || $has_constant_key ) : ?>
+									<?php if ( ! empty( $rsl_ie_openai_api_key ) || $rsl_ie_has_constant_key ) : ?>
 										<span class="aie-status-badge aie-status-configured">
 											<span class="dashicons dashicons-yes-alt"></span>
 											<?php esc_html_e( 'Configured', 'import-export-by-rockstarlab' ); ?>
@@ -153,7 +153,7 @@ if ( ! empty( $openai_api_key ) ) {
 						</tr>
 					</table>
 
-					<?php if ( ! $has_constant_key ) : ?>
+					<?php if ( ! $rsl_ie_has_constant_key ) : ?>
 						<div class="aie-settings-footer">
 							<button type="submit" class="button button-primary aie-save-settings">
 								<span class="dashicons dashicons-yes"></span>

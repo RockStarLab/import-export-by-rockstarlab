@@ -32,6 +32,9 @@ if [ ! -d "$PRO_DIR" ]; then
   exit 1
 fi
 
+echo "Cleaning dist directory..."
+rm -f "$FREE_ZIP" "$PRO_ZIP"
+
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/${FREE_SLUG}.release.XXXXXX")"
 cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT

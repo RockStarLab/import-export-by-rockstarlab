@@ -8,8 +8,8 @@
 defined( 'ABSPATH' ) || exit;
 
 // Get upload directory for browser
-$upload_dir = wp_upload_dir();
-$base_dir   = $upload_dir['basedir'];
+$rsl_ie_upload_dir = wp_upload_dir();
+$rsl_ie_base_dir   = $rsl_ie_upload_dir['basedir'];
 ?>
 
 <!-- Folder Browser Modal -->
@@ -34,7 +34,7 @@ $base_dir   = $upload_dir['basedir'];
 
 			<div class="aie-folder-browser-path">
 				<span class="dashicons dashicons-admin-home"></span>
-				<span id="aie-current-path"><?php echo esc_html( $base_dir ); ?></span>
+				<span id="aie-current-path"><?php echo esc_html( $rsl_ie_base_dir ); ?></span>
 			</div>
 
 			<div id="aie-folder-browser-error" class="notice notice-error inline" style="display: none; margin: 10px 0;">

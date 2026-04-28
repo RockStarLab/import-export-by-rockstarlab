@@ -48,22 +48,22 @@ defined( 'ABSPATH' ) || exit;
 					</tr>
 
 					<?php
-					$has_api_key   = \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_key();
-					$feature_ready = $has_api_key;
+					$rsl_ie_has_api_key   = \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_key();
+					$rsl_ie_feature_ready = $rsl_ie_has_api_key;
 					?>
 					<tr class="aie-ai-generate-section">
 						<th scope="row">
 							<label><?php esc_html_e( 'AI Generator', 'import-export-by-rockstarlab' ); ?></label>
 						</th>
 						<td>
-								<button type="button" class="button aie-generate-with-ai" <?php echo ! $feature_ready ? 'disabled' : ''; ?>>
+								<button type="button" class="button aie-generate-with-ai" <?php echo ! $rsl_ie_feature_ready ? 'disabled' : ''; ?>>
 									<span class="dashicons dashicons-admin-generic"></span>
 									<?php esc_html_e( 'Generate function with AI', 'import-export-by-rockstarlab' ); ?>
 								</button>
 								<p class="description">
 									<?php esc_html_e( 'Describe what you want the function to do, and AI will generate the code for you.', 'import-export-by-rockstarlab' ); ?>
 								</p>
-							<?php if ( ! $has_api_key ) : ?>
+							<?php if ( ! $rsl_ie_has_api_key ) : ?>
 								<div class="notice notice-warning inline">
 									<p>
 										<?php

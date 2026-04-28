@@ -8,8 +8,8 @@
 defined( 'ABSPATH' ) || exit;
 
 // Get upload directory for suggestions
-$upload_dir = wp_upload_dir();
-$base_dir   = $upload_dir['basedir'];
+$rsl_ie_upload_dir = wp_upload_dir();
+$rsl_ie_base_dir   = $rsl_ie_upload_dir['basedir'];
 ?>
 
 <!-- Step 1: Scan Folder -->
@@ -53,7 +53,7 @@ $base_dir   = $upload_dir['basedir'];
 							/* translators: %s: uploads directory path */
 							esc_html__( 'Enter folder name relative to uploads directory. Example: %1$s will scan %2$s', 'import-export-by-rockstarlab' ),
 							'<code>ftp-import</code>',
-							'<code>' . esc_html( $base_dir ) . '/ftp-import/</code>'
+							'<code>' . esc_html( $rsl_ie_base_dir ) . '/ftp-import/</code>'
 						);
 						?>
 						<br>
