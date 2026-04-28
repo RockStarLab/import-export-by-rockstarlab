@@ -84,41 +84,23 @@ defined( 'ABSPATH' ) || exit;
 				</td>
 			</tr>
 
-			<tr>
+				<tr>
 					<th scope="row">
 						<label for="aie-rml-integration">
 							<?php esc_html_e( 'Real Media Library', 'import-export-by-rockstarlab' ); ?>
-							<?php if ( ! \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ) : ?>
-								<span class="aie-premium-badge" title="<?php esc_attr_e( 'Premium Feature', 'import-export-by-rockstarlab' ); ?>">
-									<span class="dashicons dashicons-star-filled"></span>
-									<?php esc_html_e( 'PRO', 'import-export-by-rockstarlab' ); ?>
-								</span>
-							<?php endif; ?>
 						</label>
 					</th>
 					<td>
-						<?php if ( \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ) : ?>
-							<label>
-								<input type="checkbox" id="aie-rml-integration">
+						<label>
+							<input type="checkbox" id="aie-rml-integration">
 							<?php
 							// translators: %s is the Real Media Library plugin link.
-							printf( esc_html__( 'Create virtual folders in %s plugin', 'import-export-by-rockstarlab' ), '<a href="https://devowl.io/wordpress-real-media-library/" target="_blank">Real Media Library</a>' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML link is hardcoded.
+							printf( esc_html__( 'Create virtual folders in %s plugin', 'import-export-by-rockstarlab' ), '<a href="https://devowl.io/wordpress-real-media-library/" target="_blank" rel="noopener noreferrer">Real Media Library</a>' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML link is hardcoded.
 							?>
 						</label>
 						<p class="description">
-							<?php esc_html_e( 'Automatically create folders in Real Media Library and organize imported files based on their folder structure.', 'import-export-by-rockstarlab' ); ?>
+							<?php esc_html_e( 'Automatically create folders in Real Media Library and organize imported files based on their folder structure (requires Real Media Library plugin).', 'import-export-by-rockstarlab' ); ?>
 						</p>
-						<?php else : ?>
-							<p class="description">
-								<?php
-								printf(
-									/* translators: %s: PRO addon link */
-									esc_html__( 'This feature requires the PRO addon. %s to get Real Media Library integration.', 'import-export-by-rockstarlab' ),
-									'<a href="' . esc_url( \RockStarLab\ImportExport\Helper\Pro_Addon::get_upgrade_url() ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Get PRO addon', 'import-export-by-rockstarlab' ) . '</a>'
-								);
-								?>
-							</p>
-						<?php endif; ?>
 					</td>
 				</tr>
 		</table>
