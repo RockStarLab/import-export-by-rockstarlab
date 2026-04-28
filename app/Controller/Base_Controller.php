@@ -309,7 +309,7 @@ abstract class Base_Controller {
 	 * @return bool True if premium license is active
 	 */
 	protected function is_premium_active() {
-		return function_exists( 'rsl_ie_fs' ) && rsl_ie_fs()->can_use_premium_code();
+		return \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active();
 	}
 
 	/**
