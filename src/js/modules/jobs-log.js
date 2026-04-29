@@ -242,19 +242,66 @@ const JobsLogModule = {
 		// Retry - not available for media_sync jobs (files may have been moved)
 		if ( job.type !== 'media_sync' ) {
 			const jobType = ( job.type || '' ).toLowerCase();
-			const dataType = ( job.data_type || '' ).toLowerCase();
+			let dataType = ( job.data_type || '' ).toLowerCase();
 			const proEnabled = !! window.aieData.isProEnabled;
 
-			const freeByType = {
-				export: [ 'post', 'page' ],
+			// Keep client-side gating aligned with server-side `verify_premium_for_type_in_context()`.
+			const premiumDataTypes = [
+				'custom_post_types',
+				'custom_post_type',
+				'media',
+				'menu',
+				'menus',
+				'nav_menu',
+				'user',
+				'users',
+				'comment',
+				'comments',
+				'taxonomy',
+				'taxonomy_term',
+				'taxonomy_terms',
+				'term',
+				'terms',
+				'category',
+				'categories',
+				'tag',
+				'tags',
+				'woo_product',
+				'product',
+				'products',
+				'woo_order',
+				'woo_orders',
+				'woo_coupon',
+				'woo_attribute',
+				'database_table',
+			];
+
+			const freeByContext = {
 				import: [ 'post', 'posts', 'page', 'pages' ],
+				export: [ 'post', 'page' ],
 				update: [ 'post', 'comment', 'comments' ],
 			};
 
-			const freeTypes = freeByType[ jobType ] || null;
-			const proRequired = Array.isArray( freeTypes )
-				? ! freeTypes.includes( dataType )
-				: false;
+			// Import jobs store the data type in `parameters` JSON (data_type DB column can be empty).
+			if ( ! dataType && typeof job.parameters === 'string' ) {
+				try {
+					const params = JSON.parse( job.parameters );
+					dataType = String(
+						params?.import_type || params?.export_type || ''
+					).toLowerCase();
+				} catch ( e ) {
+					// ignore malformed JSON
+				}
+			}
+
+			const isPremiumType =
+				!! dataType && premiumDataTypes.includes( dataType );
+			const isFreeInContext =
+				!! dataType &&
+				Array.isArray( freeByContext[ jobType ] ) &&
+				freeByContext[ jobType ].includes( dataType );
+
+			const proRequired = isPremiumType && ! isFreeInContext;
 
 			if ( proRequired && ! proEnabled ) {
 				actions.push(
