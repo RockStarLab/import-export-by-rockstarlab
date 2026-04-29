@@ -146,19 +146,28 @@ class Chunk_Upload {
 		};
 
 		add_filter( 'upload_dir', $upload_dir_filter );
-		$upload_result = wp_handle_upload(
-			$chunk_upload,
-			array(
-				'test_form'                => false,
-				'unique_filename_callback' => static function ( $dir, $name, $ext ) use ( $chunk_filename ) {
-					return $chunk_filename;
-				},
-			)
-		);
-		remove_filter( 'upload_dir', $upload_dir_filter );
+			$upload_result = wp_handle_upload(
+				$chunk_upload,
+				array(
+					'test_form'                => false,
+					// Chunk blobs may be detected as "application/octet-stream". We validate the
+					// original filename extension above, so skip WordPress' MIME/type test here.
+					'test_type'                => false,
+					'unique_filename_callback' => static function ( $dir, $name, $ext ) use ( $chunk_filename ) {
+						return $chunk_filename;
+					},
+				)
+			);
+			remove_filter( 'upload_dir', $upload_dir_filter );
 
 		if ( isset( $upload_result['error'] ) ) {
-			wp_send_json_error( __( 'Failed to save chunk', 'import-export-by-rockstarlab' ) );
+			wp_send_json_error(
+				sprintf(
+					/* translators: %s: upload error message */
+					__( 'Failed to save chunk: %s', 'import-export-by-rockstarlab' ),
+					sanitize_text_field( (string) $upload_result['error'] )
+				)
+			);
 		}
 
 		wp_send_json_success(
