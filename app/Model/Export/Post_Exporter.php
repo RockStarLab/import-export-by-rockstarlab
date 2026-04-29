@@ -212,11 +212,11 @@ class Post_Exporter extends Abstract_Exporter {
 		}
 
 		$query_args = $this->build_query_args( $options );
-		
+
 		// Remove offset and paged for count query - we want total count
 		unset( $query_args['offset'] );
 		unset( $query_args['paged'] );
-		
+
 		$query_args['fields']         = 'ids';
 		$query_args['posts_per_page'] = -1;
 
@@ -385,25 +385,25 @@ class Post_Exporter extends Abstract_Exporter {
 
 		if ( ! $query->have_posts() ) {
 			return [];
-	}
+		}
 
-	$data   = [];
-	$fields = $this->get_option( 'fields', $this->get_default_fields() );
-	
-	// If fields is empty array, use default fields
-	if ( empty( $fields ) ) {
-		$fields = $this->get_default_fields();
-	}
+		$data   = [];
+		$fields = $this->get_option( 'fields', $this->get_default_fields() );
 
-	// CRITICAL: Force include ID for Content Updater
-	$force_include_id = $this->get_option( 'force_include_id', false );
-	if ( $force_include_id && ! in_array( 'ID', $fields, true ) ) {
-		// Prepend ID to fields array to ensure it's always included
-		array_unshift( $fields, 'ID' );
-		
-		// IMPORTANT: Also update options['fields'] so select_fields() doesn't remove ID
-		$this->options['fields'] = $fields;
-	}
+		// If fields is empty array, use default fields
+		if ( empty( $fields ) ) {
+			$fields = $this->get_default_fields();
+		}
+
+		// CRITICAL: Force include ID for Content Updater
+		$force_include_id = $this->get_option( 'force_include_id', false );
+		if ( $force_include_id && ! in_array( 'ID', $fields, true ) ) {
+			// Prepend ID to fields array to ensure it's always included
+			array_unshift( $fields, 'ID' );
+
+			// IMPORTANT: Also update options['fields'] so select_fields() doesn't remove ID
+			$this->options['fields'] = $fields;
+		}
 
 		while ( $query->have_posts() ) {
 			$query->the_post();
@@ -626,7 +626,6 @@ class Post_Exporter extends Abstract_Exporter {
 
 			$args['tax_query'][] = $tax_query_item;
 		}
-
 	}
 
 	/**
@@ -842,10 +841,10 @@ class Post_Exporter extends Abstract_Exporter {
 				} elseif ( $condition === 'not_equals' ) {
 					$args['post__not_in'] = array_merge( $args['post__not_in'] ?? [], [ absint( $value ) ] ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct export filtering.
 				} elseif ( $condition === 'in' ) {
-					$new_ids = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
+					$new_ids          = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
 					$args['post__in'] = array_merge( $args['post__in'] ?? [], $new_ids ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 				} elseif ( $condition === 'not_in' ) {
-					$new_ids = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
+					$new_ids              = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
 					$args['post__not_in'] = array_merge( $args['post__not_in'] ?? [], $new_ids ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct export filtering.
 				} elseif ( $condition === 'is_empty' ) {
 					// ID cannot be empty - return no results
@@ -963,7 +962,7 @@ class Post_Exporter extends Abstract_Exporter {
 						'terms'    => $term_slugs,
 						'operator' => 'NOT IN',
 					];
-				} else				if ( $condition === 'is_empty' ) {
+				} elseif ( $condition === 'is_empty' ) {
 					// Posts without this taxonomy OR with only Uncategorized category
 					if ( $taxonomy === 'category' ) {
 						// Get default category ID (usually "Uncategorized")
@@ -994,20 +993,20 @@ class Post_Exporter extends Abstract_Exporter {
 					// Posts with any term in this taxonomy (excluding Uncategorized for categories)
 					if ( $taxonomy === 'category' ) {
 						// Get default category ID (usually "Uncategorized")
-						$default_category = get_option( 'default_category' );					// For categories, exclude default category
-					$args['tax_query'][] = [
-						'relation' => 'AND',
-						[
-							'taxonomy' => $taxonomy,
-							'operator' => 'EXISTS',
-						],
-						[
-							'taxonomy' => $taxonomy,
-							'field'    => 'term_id',
-							'terms'    => $default_category,
-							'operator' => 'NOT IN',
-						],
-					];
+						$default_category    = get_option( 'default_category' );                   // For categories, exclude default category
+						$args['tax_query'][] = [
+							'relation' => 'AND',
+							[
+								'taxonomy' => $taxonomy,
+								'operator' => 'EXISTS',
+							],
+							[
+								'taxonomy' => $taxonomy,
+								'field'    => 'term_id',
+								'terms'    => $default_category,
+								'operator' => 'NOT IN',
+							],
+						];
 					} else {
 						// For other taxonomies, just check if exists
 						$args['tax_query'][] = [
@@ -1381,26 +1380,26 @@ class Post_Exporter extends Abstract_Exporter {
 		// Individual featured image fields
 		$featured_image_fields = [ 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption' ];
 		$has_featured_fields   = array_intersect( $featured_image_fields, $fields );
-		
+
 		if ( ! empty( $has_featured_fields ) ) {
 			$thumbnail_id = get_post_thumbnail_id( $post->ID );
-			
+
 			if ( $thumbnail_id ) {
 				if ( in_array( 'featured_image_id', $fields, true ) ) {
 					$data['featured_image_id'] = $thumbnail_id;
 				}
-				
+
 				if ( in_array( 'featured_image_url', $fields, true ) ) {
 					$data['featured_image_url'] = wp_get_attachment_url( $thumbnail_id );
 				}
-				
+
 				if ( in_array( 'featured_image_title', $fields, true ) ) {
-					$image                          = get_post( $thumbnail_id );
+					$image                        = get_post( $thumbnail_id );
 					$data['featured_image_title'] = $image ? $image->post_title : '';
 				}
-				
+
 				if ( in_array( 'featured_image_caption', $fields, true ) ) {
-					$image                            = get_post( $thumbnail_id );
+					$image                          = get_post( $thumbnail_id );
 					$data['featured_image_caption'] = $image ? $image->post_excerpt : '';
 				}
 			} else {
@@ -1430,7 +1429,7 @@ class Post_Exporter extends Abstract_Exporter {
 			if ( strpos( $field, 'taxonomy_' ) === 0 ) {
 				$taxonomy_name = substr( $field, 9 ); // Remove 'taxonomy_' prefix
 				$terms         = wp_get_object_terms( $post->ID, $taxonomy_name, [ 'fields' => 'names' ] );
-				
+
 				if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
 					$data[ $field ] = implode( ', ', $terms );
 				} else {
@@ -1440,39 +1439,181 @@ class Post_Exporter extends Abstract_Exporter {
 			// Handle direct taxonomy names (product_cat, product_tag, etc.)
 			elseif ( taxonomy_exists( $field ) ) {
 				$terms = wp_get_object_terms( $post->ID, $field, [ 'fields' => 'names' ] );
-				
+
 				if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
 					$data[ $field ] = implode( ', ', $terms );
 				} else {
 					$data[ $field ] = '';
 				}
 			}
-		}		// Process individual meta fields
+		}       // Process individual meta fields
 		foreach ( $fields as $field ) {
 			// Skip if already processed
 			if ( isset( $data[ $field ] ) ) {
 				continue;
 			}
-			
+
 			// Check if it's a meta field (starts with _ or not in basic/special fields)
 			// Skip if already processed as taxonomy
-			if ( ! in_array( $field, $basic_fields, true ) && 
-			     ! in_array( $field, [ 'author_name', 'author_email', 'post_meta', 'taxonomies', 'featured_image', 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption' ], true ) &&
-			     strpos( $field, 'taxonomy_' ) !== 0 &&
-			     ! taxonomy_exists( $field ) ) {
+			if ( ! in_array( $field, $basic_fields, true ) &&
+				! in_array( $field, [ 'author_name', 'author_email', 'post_meta', 'taxonomies', 'featured_image', 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption' ], true ) &&
+				strpos( $field, 'taxonomy_' ) !== 0 &&
+				! taxonomy_exists( $field ) ) {
 					// Handle ACF fields (with acf_ prefix)
-			if ( strpos( $field, 'acf_' ) === 0 ) {
-				$acf_field_name = substr( $field, 4 ); // Remove 'acf_' prefix (4 characters)
+				if ( strpos( $field, 'acf_' ) === 0 ) {
+					$acf_field_name = substr( $field, 4 ); // Remove 'acf_' prefix (4 characters)
 
-				// Export ACF values using raw meta + ACF field definitions from DB.
-				// This avoids relying on ACF runtime APIs (get_field/get_field_object)
-				// which can become unreliable in export/background contexts, especially
-				// for nested fields like repeaters.
-				$field_key_ref = get_post_meta( $post->ID, "_{$acf_field_name}", true );
+					// Export ACF values using raw meta + ACF field definitions from DB.
+					// This avoids relying on ACF runtime APIs (get_field/get_field_object)
+					// which can become unreliable in export/background contexts, especially
+					// for nested fields like repeaters.
+					$field_key_ref = get_post_meta( $post->ID, "_{$acf_field_name}", true );
+					if ( $field_key_ref && 0 === strpos( $field_key_ref, 'field_' ) ) {
+						$field_cfg = $this->acf_db_load_field_config_by_key( $field_key_ref );
+						if ( $field_cfg ) {
+							$exported = $this->acf_export_value_from_meta( $post->ID, $field_cfg, $acf_field_name );
+							if ( is_array( $exported ) || is_object( $exported ) ) {
+								$data[ $field ] = wp_json_encode( $exported );
+							} elseif ( $exported === null || $exported === false ) {
+								$data[ $field ] = '';
+							} else {
+								$data[ $field ] = $exported;
+							}
+							continue;
+						}
+					}
+
+					// Try get_field() first (handles complex fields like images, relationships).
+					// Prefer using the ACF field KEY when available — it is more reliable than
+					// using the name on non-edit screens (repeaters in particular can return
+					// false when ACF can't resolve the reference by name).
+					$acf_value = false;
+					$field_key = '';
+					if ( function_exists( 'get_field' ) ) {
+						$field_key = get_post_meta( $post->ID, "_{$acf_field_name}", true );
+						if ( $field_key && 0 === strpos( $field_key, 'field_' ) ) {
+							$acf_value = get_field( $field_key, $post->ID );
+						}
+						if ( $acf_value === false || $acf_value === null ) {
+							$acf_value = get_field( $acf_field_name, $post->ID );
+						}
+					}
+
+					// Some environments (background/cron/ajax) can cause get_field() to return
+					// false for nested fields (repeaters/flexible/group) even when the field
+					// reference key is present.  Fall back to ACF internals to load and format
+					// the field by KEY.
+					if ( ( $acf_value === false || $acf_value === null ) && $field_key && function_exists( 'acf_get_field' )
+					&& function_exists( 'acf_get_value' ) && function_exists( 'acf_format_value' ) ) {
+						$field_obj = acf_get_field( $field_key );
+						if ( is_array( $field_obj ) ) {
+							$raw       = acf_get_value( $post->ID, $field_obj );
+							$acf_value = acf_format_value( $raw, $post->ID, $field_obj );
+						}
+					}
+
+					// If get_field() returns false or null (field not found / ACF 6.x empty field),
+					// fall back to direct get_post_meta() and collect all related meta
+					if ( $acf_value === false || $acf_value === null ) {
+						$acf_value = get_post_meta( $post->ID, $acf_field_name, true );
+
+						// Check if this is a repeater/component field (numeric value AND has sub-fields)
+						if ( is_numeric( $acf_value ) && $acf_value > 0 ) {
+							global $wpdb;
+							$count = intval( $acf_value );
+
+							// Check if there are sub-fields (check first row) // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+							$pattern        = $acf_field_name . '_0_%';
+							$has_sub_fields = $wpdb->get_var(
+								$wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+									"SELECT COUNT(*) FROM {$wpdb->postmeta} 
+						WHERE post_id = %d AND meta_key LIKE %s",
+									$post->ID,
+									$pattern
+								)
+							);
+
+							// Only treat as repeater/component if sub-fields exist
+							if ( $has_sub_fields > 0 ) {
+								$repeater_data = [];
+
+								for ( $i = 0; $i < $count; $i++ ) {
+									// Get all meta keys for this row // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+									$pattern    = $acf_field_name . '_' . $i . '_%';
+									$sub_fields = $wpdb->get_results(
+										$wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+											"SELECT meta_key, meta_value FROM {$wpdb->postmeta} 
+								WHERE post_id = %d AND meta_key LIKE %s",
+											$post->ID,
+											$pattern
+										),
+										ARRAY_A
+									);
+
+									if ( ! empty( $sub_fields ) ) {
+												$row_data = [];
+										foreach ( $sub_fields as $sub_field ) {
+											// Extract sub-field name (remove prefix)
+											$sub_field_name              = str_replace( $acf_field_name . '_' . $i . '_', '', $sub_field['meta_key'] );
+											$row_data[ $sub_field_name ] = $sub_field['meta_value'];
+										}
+												$repeater_data[] = $row_data;
+									}
+								}
+
+								// Use the repeater data
+								if ( ! empty( $repeater_data ) ) {
+									$acf_value = $repeater_data;
+								}
+							}
+							// Otherwise it's just a number field, keep the numeric value
+						}
+						// If it's a serialized array, unserialize it
+						elseif ( is_string( $acf_value ) && $acf_value !== '' ) {
+							$unserialized = @unserialize( $acf_value );
+							if ( $unserialized !== false || $acf_value === 'b:0;' ) {
+								$acf_value = $unserialized;
+							}
+						}
+					}
+
+					// Convert ACF value to exportable format
+					if ( is_array( $acf_value ) ) {
+						// For arrays (images, files, etc.), try to get just the URL or serialize
+						if ( isset( $acf_value['url'] ) ) {
+							$data[ $field ] = $acf_value['url'];
+						} elseif ( isset( $acf_value['ID'] ) ) {
+							$data[ $field ] = $acf_value['ID'];
+						} else {
+							$data[ $field ] = $this->export_acf_complex_array( $acf_value, $acf_field_name, $post->ID );
+						}
+					} elseif ( $acf_value === false || $acf_value === null || $acf_value === '' ) {
+						// Empty field
+						$data[ $field ] = '';
+					} else {
+						// String, number, or true boolean
+						$data[ $field ] = $acf_value;
+					}
+					continue;
+				}
+
+				// Remove 'meta_' prefix if present (added by frontend for custom fields)
+				$meta_key = $field;
+				if ( strpos( $field, 'meta_' ) === 0 ) {
+					$meta_key = substr( $field, 5 ); // Remove 'meta_' prefix (5 characters)
+				}
+
+				// If this meta key belongs to an ACF field, export it in a portable format.
+				// This is important for edge cases like nested fields with empty names
+				// (their meta key ends with an underscore, so there is no matching acf_* column).
+				$field_key_ref = get_post_meta( $post->ID, "_{$meta_key}", true );
 				if ( $field_key_ref && 0 === strpos( $field_key_ref, 'field_' ) ) {
-					$field_cfg = $this->acf_db_load_field_config_by_key( $field_key_ref );
-					if ( $field_cfg ) {
-						$exported = $this->acf_export_value_from_meta( $post->ID, $field_cfg, $acf_field_name );
+					$field_cfg  = $this->acf_db_load_field_config_by_key( $field_key_ref );
+					$field_type = is_array( $field_cfg ) ? ( $field_cfg['type'] ?? '' ) : '';
+
+					// Only apply to field types where portability matters across sites.
+					if ( $field_cfg && in_array( $field_type, [ 'image', 'file', 'gallery', 'relationship', 'post_object', 'taxonomy', 'user' ], true ) ) {
+						$exported = $this->acf_export_value_from_meta( $post->ID, $field_cfg, $meta_key );
 						if ( is_array( $exported ) || is_object( $exported ) ) {
 							$data[ $field ] = wp_json_encode( $exported );
 						} elseif ( $exported === null || $exported === false ) {
@@ -1483,267 +1624,130 @@ class Post_Exporter extends Abstract_Exporter {
 						continue;
 					}
 				}
-				
-				// Try get_field() first (handles complex fields like images, relationships).
-				// Prefer using the ACF field KEY when available — it is more reliable than
-				// using the name on non-edit screens (repeaters in particular can return
-			// false when ACF can't resolve the reference by name).
-			$acf_value = false;
-			$field_key = '';
-			if ( function_exists( 'get_field' ) ) {
-				$field_key = get_post_meta( $post->ID, "_{$acf_field_name}", true );
-				if ( $field_key && 0 === strpos( $field_key, 'field_' ) ) {
-					$acf_value = get_field( $field_key, $post->ID );
-				}
-				if ( $acf_value === false || $acf_value === null ) {
-					$acf_value = get_field( $acf_field_name, $post->ID );
-				}
-			}
 
-			// Some environments (background/cron/ajax) can cause get_field() to return
-			// false for nested fields (repeaters/flexible/group) even when the field
-			// reference key is present.  Fall back to ACF internals to load and format
-			// the field by KEY.
-			if ( ( $acf_value === false || $acf_value === null ) && $field_key && function_exists( 'acf_get_field' )
-				&& function_exists( 'acf_get_value' ) && function_exists( 'acf_format_value' ) ) {
-				$field_obj = acf_get_field( $field_key );
-				if ( is_array( $field_obj ) ) {
-					$raw       = acf_get_value( $post->ID, $field_obj );
-					$acf_value = acf_format_value( $raw, $post->ID, $field_obj );
-				}
-			}
-			
-			// If get_field() returns false or null (field not found / ACF 6.x empty field),
-			// fall back to direct get_post_meta() and collect all related meta
-			if ( $acf_value === false || $acf_value === null ) {
-				$acf_value = get_post_meta( $post->ID, $acf_field_name, true );
-				
-				// Check if this is a repeater/component field (numeric value AND has sub-fields)
-				if ( is_numeric( $acf_value ) && $acf_value > 0 ) {
-					global $wpdb;
-					$count = intval( $acf_value );
-					
-					// Check if there are sub-fields (check first row) // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-					$pattern = $acf_field_name . '_0_%';
-					$has_sub_fields = $wpdb->get_var( $wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-						"SELECT COUNT(*) FROM {$wpdb->postmeta} 
-						WHERE post_id = %d AND meta_key LIKE %s",
-						$post->ID,
-						$pattern
-					) );
-					
-					// Only treat as repeater/component if sub-fields exist
-					if ( $has_sub_fields > 0 ) {
-						$repeater_data = [];
-						
-						for ( $i = 0; $i < $count; $i++ ) {
-							// Get all meta keys for this row // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-							$pattern = $acf_field_name . '_' . $i . '_%';
-							$sub_fields = $wpdb->get_results( $wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-								"SELECT meta_key, meta_value FROM {$wpdb->postmeta} 
-								WHERE post_id = %d AND meta_key LIKE %s",
-								$post->ID,
-								$pattern
-							), ARRAY_A );
-							
-							if ( ! empty( $sub_fields ) ) {
-								$row_data = [];
-								foreach ( $sub_fields as $sub_field ) {
-									// Extract sub-field name (remove prefix)
-									$sub_field_name = str_replace( $acf_field_name . '_' . $i . '_', '', $sub_field['meta_key'] );
-									$row_data[ $sub_field_name ] = $sub_field['meta_value'];
+				// Special handling for WooCommerce fields - use WC_Product object
+				if ( $post->post_type === 'product' && class_exists( 'WC_Product' ) && function_exists( 'wc_get_product' ) ) {
+					$wc_product = wc_get_product( $post->ID );
+
+					if ( $wc_product ) {
+						// Map field names to WooCommerce getter methods
+						$woo_field_map = [
+							'_sku'                   => 'get_sku',
+							'_regular_price'         => 'get_regular_price',
+							'_sale_price'            => 'get_sale_price',
+							'_tax_status'            => 'get_tax_status',
+							'_tax_class'             => 'get_tax_class',
+							'_stock'                 => 'get_stock_quantity',
+							'_stock_quantity'        => 'get_stock_quantity',
+							'_stock_status'          => 'get_stock_status',
+							'_manage_stock'          => 'get_manage_stock',
+							'_backorders'            => 'get_backorders',
+							'_downloadable'          => 'get_downloadable',
+							'_virtual'               => 'get_virtual',
+							'_weight'                => 'get_weight',
+							'_length'                => 'get_length',
+							'_width'                 => 'get_width',
+							'_height'                => 'get_height',
+							'_product_image_gallery' => 'get_gallery_image_ids',
+							'_wc_average_rating'     => 'get_average_rating',
+							'_wc_review_count'       => 'get_review_count',
+							'total_sales'            => 'get_total_sales',
+							// Add alternative field names without underscore
+							'sku'                    => 'get_sku',
+							'regular_price'          => 'get_regular_price',
+							'sale_price'             => 'get_sale_price',
+							'tax_status'             => 'get_tax_status',
+							'tax_class'              => 'get_tax_class',
+							'stock_quantity'         => 'get_stock_quantity',
+							'stock_status'           => 'get_stock_status',
+							'manage_stock'           => 'get_manage_stock',
+							'backorders'             => 'get_backorders',
+							'downloadable'           => 'get_downloadable',
+							'virtual'                => 'get_virtual',
+							'weight'                 => 'get_weight',
+							'length'                 => 'get_length',
+							'width'                  => 'get_width',
+							'height'                 => 'get_height',
+							'shipping_class'         => 'get_shipping_class',
+							'product_gallery'        => 'get_gallery_image_ids',
+							'average_rating'         => 'get_average_rating',
+							'review_count'           => 'get_review_count',
+						];
+
+						// Check if this field is a WooCommerce field
+						if ( isset( $woo_field_map[ $field ] ) || isset( $woo_field_map[ $meta_key ] ) ) {
+							$method = $woo_field_map[ $field ] ?? $woo_field_map[ $meta_key ];
+
+							if ( method_exists( $wc_product, $method ) ) {
+								$value = $wc_product->$method();
+
+								// Convert boolean values to yes/no
+								if ( is_bool( $value ) ) {
+									$value = $value ? 'yes' : 'no';
 								}
-								$repeater_data[] = $row_data;
-							}
-						}
-						
-						// Use the repeater data
-						if ( ! empty( $repeater_data ) ) {
-							$acf_value = $repeater_data;
-						}
-					}
-					// Otherwise it's just a number field, keep the numeric value
-				}
-				// If it's a serialized array, unserialize it
-				elseif ( is_string( $acf_value ) && $acf_value !== '' ) {
-					$unserialized = @unserialize( $acf_value );
-					if ( $unserialized !== false || $acf_value === 'b:0;' ) {
-						$acf_value = $unserialized;
-					}
-				}
-			}
-			
-			// Convert ACF value to exportable format
-			if ( is_array( $acf_value ) ) {
-				// For arrays (images, files, etc.), try to get just the URL or serialize
-				if ( isset( $acf_value['url'] ) ) {
-					$data[ $field ] = $acf_value['url'];
-				} elseif ( isset( $acf_value['ID'] ) ) {
-					$data[ $field ] = $acf_value['ID'];
-				} else {
-					$data[ $field ] = $this->export_acf_complex_array( $acf_value, $acf_field_name, $post->ID );
-				}
-			} elseif ( $acf_value === false || $acf_value === null || $acf_value === '' ) {
-				// Empty field
-				$data[ $field ] = '';
-			} else {
-				// String, number, or true boolean
-				$data[ $field ] = $acf_value;
-			}
-			continue;
-		}
-			
-			// Remove 'meta_' prefix if present (added by frontend for custom fields)
-			$meta_key = $field;
-			if ( strpos( $field, 'meta_' ) === 0 ) {
-				$meta_key = substr( $field, 5 ); // Remove 'meta_' prefix (5 characters)
-			}
-
-			// If this meta key belongs to an ACF field, export it in a portable format.
-			// This is important for edge cases like nested fields with empty names
-			// (their meta key ends with an underscore, so there is no matching acf_* column).
-			$field_key_ref = get_post_meta( $post->ID, "_{$meta_key}", true );
-			if ( $field_key_ref && 0 === strpos( $field_key_ref, 'field_' ) ) {
-				$field_cfg = $this->acf_db_load_field_config_by_key( $field_key_ref );
-				$field_type = is_array( $field_cfg ) ? ( $field_cfg['type'] ?? '' ) : '';
-
-				// Only apply to field types where portability matters across sites.
-				if ( $field_cfg && in_array( $field_type, [ 'image', 'file', 'gallery', 'relationship', 'post_object', 'taxonomy', 'user' ], true ) ) {
-					$exported = $this->acf_export_value_from_meta( $post->ID, $field_cfg, $meta_key );
-					if ( is_array( $exported ) || is_object( $exported ) ) {
-						$data[ $field ] = wp_json_encode( $exported );
-					} elseif ( $exported === null || $exported === false ) {
-						$data[ $field ] = '';
-					} else {
-						$data[ $field ] = $exported;
-					}
-					continue;
-				}
-			}
-			
-			// Special handling for WooCommerce fields - use WC_Product object
-			if ( $post->post_type === 'product' && class_exists( 'WC_Product' ) && function_exists( 'wc_get_product' ) ) {
-				$wc_product = wc_get_product( $post->ID );
-				
-				if ( $wc_product ) {
-					// Map field names to WooCommerce getter methods
-					$woo_field_map = [
-						'_sku'                   => 'get_sku',
-						'_regular_price'         => 'get_regular_price',
-						'_sale_price'            => 'get_sale_price',
-						'_tax_status'            => 'get_tax_status',
-						'_tax_class'             => 'get_tax_class',
-						'_stock'                 => 'get_stock_quantity',
-						'_stock_quantity'        => 'get_stock_quantity',
-						'_stock_status'          => 'get_stock_status',
-						'_manage_stock'          => 'get_manage_stock',
-						'_backorders'            => 'get_backorders',
-						'_downloadable'          => 'get_downloadable',
-						'_virtual'               => 'get_virtual',
-						'_weight'                => 'get_weight',
-						'_length'                => 'get_length',
-						'_width'                 => 'get_width',
-						'_height'                => 'get_height',
-						'_product_image_gallery' => 'get_gallery_image_ids',
-						'_wc_average_rating'     => 'get_average_rating',
-						'_wc_review_count'       => 'get_review_count',
-						'total_sales'            => 'get_total_sales',
-						// Add alternative field names without underscore
-						'sku'                    => 'get_sku',
-						'regular_price'          => 'get_regular_price',
-						'sale_price'             => 'get_sale_price',
-						'tax_status'             => 'get_tax_status',
-						'tax_class'              => 'get_tax_class',
-						'stock_quantity'         => 'get_stock_quantity',
-						'stock_status'           => 'get_stock_status',
-						'manage_stock'           => 'get_manage_stock',
-						'backorders'             => 'get_backorders',
-						'downloadable'           => 'get_downloadable',
-						'virtual'                => 'get_virtual',
-						'weight'                 => 'get_weight',
-						'length'                 => 'get_length',
-						'width'                  => 'get_width',
-						'height'                 => 'get_height',
-						'shipping_class'         => 'get_shipping_class',
-						'product_gallery'        => 'get_gallery_image_ids',
-						'average_rating'         => 'get_average_rating',
-						'review_count'           => 'get_review_count',
-					];
-					
-					// Check if this field is a WooCommerce field
-					if ( isset( $woo_field_map[ $field ] ) || isset( $woo_field_map[ $meta_key ] ) ) {
-						$method = $woo_field_map[ $field ] ?? $woo_field_map[ $meta_key ];
-						
-						if ( method_exists( $wc_product, $method ) ) {
-							$value = $wc_product->$method();
-							
-							// Convert boolean values to yes/no
-							if ( is_bool( $value ) ) {
-								$value = $value ? 'yes' : 'no';
-							}
-							// Convert array to comma-separated string (for gallery)
-							elseif ( is_array( $value ) ) {
-								// Make gallery portable across sites: export attachment URLs instead of IDs.
-								if ( 'get_gallery_image_ids' === $method ) {
-									$urls = [];
-									foreach ( $value as $id ) {
-										if ( ! is_numeric( $id ) ) {
-											continue;
+								// Convert array to comma-separated string (for gallery)
+								elseif ( is_array( $value ) ) {
+									// Make gallery portable across sites: export attachment URLs instead of IDs.
+									if ( 'get_gallery_image_ids' === $method ) {
+										$urls = [];
+										foreach ( $value as $id ) {
+											if ( ! is_numeric( $id ) ) {
+												continue;
+											}
+											$url = wp_get_attachment_url( (int) $id );
+											if ( $url ) {
+												$urls[] = $url;
+											}
 										}
-										$url = wp_get_attachment_url( (int) $id );
-										if ( $url ) {
-											$urls[] = $url;
-										}
+										$value = implode( ',', $urls );
+									} else {
+										$value = implode( ',', $value );
 									}
-									$value = implode( ',', $urls );
-								} else {
-									$value = implode( ',', $value );
 								}
+								// Ensure empty strings for null values
+								elseif ( $value === null || $value === false ) {
+									$value = '';
+								}
+
+								$data[ $field ] = $value;
+								continue;
 							}
-							// Ensure empty strings for null values
-							elseif ( $value === null || $value === false ) {
-								$value = '';
-							}
-							
-							$data[ $field ] = $value;
+						}
+
+						// Handle _featured / featured field
+						if ( $field === '_featured' || $meta_key === '_featured' || $field === 'featured' ) {
+							$data[ $field ] = $wc_product->get_featured() ? 'yes' : 'no';
+							continue;
+						}
+
+						// Handle _visibility / visibility field
+						if ( $field === '_visibility' || $meta_key === '_visibility' || $field === 'visibility' ) {
+							$catalog_visibility = $wc_product->get_catalog_visibility();
+							$data[ $field ]     = $catalog_visibility ? $catalog_visibility : 'visible';
+							continue;
+						}
+
+						// Handle _product_type field
+						if ( $field === '_product_type' || $meta_key === '_product_type' ) {
+							$data[ $field ] = $wc_product->get_type();
+							continue;
+						}
+
+						// Handle _shipping_class field (already in map but keep for backward compatibility)
+						if ( $field === '_shipping_class' || $meta_key === '_shipping_class' ) {
+							$shipping_class = $wc_product->get_shipping_class();
+							$data[ $field ] = $shipping_class ? $shipping_class : '';
 							continue;
 						}
 					}
-					
-					// Handle _featured / featured field
-					if ( $field === '_featured' || $meta_key === '_featured' || $field === 'featured' ) {
-						$data[ $field ] = $wc_product->get_featured() ? 'yes' : 'no';
-						continue;
-					}
-					
-					// Handle _visibility / visibility field
-					if ( $field === '_visibility' || $meta_key === '_visibility' || $field === 'visibility' ) {
-						$catalog_visibility = $wc_product->get_catalog_visibility();
-						$data[ $field ] = $catalog_visibility ? $catalog_visibility : 'visible';
-						continue;
-					}
-					
-					// Handle _product_type field
-					if ( $field === '_product_type' || $meta_key === '_product_type' ) {
-						$data[ $field ] = $wc_product->get_type();
-						continue;
-					}
-					
-					// Handle _shipping_class field (already in map but keep for backward compatibility)
-					if ( $field === '_shipping_class' || $meta_key === '_shipping_class' ) {
-						$shipping_class = $wc_product->get_shipping_class();
-						$data[ $field ] = $shipping_class ? $shipping_class : '';
-						continue;
-					}
 				}
+
+				// Get meta value - always include the field if it was explicitly selected
+				$meta_value = get_post_meta( $post->ID, $meta_key, true );
+
+				$data[ $field ] = $meta_value !== false ? $meta_value : '';
 			}
-			
-			// Get meta value - always include the field if it was explicitly selected
-			$meta_value = get_post_meta( $post->ID, $meta_key, true );
-			
-			$data[ $field ] = $meta_value !== false ? $meta_value : '';
 		}
-	}
 
 		return $data;
 	}
@@ -1753,7 +1757,7 @@ class Post_Exporter extends Abstract_Exporter {
 	 *
 	 * Instead of PHP-serializing the raw ACF array (which contains source-site IDs
 	 * that won't exist on the target site), this method converts:
-	 *  - gallery field       → {"acf_type":"gallery","values":["url1","url2",...]} 
+	 *  - gallery field       → {"acf_type":"gallery","values":["url1","url2",...]}
 	 *  - relationship/post_object → {"acf_type":"relation","values":["slug1","slug2",...]}
 	 *  - taxonomy field      → {"acf_type":"taxonomy","taxonomy":"cat","values":["Term Name",...]}
 	 * Falls back to maybe_serialize() for unknown/unresolvable structures.
@@ -1771,9 +1775,9 @@ class Post_Exporter extends Abstract_Exporter {
 		// ── Determine definitive field type via ACF field object ──────────────
 		// IMPORTANT: Only use heuristics when field_type is empty (unknown).
 		// Heuristic guessing from ID values is unreliable because:
-		//   - term IDs and post IDs overlap on every site
-		//   - attachment IDs can match relation post IDs
-		//   - repeater rows can contain a 'url' sub-field that looks like a gallery
+		// - term IDs and post IDs overlap on every site
+		// - attachment IDs can match relation post IDs
+		// - repeater rows can contain a 'url' sub-field that looks like a gallery
 		$field_type     = '';
 		$field_taxonomy = '';
 		$field_obj      = null;
@@ -1818,12 +1822,12 @@ class Post_Exporter extends Abstract_Exporter {
 
 		// ── Gallery ───────────────────────────────────────────────────────────
 		// Trigger ONLY when:
-		//   a) ACF confirms type = 'gallery' / 'image' / 'file', OR
-		//   b) type is unknown AND first item looks exactly like an ACF attachment
-		//      array: has both 'url' AND a numeric 'ID' key.
-		//      ACF image/gallery/file arrays always include 'ID' as an integer.
-		//      Repeater row arrays use user-defined sub-field names and do NOT
-		//      have an 'ID' key, so they are excluded by this check.
+		// a) ACF confirms type = 'gallery' / 'image' / 'file', OR
+		// b) type is unknown AND first item looks exactly like an ACF attachment
+		// array: has both 'url' AND a numeric 'ID' key.
+		// ACF image/gallery/file arrays always include 'ID' as an integer.
+		// Repeater row arrays use user-defined sub-field names and do NOT
+		// have an 'ID' key, so they are excluded by this check.
 		$is_gallery_by_type  = in_array( $field_type, [ 'gallery', 'image', 'file' ], true );
 		$is_gallery_by_shape = '' === $field_type
 			&& is_array( $first )
@@ -1848,7 +1852,12 @@ class Post_Exporter extends Abstract_Exporter {
 				}
 			}
 			if ( ! empty( $urls ) ) {
-				return wp_json_encode( [ 'acf_type' => 'gallery', 'values' => $urls ] );
+				return wp_json_encode(
+					[
+						'acf_type' => 'gallery',
+						'values'   => $urls,
+					]
+				);
 			}
 		}
 
@@ -1898,7 +1907,12 @@ class Post_Exporter extends Abstract_Exporter {
 				}
 			}
 			if ( ! empty( $slugs ) ) {
-				return wp_json_encode( [ 'acf_type' => 'relation', 'values' => $slugs ] );
+				return wp_json_encode(
+					[
+						'acf_type' => 'relation',
+						'values'   => $slugs,
+					]
+				);
 			}
 		}
 
@@ -1922,7 +1936,10 @@ class Post_Exporter extends Abstract_Exporter {
 				}
 			}
 			if ( ! empty( $names ) ) {
-				$encoded = [ 'acf_type' => 'taxonomy', 'values' => $names ];
+				$encoded = [
+					'acf_type' => 'taxonomy',
+					'values'   => $names,
+				];
 				if ( $field_taxonomy ) {
 					$encoded['taxonomy'] = $field_taxonomy;
 				}
@@ -2001,7 +2018,10 @@ class Post_Exporter extends Abstract_Exporter {
 						}
 					}
 				}
-				return ! empty( $urls ) ? [ 'acf_type' => 'gallery', 'values' => $urls ] : [];
+				return ! empty( $urls ) ? [
+					'acf_type' => 'gallery',
+					'values'   => $urls,
+				] : [];
 
 			case 'relationship':
 			case 'post_object':
@@ -2020,7 +2040,10 @@ class Post_Exporter extends Abstract_Exporter {
 					}
 				}
 				$slugs   = array_values( array_filter( array_map( 'sanitize_title', $slugs ) ) );
-				$payload = [ 'acf_type' => 'relation', 'values' => $slugs ];
+				$payload = [
+					'acf_type' => 'relation',
+					'values'   => $slugs,
+				];
 				// post_object can be single or multiple; relationship is always multiple.
 				if ( 'post_object' === $type && empty( $field_obj['multiple'] ) ) {
 					$payload['single'] = true;
@@ -2044,7 +2067,10 @@ class Post_Exporter extends Abstract_Exporter {
 					}
 				}
 				$names   = array_values( array_filter( array_map( 'trim', $names ) ) );
-				$payload = [ 'acf_type' => 'taxonomy', 'values' => $names ];
+				$payload = [
+					'acf_type' => 'taxonomy',
+					'values'   => $names,
+				];
 				if ( $taxonomy ) {
 					$payload['taxonomy'] = $taxonomy;
 				}
@@ -2073,7 +2099,7 @@ class Post_Exporter extends Abstract_Exporter {
 				if ( ! is_array( $value ) ) {
 					return $value;
 				}
-				$sub_fields = $field_obj['sub_fields'] ?? [];
+				$sub_fields  = $field_obj['sub_fields'] ?? [];
 				$sub_by_name = [];
 				foreach ( $sub_fields as $sub ) {
 					$name = $sub['name'] ?? '';
@@ -2220,27 +2246,61 @@ class Post_Exporter extends Abstract_Exporter {
 
 		$type = $settings['type'] ?? '';
 
-		$cfg = [
-			'key'           => $field_key,
-			'name'          => (string) ( $row['post_excerpt'] ?? '' ),
-			'label'         => (string) ( $row['post_title'] ?? '' ),
-			'type'          => (string) $type,
-			'taxonomy'      => (string) ( $settings['taxonomy'] ?? '' ),
-			'multiple'      => ! empty( $settings['multiple'] ),
-			'return_format' => (string) ( $settings['return_format'] ?? '' ),
-			'field_type'    => (string) ( $settings['field_type'] ?? '' ),
-			'settings'      => $settings,
-			'sub_fields'    => [],
-			'layouts'       => $settings['layouts'] ?? [],
-			'_post_id'      => (int) ( $row['ID'] ?? 0 ),
-		];
+			$cfg = [
+				'key'           => $field_key,
+				'name'          => (string) ( $row['post_excerpt'] ?? '' ),
+				'label'         => (string) ( $row['post_title'] ?? '' ),
+				'type'          => (string) $type,
+				'taxonomy'      => (string) ( $settings['taxonomy'] ?? '' ),
+				'multiple'      => ! empty( $settings['multiple'] ),
+				'return_format' => (string) ( $settings['return_format'] ?? '' ),
+				'field_type'    => (string) ( $settings['field_type'] ?? '' ),
+				'settings'      => $settings,
+				'sub_fields'    => [],
+				'layouts'       => $settings['layouts'] ?? [],
+				'_post_id'      => (int) ( $row['ID'] ?? 0 ),
+			];
 
-		if ( in_array( $cfg['type'], [ 'repeater', 'group' ], true ) ) {
-			$cfg['sub_fields'] = $this->acf_db_load_child_field_configs( (int) $cfg['_post_id'] );
-		}
+			if ( in_array( $cfg['type'], [ 'repeater', 'group' ], true ) ) {
+				$cfg['sub_fields'] = $this->acf_db_load_child_field_configs( (int) $cfg['_post_id'] );
+			}
 
-		$this->acf_field_config_cache[ $field_key ] = $cfg;
-		return $cfg;
+			if ( 'flexible_content' === $cfg['type'] ) {
+				// Flexible content stores layouts in settings, but stores each layout's
+				// sub-fields as child `acf-field` posts with a `parent_layout` setting.
+				$children  = $this->acf_db_load_child_field_configs( (int) $cfg['_post_id'] );
+				$by_layout = [];
+				foreach ( $children as $child ) {
+					if ( ! is_array( $child ) ) {
+						continue;
+					}
+					$parent_layout = '';
+					if ( isset( $child['settings'] ) && is_array( $child['settings'] ) && ! empty( $child['settings']['parent_layout'] ) ) {
+						$parent_layout = (string) $child['settings']['parent_layout'];
+					}
+					if ( '' === $parent_layout ) {
+						continue;
+					}
+					if ( ! isset( $by_layout[ $parent_layout ] ) ) {
+						$by_layout[ $parent_layout ] = [];
+					}
+					$by_layout[ $parent_layout ][] = $child;
+				}
+
+				// Merge sub_fields into each layout config.
+				if ( is_array( $cfg['layouts'] ) ) {
+					foreach ( $cfg['layouts'] as $layout_key => $layout_cfg ) {
+						$key = is_string( $layout_key ) ? $layout_key : ( is_array( $layout_cfg ) ? (string) ( $layout_cfg['key'] ?? '' ) : '' );
+						if ( '' === $key || ! is_array( $layout_cfg ) ) {
+							continue;
+						}
+						$cfg['layouts'][ $layout_key ]['sub_fields'] = $by_layout[ $key ] ?? [];
+					}
+				}
+			}
+
+			$this->acf_field_config_cache[ $field_key ] = $cfg;
+			return $cfg;
 	}
 
 	/**
@@ -2321,7 +2381,7 @@ class Post_Exporter extends Abstract_Exporter {
 						if ( '' === $sub_name ) {
 							continue;
 						}
-						$sub_base            = $base_meta_key . '_' . $i . '_' . $sub_name;
+						$sub_base             = $base_meta_key . '_' . $i . '_' . $sub_name;
 						$row_out[ $sub_name ] = $this->acf_export_value_from_meta( $post_id, $sub, $sub_base );
 					}
 					$rows[] = $row_out;
@@ -2340,6 +2400,45 @@ class Post_Exporter extends Abstract_Exporter {
 					$out[ $sub_name ] = $this->acf_export_value_from_meta( $post_id, $sub, $sub_base );
 				}
 				return $out;
+
+			case 'flexible_content':
+				// Flexible content stores an ordered list of layout names in the base key,
+				// and each row's sub-fields as additional meta keys:
+				// {$base}_0_{subfield}, {$base}_1_{subfield}, ...
+				$raw     = get_post_meta( $post_id, $base_meta_key, true );
+				$layouts = maybe_unserialize( $raw );
+				if ( ! is_array( $layouts ) || empty( $layouts ) ) {
+					return [];
+				}
+
+				$layouts_by_name = [];
+				foreach ( ( $field_cfg['layouts'] ?? [] ) as $layout ) {
+					if ( is_array( $layout ) && ! empty( $layout['name'] ) ) {
+						$layouts_by_name[ (string) $layout['name'] ] = $layout;
+					}
+				}
+
+				$rows = [];
+				foreach ( array_values( $layouts ) as $i => $layout_name ) {
+					$layout_name = (string) $layout_name;
+					$layout_cfg  = $layouts_by_name[ $layout_name ] ?? null;
+
+					$row_out = [ 'acf_fc_layout' => $layout_name ];
+					if ( is_array( $layout_cfg ) ) {
+						foreach ( ( $layout_cfg['sub_fields'] ?? [] ) as $sub ) {
+							$sub_name = $sub['name'] ?? '';
+							if ( '' === $sub_name ) {
+								continue;
+							}
+							$sub_base             = $base_meta_key . '_' . (int) $i . '_' . $sub_name;
+							$row_out[ $sub_name ] = $this->acf_export_value_from_meta( $post_id, $sub, $sub_base );
+						}
+					}
+
+					$rows[] = $row_out;
+				}
+
+				return $rows;
 
 			case 'image':
 			case 'file':
@@ -2365,7 +2464,10 @@ class Post_Exporter extends Abstract_Exporter {
 					}
 				}
 
-				return ! empty( $urls ) ? [ 'acf_type' => 'gallery', 'values' => $urls ] : [];
+				return ! empty( $urls ) ? [
+					'acf_type' => 'gallery',
+					'values'   => $urls,
+				] : [];
 
 			case 'relationship':
 				$raw = get_post_meta( $post_id, $base_meta_key, true );
@@ -2374,7 +2476,10 @@ class Post_Exporter extends Abstract_Exporter {
 					$ids = [ (int) $ids ];
 				}
 				$values = $this->acf_export_relation_values_from_ids( is_array( $ids ) ? $ids : [] );
-				return [ 'acf_type' => 'relation', 'values' => $values ];
+				return [
+					'acf_type' => 'relation',
+					'values'   => $values,
+				];
 
 			case 'post_object':
 				$raw      = get_post_meta( $post_id, $base_meta_key, true );
@@ -2386,11 +2491,18 @@ class Post_Exporter extends Abstract_Exporter {
 						$ids = [ (int) $ids ];
 					}
 					$values = $this->acf_export_relation_values_from_ids( is_array( $ids ) ? $ids : [] );
-					return [ 'acf_type' => 'relation', 'values' => $values ];
+					return [
+						'acf_type' => 'relation',
+						'values'   => $values,
+					];
 				}
 
 				$values = $this->acf_export_relation_values_from_ids( [ $raw ] );
-				return [ 'acf_type' => 'relation', 'values' => $values, 'single' => true ];
+				return [
+					'acf_type' => 'relation',
+					'values'   => $values,
+					'single'   => true,
+				];
 
 			case 'taxonomy':
 				$raw     = get_post_meta( $post_id, $base_meta_key, true );
@@ -2402,7 +2514,10 @@ class Post_Exporter extends Abstract_Exporter {
 				$taxonomy = $field_cfg['taxonomy'] ?? '';
 				$names    = $this->acf_export_term_names_from_ids( is_array( $decoded ) ? $decoded : [], (string) $taxonomy );
 
-				$payload = [ 'acf_type' => 'taxonomy', 'values' => $names ];
+				$payload = [
+					'acf_type' => 'taxonomy',
+					'values'   => $names,
+				];
 				if ( $taxonomy ) {
 					$payload['taxonomy'] = (string) $taxonomy;
 				}
@@ -2418,8 +2533,11 @@ class Post_Exporter extends Abstract_Exporter {
 				if ( is_numeric( $decoded ) ) {
 					$decoded = [ (int) $decoded ];
 				}
-				$logins = $this->acf_export_user_logins_from_ids( is_array( $decoded ) ? $decoded : [] );
-				$payload = [ 'acf_type' => 'user', 'values' => $logins ];
+				$logins  = $this->acf_export_user_logins_from_ids( is_array( $decoded ) ? $decoded : [] );
+				$payload = [
+					'acf_type' => 'user',
+					'values'   => $logins,
+				];
 				if ( $single ) {
 					$payload['single'] = true;
 				}
@@ -2491,9 +2609,9 @@ class Post_Exporter extends Abstract_Exporter {
 				}
 
 				$payload = [
-					'acf_type'   => 'gallery_shortcode',
-					'shortcode'  => $shortcode,
-					'urls'       => array_values( $urls ),
+					'acf_type'  => 'gallery_shortcode',
+					'shortcode' => $shortcode,
+					'urls'      => array_values( $urls ),
 				];
 
 				$json  = wp_json_encode( $payload );
@@ -2719,100 +2837,100 @@ class Post_Exporter extends Abstract_Exporter {
 			$fields = $this->get_default_fields();
 		}
 
-	foreach ( $terms as $term ) {
-		// Get menu items for this menu
-		$menu_items = wp_get_nav_menu_items( $term->term_id );
+		foreach ( $terms as $term ) {
+			// Get menu items for this menu
+			$menu_items = wp_get_nav_menu_items( $term->term_id );
 
-		$menu_data = [
-			'term_id'     => $term->term_id,
-			'name'        => $term->name,
-			'slug'        => $term->slug,
-			'count'       => $term->count,
-			'menu_items'  => [],
-		];
+			$menu_data = [
+				'term_id'    => $term->term_id,
+				'name'       => $term->name,
+				'slug'       => $term->slug,
+				'count'      => $term->count,
+				'menu_items' => [],
+			];
 
-		// Process each field
-		foreach ( $fields as $field ) {
-			// Handle ACF fields (with acf_ prefix) for menu term
-			if ( strpos( $field, 'acf_' ) === 0 ) {
-				$acf_field_name = substr( $field, 4 ); // Remove 'acf_' prefix
+			// Process each field
+			foreach ( $fields as $field ) {
+				// Handle ACF fields (with acf_ prefix) for menu term
+				if ( strpos( $field, 'acf_' ) === 0 ) {
+					$acf_field_name = substr( $field, 4 ); // Remove 'acf_' prefix
 
-				// Try get_field() first (handles complex fields)
-				$acf_value = false;
-				if ( function_exists( 'get_field' ) ) {
-					$acf_value = get_field( $acf_field_name, 'term_' . $term->term_id );
-				}
+					// Try get_field() first (handles complex fields)
+					$acf_value = false;
+					if ( function_exists( 'get_field' ) ) {
+						$acf_value = get_field( $acf_field_name, 'term_' . $term->term_id );
+					}
 
-				// If get_field() returns false, try get_term_meta()
-				if ( $acf_value === false ) {
-					$acf_value = get_term_meta( $term->term_id, $acf_field_name, true );
-				}
+					// If get_field() returns false, try get_term_meta()
+					if ( $acf_value === false ) {
+						$acf_value = get_term_meta( $term->term_id, $acf_field_name, true );
+					}
 
-				// Convert ACF value to exportable format
-				if ( is_array( $acf_value ) ) {
-					if ( isset( $acf_value['url'] ) ) {
-						$menu_data[ $field ] = $acf_value['url'];
-					} elseif ( isset( $acf_value['ID'] ) ) {
-						$menu_data[ $field ] = $acf_value['ID'];
-					} else {
+					// Convert ACF value to exportable format
+					if ( is_array( $acf_value ) ) {
+						if ( isset( $acf_value['url'] ) ) {
+							$menu_data[ $field ] = $acf_value['url'];
+						} elseif ( isset( $acf_value['ID'] ) ) {
+							$menu_data[ $field ] = $acf_value['ID'];
+						} else {
+							$menu_data[ $field ] = wp_json_encode( $acf_value );
+						}
+					} elseif ( is_object( $acf_value ) ) {
 						$menu_data[ $field ] = wp_json_encode( $acf_value );
+					} else {
+						$menu_data[ $field ] = $acf_value !== false ? $acf_value : '';
 					}
-				} elseif ( is_object( $acf_value ) ) {
-					$menu_data[ $field ] = wp_json_encode( $acf_value );
-				} else {
-					$menu_data[ $field ] = $acf_value !== false ? $acf_value : '';
 				}
 			}
-		}
 
-		if ( ! empty( $menu_items ) ) {
-			foreach ( $menu_items as $item ) {
-				$item_data = [
-					'ID'               => $item->ID,
-					'title'            => $item->title,
-					'url'              => $item->url,
-					'menu_order'       => $item->menu_order,
-					'menu_item_parent' => $item->menu_item_parent,
-					'object'           => $item->object,
-					'object_id'        => $item->object_id,
-					'type'             => $item->type,
-					'type_label'       => $item->type_label,
-					'target'           => $item->target,
-					'attr_title'       => $item->attr_title,
-					'classes'          => $item->classes,
-					'xfn'              => $item->xfn,
-					'description'      => $item->description,
-				];
+			if ( ! empty( $menu_items ) ) {
+				foreach ( $menu_items as $item ) {
+					$item_data = [
+						'ID'               => $item->ID,
+						'title'            => $item->title,
+						'url'              => $item->url,
+						'menu_order'       => $item->menu_order,
+						'menu_item_parent' => $item->menu_item_parent,
+						'object'           => $item->object,
+						'object_id'        => $item->object_id,
+						'type'             => $item->type,
+						'type_label'       => $item->type_label,
+						'target'           => $item->target,
+						'attr_title'       => $item->attr_title,
+						'classes'          => $item->classes,
+						'xfn'              => $item->xfn,
+						'description'      => $item->description,
+					];
 
-				// Extra hints to allow cross-site ID mapping on import.
-				if ( $item->type === 'post_type' && ! empty( $item->object ) && ! empty( $item->object_id ) ) {
-					$post = get_post( (int) $item->object_id );
-					if ( $post ) {
-						$item_data['object_name'] = $post->post_name;
-						$item_data['object_path'] = get_page_uri( (int) $item->object_id );
+					// Extra hints to allow cross-site ID mapping on import.
+					if ( $item->type === 'post_type' && ! empty( $item->object ) && ! empty( $item->object_id ) ) {
+						$post = get_post( (int) $item->object_id );
+						if ( $post ) {
+							$item_data['object_name'] = $post->post_name;
+							$item_data['object_path'] = get_page_uri( (int) $item->object_id );
+						}
+					} elseif ( $item->type === 'taxonomy' && ! empty( $item->object ) && ! empty( $item->object_id ) ) {
+						$term = get_term( (int) $item->object_id, $item->object );
+						if ( $term && ! is_wp_error( $term ) ) {
+							$item_data['term_slug'] = $term->slug;
+							$item_data['term_name'] = $term->name;
+						}
 					}
-				} elseif ( $item->type === 'taxonomy' && ! empty( $item->object ) && ! empty( $item->object_id ) ) {
-					$term = get_term( (int) $item->object_id, $item->object );
-					if ( $term && ! is_wp_error( $term ) ) {
-						$item_data['term_slug'] = $term->slug;
-						$item_data['term_name'] = $term->name;
+
+					// Add ACF fields for the menu item as a nested array
+					if ( function_exists( 'get_fields' ) ) {
+						$item_acf_fields = get_fields( $item->ID );
+						if ( ! empty( $item_acf_fields ) && is_array( $item_acf_fields ) ) {
+							$item_data['acf_fields'] = $item_acf_fields;
+						}
 					}
+
+					$menu_data['menu_items'][] = $item_data;
 				}
-
-				// Add ACF fields for the menu item as a nested array
-				if ( function_exists( 'get_fields' ) ) {
-					$item_acf_fields = get_fields( $item->ID );
-					if ( ! empty( $item_acf_fields ) && is_array( $item_acf_fields ) ) {
-						$item_data['acf_fields'] = $item_acf_fields;
-					}
-				}
-
-				$menu_data['menu_items'][] = $item_data;
 			}
-		}
 
-		$data[] = $menu_data;
-	}
+			$data[] = $menu_data;
+		}
 
 		return $data;
 	}
