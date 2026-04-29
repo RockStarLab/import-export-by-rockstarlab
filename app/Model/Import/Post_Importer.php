@@ -12,6 +12,12 @@ namespace RockStarLab\ImportExport\Model\Import;
 defined( 'ABSPATH' ) || exit;
 
 class Post_Importer extends Abstract_Importer {
+	/**
+	 * Meta key used to store the source-site post ID for reruns.
+	 *
+	 * @var string
+	 */
+	const SOURCE_ID_META_KEY = '_rsl_ie_source_post_id';
 
 	/**
 	 * Get importer name
@@ -375,6 +381,27 @@ class Post_Importer extends Abstract_Importer {
 	 * @return WP_Post|null Existing post or null
 	 */
 	private function find_existing_post( $item ) {
+		// First, try to match by source-site ID when available.
+		//
+		// This makes reruns of the same export file deterministic even when the
+		// configured "unique field" (e.g. title) is not strictly stable (whitespace,
+		// functions, editor adjustments, etc.).
+		$source_id = isset( $item['_aie_source_id'] ) ? absint( $item['_aie_source_id'] ) : 0;
+		if ( $source_id > 0 ) {
+			$args  = [
+				'post_type'      => $this->get_option( 'post_type', 'post' ),
+				'post_status'    => 'any',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				'meta_key'       => self::SOURCE_ID_META_KEY,
+				'meta_value'     => $source_id,
+			];
+			$posts = get_posts( $args );
+			if ( ! empty( $posts ) ) {
+				return get_post( (int) $posts[0] );
+			}
+		}
+
 		$check_field = $this->get_option( 'duplicate_check', 'post_title' );
 
 		// Check by ID
@@ -443,6 +470,11 @@ class Post_Importer extends Abstract_Importer {
 			return $post_id;
 		}
 
+		// Persist the source-site ID for safe reruns.
+		if ( ! empty( $item['_aie_source_id'] ) ) {
+			update_post_meta( $post_id, self::SOURCE_ID_META_KEY, absint( $item['_aie_source_id'] ) );
+		}
+
 		// Import post meta
 		if ( ! empty( $item['post_meta'] ) ) {
 			$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? [], $item['_aie_raw_post_meta'] ?? [] );
@@ -487,6 +519,11 @@ class Post_Importer extends Abstract_Importer {
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
+		}
+
+		// Persist the source-site ID for safe reruns.
+		if ( ! empty( $item['_aie_source_id'] ) ) {
+			update_post_meta( $post_id, self::SOURCE_ID_META_KEY, absint( $item['_aie_source_id'] ) );
 		}
 
 		// Update post meta

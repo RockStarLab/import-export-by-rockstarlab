@@ -15,6 +15,66 @@ use RockStarLab\ImportExport\Model\Log;
 defined( 'ABSPATH' ) or exit;
 
 class Job_Controller extends Base_Controller {
+	/**
+	 * Format duration in human-readable format
+	 *
+	 * @param int $seconds Duration in seconds
+	 * @return string
+	 */
+	private function format_duration( $seconds ) {
+		$seconds = (int) max( 0, $seconds );
+
+		if ( $seconds < 60 ) {
+			return $seconds . 's';
+		}
+
+		if ( $seconds < 3600 ) {
+			$minutes = (int) floor( $seconds / 60 );
+			$secs    = (int) ( $seconds % 60 );
+			return sprintf( '%dm %ds', $minutes, $secs );
+		}
+
+		$hours   = (int) floor( $seconds / 3600 );
+		$minutes = (int) floor( ( $seconds % 3600 ) / 60 );
+		return sprintf( '%dh %dm', $hours, $minutes );
+	}
+
+	/**
+	 * Normalize job parameters for rerun.
+	 *
+	 * Some job types mutate their parameters during execution (e.g. import stores
+	 * prepared_data/offset). When re-running from Jobs Log we want to preserve
+	 * the user configuration but reset runtime state so processing starts over.
+	 *
+	 * @param string $job_type
+	 * @param mixed  $raw_parameters
+	 * @return mixed
+	 */
+	private function normalize_rerun_parameters( $job_type, $raw_parameters ) {
+		if ( 'import' !== $job_type ) {
+			return $raw_parameters;
+		}
+
+		if ( empty( $raw_parameters ) || ! is_string( $raw_parameters ) ) {
+			return $raw_parameters;
+		}
+
+		$params = json_decode( $raw_parameters, true );
+		if ( ! is_array( $params ) ) {
+			return $raw_parameters;
+		}
+
+		// Strip runtime state.
+		unset( $params['prepared_data'] );
+		unset( $params['total_items'] );
+		unset( $params['cumulative_result'] );
+		unset( $params['offset'] );
+
+		// Ensure fresh start.
+		$params['offset'] = 0;
+
+		return wp_json_encode( $params );
+	}
 
 	/**
 	 * Get AJAX actions
@@ -77,7 +137,33 @@ class Job_Controller extends Base_Controller {
 			// Aliases for JS layer (DB uses imported_items / error_items)
 			$job->success_items = (int) ( $job->imported_items ?? 0 );
 			$job->failed_items  = (int) ( $job->error_items ?? 0 );
+
+			// Provide real elapsed time for Jobs Log table.
+			// Prefer started_at/completed_at; fall back to created_at for jobs that
+			// never set started_at (e.g. restarted jobs that haven't started yet).
+			$job->elapsed_time = '-';
+
+			$start_ts = 0;
+			if ( ! empty( $job->started_at ) ) {
+				$start_ts = (int) strtotime( $job->started_at );
+			} elseif ( ! empty( $job->created_at ) && ! in_array( $job->status, [ 'pending' ], true ) ) {
+				$start_ts = (int) strtotime( $job->created_at );
+			}
+
+			if ( $start_ts > 0 ) {
+				$end_ts = 0;
+				if ( ! empty( $job->completed_at ) && in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true ) ) {
+					$end_ts = (int) strtotime( $job->completed_at );
+				} else {
+					$end_ts = (int) current_time( 'timestamp' );
+				}
+
+				if ( $end_ts > 0 && $end_ts >= $start_ts ) {
+					$job->elapsed_time = $this->format_duration( $end_ts - $start_ts );
+				}
+			}
 		}
+		unset( $job );
 
 		// Get total count
 		$total = $job_model->count( $where );
@@ -355,16 +441,29 @@ class Job_Controller extends Base_Controller {
 		}
 
 		// Create new job with same settings
-		$new_job_id = $job_model->create(
-			[
-				'user_id'     => $job_data->user_id,
-				'type'        => $job_data->type,
-				'data_type'   => $job_data->data_type,
-				'file_format' => $job_data->file_format,
-				'parameters'  => $job_data->parameters,
-				'settings'    => $settings_to_use,
-			]
-		);
+		$new_job_payload = [
+			'user_id'     => $job_data->user_id,
+			'type'        => $job_data->type,
+			'data_type'   => $job_data->data_type,
+			'file_format' => $job_data->file_format,
+			'parameters'  => $this->normalize_rerun_parameters( $job_data->type, $job_data->parameters ),
+			'settings'    => $settings_to_use,
+		];
+
+		// Import/update jobs depend on the source file path for processing. When
+		// restarting from Jobs Log, keep the same file reference when available.
+		if ( in_array( $job_data->type, [ 'import', 'update' ], true ) ) {
+			$new_job_payload['file_path'] = $job_data->file_path ?? null;
+			$new_job_payload['file_size'] = $job_data->file_size ?? null;
+		}
+
+		// Preserve total_items for update jobs so the Jobs Log shows the expected
+		// denominator immediately after rerun.
+		if ( 'update' === $job_data->type && ! empty( $job_data->total_items ) ) {
+			$new_job_payload['total_items'] = (int) $job_data->total_items;
+		}
+
+		$new_job_id = $job_model->create( $new_job_payload );
 
 		if ( is_wp_error( $new_job_id ) ) {
 			$this->send_error( $new_job_id, null, 500 );
@@ -446,17 +545,30 @@ class Job_Controller extends Base_Controller {
 		}
 
 		// Create new job with same settings but set status to processing
-		$new_job_id = $job_model->create(
-			[
-				'user_id'     => $job_data->user_id,
-				'type'        => $job_data->type,
-				'data_type'   => $job_data->data_type,
-				'file_format' => $job_data->file_format,
-				'parameters'  => $job_data->parameters,
-				'settings'    => $settings_to_use,
-				'status'      => 'processing', // Set to processing immediately
-			]
-		);
+		$new_job_payload = [
+			'user_id'     => $job_data->user_id,
+			'type'        => $job_data->type,
+			'data_type'   => $job_data->data_type,
+			'file_format' => $job_data->file_format,
+			'parameters'  => $this->normalize_rerun_parameters( $job_data->type, $job_data->parameters ),
+			'settings'    => $settings_to_use,
+			'status'      => 'processing', // Set to processing immediately
+		];
+
+		// Import/update jobs depend on the source file path for processing. When
+		// retrying from Jobs Log, keep the same file reference when available.
+		if ( in_array( $job_data->type, [ 'import', 'update' ], true ) ) {
+			$new_job_payload['file_path'] = $job_data->file_path ?? null;
+			$new_job_payload['file_size'] = $job_data->file_size ?? null;
+		}
+
+		// Preserve total_items for update jobs so the Jobs Log shows the expected
+		// denominator immediately after rerun.
+		if ( 'update' === $job_data->type && ! empty( $job_data->total_items ) ) {
+			$new_job_payload['total_items'] = (int) $job_data->total_items;
+		}
+
+		$new_job_id = $job_model->create( $new_job_payload );
 
 		if ( is_wp_error( $new_job_id ) ) {
 			$this->send_error( $new_job_id, null, 500 );
