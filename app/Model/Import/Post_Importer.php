@@ -403,6 +403,13 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		$check_field = $this->get_option( 'duplicate_check', 'post_title' );
+		// UI sometimes uses human-friendly keys; normalize to internal ones.
+		if ( 'title' === $check_field ) {
+			$check_field = 'post_title';
+		}
+		if ( 'slug' === $check_field ) {
+			$check_field = 'post_name';
+		}
 
 		// Check by ID
 		if ( 'ID' === $check_field && ! empty( $item['ID'] ) ) {
@@ -448,6 +455,21 @@ class Post_Importer extends Abstract_Importer {
 			);
 
 			return $post_id ? get_post( (int) $post_id ) : null;
+		}
+
+		// Fallback: if we were asked to match by title but the title is missing
+		// (or was normalized differently), try matching by slug when available.
+		if ( 'post_title' === $check_field && empty( $item['post_title'] ) && ! empty( $item['post_name'] ) ) {
+			$args = [
+				'name'           => $item['post_name'],
+				'post_type'      => $this->get_option( 'post_type', 'post' ),
+				'post_status'    => 'any',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+			];
+
+			$posts = get_posts( $args );
+			return ! empty( $posts ) ? get_post( $posts[0] ) : null;
 		}
 
 		return null;
