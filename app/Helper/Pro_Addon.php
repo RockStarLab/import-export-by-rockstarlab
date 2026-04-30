@@ -225,12 +225,6 @@ class Pro_Addon {
 
 		if ( 'updater' === $context ) {
 			$cards[] = [
-				'value'       => 'page',
-				'icon'        => 'dashicons-admin-page',
-				'title'       => __( 'Pages', 'import-export-by-rockstarlab' ),
-				'description' => __( 'Update pages', 'import-export-by-rockstarlab' ),
-			];
-			$cards[] = [
 				'value'       => 'custom_post_types',
 				'icon'        => 'dashicons-admin-generic',
 				'title'       => __( 'Custom Post Types', 'import-export-by-rockstarlab' ),

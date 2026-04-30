@@ -279,7 +279,7 @@ const JobsLogModule = {
 			const freeByContext = {
 				import: [ 'post', 'posts', 'page', 'pages' ],
 				export: [ 'post', 'page' ],
-				update: [ 'post', 'comment', 'comments' ],
+				update: [ 'post', 'page', 'pages', 'comment', 'comments' ],
 			};
 
 			// Import jobs store the data type in `parameters` JSON (data_type DB column can be empty).
