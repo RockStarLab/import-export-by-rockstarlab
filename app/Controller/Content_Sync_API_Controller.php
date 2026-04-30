@@ -187,9 +187,12 @@ class Content_Sync_API_Controller {
 			$post_mapping = array();
 		}
 
-		$imported_count = 0;
-		$updated_count  = 0;
-		$errors         = array();
+		$imported_count      = 0;
+		$updated_count       = 0;
+		$errors              = array();
+		$source_to_local_map = array();
+		$source_parent_map   = array();
+		$source_type_map     = array();
 
 		foreach ( $posts_data as $post_data ) {
 			$source_post_id = $post_data['ID'];
@@ -270,6 +273,12 @@ class Content_Sync_API_Controller {
 					$post_data['post_title']
 				);
 				continue;
+			}
+
+			$source_to_local_map[ (int) $source_post_id ] = (int) $post_id;
+			$source_type_map[ (int) $source_post_id ]     = isset( $post_data['post_type'] ) ? (string) $post_data['post_type'] : '';
+			if ( array_key_exists( 'post_parent', $post_data ) ) {
+				$source_parent_map[ (int) $source_post_id ] = (int) $post_data['post_parent'];
 			}
 
 			// Count created vs updated
@@ -449,6 +458,56 @@ class Content_Sync_API_Controller {
 					update_post_meta( $post_id, '_children', $local_child_ids );
 				}
 			}
+		}
+
+		// Fix hierarchical relationships (e.g. pages) after import so we can resolve
+		// parent IDs created in the same request.
+		foreach ( $source_to_local_map as $source_id => $local_id ) {
+			if ( ! array_key_exists( $source_id, $source_parent_map ) ) {
+				continue;
+			}
+
+			$source_parent_id = $source_parent_map[ $source_id ];
+			$post_type        = isset( $source_type_map[ $source_id ] ) ? $source_type_map[ $source_id ] : '';
+
+			if ( empty( $post_type ) || ! is_post_type_hierarchical( $post_type ) ) {
+				continue;
+			}
+
+			$local_parent_id = 0;
+			if ( $source_parent_id > 0 ) {
+				if ( isset( $source_to_local_map[ $source_parent_id ] ) ) {
+					$local_parent_id = (int) $source_to_local_map[ $source_parent_id ];
+				} else {
+					$local_parent_id = (int) $this->find_existing_post_by_original_id( $source_parent_id, $post_type );
+				}
+
+				// Parent not available locally - don't force reset the relationship.
+				if ( empty( $local_parent_id ) ) {
+					continue;
+				}
+
+				$parent_post = get_post( $local_parent_id );
+				if ( ! $parent_post || $parent_post->post_type !== $post_type ) {
+					continue;
+				}
+			}
+
+			$child_post = get_post( $local_id );
+			if ( ! $child_post || $child_post->post_type !== $post_type ) {
+				continue;
+			}
+
+			if ( (int) $child_post->post_parent === (int) $local_parent_id ) {
+				continue;
+			}
+
+			wp_update_post(
+				array(
+					'ID'          => $local_id,
+					'post_parent' => $local_parent_id,
+				)
+			);
 		}
 
 		$total_processed = $imported_count + $updated_count;
@@ -888,6 +947,35 @@ class Content_Sync_API_Controller {
 	}
 
 	/**
+	 * Find existing post by original (source) post ID.
+	 *
+	 * @param int    $original_post_id Original post ID from source site.
+	 * @param string $post_type        Optional. Post type to limit search.
+	 * @return int|null Local post ID if found, null otherwise.
+	 */
+	private function find_existing_post_by_original_id( $original_post_id, $post_type = 'any' ) {
+		$args = array(
+			'post_type'      => $post_type ?: 'any',
+			'posts_per_page' => 1,
+			'post_status'    => 'any',
+			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
+				array(
+					'key'   => '_aie_original_post_id',
+					'value' => (int) $original_post_id,
+				),
+			),
+			'fields'         => 'ids',
+		);
+
+		$posts = get_posts( $args );
+		if ( ! empty( $posts ) ) {
+			return (int) $posts[0];
+		}
+
+		return null;
+	}
+
+	/**
 	 * Send content to requesting site (Pull)
 	 *
 	 * @param \WP_REST_Request $request Request object.
@@ -1058,6 +1146,7 @@ class Content_Sync_API_Controller {
 					'post_excerpt'  => $post->post_excerpt,
 					'post_status'   => $post->post_status,
 					'post_type'     => $post->post_type,
+					'post_parent'   => $post->post_parent,
 					'post_name'     => $post->post_name,
 					'post_date'     => $post->post_date,
 					'post_modified' => $post->post_modified,
