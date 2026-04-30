@@ -59,6 +59,15 @@ defined( 'ABSPATH' ) || exit;
 			</label>
 
 			<label class="aie-content-type">
+				<input type="radio" name="updater_content_type" value="page">
+				<div class="aie-content-type-card">
+					<span class="dashicons dashicons-admin-page"></span>
+					<h3><?php esc_html_e( 'Pages', 'import-export-by-rockstarlab' ); ?></h3>
+					<p><?php esc_html_e( 'Update pages', 'import-export-by-rockstarlab' ); ?></p>
+				</div>
+			</label>
+
+			<label class="aie-content-type">
 				<input type="radio" name="updater_content_type" value="comment">
 				<div class="aie-content-type-card">
 					<span class="dashicons dashicons-admin-comments"></span>

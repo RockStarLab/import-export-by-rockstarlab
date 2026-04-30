@@ -26,7 +26,7 @@ class Content_Updater_Controller extends Base_Controller {
 	private function is_updater_content_type_allowed( $content_type ) {
 		$content_type = strtolower( trim( (string) $content_type ) );
 
-		$free_types = [ 'post', 'comment' ];
+		$free_types = [ 'post', 'page', 'comment' ];
 		if ( in_array( $content_type, $free_types, true ) ) {
 			return true;
 		}

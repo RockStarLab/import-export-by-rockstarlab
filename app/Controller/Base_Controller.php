@@ -349,7 +349,7 @@ abstract class Base_Controller {
 		$free_by_context = [
 			'import' => [ 'post', 'posts', 'page', 'pages' ],
 			'export' => [ 'post', 'page' ],
-			'update' => [ 'post', 'comment', 'comments' ],
+			'update' => [ 'post', 'page', 'pages', 'comment', 'comments' ],
 		];
 
 		if ( isset( $free_by_context[ $context ] ) && in_array( $data_type, $free_by_context[ $context ], true ) ) {
