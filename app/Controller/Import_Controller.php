@@ -403,6 +403,9 @@ class Import_Controller extends Base_Controller {
 					if ( isset( $data[ $row_index ]['post_parent'] ) ) {
 						$prepared_row['_aie_source_parent_id'] = absint( $data[ $row_index ]['post_parent'] );
 					}
+					if ( isset( $data[ $row_index ]['post_name'] ) && '' !== (string) $data[ $row_index ]['post_name'] ) {
+						$prepared_row['_aie_source_post_name'] = (string) $data[ $row_index ]['post_name'];
+					}
 				}
 				unset( $prepared_row );
 			}

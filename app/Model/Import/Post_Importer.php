@@ -294,6 +294,12 @@ class Post_Importer extends Abstract_Importer {
 		// (e.g. taxonomy_category, meta_*, acf_*) into nested structures.
 		$item = $this->normalize_prefixed_columns( $item );
 
+		// Ensure `post_name` (slug) is available for duplicate checks/fallbacks,
+		// even when the UI mapping didn't include it.
+		if ( ( empty( $item['post_name'] ) || '' === (string) $item['post_name'] ) && ! empty( $item['_aie_source_post_name'] ) ) {
+			$item['post_name'] = (string) $item['_aie_source_post_name'];
+		}
+
 			// Check for duplicates
 			$existing_post = $this->find_existing_post( $item );
 			$source_id     = isset( $item['_aie_source_id'] ) ? absint( $item['_aie_source_id'] ) : 0;
