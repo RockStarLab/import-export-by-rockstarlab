@@ -1213,6 +1213,7 @@ class Content_Sync_Controller extends Base_Controller {
 					'post_excerpt'  => $post->post_excerpt,
 					'post_status'   => $post->post_status,
 					'post_type'     => $post->post_type,
+					'post_parent'   => $post->post_parent,
 					'post_name'     => $post->post_name,
 					'post_date'     => $post->post_date,
 					'post_modified' => $post->post_modified,
@@ -1611,8 +1612,11 @@ class Content_Sync_Controller extends Base_Controller {
 		unset( $post_data ); // Break the reference to avoid bugs in the next foreach loop
 
 		// Import posts
-		$imported_count = 0;
-		$updated_count  = 0;
+		$imported_count           = 0;
+		$updated_count            = 0;
+		$imported_remote_to_local = array();
+		$imported_remote_parent   = array();
+		$imported_remote_type     = array();
 
 		// JS sends post_mapping as { local_id: remote_id }, but here we need
 		// to look up by REMOTE id (the ID coming from the remote post data).
@@ -1627,6 +1631,7 @@ class Content_Sync_Controller extends Base_Controller {
 		foreach ( $posts_data as $post_data ) {
 			$remote_post_id = $post_data['ID'];
 			$local_post_id  = null;
+			$remote_parent  = array_key_exists( 'post_parent', $post_data ) ? (int) $post_data['post_parent'] : null;
 
 			// Check post mapping (remote → local)
 			if ( isset( $remote_to_local_map[ $remote_post_id ] ) ) {
@@ -1672,6 +1677,12 @@ class Content_Sync_Controller extends Base_Controller {
 			if ( is_wp_error( $post_id ) || ! $post_id ) {
 				continue;
 			}
+
+			// Track remote → local ID mapping for this pull so we can fix parent/child
+			// relationships after all posts are created/updated.
+			$imported_remote_to_local[ (int) $remote_post_id ] = (int) $post_id;
+			$imported_remote_parent[ (int) $remote_post_id ]   = $remote_parent;
+			$imported_remote_type[ (int) $remote_post_id ]     = isset( $post_data['post_type'] ) ? (string) $post_data['post_type'] : '';
 
 			// Store original post ID for future reference
 			update_post_meta( $post_id, '_aie_original_post_id', $remote_post_id );
@@ -1792,6 +1803,60 @@ class Content_Sync_Controller extends Base_Controller {
 
 			} else {
 			}
+		}
+
+		// Fix hierarchical relationships (e.g. pages) after all imports so we can
+		// resolve parent IDs that were created in the same pull batch.
+		foreach ( $imported_remote_to_local as $remote_id => $local_id ) {
+			if ( ! array_key_exists( $remote_id, $imported_remote_parent ) ) {
+				continue;
+			}
+
+			$remote_parent_id = $imported_remote_parent[ $remote_id ];
+			if ( null === $remote_parent_id ) {
+				continue;
+			}
+
+			$post_type = isset( $imported_remote_type[ $remote_id ] ) ? $imported_remote_type[ $remote_id ] : '';
+			if ( empty( $post_type ) || ! is_post_type_hierarchical( $post_type ) ) {
+				continue;
+			}
+
+			$local_parent_id = 0;
+			if ( $remote_parent_id > 0 ) {
+				if ( isset( $imported_remote_to_local[ $remote_parent_id ] ) ) {
+					$local_parent_id = (int) $imported_remote_to_local[ $remote_parent_id ];
+				} else {
+					$local_parent_id = (int) $this->find_existing_post_by_original_id( $remote_parent_id );
+				}
+
+				// Parent not available locally - don't force reset the relationship.
+				if ( empty( $local_parent_id ) ) {
+					continue;
+				}
+
+				$parent_post = get_post( $local_parent_id );
+				if ( ! $parent_post || $parent_post->post_type !== $post_type ) {
+					continue;
+				}
+			}
+
+			$child_post = get_post( $local_id );
+			if ( ! $child_post || $child_post->post_type !== $post_type ) {
+				continue;
+			}
+
+			if ( (int) $child_post->post_parent === (int) $local_parent_id ) {
+				continue;
+			}
+
+			wp_update_post(
+				array(
+					'ID'          => $local_id,
+					'post_parent' => $local_parent_id,
+				),
+				true
+			);
 		}
 
 		$total_processed = $imported_count + $updated_count;
