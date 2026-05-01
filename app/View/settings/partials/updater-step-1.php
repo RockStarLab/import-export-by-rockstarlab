@@ -126,13 +126,12 @@ defined( 'ABSPATH' ) || exit;
 							</ul>
 						<?php endif; ?>
 
-						<a
-							href="<?php echo esc_url( $rsl_ie_promo_cta['url'] ); ?>"
-							class="button button-primary aie-pro-addon-cta"
-							target="_blank" rel="noopener noreferrer"
-						>
-							<?php echo esc_html( $rsl_ie_promo_cta['label'] ); ?>
-						</a>
+							<a
+								href="<?php echo esc_url( $rsl_ie_promo_cta['url'] ); ?>"
+								class="button button-primary aie-pro-addon-cta"
+							>
+								<?php echo esc_html( $rsl_ie_promo_cta['label'] ); ?>
+							</a>
 
 						<?php if ( ! $rsl_ie_pro_active ) : ?>
 							<div class="aie-pro-addon-dismiss">
