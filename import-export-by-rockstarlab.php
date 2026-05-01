@@ -65,7 +65,7 @@ if ( ! function_exists( 'rsl_ie_fs' ) ) {
 				array(
 					'id'               => '21998',
 					'slug'             => 'import-export-by-rockstarlab',
-					'premium_slug'     => 'import-export-pro-by-rockstarlab',
+					'premium_slug'     => 'import-export-by-rockstarlab',
 					'type'             => 'plugin',
 					'public_key'       => 'pk_c389cfb9437cdb5c934c0efd7e99c',
 					// WP.org compliance: the directory-hosted plugin must not be "premium".

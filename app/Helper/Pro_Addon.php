@@ -102,7 +102,7 @@ class Pro_Addon {
 	 */
 	public static function get_promo_cta() {
 		return [
-			'url'   => self::get_upgrade_url(),
+			'url'   => admin_url( 'admin.php?page=import-export-by-rockstarlab-addons' ),
 			'label' => __( 'Buy PRO Addon', 'import-export-by-rockstarlab' ),
 		];
 	}
