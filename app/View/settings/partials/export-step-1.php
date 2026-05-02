@@ -24,13 +24,17 @@ defined( 'ABSPATH' ) || exit;
 		$rsl_ie_promo_title = __( 'Need more features? Buy PRO addon', 'import-export-by-rockstarlab' );
 		$rsl_ie_promo_desc  = __( 'Get additional export content types by installing the PRO addon.', 'import-export-by-rockstarlab' );
 
-		$rsl_ie_promo_features = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_features( 'export' );
-		$rsl_ie_trial_note     = __( 'Free 30-day PRO Addon trial is available for all new users.', 'import-export-by-rockstarlab' );
+			$rsl_ie_promo_features = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_features( 'export' );
+			$rsl_ie_trial_note     = __( 'Free 30-day PRO Addon trial is available for all new users.', 'import-export-by-rockstarlab' );
 		?>
-		
-		<!-- Search/Filter Field -->
-		<div class="aie-content-type-filter">
-			<input 
+
+			<?php if ( $rsl_ie_pro_active ) : ?>
+				<?php do_action( 'rsl_ie_pro_license_notice', 'export' ); ?>
+			<?php endif; ?>
+			
+			<!-- Search/Filter Field -->
+			<div class="aie-content-type-filter">
+				<input 
 				type="text" 
 				id="aie-content-type-search" 
 				class="regular-text" 
