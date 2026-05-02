@@ -1001,12 +1001,14 @@ class Content_Sync_Controller extends Base_Controller {
 		foreach ( $post_ids as $post_id ) {
 			$post = get_post( $post_id );
 			if ( $post ) {
+				$orig         = get_post_meta( $post->ID, '_aie_original_post_id', true );
 				$posts_info[] = array(
 					'ID'          => $post->ID,
 					'post_title'  => $post->post_title,
 					'post_type'   => $post->post_type,
 					'post_date'   => $post->post_date,
 					'post_status' => $post->post_status,
+					'original_id' => is_numeric( $orig ) ? (int) $orig : 0,
 				);
 			}
 		}
