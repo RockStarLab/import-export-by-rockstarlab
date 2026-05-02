@@ -40,23 +40,7 @@ class Pro_Addon {
 	}
 
 	/**
-	 * Check whether a valid premium license is active (Freemius).
-	 *
-	 * Note: license can be valid even when the PRO addon is not installed.
-	 *
-	 * @return bool
-	 */
-	public static function has_valid_license() {
-		if ( function_exists( 'rsl_ie_pro_fs' ) ) {
-			$fs = rsl_ie_pro_fs();
-			return is_object( $fs ) && method_exists( $fs, 'can_use_premium_code' ) && (bool) $fs->can_use_premium_code();
-		}
-
-		return false;
-	}
-
-	/**
-	 * PRO is enabled only when the addon is active AND the license is valid.
+	 * PRO is enabled only when the addon plugin is active.
 	 *
 	 * @return bool
 	 */
