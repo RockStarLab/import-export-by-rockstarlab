@@ -512,6 +512,11 @@ if (
 										'disabled',
 										false
 									);
+									// Auto-match by title on open (expected UX), but keep the
+									// button for re-running / adjusting mappings.
+									setTimeout( () => {
+										this.autoMatchByTitle();
+									}, 150 );
 								} else {
 									const errorMsg =
 										response.data?.message ||
@@ -584,11 +589,14 @@ if (
 			const postHashText = aiePostSyncData?.i18n?.postHash || 'Post #%s';
 			let postTitle = postHashText.replace( '%s', postId );
 			let postType = 'post';
+			let originalRemoteId = 0;
 
 			if ( this.localPostsInfo && this.localPostsInfo[ postId ] ) {
 				postTitle =
 					this.localPostsInfo[ postId ].post_title || postTitle;
 				postType = this.localPostsInfo[ postId ].post_type || postType;
+				originalRemoteId =
+					this.localPostsInfo[ postId ].original_id || 0;
 			} else {
 				// Fallback: Try multiple selectors for different editor contexts
 				postTitle =
@@ -630,6 +638,9 @@ if (
 			const $select = $( '<select>' )
 				.addClass( 'aie-remote-select' )
 				.attr( 'data-local-id', postId );
+			if ( originalRemoteId ) {
+				$select.attr( 'data-original-remote-id', originalRemoteId );
+			}
 
 			// Add "Create New" option
 			const createNewText =
@@ -775,6 +786,27 @@ if (
 					return item.text;
 				},
 			} );
+
+			// If the local post was previously synced, preselect its original remote ID.
+			const originalRemoteId = parseInt(
+				$select.attr( 'data-original-remote-id' ) || '0',
+				10
+			);
+			if ( originalRemoteId ) {
+				const updateTemplate =
+					aiePostSyncData?.i18n?.updatePost ||
+					'🔄 Update: %1$s (ID: %2$s)';
+				const optionText = updateTemplate
+					.replace( '%1$s', localPostTitle || '' )
+					.replace( '%2$s', originalRemoteId );
+				const opt = new Option(
+					optionText,
+					String( originalRemoteId ),
+					true,
+					true
+				);
+				$select.append( opt ).trigger( 'change' );
+			}
 		},
 
 		/**
