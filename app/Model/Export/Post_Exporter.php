@@ -1522,10 +1522,10 @@ class Post_Exporter extends Abstract_Exporter {
 							global $wpdb;
 							$count = intval( $acf_value );
 
-							// Check if there are sub-fields (check first row) // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+							// Check if there are sub-fields (check first row)
 							$pattern        = $acf_field_name . '_0_%';
-							$has_sub_fields = $wpdb->get_var(
-								$wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+							$has_sub_fields = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+								$wpdb->prepare(
 									"SELECT COUNT(*) FROM {$wpdb->postmeta} 
 						WHERE post_id = %d AND meta_key LIKE %s",
 									$post->ID,
@@ -1538,10 +1538,10 @@ class Post_Exporter extends Abstract_Exporter {
 								$repeater_data = [];
 
 								for ( $i = 0; $i < $count; $i++ ) {
-									// Get all meta keys for this row // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+									// Get all meta keys for this row
 									$pattern    = $acf_field_name . '_' . $i . '_%';
-									$sub_fields = $wpdb->get_results(
-										$wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+									$sub_fields = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+										$wpdb->prepare(
 											"SELECT meta_key, meta_value FROM {$wpdb->postmeta} 
 								WHERE post_id = %d AND meta_key LIKE %s",
 											$post->ID,
