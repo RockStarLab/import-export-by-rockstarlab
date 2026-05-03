@@ -518,8 +518,10 @@ class Post_Importer extends Abstract_Importer {
 			$this->import_taxonomies( $post_id, $item['taxonomies'] );
 		}
 
-		// Import featured image (honor Step 5 "Automatically Import Media Files")
-		if ( $this->get_option( 'auto_import_media', false ) && ! empty( $item['featured_image'] ) ) {
+		// Import featured image — always, when data is present in the export.
+		// The featured_image field is explicitly selected at export time, so it
+		// must always be processed on import regardless of the auto_import_media flag.
+		if ( ! empty( $item['featured_image'] ) ) {
 			$this->import_featured_image( $post_id, $item['featured_image'] );
 		}
 
@@ -569,8 +571,8 @@ class Post_Importer extends Abstract_Importer {
 			$this->import_taxonomies( $post_id, $item['taxonomies'] );
 		}
 
-		// Update featured image (honor Step 5 "Automatically Import Media Files")
-		if ( $this->get_option( 'auto_import_media', false ) && ! empty( $item['featured_image'] ) ) {
+		// Update featured image — always, when data is present in the export.
+		if ( ! empty( $item['featured_image'] ) ) {
 			$this->import_featured_image( $post_id, $item['featured_image'] );
 		}
 
@@ -1555,6 +1557,25 @@ class Post_Importer extends Abstract_Importer {
 	 * @param string|int $image   Image URL, path, or attachment ID
 	 */
 	private function import_featured_image( $post_id, $image ) {
+		// Handle array format from get_featured_image() export: ['url'=>..., 'id'=>..., ...]
+		// This is the case for JSON/XML format imports where the value is already decoded.
+		if ( is_array( $image ) ) {
+			$image = $image['url'] ?? '';
+		}
+
+		// Handle JSON string format from CSV exports where the array was JSON-encoded.
+		// e.g. {"id":123,"url":"https://...","title":"...","alt":"...","caption":"...","filename":"..."}
+		if ( is_string( $image ) && '' !== $image && '{' === $image[0] ) {
+			$decoded = json_decode( $image, true );
+			if ( is_array( $decoded ) ) {
+				$image = $decoded['url'] ?? '';
+			}
+		}
+
+		if ( empty( $image ) ) {
+			return;
+		}
+
 		// Already a local attachment ID
 		if ( is_numeric( $image ) && get_post( $image ) ) {
 			set_post_thumbnail( $post_id, $image );
