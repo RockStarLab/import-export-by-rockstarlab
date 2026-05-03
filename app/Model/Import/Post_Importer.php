@@ -399,8 +399,8 @@ class Post_Importer extends Abstract_Importer {
 				'post_status'    => 'any',
 				'posts_per_page' => 1,
 				'fields'         => 'ids',
-				'meta_key'       => self::SOURCE_ID_META_KEY,
-				'meta_value'     => $source_id,
+				'meta_key'       => self::SOURCE_ID_META_KEY, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- required for source-ID lookup.
+				'meta_value'     => $source_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- required for source-ID lookup.
 			];
 			$posts = get_posts( $args );
 			if ( ! empty( $posts ) ) {
