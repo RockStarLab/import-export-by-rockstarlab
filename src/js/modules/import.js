@@ -496,7 +496,8 @@ const ImportModule = {
 	 */
 	getDelimiterValue( delimiter ) {
 		if ( delimiter === 'tab' ) {
-			return '\t';
+			// Send as escaped sequence so server-side sanitization doesn't strip the tab.
+			return '\\t';
 		}
 		return delimiter;
 	},
