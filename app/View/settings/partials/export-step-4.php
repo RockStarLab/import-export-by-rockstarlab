@@ -46,7 +46,7 @@ defined( 'ABSPATH' ) || exit;
 							<select name="csv_delimiter" class="regular-text">
 								<option value=",">,<?php esc_html_e( ' (Comma)', 'import-export-by-rockstarlab' ); ?></option>
 								<option value=";">; <?php esc_html_e( ' (Semicolon)', 'import-export-by-rockstarlab' ); ?></option>
-								<option value="\t">\t <?php esc_html_e( ' (Tab)', 'import-export-by-rockstarlab' ); ?></option>
+								<option value="tab">\\t <?php esc_html_e( ' (Tab)', 'import-export-by-rockstarlab' ); ?></option>
 								<option value="|">| <?php esc_html_e( ' (Pipe)', 'import-export-by-rockstarlab' ); ?></option>
 								<option value="custom"><?php esc_html_e( 'Custom', 'import-export-by-rockstarlab' ); ?></option>
 							</select>

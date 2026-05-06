@@ -194,108 +194,109 @@ class Chunk_Upload {
 		$file_name    = sanitize_file_name( wp_unslash( $_POST['file_name'] ?? '' ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Input is sanitized and validated in context.
 		$total_chunks = absint( $_POST['total_chunks'] ?? 0 );
 
-		// Get CSV options if provided
-		$csv_options = array(
-			'delimiter'  => isset( $_POST['delimiter'] ) ? sanitize_text_field( wp_unslash( $_POST['delimiter'] ) ) : ',',
-			'has_header' => isset( $_POST['has_header'] ) ? filter_var( wp_unslash( $_POST['has_header'] ), FILTER_VALIDATE_BOOLEAN ) : true,
-		);
-
-		if ( empty( $upload_id ) || empty( $file_name ) ) {
-			wp_send_json_error( __( 'Invalid parameters', 'import-export-by-rockstarlab' ) );
-		}
-
-		$upload_path = $this->chunks_dir . $upload_id . '/';
-
-		if ( ! file_exists( $upload_path ) ) {
-			wp_send_json_error( __( 'Upload not found', 'import-export-by-rockstarlab' ) );
-		}
-
-		// Verify all chunks are present
-		for ( $i = 0; $i < $total_chunks; $i++ ) {
-			$chunk_file = $upload_path . 'chunk_' . str_pad( $i, 6, '0', STR_PAD_LEFT ) . '.csv';
-			if ( ! file_exists( $chunk_file ) ) {
-				// translators: %d is the missing chunk number.
-				wp_send_json_error( sprintf( __( 'Chunk %d is missing', 'import-export-by-rockstarlab' ), $i ) );
-			}
-		}
-
-		// Merge chunks
-		$final_file = $this->upload_dir . $file_name;
-
-		// If file exists, add timestamp to make it unique
-		if ( file_exists( $final_file ) ) {
-			$file_info  = pathinfo( $file_name );
-			$file_name  = $file_info['filename'] . '_' . time() . '.' . $file_info['extension'];
-			$final_file = $this->upload_dir . $file_name;
-		}
-
-		$final_handle = fopen( $final_file, 'wb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Stream required for chunked merge.
-
-		if ( ! $final_handle ) {
-			wp_send_json_error( __( 'Failed to create final file', 'import-export-by-rockstarlab' ) );
-		}
-
-		// Merge all chunks
-		for ( $i = 0; $i < $total_chunks; $i++ ) {
-			$chunk_file = $upload_path . 'chunk_' . str_pad( $i, 6, '0', STR_PAD_LEFT ) . '.csv';
-			$chunk_data = file_get_contents( $chunk_file );
-
-			if ( $chunk_data === false ) {
-				fclose( $final_handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing stream opened above.
-				wp_delete_file( $final_file );
-				// translators: %d is the chunk number that failed to read.
-				wp_send_json_error( sprintf( __( 'Failed to read chunk %d', 'import-export-by-rockstarlab' ), $i ) );
-			}
-
-			fwrite( $final_handle, $chunk_data ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- Writing to stream opened above.
-			unset( $chunk_data ); // Free memory
-		}
-
-		fclose( $final_handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing stream opened above.
-
-		// Cleanup chunks
-		$this->cleanup_upload( $upload_id );
-
-		// Get file info
-		$file_size      = filesize( $final_file );
-		$file_url       = str_replace( wp_upload_dir()['basedir'], wp_upload_dir()['baseurl'], $final_file );
-		$file_extension = strtolower( pathinfo( $file_name, PATHINFO_EXTENSION ) );
-
-		// Generate preview with CSV options
-		$preview_data = $this->generate_preview( $final_file, $file_extension, $csv_options );
-
-		// Check if preview generation returned an error
-		if ( isset( $preview_data['error'] ) ) {
-			wp_send_json_success(
-				array(
-					'error'      => $preview_data['error'],
-					'preview'    => isset( $preview_data['preview'] ) ? $preview_data['preview'] : array(),
-					'total_rows' => isset( $preview_data['total_rows'] ) ? $preview_data['total_rows'] : 0,
-					'columns'    => isset( $preview_data['columns'] ) ? $preview_data['columns'] : array(),
-				)
+			// Get CSV options if provided
+			$csv_options              = array(
+				'delimiter'  => isset( $_POST['delimiter'] ) ? sanitize_text_field( wp_unslash( $_POST['delimiter'] ) ) : ',',
+				'has_header' => isset( $_POST['has_header'] ) ? filter_var( wp_unslash( $_POST['has_header'] ), FILTER_VALIDATE_BOOLEAN ) : true,
 			);
-			return;
-		}
+			$csv_options['delimiter'] = $this->normalize_csv_delimiter( $csv_options['delimiter'] );
 
-		// Build success response
-		$response = array(
-			'file_name'  => $file_name,
-			'file_path'  => $final_file,
-			'file_url'   => $file_url,
-			'file_size'  => $file_size,
-			'format'     => $file_extension,
-			'preview'    => $preview_data['preview'],
-			'total_rows' => $preview_data['total_rows'],
-			'columns'    => $preview_data['columns'],
-			'message'    => __( 'File uploaded successfully', 'import-export-by-rockstarlab' ),
-		);
+			if ( empty( $upload_id ) || empty( $file_name ) ) {
+				wp_send_json_error( __( 'Invalid parameters', 'import-export-by-rockstarlab' ) );
+			}
 
-		// Add warning if present
-		if ( isset( $preview_data['warning'] ) && ! empty( $preview_data['warning'] ) ) {
-			$response['warning'] = $preview_data['warning'];
-		}
+			$upload_path = $this->chunks_dir . $upload_id . '/';
 
-		wp_send_json_success( $response );
+			if ( ! file_exists( $upload_path ) ) {
+				wp_send_json_error( __( 'Upload not found', 'import-export-by-rockstarlab' ) );
+			}
+
+			// Verify all chunks are present
+			for ( $i = 0; $i < $total_chunks; $i++ ) {
+				$chunk_file = $upload_path . 'chunk_' . str_pad( $i, 6, '0', STR_PAD_LEFT ) . '.csv';
+				if ( ! file_exists( $chunk_file ) ) {
+					// translators: %d is the missing chunk number.
+					wp_send_json_error( sprintf( __( 'Chunk %d is missing', 'import-export-by-rockstarlab' ), $i ) );
+				}
+			}
+
+			// Merge chunks
+			$final_file = $this->upload_dir . $file_name;
+
+			// If file exists, add timestamp to make it unique
+			if ( file_exists( $final_file ) ) {
+				$file_info  = pathinfo( $file_name );
+				$file_name  = $file_info['filename'] . '_' . time() . '.' . $file_info['extension'];
+				$final_file = $this->upload_dir . $file_name;
+			}
+
+			$final_handle = fopen( $final_file, 'wb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Stream required for chunked merge.
+
+			if ( ! $final_handle ) {
+				wp_send_json_error( __( 'Failed to create final file', 'import-export-by-rockstarlab' ) );
+			}
+
+			// Merge all chunks
+			for ( $i = 0; $i < $total_chunks; $i++ ) {
+				$chunk_file = $upload_path . 'chunk_' . str_pad( $i, 6, '0', STR_PAD_LEFT ) . '.csv';
+				$chunk_data = file_get_contents( $chunk_file );
+
+				if ( $chunk_data === false ) {
+					fclose( $final_handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing stream opened above.
+					wp_delete_file( $final_file );
+					// translators: %d is the chunk number that failed to read.
+					wp_send_json_error( sprintf( __( 'Failed to read chunk %d', 'import-export-by-rockstarlab' ), $i ) );
+				}
+
+				fwrite( $final_handle, $chunk_data ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- Writing to stream opened above.
+				unset( $chunk_data ); // Free memory
+			}
+
+			fclose( $final_handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing stream opened above.
+
+			// Cleanup chunks
+			$this->cleanup_upload( $upload_id );
+
+			// Get file info
+			$file_size      = filesize( $final_file );
+			$file_url       = str_replace( wp_upload_dir()['basedir'], wp_upload_dir()['baseurl'], $final_file );
+			$file_extension = strtolower( pathinfo( $file_name, PATHINFO_EXTENSION ) );
+
+			// Generate preview with CSV options
+			$preview_data = $this->generate_preview( $final_file, $file_extension, $csv_options );
+
+			// Check if preview generation returned an error
+			if ( isset( $preview_data['error'] ) ) {
+				wp_send_json_success(
+					array(
+						'error'      => $preview_data['error'],
+						'preview'    => isset( $preview_data['preview'] ) ? $preview_data['preview'] : array(),
+						'total_rows' => isset( $preview_data['total_rows'] ) ? $preview_data['total_rows'] : 0,
+						'columns'    => isset( $preview_data['columns'] ) ? $preview_data['columns'] : array(),
+					)
+				);
+				return;
+			}
+
+			// Build success response
+			$response = array(
+				'file_name'  => $file_name,
+				'file_path'  => $final_file,
+				'file_url'   => $file_url,
+				'file_size'  => $file_size,
+				'format'     => $file_extension,
+				'preview'    => $preview_data['preview'],
+				'total_rows' => $preview_data['total_rows'],
+				'columns'    => $preview_data['columns'],
+				'message'    => __( 'File uploaded successfully', 'import-export-by-rockstarlab' ),
+			);
+
+			// Add warning if present
+			if ( isset( $preview_data['warning'] ) && ! empty( $preview_data['warning'] ) ) {
+				$response['warning'] = $preview_data['warning'];
+			}
+
+			wp_send_json_success( $response );
 	}
 
 	/**
@@ -329,9 +330,10 @@ class Chunk_Upload {
 			wp_send_json_error( __( 'Insufficient permissions', 'import-export-by-rockstarlab' ) );
 		}
 
-		$file_path  = sanitize_text_field( wp_unslash( $_POST['file_path'] ?? '' ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Input is sanitized and validated in context.
-		$delimiter  = isset( $_POST['delimiter'] ) ? sanitize_text_field( wp_unslash( $_POST['delimiter'] ) ) : ','; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Input is sanitized and validated in context.
-		$has_header = isset( $_POST['has_header'] ) ? filter_var( wp_unslash( $_POST['has_header'] ), FILTER_VALIDATE_BOOLEAN ) : true; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Input is sanitized and validated in context.
+		$file_path      = sanitize_text_field( wp_unslash( $_POST['file_path'] ?? '' ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Input is sanitized and validated in context.
+			$delimiter  = isset( $_POST['delimiter'] ) ? sanitize_text_field( wp_unslash( $_POST['delimiter'] ) ) : ','; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Input is sanitized and validated in context.
+			$delimiter  = $this->normalize_csv_delimiter( $delimiter );
+			$has_header = isset( $_POST['has_header'] ) ? filter_var( wp_unslash( $_POST['has_header'] ), FILTER_VALIDATE_BOOLEAN ) : true; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Input is sanitized and validated in context.
 
 		if ( empty( $file_path ) || ! file_exists( $file_path ) ) {
 			wp_send_json_error( __( 'Invalid file path', 'import-export-by-rockstarlab' ) );
@@ -358,6 +360,33 @@ class Chunk_Upload {
 				'message'    => __( 'Preview reloaded successfully', 'import-export-by-rockstarlab' ),
 			)
 		);
+	}
+
+	/**
+	 * Normalize delimiter values coming from UI / requests into a single character.
+	 *
+	 * @param mixed $delimiter Raw delimiter.
+	 * @return string Normalized delimiter (never empty).
+	 */
+	private function normalize_csv_delimiter( $delimiter ) {
+		if ( null === $delimiter ) {
+			return ',';
+		}
+
+		if ( ! is_string( $delimiter ) ) {
+			$delimiter = (string) $delimiter;
+		}
+
+		if ( '' === $delimiter ) {
+			return ',';
+		}
+
+		$lower = strtolower( $delimiter );
+		if ( 'tab' === $lower || '\\t' === $delimiter || "\t" === $delimiter ) {
+			return "\t";
+		}
+
+		return $delimiter;
 	}
 
 	/**
@@ -401,8 +430,11 @@ class Chunk_Upload {
 			$delimiter  = isset( $csv_options['delimiter'] ) ? $csv_options['delimiter'] : ',';
 			$has_header = isset( $csv_options['has_header'] ) ? $csv_options['has_header'] : true;
 
+			$delimiter = $this->normalize_csv_delimiter( $delimiter );
+
 			// Handle escape sequences in delimiter
 			$delimiter = str_replace( array( '\t', '\n', '\r' ), array( "\t", "\n", "\r" ), $delimiter );
+			$delimiter = $this->normalize_csv_delimiter( $delimiter );
 
 			$handle = fopen( $file_path, 'r' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Stream required for CSV parsing with fgetcsv.
 			if ( ! $handle ) {
@@ -411,6 +443,11 @@ class Chunk_Upload {
 					'total_rows' => 0,
 					'columns'    => array(),
 				);
+			}
+
+			// `fgetcsv()` requires a single-character delimiter.
+			if ( '' === $delimiter || strlen( $delimiter ) !== 1 ) {
+				$delimiter = ',';
 			}
 
 			// Read first row
@@ -513,12 +550,12 @@ class Chunk_Upload {
 			$warning = isset( $validation['warning'] ) ? $validation['warning'] : null;
 		}
 
-		return array(
-			'preview'    => $preview,
-			'total_rows' => $total_rows,
-			'columns'    => $columns,
-			'warning'    => isset( $warning ) ? $warning : null,
-		);
+			return array(
+				'preview'    => $preview,
+				'total_rows' => $total_rows,
+				'columns'    => $columns,
+				'warning'    => isset( $warning ) ? $warning : null,
+			);
 	}
 
 	/**

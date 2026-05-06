@@ -609,8 +609,14 @@ class Export_Controller extends Base_Controller {
 		// Map format_options to actual option names used by formatters
 		$formatter_options = [];
 		if ( 'csv' === $format ) {
+			$csv_delimiter = $format_options['csv_delimiter'] ?? ',';
+			// Request arrays are sanitized via sanitize_text_field(), so a literal tab
+			// cannot be sent reliably. Support a symbolic "tab" value (and legacy "\t").
+			if ( 'tab' === $csv_delimiter || '\\t' === $csv_delimiter ) {
+				$csv_delimiter = "\t";
+			}
 			$formatter_options = [
-				'delimiter' => $format_options['csv_delimiter'] ?? ',',
+				'delimiter' => $csv_delimiter,
 				'headers'   => ! empty( $format_options['csv_include_header'] ) ? null : false,
 			];
 		} elseif ( 'json' === $format ) {
