@@ -54,6 +54,17 @@
     </script>
     <link rel="icon" href="favicon.png" type="image/png" />
     <link rel="stylesheet" href="assets/css/style.min.css?v=1.0.4" />
+
+		<!-- Google tag (gtag.js) -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=G-PSP040Y5E9"></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+
+			gtag('config', 'G-PSP040Y5E9');
+		</script>
+
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -82,7 +93,8 @@
             class="btn btn-sm btn-primary"
             href="https://wordpress.org/plugins/import-export-by-rockstarlab/"
             target="_blank"
-            rel="noreferrer"
+            rel="noreferrer" 
+						id="header-download-button"
             >Download</a
           >
         </nav>
@@ -709,7 +721,7 @@
           </div>
 
           <div class="aff-cta reveal">
-            <a class="btn btn-primary" href="https://wordpress.org/plugins/import-export-by-rockstarlab/">Download to become an affiliate</a>
+            <a class="btn btn-primary" id="referral-download-button" href="https://wordpress.org/plugins/import-export-by-rockstarlab/">Download to become an affiliate</a>
           </div>
         </div>
       </section>
@@ -791,7 +803,8 @@
                 class="btn btn-primary"
                 href="https://wordpress.org/plugins/import-export-by-rockstarlab/"
                 target="_blank"
-                rel="noreferrer"
+                rel="noreferrer" 
+								id="footer-cta-download-button"
                 >Download</a
               >
               <a
