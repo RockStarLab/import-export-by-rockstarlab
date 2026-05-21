@@ -39,12 +39,7 @@ class AI_Content_Extractor {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->api_key = get_option( 'rsl_ie_openai_api_key', '' );
-
-		// Fallback to constant if not set in options
-		if ( empty( $this->api_key ) && defined( 'RSL_IE_OPENAI_API_KEY' ) ) {
-			$this->api_key = RSL_IE_OPENAI_API_KEY;
-		}
+		$this->api_key = OpenAI_API_Key::get_api_key();
 	}
 
 	/**
@@ -69,8 +64,8 @@ class AI_Content_Extractor {
 				),
 				'body'    => wp_json_encode(
 					array(
-						'model'    => $this->model,
-						'messages' => array(
+						'model'      => $this->model,
+						'messages'   => array(
 							array(
 								'role'    => 'user',
 								'content' => 'Test connection',
@@ -232,8 +227,8 @@ class AI_Content_Extractor {
 				),
 				'body'    => wp_json_encode(
 					array(
-						'model'       => $this->model,
-						'messages'    => array(
+						'model'           => $this->model,
+						'messages'        => array(
 							array(
 								'role'    => 'system',
 								'content' => 'You are a content extraction assistant. Extract article title and COMPLETE main content from HTML, removing sidebars, comments, ads, and navigation. NEVER truncate or shorten the article text — reproduce every paragraph in full. Return valid JSON only.',
@@ -243,8 +238,8 @@ class AI_Content_Extractor {
 								'content' => $prompt,
 							),
 						),
-						'temperature' => 0.3,
-						'max_tokens'  => 16000,
+						'temperature'     => 0.3,
+						'max_tokens'      => 16000,
 						'response_format' => array( 'type' => 'json_object' ),
 					)
 				),
@@ -385,7 +380,7 @@ class AI_Content_Extractor {
 			"}\n\n" .
 			"Rules:\n" .
 			"- Remove navigation, sidebars, comments, ads, footers, headers\n" .
-			"- Keep only the main article text and related images\n" .		"- Include the COMPLETE article — every paragraph, do not cut off or truncate\n" .			"- Preserve paragraph structure and formatting\n" .
+			"- Keep only the main article text and related images\n" . "- Include the COMPLETE article — every paragraph, do not cut off or truncate\n" . "- Preserve paragraph structure and formatting\n" .
 			"- Keep image tags with src attributes\n" .
 			"- Make image URLs absolute (based on: %s)\n" .
 			"- Return valid JSON only\n\n" .

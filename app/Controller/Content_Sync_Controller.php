@@ -679,19 +679,30 @@ class Content_Sync_Controller extends Base_Controller {
 			filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/css/app.css' )
 		);
 
+		// WordPress 7+ admin UI tweaks.
+		global $wp_version;
+		if ( isset( $wp_version ) && version_compare( $wp_version, '7.0', '>=' ) ) {
+			wp_enqueue_style(
+				'aie-post-sync-admin-wp7',
+				plugins_url( 'assets/css/admin-wp7.css', RSL_IE_FILE ),
+				array( 'aie-post-sync-styles' ),
+				filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/css/admin-wp7.css' )
+			);
+		}
+
 		// Enqueue Gutenberg sync script for post edit screens
 		if ( in_array( $hook_suffix, array( 'post.php', 'post-new.php' ) ) ) {
 
 			// Only show for posts being edited
 			if ( $post ) {
 				// Enqueue the Gutenberg sync script
-					wp_enqueue_script(
-						'aie-gutenberg-sync',
-						plugins_url( 'assets/js/gutenberg-sync.js', RSL_IE_FILE ),
-						array( 'jquery', 'wp-editor', 'wp-data', 'wp-element', 'wp-components' ),
-						filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/js/gutenberg-sync.js' ),
-						false
-					);
+				wp_enqueue_script(
+					'aie-gutenberg-sync',
+					plugins_url( 'assets/js/gutenberg-sync.js', RSL_IE_FILE ),
+					array( 'jquery', 'wp-editor', 'wp-data', 'wp-element', 'wp-components' ),
+					filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/js/gutenberg-sync.js' ),
+					false
+				);
 
 				// Localize script with necessary data
 				wp_localize_script(
