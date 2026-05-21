@@ -7,6 +7,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+use RockStarLab\ImportExport\Helper\OpenAI_API_Key;
+
 // Get current settings
 $rsl_ie_openai_api_key = get_option( 'rsl_ie_openai_api_key', '' );
 
@@ -16,6 +18,10 @@ if ( defined( 'RSL_IE_OPENAI_API_KEY' ) && ! empty( RSL_IE_OPENAI_API_KEY ) ) {
 }
 
 $rsl_ie_has_constant_key = ! empty( $rsl_ie_constant_key_value );
+
+// WP 7+ Connectors API: OpenAI connector configured.
+$rsl_ie_has_wp_connector_key = OpenAI_API_Key::has_wp_connector_api_key();
+$rsl_ie_has_any_openai_key   = OpenAI_API_Key::has_api_key();
 
 // Mask the API key for display
 $rsl_ie_masked_api_key = '';
@@ -48,6 +54,25 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 			</div>
 
 			<div class="aie-settings-section-body">
+				<?php if ( $rsl_ie_has_wp_connector_key ) : ?>
+					<div class="aie-info-box aie-success">
+						<span class="dashicons dashicons-yes-alt"></span>
+						<div>
+							<strong><?php esc_html_e( 'This site is already integrated with OpenAI', 'import-export-by-rockstarlab' ); ?></strong>
+							<p>
+								<?php
+								echo wp_kses_post(
+									sprintf(
+										/* translators: %s: URL to WordPress Connectors screen */
+										__( 'OpenAI is configured via WordPress Connectors. Manage the connection in <a href="%s">Settings → Connectors</a>.', 'import-export-by-rockstarlab' ),
+										esc_url( admin_url( 'options-connectors.php' ) )
+									)
+								);
+								?>
+							</p>
+						</div>
+					</div>
+				<?php else : ?>
 				<form id="aie-settings-form" class="aie-settings-form">
 					<table class="form-table">
 						<tr>
@@ -120,7 +145,7 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 							</th>
 							<td>
 								<div id="aie-api-status" class="aie-api-status">
-									<?php if ( ! empty( $rsl_ie_openai_api_key ) || $rsl_ie_has_constant_key ) : ?>
+									<?php if ( $rsl_ie_has_any_openai_key ) : ?>
 										<span class="aie-status-badge aie-status-configured">
 											<span class="dashicons dashicons-yes-alt"></span>
 											<?php esc_html_e( 'Configured', 'import-export-by-rockstarlab' ); ?>
@@ -163,6 +188,7 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 						</div>
 					<?php endif; ?>
 				</form>
+				<?php endif; ?>
 			</div>
 		</div>
 

@@ -233,46 +233,46 @@ class Init {
 			'import-export-by-rockstarlab-scripts',
 			'aieData',
 			array(
-				'ajaxUrl'                  => admin_url( 'admin-ajax.php' ),
-				'nonce'                    => wp_create_nonce( 'rsl_ie_nonce' ),
-				'pluginUrl'                => plugins_url( '', RSL_IE_FILE ),
-				'functionsUrl'             => admin_url( 'admin.php?page=rsl-ie-functions' ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request(). -- Input is sanitized and validated in context.
-					'optionsUrl'           => admin_url( 'admin.php?page=rsl-ie-plugin-options' ),
-						'currentPage'      => isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading admin page slug, no nonce needed.
-						'hasOpenAIApiKey'  => \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_key(),
-						'isPremium'        => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active(),
-						'isProAddonActive' => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active(),
-						'isProEnabled'     => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_enabled(),
-					'premiumDataTypes'     => [
-						'custom_post_types',
-			'custom_post_type',
-						'media',
-						'menu',
-			'menus',
-			'nav_menu',
+				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
+				'nonce'            => wp_create_nonce( 'rsl_ie_nonce' ),
+				'pluginUrl'        => plugins_url( '', RSL_IE_FILE ),
+				'functionsUrl'     => admin_url( 'admin.php?page=rsl-ie-functions' ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request(). -- Input is sanitized and validated in context.
+				'optionsUrl'       => admin_url( 'admin.php?page=rsl-ie-plugin-options' ),
+				'currentPage'      => isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading admin page slug, no nonce needed.
+				'hasOpenAIApiKey'  => \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_key(),
+				'isPremium'        => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active(),
+				'isProAddonActive' => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active(),
+				'isProEnabled'     => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_enabled(),
+				'premiumDataTypes' => array(
+					'custom_post_types',
+					'custom_post_type',
+					'media',
+					'menu',
+					'menus',
+					'nav_menu',
 					'user',
-			'users',
+					'users',
 					'comment',
-			'comments',
+					'comments',
 					'taxonomy',
-			'taxonomy_term',
-			'taxonomy_terms',
-			'term',
-			'terms',
+					'taxonomy_term',
+					'taxonomy_terms',
+					'term',
+					'terms',
 					'category',
-			'categories',
-			'tag',
-			'tags',
+					'categories',
+					'tag',
+					'tags',
 					'woo_product',
-			'product',
-			'products',
+					'product',
+					'products',
 					'woo_order',
-			'woo_orders',
+					'woo_orders',
 					'woo_coupon',
 					'woo_attribute',
 					'database_table',
-				],
-				'i18n'                     => array(
+				),
+				'i18n'             => array(
 					// General
 					'skip'                          => __( 'Skip', 'import-export-by-rockstarlab' ),
 					'uploading'                     => __( 'Uploading...', 'import-export-by-rockstarlab' ),
@@ -946,7 +946,7 @@ class Init {
 				// translators: %s = content placeholder.
 				'serverErrorUnableToTest'           => __( 'Server error: Unable to test function. The code may contain syntax errors or forbidden constructs. Check the browser console for details.', 'import-export-by-rockstarlab' ),
 				'testFailed'                        => __( 'Test failed', 'import-export-by-rockstarlab' ),
-				'apiKeyNotConfigured'               => __( 'OpenAI API key is not configured. Please configure it in Plugin Options to use AI generation.\n\nDo you want to go to Plugin Options now?', 'import-export-by-rockstarlab' ),
+				'apiKeyNotConfigured'               => __( 'OpenAI API key is not configured. Please configure it in Settings → Connectors (WordPress 7+) or in Plugin Options to use AI generation.\n\nDo you want to go to Plugin Options now?', 'import-export-by-rockstarlab' ),
 				'badgeLibrary'                      => __( 'Library', 'import-export-by-rockstarlab' ),
 				'badgeCustom'                       => __( 'Custom', 'import-export-by-rockstarlab' ),
 				'badgeActive'                       => __( 'Active', 'import-export-by-rockstarlab' ),
@@ -1002,7 +1002,9 @@ class Init {
 				'retryRequiresPremium'              => __( 'The PRO addon is required to retry this job.', 'import-export-by-rockstarlab' ),
 			),
 			)
-		);      // Localize script for Content Sync page
+		);
+
+		// Localize script for Content Sync page
 		if ( 'import-export-by-rockstarlab_page_rsl-ie-content-sync' === $admin_page ) {
 			wp_localize_script(
 				'import-export-by-rockstarlab-scripts',
@@ -1020,6 +1022,17 @@ class Init {
 			false,
 			filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/css/app.css' )
 		);
+
+		// WordPress 7+ admin UI tweaks.
+		global $wp_version;
+		if ( isset( $wp_version ) && version_compare( $wp_version, '7.0', '>=' ) ) {
+			wp_enqueue_style(
+				'import-export-by-rockstarlab-admin-wp7',
+				plugins_url( 'assets/css/admin-wp7.css', RSL_IE_FILE ),
+				array( 'import-export-by-rockstarlab-styles' ),
+				filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/css/admin-wp7.css' )
+			);
+		}
 
 		// Prevent step-flash when resuming export jobs (use enqueue + inline style, not <style> tags).
 		if ( 'import-export-by-rockstarlab_page_rsl-ie-export' === $admin_page ) {

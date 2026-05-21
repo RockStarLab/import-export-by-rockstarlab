@@ -50,6 +50,7 @@ defined( 'ABSPATH' ) || exit;
 					<?php
 					$rsl_ie_has_api_key   = \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_key();
 					$rsl_ie_feature_ready = $rsl_ie_has_api_key;
+					$rsl_ie_is_wp7_plus   = \RockStarLab\ImportExport\Helper\OpenAI_API_Key::is_wp7_plus();
 					?>
 					<tr class="aie-ai-generate-section">
 						<th scope="row">
@@ -67,13 +68,24 @@ defined( 'ABSPATH' ) || exit;
 								<div class="notice notice-warning inline">
 									<p>
 										<?php
-										echo wp_kses_post(
-											sprintf(
-												/* translators: %s: plugin options URL */
-												__( '<strong>API Key Required:</strong> OpenAI API key is not configured. Please add it in <a href="%s">Plugin Options</a> to use AI generation.', 'import-export-by-rockstarlab' ),
-												esc_url( admin_url( 'admin.php?page=rsl-ie-plugin-options' ) )
-											)
-										);
+										if ( $rsl_ie_is_wp7_plus ) {
+											echo wp_kses_post(
+												sprintf(
+													/* translators: 1: connectors URL, 2: plugin options URL */
+													__( '<strong>API Key Required:</strong> OpenAI API key is not configured. Please add it in <a href="%1$s">Settings → Connectors</a> or in <a href="%2$s">Plugin Options</a> to use AI generation.', 'import-export-by-rockstarlab' ),
+													esc_url( admin_url( 'options-connectors.php' ) ),
+													esc_url( admin_url( 'admin.php?page=rsl-ie-plugin-options' ) )
+												)
+											);
+										} else {
+											echo wp_kses_post(
+												sprintf(
+													/* translators: %s: plugin options URL */
+													__( '<strong>API Key Required:</strong> OpenAI API key is not configured. Please add it in <a href="%s">Plugin Options</a> to use AI generation.', 'import-export-by-rockstarlab' ),
+													esc_url( admin_url( 'admin.php?page=rsl-ie-plugin-options' ) )
+												)
+											);
+										}
 										?>
 									</p>
 								</div>

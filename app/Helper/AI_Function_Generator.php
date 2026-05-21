@@ -51,20 +51,8 @@ class AI_Function_Generator {
 	 * @return string
 	 */
 	private function get_api_key() {
-		// First check options (user-defined in Plugin Options page)
-		$api_key = get_option( 'rsl_ie_openai_api_key', '' );
-		
-		if ( ! empty( $api_key ) ) {
-			return $api_key;
-		}
-
-			// Fallback to constant if defined
-			if ( defined( 'RSL_IE_OPENAI_API_KEY' ) ) {
-				return RSL_IE_OPENAI_API_KEY;
-			}
-
-			return '';
-		}
+		return OpenAI_API_Key::get_api_key();
+	}
 
 	/**
 	 * Check if API key is configured
@@ -72,20 +60,8 @@ class AI_Function_Generator {
 	 * @return bool
 	 */
 	public static function has_api_key() {
-		// Check options first
-		$api_key = get_option( 'rsl_ie_openai_api_key', '' );
-		
-		if ( ! empty( $api_key ) ) {
-			return true;
-		}
-
-			// Check constant
-			if ( defined( 'RSL_IE_OPENAI_API_KEY' ) && ! empty( RSL_IE_OPENAI_API_KEY ) ) {
-				return true;
-			}
-
-			return false;
-		}
+		return OpenAI_API_Key::has_api_key();
+	}
 
 	/**
 	 * Generate function from prompt
@@ -97,7 +73,7 @@ class AI_Function_Generator {
 		if ( empty( $this->api_key ) ) {
 			return new \WP_Error(
 				'no_api_key',
-				__( 'OpenAI API key is not configured. Please add it to wp-config.php as RSL_IE_OPENAI_API_KEY or configure it in settings.', 'import-export-by-rockstarlab' )
+				__( 'OpenAI API key is not configured. Configure it in Settings → Connectors (WordPress 7+), or add it to wp-config.php as RSL_IE_OPENAI_API_KEY, or configure it in Plugin Options.', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -226,7 +202,7 @@ Remember:
 		$response_body = wp_remote_retrieve_body( $response );
 
 		if ( 200 !== $response_code ) {
-			$error_data = json_decode( $response_body, true );
+			$error_data    = json_decode( $response_body, true );
 			$error_message = $error_data['error']['message'] ?? __( 'Unknown API error', 'import-export-by-rockstarlab' );
 
 			return new \WP_Error(
@@ -261,7 +237,7 @@ Remember:
 	private function parse_response( $response ) {
 		// Try to extract JSON from response (in case AI wrapped it in markdown code blocks)
 		$response = trim( $response );
-		
+
 		// Remove markdown code blocks if present
 		$response = preg_replace( '/^```json\s*/m', '', $response );
 		$response = preg_replace( '/^```\s*/m', '', $response );
@@ -289,11 +265,11 @@ Remember:
 
 		// Clean up the code
 		$code = trim( $data['code'] );
-		
+
 		// Remove any PHP tags that might have slipped through
 		$code = preg_replace( '/<\?php\s*/i', '', $code );
 		$code = preg_replace( '/\?>\s*$/i', '', $code );
-		
+
 		// Validate the code has a return statement
 		if ( stripos( $code, 'return' ) === false ) {
 			return new \WP_Error(
