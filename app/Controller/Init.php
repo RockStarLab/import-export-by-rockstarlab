@@ -208,6 +208,7 @@ class Init {
 				'import-export-by-rockstarlab_page_rsl-ie-ai-url-importer',
 				'import-export-by-rockstarlab_page_rsl-ie-functions',
 				'import-export-by-rockstarlab_page_rsl-ie-plugin-options',
+				'import-export-by-rockstarlab_page_import-export-by-rockstarlab-addons',
 			)
 		) ) {
 			return;

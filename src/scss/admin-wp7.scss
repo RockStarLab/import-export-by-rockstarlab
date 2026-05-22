@@ -809,3 +809,12 @@ body.toplevel_page_import-export-by-rockstarlab .rsl-ie-support-text a {
 body.toplevel_page_import-export-by-rockstarlab .rsl-ie-support-text a:hover {
 	color: var(--wp-admin-theme-color-darker-10, #135e96);
 }
+
+/* Add-Ons page: fix "View details" button height on WP 7+. */
+body[class*="import-export-by-rockstarlab"]
+	.plugin-card
+	.open-plugin-details-modal,
+body[class*="import-export-by-rockstarlab"] .fs-cta .button {
+	line-height: 2;
+	min-height: 30px;
+}
