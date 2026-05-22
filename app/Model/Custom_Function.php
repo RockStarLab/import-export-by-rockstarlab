@@ -328,7 +328,7 @@ class Custom_Function extends Model {
 
 		// Find next available number
 		while ( $this->function_name_exists( $base_name . ' (' . $counter . ')', $exclude_id ) ) {
-			$counter++;
+			++$counter;
 		}
 
 		return $base_name . ' (' . $counter . ')';
@@ -367,16 +367,16 @@ class Custom_Function extends Model {
 
 		$args = wp_parse_args( $args, $defaults );
 
-		// Build query
-		$where_clauses = [];
-		$where_values  = [];
-
-		// Support old 'status' param for backward compatibility
+		// Support old 'status' param for backward compatibility.
 		if ( ! empty( $args['status'] ) ) {
 			$args['is_active'] = ( 'active' === $args['status'] ) ? 1 : 0;
 		}
 
-		// Support 'category' filter (library/custom)
+		$table = $this->get_table_name();
+
+		$where_clauses = [];
+		$where_values  = [];
+
 		if ( ! empty( $args['category'] ) ) {
 			if ( 'library' === $args['category'] ) {
 				$where_clauses[] = 'source LIKE %s';
@@ -395,34 +395,64 @@ class Custom_Function extends Model {
 		if ( ! empty( $args['source'] ) ) {
 			$where_clauses[] = 'source = %s';
 			$where_values[]  = $args['source'];
-		}       if ( ! empty( $args['search'] ) ) {
+		}
+
+		if ( ! empty( $args['search'] ) ) {
 			$where_clauses[] = '(name LIKE %s OR description LIKE %s)';
 			$search_term     = '%' . $wpdb->esc_like( $args['search'] ) . '%';
 			$where_values[]  = $search_term;
 			$where_values[]  = $search_term;
-		}       $where_sql = ! empty( $where_clauses ) ? 'WHERE ' . implode( ' AND ', $where_clauses ) : '';
+		}
 
-		// Validate orderby
+		$where_sql = ! empty( $where_clauses ) ? ' WHERE ' . implode( ' AND ', $where_clauses ) : '';
+
 		$allowed_orderby = [ 'id', 'name', 'source', 'is_active', 'usage_count', 'created_at', 'updated_at' ];
 		$orderby         = in_array( $args['orderby'], $allowed_orderby, true ) ? $args['orderby'] : 'name';
-		$order           = 'DESC' === strtoupper( $args['order'] ) ? 'DESC' : 'ASC';
-		$query           = "SELECT * FROM {$this->get_table_name()} {$where_sql} ORDER BY {$orderby} {$order}";
+		$order           = ( 'DESC' === strtoupper( $args['order'] ) ) ? 'DESC' : 'ASC';
 
-		if ( $args['limit'] > 0 ) {
-			$query .= $wpdb->prepare( ' LIMIT %d OFFSET %d', $args['limit'], $args['offset'] );
+		$cache_key = 'rsl_ie_custom_functions:get_all:' . md5(
+			wp_json_encode(
+				[
+					$args,
+					$where_values,
+					$orderby,
+					$order,
+				]
+			)
+		);
+		$cached    = wp_cache_get( $cache_key, 'rsl_ie' );
+		if ( false !== $cached ) {
+			return $cached;
 		}
 
-		if ( ! empty( $where_values ) ) {
-			$query = $wpdb->prepare( $query, $where_values ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$sql        = 'SELECT * FROM `' . $table . '`' . $where_sql . ' ORDER BY ' . $orderby . ' ' . $order;
+		$query_args = $where_values;
+
+		$limit  = (int) $args['limit'];
+		$offset = (int) $args['offset'];
+
+		if ( $limit > 0 ) {
+			$sql         .= ' LIMIT %d OFFSET %d';
+			$query_args[] = $limit;
+			$query_args[] = $offset;
 		}
 
-		$functions = $wpdb->get_results( $query, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		if ( ! empty( $query_args ) ) {
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- Table/ORDER BY are allowlisted; dynamic args are prepared.
+			$sql = $wpdb->prepare( $sql, ...$query_args );
+			// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
+		}
+
+		$functions = $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		// Map database columns to expected format
 		if ( ! empty( $functions ) ) {
 			$functions = array_map( [ $this, 'map_db_to_output' ], $functions );
 		}
-		return $functions ?: [];
+		$functions = $functions ?: [];
+		wp_cache_set( $cache_key, $functions, 'rsl_ie', MINUTE_IN_SECONDS );
+
+		return $functions;
 	}
 
 	/**
@@ -433,18 +463,18 @@ class Custom_Function extends Model {
 	 */
 	public function get_count( $args = [] ) {
 		global $wpdb;
+		$table = $this->get_table_name();
 
 		$where_clauses = [];
 		$where_values  = [];
 
-		// Support old 'status' param for backward compatibility
+		// Support old 'status' param for backward compatibility.
 		if ( ! empty( $args['status'] ) ) {
 			$is_active       = ( 'active' === $args['status'] ) ? 1 : 0;
 			$where_clauses[] = 'is_active = %d';
 			$where_values[]  = $is_active;
 		}
 
-		// Support 'category' filter (library/custom)
 		if ( ! empty( $args['category'] ) ) {
 			if ( 'library' === $args['category'] ) {
 				$where_clauses[] = 'source LIKE %s';
@@ -467,23 +497,43 @@ class Custom_Function extends Model {
 			$where_values[]  = $search_term;
 		}
 
-		$where_sql = ! empty( $where_clauses ) ? 'WHERE ' . implode( ' AND ', $where_clauses ) : '';
+		$where_sql = ! empty( $where_clauses ) ? ' WHERE ' . implode( ' AND ', $where_clauses ) : '';
+		$sql       = 'SELECT COUNT(*) FROM `' . $table . '`' . $where_sql;
 
-		$query = "SELECT COUNT(*) FROM {$this->get_table_name()} {$where_sql}";
-
-		if ( ! empty( $where_values ) ) {
-			$query = $wpdb->prepare( $query, $where_values ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$cache_key = 'rsl_ie_custom_functions:count:' . md5(
+			wp_json_encode(
+				[
+					$args,
+					$where_values,
+					$where_sql,
+				]
+			)
+		);
+		$cached    = wp_cache_get( $cache_key, 'rsl_ie' );
+		if ( false !== $cached ) {
+			return (int) $cached;
 		}
 
-		return (int) $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-	}   /**
-		 * Test function with sample value
-		 *
-		 * @param string $code    PHP code to test
-		 * @param mixed  $value   Test value
-		 * @param array  $context Optional context
-		 * @return array Test result
-		 */
+		if ( ! empty( $where_values ) ) {
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- Table name is fixed model table name with prefix.
+			$sql = $wpdb->prepare( $sql, ...$where_values );
+			// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
+		}
+
+		$count = (int) $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		wp_cache_set( $cache_key, $count, 'rsl_ie', MINUTE_IN_SECONDS );
+
+		return $count;
+	}
+
+	/**
+	 * Test function with sample value
+	 *
+	 * @param string $code    PHP code to test
+	 * @param mixed  $value   Test value
+	 * @param array  $context Optional context
+	 * @return array Test result
+	 */
 	public function test_function( $code, $value, $context = [] ) {
 		return $this->executor->test_function( $code, $value, $context );
 	}
