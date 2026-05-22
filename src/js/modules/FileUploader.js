@@ -1,7 +1,7 @@
 /**
  * FileUploader - Handles chunked file uploads to bypass PHP upload limits
  *
- * @package WP_AIE\JS
+ * @package RockStarLab\ImportExport\JS
  */
 
 export default class FileUploader {
