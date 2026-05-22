@@ -4,10 +4,9 @@
  * Common utilities used across the plugin
  */
 
-const LEGACY_AJAX_PREFIX = 'aie_';
 const AJAX_PREFIX = 'rsl_ie_';
 
-const getClientData = () => window.rslIeData || window.rslIeData || {};
+const getClientData = () => window.rslIeData || {};
 
 const normalizeAjaxAction = ( action ) => {
 	if ( ! action || typeof action !== 'string' ) {
@@ -18,39 +17,8 @@ const normalizeAjaxAction = ( action ) => {
 		return action;
 	}
 
-	if ( action.startsWith( LEGACY_AJAX_PREFIX ) ) {
-		return AJAX_PREFIX + action.slice( LEGACY_AJAX_PREFIX.length );
-	}
-
 	return AJAX_PREFIX + action;
 };
-
-// Normalize legacy `aie_` admin-ajax actions across the bundle.
-if (
-	typeof window !== 'undefined' &&
-	window.jQuery &&
-	! window.__rslIeAjaxPrefilterAdded
-) {
-	window.__rslIeAjaxPrefilterAdded = true;
-
-	window.jQuery.ajaxPrefilter( ( options ) => {
-		if ( ! options || ! options.data ) {
-			return;
-		}
-
-		if ( typeof options.data === 'string' ) {
-			options.data = options.data.replace(
-				/(^|&)action=rsl_ie_/,
-				`$1action=${ AJAX_PREFIX }`
-			);
-			return;
-		}
-
-		if ( typeof options.data === 'object' && options.data.action ) {
-			options.data.action = normalizeAjaxAction( options.data.action );
-		}
-	} );
-}
 
 const Utils = {
 	/**

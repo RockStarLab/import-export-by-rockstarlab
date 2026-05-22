@@ -112,7 +112,7 @@ const JobsLogModule = {
 		try {
 			const offset = ( this.currentPage - 1 ) * this.perPage;
 
-			const response = await Utils.ajax( 'aie_job_list', {
+			const response = await Utils.ajax( 'rsl_ie_job_list', {
 				type: this.filters.type,
 				status: this.filters.status,
 				limit: this.perPage,
@@ -406,7 +406,7 @@ const JobsLogModule = {
 		$button.prop( 'disabled', true );
 
 		try {
-			const response = await Utils.ajax( 'aie_job_resume', {
+			const response = await Utils.ajax( 'rsl_ie_job_resume', {
 				job_id: jobId,
 			} );
 
@@ -447,7 +447,7 @@ const JobsLogModule = {
 		$button.prop( 'disabled', true );
 
 		try {
-			const response = await Utils.ajax( 'aie_job_restart', {
+			const response = await Utils.ajax( 'rsl_ie_job_restart', {
 				job_id: jobId,
 			} );
 
@@ -497,7 +497,7 @@ const JobsLogModule = {
 
 		try {
 			// Create new job with processing status
-			const response = await Utils.ajax( 'aie_job_retry', {
+			const response = await Utils.ajax( 'rsl_ie_job_retry', {
 				job_id: jobId,
 			} );
 
@@ -563,7 +563,7 @@ const JobsLogModule = {
 		this.closeModal();
 
 		try {
-			await Utils.ajax( 'aie_job_delete', { job_id: jobId } );
+			await Utils.ajax( 'rsl_ie_job_delete', { job_id: jobId } );
 
 			Utils.showNotice(
 				window.rslIeData.i18n.jobDeletedSuccess,
@@ -619,7 +619,7 @@ const JobsLogModule = {
 		const jobId = $row.data( 'job-id' );
 
 		try {
-			const response = await Utils.ajax( 'aie_job_get', {
+			const response = await Utils.ajax( 'rsl_ie_job_get', {
 				job_id: jobId,
 			} );
 

@@ -226,7 +226,7 @@ const PostSync = {
 				: '/wp-admin/admin-ajax.php';
 
 		const ajaxData = {
-			action: `aie_content_sync_${ direction }`,
+			action: `rsl_ie_content_sync_${ direction }`,
 			nonce: nonce,
 			site_id: siteId,
 			post_ids: postIds,

@@ -8,43 +8,13 @@
 import 'select2';
 import 'select2/dist/css/select2.min.css';
 
-const LEGACY_AJAX_PREFIX = 'aie_';
 const AJAX_PREFIX = 'rsl_ie_';
 
 const normalizeAjaxAction = ( action ) => {
 	if ( ! action || typeof action !== 'string' ) return action;
 	if ( action.startsWith( AJAX_PREFIX ) ) return action;
-	if ( action.startsWith( LEGACY_AJAX_PREFIX ) ) {
-		return AJAX_PREFIX + action.slice( LEGACY_AJAX_PREFIX.length );
-	}
-	return action;
+	return AJAX_PREFIX + action;
 };
-
-// This standalone script is enqueued on core admin screens (edit.php/post.php)
-// where the main bundle (and its ajaxPrefilter) isn't loaded. Normalize legacy
-// `aie_` admin-ajax actions to the new `rsl_ie_` prefix.
-if (
-	typeof window !== 'undefined' &&
-	window.jQuery &&
-	! window.__rslIeAjaxPrefilterAdded
-) {
-	window.__rslIeAjaxPrefilterAdded = true;
-	window.jQuery.ajaxPrefilter( ( options ) => {
-		if ( ! options || ! options.data ) return;
-
-		if ( typeof options.data === 'string' ) {
-			options.data = options.data.replace(
-				/(^|&)action=rsl_ie_/,
-				`$1action=${ AJAX_PREFIX }`
-			);
-			return;
-		}
-
-		if ( typeof options.data === 'object' && options.data.action ) {
-			options.data.action = normalizeAjaxAction( options.data.action );
-		}
-	} );
-}
 
 ( function ( $ ) {
 	'use strict';
@@ -1065,7 +1035,7 @@ if (
 				url: ajaxUrl,
 				type: 'POST',
 				data: {
-					action: `aie_content_sync_${ direction }`,
+					action: `rsl_ie_content_sync_${ direction }`,
 					nonce: nonce,
 					site_id: siteId,
 					post_ids: postIds,
@@ -1629,5 +1599,5 @@ if (
 	} );
 
 	// Make it globally accessible
-	window.aiePostSync = PostSync;
+	window.rslIePostSync = PostSync;
 } )( jQuery );
