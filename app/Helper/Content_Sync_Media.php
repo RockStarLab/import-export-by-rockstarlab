@@ -315,7 +315,7 @@ class Content_Sync_Media {
 			} elseif ( is_array( $field['value'] ) && isset( $field['value']['ID'] ) ) {
 				$file_id = $field['value']['ID'];
 			}
-			
+
 			if ( $file_id ) {
 				// Check if it's an image or other media type
 				$mime_type = get_post_mime_type( $file_id );
@@ -372,29 +372,29 @@ class Content_Sync_Media {
 			}
 		}
 
-	// Handle repeater and flexible content
-	if ( in_array( $field['type'], array( 'repeater', 'flexible_content' ), true ) && ! empty( $field['value'] ) && is_array( $field['value'] ) ) {
-		foreach ( $field['value'] as $row ) {
-			if ( is_array( $row ) ) {
-				foreach ( $row as $sub_field_name => $sub_field_value ) {
-					// Skip ACF internal field (acf_fc_layout)
-					if ( $sub_field_name === 'acf_fc_layout' ) {
-						continue;
-					}
-					
-					// Get sub field object
-					$sub_field = null;
-					
-					// For flexible content, check layouts first
-					if ( $field['type'] === 'flexible_content' && isset( $field['layouts'] ) && isset( $row['acf_fc_layout'] ) ) {
-						$layout_name = $row['acf_fc_layout'];							// Find the layout
+		// Handle repeater and flexible content
+		if ( in_array( $field['type'], array( 'repeater', 'flexible_content' ), true ) && ! empty( $field['value'] ) && is_array( $field['value'] ) ) {
+			foreach ( $field['value'] as $row ) {
+				if ( is_array( $row ) ) {
+					foreach ( $row as $sub_field_name => $sub_field_value ) {
+						// Skip ACF internal field (acf_fc_layout)
+						if ( $sub_field_name === 'acf_fc_layout' ) {
+							continue;
+						}
+
+						// Get sub field object
+						$sub_field = null;
+
+						// For flexible content, check layouts first
+						if ( $field['type'] === 'flexible_content' && isset( $field['layouts'] ) && isset( $row['acf_fc_layout'] ) ) {
+							$layout_name = $row['acf_fc_layout'];                           // Find the layout
 							foreach ( $field['layouts'] as $layout ) {
 								if ( isset( $layout['name'] ) && $layout['name'] === $layout_name ) {
 									// Find sub field in this layout
 									if ( isset( $layout['sub_fields'] ) ) {
 										foreach ( $layout['sub_fields'] as $sf ) {
 											if ( isset( $sf['name'] ) && $sf['name'] === $sub_field_name ) {
-												$sub_field        = $sf;
+												$sub_field          = $sf;
 												$sub_field['value'] = $sub_field_value;
 												break 2; // Break out of both loops
 											}
@@ -403,16 +403,16 @@ class Content_Sync_Media {
 									break;
 								}
 							}
-							
+
 							if ( ! $sub_field ) {
 							}
 						}
-						
+
 						// For repeater, check sub_fields
 						if ( ! $sub_field && isset( $field['sub_fields'] ) ) {
 							foreach ( $field['sub_fields'] as $sf ) {
 								if ( isset( $sf['name'] ) && $sf['name'] === $sub_field_name ) {
-									$sub_field        = $sf;
+									$sub_field          = $sf;
 									$sub_field['value'] = $sub_field_value;
 									break;
 								}
@@ -423,7 +423,7 @@ class Content_Sync_Media {
 							$sub_images = self::extract_acf_field_images( $sub_field, $post_id );
 							if ( ! empty( $sub_images ) ) {
 							}
-							$images     = array_merge( $images, $sub_images );
+							$images = array_merge( $images, $sub_images );
 						}
 					}
 				}
@@ -639,7 +639,9 @@ class Content_Sync_Media {
 		}
 
 		if ( $needs_regen ) {
-			require_once ABSPATH . 'wp-admin/includes/image.php';
+			if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/image.php';
+			}
 			$new_meta = wp_generate_attachment_metadata( $attachment_id, $file_path );
 			wp_update_attachment_metadata( $attachment_id, $new_meta );
 		}

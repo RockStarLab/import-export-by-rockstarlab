@@ -43,7 +43,7 @@ class Media_Sync {
 		}
 
 		$files = [];
-		
+
 		if ( $recursive ) {
 			$it = new \RecursiveDirectoryIterator( $folder_path, \FilesystemIterator::SKIP_DOTS );
 			$ri = new \RecursiveIteratorIterator( $it );
@@ -232,7 +232,7 @@ class Media_Sync {
 		// Get allowed mime types (this will include SVG if SVG Support plugin is active)
 		$allowed_mimes = get_allowed_mime_types();
 		$filetype      = wp_check_filetype( $file_path, $allowed_mimes );
-		
+
 		if ( ! $filetype['type'] ) {
 			return new \WP_Error( 'invalid_file_type', __( 'Unsupported file type', 'import-export-by-rockstarlab' ) );
 		}
@@ -261,7 +261,7 @@ class Media_Sync {
 		if ( $existing_attach_id ) {
 			// Get existing attachment file path
 			$existing_file = get_attached_file( $existing_attach_id );
-			
+
 			// Replace the file
 			if ( 'keep' === $file_operation ) {
 				// For keep mode, we can't override (file is in different location)
@@ -279,17 +279,15 @@ class Media_Sync {
 					if ( ! $wp_filesystem->move( $file_path, $existing_file, true ) ) {
 						return new \WP_Error( 'move_failed', __( 'Failed to move file to replace existing', 'import-export-by-rockstarlab' ) );
 					}
-				} else {
-					if ( ! copy( $file_path, $existing_file ) ) {
+				} elseif ( ! copy( $file_path, $existing_file ) ) {
 						return new \WP_Error( 'copy_failed', __( 'Failed to copy file to replace existing', 'import-export-by-rockstarlab' ) );
-					}
 				}
-				
+
 				$dest_path = $existing_file;
 				$attach_id = $existing_attach_id;
 			}
 		}
-		
+
 		// For new attachments (not overriding existing), handle file location
 		if ( ! $existing_attach_id ) {
 			// For 'keep' mode - use file in current location without copying/moving
@@ -341,7 +339,7 @@ class Media_Sync {
 				}
 			}
 		}
-		
+
 		// Create new attachment if not overriding existing
 		if ( ! $existing_attach_id ) {
 			// Create attachment.
@@ -381,7 +379,9 @@ class Media_Sync {
 
 		// Generate metadata (thumbnails) if requested.
 		if ( empty( $options['skip_thumbnails'] ) && wp_attachment_is_image( $attach_id ) ) {
-			require_once ABSPATH . 'wp-admin/includes/image.php';
+			if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/image.php';
+			}
 			$meta = wp_generate_attachment_metadata( $attach_id, $dest_path );
 			wp_update_attachment_metadata( $attach_id, $meta );
 		}
