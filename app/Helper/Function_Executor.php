@@ -233,16 +233,7 @@ class Function_Executor {
 		// Try to parse the code (syntax check using token_get_all)
 		$test_code = '<?php ' . $clean_code;
 
-		// Suppress errors during parsing using error handler instead of error_reporting.
-		$parse_errors = [];
-		set_error_handler(
-			function ( $errno, $errstr ) use ( &$parse_errors ) { // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler
-				$parse_errors[] = $errstr;
-				return true;
-			}
-		);
 		$tokens = token_get_all( $test_code );
-		restore_error_handler();
 
 		if ( false === $tokens ) {
 			return new \WP_Error(

@@ -352,32 +352,12 @@ class Safe_Code_Executor {
 		try {
 			// Create anonymous function
 			$func = function ( $value ) use ( $code ) {
-				// Capture errors using set_error_handler (does not affect global error_reporting).
 				ob_start();
-				$error_buffer = [];
-
-				set_error_handler(
-					function ( $errno, $errstr, $errfile, $errline ) use ( &$error_buffer ) { // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler
-						$error_buffer[] = $errstr;
-						return true;
-					}
-				);
 
 				try {
 					// phpcs:ignore Squiz.PHP.Eval.Discouraged -- Controlled execution with validation
 					$result = eval( $code ); // phpcs:ignore Generic.PHP.ForbiddenFunctions.Found -- Used intentionally in sandboxed executor.
-					$output = ob_get_clean();
-
-					restore_error_handler();
-
-					// Check if there were any errors during execution
-					if ( ! empty( $error_buffer ) ) {
-						return [
-							'output'  => '',
-							'error'   => true,
-							'message' => implode( '; ', $error_buffer ),
-						];
-					}
+					ob_end_clean();
 
 					return [
 						'output' => $result,
@@ -385,7 +365,6 @@ class Safe_Code_Executor {
 					];
 				} catch ( \ParseError $e ) {
 					ob_end_clean();
-					restore_error_handler();
 
 					return [
 						'output'  => '',
@@ -394,7 +373,6 @@ class Safe_Code_Executor {
 					];
 				} catch ( \Throwable $e ) {
 					ob_end_clean();
-					restore_error_handler();
 
 					return [
 						'output'  => '',
