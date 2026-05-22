@@ -462,8 +462,8 @@ const ContentUpdater = {
 			jQuery( '.rsl-ie-table-selection-section' ).hide();
 			jQuery( '.rsl-ie-table-info' ).hide();
 			jQuery( '#rsl-ie-updater-table-name' ).val( '' );
-			if ( window.aieExportModule ) {
-				window.aieExportModule.currentTableColumns = [];
+			if ( window.rslIeExportModule ) {
+				window.rslIeExportModule.currentTableColumns = [];
 			}
 		}
 	},
@@ -656,8 +656,8 @@ const ContentUpdater = {
 			jQuery( '.rsl-ie-columns-list' ).empty();
 			jQuery( '.rsl-ie-table-row-count' ).text( '-' );
 			jQuery( '.rsl-ie-table-column-count' ).text( '-' );
-			if ( window.aieExportModule ) {
-				window.aieExportModule.currentTableColumns = [];
+			if ( window.rslIeExportModule ) {
+				window.rslIeExportModule.currentTableColumns = [];
 			}
 			this.refreshCount( false );
 			return;
@@ -686,8 +686,8 @@ const ContentUpdater = {
 				const rowCount = response.row_count || 0;
 
 				this.currentTableColumns = columns;
-				if ( window.aieExportModule ) {
-					window.aieExportModule.currentTableColumns = columns;
+				if ( window.rslIeExportModule ) {
+					window.rslIeExportModule.currentTableColumns = columns;
 				}
 
 				$rowCount.text( rowCount );
@@ -715,8 +715,8 @@ const ContentUpdater = {
 			} )
 			.catch( () => {
 				this.currentTableColumns = [];
-				if ( window.aieExportModule ) {
-					window.aieExportModule.currentTableColumns = [];
+				if ( window.rslIeExportModule ) {
+					window.rslIeExportModule.currentTableColumns = [];
 				}
 				$columnsList.html(
 					`<p>${ window.rslIeData.i18n.errorLoadingColumns }</p>`
@@ -757,11 +757,11 @@ const ContentUpdater = {
 
 		// Use export module's getFilterFieldsByContentType if available (excludes Featured Image group)
 		if (
-			typeof window.aieExportModule !== 'undefined' &&
-			window.aieExportModule.getFilterFieldsByContentType
+			typeof window.rslIeExportModule !== 'undefined' &&
+			window.rslIeExportModule.getFilterFieldsByContentType
 		) {
 			let fields =
-				window.aieExportModule.getFilterFieldsByContentType(
+				window.rslIeExportModule.getFilterFieldsByContentType(
 					contentType
 				);
 
@@ -1479,14 +1479,14 @@ const ContentUpdater = {
 	loadStaticFields( contentType ) {
 		// Get field definitions from export module
 		if (
-			typeof window.aieExportModule === 'undefined' ||
-			! window.aieExportModule.getFieldsByContentType
+			typeof window.rslIeExportModule === 'undefined' ||
+			! window.rslIeExportModule.getFieldsByContentType
 		) {
 			return;
 		}
 
 		const fieldGroups =
-			window.aieExportModule.getFieldsByContentType( contentType );
+			window.rslIeExportModule.getFieldsByContentType( contentType );
 
 		// Find the container
 		const $library = jQuery( '#rsl-ie-updater-fields-library' );

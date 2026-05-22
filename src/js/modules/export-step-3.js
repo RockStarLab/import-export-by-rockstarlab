@@ -921,15 +921,15 @@ export default class ExportStep3 {
 	loadStaticFields() {
 		// Get field definitions from parent export module
 		if (
-			typeof window.aieExportModule === 'undefined' ||
-			! window.aieExportModule.getFieldsByContentType
+			typeof window.rslIeExportModule === 'undefined' ||
+			! window.rslIeExportModule.getFieldsByContentType
 		) {
 			return;
 		}
 
 		const contentType = this.getCurrentRealContentType();
 		const fieldGroups =
-			window.aieExportModule.getFieldsByContentType( contentType );
+			window.rslIeExportModule.getFieldsByContentType( contentType );
 
 		// Find the container for static fields
 		const container = document.querySelector(
