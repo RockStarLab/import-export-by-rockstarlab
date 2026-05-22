@@ -590,7 +590,7 @@ const ContentUpdater = {
 		$dropdown.prop( 'disabled', true );
 		$spinner.addClass( 'is-active' );
 
-		Utils.ajax( 'aie_get_database_tables', {} )
+		Utils.ajax( 'rsl_ie_get_database_tables', {} )
 			.then( ( response ) => {
 				const tables = response.tables || response || [];
 
@@ -680,7 +680,7 @@ const ContentUpdater = {
 			`<p>${ window.rslIeData.i18n.loadingTableColumns }</p>`
 		);
 
-		Utils.ajax( 'aie_get_table_columns', { table_name: tableName } )
+		Utils.ajax( 'rsl_ie_get_table_columns', { table_name: tableName } )
 			.then( ( response ) => {
 				const columns = response.columns || [];
 				const rowCount = response.row_count || 0;
@@ -863,7 +863,7 @@ const ContentUpdater = {
 				)
 				.attr( 'name', 'updater_filter_value[]' );
 
-			Utils.ajax( 'aie_get_post_types', { include_hidden: true } )
+			Utils.ajax( 'rsl_ie_get_post_types', { include_hidden: true } )
 				.then( ( postTypes ) => {
 					$select.append(
 						jQuery( '<option>' )
@@ -922,7 +922,7 @@ const ContentUpdater = {
 				)
 				.attr( 'name', 'updater_filter_value[]' );
 
-			Utils.ajax( 'aie_get_all_taxonomies', {} )
+			Utils.ajax( 'rsl_ie_get_all_taxonomies', {} )
 				.then( ( taxonomies ) => {
 					$select.append(
 						jQuery( '<option>' )

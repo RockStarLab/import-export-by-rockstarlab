@@ -446,7 +446,7 @@ const ExportModule = {
 				}
 			}
 
-			const response = await Utils.ajax( 'aie_export_get_count', {
+			const response = await Utils.ajax( 'rsl_ie_export_get_count', {
 				export_type: contentType,
 				options: options,
 			} );
@@ -1026,7 +1026,7 @@ const ExportModule = {
 				}
 			}
 
-			const response = await Utils.ajax( 'aie_export_start', data );
+			const response = await Utils.ajax( 'rsl_ie_export_start', data );
 
 			this.jobId = response.job_id;
 			this.exportStartTime = Date.now();
@@ -1054,7 +1054,7 @@ const ExportModule = {
 		}
 
 		try {
-			const response = await Utils.ajax( 'aie_export_process_batch', {
+			const response = await Utils.ajax( 'rsl_ie_export_process_batch', {
 				job_id: this.jobId,
 			} );
 
@@ -1130,7 +1130,7 @@ const ExportModule = {
 	 */
 	async updateProgress() {
 		try {
-			const response = await Utils.ajax( 'aie_export_get_progress', {
+			const response = await Utils.ajax( 'rsl_ie_export_get_progress', {
 				job_id: this.jobId,
 			} );
 
@@ -1225,7 +1225,7 @@ const ExportModule = {
 	 */
 	async downloadFile() {
 		try {
-			const response = await Utils.ajax( 'aie_export_download', {
+			const response = await Utils.ajax( 'rsl_ie_export_download', {
 				job_id: this.jobId,
 			} );
 
@@ -1246,7 +1246,7 @@ const ExportModule = {
 		}
 
 		try {
-			await Utils.ajax( 'aie_export_cancel', { job_id: this.jobId } );
+			await Utils.ajax( 'rsl_ie_export_cancel', { job_id: this.jobId } );
 			clearInterval( this.progressInterval );
 			Utils.showNotice( window.rslIeData.i18n.exportCancelled, 'info' );
 			this.resetWizard();
@@ -1463,7 +1463,7 @@ const ExportModule = {
 				.attr( 'name', 'filter_value[]' );
 
 			// Fetch database tables via AJAX
-			Utils.ajax( 'aie_get_database_tables', {} )
+			Utils.ajax( 'rsl_ie_get_database_tables', {} )
 				.then( ( tables ) => {
 					$select.append(
 						jQuery( '<option>' )
@@ -1519,7 +1519,7 @@ const ExportModule = {
 				.attr( 'name', 'filter_value[]' );
 
 			// Fetch post types via AJAX
-			Utils.ajax( 'aie_get_post_types', {
+			Utils.ajax( 'rsl_ie_get_post_types', {
 				include_hidden: true,
 			} )
 				.then( ( postTypes ) => {
@@ -1593,7 +1593,7 @@ const ExportModule = {
 				.attr( 'name', 'filter_value[]' );
 
 			// Fetch taxonomies via AJAX
-			Utils.ajax( 'aie_get_all_taxonomies', {} )
+			Utils.ajax( 'rsl_ie_get_all_taxonomies', {} )
 				.then( ( taxonomies ) => {
 					$select.append(
 						jQuery( '<option>' )
@@ -1757,7 +1757,7 @@ const ExportModule = {
 	 * Load table columns dynamically
 	 */
 	loadTableColumns( tableName ) {
-		Utils.ajax( 'aie_get_table_columns', {
+		Utils.ajax( 'rsl_ie_get_table_columns', {
 			table_name: tableName,
 		} )
 			.then( ( columns ) => {
@@ -3793,7 +3793,7 @@ const ExportModule = {
 		$spinner.addClass( 'is-active' );
 
 		// Fetch tables via AJAX
-		Utils.ajax( 'aie_get_database_tables', {} )
+		Utils.ajax( 'rsl_ie_get_database_tables', {} )
 			.then( ( response ) => {
 				const tables = response.tables || response || [];
 
@@ -3869,7 +3869,7 @@ const ExportModule = {
 		);
 
 		// Fetch columns via AJAX
-		Utils.ajax( 'aie_get_table_columns', { table_name: tableName } )
+		Utils.ajax( 'rsl_ie_get_table_columns', { table_name: tableName } )
 			.then( ( response ) => {
 				const columns = response.columns || [];
 

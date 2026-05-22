@@ -4686,7 +4686,7 @@ const ImportModule = {
 					jQuery( '#rsl-ie-import-table-name' ).val();
 			}
 
-			const response = await Utils.ajax( 'aie_import_start', data );
+			const response = await Utils.ajax( 'rsl_ie_import_start', data );
 
 			this.jobId = response.job_id;
 			this.importStartTime = Date.now();
@@ -4708,7 +4708,7 @@ const ImportModule = {
 	 */
 	async startBatchProcessing() {
 		try {
-			const response = await Utils.ajax( 'aie_import_process_batch', {
+			const response = await Utils.ajax( 'rsl_ie_import_process_batch', {
 				job_id: this.jobId,
 			} );
 
@@ -4867,7 +4867,7 @@ const ImportModule = {
 		}
 
 		try {
-			await Utils.ajax( 'aie_import_cancel', { job_id: this.jobId } );
+			await Utils.ajax( 'rsl_ie_import_cancel', { job_id: this.jobId } );
 			Utils.showNotice(
 				rslIeData.i18n.importCancelled || 'Import cancelled',
 				'info'

@@ -293,8 +293,8 @@ const ContentSyncModule = {
 
 		const data = {
 			action: isEdit
-				? 'aie_content_sync_update_site'
-				: 'aie_content_sync_add_site',
+				? 'rsl_ie_content_sync_update_site'
+				: 'rsl_ie_content_sync_add_site',
 			nonce: rslIeContentSync.nonce,
 			name: $( '#rsl-ie-site-name' ).val(),
 			remote_url: $( '#rsl-ie-site-url' ).val(),

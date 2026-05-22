@@ -264,7 +264,7 @@ const AIURLImporter = {
 	async loadPostTypes() {
 		try {
 			const response = await Utils.ajax(
-				'aie_ai_url_get_post_types',
+				'rsl_ie_ai_url_get_post_types',
 				{}
 			);
 
@@ -317,7 +317,7 @@ const AIURLImporter = {
 	 */
 	async loadACFFields( postType ) {
 		try {
-			const response = await Utils.ajax( 'aie_ai_url_get_acf_fields', {
+			const response = await Utils.ajax( 'rsl_ie_ai_url_get_acf_fields', {
 				post_type: postType,
 			} );
 
@@ -478,7 +478,7 @@ const AIURLImporter = {
 
 		try {
 			const response = await Utils.ajax(
-				'aie_ai_url_test_connection',
+				'rsl_ie_ai_url_test_connection',
 				{}
 			);
 
@@ -522,7 +522,7 @@ const AIURLImporter = {
 		$result.hide();
 
 		try {
-			const response = await Utils.ajax( 'aie_ai_url_preview', {
+			const response = await Utils.ajax( 'rsl_ie_ai_url_preview', {
 				url: this.urls[ 0 ],
 			} );
 
@@ -664,7 +664,7 @@ const AIURLImporter = {
 
 		try {
 			const response = await Utils.ajax(
-				'aie_ai_url_start_import',
+				'rsl_ie_ai_url_start_import',
 				this.settings
 			);
 
@@ -696,7 +696,7 @@ const AIURLImporter = {
 	 */
 	async processNextBatch() {
 		try {
-			const response = await Utils.ajax( 'aie_ai_url_process_batch', {
+			const response = await Utils.ajax( 'rsl_ie_ai_url_process_batch', {
 				job_id: this.jobId,
 			} );
 
@@ -727,7 +727,7 @@ const AIURLImporter = {
 		if ( ! this.jobId ) return;
 
 		try {
-			const response = await Utils.ajax( 'aie_ai_url_get_progress', {
+			const response = await Utils.ajax( 'rsl_ie_ai_url_get_progress', {
 				job_id: this.jobId,
 			} );
 

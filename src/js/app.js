@@ -40,7 +40,7 @@ jQuery( document ).ready( function ( $ ) {
 	// Initialize post sync module
 	PostSyncModule.init();
 
-	window.aiePostSyncModule = PostSyncModule;
+	window.rslIePostSyncModule = PostSyncModule;
 
 	// Initialize AI URL Importer module
 	AIURLImporter.init();

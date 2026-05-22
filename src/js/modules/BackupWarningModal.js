@@ -110,21 +110,23 @@ const BackupWarningModal = {
 	 * @return {boolean}
 	 */
 	isWarningDisabled() {
-		return localStorage.getItem( 'aie_backup_warning_disabled' ) === 'true';
+		return (
+			localStorage.getItem( 'rsl_ie_backup_warning_disabled' ) === 'true'
+		);
 	},
 
 	/**
 	 * Disable warning (don't show again)
 	 */
 	disableWarning() {
-		localStorage.setItem( 'aie_backup_warning_disabled', 'true' );
+		localStorage.setItem( 'rsl_ie_backup_warning_disabled', 'true' );
 	},
 
 	/**
 	 * Enable warning (reset)
 	 */
 	enableWarning() {
-		localStorage.removeItem( 'aie_backup_warning_disabled' );
+		localStorage.removeItem( 'rsl_ie_backup_warning_disabled' );
 	},
 
 	/**
