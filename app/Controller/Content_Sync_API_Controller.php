@@ -1299,7 +1299,9 @@ class Content_Sync_API_Controller {
 		}
 
 		// Upload file
-		require_once ABSPATH . 'wp-admin/includes/file.php';
+		if ( ! function_exists( 'wp_unique_filename' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
 
 		$upload_dir = wp_upload_dir();
 		$file_path  = $upload_dir['path'] . '/' . wp_unique_filename( $upload_dir['path'], $file_name );
@@ -1340,7 +1342,9 @@ class Content_Sync_API_Controller {
 		}
 
 		// Generate and update attachment metadata
-		require_once ABSPATH . 'wp-admin/includes/image.php';
+		if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+		}
 		$attach_data = wp_generate_attachment_metadata( $attachment_id, $file_path );
 		wp_update_attachment_metadata( $attachment_id, $attach_data );
 

@@ -2283,9 +2283,15 @@ class Post_Importer extends Abstract_Importer {
 	 * @return int|WP_Error Attachment ID or WP_Error
 	 */
 	private function import_media_from_url( $url, $post_id = 0 ) {
-		require_once ABSPATH . 'wp-admin/includes/media.php';
-		require_once ABSPATH . 'wp-admin/includes/file.php';
-		require_once ABSPATH . 'wp-admin/includes/image.php';
+		if ( ! function_exists( 'media_handle_sideload' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/media.php';
+		}
+		if ( ! function_exists( 'download_url' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+		if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+		}
 
 		// Check if we already downloaded this file during duplicate check
 			$transient_key = 'rsl_ie_temp_media_' . md5( $url );
