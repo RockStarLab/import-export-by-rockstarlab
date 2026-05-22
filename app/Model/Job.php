@@ -338,32 +338,92 @@ class Job extends Model {
 		global $wpdb;
 		$table = $this->get_table_name();
 
-		// Build WHERE clause and collect values
-		$where_conditions = [];
-		$where_values = [];
-		
-		if ( ! empty( $where ) ) {
-			foreach ( $where as $key => $value ) {
-				$where_conditions[] = sanitize_key( $key ) . ' = %s';
-				$where_values[]     = $value;
+		$user_id_filter     = ( is_array( $where ) && array_key_exists( 'user_id', $where ) ) ? (int) $where['user_id'] : 0;
+		$type_filter        = ( is_array( $where ) && array_key_exists( 'type', $where ) ) ? (string) $where['type'] : '';
+		$data_type_filter   = ( is_array( $where ) && array_key_exists( 'data_type', $where ) ) ? (string) $where['data_type'] : '';
+		$file_format_filter = ( is_array( $where ) && array_key_exists( 'file_format', $where ) ) ? (string) $where['file_format'] : '';
+		$status_filter      = ( is_array( $where ) && array_key_exists( 'status', $where ) ) ? (string) $where['status'] : '';
+
+		$allowed_order_fields = [
+			'id',
+			'user_id',
+			'type',
+			'data_type',
+			'file_format',
+			'status',
+			'total_items',
+			'processed_items',
+			'success_items',
+			'failed_items',
+			'progress',
+			'created_at',
+			'updated_at',
+			'started_at',
+			'completed_at',
+		];
+
+		$field     = 'created_at';
+		$direction = 'DESC';
+		if ( is_string( $order ) ) {
+			$order = trim( $order );
+			if ( preg_match( '/^([a-z_]+)(?:\s+(ASC|DESC))?$/i', $order, $matches ) ) {
+				$maybe_field = strtolower( $matches[1] );
+				$maybe_dir   = isset( $matches[2] ) ? strtoupper( $matches[2] ) : 'ASC';
+				if ( in_array( $maybe_field, $allowed_order_fields, true ) ) {
+					$field     = $maybe_field;
+					$direction = ( 'DESC' === $maybe_dir ) ? 'DESC' : 'ASC';
+				}
 			}
-			$where_sql = implode( ' AND ', $where_conditions );
-		} else {
-			$where_sql = '1=1';
 		}
 
-		$table = esc_sql( $table );
-		$order = esc_sql( $order );
+		$limit  = max( 0, (int) $limit );
+		$offset = max( 0, (int) $offset );
 
-		// Prepare the query with all values
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is from $wpdb->prefix (controlled).
-		$sql = $wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Dynamic values array_merged into prepare.
-			"SELECT * FROM `{$table}` WHERE {$where_sql} ORDER BY {$order} LIMIT %d OFFSET %d",
-			array_merge( $where_values, [ $limit, $offset ] )
+		$cache_key = 'rsl_ie_jobs:get_all:' . md5(
+			wp_json_encode(
+				[
+					$where,
+					$limit,
+					$offset,
+					$field,
+					$direction,
+				]
+			)
 		);
-		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		$cached    = wp_cache_get( $cache_key, 'rsl_ie' );
+		if ( false !== $cached ) {
+			return $cached;
+		}
 
-		return $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- Table name and ORDER BY are allowlisted via $allowed_order_fields.
+		$sql = $wpdb->prepare(
+			'SELECT * FROM `' . $table . '` WHERE 1=1
+				AND ( %d = 0 OR user_id = %d )
+				AND ( %s = \'\' OR type = %s )
+				AND ( %s = \'\' OR data_type = %s )
+				AND ( %s = \'\' OR file_format = %s )
+				AND ( %s = \'\' OR status = %s )
+				ORDER BY ' . $field . ' ' . $direction . '
+				LIMIT %d OFFSET %d',
+			$user_id_filter,
+			$user_id_filter,
+			$type_filter,
+			$type_filter,
+			$data_type_filter,
+			$data_type_filter,
+			$file_format_filter,
+			$file_format_filter,
+			$status_filter,
+			$status_filter,
+			$limit,
+			$offset
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
+
+		$results = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		wp_cache_set( $cache_key, $results, 'rsl_ie', MINUTE_IN_SECONDS );
+
+		return $results;
 	}
 
 	/**
@@ -376,30 +436,55 @@ class Job extends Model {
 		global $wpdb;
 		$table = $this->get_table_name();
 
-		// Build WHERE clause and collect values
-		$where_conditions = [];
-		$where_values     = [];
-		
-		if ( ! empty( $where ) ) {
-			foreach ( $where as $key => $value ) {
-				$where_conditions[] = sanitize_key( $key ) . ' = %s';
-				$where_values[]     = $value;
-			}
-			$where_sql = implode( ' AND ', $where_conditions );
-			
-			$table = esc_sql( $table );
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table/WHERE built from sanitized keys; values passed via spread.
-			$sql = $wpdb->prepare(
-				"SELECT COUNT(*) FROM `{$table}` WHERE {$where_sql}",
-				...$where_values
-			);
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
-		} else {
-			$table = esc_sql( $table );
-			$sql = "SELECT COUNT(*) FROM `{$table}`";
+		$user_id_filter     = ( is_array( $where ) && array_key_exists( 'user_id', $where ) ) ? (int) $where['user_id'] : 0;
+		$type_filter        = ( is_array( $where ) && array_key_exists( 'type', $where ) ) ? (string) $where['type'] : '';
+		$data_type_filter   = ( is_array( $where ) && array_key_exists( 'data_type', $where ) ) ? (string) $where['data_type'] : '';
+		$file_format_filter = ( is_array( $where ) && array_key_exists( 'file_format', $where ) ) ? (string) $where['file_format'] : '';
+		$status_filter      = ( is_array( $where ) && array_key_exists( 'status', $where ) ) ? (string) $where['status'] : '';
+
+		$cache_key = 'rsl_ie_jobs:count:' . md5(
+			wp_json_encode(
+				[
+					$where,
+					$user_id_filter,
+					$type_filter,
+					$data_type_filter,
+					$file_format_filter,
+					$status_filter,
+				]
+			)
+		);
+		$cached    = wp_cache_get( $cache_key, 'rsl_ie' );
+		if ( false !== $cached ) {
+			return (int) $cached;
 		}
 
-		return (int) $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared -- Table name is fixed model table name with prefix.
+		$sql = $wpdb->prepare(
+			'SELECT COUNT(*) FROM `' . $table . '` WHERE 1=%d
+				AND ( %d = 0 OR user_id = %d )
+				AND ( %s = \'\' OR type = %s )
+				AND ( %s = \'\' OR data_type = %s )
+				AND ( %s = \'\' OR file_format = %s )
+				AND ( %s = \'\' OR status = %s )',
+			1,
+			$user_id_filter,
+			$user_id_filter,
+			$type_filter,
+			$type_filter,
+			$data_type_filter,
+			$data_type_filter,
+			$file_format_filter,
+			$file_format_filter,
+			$status_filter,
+			$status_filter
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
+
+		$count = (int) $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		wp_cache_set( $cache_key, $count, 'rsl_ie', MINUTE_IN_SECONDS );
+
+		return $count;
 	}
 
 	/**

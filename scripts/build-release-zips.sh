@@ -90,3 +90,26 @@ rm -f "$PRO_ZIP"
 echo "Built:"
 echo " - $FREE_ZIP"
 echo " - $PRO_ZIP"
+
+# Deploy both plugins to aie2 local site by unzipping release archives.
+AIE2_PLUGINS_DIR="/Users/shaggywizard/Local Sites/aie2/app/public/wp-content/plugins"
+
+if [ -d "$AIE2_PLUGINS_DIR" ]; then
+  echo "Removing old FREE plugin from aie2..."
+  rm -rf "$AIE2_PLUGINS_DIR/$FREE_SLUG"
+
+  echo "Removing old PRO plugin from aie2..."
+  rm -rf "$AIE2_PLUGINS_DIR/$PRO_SLUG"
+
+  echo "Deploying FREE plugin to aie2..."
+  unzip -q "$FREE_ZIP" -d "$AIE2_PLUGINS_DIR"
+
+  echo "Deploying PRO plugin to aie2..."
+  unzip -q "$PRO_ZIP" -d "$AIE2_PLUGINS_DIR"
+
+  echo "Deployed to aie2:"
+  echo " - $AIE2_PLUGINS_DIR/$FREE_SLUG"
+  echo " - $AIE2_PLUGINS_DIR/$PRO_SLUG"
+else
+  echo "WARNING: aie2 plugins directory not found: $AIE2_PLUGINS_DIR" >&2
+fi
