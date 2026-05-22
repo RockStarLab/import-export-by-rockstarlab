@@ -3,9 +3,9 @@
  */
 
 // Global button styles for all buttons in the interface
-.aie-modal,
+.rsl-ie-modal,
 .import-export-by-rockstarlab,
-.aie-functions-table-container {
+.rsl-ie-functions-table-container {
 	.button,
 	button[type="button"],
 	button[type="submit"] {
@@ -47,7 +47,7 @@
 }
 
 // Filter controls
-.aie-functions-filters {
+.rsl-ie-functions-filters {
 	display: flex;
 	align-items: center;
 	gap: 15px;
@@ -57,7 +57,7 @@
 	border: 1px solid #c3c4c7;
 	border-radius: 4px;
 
-	.aie-filter-group {
+	.rsl-ie-filter-group {
 		display: flex;
 		align-items: center;
 		gap: 8px;
@@ -73,20 +73,20 @@
 		}
 	}
 
-	.aie-filter-clear {
+	.rsl-ie-filter-clear {
 		margin-left: auto;
 	}
 }
 
 // Functions table
-.aie-functions-table-container {
+.rsl-ie-functions-table-container {
 	background: #fff;
 	border: 1px solid #c3c4c7;
 	border-radius: 4px;
 	overflow: hidden;
 }
 
-.aie-functions-table {
+.rsl-ie-functions-table {
 	.column-name {
 		width: 25%;
 	}
@@ -115,13 +115,13 @@
 		}
 	}
 
-	.aie-loading-row td {
+	.rsl-ie-loading-row td {
 		padding: 40px;
 	}
 }
 
 // Badges
-.aie-badge {
+.rsl-ie-badge {
 	display: inline-block;
 	padding: 3px 8px;
 	font-size: 11px;
@@ -130,29 +130,29 @@
 	border-radius: 3px;
 	line-height: 1;
 
-	&.aie-badge-custom {
+	&.rsl-ie-badge-custom {
 		background: #e0f2fe;
 		color: #0369a1;
 	}
 
-	&.aie-badge-library {
+	&.rsl-ie-badge-library {
 		background: #f3e8ff;
 		color: #7c3aed;
 	}
 
-	&.aie-badge-active {
+	&.rsl-ie-badge-active {
 		background: #dcfce7;
 		color: #166534;
 	}
 
-	&.aie-badge-inactive {
+	&.rsl-ie-badge-inactive {
 		background: #f3f4f6;
 		color: #6b7280;
 	}
 }
 
 // Pagination
-.aie-functions-pagination {
+.rsl-ie-functions-pagination {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -162,17 +162,17 @@
 	border: 1px solid #c3c4c7;
 	border-radius: 4px;
 
-	.aie-pagination-info {
+	.rsl-ie-pagination-info {
 		color: #666;
 		font-size: 13px;
 	}
 
-	.aie-pagination-controls {
+	.rsl-ie-pagination-controls {
 		display: flex;
 		align-items: center;
 		gap: 15px;
 
-		.aie-page-info {
+		.rsl-ie-page-info {
 			font-size: 13px;
 			color: #666;
 		}
@@ -191,7 +191,7 @@
 }
 
 // Modals
-.aie-modal {
+.rsl-ie-modal {
 	display: none;
 	position: fixed;
 	top: 0;
@@ -202,12 +202,12 @@
 	align-items: center;
 	justify-content: center;
 
-	&.aie-modal-open {
+	&.rsl-ie-modal-open {
 		display: flex;
 	}
 }
 
-.aie-modal-backdrop {
+.rsl-ie-modal-backdrop {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -217,7 +217,7 @@
 	cursor: pointer;
 }
 
-.aie-modal-content {
+.rsl-ie-modal-content {
 	position: relative;
 	width: 90%;
 	max-width: 800px;
@@ -233,14 +233,14 @@
 	}
 }
 
-.aie-modal-header {
+.rsl-ie-modal-header {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	padding: 20px 24px;
 	border-bottom: 1px solid #ddd;
 
-	.aie-modal-title {
+	.rsl-ie-modal-title {
 		margin: 0;
 		font-size: 18px;
 		font-weight: 600;
@@ -254,7 +254,7 @@
 		}
 	}
 
-	.aie-modal-close {
+	.rsl-ie-modal-close {
 		background: none;
 		border: none;
 		padding: 4px;
@@ -272,7 +272,7 @@
 	}
 }
 
-.aie-modal-body {
+.rsl-ie-modal-body {
 	flex: 1;
 	padding: 24px;
 	overflow-y: auto;
@@ -294,7 +294,7 @@
 	}
 }
 
-.aie-modal-footer {
+.rsl-ie-modal-footer {
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
@@ -312,8 +312,8 @@
 }
 
 // Code editor
-.aie-code-editor,
-#aie-function-code {
+.rsl-ie-code-editor,
+#rsl-ie-function-code {
 	font-family: Consolas, Monaco, monospace;
 	font-size: 13px;
 	line-height: 1.6;
@@ -333,21 +333,21 @@
 }
 
 // Test section
-.aie-test-section {
-	.aie-test-controls {
+.rsl-ie-test-section {
+	.rsl-ie-test-controls {
 		display: flex;
 		gap: 10px;
 		margin-bottom: 15px;
 	}
 
-	.aie-test-results {
+	.rsl-ie-test-results {
 		padding: 15px;
 		background: #f6f7f7;
 		border: 1px solid #c3c4c7;
 		border-radius: 4px;
 		margin-top: 15px;
 
-		.aie-test-result {
+		.rsl-ie-test-result {
 			margin-bottom: 10px;
 
 			&:last-child {
@@ -377,15 +377,15 @@
 }
 
 // AI Generator Section
-.aie-ai-generate-section {
-	.aie-generate-with-ai {
+.rsl-ie-ai-generate-section {
+	.rsl-ie-generate-with-ai {
 		.dashicons {
 			margin-right: 5px;
 			vertical-align: middle;
 		}
 	}
 
-	.aie-premium-locked {
+	.rsl-ie-premium-locked {
 		position: relative;
 		cursor: not-allowed;
 		opacity: 0.6;
@@ -395,7 +395,7 @@
 			vertical-align: middle;
 		}
 
-		.aie-premium-badge {
+		.rsl-ie-premium-badge {
 			background: #ffc107;
 			color: #000;
 			font-size: 10px;
@@ -409,12 +409,12 @@
 }
 
 // AI Prompt Modal
-#aie-ai-prompt-modal {
-	.aie-ai-prompt-modal-content {
+#rsl-ie-ai-prompt-modal {
+	.rsl-ie-ai-prompt-modal-content {
 		max-width: 650px;
 	}
 
-	.aie-ai-prompt-container {
+	.rsl-ie-ai-prompt-container {
 		label {
 			display: block;
 			font-weight: 600;
@@ -451,7 +451,7 @@
 		}
 	}
 
-	.aie-ai-examples {
+	.rsl-ie-ai-examples {
 		background: #f6f7f7;
 		padding: 15px;
 		border-radius: 3px;
@@ -491,11 +491,11 @@
 		}
 	}
 
-	.aie-ai-generating {
+	.rsl-ie-ai-generating {
 		margin-top: 20px;
 		text-align: center;
 
-		.aie-ai-loader {
+		.rsl-ie-ai-loader {
 			background: #f6f7f7;
 			padding: 30px;
 			border-radius: 3px;
@@ -513,7 +513,7 @@
 		}
 	}
 
-	.aie-generate-code {
+	.rsl-ie-generate-code {
 		.dashicons {
 			margin-right: 5px;
 			vertical-align: middle;
@@ -530,7 +530,7 @@
 	}
 }
 
-.aie-ai-generate-section {
+.rsl-ie-ai-generate-section {
 	.notice {
 		margin: 10px 0 !important;
 	}

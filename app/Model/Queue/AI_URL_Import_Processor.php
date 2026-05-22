@@ -149,7 +149,7 @@ class AI_URL_Import_Processor {
 				}
 
 				// Store source URL as meta
-				update_post_meta( $post_id, '_aie_source_url', $url );
+				update_post_meta( $post_id, '_rsl_ie_source_url', $url );
 
 				// Handle ACF field for content
 				if ( 'post_content' !== $content_field ) {
@@ -191,7 +191,7 @@ class AI_URL_Import_Processor {
 
 					// Store imported image IDs as meta
 					if ( ! empty( $imported_images ) ) {
-						update_post_meta( $post_id, '_aie_imported_images', $imported_images );
+						update_post_meta( $post_id, '_rsl_ie_imported_images', $imported_images );
 					}
 				}
 
@@ -221,12 +221,12 @@ class AI_URL_Import_Processor {
 			// Count success/failed from import_log
 			$success_increment = 0;
 			$failed_increment  = 0;
-			
+
 			foreach ( $import_log as $log_entry ) {
 				if ( 'success' === $log_entry['status'] ) {
-					$success_increment++;
+					++$success_increment;
 				} elseif ( 'error' === $log_entry['status'] ) {
-					$failed_increment++;
+					++$failed_increment;
 				}
 			}
 

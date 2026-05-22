@@ -398,13 +398,13 @@ class Import_Controller extends Base_Controller {
 			if ( $importer instanceof \RockStarLab\ImportExport\Model\Import\Post_Importer ) {
 				foreach ( $prepared_data as $row_index => &$prepared_row ) {
 					if ( isset( $data[ $row_index ]['ID'] ) ) {
-						$prepared_row['_aie_source_id'] = absint( $data[ $row_index ]['ID'] );
+						$prepared_row['_rsl_ie_source_id'] = absint( $data[ $row_index ]['ID'] );
 					}
 					if ( isset( $data[ $row_index ]['post_parent'] ) ) {
-						$prepared_row['_aie_source_parent_id'] = absint( $data[ $row_index ]['post_parent'] );
+						$prepared_row['_rsl_ie_source_parent_id'] = absint( $data[ $row_index ]['post_parent'] );
 					}
 					if ( isset( $data[ $row_index ]['post_name'] ) && '' !== (string) $data[ $row_index ]['post_name'] ) {
-						$prepared_row['_aie_source_post_name'] = (string) $data[ $row_index ]['post_name'];
+						$prepared_row['_rsl_ie_source_post_name'] = (string) $data[ $row_index ]['post_name'];
 					}
 				}
 				unset( $prepared_row );
@@ -421,19 +421,19 @@ class Import_Controller extends Base_Controller {
 						$prepared_row['comment_date_gmt'] = (string) $data[ $row_index ]['comment_date_gmt'];
 					}
 					if ( isset( $data[ $row_index ]['comment_ID'] ) ) {
-						$prepared_row['_aie_source_comment_id'] = absint( $data[ $row_index ]['comment_ID'] );
+						$prepared_row['_rsl_ie_source_comment_id'] = absint( $data[ $row_index ]['comment_ID'] );
 					}
 					if ( isset( $data[ $row_index ]['comment_parent'] ) ) {
-						$prepared_row['_aie_source_comment_parent_id'] = absint( $data[ $row_index ]['comment_parent'] );
+						$prepared_row['_rsl_ie_source_comment_parent_id'] = absint( $data[ $row_index ]['comment_parent'] );
 					}
 					if ( isset( $data[ $row_index ]['post_permalink'] ) ) {
-						$prepared_row['_aie_source_post_permalink'] = (string) $data[ $row_index ]['post_permalink'];
+						$prepared_row['_rsl_ie_source_post_permalink'] = (string) $data[ $row_index ]['post_permalink'];
 					}
 					if ( isset( $data[ $row_index ]['post_slug'] ) ) {
-						$prepared_row['_aie_source_post_slug'] = (string) $data[ $row_index ]['post_slug'];
+						$prepared_row['_rsl_ie_source_post_slug'] = (string) $data[ $row_index ]['post_slug'];
 					}
 					if ( isset( $data[ $row_index ]['post_type'] ) ) {
-						$prepared_row['_aie_source_post_type'] = (string) $data[ $row_index ]['post_type'];
+						$prepared_row['_rsl_ie_source_post_type'] = (string) $data[ $row_index ]['post_type'];
 					}
 				}
 				unset( $prepared_row );
@@ -443,13 +443,13 @@ class Import_Controller extends Base_Controller {
 			if ( class_exists( \RockStarLab\ImportExport\Model\Import\Taxonomy_Term_Importer::class ) && $importer instanceof \RockStarLab\ImportExport\Model\Import\Taxonomy_Term_Importer ) {
 				foreach ( $prepared_data as $row_index => &$prepared_row ) {
 					if ( isset( $data[ $row_index ]['term_id'] ) ) {
-						$prepared_row['_aie_source_term_id'] = absint( $data[ $row_index ]['term_id'] );
+						$prepared_row['_rsl_ie_source_term_id'] = absint( $data[ $row_index ]['term_id'] );
 					}
 					if ( isset( $data[ $row_index ]['parent'] ) ) {
-						$prepared_row['_aie_source_parent_term_id'] = absint( $data[ $row_index ]['parent'] );
+						$prepared_row['_rsl_ie_source_parent_term_id'] = absint( $data[ $row_index ]['parent'] );
 					}
 					if ( isset( $data[ $row_index ]['parent_slug'] ) ) {
-						$prepared_row['_aie_source_parent_slug'] = (string) $data[ $row_index ]['parent_slug'];
+						$prepared_row['_rsl_ie_source_parent_slug'] = (string) $data[ $row_index ]['parent_slug'];
 					}
 				}
 				unset( $prepared_row );
@@ -835,7 +835,7 @@ class Import_Controller extends Base_Controller {
 	 * items have been created/updated.
 	 *
 	 * @param int   $job_id        Job ID.
-	 * @param array $prepared_data Prepared items (includes `_aie_source_*` keys when available).
+	 * @param array $prepared_data Prepared items (includes `_rsl_ie_source_*` keys when available).
 	 * @return void
 	 */
 	private function fix_post_parent_relationships( $job_id, $prepared_data ) {
@@ -851,8 +851,8 @@ class Import_Controller extends Base_Controller {
 		}
 
 		foreach ( $prepared_data as $row ) {
-			$source_id     = isset( $row['_aie_source_id'] ) ? absint( $row['_aie_source_id'] ) : 0;
-			$source_parent = isset( $row['_aie_source_parent_id'] ) ? absint( $row['_aie_source_parent_id'] ) : 0;
+			$source_id     = isset( $row['_rsl_ie_source_id'] ) ? absint( $row['_rsl_ie_source_id'] ) : 0;
+			$source_parent = isset( $row['_rsl_ie_source_parent_id'] ) ? absint( $row['_rsl_ie_source_parent_id'] ) : 0;
 			$target_id     = $source_id ? absint( $map[ (string) $source_id ] ?? 0 ) : 0;
 			$target_parent = $source_parent ? absint( $map[ (string) $source_parent ] ?? 0 ) : 0;
 
@@ -905,8 +905,8 @@ class Import_Controller extends Base_Controller {
 		}
 
 		foreach ( $prepared_data as $row ) {
-			$source_id     = isset( $row['_aie_source_comment_id'] ) ? absint( $row['_aie_source_comment_id'] ) : absint( $row['comment_ID'] ?? 0 );
-			$source_parent = isset( $row['_aie_source_comment_parent_id'] ) ? absint( $row['_aie_source_comment_parent_id'] ) : absint( $row['comment_parent'] ?? 0 );
+			$source_id     = isset( $row['_rsl_ie_source_comment_id'] ) ? absint( $row['_rsl_ie_source_comment_id'] ) : absint( $row['comment_ID'] ?? 0 );
+			$source_parent = isset( $row['_rsl_ie_source_comment_parent_id'] ) ? absint( $row['_rsl_ie_source_comment_parent_id'] ) : absint( $row['comment_parent'] ?? 0 );
 
 			$target_id     = $source_id ? absint( $map[ (string) $source_id ] ?? 0 ) : 0;
 			$target_parent = $source_parent ? absint( $map[ (string) $source_parent ] ?? 0 ) : 0;
@@ -975,15 +975,15 @@ class Import_Controller extends Base_Controller {
 				continue;
 			}
 
-			$source_id     = isset( $row['_aie_source_term_id'] ) ? absint( $row['_aie_source_term_id'] ) : absint( $row['term_id'] ?? 0 );
-			$source_parent = isset( $row['_aie_source_parent_term_id'] ) ? absint( $row['_aie_source_parent_term_id'] ) : absint( $row['parent'] ?? 0 );
+			$source_id     = isset( $row['_rsl_ie_source_term_id'] ) ? absint( $row['_rsl_ie_source_term_id'] ) : absint( $row['term_id'] ?? 0 );
+			$source_parent = isset( $row['_rsl_ie_source_parent_term_id'] ) ? absint( $row['_rsl_ie_source_parent_term_id'] ) : absint( $row['parent'] ?? 0 );
 
 			$target_id     = $source_id ? absint( $tax_map[ (string) $source_id ] ?? 0 ) : 0;
 			$target_parent = $source_parent ? absint( $tax_map[ (string) $source_parent ] ?? 0 ) : 0;
 
 			// Fallback: resolve parent by exported parent_slug when ID mapping is missing.
-			if ( $target_parent <= 0 && ! empty( $row['_aie_source_parent_slug'] ) ) {
-				$parent_slug = sanitize_title( (string) $row['_aie_source_parent_slug'] );
+			if ( $target_parent <= 0 && ! empty( $row['_rsl_ie_source_parent_slug'] ) ) {
+				$parent_slug = sanitize_title( (string) $row['_rsl_ie_source_parent_slug'] );
 				if ( $parent_slug !== '' ) {
 					$parent_term = get_term_by( 'slug', $parent_slug, $taxonomy );
 					if ( $parent_term && ! is_wp_error( $parent_term ) ) {

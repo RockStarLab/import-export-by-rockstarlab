@@ -9,25 +9,25 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 <!-- Steps Indicator -->
-<div class="aie-steps-indicator">
-	<div class="aie-step-indicator active" data-step="1">
-		<div class="aie-step-number">1</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Content Type', 'import-export-by-rockstarlab' ); ?></div>
+<div class="rsl-ie-steps-indicator">
+	<div class="rsl-ie-step-indicator active" data-step="1">
+		<div class="rsl-ie-step-number">1</div>
+		<div class="rsl-ie-step-label"><?php esc_html_e( 'Content Type', 'import-export-by-rockstarlab' ); ?></div>
 	</div>
-	<div class="aie-step-indicator" data-step="2">
-		<div class="aie-step-number">2</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Filters', 'import-export-by-rockstarlab' ); ?></div>
+	<div class="rsl-ie-step-indicator" data-step="2">
+		<div class="rsl-ie-step-number">2</div>
+		<div class="rsl-ie-step-label"><?php esc_html_e( 'Filters', 'import-export-by-rockstarlab' ); ?></div>
 	</div>
-	<div class="aie-step-indicator" data-step="3">
-		<div class="aie-step-number">3</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Select Fields', 'import-export-by-rockstarlab' ); ?></div>
+	<div class="rsl-ie-step-indicator" data-step="3">
+		<div class="rsl-ie-step-number">3</div>
+		<div class="rsl-ie-step-label"><?php esc_html_e( 'Select Fields', 'import-export-by-rockstarlab' ); ?></div>
 	</div>
-	<div class="aie-step-indicator" data-step="4">
-		<div class="aie-step-number">4</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Assign Functions', 'import-export-by-rockstarlab' ); ?></div>
+	<div class="rsl-ie-step-indicator" data-step="4">
+		<div class="rsl-ie-step-number">4</div>
+		<div class="rsl-ie-step-label"><?php esc_html_e( 'Assign Functions', 'import-export-by-rockstarlab' ); ?></div>
 	</div>
-	<div class="aie-step-indicator" data-step="5">
-		<div class="aie-step-number">5</div>
-		<div class="aie-step-label"><?php esc_html_e( 'Start Update', 'import-export-by-rockstarlab' ); ?></div>
+	<div class="rsl-ie-step-indicator" data-step="5">
+		<div class="rsl-ie-step-number">5</div>
+		<div class="rsl-ie-step-label"><?php esc_html_e( 'Start Update', 'import-export-by-rockstarlab' ); ?></div>
 	</div>
 </div>

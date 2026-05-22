@@ -37,7 +37,7 @@ const ExportModule = {
 			this.showStep( 5 );
 
 			// Remove the anti-flash class once we're on the correct step.
-			jQuery( '#rsl-ie-export' ).removeClass( 'aie-resuming-job' );
+			jQuery( '#rsl-ie-export' ).removeClass( 'rsl-ie-resuming-job' );
 
 			// Get initial progress first, then start tracking and processing
 			this.updateProgress().then( () => {
@@ -60,13 +60,13 @@ const ExportModule = {
 		const $wizard = jQuery( '#rsl-ie-export' );
 
 		// Content type filter/search
-		$wizard.on( 'input', '#aie-content-type-search', ( e ) =>
+		$wizard.on( 'input', '#rsl-ie-content-type-search', ( e ) =>
 			this.filterContentTypes( e )
 		);
 
 		// Step navigation
-		$wizard.on( 'click', '.aie-next-step', () => this.nextStep() );
-		$wizard.on( 'click', '.aie-prev-step', () => this.prevStep() );
+		$wizard.on( 'click', '.rsl-ie-next-step', () => this.nextStep() );
+		$wizard.on( 'click', '.rsl-ie-prev-step', () => this.prevStep() );
 
 		// Content type
 		$wizard.on( 'change', 'input[name="content_type"]', ( e ) =>
@@ -74,41 +74,45 @@ const ExportModule = {
 		);
 
 		// Prevent selection of premium locked content types
-		$wizard.on( 'click', '.aie-content-type.aie-premium-locked', ( e ) => {
-			e.preventDefault();
-			e.stopPropagation();
+		$wizard.on(
+			'click',
+			'.rsl-ie-content-type.rsl-ie-premium-locked',
+			( e ) => {
+				e.preventDefault();
+				e.stopPropagation();
 
-			// Show upgrade message
-			const message = window.aieData.i18n.premiumOnlyFeature;
-			Utils.showNotice( message, 'warning' );
+				// Show upgrade message
+				const message = window.rslIeData.i18n.premiumOnlyFeature;
+				Utils.showNotice( message, 'warning' );
 
-			// Prevent the radio button from being checked
-			const $input = jQuery( e.currentTarget ).find(
-				'input[type="radio"]'
-			);
-			$input.prop( 'checked', false );
+				// Prevent the radio button from being checked
+				const $input = jQuery( e.currentTarget ).find(
+					'input[type="radio"]'
+				);
+				$input.prop( 'checked', false );
 
-			return false;
-		} );
+				return false;
+			}
+		);
 
 		// Filters
 		$wizard.on(
 			'change',
-			'.aie-export-filters input, .aie-export-filters select',
+			'.rsl-ie-export-filters input, .rsl-ie-export-filters select',
 			Utils.debounce( () => this.refreshCount( false ), 500 )
 		);
-		$wizard.on( 'click', '.aie-step-2 .aie-refresh-count', () =>
+		$wizard.on( 'click', '.rsl-ie-step-2 .rsl-ie-refresh-count', () =>
 			this.refreshCount( true )
 		);
 
 		// Field selection
-		$wizard.on( 'click', '.aie-select-all-fields', () =>
+		$wizard.on( 'click', '.rsl-ie-select-all-fields', () =>
 			this.selectAllFields( true )
 		);
-		$wizard.on( 'click', '.aie-deselect-all-fields', () =>
+		$wizard.on( 'click', '.rsl-ie-deselect-all-fields', () =>
 			this.selectAllFields( false )
 		);
-		$wizard.on( 'click', '.aie-select-common-fields', () =>
+		$wizard.on( 'click', '.rsl-ie-select-common-fields', () =>
 			this.selectCommonFields()
 		);
 
@@ -123,24 +127,28 @@ const ExportModule = {
 		);
 
 		// Export actions
-		$wizard.on( 'click', '.aie-start-export', () => this.startExport() );
-		$wizard.on( 'click', '.aie-cancel-export', () => this.cancelExport() );
-		$wizard.on( 'click', '.aie-download-file', () => this.downloadFile() );
-		$wizard.on( 'click', '.aie-new-export', () => this.newExport() );
+		$wizard.on( 'click', '.rsl-ie-start-export', () => this.startExport() );
+		$wizard.on( 'click', '.rsl-ie-cancel-export', () =>
+			this.cancelExport()
+		);
+		$wizard.on( 'click', '.rsl-ie-download-file', () =>
+			this.downloadFile()
+		);
+		$wizard.on( 'click', '.rsl-ie-new-export', () => this.newExport() );
 
 		// Dynamic Filters
-		$wizard.on( 'click', '.aie-add-filter', () => this.addFilterRow() );
-		$wizard.on( 'click', '.aie-remove-filter', ( e ) =>
+		$wizard.on( 'click', '.rsl-ie-add-filter', () => this.addFilterRow() );
+		$wizard.on( 'click', '.rsl-ie-remove-filter', ( e ) =>
 			this.removeFilterRow( e )
 		);
-		$wizard.on( 'change', '.aie-filter-field', ( e ) =>
+		$wizard.on( 'change', '.rsl-ie-filter-field', ( e ) =>
 			this.onFilterFieldChange( e )
 		);
 
 		// Dynamic filter value changes - auto refresh count when filter is complete
-		$wizard.on( 'change', '.aie-filter-condition', ( e ) => {
-			const $row = jQuery( e.target ).closest( '.aie-filter-row' );
-			const $value = $row.find( '.aie-filter-value' );
+		$wizard.on( 'change', '.rsl-ie-filter-condition', ( e ) => {
+			const $row = jQuery( e.target ).closest( '.rsl-ie-filter-row' );
+			const $value = $row.find( '.rsl-ie-filter-value' );
 
 			// Clear the value when condition changes
 			if ( $value.length ) {
@@ -154,14 +162,14 @@ const ExportModule = {
 				Utils.debounce( () => this.refreshCount( false ), 500 )();
 			}
 		} );
-		$wizard.on( 'input', '.aie-filter-value', ( e ) => {
-			const $row = jQuery( e.target ).closest( '.aie-filter-row' );
+		$wizard.on( 'input', '.rsl-ie-filter-value', ( e ) => {
+			const $row = jQuery( e.target ).closest( '.rsl-ie-filter-row' );
 			if ( this.isFilterRowComplete( $row ) ) {
 				Utils.debounce( () => this.refreshCount( false ), 1000 )();
 			}
 		} );
-		$wizard.on( 'change', '.aie-filter-value', ( e ) => {
-			const $row = jQuery( e.target ).closest( '.aie-filter-row' );
+		$wizard.on( 'change', '.rsl-ie-filter-value', ( e ) => {
+			const $row = jQuery( e.target ).closest( '.rsl-ie-filter-row' );
 			if ( this.isFilterRowComplete( $row ) ) {
 				Utils.debounce( () => this.refreshCount( false ), 500 )();
 			}
@@ -174,15 +182,17 @@ const ExportModule = {
 	showStep( step ) {
 		const $wizard = jQuery( '#rsl-ie-export' );
 
-		$wizard.find( '.aie-step' ).removeClass( 'active' );
-		$wizard.find( `.aie-step-${ step }` ).addClass( 'active' );
+		$wizard.find( '.rsl-ie-step' ).removeClass( 'active' );
+		$wizard.find( `.rsl-ie-step-${ step }` ).addClass( 'active' );
 
-		$wizard.find( '.aie-step-indicator' ).removeClass( 'active completed' );
 		$wizard
-			.find( `.aie-step-indicator[data-step="${ step }"]` )
+			.find( '.rsl-ie-step-indicator' )
+			.removeClass( 'active completed' );
+		$wizard
+			.find( `.rsl-ie-step-indicator[data-step="${ step }"]` )
 			.addClass( 'active' );
 		$wizard
-			.find( `.aie-step-indicator[data-step]` )
+			.find( `.rsl-ie-step-indicator[data-step]` )
 			.filter( function () {
 				return jQuery( this ).data( 'step' ) < step;
 			} )
@@ -194,8 +204,8 @@ const ExportModule = {
 
 		if ( step === 1 ) {
 			// Hide database table selection and info when returning to step 1
-			jQuery( '.aie-table-selection-section' ).hide();
-			jQuery( '.aie-table-info' ).hide();
+			jQuery( '.rsl-ie-table-selection-section' ).hide();
+			jQuery( '.rsl-ie-table-info' ).hide();
 			// Reset count only when going back to step 1
 			this.resetCount();
 		} else if ( step === 2 ) {
@@ -204,14 +214,14 @@ const ExportModule = {
 				'input[name="content_type"]:checked'
 			).val();
 			if ( contentType === 'database_table' ) {
-				jQuery( '.aie-table-selection-section' ).show();
+				jQuery( '.rsl-ie-table-selection-section' ).show();
 				// Only load database tables if coming from step 1 or if table not selected
-				const $tableSelect = jQuery( '#aie-table-name' );
+				const $tableSelect = jQuery( '#rsl-ie-table-name' );
 				if ( previousStep === 1 || ! $tableSelect.val() ) {
 					this.loadDatabaseTables();
 				}
 			} else {
-				jQuery( '.aie-table-selection-section' ).hide();
+				jQuery( '.rsl-ie-table-selection-section' ).hide();
 			}
 
 			this.refreshCount( false ); // Don't show spinner on auto-refresh
@@ -252,8 +262,8 @@ const ExportModule = {
 
 			// Hide table selection when going back to step 1
 			if ( prevStep === 1 ) {
-				jQuery( '.aie-table-selection-section' ).hide();
-				jQuery( '.aie-table-info' ).hide();
+				jQuery( '.rsl-ie-table-selection-section' ).hide();
+				jQuery( '.rsl-ie-table-info' ).hide();
 			}
 
 			this.showStep( prevStep );
@@ -281,14 +291,14 @@ const ExportModule = {
 		const contentType = jQuery( e.target ).val();
 
 		// Clear existing filters
-		jQuery( '#aie-filters-list' ).empty();
+		jQuery( '#rsl-ie-filters-list' ).empty();
 
 		// Show/hide table selection section
 		if ( contentType === 'database_table' ) {
-			jQuery( '.aie-table-selection-section' ).show();
-			jQuery( '.aie-custom-filters-section' ).show();
+			jQuery( '.rsl-ie-table-selection-section' ).show();
+			jQuery( '.rsl-ie-custom-filters-section' ).show();
 		} else {
-			jQuery( '.aie-table-selection-section' ).hide();
+			jQuery( '.rsl-ie-table-selection-section' ).hide();
 		}
 
 		// Show/hide custom filters section
@@ -308,18 +318,18 @@ const ExportModule = {
 			'database_table',
 		];
 		if ( filterableTypes.includes( contentType ) ) {
-			jQuery( '.aie-custom-filters-section' ).show();
+			jQuery( '.rsl-ie-custom-filters-section' ).show();
 		} else {
-			jQuery( '.aie-custom-filters-section' ).hide();
+			jQuery( '.rsl-ie-custom-filters-section' ).hide();
 		}
 
 		// Update field groups visibility if needed
 		if ( contentType === 'media' ) {
-			jQuery( '.aie-post-field-group' ).hide();
-			jQuery( '.aie-media-field-group' ).show();
+			jQuery( '.rsl-ie-post-field-group' ).hide();
+			jQuery( '.rsl-ie-media-field-group' ).show();
 		} else {
-			jQuery( '.aie-post-field-group' ).show();
-			jQuery( '.aie-media-field-group' ).hide();
+			jQuery( '.rsl-ie-post-field-group' ).show();
+			jQuery( '.rsl-ie-media-field-group' ).hide();
 		}
 
 		// Refresh count (without spinner)
@@ -331,11 +341,11 @@ const ExportModule = {
 	 */
 	filterContentTypes( e ) {
 		const searchTerm = jQuery( e.target ).val().toLowerCase().trim();
-		const $contentTypes = jQuery( '.aie-content-type' );
-		const $filterCount = jQuery( '.aie-filter-count' );
-		const $filterCountValue = jQuery( '.aie-filter-count-value' );
-		const $noResults = jQuery( '.aie-no-results' );
-		const $nextStepBtn = jQuery( '.aie-step-1 .aie-next-step' );
+		const $contentTypes = jQuery( '.rsl-ie-content-type' );
+		const $filterCount = jQuery( '.rsl-ie-filter-count' );
+		const $filterCountValue = jQuery( '.rsl-ie-filter-count-value' );
+		const $noResults = jQuery( '.rsl-ie-no-results' );
+		const $nextStepBtn = jQuery( '.rsl-ie-step-1 .rsl-ie-next-step' );
 		let visibleCount = 0;
 
 		if ( searchTerm === '' ) {
@@ -385,9 +395,9 @@ const ExportModule = {
 	 * Refresh item count
 	 */
 	async refreshCount( showSpinner = true ) {
-		const $count = jQuery( '.aie-step-2 .aie-count-value' );
-		const $spinner = jQuery( '.aie-step-2 .aie-item-count .spinner' );
-		const $refreshBtn = jQuery( '.aie-step-2 .aie-refresh-count' );
+		const $count = jQuery( '.rsl-ie-step-2 .rsl-ie-count-value' );
+		const $spinner = jQuery( '.rsl-ie-step-2 .rsl-ie-item-count .spinner' );
+		const $refreshBtn = jQuery( '.rsl-ie-step-2 .rsl-ie-refresh-count' );
 
 		if ( showSpinner ) {
 			$spinner.addClass( 'is-active' );
@@ -404,7 +414,7 @@ const ExportModule = {
 
 			if ( contentType === 'database_table' ) {
 				// For database tables, get table name from dropdown
-				const $tableDropdown = jQuery( '#aie-table-name' );
+				const $tableDropdown = jQuery( '#rsl-ie-table-name' );
 				const dynamicFiltersData = this.getDynamicFilters();
 				options = {
 					table_name: $tableDropdown.val(),
@@ -444,7 +454,7 @@ const ExportModule = {
 			$count.text( response.count || 0 );
 			// If database table is selected, also update table row count in the info panel
 			if ( contentType === 'database_table' ) {
-				const $tableRowCount = jQuery( '.aie-table-row-count' );
+				const $tableRowCount = jQuery( '.rsl-ie-table-row-count' );
 				if ( $tableRowCount.length ) {
 					$tableRowCount.text( response.count || 0 );
 				}
@@ -454,7 +464,7 @@ const ExportModule = {
 		} catch ( error ) {
 			$count.text( '-' );
 			if ( contentType === 'database_table' ) {
-				const $tableRowCount = jQuery( '.aie-table-row-count' );
+				const $tableRowCount = jQuery( '.rsl-ie-table-row-count' );
 				if ( $tableRowCount.length ) {
 					$tableRowCount.text( '-' );
 				}
@@ -472,9 +482,9 @@ const ExportModule = {
 	 * Reset count display
 	 */
 	resetCount() {
-		const $count = jQuery( '.aie-step-2 .aie-count-value' );
-		const $spinner = jQuery( '.aie-step-2 .aie-item-count .spinner' );
-		const $refreshBtn = jQuery( '.aie-step-2 .aie-refresh-count' );
+		const $count = jQuery( '.rsl-ie-step-2 .rsl-ie-count-value' );
+		const $spinner = jQuery( '.rsl-ie-step-2 .rsl-ie-item-count .spinner' );
+		const $refreshBtn = jQuery( '.rsl-ie-step-2 .rsl-ie-refresh-count' );
 
 		$count.text( '-' );
 		$spinner.removeClass( 'is-active' );
@@ -488,8 +498,8 @@ const ExportModule = {
 	 * Update step 2 next button state based on item count
 	 */
 	updateStep2NextButton() {
-		const $nextBtn = jQuery( '.aie-step-2 .aie-next-step' );
-		const $count = jQuery( '.aie-step-2 .aie-count-value' );
+		const $nextBtn = jQuery( '.rsl-ie-step-2 .rsl-ie-next-step' );
+		const $count = jQuery( '.rsl-ie-step-2 .rsl-ie-count-value' );
 		const countText = $count.text();
 		const count = parseInt( countText, 10 );
 
@@ -498,45 +508,45 @@ const ExportModule = {
 			'input[name="content_type"]:checked'
 		).val();
 		let isDisabled = false;
-		let tooltipTitle = window.aieData.i18n.noDataAvailable;
-		let tooltipMessage = window.aieData.i18n.adjustFiltersMessage;
+		let tooltipTitle = window.rslIeData.i18n.noDataAvailable;
+		let tooltipMessage = window.rslIeData.i18n.adjustFiltersMessage;
 
 		// Remove previous event handlers
 		$nextBtn.off( 'mouseenter.tooltip mouseleave.tooltip' );
 
 		// For custom_post_types, check if post type is selected
 		if ( contentType === 'custom_post_types' ) {
-			const $postTypeSelector = jQuery( '.aie-post-type-selector' );
+			const $postTypeSelector = jQuery( '.rsl-ie-post-type-selector' );
 			const selectedPostType = $postTypeSelector.val();
 
 			if ( ! selectedPostType || selectedPostType.trim() === '' ) {
 				isDisabled = true;
-				tooltipTitle = window.aieData.i18n.postTypeRequired;
-				tooltipMessage = window.aieData.i18n.pleaseSelectPostType;
+				tooltipTitle = window.rslIeData.i18n.postTypeRequired;
+				tooltipMessage = window.rslIeData.i18n.pleaseSelectPostType;
 			}
 		}
 
 		// For taxonomy, check if taxonomy is selected
 		if ( contentType === 'taxonomy' ) {
-			const $taxonomySelector = jQuery( '.aie-taxonomy-selector' );
+			const $taxonomySelector = jQuery( '.rsl-ie-taxonomy-selector' );
 			const selectedTaxonomy = $taxonomySelector.val();
 
 			if ( ! selectedTaxonomy || selectedTaxonomy.trim() === '' ) {
 				isDisabled = true;
-				tooltipTitle = window.aieData.i18n.taxonomyRequired;
-				tooltipMessage = window.aieData.i18n.pleaseSelectTaxonomy;
+				tooltipTitle = window.rslIeData.i18n.taxonomyRequired;
+				tooltipMessage = window.rslIeData.i18n.pleaseSelectTaxonomy;
 			}
 		}
 
 		// For database_table, check if table is selected
 		if ( contentType === 'database_table' ) {
-			const $tableSelector = jQuery( '#aie-table-name' );
+			const $tableSelector = jQuery( '#rsl-ie-table-name' );
 			const selectedTable = $tableSelector.val();
 
 			if ( ! selectedTable || selectedTable.trim() === '' ) {
 				isDisabled = true;
-				tooltipTitle = window.aieData.i18n.tableRequired;
-				tooltipMessage = window.aieData.i18n.pleaseSelectTable;
+				tooltipTitle = window.rslIeData.i18n.tableRequired;
+				tooltipMessage = window.rslIeData.i18n.pleaseSelectTable;
 			}
 		}
 
@@ -577,24 +587,24 @@ const ExportModule = {
 	 */
 	showNextButtonTooltip( $button ) {
 		// Remove any existing tooltips
-		jQuery( '.aie-custom-tooltip' ).remove();
+		jQuery( '.rsl-ie-custom-tooltip' ).remove();
 
 		// Get custom tooltip data or use defaults
 		const tooltipTitle =
 			$button.data( 'tooltip-title' ) ||
-			window.aieData.i18n.noDataAvailable;
+			window.rslIeData.i18n.noDataAvailable;
 		const tooltipMessage =
 			$button.data( 'tooltip-message' ) ||
-			window.aieData.i18n.adjustFiltersMessage;
+			window.rslIeData.i18n.adjustFiltersMessage;
 
 		// Create tooltip element
 		const $tooltip = jQuery( '<div>' ).addClass(
-			'aie-custom-tooltip aie-custom-pointer'
+			'rsl-ie-custom-tooltip rsl-ie-custom-pointer'
 		).html( `
-				<div class="aie-pointer-icon">
+				<div class="rsl-ie-pointer-icon">
 					<span class="dashicons dashicons-warning"></span>
 				</div>
-				<div class="aie-pointer-content">
+				<div class="rsl-ie-pointer-content">
 					<h3>${ tooltipTitle }</h3>
 					<p>${ tooltipMessage }</p>
 				</div>
@@ -617,7 +627,7 @@ const ExportModule = {
 		} );
 		// Fade in
 		setTimeout( () => {
-			$tooltip.addClass( 'aie-tooltip-visible' );
+			$tooltip.addClass( 'rsl-ie-tooltip-visible' );
 		}, 10 );
 	},
 
@@ -625,10 +635,10 @@ const ExportModule = {
 	 * Hide custom tooltip
 	 */
 	hideNextButtonTooltip( $button ) {
-		const $tooltip = jQuery( '.aie-custom-tooltip' );
+		const $tooltip = jQuery( '.rsl-ie-custom-tooltip' );
 
 		if ( $tooltip.length ) {
-			$tooltip.removeClass( 'aie-tooltip-visible' );
+			$tooltip.removeClass( 'rsl-ie-tooltip-visible' );
 
 			// Remove after animation
 			setTimeout( () => {
@@ -696,11 +706,11 @@ const ExportModule = {
 		const customFields = [];
 		const taxonomyFilters = [];
 
-		jQuery( '.aie-filter-row' ).each( ( index, row ) => {
+		jQuery( '.rsl-ie-filter-row' ).each( ( index, row ) => {
 			const $row = jQuery( row );
-			const field = $row.find( '.aie-filter-field' ).val();
+			const field = $row.find( '.rsl-ie-filter-field' ).val();
 			const fieldType = $row
-				.find( '.aie-filter-field option:selected' )
+				.find( '.rsl-ie-filter-field option:selected' )
 				.data( 'type' );
 
 			// Skip table selector for custom_table type
@@ -710,7 +720,7 @@ const ExportModule = {
 
 			// Handle post_type_selector type
 			if ( fieldType === 'post_type_selector' ) {
-				const value = $row.find( '.aie-filter-value' ).val();
+				const value = $row.find( '.rsl-ie-filter-value' ).val();
 
 				if ( value && value.trim() !== '' ) {
 					filters.push( {
@@ -724,7 +734,7 @@ const ExportModule = {
 
 			// Handle taxonomy_selector type
 			if ( fieldType === 'taxonomy_selector' ) {
-				const value = $row.find( '.aie-filter-value' ).val();
+				const value = $row.find( '.rsl-ie-filter-value' ).val();
 
 				if ( value && value.trim() !== '' ) {
 					filters.push( {
@@ -738,11 +748,11 @@ const ExportModule = {
 
 			// Handle custom_field type
 			if ( fieldType === 'custom_field' ) {
-				const name = $row.find( '.aie-custom-field-name' ).val();
+				const name = $row.find( '.rsl-ie-custom-field-name' ).val();
 				const condition = $row
-					.find( '.aie-custom-field-condition' )
+					.find( '.rsl-ie-custom-field-condition' )
 					.val();
-				const value = $row.find( '.aie-custom-field-value' ).val();
+				const value = $row.find( '.rsl-ie-custom-field-value' ).val();
 
 				if ( name && condition ) {
 					const noValueConditions = [ 'is_empty', 'is_not_empty' ];
@@ -762,9 +772,11 @@ const ExportModule = {
 
 			// Handle taxonomy_filter type
 			if ( fieldType === 'taxonomy_filter' ) {
-				const taxonomy = $row.find( '.aie-taxonomy-name' ).val();
-				const condition = $row.find( '.aie-taxonomy-condition' ).val();
-				const terms = $row.find( '.aie-taxonomy-terms' ).val();
+				const taxonomy = $row.find( '.rsl-ie-taxonomy-name' ).val();
+				const condition = $row
+					.find( '.rsl-ie-taxonomy-condition' )
+					.val();
+				const terms = $row.find( '.rsl-ie-taxonomy-terms' ).val();
 
 				if ( taxonomy && condition && terms && terms.trim() !== '' ) {
 					taxonomyFilters.push( {
@@ -777,8 +789,8 @@ const ExportModule = {
 			}
 
 			// Handle regular filters
-			const condition = $row.find( '.aie-filter-condition' ).val();
-			let value = $row.find( '.aie-filter-value' ).val();
+			const condition = $row.find( '.rsl-ie-filter-condition' ).val();
+			let value = $row.find( '.rsl-ie-filter-value' ).val();
 
 			// Skip empty or incomplete filters
 			if ( ! field || ! condition ) {
@@ -787,7 +799,7 @@ const ExportModule = {
 
 			// Normalize date values to YYYY-MM-DD regardless of datepicker locale format
 			const fieldTypeForDate = $row
-				.find( '.aie-filter-field option:selected' )
+				.find( '.rsl-ie-filter-field option:selected' )
 				.data( 'type' );
 			if (
 				( fieldTypeForDate === 'date' ||
@@ -826,11 +838,11 @@ const ExportModule = {
 	 */
 	getCustomTableFilters() {
 		const filters = [];
-		jQuery( '.aie-filter-row' ).each( ( index, row ) => {
+		jQuery( '.rsl-ie-filter-row' ).each( ( index, row ) => {
 			const $row = jQuery( row );
-			const field = $row.find( '.aie-filter-field' ).val();
-			const condition = $row.find( '.aie-filter-condition' ).val();
-			const value = $row.find( '.aie-filter-value' ).val();
+			const field = $row.find( '.rsl-ie-filter-field' ).val();
+			const condition = $row.find( '.rsl-ie-filter-condition' ).val();
+			const value = $row.find( '.rsl-ie-filter-value' ).val();
 
 			// Skip table selector row and empty filters
 			if ( ! field || field === 'table_name' || ! condition ) {
@@ -879,8 +891,8 @@ const ExportModule = {
 	onFormatChange( e ) {
 		const format = jQuery( e.target ).val();
 
-		jQuery( '.aie-format-options > div' ).hide();
-		jQuery( `.aie-${ format }-options` ).show();
+		jQuery( '.rsl-ie-format-options > div' ).hide();
+		jQuery( `.rsl-ie-${ format }-options` ).show();
 	},
 
 	/**
@@ -890,9 +902,9 @@ const ExportModule = {
 		const delimiter = jQuery( e.target ).val();
 
 		if ( delimiter === 'custom' ) {
-			jQuery( '.aie-custom-delimiter-row' ).show();
+			jQuery( '.rsl-ie-custom-delimiter-row' ).show();
 		} else {
-			jQuery( '.aie-custom-delimiter-row' ).hide();
+			jQuery( '.rsl-ie-custom-delimiter-row' ).hide();
 		}
 	},
 
@@ -926,7 +938,7 @@ const ExportModule = {
 		// If no fields selected (or only pseudo-fields were filtered out), show error
 		if ( fields.length === 0 ) {
 			Utils.showNotice(
-				window.aieData.i18n.pleaseSelectFieldToExport,
+				window.rslIeData.i18n.pleaseSelectFieldToExport,
 				'error'
 			);
 			return;
@@ -946,7 +958,7 @@ const ExportModule = {
 				).val();
 				if ( ! customDelimiter ) {
 					Utils.showNotice(
-						window.aieData.i18n.pleaseEnterCustomDelimiter,
+						window.rslIeData.i18n.pleaseEnterCustomDelimiter,
 						'error'
 					);
 					// Set focus to the custom delimiter field
@@ -1007,7 +1019,7 @@ const ExportModule = {
 
 			// For database_table, add table_name
 			if ( contentType === 'database_table' ) {
-				const $tableDropdown = jQuery( '#aie-table-name' );
+				const $tableDropdown = jQuery( '#rsl-ie-table-name' );
 				const tableName = $tableDropdown.val();
 				if ( tableName ) {
 					data.table_name = tableName;
@@ -1025,7 +1037,7 @@ const ExportModule = {
 			this.processNextBatch();
 
 			Utils.showNotice(
-				window.aieData.i18n.exportStartedSuccess,
+				window.rslIeData.i18n.exportStartedSuccess,
 				'success'
 			);
 		} catch ( error ) {
@@ -1077,7 +1089,7 @@ const ExportModule = {
 					);
 				};
 
-				Utils.updateProgressBar( jQuery( '.aie-step-5' ), {
+				Utils.updateProgressBar( jQuery( '.rsl-ie-step-5' ), {
 					percentage,
 					processed,
 					total,
@@ -1122,7 +1134,7 @@ const ExportModule = {
 				job_id: this.jobId,
 			} );
 
-			Utils.updateProgressBar( jQuery( '.aie-step-5' ), response );
+			Utils.updateProgressBar( jQuery( '.rsl-ie-step-5' ), response );
 
 			if ( response.status === 'completed' ) {
 				this.onExportComplete( response );
@@ -1139,26 +1151,28 @@ const ExportModule = {
 		clearInterval( this.progressInterval );
 
 		// Update title
-		jQuery( '.aie-step-5 h2' ).text( window.aieData.i18n.exportComplete );
+		jQuery( '.rsl-ie-step-5 h2' ).text(
+			window.rslIeData.i18n.exportComplete
+		);
 
 		// Hide the description text
-		jQuery( '.aie-step-5 .description' ).hide();
+		jQuery( '.rsl-ie-step-5 .description' ).hide();
 
 		// Hide progress container
-		jQuery( '.aie-progress-container' ).hide();
+		jQuery( '.rsl-ie-progress-container' ).hide();
 
 		// Show results container
-		jQuery( '.aie-export-results' ).show();
+		jQuery( '.rsl-ie-export-results' ).show();
 
 		// Show and populate the success card
-		const $card = jQuery( '.aie-export-complete-card' );
+		const $card = jQuery( '.rsl-ie-export-complete-card' );
 		$card.show();
 
 		// Use data from result (progress response)
-		jQuery( '.aie-result-processed' ).text(
+		jQuery( '.rsl-ie-result-processed' ).text(
 			result.processed || result.total || 0
 		);
-		jQuery( '.aie-result-filesize' ).text(
+		jQuery( '.rsl-ie-result-filesize' ).text(
 			Utils.formatFileSize( result.file_size || 0 )
 		);
 		const formatExportDuration = ( sec ) => {
@@ -1176,17 +1190,17 @@ const ExportModule = {
 		const exportDurSec = this.exportStartTime
 			? ( Date.now() - this.exportStartTime ) / 1000
 			: 0;
-		jQuery( '.aie-result-duration' ).text(
+		jQuery( '.rsl-ie-result-duration' ).text(
 			exportDurSec > 0
 				? formatExportDuration( exportDurSec )
 				: result.estimates?.elapsed_formatted || '0s'
 		);
 
-		jQuery( '.aie-cancel-export' ).hide();
-		jQuery( '.aie-new-export' ).show();
+		jQuery( '.rsl-ie-cancel-export' ).hide();
+		jQuery( '.rsl-ie-new-export' ).show();
 
 		Utils.showNotice(
-			window.aieData.i18n.exportCompletedSuccess,
+			window.rslIeData.i18n.exportCompletedSuccess,
 			'success'
 		);
 	},
@@ -1199,9 +1213,9 @@ const ExportModule = {
 		const errorMessage =
 			result.error ||
 			( result.result && result.result.error ) ||
-			window.aieData.i18n.unknownError;
+			window.rslIeData.i18n.unknownError;
 		Utils.showNotice(
-			window.aieData.i18n.exportFailed + ': ' + errorMessage,
+			window.rslIeData.i18n.exportFailed + ': ' + errorMessage,
 			'error'
 		);
 	},
@@ -1227,14 +1241,14 @@ const ExportModule = {
 	 * Cancel export
 	 */
 	async cancelExport() {
-		if ( ! confirm( window.aieData.i18n.confirmCancelExport ) ) {
+		if ( ! confirm( window.rslIeData.i18n.confirmCancelExport ) ) {
 			return;
 		}
 
 		try {
 			await Utils.ajax( 'aie_export_cancel', { job_id: this.jobId } );
 			clearInterval( this.progressInterval );
-			Utils.showNotice( window.aieData.i18n.exportCancelled, 'info' );
+			Utils.showNotice( window.rslIeData.i18n.exportCancelled, 'info' );
 			this.resetWizard();
 		} catch ( error ) {
 			Utils.handleError( error, 'Cancel export' );
@@ -1264,7 +1278,7 @@ const ExportModule = {
 			'checked',
 			true
 		);
-		jQuery( '.aie-export-results' ).hide();
+		jQuery( '.rsl-ie-export-results' ).hide();
 
 		this.showStep( 1 );
 	},
@@ -1273,14 +1287,16 @@ const ExportModule = {
 	 * Add new filter row
 	 */
 	addFilterRow() {
-		const template = document.getElementById( 'aie-filter-row-template' );
+		const template = document.getElementById(
+			'rsl-ie-filter-row-template'
+		);
 		const clone = template.content.cloneNode( true );
 		const contentType = jQuery(
 			'input[name="content_type"]:checked'
 		).val();
 
 		// Populate field options based on content type (without Featured Image group)
-		const $fieldSelect = jQuery( clone ).find( '.aie-filter-field' );
+		const $fieldSelect = jQuery( clone ).find( '.rsl-ie-filter-field' );
 		const fields = this.getFilterFieldsByContentType( contentType );
 
 		fields.forEach( ( group ) => {
@@ -1299,7 +1315,7 @@ const ExportModule = {
 			$fieldSelect.append( $optgroup );
 		} );
 
-		jQuery( '#aie-filters-list' ).append( clone );
+		jQuery( '#rsl-ie-filters-list' ).append( clone );
 
 		// Trigger count refresh (without spinner)
 		Utils.debounce( () => this.refreshCount( false ), 500 )();
@@ -1309,7 +1325,7 @@ const ExportModule = {
 	 * Remove filter row
 	 */
 	removeFilterRow( e ) {
-		jQuery( e.target ).closest( '.aie-filter-row' ).remove();
+		jQuery( e.target ).closest( '.rsl-ie-filter-row' ).remove();
 
 		// Trigger count refresh (without spinner)
 		Utils.debounce( () => this.refreshCount( false ), 500 )();
@@ -1320,10 +1336,10 @@ const ExportModule = {
 	 */
 	onFilterFieldChange( e ) {
 		const $field = jQuery( e.target );
-		const $row = $field.closest( '.aie-filter-row' );
-		const $condition = $row.find( '.aie-filter-condition' );
-		const $valueWrap = $row.find( '.aie-filter-value-wrap' );
-		const $value = $row.find( '.aie-filter-value' );
+		const $row = $field.closest( '.rsl-ie-filter-row' );
+		const $condition = $row.find( '.rsl-ie-filter-condition' );
+		const $valueWrap = $row.find( '.rsl-ie-filter-value-wrap' );
+		const $value = $row.find( '.rsl-ie-filter-value' );
 
 		const selectedOption = $field.find( 'option:selected' );
 		const fieldType = selectedOption.data( 'type' ) || 'string';
@@ -1331,45 +1347,45 @@ const ExportModule = {
 		// Special handling for custom_field
 		if ( fieldType === 'custom_field' ) {
 			// Create custom interface for custom field filter
-			$condition.closest( '.aie-filter-condition-wrap' ).show();
+			$condition.closest( '.rsl-ie-filter-condition-wrap' ).show();
 			$valueWrap.html( `
-				<div class="aie-custom-field-inputs">
-					<div class="aie-input-group">
-						<label>${ window.aieData.i18n.selectField }</label>
-						<input type="text" class="aie-custom-field-name" placeholder="${ window.aieData.i18n.enterCustomFieldName }" />
+				<div class="rsl-ie-custom-field-inputs">
+					<div class="rsl-ie-input-group">
+						<label>${ window.rslIeData.i18n.selectField }</label>
+						<input type="text" class="rsl-ie-custom-field-name" placeholder="${ window.rslIeData.i18n.enterCustomFieldName }" />
 					</div>
-					<div class="aie-input-group">
-						<label>${ window.aieData.i18n.condition }</label>
-						<select class="aie-custom-field-condition aie-filter-condition">
-							<option value="equals">${ window.aieData.i18n.equals }</option>
-							<option value="not_equals">${ window.aieData.i18n.notEquals }</option>
-							<option value="contains">${ window.aieData.i18n.contains }</option>
-							<option value="not_contains">${ window.aieData.i18n.notContains }</option>
-							<option value="greater">${ window.aieData.i18n.greaterThan }</option>
-							<option value="less">${ window.aieData.i18n.lessThan }</option>
-							<option value="equals_or_greater">${ window.aieData.i18n.greaterOrEqual }</option>
-							<option value="equals_or_less">${ window.aieData.i18n.lessOrEqual }</option>
-							<option value="in">${ window.aieData.i18n.inComma }</option>
-							<option value="not_in">${ window.aieData.i18n.notInComma }</option>
-							<option value="is_empty">${ window.aieData.i18n.isEmpty }</option>
-							<option value="is_not_empty">${ window.aieData.i18n.isNotEmpty }</option>
+					<div class="rsl-ie-input-group">
+						<label>${ window.rslIeData.i18n.condition }</label>
+						<select class="rsl-ie-custom-field-condition rsl-ie-filter-condition">
+							<option value="equals">${ window.rslIeData.i18n.equals }</option>
+							<option value="not_equals">${ window.rslIeData.i18n.notEquals }</option>
+							<option value="contains">${ window.rslIeData.i18n.contains }</option>
+							<option value="not_contains">${ window.rslIeData.i18n.notContains }</option>
+							<option value="greater">${ window.rslIeData.i18n.greaterThan }</option>
+							<option value="less">${ window.rslIeData.i18n.lessThan }</option>
+							<option value="equals_or_greater">${ window.rslIeData.i18n.greaterOrEqual }</option>
+							<option value="equals_or_less">${ window.rslIeData.i18n.lessOrEqual }</option>
+							<option value="in">${ window.rslIeData.i18n.inComma }</option>
+							<option value="not_in">${ window.rslIeData.i18n.notInComma }</option>
+							<option value="is_empty">${ window.rslIeData.i18n.isEmpty }</option>
+							<option value="is_not_empty">${ window.rslIeData.i18n.isNotEmpty }</option>
 						</select>
 					</div>
-					<div class="aie-input-group aie-custom-field-value-group">
-						<label>${ window.aieData.i18n.value }</label>
-						<input type="text" class="aie-custom-field-value aie-filter-value" placeholder="${ window.aieData.i18n.enterFilterValue }" />
+					<div class="rsl-ie-input-group rsl-ie-custom-field-value-group">
+						<label>${ window.rslIeData.i18n.value }</label>
+						<input type="text" class="rsl-ie-custom-field-value rsl-ie-filter-value" placeholder="${ window.rslIeData.i18n.enterFilterValue }" />
 					</div>
 				</div>
 			` );
-			$condition.closest( '.aie-filter-condition-wrap' ).hide();
+			$condition.closest( '.rsl-ie-filter-condition-wrap' ).hide();
 
 			// Handle condition change to show/hide value input
-			$row.find( '.aie-custom-field-condition' ).on(
+			$row.find( '.rsl-ie-custom-field-condition' ).on(
 				'change',
 				function () {
 					const condition = jQuery( this ).val();
 					const $valueGroup = $row.find(
-						'.aie-custom-field-value-group'
+						'.rsl-ie-custom-field-value-group'
 					);
 					if (
 						condition === 'is_empty' ||
@@ -1385,12 +1401,11 @@ const ExportModule = {
 			);
 
 			// Add change event handlers to trigger count refresh
-			$row.find( '.aie-custom-field-name, .aie-custom-field-value' ).on(
-				'input change',
-				() => {
-					Utils.debounce( () => this.refreshCount( false ), 500 )();
-				}
-			);
+			$row.find(
+				'.rsl-ie-custom-field-name, .rsl-ie-custom-field-value'
+			).on( 'input change', () => {
+				Utils.debounce( () => this.refreshCount( false ), 500 )();
+			} );
 
 			return;
 		}
@@ -1398,33 +1413,33 @@ const ExportModule = {
 		// Special handling for taxonomy_filter
 		if ( fieldType === 'taxonomy_filter' ) {
 			// Create custom interface for taxonomy filter
-			$condition.closest( '.aie-filter-condition-wrap' ).show();
+			$condition.closest( '.rsl-ie-filter-condition-wrap' ).show();
 			$valueWrap.html( `
-				<div class="aie-taxonomy-filter-inputs">
-					<div class="aie-input-group">
+				<div class="rsl-ie-taxonomy-filter-inputs">
+					<div class="rsl-ie-input-group">
 						<label>Taxonomy Name</label>
-						<input type="text" class="aie-taxonomy-name" placeholder="${ window.aieData.i18n.taxonomyPlaceholderExamples }" />
+						<input type="text" class="rsl-ie-taxonomy-name" placeholder="${ window.rslIeData.i18n.taxonomyPlaceholderExamples }" />
 					</div>
-					<div class="aie-input-group">
+					<div class="rsl-ie-input-group">
 						<label>Condition</label>
-						<select class="aie-taxonomy-condition aie-filter-condition">
-							<option value="in">${ window.aieData.i18n.hasTermsIn }</option>
-							<option value="not_in">${ window.aieData.i18n.doesNotHaveTermsNotIn }</option>
-							<option value="and">${ window.aieData.i18n.hasAllTermsAnd }</option>
+						<select class="rsl-ie-taxonomy-condition rsl-ie-filter-condition">
+							<option value="in">${ window.rslIeData.i18n.hasTermsIn }</option>
+							<option value="not_in">${ window.rslIeData.i18n.doesNotHaveTermsNotIn }</option>
+							<option value="and">${ window.rslIeData.i18n.hasAllTermsAnd }</option>
 						</select>
 					</div>
-					<div class="aie-input-group">
+					<div class="rsl-ie-input-group">
 						<label>Terms</label>
-						<input type="text" class="aie-taxonomy-terms aie-filter-value" placeholder="${ window.aieData.i18n.enterTermSlugs }" />
-						<small>${ window.aieData.i18n.enterTermSlugs }</small>
+						<input type="text" class="rsl-ie-taxonomy-terms rsl-ie-filter-value" placeholder="${ window.rslIeData.i18n.enterTermSlugs }" />
+						<small>${ window.rslIeData.i18n.enterTermSlugs }</small>
 					</div>
 				</div>
 			` );
-			$condition.closest( '.aie-filter-condition-wrap' ).hide();
+			$condition.closest( '.rsl-ie-filter-condition-wrap' ).hide();
 
 			// Add change event handlers to trigger count refresh
 			$row.find(
-				'.aie-taxonomy-name, .aie-taxonomy-condition, .aie-taxonomy-terms'
+				'.rsl-ie-taxonomy-name, .rsl-ie-taxonomy-condition, .rsl-ie-taxonomy-terms'
 			).on( 'input change', () => {
 				Utils.debounce( () => this.refreshCount( false ), 500 )();
 			} );
@@ -1435,14 +1450,16 @@ const ExportModule = {
 		// Special handling for table_selector
 		if ( fieldType === 'table_selector' ) {
 			// Hide condition dropdown for table selector
-			$condition.closest( '.aie-filter-condition-wrap' ).hide();
+			$condition.closest( '.rsl-ie-filter-condition-wrap' ).hide();
 
 			// Replace value input with table selector
-			$valueWrap.find( 'label' ).text( window.aieData.i18n.selectTable );
+			$valueWrap
+				.find( 'label' )
+				.text( window.rslIeData.i18n.selectTable );
 
 			// Create a select dropdown for tables
 			const $select = jQuery( '<select>' )
-				.addClass( 'aie-filter-value aie-table-selector' )
+				.addClass( 'rsl-ie-filter-value rsl-ie-table-selector' )
 				.attr( 'name', 'filter_value[]' );
 
 			// Fetch database tables via AJAX
@@ -1451,7 +1468,9 @@ const ExportModule = {
 					$select.append(
 						jQuery( '<option>' )
 							.val( '' )
-							.text( window.aieData.i18n.selectTablePlaceholder )
+							.text(
+								window.rslIeData.i18n.selectTablePlaceholder
+							)
 					);
 
 					if ( tables && Array.isArray( tables ) ) {
@@ -1476,7 +1495,7 @@ const ExportModule = {
 					$select.append(
 						jQuery( '<option>' )
 							.val( '' )
-							.text( window.aieData.i18n.errorLoadingTables )
+							.text( window.rslIeData.i18n.errorLoadingTables )
 					);
 				} );
 
@@ -1487,16 +1506,16 @@ const ExportModule = {
 		// Special handling for post_type_selector
 		if ( fieldType === 'post_type_selector' ) {
 			// Hide condition dropdown for post type selector
-			$condition.closest( '.aie-filter-condition-wrap' ).hide();
+			$condition.closest( '.rsl-ie-filter-condition-wrap' ).hide();
 
 			// Replace value input with post type selector
 			$valueWrap
 				.find( 'label' )
-				.text( window.aieData.i18n.selectPostType );
+				.text( window.rslIeData.i18n.selectPostType );
 
 			// Create a select dropdown for post types
 			const $select = jQuery( '<select>' )
-				.addClass( 'aie-filter-value aie-post-type-selector' )
+				.addClass( 'rsl-ie-filter-value rsl-ie-post-type-selector' )
 				.attr( 'name', 'filter_value[]' );
 
 			// Fetch post types via AJAX
@@ -1508,7 +1527,7 @@ const ExportModule = {
 						jQuery( '<option>' )
 							.val( '' )
 							.text(
-								window.aieData.i18n.selectPostTypePlaceholder
+								window.rslIeData.i18n.selectPostTypePlaceholder
 							)
 					);
 
@@ -1550,7 +1569,7 @@ const ExportModule = {
 					$select.append(
 						jQuery( '<option>' )
 							.val( '' )
-							.text( window.aieData.i18n.errorLoadingPostTypes )
+							.text( window.rslIeData.i18n.errorLoadingPostTypes )
 					);
 				} );
 
@@ -1561,16 +1580,16 @@ const ExportModule = {
 		// Special handling for taxonomy_selector
 		if ( fieldType === 'taxonomy_selector' ) {
 			// Hide condition dropdown for taxonomy selector
-			$condition.closest( '.aie-filter-condition-wrap' ).hide();
+			$condition.closest( '.rsl-ie-filter-condition-wrap' ).hide();
 
 			// Replace value input with taxonomy selector
 			$valueWrap
 				.find( 'label' )
-				.text( window.aieData.i18n.selectTaxonomy );
+				.text( window.rslIeData.i18n.selectTaxonomy );
 
 			// Create a select dropdown for taxonomies
 			const $select = jQuery( '<select>' )
-				.addClass( 'aie-filter-value aie-taxonomy-selector' )
+				.addClass( 'rsl-ie-filter-value rsl-ie-taxonomy-selector' )
 				.attr( 'name', 'filter_value[]' );
 
 			// Fetch taxonomies via AJAX
@@ -1580,7 +1599,7 @@ const ExportModule = {
 						jQuery( '<option>' )
 							.val( '' )
 							.text(
-								window.aieData.i18n.selectTaxonomyPlaceholder
+								window.rslIeData.i18n.selectTaxonomyPlaceholder
 							)
 					);
 
@@ -1622,7 +1641,9 @@ const ExportModule = {
 					$select.append(
 						jQuery( '<option>' )
 							.val( '' )
-							.text( window.aieData.i18n.errorLoadingTaxonomies )
+							.text(
+								window.rslIeData.i18n.errorLoadingTaxonomies
+							)
 					);
 				} );
 
@@ -1631,8 +1652,8 @@ const ExportModule = {
 		}
 
 		// Show condition dropdown for normal fields
-		$condition.closest( '.aie-filter-condition-wrap' ).show();
-		$valueWrap.find( 'label' ).text( window.aieData.i18n.value );
+		$condition.closest( '.rsl-ie-filter-condition-wrap' ).show();
+		$valueWrap.find( 'label' ).text( window.rslIeData.i18n.value );
 
 		// Clear existing conditions and populate based on field type
 		$condition.empty();
@@ -1698,12 +1719,12 @@ const ExportModule = {
 		if ( $value.is( 'select' ) ) {
 			const $input = jQuery( '<input>' )
 				.attr( 'type', 'text' )
-				.addClass( 'aie-filter-value' )
+				.addClass( 'rsl-ie-filter-value' )
 				.attr( 'name', 'filter_value[]' )
-				.attr( 'placeholder', window.aieData.i18n.enterFilterValue );
+				.attr( 'placeholder', window.rslIeData.i18n.enterFilterValue );
 			$value.replaceWith( $input );
 			// Update reference
-			$row.find( '.aie-filter-value' ).attr(
+			$row.find( '.rsl-ie-filter-value' ).attr(
 				'type',
 				fieldType === 'date'
 					? 'date'
@@ -1745,35 +1766,40 @@ const ExportModule = {
 					this.tableColumns = columns;
 
 					// Update all filter field dropdowns
-					jQuery( '.aie-filter-field' ).each( ( index, element ) => {
-						const $fieldSelect = jQuery( element );
-						const currentValue = $fieldSelect.val();
+					jQuery( '.rsl-ie-filter-field' ).each(
+						( index, element ) => {
+							const $fieldSelect = jQuery( element );
+							const currentValue = $fieldSelect.val();
 
-						// Clear and rebuild options
-						$fieldSelect.empty();
-						$fieldSelect.append(
-							jQuery( '<option>' )
-								.val( '' )
-								.text( window.aieData.i18n.selectField )
-						);
-
-						// Add columns as options
-						columns.forEach( ( column ) => {
+							// Clear and rebuild options
+							$fieldSelect.empty();
 							$fieldSelect.append(
 								jQuery( '<option>' )
-									.val( column.name )
-									.text(
-										column.name + ' (' + column.type + ')'
-									)
-									.data( 'type', column.data_type )
+									.val( '' )
+									.text( window.rslIeData.i18n.selectField )
 							);
-						} );
 
-						// Restore previous value if exists
-						if ( currentValue ) {
-							$fieldSelect.val( currentValue );
+							// Add columns as options
+							columns.forEach( ( column ) => {
+								$fieldSelect.append(
+									jQuery( '<option>' )
+										.val( column.name )
+										.text(
+											column.name +
+												' (' +
+												column.type +
+												')'
+										)
+										.data( 'type', column.data_type )
+								);
+							} );
+
+							// Restore previous value if exists
+							if ( currentValue ) {
+								$fieldSelect.val( currentValue );
+							}
 						}
-					} );
+					);
 				}
 			} )
 			.catch( ( error ) => {} );
@@ -1785,142 +1811,143 @@ const ExportModule = {
 	getFieldsByContentType( contentType ) {
 		const baseFields = [
 			{
-				label: window.aieData.i18n.fieldGroupStandard,
+				label: window.rslIeData.i18n.fieldGroupStandard,
 				options: [
 					{
 						value: 'ID',
-						label: window.aieData.i18n.fieldId,
+						label: window.rslIeData.i18n.fieldId,
 						type: 'number',
 					},
 					{
 						value: 'post_title',
-						label: window.aieData.i18n.fieldTitle,
+						label: window.rslIeData.i18n.fieldTitle,
 						type: 'string',
 					},
 					{
 						value: 'post_content',
-						label: window.aieData.i18n.fieldContent,
+						label: window.rslIeData.i18n.fieldContent,
 						type: 'string',
 					},
 					{
 						value: 'post_excerpt',
-						label: window.aieData.i18n.fieldExcerpt,
+						label: window.rslIeData.i18n.fieldExcerpt,
 						type: 'string',
 					},
 					{
 						value: 'post_date',
-						label: window.aieData.i18n.fieldDate,
+						label: window.rslIeData.i18n.fieldDate,
 						type: 'date',
 					},
 					{
 						value: 'post_name',
-						label: window.aieData.i18n.fieldSlug,
+						label: window.rslIeData.i18n.fieldSlug,
 						type: 'string',
 					},
 					{
 						value: 'post_status',
-						label: window.aieData.i18n.fieldStatus,
+						label: window.rslIeData.i18n.fieldStatus,
 						type: 'string',
 					},
 				],
 			},
 			{
-				label: window.aieData.i18n.fieldGroupAuthor,
+				label: window.rslIeData.i18n.fieldGroupAuthor,
 				options: [
 					{
 						value: 'post_author',
-						label: window.aieData.i18n.fieldAuthorId,
+						label: window.rslIeData.i18n.fieldAuthorId,
 						type: 'number',
 					},
 					{
 						value: 'author_name',
-						label: window.aieData.i18n.fieldAuthorName,
+						label: window.rslIeData.i18n.fieldAuthorName,
 						type: 'string',
 					},
 					{
 						value: 'author_email',
-						label: window.aieData.i18n.fieldAuthorEmail,
+						label: window.rslIeData.i18n.fieldAuthorEmail,
 						type: 'string',
 					},
 				],
 			},
 			{
 				label:
-					window.aieData.i18n.fieldGroupFeaturedImage ||
+					window.rslIeData.i18n.fieldGroupFeaturedImage ||
 					'Featured Image',
 				options: [
 					{
 						value: 'featured_image_id',
 						label:
-							window.aieData.i18n.fieldFeaturedImageId ||
+							window.rslIeData.i18n.fieldFeaturedImageId ||
 							'Featured Image ID',
 						type: 'number',
 					},
 					{
 						value: 'featured_image_url',
 						label:
-							window.aieData.i18n.fieldFeaturedImageUrl ||
+							window.rslIeData.i18n.fieldFeaturedImageUrl ||
 							'Featured Image URL',
 						type: 'url',
 					},
 					{
 						value: 'featured_image_title',
 						label:
-							window.aieData.i18n.fieldFeaturedImageTitle ||
+							window.rslIeData.i18n.fieldFeaturedImageTitle ||
 							'Featured Image Title',
 						type: 'string',
 					},
 					{
 						value: 'featured_image_caption',
 						label:
-							window.aieData.i18n.fieldFeaturedImageCaption ||
+							window.rslIeData.i18n.fieldFeaturedImageCaption ||
 							'Featured Image Caption',
 						type: 'string',
 					},
 				],
 			},
 			{
-				label: window.aieData.i18n.fieldGroupOther,
+				label: window.rslIeData.i18n.fieldGroupOther,
 				options: [
 					{
 						value: 'post_parent',
-						label: window.aieData.i18n.fieldParentId,
+						label: window.rslIeData.i18n.fieldParentId,
 						type: 'number',
 					},
 					{
 						value: 'menu_order',
 						label:
-							window.aieData.i18n.fieldMenuOrder || 'Menu Order',
+							window.rslIeData.i18n.fieldMenuOrder ||
+							'Menu Order',
 						type: 'number',
 					},
 					{
 						value: 'comment_status',
-						label: window.aieData.i18n.fieldCommentStatus,
+						label: window.rslIeData.i18n.fieldCommentStatus,
 						type: 'string',
 					},
 					{
 						value: 'post_modified',
-						label: window.aieData.i18n.fieldModifiedDate,
+						label: window.rslIeData.i18n.fieldModifiedDate,
 						type: 'date',
 					},
 					{
 						value: '_wp_page_template',
-						label: window.aieData.i18n.fieldTemplate,
+						label: window.rslIeData.i18n.fieldTemplate,
 						type: 'string',
 					},
 				],
 			},
 			{
-				label: window.aieData.i18n.fieldGroupCustomFilters,
+				label: window.rslIeData.i18n.fieldGroupCustomFilters,
 				options: [
 					{
 						value: '_custom_field',
-						label: window.aieData.i18n.fieldCustomFieldMeta,
+						label: window.rslIeData.i18n.fieldCustomFieldMeta,
 						type: 'custom_field',
 					},
 					{
 						value: '_taxonomy_filter',
-						label: window.aieData.i18n.fieldTaxonomyFilter,
+						label: window.rslIeData.i18n.fieldTaxonomyFilter,
 						type: 'taxonomy_filter',
 					},
 				],
@@ -1931,146 +1958,146 @@ const ExportModule = {
 		if ( contentType === 'media' ) {
 			return [
 				{
-					label: window.aieData.i18n.fieldGroupBasic,
+					label: window.rslIeData.i18n.fieldGroupBasic,
 					options: [
 						{
 							value: 'ID',
-							label: window.aieData.i18n.fieldId || 'ID',
+							label: window.rslIeData.i18n.fieldId || 'ID',
 							type: 'number',
 						},
 						{
 							value: 'post_title',
-							label: window.aieData.i18n.fieldTitle,
+							label: window.rslIeData.i18n.fieldTitle,
 							type: 'string',
 						},
 						{
 							value: 'post_content',
-							label: window.aieData.i18n.fieldDescription,
+							label: window.rslIeData.i18n.fieldDescription,
 							type: 'string',
 						},
 						{
 							value: 'post_excerpt',
-							label: window.aieData.i18n.fieldCaption,
+							label: window.rslIeData.i18n.fieldCaption,
 							type: 'string',
 						},
 						{
 							value: 'alt_text',
-							label: window.aieData.i18n.fieldAltText,
+							label: window.rslIeData.i18n.fieldAltText,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupFileInformation,
+					label: window.rslIeData.i18n.fieldGroupFileInformation,
 					options: [
 						{
 							value: 'guid',
-							label: window.aieData.i18n.fieldFileUrlGuid,
+							label: window.rslIeData.i18n.fieldFileUrlGuid,
 							type: 'url',
 						},
 						{
 							value: 'file_url',
-							label: window.aieData.i18n.fieldFileUrl,
+							label: window.rslIeData.i18n.fieldFileUrl,
 							type: 'url',
 						},
 						{
 							value: 'file_path',
-							label: window.aieData.i18n.fieldFilePathRelative,
+							label: window.rslIeData.i18n.fieldFilePathRelative,
 							type: 'string',
 						},
 						{
 							value: 'file_name',
-							label: window.aieData.i18n.fieldFileName,
+							label: window.rslIeData.i18n.fieldFileName,
 							type: 'string',
 						},
 						{
 							value: 'file_extension',
-							label: window.aieData.i18n.fieldFileExtension,
+							label: window.rslIeData.i18n.fieldFileExtension,
 							type: 'string',
 						},
 						{
 							value: 'post_mime_type',
-							label: window.aieData.i18n.fieldMimeType,
+							label: window.rslIeData.i18n.fieldMimeType,
 							type: 'string',
 						},
 						{
 							value: 'file_size',
-							label: window.aieData.i18n.fieldFileSizeBytes,
+							label: window.rslIeData.i18n.fieldFileSizeBytes,
 							type: 'number',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupImageDimensions,
+					label: window.rslIeData.i18n.fieldGroupImageDimensions,
 					options: [
 						{
 							value: 'width',
-							label: window.aieData.i18n.fieldWidthPx,
+							label: window.rslIeData.i18n.fieldWidthPx,
 							type: 'number',
 						},
 						{
 							value: 'height',
-							label: window.aieData.i18n.fieldHeightPx,
+							label: window.rslIeData.i18n.fieldHeightPx,
 							type: 'number',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupDates,
+					label: window.rslIeData.i18n.fieldGroupDates,
 					options: [
 						{
 							value: 'post_date',
-							label: window.aieData.i18n.fieldUploadDate,
+							label: window.rslIeData.i18n.fieldUploadDate,
 							type: 'date',
 						},
 						{
 							value: 'post_modified',
-							label: window.aieData.i18n.fieldModifiedDate,
+							label: window.rslIeData.i18n.fieldModifiedDate,
 							type: 'date',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupAuthor,
+					label: window.rslIeData.i18n.fieldGroupAuthor,
 					options: [
 						{
 							value: 'post_author',
-							label: window.aieData.i18n.fieldAuthorId,
+							label: window.rslIeData.i18n.fieldAuthorId,
 							type: 'number',
 						},
 						{
 							value: 'author_name',
-							label: window.aieData.i18n.fieldAuthorName,
+							label: window.rslIeData.i18n.fieldAuthorName,
 							type: 'string',
 						},
 						{
 							value: 'author_email',
-							label: window.aieData.i18n.fieldAuthorEmail,
+							label: window.rslIeData.i18n.fieldAuthorEmail,
 							type: 'email',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupAttachment,
+					label: window.rslIeData.i18n.fieldGroupAttachment,
 					options: [
 						{
 							value: 'post_parent',
-							label: window.aieData.i18n.fieldAttachedToPostId,
+							label: window.rslIeData.i18n.fieldAttachedToPostId,
 							type: 'number',
 						},
 						{
 							value: 'attached_post_title',
-							label: window.aieData.i18n.fieldAttachedPostTitle,
+							label: window.rslIeData.i18n.fieldAttachedPostTitle,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupCustomFilters,
+					label: window.rslIeData.i18n.fieldGroupCustomFilters,
 					options: [
 						{
 							value: '_custom_field',
-							label: window.aieData.i18n.fieldCustomFieldMeta,
+							label: window.rslIeData.i18n.fieldCustomFieldMeta,
 							type: 'custom_field',
 						},
 					],
@@ -2082,7 +2109,7 @@ const ExportModule = {
 		if ( contentType === 'page' ) {
 			return baseFields.filter(
 				( group ) =>
-					group.label !== window.aieData.i18n.fieldGroupTaxonomy
+					group.label !== window.rslIeData.i18n.fieldGroupTaxonomy
 			);
 		}
 
@@ -2090,45 +2117,45 @@ const ExportModule = {
 		if ( contentType === 'menu' ) {
 			return [
 				{
-					label: window.aieData.i18n.fieldGroupBasic,
+					label: window.rslIeData.i18n.fieldGroupBasic,
 					options: [
 						{
 							value: 'name',
-							label: window.aieData.i18n.fieldMenuName,
+							label: window.rslIeData.i18n.fieldMenuName,
 							type: 'string',
 						},
 						{
 							value: 'menu_items',
 							label:
-								window.aieData.i18n.fieldMenuItemsArray +
+								window.rslIeData.i18n.fieldMenuItemsArray +
 								' ' +
-								( window.aieData.i18n.includesAcfFields ||
+								( window.rslIeData.i18n.includesAcfFields ||
 									'(includes ACF fields)' ),
 							type: 'array',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupDetails,
+					label: window.rslIeData.i18n.fieldGroupDetails,
 					options: [
 						{
 							value: 'count',
-							label: window.aieData.i18n.fieldItemsCount,
+							label: window.rslIeData.i18n.fieldItemsCount,
 							type: 'number',
 						},
 						{
 							value: 'locations',
-							label: window.aieData.i18n.fieldThemeLocations,
+							label: window.rslIeData.i18n.fieldThemeLocations,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupCustomFilters,
+					label: window.rslIeData.i18n.fieldGroupCustomFilters,
 					options: [
 						{
 							value: '_custom_field',
-							label: window.aieData.i18n.fieldCustomFieldMeta,
+							label: window.rslIeData.i18n.fieldCustomFieldMeta,
 							type: 'custom_field',
 						},
 					],
@@ -2140,208 +2167,210 @@ const ExportModule = {
 		if ( contentType === 'user' ) {
 			return [
 				{
-					label: window.aieData.i18n.fieldGroupBasic,
+					label: window.rslIeData.i18n.fieldGroupBasic,
 					options: [
 						{
 							value: 'ID',
-							label: window.aieData.i18n.fieldId || 'ID',
+							label: window.rslIeData.i18n.fieldId || 'ID',
 							type: 'number',
 						},
 						{
 							value: 'user_login',
 							label:
-								window.aieData.i18n.fieldUsername || 'Username',
+								window.rslIeData.i18n.fieldUsername ||
+								'Username',
 							type: 'string',
 						},
 						{
 							value: 'user_email',
-							label: window.aieData.i18n.fieldEmail || 'Email',
+							label: window.rslIeData.i18n.fieldEmail || 'Email',
 							type: 'string',
 						},
 						{
 							value: 'display_name',
 							label:
-								window.aieData.i18n.fieldDisplayName ||
+								window.rslIeData.i18n.fieldDisplayName ||
 								'Display name',
 							type: 'string',
 						},
 						{
 							value: 'user_nicename',
-							label: window.aieData.i18n.fieldNiceName,
+							label: window.rslIeData.i18n.fieldNiceName,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupProfile,
+					label: window.rslIeData.i18n.fieldGroupProfile,
 					options: [
 						{
 							value: 'first_name',
-							label: window.aieData.i18n.fieldFirstName,
+							label: window.rslIeData.i18n.fieldFirstName,
 							type: 'string',
 						},
 						{
 							value: 'last_name',
-							label: window.aieData.i18n.fieldLastName,
+							label: window.rslIeData.i18n.fieldLastName,
 							type: 'string',
 						},
 						{
 							value: 'nickname',
-							label: window.aieData.i18n.fieldNickname,
+							label: window.rslIeData.i18n.fieldNickname,
 							type: 'string',
 						},
 						{
 							value: 'description',
-							label: window.aieData.i18n.fieldBio,
+							label: window.rslIeData.i18n.fieldBio,
 							type: 'string',
 						},
 						{
 							value: 'user_url',
 							label:
-								window.aieData.i18n.fieldWebsite || 'Website',
+								window.rslIeData.i18n.fieldWebsite || 'Website',
 							type: 'string',
 						},
 						{
 							value: 'avatar_url',
-							label: window.aieData.i18n.fieldAvatarUrl,
+							label: window.rslIeData.i18n.fieldAvatarUrl,
 							type: 'string',
 						},
 					],
 				},
 				{
 					label:
-						window.aieData.i18n.fieldGroupSocialMedia ||
+						window.rslIeData.i18n.fieldGroupSocialMedia ||
 						'Social Media',
 					options: [
 						{
 							value: 'facebook',
 							label:
-								window.aieData.i18n.fieldFacebook ||
+								window.rslIeData.i18n.fieldFacebook ||
 								'Facebook profile URL',
 							type: 'string',
 						},
 						{
 							value: 'instagram',
 							label:
-								window.aieData.i18n.fieldInstagram ||
+								window.rslIeData.i18n.fieldInstagram ||
 								'Instagram profile URL',
 							type: 'string',
 						},
 						{
 							value: 'linkedin',
 							label:
-								window.aieData.i18n.fieldLinkedIn ||
+								window.rslIeData.i18n.fieldLinkedIn ||
 								'LinkedIn profile URL',
 							type: 'string',
 						},
 						{
 							value: 'myspace',
 							label:
-								window.aieData.i18n.fieldMySpace ||
+								window.rslIeData.i18n.fieldMySpace ||
 								'MySpace profile URL',
 							type: 'string',
 						},
 						{
 							value: 'pinterest',
 							label:
-								window.aieData.i18n.fieldPinterest ||
+								window.rslIeData.i18n.fieldPinterest ||
 								'Pinterest profile URL',
 							type: 'string',
 						},
 						{
 							value: 'soundcloud',
 							label:
-								window.aieData.i18n.fieldSoundCloud ||
+								window.rslIeData.i18n.fieldSoundCloud ||
 								'SoundCloud profile URL',
 							type: 'string',
 						},
 						{
 							value: 'tumblr',
 							label:
-								window.aieData.i18n.fieldTumblr ||
+								window.rslIeData.i18n.fieldTumblr ||
 								'Tumblr profile URL',
 							type: 'string',
 						},
 						{
 							value: 'wikipedia',
 							label:
-								window.aieData.i18n.fieldWikipedia ||
+								window.rslIeData.i18n.fieldWikipedia ||
 								'Wikipedia page about you',
 							type: 'string',
 						},
 						{
 							value: 'twitter',
 							label:
-								window.aieData.i18n.fieldTwitter ||
+								window.rslIeData.i18n.fieldTwitter ||
 								'X username',
 							type: 'string',
 						},
 						{
 							value: 'youtube',
 							label:
-								window.aieData.i18n.fieldYouTube ||
+								window.rslIeData.i18n.fieldYouTube ||
 								'YouTube profile URL',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupRolePermissions,
+					label: window.rslIeData.i18n.fieldGroupRolePermissions,
 					options: [
 						{
 							value: 'role',
-							label: window.aieData.i18n.fieldRole,
+							label: window.rslIeData.i18n.fieldRole,
 							type: 'string',
 						},
 						{
 							value: 'capabilities',
-							label: window.aieData.i18n.fieldCapabilitiesArray,
+							label: window.rslIeData.i18n.fieldCapabilitiesArray,
 							type: 'array',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupPreferences,
+					label: window.rslIeData.i18n.fieldGroupPreferences,
 					options: [
 						{
 							value: 'locale',
 							label:
-								window.aieData.i18n.fieldLanguage || 'Language',
+								window.rslIeData.i18n.fieldLanguage ||
+								'Language',
 							type: 'string',
 						},
 						{
 							value: 'admin_color',
-							label: window.aieData.i18n.fieldAdminColorScheme,
+							label: window.rslIeData.i18n.fieldAdminColorScheme,
 							type: 'string',
 						},
 						{
 							value: 'rich_editing',
-							label: window.aieData.i18n.fieldVisualEditor,
+							label: window.rslIeData.i18n.fieldVisualEditor,
 							type: 'boolean',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupStats,
+					label: window.rslIeData.i18n.fieldGroupStats,
 					options: [
 						{
 							value: 'posts_count',
-							label: window.aieData.i18n.fieldPostsCount,
+							label: window.rslIeData.i18n.fieldPostsCount,
 							type: 'number',
 						},
 						{
 							value: 'user_registered',
-							label: window.aieData.i18n.fieldRegistrationDate,
+							label: window.rslIeData.i18n.fieldRegistrationDate,
 							type: 'date',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupCustomFilters,
+					label: window.rslIeData.i18n.fieldGroupCustomFilters,
 					options: [
 						{
 							value: '_custom_field',
-							label: window.aieData.i18n.fieldCustomFieldMeta,
+							label: window.rslIeData.i18n.fieldCustomFieldMeta,
 							type: 'custom_field',
 						},
 					],
@@ -2353,96 +2382,96 @@ const ExportModule = {
 		if ( contentType === 'comment' ) {
 			return [
 				{
-					label: window.aieData.i18n.fieldGroupBasic,
+					label: window.rslIeData.i18n.fieldGroupBasic,
 					options: [
 						{
 							value: 'comment_ID',
-							label: window.aieData.i18n.fieldCommentId,
+							label: window.rslIeData.i18n.fieldCommentId,
 							type: 'number',
 						},
 						{
 							value: 'comment_post_ID',
-							label: window.aieData.i18n.fieldPostId,
+							label: window.rslIeData.i18n.fieldPostId,
 							type: 'number',
 						},
 						{
 							value: 'comment_content',
-							label: window.aieData.i18n.fieldCommentContent,
+							label: window.rslIeData.i18n.fieldCommentContent,
 							type: 'string',
 						},
 						{
 							value: 'comment_approved',
-							label: window.aieData.i18n.fieldStatus,
+							label: window.rslIeData.i18n.fieldStatus,
 							type: 'string',
 						},
 						{
 							value: 'comment_type',
-							label: window.aieData.i18n.fieldCommentType,
+							label: window.rslIeData.i18n.fieldCommentType,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupAuthor,
+					label: window.rslIeData.i18n.fieldGroupAuthor,
 					options: [
 						{
 							value: 'comment_author',
-							label: window.aieData.i18n.fieldAuthorName,
+							label: window.rslIeData.i18n.fieldAuthorName,
 							type: 'string',
 						},
 						{
 							value: 'comment_author_email',
-							label: window.aieData.i18n.fieldAuthorEmail,
+							label: window.rslIeData.i18n.fieldAuthorEmail,
 							type: 'string',
 						},
 						{
 							value: 'comment_author_url',
-							label: window.aieData.i18n.fieldAuthorUrl,
+							label: window.rslIeData.i18n.fieldAuthorUrl,
 							type: 'string',
 						},
 						{
 							value: 'comment_author_IP',
-							label: window.aieData.i18n.fieldAuthorIp,
+							label: window.rslIeData.i18n.fieldAuthorIp,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupRelatedPost,
+					label: window.rslIeData.i18n.fieldGroupRelatedPost,
 					options: [
 						{
 							value: 'post_title',
-							label: window.aieData.i18n.fieldPostTitle,
+							label: window.rslIeData.i18n.fieldPostTitle,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupDates,
+					label: window.rslIeData.i18n.fieldGroupDates,
 					options: [
 						{
 							value: 'comment_date',
-							label: window.aieData.i18n.fieldCommentDate,
+							label: window.rslIeData.i18n.fieldCommentDate,
 							type: 'date',
 						},
 						{
 							value: 'comment_date_gmt',
-							label: window.aieData.i18n.fieldCommentDateGmt,
+							label: window.rslIeData.i18n.fieldCommentDateGmt,
 							type: 'date',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupHierarchy,
+					label: window.rslIeData.i18n.fieldGroupHierarchy,
 					options: [
 						{
 							value: 'comment_parent',
-							label: window.aieData.i18n.fieldParentCommentId,
+							label: window.rslIeData.i18n.fieldParentCommentId,
 							type: 'number',
 						},
 						{
 							value: 'comment_karma',
-							label: window.aieData.i18n.fieldKarma,
+							label: window.rslIeData.i18n.fieldKarma,
 							type: 'number',
 						},
 					],
@@ -2454,147 +2483,148 @@ const ExportModule = {
 		if ( contentType === 'custom_post_types' ) {
 			return [
 				{
-					label: window.aieData.i18n.fieldGroupPostTypeSelection,
+					label: window.rslIeData.i18n.fieldGroupPostTypeSelection,
 					options: [
 						{
 							value: '_post_type',
-							label: window.aieData.i18n
+							label: window.rslIeData.i18n
 								.fieldPostTypeSelectSpecific,
 							type: 'post_type_selector',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupStandard,
+					label: window.rslIeData.i18n.fieldGroupStandard,
 					options: [
 						{
 							value: 'ID',
-							label: window.aieData.i18n.fieldId,
+							label: window.rslIeData.i18n.fieldId,
 							type: 'number',
 						},
 						{
 							value: 'post_title',
-							label: window.aieData.i18n.fieldTitle,
+							label: window.rslIeData.i18n.fieldTitle,
 							type: 'string',
 						},
 						{
 							value: 'post_content',
-							label: window.aieData.i18n.fieldContent,
+							label: window.rslIeData.i18n.fieldContent,
 							type: 'string',
 						},
 						{
 							value: 'post_excerpt',
-							label: window.aieData.i18n.fieldExcerpt,
+							label: window.rslIeData.i18n.fieldExcerpt,
 							type: 'string',
 						},
 						{
 							value: 'post_date',
-							label: window.aieData.i18n.fieldDate,
+							label: window.rslIeData.i18n.fieldDate,
 							type: 'date',
 						},
 						{
 							value: 'post_name',
-							label: window.aieData.i18n.fieldSlug,
+							label: window.rslIeData.i18n.fieldSlug,
 							type: 'string',
 						},
 						{
 							value: 'post_status',
-							label: window.aieData.i18n.fieldStatus,
+							label: window.rslIeData.i18n.fieldStatus,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupAuthor,
+					label: window.rslIeData.i18n.fieldGroupAuthor,
 					options: [
 						{
 							value: 'post_author',
-							label: window.aieData.i18n.fieldAuthorId,
+							label: window.rslIeData.i18n.fieldAuthorId,
 							type: 'number',
 						},
 						{
 							value: 'author_name',
-							label: window.aieData.i18n.fieldAuthorName,
+							label: window.rslIeData.i18n.fieldAuthorName,
 							type: 'string',
 						},
 						{
 							value: 'author_email',
-							label: window.aieData.i18n.fieldAuthorEmail,
+							label: window.rslIeData.i18n.fieldAuthorEmail,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupOther,
+					label: window.rslIeData.i18n.fieldGroupOther,
 					options: [
 						{
 							value: 'post_parent',
-							label: window.aieData.i18n.fieldParentId,
+							label: window.rslIeData.i18n.fieldParentId,
 							type: 'number',
 						},
 						{
 							value: 'post_modified',
-							label: window.aieData.i18n.fieldModifiedDate,
+							label: window.rslIeData.i18n.fieldModifiedDate,
 							type: 'date',
 						},
 						{
 							value: '_wp_page_template',
-							label: window.aieData.i18n.fieldTemplate,
+							label: window.rslIeData.i18n.fieldTemplate,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupMedia || 'Media',
+					label: window.rslIeData.i18n.fieldGroupMedia || 'Media',
 					options: [
 						{
 							value: 'featured_image',
 							label:
-								window.aieData.i18n.fieldFeaturedImage ||
+								window.rslIeData.i18n.fieldFeaturedImage ||
 								'Featured Image',
 							type: 'string',
 						},
 						{
 							value: 'featured_image_id',
 							label:
-								window.aieData.i18n.fieldFeaturedImageId ||
+								window.rslIeData.i18n.fieldFeaturedImageId ||
 								'Featured Image ID',
 							type: 'number',
 						},
 						{
 							value: 'featured_image_url',
 							label:
-								window.aieData.i18n.fieldFeaturedImageUrl ||
+								window.rslIeData.i18n.fieldFeaturedImageUrl ||
 								'Featured Image URL',
 							type: 'url',
 						},
 						{
 							value: 'featured_image_title',
 							label:
-								window.aieData.i18n.fieldFeaturedImageTitle ||
+								window.rslIeData.i18n.fieldFeaturedImageTitle ||
 								'Featured Image Title',
 							type: 'string',
 						},
 						{
 							value: 'featured_image_caption',
 							label:
-								window.aieData.i18n.fieldFeaturedImageCaption ||
+								window.rslIeData.i18n
+									.fieldFeaturedImageCaption ||
 								'Featured Image Caption',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupCustomFilters,
+					label: window.rslIeData.i18n.fieldGroupCustomFilters,
 					options: [
 						{
 							value: '_custom_field',
-							label: window.aieData.i18n.fieldCustomFieldMeta,
+							label: window.rslIeData.i18n.fieldCustomFieldMeta,
 							type: 'custom_field',
 						},
 						{
 							value: '_taxonomy_filter',
-							label: window.aieData.i18n.fieldTaxonomyFilter,
+							label: window.rslIeData.i18n.fieldTaxonomyFilter,
 							type: 'taxonomy_filter',
 						},
 					],
@@ -2604,52 +2634,52 @@ const ExportModule = {
 		if ( contentType === 'taxonomy' ) {
 			return [
 				{
-					label: window.aieData.i18n.fieldGroupTaxonomySelection,
+					label: window.rslIeData.i18n.fieldGroupTaxonomySelection,
 					options: [
 						{
 							value: '_taxonomy',
-							label: window.aieData.i18n
+							label: window.rslIeData.i18n
 								.fieldTaxonomySelectSpecific,
 							type: 'taxonomy_selector',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupBasic,
+					label: window.rslIeData.i18n.fieldGroupBasic,
 					options: [
 						{
 							value: 'term_id',
-							label: window.aieData.i18n.fieldTermId,
+							label: window.rslIeData.i18n.fieldTermId,
 							type: 'number',
 						},
 						{
 							value: 'name',
-							label: window.aieData.i18n.fieldTermName,
+							label: window.rslIeData.i18n.fieldTermName,
 							type: 'string',
 						},
 						{
 							value: 'slug',
-							label: window.aieData.i18n.fieldTermSlug,
+							label: window.rslIeData.i18n.fieldTermSlug,
 							type: 'string',
 						},
 						{
 							value: 'description',
-							label: window.aieData.i18n.fieldDescription,
+							label: window.rslIeData.i18n.fieldDescription,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupHierarchy,
+					label: window.rslIeData.i18n.fieldGroupHierarchy,
 					options: [
 						{
 							value: 'parent',
-							label: window.aieData.i18n.fieldParentTermId,
+							label: window.rslIeData.i18n.fieldParentTermId,
 							type: 'number',
 						},
 						{
 							value: 'count',
-							label: window.aieData.i18n.fieldPostsCount,
+							label: window.rslIeData.i18n.fieldPostsCount,
 							type: 'number',
 						},
 					],
@@ -2661,288 +2691,289 @@ const ExportModule = {
 		if ( contentType === 'woo_product' ) {
 			return [
 				{
-					label: window.aieData.i18n.fieldGroupBasic,
+					label: window.rslIeData.i18n.fieldGroupBasic,
 					options: [
 						{
 							value: 'ID',
-							label: window.aieData.i18n.fieldProductId,
+							label: window.rslIeData.i18n.fieldProductId,
 							type: 'number',
 						},
 						{
 							value: 'post_title',
-							label: window.aieData.i18n.fieldProductName,
+							label: window.rslIeData.i18n.fieldProductName,
 							type: 'string',
 						},
 						{
 							value: 'post_name',
-							label: window.aieData.i18n.fieldSlug,
+							label: window.rslIeData.i18n.fieldSlug,
 							type: 'string',
 						},
 						{
 							value: 'post_status',
-							label: window.aieData.i18n.fieldStatus,
+							label: window.rslIeData.i18n.fieldStatus,
 							type: 'string',
 						},
 						{
 							value: 'sku',
-							label: window.aieData.i18n.fieldSku,
+							label: window.rslIeData.i18n.fieldSku,
 							type: 'string',
 						},
 						{
 							value: 'post_author',
-							label: window.aieData.i18n.fieldAuthorId,
+							label: window.rslIeData.i18n.fieldAuthorId,
 							type: 'number',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupContent,
+					label: window.rslIeData.i18n.fieldGroupContent,
 					options: [
 						{
 							value: 'post_content',
-							label: window.aieData.i18n.fieldDescription,
+							label: window.rslIeData.i18n.fieldDescription,
 							type: 'string',
 						},
 						{
 							value: 'post_excerpt',
-							label: window.aieData.i18n.fieldShortDescription,
+							label: window.rslIeData.i18n.fieldShortDescription,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupPricing,
+					label: window.rslIeData.i18n.fieldGroupPricing,
 					options: [
 						{
 							value: 'regular_price',
-							label: window.aieData.i18n.fieldRegularPrice,
+							label: window.rslIeData.i18n.fieldRegularPrice,
 							type: 'number',
 						},
 						{
 							value: 'sale_price',
-							label: window.aieData.i18n.fieldSalePrice,
+							label: window.rslIeData.i18n.fieldSalePrice,
 							type: 'number',
 						},
 						{
 							value: 'tax_status',
-							label: window.aieData.i18n.fieldTaxStatus,
+							label: window.rslIeData.i18n.fieldTaxStatus,
 							type: 'string',
 						},
 						{
 							value: 'tax_class',
-							label: window.aieData.i18n.fieldTaxClass,
+							label: window.rslIeData.i18n.fieldTaxClass,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupInventory,
+					label: window.rslIeData.i18n.fieldGroupInventory,
 					options: [
 						{
 							value: 'stock_quantity',
-							label: window.aieData.i18n.fieldStockQuantity,
+							label: window.rslIeData.i18n.fieldStockQuantity,
 							type: 'number',
 						},
 						{
 							value: 'stock_status',
-							label: window.aieData.i18n.fieldStockStatus,
+							label: window.rslIeData.i18n.fieldStockStatus,
 							type: 'string',
 						},
 						{
 							value: 'manage_stock',
-							label: window.aieData.i18n.fieldManageStock,
+							label: window.rslIeData.i18n.fieldManageStock,
 							type: 'boolean',
 						},
 						{
 							value: 'backorders',
-							label: window.aieData.i18n.fieldBackorders,
+							label: window.rslIeData.i18n.fieldBackorders,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupProductType,
+					label: window.rslIeData.i18n.fieldGroupProductType,
 					options: [
 						{
 							value: 'product_type',
-							label: window.aieData.i18n.fieldProductType,
+							label: window.rslIeData.i18n.fieldProductType,
 							type: 'string',
 						},
 						{
 							value: 'downloadable',
-							label: window.aieData.i18n.fieldDownloadable,
+							label: window.rslIeData.i18n.fieldDownloadable,
 							type: 'boolean',
 						},
 						{
 							value: 'virtual',
-							label: window.aieData.i18n.fieldVirtual,
+							label: window.rslIeData.i18n.fieldVirtual,
 							type: 'boolean',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupShipping,
+					label: window.rslIeData.i18n.fieldGroupShipping,
 					options: [
 						{
 							value: 'weight',
-							label: window.aieData.i18n.fieldWeight,
+							label: window.rslIeData.i18n.fieldWeight,
 							type: 'number',
 						},
 						{
 							value: 'length',
-							label: window.aieData.i18n.fieldLength,
+							label: window.rslIeData.i18n.fieldLength,
 							type: 'number',
 						},
 						{
 							value: 'width',
-							label: window.aieData.i18n.fieldWidth,
+							label: window.rslIeData.i18n.fieldWidth,
 							type: 'number',
 						},
 						{
 							value: 'height',
-							label: window.aieData.i18n.fieldHeight,
+							label: window.rslIeData.i18n.fieldHeight,
 							type: 'number',
 						},
 						{
 							value: 'shipping_class',
-							label: window.aieData.i18n.fieldShippingClass,
+							label: window.rslIeData.i18n.fieldShippingClass,
 							type: 'string',
 						},
 					],
 				},
 				{
 					label:
-						window.aieData.i18n.fieldGroupFeaturedImage ||
+						window.rslIeData.i18n.fieldGroupFeaturedImage ||
 						'Featured Image',
 					options: [
 						{
 							value: 'featured_image_id',
 							label:
-								window.aieData.i18n.fieldFeaturedImageId ||
+								window.rslIeData.i18n.fieldFeaturedImageId ||
 								'Featured Image ID',
 							type: 'number',
 						},
 						{
 							value: 'featured_image_url',
 							label:
-								window.aieData.i18n.fieldFeaturedImageUrl ||
+								window.rslIeData.i18n.fieldFeaturedImageUrl ||
 								'Featured Image URL',
 							type: 'url',
 						},
 						{
 							value: 'featured_image_title',
 							label:
-								window.aieData.i18n.fieldFeaturedImageTitle ||
+								window.rslIeData.i18n.fieldFeaturedImageTitle ||
 								'Featured Image Title',
 							type: 'string',
 						},
 						{
 							value: 'featured_image_caption',
 							label:
-								window.aieData.i18n.fieldFeaturedImageCaption ||
+								window.rslIeData.i18n
+									.fieldFeaturedImageCaption ||
 								'Featured Image Caption',
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupMedia,
+					label: window.rslIeData.i18n.fieldGroupMedia,
 					options: [
 						{
 							value: 'product_gallery',
-							label: window.aieData.i18n.fieldGalleryImages,
+							label: window.rslIeData.i18n.fieldGalleryImages,
 							type: 'array',
 						},
 						{
 							value: 'variations',
 							label:
-								window.aieData.i18n.fieldVariations ||
+								window.rslIeData.i18n.fieldVariations ||
 								'Variations (JSON)',
 							type: 'json',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupTaxonomy,
+					label: window.rslIeData.i18n.fieldGroupTaxonomy,
 					options: [
 						{
 							value: 'product_cat',
-							label: window.aieData.i18n.fieldCategories,
+							label: window.rslIeData.i18n.fieldCategories,
 							type: 'string',
 						},
 						{
 							value: 'product_tag',
-							label: window.aieData.i18n.fieldTags,
+							label: window.rslIeData.i18n.fieldTags,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupReviews,
+					label: window.rslIeData.i18n.fieldGroupReviews,
 					options: [
 						{
 							value: 'average_rating',
-							label: window.aieData.i18n.fieldAverageRating,
+							label: window.rslIeData.i18n.fieldAverageRating,
 							type: 'number',
 						},
 						{
 							value: 'review_count',
-							label: window.aieData.i18n.fieldReviewCount,
+							label: window.rslIeData.i18n.fieldReviewCount,
 							type: 'number',
 						},
 						{
 							value: 'comment_status',
-							label: window.aieData.i18n.fieldReviewsEnabled,
+							label: window.rslIeData.i18n.fieldReviewsEnabled,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupVisibility,
+					label: window.rslIeData.i18n.fieldGroupVisibility,
 					options: [
 						{
 							value: 'featured',
-							label: window.aieData.i18n.fieldFeatured,
+							label: window.rslIeData.i18n.fieldFeatured,
 							type: 'boolean',
 						},
 						{
 							value: 'visibility',
-							label: window.aieData.i18n.fieldCatalogVisibility,
+							label: window.rslIeData.i18n.fieldCatalogVisibility,
 							type: 'string',
 						},
 						{
 							value: 'total_sales',
-							label: window.aieData.i18n.fieldTotalSales,
+							label: window.rslIeData.i18n.fieldTotalSales,
 							type: 'number',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupDates,
+					label: window.rslIeData.i18n.fieldGroupDates,
 					options: [
 						{
 							value: 'post_date',
-							label: window.aieData.i18n.fieldCreatedDate,
+							label: window.rslIeData.i18n.fieldCreatedDate,
 							type: 'date',
 						},
 						{
 							value: 'post_modified',
-							label: window.aieData.i18n.fieldModifiedDate,
+							label: window.rslIeData.i18n.fieldModifiedDate,
 							type: 'date',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupCustomFilters,
+					label: window.rslIeData.i18n.fieldGroupCustomFilters,
 					options: [
 						{
 							value: '_custom_field',
-							label: window.aieData.i18n.fieldCustomFieldMeta,
+							label: window.rslIeData.i18n.fieldCustomFieldMeta,
 							type: 'custom_field',
 						},
 						{
 							value: '_taxonomy_filter',
-							label: window.aieData.i18n.fieldTaxonomyFilter,
+							label: window.rslIeData.i18n.fieldTaxonomyFilter,
 							type: 'taxonomy_filter',
 						},
 					],
@@ -2954,61 +2985,61 @@ const ExportModule = {
 		if ( contentType === 'woo_order' ) {
 			return [
 				{
-					label: window.aieData.i18n.fieldGroupBasic,
+					label: window.rslIeData.i18n.fieldGroupBasic,
 					options: [
 						{
 							value: 'ID',
-							label: window.aieData.i18n.fieldOrderId,
+							label: window.rslIeData.i18n.fieldOrderId,
 							type: 'number',
 						},
 						{
 							value: 'order_number',
-							label: window.aieData.i18n.fieldOrderNumber,
+							label: window.rslIeData.i18n.fieldOrderNumber,
 							type: 'string',
 						},
 						{
 							value: 'order_status',
-							label: window.aieData.i18n.fieldStatus,
+							label: window.rslIeData.i18n.fieldStatus,
 							type: 'string',
 						},
 						{
 							value: 'order_key',
-							label: window.aieData.i18n.fieldOrderKey,
+							label: window.rslIeData.i18n.fieldOrderKey,
 							type: 'string',
 						},
 						{
 							value: 'currency',
-							label: window.aieData.i18n.fieldCurrency,
+							label: window.rslIeData.i18n.fieldCurrency,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupAmounts,
+					label: window.rslIeData.i18n.fieldGroupAmounts,
 					options: [
 						{
 							value: 'order_total',
-							label: window.aieData.i18n.fieldOrderTotal,
+							label: window.rslIeData.i18n.fieldOrderTotal,
 							type: 'number',
 						},
 						{
 							value: 'order_subtotal',
-							label: window.aieData.i18n.fieldSubtotal,
+							label: window.rslIeData.i18n.fieldSubtotal,
 							type: 'number',
 						},
 						{
 							value: 'order_tax',
-							label: window.aieData.i18n.fieldTax,
+							label: window.rslIeData.i18n.fieldTax,
 							type: 'number',
 						},
 						{
 							value: 'order_shipping',
-							label: window.aieData.i18n.fieldShipping,
+							label: window.rslIeData.i18n.fieldShipping,
 							type: 'number',
 						},
 						{
 							value: 'order_discount',
-							label: window.aieData.i18n.fieldDiscount,
+							label: window.rslIeData.i18n.fieldDiscount,
 							type: 'number',
 						},
 						{
@@ -3029,21 +3060,21 @@ const ExportModule = {
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupCustomer,
+					label: window.rslIeData.i18n.fieldGroupCustomer,
 					options: [
 						{
 							value: 'customer_id',
-							label: window.aieData.i18n.fieldCustomerId,
+							label: window.rslIeData.i18n.fieldCustomerId,
 							type: 'number',
 						},
 						{
 							value: 'billing_email',
-							label: window.aieData.i18n.fieldEmail,
+							label: window.rslIeData.i18n.fieldEmail,
 							type: 'string',
 						},
 						{
 							value: 'customer_note',
-							label: window.aieData.i18n.fieldCustomerNote,
+							label: window.rslIeData.i18n.fieldCustomerNote,
 							type: 'string',
 						},
 						{
@@ -3059,121 +3090,121 @@ const ExportModule = {
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupBillingAddress,
+					label: window.rslIeData.i18n.fieldGroupBillingAddress,
 					options: [
 						{
 							value: 'billing_first_name',
-							label: window.aieData.i18n.fieldFirstName,
+							label: window.rslIeData.i18n.fieldFirstName,
 							type: 'string',
 						},
 						{
 							value: 'billing_last_name',
-							label: window.aieData.i18n.fieldLastName,
+							label: window.rslIeData.i18n.fieldLastName,
 							type: 'string',
 						},
 						{
 							value: 'billing_company',
-							label: window.aieData.i18n.fieldCompany,
+							label: window.rslIeData.i18n.fieldCompany,
 							type: 'string',
 						},
 						{
 							value: 'billing_address_1',
-							label: window.aieData.i18n.fieldAddress1,
+							label: window.rslIeData.i18n.fieldAddress1,
 							type: 'string',
 						},
 						{
 							value: 'billing_address_2',
-							label: window.aieData.i18n.fieldAddress2,
+							label: window.rslIeData.i18n.fieldAddress2,
 							type: 'string',
 						},
 						{
 							value: 'billing_city',
-							label: window.aieData.i18n.fieldCity,
+							label: window.rslIeData.i18n.fieldCity,
 							type: 'string',
 						},
 						{
 							value: 'billing_state',
-							label: window.aieData.i18n.fieldState,
+							label: window.rslIeData.i18n.fieldState,
 							type: 'string',
 						},
 						{
 							value: 'billing_postcode',
-							label: window.aieData.i18n.fieldPostcode,
+							label: window.rslIeData.i18n.fieldPostcode,
 							type: 'string',
 						},
 						{
 							value: 'billing_country',
-							label: window.aieData.i18n.fieldCountry,
+							label: window.rslIeData.i18n.fieldCountry,
 							type: 'string',
 						},
 						{
 							value: 'billing_phone',
-							label: window.aieData.i18n.fieldPhone,
+							label: window.rslIeData.i18n.fieldPhone,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupShippingAddress,
+					label: window.rslIeData.i18n.fieldGroupShippingAddress,
 					options: [
 						{
 							value: 'shipping_first_name',
-							label: window.aieData.i18n.fieldFirstName,
+							label: window.rslIeData.i18n.fieldFirstName,
 							type: 'string',
 						},
 						{
 							value: 'shipping_last_name',
-							label: window.aieData.i18n.fieldLastName,
+							label: window.rslIeData.i18n.fieldLastName,
 							type: 'string',
 						},
 						{
 							value: 'shipping_company',
-							label: window.aieData.i18n.fieldCompany,
+							label: window.rslIeData.i18n.fieldCompany,
 							type: 'string',
 						},
 						{
 							value: 'shipping_address_1',
-							label: window.aieData.i18n.fieldAddress1,
+							label: window.rslIeData.i18n.fieldAddress1,
 							type: 'string',
 						},
 						{
 							value: 'shipping_address_2',
-							label: window.aieData.i18n.fieldAddress2,
+							label: window.rslIeData.i18n.fieldAddress2,
 							type: 'string',
 						},
 						{
 							value: 'shipping_city',
-							label: window.aieData.i18n.fieldCity,
+							label: window.rslIeData.i18n.fieldCity,
 							type: 'string',
 						},
 						{
 							value: 'shipping_state',
-							label: window.aieData.i18n.fieldState,
+							label: window.rslIeData.i18n.fieldState,
 							type: 'string',
 						},
 						{
 							value: 'shipping_postcode',
-							label: window.aieData.i18n.fieldPostcode,
+							label: window.rslIeData.i18n.fieldPostcode,
 							type: 'string',
 						},
 						{
 							value: 'shipping_country',
-							label: window.aieData.i18n.fieldCountry,
+							label: window.rslIeData.i18n.fieldCountry,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupOrderItems,
+					label: window.rslIeData.i18n.fieldGroupOrderItems,
 					options: [
 						{
 							value: 'order_items',
-							label: window.aieData.i18n.fieldOrderItemsArray,
+							label: window.rslIeData.i18n.fieldOrderItemsArray,
 							type: 'array',
 						},
 						{
 							value: 'item_count',
-							label: window.aieData.i18n.fieldItemCount,
+							label: window.rslIeData.i18n.fieldItemCount,
 							type: 'number',
 						},
 						{
@@ -3194,41 +3225,42 @@ const ExportModule = {
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupPayment,
+					label: window.rslIeData.i18n.fieldGroupPayment,
 					options: [
 						{
 							value: 'payment_method',
-							label: window.aieData.i18n.fieldPaymentMethod,
+							label: window.rslIeData.i18n.fieldPaymentMethod,
 							type: 'string',
 						},
 						{
 							value: 'payment_method_title',
-							label: window.aieData.i18n.fieldPaymentMethodTitle,
+							label: window.rslIeData.i18n
+								.fieldPaymentMethodTitle,
 							type: 'string',
 						},
 						{
 							value: 'transaction_id',
-							label: window.aieData.i18n.fieldTransactionId,
+							label: window.rslIeData.i18n.fieldTransactionId,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupShipping,
+					label: window.rslIeData.i18n.fieldGroupShipping,
 					options: [
 						{
 							value: 'shipping_method',
-							label: window.aieData.i18n.fieldShippingMethod,
+							label: window.rslIeData.i18n.fieldShippingMethod,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupDates,
+					label: window.rslIeData.i18n.fieldGroupDates,
 					options: [
 						{
 							value: 'order_date',
-							label: window.aieData.i18n.fieldOrderDate,
+							label: window.rslIeData.i18n.fieldOrderDate,
 							type: 'date',
 						},
 						{
@@ -3238,22 +3270,22 @@ const ExportModule = {
 						},
 						{
 							value: 'completed_date',
-							label: window.aieData.i18n.fieldCompletedDate,
+							label: window.rslIeData.i18n.fieldCompletedDate,
 							type: 'date',
 						},
 						{
 							value: 'paid_date',
-							label: window.aieData.i18n.fieldPaidDate,
+							label: window.rslIeData.i18n.fieldPaidDate,
 							type: 'date',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupNotes,
+					label: window.rslIeData.i18n.fieldGroupNotes,
 					options: [
 						{
 							value: 'order_notes',
-							label: window.aieData.i18n.fieldOrderNotesArray,
+							label: window.rslIeData.i18n.fieldOrderNotesArray,
 							type: 'array',
 						},
 						{
@@ -3264,11 +3296,11 @@ const ExportModule = {
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupCustomFilters,
+					label: window.rslIeData.i18n.fieldGroupCustomFilters,
 					options: [
 						{
 							value: '_custom_field',
-							label: window.aieData.i18n.fieldCustomFieldMeta,
+							label: window.rslIeData.i18n.fieldCustomFieldMeta,
 							type: 'custom_field',
 						},
 					],
@@ -3280,126 +3312,127 @@ const ExportModule = {
 		if ( contentType === 'woo_coupon' ) {
 			return [
 				{
-					label: window.aieData.i18n.fieldGroupBasic,
+					label: window.rslIeData.i18n.fieldGroupBasic,
 					options: [
 						{
 							value: 'ID',
-							label: window.aieData.i18n.fieldCouponId,
+							label: window.rslIeData.i18n.fieldCouponId,
 							type: 'number',
 						},
 						{
 							value: 'post_title',
-							label: window.aieData.i18n.fieldCouponCode,
+							label: window.rslIeData.i18n.fieldCouponCode,
 							type: 'string',
 						},
 						{
 							value: 'post_excerpt',
-							label: window.aieData.i18n.fieldDescription,
+							label: window.rslIeData.i18n.fieldDescription,
 							type: 'string',
 						},
 						{
 							value: 'post_status',
-							label: window.aieData.i18n.fieldStatus,
+							label: window.rslIeData.i18n.fieldStatus,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupDiscount,
+					label: window.rslIeData.i18n.fieldGroupDiscount,
 					options: [
 						{
 							value: 'discount_type',
-							label: window.aieData.i18n.fieldDiscountType,
+							label: window.rslIeData.i18n.fieldDiscountType,
 							type: 'string',
 						},
 						{
 							value: 'coupon_amount',
-							label: window.aieData.i18n.fieldCouponAmount,
+							label: window.rslIeData.i18n.fieldCouponAmount,
 							type: 'number',
 						},
 						{
 							value: 'free_shipping',
-							label: window.aieData.i18n.fieldFreeShipping,
+							label: window.rslIeData.i18n.fieldFreeShipping,
 							type: 'boolean',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupUsageRestrictions,
+					label: window.rslIeData.i18n.fieldGroupUsageRestrictions,
 					options: [
 						{
 							value: 'minimum_amount',
-							label: window.aieData.i18n.fieldMinimumSpend,
+							label: window.rslIeData.i18n.fieldMinimumSpend,
 							type: 'number',
 						},
 						{
 							value: 'maximum_amount',
-							label: window.aieData.i18n.fieldMaximumSpend,
+							label: window.rslIeData.i18n.fieldMaximumSpend,
 							type: 'number',
 						},
 						{
 							value: 'individual_use',
-							label: window.aieData.i18n.fieldIndividualUseOnly,
+							label: window.rslIeData.i18n.fieldIndividualUseOnly,
 							type: 'boolean',
 						},
 						{
 							value: 'exclude_sale_items',
-							label: window.aieData.i18n.fieldExcludeSaleItems,
+							label: window.rslIeData.i18n.fieldExcludeSaleItems,
 							type: 'boolean',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupProductRestrictions,
+					label: window.rslIeData.i18n.fieldGroupProductRestrictions,
 					options: [
 						{
 							value: 'product_ids',
-							label: window.aieData.i18n.fieldAllowedProducts,
+							label: window.rslIeData.i18n.fieldAllowedProducts,
 							type: 'array',
 						},
 						{
 							value: 'excluded_product_ids',
-							label: window.aieData.i18n.fieldExcludedProducts,
+							label: window.rslIeData.i18n.fieldExcludedProducts,
 							type: 'array',
 						},
 						{
 							value: 'product_categories',
-							label: window.aieData.i18n.fieldAllowedCategories,
+							label: window.rslIeData.i18n.fieldAllowedCategories,
 							type: 'array',
 						},
 						{
 							value: 'excluded_product_categories',
-							label: window.aieData.i18n.fieldExcludedCategories,
+							label: window.rslIeData.i18n
+								.fieldExcludedCategories,
 							type: 'array',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupEmailRestrictions,
+					label: window.rslIeData.i18n.fieldGroupEmailRestrictions,
 					options: [
 						{
 							value: 'allowed_emails',
-							label: window.aieData.i18n.fieldAllowedEmails,
+							label: window.rslIeData.i18n.fieldAllowedEmails,
 							type: 'array',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupUsageLimits,
+					label: window.rslIeData.i18n.fieldGroupUsageLimits,
 					options: [
 						{
 							value: 'usage_count',
-							label: window.aieData.i18n.fieldUsageCount,
+							label: window.rslIeData.i18n.fieldUsageCount,
 							type: 'number',
 						},
 						{
 							value: 'usage_limit',
-							label: window.aieData.i18n.fieldUsageLimitTotal,
+							label: window.rslIeData.i18n.fieldUsageLimitTotal,
 							type: 'number',
 						},
 						{
 							value: 'usage_limit_per_user',
-							label: window.aieData.i18n.fieldUsageLimitPerUser,
+							label: window.rslIeData.i18n.fieldUsageLimitPerUser,
 							type: 'number',
 						},
 						{
@@ -3410,31 +3443,31 @@ const ExportModule = {
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupDates,
+					label: window.rslIeData.i18n.fieldGroupDates,
 					options: [
 						{
 							value: 'date_expires',
-							label: window.aieData.i18n.fieldExpiryDate,
+							label: window.rslIeData.i18n.fieldExpiryDate,
 							type: 'date',
 						},
 						{
 							value: 'post_date',
-							label: window.aieData.i18n.fieldCreatedDate,
+							label: window.rslIeData.i18n.fieldCreatedDate,
 							type: 'date',
 						},
 						{
 							value: 'post_modified',
-							label: window.aieData.i18n.fieldModifiedDate,
+							label: window.rslIeData.i18n.fieldModifiedDate,
 							type: 'date',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupCustomFilters,
+					label: window.rslIeData.i18n.fieldGroupCustomFilters,
 					options: [
 						{
 							value: '_custom_field',
-							label: window.aieData.i18n.fieldCustomFieldMeta,
+							label: window.rslIeData.i18n.fieldCustomFieldMeta,
 							type: 'custom_field',
 						},
 					],
@@ -3446,56 +3479,56 @@ const ExportModule = {
 		if ( contentType === 'woo_attribute' ) {
 			return [
 				{
-					label: window.aieData.i18n.fieldGroupBasic,
+					label: window.rslIeData.i18n.fieldGroupBasic,
 					options: [
 						{
 							value: 'attribute_id',
-							label: window.aieData.i18n.fieldAttributeId,
+							label: window.rslIeData.i18n.fieldAttributeId,
 							type: 'number',
 						},
 						{
 							value: 'attribute_name',
-							label: window.aieData.i18n.fieldAttributeName,
+							label: window.rslIeData.i18n.fieldAttributeName,
 							type: 'string',
 						},
 						{
 							value: 'attribute_label',
-							label: window.aieData.i18n.fieldAttributeLabel,
+							label: window.rslIeData.i18n.fieldAttributeLabel,
 							type: 'string',
 						},
 						{
 							value: 'attribute_type',
-							label: window.aieData.i18n.fieldAttributeType,
+							label: window.rslIeData.i18n.fieldAttributeType,
 							type: 'string',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupSettings,
+					label: window.rslIeData.i18n.fieldGroupSettings,
 					options: [
 						{
 							value: 'attribute_orderby',
-							label: window.aieData.i18n.fieldDefaultSortOrder,
+							label: window.rslIeData.i18n.fieldDefaultSortOrder,
 							type: 'string',
 						},
 						{
 							value: 'attribute_public',
-							label: window.aieData.i18n.fieldEnableArchives,
+							label: window.rslIeData.i18n.fieldEnableArchives,
 							type: 'boolean',
 						},
 					],
 				},
 				{
-					label: window.aieData.i18n.fieldGroupTerms,
+					label: window.rslIeData.i18n.fieldGroupTerms,
 					options: [
 						{
 							value: 'term_count',
-							label: window.aieData.i18n.fieldTermsCount,
+							label: window.rslIeData.i18n.fieldTermsCount,
 							type: 'number',
 						},
 						{
 							value: 'attribute_terms',
-							label: window.aieData.i18n.fieldAllTermsArray,
+							label: window.rslIeData.i18n.fieldAllTermsArray,
 							type: 'array',
 						},
 					],
@@ -3525,7 +3558,7 @@ const ExportModule = {
 
 				return [
 					{
-						label: window.aieData.i18n.fieldGroupTableColumns,
+						label: window.rslIeData.i18n.fieldGroupTableColumns,
 						options: columnOptions,
 					},
 				];
@@ -3534,11 +3567,11 @@ const ExportModule = {
 			// Otherwise show message to select table first
 			return [
 				{
-					label: window.aieData.i18n.fieldGroupTableSelection,
+					label: window.rslIeData.i18n.fieldGroupTableSelection,
 					options: [
 						{
 							value: '_select_table',
-							label: window.aieData.i18n.fieldPleaseSelectTable,
+							label: window.rslIeData.i18n.fieldPleaseSelectTable,
 							type: 'info',
 						},
 					],
@@ -3559,18 +3592,18 @@ const ExportModule = {
 
 		// Groups to always exclude
 		const excludedLabels = [
-			window.aieData.i18n.fieldGroupFeaturedImage || 'Featured Image',
+			window.rslIeData.i18n.fieldGroupFeaturedImage || 'Featured Image',
 		];
 
 		// For woo_coupon, also exclude these groups from filters
 		if ( contentType === 'woo_coupon' ) {
 			excludedLabels.push(
-				window.aieData.i18n.fieldGroupDiscount,
-				window.aieData.i18n.fieldGroupUsageRestrictions,
-				window.aieData.i18n.fieldGroupProductRestrictions,
-				window.aieData.i18n.fieldGroupEmailRestrictions,
-				window.aieData.i18n.fieldGroupUsageLimits,
-				window.aieData.i18n.fieldGroupCustomFilters
+				window.rslIeData.i18n.fieldGroupDiscount,
+				window.rslIeData.i18n.fieldGroupUsageRestrictions,
+				window.rslIeData.i18n.fieldGroupProductRestrictions,
+				window.rslIeData.i18n.fieldGroupEmailRestrictions,
+				window.rslIeData.i18n.fieldGroupUsageLimits,
+				window.rslIeData.i18n.fieldGroupCustomFilters
 			);
 		}
 
@@ -3583,9 +3616,9 @@ const ExportModule = {
 	 * Check if filter row is complete (has all required values)
 	 */
 	isFilterRowComplete( $row ) {
-		const field = $row.find( '.aie-filter-field' ).val();
-		const condition = $row.find( '.aie-filter-condition' ).val();
-		const value = $row.find( '.aie-filter-value' ).val();
+		const field = $row.find( '.rsl-ie-filter-field' ).val();
+		const condition = $row.find( '.rsl-ie-filter-condition' ).val();
+		const value = $row.find( '.rsl-ie-filter-value' ).val();
 
 		// Field and condition must be selected
 		if ( ! field || ! condition ) {
@@ -3606,9 +3639,9 @@ const ExportModule = {
 	 * Update value input type based on condition and field type
 	 */
 	updateValueInputType( $row ) {
-		const $field = $row.find( '.aie-filter-field' );
-		const $condition = $row.find( '.aie-filter-condition' );
-		const $value = $row.find( '.aie-filter-value' );
+		const $field = $row.find( '.rsl-ie-filter-field' );
+		const $condition = $row.find( '.rsl-ie-filter-condition' );
+		const $value = $row.find( '.rsl-ie-filter-value' );
 
 		const selectedOption = $field.find( 'option:selected' );
 		const fieldType = selectedOption.data( 'type' ) || 'string';
@@ -3622,11 +3655,11 @@ const ExportModule = {
 		// For 'is_empty' and 'is_not_empty', hide the value input
 		const noValueConditions = [ 'is_empty', 'is_not_empty' ];
 		if ( noValueConditions.includes( condition ) ) {
-			$value.closest( '.aie-filter-value-wrap' ).hide();
+			$value.closest( '.rsl-ie-filter-value-wrap' ).hide();
 			return;
 		} else {
 			// Always show the value input for other conditions
-			$value.closest( '.aie-filter-value-wrap' ).show();
+			$value.closest( '.rsl-ie-filter-value-wrap' ).show();
 		}
 
 		// For 'in' and 'not_in' conditions, always use text input to allow comma-separated values
@@ -3634,7 +3667,7 @@ const ExportModule = {
 			$value.attr( 'type', 'text' );
 			$value.attr(
 				'placeholder',
-				window.aieData.i18n.enterValuesCommaSeparated
+				window.rslIeData.i18n.enterValuesCommaSeparated
 			);
 			return;
 		}
@@ -3644,7 +3677,7 @@ const ExportModule = {
 			$value.attr( 'type', 'text' );
 			$value.attr(
 				'placeholder',
-				window.aieData.i18n.enterTwoNumbersCommaSeparated
+				window.rslIeData.i18n.enterTwoNumbersCommaSeparated
 			);
 			return;
 		}
@@ -3657,11 +3690,14 @@ const ExportModule = {
 			$value.attr( 'type', 'number' );
 			$value.attr(
 				'placeholder',
-				window.aieData.i18n.enterNumberPlaceholder
+				window.rslIeData.i18n.enterNumberPlaceholder
 			);
 		} else {
 			$value.attr( 'type', 'text' );
-			$value.attr( 'placeholder', window.aieData.i18n.enterFilterValue );
+			$value.attr(
+				'placeholder',
+				window.rslIeData.i18n.enterFilterValue
+			);
 		}
 	},
 
@@ -3671,69 +3707,69 @@ const ExportModule = {
 	getConditionsByFieldType( fieldType ) {
 		const conditions = {
 			string: [
-				{ value: 'equals', label: window.aieData.i18n.equals },
-				{ value: 'not_equals', label: window.aieData.i18n.notEquals },
-				{ value: 'in', label: window.aieData.i18n.inFilter },
-				{ value: 'not_in', label: window.aieData.i18n.notInFilter },
-				{ value: 'contains', label: window.aieData.i18n.contains },
+				{ value: 'equals', label: window.rslIeData.i18n.equals },
+				{ value: 'not_equals', label: window.rslIeData.i18n.notEquals },
+				{ value: 'in', label: window.rslIeData.i18n.inFilter },
+				{ value: 'not_in', label: window.rslIeData.i18n.notInFilter },
+				{ value: 'contains', label: window.rslIeData.i18n.contains },
 				{
 					value: 'not_contains',
-					label: window.aieData.i18n.notContains,
+					label: window.rslIeData.i18n.notContains,
 				},
-				{ value: 'is_empty', label: window.aieData.i18n.isEmpty },
+				{ value: 'is_empty', label: window.rslIeData.i18n.isEmpty },
 				{
 					value: 'is_not_empty',
-					label: window.aieData.i18n.isNotEmpty,
+					label: window.rslIeData.i18n.isNotEmpty,
 				},
 			],
 			number: [
-				{ value: 'equals', label: window.aieData.i18n.equals },
-				{ value: 'not_equals', label: window.aieData.i18n.notEquals },
-				{ value: 'in', label: window.aieData.i18n.inFilter },
-				{ value: 'not_in', label: window.aieData.i18n.notInFilter },
-				{ value: 'greater', label: window.aieData.i18n.greaterThan },
+				{ value: 'equals', label: window.rslIeData.i18n.equals },
+				{ value: 'not_equals', label: window.rslIeData.i18n.notEquals },
+				{ value: 'in', label: window.rslIeData.i18n.inFilter },
+				{ value: 'not_in', label: window.rslIeData.i18n.notInFilter },
+				{ value: 'greater', label: window.rslIeData.i18n.greaterThan },
 				{
 					value: 'equals_or_greater',
-					label: window.aieData.i18n.greaterOrEqual,
+					label: window.rslIeData.i18n.greaterOrEqual,
 				},
-				{ value: 'less', label: window.aieData.i18n.lessThan },
+				{ value: 'less', label: window.rslIeData.i18n.lessThan },
 				{
 					value: 'equals_or_less',
-					label: window.aieData.i18n.lessOrEqual,
+					label: window.rslIeData.i18n.lessOrEqual,
 				},
-				{ value: 'is_empty', label: window.aieData.i18n.isEmpty },
+				{ value: 'is_empty', label: window.rslIeData.i18n.isEmpty },
 				{
 					value: 'is_not_empty',
-					label: window.aieData.i18n.isNotEmpty,
+					label: window.rslIeData.i18n.isNotEmpty,
 				},
 			],
 			date: [
-				{ value: 'equals', label: window.aieData.i18n.equals },
-				{ value: 'not_equals', label: window.aieData.i18n.notEquals },
+				{ value: 'equals', label: window.rslIeData.i18n.equals },
+				{ value: 'not_equals', label: window.rslIeData.i18n.notEquals },
 				{
 					value: 'greater',
 					label:
-						window.aieData.i18n.newerThan ||
-						window.aieData.i18n.greaterThan,
+						window.rslIeData.i18n.newerThan ||
+						window.rslIeData.i18n.greaterThan,
 				},
 				{
 					value: 'equals_or_greater',
-					label: window.aieData.i18n.greaterOrEqual,
+					label: window.rslIeData.i18n.greaterOrEqual,
 				},
 				{
 					value: 'less',
 					label:
-						window.aieData.i18n.olderThan ||
-						window.aieData.i18n.lessThan,
+						window.rslIeData.i18n.olderThan ||
+						window.rslIeData.i18n.lessThan,
 				},
 				{
 					value: 'equals_or_less',
-					label: window.aieData.i18n.lessOrEqual,
+					label: window.rslIeData.i18n.lessOrEqual,
 				},
-				{ value: 'is_empty', label: window.aieData.i18n.isEmpty },
+				{ value: 'is_empty', label: window.rslIeData.i18n.isEmpty },
 				{
 					value: 'is_not_empty',
-					label: window.aieData.i18n.isNotEmpty,
+					label: window.rslIeData.i18n.isNotEmpty,
 				},
 			],
 		};
@@ -3745,9 +3781,9 @@ const ExportModule = {
 	 * Load database tables
 	 */
 	loadDatabaseTables() {
-		const $dropdown = jQuery( '#aie-table-name' );
-		const $spinner = jQuery( '.aie-table-selector .spinner' );
-		const $section = jQuery( '.aie-table-selection-section' );
+		const $dropdown = jQuery( '#rsl-ie-table-name' );
+		const $spinner = jQuery( '.rsl-ie-table-selector .spinner' );
+		const $section = jQuery( '.rsl-ie-table-selection-section' );
 
 		// Show section
 		$section.show();
@@ -3766,14 +3802,14 @@ const ExportModule = {
 				$dropdown.append(
 					jQuery( '<option>' )
 						.val( '' )
-						.text( window.aieData.i18n.selectTable )
+						.text( window.rslIeData.i18n.selectTable )
 				);
 
 				if ( ! Array.isArray( tables ) || tables.length === 0 ) {
 					$dropdown.append(
 						jQuery( '<option>' )
 							.val( '' )
-							.text( window.aieData.i18n.noTablesFound )
+							.text( window.rslIeData.i18n.noTablesFound )
 					);
 					$dropdown.prop( 'disabled', true );
 					$spinner.removeClass( 'is-active' );
@@ -3798,8 +3834,8 @@ const ExportModule = {
 					if ( tableName ) {
 						this.loadTableColumns( tableName );
 					} else {
-						jQuery( '.aie-table-info' ).html( '' ).hide();
-						jQuery( '#aie-filters-list' ).empty();
+						jQuery( '.rsl-ie-table-info' ).html( '' ).hide();
+						jQuery( '#rsl-ie-filters-list' ).empty();
 					}
 					// Update Next button state based on table selection
 					this.updateStep2NextButton();
@@ -3810,7 +3846,7 @@ const ExportModule = {
 				$dropdown.append(
 					jQuery( '<option>' )
 						.val( '' )
-						.text( window.aieData.i18n.errorLoadingTables )
+						.text( window.rslIeData.i18n.errorLoadingTables )
 				);
 				$dropdown.prop( 'disabled', true );
 				$spinner.removeClass( 'is-active' );
@@ -3821,15 +3857,15 @@ const ExportModule = {
 	 * Load table columns and show info
 	 */
 	loadTableColumns( tableName ) {
-		const $tableInfo = jQuery( '.aie-table-info' );
-		const $columnsList = jQuery( '.aie-columns-list' );
-		const $rowCount = jQuery( '.aie-table-row-count' );
-		const $columnCount = jQuery( '.aie-table-column-count' );
+		const $tableInfo = jQuery( '.rsl-ie-table-info' );
+		const $columnsList = jQuery( '.rsl-ie-columns-list' );
+		const $rowCount = jQuery( '.rsl-ie-table-row-count' );
+		const $columnCount = jQuery( '.rsl-ie-table-column-count' );
 
 		// Show loading state
 		$tableInfo.show();
 		$columnsList.html(
-			`<p>${ window.aieData.i18n.loadingTableColumns }</p>`
+			`<p>${ window.rslIeData.i18n.loadingTableColumns }</p>`
 		);
 
 		// Fetch columns via AJAX
@@ -3843,7 +3879,7 @@ const ExportModule = {
 				// Display columns with types
 				$columnsList.empty();
 				const $list = jQuery( '<ul>' ).addClass(
-					'aie-column-type-list'
+					'rsl-ie-column-type-list'
 				);
 
 				columns.forEach( ( col ) => {
@@ -3871,14 +3907,14 @@ const ExportModule = {
 				this.currentTableColumns = columns;
 
 				// Clear existing filters
-				jQuery( '#aie-filters-list' ).empty();
+				jQuery( '#rsl-ie-filters-list' ).empty();
 
 				// Refresh count to get row count
 				this.refreshCount( false );
 			} )
 			.catch( ( error ) => {
 				$columnsList.html(
-					`<p class="error">${ window.aieData.i18n.errorLoadingColumns }</p>`
+					`<p class="error">${ window.rslIeData.i18n.errorLoadingColumns }</p>`
 				);
 			} );
 	},

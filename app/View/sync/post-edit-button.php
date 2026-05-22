@@ -8,10 +8,10 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 
-<div class="misc-pub-section aie-sync-section">
+<div class="misc-pub-section rsl-ie-sync-section">
 	<strong><?php esc_html_e( 'Content Sync', 'import-export-by-rockstarlab' ); ?></strong>
 	<div>
-		<button type="button" id="aie-sync-content-btn" class="button button-secondary" style="width: 100%;">
+		<button type="button" id="rsl-ie-sync-content-btn" class="button button-secondary" style="width: 100%;">
 			<?php esc_html_e( 'Sync This Post', 'import-export-by-rockstarlab' ); ?>
 		</button>
 	</div>

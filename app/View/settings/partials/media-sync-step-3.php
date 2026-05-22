@@ -9,60 +9,60 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 <!-- Step 3: Progress -->
-<div class="aie-card aie-progress-section" id="aie-sync-progress-section" style="display: none;">
-	<div class="aie-card-header">
+<div class="rsl-ie-card rsl-ie-progress-section" id="rsl-ie-sync-progress-section" style="display: none;">
+	<div class="rsl-ie-card-header">
 		<h2>
-			<span class="dashicons dashicons-update aie-spin"></span>
+			<span class="dashicons dashicons-update rsl-ie-spin"></span>
 			<?php esc_html_e( 'Synchronization in Progress', 'import-export-by-rockstarlab' ); ?>
 		</h2>
 	</div>
 
-	<div class="aie-card-body">
-		<div class="aie-progress-bar-container">
-			<div class="aie-progress-bar">
-				<div id="aie-progress-fill" class="aie-progress-fill" style="width: 0%"></div>
+	<div class="rsl-ie-card-body">
+		<div class="rsl-ie-progress-bar-container">
+			<div class="rsl-ie-progress-bar">
+				<div id="rsl-ie-progress-fill" class="rsl-ie-progress-fill" style="width: 0%"></div>
 			</div>
-			<div class="aie-progress-text">
-				<span id="aie-progress-percentage">0%</span>
-				<span id="aie-progress-status"><?php esc_html_e( 'Starting...', 'import-export-by-rockstarlab' ); ?></span>
-			</div>
-		</div>
-
-		<div class="aie-sync-stats">
-			<div class="aie-stat-item">
-				<span class="aie-stat-label"><?php esc_html_e( 'Processed:', 'import-export-by-rockstarlab' ); ?></span>
-				<span id="aie-stat-processed" class="aie-stat-value">0</span>
-			</div>
-			<div class="aie-stat-item aie-stat-success">
-				<span class="aie-stat-label"><?php esc_html_e( 'Success:', 'import-export-by-rockstarlab' ); ?></span>
-				<span id="aie-stat-success" class="aie-stat-value">0</span>
-			</div>
-			<div class="aie-stat-item aie-stat-skipped">
-				<span class="aie-stat-label"><?php esc_html_e( 'Skipped:', 'import-export-by-rockstarlab' ); ?></span>
-				<span id="aie-stat-skipped" class="aie-stat-value">0</span>
-			</div>
-			<div class="aie-stat-item aie-stat-failed">
-				<span class="aie-stat-label"><?php esc_html_e( 'Failed:', 'import-export-by-rockstarlab' ); ?></span>
-				<span id="aie-stat-failed" class="aie-stat-value">0</span>
+			<div class="rsl-ie-progress-text">
+				<span id="rsl-ie-progress-percentage">0%</span>
+				<span id="rsl-ie-progress-status"><?php esc_html_e( 'Starting...', 'import-export-by-rockstarlab' ); ?></span>
 			</div>
 		</div>
 
-		<div class="aie-progress-actions">
-			<button type="button" id="aie-pause-sync-btn" class="button">
+		<div class="rsl-ie-sync-stats">
+			<div class="rsl-ie-stat-item">
+				<span class="rsl-ie-stat-label"><?php esc_html_e( 'Processed:', 'import-export-by-rockstarlab' ); ?></span>
+				<span id="rsl-ie-stat-processed" class="rsl-ie-stat-value">0</span>
+			</div>
+			<div class="rsl-ie-stat-item rsl-ie-stat-success">
+				<span class="rsl-ie-stat-label"><?php esc_html_e( 'Success:', 'import-export-by-rockstarlab' ); ?></span>
+				<span id="rsl-ie-stat-success" class="rsl-ie-stat-value">0</span>
+			</div>
+			<div class="rsl-ie-stat-item rsl-ie-stat-skipped">
+				<span class="rsl-ie-stat-label"><?php esc_html_e( 'Skipped:', 'import-export-by-rockstarlab' ); ?></span>
+				<span id="rsl-ie-stat-skipped" class="rsl-ie-stat-value">0</span>
+			</div>
+			<div class="rsl-ie-stat-item rsl-ie-stat-failed">
+				<span class="rsl-ie-stat-label"><?php esc_html_e( 'Failed:', 'import-export-by-rockstarlab' ); ?></span>
+				<span id="rsl-ie-stat-failed" class="rsl-ie-stat-value">0</span>
+			</div>
+		</div>
+
+		<div class="rsl-ie-progress-actions">
+			<button type="button" id="rsl-ie-pause-sync-btn" class="button">
 				<span class="dashicons dashicons-controls-pause"></span>
 				<?php esc_html_e( 'Pause', 'import-export-by-rockstarlab' ); ?>
 			</button>
-			<button type="button" id="aie-cancel-sync-btn" class="button">
+			<button type="button" id="rsl-ie-cancel-sync-btn" class="button">
 				<span class="dashicons dashicons-no"></span>
 				<?php esc_html_e( 'Cancel', 'import-export-by-rockstarlab' ); ?>
 			</button>
 		</div>
 
 		<!-- Error Log -->
-		<div id="aie-error-log" style="display: none;">
+		<div id="rsl-ie-error-log" style="display: none;">
 			<hr>
 			<h3><?php esc_html_e( 'Errors', 'import-export-by-rockstarlab' ); ?></h3>
-			<ul id="aie-error-list" class="aie-error-list"></ul>
+			<ul id="rsl-ie-error-list" class="rsl-ie-error-list"></ul>
 		</div>
 	</div>
 </div>

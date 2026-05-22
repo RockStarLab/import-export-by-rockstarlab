@@ -1,15 +1,15 @@
 // Progress Bar
-.aie-progress-container {
+.rsl-ie-progress-container {
 	margin: 30px 0;
 
-	.aie-progress-bar {
+	.rsl-ie-progress-bar {
 		height: 30px;
 		background: #f6f7f7;
 		border-radius: 4px;
 		overflow: hidden;
 		margin-bottom: 15px;
 
-		.aie-progress-bar-fill {
+		.rsl-ie-progress-bar-fill {
 			height: 100%;
 			background: linear-gradient(90deg, #2271b1 0%, #135e96 100%);
 			transition: width 0.3s;
@@ -22,25 +22,25 @@
 		}
 	}
 
-	.aie-progress-stats {
+	.rsl-ie-progress-stats {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
 		margin-bottom: 20px;
 
-		.aie-progress-percentage {
+		.rsl-ie-progress-percentage {
 			font-size: 24px;
 			font-weight: 600;
 			color: #2271b1;
 		}
 
-		.aie-progress-details {
+		.rsl-ie-progress-details {
 			font-size: 14px;
 			color: #646970;
 		}
 	}
 
-	.aie-progress-estimates {
+	.rsl-ie-progress-estimates {
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
 		gap: 15px;
@@ -48,7 +48,7 @@
 		padding-top: 20px;
 		border-top: 1px solid #dcdcde;
 
-		.aie-estimate {
+		.rsl-ie-estimate {
 			display: flex;
 			flex-direction: column;
 			gap: 5px;

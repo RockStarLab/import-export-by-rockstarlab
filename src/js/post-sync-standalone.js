@@ -34,7 +34,7 @@ if (
 
 		if ( typeof options.data === 'string' ) {
 			options.data = options.data.replace(
-				/(^|&)action=aie_/,
+				/(^|&)action=rsl_ie_/,
 				`$1action=${ AJAX_PREFIX }`
 			);
 			return;
@@ -65,7 +65,7 @@ if (
 		 * Ensure the Sync button sits next to the Filter button.
 		 */
 		positionSyncButton() {
-			const $btn = $( '#aie-sync-content-btn' );
+			const $btn = $( '#rsl-ie-sync-content-btn' );
 			const $filterBtn = $( '#post-query-submit' );
 
 			if ( $btn.length && $filterBtn.length ) {
@@ -78,34 +78,34 @@ if (
 		 */
 		bindEvents() {
 			// Open modal when sync button is clicked
-			$( document ).on( 'click', '#aie-sync-content-btn', ( e ) => {
+			$( document ).on( 'click', '#rsl-ie-sync-content-btn', ( e ) => {
 				e.preventDefault();
 				e.stopPropagation();
 				this.openSyncModal();
 			} );
 
 			// Close modal
-			$( document ).on( 'click', '.aie-modal-close', ( e ) => {
+			$( document ).on( 'click', '.rsl-ie-modal-close', ( e ) => {
 				e.preventDefault();
 				e.stopPropagation();
-				const $modal = $( e.currentTarget ).closest( '.aie-modal' );
+				const $modal = $( e.currentTarget ).closest( '.rsl-ie-modal' );
 				const modalId = $modal.attr( 'id' );
 
-				if ( modalId === 'aie-browse-modal' ) {
+				if ( modalId === 'rsl-ie-browse-modal' ) {
 					this.closeBrowseModal( false ); // Close everything when clicking X button
-				} else if ( modalId === 'aie-mapping-modal' ) {
+				} else if ( modalId === 'rsl-ie-mapping-modal' ) {
 					this.closeMappingModal();
-				} else if ( modalId === 'aie-sync-modal' ) {
+				} else if ( modalId === 'rsl-ie-sync-modal' ) {
 					this.closeSyncModal();
 				}
 			} );
 
-			$( document ).on( 'click', '.aie-modal', ( e ) => {
+			$( document ).on( 'click', '.rsl-ie-modal', ( e ) => {
 				if ( e.target === e.currentTarget ) {
 					const modalId = $( e.target ).attr( 'id' );
-					if ( modalId === 'aie-browse-modal' ) {
+					if ( modalId === 'rsl-ie-browse-modal' ) {
 						this.closeBrowseModal( false ); // Close everything when clicking outside modal
-					} else if ( modalId === 'aie-mapping-modal' ) {
+					} else if ( modalId === 'rsl-ie-mapping-modal' ) {
 						this.closeMappingModal();
 					} else {
 						this.closeSyncModal();
@@ -114,24 +114,24 @@ if (
 			} );
 
 			// Close modal on backdrop click
-			$( document ).on( 'click', '.aie-modal-backdrop', ( e ) => {
-				const $modal = $( e.target ).closest( '.aie-modal' );
-				if ( $modal.attr( 'id' ) === 'aie-browse-modal' ) {
+			$( document ).on( 'click', '.rsl-ie-modal-backdrop', ( e ) => {
+				const $modal = $( e.target ).closest( '.rsl-ie-modal' );
+				if ( $modal.attr( 'id' ) === 'rsl-ie-browse-modal' ) {
 					this.closeBrowseModal( false ); // Close everything when clicking backdrop
 				}
 			} ); // Enable/disable sync buttons based on site selection
-			$( document ).on( 'change', '#aie-sync-site-select', () => {
+			$( document ).on( 'change', '#rsl-ie-sync-site-select', () => {
 				this.updateSyncButtons();
 			} );
 
 			// Handle Push button
-			$( document ).on( 'click', '#aie-sync-push-btn', ( e ) => {
+			$( document ).on( 'click', '#rsl-ie-sync-push-btn', ( e ) => {
 				e.preventDefault();
 				this.syncContent( 'push' );
 			} );
 
 			// Handle Pull button
-			$( document ).on( 'click', '#aie-sync-pull-btn', ( e ) => {
+			$( document ).on( 'click', '#rsl-ie-sync-pull-btn', ( e ) => {
 				e.preventDefault();
 				this.syncContent( 'pull' );
 			} );
@@ -139,7 +139,7 @@ if (
 			// Handle Browse Remote button
 			$( document ).on(
 				'click',
-				'#aie-browse-remote-btn, #aie-browse-remote-btn-alt',
+				'#rsl-ie-browse-remote-btn, #rsl-ie-browse-remote-btn-alt',
 				( e ) => {
 					e.preventDefault();
 					this.openBrowseModal();
@@ -148,7 +148,7 @@ if (
 
 			// Browse modal - Search (debounced)
 			let searchTimeout;
-			$( document ).on( 'input', '#aie-browse-search', ( e ) => {
+			$( document ).on( 'input', '#rsl-ie-browse-search', ( e ) => {
 				clearTimeout( searchTimeout );
 				searchTimeout = setTimeout( () => {
 					this.browseState.searchQuery = $( e.target ).val();
@@ -158,9 +158,9 @@ if (
 			} );
 
 			// Browse modal - Status filter
-			$( document ).on( 'click', '.aie-filter-item', ( e ) => {
+			$( document ).on( 'click', '.rsl-ie-filter-item', ( e ) => {
 				const $item = $( e.currentTarget );
-				$( '.aie-filter-item' ).removeClass( 'active' );
+				$( '.rsl-ie-filter-item' ).removeClass( 'active' );
 				$item.addClass( 'active' );
 
 				this.browseState.currentFilter = $item.data( 'status' );
@@ -169,12 +169,12 @@ if (
 			} );
 
 			// Browse modal - Post toggle (expand/collapse)
-			$( document ).on( 'click', '.aie-post-toggle', ( e ) => {
+			$( document ).on( 'click', '.rsl-ie-post-toggle', ( e ) => {
 				e.stopPropagation();
 				const $toggle = $( e.currentTarget );
-				const $item = $toggle.closest( '.aie-post-item' );
+				const $item = $toggle.closest( '.rsl-ie-post-item' );
 				const postId = parseInt( $item.data( 'post-id' ) );
-				const $children = $item.next( '.aie-post-children' );
+				const $children = $item.next( '.rsl-ie-post-children' );
 
 				if ( $toggle.hasClass( 'expanded' ) ) {
 					// Collapse
@@ -197,10 +197,10 @@ if (
 			} );
 
 			// Browse modal - Post checkbox
-			$( document ).on( 'change', '.aie-post-checkbox', ( e ) => {
+			$( document ).on( 'change', '.rsl-ie-post-checkbox', ( e ) => {
 				const $checkbox = $( e.currentTarget );
 				const postId = parseInt( $checkbox.val() );
-				const $item = $checkbox.closest( '.aie-post-item' );
+				const $item = $checkbox.closest( '.rsl-ie-post-item' );
 
 				if ( $checkbox.prop( 'checked' ) ) {
 					this.browseState.selectedPosts.add( postId );
@@ -214,14 +214,14 @@ if (
 			} );
 
 			// Browse modal - Pagination
-			$( document ).on( 'click', '#aie-browse-prev-page', () => {
+			$( document ).on( 'click', '#rsl-ie-browse-prev-page', () => {
 				if ( this.browseState.currentPage > 1 ) {
 					this.browseState.currentPage--;
 					this.loadRemotePosts();
 				}
 			} );
 
-			$( document ).on( 'click', '#aie-browse-next-page', () => {
+			$( document ).on( 'click', '#rsl-ie-browse-next-page', () => {
 				if (
 					this.browseState.currentPage < this.browseState.totalPages
 				) {
@@ -231,13 +231,13 @@ if (
 			} );
 
 			// Browse modal - Cancel button
-			$( document ).on( 'click', '#aie-browse-cancel-btn', ( e ) => {
+			$( document ).on( 'click', '#rsl-ie-browse-cancel-btn', ( e ) => {
 				e.preventDefault();
 				this.closeBrowseModal();
 			} );
 
 			// Browse modal - Pull button
-			$( document ).on( 'click', '#aie-browse-pull-btn', ( e ) => {
+			$( document ).on( 'click', '#rsl-ie-browse-pull-btn', ( e ) => {
 				e.preventDefault();
 				this.pullSelectedPosts();
 			} );
@@ -246,13 +246,13 @@ if (
 			$( document ).on( 'keydown', ( e ) => {
 				if (
 					e.key === 'Escape' &&
-					$( '#aie-sync-modal' ).is( ':visible' )
+					$( '#rsl-ie-sync-modal' ).is( ':visible' )
 				) {
 					this.closeSyncModal();
 				}
 				if (
 					e.key === 'Escape' &&
-					$( '#aie-browse-modal' ).is( ':visible' )
+					$( '#rsl-ie-browse-modal' ).is( ':visible' )
 				) {
 					this.closeBrowseModal( false ); // Close everything when pressing Escape
 				}
@@ -270,9 +270,9 @@ if (
 				// If we're on the post edit page, keep the original behavior (ask to save)
 				if ( isEditPage ) {
 					const message =
-						typeof aiePostSyncData !== 'undefined' &&
-						aiePostSyncData.i18n
-							? aiePostSyncData.i18n.pleaseSavePost
+						typeof rslIePostSyncData !== 'undefined' &&
+						rslIePostSyncData.i18n
+							? rslIePostSyncData.i18n.pleaseSavePost
 							: 'Please save the post first';
 					alert( message );
 					return;
@@ -285,20 +285,20 @@ if (
 			// Update selected count with proper text
 			const countText =
 				selectedIds.length === 1
-					? aiePostSyncData?.i18n?.onePost || '1 post'
+					? rslIePostSyncData?.i18n?.onePost || '1 post'
 					: (
-							aiePostSyncData?.i18n?.postsCount || '%s posts'
+							rslIePostSyncData?.i18n?.postsCount || '%s posts'
 					  ).replace( '%s', selectedIds.length );
-			$( '#aie-selected-count' ).text( countText );
+			$( '#rsl-ie-selected-count' ).text( countText );
 
 			// Reset form
-			$( '#aie-sync-site-select' ).val( '' );
-			$( '#aie-sync-progress' ).hide();
-			$( '#aie-sync-result' ).hide();
+			$( '#rsl-ie-sync-site-select' ).val( '' );
+			$( '#rsl-ie-sync-progress' ).hide();
+			$( '#rsl-ie-sync-result' ).hide();
 			this.updateSyncButtons();
 
 			// Show modal
-			$( '#aie-sync-modal' ).fadeIn( 200 );
+			$( '#rsl-ie-sync-modal' ).fadeIn( 200 );
 		},
 
 		/**
@@ -308,20 +308,20 @@ if (
 			// Reset syncing flag
 			this.isSyncing = false;
 
-			$( '#aie-sync-modal' ).fadeOut( 200, () => {
+			$( '#rsl-ie-sync-modal' ).fadeOut( 200, () => {
 				// Reset site selection (unless specified to keep it)
 				if ( ! keepSiteSelection ) {
-					$( '#aie-sync-site-select' ).val( '' );
+					$( '#rsl-ie-sync-site-select' ).val( '' );
 				}
 
 				// Reset modal state - show initial sections again
 				$(
-					'.aie-sync-info, .aie-form-group, .aie-sync-direction, .aie-browse-section'
+					'.rsl-ie-sync-info, .rsl-ie-form-group, .rsl-ie-sync-direction, .rsl-ie-browse-section'
 				).css( 'display', '' );
 				$(
-					'#aie-sync-progress, #aie-sync-result, .aie-no-selection-message'
+					'#rsl-ie-sync-progress, #rsl-ie-sync-result, .rsl-ie-no-selection-message'
 				).css( 'display', 'none' );
-				$( '.aie-progress-fill' ).css( 'width', '0%' );
+				$( '.rsl-ie-progress-fill' ).css( 'width', '0%' );
 
 				// Update button states (unless we're keeping site selection for browse modal)
 				if ( ! keepSiteSelection ) {
@@ -365,26 +365,26 @@ if (
 				return;
 			}
 
-			const siteSelected = $( '#aie-sync-site-select' ).val() !== '';
+			const siteSelected = $( '#rsl-ie-sync-site-select' ).val() !== '';
 			const selectedIds = this.getSelectedPostIds();
 
 			// Show/hide sections based on post selection
 			if ( selectedIds.length > 0 ) {
 				// Has selected posts - show push/pull and browse sections
-				$( '.aie-sync-direction' ).show();
-				$( '.aie-browse-section' ).show();
-				$( '.aie-sync-info' ).show();
-				$( '.aie-no-selection-message' ).hide();
+				$( '.rsl-ie-sync-direction' ).show();
+				$( '.rsl-ie-browse-section' ).show();
+				$( '.rsl-ie-sync-info' ).show();
+				$( '.rsl-ie-no-selection-message' ).hide();
 				$(
-					'#aie-sync-push-btn, #aie-sync-pull-btn, #aie-browse-remote-btn'
+					'#rsl-ie-sync-push-btn, #rsl-ie-sync-pull-btn, #rsl-ie-browse-remote-btn'
 				).prop( 'disabled', ! siteSelected );
 			} else {
 				// No posts selected - hide push/pull, show only browse message
-				$( '.aie-sync-direction' ).hide();
-				$( '.aie-browse-section' ).hide();
-				$( '.aie-sync-info' ).hide();
-				$( '.aie-no-selection-message' ).show();
-				$( '#aie-browse-remote-btn-alt' ).prop(
+				$( '.rsl-ie-sync-direction' ).hide();
+				$( '.rsl-ie-browse-section' ).hide();
+				$( '.rsl-ie-sync-info' ).hide();
+				$( '.rsl-ie-no-selection-message' ).show();
+				$( '#rsl-ie-browse-remote-btn-alt' ).prop(
 					'disabled',
 					! siteSelected
 				);
@@ -405,12 +405,12 @@ if (
 		 * Sync content (push or pull)
 		 */
 		syncContent( direction ) {
-			const siteId = $( '#aie-sync-site-select' ).val();
+			const siteId = $( '#rsl-ie-sync-site-select' ).val();
 			const postIds = this.getSelectedPostIds();
 
 			if ( ! siteId ) {
 				const message =
-					aiePostSyncData?.i18n?.pleaseSelectSite ||
+					rslIePostSyncData?.i18n?.pleaseSelectSite ||
 					'Please select a site';
 				alert( message );
 				return;
@@ -418,7 +418,7 @@ if (
 
 			if ( postIds.length === 0 ) {
 				const message =
-					aiePostSyncData?.i18n?.noPostsSelected ||
+					rslIePostSyncData?.i18n?.noPostsSelected ||
 					'No posts selected';
 				alert( message );
 				return;
@@ -440,10 +440,10 @@ if (
 		 * Open mapping modal
 		 */
 		openMappingModal( direction, siteId, postIds ) {
-			$( '#aie-mapping-modal' ).fadeIn( 200 );
-			$( '#aie-mapping-loading' ).show();
-			$( '#aie-mapping-table-container' ).hide();
-			$( '#aie-mapping-confirm-btn' ).prop( 'disabled', true );
+			$( '#rsl-ie-mapping-modal' ).fadeIn( 200 );
+			$( '#rsl-ie-mapping-loading' ).show();
+			$( '#rsl-ie-mapping-table-container' ).hide();
+			$( '#rsl-ie-mapping-confirm-btn' ).prop( 'disabled', true );
 
 			// Load local posts info and remote posts list
 			this.loadMappingData( direction, siteId, postIds );
@@ -453,7 +453,7 @@ if (
 		 * Close mapping modal
 		 */
 		closeMappingModal() {
-			$( '#aie-mapping-modal' ).fadeOut( 200 );
+			$( '#rsl-ie-mapping-modal' ).fadeOut( 200 );
 		},
 
 		/**
@@ -461,13 +461,14 @@ if (
 		 */
 		loadMappingData( direction, siteId, postIds ) {
 			const nonce =
-				typeof aiePostSyncData !== 'undefined' && aiePostSyncData.nonce
-					? aiePostSyncData.nonce
+				typeof rslIePostSyncData !== 'undefined' &&
+				rslIePostSyncData.nonce
+					? rslIePostSyncData.nonce
 					: '';
 			const ajaxUrl =
-				typeof aiePostSyncData !== 'undefined' &&
-				aiePostSyncData.ajaxurl
-					? aiePostSyncData.ajaxurl
+				typeof rslIePostSyncData !== 'undefined' &&
+				rslIePostSyncData.ajaxurl
+					? rslIePostSyncData.ajaxurl
 					: ajaxurl;
 
 			// First, get local posts info
@@ -475,7 +476,7 @@ if (
 				url: ajaxUrl,
 				type: 'POST',
 				data: {
-					action: 'aie_content_sync_get_local_posts_info',
+					action: 'rsl_ie_content_sync_get_local_posts_info',
 					nonce: nonce,
 					post_ids: postIds,
 				},
@@ -492,7 +493,7 @@ if (
 							url: ajaxUrl,
 							type: 'POST',
 							data: {
-								action: 'aie_content_sync_get_remote_posts',
+								action: 'rsl_ie_content_sync_get_remote_posts',
 								nonce: nonce,
 								site_id: siteId,
 								post_type: 'any',
@@ -504,11 +505,11 @@ if (
 										postIds,
 										response.data.posts
 									);
-									$( '#aie-mapping-loading' ).hide();
-									$( '#aie-mapping-table-container' ).fadeIn(
-										200
-									);
-									$( '#aie-mapping-confirm-btn' ).prop(
+									$( '#rsl-ie-mapping-loading' ).hide();
+									$(
+										'#rsl-ie-mapping-table-container'
+									).fadeIn( 200 );
+									$( '#rsl-ie-mapping-confirm-btn' ).prop(
 										'disabled',
 										false
 									);
@@ -520,10 +521,10 @@ if (
 								} else {
 									const errorMsg =
 										response.data?.message ||
-										aiePostSyncData?.i18n?.unknownError ||
+										rslIePostSyncData?.i18n?.unknownError ||
 										'Unknown error';
 									const message =
-										( aiePostSyncData?.i18n
+										( rslIePostSyncData?.i18n
 											?.failedLoadRemotePosts ||
 											'Failed to load remote posts' ) +
 										': ' +
@@ -534,7 +535,7 @@ if (
 							},
 							error: ( xhr ) => {
 								const message =
-									aiePostSyncData?.i18n
+									rslIePostSyncData?.i18n
 										?.failedConnectRemote ||
 									'Failed to connect to remote site';
 								alert( message );
@@ -544,10 +545,10 @@ if (
 					} else {
 						const errorMsg =
 							localResponse.data?.message ||
-							aiePostSyncData?.i18n?.unknownError ||
+							rslIePostSyncData?.i18n?.unknownError ||
 							'Unknown error';
 						const message =
-							( aiePostSyncData?.i18n?.failedLoadLocalPosts ||
+							( rslIePostSyncData?.i18n?.failedLoadLocalPosts ||
 								'Failed to load local posts info' ) +
 							': ' +
 							errorMsg;
@@ -557,7 +558,7 @@ if (
 				},
 				error: ( xhr ) => {
 					const message =
-						aiePostSyncData?.i18n?.failedLoadLocalPosts ||
+						rslIePostSyncData?.i18n?.failedLoadLocalPosts ||
 						'Failed to load local posts info';
 					alert( message );
 					this.closeMappingModal();
@@ -569,7 +570,7 @@ if (
 		 * Render mapping table
 		 */
 		renderMappingTable( localPostIds, remotePosts ) {
-			const $tbody = $( '#aie-mapping-tbody' );
+			const $tbody = $( '#rsl-ie-mapping-tbody' );
 			$tbody.empty();
 
 			localPostIds.forEach( ( postId ) => {
@@ -586,7 +587,8 @@ if (
 		 */
 		createMappingRow( postId, remotePosts ) {
 			// Get local post info from AJAX response or fallback to DOM
-			const postHashText = aiePostSyncData?.i18n?.postHash || 'Post #%s';
+			const postHashText =
+				rslIePostSyncData?.i18n?.postHash || 'Post #%s';
 			let postTitle = postHashText.replace( '%s', postId );
 			let postType = 'post';
 			let originalRemoteId = 0;
@@ -617,26 +619,27 @@ if (
 			const $row = $( '<tr>' ).attr( 'data-local-id', postId );
 
 			// Local post column
-			const idLabel = aiePostSyncData?.i18n?.idLabel || 'ID:';
-			const $localCol = $( '<td>' ).addClass( 'aie-local-post' ).html( `
-				<div class="aie-local-post-info">
+			const idLabel = rslIePostSyncData?.i18n?.idLabel || 'ID:';
+			const $localCol = $( '<td>' ).addClass( 'rsl-ie-local-post' )
+				.html( `
+				<div class="rsl-ie-local-post-info">
 					<h4>${ postTitle }</h4>
-					<div class="aie-post-meta">
-						<span class="aie-post-type">${ postType }</span>
-						<span class="aie-post-id">${ idLabel } ${ postId }</span>
+					<div class="rsl-ie-post-meta">
+						<span class="rsl-ie-post-type">${ postType }</span>
+						<span class="rsl-ie-post-id">${ idLabel } ${ postId }</span>
 					</div>
 				</div>
 			` );
 
 			// Arrow column
 			const $arrowCol = $( '<td>' )
-				.addClass( 'aie-sync-arrow' )
+				.addClass( 'rsl-ie-sync-arrow' )
 				.html( '→' );
 
 			// Remote action column
-			const $remoteCol = $( '<td>' ).addClass( 'aie-remote-post' );
+			const $remoteCol = $( '<td>' ).addClass( 'rsl-ie-remote-post' );
 			const $select = $( '<select>' )
-				.addClass( 'aie-remote-select' )
+				.addClass( 'rsl-ie-remote-select' )
 				.attr( 'data-local-id', postId );
 			if ( originalRemoteId ) {
 				$select.attr( 'data-original-remote-id', originalRemoteId );
@@ -644,13 +647,13 @@ if (
 
 			// Add "Create New" option
 			const createNewText =
-				aiePostSyncData?.i18n?.createNewPost || '➕ Create New Post';
+				rslIePostSyncData?.i18n?.createNewPost || '➕ Create New Post';
 			$select.append(
-				`<option value="new" selected class="aie-option-new">${ createNewText }</option>`
+				`<option value="new" selected class="rsl-ie-option-new">${ createNewText }</option>`
 			);
 
 			const $wrapper = $( '<div>' ).addClass(
-				'aie-remote-select-wrapper aie-action-new'
+				'rsl-ie-remote-select-wrapper rsl-ie-action-new'
 			);
 			$wrapper.append( $select );
 			$remoteCol.append( $wrapper );
@@ -671,9 +674,9 @@ if (
 		initializeSelect2( $select, localPostTitle, localPostType ) {
 			const siteId = this.currentSiteId;
 			const siteInfo =
-				typeof aiePostSyncData !== 'undefined' &&
-				aiePostSyncData.connectedSites
-					? aiePostSyncData.connectedSites[ siteId ]
+				typeof rslIePostSyncData !== 'undefined' &&
+				rslIePostSyncData.connectedSites
+					? rslIePostSyncData.connectedSites[ siteId ]
 					: null;
 
 			if ( ! siteInfo ) {
@@ -681,13 +684,14 @@ if (
 			}
 
 			const ajaxUrl =
-				typeof aiePostSyncData !== 'undefined' &&
-				aiePostSyncData.ajaxurl
-					? aiePostSyncData.ajaxurl
+				typeof rslIePostSyncData !== 'undefined' &&
+				rslIePostSyncData.ajaxurl
+					? rslIePostSyncData.ajaxurl
 					: ajaxurl;
 			const nonce =
-				typeof aiePostSyncData !== 'undefined' && aiePostSyncData.nonce
-					? aiePostSyncData.nonce
+				typeof rslIePostSyncData !== 'undefined' &&
+				rslIePostSyncData.nonce
+					? rslIePostSyncData.nonce
 					: '';
 
 			// Get human-readable post type label
@@ -699,7 +703,7 @@ if (
 					: localPostType;
 
 			const searchPlaceholder =
-				aiePostSyncData?.i18n?.searchForUpdate ||
+				rslIePostSyncData?.i18n?.searchForUpdate ||
 				'Search for a %s to update...';
 			$select.select2( {
 				placeholder: searchPlaceholder.replace( '%s', postTypeLabel ),
@@ -712,7 +716,7 @@ if (
 					delay: 300,
 					data: ( params ) => {
 						return {
-							action: 'aie_content_sync_search_remote_posts',
+							action: 'rsl_ie_content_sync_search_remote_posts',
 							nonce: nonce,
 							site_id: siteId,
 							search: params.term || '',
@@ -730,7 +734,7 @@ if (
 
 						const results = response.data.posts || [];
 						const updateTemplate =
-							aiePostSyncData?.i18n?.updatePost ||
+							rslIePostSyncData?.i18n?.updatePost ||
 							'🔄 Update: %1$s (ID: %2$s)';
 						const formattedResults = results.map( ( post ) => ( {
 							id: post.ID,
@@ -745,7 +749,7 @@ if (
 						// Add "Create New" option at the beginning if it's the first page
 						if ( params.page === 1 ) {
 							const createNewText =
-								aiePostSyncData?.i18n?.createNewPost ||
+								rslIePostSyncData?.i18n?.createNewPost ||
 								'➕ Create New Post';
 							formattedResults.unshift( {
 								id: 'new',
@@ -772,16 +776,16 @@ if (
 				templateSelection: ( item ) => {
 					// Update wrapper class based on selection
 					const $wrapper = $select.closest(
-						'.aie-remote-select-wrapper'
+						'.rsl-ie-remote-select-wrapper'
 					);
 					if ( item.id === 'new' ) {
 						$wrapper
-							.removeClass( 'aie-action-update' )
-							.addClass( 'aie-action-new' );
+							.removeClass( 'rsl-ie-action-update' )
+							.addClass( 'rsl-ie-action-new' );
 					} else {
 						$wrapper
-							.removeClass( 'aie-action-new' )
-							.addClass( 'aie-action-update' );
+							.removeClass( 'rsl-ie-action-new' )
+							.addClass( 'rsl-ie-action-update' );
 					}
 					return item.text;
 				},
@@ -794,7 +798,7 @@ if (
 			);
 			if ( originalRemoteId ) {
 				const updateTemplate =
-					aiePostSyncData?.i18n?.updatePost ||
+					rslIePostSyncData?.i18n?.updatePost ||
 					'🔄 Update: %1$s (ID: %2$s)';
 				const optionText = updateTemplate
 					.replace( '%1$s', localPostTitle || '' )
@@ -815,15 +819,15 @@ if (
 		bindMappingEvents() {
 			// Close mapping modal
 			$( document )
-				.off( 'click', '.aie-modal-close' )
-				.on( 'click', '.aie-modal-close', ( e ) => {
+				.off( 'click', '.rsl-ie-modal-close' )
+				.on( 'click', '.rsl-ie-modal-close', ( e ) => {
 					this.closeMappingModal();
 				} );
 
 			// Cancel button
 			$( document )
-				.off( 'click', '#aie-mapping-cancel-btn' )
-				.on( 'click', '#aie-mapping-cancel-btn', ( e ) => {
+				.off( 'click', '#rsl-ie-mapping-cancel-btn' )
+				.on( 'click', '#rsl-ie-mapping-cancel-btn', ( e ) => {
 					e.preventDefault();
 					this.closeMappingModal();
 					// Reopen site selection modal
@@ -832,34 +836,36 @@ if (
 
 			// Confirm button
 			$( document )
-				.off( 'click', '#aie-mapping-confirm-btn' )
-				.on( 'click', '#aie-mapping-confirm-btn', ( e ) => {
+				.off( 'click', '#rsl-ie-mapping-confirm-btn' )
+				.on( 'click', '#rsl-ie-mapping-confirm-btn', ( e ) => {
 					e.preventDefault();
 					this.confirmMapping();
 				} );
 
 			// Auto-match button
 			$( document )
-				.off( 'click', '#aie-auto-match-btn' )
-				.on( 'click', '#aie-auto-match-btn', ( e ) => {
+				.off( 'click', '#rsl-ie-auto-match-btn' )
+				.on( 'click', '#rsl-ie-auto-match-btn', ( e ) => {
 					e.preventDefault();
 					this.autoMatchByTitle();
 				} );
 
 			// Select change
 			$( document )
-				.off( 'change', '.aie-remote-select' )
-				.on( 'change', '.aie-remote-select', function () {
+				.off( 'change', '.rsl-ie-remote-select' )
+				.on( 'change', '.rsl-ie-remote-select', function () {
 					const value = $( this ).val();
 					const $wrapper = $( this ).closest(
-						'.aie-remote-select-wrapper'
+						'.rsl-ie-remote-select-wrapper'
 					);
 
-					$wrapper.removeClass( 'aie-action-new aie-action-update' );
+					$wrapper.removeClass(
+						'rsl-ie-action-new rsl-ie-action-update'
+					);
 					if ( value === 'new' ) {
-						$wrapper.addClass( 'aie-action-new' );
+						$wrapper.addClass( 'rsl-ie-action-new' );
 					} else {
-						$wrapper.addClass( 'aie-action-update' );
+						$wrapper.addClass( 'rsl-ie-action-update' );
 					}
 				} );
 		},
@@ -870,32 +876,36 @@ if (
 		autoMatchByTitle() {
 			const siteId = this.currentSiteId;
 			const ajaxUrl =
-				typeof aiePostSyncData !== 'undefined' &&
-				aiePostSyncData.ajaxurl
-					? aiePostSyncData.ajaxurl
+				typeof rslIePostSyncData !== 'undefined' &&
+				rslIePostSyncData.ajaxurl
+					? rslIePostSyncData.ajaxurl
 					: ajaxurl;
 			const nonce =
-				typeof aiePostSyncData !== 'undefined' && aiePostSyncData.nonce
-					? aiePostSyncData.nonce
+				typeof rslIePostSyncData !== 'undefined' &&
+				rslIePostSyncData.nonce
+					? rslIePostSyncData.nonce
 					: '';
 
 			// Process each select
-			$( '.aie-remote-select' ).each( ( i, select ) => {
+			$( '.rsl-ie-remote-select' ).each( ( i, select ) => {
 				const $select = $( select );
 				const localId = $select.data( 'local-id' );
 				const $row = $( `tr[data-local-id="${ localId }"]` );
 				const localTitle = $row
-					.find( '.aie-local-post-info h4' )
+					.find( '.rsl-ie-local-post-info h4' )
 					.text()
 					.trim();
-				const localType = $row.find( '.aie-post-type' ).text().trim();
+				const localType = $row
+					.find( '.rsl-ie-post-type' )
+					.text()
+					.trim();
 
 				// Search for remote post with exact title
 				$.ajax( {
 					url: ajaxUrl,
 					type: 'POST',
 					data: {
-						action: 'aie_content_sync_search_remote_posts',
+						action: 'rsl_ie_content_sync_search_remote_posts',
 						nonce: nonce,
 						site_id: siteId,
 						search: localTitle,
@@ -925,7 +935,8 @@ if (
 										).length > 0;
 									if ( ! optionExists ) {
 										const updateTemplate =
-											aiePostSyncData?.i18n?.updatePost ||
+											rslIePostSyncData?.i18n
+												?.updatePost ||
 											'🔄 Update: %1$s (ID: %2$s)';
 										const optionText = updateTemplate
 											.replace( '%1$s', post.post_title )
@@ -969,7 +980,7 @@ if (
 		confirmMapping() {
 			// Collect mapping
 			const postMapping = {};
-			$( '.aie-remote-select' ).each( function () {
+			$( '.rsl-ie-remote-select' ).each( function () {
 				const localId = $( this ).data( 'local-id' );
 				const remoteId = $( this ).val();
 
@@ -1018,35 +1029,36 @@ if (
 			this.isSyncing = true;
 
 			// Open sync modal to show progress
-			$( '#aie-sync-modal' ).fadeIn( 200 );
+			$( '#rsl-ie-sync-modal' ).fadeIn( 200 );
 
 			// Hide initial content and show progress
 			$(
-				'.aie-sync-info, .aie-form-group, .aie-sync-direction, .aie-browse-section, .aie-no-selection-message'
+				'.rsl-ie-sync-info, .rsl-ie-form-group, .rsl-ie-sync-direction, .rsl-ie-browse-section, .rsl-ie-no-selection-message'
 			).css( 'display', 'none' );
-			$( '#aie-sync-progress' ).show();
-			$( '#aie-sync-result' ).hide();
-			$( '.aie-progress-fill' ).css( 'width', '0%' );
+			$( '#rsl-ie-sync-progress' ).show();
+			$( '#rsl-ie-sync-result' ).hide();
+			$( '.rsl-ie-progress-fill' ).css( 'width', '0%' );
 			const startingText =
-				aiePostSyncData?.i18n?.starting || 'Starting %s...';
-			$( '.aie-progress-text' ).text(
+				rslIePostSyncData?.i18n?.starting || 'Starting %s...';
+			$( '.rsl-ie-progress-text' ).text(
 				startingText.replace( '%s', direction )
 			);
 
 			// Disable buttons
 			$(
-				'#aie-sync-push-btn, #aie-sync-pull-btn, #aie-sync-site-select'
+				'#rsl-ie-sync-push-btn, #rsl-ie-sync-pull-btn, #rsl-ie-sync-site-select'
 			).prop( 'disabled', true );
 
 			// Make AJAX request
 			const nonce =
-				typeof aiePostSyncData !== 'undefined' && aiePostSyncData.nonce
-					? aiePostSyncData.nonce
+				typeof rslIePostSyncData !== 'undefined' &&
+				rslIePostSyncData.nonce
+					? rslIePostSyncData.nonce
 					: '';
 			const ajaxUrl =
-				typeof aiePostSyncData !== 'undefined' &&
-				aiePostSyncData.ajaxurl
-					? aiePostSyncData.ajaxurl
+				typeof rslIePostSyncData !== 'undefined' &&
+				rslIePostSyncData.ajaxurl
+					? rslIePostSyncData.ajaxurl
 					: ajaxurl;
 
 			$.ajax( {
@@ -1061,33 +1073,33 @@ if (
 				},
 				success: ( response ) => {
 					if ( response.success ) {
-						$( '.aie-progress-fill' ).css( 'width', '100%' );
+						$( '.rsl-ie-progress-fill' ).css( 'width', '100%' );
 						const completedText =
-							aiePostSyncData?.i18n?.completed || 'Completed!';
-						$( '.aie-progress-text' ).text( completedText );
+							rslIePostSyncData?.i18n?.completed || 'Completed!';
+						$( '.rsl-ie-progress-text' ).text( completedText );
 
 						setTimeout( () => {
-							$( '#aie-sync-progress' ).hide();
+							$( '#rsl-ie-sync-progress' ).hide();
 							const successMsg =
 								response.data.message ||
-								aiePostSyncData?.i18n?.syncCompletedSuccess ||
+								rslIePostSyncData?.i18n?.syncCompletedSuccess ||
 								'Sync completed successfully';
 							this.showResult( 'success', successMsg );
 						}, 500 );
 					} else {
-						$( '#aie-sync-progress' ).hide();
+						$( '#rsl-ie-sync-progress' ).hide();
 						const errorMsg =
 							response.data.message ||
-							aiePostSyncData?.i18n?.syncFailed ||
+							rslIePostSyncData?.i18n?.syncFailed ||
 							'Sync failed';
 						this.showResult( 'error', errorMsg );
 					}
 				},
 				error: ( xhr ) => {
-					$( '#aie-sync-progress' ).hide();
+					$( '#rsl-ie-sync-progress' ).hide();
 
 					let errorMessage =
-						aiePostSyncData?.i18n?.errorDuringSync ||
+						rslIePostSyncData?.i18n?.errorDuringSync ||
 						'An error occurred during sync';
 					if (
 						xhr.responseJSON &&
@@ -1102,7 +1114,7 @@ if (
 				complete: () => {
 					// Re-enable buttons
 					$(
-						'#aie-sync-push-btn, #aie-sync-pull-btn, #aie-sync-site-select'
+						'#rsl-ie-sync-push-btn, #rsl-ie-sync-pull-btn, #rsl-ie-sync-site-select'
 					).prop( 'disabled', false );
 					this.updateSyncButtons();
 				},
@@ -1113,18 +1125,18 @@ if (
 		 * Open browse remote posts modal
 		 */
 		openBrowseModal() {
-			const siteId = $( '#aie-sync-site-select' ).val();
+			const siteId = $( '#rsl-ie-sync-site-select' ).val();
 			if ( ! siteId ) {
 				// If no site selected, open the main sync modal to select a site first
-				$( '#aie-sync-site-select' ).val( '' );
-				$( '#aie-sync-progress' ).hide();
-				$( '#aie-sync-result' ).hide();
+				$( '#rsl-ie-sync-site-select' ).val( '' );
+				$( '#rsl-ie-sync-progress' ).hide();
+				$( '#rsl-ie-sync-result' ).hide();
 				this.updateSyncButtons();
 
-				$( '.aie-sync-direction' ).hide();
-				$( '.aie-sync-info' ).hide();
+				$( '.rsl-ie-sync-direction' ).hide();
+				$( '.rsl-ie-sync-info' ).hide();
 
-				$( '#aie-sync-modal' ).fadeIn( 200 );
+				$( '#rsl-ie-sync-modal' ).fadeIn( 200 );
 
 				// Store flag that we want to open browse modal after site selection
 				this.pendingBrowseModal = true;
@@ -1144,19 +1156,19 @@ if (
 			};
 
 			// Reset modal UI
-			$( '#aie-browse-search' ).val( '' );
-			$( '#aie-browse-posts-tree' ).empty().hide();
-			$( '#aie-browse-loading' ).show();
-			$( '#aie-browse-pagination' ).hide();
-			$( '#aie-browse-pull-btn' ).prop( 'disabled', true );
-			$( '#aie-browse-selected-count' ).text( '0' );
+			$( '#rsl-ie-browse-search' ).val( '' );
+			$( '#rsl-ie-browse-posts-tree' ).empty().hide();
+			$( '#rsl-ie-browse-loading' ).show();
+			$( '#rsl-ie-browse-pagination' ).hide();
+			$( '#rsl-ie-browse-pull-btn' ).prop( 'disabled', true );
+			$( '#rsl-ie-browse-selected-count' ).text( '0' );
 
 			// Reset filters
-			$( '.aie-filter-item' ).removeClass( 'active' );
-			$( '.aie-filter-item[data-status=""]' ).addClass( 'active' );
+			$( '.rsl-ie-filter-item' ).removeClass( 'active' );
+			$( '.rsl-ie-filter-item[data-status=""]' ).addClass( 'active' );
 
 			// Show browse modal
-			$( '#aie-browse-modal' ).fadeIn( 200 );
+			$( '#rsl-ie-browse-modal' ).fadeIn( 200 );
 
 			// Load remote posts
 			this.loadRemotePosts();
@@ -1167,16 +1179,18 @@ if (
 		 * @param {boolean} returnToChooseSite - If true, return to Choose Site modal; if false, close everything
 		 */
 		closeBrowseModal( returnToChooseSite = true ) {
-			$( '#aie-browse-modal' ).fadeOut( 200, () => {
+			$( '#rsl-ie-browse-modal' ).fadeOut( 200, () => {
 				if ( returnToChooseSite ) {
 					// Return back to Choose Site modal with site selection preserved
-					$( '#aie-sync-modal' ).fadeIn( 200, () => {
+					$( '#rsl-ie-sync-modal' ).fadeIn( 200, () => {
 						// Update UI to reflect current state (hide Push/Pull if no posts selected)
 						this.updateSyncButtons();
 					} );
 				} else {
 					// Close everything and reset
-					$( '#aie-sync-site-select' ).val( '' ).trigger( 'change' );
+					$( '#rsl-ie-sync-site-select' )
+						.val( '' )
+						.trigger( 'change' );
 					this.updateSyncButtons();
 				}
 			} );
@@ -1210,25 +1224,25 @@ if (
 		 * Load remote posts with pagination and filters
 		 */
 		loadRemotePosts() {
-			if ( typeof aiePostSyncData === 'undefined' ) {
+			if ( typeof rslIePostSyncData === 'undefined' ) {
 				const errorMsg =
-					aiePostSyncData?.i18n?.pluginDataNotLoaded ||
+					rslIePostSyncData?.i18n?.pluginDataNotLoaded ||
 					'Plugin data not loaded. Please refresh the page.';
 				this.showBrowseError( errorMsg );
 				return;
 			}
 
-			const ajaxUrl = aiePostSyncData.ajaxurl; // lowercase 'ajaxurl' to match PHP localization
-			const nonce = aiePostSyncData.nonce;
+			const ajaxUrl = rslIePostSyncData.ajaxurl; // lowercase 'ajaxurl' to match PHP localization
+			const nonce = rslIePostSyncData.nonce;
 
-			$( '#aie-browse-loading' ).show();
-			$( '#aie-browse-posts-tree' ).hide();
+			$( '#rsl-ie-browse-loading' ).show();
+			$( '#rsl-ie-browse-posts-tree' ).hide();
 
 			$.ajax( {
 				url: ajaxUrl,
 				type: 'POST',
 				data: {
-					action: 'aie_content_sync_get_remote_posts',
+					action: 'rsl_ie_content_sync_get_remote_posts',
 					nonce: nonce,
 					site_id: this.browseState.siteId,
 					post_type: this.browseState.postType,
@@ -1256,7 +1270,7 @@ if (
 				},
 				error: ( xhr ) => {
 					let errorMessage =
-						aiePostSyncData?.i18n?.errorLoadingPosts ||
+						rslIePostSyncData?.i18n?.errorLoadingPosts ||
 						'An error occurred while loading posts';
 					if (
 						xhr.responseJSON &&
@@ -1272,15 +1286,15 @@ if (
 		 * Render posts tree
 		 */,
 		renderPostsTree( posts ) {
-			$( '#aie-browse-loading' ).hide();
+			$( '#rsl-ie-browse-loading' ).hide();
 
 			if ( ! posts || posts.length === 0 ) {
 				const noPostsText =
-					aiePostSyncData?.i18n?.noPostsFound || 'No posts found';
-				$( '#aie-browse-posts-tree' )
+					rslIePostSyncData?.i18n?.noPostsFound || 'No posts found';
+				$( '#rsl-ie-browse-posts-tree' )
 					.html(
 						`
-					<div class="aie-loading-posts">
+					<div class="rsl-ie-loading-posts">
 						<span class="dashicons dashicons-admin-post" style="font-size: 48px; opacity: 0.3; width: auto; height: auto;"></span>
 						<p>${ noPostsText }</p>
 					</div>
@@ -1290,7 +1304,7 @@ if (
 				return;
 			}
 
-			const $tree = $( '#aie-browse-posts-tree' );
+			const $tree = $( '#rsl-ie-browse-posts-tree' );
 			$tree.empty();
 
 			posts.forEach( ( post ) => {
@@ -1313,48 +1327,50 @@ if (
 			const date = new Date( post.post_modified );
 			const formattedDate = date.toLocaleDateString();
 
-			const $wrapper = $( '<div class="aie-post-wrapper"></div>' );
+			const $wrapper = $( '<div class="rsl-ie-post-wrapper"></div>' );
 
 			const $item = $( `
-				<div class="aie-post-item ${ isSelected ? 'selected' : '' } ${
+				<div class="rsl-ie-post-item ${ isSelected ? 'selected' : '' } ${
 					hasChildren ? 'has-children' : ''
 				}" data-post-id="${ post.ID }">
 					${
 						hasChildren
-							? `<button type="button" class="aie-post-toggle ${
+							? `<button type="button" class="rsl-ie-post-toggle ${
 									isExpanded ? 'expanded' : ''
 							  }">
 						<span class="dashicons dashicons-arrow-right-alt2"></span>
 					</button>`
 							: '<span style="width: 28px; display: inline-block;"></span>'
 					}
-					<input type="checkbox" class="aie-post-checkbox" value="${ post.ID }" ${
+					<input type="checkbox" class="rsl-ie-post-checkbox" value="${ post.ID }" ${
 						isSelected ? 'checked' : ''
 					} />
-					<span class="aie-post-icon">
+					<span class="rsl-ie-post-icon">
 						<span class="dashicons dashicons-admin-post"></span>
 					</span>
-					<div class="aie-post-info">
-						<div class="aie-post-title">${ this.escapeHtml(
+					<div class="rsl-ie-post-info">
+						<div class="rsl-ie-post-title">${ this.escapeHtml(
 							post.post_title ||
-								aiePostSyncData?.i18n?.noTitle ||
+								rslIePostSyncData?.i18n?.noTitle ||
 								'(No title)'
 						) }</div>
-						<div class="aie-post-meta">
-							<span class="aie-post-status ${ post.post_status }">${ post.post_status }</span>
-							<span class="aie-post-date">${ formattedDate }</span>
+						<div class="rsl-ie-post-meta">
+							<span class="rsl-ie-post-status ${ post.post_status }">${
+								post.post_status
+							}</span>
+							<span class="rsl-ie-post-date">${ formattedDate }</span>
 							${
 								hasChildren
 									? ( () => {
 											const count = post.children_count;
 											const childText =
 												count === 1
-													? aiePostSyncData?.i18n
+													? rslIePostSyncData?.i18n
 															?.child || 'child'
-													: aiePostSyncData?.i18n
+													: rslIePostSyncData?.i18n
 															?.children ||
 													  'children';
-											return `<span class="aie-post-children-count">${ count } ${ childText }</span>`;
+											return `<span class="rsl-ie-post-children-count">${ count } ${ childText }</span>`;
 									  } )()
 									: ''
 							}
@@ -1368,7 +1384,7 @@ if (
 			// Add children container if has children
 			if ( hasChildren ) {
 				const $children = $(
-					'<div class="aie-post-children" style="display: none;"></div>'
+					'<div class="rsl-ie-post-children" style="display: none;"></div>'
 				);
 				$wrapper.append( $children );
 			}
@@ -1381,26 +1397,26 @@ if (
 		 */
 		updatePagination( data ) {
 			if ( ! data.pages || data.pages <= 1 ) {
-				$( '#aie-browse-pagination' ).hide();
+				$( '#rsl-ie-browse-pagination' ).hide();
 				return;
 			}
 
 			this.browseState.currentPage = data.current_page;
 			this.browseState.totalPages = data.pages;
 
-			$( '#aie-browse-current-page' ).text( data.current_page );
-			$( '#aie-browse-total-pages' ).text( data.pages );
+			$( '#rsl-ie-browse-current-page' ).text( data.current_page );
+			$( '#rsl-ie-browse-total-pages' ).text( data.pages );
 
-			$( '#aie-browse-prev-page' ).prop(
+			$( '#rsl-ie-browse-prev-page' ).prop(
 				'disabled',
 				data.current_page <= 1
 			);
-			$( '#aie-browse-next-page' ).prop(
+			$( '#rsl-ie-browse-next-page' ).prop(
 				'disabled',
 				data.current_page >= data.pages
 			);
 
-			$( '#aie-browse-pagination' ).show();
+			$( '#rsl-ie-browse-pagination' ).show();
 		},
 
 		/**
@@ -1409,17 +1425,17 @@ if (
 		updateFilterCounts( counts ) {
 			if ( ! counts ) return;
 
-			$( '.aie-filter-item[data-status=""]' )
-				.find( '.aie-filter-count' )
+			$( '.rsl-ie-filter-item[data-status=""]' )
+				.find( '.rsl-ie-filter-count' )
 				.text( counts.all || 0 );
-			$( '.aie-filter-item[data-status="publish"]' )
-				.find( '.aie-filter-count' )
+			$( '.rsl-ie-filter-item[data-status="publish"]' )
+				.find( '.rsl-ie-filter-count' )
 				.text( counts.publish || 0 );
-			$( '.aie-filter-item[data-status="draft"]' )
-				.find( '.aie-filter-count' )
+			$( '.rsl-ie-filter-item[data-status="draft"]' )
+				.find( '.rsl-ie-filter-count' )
 				.text( counts.draft || 0 );
-			$( '.aie-filter-item[data-status="pending"]' )
-				.find( '.aie-filter-count' )
+			$( '.rsl-ie-filter-item[data-status="pending"]' )
+				.find( '.rsl-ie-filter-count' )
 				.text( counts.pending || 0 );
 		},
 
@@ -1427,9 +1443,9 @@ if (
 		 * Load children posts
 		 */
 		loadChildrenPosts( parentId, $childrenContainer ) {
-			if ( typeof aiePostSyncData === 'undefined' ) {
+			if ( typeof rslIePostSyncData === 'undefined' ) {
 				const errorMsg =
-					aiePostSyncData?.i18n?.pluginDataNotLoaded ||
+					rslIePostSyncData?.i18n?.pluginDataNotLoaded ||
 					'Plugin data not loaded';
 				$childrenContainer.html(
 					`<div style="padding: 10px; color: #d63638;">${ errorMsg }</div>`
@@ -1437,8 +1453,8 @@ if (
 				return;
 			}
 
-			const ajaxUrl = aiePostSyncData.ajaxurl; // lowercase 'ajaxurl' to match PHP localization
-			const nonce = aiePostSyncData.nonce;
+			const ajaxUrl = rslIePostSyncData.ajaxurl; // lowercase 'ajaxurl' to match PHP localization
+			const nonce = rslIePostSyncData.nonce;
 
 			// Show loading
 			$childrenContainer
@@ -1451,7 +1467,7 @@ if (
 				url: ajaxUrl,
 				type: 'POST',
 				data: {
-					action: 'aie_content_sync_get_children_posts',
+					action: 'rsl_ie_content_sync_get_children_posts',
 					nonce: nonce,
 					site_id: this.browseState.siteId,
 					parent_id: parentId,
@@ -1466,7 +1482,7 @@ if (
 						} );
 					} else {
 						const errorMsg =
-							aiePostSyncData?.i18n?.failedLoadChildren ||
+							rslIePostSyncData?.i18n?.failedLoadChildren ||
 							'Failed to load children';
 						$childrenContainer.html(
 							`<div style="padding: 10px; color: #d63638;">${ errorMsg }</div>`
@@ -1475,7 +1491,7 @@ if (
 				},
 				error: () => {
 					const errorMsg =
-						aiePostSyncData?.i18n?.errorLoadingChildren ||
+						rslIePostSyncData?.i18n?.errorLoadingChildren ||
 						'Error loading children';
 					$childrenContainer.html(
 						`<div style="padding: 10px; color: #d63638;">${ errorMsg }</div>`
@@ -1488,11 +1504,11 @@ if (
 		 * Show browse error
 		 */
 		showBrowseError( message ) {
-			$( '#aie-browse-loading' ).hide();
-			$( '#aie-browse-posts-tree' )
+			$( '#rsl-ie-browse-loading' ).hide();
+			$( '#rsl-ie-browse-posts-tree' )
 				.html(
 					`
-				<div class="aie-loading-posts">
+				<div class="rsl-ie-loading-posts">
 					<span class="dashicons dashicons-warning" style="font-size: 48px; opacity: 0.3; width: auto; height: auto;"></span>
 					<p>${ this.escapeHtml( message ) }</p>
 				</div>
@@ -1508,10 +1524,10 @@ if (
 			const count = this.browseState.selectedPosts.size;
 
 			// Update count display
-			$( '#aie-browse-selected-count' ).text( count );
+			$( '#rsl-ie-browse-selected-count' ).text( count );
 
 			// Enable/disable pull button
-			$( '#aie-browse-pull-btn' ).prop( 'disabled', count === 0 );
+			$( '#rsl-ie-browse-pull-btn' ).prop( 'disabled', count === 0 );
 		},
 
 		/**
@@ -1520,7 +1536,7 @@ if (
 		pullSelectedPosts() {
 			if ( this.browseState.selectedPosts.size === 0 ) {
 				const message =
-					aiePostSyncData?.i18n?.pleaseSelectOnePost ||
+					rslIePostSyncData?.i18n?.pleaseSelectOnePost ||
 					'Please select at least one post';
 				alert( message );
 				return;
@@ -1539,27 +1555,27 @@ if (
 			this.closeBrowseModal();
 
 			// Show main sync modal with progress
-			$( '#aie-sync-modal' ).fadeIn( 200 );
+			$( '#rsl-ie-sync-modal' ).fadeIn( 200 );
 
 			// Hide initial content and show only progress
 			$(
-				'.aie-sync-info, .aie-form-group, .aie-sync-direction, .aie-browse-section, .aie-no-selection-message'
+				'.rsl-ie-sync-info, .rsl-ie-form-group, .rsl-ie-sync-direction, .rsl-ie-browse-section, .rsl-ie-no-selection-message'
 			).css( 'display', 'none' );
-			$( '#aie-sync-progress' ).show();
-			$( '.aie-progress-fill' ).css( 'width', '0%' );
+			$( '#rsl-ie-sync-progress' ).show();
+			$( '.rsl-ie-progress-fill' ).css( 'width', '0%' );
 			const pullingText =
-				aiePostSyncData?.i18n?.pullingPosts || 'Pulling posts...';
-			$( '.aie-progress-text' ).text( pullingText );
-			$( '#aie-sync-result' ).hide();
+				rslIePostSyncData?.i18n?.pullingPosts || 'Pulling posts...';
+			$( '.rsl-ie-progress-text' ).text( pullingText );
+			$( '#rsl-ie-sync-result' ).hide();
 
 			// Disable buttons during sync
 			$(
-				'#aie-sync-push-btn, #aie-sync-pull-btn, #aie-sync-site-select'
+				'#rsl-ie-sync-push-btn, #rsl-ie-sync-pull-btn, #rsl-ie-sync-site-select'
 			).prop( 'disabled', true );
 
 			// Animate progress
 			setTimeout( () => {
-				$( '.aie-progress-fill' ).css( 'width', '50%' );
+				$( '.rsl-ie-progress-fill' ).css( 'width', '50%' );
 			}, 100 );
 
 			// Perform pull with mapping
@@ -1582,11 +1598,11 @@ if (
 			// Reset syncing flag
 			this.isSyncing = false;
 
-			const $result = $( '#aie-sync-result' );
+			const $result = $( '#rsl-ie-sync-result' );
 
 			// Make sure initial sections stay hidden when showing result
 			$(
-				'.aie-sync-info, .aie-form-group, .aie-sync-direction, .aie-browse-section, .aie-no-selection-message'
+				'.rsl-ie-sync-info, .rsl-ie-form-group, .rsl-ie-sync-direction, .rsl-ie-browse-section, .rsl-ie-no-selection-message'
 			).css( 'display', 'none' );
 
 			$result

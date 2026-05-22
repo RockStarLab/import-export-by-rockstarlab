@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 		<?php esc_html_e( 'Bulk update your content by applying custom functions to selected fields', 'import-export-by-rockstarlab' ); ?>
 	</p>
 
-	<div class="aie-updater-wizard">
+	<div class="rsl-ie-updater-wizard">
 		<?php
 		require_once __DIR__ . '/partials/updater-step-1.php';
 		require_once __DIR__ . '/partials/updater-step-2.php';

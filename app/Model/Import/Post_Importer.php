@@ -184,8 +184,8 @@ class Post_Importer extends Abstract_Importer {
 		// Backup raw meta_* values that may be overridden by portable acf_* values.
 		// When ACF field definitions are missing on the target site, update_field()
 		// can fail; in that case we should fall back to the raw ACF storage format.
-		if ( ! isset( $item['_aie_raw_post_meta'] ) || ! is_array( $item['_aie_raw_post_meta'] ) ) {
-			$item['_aie_raw_post_meta'] = [];
+		if ( ! isset( $item['_rsl_ie_raw_post_meta'] ) || ! is_array( $item['_rsl_ie_raw_post_meta'] ) ) {
+			$item['_rsl_ie_raw_post_meta'] = [];
 		}
 
 		// ── Pass 1: taxonomy_* and meta_* (lower priority) ────────────────────
@@ -235,8 +235,8 @@ class Post_Importer extends Abstract_Importer {
 			if ( 0 === strpos( $key, 'acf_' ) ) {
 				$meta_key = substr( $key, strlen( 'acf_' ) );
 				if ( '' !== $meta_key ) {
-					if ( array_key_exists( $meta_key, $item['post_meta'] ) && ! array_key_exists( $meta_key, $item['_aie_raw_post_meta'] ) ) {
-						$item['_aie_raw_post_meta'][ $meta_key ] = $item['post_meta'][ $meta_key ];
+					if ( array_key_exists( $meta_key, $item['post_meta'] ) && ! array_key_exists( $meta_key, $item['_rsl_ie_raw_post_meta'] ) ) {
+						$item['_rsl_ie_raw_post_meta'][ $meta_key ] = $item['post_meta'][ $meta_key ];
 					}
 					// Always override meta_* values: acf_* data is more portable
 					$item['post_meta'][ $meta_key ]        = $value;
@@ -258,10 +258,10 @@ class Post_Importer extends Abstract_Importer {
 			}
 
 			// Keep internal/importer bookkeeping keys at the top level.
-			if ( 0 === strpos( $key, '_aie_' ) ) {
+			if ( 0 === strpos( $key, '_rsl_ie_' ) ) {
 				continue;
 			}
-			if ( in_array( $key, [ '_acf_field_names', '_aie_raw_post_meta' ], true ) ) {
+			if ( in_array( $key, [ '_acf_field_names', '_rsl_ie_raw_post_meta' ], true ) ) {
 				continue;
 			}
 
@@ -296,13 +296,13 @@ class Post_Importer extends Abstract_Importer {
 
 		// Ensure `post_name` (slug) is available for duplicate checks/fallbacks,
 		// even when the UI mapping didn't include it.
-		if ( ( empty( $item['post_name'] ) || '' === (string) $item['post_name'] ) && ! empty( $item['_aie_source_post_name'] ) ) {
-			$item['post_name'] = (string) $item['_aie_source_post_name'];
+		if ( ( empty( $item['post_name'] ) || '' === (string) $item['post_name'] ) && ! empty( $item['_rsl_ie_source_post_name'] ) ) {
+			$item['post_name'] = (string) $item['_rsl_ie_source_post_name'];
 		}
 
 			// Check for duplicates
 			$existing_post = $this->find_existing_post( $item );
-			$source_id     = isset( $item['_aie_source_id'] ) ? absint( $item['_aie_source_id'] ) : 0;
+			$source_id     = isset( $item['_rsl_ie_source_id'] ) ? absint( $item['_rsl_ie_source_id'] ) : 0;
 
 		if ( $existing_post ) {
 			$duplicate_mode = $this->get_option( 'duplicate_mode', 'skip' );
@@ -392,7 +392,7 @@ class Post_Importer extends Abstract_Importer {
 		// This makes reruns of the same export file deterministic even when the
 		// configured "unique field" (e.g. title) is not strictly stable (whitespace,
 		// functions, editor adjustments, etc.).
-		$source_id = isset( $item['_aie_source_id'] ) ? absint( $item['_aie_source_id'] ) : 0;
+		$source_id = isset( $item['_rsl_ie_source_id'] ) ? absint( $item['_rsl_ie_source_id'] ) : 0;
 		if ( $source_id > 0 ) {
 			$args  = [
 				'post_type'      => $this->get_option( 'post_type', 'post' ),
@@ -499,13 +499,13 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		// Persist the source-site ID for safe reruns.
-		if ( ! empty( $item['_aie_source_id'] ) ) {
-			update_post_meta( $post_id, self::SOURCE_ID_META_KEY, absint( $item['_aie_source_id'] ) );
+		if ( ! empty( $item['_rsl_ie_source_id'] ) ) {
+			update_post_meta( $post_id, self::SOURCE_ID_META_KEY, absint( $item['_rsl_ie_source_id'] ) );
 		}
 
 		// Import post meta
 		if ( ! empty( $item['post_meta'] ) ) {
-			$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? [], $item['_aie_raw_post_meta'] ?? [] );
+			$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? [], $item['_rsl_ie_raw_post_meta'] ?? [] );
 		}
 
 		// Auto-import media from ACF fields if enabled
@@ -552,13 +552,13 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		// Persist the source-site ID for safe reruns.
-		if ( ! empty( $item['_aie_source_id'] ) ) {
-			update_post_meta( $post_id, self::SOURCE_ID_META_KEY, absint( $item['_aie_source_id'] ) );
+		if ( ! empty( $item['_rsl_ie_source_id'] ) ) {
+			update_post_meta( $post_id, self::SOURCE_ID_META_KEY, absint( $item['_rsl_ie_source_id'] ) );
 		}
 
 		// Update post meta
 		if ( ! empty( $item['post_meta'] ) ) {
-			$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? [], $item['_aie_raw_post_meta'] ?? [] );
+			$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? [], $item['_rsl_ie_raw_post_meta'] ?? [] );
 		}
 
 		// Auto-import media from ACF fields if enabled
@@ -1013,7 +1013,7 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		// ── 0. Gallery shortcode tokens (portable) ───────────────────────────
-		if ( is_string( $value ) && '' !== $value && false !== strpos( $value, '[[AIE:' ) ) {
+		if ( is_string( $value ) && '' !== $value && false !== strpos( $value, '[[RSL_IE:' ) ) {
 			$value = $this->resolve_gallery_shortcode_tokens( $value, $post_id );
 		}
 
@@ -1236,7 +1236,7 @@ class Post_Importer extends Abstract_Importer {
 	 * Resolve exported gallery shortcode tokens back into `[gallery ids="..."]`.
 	 *
 	 * Tokens are produced by the exporter for WYSIWYG/text fields and look like:
-	 *   [[AIE:<base64(json)>]]
+	 *   [[RSL_IE:<base64(json)>]]
 	 * with JSON payload:
 	 *   { "acf_type":"gallery_shortcode", "shortcode":"[gallery ids=\"1,2\"]", "urls":[...] }
 	 *
@@ -1248,7 +1248,7 @@ class Post_Importer extends Abstract_Importer {
 	 * @return string
 	 */
 	private function resolve_gallery_shortcode_tokens( string $value, int $post_id ): string {
-		$pattern = '/\\[\\[AIE:([A-Za-z0-9+\\/=]+)\\]\\]/';
+		$pattern = '/\\[\\[RSL_IE:([A-Za-z0-9+\\/=]+)\\]\\]/';
 
 		$media_duplicate_mode = (string) $this->get_option( 'media_duplicate_mode', 'skip' );
 

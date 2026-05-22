@@ -9,22 +9,22 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 <!-- Step 2: Upload File -->
-<div class="aie-step aie-step-2" data-step="2">
-	<div class="aie-step-header">
+<div class="rsl-ie-step rsl-ie-step-2" data-step="2">
+	<div class="rsl-ie-step-header">
 		<h2><?php esc_html_e( 'Step 2: Upload File', 'import-export-by-rockstarlab' ); ?></h2>
 		<p class="description"><?php esc_html_e( 'Upload your data file (CSV)', 'import-export-by-rockstarlab' ); ?></p>
 	</div>
 
-	<div class="aie-step-content">
-		<div class="aie-upload-area" id="aie-upload-area">
-			<div class="aie-upload-placeholder">
+	<div class="rsl-ie-step-content">
+		<div class="rsl-ie-upload-area" id="rsl-ie-upload-area">
+			<div class="rsl-ie-upload-placeholder">
 				<span class="dashicons dashicons-upload"></span>
 				<h3><?php esc_html_e( 'Drag & Drop your file here', 'import-export-by-rockstarlab' ); ?></h3>
 				<p><?php esc_html_e( 'or', 'import-export-by-rockstarlab' ); ?></p>
-				<button type="button" class="button button-secondary" id="aie-select-file">
+				<button type="button" class="button button-secondary" id="rsl-ie-select-file">
 					<?php esc_html_e( 'Select File', 'import-export-by-rockstarlab' ); ?>
 				</button>
-				<input type="file" id="aie-file-input" accept=".csv" style="display:none;">
+				<input type="file" id="rsl-ie-file-input" accept=".csv" style="display:none;">
 				<p class="description">
 					<?php esc_html_e( 'Supported formats: CSV', 'import-export-by-rockstarlab' ); ?><br>
 					<?php esc_html_e( 'No file size limit - large files supported via chunked upload', 'import-export-by-rockstarlab' ); ?>
@@ -32,39 +32,39 @@ defined( 'ABSPATH' ) || exit;
 			</div>
 
 			<!-- Upload Progress Bar -->
-			<div class="aie-upload-progress" style="display:none;">
-				<div class="aie-upload-status">
+			<div class="rsl-ie-upload-progress" style="display:none;">
+				<div class="rsl-ie-upload-status">
 					<span class="dashicons dashicons-upload"></span>
-					<span class="aie-upload-status-text"><?php esc_html_e( 'Uploading...', 'import-export-by-rockstarlab' ); ?></span>
+					<span class="rsl-ie-upload-status-text"><?php esc_html_e( 'Uploading...', 'import-export-by-rockstarlab' ); ?></span>
 				</div>
-				<div class="aie-progress-bar">
-					<div class="aie-progress-bar-fill" style="width: 0%;"></div>
+				<div class="rsl-ie-progress-bar">
+					<div class="rsl-ie-progress-bar-fill" style="width: 0%;"></div>
 				</div>
-				<div class="aie-upload-details">
-					<span class="aie-upload-percentage">0%</span>
-					<span class="aie-upload-speed"></span>
+				<div class="rsl-ie-upload-details">
+					<span class="rsl-ie-upload-percentage">0%</span>
+					<span class="rsl-ie-upload-speed"></span>
 				</div>
 			</div>
 		</div>
 
-		<div class="aie-file-info" style="display:none;">
-			<div class="aie-file-details">
+		<div class="rsl-ie-file-info" style="display:none;">
+			<div class="rsl-ie-file-details">
 				<span class="dashicons dashicons-media-document"></span>
-				<div class="aie-file-meta">
-					<strong class="aie-file-name"></strong>
-					<span class="aie-file-size"></span>
-					<span class="aie-file-format"></span>
+				<div class="rsl-ie-file-meta">
+					<strong class="rsl-ie-file-name"></strong>
+					<span class="rsl-ie-file-size"></span>
+					<span class="rsl-ie-file-format"></span>
 				</div>
-				<button type="button" class="button button-link-delete aie-remove-file">
+				<button type="button" class="button button-link-delete rsl-ie-remove-file">
 					<span class="dashicons dashicons-no"></span>
 				</button>
 			</div>
 		</div>
 
-		<div class="aie-format-options" style="display:none;">
+		<div class="rsl-ie-format-options" style="display:none;">
 			<h3><?php esc_html_e( 'Format Options', 'import-export-by-rockstarlab' ); ?></h3>
 			
-			<div class="aie-csv-options" style="display:none;">
+			<div class="rsl-ie-csv-options" style="display:none;">
 				<label>
 					<?php esc_html_e( 'Delimiter', 'import-export-by-rockstarlab' ); ?>
 					<select name="csv_delimiter" id="csv_delimiter" class="regular-text">
@@ -76,7 +76,7 @@ defined( 'ABSPATH' ) || exit;
 					</select>
 				</label>
 
-				<label class="aie-custom-delimiter-wrapper" style="display:none;">
+				<label class="rsl-ie-custom-delimiter-wrapper" style="display:none;">
 					<?php esc_html_e( 'Custom Delimiter', 'import-export-by-rockstarlab' ); ?>
 						<input type="text" name="csv_custom_delimiter" id="csv_custom_delimiter" class="regular-text" placeholder="<?php esc_attr_e( 'Enter custom delimiter (any string)', 'import-export-by-rockstarlab' ); ?>">
 				<label>
@@ -86,12 +86,12 @@ defined( 'ABSPATH' ) || exit;
 			</div>
 		</div>
 
-		<div class="aie-step-actions">
-			<button type="button" class="button button-secondary aie-prev-step">
+		<div class="rsl-ie-step-actions">
+			<button type="button" class="button button-secondary rsl-ie-prev-step">
 				<span class="dashicons dashicons-arrow-left-alt2"></span>
 				<?php esc_html_e( 'Previous', 'import-export-by-rockstarlab' ); ?>
 			</button>
-			<button type="button" class="button button-primary button-large aie-next-step" disabled>
+			<button type="button" class="button button-primary button-large rsl-ie-next-step" disabled>
 				<?php esc_html_e( 'Next Step', 'import-export-by-rockstarlab' ); ?>
 				<span class="dashicons dashicons-arrow-right-alt2"></span>
 			</button>

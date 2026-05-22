@@ -40,10 +40,10 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 		<?php esc_html_e( 'Configure plugin-wide settings and integrations.', 'import-export-by-rockstarlab' ); ?>
 	</p>
 
-	<div class="aie-settings-container">
+	<div class="rsl-ie-settings-container">
 		<!-- AI Integration Section -->
-		<div class="aie-settings-section">
-			<div class="aie-settings-section-header">
+		<div class="rsl-ie-settings-section">
+			<div class="rsl-ie-settings-section-header">
 				<h2>
 					<span class="dashicons dashicons-admin-generic"></span>
 					<?php esc_html_e( 'AI Integration', 'import-export-by-rockstarlab' ); ?>
@@ -53,9 +53,9 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 				</p>
 			</div>
 
-			<div class="aie-settings-section-body">
+			<div class="rsl-ie-settings-section-body">
 				<?php if ( $rsl_ie_has_wp_connector_key ) : ?>
-					<div class="aie-info-box aie-success">
+					<div class="rsl-ie-info-box rsl-ie-success">
 						<span class="dashicons dashicons-yes-alt"></span>
 						<div>
 							<strong><?php esc_html_e( 'This site is already integrated with OpenAI', 'import-export-by-rockstarlab' ); ?></strong>
@@ -73,17 +73,17 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 						</div>
 					</div>
 				<?php else : ?>
-				<form id="aie-settings-form" class="aie-settings-form">
+				<form id="rsl-ie-settings-form" class="rsl-ie-settings-form">
 					<table class="form-table">
 						<tr>
 							<th scope="row">
-								<label for="aie-openai-api-key">
+								<label for="rsl-ie-openai-api-key">
 									<?php esc_html_e( 'OpenAI API Key', 'import-export-by-rockstarlab' ); ?>
 								</label>
 							</th>
 							<td>
 								<?php if ( $rsl_ie_has_constant_key ) : ?>
-									<div class="aie-info-box aie-warning">
+									<div class="rsl-ie-info-box rsl-ie-warning">
 										<span class="dashicons dashicons-info"></span>
 										<div>
 											<strong><?php esc_html_e( 'API Key is defined in wp-config.php', 'import-export-by-rockstarlab' ); ?></strong>
@@ -92,7 +92,7 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 									</div>
 									<input 
 										type="text" 
-										id="aie-openai-api-key" 
+										id="rsl-ie-openai-api-key" 
 										name="openai_api_key"
 										class="regular-text" 
 										value="<?php echo esc_attr( substr( $rsl_ie_constant_key_value, 0, 7 ) . '...' . substr( $rsl_ie_constant_key_value, -4 ) ); ?>"
@@ -102,13 +102,13 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 								<?php else : ?>
 									<input 
 										type="password" 
-										id="aie-openai-api-key" 
+										id="rsl-ie-openai-api-key" 
 										name="openai_api_key"
 										class="regular-text" 
 										value="<?php echo esc_attr( $rsl_ie_openai_api_key ); ?>"
 										placeholder="sk-proj-..."
 									>
-									<button type="button" class="button aie-toggle-password" data-target="aie-openai-api-key">
+									<button type="button" class="button rsl-ie-toggle-password" data-target="rsl-ie-openai-api-key">
 										<span class="dashicons dashicons-visibility"></span>
 									</button>
 									<?php if ( ! empty( $rsl_ie_openai_api_key ) ) : ?>
@@ -144,24 +144,24 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 								<?php esc_html_e( 'API Status', 'import-export-by-rockstarlab' ); ?>
 							</th>
 							<td>
-								<div id="aie-api-status" class="aie-api-status">
+								<div id="rsl-ie-api-status" class="rsl-ie-api-status">
 									<?php if ( $rsl_ie_has_any_openai_key ) : ?>
-										<span class="aie-status-badge aie-status-configured">
+										<span class="rsl-ie-status-badge rsl-ie-status-configured">
 											<span class="dashicons dashicons-yes-alt"></span>
 											<?php esc_html_e( 'Configured', 'import-export-by-rockstarlab' ); ?>
 										</span>
-										<button type="button" class="button button-secondary aie-test-api-key">
+										<button type="button" class="button button-secondary rsl-ie-test-api-key">
 											<span class="dashicons dashicons-update"></span>
 											<?php esc_html_e( 'Test Connection', 'import-export-by-rockstarlab' ); ?>
 										</button>
 									<?php else : ?>
-										<span class="aie-status-badge aie-status-not-configured">
+										<span class="rsl-ie-status-badge rsl-ie-status-not-configured">
 											<span class="dashicons dashicons-warning"></span>
 											<?php esc_html_e( 'Not Configured', 'import-export-by-rockstarlab' ); ?>
 										</span>
 									<?php endif; ?>
 								</div>
-								<div id="aie-api-test-result" style="display:none; margin-top:10px;"></div>
+								<div id="rsl-ie-api-test-result" style="display:none; margin-top:10px;"></div>
 							</td>
 						</tr>
 
@@ -170,7 +170,7 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 								<?php esc_html_e( 'Model', 'import-export-by-rockstarlab' ); ?>
 							</th>
 							<td>
-								<span class="aie-info-badge">GPT-4o-mini</span>
+								<span class="rsl-ie-info-badge">GPT-4o-mini</span>
 								<!-- <p class="description">
 									<?php esc_html_e( 'Fast and cost-effective model for function generation. ~$0.0001-0.0003 per function.', 'import-export-by-rockstarlab' ); ?>
 								</p> -->
@@ -179,12 +179,12 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 					</table>
 
 					<?php if ( ! $rsl_ie_has_constant_key ) : ?>
-						<div class="aie-settings-footer">
-							<button type="submit" class="button button-primary aie-save-settings">
+						<div class="rsl-ie-settings-footer">
+							<button type="submit" class="button button-primary rsl-ie-save-settings">
 								<span class="dashicons dashicons-yes"></span>
 								<?php esc_html_e( 'Save Settings', 'import-export-by-rockstarlab' ); ?>
 							</button>
-							<span class="aie-settings-status"></span>
+							<span class="rsl-ie-settings-status"></span>
 						</div>
 					<?php endif; ?>
 				</form>
@@ -193,30 +193,30 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 		</div>
 
 		<!-- Information Section -->
-		<div class="aie-settings-section">
-			<div class="aie-settings-section-header">
+		<div class="rsl-ie-settings-section">
+			<div class="rsl-ie-settings-section-header">
 				<h2>
 					<span class="dashicons dashicons-info"></span>
 					<?php esc_html_e( 'About AI Features', 'import-export-by-rockstarlab' ); ?>
 				</h2>
 			</div>
 
-			<div class="aie-settings-section-body">
-				<div class="aie-info-cards">
+			<div class="rsl-ie-settings-section-body">
+				<div class="rsl-ie-info-cards">
 
-					<div class="aie-info-card">
+					<div class="rsl-ie-info-card">
 						<span class="dashicons dashicons-admin-links"></span>
 						<h3><?php esc_html_e( 'AI URL Importer', 'import-export-by-rockstarlab' ); ?></h3>
 						<p><?php esc_html_e( 'Import content directly from URLs using AI-powered extraction. Automatically extracts and structures content from web pages into WordPress posts.', 'import-export-by-rockstarlab' ); ?></p>
 					</div>
 
-					<div class="aie-info-card">
+					<div class="rsl-ie-info-card">
 						<span class="dashicons dashicons-admin-generic"></span>
 						<h3><?php esc_html_e( 'AI Function Generator', 'import-export-by-rockstarlab' ); ?></h3>
 						<p><?php esc_html_e( 'Generate PHP transformation functions using natural language descriptions. Perfect for data transformation during import/export.', 'import-export-by-rockstarlab' ); ?></p>
 					</div>
 
-					<div class="aie-info-card">
+					<div class="rsl-ie-info-card">
 						<span class="dashicons dashicons-chart-area"></span>
 						<h3><?php esc_html_e( 'Pricing & Tokens', 'import-export-by-rockstarlab' ); ?></h3>
 						<p>
@@ -232,7 +232,7 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 					</div>
 				</div>
 
-				<div class="aie-help-section">
+				<div class="rsl-ie-help-section">
 					<h3>
 						<span class="dashicons dashicons-editor-help"></span>
 						<?php esc_html_e( 'Need Help?', 'import-export-by-rockstarlab' ); ?>

@@ -165,42 +165,42 @@ class Review_Notice {
 	public static function render(): void {
 		$nonce = wp_create_nonce( 'rsl_ie_dismiss_review' );
 		?>
-		<div class="aie-review-notice" id="aie-review-notice" data-nonce="<?php echo esc_attr( $nonce ); ?>">
+		<div class="rsl-ie-review-notice" id="rsl-ie-review-notice" data-nonce="<?php echo esc_attr( $nonce ); ?>">
 
-			<div class="aie-review-notice__body">
-				<span class="aie-review-notice__rating-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-				<h3 class="aie-review-notice__title">
+			<div class="rsl-ie-review-notice__body">
+				<span class="rsl-ie-review-notice__rating-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+				<h3 class="rsl-ie-review-notice__title">
 					<?php esc_html_e( 'Enjoying Import Export by RockStarLab?', 'import-export-by-rockstarlab' ); ?>
 				</h3>
-				<p class="aie-review-notice__text">
+				<p class="rsl-ie-review-notice__text">
 					<?php esc_html_e( "You've been using the plugin for over a week — awesome! If it's been helpful, would you take 2 minutes to leave a ★★★★★ review on WordPress.org? It keeps us motivated and helps others discover the plugin. 🙏", 'import-export-by-rockstarlab' ); ?>
 				</p>
-				<div class="aie-review-notice__actions">
+				<div class="rsl-ie-review-notice__actions">
 					<a href="<?php echo esc_url( self::REVIEW_URL ); ?>"
-					   target="_blank"
-					   rel="noopener noreferrer"
-					   class="aie-review-notice__btn aie-review-notice__btn--primary aie-review-dismiss"
-					   data-nonce="<?php echo esc_attr( $nonce ); ?>">
+						target="_blank"
+						rel="noopener noreferrer"
+						class="rsl-ie-review-notice__btn rsl-ie-review-notice__btn--primary rsl-ie-review-dismiss"
+						data-nonce="<?php echo esc_attr( $nonce ); ?>">
 						<span class="dashicons dashicons-external" aria-hidden="true"></span>
 						<?php esc_html_e( 'Yes, I\'d love to! ⭐', 'import-export-by-rockstarlab' ); ?>
 					</a>
 					<button type="button"
-					        class="aie-review-notice__btn aie-review-notice__btn--secondary aie-review-dismiss"
-					        data-nonce="<?php echo esc_attr( $nonce ); ?>">
+							class="rsl-ie-review-notice__btn rsl-ie-review-notice__btn--secondary rsl-ie-review-dismiss"
+							data-nonce="<?php echo esc_attr( $nonce ); ?>">
 						<?php esc_html_e( 'Maybe later', 'import-export-by-rockstarlab' ); ?>
 					</button>
 					<button type="button"
-					        class="aie-review-notice__btn aie-review-notice__btn--link aie-review-dismiss"
-					        data-nonce="<?php echo esc_attr( $nonce ); ?>">
+							class="rsl-ie-review-notice__btn rsl-ie-review-notice__btn--link rsl-ie-review-dismiss"
+							data-nonce="<?php echo esc_attr( $nonce ); ?>">
 						<?php esc_html_e( 'I\'ve already left a review', 'import-export-by-rockstarlab' ); ?>
 					</button>
 				</div>
 			</div>
 
 			<button type="button"
-			        class="aie-review-notice__close aie-review-dismiss"
-			        data-nonce="<?php echo esc_attr( $nonce ); ?>"
-			        aria-label="<?php esc_attr_e( 'Dismiss this notice', 'import-export-by-rockstarlab' ); ?>">
+					class="rsl-ie-review-notice__close rsl-ie-review-dismiss"
+					data-nonce="<?php echo esc_attr( $nonce ); ?>"
+					aria-label="<?php esc_attr_e( 'Dismiss this notice', 'import-export-by-rockstarlab' ); ?>">
 				<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
 			</button>
 
@@ -214,17 +214,17 @@ class Review_Notice {
 	private static function get_inline_js(): string {
 		return "
 jQuery(function($) {
-    $(document).on('click', '.aie-review-dismiss', function(e) {
+    $(document).on('click', '.rsl-ie-review-dismiss', function(e) {
         // Allow anchor tags to open the link normally, but still dismiss
         if (!$(this).is('a')) {
             e.preventDefault();
         }
-        var nonce = $('#aie-review-notice').data('nonce');
+        var nonce = $('#rsl-ie-review-notice').data('nonce');
         $.post(ajaxurl, {
             action: 'rsl_ie_dismiss_review_notice',
             nonce:  nonce
         });
-        $('#aie-review-notice').fadeOut(350, function() {
+        $('#rsl-ie-review-notice').fadeOut(350, function() {
             $(this).remove();
         });
     });

@@ -187,10 +187,6 @@ class Function_Executor {
 		$result = Safe_Code_Executor::execute( $code, $value );
 
 		if ( $result['error'] ) {
-			// Log error if function_id provided
-			if ( $function_id > 0 ) {
-				error_log( "AIE Function #{$function_id} error: " . $result['message'] ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug logging for development.
-			}
 			return $value; // Return original value on error
 		}
 
@@ -237,10 +233,16 @@ class Function_Executor {
 		// Try to parse the code (syntax check using token_get_all)
 		$test_code = '<?php ' . $clean_code;
 
-		// Suppress errors during parsing
-		$old_error_level = error_reporting( 0 ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting -- error_reporting used intentionally for sandboxed execution.
-		$tokens          = @token_get_all( $test_code ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		error_reporting( $old_error_level ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting -- error_reporting used intentionally for sandboxed execution.
+		// Suppress errors during parsing using error handler instead of error_reporting.
+		$parse_errors = [];
+		set_error_handler(
+			function ( $errno, $errstr ) use ( &$parse_errors ) { // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler
+				$parse_errors[] = $errstr;
+				return true;
+			}
+		);
+		$tokens = token_get_all( $test_code );
+		restore_error_handler();
 
 		if ( false === $tokens ) {
 			return new \WP_Error(
@@ -269,7 +271,7 @@ class Function_Executor {
 
 		if ( $test_result['error'] ) {
 			$error_message = $test_result['message'] ?? __( 'The function code contains errors. Please check your PHP syntax.', 'import-export-by-rockstarlab' );
-			
+
 			return new \WP_Error(
 				'validation_error',
 				$error_message

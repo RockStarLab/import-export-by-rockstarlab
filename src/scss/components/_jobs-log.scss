@@ -2,7 +2,7 @@
  * Jobs Log Styles
  */
 
-.aie-jobs-log {
+.rsl-ie-jobs-log {
 	background: #fff;
 	border: 1px solid #ccd0d4;
 	border-radius: 4px;
@@ -10,7 +10,7 @@
 	margin-top: 20px;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 
-	.aie-jobs-filters {
+	.rsl-ie-jobs-filters {
 		display: grid;
 		grid-template-columns: auto auto auto 1fr;
 		align-items: center;
@@ -21,7 +21,7 @@
 		border: 1px solid #e5e5e5;
 		border-radius: 4px;
 
-		.aie-filter-group {
+		.rsl-ie-filter-group {
 			display: grid;
 			grid-template-columns: auto 1fr;
 			align-items: center;
@@ -53,7 +53,7 @@
 		}
 
 		// Buttons container
-		.aie-filter-buttons {
+		.rsl-ie-filter-buttons {
 			display: flex;
 			gap: 8px;
 			justify-self: end;
@@ -65,12 +65,12 @@
 			font-size: 13px;
 			line-height: 34px;
 			white-space: nowrap;
-			
-			&.aie-filter-apply {
+
+			&.rsl-ie-filter-apply {
 				background: #2271b1;
 				border-color: #2271b1;
 				color: #fff;
-				
+
 				&:hover {
 					background: #135e96;
 					border-color: #135e96;
@@ -81,17 +81,17 @@
 
 	// Responsive: stack on smaller screens
 	@media (max-width: 1200px) {
-		.aie-jobs-filters {
+		.rsl-ie-jobs-filters {
 			grid-template-columns: 1fr;
 			gap: 12px;
 
-			.aie-filter-group {
+			.rsl-ie-filter-group {
 				grid-template-columns: 120px 1fr;
 			}
 		}
 	}
 
-	.aie-jobs-loading {
+	.rsl-ie-jobs-loading {
 		text-align: center;
 		padding: 40px 20px;
 
@@ -106,12 +106,12 @@
 		}
 	}
 
-	.aie-jobs-table-wrapper {
+	.rsl-ie-jobs-table-wrapper {
 		overflow-x: auto;
 		margin: 0 -20px;
 		padding: 0 20px;
 
-		.aie-jobs-table {
+		.rsl-ie-jobs-table {
 			width: 100%;
 			border-collapse: collapse;
 			table-layout: auto;
@@ -226,11 +226,12 @@
 			}
 
 			@keyframes pulse {
-				0%, 100% {
+				0%,
+				100% {
 					opacity: 1;
 				}
 				50% {
-					opacity: .7;
+					opacity: 0.7;
 				}
 			}
 
@@ -274,12 +275,17 @@
 
 					.progress-bar-fill {
 						height: 100%;
-						background: linear-gradient(90deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
+						background: linear-gradient(
+							90deg,
+							#2563eb 0%,
+							#3b82f6 50%,
+							#60a5fa 100%
+						);
 						transition: width 0.3s ease;
 						position: relative;
-						
+
 						&::after {
-							content: '';
+							content: "";
 							position: absolute;
 							top: 0;
 							left: 0;
@@ -294,7 +300,7 @@
 							animation: shimmer 2s infinite;
 						}
 					}
-					
+
 					@keyframes shimmer {
 						0% {
 							transform: translateX(-100%);
@@ -393,7 +399,7 @@
 		}
 	}
 
-	.aie-jobs-pagination {
+	.rsl-ie-jobs-pagination {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -434,7 +440,7 @@
 /**
  * Job Details Modal
  */
-.aie-modal {
+.rsl-ie-modal {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -445,7 +451,7 @@
 	align-items: center;
 	justify-content: center;
 
-	.aie-modal-overlay {
+	.rsl-ie-modal-overlay {
 		position: absolute;
 		top: 0;
 		left: 0;
@@ -454,7 +460,7 @@
 		background: rgba(0, 0, 0, 0.7);
 	}
 
-	.aie-modal-content {
+	.rsl-ie-modal-content {
 		position: relative;
 		background: #fff;
 		border-radius: 4px;
@@ -465,12 +471,12 @@
 		display: flex;
 		flex-direction: column;
 
-		&.aie-modal-small {
+		&.rsl-ie-modal-small {
 			max-width: 500px;
 		}
 	}
 
-	.aie-modal-header {
+	.rsl-ie-modal-header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -482,7 +488,7 @@
 			font-size: 20px;
 		}
 
-		.aie-modal-close {
+		.rsl-ie-modal-close {
 			background: none;
 			border: none;
 			font-size: 24px;
@@ -502,7 +508,7 @@
 		}
 	}
 
-	.aie-modal-body {
+	.rsl-ie-modal-body {
 		padding: 24px;
 		overflow-y: auto;
 		flex: 1;
@@ -536,7 +542,7 @@
 		}
 	}
 
-	.aie-modal-footer {
+	.rsl-ie-modal-footer {
 		padding: 16px 24px;
 		border-top: 1px solid #e5e7eb;
 		display: flex;

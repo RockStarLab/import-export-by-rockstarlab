@@ -11,7 +11,7 @@ defined( 'ABSPATH' ) || exit;
 <div id="rsl-ie-import" class="import-export-by-rockstarlab wrap">
 	<h1><?php esc_html_e( 'Import Data', 'import-export-by-rockstarlab' ); ?></h1>
 
-	<div class="aie-import-wizard">
+	<div class="rsl-ie-import-wizard">
 
 <?php
 	require_once __DIR__ . '/partials/import-step-1.php';

@@ -23,8 +23,9 @@ export function showNotice( message ) {
 	const dismissButton = document.createElement( 'button' );
 	dismissButton.type = 'button';
 	dismissButton.className = 'notice-dismiss';
-	dismissButton.innerHTML =
-		`<span class="screen-reader-text">${ window.aieData?.i18n?.dismissNotice || 'Dismiss this notice.' }</span>`;
+	dismissButton.innerHTML = `<span class="screen-reader-text">${
+		window.rslIeData?.i18n?.dismissNotice || 'Dismiss this notice.'
+	}</span>`;
 	dismissButton.addEventListener( 'click', () => {
 		notice.remove();
 	} );
@@ -51,8 +52,9 @@ export function showError( message ) {
 	const dismissButton = document.createElement( 'button' );
 	dismissButton.type = 'button';
 	dismissButton.className = 'notice-dismiss';
-	dismissButton.innerHTML =
-		`<span class="screen-reader-text">${ window.aieData?.i18n?.dismissNotice || 'Dismiss this notice.' }</span>`;
+	dismissButton.innerHTML = `<span class="screen-reader-text">${
+		window.rslIeData?.i18n?.dismissNotice || 'Dismiss this notice.'
+	}</span>`;
 	dismissButton.addEventListener( 'click', () => {
 		notice.remove();
 	} );
@@ -65,9 +67,10 @@ export function showError( message ) {
 export function showModalError( message, modalElement = null ) {
 	// If no modal specified, try to find the currently visible modal
 	if ( ! modalElement ) {
-		modalElement = document.querySelector( '.aie-modal[style*="display: flex"]' ) || 
-		               document.querySelector( '.aie-modal[style*="display:flex"]' ) ||
-		               document.querySelector( '.aie-modal' );
+		modalElement =
+			document.querySelector( '.rsl-ie-modal[style*="display: flex"]' ) ||
+			document.querySelector( '.rsl-ie-modal[style*="display:flex"]' ) ||
+			document.querySelector( '.rsl-ie-modal' );
 	}
 
 	if ( ! modalElement ) {
@@ -77,18 +80,20 @@ export function showModalError( message, modalElement = null ) {
 	}
 
 	// Remove any existing error notices in the modal
-	const existingErrors = modalElement.querySelectorAll( '.aie-modal-error' );
+	const existingErrors = modalElement.querySelectorAll(
+		'.rsl-ie-modal-error'
+	);
 	existingErrors.forEach( ( el ) => el.remove() );
 
 	// Create error notice
 	const notice = document.createElement( 'div' );
-	notice.className = 'notice notice-error is-dismissible aie-modal-error';
+	notice.className = 'notice notice-error is-dismissible rsl-ie-modal-error';
 	notice.innerHTML = `<p>${ escapeHtml( message ) }</p>`;
 
 	// Find modal content area
 	const modalContent =
-		modalElement.querySelector( '.aie-modal-content' ) ||
-		modalElement.querySelector( '.aie-modal-body' ) ||
+		modalElement.querySelector( '.rsl-ie-modal-content' ) ||
+		modalElement.querySelector( '.rsl-ie-modal-body' ) ||
 		modalElement;
 
 	// Insert at the top of modal content
@@ -107,8 +112,9 @@ export function showModalError( message, modalElement = null ) {
 	const dismissButton = document.createElement( 'button' );
 	dismissButton.type = 'button';
 	dismissButton.className = 'notice-dismiss';
-	dismissButton.innerHTML =
-		`<span class="screen-reader-text">${ window.aieData?.i18n?.dismissNotice || 'Dismiss this notice.' }</span>`;
+	dismissButton.innerHTML = `<span class="screen-reader-text">${
+		window.rslIeData?.i18n?.dismissNotice || 'Dismiss this notice.'
+	}</span>`;
 	dismissButton.addEventListener( 'click', () => {
 		notice.remove();
 	} );
@@ -124,10 +130,14 @@ export function showModalError( message, modalElement = null ) {
 export function clearModalErrors( modalElement = null ) {
 	// If no modal specified, try to find the currently visible modal or clear all
 	if ( ! modalElement ) {
-		const existingErrors = document.querySelectorAll( '.aie-modal-error' );
+		const existingErrors = document.querySelectorAll(
+			'.rsl-ie-modal-error'
+		);
 		existingErrors.forEach( ( el ) => el.remove() );
 	} else {
-		const existingErrors = modalElement.querySelectorAll( '.aie-modal-error' );
+		const existingErrors = modalElement.querySelectorAll(
+			'.rsl-ie-modal-error'
+		);
 		existingErrors.forEach( ( el ) => el.remove() );
 	}
 }

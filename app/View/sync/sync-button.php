@@ -8,6 +8,6 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 
-<button type="button" id="aie-sync-content-btn" class="button action" style="margin-left: 5px;">
+<button type="button" id="rsl-ie-sync-content-btn" class="button action" style="margin-left: 5px;">
 	<?php esc_html_e( 'Sync Content', 'import-export-by-rockstarlab' ); ?>
 </button>

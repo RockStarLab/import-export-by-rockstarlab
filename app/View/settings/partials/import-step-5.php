@@ -9,21 +9,21 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 <!-- Step 5: Import Options -->
-<div class="aie-step aie-step-5" data-step="5">
-	<div class="aie-step-header">
+<div class="rsl-ie-step rsl-ie-step-5" data-step="5">
+	<div class="rsl-ie-step-header">
 		<h2><?php esc_html_e( 'Step 5: Import Options', 'import-export-by-rockstarlab' ); ?></h2>
 		<p class="description"><?php esc_html_e( 'Configure how your data should be imported', 'import-export-by-rockstarlab' ); ?></p>
 	</div>
 
-	<div class="aie-step-content">
+	<div class="rsl-ie-step-content">
 		<table class="form-table">
 			<!-- Unique Field Selector -->
 			<tr>
 				<th scope="row">
-					<label for="aie-unique-field"><?php esc_html_e( 'Check for Existing Items by Field', 'import-export-by-rockstarlab' ); ?></label>
+					<label for="rsl-ie-unique-field"><?php esc_html_e( 'Check for Existing Items by Field', 'import-export-by-rockstarlab' ); ?></label>
 				</th>
 				<td>
-					<select id="aie-unique-field" name="unique_field" class="regular-text">
+					<select id="rsl-ie-unique-field" name="unique_field" class="regular-text">
 						<option value=""><?php esc_html_e( '-- Select Field --', 'import-export-by-rockstarlab' ); ?></option>
 					</select>
 					<p class="description">
@@ -97,13 +97,13 @@ defined( 'ABSPATH' ) || exit;
 			</tr>
 
 			<!-- Auto Import Media (for posts, pages, products) -->
-			<tr class="aie-media-import-option" style="display: none;">
+			<tr class="rsl-ie-media-import-option" style="display: none;">
 				<th scope="row">
-					<label for="aie-auto-import-media"><?php esc_html_e( 'Automatically Import Media Files', 'import-export-by-rockstarlab' ); ?></label>
+					<label for="rsl-ie-auto-import-media"><?php esc_html_e( 'Automatically Import Media Files', 'import-export-by-rockstarlab' ); ?></label>
 				</th>
 				<td>
 					<label>
-						<input type="checkbox" id="aie-auto-import-media" name="auto_import_media" value="1">
+						<input type="checkbox" id="rsl-ie-auto-import-media" name="auto_import_media" value="1">
 						<?php esc_html_e( 'Automatically download and import all media files from content to the media library', 'import-export-by-rockstarlab' ); ?>
 					</label>
 					<p class="description">
@@ -113,7 +113,7 @@ defined( 'ABSPATH' ) || exit;
 			</tr>
 
 			<!-- Media Duplicate Handling -->
-			<tr class="aie-media-duplicate-option" style="display: none;">
+			<tr class="rsl-ie-media-duplicate-option" style="display: none;">
 				<th scope="row">
 					<label><?php esc_html_e( 'If Media File Already Exists', 'import-export-by-rockstarlab' ); ?></label>
 				</th>
@@ -142,12 +142,12 @@ defined( 'ABSPATH' ) || exit;
 			</tr>
 		</table>
 
-		<div class="aie-step-actions">
-			<button type="button" class="button button-secondary aie-prev-step">
+		<div class="rsl-ie-step-actions">
+			<button type="button" class="button button-secondary rsl-ie-prev-step">
 				<span class="dashicons dashicons-arrow-left-alt2"></span>
 				<?php esc_html_e( 'Previous', 'import-export-by-rockstarlab' ); ?>
 			</button>
-			<button type="button" class="button button-primary button-large aie-start-import">
+			<button type="button" class="button button-primary button-large rsl-ie-start-import">
 				<span class="dashicons dashicons-download"></span>
 				<?php esc_html_e( 'Start Import', 'import-export-by-rockstarlab' ); ?>
 			</button>

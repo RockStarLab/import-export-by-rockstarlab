@@ -4,7 +4,11 @@
  * Handles browsing, searching, and importing snippet functions
  */
 
-import { showNotice, showError, clearModalErrors } from '../utils/notifications';
+import {
+	showNotice,
+	showError,
+	clearModalErrors,
+} from '../utils/notifications';
 
 const FunctionLibrary = {
 	functionsModule: null,
@@ -24,7 +28,9 @@ const FunctionLibrary = {
 	 * Open library modal
 	 */
 	async openLibrary() {
-		const modal = document.getElementById( 'aie-snippets-library-modal' );
+		const modal = document.getElementById(
+			'rsl-ie-snippets-library-modal'
+		);
 		if ( ! modal ) {
 			return;
 		}
@@ -47,7 +53,9 @@ const FunctionLibrary = {
 	 */
 	bindLibraryEvents() {
 		// Category filtering
-		const categoryItems = document.querySelectorAll( '.aie-category-item' );
+		const categoryItems = document.querySelectorAll(
+			'.rsl-ie-category-item'
+		);
 		categoryItems.forEach( ( item ) => {
 			item.addEventListener( 'click', ( e ) => {
 				const category = e.currentTarget.dataset.category;
@@ -56,7 +64,7 @@ const FunctionLibrary = {
 		} );
 
 		// Search
-		const searchInput = document.getElementById( 'aie-snippet-search' );
+		const searchInput = document.getElementById( 'rsl-ie-snippet-search' );
 		if ( searchInput ) {
 			let searchTimeout;
 			searchInput.addEventListener( 'input', ( e ) => {
@@ -69,11 +77,11 @@ const FunctionLibrary = {
 
 		// Preview modal events
 		const previewModal = document.getElementById(
-			'aie-snippet-preview-modal'
+			'rsl-ie-snippet-preview-modal'
 		);
 		if ( previewModal ) {
 			previewModal
-				.querySelector( '.aie-customize-snippet' )
+				.querySelector( '.rsl-ie-customize-snippet' )
 				?.addEventListener( 'click', () => {
 					this.importSnippet( this.currentSnippet, true );
 				} );
@@ -84,31 +92,31 @@ const FunctionLibrary = {
 	 * Load snippets from server
 	 */
 	async loadSnippets( category = '' ) {
-		const grid = document.getElementById( 'aie-snippets-grid' );
+		const grid = document.getElementById( 'rsl-ie-snippets-grid' );
 		if ( ! grid ) {
 			return;
 		}
 
 		// Show loading
 		grid.innerHTML = `
-			<div class="aie-loading-snippets">
+			<div class="rsl-ie-loading-snippets">
 				<span class="spinner is-active"></span>
-				<p>${ window.aieData?.i18n?.loading || 'Loading snippets...' }</p>
+				<p>${ window.rslIeData?.i18n?.loading || 'Loading snippets...' }</p>
 			</div>
 		`;
 
 		try {
-			const response = await fetch( window.aieData.ajaxUrl, {
+			const response = await fetch( window.rslIeData.ajaxUrl, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
-					},
-					body: new URLSearchParams( {
-						action: 'rsl_ie_functions_get_snippets',
-						nonce: window.aieData?.nonce || '',
-						category: category,
-					} ),
-				} );
+				},
+				body: new URLSearchParams( {
+					action: 'rsl_ie_functions_get_snippets',
+					nonce: window.rslIeData?.nonce || '',
+					category: category,
+				} ),
+			} );
 
 			const data = await response.json();
 
@@ -125,7 +133,7 @@ const FunctionLibrary = {
 			this.renderSnippets();
 		} catch ( error ) {
 			grid.innerHTML = `
-				<div class="aie-error-message">
+				<div class="rsl-ie-error-message">
 					<span class="dashicons dashicons-warning"></span>
 					<p>${ error.message }</p>
 				</div>
@@ -137,7 +145,9 @@ const FunctionLibrary = {
 	 * Render categories sidebar
 	 */
 	renderCategories() {
-		const categoriesList = document.getElementById( 'aie-categories-list' );
+		const categoriesList = document.getElementById(
+			'rsl-ie-categories-list'
+		);
 		if ( ! categoriesList ) {
 			return;
 		}
@@ -145,14 +155,14 @@ const FunctionLibrary = {
 		const totalSnippets = Object.keys( this.allSnippets ).length;
 
 		let html = `
-			<li class="aie-category-item ${
+			<li class="rsl-ie-category-item ${
 				this.currentCategory === '' ? 'active' : ''
 			}" data-category="">
 				<span class="dashicons dashicons-category"></span>
-				<span class="aie-category-name">${
-					window.aieData?.i18n?.all_snippets || 'All Snippets'
+				<span class="rsl-ie-category-name">${
+					window.rslIeData?.i18n?.all_snippets || 'All Snippets'
 				}</span>
-				<span class="aie-category-count">${ totalSnippets }</span>
+				<span class="rsl-ie-category-count">${ totalSnippets }</span>
 			</li>
 		`;
 
@@ -163,12 +173,12 @@ const FunctionLibrary = {
 			const isActive = this.currentCategory === category;
 
 			html += `
-				<li class="aie-category-item ${
+				<li class="rsl-ie-category-item ${
 					isActive ? 'active' : ''
 				}" data-category="${ category }">
 					<span class="dashicons dashicons-${ info.icon }"></span>
-					<span class="aie-category-name">${ info.name }</span>
-					<span class="aie-category-count">${ count }</span>
+					<span class="rsl-ie-category-name">${ info.name }</span>
+					<span class="rsl-ie-category-count">${ count }</span>
 				</li>
 			`;
 		} );
@@ -180,7 +190,7 @@ const FunctionLibrary = {
 	 * Render snippet cards
 	 */
 	renderSnippets() {
-		const grid = document.getElementById( 'aie-snippets-grid' );
+		const grid = document.getElementById( 'rsl-ie-snippets-grid' );
 		if ( ! grid ) {
 			return;
 		}
@@ -196,42 +206,43 @@ const FunctionLibrary = {
 
 		if ( snippets.length === 0 ) {
 			grid.innerHTML = `
-				<div class="aie-no-snippets">
+				<div class="rsl-ie-no-snippets">
 					<span class="dashicons dashicons-info" style="width: auto; height: auto;"></span>
-					<p>${ window.aieData?.i18n?.no_snippets || 'No snippets found' }</p>
+					<p>${ window.rslIeData?.i18n?.no_snippets || 'No snippets found' }</p>
 				</div>
 			`;
 			return;
 		}
 
 		// Check if "Use" button should be shown
-	const currentPage = window.aieData?.currentPage || '';
-	const allowedPages = [
-		'import-export-by-rockstarlab',
-		'rsl-ie-export',
-		'rsl-ie-content-sync',
-		'rsl-ie-functions', // Add Functions page
-	];
-	const showUseButton = allowedPages.includes( currentPage );		grid.innerHTML = snippets
+		const currentPage = window.rslIeData?.currentPage || '';
+		const allowedPages = [
+			'import-export-by-rockstarlab',
+			'rsl-ie-export',
+			'rsl-ie-content-sync',
+			'rsl-ie-functions', // Add Functions page
+		];
+		const showUseButton = allowedPages.includes( currentPage );
+		grid.innerHTML = snippets
 			.map(
 				( [ key, snippet ] ) => `
-			<div class="aie-snippet-card" data-snippet-key="${ key }">
-				<div class="aie-snippet-header">
-					<h3 class="aie-snippet-name">${ this.escapeHtml( snippet.name ) }</h3>
-					<span class="aie-snippet-category-badge">${ this.getCategoryLabel(
+			<div class="rsl-ie-snippet-card" data-snippet-key="${ key }">
+				<div class="rsl-ie-snippet-header">
+					<h3 class="rsl-ie-snippet-name">${ this.escapeHtml( snippet.name ) }</h3>
+					<span class="rsl-ie-snippet-category-badge">${ this.getCategoryLabel(
 						snippet.category
 					) }</span>
 				</div>
-				<p class="aie-snippet-description">${ this.escapeHtml(
+				<p class="rsl-ie-snippet-description">${ this.escapeHtml(
 					snippet.description
 				) }</p>
-				<div class="aie-snippet-tags">
+				<div class="rsl-ie-snippet-tags">
 					${
 						snippet.tags
 							? snippet.tags
 									.map(
 										( tag ) =>
-											`<span class="aie-tag">${ this.escapeHtml(
+											`<span class="rsl-ie-tag">${ this.escapeHtml(
 												tag
 											) }</span>`
 									)
@@ -239,16 +250,16 @@ const FunctionLibrary = {
 							: ''
 					}
 				</div>
-				<div class="aie-snippet-actions">
-					<button type="button" class="button button-small aie-preview-snippet" data-snippet-key="${ key }">
+				<div class="rsl-ie-snippet-actions">
+					<button type="button" class="button button-small rsl-ie-preview-snippet" data-snippet-key="${ key }">
 						<span class="dashicons dashicons-visibility"></span>
-						${ window.aieData?.i18n?.preview || 'Preview' }
+						${ window.rslIeData?.i18n?.preview || 'Preview' }
 					</button>
 					${
 						showUseButton
-							? `<button type="button" class="button button-primary button-small aie-quick-import" data-snippet-key="${ key }">
+							? `<button type="button" class="button button-primary button-small rsl-ie-quick-import" data-snippet-key="${ key }">
 						<span class="dashicons dashicons-plus"></span>
-						${ window.aieData?.i18n?.customize || 'Customize' }
+						${ window.rslIeData?.i18n?.customize || 'Customize' }
 					</button>`
 							: ''
 					}
@@ -259,14 +270,14 @@ const FunctionLibrary = {
 			.join( '' );
 
 		// Bind snippet card events
-		grid.querySelectorAll( '.aie-preview-snippet' ).forEach( ( btn ) => {
+		grid.querySelectorAll( '.rsl-ie-preview-snippet' ).forEach( ( btn ) => {
 			btn.addEventListener( 'click', ( e ) => {
 				const key = e.currentTarget.dataset.snippetKey;
 				this.previewSnippet( key );
 			} );
 		} );
 
-		grid.querySelectorAll( '.aie-quick-import' ).forEach( ( btn ) => {
+		grid.querySelectorAll( '.rsl-ie-quick-import' ).forEach( ( btn ) => {
 			btn.addEventListener( 'click', ( e ) => {
 				const key = e.currentTarget.dataset.snippetKey;
 				this.importSnippet( key, true ); // Changed to true - always customize
@@ -281,12 +292,14 @@ const FunctionLibrary = {
 		this.currentCategory = category;
 
 		// Update active state
-		document.querySelectorAll( '.aie-category-item' ).forEach( ( item ) => {
-			item.classList.toggle(
-				'active',
-				item.dataset.category === category
-			);
-		} );
+		document
+			.querySelectorAll( '.rsl-ie-category-item' )
+			.forEach( ( item ) => {
+				item.classList.toggle(
+					'active',
+					item.dataset.category === category
+				);
+			} );
 
 		this.renderSnippets();
 	},
@@ -295,7 +308,7 @@ const FunctionLibrary = {
 	 * Search snippets
 	 */
 	async searchSnippets( query ) {
-		const grid = document.getElementById( 'aie-snippets-grid' );
+		const grid = document.getElementById( 'rsl-ie-snippets-grid' );
 		if ( ! grid ) {
 			return;
 		}
@@ -308,24 +321,24 @@ const FunctionLibrary = {
 
 		// Show loading
 		grid.innerHTML = `
-			<div class="aie-loading-snippets">
+			<div class="rsl-ie-loading-snippets">
 				<span class="spinner is-active"></span>
-				<p>${ window.aieData?.i18n?.searching || 'Searching...' }</p>
+				<p>${ window.rslIeData?.i18n?.searching || 'Searching...' }</p>
 			</div>
 		`;
 
 		try {
-			const response = await fetch( window.aieData.ajaxUrl, {
+			const response = await fetch( window.rslIeData.ajaxUrl, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
-					},
-					body: new URLSearchParams( {
-						action: 'rsl_ie_functions_search',
-						nonce: window.aieData?.nonce || '',
-						query: query,
-					} ),
-				} );
+				},
+				body: new URLSearchParams( {
+					action: 'rsl_ie_functions_search',
+					nonce: window.rslIeData?.nonce || '',
+					query: query,
+				} ),
+			} );
 
 			const data = await response.json();
 
@@ -355,32 +368,34 @@ const FunctionLibrary = {
 
 		this.currentSnippet = snippetKey;
 
-		const modal = document.getElementById( 'aie-snippet-preview-modal' );
+		const modal = document.getElementById( 'rsl-ie-snippet-preview-modal' );
 		if ( ! modal ) {
 			return;
 		}
 
 		// Fill modal with snippet details
-		modal.querySelector( '.aie-snippet-title' ).textContent = snippet.name;
-		modal.querySelector( '.aie-snippet-description' ).textContent =
+		modal.querySelector( '.rsl-ie-snippet-title' ).textContent =
+			snippet.name;
+		modal.querySelector( '.rsl-ie-snippet-description' ).textContent =
 			snippet.description;
-		modal.querySelector( '.aie-snippet-category' ).textContent =
+		modal.querySelector( '.rsl-ie-snippet-category' ).textContent =
 			this.getCategoryLabel( snippet.category );
-		modal.querySelector( '.aie-snippet-code' ).textContent = snippet.code;
+		modal.querySelector( '.rsl-ie-snippet-code' ).textContent =
+			snippet.code;
 
 		if ( snippet.tags && snippet.tags.length > 0 ) {
-			modal.querySelector( '.aie-snippet-tags' ).textContent =
+			modal.querySelector( '.rsl-ie-snippet-tags' ).textContent =
 				snippet.tags.join( ', ' );
 		} else {
-			modal.querySelector( '.aie-snippet-tags' ).textContent = 'None';
+			modal.querySelector( '.rsl-ie-snippet-tags' ).textContent = 'None';
 		}
 
 		if ( snippet.example ) {
-			modal.querySelector( '.aie-example-input-value' ).textContent =
+			modal.querySelector( '.rsl-ie-example-input-value' ).textContent =
 				snippet.example.input !== undefined
 					? snippet.example.input
 					: 'N/A';
-			modal.querySelector( '.aie-example-output-value' ).textContent =
+			modal.querySelector( '.rsl-ie-example-output-value' ).textContent =
 				snippet.example.output !== undefined
 					? snippet.example.output
 					: 'N/A';
@@ -388,9 +403,9 @@ const FunctionLibrary = {
 
 		// Show/hide "Use" button based on current page
 		// Only show on Import, Export, and Content Sync pages
-		const useButton = modal.querySelector( '.aie-use-snippet' );
+		const useButton = modal.querySelector( '.rsl-ie-use-snippet' );
 		if ( useButton ) {
-			const currentPage = window.aieData?.currentPage || '';
+			const currentPage = window.rslIeData?.currentPage || '';
 			const allowedPages = [
 				'import-export-by-rockstarlab',
 				'rsl-ie-export',
@@ -417,10 +432,10 @@ const FunctionLibrary = {
 		if ( customize ) {
 			// Close library and preview modals
 			const libraryModal = document.getElementById(
-				'aie-snippets-library-modal'
+				'rsl-ie-snippets-library-modal'
 			);
 			const previewModal = document.getElementById(
-				'aie-snippet-preview-modal'
+				'rsl-ie-snippet-preview-modal'
 			);
 
 			if ( libraryModal ) {
@@ -432,30 +447,36 @@ const FunctionLibrary = {
 			document.body.style.overflow = '';
 
 			// Use the FunctionsModule method to open editor with snippet data
-			if ( this.functionsModule && this.functionsModule.openEditorWithSnippet ) {
+			if (
+				this.functionsModule &&
+				this.functionsModule.openEditorWithSnippet
+			) {
 				await this.functionsModule.openEditorWithSnippet( snippet );
 			} else {
 				// Fallback: Open editor directly (old method)
 				const editorModal = document.getElementById(
-					'aie-function-editor-modal'
+					'rsl-ie-function-editor-modal'
 				);
 				if ( editorModal ) {
 					// Clear any previous errors
 					clearModalErrors();
 
-					document.getElementById( 'aie-function-id' ).value = '';
-					document.getElementById( 'aie-function-name' ).value =
+					document.getElementById( 'rsl-ie-function-id' ).value = '';
+					document.getElementById( 'rsl-ie-function-name' ).value =
 						snippet.name;
-					document.getElementById( 'aie-function-description' ).value =
-						snippet.description;
-					document.getElementById( 'aie-function-category' ).value =
-						'custom'; // Always use 'custom' category
-					document.getElementById( 'aie-function-code' ).value =
+					document.getElementById(
+						'rsl-ie-function-description'
+					).value = snippet.description;
+					document.getElementById(
+						'rsl-ie-function-category'
+					).value = 'custom'; // Always use 'custom' category
+					document.getElementById( 'rsl-ie-function-code' ).value =
 						snippet.code;
-					document.getElementById( 'aie-function-status' ).value =
+					document.getElementById( 'rsl-ie-function-status' ).value =
 						'active';
-					document.querySelector( '.aie-modal-title' ).textContent =
-						'Customize Function';
+					document.querySelector(
+						'.rsl-ie-modal-title'
+					).textContent = 'Customize Function';
 
 					editorModal.style.display = 'flex';
 					document.body.style.overflow = 'hidden';
@@ -464,17 +485,17 @@ const FunctionLibrary = {
 		} else {
 			// Import directly
 			try {
-				const response = await fetch( window.aieData.ajaxUrl, {
+				const response = await fetch( window.rslIeData.ajaxUrl, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/x-www-form-urlencoded',
-						},
-						body: new URLSearchParams( {
-							action: 'rsl_ie_functions_import',
-							nonce: window.aieData?.nonce || '',
-							snippet_key: snippetKey,
-						} ),
-					} );
+					},
+					body: new URLSearchParams( {
+						action: 'rsl_ie_functions_import',
+						nonce: window.rslIeData?.nonce || '',
+						snippet_key: snippetKey,
+					} ),
+				} );
 
 				const data = await response.json();
 
@@ -483,7 +504,7 @@ const FunctionLibrary = {
 				}
 
 				showNotice(
-					window.aieData?.i18n?.snippet_imported ||
+					window.rslIeData?.i18n?.snippet_imported ||
 						'Snippet imported successfully'
 				);
 				document.body.style.overflow = '';
@@ -503,14 +524,21 @@ const FunctionLibrary = {
 	 */
 	getCategoryLabel( category ) {
 		const labels = {
-			string: window.aieData?.i18n?.categoryStringOperations || 'String Operations',
-			date: window.aieData?.i18n?.categoryDateTime || 'Date & Time',
-			numeric: window.aieData?.i18n?.categoryNumericOperations || 'Numeric Operations',
-			html: window.aieData?.i18n?.categoryHtmlOperations || 'HTML Operations',
-			wordpress: window.aieData?.i18n?.categoryWordPress || 'WordPress',
-			validation: window.aieData?.i18n?.categoryValidation || 'Validation',
-			advanced: window.aieData?.i18n?.categoryAdvanced || 'Advanced',
-			custom: window.aieData?.i18n?.categoryCustom || 'Custom',
+			string:
+				window.rslIeData?.i18n?.categoryStringOperations ||
+				'String Operations',
+			date: window.rslIeData?.i18n?.categoryDateTime || 'Date & Time',
+			numeric:
+				window.rslIeData?.i18n?.categoryNumericOperations ||
+				'Numeric Operations',
+			html:
+				window.rslIeData?.i18n?.categoryHtmlOperations ||
+				'HTML Operations',
+			wordpress: window.rslIeData?.i18n?.categoryWordPress || 'WordPress',
+			validation:
+				window.rslIeData?.i18n?.categoryValidation || 'Validation',
+			advanced: window.rslIeData?.i18n?.categoryAdvanced || 'Advanced',
+			custom: window.rslIeData?.i18n?.categoryCustom || 'Custom',
 		};
 		return labels[ category ] || category;
 	},

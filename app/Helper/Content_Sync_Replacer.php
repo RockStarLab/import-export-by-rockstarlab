@@ -743,7 +743,7 @@ class Content_Sync_Replacer {
 	 * resolve the field definition with acf_get_field(), and only translate known reference
 	 * field types. Each numeric ID is translated via:
 	 * - self-reference: if it equals $source_post_id, rewrite to $post_id
-	 * - otherwise: find a local post with meta "_aie_original_post_id" = source_id
+	 * - otherwise: find a local post with meta "_rsl_ie_original_post_id" = source_id
 	 *
 	 * If a referenced post has not been synced (no mapping exists), the value is left intact.
 	 *
@@ -782,7 +782,7 @@ class Content_Sync_Replacer {
 					'cache_results'          => false,
 					'update_post_meta_cache' => false,
 					'update_post_term_cache' => false,
-					'meta_key'               => '_aie_original_post_id',
+					'meta_key'               => '_rsl_ie_original_post_id',
 					'meta_value'             => $maybe_source_id,
 				)
 			);

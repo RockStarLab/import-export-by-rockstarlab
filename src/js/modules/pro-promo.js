@@ -10,17 +10,17 @@ const ProPromoModule = {
 
 		$( document ).on(
 			'click',
-			'.aie-pro-addon-hide[data-context]',
+			'.rsl-ie-pro-addon-hide[data-context]',
 			function ( e ) {
 				e.preventDefault();
 
-				jQuery( this ).closest( '.aie-pro-addon-card' ).hide();
+				jQuery( this ).closest( '.rsl-ie-pro-addon-card' ).hide();
 			}
 		);
 
 		$( document ).on(
 			'click',
-			'.aie-pro-addon-dismiss-forever[data-context]',
+			'.rsl-ie-pro-addon-dismiss-forever[data-context]',
 			function ( e ) {
 				e.preventDefault();
 
@@ -31,7 +31,7 @@ const ProPromoModule = {
 
 				Utils.ajax( 'dismiss_pro_promo', { context } )
 					.then( function () {
-						$btn.closest( '.aie-pro-addon-card' ).hide();
+						$btn.closest( '.rsl-ie-pro-addon-card' ).hide();
 					} )
 					.catch( function () {
 						$btn.prop( 'disabled', false );
