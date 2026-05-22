@@ -20,7 +20,7 @@ jQuery( document ).ready( function ( $ ) {
 	ExportModule.init();
 
 	// Make export module globally accessible for step 3
-	window.aieExportModule = ExportModule;
+	window.rslIeExportModule = ExportModule;
 
 	// Initialize functions module
 	FunctionsModule.init();
