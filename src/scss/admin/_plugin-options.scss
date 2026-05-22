@@ -19,7 +19,7 @@
 }
 
 // Settings Container
-.aie-settings-container {
+.rsl-ie-settings-container {
 	display: flex;
 	flex-direction: column;
 	gap: 20px;
@@ -31,14 +31,14 @@
 }
 
 // Settings Section
-.aie-settings-section {
+.rsl-ie-settings-section {
 	background: #fff;
 	border: 1px solid #c3c4c7;
 	border-radius: 4px;
 	overflow: hidden;
 }
 
-.aie-settings-section-header {
+.rsl-ie-settings-section-header {
 	padding: 20px 24px;
 	border-bottom: 1px solid #c3c4c7;
 	background: #f6f7f7;
@@ -60,12 +60,12 @@
 	}
 }
 
-.aie-settings-section-body {
+.rsl-ie-settings-section-body {
 	padding: 24px;
 }
 
 // Settings Form
-.aie-settings-form {
+.rsl-ie-settings-form {
 	.form-table {
 		th {
 			width: 200px;
@@ -99,7 +99,7 @@
 }
 
 // Password Toggle Button
-.aie-toggle-password {
+.rsl-ie-toggle-password {
 	margin-left: 5px;
 	padding: 4px 8px;
 	min-height: 30px;
@@ -113,14 +113,14 @@
 }
 
 // API Status
-.aie-api-status {
+.rsl-ie-api-status {
 	display: flex;
 	align-items: center;
 	gap: 10px;
 	flex-wrap: wrap;
 }
 
-.aie-status-badge {
+.rsl-ie-status-badge {
 	display: inline-block;
 	padding: 3px 8px;
 	border-radius: 3px;
@@ -136,18 +136,18 @@
 		font-size: 16px;
 	}
 
-	&.aie-status-configured {
+	&.rsl-ie-status-configured {
 		background: #dcfce7;
 		color: #166534;
 	}
 
-	&.aie-status-not-configured {
+	&.rsl-ie-status-not-configured {
 		background: #fef3c7;
 		color: #92400e;
 	}
 }
 
-.aie-test-api-key {
+.rsl-ie-test-api-key {
 	.dashicons {
 		vertical-align: middle;
 		margin-right: 4px;
@@ -155,7 +155,7 @@
 }
 
 // Info Badge
-.aie-info-badge {
+.rsl-ie-info-badge {
 	display: inline-block;
 	padding: 4px 12px;
 	background: #e0f2fe;
@@ -167,7 +167,7 @@
 }
 
 // Info Boxes
-.aie-info-box {
+.rsl-ie-info-box {
 	padding: 12px 15px;
 	border-radius: 4px;
 	margin: 10px 0;
@@ -189,13 +189,13 @@
 		margin: 5px 0 0 0;
 	}
 
-	&.aie-warning {
+	&.rsl-ie-warning {
 		background: #fef3c7;
 		border-left: 4px solid #fde047;
 		color: #92400e;
 	}
 
-	&.aie-info {
+	&.rsl-ie-info {
 		background: #dbeafe;
 		border-left: 4px solid #60a5fa;
 		color: #1e40af;
@@ -205,13 +205,13 @@
 		}
 	}
 
-	&.aie-success {
+	&.rsl-ie-success {
 		background: #dcfce7;
 		border-left: 4px solid #86efac;
 		color: #166534;
 	}
 
-	&.aie-error {
+	&.rsl-ie-error {
 		background: #fee2e2;
 		border-left: 4px solid #fca5a5;
 		color: #991b1b;
@@ -219,7 +219,7 @@
 }
 
 // Settings Footer
-.aie-settings-footer {
+.rsl-ie-settings-footer {
 	margin-top: 20px;
 	padding-top: 20px;
 	border-top: 1px solid #c3c4c7;
@@ -227,7 +227,7 @@
 	align-items: center;
 	gap: 15px;
 
-	.aie-save-settings {
+	.rsl-ie-save-settings {
 		.dashicons {
 			vertical-align: middle;
 			margin-right: 4px;
@@ -235,15 +235,15 @@
 	}
 }
 
-.aie-settings-status {
+.rsl-ie-settings-status {
 	.spinner {
 		float: none;
 		margin: 0;
 		vertical-align: middle;
 	}
 
-	.aie-success-message,
-	.aie-error-message {
+	.rsl-ie-success-message,
+	.rsl-ie-error-message {
 		display: inline-block;
 		padding: 5px 10px;
 		border-radius: 3px;
@@ -259,26 +259,26 @@
 		}
 	}
 
-	.aie-success-message {
+	.rsl-ie-success-message {
 		background: #dcfce7;
 		color: #166534;
 	}
 
-	.aie-error-message {
+	.rsl-ie-error-message {
 		background: #fee2e2;
 		color: #991b1b;
 	}
 }
 
 // Info Cards
-.aie-info-cards {
+.rsl-ie-info-cards {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 	gap: 15px;
 	margin-bottom: 20px;
 }
 
-.aie-info-card {
+.rsl-ie-info-card {
 	padding: 15px;
 	background: #f9fafb;
 	border: 1px solid #e5e7eb;
@@ -307,7 +307,7 @@
 		line-height: 1.5;
 	}
 
-	.aie-upgrade-link {
+	.rsl-ie-upgrade-link {
 		display: inline-block;
 		margin-top: 8px;
 		color: #2271b1;
@@ -321,7 +321,7 @@
 }
 
 // Help Section
-.aie-help-section {
+.rsl-ie-help-section {
 	background: #f9fafb;
 	padding: 15px;
 	border-radius: 4px;
@@ -366,7 +366,7 @@
 
 // Responsive
 @media (max-width: 768px) {
-	.aie-settings-form .form-table {
+	.rsl-ie-settings-form .form-table {
 		th,
 		td {
 			display: block;
@@ -383,11 +383,11 @@
 		}
 	}
 
-	.aie-info-cards {
+	.rsl-ie-info-cards {
 		grid-template-columns: 1fr;
 	}
 
-	.aie-settings-footer {
+	.rsl-ie-settings-footer {
 		flex-direction: column;
 		align-items: flex-start;
 	}

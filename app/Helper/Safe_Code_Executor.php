@@ -191,8 +191,8 @@ class Safe_Code_Executor {
 		$dangerous_check = self::check_dangerous_functions( $code );
 		if ( is_wp_error( $dangerous_check ) ) {
 			return [
-				'output' => '',
-				'error'  => true,
+				'output'  => '',
+				'error'   => true,
 				'message' => $dangerous_check->get_error_message(),
 			];
 		}
@@ -206,8 +206,8 @@ class Safe_Code_Executor {
 		foreach ( $used_functions as $func ) {
 			if ( ! in_array( $func, $allowed, true ) && ! in_array( $func, [ 'return', 'if', 'else', 'elseif', 'empty', 'isset' ], true ) ) {
 				return [
-					'output' => '',
-					'error'  => true,
+					'output'  => '',
+					'error'   => true,
 					'message' => sprintf(
 						/* translators: %s: function name */
 						__( 'Function "%s" is not allowed. Only whitelisted functions are permitted.', 'import-export-by-rockstarlab' ),
@@ -258,8 +258,8 @@ class Safe_Code_Executor {
 
 		} catch ( \PhpParser\Error $e ) {
 			return [
-				'output' => '',
-				'error'  => true,
+				'output'  => '',
+				'error'   => true,
 				'message' => sprintf(
 					/* translators: %s: parse error message */
 					__( 'PHP Syntax Error: %s', 'import-export-by-rockstarlab' ),
@@ -268,8 +268,8 @@ class Safe_Code_Executor {
 			];
 		} catch ( \Exception $e ) {
 			return [
-				'output' => '',
-				'error'  => true,
+				'output'  => '',
+				'error'   => true,
 				'message' => $e->getMessage(),
 			];
 		}
@@ -288,8 +288,8 @@ class Safe_Code_Executor {
 		$dangerous_check = self::check_dangerous_functions( $code );
 		if ( is_wp_error( $dangerous_check ) ) {
 			return [
-				'output' => '',
-				'error'  => true,
+				'output'  => '',
+				'error'   => true,
 				'message' => $dangerous_check->get_error_message(),
 			];
 		}
@@ -315,15 +315,15 @@ class Safe_Code_Executor {
 		// Check if code is empty after cleanup
 		if ( empty( $code ) ) {
 			return [
-				'output' => '',
-				'error'  => true,
+				'output'  => '',
+				'error'   => true,
 				'message' => __( 'Function code is empty after processing', 'import-export-by-rockstarlab' ),
 			];
 		}
 
 		// Check if the first meaningful token (ignoring comments/whitespace) is T_RETURN.
 		// A plain stripos() check fails when comments precede the return statement.
-		$tokens = @token_get_all( '<?php ' . $code ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		$tokens                 = @token_get_all( '<?php ' . $code ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		$first_meaningful_token = null;
 		foreach ( $tokens as $token ) {
 			if ( is_array( $token ) ) {
@@ -352,19 +352,16 @@ class Safe_Code_Executor {
 		try {
 			// Create anonymous function
 			$func = function ( $value ) use ( $code ) {
-				// Capture errors but allow them to be retrieved
-				$old_error_reporting = error_reporting( E_ALL ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting
-				$old_display_errors = ini_get( 'display_errors' );
-				ini_set( 'display_errors', '0' ); // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged
-
-				// Execute code
+				// Capture errors using set_error_handler (does not affect global error_reporting).
 				ob_start();
 				$error_buffer = [];
 
-				set_error_handler( function ( $errno, $errstr, $errfile, $errline ) use ( &$error_buffer ) { // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler
-					$error_buffer[] = $errstr;
-					return true;
-				} );
+				set_error_handler(
+					function ( $errno, $errstr, $errfile, $errline ) use ( &$error_buffer ) { // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler
+						$error_buffer[] = $errstr;
+						return true;
+					}
+				);
 
 				try {
 					// phpcs:ignore Squiz.PHP.Eval.Discouraged -- Controlled execution with validation
@@ -372,14 +369,12 @@ class Safe_Code_Executor {
 					$output = ob_get_clean();
 
 					restore_error_handler();
-					error_reporting( $old_error_reporting ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting
-					ini_set( 'display_errors', $old_display_errors ); // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged
 
 					// Check if there were any errors during execution
 					if ( ! empty( $error_buffer ) ) {
 						return [
-							'output' => '',
-							'error'  => true,
+							'output'  => '',
+							'error'   => true,
 							'message' => implode( '; ', $error_buffer ),
 						];
 					}
@@ -391,23 +386,19 @@ class Safe_Code_Executor {
 				} catch ( \ParseError $e ) {
 					ob_end_clean();
 					restore_error_handler();
-					error_reporting( $old_error_reporting ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting
-					ini_set( 'display_errors', $old_display_errors ); // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged
 
 					return [
-						'output' => '',
-						'error'  => true,
+						'output'  => '',
+						'error'   => true,
 						'message' => 'Syntax error: ' . $e->getMessage(),
 					];
 				} catch ( \Throwable $e ) {
 					ob_end_clean();
 					restore_error_handler();
-					error_reporting( $old_error_reporting ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting
-					ini_set( 'display_errors', $old_display_errors ); // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged
 
 					return [
-						'output' => '',
-						'error'  => true,
+						'output'  => '',
+						'error'   => true,
 						'message' => $e->getMessage(),
 					];
 				}
@@ -417,8 +408,8 @@ class Safe_Code_Executor {
 
 		} catch ( \Throwable $e ) {
 			return [
-				'output' => '',
-				'error'  => true,
+				'output'  => '',
+				'error'   => true,
 				'message' => $e->getMessage(),
 			];
 		}

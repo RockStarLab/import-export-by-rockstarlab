@@ -5,7 +5,7 @@
  * Only visible on plugin admin pages, 1 week after installation.
  */
 
-.aie-review-notice {
+.rsl-ie-review-notice {
 	display: flex;
 	flex-direction: column;
 	gap: 0;
@@ -34,18 +34,22 @@
 	overflow: hidden;
 
 	// Slide-in from the right on appear
-	animation: aie-notice-slidein 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+	animation: rsl-ie-notice-slidein 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 
 	// Subtle amber glow in the top-left corner (behind the border)
 	&::before {
-		content: '';
+		content: "";
 		position: absolute;
 		top: -40px;
 		left: -40px;
 		width: 140px;
 		height: 140px;
 		border-radius: 50%;
-		background: radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, transparent 70%);
+		background: radial-gradient(
+			circle,
+			rgba(245, 158, 11, 0.12) 0%,
+			transparent 70%
+		);
 		pointer-events: none;
 	}
 
@@ -63,7 +67,7 @@
 		text-shadow:
 			0 0 8px rgba(245, 158, 11, 0.5),
 			0 2px 6px rgba(0, 0, 0, 0.4);
-		animation: aie-stars-glow 2.2s ease-in-out infinite;
+		animation: rsl-ie-stars-glow 2.2s ease-in-out infinite;
 		margin-bottom: 10px;
 	}
 
@@ -189,8 +193,9 @@
 }
 
 // ── Star glow pulse ───────────────────────────────────────────────────────────
-@keyframes aie-stars-glow {
-	0%, 100% {
+@keyframes rsl-ie-stars-glow {
+	0%,
+	100% {
 		text-shadow:
 			0 0 6px rgba(245, 158, 11, 0.4),
 			0 2px 6px rgba(0, 0, 0, 0.4);
@@ -204,7 +209,7 @@
 }
 
 // ── Slide-in from bottom-right ────────────────────────────────────────────────
-@keyframes aie-notice-slidein {
+@keyframes rsl-ie-notice-slidein {
 	from {
 		opacity: 0;
 		transform: translateY(24px) scale(0.97);

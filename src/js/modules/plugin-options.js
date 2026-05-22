@@ -23,7 +23,7 @@ const PluginOptionsModule = {
 		const $ = jQuery;
 
 		// Toggle password visibility.
-		$( document ).on( 'click', '.aie-toggle-password', function () {
+		$( document ).on( 'click', '.rsl-ie-toggle-password', function () {
 			const targetId = $( this ).data( 'target' );
 			const $input = $( `#${ targetId }` );
 			const $icon = $( this ).find( '.dashicons' );
@@ -42,32 +42,32 @@ const PluginOptionsModule = {
 		} );
 
 		// Save settings.
-		$( document ).on( 'submit', '#aie-settings-form', function ( e ) {
+		$( document ).on( 'submit', '#rsl-ie-settings-form', function ( e ) {
 			e.preventDefault();
 
 			const $form = $( this );
-			const $submitBtn = $form.find( '.aie-save-settings' );
-			const $status = $form.find( '.aie-settings-status' );
+			const $submitBtn = $form.find( '.rsl-ie-save-settings' );
+			const $status = $form.find( '.rsl-ie-settings-status' );
 
 			$submitBtn.prop( 'disabled', true );
 			$status.html( '<span class="spinner is-active"></span>' );
 
 			$.ajax( {
-				url: window.aieData.ajaxUrl,
+				url: window.rslIeData.ajaxUrl,
 				type: 'POST',
 				data: {
-					action: 'aie_settings_save',
-					nonce: window.aieData.nonce,
-					openai_api_key: $( '#aie-openai-api-key' ).val(),
+					action: 'rsl_ie_settings_save',
+					nonce: window.rslIeData.nonce,
+					openai_api_key: $( '#rsl-ie-openai-api-key' ).val(),
 				},
 			} )
 				.done( function ( response ) {
 					if ( response && response.success ) {
 						$status.html(
-							'<span class="aie-success-message"><span class="dashicons dashicons-yes-alt"></span> ' +
+							'<span class="rsl-ie-success-message"><span class="dashicons dashicons-yes-alt"></span> ' +
 								( response.data && response.data.message
 									? response.data.message
-									: window.aieData.i18n.saved ) +
+									: window.rslIeData.i18n.saved ) +
 								'</span>'
 						);
 						setTimeout( function () {
@@ -77,10 +77,10 @@ const PluginOptionsModule = {
 						const message =
 							( response && response.message ) ||
 							( response && response.data ) ||
-							window.aieData.i18n.errorOccurred;
+							window.rslIeData.i18n.errorOccurred;
 
 						$status.html(
-							'<span class="aie-error-message"><span class="dashicons dashicons-warning"></span> ' +
+							'<span class="rsl-ie-error-message"><span class="dashicons dashicons-warning"></span> ' +
 								message +
 								'</span>'
 						);
@@ -89,8 +89,8 @@ const PluginOptionsModule = {
 				} )
 				.fail( function () {
 					$status.html(
-						'<span class="aie-error-message"><span class="dashicons dashicons-warning"></span> ' +
-							window.aieData.i18n.errorOccurred +
+						'<span class="rsl-ie-error-message"><span class="dashicons dashicons-warning"></span> ' +
+							window.rslIeData.i18n.errorOccurred +
 							'</span>'
 					);
 					$submitBtn.prop( 'disabled', false );
@@ -98,16 +98,16 @@ const PluginOptionsModule = {
 		} );
 
 		// Test API connection (lightweight check: configured vs not configured).
-		$( document ).on( 'click', '.aie-test-api-key', function () {
+		$( document ).on( 'click', '.rsl-ie-test-api-key', function () {
 			const $btn = $( this );
-			const $result = $( '#aie-api-test-result' );
-			const apiKey = ( $( '#aie-openai-api-key' ).val() || '' ).trim();
+			const $result = $( '#rsl-ie-api-test-result' );
+			const apiKey = ( $( '#rsl-ie-openai-api-key' ).val() || '' ).trim();
 
 			$btn.prop( 'disabled', true );
 			$result
 				.html(
-					'<div class="aie-info-box"><span class="spinner is-active"></span> ' +
-						window.aieData.i18n.testingConnection +
+					'<div class="rsl-ie-info-box"><span class="spinner is-active"></span> ' +
+						window.rslIeData.i18n.testingConnection +
 						'</div>'
 				)
 				.show();
@@ -115,18 +115,18 @@ const PluginOptionsModule = {
 			setTimeout( function () {
 				if ( apiKey ) {
 					$result.html(
-						'<div class="aie-info-box aie-success"><span class="dashicons dashicons-yes-alt"></span> <strong>' +
-							window.aieData.i18n.apiKeyConfiguredTitle +
+						'<div class="rsl-ie-info-box rsl-ie-success"><span class="dashicons dashicons-yes-alt"></span> <strong>' +
+							window.rslIeData.i18n.apiKeyConfiguredTitle +
 							'</strong><br>' +
-							window.aieData.i18n.apiKeyConfiguredDesc +
+							window.rslIeData.i18n.apiKeyConfiguredDesc +
 							'</div>'
 					);
 				} else {
 					$result.html(
-						'<div class="aie-info-box aie-error"><span class="dashicons dashicons-warning"></span> <strong>' +
-							window.aieData.i18n.noApiKeyTitle +
+						'<div class="rsl-ie-info-box rsl-ie-error"><span class="dashicons dashicons-warning"></span> <strong>' +
+							window.rslIeData.i18n.noApiKeyTitle +
 							'</strong><br>' +
-							window.aieData.i18n.noApiKeyDesc +
+							window.rslIeData.i18n.noApiKeyDesc +
 							'</div>'
 					);
 				}
@@ -137,4 +137,3 @@ const PluginOptionsModule = {
 };
 
 export default PluginOptionsModule;
-

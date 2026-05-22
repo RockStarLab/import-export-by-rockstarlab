@@ -7,7 +7,7 @@
 const LEGACY_AJAX_PREFIX = 'aie_';
 const AJAX_PREFIX = 'rsl_ie_';
 
-const getClientData = () => window.aieData || window.rslIeData || {};
+const getClientData = () => window.rslIeData || window.rslIeData || {};
 
 const normalizeAjaxAction = ( action ) => {
 	if ( ! action || typeof action !== 'string' ) {
@@ -26,7 +26,11 @@ const normalizeAjaxAction = ( action ) => {
 };
 
 // Normalize legacy `aie_` admin-ajax actions across the bundle.
-if ( typeof window !== 'undefined' && window.jQuery && ! window.__rslIeAjaxPrefilterAdded ) {
+if (
+	typeof window !== 'undefined' &&
+	window.jQuery &&
+	! window.__rslIeAjaxPrefilterAdded
+) {
 	window.__rslIeAjaxPrefilterAdded = true;
 
 	window.jQuery.ajaxPrefilter( ( options ) => {
@@ -36,7 +40,7 @@ if ( typeof window !== 'undefined' && window.jQuery && ! window.__rslIeAjaxPrefi
 
 		if ( typeof options.data === 'string' ) {
 			options.data = options.data.replace(
-				/(^|&)action=aie_/,
+				/(^|&)action=rsl_ie_/,
 				`$1action=${ AJAX_PREFIX }`
 			);
 			return;
@@ -78,26 +82,38 @@ const Utils = {
 					if ( response.success ) {
 						resolve( response.data || response );
 					} else {
-						reject( response.data?.message || response.data || 'Request failed' );
+						reject(
+							response.data?.message ||
+								response.data ||
+								'Request failed'
+						);
 					}
 				} )
 				.fail( ( jqXHR, textStatus, errorThrown ) => {
 					// Try to parse error response
 					let errorMessage = 'Request failed';
-					
-					if ( jqXHR.responseJSON && jqXHR.responseJSON.data && jqXHR.responseJSON.data.message ) {
+
+					if (
+						jqXHR.responseJSON &&
+						jqXHR.responseJSON.data &&
+						jqXHR.responseJSON.data.message
+					) {
 						errorMessage = jqXHR.responseJSON.data.message;
 					} else if ( jqXHR.responseText ) {
 						try {
 							const parsed = JSON.parse( jqXHR.responseText );
-							errorMessage = parsed.data?.message || parsed.message || errorMessage;
+							errorMessage =
+								parsed.data?.message ||
+								parsed.message ||
+								errorMessage;
 						} catch ( e ) {
-							errorMessage = errorThrown || textStatus || errorMessage;
+							errorMessage =
+								errorThrown || textStatus || errorMessage;
 						}
 					} else if ( errorThrown ) {
 						errorMessage = errorThrown;
 					}
-					
+
 					reject( errorMessage );
 				} );
 		} );
@@ -131,25 +147,31 @@ const Utils = {
 	 */
 	formatDuration( seconds ) {
 		if ( seconds < 60 ) {
-			return (window.aieData?.i18n?.timeFormatSeconds || '%ds')
-				.replace('%d', Math.round( seconds ));
+			return (
+				window.rslIeData?.i18n?.timeFormatSeconds || '%ds'
+			).replace( '%d', Math.round( seconds ) );
 		}
 
 		const minutes = Math.floor( seconds / 60 );
 		const secs = Math.round( seconds % 60 );
 
 		if ( minutes < 60 ) {
-			return (window.aieData?.i18n?.timeFormatMinutesSeconds || '%1$sm %2$ss')
-				.replace('%1$s', minutes)
-				.replace('%2$s', secs);
+			return (
+				window.rslIeData?.i18n?.timeFormatMinutesSeconds ||
+				'%1$sm %2$ss'
+			)
+				.replace( '%1$s', minutes )
+				.replace( '%2$s', secs );
 		}
 
 		const hours = Math.floor( minutes / 60 );
 		const mins = minutes % 60;
 
-		return (window.aieData?.i18n?.timeFormatHoursMinutes || '%1$sh %2$sm')
-			.replace('%1$s', hours)
-			.replace('%2$s', mins);
+		return (
+			window.rslIeData?.i18n?.timeFormatHoursMinutes || '%1$sh %2$sm'
+		)
+			.replace( '%1$s', hours )
+			.replace( '%2$s', mins );
 	},
 
 	/**
@@ -176,20 +198,27 @@ const Utils = {
 	 */
 	showNotice( message, type = 'info' ) {
 		const noticeClass = 'notice notice-' + type + ' is-dismissible';
-		const dismissText = window.aieData?.i18n?.dismissNotice || 'Dismiss this notice.';
+		const dismissText =
+			window.rslIeData?.i18n?.dismissNotice || 'Dismiss this notice.';
 
 		// Remove all existing notices to show only one at a time
 		jQuery( '.wrap > .notice' ).remove();
 
 		const $notice = jQuery(
-			'<div class="' + noticeClass + '">' +
-				'<p>' + message + '</p>' +
+			'<div class="' +
+				noticeClass +
+				'">' +
+				'<p>' +
+				message +
+				'</p>' +
 				'<button type="button" class="notice-dismiss">' +
-					'<span class="screen-reader-text">' + dismissText + '</span>' +
+				'<span class="screen-reader-text">' +
+				dismissText +
+				'</span>' +
 				'</button>' +
-			'</div>'
+				'</div>'
 		);
-		
+
 		jQuery( '.wrap > h1' ).after( $notice );
 
 		// Auto dismiss after 5 seconds
@@ -216,10 +245,13 @@ const Utils = {
 
 		// Check file size
 		if ( file.size > maxSize ) {
-			const fileSizeMsg = (window.aieData?.i18n?.fileSizeExceeds || 'File size (%1$s) exceeds maximum allowed size (%2$s)')
-				.replace('%1$s', this.formatFileSize(file.size))
-				.replace('%2$s', this.formatFileSize(maxSize));
-			errors.push(fileSizeMsg);
+			const fileSizeMsg = (
+				window.rslIeData?.i18n?.fileSizeExceeds ||
+				'File size (%1$s) exceeds maximum allowed size (%2$s)'
+			)
+				.replace( '%1$s', this.formatFileSize( file.size ) )
+				.replace( '%2$s', this.formatFileSize( maxSize ) );
+			errors.push( fileSizeMsg );
 		}
 
 		// Check file type
@@ -233,10 +265,13 @@ const Utils = {
 			} );
 
 			if ( ! isAllowed ) {
-				const fileTypeMsg = (window.aieData?.i18n?.fileTypeNotAllowed || 'File type .%1$s is not allowed. Allowed types: %2$s')
-					.replace('%1$s', fileExt)
-					.replace('%2$s', allowedTypes.join(', '));
-				errors.push(fileTypeMsg);
+				const fileTypeMsg = (
+					window.rslIeData?.i18n?.fileTypeNotAllowed ||
+					'File type .%1$s is not allowed. Allowed types: %2$s'
+				)
+					.replace( '%1$s', fileExt )
+					.replace( '%2$s', allowedTypes.join( ', ' ) );
+				errors.push( fileTypeMsg );
 			}
 		}
 
@@ -344,19 +379,20 @@ const Utils = {
 	 * @returns {jQuery} Progress bar element
 	 */
 	createProgressBar() {
-		const itemsText = window.aieData?.i18n?.jobItems || 'items';
-		return jQuery( 
-			'<div class="aie-progress-container">' +
-				'<div class="aie-progress-bar">' +
-					'<div class="aie-progress-bar-fill" style="width: 0%;"></div>' +
+		const itemsText = window.rslIeData?.i18n?.jobItems || 'items';
+		return jQuery(
+			'<div class="rsl-ie-progress-container">' +
+				'<div class="rsl-ie-progress-bar">' +
+				'<div class="rsl-ie-progress-bar-fill" style="width: 0%;"></div>' +
 				'</div>' +
-				'<div class="aie-progress-stats">' +
-					'<div class="aie-progress-percentage">0%</div>' +
-					'<div class="aie-progress-details">' +
-						'<span class="aie-processed">0</span> / <span class="aie-total">0</span> ' + itemsText +
-					'</div>' +
+				'<div class="rsl-ie-progress-stats">' +
+				'<div class="rsl-ie-progress-percentage">0%</div>' +
+				'<div class="rsl-ie-progress-details">' +
+				'<span class="rsl-ie-processed">0</span> / <span class="rsl-ie-total">0</span> ' +
+				itemsText +
 				'</div>' +
-			'</div>'
+				'</div>' +
+				'</div>'
 		);
 	},
 
@@ -372,29 +408,29 @@ const Utils = {
 		const total = data.total || 0;
 
 		$container
-			.find( '.aie-progress-bar-fill' )
+			.find( '.rsl-ie-progress-bar-fill' )
 			.css( 'width', percentage + '%' );
 		$container
-			.find( '.aie-progress-percentage' )
+			.find( '.rsl-ie-progress-percentage' )
 			.text( Math.round( percentage ) + '%' );
-		$container.find( '.aie-processed' ).text( processed );
-		$container.find( '.aie-total' ).text( total );
+		$container.find( '.rsl-ie-processed' ).text( processed );
+		$container.find( '.rsl-ie-total' ).text( total );
 
 		// Update estimates if available
 		if ( data.estimates ) {
 			if ( data.estimates.elapsed_formatted ) {
 				$container
-					.find( '.aie-elapsed-time' )
+					.find( '.rsl-ie-elapsed-time' )
 					.text( data.estimates.elapsed_formatted );
 			}
 			if ( data.estimates.remaining_formatted ) {
 				$container
-					.find( '.aie-remaining-time' )
+					.find( '.rsl-ie-remaining-time' )
 					.text( data.estimates.remaining_formatted );
 			}
 			if ( data.estimates.items_per_second ) {
 				$container
-					.find( '.aie-items-per-second' )
+					.find( '.rsl-ie-items-per-second' )
 					.text(
 						data.estimates.items_per_second.toFixed( 1 ) +
 							' items/s'
@@ -410,7 +446,6 @@ const Utils = {
 	 * @param {string} context Error context
 	 */
 	handleError( error, context = '' ) {
-
 		const message = error.message || error.toString();
 		this.showNotice( message, 'error' );
 	},

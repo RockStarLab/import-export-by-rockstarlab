@@ -4,7 +4,7 @@
 
 // Premium Notice Banner
 .import-export-by-rockstarlab {
-	.aie-premium-notice {
+	.rsl-ie-premium-notice {
 		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 		border-radius: 8px;
 		padding: 30px;
@@ -15,7 +15,7 @@
 		box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 		color: #fff;
 
-		.aie-premium-notice-icon {
+		.rsl-ie-premium-notice-icon {
 			flex-shrink: 0;
 			width: 70px;
 			height: 70px;
@@ -34,7 +34,7 @@
 			}
 		}
 
-		.aie-premium-notice-content {
+		.rsl-ie-premium-notice-content {
 			flex: 1;
 
 			h3 {
@@ -84,7 +84,7 @@
 			padding: 25px 20px;
 			gap: 20px;
 
-			.aie-premium-notice-icon {
+			.rsl-ie-premium-notice-icon {
 				width: 60px;
 				height: 60px;
 
@@ -95,7 +95,7 @@
 				}
 			}
 
-			.aie-premium-notice-content {
+			.rsl-ie-premium-notice-content {
 				h3 {
 					font-size: 20px;
 				}
@@ -130,7 +130,7 @@
 		@media (max-width: 480px) {
 			padding: 20px 15px;
 
-			.aie-premium-notice-icon {
+			.rsl-ie-premium-notice-icon {
 				width: 50px;
 				height: 50px;
 
@@ -141,7 +141,7 @@
 				}
 			}
 
-			.aie-premium-notice-content {
+			.rsl-ie-premium-notice-content {
 				h3 {
 					font-size: 18px;
 				}
@@ -164,9 +164,9 @@
 	max-width: 1200px;
 	margin: 20px 15px 20px 0;
 
-	.aie-import-wizard,
-	.aie-export-wizard,
-	.aie-updater-wizard {
+	.rsl-ie-import-wizard,
+	.rsl-ie-export-wizard,
+	.rsl-ie-updater-wizard {
 		position: relative;
 		background: #fff;
 		border: 1px solid #c3c4c7;
@@ -178,14 +178,14 @@
 		flex-direction: column;
 	}
 
-	.aie-import-wizard {
-		.aie-field-info {
+	.rsl-ie-import-wizard {
+		.rsl-ie-field-info {
 			margin-bottom: 0 !important;
 		}
 	}
 
 	// Steps
-	.aie-step {
+	.rsl-ie-step {
 		display: none !important;
 		visibility: hidden !important;
 		opacity: 0 !important;
@@ -201,7 +201,7 @@
 		}
 	}
 
-	.aie-step-header {
+	.rsl-ie-step-header {
 		margin-bottom: 30px;
 		padding-bottom: 20px;
 		border-bottom: 1px solid #dcdcde;
@@ -217,11 +217,11 @@
 		}
 	}
 
-	.aie-step-content {
+	.rsl-ie-step-content {
 		min-height: 300px;
 	}
 
-	.aie-step-actions {
+	.rsl-ie-step-actions {
 		margin-top: 30px;
 		padding-top: 20px;
 		border-top: 1px solid #dcdcde;
@@ -246,7 +246,7 @@
 /**
  * Custom Pointer Tooltip (WordPress & Project Style)
  */
-.aie-custom-tooltip.aie-custom-pointer {
+.rsl-ie-custom-tooltip.rsl-ie-custom-pointer {
 	background: #fff;
 	border: 1px solid #2271b1;
 	border-radius: 4px;
@@ -262,10 +262,10 @@
 	display: flex;
 	align-items: stretch;
 	overflow: hidden;
-	
+
 	// Arrow pointer
 	&::before {
-		content: '';
+		content: "";
 		position: absolute;
 		bottom: -8px;
 		left: 50%;
@@ -277,9 +277,9 @@
 		border-top: 8px solid #2271b1;
 		z-index: 1;
 	}
-	
+
 	&::after {
-		content: '';
+		content: "";
 		position: absolute;
 		bottom: -7px;
 		left: 50%;
@@ -291,20 +291,20 @@
 		border-top: 7px solid #fff;
 		z-index: 2;
 	}
-	
-	&.aie-tooltip-visible {
+
+	&.rsl-ie-tooltip-visible {
 		opacity: 1;
 	}
 }
 
-.aie-custom-tooltip .aie-pointer-icon {
+.rsl-ie-custom-tooltip .rsl-ie-pointer-icon {
 	background: linear-gradient(135deg, #2271b1 0%, #135e96 100%);
 	padding: 18px 16px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
-	
+
 	.dashicons-warning {
 		color: #fff;
 		font-size: 26px;
@@ -313,10 +313,10 @@
 	}
 }
 
-.aie-custom-tooltip .aie-pointer-content {
+.rsl-ie-custom-tooltip .rsl-ie-pointer-content {
 	padding: 16px 20px;
 	flex: 1;
-	
+
 	h3 {
 		margin: 0 0 8px 0;
 		font-size: 14px;
@@ -324,7 +324,7 @@
 		color: #1d2327;
 		line-height: 1.4;
 	}
-	
+
 	p {
 		margin: 0;
 		font-size: 13px;
@@ -334,10 +334,10 @@
 }
 
 // Preview Container
-.aie-preview-container {
+.rsl-ie-preview-container {
 	margin: 20px 0;
 
-	.aie-preview-stats {
+	.rsl-ie-preview-stats {
 		display: flex;
 		gap: 30px;
 		margin-bottom: 20px;
@@ -345,17 +345,17 @@
 		background: #f6f7f7;
 		border-radius: 4px;
 
-		.aie-stat {
+		.rsl-ie-stat {
 			display: flex;
 			gap: 8px;
 			align-items: center;
 
-			.aie-stat-label {
+			.rsl-ie-stat-label {
 				font-weight: 600;
 				color: #1d2327;
 			}
 
-			.aie-stat-value {
+			.rsl-ie-stat-value {
 				color: #2271b1;
 				font-weight: 600;
 				font-size: 16px;
@@ -363,7 +363,7 @@
 		}
 	}
 
-	.aie-preview-table-container {
+	.rsl-ie-preview-table-container {
 		overflow-x: auto;
 		overflow-y: visible;
 		margin-bottom: 15px;
@@ -374,13 +374,17 @@
 
 		// Scroll hint shadow
 		&::after {
-			content: '';
+			content: "";
 			position: absolute;
 			top: 0;
 			right: 0;
 			bottom: 0;
 			width: 30px;
-			background: linear-gradient(to left, rgba(0,0,0,0.05), transparent);
+			background: linear-gradient(
+				to left,
+				rgba(0, 0, 0, 0.05),
+				transparent
+			);
 			pointer-events: none;
 			opacity: 0;
 			transition: opacity 0.2s;
@@ -394,14 +398,15 @@
 			opacity: 0;
 		}
 
-		.aie-preview-table {
+		.rsl-ie-preview-table {
 			width: auto;
 			min-width: 100%;
 			margin: 0;
 			border: none;
 			table-layout: auto;
-			
-			th, td {
+
+			th,
+			td {
 				padding: 10px 15px;
 				white-space: nowrap;
 				min-width: 120px;
@@ -444,13 +449,13 @@
 	}
 
 	// JSON Preview
-	.aie-json-preview-container {
+	.rsl-ie-json-preview-container {
 		margin-bottom: 15px;
 
-		.aie-json-object {
+		.rsl-ie-json-object {
 			table {
 				width: 100%;
-				
+
 				th {
 					font-weight: 600;
 					background: #f6f7f7;
@@ -469,7 +474,7 @@
 					}
 
 					&:nth-child(2) {
-						font-family: 'Courier New', monospace;
+						font-family: "Courier New", monospace;
 						font-size: 12px;
 						color: #0073aa;
 					}
@@ -494,7 +499,7 @@
 		}
 	}
 
-	.aie-preview-note {
+	.rsl-ie-preview-note {
 		margin: 15px 0 0;
 		font-size: 13px;
 		color: #646970;
@@ -504,7 +509,7 @@
 
 // Field Mapping Drag & Drop
 .import-export-by-rockstarlab {
-	.aie-post-type-selector {
+	.rsl-ie-post-type-selector {
 		padding: 15px;
 		background: #f0f6fc;
 		border: 1px solid #c3c4c7;
@@ -524,7 +529,7 @@
 		}
 	}
 
-	.aie-database-table-selector {
+	.rsl-ie-database-table-selector {
 		padding: 15px;
 		background: #f0f6fc;
 		border: 1px solid #c3c4c7;
@@ -552,7 +557,7 @@
 		}
 	}
 
-	.aie-mapping-controls {
+	.rsl-ie-mapping-controls {
 		display: flex;
 		gap: 10px;
 		align-items: center;
@@ -568,27 +573,27 @@
 			gap: 5px;
 		}
 
-		.aie-mapping-stats {
+		.rsl-ie-mapping-stats {
 			margin-left: auto;
 			font-size: 14px;
 			color: #646970;
 
-			.aie-mapped-count {
+			.rsl-ie-mapped-count {
 				font-weight: 600;
 				color: #2271b1;
 			}
 		}
 	}
 
-	.aie-mapping-container {
+	.rsl-ie-mapping-container {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		gap: 20px;
 		margin-bottom: 30px;
 	}
 
-	.aie-mapping-source,
-	.aie-mapping-target {
+	.rsl-ie-mapping-source,
+	.rsl-ie-mapping-target {
 		border: 1px solid #dcdcde;
 		border-radius: 4px;
 		background: #fff;
@@ -613,7 +618,7 @@
 			}
 		}
 
-		.aie-search-box {
+		.rsl-ie-search-box {
 			position: relative;
 			padding: 10px;
 			border-bottom: 1px solid #dcdcde;
@@ -641,7 +646,7 @@
 				pointer-events: none;
 			}
 
-			.aie-clear-search {
+			.rsl-ie-clear-search {
 				position: absolute;
 				right: 47px;
 				top: 50%;
@@ -676,13 +681,13 @@
 				}
 			}
 
-			input:not(:placeholder-shown) ~ .aie-clear-search {
+			input:not(:placeholder-shown) ~ .rsl-ie-clear-search {
 				display: flex;
 			}
 		}
 
-		.aie-source-fields,
-		.aie-target-fields {
+		.rsl-ie-source-fields,
+		.rsl-ie-target-fields {
 			flex: 1;
 			padding: 10px;
 			overflow-y: auto;
@@ -690,14 +695,14 @@
 			max-height: 500px;
 		}
 
-		.aie-field-group {
+		.rsl-ie-field-group {
 			margin-bottom: 15px;
 
 			&:last-child {
 				margin-bottom: 0;
 			}
 
-			.aie-field-group-label {
+			.rsl-ie-field-group-label {
 				font-size: 12px;
 				font-weight: 600;
 				color: #646970;
@@ -712,7 +717,7 @@
 	}
 
 	// Field Cards
-	.aie-field-card {
+	.rsl-ie-field-card {
 		background: #fff;
 		border: 1px solid #c3c4c7;
 		border-radius: 4px;
@@ -745,13 +750,13 @@
 				box-shadow: 0 2px 4px rgba(0, 163, 42, 0.2);
 			}
 
-			.aie-field-icon {
+			.rsl-ie-field-icon {
 				background: #d5f4dd;
 				color: #00a32a;
 			}
 		}
 
-		.aie-field-icon {
+		.rsl-ie-field-icon {
 			flex-shrink: 0;
 			width: 32px;
 			height: 32px;
@@ -764,13 +769,13 @@
 			font-size: 16px;
 		}
 
-		.aie-field-info {
+		.rsl-ie-field-info {
 			flex: 1;
 			min-width: 0;
 			max-width: 100%;
 			overflow: hidden;
 
-			.aie-field-name {
+			.rsl-ie-field-name {
 				font-weight: 600;
 				font-size: 13px;
 				color: #1d2327;
@@ -781,26 +786,26 @@
 				max-width: 200px;
 			}
 
-			.aie-field-type {
+			.rsl-ie-field-type {
 				font-size: 11px;
 				color: #646970;
 				margin: 2px 0 0 0;
 			}
 
-			.aie-field-sample {
+			.rsl-ie-field-sample {
 				font-size: 11px;
 				color: #8c8f94;
 				margin: 3px 0 0 0;
 				white-space: nowrap;
 				overflow: hidden;
 				text-overflow: ellipsis;
-				font-family: 'Courier New', monospace;
+				font-family: "Courier New", monospace;
 			}
 		}
 	}
 
 	// Target field drop zone
-	.aie-target-field {
+	.rsl-ie-target-field {
 		background: #fff;
 		border: 2px dashed #c3c4c7;
 		border-radius: 4px;
@@ -825,7 +830,7 @@
 			background: #f0f6fc;
 		}
 
-		.aie-field-icon {
+		.rsl-ie-field-icon {
 			flex-shrink: 0;
 			width: 32px;
 			height: 32px;
@@ -838,21 +843,21 @@
 			font-size: 16px;
 		}
 
-		.aie-field-info {
+		.rsl-ie-field-info {
 			flex: 1;
 			min-width: 0;
 			display: flex;
 			flex-direction: row;
 			align-items: center;
 
-			.aie-field-label {
+			.rsl-ie-field-label {
 				font-weight: 600;
 				font-size: 13px;
 				color: #1d2327;
 				margin: 0;
 			}
 
-			.aie-field-type-badge {
+			.rsl-ie-field-type-badge {
 				display: inline-block;
 				padding: 2px 8px;
 				background: #f0f0f1;
@@ -862,7 +867,7 @@
 				margin: 4px 0 0 0;
 			}
 
-			.aie-mapped-source {
+			.rsl-ie-mapped-source {
 				margin-top: 6px;
 				padding: 6px 10px;
 				background: #fff;
@@ -873,12 +878,12 @@
 				align-items: center;
 				justify-content: space-between;
 
-				.aie-source-name {
+				.rsl-ie-source-name {
 					font-weight: 600;
 					color: #2271b1;
 				}
 
-				.aie-remove-mapping {
+				.rsl-ie-remove-mapping {
 					color: #b32d2e;
 					cursor: pointer;
 					padding: 2px;
@@ -893,7 +898,7 @@
 	}
 
 	// Mapped Fields Section
-	.aie-mapped-fields-section {
+	.rsl-ie-mapped-fields-section {
 		margin-top: 30px;
 		border: 1px solid #dcdcde;
 		border-radius: 4px;
@@ -915,12 +920,12 @@
 			}
 		}
 
-		.aie-mapped-fields {
+		.rsl-ie-mapped-fields {
 			padding: 15px;
 			min-height: 150px;
 		}
 
-		.aie-empty-state {
+		.rsl-ie-empty-state {
 			display: flex;
 			flex-direction: column;
 			align-items: center;
@@ -942,7 +947,7 @@
 			}
 		}
 
-		.aie-mapping-row {
+		.rsl-ie-mapping-row {
 			display: flex;
 			align-items: center;
 			gap: 15px;
@@ -953,7 +958,7 @@
 			margin-bottom: 10px;
 			flex-wrap: wrap;
 
-			.aie-source-col {
+			.rsl-ie-source-col {
 				flex: 0 0 auto;
 				min-width: 150px;
 				display: flex;
@@ -968,20 +973,20 @@
 					font-size: 13px;
 				}
 
-				.aie-sample {
+				.rsl-ie-sample {
 					font-size: 11px;
 					color: #646970;
-					font-family: 'Courier New', monospace;
+					font-family: "Courier New", monospace;
 				}
 			}
 
-			.aie-arrow {
+			.rsl-ie-arrow {
 				color: #8c8f94;
 				font-size: 18px;
 				flex: 0 0 auto;
 			}
 
-			.aie-target-col {
+			.rsl-ie-target-col {
 				flex: 0 0 auto;
 				min-width: 150px;
 				display: flex;
@@ -996,7 +1001,7 @@
 					font-size: 13px;
 				}
 
-				.aie-function-badge {
+				.rsl-ie-function-badge {
 					display: inline-block;
 					padding: 2px 8px;
 					background: #fcf9e8;
@@ -1008,7 +1013,7 @@
 				}
 			}
 
-			.aie-mapping-actions {
+			.rsl-ie-mapping-actions {
 				display: flex;
 				gap: 5px;
 
@@ -1030,14 +1035,14 @@
 	}
 
 	// Mapping functions display
-	.aie-mapping-functions {
+	.rsl-ie-mapping-functions {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 5px;
 		margin-left: 10px;
 		flex: 0 0 auto;
 
-		.aie-function-badge {
+		.rsl-ie-function-badge {
 			display: inline-flex;
 			align-items: center;
 			gap: 5px;
@@ -1049,7 +1054,7 @@
 			color: #2271b1;
 			white-space: nowrap;
 
-			.aie-remove-function {
+			.rsl-ie-remove-function {
 				background: none;
 				border: none;
 				padding: 0;
@@ -1068,11 +1073,11 @@
 	}
 
 	// Custom Field Buttons
-	.aie-custom-field-template {
+	.rsl-ie-custom-field-template {
 		border: 2px dashed #c3c4c7 !important;
 		background: #f6f7f7 !important;
 
-		.aie-field-icon {
+		.rsl-ie-field-icon {
 			background: #2271b1 !important;
 
 			.dashicons {
@@ -1080,7 +1085,7 @@
 			}
 		}
 
-		.aie-add-custom-field {
+		.rsl-ie-add-custom-field {
 			margin-top: 5px;
 			font-size: 12px;
 			padding: 2px 8px;
@@ -1089,7 +1094,7 @@
 		}
 	}
 
-	.aie-remove-custom-field {
+	.rsl-ie-remove-custom-field {
 		background: none;
 		border: none;
 		padding: 0;
@@ -1104,14 +1109,13 @@
 			color: #b32d2e;
 		}
 	}
-
 }
 
 // Custom Field Modal (uses same structure as function modal)
-.aie-custom-field-modal-content {
+.rsl-ie-custom-field-modal-content {
 	max-width: 550px;
-	
-	.aie-modal-body {
+
+	.rsl-ie-modal-body {
 		label {
 			display: block;
 			margin-bottom: 15px;
@@ -1142,4 +1146,3 @@
 		}
 	}
 }
-

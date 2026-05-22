@@ -8,25 +8,25 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 
-<div id="aie-sync-modal" class="aie-modal" style="display: none;">
-	<div class="aie-modal-content">
-		<div class="aie-modal-header">
+<div id="rsl-ie-sync-modal" class="rsl-ie-modal" style="display: none;">
+	<div class="rsl-ie-modal-content">
+		<div class="rsl-ie-modal-header">
 			<h2><?php esc_html_e( 'Sync Content', 'import-export-by-rockstarlab' ); ?></h2>
-			<button type="button" class="aie-modal-close">&times;</button>
+			<button type="button" class="rsl-ie-modal-close">&times;</button>
 		</div>
-		<div class="aie-modal-body">
-			<div class="aie-sync-info">
+		<div class="rsl-ie-modal-body">
+			<div class="rsl-ie-sync-info">
 				<p>
 					<strong><?php esc_html_e( 'Selected posts:', 'import-export-by-rockstarlab' ); ?></strong>
-					<span id="aie-selected-count">0</span>
+					<span id="rsl-ie-selected-count">0</span>
 				</p>
 			</div>
 			
-			<div class="aie-form-group">
-				<label for="aie-sync-site-select">
+			<div class="rsl-ie-form-group">
+				<label for="rsl-ie-sync-site-select">
 					<?php esc_html_e( 'Select Site', 'import-export-by-rockstarlab' ); ?>
 				</label>
-				<select id="aie-sync-site-select" class="aie-form-control">
+				<select id="rsl-ie-sync-site-select" class="rsl-ie-form-control">
 					<option value=""><?php esc_html_e( '-- Select Site --', 'import-export-by-rockstarlab' ); ?></option>
 					<?php foreach ( $sites as $rsl_ie_site ) : ?>
 						<option value="<?php echo esc_attr( $rsl_ie_site['id'] ); ?>" data-site-name="<?php echo esc_attr( $rsl_ie_site['name'] ); ?>">
@@ -37,25 +37,25 @@ defined( 'ABSPATH' ) || exit;
 				</select>
 			</div>
 
-			<div class="aie-sync-direction">
-				<button type="button" id="aie-sync-push-btn" class="button button-primary" disabled>
+			<div class="rsl-ie-sync-direction">
+				<button type="button" id="rsl-ie-sync-push-btn" class="button button-primary" disabled>
 					<span class="dashicons dashicons-upload"></span>
 					<?php esc_html_e( 'Push to Site', 'import-export-by-rockstarlab' ); ?>
 				</button>
-				<button type="button" id="aie-sync-pull-btn" class="button button-primary" disabled>
+				<button type="button" id="rsl-ie-sync-pull-btn" class="button button-primary" disabled>
 					<span class="dashicons dashicons-download"></span>
 					<?php esc_html_e( 'Pull from Site', 'import-export-by-rockstarlab' ); ?>
 				</button>
 			</div>
 
-			<div id="aie-sync-progress" style="display: none;">
-				<div class="aie-progress-bar">
-					<div class="aie-progress-fill"></div>
+			<div id="rsl-ie-sync-progress" style="display: none;">
+				<div class="rsl-ie-progress-bar">
+					<div class="rsl-ie-progress-fill"></div>
 				</div>
-				<p class="aie-progress-text"></p>
+				<p class="rsl-ie-progress-text"></p>
 			</div>
 
-			<div id="aie-sync-result" style="display: none;"></div>
+			<div id="rsl-ie-sync-result" style="display: none;"></div>
 		</div>
 	</div>
 </div>

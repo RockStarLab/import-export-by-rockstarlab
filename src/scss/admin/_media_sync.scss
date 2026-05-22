@@ -6,7 +6,7 @@
  */
 
 #rsl-ie-media-sync {
-	.aie-media-sync-container {
+	.rsl-ie-media-sync-container {
 		max-width: 1000px;
 	}
 
@@ -22,7 +22,7 @@
 	}
 
 	// Premium badge
-	.aie-premium-badge {
+	.rsl-ie-premium-badge {
 		display: inline-flex;
 		align-items: center;
 		gap: 4px;
@@ -45,7 +45,7 @@
 		}
 	}
 
-	.aie-card {
+	.rsl-ie-card {
 		background: #fff;
 		border: 1px solid #c3c4c7;
 		border-radius: 4px;
@@ -53,7 +53,7 @@
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 	}
 
-	.aie-card-header {
+	.rsl-ie-card-header {
 		padding: 20px 30px;
 		border-bottom: 1px solid #dcdcde;
 
@@ -75,11 +75,11 @@
 		}
 	}
 
-	.aie-card-body {
+	.rsl-ie-card-body {
 		padding: 30px;
 	}
 
-	.aie-actions {
+	.rsl-ie-actions {
 		margin-top: 20px;
 		padding-top: 20px;
 		border-top: 1px solid #dcdcde;
@@ -99,7 +99,7 @@
 	}
 
 	// Scan Results
-	.aie-scan-stats {
+	.rsl-ie-scan-stats {
 		display: flex;
 		gap: 30px;
 		margin: 15px 0;
@@ -107,7 +107,7 @@
 		background: #f6f7f7;
 		border-radius: 4px;
 
-		.aie-stat {
+		.rsl-ie-stat {
 			display: flex;
 			flex-direction: column;
 			gap: 5px;
@@ -126,7 +126,7 @@
 		}
 	}
 
-	.aie-file-list-controls {
+	.rsl-ie-file-list-controls {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -135,25 +135,25 @@
 		border-radius: 4px;
 		margin-bottom: 10px;
 
-		.aie-selected-count {
+		.rsl-ie-selected-count {
 			color: #646970;
 			font-size: 13px;
 
-			#aie-selected-count {
+			#rsl-ie-selected-count {
 				font-weight: 600;
 				color: #2271b1;
 			}
 		}
 	}
 
-	.aie-file-list {
+	.rsl-ie-file-list {
 		max-height: 400px;
 		overflow-y: auto;
 		border: 1px solid #dcdcde;
 		border-radius: 4px;
 		background: #fff;
 
-		.aie-file-item {
+		.rsl-ie-file-item {
 			display: flex;
 			align-items: center;
 			padding: 10px 15px;
@@ -172,7 +172,7 @@
 				margin: 0 10px 0 0;
 			}
 
-			.aie-file-icon {
+			.rsl-ie-file-icon {
 				width: 40px;
 				height: 40px;
 				display: flex;
@@ -190,16 +190,16 @@
 				}
 			}
 
-			.aie-file-info {
+			.rsl-ie-file-info {
 				flex: 1;
 
-				.aie-file-name {
+				.rsl-ie-file-name {
 					font-weight: 500;
 					color: #1d2327;
 					margin-bottom: 3px;
 				}
 
-				.aie-file-meta {
+				.rsl-ie-file-meta {
 					font-size: 12px;
 					color: #646970;
 
@@ -211,11 +211,11 @@
 		}
 
 		// Scan summary (instead of file list)
-		.aie-scan-summary {
+		.rsl-ie-scan-summary {
 			padding: 40px;
 			text-align: center;
 
-			.aie-summary-icon {
+			.rsl-ie-summary-icon {
 				margin-bottom: 20px;
 
 				.dashicons {
@@ -226,7 +226,7 @@
 				}
 			}
 
-			.aie-summary-content {
+			.rsl-ie-summary-content {
 				h3 {
 					font-size: 22px;
 					color: #1d2327;
@@ -244,7 +244,7 @@
 					}
 				}
 
-				.aie-file-types {
+				.rsl-ie-file-types {
 					display: flex;
 					align-items: center;
 					justify-content: center;
@@ -258,7 +258,7 @@
 						margin-right: 5px;
 					}
 
-					.aie-type-badge {
+					.rsl-ie-type-badge {
 						display: inline-block;
 						padding: 4px 10px;
 						background: #f0f0f1;
@@ -269,7 +269,7 @@
 					}
 				}
 
-				.aie-summary-note {
+				.rsl-ie-summary-note {
 					display: inline-flex;
 					align-items: center;
 					gap: 6px;
@@ -292,7 +292,7 @@
 		}
 
 		// Empty state
-		.aie-empty-state {
+		.rsl-ie-empty-state {
 			text-align: center;
 			padding: 60px 40px;
 			color: #646970;
@@ -317,7 +317,7 @@
 				margin: 0 0 30px;
 			}
 
-			.aie-empty-suggestions {
+			.rsl-ie-empty-suggestions {
 				display: inline-block;
 				text-align: left;
 				background: #f6f7f7;
@@ -334,7 +334,7 @@
 				ul {
 					margin: 0;
 					padding-left: 20px;
-					
+
 					li {
 						margin-bottom: 5px;
 						color: #646970;
@@ -346,11 +346,11 @@
 	}
 
 	// Progress
-	.aie-progress-bar-container {
+	.rsl-ie-progress-bar-container {
 		margin: 20px 0;
 	}
 
-	.aie-progress-bar {
+	.rsl-ie-progress-bar {
 		width: 100%;
 		height: 30px;
 		background: #f0f0f1;
@@ -360,7 +360,7 @@
 		box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 	}
 
-	.aie-progress-fill {
+	.rsl-ie-progress-fill {
 		height: 100%;
 		background: linear-gradient(90deg, #2271b1 0%, #135e96 100%);
 		transition: width 0.3s ease;
@@ -368,7 +368,7 @@
 		overflow: hidden;
 
 		&::after {
-			content: '';
+			content: "";
 			position: absolute;
 			top: 0;
 			left: 0;
@@ -393,61 +393,61 @@
 		}
 	}
 
-	.aie-progress-text {
+	.rsl-ie-progress-text {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
 		margin-top: 10px;
 
-		#aie-progress-percentage {
+		#rsl-ie-progress-percentage {
 			font-size: 24px;
 			font-weight: 600;
 			color: #2271b1;
 		}
 
-		#aie-progress-status {
+		#rsl-ie-progress-status {
 			color: #646970;
 		}
 	}
 
-	.aie-sync-stats {
+	.rsl-ie-sync-stats {
 		display: grid;
 		grid-template-columns: repeat(4, 1fr);
 		gap: 15px;
 		margin: 20px 0;
 
-		.aie-stat-item {
+		.rsl-ie-stat-item {
 			padding: 15px;
 			background: #f6f7f7;
 			border-radius: 4px;
 			text-align: center;
 			border: 2px solid transparent;
 
-			&.aie-stat-success {
+			&.rsl-ie-stat-success {
 				border-color: #00a32a;
 
-				.aie-stat-value {
+				.rsl-ie-stat-value {
 					color: #00a32a;
 				}
 			}
 
-			&.aie-stat-skipped {
+			&.rsl-ie-stat-skipped {
 				border-color: #dba617;
 
-				.aie-stat-value {
+				.rsl-ie-stat-value {
 					color: #dba617;
 				}
 			}
 
-			&.aie-stat-failed {
+			&.rsl-ie-stat-failed {
 				border-color: #d63638;
 
-				.aie-stat-value {
+				.rsl-ie-stat-value {
 					color: #d63638;
 				}
 			}
 
-			.aie-stat-label {
+			.rsl-ie-stat-label {
 				display: block;
 				font-size: 12px;
 				color: #646970;
@@ -455,7 +455,7 @@
 				margin-bottom: 5px;
 			}
 
-			.aie-stat-value {
+			.rsl-ie-stat-value {
 				display: block;
 				font-size: 28px;
 				font-weight: 600;
@@ -464,7 +464,7 @@
 		}
 	}
 
-	.aie-progress-actions {
+	.rsl-ie-progress-actions {
 		display: flex;
 		gap: 10px;
 		margin-top: 20px;
@@ -472,7 +472,7 @@
 		border-top: 1px solid #dcdcde;
 	}
 
-	.aie-error-list {
+	.rsl-ie-error-list {
 		list-style: none;
 		margin: 0;
 		padding: 0;
@@ -489,11 +489,11 @@
 		}
 	}
 
-	.aie-completion-stats {
+	.rsl-ie-completion-stats {
 		margin: 20px 0;
 	}
 
-	.aie-spin {
+	.rsl-ie-spin {
 		animation: spin 1s linear infinite;
 	}
 
@@ -507,7 +507,7 @@
 	}
 
 	// Modal styles
-	.aie-modal {
+	.rsl-ie-modal {
 		position: fixed;
 		top: 0;
 		left: 0;
@@ -518,7 +518,7 @@
 		align-items: center;
 		justify-content: center;
 
-		.aie-modal-overlay {
+		.rsl-ie-modal-overlay {
 			position: absolute;
 			top: 0;
 			left: 0;
@@ -528,7 +528,7 @@
 			z-index: 1;
 		}
 
-		.aie-modal-content {
+		.rsl-ie-modal-content {
 			position: relative;
 			z-index: 2;
 			background: #fff;
@@ -541,7 +541,7 @@
 			flex-direction: column;
 		}
 
-		.aie-modal-header {
+		.rsl-ie-modal-header {
 			padding: 20px;
 			border-bottom: 1px solid #dcdcde;
 			display: flex;
@@ -562,7 +562,7 @@
 				}
 			}
 
-			.aie-modal-close {
+			.rsl-ie-modal-close {
 				background: none;
 				border: none;
 				padding: 4px;
@@ -582,7 +582,7 @@
 			}
 		}
 
-		.aie-modal-body {
+		.rsl-ie-modal-body {
 			padding: 20px;
 			overflow-y: auto;
 			flex: 1;
@@ -607,7 +607,7 @@
 				}
 			}
 
-			.aie-folder-browser-path {
+			.rsl-ie-folder-browser-path {
 				display: flex;
 				align-items: center;
 				gap: 8px;
@@ -623,7 +623,7 @@
 				}
 			}
 
-			.aie-loading {
+			.rsl-ie-loading {
 				text-align: center;
 				padding: 40px 20px;
 				color: #646970;
@@ -635,7 +635,7 @@
 			}
 		}
 
-		.aie-modal-footer {
+		.rsl-ie-modal-footer {
 			padding: 15px 20px;
 			border-top: 1px solid #dcdcde;
 			display: flex;
@@ -650,13 +650,13 @@
 		}
 	}
 
-	.aie-folder-list {
+	.rsl-ie-folder-list {
 		border: 1px solid #dcdcde;
 		border-radius: 4px;
 		max-height: 400px;
 		overflow-y: auto;
 
-		.aie-folder-item {
+		.rsl-ie-folder-item {
 			display: flex;
 			align-items: center;
 			gap: 10px;
@@ -678,7 +678,7 @@
 				border-left: 3px solid #2271b1;
 			}
 
-			&.aie-folder-current {
+			&.rsl-ie-folder-current {
 				background-color: #fcf9e8;
 				border-left: 3px solid #dba617;
 
@@ -705,7 +705,7 @@
 				}
 			}
 
-			.aie-folder-name {
+			.rsl-ie-folder-name {
 				flex: 1;
 				font-size: 14px;
 				color: #1d2327;
@@ -717,6 +717,6 @@
 	}
 }
 
-body.aie-modal-open {
+body.rsl-ie-modal-open {
 	overflow: hidden;
 }

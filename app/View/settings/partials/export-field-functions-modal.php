@@ -10,56 +10,56 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 <!-- Field Functions Modal -->
-<div id="aie-field-functions-modal" class="aie-modal" style="display:none;">
-	<div class="aie-modal-backdrop"></div>
-	<div class="aie-modal-content aie-field-functions-modal-content">
-		<div class="aie-modal-header">
-			<h2 class="aie-modal-title">
+<div id="rsl-ie-field-functions-modal" class="rsl-ie-modal" style="display:none;">
+	<div class="rsl-ie-modal-backdrop"></div>
+	<div class="rsl-ie-modal-content rsl-ie-field-functions-modal-content">
+		<div class="rsl-ie-modal-header">
+			<h2 class="rsl-ie-modal-title">
 				<span class="dashicons dashicons-admin-generic"></span>
 				<?php esc_html_e( 'Field Transformation Functions', 'import-export-by-rockstarlab' ); ?>
 			</h2>
-			<button type="button" class="aie-modal-close">
+			<button type="button" class="rsl-ie-modal-close">
 				<span class="dashicons dashicons-no-alt"></span>
 			</button>
 		</div>
 
-		<div class="aie-modal-body">
+		<div class="rsl-ie-modal-body">
 			<!-- Field Info -->
-			<div class="aie-field-info">
-				<div class="aie-field-info-item">
+			<div class="rsl-ie-field-info">
+				<div class="rsl-ie-field-info-item">
 					<strong><?php esc_html_e( 'Field:', 'import-export-by-rockstarlab' ); ?></strong>
-					<span class="aie-current-field-label"></span>
+					<span class="rsl-ie-current-field-label"></span>
 				</div>
-				<div class="aie-field-info-item">
+				<div class="rsl-ie-field-info-item">
 					<strong><?php esc_html_e( 'Type:', 'import-export-by-rockstarlab' ); ?></strong>
-					<span class="aie-current-field-type"></span>
+					<span class="rsl-ie-current-field-type"></span>
 				</div>
 			</div>
 
 			<!-- Applied Functions List -->
-			<div class="aie-applied-functions">
+			<div class="rsl-ie-applied-functions">
 				<h3>
 					<?php esc_html_e( 'Applied Functions', 'import-export-by-rockstarlab' ); ?>
-					<span class="aie-functions-count">(0)</span>
+					<span class="rsl-ie-functions-count">(0)</span>
 				</h3>
 				
-				<div class="aie-functions-pipeline" id="aie-functions-pipeline">
-					<div class="aie-no-functions">
+				<div class="rsl-ie-functions-pipeline" id="rsl-ie-functions-pipeline">
+					<div class="rsl-ie-no-functions">
 						<span class="dashicons dashicons-info"></span>
 						<p><?php esc_html_e( 'No functions applied yet. Add functions from the list below.', 'import-export-by-rockstarlab' ); ?></p>
 					</div>
 					
 					<!-- Functions will be added here -->
-					<div class="aie-function-items" id="aie-function-items">
+					<div class="rsl-ie-function-items" id="rsl-ie-function-items">
 						<!-- Example structure:
-						<div class="aie-function-item" data-function-id="1">
-							<span class="aie-function-handle dashicons dashicons-menu"></span>
-							<div class="aie-function-info">
-								<strong class="aie-function-name">uppercase</strong>
-								<span class="aie-function-desc">Convert to uppercase</span>
+						<div class="rsl-ie-function-item" data-function-id="1">
+							<span class="rsl-ie-function-handle dashicons dashicons-menu"></span>
+							<div class="rsl-ie-function-info">
+								<strong class="rsl-ie-function-name">uppercase</strong>
+								<span class="rsl-ie-function-desc">Convert to uppercase</span>
 							</div>
-							<div class="aie-function-actions">
-								<button type="button" class="button-small aie-remove-function">
+							<div class="rsl-ie-function-actions">
+								<button type="button" class="button-small rsl-ie-remove-function">
 									<span class="dashicons dashicons-no-alt"></span>
 								</button>
 							</div>
@@ -68,21 +68,21 @@ defined( 'ABSPATH' ) || exit;
 					</div>
 				</div>
 
-				<div class="aie-pipeline-hint">
+				<div class="rsl-ie-pipeline-hint">
 					<span class="dashicons dashicons-info"></span>
 					<?php esc_html_e( 'Functions are applied in order from top to bottom. Drag to reorder.', 'import-export-by-rockstarlab' ); ?>
 				</div>
 			</div>
 
 			<!-- Available Functions -->
-			<div class="aie-available-functions">
+			<div class="rsl-ie-available-functions">
 				<h3><?php esc_html_e( 'Available Functions', 'import-export-by-rockstarlab' ); ?></h3>
 				
 				<!-- Search Functions -->
-				<div class="aie-functions-search">
+				<div class="rsl-ie-functions-search">
 					<input 
 						type="text" 
-						id="aie-functions-search" 
+						id="rsl-ie-functions-search" 
 						class="regular-text" 
 						placeholder="<?php esc_attr_e( 'Search functions...', 'import-export-by-rockstarlab' ); ?>"
 					>
@@ -90,7 +90,7 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 
 				<!-- Functions Filter -->
-				<div class="aie-functions-filter">
+				<div class="rsl-ie-functions-filter">
 					<label>
 						<input type="radio" name="functions-filter" value="all" checked>
 						<?php esc_html_e( 'All', 'import-export-by-rockstarlab' ); ?>
@@ -106,8 +106,8 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 
 				<!-- Functions List -->
-				<div class="aie-functions-list" id="aie-functions-list">
-					<div class="aie-functions-loading">
+				<div class="rsl-ie-functions-list" id="rsl-ie-functions-list">
+					<div class="rsl-ie-functions-loading">
 						<span class="spinner is-active"></span>
 						<p><?php esc_html_e( 'Loading functions...', 'import-export-by-rockstarlab' ); ?></p>
 					</div>
@@ -116,8 +116,8 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 
 				<!-- Quick Add Link -->
-				<div class="aie-functions-quick-add">
-					<a href="#" class="aie-create-new-function">
+				<div class="rsl-ie-functions-quick-add">
+					<a href="#" class="rsl-ie-create-new-function">
 						<span class="dashicons dashicons-plus-alt"></span>
 						<?php esc_html_e( 'Create New Function', 'import-export-by-rockstarlab' ); ?>
 					</a>
@@ -125,40 +125,40 @@ defined( 'ABSPATH' ) || exit;
 			</div>
 
 			<!-- Preview Section -->
-			<div class="aie-function-preview">
+			<div class="rsl-ie-function-preview">
 				<h3><?php esc_html_e( 'Preview Transformation', 'import-export-by-rockstarlab' ); ?></h3>
 				
-				<div class="aie-preview-controls">
-					<div class="aie-preview-input-group">
-						<label for="aie-preview-input">
+				<div class="rsl-ie-preview-controls">
+					<div class="rsl-ie-preview-input-group">
+						<label for="rsl-ie-preview-input">
 							<?php esc_html_e( 'Test Value:', 'import-export-by-rockstarlab' ); ?>
 						</label>
 						<input 
 							type="text" 
-							id="aie-preview-input" 
+							id="rsl-ie-preview-input" 
 							class="regular-text" 
 							placeholder="<?php esc_attr_e( 'Enter test value...', 'import-export-by-rockstarlab' ); ?>"
 						>
 					</div>
-					<button type="button" class="button aie-test-pipeline">
+					<button type="button" class="button rsl-ie-test-pipeline">
 						<span class="dashicons dashicons-media-code"></span>
 						<?php esc_html_e( 'Test Pipeline', 'import-export-by-rockstarlab' ); ?>
 					</button>
 				</div>
 
-				<div class="aie-preview-result" id="aie-preview-result" style="display:none;">
-					<div class="aie-preview-steps">
+				<div class="rsl-ie-preview-result" id="rsl-ie-preview-result" style="display:none;">
+					<div class="rsl-ie-preview-steps">
 						<!-- Steps will be added dynamically -->
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="aie-modal-footer">
-			<button type="button" class="button button-secondary aie-modal-cancel">
+		<div class="rsl-ie-modal-footer">
+			<button type="button" class="button button-secondary rsl-ie-modal-cancel">
 				<?php esc_html_e( 'Cancel', 'import-export-by-rockstarlab' ); ?>
 			</button>
-			<button type="button" class="button button-primary aie-save-field-functions">
+			<button type="button" class="button button-primary rsl-ie-save-field-functions">
 				<span class="dashicons dashicons-yes"></span>
 				<?php esc_html_e( 'Apply Functions', 'import-export-by-rockstarlab' ); ?>
 			</button>

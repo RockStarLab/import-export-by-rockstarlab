@@ -5,9 +5,9 @@
  */
 
 // Sync button on post list page
-.tablenav #aie-sync-content-btn {
+.tablenav #rsl-ie-sync-content-btn {
 	margin-left: 10px;
-	
+
 	&:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
@@ -15,16 +15,16 @@
 }
 
 // Sync button in post edit submitbox (Classic Editor)
-.aie-sync-section {
+.rsl-ie-sync-section {
 	padding: 10px 12px;
 	border-top: 1px solid #f0f0f1;
-	
+
 	.dashicons {
 		float: none;
 		vertical-align: middle;
 	}
-	
-	#aie-sync-content-btn {
+
+	#rsl-ie-sync-content-btn {
 		.dashicons {
 			float: left;
 		}
@@ -32,14 +32,14 @@
 }
 
 // Sync panel in Gutenberg
-.aie-gutenberg-sync-panel {
+.rsl-ie-gutenberg-sync-panel {
 	background: #fff;
 	border-bottom: 1px solid #ddd;
-	
+
 	// Panel header
 	.components-panel__body-title {
 		margin: 0;
-		
+
 		button {
 			width: 100%;
 			display: flex;
@@ -50,32 +50,32 @@
 			cursor: pointer;
 			font-weight: 500;
 			color: #1e1e1e;
-			
+
 			&:hover {
 				background: #f0f0f0;
 			}
-			
+
 			// Arrow icon - no animation, just swap SVG paths
 			.components-panel__arrow {
 				fill: currentColor;
 			}
 		}
 	}
-	
+
 	// Sync button
-	#aie-sync-content-btn {
+	#rsl-ie-sync-content-btn {
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		height: 36px;
 		border: 1px solid #949494;
-		
+
 		.dashicons {
 			font-size: 18px;
 			height: 18px;
 			width: 18px;
 		}
-		
+
 		&:hover {
 			border-color: #2271b1;
 			color: #2271b1;
@@ -87,14 +87,14 @@
 .edit-post-sidebar,
 .editor-sidebar,
 .interface-interface-skeleton__sidebar {
-	.aie-gutenberg-sync-panel {
+	.rsl-ie-gutenberg-sync-panel {
 		border-top: 1px solid #ddd;
 	}
 }
 
 // Sync modal
-#aie-sync-modal {
-	.aie-form-group {
+#rsl-ie-sync-modal {
+	.rsl-ie-form-group {
 		display: flex;
 		justify-content: center;
 		align-items: center;
@@ -102,55 +102,55 @@
 			margin-right: 10px;
 		}
 	}
-	.aie-sync-info {
+	.rsl-ie-sync-info {
 		padding: 15px;
 		background: #f0f0f1;
 		border-radius: 4px;
 		margin-bottom: 20px;
-		
+
 		p {
 			margin: 0;
-			
+
 			strong {
 				color: #1d2327;
 			}
-			
+
 			span {
 				color: #2271b1;
 				font-weight: 600;
 			}
 		}
 	}
-	
-	.aie-sync-direction {
+
+	.rsl-ie-sync-direction {
 		display: flex;
 		gap: 10px;
 		margin-top: 20px;
-		
+
 		button {
 			flex: 1;
 			height: 45px;
 			font-size: 14px;
-			
+
 			.dashicons {
 				margin-top: 3px;
 			}
-			
+
 			&:disabled {
 				opacity: 0.5;
 				cursor: not-allowed;
 			}
 		}
 	}
-	
-	#aie-sync-progress {
+
+	#rsl-ie-sync-progress {
 		margin-top: 20px;
 		padding: 20px;
 		background: #f8f9fa;
 		border-radius: 8px;
 		border: 1px solid #e0e0e0;
-		
-		.aie-progress-bar {
+
+		.rsl-ie-progress-bar {
 			height: 32px;
 			background: #e9ecef;
 			border-radius: 16px;
@@ -158,8 +158,8 @@
 			margin-bottom: 15px;
 			box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 			position: relative;
-			
-			.aie-progress-fill {
+
+			.rsl-ie-progress-fill {
 				height: 100%;
 				background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 				transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -171,9 +171,9 @@
 				font-size: 13px;
 				position: relative;
 				overflow: hidden;
-				
+
 				&::after {
-					content: '';
+					content: "";
 					position: absolute;
 					top: 0;
 					left: 0;
@@ -189,21 +189,21 @@
 				}
 			}
 		}
-		
-		.aie-progress-text {
+
+		.rsl-ie-progress-text {
 			text-align: center;
 			color: #1d2327;
 			margin: 0;
 			font-size: 14px;
 			line-height: 1.6;
-			
+
 			strong {
 				display: block;
 				font-size: 15px;
 				margin-bottom: 8px;
 				color: #135e96;
 			}
-			
+
 			.progress-details {
 				display: inline-block;
 				margin: 0 8px;
@@ -213,13 +213,13 @@
 				font-size: 13px;
 				color: #50575e;
 				border: 1px solid #ddd;
-				
+
 				&::before {
-					content: '📦';
+					content: "📦";
 					margin-right: 6px;
 				}
 			}
-			
+
 			.progress-percentage {
 				display: block;
 				margin-top: 8px;
@@ -229,7 +229,7 @@
 			}
 		}
 	}
-	
+
 	@keyframes shimmer {
 		0% {
 			transform: translateX(-100%);
@@ -238,26 +238,26 @@
 			transform: translateX(100%);
 		}
 	}
-	
-	#aie-sync-result {
+
+	#rsl-ie-sync-result {
 		margin-top: 20px;
 		padding: 12px;
 		border-left: 4px solid;
-		
+
 		&.notice-success {
 			background: #f0f6fc;
 			border-color: #00a32a;
-			
+
 			p {
 				color: #1d2327;
 				margin: 0;
 			}
 		}
-		
+
 		&.notice-error {
 			background: #fcf0f1;
 			border-color: #d63638;
-			
+
 			p {
 				color: #1d2327;
 				margin: 0;
@@ -266,22 +266,22 @@
 	}
 
 	// Fix notice margins inside modal
-	.aie-modal-content .notice {
+	.rsl-ie-modal-content .notice {
 		margin: 10px 0 !important;
 	}
 }
 
 // Responsive adjustments
 @media screen and (max-width: 782px) {
-	#aie-sync-content-btn {
+	#rsl-ie-sync-content-btn {
 		margin: 10px 0 0 0;
 		width: 100%;
 	}
-	
-	#aie-sync-modal {
-		.aie-sync-direction {
+
+	#rsl-ie-sync-modal {
+		.rsl-ie-sync-direction {
 			flex-direction: column;
-			
+
 			button {
 				width: 100%;
 			}

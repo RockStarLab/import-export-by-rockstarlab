@@ -1,11 +1,11 @@
 // Import/Export Results
-.aie-import-results,
-.aie-export-results {
+.rsl-ie-import-results,
+.rsl-ie-export-results {
 	margin: 30px 0;
 
 	// Success card with modern design
-	.aie-export-complete-card,
-	.aie-import-complete-card {
+	.rsl-ie-export-complete-card,
+	.rsl-ie-import-complete-card {
 		background: #fff;
 		border: 2px solid #00a32a;
 		border-radius: 12px;
@@ -14,7 +14,7 @@
 		box-shadow: 0 4px 20px rgba(0, 163, 42, 0.1);
 		animation: slideInUp 0.5s ease-out;
 
-		.aie-complete-icon {
+		.rsl-ie-complete-icon {
 			margin: 0 auto 20px;
 			width: 80px;
 			height: 80px;
@@ -33,20 +33,20 @@
 			}
 		}
 
-		.aie-complete-title {
+		.rsl-ie-complete-title {
 			margin: 0 0 10px;
 			font-size: 28px;
 			font-weight: 600;
 			color: #00a32a;
 		}
 
-		.aie-complete-subtitle {
+		.rsl-ie-complete-subtitle {
 			margin: 0 0 30px;
 			font-size: 16px;
 			color: #646970;
 		}
 
-		.aie-results-grid {
+		.rsl-ie-results-grid {
 			display: grid;
 			grid-template-columns: repeat(3, 1fr);
 			gap: 20px;
@@ -65,7 +65,7 @@
 				gap: 15px;
 			}
 
-			.aie-result-item {
+			.rsl-ie-result-item {
 				display: flex;
 				align-items: center;
 				gap: 15px;
@@ -80,7 +80,7 @@
 					box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 				}
 
-				.aie-result-icon {
+				.rsl-ie-result-icon {
 					flex-shrink: 0;
 					width: 40px;
 					height: 40px;
@@ -96,45 +96,45 @@
 						height: 24px;
 						color: #fff;
 					}
-					
+
 					// Success icon (green)
-					&.aie-icon-success {
+					&.rsl-ie-icon-success {
 						background: linear-gradient(135deg, #00a32a, #008a20);
 					}
-					
+
 					// Updated icon (blue)
-					&.aie-icon-updated {
+					&.rsl-ie-icon-updated {
 						background: linear-gradient(135deg, #2271b1, #135e96);
 					}
-					
+
 					// Created icon (purple)
-					&.aie-icon-created {
+					&.rsl-ie-icon-created {
 						background: linear-gradient(135deg, #826eb4, #6b5a9e);
 					}
-					
+
 					// Skipped icon (orange)
-					&.aie-icon-skipped {
+					&.rsl-ie-icon-skipped {
 						background: linear-gradient(135deg, #f0b849, #d99a1a);
 					}
-					
+
 					// Failed icon (red)
-					&.aie-icon-failed {
+					&.rsl-ie-icon-failed {
 						background: linear-gradient(135deg, #d63638, #b32d2e);
 					}
 				}
 
-				.aie-result-details {
+				.rsl-ie-result-details {
 					flex: 1;
 					text-align: left;
 
-					.aie-result-label {
+					.rsl-ie-result-label {
 						display: block;
 						font-size: 12px;
 						color: #646970;
 						margin-bottom: 4px;
 					}
 
-					.aie-result-value {
+					.rsl-ie-result-value {
 						display: block;
 						font-size: 20px;
 						font-weight: 600;
@@ -153,7 +153,7 @@
 			margin: 0 0 15px;
 		}
 
-		.aie-results-list {
+		.rsl-ie-results-list {
 			margin: 0;
 			list-style: none;
 
@@ -173,11 +173,11 @@
 	}
 
 	// Enhanced download button
-	.aie-download-action {
+	.rsl-ie-download-action {
 		margin-top: 30px;
 		text-align: center;
 
-		.aie-download-file {
+		.rsl-ie-download-file {
 			background: linear-gradient(135deg, #2271b1, #135e96);
 			border: none;
 			color: #fff;

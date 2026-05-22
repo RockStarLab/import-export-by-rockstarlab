@@ -51,13 +51,13 @@ const ImportModule = {
 		const $wizard = jQuery( '#rsl-ie-import' );
 
 		// Content type filter/search
-		$wizard.on( 'input', '#aie-content-type-search', ( e ) =>
+		$wizard.on( 'input', '#rsl-ie-content-type-search', ( e ) =>
 			this.filterContentTypes( e )
 		);
 
 		// Step navigation
-		$wizard.on( 'click', '.aie-next-step', () => this.nextStep() );
-		$wizard.on( 'click', '.aie-prev-step', () => this.prevStep() );
+		$wizard.on( 'click', '.rsl-ie-next-step', () => this.nextStep() );
+		$wizard.on( 'click', '.rsl-ie-prev-step', () => this.prevStep() );
 
 		// Content type selection
 		$wizard.on( 'change', 'input[name="content_type"]', ( e ) =>
@@ -65,46 +65,50 @@ const ImportModule = {
 		);
 
 		// Prevent selection of premium locked content types
-		$wizard.on( 'click', '.aie-content-type.aie-premium-locked', ( e ) => {
-			e.preventDefault();
-			e.stopPropagation();
+		$wizard.on(
+			'click',
+			'.rsl-ie-content-type.rsl-ie-premium-locked',
+			( e ) => {
+				e.preventDefault();
+				e.stopPropagation();
 
-			// Show upgrade message
-			const message =
-				aieData.i18n.premiumOnlyFeature ||
-				'This content type is only available in the Premium version. Upgrade to unlock this feature.';
-			Utils.showNotice( message, 'warning' );
+				// Show upgrade message
+				const message =
+					rslIeData.i18n.premiumOnlyFeature ||
+					'This content type is only available in the Premium version. Upgrade to unlock this feature.';
+				Utils.showNotice( message, 'warning' );
 
-			// Prevent the radio button from being checked
-			const $input = jQuery( e.currentTarget ).find(
-				'input[type="radio"]'
-			);
-			$input.prop( 'checked', false );
+				// Prevent the radio button from being checked
+				const $input = jQuery( e.currentTarget ).find(
+					'input[type="radio"]'
+				);
+				$input.prop( 'checked', false );
 
-			return false;
-		} );
+				return false;
+			}
+		);
 
 		// File upload (delegated so it keeps working after wizard resets / partial re-renders).
-		$wizard.on( 'click', '#aie-select-file', () => {
-			$wizard.find( '#aie-file-input' ).trigger( 'click' );
+		$wizard.on( 'click', '#rsl-ie-select-file', () => {
+			$wizard.find( '#rsl-ie-file-input' ).trigger( 'click' );
 		} );
-		$wizard.on( 'change', '#aie-file-input', ( e ) =>
+		$wizard.on( 'change', '#rsl-ie-file-input', ( e ) =>
 			this.onFileSelect( e )
 		);
-		$wizard.on( 'click', '.aie-remove-file', () => this.removeFile() );
+		$wizard.on( 'click', '.rsl-ie-remove-file', () => this.removeFile() );
 
 		// Drag & drop (delegated for resilience).
-		$wizard.on( 'dragover', '#aie-upload-area', ( e ) => {
+		$wizard.on( 'dragover', '#rsl-ie-upload-area', ( e ) => {
 			e.preventDefault();
-			jQuery( e.currentTarget ).addClass( 'aie-dragover' );
+			jQuery( e.currentTarget ).addClass( 'rsl-ie-dragover' );
 		} );
-		$wizard.on( 'dragleave', '#aie-upload-area', ( e ) => {
-			jQuery( e.currentTarget ).removeClass( 'aie-dragover' );
+		$wizard.on( 'dragleave', '#rsl-ie-upload-area', ( e ) => {
+			jQuery( e.currentTarget ).removeClass( 'rsl-ie-dragover' );
 		} );
-		$wizard.on( 'drop', '#aie-upload-area', ( e ) => {
+		$wizard.on( 'drop', '#rsl-ie-upload-area', ( e ) => {
 			e.preventDefault();
 			const $dropZone = jQuery( e.currentTarget );
-			$dropZone.removeClass( 'aie-dragover' );
+			$dropZone.removeClass( 'rsl-ie-dragover' );
 			const files = e.originalEvent.dataTransfer.files;
 			if ( files.length > 0 ) {
 				this.handleFile( files[ 0 ] );
@@ -136,17 +140,21 @@ const ImportModule = {
 		} );
 
 		// Field mapping
-		$wizard.on( 'click', '.aie-auto-map', () => this.autoMapFields() );
-		$wizard.on( 'click', '.aie-clear-map', () => this.clearFieldMapping() );
+		$wizard.on( 'click', '.rsl-ie-auto-map', () => this.autoMapFields() );
+		$wizard.on( 'click', '.rsl-ie-clear-map', () =>
+			this.clearFieldMapping()
+		);
 
 		// Import actions
-		$wizard.on( 'click', '.aie-start-import', () => this.startImport() );
-		$wizard.on( 'click', '.aie-cancel-import', () => this.cancelImport() );
-		$wizard.on( 'click', '.aie-new-import', () => this.resetWizard() );
-		$wizard.on( 'click', '.aie-toggle-logs', () => this.toggleLogs() );
+		$wizard.on( 'click', '.rsl-ie-start-import', () => this.startImport() );
+		$wizard.on( 'click', '.rsl-ie-cancel-import', () =>
+			this.cancelImport()
+		);
+		$wizard.on( 'click', '.rsl-ie-new-import', () => this.resetWizard() );
+		$wizard.on( 'click', '.rsl-ie-toggle-logs', () => this.toggleLogs() );
 
 		// Media import options
-		$wizard.on( 'change', '#aie-auto-import-media', ( e ) => {
+		$wizard.on( 'change', '#rsl-ie-auto-import-media', ( e ) => {
 			this.toggleMediaDuplicateOptions( e );
 		} );
 	},
@@ -158,18 +166,20 @@ const ImportModule = {
 		const $wizard = jQuery( '#rsl-ie-import' );
 
 		// Hide all steps
-		$wizard.find( '.aie-step' ).removeClass( 'active' );
+		$wizard.find( '.rsl-ie-step' ).removeClass( 'active' );
 
 		// Show current step
-		$wizard.find( `.aie-step-${ step }` ).addClass( 'active' );
+		$wizard.find( `.rsl-ie-step-${ step }` ).addClass( 'active' );
 
 		// Update indicators
-		$wizard.find( '.aie-step-indicator' ).removeClass( 'active completed' );
 		$wizard
-			.find( `.aie-step-indicator[data-step="${ step }"]` )
+			.find( '.rsl-ie-step-indicator' )
+			.removeClass( 'active completed' );
+		$wizard
+			.find( `.rsl-ie-step-indicator[data-step="${ step }"]` )
 			.addClass( 'active' );
 		$wizard
-			.find( `.aie-step-indicator[data-step]` )
+			.find( `.rsl-ie-step-indicator[data-step]` )
 			.filter( function () {
 				return jQuery( this ).data( 'step' ) < step;
 			} )
@@ -184,38 +194,43 @@ const ImportModule = {
 			// Check if there's an error from upload
 			if ( this.fileData && this.fileData.hasError ) {
 				// Show error message
-				jQuery( '.aie-preview-table-container' ).hide();
-				jQuery( '.aie-json-preview-container' ).hide();
+				jQuery( '.rsl-ie-preview-table-container' ).hide();
+				jQuery( '.rsl-ie-json-preview-container' ).hide();
 
 				// Show error in preview area
 				const errorHtml = `
 					<div class="notice notice-error" style="padding: 20px; margin: 20px 0;">
 						<h3 style="margin-top: 0;">❌ ${
-							aieData.i18n.fileValidationFailed ||
+							rslIeData.i18n.fileValidationFailed ||
 							'File Validation Failed'
 						}</h3>
 						<p style="font-size: 14px;">${ Utils.escapeHtml( this.fileData.error ) }</p>
 						<p style="margin-bottom: 0;">
-							<button type="button" class="button aie-prev-step">
-								← ${ aieData.i18n.goBackUploadValidFile || 'Go Back and Upload a Valid File' }
+							<button type="button" class="button rsl-ie-prev-step">
+								← ${ rslIeData.i18n.goBackUploadValidFile || 'Go Back and Upload a Valid File' }
 							</button>
 						</p>
 					</div>
 				`;
-				jQuery( '.aie-step-3 .aie-step-content' ).prepend( errorHtml );
+				jQuery( '.rsl-ie-step-3 .rsl-ie-step-content' ).prepend(
+					errorHtml
+				);
 
 				// Disable next button
-				jQuery( '.aie-step-3 .aie-next-step' ).prop( 'disabled', true );
+				jQuery( '.rsl-ie-step-3 .rsl-ie-next-step' ).prop(
+					'disabled',
+					true
+				);
 			} else {
 				// Enable next button if no error
-				jQuery( '.aie-step-3 .aie-next-step' ).prop(
+				jQuery( '.rsl-ie-step-3 .rsl-ie-next-step' ).prop(
 					'disabled',
 					false
 				);
 			}
 		} else if ( step === 4 ) {
 			// Disable Next button before building mapping
-			jQuery( '.aie-next-step' ).prop( 'disabled', true );
+			jQuery( '.rsl-ie-next-step' ).prop( 'disabled', true );
 			this.buildFieldMapping();
 		} else if ( step === 5 ) {
 			this.populateUniqueFieldOptions();
@@ -269,7 +284,8 @@ const ImportModule = {
 			case 2:
 				if ( ! this.uploadedFile ) {
 					Utils.showNotice(
-						aieData.i18n.pleaseUploadFile || 'Please upload a file',
+						rslIeData.i18n.pleaseUploadFile ||
+							'Please upload a file',
 						'error'
 					);
 					return false;
@@ -283,7 +299,7 @@ const ImportModule = {
 						.trim();
 					if ( customDelimiter === '' ) {
 						Utils.showNotice(
-							aieData.i18n.pleaseEnterCustomDelimiter ||
+							rslIeData.i18n.pleaseEnterCustomDelimiter ||
 								'Please enter a custom delimiter',
 							'error'
 						);
@@ -298,11 +314,11 @@ const ImportModule = {
 				).val();
 				if ( contentType === 'custom_post_types' ) {
 					const selectedPostType = jQuery(
-						'#aie-custom-post-type'
+						'#rsl-ie-custom-post-type'
 					).val();
 					if ( ! selectedPostType ) {
 						Utils.showNotice(
-							aieData.i18n.pleaseSelectPostType ||
+							rslIeData.i18n.pleaseSelectPostType ||
 								'Please select a post type',
 							'error'
 						);
@@ -314,7 +330,7 @@ const ImportModule = {
 				const mappedFields = this.getFieldMapping();
 				if ( ! mappedFields || mappedFields.length === 0 ) {
 					Utils.showNotice(
-						aieData.i18n.mapFields ||
+						rslIeData.i18n.mapFields ||
 							'Please map at least one field',
 						'error'
 					);
@@ -333,11 +349,11 @@ const ImportModule = {
 
 		// Show/hide content-specific options
 		if ( contentType === 'media' ) {
-			jQuery( '.aie-post-options' ).hide();
-			jQuery( '.aie-media-options' ).show();
+			jQuery( '.rsl-ie-post-options' ).hide();
+			jQuery( '.rsl-ie-media-options' ).show();
 		} else {
-			jQuery( '.aie-post-options' ).show();
-			jQuery( '.aie-media-options' ).hide();
+			jQuery( '.rsl-ie-post-options' ).show();
+			jQuery( '.rsl-ie-media-options' ).hide();
 		}
 	},
 
@@ -346,11 +362,11 @@ const ImportModule = {
 	 */
 	filterContentTypes( e ) {
 		const searchTerm = jQuery( e.target ).val().toLowerCase().trim();
-		const $contentTypes = jQuery( '.aie-content-type' );
-		const $filterCount = jQuery( '.aie-filter-count' );
-		const $filterCountValue = jQuery( '.aie-filter-count-value' );
-		const $noResults = jQuery( '.aie-no-results' );
-		const $nextStepBtn = jQuery( '.aie-step-1 .aie-next-step' );
+		const $contentTypes = jQuery( '.rsl-ie-content-type' );
+		const $filterCount = jQuery( '.rsl-ie-filter-count' );
+		const $filterCountValue = jQuery( '.rsl-ie-filter-count-value' );
+		const $noResults = jQuery( '.rsl-ie-no-results' );
+		const $nextStepBtn = jQuery( '.rsl-ie-step-1 .rsl-ie-next-step' );
 		let visibleCount = 0;
 
 		if ( searchTerm === '' ) {
@@ -403,14 +419,14 @@ const ImportModule = {
 		const delimiter = jQuery( e.target ).val();
 
 		if ( delimiter === 'custom' ) {
-			jQuery( '.aie-custom-delimiter-wrapper' ).show();
+			jQuery( '.rsl-ie-custom-delimiter-wrapper' ).show();
 			// Validate immediately
 			this.validateCustomDelimiter();
 		} else {
-			jQuery( '.aie-custom-delimiter-wrapper' ).hide();
+			jQuery( '.rsl-ie-custom-delimiter-wrapper' ).hide();
 			// Re-enable next button if file is uploaded and processed
 			if ( this.fileData && ! this.fileData.hasError ) {
-				jQuery( '.aie-step-2 .aie-next-step' ).prop(
+				jQuery( '.rsl-ie-step-2 .rsl-ie-next-step' ).prop(
 					'disabled',
 					false
 				);
@@ -429,11 +445,14 @@ const ImportModule = {
 		if ( delimiter === 'custom' ) {
 			if ( customDelimiter === '' ) {
 				// Disable next button if custom delimiter is empty
-				jQuery( '.aie-step-2 .aie-next-step' ).prop( 'disabled', true );
+				jQuery( '.rsl-ie-step-2 .rsl-ie-next-step' ).prop(
+					'disabled',
+					true
+				);
 			} else {
 				// Enable next button if file is uploaded and custom delimiter is provided
 				if ( this.fileData && ! this.fileData.hasError ) {
-					jQuery( '.aie-step-2 .aie-next-step' ).prop(
+					jQuery( '.rsl-ie-step-2 .rsl-ie-next-step' ).prop(
 						'disabled',
 						false
 					);
@@ -462,7 +481,7 @@ const ImportModule = {
 
 		if ( ! allowedExtensions.includes( fileExt ) ) {
 			Utils.showNotice(
-				aieData.i18n.invalidFileTypeCsv ||
+				rslIeData.i18n.invalidFileTypeCsv ||
 					'Invalid file type. Please upload CSV files only.',
 				'error'
 			);
@@ -472,19 +491,19 @@ const ImportModule = {
 		this.uploadedFile = file;
 
 		// Show file info
-		jQuery( '.aie-upload-placeholder' ).hide();
-		jQuery( '.aie-file-info' ).show();
-		jQuery( '.aie-file-name' ).text( file.name );
-		jQuery( '.aie-file-size' ).text( Utils.formatFileSize( file.size ) );
+		jQuery( '.rsl-ie-upload-placeholder' ).hide();
+		jQuery( '.rsl-ie-file-info' ).show();
+		jQuery( '.rsl-ie-file-name' ).text( file.name );
+		jQuery( '.rsl-ie-file-size' ).text( Utils.formatFileSize( file.size ) );
 
 		// Detect format
 		const format = this.detectFormat( file.name );
-		jQuery( '.aie-file-format' ).text( format.toUpperCase() );
+		jQuery( '.rsl-ie-file-format' ).text( format.toUpperCase() );
 
 		// Show format options
 		if ( format === 'csv' ) {
-			jQuery( '.aie-format-options' ).show();
-			jQuery( '.aie-csv-options' ).show();
+			jQuery( '.rsl-ie-format-options' ).show();
+			jQuery( '.rsl-ie-csv-options' ).show();
 		}
 
 		// Start chunked upload
@@ -507,9 +526,9 @@ const ImportModule = {
 	 */
 	uploadFileInChunks( file ) {
 		// Show upload progress
-		jQuery( '.aie-upload-placeholder' ).hide();
-		jQuery( '.aie-file-info' ).hide();
-		jQuery( '.aie-upload-progress' ).show();
+		jQuery( '.rsl-ie-upload-placeholder' ).hide();
+		jQuery( '.rsl-ie-file-info' ).hide();
+		jQuery( '.rsl-ie-upload-progress' ).show();
 
 		// Collect CSV options if file is CSV
 		const fileExt = '.' + file.name.split( '.' ).pop().toLowerCase();
@@ -533,14 +552,13 @@ const ImportModule = {
 			additionalData: csvOptions, // Pass CSV options to uploader
 			onProgress: ( progress ) => {
 				// Update progress bar
-				jQuery( '.aie-upload-progress .aie-progress-bar-fill' ).css(
-					'width',
-					progress.progress + '%'
-				);
-				jQuery( '.aie-upload-percentage' ).text(
+				jQuery(
+					'.rsl-ie-upload-progress .rsl-ie-progress-bar-fill'
+				).css( 'width', progress.progress + '%' );
+				jQuery( '.rsl-ie-upload-percentage' ).text(
 					Math.round( progress.progress ) + '%'
 				);
-				jQuery( '.aie-upload-speed' ).text(
+				jQuery( '.rsl-ie-upload-speed' ).text(
 					FileUploader.formatSpeed( progress.speed )
 				);
 			},
@@ -550,8 +568,8 @@ const ImportModule = {
 					Utils.showNotice( result.error, 'error' );
 
 					// Show file info but keep upload area visible
-					jQuery( '.aie-upload-progress' ).hide();
-					jQuery( '.aie-upload-placeholder' ).show();
+					jQuery( '.rsl-ie-upload-progress' ).hide();
+					jQuery( '.rsl-ie-upload-placeholder' ).show();
 
 					// Store error in fileData to show on step 3
 					this.fileData = {
@@ -560,7 +578,7 @@ const ImportModule = {
 					};
 
 					// Disable next button due to validation error
-					jQuery( '.aie-step-2 .aie-next-step' ).prop(
+					jQuery( '.rsl-ie-step-2 .rsl-ie-next-step' ).prop(
 						'disabled',
 						true
 					);
@@ -574,8 +592,8 @@ const ImportModule = {
 				this.fileData.delimiter = csvOptions.delimiter || ',';
 
 				// Hide upload area completely, show file info
-				jQuery( '.aie-upload-area' ).hide();
-				jQuery( '.aie-file-info' ).show();
+				jQuery( '.rsl-ie-upload-area' ).hide();
+				jQuery( '.rsl-ie-file-info' ).show();
 
 				// Enable next button only if custom delimiter validation passes
 				const delimiter = jQuery( '#csv_delimiter' ).val();
@@ -583,14 +601,14 @@ const ImportModule = {
 					delimiter === 'custom' &&
 					jQuery( '#csv_custom_delimiter' ).val().trim() === '';
 
-				jQuery( '.aie-step-2 .aie-next-step' ).prop(
+				jQuery( '.rsl-ie-step-2 .rsl-ie-next-step' ).prop(
 					'disabled',
 					shouldDisable
 				);
 
 				// Show success message
 				Utils.showNotice(
-					aieData.i18n.fileUploadedSuccessfully ||
+					rslIeData.i18n.fileUploadedSuccessfully ||
 						'File uploaded successfully',
 					'success'
 				);
@@ -603,7 +621,7 @@ const ImportModule = {
 			onError: ( error ) => {
 				// Upload failed
 				Utils.showNotice(
-					( aieData.i18n.uploadFailed || 'Upload failed' ) +
+					( rslIeData.i18n.uploadFailed || 'Upload failed' ) +
 						': ' +
 						error.message,
 					'error'
@@ -629,13 +647,13 @@ const ImportModule = {
 		this.uploadedFile = null;
 		this.fileData = null;
 
-		jQuery( '.aie-file-info' ).hide();
-		jQuery( '.aie-upload-area' ).show();
-		jQuery( '.aie-upload-placeholder' ).show();
-		jQuery( '.aie-upload-progress' ).hide();
-		jQuery( '.aie-format-options' ).hide();
-		jQuery( '#aie-file-input' ).val( '' );
-		jQuery( '.aie-step-2 .aie-next-step' ).prop( 'disabled', true );
+		jQuery( '.rsl-ie-file-info' ).hide();
+		jQuery( '.rsl-ie-upload-area' ).show();
+		jQuery( '.rsl-ie-upload-placeholder' ).show();
+		jQuery( '.rsl-ie-upload-progress' ).hide();
+		jQuery( '.rsl-ie-format-options' ).hide();
+		jQuery( '#rsl-ie-file-input' ).val( '' );
+		jQuery( '.rsl-ie-step-2 .rsl-ie-next-step' ).prop( 'disabled', true );
 	},
 
 	/**
@@ -667,11 +685,11 @@ const ImportModule = {
 		try {
 			// Send request to regenerate preview with new options
 			const response = await jQuery.ajax( {
-				url: aieData.ajaxUrl,
+				url: rslIeData.ajaxUrl,
 				method: 'POST',
 				data: {
-					action: 'aie_reload_preview',
-					nonce: aieData.nonce,
+					action: 'rsl_ie_reload_preview',
+					nonce: rslIeData.nonce,
 					file_path: this.fileData.file_path,
 					delimiter: csvOptions.delimiter,
 					has_header: csvOptions.has_header,
@@ -701,7 +719,7 @@ const ImportModule = {
 	async loadPreview() {
 		if ( ! this.fileData ) {
 			Utils.showNotice(
-				aieData.i18n.noFileDataAvailable || 'No file data available',
+				rslIeData.i18n.noFileDataAvailable || 'No file data available',
 				'error'
 			);
 			return;
@@ -714,7 +732,7 @@ const ImportModule = {
 
 		if ( ! this.fileData.preview ) {
 			Utils.showNotice(
-				aieData.i18n.noPreviewDataAvailable ||
+				rslIeData.i18n.noPreviewDataAvailable ||
 					'No preview data available',
 				'error'
 			);
@@ -725,8 +743,8 @@ const ImportModule = {
 		const format = this.fileData.format || 'csv';
 
 		// Update stats
-		jQuery( '.aie-total-rows' ).text( this.fileData.total_rows || 0 );
-		jQuery( '.aie-total-columns' ).text(
+		jQuery( '.rsl-ie-total-rows' ).text( this.fileData.total_rows || 0 );
+		jQuery( '.rsl-ie-total-columns' ).text(
 			this.fileData.columns?.length || 0
 		);
 
@@ -739,14 +757,14 @@ const ImportModule = {
 	 */
 	showJsonPreview( firstObject ) {
 		// Hide table, show JSON preview
-		jQuery( '.aie-preview-table-container' ).hide();
-		jQuery( '.aie-json-preview-container' ).show();
-		jQuery( '.aie-preview-note' ).text(
+		jQuery( '.rsl-ie-preview-table-container' ).hide();
+		jQuery( '.rsl-ie-json-preview-container' ).show();
+		jQuery( '.rsl-ie-preview-note' ).text(
 			'Showing first object from JSON file'
 		);
 
 		// Build JSON preview HTML
-		let html = '<div class="aie-json-object">';
+		let html = '<div class="rsl-ie-json-object">';
 		html += '<table class="wp-list-table widefat striped">';
 		html += '<thead><tr>';
 		html += '<th style="width: 30%;">Field</th>';
@@ -768,7 +786,7 @@ const ImportModule = {
 
 		html += '</tbody></table></div>';
 
-		jQuery( '.aie-json-preview' ).html( html );
+		jQuery( '.rsl-ie-json-preview' ).html( html );
 	},
 
 	/**
@@ -776,13 +794,13 @@ const ImportModule = {
 	 */
 	showTablePreview( preview ) {
 		// Show table, hide JSON preview
-		jQuery( '.aie-preview-table-container' ).show();
-		jQuery( '.aie-json-preview-container' ).hide();
-		jQuery( '.aie-preview-note' ).text(
-			window.aieData.i18n.showingFirstRows
+		jQuery( '.rsl-ie-preview-table-container' ).show();
+		jQuery( '.rsl-ie-json-preview-container' ).hide();
+		jQuery( '.rsl-ie-preview-note' ).text(
+			window.rslIeData.i18n.showingFirstRows
 		);
 
-		const $table = jQuery( '.aie-preview-table' ); // Build table header
+		const $table = jQuery( '.rsl-ie-preview-table' ); // Build table header
 		let headerHtml = '<tr>';
 		if ( preview.headers ) {
 			preview.headers.forEach( ( header ) => {
@@ -832,7 +850,7 @@ const ImportModule = {
 	 * Check if table container has horizontal scroll and add indicator
 	 */
 	checkTableScroll() {
-		const $container = jQuery( '.aie-preview-table-container' );
+		const $container = jQuery( '.rsl-ie-preview-table-container' );
 
 		if ( $container.length ) {
 			// Use setTimeout to ensure DOM is fully rendered
@@ -944,8 +962,8 @@ const ImportModule = {
 		// Build target fields (WordPress fields or database table columns)
 		if ( contentType === 'database_table' ) {
 			// Table columns will be loaded after table selection
-			jQuery( '#aie-target-fields' ).html(
-				`<div class="aie-info">${ window.aieData.i18n.pleaseSelectTable }</div>`
+			jQuery( '#rsl-ie-target-fields' ).html(
+				`<div class="rsl-ie-info">${ window.rslIeData.i18n.pleaseSelectTable }</div>`
 			);
 		} else {
 			this.buildTargetFields( contentType );
@@ -969,7 +987,7 @@ const ImportModule = {
 	 * Build source fields from uploaded file
 	 */
 	buildSourceFields() {
-		const $container = jQuery( '#aie-source-fields' );
+		const $container = jQuery( '#rsl-ie-source-fields' );
 		let html = '';
 
 		this.fileData.columns.forEach( ( column, index ) => {
@@ -978,17 +996,17 @@ const ImportModule = {
 			const sampleDisplay = String( sampleData ).substring( 0, 30 );
 
 			html += `
-				<div class="aie-field-card" draggable="true" data-source-field="${ Utils.escapeHtml(
+				<div class="rsl-ie-field-card" draggable="true" data-source-field="${ Utils.escapeHtml(
 					column
 				) }" data-source-index="${ index }">
-					<div class="aie-field-icon">
+					<div class="rsl-ie-field-icon">
 						<span class="dashicons dashicons-media-spreadsheet"></span>
 					</div>
-					<div class="aie-field-info">
-						<div class="aie-field-name">${ Utils.escapeHtml( column ) }</div>
+					<div class="rsl-ie-field-info">
+						<div class="rsl-ie-field-name">${ Utils.escapeHtml( column ) }</div>
 						${
 							sampleDisplay
-								? `<div class="aie-field-sample">${ Utils.escapeHtml(
+								? `<div class="rsl-ie-field-sample">${ Utils.escapeHtml(
 										sampleDisplay
 								  ) }...</div>`
 								: ''
@@ -1005,7 +1023,7 @@ const ImportModule = {
 	 * Toggle post type selector visibility
 	 */
 	togglePostTypeSelector( contentType ) {
-		const $selector = jQuery( '.aie-post-type-selector' );
+		const $selector = jQuery( '.rsl-ie-post-type-selector' );
 
 		if ( contentType === 'custom_post_types' ) {
 			$selector.css( 'display', 'block' );
@@ -1019,7 +1037,7 @@ const ImportModule = {
 	 * Load custom post types via AJAX
 	 */
 	loadCustomPostTypes() {
-		const $select = jQuery( '#aie-custom-post-type' );
+		const $select = jQuery( '#rsl-ie-custom-post-type' );
 
 		// If already loaded, skip
 		if ( $select.find( 'option' ).length > 1 ) {
@@ -1027,17 +1045,18 @@ const ImportModule = {
 		}
 
 		jQuery.ajax( {
-			url: window.aieData.ajaxUrl,
+			url: window.rslIeData.ajaxUrl,
 			type: 'POST',
 			data: {
-				action: 'aie_get_custom_post_types',
-				nonce: window.aieData.nonce,
+				action: 'rsl_ie_get_custom_post_types',
+				nonce: window.rslIeData.nonce,
 			},
 			success: ( response ) => {
 				if ( response.success && response.data ) {
 					let options =
 						'<option value="">-- ' +
-						( aieData.i18n.selectPostType || 'Select Post Type' ) +
+						( rslIeData.i18n.selectPostType ||
+							'Select Post Type' ) +
 						' --</option>';
 
 					response.data.forEach( ( postType ) => {
@@ -1055,7 +1074,7 @@ const ImportModule = {
 	 * Toggle database table selector on Step 4
 	 */
 	toggleDatabaseTableSelector( contentType ) {
-		const $selector = jQuery( '.aie-table-selection-section' );
+		const $selector = jQuery( '.rsl-ie-table-selection-section' );
 
 		if ( contentType === 'database_table' ) {
 			$selector.show();
@@ -1069,9 +1088,9 @@ const ImportModule = {
 	 * Load database tables on Step 4
 	 */
 	loadDatabaseTables() {
-		const $select = jQuery( '#aie-import-table-name' );
-		const $spinner = jQuery( '.aie-table-selector .spinner' );
-		const $section = jQuery( '.aie-table-selection-section' );
+		const $select = jQuery( '#rsl-ie-import-table-name' );
+		const $spinner = jQuery( '.rsl-ie-table-selector .spinner' );
+		const $section = jQuery( '.rsl-ie-table-selection-section' );
 
 		// If already loaded, skip
 		if ( $select.find( 'option' ).length > 1 ) {
@@ -1086,11 +1105,11 @@ const ImportModule = {
 		$spinner.addClass( 'is-active' );
 
 		jQuery.ajax( {
-			url: window.aieData.ajaxUrl,
+			url: window.rslIeData.ajaxUrl,
 			type: 'POST',
 			data: {
-				action: 'aie_get_database_tables',
-				nonce: window.aieData.nonce,
+				action: 'rsl_ie_get_database_tables',
+				nonce: window.rslIeData.nonce,
 			},
 			success: ( response ) => {
 				$spinner.removeClass( 'is-active' );
@@ -1102,14 +1121,14 @@ const ImportModule = {
 					$select.append(
 						jQuery( '<option>' )
 							.val( '' )
-							.text( window.aieData.i18n.selectTable )
+							.text( window.rslIeData.i18n.selectTable )
 					);
 
 					if ( ! Array.isArray( tables ) || tables.length === 0 ) {
 						$select.append(
 							jQuery( '<option>' )
 								.val( '' )
-								.text( window.aieData.i18n.noTablesFound )
+								.text( window.rslIeData.i18n.noTablesFound )
 						);
 						$select.prop( 'disabled', true );
 						return;
@@ -1132,10 +1151,10 @@ const ImportModule = {
 							this.loadTableInfo( tableName );
 							this.loadTableColumnsForMapping();
 						} else {
-							jQuery( '.aie-table-info' ).html( '' ).hide();
-							jQuery( '#aie-target-fields' ).html(
-								'<div class="aie-info">' +
-									( window.aieData.i18n.pleaseSelectTable ||
+							jQuery( '.rsl-ie-table-info' ).html( '' ).hide();
+							jQuery( '#rsl-ie-target-fields' ).html(
+								'<div class="rsl-ie-info">' +
+									( window.rslIeData.i18n.pleaseSelectTable ||
 										'Please select a database table above to see available columns' ) +
 									'</div>'
 							);
@@ -1143,14 +1162,14 @@ const ImportModule = {
 					} );
 				} else {
 					$select.html(
-						`<option value="">${ window.aieData.i18n.noTablesFound }</option>`
+						`<option value="">${ window.rslIeData.i18n.noTablesFound }</option>`
 					);
 				}
 			},
 			error: ( xhr, status, error ) => {
 				$spinner.removeClass( 'is-active' );
 				$select.html(
-					`<option value="">${ window.aieData.i18n.errorLoadingTables }</option>`
+					`<option value="">${ window.rslIeData.i18n.errorLoadingTables }</option>`
 				);
 			},
 		} );
@@ -1160,20 +1179,20 @@ const ImportModule = {
 	 * Load table info on Step 2
 	 */
 	loadTableInfo( tableName ) {
-		const $tableInfo = jQuery( '.aie-table-info' );
-		const $columnsList = jQuery( '.aie-columns-list' );
-		const $rowCount = jQuery( '.aie-table-row-count' );
-		const $columnCount = jQuery( '.aie-table-column-count' );
+		const $tableInfo = jQuery( '.rsl-ie-table-info' );
+		const $columnsList = jQuery( '.rsl-ie-columns-list' );
+		const $rowCount = jQuery( '.rsl-ie-table-row-count' );
+		const $columnCount = jQuery( '.rsl-ie-table-column-count' );
 
 		$tableInfo.show();
 		$columnsList.html( '<p>Loading...</p>' );
 
 		jQuery.ajax( {
-			url: window.aieData.ajaxUrl,
+			url: window.rslIeData.ajaxUrl,
 			type: 'POST',
 			data: {
-				action: 'aie_get_table_columns',
-				nonce: window.aieData.nonce,
+				action: 'rsl_ie_get_table_columns',
+				nonce: window.rslIeData.nonce,
 				table_name: tableName,
 			},
 			success: ( response ) => {
@@ -1184,9 +1203,9 @@ const ImportModule = {
 					$rowCount.text( rowCount.toLocaleString() );
 					$columnCount.text( columns.length );
 
-					let html = '<div class="aie-column-badges">';
+					let html = '<div class="rsl-ie-column-badges">';
 					columns.forEach( ( column ) => {
-						html += `<span class="aie-column-badge">${ column.name }</span>`;
+						html += `<span class="rsl-ie-column-badge">${ column.name }</span>`;
 					} );
 					html += '</div>';
 
@@ -1195,7 +1214,7 @@ const ImportModule = {
 			},
 			error: ( xhr, status, error ) => {
 				$columnsList.html(
-					`<p>${ window.aieData.i18n.errorLoadingColumns }</p>`
+					`<p>${ window.rslIeData.i18n.errorLoadingColumns }</p>`
 				);
 			},
 		} );
@@ -1209,18 +1228,18 @@ const ImportModule = {
 			return;
 		}
 
-		const $container = jQuery( '#aie-target-fields' );
+		const $container = jQuery( '#rsl-ie-target-fields' );
 
 		$container.html(
-			`<div class="aie-loading">${ window.aieData.i18n.loadingTableColumns }</div>`
+			`<div class="rsl-ie-loading">${ window.rslIeData.i18n.loadingTableColumns }</div>`
 		);
 
 		jQuery.ajax( {
-			url: window.aieData.ajaxUrl,
+			url: window.rslIeData.ajaxUrl,
 			type: 'POST',
 			data: {
-				action: 'aie_get_table_columns',
-				nonce: window.aieData.nonce,
+				action: 'rsl_ie_get_table_columns',
+				nonce: window.rslIeData.nonce,
 				table_name: this.selectedTableName,
 			},
 			success: ( response ) => {
@@ -1231,24 +1250,24 @@ const ImportModule = {
 				) {
 					const columns = response.data.columns;
 
-					let html = '<div class="aie-field-group">';
+					let html = '<div class="rsl-ie-field-group">';
 					html +=
-						'<div class="aie-field-group-label">' +
-						( window.aieData.i18n.fieldGroupTableColumns ||
+						'<div class="rsl-ie-field-group-label">' +
+						( window.rslIeData.i18n.fieldGroupTableColumns ||
 							'Table Columns' ) +
 						'</div>';
 
 					columns.forEach( ( column ) => {
 						html += `
-							<div class="aie-target-field" data-target-field="${
+							<div class="rsl-ie-target-field" data-target-field="${
 								column.name
 							}" data-field-type="${ column.type || 'string' }">
-								<div class="aie-field-icon">
+								<div class="rsl-ie-field-icon">
 									<span class="dashicons dashicons-database"></span>
 								</div>
-								<div class="aie-field-info">
-									<div class="aie-field-label">${ column.name }</div>
-									<span class="aie-field-type-badge">${ column.type || 'string' }</span>
+								<div class="rsl-ie-field-info">
+									<div class="rsl-ie-field-label">${ column.name }</div>
+									<span class="rsl-ie-field-type-badge">${ column.type || 'string' }</span>
 								</div>
 							</div>
 						`;
@@ -1261,13 +1280,13 @@ const ImportModule = {
 					this.initializeDragDrop();
 				} else {
 					$container.html(
-						`<div class="aie-error">${ window.aieData.i18n.errorLoadingColumns }</div>`
+						`<div class="rsl-ie-error">${ window.rslIeData.i18n.errorLoadingColumns }</div>`
 					);
 				}
 			},
 			error: ( xhr, status, error ) => {
 				$container.html(
-					`<div class="aie-error">${ window.aieData.i18n.errorLoadingColumns }</div>`
+					`<div class="rsl-ie-error">${ window.rslIeData.i18n.errorLoadingColumns }</div>`
 				);
 			},
 		} );
@@ -1277,7 +1296,7 @@ const ImportModule = {
 	 * Build target WordPress fields
 	 */
 	buildTargetFields( contentType ) {
-		const $container = jQuery( '#aie-target-fields' );
+		const $container = jQuery( '#rsl-ie-target-fields' );
 
 		// Get fields for content type
 		const fieldGroups = this.getFieldsByContentType( contentType );
@@ -1285,8 +1304,8 @@ const ImportModule = {
 		let html = '';
 
 		fieldGroups.forEach( ( group ) => {
-			html += `<div class="aie-field-group">`;
-			html += `<div class="aie-field-group-label">${ group.label }</div>`;
+			html += `<div class="rsl-ie-field-group">`;
+			html += `<div class="rsl-ie-field-group-label">${ group.label }</div>`;
 
 			group.options.forEach( ( field ) => {
 				// Skip special fields (except template field)
@@ -1300,33 +1319,33 @@ const ImportModule = {
 				// Custom fields with add button
 				if ( field.custom ) {
 					html += `
-					<div class="aie-target-field aie-custom-field-template" data-field-type="${
+					<div class="rsl-ie-target-field rsl-ie-custom-field-template" data-field-type="${
 						field.type || 'string'
 					}" data-multiple="${ field.multiple || false }">
-						<div class="aie-field-icon">
+						<div class="rsl-ie-field-icon">
 							<span class="dashicons dashicons-plus"></span>
 						</div>
-						<div class="aie-field-info">
-							<div class="aie-field-label">${ field.label }</div>
-							<button type="button" class="aie-add-custom-field button button-small">+ ${
-								window.aieData.i18n.add || 'Add'
+						<div class="rsl-ie-field-info">
+							<div class="rsl-ie-field-label">${ field.label }</div>
+							<button type="button" class="rsl-ie-add-custom-field button button-small">+ ${
+								window.rslIeData.i18n.add || 'Add'
 							}</button>
 						</div>
 					</div>
 				`;
 				} else {
 					html += `
-					<div class="aie-target-field" data-target-field="${
+					<div class="rsl-ie-target-field" data-target-field="${
 						field.value
 					}" data-field-type="${
 						field.type || 'string'
 					}" data-multiple="${ field.multiple || false }">
-						<div class="aie-field-icon">
+						<div class="rsl-ie-field-icon">
 							<span class="dashicons dashicons-wordpress"></span>
 						</div>
-						<div class="aie-field-info">
-							<div class="aie-field-label">${ field.label }</div>
-							<span class="aie-field-type-badge">${ field.type || 'string' }</span>
+						<div class="rsl-ie-field-info">
+							<div class="rsl-ie-field-label">${ field.label }</div>
+							<span class="rsl-ie-field-type-badge">${ field.type || 'string' }</span>
 						</div>
 					</div>
 				`;
@@ -1348,12 +1367,12 @@ const ImportModule = {
 	initCustomFieldButtons() {
 		const self = this;
 
-		jQuery( '.aie-add-custom-field' )
+		jQuery( '.rsl-ie-add-custom-field' )
 			.off( 'click' )
 			.on( 'click', function () {
 				const $button = jQuery( this );
 				const $template = $button.closest(
-					'.aie-custom-field-template'
+					'.rsl-ie-custom-field-template'
 				);
 				const fieldType = $template.data( 'field-type' );
 				const isMultiple = $template.data( 'multiple' );
@@ -1372,12 +1391,12 @@ const ImportModule = {
 		const isMeta = fieldType === 'meta';
 
 		const title = isTaxonomy
-			? window.aieData.i18n.addTaxonomyField || 'Add Taxonomy Field'
-			: window.aieData.i18n.addCustomField || 'Add Custom Field';
+			? window.rslIeData.i18n.addTaxonomyField || 'Add Taxonomy Field'
+			: window.rslIeData.i18n.addCustomField || 'Add Custom Field';
 		const placeholder = isTaxonomy
-			? window.aieData.i18n.enterTaxonomySlug ||
+			? window.rslIeData.i18n.enterTaxonomySlug ||
 			  'Enter taxonomy slug (e.g., category, post_tag, product_cat)'
-			: window.aieData.i18n.enterFieldKey ||
+			: window.rslIeData.i18n.enterFieldKey ||
 			  'Enter field key (e.g., _custom_price)';
 		const icon = isTaxonomy
 			? 'dashicons-category'
@@ -1387,24 +1406,24 @@ const ImportModule = {
 		const taxonomyFormatField = isTaxonomy
 			? `
 			<label style="margin-top: 15px;">
-				<strong>${ window.aieData.i18n.dataFormat || 'Data Format' }:</strong>
-				<select class="aie-taxonomy-format regular-text">
+				<strong>${ window.rslIeData.i18n.dataFormat || 'Data Format' }:</strong>
+				<select class="rsl-ie-taxonomy-format regular-text">
 					<option value="id">${
-						window.aieData.i18n.termIdFormat ||
+						window.rslIeData.i18n.termIdFormat ||
 						'Term ID (e.g., 5, 12, 23)'
 					}</option>
 					<option value="slug">${
-						window.aieData.i18n.termSlugFormat ||
+						window.rslIeData.i18n.termSlugFormat ||
 						'Term Slug (e.g., technology, news)'
 					}</option>
 					<option value="name" selected>${
-						window.aieData.i18n.termNameFormat ||
+						window.rslIeData.i18n.termNameFormat ||
 						'Term Name (e.g., Technology, News)'
 					}</option>
 				</select>
 				<p class="description" style="margin-top: 5px;">
 					${
-						window.aieData.i18n.selectTaxonomyDataFormat ||
+						window.rslIeData.i18n.selectTaxonomyDataFormat ||
 						'Select the format of taxonomy data in your CSV file.'
 					}
 				</p>
@@ -1414,36 +1433,37 @@ const ImportModule = {
 
 		// Create modal HTML (same structure as function modal)
 		const modalHtml = `
-			<div id="aie-custom-field-modal" class="aie-modal" style="display:flex;">
-				<div class="aie-modal-backdrop"></div>
-				<div class="aie-modal-content aie-custom-field-modal-content">
-					<div class="aie-modal-header">
-						<h2 class="aie-modal-title">
+			<div id="rsl-ie-custom-field-modal" class="rsl-ie-modal" style="display:flex;">
+				<div class="rsl-ie-modal-backdrop"></div>
+				<div class="rsl-ie-modal-content rsl-ie-custom-field-modal-content">
+					<div class="rsl-ie-modal-header">
+						<h2 class="rsl-ie-modal-title">
 							<span class="dashicons ${ icon }"></span>
 							${ title }
 						</h2>
-						<button type="button" class="aie-modal-close">
+						<button type="button" class="rsl-ie-modal-close">
 							<span class="dashicons dashicons-no-alt"></span>
 						</button>				</div>
-				<div class="aie-modal-body">
+				<div class="rsl-ie-modal-body">
 					<label>
 						<strong>${
 							isTaxonomy
-								? window.aieData.i18n.taxonomySlugLabel ||
+								? window.rslIeData.i18n.taxonomySlugLabel ||
 								  'Taxonomy Slug'
-								: window.aieData.i18n.metaKeyLabel || 'Meta Key'
+								: window.rslIeData.i18n.metaKeyLabel ||
+								  'Meta Key'
 						}:</strong>
-						<input type="text" class="aie-custom-field-input regular-text" placeholder="${ placeholder }" />
+						<input type="text" class="rsl-ie-custom-field-input regular-text" placeholder="${ placeholder }" />
 						${
 							isTaxonomy
 								? '<p class="description" style="margin-top: 5px;">' +
-								  ( window.aieData.i18n
+								  ( window.rslIeData.i18n
 										.taxonomySlugDescription ||
 										'The slug of the taxonomy (category, post_tag, or custom taxonomy).' ) +
 								  '</p>'
 								: isMeta
 								? '<p class="description" style="margin-top: 5px;">' +
-								  ( window.aieData.i18n.metaKeyDescription ||
+								  ( window.rslIeData.i18n.metaKeyDescription ||
 										'The meta key for the custom field (e.g., _custom_price, my_custom_field).' ) +
 								  '</p>'
 								: ''
@@ -1451,12 +1471,12 @@ const ImportModule = {
 					</label>
 					${ taxonomyFormatField }
 					</div>
-					<div class="aie-modal-footer">
-						<button type="button" class="button aie-modal-cancel">${
-							window.aieData.i18n.cancel || 'Cancel'
+					<div class="rsl-ie-modal-footer">
+						<button type="button" class="button rsl-ie-modal-cancel">${
+							window.rslIeData.i18n.cancel || 'Cancel'
 						}</button>
-						<button type="button" class="button button-primary aie-modal-add">${
-							window.aieData.i18n.addField || 'Add Field'
+						<button type="button" class="button button-primary rsl-ie-modal-add">${
+							window.rslIeData.i18n.addField || 'Add Field'
 						}</button>
 					</div>
 				</div>
@@ -1466,16 +1486,16 @@ const ImportModule = {
 		// Add modal to body
 		jQuery( 'body' ).append( modalHtml );
 
-		const $modal = jQuery( '#aie-custom-field-modal' );
-		const $backdrop = $modal.find( '.aie-modal-backdrop' );
-		const $input = $modal.find( '.aie-custom-field-input' );
+		const $modal = jQuery( '#rsl-ie-custom-field-modal' );
+		const $backdrop = $modal.find( '.rsl-ie-modal-backdrop' );
+		const $input = $modal.find( '.rsl-ie-custom-field-input' );
 
 		// Focus input
 		setTimeout( () => $input.focus(), 100 );
 
 		// Close modal handlers
 		$modal
-			.find( '.aie-modal-close, .aie-modal-cancel' )
+			.find( '.rsl-ie-modal-close, .rsl-ie-modal-cancel' )
 			.on( 'click', function () {
 				$modal.remove();
 			} );
@@ -1485,16 +1505,16 @@ const ImportModule = {
 		} );
 
 		// Add field handler
-		$modal.find( '.aie-modal-add' ).on( 'click', function () {
+		$modal.find( '.rsl-ie-modal-add' ).on( 'click', function () {
 			const fieldValue = $input.val().trim();
 
 			if ( ! fieldValue ) {
-				alert( window.aieData.i18n.pleaseEnterFieldName );
+				alert( window.rslIeData.i18n.pleaseEnterFieldName );
 				return;
 			} // Get taxonomy format if applicable
 			let taxonomyFormat = 'name';
 			if ( isTaxonomy ) {
-				taxonomyFormat = $modal.find( '.aie-taxonomy-format' ).val();
+				taxonomyFormat = $modal.find( '.rsl-ie-taxonomy-format' ).val();
 			}
 
 			// Create new field card
@@ -1512,7 +1532,7 @@ const ImportModule = {
 		// Enter key to add
 		$input.on( 'keypress', function ( e ) {
 			if ( e.which === 13 ) {
-				$modal.find( '.aie-modal-add' ).click();
+				$modal.find( '.rsl-ie-modal-add' ).click();
 			}
 		} );
 	},
@@ -1527,7 +1547,7 @@ const ImportModule = {
 		isMultiple,
 		taxonomyFormat
 	) {
-		const $group = $template.closest( '.aie-field-group' );
+		const $group = $template.closest( '.rsl-ie-field-group' );
 		const isTaxonomy = fieldType === 'taxonomy';
 
 		// Create label with format info for taxonomy
@@ -1551,18 +1571,18 @@ const ImportModule = {
 			: '';
 
 		const fieldHtml = `
-			<div class="aie-target-field" data-target-field="${ fieldValue }" data-field-type="${ fieldType }" data-multiple="${ isMultiple }" ${ taxonomyFormatAttr }>
-				<div class="aie-field-icon">
+			<div class="rsl-ie-target-field" data-target-field="${ fieldValue }" data-field-type="${ fieldType }" data-multiple="${ isMultiple }" ${ taxonomyFormatAttr }>
+				<div class="rsl-ie-field-icon">
 					<span class="dashicons ${
 						isTaxonomy
 							? 'dashicons-category'
 							: 'dashicons-admin-plugins'
 					}"></span>
 				</div>
-				<div class="aie-field-info">
-					<div class="aie-field-label">${ label }</div>
-					<span class="aie-field-type-badge">${ badge }</span>
-					<button type="button" class="aie-remove-custom-field" title="Remove">&times;</button>
+				<div class="rsl-ie-field-info">
+					<div class="rsl-ie-field-label">${ label }</div>
+					<span class="rsl-ie-field-type-badge">${ badge }</span>
+					<button type="button" class="rsl-ie-remove-custom-field" title="Remove">&times;</button>
 				</div>
 			</div>
 		`;
@@ -1572,10 +1592,10 @@ const ImportModule = {
 
 		// Add remove handler
 		$group
-			.find( '.aie-remove-custom-field' )
+			.find( '.rsl-ie-remove-custom-field' )
 			.off( 'click' )
 			.on( 'click', function () {
-				jQuery( this ).closest( '.aie-target-field' ).remove();
+				jQuery( this ).closest( '.rsl-ie-target-field' ).remove();
 			} );
 	},
 
@@ -1585,7 +1605,7 @@ const ImportModule = {
 	getFieldsByContentType( contentType ) {
 		// Helper function to get translated field group label
 		const t = ( key, fallback ) =>
-			window.aieData?.i18n?.[
+			window.rslIeData?.i18n?.[
 				'fieldGroup' + key.replace( /[^A-Za-z]/g, '' )
 			] || fallback;
 
@@ -3202,33 +3222,48 @@ const ImportModule = {
 		let draggedElement = null;
 
 		// Drag start on source fields
-		jQuery( document ).on( 'dragstart', '.aie-field-card', function ( e ) {
-			draggedElement = jQuery( this );
-			jQuery( this ).addClass( 'dragging' );
+		jQuery( document ).on(
+			'dragstart',
+			'.rsl-ie-field-card',
+			function ( e ) {
+				draggedElement = jQuery( this );
+				jQuery( this ).addClass( 'dragging' );
 
-			e.originalEvent.dataTransfer.effectAllowed = 'copy';
-			e.originalEvent.dataTransfer.setData( 'text/html', this.innerHTML );
-		} );
+				e.originalEvent.dataTransfer.effectAllowed = 'copy';
+				e.originalEvent.dataTransfer.setData(
+					'text/html',
+					this.innerHTML
+				);
+			}
+		);
 
 		// Drag end
-		jQuery( document ).on( 'dragend', '.aie-field-card', function () {
+		jQuery( document ).on( 'dragend', '.rsl-ie-field-card', function () {
 			jQuery( this ).removeClass( 'dragging' );
-			jQuery( '.aie-target-field' ).removeClass( 'drag-over' );
+			jQuery( '.rsl-ie-target-field' ).removeClass( 'drag-over' );
 		} );
 
 		// Drag over target fields
-		jQuery( document ).on( 'dragover', '.aie-target-field', function ( e ) {
-			e.preventDefault();
-			jQuery( this ).addClass( 'drag-over' );
-		} );
+		jQuery( document ).on(
+			'dragover',
+			'.rsl-ie-target-field',
+			function ( e ) {
+				e.preventDefault();
+				jQuery( this ).addClass( 'drag-over' );
+			}
+		);
 
 		// Drag leave
-		jQuery( document ).on( 'dragleave', '.aie-target-field', function () {
-			jQuery( this ).removeClass( 'drag-over' );
-		} );
+		jQuery( document ).on(
+			'dragleave',
+			'.rsl-ie-target-field',
+			function () {
+				jQuery( this ).removeClass( 'drag-over' );
+			}
+		);
 
 		// Drop on target field
-		jQuery( document ).on( 'drop', '.aie-target-field', function ( e ) {
+		jQuery( document ).on( 'drop', '.rsl-ie-target-field', function ( e ) {
 			e.preventDefault();
 			jQuery( this ).removeClass( 'drag-over' );
 
@@ -3261,26 +3296,32 @@ const ImportModule = {
 		} );
 
 		// Remove mapping (from target field)
-		jQuery( document ).on( 'click', '.aie-remove-mapping', function ( e ) {
-			e.stopPropagation();
-			const $targetField = jQuery( this ).closest( '.aie-target-field' );
-			const sourceIndex = $targetField.data( 'mapped-source-index' );
+		jQuery( document ).on(
+			'click',
+			'.rsl-ie-remove-mapping',
+			function ( e ) {
+				e.stopPropagation();
+				const $targetField = jQuery( this ).closest(
+					'.rsl-ie-target-field'
+				);
+				const sourceIndex = $targetField.data( 'mapped-source-index' );
 
-			self.removeMapping( sourceIndex, $targetField );
-		} );
+				self.removeMapping( sourceIndex, $targetField );
+			}
+		);
 
 		// Remove mapping (from mapped fields section)
 		jQuery( document ).on(
 			'click',
-			'.aie-remove-row-mapping',
+			'.rsl-ie-remove-row-mapping',
 			function ( e ) {
 				e.stopPropagation();
 				const sourceIndex = jQuery( this ).data( 'source-index' );
 				const targetField = jQuery( this )
-					.closest( '.aie-mapping-row' )
+					.closest( '.rsl-ie-mapping-row' )
 					.data( 'target-field' );
 				const $targetField = jQuery(
-					`.aie-target-field[data-target-field="${ targetField }"]`
+					`.rsl-ie-target-field[data-target-field="${ targetField }"]`
 				);
 
 				self.removeMapping( sourceIndex, $targetField );
@@ -3288,7 +3329,7 @@ const ImportModule = {
 		);
 
 		// Add function to mapping
-		jQuery( document ).on( 'click', '.aie-add-function', function ( e ) {
+		jQuery( document ).on( 'click', '.rsl-ie-add-function', function ( e ) {
 			e.stopPropagation();
 			const sourceIndex = jQuery( this ).data( 'source-index' );
 			const targetField = jQuery( this ).data( 'target-field' );
@@ -3297,15 +3338,19 @@ const ImportModule = {
 		} );
 
 		// Remove function from mapping
-		jQuery( document ).on( 'click', '.aie-remove-function', function ( e ) {
-			e.stopPropagation();
-			const functionIndex = jQuery( this ).data( 'function-index' );
-			const $row = jQuery( this ).closest( '.aie-mapping-row' );
-			const sourceIndex = $row.data( 'source-index' );
-			const targetField = $row.data( 'target-field' );
+		jQuery( document ).on(
+			'click',
+			'.rsl-ie-remove-function',
+			function ( e ) {
+				e.stopPropagation();
+				const functionIndex = jQuery( this ).data( 'function-index' );
+				const $row = jQuery( this ).closest( '.rsl-ie-mapping-row' );
+				const sourceIndex = $row.data( 'source-index' );
+				const targetField = $row.data( 'target-field' );
 
-			self.removeFunction( sourceIndex, targetField, functionIndex );
-		} );
+				self.removeFunction( sourceIndex, targetField, functionIndex );
+			}
+		);
 	},
 
 	/**
@@ -3315,7 +3360,7 @@ const ImportModule = {
 		const targetField = $targetField.data( 'target-field' );
 
 		// Remove mapping from target
-		$targetField.find( '.aie-mapped-source' ).remove();
+		$targetField.find( '.rsl-ie-mapped-source' ).remove();
 		$targetField.removeClass( 'has-mapping' );
 		$targetField.removeData( 'mapped-source-index' );
 		$targetField.removeData( 'mapped-source-field' );
@@ -3323,7 +3368,7 @@ const ImportModule = {
 		// Check if this source is still used in other mappings BEFORE removing
 		// We need to exclude the current mapping being removed
 		const allMappings = jQuery(
-			`.aie-mapping-row[data-source-index="${ sourceIndex }"]`
+			`.rsl-ie-mapping-row[data-source-index="${ sourceIndex }"]`
 		);
 		const otherMappings = allMappings.filter( function () {
 			return jQuery( this ).data( 'target-field' ) !== targetField;
@@ -3332,7 +3377,7 @@ const ImportModule = {
 
 		// Remove from mapped fields section (specific target field)
 		jQuery(
-			`.aie-mapping-row[data-source-index="${ sourceIndex }"][data-target-field="${ targetField }"]`
+			`.rsl-ie-mapping-row[data-source-index="${ sourceIndex }"][data-target-field="${ targetField }"]`
 		).remove();
 
 		// Remove functions for this mapping
@@ -3344,13 +3389,13 @@ const ImportModule = {
 		if ( ! stillUsed ) {
 			// Remove 'used' class only if not used anywhere else
 			jQuery(
-				`.aie-field-card[data-source-index="${ sourceIndex }"]`
+				`.rsl-ie-field-card[data-source-index="${ sourceIndex }"]`
 			).removeClass( 'used' );
 		}
 
 		// Show empty state if no mappings
-		if ( jQuery( '.aie-mapping-row' ).length === 0 ) {
-			jQuery( '.aie-mapped-fields .aie-empty-state' ).show();
+		if ( jQuery( '.rsl-ie-mapping-row' ).length === 0 ) {
+			jQuery( '.rsl-ie-mapped-fields .rsl-ie-empty-state' ).show();
 		}
 
 		// Update stats
@@ -3368,16 +3413,16 @@ const ImportModule = {
 		$targetElement
 	) {
 		// Remove existing mapping if any
-		$targetElement.find( '.aie-mapped-source' ).remove();
+		$targetElement.find( '.rsl-ie-mapped-source' ).remove();
 
 		// Add mapped source indicator to target
 		const mappedHtml = `
-			<div class="aie-mapped-source">
-				<span class="aie-source-name">${ Utils.escapeHtml( sourceField ) }</span>
-				<span class="dashicons dashicons-no-alt aie-remove-mapping"></span>
+			<div class="rsl-ie-mapped-source">
+				<span class="rsl-ie-source-name">${ Utils.escapeHtml( sourceField ) }</span>
+				<span class="dashicons dashicons-no-alt rsl-ie-remove-mapping"></span>
 			</div>
 		`;
-		$targetElement.find( '.aie-field-info' ).append( mappedHtml );
+		$targetElement.find( '.rsl-ie-field-info' ).append( mappedHtml );
 		$targetElement.addClass( 'has-mapping' );
 		$targetElement.data( 'mapped-source-index', sourceIndex );
 		$targetElement.data( 'mapped-source-field', sourceField );
@@ -3395,14 +3440,14 @@ const ImportModule = {
 	 * Add mapping to mapped fields section
 	 */
 	addToMappedFields( sourceField, sourceIndex, targetField, fieldType ) {
-		const $container = jQuery( '.aie-mapped-fields' );
+		const $container = jQuery( '.rsl-ie-mapped-fields' );
 
 		// Hide empty state
-		$container.find( '.aie-empty-state' ).hide();
+		$container.find( '.rsl-ie-empty-state' ).hide();
 
 		// Remove existing row for this specific combination (если перемапливаем то же поле)
 		jQuery(
-			`.aie-mapping-row[data-source-index="${ sourceIndex }"][data-target-field="${ targetField }"]`
+			`.rsl-ie-mapping-row[data-source-index="${ sourceIndex }"][data-target-field="${ targetField }"]`
 		).remove();
 
 		// Get functions for this mapping
@@ -3412,12 +3457,12 @@ const ImportModule = {
 		// Build functions HTML
 		let functionsHtml = '';
 		if ( functions.length > 0 ) {
-			functionsHtml = '<div class="aie-mapping-functions">';
+			functionsHtml = '<div class="rsl-ie-mapping-functions">';
 			functions.forEach( ( func, index ) => {
 				functionsHtml += `
-					<span class="aie-function-badge">
+					<span class="rsl-ie-function-badge">
 						${ Utils.escapeHtml( func.name ) }
-						<button type="button" class="aie-remove-function" data-function-index="${ index }">×</button>
+						<button type="button" class="rsl-ie-remove-function" data-function-index="${ index }">×</button>
 					</span>
 				`;
 			} );
@@ -3426,25 +3471,25 @@ const ImportModule = {
 
 		// Add new row
 		const html = `
-			<div class="aie-mapping-row" data-source-index="${ sourceIndex }" data-target-field="${ targetField }">
-				<div class="aie-source-col">
+			<div class="rsl-ie-mapping-row" data-source-index="${ sourceIndex }" data-target-field="${ targetField }">
+				<div class="rsl-ie-source-col">
 					<span class="dashicons dashicons-media-spreadsheet"></span>
 					<strong>${ Utils.escapeHtml( sourceField ) }</strong>
 				</div>
-				<div class="aie-arrow">→</div>
-				<div class="aie-target-col">
+				<div class="rsl-ie-arrow">→</div>
+				<div class="rsl-ie-target-col">
 					<span class="dashicons dashicons-wordpress"></span>				<strong>${ targetField }</strong>
 			</div>
 			${ functionsHtml }
-			<div class="aie-mapping-actions">
-				<button type="button" class="button button-small aie-add-function" data-source-index="${ sourceIndex }" data-target-field="${ targetField }" title="${
-					window.aieData.i18n.addTransformationFunction ||
+			<div class="rsl-ie-mapping-actions">
+				<button type="button" class="button button-small rsl-ie-add-function" data-source-index="${ sourceIndex }" data-target-field="${ targetField }" title="${
+					window.rslIeData.i18n.addTransformationFunction ||
 					'Add transformation function'
 				}">
 					<span class="dashicons dashicons-admin-tools"></span>
 				</button>
-				<button type="button" class="button button-small aie-remove-row-mapping" data-source-index="${ sourceIndex }" data-target-field="${ targetField }" title="${
-					window.aieData.i18n.removeMapping || 'Remove mapping'
+				<button type="button" class="button button-small rsl-ie-remove-row-mapping" data-source-index="${ sourceIndex }" data-target-field="${ targetField }" title="${
+					window.rslIeData.i18n.removeMapping || 'Remove mapping'
 				}">
 					<span class="dashicons dashicons-no-alt"></span>
 				</button>
@@ -3463,7 +3508,7 @@ const ImportModule = {
 
 		// Count unique source fields that are used
 		const usedSourceIndexes = new Set();
-		jQuery( '.aie-mapping-row' ).each( function () {
+		jQuery( '.rsl-ie-mapping-row' ).each( function () {
 			const sourceIndex = jQuery( this ).data( 'source-index' );
 			// Only add if sourceIndex is defined (skip if undefined/null)
 			if (
@@ -3477,12 +3522,12 @@ const ImportModule = {
 		const mappedCount = usedSourceIndexes.size;
 
 		// Show: "X / Y fields mapped" where Y is total source columns
-		jQuery( '.aie-mapped-count' ).text( mappedCount );
-		jQuery( '.aie-total-fields' ).text( totalSourceFields );
+		jQuery( '.rsl-ie-mapped-count' ).text( mappedCount );
+		jQuery( '.rsl-ie-total-fields' ).text( totalSourceFields );
 
 		// Enable/disable Next button based on mapping count (only on Step 4)
 		if ( this.currentStep === 4 ) {
-			const $nextButton = jQuery( '.aie-next-step' );
+			const $nextButton = jQuery( '.rsl-ie-next-step' );
 			if ( mappedCount === 0 ) {
 				$nextButton.prop( 'disabled', true );
 			} else {
@@ -3509,17 +3554,17 @@ const ImportModule = {
 		// Load functions from server
 		try {
 			const response = await jQuery.ajax( {
-				url: window.aieData.ajaxUrl,
+				url: window.rslIeData.ajaxUrl,
 				type: 'POST',
 				data: {
-					action: 'aie_functions_get_snippets',
-					nonce: window.aieData.nonce,
+					action: 'rsl_ie_functions_get_snippets',
+					nonce: window.rslIeData.nonce,
 				},
 			} );
 
 			if ( ! response.success ) {
 				Utils.showNotice(
-					aieData.i18n.failedToLoadFunctions ||
+					rslIeData.i18n.failedToLoadFunctions ||
 						'Failed to load functions',
 					'error'
 				);
@@ -3529,7 +3574,7 @@ const ImportModule = {
 			this.showFunctionModal( sourceIndex, targetField, response.data );
 		} catch ( error ) {
 			Utils.showNotice(
-				( aieData.i18n.errorLoadingFunctions ||
+				( rslIeData.i18n.errorLoadingFunctions ||
 					'Error loading functions' ) +
 					': ' +
 					error.message,
@@ -3551,153 +3596,157 @@ const ImportModule = {
 
 		// Create modal HTML (EXACTLY like export modal structure)
 		const modalHtml = `
-		<div id="aie-field-functions-modal" class="aie-modal" style="display:flex;">
-			<div class="aie-modal-backdrop"></div>
-			<div class="aie-modal-content aie-field-functions-modal-content">
-				<div class="aie-modal-header">
-					<h2 class="aie-modal-title">
+		<div id="rsl-ie-field-functions-modal" class="rsl-ie-modal" style="display:flex;">
+			<div class="rsl-ie-modal-backdrop"></div>
+			<div class="rsl-ie-modal-content rsl-ie-field-functions-modal-content">
+				<div class="rsl-ie-modal-header">
+					<h2 class="rsl-ie-modal-title">
 						<span class="dashicons dashicons-admin-generic"></span>
 						${
-							window.aieData.i18n.fieldTransformationFunctions ||
+							window.rslIeData.i18n
+								.fieldTransformationFunctions ||
 							'Field Transformation Functions'
 						}
 					</h2>
-					<button type="button" class="aie-modal-close">
+					<button type="button" class="rsl-ie-modal-close">
 						<span class="dashicons dashicons-no-alt"></span>
 					</button>
 				</div>
-				<div class="aie-modal-body">
+				<div class="rsl-ie-modal-body">
 					<!-- Field Info -->
-					<div class="aie-field-info">
-						<div class="aie-field-info-item">
-							<strong>${ window.aieData.i18n.field || 'Field' }:</strong>
-							<span class="aie-current-field-label">${ Utils.escapeHtml(
+					<div class="rsl-ie-field-info">
+						<div class="rsl-ie-field-info-item">
+							<strong>${ window.rslIeData.i18n.field || 'Field' }:</strong>
+							<span class="rsl-ie-current-field-label">${ Utils.escapeHtml(
 								sourceField
 							) }</span>
 						</div>
-						<div class="aie-field-info-item">
-							<strong>${ window.aieData.i18n.type || 'Type' }:</strong>
-							<span class="aie-current-field-type">${ targetField }</span>
+						<div class="rsl-ie-field-info-item">
+							<strong>${ window.rslIeData.i18n.type || 'Type' }:</strong>
+							<span class="rsl-ie-current-field-type">${ targetField }</span>
 						</div>
 					</div>
 
 					<!-- Applied Functions List -->
-					<div class="aie-applied-functions">
+					<div class="rsl-ie-applied-functions">
 						<h3>
-							${ window.aieData.i18n.appliedFunctions || 'Applied Functions' }
-							<span class="aie-functions-count">(0)</span>
+							${ window.rslIeData.i18n.appliedFunctions || 'Applied Functions' }
+							<span class="rsl-ie-functions-count">(0)</span>
 						</h3>
 						
-						<div class="aie-functions-pipeline" id="aie-functions-pipeline">
-							<div class="aie-no-functions">
+						<div class="rsl-ie-functions-pipeline" id="rsl-ie-functions-pipeline">
+							<div class="rsl-ie-no-functions">
 								<span class="dashicons dashicons-info"></span>
 								<p>${
-									window.aieData.i18n.noFunctionsApplied ||
+									window.rslIeData.i18n.noFunctionsApplied ||
 									'No functions applied yet. Add functions from the list below.'
 								}</p>
 							</div>
 							
-							<div class="aie-function-items" id="aie-function-items">
+							<div class="rsl-ie-function-items" id="rsl-ie-function-items">
 								<!-- Functions will be added here -->
 							</div>
 						</div>
 
-						<div class="aie-pipeline-hint">
+						<div class="rsl-ie-pipeline-hint">
 							<span class="dashicons dashicons-info"></span>
 							${
-								window.aieData.i18n.functionsAppliedInOrder ||
+								window.rslIeData.i18n.functionsAppliedInOrder ||
 								'Functions are applied in order from top to bottom. Drag to reorder.'
 							}
 						</div>
 					</div>
 
 					<!-- Available Functions -->
-					<div class="aie-available-functions">
-						<h3>${ window.aieData.i18n.availableFunctions || 'Available Functions' }</h3>
+					<div class="rsl-ie-available-functions">
+						<h3>${ window.rslIeData.i18n.availableFunctions || 'Available Functions' }</h3>
 						
 						<!-- Search Functions -->
-						<div class="aie-functions-search">
+						<div class="rsl-ie-functions-search">
 							<input 
 								type="text" 
-								id="aie-functions-search" 
+								id="rsl-ie-functions-search" 
 								class="regular-text" 
-								placeholder="${ window.aieData.i18n.searchFunctions || 'Search functions...' }"
+								placeholder="${
+									window.rslIeData.i18n.searchFunctions ||
+									'Search functions...'
+								}"
 							>
 							<span class="dashicons dashicons-search"></span>
 						</div>
 
 						<!-- Functions Filter -->
-						<div class="aie-functions-filter">
+						<div class="rsl-ie-functions-filter">
 							<label>
 								<input type="radio" name="functions-filter" value="all" checked>
-								${ window.aieData.i18n.all || 'All' }
+								${ window.rslIeData.i18n.all || 'All' }
 							</label>
 							<label>
 								<input type="radio" name="functions-filter" value="library">
-								${ window.aieData.i18n.library || 'Library' }
+								${ window.rslIeData.i18n.library || 'Library' }
 							</label>
 							<label>
 								<input type="radio" name="functions-filter" value="custom">
-								${ window.aieData.i18n.custom || 'Custom' }
+								${ window.rslIeData.i18n.custom || 'Custom' }
 							</label>
 						</div>
 
 						<!-- Functions List -->
-						<div class="aie-functions-list" id="aie-functions-list">
-							<div class="aie-functions-loading">
+						<div class="rsl-ie-functions-list" id="rsl-ie-functions-list">
+							<div class="rsl-ie-functions-loading">
 								<span class="spinner is-active"></span>
-								<p>${ window.aieData.i18n.loadingFunctions || 'Loading functions...' }</p>
+								<p>${ window.rslIeData.i18n.loadingFunctions || 'Loading functions...' }</p>
 							</div>
 						</div>
 
 						<!-- Quick Add Link -->
-						<div class="aie-functions-quick-add">
-							<a href="#" class="aie-create-new-function">
+						<div class="rsl-ie-functions-quick-add">
+							<a href="#" class="rsl-ie-create-new-function">
 								<span class="dashicons dashicons-plus-alt"></span>
-								${ window.aieData.i18n.createNewFunction || 'Create New Function' }
+								${ window.rslIeData.i18n.createNewFunction || 'Create New Function' }
 							</a>
 						</div>
 					</div>
 
 					<!-- Preview Section -->
-					<div class="aie-function-preview">
+					<div class="rsl-ie-function-preview">
 						<h3>${
-							window.aieData.i18n.previewTransformation ||
+							window.rslIeData.i18n.previewTransformation ||
 							'Preview Transformation'
 						}</h3>
 						
-						<div class="aie-preview-controls">
-							<div class="aie-preview-input-group">
-								<label for="aie-preview-input">
-									${ window.aieData.i18n.testValue || 'Test Value' }:
+						<div class="rsl-ie-preview-controls">
+							<div class="rsl-ie-preview-input-group">
+								<label for="rsl-ie-preview-input">
+									${ window.rslIeData.i18n.testValue || 'Test Value' }:
 								</label>
 								<input 
 									type="text" 
-									id="aie-preview-input" 
+									id="rsl-ie-preview-input" 
 									class="regular-text" 
-									placeholder="${ window.aieData.i18n.enterTestValue || 'Enter test value...' }"
+									placeholder="${ window.rslIeData.i18n.enterTestValue || 'Enter test value...' }"
 								>
 							</div>
-							<button type="button" class="button aie-test-pipeline">
+							<button type="button" class="button rsl-ie-test-pipeline">
 								<span class="dashicons dashicons-media-code"></span>
-								${ window.aieData.i18n.testPipeline || 'Test Pipeline' }
+								${ window.rslIeData.i18n.testPipeline || 'Test Pipeline' }
 							</button>
 						</div>
 
-						<div class="aie-preview-result" id="aie-preview-result" style="display:none;">
-							<div class="aie-preview-steps">
+						<div class="rsl-ie-preview-result" id="rsl-ie-preview-result" style="display:none;">
+							<div class="rsl-ie-preview-steps">
 								<!-- Steps will be added dynamically -->
 							</div>
 						</div>
 					</div>
 				</div>
-				<div class="aie-modal-footer">
-					<button type="button" class="button button-secondary aie-modal-cancel">
-						${ window.aieData.i18n.cancel || 'Cancel' }
+				<div class="rsl-ie-modal-footer">
+					<button type="button" class="button button-secondary rsl-ie-modal-cancel">
+						${ window.rslIeData.i18n.cancel || 'Cancel' }
 					</button>
-					<button type="button" class="button button-primary aie-save-field-functions">
+					<button type="button" class="button button-primary rsl-ie-save-field-functions">
 						<span class="dashicons dashicons-yes"></span>
-						${ window.aieData.i18n.applyFunctions || 'Apply Functions' }
+						${ window.rslIeData.i18n.applyFunctions || 'Apply Functions' }
 					</button>
 				</div>
 			</div>
@@ -3705,11 +3754,11 @@ const ImportModule = {
 	`;
 
 		// Remove existing modal
-		jQuery( '#aie-field-functions-modal' ).remove();
+		jQuery( '#rsl-ie-field-functions-modal' ).remove();
 
 		// Add to body
 		jQuery( 'body' ).append( modalHtml );
-		jQuery( 'body' ).addClass( 'aie-modal-open' );
+		jQuery( 'body' ).addClass( 'rsl-ie-modal-open' );
 
 		// Load current functions into pipeline
 		this.loadCurrentFunctions( currentFunctions );
@@ -3725,7 +3774,7 @@ const ImportModule = {
 	 * Load current functions into pipeline
 	 */
 	loadCurrentFunctions( currentFunctions ) {
-		const $container = jQuery( '#aie-function-items' );
+		const $container = jQuery( '#rsl-ie-function-items' );
 		$container.empty();
 
 		currentFunctions.forEach( ( func ) => {
@@ -3740,7 +3789,7 @@ const ImportModule = {
 	 * Render available functions (like export)
 	 */
 	renderAvailableFunctions( functionsData ) {
-		const $container = jQuery( '#aie-functions-list' );
+		const $container = jQuery( '#rsl-ie-functions-list' );
 		$container.empty();
 
 		// Get all snippets
@@ -3748,10 +3797,10 @@ const ImportModule = {
 
 		if ( Object.keys( snippets ).length === 0 ) {
 			$container.html( `
-			<div class="aie-functions-empty-state">
+			<div class="rsl-ie-functions-empty-state">
 				<span class="dashicons dashicons-info"></span>
 				<p>${
-					window.aieData.i18n.noFunctionsAvailableYet ||
+					window.rslIeData.i18n.noFunctionsAvailableYet ||
 					'No functions available yet.'
 				}</p>
 			</div>
@@ -3764,23 +3813,23 @@ const ImportModule = {
 
 		Object.entries( snippets ).forEach( ( [ key, snippet ] ) => {
 			const item = jQuery( '<div>' )
-				.addClass( 'aie-function-list-item' )
+				.addClass( 'rsl-ie-function-list-item' )
 				.attr( 'data-function-id', key )
 				.attr( 'data-category', snippet.category || 'custom' )
-				.html( `				<div class="aie-function-list-info">
-					<span class="aie-function-list-name">${ Utils.escapeHtml(
+				.html( `				<div class="rsl-ie-function-list-info">
+					<span class="rsl-ie-function-list-name">${ Utils.escapeHtml(
 						snippet.name
 					) }</span>
-					<span class="aie-function-list-desc">${ Utils.escapeHtml(
+					<span class="rsl-ie-function-list-desc">${ Utils.escapeHtml(
 						snippet.description || ''
 					) }</span>
 				</div>
-				<button type="button" class="button button-small aie-add-function-btn">${
-					window.aieData.i18n.add || 'Add'
+				<button type="button" class="button button-small rsl-ie-add-function-btn">${
+					window.rslIeData.i18n.add || 'Add'
 				}</button>
 			` );
 
-			item.find( '.aie-add-function-btn' ).on( 'click', () => {
+			item.find( '.rsl-ie-add-function-btn' ).on( 'click', () => {
 				this.addFunctionToPipeline(
 					{ id: key, name: snippet.name },
 					true
@@ -3795,24 +3844,24 @@ const ImportModule = {
 	 * Add function to pipeline
 	 */
 	addFunctionToPipeline( func, updateArray = true ) {
-		const $container = jQuery( '#aie-function-items' );
+		const $container = jQuery( '#rsl-ie-function-items' );
 
 		const item = jQuery( '<div>' )
-			.addClass( 'aie-function-item' )
+			.addClass( 'rsl-ie-function-item' )
 			.attr( 'data-function-id', func.id ).html( `
-				<span class="aie-function-handle dashicons dashicons-menu"></span>
-				<div class="aie-function-info">
-					<strong class="aie-function-name">${ Utils.escapeHtml( func.name ) }</strong>
+				<span class="rsl-ie-function-handle dashicons dashicons-menu"></span>
+				<div class="rsl-ie-function-info">
+					<strong class="rsl-ie-function-name">${ Utils.escapeHtml( func.name ) }</strong>
 				</div>
-				<div class="aie-function-actions">
-					<button type="button" class="button-small aie-remove-function">
+				<div class="rsl-ie-function-actions">
+					<button type="button" class="button-small rsl-ie-remove-function">
 						<span class="dashicons dashicons-no-alt"></span>
 					</button>
 				</div>
 			` );
 
 		// Remove function event
-		item.find( '.aie-remove-function' ).on( 'click', () => {
+		item.find( '.rsl-ie-remove-function' ).on( 'click', () => {
 			item.remove();
 			this.updateFunctionsCount();
 			this.toggleNoFunctionsMessage();
@@ -3836,11 +3885,13 @@ const ImportModule = {
 	 * Update functions count
 	 */
 	updateFunctionsCount( count = null ) {
-		const $countEl = jQuery( '.aie-functions-count' );
+		const $countEl = jQuery( '.rsl-ie-functions-count' );
 		if ( ! $countEl.length ) return;
 
 		if ( count === null ) {
-			count = jQuery( '#aie-function-items .aie-function-item' ).length;
+			count = jQuery(
+				'#rsl-ie-function-items .rsl-ie-function-item'
+			).length;
 		}
 
 		$countEl.text( `(${ count })` );
@@ -3851,9 +3902,9 @@ const ImportModule = {
 	 */
 	toggleNoFunctionsMessage() {
 		const hasItems =
-			jQuery( '#aie-function-items .aie-function-item' ).length > 0;
-		jQuery( '.aie-no-functions' ).toggle( ! hasItems );
-		jQuery( '#aie-function-items' ).toggle( hasItems );
+			jQuery( '#rsl-ie-function-items .rsl-ie-function-item' ).length > 0;
+		jQuery( '.rsl-ie-no-functions' ).toggle( ! hasItems );
+		jQuery( '#rsl-ie-function-items' ).toggle( hasItems );
 	},
 
 	/**
@@ -3864,30 +3915,30 @@ const ImportModule = {
 
 		// Close modal functions
 		const closeModal = function () {
-			jQuery( '#aie-field-functions-modal' ).remove();
-			jQuery( 'body' ).removeClass( 'aie-modal-open' );
+			jQuery( '#rsl-ie-field-functions-modal' ).remove();
+			jQuery( 'body' ).removeClass( 'rsl-ie-modal-open' );
 		};
 
 		// Close on backdrop click
-		jQuery( '.aie-modal-backdrop' ).on( 'click', closeModal );
+		jQuery( '.rsl-ie-modal-backdrop' ).on( 'click', closeModal );
 
 		// Close on X button
-		jQuery( '.aie-modal-close' ).on( 'click', closeModal );
+		jQuery( '.rsl-ie-modal-close' ).on( 'click', closeModal );
 
 		// Close on Cancel button
-		jQuery( '.aie-modal-cancel' ).on( 'click', closeModal );
+		jQuery( '.rsl-ie-modal-cancel' ).on( 'click', closeModal );
 
 		// Search functions
-		jQuery( '#aie-functions-search' ).on( 'input', function () {
+		jQuery( '#rsl-ie-functions-search' ).on( 'input', function () {
 			const query = jQuery( this ).val().toLowerCase();
 
-			jQuery( '.aie-function-list-item' ).each( function () {
+			jQuery( '.rsl-ie-function-list-item' ).each( function () {
 				const name = jQuery( this )
-					.find( '.aie-function-list-name' )
+					.find( '.rsl-ie-function-list-name' )
 					.text()
 					.toLowerCase();
 				const desc = jQuery( this )
-					.find( '.aie-function-list-desc' )
+					.find( '.rsl-ie-function-list-desc' )
 					.text()
 					.toLowerCase();
 
@@ -3901,7 +3952,7 @@ const ImportModule = {
 		jQuery( 'input[name="functions-filter"]' ).on( 'change', function () {
 			const filterValue = jQuery( this ).val();
 
-			jQuery( '.aie-function-list-item' ).each( function () {
+			jQuery( '.rsl-ie-function-list-item' ).each( function () {
 				const category = jQuery( this ).data( 'category' );
 
 				if ( filterValue === 'all' ) {
@@ -3917,10 +3968,10 @@ const ImportModule = {
 		} );
 
 		// Create new function
-		jQuery( '.aie-create-new-function' ).on( 'click', function ( e ) {
+		jQuery( '.rsl-ie-create-new-function' ).on( 'click', function ( e ) {
 			e.preventDefault();
-			if ( typeof aieData !== 'undefined' && aieData.functionsUrl ) {
-				window.open( aieData.functionsUrl, '_blank' );
+			if ( typeof rslIeData !== 'undefined' && rslIeData.functionsUrl ) {
+				window.open( rslIeData.functionsUrl, '_blank' );
 			} else {
 				window.open(
 					'/wp-admin/admin.php?page=rsl-ie-functions',
@@ -3929,19 +3980,20 @@ const ImportModule = {
 			}
 		} );
 
-		jQuery( '.aie-test-pipeline' ).on( 'click', function () {
-			const testValue = jQuery( '#aie-preview-input' ).val();
+		jQuery( '.rsl-ie-test-pipeline' ).on( 'click', function () {
+			const testValue = jQuery( '#rsl-ie-preview-input' ).val();
 
 			if ( ! testValue ) {
 				Utils.showNotice(
-					aieData.i18n.enterTestValue || 'Please enter a test value',
+					rslIeData.i18n.enterTestValue ||
+						'Please enter a test value',
 					'warning'
 				);
 				return;
 			}
 
 			const functions = [];
-			jQuery( '#aie-function-items .aie-function-item' ).each(
+			jQuery( '#rsl-ie-function-items .rsl-ie-function-item' ).each(
 				function () {
 					functions.push( jQuery( this ).data( 'function-id' ) );
 				}
@@ -3949,7 +4001,7 @@ const ImportModule = {
 
 			if ( functions.length === 0 ) {
 				Utils.showNotice(
-					aieData.i18n.pleaseAddAtLeastOneFunction ||
+					rslIeData.i18n.pleaseAddAtLeastOneFunction ||
 						'Please add at least one function to test',
 					'warning'
 				);
@@ -3960,14 +4012,14 @@ const ImportModule = {
 		} );
 
 		// Apply functions (Save button)
-		jQuery( '.aie-save-field-functions' ).on( 'click', function () {
+		jQuery( '.rsl-ie-save-field-functions' ).on( 'click', function () {
 			const selectedFunctions = [];
 
-			jQuery( '#aie-function-items .aie-function-item' ).each(
+			jQuery( '#rsl-ie-function-items .rsl-ie-function-item' ).each(
 				function () {
 					const functionId = jQuery( this ).data( 'function-id' );
 					const functionName = jQuery( this )
-						.find( '.aie-function-name' )
+						.find( '.rsl-ie-function-name' )
 						.text();
 
 					selectedFunctions.push( {
@@ -3993,7 +4045,7 @@ const ImportModule = {
 	 * Initialize sortable for function pipeline
 	 */
 	initFunctionPipelineSortable() {
-		const $container = jQuery( '#aie-function-items' );
+		const $container = jQuery( '#rsl-ie-function-items' );
 		if ( ! $container.length || ! jQuery.fn.sortable ) return;
 
 		// Destroy existing instance if present
@@ -4002,8 +4054,8 @@ const ImportModule = {
 		}
 
 		$container.sortable( {
-			handle: '.aie-function-handle',
-			placeholder: 'aie-function-item-placeholder',
+			handle: '.rsl-ie-function-handle',
+			placeholder: 'rsl-ie-function-item-placeholder',
 			axis: 'y',
 		} );
 	},
@@ -4012,21 +4064,21 @@ const ImportModule = {
 	 * Test function pipeline
 	 */
 	async testFunctionPipeline( testValue, functionIds ) {
-		const $result = jQuery( '#aie-preview-result' );
-		const $steps = $result.find( '.aie-preview-steps' );
+		const $result = jQuery( '#rsl-ie-preview-result' );
+		const $steps = $result.find( '.rsl-ie-preview-steps' );
 
 		$steps.html(
-			`<div class="aie-preview-loading"><span class="spinner is-active"></span> ${ window.aieData.i18n.testing }</div>`
+			`<div class="rsl-ie-preview-loading"><span class="spinner is-active"></span> ${ window.rslIeData.i18n.testing }</div>`
 		);
 		$result.show();
 
 		try {
 			const response = await jQuery.ajax( {
-				url: window.aieData.ajaxUrl,
+				url: window.rslIeData.ajaxUrl,
 				type: 'POST',
 				data: {
-					action: 'aie_test_function_pipeline',
-					nonce: window.aieData.nonce,
+					action: 'rsl_ie_test_function_pipeline',
+					nonce: window.rslIeData.nonce,
 					test_value: testValue,
 					function_ids: functionIds,
 				},
@@ -4036,11 +4088,11 @@ const ImportModule = {
 
 				// Initial value
 				html += `
-				<div class="aie-preview-step">
-					<div class="aie-step-label">${
-						window.aieData.i18n.initialValue || 'Initial Value'
+				<div class="rsl-ie-preview-step">
+					<div class="rsl-ie-step-label">${
+						window.rslIeData.i18n.initialValue || 'Initial Value'
 					}:</div>
-					<div class="aie-step-value">${ Utils.escapeHtml(
+					<div class="rsl-ie-step-value">${ Utils.escapeHtml(
 						response.data.initial || testValue
 					) }</div>
 				</div>
@@ -4050,22 +4102,22 @@ const ImportModule = {
 				response.data.steps.forEach( ( step, index ) => {
 					const stepNum = index + 1;
 					html += `
-					<div class="aie-preview-step">
-						<div class="aie-step-label">${ stepNum }. ${ Utils.escapeHtml(
+					<div class="rsl-ie-preview-step">
+						<div class="rsl-ie-step-label">${ stepNum }. ${ Utils.escapeHtml(
 							step.function_name
 						) }:</div>
-						<div class="aie-step-value">${ Utils.escapeHtml( step.output ) }</div>
+						<div class="rsl-ie-step-value">${ Utils.escapeHtml( step.output ) }</div>
 					</div>
 				`;
 				} );
 
 				// Final result
 				html += `
-				<div class="aie-preview-step aie-preview-final">
-					<div class="aie-step-label">${
-						window.aieData.i18n.finalResult || 'Final Result'
+				<div class="rsl-ie-preview-step rsl-ie-preview-final">
+					<div class="rsl-ie-step-label">${
+						window.rslIeData.i18n.finalResult || 'Final Result'
 					}:</div>
-					<div class="aie-step-value"><strong>${ Utils.escapeHtml(
+					<div class="rsl-ie-step-value"><strong>${ Utils.escapeHtml(
 						response.data.final
 					) }</strong></div>
 				</div>
@@ -4076,13 +4128,13 @@ const ImportModule = {
 				$steps.html(
 					`<div class="notice notice-error inline"><p>${
 						response.data?.message ||
-						window.aieData.i18n.failedTestPipeline
+						window.rslIeData.i18n.failedTestPipeline
 					}</p></div>`
 				);
 			}
 		} catch ( error ) {
 			$steps.html(
-				`<div class="notice notice-error inline"><p>${ window.aieData.i18n.error }: ${ error.message }</p></div>`
+				`<div class="notice notice-error inline"><p>${ window.rslIeData.i18n.error }: ${ error.message }</p></div>`
 			);
 		}
 	},
@@ -4105,24 +4157,24 @@ const ImportModule = {
 	 */
 	updateMappingRowFunctions( sourceIndex, targetField, functions ) {
 		const $row = jQuery(
-			`.aie-mapping-row[data-source-index="${ sourceIndex }"][data-target-field="${ targetField }"]`
+			`.rsl-ie-mapping-row[data-source-index="${ sourceIndex }"][data-target-field="${ targetField }"]`
 		);
 
 		// Remove existing functions display
-		$row.find( '.aie-mapping-functions' ).remove();
+		$row.find( '.rsl-ie-mapping-functions' ).remove();
 
 		if ( functions.length === 0 ) {
 			return;
 		}
 
 		// Add functions display
-		let functionsHtml = '<div class="aie-mapping-functions">';
+		let functionsHtml = '<div class="rsl-ie-mapping-functions">';
 
 		functions.forEach( ( func, index ) => {
 			functionsHtml += `
-				<span class="aie-function-badge">
+				<span class="rsl-ie-function-badge">
 					${ Utils.escapeHtml( func.name ) }
-					<button type="button" class="aie-remove-function" data-function-index="${ index }">×</button>
+					<button type="button" class="rsl-ie-remove-function" data-function-index="${ index }">×</button>
 				</span>
 			`;
 		} );
@@ -4130,7 +4182,7 @@ const ImportModule = {
 		functionsHtml += '</div>';
 
 		// Insert after target column
-		$row.find( '.aie-target-col' ).after( functionsHtml );
+		$row.find( '.rsl-ie-target-col' ).after( functionsHtml );
 	},
 
 	/**
@@ -4152,12 +4204,12 @@ const ImportModule = {
 	 */
 	initializeFieldSearch() {
 		// Search source fields
-		const $sourceSearch = jQuery( '.aie-search-source' );
+		const $sourceSearch = jQuery( '.rsl-ie-search-source' );
 		$sourceSearch.on( 'input', function () {
 			const query = jQuery( this ).val().toLowerCase();
-			jQuery( '.aie-field-card' ).each( function () {
+			jQuery( '.rsl-ie-field-card' ).each( function () {
 				const fieldName = jQuery( this )
-					.find( '.aie-field-name' )
+					.find( '.rsl-ie-field-name' )
 					.text()
 					.toLowerCase();
 				jQuery( this ).toggle( fieldName.includes( query ) );
@@ -4167,7 +4219,7 @@ const ImportModule = {
 		// Clear source search button
 		$sourceSearch
 			.parent()
-			.find( '.aie-clear-search' )
+			.find( '.rsl-ie-clear-search' )
 			.on( 'click', function ( e ) {
 				e.preventDefault();
 				$sourceSearch.val( '' ).focus().trigger( 'input' );
@@ -4181,16 +4233,16 @@ const ImportModule = {
 			const groupMatches = {};
 
 			// Filter fields and track which groups have matches
-			jQuery( '.aie-target-field' ).each( function () {
+			jQuery( '.rsl-ie-target-field' ).each( function () {
 				const $field = jQuery( this );
 				const fieldName = $field
-					.find( '.aie-field-label' )
+					.find( '.rsl-ie-field-label' )
 					.text()
 					.toLowerCase();
 				const matches = query === '' || fieldName.includes( query );
 
 				// Find parent group
-				const $group = $field.closest( '.aie-field-group' );
+				const $group = $field.closest( '.rsl-ie-field-group' );
 				const groupIndex = $group.index();
 
 				if ( ! groupMatches[ groupIndex ] ) {
@@ -4205,21 +4257,23 @@ const ImportModule = {
 			} );
 
 			// Show/hide groups based on matched fields
-			jQuery( '#aie-target-fields .aie-field-group' ).each( function () {
-				const $group = jQuery( this );
-				const groupIndex = $group.index();
-				const hasMatches = groupMatches[ groupIndex ] > 0;
-				$group.toggle( query === '' || hasMatches );
-			} );
+			jQuery( '#rsl-ie-target-fields .rsl-ie-field-group' ).each(
+				function () {
+					const $group = jQuery( this );
+					const groupIndex = $group.index();
+					const hasMatches = groupMatches[ groupIndex ] > 0;
+					$group.toggle( query === '' || hasMatches );
+				}
+			);
 		};
 
-		const $targetSearch = jQuery( '.aie-search-target' );
+		const $targetSearch = jQuery( '.rsl-ie-search-target' );
 		$targetSearch.on( 'keyup input', performSearch );
 
 		// Clear target search button
 		$targetSearch
 			.parent()
-			.find( '.aie-clear-search' )
+			.find( '.rsl-ie-clear-search' )
 			.on( 'click', function ( e ) {
 				e.preventDefault();
 				$targetSearch.val( '' ).focus().trigger( 'input' );
@@ -4234,64 +4288,65 @@ const ImportModule = {
 			post: [
 				{
 					value: 'post_title',
-					label: window.aieData.i18n.fieldTitle || 'Title',
+					label: window.rslIeData.i18n.fieldTitle || 'Title',
 				},
 				{
 					value: 'post_content',
-					label: window.aieData.i18n.fieldContent || 'Content',
+					label: window.rslIeData.i18n.fieldContent || 'Content',
 				},
 				{
 					value: 'post_excerpt',
-					label: window.aieData.i18n.fieldExcerpt || 'Excerpt',
+					label: window.rslIeData.i18n.fieldExcerpt || 'Excerpt',
 				},
 				{
 					value: 'post_status',
-					label: window.aieData.i18n.fieldStatus || 'Status',
+					label: window.rslIeData.i18n.fieldStatus || 'Status',
 				},
 				{
 					value: 'post_author',
-					label: window.aieData.i18n.fieldAuthor || 'Author',
+					label: window.rslIeData.i18n.fieldAuthor || 'Author',
 				},
 				{
 					value: 'post_date',
-					label: window.aieData.i18n.fieldDate || 'Date',
+					label: window.rslIeData.i18n.fieldDate || 'Date',
 				},
 				{
 					value: 'post_name',
-					label: window.aieData.i18n.fieldSlug || 'Slug',
+					label: window.rslIeData.i18n.fieldSlug || 'Slug',
 				},
 				{
 					value: 'categories',
-					label: window.aieData.i18n.fieldCategories || 'Categories',
+					label:
+						window.rslIeData.i18n.fieldCategories || 'Categories',
 				},
 				{
 					value: 'tags',
-					label: window.aieData.i18n.fieldTags || 'Tags',
+					label: window.rslIeData.i18n.fieldTags || 'Tags',
 				},
 				{
 					value: 'featured_image',
 					label:
-						window.aieData.i18n.fieldFeaturedImage ||
+						window.rslIeData.i18n.fieldFeaturedImage ||
 						'Featured Image',
 				},
 			],
 			media: [
 				{
 					value: 'post_title',
-					label: window.aieData.i18n.fieldTitle || 'Title',
+					label: window.rslIeData.i18n.fieldTitle || 'Title',
 				},
 				{
 					value: 'post_content',
 					label:
-						window.aieData.i18n.fieldDescription || 'Description',
+						window.rslIeData.i18n.fieldDescription || 'Description',
 				},
 				{
 					value: 'post_excerpt',
-					label: window.aieData.i18n.fieldCaption || 'Caption',
+					label: window.rslIeData.i18n.fieldCaption || 'Caption',
 				},
 				{
 					value: 'alt_text',
-					label: window.aieData.i18n.fieldAltText || 'Alt Text',
+					label: window.rslIeData.i18n.fieldAltText || 'Alt Text',
 				},
 				{ value: 'guid', label: 'GUID' },
 			],
@@ -4312,7 +4367,7 @@ const ImportModule = {
 			// PASS 0: Auto-create target fields for prefixed source columns
 			// (taxonomy_*, meta_*, acf_*) that don't yet have a matching target.
 			// This lets Pass 1 (exact match) pick them up automatically.
-			jQuery( '.aie-field-card' ).each( ( index, sourceCard ) => {
+			jQuery( '.rsl-ie-field-card' ).each( ( index, sourceCard ) => {
 				const $sourceCard = jQuery( sourceCard );
 				const sourceField = $sourceCard.data( 'source-field' );
 				if ( ! sourceField ) return;
@@ -4320,7 +4375,7 @@ const ImportModule = {
 				// Skip if a target field with this exact name already exists.
 				if (
 					jQuery(
-						`.aie-target-field[data-target-field="${ sourceField }"]`
+						`.rsl-ie-target-field[data-target-field="${ sourceField }"]`
 					).length
 				)
 					return;
@@ -4342,7 +4397,7 @@ const ImportModule = {
 
 				// Find the template group for this field type.
 				const $template = jQuery(
-					`.aie-custom-field-template[data-field-type="${ fieldType }"]`
+					`.rsl-ie-custom-field-template[data-field-type="${ fieldType }"]`
 				).first();
 				if ( ! $template.length ) return;
 
@@ -4360,7 +4415,7 @@ const ImportModule = {
 			} );
 
 			// PASS 1: Map exact matches first (highest priority)
-			jQuery( '.aie-field-card' ).each( ( index, sourceCard ) => {
+			jQuery( '.rsl-ie-field-card' ).each( ( index, sourceCard ) => {
 				const $sourceCard = jQuery( sourceCard );
 				const sourceField = $sourceCard.data( 'source-field' );
 				const sourceIndex = $sourceCard.data( 'source-index' );
@@ -4372,7 +4427,7 @@ const ImportModule = {
 
 				// Look for EXACT match only
 				jQuery(
-					'.aie-target-field:not(.aie-custom-field-template)'
+					'.rsl-ie-target-field:not(.rsl-ie-custom-field-template)'
 				).each( ( i, targetField ) => {
 					if ( matched ) return;
 
@@ -4401,7 +4456,7 @@ const ImportModule = {
 			} );
 
 			// PASS 2: Map remaining fields with fuzzy matching
-			jQuery( '.aie-field-card:not(.used)' ).each(
+			jQuery( '.rsl-ie-field-card:not(.used)' ).each(
 				( index, sourceCard ) => {
 					const $sourceCard = jQuery( sourceCard );
 					const sourceField = $sourceCard.data( 'source-field' );
@@ -4413,7 +4468,7 @@ const ImportModule = {
 					let matched = false;
 
 					jQuery(
-						'.aie-target-field:not(.aie-custom-field-template)'
+						'.rsl-ie-target-field:not(.rsl-ie-custom-field-template)'
 					).each( ( i, targetField ) => {
 						if ( matched ) return;
 
@@ -4428,7 +4483,7 @@ const ImportModule = {
 
 						const targetFieldValue = targetFieldData.toLowerCase();
 						const targetLabel = $targetField
-							.find( '.aie-field-label' )
+							.find( '.rsl-ie-field-label' )
 							.text()
 							.toLowerCase();
 
@@ -4477,13 +4532,14 @@ const ImportModule = {
 
 			// Count actual mapped fields from DOM
 			const usedSourceIndexes = new Set();
-			jQuery( '.aie-mapping-row' ).each( function () {
+			jQuery( '.rsl-ie-mapping-row' ).each( function () {
 				usedSourceIndexes.add( jQuery( this ).data( 'source-index' ) );
 			} );
 			const mappedCount = usedSourceIndexes.size;
 
 			const message = (
-				window.aieData.i18n.autoMappedFields || 'Auto-mapped %d fields'
+				window.rslIeData.i18n.autoMappedFields ||
+				'Auto-mapped %d fields'
 			).replace( '%d', mappedCount );
 			Utils.showNotice( message, 'success' );
 		}, 150 );
@@ -4494,22 +4550,22 @@ const ImportModule = {
 	 */
 	clearFieldMapping() {
 		// Clear all mappings
-		jQuery( '.aie-target-field' ).each( function () {
-			jQuery( this ).find( '.aie-mapped-source' ).remove();
+		jQuery( '.rsl-ie-target-field' ).each( function () {
+			jQuery( this ).find( '.rsl-ie-mapped-source' ).remove();
 			jQuery( this ).removeClass( 'has-mapping' );
 			jQuery( this ).removeData( 'mapped-source-index' );
 			jQuery( this ).removeData( 'mapped-source-field' );
 		} );
 
 		// Unmark all source fields (remove 'used' class)
-		jQuery( '.aie-field-card' ).removeClass( 'used' );
+		jQuery( '.rsl-ie-field-card' ).removeClass( 'used' );
 
 		// Clear mapped fields section
-		jQuery( '.aie-mapped-fields' ).html( `
-			<div class="aie-empty-state">
+		jQuery( '.rsl-ie-mapped-fields' ).html( `
+			<div class="rsl-ie-empty-state">
 				<span class="dashicons dashicons-info"></span>
 				<p>${
-					window.aieData.i18n.dragSourceColumns ||
+					window.rslIeData.i18n.dragSourceColumns ||
 					'Drag source columns to WordPress fields to create mappings'
 				}</p>
 			</div>
@@ -4527,12 +4583,12 @@ const ImportModule = {
 	getFieldMapping() {
 		const mapping = [];
 
-		jQuery( '.aie-mapping-row' ).each( function () {
+		jQuery( '.rsl-ie-mapping-row' ).each( function () {
 			const $row = jQuery( this );
 			const sourceIndex = $row.data( 'source-index' );
 			const targetField = $row.data( 'target-field' );
 			const sourceField = jQuery(
-				`.aie-field-card[data-source-index="${ sourceIndex }"]`
+				`.rsl-ie-field-card[data-source-index="${ sourceIndex }"]`
 			).data( 'source-field' );
 
 			if ( sourceField && targetField ) {
@@ -4545,7 +4601,7 @@ const ImportModule = {
 
 				// Include taxonomy format when the target is a taxonomy field
 				const $targetEl = jQuery(
-					`.aie-target-field[data-target-field="${ targetField }"]`
+					`.rsl-ie-target-field[data-target-field="${ targetField }"]`
 				);
 				if (
 					$targetEl.data( 'field-type' ) === 'taxonomy' ||
@@ -4570,12 +4626,12 @@ const ImportModule = {
 			const contentType = jQuery(
 				'input[name="content_type"]:checked'
 			).val();
-			const uniqueField = jQuery( '#aie-unique-field' ).val();
+			const uniqueField = jQuery( '#rsl-ie-unique-field' ).val();
 
 			// Validate unique field selection (REQUIRED)
 			if ( ! uniqueField ) {
 				Utils.showNotice(
-					window.aieData.i18n.pleaseSelectUniqueField ||
+					window.rslIeData.i18n.pleaseSelectUniqueField ||
 						'Please select a field to check for existing items',
 					'error'
 				);
@@ -4606,7 +4662,7 @@ const ImportModule = {
 					),
 					batch_size:
 						parseInt( jQuery( '[name="batch_size"]' ).val() ) || 1,
-					auto_import_media: jQuery( '#aie-auto-import-media' ).is(
+					auto_import_media: jQuery( '#rsl-ie-auto-import-media' ).is(
 						':checked'
 					),
 					media_duplicate_mode:
@@ -4619,7 +4675,7 @@ const ImportModule = {
 			// Add custom post type if selected
 			if ( contentType === 'custom_post_types' ) {
 				data.options.custom_post_type = jQuery(
-					'#aie-custom-post-type'
+					'#rsl-ie-custom-post-type'
 				).val();
 			}
 
@@ -4627,7 +4683,7 @@ const ImportModule = {
 			if ( contentType === 'database_table' ) {
 				data.options.table_name =
 					this.selectedTableName ||
-					jQuery( '#aie-import-table-name' ).val();
+					jQuery( '#rsl-ie-import-table-name' ).val();
 			}
 
 			const response = await Utils.ajax( 'aie_import_start', data );
@@ -4638,7 +4694,7 @@ const ImportModule = {
 			this.startBatchProcessing();
 
 			Utils.showNotice(
-				aieData.i18n.importStartedSuccessfully ||
+				rslIeData.i18n.importStartedSuccessfully ||
 					'Import started successfully',
 				'success'
 			);
@@ -4699,7 +4755,7 @@ const ImportModule = {
 			};
 
 			// Update progress
-			Utils.updateProgressBar( jQuery( '.aie-step-6' ), progressData );
+			Utils.updateProgressBar( jQuery( '.rsl-ie-step-6' ), progressData );
 
 			if ( response.completed ) {
 				// Import completed
@@ -4741,16 +4797,16 @@ const ImportModule = {
 		const result = response.result || {};
 
 		// Hide progress, show results
-		jQuery( '.aie-progress-container' ).hide();
-		jQuery( '.aie-import-results' ).show();
-		jQuery( '.aie-import-complete-card' ).fadeIn();
+		jQuery( '.rsl-ie-progress-container' ).hide();
+		jQuery( '.rsl-ie-import-results' ).show();
+		jQuery( '.rsl-ie-import-complete-card' ).fadeIn();
 
 		// Update statistics
-		jQuery( '.aie-result-success' ).text( result.success || 0 );
-		jQuery( '.aie-result-updated' ).text( result.updated || 0 );
-		jQuery( '.aie-result-created' ).text( result.created || 0 );
-		jQuery( '.aie-result-skipped' ).text( result.skipped || 0 );
-		jQuery( '.aie-result-failed' ).text( result.failed || 0 );
+		jQuery( '.rsl-ie-result-success' ).text( result.success || 0 );
+		jQuery( '.rsl-ie-result-updated' ).text( result.updated || 0 );
+		jQuery( '.rsl-ie-result-created' ).text( result.created || 0 );
+		jQuery( '.rsl-ie-result-skipped' ).text( result.skipped || 0 );
+		jQuery( '.rsl-ie-result-failed' ).text( result.failed || 0 );
 
 		// Calculate duration using the client-side start time for accuracy.
 		// Fallback to server job timestamps only when the page was refreshed
@@ -4769,7 +4825,9 @@ const ImportModule = {
 		};
 		if ( this.importStartTime ) {
 			const durSec = ( Date.now() - this.importStartTime ) / 1000;
-			jQuery( '.aie-result-duration' ).text( formatDuration( durSec ) );
+			jQuery( '.rsl-ie-result-duration' ).text(
+				formatDuration( durSec )
+			);
 		} else {
 			const jobData = response.job_data || {};
 			if ( jobData.started_at && jobData.completed_at ) {
@@ -4777,15 +4835,15 @@ const ImportModule = {
 					( new Date( jobData.completed_at ) -
 						new Date( jobData.started_at ) ) /
 					1000;
-				jQuery( '.aie-result-duration' ).text(
+				jQuery( '.rsl-ie-result-duration' ).text(
 					formatDuration( durSec )
 				);
 			}
 		}
 
 		// Update buttons
-		jQuery( '.aie-cancel-import' ).hide();
-		jQuery( '.aie-new-import' ).show();
+		jQuery( '.rsl-ie-cancel-import' ).hide();
+		jQuery( '.rsl-ie-new-import' ).show();
 	},
 
 	/**
@@ -4793,7 +4851,7 @@ const ImportModule = {
 	 */
 	onImportFailed( response ) {
 		Utils.showNotice(
-			( aieData.i18n.importFailed || 'Import failed' ) +
+			( rslIeData.i18n.importFailed || 'Import failed' ) +
 				': ' +
 				( response.error || 'Unknown error' ),
 			'error'
@@ -4804,14 +4862,14 @@ const ImportModule = {
 	 * Cancel import
 	 */
 	async cancelImport() {
-		if ( ! confirm( window.aieData.i18n.confirmCancelImportStep ) ) {
+		if ( ! confirm( window.rslIeData.i18n.confirmCancelImportStep ) ) {
 			return;
 		}
 
 		try {
 			await Utils.ajax( 'aie_import_cancel', { job_id: this.jobId } );
 			Utils.showNotice(
-				aieData.i18n.importCancelled || 'Import cancelled',
+				rslIeData.i18n.importCancelled || 'Import cancelled',
 				'info'
 			);
 			this.resetWizard();
@@ -4824,7 +4882,7 @@ const ImportModule = {
 	 * Toggle logs visibility
 	 */
 	toggleLogs() {
-		jQuery( '.aie-logs-container' ).slideToggle();
+		jQuery( '.rsl-ie-logs-container' ).slideToggle();
 	},
 
 	/**
@@ -4847,12 +4905,12 @@ const ImportModule = {
 			'checked',
 			true
 		);
-		jQuery( '.aie-file-info' ).hide();
-		jQuery( '.aie-upload-area' ).show();
-		jQuery( '.aie-upload-placeholder' ).show();
-		jQuery( '.aie-upload-progress' ).hide();
-		jQuery( '.aie-format-options' ).hide();
-		jQuery( '.aie-import-results' ).hide();
+		jQuery( '.rsl-ie-file-info' ).hide();
+		jQuery( '.rsl-ie-upload-area' ).show();
+		jQuery( '.rsl-ie-upload-placeholder' ).show();
+		jQuery( '.rsl-ie-upload-progress' ).hide();
+		jQuery( '.rsl-ie-format-options' ).hide();
+		jQuery( '.rsl-ie-import-results' ).hide();
 
 		this.showStep( 1 );
 	},
@@ -4861,16 +4919,16 @@ const ImportModule = {
 	 * Load ACF fields dynamically from server
 	 */
 	loadACFFields( contentType ) {
-		if ( typeof aieData === 'undefined' ) {
+		if ( typeof rslIeData === 'undefined' ) {
 			return;
 		}
 
 		jQuery.ajax( {
-			url: aieData.ajaxUrl,
+			url: rslIeData.ajaxUrl,
 			method: 'POST',
 			data: {
-				action: 'aie_get_acf_fields',
-				nonce: aieData.nonce,
+				action: 'rsl_ie_get_acf_fields',
+				nonce: rslIeData.nonce,
 				post_type: contentType,
 			},
 			success: ( response ) => {
@@ -4890,23 +4948,23 @@ const ImportModule = {
 	 * Render ACF fields as target fields
 	 */
 	renderACFFields( fields ) {
-		const $container = jQuery( '#aie-target-fields' );
+		const $container = jQuery( '#rsl-ie-target-fields' );
 
 		// Create ACF group
-		let html = `<div class="aie-field-group aie-acf-fields-group">`;
-		html += `<div class="aie-field-group-label">🔧 ACF Fields</div>`;
+		let html = `<div class="rsl-ie-field-group rsl-ie-acf-fields-group">`;
+		html += `<div class="rsl-ie-field-group-label">🔧 ACF Fields</div>`;
 
 		fields.forEach( ( field ) => {
 			html += `
-				<div class="aie-target-field" data-target-field="acf_${
+				<div class="rsl-ie-target-field" data-target-field="acf_${
 					field.name
 				}" data-field-type="${ field.type || 'string' }">
-					<div class="aie-field-icon">
+					<div class="rsl-ie-field-icon">
 						<span class="dashicons dashicons-admin-settings"></span>
 					</div>
-					<div class="aie-field-info">
-						<div class="aie-field-label">${ field.label }</div>
-						<span class="aie-field-type-badge">acf:${ field.type }</span>
+					<div class="rsl-ie-field-info">
+						<div class="rsl-ie-field-label">${ field.label }</div>
+						<span class="rsl-ie-field-type-badge">acf:${ field.type }</span>
 					</div>
 				</div>
 			`;
@@ -4922,7 +4980,7 @@ const ImportModule = {
 	 * Load Yoast SEO fields dynamically from server
 	 */
 	loadYoastFields( contentType ) {
-		if ( typeof aieData === 'undefined' ) {
+		if ( typeof rslIeData === 'undefined' ) {
 			return;
 		}
 
@@ -4944,11 +5002,11 @@ const ImportModule = {
 		}
 
 		jQuery.ajax( {
-			url: aieData.ajaxUrl,
+			url: rslIeData.ajaxUrl,
 			method: 'POST',
 			data: {
-				action: 'aie_get_yoast_fields',
-				nonce: aieData.nonce,
+				action: 'rsl_ie_get_yoast_fields',
+				nonce: rslIeData.nonce,
 				post_type: contentType,
 			},
 			success: ( response ) => {
@@ -4968,24 +5026,24 @@ const ImportModule = {
 	 * Render Yoast SEO fields as target fields
 	 */
 	renderYoastFields( fields ) {
-		const $container = jQuery( '#aie-target-fields' );
+		const $container = jQuery( '#rsl-ie-target-fields' );
 
 		// Create Yoast group
-		let html = `<div class="aie-field-group aie-yoast-fields-group">`;
-		html += `<div class="aie-field-group-label">📊 Yoast SEO</div>`;
+		let html = `<div class="rsl-ie-field-group rsl-ie-yoast-fields-group">`;
+		html += `<div class="rsl-ie-field-group-label">📊 Yoast SEO</div>`;
 
 		fields.forEach( ( field ) => {
 			// Clean up field name (remove _ prefix)
 			const fieldName = field.name.replace( /^_/, '' );
 
 			html += `
-				<div class="aie-target-field" data-target-field="${ fieldName }" data-field-type="string">
-					<div class="aie-field-icon">
+				<div class="rsl-ie-target-field" data-target-field="${ fieldName }" data-field-type="string">
+					<div class="rsl-ie-field-icon">
 						<span class="dashicons dashicons-chart-line"></span>
 					</div>
-					<div class="aie-field-info">
-						<div class="aie-field-label">${ field.label }</div>
-						<span class="aie-field-type-badge">yoast</span>
+					<div class="rsl-ie-field-info">
+						<div class="rsl-ie-field-label">${ field.label }</div>
+						<span class="rsl-ie-field-type-badge">yoast</span>
 					</div>
 				</div>
 			`;
@@ -5001,7 +5059,7 @@ const ImportModule = {
 	 * Populate unique field options in Step 5
 	 */
 	populateUniqueFieldOptions() {
-		const $select = jQuery( '#aie-unique-field' );
+		const $select = jQuery( '#rsl-ie-unique-field' );
 
 		// Clear existing options except first
 		$select.find( 'option:not(:first)' ).remove();
@@ -5045,8 +5103,8 @@ const ImportModule = {
 	 * Toggle Start Import button based on unique field selection
 	 */
 	toggleStartImportButton() {
-		const $button = jQuery( '.aie-start-import' );
-		const uniqueField = jQuery( '#aie-unique-field' ).val();
+		const $button = jQuery( '.rsl-ie-start-import' );
+		const uniqueField = jQuery( '#rsl-ie-unique-field' ).val();
 
 		if ( uniqueField ) {
 			$button.prop( 'disabled', false ).removeClass( 'disabled' );
@@ -5062,8 +5120,10 @@ const ImportModule = {
 		const contentType = jQuery(
 			'input[name="content_type"]:checked'
 		).val();
-		const $mediaImportOption = jQuery( '.aie-media-import-option' );
-		const $mediaDuplicateOption = jQuery( '.aie-media-duplicate-option' );
+		const $mediaImportOption = jQuery( '.rsl-ie-media-import-option' );
+		const $mediaDuplicateOption = jQuery(
+			'.rsl-ie-media-duplicate-option'
+		);
 		const $batchSize = jQuery( '[name="batch_size"]' );
 
 		// Adjust batch size default: media downloads are slow, use 1; everything else uses 50.
@@ -5088,7 +5148,7 @@ const ImportModule = {
 			$mediaImportOption.show();
 
 			// Show duplicate options only if checkbox is checked
-			const isChecked = jQuery( '#aie-auto-import-media' ).is(
+			const isChecked = jQuery( '#rsl-ie-auto-import-media' ).is(
 				':checked'
 			);
 			if ( isChecked ) {
@@ -5105,7 +5165,9 @@ const ImportModule = {
 	 */
 	toggleMediaDuplicateOptions( e ) {
 		const $checkbox = jQuery( e.target );
-		const $mediaDuplicateOption = jQuery( '.aie-media-duplicate-option' );
+		const $mediaDuplicateOption = jQuery(
+			'.rsl-ie-media-duplicate-option'
+		);
 
 		if ( $checkbox.is( ':checked' ) ) {
 			$mediaDuplicateOption.slideDown( 200 );
@@ -5121,10 +5183,10 @@ const ImportModule = {
 		// Try to find label from target fields
 		let label = fieldValue;
 
-		jQuery( '.aie-target-field' ).each( function () {
+		jQuery( '.rsl-ie-target-field' ).each( function () {
 			if ( jQuery( this ).data( 'target-field' ) === fieldValue ) {
 				const foundLabel = jQuery( this )
-					.find( '.aie-field-label' )
+					.find( '.rsl-ie-field-label' )
 					.text();
 				if ( foundLabel ) {
 					label = foundLabel;

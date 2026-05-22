@@ -9,64 +9,64 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 <!-- Step 5: Start Update -->
-<div class="aie-step aie-updater-step-5" data-step="5">
-	<div class="aie-step-header">
+<div class="rsl-ie-step rsl-ie-updater-step-5" data-step="5">
+	<div class="rsl-ie-step-header">
 		<h2><?php esc_html_e( 'Step 5: Start Update', 'import-export-by-rockstarlab' ); ?></h2>
 		<p class="description"><?php esc_html_e( 'Review settings and start the update process', 'import-export-by-rockstarlab' ); ?></p>
 	</div>
 
-	<div class="aie-step-content">
+	<div class="rsl-ie-step-content">
 		<!-- Pre-Update: Configuration -->
-		<div class="aie-updater-config" id="aie-updater-config">
+		<div class="rsl-ie-updater-config" id="rsl-ie-updater-config">
 			<!-- Summary Card -->
-			<div class="aie-update-summary">
-				<div class="aie-summary-header">
+			<div class="rsl-ie-update-summary">
+				<div class="rsl-ie-summary-header">
 					<h3>
 						<span class="dashicons dashicons-info"></span>
 						<?php esc_html_e( 'Update Summary', 'import-export-by-rockstarlab' ); ?>
 					</h3>
 				</div>
-				<div class="aie-summary-body">
-					<div class="aie-summary-row">
-						<span class="aie-summary-label"><?php esc_html_e( 'Content Type:', 'import-export-by-rockstarlab' ); ?></span>
-						<span class="aie-summary-value aie-content-type-summary">-</span>
+				<div class="rsl-ie-summary-body">
+					<div class="rsl-ie-summary-row">
+						<span class="rsl-ie-summary-label"><?php esc_html_e( 'Content Type:', 'import-export-by-rockstarlab' ); ?></span>
+						<span class="rsl-ie-summary-value rsl-ie-content-type-summary">-</span>
 					</div>
-					<div class="aie-summary-row">
-						<span class="aie-summary-label"><?php esc_html_e( 'Total Items:', 'import-export-by-rockstarlab' ); ?></span>
-						<span class="aie-summary-value aie-total-items-summary">
+					<div class="rsl-ie-summary-row">
+						<span class="rsl-ie-summary-label"><?php esc_html_e( 'Total Items:', 'import-export-by-rockstarlab' ); ?></span>
+						<span class="rsl-ie-summary-value rsl-ie-total-items-summary">
 							<span class="spinner" style="float:none;margin:0;"></span>
 						</span>
 					</div>
-					<div class="aie-summary-row">
-						<span class="aie-summary-label"><?php esc_html_e( 'Fields to Update:', 'import-export-by-rockstarlab' ); ?></span>
-						<span class="aie-summary-value aie-fields-summary">-</span>
+					<div class="rsl-ie-summary-row">
+						<span class="rsl-ie-summary-label"><?php esc_html_e( 'Fields to Update:', 'import-export-by-rockstarlab' ); ?></span>
+						<span class="rsl-ie-summary-value rsl-ie-fields-summary">-</span>
 					</div>
-					<div class="aie-summary-row">
-						<span class="aie-summary-label"><?php esc_html_e( 'Functions Applied:', 'import-export-by-rockstarlab' ); ?></span>
-						<span class="aie-summary-value aie-functions-summary">-</span>
+					<div class="rsl-ie-summary-row">
+						<span class="rsl-ie-summary-label"><?php esc_html_e( 'Functions Applied:', 'import-export-by-rockstarlab' ); ?></span>
+						<span class="rsl-ie-summary-value rsl-ie-functions-summary">-</span>
 					</div>
 				</div>
 			</div>
 
 			<!-- Update Settings -->
-			<div class="aie-update-settings">
-				<div class="aie-settings-header">
+			<div class="rsl-ie-update-settings">
+				<div class="rsl-ie-settings-header">
 					<h3>
 						<span class="dashicons dashicons-admin-settings"></span>
 						<?php esc_html_e( 'Update Settings', 'import-export-by-rockstarlab' ); ?>
 					</h3>
 				</div>
-				<div class="aie-settings-body">
-					<div class="aie-setting-row">
-						<label for="aie-updater-items-per-iteration">
+				<div class="rsl-ie-settings-body">
+					<div class="rsl-ie-setting-row">
+						<label for="rsl-ie-updater-items-per-iteration">
 							<?php esc_html_e( 'Items per Iteration:', 'import-export-by-rockstarlab' ); ?>
-							<span class="aie-tooltip" title="<?php esc_attr_e( 'Number of items to process in each batch. Lower values are safer for large datasets.', 'import-export-by-rockstarlab' ); ?>">
+							<span class="rsl-ie-tooltip" title="<?php esc_attr_e( 'Number of items to process in each batch. Lower values are safer for large datasets.', 'import-export-by-rockstarlab' ); ?>">
 								<span class="dashicons dashicons-editor-help"></span>
 							</span>
 						</label>
 						<input 
 							type="number" 
-							id="aie-updater-items-per-iteration" 
+							id="rsl-ie-updater-items-per-iteration" 
 							name="items_per_iteration" 
 							value="10" 
 							min="1" 
@@ -80,8 +80,8 @@ defined( 'ABSPATH' ) || exit;
 			</div>
 
 			<!-- Start Button -->
-			<div class="aie-updater-start-actions">
-				<button type="button" class="button button-primary button-large button-hero aie-start-update-btn">
+			<div class="rsl-ie-updater-start-actions">
+				<button type="button" class="button button-primary button-large button-hero rsl-ie-start-update-btn">
 					<span class="dashicons dashicons-update"></span>
 					<?php esc_html_e( 'Start Update', 'import-export-by-rockstarlab' ); ?>
 				</button>
@@ -89,69 +89,69 @@ defined( 'ABSPATH' ) || exit;
 		</div>
 
 		<!-- During Update: Progress -->
-		<div class="aie-updater-progress" id="aie-updater-progress" style="display:none;">
-			<div class="aie-progress-header">
+		<div class="rsl-ie-updater-progress" id="rsl-ie-updater-progress" style="display:none;">
+			<div class="rsl-ie-progress-header">
 				<h3>
-					<span class="dashicons dashicons-update aie-spin"></span>
+					<span class="dashicons dashicons-update rsl-ie-spin"></span>
 					<?php esc_html_e( 'Updating Content...', 'import-export-by-rockstarlab' ); ?>
 				</h3>
 				<p class="description"><?php esc_html_e( 'Please wait while your content is being updated', 'import-export-by-rockstarlab' ); ?></p>
 			</div>
 
 			<!-- Progress Bar -->
-			<div class="aie-progress-bar-container">
-				<div class="aie-progress-bar">
-					<div class="aie-progress-bar-fill" style="width: 0%;">
-						<span class="aie-progress-percentage">0%</span>
+			<div class="rsl-ie-progress-bar-container">
+				<div class="rsl-ie-progress-bar">
+					<div class="rsl-ie-progress-bar-fill" style="width: 0%;">
+						<span class="rsl-ie-progress-percentage">0%</span>
 					</div>
 				</div>
 			</div>
 
 			<!-- Progress Stats -->
-			<div class="aie-progress-stats">
-				<div class="aie-stat-card">
-					<span class="aie-stat-icon dashicons dashicons-database"></span>
-					<div class="aie-stat-content">
-						<span class="aie-stat-label"><?php esc_html_e( 'Processed', 'import-export-by-rockstarlab' ); ?></span>
-						<span class="aie-stat-value">
-							<span class="aie-processed-count">0</span> / <span class="aie-total-count">0</span>
+			<div class="rsl-ie-progress-stats">
+				<div class="rsl-ie-stat-card">
+					<span class="rsl-ie-stat-icon dashicons dashicons-database"></span>
+					<div class="rsl-ie-stat-content">
+						<span class="rsl-ie-stat-label"><?php esc_html_e( 'Processed', 'import-export-by-rockstarlab' ); ?></span>
+						<span class="rsl-ie-stat-value">
+							<span class="rsl-ie-processed-count">0</span> / <span class="rsl-ie-total-count">0</span>
 						</span>
 					</div>
 				</div>
-				<div class="aie-stat-card">
-					<span class="aie-stat-icon dashicons dashicons-yes-alt"></span>
-					<div class="aie-stat-content">
-						<span class="aie-stat-label"><?php esc_html_e( 'Updated', 'import-export-by-rockstarlab' ); ?></span>
-						<span class="aie-stat-value aie-updated-count">0</span>
+				<div class="rsl-ie-stat-card">
+					<span class="rsl-ie-stat-icon dashicons dashicons-yes-alt"></span>
+					<div class="rsl-ie-stat-content">
+						<span class="rsl-ie-stat-label"><?php esc_html_e( 'Updated', 'import-export-by-rockstarlab' ); ?></span>
+						<span class="rsl-ie-stat-value rsl-ie-updated-count">0</span>
 					</div>
 				</div>
-				<div class="aie-stat-card">
-					<span class="aie-stat-icon dashicons dashicons-dismiss"></span>
-					<div class="aie-stat-content">
-						<span class="aie-stat-label"><?php esc_html_e( 'Skipped', 'import-export-by-rockstarlab' ); ?></span>
-						<span class="aie-stat-value aie-skipped-count">0</span>
+				<div class="rsl-ie-stat-card">
+					<span class="rsl-ie-stat-icon dashicons dashicons-dismiss"></span>
+					<div class="rsl-ie-stat-content">
+						<span class="rsl-ie-stat-label"><?php esc_html_e( 'Skipped', 'import-export-by-rockstarlab' ); ?></span>
+						<span class="rsl-ie-stat-value rsl-ie-skipped-count">0</span>
 					</div>
 				</div>
-				<div class="aie-stat-card">
-					<span class="aie-stat-icon dashicons dashicons-warning"></span>
-					<div class="aie-stat-content">
-						<span class="aie-stat-label"><?php esc_html_e( 'Errors', 'import-export-by-rockstarlab' ); ?></span>
-						<span class="aie-stat-value aie-errors-count">0</span>
+				<div class="rsl-ie-stat-card">
+					<span class="rsl-ie-stat-icon dashicons dashicons-warning"></span>
+					<div class="rsl-ie-stat-content">
+						<span class="rsl-ie-stat-label"><?php esc_html_e( 'Errors', 'import-export-by-rockstarlab' ); ?></span>
+						<span class="rsl-ie-stat-value rsl-ie-errors-count">0</span>
 					</div>
 				</div>
 			</div>
 
 			<!-- Current Status -->
-			<div class="aie-progress-status">
-				<p class="aie-status-message">
-					<span class="dashicons dashicons-update aie-spin"></span>
-					<span class="aie-status-text"><?php esc_html_e( 'Initializing...', 'import-export-by-rockstarlab' ); ?></span>
+			<div class="rsl-ie-progress-status">
+				<p class="rsl-ie-status-message">
+					<span class="dashicons dashicons-update rsl-ie-spin"></span>
+					<span class="rsl-ie-status-text"><?php esc_html_e( 'Initializing...', 'import-export-by-rockstarlab' ); ?></span>
 				</p>
 			</div>
 
 			<!-- Cancel Button -->
-			<div class="aie-progress-actions">
-				<button type="button" class="button button-secondary aie-cancel-update-btn">
+			<div class="rsl-ie-progress-actions">
+				<button type="button" class="button button-secondary rsl-ie-cancel-update-btn">
 					<span class="dashicons dashicons-no"></span>
 					<?php esc_html_e( 'Cancel Update', 'import-export-by-rockstarlab' ); ?>
 				</button>
@@ -159,49 +159,49 @@ defined( 'ABSPATH' ) || exit;
 		</div>
 
 		<!-- After Update: Results -->
-		<div class="aie-updater-results" id="aie-updater-results" style="display:none;">
-			<div class="aie-results-header">
+		<div class="rsl-ie-updater-results" id="rsl-ie-updater-results" style="display:none;">
+			<div class="rsl-ie-results-header">
 				<h3>
-					<span class="dashicons dashicons-yes-alt aie-success-icon"></span>
+					<span class="dashicons dashicons-yes-alt rsl-ie-success-icon"></span>
 					<?php esc_html_e( 'Update Complete!', 'import-export-by-rockstarlab' ); ?>
 				</h3>
 			</div>
 
 			<!-- Results Summary -->
-			<div class="aie-results-summary">
-				<div class="aie-result-card">
-					<span class="aie-result-icon dashicons dashicons-database"></span>
-					<div class="aie-result-content">
-						<span class="aie-result-label"><?php esc_html_e( 'Total Processed', 'import-export-by-rockstarlab' ); ?></span>
-						<span class="aie-result-value aie-final-processed">0</span>
+			<div class="rsl-ie-results-summary">
+				<div class="rsl-ie-result-card">
+					<span class="rsl-ie-result-icon dashicons dashicons-database"></span>
+					<div class="rsl-ie-result-content">
+						<span class="rsl-ie-result-label"><?php esc_html_e( 'Total Processed', 'import-export-by-rockstarlab' ); ?></span>
+						<span class="rsl-ie-result-value rsl-ie-final-processed">0</span>
 					</div>
 				</div>
-				<div class="aie-result-card aie-success">
-					<span class="aie-result-icon dashicons dashicons-yes-alt"></span>
-					<div class="aie-result-content">
-						<span class="aie-result-label"><?php esc_html_e( 'Successfully Updated', 'import-export-by-rockstarlab' ); ?></span>
-						<span class="aie-result-value aie-final-updated">0</span>
+				<div class="rsl-ie-result-card rsl-ie-success">
+					<span class="rsl-ie-result-icon dashicons dashicons-yes-alt"></span>
+					<div class="rsl-ie-result-content">
+						<span class="rsl-ie-result-label"><?php esc_html_e( 'Successfully Updated', 'import-export-by-rockstarlab' ); ?></span>
+						<span class="rsl-ie-result-value rsl-ie-final-updated">0</span>
 					</div>
 				</div>
-				<div class="aie-result-card aie-warning">
-					<span class="aie-result-icon dashicons dashicons-dismiss"></span>
-					<div class="aie-result-content">
-						<span class="aie-result-label"><?php esc_html_e( 'Skipped', 'import-export-by-rockstarlab' ); ?></span>
-						<span class="aie-result-value aie-final-skipped">0</span>
+				<div class="rsl-ie-result-card rsl-ie-warning">
+					<span class="rsl-ie-result-icon dashicons dashicons-dismiss"></span>
+					<div class="rsl-ie-result-content">
+						<span class="rsl-ie-result-label"><?php esc_html_e( 'Skipped', 'import-export-by-rockstarlab' ); ?></span>
+						<span class="rsl-ie-result-value rsl-ie-final-skipped">0</span>
 					</div>
 				</div>
-				<div class="aie-result-card aie-error">
-					<span class="aie-result-icon dashicons dashicons-warning"></span>
-					<div class="aie-result-content">
-						<span class="aie-result-label"><?php esc_html_e( 'Errors', 'import-export-by-rockstarlab' ); ?></span>
-						<span class="aie-result-value aie-final-errors">0</span>
+				<div class="rsl-ie-result-card rsl-ie-error">
+					<span class="rsl-ie-result-icon dashicons dashicons-warning"></span>
+					<div class="rsl-ie-result-content">
+						<span class="rsl-ie-result-label"><?php esc_html_e( 'Errors', 'import-export-by-rockstarlab' ); ?></span>
+						<span class="rsl-ie-result-value rsl-ie-final-errors">0</span>
 					</div>
 				</div>
 			</div>
 
 			<!-- Action Buttons -->
-			<div class="aie-results-actions">
-				<button type="button" class="button button-primary aie-start-new-update">
+			<div class="rsl-ie-results-actions">
+				<button type="button" class="button button-primary rsl-ie-start-new-update">
 					<span class="dashicons dashicons-update"></span>
 					<?php esc_html_e( 'Start New Update', 'import-export-by-rockstarlab' ); ?>
 				</button>
@@ -212,8 +212,8 @@ defined( 'ABSPATH' ) || exit;
 			</div>
 		</div>
 
-		<div class="aie-step-actions">
-			<button type="button" class="button button-secondary aie-updater-prev-step" id="aie-updater-prev-from-step-4">
+		<div class="rsl-ie-step-actions">
+			<button type="button" class="button button-secondary rsl-ie-updater-prev-step" id="rsl-ie-updater-prev-from-step-4">
 				<span class="dashicons dashicons-arrow-left-alt2"></span>
 				<?php esc_html_e( 'Previous', 'import-export-by-rockstarlab' ); ?>
 			</button>

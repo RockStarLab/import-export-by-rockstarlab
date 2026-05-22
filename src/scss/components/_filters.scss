@@ -1,8 +1,8 @@
 // Export Filters - New Dynamic Design
-.aie-filter-summary-top {
+.rsl-ie-filter-summary-top {
 	margin-bottom: 30px;
 
-	.aie-summary-card {
+	.rsl-ie-summary-card {
 		background: linear-gradient(135deg, #2271b1 0%, #1a5a8e 100%);
 		border-radius: 8px;
 		padding: 25px;
@@ -11,7 +11,7 @@
 		gap: 20px;
 		box-shadow: 0 2px 8px rgba(34, 113, 177, 0.15);
 
-		.aie-summary-icon {
+		.rsl-ie-summary-icon {
 			.dashicons {
 				font-size: 48px;
 				width: 48px;
@@ -20,10 +20,10 @@
 			}
 		}
 
-		.aie-summary-content {
+		.rsl-ie-summary-content {
 			flex: 1;
 
-			.aie-summary-label {
+			.rsl-ie-summary-label {
 				font-size: 13px;
 				color: rgba(255, 255, 255, 0.8);
 				text-transform: uppercase;
@@ -31,12 +31,12 @@
 				margin-bottom: 8px;
 			}
 
-			.aie-item-count {
+			.rsl-ie-item-count {
 				display: flex;
 				align-items: center;
 				gap: 10px;
 
-				.aie-count-value {
+				.rsl-ie-count-value {
 					font-size: 36px;
 					font-weight: 700;
 					color: #fff;
@@ -48,7 +48,7 @@
 					margin: 0;
 					filter: brightness(0) invert(1);
 					display: none; // Hidden by default
-					
+
 					&.is-active {
 						display: block;
 					}
@@ -56,7 +56,7 @@
 			}
 		}
 
-		.aie-refresh-count {
+		.rsl-ie-refresh-count {
 			background: rgba(255, 255, 255, 0.2);
 			border: 1px solid rgba(255, 255, 255, 0.3);
 			color: #fff;
@@ -76,14 +76,14 @@
 			}
 
 			&.is-refreshing .dashicons {
-				animation: aie-spin 1s linear infinite;
+				animation: rsl-ie-spin 1s linear infinite;
 			}
 		}
 	}
 }
 
 // Keyframe for refresh animation
-@keyframes aie-spin {
+@keyframes rsl-ie-spin {
 	from {
 		transform: rotate(0deg);
 	}
@@ -92,14 +92,14 @@
 	}
 }
 
-.aie-custom-filters-section {
+.rsl-ie-custom-filters-section {
 	background: #fff;
 	border: 1px solid #dcdcde;
 	border-radius: 8px;
 	padding: 25px;
 	margin-bottom: 20px;
 
-	.aie-section-header {
+	.rsl-ie-section-header {
 		margin-bottom: 25px;
 		padding-bottom: 15px;
 		border-bottom: 2px solid #f0f0f1;
@@ -127,14 +127,14 @@
 		}
 	}
 
-	.aie-filters-list {
+	.rsl-ie-filters-list {
 		display: flex;
 		flex-direction: column;
 		gap: 12px;
 		margin-bottom: 15px;
 	}
 
-	.aie-filter-row {
+	.rsl-ie-filter-row {
 		background: #f9f9f9;
 		border: 1px solid #dcdcde;
 		border-radius: 6px;
@@ -146,7 +146,7 @@
 			border-color: #c3c4c7;
 		}
 
-		.aie-filter-row-inner {
+		.rsl-ie-filter-row-inner {
 			display: grid;
 			grid-template-columns: 1fr 1fr 1.5fr auto;
 			gap: 15px;
@@ -157,7 +157,7 @@
 			}
 		}
 
-		.aie-updater-meta-key-wrap {
+		.rsl-ie-updater-meta-key-wrap {
 			label {
 				display: block;
 				font-size: 12px;
@@ -185,9 +185,9 @@
 			}
 		}
 
-		.aie-filter-field-wrap,
-		.aie-filter-condition-wrap,
-		.aie-filter-value-wrap {
+		.rsl-ie-filter-field-wrap,
+		.rsl-ie-filter-condition-wrap,
+		.rsl-ie-filter-value-wrap {
 			label {
 				display: block;
 				font-size: 12px;
@@ -217,10 +217,10 @@
 			}
 		}
 
-		.aie-filter-actions {
+		.rsl-ie-filter-actions {
 			margin-top: 24px; // Align delete button with inputs (label height + margin)
-			
-			.aie-remove-filter {
+
+			.rsl-ie-remove-filter {
 				background: transparent;
 				border: none;
 				color: #b32d2e;
@@ -243,13 +243,13 @@
 		}
 
 		// Custom Field and Taxonomy Filter Styles
-		.aie-custom-field-inputs,
-		.aie-taxonomy-filter-inputs {
+		.rsl-ie-custom-field-inputs,
+		.rsl-ie-taxonomy-filter-inputs {
 			display: flex;
 			flex-direction: column;
 			gap: 12px;
 
-			.aie-input-group {
+			.rsl-ie-input-group {
 				display: flex;
 				flex-direction: column;
 
@@ -287,12 +287,12 @@
 		}
 	}
 
-	.aie-add-filter-wrap {
+	.rsl-ie-add-filter-wrap {
 		display: flex;
 		justify-content: center;
 		padding-top: 10px;
 
-		.aie-add-filter {
+		.rsl-ie-add-filter {
 			display: inline-flex;
 			align-items: center;
 			gap: 6px;

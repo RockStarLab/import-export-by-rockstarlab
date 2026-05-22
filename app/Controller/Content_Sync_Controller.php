@@ -589,7 +589,7 @@ class Content_Sync_Controller extends Base_Controller {
 		// sync UI is reliably available.
 		$in_footer = ( 'edit.php' === $hook_suffix );
 		wp_enqueue_script(
-			'aie-post-sync',
+			'rsl-ie-post-sync',
 			plugins_url( 'assets/js/post-sync-standalone.js', RSL_IE_FILE ),
 			array( 'jquery' ),
 			filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/js/post-sync-standalone.js' ),
@@ -612,8 +612,8 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		wp_localize_script(
-			'aie-post-sync',
-			'aiePostSyncData',
+			'rsl-ie-post-sync',
+			'rslIePostSyncData',
 			array(
 				'nonce'          => $nonce,
 				'ajaxurl'        => admin_url( 'admin-ajax.php' ),
@@ -673,7 +673,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 		// Enqueue styles (reuse the main plugin styles)
 		wp_enqueue_style(
-			'aie-post-sync-styles',
+			'rsl-ie-post-sync-styles',
 			plugins_url( 'assets/css/app.css', RSL_IE_FILE ),
 			array(),
 			filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/css/app.css' )
@@ -683,9 +683,9 @@ class Content_Sync_Controller extends Base_Controller {
 		global $wp_version;
 		if ( isset( $wp_version ) && version_compare( $wp_version, '7.0', '>=' ) ) {
 			wp_enqueue_style(
-				'aie-post-sync-admin-wp7',
+				'rsl-ie-post-sync-admin-wp7',
 				plugins_url( 'assets/css/admin-wp7.css', RSL_IE_FILE ),
-				array( 'aie-post-sync-styles' ),
+				array( 'rsl-ie-post-sync-styles' ),
 				filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/css/admin-wp7.css' )
 			);
 		}
@@ -697,7 +697,7 @@ class Content_Sync_Controller extends Base_Controller {
 			if ( $post ) {
 				// Enqueue the Gutenberg sync script
 				wp_enqueue_script(
-					'aie-gutenberg-sync',
+					'rsl-ie-gutenberg-sync',
 					plugins_url( 'assets/js/gutenberg-sync.js', RSL_IE_FILE ),
 					array( 'jquery', 'wp-editor', 'wp-data', 'wp-element', 'wp-components' ),
 					filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/js/gutenberg-sync.js' ),
@@ -706,8 +706,8 @@ class Content_Sync_Controller extends Base_Controller {
 
 				// Localize script with necessary data
 				wp_localize_script(
-					'aie-gutenberg-sync',
-					'aieData',
+					'rsl-ie-gutenberg-sync',
+					'rslIeData',
 					array(
 						'nonce'   => wp_create_nonce( 'rsl_ie_nonce' ),
 						'ajaxurl' => admin_url( 'admin-ajax.php' ),
@@ -1012,7 +1012,7 @@ class Content_Sync_Controller extends Base_Controller {
 		foreach ( $post_ids as $post_id ) {
 			$post = get_post( $post_id );
 			if ( $post ) {
-				$orig         = get_post_meta( $post->ID, '_aie_original_post_id', true );
+				$orig         = get_post_meta( $post->ID, '_rsl_ie_original_post_id', true );
 				$posts_info[] = array(
 					'ID'          => $post->ID,
 					'post_title'  => $post->post_title,
@@ -1101,8 +1101,8 @@ class Content_Sync_Controller extends Base_Controller {
 				'_wp_old_slug',
 				'_wp_old_date',
 				// Internal Content Sync meta: must never be pushed to remote, otherwise it
-				// overwrites the receiving site's own "_aie_original_post_id" mapping.
-				'_aie_original_post_id',
+				// overwrites the receiving site's own "_rsl_ie_original_post_id" mapping.
+				'_rsl_ie_original_post_id',
 			);
 			foreach ( $meta as $key => $values ) {
 				if ( in_array( $key, $skip_meta_keys, true ) ) {
@@ -1698,7 +1698,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$imported_remote_type[ (int) $remote_post_id ]     = isset( $post_data['post_type'] ) ? (string) $post_data['post_type'] : '';
 
 			// Store original post ID for future reference
-			update_post_meta( $post_id, '_aie_original_post_id', $remote_post_id );
+			update_post_meta( $post_id, '_rsl_ie_original_post_id', $remote_post_id );
 
 			// Import meta - simple approach: save all fields as-is, ACF will handle them
 			if ( ! empty( $post_data['meta'] ) ) {
@@ -2227,7 +2227,7 @@ class Content_Sync_Controller extends Base_Controller {
 				'post_type'      => 'any',
 				'post_status'    => 'any',
 				'posts_per_page' => 1,
-				'meta_key'       => '_aie_original_post_id', // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_key required for filtering.
+				'meta_key'       => '_rsl_ie_original_post_id', // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_key required for filtering.
 				'meta_value'     => $original_post_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_value required for filtering.
 				'fields'         => 'ids',
 			)

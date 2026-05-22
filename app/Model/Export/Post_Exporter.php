@@ -2564,7 +2564,7 @@ class Post_Exporter extends Abstract_Exporter {
 	 * The importer will download the referenced media (via URLs) and reconstruct
 	 * the shortcode with the target-site attachment IDs.
 	 *
-	 * Token format: [[AIE:<base64(json)>]]
+	 * Token format: [[RSL_IE:<base64(json)>]]
 	 * JSON payload:
 	 *  - acf_type: "gallery_shortcode"
 	 *  - shortcode: original matched shortcode string
@@ -2620,7 +2620,7 @@ class Post_Exporter extends Abstract_Exporter {
 					return $shortcode;
 				}
 
-				return '[[AIE:' . $token . ']]';
+				return '[[RSL_IE:' . $token . ']]';
 			},
 			$value
 		);

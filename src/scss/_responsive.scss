@@ -1,27 +1,27 @@
 // Responsive Styles
 @media (max-width: 768px) {
 	.import-export-by-rockstarlab {
-		.aie-content-types {
+		.rsl-ie-content-types {
 			grid-template-columns: 1fr;
 		}
 
-		.aie-format-selection {
+		.rsl-ie-format-selection {
 			grid-template-columns: 1fr;
 		}
 
-		.aie-field-groups .aie-fields-grid {
+		.rsl-ie-field-groups .rsl-ie-fields-grid {
 			grid-template-columns: 1fr;
 		}
 
-		.aie-progress-estimates {
+		.rsl-ie-progress-estimates {
 			grid-template-columns: 1fr;
 		}
 
-		.aie-steps-indicator {
+		.rsl-ie-steps-indicator {
 			flex-wrap: wrap;
 			gap: 15px;
 
-			.aie-step-indicator {
+			.rsl-ie-step-indicator {
 				flex: 0 0 calc(33.333% - 10px);
 
 				&::after {
@@ -31,12 +31,12 @@
 		}
 
 		// Filter rows responsive
-		.aie-filter-row .aie-filter-row-inner {
+		.rsl-ie-filter-row .rsl-ie-filter-row-inner {
 			grid-template-columns: 1fr;
 			gap: 12px;
 		}
 
-		.aie-filter-summary-top .aie-summary-card {
+		.rsl-ie-filter-summary-top .rsl-ie-summary-card {
 			flex-direction: column;
 			text-align: center;
 		}
@@ -44,6 +44,6 @@
 }
 
 // Utility Classes
-.aie-table-selection-section + .aie-filter-summary-top {
+.rsl-ie-table-selection-section + .rsl-ie-filter-summary-top {
 	margin-top: 20px;
 }

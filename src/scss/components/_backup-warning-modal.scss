@@ -2,7 +2,7 @@
  * Backup Warning Modal Styles
  */
 
-.aie-backup-warning-overlay {
+.rsl-ie-backup-warning-overlay {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -18,7 +18,7 @@
 	animation: aieBackupFadeIn 0.3s ease;
 }
 
-.aie-backup-warning-modal {
+.rsl-ie-backup-warning-modal {
 	background: #fff;
 	border-radius: 12px;
 	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -30,12 +30,12 @@
 	position: relative;
 }
 
-.aie-backup-warning-header {
+.rsl-ie-backup-warning-header {
 	padding: 30px 30px 20px;
 	border-bottom: 1px solid #f0f0f0;
 	text-align: center;
 
-	.aie-warning-icon {
+	.rsl-ie-warning-icon {
 		width: 64px;
 		height: 64px;
 		margin: 0 auto 15px;
@@ -64,11 +64,11 @@
 	}
 }
 
-.aie-backup-warning-body {
+.rsl-ie-backup-warning-body {
 	padding: 30px;
 }
 
-.aie-warning-message {
+.rsl-ie-warning-message {
 	background: #fff9e6;
 	border-left: 4px solid #ffc107;
 	padding: 15px 20px;
@@ -91,7 +91,7 @@
 	}
 }
 
-.aie-backup-recommendations {
+.rsl-ie-backup-recommendations {
 	margin-bottom: 25px;
 
 	h3 {
@@ -104,19 +104,19 @@
 		gap: 8px;
 
 		&:before {
-			content: '💡';
+			content: "💡";
 			font-size: 20px;
 		}
 	}
 }
 
-.aie-backup-options {
+.rsl-ie-backup-options {
 	display: grid;
 	gap: 12px;
 	margin-bottom: 20px;
 }
 
-.aie-backup-option {
+.rsl-ie-backup-option {
 	background: #f8f9fa;
 	border: 2px solid #e9ecef;
 	border-radius: 8px;
@@ -139,7 +139,7 @@
 		align-items: center;
 		gap: 8px;
 
-		.aie-badge {
+		.rsl-ie-badge {
 			background: #2271b1;
 			color: #fff;
 			font-size: 11px;
@@ -150,11 +150,11 @@
 			letter-spacing: 0.5px;
 		}
 
-		.aie-badge-premium {
+		.rsl-ie-badge-premium {
 			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 		}
 
-		.aie-badge-free {
+		.rsl-ie-badge-free {
 			background: #28a745;
 		}
 	}
@@ -166,7 +166,7 @@
 		line-height: 1.5;
 	}
 
-	.aie-backup-link {
+	.rsl-ie-backup-link {
 		display: inline-flex;
 		align-items: center;
 		gap: 4px;
@@ -181,12 +181,12 @@
 		}
 
 		&:after {
-			content: '→';
+			content: "→";
 		}
 	}
 }
 
-.aie-backup-checkboxes {
+.rsl-ie-backup-checkboxes {
 	background: #f8f9fa;
 	border: 2px solid #e9ecef;
 	border-radius: 8px;
@@ -194,7 +194,7 @@
 	margin-bottom: 25px;
 }
 
-.aie-backup-checkbox {
+.rsl-ie-backup-checkbox {
 	display: flex;
 	align-items: flex-start;
 	gap: 12px;
@@ -225,19 +225,19 @@
 		}
 	}
 
-	&.aie-checkbox-required label {
+	&.rsl-ie-checkbox-required label {
 		font-weight: 500;
 	}
 }
 
-.aie-backup-warning-footer {
+.rsl-ie-backup-warning-footer {
 	padding: 20px 30px 30px;
 	display: flex;
 	gap: 12px;
 	justify-content: flex-end;
 	border-top: 1px solid #f0f0f0;
 
-	.aie-button {
+	.rsl-ie-button {
 		padding: 12px 24px;
 		border-radius: 6px;
 		font-size: 14px;
@@ -255,7 +255,7 @@
 		}
 	}
 
-	.aie-button-secondary {
+	.rsl-ie-button-secondary {
 		background: #fff;
 		color: #666;
 		border: 2px solid #ddd;
@@ -266,7 +266,7 @@
 		}
 	}
 
-	.aie-button-primary {
+	.rsl-ie-button-primary {
 		background: linear-gradient(135deg, #2271b1 0%, #135e96 100%);
 		color: #fff;
 		border: none;
@@ -305,7 +305,8 @@
 }
 
 @keyframes aieBackupPulse {
-	0%, 100% {
+	0%,
+	100% {
 		transform: scale(1);
 		box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4);
 	}
@@ -317,26 +318,26 @@
 
 // Responsive
 @media (max-width: 768px) {
-	.aie-backup-warning-modal {
+	.rsl-ie-backup-warning-modal {
 		max-width: 100%;
 		margin: 0 15px;
 	}
 
-	.aie-backup-warning-header,
-	.aie-backup-warning-body,
-	.aie-backup-warning-footer {
+	.rsl-ie-backup-warning-header,
+	.rsl-ie-backup-warning-body,
+	.rsl-ie-backup-warning-footer {
 		padding-left: 20px;
 		padding-right: 20px;
 	}
 
-	.aie-backup-options {
+	.rsl-ie-backup-options {
 		grid-template-columns: 1fr;
 	}
 
-	.aie-backup-warning-footer {
+	.rsl-ie-backup-warning-footer {
 		flex-direction: column;
 
-		.aie-button {
+		.rsl-ie-button {
 			width: 100%;
 			justify-content: center;
 		}

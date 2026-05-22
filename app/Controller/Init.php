@@ -231,7 +231,7 @@ class Init {
 		// Localize script with AJAX data
 		wp_localize_script(
 			'import-export-by-rockstarlab-scripts',
-			'aieData',
+			'rslIeData',
 			array(
 				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
 				'nonce'            => wp_create_nonce( 'rsl_ie_nonce' ),
@@ -314,7 +314,7 @@ class Init {
 					'importCompletedSuccessfully'   => __( 'Import completed successfully!', 'import-export-by-rockstarlab' ),
 					'importCancelled'               => __( 'Import cancelled', 'import-export-by-rockstarlab' ),
 					'importFailed'                  => __( 'Import failed', 'import-export-by-rockstarlab' ),
-					'configErrorAieData'            => __( 'Configuration error: aieData not found', 'import-export-by-rockstarlab' ),
+					'configErrorRslIeData'          => __( 'Configuration error: rslIeData not found', 'import-export-by-rockstarlab' ),
 					'testFailed'                    => __( 'Test failed', 'import-export-by-rockstarlab' ),
 					'errorTestingPipeline'          => __( 'Error testing pipeline', 'import-export-by-rockstarlab' ),
 
@@ -869,7 +869,7 @@ class Init {
 				'pleaseEnterTestValue'              => __( 'Please enter a test value', 'import-export-by-rockstarlab' ),
 				'noFunctionsToTest'                 => __( 'No functions to test', 'import-export-by-rockstarlab' ),
 				'testFailed'                        => __( 'Test failed', 'import-export-by-rockstarlab' ),
-				'configurationError'                => __( 'Configuration error: aieData not found', 'import-export-by-rockstarlab' ),
+				'configurationError'                => __( 'Configuration error: rslIeData not found', 'import-export-by-rockstarlab' ),
 				'errorTestingPipeline'              => __( 'Error testing pipeline', 'import-export-by-rockstarlab' ),
 				'input'                             => __( 'Input', 'import-export-by-rockstarlab' ),
 				// Filter conditions
@@ -1008,7 +1008,7 @@ class Init {
 		if ( 'import-export-by-rockstarlab_page_rsl-ie-content-sync' === $admin_page ) {
 			wp_localize_script(
 				'import-export-by-rockstarlab-scripts',
-				'aieContentSync',
+				'rslIeContentSync',
 				array(
 					'nonce'     => wp_create_nonce( 'rsl_ie_nonce' ),
 					'isPremium' => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active(),
@@ -1041,7 +1041,7 @@ class Init {
 			if ( $resume_job_id ) {
 				wp_add_inline_style(
 					'import-export-by-rockstarlab-styles',
-					'.aie-resuming-job .aie-step-1,.aie-resuming-job .aie-step-2,.aie-resuming-job .aie-step-3,.aie-resuming-job .aie-step-4{display:none!important}.aie-resuming-job .aie-step-5{display:block!important}'
+					'.rsl-ie-resuming-job .rsl-ie-step-1,.rsl-ie-resuming-job .rsl-ie-step-2,.rsl-ie-resuming-job .rsl-ie-step-3,.rsl-ie-resuming-job .rsl-ie-step-4{display:none!important}.rsl-ie-resuming-job .rsl-ie-step-5{display:block!important}'
 				);
 			}
 		}

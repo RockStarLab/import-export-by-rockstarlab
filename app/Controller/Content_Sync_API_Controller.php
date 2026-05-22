@@ -253,7 +253,7 @@ class Content_Sync_API_Controller {
 
 					// Store original ID for future sync operations
 					if ( ! is_wp_error( $post_id ) && $post_id ) {
-						update_post_meta( $post_id, '_aie_original_post_id', $source_post_id );
+						update_post_meta( $post_id, '_rsl_ie_original_post_id', $source_post_id );
 					}
 				}
 			} else {
@@ -262,7 +262,7 @@ class Content_Sync_API_Controller {
 
 				// Store original ID for future sync operations
 				if ( ! is_wp_error( $post_id ) && $post_id ) {
-					update_post_meta( $post_id, '_aie_original_post_id', $source_post_id );
+					update_post_meta( $post_id, '_rsl_ie_original_post_id', $source_post_id );
 				}
 			}
 
@@ -339,7 +339,7 @@ class Content_Sync_API_Controller {
 				// ACF will automatically handle the processing of its fields
 				foreach ( $post_data['meta'] as $key => $value ) {
 					// Skip some internal WordPress meta
-					if ( in_array( $key, array( '_edit_lock', '_edit_last', '_aie_original_post_id' ), true ) ) {
+					if ( in_array( $key, array( '_edit_lock', '_edit_last', '_rsl_ie_original_post_id' ), true ) ) {
 						continue;
 					}
 
@@ -718,7 +718,7 @@ class Content_Sync_API_Controller {
 		);
 
 		foreach ( $existing_local_var_ids as $local_var_id ) {
-			$orig_id = (int) get_post_meta( $local_var_id, '_aie_original_post_id', true );
+			$orig_id = (int) get_post_meta( $local_var_id, '_rsl_ie_original_post_id', true );
 			if ( $orig_id ) {
 				$source_to_local[ $orig_id ] = (int) $local_var_id;
 			}
@@ -747,7 +747,7 @@ class Content_Sync_API_Controller {
 				// Create new variation.
 				$local_var_id = wp_insert_post( $variation_args );
 				if ( $local_var_id && ! is_wp_error( $local_var_id ) && $source_var_id ) {
-					update_post_meta( $local_var_id, '_aie_original_post_id', $source_var_id );
+					update_post_meta( $local_var_id, '_rsl_ie_original_post_id', $source_var_id );
 				}
 			}
 
@@ -784,7 +784,7 @@ class Content_Sync_API_Controller {
 
 		// Delete stale local variations that no longer exist on the source site.
 		foreach ( $existing_local_var_ids as $local_var_id ) {
-			$orig_id = (int) get_post_meta( $local_var_id, '_aie_original_post_id', true );
+			$orig_id = (int) get_post_meta( $local_var_id, '_rsl_ie_original_post_id', true );
 			if ( $orig_id && ! in_array( $orig_id, $processed_source_ids, true ) ) {
 				wp_delete_post( (int) $local_var_id, true );
 			}
@@ -826,7 +826,7 @@ class Content_Sync_API_Controller {
 						'post_status'    => 'any',
 						'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery
 							array(
-								'key'   => '_aie_original_post_id',
+								'key'   => '_rsl_ie_original_post_id',
 								'value' => $source_child_id,
 							),
 						),
@@ -853,7 +853,7 @@ class Content_Sync_API_Controller {
 			} else {
 				$result = wp_insert_post( $child_args );
 				if ( $result && ! is_wp_error( $result ) && $source_child_id ) {
-					update_post_meta( $result, '_aie_original_post_id', $source_child_id );
+					update_post_meta( $result, '_rsl_ie_original_post_id', $source_child_id );
 				}
 				$local_child_id = $result;
 			}
@@ -932,7 +932,7 @@ class Content_Sync_API_Controller {
 				'post_status'    => 'any',
 				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 					array(
-						'key'   => '_aie_original_post_id',
+						'key'   => '_rsl_ie_original_post_id',
 						'value' => $post_data['ID'],
 					),
 				),
@@ -960,7 +960,7 @@ class Content_Sync_API_Controller {
 			'post_status'    => 'any',
 			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
 				array(
-					'key'   => '_aie_original_post_id',
+					'key'   => '_rsl_ie_original_post_id',
 					'value' => (int) $original_post_id,
 				),
 			),
@@ -1024,7 +1024,7 @@ class Content_Sync_API_Controller {
 				'_edit_last',
 				'_wp_old_slug',
 				'_wp_old_date',
-				'_aie_original_post_id', // Our own sync meta
+				'_rsl_ie_original_post_id', // Our own sync meta
 			);
 
 			foreach ( $meta as $key => $values ) {

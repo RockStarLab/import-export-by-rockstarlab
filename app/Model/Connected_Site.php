@@ -81,14 +81,14 @@ class Connected_Site {
 		$table = $wpdb->prefix . self::$table_name;
 
 		$defaults = array(
-			'name'        => '',
-			'remote_url'  => '',
-			'api_key'     => self::generate_api_key(),
-			'direction'   => 'bidirectional',
-			'status'      => 'active',
-			'created_by'  => get_current_user_id(),
-			'created_at'  => current_time( 'mysql' ),
-			'updated_at'  => current_time( 'mysql' ),
+			'name'       => '',
+			'remote_url' => '',
+			'api_key'    => self::generate_api_key(),
+			'direction'  => 'bidirectional',
+			'status'     => 'active',
+			'created_by' => get_current_user_id(),
+			'created_at' => current_time( 'mysql' ),
+			'updated_at' => current_time( 'mysql' ),
 		);
 
 		$data = wp_parse_args( $data, $defaults );
@@ -204,7 +204,7 @@ class Connected_Site {
 	 * @return string Generated API key
 	 */
 	public static function generate_api_key() {
-		return 'aie_' . wp_generate_password( 40, false, false );
+		return 'rsl_ie_' . wp_generate_password( 40, false, false );
 	}
 
 	/**

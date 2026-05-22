@@ -9,26 +9,26 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 <!-- Step 4: Export Format -->
-<div class="aie-step aie-step-4" data-step="4">
-	<div class="aie-step-header">
+<div class="rsl-ie-step rsl-ie-step-4" data-step="4">
+	<div class="rsl-ie-step-header">
 		<h2><?php esc_html_e( 'Step 4: Export Format', 'import-export-by-rockstarlab' ); ?></h2>
 		<p class="description"><?php esc_html_e( 'Choose the format for your export file', 'import-export-by-rockstarlab' ); ?></p>
 	</div>
 
-	<div class="aie-step-content">
-		<div class="aie-format-selection">
-			<label class="aie-format-option">
+	<div class="rsl-ie-step-content">
+		<div class="rsl-ie-format-selection">
+			<label class="rsl-ie-format-option">
 				<input type="radio" name="format" value="csv" checked>
-				<div class="aie-format-card">
+				<div class="rsl-ie-format-card">
 					<span class="dashicons dashicons-media-spreadsheet"></span>
 					<h3>CSV</h3>
 					<p><?php esc_html_e( 'Comma-separated values, best for spreadsheets', 'import-export-by-rockstarlab' ); ?></p>
 				</div>
 			</label>
 
-			<label class="aie-format-option">
+			<label class="rsl-ie-format-option">
 				<input type="radio" name="format" value="json">
-				<div class="aie-format-card">
+				<div class="rsl-ie-format-card">
 					<span class="dashicons dashicons-media-code"></span>
 					<h3>JSON</h3>
 					<p><?php esc_html_e( 'JavaScript Object Notation, best for APIs', 'import-export-by-rockstarlab' ); ?></p>
@@ -36,8 +36,8 @@ defined( 'ABSPATH' ) || exit;
 			</label>
 		</div>
 
-		<div class="aie-format-options">
-			<div class="aie-csv-options">
+		<div class="rsl-ie-format-options">
+			<div class="rsl-ie-csv-options">
 				<h3><?php esc_html_e( 'CSV Options', 'import-export-by-rockstarlab' ); ?></h3>
 				<table class="form-table">
 					<tr>
@@ -52,7 +52,7 @@ defined( 'ABSPATH' ) || exit;
 							</select>
 						</td>
 					</tr>
-					<tr class="aie-custom-delimiter-row" style="display:none;">
+					<tr class="rsl-ie-custom-delimiter-row" style="display:none;">
 						<th><?php esc_html_e( 'Custom Delimiter', 'import-export-by-rockstarlab' ); ?></th>
 						<td>
 						<input type="text" name="csv_custom_delimiter" class="regular-text" placeholder="<?php esc_attr_e( 'Enter a delimiter (any string)', 'import-export-by-rockstarlab' ); ?>">
@@ -71,7 +71,7 @@ defined( 'ABSPATH' ) || exit;
 				</table>
 			</div>
 
-			<div class="aie-json-options" style="display:none;">
+			<div class="rsl-ie-json-options" style="display:none;">
 				<h3><?php esc_html_e( 'JSON Options', 'import-export-by-rockstarlab' ); ?></h3>
 				<table class="form-table">
 					<tr>
@@ -86,7 +86,7 @@ defined( 'ABSPATH' ) || exit;
 				</table>
 			</div>
 
-			<div class="aie-common-options">
+			<div class="rsl-ie-common-options">
 				<h3><?php esc_html_e( 'Processing Options', 'import-export-by-rockstarlab' ); ?></h3>
 				<table class="form-table">
 					<tr>
@@ -100,12 +100,12 @@ defined( 'ABSPATH' ) || exit;
 			</div>
 		</div>
 
-		<div class="aie-step-actions">
-			<button type="button" class="button button-secondary aie-prev-step">
+		<div class="rsl-ie-step-actions">
+			<button type="button" class="button button-secondary rsl-ie-prev-step">
 				<span class="dashicons dashicons-arrow-left-alt2"></span>
 				<?php esc_html_e( 'Previous', 'import-export-by-rockstarlab' ); ?>
 			</button>
-			<button type="button" class="button button-primary button-large aie-start-export">
+			<button type="button" class="button button-primary button-large rsl-ie-start-export">
 				<span class="dashicons dashicons-upload"></span>
 				<?php esc_html_e( 'Start Export', 'import-export-by-rockstarlab' ); ?>
 			</button>

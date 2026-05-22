@@ -27,12 +27,12 @@ const BackupWarningModal = {
 		jQuery( 'body' ).append( modalHtml );
 
 		// Get modal elements
-		const $overlay = jQuery( '.aie-backup-warning-overlay' );
-		const $modal = jQuery( '.aie-backup-warning-modal' );
-		const $confirmBtn = $modal.find( '.aie-backup-confirm' );
-		const $cancelBtn = $modal.find( '.aie-backup-cancel' );
-		const $backupCheckbox = $modal.find( '#aie-backup-created' );
-		const $dontShowCheckbox = $modal.find( '#aie-backup-dont-show' );
+		const $overlay = jQuery( '.rsl-ie-backup-warning-overlay' );
+		const $modal = jQuery( '.rsl-ie-backup-warning-modal' );
+		const $confirmBtn = $modal.find( '.rsl-ie-backup-confirm' );
+		const $cancelBtn = $modal.find( '.rsl-ie-backup-cancel' );
+		const $backupCheckbox = $modal.find( '#rsl-ie-backup-created' );
+		const $dontShowCheckbox = $modal.find( '#rsl-ie-backup-dont-show' );
 
 		// Initially disable confirm button
 		$confirmBtn.prop( 'disabled', true );
@@ -79,7 +79,7 @@ const BackupWarningModal = {
 		} );
 
 		// Handle ESC key
-		jQuery( document ).on( 'keydown.aie-backup-modal', ( e ) => {
+		jQuery( document ).on( 'keydown.rsl-ie-backup-modal', ( e ) => {
 			if ( e.key === 'Escape' ) {
 				this.close();
 
@@ -97,11 +97,11 @@ const BackupWarningModal = {
 	 * Close modal
 	 */
 	close() {
-		jQuery( '.aie-backup-warning-overlay' ).fadeOut( 200, function () {
+		jQuery( '.rsl-ie-backup-warning-overlay' ).fadeOut( 200, function () {
 			jQuery( this ).remove();
 		} );
 		jQuery( 'body' ).css( 'overflow', '' );
-		jQuery( document ).off( 'keydown.aie-backup-modal' );
+		jQuery( document ).off( 'keydown.rsl-ie-backup-modal' );
 	},
 
 	/**
@@ -133,19 +133,25 @@ const BackupWarningModal = {
 	 * @return {string}
 	 */
 	getModalHtml() {
-		const i18n = (typeof aieData !== 'undefined' && aieData.i18n) ? aieData.i18n : {};
+		const i18n =
+			typeof rslIeData !== 'undefined' && rslIeData.i18n
+				? rslIeData.i18n
+				: {};
 
 		return `
-			<div class="aie-backup-warning-overlay">
-				<div class="aie-backup-warning-modal">
-					<div class="aie-backup-warning-header">
-						<div class="aie-warning-icon">⚠️</div>
+			<div class="rsl-ie-backup-warning-overlay">
+				<div class="rsl-ie-backup-warning-modal">
+					<div class="rsl-ie-backup-warning-header">
+						<div class="rsl-ie-warning-icon">⚠️</div>
 						<h2>${ i18n.backupWarningTitle || 'Important: Create a Backup!' }</h2>
-						<p>${ i18n.backupWarningSubtitle || 'This action can modify or delete existing data' }</p>
+						<p>${
+							i18n.backupWarningSubtitle ||
+							'This action can modify or delete existing data'
+						}</p>
 					</div>
 
-					<div class="aie-backup-warning-body">
-						<div class="aie-warning-message">
+					<div class="rsl-ie-backup-warning-body">
+						<div class="rsl-ie-warning-message">
 							<p><strong>${ i18n.backupWarningRisks || 'Action may lead to:' }</strong></p>
 							<p>
 								• ${ i18n.backupRisk1 || 'Overwriting existing posts, pages, and records' }<br>
@@ -153,77 +159,89 @@ const BackupWarningModal = {
 								• ${ i18n.backupRisk3 || 'Data loss due to incorrect field mapping' }<br>
 								• ${ i18n.backupRisk4 || 'Conflicts with existing IDs' }
 							</p>
-							<p><strong>${ i18n.backupWarningImportant || 'Rollback may be impossible, especially for updated data!' }</strong></p>
+							<p><strong>${
+								i18n.backupWarningImportant ||
+								'Rollback may be impossible, especially for updated data!'
+							}</strong></p>
 						</div>
 
-						<div class="aie-backup-recommendations">
+						<div class="rsl-ie-backup-recommendations">
 							<h3>${ i18n.backupRecommendations || 'Recommended backup methods:' }</h3>
 							
-							<div class="aie-backup-options">
-								<div class="aie-backup-option">
+							<div class="rsl-ie-backup-options">
+								<div class="rsl-ie-backup-option">
 									<h4>
 										<span>UpdraftPlus</span>
-										<span class="aie-badge aie-badge-free">FREE</span>
+										<span class="rsl-ie-badge rsl-ie-badge-free">FREE</span>
 									</h4>
-									<p>${ i18n.backupUpdraftPlus || 'Popular backup plugin with cloud storage support' }</p>
-									<a href="https://wordpress.org/plugins/updraftplus/" target="_blank" class="aie-backup-link">
+									<p>${
+										i18n.backupUpdraftPlus ||
+										'Popular backup plugin with cloud storage support'
+									}</p>
+									<a href="https://wordpress.org/plugins/updraftplus/" target="_blank" class="rsl-ie-backup-link">
 										${ i18n.viewPlugin || 'View plugin' }
 									</a>
 								</div>
 
-								<div class="aie-backup-option">
+								<div class="rsl-ie-backup-option">
 									<h4>
 										<span>BackWPup</span>
-										<span class="aie-badge aie-badge-free">FREE</span>
+										<span class="rsl-ie-badge rsl-ie-badge-free">FREE</span>
 									</h4>
 									<p>${ i18n.backupBackWPup || 'Automatic database and file backups' }</p>
-									<a href="https://wordpress.org/plugins/backwpup/" target="_blank" class="aie-backup-link">
+									<a href="https://wordpress.org/plugins/backwpup/" target="_blank" class="rsl-ie-backup-link">
 										${ i18n.viewPlugin || 'View plugin' }
 									</a>
 								</div>
 
-								<div class="aie-backup-option">
+								<div class="rsl-ie-backup-option">
 									<h4>
 										<span>All-in-One WP Migration</span>
-										<span class="aie-badge aie-badge-free">FREE</span>
+										<span class="rsl-ie-badge rsl-ie-badge-free">FREE</span>
 									</h4>
 									<p>${ i18n.backupAllInOne || 'Complete site export in a single file' }</p>
-									<a href="https://wordpress.org/plugins/all-in-one-wp-migration/" target="_blank" class="aie-backup-link">
+									<a href="https://wordpress.org/plugins/all-in-one-wp-migration/" target="_blank" class="rsl-ie-backup-link">
 										${ i18n.viewPlugin || 'View plugin' }
 									</a>
 								</div>
 
-								<div class="aie-backup-option">
+								<div class="rsl-ie-backup-option">
 									<h4>
 										<span>${ i18n.hostingBackup || 'Hosting Backup' }</span>
-										<span class="aie-badge">${ i18n.recommended || 'RECOMMENDED' }</span>
+										<span class="rsl-ie-badge">${ i18n.recommended || 'RECOMMENDED' }</span>
 									</h4>
-									<p>${ i18n.hostingBackupDesc || 'Use built-in backup tools from your hosting provider (cPanel, Plesk, WP Engine, etc.)' }</p>
+									<p>${
+										i18n.hostingBackupDesc ||
+										'Use built-in backup tools from your hosting provider (cPanel, Plesk, WP Engine, etc.)'
+									}</p>
 								</div>
 							</div>
 						</div>
 
-						<div class="aie-backup-checkboxes">
-							<div class="aie-backup-checkbox aie-checkbox-required">
-								<input type="checkbox" id="aie-backup-created">
-								<label for="aie-backup-created">
-									<strong>${ i18n.backupConfirm || 'I have created a database backup and understand the irreversibility of data updates' }</strong>
+						<div class="rsl-ie-backup-checkboxes">
+							<div class="rsl-ie-backup-checkbox rsl-ie-checkbox-required">
+								<input type="checkbox" id="rsl-ie-backup-created">
+								<label for="rsl-ie-backup-created">
+									<strong>${
+										i18n.backupConfirm ||
+										'I have created a database backup and understand the irreversibility of data updates'
+									}</strong>
 								</label>
 							</div>
-							<div class="aie-backup-checkbox">
-								<input type="checkbox" id="aie-backup-dont-show">
-								<label for="aie-backup-dont-show">
-									${ i18n.backupDontShow || 'Don\'t show this warning again' }
+							<div class="rsl-ie-backup-checkbox">
+								<input type="checkbox" id="rsl-ie-backup-dont-show">
+								<label for="rsl-ie-backup-dont-show">
+									${ i18n.backupDontShow || "Don't show this warning again" }
 								</label>
 							</div>
 						</div>
 					</div>
 
-					<div class="aie-backup-warning-footer">
-						<button type="button" class="aie-button aie-button-secondary aie-backup-cancel">
+					<div class="rsl-ie-backup-warning-footer">
+						<button type="button" class="rsl-ie-button rsl-ie-button-secondary rsl-ie-backup-cancel">
 							${ i18n.cancel || 'Cancel' }
 						</button>
-						<button type="button" class="aie-button aie-button-primary aie-backup-confirm" disabled>
+						<button type="button" class="rsl-ie-button rsl-ie-button-primary rsl-ie-backup-confirm" disabled>
 							✓ ${ i18n.backupContinue || 'Continue' }
 						</button>
 					</div>

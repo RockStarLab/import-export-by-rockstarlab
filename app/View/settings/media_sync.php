@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 <?php esc_html_e( 'Synchronize media files from server folders to WordPress Media Library. Helpful to migrate Media Library from non-WP sites and keeping previous Media Library structure.', 'import-export-by-rockstarlab' ); ?>
 </p>
 
-<div class="aie-media-sync-container">
+<div class="rsl-ie-media-sync-container">
 
 <?php
 	require_once __DIR__ . '/partials/media-sync-step-1.php';

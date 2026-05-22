@@ -11,12 +11,12 @@ defined( 'ABSPATH' ) || exit;
 <div id="rsl-ie-jobs-log" class="import-export-by-rockstarlab wrap">
 	<h1><?php esc_html_e( 'Jobs Log', 'import-export-by-rockstarlab' ); ?></h1>
 
-	<div class="aie-jobs-log">
+	<div class="rsl-ie-jobs-log">
 		<!-- Filters -->
-		<div class="aie-jobs-filters">
-			<div class="aie-filter-group">
+		<div class="rsl-ie-jobs-filters">
+			<div class="rsl-ie-filter-group">
 				<label for="filter-type"><?php esc_html_e( 'Type:', 'import-export-by-rockstarlab' ); ?></label>
-				<select id="filter-type" class="aie-filter-select">
+				<select id="filter-type" class="rsl-ie-filter-select">
 					<option value=""><?php esc_html_e( 'All Types', 'import-export-by-rockstarlab' ); ?></option>
 					<option value="import"><?php esc_html_e( 'Import', 'import-export-by-rockstarlab' ); ?></option>
 					<option value="export"><?php esc_html_e( 'Export', 'import-export-by-rockstarlab' ); ?></option>
@@ -24,9 +24,9 @@ defined( 'ABSPATH' ) || exit;
 				</select>
 			</div>
 
-			<div class="aie-filter-group">
+			<div class="rsl-ie-filter-group">
 				<label for="filter-status"><?php esc_html_e( 'Status:', 'import-export-by-rockstarlab' ); ?></label>
-				<select id="filter-status" class="aie-filter-select">
+				<select id="filter-status" class="rsl-ie-filter-select">
 					<option value=""><?php esc_html_e( 'All Statuses', 'import-export-by-rockstarlab' ); ?></option>
 					<option value="pending"><?php esc_html_e( 'Pending', 'import-export-by-rockstarlab' ); ?></option>
 					<option value="processing"><?php esc_html_e( 'Processing', 'import-export-by-rockstarlab' ); ?></option>
@@ -37,21 +37,21 @@ defined( 'ABSPATH' ) || exit;
 				</select>
 			</div>
 
-			<div class="aie-filter-buttons">
-				<button class="button aie-filter-apply"><?php esc_html_e( 'Apply Filters', 'import-export-by-rockstarlab' ); ?></button>
-				<button class="button aie-filter-reset"><?php esc_html_e( 'Reset', 'import-export-by-rockstarlab' ); ?></button>
+			<div class="rsl-ie-filter-buttons">
+				<button class="button rsl-ie-filter-apply"><?php esc_html_e( 'Apply Filters', 'import-export-by-rockstarlab' ); ?></button>
+				<button class="button rsl-ie-filter-reset"><?php esc_html_e( 'Reset', 'import-export-by-rockstarlab' ); ?></button>
 			</div>
 		</div>
 
 		<!-- Loading state -->
-		<div class="aie-jobs-loading" style="display: none;">
+		<div class="rsl-ie-jobs-loading" style="display: none;">
 			<span class="spinner is-active"></span>
 			<p><?php esc_html_e( 'Loading jobs...', 'import-export-by-rockstarlab' ); ?></p>
 		</div>
 
 		<!-- Jobs table -->
-		<div class="aie-jobs-table-wrapper">
-			<table class="wp-list-table widefat fixed striped aie-jobs-table">
+		<div class="rsl-ie-jobs-table-wrapper">
+			<table class="wp-list-table widefat fixed striped rsl-ie-jobs-table">
 				<thead>
 					<tr>
 						<th class="column-id"><?php esc_html_e( 'ID', 'import-export-by-rockstarlab' ); ?></th>
@@ -74,7 +74,7 @@ defined( 'ABSPATH' ) || exit;
 		</div>
 
 		<!-- Pagination -->
-		<div class="aie-jobs-pagination" style="display: none;">
+		<div class="rsl-ie-jobs-pagination" style="display: none;">
 			<div class="pagination-info">
 				<span class="displaying-num"></span>
 			</div>
@@ -90,37 +90,37 @@ defined( 'ABSPATH' ) || exit;
 </div>
 
 <!-- Job Details Modal -->
-<div id="job-details-modal" class="aie-modal" style="display: none;">
-	<div class="aie-modal-overlay"></div>
-	<div class="aie-modal-content">
-		<div class="aie-modal-header">
+<div id="job-details-modal" class="rsl-ie-modal" style="display: none;">
+	<div class="rsl-ie-modal-overlay"></div>
+	<div class="rsl-ie-modal-content">
+		<div class="rsl-ie-modal-header">
 			<h2><?php esc_html_e( 'Job Details', 'import-export-by-rockstarlab' ); ?></h2>
-			<button class="aie-modal-close">&times;</button>
+			<button class="rsl-ie-modal-close">&times;</button>
 		</div>
-		<div class="aie-modal-body">
+		<div class="rsl-ie-modal-body">
 			<div id="job-details-content"></div>
 		</div>
-		<div class="aie-modal-footer">
-			<button class="button aie-modal-close"><?php esc_html_e( 'Close', 'import-export-by-rockstarlab' ); ?></button>
+		<div class="rsl-ie-modal-footer">
+			<button class="button rsl-ie-modal-close"><?php esc_html_e( 'Close', 'import-export-by-rockstarlab' ); ?></button>
 		</div>
 	</div>
 </div>
 
 <!-- Confirm Delete Modal -->
-<div id="confirm-delete-modal" class="aie-modal" style="display: none;">
-	<div class="aie-modal-overlay"></div>
-	<div class="aie-modal-content aie-modal-small">
-		<div class="aie-modal-header">
+<div id="confirm-delete-modal" class="rsl-ie-modal" style="display: none;">
+	<div class="rsl-ie-modal-overlay"></div>
+	<div class="rsl-ie-modal-content rsl-ie-modal-small">
+		<div class="rsl-ie-modal-header">
 			<h2><?php esc_html_e( 'Confirm Delete', 'import-export-by-rockstarlab' ); ?></h2>
-			<button class="aie-modal-close">&times;</button>
+			<button class="rsl-ie-modal-close">&times;</button>
 		</div>
-		<div class="aie-modal-body">
+		<div class="rsl-ie-modal-body">
 			<p><?php esc_html_e( 'Are you sure you want to delete this job? This action cannot be undone.', 'import-export-by-rockstarlab' ); ?></p>
 			<p class="description"><?php esc_html_e( 'Associated files will also be deleted.', 'import-export-by-rockstarlab' ); ?></p>
 		</div>
-		<div class="aie-modal-footer">
-			<button class="button aie-modal-close"><?php esc_html_e( 'Cancel', 'import-export-by-rockstarlab' ); ?></button>
-			<button class="button button-primary aie-confirm-delete"><?php esc_html_e( 'Delete', 'import-export-by-rockstarlab' ); ?></button>
+		<div class="rsl-ie-modal-footer">
+			<button class="button rsl-ie-modal-close"><?php esc_html_e( 'Cancel', 'import-export-by-rockstarlab' ); ?></button>
+			<button class="button button-primary rsl-ie-confirm-delete"><?php esc_html_e( 'Delete', 'import-export-by-rockstarlab' ); ?></button>
 		</div>
 	</div>
 </div>

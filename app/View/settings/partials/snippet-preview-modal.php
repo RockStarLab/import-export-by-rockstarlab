@@ -9,54 +9,54 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 <!-- Snippet Preview Modal -->
-<div id="aie-snippet-preview-modal" class="aie-modal" style="display:none;">
-	<div class="aie-modal-backdrop"></div>
-	<div class="aie-modal-content">
-		<div class="aie-modal-header">
-			<h2 class="aie-modal-title aie-snippet-title"></h2>
-			<button type="button" class="aie-modal-close">
+<div id="rsl-ie-snippet-preview-modal" class="rsl-ie-modal" style="display:none;">
+	<div class="rsl-ie-modal-backdrop"></div>
+	<div class="rsl-ie-modal-content">
+		<div class="rsl-ie-modal-header">
+			<h2 class="rsl-ie-modal-title rsl-ie-snippet-title"></h2>
+			<button type="button" class="rsl-ie-modal-close">
 				<span class="dashicons dashicons-no-alt"></span>
 			</button>
 		</div>
 
-		<div class="aie-modal-body">
-			<p class="aie-snippet-description"></p>
+		<div class="rsl-ie-modal-body">
+			<p class="rsl-ie-snippet-description"></p>
 
-			<div class="aie-snippet-details">
-				<div class="aie-snippet-detail">
+			<div class="rsl-ie-snippet-details">
+				<div class="rsl-ie-snippet-detail">
 					<strong><?php esc_html_e( 'Category:', 'import-export-by-rockstarlab' ); ?></strong>
-					<span class="aie-snippet-category"></span>
+					<span class="rsl-ie-snippet-category"></span>
 				</div>
-				<div class="aie-snippet-detail">
+				<div class="rsl-ie-snippet-detail">
 					<strong><?php esc_html_e( 'Tags:', 'import-export-by-rockstarlab' ); ?></strong>
-					<span class="aie-snippet-tags"></span>
+					<span class="rsl-ie-snippet-tags"></span>
 				</div>
 			</div>
 
 			<h3><?php esc_html_e( 'Code:', 'import-export-by-rockstarlab' ); ?></h3>
-			<pre><code class="aie-snippet-code"></code></pre>
+			<pre><code class="rsl-ie-snippet-code"></code></pre>
 
-			<div class="aie-snippet-example">
+			<div class="rsl-ie-snippet-example">
 				<h3><?php esc_html_e( 'Example:', 'import-export-by-rockstarlab' ); ?></h3>
-				<div class="aie-example-io">
-					<div class="aie-example-input">
+				<div class="rsl-ie-example-io">
+					<div class="rsl-ie-example-input">
 						<strong><?php esc_html_e( 'Input:', 'import-export-by-rockstarlab' ); ?></strong>
-						<code class="aie-example-input-value"></code>
+						<code class="rsl-ie-example-input-value"></code>
 					</div>
 					<span class="dashicons dashicons-arrow-right-alt"></span>
-					<div class="aie-example-output">
+					<div class="rsl-ie-example-output">
 						<strong><?php esc_html_e( 'Output:', 'import-export-by-rockstarlab' ); ?></strong>
-						<code class="aie-example-output-value"></code>
+						<code class="rsl-ie-example-output-value"></code>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="aie-modal-footer">
-			<button type="button" class="button button-secondary aie-modal-cancel">
+		<div class="rsl-ie-modal-footer">
+			<button type="button" class="button button-secondary rsl-ie-modal-cancel">
 				<?php esc_html_e( 'Close', 'import-export-by-rockstarlab' ); ?>
 			</button>
-			<button type="button" class="button button-primary aie-customize-snippet">
+			<button type="button" class="button button-primary rsl-ie-customize-snippet">
 				<span class="dashicons dashicons-edit"></span>
 				<?php esc_html_e( 'Customize', 'import-export-by-rockstarlab' ); ?>
 			</button>

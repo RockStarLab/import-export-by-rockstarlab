@@ -9,40 +9,40 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 <!-- Snippets Library Modal -->
-<div id="aie-snippets-library-modal" class="aie-modal aie-library-modal" style="display:none;">
-	<div class="aie-modal-backdrop"></div>
-	<div class="aie-modal-content aie-library-content">
-		<div class="aie-modal-header">
-			<h2 class="aie-modal-title">
+<div id="rsl-ie-snippets-library-modal" class="rsl-ie-modal rsl-ie-library-modal" style="display:none;">
+	<div class="rsl-ie-modal-backdrop"></div>
+	<div class="rsl-ie-modal-content rsl-ie-library-content">
+		<div class="rsl-ie-modal-header">
+			<h2 class="rsl-ie-modal-title">
 				<span class="dashicons dashicons-book"></span>
 				<?php esc_html_e( 'Function Library', 'import-export-by-rockstarlab' ); ?>
 			</h2>
-			<button type="button" class="aie-modal-close">
+			<button type="button" class="rsl-ie-modal-close">
 				<span class="dashicons dashicons-no-alt"></span>
 			</button>
 		</div>
 
-		<div class="aie-library-search">
-			<input type="text" id="aie-snippet-search" class="widefat" placeholder="<?php esc_attr_e( 'Search snippets...', 'import-export-by-rockstarlab' ); ?>">
+		<div class="rsl-ie-library-search">
+			<input type="text" id="rsl-ie-snippet-search" class="widefat" placeholder="<?php esc_attr_e( 'Search snippets...', 'import-export-by-rockstarlab' ); ?>">
 		</div>
 
-		<div class="aie-modal-body aie-library-body">
+		<div class="rsl-ie-modal-body rsl-ie-library-body">
 			<!-- Sidebar with categories -->
-			<div class="aie-library-sidebar">
+			<div class="rsl-ie-library-sidebar">
 				<h3><?php esc_html_e( 'Categories', 'import-export-by-rockstarlab' ); ?></h3>
-				<ul class="aie-categories-list" id="aie-categories-list">
-					<li class="aie-category-item active" data-category="">
+				<ul class="rsl-ie-categories-list" id="rsl-ie-categories-list">
+					<li class="rsl-ie-category-item active" data-category="">
 						<span class="dashicons dashicons-category"></span>
 						<?php esc_html_e( 'All Snippets', 'import-export-by-rockstarlab' ); ?>
-						<span class="aie-category-count">0</span>
+						<span class="rsl-ie-category-count">0</span>
 					</li>
 				</ul>
 			</div>
 
 			<!-- Main content area with snippet cards -->
-			<div class="aie-library-main">
-				<div class="aie-snippets-grid" id="aie-snippets-grid">
-					<div class="aie-loading-snippets">
+			<div class="rsl-ie-library-main">
+				<div class="rsl-ie-snippets-grid" id="rsl-ie-snippets-grid">
+					<div class="rsl-ie-loading-snippets">
 						<span class="spinner is-active"></span>
 						<p><?php esc_html_e( 'Loading snippets...', 'import-export-by-rockstarlab' ); ?></p>
 					</div>

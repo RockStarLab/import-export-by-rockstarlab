@@ -9,7 +9,7 @@ const WelcomeModule = {
 	 * Initialize module.
 	 */
 	init() {
-		if ( ! jQuery( '.aie-card--promo' ).length ) {
+		if ( ! jQuery( '.rsl-ie-card--promo' ).length ) {
 			return;
 		}
 
@@ -22,11 +22,11 @@ const WelcomeModule = {
 	bindEvents() {
 		const $ = jQuery;
 
-		$( document ).on( 'click', '.aie-copy-promo-code', function ( e ) {
+		$( document ).on( 'click', '.rsl-ie-copy-promo-code', function ( e ) {
 			e.preventDefault();
 
 			const $btn = $( this );
-			const codeEl = document.getElementById( 'aie-promo-code' );
+			const codeEl = document.getElementById( 'rsl-ie-promo-code' );
 			const promoCode = codeEl ? ( codeEl.textContent || '' ).trim() : '';
 
 			if ( ! promoCode ) {
@@ -35,18 +35,20 @@ const WelcomeModule = {
 
 			const copiedLabel =
 				'<span class="dashicons dashicons-yes"></span> ' +
-				( window.aieData && window.aieData.i18n && window.aieData.i18n.copied
-					? window.aieData.i18n.copied
+				( window.rslIeData &&
+				window.rslIeData.i18n &&
+				window.rslIeData.i18n.copied
+					? window.rslIeData.i18n.copied
 					: 'Copied!' );
 
 			const original = $btn.html();
 
 			const onSuccess = function () {
 				$btn.html( copiedLabel );
-				$btn.addClass( 'aie-copied' );
+				$btn.addClass( 'rsl-ie-copied' );
 				setTimeout( function () {
 					$btn.html( original );
-					$btn.removeClass( 'aie-copied' );
+					$btn.removeClass( 'rsl-ie-copied' );
 				}, 2000 );
 			};
 
@@ -84,4 +86,3 @@ const WelcomeModule = {
 };
 
 export default WelcomeModule;
-
