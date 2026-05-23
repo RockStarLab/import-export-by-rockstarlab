@@ -70,6 +70,10 @@ class Post_Importer extends Abstract_Importer {
 			'post_meta',
 			'taxonomies',
 			'featured_image',
+			'featured_image_id',
+			'featured_image_url',
+			'featured_image_title',
+			'featured_image_caption',
 		];
 	}
 
@@ -488,6 +492,11 @@ class Post_Importer extends Abstract_Importer {
 	 * @return int|WP_Error Post ID or WP_Error
 	 */
 	private function create_post( $item ) {
+		// Back-compat: newer exports may use featured_image_url instead of featured_image.
+		if ( empty( $item['featured_image'] ) && ! empty( $item['featured_image_url'] ) ) {
+			$item['featured_image'] = $item['featured_image_url'];
+		}
+
 		$post_data = $this->prepare_post_data( $item );
 
 		// wp_insert_post() expects slashed data; without this, backslashes can be
@@ -523,6 +532,7 @@ class Post_Importer extends Abstract_Importer {
 		// must always be processed on import regardless of the auto_import_media flag.
 		if ( ! empty( $item['featured_image'] ) ) {
 			$this->import_featured_image( $post_id, $item['featured_image'] );
+			$this->maybe_update_featured_image_metadata( $post_id, $item );
 		}
 
 		// Auto-import media from content if enabled
@@ -541,6 +551,11 @@ class Post_Importer extends Abstract_Importer {
 	 * @return string|WP_Error 'updated' or WP_Error
 	 */
 	private function update_post( $post_id, $item ) {
+		// Back-compat: newer exports may use featured_image_url instead of featured_image.
+		if ( empty( $item['featured_image'] ) && ! empty( $item['featured_image_url'] ) ) {
+			$item['featured_image'] = $item['featured_image_url'];
+		}
+
 		$post_data       = $this->prepare_post_data( $item );
 		$post_data['ID'] = $post_id;
 
@@ -574,6 +589,7 @@ class Post_Importer extends Abstract_Importer {
 		// Update featured image — always, when data is present in the export.
 		if ( ! empty( $item['featured_image'] ) ) {
 			$this->import_featured_image( $post_id, $item['featured_image'] );
+			$this->maybe_update_featured_image_metadata( $post_id, $item );
 		}
 
 		// Auto-import media from content if enabled
@@ -624,19 +640,61 @@ class Post_Importer extends Abstract_Importer {
 			}
 		}
 
-		// Handle author_name or author_email if post_author is not set
-		if ( empty( $post_data['post_author'] ) ) {
-			if ( ! empty( $item['author_email'] ) ) {
-				$user = get_user_by( 'email', $item['author_email'] );
-				if ( $user ) {
-					$post_data['post_author'] = $user->ID;
+		// Resolve author by email/login when provided (author IDs are not portable between sites).
+		$user = null;
+		if ( ! empty( $item['author_email'] ) && is_email( $item['author_email'] ) ) {
+			$user = get_user_by( 'email', $item['author_email'] );
+			if ( ! $user ) {
+				$base_login = sanitize_user( current( explode( '@', (string) $item['author_email'] ) ), true );
+				$login      = $base_login ? $base_login : 'imported_user';
+				$try        = $login;
+				$suffix     = 1;
+				while ( username_exists( $try ) ) {
+					$try = $login . '_' . $suffix;
+					++$suffix;
 				}
-			} elseif ( ! empty( $item['author_name'] ) ) {
-				$user = get_user_by( 'login', $item['author_name'] );
-				if ( $user ) {
-					$post_data['post_author'] = $user->ID;
+				$user_id = wp_insert_user(
+					[
+						'user_login'   => $try,
+						'user_pass'    => wp_generate_password( 24, true, true ),
+						'user_email'   => (string) $item['author_email'],
+						'display_name' => ! empty( $item['author_name'] ) ? (string) $item['author_name'] : $try,
+						'role'         => 'author',
+					]
+				);
+				if ( ! is_wp_error( $user_id ) ) {
+					$user = get_user_by( 'id', (int) $user_id );
 				}
 			}
+		}
+
+		if ( ! $user && ! empty( $item['author_name'] ) ) {
+			$user = get_user_by( 'login', (string) $item['author_name'] );
+		}
+
+		// If post_author is invalid and we couldn't resolve a user, clear it so defaults apply.
+		if ( ! $user && ! empty( $post_data['post_author'] ) ) {
+			$author_id = absint( $post_data['post_author'] );
+			if ( $author_id > 0 && ! get_user_by( 'id', $author_id ) ) {
+				unset( $post_data['post_author'] );
+			}
+		}
+
+		// If we resolved a user, use it as the author and ensure display_name matches export.
+		if ( $user ) {
+			if ( ! empty( $item['author_name'] ) ) {
+				$desired_name = (string) $item['author_name'];
+				if ( '' !== $desired_name && (string) $user->display_name !== $desired_name ) {
+					wp_update_user(
+						[
+							'ID'           => $user->ID,
+							'display_name' => $desired_name,
+						]
+					);
+					$user = get_user_by( 'id', $user->ID );
+				}
+			}
+			$post_data['post_author'] = $user->ID;
 		}
 
 		return array_merge( $defaults, $post_data );
@@ -807,8 +865,16 @@ class Post_Importer extends Abstract_Importer {
 				}
 			}
 
-			// Resolve ACF-specific structures (typed JSON, media URLs, etc.)
-			$value = $this->resolve_acf_meta_value( $value, $post_id );
+			// Resolve ACF-specific structures (typed JSON, media URLs, etc.).
+			//
+			// IMPORTANT: Some nested meta keys can be malformed and end with an underscore
+			// (e.g. `repeater_0_group_`) when an ACF sub-field name is empty. In these
+			// cases we do not have a reliable field reference to convert media URLs into
+			// attachment IDs, so keep the original portable URL/string to preserve parity.
+			$is_empty_named_nested_key = is_string( $key ) && '' !== $key && '_' === substr( (string) $key, -1 );
+			if ( ! $is_empty_named_nested_key ) {
+				$value = $this->resolve_acf_meta_value( $value, $post_id );
+			}
 
 			// For ACF fields, use update_field() so ACF stores the reference key
 			// (_field_name = 'field_abc123') automatically.  This makes the field
@@ -819,6 +885,18 @@ class Post_Importer extends Abstract_Importer {
 			// targets; we still want to write those values via ACF when possible.
 			$acf_field_key = '';
 			$db_field      = null;
+
+			// Nested ACF sub-field meta keys (repeaters/flexible content) look like:
+			// {field}_{row}_{subfield}
+			//
+			// For these keys, `get_field_object()` can incorrectly resolve to an unrelated
+			// top-level field with the same subfield name (e.g. "image"), which then
+			// causes update_field() to overwrite the wrong meta (we saw `image` being
+			// overwritten by `repeater_0_image`).
+			//
+			// To keep imports deterministic, always treat nested keys as raw meta and
+			// let ACF interpret them via the parent field (or the reference meta keys).
+			$is_nested_meta_key = is_string( $key ) && preg_match( '/_\\d+_/', (string) $key );
 
 			if ( $has_acf ) {
 				// Avoid formatting values while importing; see note above.
@@ -835,7 +913,7 @@ class Post_Importer extends Abstract_Importer {
 				}
 			}
 
-			$should_update_as_acf = $has_acf && ( isset( $acf_keys[ $key ] ) || ( is_array( $db_field ) && ! empty( $db_field['key'] ) ) || ( '' !== $acf_field_key ) );
+			$should_update_as_acf = $has_acf && ! $is_nested_meta_key && ( isset( $acf_keys[ $key ] ) || ( is_array( $db_field ) && ! empty( $db_field['key'] ) ) || ( '' !== $acf_field_key ) );
 
 			if ( $should_update_as_acf ) {
 				// Determine ACF field type (used for special-casing meta-format imports).
@@ -1596,6 +1674,43 @@ class Post_Importer extends Abstract_Importer {
 	}
 
 	/**
+	 * Update featured image attachment metadata (title/caption) when present in import.
+	 *
+	 * @param int   $post_id Post ID.
+	 * @param array $item    Prepared import item.
+	 */
+	private function maybe_update_featured_image_metadata( int $post_id, array $item ): void {
+		$has_title   = array_key_exists( 'featured_image_title', $item );
+		$has_caption = array_key_exists( 'featured_image_caption', $item );
+
+		if ( ! $has_title && ! $has_caption ) {
+			return;
+		}
+
+		$thumbnail_id = get_post_thumbnail_id( $post_id );
+		if ( ! $thumbnail_id ) {
+			return;
+		}
+
+		$update = [ 'ID' => (int) $thumbnail_id ];
+		$dirty  = false;
+
+		if ( $has_title ) {
+			$update['post_title'] = (string) ( $item['featured_image_title'] ?? '' );
+			$dirty                = true;
+		}
+
+		if ( $has_caption ) {
+			$update['post_excerpt'] = (string) ( $item['featured_image_caption'] ?? '' );
+			$dirty                  = true;
+		}
+
+		if ( $dirty ) {
+			wp_update_post( wp_slash( $update ) );
+		}
+	}
+
+	/**
 	 * Auto-import media from ACF fields
 	 * Processes ACF image, gallery, and file fields including nested repeaters and flexible content
 	 *
@@ -2171,18 +2286,32 @@ class Post_Importer extends Abstract_Importer {
 			if ( $remote_data && ! empty( $remote_data['hash'] ) && class_exists( '\\RockStarLab\ImportExport\\Helper\\Media_Hash' ) ) {
 				$by_hash = \RockStarLab\ImportExport\Helper\Media_Hash::get_attachment_by_hash( (string) $remote_data['hash'] );
 				if ( $by_hash ) {
-					return (int) $by_hash;
+					// Do not collapse distinct source files that happen to share identical
+					// contents (same hash) but different filenames. This can break field
+					// identity (e.g. ACF galleries where several attachments are separate
+					// records/URLs but contain the same bits).
+					$attached = get_post_meta( (int) $by_hash, '_wp_attached_file', true );
+					$base     = is_string( $attached ) ? wp_basename( $attached ) : '';
+					if ( $base && $base === (string) $filename ) {
+						return (int) $by_hash;
+					}
 				}
 			}
 		}
 
-		// First, find all attachments with matching filename
+		// First, find all attachments whose attached file basename matches exactly.
+		//
+		// IMPORTANT: Do NOT use a naive `LIKE %filename%` match here — filenames can be
+		// substrings of other filenames (e.g. "logo-1.jpg" matches "t-shirt-with-logo-1.jpg"),
+		// which can cause the importer to incorrectly treat a different attachment as a
+		// duplicate and map media URLs to the wrong file.
 		$attachment_ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
-				"SELECT post_id FROM $wpdb->postmeta 
-					WHERE meta_key = '_wp_attached_file' 
-				AND meta_value LIKE %s",
-				'%' . $wpdb->esc_like( $filename )
+				"SELECT post_id FROM $wpdb->postmeta
+					WHERE meta_key = '_wp_attached_file'
+					  AND ( meta_value = %s OR meta_value LIKE %s )",
+				(string) $filename,
+				'%/' . $wpdb->esc_like( (string) $filename )
 			)
 		);
 

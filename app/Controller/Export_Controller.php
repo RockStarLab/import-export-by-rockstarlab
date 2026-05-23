@@ -876,6 +876,13 @@ class Export_Controller extends Base_Controller {
 		global $wpdb;
 
 		$post_type = $this->get_request_param( 'post_type', 'post' );
+		$limit     = absint( $this->get_request_param( 'limit', 0 ) );
+		if ( $limit <= 0 ) {
+			$limit = 5000;
+		}
+		if ( $limit > 20000 ) {
+			$limit = 20000;
+		}
 
 		// Get unique meta keys for this post type
 		// phpcs:disable WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery -- \\_% is a valid SQL LIKE escape pattern, not a printf-style placeholder.
@@ -886,9 +893,11 @@ class Export_Controller extends Base_Controller {
 				INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
 				WHERE p.post_type = %s
 				AND pm.meta_key NOT LIKE '\\_%%'
+				AND pm.meta_value <> ''
 				ORDER BY pm.meta_key ASC
-				LIMIT 100",
-				$post_type
+				LIMIT %d",
+				$post_type,
+				$limit
 			)
 		);
 		// phpcs:enable WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery

@@ -1588,7 +1588,8 @@ const ImportModule = {
 		`;
 
 		// Insert before template
-		$template.before( fieldHtml );
+		const $newEl = jQuery( fieldHtml );
+		$template.before( $newEl );
 
 		// Add remove handler
 		$group
@@ -1597,6 +1598,8 @@ const ImportModule = {
 			.on( 'click', function () {
 				jQuery( this ).closest( '.rsl-ie-target-field' ).remove();
 			} );
+
+		return $newEl;
 	},
 
 	/**
@@ -1643,6 +1646,11 @@ const ImportModule = {
 						type: 'number',
 					},
 					{
+						value: 'author_name',
+						label: 'Author Name',
+						type: 'string',
+					},
+					{
 						value: 'author_email',
 						label: 'Author Email',
 						type: 'email',
@@ -1654,6 +1662,11 @@ const ImportModule = {
 				options: [
 					{
 						value: 'featured_image',
+						label: 'Featured Image (Legacy URL)',
+						type: 'string',
+					},
+					{
+						value: 'featured_image_url',
 						label: 'Featured Image URL',
 						type: 'string',
 					},
@@ -1661,6 +1674,16 @@ const ImportModule = {
 						value: 'featured_image_id',
 						label: 'Featured Image ID',
 						type: 'number',
+					},
+					{
+						value: 'featured_image_title',
+						label: 'Featured Image Title',
+						type: 'string',
+					},
+					{
+						value: 'featured_image_caption',
+						label: 'Featured Image Caption',
+						type: 'string',
 					},
 				],
 			},
@@ -4364,6 +4387,23 @@ const ImportModule = {
 
 		// Wait for DOM to be fully ready before mapping
 		setTimeout( () => {
+			const mappings = [];
+
+			// Build a fast lookup for existing target fields (avoids O(N^2) scans).
+			// Keyed by lowercased data-target-field.
+			const targetByName = new Map();
+			jQuery(
+				'.rsl-ie-target-field:not(.rsl-ie-custom-field-template)'
+			).each( ( i, el ) => {
+				const $el = jQuery( el );
+				const name = ( $el.data( 'target-field' ) || '' )
+					.toString()
+					.toLowerCase();
+				if ( name ) {
+					targetByName.set( name, $el );
+				}
+			} );
+
 			// PASS 0: Auto-create target fields for prefixed source columns
 			// (taxonomy_*, meta_*, acf_*) that don't yet have a matching target.
 			// This lets Pass 1 (exact match) pick them up automatically.
@@ -4373,12 +4413,7 @@ const ImportModule = {
 				if ( ! sourceField ) return;
 
 				// Skip if a target field with this exact name already exists.
-				if (
-					jQuery(
-						`.rsl-ie-target-field[data-target-field="${ sourceField }"]`
-					).length
-				)
-					return;
+				if ( targetByName.has( sourceField.toLowerCase() ) ) return;
 
 				let fieldType = null;
 				if ( sourceField.startsWith( 'taxonomy_' ) ) {
@@ -4405,13 +4440,18 @@ const ImportModule = {
 				const taxonomyFormat = fieldType === 'taxonomy' ? 'name' : '';
 
 				// Add a real target field with the full prefixed name so Pass 1 can exact-match it.
-				this.addCustomFieldToGroup(
+				const $newTarget = this.addCustomFieldToGroup(
 					$template,
 					sourceField,
 					fieldType,
 					false,
 					taxonomyFormat
 				);
+
+				// Keep lookup map in sync for Pass 1.
+				if ( $newTarget && $newTarget.length ) {
+					targetByName.set( sourceField.toLowerCase(), $newTarget );
+				}
 			} );
 
 			// PASS 1: Map exact matches first (highest priority)
@@ -4423,36 +4463,37 @@ const ImportModule = {
 				if ( ! sourceField ) return;
 
 				const sourceFieldLower = sourceField.toLowerCase();
-				let matched = false;
+				const $targetField = targetByName.get( sourceFieldLower );
+				if ( ! $targetField || ! $targetField.length ) return;
+				if ( $targetField.hasClass( 'has-mapping' ) ) return;
 
-				// Look for EXACT match only
-				jQuery(
-					'.rsl-ie-target-field:not(.rsl-ie-custom-field-template)'
-				).each( ( i, targetField ) => {
-					if ( matched ) return;
+				// Mark mapping on target (UI indicator).
+				$targetField.find( '.rsl-ie-mapped-source' ).remove();
+				const mappedHtml = `
+					<div class="rsl-ie-mapped-source">
+						<span class="rsl-ie-source-name">${ Utils.escapeHtml(
+							$sourceCard.data( 'source-field' )
+						) }</span>
+						<span class="dashicons dashicons-no-alt rsl-ie-remove-mapping"></span>
+					</div>
+				`;
+				$targetField.find( '.rsl-ie-field-info' ).append( mappedHtml );
+				$targetField.addClass( 'has-mapping' );
+				$targetField.data( 'mapped-source-index', sourceIndex );
+				$targetField.data(
+					'mapped-source-field',
+					$sourceCard.data( 'source-field' )
+				);
 
-					const $targetField = jQuery( targetField );
-					const targetFieldData = $targetField.data( 'target-field' );
-
-					if ( ! targetFieldData ) return;
-					if ( $targetField.hasClass( 'has-mapping' ) ) return;
-
-					const targetFieldValue = targetFieldData.toLowerCase();
-
-					// ONLY exact match in pass 1
-					if ( sourceFieldLower === targetFieldValue ) {
-						this.createMapping(
-							$sourceCard.data( 'source-field' ),
-							sourceIndex,
-							$targetField.data( 'target-field' ),
-							$targetField.data( 'field-type' ),
-							$targetField
-						);
-
-						$sourceCard.addClass( 'used mapped' );
-						matched = true;
-					}
+				// Accumulate mappings for the mapped-fields section (rendered in one pass).
+				mappings.push( {
+					sourceField: $sourceCard.data( 'source-field' ),
+					sourceIndex,
+					targetField: $targetField.data( 'target-field' ),
+					fieldType: $targetField.data( 'field-type' ),
 				} );
+
+				$sourceCard.addClass( 'used mapped' );
 			} );
 
 			// PASS 2: Map remaining fields with fuzzy matching
@@ -4510,13 +4551,39 @@ const ImportModule = {
 						}
 
 						if ( matchType ) {
-							this.createMapping(
-								$sourceCard.data( 'source-field' ),
-								sourceIndex,
-								$targetField.data( 'target-field' ),
-								$targetField.data( 'field-type' ),
-								$targetField
+							// Mark mapping on target (UI indicator).
+							$targetField
+								.find( '.rsl-ie-mapped-source' )
+								.remove();
+							const mappedHtml = `
+								<div class="rsl-ie-mapped-source">
+									<span class="rsl-ie-source-name">${ Utils.escapeHtml(
+										$sourceCard.data( 'source-field' )
+									) }</span>
+									<span class="dashicons dashicons-no-alt rsl-ie-remove-mapping"></span>
+								</div>
+							`;
+							$targetField
+								.find( '.rsl-ie-field-info' )
+								.append( mappedHtml );
+							$targetField.addClass( 'has-mapping' );
+							$targetField.data(
+								'mapped-source-index',
+								sourceIndex
 							);
+							$targetField.data(
+								'mapped-source-field',
+								$sourceCard.data( 'source-field' )
+							);
+
+							// Accumulate mappings for the mapped-fields section.
+							mappings.push( {
+								sourceField: $sourceCard.data( 'source-field' ),
+								sourceIndex,
+								targetField:
+									$targetField.data( 'target-field' ),
+								fieldType: $targetField.data( 'field-type' ),
+							} );
 
 							$sourceCard.addClass( 'used mapped' );
 							matched = true;
@@ -4524,6 +4591,49 @@ const ImportModule = {
 					} );
 				}
 			);
+
+			// Render mapped fields section in a single DOM update (much faster than
+			// appending one row per mapping).
+			const $container = jQuery( '.rsl-ie-mapped-fields' );
+			$container.find( '.rsl-ie-empty-state' ).hide();
+			let rowsHtml = '';
+			mappings.forEach( ( m ) => {
+				rowsHtml += `
+					<div class="rsl-ie-mapping-row" data-source-index="${
+						m.sourceIndex
+					}" data-target-field="${ m.targetField }">
+						<div class="rsl-ie-source-col">
+							<span class="dashicons dashicons-media-spreadsheet"></span>
+							<strong>${ Utils.escapeHtml( m.sourceField ) }</strong>
+						</div>
+						<div class="rsl-ie-arrow">→</div>
+						<div class="rsl-ie-target-col">
+							<span class="dashicons dashicons-wordpress"></span>
+							<strong>${ m.targetField }</strong>
+						</div>
+						<div class="rsl-ie-mapping-actions">
+							<button type="button" class="button button-small rsl-ie-add-function" data-source-index="${
+								m.sourceIndex
+							}" data-target-field="${ m.targetField }" title="${
+								window.rslIeData.i18n
+									.addTransformationFunction ||
+								'Add transformation function'
+							}">
+								<span class="dashicons dashicons-admin-tools"></span>
+							</button>
+							<button type="button" class="button button-small rsl-ie-remove-row-mapping" data-source-index="${
+								m.sourceIndex
+							}" data-target-field="${ m.targetField }" title="${
+								window.rslIeData.i18n.removeMapping ||
+								'Remove mapping'
+							}">
+								<span class="dashicons dashicons-no-alt"></span>
+							</button>
+						</div>
+					</div>
+				`;
+			} );
+			$container.html( rowsHtml );
 		}, 50 );
 
 		// Use setTimeout to ensure DOM is fully updated before counting
