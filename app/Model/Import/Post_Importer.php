@@ -697,6 +697,12 @@ class Post_Importer extends Abstract_Importer {
 			$post_data['post_author'] = $user->ID;
 		}
 
+		// When updating drafts/pending/auto-drafts, WordPress may override post_date to "now"
+		// unless edit_date is explicitly set. Ensure imported dates are preserved.
+		if ( ! empty( $post_data['post_date'] ) ) {
+			$post_data['edit_date'] = true;
+		}
+
 		return array_merge( $defaults, $post_data );
 	}
 
@@ -2161,6 +2167,18 @@ class Post_Importer extends Abstract_Importer {
 				continue;
 			}
 
+			// Theme/plugin assets are not attachments and should not be imported into Media Library.
+			// Instead, just rewrite them to this site's domain to preserve content parity.
+			$parsed_path = wp_parse_url( $url, PHP_URL_PATH );
+			if ( is_string( $parsed_path ) && ( 0 === strpos( $parsed_path, '/wp-content/themes/' ) || 0 === strpos( $parsed_path, '/wp-content/plugins/' ) ) ) {
+				$url_mapping[ $url ] = [
+					'url' => home_url( $parsed_path ),
+					'id'  => 0,
+				];
+				++$skipped_count;
+				continue;
+			}
+
 			// Check for existing media by filename, size and hash
 			$filename            = basename( wp_parse_url( $url, PHP_URL_PATH ) );
 			$existing_attachment = $this->find_existing_media( $filename, $url );
@@ -2247,22 +2265,25 @@ class Post_Importer extends Abstract_Importer {
 			// Replace URL-encoded versions (common in Gutenberg)
 			$content = str_replace( urlencode( $old_url ), urlencode( $new_url ), $content );
 
-			// Try to find and replace attachment IDs in Gutenberg blocks
-			// Pattern: "id":123 near the URL
-			$old_id_pattern = '/"id"\s*:\s*(\d+)([^}]*"url"\s*:\s*"' . preg_quote( $old_url, '/' ) . '")/';
-			$content        = preg_replace(
-				$old_id_pattern,
-				'"id":' . $new_id . '$2',
-				$content
-			);
+			// Try to find and replace attachment IDs in Gutenberg blocks when we have
+			// a real target attachment ID.
+			if ( is_numeric( $new_id ) && (int) $new_id > 0 ) {
+				// Pattern: "id":123 near the URL
+				$old_id_pattern = '/"id"\s*:\s*(\d+)([^}]*"url"\s*:\s*"' . preg_quote( $old_url, '/' ) . '")/';
+				$content        = preg_replace(
+					$old_id_pattern,
+					'"id":' . (int) $new_id . '$2',
+					$content
+				);
 
-			// Also try reverse order: URL before ID
-			$old_id_pattern_reverse = '/("url"\s*:\s*"' . preg_quote( $old_url, '/' ) . '"[^}]*"id"\s*:\s*)(\d+)/';
-			$content                = preg_replace(
-				$old_id_pattern_reverse,
-				'$1' . $new_id,
-				$content
-			);
+				// Also try reverse order: URL before ID
+				$old_id_pattern_reverse = '/("url"\s*:\s*"' . preg_quote( $old_url, '/' ) . '"[^}]*"id"\s*:\s*)(\d+)/';
+				$content                = preg_replace(
+					$old_id_pattern_reverse,
+					'$1' . (int) $new_id,
+					$content
+				);
+			}
 		}
 
 		return $content;
