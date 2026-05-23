@@ -1612,7 +1612,7 @@ class Post_Exporter extends Abstract_Exporter {
 					$field_type = is_array( $field_cfg ) ? ( $field_cfg['type'] ?? '' ) : '';
 
 					// Only apply to field types where portability matters across sites.
-					if ( $field_cfg && in_array( $field_type, [ 'image', 'file', 'gallery', 'relationship', 'post_object', 'taxonomy', 'user' ], true ) ) {
+					if ( $field_cfg && in_array( $field_type, [ 'image', 'file', 'gallery', 'relationship', 'post_object', 'taxonomy', 'user', 'page_link' ], true ) ) {
 						$exported = $this->acf_export_value_from_meta( $post->ID, $field_cfg, $meta_key );
 						if ( is_array( $exported ) || is_object( $exported ) ) {
 							$data[ $field ] = wp_json_encode( $exported );
@@ -2546,11 +2546,48 @@ class Post_Exporter extends Abstract_Exporter {
 			case 'page_link':
 				$raw = get_post_meta( $post_id, $base_meta_key, true );
 				$val = maybe_unserialize( $raw );
-				if ( is_numeric( $val ) ) {
-					$url = get_permalink( (int) $val );
-					return $url ? $url : (string) $val;
+
+				// ACF stores page_link values as post IDs in meta. Some return formats
+				// can expose URLs through get_field(), but for portability we export
+				// relation slugs so the importer can resolve them on the target site.
+				$ids    = [];
+				$single = true;
+
+				if ( is_array( $val ) ) {
+					$single = false;
+					foreach ( $val as $v ) {
+						if ( is_numeric( $v ) ) {
+							$ids[] = (int) $v;
+						} elseif ( is_string( $v ) && filter_var( $v, FILTER_VALIDATE_URL ) ) {
+							$maybe_id = url_to_postid( $v );
+							if ( $maybe_id ) {
+								$ids[] = (int) $maybe_id;
+							}
+						}
+					}
+				} elseif ( is_numeric( $val ) ) {
+					$ids[] = (int) $val;
+				} elseif ( is_string( $val ) && filter_var( $val, FILTER_VALIDATE_URL ) ) {
+					$maybe_id = url_to_postid( $val );
+					if ( $maybe_id ) {
+						$ids[] = (int) $maybe_id;
+					} else {
+						// Could be an archive URL or a custom URL.
+						return $val;
+					}
+				} else {
+					return $val;
 				}
-				return $val;
+
+				$values  = $this->acf_export_relation_values_from_ids( $ids );
+				$payload = [
+					'acf_type' => 'relation',
+					'values'   => $values,
+				];
+				if ( $single ) {
+					$payload['single'] = true;
+				}
+				return $payload;
 		}
 
 		// Default: return raw meta, decoding serialized arrays/objects.
