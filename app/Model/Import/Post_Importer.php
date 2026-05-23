@@ -1686,10 +1686,45 @@ class Post_Importer extends Abstract_Importer {
 	 * @param array $item    Prepared import item.
 	 */
 	private function maybe_update_featured_image_metadata( int $post_id, array $item ): void {
-		$has_title   = array_key_exists( 'featured_image_title', $item );
-		$has_caption = array_key_exists( 'featured_image_caption', $item );
+		$has_title     = array_key_exists( 'featured_image_title', $item );
+		$has_caption   = array_key_exists( 'featured_image_caption', $item );
+		$has_alt       = false;
+		$title_value   = $has_title ? (string) ( $item['featured_image_title'] ?? '' ) : '';
+		$caption_value = $has_caption ? (string) ( $item['featured_image_caption'] ?? '' ) : '';
+		$alt_text      = '';
+		$decoded       = null;
 
-		if ( ! $has_title && ! $has_caption ) {
+		// Metadata can be exported inside the JSON/array form of `featured_image`.
+		if ( array_key_exists( 'featured_image', $item ) ) {
+			$featured_image = $item['featured_image'];
+
+			if ( is_array( $featured_image ) ) {
+				$decoded = $featured_image;
+			} elseif ( is_string( $featured_image ) && '' !== $featured_image && '{' === $featured_image[0] ) {
+				$maybe = json_decode( $featured_image, true );
+				if ( is_array( $maybe ) ) {
+					$decoded = $maybe;
+				}
+			}
+		}
+
+		// Fall back to JSON/array values when dedicated columns were not mapped.
+		if ( is_array( $decoded ) ) {
+			if ( ! $has_title && array_key_exists( 'title', $decoded ) ) {
+				$has_title   = true;
+				$title_value = (string) $decoded['title'];
+			}
+			if ( ! $has_caption && array_key_exists( 'caption', $decoded ) ) {
+				$has_caption   = true;
+				$caption_value = (string) $decoded['caption'];
+			}
+			if ( array_key_exists( 'alt', $decoded ) ) {
+				$has_alt  = true;
+				$alt_text = (string) $decoded['alt'];
+			}
+		}
+
+		if ( ! $has_title && ! $has_caption && ! $has_alt ) {
 			return;
 		}
 
@@ -1702,17 +1737,21 @@ class Post_Importer extends Abstract_Importer {
 		$dirty  = false;
 
 		if ( $has_title ) {
-			$update['post_title'] = (string) ( $item['featured_image_title'] ?? '' );
+			$update['post_title'] = $title_value;
 			$dirty                = true;
 		}
 
 		if ( $has_caption ) {
-			$update['post_excerpt'] = (string) ( $item['featured_image_caption'] ?? '' );
+			$update['post_excerpt'] = $caption_value;
 			$dirty                  = true;
 		}
 
 		if ( $dirty ) {
 			wp_update_post( wp_slash( $update ) );
+		}
+
+		if ( $has_alt ) {
+			update_post_meta( (int) $thumbnail_id, '_wp_attachment_image_alt', sanitize_text_field( $alt_text ) );
 		}
 	}
 
