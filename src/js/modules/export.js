@@ -3289,6 +3289,13 @@ const ExportModule = {
 							type: 'array',
 						},
 						{
+							value: 'refunds',
+							label:
+								window.rslIeData.i18n.fieldRefundsArray ||
+								'Refunds (Array)',
+							type: 'array',
+						},
+						{
 							value: 'order_meta',
 							label: 'Order Meta',
 							type: 'array',
