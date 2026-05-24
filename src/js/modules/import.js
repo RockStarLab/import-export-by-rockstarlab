@@ -2772,6 +2772,11 @@ const ImportModule = {
 							type: 'json',
 						},
 						{
+							value: 'refunds',
+							label: 'Refunds (JSON)',
+							type: 'json',
+						},
+						{
 							value: 'order_meta',
 							label: 'Order Meta (JSON)',
 							type: 'json',
