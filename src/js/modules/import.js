@@ -5249,6 +5249,7 @@ const ImportModule = {
 			'page',
 			'custom_post_types',
 			'product',
+			'woo_product',
 		];
 
 		// Show media options ONLY if contentType is in the supported list
