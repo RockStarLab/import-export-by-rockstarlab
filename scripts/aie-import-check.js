@@ -77,11 +77,12 @@ function loadEnv() {
 		return '';
 	} )();
 
-	const localPhpFromLocalApp =
-		'/Applications/Local.app/Contents/Resources/extraResources/lightning-services/php-8.2.27+1/bin/darwin-arm64/bin/php';
-	const localPhpDefault = fs.existsSync( localPhpFromLocalApp )
-		? localPhpFromLocalApp
-		: 'php';
+	const localPhpCandidates = [
+		'/Applications/Local.app/Contents/Resources/extraResources/lightning-services/php-8.2.29+0/bin/darwin-arm64/bin/php',
+		'/Applications/Local.app/Contents/Resources/extraResources/lightning-services/php-8.2.27+1/bin/darwin-arm64/bin/php',
+	];
+	const localPhpDefault =
+		localPhpCandidates.find( ( p ) => fs.existsSync( p ) ) || 'php';
 
 	return {
 		headless,
@@ -211,6 +212,22 @@ async function waitStep( page, stepNum ) {
 }
 
 async function clickNextStep( page ) {
+	// Occasionally a review notice floats over the wizard and intercepts clicks.
+	const review = page.locator( '#rsl-ie-review-notice' ).first();
+	if ( await review.count().catch( () => 0 ) ) {
+		await page
+			.locator( '#rsl-ie-review-notice .rsl-ie-review-dismiss' )
+			.first()
+			.click()
+			.catch( () => null );
+		await review
+			.evaluate( ( el ) => {
+				el.style.display = 'none';
+				el.style.pointerEvents = 'none';
+			} )
+			.catch( () => null );
+	}
+
 	const next = page.locator( '.rsl-ie-step.active .rsl-ie-next-step' );
 	await next.waitFor( { state: 'visible', timeout: 60_000 } );
 	await page
@@ -328,7 +345,11 @@ async function selectOptionByValueOrText( select, { value, textRe } ) {
 	return '';
 }
 
-async function configureRequiredSelectorsOnExportStep2( page, contentType ) {
+async function configureRequiredSelectorsOnExportStep2(
+	page,
+	contentType,
+	selectorHints = {}
+) {
 	if ( contentType === 'custom_post_types' ) {
 		const row = await addFilterRow( page );
 		const rowSel = await tagRowForEval( row );
@@ -396,6 +417,14 @@ async function configureRequiredSelectorsOnExportStep2( page, contentType ) {
 			);
 			return sel && sel.querySelectorAll( 'option' ).length > 1;
 		} );
+		await page
+			.waitForFunction( () => {
+				const sel = document.querySelector(
+					'.rsl-ie-step-2.active #rsl-ie-table-name'
+				);
+				return sel && ! sel.disabled;
+			} )
+			.catch( () => null );
 
 		const options = tableSel.locator( 'option[value]' );
 		const count = await options.count();
@@ -411,12 +440,110 @@ async function configureRequiredSelectorsOnExportStep2( page, contentType ) {
 			if ( ! v ) continue;
 			candidates.push( { v, t } );
 		}
-		const preferred =
+		const refreshBtn = page
+			.locator( '.rsl-ie-step-2.active .rsl-ie-refresh-count' )
+			.first();
+
+		const readCount = async () => {
+			const t = await page
+				.locator( '.rsl-ie-step-2.active .rsl-ie-count-value' )
+				.first()
+				.innerText()
+				.catch( () => '-' );
+			const s = String( t || '' ).trim();
+			if ( ! s || s === '-' ) return null;
+			const n = Number( s.replace( /[^0-9]/g, '' ) );
+			return Number.isFinite( n ) ? n : null;
+		};
+
+		const hint = String(
+			selectorHints.tableName ||
+				selectorHints.preferredTable ||
+				selectorHints.dbTablePreferred ||
+				selectorHints.dbTable ||
+				''
+		).trim();
+
+		const stablePreferred =
+			candidates.find( ( x ) => /_terms$/i.test( x.v ) ) ||
+			candidates.find( ( x ) => /_term_taxonomy$/i.test( x.v ) ) ||
+			candidates.find( ( x ) => /_term_relationships$/i.test( x.v ) );
+
+		const fallback =
 			candidates.find(
-				( x ) => /otbo|mask/i.test( x.v ) || /otbo|mask/i.test( x.t )
-			) || candidates.find( ( x ) => ! /wp_users/i.test( x.v ) );
-		if ( preferred ) await tableSel.selectOption( { value: preferred.v } );
-		return { tableName: await tableSel.inputValue().catch( () => '' ) };
+				( x ) =>
+					! /_users$/i.test( x.v ) &&
+					! /_postmeta$/i.test( x.v ) &&
+					! /_options$/i.test( x.v ) &&
+					! /_rsl_ie_jobs$/i.test( x.v )
+			) || candidates[ 0 ];
+
+		const chosenValue =
+			( hint && candidates.some( ( x ) => x.v === hint ) && hint ) ||
+			( stablePreferred && stablePreferred.v ) ||
+			( fallback && fallback.v ) ||
+			'';
+
+		if ( chosenValue ) {
+			// Mandatory: pick a table in step 2.
+			await tableSel.selectOption( { value: chosenValue } );
+
+			// Wait for selection to settle.
+			await page
+				.waitForFunction( ( v ) => {
+					const sel = document.querySelector(
+						'.rsl-ie-step-2.active #rsl-ie-table-name'
+					);
+					return sel && sel.value === v;
+				}, chosenValue )
+				.catch( () => null );
+
+			// Prefer the automatic refresh triggered by table change, but fall back to manual refresh.
+			await page
+				.waitForFunction( () => {
+					const el = document.querySelector(
+						'.rsl-ie-step-2.active .rsl-ie-count-value'
+					);
+					if ( ! el ) return false;
+					const t = String( el.textContent || '' ).trim();
+					if ( ! t || t === '-' ) return false;
+					const n = Number( t.replace( /[^0-9]/g, '' ) );
+					return Number.isFinite( n ) && n > 0;
+				} )
+				.catch( () => null );
+
+			const c0 = await readCount();
+			if ( ! ( typeof c0 === 'number' && c0 > 0 ) ) {
+				if ( await refreshBtn.count() ) {
+					await refreshBtn.click().catch( () => null );
+					await page
+						.waitForFunction( () => {
+							const el = document.querySelector(
+								'.rsl-ie-step-2.active .rsl-ie-count-value'
+							);
+							if ( ! el ) return false;
+							const t = String( el.textContent || '' ).trim();
+							if ( ! t || t === '-' ) return false;
+							const n = Number( t.replace( /[^0-9]/g, '' ) );
+							return Number.isFinite( n ) && n > 0;
+						} )
+						.catch( () => null );
+				}
+			}
+		}
+
+		const chosenTable = await tableSel.inputValue().catch( () => '' );
+		const c = await readCount();
+		if ( typeof c !== 'number' || c <= 0 ) {
+			// Export UI disables Next when count is 0; fail early with a clear reason.
+			throw new Error(
+				`Selected DB table has no rows or count not ready: ${ chosenTable } (count=${
+					c ?? 'n/a'
+				})`
+			);
+		}
+
+		return { tableName: chosenTable };
 	}
 
 	return {};
@@ -563,9 +690,11 @@ async function exportCsvFromSource(
 	await clickNextStep( page );
 	await waitStep( page, 2 );
 
-	const required =
-		requiredSelectors ||
-		( await configureRequiredSelectorsOnExportStep2( page, contentType ) );
+	const required = await configureRequiredSelectorsOnExportStep2(
+		page,
+		contentType,
+		requiredSelectors || {}
+	);
 
 	if ( filter && filter.kind === 'id' && filter.value ) {
 		await addIdEqualsFilter( page, { idValue: filter.value } );
@@ -577,8 +706,26 @@ async function exportCsvFromSource(
 	await selectAllFieldsOnStep3( page );
 	await waitStep( page, 4 );
 
+	if ( contentType === 'database_table' ) {
+		const iter = page
+			.locator(
+				'.rsl-ie-step-4.active input[name="items_per_iteration"]'
+			)
+			.first();
+		if ( await iter.count() ) {
+			await iter.fill( '200' ).catch( () => null );
+		}
+	}
+
 	await page.locator( '.rsl-ie-start-export' ).click();
-	await waitStep( page, 5 );
+	// DB table exports may take noticeably longer than posts/media.
+	if ( contentType === 'database_table' ) {
+		await page.waitForSelector( `.rsl-ie-step-5.active`, {
+			timeout: 10 * 60_000,
+		} );
+	} else {
+		await waitStep( page, 5 );
+	}
 
 	const completeCard = page.locator( '.rsl-ie-export-complete-card' );
 	await completeCard.waitFor( { state: 'visible', timeout: 5 * 60_000 } );
@@ -869,6 +1016,16 @@ async function importIntoTarget(
 			preferredTable: tableName,
 			patterns: [ 'otbo', 'mask' ],
 		} );
+		// Wait for target fields to refresh after selecting the table.
+		await page
+			.waitForFunction( () => {
+				return (
+					document.querySelectorAll(
+						'.rsl-ie-step-4.active .rsl-ie-target-field'
+					).length > 0
+				);
+			} )
+			.catch( () => null );
 		await page.waitForTimeout( 300 );
 	}
 
@@ -2083,14 +2240,155 @@ function diffWooAttributesIndex( expectedItems, actualItems ) {
 	return diffs;
 }
 
+function dumpDbTableStable( env, wpPath, tableName, { chunkSize = 500 } = {} ) {
+	const safe = String( tableName || '' ).trim();
+	const chunk = Math.max( 1, Number( chunkSize || 500 ) || 500 );
+	const php = `
+$table = ${ JSON.stringify( safe ) };
+$chunk = max(1, (int) ${ JSON.stringify( chunk ) });
+global $wpdb;
+$bt = chr(96); // backtick for SQL identifiers
+
+if ($table === '') {
+  echo wp_json_encode(['error' => 'missing_table'], JSON_UNESCAPED_SLASHES);
+  return;
+}
+
+$exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table));
+if (!$exists) {
+  echo wp_json_encode(['error' => 'not_found', 'table' => $table], JSON_UNESCAPED_SLASHES);
+  return;
+}
+
+$cols = $wpdb->get_results(
+  $wpdb->prepare(
+    "SELECT COLUMN_NAME as name, COLUMN_KEY as col_key
+     FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
+     ORDER BY ORDINAL_POSITION",
+    DB_NAME,
+    $table
+  )
+);
+$columns = [];
+$primary = [];
+if (is_array($cols)) {
+  foreach ($cols as $c) {
+    $name = (string) ($c->name ?? '');
+    if ($name === '') continue;
+    $columns[] = $name;
+    if ((string) ($c->col_key ?? '') === 'PRI') $primary[] = $name;
+  }
+}
+
+$count = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$bt}{$table}{$bt}");
+
+// Stable ordering.
+$orderCols = !empty($primary) ? $primary : ( !empty($columns) ? [ $columns[0] ] : [] );
+$orderBy = '';
+if (!empty($orderCols)) {
+  $orderBy = ' ORDER BY ' . implode(', ', array_map(function($c) use ($bt){
+    return $bt . str_replace($bt,'', $c) . $bt;
+  }, $orderCols));
+}
+
+$ctx = hash_init('sha256');
+$offset = 0;
+while ($offset < $count) {
+  $sql = "SELECT * FROM {$bt}{$table}{$bt}{$orderBy} LIMIT {$chunk} OFFSET {$offset}";
+  $rows = $wpdb->get_results($sql, ARRAY_A);
+  if (empty($rows)) break;
+  foreach ($rows as $r) {
+    if (is_array($r)) { ksort($r); }
+    hash_update($ctx, wp_json_encode($r, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
+    hash_update($ctx, \"\\n\");
+  }
+  $offset += $chunk;
+}
+$hash = hash_final($ctx);
+
+echo wp_json_encode([
+  'table' => $table,
+  'count' => $count,
+  'columns' => $columns,
+  'primary' => $primary,
+  'order_by' => $orderCols,
+  'hash' => $hash,
+], JSON_UNESCAPED_SLASHES);
+`;
+	const out = wpEvalJson( env, wpPath, php );
+	return out && ! out.error
+		? out
+		: { error: ( out && out.error ) || 'unknown', table: safe };
+}
+
+function pickDbTablesForTest( env, wpPath ) {
+	const php = `
+global $wpdb;
+$prefix = (string) ($wpdb->prefix ?? 'wp_');
+$bt = chr(96); // backtick for identifiers
+
+$candidates = [
+  [
+    'suffix' => 'terms',
+    'unique' => ['term_id','slug','name'],
+    'max_count' => 5000,
+  ],
+  [
+    'suffix' => 'term_taxonomy',
+    'unique' => ['term_taxonomy_id','term_id','taxonomy'],
+    'max_count' => 5000,
+  ],
+];
+
+$out = [];
+foreach ($candidates as $c) {
+  $table = $prefix . (string) ($c['suffix'] ?? '');
+  if ($table === $prefix) continue;
+  $exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table));
+  if (!$exists) continue;
+  $count = (int) $wpdb->get_var(\"SELECT COUNT(*) FROM \" . $bt . $table . $bt);
+  if ($count <= 0) continue;
+  $max = (int) ($c['max_count'] ?? 0);
+  if ($max > 0 && $count > $max) continue;
+  $out[] = [
+    'table' => $table,
+    'count' => $count,
+    'unique' => array_values(array_filter((array) ($c['unique'] ?? []))),
+  ];
+}
+
+usort($out, function($a,$b){
+  return (int)($a['count'] ?? 0) <=> (int)($b['count'] ?? 0);
+});
+
+echo wp_json_encode([
+  'prefix' => $prefix,
+  'tables' => $out,
+], JSON_UNESCAPED_SLASHES);
+`;
+	const out = wpEvalJson( env, wpPath, php );
+	return out && Array.isArray( out.tables ) ? out.tables : [];
+}
+
+function rmrf( p ) {
+	try {
+		fs.rmSync( p, { recursive: true, force: true } );
+	} catch {}
+}
+
+function cleanupPluginTempFilesForWpPath( wpPath ) {
+	const uploads = path.join( wpPath, 'wp-content', 'uploads' );
+	rmrf( path.join( uploads, 'import-export-by-rockstarlab-files' ) );
+	rmrf( path.join( uploads, 'rsl-ie-uploads' ) );
+}
+
 async function run() {
 	const env = loadEnv();
 
 	const artifactsRoot = path.resolve(
-		process.cwd(),
-		'e2e',
-		'artifacts',
-		'aie-import-check',
+		os.tmpdir(),
+		'rsl-ie-aie-import-check',
 		nowStamp()
 	);
 	mkdirp( artifactsRoot );
@@ -2634,27 +2932,54 @@ async function run() {
 		}
 
 		if ( env.types.includes( 'database_table' ) ) {
-			cases.push( {
-				type: 'database_table',
-				label: 'database_table:table-selected:auto-map',
-				export: async () => {
-					// Table selection happens in UI; return placeholder.
-					return {
-						filter: null,
-						identity: { kind: 'db-table' },
-						sourceObjectId: '',
-					};
-				},
-				importOptions: {
-					ifExists: 'update',
-					ifNotExists: 'create',
-					autoImportMedia: true,
-					mediaDuplicateMode: 'skip',
-					uniqueFieldPreferred: [],
-				},
-				resolveTargetObjectId: () => '',
-				expectAcf: false,
-			} );
+			const tables = pickDbTablesForTest( env, env.source.wpPath );
+			if ( ! tables.length ) {
+				cases.push( {
+					type: 'database_table',
+					label: 'database_table:no-suitable-table',
+					export: async () => ( {
+						skipped: true,
+						reason: 'no-suitable-db-tables-found',
+					} ),
+					importOptions: {},
+					resolveTargetObjectId: () => '',
+					expectAcf: false,
+				} );
+			}
+			for ( const t of tables ) {
+				cases.push( {
+					type: 'database_table',
+					label: `database_table:${ t.table }:hash-match`,
+					export: async () => {
+						const expected = dumpDbTableStable(
+							env,
+							env.source.wpPath,
+							t.table
+						);
+						return {
+							filter: null,
+							requiredSelectors: { preferredTable: t.table },
+							identity: {
+								kind: 'db-table',
+								table: t.table,
+								expected,
+							},
+							sourceObjectId: '',
+						};
+					},
+					importOptions: {
+						ifExists: 'update',
+						ifNotExists: 'create',
+						autoImportMedia: true,
+						mediaDuplicateMode: 'skip',
+						uniqueFieldPreferred: Array.isArray( t.unique )
+							? t.unique
+							: [],
+					},
+					resolveTargetObjectId: () => '',
+					expectAcf: false,
+				} );
+			}
 		}
 
 		for ( const c of cases ) {
@@ -2816,6 +3141,64 @@ async function run() {
 							totalFields: importRes.mappingStats.totalFields,
 							unmapped: unmapped,
 						} );
+					}
+				}
+
+				// Database tables: verify source vs target table content hashes match.
+				if ( c.type === 'database_table' ) {
+					const tableName = String(
+						exp?.required?.tableName ||
+							exportInfo?.identity?.table ||
+							''
+					).trim();
+					if ( ! tableName ) {
+						result.status = 'issues';
+						result.errors.push( {
+							kind: 'db-table-missing',
+							reason: 'export-required.tableName-missing',
+						} );
+					} else {
+						const expected =
+							exportInfo?.identity?.expected ||
+							dumpDbTableStable(
+								env,
+								env.source.wpPath,
+								tableName
+							);
+						const actual = dumpDbTableStable(
+							env,
+							env.target.wpPath,
+							tableName
+						);
+						result.dbTable = {
+							table: tableName,
+							source: expected,
+							target: actual,
+						};
+						if (
+							expected?.error ||
+							actual?.error ||
+							Number( expected?.count || 0 ) !==
+								Number( actual?.count || 0 ) ||
+							String( expected?.hash || '' ) !==
+								String( actual?.hash || '' )
+						) {
+							result.status = 'issues';
+							result.errors.push( {
+								kind: 'db-table-mismatch',
+								table: tableName,
+								source: expected,
+								target: actual,
+							} );
+							fs.writeFileSync(
+								path.join( caseDir, 'db-table-source.json' ),
+								JSON.stringify( expected, null, 2 )
+							);
+							fs.writeFileSync(
+								path.join( caseDir, 'db-table-target.json' ),
+								JSON.stringify( actual, null, 2 )
+							);
+						}
 					}
 				}
 
@@ -3083,15 +3466,19 @@ async function run() {
 		);
 
 		if ( summary.issues.length ) process.exitCode = 1;
-		console.log(
-			`[done] Summary: ${ path.join( artifactsRoot, 'summary.json' ) }`
-		);
+		console.log( '[done] Summary:' );
+		console.log( JSON.stringify( summary, null, 2 ) );
 	} finally {
 		await targetPage.close().catch( () => {} );
 		await sourcePage.close().catch( () => {} );
 		await targetCtx.close().catch( () => {} );
 		await sourceCtx.close().catch( () => {} );
 		await browser.close().catch( () => {} );
+
+		// Disk hygiene: remove plugin temp files and our local artifacts.
+		cleanupPluginTempFilesForWpPath( env.source.wpPath );
+		cleanupPluginTempFilesForWpPath( env.target.wpPath );
+		rmrf( artifactsRoot );
 	}
 }
 
