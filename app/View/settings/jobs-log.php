@@ -20,6 +20,7 @@ defined( 'ABSPATH' ) || exit;
 					<option value=""><?php esc_html_e( 'All Types', 'import-export-by-rockstarlab' ); ?></option>
 					<option value="import"><?php esc_html_e( 'Import', 'import-export-by-rockstarlab' ); ?></option>
 					<option value="export"><?php esc_html_e( 'Export', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="update"><?php esc_html_e( 'Update', 'import-export-by-rockstarlab' ); ?></option>
 					<option value="media_sync"><?php esc_html_e( 'Media Sync', 'import-export-by-rockstarlab' ); ?></option>
 				</select>
 			</div>

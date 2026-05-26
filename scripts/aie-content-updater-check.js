@@ -1,581 +1,1465 @@
 /**
- * Manual E2E (Playwright): run Content Updater for each available content type,
- * apply a known library snippet (uppercase) to a single record, and verify that
- * the resulting value matches the expected pipeline output.
+ * Manual E2E (Playwright): Content Updater checks (aie2.local only)
+ *
+ * What it covers:
+ * - Content Updater wizard for Blog Posts (post)
+ * - Step 1: checks "Don't show this warning again" in backup warning modal
+ * - Applies a library function pipeline (uppercase) to `post_title`
+ * - Filters by ID=1 to update a single post
+ * - Verifies the post title changed as expected
+ * - Prints summary JSON to stdout
  *
  * Usage:
- *   node scripts/aie-content-updater-check.js
+ *   PLAYWRIGHT_BROWSERS_PATH=./e2e/.playwright-browsers node scripts/aie-content-updater-check.js
  *
  * Env (defaults read from .env.e2e if present):
- *   AIE_SOURCE_URL, AIE_SOURCE_ADMIN_USER, AIE_SOURCE_ADMIN_PASSWORD
+ *   AIE_TARGET_URL, AIE_TARGET_ADMIN_USER, AIE_TARGET_ADMIN_PASSWORD
  *   AIE_HEADLESS=true|false
- *   AIE_SOURCE_WP_PATH=/path/to/wp/root
+ *   AIE_TARGET_WP_PATH=/path/to/target/wp/root
  *   AIE_LOCAL_PHP=/path/to/php (Local.app bundled PHP works well)
- *   AIE_WP_BIN=/path/to/wp (wp-cli phar wrapper)
+ *   AIE_WP_BIN=/path/to/wp (wp-cli wrapper)
  */
 
-const fs = require('fs');
-const path = require('path');
-const { execFileSync } = require('child_process');
-const { chromium } = require('playwright');
+const fs = require( 'fs' );
+const os = require( 'os' );
+const path = require( 'path' );
+const { execFileSync } = require( 'child_process' );
+const { chromium } = require( 'playwright' );
 
-function parseDotEnv(contents) {
-  const env = {};
-  for (const line of contents.split(/\r?\n/)) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const idx = trimmed.indexOf('=');
-    if (idx === -1) continue;
-    const key = trimmed.slice(0, idx).trim();
-    const value = trimmed.slice(idx + 1).trim();
-    env[key] = value;
-  }
-  return env;
+function parseDotEnv( contents ) {
+	const env = {};
+	for ( const line of contents.split( /\r?\n/ ) ) {
+		const trimmed = line.trim();
+		if ( ! trimmed || trimmed.startsWith( '#' ) ) continue;
+		const idx = trimmed.indexOf( '=' );
+		if ( idx === -1 ) continue;
+		const key = trimmed.slice( 0, idx ).trim();
+		const value = trimmed.slice( idx + 1 ).trim();
+		env[ key ] = value;
+	}
+	return env;
 }
 
 function loadEnv() {
-  const envPath = path.resolve(process.cwd(), '.env.e2e');
-  let fileEnv = {};
-  if (fs.existsSync(envPath)) {
-    fileEnv = parseDotEnv(fs.readFileSync(envPath, 'utf8'));
-  }
-  const get = (key, fallback) => process.env[key] ?? fileEnv[key] ?? fallback;
+	const envPath = path.resolve( process.cwd(), '.env.e2e' );
+	let fileEnv = {};
+	if ( fs.existsSync( envPath ) )
+		fileEnv = parseDotEnv( fs.readFileSync( envPath, 'utf8' ) );
+	const get = ( key, fallback ) =>
+		process.env[ key ] ?? fileEnv[ key ] ?? fallback;
 
-  const headlessRaw = String(get('AIE_HEADLESS', 'true')).toLowerCase();
-  const headless = headlessRaw === '1' || headlessRaw === 'true' || headlessRaw === 'yes';
+	const headlessRaw = String( get( 'AIE_HEADLESS', 'true' ) ).toLowerCase();
+	const headless =
+		headlessRaw === '1' || headlessRaw === 'true' || headlessRaw === 'yes';
 
-  const wpPathDefault = path.resolve(process.cwd(), '../../..');
-  const localPhpDefault =
-    '/Applications/Local.app/Contents/Resources/extraResources/lightning-services/php-8.2.27+1/bin/darwin-arm64/bin/php';
+	const contentType = String( get( 'AIE_UPDATER_CONTENT_TYPE', 'post' ) )
+		.trim()
+		.toLowerCase();
 
-  return {
-    baseUrl: get('AIE_SOURCE_URL', 'http://aie.local'),
-    username: get('AIE_SOURCE_ADMIN_USER', 'admin'),
-    password: get('AIE_SOURCE_ADMIN_PASSWORD', 'admin'),
-    headless,
-    wpPath: String(get('AIE_SOURCE_WP_PATH', wpPathDefault)),
-    localPhp: String(get('AIE_LOCAL_PHP', localPhpDefault)),
-    wpBin: String(get('AIE_WP_BIN', '/opt/homebrew/bin/wp')),
-  };
+	const wpPathDefault = path.resolve( process.cwd(), '../../..' );
+	const targetWpPathGuess = ( () => {
+		const marker = `${ path.sep }Local Sites${ path.sep }aie${ path.sep }`;
+		if ( wpPathDefault.includes( marker ) ) {
+			return wpPathDefault.replace(
+				marker,
+				`${ path.sep }Local Sites${ path.sep }aie2${ path.sep }`
+			);
+		}
+		return wpPathDefault;
+	} )();
+
+	const localPhpCandidates = [
+		'/Applications/Local.app/Contents/Resources/extraResources/lightning-services/php-8.2.29+0/bin/darwin-arm64/bin/php',
+		'/Applications/Local.app/Contents/Resources/extraResources/lightning-services/php-8.2.27+1/bin/darwin-arm64/bin/php',
+	];
+	const localPhpDefault =
+		localPhpCandidates.find( ( p ) => fs.existsSync( p ) ) || 'php';
+
+	return {
+		headless,
+		contentType,
+		target: {
+			baseUrl: get( 'AIE_TARGET_URL', 'http://aie2.local' ),
+			username: get( 'AIE_TARGET_ADMIN_USER', 'admin' ),
+			password: get( 'AIE_TARGET_ADMIN_PASSWORD', 'admin' ),
+			wpPath: String( get( 'AIE_TARGET_WP_PATH', targetWpPathGuess ) ),
+		},
+		localPhp: String( get( 'AIE_LOCAL_PHP', localPhpDefault ) ),
+		wpBin: String( get( 'AIE_WP_BIN', '/opt/homebrew/bin/wp' ) ),
+	};
 }
 
-function wp(env, args, { trim = true } = {}) {
-  const out = execFileSync(env.localPhp, [env.wpBin, `--path=${env.wpPath}`, ...args], {
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-  return trim ? String(out).trim() : String(out);
+function wp( env, wpPath, args, { trim = true } = {} ) {
+	const phpArgs = [
+		'-d',
+		'display_errors=0',
+		'-d',
+		'error_reporting=0',
+		'-d',
+		'html_errors=0',
+	];
+	const out = execFileSync(
+		env.localPhp,
+		[ ...phpArgs, env.wpBin, `--path=${ wpPath }`, ...args ],
+		{
+			encoding: 'utf8',
+			stdio: [ 'ignore', 'pipe', 'pipe' ],
+		}
+	);
+	return trim ? String( out ).trim() : String( out );
 }
 
-function wpEval(env, code) {
-  return wp(env, ['eval', code]);
-}
-
-function ensureUpdaterTestTable(env) {
-  const code = `
-global $wpdb;
-$table = $wpdb->prefix . 'aie_updater_test';
-$charset = $wpdb->get_charset_collate();
-$wpdb->query("CREATE TABLE IF NOT EXISTS \`$table\` (id BIGINT UNSIGNED NOT NULL PRIMARY KEY, value VARCHAR(255) NOT NULL) $charset");
-$wpdb->replace($table, ['id' => 1, 'value' => 'Hello world'], ['%d','%s']);
-echo $table;
-`;
-  return wpEval(env, code);
-}
-
-function readDbTestValue(env) {
-  const code = `
-global $wpdb;
-$table = $wpdb->prefix . 'aie_updater_test';
-$v = $wpdb->get_var($wpdb->prepare("SELECT value FROM \`$table\` WHERE id=%d", 1));
-echo is_string($v) ? $v : '';
-`;
-  return wpEval(env, code);
-}
-
-function pickOneId(env, kind) {
-  switch (kind) {
-    case 'post':
-      return wp(env, [
-        'post',
-        'list',
-        '--post_type=post',
-        '--post_status=publish',
-        '--ignore_sticky_posts=1',
-        '--posts_per_page=1',
-        '--format=ids',
-      ]);
-    case 'page':
-      return wp(env, ['post', 'list', '--post_type=page', '--post_status=publish', '--posts_per_page=1', '--format=ids']);
-    case 'portfolio':
-      return wp(env, [
-        'post',
-        'list',
-        '--post_type=portfolio',
-        '--post_status=publish',
-        '--posts_per_page=1',
-        '--format=ids',
-      ]);
-	    case 'product':
-	      return wp(env, [
-	        'post',
-	        'list',
-	        '--post_type=product',
-	        '--post_status=publish',
-	        '--posts_per_page=1',
-	        '--format=ids',
-	      ]);
-	    case 'media':
-	      return wp(env, ['post', 'list', '--post_type=attachment', '--post_status=inherit', '--posts_per_page=1', '--format=ids']);
-	    case 'woo_order':
-	      return wpEval(
-	        env,
-	        `
-if (!function_exists('wc_get_orders')) { echo ''; return; }
-$ids = wc_get_orders(['limit'=>1,'orderby'=>'ID','order'=>'ASC','return'=>'ids']);
-echo (!empty($ids)) ? (string) $ids[0] : '';
-`
-	      );
-	    case 'woo_coupon':
-	      return wp(env, ['post', 'list', '--post_type=shop_coupon', '--post_status=any', '--posts_per_page=1', '--format=ids']);
-	    case 'menu_term':
-	      return wp(env, ['term', 'list', 'nav_menu', '--number=1', '--format=ids']);
-	    case 'comment':
-	      return wp(env, ['comment', 'list', '--number=1', '--format=ids']);
-    case 'user':
-      return wp(env, ['user', 'list', '--number=1', '--format=ids']);
-    case 'category_term':
-      return wp(env, ['term', 'list', 'category', '--number=1', '--format=ids']);
-    default:
-      throw new Error(`Unknown kind: ${kind}`);
+function wpEvalJson( env, wpPath, code ) {
+	const raw = wp( env, wpPath, [ 'eval', code ], { trim: true } );
+	try {
+		return JSON.parse( raw || 'null' );
+	} catch {
+		return null;
 	}
 }
 
-function readFieldValue(env, { type, id, taxonomy, field }) {
-  if (type === 'post') {
-    const f = field || 'post_title';
-    return wp(env, ['post', 'get', String(id), `--field=${f}`], { trim: false }).trim();
-  }
-  if (type === 'woo_order') {
-    const orderId = String(id || '').trim();
-    const f = String(field || 'billing_first_name');
-    const code = `
-$id = (int) ${JSON.stringify(orderId)};
-$field = ${JSON.stringify(f)};
-if (!$id || !function_exists('wc_get_order')) { echo ''; return; }
-$o = wc_get_order($id);
-if (!$o) { echo ''; return; }
-switch ($field) {
-  case 'order_key':
-    echo (string) $o->get_order_key();
-    return;
-  case 'billing_first_name':
-    echo (string) $o->get_billing_first_name();
-    return;
-  default:
-    echo (string) $o->get_meta($field, true, 'edit');
-    return;
+function nowStamp() {
+	return new Date().toISOString().replace( /[:.]/g, '-' );
 }
+
+function mkdirp( dir ) {
+	fs.mkdirSync( dir, { recursive: true } );
+}
+
+function rmrf( p ) {
+	try {
+		fs.rmSync( p, { recursive: true, force: true } );
+	} catch {}
+}
+
+async function ensureLoggedIn( page, { baseUrl, username, password } ) {
+	if ( await page.locator( '#wpadminbar' ).count() ) return;
+	await page.goto( `${ baseUrl }/wp-login.php`, {
+		waitUntil: 'domcontentloaded',
+	} );
+	await page.fill( '#user_login', username );
+	await page.fill( '#user_pass', password );
+	await Promise.all( [
+		page.waitForNavigation( { waitUntil: 'domcontentloaded' } ),
+		page.click( '#wp-submit' ),
+	] );
+	await page.waitForSelector( '#wpadminbar', { timeout: 30_000 } );
+}
+
+async function gotoAdminPage( page, site, adminPathWithQuery ) {
+	await page.goto( `${ site.baseUrl }${ adminPathWithQuery }`, {
+		waitUntil: 'domcontentloaded',
+	} );
+	if ( await page.locator( 'form#loginform' ).count() ) {
+		await ensureLoggedIn( page, site );
+		await page.goto( `${ site.baseUrl }${ adminPathWithQuery }`, {
+			waitUntil: 'domcontentloaded',
+		} );
+	}
+}
+
+async function handleBackupModalIfPresent(
+	page,
+	{ checkDontShow = true } = {}
+) {
+	const overlay = page.locator( '.rsl-ie-backup-warning-overlay' );
+	if ( ! ( await overlay.count().catch( () => 0 ) ) ) return false;
+	await overlay.waitFor( { state: 'visible', timeout: 20_000 } );
+	const created = page.locator( '#rsl-ie-backup-created' ).first();
+	const dontShow = page.locator( '#rsl-ie-backup-dont-show' ).first();
+	if ( await created.count().catch( () => 0 ) )
+		await created.check( { force: true } );
+	if ( checkDontShow && ( await dontShow.count().catch( () => 0 ) ) )
+		await dontShow.check( { force: true } );
+	await page.locator( '.rsl-ie-backup-confirm' ).first().click();
+	await overlay.waitFor( { state: 'detached', timeout: 20_000 } );
+	return true;
+}
+
+async function waitUpdaterStep( page, stepNum ) {
+	await page.waitForSelector( `.rsl-ie-updater-step-${ stepNum }.active`, {
+		timeout: 60_000,
+	} );
+}
+
+async function selectUpdaterContentTypeOnStep1( page, contentType ) {
+	await waitUpdaterStep( page, 1 );
+	const ct = String( contentType || 'post' ).trim();
+	const input = page
+		.locator(
+			`.rsl-ie-updater-step-1.active input[name="updater_content_type"][value="${ ct }"]`
+		)
+		.first();
+	if ( await input.count().catch( () => 0 ) ) {
+		await input.check( { force: true } ).catch( () => null );
+		let ok = await input.isChecked().catch( () => false );
+		if ( ! ok ) {
+			await page
+				.evaluate( ( v ) => {
+					const el = document.querySelector(
+						`.rsl-ie-updater-step-1.active input[name="updater_content_type"][value="${ v }"]`
+					);
+					if ( ! el ) return;
+					el.checked = true;
+					el.dispatchEvent(
+						new Event( 'change', { bubbles: true } )
+					);
+					el.dispatchEvent( new Event( 'click', { bubbles: true } ) );
+				}, ct )
+				.catch( () => null );
+			ok = await input.isChecked().catch( () => false );
+		}
+		if ( ! ok ) throw new Error( `Failed to select content type: ${ ct }` );
+	}
+}
+
+async function selectUpdaterContentTypeOnStep1Any( page, values ) {
+	const list = Array.isArray( values ) ? values : [];
+	for ( const v of list ) {
+		// eslint-disable-next-line no-await-in-loop
+		const input = page
+			.locator(
+				`.rsl-ie-updater-step-1.active input[name="updater_content_type"][value="${ String(
+					v
+				).trim() }"]`
+			)
+			.first();
+		// eslint-disable-next-line no-await-in-loop
+		if ( ! ( await input.count().catch( () => 0 ) ) ) continue;
+		// eslint-disable-next-line no-await-in-loop
+		await selectUpdaterContentTypeOnStep1( page, v );
+		return String( v ).trim();
+	}
+	return '';
+}
+
+async function clickUpdaterNext( page, { expectBackupModal = false } = {} ) {
+	const btn = page.locator( '.rsl-ie-step.active .rsl-ie-updater-next-step' );
+	await btn.waitFor( { state: 'visible', timeout: 60_000 } );
+	const enabled = await btn.isEnabled().catch( () => false );
+	if ( ! enabled ) throw new Error( 'Updater Next Step is disabled' );
+	await btn.click();
+	if ( expectBackupModal ) {
+		const ok = await handleBackupModalIfPresent( page, {
+			checkDontShow: true,
+		} );
+		if ( ! ok )
+			throw new Error( 'Expected backup warning modal on step 1' );
+	}
+}
+
+async function setStep2IdEqualsFilter(
+	page,
+	idValue,
+	{ fieldPreferredValues = [] } = {}
+) {
+	await waitUpdaterStep( page, 2 );
+	const currentCt = await page
+		.evaluate( () => {
+			const el = document.querySelector(
+				'.rsl-ie-updater-step-1 input[name="updater_content_type"]:checked'
+			);
+			return el ? el.value : '';
+		} )
+		.catch( () => '' );
+
+	const addBtn = page.locator( '.rsl-ie-updater-add-filter' ).first();
+	await addBtn.waitFor( { state: 'visible', timeout: 60_000 } );
+	await addBtn.click();
+
+	const row = page
+		.locator( '.rsl-ie-updater-step-2.active .rsl-ie-filter-row' )
+		.last();
+	await row.waitFor( { state: 'visible', timeout: 30_000 } );
+
+	const fieldSel = row
+		.locator( 'select.rsl-ie-updater-filter-field' )
+		.first();
+	await fieldSel.waitFor( { state: 'visible', timeout: 30_000 } );
+	await page
+		.waitForFunction( ( sel ) => {
+			const el = document.querySelector( sel );
+			return el && el.querySelectorAll( 'option' ).length > 1;
+		}, 'select.rsl-ie-updater-filter-field' )
+		.catch( () => null );
+	let picked = '';
+	const prefers = Array.isArray( fieldPreferredValues )
+		? fieldPreferredValues
+		: [];
+	for ( const v of prefers ) {
+		// eslint-disable-next-line no-await-in-loop
+		const has = await fieldSel.locator( `option[value="${ v }"]` ).count();
+		if ( has ) {
+			picked = v;
+			break;
+		}
+	}
+	if (
+		! picked &&
+		( await fieldSel.locator( 'option[value="ID"]' ).count() )
+	)
+		picked = 'ID';
+	if (
+		! picked &&
+		( await fieldSel.locator( 'option[value="comment_ID"]' ).count() )
+	)
+		picked = 'comment_ID';
+	if ( picked ) {
+		await fieldSel.selectOption( { value: picked } );
+	} else {
+		// fallback: pick first non-empty option
+		const first = await fieldSel
+			.locator( 'option[value]' )
+			.nth( 1 )
+			.getAttribute( 'value' )
+			.catch( () => '' );
+		if ( first ) await fieldSel.selectOption( { value: first } );
+	}
+
+	// Wait for dependent UI to refresh after field change (conditions + value input may be re-rendered).
+	await page
+		.waitForFunction( () => {
+			const sel = document.querySelector(
+				'.rsl-ie-updater-step-2.active .rsl-ie-filter-row:last-child select.rsl-ie-updater-filter-condition'
+			);
+			return sel && sel.querySelectorAll( 'option' ).length > 1;
+		} )
+		.catch( () => null );
+
+	const condSel = row
+		.locator( 'select.rsl-ie-updater-filter-condition' )
+		.first();
+	await condSel.waitFor( { state: 'visible', timeout: 30_000 } );
+	await page.waitForTimeout( 50 );
+	if ( await condSel.locator( 'option[value="equals"]' ).count() ) {
+		await condSel.selectOption( { value: 'equals' } );
+	} else {
+		await condSel.selectOption( { index: 1 } ).catch( () => null );
+	}
+
+	const val = row.locator( 'input.rsl-ie-updater-filter-value' ).first();
+	await val.waitFor( { state: 'visible', timeout: 30_000 } );
+	await val.fill( String( idValue ) );
+
+	const refresh = page.locator( '.rsl-ie-updater-refresh-count' ).first();
+	if ( await refresh.count().catch( () => 0 ) ) {
+		const spinner = page
+			.locator( '.rsl-ie-filter-summary-top .spinner' )
+			.first();
+		await refresh.click( { force: true } ).catch( () => null );
+		await spinner
+			.waitFor( { state: 'attached', timeout: 10_000 } )
+			.catch( () => null );
+		await page
+			.waitForFunction( () => {
+				const sp = document.querySelector(
+					'.rsl-ie-filter-summary-top .spinner'
+				);
+				return sp && sp.classList.contains( 'is-active' );
+			} )
+			.catch( () => null );
+		await page
+			.waitForFunction( () => {
+				const sp = document.querySelector(
+					'.rsl-ie-filter-summary-top .spinner'
+				);
+				return sp && ! sp.classList.contains( 'is-active' );
+			} )
+			.catch( () => null );
+	}
+
+	await page.waitForFunction( () => {
+		const el = document.querySelector(
+			'.rsl-ie-updater-step-2.active .rsl-ie-count-value'
+		);
+		if ( ! el ) return false;
+		const t = String( el.textContent || '' ).trim();
+		return t !== '-' && t !== '';
+	} );
+
+	const countText = await page
+		.locator( '.rsl-ie-updater-step-2.active .rsl-ie-count-value' )
+		.first()
+		.innerText()
+		.catch( () => '-' );
+	const countNum = Number( String( countText ).replace( /[^0-9]/g, '' ) );
+	if ( ! Number.isFinite( countNum ) || countNum < 1 ) {
+		const debug = await row
+			.evaluate( ( el ) => {
+				const q = ( s ) => el.querySelector( s );
+				return {
+					field:
+						q( 'select.rsl-ie-updater-filter-field' )?.value || '',
+					condition:
+						q( 'select.rsl-ie-updater-filter-condition' )?.value ||
+						'',
+					value:
+						q( 'input.rsl-ie-updater-filter-value' )?.value || '',
+				};
+			} )
+			.catch( () => ( {} ) );
+		throw new Error(
+			`Updater Step 2 count expected >=1, got ${ countText } (content_type=${ currentCt }, row=${ JSON.stringify(
+				debug
+			) })`
+		);
+	}
+
+	// For ID-based tests, require the ID to be present in the preview list before proceeding.
+	// This prevents "count" race conditions where the count is stale for the previous filter set.
+	const expectedId = String( idValue || '' ).trim();
+	if ( expectedId ) {
+		const previewOk = await page
+			.evaluate(
+				( want ) => {
+					const rows = Array.from(
+						document.querySelectorAll( '.rsl-ie-filter-row' )
+					);
+					const hasIdFilter = rows.some( ( r ) => {
+						const f =
+							r.querySelector(
+								'select.rsl-ie-updater-filter-field'
+							)?.value || '';
+						const c =
+							r.querySelector(
+								'select.rsl-ie-updater-filter-condition'
+							)?.value || '';
+						const v =
+							r.querySelector(
+								'input.rsl-ie-updater-filter-value'
+							)?.value || '';
+						return (
+							f === want.field &&
+							c === 'equals' &&
+							String( v ) === String( want.value )
+						);
+					} );
+					return hasIdFilter;
+				},
+				{ field: picked || 'ID', value: expectedId }
+			)
+			.catch( () => false );
+		if ( ! previewOk ) {
+			throw new Error(
+				`Updater Step 2 ID filter did not stick (expected ${
+					picked || 'ID'
+				}=${ expectedId })`
+			);
+		}
+	}
+}
+
+async function addStep2PostTypeSelectorFilter( page, postTypeValue ) {
+	await waitUpdaterStep( page, 2 );
+
+	const addBtn = page.locator( '.rsl-ie-updater-add-filter' ).first();
+	await addBtn.waitFor( { state: 'visible', timeout: 60_000 } );
+	await addBtn.click();
+
+	const row = page
+		.locator( '.rsl-ie-updater-step-2.active .rsl-ie-filter-row' )
+		.last();
+	await row.waitFor( { state: 'visible', timeout: 30_000 } );
+
+	const fieldSel = row
+		.locator( 'select.rsl-ie-updater-filter-field' )
+		.first();
+	await fieldSel.waitFor( { state: 'visible', timeout: 30_000 } );
+	if ( await fieldSel.locator( 'option[value="_post_type"]' ).count() ) {
+		await fieldSel.selectOption( { value: '_post_type' } );
+	} else {
+		throw new Error(
+			'Post type selector filter (_post_type) not available'
+		);
+	}
+
+	// Wait for the post type selector <select> to be rendered in place of the value input.
+	const ptSel = row
+		.locator(
+			'select.rsl-ie-updater-filter-value.rsl-ie-post-type-selector'
+		)
+		.first();
+	await ptSel.waitFor( { state: 'visible', timeout: 60_000 } );
+	await page
+		.waitForFunction( ( sel ) => {
+			const el = document.querySelector( sel );
+			return el && el.querySelectorAll( 'option' ).length > 1;
+		}, 'select.rsl-ie-post-type-selector' )
+		.catch( () => null );
+	await ptSel.selectOption( { value: String( postTypeValue || '' ) } );
+
+	// Refresh count after selecting post type.
+	const refresh = page.locator( '.rsl-ie-updater-refresh-count' ).first();
+	if ( await refresh.count().catch( () => 0 ) )
+		await refresh.click( { force: true } );
+
+	// Wait for spinner to finish.
+	await page
+		.waitForFunction( () => {
+			const sp = document.querySelector(
+				'.rsl-ie-filter-summary-top .spinner'
+			);
+			return sp && sp.classList.contains( 'is-active' );
+		} )
+		.catch( () => null );
+	await page
+		.waitForFunction( () => {
+			const sp = document.querySelector(
+				'.rsl-ie-filter-summary-top .spinner'
+			);
+			return sp && ! sp.classList.contains( 'is-active' );
+		} )
+		.catch( () => null );
+}
+
+async function addStep2TaxonomySelectorFilter( page, taxonomySlug ) {
+	await waitUpdaterStep( page, 2 );
+
+	const addBtn = page.locator( '.rsl-ie-updater-add-filter' ).first();
+	await addBtn.waitFor( { state: 'visible', timeout: 60_000 } );
+	await addBtn.click();
+
+	const row = page
+		.locator( '.rsl-ie-updater-step-2.active .rsl-ie-filter-row' )
+		.last();
+	await row.waitFor( { state: 'visible', timeout: 30_000 } );
+
+	const fieldSel = row
+		.locator( 'select.rsl-ie-updater-filter-field' )
+		.first();
+	await fieldSel.waitFor( { state: 'visible', timeout: 30_000 } );
+	await page
+		.waitForFunction( ( sel ) => {
+			const el = document.querySelector( sel );
+			return el && el.querySelectorAll( 'option' ).length > 1;
+		}, 'select.rsl-ie-updater-filter-field' )
+		.catch( () => null );
+
+	if ( await fieldSel.locator( 'option[value="_taxonomy"]' ).count() ) {
+		await fieldSel.selectOption( { value: '_taxonomy' } );
+	} else if ( await fieldSel.locator( 'option[value="taxonomy"]' ).count() ) {
+		await fieldSel.selectOption( { value: 'taxonomy' } );
+	} else {
+		throw new Error( 'Taxonomy selector filter not available (_taxonomy)' );
+	}
+
+	// Wait for taxonomy selector <select> to be rendered in place of the value input.
+	const taxSel = row
+		.locator(
+			'select.rsl-ie-updater-filter-value.rsl-ie-taxonomy-selector'
+		)
+		.first();
+	await taxSel.waitFor( { state: 'visible', timeout: 60_000 } );
+	await page
+		.waitForFunction( ( sel ) => {
+			const el = document.querySelector( sel );
+			return el && el.querySelectorAll( 'option' ).length > 1;
+		}, 'select.rsl-ie-taxonomy-selector' )
+		.catch( () => null );
+
+	await taxSel.selectOption( { value: String( taxonomySlug || '' ) } );
+
+	// Refresh count after selecting taxonomy.
+	const refresh = page.locator( '.rsl-ie-updater-refresh-count' ).first();
+	if ( await refresh.count().catch( () => 0 ) ) {
+		const spinner = page
+			.locator( '.rsl-ie-filter-summary-top .spinner' )
+			.first();
+		await refresh.click( { force: true } ).catch( () => null );
+		await page
+			.waitForFunction( () => {
+				const sp = document.querySelector(
+					'.rsl-ie-filter-summary-top .spinner'
+				);
+				return sp && sp.classList.contains( 'is-active' );
+			} )
+			.catch( () => null );
+		await page
+			.waitForFunction( () => {
+				const sp = document.querySelector(
+					'.rsl-ie-filter-summary-top .spinner'
+				);
+				return sp && ! sp.classList.contains( 'is-active' );
+			} )
+			.catch( () => null );
+	}
+}
+
+async function selectStep2DatabaseTable( page, tableName ) {
+	await waitUpdaterStep( page, 2 );
+	const dropdown = page.locator( '#rsl-ie-updater-table-name' ).first();
+	await dropdown.waitFor( { state: 'visible', timeout: 60_000 } );
+	await page
+		.waitForFunction(
+			() => {
+				const el = document.querySelector(
+					'#rsl-ie-updater-table-name'
+				);
+				return !! el && ! el.disabled;
+			},
+			{ timeout: 60_000 }
+		)
+		.catch( () => null );
+
+	await page
+		.waitForFunction(
+			() => {
+				const el = document.querySelector(
+					'#rsl-ie-updater-table-name'
+				);
+				return el && el.querySelectorAll( 'option' ).length > 1;
+			},
+			{ timeout: 60_000 }
+		)
+		.catch( () => null );
+
+	await dropdown.selectOption( { value: String( tableName || '' ) } );
+
+	// Wait for columns to load and appear in table info pane.
+	await page
+		.waitForFunction(
+			() => {
+				const list = document.querySelector( '.rsl-ie-columns-list' );
+				const items = list ? list.querySelectorAll( 'li' ) : [];
+				return items && items.length > 0;
+			},
+			{ timeout: 60_000 }
+		)
+		.catch( () => null );
+}
+
+async function selectFieldOnStep3( page, fieldKey ) {
+	await waitUpdaterStep( page, 3 );
+	const item = page
+		.locator(
+			`.rsl-ie-updater-step-3.active #rsl-ie-updater-fields-library .rsl-ie-field-item[data-field="${ fieldKey }"]`
+		)
+		.first();
+	await item.waitFor( { state: 'attached', timeout: 60_000 } );
+	const visible = await item.isVisible().catch( () => false );
+	if ( ! visible ) {
+		// Some content types (e.g. custom_post_types) may render the first visible category as collapsed.
+		const catTitle = item
+			.locator(
+				'xpath=ancestor::div[contains(@class,"rsl-ie-field-category")][1]//h4[contains(@class,"rsl-ie-field-category-title")]'
+			)
+			.first();
+		if ( await catTitle.count().catch( () => 0 ) ) {
+			await catTitle.click( { force: true } ).catch( () => null );
+			await page.waitForTimeout( 100 );
+		}
+	}
+	await item.click( { force: true } );
+
+	await page.waitForSelector(
+		`.rsl-ie-updater-step-3.active #rsl-ie-updater-fields-list .rsl-ie-selected-field[data-field="${ fieldKey }"]`,
+		{ timeout: 30_000 }
+	);
+}
+
+async function assignUppercaseFunctionToField( page, fieldKey ) {
+	await waitUpdaterStep( page, 4 );
+
+	const assignBtn = page
+		.locator(
+			`.rsl-ie-updater-step-4.active .rsl-ie-assign-functions[data-field="${ fieldKey }"]`
+		)
+		.first();
+	await assignBtn.waitFor( { state: 'visible', timeout: 60_000 } );
+	await assignBtn.click();
+
+	const modal = page.locator( '#rsl-ie-updater-functions-modal' ).first();
+	await modal.waitFor( { state: 'visible', timeout: 60_000 } );
+
+	// Wait for functions list to populate (AJAX).
+	await page
+		.waitForFunction( () => {
+			return (
+				document.querySelectorAll(
+					'#rsl-ie-updater-functions-list .rsl-ie-function-list-item'
+				).length > 0
+			);
+		} )
+		.catch( () => null );
+
+	// Prefer the library snippet: uppercase.
+	const addUpper = page.locator(
+		'#rsl-ie-updater-functions-list .rsl-ie-add-function-btn[data-function-id="snippet_uppercase"]'
+	);
+	if ( await addUpper.count().catch( () => 0 ) ) {
+		await addUpper.first().click();
+	} else {
+		// Fallback: search by name.
+		const search = page
+			.locator( '#rsl-ie-updater-functions-search' )
+			.first();
+		if ( await search.count().catch( () => 0 ) ) {
+			await search.fill( 'upper' ).catch( () => null );
+		}
+		const firstAdd = page.locator(
+			'#rsl-ie-updater-functions-list .rsl-ie-add-function-btn'
+		);
+		await firstAdd.first().click();
+	}
+
+	await page
+		.waitForSelector(
+			'#rsl-ie-updater-function-items .rsl-ie-function-item',
+			{ timeout: 30_000 }
+		)
+		.catch( () => null );
+
+	await page.locator( '.rsl-ie-save-updater-functions' ).first().click();
+	await modal.waitFor( { state: 'hidden', timeout: 60_000 } );
+
+	// Ensure stats reflect assigned functions.
+	await page
+		.waitForFunction( () => {
+			const el = document.querySelector(
+				'.rsl-ie-updater-step-4.active .rsl-ie-functions-assigned-stat'
+			);
+			const n = el ? Number( String( el.textContent || '' ).trim() ) : 0;
+			return Number.isFinite( n ) && n >= 1;
+		} )
+		.catch( () => null );
+}
+
+async function startUpdateAndWaitForResults( page ) {
+	await waitUpdaterStep( page, 5 );
+	const startBtn = page.locator( '.rsl-ie-start-update-btn' ).first();
+	await startBtn.waitFor( { state: 'visible', timeout: 60_000 } );
+	await startBtn.click();
+
+	// In some runs the modal can still appear (if localStorage wasn't set).
+	await handleBackupModalIfPresent( page, { checkDontShow: true } ).catch(
+		() => null
+	);
+
+	// Wait until UI shows results (job completed/failed/cancelled).
+	// Some flows can complete the job but fail to reveal the results panel promptly,
+	// so also accept "progress section hidden" as a completion signal.
+	const results = page.locator( '#rsl-ie-updater-results' ).first();
+	const progress = page.locator( '#rsl-ie-updater-progress' ).first();
+	await Promise.race( [
+		results.waitFor( { state: 'visible', timeout: 10 * 60_000 } ),
+		page.waitForFunction(
+			() => {
+				const p = document.querySelector( '#rsl-ie-updater-progress' );
+				const r = document.querySelector( '#rsl-ie-updater-results' );
+				if ( r && r.offsetParent !== null ) return true;
+				// fallback: progress hidden implies completion UI transition happened
+				return p && p.style && p.style.display === 'none';
+			},
+			{ timeout: 10 * 60_000 }
+		),
+	] ).catch( () => null );
+
+	const stats = await page.evaluate( () => {
+		const num = ( sel ) => {
+			const el = document.querySelector( sel );
+			const t = el ? String( el.textContent || '' ).trim() : '';
+			const n = Number( t.replace( /[^0-9]/g, '' ) );
+			return Number.isFinite( n ) ? n : null;
+		};
+		return {
+			processed: num( '.rsl-ie-final-processed' ),
+			updated: num( '.rsl-ie-final-updated' ),
+			skipped: num( '.rsl-ie-final-skipped' ),
+			errors: num( '.rsl-ie-final-errors' ),
+		};
+	} );
+
+	return stats;
+}
+
+function getLatestUpdateJob( env, wpPath, { dataType = '' } = {} ) {
+	const dt = String( dataType || '' ).trim();
+	const php = `
+global $wpdb;
+$table = $wpdb->prefix . 'rsl_ie_jobs';
+$where = "WHERE type = 'update'";
+if (${ JSON.stringify( !! dt ) }) {
+  $dt = ${ JSON.stringify( dt ) };
+  $where .= $wpdb->prepare(' AND data_type = %s', $dt);
+}
+$row = $wpdb->get_row("SELECT * FROM {$table} {$where} ORDER BY id DESC LIMIT 1", ARRAY_A);
+echo wp_json_encode($row ?: null, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
 `;
-    return wpEval(env, code).trim();
-  }
-  if (type === 'user') return wp(env, ['user', 'get', String(id), '--field=display_name'], { trim: false }).trim();
-  if (type === 'comment') {
-    const f = field || 'comment_author';
-    return wp(env, ['comment', 'get', String(id), `--field=${f}`], { trim: false }).trim();
-  }
-  if (type === 'term') {
-    const f = field || 'name';
-    return wp(env, ['term', 'get', String(taxonomy), String(id), `--field=${f}`], { trim: false }).trim();
-  }
-  if (type === 'db_test') return readDbTestValue(env);
-  throw new Error(`Unknown readFieldValue type: ${type}`);
+	return wpEvalJson( env, wpPath, php );
 }
 
-async function ensureLoggedIn(page, { baseUrl, username, password }) {
-  await page.goto(`${baseUrl}/wp-admin/`, { waitUntil: 'domcontentloaded' });
-  const isLogin = await page.locator('form#loginform').count();
-  if (!isLogin) return;
-
-  await page.fill('#user_login', username);
-  await page.fill('#user_pass', password);
-  await Promise.all([page.waitForNavigation({ waitUntil: 'domcontentloaded' }), page.click('#wp-submit')]);
-  await page.waitForSelector('#wpadminbar', { timeout: 30_000 });
+function waitForUpdateJobCompletion(
+	env,
+	wpPath,
+	{ dataType, minUpdatedAt = '', timeoutMs = 10 * 60_000 } = {}
+) {
+	const start = Date.now();
+	// Small skew allowance because timestamps are 1-second resolution.
+	const min = String( minUpdatedAt || '' ).trim();
+	const minFloor =
+		min && min.length >= 19
+			? min.slice( 0, 17 ) + '00' // effectively disable strict second match? keep date/hour/minute
+			: '';
+	while ( Date.now() - start < timeoutMs ) {
+		const row = getLatestUpdateJob( env, wpPath, { dataType } );
+		if ( row ) {
+			const status = String( row.status || '' );
+			const updatedAt = String( row.updated_at || '' );
+			const okTime = min
+				? updatedAt >= min || ( minFloor && updatedAt >= minFloor )
+				: true;
+			if (
+				okTime &&
+				[ 'completed', 'failed', 'cancelled' ].includes( status )
+			) {
+				return row;
+			}
+		}
+		// sleep ~500ms
+		try {
+			Atomics.wait(
+				new Int32Array( new SharedArrayBuffer( 4 ) ),
+				0,
+				0,
+				500
+			);
+		} catch {}
+	}
+	return null;
 }
 
-async function gotoContentUpdater(page, env) {
-  await ensureLoggedIn(page, env);
-  await page.goto(`${env.baseUrl}/wp-admin/admin.php?page=rsl-ie-content-updater`, { waitUntil: 'domcontentloaded' });
-  if (await page.locator('form#loginform').count()) {
-    await ensureLoggedIn(page, env);
-    await page.goto(`${env.baseUrl}/wp-admin/admin.php?page=rsl-ie-content-updater`, { waitUntil: 'domcontentloaded' });
-  }
-  await page.waitForSelector('#rsl-ie-content-updater', { timeout: 30_000 });
+function getPostTitle( env, wpPath, postId ) {
+	const php = `
+$id = (int) ${ JSON.stringify( Number( postId || 0 ) ) };
+$p = get_post($id);
+echo wp_json_encode([
+  'id' => $p ? (int)$p->ID : 0,
+  'title' => $p ? (string) get_the_title($id) : '',
+], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+`;
+	const out = wpEvalJson( env, wpPath, php );
+	return out && out.id ? out : { id: 0, title: '' };
 }
 
-async function handleBackupModalIfPresent(page) {
-  const overlay = page.locator('.aie-backup-warning-overlay');
-  if (!(await overlay.count())) return;
-  await overlay.waitFor({ state: 'visible', timeout: 15_000 });
-
-  const created = page.locator('#aie-backup-created');
-  const dontShow = page.locator('#aie-backup-dont-show');
-  if (await created.count()) await created.check({ force: true });
-  if (await dontShow.count()) await dontShow.check({ force: true });
-  await page.locator('.aie-backup-confirm').click();
-  await overlay.waitFor({ state: 'detached', timeout: 15_000 });
+function getCommentContent( env, wpPath, commentId ) {
+	const php = `
+$id = (int) ${ JSON.stringify( Number( commentId || 0 ) ) };
+$c = get_comment($id);
+echo wp_json_encode([
+  'id' => $c ? (int)$c->comment_ID : 0,
+  'content' => $c ? (string) $c->comment_content : '',
+], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+`;
+	const out = wpEvalJson( env, wpPath, php );
+	return out && out.id ? out : { id: 0, content: '' };
 }
 
-async function clickNextStep(page) {
-  const btn = page.locator('.aie-step.active .aie-updater-next-step');
-  await btn.waitFor({ state: 'visible', timeout: 30_000 });
-  await page.waitForFunction(() => {
-    const el = document.querySelector('.aie-step.active .aie-updater-next-step');
-    return el && !el.disabled;
-  });
-  await btn.click();
-  // Step 1 -> 2 shows the backup warning modal; handle it if present.
-  await handleBackupModalIfPresent(page);
+function pickOneIdByPostType( env, wpPath, postType ) {
+	const pt = String( postType || 'post' );
+	const php = `
+$pt = ${ JSON.stringify( pt ) };
+$ids = get_posts([
+  'post_type' => $pt,
+  'post_status' => 'any',
+  'fields' => 'ids',
+  'posts_per_page' => 1,
+  'orderby' => 'ID',
+  'order' => 'ASC',
+]);
+echo wp_json_encode(['id' => !empty($ids) ? (int)$ids[0] : 0], JSON_UNESCAPED_SLASHES);
+`;
+	const out = wpEvalJson( env, wpPath, php );
+	return Number( out && out.id ? out.id : 0 );
 }
 
-async function waitForUpdaterStep(page, stepNumber) {
-  const step = page.locator(`.aie-updater-step-${stepNumber}.active`);
-  await step.waitFor({ state: 'attached', timeout: 30_000 });
-  // Wait until the step is actually visible (active step uses display toggling).
-  await page.waitForFunction(
-    ({ sel }) => {
-      const el = document.querySelector(sel);
-      if (!el) return false;
-      const style = window.getComputedStyle(el);
-      return style && style.display !== 'none' && style.visibility !== 'hidden';
-    },
-    { sel: `.aie-updater-step-${stepNumber}.active` },
-    { timeout: 30_000 }
-  );
+function ensureTempUpdaterDbTable( env, wpPath ) {
+	const php = `
+global $wpdb;
+$table = $wpdb->prefix . 'rsl_ie_tmp_updater';
+$wpdb->query("DROP TABLE IF EXISTS {$table}");
+$charset = $wpdb->get_charset_collate();
+$sql = "CREATE TABLE {$table} (
+  id INT NOT NULL,
+  val VARCHAR(200) NOT NULL,
+  PRIMARY KEY (id)
+) {$charset}";
+$wpdb->query($sql);
+$wpdb->insert($table, ['id' => 1, 'val' => 'Hello db']);
+echo wp_json_encode(['table' => $table, 'id' => 1], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+`;
+	return wpEvalJson( env, wpPath, php );
 }
 
-async function clickStartNewUpdate(page) {
-  const btn = page.locator('.aie-start-new-update');
-  if (!(await btn.count())) return;
-  await Promise.all([page.waitForNavigation({ waitUntil: 'domcontentloaded' }), btn.click()]);
+function getDbTableValById( env, wpPath, tableName, idValue ) {
+	const php = `
+global $wpdb;
+$t = ${ JSON.stringify( String( tableName || '' ) ) };
+$id = ${ JSON.stringify( Number( idValue || 0 ) ) };
+$val = '';
+if ($t) {
+  // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is controlled by test
+  $val = (string) $wpdb->get_var( $wpdb->prepare("SELECT val FROM {$t} WHERE id = %d", $id) );
+}
+echo wp_json_encode(['id' => (int)$id, 'val' => $val], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+`;
+	const out = wpEvalJson( env, wpPath, php );
+	return out && typeof out.val === 'string'
+		? out
+		: { id: Number( idValue || 0 ), val: '' };
 }
 
-async function addFilterRow(page) {
-  await waitForUpdaterStep(page, 2);
-  await page.locator('.aie-updater-step-2.active .aie-updater-add-filter').click();
-  const rows = page.locator('.aie-updater-step-2.active #aie-updater-filters-list .aie-filter-row');
-  const idx = (await rows.count()) - 1;
-  return rows.nth(idx);
+function ensureOneProductId( env, wpPath ) {
+	let id = pickOneIdByPostType( env, wpPath, 'product' );
+	if ( id ) return { id, created: false };
+
+	const stamp = new Date()
+		.toISOString()
+		.replace( /[^0-9]/g, '' )
+		.slice( 0, 14 );
+	const title = `Updater Product ${ stamp }`;
+	id = Number(
+		wp( env, wpPath, [
+			'post',
+			'create',
+			'--post_type=product',
+			'--post_status=publish',
+			`--post_title=${ title }`,
+			'--porcelain',
+		] )
+	);
+	if ( Number.isFinite( id ) && id > 0 ) {
+		// Minimal meta so WooCommerce recognizes pricing.
+		wp( env, wpPath, [
+			'post',
+			'meta',
+			'update',
+			String( id ),
+			'_regular_price',
+			'9.99',
+		] );
+		wp( env, wpPath, [
+			'post',
+			'meta',
+			'update',
+			String( id ),
+			'_price',
+			'9.99',
+		] );
+	}
+	return { id: Number.isFinite( id ) ? id : 0, created: true };
 }
 
-async function setFilterStandard(row, { field, condition, value }) {
-  const fieldSelect = row.locator('select.aie-updater-filter-field');
-  await fieldSelect.selectOption(String(field));
-  const condSelect = row.locator('select.aie-updater-filter-condition');
-  await condSelect.waitFor({ state: 'visible', timeout: 30_000 });
-  await condSelect.selectOption(String(condition));
-  const valueInput = row.locator('.aie-updater-filter-value');
-  if (await valueInput.count()) {
-    await valueInput.fill(String(value));
-  }
+function pickOneCommentId( env, wpPath ) {
+	const php = `
+$ids = get_comments([
+  'status' => 'all',
+  'number' => 50,
+  'orderby' => 'comment_ID',
+  'order' => 'ASC',
+]);
+$picked = 0;
+foreach ($ids as $c) {
+  $content = (string) ($c->comment_content ?? '');
+  if ($content === '') continue;
+  // Prefer plain-text comments to avoid KSES / link-rel mutations affecting comparisons.
+  if (strpos($content, '<') === false) { $picked = (int) $c->comment_ID; break; }
+  if (!$picked) $picked = (int) $c->comment_ID;
+}
+echo wp_json_encode(['id' => $picked], JSON_UNESCAPED_SLASHES);
+`;
+	const out = wpEvalJson( env, wpPath, php );
+	return Number( out && out.id ? out.id : 0 );
 }
 
-async function setFilterPostTypeSelector(row, { field, postType }) {
-  const fieldSelect = row.locator('select.aie-updater-filter-field');
-  await fieldSelect.selectOption(String(field));
-  const valueSelect = row.locator('select.aie-updater-filter-value');
-  await valueSelect.waitFor({ state: 'visible', timeout: 30_000 });
-  await valueSelect.selectOption(String(postType));
+function pickOneTermIdByTaxonomy( env, wpPath, taxonomySlug ) {
+	const tax = String( taxonomySlug || 'category' );
+	const php = `
+$tax = ${ JSON.stringify( tax ) };
+$terms = get_terms([
+  'taxonomy' => $tax,
+  'hide_empty' => false,
+  'number' => 1,
+  'orderby' => 'term_id',
+  'order' => 'ASC',
+]);
+$picked = 0;
+foreach ($terms as $t) {
+  $picked = (int) $t->term_id;
+  break;
+}
+echo wp_json_encode(['term_id' => $picked], JSON_UNESCAPED_SLASHES);
+`;
+	const out = wpEvalJson( env, wpPath, php );
+	return Number( out && out.term_id ? out.term_id : 0 );
 }
 
-async function setFilterTaxonomySelector(row, { field, taxonomy }) {
-  const fieldSelect = row.locator('select.aie-updater-filter-field');
-  await fieldSelect.selectOption(String(field));
-  const valueSelect = row.locator('select.aie-updater-filter-value');
-  await valueSelect.waitFor({ state: 'visible', timeout: 30_000 });
-  await valueSelect.selectOption(String(taxonomy));
+function getTermName( env, wpPath, termId, taxonomySlug ) {
+	const tax = String( taxonomySlug || 'category' );
+	const php = `
+$id = (int) ${ JSON.stringify( Number( termId || 0 ) ) };
+$tax = ${ JSON.stringify( tax ) };
+$t = get_term($id, $tax);
+echo wp_json_encode([
+  'term_id' => ($t && !is_wp_error($t)) ? (int)$t->term_id : 0,
+  'taxonomy' => ($t && !is_wp_error($t)) ? (string)$t->taxonomy : '',
+  'name' => ($t && !is_wp_error($t)) ? (string)$t->name : '',
+], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+`;
+	const out = wpEvalJson( env, wpPath, php );
+	return out && out.term_id ? out : { term_id: 0, taxonomy: '', name: '' };
 }
 
-async function refreshCountAndWaitFor(page, expectedText) {
-  await waitForUpdaterStep(page, 2);
-  await page.locator('.aie-updater-step-2.active .aie-updater-refresh-count').click();
-  const count = page.locator('.aie-updater-step-2.active .aie-count-value');
-  await count.waitFor({ state: 'visible', timeout: 30_000 });
-  await page.waitForFunction(
-    ({ sel, exp }) => {
-      const el = document.querySelector(sel);
-      return el && el.textContent && el.textContent.trim() === exp;
-    },
-    { sel: '.aie-updater-step-2.active .aie-count-value', exp: String(expectedText) },
-    { timeout: 30_000 }
-  );
+function pickOneNonAdminUserId( env, wpPath ) {
+	const php = `
+$ids = get_users([
+  'fields' => 'ids',
+  'number' => 1,
+  'orderby' => 'ID',
+  'order' => 'ASC',
+  'role__not_in' => [ 'administrator' ],
+]);
+echo wp_json_encode(['id' => !empty($ids) ? (int)$ids[0] : 0], JSON_UNESCAPED_SLASHES);
+`;
+	const out = wpEvalJson( env, wpPath, php );
+	return Number( out && out.id ? out.id : 0 );
 }
 
-async function selectFieldToUpdate(page, fieldKey) {
-  await waitForUpdaterStep(page, 3);
-  const itemSelector = `.aie-fields-library .aie-field-item[data-field="${fieldKey}"]`;
-
-  // Wait until the static fields library has been rendered (spinner replaced).
-  await page
-    .locator('.aie-updater-step-3.active #aie-updater-fields-library .aie-fields-library-body')
-    .waitFor({ state: 'attached', timeout: 30_000 });
-
-  // Wait for the field item to exist (it can start out hidden if its category is collapsed).
-  const item = page.locator(itemSelector).first();
-  await item.waitFor({ state: 'attached', timeout: 30_000 });
-
-  // Expand collapsed categories (some content types skip the first group, so
-  // everything can start collapsed).
-  const categories = page.locator('.aie-updater-step-3.active .aie-field-category');
-  const n = await categories.count();
-  for (let i = 0; i < n; i++) {
-    const cat = categories.nth(i);
-    if (!(await cat.isVisible())) continue;
-    const cls = (await cat.getAttribute('class')) || '';
-    if (cls.includes('aie-collapsed')) {
-      await cat.locator('.aie-field-category-title').click({ force: true });
-    }
-  }
-
-  // Wait for library to populate and field to be clickable.
-  await item.waitFor({ state: 'visible', timeout: 30_000 });
-  await item.click();
-  await page.locator(`.aie-updater-selected-fields .aie-selected-field[data-field="${fieldKey}"]`).waitFor({
-    state: 'visible',
-    timeout: 30_000,
-  });
+function createUpdaterTestUser( env, wpPath ) {
+	const stamp = new Date()
+		.toISOString()
+		.replace( /[^0-9]/g, '' )
+		.slice( 0, 14 );
+	const login = `rsl_updater_test_${ stamp }`;
+	const email = `${ login }@example.com`;
+	const displayName = `Updater Test ${ stamp }`;
+	const userId = Number(
+		wp( env, wpPath, [
+			'user',
+			'create',
+			login,
+			email,
+			'--role=subscriber',
+			'--user_pass=Test1234!',
+			`--display_name=${ displayName }`,
+			'--porcelain',
+		] )
+	);
+	return Number.isFinite( userId ) && userId > 0 ? userId : 0;
 }
 
-async function assignUppercaseAndGetExpected(page, { fieldKey, currentValue }) {
-  await waitForUpdaterStep(page, 4);
-  const assignBtn = page.locator(`tr[data-field="${fieldKey}"] .aie-assign-functions`).first();
-  await assignBtn.waitFor({ state: 'visible', timeout: 30_000 });
-  await assignBtn.click();
-
-  const modal = page.locator('#aie-updater-functions-modal');
-  await modal.waitFor({ state: 'visible', timeout: 30_000 });
-
-  const uppercaseAdd = modal.locator('.aie-add-function-btn[data-function-id="snippet_uppercase"]').first();
-  await uppercaseAdd.waitFor({ state: 'visible', timeout: 30_000 });
-  await uppercaseAdd.click();
-
-  const previewInput = modal.locator('#aie-updater-preview-input');
-  await previewInput.fill(String(currentValue));
-
-  await modal.locator('.aie-test-updater-pipeline').click();
-
-  const preview = modal.locator('#aie-updater-preview-result');
-  await preview.waitFor({ state: 'visible', timeout: 30_000 });
-
-  const lastValue = preview.locator('.aie-preview-step .aie-step-value').last();
-  const expectedValue = (await lastValue.textContent()) || '';
-
-  await modal.locator('.aie-save-updater-functions').click();
-  await modal.waitFor({ state: 'hidden', timeout: 30_000 });
-
-  return expectedValue.trim();
+function ensureUpdaterTestUserId( env, wpPath ) {
+	let id = pickOneNonAdminUserId( env, wpPath );
+	if ( id ) return { id, created: false };
+	id = createUpdaterTestUser( env, wpPath );
+	return { id, created: true };
 }
 
-async function startUpdateAndWait(page) {
-  await waitForUpdaterStep(page, 5);
-  const startBtn = page.locator('.aie-start-update-btn');
-  await startBtn.waitFor({ state: 'visible', timeout: 30_000 });
-  await startBtn.click();
-  await handleBackupModalIfPresent(page);
-
-  const results = page.locator('#aie-updater-results');
-  await results.waitFor({ state: 'visible', timeout: 120_000 });
-
-  const errors = ((await results.locator('.aie-final-errors').textContent()) || '').trim();
-  return { errors: Number(errors || '0') };
+function getUserDisplayName( env, wpPath, userId ) {
+	const php = `
+$id = (int) ${ JSON.stringify( Number( userId || 0 ) ) };
+$u = get_user_by('id', $id);
+echo wp_json_encode([
+  'id' => $u ? (int) $u->ID : 0,
+  'display_name' => $u ? (string) $u->display_name : '',
+], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+`;
+	const out = wpEvalJson( env, wpPath, php );
+	return out && out.id ? out : { id: 0, display_name: '' };
 }
 
-async function runOneCase(page, env, tc) {
-  await gotoContentUpdater(page, env);
-
-  // Step 1: select content type
-  const typeLabel = page.locator(
-    `label.aie-content-type:has(input[name="updater_content_type"][value="${tc.contentType}"])`
-  );
-  await typeLabel.waitFor({ state: 'attached', timeout: 30_000 });
-  await typeLabel.scrollIntoViewIfNeeded();
-  await typeLabel.click({ force: true });
-  await clickNextStep(page);
-
-  // Step 2: filters / table selection
-  if (tc.contentType === 'database_table') {
-    const tableSelect = page.locator('#aie-updater-table-name');
-    await tableSelect.waitFor({ state: 'visible', timeout: 30_000 });
-    await tableSelect.selectOption(tc.tableName);
-    // Wait for columns to load (table info shown and count refreshed)
-    await page.locator('.aie-table-info').waitFor({ state: 'visible', timeout: 30_000 });
-  }
-
-  for (const f of tc.filters) {
-    const row = await addFilterRow(page);
-    if (f.kind === 'post_type_selector') {
-      await setFilterPostTypeSelector(row, { field: f.field, postType: f.value });
-    } else if (f.kind === 'taxonomy_selector') {
-      await setFilterTaxonomySelector(row, { field: f.field, taxonomy: f.value });
-    } else {
-      await setFilterStandard(row, { field: f.field, condition: f.condition, value: f.value });
-    }
-  }
-
-  await refreshCountAndWaitFor(page, tc.expectedCountText || '1');
-  await clickNextStep(page);
-
-  // Step 3: fields
-  await selectFieldToUpdate(page, tc.fieldKey);
-  await clickNextStep(page);
-
-  // Step 4: functions + expected output
-  const expected = await assignUppercaseAndGetExpected(page, { fieldKey: tc.fieldKey, currentValue: tc.currentValue });
-  await clickNextStep(page);
-
-  // Step 5: run update
-  const { errors } = await startUpdateAndWait(page);
-
-  // Verify result
-  const actual = readFieldValue(env, tc.verify.read);
-
-  return {
-    contentType: tc.contentType,
-    fieldKey: tc.fieldKey,
-    id: tc.verify.id,
-    expected,
-    actual,
-    match: expected === actual,
-    errors,
-  };
+function uppercaseAscii( s ) {
+	return String( s || '' ).toUpperCase();
 }
 
-async function main() {
-  const env = loadEnv();
-
-  ensureUpdaterTestTable(env);
-
-	  const ids = {
-	    postId: pickOneId(env, 'post'),
-	    pageId: pickOneId(env, 'page'),
-	    portfolioId: pickOneId(env, 'portfolio'),
-	    productId: pickOneId(env, 'product'),
-	    commentId: pickOneId(env, 'comment'),
-	    userId: pickOneId(env, 'user'),
-	    categoryTermId: pickOneId(env, 'category_term'),
-	    dbTableName: `${wpEval(env, 'global $wpdb; echo $wpdb->prefix;')}aie_updater_test`,
-	  };
-
-	  const current = {
-	    postTitle: readFieldValue(env, { type: 'post', id: ids.postId }),
-	    pageTitle: readFieldValue(env, { type: 'post', id: ids.pageId }),
-	    portfolioTitle: readFieldValue(env, { type: 'post', id: ids.portfolioId }),
-	    productTitle: readFieldValue(env, { type: 'post', id: ids.productId }),
-	    commentContent: readFieldValue(env, { type: 'comment', id: ids.commentId, field: 'comment_content' }),
-	    userDisplayName: readFieldValue(env, { type: 'user', id: ids.userId }),
-	    categoryName: readFieldValue(env, { type: 'term', taxonomy: 'category', id: ids.categoryTermId }),
-	    dbValue: readFieldValue(env, { type: 'db_test' }),
-	  };
-
-	  const cases = [
-    {
-      contentType: 'post',
-      fieldKey: 'post_title',
-      currentValue: current.postTitle,
-      filters: [
-        { field: 'ID', condition: 'equals', value: ids.postId },
-        { field: 'post_status', condition: 'equals', value: 'publish' },
-      ],
-      verify: { id: ids.postId, read: { type: 'post', id: ids.postId } },
-    },
-    {
-      contentType: 'page',
-      fieldKey: 'post_title',
-      currentValue: current.pageTitle,
-      filters: [{ field: 'ID', condition: 'equals', value: ids.pageId }],
-      verify: { id: ids.pageId, read: { type: 'post', id: ids.pageId } },
-    },
-    {
-      contentType: 'custom_post_types',
-      fieldKey: 'post_title',
-      currentValue: current.portfolioTitle,
-      filters: [
-        { kind: 'post_type_selector', field: '_post_type', value: 'portfolio' },
-        { field: 'ID', condition: 'equals', value: ids.portfolioId },
-      ],
-      verify: { id: ids.portfolioId, read: { type: 'post', id: ids.portfolioId } },
-    },
-    {
-      contentType: 'user',
-      fieldKey: 'display_name',
-      currentValue: current.userDisplayName,
-      filters: [{ field: 'ID', condition: 'equals', value: ids.userId }],
-      verify: { id: ids.userId, read: { type: 'user', id: ids.userId } },
-    },
-    {
-      contentType: 'comment',
-      fieldKey: 'comment_content',
-      currentValue: current.commentContent,
-      filters: [{ field: 'comment_ID', condition: 'equals', value: ids.commentId }],
-      verify: { id: ids.commentId, read: { type: 'comment', id: ids.commentId, field: 'comment_content' } },
-    },
-    {
-      contentType: 'taxonomy',
-      fieldKey: 'name',
-      currentValue: current.categoryName,
-      filters: [
-        { kind: 'taxonomy_selector', field: '_taxonomy', value: 'category' },
-        { field: 'term_id', condition: 'equals', value: ids.categoryTermId },
-      ],
-      verify: { id: ids.categoryTermId, read: { type: 'term', taxonomy: 'category', id: ids.categoryTermId } },
-    },
-	    {
-	      contentType: 'woo_product',
-	      fieldKey: 'post_title',
-	      currentValue: current.productTitle,
-	      filters: [{ field: 'ID', condition: 'equals', value: ids.productId }],
-	      verify: { id: ids.productId, read: { type: 'post', id: ids.productId } },
-	    },
-	    {
-	      contentType: 'database_table',
-	      tableName: ids.dbTableName,
-	      fieldKey: 'value',
-      currentValue: current.dbValue,
-      filters: [{ field: 'id', condition: 'equals', value: '1' }],
-      verify: { id: 1, read: { type: 'db_test' } },
-    },
-	  ];
-	  const casesToRun = cases.filter((tc) => tc && tc.verify && tc.verify.id && String(tc.verify.id).trim() !== '');
-
-	  const browser = await chromium.launch({ headless: env.headless });
-	  const context = await browser.newContext();
-	  const page = await context.newPage();
-
-	  const results = [];
-	  try {
-	    for (const tc of casesToRun) {
-	      // Keep each run isolated-ish by restarting from Step 1.
-	      const r = await runOneCase(page, env, tc);
-	      results.push(r);
-      console.log(
-        `[${r.contentType}] field=${r.fieldKey} id=${r.id} match=${String(r.match)} errors=${r.errors} expected="${r.expected}" actual="${r.actual}"`
-      );
-      await clickStartNewUpdate(page);
-    }
-  } finally {
-    await context.close();
-    await browser.close();
-  }
-
-  const failed = results.filter((r) => !r.match || r.errors > 0);
-  console.log(`\nSummary: ${results.length} cases, ${failed.length} issues`);
-  if (failed.length) {
-    process.exitCode = 1;
-  }
+function normalizeCommentHtmlForCompare( s ) {
+	return (
+		String( s || '' )
+			.replace( /\r\n/g, '\n' )
+			.replace( /\r/g, '\n' )
+			// Ignore rel attribute variants injected by WP on comment links.
+			.replace( /\srel="[^"]*"/gi, '' )
+			// Normalize <a ...> tag name casing.
+			.replace( /<\/?a\b/gi, ( m ) => m.toLowerCase() )
+			// Normalize attribute name casing.
+			.replace( /\bhref=/gi, 'href=' )
+			// Normalize URL scheme casing inside attributes.
+			.replace( /"https:\/\//gi, '"https://' )
+			.replace( /"http:\/\//gi, '"http://' )
+	);
 }
 
-main().catch((err) => {
-  // eslint-disable-next-line no-console
-  console.error(err);
-  process.exitCode = 1;
-});
+async function run() {
+	const env = loadEnv();
+
+	const artifactsRoot = path.resolve(
+		os.tmpdir(),
+		'rsl-ie-aie-content-updater-check',
+		nowStamp()
+	);
+	mkdirp( artifactsRoot );
+
+	const summary = {
+		startedAt: new Date().toISOString(),
+		target: { baseUrl: env.target.baseUrl, wpPath: env.target.wpPath },
+		result: null,
+		issues: [],
+		finishedAt: null,
+	};
+
+	const userDataDir = path.join( artifactsRoot, 'playwright-profile' );
+	const ctx = await chromium.launchPersistentContext( userDataDir, {
+		headless: env.headless,
+	} );
+	const page = await ctx.newPage();
+
+	try {
+		await gotoAdminPage(
+			page,
+			env.target,
+			'/wp-admin/admin.php?page=rsl-ie-content-updater'
+		);
+		await page.waitForSelector( '#rsl-ie-content-updater', {
+			timeout: 60_000,
+		} );
+
+		const ct =
+			env.contentType === 'page' || env.contentType === 'pages'
+				? 'page'
+				: env.contentType === 'comment' ||
+				  env.contentType === 'comments'
+				? 'comment'
+				: env.contentType === 'user' || env.contentType === 'users'
+				? 'user'
+				: env.contentType === 'woo_product' ||
+				  env.contentType === 'product' ||
+				  env.contentType === 'products'
+				? 'woo_product'
+				: env.contentType === 'database_table' ||
+				  env.contentType === 'db_table' ||
+				  env.contentType === 'mysql_table'
+				? 'database_table'
+				: env.contentType === 'taxonomy' ||
+				  env.contentType === 'taxonomy_terms' ||
+				  env.contentType === 'term' ||
+				  env.contentType === 'terms'
+				? 'taxonomy'
+				: env.contentType === 'portfolio'
+				? 'portfolio'
+				: 'post';
+
+		let objectId = 0;
+		let beforeValue = '';
+		let expectedValue = '';
+		let fieldKey = 'post_title';
+		let step1Value = ct;
+		let needsCptSelector = false;
+		let postType = ct === 'page' ? 'page' : ct === 'post' ? 'post' : '';
+		let taxonomySlug = 'category';
+		let dbTableName = '';
+		let dbRowId = 0;
+
+		if ( ct === 'comment' ) {
+			objectId = pickOneCommentId( env, env.target.wpPath );
+			if ( ! objectId ) throw new Error( 'No comments found' );
+			const before = getCommentContent(
+				env,
+				env.target.wpPath,
+				objectId
+			);
+			beforeValue = before.content;
+			expectedValue = uppercaseAscii( beforeValue );
+			fieldKey = 'comment_content';
+		} else if ( ct === 'user' ) {
+			const picked = ensureUpdaterTestUserId( env, env.target.wpPath );
+			objectId = Number( picked.id || 0 );
+			if ( ! objectId )
+				throw new Error(
+					'No users found and failed to create test user'
+				);
+			const before = getUserDisplayName(
+				env,
+				env.target.wpPath,
+				objectId
+			);
+			beforeValue = before.display_name;
+			expectedValue = uppercaseAscii( beforeValue );
+			fieldKey = 'display_name';
+		} else if ( ct === 'woo_product' ) {
+			const picked = ensureOneProductId( env, env.target.wpPath );
+			objectId = Number( picked.id || 0 );
+			if ( ! objectId )
+				throw new Error(
+					'No products found and failed to create product'
+				);
+			const before = getPostTitle( env, env.target.wpPath, objectId );
+			beforeValue = before.title;
+			expectedValue = uppercaseAscii( beforeValue );
+			fieldKey = 'post_title';
+			step1Value = 'woo_product';
+			postType = 'product';
+		} else if ( ct === 'database_table' ) {
+			const created = ensureTempUpdaterDbTable( env, env.target.wpPath );
+			dbTableName =
+				created && created.table ? String( created.table ) : '';
+			dbRowId = Number( created && created.id ? created.id : 0 );
+			if ( ! dbTableName || ! dbRowId )
+				throw new Error(
+					'Failed to create temp database table for updater test'
+				);
+			objectId = dbRowId;
+			const before = getDbTableValById(
+				env,
+				env.target.wpPath,
+				dbTableName,
+				objectId
+			);
+			beforeValue = before.val;
+			expectedValue = uppercaseAscii( beforeValue );
+			fieldKey = 'val';
+			step1Value = 'database_table';
+		} else if ( ct === 'taxonomy' ) {
+			objectId = pickOneTermIdByTaxonomy(
+				env,
+				env.target.wpPath,
+				taxonomySlug
+			);
+			if ( ! objectId )
+				throw new Error(
+					`No terms found for taxonomy=${ taxonomySlug }`
+				);
+			const before = getTermName(
+				env,
+				env.target.wpPath,
+				objectId,
+				taxonomySlug
+			);
+			beforeValue = before.name;
+			expectedValue = uppercaseAscii( beforeValue );
+			fieldKey = 'name';
+		} else if ( ct === 'portfolio' ) {
+			postType = 'portfolio';
+			objectId = pickOneIdByPostType( env, env.target.wpPath, postType );
+			if ( ! objectId )
+				throw new Error(
+					`No content found for post_type=${ postType }`
+				);
+			const before = getPostTitle( env, env.target.wpPath, objectId );
+			beforeValue = before.title;
+			expectedValue = uppercaseAscii( beforeValue );
+			fieldKey = 'post_title';
+
+			// Prefer a dedicated "post_type_portfolio" card if PRO registers it; otherwise use "custom_post_types".
+			step1Value = 'portfolio';
+			needsCptSelector = true;
+		} else {
+			postType = ct === 'page' ? 'page' : 'post';
+			objectId = pickOneIdByPostType( env, env.target.wpPath, postType );
+			if ( ! objectId )
+				throw new Error(
+					`No content found for post_type=${ postType }`
+				);
+			const before = getPostTitle( env, env.target.wpPath, objectId );
+			beforeValue = before.title;
+			expectedValue = uppercaseAscii( beforeValue );
+			fieldKey = 'post_title';
+		}
+
+		// Step 1: select content type; click next and REQUIRED: set dont-show-again on backup modal.
+		let selectedCt = '';
+		if ( ct === 'portfolio' ) {
+			selectedCt = await selectUpdaterContentTypeOnStep1Any( page, [
+				'post_type_portfolio',
+				'portfolio',
+				'custom_post_types',
+			] );
+			if ( ! selectedCt ) {
+				throw new Error(
+					'Portfolio updater content type not found (expected one of: post_type_portfolio, portfolio, custom_post_types)'
+				);
+			}
+			if ( selectedCt !== 'custom_post_types' ) {
+				needsCptSelector = false;
+			}
+		} else if ( ct === 'woo_product' ) {
+			selectedCt = await selectUpdaterContentTypeOnStep1Any( page, [
+				'woo_product',
+				'product',
+				'post_type_product',
+				'custom_post_types',
+			] );
+			if ( ! selectedCt ) {
+				throw new Error(
+					'WooCommerce product updater content type not found (expected one of: woo_product, product, post_type_product, custom_post_types)'
+				);
+			}
+			if ( selectedCt !== 'custom_post_types' ) {
+				needsCptSelector = false;
+			} else {
+				needsCptSelector = true;
+			}
+		} else if ( ct === 'database_table' ) {
+			selectedCt = await selectUpdaterContentTypeOnStep1Any( page, [
+				'database_table',
+				'database',
+			] );
+			if ( ! selectedCt ) {
+				throw new Error(
+					'Database table updater content type not found (expected: database_table)'
+				);
+			}
+		} else {
+			selectedCt = ct;
+			await selectUpdaterContentTypeOnStep1( page, ct );
+		}
+		await clickUpdaterNext( page, { expectBackupModal: true } );
+
+		const jobDataType = selectedCt || ct;
+
+		// If using generic CPT mode, select the concrete post type first.
+		if ( needsCptSelector ) {
+			await addStep2PostTypeSelectorFilter( page, postType );
+		}
+
+		// For taxonomy, we must select a taxonomy first (required filter).
+		if ( ct === 'taxonomy' ) {
+			await addStep2TaxonomySelectorFilter( page, taxonomySlug );
+		}
+
+		// For database_table, we must select a table first (required before adding filters).
+		if ( ct === 'database_table' ) {
+			await selectStep2DatabaseTable( page, dbTableName );
+		}
+
+		// Step 2: filter by a single ID to keep the update small and deterministic.
+		await setStep2IdEqualsFilter( page, objectId, {
+			fieldPreferredValues:
+				ct === 'comment'
+					? [ 'comment_ID' ]
+					: ct === 'taxonomy'
+					? [ 'term_id' ]
+					: ct === 'database_table'
+					? [ 'id', 'ID' ]
+					: [ 'ID' ],
+		} );
+		await clickUpdaterNext( page );
+
+		// Step 3: select post_title.
+		await selectFieldOnStep3( page, fieldKey );
+		await clickUpdaterNext( page );
+
+		// Step 4: assign uppercase function pipeline.
+		await assignUppercaseFunctionToField( page, fieldKey );
+		await clickUpdaterNext( page );
+
+		// Step 5: run update.
+		const minUpdatedAt = wp( env, env.target.wpPath, [
+			'eval',
+			'echo current_time("mysql");',
+		] );
+		const stats = await startUpdateAndWaitForResults( page );
+		const jobRow = waitForUpdateJobCompletion( env, env.target.wpPath, {
+			dataType: jobDataType,
+			minUpdatedAt,
+			timeoutMs: 10 * 60_000,
+		} );
+		if ( ! jobRow )
+			throw new Error( 'Updater job did not complete in time' );
+
+		const after =
+			ct === 'comment'
+				? getCommentContent( env, env.target.wpPath, objectId )
+				: ct === 'user'
+				? getUserDisplayName( env, env.target.wpPath, objectId )
+				: ct === 'taxonomy'
+				? getTermName( env, env.target.wpPath, objectId, taxonomySlug )
+				: ct === 'database_table'
+				? getDbTableValById(
+						env,
+						env.target.wpPath,
+						dbTableName,
+						objectId
+				  )
+				: getPostTitle( env, env.target.wpPath, objectId );
+		const afterValue =
+			ct === 'comment'
+				? after.content
+				: ct === 'user'
+				? after.display_name
+				: ct === 'taxonomy'
+				? after.name
+				: ct === 'database_table'
+				? after.val
+				: after.title;
+
+		summary.result = {
+			contentType: ct,
+			objectId,
+			field: fieldKey,
+			function: 'snippet_uppercase',
+			beforeValue,
+			expectedValue,
+			afterValue,
+			updateStats: stats,
+			job: {
+				id: Number( jobRow.id || 0 ) || null,
+				status: String( jobRow.status || '' ),
+				total_items: Number( jobRow.total_items || 0 ),
+				processed_items: Number( jobRow.processed_items || 0 ),
+				updated_items: Number( jobRow.imported_items || 0 ),
+				skipped_items: Number( jobRow.skipped_items || 0 ),
+				error_items: Number( jobRow.error_items || 0 ),
+			},
+		};
+
+		// For deterministic E2E, require only one item to be processed for object-ID tests.
+		if ( summary.result.job.processed_items !== 1 ) {
+			summary.issues.push( {
+				kind: 'unexpected-processed-count',
+				expected: 1,
+				actual: summary.result.job.processed_items,
+				total_items: summary.result.job.total_items,
+			} );
+		}
+
+		const actualComparable =
+			ct === 'comment'
+				? normalizeCommentHtmlForCompare( afterValue )
+				: String( afterValue );
+		const expectedComparable =
+			ct === 'comment'
+				? normalizeCommentHtmlForCompare( expectedValue )
+				: String( expectedValue );
+
+		if ( String( actualComparable ) !== String( expectedComparable ) ) {
+			summary.issues.push( {
+				kind: 'value-mismatch',
+				expected: expectedComparable,
+				actual: actualComparable,
+			} );
+		}
+		if ( stats && typeof stats.errors === 'number' && stats.errors > 0 ) {
+			summary.issues.push( { kind: 'updater-errors', stats } );
+		}
+
+		summary.finishedAt = new Date().toISOString();
+		if ( summary.issues.length ) process.exitCode = 1;
+		console.log( JSON.stringify( summary, null, 2 ) );
+	} catch ( e ) {
+		summary.issues.push( {
+			kind: 'exception',
+			message: String( e && e.message ? e.message : e ),
+		} );
+		summary.finishedAt = new Date().toISOString();
+		process.exitCode = 1;
+		console.log( JSON.stringify( summary, null, 2 ) );
+	} finally {
+		await page.close().catch( () => {} );
+		await ctx.close().catch( () => {} );
+		rmrf( artifactsRoot );
+	}
+}
+
+run().catch( ( e ) => {
+	console.error( e );
+	process.exitCode = 1;
+} );

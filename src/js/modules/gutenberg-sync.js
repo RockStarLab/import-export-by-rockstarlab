@@ -43,6 +43,11 @@
 				$sidebar = $( '.interface-complementary-area' );
 			}
 
+			// WP versions / layouts where only the skeleton sidebar is present.
+			if ( ! $sidebar.length ) {
+				$sidebar = $( '.interface-interface-skeleton__sidebar' );
+			}
+
 			if ( $sidebar.length && ! $( '#rsl-ie-sync-content-btn' ).length ) {
 				// Create panel container (like Yoast SEO) - opened by default
 				const $panel = $( '<div>' )

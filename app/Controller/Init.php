@@ -367,6 +367,7 @@ class Init {
 					// Jobs Log
 					'viewDetails'                   => __( 'View Details', 'import-export-by-rockstarlab' ),
 					'resume'                        => __( 'Resume', 'import-export-by-rockstarlab' ),
+					'restart'                       => __( 'Restart', 'import-export-by-rockstarlab' ),
 					'retry'                         => __( 'Retry (Create new job with same parameters)', 'import-export-by-rockstarlab' ),
 					'download'                      => __( 'Download', 'import-export-by-rockstarlab' ),
 					'delete'                        => __( 'Delete', 'import-export-by-rockstarlab' ),
@@ -401,6 +402,7 @@ class Init {
 					'jobParameters'                 => __( 'Parameters', 'import-export-by-rockstarlab' ),
 					'typeImport'                    => __( 'Import', 'import-export-by-rockstarlab' ),
 					'typeExport'                    => __( 'Export', 'import-export-by-rockstarlab' ),
+					'typeUpdate'                    => __( 'Update', 'import-export-by-rockstarlab' ),
 					'typeMediaSync'                 => __( 'Media Sync', 'import-export-by-rockstarlab' ),
 					'statusPending'                 => __( 'Pending', 'import-export-by-rockstarlab' ),
 					'statusProcessing'              => __( 'Processing', 'import-export-by-rockstarlab' ),

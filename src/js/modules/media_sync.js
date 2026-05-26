@@ -21,6 +21,31 @@ const MediaSyncModule = {
 		}
 
 		this.bindEvents();
+
+		// Resume job from Jobs Log (admin.php?page=rsl-ie-media-sync&resume_job=<id>)
+		const urlParams = new URLSearchParams( window.location.search );
+		const resumeJobIdRaw = urlParams.get( 'resume_job' );
+		if ( resumeJobIdRaw ) {
+			const resumeJobId = parseInt( resumeJobIdRaw, 10 );
+			if ( Number.isFinite( resumeJobId ) && resumeJobId > 0 ) {
+				this.jobId = resumeJobId;
+				this.isPaused = false;
+
+				// Hide scan + options and show progress section.
+				jQuery(
+					'.rsl-ie-scan-section, .rsl-ie-options-section'
+				).hide();
+				jQuery( '#rsl-ie-sync-progress-section' ).show();
+
+				// Start processing and progress tracking.
+				if ( this.progressInterval ) {
+					clearInterval( this.progressInterval );
+					this.progressInterval = null;
+				}
+				this.startProgressTracking();
+				this.triggerBatchProcessing();
+			}
+		}
 	},
 
 	/**
