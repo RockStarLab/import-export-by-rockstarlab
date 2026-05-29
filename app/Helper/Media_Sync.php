@@ -376,8 +376,13 @@ class Media_Sync {
 					$site_root = trailingslashit( $site_root );
 					$dest_path = wp_normalize_path( $dest_path );
 					if ( '' !== $site_root && 0 === strpos( $dest_path, $site_root ) ) {
-						$relative    = substr( $dest_path, strlen( $site_root ) );
-						$correct_url = trailingslashit( site_url() ) . $relative;
+						$relative = substr( $dest_path, strlen( $site_root ) );
+						// Encode each path segment so that spaces and special chars become valid URL parts.
+						$encoded_relative = implode(
+							'/',
+							array_map( 'rawurlencode', explode( '/', $relative ) )
+						);
+						$correct_url      = trailingslashit( site_url() ) . $encoded_relative;
 						update_post_meta( $attach_id, 'rsl_ie_file_url', $correct_url );
 					}
 				}

@@ -428,11 +428,17 @@ const MediaSyncModule = {
 			totalSize += file.size || 0;
 
 			const icon = this.getFileIcon( file.name );
-			const $item = jQuery( `
-				<div class="rsl-ie-file-item">
-					<input type="checkbox" class="rsl-ie-file-checkbox" value="${
-						file.path
-					}" checked>
+			// Use data-path to safely store the full path (supports spaces, quotes, etc.)
+			// value attribute is set to escaped path for form compatibility
+			const $item = jQuery( '<div class="rsl-ie-file-item"></div>' );
+			const $checkbox = jQuery(
+				'<input type="checkbox" class="rsl-ie-file-checkbox" checked>'
+			);
+			$checkbox.val( file.path ); // jQuery .val() sets DOM property, safe for any string
+			$checkbox.attr( 'data-path', file.path );
+			$item.append( $checkbox );
+			$item.append(
+				jQuery( `
 					<div class="rsl-ie-file-icon">
 						<span class="dashicons ${ icon }"></span>
 					</div>
@@ -443,8 +449,8 @@ const MediaSyncModule = {
 							<span>${ this.escapeHtml( file.path ) }</span>
 						</div>
 					</div>
-				</div>
-			` );
+			` )
+			);
 
 			$list.append( $item );
 		} );
@@ -516,7 +522,9 @@ const MediaSyncModule = {
 		const files = [];
 		const self = this;
 		jQuery( '.rsl-ie-file-checkbox:checked' ).each( function () {
-			const path = jQuery( this ).val();
+			// Prefer data-path (set as DOM attribute, preserves spaces/special chars)
+			// Fall back to .val() for legacy rendered checkboxes
+			const path = jQuery( this ).data( 'path' ) || jQuery( this ).val();
 			const fileData = self.scannedFiles.find( ( f ) => f.path === path );
 			if ( fileData ) {
 				files.push( fileData );
