@@ -24,16 +24,14 @@ class Pro_Addon {
 	 * @return bool
 	 */
 	public static function is_pro_active() {
-		if ( ! function_exists( 'is_plugin_active' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
-		}
-
-		if ( function_exists( 'is_plugin_active' ) && is_plugin_active( self::PRO_PLUGIN_FILE ) ) {
+		$active_plugins = (array) get_option( 'active_plugins', array() );
+		if ( in_array( self::PRO_PLUGIN_FILE, $active_plugins, true ) ) {
 			return true;
 		}
 
-		if ( function_exists( 'is_plugin_active_for_network' ) && is_multisite() ) {
-			return is_plugin_active_for_network( self::PRO_PLUGIN_FILE );
+		if ( is_multisite() ) {
+			$network_plugins = (array) get_site_option( 'active_sitewide_plugins', array() );
+			return isset( $network_plugins[ self::PRO_PLUGIN_FILE ] );
 		}
 
 		return false;

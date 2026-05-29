@@ -41,7 +41,7 @@ const Utils = {
 
 			jQuery
 				.ajax( {
-					url: clientData?.ajaxUrl || '/wp-admin/admin-ajax.php',
+					url: clientData?.ajaxUrl || window.ajaxurl || '',
 					type: method,
 					data: ajaxData,
 					dataType: 'json',

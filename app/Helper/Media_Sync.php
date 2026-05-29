@@ -269,18 +269,19 @@ class Media_Sync {
 				$existing_attach_id = null;
 				$dest_path          = $file_path;
 			} else {
-				// Copy/move new file to replace existing
+				// Copy/move new file to replace existing.
 				if ( 'move' === $file_operation ) {
-					global $wp_filesystem;
-					if ( empty( $wp_filesystem ) ) {
-						require_once ABSPATH . 'wp-admin/includes/file.php';
-						WP_Filesystem();
+					if ( ! @rename( $file_path, $existing_file ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged,WordPress.WP.AlternativeFunctions.rename_rename -- Move is intentionally attempted before copy/delete fallback.
+						if ( ! copy( $file_path, $existing_file ) ) {
+							return new \WP_Error( 'move_failed', __( 'Failed to move file to replace existing', 'import-export-by-rockstarlab' ) );
+						}
+						wp_delete_file( $file_path );
 					}
-					if ( ! $wp_filesystem->move( $file_path, $existing_file, true ) ) {
+					if ( ! file_exists( $existing_file ) ) {
 						return new \WP_Error( 'move_failed', __( 'Failed to move file to replace existing', 'import-export-by-rockstarlab' ) );
 					}
 				} elseif ( ! copy( $file_path, $existing_file ) ) {
-						return new \WP_Error( 'copy_failed', __( 'Failed to copy file to replace existing', 'import-export-by-rockstarlab' ) );
+					return new \WP_Error( 'copy_failed', __( 'Failed to copy file to replace existing', 'import-export-by-rockstarlab' ) );
 				}
 
 				$dest_path = $existing_file;
@@ -323,12 +324,13 @@ class Media_Sync {
 
 				// Copy or move file based on option.
 				if ( 'move' === $file_operation ) {
-					global $wp_filesystem;
-					if ( empty( $wp_filesystem ) ) {
-						require_once ABSPATH . 'wp-admin/includes/file.php';
-						WP_Filesystem();
+					if ( ! @rename( $file_path, $dest_path ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged,WordPress.WP.AlternativeFunctions.rename_rename -- Move is intentionally attempted before copy/delete fallback.
+						if ( ! copy( $file_path, $dest_path ) ) {
+							return new \WP_Error( 'move_failed', __( 'Failed to move file to uploads directory', 'import-export-by-rockstarlab' ) );
+						}
+						wp_delete_file( $file_path );
 					}
-					if ( ! $wp_filesystem->move( $file_path, $dest_path, true ) ) {
+					if ( ! file_exists( $dest_path ) ) {
 						return new \WP_Error( 'move_failed', __( 'Failed to move file to uploads directory', 'import-export-by-rockstarlab' ) );
 					}
 				} else {
@@ -366,10 +368,15 @@ class Media_Sync {
 				$uploads_check = wp_upload_dir();
 				$uploads_base  = trailingslashit( $uploads_check['basedir'] );
 				if ( 0 !== strpos( $dest_path, $uploads_base ) ) {
-					// File is outside uploads dir — derive URL relative to ABSPATH.
-					$abspath = trailingslashit( ABSPATH );
-					if ( 0 === strpos( $dest_path, $abspath ) ) {
-						$relative    = substr( $dest_path, strlen( $abspath ) );
+					// File is outside uploads dir; derive URL relative to this site's public root.
+					$site_path = wp_parse_url( site_url( '/' ), PHP_URL_PATH );
+					$site_path = is_string( $site_path ) ? trim( $site_path, '/' ) : '';
+					// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to map a local path to this site's URL.
+					$site_root = ! empty( $_SERVER['DOCUMENT_ROOT'] ) ? wp_normalize_path( trailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . $site_path ) : '';
+					$site_root = trailingslashit( $site_root );
+					$dest_path = wp_normalize_path( $dest_path );
+					if ( '' !== $site_root && 0 === strpos( $dest_path, $site_root ) ) {
+						$relative    = substr( $dest_path, strlen( $site_root ) );
 						$correct_url = trailingslashit( site_url() ) . $relative;
 						update_post_meta( $attach_id, 'rsl_ie_file_url', $correct_url );
 					}
@@ -380,7 +387,14 @@ class Media_Sync {
 		// Generate metadata (thumbnails) if requested.
 		if ( empty( $options['skip_thumbnails'] ) && wp_attachment_is_image( $attach_id ) ) {
 			if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
-				require_once ABSPATH . 'wp-admin/includes/image.php';
+				$image_path = wp_parse_url( admin_url( 'includes/image.php' ), PHP_URL_PATH );
+				if ( is_string( $image_path ) && ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
+					// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to locate a WordPress admin include file.
+					$image_file = wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . '/' . ltrim( $image_path, '/' ) );
+					if ( is_readable( $image_file ) ) {
+						require_once $image_file;
+					}
+				}
 			}
 			$meta = wp_generate_attachment_metadata( $attach_id, $dest_path );
 			wp_update_attachment_metadata( $attach_id, $meta );

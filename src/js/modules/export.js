@@ -1259,7 +1259,8 @@ const ExportModule = {
 	 * Start new export - reload the page
 	 */
 	newExport() {
-		window.location.href = '/wp-admin/admin.php?page=rsl-ie-export';
+		window.location.href =
+			window.rslIeData?.exportUrl || window.location.href;
 	},
 
 	/**

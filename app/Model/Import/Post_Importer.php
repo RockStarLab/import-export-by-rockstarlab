@@ -2208,10 +2208,15 @@ class Post_Importer extends Abstract_Importer {
 
 			// Theme/plugin assets are not attachments and should not be imported into Media Library.
 			// Instead, just rewrite them to this site's domain to preserve content parity.
-			$parsed_path = wp_parse_url( $url, PHP_URL_PATH );
-			if ( is_string( $parsed_path ) && ( 0 === strpos( $parsed_path, '/wp-content/themes/' ) || 0 === strpos( $parsed_path, '/wp-content/plugins/' ) ) ) {
+				$parsed_path  = wp_parse_url( $url, PHP_URL_PATH );
+				$content_path = wp_parse_url( content_url( '/' ), PHP_URL_PATH );
+				$content_path = is_string( $content_path ) ? trailingslashit( $content_path ) : '';
+				$themes_path  = $content_path . 'themes/';
+				$plugins_path = $content_path . 'plugins/';
+			if ( is_string( $parsed_path ) && ( 0 === strpos( $parsed_path, $themes_path ) || 0 === strpos( $parsed_path, $plugins_path ) ) ) {
+				$relative_asset_path = ltrim( substr( $parsed_path, strlen( $content_path ) ), '/' );
 				$url_mapping[ $url ] = [
-					'url' => home_url( $parsed_path ),
+					'url' => content_url( $relative_asset_path ),
 					'id'  => 0,
 				];
 				++$skipped_count;
@@ -2473,13 +2478,34 @@ class Post_Importer extends Abstract_Importer {
 	 */
 	private function import_media_from_url( $url, $post_id = 0 ) {
 		if ( ! function_exists( 'media_handle_sideload' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/media.php';
+			$media_path = wp_parse_url( admin_url( 'includes/media.php' ), PHP_URL_PATH );
+			if ( is_string( $media_path ) && ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to locate a WordPress admin include file.
+				$media_file = wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . '/' . ltrim( $media_path, '/' ) );
+				if ( is_readable( $media_file ) ) {
+					require_once $media_file;
+				}
+			}
 		}
 		if ( ! function_exists( 'download_url' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/file.php';
+			$file_path = wp_parse_url( admin_url( 'includes/file.php' ), PHP_URL_PATH );
+			if ( is_string( $file_path ) && ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to locate a WordPress admin include file.
+				$file_file = wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . '/' . ltrim( $file_path, '/' ) );
+				if ( is_readable( $file_file ) ) {
+					require_once $file_file;
+				}
+			}
 		}
 		if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/image.php';
+			$image_path = wp_parse_url( admin_url( 'includes/image.php' ), PHP_URL_PATH );
+			if ( is_string( $image_path ) && ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to locate a WordPress admin include file.
+				$image_file = wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . '/' . ltrim( $image_path, '/' ) );
+				if ( is_readable( $image_file ) ) {
+					require_once $image_file;
+				}
+			}
 		}
 
 		// Check if we already downloaded this file during duplicate check

@@ -54,9 +54,13 @@ class Media_Sync_Controller extends Base_Controller {
 			$absolute_path = $base_dir . '/' . trim( $folder_path, '/' );
 		}
 
-		// Security check: ensure path is within WordPress installation
-		$real_path  = realpath( $absolute_path );
-		$real_limit = realpath( ABSPATH );
+		// Security check: ensure path is within this WordPress installation.
+		$real_path = realpath( $absolute_path );
+		$site_path = wp_parse_url( site_url( '/' ), PHP_URL_PATH );
+		$site_path = is_string( $site_path ) ? trim( $site_path, '/' ) : '';
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to resolve the current WordPress install path.
+		$site_root  = ! empty( $_SERVER['DOCUMENT_ROOT'] ) ? wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . ( '' === $site_path ? '' : '/' . $site_path ) ) : '';
+		$real_limit = $site_root ? realpath( $site_root ) : false;
 
 		if ( false === $real_path || false === $real_limit || 0 !== strpos( $real_path . '/', $real_limit . '/' ) ) {
 			$this->send_error(
@@ -103,8 +107,12 @@ class Media_Sync_Controller extends Base_Controller {
 			$absolute_path = $base_dir . '/' . trim( $folder_path, '/' );
 		}
 
-		$real_path  = realpath( $absolute_path );
-		$real_limit = realpath( ABSPATH );
+		$real_path = realpath( $absolute_path );
+		$site_path = wp_parse_url( site_url( '/' ), PHP_URL_PATH );
+		$site_path = is_string( $site_path ) ? trim( $site_path, '/' ) : '';
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to resolve the current WordPress install path.
+		$site_root  = ! empty( $_SERVER['DOCUMENT_ROOT'] ) ? wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . ( '' === $site_path ? '' : '/' . $site_path ) ) : '';
+		$real_limit = $site_root ? realpath( $site_root ) : false;
 
 		if ( false === $real_path || false === $real_limit || 0 !== strpos( $real_path . '/', $real_limit . '/' ) ) {
 			$this->send_error(
@@ -307,9 +315,13 @@ class Media_Sync_Controller extends Base_Controller {
 				$absolute_path = $base_dir . '/' . trim( $path, '/' );
 			}
 
-			// Security check: must be within WordPress installation
-			$real_path  = realpath( $absolute_path );
-			$real_limit = realpath( ABSPATH );
+			// Security check: must be within this WordPress installation.
+			$real_path = realpath( $absolute_path );
+			$site_path = wp_parse_url( site_url( '/' ), PHP_URL_PATH );
+			$site_path = is_string( $site_path ) ? trim( $site_path, '/' ) : '';
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to resolve the current WordPress install path.
+			$site_root  = ! empty( $_SERVER['DOCUMENT_ROOT'] ) ? wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . ( '' === $site_path ? '' : '/' . $site_path ) ) : '';
+			$real_limit = $site_root ? realpath( $site_root ) : false;
 
 			if ( false === $real_path ) {
 				$this->send_error(

@@ -1298,13 +1298,8 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-		// Upload file
-		if ( ! function_exists( 'wp_unique_filename' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-		}
-
-		$upload_dir = wp_upload_dir();
-		$file_path  = $upload_dir['path'] . '/' . wp_unique_filename( $upload_dir['path'], $file_name );
+			$upload_dir = wp_upload_dir();
+			$file_path  = $upload_dir['path'] . '/' . wp_unique_filename( $upload_dir['path'], $file_name );
 
 		// Write file
 		$saved = @file_put_contents( $file_path, $file_contents );
@@ -1341,9 +1336,16 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-		// Generate and update attachment metadata
+			// Generate and update attachment metadata
 		if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/image.php';
+			$image_path = wp_parse_url( admin_url( 'includes/image.php' ), PHP_URL_PATH );
+			if ( is_string( $image_path ) && ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to locate a WordPress admin include file.
+				$image_file = wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . '/' . ltrim( $image_path, '/' ) );
+				if ( is_readable( $image_file ) ) {
+					require_once $image_file;
+				}
+			}
 		}
 		$attach_data = wp_generate_attachment_metadata( $attachment_id, $file_path );
 		wp_update_attachment_metadata( $attachment_id, $attach_data );

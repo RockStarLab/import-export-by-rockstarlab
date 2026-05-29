@@ -35,7 +35,16 @@ class Database_Migration {
 		$charset_collate = $wpdb->get_charset_collate();
 		$prefix          = $wpdb->prefix;
 
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		if ( ! function_exists( 'dbDelta' ) && ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
+			$upgrade_path = wp_parse_url( admin_url( 'includes/upgrade.php' ), PHP_URL_PATH );
+			if ( is_string( $upgrade_path ) ) {
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to locate a WordPress admin include file.
+				$upgrade_file = wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . '/' . ltrim( $upgrade_path, '/' ) );
+				if ( is_readable( $upgrade_file ) ) {
+					require_once $upgrade_file;
+				}
+			}
+		}
 
 		// 1. Jobs table - import/export history
 		$sql_jobs = "CREATE TABLE {$prefix}rsl_ie_jobs (
@@ -170,14 +179,14 @@ class Database_Migration {
         ) ENGINE=InnoDB $charset_collate;";
 
 		// Execute table creation
-		$results = array();
-		$results['jobs']              = dbDelta( $sql_jobs );
-		$results['field_maps']        = dbDelta( $sql_field_maps );
-		$results['custom_functions']  = dbDelta( $sql_custom_functions );
-		$results['media_sync']        = dbDelta( $sql_media_sync );
-		$results['site_connections']  = dbDelta( $sql_site_connections );
-		$results['content_sync']      = dbDelta( $sql_content_sync );
-		$results['api_keys']          = dbDelta( $sql_api_keys );
+		$results                     = array();
+		$results['jobs']             = dbDelta( $sql_jobs );
+		$results['field_maps']       = dbDelta( $sql_field_maps );
+		$results['custom_functions'] = dbDelta( $sql_custom_functions );
+		$results['media_sync']       = dbDelta( $sql_media_sync );
+		$results['site_connections'] = dbDelta( $sql_site_connections );
+		$results['content_sync']     = dbDelta( $sql_content_sync );
+		$results['api_keys']         = dbDelta( $sql_api_keys );
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			if ( $wpdb->last_error ) {
@@ -200,41 +209,41 @@ class Database_Migration {
 
 			// Seed built-in functions
 			self::ensure_builtin_functions();
-		}
+	}
 
 		/**
 		 * Ensure built-in function snippets are present in the database.
 		 *
 		 * Safe to call multiple times.
 		 */
-		public static function ensure_builtin_functions() {
-			global $wpdb;
+	public static function ensure_builtin_functions() {
+		global $wpdb;
 
-			$table_name = $wpdb->prefix . 'rsl_ie_custom_functions';
+		$table_name = $wpdb->prefix . 'rsl_ie_custom_functions';
 
-			$exists = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-				$wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name )
-			);
-			if ( $exists !== $table_name ) {
-				return;
-			}
-
-			$seeded_option = 'rsl_ie_builtin_functions_seeded';
-
-			$library_count = (int) $wpdb->get_var( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-				"SELECT COUNT(*) FROM {$table_name} WHERE source LIKE 'library:%'" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			);
-
-			if ( $library_count > 0 ) {
-				if ( ! get_option( $seeded_option, false ) ) {
-					update_option( $seeded_option, true );
-				}
-				return;
-			}
-
-			self::seed_builtin_functions();
-			update_option( $seeded_option, true );
+		$exists = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			$wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name )
+		);
+		if ( $exists !== $table_name ) {
+			return;
 		}
+
+		$seeded_option = 'rsl_ie_builtin_functions_seeded';
+
+		$library_count = (int) $wpdb->get_var( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			"SELECT COUNT(*) FROM {$table_name} WHERE source LIKE 'library:%'" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		);
+
+		if ( $library_count > 0 ) {
+			if ( ! get_option( $seeded_option, false ) ) {
+				update_option( $seeded_option, true );
+			}
+			return;
+		}
+
+		self::seed_builtin_functions();
+		update_option( $seeded_option, true );
+	}
 
 	/**
 	 * Add progress column to jobs table if it doesn't exist
@@ -509,16 +518,16 @@ class Database_Migration {
 	/**
 	 * Seed built-in functions into database
 	 */
-		private static function seed_builtin_functions() {
-			// Load Custom_Function model and seed
-			if ( class_exists( '\RockStarLab\ImportExport\Model\Custom_Function' ) ) {
-				try {
-					$custom_function_model = new \RockStarLab\ImportExport\Model\Custom_Function();
-					$stats                 = $custom_function_model->seed_builtin_functions();
+	private static function seed_builtin_functions() {
+		// Load Custom_Function model and seed
+		if ( class_exists( '\RockStarLab\ImportExport\Model\Custom_Function' ) ) {
+			try {
+				$custom_function_model = new \RockStarLab\ImportExport\Model\Custom_Function();
+				$stats                 = $custom_function_model->seed_builtin_functions();
 
-					// Log results
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					}
+				// Log results
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				}
 			} catch ( \Exception $e ) {
 				// Log error but don't break migration
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
