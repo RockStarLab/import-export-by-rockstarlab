@@ -10,6 +10,25 @@ defined( 'ABSPATH' ) || exit;
 // Get upload directory for suggestions
 $rsl_ie_upload_dir = wp_upload_dir();
 $rsl_ie_base_dir   = $rsl_ie_upload_dir['basedir'];
+
+// Build a user-friendly list of currently allowed Media Library upload extensions.
+// This respects any customizations via the `upload_mimes` filter.
+$rsl_ie_allowed_mimes = function_exists( 'get_allowed_mime_types' ) ? (array) get_allowed_mime_types() : array();
+$rsl_ie_allowed_exts  = array();
+foreach ( $rsl_ie_allowed_mimes as $rsl_ie_ext_group => $rsl_ie_mime_type ) {
+	$rsl_ie_ext_group = (string) $rsl_ie_ext_group;
+	foreach ( explode( '|', $rsl_ie_ext_group ) as $rsl_ie_ext ) {
+		$rsl_ie_ext = strtolower( trim( (string) $rsl_ie_ext ) );
+		if ( '' === $rsl_ie_ext ) {
+			continue;
+		}
+		$rsl_ie_allowed_exts[ $rsl_ie_ext ] = true;
+	}
+}
+$rsl_ie_allowed_exts = array_keys( $rsl_ie_allowed_exts );
+sort( $rsl_ie_allowed_exts, SORT_NATURAL | SORT_FLAG_CASE );
+
+$rsl_ie_upload_types_plugin_url = 'https://wordpress.org/plugins/file-upload-types/';
 ?>
 
 <!-- Step 1: Scan Folder -->
@@ -101,6 +120,41 @@ $rsl_ie_base_dir   = $rsl_ie_upload_dir['basedir'];
 						>
 						<p class="description">
 							<?php esc_html_e( 'Comma-separated list of file extensions (without dots)', 'import-export-by-rockstarlab' ); ?>
+						</p>
+					</div>
+
+					<div class="notice notice-info inline" style="margin-top: 10px;">
+						<p style="margin: 8px 0;">
+							<strong><?php esc_html_e( 'Allowed Media Library upload types on this site:', 'import-export-by-rockstarlab' ); ?></strong>
+							<?php
+							if ( ! empty( $rsl_ie_allowed_exts ) ) {
+								printf(
+									/* translators: %d: number of allowed extensions */
+									' ' . esc_html__( '(%d extensions)', 'import-export-by-rockstarlab' ),
+									(int) count( $rsl_ie_allowed_exts )
+								);
+							}
+							?>
+						</p>
+
+						<?php if ( ! empty( $rsl_ie_allowed_exts ) ) : ?>
+							<p style="margin: 8px 0;">
+								<code><?php echo esc_html( implode( ', ', $rsl_ie_allowed_exts ) ); ?></code>
+							</p>
+						<?php else : ?>
+							<p style="margin: 8px 0;">
+								<?php esc_html_e( 'Unable to determine allowed file types.', 'import-export-by-rockstarlab' ); ?>
+							</p>
+						<?php endif; ?>
+
+						<p style="margin: 8px 0;">
+							<?php
+							printf(
+								/* translators: %s: plugin link */
+								esc_html__( 'Need to allow more file types? Use a plugin like %s.', 'import-export-by-rockstarlab' ),
+								'<a href="' . esc_url( $rsl_ie_upload_types_plugin_url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'File Upload Types by WPForms', 'import-export-by-rockstarlab' ) . '</a>'
+							);
+							?>
 						</p>
 					</div>
 				</td>
