@@ -223,7 +223,9 @@ const PostSync = {
 				: typeof rslIePostSyncData !== 'undefined' &&
 				  rslIePostSyncData.ajaxurl
 				? rslIePostSyncData.ajaxurl
-				: '/wp-admin/admin-ajax.php';
+				: typeof rslIeData !== 'undefined' && rslIeData.ajaxUrl
+				? rslIeData.ajaxUrl
+				: '';
 
 		const ajaxData = {
 			action: `rsl_ie_content_sync_${ direction }`,

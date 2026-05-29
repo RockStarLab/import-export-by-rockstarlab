@@ -237,9 +237,11 @@ class Init {
 				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
 				'nonce'            => wp_create_nonce( 'rsl_ie_nonce' ),
 				'pluginUrl'        => plugins_url( '', RSL_IE_FILE ),
+				'adminUrl'         => admin_url(),
 				'functionsUrl'     => admin_url( 'admin.php?page=rsl-ie-functions' ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request(). -- Input is sanitized and validated in context.
-				'optionsUrl'       => admin_url( 'admin.php?page=rsl-ie-plugin-options' ),
-				'currentPage'      => isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading admin page slug, no nonce needed.
+					'optionsUrl'   => admin_url( 'admin.php?page=rsl-ie-plugin-options' ),
+					'exportUrl'    => admin_url( 'admin.php?page=rsl-ie-export' ),
+					'currentPage'  => isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading admin page slug, no nonce needed.
 				'hasOpenAIApiKey'  => \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_key(),
 				'isPremium'        => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active(),
 				'isProAddonActive' => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active(),

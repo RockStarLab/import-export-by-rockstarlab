@@ -4001,10 +4001,16 @@ const ImportModule = {
 			if ( typeof rslIeData !== 'undefined' && rslIeData.functionsUrl ) {
 				window.open( rslIeData.functionsUrl, '_blank' );
 			} else {
-				window.open(
-					'/wp-admin/admin.php?page=rsl-ie-functions',
-					'_blank'
-				);
+				const adminUrl =
+					typeof rslIeData !== 'undefined' && rslIeData.adminUrl
+						? rslIeData.adminUrl
+						: '';
+				if ( adminUrl ) {
+					window.open(
+						`${ adminUrl }admin.php?page=rsl-ie-functions`,
+						'_blank'
+					);
+				}
 			}
 		} );
 

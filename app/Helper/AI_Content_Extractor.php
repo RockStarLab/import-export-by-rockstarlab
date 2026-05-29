@@ -510,15 +510,36 @@ class AI_Content_Extractor {
 			return $existing_id;
 		}
 
-		// Download image
+			// Download image
 		if ( ! function_exists( 'media_handle_sideload' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/media.php';
+			$media_path = wp_parse_url( admin_url( 'includes/media.php' ), PHP_URL_PATH );
+			if ( is_string( $media_path ) && ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to locate a WordPress admin include file.
+				$media_file = wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . '/' . ltrim( $media_path, '/' ) );
+				if ( is_readable( $media_file ) ) {
+					require_once $media_file;
+				}
+			}
 		}
 		if ( ! function_exists( 'download_url' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/file.php';
+			$file_path = wp_parse_url( admin_url( 'includes/file.php' ), PHP_URL_PATH );
+			if ( is_string( $file_path ) && ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to locate a WordPress admin include file.
+				$file_file = wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . '/' . ltrim( $file_path, '/' ) );
+				if ( is_readable( $file_file ) ) {
+					require_once $file_file;
+				}
+			}
 		}
 		if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/image.php';
+			$image_path = wp_parse_url( admin_url( 'includes/image.php' ), PHP_URL_PATH );
+			if ( is_string( $image_path ) && ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to locate a WordPress admin include file.
+				$image_file = wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . '/' . ltrim( $image_path, '/' ) );
+				if ( is_readable( $image_file ) ) {
+					require_once $image_file;
+				}
+			}
 		}
 
 		$tmp = download_url( $image_url );

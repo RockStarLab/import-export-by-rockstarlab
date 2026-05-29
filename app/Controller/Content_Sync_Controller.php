@@ -617,6 +617,10 @@ class Content_Sync_Controller extends Base_Controller {
 			array(
 				'nonce'          => $nonce,
 				'ajaxurl'        => admin_url( 'admin-ajax.php' ),
+				'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
+				'adminUrl'       => admin_url(),
+				'functionsUrl'   => admin_url( 'admin.php?page=rsl-ie-functions' ),
+				'exportUrl'      => admin_url( 'admin.php?page=rsl-ie-export' ),
 				'connectedSites' => $sites_map,
 				'i18n'           => array(
 					// Alerts & Messages
@@ -709,9 +713,13 @@ class Content_Sync_Controller extends Base_Controller {
 					'rsl-ie-gutenberg-sync',
 					'rslIeData',
 					array(
-						'nonce'   => wp_create_nonce( 'rsl_ie_nonce' ),
-						'ajaxurl' => admin_url( 'admin-ajax.php' ),
-						'i18n'    => array(
+						'nonce'        => wp_create_nonce( 'rsl_ie_nonce' ),
+						'ajaxurl'      => admin_url( 'admin-ajax.php' ),
+						'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
+						'adminUrl'     => admin_url(),
+						'functionsUrl' => admin_url( 'admin.php?page=rsl-ie-functions' ),
+						'exportUrl'    => admin_url( 'admin.php?page=rsl-ie-export' ),
+						'i18n'         => array(
 							'syncContent'  => __( 'Sync Content', 'import-export-by-rockstarlab' ),
 							'syncThisPost' => __( 'Sync This Post', 'import-export-by-rockstarlab' ),
 						),
@@ -1786,16 +1794,16 @@ class Content_Sync_Controller extends Base_Controller {
 				);
 			}
 
-				// Fix image URLs in content after import
-				$updated_content = $post_data['post_content'];
+			// Fix image URLs in content after import
+			$updated_content = $post_data['post_content'];
 
 			foreach ( $image_map as $old_id => $new_id ) {
 				$new_url = wp_get_attachment_url( $new_id );
 				if ( $new_url ) {
 
 					// Replace old image URL with new one
-					$pattern         = '/(<img[^>]+src=")https?:\/\/[^\/]+\/wp-content\/uploads\/[^"]+(' . preg_quote( basename( $new_url ), '/' ) . ')(")/i';
-					$replacement     = '${1}' . $new_url . '${3}';
+					$pattern         = '/(<img[^>]+src=")https?:\/\/[^"]*\/' . preg_quote( basename( $new_url ), '/' ) . '(?:\?[^"]*)?(")/i';
+					$replacement     = '${1}' . $new_url . '${2}';
 					$updated_content = preg_replace( $pattern, $replacement, $updated_content );
 
 					// Also update wp:image block ID
@@ -1967,7 +1975,14 @@ class Content_Sync_Controller extends Base_Controller {
 
 		// Generate metadata
 		if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/image.php';
+			$image_path = wp_parse_url( admin_url( 'includes/image.php' ), PHP_URL_PATH );
+			if ( is_string( $image_path ) && ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to locate a WordPress admin include file.
+				$image_file = wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . '/' . ltrim( $image_path, '/' ) );
+				if ( is_readable( $image_file ) ) {
+					require_once $image_file;
+				}
+			}
 		}
 		$attach_data = wp_generate_attachment_metadata( $attachment_id, $upload['file'] );
 		wp_update_attachment_metadata( $attachment_id, $attach_data );

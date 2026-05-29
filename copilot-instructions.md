@@ -184,7 +184,7 @@ The project follows the standard WordPress structure, with the main application 
 
 ```
 .
-├── wp-content/
+├── <wordpress-content-dir>/
 │   ├── plugins/
 │   │   ├── import-export-by-rockstarlab/
 │   │   │   ├── app/                 						# Core application logic (MVC)
@@ -204,7 +204,7 @@ The project follows the standard WordPress structure, with the main application 
 │   │   │   │   └── js/
 │   │   │   ├── import-export-by-rockstarlab.php		# Main plugin initialization file
 │   │   └── ... (other plugins)
-│   └── ... (other wp-content folders)
+│   └── ... (other WordPress content folders)
 └── ... (other WordPress root files)
 ```
 

@@ -6,7 +6,7 @@
  * Appears only on plugin pages, 1 week after installation.
  *
  * 🔑 Secret test URL (bypass the 1-week wait):
- *    /wp-admin/admin.php?page=import-export-by-rockstarlab&rsl_ie_review_test=1
+ *    admin_url( 'admin.php?page=import-export-by-rockstarlab&rsl_ie_review_test=1' )
  *
  * @package RockStarLab\ImportExport\Helper
  */

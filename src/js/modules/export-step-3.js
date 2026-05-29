@@ -2025,10 +2025,16 @@ export default class ExportStep3 {
 			window.open( rslIeData.functionsUrl, '_blank' );
 		} else {
 			// Fallback - go to admin page
-			window.open(
-				'/wp-admin/admin.php?page=rsl-ie-functions',
-				'_blank'
-			);
+			const adminUrl =
+				typeof rslIeData !== 'undefined' && rslIeData.adminUrl
+					? rslIeData.adminUrl
+					: '';
+			if ( adminUrl ) {
+				window.open(
+					`${ adminUrl }admin.php?page=rsl-ie-functions`,
+					'_blank'
+				);
+			}
 		}
 	}
 

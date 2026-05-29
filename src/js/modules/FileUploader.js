@@ -88,7 +88,7 @@ export default class FileUploader {
 		formData.append( 'chunk', chunk );
 
 		const response = await fetch(
-			clientData.ajaxUrl || '/wp-admin/admin-ajax.php',
+			clientData.ajaxUrl || window.ajaxurl || '',
 			{
 				method: 'POST',
 				body: formData,
@@ -151,7 +151,7 @@ export default class FileUploader {
 		}
 
 		const response = await fetch(
-			clientData.ajaxUrl || '/wp-admin/admin-ajax.php',
+			clientData.ajaxUrl || window.ajaxurl || '',
 			{
 				method: 'POST',
 				body: formData,
@@ -187,7 +187,7 @@ export default class FileUploader {
 			formData.append( 'nonce', clientData.nonce || '' );
 			formData.append( 'upload_id', this.uploadId );
 
-			fetch( clientData.ajaxUrl || '/wp-admin/admin-ajax.php', {
+			fetch( clientData.ajaxUrl || window.ajaxurl || '', {
 				method: 'POST',
 				body: formData,
 				credentials: 'same-origin',

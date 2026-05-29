@@ -26,7 +26,7 @@ class FS {
 	 * }
 	 */
 	public static function get_upload_dir() {
-		$upload  = wp_upload_dir();
+		$upload     = wp_upload_dir();
 		$rsl_ie_dir = $upload['basedir'] . '/rsl-ie-uploads';
 		$rsl_ie_url = $upload['baseurl'] . '/rsl-ie-uploads';
 
@@ -116,7 +116,7 @@ class FS {
 	/**
 	 * Get export file path
 	 * Prepares path for export file in a secure subdirectory
-	 * Path: wp-content/uploads/import-export-by-rockstarlab-files/{secure_hash}/
+	 * Path: WordPress uploads directory/import-export-by-rockstarlab-files/{secure_hash}/
 	 *
 	 * @param string $filename Desired filename
 	 * @return array|WP_Error {
