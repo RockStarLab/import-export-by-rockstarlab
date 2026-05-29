@@ -55,7 +55,6 @@ class Review_Notice {
 	 */
 	public static function init(): void {
 		add_action( 'admin_notices', [ __CLASS__, 'maybe_show_notice' ] );
-		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_assets' ] );
 		add_action( 'wp_ajax_rsl_ie_dismiss_review_notice', [ __CLASS__, 'handle_dismiss' ] );
 	}
 
@@ -130,19 +129,6 @@ class Review_Notice {
 	}
 
 	/**
-	 * Enqueue the inline JS needed to dismiss the notice via AJAX.
-	 * Always loaded on plugin pages so it is ready regardless of hook order.
-	 */
-	public static function enqueue_assets(): void {
-		if ( ! self::is_plugin_page() ) {
-			return;
-		}
-
-		// Attach after the main plugin script (which depends on jquery)
-		wp_add_inline_script( 'jquery-core', self::get_inline_js() );
-	}
-
-	/**
 	 * AJAX handler — saves the dismissed flag and sends JSON success.
 	 */
 	public static function handle_dismiss(): void {
@@ -206,29 +192,5 @@ class Review_Notice {
 
 		</div>
 		<?php
-	}
-
-	/**
-	 * Returns the inline JS string that handles the dismiss interaction.
-	 */
-	private static function get_inline_js(): string {
-		return "
-jQuery(function($) {
-    $(document).on('click', '.rsl-ie-review-dismiss', function(e) {
-        // Allow anchor tags to open the link normally, but still dismiss
-        if (!$(this).is('a')) {
-            e.preventDefault();
-        }
-        var nonce = $('#rsl-ie-review-notice').data('nonce');
-        $.post(ajaxurl, {
-            action: 'rsl_ie_dismiss_review_notice',
-            nonce:  nonce
-        });
-        $('#rsl-ie-review-notice').fadeOut(350, function() {
-            $(this).remove();
-        });
-    });
-});
-";
 	}
 }

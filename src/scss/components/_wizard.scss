@@ -1146,3 +1146,18 @@
 		}
 	}
 }
+
+// Prevent step-flash when resuming an export job.
+// The JS adds .rsl-ie-resuming-job to the wizard wrapper before the DOM settles.
+.rsl-ie-resuming-job {
+	.rsl-ie-step-1,
+	.rsl-ie-step-2,
+	.rsl-ie-step-3,
+	.rsl-ie-step-4 {
+		display: none !important;
+	}
+
+	.rsl-ie-step-5 {
+		display: block !important;
+	}
+}

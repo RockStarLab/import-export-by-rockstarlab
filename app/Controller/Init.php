@@ -229,6 +229,14 @@ class Init {
 			)
 		);
 
+		wp_enqueue_script(
+			'rsl-ie-review-notice',
+			plugins_url( 'assets/js/review-notice.js', RSL_IE_FILE ),
+			array( 'jquery' ),
+			filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/js/review-notice.js' ),
+			true
+		);
+
 		// Localize script with AJAX data
 		wp_localize_script(
 			'import-export-by-rockstarlab-scripts',
@@ -1038,18 +1046,6 @@ class Init {
 				array( 'import-export-by-rockstarlab-styles' ),
 				filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/css/admin-wp7.css' )
 			);
-		}
-
-		// Prevent step-flash when resuming export jobs (use enqueue + inline style, not <style> tags).
-		if ( 'import-export-by-rockstarlab_page_rsl-ie-export' === $admin_page ) {
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading resume state only (no state change).
-			$resume_job_id = isset( $_GET['resume_job'] ) ? absint( $_GET['resume_job'] ) : 0;
-			if ( $resume_job_id ) {
-				wp_add_inline_style(
-					'import-export-by-rockstarlab-styles',
-					'.rsl-ie-resuming-job .rsl-ie-step-1,.rsl-ie-resuming-job .rsl-ie-step-2,.rsl-ie-resuming-job .rsl-ie-step-3,.rsl-ie-resuming-job .rsl-ie-step-4{display:none!important}.rsl-ie-resuming-job .rsl-ie-step-5{display:block!important}'
-				);
-			}
 		}
 	}
 
