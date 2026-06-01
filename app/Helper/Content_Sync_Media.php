@@ -639,16 +639,7 @@ class Content_Sync_Media {
 		}
 
 		if ( $needs_regen ) {
-			if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
-				$image_path = wp_parse_url( admin_url( 'includes/image.php' ), PHP_URL_PATH );
-				if ( is_string( $image_path ) && ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
-					// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to locate a WordPress admin include file.
-					$image_file = wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . '/' . ltrim( $image_path, '/' ) );
-					if ( is_readable( $image_file ) ) {
-						require_once $image_file;
-					}
-				}
-			}
+			Fs::load_image_core();
 			$new_meta = wp_generate_attachment_metadata( $attachment_id, $file_path );
 			wp_update_attachment_metadata( $attachment_id, $new_meta );
 		}

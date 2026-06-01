@@ -34,17 +34,7 @@ class Database_Migration {
 
 		$charset_collate = $wpdb->get_charset_collate();
 		$prefix          = $wpdb->prefix;
-
-		if ( ! function_exists( 'dbDelta' ) && ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
-			$upgrade_path = wp_parse_url( admin_url( 'includes/upgrade.php' ), PHP_URL_PATH );
-			if ( is_string( $upgrade_path ) ) {
-				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to locate a WordPress admin include file.
-				$upgrade_file = wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . '/' . ltrim( $upgrade_path, '/' ) );
-				if ( is_readable( $upgrade_file ) ) {
-					require_once $upgrade_file;
-				}
-			}
-		}
+		Fs::load_db_delta_core();
 
 		// 1. Jobs table - import/export history
 		$sql_jobs = "CREATE TABLE {$prefix}rsl_ie_jobs (

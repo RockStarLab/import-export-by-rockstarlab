@@ -15,6 +15,69 @@ defined( 'ABSPATH' ) || exit;
 class FS {
 
 	/**
+	 * Load a whitelisted WordPress admin include file.
+	 *
+	 * @param string $file File name from wp-admin/includes.
+	 * @return void
+	 */
+	public static function require_admin_include( $file ) {
+		$file    = wp_basename( $file );
+		$allowed = array(
+			'file.php',
+			'image.php',
+			'media.php',
+			'upgrade.php',
+		);
+
+		if ( ! in_array( $file, $allowed, true ) ) {
+			return;
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/' . $file;
+	}
+
+	/**
+	 * Load WordPress media helper functions when running outside wp-admin.
+	 *
+	 * @return void
+	 */
+	public static function load_media_core() {
+		if ( ! function_exists( 'download_url' ) ) {
+			self::require_admin_include( 'file.php' );
+		}
+
+		if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
+			self::require_admin_include( 'image.php' );
+		}
+
+		if ( ! function_exists( 'media_handle_sideload' ) ) {
+			self::require_admin_include( 'media.php' );
+		}
+	}
+
+	/**
+	 * Load WordPress image helper functions when running outside wp-admin.
+	 *
+	 * @return void
+	 */
+	public static function load_image_core() {
+		if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
+			self::require_admin_include( 'image.php' );
+		}
+	}
+
+	/**
+	 * Load dbDelta() when running outside wp-admin.
+	 *
+	 * @return void
+	 */
+	public static function load_db_delta_core() {
+		if ( ! function_exists( 'dbDelta' ) ) {
+			self::require_admin_include( 'upgrade.php' );
+		}
+	}
+
+	/**
 	 * Get plugin's upload directory
 	 * Creates directory if it doesn't exist
 	 *
