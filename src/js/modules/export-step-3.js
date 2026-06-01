@@ -11,6 +11,8 @@ export default class ExportStep3 {
 		this.isDragging = false;
 		this.autoScrollInterval = null;
 		this.selectedPostType = null;
+		this.dynamicFieldsLoading = false;
+		this.dynamicFieldsLoadToken = 0;
 
 		this.init();
 	}
@@ -444,7 +446,8 @@ export default class ExportStep3 {
 		);
 		if ( nextBtn ) {
 			const $nextBtn = jQuery( nextBtn );
-			const isDisabled = this.selectedFields.length === 0;
+			const isDisabled =
+				this.selectedFields.length === 0 || this.dynamicFieldsLoading;
 
 			// Remove previous event handlers
 			$nextBtn.off( 'mouseenter.tooltip mouseleave.tooltip' );
@@ -597,6 +600,16 @@ export default class ExportStep3 {
 			'.rsl-ie-field-item:not([style*="display: none"])'
 		);
 
+		if (
+			fieldItems.length === 0 &&
+			this.isDynamicCategoryLoading( category )
+		) {
+			category.dataset.pendingAddAll = 'true';
+			return;
+		}
+
+		delete category.dataset.pendingAddAll;
+
 		fieldItems.forEach( ( item ) => {
 			const fieldData = {
 				field: item.dataset.field,
@@ -612,6 +625,23 @@ export default class ExportStep3 {
 				this.addFieldToCSV( fieldData );
 			}
 		} );
+	}
+
+	isDynamicCategoryLoading( category ) {
+		return !! category.querySelector(
+			'.rsl-ie-taxonomies-loading, .rsl-ie-custom-fields-loading, .rsl-ie-acf-loading, .rsl-ie-yoast-loading'
+		);
+	}
+
+	flushPendingAddAll( category ) {
+		if ( ! category || category.dataset.pendingAddAll !== 'true' ) {
+			return;
+		}
+
+		const button = category.querySelector( '.rsl-ie-add-all-fields' );
+		if ( button ) {
+			this.addAllFieldsFromCategory( button );
+		}
 	}
 
 	/**
@@ -783,6 +813,19 @@ export default class ExportStep3 {
 		// Get selected post type from step 1
 		this.selectedPostType = this.getCurrentContentType();
 		const contentType = this.getCurrentRealContentType();
+		const loadToken = Date.now();
+		const requests = [];
+		const trackRequest = ( request ) => {
+			if ( request && typeof request.always === 'function' ) {
+				requests.push(
+					new Promise( ( resolve ) => request.always( resolve ) )
+				);
+			}
+		};
+
+		this.dynamicFieldsLoading = true;
+		this.dynamicFieldsLoadToken = loadToken;
+		this.toggleNextButton();
 
 		// Load static fields based on content type
 		this.loadStaticFields();
@@ -799,12 +842,30 @@ export default class ExportStep3 {
 
 		// Load taxonomies only for actual post types
 		if ( ! nonPostTypes.includes( contentType ) ) {
-			this.loadTaxonomies();
+			this.prepareDynamicCategory(
+				'.rsl-ie-taxonomies-category',
+				'.rsl-ie-taxonomies-grid',
+				'rsl-ie-taxonomies-loading',
+				window.rslIeData.i18n.loadingTaxonomies ||
+					'Loading taxonomies...'
+			);
+			trackRequest( this.loadTaxonomies() );
+		} else {
+			this.hideDynamicCategory( '.rsl-ie-taxonomies-category' );
 		}
 
 		// Load custom fields only for actual post types
 		if ( ! nonPostTypes.includes( contentType ) ) {
-			this.loadCustomFields();
+			this.prepareDynamicCategory(
+				'.rsl-ie-custom-fields-category',
+				'.rsl-ie-custom-fields-grid',
+				'rsl-ie-custom-fields-loading',
+				window.rslIeData.i18n.loadingCustomFields ||
+					'Loading custom fields...'
+			);
+			trackRequest( this.loadCustomFields() );
+		} else {
+			this.hideDynamicCategory( '.rsl-ie-custom-fields-category' );
 		}
 
 		// Check if ACF is active and load ACF fields (skip for non-supported types)
@@ -818,7 +879,16 @@ export default class ExportStep3 {
 			'woo_order',
 		];
 		if ( ! acfExcludedTypes.includes( contentType ) ) {
-			this.checkAndLoadACF();
+			this.prepareDynamicCategory(
+				'.rsl-ie-acf-fields-category',
+				'.rsl-ie-acf-fields-grid',
+				'rsl-ie-acf-loading',
+				window.rslIeData.i18n.loadingAcfFields ||
+					'Loading ACF fields...'
+			);
+			trackRequest( this.checkAndLoadACF() );
+		} else {
+			this.hideDynamicCategory( '.rsl-ie-acf-fields-category' );
 		}
 
 		// Check if Yoast is active and load Yoast fields (skip for non-content types)
@@ -834,8 +904,55 @@ export default class ExportStep3 {
 			'woo_order',
 		];
 		if ( ! excludedTypes.includes( contentType ) ) {
-			this.checkAndLoadYoast();
+			this.prepareDynamicCategory(
+				'.rsl-ie-yoast-fields-category',
+				'.rsl-ie-yoast-fields-grid',
+				'rsl-ie-yoast-loading',
+				window.rslIeData.i18n.loadingYoastFields ||
+					'Loading Yoast SEO fields...'
+			);
+			trackRequest( this.checkAndLoadYoast() );
+		} else {
+			this.hideDynamicCategory( '.rsl-ie-yoast-fields-category' );
 		}
+
+		Promise.all( requests ).then( () => {
+			if ( this.dynamicFieldsLoadToken !== loadToken ) {
+				return;
+			}
+			this.dynamicFieldsLoading = false;
+			this.toggleNextButton();
+		} );
+	}
+
+	prepareDynamicCategory(
+		categorySelector,
+		gridSelector,
+		loadingClass,
+		message
+	) {
+		const category = document.querySelector( categorySelector );
+		const grid = document.querySelector( gridSelector );
+		if ( category ) {
+			category.style.display = '';
+		}
+		if ( grid ) {
+			grid.innerHTML = `
+				<div class="${ loadingClass }">
+					<span class="spinner is-active"></span>
+					<p>${ this.escapeHtml( message ) }</p>
+				</div>
+			`;
+		}
+	}
+
+	hideDynamicCategory( categorySelector ) {
+		const category = document.querySelector( categorySelector );
+		if ( ! category ) {
+			return;
+		}
+		category.style.display = 'none';
+		delete category.dataset.pendingAddAll;
 	}
 
 	/**
@@ -1059,7 +1176,7 @@ export default class ExportStep3 {
 	loadTaxonomies() {
 		if ( typeof rslIeData === 'undefined' ) return;
 
-		jQuery.ajax( {
+		return jQuery.ajax( {
 			url: rslIeData.ajaxUrl,
 			method: 'POST',
 			data: {
@@ -1088,10 +1205,13 @@ export default class ExportStep3 {
 					);
 					if ( category ) {
 						category.style.display = 'none';
+						delete category.dataset.pendingAddAll;
 					}
 				}
 			},
-			error: ( xhr, status, error ) => {},
+			error: ( xhr, status, error ) => {
+				this.hideDynamicCategory( '.rsl-ie-taxonomies-category' );
+			},
 		} );
 	}
 
@@ -1120,6 +1240,10 @@ export default class ExportStep3 {
 
 			grid.appendChild( item );
 		} );
+
+		this.flushPendingAddAll(
+			document.querySelector( '.rsl-ie-taxonomies-category' )
+		);
 	}
 
 	/**
@@ -1128,7 +1252,7 @@ export default class ExportStep3 {
 	loadCustomFields() {
 		if ( typeof rslIeData === 'undefined' ) return;
 
-		jQuery.ajax( {
+		return jQuery.ajax( {
 			url: rslIeData.ajaxUrl,
 			method: 'POST',
 			data: {
@@ -1157,8 +1281,12 @@ export default class ExportStep3 {
 					);
 					if ( category ) {
 						category.style.display = 'none';
+						delete category.dataset.pendingAddAll;
 					}
 				}
+			},
+			error: ( xhr, status, error ) => {
+				this.hideDynamicCategory( '.rsl-ie-custom-fields-category' );
 			},
 		} );
 	}
@@ -1188,6 +1316,10 @@ export default class ExportStep3 {
 
 			grid.appendChild( item );
 		} );
+
+		this.flushPendingAddAll(
+			document.querySelector( '.rsl-ie-custom-fields-category' )
+		);
 	}
 
 	/**
@@ -1226,7 +1358,7 @@ export default class ExportStep3 {
 			requestData.post_type = this.selectedPostType;
 		}
 
-		jQuery.ajax( {
+		return jQuery.ajax( {
 			url: rslIeData.ajaxUrl,
 			method: 'POST',
 			data: requestData,
@@ -1251,8 +1383,12 @@ export default class ExportStep3 {
 					);
 					if ( category ) {
 						category.style.display = 'none';
+						delete category.dataset.pendingAddAll;
 					}
 				}
+			},
+			error: ( xhr, status, error ) => {
+				this.hideDynamicCategory( '.rsl-ie-acf-fields-category' );
 			},
 		} );
 	}
@@ -1283,6 +1419,10 @@ export default class ExportStep3 {
 
 			grid.appendChild( item );
 		} );
+
+		this.flushPendingAddAll(
+			document.querySelector( '.rsl-ie-acf-fields-category' )
+		);
 	}
 
 	/**
@@ -1291,7 +1431,7 @@ export default class ExportStep3 {
 	checkAndLoadYoast() {
 		if ( typeof rslIeData === 'undefined' ) return;
 
-		jQuery.ajax( {
+		return jQuery.ajax( {
 			url: rslIeData.ajaxUrl,
 			method: 'POST',
 			data: {
@@ -1320,8 +1460,12 @@ export default class ExportStep3 {
 					);
 					if ( category ) {
 						category.style.display = 'none';
+						delete category.dataset.pendingAddAll;
 					}
 				}
+			},
+			error: ( xhr, status, error ) => {
+				this.hideDynamicCategory( '.rsl-ie-yoast-fields-category' );
 			},
 		} );
 	}
@@ -1352,6 +1496,10 @@ export default class ExportStep3 {
 
 			grid.appendChild( item );
 		} );
+
+		this.flushPendingAddAll(
+			document.querySelector( '.rsl-ie-yoast-fields-category' )
+		);
 	}
 
 	/**

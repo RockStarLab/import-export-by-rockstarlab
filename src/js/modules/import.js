@@ -1624,6 +1624,7 @@ const ImportModule = {
 			{
 				label: t( 'Standard', 'Standard' ),
 				options: [
+					{ value: 'ID', label: 'ID', type: 'number' },
 					{ value: 'post_title', label: 'Title', type: 'string' },
 					{ value: 'post_content', label: 'Content', type: 'string' },
 					{ value: 'post_excerpt', label: 'Excerpt', type: 'string' },
