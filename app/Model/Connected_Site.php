@@ -28,10 +28,10 @@ class Connected_Site {
 	 */
 	public static function get_all() {
 		global $wpdb;
-		$table = $wpdb->prefix . self::$table_name;
+		$table = esc_sql( $wpdb->prefix . self::$table_name );
 
 		$results = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			"SELECT * FROM {$table} ORDER BY created_at DESC", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+			"SELECT * FROM `{$table}` ORDER BY created_at DESC", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
 			ARRAY_A
 		);
 
@@ -46,10 +46,10 @@ class Connected_Site {
 	 */
 	public static function get_by_id( $id ) {
 		global $wpdb;
-		$table = $wpdb->prefix . self::$table_name;
+		$table = esc_sql( $wpdb->prefix . self::$table_name );
 
 		return $wpdb->get_row( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			$wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+			$wpdb->prepare( "SELECT * FROM `{$table}` WHERE id = %d", $id ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
 			ARRAY_A
 		);
 	}
@@ -62,10 +62,10 @@ class Connected_Site {
 	 */
 	public static function get_by_api_key( $api_key ) {
 		global $wpdb;
-		$table = $wpdb->prefix . self::$table_name;
+		$table = esc_sql( $wpdb->prefix . self::$table_name );
 
 		return $wpdb->get_row( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			$wpdb->prepare( "SELECT * FROM {$table} WHERE api_key = %s", $api_key ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+			$wpdb->prepare( "SELECT * FROM `{$table}` WHERE api_key = %s", $api_key ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
 			ARRAY_A
 		);
 	}
@@ -227,7 +227,7 @@ class Connected_Site {
 	 */
 	public static function get_stats() {
 		global $wpdb;
-		$table = $wpdb->prefix . self::$table_name;
+		$table = esc_sql( $wpdb->prefix . self::$table_name );
 
 		$stats = array(
 			'total'  => 0,
@@ -236,7 +236,7 @@ class Connected_Site {
 		);
 
 		$results = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			"SELECT status, COUNT(*) as count FROM {$table} GROUP BY status", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+			"SELECT status, COUNT(*) as count FROM `{$table}` GROUP BY status", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
 			ARRAY_A
 		);
 
@@ -257,16 +257,21 @@ class Connected_Site {
 	 */
 	public static function exists_by_url( $remote_url, $exclude_id = null ) {
 		global $wpdb;
-		$table = $wpdb->prefix . self::$table_name;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$sql = $wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE remote_url = %s", $remote_url );
+		$table = esc_sql( $wpdb->prefix . self::$table_name );
 
 		if ( $exclude_id ) {
-			$sql .= $wpdb->prepare( ' AND id != %d', $exclude_id );
+			$sql = $wpdb->prepare(
+				"SELECT COUNT(*) FROM `{$table}` WHERE remote_url = %s AND id != %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
+				$remote_url,
+				$exclude_id
+			);
+		} else {
+			$sql = $wpdb->prepare(
+				"SELECT COUNT(*) FROM `{$table}` WHERE remote_url = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
+				$remote_url
+			);
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$count = $wpdb->get_var( $sql ); // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- Direct DB query required here
 
 		return $count > 0;
