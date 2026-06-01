@@ -2430,6 +2430,8 @@ class Post_Importer extends Abstract_Importer {
 	 * @return array|null Array with 'size' and 'hash' or null on failure
 	 */
 	private function get_remote_file_data( $url ) {
+		\RockStarLab\ImportExport\Helper\Fs::load_media_core();
+
 		// Download file to temp location
 		$temp_file = download_url( $url, 30 ); // 30 seconds timeout
 
@@ -2477,40 +2479,11 @@ class Post_Importer extends Abstract_Importer {
 	 * @return int|WP_Error Attachment ID or WP_Error
 	 */
 	private function import_media_from_url( $url, $post_id = 0 ) {
-		if ( ! function_exists( 'media_handle_sideload' ) ) {
-			$media_path = wp_parse_url( admin_url( 'includes/media.php' ), PHP_URL_PATH );
-			if ( is_string( $media_path ) && ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
-				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to locate a WordPress admin include file.
-				$media_file = wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . '/' . ltrim( $media_path, '/' ) );
-				if ( is_readable( $media_file ) ) {
-					require_once $media_file;
-				}
-			}
-		}
-		if ( ! function_exists( 'download_url' ) ) {
-			$file_path = wp_parse_url( admin_url( 'includes/file.php' ), PHP_URL_PATH );
-			if ( is_string( $file_path ) && ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
-				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to locate a WordPress admin include file.
-				$file_file = wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . '/' . ltrim( $file_path, '/' ) );
-				if ( is_readable( $file_file ) ) {
-					require_once $file_file;
-				}
-			}
-		}
-		if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
-			$image_path = wp_parse_url( admin_url( 'includes/image.php' ), PHP_URL_PATH );
-			if ( is_string( $image_path ) && ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
-				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to locate a WordPress admin include file.
-				$image_file = wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . '/' . ltrim( $image_path, '/' ) );
-				if ( is_readable( $image_file ) ) {
-					require_once $image_file;
-				}
-			}
-		}
+		\RockStarLab\ImportExport\Helper\Fs::load_media_core();
 
-		// Check if we already downloaded this file during duplicate check
+			// Check if we already downloaded this file during duplicate check
 			$transient_key = 'rsl_ie_temp_media_' . md5( $url );
-		$temp_file         = get_transient( $transient_key );
+			$temp_file     = get_transient( $transient_key );
 
 		// If not in transient or file doesn't exist, download it
 		if ( ! $temp_file || ! file_exists( $temp_file ) ) {

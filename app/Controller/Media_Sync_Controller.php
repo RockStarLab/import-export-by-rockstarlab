@@ -39,34 +39,21 @@ class Media_Sync_Controller extends Base_Controller {
 		$folder_path = $this->get_request_param( 'folder_path' );
 		$options     = $this->get_request_array( 'options' );
 
-		// Convert path to absolute (supports absolute paths and relative-to-uploads)
+		// Convert path to absolute (supports absolute paths and relative-to-uploads).
 		$upload_dir = wp_upload_dir();
 		$base_dir   = $upload_dir['basedir'];
-
-		if ( empty( $folder_path ) ) {
-			// Root uploads directory
-			$absolute_path = $base_dir;
-		} elseif ( '/' === substr( $folder_path, 0, 1 ) ) {
-			// Already an absolute path
-			$absolute_path = $folder_path;
-		} else {
-			// Relative to uploads directory
-			$absolute_path = $base_dir . '/' . trim( $folder_path, '/' );
+		$path_check = $this->resolve_uploads_directory_path( $folder_path, $base_dir );
+		if ( is_wp_error( $path_check ) ) {
+			$this->send_error( $path_check );
 		}
 
-		// Security check: ensure path is within this WordPress installation.
-		$real_path = realpath( $absolute_path );
-		$site_path = wp_parse_url( site_url( '/' ), PHP_URL_PATH );
-		$site_path = is_string( $site_path ) ? trim( $site_path, '/' ) : '';
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to resolve the current WordPress install path.
-		$site_root  = ! empty( $_SERVER['DOCUMENT_ROOT'] ) ? wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . ( '' === $site_path ? '' : '/' . $site_path ) ) : '';
-		$real_limit = $site_root ? realpath( $site_root ) : false;
+		$absolute_path = $path_check;
 
-		if ( false === $real_path || false === $real_limit || 0 !== strpos( $real_path . '/', $real_limit . '/' ) ) {
+		if ( ! is_dir( $absolute_path ) ) {
 			$this->send_error(
 				new \WP_Error(
 					'invalid_path',
-					__( 'Invalid folder path. Path must be within the WordPress directory.', 'import-export-by-rockstarlab' )
+					__( 'Invalid folder path. Path must be a directory within the WordPress uploads directory.', 'import-export-by-rockstarlab' )
 				)
 			);
 		}
@@ -93,32 +80,21 @@ class Media_Sync_Controller extends Base_Controller {
 		$scan_options   = $this->get_request_array( 'scan_options' );
 		$sync_options   = $this->get_request_array( 'sync_options' );
 
-		// Validate folder path (supports absolute paths and relative-to-uploads)
+		// Validate folder path (supports absolute paths and relative-to-uploads).
 		$upload_dir = wp_upload_dir();
 		$base_dir   = $upload_dir['basedir'];
-
-		if ( empty( $folder_path ) ) {
-			$absolute_path = $base_dir;
-		} elseif ( '/' === substr( $folder_path, 0, 1 ) ) {
-			// Already an absolute path
-			$absolute_path = $folder_path;
-		} else {
-			// Relative to uploads directory
-			$absolute_path = $base_dir . '/' . trim( $folder_path, '/' );
+		$path_check = $this->resolve_uploads_directory_path( $folder_path, $base_dir );
+		if ( is_wp_error( $path_check ) ) {
+			$this->send_error( $path_check );
 		}
 
-		$real_path = realpath( $absolute_path );
-		$site_path = wp_parse_url( site_url( '/' ), PHP_URL_PATH );
-		$site_path = is_string( $site_path ) ? trim( $site_path, '/' ) : '';
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to resolve the current WordPress install path.
-		$site_root  = ! empty( $_SERVER['DOCUMENT_ROOT'] ) ? wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . ( '' === $site_path ? '' : '/' . $site_path ) ) : '';
-		$real_limit = $site_root ? realpath( $site_root ) : false;
+		$absolute_path = $path_check;
 
-		if ( false === $real_path || false === $real_limit || 0 !== strpos( $real_path . '/', $real_limit . '/' ) ) {
+		if ( ! is_dir( $absolute_path ) ) {
 			$this->send_error(
 				new \WP_Error(
 					'invalid_path',
-					__( 'Invalid folder path', 'import-export-by-rockstarlab' )
+					__( 'Invalid folder path. Path must be a directory within the WordPress uploads directory.', 'import-export-by-rockstarlab' )
 				)
 			);
 		}
@@ -304,24 +280,10 @@ class Media_Sync_Controller extends Base_Controller {
 			$upload_dir = wp_upload_dir();
 			$base_dir   = $upload_dir['basedir'];
 
-			// Determine absolute path: supports absolute paths and relative-to-uploads
-			if ( empty( $path ) ) {
-				$absolute_path = $base_dir;
-			} elseif ( '/' === substr( $path, 0, 1 ) ) {
-				// Already an absolute path
-				$absolute_path = $path;
-			} else {
-				// Relative to uploads (backward compatibility)
-				$absolute_path = $base_dir . '/' . trim( $path, '/' );
-			}
-
-			// Security check: must be within this WordPress installation.
-			$real_path = realpath( $absolute_path );
-			$site_path = wp_parse_url( site_url( '/' ), PHP_URL_PATH );
-			$site_path = is_string( $site_path ) ? trim( $site_path, '/' ) : '';
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to resolve the current WordPress install path.
-			$site_root  = ! empty( $_SERVER['DOCUMENT_ROOT'] ) ? wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . ( '' === $site_path ? '' : '/' . $site_path ) ) : '';
-			$real_limit = $site_root ? realpath( $site_root ) : false;
+			// Determine absolute path: supports absolute paths and relative-to-uploads.
+			$absolute_path = $this->resolve_uploads_path( $path, $base_dir );
+			$real_path     = realpath( $absolute_path );
+			$real_limit    = realpath( $base_dir );
 
 			if ( false === $real_path ) {
 				$this->send_error(
@@ -336,11 +298,23 @@ class Media_Sync_Controller extends Base_Controller {
 				);
 			}
 
-			if ( false === $real_limit || 0 !== strpos( $real_path . '/', $real_limit . '/' ) ) {
+			if ( false === $real_limit ) {
 				$this->send_error(
 					new \WP_Error(
 						'invalid_path',
-						__( 'Invalid path. Must be within the WordPress directory.', 'import-export-by-rockstarlab' )
+						__( 'Invalid path. Must be within the WordPress uploads directory.', 'import-export-by-rockstarlab' )
+					)
+				);
+			}
+
+			$real_path_normalized  = trailingslashit( wp_normalize_path( $real_path ) );
+			$real_limit_normalized = trailingslashit( wp_normalize_path( $real_limit ) );
+
+			if ( 0 !== strpos( $real_path_normalized, $real_limit_normalized ) ) {
+				$this->send_error(
+					new \WP_Error(
+						'invalid_path',
+						__( 'Invalid path. Must be within the WordPress uploads directory.', 'import-export-by-rockstarlab' )
 					)
 				);
 			}
@@ -394,10 +368,10 @@ class Media_Sync_Controller extends Base_Controller {
 				);
 			}
 
-			// Determine whether the user can navigate up within the WordPress directory
+			// Determine whether the user can navigate up within the uploads directory.
 			$parent_path = dirname( $real_path );
-			$can_go_up   = ( $real_path !== $real_limit )
-				&& ( 0 === strpos( $parent_path . '/', $real_limit . '/' ) );
+			$can_go_up   = ( wp_normalize_path( $real_path ) !== wp_normalize_path( $real_limit ) )
+				&& ( 0 === strpos( trailingslashit( wp_normalize_path( $parent_path ) ), $real_limit_normalized ) );
 
 			$this->send_success(
 				[
@@ -416,5 +390,59 @@ class Media_Sync_Controller extends Base_Controller {
 				)
 			);
 		}
+	}
+
+	/**
+	 * Resolve a requested folder path against the WordPress uploads directory.
+	 *
+	 * @param string $path     Requested path; absolute or relative to uploads.
+	 * @param string $base_dir Uploads base directory.
+	 * @return string Normalized absolute path.
+	 */
+	private function resolve_uploads_path( $path, $base_dir ) {
+		$base_dir = wp_normalize_path( untrailingslashit( $base_dir ) );
+		$path     = is_string( $path ) ? trim( $path ) : '';
+
+		if ( '' === $path ) {
+			return $base_dir;
+		}
+
+		if ( path_is_absolute( $path ) ) {
+			return wp_normalize_path( $path );
+		}
+
+		return wp_normalize_path( $base_dir . '/' . ltrim( $path, '/\\' ) );
+	}
+
+	/**
+	 * Resolve and verify a requested directory path against uploads.
+	 *
+	 * @param string $path     Requested path; absolute or relative to uploads.
+	 * @param string $base_dir Uploads base directory.
+	 * @return string|\WP_Error Real absolute path or validation error.
+	 */
+	private function resolve_uploads_directory_path( $path, $base_dir ) {
+		$absolute_path = $this->resolve_uploads_path( $path, $base_dir );
+		$real_path     = realpath( $absolute_path );
+		$real_limit    = realpath( $base_dir );
+
+		if ( false === $real_path || false === $real_limit ) {
+			return new \WP_Error(
+				'invalid_path',
+				__( 'Invalid folder path. Path must be a directory within the WordPress uploads directory.', 'import-export-by-rockstarlab' )
+			);
+		}
+
+		$real_path_normalized  = trailingslashit( wp_normalize_path( $real_path ) );
+		$real_limit_normalized = trailingslashit( wp_normalize_path( $real_limit ) );
+
+		if ( 0 !== strpos( $real_path_normalized, $real_limit_normalized ) ) {
+			return new \WP_Error(
+				'invalid_path',
+				__( 'Invalid folder path. Path must be within the WordPress uploads directory.', 'import-export-by-rockstarlab' )
+			);
+		}
+
+		return wp_normalize_path( $real_path );
 	}
 }

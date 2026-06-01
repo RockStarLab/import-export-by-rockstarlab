@@ -398,10 +398,10 @@ class Background_Processor {
 	protected function schedule_next_run( $delay = 0 ) {
 		// Always schedule immediate processing for continued jobs
 		// Don't check for existing scheduled events - we want to trigger NOW
-			wp_schedule_single_event(
-				time() + $delay,
-				'rsl_ie_process_queue'
-			);
+		wp_schedule_single_event(
+			time() + $delay,
+			'rsl_ie_process_queue'
+		);
 	}
 
 	/**
@@ -428,9 +428,43 @@ class Background_Processor {
 					'nonce'  => wp_create_nonce( 'rsl_ie_nonce' ),
 					'job_id' => $job_id,
 				),
-				'cookies'   => $_COOKIE,
+				'cookies'   => $this->get_auth_cookies_for_request(),
 			)
 		);
+	}
+
+	/**
+	 * Get sanitized WordPress auth cookies for the internal AJAX request.
+	 *
+	 * @return \WP_Http_Cookie[] Cookies for wp_remote_post().
+	 */
+	protected function get_auth_cookies_for_request() {
+		$cookie_names = array_filter(
+			array(
+				defined( 'LOGGED_IN_COOKIE' ) ? LOGGED_IN_COOKIE : '',
+				defined( 'AUTH_COOKIE' ) ? AUTH_COOKIE : '',
+				defined( 'SECURE_AUTH_COOKIE' ) ? SECURE_AUTH_COOKIE : '',
+			)
+		);
+
+		$cookies = array();
+
+		foreach ( $cookie_names as $cookie_name ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Cookie value is unslashed and sanitized before use.
+			$raw_value = isset( $_COOKIE[ $cookie_name ] ) ? wp_unslash( $_COOKIE[ $cookie_name ] ) : '';
+			if ( ! is_scalar( $raw_value ) || '' === $raw_value ) {
+				continue;
+			}
+
+			$cookies[] = new \WP_Http_Cookie(
+				array(
+					'name'  => sanitize_text_field( $cookie_name ),
+					'value' => sanitize_text_field( $raw_value ),
+				)
+			);
+		}
+
+		return $cookies;
 	}
 
 	/**

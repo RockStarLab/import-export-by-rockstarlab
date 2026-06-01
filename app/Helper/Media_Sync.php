@@ -360,47 +360,28 @@ class Media_Sync {
 				return $attach_id;
 			}
 
-			// Fix URL for "keep" mode: if the file lives outside the uploads directory,
-			// WordPress incorrectly prepends the uploads base URL to the absolute path,
-			// producing double-slashes and a wrong URL. Store the correct URL as meta so
-			// the wp_get_attachment_url filter in Init.php can return it instead.
+			// Fix URL for "keep" mode when the file is already inside uploads.
 			if ( 'keep' === $file_operation ) {
 				$uploads_check = wp_upload_dir();
-				$uploads_base  = trailingslashit( $uploads_check['basedir'] );
-				if ( 0 !== strpos( $dest_path, $uploads_base ) ) {
-					// File is outside uploads dir; derive URL relative to this site's public root.
-					$site_path = wp_parse_url( site_url( '/' ), PHP_URL_PATH );
-					$site_path = is_string( $site_path ) ? trim( $site_path, '/' ) : '';
-					// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to map a local path to this site's URL.
-					$site_root = ! empty( $_SERVER['DOCUMENT_ROOT'] ) ? wp_normalize_path( trailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . $site_path ) : '';
-					$site_root = trailingslashit( $site_root );
-					$dest_path = wp_normalize_path( $dest_path );
-					if ( '' !== $site_root && 0 === strpos( $dest_path, $site_root ) ) {
-						$relative = substr( $dest_path, strlen( $site_root ) );
-						// Encode each path segment so that spaces and special chars become valid URL parts.
-						$encoded_relative = implode(
-							'/',
-							array_map( 'rawurlencode', explode( '/', $relative ) )
-						);
-						$correct_url      = trailingslashit( site_url() ) . $encoded_relative;
-						update_post_meta( $attach_id, 'rsl_ie_file_url', $correct_url );
-					}
+				$uploads_base  = trailingslashit( wp_normalize_path( $uploads_check['basedir'] ) );
+				$dest_path     = wp_normalize_path( $dest_path );
+
+				if ( 0 === strpos( $dest_path, $uploads_base ) ) {
+					$relative = ltrim( substr( $dest_path, strlen( $uploads_base ) ), '/' );
+					// Encode each path segment so that spaces and special chars become valid URL parts.
+					$encoded_relative = implode(
+						'/',
+						array_map( 'rawurlencode', explode( '/', $relative ) )
+					);
+					$correct_url      = trailingslashit( $uploads_check['baseurl'] ) . $encoded_relative;
+					update_post_meta( $attach_id, 'rsl_ie_file_url', esc_url_raw( $correct_url ) );
 				}
 			}
 		}
 
-		// Generate metadata (thumbnails) if requested.
+			// Generate metadata (thumbnails) if requested.
 		if ( empty( $options['skip_thumbnails'] ) && wp_attachment_is_image( $attach_id ) ) {
-			if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
-				$image_path = wp_parse_url( admin_url( 'includes/image.php' ), PHP_URL_PATH );
-				if ( is_string( $image_path ) && ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
-					// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server document root is used only to locate a WordPress admin include file.
-					$image_file = wp_normalize_path( untrailingslashit( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) ) . '/' . ltrim( $image_path, '/' ) );
-					if ( is_readable( $image_file ) ) {
-						require_once $image_file;
-					}
-				}
-			}
+			Fs::load_image_core();
 			$meta = wp_generate_attachment_metadata( $attach_id, $dest_path );
 			wp_update_attachment_metadata( $attach_id, $meta );
 		}
