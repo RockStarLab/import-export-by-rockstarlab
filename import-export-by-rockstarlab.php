@@ -4,7 +4,7 @@
 	Plugin URI:                 https://profiles.wordpress.org/rockstarlab/
 	Description:                A powerful advanced plugin for importing and exporting WordPress content.
 	Version:                    1.0.0
-	Requires at least:          5.8
+	Requires at least:          6.2
 	Author:                     RockstarLab
 	Author URI:                 https://profiles.wordpress.org/rockstarlab/profile/
 	Text Domain:                import-export-by-rockstarlab

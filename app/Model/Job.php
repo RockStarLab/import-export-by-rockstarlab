@@ -241,16 +241,16 @@ class Job extends Model {
 		$limit  = isset( $args['limit'] ) ? intval( $args['limit'] ) : 20;
 		$offset = isset( $args['offset'] ) ? intval( $args['offset'] ) : 0;
 
-			return $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-				// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is from $wpdb->prefix (controlled).
-				$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name from $wpdb->prefix (controlled).
-					"SELECT * FROM `{$table}` WHERE user_id = %d ORDER BY created_at DESC LIMIT %d OFFSET %d",
-					$user_id,
-					$limit,
-					$offset
-				)
+		return $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is from $wpdb->prefix (controlled).
+			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name from $wpdb->prefix (controlled).
+				"SELECT * FROM `{$table}` WHERE user_id = %d ORDER BY created_at DESC LIMIT %d OFFSET %d",
+				$user_id,
+				$limit,
+				$offset
+			)
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			);
+		);
 	}
 
 	/**
@@ -266,15 +266,15 @@ class Job extends Model {
 
 		$limit = isset( $args['limit'] ) ? intval( $args['limit'] ) : 100;
 
-			return $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-				// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is from $wpdb->prefix (controlled).
-				$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name from $wpdb->prefix (controlled).
-					"SELECT * FROM `{$table}` WHERE status = %s ORDER BY created_at DESC LIMIT %d",
-					$status,
-					$limit
-				)
+		return $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is from $wpdb->prefix (controlled).
+			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name from $wpdb->prefix (controlled).
+				"SELECT * FROM `{$table}` WHERE status = %s ORDER BY created_at DESC LIMIT %d",
+				$status,
+				$limit
+			)
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			);
+		);
 	}
 
 	/**
@@ -292,16 +292,16 @@ class Job extends Model {
 		$days = apply_filters( 'rsl_ie_cleanup_old_jobs_days', $days );
 
 		// Delete old jobs
-			$deleted = $wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-				// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is from $wpdb->prefix (controlled).
-				$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name from $wpdb->prefix (controlled).
-					"DELETE FROM `{$table}`
-				WHERE status IN ('completed', 'failed', 'cancelled') 
+		$deleted = $wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is from $wpdb->prefix (controlled).
+			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name from $wpdb->prefix (controlled).
+				"DELETE FROM `{$table}`
+				WHERE status IN ('completed', 'failed', 'cancelled')
 				AND created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
-					$days
-				)
+				$days
+			)
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			);
+		);
 
 		do_action( 'rsl_ie_old_jobs_cleaned', $deleted );
 
@@ -322,18 +322,18 @@ class Job extends Model {
 		$days = apply_filters( 'rsl_ie_cleanup_old_files_days', $days );
 
 		// Get old export jobs with file paths
-			$results = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-				// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is from $wpdb->prefix (controlled).
-				$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name from $wpdb->prefix (controlled).
-					"SELECT id, file_path FROM `{$table}`
-					WHERE type = 'export' 
-					AND status = 'completed' 
-					AND file_path IS NOT NULL 
-			AND created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
-					$days
-				)
+		$results = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is from $wpdb->prefix (controlled).
+			$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name from $wpdb->prefix (controlled).
+				"SELECT id, file_path FROM `{$table}`
+				WHERE type = 'export'
+				AND status = 'completed'
+				AND file_path IS NOT NULL
+				AND created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
+				$days
+			)
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			);
+		);
 
 		$deleted_count = 0;
 
@@ -370,7 +370,7 @@ class Job extends Model {
 	 */
 	public function get_all( $where = [], $limit = 50, $offset = 0, $order = 'created_at DESC' ) {
 		global $wpdb;
-		$table = esc_sql( $this->get_table_name() );
+		$table = $this->get_table_name();
 
 		$user_id_filter     = ( is_array( $where ) && array_key_exists( 'user_id', $where ) ) ? (int) $where['user_id'] : 0;
 		$type_filter        = ( is_array( $where ) && array_key_exists( 'type', $where ) ) ? (string) $where['type'] : '';
@@ -410,8 +410,7 @@ class Job extends Model {
 			}
 		}
 
-		$order_field = esc_sql( $field );
-		$direction   = esc_sql( $direction );
+		$order_field = $field;
 		$limit       = max( 0, (int) $limit );
 		$offset      = max( 0, (int) $offset );
 
@@ -431,30 +430,61 @@ class Job extends Model {
 			return $cached;
 		}
 
-		$results = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			$wpdb->prepare(
-				'SELECT * FROM `' . $table . '` WHERE 1=1
-				AND ( %d = 0 OR user_id = %d )
-				AND ( %s = \'\' OR type = %s )
-				AND ( %s = \'\' OR data_type = %s )
-				AND ( %s = \'\' OR file_format = %s )
-				AND ( %s = \'\' OR status = %s )
-				ORDER BY `' . $order_field . '` ' . $direction . '
-				LIMIT %d OFFSET %d',
-				$user_id_filter,
-				$user_id_filter,
-				$type_filter,
-				$type_filter,
-				$data_type_filter,
-				$data_type_filter,
-				$file_format_filter,
-				$file_format_filter,
-				$status_filter,
-				$status_filter,
-				$limit,
-				$offset
-			) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/order identifiers are allowlisted and SQL-escaped.
-		);
+		if ( 'DESC' === $direction ) {
+			$results = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+				$wpdb->prepare(
+					'SELECT * FROM %i WHERE 1=1
+					AND ( %d = 0 OR user_id = %d )
+					AND ( %s = \'\' OR type = %s )
+					AND ( %s = \'\' OR data_type = %s )
+					AND ( %s = \'\' OR file_format = %s )
+					AND ( %s = \'\' OR status = %s )
+					ORDER BY %i DESC
+					LIMIT %d OFFSET %d',
+					$table,
+					$user_id_filter,
+					$user_id_filter,
+					$type_filter,
+					$type_filter,
+					$data_type_filter,
+					$data_type_filter,
+					$file_format_filter,
+					$file_format_filter,
+					$status_filter,
+					$status_filter,
+					$order_field,
+					$limit,
+					$offset
+				)
+			);
+		} else {
+			$results = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+				$wpdb->prepare(
+					'SELECT * FROM %i WHERE 1=1
+					AND ( %d = 0 OR user_id = %d )
+					AND ( %s = \'\' OR type = %s )
+					AND ( %s = \'\' OR data_type = %s )
+					AND ( %s = \'\' OR file_format = %s )
+					AND ( %s = \'\' OR status = %s )
+					ORDER BY %i ASC
+					LIMIT %d OFFSET %d',
+					$table,
+					$user_id_filter,
+					$user_id_filter,
+					$type_filter,
+					$type_filter,
+					$data_type_filter,
+					$data_type_filter,
+					$file_format_filter,
+					$file_format_filter,
+					$status_filter,
+					$status_filter,
+					$order_field,
+					$limit,
+					$offset
+				)
+			);
+		}
 		wp_cache_set( $cache_key, $results, 'rsl_ie', MINUTE_IN_SECONDS );
 
 		return $results;

@@ -401,16 +401,16 @@ class Custom_Function extends Model {
 			$args['is_active'] = ( 'active' === $args['status'] ) ? 1 : 0;
 		}
 
-			$table                = esc_sql( $this->get_table_name() );
-			$category_filter      = in_array( $args['category'], [ 'library', 'custom' ], true ) ? $args['category'] : '';
-			$has_is_active_filter = ( '' !== $args['is_active'] && null !== $args['is_active'] ) ? 1 : 0;
-			$is_active_filter     = (int) $args['is_active'];
-			$source_filter        = ! empty( $args['source'] ) ? (string) $args['source'] : '';
-			$search_term          = ! empty( $args['search'] ) ? '%' . $wpdb->esc_like( $args['search'] ) . '%' : '';
+		$table                = $this->get_table_name();
+		$category_filter      = in_array( $args['category'], [ 'library', 'custom' ], true ) ? $args['category'] : '';
+		$has_is_active_filter = ( '' !== $args['is_active'] && null !== $args['is_active'] ) ? 1 : 0;
+		$is_active_filter     = (int) $args['is_active'];
+		$source_filter        = ! empty( $args['source'] ) ? (string) $args['source'] : '';
+		$search_term          = ! empty( $args['search'] ) ? '%' . $wpdb->esc_like( $args['search'] ) . '%' : '';
 
-			$allowed_orderby = [ 'id', 'name', 'source', 'is_active', 'usage_count', 'created_at', 'updated_at' ];
-			$orderby         = esc_sql( in_array( $args['orderby'], $allowed_orderby, true ) ? $args['orderby'] : 'name' );
-			$order           = esc_sql( ( 'DESC' === strtoupper( $args['order'] ) ) ? 'DESC' : 'ASC' );
+		$allowed_orderby = [ 'id', 'name', 'source', 'is_active', 'usage_count', 'created_at', 'updated_at' ];
+		$orderby         = in_array( $args['orderby'], $allowed_orderby, true ) ? $args['orderby'] : 'name';
+		$order           = ( 'DESC' === strtoupper( $args['order'] ) ) ? 'DESC' : 'ASC';
 
 		$cache_key = 'rsl_ie_custom_functions:get_all:' . md5(
 			wp_json_encode(
@@ -431,64 +431,154 @@ class Custom_Function extends Model {
 			return $cached;
 		}
 
-			$query_args = [
-				$category_filter,
-				$category_filter,
-				'library:%',
-				$category_filter,
-				'library:%',
-				$has_is_active_filter,
-				$is_active_filter,
-				$source_filter,
-				$source_filter,
-				$search_term,
-				$search_term,
-				$search_term,
-			];
+		$query_args = [
+			$category_filter,
+			$category_filter,
+			'library:%',
+			$category_filter,
+			'library:%',
+			$has_is_active_filter,
+			$is_active_filter,
+			$source_filter,
+			$source_filter,
+			$search_term,
+			$search_term,
+			$search_term,
+		];
 
-			$limit  = max( 0, (int) $args['limit'] );
-			$offset = max( 0, (int) $args['offset'] );
+		$limit  = max( 0, (int) $args['limit'] );
+		$offset = max( 0, (int) $args['offset'] );
 
-			if ( $limit > 0 ) {
-				$query_args[] = $limit;
-				$query_args[] = $offset;
+		if ( $limit > 0 ) {
+			$query_args[] = $limit;
+			$query_args[] = $offset;
+			$prepare_args = array_merge( [ $table ], $query_args );
 
+			if ( 'DESC' === $order ) {
 				$functions = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 					$wpdb->prepare(
-						'SELECT * FROM `' . $table . '` WHERE 1=1
+						'SELECT * FROM %i WHERE 1=1
 						AND ( %s = \'\' OR ( %s = \'library\' AND source LIKE %s ) OR ( %s = \'custom\' AND source NOT LIKE %s ) )
 						AND ( %d = 0 OR is_active = %d )
 						AND ( %s = \'\' OR source = %s )
 						AND ( %s = \'\' OR name LIKE %s OR description LIKE %s )
-						ORDER BY `' . $orderby . '` ' . $order . '
+						ORDER BY %i DESC
 						LIMIT %d OFFSET %d',
-						$query_args
-					), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/order identifiers are allowlisted and SQL-escaped.
+						$prepare_args[0],
+						$prepare_args[1],
+						$prepare_args[2],
+						$prepare_args[3],
+						$prepare_args[4],
+						$prepare_args[5],
+						$prepare_args[6],
+						$prepare_args[7],
+						$prepare_args[8],
+						$prepare_args[9],
+						$prepare_args[10],
+						$prepare_args[11],
+						$prepare_args[12],
+						$orderby,
+						$prepare_args[13],
+						$prepare_args[14]
+					),
 					ARRAY_A
 				);
 			} else {
 				$functions = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 					$wpdb->prepare(
-						'SELECT * FROM `' . $table . '` WHERE 1=1
+						'SELECT * FROM %i WHERE 1=1
 						AND ( %s = \'\' OR ( %s = \'library\' AND source LIKE %s ) OR ( %s = \'custom\' AND source NOT LIKE %s ) )
 						AND ( %d = 0 OR is_active = %d )
 						AND ( %s = \'\' OR source = %s )
 						AND ( %s = \'\' OR name LIKE %s OR description LIKE %s )
-						ORDER BY `' . $orderby . '` ' . $order,
-						$query_args
-					), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/order identifiers are allowlisted and SQL-escaped.
+						ORDER BY %i ASC
+						LIMIT %d OFFSET %d',
+						$prepare_args[0],
+						$prepare_args[1],
+						$prepare_args[2],
+						$prepare_args[3],
+						$prepare_args[4],
+						$prepare_args[5],
+						$prepare_args[6],
+						$prepare_args[7],
+						$prepare_args[8],
+						$prepare_args[9],
+						$prepare_args[10],
+						$prepare_args[11],
+						$prepare_args[12],
+						$orderby,
+						$prepare_args[13],
+						$prepare_args[14]
+					),
 					ARRAY_A
 				);
 			}
+		} else {
+			$prepare_args = array_merge( [ $table ], $query_args );
 
-			// Map database columns to expected format
-			if ( ! empty( $functions ) ) {
-				$functions = array_map( [ $this, 'map_db_to_output' ], $functions );
+			if ( 'DESC' === $order ) {
+				$functions = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+					$wpdb->prepare(
+						'SELECT * FROM %i WHERE 1=1
+						AND ( %s = \'\' OR ( %s = \'library\' AND source LIKE %s ) OR ( %s = \'custom\' AND source NOT LIKE %s ) )
+						AND ( %d = 0 OR is_active = %d )
+						AND ( %s = \'\' OR source = %s )
+						AND ( %s = \'\' OR name LIKE %s OR description LIKE %s )
+						ORDER BY %i DESC',
+						$prepare_args[0],
+						$prepare_args[1],
+						$prepare_args[2],
+						$prepare_args[3],
+						$prepare_args[4],
+						$prepare_args[5],
+						$prepare_args[6],
+						$prepare_args[7],
+						$prepare_args[8],
+						$prepare_args[9],
+						$prepare_args[10],
+						$prepare_args[11],
+						$prepare_args[12],
+						$orderby
+					),
+					ARRAY_A
+				);
+			} else {
+				$functions = $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+					$wpdb->prepare(
+						'SELECT * FROM %i WHERE 1=1
+						AND ( %s = \'\' OR ( %s = \'library\' AND source LIKE %s ) OR ( %s = \'custom\' AND source NOT LIKE %s ) )
+						AND ( %d = 0 OR is_active = %d )
+						AND ( %s = \'\' OR source = %s )
+						AND ( %s = \'\' OR name LIKE %s OR description LIKE %s )
+						ORDER BY %i ASC',
+						$prepare_args[0],
+						$prepare_args[1],
+						$prepare_args[2],
+						$prepare_args[3],
+						$prepare_args[4],
+						$prepare_args[5],
+						$prepare_args[6],
+						$prepare_args[7],
+						$prepare_args[8],
+						$prepare_args[9],
+						$prepare_args[10],
+						$prepare_args[11],
+						$prepare_args[12],
+						$orderby
+					),
+					ARRAY_A
+				);
 			}
-			$functions = $functions ?: [];
-			wp_cache_set( $cache_key, $functions, 'rsl_ie', MINUTE_IN_SECONDS );
+		}
 
-			return $functions;
+		// Map database columns to expected format
+		if ( ! empty( $functions ) ) {
+			$functions = array_map( [ $this, 'map_db_to_output' ], $functions );
+		}
+		$functions = $functions ?: [];
+		wp_cache_set( $cache_key, $functions, 'rsl_ie', MINUTE_IN_SECONDS );
+
+		return $functions;
 	}
 
 	/**
@@ -499,7 +589,7 @@ class Custom_Function extends Model {
 	 */
 	public function get_count( $args = [] ) {
 		global $wpdb;
-		$table = esc_sql( $this->get_table_name() );
+		$table = $this->get_table_name();
 
 		$defaults = [
 			'is_active' => '',
@@ -540,11 +630,12 @@ class Custom_Function extends Model {
 
 		$count = (int) $wpdb->get_var( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
-				'SELECT COUNT(*) FROM `' . $table . '` WHERE 1=1
+				'SELECT COUNT(*) FROM %i WHERE 1=1
 				AND ( %s = \'\' OR ( %s = \'library\' AND source LIKE %s ) OR ( %s = \'custom\' AND source NOT LIKE %s ) )
 				AND ( %d = 0 OR is_active = %d )
 				AND ( %s = \'\' OR source = %s )
 				AND ( %s = \'\' OR name LIKE %s OR description LIKE %s )',
+				$table,
 				$category_filter,
 				$category_filter,
 				'library:%',
@@ -557,7 +648,7 @@ class Custom_Function extends Model {
 				$search_term,
 				$search_term,
 				$search_term
-			) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
+			)
 		);
 		wp_cache_set( $cache_key, $count, 'rsl_ie', MINUTE_IN_SECONDS );
 

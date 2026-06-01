@@ -1,7 +1,7 @@
 === Import Export by RockStarLab ===
 Contributors: RockstarLab
 Tags: import, export, csv, site sync, data migration
-Requires at least: 5.8
+Requires at least: 6.2
 Tested up to: 7.0
 Stable tag: 1.0.0
 Requires PHP: 7.4
