@@ -2345,6 +2345,11 @@ class Post_Importer extends Abstract_Importer {
 
 		$remote_data = null;
 		if ( ! empty( $url ) ) {
+			$source_attachment_id = $this->find_existing_media_by_source_url( (string) $url );
+			if ( $source_attachment_id ) {
+				return $source_attachment_id;
+			}
+
 			// Prefer hash-based duplicate detection (works even when WP renames files
 			// to "-1", "-2", etc. and the filename no longer matches the source).
 			$remote_data = $this->get_remote_file_data( $url );
@@ -2424,6 +2429,42 @@ class Post_Importer extends Abstract_Importer {
 	}
 
 	/**
+	 * Find a previously imported attachment by its original source URL.
+	 *
+	 * WordPress may rename imported files to avoid collisions, so filename-only duplicate
+	 * checks are not enough for repeat imports of the same source file.
+	 *
+	 * @param string $url Original media URL.
+	 * @return int Attachment ID or 0.
+	 */
+	private function find_existing_media_by_source_url( string $url ): int {
+		$source_url_hash = $this->get_media_source_url_hash( $url );
+		if ( '' === $source_url_hash ) {
+			return 0;
+		}
+
+		$attachments = get_posts(
+			[
+				'post_type'              => 'attachment',
+				'post_status'            => 'inherit',
+				'posts_per_page'         => 1,
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'meta_query'             => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Source URL hash lookup is required for media deduplication.
+					[
+						'key'   => 'rsl_ie_source_url_hash',
+						'value' => $source_url_hash,
+					],
+				],
+			]
+		);
+
+		return empty( $attachments ) ? 0 : (int) $attachments[0];
+	}
+
+	/**
 	 * Get remote file data (size and hash) without full download
 	 *
 	 * @param string $url Remote file URL
@@ -2481,9 +2522,9 @@ class Post_Importer extends Abstract_Importer {
 	private function import_media_from_url( $url, $post_id = 0 ) {
 		\RockStarLab\ImportExport\Helper\Fs::load_media_core();
 
-			// Check if we already downloaded this file during duplicate check
-			$transient_key = 'rsl_ie_temp_media_' . md5( $url );
-			$temp_file     = get_transient( $transient_key );
+		// Check if we already downloaded this file during duplicate check
+		$transient_key = 'rsl_ie_temp_media_' . md5( $url );
+		$temp_file     = get_transient( $transient_key );
 
 		// If not in transient or file doesn't exist, download it
 		if ( ! $temp_file || ! file_exists( $temp_file ) ) {
@@ -2520,6 +2561,9 @@ class Post_Importer extends Abstract_Importer {
 
 		// Import the file
 		$attachment_id = media_handle_sideload( $file, $post_id );
+		if ( ! is_wp_error( $attachment_id ) && $attachment_id ) {
+			$this->store_imported_media_source( (int) $attachment_id, (string) $url );
+		}
 
 		// Clean up temp file
 		if ( file_exists( $temp_file ) ) {
@@ -2527,6 +2571,52 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		return $attachment_id;
+	}
+
+	/**
+	 * Store source metadata for imported media.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $url           Original media URL.
+	 * @return void
+	 */
+	private function store_imported_media_source( int $attachment_id, string $url ): void {
+		$source_url = esc_url_raw( $url );
+		if ( '' === $source_url ) {
+			return;
+		}
+
+		update_post_meta( $attachment_id, 'rsl_ie_source_url', $source_url );
+		update_post_meta( $attachment_id, 'rsl_ie_source_url_hash', $this->get_media_source_url_hash( $source_url ) );
+
+		if ( get_post_meta( $attachment_id, 'rsl_ie_file_hash', true ) ) {
+			return;
+		}
+
+		$file_path = get_attached_file( $attachment_id );
+		if ( ! is_string( $file_path ) || '' === $file_path || ! file_exists( $file_path ) ) {
+			return;
+		}
+
+		$file_hash = md5_file( $file_path );
+		if ( ! $file_hash ) {
+			return;
+		}
+
+		update_post_meta( $attachment_id, 'rsl_ie_file_hash', $file_hash );
+		update_post_meta( $attachment_id, 'rsl_ie_file_size', filesize( $file_path ) );
+		update_post_meta( $attachment_id, 'rsl_ie_hash_added', current_time( 'mysql' ) );
+	}
+
+	/**
+	 * Build a stable hash for a source media URL.
+	 *
+	 * @param string $url Media URL.
+	 * @return string URL hash.
+	 */
+	private function get_media_source_url_hash( string $url ): string {
+		$source_url = esc_url_raw( $url );
+		return '' === $source_url ? '' : md5( $source_url );
 	}
 
 	/**
@@ -2541,7 +2631,7 @@ class Post_Importer extends Abstract_Importer {
 	private function download_url_unrestricted( string $url, int $timeout ) {
 		$tmp = wp_tempnam( $url );
 		if ( ! $tmp ) {
-				return new \WP_Error( 'rsl_ie_temp_file_failed', __( 'Could not create a temporary file for download.', 'import-export-by-rockstarlab' ) );
+			return new \WP_Error( 'rsl_ie_temp_file_failed', __( 'Could not create a temporary file for download.', 'import-export-by-rockstarlab' ) );
 		}
 
 		$response = wp_remote_get(
