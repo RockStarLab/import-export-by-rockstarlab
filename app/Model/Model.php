@@ -34,6 +34,40 @@ abstract class Model {
 	}
 
 	/**
+	 * Get columns that may be used in dynamic SQL identifiers.
+	 *
+	 * Child models should extend this list for their own table schema.
+	 *
+	 * @return array
+	 */
+	protected function get_allowed_columns() {
+		return [ 'id' ];
+	}
+
+	/**
+	 * Resolve a requested column against the model allowlist.
+	 *
+	 * @param string $column   Requested column name.
+	 * @param string $fallback Fallback column name.
+	 * @return string Allowlisted column name, or an empty string when none is available.
+	 */
+	protected function get_allowed_column( $column, $fallback = 'id' ) {
+		$allowed_columns = $this->get_allowed_columns();
+		$column          = is_string( $column ) ? sanitize_key( $column ) : '';
+		$fallback        = is_string( $fallback ) ? sanitize_key( $fallback ) : '';
+
+		if ( in_array( $column, $allowed_columns, true ) ) {
+			return $column;
+		}
+
+		if ( '' !== $fallback && in_array( $fallback, $allowed_columns, true ) ) {
+			return $fallback;
+		}
+
+		return '';
+	}
+
+	/**
 	 * Find a single record by ID
 	 *
 	 * @param int $id Record ID to find
@@ -41,26 +75,47 @@ abstract class Model {
 	 */
 	public function find( $id ) {
 		global $wpdb;
-		$table = $this->get_table_name();
+		$table = esc_sql( $this->get_table_name() );
 
 		return $wpdb->get_row( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			$wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+			$wpdb->prepare( "SELECT * FROM `{$table}` WHERE id = %d", $id ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
 		);
 	}
 
 	/**
 	 * Find records by column value
 	 *
-	 * @param string $column Column name to search
-	 * @param mixed  $value  Value to search for
+	 * @param string|array $column Column name to search, or column => value pairs.
+	 * @param mixed        $value  Value to search for when $column is a string.
 	 * @return array Array of matching records
 	 */
-	public function find_by( $column, $value ) {
+	public function find_by( $column, $value = null ) {
 		global $wpdb;
-		$table = $this->get_table_name();
+		$table = esc_sql( $this->get_table_name() );
+
+		$where      = is_array( $column ) ? $column : [ $column => $value ];
+		$conditions = [];
+		$values     = [];
+
+		foreach ( $where as $where_column => $where_value ) {
+			$safe_column = esc_sql( $this->get_allowed_column( $where_column, '' ) );
+
+			if ( '' === $safe_column ) {
+				continue;
+			}
+
+			$conditions[] = "`{$safe_column}` = %s";
+			$values[]     = $where_value;
+		}
+
+		if ( empty( $conditions ) ) {
+			return [];
+		}
+
+		$where_clause = implode( ' AND ', $conditions );
 
 		return $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			$wpdb->prepare( "SELECT * FROM {$table} WHERE {$column} = %s", $value ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+			$wpdb->prepare( "SELECT * FROM `{$table}` WHERE {$where_clause}", $values ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Identifiers are allowlisted; values are prepared.
 		);
 	}
 
@@ -79,17 +134,23 @@ abstract class Model {
 	 */
 	public function all( $args = [] ) {
 		global $wpdb;
-		$table = $this->get_table_name();
+		$table = esc_sql( $this->get_table_name() );
 
-		$limit    = isset( $args['limit'] ) ? intval( $args['limit'] ) : 100;
-		$offset   = isset( $args['offset'] ) ? intval( $args['offset'] ) : 0;
-		$order_by = isset( $args['order_by'] ) ? sanitize_key( $args['order_by'] ) : 'id';
-		$order    = isset( $args['order'] ) && in_array( strtoupper( $args['order'] ), [ 'ASC', 'DESC' ] )
+		$limit         = isset( $args['limit'] ) ? max( 0, intval( $args['limit'] ) ) : 100;
+		$offset        = isset( $args['offset'] ) ? max( 0, intval( $args['offset'] ) ) : 0;
+		$order_by      = isset( $args['order_by'] ) ? $this->get_allowed_column( $args['order_by'], 'id' ) : 'id';
+		$safe_order_by = esc_sql( $order_by );
+		$order         = isset( $args['order'] ) && in_array( strtoupper( $args['order'] ), [ 'ASC', 'DESC' ] )
 			? strtoupper( $args['order'] )
 			: 'DESC';
+		$safe_order    = esc_sql( $order );
 
 		return $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			"SELECT * FROM {$table} ORDER BY {$order_by} {$order} LIMIT {$limit} OFFSET {$offset}" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+			$wpdb->prepare(
+				"SELECT * FROM `{$table}` ORDER BY `{$safe_order_by}` {$safe_order} LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/order identifiers are allowlisted; limit values are prepared.
+				$limit,
+				$offset
+			)
 		);
 	}
 
@@ -167,33 +228,32 @@ abstract class Model {
 	 */
 	public function count( $where = [] ) {
 		global $wpdb;
-		$table = $this->get_table_name();
+		$table = esc_sql( $this->get_table_name() );
 
 		if ( empty( $where ) ) {
-			return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" ); // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+			return (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" ); // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
 		}
 
 		$conditions = [];
 		$values     = [];
 
 		foreach ( $where as $column => $value ) {
-			$conditions[] = sanitize_key( $column ) . ' = %s';
+			$safe_column = esc_sql( $this->get_allowed_column( $column, '' ) );
+
+			if ( '' === $safe_column ) {
+				continue;
+			}
+
+			$conditions[] = "`{$safe_column}` = %s";
 			$values[]     = $value;
 		}
 
-		$table = esc_sql( $table );
-
 		if ( empty( $conditions ) ) {
-			// No WHERE conditions, return total count
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$query = "SELECT COUNT(*) FROM `{$table}`";
-			return (int) $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			return (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" ); // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
 		}
 
 		$where_clause = implode( ' AND ', $conditions );
-		// Use array spread operator to pass values as separate arguments
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$query = $wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE {$where_clause}", ...$values ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here
+		$query        = $wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE {$where_clause}", $values ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifiers are allowlisted; values are prepared.
 
 		return (int) $wpdb->get_var( $query ); // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- Direct DB query required here.
 	}

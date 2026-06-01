@@ -771,15 +771,19 @@ class Import_Controller extends Base_Controller {
 			$this->send_error( $validation, null, 400 );
 		}
 
-		$table_name = $this->get_request_param( 'table_name' );
+			$table_name = (string) $this->get_request_param( 'table_name' );
+		if ( ! preg_match( '/^[A-Za-z0-9_]+$/', $table_name ) ) {
+			$this->send_error( __( 'Invalid table name', 'import-export-by-rockstarlab' ), null, 400 );
+		}
 
 		// Use Database_Table_Exporter to get columns
 		$exporter = new \RockStarLab\ImportExport\Model\Export\Database_Table_Exporter();
 		$columns  = $exporter->get_table_columns( $table_name );
 
-		// Get row count
-		global $wpdb;
-		$row_count = $wpdb->get_var( "SELECT COUNT(*) FROM `{$table_name}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Direct DB query required here.
+			// Get row count
+			global $wpdb;
+			$safe_table_name = esc_sql( $table_name );
+			$row_count       = $wpdb->get_var( "SELECT COUNT(*) FROM `{$safe_table_name}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is validated and SQL-escaped.
 
 		if ( empty( $columns ) ) {
 			$this->send_error( __( 'Could not retrieve table columns', 'import-export-by-rockstarlab' ), null, 400 );

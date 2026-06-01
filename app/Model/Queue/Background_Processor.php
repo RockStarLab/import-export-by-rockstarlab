@@ -80,12 +80,12 @@ class Background_Processor {
 	protected function get_next_job() {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'rsl_ie_jobs';
+			$table = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
 
 		// Get oldest pending or processing job
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name uses $wpdb->prefix, no user input
 		$job = $wpdb->get_row( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			"SELECT * FROM {$table} WHERE status IN ('pending', 'processing') ORDER BY created_at ASC LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+			"SELECT * FROM `{$table}` WHERE status IN ('pending', 'processing') ORDER BY created_at ASC LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
 			ARRAY_A
 		);
 
@@ -334,7 +334,6 @@ class Background_Processor {
 				'parameters' => wp_json_encode( $parameters ),
 			)
 		);
-
 	}
 
 	/**
@@ -423,12 +422,12 @@ class Background_Processor {
 			array(
 				'timeout'   => 0.01,
 				'blocking'  => false,
-					'sslverify' => false,
-					'body'      => array(
-						'action' => 'rsl_ie_process_media_sync_batch',
-						'nonce'  => wp_create_nonce( 'rsl_ie_nonce' ),
-						'job_id' => $job_id,
-					),
+				'sslverify' => false,
+				'body'      => array(
+					'action' => 'rsl_ie_process_media_sync_batch',
+					'nonce'  => wp_create_nonce( 'rsl_ie_nonce' ),
+					'job_id' => $job_id,
+				),
 				'cookies'   => $_COOKIE,
 			)
 		);
