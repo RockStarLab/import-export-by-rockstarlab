@@ -219,7 +219,7 @@ class Database_Migration {
 	public static function ensure_builtin_functions() {
 		global $wpdb;
 
-			$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_custom_functions' );
+		$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_custom_functions' );
 
 		$exists = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name )
@@ -230,9 +230,9 @@ class Database_Migration {
 
 		$seeded_option = 'rsl_ie_builtin_functions_seeded';
 
-			$library_count = (int) $wpdb->get_var( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-				"SELECT COUNT(*) FROM `{$table_name}` WHERE source LIKE 'library:%'" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
-			);
+		$library_count = (int) $wpdb->get_var( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			"SELECT COUNT(*) FROM `{$table_name}` WHERE source LIKE 'library:%'" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
+		);
 
 		if ( $library_count > 0 ) {
 			if ( ! get_option( $seeded_option, false ) ) {
@@ -251,14 +251,14 @@ class Database_Migration {
 	private static function maybe_add_progress_column() {
 		global $wpdb;
 
-			$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
+		$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
 
 		// Check if column already exists
 		$column_exists = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
-				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
-				WHERE TABLE_SCHEMA = %s 
-				AND TABLE_NAME = %s 
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+				WHERE TABLE_SCHEMA = %s
+				AND TABLE_NAME = %s
 				AND COLUMN_NAME = 'progress'",
 				DB_NAME,
 				$table_name
@@ -270,8 +270,8 @@ class Database_Migration {
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
 			$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 				"ALTER TABLE `{$table_name}`
-					ADD COLUMN progress DECIMAL(5,2) DEFAULT 0 COMMENT 'Progress percentage (0-100)' 
-					AFTER failed_items"
+				ADD COLUMN progress DECIMAL(5,2) DEFAULT 0 COMMENT 'Progress percentage (0-100)'
+				AFTER failed_items"
 			);
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 		}
@@ -283,14 +283,14 @@ class Database_Migration {
 	private static function maybe_add_result_column() {
 		global $wpdb;
 
-			$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
+		$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
 
 		// Check if column already exists
 		$column_exists = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
-				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
-				WHERE TABLE_SCHEMA = %s 
-				AND TABLE_NAME = %s 
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+				WHERE TABLE_SCHEMA = %s
+				AND TABLE_NAME = %s
 				AND COLUMN_NAME = 'result'",
 				DB_NAME,
 				$table_name
@@ -302,8 +302,8 @@ class Database_Migration {
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
 			$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 				"ALTER TABLE `{$table_name}`
-					ADD COLUMN result TEXT NULL COMMENT 'JSON result data (processed, success, failed counts)' 
-					AFTER settings"
+				ADD COLUMN result TEXT NULL COMMENT 'JSON result data (processed, success, failed counts)'
+				AFTER settings"
 			);
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 		}
@@ -315,14 +315,14 @@ class Database_Migration {
 	private static function maybe_add_parameters_column() {
 		global $wpdb;
 
-			$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
+		$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
 
 		// Check if column already exists
 		$column_exists = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
-				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
-				WHERE TABLE_SCHEMA = %s 
-				AND TABLE_NAME = %s 
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+				WHERE TABLE_SCHEMA = %s
+				AND TABLE_NAME = %s
 				AND COLUMN_NAME = 'parameters'",
 				DB_NAME,
 				$table_name
@@ -334,8 +334,8 @@ class Database_Migration {
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
 			$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 				"ALTER TABLE `{$table_name}`
-					ADD COLUMN parameters LONGTEXT NULL COMMENT 'JSON job parameters' 
-					AFTER settings"
+				ADD COLUMN parameters LONGTEXT NULL COMMENT 'JSON job parameters'
+				AFTER settings"
 			);
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 		}
@@ -347,14 +347,14 @@ class Database_Migration {
 	private static function maybe_add_started_at_column() {
 		global $wpdb;
 
-			$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
+		$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
 
 		// Check if column already exists
 		$column_exists = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
-				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
-				WHERE TABLE_SCHEMA = %s 
-				AND TABLE_NAME = %s 
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+				WHERE TABLE_SCHEMA = %s
+				AND TABLE_NAME = %s
 				AND COLUMN_NAME = 'started_at'",
 				DB_NAME,
 				$table_name
@@ -366,8 +366,8 @@ class Database_Migration {
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
 			$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 				"ALTER TABLE `{$table_name}`
-					ADD COLUMN started_at DATETIME NULL COMMENT 'When job processing started' 
-					AFTER updated_at"
+				ADD COLUMN started_at DATETIME NULL COMMENT 'When job processing started'
+				AFTER updated_at"
 			);
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 		}
@@ -379,14 +379,14 @@ class Database_Migration {
 	private static function maybe_add_retries_column() {
 		global $wpdb;
 
-			$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
+		$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
 
 		// Check if column already exists
 		$column_exists = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
-				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
-				WHERE TABLE_SCHEMA = %s 
-				AND TABLE_NAME = %s 
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+				WHERE TABLE_SCHEMA = %s
+				AND TABLE_NAME = %s
 				AND COLUMN_NAME = 'retries'",
 				DB_NAME,
 				$table_name
@@ -398,8 +398,8 @@ class Database_Migration {
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
 			$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 				"ALTER TABLE `{$table_name}`
-					ADD COLUMN retries INT DEFAULT 0 COMMENT 'Number of retry attempts' 
-					AFTER status"
+				ADD COLUMN retries INT DEFAULT 0 COMMENT 'Number of retry attempts'
+				AFTER status"
 			);
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 		}
@@ -411,14 +411,14 @@ class Database_Migration {
 	private static function maybe_update_type_enum() {
 		global $wpdb;
 
-			$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
+		$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
 
 		// Get current column definition
 		$column_info = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
-				"SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS 
-				WHERE TABLE_SCHEMA = %s 
-				AND TABLE_NAME = %s 
+				"SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+				WHERE TABLE_SCHEMA = %s
+				AND TABLE_NAME = %s
 				AND COLUMN_NAME = 'type'",
 				DB_NAME,
 				$table_name
@@ -433,7 +433,7 @@ class Database_Migration {
 				// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
 				$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 					"ALTER TABLE `{$table_name}`
-						MODIFY COLUMN type ENUM('import', 'export', 'media_sync', 'update') NOT NULL"
+					MODIFY COLUMN type ENUM('import', 'export', 'media_sync', 'update') NOT NULL"
 				);
 				// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 			}
@@ -446,14 +446,14 @@ class Database_Migration {
 	private static function maybe_add_update_columns() {
 		global $wpdb;
 
-			$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
+		$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
 
 		// Add imported_items column
 		$column_exists = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
-				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
-				WHERE TABLE_SCHEMA = %s 
-				AND TABLE_NAME = %s 
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+				WHERE TABLE_SCHEMA = %s
+				AND TABLE_NAME = %s
 				AND COLUMN_NAME = 'imported_items'",
 				DB_NAME,
 				$table_name
@@ -464,8 +464,8 @@ class Database_Migration {
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
 			$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 				"ALTER TABLE `{$table_name}`
-					ADD COLUMN imported_items INT DEFAULT 0 COMMENT 'Number of items imported/updated' 
-					AFTER processed_items"
+				ADD COLUMN imported_items INT DEFAULT 0 COMMENT 'Number of items imported/updated'
+				AFTER processed_items"
 			);
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 		}
@@ -473,9 +473,9 @@ class Database_Migration {
 		// Add skipped_items column
 		$column_exists = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
-				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
-				WHERE TABLE_SCHEMA = %s 
-				AND TABLE_NAME = %s 
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+				WHERE TABLE_SCHEMA = %s
+				AND TABLE_NAME = %s
 				AND COLUMN_NAME = 'skipped_items'",
 				DB_NAME,
 				$table_name
@@ -486,8 +486,8 @@ class Database_Migration {
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
 			$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 				"ALTER TABLE `{$table_name}`
-					ADD COLUMN skipped_items INT DEFAULT 0 COMMENT 'Number of items skipped' 
-					AFTER imported_items"
+				ADD COLUMN skipped_items INT DEFAULT 0 COMMENT 'Number of items skipped'
+				AFTER imported_items"
 			);
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 		}
@@ -495,9 +495,9 @@ class Database_Migration {
 		// Add error_items column
 		$column_exists = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(
-				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
-				WHERE TABLE_SCHEMA = %s 
-				AND TABLE_NAME = %s 
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+				WHERE TABLE_SCHEMA = %s
+				AND TABLE_NAME = %s
 				AND COLUMN_NAME = 'error_items'",
 				DB_NAME,
 				$table_name
@@ -508,8 +508,8 @@ class Database_Migration {
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
 			$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 				"ALTER TABLE `{$table_name}`
-					ADD COLUMN error_items INT DEFAULT 0 COMMENT 'Number of items with errors' 
-					AFTER skipped_items"
+				ADD COLUMN error_items INT DEFAULT 0 COMMENT 'Number of items with errors'
+				AFTER skipped_items"
 			);
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 		}
@@ -561,8 +561,8 @@ class Database_Migration {
 		];
 
 		foreach ( $tables as $table ) {
-				$safe_table = esc_sql( $table );
-				$wpdb->query( "DROP TABLE IF EXISTS `{$safe_table}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are controlled and SQL-escaped.
+			$safe_table = esc_sql( $table );
+			$wpdb->query( "DROP TABLE IF EXISTS `{$safe_table}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are controlled and SQL-escaped.
 		}
 
 		// Delete DB version option

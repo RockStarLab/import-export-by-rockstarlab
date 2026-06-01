@@ -291,7 +291,7 @@ class Job_Controller extends Base_Controller {
 		}
 
 		global $wpdb;
-			$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
+		$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
 
 		// Delete old completed jobs
 		$deleted = $wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.

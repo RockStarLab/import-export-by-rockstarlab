@@ -287,7 +287,7 @@ class Function_Executor {
 		// Otherwise, try to get from database
 		global $wpdb;
 
-			$table = esc_sql( $wpdb->prefix . 'rsl_ie_custom_functions' );
+		$table = esc_sql( $wpdb->prefix . 'rsl_ie_custom_functions' );
 
 		$function = $wpdb->get_row( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$wpdb->prepare(

@@ -80,7 +80,7 @@ class Background_Processor {
 	protected function get_next_job() {
 		global $wpdb;
 
-			$table = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
+		$table = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
 
 		// Get oldest pending or processing job
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name uses $wpdb->prefix, no user input
