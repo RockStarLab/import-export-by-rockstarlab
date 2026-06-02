@@ -112,10 +112,13 @@ abstract class Model {
 			return [];
 		}
 
-		$where_clause = implode( ' AND ', $conditions );
+		// Build the full SQL string first, then pass to prepare().
+		// Column identifiers are validated against an allowlist and SQL-escaped above.
+		// Values are passed as separate parameters to prepare() via the spread operator.
+		$sql = 'SELECT * FROM `' . $table . '` WHERE ' . implode( ' AND ', $conditions );
 
-		return $wpdb->get_results( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			$wpdb->prepare( "SELECT * FROM `{$table}` WHERE {$where_clause}", $values ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Identifiers are allowlisted; values are prepared.
+		return $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			$wpdb->prepare( $sql, ...$values ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- SQL is built from a static template and allowlisted, SQL-escaped identifiers only.
 		);
 	}
 
@@ -231,7 +234,7 @@ abstract class Model {
 		$table = esc_sql( $this->get_table_name() );
 
 		if ( empty( $where ) ) {
-			return (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" ); // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
+			return (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is SQL-escaped above; no user input involved.
 		}
 
 		$conditions = [];
@@ -249,13 +252,17 @@ abstract class Model {
 		}
 
 		if ( empty( $conditions ) ) {
-			return (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" ); // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
+			return (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is SQL-escaped above; no user input involved.
 		}
 
-		$where_clause = implode( ' AND ', $conditions );
-		$query        = $wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE {$where_clause}", $values ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifiers are allowlisted; values are prepared.
+		// Build the full SQL string first, then pass to prepare().
+		// Column identifiers are validated against an allowlist and SQL-escaped above.
+		// Values are passed as separate parameters to prepare() via the spread operator.
+		$sql = 'SELECT COUNT(*) FROM `' . $table . '` WHERE ' . implode( ' AND ', $conditions );
 
-		return (int) $wpdb->get_var( $query ); // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- Direct DB query required here.
+		return (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+			$wpdb->prepare( $sql, ...$values ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- SQL is built from a static template and allowlisted, SQL-escaped identifiers only.
+		);
 	}
 
 	/**
