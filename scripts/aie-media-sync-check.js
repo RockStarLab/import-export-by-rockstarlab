@@ -646,7 +646,7 @@ async function run() {
 					batch_size: 3,
 					rml_integration: false,
 				},
-				expect: { importedCountMode: 'scan' },
+				expect: { importedCountMode: 'success' },
 				verify: { rmlFolders: [] },
 			},
 			{
@@ -929,6 +929,15 @@ async function run() {
 			) {
 				throw new Error(
 					`${ tc.name }: importedCount mismatch (expected == scanCount ${ scanCount }, got ${ importedCount })`
+				);
+			}
+			if (
+				tc.expect &&
+				tc.expect.importedCountMode === 'success' &&
+				importedCount !== Number( jobRow.success_items || 0 )
+			) {
+				throw new Error(
+					`${ tc.name }: importedCount mismatch (expected == success_items ${ jobRow.success_items }, got ${ importedCount })`
 				);
 			}
 
