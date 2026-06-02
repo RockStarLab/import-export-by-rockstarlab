@@ -55,6 +55,15 @@ function loadEnv() {
 	const contentType = String( get( 'AIE_UPDATER_CONTENT_TYPE', 'post' ) )
 		.trim()
 		.toLowerCase();
+	const fieldKeyOverride = String(
+		get( 'AIE_UPDATER_FIELD_KEY', '' )
+	).trim();
+	const functionIdOverride = String(
+		get( 'AIE_UPDATER_FUNCTION_ID', 'snippet_uppercase' )
+	).trim();
+	const expectedMode = String( get( 'AIE_UPDATER_EXPECT_KIND', 'uppercase' ) )
+		.trim()
+		.toLowerCase();
 
 	const wpPathDefault = path.resolve( process.cwd(), '../../..' );
 	const targetWpPathGuess = ( () => {
@@ -78,6 +87,9 @@ function loadEnv() {
 	return {
 		headless,
 		contentType,
+		fieldKeyOverride,
+		functionIdOverride,
+		expectedMode,
 		target: {
 			baseUrl: get( 'AIE_TARGET_URL', 'http://aie2.local' ),
 			username: get( 'AIE_TARGET_ADMIN_USER', 'admin' ),
@@ -649,7 +661,23 @@ async function selectFieldOnStep3( page, fieldKey ) {
 			await page.waitForTimeout( 100 );
 		}
 	}
-	await item.click( { force: true } );
+	await page
+		.evaluate( ( key ) => {
+			const itemEl = document.querySelector(
+				`.rsl-ie-updater-step-3.active #rsl-ie-updater-fields-library .rsl-ie-field-item[data-field="${ key }"]`
+			);
+			const category = itemEl
+				? itemEl.closest( '.rsl-ie-field-category' )
+				: null;
+			if ( category ) {
+				category.classList.remove( 'rsl-ie-collapsed' );
+				category.style.display = '';
+			}
+			if ( itemEl ) itemEl.click();
+		}, fieldKey )
+		.catch( ( clickError ) => {
+			throw clickError;
+		} );
 
 	await page.waitForSelector(
 		`.rsl-ie-updater-step-3.active #rsl-ie-updater-fields-list .rsl-ie-selected-field[data-field="${ fieldKey }"]`,
@@ -658,6 +686,10 @@ async function selectFieldOnStep3( page, fieldKey ) {
 }
 
 async function assignUppercaseFunctionToField( page, fieldKey ) {
+	await assignFunctionToField( page, fieldKey, 'snippet_uppercase' );
+}
+
+async function assignFunctionToField( page, fieldKey, functionId ) {
 	await waitUpdaterStep( page, 4 );
 
 	const assignBtn = page
@@ -682,19 +714,21 @@ async function assignUppercaseFunctionToField( page, fieldKey ) {
 		} )
 		.catch( () => null );
 
-	// Prefer the library snippet: uppercase.
-	const addUpper = page.locator(
-		'#rsl-ie-updater-functions-list .rsl-ie-add-function-btn[data-function-id="snippet_uppercase"]'
+	// Prefer the requested function.
+	const addRequested = page.locator(
+		`#rsl-ie-updater-functions-list .rsl-ie-add-function-btn[data-function-id="${ functionId }"]`
 	);
-	if ( await addUpper.count().catch( () => 0 ) ) {
-		await addUpper.first().click();
+	if ( await addRequested.count().catch( () => 0 ) ) {
+		await addRequested.first().click();
 	} else {
 		// Fallback: search by name.
 		const search = page
 			.locator( '#rsl-ie-updater-functions-search' )
 			.first();
 		if ( await search.count().catch( () => 0 ) ) {
-			await search.fill( 'upper' ).catch( () => null );
+			await search
+				.fill( String( functionId ).replace( /^snippet_/, '' ) )
+				.catch( () => null );
 		}
 		const firstAdd = page.locator(
 			'#rsl-ie-updater-functions-list .rsl-ie-add-function-btn'
@@ -1071,6 +1105,163 @@ function uppercaseAscii( s ) {
 	return String( s || '' ).toUpperCase();
 }
 
+function getFeaturedImageId( env, wpPath, postId ) {
+	const php = `
+$id = (int) ${ JSON.stringify( Number( postId || 0 ) ) };
+echo wp_json_encode([ 'id' => (int) get_post_thumbnail_id( $id ) ], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+`;
+	const out = wpEvalJson( env, wpPath, php );
+	return Number( out && out.id ? out.id : 0 );
+}
+
+function getAttachmentUrl( env, wpPath, attachmentId ) {
+	const id = Number( attachmentId || 0 );
+	if ( ! id ) return '';
+	const php = `
+$id = (int) ${ JSON.stringify( id ) };
+echo wp_json_encode([ 'url' => (string) wp_get_attachment_url( $id ) ], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+`;
+	const out = wpEvalJson( env, wpPath, php );
+	return out && typeof out.url === 'string' ? out.url : '';
+}
+
+function getAttachmentField( env, wpPath, attachmentId, field ) {
+	const id = Number( attachmentId || 0 );
+	if ( ! id ) return '';
+	const php = `
+$id = (int) ${ JSON.stringify( id ) };
+$p = get_post( $id );
+echo wp_json_encode([
+  'title' => $p ? (string) $p->post_title : '',
+  'caption' => $p ? (string) $p->post_excerpt : '',
+], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+`;
+	const out = wpEvalJson( env, wpPath, php );
+	return out && typeof out[ field ] === 'string' ? out[ field ] : '';
+}
+
+function getFieldValueByKey(
+	env,
+	wpPath,
+	contentType,
+	objectId,
+	fieldKey,
+	{ dbTableName = '' } = {}
+) {
+	const key = String( fieldKey || '' ).trim();
+	const postId = Number( objectId || 0 );
+	const ct = String( contentType || '' ).trim();
+
+	if ( key === 'post_title' )
+		return getPostTitle( env, wpPath, postId ).title;
+	if ( key === 'post_content' ) {
+		const php = `
+$id = (int) ${ JSON.stringify( postId ) };
+echo wp_json_encode([ 'value' => (string) get_post_field( 'post_content', $id ) ], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+`;
+		const out = wpEvalJson( env, wpPath, php );
+		return out && typeof out.value === 'string' ? out.value : '';
+	}
+	if ( key === 'post_excerpt' ) {
+		const php = `
+$id = (int) ${ JSON.stringify( postId ) };
+echo wp_json_encode([ 'value' => (string) get_post_field( 'post_excerpt', $id ) ], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+`;
+		const out = wpEvalJson( env, wpPath, php );
+		return out && typeof out.value === 'string' ? out.value : '';
+	}
+	if ( key === 'featured_image_id' )
+		return String( getFeaturedImageId( env, wpPath, postId ) );
+	if ( key === 'featured_image_url' )
+		return getAttachmentUrl(
+			env,
+			wpPath,
+			getFeaturedImageId( env, wpPath, postId )
+		);
+	if ( key === 'featured_image_title' )
+		return getAttachmentField(
+			env,
+			wpPath,
+			getFeaturedImageId( env, wpPath, postId ),
+			'title'
+		);
+	if ( key === 'featured_image_caption' )
+		return getAttachmentField(
+			env,
+			wpPath,
+			getFeaturedImageId( env, wpPath, postId ),
+			'caption'
+		);
+
+	if ( key.startsWith( 'acf_' ) ) {
+		const fieldName = key.slice( 4 );
+		const php = `
+$id = (int) ${ JSON.stringify( postId ) };
+$field = ${ JSON.stringify( fieldName ) };
+$value = function_exists( 'get_field' ) ? get_field( $field, $id, false ) : get_post_meta( $id, $field, true );
+echo wp_json_encode([ 'value' => $value ], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+`;
+		const out = wpEvalJson( env, wpPath, php );
+		return out && Object.prototype.hasOwnProperty.call( out, 'value' )
+			? out.value
+			: '';
+	}
+
+	if ( key.startsWith( 'yoast_' ) ) {
+		const metaKey = key.slice( 6 );
+		const php = `
+$id = (int) ${ JSON.stringify( postId ) };
+$meta = ${ JSON.stringify( metaKey ) };
+echo wp_json_encode([ 'value' => (string) get_post_meta( $id, $meta, true ) ], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+`;
+		const out = wpEvalJson( env, wpPath, php );
+		return out && Object.prototype.hasOwnProperty.call( out, 'value' )
+			? out.value
+			: '';
+	}
+
+	if ( ct === 'comment' )
+		return getCommentContent( env, wpPath, postId ).content;
+	if ( ct === 'user' )
+		return getUserDisplayName( env, wpPath, postId ).display_name;
+	if ( ct === 'taxonomy' )
+		return getTermName( env, wpPath, postId, 'category' ).name;
+	if ( ct === 'database_table' ) {
+		return getDbTableValById(
+			env,
+			wpPath,
+			dbTableName || ensureTempUpdaterDbTable( env, wpPath ).table,
+			postId
+		).val;
+	}
+
+	return '';
+}
+
+function computeExpectedValue( env, wpPath, mode, beforeValue ) {
+	const kind = String( mode || 'uppercase' )
+		.trim()
+		.toLowerCase();
+	if ( kind === 'raw' ) return String( beforeValue ?? '' );
+	if ( kind === 'uppercase' ) return uppercaseAscii( beforeValue );
+	if ( kind === 'numeric_plus_one' ) {
+		const n = Number(
+			String( beforeValue ?? '' ).replace( /[^0-9.-]/g, '' )
+		);
+		return Number.isFinite( n )
+			? String( n + 1 )
+			: String( beforeValue ?? '' );
+	}
+	if ( kind === 'next_attachment_url' ) {
+		const currentId = Number(
+			String( beforeValue ?? '' ).replace( /[^0-9]/g, '' )
+		);
+		const nextId = Number.isFinite( currentId ) ? currentId + 1 : 0;
+		return getAttachmentUrl( env, wpPath, nextId );
+	}
+	return String( beforeValue ?? '' );
+}
+
 function normalizeCommentHtmlForCompare( s ) {
 	return (
 		String( s || '' )
@@ -1150,7 +1341,7 @@ async function run() {
 		let objectId = 0;
 		let beforeValue = '';
 		let expectedValue = '';
-		let fieldKey = 'post_title';
+		let fieldKey = '';
 		let step1Value = ct;
 		let needsCptSelector = false;
 		let postType = ct === 'page' ? 'page' : ct === 'post' ? 'post' : '';
@@ -1167,8 +1358,6 @@ async function run() {
 				objectId
 			);
 			beforeValue = before.content;
-			expectedValue = uppercaseAscii( beforeValue );
-			fieldKey = 'comment_content';
 		} else if ( ct === 'user' ) {
 			const picked = ensureUpdaterTestUserId( env, env.target.wpPath );
 			objectId = Number( picked.id || 0 );
@@ -1182,8 +1371,6 @@ async function run() {
 				objectId
 			);
 			beforeValue = before.display_name;
-			expectedValue = uppercaseAscii( beforeValue );
-			fieldKey = 'display_name';
 		} else if ( ct === 'woo_product' ) {
 			const picked = ensureOneProductId( env, env.target.wpPath );
 			objectId = Number( picked.id || 0 );
@@ -1193,8 +1380,6 @@ async function run() {
 				);
 			const before = getPostTitle( env, env.target.wpPath, objectId );
 			beforeValue = before.title;
-			expectedValue = uppercaseAscii( beforeValue );
-			fieldKey = 'post_title';
 			step1Value = 'woo_product';
 			postType = 'product';
 		} else if ( ct === 'database_table' ) {
@@ -1214,8 +1399,6 @@ async function run() {
 				objectId
 			);
 			beforeValue = before.val;
-			expectedValue = uppercaseAscii( beforeValue );
-			fieldKey = 'val';
 			step1Value = 'database_table';
 		} else if ( ct === 'taxonomy' ) {
 			objectId = pickOneTermIdByTaxonomy(
@@ -1234,8 +1417,6 @@ async function run() {
 				taxonomySlug
 			);
 			beforeValue = before.name;
-			expectedValue = uppercaseAscii( beforeValue );
-			fieldKey = 'name';
 		} else if ( ct === 'portfolio' ) {
 			postType = 'portfolio';
 			objectId = pickOneIdByPostType( env, env.target.wpPath, postType );
@@ -1245,8 +1426,6 @@ async function run() {
 				);
 			const before = getPostTitle( env, env.target.wpPath, objectId );
 			beforeValue = before.title;
-			expectedValue = uppercaseAscii( beforeValue );
-			fieldKey = 'post_title';
 
 			// Prefer a dedicated "post_type_portfolio" card if PRO registers it; otherwise use "custom_post_types".
 			step1Value = 'portfolio';
@@ -1260,9 +1439,42 @@ async function run() {
 				);
 			const before = getPostTitle( env, env.target.wpPath, objectId );
 			beforeValue = before.title;
-			expectedValue = uppercaseAscii( beforeValue );
-			fieldKey = 'post_title';
 		}
+
+		const defaultFieldKey =
+			ct === 'comment'
+				? 'comment_content'
+				: ct === 'user'
+				? 'display_name'
+				: ct === 'taxonomy'
+				? 'name'
+				: ct === 'database_table'
+				? 'val'
+				: 'post_title';
+		fieldKey = env.fieldKeyOverride || defaultFieldKey;
+		const functionId = env.functionIdOverride || 'snippet_uppercase';
+		beforeValue = getFieldValueByKey(
+			env,
+			env.target.wpPath,
+			ct,
+			objectId,
+			fieldKey,
+			{ dbTableName }
+		);
+		const expectedMode =
+			env.expectedMode ||
+			( fieldKey === 'featured_image_url'
+				? 'next_attachment_url'
+				: fieldKey === 'featured_image_id' ||
+				  fieldKey === 'acf_image_field'
+				? 'numeric_plus_one'
+				: 'uppercase' );
+		expectedValue = computeExpectedValue(
+			env,
+			env.target.wpPath,
+			expectedMode,
+			beforeValue
+		);
 
 		// Step 1: select content type; click next and REQUIRED: set dont-show-again on backup modal.
 		let selectedCt = '';
@@ -1343,12 +1555,12 @@ async function run() {
 		} );
 		await clickUpdaterNext( page );
 
-		// Step 3: select post_title.
+		// Step 3: select the requested field.
 		await selectFieldOnStep3( page, fieldKey );
 		await clickUpdaterNext( page );
 
-		// Step 4: assign uppercase function pipeline.
-		await assignUppercaseFunctionToField( page, fieldKey );
+		// Step 4: assign the configured function pipeline.
+		await assignFunctionToField( page, fieldKey, functionId );
 		await clickUpdaterNext( page );
 
 		// Step 5: run update.
@@ -1365,37 +1577,20 @@ async function run() {
 		if ( ! jobRow )
 			throw new Error( 'Updater job did not complete in time' );
 
-		const after =
-			ct === 'comment'
-				? getCommentContent( env, env.target.wpPath, objectId )
-				: ct === 'user'
-				? getUserDisplayName( env, env.target.wpPath, objectId )
-				: ct === 'taxonomy'
-				? getTermName( env, env.target.wpPath, objectId, taxonomySlug )
-				: ct === 'database_table'
-				? getDbTableValById(
-						env,
-						env.target.wpPath,
-						dbTableName,
-						objectId
-				  )
-				: getPostTitle( env, env.target.wpPath, objectId );
-		const afterValue =
-			ct === 'comment'
-				? after.content
-				: ct === 'user'
-				? after.display_name
-				: ct === 'taxonomy'
-				? after.name
-				: ct === 'database_table'
-				? after.val
-				: after.title;
+		const afterValue = getFieldValueByKey(
+			env,
+			env.target.wpPath,
+			ct,
+			objectId,
+			fieldKey,
+			{ dbTableName }
+		);
 
 		summary.result = {
 			contentType: ct,
 			objectId,
 			field: fieldKey,
-			function: 'snippet_uppercase',
+			function: functionId,
 			beforeValue,
 			expectedValue,
 			afterValue,

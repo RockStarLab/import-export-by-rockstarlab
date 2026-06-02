@@ -2002,7 +2002,7 @@ const ContentUpdater = {
 			const $item = jQuery( '<div>' )
 				.addClass( 'rsl-ie-field-item' )
 				.attr( 'draggable', true )
-				.attr( 'data-field', 'yoast_' + field.name )
+				.attr( 'data-field', field.name )
 				.attr( 'data-label', field.label )
 				.attr( 'data-type', 'yoast' ).html( `
 					<span class="rsl-ie-field-icon dashicons dashicons-chart-line"></span>

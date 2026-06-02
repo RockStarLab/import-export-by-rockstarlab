@@ -345,23 +345,23 @@ class Update_Processor {
 	 * @param string $content_type Content type
 	 * @return mixed Item ID
 	 */
-		private function get_item_id( $item, $content_type ) {
-			switch ( $content_type ) {
-				case 'post':
-				case 'page':
-				case 'custom_post_types':
-				case 'media':
-				case 'woo_product':
-				case 'woo_order':
-				case 'woo_coupon':
-					return isset( $item['ID'] ) ? $item['ID'] : ( isset( $item['id'] ) ? $item['id'] : 0 );
+	private function get_item_id( $item, $content_type ) {
+		switch ( $content_type ) {
+			case 'post':
+			case 'page':
+			case 'custom_post_types':
+			case 'media':
+			case 'woo_product':
+			case 'woo_order':
+			case 'woo_coupon':
+				return isset( $item['ID'] ) ? $item['ID'] : ( isset( $item['id'] ) ? $item['id'] : 0 );
 
-				case 'menu':
-					// Menu exports represent nav_menu TERMS, not nav_menu_item posts.
-					return isset( $item['term_id'] ) ? $item['term_id'] : ( isset( $item['ID'] ) ? $item['ID'] : ( isset( $item['id'] ) ? $item['id'] : 0 ) );
+			case 'menu':
+				// Menu exports represent nav_menu TERMS, not nav_menu_item posts.
+				return isset( $item['term_id'] ) ? $item['term_id'] : ( isset( $item['ID'] ) ? $item['ID'] : ( isset( $item['id'] ) ? $item['id'] : 0 ) );
 
-				case 'user':
-					return isset( $item['ID'] ) ? $item['ID'] : ( isset( $item['user_id'] ) ? $item['user_id'] : 0 );
+			case 'user':
+				return isset( $item['ID'] ) ? $item['ID'] : ( isset( $item['user_id'] ) ? $item['user_id'] : 0 );
 
 			case 'comment':
 				return isset( $item['comment_ID'] ) ? $item['comment_ID'] : 0;
@@ -388,27 +388,27 @@ class Update_Processor {
 	 * @param array  $fields       Fields that were updated
 	 * @return true|\WP_Error
 	 */
-		private function save_item( $item_id, $item, $content_type, $fields ) {
-			try {
-				switch ( $content_type ) {
-					case 'post':
-					case 'page':
-					case 'custom_post_types':
-					case 'media':
-						return $this->save_post_item( $item_id, $item, $fields );
+	private function save_item( $item_id, $item, $content_type, $fields ) {
+		try {
+			switch ( $content_type ) {
+				case 'post':
+				case 'page':
+				case 'custom_post_types':
+				case 'media':
+					return $this->save_post_item( $item_id, $item, $fields );
 
-					case 'menu':
-						// Menus are stored as nav_menu terms.
-						if ( empty( $item['taxonomy'] ) ) {
-							$item['taxonomy'] = 'nav_menu';
-						}
-						return $this->save_term_item( $item_id, $item, $fields );
+				case 'menu':
+					// Menus are stored as nav_menu terms.
+					if ( empty( $item['taxonomy'] ) ) {
+						$item['taxonomy'] = 'nav_menu';
+					}
+					return $this->save_term_item( $item_id, $item, $fields );
 
-					case 'woo_order':
-						return $this->save_order_item( $item_id, $item, $fields );
+				case 'woo_order':
+					return $this->save_order_item( $item_id, $item, $fields );
 
-					case 'woo_product':
-						return $this->save_product_item( $item_id, $item, $fields );
+				case 'woo_product':
+					return $this->save_product_item( $item_id, $item, $fields );
 
 				case 'woo_coupon':
 					return $this->save_coupon_item( $item_id, $item, $fields );
@@ -452,8 +452,8 @@ class Update_Processor {
 			return new \WP_Error( 'post_not_found', sprintf( 'Post #%d does not exist', $post_id ) );
 		}
 
-		$post_data = [];
-		$meta_data = [];
+		$post_data        = [];
+		$meta_data        = [];
 		$featured_updates = [];
 
 		// Separate post fields from meta fields
@@ -490,12 +490,12 @@ class Update_Processor {
 			// Use direct wpdb update to avoid WordPress validation of existing meta fields
 			// This way we only update the fields we want without triggering validation
 			global $wpdb;
-			
+
 			$update_data = [];
 			foreach ( $post_data as $key => $value ) {
 				$update_data[ $key ] = $value;
 			}
-			
+
 			if ( ! empty( $update_data ) ) {
 				$result = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct DB query required here.
 					$wpdb->posts,
@@ -504,7 +504,7 @@ class Update_Processor {
 					null,
 					[ '%d' ]
 				);
-				
+
 				if ( false === $result ) {
 					return new \WP_Error( 'db_update_error', 'Failed to update post in database' );
 				}
@@ -515,7 +515,7 @@ class Update_Processor {
 		}
 
 		// Update meta fields (strip acf_/meta_ prefixes added by the field library)
-		$post_type = get_post_type( $post_id );
+		$post_type  = get_post_type( $post_id );
 		$is_product = in_array( $post_type, [ 'product', 'product_variation' ], true );
 
 		foreach ( $meta_data as $meta_key => $meta_value ) {
@@ -531,7 +531,12 @@ class Update_Processor {
 				// update_field returns false when ACF can't resolve the field by name
 				// (e.g. field group stored as PHP/JSON file, or value unchanged).
 				// Always fall back to update_post_meta to guarantee the raw meta is saved.
-				update_field( $real_key, $meta_value, $post_id );
+				$prepared_acf = $this->prepare_acf_update_value( $real_key, $meta_value, (int) $post_id );
+				if ( ! $prepared_acf['should_update'] ) {
+					continue;
+				}
+				$meta_value = $prepared_acf['value'];
+				update_field( $this->get_acf_update_selector( $real_key, (int) $post_id ), $meta_value, $post_id );
 				update_post_meta( $post_id, $real_key, $meta_value );
 			} else {
 				update_post_meta( $post_id, $real_key, $meta_value );
@@ -861,7 +866,7 @@ class Update_Processor {
 	 * @param mixed $ref Portable ref (slug:..., id:...) or legacy int/string.
 	 * @return int Term ID.
 	 */
-		private function resolve_coupon_product_cat_id_ref( $ref ) {
+	private function resolve_coupon_product_cat_id_ref( $ref ) {
 		if ( is_int( $ref ) ) {
 			return $ref > 0 ? $ref : 0;
 		}
@@ -909,8 +914,8 @@ class Update_Processor {
 			return (int) $term->term_id;
 		}
 
-			return 0;
-		}
+		return 0;
+	}
 
 		/**
 		 * Save WooCommerce order item using WC_Order API (HPOS compatible).
@@ -920,125 +925,125 @@ class Update_Processor {
 		 * @param array $fields   Fields to update.
 		 * @return true|\WP_Error
 		 */
-		private function save_order_item( $order_id, $item, $fields ) {
-			if ( empty( $order_id ) || ! is_numeric( $order_id ) || $order_id <= 0 ) {
-				return new \WP_Error( 'invalid_order_id', sprintf( 'Invalid order ID: %s', $order_id ) );
-			}
-
-			if ( ! function_exists( 'wc_get_order' ) ) {
-				// Backwards compatibility fallback (non-HPOS installs still store orders as posts).
-				return $this->save_post_item( $order_id, $item, $fields );
-			}
-
-			$order = wc_get_order( (int) $order_id );
-			if ( ! $order ) {
-				return new \WP_Error( 'order_not_found', sprintf( 'Order #%d does not exist', $order_id ) );
-			}
-
-			$setter_map = [
-				'order_status'          => 'set_status',
-				'customer_note'         => 'set_customer_note',
-				'billing_first_name'    => 'set_billing_first_name',
-				'billing_last_name'     => 'set_billing_last_name',
-				'billing_company'       => 'set_billing_company',
-				'billing_address_1'     => 'set_billing_address_1',
-				'billing_address_2'     => 'set_billing_address_2',
-				'billing_city'          => 'set_billing_city',
-				'billing_state'         => 'set_billing_state',
-				'billing_postcode'      => 'set_billing_postcode',
-				'billing_country'       => 'set_billing_country',
-				'billing_email'         => 'set_billing_email',
-				'billing_phone'         => 'set_billing_phone',
-				'shipping_first_name'   => 'set_shipping_first_name',
-				'shipping_last_name'    => 'set_shipping_last_name',
-				'shipping_company'      => 'set_shipping_company',
-				'shipping_address_1'    => 'set_shipping_address_1',
-				'shipping_address_2'    => 'set_shipping_address_2',
-				'shipping_city'         => 'set_shipping_city',
-				'shipping_state'        => 'set_shipping_state',
-				'shipping_postcode'     => 'set_shipping_postcode',
-				'shipping_country'      => 'set_shipping_country',
-				'payment_method'        => 'set_payment_method',
-				'payment_method_title'  => 'set_payment_method_title',
-				'transaction_id'        => 'set_transaction_id',
-			];
-
-			$touched = false;
-			foreach ( $fields as $field ) {
-				if ( ! isset( $item[ $field ] ) ) {
-					continue;
-				}
-
-				$value = $item[ $field ];
-
-				// Skip read-only/derived fields.
-				if ( in_array(
-					$field,
-					[
-						'ID',
-						'order_number',
-						'order_key',
-						'order_total',
-						'order_subtotal',
-						'order_tax',
-						'order_shipping',
-						'order_discount',
-						'cart_tax',
-						'shipping_tax',
-						'total_tax',
-						'order_items',
-						'item_count',
-						'shipping_lines',
-						'fee_lines',
-						'coupon_lines',
-						'order_notes',
-						'order_meta',
-						'currency',
-						'order_date',
-						'date_modified',
-						'completed_date',
-						'paid_date',
-					],
-					true
-				) ) {
-					continue;
-				}
-
-				if ( isset( $setter_map[ $field ] ) && method_exists( $order, $setter_map[ $field ] ) ) {
-					$method = $setter_map[ $field ];
-
-					if ( 'set_status' === $method ) {
-						// Allow both "processing" and "wc-processing".
-						$value = is_string( $value ) ? preg_replace( '/^wc-/', '', $value ) : $value;
-					}
-
-					$order->$method( $value );
-					$touched = true;
-					continue;
-				}
-
-				// Fallback: treat as order meta (supports acf_/meta_/yoast__ prefixes too).
-				$resolved = $this->resolve_meta_key( $field );
-				$meta_value = is_array( $value ) ? wp_json_encode( $value ) : $value;
-				$order->update_meta_data( $resolved['key'], $meta_value );
-				$touched = true;
-			}
-
-			if ( $touched ) {
-				$order->save();
-			}
-
-			return true;
+	private function save_order_item( $order_id, $item, $fields ) {
+		if ( empty( $order_id ) || ! is_numeric( $order_id ) || $order_id <= 0 ) {
+			return new \WP_Error( 'invalid_order_id', sprintf( 'Invalid order ID: %s', $order_id ) );
 		}
+
+		if ( ! function_exists( 'wc_get_order' ) ) {
+			// Backwards compatibility fallback (non-HPOS installs still store orders as posts).
+			return $this->save_post_item( $order_id, $item, $fields );
+		}
+
+		$order = wc_get_order( (int) $order_id );
+		if ( ! $order ) {
+			return new \WP_Error( 'order_not_found', sprintf( 'Order #%d does not exist', $order_id ) );
+		}
+
+		$setter_map = [
+			'order_status'         => 'set_status',
+			'customer_note'        => 'set_customer_note',
+			'billing_first_name'   => 'set_billing_first_name',
+			'billing_last_name'    => 'set_billing_last_name',
+			'billing_company'      => 'set_billing_company',
+			'billing_address_1'    => 'set_billing_address_1',
+			'billing_address_2'    => 'set_billing_address_2',
+			'billing_city'         => 'set_billing_city',
+			'billing_state'        => 'set_billing_state',
+			'billing_postcode'     => 'set_billing_postcode',
+			'billing_country'      => 'set_billing_country',
+			'billing_email'        => 'set_billing_email',
+			'billing_phone'        => 'set_billing_phone',
+			'shipping_first_name'  => 'set_shipping_first_name',
+			'shipping_last_name'   => 'set_shipping_last_name',
+			'shipping_company'     => 'set_shipping_company',
+			'shipping_address_1'   => 'set_shipping_address_1',
+			'shipping_address_2'   => 'set_shipping_address_2',
+			'shipping_city'        => 'set_shipping_city',
+			'shipping_state'       => 'set_shipping_state',
+			'shipping_postcode'    => 'set_shipping_postcode',
+			'shipping_country'     => 'set_shipping_country',
+			'payment_method'       => 'set_payment_method',
+			'payment_method_title' => 'set_payment_method_title',
+			'transaction_id'       => 'set_transaction_id',
+		];
+
+		$touched = false;
+		foreach ( $fields as $field ) {
+			if ( ! isset( $item[ $field ] ) ) {
+				continue;
+			}
+
+			$value = $item[ $field ];
+
+			// Skip read-only/derived fields.
+			if ( in_array(
+				$field,
+				[
+					'ID',
+					'order_number',
+					'order_key',
+					'order_total',
+					'order_subtotal',
+					'order_tax',
+					'order_shipping',
+					'order_discount',
+					'cart_tax',
+					'shipping_tax',
+					'total_tax',
+					'order_items',
+					'item_count',
+					'shipping_lines',
+					'fee_lines',
+					'coupon_lines',
+					'order_notes',
+					'order_meta',
+					'currency',
+					'order_date',
+					'date_modified',
+					'completed_date',
+					'paid_date',
+				],
+				true
+			) ) {
+				continue;
+			}
+
+			if ( isset( $setter_map[ $field ] ) && method_exists( $order, $setter_map[ $field ] ) ) {
+				$method = $setter_map[ $field ];
+
+				if ( 'set_status' === $method ) {
+					// Allow both "processing" and "wc-processing".
+					$value = is_string( $value ) ? preg_replace( '/^wc-/', '', $value ) : $value;
+				}
+
+				$order->$method( $value );
+				$touched = true;
+				continue;
+			}
+
+			// Fallback: treat as order meta (supports acf_/meta_/yoast__ prefixes too).
+			$resolved   = $this->resolve_meta_key( $field );
+			$meta_value = is_array( $value ) ? wp_json_encode( $value ) : $value;
+			$order->update_meta_data( $resolved['key'], $meta_value );
+			$touched = true;
+		}
+
+		if ( $touched ) {
+			$order->save();
+		}
+
+		return true;
+	}
 
 		/**
 		 * Save WooCommerce product item using WC_Product API
 		 *
 		 * @param int   $product_id Product ID
-	 * @param array $item       Item data
-	 * @param array $fields     Fields to update
-	 * @return true|\WP_Error
-	 */
+		 * @param array $item       Item data
+		 * @param array $fields     Fields to update
+		 * @return true|\WP_Error
+		 */
 	private function save_product_item( $product_id, $item, $fields ) {
 		if ( empty( $product_id ) || ! is_numeric( $product_id ) || $product_id <= 0 ) {
 			return new \WP_Error( 'invalid_product_id', sprintf( 'Invalid product ID: %s', $product_id ) );
@@ -1054,39 +1059,39 @@ class Update_Processor {
 		}
 
 		$setter_map = [
-			'post_title'       => 'set_name',
-			'post_content'     => 'set_description',
-			'post_excerpt'     => 'set_short_description',
-			'post_status'      => 'set_status',
-			'post_name'        => 'set_slug',
-			'sku'              => 'set_sku',
-			'regular_price'    => 'set_regular_price',
-			'sale_price'       => 'set_sale_price',
-			'tax_status'       => 'set_tax_status',
-			'tax_class'        => 'set_tax_class',
-			'stock_quantity'   => 'set_stock_quantity',
-			'stock_status'     => 'set_stock_status',
-			'manage_stock'     => 'set_manage_stock',
-			'backorders'       => 'set_backorders',
-			'downloadable'     => 'set_downloadable',
-			'virtual'          => 'set_virtual',
-			'weight'           => 'set_weight',
-			'length'           => 'set_length',
-			'width'            => 'set_width',
-			'height'           => 'set_height',
-			'shipping_class'   => 'set_shipping_class_id',
-			'featured'         => 'set_featured',
-			'visibility'       => 'set_catalog_visibility',
-			'product_gallery'  => 'set_gallery_image_ids',
+			'post_title'        => 'set_name',
+			'post_content'      => 'set_description',
+			'post_excerpt'      => 'set_short_description',
+			'post_status'       => 'set_status',
+			'post_name'         => 'set_slug',
+			'sku'               => 'set_sku',
+			'regular_price'     => 'set_regular_price',
+			'sale_price'        => 'set_sale_price',
+			'tax_status'        => 'set_tax_status',
+			'tax_class'         => 'set_tax_class',
+			'stock_quantity'    => 'set_stock_quantity',
+			'stock_status'      => 'set_stock_status',
+			'manage_stock'      => 'set_manage_stock',
+			'backorders'        => 'set_backorders',
+			'downloadable'      => 'set_downloadable',
+			'virtual'           => 'set_virtual',
+			'weight'            => 'set_weight',
+			'length'            => 'set_length',
+			'width'             => 'set_width',
+			'height'            => 'set_height',
+			'shipping_class'    => 'set_shipping_class_id',
+			'featured'          => 'set_featured',
+			'visibility'        => 'set_catalog_visibility',
+			'product_gallery'   => 'set_gallery_image_ids',
 			'featured_image_id' => 'set_image_id',
-			'comment_status'   => 'set_reviews_allowed',
+			'comment_status'    => 'set_reviews_allowed',
 		];
 
 		$boolean_fields = [ 'manage_stock', 'downloadable', 'virtual', 'featured', 'comment_status' ];
 		$array_fields   = [ 'product_gallery' ];
 
-		$post_data = [];
-		$meta_data = [];
+		$post_data        = [];
+		$meta_data        = [];
 		$featured_updates = [];
 		$featured_fields  = [ 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption' ];
 
@@ -1133,7 +1138,7 @@ class Update_Processor {
 				}
 
 				if ( 'shipping_class' === $field ) {
-					$term = get_term_by( 'slug', $value, 'product_shipping_class' );
+					$term  = get_term_by( 'slug', $value, 'product_shipping_class' );
 					$value = $term ? (int) $term->term_id : 0;
 				}
 
@@ -1177,7 +1182,12 @@ class Update_Processor {
 			$resolved = $this->resolve_meta_key( $meta_key );
 			$real_key = $resolved['key'];
 			if ( $resolved['is_acf'] && function_exists( 'update_field' ) ) {
-				update_field( $real_key, $meta_value, $product_id );
+				$prepared_acf = $this->prepare_acf_update_value( $real_key, $meta_value, (int) $product_id );
+				if ( ! $prepared_acf['should_update'] ) {
+					continue;
+				}
+				$meta_value = $prepared_acf['value'];
+				update_field( $this->get_acf_update_selector( $real_key, (int) $product_id ), $meta_value, $product_id );
 				update_post_meta( $product_id, $real_key, $meta_value );
 			} else {
 				update_post_meta( $product_id, $real_key, $meta_value );
@@ -1245,7 +1255,7 @@ class Update_Processor {
 		// Update user if there are standard fields to update
 		if ( ! empty( $user_data ) ) {
 			$user_data['ID'] = $user_id;
-			
+
 			$result = wp_update_user( $user_data );
 
 			if ( is_wp_error( $result ) ) {
@@ -1324,7 +1334,7 @@ class Update_Processor {
 		// Update comment if there are standard fields to update
 		if ( ! empty( $comment_data ) ) {
 			$comment_data['comment_ID'] = $comment_id;
-			
+
 			$result = wp_update_comment( $comment_data, true );
 
 			if ( is_wp_error( $result ) ) {
@@ -1422,16 +1432,266 @@ class Update_Processor {
 	 */
 	private function resolve_meta_key( $field ) {
 		if ( strpos( $field, 'acf_' ) === 0 ) {
-			return [ 'key' => substr( $field, 4 ), 'is_acf' => true ];
+			return [
+				'key'    => substr( $field, 4 ),
+				'is_acf' => true,
+			];
 		}
 		if ( strpos( $field, 'meta_' ) === 0 ) {
-			return [ 'key' => substr( $field, 5 ), 'is_acf' => false ];
+			return [
+				'key'    => substr( $field, 5 ),
+				'is_acf' => false,
+			];
 		}
 		if ( strpos( $field, 'yoast__' ) === 0 ) {
 			$yoast_key = substr( $field, 7 );
-			return [ 'key' => '_' . ltrim( $yoast_key, '_' ), 'is_acf' => false ];
+			return [
+				'key'    => '_' . ltrim( $yoast_key, '_' ),
+				'is_acf' => false,
+			];
 		}
-		return [ 'key' => $field, 'is_acf' => false ];
+		if ( strpos( $field, 'yoast_' ) === 0 ) {
+			$yoast_key = substr( $field, 6 );
+			if ( preg_match( '/^_?yoast_|^wpseo_/', $yoast_key ) ) {
+				return [
+					'key'    => '_' . ltrim( $yoast_key, '_' ),
+					'is_acf' => false,
+				];
+			}
+		}
+		return [
+			'key'    => $field,
+			'is_acf' => false,
+		];
+	}
+
+	/**
+	 * Prepare an ACF value before writing it through update_field().
+	 *
+	 * ACF image/file/gallery fields store attachment IDs, while the exporter emits
+	 * portable URLs. Convert local attachment URLs back to IDs before saving.
+	 *
+	 * @param string $field_name ACF field name.
+	 * @param mixed  $value      Exported/current field value.
+	 * @param int    $post_id    Post ID.
+	 * @return array {
+	 *     Prepared ACF update result.
+	 *
+	 *     @type mixed $value         Prepared value.
+	 *     @type bool  $should_update Whether the field can be updated safely.
+	 * }
+	 */
+	private function prepare_acf_update_value( string $field_name, $value, int $post_id ): array {
+		$field_object = $this->get_acf_field_object_for_update( $field_name, $post_id );
+		$field_type   = is_array( $field_object ) && isset( $field_object['type'] ) ? (string) $field_object['type'] : '';
+		$value        = $this->maybe_decode_json_value( $value );
+
+		if ( in_array( $field_type, [ 'image', 'file' ], true ) ) {
+			$attachment_id = $this->resolve_attachment_id_from_value( $value );
+			if ( $attachment_id > 0 ) {
+				return [
+					'value'         => $attachment_id,
+					'should_update' => true,
+				];
+			}
+
+			if ( $this->value_contains_url( $value ) ) {
+				return [
+					'value'         => $value,
+					'should_update' => false,
+				];
+			}
+		}
+
+		if ( 'gallery' === $field_type ) {
+			$gallery_values = $this->extract_gallery_values( $value );
+			if ( ! empty( $gallery_values ) ) {
+				$attachment_ids = [];
+				foreach ( $gallery_values as $gallery_value ) {
+					$attachment_id = $this->resolve_attachment_id_from_value( $gallery_value );
+					if ( $attachment_id > 0 ) {
+						$attachment_ids[] = $attachment_id;
+					} elseif ( $this->value_contains_url( $gallery_value ) ) {
+						return [
+							'value'         => $value,
+							'should_update' => false,
+						];
+					}
+				}
+
+				return [
+					'value'         => $attachment_ids,
+					'should_update' => true,
+				];
+			}
+		}
+
+		return [
+			'value'         => $value,
+			'should_update' => true,
+		];
+	}
+
+	/**
+	 * Resolve the safest selector for update_field().
+	 *
+	 * @param string $field_name ACF field name.
+	 * @param int    $post_id    Post ID.
+	 * @return string Field key when available, otherwise field name.
+	 */
+	private function get_acf_update_selector( string $field_name, int $post_id ): string {
+		$field_object = $this->get_acf_field_object_for_update( $field_name, $post_id );
+		if ( is_array( $field_object ) && ! empty( $field_object['key'] ) && 0 === strpos( (string) $field_object['key'], 'field_' ) ) {
+			return (string) $field_object['key'];
+		}
+
+		$field_ref = get_post_meta( $post_id, '_' . $field_name, true );
+		if ( is_string( $field_ref ) && 0 === strpos( $field_ref, 'field_' ) ) {
+			return $field_ref;
+		}
+
+		return $field_name;
+	}
+
+	/**
+	 * Find an ACF field object without formatting the current field value.
+	 *
+	 * @param string $field_name ACF field name.
+	 * @param int    $post_id    Post ID.
+	 * @return array|null Field object or null.
+	 */
+	private function get_acf_field_object_for_update( string $field_name, int $post_id ): ?array {
+		if ( function_exists( 'get_field_object' ) ) {
+			$field_object = get_field_object( $field_name, $post_id, false, false );
+			if ( is_array( $field_object ) ) {
+				return $field_object;
+			}
+		}
+
+		$field_ref = get_post_meta( $post_id, '_' . $field_name, true );
+		if ( is_string( $field_ref ) && '' !== $field_ref && function_exists( 'acf_get_field' ) ) {
+			$field_object = acf_get_field( $field_ref );
+			if ( is_array( $field_object ) ) {
+				return $field_object;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Decode JSON payloads emitted by exporters while leaving plain strings intact.
+	 *
+	 * @param mixed $value Value to decode.
+	 * @return mixed Decoded value or original value.
+	 */
+	private function maybe_decode_json_value( $value ) {
+		if ( ! is_string( $value ) ) {
+			return $value;
+		}
+
+		$trimmed = trim( $value );
+		if ( '' === $trimmed || ! in_array( $trimmed[0], [ '{', '[' ], true ) ) {
+			return $value;
+		}
+
+		$decoded = json_decode( $trimmed, true );
+		return JSON_ERROR_NONE === json_last_error() ? $decoded : $value;
+	}
+
+	/**
+	 * Resolve an attachment ID from a media value.
+	 *
+	 * @param mixed $value Media value: ID, URL, or array with ID/url.
+	 * @return int Attachment ID or 0.
+	 */
+	private function resolve_attachment_id_from_value( $value ): int {
+		$value = $this->maybe_decode_json_value( $value );
+
+		if ( is_numeric( $value ) ) {
+			return absint( $value );
+		}
+
+		if ( is_array( $value ) ) {
+			foreach ( [ 'ID', 'id' ] as $id_key ) {
+				if ( isset( $value[ $id_key ] ) && is_numeric( $value[ $id_key ] ) ) {
+					return absint( $value[ $id_key ] );
+				}
+			}
+
+			if ( isset( $value['url'] ) && is_string( $value['url'] ) ) {
+				return $this->resolve_attachment_id_from_url( $value['url'] );
+			}
+		}
+
+		if ( is_string( $value ) ) {
+			return $this->resolve_attachment_id_from_url( $value );
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Resolve an attachment ID from a local attachment URL.
+	 *
+	 * @param string $url Attachment URL.
+	 * @return int Attachment ID or 0.
+	 */
+	private function resolve_attachment_id_from_url( string $url ): int {
+		$url = trim( $url );
+		if ( '' === $url || ! filter_var( $url, FILTER_VALIDATE_URL ) || ! function_exists( 'attachment_url_to_postid' ) ) {
+			return 0;
+		}
+
+		return (int) attachment_url_to_postid( $url );
+	}
+
+	/**
+	 * Extract gallery items from exported ACF gallery values.
+	 *
+	 * @param mixed $value Gallery value.
+	 * @return array Gallery item values.
+	 */
+	private function extract_gallery_values( $value ): array {
+		$value = $this->maybe_decode_json_value( $value );
+
+		if ( is_array( $value ) && isset( $value['acf_type'] ) && 'gallery' === $value['acf_type'] ) {
+			return isset( $value['values'] ) && is_array( $value['values'] ) ? $value['values'] : [];
+		}
+
+		if ( is_array( $value ) ) {
+			return $value;
+		}
+
+		if ( is_string( $value ) && '' !== trim( $value ) ) {
+			return array_map( 'trim', explode( ',', $value ) );
+		}
+
+		return [];
+	}
+
+	/**
+	 * Check whether a value contains a URL.
+	 *
+	 * @param mixed $value Value to inspect.
+	 * @return bool True when a URL is present.
+	 */
+	private function value_contains_url( $value ): bool {
+		$value = $this->maybe_decode_json_value( $value );
+
+		if ( is_string( $value ) ) {
+			return (bool) filter_var( trim( $value ), FILTER_VALIDATE_URL );
+		}
+
+		if ( is_array( $value ) ) {
+			foreach ( $value as $item ) {
+				if ( $this->value_contains_url( $item ) ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
