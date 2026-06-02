@@ -2946,6 +2946,11 @@ const ImportModule = {
 					options: [
 						{
 							value: 'featured_image',
+							label: 'Featured Image (Legacy URL)',
+							type: 'string',
+						},
+						{
+							value: 'featured_image_url',
 							label: 'Featured Image URL',
 							type: 'string',
 						},
@@ -2953,6 +2958,16 @@ const ImportModule = {
 							value: 'featured_image_id',
 							label: 'Featured Image ID',
 							type: 'number',
+						},
+						{
+							value: 'featured_image_title',
+							label: 'Featured Image Title',
+							type: 'string',
+						},
+						{
+							value: 'featured_image_caption',
+							label: 'Featured Image Caption',
+							type: 'string',
 						},
 					],
 				},
