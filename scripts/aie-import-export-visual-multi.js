@@ -31,6 +31,9 @@ const path = require( 'path' );
 const { execFileSync } = require( 'child_process' );
 const { chromium } = require( 'playwright' );
 
+let runtimeLocalPhp = 'php';
+let runtimeWpBin = '/opt/homebrew/bin/wp';
+
 function parseDotEnv( contents ) {
 	const env = {};
 	for ( const line of contents.split( /\r?\n/ ) ) {
@@ -101,6 +104,15 @@ function loadEnv() {
 		return '';
 	} )();
 
+	const localPhpCandidates = [
+		'/Applications/Local.app/Contents/Resources/extraResources/lightning-services/php-8.2.29+0/bin/darwin-arm64/bin/php',
+		'/Applications/Local.app/Contents/Resources/extraResources/lightning-services/php-8.2.27+1/bin/darwin-arm64/bin/php',
+	];
+	const localPhpDefault =
+		localPhpCandidates.find( ( p ) => fs.existsSync( p ) ) || 'php';
+	runtimeLocalPhp = String( get( 'AIE_LOCAL_PHP', localPhpDefault ) );
+	runtimeWpBin = String( get( 'AIE_WP_BIN', '/opt/homebrew/bin/wp' ) );
+
 	return {
 		sourceUrl: get( 'AIE_SOURCE_URL', 'http://aie.local' ),
 		sourceUser: get( 'AIE_SOURCE_ADMIN_USER', 'admin' ),
@@ -122,6 +134,8 @@ function loadEnv() {
 			'AIE_TARGET_WP_PATH',
 			targetWpPathGuess || sourceWpPathDefault
 		),
+		localPhp: runtimeLocalPhp,
+		wpBin: runtimeWpBin,
 		ifExists,
 		ifNotExists,
 		autoImportMedia,
@@ -1077,7 +1091,19 @@ function runWpEvalJson( { wpPath, url }, phpCode ) {
 	if ( url ) args.push( `--url=${ url }` );
 	args.push( '--quiet' );
 
-	const out = execFileSync( 'wp', args, { encoding: 'utf8' } ).trim();
+	const phpArgs = [
+		'-d',
+		'display_errors=0',
+		'-d',
+		'error_reporting=0',
+		'-d',
+		'html_errors=0',
+	];
+	const out = execFileSync(
+		runtimeLocalPhp,
+		[ ...phpArgs, runtimeWpBin, ...args ],
+		{ encoding: 'utf8' }
+	).trim();
 	try {
 		return JSON.parse( out );
 	} catch ( e ) {
@@ -1099,7 +1125,19 @@ function getPostContentViaWpCli( { wpPath, url }, postId ) {
 		`--path=${ wpPath }`,
 	];
 	if ( url ) args.push( `--url=${ url }` );
-	return execFileSync( 'wp', args, { encoding: 'utf8' } ).trim();
+	const phpArgs = [
+		'-d',
+		'display_errors=0',
+		'-d',
+		'error_reporting=0',
+		'-d',
+		'html_errors=0',
+	];
+	return execFileSync(
+		runtimeLocalPhp,
+		[ ...phpArgs, runtimeWpBin, ...args ],
+		{ encoding: 'utf8' }
+	).trim();
 }
 
 function dumpMenusViaWpCli( { wpPath, url } ) {
