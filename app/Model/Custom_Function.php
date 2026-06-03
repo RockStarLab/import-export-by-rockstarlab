@@ -93,38 +93,40 @@ class Custom_Function extends Model {
 			$code_to_store = "<?php\n\n" . $code_to_store;
 		}
 
-		// Prepare data
-			$insert_data = [
-				'name'          => sanitize_text_field( $data['name'] ),
-				'description'   => ! empty( $data['description'] ) ? sanitize_textarea_field( $data['description'] ) : '',
-				'function_code' => $code_to_store, // Store with <?php tag for editor
-				'source'        => ! empty( $data['source'] ) ? sanitize_text_field( $data['source'] ) : 'custom',
-				'input_type'    => ! empty( $data['input_type'] ) ? sanitize_text_field( $data['input_type'] ) : 'string',
-				'output_type'   => ! empty( $data['output_type'] ) ? sanitize_text_field( $data['output_type'] ) : 'string',
-				'is_active'     => 1,
-				'user_id'       => get_current_user_id(),
-				'usage_count'   => 0,
-				'created_at'    => current_time( 'mysql' ),
-				'updated_at'    => current_time( 'mysql' ),
-			];
+		$is_active = $this->normalize_is_active_from_data( $data, 1 );
 
-			$result = $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct DB query required here.
-				$this->get_table_name(),
-				$insert_data,
-				[
-					'%s', // name
-					'%s', // description
-					'%s', // function_code
-					'%s', // source
-					'%s', // input_type
-					'%s', // output_type
-					'%d', // is_active
-					'%d', // user_id
-					'%d', // usage_count
-					'%s', // created_at
-					'%s', // updated_at
-				]
-			);
+		// Prepare data
+		$insert_data = [
+			'name'          => sanitize_text_field( $data['name'] ),
+			'description'   => ! empty( $data['description'] ) ? sanitize_textarea_field( $data['description'] ) : '',
+			'function_code' => $code_to_store, // Store with <?php tag for editor
+			'source'        => ! empty( $data['source'] ) ? sanitize_text_field( $data['source'] ) : 'custom',
+			'input_type'    => ! empty( $data['input_type'] ) ? sanitize_text_field( $data['input_type'] ) : 'string',
+			'output_type'   => ! empty( $data['output_type'] ) ? sanitize_text_field( $data['output_type'] ) : 'string',
+			'is_active'     => $is_active,
+			'user_id'       => get_current_user_id(),
+			'usage_count'   => 0,
+			'created_at'    => current_time( 'mysql' ),
+			'updated_at'    => current_time( 'mysql' ),
+		];
+
+		$result = $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct DB query required here.
+			$this->get_table_name(),
+			$insert_data,
+			[
+				'%s', // name
+				'%s', // description
+				'%s', // function_code
+				'%s', // source
+				'%s', // input_type
+				'%s', // output_type
+				'%d', // is_active
+				'%d', // user_id
+				'%d', // usage_count
+				'%s', // created_at
+				'%s', // updated_at
+			]
+		);
 
 		if ( $result ) {
 			$function_id = $wpdb->insert_id;
@@ -202,8 +204,8 @@ class Custom_Function extends Model {
 			$update_data['function_code'] = $code_to_store;
 		}
 
-		if ( isset( $data['is_active'] ) ) {
-			$update_data['is_active'] = (int) $data['is_active'];
+		if ( isset( $data['is_active'] ) || isset( $data['status'] ) ) {
+			$update_data['is_active'] = $this->normalize_is_active_from_data( $data, (int) $existing['is_active'] );
 		}
 
 		if ( isset( $data['input_type'] ) ) {
@@ -214,11 +216,16 @@ class Custom_Function extends Model {
 			$update_data['output_type'] = sanitize_text_field( $data['output_type'] );
 		}
 
+		$formats = [];
+		foreach ( array_keys( $update_data ) as $column ) {
+			$formats[] = in_array( $column, [ 'is_active' ], true ) ? '%d' : '%s';
+		}
+
 		$result = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
 			$this->get_table_name(),
 			$update_data,
 			array( 'id' => $id ),
-			array_fill( 0, count( $update_data ), '%s' ),
+			$formats,
 			array( '%d' )
 		);
 
@@ -790,6 +797,41 @@ class Custom_Function extends Model {
 		}
 
 		return $options;
+	}
+
+	/**
+	 * Normalize supported status inputs to the database is_active flag.
+	 *
+	 * @param array $data    Function data.
+	 * @param int   $default Default active state.
+	 * @return int Active flag, 1 or 0.
+	 */
+	private function normalize_is_active_from_data( $data, $default = 1 ) {
+		if ( isset( $data['is_active'] ) ) {
+			$is_active = $data['is_active'];
+
+			if ( is_string( $is_active ) ) {
+				$is_active = strtolower( sanitize_key( $is_active ) );
+
+				return in_array( $is_active, [ '1', 'true', 'yes', 'active' ], true ) ? 1 : 0;
+			}
+
+			return ! empty( $is_active ) ? 1 : 0;
+		}
+
+		if ( isset( $data['status'] ) ) {
+			$status = sanitize_key( $data['status'] );
+
+			if ( 'inactive' === $status ) {
+				return 0;
+			}
+
+			if ( 'active' === $status ) {
+				return 1;
+			}
+		}
+
+		return (int) $default ? 1 : 0;
 	}
 
 	/**
