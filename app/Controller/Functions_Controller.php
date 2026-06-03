@@ -149,6 +149,7 @@ class Functions_Controller extends Base_Controller {
 				'name'        => $snippet['name'],
 				'description' => $snippet['description'],
 				'category'    => $snippet['category'],
+				'status'      => 'active',
 				'type'        => 'library',
 			];
 		}

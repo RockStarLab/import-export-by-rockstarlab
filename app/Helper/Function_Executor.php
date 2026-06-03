@@ -312,6 +312,10 @@ class Function_Executor {
 			unset( $function['function_code'] );
 		}
 
+		if ( isset( $function['is_active'] ) && ! isset( $function['status'] ) ) {
+			$function['status'] = (int) $function['is_active'] ? 'active' : 'inactive';
+		}
+
 		return $function;
 	}
 
