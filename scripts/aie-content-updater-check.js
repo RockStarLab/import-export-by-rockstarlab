@@ -64,6 +64,9 @@ function loadEnv() {
 	const expectedMode = String( get( 'AIE_UPDATER_EXPECT_KIND', 'uppercase' ) )
 		.trim()
 		.toLowerCase();
+	const expectedValueOverride = String(
+		get( 'AIE_UPDATER_EXPECT_VALUE', '' )
+	);
 
 	const wpPathDefault = path.resolve( process.cwd(), '../../..' );
 	const targetWpPathGuess = ( () => {
@@ -90,6 +93,7 @@ function loadEnv() {
 		fieldKeyOverride,
 		functionIdOverride,
 		expectedMode,
+		expectedValueOverride,
 		target: {
 			baseUrl: get( 'AIE_TARGET_URL', 'http://aie2.local' ),
 			username: get( 'AIE_TARGET_ADMIN_USER', 'admin' ),
@@ -692,6 +696,14 @@ async function assignUppercaseFunctionToField( page, fieldKey ) {
 async function assignFunctionToField( page, fieldKey, functionId ) {
 	await waitUpdaterStep( page, 4 );
 
+	const functionIds = String( functionId || '' )
+		.split( ',' )
+		.map( ( id ) => id.trim() )
+		.filter( Boolean );
+	if ( ! functionIds.length ) {
+		throw new Error( 'No updater functions configured' );
+	}
+
 	const assignBtn = page
 		.locator(
 			`.rsl-ie-updater-step-4.active .rsl-ie-assign-functions[data-field="${ fieldKey }"]`
@@ -714,26 +726,40 @@ async function assignFunctionToField( page, fieldKey, functionId ) {
 		} )
 		.catch( () => null );
 
-	// Prefer the requested function.
-	const addRequested = page.locator(
-		`#rsl-ie-updater-functions-list .rsl-ie-add-function-btn[data-function-id="${ functionId }"]`
-	);
-	if ( await addRequested.count().catch( () => 0 ) ) {
-		await addRequested.first().click();
-	} else {
-		// Fallback: search by name.
+	for ( const oneFunctionId of functionIds ) {
+		// eslint-disable-next-line no-await-in-loop
 		const search = page
 			.locator( '#rsl-ie-updater-functions-search' )
 			.first();
+		// eslint-disable-next-line no-await-in-loop
 		if ( await search.count().catch( () => 0 ) ) {
-			await search
-				.fill( String( functionId ).replace( /^snippet_/, '' ) )
-				.catch( () => null );
+			// eslint-disable-next-line no-await-in-loop
+			await search.fill( '' ).catch( () => null );
 		}
-		const firstAdd = page.locator(
-			'#rsl-ie-updater-functions-list .rsl-ie-add-function-btn'
+
+		// Prefer the requested function.
+		const addRequested = page.locator(
+			`#rsl-ie-updater-functions-list .rsl-ie-add-function-btn[data-function-id="${ oneFunctionId }"]`
 		);
-		await firstAdd.first().click();
+		// eslint-disable-next-line no-await-in-loop
+		if ( await addRequested.count().catch( () => 0 ) ) {
+			// eslint-disable-next-line no-await-in-loop
+			await addRequested.first().click();
+		} else {
+			// Fallback: search by name.
+			// eslint-disable-next-line no-await-in-loop
+			if ( await search.count().catch( () => 0 ) ) {
+				// eslint-disable-next-line no-await-in-loop
+				await search
+					.fill( String( oneFunctionId ).replace( /^snippet_/, '' ) )
+					.catch( () => null );
+			}
+			const firstAdd = page.locator(
+				'#rsl-ie-updater-functions-list .rsl-ie-add-function-btn'
+			);
+			// eslint-disable-next-line no-await-in-loop
+			await firstAdd.first().click();
+		}
 	}
 
 	await page
@@ -1207,8 +1233,8 @@ echo wp_json_encode([ 'value' => $value ], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED
 			: '';
 	}
 
-	if ( key.startsWith( 'yoast_' ) ) {
-		const metaKey = key.slice( 6 );
+	if ( key.startsWith( 'yoast_' ) || key.startsWith( '_yoast_wpseo' ) ) {
+		const metaKey = key.startsWith( 'yoast_' ) ? key.slice( 6 ) : key;
 		const php = `
 $id = (int) ${ JSON.stringify( postId ) };
 $meta = ${ JSON.stringify( metaKey ) };
@@ -1260,6 +1286,33 @@ function computeExpectedValue( env, wpPath, mode, beforeValue ) {
 		return getAttachmentUrl( env, wpPath, nextId );
 	}
 	return String( beforeValue ?? '' );
+}
+
+function computeExpectedValueFromPipeline(
+	env,
+	wpPath,
+	functionId,
+	beforeValue
+) {
+	const functionIds = String( functionId || '' )
+		.split( ',' )
+		.map( ( id ) => id.trim() )
+		.filter( Boolean );
+	if ( ! functionIds.length ) return beforeValue;
+
+	const php = `
+$value = ${ JSON.stringify( beforeValue ) };
+$ids = ${ JSON.stringify( functionIds ) };
+$executor = new \\RockStarLab\\ImportExport\\Helper\\Function_Executor();
+foreach ($ids as $id) {
+  $value = $executor->execute($id, $value, []);
+}
+echo wp_json_encode(['value' => $value], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+`;
+	const out = wpEvalJson( env, wpPath, php );
+	return out && Object.prototype.hasOwnProperty.call( out, 'value' )
+		? out.value
+		: beforeValue;
 }
 
 function normalizeCommentHtmlForCompare( s ) {
@@ -1469,12 +1522,25 @@ async function run() {
 				  fieldKey === 'acf_image_field'
 				? 'numeric_plus_one'
 				: 'uppercase' );
-		expectedValue = computeExpectedValue(
-			env,
-			env.target.wpPath,
-			expectedMode,
-			beforeValue
-		);
+		if ( env.expectedValueOverride !== '' ) {
+			expectedValue = env.expectedValueOverride;
+		} else if (
+			[ 'executor', 'function', 'pipeline' ].includes( expectedMode )
+		) {
+			expectedValue = computeExpectedValueFromPipeline(
+				env,
+				env.target.wpPath,
+				functionId,
+				beforeValue
+			);
+		} else {
+			expectedValue = computeExpectedValue(
+				env,
+				env.target.wpPath,
+				expectedMode,
+				beforeValue
+			);
+		}
 
 		// Step 1: select content type; click next and REQUIRED: set dont-show-again on backup modal.
 		let selectedCt = '';

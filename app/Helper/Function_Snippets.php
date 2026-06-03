@@ -381,7 +381,7 @@ class Function_Snippets {
 				'name'        => __( 'Clean Price', 'import-export-by-rockstarlab' ),
 				'description' => __( 'Remove currency symbols and convert to decimal', 'import-export-by-rockstarlab' ),
 				'category'    => 'numeric',
-				'code'        => '$cleaned = preg_replace(\'/[^0-9.,]/\', \'\', $value); $cleaned = str_replace(\',\', \'.\', $cleaned); return floatval($cleaned);',
+				'code'        => '$cleaned = preg_replace(\'/[^0-9.,-]/\', \'\', $value); if (strpos($cleaned, \',\') !== false && strpos($cleaned, \'.\') !== false) { $cleaned = str_replace(\',\', \'\', $cleaned); } else { $cleaned = str_replace(\',\', \'.\', $cleaned); } return floatval($cleaned);',
 				'example'     => [
 					'input'  => '$1,234.56',
 					'output' => '1234.56',
