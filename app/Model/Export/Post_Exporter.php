@@ -2879,11 +2879,12 @@ class Post_Exporter extends Abstract_Exporter {
 			$menu_items = wp_get_nav_menu_items( $term->term_id );
 
 			$menu_data = [
-				'term_id'    => $term->term_id,
-				'name'       => $term->name,
-				'slug'       => $term->slug,
-				'count'      => $term->count,
-				'menu_items' => [],
+				'term_id'     => $term->term_id,
+				'name'        => $term->name,
+				'slug'        => $term->slug,
+				'description' => $term->description,
+				'count'       => $term->count,
+				'menu_items'  => [],
 			];
 
 			// Process each field

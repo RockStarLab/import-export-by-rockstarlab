@@ -92,6 +92,8 @@ class Update_Processor {
 			$fields          = $parameters['fields'] ?? [];
 			$field_functions = $parameters['field_functions'] ?? [];
 
+			$options = $this->normalize_fetch_options( $content_type, $options );
+
 			// Store for use by save helpers (e.g. table_name for database_table)
 			$this->current_options = $options;
 
@@ -100,6 +102,12 @@ class Update_Processor {
 
 			// Get current offset
 			$current_offset = (int) ( $job->processed_items ?? 0 );
+
+			$fetch_fields   = $fields;
+			$identity_field = $this->get_identity_field( $content_type );
+			if ( '' !== $identity_field && ! in_array( $identity_field, $fetch_fields, true ) ) {
+				array_unshift( $fetch_fields, $identity_field );
+			}
 
 			// Get exporter to fetch items
 			$exporter = Exporter_Factory::get_exporter( $exporter_type, $job_id );
@@ -113,7 +121,7 @@ class Update_Processor {
 			$fetch_options = array_merge(
 				$options,
 				[
-					'fields'           => $fields,
+					'fields'           => $fetch_fields,
 					'limit'            => $batch_size,
 					'offset'           => $current_offset,
 					'force_include_id' => true,  // Force ID inclusion for updates
@@ -336,6 +344,51 @@ class Update_Processor {
 		}
 
 		return $stats;
+	}
+
+	/**
+	 * Get the field needed to identify items fetched for updater jobs.
+	 *
+	 * @param string $content_type Content type.
+	 * @return string Identity field name.
+	 */
+	private function get_identity_field( $content_type ) {
+		switch ( $content_type ) {
+			case 'comment':
+				return 'comment_ID';
+			case 'menu':
+			case 'taxonomy':
+				return 'term_id';
+			case 'database_table':
+				return '';
+			default:
+				return 'ID';
+		}
+	}
+
+	/**
+	 * Normalize exporter options needed by logical updater content types.
+	 *
+	 * @param string $content_type Content type.
+	 * @param array  $options      Fetch options.
+	 * @return array Normalized options.
+	 */
+	private function normalize_fetch_options( $content_type, $options ) {
+		$post_type_map = [
+			'post'        => 'post',
+			'page'        => 'page',
+			'media'       => 'attachment',
+			'menu'        => 'nav_menu_item',
+			'woo_product' => 'product',
+			'woo_order'   => 'shop_order',
+			'woo_coupon'  => 'shop_coupon',
+		];
+
+		if ( isset( $post_type_map[ $content_type ] ) && empty( $options['post_type'] ) ) {
+			$options['post_type'] = $post_type_map[ $content_type ];
+		}
+
+		return $options;
 	}
 
 	/**
