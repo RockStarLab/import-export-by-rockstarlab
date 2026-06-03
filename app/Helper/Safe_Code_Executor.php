@@ -54,6 +54,8 @@ class Safe_Code_Executor {
 		'sprintf',
 		'number_format',
 		'strip_tags',
+		'html_entity_decode',
+		'htmlentities',
 
 		// Array functions
 		'array_map',
@@ -73,12 +75,22 @@ class Safe_Code_Executor {
 		// WordPress functions
 		'sanitize_text_field',
 		'sanitize_email',
+		'sanitize_title',
 		'sanitize_url',
 		'esc_html',
 		'esc_attr',
 		'esc_url',
 		'wp_strip_all_tags',
 		'wp_trim_words',
+		'is_email',
+		'get_user_by',
+		'get_term_by',
+		'get_post',
+		'get_page_by_title',
+		'term_exists',
+		'wp_insert_term',
+		'wp_create_category',
+		'is_wp_error',
 		'absint',
 		'intval',
 		'floatval',
@@ -99,6 +111,7 @@ class Safe_Code_Executor {
 		'preg_match',
 		'preg_replace',
 		'preg_split',
+		'filter_var',
 	];
 
 	/**
@@ -325,23 +338,29 @@ class Safe_Code_Executor {
 		// A plain stripos() check fails when comments precede the return statement.
 		$tokens                 = @token_get_all( '<?php ' . $code ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		$first_meaningful_token = null;
+		$has_return_statement   = false;
 		foreach ( $tokens as $token ) {
 			if ( is_array( $token ) ) {
+				if ( T_RETURN === $token[0] ) {
+					$has_return_statement = true;
+				}
 				if ( T_OPEN_TAG === $token[0] || T_WHITESPACE === $token[0] || T_COMMENT === $token[0] || T_DOC_COMMENT === $token[0] ) {
 					continue;
 				}
-				$first_meaningful_token = $token[0];
+				if ( null === $first_meaningful_token ) {
+					$first_meaningful_token = $token[0];
+				}
 			}
-			break;
 		}
 		$starts_with_return = ( T_RETURN === $first_meaningful_token );
 
-		// If code doesn't start with return, wrap it
-		if ( ! $starts_with_return ) {
+		// If code doesn't contain an explicit return, keep legacy expression wrapping.
+		// Full snippets with setup statements must run as-is so their final return is honored.
+		if ( ! $has_return_statement ) {
 			// Remove trailing semicolon if exists before wrapping
 			$code = rtrim( $code, '; ' );
 			$code = 'return ' . $code . ';';
-		} else {
+		} elseif ( $starts_with_return ) {
 			// Ensure it ends with semicolon
 			if ( substr( rtrim( $code ), -1 ) !== ';' ) {
 				$code = rtrim( $code ) . ';';
