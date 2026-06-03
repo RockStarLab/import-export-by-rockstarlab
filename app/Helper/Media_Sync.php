@@ -513,7 +513,18 @@ class Media_Sync {
 	 */
 	public static function get_allowed_file_types( $type = 'all', $custom_types = [] ) {
 		if ( 'custom' === $type && ! empty( $custom_types ) ) {
-			return $custom_types;
+			return array_values(
+				array_filter(
+					array_unique(
+						array_map(
+							static function ( $ext ) {
+								return strtolower( ltrim( trim( (string) $ext ), '.' ) );
+							},
+							$custom_types
+						)
+					)
+				)
+			);
 		}
 
 		if ( 'images' === $type ) {

@@ -98,7 +98,7 @@ class Media_Sync_Processor {
 
 			// Get all files from settings (already selected by user)
 			$all_files = $settings['all_files'] ?? array();
-			
+
 			// If no files in settings, scan folder (backward compatibility)
 			if ( empty( $all_files ) && ! isset( $settings['total_files'] ) ) {
 				$files_result = Media_Sync::scan_folder( $folder_path, $scan_options );
@@ -129,8 +129,8 @@ class Media_Sync_Processor {
 				throw new \Exception( 'No files found in folder' );
 			}
 
-			// Get batch size from options (default to 3 if not set)
-			$chunk_size = isset( $options['batch_size'] ) ? (int) $options['batch_size'] : 3;
+			// Get batch size from sync options (default to 3 if not set).
+			$chunk_size = isset( $sync_options['batch_size'] ) ? (int) $sync_options['batch_size'] : 3;
 			$chunk_size = max( 1, min( 100, $chunk_size ) ); // Ensure between 1 and 100
 
 			// Get files chunk from offset
@@ -193,10 +193,10 @@ class Media_Sync_Processor {
 				'offset'    => $new_offset,
 				'progress'  => $progress,
 				'result'    => $cumulative_result, // Return cumulative results
-			);  		} catch ( \Exception $e ) {
+			);          } catch ( \Exception $e ) {
 
 			// Get current progress before marking as failed
-			$job = $this->job_model->find( $job_id );
+			$job            = $this->job_model->find( $job_id );
 			$current_result = $job && $job->result ? json_decode( $job->result, true ) : array(
 				'processed' => 0,
 				'success'   => 0,
@@ -228,7 +228,7 @@ class Media_Sync_Processor {
 				'completed' => true,
 				'error'     => $e->getMessage(),
 			);
-		}
+			}
 	}
 
 	/**
