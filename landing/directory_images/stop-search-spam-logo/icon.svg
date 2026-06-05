@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+	<title id="title">Stop Search Spam logo concept</title>
+	<desc id="desc">A flat gradient icon with a search magnifier and shield stop mark representing protection from search spam.</desc>
+	<defs>
+		<linearGradient id="buttonGradient" x1="74" y1="74" x2="438" y2="438" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#a855f7"/>
+			<stop offset="0.5" stop-color="#6366f1"/>
+			<stop offset="1" stop-color="#06b6d4"/>
+		</linearGradient>
+		<linearGradient id="lensGradient" x1="154" y1="144" x2="314" y2="314" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#ffffff"/>
+			<stop offset="1" stop-color="#dffbff"/>
+		</linearGradient>
+		<filter id="softShadow" x="-22%" y="-22%" width="150%" height="155%">
+			<feDropShadow dx="0" dy="18" stdDeviation="15" flood-color="#111827" flood-opacity="0.3"/>
+		</filter>
+	</defs>
+	<rect width="512" height="512" rx="92" fill="url(#buttonGradient)"/>
+	<g opacity="0.2" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round">
+		<path d="M104 141h58"/>
+		<path d="M350 364h58"/>
+		<path d="M112 382h34"/>
+		<path d="M370 132h32"/>
+	</g>
+	<g filter="url(#softShadow)">
+		<circle cx="230" cy="230" r="112" fill="#10131f" opacity="0.94"/>
+		<circle cx="230" cy="230" r="76" fill="url(#lensGradient)"/>
+		<path d="M307 307l88 88" fill="none" stroke="#10131f" stroke-width="48" stroke-linecap="round"/>
+		<path d="M306 306l88 88" fill="none" stroke="#fff" stroke-width="26" stroke-linecap="round" opacity="0.94"/>
+		<path d="M185 230h90" fill="none" stroke="#10131f" stroke-width="24" stroke-linecap="round"/>
+		<path d="M230 164c36 0 66 30 66 66s-30 66-66 66-66-30-66-66 30-66 66-66Z" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.28"/>
+		<circle cx="148" cy="137" r="15" fill="#fff" opacity="0.78"/>
+		<circle cx="339" cy="164" r="13" fill="#fff" opacity="0.68"/>
+		<circle cx="351" cy="275" r="12" fill="#fff" opacity="0.58"/>
+		<path d="M130 304h47" stroke="#fff" stroke-width="14" stroke-linecap="round" opacity="0.5"/>
+		<path d="M331 215h50" stroke="#fff" stroke-width="14" stroke-linecap="round" opacity="0.42"/>
+	</g>
+	<path d="M76 135c57-27 119-40 186-40 69 0 129 13 178 38" fill="none" stroke="#fff" stroke-width="4" opacity="0.13"/>
+</svg>
