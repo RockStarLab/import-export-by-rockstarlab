@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+	<title id="title">Show Post Three logo concept</title>
+	<desc id="desc">A flat gradient icon showing a selected parent post branching into child posts.</desc>
+	<defs>
+		<linearGradient id="buttonGradient" x1="74" y1="74" x2="438" y2="438" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#a855f7"/>
+			<stop offset="0.5" stop-color="#6366f1"/>
+			<stop offset="1" stop-color="#06b6d4"/>
+		</linearGradient>
+		<linearGradient id="panelGradient" x1="132" y1="108" x2="382" y2="380" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#111827"/>
+			<stop offset="1" stop-color="#07131a"/>
+		</linearGradient>
+		<linearGradient id="cardGradient" x1="96" y1="278" x2="420" y2="398" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#ffffff"/>
+			<stop offset="1" stop-color="#dffbff"/>
+		</linearGradient>
+		<filter id="softShadow" x="-22%" y="-22%" width="150%" height="155%">
+			<feDropShadow dx="0" dy="18" stdDeviation="15" flood-color="#111827" flood-opacity="0.3"/>
+		</filter>
+	</defs>
+	<rect width="512" height="512" rx="92" fill="url(#buttonGradient)"/>
+	<g opacity="0.2" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round">
+		<path d="M104 142h58"/>
+		<path d="M350 366h58"/>
+		<path d="M112 384h34"/>
+		<path d="M370 132h32"/>
+	</g>
+	<g filter="url(#softShadow)">
+		<path d="M256 214v54M133 268h246M133 268v38M256 268v38M379 268v38" fill="none" stroke="#10131f" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M256 214v54M133 268h246M133 268v38M256 268v38M379 268v38" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="0.86"/>
+		<rect x="142" y="108" width="228" height="118" rx="28" fill="url(#panelGradient)" opacity="0.96"/>
+		<rect x="174" y="139" width="164" height="22" rx="11" fill="#ffffff" opacity="0.9"/>
+		<rect x="174" y="178" width="118" height="18" rx="9" fill="#ffffff" opacity="0.5"/>
+		<circle cx="329" cy="187" r="12" fill="#06b6d4"/>
+		<rect x="75" y="306" width="116" height="98" rx="22" fill="url(#cardGradient)"/>
+		<rect x="198" y="306" width="116" height="98" rx="22" fill="url(#cardGradient)"/>
+		<rect x="321" y="306" width="116" height="98" rx="22" fill="url(#cardGradient)"/>
+		<path d="M104 337h58M104 369h42" stroke="#10131f" stroke-width="14" stroke-linecap="round" opacity="0.92"/>
+		<path d="M227 337h58M227 369h42" stroke="#10131f" stroke-width="14" stroke-linecap="round" opacity="0.92"/>
+		<path d="M350 337h58M350 369h42" stroke="#10131f" stroke-width="14" stroke-linecap="round" opacity="0.92"/>
+		<circle cx="164" cy="368" r="10" fill="#6366f1"/>
+		<circle cx="287" cy="368" r="10" fill="#6366f1"/>
+		<circle cx="410" cy="368" r="10" fill="#06b6d4"/>
+	</g>
+	<path d="M76 135c57-27 119-40 186-40 69 0 129 13 178 38" fill="none" stroke="#fff" stroke-width="4" opacity="0.13"/>
+</svg>

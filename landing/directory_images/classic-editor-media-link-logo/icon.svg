@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+	<title id="title">Classic Editor Media Link logo concept</title>
+	<desc id="desc">A flat gradient icon showing a classic editor window, media image, and link chain for selecting media in editor links.</desc>
+	<defs>
+		<linearGradient id="buttonGradient" x1="74" y1="74" x2="438" y2="438" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#a855f7"/>
+			<stop offset="0.5" stop-color="#6366f1"/>
+			<stop offset="1" stop-color="#06b6d4"/>
+		</linearGradient>
+		<linearGradient id="panelGradient" x1="128" y1="132" x2="379" y2="358" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#111827"/>
+			<stop offset="1" stop-color="#07131a"/>
+		</linearGradient>
+		<linearGradient id="mediaGradient" x1="162" y1="191" x2="292" y2="323" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#ffffff"/>
+			<stop offset="1" stop-color="#dffbff"/>
+		</linearGradient>
+		<filter id="softShadow" x="-22%" y="-22%" width="150%" height="155%">
+			<feDropShadow dx="0" dy="18" stdDeviation="15" flood-color="#111827" flood-opacity="0.3"/>
+		</filter>
+	</defs>
+	<rect width="512" height="512" rx="92" fill="url(#buttonGradient)"/>
+	<g opacity="0.2" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round">
+		<path d="M102 144h58"/>
+		<path d="M352 366h58"/>
+		<path d="M112 384h34"/>
+		<path d="M368 132h32"/>
+	</g>
+	<g filter="url(#softShadow)">
+		<rect x="92" y="132" width="328" height="248" rx="34" fill="url(#panelGradient)" opacity="0.96"/>
+		<rect x="92" y="132" width="328" height="66" rx="34" fill="#ffffff" opacity="0.1"/>
+		<path d="M126 198h260" stroke="#ffffff" stroke-width="10" opacity="0.18"/>
+		<circle cx="136" cy="165" r="11" fill="#ffffff" opacity="0.86"/>
+		<circle cx="176" cy="165" r="11" fill="#ffffff" opacity="0.7"/>
+		<circle cx="216" cy="165" r="11" fill="#ffffff" opacity="0.54"/>
+		<rect x="134" y="228" width="145" height="105" rx="16" fill="url(#mediaGradient)"/>
+		<path d="M158 309l38-39 29 27 21-22 31 34" fill="none" stroke="#10131f" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+		<circle cx="239" cy="257" r="13" fill="#10131f" opacity="0.9"/>
+		<rect x="306" y="226" width="80" height="80" rx="18" fill="#ffffff" opacity="0.94"/>
+		<path d="M326 282l22-24 16 17 12-13 14 20" fill="none" stroke="#10131f" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+		<circle cx="367" cy="251" r="7" fill="#10131f"/>
+		<path d="M313 328h69" stroke="#ffffff" stroke-width="14" stroke-linecap="round" opacity="0.5"/>
+		<path d="M134 352h105" stroke="#ffffff" stroke-width="14" stroke-linecap="round" opacity="0.38"/>
+	</g>
+	<path d="M76 135c57-27 119-40 186-40 69 0 129 13 178 38" fill="none" stroke="#fff" stroke-width="4" opacity="0.13"/>
+</svg>

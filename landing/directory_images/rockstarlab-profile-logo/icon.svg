@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+	<title id="title">RockStarLab profile icon concept</title>
+	<desc id="desc">A flat gradient RockStarLab profile icon with a star, lab bubbles, and orbital motion.</desc>
+	<defs>
+		<linearGradient id="buttonGradient" x1="74" y1="74" x2="438" y2="438" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#a855f7"/>
+			<stop offset="0.5" stop-color="#6366f1"/>
+			<stop offset="1" stop-color="#06b6d4"/>
+		</linearGradient>
+		<linearGradient id="badgeGradient" x1="139" y1="116" x2="377" y2="390" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#111827"/>
+			<stop offset="1" stop-color="#07131a"/>
+		</linearGradient>
+		<linearGradient id="starGradient" x1="192" y1="157" x2="324" y2="334" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#ffffff"/>
+			<stop offset="1" stop-color="#dffbff"/>
+		</linearGradient>
+		<filter id="softShadow" x="-22%" y="-22%" width="150%" height="155%">
+			<feDropShadow dx="0" dy="18" stdDeviation="15" flood-color="#111827" flood-opacity="0.3"/>
+		</filter>
+	</defs>
+	<rect width="512" height="512" rx="92" fill="url(#buttonGradient)"/>
+	<g opacity="0.2" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round">
+		<path d="M104 142h58"/>
+		<path d="M350 366h58"/>
+		<path d="M112 384h34"/>
+		<path d="M370 132h32"/>
+	</g>
+	<g filter="url(#softShadow)">
+		<path d="M256 106l126 73v146l-126 73-126-73V179l126-73Z" fill="url(#badgeGradient)" opacity="0.96"/>
+		<path d="M256 106l126 73v146l-126 73-126-73V179l126-73Z" fill="none" stroke="#fff" stroke-width="5" opacity="0.1"/>
+		<path d="M106 275c43-70 112-107 207-109 39-1 73 7 103 23" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" opacity="0.28"/>
+		<path d="M385 161l33 31-43 12" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="0.34"/>
+		<path d="M256 148l31 71 77 7-58 51 17 76-67-40-67 40 17-76-58-51 77-7 31-71Z" fill="url(#starGradient)"/>
+		<path d="M256 148l31 71 77 7-58 51 17 76-67-40V148Z" fill="#dffbff" opacity="0.35"/>
+		<circle cx="183" cy="184" r="18" fill="#a855f7"/>
+		<circle cx="335" cy="325" r="20" fill="#06b6d4"/>
+		<circle cx="348" cy="158" r="12" fill="#ffffff" opacity="0.82"/>
+		<circle cx="167" cy="333" r="12" fill="#ffffff" opacity="0.72"/>
+		<path d="M198 374h116" stroke="#ffffff" stroke-width="16" stroke-linecap="round" opacity="0.34"/>
+		<path d="M219 111h74" stroke="#ffffff" stroke-width="14" stroke-linecap="round" opacity="0.26"/>
+	</g>
+	<path d="M76 135c57-27 119-40 186-40 69 0 129 13 178 38" fill="none" stroke="#fff" stroke-width="4" opacity="0.13"/>
+</svg>
