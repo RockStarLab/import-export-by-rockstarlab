@@ -1102,13 +1102,21 @@ const ContentUpdater = {
 			$value.closest( '.rsl-ie-filter-value-wrap' ).show();
 		}
 
-		// For 'in' and 'not_in', always use text to allow comma-separated values
-		if ( condition === 'in' || condition === 'not_in' ) {
+		// Comma-separated conditions need a text input. A number input rejects
+		// ranges such as "10,20", so numeric between must use text as well.
+		if (
+			condition === 'in' ||
+			condition === 'not_in' ||
+			condition === 'between'
+		) {
 			$value.attr( 'type', 'text' );
 			$value.attr(
 				'placeholder',
-				window.rslIeData.i18n.enterValuesCommaSeparated ||
-					'value1, value2, ...'
+				condition === 'between'
+					? window.rslIeData.i18n.enterTwoNumbersCommaSeparated ||
+							'min, max'
+					: window.rslIeData.i18n.enterValuesCommaSeparated ||
+							'value1, value2, ...'
 			);
 			return;
 		}
@@ -1429,7 +1437,15 @@ const ContentUpdater = {
 				}
 			}
 
-			if ( field && condition ) {
+			const conditionNeedsValue = ! [
+				'is_empty',
+				'is_not_empty',
+			].includes( condition );
+			const hasValue = value !== null && String( value ).trim() !== '';
+
+			// An unfinished optional row must not narrow the result set while the
+			// user is still choosing or typing its value.
+			if ( field && condition && ( ! conditionNeedsValue || hasValue ) ) {
 				filters.push( {
 					field: field,
 					condition: condition,

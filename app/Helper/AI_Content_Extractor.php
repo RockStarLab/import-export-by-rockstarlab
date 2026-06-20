@@ -546,7 +546,7 @@ class AI_Content_Extractor {
 		}
 
 		// Save file hash for future duplicate checking
-		update_post_meta( $id, '_rsl_ie_image_hash', $file_hash );
+		Media_Hash::store_attachment_hash( $id, $file_hash );
 
 		// Save original URL
 		update_post_meta( $id, '_rsl_ie_source_url', $image_url );
@@ -588,18 +588,6 @@ class AI_Content_Extractor {
 	 * @return int|false Attachment ID or false
 	 */
 	private function find_image_by_hash( $hash ) {
-		global $wpdb;
-
-		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			$wpdb->prepare(
-				"SELECT post_id FROM {$wpdb->postmeta} 
-				WHERE meta_key = '_rsl_ie_image_hash' 
-				AND meta_value = %s 
-				LIMIT 1",
-				$hash
-			)
-		);
-
-		return $attachment_id ? (int) $attachment_id : false;
+		return Media_Hash::get_attachment_by_hash( $hash );
 	}
 }

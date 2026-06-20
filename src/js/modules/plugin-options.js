@@ -4,6 +4,8 @@
  * Handles the Plugin Options settings page interactions.
  */
 
+import Utils from './utils';
+
 const PluginOptionsModule = {
 	/**
 	 * Initialize module.
@@ -97,7 +99,7 @@ const PluginOptionsModule = {
 				} );
 		} );
 
-		// Test API connection (lightweight check: configured vs not configured).
+		// Test the configured credential against the OpenAI API.
 		$( document ).on( 'click', '.rsl-ie-test-api-key', function () {
 			const $btn = $( this );
 			const $result = $( '#rsl-ie-api-test-result' );
@@ -112,26 +114,32 @@ const PluginOptionsModule = {
 				)
 				.show();
 
-			setTimeout( function () {
-				if ( apiKey ) {
-					$result.html(
-						'<div class="rsl-ie-info-box rsl-ie-success"><span class="dashicons dashicons-yes-alt"></span> <strong>' +
-							window.rslIeData.i18n.apiKeyConfiguredTitle +
-							'</strong><br>' +
-							window.rslIeData.i18n.apiKeyConfiguredDesc +
-							'</div>'
+			Utils.ajax( 'test_openai_connection', { api_key: apiKey } )
+				.then( function () {
+					$result
+						.empty()
+						.append(
+							$( '<div>' )
+								.addClass( 'rsl-ie-info-box rsl-ie-success' )
+								.text(
+									window.rslIeData.i18n.connectionSuccessful
+								)
+						);
+				} )
+				.catch( function ( error ) {
+					$result.empty().append(
+						$( '<div>' )
+							.addClass( 'rsl-ie-info-box rsl-ie-error' )
+							.text(
+								String(
+									error || window.rslIeData.i18n.errorOccurred
+								)
+							)
 					);
-				} else {
-					$result.html(
-						'<div class="rsl-ie-info-box rsl-ie-error"><span class="dashicons dashicons-warning"></span> <strong>' +
-							window.rslIeData.i18n.noApiKeyTitle +
-							'</strong><br>' +
-							window.rslIeData.i18n.noApiKeyDesc +
-							'</div>'
-					);
-				}
-				$btn.prop( 'disabled', false );
-			}, 1000 );
+				} )
+				.then( function () {
+					$btn.prop( 'disabled', false );
+				} );
 		} );
 	},
 };

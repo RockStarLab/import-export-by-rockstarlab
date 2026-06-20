@@ -1347,7 +1347,7 @@ class Content_Sync_API_Controller {
 		}
 
 		// Store file hash for future lookups
-		update_post_meta( $attachment_id, '_rsl_ie_file_hash', $file_hash );
+		\RockStarLab\ImportExport\Helper\Media_Hash::store_attachment_hash( $attachment_id, $file_hash, $file_path );
 
 		return new \WP_REST_Response(
 			array(
@@ -1367,48 +1367,7 @@ class Content_Sync_API_Controller {
 	 * @return int|false Attachment ID or false
 	 */
 	private function find_attachment_by_hash( $file_hash ) {
-		global $wpdb;
-
-		// First check by stored hash meta
-		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			$wpdb->prepare(
-				"SELECT post_id FROM {$wpdb->postmeta} 
-				WHERE meta_key = '_rsl_ie_file_hash' 
-				AND meta_value = %s 
-				LIMIT 1",
-				$file_hash
-			)
-		);
-
-		if ( $attachment_id ) {
-			return (int) $attachment_id;
-		}
-
-		// Fallback: check all attachments
-		$attachments = get_posts(
-			array(
-				'post_type'      => 'attachment',
-				'post_status'    => 'any',
-				'posts_per_page' => -1,
-				'fields'         => 'ids',
-			)
-		);
-
-		foreach ( $attachments as $attachment_id ) {
-			$file_path = get_attached_file( $attachment_id );
-
-			if ( $file_path && file_exists( $file_path ) ) {
-				$hash = md5_file( $file_path );
-
-				if ( $hash === $file_hash ) {
-					// Store hash for future lookups
-					update_post_meta( $attachment_id, '_rsl_ie_file_hash', $file_hash );
-					return $attachment_id;
-				}
-			}
-		}
-
-		return false;
+		return \RockStarLab\ImportExport\Helper\Media_Hash::get_attachment_by_hash( $file_hash, true );
 	}
 
 	/**

@@ -111,6 +111,10 @@ class Init {
 		// add settings pages
 		add_action( 'admin_menu', array( $this, 'add_settings_pages' ) );
 
+		// Recommend building the shared media hash index when it is incomplete.
+		add_action( 'admin_notices', array( $this, 'display_media_hash_admin_notice' ) );
+		add_action( 'admin_post_rsl_ie_media_hash_notice', array( $this, 'handle_media_hash_notice_action' ) );
+
 		// Initialize AJAX controllers
 		add_action( 'init', array( $this, 'init_controllers' ) );
 
@@ -208,6 +212,7 @@ class Init {
 				'import-export-by-rockstarlab_page_rsl-ie-ai-url-importer',
 				'import-export-by-rockstarlab_page_rsl-ie-functions',
 				'import-export-by-rockstarlab_page_rsl-ie-plugin-options',
+				'import-export-by-rockstarlab_page_rsl-ie-tools',
 				'import-export-by-rockstarlab_page_import-export-by-rockstarlab-addons',
 			)
 		) ) {
@@ -294,8 +299,7 @@ class Init {
 					'errorOccurred'                 => __( 'An error occurred', 'import-export-by-rockstarlab' ),
 					'saved'                         => __( 'Settings saved successfully', 'import-export-by-rockstarlab' ),
 					'testingConnection'             => __( 'Testing connection...', 'import-export-by-rockstarlab' ),
-					'apiKeyConfiguredTitle'         => __( 'API key is configured.', 'import-export-by-rockstarlab' ),
-					'apiKeyConfiguredDesc'          => __( 'Try generating a function to test the actual connection.', 'import-export-by-rockstarlab' ),
+					'connectionSuccessful'          => __( 'Connection successful', 'import-export-by-rockstarlab' ),
 					'noApiKeyTitle'                 => __( 'No API key configured.', 'import-export-by-rockstarlab' ),
 					'noApiKeyDesc'                  => __( 'Please enter your OpenAI API key and save settings.', 'import-export-by-rockstarlab' ),
 					'fileTooLarge'                  => __( 'File size exceeds maximum allowed', 'import-export-by-rockstarlab' ),
@@ -983,6 +987,11 @@ class Init {
 				'pause'                             => __( 'Pause', 'import-export-by-rockstarlab' ),
 				'startSync'                         => __( 'Start Sync', 'import-export-by-rockstarlab' ),
 				'scanFolder'                        => __( 'Scan Folder', 'import-export-by-rockstarlab' ),
+				// translators: %s: number of indexed media files.
+				'hashScanComplete'                  => __( 'Scan complete. Indexed %s files.', 'import-export-by-rockstarlab' ),
+				// translators: %1$s: indexed files, %2$s: unreadable files.
+				'hashScanCompleteErrors'            => __( 'Scan complete. Indexed %1$s files; %2$s files could not be read.', 'import-export-by-rockstarlab' ),
+				'hashScanFailed'                    => __( 'The media hash scan failed.', 'import-export-by-rockstarlab' ),
 				// translators: %d is a dynamic value.
 				'andMoreErrors'                     => __( '... and %d more errors', 'import-export-by-rockstarlab' ),
 
@@ -1138,6 +1147,15 @@ class Init {
 
 		add_submenu_page(
 			'import-export-by-rockstarlab',
+			__( 'Tools', 'import-export-by-rockstarlab' ),
+			__( 'Tools', 'import-export-by-rockstarlab' ),
+			'manage_options',
+			'rsl-ie-tools',
+			array( $this, 'display_tools_page' )
+		);
+
+		add_submenu_page(
+			'import-export-by-rockstarlab',
 			__( 'Jobs Log', 'import-export-by-rockstarlab' ),
 			__( 'Jobs Log', 'import-export-by-rockstarlab' ),
 			'manage_options',
@@ -1188,6 +1206,83 @@ class Init {
 	 */
 	function display_media_sync_page() {
 		rsl_ie()->View->load( 'settings/media_sync' );
+	}
+
+	/**
+	 * Display maintenance tools.
+	 */
+	function display_tools_page() {
+		rsl_ie()->View->load( 'settings/tools' );
+	}
+
+	/**
+	 * Display the Media Hash Index recommendation across wp-admin.
+	 *
+	 * @return void
+	 */
+	function display_media_hash_admin_notice() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$user_id = get_current_user_id();
+		if ( get_user_meta( $user_id, 'rsl_ie_dismiss_media_hash_notice', true ) ) {
+			return;
+		}
+
+		$snoozed_until = (int) get_user_meta( $user_id, 'rsl_ie_media_hash_notice_snoozed_until', true );
+		if ( $snoozed_until > time() ) {
+			return;
+		}
+
+		// The tool page already explains the index and shows its current status.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
+		if ( isset( $_GET['page'] ) && 'rsl-ie-tools' === sanitize_key( wp_unslash( $_GET['page'] ) ) ) {
+			return;
+		}
+
+		if ( ! \RockStarLab\ImportExport\Helper\Media_Hash::has_unindexed_attachments() ) {
+			return;
+		}
+
+		rsl_ie()->View->load( 'settings/partials/media-hash-notice' );
+	}
+
+	/**
+	 * Snooze or permanently dismiss the Media Hash Index recommendation.
+	 *
+	 * @return void
+	 */
+	function handle_media_hash_notice_action() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die(
+				esc_html__( 'You do not have permission to perform this action.', 'import-export-by-rockstarlab' ),
+				'',
+				[ 'response' => 403 ]
+			);
+		}
+
+		check_admin_referer( 'rsl_ie_media_hash_notice' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified immediately above.
+		$mode    = isset( $_GET['mode'] ) ? sanitize_key( wp_unslash( $_GET['mode'] ) ) : '';
+		$user_id = get_current_user_id();
+
+		if ( 'forever' === $mode ) {
+			update_user_meta( $user_id, 'rsl_ie_dismiss_media_hash_notice', 1 );
+			delete_user_meta( $user_id, 'rsl_ie_media_hash_notice_snoozed_until' );
+		} elseif ( 'snooze' === $mode ) {
+			update_user_meta( $user_id, 'rsl_ie_media_hash_notice_snoozed_until', time() + WEEK_IN_SECONDS );
+		} else {
+			wp_die(
+				esc_html__( 'Invalid notice action.', 'import-export-by-rockstarlab' ),
+				'',
+				[ 'response' => 400 ]
+			);
+		}
+
+		$redirect = wp_get_referer();
+		wp_safe_redirect( $redirect ? $redirect : admin_url() );
+		exit;
 	}
 
 	/**

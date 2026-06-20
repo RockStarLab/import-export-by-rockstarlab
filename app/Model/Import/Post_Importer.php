@@ -2589,23 +2589,7 @@ class Post_Importer extends Abstract_Importer {
 		update_post_meta( $attachment_id, 'rsl_ie_source_url', $source_url );
 		update_post_meta( $attachment_id, 'rsl_ie_source_url_hash', $this->get_media_source_url_hash( $source_url ) );
 
-		if ( get_post_meta( $attachment_id, 'rsl_ie_file_hash', true ) ) {
-			return;
-		}
-
-		$file_path = get_attached_file( $attachment_id );
-		if ( ! is_string( $file_path ) || '' === $file_path || ! file_exists( $file_path ) ) {
-			return;
-		}
-
-		$file_hash = md5_file( $file_path );
-		if ( ! $file_hash ) {
-			return;
-		}
-
-		update_post_meta( $attachment_id, 'rsl_ie_file_hash', $file_hash );
-		update_post_meta( $attachment_id, 'rsl_ie_file_size', filesize( $file_path ) );
-		update_post_meta( $attachment_id, 'rsl_ie_hash_added', current_time( 'mysql' ) );
+		\RockStarLab\ImportExport\Helper\Media_Hash::get_or_create_hash( $attachment_id );
 	}
 
 	/**

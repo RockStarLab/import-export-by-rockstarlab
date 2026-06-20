@@ -109,78 +109,17 @@ class Comment_Exporter extends Abstract_Exporter {
 	public function get_count( $options = [] ) {
 		$this->log_info( 'get_count called', [ 'options' => $options ] );
 
-		$query_args = $this->build_query_args( $options );
+		$query_args      = $this->build_query_args( $options );
+		$comment_filters = $query_args['_comment_filters'] ?? [];
 
-		// Extract other filters for manual checking
-		$other_filters = $query_args['_other_filters'] ?? [];
-		unset( $query_args['_other_filters'] );
-
-		// If we have other filters, we need to get all comments and manually filter them
-		// Otherwise use count mode for efficiency
-		if ( empty( $other_filters ) ) {
-			// Remove offset and number for count query - we want total count
-			unset( $query_args['offset'] );
-			unset( $query_args['number'] );
-			$query_args['count'] = true;
-
-			$this->log_info(
-				'get_count query_args',
-				[
-					'query_args'         => $query_args,
-					'custom_filters_set' => ! empty( $this->custom_filters ),
-				]
-			);
-
-			$comment_query = new \WP_Comment_Query( $query_args );
-			$count         = (int) $comment_query->get_comments();
-
-			$this->log_info( 'get_count result', [ 'count' => $count ] );
-
-			// Remove filter after count query
-			$this->remove_custom_filters();
-
-			return $count;
-		}
-
-		// Get all comments and manually filter
-		$this->log_info(
-			'get_count with manual filtering',
-			[
-				'query_args'    => $query_args,
-				'other_filters' => $other_filters,
-			]
-		);
-
-		unset( $query_args['offset'] );
-		unset( $query_args['number'] );
+		unset( $query_args['offset'], $query_args['number'], $query_args['_comment_filters'] );
 
 		$comment_query = new \WP_Comment_Query( $query_args );
-		$comments      = $comment_query->get_comments();
+		$comments      = $this->filter_comments( $comment_query->get_comments(), $comment_filters );
 
-		// Remove filter after query
-		$this->remove_custom_filters();
+		$this->log_info( 'get_count result', [ 'count' => count( $comments ) ] );
 
-		$count = 0;
-		foreach ( $comments as $comment ) {
-			$passes_all_filters = true;
-
-			foreach ( $other_filters as $filter ) {
-				$field_value = $this->get_comment_field_value( $comment, $filter['field'] );
-
-				if ( ! $this->check_condition( $field_value, $filter['condition'], $filter['value'] ) ) {
-					$passes_all_filters = false;
-					break;
-				}
-			}
-
-			if ( $passes_all_filters ) {
-				++$count;
-			}
-		}
-
-		$this->log_info( 'get_count result with manual filtering', [ 'count' => $count ] );
-
-		return $count;
+		return count( $comments );
 	}
 
 	/**
@@ -190,26 +129,24 @@ class Comment_Exporter extends Abstract_Exporter {
 	 * @return array|WP_Error
 	 */
 	public function get_data( $options = [] ) {
-		$query_args = $this->build_query_args( $options );
+		$query_args      = $this->build_query_args( $options );
+		$comment_filters = $query_args['_comment_filters'] ?? [];
+		$offset          = isset( $query_args['offset'] ) ? max( 0, (int) $query_args['offset'] ) : 0;
+		$number          = isset( $query_args['number'] ) ? (int) $query_args['number'] : -1;
 
-		// Extract other filters for manual checking
-		$other_filters = $query_args['_other_filters'] ?? [];
-		unset( $query_args['_other_filters'] );
-
-		// WP_Comment_Query does not treat number = -1 as "all comments" the same
-		// way post queries do, so for manual filtering we must omit the limit args.
-		if ( ! empty( $other_filters ) ) {
-			unset( $query_args['offset'] );
-			unset( $query_args['number'] );
+		unset( $query_args['_comment_filters'] );
+		if ( ! empty( $comment_filters ) ) {
+			unset( $query_args['offset'], $query_args['number'] );
 		}
 
 		$this->log_info( 'Querying comments', $query_args );
 
 		$comment_query = new \WP_Comment_Query( $query_args );
-		$comments      = $comment_query->get_comments();
+		$comments      = $this->filter_comments( $comment_query->get_comments(), $comment_filters );
 
-		// Remove filter after data query
-		$this->remove_custom_filters();
+		if ( ! empty( $comment_filters ) && ( $offset > 0 || $number > 0 ) ) {
+			$comments = array_slice( $comments, $offset, $number > 0 ? $number : null );
+		}
 
 		if ( empty( $comments ) ) {
 			return [];
@@ -217,24 +154,6 @@ class Comment_Exporter extends Abstract_Exporter {
 
 		$data = [];
 		foreach ( $comments as $comment ) {
-			// Apply manual filtering for other filters
-			if ( ! empty( $other_filters ) ) {
-				$passes_all_filters = true;
-
-				foreach ( $other_filters as $filter ) {
-					$field_value = $this->get_comment_field_value( $comment, $filter['field'] );
-
-					if ( ! $this->check_condition( $field_value, $filter['condition'], $filter['value'] ) ) {
-						$passes_all_filters = false;
-						break;
-					}
-				}
-
-				if ( ! $passes_all_filters ) {
-					continue;
-				}
-			}
-
 			$data[] = $this->format_comment( $comment, $options );
 		}
 
@@ -299,7 +218,7 @@ class Comment_Exporter extends Abstract_Exporter {
 					break;
 
 				case 'post_slug':
-					$post              = get_post( $comment->comment_post_ID );
+					$post = get_post( $comment->comment_post_ID );
 					// Use full path for hierarchical post types (pages) so importer can resolve cross-site IDs.
 					$data['post_slug'] = $post ? get_page_uri( (int) $post->ID ) : '';
 					break;
@@ -418,38 +337,35 @@ class Comment_Exporter extends Abstract_Exporter {
 			'offset'  => $options['offset'] ?? 0,
 			'orderby' => $options['orderby'] ?? 'comment_date',
 			'order'   => $options['order'] ?? 'DESC',
-			'status'  => 'all', // Get all comment statuses by default
+			'status'  => 'all', // Get all comment statuses by default.
 		];
 
-		// Number/limit - WP_Comment_Query requires explicit number to get all comments
-		// Use -1 to get all comments (WordPress standard)
+		// Apply a positive batch limit. Omitting number returns all comments.
 		if ( isset( $options['limit'] ) && $options['limit'] > 0 ) {
 			$args['number'] = $options['limit'];
-		} else {
-			$args['number'] = -1; // Get all comments
 		}
 
-		// Status filter
+		// Status filter.
 		if ( ! empty( $options['status'] ) ) {
 			$args['status'] = $options['status'];
 		}
 
-		// Type filter
+		// Type filter.
 		if ( ! empty( $options['type'] ) ) {
 			$args['type'] = $options['type'];
 		}
 
-		// Post ID filter
+		// Post ID filter.
 		if ( ! empty( $options['post_id'] ) ) {
 			$args['post_id'] = $options['post_id'];
 		}
 
-		// Author filter
+		// Author filter.
 		if ( ! empty( $options['author'] ) ) {
 			$args['author__in'] = is_array( $options['author'] ) ? $options['author'] : [ $options['author'] ];
 		}
 
-		// Date query
+		// Date query.
 		if ( ! empty( $options['date_query'] ) ) {
 			$args['date_query'] = $options['date_query'];
 		}
@@ -459,14 +375,34 @@ class Comment_Exporter extends Abstract_Exporter {
 			$args['meta_query'] = $options['meta_query']; // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
 		}
 
-		// Custom field filters
+		// Custom field filters.
 		if ( ! empty( $options['custom_fields'] ) && is_array( $options['custom_fields'] ) ) {
-			$this->apply_custom_field_filters( $args, $options['custom_fields'] );
+			foreach ( $options['custom_fields'] as $filter ) {
+				if ( empty( $filter['name'] ) || empty( $filter['condition'] ) ) {
+					continue;
+				}
+
+				$args['_comment_filters'][] = [
+					'field'     => sanitize_text_field( $filter['name'] ),
+					'condition' => $filter['condition'],
+					'value'     => $filter['value'] ?? '',
+				];
+			}
 		}
 
-		// Process dynamic filters
+		// Process dynamic filters.
 		if ( ! empty( $options['filters'] ) && is_array( $options['filters'] ) ) {
-			$this->apply_dynamic_filters( $args, $options['filters'] );
+			foreach ( $options['filters'] as $filter ) {
+				if ( empty( $filter['field'] ) || empty( $filter['condition'] ) ) {
+					continue;
+				}
+
+				$args['_comment_filters'][] = [
+					'field'     => sanitize_text_field( $filter['field'] ),
+					'condition' => $filter['condition'],
+					'value'     => $filter['value'] ?? '',
+				];
+			}
 		}
 
 		return $args;
@@ -613,10 +549,10 @@ class Comment_Exporter extends Abstract_Exporter {
 				} elseif ( $condition === 'not_equals' ) {
 					$args['comment__not_in'] = array_merge( $args['comment__not_in'] ?? [], [ absint( $value ) ] );
 				} elseif ( $condition === 'in' ) {
-					$new_ids = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
+					$new_ids             = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
 					$args['comment__in'] = array_merge( $args['comment__in'] ?? [], $new_ids );
 				} elseif ( $condition === 'not_in' ) {
-					$new_ids = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
+					$new_ids                 = array_map( 'absint', array_map( 'trim', explode( ',', $value ) ) );
 					$args['comment__not_in'] = array_merge( $args['comment__not_in'] ?? [], $new_ids );
 				}
 				continue;
@@ -989,6 +925,35 @@ class Comment_Exporter extends Abstract_Exporter {
 	}
 
 	/**
+	 * Filter comments using the values presented by the exporter.
+	 *
+	 * @param array $comments Comment objects.
+	 * @param array $filters  Filter definitions.
+	 * @return array
+	 */
+	protected function filter_comments( $comments, $filters ) {
+		if ( empty( $filters ) ) {
+			return $comments;
+		}
+
+		return array_values(
+			array_filter(
+				$comments,
+				function ( $comment ) use ( $filters ) {
+					foreach ( $filters as $filter ) {
+						$field_value = $this->get_comment_field_value( $comment, $filter['field'] );
+						if ( ! $this->check_condition( $field_value, $filter['condition'], $filter['value'] ?? '' ) ) {
+							return false;
+						}
+					}
+
+					return true;
+				}
+			)
+		);
+	}
+
+	/**
 	 * Get comment field value
 	 *
 	 * @param \WP_Comment $comment    Comment object
@@ -1015,23 +980,24 @@ class Comment_Exporter extends Abstract_Exporter {
 			'user_id'              => 'user_id',
 		);
 
-		// Check if it's a standard field
+		// Check if it is a standard field.
 		if ( isset( $field_map[ $field_name ] ) ) {
 			$property = $field_map[ $field_name ];
 			return $comment->$property ?? '';
 		}
 
-		// Computed fields from the related post
-		if ( $field_name === 'post_title' || $field_name === 'post_author' ) {
+		// Computed fields from the related post.
+		if ( 'post_title' === $field_name || 'post_author' === $field_name ) {
 			$post = get_post( $comment->comment_post_ID );
 			if ( ! $post ) {
 				return '';
 			}
-			return $field_name === 'post_title' ? $post->post_title : $post->post_author;
+			return 'post_title' === $field_name ? $post->post_title : $post->post_author;
 		}
 
-		// Check if it's a meta field
-		return get_comment_meta( $comment->comment_ID, $field_name, true );
+		// Check if it is a meta field.
+		$value = get_comment_meta( $comment->comment_ID, $field_name, true );
+		return is_array( $value ) || is_object( $value ) ? wp_json_encode( $value ) : $value;
 	}
 
 	/**

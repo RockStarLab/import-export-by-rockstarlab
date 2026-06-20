@@ -203,9 +203,13 @@ class Post_Exporter extends Abstract_Exporter {
 				return 0;
 			}
 
-			// Apply filters if present
-			if ( ! empty( $options['filters'] ) && is_array( $options['filters'] ) ) {
-				$terms = $this->apply_menu_filters( $terms, $options['filters'] );
+			// Apply menu field and custom term-meta filters.
+			if ( ! empty( $options['filters'] ) || ! empty( $options['custom_fields'] ) ) {
+				$terms = $this->apply_menu_filters(
+					$terms,
+					$options['filters'] ?? [],
+					$options['custom_fields'] ?? []
+				);
 			}
 
 			return count( $terms );
@@ -429,6 +433,14 @@ class Post_Exporter extends Abstract_Exporter {
 		}
 
 		$post_type = $options['post_type'] ?? 'any';
+		if ( 'any' === $post_type && ! empty( $options['filters'] ) && is_array( $options['filters'] ) ) {
+			foreach ( $options['filters'] as $filter ) {
+				if ( 'post_type' === ( $filter['field'] ?? '' ) && 'equals' === ( $filter['condition'] ?? '' ) && ! empty( $filter['value'] ) ) {
+					$post_type = sanitize_key( $filter['value'] );
+					break;
+				}
+			}
+		}
 
 		// Map virtual content-type identifiers to real WordPress post_types
 		$post_type_map = [
@@ -441,12 +453,13 @@ class Post_Exporter extends Abstract_Exporter {
 		}
 
 		$args = [
-			'post_type'      => $post_type,
-			'post_status'    => $options['post_status'] ?? 'any',
-			'posts_per_page' => $options['limit'] ?? -1,
-			'offset'         => $options['offset'] ?? 0,
-			'orderby'        => $options['orderby'] ?? 'date',
-			'order'          => $options['order'] ?? 'DESC',
+			'post_type'           => $post_type,
+			'post_status'         => $options['post_status'] ?? 'any',
+			'posts_per_page'      => $options['limit'] ?? -1,
+			'offset'              => $options['offset'] ?? 0,
+			'orderby'             => $options['orderby'] ?? 'date',
+			'order'               => $options['order'] ?? 'DESC',
+			'ignore_sticky_posts' => true,
 		];
 
 		// When querying products, exclude variations (child post_type = product_variation)
@@ -477,6 +490,30 @@ class Post_Exporter extends Abstract_Exporter {
 		// Meta query // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
 		if ( ! empty( $options['meta_query'] ) ) {
 			$args['meta_query'] = $options['meta_query']; // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
+		}
+
+		// Product fields are mostly values derived through WC_Product getters. Resolve
+		// all step-two filters against those exported values before pagination.
+		if ( 'product' === $post_type && ( ! empty( $options['filters'] ) || ! empty( $options['custom_fields'] ) || ! empty( $options['taxonomy'] ) ) ) {
+			$this->apply_product_filters(
+				$args,
+				$options['filters'] ?? [],
+				$options['custom_fields'] ?? [],
+				$options['taxonomy'] ?? []
+			);
+			return $args;
+		}
+
+		// Standard posts, pages, and custom post types share the values emitted by
+		// prepare_post_data(). Filter those values directly before pagination.
+		if ( ! in_array( $post_type, [ 'attachment', 'product', 'nav_menu_item' ], true ) && ( ! empty( $options['filters'] ) || ! empty( $options['custom_fields'] ) || ! empty( $options['taxonomy'] ) ) ) {
+			$this->apply_post_value_filters(
+				$args,
+				$options['filters'] ?? [],
+				$options['custom_fields'] ?? [],
+				$options['taxonomy'] ?? []
+			);
+			return $args;
 		}
 
 		// Custom field filters
@@ -635,6 +672,13 @@ class Post_Exporter extends Abstract_Exporter {
 	 * @param array $filters Dynamic filters
 	 */
 	protected function apply_dynamic_filters( &$args, $filters ) {
+		// Attachment fields such as dimensions and file information are virtual values.
+		// They are not individual post meta keys, so they need their own handler.
+		if ( 'attachment' === ( $args['post_type'] ?? '' ) ) {
+			$this->apply_attachment_filters( $args, $filters );
+			return;
+		}
+
 		$meta_query = $args['meta_query'] ?? [];
 
 		foreach ( $filters as $filter ) {
@@ -1053,6 +1097,518 @@ class Post_Exporter extends Abstract_Exporter {
 		if ( ! empty( $meta_query ) ) {
 			$args['meta_query'] = $meta_query; // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
 		}
+	}
+
+	/**
+	 * Apply filters for standard posts, pages, and custom post types.
+	 *
+	 * @param array $args             Query arguments (by reference).
+	 * @param array $filters          Dynamic field filters.
+	 * @param array $custom_fields    Custom-meta filters.
+	 * @param array $taxonomy_filters Taxonomy-panel filters.
+	 * @return void
+	 */
+	protected function apply_post_value_filters( &$args, $filters, $custom_fields, $taxonomy_filters ) {
+		$candidate_args = $args;
+		unset( $candidate_args['offset'], $candidate_args['paged'] );
+		$candidate_args['fields']         = 'ids';
+		$candidate_args['posts_per_page'] = -1;
+		$candidate_args['no_found_rows']  = true;
+
+		$candidate_ids = get_posts( $candidate_args );
+		$matching_ids  = [];
+
+		foreach ( $candidate_ids as $post_id ) {
+			$post = get_post( $post_id );
+			if ( $post && $this->post_matches_value_filters( $post, $filters, $custom_fields, $taxonomy_filters ) ) {
+				$matching_ids[] = (int) $post_id;
+			}
+		}
+
+		$args['post__in'] = empty( $matching_ids ) ? [ 0 ] : $matching_ids;
+	}
+
+	/**
+	 * Check every standard-post filter for one post.
+	 *
+	 * @param \WP_Post $post             Post object.
+	 * @param array    $filters          Dynamic field filters.
+	 * @param array    $custom_fields    Custom-meta filters.
+	 * @param array    $taxonomy_filters Taxonomy-panel filters.
+	 * @return bool
+	 */
+	protected function post_matches_value_filters( $post, $filters, $custom_fields, $taxonomy_filters ) {
+		foreach ( $filters as $filter ) {
+			if ( empty( $filter['field'] ) || empty( $filter['condition'] ) ) {
+				continue;
+			}
+
+			$field = sanitize_text_field( $filter['field'] );
+			$data  = $this->prepare_post_data( $post, [ $field ] );
+			$value = $data[ $field ] ?? '';
+			if ( ! $this->evaluate_product_condition( $value, $filter['condition'], $filter['value'] ?? '' ) ) {
+				return false;
+			}
+		}
+
+		foreach ( $custom_fields as $filter ) {
+			if ( empty( $filter['name'] ) || empty( $filter['condition'] ) ) {
+				continue;
+			}
+
+			$meta_key = sanitize_text_field( $filter['name'] );
+			if ( 0 === strpos( $meta_key, 'meta_' ) ) {
+				$meta_key = substr( $meta_key, 5 );
+			}
+			$value = get_post_meta( $post->ID, $meta_key, true );
+			if ( is_array( $value ) || is_object( $value ) ) {
+				$value = wp_json_encode( $value );
+			}
+			if ( ! $this->evaluate_product_condition( $value, $filter['condition'], $filter['value'] ?? '' ) ) {
+				return false;
+			}
+		}
+
+		foreach ( $taxonomy_filters as $filter ) {
+			if ( empty( $filter['taxonomy'] ) || empty( $filter['terms'] ) ) {
+				continue;
+			}
+
+			$taxonomy = sanitize_text_field( $filter['taxonomy'] );
+			$assigned = wp_get_object_terms( $post->ID, $taxonomy, [ 'fields' => 'slugs' ] );
+			if ( is_wp_error( $assigned ) ) {
+				return false;
+			}
+			$condition = strtolower( $filter['condition'] ?? 'in' );
+			$requested = is_array( $filter['terms'] ) ? $filter['terms'] : explode( ',', $filter['terms'] );
+			$requested = 'and' === $condition
+				? array_values( array_filter( array_map( 'sanitize_title', array_map( 'trim', $requested ) ) ) )
+				: $this->expand_product_taxonomy_slugs( $taxonomy, $requested );
+			$matches   = array_intersect( $assigned, $requested );
+
+			if ( 'not_in' === $condition && ! empty( $matches ) ) {
+				return false;
+			}
+			if ( 'and' === $condition && count( $matches ) !== count( $requested ) ) {
+				return false;
+			}
+			if ( 'in' === $condition && empty( $matches ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Apply WooCommerce product filters to the values produced by the exporter.
+	 *
+	 * @param array $args            Query arguments (by reference).
+	 * @param array $filters         Product field filters.
+	 * @param array $custom_fields   Product meta filters.
+	 * @param array $taxonomy_filters Taxonomy-panel filters.
+	 * @return void
+	 */
+	protected function apply_product_filters( &$args, $filters, $custom_fields, $taxonomy_filters ) {
+		$candidate_args = $args;
+
+		unset( $candidate_args['offset'], $candidate_args['paged'] );
+		$candidate_args['fields']         = 'ids';
+		$candidate_args['posts_per_page'] = -1;
+		$candidate_args['no_found_rows']  = true;
+
+		$candidate_ids = get_posts( $candidate_args );
+		$matching_ids  = [];
+
+		foreach ( $candidate_ids as $product_id ) {
+			$post = get_post( $product_id );
+			if ( ! $post || ! $this->product_matches_filters( $post, $filters, $custom_fields, $taxonomy_filters ) ) {
+				continue;
+			}
+
+			$matching_ids[] = (int) $product_id;
+		}
+
+		$args['post__in'] = empty( $matching_ids ) ? [ 0 ] : $matching_ids;
+	}
+
+	/**
+	 * Check every product filter for one product.
+	 *
+	 * @param \WP_Post $post             Product post.
+	 * @param array    $filters          Product field filters.
+	 * @param array    $custom_fields    Product meta filters.
+	 * @param array    $taxonomy_filters Taxonomy-panel filters.
+	 * @return bool
+	 */
+	protected function product_matches_filters( $post, $filters, $custom_fields, $taxonomy_filters ) {
+		foreach ( $filters as $filter ) {
+			if ( empty( $filter['field'] ) || empty( $filter['condition'] ) ) {
+				continue;
+			}
+
+			$field = sanitize_text_field( $filter['field'] );
+			if ( taxonomy_exists( $field ) ) {
+				$value = $this->get_product_taxonomy_filter_value( $post->ID, $field );
+			} else {
+				$data  = $this->prepare_post_data( $post, [ $field ] );
+				$value = $data[ $field ] ?? '';
+			}
+
+			if ( ! $this->evaluate_product_condition( $value, $filter['condition'], $filter['value'] ?? '', taxonomy_exists( $field ) ) ) {
+				return false;
+			}
+		}
+
+		foreach ( $custom_fields as $filter ) {
+			if ( empty( $filter['name'] ) || empty( $filter['condition'] ) ) {
+				continue;
+			}
+
+			$meta_key = sanitize_text_field( $filter['name'] );
+			if ( 0 === strpos( $meta_key, 'meta_' ) ) {
+				$meta_key = substr( $meta_key, 5 );
+			}
+			$value = get_post_meta( $post->ID, $meta_key, true );
+			if ( is_array( $value ) || is_object( $value ) ) {
+				$value = wp_json_encode( $value );
+			}
+
+			if ( ! $this->evaluate_product_condition( $value, $filter['condition'], $filter['value'] ?? '' ) ) {
+				return false;
+			}
+		}
+
+		foreach ( $taxonomy_filters as $filter ) {
+			if ( empty( $filter['taxonomy'] ) || empty( $filter['terms'] ) ) {
+				continue;
+			}
+
+			$taxonomy = sanitize_text_field( $filter['taxonomy'] );
+			$terms    = wp_get_object_terms( $post->ID, $taxonomy, [ 'fields' => 'slugs' ] );
+			if ( is_wp_error( $terms ) ) {
+				return false;
+			}
+
+			$condition = strtolower( $filter['condition'] ?? 'in' );
+			$requested = is_array( $filter['terms'] ) ? $filter['terms'] : explode( ',', $filter['terms'] );
+			$requested = 'and' === $condition
+				? array_values( array_filter( array_map( 'sanitize_title', array_map( 'trim', $requested ) ) ) )
+				: $this->expand_product_taxonomy_slugs( $taxonomy, $requested );
+			$matches   = array_intersect( $terms, $requested );
+
+			if ( 'not_in' === $condition && ! empty( $matches ) ) {
+				return false;
+			}
+			if ( 'and' === $condition && count( $matches ) !== count( $requested ) ) {
+				return false;
+			}
+			if ( in_array( $condition, [ 'in', 'or' ], true ) && empty( $matches ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Get assigned taxonomy names plus ancestor names for hierarchical filtering.
+	 *
+	 * @param int    $product_id Product ID.
+	 * @param string $taxonomy   Taxonomy name.
+	 * @return string
+	 */
+	protected function get_product_taxonomy_filter_value( $product_id, $taxonomy ) {
+		$terms = wp_get_object_terms( $product_id, $taxonomy );
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			return '';
+		}
+
+		$names = [];
+		foreach ( $terms as $term ) {
+			$names[] = $term->name;
+			if ( is_taxonomy_hierarchical( $taxonomy ) ) {
+				foreach ( get_ancestors( $term->term_id, $taxonomy, 'taxonomy' ) as $ancestor_id ) {
+					$ancestor = get_term( $ancestor_id, $taxonomy );
+					if ( $ancestor && ! is_wp_error( $ancestor ) ) {
+						$names[] = $ancestor->name;
+					}
+				}
+			}
+		}
+
+		return implode( ', ', array_unique( $names ) );
+	}
+
+	/**
+	 * Expand requested hierarchical terms to their descendant slugs.
+	 *
+	 * @param string $taxonomy Taxonomy name.
+	 * @param array  $terms    Requested term slugs or names.
+	 * @return array
+	 */
+	protected function expand_product_taxonomy_slugs( $taxonomy, $terms ) {
+		$slugs = array_values( array_filter( array_map( 'sanitize_title', array_map( 'trim', $terms ) ) ) );
+		if ( ! is_taxonomy_hierarchical( $taxonomy ) ) {
+			return $slugs;
+		}
+
+		foreach ( $slugs as $slug ) {
+			$term = get_term_by( 'slug', $slug, $taxonomy );
+			if ( ! $term ) {
+				continue;
+			}
+
+			foreach ( get_term_children( $term->term_id, $taxonomy ) as $child_id ) {
+				$child = get_term( $child_id, $taxonomy );
+				if ( $child && ! is_wp_error( $child ) ) {
+					$slugs[] = $child->slug;
+				}
+			}
+		}
+
+		return array_values( array_unique( $slugs ) );
+	}
+
+	/**
+	 * Evaluate a condition using the product value shown in the export.
+	 *
+	 * @param mixed  $field_value Current product value.
+	 * @param string $condition   Filter condition.
+	 * @param mixed  $test_value  User-supplied value.
+	 * @param bool   $is_taxonomy Whether the value is a taxonomy name list.
+	 * @return bool
+	 */
+	protected function evaluate_product_condition( $field_value, $condition, $test_value, $is_taxonomy = false ) {
+		$field_value = is_bool( $field_value ) ? ( $field_value ? 'yes' : 'no' ) : $field_value;
+		$condition   = strtolower( $condition );
+		if ( is_string( $field_value ) && preg_match( '/^\d{4}-\d{2}-\d{2}/', $field_value ) && is_string( $test_value ) && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $test_value ) ) {
+			$field_value = substr( $field_value, 0, 10 );
+		}
+
+		switch ( $condition ) {
+			case 'equals':
+			case 'not_equals':
+				$values  = $is_taxonomy ? array_map( 'trim', explode( ',', (string) $field_value ) ) : [ $field_value ];
+				$matched = false;
+				foreach ( $values as $value ) {
+					if ( $this->product_values_equal( $value, $test_value ) ) {
+						$matched = true;
+						break;
+					}
+				}
+				return 'equals' === $condition ? $matched : ! $matched;
+			case 'contains':
+				return false !== stripos( (string) $field_value, (string) $test_value );
+			case 'not_contains':
+				return false === stripos( (string) $field_value, (string) $test_value );
+			case 'starts_with':
+				if ( $is_taxonomy ) {
+					foreach ( array_map( 'trim', explode( ',', (string) $field_value ) ) as $value ) {
+						if ( 0 === stripos( $value, (string) $test_value ) ) {
+							return true;
+						}
+					}
+					return false;
+				}
+				return 0 === stripos( (string) $field_value, (string) $test_value );
+			case 'ends_with':
+				$test_length = strlen( (string) $test_value );
+				$values      = $is_taxonomy ? array_map( 'trim', explode( ',', (string) $field_value ) ) : [ $field_value ];
+				foreach ( $values as $value ) {
+					if ( 0 === strcasecmp( substr( (string) $value, -$test_length ), (string) $test_value ) ) {
+						return true;
+					}
+				}
+				return false;
+			case 'greater':
+			case 'newer_than':
+				return $field_value > $test_value;
+			case 'equals_or_greater':
+				return $field_value >= $test_value;
+			case 'less':
+			case 'older_than':
+				return $field_value < $test_value;
+			case 'equals_or_less':
+				return $field_value <= $test_value;
+			case 'between':
+				$bounds = array_map( 'trim', explode( ',', (string) $test_value ) );
+				return 2 === count( $bounds ) && $field_value >= $bounds[0] && $field_value <= $bounds[1];
+			case 'in':
+			case 'not_in':
+				$tests   = array_map( 'trim', explode( ',', (string) $test_value ) );
+				$values  = $is_taxonomy ? array_map( 'trim', explode( ',', (string) $field_value ) ) : [ $field_value ];
+				$matched = false;
+				foreach ( $values as $value ) {
+					foreach ( $tests as $test ) {
+						if ( $this->product_values_equal( $value, $test ) ) {
+							$matched = true;
+							break 2;
+						}
+					}
+				}
+				return 'in' === $condition ? $matched : ! $matched;
+			case 'is_empty':
+				return empty( $field_value );
+			case 'is_not_empty':
+				return ! empty( $field_value );
+			default:
+				return true;
+		}
+	}
+
+	/**
+	 * Compare scalar product values with numeric and case-insensitive flexibility.
+	 *
+	 * @param mixed $left  Exported value.
+	 * @param mixed $right Filter value.
+	 * @return bool
+	 */
+	protected function product_values_equal( $left, $right ) {
+		if ( is_numeric( $left ) && is_numeric( $right ) ) {
+			return (float) $left === (float) $right;
+		}
+
+		return 0 === strcasecmp( (string) $left, (string) $right );
+	}
+
+	/**
+	 * Apply dynamic filters to media library attachments.
+	 *
+	 * Media dimensions are stored inside serialized attachment metadata, while file
+	 * information and parent details are derived values. Resolve those values via
+	 * WordPress APIs and constrain the final export query to matching attachment IDs.
+	 *
+	 * @param array $args    Query arguments (by reference).
+	 * @param array $filters Dynamic filters.
+	 * @return void
+	 */
+	protected function apply_attachment_filters( &$args, $filters ) {
+		$candidate_args = $args;
+
+		unset( $candidate_args['offset'], $candidate_args['paged'] );
+		$candidate_args['fields']         = 'ids';
+		$candidate_args['posts_per_page'] = -1;
+		$candidate_args['no_found_rows']  = true;
+
+		$candidate_ids = get_posts( $candidate_args );
+		$matching_ids  = [];
+
+		foreach ( $candidate_ids as $attachment_id ) {
+			$attachment = get_post( $attachment_id );
+			if ( ! $attachment ) {
+				continue;
+			}
+
+			$matches = true;
+			foreach ( $filters as $filter ) {
+				if ( empty( $filter['field'] ) || empty( $filter['condition'] ) ) {
+					continue;
+				}
+
+				$field_value = $this->get_attachment_filter_value( $attachment, $filter['field'] );
+				$test_value  = $filter['value'] ?? '';
+
+				if ( ! $this->evaluate_attachment_condition( $field_value, $filter['condition'], $test_value, $filter['field'] ) ) {
+					$matches = false;
+					break;
+				}
+			}
+
+			if ( $matches ) {
+				$matching_ids[] = (int) $attachment_id;
+			}
+		}
+
+		$args['post__in'] = empty( $matching_ids ) ? [ 0 ] : $matching_ids;
+	}
+
+	/**
+	 * Get the value represented by a media-library filter field.
+	 *
+	 * @param \WP_Post $attachment Attachment post.
+	 * @param string   $field      Filter field.
+	 * @return mixed
+	 */
+	protected function get_attachment_filter_value( $attachment, $field ) {
+		$attachment_id = (int) $attachment->ID;
+
+		switch ( $field ) {
+			case 'alt_text':
+				return get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+			case 'file_url':
+				return (string) wp_get_attachment_url( $attachment_id );
+			case 'file_path':
+				return (string) get_post_meta( $attachment_id, '_wp_attached_file', true );
+			case 'file_name':
+				return wp_basename( (string) get_post_meta( $attachment_id, '_wp_attached_file', true ) );
+			case 'file_extension':
+				return strtolower( (string) pathinfo( (string) get_post_meta( $attachment_id, '_wp_attached_file', true ), PATHINFO_EXTENSION ) );
+			case 'file_size':
+				$file_path = get_attached_file( $attachment_id );
+				if ( $file_path && file_exists( $file_path ) ) {
+					return (int) filesize( $file_path );
+				}
+				$file_size = get_post_meta( $attachment_id, 'rsl_ie_file_size', true );
+				return '' === $file_size ? '' : (int) $file_size;
+			case 'width':
+			case 'height':
+				$metadata = wp_get_attachment_metadata( $attachment_id );
+				return is_array( $metadata ) && isset( $metadata[ $field ] ) ? (int) $metadata[ $field ] : '';
+			case 'author_name':
+			case 'author_email':
+				$author = get_userdata( $attachment->post_author );
+				if ( ! $author ) {
+					return '';
+				}
+				return 'author_name' === $field ? $author->display_name : $author->user_email;
+			case 'attached_post_title':
+				$parent = $attachment->post_parent ? get_post( $attachment->post_parent ) : null;
+				return $parent ? $parent->post_title : '';
+			default:
+				return isset( $attachment->$field ) ? $attachment->$field : get_post_meta( $attachment_id, $field, true );
+		}
+	}
+
+	/**
+	 * Evaluate a media-library filter condition.
+	 *
+	 * @param mixed  $field_value Current attachment field value.
+	 * @param string $condition   Filter condition.
+	 * @param mixed  $test_value  User-supplied comparison value.
+	 * @param string $field       Filter field.
+	 * @return bool
+	 */
+	protected function evaluate_attachment_condition( $field_value, $condition, $test_value, $field ) {
+		if ( 'is_empty' === $condition ) {
+			return '' === $field_value || null === $field_value;
+		}
+
+		if ( 'is_not_empty' === $condition ) {
+			return '' !== $field_value && null !== $field_value;
+		}
+
+		if ( in_array( $condition, [ 'in', 'not_in' ], true ) ) {
+			$values = array_filter(
+				array_map(
+					static function ( $value ) {
+						return trim( trim( $value ), "'\"" );
+					},
+					explode( ',', (string) $test_value )
+				),
+				'strlen'
+			);
+			$found  = in_array( (string) $field_value, $values, true );
+
+			return 'in' === $condition ? $found : ! $found;
+		}
+
+		if ( in_array( $field, [ 'post_date', 'post_modified' ], true ) ) {
+			$field_value = substr( (string) $field_value, 0, 10 );
+			$test_value  = $this->normalize_date_value( $test_value );
+		}
+
+		return $this->evaluate_condition( $field_value, $condition, $test_value );
 	}
 
 	/**
@@ -2846,14 +3402,6 @@ class Post_Exporter extends Abstract_Exporter {
 			'fields'     => 'all',
 		];
 
-		// Apply limit and offset if present
-		if ( isset( $options['limit'] ) && $options['limit'] > 0 ) {
-			$term_args['number'] = $options['limit'];
-		}
-		if ( isset( $options['offset'] ) ) {
-			$term_args['offset'] = $options['offset'];
-		}
-
 		// Get all menu terms
 		$terms = get_terms( $term_args );
 
@@ -2861,9 +3409,19 @@ class Post_Exporter extends Abstract_Exporter {
 			return [];
 		}
 
-		// Apply filters if present
-		if ( ! empty( $options['filters'] ) && is_array( $options['filters'] ) ) {
-			$terms = $this->apply_menu_filters( $terms, $options['filters'] );
+		// Filter before pagination so batches use the same result set as get_count().
+		if ( ! empty( $options['filters'] ) || ! empty( $options['custom_fields'] ) ) {
+			$terms = $this->apply_menu_filters(
+				$terms,
+				$options['filters'] ?? [],
+				$options['custom_fields'] ?? []
+			);
+		}
+
+		$offset = isset( $options['offset'] ) ? max( 0, (int) $options['offset'] ) : 0;
+		$limit  = isset( $options['limit'] ) ? (int) $options['limit'] : -1;
+		if ( $offset > 0 || $limit > 0 ) {
+			$terms = array_slice( $terms, $offset, $limit > 0 ? $limit : null );
 		}
 
 		$data   = [];
@@ -2877,6 +3435,7 @@ class Post_Exporter extends Abstract_Exporter {
 		foreach ( $terms as $term ) {
 			// Get menu items for this menu
 			$menu_items = wp_get_nav_menu_items( $term->term_id );
+			$locations  = $this->get_menu_locations( $term->term_id );
 
 			$menu_data = [
 				'term_id'     => $term->term_id,
@@ -2884,6 +3443,7 @@ class Post_Exporter extends Abstract_Exporter {
 				'slug'        => $term->slug,
 				'description' => $term->description,
 				'count'       => $term->count,
+				'locations'   => implode( ', ', $locations ),
 				'menu_items'  => [],
 			];
 
@@ -2976,16 +3536,30 @@ class Post_Exporter extends Abstract_Exporter {
 	/**
 	 * Apply filters to menu terms
 	 *
-	 * @param array $terms   Array of term objects
-	 * @param array $filters Array of filter conditions
+	 * @param array $terms         Array of term objects.
+	 * @param array $filters       Array of filter conditions.
+	 * @param array $custom_fields Array of custom term-meta filters.
 	 * @return array Filtered terms
 	 */
-	protected function apply_menu_filters( $terms, $filters ) {
-		if ( empty( $filters ) || ! is_array( $filters ) ) {
+	protected function apply_menu_filters( $terms, $filters, $custom_fields = [] ) {
+		if ( ( empty( $filters ) || ! is_array( $filters ) ) && ( empty( $custom_fields ) || ! is_array( $custom_fields ) ) ) {
 			return $terms;
 		}
 
 		$filtered = $terms;
+		$filters  = is_array( $filters ) ? $filters : [];
+
+		foreach ( $custom_fields as $custom_field ) {
+			if ( empty( $custom_field['name'] ) || empty( $custom_field['condition'] ) ) {
+				continue;
+			}
+
+			$filters[] = [
+				'field'     => sanitize_text_field( $custom_field['name'] ),
+				'condition' => $custom_field['condition'],
+				'value'     => $custom_field['value'] ?? '',
+			];
+		}
 
 		foreach ( $filters as $filter ) {
 			if ( empty( $filter['field'] ) || empty( $filter['condition'] ) ) {
@@ -2999,24 +3573,101 @@ class Post_Exporter extends Abstract_Exporter {
 			$filtered = array_filter(
 				$filtered,
 				function ( $term ) use ( $field, $condition, $value ) {
-					// Get the field value from term object
-					$term_value = null;
-					if ( $field === 'term_id' ) {
-						$term_value = $term->term_id;
-					} elseif ( $field === 'name' ) {
-						$term_value = $term->name;
-					} else {
-						// Field not supported for menus
-						return true;
-					}
+					$term_value = $this->get_menu_filter_value( $term, $field );
 
-					// Apply condition
-					return $this->evaluate_condition( $term_value, $condition, $value );
+					return $this->evaluate_menu_condition( $term_value, $condition, $value );
 				}
 			);
 		}
 
-		return array_values( $filtered ); // Re-index array
+		return array_values( $filtered ); // Re-index array.
+	}
+
+	/**
+	 * Get the value represented by a menu filter field.
+	 *
+	 * @param \WP_Term $term  Menu term.
+	 * @param string   $field Filter field.
+	 * @return mixed
+	 */
+	protected function get_menu_filter_value( $term, $field ) {
+		switch ( $field ) {
+			case 'locations':
+				return $this->get_menu_locations( $term->term_id );
+			case 'menu_items':
+				$items = wp_get_nav_menu_items( $term->term_id );
+				if ( empty( $items ) ) {
+					return [];
+				}
+				return array_map(
+					static function ( $item ) {
+						return $item->title . ' ' . $item->url;
+					},
+					$items
+				);
+			default:
+				return isset( $term->$field ) ? $term->$field : get_term_meta( $term->term_id, $field, true );
+		}
+	}
+
+	/**
+	 * Get theme location names assigned to a menu.
+	 *
+	 * @param int $term_id Menu term ID.
+	 * @return array
+	 */
+	protected function get_menu_locations( $term_id ) {
+		$locations = get_nav_menu_locations();
+
+		return array_keys(
+			array_filter(
+				$locations,
+				static function ( $menu_id ) use ( $term_id ) {
+					return (int) $menu_id === (int) $term_id;
+				}
+			)
+		);
+	}
+
+	/**
+	 * Evaluate a menu filter condition.
+	 *
+	 * @param mixed  $field_value Current menu field value.
+	 * @param string $condition   Filter condition.
+	 * @param mixed  $test_value  User-supplied comparison value.
+	 * @return bool
+	 */
+	protected function evaluate_menu_condition( $field_value, $condition, $test_value ) {
+		if ( 'is_empty' === $condition ) {
+			return is_array( $field_value ) ? empty( $field_value ) : '' === $field_value || null === $field_value || 0 === $field_value;
+		}
+
+		if ( 'is_not_empty' === $condition ) {
+			return ! $this->evaluate_menu_condition( $field_value, 'is_empty', $test_value );
+		}
+
+		if ( in_array( $condition, [ 'in', 'not_in' ], true ) ) {
+			$values = array_filter(
+				array_map(
+					static function ( $item ) {
+						return trim( trim( $item ), "'\"" );
+					},
+					explode( ',', (string) $test_value )
+				),
+				'strlen'
+			);
+
+			$current_values = is_array( $field_value ) ? array_map( 'strval', $field_value ) : [ (string) $field_value ];
+			$found          = ! empty( array_intersect( $current_values, $values ) );
+
+			return 'in' === $condition ? $found : ! $found;
+		}
+
+		if ( is_array( $field_value ) ) {
+			$field_value = implode( ' ', $field_value );
+		}
+
+		return $this->evaluate_condition( $field_value, $condition, $test_value );
 	}
 
 	/**

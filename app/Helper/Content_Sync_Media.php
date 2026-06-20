@@ -548,7 +548,7 @@ class Content_Sync_Media {
 			return null;
 		}
 
-		$file_hash = md5_file( $file_path );
+		$file_hash = Media_Hash::get_or_create_hash( $attachment_id );
 		$file_url  = wp_get_attachment_url( $attachment_id );
 
 		return array(
