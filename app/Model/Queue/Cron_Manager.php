@@ -72,6 +72,10 @@ class Cron_Manager {
 			'interval' => 300,
 			'display'  => __( 'Every 5 Minutes', 'import-export-by-rockstarlab' ),
 		);
+		$schedules['weekly']                    = array(
+			'interval' => WEEK_IN_SECONDS,
+			'display'  => __( 'Once Weekly', 'import-export-by-rockstarlab' ),
+		);
 
 		return $schedules;
 	}

@@ -35,6 +35,13 @@ class Init {
 	private $job_controller;
 
 	/**
+	 * Schedule Controller
+	 *
+	 * @var Schedule_Controller
+	 */
+	private $schedule_controller;
+
+	/**
 	 * Functions Controller
 	 *
 	 * @var Functions_Controller
@@ -110,6 +117,7 @@ class Init {
 
 		// add settings pages
 		add_action( 'admin_menu', array( $this, 'add_settings_pages' ) );
+		add_action( 'admin_menu', array( '\RockStarLab\ImportExport\Helper\Admin_Menu_Settings', 'apply' ), PHP_INT_MAX );
 
 		// Recommend building the shared media hash index when it is incomplete.
 		add_action( 'admin_notices', array( $this, 'display_media_hash_admin_notice' ) );
@@ -127,6 +135,9 @@ class Init {
 		// Show 5-star review request notice (plugin pages only, after 1 week)
 		\RockStarLab\ImportExport\Helper\Review_Notice::init();
 
+		// Optional hierarchical post-list tree filter.
+		\RockStarLab\ImportExport\Helper\Post_Tree_Filter::init();
+
 		// Fix attachment URLs for "keep in current directory" mode files outside uploads.
 		add_filter( 'wp_get_attachment_url', array( $this, 'fix_keep_mode_attachment_url' ), 10, 2 );
 	}
@@ -143,6 +154,9 @@ class Init {
 
 		$this->job_controller = new Job_Controller();
 		$this->job_controller->init();
+
+		$this->schedule_controller = new Schedule_Controller();
+		$this->schedule_controller->init();
 
 		$this->functions_controller = new Functions_Controller();
 		$this->functions_controller->init();
@@ -182,6 +196,7 @@ class Init {
 	function init_cron_manager() {
 		$this->cron_manager = new \RockStarLab\ImportExport\Model\Queue\Cron_Manager();
 		$this->cron_manager->init();
+		\RockStarLab\ImportExport\Helper\Job_Scheduler::init();
 	}
 
 	/**
@@ -208,10 +223,12 @@ class Init {
 				'import-export-by-rockstarlab_page_rsl-ie-content-sync',
 				'import-export-by-rockstarlab_page_rsl-ie-content-updater',
 				'import-export-by-rockstarlab_page_rsl-ie-jobs-log',
+				'import-export-by-rockstarlab_page_rsl-ie-schedules',
 				'import-export-by-rockstarlab_page_rsl-ie-media-sync',
 				'import-export-by-rockstarlab_page_rsl-ie-ai-url-importer',
 				'import-export-by-rockstarlab_page_rsl-ie-functions',
 				'import-export-by-rockstarlab_page_rsl-ie-plugin-options',
+				'admin_page_rsl-ie-plugin-settings',
 				'import-export-by-rockstarlab_page_rsl-ie-tools',
 				'import-export-by-rockstarlab_page_import-export-by-rockstarlab-addons',
 			)
@@ -1062,10 +1079,12 @@ class Init {
 	 * Add plugin's settings pages
 	 */
 	function add_settings_pages() {
+		$admin_menu_settings = \RockStarLab\ImportExport\Helper\Admin_Menu_Settings::get_settings();
+		$admin_menu_title    = $admin_menu_settings['menu_title'];
 
 		add_menu_page(
 			__( 'Import Export by RockStarLab', 'import-export-by-rockstarlab' ),
-			__( 'Import Export by RockStarLab', 'import-export-by-rockstarlab' ),
+			esc_html( $admin_menu_title ),
 			'manage_options',
 			'import-export-by-rockstarlab',
 			array( $this, 'display_welcome_page' ),
@@ -1165,11 +1184,30 @@ class Init {
 
 		add_submenu_page(
 			'import-export-by-rockstarlab',
+			__( 'Schedules', 'import-export-by-rockstarlab' ),
+			__( 'Schedules', 'import-export-by-rockstarlab' ),
+			'manage_options',
+			'rsl-ie-schedules',
+			array( $this, 'display_schedules_page' )
+		);
+
+		add_submenu_page(
+			'import-export-by-rockstarlab',
 			__( 'Plugin Options', 'import-export-by-rockstarlab' ),
 			__( 'Plugin Options', 'import-export-by-rockstarlab' ),
 			'manage_options',
 			'rsl-ie-plugin-options',
 			array( $this, 'display_plugin_options_page' )
+		);
+
+		// Hidden page: available from the Plugin Options tabs, but not in the menu.
+		add_submenu_page(
+			null,
+			__( 'Settings', 'import-export-by-rockstarlab' ),
+			__( 'Settings', 'import-export-by-rockstarlab' ),
+			'manage_options',
+			'rsl-ie-plugin-settings',
+			array( $this, 'display_plugin_settings_page' )
 		);
 	}
 
@@ -1300,6 +1338,13 @@ class Init {
 	}
 
 	/**
+	 * Display Schedules Page.
+	 */
+	function display_schedules_page() {
+		rsl_ie()->View->load( 'settings/schedules' );
+	}
+
+	/**
 	 * Display "Functions" admin page
 	 */ // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified via verify_request().
 	function display_settings_functions_page() {
@@ -1311,6 +1356,13 @@ class Init {
 	 */
 	function display_plugin_options_page() {
 		rsl_ie()->View->load( 'settings/plugin_options' );
+	}
+
+	/**
+	 * Display hidden general plugin settings page.
+	 */
+	function display_plugin_settings_page() {
+		rsl_ie()->View->load( 'settings/plugin_settings' );
 	}
 
 	/**

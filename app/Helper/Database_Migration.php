@@ -18,7 +18,7 @@ class Database_Migration {
 	 * Database version
 	 * Update this when schema changes
 	 */
-	const DB_VERSION = '1.3.3';
+	const DB_VERSION = '1.4.0';
 
 	/**
 	 * Database version option name
@@ -168,6 +168,27 @@ class Database_Migration {
             INDEX api_key_idx (api_key)
         ) ENGINE=InnoDB $charset_collate;";
 
+		// 9. Job Schedules table - reusable one-time and recurring job runs.
+		$sql_job_schedules = "CREATE TABLE {$prefix}rsl_ie_job_schedules (
+            id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            source_job_id BIGINT(20) UNSIGNED NOT NULL,
+            last_job_id BIGINT(20) UNSIGNED DEFAULT NULL,
+            name VARCHAR(190) NOT NULL,
+            schedule_type VARCHAR(20) NOT NULL DEFAULT 'once',
+            recurrence VARCHAR(30) NOT NULL DEFAULT 'once',
+            status VARCHAR(20) NOT NULL DEFAULT 'active',
+            start_at_gmt DATETIME NOT NULL,
+            next_run_gmt DATETIME DEFAULT NULL,
+            last_run_gmt DATETIME DEFAULT NULL,
+            created_by BIGINT(20) UNSIGNED NOT NULL,
+            created_at DATETIME NOT NULL,
+            updated_at DATETIME NOT NULL,
+            INDEX source_job_id_idx (source_job_id),
+            INDEX last_job_id_idx (last_job_id),
+            INDEX status_idx (status),
+            INDEX next_run_gmt_idx (next_run_gmt)
+        ) ENGINE=InnoDB $charset_collate;";
+
 		// Execute table creation
 		$results                     = array();
 		$results['jobs']             = dbDelta( $sql_jobs );
@@ -177,6 +198,7 @@ class Database_Migration {
 		$results['site_connections'] = dbDelta( $sql_site_connections );
 		$results['content_sync']     = dbDelta( $sql_content_sync );
 		$results['api_keys']         = dbDelta( $sql_api_keys );
+		$results['job_schedules']    = dbDelta( $sql_job_schedules );
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			if ( $wpdb->last_error ) {
@@ -541,6 +563,7 @@ class Database_Migration {
 
 		// Drop tables in reverse order (respect foreign keys)
 		$tables = [
+			"{$prefix}rsl_ie_job_schedules",
 			"{$prefix}rsl_ie_content_sync",
 			"{$prefix}rsl_ie_site_connections",
 			"{$prefix}rsl_ie_media_sync",
@@ -572,6 +595,7 @@ class Database_Migration {
 		$prefix = $wpdb->prefix;
 		$tables = [
 			"{$prefix}rsl_ie_jobs",
+			"{$prefix}rsl_ie_job_schedules",
 			"{$prefix}rsl_ie_field_maps",
 			"{$prefix}rsl_ie_custom_functions",
 			"{$prefix}rsl_ie_media_sync",

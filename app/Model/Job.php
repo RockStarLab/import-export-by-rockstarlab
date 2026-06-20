@@ -560,6 +560,22 @@ class Job extends Model {
 	 * @return int|false|WP_Error Number of rows affected, false on error, or WP_Error
 	 */
 	public function delete( $id ) {
+		$schedule_model = rsl_ie()->Model->job_schedule;
+		if ( $schedule_model ) {
+			$active_schedules = $schedule_model->find_by(
+				[
+					'source_job_id' => $id,
+					'status'        => 'active',
+				]
+			);
+			if ( ! empty( $active_schedules ) ) {
+				return new \WP_Error(
+					'job_has_active_schedule',
+					__( 'This Job is used by an active schedule. Delete the schedule first.', 'import-export-by-rockstarlab' )
+				);
+			}
+		}
+
 		// Get job details before deletion
 		$job = $this->find( $id );
 
