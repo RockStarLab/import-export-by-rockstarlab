@@ -124,9 +124,15 @@ class Background_Processor {
 				return;
 			} elseif ( 'media_sync' === $job['type'] ) {
 				$result = $this->process_media_sync_job( $job_id, $parameters );
+			} elseif ( 'update' === $job['type'] ) {
+				$result = $this->process_update_job( $job_id );
 			} else {
 				throw new \Exception( 'Invalid job type: ' . $job['type'] );
 			}           // Check if completed or needs to continue
+			if ( ! empty( $result['error'] ) ) {
+				return;
+			}
+
 			if ( isset( $result['completed'] ) && $result['completed'] ) {
 				$this->complete_job( $job_id, $result );
 			} else {
@@ -157,51 +163,107 @@ class Background_Processor {
 	 * @return array Processing result
 	 */
 	protected function process_import_job( $job_id, $parameters ) {
-		$file_path   = $parameters['file_path'] ?? '';
+		$job         = $this->job_model->find( $job_id );
+		$file_path   = $job ? $job->file_path : '';
 		$import_type = $parameters['import_type'] ?? 'post';
 		$format      = $parameters['format'] ?? 'csv';
-		$offset      = $parameters['offset'] ?? 0;
+		$delimiter   = $parameters['delimiter'] ?? ',';
+		$mapping     = $parameters['mapping'] ?? [];
+		$options     = $parameters['options'] ?? [];
+		$offset      = (int) ( $parameters['offset'] ?? 0 );
+		$batch_size  = max( 1, (int) ( $options['batch_size'] ?? 50 ) );
 
-		// Parse file data
-		$format_handler = \RockStarLab\ImportExport\Model\Format\Format_Factory::create( $format );
-		$data           = $format_handler->parse( $file_path );
-
-		if ( is_wp_error( $data ) ) {
-			throw new \Exception( esc_html( $data->get_error_message() ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+		if ( ! $job || empty( $file_path ) ) {
+			throw new \Exception( 'Import source file is missing.' );
 		}
 
-		if ( ! is_array( $data ) ) {
-			throw new \Exception( 'Failed to parse import file: unexpected format.' );
+		$importer = \RockStarLab\ImportExport\Model\Import\Importer_Factory::get_importer( $import_type, $job_id );
+		if ( is_wp_error( $importer ) ) {
+			throw new \Exception( esc_html( $importer->get_error_message() ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 		}
 
-		// Get data chunk from offset
-		$chunk_size = $this->batch_processor->get_batch_size();
-		$chunk      = array_slice( $data, $offset, $chunk_size );
+		if ( ! isset( $parameters['prepared_data'] ) ) {
+			$format_handler = \RockStarLab\ImportExport\Model\Format\Format_Factory::create( $format );
+			$data           = $format_handler->parse( $file_path, [ 'delimiter' => $delimiter ] );
+
+			if ( is_wp_error( $data ) ) {
+				throw new \Exception( esc_html( $data->get_error_message() ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+			}
+			if ( ! is_array( $data ) ) {
+				throw new \Exception( 'Failed to parse import file: unexpected format.' );
+			}
+
+			$parameters['prepared_data']     = $importer->prepare( $data, $mapping );
+			$parameters['total_items']       = count( $parameters['prepared_data'] );
+			$parameters['offset']            = 0;
+			$parameters['cumulative_result'] = [
+				'total'   => $parameters['total_items'],
+				'success' => 0,
+				'skipped' => 0,
+				'failed'  => 0,
+				'updated' => 0,
+				'created' => 0,
+				'errors'  => [],
+			];
+			$offset                          = 0;
+		}
+
+		$prepared   = $parameters['prepared_data'];
+		$total      = (int) $parameters['total_items'];
+		$cumulative = $parameters['cumulative_result'];
+		$chunk      = array_slice( $prepared, $offset, $batch_size );
 
 		if ( empty( $chunk ) ) {
-			return array(
+			return [
 				'completed' => true,
 				'processed' => $offset,
-			);
+				'total'     => $total,
+			];
 		}
 
-		// Get importer
-		$importer = \RockStarLab\ImportExport\Model\Import\Importer_Factory::create( $import_type );
-		$importer->set_duplicate_handling( $parameters['duplicate_handling'] ?? 'skip' );
-
-		// Process batch
-		$result = $this->batch_processor->process(
-			$chunk,
-			function ( $item ) use ( $importer ) {
-				return $importer->import( $item );
+		$importer->set_options( $options );
+		foreach ( $chunk as $index => $item ) {
+			$item_result = $importer->import_item( $item, $offset + $index );
+			if ( is_wp_error( $item_result ) ) {
+				++$cumulative['failed'];
+				$cumulative['errors'][] = [
+					'row'     => $offset + $index + 1,
+					'message' => $item_result->get_error_message(),
+				];
+			} elseif ( 'skipped' === $item_result ) {
+				++$cumulative['skipped'];
+			} elseif ( 'updated' === $item_result ) {
+				++$cumulative['updated'];
+				++$cumulative['success'];
+			} else {
+				++$cumulative['created'];
+				++$cumulative['success'];
 			}
+		}
+
+		$new_offset                      = $offset + count( $chunk );
+		$parameters['offset']            = $new_offset;
+		$parameters['cumulative_result'] = $cumulative;
+		$completed                       = $new_offset >= $total;
+
+		$this->job_model->update(
+			$job_id,
+			[
+				'parameters'      => wp_json_encode( $parameters ),
+				'total_items'     => $total,
+				'processed_items' => $new_offset,
+				'success_items'   => (int) $cumulative['success'],
+				'failed_items'    => (int) $cumulative['failed'],
+				'progress'        => $total > 0 ? round( ( $new_offset / $total ) * 100 ) : 100,
+				'result'          => wp_json_encode( $cumulative ),
+			]
 		);
 
-		// Update result with offset
-		$result['offset']    = $offset + $result['processed'];
-		$result['completed'] = $result['offset'] >= count( $data );
-
-		return $result;
+		return [
+			'completed' => $completed,
+			'processed' => $new_offset,
+			'total'     => $total,
+		];
 	}
 
 	/**
@@ -264,17 +326,20 @@ class Background_Processor {
 	 * @param array $result Processing result
 	 */
 	protected function complete_job( $job_id, $result ) {
-		$this->job_model->update(
-			$job_id,
-			array(
-				'status'       => 'completed',
-				'completed_at' => current_time( 'mysql' ),
-				'result'       => wp_json_encode( $result ),
-			)
+		$job  = $this->job_model->find( $job_id );
+		$data = array(
+			'status'       => 'completed',
+			'progress'     => 100,
+			'completed_at' => current_time( 'mysql' ),
 		);
 
-		// Update progress to 100%
-		$this->progress_tracker->update_progress( $job_id, 100 );
+		// Import/update/media processors may already have stored richer result
+		// details. Keep them rather than replacing them with batch metadata.
+		if ( ! $job || empty( $job->result ) ) {
+			$data['result'] = wp_json_encode( $result );
+		}
+
+		$this->job_model->update( $job_id, $data );
 	}
 
 	/**
@@ -349,6 +414,17 @@ class Background_Processor {
 	 */
 	protected function process_media_sync_job( $job_id, $parameters ) {
 		$processor = new Media_Sync_Processor();
+		return $processor->process( $job_id );
+	}
+
+	/**
+	 * Process a content update batch.
+	 *
+	 * @param int $job_id Job ID.
+	 * @return array
+	 */
+	protected function process_update_job( $job_id ) {
+		$processor = new Update_Processor();
 		return $processor->process( $job_id );
 	}
 

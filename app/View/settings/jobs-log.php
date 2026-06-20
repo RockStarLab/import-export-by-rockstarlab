@@ -10,6 +10,10 @@ defined( 'ABSPATH' ) || exit;
 
 <div id="rsl-ie-jobs-log" class="import-export-by-rockstarlab wrap">
 	<h1><?php esc_html_e( 'Jobs Log', 'import-export-by-rockstarlab' ); ?></h1>
+	<?php
+	$rsl_ie_active_tab = 'jobs';
+	require RSL_IE_PATH . 'app/View/settings/partials/jobs-tabs.php';
+	?>
 
 	<div class="rsl-ie-jobs-log">
 		<!-- Filters -->

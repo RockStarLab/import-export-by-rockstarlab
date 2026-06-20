@@ -1,0 +1,182 @@
+<?php
+/**
+ * Job Schedule Controller
+ *
+ * @package RockStarLab\ImportExport\Controller
+ */
+
+namespace RockStarLab\ImportExport\Controller;
+
+use RockStarLab\ImportExport\Helper\Job_Scheduler;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Handles schedule create, update, and delete actions.
+ */
+class Schedule_Controller {
+
+	/**
+	 * Register admin actions.
+	 *
+	 * @return void
+	 */
+	public function init() {
+		add_action( 'admin_post_rsl_ie_save_schedule', [ $this, 'save_schedule' ] );
+		add_action( 'admin_post_rsl_ie_delete_schedule', [ $this, 'delete_schedule' ] );
+	}
+
+	/**
+	 * Create or update a schedule.
+	 *
+	 * @return void
+	 */
+	public function save_schedule() {
+		$this->verify_capability();
+		check_admin_referer( 'rsl_ie_save_schedule' );
+
+		$schedule_id   = isset( $_POST['schedule_id'] ) ? absint( wp_unslash( $_POST['schedule_id'] ) ) : 0;
+		$source_job_id = isset( $_POST['source_job_id'] ) ? absint( wp_unslash( $_POST['source_job_id'] ) ) : 0;
+		$name          = isset( $_POST['schedule_name'] ) ? sanitize_text_field( wp_unslash( $_POST['schedule_name'] ) ) : '';
+		$schedule_type = isset( $_POST['schedule_type'] ) ? sanitize_key( wp_unslash( $_POST['schedule_type'] ) ) : 'once';
+		$recurrence    = isset( $_POST['recurrence'] ) ? sanitize_key( wp_unslash( $_POST['recurrence'] ) ) : 'once';
+		$start_at      = isset( $_POST['start_at'] ) ? sanitize_text_field( wp_unslash( $_POST['start_at'] ) ) : '';
+
+		$source_job = rsl_ie()->Model->job->find( $source_job_id );
+		if ( ! $source_job || ! in_array( $source_job->type, [ 'import', 'export', 'media_sync', 'update' ], true ) ) {
+			$this->redirect_with_error( __( 'Select a supported source Job.', 'import-export-by-rockstarlab' ) );
+		}
+
+		if ( ! in_array( $schedule_type, [ 'once', 'recurring' ], true ) ) {
+			$this->redirect_with_error( __( 'Invalid schedule type.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$allowed_recurrences = [ 'hourly', 'twicedaily', 'daily', 'weekly' ];
+		if ( 'recurring' === $schedule_type && ! in_array( $recurrence, $allowed_recurrences, true ) ) {
+			$this->redirect_with_error( __( 'Invalid recurrence interval.', 'import-export-by-rockstarlab' ) );
+		}
+
+		if ( 'once' === $schedule_type ) {
+			$recurrence = 'once';
+		}
+
+		$start_timestamp = $this->parse_local_datetime( $start_at );
+		if ( ! $start_timestamp ) {
+			$this->redirect_with_error( __( 'Enter a valid execution date and time.', 'import-export-by-rockstarlab' ) );
+		}
+
+		if ( $start_timestamp <= time() ) {
+			$this->redirect_with_error( __( 'Execution time must be in the future.', 'import-export-by-rockstarlab' ) );
+		}
+
+		if ( '' === $name ) {
+			$name = sprintf(
+				/* translators: %d: source Job ID. */
+				__( 'Schedule for Job #%d', 'import-export-by-rockstarlab' ),
+				$source_job_id
+			);
+		}
+
+		$data = [
+			'source_job_id' => $source_job_id,
+			'name'          => $name,
+			'schedule_type' => $schedule_type,
+			'recurrence'    => $recurrence,
+			'status'        => 'active',
+			'start_at_gmt'  => gmdate( 'Y-m-d H:i:s', $start_timestamp ),
+			'next_run_gmt'  => gmdate( 'Y-m-d H:i:s', $start_timestamp ),
+			'updated_at'    => current_time( 'mysql', true ),
+		];
+
+		$model = rsl_ie()->Model->job_schedule;
+		if ( $schedule_id > 0 ) {
+			if ( ! $model->find( $schedule_id ) ) {
+				$this->redirect_with_error( __( 'Schedule not found.', 'import-export-by-rockstarlab' ) );
+			}
+			$result = $model->update( $schedule_id, $data );
+		} else {
+			$schedule_id = $model->create( $data );
+			$result      = $schedule_id;
+		}
+
+		if ( is_wp_error( $result ) ) {
+			$this->redirect_with_error( $result->get_error_message() );
+		}
+
+		$scheduled = Job_Scheduler::sync_event( $schedule_id );
+		if ( is_wp_error( $scheduled ) ) {
+			$this->redirect_with_error( $scheduled->get_error_message() );
+		}
+
+		wp_safe_redirect( add_query_arg( 'schedule_saved', '1', admin_url( 'admin.php?page=rsl-ie-schedules' ) ) );
+		exit;
+	}
+
+	/**
+	 * Delete a schedule and its cron event.
+	 *
+	 * @return void
+	 */
+	public function delete_schedule() {
+		$this->verify_capability();
+		check_admin_referer( 'rsl_ie_delete_schedule' );
+
+		$schedule_id = isset( $_POST['schedule_id'] ) ? absint( wp_unslash( $_POST['schedule_id'] ) ) : 0;
+		if ( $schedule_id <= 0 || ! rsl_ie()->Model->job_schedule->find( $schedule_id ) ) {
+			$this->redirect_with_error( __( 'Schedule not found.', 'import-export-by-rockstarlab' ) );
+		}
+
+		Job_Scheduler::unschedule( $schedule_id );
+		rsl_ie()->Model->job_schedule->delete( $schedule_id );
+
+		wp_safe_redirect( add_query_arg( 'schedule_deleted', '1', admin_url( 'admin.php?page=rsl-ie-schedules' ) ) );
+		exit;
+	}
+
+	/**
+	 * Verify capability and request nonce.
+	 *
+	 * @return void
+	 */
+	private function verify_capability() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to manage schedules.', 'import-export-by-rockstarlab' ), '', [ 'response' => 403 ] );
+		}
+	}
+
+	/**
+	 * Parse a datetime-local value using the WordPress timezone.
+	 *
+	 * @param string $value Datetime-local value.
+	 * @return int|false
+	 */
+	private function parse_local_datetime( $value ) {
+		if ( '' === $value ) {
+			return false;
+		}
+
+		$date = \DateTimeImmutable::createFromFormat( 'Y-m-d\TH:i', $value, wp_timezone() );
+		if ( ! $date ) {
+			return false;
+		}
+
+		return $date->getTimestamp();
+	}
+
+	/**
+	 * Redirect back to the schedules screen with an error message.
+	 *
+	 * @param string $message Error message.
+	 * @return void
+	 */
+	private function redirect_with_error( $message ) {
+		wp_safe_redirect(
+			add_query_arg(
+				'schedule_error',
+				$message,
+				admin_url( 'admin.php?page=rsl-ie-schedules' )
+			)
+		);
+		exit;
+	}
+}

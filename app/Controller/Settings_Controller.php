@@ -14,6 +14,17 @@ defined( 'ABSPATH' ) or exit;
 class Settings_Controller extends Base_Controller {
 
 	/**
+	 * Register AJAX and admin-post settings actions.
+	 *
+	 * @return void
+	 */
+	public function init() {
+		parent::init();
+		add_action( 'admin_post_rsl_ie_save_admin_menu_settings', [ $this, 'save_admin_menu_settings' ] );
+		add_action( 'admin_post_rsl_ie_save_content_list_settings', [ $this, 'save_content_list_settings' ] );
+	}
+
+	/**
 	 * Get AJAX actions
 	 *
 	 * @return array
@@ -108,6 +119,70 @@ class Settings_Controller extends Base_Controller {
 				'message' => __( 'Settings saved successfully', 'import-export-by-rockstarlab' ),
 			]
 		);
+	}
+
+	/**
+	 * Save general plugin and admin-menu settings.
+	 *
+	 * @return void
+	 */
+	public function save_admin_menu_settings() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die(
+				esc_html__( 'You do not have permission to manage settings.', 'import-export-by-rockstarlab' ),
+				'',
+				[ 'response' => 403 ]
+			);
+		}
+
+		check_admin_referer( 'rsl_ie_save_admin_menu_settings' );
+
+		$menu_title    = isset( $_POST['menu_title'] )
+			? sanitize_text_field( wp_unslash( $_POST['menu_title'] ) )
+			: '';
+		$visible_items = isset( $_POST['visible_items'] ) && is_array( $_POST['visible_items'] )
+			? array_map( 'sanitize_key', wp_unslash( $_POST['visible_items'] ) )
+			: [];
+
+		\RockStarLab\ImportExport\Helper\Admin_Menu_Settings::save( $menu_title, $visible_items );
+
+		wp_safe_redirect(
+			add_query_arg(
+				'settings-updated',
+				'true',
+				admin_url( 'admin.php?page=rsl-ie-plugin-settings' )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * Save post-list display options.
+	 *
+	 * @return void
+	 */
+	public function save_content_list_settings() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die(
+				esc_html__( 'You do not have permission to manage settings.', 'import-export-by-rockstarlab' ),
+				'',
+				[ 'response' => 403 ]
+			);
+		}
+
+		check_admin_referer( 'rsl_ie_save_content_list_settings' );
+
+		$enabled = isset( $_POST['show_tree_action'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['show_tree_action'] ) );
+		\RockStarLab\ImportExport\Helper\Admin_Menu_Settings::save_show_tree_action( $enabled );
+
+		wp_safe_redirect(
+			add_query_arg(
+				'settings-updated',
+				'true',
+				admin_url( 'admin.php?page=rsl-ie-plugin-settings' )
+			)
+		);
+		exit;
 	}
 
 	/**

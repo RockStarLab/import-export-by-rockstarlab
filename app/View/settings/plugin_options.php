@@ -35,10 +35,10 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 		<span class="dashicons dashicons-admin-settings"></span>
 		<?php esc_html_e( 'Plugin Options', 'import-export-by-rockstarlab' ); ?>
 	</h1>
-
-	<p class="description">
-		<?php esc_html_e( 'Configure plugin-wide settings and integrations.', 'import-export-by-rockstarlab' ); ?>
-	</p>
+	<?php
+	$rsl_ie_options_active_tab = 'ai';
+	require RSL_IE_PATH . 'app/View/settings/partials/plugin-options-tabs.php';
+	?>
 
 	<div class="rsl-ie-settings-container">
 		<!-- AI Integration Section -->
