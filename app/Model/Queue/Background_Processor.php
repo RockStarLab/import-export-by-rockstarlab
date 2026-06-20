@@ -117,7 +117,11 @@ class Background_Processor {
 			if ( 'import' === $job['type'] ) {
 				$result = $this->process_import_job( $job_id, $parameters );
 			} elseif ( 'export' === $job['type'] ) {
-				$result = $this->process_export_job( $job_id, $parameters );
+				// Export_Processor is also used by the AJAX batch endpoint. Delegate
+				// cron exports to it so both routes use identical exporter mappings,
+				// filters, pagination, progress tracking, and file finalization.
+				$this->process_export_job( $job_id, $parameters );
+				return;
 			} elseif ( 'media_sync' === $job['type'] ) {
 				$result = $this->process_media_sync_job( $job_id, $parameters );
 			} else {
@@ -208,51 +212,9 @@ class Background_Processor {
 	 * @return array Processing result
 	 */
 	protected function process_export_job( $job_id, $parameters ) {
-		$export_type = $parameters['export_type'] ?? 'post';
-		$format      = $parameters['format'] ?? 'csv';
-		$filters     = $parameters['filters'] ?? array();
-		$offset      = $parameters['offset'] ?? 0;
-
-		// Get exporter
-		$exporter = \RockStarLab\ImportExport\Model\Export\Exporter_Factory::get_exporter( $export_type, $job_id );
-
-		if ( is_wp_error( $exporter ) ) {
-			return array(
-				'error' => $exporter->get_error_message(),
-			);
-		}
-
-		// Set filters
-		if ( ! empty( $filters ) ) {
-			$exporter->set_filters( $filters );
-		}
-
-		// Get batch size from parameters or use default
-		$batch_size = isset( $parameters['options']['items_per_iteration'] )
-			? (int) $parameters['options']['items_per_iteration']
-			: $this->batch_processor->get_batch_size();
-
-		// Export data
-		$data = $exporter->export( $offset, $batch_size );
-
-		if ( empty( $data ) ) {
-			// Finalize export file
-			$this->finalize_export( $job_id, $format, $parameters );
-
-			return array(
-				'completed' => true,
-				'processed' => $offset,
-			);
-		}
-
-		// Append to file
-		$this->append_export_data( $job_id, $format, $data, $offset === 0 );
-
-		return array(
-			'completed' => false,
-			'processed' => count( $data ),
-			'offset'    => $offset + count( $data ),
-		);
+		unset( $parameters );
+		$processor = new Export_Processor();
+		return $processor->process( $job_id );
 	}
 
 	/**

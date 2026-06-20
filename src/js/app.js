@@ -10,6 +10,7 @@ import AIURLImporter from './modules/ai-url-importer';
 import PluginOptionsModule from './modules/plugin-options';
 import WelcomeModule from './modules/welcome';
 import ProPromoModule from './modules/pro-promo';
+import MediaHashModule from './modules/media-hash';
 
 // Initialize modules when DOM is ready
 jQuery( document ).ready( function ( $ ) {
@@ -53,4 +54,7 @@ jQuery( document ).ready( function ( $ ) {
 
 	// Initialize PRO promo helpers (promo-code copy button)
 	ProPromoModule.init();
+
+	// Initialize the media hash maintenance tool and recommendation notice.
+	MediaHashModule.init();
 } );

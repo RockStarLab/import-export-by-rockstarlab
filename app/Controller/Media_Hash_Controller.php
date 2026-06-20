@@ -11,10 +11,18 @@ namespace RockStarLab\ImportExport\Controller;
 
 use RockStarLab\ImportExport\Helper\Media_Hash;
 
-defined( 'ABSPATH' ) or exit;
+defined( 'ABSPATH' ) || exit;
 
+/**
+ * AJAX endpoints for the shared Media Library hash index.
+ */
 class Media_Hash_Controller extends Base_Controller {
 
+	/**
+	 * Get AJAX actions.
+	 *
+	 * @return array<string,array<string,string>>
+	 */
 	protected function get_ajax_actions() {
 		return [
 			'get_hash_statistics'  => [ 'callback' => 'get_hash_statistics' ],
@@ -48,8 +56,9 @@ class Media_Hash_Controller extends Base_Controller {
 		$batch_size = absint( $this->get_request_param( 'batch_size', 50 ) );
 		$offset     = absint( $this->get_request_param( 'offset', 0 ) );
 
-		// Limit batch size for performance
+		// Limit batch size for performance.
 		$batch_size = min( $batch_size, 100 );
+		$batch_size = max( $batch_size, 1 );
 
 		$result = Media_Hash::bulk_add_hashes( $batch_size, $offset );
 
@@ -68,7 +77,7 @@ class Media_Hash_Controller extends Base_Controller {
 		$this->validate_required_params( [ 'file_path' ] );
 		$file_path = $this->get_request_param( 'file_path' );
 
-		// Security: validate file path is within uploads directory
+		// Security: validate file path is within uploads directory.
 		$upload_dir = wp_upload_dir();
 		$base_dir   = $upload_dir['basedir'];
 		$real_path  = realpath( $file_path );

@@ -20,9 +20,58 @@ class Settings_Controller extends Base_Controller {
 	 */
 	protected function get_ajax_actions() {
 		return [
-			'settings_save'     => [ 'callback' => 'save_settings' ],
-			'dismiss_pro_promo' => [ 'callback' => 'dismiss_pro_promo' ],
+			'settings_save'          => [ 'callback' => 'save_settings' ],
+			'dismiss_pro_promo'      => [ 'callback' => 'dismiss_pro_promo' ],
+			'test_openai_connection' => [ 'callback' => 'test_openai_connection' ],
 		];
+	}
+
+	/**
+	 * Verify the configured OpenAI credential with a lightweight API request.
+	 *
+	 * @return void
+	 */
+	public function test_openai_connection() {
+		$verify = $this->verify_request( 'test_openai_connection' );
+		if ( is_wp_error( $verify ) ) {
+			$this->send_error( $verify, null, 403 );
+		}
+
+		$submitted_key = trim( (string) $this->get_request_param( 'api_key', '' ) );
+		$api_key       = false === strpos( $submitted_key, '...' ) ? $submitted_key : '';
+		if ( '' === $api_key ) {
+			$api_key = \RockStarLab\ImportExport\Helper\OpenAI_API_Key::get_api_key();
+		}
+
+		if ( '' === $api_key ) {
+			$this->send_error( __( 'No OpenAI API key is configured.', 'import-export-by-rockstarlab' ), null, 400 );
+		}
+
+		$response = wp_remote_get(
+			'https://api.openai.com/v1/models',
+			[
+				'timeout' => 15,
+				'headers' => [
+					'Authorization' => 'Bearer ' . $api_key,
+					'Accept'        => 'application/json',
+				],
+			]
+		);
+
+		if ( is_wp_error( $response ) ) {
+			$this->send_error( $response->get_error_message(), null, 502 );
+		}
+
+		$status = (int) wp_remote_retrieve_response_code( $response );
+		if ( $status < 200 || $status >= 300 ) {
+			$body    = json_decode( wp_remote_retrieve_body( $response ), true );
+			$message = is_array( $body ) && ! empty( $body['error']['message'] )
+				? sanitize_text_field( $body['error']['message'] )
+				: __( 'OpenAI rejected the connection request.', 'import-export-by-rockstarlab' );
+			$this->send_error( $message, null, $status > 0 ? $status : 502 );
+		}
+
+		$this->send_success( [ 'message' => __( 'Connection successful', 'import-export-by-rockstarlab' ) ] );
 	}
 
 	/**

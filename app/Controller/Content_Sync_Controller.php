@@ -1984,7 +1984,7 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		// Always store the actual hash (covers missing file_hash in request).
-		update_post_meta( $attachment_id, '_rsl_ie_file_hash', $actual_hash );
+		\RockStarLab\ImportExport\Helper\Media_Hash::store_attachment_hash( $attachment_id, $actual_hash, $upload['file'] );
 
 		return $attachment_id;
 	}
@@ -1992,7 +1992,7 @@ class Content_Sync_Controller extends Base_Controller {
 	/**
 	 * Find attachment by file hash
 	 *
-	 * First checks for a stored _rsl_ie_file_hash meta (fast).
+	 * First checks the shared media hash index (fast).
 	 * Falls back to scanning all attachments on disk so that images already
 	 * present in the library (uploaded manually or before hash storage was
 	 * introduced) are detected and not duplicated.
@@ -2001,48 +2001,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * @return int|false Attachment ID or false if not found
 	 */
 	private function find_attachment_by_hash( $file_hash ) {
-		global $wpdb;
-
-		// Fast path: look up stored hash meta.
-		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			$wpdb->prepare(
-				"SELECT post_id FROM {$wpdb->postmeta}
-				WHERE meta_key = '_rsl_ie_file_hash'
-				AND meta_value = %s
-				LIMIT 1",
-				$file_hash
-			)
-		);
-
-		if ( $attachment_id ) {
-			return (int) $attachment_id;
-		}
-
-		// Slow fallback: hash every attachment file on disk.
-		// This handles images that existed before _rsl_ie_file_hash was stored
-		// (e.g. manually uploaded or imported by another plugin).
-		$all_attachment_ids = get_posts(
-			array(
-				'post_type'      => 'attachment',
-				'post_status'    => 'any',
-				'posts_per_page' => -1,
-				'fields'         => 'ids',
-			)
-		);
-
-		foreach ( $all_attachment_ids as $att_id ) {
-			$file_path = get_attached_file( $att_id );
-			if ( $file_path && file_exists( $file_path ) ) {
-				$hash = md5_file( $file_path );
-				if ( $hash === $file_hash ) {
-					// Cache the hash so future lookups are instant.
-					update_post_meta( $att_id, '_rsl_ie_file_hash', $file_hash );
-					return $att_id;
-				}
-			}
-		}
-
-		return false;
+		return \RockStarLab\ImportExport\Helper\Media_Hash::get_attachment_by_hash( $file_hash, true );
 	}
 
 	/**

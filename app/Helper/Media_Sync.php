@@ -172,24 +172,14 @@ class Media_Sync {
 	 */
 	protected static function check_duplicate_by_hash( $file_path ) {
 		$hash = md5_file( $file_path );
+		if ( ! $hash ) {
+			return false;
+		}
 
-		// First check our custom meta
-		$args = [
-			'post_type'      => 'attachment',
-			'post_status'    => 'inherit',
-			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-				[
-					'key'   => 'rsl_ie_file_hash',
-					'value' => $hash,
-				],
-			],
-			'fields'         => 'ids',
-			'posts_per_page' => 1,
-		];
-
-		$query = new \WP_Query( $args );
-		if ( $query->have_posts() ) {
-			return (int) $query->posts[0];
+		// Use the shared index before the legacy filename-based fallback.
+		$indexed_attachment = Media_Hash::get_attachment_by_hash( $hash );
+		if ( $indexed_attachment ) {
+			return $indexed_attachment;
 		}
 
 		// Fallback: check all attachments and compare their file hashes
@@ -208,6 +198,7 @@ class Media_Sync {
 				$existing_file = get_attached_file( $attachment_id );
 				if ( $existing_file && file_exists( $existing_file ) ) {
 					if ( md5_file( $existing_file ) === $hash ) {
+						Media_Hash::store_attachment_hash( $attachment_id, $hash, $existing_file );
 						return (int) $attachment_id;
 					}
 				}
@@ -396,8 +387,7 @@ class Media_Sync {
 
 		// Store metadata for duplicate detection.
 		$hash = md5_file( $dest_path );
-		update_post_meta( $attach_id, 'rsl_ie_file_hash', $hash );
-		update_post_meta( $attach_id, 'rsl_ie_file_size', filesize( $dest_path ) );
+		Media_Hash::store_attachment_hash( $attach_id, $hash, $dest_path );
 		update_post_meta( $attach_id, 'rsl_ie_original_path', $file_path );
 
 		// Assign to Real Media Library folder if requested.
