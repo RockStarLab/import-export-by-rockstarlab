@@ -9,6 +9,8 @@
 
 namespace RockStarLab\ImportExport\Model\Queue;
 
+use RockStarLab\ImportExport\Helper\Ajax_Security;
+
 use RockStarLab\ImportExport\Model\Job;
 use RockStarLab\ImportExport\Helper\Progress_Tracker;
 
@@ -458,15 +460,14 @@ class Background_Processor {
 		wp_remote_post(
 			admin_url( 'admin-ajax.php' ),
 			array(
-				'timeout'   => 0.01,
-				'blocking'  => false,
-				'sslverify' => false,
-				'body'      => array(
+				'timeout'  => 0.01,
+				'blocking' => false,
+				'body'     => array(
 					'action' => 'rsl_ie_process_media_sync_batch',
-					'nonce'  => wp_create_nonce( 'rsl_ie_nonce' ),
+					'nonce'  => Ajax_Security::create_nonce( 'rsl_ie_process_media_sync_batch' ),
 					'job_id' => $job_id,
 				),
-				'cookies'   => $this->get_auth_cookies_for_request(),
+				'cookies'  => $this->get_auth_cookies_for_request(),
 			)
 		);
 	}

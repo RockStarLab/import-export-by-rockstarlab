@@ -14,6 +14,7 @@ use RockStarLab\ImportExport\Model\Export\Exporter_Factory;
 use RockStarLab\ImportExport\Model\Format\Format_Factory;
 use RockStarLab\ImportExport\Model\Queue\Export_Processor;
 use RockStarLab\ImportExport\Helper\Fs;
+use RockStarLab\ImportExport\Helper\Ajax_Security;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -68,7 +69,7 @@ class Export_Controller extends Base_Controller {
 	 * Get count of items available for export
 	 */
 	public function get_count() {
-		$verification = $this->verify_request( 'export_count' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -105,7 +106,7 @@ class Export_Controller extends Base_Controller {
 	 * Get preview of export data
 	 */
 	public function get_preview() {
-		$verification = $this->verify_request( 'export_preview' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -154,7 +155,7 @@ class Export_Controller extends Base_Controller {
 	 * Start export
 	 */
 	public function start_export() {
-		$verification = $this->verify_request( 'export_start' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -236,7 +237,7 @@ class Export_Controller extends Base_Controller {
 	 * Get export progress
 	 */
 	public function get_progress() {
-		$verification = $this->verify_request( 'export_progress' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -348,7 +349,7 @@ class Export_Controller extends Base_Controller {
 	 * Download export file
 	 */
 	public function download_file() {
-		$verification = $this->verify_request( 'export_download' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -386,6 +387,7 @@ class Export_Controller extends Base_Controller {
 				'action'   => 'rsl_ie_secure_download',
 				'job_id'   => $job_id,
 				'_wpnonce' => $download_nonce,
+				'nonce'    => Ajax_Security::create_nonce( 'rsl_ie_secure_download' ),
 			],
 			admin_url( 'admin-ajax.php' )
 		);
@@ -405,7 +407,7 @@ class Export_Controller extends Base_Controller {
 	 */
 	public function secure_download() {
 		// Verify nonce
-		$job_id = isset( $_GET['job_id'] ) ? (int) $_GET['job_id'] : 0;
+		$job_id = isset( $_GET['job_id'] ) ? absint( wp_unslash( $_GET['job_id'] ) ) : 0;
 		$nonce  = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
 
 		if ( ! wp_verify_nonce( $nonce, 'rsl_ie_download_' . $job_id ) ) {
@@ -454,7 +456,7 @@ class Export_Controller extends Base_Controller {
 	 * Cancel export
 	 */
 	public function cancel_export() {
-		$verification = $this->verify_request( 'export_cancel' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -480,7 +482,7 @@ class Export_Controller extends Base_Controller {
 	 * Process export batch (called via AJAX for async processing)
 	 */
 	public function process_export_batch() {
-		$verification = $this->verify_request( 'export_process_batch' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -665,7 +667,7 @@ class Export_Controller extends Base_Controller {
 	 * Get all registered post types
 	 */
 	public function get_post_types() {
-		$verification = $this->verify_request( 'export_get_post_types' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -714,7 +716,7 @@ class Export_Controller extends Base_Controller {
 	 * Get database tables
 	 */
 	public function get_database_tables() {
-		$verification = $this->verify_request( 'export_count' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -741,7 +743,7 @@ class Export_Controller extends Base_Controller {
 	 * Get table columns with types
 	 */
 	public function get_table_columns() {
-		$verification = $this->verify_request( 'export_count' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -810,7 +812,7 @@ class Export_Controller extends Base_Controller {
 	 * Get taxonomies for a post type
 	 */
 	public function get_taxonomies() {
-		$verification = $this->verify_request( 'export_fields' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -835,7 +837,7 @@ class Export_Controller extends Base_Controller {
 	 * Get all registered taxonomies
 	 */
 	public function get_all_taxonomies() {
-		$verification = $this->verify_request( 'export_fields' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -868,7 +870,7 @@ class Export_Controller extends Base_Controller {
 	 * Get custom fields for a post type
 	 */
 	public function get_custom_fields() {
-		$verification = $this->verify_request( 'export_fields' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -917,7 +919,7 @@ class Export_Controller extends Base_Controller {
 	 * Get ACF fields for a post type
 	 */
 	public function get_acf_fields() {
-		$verification = $this->verify_request( 'export_fields' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -1083,7 +1085,7 @@ class Export_Controller extends Base_Controller {
 	 * Get Yoast SEO fields
 	 */
 	public function get_yoast_fields() {
-		$verification = $this->verify_request( 'export_fields' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}

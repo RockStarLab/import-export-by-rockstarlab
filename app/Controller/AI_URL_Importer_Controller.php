@@ -84,7 +84,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 	 * Test OpenAI connection
 	 */
 	public function test_connection() {
-		$verification = $this->verify_request( 'ai_url_importer' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -113,7 +113,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 	 * Preview content from a single URL
 	 */
 	public function preview_url() {
-		$verification = $this->verify_request( 'ai_url_importer' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -123,11 +123,11 @@ class AI_URL_Importer_Controller extends Base_Controller {
 			$this->send_error( $availability, null, 403 );
 		}
 
-		$url = isset( $_POST['url'] ) ? esc_url_raw( $_POST['url'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request()
+		$url = esc_url_raw( $this->get_request_param( 'url', '', 'post' ) );
 
-		if ( empty( $url ) ) {
+		if ( empty( $url ) || ! wp_http_validate_url( $url ) ) {
 			$this->send_error(
-				new \WP_Error( 'missing_url', __( 'URL is required', 'import-export-by-rockstarlab' ) )
+				new \WP_Error( 'invalid_url', __( 'Enter a valid public HTTP or HTTPS URL.', 'import-export-by-rockstarlab' ) )
 			);
 		}
 
@@ -145,12 +145,15 @@ class AI_URL_Importer_Controller extends Base_Controller {
 	 * Get ACF fields for a post type
 	 */
 	public function get_acf_fields() {
-		$verification = $this->verify_request( 'ai_url_importer' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		$post_type = isset( $_POST['post_type'] ) ? sanitize_text_field( wp_unslash( $_POST['post_type'] ) ) : 'post'; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request()
+		$post_type = sanitize_key( $this->get_request_param( 'post_type', 'post', 'post' ) );
+		if ( ! post_type_exists( $post_type ) ) {
+			$post_type = 'post';
+		}
 
 		// Check if ACF is active
 		if ( ! function_exists( 'acf_get_field_groups' ) ) {
@@ -247,7 +250,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 	 * Get available post types
 	 */
 	public function get_post_types() {
-		$verification = $this->verify_request( 'ai_url_importer' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -281,7 +284,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 	 * Start import job
 	 */
 	public function start_import() {
-		$verification = $this->verify_request( 'ai_url_importer' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -292,12 +295,24 @@ class AI_URL_Importer_Controller extends Base_Controller {
 		}
 
 		// Get parameters
-		$urls              = isset( $_POST['urls'] ) ? array_map( 'esc_url_raw', $_POST['urls'] ) : array(); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request()
-		$post_type         = isset( $_POST['post_type'] ) ? sanitize_text_field( wp_unslash( $_POST['post_type'] ) ) : 'post'; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request()
-		$content_field     = isset( $_POST['content_field'] ) ? sanitize_text_field( wp_unslash( $_POST['content_field'] ) ) : 'post_content'; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request()
-		$timeout           = isset( $_POST['timeout'] ) ? absint( $_POST['timeout'] ) : 2; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified via verify_request().
-		$acf_field         = isset( $_POST['acf_field'] ) ? sanitize_text_field( wp_unslash( $_POST['acf_field'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request()
-		$custom_field_name = isset( $_POST['custom_field_name'] ) ? sanitize_text_field( wp_unslash( $_POST['custom_field_name'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request()
+		$urls              = array_values(
+			array_filter(
+				array_map( 'esc_url_raw', $this->get_request_array( 'urls' ) ),
+				'wp_http_validate_url'
+			)
+		);
+		$post_type         = sanitize_key( $this->get_request_param( 'post_type', 'post', 'post' ) );
+		$content_field     = sanitize_key( $this->get_request_param( 'content_field', 'post_content', 'post' ) );
+		$timeout           = max( 1, min( 60, absint( $this->get_request_param( 'timeout', 2, 'post' ) ) ) );
+		$acf_field         = sanitize_key( $this->get_request_param( 'acf_field', '', 'post' ) );
+		$custom_field_name = sanitize_key( $this->get_request_param( 'custom_field_name', '', 'post' ) );
+
+		if ( ! post_type_exists( $post_type ) ) {
+			$post_type = 'post';
+		}
+		if ( ! in_array( $content_field, array( 'post_content', 'acf_field', 'custom_field' ), true ) ) {
+			$content_field = 'post_content';
+		}
 
 		if ( empty( $urls ) ) {
 			$this->send_error(
@@ -353,7 +368,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 	 * Process next batch of URLs
 	 */
 	public function process_batch() {
-		$verification = $this->verify_request( 'ai_url_importer' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -364,7 +379,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 		}
 
 		// Get job ID
-		$job_id = isset( $_POST['job_id'] ) ? absint( $_POST['job_id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified via verify_request().
+		$job_id = absint( $this->get_request_param( 'job_id', 0, 'post' ) );
 
 		if ( ! $job_id ) {
 			$this->send_error(
@@ -387,13 +402,13 @@ class AI_URL_Importer_Controller extends Base_Controller {
 	 * Get import progress
 	 */
 	public function get_progress() {
-		$verification = $this->verify_request( 'ai_url_importer' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
 
 		// Get job ID
-		$job_id = isset( $_POST['job_id'] ) ? absint( $_POST['job_id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified via verify_request().
+		$job_id = absint( $this->get_request_param( 'job_id', 0, 'post' ) );
 
 		if ( ! $job_id ) {
 			$this->send_error(

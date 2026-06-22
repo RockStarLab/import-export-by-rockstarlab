@@ -44,7 +44,7 @@ class Functions_Controller extends Base_Controller {
 	 * Returns only active functions without pagination
 	 */
 	public function get_functions_list() {
-		$verify = $this->verify_request( 'nonce' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -97,7 +97,7 @@ class Functions_Controller extends Base_Controller {
 	 * Get all functions
 	 */
 	public function get_all_functions() {
-		$verify = $this->verify_request( 'nonce' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -211,7 +211,7 @@ class Functions_Controller extends Base_Controller {
 		 * Get single function
 		 */
 	public function get_function() {
-		$verify = $this->verify_request( 'nonce' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -268,19 +268,21 @@ class Functions_Controller extends Base_Controller {
 	/**
 	 * Create new function
 	 */
-	public function create_function() {
-		$verify = $this->verify_request( 'nonce' );
+	public function create_function( $code_ajax_action = 'rsl_ie_functions_create' ) {
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
 
 		$name        = $this->get_request_param( 'name', '' );
 		$description = $this->get_request_param( 'description', '' );
-		// Don't use get_request_param for code - it uses sanitize_text_field which removes newlines
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$code     = isset( $_REQUEST['code'] ) ? wp_unslash( $_REQUEST['code'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Input is handled/validated via verify_request(). -- Nonce verified via verify_request().
-		$category = $this->get_request_param( 'category', 'custom' );
-		$status   = $this->get_request_param( 'status', 'active' );
+		$code        = $this->get_validated_code( $code_ajax_action );
+		$category    = $this->get_request_param( 'category', 'custom' );
+		$status      = $this->get_request_param( 'status', 'active' );
+
+		if ( is_wp_error( $code ) ) {
+			$this->send_error( $code );
+		}
 
 		if ( empty( $name ) || empty( $code ) ) {
 			$this->send_error( __( 'Name and code are required', 'import-export-by-rockstarlab' ) );
@@ -328,7 +330,7 @@ class Functions_Controller extends Base_Controller {
 	 * Update existing function
 	 */
 	public function update_function() {
-		$verify = $this->verify_request( 'nonce' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -342,7 +344,7 @@ class Functions_Controller extends Base_Controller {
 		// If trying to update a library snippet, create a new custom function instead
 		if ( strpos( $function_id, 'snippet_' ) === 0 ) {
 			// Redirect to create_function logic
-			$this->create_function();
+			$this->create_function( 'rsl_ie_functions_update' );
 			return;
 		}
 
@@ -379,9 +381,10 @@ class Functions_Controller extends Base_Controller {
 			$update_data['description'] = $description;
 		}
 
-		// Don't use get_request_param for code - it uses sanitize_text_field which removes newlines
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$code = isset( $_REQUEST['code'] ) ? wp_unslash( $_REQUEST['code'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Input is handled/validated via verify_request(). -- Nonce verified via verify_request().
+		$code = $this->get_validated_code( 'rsl_ie_functions_update', true );
+		if ( is_wp_error( $code ) ) {
+			$this->send_error( $code );
+		}
 		if ( ! empty( $code ) ) {
 			$update_data['code'] = $code;
 		}
@@ -424,7 +427,7 @@ class Functions_Controller extends Base_Controller {
 	 * Delete function
 	 */
 	public function delete_function() {
-		$verify = $this->verify_request( 'nonce' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -465,15 +468,17 @@ class Functions_Controller extends Base_Controller {
 	 * Test function with sample value
 	 */
 	public function test_function() {
-		$verify = $this->verify_request( 'nonce' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
 
-		// Don't use get_request_param for code - it uses sanitize_text_field which removes newlines
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$code  = isset( $_REQUEST['code'] ) ? wp_unslash( $_REQUEST['code'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Input is handled/validated via verify_request(). -- Nonce verified via verify_request().
+		$code  = $this->get_validated_code( 'rsl_ie_functions_test' );
 		$value = $this->get_request_param( 'value', '' );
+
+		if ( is_wp_error( $code ) ) {
+			$this->send_error( $code );
+		}
 
 		if ( empty( $code ) ) {
 			$this->send_error( __( 'Code is required', 'import-export-by-rockstarlab' ) );
@@ -498,7 +503,7 @@ class Functions_Controller extends Base_Controller {
 	 * Test function pipeline with multiple functions
 	 */
 	public function test_function_pipeline() {
-		$verify = $this->verify_request( 'nonce' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -611,7 +616,7 @@ class Functions_Controller extends Base_Controller {
 	 * Get all snippets from library
 	 */
 	public function get_snippets() {
-		$verify = $this->verify_request( 'nonce' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -646,7 +651,7 @@ class Functions_Controller extends Base_Controller {
 	 * Search snippets
 	 */
 	public function search_snippets() {
-		$verify = $this->verify_request( 'nonce' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -679,7 +684,7 @@ class Functions_Controller extends Base_Controller {
 	 * Import snippet as function
 	 */
 	public function import_snippet() {
-		$verify = $this->verify_request( 'nonce' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -720,7 +725,7 @@ class Functions_Controller extends Base_Controller {
 	 * Generate function code with AI
 	 */
 	public function generate_function_with_ai() {
-		$verify = $this->verify_request( 'nonce' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -748,5 +753,29 @@ class Functions_Controller extends Base_Controller {
 				'description' => $result['description'] ?? '',
 			]
 		);
+	}
+
+	/**
+	 * Read PHP transformation code without destroying formatting and validate it
+	 * before it reaches persistence or execution.
+	 *
+	 * @param string $ajax_action Full AJAX action.
+	 * @param bool   $allow_empty  Whether an omitted value is valid.
+	 * @return string|\WP_Error
+	 */
+	private function get_validated_code( $ajax_action, $allow_empty = false ) {
+		check_ajax_referer( \RockStarLab\ImportExport\Helper\Ajax_Security::nonce_action( $ajax_action ), 'nonce' );
+
+		$code = isset( $_POST['code'] ) && is_string( $_POST['code'] ) ? wp_unslash( $_POST['code'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- PHP source must retain syntax and is parsed/validated below.
+		$code = str_replace( "\0", '', $code );
+
+		if ( '' === trim( $code ) ) {
+			return $allow_empty ? '' : new \WP_Error( 'missing_code', __( 'Code is required', 'import-export-by-rockstarlab' ) );
+		}
+
+		$executor   = new \RockStarLab\ImportExport\Helper\Function_Executor();
+		$validation = $executor->validate_function_code( html_entity_decode( $code, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) );
+
+		return true === $validation ? $code : $validation;
 	}
 }

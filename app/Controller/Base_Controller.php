@@ -9,6 +9,8 @@
 
 namespace RockStarLab\ImportExport\Controller;
 
+use RockStarLab\ImportExport\Helper\Ajax_Security;
+
 defined( 'ABSPATH' ) || exit;
 
 abstract class Base_Controller {
@@ -26,6 +28,13 @@ abstract class Base_Controller {
 	protected $required_capability = 'manage_options';
 
 	/**
+	 * Full AJAX action currently being dispatched.
+	 *
+	 * @var string
+	 */
+	private $current_ajax_action = '';
+
+	/**
 	 * Initialize controller
 	 *
 	 * Registers AJAX hooks for both admin and non-admin users.
@@ -37,12 +46,27 @@ abstract class Base_Controller {
 			$callback = $config['callback'] ?? $action;
 			$nopriv   = $config['nopriv'] ?? false;
 
+			$full_action = self::AJAX_PREFIX . $action;
+			Ajax_Security::register_action( $full_action );
+
+			// Bind the verified action on the server instead of trusting request data.
+			$dispatcher = function () use ( $full_action, $callback ) {
+				$this->current_ajax_action = $full_action;
+				if ( ! Ajax_Security::verify_nonce( $full_action ) ) {
+					wp_send_json_error( array( 'message' => __( 'Security check failed', 'import-export-by-rockstarlab' ) ), 403 );
+				}
+				if ( ! current_user_can( $this->required_capability ) ) {
+					wp_send_json_error( array( 'message' => __( 'You do not have permission to perform this action', 'import-export-by-rockstarlab' ) ), 403 );
+				}
+				call_user_func( array( $this, $callback ) );
+			};
+
 			// Admin AJAX
-			add_action( 'wp_ajax_' . self::AJAX_PREFIX . $action, [ $this, $callback ] );
+			add_action( 'wp_ajax_' . $full_action, $dispatcher );
 
 			// Non-admin AJAX (if allowed)
 			if ( $nopriv ) {
-				add_action( 'wp_ajax_nopriv_' . self::AJAX_PREFIX . $action, [ $this, $callback ] );
+				add_action( 'wp_ajax_nopriv_' . $full_action, $dispatcher );
 			}
 		}
 	}
@@ -61,15 +85,11 @@ abstract class Base_Controller {
 	 *
 	 * Checks nonce and user capabilities.
 	 *
-	 * @param string $action     Action name for nonce verification
 	 * @param string $capability Optional. Required capability (default: from property)
 	 * @return true|WP_Error True if valid or WP_Error
 	 */
-	protected function verify_request( $action, $capability = null ) {
-		// Check nonce - using general rsl_ie_nonce instead of action-specific
-		$nonce = $this->get_request_param( 'nonce', '' );
-
-		if ( ! wp_verify_nonce( $nonce, 'rsl_ie_nonce' ) ) {
+	protected function verify_request( $capability = null ) {
+		if ( ! Ajax_Security::verify_nonce( $this->current_ajax_action ) ) {
 			return new \WP_Error( 'invalid_nonce', __( 'Security check failed', 'import-export-by-rockstarlab' ) );
 		}
 
@@ -91,6 +111,10 @@ abstract class Base_Controller {
 	 * @return mixed Parameter value
 	 */
 	protected function get_request_param( $key, $default = null, $method = 'request' ) {
+		if ( '' !== $this->current_ajax_action ) {
+			check_ajax_referer( Ajax_Security::nonce_action( $this->current_ajax_action ), 'nonce' );
+		}
+
 		switch ( strtolower( $method ) ) {
 			case 'get':
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -114,13 +138,14 @@ abstract class Base_Controller {
 	 * @return array Parameter value
 	 */
 	protected function get_request_array( $key, $default = [] ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		// This accessor is only used by AJAX handlers after verify_request(). Keep
+		// the nonce check adjacent to the raw array input for security scanners.
+		check_ajax_referer( Ajax_Security::nonce_action( $this->current_ajax_action ), 'nonce' );
+
 		if ( ! isset( $_REQUEST[ $key ] ) ) {
 			return $default;
 		}
- // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Input is handled/validated via verify_request(). -- Input is sanitized and validated in context.
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$value = wp_unslash( $_REQUEST[ $key ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.NonceVerification.Recommended
+		$value = wp_unslash( $_REQUEST[ $key ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Recursively sanitized below.
 
 		if ( ! is_array( $value ) ) {
 			return $default;
@@ -140,12 +165,12 @@ abstract class Base_Controller {
 		$sanitized = [];
 
 		foreach ( $array as $key => $value ) {
-			$sanitized_key = sanitize_text_field( wp_unslash( $key ) );
+			$sanitized_key = sanitize_text_field( $key );
 
 			if ( is_array( $value ) ) {
 				$sanitized[ $sanitized_key ] = $this->sanitize_array( $value );
 			} else {
-				$sanitized[ $sanitized_key ] = sanitize_text_field( wp_unslash( $value ) );
+				$sanitized[ $sanitized_key ] = sanitize_text_field( $value );
 			}
 		}
 
@@ -209,6 +234,8 @@ abstract class Base_Controller {
 	 * @return true|WP_Error True if valid or WP_Error with missing params
 	 */
 	protected function validate_required_params( $required ) {
+		check_ajax_referer( Ajax_Security::nonce_action( $this->current_ajax_action ), 'nonce' );
+
 		$missing = [];
 
 		foreach ( $required as $param ) {

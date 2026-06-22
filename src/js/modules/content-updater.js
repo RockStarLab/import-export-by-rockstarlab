@@ -2741,17 +2741,27 @@ const ContentUpdater = {
 			url: rslIeData.ajaxUrl,
 			method: 'POST',
 			data: {
-				action: 'rsl_ie_functions_execute',
+				action: 'rsl_ie_test_function_pipeline',
 				nonce: rslIeData.nonce,
-				function_id: functionId,
-				input_value: testValue,
+				functions: [ functionId ],
+				value: testValue,
 			},
 			success: ( response ) => {
 				if ( response.success ) {
+					const steps = response.data.steps || [];
+					const lastStep = steps[ steps.length - 1 ];
+					if ( ! lastStep || lastStep.error ) {
+						Utils.showNotice(
+							lastStep?.output ||
+								window.rslIeData.i18n.functionTestFailed,
+							'error'
+						);
+						return;
+					}
 					const outputText =
 						window.rslIeData.i18n.functionOutput.replace(
 							'%s',
-							response.data.output
+							lastStep.output
 						);
 					alert( outputText );
 				} else {

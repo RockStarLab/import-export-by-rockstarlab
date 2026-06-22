@@ -132,7 +132,7 @@ class AI_Content_Extractor {
 	 * @return string|\\WP_Error HTML content or error
 	 */
 	private function fetch_url_content( $url ) {
-		$response = wp_remote_get(
+		$response = wp_safe_remote_get(
 			$url,
 			array(
 				'timeout'    => 30,

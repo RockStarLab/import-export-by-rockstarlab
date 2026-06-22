@@ -9,6 +9,8 @@
 
 namespace RockStarLab\ImportExport\Controller;
 
+use RockStarLab\ImportExport\Helper\Ajax_Security;
+
 defined( 'ABSPATH' ) or exit;
 
 class Init {
@@ -265,7 +267,7 @@ class Init {
 			'rslIeData',
 			array(
 				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
-				'nonce'            => wp_create_nonce( 'rsl_ie_nonce' ),
+				'nonces'           => Ajax_Security::get_nonces(),
 				'pluginUrl'        => plugins_url( '', RSL_IE_FILE ),
 				'adminUrl'         => admin_url(),
 				'functionsUrl'     => admin_url( 'admin.php?page=rsl-ie-functions' ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified via verify_request(). -- Input is sanitized and validated in context.
@@ -1050,7 +1052,7 @@ class Init {
 				'import-export-by-rockstarlab-scripts',
 				'rslIeContentSync',
 				array(
-					'nonce'     => wp_create_nonce( 'rsl_ie_nonce' ),
+					'nonces'    => Ajax_Security::get_nonces(),
 					'isPremium' => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active(),
 				)
 			);

@@ -5,9 +5,6 @@
  * Shows a beautiful notice asking users to leave a 5-star review on WordPress.org.
  * Appears only on plugin pages, 1 week after installation.
  *
- * 🔑 Secret test URL (bypass the 1-week wait):
- *    admin_url( 'admin.php?page=import-export-by-rockstarlab&rsl_ie_review_test=1' )
- *
  * @package RockStarLab\ImportExport\Helper
  */
 
@@ -74,19 +71,14 @@ class Review_Notice {
 	 * Check whether the current admin screen belongs to this plugin.
 	 */
 	private static function is_plugin_page(): bool {
-		$page = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified via verify_request().
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin screen routing.
 		return in_array( $page, self::$plugin_pages, true );
 	}
 
 	/**
-	 * Check if enough time has passed (or the secret test param is present).
+	 * Check if enough time has passed.
 	 */
 	private static function is_ready_to_show(): bool {
-		// 🔑 Secret test bypass: ?rsl_ie_review_test=1
-		if ( isset( $_GET['rsl_ie_review_test'] ) && '1' === $_GET['rsl_ie_review_test'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified via verify_request().
-			return true;
-		}
-
 		$install_date = (int) get_option( self::OPTION_INSTALL_DATE, 0 );
 
 		if ( ! $install_date ) {
@@ -106,14 +98,7 @@ class Review_Notice {
 			return;
 		}
 
-		$is_test = isset( $_GET['rsl_ie_review_test'] ) && '1' === $_GET['rsl_ie_review_test']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified via verify_request().
-
-		// 🔑 Test mode: wipe dismiss flag so the notice always appears
-		if ( $is_test ) {
-			delete_option( self::OPTION_DISMISSED );
-		}
-
-		if ( ! $is_test && get_option( self::OPTION_DISMISSED ) ) {
+		if ( get_option( self::OPTION_DISMISSED ) ) {
 			return;
 		}
 

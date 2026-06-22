@@ -702,45 +702,6 @@ export default class ExportStep3 {
 	}
 
 	/**
-	 * Load fields for a specific group
-	 */
-	loadGroupFields( group ) {
-		if ( group === 'wordpress' ) {
-			// Already loaded in HTML
-			return;
-		}
-
-		const content = document.querySelector( `[data-group="${ group }"]` );
-		if ( ! content ) return;
-
-		// Check if already loaded
-		if ( content.dataset.loaded === 'true' ) return;
-
-		// Check if rslIeData is available
-		if ( typeof rslIeData === 'undefined' ) {
-			return;
-		}
-
-		// Make AJAX request to load fields
-		jQuery.ajax( {
-			url: rslIeData.ajaxUrl,
-			method: 'POST',
-			data: {
-				action: 'rsl_ie_get_field_group',
-				nonce: rslIeData.nonce,
-				group: group,
-				content_type: this.getCurrentContentType(),
-			},
-			success: ( response ) => {
-				if ( response.success && response.data.fields ) {
-					this.renderGroupFields( content, response.data.fields );
-					content.dataset.loaded = 'true';
-				}
-			},
-		} );
-	}
-
-	/**
 	 * Render fields for a group
 	 */
 	renderGroupFields( container, fields ) {

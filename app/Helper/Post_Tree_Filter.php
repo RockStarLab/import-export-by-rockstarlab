@@ -161,7 +161,6 @@ class Post_Tree_Filter {
 					'fields'                 => 'ids',
 					'orderby'                => 'ID',
 					'order'                  => 'ASC',
-					'suppress_filters'       => true,
 					'no_found_rows'          => true,
 					'update_post_meta_cache' => false,
 					'update_post_term_cache' => false,
