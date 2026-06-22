@@ -9,6 +9,8 @@
 
 namespace RockStarLab\ImportExport\Controller;
 
+use RockStarLab\ImportExport\Helper\Ajax_Security;
+
 defined( 'ABSPATH' ) || exit;
 
 use RockStarLab\ImportExport\Model\Connected_Site;
@@ -50,7 +52,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Get all connected sites
 	 */
 	public function get_sites() {
-		$verify = $this->verify_request( 'content_sync_get_sites' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -70,7 +72,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Add new site connection
 	 */
 	public function add_site() {
-		$verify = $this->verify_request( 'content_sync_add_site' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -142,7 +144,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Update site connection
 	 */
 	public function update_site() {
-		$verify = $this->verify_request( 'content_sync_update_site' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -263,7 +265,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Delete site connection
 	 */
 	public function delete_site() {
-		$verify = $this->verify_request( 'content_sync_delete_site' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -297,7 +299,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Regenerate API key for a site
 	 */
 	public function regenerate_key() {
-		$verify = $this->verify_request( 'content_sync_regenerate_key' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -332,7 +334,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Test connection to remote site
 	 */
 	public function test_connection() {
-		$verify = $this->verify_request( 'content_sync_test_connection' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -373,7 +375,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Get this site's API key for incoming connections
 	 */
 	public function get_my_site_key() {
-		$verify = $this->verify_request( 'content_sync_get_my_key' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -403,7 +405,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Regenerate this site's API key
 	 */
 	public function regenerate_my_site_key() {
-		$verify = $this->verify_request( 'content_sync_regenerate_my_key' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -597,8 +599,6 @@ class Content_Sync_Controller extends Base_Controller {
 		);
 
 		// Localize script
-		$nonce = wp_create_nonce( 'rsl_ie_nonce' );
-
 		// Get connected sites for Select2 AJAX
 		$sites     = Connected_Site::get_all();
 		$sites_map = array();
@@ -615,7 +615,7 @@ class Content_Sync_Controller extends Base_Controller {
 			'rsl-ie-post-sync',
 			'rslIePostSyncData',
 			array(
-				'nonce'          => $nonce,
+				'nonces'         => Ajax_Security::get_nonces(),
 				'ajaxurl'        => admin_url( 'admin-ajax.php' ),
 				'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
 				'adminUrl'       => admin_url(),
@@ -713,7 +713,7 @@ class Content_Sync_Controller extends Base_Controller {
 					'rsl-ie-gutenberg-sync',
 					'rslIeData',
 					array(
-						'nonce'        => wp_create_nonce( 'rsl_ie_nonce' ),
+						'nonces'       => Ajax_Security::get_nonces(),
 						'ajaxurl'      => admin_url( 'admin-ajax.php' ),
 						'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
 						'adminUrl'     => admin_url(),
@@ -841,7 +841,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Get list of posts from remote site for mapping
 	 */
 	public function get_remote_posts() {
-		$verify = $this->verify_request( 'content_sync_get_remote_posts' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -929,7 +929,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Get children posts from remote site
 	 */
 	public function get_children_posts() {
-		$verify = $this->verify_request( 'content_sync_get_children_posts' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -1003,7 +1003,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Get local posts info
 	 */
 	public function get_local_posts_info() {
-		$verify = $this->verify_request( 'content_sync_get_local_posts_info' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -1043,7 +1043,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Push content to remote site
 	 */
 	public function push_content() {
-		$verify = $this->verify_request( 'content_sync_push' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -1527,7 +1527,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * Pull content from remote site
 	 */
 	public function pull_content() {
-		$verify = $this->verify_request( 'content_sync_pull' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}

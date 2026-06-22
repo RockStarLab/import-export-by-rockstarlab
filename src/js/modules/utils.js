@@ -20,6 +20,71 @@ const normalizeAjaxAction = ( action ) => {
 	return AJAX_PREFIX + action;
 };
 
+const getActionNonce = ( action, clientData = getClientData() ) => {
+	const normalizedAction = normalizeAjaxAction( action );
+	return clientData?.nonces?.[ normalizedAction ] || '';
+};
+
+// Legacy modules use direct jQuery AJAX calls. Always replace their nonce with
+// the nonce belonging to the actual endpoint so callers cannot accidentally
+// reuse a nonce for another action.
+if ( typeof jQuery !== 'undefined' ) {
+	jQuery.ajaxPrefilter( ( options, originalOptions ) => {
+		const data = originalOptions.data;
+		let action = '';
+
+		if ( typeof FormData !== 'undefined' && data instanceof FormData ) {
+			action = data.get( 'action' ) || '';
+		} else if ( typeof data === 'string' ) {
+			action = new URLSearchParams( data ).get( 'action' ) || '';
+		} else if ( data && typeof data === 'object' ) {
+			action = data.action || '';
+		}
+
+		const nonce = getActionNonce( action );
+		if ( ! nonce ) {
+			return;
+		}
+
+		if (
+			typeof FormData !== 'undefined' &&
+			options.data instanceof FormData
+		) {
+			options.data.set( 'nonce', nonce );
+		} else if ( typeof options.data === 'string' ) {
+			const params = new URLSearchParams( options.data );
+			params.set( 'nonce', nonce );
+			options.data = params.toString();
+		} else if ( options.data && typeof options.data === 'object' ) {
+			options.data.nonce = nonce;
+		}
+	} );
+}
+
+// Fetch-based modules (notably chunk uploads and the code editor) bypass
+// jQuery, so apply the same endpoint-bound nonce rule to their request body.
+if ( typeof window.fetch === 'function' && ! window.rslIeFetchSecured ) {
+	const nativeFetch = window.fetch.bind( window );
+	window.fetch = ( input, init = {} ) => {
+		const body = init.body;
+		let action = '';
+
+		if ( typeof FormData !== 'undefined' && body instanceof FormData ) {
+			action = body.get( 'action' ) || '';
+		} else if ( body instanceof URLSearchParams ) {
+			action = body.get( 'action' ) || '';
+		}
+
+		const nonce = getActionNonce( action );
+		if ( nonce && body && typeof body.set === 'function' ) {
+			body.set( 'nonce', nonce );
+		}
+
+		return nativeFetch( input, init );
+	};
+	window.rslIeFetchSecured = true;
+}
+
 const Utils = {
 	/**
 	 * Make AJAX request
@@ -33,10 +98,11 @@ const Utils = {
 		return new Promise( ( resolve, reject ) => {
 			const clientData = getClientData();
 
+			const normalizedAction = normalizeAjaxAction( action );
 			const ajaxData = {
-				action: normalizeAjaxAction( action ),
-				nonce: clientData?.nonce || '',
 				...data,
+				action: normalizedAction,
+				nonce: getActionNonce( normalizedAction, clientData ),
 			};
 
 			jQuery

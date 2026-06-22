@@ -16,8 +16,21 @@ const normalizeAjaxAction = ( action ) => {
 	return AJAX_PREFIX + action;
 };
 
+const getActionNonce = ( action ) =>
+	window.rslIePostSyncData?.nonces?.[ normalizeAjaxAction( action ) ] || '';
+
 ( function ( $ ) {
 	'use strict';
+
+	$.ajaxPrefilter( ( options, originalOptions ) => {
+		const data = originalOptions.data;
+		const action =
+			data && typeof data === 'object' ? data.action || '' : '';
+		const nonce = getActionNonce( action );
+		if ( nonce && options.data && typeof options.data === 'object' ) {
+			options.data.nonce = nonce;
+		}
+	} );
 
 	const PostSync = {
 		// Flag to track if sync is in progress

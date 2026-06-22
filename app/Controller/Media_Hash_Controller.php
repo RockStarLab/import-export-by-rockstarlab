@@ -35,7 +35,7 @@ class Media_Hash_Controller extends Base_Controller {
 	 * Get statistics about hashed media files
 	 */
 	public function get_hash_statistics() {
-		$verification = $this->verify_request( 'get_hash_statistics' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -48,7 +48,7 @@ class Media_Hash_Controller extends Base_Controller {
 	 * Bulk add hashes to existing media files
 	 */
 	public function bulk_add_hashes() {
-		$verification = $this->verify_request( 'bulk_add_hashes' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -69,7 +69,7 @@ class Media_Hash_Controller extends Base_Controller {
 	 * Check if file is a duplicate based on hash
 	 */
 	public function check_duplicate_hash() {
-		$verification = $this->verify_request( 'check_duplicate_hash' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -83,7 +83,7 @@ class Media_Hash_Controller extends Base_Controller {
 		$real_path  = realpath( $file_path );
 		$real_base  = realpath( $base_dir );
 
-		if ( false === $real_path || false === strpos( $real_path, $real_base ) ) {
+		if ( false === $real_path || false === $real_base || 0 !== strpos( $real_path, trailingslashit( $real_base ) ) ) {
 			$this->send_error(
 				new \WP_Error(
 					'invalid_path',

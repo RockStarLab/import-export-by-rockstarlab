@@ -29,7 +29,7 @@ class Media_Sync_Controller extends Base_Controller {
 	}
 
 	public function scan_folder() {
-		$verification = $this->verify_request( 'scan_folder' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -68,7 +68,7 @@ class Media_Sync_Controller extends Base_Controller {
 	}
 
 	public function start_media_sync() {
-		$verification = $this->verify_request( 'start_media_sync' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -148,7 +148,7 @@ class Media_Sync_Controller extends Base_Controller {
 	}
 
 	public function get_sync_progress() {
-		$verification = $this->verify_request( 'get_sync_progress' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -176,7 +176,7 @@ class Media_Sync_Controller extends Base_Controller {
 	}
 
 	public function pause_media_sync() {
-		$verification = $this->verify_request( 'pause_media_sync' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -191,7 +191,7 @@ class Media_Sync_Controller extends Base_Controller {
 	}
 
 	public function resume_media_sync() {
-		$verification = $this->verify_request( 'resume_media_sync' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -206,7 +206,7 @@ class Media_Sync_Controller extends Base_Controller {
 	}
 
 	public function cancel_media_sync() {
-		$verification = $this->verify_request( 'cancel_media_sync' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -236,7 +236,7 @@ class Media_Sync_Controller extends Base_Controller {
 	 * Process media sync batch (called via AJAX for async processing)
 	 */
 	public function process_media_sync_batch() {
-		$verification = $this->verify_request( 'process_media_sync_batch' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification );
 		}
@@ -258,20 +258,9 @@ class Media_Sync_Controller extends Base_Controller {
 	 */
 	public function browse_folders() {
 		try {
-			// Manual verification using the general nonce
-			$nonce = $this->get_request_param( 'nonce', '' );
-
-			if ( ! wp_verify_nonce( $nonce, 'rsl_ie_nonce' ) ) {
-				$this->send_error(
-					new \WP_Error( 'invalid_nonce', __( 'Security check failed', 'import-export-by-rockstarlab' ) )
-				);
-			}
-
-			// Check capability
-			if ( ! current_user_can( $this->required_capability ) ) {
-				$this->send_error(
-					new \WP_Error( 'insufficient_permissions', __( 'You do not have permission to perform this action', 'import-export-by-rockstarlab' ) )
-				);
+			$verification = $this->verify_request();
+			if ( is_wp_error( $verification ) ) {
+				$this->send_error( $verification, null, 403 );
 			}
 
 			$path = $this->get_request_param( 'path', '' );

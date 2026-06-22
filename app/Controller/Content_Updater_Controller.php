@@ -54,7 +54,7 @@ class Content_Updater_Controller extends Base_Controller {
 	 * Get count of items available for update
 	 */
 	public function get_count() {
-		$verification = $this->verify_request( 'updater_count' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -119,7 +119,7 @@ class Content_Updater_Controller extends Base_Controller {
 	 * Get preview of items to update
 	 */
 	public function get_preview() {
-		$verification = $this->verify_request( 'updater_preview' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -177,7 +177,7 @@ class Content_Updater_Controller extends Base_Controller {
 	 * Start content update process
 	 */
 	public function start_update() {
-		$verification = $this->verify_request( 'updater_start' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -334,7 +334,7 @@ class Content_Updater_Controller extends Base_Controller {
 	 * Process a batch of updates
 	 */
 	public function process_batch() {
-		$verification = $this->verify_request( 'updater_process' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -360,7 +360,7 @@ class Content_Updater_Controller extends Base_Controller {
 	 * Get update progress
 	 */
 	public function get_progress() {
-		$verification = $this->verify_request( 'updater_progress' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -400,7 +400,7 @@ class Content_Updater_Controller extends Base_Controller {
 	 * Cancel update process
 	 */
 	public function cancel_update() {
-		$verification = $this->verify_request( 'updater_cancel' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}

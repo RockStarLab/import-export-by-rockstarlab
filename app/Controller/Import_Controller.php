@@ -42,20 +42,23 @@ class Import_Controller extends Base_Controller {
 	 * Upload and parse file
 	 */
 	public function upload_file() {
-		$verification = $this->verify_request( 'import_upload' );
+		check_ajax_referer( \RockStarLab\ImportExport\Helper\Ajax_Security::nonce_action( 'rsl_ie_import_upload_file' ), 'nonce' );
+
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		if ( empty( $_FILES['file'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified via verify_request().
+		if ( empty( $_FILES['file'] ) || ! is_array( $_FILES['file'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Validated by sanitize_file_upload().
 			$this->send_error( __( 'No file uploaded', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$file = $this->sanitize_file_upload( wp_unslash( $_FILES['file'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce verified via verify_request()
+		$file = $this->sanitize_file_upload( wp_unslash( $_FILES['file'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Uploaded file arrays are validated contextually.
 		if ( is_wp_error( $file ) ) {
 			$this->send_error( $file, null, 400 );
+		}
+		if ( 'csv' !== strtolower( pathinfo( $file['name'], PATHINFO_EXTENSION ) ) ) {
+			$this->send_error( __( 'Invalid file type. Only CSV files are allowed.', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
 		$format = $this->get_request_param( 'format', 'csv' );
@@ -117,7 +120,7 @@ class Import_Controller extends Base_Controller {
 	 * Validate import data
 	 */
 	public function validate_data() {
-		$verification = $this->verify_request( 'import_validate' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -132,6 +135,10 @@ class Import_Controller extends Base_Controller {
 		$mapping     = $this->get_request_array( 'mapping' );
 		$format      = $this->get_request_param( 'format', 'csv' );
 		$delimiter   = $this->get_request_param( 'delimiter', ',' );
+		$file_path   = $this->validate_import_file_path( $file_path, $format );
+		if ( is_wp_error( $file_path ) ) {
+			$this->send_error( $file_path, null, 400 );
+		}
 
 		// Parse file
 		$parser = Format_Factory::create( $format );
@@ -172,7 +179,7 @@ class Import_Controller extends Base_Controller {
 	 * Start import
 	 */
 	public function start_import() {
-		$verification = $this->verify_request( 'import_start' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -188,6 +195,10 @@ class Import_Controller extends Base_Controller {
 		$options     = $this->normalize_post_options( $import_type, $this->get_request_array( 'options' ) );
 		$format      = $this->get_request_param( 'format', 'csv' );
 		$delimiter   = $this->get_request_param( 'delimiter', ',' );
+		$file_path   = $this->validate_import_file_path( $file_path, $format );
+		if ( is_wp_error( $file_path ) ) {
+			$this->send_error( $file_path, null, 400 );
+		}
 
 		// Create job
 		$job_model = rsl_ie()->Model->job;
@@ -226,7 +237,7 @@ class Import_Controller extends Base_Controller {
 	 * Get import progress
 	 */
 	public function get_progress() {
-		$verification = $this->verify_request( 'import_progress' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -277,7 +288,7 @@ class Import_Controller extends Base_Controller {
 	 * Cancel import
 	 */
 	public function cancel_import() {
-		$verification = $this->verify_request( 'import_cancel' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -303,7 +314,7 @@ class Import_Controller extends Base_Controller {
 	 * Process import batch
 	 */
 	public function process_batch() {
-		$verification = $this->verify_request( 'import_process_batch' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -589,7 +600,7 @@ class Import_Controller extends Base_Controller {
 	 * Get ACF fields for import
 	 */
 	public function get_acf_fields() {
-		$verification = $this->verify_request( 'import_fields' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -653,7 +664,7 @@ class Import_Controller extends Base_Controller {
 	 * Get Yoast SEO fields for import
 	 */
 	public function get_yoast_fields() {
-		$verification = $this->verify_request( 'import_fields' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -723,7 +734,7 @@ class Import_Controller extends Base_Controller {
 	 * Get database tables
 	 */
 	public function get_database_tables() {
-		$verification = $this->verify_request( 'import_upload' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -750,7 +761,7 @@ class Import_Controller extends Base_Controller {
 	 * Get table columns with types
 	 */
 	public function get_table_columns() {
-		$verification = $this->verify_request( 'import_upload' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -1016,5 +1027,37 @@ class Import_Controller extends Base_Controller {
 		}
 
 		delete_transient( $key );
+	}
+
+	/**
+	 * Resolve an import file only from plugin-managed upload directories.
+	 *
+	 * @param string $file_path Candidate file path.
+	 * @param string $format    Requested parser format.
+	 * @return string|\WP_Error
+	 */
+	private function validate_import_file_path( $file_path, $format ) {
+		if ( 'csv' !== strtolower( (string) $format ) ) {
+			return new \WP_Error( 'invalid_format', __( 'Only CSV import files are supported.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$real_path = realpath( (string) $file_path );
+		if ( false === $real_path || ! is_file( $real_path ) || 'csv' !== strtolower( pathinfo( $real_path, PATHINFO_EXTENSION ) ) ) {
+			return new \WP_Error( 'invalid_file_path', __( 'Invalid import file path.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$uploads = wp_upload_dir();
+		$allowed = array(
+			realpath( trailingslashit( $uploads['basedir'] ) . 'rsl-ie-uploads' ),
+			realpath( trailingslashit( $uploads['basedir'] ) . 'rsl-ie-imports' ),
+		);
+
+		foreach ( array_filter( $allowed ) as $directory ) {
+			if ( 0 === strpos( $real_path, trailingslashit( $directory ) ) ) {
+				return $real_path;
+			}
+		}
+
+		return new \WP_Error( 'invalid_file_path', __( 'Import file must be inside the plugin upload directory.', 'import-export-by-rockstarlab' ) );
 	}
 }

@@ -11,6 +11,7 @@ namespace RockStarLab\ImportExport\Controller;
 
 use RockStarLab\ImportExport\Model\Job;
 use RockStarLab\ImportExport\Model\Log;
+use RockStarLab\ImportExport\Helper\Ajax_Security;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -99,7 +100,7 @@ class Job_Controller extends Base_Controller {
 	 * List jobs
 	 */
 	public function list_jobs() {
-		$verification = $this->verify_request( 'job_list' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -182,7 +183,7 @@ class Job_Controller extends Base_Controller {
 	 * Get single job
 	 */
 	public function get_job() {
-		$verification = $this->verify_request( 'job_get' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -216,7 +217,7 @@ class Job_Controller extends Base_Controller {
 	 * Delete job
 	 */
 	public function delete_job() {
-		$verification = $this->verify_request( 'job_delete' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -242,7 +243,7 @@ class Job_Controller extends Base_Controller {
 	 * Get job logs
 	 */
 	public function get_logs() {
-		$verification = $this->verify_request( 'job_logs' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -279,7 +280,7 @@ class Job_Controller extends Base_Controller {
 	 * Cleanup old jobs
 	 */
 	public function cleanup_old_jobs() {
-		$verification = $this->verify_request( 'job_cleanup' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -317,7 +318,7 @@ class Job_Controller extends Base_Controller {
 	 * Resume job
 	 */
 	public function resume_job() {
-		$verification = $this->verify_request( 'job_resume' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -380,7 +381,7 @@ class Job_Controller extends Base_Controller {
 	 * Restart job (create new job with same settings)
 	 */
 	public function restart_job() {
-		$verification = $this->verify_request( 'job_restart' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -484,7 +485,7 @@ class Job_Controller extends Base_Controller {
 	 * Retry job (create new job and set to processing immediately)
 	 */
 	public function retry_job() {
-		$verification = $this->verify_request( 'job_retry' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -589,7 +590,7 @@ class Job_Controller extends Base_Controller {
 	 * Get download URL with nonce
 	 */
 	public function get_download_url() {
-		$verification = $this->verify_request( 'job_download_url' );
+		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
 		}
@@ -623,6 +624,7 @@ class Job_Controller extends Base_Controller {
 				'action'   => 'rsl_ie_secure_download',
 				'job_id'   => $job_id,
 				'_wpnonce' => $nonce,
+				'nonce'    => Ajax_Security::create_nonce( 'rsl_ie_secure_download' ),
 			],
 			admin_url( 'admin-ajax.php' )
 		);

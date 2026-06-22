@@ -43,7 +43,7 @@ class Settings_Controller extends Base_Controller {
 	 * @return void
 	 */
 	public function test_openai_connection() {
-		$verify = $this->verify_request( 'test_openai_connection' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify, null, 403 );
 		}
@@ -89,7 +89,7 @@ class Settings_Controller extends Base_Controller {
 	 * Save plugin settings
 	 */
 	public function save_settings() {
-		$verify = $this->verify_request( 'nonce' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message() );
 		}
@@ -189,7 +189,7 @@ class Settings_Controller extends Base_Controller {
 	 * Permanently dismiss the PRO promo card for the current user.
 	 */
 	public function dismiss_pro_promo() {
-		$verify = $this->verify_request( 'dismiss_pro_promo' );
+		$verify = $this->verify_request();
 		if ( is_wp_error( $verify ) ) {
 			$this->send_error( $verify->get_error_message(), null, 403 );
 		}

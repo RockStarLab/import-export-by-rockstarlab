@@ -7,11 +7,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
-// Check if resuming a job - hide steps initially to prevent flash
-$rsl_ie_resume_job_id = isset( $_GET['resume_job'] ) ? intval( $_GET['resume_job'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified via verify_request().
 ?>
 
-<div id="rsl-ie-export" class="import-export-by-rockstarlab wrap<?php echo $rsl_ie_resume_job_id ? ' rsl-ie-resuming-job' : ''; ?>">
+<div id="rsl-ie-export" class="import-export-by-rockstarlab wrap">
 	<h1><?php esc_html_e( 'Export Data', 'import-export-by-rockstarlab' ); ?></h1>
 
 	<div class="rsl-ie-export-wizard">
