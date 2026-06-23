@@ -25,7 +25,9 @@ need_cmd() {
 need_cmd rsync
 need_cmd zip
 need_cmd php
-need_cmd yarn
+need_cmd corepack
+
+YARN_CMD=(corepack yarn@1.22.22)
 
 if [ ! -d "$PRO_DIR" ]; then
   echo "PRO plugin folder not found: $PRO_DIR" >&2
@@ -40,7 +42,7 @@ cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT
 
 echo "Building FREE assets (yarn run prod)..."
-(cd "$FREE_DIR" && yarn run prod)
+(cd "$FREE_DIR" && "${YARN_CMD[@]}" run prod)
 
 echo "Preparing FREE package..."
 rsync -a --delete \
