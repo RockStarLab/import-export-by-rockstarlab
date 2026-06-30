@@ -74,6 +74,15 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 			</label>
 
+			<label class="rsl-ie-content-type">
+				<input type="radio" name="content_type" value="urls">
+				<div class="rsl-ie-content-type-card">
+					<span class="dashicons dashicons-admin-links"></span>
+					<h3><?php esc_html_e( 'URLs Export', 'import-export-by-rockstarlab' ); ?></h3>
+					<p><?php esc_html_e( 'Export frontend URLs for public content types', 'import-export-by-rockstarlab' ); ?></p>
+				</div>
+			</label>
+
 			<?php if ( $rsl_ie_pro_active ) : ?>
 				<?php
 				$rsl_ie_pro_types  = \RockStarLab\ImportExport\Helper\Pro_Addon::get_pro_content_type_cards( 'export' );

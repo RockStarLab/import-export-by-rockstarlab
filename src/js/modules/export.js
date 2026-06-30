@@ -14,6 +14,7 @@ const ExportModule = {
 	progressInterval: null,
 	exportStartTime: null,
 	step3Instance: null,
+	urlTypesLoaded: false,
 
 	/**
 	 * Initialize module
@@ -104,6 +105,13 @@ const ExportModule = {
 		$wizard.on( 'click', '.rsl-ie-step-2 .rsl-ie-refresh-count', () =>
 			this.refreshCount( true )
 		);
+		$wizard.on( 'change', '.rsl-ie-url-export-type-checkbox', () => {
+			this.updateUrlExportGroupStates();
+			this.refreshCount( false );
+		} );
+		$wizard.on( 'change', '.rsl-ie-url-export-bulk-checkbox', ( e ) => {
+			this.toggleUrlExportBulkCategory( e );
+		} );
 
 		// Field selection
 		$wizard.on( 'click', '.rsl-ie-select-all-fields', () =>
@@ -127,12 +135,14 @@ const ExportModule = {
 		);
 
 		// Export actions
-		$wizard.on( 'click', '.rsl-ie-start-export', () => this.startExport() );
+		$wizard.on( 'click', '.rsl-ie-start-export', ( e ) =>
+			this.startExport( e )
+		);
 		$wizard.on( 'click', '.rsl-ie-cancel-export', () =>
 			this.cancelExport()
 		);
-		$wizard.on( 'click', '.rsl-ie-download-file', () =>
-			this.downloadFile()
+		$wizard.on( 'click', '.rsl-ie-download-file', ( e ) =>
+			this.downloadFile( e )
 		);
 		$wizard.on( 'click', '.rsl-ie-new-export', () => this.newExport() );
 
@@ -224,6 +234,14 @@ const ExportModule = {
 				jQuery( '.rsl-ie-table-selection-section' ).hide();
 			}
 
+			if ( contentType === 'urls' ) {
+				jQuery( '.rsl-ie-url-export-section' ).show();
+				jQuery( '.rsl-ie-custom-filters-section' ).hide();
+				this.loadUrlExportTypes();
+			} else {
+				jQuery( '.rsl-ie-url-export-section' ).hide();
+			}
+
 			this.refreshCount( false ); // Don't show spinner on auto-refresh
 		} else if ( step === 3 ) {
 			// Load dynamic fields when entering step 3
@@ -242,6 +260,10 @@ const ExportModule = {
 				nextStep = 3;
 			}
 
+			if ( nextStep === 3 && this.isUrlsExport() ) {
+				nextStep = 4;
+			}
+
 			this.showStep( nextStep );
 		}
 	},
@@ -258,6 +280,10 @@ const ExportModule = {
 			// Skip step 2 (filters) when going back for content types that don't need filtering
 			if ( prevStep === 2 && this.shouldSkipFilters() ) {
 				prevStep = 1;
+			}
+
+			if ( prevStep === 3 && this.isUrlsExport() ) {
+				prevStep = 2;
 			}
 
 			// Hide table selection when going back to step 1
@@ -284,6 +310,10 @@ const ExportModule = {
 		return noFilterTypes.includes( contentType );
 	},
 
+	isUrlsExport() {
+		return jQuery( 'input[name="content_type"]:checked' ).val() === 'urls';
+	},
+
 	/**
 	 * Handle content type change
 	 */
@@ -299,6 +329,14 @@ const ExportModule = {
 			jQuery( '.rsl-ie-custom-filters-section' ).show();
 		} else {
 			jQuery( '.rsl-ie-table-selection-section' ).hide();
+		}
+
+		if ( contentType === 'urls' ) {
+			jQuery( '.rsl-ie-url-export-section' ).show();
+			jQuery( '.rsl-ie-custom-filters-section' ).hide();
+			this.loadUrlExportTypes();
+		} else {
+			jQuery( '.rsl-ie-url-export-section' ).hide();
 		}
 
 		// Show/hide custom filters section
@@ -317,7 +355,10 @@ const ExportModule = {
 			'woo_attribute',
 			'database_table',
 		];
-		if ( filterableTypes.includes( contentType ) ) {
+		if (
+			contentType !== 'urls' &&
+			filterableTypes.includes( contentType )
+		) {
 			jQuery( '.rsl-ie-custom-filters-section' ).show();
 		} else {
 			jQuery( '.rsl-ie-custom-filters-section' ).hide();
@@ -404,15 +445,17 @@ const ExportModule = {
 		}
 		$refreshBtn.addClass( 'is-refreshing' );
 
-		try {
-			const contentType = jQuery(
-				'input[name="content_type"]:checked'
-			).val();
+		let contentType = jQuery( 'input[name="content_type"]:checked' ).val();
 
+		try {
 			// Prepare options based on content type
 			let options = {};
 
-			if ( contentType === 'database_table' ) {
+			if ( contentType === 'urls' ) {
+				options = {
+					content_types: this.getSelectedUrlContentTypes(),
+				};
+			} else if ( contentType === 'database_table' ) {
 				// For database tables, get table name from dropdown
 				const $tableDropdown = jQuery( '#rsl-ie-table-name' );
 				const dynamicFiltersData = this.getDynamicFilters();
@@ -494,6 +537,351 @@ const ExportModule = {
 		this.updateStep2NextButton();
 	},
 
+	async loadUrlExportTypes() {
+		const $container = jQuery( '.rsl-ie-url-export-types' );
+
+		if ( this.urlTypesLoaded || ! $container.length ) {
+			return;
+		}
+
+		$container.html(
+			'<p class="description">Loading URL content types...</p>'
+		);
+
+		try {
+			const response = await Utils.ajax(
+				'rsl_ie_export_get_url_types',
+				{}
+			);
+			const types = response.types || [];
+
+			if ( ! types.length ) {
+				$container.html(
+					'<p class="description">No public URL content types found.</p>'
+				);
+				this.urlTypesLoaded = true;
+				this.updateStep2NextButton();
+				return;
+			}
+
+			$container.html( this.renderUrlExportTypeGroups( types ) );
+			this.updateUrlExportGroupStates();
+			this.urlTypesLoaded = true;
+			this.refreshCount( false );
+		} catch ( error ) {
+			$container.html(
+				'<p class="description">Could not load URL content types.</p>'
+			);
+			this.updateStep2NextButton();
+		}
+	},
+
+	renderUrlExportTypeGroups( types ) {
+		const postTypes = types.filter( ( type ) => type.kind === 'post_type' );
+		const childTypes = types.filter( ( type ) => {
+			const objectTypes = Array.isArray( type.objectTypes )
+				? type.objectTypes
+				: [];
+			return objectTypes.length > 0;
+		} );
+		const standardTypes = types.filter( ( type ) => {
+			const objectTypes = Array.isArray( type.objectTypes )
+				? type.objectTypes
+				: [];
+			return type.kind !== 'post_type' && objectTypes.length === 0;
+		} );
+		const renderedChildren = new Set();
+
+		const bulkControls = this.renderUrlExportBulkControls();
+
+		const standardGroup = standardTypes.length
+			? `
+				<div class="rsl-ie-url-export-group">
+					<div class="rsl-ie-url-export-group-header">
+						<span class="dashicons dashicons-admin-site-alt3"></span>
+						<div>
+							<h4>Standard WordPress URLs</h4>
+							<p>Homepage, archives, feeds, search and REST URLs</p>
+						</div>
+					</div>
+					<div class="rsl-ie-url-export-group-items">
+						${ standardTypes
+							.map( ( type ) =>
+								this.renderUrlExportTypeCard( type )
+							)
+							.join( '' ) }
+					</div>
+				</div>
+			`
+			: '';
+
+		const groups = postTypes
+			.map( ( postType ) => {
+				const relatedTypes = childTypes.filter( ( type ) => {
+					const objectTypes = Array.isArray( type.objectTypes )
+						? type.objectTypes
+						: [];
+					return objectTypes.includes( postType.name );
+				} );
+
+				relatedTypes.forEach( ( type ) =>
+					renderedChildren.add( type.value || type.name )
+				);
+
+				return `
+					<div class="rsl-ie-url-export-group">
+						<div class="rsl-ie-url-export-group-header">
+							<span class="dashicons dashicons-admin-post"></span>
+							<div>
+								<h4>${ this.escapeHtml( postType.label ) }</h4>
+								<p>Single URLs, archives, feeds, REST endpoint and related taxonomies</p>
+							</div>
+						</div>
+						<div class="rsl-ie-url-export-group-items">
+							${ this.renderUrlExportTypeCard( postType ) }
+							${
+								relatedTypes.length
+									? `
+										<div class="rsl-ie-url-export-taxonomies-label">Related URL sources</div>
+										${ relatedTypes
+											.map( ( type ) =>
+												this.renderUrlExportTypeCard(
+													type,
+													true
+												)
+											)
+											.join( '' ) }
+									`
+									: ''
+							}
+						</div>
+					</div>
+				`;
+			} )
+			.join( '' );
+
+		const orphanChildren = childTypes.filter(
+			( type ) => ! renderedChildren.has( type.value || type.name )
+		);
+
+		if ( orphanChildren.length ) {
+			return (
+				bulkControls +
+				standardGroup +
+				groups +
+				`
+					<div class="rsl-ie-url-export-group">
+						<div class="rsl-ie-url-export-group-header">
+							<span class="dashicons dashicons-category"></span>
+							<div>
+								<h4>Other URL sources</h4>
+								<p>Sources not attached to the visible post type groups</p>
+							</div>
+						</div>
+						<div class="rsl-ie-url-export-group-items">
+							${ orphanChildren
+								.map( ( type ) =>
+									this.renderUrlExportTypeCard( type, true )
+								)
+								.join( '' ) }
+						</div>
+					</div>
+				`
+			);
+		}
+
+		return bulkControls + standardGroup + groups;
+	},
+
+	renderUrlExportBulkControls() {
+		const controls = [
+			{ category: 'posts', label: 'Posts' },
+			{ category: 'taxonomies', label: 'Taxonomies' },
+			{ category: 'rest', label: 'REST API Endpoints' },
+			{ category: 'rss_feeds', label: 'RSS Feeds' },
+			{ category: 'atom_feeds', label: 'Atom Feeds' },
+			{ category: 'comments_feeds', label: 'Comments Feeds' },
+		];
+
+		return `
+			<div class="rsl-ie-url-export-bulk-controls">
+				<div>
+					<h4>Bulk select URL groups</h4>
+					<p>Quickly select or deselect matching sources across all registered content types.</p>
+				</div>
+				<div class="rsl-ie-url-export-bulk-list">
+					${ controls
+						.map(
+							( control ) => `
+								<label class="rsl-ie-url-export-bulk-item">
+									<input
+										type="checkbox"
+										class="rsl-ie-url-export-bulk-checkbox"
+										data-url-category="${ this.escapeHtml( control.category ) }"
+										${
+											this.isUrlExportBulkCategoryCheckedByDefault(
+												control.category
+											)
+												? 'checked'
+												: ''
+										}
+									>
+									<span>${ this.escapeHtml( control.label ) }</span>
+								</label>
+							`
+						)
+						.join( '' ) }
+				</div>
+			</div>
+		`;
+	},
+
+	isUrlExportBulkCategoryCheckedByDefault( category ) {
+		return [ 'posts', 'taxonomies' ].includes( category );
+	},
+
+	getUrlSourceKindLabel( kind ) {
+		const labels = {
+			post_type: 'Post type',
+			taxonomy: 'Taxonomy',
+			standard: 'Standard',
+			feed: 'Feed',
+			rest: 'REST endpoint',
+			post_type_archive: 'Post type archive',
+			post_type_feed: 'Post type feed',
+			rest_post_type: 'REST endpoint',
+		};
+
+		return labels[ kind ] || kind || 'URL source';
+	},
+
+	renderUrlExportTypeCard( type, isChild = false ) {
+		const categories = this.getUrlSourceBulkCategories( type );
+		const isChecked = this.isUrlSourceCheckedByDefault( type );
+
+		return `
+			<label class="rsl-ie-url-export-type${
+				isChild ? ' rsl-ie-url-export-type-child' : ''
+			}${ isChecked ? ' is-checked' : '' }">
+				<input
+					type="checkbox"
+					class="rsl-ie-url-export-type-checkbox"
+					value="${ this.escapeHtml( type.value || type.name ) }"
+					data-url-categories="${ this.escapeHtml( categories.join( ' ' ) ) }"
+					${ isChecked ? 'checked' : '' }
+				>
+				<span class="rsl-ie-url-export-type-card">
+					<span class="rsl-ie-url-export-type-main">
+						<span class="rsl-ie-url-export-type-title">${ this.escapeHtml(
+							type.label
+						) }</span>
+						<span class="rsl-ie-url-export-type-slug">
+							<span>type: <code>${ this.escapeHtml(
+								this.getUrlSourceKindLabel( type.kind )
+							) }</code></span>
+							<span>name: <code>${ this.escapeHtml( type.name ) }</code></span>
+							<span>slug: <code>${ this.escapeHtml( type.slug || type.name ) }</code></span>
+						</span>
+						${
+							type.description
+								? `<span class="rsl-ie-url-export-type-description">${ this.escapeHtml(
+										type.description
+								  ) }</span>`
+								: ''
+						}
+					</span>
+					<span class="rsl-ie-url-export-type-count">
+						<strong>${ parseInt( type.count, 10 ) || 0 }</strong>
+						<span>URLs</span>
+					</span>
+				</span>
+			</label>
+		`;
+	},
+
+	getUrlSourceBulkCategories( type ) {
+		if ( type.kind === 'post_type' ) {
+			return [ 'posts' ];
+		}
+
+		if ( type.kind === 'taxonomy' ) {
+			return [ 'taxonomies' ];
+		}
+
+		if ( [ 'rest', 'rest_post_type' ].includes( type.kind ) ) {
+			return [ 'rest' ];
+		}
+
+		if (
+			type.kind === 'post_type_feed' ||
+			( type.kind === 'feed' && type.name === 'main' )
+		) {
+			return [ 'rss_feeds' ];
+		}
+
+		if ( type.kind === 'feed' && type.name === 'atom' ) {
+			return [ 'atom_feeds' ];
+		}
+
+		if ( type.kind === 'feed' && type.name === 'comments' ) {
+			return [ 'comments_feeds' ];
+		}
+
+		return [];
+	},
+
+	isUrlSourceCheckedByDefault( type ) {
+		return ! [
+			'feed',
+			'rest',
+			'post_type_feed',
+			'rest_post_type',
+		].includes( type.kind );
+	},
+
+	toggleUrlExportBulkCategory( e ) {
+		const $checkbox = jQuery( e.currentTarget );
+		const category = $checkbox.data( 'url-category' );
+		const isChecked = $checkbox.is( ':checked' );
+
+		jQuery( '.rsl-ie-url-export-type-checkbox' ).each( function () {
+			const categories = String(
+				jQuery( this ).data( 'url-categories' ) || ''
+			).split( ' ' );
+			if ( categories.includes( category ) ) {
+				jQuery( this ).prop( 'checked', isChecked );
+			}
+		} );
+
+		this.updateUrlExportGroupStates();
+		this.refreshCount( false );
+	},
+
+	updateUrlExportGroupStates() {
+		jQuery( '.rsl-ie-url-export-type-checkbox' ).each( function () {
+			const $input = jQuery( this );
+			$input
+				.closest( '.rsl-ie-url-export-type' )
+				.toggleClass( 'is-checked', $input.is( ':checked' ) );
+		} );
+
+		jQuery( '.rsl-ie-url-export-group' ).each( function () {
+			const $group = jQuery( this );
+			const hasChecked =
+				$group.find( '.rsl-ie-url-export-type-checkbox:checked' )
+					.length > 0;
+			$group.toggleClass( 'is-empty', ! hasChecked );
+		} );
+	},
+
+	getSelectedUrlContentTypes() {
+		const types = [];
+		jQuery( '.rsl-ie-url-export-type-checkbox:checked' ).each( function () {
+			types.push( jQuery( this ).val() );
+		} );
+		return types;
+	},
+
 	/**
 	 * Update step 2 next button state based on item count
 	 */
@@ -548,6 +936,15 @@ const ExportModule = {
 				tooltipTitle = window.rslIeData.i18n.tableRequired;
 				tooltipMessage = window.rslIeData.i18n.pleaseSelectTable;
 			}
+		}
+
+		if (
+			contentType === 'urls' &&
+			this.getSelectedUrlContentTypes().length === 0
+		) {
+			isDisabled = true;
+			tooltipTitle = 'Select URL types';
+			tooltipMessage = 'Please select at least one public content type.';
 		}
 
 		// Disable if count is 0, NaN, or '-'
@@ -912,6 +1309,10 @@ const ExportModule = {
 	 * Get selected fields
 	 */
 	getSelectedFields() {
+		if ( this.isUrlsExport() ) {
+			return [ 'url' ];
+		}
+
 		// Get fields from Step 3 drag & drop interface
 		if ( this.step3Instance && this.step3Instance.selectedFields ) {
 			// Filter out pseudo-fields (selectors that start with _ and are used only for filtering)
@@ -931,8 +1332,18 @@ const ExportModule = {
 
 	/**
 	 * Start export
+	 *
+	 * @param {Event} e Click event.
 	 */
-	async startExport() {
+	async startExport( e ) {
+		const $button = e
+			? jQuery( e.currentTarget )
+			: jQuery( '.rsl-ie-start-export' );
+
+		if ( $button.hasClass( 'is-starting' ) ) {
+			return;
+		}
+
 		let fields = this.getSelectedFields();
 
 		// If no fields selected (or only pseudo-fields were filtered out), show error
@@ -943,6 +1354,8 @@ const ExportModule = {
 			);
 			return;
 		}
+
+		this.setStartExportButtonLoading( $button, true );
 
 		try {
 			const contentType = jQuery(
@@ -963,6 +1376,7 @@ const ExportModule = {
 					);
 					// Set focus to the custom delimiter field
 					jQuery( '[name="csv_custom_delimiter"]' ).focus();
+					this.setStartExportButtonLoading( $button, false );
 					return;
 				}
 				csvDelimiter = customDelimiter;
@@ -989,6 +1403,19 @@ const ExportModule = {
 						) || 3,
 				},
 			};
+
+			if ( contentType === 'urls' ) {
+				const contentTypes = this.getSelectedUrlContentTypes();
+				if ( contentTypes.length === 0 ) {
+					Utils.showNotice(
+						'Please select at least one URL content type.',
+						'error'
+					);
+					this.setStartExportButtonLoading( $button, false );
+					return;
+				}
+				data.options.content_types = contentTypes;
+			}
 
 			// Add field functions if available
 			if ( this.step3Instance && this.step3Instance.fieldFunctions ) {
@@ -1042,6 +1469,42 @@ const ExportModule = {
 			);
 		} catch ( error ) {
 			Utils.handleError( error, 'Start export' );
+		} finally {
+			this.setStartExportButtonLoading( $button, false );
+		}
+	},
+
+	/**
+	 * Toggle start export button loading state.
+	 *
+	 * @param {jQuery} $button Start export button.
+	 * @param {boolean} isLoading Loading state.
+	 */
+	setStartExportButtonLoading( $button, isLoading ) {
+		if ( ! $button || ! $button.length ) {
+			return;
+		}
+
+		if ( isLoading ) {
+			$button.data( 'original-html', $button.html() );
+			$button
+				.addClass( 'is-starting' )
+				.prop( 'disabled', true )
+				.attr( 'aria-busy', 'true' )
+				.html(
+					'<span class="dashicons dashicons-update rsl-ie-button-spinner"></span><span>Starting...</span>'
+				);
+			return;
+		}
+
+		$button
+			.removeClass( 'is-starting' )
+			.prop( 'disabled', false )
+			.removeAttr( 'aria-busy' );
+
+		if ( $button.data( 'original-html' ) ) {
+			$button.html( $button.data( 'original-html' ) );
+			$button.removeData( 'original-html' );
 		}
 	},
 
@@ -1222,8 +1685,20 @@ const ExportModule = {
 
 	/**
 	 * Download export file
+	 *
+	 * @param {Event} e Click event.
 	 */
-	async downloadFile() {
+	async downloadFile( e ) {
+		const $button = e
+			? jQuery( e.currentTarget )
+			: jQuery( '.rsl-ie-download-file' );
+
+		if ( $button.hasClass( 'is-downloading' ) ) {
+			return;
+		}
+
+		this.setDownloadButtonLoading( $button, true );
+
 		try {
 			const response = await Utils.ajax( 'rsl_ie_export_download', {
 				job_id: this.jobId,
@@ -1234,6 +1709,44 @@ const ExportModule = {
 			}
 		} catch ( error ) {
 			Utils.handleError( error, 'Download file' );
+		} finally {
+			setTimeout( () => {
+				this.setDownloadButtonLoading( $button, false );
+			}, 600 );
+		}
+	},
+
+	/**
+	 * Toggle download button loading state.
+	 *
+	 * @param {jQuery} $button Download button.
+	 * @param {boolean} isLoading Loading state.
+	 */
+	setDownloadButtonLoading( $button, isLoading ) {
+		if ( ! $button || ! $button.length ) {
+			return;
+		}
+
+		if ( isLoading ) {
+			$button.data( 'original-html', $button.html() );
+			$button
+				.addClass( 'is-downloading' )
+				.prop( 'disabled', true )
+				.attr( 'aria-busy', 'true' )
+				.html(
+					'<span class="dashicons dashicons-update rsl-ie-download-spinner"></span><span>Downloading...</span>'
+				);
+			return;
+		}
+
+		$button
+			.removeClass( 'is-downloading' )
+			.prop( 'disabled', false )
+			.removeAttr( 'aria-busy' );
+
+		if ( $button.data( 'original-html' ) ) {
+			$button.html( $button.data( 'original-html' ) );
+			$button.removeData( 'original-html' );
 		}
 	},
 
@@ -3972,6 +4485,12 @@ const ExportModule = {
 		} );
 
 		return converted;
+	},
+
+	escapeHtml( text ) {
+		const div = document.createElement( 'div' );
+		div.textContent = text == null ? '' : String( text );
+		return div.innerHTML;
 	},
 };
 

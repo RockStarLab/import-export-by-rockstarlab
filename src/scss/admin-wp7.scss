@@ -666,6 +666,24 @@ body.import-export-by-rockstarlab_page_rsl-ie-export
 body.import-export-by-rockstarlab_page_rsl-ie-export
 	.rsl-ie-export-results
 	.rsl-ie-download-action
+	.rsl-ie-download-file.is-downloading,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-results
+	.rsl-ie-download-action
+	.rsl-ie-download-file.is-downloading:hover,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-results
+	.rsl-ie-download-action
+	.rsl-ie-download-file:disabled {
+	opacity: 0.86;
+	cursor: wait;
+	transform: none;
+	box-shadow: 0 3px 10px rgba(var(--rsl-ie-admin-theme-color-rgb), 0.26);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-results
+	.rsl-ie-download-action
 	.rsl-ie-download-file
 	.dashicons {
 	margin-right: 0;

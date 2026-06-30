@@ -75,6 +75,21 @@ defined( 'ABSPATH' ) || exit;
 			</div>
 		</div>
 
+		<!-- URLs Export Selection (shown only for URLs Export type) -->
+		<div class="rsl-ie-url-export-section" style="display:none;">
+			<div class="rsl-ie-section-header">
+				<h3>
+					<span class="dashicons dashicons-admin-links"></span>
+					<?php esc_html_e( 'Select URL Content Types', 'import-export-by-rockstarlab' ); ?>
+				</h3>
+				<p class="description"><?php esc_html_e( 'Choose public content types whose frontend URLs should be exported.', 'import-export-by-rockstarlab' ); ?></p>
+			</div>
+
+			<div class="rsl-ie-url-export-types">
+				<p class="description"><?php esc_html_e( 'Loading URL content types...', 'import-export-by-rockstarlab' ); ?></p>
+			</div>
+		</div>
+
 		<!-- Custom Filters Section -->
 		<div class="rsl-ie-custom-filters-section">
 			<div class="rsl-ie-section-header">

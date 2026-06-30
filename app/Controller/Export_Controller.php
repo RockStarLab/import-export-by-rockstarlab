@@ -31,7 +31,7 @@ class Export_Controller extends Base_Controller {
 	private function is_export_type_allowed( $export_type ) {
 		$export_type = strtolower( trim( (string) $export_type ) );
 
-		$free_types = [ 'post', 'page' ];
+		$free_types = [ 'post', 'page', 'urls' ];
 		if ( in_array( $export_type, $free_types, true ) ) {
 			return true;
 		}
@@ -54,6 +54,7 @@ class Export_Controller extends Base_Controller {
 			'secure_download'      => [ 'callback' => 'secure_download' ],
 			'export_cancel'        => [ 'callback' => 'cancel_export' ],
 			'export_process_batch' => [ 'callback' => 'process_export_batch' ],
+			'export_get_url_types' => [ 'callback' => 'get_url_types' ],
 			'get_post_types'       => [ 'callback' => 'get_post_types' ],
 			'get_database_tables'  => [ 'callback' => 'get_database_tables' ],
 			'get_table_columns'    => [ 'callback' => 'get_table_columns' ],
@@ -661,6 +662,188 @@ class Export_Controller extends Base_Controller {
 				'completed_at'    => current_time( 'mysql' ),
 			]
 		);
+	}
+
+	/**
+	 * Get all registered post types
+	 */
+	public function get_url_types() {
+		$verification = $this->verify_request();
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		$exporter_class = \RockStarLab\ImportExport\Model\Export\Urls_Exporter::class;
+		$post_types     = $exporter_class::get_exportable_post_types();
+		$taxonomies     = $exporter_class::get_exportable_taxonomies();
+		$result         = [
+			[
+				'kind'        => 'standard',
+				'value'       => 'standard:homepage',
+				'name'        => 'homepage',
+				'slug'        => home_url( '/' ),
+				'label'       => __( 'Homepage / Front page', 'import-export-by-rockstarlab' ),
+				'description' => __( 'The public site home URL.', 'import-export-by-rockstarlab' ),
+				'count'       => $exporter_class::count_for_generated_source( 'standard', 'homepage' ),
+			],
+			[
+				'kind'        => 'standard',
+				'value'       => 'standard:authors',
+				'name'        => 'authors',
+				'slug'        => 'author',
+				'label'       => __( 'Author archives', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Author archive URLs for users with published content.', 'import-export-by-rockstarlab' ),
+				'count'       => $exporter_class::count_for_generated_source( 'standard', 'authors' ),
+			],
+			[
+				'kind'        => 'standard',
+				'value'       => 'standard:date_archives',
+				'name'        => 'date_archives',
+				'slug'        => 'year/month',
+				'label'       => __( 'Date archives', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Yearly and monthly archive URLs based on published content.', 'import-export-by-rockstarlab' ),
+				'count'       => $exporter_class::count_for_generated_source( 'standard', 'date_archives' ),
+			],
+			[
+				'kind'        => 'standard',
+				'value'       => 'standard:search_results',
+				'name'        => 'search_results',
+				'slug'        => '?s=',
+				'label'       => __( 'Search results', 'import-export-by-rockstarlab' ),
+				'description' => __( 'The WordPress search results URL template.', 'import-export-by-rockstarlab' ),
+				'count'       => $exporter_class::count_for_generated_source( 'standard', 'search_results' ),
+			],
+			[
+				'kind'        => 'feed',
+				'value'       => 'feed:main',
+				'name'        => 'main',
+				'slug'        => 'feed',
+				'label'       => __( 'Main RSS feed', 'import-export-by-rockstarlab' ),
+				'description' => __( 'The main site RSS feed URL.', 'import-export-by-rockstarlab' ),
+				'count'       => $exporter_class::count_for_generated_source( 'feed', 'main' ),
+			],
+			[
+				'kind'        => 'feed',
+				'value'       => 'feed:atom',
+				'name'        => 'atom',
+				'slug'        => 'feed/atom',
+				'label'       => __( 'Atom feed', 'import-export-by-rockstarlab' ),
+				'description' => __( 'The main site Atom feed URL.', 'import-export-by-rockstarlab' ),
+				'count'       => $exporter_class::count_for_generated_source( 'feed', 'atom' ),
+			],
+			[
+				'kind'        => 'feed',
+				'value'       => 'feed:comments',
+				'name'        => 'comments',
+				'slug'        => 'comments/feed',
+				'label'       => __( 'Comments feed', 'import-export-by-rockstarlab' ),
+				'description' => __( 'The global comments feed URL.', 'import-export-by-rockstarlab' ),
+				'count'       => $exporter_class::count_for_generated_source( 'feed', 'comments' ),
+			],
+			[
+				'kind'        => 'rest',
+				'value'       => 'rest:root',
+				'name'        => 'root',
+				'slug'        => 'wp-json',
+				'label'       => __( 'REST API root', 'import-export-by-rockstarlab' ),
+				'description' => __( 'The WordPress REST API root URL.', 'import-export-by-rockstarlab' ),
+				'count'       => $exporter_class::count_for_generated_source( 'rest', 'root' ),
+			],
+		];
+
+		foreach ( $post_types as $type_name => $post_type ) {
+			$count = $exporter_class::count_for_post_type( $type_name );
+			$slug  = $type_name;
+			if ( is_array( $post_type->rewrite ) && ! empty( $post_type->rewrite['slug'] ) ) {
+				$slug = $post_type->rewrite['slug'];
+			}
+
+			$result[] = [
+				'kind'        => 'post_type',
+				'value'       => 'post_type:' . $type_name,
+				'name'        => $type_name,
+				'slug'        => $slug,
+				'label'       => $post_type->label,
+				'description' => $post_type->description,
+				'count'       => $count,
+			];
+
+			$archive_count = $exporter_class::count_for_generated_source( 'post_type_archive', $type_name );
+			if ( $archive_count > 0 ) {
+				$result[] = [
+					'kind'        => 'post_type_archive',
+					'value'       => 'post_type_archive:' . $type_name,
+					'name'        => $type_name . '_archive',
+					'slug'        => $slug,
+					'label'       => sprintf(
+						/* translators: %s: post type label. */
+						__( '%s archive', 'import-export-by-rockstarlab' ),
+						$post_type->label
+					),
+					'description' => __( 'Public archive URL for this post type.', 'import-export-by-rockstarlab' ),
+					'objectTypes' => [ $type_name ],
+					'count'       => $archive_count,
+				];
+			}
+
+			$feed_count = $exporter_class::count_for_generated_source( 'post_type_feed', $type_name );
+			if ( $feed_count > 0 ) {
+				$result[] = [
+					'kind'        => 'post_type_feed',
+					'value'       => 'post_type_feed:' . $type_name,
+					'name'        => $type_name . '_feed',
+					'slug'        => $slug . '/feed',
+					'label'       => sprintf(
+						/* translators: %s: post type label. */
+						__( '%s feed', 'import-export-by-rockstarlab' ),
+						$post_type->label
+					),
+					'description' => __( 'RSS feed for this post type archive.', 'import-export-by-rockstarlab' ),
+					'objectTypes' => [ $type_name ],
+					'count'       => $feed_count,
+				];
+			}
+
+			$rest_count = $exporter_class::count_for_generated_source( 'rest_post_type', $type_name );
+			if ( $rest_count > 0 ) {
+				$rest_base = $post_type->rest_base ? $post_type->rest_base : $type_name;
+				$result[]  = [
+					'kind'        => 'rest_post_type',
+					'value'       => 'rest_post_type:' . $type_name,
+					'name'        => $type_name . '_rest',
+					'slug'        => 'wp/v2/' . $rest_base,
+					'label'       => sprintf(
+						/* translators: %s: post type label. */
+						__( '%s REST endpoint', 'import-export-by-rockstarlab' ),
+						$post_type->label
+					),
+					'description' => __( 'REST API collection endpoint for this post type.', 'import-export-by-rockstarlab' ),
+					'objectTypes' => [ $type_name ],
+					'count'       => $rest_count,
+				];
+			}
+		}
+
+		foreach ( $taxonomies as $taxonomy_name => $taxonomy ) {
+			$count = $exporter_class::count_for_taxonomy( $taxonomy_name );
+			$slug  = $taxonomy_name;
+			if ( is_array( $taxonomy->rewrite ) && ! empty( $taxonomy->rewrite['slug'] ) ) {
+				$slug = $taxonomy->rewrite['slug'];
+			}
+
+			$result[] = [
+				'kind'        => 'taxonomy',
+				'value'       => 'taxonomy:' . $taxonomy_name,
+				'name'        => $taxonomy_name,
+				'slug'        => $slug,
+				'label'       => $taxonomy->label,
+				'description' => $taxonomy->description,
+				'objectTypes' => array_values( array_map( 'sanitize_key', (array) $taxonomy->object_type ) ),
+				'count'       => $count,
+			];
+		}
+
+		$this->send_success( [ 'types' => $result ] );
 	}
 
 	/**

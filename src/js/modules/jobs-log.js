@@ -166,6 +166,7 @@ const JobsLogModule = {
 	renderJobRow( job ) {
 		const statusClass = 'status-' + job.status;
 		const typeLabel = this.getTypeLabel( job.type );
+		const dataTypeLabel = this.getDataTypeLabel( job.data_type );
 		const statusLabel = this.getStatusLabel( job.status );
 		const progressBar = this.renderProgressBar( job );
 		const actions = this.renderActions( job );
@@ -176,7 +177,7 @@ const JobsLogModule = {
 				<td class="column-type">
 					<span class="job-type-badge job-type-${ job.type }">${ typeLabel }</span>
 				</td>
-				<td class="column-data-type">${ job.data_type }</td>
+				<td class="column-data-type">${ this.escapeHtml( dataTypeLabel ) }</td>
 				<td class="column-status">
 					<span class="job-status-badge job-status-${
 						job.status
@@ -276,7 +277,7 @@ const JobsLogModule = {
 
 		const freeByContext = {
 			import: [ 'post', 'posts', 'page', 'pages' ],
-			export: [ 'post', 'page' ],
+			export: [ 'post', 'page', 'urls' ],
 			update: [ 'post', 'page', 'pages', 'comment', 'comments' ],
 		};
 
@@ -792,6 +793,25 @@ const JobsLogModule = {
 		return labels[ type ] || type;
 	},
 
+	getDataTypeLabel( dataType ) {
+		const labels = {
+			urls: 'URLs Export',
+			post: 'Blog Posts',
+			page: 'Pages',
+			media: 'Media',
+			menu: 'Menus',
+			user: 'Users',
+			comment: 'Comments',
+			taxonomy: 'Taxonomy Terms',
+			woo_product: 'WooCommerce Products',
+			woo_order: 'WooCommerce Orders',
+			woo_coupon: 'WooCommerce Coupons',
+			database_table: 'MySQL Database Table',
+		};
+
+		return labels[ dataType ] || dataType || '-';
+	},
+
 	/**
 	 * Get status label
 	 */
@@ -816,6 +836,12 @@ const JobsLogModule = {
 		}
 		const date = new Date( dateString );
 		return date.toLocaleString();
+	},
+
+	escapeHtml( text ) {
+		const div = document.createElement( 'div' );
+		div.textContent = text == null ? '' : String( text );
+		return div.innerHTML;
 	},
 };
 

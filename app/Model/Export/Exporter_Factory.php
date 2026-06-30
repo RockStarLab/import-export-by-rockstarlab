@@ -59,6 +59,7 @@ class Exporter_Factory {
 			// Free plugin content types.
 			'post'    => Post_Exporter::class,
 			'page'    => Post_Exporter::class,
+			'urls'    => Urls_Exporter::class,
 			'comment' => Comment_Exporter::class,
 		];
 
