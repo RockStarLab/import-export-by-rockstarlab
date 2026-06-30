@@ -156,6 +156,37 @@ class Post_Exporter extends Abstract_Exporter {
 			'_yoast_wpseo_twitter-title',
 			'_yoast_wpseo_twitter-description',
 			'_yoast_wpseo_twitter-image',
+			// Elementor fields.
+			'elementor_document',
+			'_elementor_data',
+			'_elementor_page_settings',
+			'_elementor_template_type',
+			'_elementor_edit_mode',
+			'_wp_page_template',
+			// Rank Math SEO fields.
+			'rank_math_title',
+			'rank_math_description',
+			'rank_math_focus_keyword',
+			'rank_math_canonical_url',
+			'rank_math_robots',
+			'rank_math_advanced_robots',
+			'rank_math_breadcrumb_title',
+			'rank_math_pillar_content',
+			'rank_math_schemas',
+			'rank_math_facebook_title',
+			'rank_math_facebook_description',
+			'rank_math_facebook_image',
+			'rank_math_facebook_image_id',
+			'rank_math_facebook_enable_image_overlay',
+			'rank_math_facebook_image_overlay',
+			'rank_math_twitter_card_type',
+			'rank_math_twitter_title',
+			'rank_math_twitter_description',
+			'rank_math_twitter_image',
+			'rank_math_twitter_image_id',
+			'rank_math_twitter_use_facebook',
+			'rank_math_twitter_enable_image_overlay',
+			'rank_math_twitter_image_overlay',
 		];
 	}
 
@@ -2015,7 +2046,19 @@ class Post_Exporter extends Abstract_Exporter {
 				! in_array( $field, [ 'author_name', 'author_email', 'post_meta', 'taxonomies', 'featured_image', 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption' ], true ) &&
 				strpos( $field, 'taxonomy_' ) !== 0 &&
 				! taxonomy_exists( $field ) ) {
-					// Handle ACF fields (with acf_ prefix)
+				if ( 'elementor_document' === $field ) {
+					$data[ $field ] = \RockStarLab\ImportExport\Helper\Elementor_Fields::export_document( (int) $post->ID );
+					continue;
+				}
+
+				// Rank Math stores Schema Builder entries as duplicate-capable postmeta rows
+				// (rank_math_schema_{Type}), so export them through a portable aggregate.
+				if ( 'rank_math_schemas' === $field ) {
+					$data[ $field ] = \RockStarLab\ImportExport\Helper\Seo_Fields::export_rank_math_schemas( (int) $post->ID );
+					continue;
+				}
+
+				// Handle ACF fields (with acf_ prefix)
 				if ( strpos( $field, 'acf_' ) === 0 ) {
 					$acf_field_name = substr( $field, 4 ); // Remove 'acf_' prefix (4 characters)
 
@@ -3316,6 +3359,15 @@ class Post_Exporter extends Abstract_Exporter {
 		$meta     = [];
 
 		foreach ( $all_meta as $key => $values ) {
+			if ( \RockStarLab\ImportExport\Helper\Elementor_Fields::is_elementor_meta_key( (string) $key ) ) {
+				if ( \RockStarLab\ImportExport\Helper\Elementor_Fields::is_generated_cache_key( (string) $key ) ) {
+					continue;
+				}
+
+				$meta[ $key ] = 1 === count( $values ) ? maybe_unserialize( $values[0] ) : array_map( 'maybe_unserialize', $values );
+				continue;
+			}
+
 			// Skip internal WordPress meta, but KEEP ACF reference keys
 			// (e.g. `_my_field` = `field_abc123`) so imports can restore ACF fields
 			// even when a field name is empty or when only meta_* columns are mapped.

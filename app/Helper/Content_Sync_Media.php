@@ -49,6 +49,10 @@ class Content_Sync_Media {
 		$elementor_images = self::get_elementor_images( $post_id );
 		$images           = array_merge( $images, $elementor_images );
 
+		// 6. Rank Math SEO social/schema images.
+		$rank_math_images = self::get_rank_math_images( $post_id );
+		$images           = array_merge( $images, $rank_math_images );
+
 		// Remove duplicates based on attachment ID
 		$images = self::remove_duplicate_images( $images );
 
@@ -473,6 +477,117 @@ class Content_Sync_Media {
 		$images = self::extract_elementor_images_recursive( $elements );
 
 		return $images;
+	}
+
+	/**
+	 * Get Rank Math SEO media referenced by social image fields and schema data.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return array Array of image data
+	 */
+	private static function get_rank_math_images( $post_id ) {
+		$images = array();
+
+		$social_id_keys = array(
+			'rank_math_facebook_image_id',
+			'rank_math_twitter_image_id',
+		);
+
+		foreach ( $social_id_keys as $meta_key ) {
+			$attachment_id = absint( get_post_meta( $post_id, $meta_key, true ) );
+			if ( $attachment_id <= 0 ) {
+				continue;
+			}
+
+			$image_data = self::prepare_image_data( $attachment_id, $meta_key );
+			if ( $image_data ) {
+				$images[] = $image_data;
+			}
+		}
+
+		$social_url_keys = array(
+			'rank_math_facebook_image',
+			'rank_math_twitter_image',
+		);
+
+		foreach ( $social_url_keys as $meta_key ) {
+			$url = get_post_meta( $post_id, $meta_key, true );
+			if ( ! is_string( $url ) || '' === $url ) {
+				continue;
+			}
+
+			$attachment_id = attachment_url_to_postid( $url );
+			if ( $attachment_id <= 0 ) {
+				continue;
+			}
+
+			$image_data = self::prepare_image_data( $attachment_id, $meta_key );
+			if ( $image_data ) {
+				$images[] = $image_data;
+			}
+		}
+
+		$all_meta = get_post_meta( $post_id );
+		foreach ( $all_meta as $meta_key => $values ) {
+			if ( ! is_string( $meta_key ) || 0 !== strpos( $meta_key, 'rank_math_schema_' ) ) {
+				continue;
+			}
+
+			foreach ( (array) $values as $raw_value ) {
+				$schema = maybe_unserialize( $raw_value );
+				$ids    = self::extract_media_ids_from_rank_math_schema( $schema );
+				foreach ( $ids as $attachment_id ) {
+					$image_data = self::prepare_image_data( $attachment_id, $meta_key );
+					if ( $image_data ) {
+						$images[] = $image_data;
+					}
+				}
+			}
+		}
+
+		return $images;
+	}
+
+	/**
+	 * Extract attachment IDs from Rank Math schema arrays.
+	 *
+	 * @param mixed $value Schema value.
+	 * @return array<int,int>
+	 */
+	private static function extract_media_ids_from_rank_math_schema( $value ) {
+		$ids = array();
+
+		if ( is_string( $value ) ) {
+			$attachment_id = attachment_url_to_postid( $value );
+			if ( $attachment_id > 0 ) {
+				$ids[] = (int) $attachment_id;
+			}
+			return $ids;
+		}
+
+		if ( ! is_array( $value ) ) {
+			return $ids;
+		}
+
+		if ( isset( $value['id'] ) && is_numeric( $value['id'] ) && (int) $value['id'] > 0 ) {
+			$attachment = get_post( (int) $value['id'] );
+			if ( $attachment && 'attachment' === $attachment->post_type ) {
+				$ids[] = (int) $value['id'];
+			}
+		}
+
+		if ( isset( $value['url'] ) && is_string( $value['url'] ) ) {
+			$attachment_id = attachment_url_to_postid( $value['url'] );
+			if ( $attachment_id > 0 ) {
+				$ids[] = (int) $attachment_id;
+			}
+		}
+
+		foreach ( $value as $child ) {
+			$ids = array_merge( $ids, self::extract_media_ids_from_rank_math_schema( $child ) );
+		}
+
+		return array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) );
 	}
 
 	/**

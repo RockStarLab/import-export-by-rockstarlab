@@ -23,7 +23,7 @@ Our plugin is packed with tools to make data management seamless:
 
 Core Data Support: Import and Export Posts and Pages with field mapping and background processing. 📝
 
-URLs Export: Export a clean CSV or JSON list of public frontend URLs from posts, pages, custom post types, taxonomies, archives, feeds, and REST API endpoints. 🔗
+All Site URLs: Export a clean CSV or JSON list of public frontend URLs from posts, pages, custom post types, taxonomies, archives, feeds, and REST API endpoints. 🔗
 
 Intelligent Sync: Easily sync selected content between sites. Keep your Production and Staging environments in perfect harmony. 🔄
 
@@ -54,7 +54,7 @@ Data Integrity: Handles metadata and custom fields during import/export workflow
 = Core Features =
 
 * **Multiple Data Types**: Posts and Pages (additional content types via the optional PRO addon)
-* **URLs Export**: Export public site URLs from posts, pages, custom post types, taxonomies, post type archives, author/date/search archives, RSS/Atom/comments feeds, and REST API endpoints
+* **All Site URLs**: Export public site URLs from posts, pages, custom post types, taxonomies, post type archives, author/date/search archives, RSS/Atom/comments feeds, and REST API endpoints
 * **File Formats**: CSV with streaming support for large files and JSON for developer workflows
 * **Background Processing**: Handle large datasets without memory limits
 * **Field Mapping**: Intuitive field mapping interface with preview
@@ -66,7 +66,7 @@ Data Integrity: Handles metadata and custom fields during import/export workflow
 * **Progress Tracking**: Real-time progress bars and detailed logs
 * **History & Logs**: Complete history of all import/export operations
 
-= URLs Export =
+= All Site URLs =
 
 Create a clean inventory of public frontend URLs from your WordPress site:
 

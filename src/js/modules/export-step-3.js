@@ -629,7 +629,7 @@ export default class ExportStep3 {
 
 	isDynamicCategoryLoading( category ) {
 		return !! category.querySelector(
-			'.rsl-ie-taxonomies-loading, .rsl-ie-custom-fields-loading, .rsl-ie-acf-loading, .rsl-ie-yoast-loading'
+			'.rsl-ie-taxonomies-loading, .rsl-ie-custom-fields-loading, .rsl-ie-acf-loading, .rsl-ie-yoast-loading, .rsl-ie-rank-math-loading, .rsl-ie-elementor-loading'
 		);
 	}
 
@@ -706,7 +706,7 @@ export default class ExportStep3 {
 	 */
 	renderGroupFields( container, fields ) {
 		const loadingEl = container.querySelector(
-			'.rsl-ie-acf-loading, .rsl-ie-yoast-loading, .rsl-ie-meta-loading'
+			'.rsl-ie-acf-loading, .rsl-ie-yoast-loading, .rsl-ie-rank-math-loading, .rsl-ie-elementor-loading, .rsl-ie-meta-loading'
 		);
 		if ( loadingEl ) {
 			loadingEl.remove();
@@ -877,6 +877,32 @@ export default class ExportStep3 {
 			this.hideDynamicCategory( '.rsl-ie-yoast-fields-category' );
 		}
 
+		// Check if Rank Math is active and load Rank Math fields (skip for non-content types)
+		if ( ! excludedTypes.includes( contentType ) ) {
+			this.prepareDynamicCategory(
+				'.rsl-ie-rank-math-fields-category',
+				'.rsl-ie-rank-math-fields-grid',
+				'rsl-ie-rank-math-loading',
+				'Loading Rank Math SEO fields...'
+			);
+			trackRequest( this.checkAndLoadRankMath() );
+		} else {
+			this.hideDynamicCategory( '.rsl-ie-rank-math-fields-category' );
+		}
+
+		// Check if Elementor is active and load Elementor fields (skip for non-content types)
+		if ( ! excludedTypes.includes( contentType ) ) {
+			this.prepareDynamicCategory(
+				'.rsl-ie-elementor-fields-category',
+				'.rsl-ie-elementor-fields-grid',
+				'rsl-ie-elementor-loading',
+				'Loading Elementor fields...'
+			);
+			trackRequest( this.checkAndLoadElementor() );
+		} else {
+			this.hideDynamicCategory( '.rsl-ie-elementor-fields-category' );
+		}
+
 		Promise.all( requests ).then( () => {
 			if ( this.dynamicFieldsLoadToken !== loadToken ) {
 				return;
@@ -925,14 +951,22 @@ export default class ExportStep3 {
 			'.rsl-ie-field-category'
 		);
 		allCategories.forEach( ( category ) => {
-			// Skip custom fields, taxonomies, ACF, Yoast - they will be handled separately
+			// Skip custom fields, taxonomies, ACF, Yoast, Rank Math - they will be handled separately
 			if (
 				! category.classList.contains( 'rsl-ie-taxonomies-category' ) &&
 				! category.classList.contains(
 					'rsl-ie-custom-fields-category'
 				) &&
 				! category.classList.contains( 'rsl-ie-acf-fields-category' ) &&
-				! category.classList.contains( 'rsl-ie-yoast-fields-category' )
+				! category.classList.contains(
+					'rsl-ie-yoast-fields-category'
+				) &&
+				! category.classList.contains(
+					'rsl-ie-rank-math-fields-category'
+				) &&
+				! category.classList.contains(
+					'rsl-ie-elementor-fields-category'
+				)
 			) {
 				// This is a static category, hide and clear it
 				category.style.display = 'none';
@@ -953,6 +987,12 @@ export default class ExportStep3 {
 		);
 		const yoastCategory = document.querySelector(
 			'.rsl-ie-yoast-fields-category'
+		);
+		const rankMathCategory = document.querySelector(
+			'.rsl-ie-rank-math-fields-category'
+		);
+		const elementorCategory = document.querySelector(
+			'.rsl-ie-elementor-fields-category'
 		);
 
 		if ( taxonomiesCategory ) {
@@ -989,6 +1029,28 @@ export default class ExportStep3 {
 			}
 		}
 
+		if ( rankMathCategory ) {
+			rankMathCategory.style.display = 'none';
+			const grid = rankMathCategory.querySelector(
+				'.rsl-ie-rank-math-fields-grid'
+			);
+			if ( grid ) {
+				grid.innerHTML =
+					'<div class="rsl-ie-rank-math-loading"><span class="spinner is-active"></span><p>Loading Rank Math SEO fields...</p></div>';
+			}
+		}
+
+		if ( elementorCategory ) {
+			elementorCategory.style.display = 'none';
+			const grid = elementorCategory.querySelector(
+				'.rsl-ie-elementor-fields-grid'
+			);
+			if ( grid ) {
+				grid.innerHTML =
+					'<div class="rsl-ie-elementor-loading"><span class="spinner is-active"></span><p>Loading Elementor fields...</p></div>';
+			}
+		}
+
 		// Reload fields
 		this.loadDynamicFields();
 	}
@@ -1017,7 +1079,7 @@ export default class ExportStep3 {
 
 		// Clear existing static categories (keep dynamic ones)
 		const existingStatic = container.querySelectorAll(
-			'.rsl-ie-field-category:not(.rsl-ie-taxonomies-category):not(.rsl-ie-custom-fields-category):not(.rsl-ie-acf-fields-category):not(.rsl-ie-yoast-fields-category)'
+			'.rsl-ie-field-category:not(.rsl-ie-taxonomies-category):not(.rsl-ie-custom-fields-category):not(.rsl-ie-acf-fields-category):not(.rsl-ie-yoast-fields-category):not(.rsl-ie-rank-math-fields-category):not(.rsl-ie-elementor-fields-category)'
 		);
 		existingStatic.forEach( ( cat ) => cat.remove() );
 
@@ -1460,6 +1522,154 @@ export default class ExportStep3 {
 
 		this.flushPendingAddAll(
 			document.querySelector( '.rsl-ie-yoast-fields-category' )
+		);
+	}
+
+	/**
+	 * Check if Rank Math is active and load Rank Math fields
+	 */
+	checkAndLoadRankMath() {
+		if ( typeof rslIeData === 'undefined' ) return;
+
+		return jQuery.ajax( {
+			url: rslIeData.ajaxUrl,
+			method: 'POST',
+			data: {
+				action: 'rsl_ie_get_rank_math_fields',
+				nonce: rslIeData.nonce,
+				post_type: this.selectedPostType,
+			},
+			success: ( response ) => {
+				if (
+					response.success &&
+					response.data.fields &&
+					response.data.fields.length > 0
+				) {
+					this.renderRankMathFields( response.data.fields );
+					const category = document.querySelector(
+						'.rsl-ie-rank-math-fields-category'
+					);
+					if ( category ) {
+						category.style.display = '';
+					}
+				} else {
+					const category = document.querySelector(
+						'.rsl-ie-rank-math-fields-category'
+					);
+					if ( category ) {
+						category.style.display = 'none';
+						delete category.dataset.pendingAddAll;
+					}
+				}
+			},
+			error: () => {
+				this.hideDynamicCategory( '.rsl-ie-rank-math-fields-category' );
+			},
+		} );
+	}
+
+	/**
+	 * Render Rank Math fields
+	 */
+	renderRankMathFields( fields ) {
+		const grid = document.querySelector( '.rsl-ie-rank-math-fields-grid' );
+		if ( ! grid ) return;
+
+		grid.innerHTML = '';
+
+		fields.forEach( ( field ) => {
+			const item = document.createElement( 'div' );
+			item.className = 'rsl-ie-field-item';
+			item.draggable = true;
+			item.dataset.field = field.name;
+			item.dataset.label = field.label;
+			item.dataset.type = 'rank_math';
+
+			item.innerHTML = `
+				<span class="rsl-ie-field-icon dashicons dashicons-chart-area"></span>
+				<span class="rsl-ie-field-label">${ this.escapeHtml( field.label ) }</span>
+				<span class="rsl-ie-field-type">rank math</span>
+			`;
+
+			grid.appendChild( item );
+		} );
+
+		this.flushPendingAddAll(
+			document.querySelector( '.rsl-ie-rank-math-fields-category' )
+		);
+	}
+
+	/**
+	 * Check if Elementor is active and load Elementor fields
+	 */
+	checkAndLoadElementor() {
+		if ( typeof rslIeData === 'undefined' ) return;
+
+		return jQuery.ajax( {
+			url: rslIeData.ajaxUrl,
+			method: 'POST',
+			data: {
+				action: 'rsl_ie_get_elementor_fields',
+				nonce: rslIeData.nonce,
+				post_type: this.selectedPostType,
+			},
+			success: ( response ) => {
+				if (
+					response.success &&
+					response.data.fields &&
+					response.data.fields.length > 0
+				) {
+					this.renderElementorFields( response.data.fields );
+					const category = document.querySelector(
+						'.rsl-ie-elementor-fields-category'
+					);
+					if ( category ) {
+						category.style.display = '';
+					}
+				} else {
+					const category = document.querySelector(
+						'.rsl-ie-elementor-fields-category'
+					);
+					if ( category ) {
+						category.style.display = 'none';
+						delete category.dataset.pendingAddAll;
+					}
+				}
+			},
+			error: () => {
+				this.hideDynamicCategory( '.rsl-ie-elementor-fields-category' );
+			},
+		} );
+	}
+
+	/**
+	 * Render Elementor fields
+	 */
+	renderElementorFields( fields ) {
+		const grid = document.querySelector( '.rsl-ie-elementor-fields-grid' );
+		if ( ! grid ) return;
+
+		grid.innerHTML = '';
+
+		fields.forEach( ( field ) => {
+			const item = document.createElement( 'div' );
+			item.className = 'rsl-ie-field-item';
+			item.draggable = true;
+			item.dataset.field = field.name;
+			item.dataset.label = field.label;
+			item.dataset.type = 'elementor';
+
+			item.innerHTML = `
+				<span class="rsl-ie-field-icon dashicons dashicons-layout"></span>
+				<span class="rsl-ie-field-label">${ this.escapeHtml( field.label ) }</span>
+				<span class="rsl-ie-field-type">elementor</span>
+			`;
+
+			grid.appendChild( item );
+		} );
+
+		this.flushPendingAddAll(
+			document.querySelector( '.rsl-ie-elementor-fields-category' )
 		);
 	}
 

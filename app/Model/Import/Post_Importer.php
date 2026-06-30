@@ -280,6 +280,32 @@ class Post_Importer extends Abstract_Importer {
 			unset( $item[ $key ] );
 		}
 
+		// ── Pass 4: Rank Math meta keys ───────────────────────────────────────
+		// Rank Math fields use the rank_math_* prefix without a leading underscore,
+		// so mapped columns must also be moved into post_meta before saving.
+		foreach ( array_keys( $item ) as $key ) {
+			if ( ! is_string( $key ) || 0 !== strpos( $key, 'rank_math_' ) ) {
+				continue;
+			}
+
+			$value = $item[ $key ] ?? '';
+			if ( '' === $value || null === $value ) {
+				unset( $item[ $key ] );
+				continue;
+			}
+
+			if ( ! isset( $item['post_meta'][ $key ] ) ) {
+				$item['post_meta'][ $key ] = $value;
+			}
+			unset( $item[ $key ] );
+		}
+
+		// ── Pass 5: Portable aggregate fields ────────────────────────────────
+		if ( array_key_exists( 'elementor_document', $item ) && ! isset( $item['post_meta']['elementor_document'] ) ) {
+			$item['post_meta']['elementor_document'] = $item['elementor_document'];
+			unset( $item['elementor_document'] );
+		}
+
 		return $item;
 	}
 
@@ -803,6 +829,29 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		foreach ( $meta as $key => $value ) {
+			if ( 'elementor_document' === $key ) {
+				\RockStarLab\ImportExport\Helper\Elementor_Fields::import_document( (int) $post_id, $value, (bool) $this->get_option( 'auto_import_media', false ) );
+				continue;
+			}
+
+			if ( is_string( $key ) && \RockStarLab\ImportExport\Helper\Elementor_Fields::is_elementor_meta_key( $key ) ) {
+				\RockStarLab\ImportExport\Helper\Elementor_Fields::import_meta_value( (int) $post_id, $key, $value, true, (bool) $this->get_option( 'auto_import_media', false ) );
+				continue;
+			}
+
+			if ( 'rank_math_schemas' === $key ) {
+				\RockStarLab\ImportExport\Helper\Seo_Fields::import_rank_math_schemas( (int) $post_id, $value, (bool) $this->get_option( 'auto_import_media', false ) );
+				continue;
+			}
+
+			if ( $this->should_skip_rank_math_imported_media_id( (string) $key, $meta ) ) {
+				continue;
+			}
+
+			if ( $this->maybe_import_rank_math_media_field( (int) $post_id, (string) $key, $value ) ) {
+				continue;
+			}
+
 			// ACF stores field reference meta keys as "_<field_name>" = "field_XXXX".
 			// Those keys are site-specific and must NOT be imported from another site,
 			// otherwise they break get_field_object()/update_field() resolution.
@@ -1061,6 +1110,88 @@ class Post_Importer extends Abstract_Importer {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Import Rank Math social image fields when media downloading is enabled.
+	 *
+	 * Rank Math stores social preview images as URL + attachment ID pairs:
+	 * rank_math_facebook_image / rank_math_facebook_image_id and
+	 * rank_math_twitter_image / rank_math_twitter_image_id. A source-site ID is
+	 * not portable, so when the URL is downloaded we also update the companion ID.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $key     Meta key.
+	 * @param mixed  $value   Meta value.
+	 * @return bool True when the field was handled.
+	 */
+	private function maybe_import_rank_math_media_field( $post_id, $key, $value ) {
+		$companion_id_keys = [
+			'rank_math_facebook_image' => 'rank_math_facebook_image_id',
+			'rank_math_twitter_image'  => 'rank_math_twitter_image_id',
+		];
+
+		if ( ! isset( $companion_id_keys[ $key ] ) || ! $this->get_option( 'auto_import_media', false ) || ! is_string( $value ) || '' === $value ) {
+			return false;
+		}
+
+		if ( ! $this->looks_like_downloadable_media_url( $value ) ) {
+			return false;
+		}
+
+		$media_duplicate_mode = (string) $this->get_option( 'media_duplicate_mode', 'skip' );
+		$attachment_id        = $this->import_media_for_acf( $value, $post_id, $media_duplicate_mode );
+		if ( ! $attachment_id ) {
+			return false;
+		}
+
+		$attachment_url = wp_get_attachment_url( (int) $attachment_id );
+		if ( $attachment_url ) {
+			update_post_meta( $post_id, $key, $attachment_url );
+		}
+		update_post_meta( $post_id, $companion_id_keys[ $key ], (int) $attachment_id );
+
+		return true;
+	}
+
+	/**
+	 * Skip source-site Rank Math image IDs when the matching URL field can be
+	 * imported and remapped on this site.
+	 *
+	 * @param string $key  Meta key.
+	 * @param array  $meta Full meta payload.
+	 * @return bool
+	 */
+	private function should_skip_rank_math_imported_media_id( $key, array $meta ) {
+		if ( ! $this->get_option( 'auto_import_media', false ) ) {
+			return false;
+		}
+
+		$url_keys = [
+			'rank_math_facebook_image_id' => 'rank_math_facebook_image',
+			'rank_math_twitter_image_id'  => 'rank_math_twitter_image',
+		];
+
+		return isset( $url_keys[ $key ], $meta[ $url_keys[ $key ] ] )
+			&& is_string( $meta[ $url_keys[ $key ] ] )
+			&& $this->looks_like_downloadable_media_url( $meta[ $url_keys[ $key ] ] );
+	}
+
+	/**
+	 * Check whether a URL points to a media file that should be downloaded.
+	 *
+	 * @param string $url URL.
+	 * @return bool
+	 */
+	private function looks_like_downloadable_media_url( $url ) {
+		if ( '' === $url || ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+			return false;
+		}
+
+		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		$ext  = strtolower( (string) pathinfo( $path, PATHINFO_EXTENSION ) );
+
+		return in_array( $ext, [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'pdf', 'mp4', 'webm' ], true );
 	}
 
 	/**
