@@ -375,7 +375,7 @@ abstract class Base_Controller {
 
 		$free_by_context = [
 			'import' => [ 'post', 'posts', 'page', 'pages' ],
-			'export' => [ 'post', 'page' ],
+			'export' => [ 'post', 'page', 'urls' ],
 			'update' => [ 'post', 'page', 'pages', 'comment', 'comments' ],
 		];
 

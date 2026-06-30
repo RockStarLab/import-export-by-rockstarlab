@@ -90,7 +90,7 @@ defined( 'ABSPATH' ) || exit;
 				<h3><?php esc_html_e( 'Processing Options', 'import-export-by-rockstarlab' ); ?></h3>
 				<table class="form-table">
 					<tr>
-						<th><?php esc_html_e( 'Items per iteration', 'import-export-by-rockstarlab' ); ?></th>
+						<th><?php esc_html_e( 'Batch size', 'import-export-by-rockstarlab' ); ?></th>
 						<td>
 							<input type="number" name="items_per_iteration" value="3" min="1" max="1000" class="small-text">
 							<p class="description"><?php esc_html_e( 'Number of items to process in each batch. Lower values are safer for large exports.', 'import-export-by-rockstarlab' ); ?></p>

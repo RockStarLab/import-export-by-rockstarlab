@@ -11,7 +11,7 @@ Advanced import/export for WordPress: custom functions, media sync, and site-to-
 
 == Description ==
 
-Import Export by RockStarLab helps you move WordPress data between sites and environments. It supports CSV-based import/export workflows, custom field mapping, optional PHP transformations, and background jobs for large datasets.
+Import Export by RockStarLab helps you move WordPress data between sites and environments. It supports CSV-based import/export workflows, frontend URLs export, custom field mapping, optional PHP transformations, and background jobs for large datasets.
 
 Import and export WordPress content with a flexible workflow that scales to large datasets. Use mapping, background jobs, and optional PHP transformations to move data reliably. 📂
 
@@ -22,6 +22,8 @@ It also includes optional AI-assisted tools (when configured) to help generate t
 Our plugin is packed with tools to make data management seamless:
 
 Core Data Support: Import and Export Posts and Pages with field mapping and background processing. 📝
+
+URLs Export: Export a clean CSV or JSON list of public frontend URLs from posts, pages, custom post types, taxonomies, archives, feeds, and REST API endpoints. 🔗
 
 Intelligent Sync: Easily sync selected content between sites. Keep your Production and Staging environments in perfect harmony. 🔄
 
@@ -52,7 +54,8 @@ Data Integrity: Handles metadata and custom fields during import/export workflow
 = Core Features =
 
 * **Multiple Data Types**: Posts and Pages (additional content types via the optional PRO addon)
-* **File Formats**: CSV with streaming support for large files
+* **URLs Export**: Export public site URLs from posts, pages, custom post types, taxonomies, post type archives, author/date/search archives, RSS/Atom/comments feeds, and REST API endpoints
+* **File Formats**: CSV with streaming support for large files and JSON for developer workflows
 * **Background Processing**: Handle large datasets without memory limits
 * **Field Mapping**: Intuitive field mapping interface with preview
 * **Validation System**: Comprehensive data validation before import
@@ -62,6 +65,18 @@ Data Integrity: Handles metadata and custom fields during import/export workflow
 * **Site-to-Site Sync**: Connect and sync content between two WordPress sites
 * **Progress Tracking**: Real-time progress bars and detailed logs
 * **History & Logs**: Complete history of all import/export operations
+
+= URLs Export =
+
+Create a clean inventory of public frontend URLs from your WordPress site:
+
+* **Content URLs**: Posts, Pages, Media, and public Custom Post Types
+* **Taxonomy URLs**: Categories, Tags, WooCommerce taxonomies, and other public term archives
+* **Archive URLs**: Post type archives, author archives, date archives, homepage/front page, and search results URL
+* **Technical URLs**: Optional RSS feeds, Atom feeds, comments feed, post type feeds, REST API root, and REST post type endpoints
+* **Simple Output**: CSV or JSON file with a single URL column
+* **Bulk Selection**: Quickly select or deselect Posts, Taxonomies, REST endpoints, RSS feeds, Atom feeds, and Comments feeds
+* **Jobs Log Support**: Re-run URL export jobs or download completed files from the Jobs Log
 
 = Site-to-Site Content Sync =
 

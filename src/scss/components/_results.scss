@@ -195,6 +195,15 @@
 				transform: translateY(-2px);
 			}
 
+			&.is-downloading,
+			&.is-downloading:hover,
+			&:disabled {
+				opacity: 0.86;
+				cursor: wait;
+				transform: none;
+				box-shadow: 0 3px 10px rgba(34, 113, 177, 0.26);
+			}
+
 			&:active {
 				transform: translateY(0);
 				box-shadow: 0 2px 8px rgba(34, 113, 177, 0.3);
@@ -207,7 +216,21 @@
 				margin-right: 8px;
 				vertical-align: middle;
 			}
+
+			.rsl-ie-download-spinner {
+				animation: rsl-ie-download-spin 0.85s linear infinite;
+			}
 		}
+	}
+}
+
+@keyframes rsl-ie-download-spin {
+	from {
+		transform: rotate(0deg);
+	}
+
+	to {
+		transform: rotate(360deg);
 	}
 }
 
