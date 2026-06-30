@@ -12,6 +12,8 @@ namespace RockStarLab\ImportExport\Model\Queue;
 use RockStarLab\ImportExport\Model\Job;
 use RockStarLab\ImportExport\Model\Export\Exporter_Factory;
 use RockStarLab\ImportExport\Helper\Function_Executor;
+use RockStarLab\ImportExport\Helper\Seo_Fields;
+use RockStarLab\ImportExport\Helper\Elementor_Fields;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -572,6 +574,21 @@ class Update_Processor {
 		$is_product = in_array( $post_type, [ 'product', 'product_variation' ], true );
 
 		foreach ( $meta_data as $meta_key => $meta_value ) {
+			if ( 'elementor_document' === $meta_key ) {
+				Elementor_Fields::import_document( (int) $post_id, $meta_value );
+				continue;
+			}
+
+			if ( is_string( $meta_key ) && Elementor_Fields::is_elementor_meta_key( $meta_key ) ) {
+				Elementor_Fields::import_meta_value( (int) $post_id, $meta_key, $meta_value );
+				continue;
+			}
+
+			if ( 'rank_math_schemas' === $meta_key ) {
+				Seo_Fields::import_rank_math_schemas( (int) $post_id, $meta_value );
+				continue;
+			}
+
 			$resolved = $this->resolve_meta_key( $meta_key );
 			$real_key = $resolved['key'];
 			if ( $is_product && $real_key === 'regular_price' ) {

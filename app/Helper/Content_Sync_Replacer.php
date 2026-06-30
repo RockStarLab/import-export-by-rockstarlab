@@ -310,6 +310,23 @@ class Content_Sync_Replacer {
 				continue;
 			}
 
+			if ( ! empty( $image_map ) && in_array( $key, array( 'rank_math_facebook_image_id', 'rank_math_twitter_image_id' ), true ) && isset( $image_map[ (int) $value ] ) ) {
+				$value = $image_map[ (int) $value ];
+				continue;
+			}
+
+			if ( ! empty( $image_map ) && in_array( $key, array( 'rank_math_facebook_image', 'rank_math_twitter_image' ), true ) ) {
+				$companion_id_key = $key . '_id';
+				$source_id        = isset( $meta[ $companion_id_key ] ) ? (int) $meta[ $companion_id_key ] : 0;
+				if ( $source_id > 0 && isset( $image_map[ $source_id ] ) ) {
+					$new_url = wp_get_attachment_url( (int) $image_map[ $source_id ] );
+					if ( $new_url ) {
+						$value = $new_url;
+						continue;
+					}
+				}
+			}
+
 			// Replace ACF image/file fields (numeric attachment IDs).
 			// We MUST check the ACF field type first to avoid corrupting ACF repeater row
 			// counts: during Pull, $image_map keys are remote attachment IDs which can be
@@ -488,6 +505,15 @@ class Content_Sync_Replacer {
 	public static function replace_in_array( $array, $source_domain, $target_domain, $image_map = array(), $depth = 0 ) {
 		// Keys whose numeric values are definitely attachment IDs.
 		$attachment_id_keys = array( 'id', 'ID', 'attachment_id', 'image_id', 'media_id', 'image', 'thumbnail_id', 'file' );
+
+		if ( ! empty( $image_map ) && isset( $array['id'], $array['url'] ) && is_numeric( $array['id'] ) && isset( $image_map[ (int) $array['id'] ] ) ) {
+			$new_attachment_id = (int) $image_map[ (int) $array['id'] ];
+			$new_url           = wp_get_attachment_url( $new_attachment_id );
+			if ( $new_url ) {
+				$array['id']  = $new_attachment_id;
+				$array['url'] = $new_url;
+			}
+		}
 
 		// Detect if this looks like a flat gallery-style array: a sequential list where
 		// every element is a positive integer (e.g. ACF gallery stored as [123, 456, 789]).

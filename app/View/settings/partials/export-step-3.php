@@ -152,6 +152,42 @@ defined( 'ABSPATH' ) || exit;
 								</div>
 							</div>
 						</div>
+
+						<!-- Rank Math SEO Fields (Dynamic - loaded via AJAX) -->
+						<div class="rsl-ie-field-category rsl-ie-collapsed rsl-ie-rank-math-fields-category" style="display:none;">
+							<h4 class="rsl-ie-field-category-title">
+								<span class="dashicons dashicons-arrow-down-alt2 rsl-ie-category-toggle"></span>
+								<span class="dashicons dashicons-chart-area"></span>
+								<?php esc_html_e( 'Rank Math SEO', 'import-export-by-rockstarlab' ); ?>
+								<button type="button" class="rsl-ie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'import-export-by-rockstarlab' ); ?>">
+									<?php esc_html_e( 'Add all', 'import-export-by-rockstarlab' ); ?>
+								</button>
+							</h4>
+							<div class="rsl-ie-fields-grid rsl-ie-rank-math-fields-grid">
+								<div class="rsl-ie-rank-math-loading">
+									<span class="spinner is-active"></span>
+									<p><?php esc_html_e( 'Loading Rank Math SEO fields...', 'import-export-by-rockstarlab' ); ?></p>
+								</div>
+							</div>
+						</div>
+
+						<!-- Elementor Fields (Dynamic - loaded via AJAX) -->
+						<div class="rsl-ie-field-category rsl-ie-collapsed rsl-ie-elementor-fields-category" style="display:none;">
+							<h4 class="rsl-ie-field-category-title">
+								<span class="dashicons dashicons-arrow-down-alt2 rsl-ie-category-toggle"></span>
+								<span class="dashicons dashicons-layout"></span>
+								<?php esc_html_e( 'Elementor', 'import-export-by-rockstarlab' ); ?>
+								<button type="button" class="rsl-ie-add-all-fields" title="<?php esc_attr_e( 'Add all fields from this category', 'import-export-by-rockstarlab' ); ?>">
+									<?php esc_html_e( 'Add all', 'import-export-by-rockstarlab' ); ?>
+								</button>
+							</h4>
+							<div class="rsl-ie-fields-grid rsl-ie-elementor-fields-grid">
+								<div class="rsl-ie-elementor-loading">
+									<span class="spinner is-active"></span>
+									<p><?php esc_html_e( 'Loading Elementor fields...', 'import-export-by-rockstarlab' ); ?></p>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>

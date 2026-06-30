@@ -78,7 +78,7 @@ defined( 'ABSPATH' ) || exit;
 				<input type="radio" name="content_type" value="urls">
 				<div class="rsl-ie-content-type-card">
 					<span class="dashicons dashicons-admin-links"></span>
-					<h3><?php esc_html_e( 'URLs Export', 'import-export-by-rockstarlab' ); ?></h3>
+					<h3><?php esc_html_e( 'All Site URLs', 'import-export-by-rockstarlab' ); ?></h3>
 					<p><?php esc_html_e( 'Export frontend URLs for public content types', 'import-export-by-rockstarlab' ); ?></p>
 				</div>
 			</label>

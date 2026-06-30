@@ -1485,6 +1485,8 @@ const ContentUpdater = {
 			}
 			if ( contentType !== 'user' && contentType !== 'media' ) {
 				this.checkAndLoadYoast( postType );
+				this.checkAndLoadRankMath( postType );
+				this.checkAndLoadElementor( postType );
 			}
 		}
 	},
@@ -1637,6 +1639,32 @@ const ContentUpdater = {
 				</h4>
 				<div class="rsl-ie-fields-grid rsl-ie-yoast-fields-grid">
 					<div class="rsl-ie-yoast-loading"><span class="spinner is-active"></span><p>Loading Yoast SEO fields...</p></div>
+				</div>
+			</div>
+			<div class="rsl-ie-field-category rsl-ie-collapsed rsl-ie-rank-math-fields-category" style="display: none;">
+				<h4 class="rsl-ie-field-category-title">
+					<span class="dashicons dashicons-arrow-down-alt2 rsl-ie-category-toggle"></span>
+					<span class="dashicons dashicons-chart-area"></span>
+					Rank Math SEO
+					<button type="button" class="rsl-ie-add-all-fields" title="${ window.rslIeData.i18n.addAllFieldsTitle }">
+						${ window.rslIeData.i18n.addAll }
+					</button>
+				</h4>
+				<div class="rsl-ie-fields-grid rsl-ie-rank-math-fields-grid">
+					<div class="rsl-ie-rank-math-loading"><span class="spinner is-active"></span><p>Loading Rank Math SEO fields...</p></div>
+				</div>
+			</div>
+			<div class="rsl-ie-field-category rsl-ie-collapsed rsl-ie-elementor-fields-category" style="display: none;">
+				<h4 class="rsl-ie-field-category-title">
+					<span class="dashicons dashicons-arrow-down-alt2 rsl-ie-category-toggle"></span>
+					<span class="dashicons dashicons-layout"></span>
+					Elementor
+					<button type="button" class="rsl-ie-add-all-fields" title="${ window.rslIeData.i18n.addAllFieldsTitle }">
+						${ window.rslIeData.i18n.addAll }
+					</button>
+				</h4>
+				<div class="rsl-ie-fields-grid rsl-ie-elementor-fields-grid">
+					<div class="rsl-ie-elementor-loading"><span class="spinner is-active"></span><p>Loading Elementor fields...</p></div>
 				</div>
 			</div>
 		` );
@@ -2024,6 +2052,116 @@ const ContentUpdater = {
 					<span class="rsl-ie-field-icon dashicons dashicons-chart-line"></span>
 					<span class="rsl-ie-field-label">${ this.escapeHtml( field.label ) }</span>
 					<span class="rsl-ie-field-type">yoast</span>
+				` );
+
+			$grid.append( $item );
+		} );
+	},
+
+	/**
+	 * Check if Rank Math is active and load Rank Math fields
+	 */
+	checkAndLoadRankMath( postType ) {
+		if ( typeof rslIeData === 'undefined' ) return;
+
+		jQuery.ajax( {
+			url: rslIeData.ajaxUrl,
+			method: 'POST',
+			data: {
+				action: 'rsl_ie_get_rank_math_fields',
+				nonce: rslIeData.nonce,
+				post_type: postType,
+			},
+			success: ( response ) => {
+				if (
+					response.success &&
+					response.data.fields &&
+					response.data.fields.length > 0
+				) {
+					this.renderRankMathFields( response.data.fields );
+					jQuery( '.rsl-ie-rank-math-fields-category' ).show();
+				} else {
+					jQuery( '.rsl-ie-rank-math-fields-category' ).hide();
+				}
+			},
+			error: () => {},
+		} );
+	},
+
+	/**
+	 * Render Rank Math fields
+	 */
+	renderRankMathFields( fields ) {
+		const $grid = jQuery( '.rsl-ie-rank-math-fields-grid' );
+		if ( ! $grid.length ) return;
+
+		$grid.empty();
+
+		fields.forEach( ( field ) => {
+			const $item = jQuery( '<div>' )
+				.addClass( 'rsl-ie-field-item' )
+				.attr( 'draggable', true )
+				.attr( 'data-field', field.name )
+				.attr( 'data-label', field.label )
+				.attr( 'data-type', 'rank_math' ).html( `
+					<span class="rsl-ie-field-icon dashicons dashicons-chart-area"></span>
+					<span class="rsl-ie-field-label">${ this.escapeHtml( field.label ) }</span>
+					<span class="rsl-ie-field-type">rank math</span>
+				` );
+
+			$grid.append( $item );
+		} );
+	},
+
+	/**
+	 * Check if Elementor is active and load Elementor fields
+	 */
+	checkAndLoadElementor( postType ) {
+		if ( typeof rslIeData === 'undefined' ) return;
+
+		jQuery.ajax( {
+			url: rslIeData.ajaxUrl,
+			method: 'POST',
+			data: {
+				action: 'rsl_ie_get_elementor_fields',
+				nonce: rslIeData.nonce,
+				post_type: postType,
+			},
+			success: ( response ) => {
+				if (
+					response.success &&
+					response.data.fields &&
+					response.data.fields.length > 0
+				) {
+					this.renderElementorFields( response.data.fields );
+					jQuery( '.rsl-ie-elementor-fields-category' ).show();
+				} else {
+					jQuery( '.rsl-ie-elementor-fields-category' ).hide();
+				}
+			},
+			error: () => {},
+		} );
+	},
+
+	/**
+	 * Render Elementor fields
+	 */
+	renderElementorFields( fields ) {
+		const $grid = jQuery( '.rsl-ie-elementor-fields-grid' );
+		if ( ! $grid.length ) return;
+
+		$grid.empty();
+
+		fields.forEach( ( field ) => {
+			const $item = jQuery( '<div>' )
+				.addClass( 'rsl-ie-field-item' )
+				.attr( 'draggable', true )
+				.attr( 'data-field', field.name )
+				.attr( 'data-label', field.label )
+				.attr( 'data-type', 'elementor' ).html( `
+					<span class="rsl-ie-field-icon dashicons dashicons-layout"></span>
+					<span class="rsl-ie-field-label">${ this.escapeHtml( field.label ) }</span>
+					<span class="rsl-ie-field-type">elementor</span>
 				` );
 
 			$grid.append( $item );

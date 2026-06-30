@@ -33,6 +33,8 @@ class Import_Controller extends Base_Controller {
 			'import_cancel'        => [ 'callback' => 'cancel_import' ],
 			'get_acf_fields'       => [ 'callback' => 'get_acf_fields' ],
 			'get_yoast_fields'     => [ 'callback' => 'get_yoast_fields' ],
+			'get_rank_math_fields' => [ 'callback' => 'get_rank_math_fields' ],
+			'get_elementor_fields' => [ 'callback' => 'get_elementor_fields' ],
 			'get_database_tables'  => [ 'callback' => 'get_database_tables' ],
 			'get_table_columns'    => [ 'callback' => 'get_table_columns' ],
 		];
@@ -728,6 +730,50 @@ class Import_Controller extends Base_Controller {
 		];
 
 		$this->send_success( [ 'fields' => $fields ] );
+	}
+
+	/**
+	 * Get Rank Math SEO fields for import
+	 */
+	public function get_rank_math_fields() {
+		$verification = $this->verify_request();
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		if ( ! \RockStarLab\ImportExport\Helper\Seo_Fields::is_rank_math_active() ) {
+			$this->send_success( [ 'fields' => [] ] );
+			return;
+		}
+
+		$post_type = sanitize_key( (string) $this->get_request_param( 'post_type', '', 'post' ) );
+
+		$this->send_success(
+			[
+				'fields' => \RockStarLab\ImportExport\Helper\Seo_Fields::get_rank_math_fields( $post_type ),
+			]
+		);
+	}
+
+	/**
+	 * Get Elementor fields for import
+	 */
+	public function get_elementor_fields() {
+		$verification = $this->verify_request();
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		if ( ! \RockStarLab\ImportExport\Helper\Elementor_Fields::is_active() ) {
+			$this->send_success( [ 'fields' => [] ] );
+			return;
+		}
+
+		$this->send_success(
+			[
+				'fields' => \RockStarLab\ImportExport\Helper\Elementor_Fields::get_fields(),
+			]
+		);
 	}
 
 	/**

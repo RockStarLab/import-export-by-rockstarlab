@@ -973,6 +973,12 @@ const ImportModule = {
 		// Load dynamic Yoast fields
 		this.loadYoastFields( contentType );
 
+		// Load dynamic Rank Math fields
+		this.loadRankMathFields( contentType );
+
+		// Load dynamic Elementor fields
+		this.loadElementorFields( contentType );
+
 		// Initialize drag & drop
 		this.initializeDragDrop();
 
@@ -1064,6 +1070,21 @@ const ImportModule = {
 					} );
 
 					$select.html( options );
+					$select
+						.off( 'change.rslIeRankMath change.rslIeElementor' )
+						.on(
+							'change.rslIeRankMath change.rslIeElementor',
+							() => {
+								jQuery(
+									'.rsl-ie-rank-math-fields-group'
+								).remove();
+								jQuery(
+									'.rsl-ie-elementor-fields-group'
+								).remove();
+								this.loadRankMathFields( 'custom_post_types' );
+								this.loadElementorFields( 'custom_post_types' );
+							}
+						);
 				}
 			},
 			error: ( xhr, status, error ) => {},
@@ -5189,6 +5210,170 @@ const ImportModule = {
 		html += `</div>`;
 
 		// Append to container
+		$container.append( html );
+	},
+
+	/**
+	 * Load Rank Math SEO fields dynamically from server
+	 */
+	loadRankMathFields( contentType ) {
+		if ( typeof rslIeData === 'undefined' ) {
+			return;
+		}
+
+		const excludedTypes = [
+			'media',
+			'user',
+			'comment',
+			'menu',
+			'taxonomy',
+			'database_table',
+			'woo_attribute',
+			'woo_coupon',
+			'woo_order',
+		];
+
+		if ( excludedTypes.includes( contentType ) ) {
+			return;
+		}
+
+		const postType =
+			contentType === 'custom_post_types'
+				? jQuery( '#rsl-ie-custom-post-type' ).val()
+				: contentType;
+
+		jQuery.ajax( {
+			url: rslIeData.ajaxUrl,
+			method: 'POST',
+			data: {
+				action: 'rsl_ie_get_rank_math_fields',
+				nonce: rslIeData.nonce,
+				post_type: postType || '',
+			},
+			success: ( response ) => {
+				if (
+					response.success &&
+					response.data.fields &&
+					response.data.fields.length > 0
+				) {
+					this.renderRankMathFields( response.data.fields );
+				}
+			},
+			error: () => {},
+		} );
+	},
+
+	/**
+	 * Render Rank Math SEO fields as target fields
+	 */
+	renderRankMathFields( fields ) {
+		const $container = jQuery( '#rsl-ie-target-fields' );
+
+		let html = `<div class="rsl-ie-field-group rsl-ie-rank-math-fields-group">`;
+		html += `<div class="rsl-ie-field-group-label">📈 Rank Math SEO</div>`;
+
+		fields.forEach( ( field ) => {
+			html += `
+				<div class="rsl-ie-target-field" data-target-field="${ this.escapeHtml(
+					field.name
+				) }" data-field-type="${ this.escapeHtml(
+					field.type || 'string'
+				) }">
+					<div class="rsl-ie-field-icon">
+						<span class="dashicons dashicons-chart-area"></span>
+					</div>
+					<div class="rsl-ie-field-info">
+						<div class="rsl-ie-field-label">${ this.escapeHtml( field.label ) }</div>
+						<span class="rsl-ie-field-type-badge">rank math</span>
+					</div>
+				</div>
+			`;
+		} );
+
+		html += `</div>`;
+
+		$container.append( html );
+	},
+
+	/**
+	 * Load Elementor fields dynamically from server
+	 */
+	loadElementorFields( contentType ) {
+		if ( typeof rslIeData === 'undefined' ) {
+			return;
+		}
+
+		const excludedTypes = [
+			'media',
+			'user',
+			'comment',
+			'menu',
+			'taxonomy',
+			'database_table',
+			'woo_attribute',
+			'woo_coupon',
+			'woo_order',
+		];
+
+		if ( excludedTypes.includes( contentType ) ) {
+			return;
+		}
+
+		const postType =
+			contentType === 'custom_post_types'
+				? jQuery( '#rsl-ie-custom-post-type' ).val()
+				: contentType;
+
+		jQuery.ajax( {
+			url: rslIeData.ajaxUrl,
+			method: 'POST',
+			data: {
+				action: 'rsl_ie_get_elementor_fields',
+				nonce: rslIeData.nonce,
+				post_type: postType || '',
+			},
+			success: ( response ) => {
+				if (
+					response.success &&
+					response.data.fields &&
+					response.data.fields.length > 0
+				) {
+					this.renderElementorFields( response.data.fields );
+				}
+			},
+			error: () => {},
+		} );
+	},
+
+	/**
+	 * Render Elementor fields as target fields
+	 */
+	renderElementorFields( fields ) {
+		const $container = jQuery( '#rsl-ie-target-fields' );
+
+		let html = `<div class="rsl-ie-field-group rsl-ie-elementor-fields-group">`;
+		html += `<div class="rsl-ie-field-group-label">🧱 Elementor</div>`;
+
+		fields.forEach( ( field ) => {
+			html += `
+				<div class="rsl-ie-target-field" data-target-field="${ this.escapeHtml(
+					field.name
+				) }" data-field-type="${ this.escapeHtml(
+					field.type || 'string'
+				) }">
+					<div class="rsl-ie-field-icon">
+						<span class="dashicons dashicons-layout"></span>
+					</div>
+					<div class="rsl-ie-field-info">
+						<div class="rsl-ie-field-label">${ this.escapeHtml( field.label ) }</div>
+						<span class="rsl-ie-field-type-badge">elementor</span>
+					</div>
+				</div>
+			`;
+		} );
+
+		html += `</div>`;
+
 		$container.append( html );
 	},
 

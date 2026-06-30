@@ -795,7 +795,7 @@ const JobsLogModule = {
 
 	getDataTypeLabel( dataType ) {
 		const labels = {
-			urls: 'URLs Export',
+			urls: 'All Site URLs',
 			post: 'Blog Posts',
 			page: 'Pages',
 			media: 'Media',
