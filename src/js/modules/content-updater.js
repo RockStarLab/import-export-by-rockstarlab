@@ -1477,13 +1477,19 @@ const ContentUpdater = {
 		if ( postType ) {
 			// Skip taxonomies for Content Updater
 			// this.loadTaxonomies( postType );
-			if ( contentType !== 'media' ) {
+			if (
+				! [ 'media', 'comment', 'taxonomy', 'menu' ].includes(
+					contentType
+				)
+			) {
 				this.loadCustomFields( postType );
 			}
-			if ( contentType !== 'media' ) {
-				this.checkAndLoadACF( postType );
-			}
-			if ( contentType !== 'user' && contentType !== 'media' ) {
+			this.checkAndLoadACF( postType, this.getTaxonomyForACF() );
+			if (
+				! [ 'user', 'media', 'comment', 'taxonomy', 'menu' ].includes(
+					contentType
+				)
+			) {
 				this.checkAndLoadYoast( postType );
 				this.checkAndLoadRankMath( postType );
 				this.checkAndLoadElementor( postType );
@@ -1880,6 +1886,9 @@ const ContentUpdater = {
 			woo_coupon: 'shop_coupon',
 			media: 'attachment',
 			user: 'user',
+			comment: 'comment',
+			taxonomy: 'taxonomy',
+			menu: 'menu',
 		};
 
 		if ( typeMap[ contentType ] ) {
@@ -1891,6 +1900,32 @@ const ContentUpdater = {
 		}
 
 		return null;
+	},
+
+	/**
+	 * Get selected taxonomy for taxonomy ACF field groups.
+	 *
+	 * @return {string}
+	 */
+	getTaxonomyForACF() {
+		const contentType = jQuery(
+			'input[name="updater_content_type"]:checked'
+		).val();
+		if ( contentType !== 'taxonomy' ) {
+			return '';
+		}
+
+		const selected = jQuery( '.rsl-ie-taxonomy-selector' ).val();
+		if ( selected ) {
+			return selected;
+		}
+
+		const collected = this.collectFilters();
+		const taxonomyFilter = collected.filters.find(
+			( filter ) => filter.field === 'taxonomy' && filter.value
+		);
+
+		return taxonomyFilter ? taxonomyFilter.value : '';
 	},
 
 	/**
@@ -1951,17 +1986,23 @@ const ContentUpdater = {
 	/**
 	 * Check if ACF is active and load ACF fields
 	 */
-	checkAndLoadACF( postType ) {
+	checkAndLoadACF( postType, taxonomy = '' ) {
 		if ( typeof rslIeData === 'undefined' ) return;
+
+		const requestData = {
+			action: 'rsl_ie_get_acf_fields',
+			nonce: rslIeData.nonce,
+			post_type: postType,
+		};
+
+		if ( taxonomy ) {
+			requestData.taxonomy = taxonomy;
+		}
 
 		jQuery.ajax( {
 			url: rslIeData.ajaxUrl,
 			method: 'POST',
-			data: {
-				action: 'rsl_ie_get_acf_fields',
-				nonce: rslIeData.nonce,
-				post_type: postType,
-			},
+			data: requestData,
 			success: ( response ) => {
 				if (
 					response.success &&

@@ -15,6 +15,7 @@ use RockStarLab\ImportExport\Model\Format\Format_Factory;
 use RockStarLab\ImportExport\Model\Queue\Export_Processor;
 use RockStarLab\ImportExport\Helper\Fs;
 use RockStarLab\ImportExport\Helper\Ajax_Security;
+use RockStarLab\ImportExport\Helper\ACF_Fields;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -1117,151 +1118,10 @@ class Export_Controller extends Base_Controller {
 
 		$post_type = $this->get_request_param( 'post_type', '' );
 		$taxonomy  = $this->get_request_param( 'taxonomy', '' );
-
-		// Determine the location rule based on what was provided
-		$fields = [];
-
-		// If taxonomy is provided, use taxonomy location
-		if ( ! empty( $taxonomy ) ) {
-			// Get all field groups and manually filter by location rules
-			$all_groups = acf_get_field_groups();
-
-			foreach ( $all_groups as $group ) {
-				if ( empty( $group['location'] ) ) {
-					continue;
-				}
-
-				$group_matches = false;
-
-				// Check location rules (OR groups of AND rules)
-				foreach ( $group['location'] as $or_rules ) {
-					foreach ( $or_rules as $rule ) {
-						if (
-							$rule['param'] === 'taxonomy' &&
-							$rule['operator'] === '==' &&
-							$rule['value'] === $taxonomy
-						) {
-							$group_matches = true;
-							break 2;
-						}
-					}
-				}
-
-				if ( $group_matches ) {
-					$group_fields = acf_get_fields( $group['key'] );
-					if ( $group_fields ) {
-						foreach ( $group_fields as $field ) {
-							// Skip UI-only fields that don't store data
-							if ( in_array( $field['type'], [ 'accordion', 'tab', 'message', 'clone' ], true ) ) {
-								continue;
-							}
-
-							$fields[] = [
-								'name'  => $field['name'],
-								'label' => $field['label'],
-								'type'  => $field['type'],
-							];
-						}
-					}
-				}
-			}
-		} elseif ( $post_type === 'user' ) {
-			// Get all field groups and manually filter by user location rules
-			$all_groups = acf_get_field_groups();
-
-			foreach ( $all_groups as $group ) {
-				if ( empty( $group['location'] ) ) {
-					continue;
-				}
-
-				$group_matches = false;
-
-				// Check location rules for user forms
-				foreach ( $group['location'] as $or_rules ) {
-					foreach ( $or_rules as $rule ) {
-						if (
-							$rule['param'] === 'user_form' &&
-							$rule['operator'] === '=='
-						) {
-							$group_matches = true;
-							break 2;
-						}
-					}
-				}
-
-				if ( $group_matches ) {
-					$group_fields = acf_get_fields( $group['key'] );
-					if ( $group_fields ) {
-						foreach ( $group_fields as $field ) {
-							// Skip UI-only fields that don't store data
-							if ( in_array( $field['type'], [ 'accordion', 'tab', 'message', 'clone' ], true ) ) {
-								continue;
-							}
-
-							$fields[] = [
-								'name'  => $field['name'],
-								'label' => $field['label'],
-								'type'  => $field['type'],
-							];
-						}
-					}
-				}
-			}
-		} elseif ( ! empty( $post_type ) ) {
-			// Map content types to actual post types
-			$type_map = [
-				'woo_order'  => 'shop_order',
-				'woo_coupon' => 'shop_coupon',
-				'media'      => 'attachment',
-			];
-
-			if ( isset( $type_map[ $post_type ] ) ) {
-				$post_type = $type_map[ $post_type ];
-			}
-
-			// Get all field groups and manually filter by post type location rules
-			$all_groups = acf_get_field_groups();
-
-			foreach ( $all_groups as $group ) {
-				if ( empty( $group['location'] ) ) {
-					continue;
-				}
-
-				$group_matches = false;
-
-				// Check location rules for post types
-				foreach ( $group['location'] as $or_rules ) {
-					foreach ( $or_rules as $rule ) {
-						if (
-							$rule['param'] === 'post_type' &&
-							$rule['operator'] === '==' &&
-							$rule['value'] === $post_type
-						) {
-							$group_matches = true;
-							break 2;
-						}
-					}
-				}
-
-				if ( $group_matches ) {
-					$group_fields = acf_get_fields( $group['key'] );
-					if ( $group_fields ) {
-						foreach ( $group_fields as $field ) {
-							// Skip UI-only fields that don't store data
-							if ( in_array( $field['type'], [ 'accordion', 'tab', 'message', 'clone' ], true ) ) {
-								continue;
-							}
-
-							$fields[] = [
-								'name'  => $field['name'],
-								'label' => $field['label'],
-								'type'  => $field['type'],
-							];
-						}
-					}
-				}
-			}
+		if ( '' === $post_type && '' !== $taxonomy ) {
+			$post_type = 'taxonomy';
 		}
+		$fields = ACF_Fields::get_fields_for_content_type( $post_type, $taxonomy );
 
 		$this->send_success( [ 'fields' => $fields ] );
 	}

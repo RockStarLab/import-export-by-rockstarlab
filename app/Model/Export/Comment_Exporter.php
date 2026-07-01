@@ -9,6 +9,8 @@
 
 namespace RockStarLab\ImportExport\Model\Export;
 
+use RockStarLab\ImportExport\Helper\ACF_Fields;
+
 defined( 'ABSPATH' ) || exit;
 
 class Comment_Exporter extends Abstract_Exporter {
@@ -290,6 +292,11 @@ class Comment_Exporter extends Abstract_Exporter {
 					break;
 
 				default:
+					if ( strpos( $field, 'acf_' ) === 0 ) {
+						$data[ $field ] = ACF_Fields::export_value( 'comment', $comment->comment_ID, substr( $field, 4 ) );
+						break;
+					}
+
 					// Allow custom fields via filter
 					$data[ $field ] = apply_filters( 'rsl_ie_comment_export_field_value', '', $field, $comment, $options );
 					break;

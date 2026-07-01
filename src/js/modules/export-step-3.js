@@ -831,9 +831,6 @@ export default class ExportStep3 {
 
 		// Check if ACF is active and load ACF fields (skip for non-supported types)
 		const acfExcludedTypes = [
-			'taxonomy',
-			'menu',
-			'comment',
 			'database_table',
 			'woo_attribute',
 			'woo_coupon',
