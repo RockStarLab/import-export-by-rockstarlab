@@ -73,14 +73,13 @@
    - API и хуки
    - База данных
    - Безопасность
-   - **Система пользовательских функций (Custom Functions System)**
-   - **Библиотека сниппетов функций (Function Snippets Library)**
+   - **Интеграционный мост трансформаций полей для PRO addon**
    - **Синхронизация медиа папок (Media Folder Sync)**
    - **Синхронизация контента между сайтами (Site-to-Site Content Sync)**
 
 2. **[DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md)** - Поэтапный план разработки
    - 14 фаз разработки (Phase 0-13)
-   - Phase 9.7: Custom Functions System + Snippets Library
+   - Phase 9.7: Field Transformation bridge for PRO addon
    - Phase 9.8: Media Folder Sync (FTP uploads → WordPress Media Library)
    - Phase 9.9: Site-to-Site Content Sync (Multi-site synchronization)
    - **Phase 4: Import UI System (7-step wizard with advanced field mapping)** ← **NEW**
@@ -89,43 +88,37 @@
    - Примеры тестирования
    - Команды для ИИ
 
-3. **[CUSTOM_FUNCTIONS_EXAMPLES.md](./CUSTOM_FUNCTIONS_EXAMPLES.md)** - Примеры пользовательских функций
-   - 50+ готовых примеров функций
-   - Строковые, числовые, дата/время операции
-   - WordPress специфичные функции
-   - Сложные трансформации данных
-
-4. **[MEDIA_SYNC_FEATURE.md](./MEDIA_SYNC_FEATURE.md)** - Документация Media Folder Sync
+3. **[MEDIA_SYNC_FEATURE.md](./MEDIA_SYNC_FEATURE.md)** - Документация Media Folder Sync
    - Полное описание функциональности
    - UI/UX wireframes
    - Технические детали и API
    - Сценарии использования
    - Premium интеграция с Real Media Library
 
-5. **[CONTENT_SYNC_FEATURE.md](./CONTENT_SYNC_FEATURE.md)** - Документация Site-to-Site Content Sync
+4. **[CONTENT_SYNC_FEATURE.md](./CONTENT_SYNC_FEATURE.md)** - Документация Site-to-Site Content Sync
    - API-based синхронизация между двумя сайтами
    - Pull/Push операции для всех типов контента
    - Управление соединениями с API ключами
    - Conflict resolution и безопасность
    - Background processing для больших операций
 
-6. **[IMPORT_UI_SPECIFICATION.md](./IMPORT_UI_SPECIFICATION.md)** - Спецификация UI импорта
+5. **[IMPORT_UI_SPECIFICATION.md](./IMPORT_UI_SPECIFICATION.md)** - Спецификация UI импорта
    - 7-шаговый визард импорта
    - Drag & Drop column selection
    - Расширенный field mapping (WordPress + ACF + WooCommerce)
-   - Per-field настройки (Search/Replace, Functions, Transformations)
+   - Per-field настройки и PRO-managed transformations
    - Duplicate handling (по Title, ID, Custom Field)
    - Auto-download изображений
    - Поддержка всех типов контента + Custom MySQL Tables
    - **[Architecture: Section 10 в ARCHITECTURE.md](./ARCHITECTURE.md)**
    - **[Development: Phase 4 в DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md)**
 
-7. **[EXPORT_UI_SPECIFICATION.md](./EXPORT_UI_SPECIFICATION.md)** - Спецификация UI экспорта ← **NEW**
+6. **[EXPORT_UI_SPECIFICATION.md](./EXPORT_UI_SPECIFICATION.md)** - Спецификация UI экспорта ← **NEW**
    - 5-шаговый визард экспорта
    - Content Type Selection (Posts, Users, Products, Comments, Taxonomies, Menus)
    - Advanced Filtering с Query Builder (Meta Queries, Tax Queries)
    - Field Selection с Drag & Drop
-   - Field Transformation (Search/Replace + Custom Functions)
+   - Field Transformation bridge for PRO addon
    - Export Options (CSV/JSON/XLS/XLSX)
    - Background Processing
    - Export Templates (Save/Load)

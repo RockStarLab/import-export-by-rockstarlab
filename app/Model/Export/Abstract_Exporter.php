@@ -176,8 +176,8 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 		}
 
 		// Apply field selection if specified.
-		// Skip when force_include_id is set (Content Updater mode) — the processor
-		// needs ID fields present to identify items and handles its own update scope.
+		// Skip when force_include_id is set because the caller needs ID fields
+		// present to identify items and handles its own update scope.
 		if ( is_array( $item ) && ! empty( $this->options['fields'] ) && ! in_array( '*', $this->options['fields'], true )
 			&& empty( $this->options['force_include_id'] ) ) {
 			$item = $this->select_fields( $item, $this->options['fields'] );
@@ -189,10 +189,10 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	}
 
 	/**
-	 * Apply transformation functions to fields
+	 * Apply field transformations.
 	 *
 	 * @param array $item            Item data
-	 * @param array $field_functions Field functions mapping { fieldKey: [functionId1, functionId2, ...] }
+	 * @param array $field_functions Field transformation mapping { fieldKey: [transformationId1, transformationId2, ...] }
 	 * @return array Item with transformed fields
 	 */
 	protected function apply_field_functions( $item, $field_functions ) {
@@ -200,52 +200,26 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 			return $item;
 		}
 
-		// Initialize Function_Executor
-		$function_executor = new \RockStarLab\ImportExport\Helper\Function_Executor();
-
 		foreach ( $field_functions as $field_key => $function_ids ) {
-			// Skip if field doesn't exist in item or no functions assigned
+			// Skip if field doesn't exist in item or no transformations assigned.
 			if ( ! isset( $item[ $field_key ] ) || empty( $function_ids ) || ! is_array( $function_ids ) ) {
 				continue;
 			}
 
 			$value = $item[ $field_key ];
 
-			// Apply each function in sequence (pipeline)
+			// Apply each transformation in sequence.
 			foreach ( $function_ids as $function_id ) {
-				try {
-					$result = $function_executor->execute(
-						$function_id,
-						$value,
-						[
-							'field' => $field_key,
-							'item'  => $item,
-						]
-					);
-
-					// Only update value if function execution was successful
-					if ( ! is_wp_error( $result ) ) {
-						$value = $result;
-					} else {
-						$this->log_warning(
-							sprintf( 'Failed to apply function %d to field %s: %s', $function_id, $field_key, $result->get_error_message() ),
-							[
-								'function_id' => $function_id,
-								'field_key'   => $field_key,
-								'error'       => $result->get_error_message(),
-							]
-						);
-					}
-				} catch ( \Exception $e ) {
-					$this->log_error(
-						sprintf( 'Exception applying function %d to field %s: %s', $function_id, $field_key, $e->getMessage() ),
-						[
-							'function_id' => $function_id,
-							'field_key'   => $field_key,
-							'exception'   => $e->getMessage(),
-						]
-					);
-				}
+				$value = \RockStarLab\ImportExport\Helper\Field_Transformation_Bridge::apply(
+					$value,
+					[ $function_id ],
+					[
+						'operation' => 'export',
+						'field'     => $field_key,
+						'item'      => $item,
+						'exporter'  => $this,
+					]
+				);
 			}
 
 			// Update field with transformed value

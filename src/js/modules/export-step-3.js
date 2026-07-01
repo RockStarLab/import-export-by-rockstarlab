@@ -17,6 +17,14 @@ export default class ExportStep3 {
 		this.init();
 	}
 
+	areFieldTransformationsEnabled() {
+		return !! window.rslIeData?.fieldTransformationsEnabled;
+	}
+
+	getFieldTransformationAction( key ) {
+		return window.rslIeData?.fieldTransformationActions?.[ key ] || '';
+	}
+
 	init() {
 		// Check dependencies
 		if ( typeof jQuery === 'undefined' ) {
@@ -29,12 +37,15 @@ export default class ExportStep3 {
 		this.initDragAndDrop();
 		this.initFieldSearch();
 		this.initCsvBuilderActions();
-		this.initFieldFunctionsModal();
+		if ( this.areFieldTransformationsEnabled() ) {
+			this.initFieldFunctionsModal();
+		}
 		this.initColumnActions();
 		this.initCategoryToggle();
 
-		// Load available functions
-		this.loadFunctions();
+		if ( this.areFieldTransformationsEnabled() ) {
+			this.loadFunctions();
+		}
 
 		// Initialize tooltip for next button
 		this.toggleNextButton();
@@ -248,18 +259,26 @@ export default class ExportStep3 {
 
 		const iconClass = this.getFieldIcon( type );
 		const hasFunctions =
+			this.areFieldTransformationsEnabled() &&
 			this.fieldFunctions[ fieldKey ] &&
 			this.fieldFunctions[ fieldKey ].length > 0;
+		const transformationButton = this.areFieldTransformationsEnabled()
+			? `
+					<button type="button" class="rsl-ie-edit-column-functions" title="${
+						window.rslIeData.i18n.assignFunctionsTitle ||
+						window.rslIeData.i18n.assignFunctions ||
+						''
+					}" data-field-key="${ fieldKey }">
+						<span class="dashicons dashicons-admin-generic"></span>
+					</button>
+			`
+			: '';
 
 		column.innerHTML = `
 			<div class="rsl-ie-column-header">
 				<span class="rsl-ie-column-icon dashicons ${ iconClass }"></span>
 				<div class="rsl-ie-column-actions">
-					<button type="button" class="rsl-ie-edit-column-functions" title="${
-						window.rslIeData.i18n.assignFunctionsTitle
-					}" data-field-key="${ fieldKey }">
-						<span class="dashicons dashicons-admin-generic"></span>
-					</button>
+					${ transformationButton }
 					<button type="button" class="rsl-ie-remove-column" title="${
 						window.rslIeData.i18n.remove
 					}" data-field-key="${ fieldKey }">
@@ -323,6 +342,9 @@ export default class ExportStep3 {
 
 			// Edit column functions
 			if ( e.target.closest( '.rsl-ie-edit-column-functions' ) ) {
+				if ( ! this.areFieldTransformationsEnabled() ) {
+					return;
+				}
 				const btn = e.target.closest( '.rsl-ie-edit-column-functions' );
 				const fieldKey = btn.dataset.fieldKey;
 				this.openFieldFunctionsModal( fieldKey );
@@ -1735,6 +1757,10 @@ export default class ExportStep3 {
 	 * Open field functions modal
 	 */
 	openFieldFunctionsModal( fieldKey ) {
+		if ( ! this.areFieldTransformationsEnabled() ) {
+			return;
+		}
+
 		const field = this.selectedFields.find( ( f ) => f.key === fieldKey );
 		if ( ! field ) return;
 
@@ -1970,6 +1996,14 @@ export default class ExportStep3 {
 	 * Load available functions
 	 */
 	loadFunctions() {
+		if ( ! this.areFieldTransformationsEnabled() ) {
+			return;
+		}
+		const listAction = this.getFieldTransformationAction( 'list' );
+		if ( ! listAction ) {
+			return;
+		}
+
 		// Check if rslIeData is available
 		if ( typeof rslIeData === 'undefined' ) {
 			return;
@@ -1979,7 +2013,7 @@ export default class ExportStep3 {
 			url: rslIeData.ajaxUrl,
 			method: 'POST',
 			data: {
-				action: 'rsl_ie_get_functions',
+				action: listAction,
 				nonce: rslIeData.nonce,
 			},
 			success: ( response ) => {
@@ -2134,6 +2168,14 @@ export default class ExportStep3 {
 	 * Test function pipeline
 	 */
 	testFunctionPipeline() {
+		if ( ! this.areFieldTransformationsEnabled() ) {
+			return;
+		}
+		const testAction = this.getFieldTransformationAction( 'test' );
+		if ( ! testAction ) {
+			return;
+		}
+
 		const input = document.getElementById( 'rsl-ie-preview-input' ).value;
 		if ( ! input ) {
 			this.showNotice( window.rslIeData.i18n.enterTestValue, 'warning' );
@@ -2163,7 +2205,7 @@ export default class ExportStep3 {
 			url: rslIeData.ajaxUrl,
 			method: 'POST',
 			data: {
-				action: 'rsl_ie_test_function_pipeline',
+				action: testAction,
 				nonce: rslIeData.nonce,
 				value: input,
 				functions: functionIds,
@@ -2336,21 +2378,8 @@ export default class ExportStep3 {
 	 * Create new function
 	 */
 	createNewFunction() {
-		// Redirect to Functions management page
 		if ( typeof rslIeData !== 'undefined' && rslIeData.functionsUrl ) {
 			window.open( rslIeData.functionsUrl, '_blank' );
-		} else {
-			// Fallback - go to admin page
-			const adminUrl =
-				typeof rslIeData !== 'undefined' && rslIeData.adminUrl
-					? rslIeData.adminUrl
-					: '';
-			if ( adminUrl ) {
-				window.open(
-					`${ adminUrl }admin.php?page=rsl-ie-functions`,
-					'_blank'
-				);
-			}
 		}
 	}
 
@@ -2375,7 +2404,7 @@ export default class ExportStep3 {
 			} );
 		}
 
-		if ( data.functions ) {
+		if ( this.areFieldTransformationsEnabled() && data.functions ) {
 			this.fieldFunctions = data.functions;
 
 			// Update column badges

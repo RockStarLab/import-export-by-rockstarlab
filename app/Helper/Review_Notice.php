@@ -39,11 +39,9 @@ class Review_Notice {
 		'rsl-ie-import',
 		'rsl-ie-export',
 		'rsl-ie-content-sync',
-		'rsl-ie-content-updater',
 		'rsl-ie-jobs-log',
 		'rsl-ie-media-sync',
 		'rsl-ie-ai-url-importer',
-		'rsl-ie-functions',
 		'rsl-ie-plugin-options',
 	];
 
@@ -71,8 +69,16 @@ class Review_Notice {
 	 * Check whether the current admin screen belongs to this plugin.
 	 */
 	private static function is_plugin_page(): bool {
-		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin screen routing.
-		return in_array( $page, self::$plugin_pages, true );
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		$page   = $screen && ! empty( $screen->id ) ? (string) $screen->id : '';
+
+		foreach ( self::$plugin_pages as $plugin_page ) {
+			if ( false !== strpos( $page, $plugin_page ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

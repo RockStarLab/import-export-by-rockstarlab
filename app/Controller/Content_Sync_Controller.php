@@ -10,10 +10,10 @@
 namespace RockStarLab\ImportExport\Controller;
 
 use RockStarLab\ImportExport\Helper\Ajax_Security;
+use RockStarLab\ImportExport\Helper\Field_Transformation_Bridge;
+use RockStarLab\ImportExport\Model\Connected_Site;
 
 defined( 'ABSPATH' ) || exit;
-
-use RockStarLab\ImportExport\Model\Connected_Site;
 
 /**
  * Content Sync Controller Class
@@ -23,6 +23,65 @@ use RockStarLab\ImportExport\Model\Connected_Site;
  * @package RockStarLab\ImportExport\Controller
  */
 class Content_Sync_Controller extends Base_Controller {
+
+	/**
+	 * Return the current admin screen post status without reading query params.
+	 *
+	 * @return string
+	 */
+	private function get_current_admin_post_status() {
+		global $post_status;
+
+		return is_string( $post_status ) ? sanitize_key( $post_status ) : '';
+	}
+
+	/**
+	 * Return the current post ID from WordPress admin globals.
+	 *
+	 * @return int
+	 */
+	private function get_current_admin_post_id() {
+		global $post, $post_ID;
+
+		if ( $post instanceof \WP_Post ) {
+			return (int) $post->ID;
+		}
+
+		return ! empty( $post_ID ) ? absint( $post_ID ) : 0;
+	}
+
+	/**
+	 * Return the current admin post type from screen/global context.
+	 *
+	 * @param string $default Default post type.
+	 * @return string
+	 */
+	private function get_current_admin_post_type( $default = '' ) {
+		global $typenow, $post;
+
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( $screen && ! empty( $screen->post_type ) ) {
+			return sanitize_key( $screen->post_type );
+		}
+
+		if ( ! empty( $typenow ) ) {
+			return sanitize_key( $typenow );
+		}
+
+		if ( $post instanceof \WP_Post ) {
+			return sanitize_key( $post->post_type );
+		}
+
+		$post_id = $this->get_current_admin_post_id();
+		if ( $post_id ) {
+			$maybe_post = get_post( $post_id );
+			if ( $maybe_post ) {
+				return sanitize_key( $maybe_post->post_type );
+			}
+		}
+
+		return sanitize_key( $default );
+	}
 
 	/**
 	 * Get AJAX actions to register
@@ -548,34 +607,32 @@ class Content_Sync_Controller extends Base_Controller {
 
 		// Don't load on trash page
 		if ( 'edit.php' === $hook_suffix ) {
-			$post_status = $this->get_request_param( 'post_status', '' );
+			$post_status = $this->get_current_admin_post_status();
 			if ( 'trash' === $post_status ) {
 				return;
 			}
 		}
 
 		// Get current post type
-		global $typenow, $post;
+		global $post;
 		$current_post_type = '';
 
-		if ( 'edit.php' === $hook_suffix && ! empty( $typenow ) ) {
-			$current_post_type = $typenow;
+		if ( 'edit.php' === $hook_suffix ) {
+			$current_post_type = $this->get_current_admin_post_type();
 		} elseif ( in_array( $hook_suffix, array( 'post.php', 'post-new.php' ), true ) ) {
 			// On post.php, $post may not yet be populated during admin_enqueue_scripts.
-			// Derive post type from request params as a fallback.
 			if ( $post ) {
 				$current_post_type = $post->post_type;
 			} else {
-				$post_id = $this->get_request_param( 'post', 0 );
+				$post_id = $this->get_current_admin_post_id();
 				if ( $post_id ) {
 					$maybe_post = get_post( (int) $post_id );
 					if ( $maybe_post ) {
 						$current_post_type = $maybe_post->post_type;
 					}
 				}
-				// post-new.php uses post_type query arg; default to 'post'.
 				if ( empty( $current_post_type ) ) {
-					$current_post_type = $this->get_request_param( 'post_type', 'post' );
+					$current_post_type = $this->get_current_admin_post_type( 'post' );
 				}
 			}
 		}
@@ -615,14 +672,15 @@ class Content_Sync_Controller extends Base_Controller {
 			'rsl-ie-post-sync',
 			'rslIePostSyncData',
 			array(
-				'nonces'         => Ajax_Security::get_nonces(),
-				'ajaxurl'        => admin_url( 'admin-ajax.php' ),
-				'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
-				'adminUrl'       => admin_url(),
-				'functionsUrl'   => admin_url( 'admin.php?page=rsl-ie-functions' ),
-				'exportUrl'      => admin_url( 'admin.php?page=rsl-ie-export' ),
-				'connectedSites' => $sites_map,
-				'i18n'           => array(
+				'nonces'                      => Ajax_Security::get_nonces(),
+				'ajaxurl'                     => admin_url( 'admin-ajax.php' ),
+				'ajaxUrl'                     => admin_url( 'admin-ajax.php' ),
+				'adminUrl'                    => admin_url(),
+				'functionsUrl'                => Field_Transformation_Bridge::get_management_url(),
+				'fieldTransformationsEnabled' => Field_Transformation_Bridge::is_enabled(),
+				'exportUrl'                   => admin_url( 'admin.php?page=rsl-ie-export' ),
+				'connectedSites'              => $sites_map,
+				'i18n'                        => array(
 					// Alerts & Messages
 					'pleaseSavePost'        => __( 'Please save the post first', 'import-export-by-rockstarlab' ),
 					'pleaseSelectSite'      => __( 'Please select a site', 'import-export-by-rockstarlab' ),
@@ -713,13 +771,14 @@ class Content_Sync_Controller extends Base_Controller {
 					'rsl-ie-gutenberg-sync',
 					'rslIeData',
 					array(
-						'nonces'       => Ajax_Security::get_nonces(),
-						'ajaxurl'      => admin_url( 'admin-ajax.php' ),
-						'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
-						'adminUrl'     => admin_url(),
-						'functionsUrl' => admin_url( 'admin.php?page=rsl-ie-functions' ),
-						'exportUrl'    => admin_url( 'admin.php?page=rsl-ie-export' ),
-						'i18n'         => array(
+						'nonces'                      => Ajax_Security::get_nonces(),
+						'ajaxurl'                     => admin_url( 'admin-ajax.php' ),
+						'ajaxUrl'                     => admin_url( 'admin-ajax.php' ),
+						'adminUrl'                    => admin_url(),
+						'functionsUrl'                => Field_Transformation_Bridge::get_management_url(),
+						'fieldTransformationsEnabled' => Field_Transformation_Bridge::is_enabled(),
+						'exportUrl'                   => admin_url( 'admin.php?page=rsl-ie-export' ),
+						'i18n'                        => array(
 							'syncContent'  => __( 'Sync Content', 'import-export-by-rockstarlab' ),
 							'syncThisPost' => __( 'Sync This Post', 'import-export-by-rockstarlab' ),
 						),
@@ -741,7 +800,7 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		// Don't show on trash page
-		$post_status = $this->get_request_param( 'post_status', '' );
+		$post_status = $this->get_current_admin_post_status();
 		if ( 'trash' === $post_status ) {
 			return;
 		}
@@ -763,36 +822,14 @@ class Content_Sync_Controller extends Base_Controller {
 			return;
 		}
 
-		global $typenow, $post;
-		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-
-		// Determine current post type for both list and edit screens.
-		$current_post_type = '';
-		if ( $screen && ! empty( $screen->post_type ) ) {
-			$current_post_type = $screen->post_type;
-		} elseif ( ! empty( $typenow ) ) {
-			$current_post_type = $typenow;
-		} elseif ( $post ) {
-			$current_post_type = $post->post_type;
-		} else {
-			$post_id = $this->get_request_param( 'post', 0 );
-			if ( $post_id ) {
-				$maybe_post = get_post( (int) $post_id );
-				if ( $maybe_post ) {
-					$current_post_type = $maybe_post->post_type;
-				}
-			}
-			if ( empty( $current_post_type ) ) {
-				$current_post_type = $this->get_request_param( 'post_type', '' );
-			}
-		}
+		$current_post_type = $this->get_current_admin_post_type();
 
 		if ( empty( $current_post_type ) ) {
 			return;
 		}
 
 		// Don't show on trash page
-		$post_status = $this->get_request_param( 'post_status', '' );
+		$post_status = $this->get_current_admin_post_status();
 		if ( 'trash' === $post_status ) {
 			return;
 		}

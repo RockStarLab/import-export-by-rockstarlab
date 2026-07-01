@@ -26,12 +26,11 @@ class Admin_Menu_Settings {
 	 * @return array
 	 */
 	public static function get_menu_items() {
-		return [
+		$items = [
 			'welcome'         => __( 'Welcome', 'import-export-by-rockstarlab' ),
 			'import'          => __( 'Import', 'import-export-by-rockstarlab' ),
 			'export'          => __( 'Export', 'import-export-by-rockstarlab' ),
 			'content_sync'    => __( 'Content Sync', 'import-export-by-rockstarlab' ),
-			'content_updater' => __( 'Content Updater', 'import-export-by-rockstarlab' ),
 			'media_sync'      => __( 'Media Sync', 'import-export-by-rockstarlab' ),
 			'ai_url_importer' => __( 'AI URL Importer', 'import-export-by-rockstarlab' ),
 			'functions'       => __( 'Functions', 'import-export-by-rockstarlab' ),
@@ -44,6 +43,14 @@ class Admin_Menu_Settings {
 			'support_forum'   => __( 'Support Forum', 'import-export-by-rockstarlab' ),
 			'add_ons'         => __( 'Add-Ons', 'import-export-by-rockstarlab' ),
 		];
+
+		if ( Pro_Addon::is_pro_active() ) {
+			$items = array_slice( $items, 0, 3, true )
+				+ [ 'content_updater' => __( 'Content Updater', 'import-export-by-rockstarlab' ) ]
+				+ array_slice( $items, 3, null, true );
+		}
+
+		return $items;
 	}
 
 	/**
@@ -166,11 +173,10 @@ class Admin_Menu_Settings {
 			self::PARENT_SLUG                       => 'welcome',
 			'rsl-ie-import'                         => 'import',
 			'rsl-ie-export'                         => 'export',
-			'rsl-ie-content-sync'                   => 'content_sync',
 			'rsl-ie-content-updater'                => 'content_updater',
+			'rsl-ie-content-sync'                   => 'content_sync',
 			'rsl-ie-media-sync'                     => 'media_sync',
 			'rsl-ie-ai-url-importer'                => 'ai_url_importer',
-			'rsl-ie-functions'                      => 'functions',
 			'rsl-ie-tools'                          => 'tools',
 			'rsl-ie-jobs-log'                       => 'jobs_log',
 			'rsl-ie-schedules'                      => 'schedules',

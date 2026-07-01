@@ -23,6 +23,14 @@ const ImportModule = {
 	/**
 	 * Initialize module
 	 */
+	areFieldTransformationsEnabled() {
+		return !! window.rslIeData?.fieldTransformationsEnabled;
+	},
+
+	getFieldTransformationAction( key ) {
+		return window.rslIeData?.fieldTransformationActions?.[ key ] || '';
+	},
+
 	init() {
 		if ( ! jQuery( '#rsl-ie-import' ).length ) {
 			return;
@@ -3396,6 +3404,9 @@ const ImportModule = {
 		// Add function to mapping
 		jQuery( document ).on( 'click', '.rsl-ie-add-function', function ( e ) {
 			e.stopPropagation();
+			if ( ! self.areFieldTransformationsEnabled() ) {
+				return;
+			}
 			const sourceIndex = jQuery( this ).data( 'source-index' );
 			const targetField = jQuery( this ).data( 'target-field' );
 
@@ -3521,7 +3532,7 @@ const ImportModule = {
 
 		// Build functions HTML
 		let functionsHtml = '';
-		if ( functions.length > 0 ) {
+		if ( this.areFieldTransformationsEnabled() && functions.length > 0 ) {
 			functionsHtml = '<div class="rsl-ie-mapping-functions">';
 			functions.forEach( ( func, index ) => {
 				functionsHtml += `
@@ -3533,6 +3544,16 @@ const ImportModule = {
 			} );
 			functionsHtml += '</div>';
 		}
+		const transformationButton = this.areFieldTransformationsEnabled()
+			? `
+				<button type="button" class="button button-small rsl-ie-add-function" data-source-index="${ sourceIndex }" data-target-field="${ targetField }" title="${
+					window.rslIeData.i18n.addTransformationFunction ||
+					'Add transformation'
+				}">
+					<span class="dashicons dashicons-admin-tools"></span>
+				</button>
+			`
+			: '';
 
 		// Add new row
 		const html = `
@@ -3547,12 +3568,7 @@ const ImportModule = {
 			</div>
 			${ functionsHtml }
 			<div class="rsl-ie-mapping-actions">
-				<button type="button" class="button button-small rsl-ie-add-function" data-source-index="${ sourceIndex }" data-target-field="${ targetField }" title="${
-					window.rslIeData.i18n.addTransformationFunction ||
-					'Add transformation function'
-				}">
-					<span class="dashicons dashicons-admin-tools"></span>
-				</button>
+				${ transformationButton }
 				<button type="button" class="button button-small rsl-ie-remove-row-mapping" data-source-index="${ sourceIndex }" data-target-field="${ targetField }" title="${
 					window.rslIeData.i18n.removeMapping || 'Remove mapping'
 				}">
@@ -3602,9 +3618,19 @@ const ImportModule = {
 	},
 
 	/**
-	 * Show function selector modal
+	 * Show transformation selector modal
 	 */
 	async showFunctionSelector( sourceIndex, targetField ) {
+		if ( ! this.areFieldTransformationsEnabled() ) {
+			return;
+		}
+		const functionsAction =
+			this.getFieldTransformationAction( 'list' ) ||
+			this.getFieldTransformationAction( 'snippets' );
+		if ( ! functionsAction ) {
+			return;
+		}
+
 		// Get mapping key
 		const mappingKey = `${ sourceIndex }-${ targetField }`;
 
@@ -3622,7 +3648,7 @@ const ImportModule = {
 				url: window.rslIeData.ajaxUrl,
 				type: 'POST',
 				data: {
-					action: 'rsl_ie_functions_get_snippets',
+					action: functionsAction,
 					nonce: window.rslIeData.nonce,
 				},
 			} );
@@ -3630,7 +3656,7 @@ const ImportModule = {
 			if ( ! response.success ) {
 				Utils.showNotice(
 					rslIeData.i18n.failedToLoadFunctions ||
-						'Failed to load functions',
+						'Failed to load transformations',
 					'error'
 				);
 				return;
@@ -3692,10 +3718,10 @@ const ImportModule = {
 						</div>
 					</div>
 
-					<!-- Applied Functions List -->
+					<!-- Applied Transformations List -->
 					<div class="rsl-ie-applied-functions">
 						<h3>
-							${ window.rslIeData.i18n.appliedFunctions || 'Applied Functions' }
+							${ window.rslIeData.i18n.appliedFunctions || 'Applied Transformations' }
 							<span class="rsl-ie-functions-count">(0)</span>
 						</h3>
 						
@@ -3704,12 +3730,12 @@ const ImportModule = {
 								<span class="dashicons dashicons-info"></span>
 								<p>${
 									window.rslIeData.i18n.noFunctionsApplied ||
-									'No functions applied yet. Add functions from the list below.'
+									'No transformations applied yet. Add transformations from the list below.'
 								}</p>
 							</div>
 							
 							<div class="rsl-ie-function-items" id="rsl-ie-function-items">
-								<!-- Functions will be added here -->
+								<!-- Transformations will be added here -->
 							</div>
 						</div>
 
@@ -3717,16 +3743,18 @@ const ImportModule = {
 							<span class="dashicons dashicons-info"></span>
 							${
 								window.rslIeData.i18n.functionsAppliedInOrder ||
-								'Functions are applied in order from top to bottom. Drag to reorder.'
+								'Transformations are applied in order from top to bottom. Drag to reorder.'
 							}
 						</div>
 					</div>
 
-					<!-- Available Functions -->
+					<!-- Available Transformations -->
 					<div class="rsl-ie-available-functions">
-						<h3>${ window.rslIeData.i18n.availableFunctions || 'Available Functions' }</h3>
+						<h3>${
+							window.rslIeData.i18n.availableFunctions ||
+							'Available Transformations'
+						}</h3>
 						
-						<!-- Search Functions -->
 						<div class="rsl-ie-functions-search">
 							<input 
 								type="text" 
@@ -3734,7 +3762,7 @@ const ImportModule = {
 								class="regular-text" 
 								placeholder="${
 									window.rslIeData.i18n.searchFunctions ||
-									'Search functions...'
+									'Search transformations...'
 								}"
 							>
 							<span class="dashicons dashicons-search"></span>
@@ -3756,11 +3784,13 @@ const ImportModule = {
 							</label>
 						</div>
 
-						<!-- Functions List -->
 						<div class="rsl-ie-functions-list" id="rsl-ie-functions-list">
 							<div class="rsl-ie-functions-loading">
 								<span class="spinner is-active"></span>
-								<p>${ window.rslIeData.i18n.loadingFunctions || 'Loading functions...' }</p>
+								<p>${
+									window.rslIeData.i18n.loadingFunctions ||
+									'Loading transformations...'
+								}</p>
 							</div>
 						</div>
 
@@ -3768,7 +3798,7 @@ const ImportModule = {
 						<div class="rsl-ie-functions-quick-add">
 							<a href="#" class="rsl-ie-create-new-function">
 								<span class="dashicons dashicons-plus-alt"></span>
-								${ window.rslIeData.i18n.createNewFunction || 'Create New Function' }
+								${ window.rslIeData.i18n.createNewFunction || 'Create New Transformation' }
 							</a>
 						</div>
 					</div>
@@ -3811,7 +3841,7 @@ const ImportModule = {
 					</button>
 					<button type="button" class="button button-primary rsl-ie-save-field-functions">
 						<span class="dashicons dashicons-yes"></span>
-						${ window.rslIeData.i18n.applyFunctions || 'Apply Functions' }
+						${ window.rslIeData.i18n.applyFunctions || 'Apply Transformations' }
 					</button>
 				</div>
 			</div>
@@ -3857,16 +3887,23 @@ const ImportModule = {
 		const $container = jQuery( '#rsl-ie-functions-list' );
 		$container.empty();
 
-		// Get all snippets
-		const snippets = functionsData.snippets || {};
+		const functions = Array.isArray( functionsData.functions )
+			? functionsData.functions
+			: Object.entries( functionsData.snippets || {} ).map(
+					( [ key, snippet ] ) => ( {
+						...snippet,
+						id: snippet.id || `snippet_${ key }`,
+						category: snippet.category || 'library',
+					} )
+			  );
 
-		if ( Object.keys( snippets ).length === 0 ) {
+		if ( functions.length === 0 ) {
 			$container.html( `
 			<div class="rsl-ie-functions-empty-state">
 				<span class="dashicons dashicons-info"></span>
 				<p>${
 					window.rslIeData.i18n.noFunctionsAvailableYet ||
-					'No functions available yet.'
+					'No transformations available yet.'
 				}</p>
 			</div>
 		` );
@@ -3874,19 +3911,20 @@ const ImportModule = {
 		}
 
 		// Store for later use
-		this.availableFunctions = snippets;
+		this.availableFunctions = functions;
 
-		Object.entries( snippets ).forEach( ( [ key, snippet ] ) => {
+		functions.forEach( ( func ) => {
+			const functionId = func.id || '';
 			const item = jQuery( '<div>' )
 				.addClass( 'rsl-ie-function-list-item' )
-				.attr( 'data-function-id', key )
-				.attr( 'data-category', snippet.category || 'custom' )
+				.attr( 'data-function-id', functionId )
+				.attr( 'data-category', func.category || 'custom' )
 				.html( `				<div class="rsl-ie-function-list-info">
 					<span class="rsl-ie-function-list-name">${ Utils.escapeHtml(
-						snippet.name
+						func.name
 					) }</span>
 					<span class="rsl-ie-function-list-desc">${ Utils.escapeHtml(
-						snippet.description || ''
+						func.description || ''
 					) }</span>
 				</div>
 				<button type="button" class="button button-small rsl-ie-add-function-btn">${
@@ -3896,7 +3934,7 @@ const ImportModule = {
 
 			item.find( '.rsl-ie-add-function-btn' ).on( 'click', () => {
 				this.addFunctionToPipeline(
-					{ id: key, name: snippet.name },
+					{ id: functionId, name: func.name },
 					true
 				);
 			} );
@@ -3993,7 +4031,7 @@ const ImportModule = {
 		// Close on Cancel button
 		jQuery( '.rsl-ie-modal-cancel' ).on( 'click', closeModal );
 
-		// Search functions
+		// Search transformations
 		jQuery( '#rsl-ie-functions-search' ).on( 'input', function () {
 			const query = jQuery( this ).val().toLowerCase();
 
@@ -4026,7 +4064,7 @@ const ImportModule = {
 					// Show library functions (snippets)
 					jQuery( this ).toggle( category !== 'custom' );
 				} else if ( filterValue === 'custom' ) {
-					// Show custom functions
+					// Show addon transformations
 					jQuery( this ).toggle( category === 'custom' );
 				}
 			} );
@@ -4037,17 +4075,6 @@ const ImportModule = {
 			e.preventDefault();
 			if ( typeof rslIeData !== 'undefined' && rslIeData.functionsUrl ) {
 				window.open( rslIeData.functionsUrl, '_blank' );
-			} else {
-				const adminUrl =
-					typeof rslIeData !== 'undefined' && rslIeData.adminUrl
-						? rslIeData.adminUrl
-						: '';
-				if ( adminUrl ) {
-					window.open(
-						`${ adminUrl }admin.php?page=rsl-ie-functions`,
-						'_blank'
-					);
-				}
 			}
 		} );
 
@@ -4135,6 +4162,14 @@ const ImportModule = {
 	 * Test function pipeline
 	 */
 	async testFunctionPipeline( testValue, functionIds ) {
+		if ( ! this.areFieldTransformationsEnabled() ) {
+			return;
+		}
+		const testAction = this.getFieldTransformationAction( 'test' );
+		if ( ! testAction ) {
+			return;
+		}
+
 		const $result = jQuery( '#rsl-ie-preview-result' );
 		const $steps = $result.find( '.rsl-ie-preview-steps' );
 
@@ -4148,10 +4183,10 @@ const ImportModule = {
 				url: window.rslIeData.ajaxUrl,
 				type: 'POST',
 				data: {
-					action: 'rsl_ie_test_function_pipeline',
+					action: testAction,
 					nonce: window.rslIeData.nonce,
-					test_value: testValue,
-					function_ids: functionIds,
+					value: testValue,
+					functions: functionIds,
 				},
 			} );
 			if ( response.success && response.data.steps ) {
@@ -4196,16 +4231,29 @@ const ImportModule = {
 
 				$steps.html( html );
 			} else {
+				const message =
+					response.message ||
+					response.data?.message ||
+					window.rslIeData.i18n.failedTestPipeline;
+
 				$steps.html(
-					`<div class="notice notice-error inline"><p>${
-						response.data?.message ||
-						window.rslIeData.i18n.failedTestPipeline
-					}</p></div>`
+					`<div class="notice notice-error inline"><p>${ Utils.escapeHtml(
+						message
+					) }</p></div>`
 				);
 			}
 		} catch ( error ) {
+			const message =
+				error?.responseJSON?.message ||
+				error?.responseJSON?.data?.message ||
+				error?.responseText ||
+				error?.message ||
+				window.rslIeData.i18n.failedTestPipeline;
+
 			$steps.html(
-				`<div class="notice notice-error inline"><p>${ window.rslIeData.i18n.error }: ${ error.message }</p></div>`
+				`<div class="notice notice-error inline"><p>${
+					window.rslIeData.i18n.error
+				}: ${ Utils.escapeHtml( message ) }</p></div>`
 			);
 		}
 	},
@@ -4646,6 +4694,20 @@ const ImportModule = {
 			$container.find( '.rsl-ie-empty-state' ).hide();
 			let rowsHtml = '';
 			mappings.forEach( ( m ) => {
+				const transformationButton =
+					this.areFieldTransformationsEnabled()
+						? `
+							<button type="button" class="button button-small rsl-ie-add-function" data-source-index="${
+								m.sourceIndex
+							}" data-target-field="${ m.targetField }" title="${
+								window.rslIeData.i18n
+									.addTransformationFunction ||
+								'Add transformation'
+							}">
+								<span class="dashicons dashicons-admin-tools"></span>
+							</button>
+					`
+						: '';
 				rowsHtml += `
 					<div class="rsl-ie-mapping-row" data-source-index="${
 						m.sourceIndex
@@ -4660,15 +4722,7 @@ const ImportModule = {
 							<strong>${ m.targetField }</strong>
 						</div>
 						<div class="rsl-ie-mapping-actions">
-							<button type="button" class="button button-small rsl-ie-add-function" data-source-index="${
-								m.sourceIndex
-							}" data-target-field="${ m.targetField }" title="${
-								window.rslIeData.i18n
-									.addTransformationFunction ||
-								'Add transformation function'
-							}">
-								<span class="dashicons dashicons-admin-tools"></span>
-							</button>
+							${ transformationButton }
 							<button type="button" class="button button-small rsl-ie-remove-row-mapping" data-source-index="${
 								m.sourceIndex
 							}" data-target-field="${ m.targetField }" title="${
@@ -4754,8 +4808,11 @@ const ImportModule = {
 					source_index: sourceIndex,
 					source_field: sourceField,
 					target_field: targetField,
-					function_id: $row.data( 'function-id' ) || null,
 				};
+
+				if ( ImportModule.areFieldTransformationsEnabled() ) {
+					entry.function_id = $row.data( 'function-id' ) || null;
+				}
 
 				// Include taxonomy format when the target is a taxonomy field
 				const $targetEl = jQuery(

@@ -7,15 +7,15 @@ Stable tag: 1.0.0
 Requires PHP: 7.4
 License: GPL v2 or later
 
-Advanced import/export for WordPress: custom functions, media sync, and site-to-site content sync.
+Advanced import/export for WordPress: CSV workflows, media sync, and site-to-site content sync.
 
 == Description ==
 
-Import Export by RockStarLab helps you move WordPress data between sites and environments. It supports CSV-based import/export workflows, frontend URLs export, custom field mapping, optional PHP transformations, and background jobs for large datasets.
+Import Export by RockStarLab helps you move WordPress data between sites and environments. It supports CSV-based import/export workflows, frontend URLs export, custom field mapping, and background jobs for large datasets.
 
-Import and export WordPress content with a flexible workflow that scales to large datasets. Use mapping, background jobs, and optional PHP transformations to move data reliably. 📂
+Import and export WordPress content with a flexible workflow that scales to large datasets. Use mapping and background jobs to move data reliably. 📂
 
-It also includes optional AI-assisted tools (when configured) to help generate transformation functions and extract content from URLs.
+It also includes an optional AI URL Importer (when configured) to help extract content from URLs.
 
 == Features ==
 
@@ -27,8 +27,6 @@ All Site URLs: Export a clean CSV or JSON list of public frontend URLs from post
 
 Intelligent Sync: Easily sync selected content between sites. Keep your Production and Staging environments in perfect harmony. 🔄
 
-Bulk Content Updater: Update data based on specific filters. Need to replace a specific link in all posts published last week? Done in seconds. ⚡
-
 SFTP Media Sync: Automatically detect and add media files uploaded via SFTP directly into the WordPress Media Library. 🖼️
 
 AI-Powered URL Importer: Give the plugin a URL, and our AI will parse the remote website to import content directly as any Post Type. 🤖
@@ -37,15 +35,15 @@ Smart Jobs Log: Every action is saved. Re-run any import or export job with a si
 
 == PRO Addon ==
 
-This plugin has an optional PRO addon plugin that adds additional content types for Import, Export, and Content Updater.
+This plugin has an optional PRO addon plugin that adds additional Import/Export content types, the Content Updater, and data transformation tools.
 
 == Why Choose Our Import / Export Plugin? ==
 
 When searching for a reliable WordPress import/export plugin, reliability and flexibility are key. Here is why RockstarLab built this:
 
-Developer Friendly: Use our Functions Library to apply custom PHP transformations to any field during the process.
+Developer Friendly: Built-in hooks and filters let developers integrate the free plugin with separate addons and site-specific workflows.
 
-AI Integration: Don't know how to code a specific data transformation? Simply describe what you need (e.g., "Convert all titles to Uppercase"), and our AI assistant will write the function for you. 🧠
+AI Integration: Import content from URLs using your own OpenAI API key. 🧠
 
 Speed & Performance: Optimized to handle large XML, CSV, and JSON files without crashing your server or hitting timeout limits.
 
@@ -59,8 +57,6 @@ Data Integrity: Handles metadata and custom fields during import/export workflow
 * **Background Processing**: Handle large datasets without memory limits
 * **Field Mapping**: Intuitive field mapping interface with preview
 * **Validation System**: Comprehensive data validation before import
-* **Custom Functions**: Write PHP functions to transform data during import/export
-* **Snippets Library**: 50+ ready-to-use transformation functions
 * **Media Folder Sync**: Synchronize FTP-uploaded files with WordPress Media Library
 * **Site-to-Site Sync**: Connect and sync content between two WordPress sites
 * **Progress Tracking**: Real-time progress bars and detailed logs
@@ -102,20 +98,9 @@ Easily synchronize files from server folders (uploaded via FTP/SFTP) to your Wor
 * **Auto Alt Text**: Generate alt text from filenames
 * **PRO Addon: Real Media Library**: Automatically create folder structure in Real Media Library
 
-= Custom Functions System =
-
-Transform your data during import/export with custom PHP functions:
-
-* **Code Editor**: Built-in syntax highlighting
-* **Test Before Use**: Test functions with sample data
-* **Library of Examples**: 50+ pre-built functions for common transformations
-* **Categories**: String, Date, Number, HTML, WordPress, Validation operations
-* **Safe Execution**: Sandboxed execution with whitelist/blacklist
-* **Reusable**: Save and reuse functions across different imports
-
 = What the PRO Addon adds =
 
-The PRO addon extends Import, Export, and Content Updater with additional content types (for example: Custom Post Types, Taxonomy Terms, Users, Comments, Media, and more).
+The PRO addon extends Import and Export with additional content types (for example: Custom Post Types, Taxonomy Terms, Users, Comments, Media, and more), adds the Content Updater, and enables field transformation integrations.
 
 = Perfect For =
 
@@ -135,12 +120,10 @@ This plugin connects to the following external services:
 
 Used for AI-powered features:
 
-* AI Function Generator (generates PHP transformation functions from your prompt)
 * AI URL Importer (extracts clean content from a URL)
 
 What data is sent and when:
 
-* When you use the AI Function Generator, the plugin sends your text prompt to OpenAI.
 * When you use the AI URL Importer, the plugin fetches the target URL content and sends the cleaned page content and the URL to OpenAI for extraction.
 
 Service provider:
@@ -159,7 +142,7 @@ Yes! The plugin uses background processing to handle large files without memory 
 
 = Can I transform data during import? =
 
-Yes! Use the Custom Functions feature to write PHP code that transforms your data. We also provide 50+ ready-to-use examples.
+Advanced field transformation workflows are available through optional addon integrations.
 
 = How do I avoid importing duplicate media files? =
 
@@ -180,22 +163,15 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 2. File upload
 3. Preview data
 4. Fields mapping
-5. Data transformation functions
-6. Additional import options
-7. Export page
-8. Filter posts for export
-9. Select fields to export
-10. Additional export options
-11. Content sync options page
-12. Page content sync with remote website
-13. Bulk content updater page
-14. Sync files from any folder with Media Library
-15. AI URL Importer
-16. AI URL Importer Options
-17. Functions library
-18. AI Functions Generator
-19. Jobs log
-20. Plugin options page
-
-
-`<?php code(); // goes in backticks ?>`
+5. Additional import options
+6. Export page
+7. Filter posts for export
+8. Select fields to export
+9. Additional export options
+10. Content sync options page
+11. Page content sync with remote website
+12. Sync files from any folder with Media Library
+13. AI URL Importer
+14. AI URL Importer Options
+15. Jobs log
+16. Plugin options page

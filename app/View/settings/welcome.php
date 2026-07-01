@@ -1,10 +1,14 @@
 <?php
 /**
  * Welcome Page Template — WordPress Dashboard style
+ *
+ * @package RockStarLab\ImportExport
  */
-defined( 'ABSPATH' ) or exit;
+
+defined( 'ABSPATH' ) || exit;
 
 $rsl_ie_plugin_version = defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '1.0';
+$rsl_ie_pro_active     = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active();
 ?>
 
 <div class="wrap rsl-ie-welcome-page">
@@ -38,12 +42,6 @@ $rsl_ie_plugin_version = defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '1.0';
 					<h3><?php esc_html_e( 'Next Steps', 'import-export-by-rockstarlab' ); ?></h3>
 					<ul>
 						<li>
-							<span class="dashicons dashicons-update"></span>
-							<a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-content-updater' ) ); ?>">
-								<?php esc_html_e( 'Content Updater — bulk update fields', 'import-export-by-rockstarlab' ); ?>
-							</a>
-						</li>
-						<li>
 							<span class="dashicons dashicons-networking"></span>
 							<a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-content-sync' ) ); ?>">
 								<?php esc_html_e( 'Content Sync — sync between sites', 'import-export-by-rockstarlab' ); ?>
@@ -66,12 +64,6 @@ $rsl_ie_plugin_version = defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '1.0';
 				<div class="rsl-ie-welcome-panel-column rsl-ie-welcome-panel-last">
 					<h3><?php esc_html_e( 'More', 'import-export-by-rockstarlab' ); ?></h3>
 					<ul>
-						<li>
-							<span class="dashicons dashicons-admin-tools"></span>
-							<a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-functions' ) ); ?>">
-								<?php esc_html_e( 'Custom Functions', 'import-export-by-rockstarlab' ); ?>
-							</a>
-						</li>
 						<li>
 							<span class="dashicons dashicons-list-view"></span>
 							<a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-jobs-log' ) ); ?>">
@@ -103,27 +95,56 @@ $rsl_ie_plugin_version = defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '1.0';
 			<!-- Left column: Special Offer -->
 			<div class="rsl-ie-postbox-container rsl-ie-postbox-container-left">
 
-				<div class="rsl-ie-card rsl-ie-card--promo">
+				<div class="rsl-ie-card <?php echo $rsl_ie_pro_active ? 'rsl-ie-card--pro-active' : 'rsl-ie-card--promo'; ?>">
 					<div class="rsl-ie-card__header">
 						<h2 class="rsl-ie-card__title">
-							<span class="dashicons dashicons-awards"></span>
-							<?php esc_html_e( 'Import Export PRO Addon', 'import-export-by-rockstarlab' ); ?>
+							<?php if ( $rsl_ie_pro_active ) : ?>
+								<span class="dashicons dashicons-yes-alt"></span>
+								<?php esc_html_e( 'You are using PRO Addon', 'import-export-by-rockstarlab' ); ?>
+							<?php else : ?>
+								<span class="dashicons dashicons-awards"></span>
+								<?php esc_html_e( 'Import Export PRO Addon', 'import-export-by-rockstarlab' ); ?>
+							<?php endif; ?>
 						</h2>
 					</div>
 					<div class="rsl-ie-card__body">
-						<p class="rsl-ie-promo-intro">
-							<?php echo wp_kses_post( __( 'All new users get <strong>PRO addon for free for 1 month</strong>. Try the full power of this addon, starting your free 30-days trial.', 'import-export-by-rockstarlab' ) ); ?>
-						</p>
-						<!-- <div class="rsl-ie-promo-code-row">
-							<code class="rsl-ie-promo-code" id="rsl-ie-promo-code">NEW2026</code>
-							<button type="button" class="button rsl-ie-copy-btn rsl-ie-copy-promo-code">
-								<span class="dashicons dashicons-clipboard"></span>
-								<?php esc_html_e( 'Copy', 'import-export-by-rockstarlab' ); ?>
-							</button>
-						</div> -->
-						<a href="<?php echo esc_url( admin_url( 'admin.php?page=import-export-by-rockstarlab-addons' ) ); ?>" class="button button-primary rsl-ie-promo-cta">
-							<?php esc_html_e( 'Get PRO Addon →', 'import-export-by-rockstarlab' ); ?>
-						</a>
+							<?php if ( $rsl_ie_pro_active ) : ?>
+								<div class="rsl-ie-pro-active-badge">
+									<span class="dashicons dashicons-awards"></span>
+									<?php esc_html_e( 'PRO active', 'import-export-by-rockstarlab' ); ?>
+								</div>
+								<p class="rsl-ie-pro-active-message">
+									<?php esc_html_e( 'Thank you so much for your trust and support.', 'import-export-by-rockstarlab' ); ?>
+								</p>
+								<p class="rsl-ie-pro-active-copy">
+									<?php esc_html_e( 'Advanced content types, transformations, and PRO workflows are ready whenever you need them.', 'import-export-by-rockstarlab' ); ?>
+								</p>
+									<div class="rsl-ie-pro-active-links" aria-label="<?php esc_attr_e( 'PRO tools', 'import-export-by-rockstarlab' ); ?>">
+										<a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-content-updater' ) ); ?>" class="rsl-ie-pro-active-link">
+											<span class="dashicons dashicons-update"></span>
+											<span><?php esc_html_e( 'Content updater', 'import-export-by-rockstarlab' ); ?></span>
+										</a>
+										<a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-functions' ) ); ?>" class="rsl-ie-pro-active-link">
+											<span class="dashicons dashicons-admin-tools"></span>
+											<span><?php esc_html_e( 'Functions', 'import-export-by-rockstarlab' ); ?></span>
+										</a>
+										<a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-export' ) ); ?>" class="rsl-ie-pro-active-link">
+											<span class="dashicons dashicons-upload"></span>
+											<span><?php esc_html_e( 'Export', 'import-export-by-rockstarlab' ); ?></span>
+										</a>
+										<a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-import' ) ); ?>" class="rsl-ie-pro-active-link">
+											<span class="dashicons dashicons-download"></span>
+											<span><?php esc_html_e( 'Import', 'import-export-by-rockstarlab' ); ?></span>
+										</a>
+									</div>
+							<?php else : ?>
+							<p class="rsl-ie-promo-intro">
+								<?php echo wp_kses_post( __( 'All new users get <strong>PRO addon for free for 1 month</strong>. Try the full power of this addon, starting your free 30-days trial.', 'import-export-by-rockstarlab' ) ); ?>
+							</p>
+							<a href="<?php echo esc_url( admin_url( 'admin.php?page=import-export-by-rockstarlab-addons' ) ); ?>" class="button button-primary rsl-ie-promo-cta">
+								<?php esc_html_e( 'Get PRO Addon →', 'import-export-by-rockstarlab' ); ?>
+							</a>
+						<?php endif; ?>
 					</div>
 				</div>
 

@@ -766,7 +766,9 @@ const JobsLogModule = {
 					page = 'rsl-ie-import';
 					break;
 				case 'update':
-					page = 'rsl-ie-content-updater';
+					if ( window.rslIeData?.isProAddonActive ) {
+						page = 'rsl-ie-content-updater';
+					}
 					break;
 				case 'media_sync':
 					page = 'rsl-ie-media-sync';

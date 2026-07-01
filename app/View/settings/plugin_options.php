@@ -129,7 +129,7 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 										echo wp_kses_post(
 											sprintf(
 												/* translators: %s: OpenAI platform URL */
-												__( 'Get your API key from <a href="%s" target="_blank">OpenAI Platform</a>. Required for AI-powered function generation.', 'import-export-by-rockstarlab' ),
+												__( 'Get your API key from <a href="%s" target="_blank">OpenAI Platform</a>. Required for the AI URL Importer.', 'import-export-by-rockstarlab' ),
 												'https://platform.openai.com/api-keys'
 											)
 										);
@@ -171,9 +171,6 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 							</th>
 							<td>
 								<span class="rsl-ie-info-badge">GPT-4o-mini</span>
-								<!-- <p class="description">
-									<?php esc_html_e( 'Fast and cost-effective model for function generation. ~$0.0001-0.0003 per function.', 'import-export-by-rockstarlab' ); ?>
-								</p> -->
 							</td>
 						</tr>
 					</table>
@@ -211,19 +208,12 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 					</div>
 
 					<div class="rsl-ie-info-card">
-						<span class="dashicons dashicons-admin-generic"></span>
-						<h3><?php esc_html_e( 'AI Function Generator', 'import-export-by-rockstarlab' ); ?></h3>
-						<p><?php esc_html_e( 'Generate PHP transformation functions using natural language descriptions. Perfect for data transformation during import/export.', 'import-export-by-rockstarlab' ); ?></p>
-					</div>
-
-					<div class="rsl-ie-info-card">
 						<span class="dashicons dashicons-chart-area"></span>
 						<h3><?php esc_html_e( 'Pricing & Tokens', 'import-export-by-rockstarlab' ); ?></h3>
 						<p>
 							<?php esc_html_e( 'AI features use OpenAI GPT-4o-mini model. Typical costs:', 'import-export-by-rockstarlab' ); ?>
 						</p>
 						<ul style="list-style: disc; margin: 10px 0; padding-left: 20px; font-size: 0.95em;">
-							<li><?php esc_html_e( 'Function generation: ~$0.0001-0.0003 per function', 'import-export-by-rockstarlab' ); ?></li>
 							<li><?php esc_html_e( 'URL import: ~$0.001-0.005 per page', 'import-export-by-rockstarlab' ); ?></li>
 						</ul>
 						<p style="font-size: 0.9em; color: #666;">

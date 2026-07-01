@@ -88,15 +88,15 @@ class Data_Transformer {
 	}
 
 	/**
-	 * Apply multiple transformations to a field value
-	 * Supports search/replace, regex, case changes, prefix/suffix, custom functions
+	 * Apply multiple transformations to a field value.
+	 * Supports search/replace, regex, case changes, prefix/suffix, and PRO integrations.
 	 *
 	 * @param mixed $value          Value to transform
 	 * @param array $transformations {
 	 *     Array of transformation rules to apply sequentially.
 	 *
 	 *     @type string $type   Transformation type: search_replace, regex_replace,
-	 *                          uppercase, lowercase, trim, prefix, suffix, custom_function
+	 *                          uppercase, lowercase, trim, prefix, suffix, pro_transformation
 	 *     @type array  $params Type-specific parameters (search, replace, pattern, function, etc.)
 	 * }
 	 * @return mixed Transformed value
@@ -141,11 +141,15 @@ class Data_Transformer {
 					$value  = $value . $suffix;
 					break;
 
-				case 'custom_function':
-					$function = $params['function'] ?? '';
-					if ( function_exists( $function ) ) {
-						$value = call_user_func( $function, $value );
-					}
+				case 'pro_transformation':
+					$value = Field_Transformation_Bridge::apply(
+						$value,
+						(array) ( $params['ids'] ?? [] ),
+						[
+							'operation' => 'data_transformer',
+							'params'    => $params,
+						]
+					);
 					break;
 			}
 		}

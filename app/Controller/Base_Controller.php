@@ -13,6 +13,9 @@ use RockStarLab\ImportExport\Helper\Ajax_Security;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Base class for AJAX controllers.
+ */
 abstract class Base_Controller {
 
 	/**
@@ -61,10 +64,10 @@ abstract class Base_Controller {
 				call_user_func( array( $this, $callback ) );
 			};
 
-			// Admin AJAX
+			// Admin AJAX.
 			add_action( 'wp_ajax_' . $full_action, $dispatcher );
 
-			// Non-admin AJAX (if allowed)
+			// Non-admin AJAX, if allowed.
 			if ( $nopriv ) {
 				add_action( 'wp_ajax_nopriv_' . $full_action, $dispatcher );
 			}
@@ -85,7 +88,7 @@ abstract class Base_Controller {
 	 *
 	 * Checks nonce and user capabilities.
 	 *
-	 * @param string $capability Optional. Required capability (default: from property)
+	 * @param string $capability Optional. Required capability (default: from property).
 	 * @return true|WP_Error True if valid or WP_Error
 	 */
 	protected function verify_request( $capability = null ) {
@@ -93,7 +96,7 @@ abstract class Base_Controller {
 			return new \WP_Error( 'invalid_nonce', __( 'Security check failed', 'import-export-by-rockstarlab' ) );
 		}
 
-		// Check capability
+		// Check capability.
 		$required_cap = $capability ?? $this->required_capability;
 		if ( ! current_user_can( $required_cap ) ) {
 			return new \WP_Error( 'insufficient_permissions', __( 'You do not have permission to perform this action', 'import-export-by-rockstarlab' ) );
@@ -105,66 +108,137 @@ abstract class Base_Controller {
 	/**
 	 * Get request parameter
 	 *
-	 * @param string $key     Parameter key
-	 * @param mixed  $default Default value
-	 * @param string $method  Request method (get, post, request)
+	 * @param string $key     Parameter key.
+	 * @param mixed  $default_value Default value.
+	 * @param string $method  Request method (get, post, request).
 	 * @return mixed Parameter value
 	 */
-	protected function get_request_param( $key, $default = null, $method = 'request' ) {
-		if ( '' !== $this->current_ajax_action ) {
-			check_ajax_referer( Ajax_Security::nonce_action( $this->current_ajax_action ), 'nonce' );
+	protected function get_request_param( $key, $default_value = null, $method = 'request' ) {
+		if ( '' === $this->current_ajax_action ) {
+			return $default_value;
 		}
 
-		switch ( strtolower( $method ) ) {
+		check_ajax_referer( Ajax_Security::nonce_action( $this->current_ajax_action ), 'nonce' );
+
+		$value = $this->get_input_value( $key, $method );
+		if ( null === $value || is_array( $value ) ) {
+			return $default_value;
+		}
+
+		return sanitize_text_field( wp_unslash( $value ) );
+	}
+
+	/**
+	 * Read a scalar request value from an already nonce-verified request.
+	 *
+	 * @param string $key    Request parameter key.
+	 * @param string $method Request method (get, post, request).
+	 * @return string|null Raw value, or null when absent.
+	 */
+	private function get_input_value( $key, $method = 'request' ) {
+		$key = is_string( $key ) ? sanitize_key( $key ) : '';
+		if ( '' === $key ) {
+			return null;
+		}
+
+		foreach ( $this->get_input_sources( $method ) as $source ) {
+			if ( ! filter_has_var( $source, $key ) ) {
+				continue;
+			}
+
+			$value = filter_input( $source, $key, FILTER_UNSAFE_RAW );
+			if ( null !== $value && false !== $value ) {
+				return $value;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Read an array request value from an already nonce-verified request.
+	 *
+	 * @param string $key Request parameter key.
+	 * @return array|null Raw value, or null when absent.
+	 */
+	private function get_input_array( $key ) {
+		$key = is_string( $key ) ? sanitize_key( $key ) : '';
+		if ( '' === $key ) {
+			return null;
+		}
+
+		foreach ( $this->get_input_sources( 'request' ) as $source ) {
+			if ( ! filter_has_var( $source, $key ) ) {
+				continue;
+			}
+
+			$value = filter_input( $source, $key, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
+			if ( is_array( $value ) ) {
+				return $value;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Resolve the PHP input sources for a request method.
+	 *
+	 * @param string $method Request method (get, post, request).
+	 * @return int[] Input source constants.
+	 */
+	private function get_input_sources( $method ) {
+		switch ( strtolower( (string) $method ) ) {
 			case 'get':
-				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				return isset( $_GET[ $key ] ) ? sanitize_text_field( wp_unslash( $_GET[ $key ] ) ) : $default;
+				return [ INPUT_GET ];
 
 			case 'post':
-				// phpcs:ignore WordPress.Security.NonceVerification.Missing
-				return isset( $_POST[ $key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) : $default;
+				return [ INPUT_POST ];
 
 			default:
-				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				return isset( $_REQUEST[ $key ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ $key ] ) ) : $default;
+				return [ INPUT_POST, INPUT_GET ];
 		}
 	}
 
 	/**
 	 * Get request array parameter
 	 *
-	 * @param string $key     Parameter key
-	 * @param array  $default Default value
+	 * @param string $key     Parameter key.
+	 * @param array  $default_value Default value.
 	 * @return array Parameter value
 	 */
-	protected function get_request_array( $key, $default = [] ) {
+	protected function get_request_array( $key, $default_value = [] ) {
+		if ( '' === $this->current_ajax_action ) {
+			return $default_value;
+		}
+
 		// This accessor is only used by AJAX handlers after verify_request(). Keep
 		// the nonce check adjacent to the raw array input for security scanners.
 		check_ajax_referer( Ajax_Security::nonce_action( $this->current_ajax_action ), 'nonce' );
 
-		if ( ! isset( $_REQUEST[ $key ] ) ) {
-			return $default;
+		$value = $this->get_input_array( $key );
+		if ( null === $value ) {
+			return $default_value;
 		}
-		$value = wp_unslash( $_REQUEST[ $key ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Recursively sanitized below.
 
 		if ( ! is_array( $value ) ) {
-			return $default;
+			return $default_value;
 		}
 
-		// Recursively sanitize nested arrays
-		return $this->sanitize_array( $value );
+		// Recursively sanitize nested arrays.
+		return $this->sanitize_array( wp_unslash( $value ) );
 	}
 
 	/**
 	 * Recursively sanitize array
 	 *
-	 * @param array $array Array to sanitize
+	 * @param array $input_array Array to sanitize.
 	 * @return array Sanitized array
 	 */
-	private function sanitize_array( $array ) {
+	private function sanitize_array( $input_array ) {
 		$sanitized = [];
 
-		foreach ( $array as $key => $value ) {
+		foreach ( $input_array as $key => $value ) {
 			$sanitized_key = sanitize_text_field( $key );
 
 			if ( is_array( $value ) ) {
@@ -180,9 +254,9 @@ abstract class Base_Controller {
 	/**
 	 * Send JSON success response
 	 *
-	 * @param mixed  $data    Response data
-	 * @param string $message Optional. Success message
-	 * @param int    $status  Optional. HTTP status code (default: 200)
+	 * @param mixed  $data    Response data.
+	 * @param string $message Optional. Success message.
+	 * @param int    $status  Optional. HTTP status code (default: 200).
 	 */
 	protected function send_success( $data = null, $message = '', $status = 200 ) {
 		$response = [
@@ -200,9 +274,9 @@ abstract class Base_Controller {
 	/**
 	 * Send JSON error response
 	 *
-	 * @param string|WP_Error $error  Error message or WP_Error object
-	 * @param mixed           $data   Optional. Additional error data
-	 * @param int             $status Optional. HTTP status code (default: 400)
+	 * @param string|WP_Error $error  Error message or WP_Error object.
+	 * @param mixed           $data   Optional. Additional error data.
+	 * @param int             $status Optional. HTTP status code (default: 400).
 	 */
 	protected function send_error( $error, $data = null, $status = 400 ) {
 		$response = [
@@ -230,17 +304,21 @@ abstract class Base_Controller {
 	/**
 	 * Validate required parameters
 	 *
-	 * @param array $required Array of required parameter names
+	 * @param array $required Array of required parameter names.
 	 * @return true|WP_Error True if valid or WP_Error with missing params
 	 */
 	protected function validate_required_params( $required ) {
+		if ( '' === $this->current_ajax_action ) {
+			return new \WP_Error( 'invalid_ajax_context', __( 'Invalid AJAX request context', 'import-export-by-rockstarlab' ) );
+		}
+
 		check_ajax_referer( Ajax_Security::nonce_action( $this->current_ajax_action ), 'nonce' );
 
 		$missing = [];
 
 		foreach ( $required as $param ) {
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			if ( ! isset( $_REQUEST[ $param ] ) || ( is_string( $_REQUEST[ $param ] ) && empty( $_REQUEST[ $param ] ) ) ) {
+			$value = $this->get_input_value( $param );
+			if ( null === $value || ( is_string( $value ) && '' === trim( $value ) ) ) {
 				$missing[] = $param;
 			}
 		}
@@ -262,7 +340,7 @@ abstract class Base_Controller {
 	/**
 	 * Sanitize file upload
 	 *
-	 * @param array $file File from $_FILES
+	 * @param array $file File from $_FILES.
 	 * @return array|WP_Error Sanitized file or WP_Error
 	 */
 	protected function sanitize_file_upload( $file ) {
@@ -345,7 +423,7 @@ abstract class Base_Controller {
 	 * Returns WP_Error when a premium content type is requested but no valid
 	 * license is active, so callers can reject the request consistently.
 	 *
-	 * @param string $data_type Content/data type slug to check
+	 * @param string $data_type Content/data type slug to check.
 	 * @return true|\WP_Error True if allowed, WP_Error if premium license is required
 	 */
 	protected function verify_premium_for_type( $data_type ) {
@@ -355,7 +433,7 @@ abstract class Base_Controller {
 	/**
 	 * Verify a PRO addon + license is active for the given data/content type in a context.
 	 *
-	 * Some data types are free in one context (e.g. "comment" in Content Updater)
+	 * Some data types are free in one context
 	 * but may be premium in another (e.g. "comment" import/export). This helper
 	 * lets controllers pass an explicit context to avoid false positives.
 	 *
@@ -405,9 +483,9 @@ abstract class Base_Controller {
 	/**
 	 * Log controller action
 	 *
-	 * @param string $action  Action name
-	 * @param mixed  $data    Optional. Additional data
-	 * @param string $level   Optional. Log level (info, warning, error)
+	 * @param string $action  Action name.
+	 * @param mixed  $data    Optional. Additional data.
+	 * @param string $level   Optional. Log level (info, warning, error).
 	 */
 	protected function log( $action, $data = [], $level = 'info' ) {
 		$log_data = [
@@ -421,23 +499,18 @@ abstract class Base_Controller {
 		/**
 		 * Filter controller log data
 		 *
-		 * @param array  $log_data Log data
-		 * @param string $action   Action name
-		 * @param object $controller Controller instance
+		 * @param array  $log_data   Log data.
+		 * @param string $action     Action name.
+		 * @param object $controller Controller instance.
 		 */
 		$log_data = apply_filters( 'rsl_ie_controller_log_data', $log_data, $action, $this );
-
-		// Log using WordPress error_log
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		}
 
 		/**
 		 * Action fired when controller logs
 		 *
-		 * @param array  $log_data Log data
-		 * @param string $level    Log level
-		 * @param string $action   Action name
+		 * @param array  $log_data Log data.
+		 * @param string $level    Log level.
+		 * @param string $action   Action name.
 		 */
 		do_action( 'rsl_ie_controller_log', $log_data, $level, $action );
 	}

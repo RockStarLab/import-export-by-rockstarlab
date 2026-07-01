@@ -6,11 +6,14 @@
  */
 
 use RockStarLab\ImportExport\Helper\Admin_Menu_Settings;
+use RockStarLab\ImportExport\Helper\Pro_Addon;
 
 defined( 'ABSPATH' ) || exit;
 
 $rsl_ie_admin_menu_settings = Admin_Menu_Settings::get_settings();
 $rsl_ie_admin_menu_items    = Admin_Menu_Settings::get_menu_items();
+$rsl_ie_notice_nonce        = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified before reading the notice flag.
+$rsl_ie_notice_verified     = wp_verify_nonce( $rsl_ie_notice_nonce, 'rsl_ie_plugin_settings_notice' );
 ?>
 
 <div id="rsl-ie-plugin-settings" class="wrap">
@@ -23,8 +26,7 @@ $rsl_ie_admin_menu_items    = Admin_Menu_Settings::get_menu_items();
 	require RSL_IE_PATH . 'app/View/settings/partials/plugin-options-tabs.php';
 	?>
 
-	<?php // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only success flag. ?>
-	<?php if ( isset( $_GET['settings-updated'] ) ) : ?>
+	<?php if ( $rsl_ie_notice_verified && isset( $_GET['settings-updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Verified above. ?>
 		<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Settings saved.', 'import-export-by-rockstarlab' ); ?></p></div>
 	<?php endif; ?>
 
@@ -52,8 +54,11 @@ $rsl_ie_admin_menu_items    = Admin_Menu_Settings::get_menu_items();
 							<th scope="row"><?php esc_html_e( 'Visible submenu items', 'import-export-by-rockstarlab' ); ?></th>
 							<td>
 								<fieldset>
-									<legend class="screen-reader-text"><span><?php esc_html_e( 'Visible submenu items', 'import-export-by-rockstarlab' ); ?></span></legend>
-									<?php foreach ( $rsl_ie_admin_menu_items as $rsl_ie_item_key => $rsl_ie_item_label ) : ?>
+										<legend class="screen-reader-text"><span><?php esc_html_e( 'Visible submenu items', 'import-export-by-rockstarlab' ); ?></span></legend>
+										<?php foreach ( $rsl_ie_admin_menu_items as $rsl_ie_item_key => $rsl_ie_item_label ) : ?>
+											<?php if ( in_array( $rsl_ie_item_key, [ 'functions', 'content_updater' ], true ) && ! Pro_Addon::is_pro_active() ) : ?>
+												<?php continue; ?>
+											<?php endif; ?>
 										<label class="rsl-ie-menu-visibility-option">
 											<input type="checkbox" name="visible_items[]" value="<?php echo esc_attr( $rsl_ie_item_key ); ?>" <?php checked( ! empty( $rsl_ie_admin_menu_settings['visible_items'][ $rsl_ie_item_key ] ) ); ?>>
 											<?php echo esc_html( $rsl_ie_item_label ); ?>

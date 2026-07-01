@@ -7,23 +7,29 @@
 	.rsl-ie-export-complete-card,
 	.rsl-ie-import-complete-card {
 		background: #fff;
-		border: 2px solid #00a32a;
+		border: 2px solid var(--rsl-ie-complete-color, #00a32a);
 		border-radius: 12px;
 		padding: 40px;
 		text-align: center;
-		box-shadow: 0 4px 20px rgba(0, 163, 42, 0.1);
+		box-shadow: 0 4px 20px
+			var(--rsl-ie-complete-shadow, rgba(0, 163, 42, 0.1));
 		animation: slideInUp 0.5s ease-out;
 
 		.rsl-ie-complete-icon {
 			margin: 0 auto 20px;
 			width: 80px;
 			height: 80px;
-			background: linear-gradient(135deg, #00a32a, #008a20);
+			background: linear-gradient(
+				135deg,
+				var(--rsl-ie-complete-color, #00a32a),
+				var(--rsl-ie-complete-color-dark, #008a20)
+			);
 			border-radius: 50%;
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			box-shadow: 0 4px 16px rgba(0, 163, 42, 0.3);
+			box-shadow: 0 4px 16px
+				var(--rsl-ie-complete-icon-shadow, rgba(0, 163, 42, 0.3));
 
 			.dashicons {
 				font-size: 48px;
@@ -37,7 +43,7 @@
 			margin: 0 0 10px;
 			font-size: 28px;
 			font-weight: 600;
-			color: #00a32a;
+			color: var(--rsl-ie-complete-color, #00a32a);
 		}
 
 		.rsl-ie-complete-subtitle {
@@ -84,7 +90,11 @@
 					flex-shrink: 0;
 					width: 40px;
 					height: 40px;
-					background: linear-gradient(135deg, #2271b1, #135e96);
+					background: linear-gradient(
+						135deg,
+						var(--rsl-ie-result-default-color, #2271b1),
+						var(--rsl-ie-result-default-color-dark, #135e96)
+					);
 					border-radius: 8px;
 					display: flex;
 					align-items: center;
@@ -99,27 +109,47 @@
 
 					// Success icon (green)
 					&.rsl-ie-icon-success {
-						background: linear-gradient(135deg, #00a32a, #008a20);
+						background: linear-gradient(
+							135deg,
+							var(--rsl-ie-result-success-color, #00a32a),
+							var(--rsl-ie-result-success-color-dark, #008a20)
+						);
 					}
 
 					// Updated icon (blue)
 					&.rsl-ie-icon-updated {
-						background: linear-gradient(135deg, #2271b1, #135e96);
+						background: linear-gradient(
+							135deg,
+							var(--rsl-ie-result-updated-color, #2271b1),
+							var(--rsl-ie-result-updated-color-dark, #135e96)
+						);
 					}
 
 					// Created icon (purple)
 					&.rsl-ie-icon-created {
-						background: linear-gradient(135deg, #826eb4, #6b5a9e);
+						background: linear-gradient(
+							135deg,
+							var(--rsl-ie-result-created-color, #826eb4),
+							var(--rsl-ie-result-created-color-dark, #6b5a9e)
+						);
 					}
 
 					// Skipped icon (orange)
 					&.rsl-ie-icon-skipped {
-						background: linear-gradient(135deg, #f0b849, #d99a1a);
+						background: linear-gradient(
+							135deg,
+							var(--rsl-ie-result-skipped-color, #f0b849),
+							var(--rsl-ie-result-skipped-color-dark, #d99a1a)
+						);
 					}
 
 					// Failed icon (red)
 					&.rsl-ie-icon-failed {
-						background: linear-gradient(135deg, #d63638, #b32d2e);
+						background: linear-gradient(
+							135deg,
+							var(--rsl-ie-result-failed-color, #d63638),
+							var(--rsl-ie-result-failed-color-dark, #b32d2e)
+						);
 					}
 				}
 
@@ -178,20 +208,30 @@
 		text-align: center;
 
 		.rsl-ie-download-file {
-			background: linear-gradient(135deg, #2271b1, #135e96);
+			background: linear-gradient(
+				135deg,
+				var(--rsl-ie-download-color, #2271b1),
+				var(--rsl-ie-download-color-dark, #135e96)
+			);
 			border: none;
 			color: #fff;
 			font-size: 16px;
 			font-weight: 600;
 			padding: 15px 40px;
 			border-radius: 6px;
-			box-shadow: 0 4px 12px rgba(34, 113, 177, 0.3);
+			box-shadow: 0 4px 12px
+				var(--rsl-ie-download-shadow, rgba(34, 113, 177, 0.3));
 			transition: all 0.3s ease;
 			cursor: pointer;
 
 			&:hover {
-				background: linear-gradient(135deg, #135e96, #0d4066);
-				box-shadow: 0 6px 16px rgba(34, 113, 177, 0.4);
+				background: linear-gradient(
+					135deg,
+					var(--rsl-ie-download-color-dark, #135e96),
+					var(--rsl-ie-download-color-darker, #0d4066)
+				);
+				box-shadow: 0 6px 16px
+					var(--rsl-ie-download-hover-shadow, rgba(34, 113, 177, 0.4));
 				transform: translateY(-2px);
 			}
 
@@ -201,12 +241,17 @@
 				opacity: 0.86;
 				cursor: wait;
 				transform: none;
-				box-shadow: 0 3px 10px rgba(34, 113, 177, 0.26);
+				box-shadow: 0 3px 10px
+					var(
+						--rsl-ie-download-disabled-shadow,
+						rgba(34, 113, 177, 0.26)
+					);
 			}
 
 			&:active {
 				transform: translateY(0);
-				box-shadow: 0 2px 8px rgba(34, 113, 177, 0.3);
+				box-shadow: 0 2px 8px
+					var(--rsl-ie-download-shadow, rgba(34, 113, 177, 0.3));
 			}
 
 			.dashicons {

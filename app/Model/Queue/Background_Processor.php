@@ -82,12 +82,11 @@ class Background_Processor {
 	protected function get_next_job() {
 		global $wpdb;
 
-		$table = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
+		$table = $wpdb->prefix . 'rsl_ie_jobs';
 
 		// Get oldest pending or processing job
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name uses $wpdb->prefix, no user input
-		$job = $wpdb->get_row( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			"SELECT * FROM `{$table}` WHERE status IN ('pending', 'processing') ORDER BY created_at ASC LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
+		$job = $wpdb->get_row(
+			$wpdb->prepare( "SELECT * FROM %i WHERE status IN ('pending', 'processing') ORDER BY created_at ASC LIMIT 1", $table ),
 			ARRAY_A
 		);
 
@@ -426,8 +425,13 @@ class Background_Processor {
 	 * @return array
 	 */
 	protected function process_update_job( $job_id ) {
-		$processor = new Update_Processor();
-		return $processor->process( $job_id );
+		$result = apply_filters( 'rsl_ie_process_update_job', null, $job_id );
+
+		if ( null !== $result ) {
+			return $result;
+		}
+
+		throw new \Exception( 'Content Updater requires the PRO addon.' );
 	}
 
 	/**

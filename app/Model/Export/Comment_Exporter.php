@@ -173,7 +173,7 @@ class Comment_Exporter extends Abstract_Exporter {
 		$fields = $options['fields'] ?? $this->get_default_fields();
 		$data   = [];
 
-		// Check if ID should be forced (for Content Updater)
+		// Check if ID should be forced by the caller.
 		$force_include_id = $options['force_include_id'] ?? false;
 
 		// Ensure portable post hints are always exported when comment_post_ID is present.
@@ -814,6 +814,40 @@ class Comment_Exporter extends Abstract_Exporter {
 	protected $custom_filters = [];
 
 	/**
+	 * Combine already prepared SQL filter clauses with an allowlisted operator.
+	 *
+	 * @param array  $parts    Prepared SQL fragments.
+	 * @param string $operator Boolean operator.
+	 * @return string Combined SQL fragment.
+	 */
+	private function combine_prepared_filter_parts( $parts, $operator ) {
+		$operator = strtoupper( (string) $operator );
+		if ( ! in_array( $operator, [ 'AND', 'OR' ], true ) ) {
+			return '';
+		}
+
+		$combined = '';
+		foreach ( $parts as $part ) {
+			if ( '' === $part ) {
+				continue;
+			}
+
+			if ( '' === $combined ) {
+				$combined = $part;
+				continue;
+			}
+
+			if ( 'OR' === $operator ) {
+				$combined .= ' OR ' . $part;
+			} else {
+				$combined .= ' AND ' . $part;
+			}
+		}
+
+		return '' === $combined ? '' : '(' . $combined . ')';
+	}
+
+	/**
 	 * Apply custom filters to comment query via WHERE clause
 	 *
 	 * @param array             $clauses Comment query clauses
@@ -835,97 +869,107 @@ class Comment_Exporter extends Abstract_Exporter {
 			return $clauses;
 		}
 
-		$where_parts = [];
+		$prepared_filter_parts = [];
 
 		foreach ( $this->custom_filters as $filter ) {
 			$field     = $filter['field'];
 			$condition = $filter['condition'];
 			$value     = $filter['value'];
 
-			// Map field names to database columns
-			$column_map = [
-				'comment_ID'           => $wpdb->comments . '.comment_ID',
-				'comment_post_ID'      => $wpdb->comments . '.comment_post_ID',
-				'comment_author'       => $wpdb->comments . '.comment_author',
-				'comment_author_email' => $wpdb->comments . '.comment_author_email',
-				'comment_author_url'   => $wpdb->comments . '.comment_author_url',
-				'comment_author_IP'    => $wpdb->comments . '.comment_author_IP',
-				'comment_date'         => $wpdb->comments . '.comment_date',
-				'comment_content'      => $wpdb->comments . '.comment_content',
-				'comment_karma'        => $wpdb->comments . '.comment_karma',
-				'comment_parent'       => $wpdb->comments . '.comment_parent',
-				'user_id'              => $wpdb->comments . '.user_id',
+			$allowed_columns = [
+				'comment_ID',
+				'comment_post_ID',
+				'comment_author',
+				'comment_author_email',
+				'comment_author_url',
+				'comment_author_IP',
+				'comment_date',
+				'comment_content',
+				'comment_karma',
+				'comment_parent',
+				'user_id',
 			];
 
-			if ( ! isset( $column_map[ $field ] ) ) {
+			if ( ! in_array( $field, $allowed_columns, true ) ) {
 				continue;
 			}
 
-			$column = $column_map[ $field ];
+			$column = $field;
 
 			// Numeric fields
-			if ( in_array( $field, [ 'comment_ID', 'comment_post_ID', 'user_id', 'comment_parent', 'comment_karma' ], true ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+			if ( in_array( $field, [ 'comment_ID', 'comment_post_ID', 'user_id', 'comment_parent', 'comment_karma' ], true ) ) {
 				if ( $condition === 'equals' ) {
-					$where_parts[] = $wpdb->prepare( "$column = %d", absint( $value ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+					$prepared_filter_parts[] = $wpdb->prepare( '%i = %d', $column, absint( $value ) );
 				} elseif ( $condition === 'not_equals' ) {
-					$where_parts[] = $wpdb->prepare( "$column != %d", absint( $value ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+					$prepared_filter_parts[] = $wpdb->prepare( '%i != %d', $column, absint( $value ) );
 				} elseif ( $condition === 'greater' ) {
-					$where_parts[] = $wpdb->prepare( "$column > %d", absint( $value ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+					$prepared_filter_parts[] = $wpdb->prepare( '%i > %d', $column, absint( $value ) );
 				} elseif ( $condition === 'equals_or_greater' ) {
-					$where_parts[] = $wpdb->prepare( "$column >= %d", absint( $value ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+					$prepared_filter_parts[] = $wpdb->prepare( '%i >= %d', $column, absint( $value ) );
 				} elseif ( $condition === 'less' ) {
-					$where_parts[] = $wpdb->prepare( "$column < %d", absint( $value ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+					$prepared_filter_parts[] = $wpdb->prepare( '%i < %d', $column, absint( $value ) );
 				} elseif ( $condition === 'equals_or_less' ) {
-					$where_parts[] = $wpdb->prepare( "$column <= %d", absint( $value ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
+					$prepared_filter_parts[] = $wpdb->prepare( '%i <= %d', $column, absint( $value ) );
 				} elseif ( $condition === 'in' ) {
 					$values = array_map( 'trim', explode( ',', $value ) );
 					$values = array_map( 'absint', $values );
-					if ( ! empty( $values ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Direct DB query required here.
-						$placeholders  = implode( ',', array_fill( 0, count( $values ), '%d' ) );
-						$where_parts[] = $wpdb->prepare( "$column IN ($placeholders)", ...$values ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table/column name is controlled, not user input. Placeholder handled correctly.
+					if ( ! empty( $values ) ) {
+						$parts = [];
+						foreach ( $values as $id ) {
+							$parts[] = $wpdb->prepare( '%i = %d', $column, $id );
+						}
+							$prepared_filter_parts[] = $this->combine_prepared_filter_parts( $parts, 'OR' );
 					}
 				} elseif ( $condition === 'not_in' ) {
 					$values = array_map( 'trim', explode( ',', $value ) );
 					$values = array_map( 'absint', $values );
-					if ( ! empty( $values ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Direct DB query required here.
-						$placeholders  = implode( ',', array_fill( 0, count( $values ), '%d' ) );
-						$where_parts[] = $wpdb->prepare( "$column NOT IN ($placeholders)", ...$values ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table/column name is controlled, not user input. Placeholder handled correctly.
+					if ( ! empty( $values ) ) {
+						$parts = [];
+						foreach ( $values as $id ) {
+							$parts[] = $wpdb->prepare( '%i != %d', $column, $id );
+						}
+							$prepared_filter_parts[] = $this->combine_prepared_filter_parts( $parts, 'AND' );
 					}
 				} elseif ( $condition === 'between' ) {
-					$values = array_map( 'trim', explode( ',', $value ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+					$values = array_map( 'trim', explode( ',', $value ) );
 					if ( count( $values ) === 2 ) {
-						$where_parts[] = $wpdb->prepare( "$column BETWEEN %d AND %d", absint( $values[0] ), absint( $values[1] ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
+						$prepared_filter_parts[] = $wpdb->prepare( '%i BETWEEN %d AND %d', $column, absint( $values[0] ), absint( $values[1] ) );
 					}
 				} elseif ( $condition === 'is_empty' ) {
-					$where_parts[] = "($column = 0 OR $column IS NULL)";
+					$prepared_filter_parts[] = $wpdb->prepare( '(%i = 0 OR %i IS NULL)', $column, $column );
 				} elseif ( $condition === 'is_not_empty' ) {
-					$where_parts[] = "($column != 0 AND $column IS NOT NULL)";
+					$prepared_filter_parts[] = $wpdb->prepare( '(%i != 0 AND %i IS NOT NULL)', $column, $column );
 				}
 			}
 
 			// Text fields
-			if ( in_array( $field, [ 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_author_IP', 'comment_content' ], true ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+			if ( in_array( $field, [ 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_author_IP', 'comment_content' ], true ) ) {
 				if ( $condition === 'equals' ) {
-					$where_parts[] = $wpdb->prepare( "$column = %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+					$prepared_filter_parts[] = $wpdb->prepare( '%i = %s', $column, $value );
 				} elseif ( $condition === 'contains' ) {
-					$where_parts[] = $wpdb->prepare( "$column LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+					$prepared_filter_parts[] = $wpdb->prepare( '%i LIKE %s', $column, '%' . $wpdb->esc_like( $value ) . '%' );
 				} elseif ( $condition === 'not_contains' ) {
-					$where_parts[] = $wpdb->prepare( "$column NOT LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+					$prepared_filter_parts[] = $wpdb->prepare( '%i NOT LIKE %s', $column, '%' . $wpdb->esc_like( $value ) . '%' );
 				} elseif ( $condition === 'starts_with' ) {
-					$where_parts[] = $wpdb->prepare( "$column LIKE %s", $wpdb->esc_like( $value ) . '%' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+					$prepared_filter_parts[] = $wpdb->prepare( '%i LIKE %s', $column, $wpdb->esc_like( $value ) . '%' );
 				} elseif ( $condition === 'ends_with' ) {
-					$where_parts[] = $wpdb->prepare( "$column LIKE %s", '%' . $wpdb->esc_like( $value ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
+					$prepared_filter_parts[] = $wpdb->prepare( '%i LIKE %s', $column, '%' . $wpdb->esc_like( $value ) );
 				} elseif ( $condition === 'is_empty' ) {
-					$where_parts[] = "($column = '' OR $column IS NULL)";
+					$prepared_filter_parts[] = $wpdb->prepare( '(%i = %s OR %i IS NULL)', $column, '', $column );
 				} elseif ( $condition === 'is_not_empty' ) {
-					$where_parts[] = "($column != '' AND $column IS NOT NULL)";
+					$prepared_filter_parts[] = $wpdb->prepare( '(%i != %s AND %i IS NOT NULL)', $column, '', $column );
 				}
 			}
 		}
 
-		if ( ! empty( $where_parts ) ) {
-			$clauses['where'] .= ' AND (' . implode( ' AND ', $where_parts ) . ')';
-			$this->log_info( 'Applied custom WHERE clauses', [ 'where_parts' => $where_parts ] );
+		if ( ! empty( $prepared_filter_parts ) ) {
+			$combined_where = '';
+			foreach ( $prepared_filter_parts as $prepared_clause ) {
+				$combined_where .= '' === $combined_where ? $prepared_clause : ' AND ' . $prepared_clause;
+			}
+
+			$clauses['where'] .= ' AND (' . $combined_where . ')';
+			$this->log_info( 'Applied custom WHERE clauses', [ 'prepared_filter_parts' => $prepared_filter_parts ] );
 		}
 
 		return $clauses;

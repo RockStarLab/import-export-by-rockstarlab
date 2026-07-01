@@ -148,8 +148,10 @@ class Settings_Controller extends Base_Controller {
 
 		wp_safe_redirect(
 			add_query_arg(
-				'settings-updated',
-				'true',
+				[
+					'settings-updated' => 'true',
+					'_wpnonce'         => wp_create_nonce( 'rsl_ie_plugin_settings_notice' ),
+				],
 				admin_url( 'admin.php?page=rsl-ie-plugin-settings' )
 			)
 		);
@@ -177,8 +179,10 @@ class Settings_Controller extends Base_Controller {
 
 		wp_safe_redirect(
 			add_query_arg(
-				'settings-updated',
-				'true',
+				[
+					'settings-updated' => 'true',
+					'_wpnonce'         => wp_create_nonce( 'rsl_ie_plugin_settings_notice' ),
+				],
 				admin_url( 'admin.php?page=rsl-ie-plugin-settings' )
 			)
 		);

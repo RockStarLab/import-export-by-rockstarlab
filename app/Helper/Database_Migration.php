@@ -15,6 +15,85 @@ defined( 'ABSPATH' ) || exit;
 class Database_Migration {
 
 	/**
+	 * Run an allowlisted ALTER TABLE statement with an identifier placeholder.
+	 *
+	 * @param string $table_name Table name.
+	 * @param string $operation  Migration operation key.
+	 * @return int|bool Query result.
+	 */
+	private static function run_alter_table( $table_name, $operation ) {
+		global $wpdb;
+
+		switch ( $operation ) {
+			case 'add_progress_column':
+				return $wpdb->query(
+					$wpdb->prepare(
+						"ALTER TABLE %i ADD COLUMN progress DECIMAL(5,2) DEFAULT 0 COMMENT 'Progress percentage (0-100)' AFTER failed_items",
+						$table_name
+					)
+				);
+			case 'add_result_column':
+				return $wpdb->query(
+					$wpdb->prepare(
+						"ALTER TABLE %i ADD COLUMN result TEXT NULL COMMENT 'JSON result data (processed, success, failed counts)' AFTER settings",
+						$table_name
+					)
+				);
+			case 'add_parameters_column':
+				return $wpdb->query(
+					$wpdb->prepare(
+						"ALTER TABLE %i ADD COLUMN parameters LONGTEXT NULL COMMENT 'JSON job parameters' AFTER settings",
+						$table_name
+					)
+				);
+			case 'add_started_at_column':
+				return $wpdb->query(
+					$wpdb->prepare(
+						"ALTER TABLE %i ADD COLUMN started_at DATETIME NULL COMMENT 'When job processing started' AFTER updated_at",
+						$table_name
+					)
+				);
+			case 'add_retries_column':
+				return $wpdb->query(
+					$wpdb->prepare(
+						"ALTER TABLE %i ADD COLUMN retries INT DEFAULT 0 COMMENT 'Number of retry attempts' AFTER status",
+						$table_name
+					)
+				);
+			case 'update_type_enum':
+				return $wpdb->query(
+					$wpdb->prepare(
+						"ALTER TABLE %i MODIFY COLUMN type ENUM('import', 'export', 'media_sync', 'update') NOT NULL",
+						$table_name
+					)
+				);
+			case 'add_imported_items_column':
+				return $wpdb->query(
+					$wpdb->prepare(
+						"ALTER TABLE %i ADD COLUMN imported_items INT DEFAULT 0 COMMENT 'Number of items imported/updated' AFTER processed_items",
+						$table_name
+					)
+				);
+			case 'add_skipped_items_column':
+				return $wpdb->query(
+					$wpdb->prepare(
+						"ALTER TABLE %i ADD COLUMN skipped_items INT DEFAULT 0 COMMENT 'Number of items skipped' AFTER imported_items",
+						$table_name
+					)
+				);
+			case 'add_error_items_column':
+				return $wpdb->query(
+					$wpdb->prepare(
+						"ALTER TABLE %i ADD COLUMN error_items INT DEFAULT 0 COMMENT 'Number of items with errors' AFTER skipped_items",
+						$table_name
+					)
+				);
+		}
+
+		return false;
+	}
+
+	/**
 	 * Database version
 	 * Update this when schema changes
 	 */
@@ -73,27 +152,6 @@ class Database_Migration {
             created_at DATETIME NOT NULL,
             INDEX user_id_idx (user_id),
             INDEX data_type_idx (data_type)
-        ) ENGINE=InnoDB $charset_collate;";
-
-		// 4. Custom Functions table - user-defined functions
-		$sql_custom_functions = "CREATE TABLE {$prefix}rsl_ie_custom_functions (
-            id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(100) NOT NULL UNIQUE,
-            description TEXT,
-            function_code LONGTEXT NOT NULL,
-            source VARCHAR(100) DEFAULT 'custom',
-            input_type VARCHAR(50) DEFAULT 'string',
-            output_type VARCHAR(50) DEFAULT 'string',
-            is_active TINYINT(1) DEFAULT 1,
-            user_id BIGINT(20) UNSIGNED NOT NULL,
-            created_at DATETIME NOT NULL,
-            updated_at DATETIME NOT NULL,
-            last_used_at DATETIME,
-            usage_count INT DEFAULT 0,
-            INDEX name_idx (name),
-            INDEX user_id_idx (user_id),
-            INDEX is_active_idx (is_active),
-            INDEX source_idx (source)
         ) ENGINE=InnoDB $charset_collate;";
 
 		// 5. Media Sync table - media folder synchronization
@@ -193,7 +251,6 @@ class Database_Migration {
 		$results                     = array();
 		$results['jobs']             = dbDelta( $sql_jobs );
 		$results['field_maps']       = dbDelta( $sql_field_maps );
-		$results['custom_functions'] = dbDelta( $sql_custom_functions );
 		$results['media_sync']       = dbDelta( $sql_media_sync );
 		$results['site_connections'] = dbDelta( $sql_site_connections );
 		$results['content_sync']     = dbDelta( $sql_content_sync );
@@ -218,43 +275,6 @@ class Database_Migration {
 		self::maybe_add_retries_column();
 		self::maybe_update_type_enum();
 		self::maybe_add_update_columns();
-
-			// Seed built-in functions
-			self::ensure_builtin_functions();
-	}
-
-		/**
-		 * Ensure built-in function snippets are present in the database.
-		 *
-		 * Safe to call multiple times.
-		 */
-	public static function ensure_builtin_functions() {
-		global $wpdb;
-
-		$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_custom_functions' );
-
-		$exists = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			$wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name )
-		);
-		if ( $exists !== $table_name ) {
-			return;
-		}
-
-		$seeded_option = 'rsl_ie_builtin_functions_seeded';
-
-		$library_count = (int) $wpdb->get_var( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-			"SELECT COUNT(*) FROM `{$table_name}` WHERE source LIKE 'library:%'" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
-		);
-
-		if ( $library_count > 0 ) {
-			if ( ! get_option( $seeded_option, false ) ) {
-				update_option( $seeded_option, true );
-			}
-			return;
-		}
-
-		self::seed_builtin_functions();
-		update_option( $seeded_option, true );
 	}
 
 	/**
@@ -279,13 +299,10 @@ class Database_Migration {
 
 		// Add column if it doesn't exist
 		if ( empty( $column_exists ) ) {
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
-			$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-				"ALTER TABLE `{$table_name}`
-				ADD COLUMN progress DECIMAL(5,2) DEFAULT 0 COMMENT 'Progress percentage (0-100)'
-				AFTER failed_items"
+			self::run_alter_table(
+				$table_name,
+				'add_progress_column'
 			);
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 		}
 	}
 
@@ -311,13 +328,10 @@ class Database_Migration {
 
 		// Add column if it doesn't exist
 		if ( empty( $column_exists ) ) {
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
-			$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-				"ALTER TABLE `{$table_name}`
-				ADD COLUMN result TEXT NULL COMMENT 'JSON result data (processed, success, failed counts)'
-				AFTER settings"
+			self::run_alter_table(
+				$table_name,
+				'add_result_column'
 			);
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 		}
 	}
 
@@ -343,13 +357,10 @@ class Database_Migration {
 
 		// Add column if it doesn't exist
 		if ( empty( $column_exists ) ) {
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
-			$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-				"ALTER TABLE `{$table_name}`
-				ADD COLUMN parameters LONGTEXT NULL COMMENT 'JSON job parameters'
-				AFTER settings"
+			self::run_alter_table(
+				$table_name,
+				'add_parameters_column'
 			);
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 		}
 	}
 
@@ -375,13 +386,10 @@ class Database_Migration {
 
 		// Add column if it doesn't exist
 		if ( empty( $column_exists ) ) {
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
-			$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-				"ALTER TABLE `{$table_name}`
-				ADD COLUMN started_at DATETIME NULL COMMENT 'When job processing started'
-				AFTER updated_at"
+			self::run_alter_table(
+				$table_name,
+				'add_started_at_column'
 			);
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 		}
 	}
 
@@ -407,13 +415,10 @@ class Database_Migration {
 
 		// Add column if it doesn't exist
 		if ( empty( $column_exists ) ) {
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
-			$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-				"ALTER TABLE `{$table_name}`
-				ADD COLUMN retries INT DEFAULT 0 COMMENT 'Number of retry attempts'
-				AFTER status"
+			self::run_alter_table(
+				$table_name,
+				'add_retries_column'
 			);
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 		}
 	}
 
@@ -442,12 +447,10 @@ class Database_Migration {
 			$column_type = $column_info[0]->COLUMN_TYPE;
 			if ( strpos( $column_type, "'update'" ) === false ) {
 				// Add 'update' to the ENUM
-				// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
-				$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-					"ALTER TABLE `{$table_name}`
-					MODIFY COLUMN type ENUM('import', 'export', 'media_sync', 'update') NOT NULL"
+				self::run_alter_table(
+					$table_name,
+					'update_type_enum'
 				);
-				// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 			}
 		}
 	}
@@ -473,13 +476,10 @@ class Database_Migration {
 		);
 
 		if ( empty( $column_exists ) ) {
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
-			$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-				"ALTER TABLE `{$table_name}`
-				ADD COLUMN imported_items INT DEFAULT 0 COMMENT 'Number of items imported/updated'
-				AFTER processed_items"
+			self::run_alter_table(
+				$table_name,
+				'add_imported_items_column'
 			);
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 		}
 
 		// Add skipped_items column
@@ -495,13 +495,10 @@ class Database_Migration {
 		);
 
 		if ( empty( $column_exists ) ) {
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
-			$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-				"ALTER TABLE `{$table_name}`
-				ADD COLUMN skipped_items INT DEFAULT 0 COMMENT 'Number of items skipped'
-				AFTER imported_items"
+			self::run_alter_table(
+				$table_name,
+				'add_skipped_items_column'
 			);
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 		}
 
 		// Add error_items column
@@ -517,38 +514,10 @@ class Database_Migration {
 		);
 
 		if ( empty( $column_exists ) ) {
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema ALTER TABLE required for migration.
-			$wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
-				"ALTER TABLE `{$table_name}`
-				ADD COLUMN error_items INT DEFAULT 0 COMMENT 'Number of items with errors'
-				AFTER skipped_items"
+			self::run_alter_table(
+				$table_name,
+				'add_error_items_column'
 			);
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
-		}
-	}
-
-	/**
-	 * Seed built-in functions into database
-	 */
-	private static function seed_builtin_functions() {
-		// Load Custom_Function model and seed
-		if ( class_exists( '\RockStarLab\ImportExport\Model\Custom_Function' ) ) {
-			try {
-				$custom_function_model = new \RockStarLab\ImportExport\Model\Custom_Function();
-				$stats                 = $custom_function_model->seed_builtin_functions();
-
-				// Log results
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				}
-			} catch ( \Exception $e ) {
-				// Log error but don't break migration
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				}
-			} catch ( \Error $e ) {
-				// Log error but don't break migration
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				}
-			}
 		}
 	}
 
@@ -568,14 +537,12 @@ class Database_Migration {
 			"{$prefix}rsl_ie_site_connections",
 			"{$prefix}rsl_ie_media_sync",
 			"{$prefix}rsl_ie_api_keys",
-			"{$prefix}rsl_ie_custom_functions",
 			"{$prefix}rsl_ie_field_maps",
 			"{$prefix}rsl_ie_jobs",
 		];
 
 		foreach ( $tables as $table ) {
-			$safe_table = esc_sql( $table );
-			$wpdb->query( "DROP TABLE IF EXISTS `{$safe_table}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are controlled and SQL-escaped.
+			$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table ) );
 		}
 
 		// Delete DB version option
@@ -597,7 +564,6 @@ class Database_Migration {
 			"{$prefix}rsl_ie_jobs",
 			"{$prefix}rsl_ie_job_schedules",
 			"{$prefix}rsl_ie_field_maps",
-			"{$prefix}rsl_ie_custom_functions",
 			"{$prefix}rsl_ie_media_sync",
 			"{$prefix}rsl_ie_site_connections",
 			"{$prefix}rsl_ie_content_sync",

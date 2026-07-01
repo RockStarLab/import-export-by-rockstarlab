@@ -70,7 +70,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 	 */
 	private function check_feature_availability() {
 		// Check if OpenAI API key is set
-		if ( ! \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_key() ) {
+		if ( ! \RockStarLab\ImportExport\Helper\OpenAI_API_Key::has_api_key() ) {
 			return new \WP_Error(
 				'api_key_required',
 				__( 'OpenAI API key is required. Configure it in Settings → Connectors (WordPress 7+) or in Plugin Options.', 'import-export-by-rockstarlab' )
