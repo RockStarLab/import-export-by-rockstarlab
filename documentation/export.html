@@ -38,10 +38,8 @@
     <a href="import.html"><span class="nav-icon">📥</span> Importing Data</a>
     <a href="export.html" class="active"><span class="nav-icon">📤</span> Exporting Data</a>
     <a href="content-sync.html"><span class="nav-icon">🔄</span> Content Sync</a>
-    <a href="content-updater.html"><span class="nav-icon">✏️</span> Content Updater</a>
     <a href="media-sync.html"><span class="nav-icon">🖼️</span> Media Library Sync</a>
     <a href="ai-url-importer.html"><span class="nav-icon">🤖</span> AI URL Importer</a>
-    <a href="functions.html"><span class="nav-icon">⚙️</span> Functions Library</a>
     <a href="jobs-log.html"><span class="nav-icon">📋</span> Jobs Log</a>
     <a href="plugin-options.html"><span class="nav-icon">🛠️</span> Plugin Options</a>
   </nav>
@@ -174,51 +172,46 @@
       <figcaption>Adding a custom column to the export structure</figcaption>
     </figure>
 
-    <h4>Assigning Functions to Fields</h4>
+    <h4>Field Transformations</h4>
     <p>
-      You can transform the exported content for any field by assigning one or more
-      <a href="functions.html">functions</a> to it. This is useful for formatting values,
-      converting units, or applying any custom transformation during export.
+      The free plugin focuses this step on choosing and ordering exported fields. Advanced
+      per-field transformations can be enabled by the optional PRO addon.
     </p>
 
     <figure class="screenshot">
       <a href="images/export-assign-functions.png" target="_blank"><img src="images/export-assign-functions.png" alt="Assign functions to a field" /></a>
-      <figcaption>Function assignment panel for an export field</figcaption>
+      <figcaption>Transformation assignment panel for an export field</figcaption>
     </figure>
 
     <p>
-      Click the <strong>gear icon ⚙</strong> on any field in the export structure to open the function picker,
-      then select one or more functions to apply during export.
+      When the PRO addon enables transformations, click the field action icon to open the transformation picker,
+      then select one or more transformations to apply during export.
     </p>
 
     <figure class="screenshot">
       <a href="images/export-assign-fn.png" target="_blank"><img src="images/export-assign-fn.png" alt="Selecting functions for a field" /></a>
-      <figcaption>Selecting the functions to apply to the field</figcaption>
+      <figcaption>Selecting the transformations to apply to the field</figcaption>
     </figure>
 
     <p>
-      After selecting the functions, click <strong>Apply Functions</strong> to confirm.
-      The field will then display an indicator showing that functions have been assigned.
+      After selecting the transformations, click <strong>Apply Transformations</strong> to confirm.
+      The field will then display an indicator showing that transformations have been assigned.
     </p>
 
     <figure class="screenshot">
-      <a href="images/export-apply-functions.png" target="_blank"><img src="images/export-apply-functions.png" alt="Apply Functions button" /></a>
-      <figcaption>Clicking Apply Functions to confirm the selection</figcaption>
+      <a href="images/export-apply-functions.png" target="_blank"><img src="images/export-apply-functions.png" alt="Apply Transformations button" /></a>
+      <figcaption>Clicking Apply Transformations to confirm the selection</figcaption>
     </figure>
 
     <figure class="screenshot">
-      <a href="images/export-functions-applied.png" target="_blank"><img src="images/export-functions-applied.png" alt="Functions applied to field" /></a>
-      <figcaption>The field now shows the assigned functions</figcaption>
+      <a href="images/export-functions-applied.png" target="_blank"><img src="images/export-functions-applied.png" alt="Transformations applied to field" /></a>
+      <figcaption>The field now shows the assigned transformations</figcaption>
     </figure>
 
     <div class="callout callout-tip">
-      <div class="callout-title">💡 Custom Functions</div>
-      The plugin comes with a built-in <strong>Functions Library</strong> where you can create your own
-      PHP functions and reuse them across imports and exports. Custom functions are perfect for
-      advanced transformations — such as reformatting dates, splitting or merging field values,
-      or applying any business logic to your data.
-      <br /><br />
-      Learn more in the <a href="functions.html">⚙️ Functions Library</a> documentation.
+      <div class="callout-title">💡 PRO Transformations</div>
+      The free plugin exposes a safe integration point for the optional PRO addon to provide reusable
+      field transformations outside the WordPress.org package.
     </div>
 
     <p>

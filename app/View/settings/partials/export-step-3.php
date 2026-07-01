@@ -6,13 +6,25 @@
  */
 
 defined( 'ABSPATH' ) || exit;
+
+$rsl_ie_field_transformations_enabled = isset( $rsl_ie_field_transformations_enabled )
+	? (bool) $rsl_ie_field_transformations_enabled
+	: \RockStarLab\ImportExport\Helper\Field_Transformation_Bridge::is_enabled();
 ?>
 
 <!-- Step 3: Select Fields -->
 <div class="rsl-ie-step rsl-ie-step-3" data-step="3">
 	<div class="rsl-ie-step-header">
 		<h2><?php esc_html_e( 'Step 3: Select Fields', 'import-export-by-rockstarlab' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Drag and drop fields to build your export structure. Click on a field to assign functions.', 'import-export-by-rockstarlab' ); ?></p>
+		<p class="description">
+			<?php
+			echo esc_html(
+				$rsl_ie_field_transformations_enabled
+					? __( 'Drag and drop fields to build your export structure. Field transformations are available for selected columns.', 'import-export-by-rockstarlab' )
+					: __( 'Drag and drop fields to build your export structure.', 'import-export-by-rockstarlab' )
+			);
+			?>
+		</p>
 	</div>
 
 	<div class="rsl-ie-step-content">

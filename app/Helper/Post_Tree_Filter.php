@@ -185,14 +185,18 @@ class Post_Tree_Filter {
 	 * @return int
 	 */
 	private static function get_requested_root_id() {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce is verified directly below.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read first so empty/tampered requests stop before using other query args.
+		$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
+		if ( '' === $nonce ) {
+			return 0;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce action includes the requested root ID and is verified before returning it.
 		$root_id = isset( $_GET[ self::QUERY_ARG ] ) ? absint( wp_unslash( $_GET[ self::QUERY_ARG ] ) ) : 0;
 		if ( $root_id <= 0 ) {
 			return 0;
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce is verified here.
-		$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
 		return wp_verify_nonce( $nonce, self::get_nonce_action( $root_id ) ) ? $root_id : 0;
 	}
 
@@ -202,8 +206,14 @@ class Post_Tree_Filter {
 	 * @return string
 	 */
 	private static function get_current_post_type() {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing.
-		return isset( $_GET['post_type'] ) ? sanitize_key( wp_unslash( $_GET['post_type'] ) ) : 'post';
+		global $typenow;
+
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( $screen && ! empty( $screen->post_type ) ) {
+			return sanitize_key( $screen->post_type );
+		}
+
+		return ! empty( $typenow ) ? sanitize_key( $typenow ) : 'post';
 	}
 
 	/**

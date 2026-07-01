@@ -384,7 +384,7 @@ class Export_Controller extends Base_Controller {
 		$filename   = sprintf( 'export-%s.%s', gmdate( 'Y-m-d-His' ), $format );
 
 		// Generate secure download nonce
-			$download_nonce = wp_create_nonce( 'rsl_ie_download_' . $job_id );
+		$download_nonce = wp_create_nonce( 'rsl_ie_download_' . $job_id );
 
 		$download_url = add_query_arg(
 			[
@@ -410,10 +410,14 @@ class Export_Controller extends Base_Controller {
 	 * Handles actual file download with nonce verification
 	 */
 	public function secure_download() {
-		// Verify nonce
-		$job_id = isset( $_GET['job_id'] ) ? absint( wp_unslash( $_GET['job_id'] ) ) : 0;
-		$nonce  = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read first so empty/tampered requests stop before using other query args.
+		$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
+		if ( '' === $nonce ) {
+			wp_die( esc_html__( 'Security check failed', 'import-export-by-rockstarlab' ), 403 );
+		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce action includes the requested Job ID and is verified before using it.
+		$job_id = isset( $_GET['job_id'] ) ? absint( wp_unslash( $_GET['job_id'] ) ) : 0;
 		if ( ! wp_verify_nonce( $nonce, 'rsl_ie_download_' . $job_id ) ) {
 			wp_die( esc_html__( 'Security check failed', 'import-export-by-rockstarlab' ), 403 );
 		}

@@ -723,13 +723,105 @@ class Post_Importer extends Abstract_Importer {
 			$post_data['post_author'] = $user->ID;
 		}
 
-		// When updating drafts/pending/auto-drafts, WordPress may override post_date to "now"
-		// unless edit_date is explicitly set. Ensure imported dates are preserved.
+			$post_data = $this->normalize_imported_post_dates( $post_data );
+
+			// When updating drafts/pending/auto-drafts, WordPress may override post_date to "now"
+			// unless edit_date is explicitly set. Ensure imported dates are preserved.
 		if ( ! empty( $post_data['post_date'] ) ) {
 			$post_data['edit_date'] = true;
 		}
 
-		return array_merge( $defaults, $post_data );
+			return array_merge( $defaults, $post_data );
+	}
+
+		/**
+		 * Normalize imported post dates before passing them to WordPress core.
+		 *
+		 * @param array $post_data Prepared post data.
+		 * @return array
+		 */
+	private function normalize_imported_post_dates( array $post_data ) {
+		if ( empty( $post_data['post_date'] ) && empty( $post_data['post_date_gmt'] ) ) {
+			return $post_data;
+		}
+
+		$timezone = wp_timezone();
+		$local_dt = null;
+		$gmt_dt   = null;
+
+		if ( ! empty( $post_data['post_date_gmt'] ) ) {
+			$gmt_dt = $this->parse_imported_datetime( (string) $post_data['post_date_gmt'], new \DateTimeZone( 'UTC' ) );
+			if ( $gmt_dt ) {
+				$gmt_dt   = $gmt_dt->setTimezone( new \DateTimeZone( 'UTC' ) );
+				$local_dt = $gmt_dt->setTimezone( $timezone );
+			}
+		}
+
+		if ( ! $local_dt && ! empty( $post_data['post_date'] ) ) {
+			$local_dt = $this->parse_imported_datetime( (string) $post_data['post_date'], $timezone );
+			if ( $local_dt ) {
+				$gmt_dt = $local_dt->setTimezone( new \DateTimeZone( 'UTC' ) );
+			}
+		}
+
+		if ( ! $local_dt || ! $gmt_dt ) {
+			return $post_data;
+		}
+
+		$requested_status = isset( $post_data['post_status'] ) ? (string) $post_data['post_status'] : '';
+		if ( 'publish' === $requested_status ) {
+			$now_gmt = new \DateTimeImmutable( 'now', new \DateTimeZone( 'UTC' ) );
+			if ( $gmt_dt->getTimestamp() > $now_gmt->getTimestamp() + MINUTE_IN_SECONDS ) {
+				$gmt_dt   = $now_gmt;
+				$local_dt = $gmt_dt->setTimezone( $timezone );
+			}
+		}
+
+		$post_data['post_date']     = $local_dt->format( 'Y-m-d H:i:s' );
+		$post_data['post_date_gmt'] = $gmt_dt->format( 'Y-m-d H:i:s' );
+
+		return $post_data;
+	}
+
+		/**
+		 * Parse common exported/imported date formats in a specific timezone.
+		 *
+		 * @param string        $value    Raw date value.
+		 * @param \DateTimeZone $timezone Timezone for values without explicit offset.
+		 * @return \DateTimeImmutable|null
+		 */
+	private function parse_imported_datetime( $value, \DateTimeZone $timezone ) {
+		$value = trim( (string) $value );
+		if ( '' === $value || '0000-00-00 00:00:00' === $value ) {
+			return null;
+		}
+
+		$value = preg_replace( '/\s+at\s+/i', ' ', $value );
+		$value = false === $value ? '' : trim( $value );
+
+		$formats = [
+			'Y-m-d H:i:s',
+			'Y-m-d H:i',
+			'Y/m/d H:i:s',
+			'Y/m/d H:i',
+			'Y/m/d g:i a',
+			'Y/m/d g:i A',
+			'Y-m-d\TH:i:sP',
+			'Y-m-d\TH:i:s',
+		];
+
+		foreach ( $formats as $format ) {
+			$dt = \DateTimeImmutable::createFromFormat( '!' . $format, $value, $timezone );
+			if ( $dt instanceof \DateTimeImmutable ) {
+				return $dt;
+			}
+		}
+
+		try {
+			return new \DateTimeImmutable( $value, $timezone );
+		} catch ( \Exception $e ) {
+			return null;
+		}
 	}
 
 	/**
@@ -830,12 +922,12 @@ class Post_Importer extends Abstract_Importer {
 
 		foreach ( $meta as $key => $value ) {
 			if ( 'elementor_document' === $key ) {
-				\RockStarLab\ImportExport\Helper\Elementor_Fields::import_document( (int) $post_id, $value, (bool) $this->get_option( 'auto_import_media', false ) );
+				\RockStarLab\ImportExport\Helper\Elementor_Fields::import_document( (int) $post_id, $value, true );
 				continue;
 			}
 
 			if ( is_string( $key ) && \RockStarLab\ImportExport\Helper\Elementor_Fields::is_elementor_meta_key( $key ) ) {
-				\RockStarLab\ImportExport\Helper\Elementor_Fields::import_meta_value( (int) $post_id, $key, $value, true, (bool) $this->get_option( 'auto_import_media', false ) );
+				\RockStarLab\ImportExport\Helper\Elementor_Fields::import_meta_value( (int) $post_id, $key, $value, true, true );
 				continue;
 			}
 

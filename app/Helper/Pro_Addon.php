@@ -116,6 +116,11 @@ class Pro_Addon {
 			];
 		}
 
+		$features[] = [
+			'title'       => __( 'Data Transformation Tool', 'import-export-by-rockstarlab' ),
+			'description' => __( 'Transform data during import or export process', 'import-export-by-rockstarlab' ),
+		];
+
 		return $features;
 	}
 

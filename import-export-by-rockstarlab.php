@@ -21,7 +21,7 @@ define( 'RSL_IE_PATH', trailingslashit( plugin_dir_path( RSL_IE_FILE ) ) );
 define( 'RSL_IE_URL', plugins_url( '/', RSL_IE_FILE ) );
 define( 'RSL_IE_VERSION', '1.0.0' );
 
-// Composer autoloader (required for bundled 3rd-party libraries like nikic/php-parser).
+// Composer autoloader (required for bundled third-party libraries).
 if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 	require_once __DIR__ . '/vendor/autoload.php';
 }

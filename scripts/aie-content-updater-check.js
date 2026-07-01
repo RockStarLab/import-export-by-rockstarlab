@@ -772,7 +772,7 @@ async function assignFunctionToField( page, fieldKey, functionId ) {
 	await page.locator( '.rsl-ie-save-updater-functions' ).first().click();
 	await modal.waitFor( { state: 'hidden', timeout: 60_000 } );
 
-	// Ensure stats reflect assigned functions.
+	// Ensure stats reflect assigned transformations.
 	await page
 		.waitForFunction( () => {
 			const el = document.querySelector(
@@ -1303,10 +1303,8 @@ function computeExpectedValueFromPipeline(
 	const php = `
 $value = ${ JSON.stringify( beforeValue ) };
 $ids = ${ JSON.stringify( functionIds ) };
-$executor = new \\RockStarLab\\ImportExport\\Helper\\Function_Executor();
-foreach ($ids as $id) {
-  $value = $executor->execute($id, $value, []);
-}
+$context = array('source' => 'content-updater-check');
+$value = \\RockStarLab\\ImportExport\\Helper\\Field_Transformation_Bridge::apply($value, $ids, $context);
 echo wp_json_encode(['value' => $value], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
 `;
 	const out = wpEvalJson( env, wpPath, php );

@@ -801,8 +801,7 @@ class Import_Controller extends Base_Controller {
 
 		// Get row count
 		global $wpdb;
-		$safe_table_name = esc_sql( $table_name );
-		$row_count       = $wpdb->get_var( "SELECT COUNT(*) FROM `{$safe_table_name}`" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is validated and SQL-escaped.
+		$row_count = $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table_name ) );
 
 		if ( empty( $columns ) ) {
 			$this->send_error( __( 'Could not retrieve table columns', 'import-export-by-rockstarlab' ), null, 400 );

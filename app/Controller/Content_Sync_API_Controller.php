@@ -1274,8 +1274,8 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-		// Decode base64 data
-		$file_contents = base64_decode( $file_data );
+		// Decode transfer payload only; this is file content, not executable code.
+		$file_contents = base64_decode( (string) $file_data, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
 		if ( false === $file_contents ) {
 			return new \WP_REST_Response(

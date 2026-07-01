@@ -40,10 +40,11 @@
 	</rule>
 
 	<!-- Minimum WordPress version -->
-	<config name="minimum_wp_version" value="5.8"/>
+	<config name="minimum_wp_version" value="6.2"/>
 
 	<!-- Allow for theme specific exceptions to the file name rules -->
 	<rule ref="WordPress.Files.FileName">
+		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
 		<properties>
 			<property name="strict_class_file_names" value="false"/>
 		</properties>
@@ -82,7 +83,7 @@
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
 			<property name="prefixes" type="array">
-				<element value="aie"/>
+				<element value="RockStarLab"/>
 				<element value="rsl_ie"/>
 				<element value="RSL_IE"/>
 			</property>

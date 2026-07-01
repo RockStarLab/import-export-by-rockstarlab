@@ -1,9 +1,7 @@
-import FunctionsModule from './modules/functions';
 import ImportModule from './modules/import';
 import ExportModule from './modules/export';
 import MediaSyncModule from './modules/media_sync';
 import JobsLogModule from './modules/jobs-log';
-import ContentUpdaterModule from './modules/content-updater';
 import ContentSyncModule from './modules/content-sync';
 import PostSyncModule from './modules/post-sync';
 import AIURLImporter from './modules/ai-url-importer';
@@ -23,17 +21,11 @@ jQuery( document ).ready( function ( $ ) {
 	// Make export module globally accessible for step 3
 	window.rslIeExportModule = ExportModule;
 
-	// Initialize functions module
-	FunctionsModule.init();
-
 	// Initialize media sync module
 	MediaSyncModule.init();
 
 	// Initialize jobs log module
 	JobsLogModule.init();
-
-	// Initialize content updater module
-	ContentUpdaterModule.init();
 
 	// Initialize content sync module
 	ContentSyncModule.init();

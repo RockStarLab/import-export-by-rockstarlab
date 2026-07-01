@@ -7,6 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
+$rsl_ie_field_transformations_enabled = \RockStarLab\ImportExport\Helper\Field_Transformation_Bridge::is_enabled();
 ?>
 
 <div id="rsl-ie-export" class="import-export-by-rockstarlab wrap">
@@ -21,7 +22,9 @@ defined( 'ABSPATH' ) || exit;
 	require_once __DIR__ . '/partials/export-step-4.php';
 	require_once __DIR__ . '/partials/export-step-5.php';
 	require_once __DIR__ . '/partials/export-steps-indicator.php';
+if ( $rsl_ie_field_transformations_enabled ) {
 	require_once __DIR__ . '/partials/export-field-functions-modal.php';
+}
 ?>
 
 </div>

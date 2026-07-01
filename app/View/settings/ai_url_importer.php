@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // Check if API key is available
-$rsl_ie_has_api_key = \RockStarLab\ImportExport\Helper\AI_Function_Generator::has_api_key();
+$rsl_ie_has_api_key = \RockStarLab\ImportExport\Helper\OpenAI_API_Key::has_api_key();
 $rsl_ie_is_wp7_plus = \RockStarLab\ImportExport\Helper\OpenAI_API_Key::is_wp7_plus();
 ?>
 

@@ -24,12 +24,31 @@ $rsl_ie_source_jobs    = array_filter(
 	}
 );
 
-// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin screen routing.
-$rsl_ie_schedule_id = isset( $_GET['schedule_id'] ) ? absint( wp_unslash( $_GET['schedule_id'] ) ) : 0;
-// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin screen routing.
-$rsl_ie_mode     = isset( $_GET['mode'] ) ? sanitize_key( wp_unslash( $_GET['mode'] ) ) : '';
-$rsl_ie_selected = $rsl_ie_schedule_id ? $rsl_ie_schedule_model->find( $rsl_ie_schedule_id ) : null;
-$rsl_ie_readonly = $rsl_ie_selected && 'view' === $rsl_ie_mode;
+$rsl_ie_schedule_screen_nonce = wp_create_nonce( 'rsl_ie_schedules_screen' );
+$rsl_ie_query_nonce           = filter_has_var( INPUT_GET, '_wpnonce' ) ? sanitize_text_field( (string) filter_input( INPUT_GET, '_wpnonce', FILTER_UNSAFE_RAW ) ) : '';
+$rsl_ie_query_is_verified     = wp_verify_nonce( $rsl_ie_query_nonce, 'rsl_ie_schedules_screen' );
+$rsl_ie_schedule_url          = static function ( $args = [] ) use ( $rsl_ie_schedule_screen_nonce ) {
+	$args = array_merge(
+		[
+			'page'     => 'rsl-ie-schedules',
+			'_wpnonce' => $rsl_ie_schedule_screen_nonce,
+		],
+		$args
+	);
+
+	return add_query_arg( $args, admin_url( 'admin.php' ) );
+};
+
+$rsl_ie_schedule_id_raw    = $rsl_ie_query_is_verified ? filter_input( INPUT_GET, 'schedule_id', FILTER_UNSAFE_RAW ) : null;
+$rsl_ie_mode_raw           = $rsl_ie_query_is_verified ? filter_input( INPUT_GET, 'mode', FILTER_UNSAFE_RAW ) : null;
+$rsl_ie_schedule_error_raw = $rsl_ie_query_is_verified ? filter_input( INPUT_GET, 'schedule_error', FILTER_UNSAFE_RAW ) : null;
+$rsl_ie_schedule_saved     = $rsl_ie_query_is_verified && filter_has_var( INPUT_GET, 'schedule_saved' );
+$rsl_ie_schedule_deleted   = $rsl_ie_query_is_verified && filter_has_var( INPUT_GET, 'schedule_deleted' );
+$rsl_ie_schedule_id        = null !== $rsl_ie_schedule_id_raw && false !== $rsl_ie_schedule_id_raw ? absint( $rsl_ie_schedule_id_raw ) : 0;
+$rsl_ie_mode               = null !== $rsl_ie_mode_raw && false !== $rsl_ie_mode_raw ? sanitize_key( $rsl_ie_mode_raw ) : '';
+$rsl_ie_schedule_error     = null !== $rsl_ie_schedule_error_raw && false !== $rsl_ie_schedule_error_raw ? sanitize_text_field( $rsl_ie_schedule_error_raw ) : '';
+$rsl_ie_selected           = $rsl_ie_schedule_id ? $rsl_ie_schedule_model->find( $rsl_ie_schedule_id ) : null;
+$rsl_ie_readonly           = $rsl_ie_selected && 'view' === $rsl_ie_mode;
 
 $rsl_ie_default_timestamp = time() + HOUR_IN_SECONDS;
 $rsl_ie_start_timestamp   = $rsl_ie_selected ? strtotime( $rsl_ie_selected->start_at_gmt . ' UTC' ) : $rsl_ie_default_timestamp;
@@ -46,17 +65,14 @@ $rsl_ie_form_title        = $rsl_ie_readonly
 	require RSL_IE_PATH . 'app/View/settings/partials/jobs-tabs.php';
 	?>
 
-	<?php // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only success flag. ?>
-	<?php if ( isset( $_GET['schedule_saved'] ) ) : ?>
+	<?php if ( $rsl_ie_schedule_saved ) : ?>
 		<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Schedule saved.', 'import-export-by-rockstarlab' ); ?></p></div>
 	<?php endif; ?>
-	<?php // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only success flag. ?>
-	<?php if ( isset( $_GET['schedule_deleted'] ) ) : ?>
+	<?php if ( $rsl_ie_schedule_deleted ) : ?>
 		<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Schedule deleted.', 'import-export-by-rockstarlab' ); ?></p></div>
 	<?php endif; ?>
-	<?php // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Error is escaped before output. ?>
-	<?php if ( isset( $_GET['schedule_error'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only escaped error message. ?>
-		<div class="notice notice-error"><p><?php echo esc_html( sanitize_text_field( wp_unslash( $_GET['schedule_error'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only escaped error message. ?></p></div>
+	<?php if ( '' !== $rsl_ie_schedule_error ) : ?>
+		<div class="notice notice-error"><p><?php echo esc_html( $rsl_ie_schedule_error ); ?></p></div>
 	<?php endif; ?>
 
 	<div class="card" style="max-width: 900px; margin-top: 20px;">
@@ -120,13 +136,11 @@ $rsl_ie_form_title        = $rsl_ie_readonly
 					<a class="button button-primary" href="
 					<?php
 					echo esc_url(
-						add_query_arg(
+						$rsl_ie_schedule_url(
 							[
-								'page'        => 'rsl-ie-schedules',
 								'schedule_id' => $rsl_ie_selected->id,
 								'mode'        => 'edit',
-							],
-							admin_url( 'admin.php' )
+							]
 						)
 					);
 					?>
@@ -177,13 +191,11 @@ $rsl_ie_form_title        = $rsl_ie_readonly
 						<a href="
 						<?php
 						echo esc_url(
-							add_query_arg(
+							$rsl_ie_schedule_url(
 								[
-									'page'        => 'rsl-ie-schedules',
 									'schedule_id' => $rsl_ie_schedule->id,
 									'mode'        => 'view',
-								],
-								admin_url( 'admin.php' )
+								]
 							)
 						);
 						?>
@@ -191,13 +203,11 @@ $rsl_ie_form_title        = $rsl_ie_readonly
 						<a href="
 						<?php
 						echo esc_url(
-							add_query_arg(
+							$rsl_ie_schedule_url(
 								[
-									'page'        => 'rsl-ie-schedules',
 									'schedule_id' => $rsl_ie_schedule->id,
 									'mode'        => 'edit',
-								],
-								admin_url( 'admin.php' )
+								]
 							)
 						);
 						?>

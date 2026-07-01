@@ -448,7 +448,6 @@ async function staticPluginPages( page, env ) {
 		[ 'rsl-ie-content-sync', 'content-sync' ],
 		[ 'rsl-ie-media-sync', 'media-sync' ],
 		[ 'rsl-ie-ai-url-importer', 'ai-url-importer' ],
-		[ 'rsl-ie-functions', 'functions' ],
 		[ 'rsl-ie-jobs-log', 'jobs-log' ],
 		[ 'rsl-ie-plugin-options', 'plugin-options' ],
 		[ 'import-export-by-rockstarlab-addons', 'addons' ],

@@ -292,12 +292,13 @@ class Job_Controller extends Base_Controller {
 		}
 
 		global $wpdb;
-		$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
+		$table_name = $wpdb->prefix . 'rsl_ie_jobs';
 
 		// Delete old completed jobs
-		$deleted = $wpdb->query( // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
+		$deleted = $wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM `{$table_name}` WHERE status IN ('completed', 'failed', 'cancelled') AND created_at < DATE_SUB(NOW(), INTERVAL %d DAY)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled and SQL-escaped.
+				"DELETE FROM %i WHERE status IN ('completed', 'failed', 'cancelled') AND created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
+				$table_name,
 				$days
 			)
 		);

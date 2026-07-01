@@ -41,7 +41,15 @@ class Elementor_Fields {
 	 * @return bool
 	 */
 	public static function is_active() {
-		return defined( 'ELEMENTOR_VERSION' ) || did_action( 'elementor/loaded' ) || class_exists( '\Elementor\Plugin' );
+		if ( did_action( 'elementor/loaded' ) && defined( 'ELEMENTOR_VERSION' ) ) {
+			return true;
+		}
+
+		if ( ! function_exists( 'is_plugin_active' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
+		return is_plugin_active( 'elementor/elementor.php' ) || ( is_multisite() && is_plugin_active_for_network( 'elementor/elementor.php' ) );
 	}
 
 	/**
@@ -315,7 +323,7 @@ class Elementor_Fields {
 	 */
 	private static function import_media_from_url( $url, $post_id ) {
 		$url = esc_url_raw( (string) $url );
-		if ( '' === $url || ! wp_http_validate_url( $url ) ) {
+		if ( '' === $url || ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
 			return 0;
 		}
 
@@ -393,7 +401,7 @@ class Elementor_Fields {
 	 * @return bool
 	 */
 	private static function looks_like_media_url( $url ) {
-		if ( '' === $url || ! wp_http_validate_url( $url ) ) {
+		if ( '' === $url || ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
 			return false;
 		}
 

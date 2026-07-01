@@ -27,6 +27,41 @@
 	color: inherit;
 }
 
+[class*="branch-7"].wp-core-ui.toplevel_page_import-export-by-rockstarlab
+	.button-primary
+	.dashicons,
+[class*="branch-7"].wp-core-ui[class*="import-export-by-rockstarlab_page_rsl-ie-"]
+	.button-primary
+	.dashicons,
+body.toplevel_page_import-export-by-rockstarlab.wp-core-ui
+	.button-primary
+	.dashicons,
+body[class*="import-export-by-rockstarlab_page_rsl-ie-"].wp-core-ui
+	.button-primary
+	.dashicons {
+	color: #fff;
+}
+
+body.toplevel_page_import-export-by-rockstarlab.wp-core-ui .button .dashicons,
+body.toplevel_page_import-export-by-rockstarlab.wp-core-ui
+	.button-primary
+	.dashicons,
+body.toplevel_page_import-export-by-rockstarlab.wp-core-ui
+	.button-secondary
+	.dashicons,
+body[class*="import-export-by-rockstarlab_page_rsl-ie-"].wp-core-ui
+	.button
+	.dashicons,
+body[class*="import-export-by-rockstarlab_page_rsl-ie-"].wp-core-ui
+	.button-primary
+	.dashicons,
+body[class*="import-export-by-rockstarlab_page_rsl-ie-"].wp-core-ui
+	.button-secondary
+	.dashicons {
+	line-height: 1;
+	vertical-align: middle;
+}
+
 /*
  * Embedded UI (post.php / edit.php) does not have plugin body classes.
  * Match dashicons inside plugin components by their `rsl-ie-` class prefix.
@@ -40,6 +75,26 @@
 		[class*=" rsl-ie-"] .button .dashicons
 	) {
 	color: inherit;
+}
+
+.wp-core-ui [class^="rsl-ie-"] .button .dashicons,
+.wp-core-ui [class*=" rsl-ie-"] .button .dashicons,
+.wp-core-ui [class^="rsl-ie-"] .button-primary .dashicons,
+.wp-core-ui [class*=" rsl-ie-"] .button-primary .dashicons,
+.wp-core-ui [class^="rsl-ie-"] .button-secondary .dashicons,
+.wp-core-ui [class*=" rsl-ie-"] .button-secondary .dashicons {
+	line-height: 1;
+	vertical-align: middle;
+}
+
+.wp-core-ui [class^="rsl-ie-"] .button-primary .dashicons,
+.wp-core-ui [class*=" rsl-ie-"] .button-primary .dashicons,
+.wp-core-ui .button-primary[class^="rsl-ie-"] .dashicons,
+.wp-core-ui .button-primary[class*=" rsl-ie-"] .dashicons,
+.wp-core-ui
+	:is(.rsl-ie-complete-icon, .rsl-ie-result-icon, .rsl-ie-download-file)
+	.dashicons {
+	color: #fff;
 }
 
 /* Fix: eye icon in the "show" (password toggle) button is off-center on WP7+. */
@@ -245,6 +300,29 @@ body.import-export-by-rockstarlab_page_rsl-ie-content-updater {
 		var(--rsl-ie-admin-theme-color) 10%,
 		#fff
 	);
+	--rsl-ie-complete-color: var(--rsl-ie-admin-theme-color);
+	--rsl-ie-complete-color-dark: var(--rsl-ie-admin-theme-color-dark);
+	--rsl-ie-complete-shadow: rgba(var(--rsl-ie-admin-theme-color-rgb), 0.12);
+	--rsl-ie-complete-icon-shadow: rgba(
+		var(--rsl-ie-admin-theme-color-rgb),
+		0.28
+	);
+	--rsl-ie-result-default-color: var(--rsl-ie-admin-theme-color);
+	--rsl-ie-result-default-color-dark: var(--rsl-ie-admin-theme-color-dark);
+	--rsl-ie-result-updated-color: var(--rsl-ie-admin-theme-color);
+	--rsl-ie-result-updated-color-dark: var(--rsl-ie-admin-theme-color-dark);
+	--rsl-ie-download-color: var(--rsl-ie-admin-theme-color);
+	--rsl-ie-download-color-dark: var(--rsl-ie-admin-theme-color-dark);
+	--rsl-ie-download-color-darker: var(--rsl-ie-admin-theme-color-dark);
+	--rsl-ie-download-shadow: rgba(var(--rsl-ie-admin-theme-color-rgb), 0.3);
+	--rsl-ie-download-hover-shadow: rgba(
+		var(--rsl-ie-admin-theme-color-rgb),
+		0.4
+	);
+	--rsl-ie-download-disabled-shadow: rgba(
+		var(--rsl-ie-admin-theme-color-rgb),
+		0.26
+	);
 }
 
 body.import-export-by-rockstarlab_page_rsl-ie-import
@@ -409,6 +487,67 @@ body.import-export-by-rockstarlab_page_rsl-ie-content-updater
 		var(--rsl-ie-admin-theme-color-dark) 100%
 	);
 	box-shadow: 0 2px 8px rgba(var(--rsl-ie-admin-theme-color-rgb), 0.15);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button {
+	background: rgba(255, 255, 255, 0.2);
+	border-color: rgba(255, 255, 255, 0.3);
+	color: #fff;
+	box-shadow: none;
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button:hover,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button:focus,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button:hover,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button:focus {
+	background: rgba(255, 255, 255, 0.3);
+	border-color: rgba(255, 255, 255, 0.5);
+	color: #fff;
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button:disabled,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button:disabled {
+	background: rgba(255, 255, 255, 0.14);
+	border-color: rgba(255, 255, 255, 0.22);
+	color: rgba(255, 255, 255, 0.72);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button
+	.dashicons,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button
+	.dashicons {
+	color: currentColor;
 }
 
 body.import-export-by-rockstarlab_page_rsl-ie-export
@@ -598,45 +737,6 @@ body.import-export-by-rockstarlab_page_rsl-ie-content-updater
 /* Export final step: align Download button to WP7 theme colors + center the icon. */
 body.import-export-by-rockstarlab_page_rsl-ie-export
 	.rsl-ie-export-results
-	.rsl-ie-export-complete-card {
-	border-color: var(--rsl-ie-admin-theme-color);
-	box-shadow: 0 4px 20px rgba(var(--rsl-ie-admin-theme-color-rgb), 0.12);
-}
-
-body.import-export-by-rockstarlab_page_rsl-ie-export
-	.rsl-ie-export-results
-	.rsl-ie-export-complete-card
-	.rsl-ie-complete-icon {
-	background: linear-gradient(
-		135deg,
-		var(--rsl-ie-admin-theme-color),
-		var(--rsl-ie-admin-theme-color-dark)
-	);
-	box-shadow: 0 4px 16px rgba(var(--rsl-ie-admin-theme-color-rgb), 0.28);
-}
-
-body.import-export-by-rockstarlab_page_rsl-ie-export
-	.rsl-ie-export-results
-	.rsl-ie-export-complete-card
-	.rsl-ie-complete-title {
-	color: var(--rsl-ie-admin-theme-color);
-}
-
-body.import-export-by-rockstarlab_page_rsl-ie-export
-	.rsl-ie-export-results
-	.rsl-ie-result-item
-	.rsl-ie-result-icon:not(.rsl-ie-icon-success):not(.rsl-ie-icon-updated):not(
-		.rsl-ie-icon-created
-	):not(.rsl-ie-icon-skipped):not(.rsl-ie-icon-failed) {
-	background: linear-gradient(
-		135deg,
-		var(--rsl-ie-admin-theme-color),
-		var(--rsl-ie-admin-theme-color-dark)
-	);
-}
-
-body.import-export-by-rockstarlab_page_rsl-ie-export
-	.rsl-ie-export-results
 	.rsl-ie-download-action
 	.rsl-ie-download-file {
 	background: linear-gradient(
@@ -690,72 +790,6 @@ body.import-export-by-rockstarlab_page_rsl-ie-export
 	vertical-align: baseline;
 	display: block;
 	line-height: 1;
-}
-
-/* Import final step: align completion card accents with WP7 admin theme colors. */
-body.import-export-by-rockstarlab_page_rsl-ie-import
-	.rsl-ie-import-results
-	.rsl-ie-import-complete-card {
-	border-color: var(--rsl-ie-admin-theme-color);
-	box-shadow: 0 4px 20px rgba(var(--rsl-ie-admin-theme-color-rgb), 0.12);
-}
-
-body.import-export-by-rockstarlab_page_rsl-ie-import
-	.rsl-ie-import-results
-	.rsl-ie-import-complete-card
-	.rsl-ie-complete-icon {
-	background: linear-gradient(
-		135deg,
-		var(--rsl-ie-admin-theme-color),
-		var(--rsl-ie-admin-theme-color-dark)
-	);
-	box-shadow: 0 4px 16px rgba(var(--rsl-ie-admin-theme-color-rgb), 0.28);
-}
-
-body.import-export-by-rockstarlab_page_rsl-ie-import
-	.rsl-ie-import-results
-	.rsl-ie-import-complete-card
-	.rsl-ie-complete-title {
-	color: var(--rsl-ie-admin-theme-color);
-}
-
-body.import-export-by-rockstarlab_page_rsl-ie-import
-	.rsl-ie-import-results
-	.rsl-ie-result-item
-	.rsl-ie-result-icon {
-	background: linear-gradient(
-		135deg,
-		var(--rsl-ie-admin-theme-color),
-		var(--rsl-ie-admin-theme-color-dark)
-	);
-}
-
-body.import-export-by-rockstarlab_page_rsl-ie-import
-	.rsl-ie-import-results
-	.rsl-ie-result-item
-	.rsl-ie-result-icon.rsl-ie-icon-success {
-	background: linear-gradient(135deg, #00a32a, #008a20);
-}
-
-body.import-export-by-rockstarlab_page_rsl-ie-import
-	.rsl-ie-import-results
-	.rsl-ie-result-item
-	.rsl-ie-result-icon.rsl-ie-icon-created {
-	background: linear-gradient(135deg, #826eb4, #6b5a9e);
-}
-
-body.import-export-by-rockstarlab_page_rsl-ie-import
-	.rsl-ie-import-results
-	.rsl-ie-result-item
-	.rsl-ie-result-icon.rsl-ie-icon-skipped {
-	background: linear-gradient(135deg, #f0b849, #d99a1a);
-}
-
-body.import-export-by-rockstarlab_page_rsl-ie-import
-	.rsl-ie-import-results
-	.rsl-ie-result-item
-	.rsl-ie-result-icon.rsl-ie-icon-failed {
-	background: linear-gradient(135deg, #d63638, #b32d2e);
 }
 
 /* Welcome page: "Next Steps" links should use WP7 admin theme colors. */

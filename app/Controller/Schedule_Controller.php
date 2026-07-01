@@ -108,7 +108,7 @@ class Schedule_Controller {
 			$this->redirect_with_error( $scheduled->get_error_message() );
 		}
 
-		wp_safe_redirect( add_query_arg( 'schedule_saved', '1', admin_url( 'admin.php?page=rsl-ie-schedules' ) ) );
+		wp_safe_redirect( $this->get_schedules_url( [ 'schedule_saved' => '1' ] ) );
 		exit;
 	}
 
@@ -129,7 +129,7 @@ class Schedule_Controller {
 		Job_Scheduler::unschedule( $schedule_id );
 		rsl_ie()->Model->job_schedule->delete( $schedule_id );
 
-		wp_safe_redirect( add_query_arg( 'schedule_deleted', '1', admin_url( 'admin.php?page=rsl-ie-schedules' ) ) );
+		wp_safe_redirect( $this->get_schedules_url( [ 'schedule_deleted' => '1' ] ) );
 		exit;
 	}
 
@@ -164,19 +164,31 @@ class Schedule_Controller {
 	}
 
 	/**
+	 * Build a nonce-protected schedules screen URL.
+	 *
+	 * @param array $args Additional query args.
+	 * @return string
+	 */
+	private function get_schedules_url( $args = [] ) {
+		$args = array_merge(
+			[
+				'page'     => 'rsl-ie-schedules',
+				'_wpnonce' => wp_create_nonce( 'rsl_ie_schedules_screen' ),
+			],
+			$args
+		);
+
+		return add_query_arg( $args, admin_url( 'admin.php' ) );
+	}
+
+	/**
 	 * Redirect back to the schedules screen with an error message.
 	 *
 	 * @param string $message Error message.
 	 * @return void
 	 */
 	private function redirect_with_error( $message ) {
-		wp_safe_redirect(
-			add_query_arg(
-				'schedule_error',
-				$message,
-				admin_url( 'admin.php?page=rsl-ie-schedules' )
-			)
-		);
+		wp_safe_redirect( $this->get_schedules_url( [ 'schedule_error' => $message ] ) );
 		exit;
 	}
 }

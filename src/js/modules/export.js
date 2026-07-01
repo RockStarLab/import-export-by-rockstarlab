@@ -1417,8 +1417,11 @@ const ExportModule = {
 				data.options.content_types = contentTypes;
 			}
 
-			// Add field functions if available
-			if ( this.step3Instance && this.step3Instance.fieldFunctions ) {
+			if (
+				window.rslIeData?.fieldTransformationsEnabled &&
+				this.step3Instance &&
+				this.step3Instance.fieldFunctions
+			) {
 				// Convert field functions from fieldKey (with timestamp) to actual field names
 				const convertedFunctions = this.convertFieldFunctions(
 					this.step3Instance.fieldFunctions,

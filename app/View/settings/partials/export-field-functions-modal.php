@@ -1,22 +1,26 @@
 <?php
 /**
- * Export Field Functions Modal
- * Modal for assigning transformation functions to export fields
+ * Export Field Transformations Modal
+ * Modal for assigning transformations to export fields
  *
  * @package RockStarLab\ImportExport\View
  */
 
 defined( 'ABSPATH' ) || exit;
+
+if ( ! \RockStarLab\ImportExport\Helper\Field_Transformation_Bridge::is_enabled() ) {
+	return;
+}
 ?>
 
-<!-- Field Functions Modal -->
+<!-- Field Transformations Modal -->
 <div id="rsl-ie-field-functions-modal" class="rsl-ie-modal" style="display:none;">
 	<div class="rsl-ie-modal-backdrop"></div>
 	<div class="rsl-ie-modal-content rsl-ie-field-functions-modal-content">
 		<div class="rsl-ie-modal-header">
 			<h2 class="rsl-ie-modal-title">
 				<span class="dashicons dashicons-admin-generic"></span>
-				<?php esc_html_e( 'Field Transformation Functions', 'import-export-by-rockstarlab' ); ?>
+				<?php esc_html_e( 'Field Transformations', 'import-export-by-rockstarlab' ); ?>
 			</h2>
 			<button type="button" class="rsl-ie-modal-close">
 				<span class="dashicons dashicons-no-alt"></span>
@@ -36,60 +40,44 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 			</div>
 
-			<!-- Applied Functions List -->
+			<!-- Applied Transformations List -->
 			<div class="rsl-ie-applied-functions">
 				<h3>
-					<?php esc_html_e( 'Applied Functions', 'import-export-by-rockstarlab' ); ?>
+					<?php esc_html_e( 'Applied Transformations', 'import-export-by-rockstarlab' ); ?>
 					<span class="rsl-ie-functions-count">(0)</span>
 				</h3>
 				
 				<div class="rsl-ie-functions-pipeline" id="rsl-ie-functions-pipeline">
 					<div class="rsl-ie-no-functions">
 						<span class="dashicons dashicons-info"></span>
-						<p><?php esc_html_e( 'No functions applied yet. Add functions from the list below.', 'import-export-by-rockstarlab' ); ?></p>
+						<p><?php esc_html_e( 'No transformations applied yet. Add transformations from the list below.', 'import-export-by-rockstarlab' ); ?></p>
 					</div>
 					
-					<!-- Functions will be added here -->
 					<div class="rsl-ie-function-items" id="rsl-ie-function-items">
-						<!-- Example structure:
-						<div class="rsl-ie-function-item" data-function-id="1">
-							<span class="rsl-ie-function-handle dashicons dashicons-menu"></span>
-							<div class="rsl-ie-function-info">
-								<strong class="rsl-ie-function-name">uppercase</strong>
-								<span class="rsl-ie-function-desc">Convert to uppercase</span>
-							</div>
-							<div class="rsl-ie-function-actions">
-								<button type="button" class="button-small rsl-ie-remove-function">
-									<span class="dashicons dashicons-no-alt"></span>
-								</button>
-							</div>
-						</div>
-						-->
+						<!-- Transformations will be added here -->
 					</div>
 				</div>
 
 				<div class="rsl-ie-pipeline-hint">
 					<span class="dashicons dashicons-info"></span>
-					<?php esc_html_e( 'Functions are applied in order from top to bottom. Drag to reorder.', 'import-export-by-rockstarlab' ); ?>
+					<?php esc_html_e( 'Transformations are applied in order from top to bottom. Drag to reorder.', 'import-export-by-rockstarlab' ); ?>
 				</div>
 			</div>
 
-			<!-- Available Functions -->
+			<!-- Available Transformations -->
 			<div class="rsl-ie-available-functions">
-				<h3><?php esc_html_e( 'Available Functions', 'import-export-by-rockstarlab' ); ?></h3>
+				<h3><?php esc_html_e( 'Available Transformations', 'import-export-by-rockstarlab' ); ?></h3>
 				
-				<!-- Search Functions -->
 				<div class="rsl-ie-functions-search">
 					<input 
 						type="text" 
 						id="rsl-ie-functions-search" 
 						class="regular-text" 
-						placeholder="<?php esc_attr_e( 'Search functions...', 'import-export-by-rockstarlab' ); ?>"
+						placeholder="<?php esc_attr_e( 'Search transformations...', 'import-export-by-rockstarlab' ); ?>"
 					>
 					<span class="dashicons dashicons-search"></span>
 				</div>
 
-				<!-- Functions Filter -->
 				<div class="rsl-ie-functions-filter">
 					<label>
 						<input type="radio" name="functions-filter" value="all" checked>
@@ -105,21 +93,20 @@ defined( 'ABSPATH' ) || exit;
 					</label>
 				</div>
 
-				<!-- Functions List -->
 				<div class="rsl-ie-functions-list" id="rsl-ie-functions-list">
 					<div class="rsl-ie-functions-loading">
 						<span class="spinner is-active"></span>
-						<p><?php esc_html_e( 'Loading functions...', 'import-export-by-rockstarlab' ); ?></p>
+						<p><?php esc_html_e( 'Loading transformations...', 'import-export-by-rockstarlab' ); ?></p>
 					</div>
 					
-					<!-- Functions will be loaded here -->
+					<!-- Transformations will be loaded here -->
 				</div>
 
 				<!-- Quick Add Link -->
 				<div class="rsl-ie-functions-quick-add">
 					<a href="#" class="rsl-ie-create-new-function">
 						<span class="dashicons dashicons-plus-alt"></span>
-						<?php esc_html_e( 'Create New Function', 'import-export-by-rockstarlab' ); ?>
+						<?php esc_html_e( 'Create New Transformation', 'import-export-by-rockstarlab' ); ?>
 					</a>
 				</div>
 			</div>
@@ -160,7 +147,7 @@ defined( 'ABSPATH' ) || exit;
 			</button>
 			<button type="button" class="button button-primary rsl-ie-save-field-functions">
 				<span class="dashicons dashicons-yes"></span>
-				<?php esc_html_e( 'Apply Functions', 'import-export-by-rockstarlab' ); ?>
+				<?php esc_html_e( 'Apply Transformations', 'import-export-by-rockstarlab' ); ?>
 			</button>
 		</div>
 	</div>

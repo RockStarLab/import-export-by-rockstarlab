@@ -432,13 +432,13 @@ class Post_Exporter extends Abstract_Exporter {
 			$fields = $this->get_default_fields();
 		}
 
-		// CRITICAL: Force include ID for Content Updater
+		// Force include ID when another workflow needs stable item identity.
 		$force_include_id = $this->get_option( 'force_include_id', false );
 		if ( $force_include_id && ! in_array( 'ID', $fields, true ) ) {
-			// Prepend ID to fields array to ensure it's always included
+			// Prepend ID to fields array to ensure it's always included.
 			array_unshift( $fields, 'ID' );
 
-			// IMPORTANT: Also update options['fields'] so select_fields() doesn't remove ID
+			// Also update options['fields'] so select_fields() doesn't remove ID.
 			$this->options['fields'] = $fields;
 		}
 
@@ -1717,6 +1717,11 @@ class Post_Exporter extends Abstract_Exporter {
 			$field     = $filter['field'];
 			$condition = $filter['condition'];
 			$value     = $filter['value'] ?? '';
+			$field     = in_array( $field, $this->get_post_sql_filter_columns(), true ) ? $field : '';
+
+			if ( '' === $field ) {
+				continue;
+			}
 
 			// Date fields that need special handling
 			$date_fields   = [ 'post_date', 'post_modified', 'post_date_gmt', 'post_modified_gmt' ];
@@ -1729,20 +1734,10 @@ class Post_Exporter extends Abstract_Exporter {
 
 			switch ( $condition ) {
 				case 'equals':
-					if ( $is_date_field ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
-						// For date fields, compare only the date part (ignore time)
-						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) = %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
-					} else {
-						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} = %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
-					}
+					$where .= $this->prepare_sql_field_comparison( $wpdb->posts, $field, '=', $value, $is_date_field );
 					break;
 				case 'not_equals':
-					if ( $is_date_field ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
-						// For date fields, compare only the date part (ignore time)
-						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) != %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
-					} else {
-						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} != %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
-					}
+					$where .= $this->prepare_sql_field_comparison( $wpdb->posts, $field, '!=', $value, $is_date_field );
 					break;
 				case 'in':
 					// Split by comma and prepare IN clause
@@ -1755,10 +1750,7 @@ class Post_Exporter extends Abstract_Exporter {
 						explode( ',', $value )
 					);
 					$values = array_filter( $values ); // Remove empty values
-					if ( ! empty( $values ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Direct DB query required here.
-						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
-						$where       .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} IN ($placeholders)", $values ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table/column name is controlled, not user input. Placeholder handled correctly.
-					}
+					$where .= $this->prepare_sql_field_list_comparison( $wpdb->posts, $field, $values, false, $is_date_field );
 					break;
 				case 'not_in':
 					// Split by comma and prepare NOT IN clause
@@ -1771,54 +1763,31 @@ class Post_Exporter extends Abstract_Exporter {
 						explode( ',', $value )
 					);
 					$values = array_filter( $values ); // Remove empty values
-					if ( ! empty( $values ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Direct DB query required here.
-						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
-						$where       .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} NOT IN ($placeholders)", $values ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table/column name is controlled, not user input. Placeholder handled correctly.
-					}
-					break; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+					$where .= $this->prepare_sql_field_list_comparison( $wpdb->posts, $field, $values, true, $is_date_field );
+					break;
 				case 'contains':
-					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
-					break; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+					$where .= $this->prepare_sql_field_comparison( $wpdb->posts, $field, 'LIKE', '%' . $wpdb->esc_like( $value ) . '%', $is_date_field );
+					break;
 				case 'not_contains':
-					$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} NOT LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
+					$where .= $this->prepare_sql_field_comparison( $wpdb->posts, $field, 'NOT LIKE', '%' . $wpdb->esc_like( $value ) . '%', $is_date_field );
 					break;
 				case 'is_empty':
-					$where .= " AND ({$wpdb->posts}.{$field} IS NULL OR {$wpdb->posts}.{$field} = '')";
+					$where .= $this->prepare_sql_field_empty_check( $wpdb->posts, $field, false );
 					break;
 				case 'is_not_empty':
-					$where .= " AND ({$wpdb->posts}.{$field} IS NOT NULL AND {$wpdb->posts}.{$field} != '')";
+					$where .= $this->prepare_sql_field_empty_check( $wpdb->posts, $field, true );
 					break;
 				case 'greater':
-					if ( $is_date_field ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
-						// For date fields, compare only the date part
-						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) > %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
-					} else {
-						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} > %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
-					}
+					$where .= $this->prepare_sql_field_comparison( $wpdb->posts, $field, '>', $value, $is_date_field );
 					break;
 				case 'less':
-					if ( $is_date_field ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
-						// For date fields, compare only the date part
-						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) < %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
-					} else {
-						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} < %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
-					}
+					$where .= $this->prepare_sql_field_comparison( $wpdb->posts, $field, '<', $value, $is_date_field );
 					break;
 				case 'equals_or_greater':
-					if ( $is_date_field ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
-						// For date fields, compare only the date part
-						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) >= %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
-					} else {
-						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} >= %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
-					}
+					$where .= $this->prepare_sql_field_comparison( $wpdb->posts, $field, '>=', $value, $is_date_field );
 					break;
 				case 'equals_or_less':
-					if ( $is_date_field ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
-						// For date fields, compare only the date part
-						$where .= $wpdb->prepare( " AND DATE({$wpdb->posts}.{$field}) <= %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
-					} else {
-						$where .= $wpdb->prepare( " AND {$wpdb->posts}.{$field} <= %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
-					}
+					$where .= $this->prepare_sql_field_comparison( $wpdb->posts, $field, '<=', $value, $is_date_field );
 					break;
 			}
 		}
@@ -1844,12 +1813,12 @@ class Post_Exporter extends Abstract_Exporter {
 			// Map field to users table column
 			$user_field = $field === 'author_name' ? 'display_name' : 'user_email';
 
-			switch ( $condition ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+			switch ( $condition ) {
 				case 'equals':
-					$where .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} = %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
-					break; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+					$where .= $this->prepare_sql_field_comparison( $wpdb->users, $user_field, '=', $value );
+					break;
 				case 'not_equals':
-					$where .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} != %s", $value ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
+					$where .= $this->prepare_sql_field_comparison( $wpdb->users, $user_field, '!=', $value );
 					break;
 				case 'in':
 					// Split by comma and prepare IN clause
@@ -1862,10 +1831,7 @@ class Post_Exporter extends Abstract_Exporter {
 						explode( ',', $value )
 					);
 					$values = array_filter( $values ); // Remove empty values
-					if ( ! empty( $values ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Direct DB query required here.
-						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
-						$where       .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} IN ($placeholders)", $values ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table/column name is controlled, not user input. Placeholder handled correctly.
-					}
+					$where .= $this->prepare_sql_field_list_comparison( $wpdb->users, $user_field, $values );
 					break;
 				case 'not_in':
 					// Split by comma and prepare NOT IN clause
@@ -1878,27 +1844,163 @@ class Post_Exporter extends Abstract_Exporter {
 						explode( ',', $value )
 					);
 					$values = array_filter( $values ); // Remove empty values
-					if ( ! empty( $values ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Direct DB query required here.
-						$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
-						$where       .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} NOT IN ($placeholders)", $values ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table/column name is controlled, not user input. Placeholder handled correctly.
-					}
-					break; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+					$where .= $this->prepare_sql_field_list_comparison( $wpdb->users, $user_field, $values, true );
+					break;
 				case 'contains':
-					$where .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
-					break; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Direct DB query required here.
+					$where .= $this->prepare_sql_field_comparison( $wpdb->users, $user_field, 'LIKE', '%' . $wpdb->esc_like( $value ) . '%' );
+					break;
 				case 'not_contains':
-					$where .= $wpdb->prepare( " AND {$wpdb->users}.{$user_field} NOT LIKE %s", '%' . $wpdb->esc_like( $value ) . '%' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table/column name is controlled, not user input.
+					$where .= $this->prepare_sql_field_comparison( $wpdb->users, $user_field, 'NOT LIKE', '%' . $wpdb->esc_like( $value ) . '%' );
 					break;
 				case 'is_empty':
-					$where .= " AND ({$wpdb->users}.{$user_field} IS NULL OR {$wpdb->users}.{$user_field} = '')";
+					$where .= $this->prepare_sql_field_empty_check( $wpdb->users, $user_field, false );
 					break;
 				case 'is_not_empty':
-					$where .= " AND ({$wpdb->users}.{$user_field} IS NOT NULL AND {$wpdb->users}.{$user_field} != '')";
+					$where .= $this->prepare_sql_field_empty_check( $wpdb->users, $user_field, true );
 					break;
 			}
 		}
 
 		return $where;
+	}
+
+	/**
+	 * Post table columns that can be used in custom SQL filters.
+	 *
+	 * @return array<int,string>
+	 */
+	private function get_post_sql_filter_columns() {
+		return [
+			'ID',
+			'post_title',
+			'post_content',
+			'post_excerpt',
+			'post_status',
+			'post_type',
+			'post_author',
+			'post_date',
+			'post_date_gmt',
+			'post_modified',
+			'post_modified_gmt',
+			'post_name',
+			'post_parent',
+			'menu_order',
+			'comment_status',
+			'ping_status',
+			'post_password',
+			'guid',
+		];
+	}
+
+	/**
+	 * Prepare a field comparison using allowlisted table and column identifiers.
+	 *
+	 * @param string $table         Table name.
+	 * @param string $field         Column name.
+	 * @param string $operator      SQL operator.
+	 * @param mixed  $value         Value.
+	 * @param bool   $compare_date  Compare DATE(column).
+	 * @return string
+	 */
+	private function prepare_sql_field_comparison( $table, $field, $operator, $value, $compare_date = false ) {
+		global $wpdb;
+
+		$operators = [ '=', '!=', '>', '<', '>=', '<=', 'LIKE', 'NOT LIKE' ];
+		if ( ! in_array( $operator, $operators, true ) ) {
+			return '';
+		}
+
+		if ( $compare_date ) {
+			switch ( $operator ) {
+				case '=':
+					return $wpdb->prepare( ' AND DATE(%i.%i) = %s', $table, $field, $value );
+				case '!=':
+					return $wpdb->prepare( ' AND DATE(%i.%i) != %s', $table, $field, $value );
+				case '>':
+					return $wpdb->prepare( ' AND DATE(%i.%i) > %s', $table, $field, $value );
+				case '<':
+					return $wpdb->prepare( ' AND DATE(%i.%i) < %s', $table, $field, $value );
+				case '>=':
+					return $wpdb->prepare( ' AND DATE(%i.%i) >= %s', $table, $field, $value );
+				case '<=':
+					return $wpdb->prepare( ' AND DATE(%i.%i) <= %s', $table, $field, $value );
+				case 'LIKE':
+					return $wpdb->prepare( ' AND DATE(%i.%i) LIKE %s', $table, $field, $value );
+				case 'NOT LIKE':
+					return $wpdb->prepare( ' AND DATE(%i.%i) NOT LIKE %s', $table, $field, $value );
+			}
+		}
+
+		switch ( $operator ) {
+			case '=':
+				return $wpdb->prepare( ' AND %i.%i = %s', $table, $field, $value );
+			case '!=':
+				return $wpdb->prepare( ' AND %i.%i != %s', $table, $field, $value );
+			case '>':
+				return $wpdb->prepare( ' AND %i.%i > %s', $table, $field, $value );
+			case '<':
+				return $wpdb->prepare( ' AND %i.%i < %s', $table, $field, $value );
+			case '>=':
+				return $wpdb->prepare( ' AND %i.%i >= %s', $table, $field, $value );
+			case '<=':
+				return $wpdb->prepare( ' AND %i.%i <= %s', $table, $field, $value );
+			case 'LIKE':
+				return $wpdb->prepare( ' AND %i.%i LIKE %s', $table, $field, $value );
+			case 'NOT LIKE':
+				return $wpdb->prepare( ' AND %i.%i NOT LIKE %s', $table, $field, $value );
+		}
+
+		return '';
+	}
+
+	/**
+	 * Prepare list comparison without generated placeholder strings.
+	 *
+	 * @param string $table         Table name.
+	 * @param string $field         Column name.
+	 * @param array  $values        Values.
+	 * @param bool   $negated       Whether the comparison is NOT IN.
+	 * @param bool   $compare_date  Compare DATE(column).
+	 * @return string
+	 */
+	private function prepare_sql_field_list_comparison( $table, $field, $values, $negated = false, $compare_date = false ) {
+		$parts = [];
+
+		foreach ( $values as $value ) {
+			$parts[] = $this->prepare_sql_field_comparison( $table, $field, $negated ? '!=' : '=', $value, $compare_date );
+		}
+
+		if ( empty( $parts ) ) {
+			return '';
+		}
+
+		$operator = $negated ? ' AND ' : ' OR ';
+		$parts    = array_map(
+			function ( $part ) {
+				return preg_replace( '/^\s+AND\s+/', '', $part );
+			},
+			$parts
+		);
+
+		return ' AND (' . implode( $operator, $parts ) . ')';
+	}
+
+	/**
+	 * Prepare an empty / non-empty check.
+	 *
+	 * @param string $table     Table name.
+	 * @param string $field     Column name.
+	 * @param bool   $not_empty Whether to require non-empty.
+	 * @return string
+	 */
+	private function prepare_sql_field_empty_check( $table, $field, $not_empty ) {
+		global $wpdb;
+
+		if ( $not_empty ) {
+			return $wpdb->prepare( " AND (%i.%i IS NOT NULL AND %i.%i != '')", $table, $field, $table, $field );
+		}
+
+		return $wpdb->prepare( " AND (%i.%i IS NULL OR %i.%i = '')", $table, $field, $table, $field );
 	}
 
 	/**
