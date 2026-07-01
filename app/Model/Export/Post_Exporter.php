@@ -9,6 +9,8 @@
 
 namespace RockStarLab\ImportExport\Model\Export;
 
+use RockStarLab\ImportExport\Helper\ACF_Fields;
+
 defined( 'ABSPATH' ) || exit;
 
 class Post_Exporter extends Abstract_Exporter {
@@ -3503,33 +3505,7 @@ class Post_Exporter extends Abstract_Exporter {
 			foreach ( $fields as $field ) {
 				// Handle ACF fields (with acf_ prefix) for menu term
 				if ( strpos( $field, 'acf_' ) === 0 ) {
-					$acf_field_name = substr( $field, 4 ); // Remove 'acf_' prefix
-
-					// Try get_field() first (handles complex fields)
-					$acf_value = false;
-					if ( function_exists( 'get_field' ) ) {
-						$acf_value = get_field( $acf_field_name, 'term_' . $term->term_id );
-					}
-
-					// If get_field() returns false, try get_term_meta()
-					if ( $acf_value === false ) {
-						$acf_value = get_term_meta( $term->term_id, $acf_field_name, true );
-					}
-
-					// Convert ACF value to exportable format
-					if ( is_array( $acf_value ) ) {
-						if ( isset( $acf_value['url'] ) ) {
-							$menu_data[ $field ] = $acf_value['url'];
-						} elseif ( isset( $acf_value['ID'] ) ) {
-							$menu_data[ $field ] = $acf_value['ID'];
-						} else {
-							$menu_data[ $field ] = wp_json_encode( $acf_value );
-						}
-					} elseif ( is_object( $acf_value ) ) {
-						$menu_data[ $field ] = wp_json_encode( $acf_value );
-					} else {
-						$menu_data[ $field ] = $acf_value !== false ? $acf_value : '';
-					}
+					$menu_data[ $field ] = ACF_Fields::export_value( 'menu', $term->term_id, substr( $field, 4 ), 'nav_menu' );
 				}
 			}
 

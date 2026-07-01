@@ -14,6 +14,7 @@ use RockStarLab\ImportExport\Model\Export\Exporter_Factory;
 use RockStarLab\ImportExport\Helper\Function_Executor;
 use RockStarLab\ImportExport\Helper\Seo_Fields;
 use RockStarLab\ImportExport\Helper\Elementor_Fields;
+use RockStarLab\ImportExport\Helper\ACF_Fields;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -598,6 +599,11 @@ class Update_Processor {
 				continue;
 			}
 			if ( $resolved['is_acf'] && function_exists( 'update_field' ) ) {
+				if ( 'attachment' === $post_type && class_exists( ACF_Fields::class ) ) {
+					ACF_Fields::import_value( 'media', (int) $post_id, $real_key, $meta_value );
+					continue;
+				}
+
 				// update_field returns false when ACF can't resolve the field by name
 				// (e.g. field group stored as PHP/JSON file, or value unchanged).
 				// Always fall back to update_post_meta to guarantee the raw meta is saved.
@@ -1336,6 +1342,10 @@ class Update_Processor {
 		// Update meta fields (strip acf_/meta_ prefixes added by the field library)
 		foreach ( $meta_data as $meta_key => $meta_value ) {
 			$resolved = $this->resolve_meta_key( $meta_key );
+			if ( $resolved['is_acf'] && class_exists( ACF_Fields::class ) ) {
+				ACF_Fields::import_value( 'user', (int) $user_id, $resolved['key'], $meta_value );
+				continue;
+			}
 			update_user_meta( $user_id, $resolved['key'], $meta_value );
 		}
 
@@ -1415,6 +1425,10 @@ class Update_Processor {
 		// Update meta fields (strip acf_/meta_ prefixes added by the field library)
 		foreach ( $meta_data as $meta_key => $meta_value ) {
 			$resolved = $this->resolve_meta_key( $meta_key );
+			if ( $resolved['is_acf'] && class_exists( ACF_Fields::class ) ) {
+				ACF_Fields::import_value( 'comment', (int) $comment_id, $resolved['key'], $meta_value );
+				continue;
+			}
 			update_comment_meta( $comment_id, $resolved['key'], $meta_value );
 		}
 
@@ -1484,6 +1498,10 @@ class Update_Processor {
 		// Update meta fields (strip acf_/meta_ prefixes added by the field library)
 		foreach ( $meta_data as $meta_key => $meta_value ) {
 			$resolved = $this->resolve_meta_key( $meta_key );
+			if ( $resolved['is_acf'] && class_exists( ACF_Fields::class ) ) {
+				ACF_Fields::import_value( 'term', (int) $term_id, $resolved['key'], $meta_value, $taxonomy );
+				continue;
+			}
 			update_term_meta( $term_id, $resolved['key'], $meta_value );
 		}
 

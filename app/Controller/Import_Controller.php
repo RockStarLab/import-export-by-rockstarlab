@@ -13,6 +13,7 @@ use RockStarLab\ImportExport\Model\Job;
 use RockStarLab\ImportExport\Model\Import\Importer_Factory;
 use RockStarLab\ImportExport\Model\Format\Format_Factory;
 use RockStarLab\ImportExport\Helper\Fs;
+use RockStarLab\ImportExport\Helper\ACF_Fields;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -613,51 +614,12 @@ class Import_Controller extends Base_Controller {
 			return;
 		}
 
-		$post_type = $this->get_request_param( 'post_type', 'post' );
-
-		// Map WooCommerce content types to actual post types
-		$woo_type_map = [
-			'woo_product' => 'product',
-			'woo_order'   => 'shop_order',
-			'woo_coupon'  => 'shop_coupon',
-		];
-
-		if ( isset( $woo_type_map[ $post_type ] ) ) {
-			$post_type = $woo_type_map[ $post_type ];
+		$post_type = $this->get_request_param( 'post_type', '' );
+		$taxonomy  = $this->get_request_param( 'taxonomy', '' );
+		if ( '' === $post_type && '' !== $taxonomy ) {
+			$post_type = 'taxonomy';
 		}
-
-		// Determine the location rule based on content type
-		$location_args = [];
-		if ( $post_type === 'user' ) {
-			$location_args['user_form'] = 'all'; // ACF User fields
-		} elseif ( $post_type === 'media' || $post_type === 'attachment' ) {
-			$location_args['attachment'] = 'all'; // ACF Media fields
-		} else {
-			$location_args['post_type'] = $post_type;
-		}
-
-		// Get field groups for this location
-		$field_groups = acf_get_field_groups( $location_args );
-
-		$fields = [];
-		foreach ( $field_groups as $group ) {
-			$group_fields = acf_get_fields( $group['key'] );
-
-			if ( $group_fields ) {
-				foreach ( $group_fields as $field ) {
-					// Skip UI-only fields that don't store data
-					if ( in_array( $field['type'], [ 'accordion', 'tab', 'message', 'clone' ], true ) ) {
-						continue;
-					}
-
-					$fields[] = [
-						'name'  => $field['name'],
-						'label' => $field['label'],
-						'type'  => $field['type'],
-					];
-				}
-			}
-		}
+		$fields = ACF_Fields::get_fields_for_content_type( $post_type, $taxonomy );
 
 		$this->send_success( [ 'fields' => $fields ] );
 	}
