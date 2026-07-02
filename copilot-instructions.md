@@ -11,7 +11,7 @@
 10. If something is unclear, ask questions before making any changes.
 11. **NEVER create .md documentation files for features or fixes** - only code changes are needed. Do not document bug fixes.
 12. Always use yarn instead of npm for building assets, as the project is configured with yarn.
-13. Always use Playwright for browser testing.
+13. Always use Playwright in headless mode for browser testing unless a task explicitly requires a visible window.
 
 ## Naming Conventions ##
 **КРИТИЧЕСКИ ВАЖНО**: Используйте WordPress Coding Standards для всех имен:

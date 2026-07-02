@@ -12,6 +12,9 @@ namespace RockStarLab\ImportExport\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Extracts article content from public URLs.
+ */
 class AI_Content_Extractor {
 
 	/**
@@ -22,11 +25,18 @@ class AI_Content_Extractor {
 	private $api_key;
 
 	/**
-	 * OpenAI API endpoint
+	 * OpenAI chat completions endpoint.
 	 *
 	 * @var string
 	 */
 	private $api_endpoint = 'https://api.openai.com/v1/chat/completions';
+
+	/**
+	 * OpenAI Responses API endpoint.
+	 *
+	 * @var string
+	 */
+	private $responses_endpoint = 'https://api.openai.com/v1/responses';
 
 	/**
 	 * Model to use
@@ -34,6 +44,13 @@ class AI_Content_Extractor {
 	 * @var string
 	 */
 	private $model = 'gpt-4o-mini';
+
+	/**
+	 * Model to use for URL-first extraction.
+	 *
+	 * @var string
+	 */
+	private $responses_model = 'gpt-4.1-mini';
 
 	/**
 	 * Constructor
@@ -97,10 +114,12 @@ class AI_Content_Extractor {
 	/**
 	 * Extract content from URL
 	 *
-	 * @param string $url URL to extract content from
+	 * @param string $url  URL to extract content from.
+	 * @param int    $delay Optional delay between import requests.
+	 * @param string $mode Extraction mode.
 	 * @return array|\\WP_Error Array with title, content, images, or error
 	 */
-	public function extract_from_url( $url ) {
+	public function extract_from_url( $url, $delay = 0, $mode = 'auto' ) {
 		if ( empty( $this->api_key ) ) {
 			return new \WP_Error(
 				'no_api_key',
@@ -108,14 +127,32 @@ class AI_Content_Extractor {
 			);
 		}
 
-		// Fetch the page content
+		$delay = max( 0, min( 60, absint( $delay ) ) );
+		if ( $delay > 0 ) {
+			sleep( $delay );
+		}
+
+		$mode = sanitize_key( $mode );
+		if ( 'alternate' !== $mode ) {
+			$result = $this->extract_content_from_url_with_ai( $url );
+			if ( ! is_wp_error( $result ) && ! empty( $result['content'] ) ) {
+				return $result;
+			}
+		}
+
+		// Fetch the page content.
 		$html = $this->fetch_url_content( $url );
 
 		if ( is_wp_error( $html ) ) {
 			return $html;
 		}
 
-		// Extract content using AI
+		$local_result = $this->extract_content_locally( $html, $url, $mode );
+		if ( ! is_wp_error( $local_result ) && ! empty( $local_result['content'] ) ) {
+			return $local_result;
+		}
+
+		// Extract content using AI.
 		$result = $this->extract_content_with_ai( $html, $url );
 
 		if ( is_wp_error( $result ) ) {
@@ -126,9 +163,133 @@ class AI_Content_Extractor {
 	}
 
 	/**
+	 * Extract content by giving the URL to OpenAI web search instead of sending full HTML.
+	 *
+	 * @param string $url URL to extract content from.
+	 * @return array|\WP_Error Extracted content or error.
+	 */
+	private function extract_content_from_url_with_ai( $url ) {
+		$response = wp_remote_post(
+			$this->responses_endpoint,
+			array(
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $this->api_key,
+					'Content-Type'  => 'application/json',
+				),
+				'body'    => wp_json_encode(
+					array(
+						'model' => $this->responses_model,
+						'tools' => array(
+							array(
+								'type' => 'web_search',
+							),
+						),
+						'input' => $this->build_url_extraction_prompt( $url ),
+						'text'  => array(
+							'format' => array(
+								'type' => 'json_object',
+							),
+						),
+					)
+				),
+				'timeout' => 25,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( isset( $body['error'] ) ) {
+			return new \WP_Error(
+				'api_error',
+				$body['error']['message'] ?? __( 'Unknown API error', 'import-export-by-rockstarlab' )
+			);
+		}
+
+		$content = $this->get_responses_output_text( $body );
+		if ( empty( $content ) ) {
+			return new \WP_Error(
+				'invalid_response',
+				__( 'Invalid response from OpenAI API', 'import-export-by-rockstarlab' )
+			);
+		}
+
+		$content_json = json_decode( $content, true );
+		if ( ! is_array( $content_json ) ) {
+			return new \WP_Error(
+				'invalid_json',
+				__( 'Failed to parse AI response', 'import-export-by-rockstarlab' )
+			);
+		}
+
+		return $this->normalize_extraction_result( $content_json, $url, false );
+	}
+
+	/**
+	 * Get text content from a Responses API response.
+	 *
+	 * @param array $body Decoded response body.
+	 * @return string
+	 */
+	private function get_responses_output_text( $body ) {
+		if ( ! empty( $body['output_text'] ) && is_string( $body['output_text'] ) ) {
+			return $body['output_text'];
+		}
+
+		if ( empty( $body['output'] ) || ! is_array( $body['output'] ) ) {
+			return '';
+		}
+
+		$text = '';
+		foreach ( $body['output'] as $output_item ) {
+			if ( empty( $output_item['content'] ) || ! is_array( $output_item['content'] ) ) {
+				continue;
+			}
+
+			foreach ( $output_item['content'] as $content_item ) {
+				if ( ! empty( $content_item['text'] ) && is_string( $content_item['text'] ) ) {
+					$text .= $content_item['text'];
+				}
+			}
+		}
+
+		return $text;
+	}
+
+	/**
+	 * Build the URL-first extraction prompt.
+	 *
+	 * @param string $url URL to extract.
+	 * @return string Prompt.
+	 */
+	private function build_url_extraction_prompt( $url ) {
+		return sprintf(
+			"Open this exact URL using web search and extract the main article content:\n%s\n\n" .
+			"Return ONLY a valid JSON object with these fields:\n" .
+			"{\n" .
+			'  "title": "Article title",' . "\n" .
+			'  "content": "Main article content in HTML format using only <p>, <h1-h6>, <strong>, <em>, <ul>, <ol>, <li>, <img>, <a> tags",' . "\n" .
+			'  "excerpt": "Brief 1-2 sentence summary",' . "\n" .
+			'  "images": [{"url": "Absolute image URL", "alt": "Alt text", "width": 0, "height": 0}],' . "\n" .
+			'  "featured_image": "Absolute featured image URL or empty string"' . "\n" .
+			"}\n\n" .
+			"Rules:\n" .
+			"- Use the exact URL above as the source.\n" .
+			"- Remove navigation, sidebars, comments, ads, footers, headers, cookie notices, and related-post blocks.\n" .
+			"- Preserve paragraph structure and list formatting.\n" .
+			"- Keep useful article images when available and make image URLs absolute.\n" .
+				'- If you cannot access the page, return empty content.',
+			$url
+		);
+	}
+
+	/**
 	 * Fetch URL content
 	 *
-	 * @param string $url URL to fetch
+	 * @param string $url URL to fetch.
 	 * @return string|\\WP_Error HTML content or error
 	 */
 	private function fetch_url_content( $url ) {
@@ -146,7 +307,7 @@ class AI_Content_Extractor {
 
 		$status_code = wp_remote_retrieve_response_code( $response );
 
-		if ( $status_code !== 200 ) {
+		if ( 200 !== $status_code ) {
 			return new \WP_Error(
 				'http_error',
 				sprintf(
@@ -204,20 +365,366 @@ class AI_Content_Extractor {
 	}
 
 	/**
+	 * Extract readable content locally as a fast fallback for pages that are too slow for AI.
+	 *
+	 * @param string $html Raw HTML content.
+	 * @param string $url  Source URL.
+	 * @param string $mode Extraction mode.
+	 * @return array|\WP_Error Extracted content or error.
+	 */
+	private function extract_content_locally( $html, $url, $mode = 'auto' ) {
+		$content_html = $this->find_main_content_html( $html, $mode );
+		if ( '' === $content_html ) {
+			return new \WP_Error(
+				'content_not_found',
+				__( 'Could not detect article content', 'import-export-by-rockstarlab' )
+			);
+		}
+
+		$content = $this->sanitize_local_content_html( $content_html, $url );
+		if ( mb_strlen( wp_strip_all_tags( $content ), 'UTF-8' ) < 300 ) {
+			return new \WP_Error(
+				'content_too_short',
+				__( 'Detected article content is too short', 'import-export-by-rockstarlab' )
+			);
+		}
+
+		$content_json = array(
+			'title'          => $this->get_meta_content_from_html( $html, 'property', 'og:title' ),
+			'content'        => $content,
+			'excerpt'        => $this->get_meta_content_from_html( $html, 'name', 'description' ),
+			'featured_image' => $this->get_meta_content_from_html( $html, 'property', 'og:image' ),
+		);
+
+		if ( '' === $content_json['title'] ) {
+			$content_json['title'] = $this->get_title_from_html( $html );
+		}
+
+		return $this->normalize_extraction_result( $content_json, $url, false );
+	}
+
+	/**
+	 * Find the most likely main content HTML.
+	 *
+	 * @param string $html Raw HTML.
+	 * @param string $mode Extraction mode.
+	 * @return string Main content HTML.
+	 */
+	private function find_main_content_html( $html, $mode = 'auto' ) {
+		$html = preg_replace( '/<script\b[^>]*>.*?<\/script>/is', '', $html );
+		$html = preg_replace( '/<style\b[^>]*>.*?<\/style>/is', '', $html );
+		$html = preg_replace( '/<!--.*?-->/s', '', $html );
+		$html = $this->remove_local_noise_blocks( $html );
+
+		$candidates = array();
+		foreach ( array( 'article', 'main' ) as $tag ) {
+			if ( preg_match_all( '/<' . $tag . '\b([^>]*)>(.*?)<\/' . $tag . '>/is', $html, $matches, PREG_SET_ORDER ) ) {
+				foreach ( $matches as $match ) {
+					$candidates[] = array(
+						'html'   => $match[2],
+						'attrs'  => $match[1],
+						'source' => $tag,
+					);
+				}
+			}
+		}
+
+		$class_patterns = array(
+			'entry-content',
+			'post-content',
+			'article-content',
+			'article-body',
+			'main-content',
+			'content',
+		);
+		foreach ( $class_patterns as $class_pattern ) {
+			if ( preg_match_all( '/<([a-z0-9]+)\b([^>]*class=["\'][^"\']*' . preg_quote( $class_pattern, '/' ) . '[^"\']*["\'][^>]*)>(.*?)<\/\1>/is', $html, $matches, PREG_SET_ORDER ) ) {
+				foreach ( $matches as $match ) {
+					$candidates[] = array(
+						'html'   => $match[3],
+						'attrs'  => $match[2],
+						'source' => $class_pattern,
+					);
+				}
+			}
+		}
+
+		if ( 'alternate' === $mode && preg_match( '/<body\b[^>]*>(.*?)<\/body>/is', $html, $body_match ) ) {
+			$candidates[] = array(
+				'html'   => $body_match[1],
+				'attrs'  => 'body alternate',
+				'source' => 'body',
+			);
+		}
+
+		$scored_candidates = array();
+		$seen_candidates   = array();
+		foreach ( $candidates as $candidate ) {
+			$fingerprint = md5( preg_replace( '/\s+/', ' ', wp_strip_all_tags( $candidate['html'] ) ) );
+			if ( isset( $seen_candidates[ $fingerprint ] ) ) {
+				continue;
+			}
+			$seen_candidates[ $fingerprint ] = true;
+
+			$score = $this->score_content_candidate( $candidate['html'], $candidate['attrs'], $candidate['source'] );
+			if ( $score <= 0 ) {
+				continue;
+			}
+
+			$candidate['score']  = $score;
+			$scored_candidates[] = $candidate;
+		}
+
+		usort(
+			$scored_candidates,
+			function ( $left, $right ) {
+				return $right['score'] <=> $left['score'];
+			}
+		);
+
+		if ( empty( $scored_candidates ) ) {
+			return '';
+		}
+
+		$index = ( 'alternate' === $mode && count( $scored_candidates ) > 1 ) ? 1 : 0;
+		return $scored_candidates[ $index ]['html'];
+	}
+
+	/**
+	 * Score a possible article container.
+	 *
+	 * @param string $html   Candidate HTML.
+	 * @param string $attrs  Candidate attributes.
+	 * @param string $source Candidate source.
+	 * @return float Candidate score.
+	 */
+	private function score_content_candidate( $html, $attrs, $source ) {
+		$text        = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( $html ) ) );
+		$text_length = mb_strlen( $text, 'UTF-8' );
+
+		if ( $text_length < 150 ) {
+			return 0;
+		}
+
+		$link_text_length = 0;
+		if ( preg_match_all( '/<a\b[^>]*>(.*?)<\/a>/is', $html, $links ) ) {
+			foreach ( $links[1] as $link_text ) {
+				$link_text_length += mb_strlen( wp_strip_all_tags( $link_text ), 'UTF-8' );
+			}
+		}
+
+		$link_density = $text_length > 0 ? $link_text_length / $text_length : 0;
+		$paragraphs   = preg_match_all( '/<p\b/i', $html );
+		$headings     = preg_match_all( '/<h[1-6]\b/i', $html );
+		$images       = preg_match_all( '/<img\b/i', $html );
+
+		$score  = min( $text_length, 50000 ) / 20;
+		$score += min( $paragraphs, 80 ) * 35;
+		$score += min( $headings, 20 ) * 20;
+		$score += min( $images, 20 ) * 8;
+
+		if ( 'article' === $source || 'main' === $source ) {
+			$score += 120;
+		}
+
+		$attrs = strtolower( $attrs );
+		if ( preg_match( '/article|post|entry|content|main|body|story/', $attrs ) ) {
+			$score += 160;
+		}
+		if ( preg_match( '/comment|related|sidebar|nav|menu|footer|header|promo|ad-|advert|breadcrumb|share|widget|recommend/', $attrs ) ) {
+			$score -= 450;
+		}
+
+		$score -= $link_density * 900;
+
+		return $score;
+	}
+
+	/**
+	 * Sanitize locally extracted HTML.
+	 *
+	 * @param string $html Content HTML.
+	 * @param string $url  Source URL.
+	 * @return string Sanitized HTML.
+	 */
+	private function sanitize_local_content_html( $html, $url ) {
+		$html = preg_replace( '/<script\b[^>]*>.*?<\/script>/is', '', $html );
+		$html = preg_replace( '/<style\b[^>]*>.*?<\/style>/is', '', $html );
+		$html = preg_replace( '/<!--.*?-->/s', '', $html );
+
+		$html = preg_replace_callback(
+			'/<(img|a)\b([^>]*)>/i',
+			function ( $matches ) use ( $url ) {
+				$tag   = strtolower( $matches[1] );
+				$attrs = $matches[2];
+
+				if ( 'img' === $tag && preg_match( '/\bsrc=["\']([^"\']+)["\']/i', $attrs, $source ) ) {
+					$alt = '';
+					if ( preg_match( '/\balt=["\']([^"\']*)["\']/i', $attrs, $alt_match ) ) {
+						$alt = $alt_match[1];
+					}
+
+					return '<img src="' . esc_url( $this->make_url_absolute( $source[1], $url ) ) . '" alt="' . esc_attr( $alt ) . '">';
+				}
+
+				if ( 'a' === $tag && preg_match( '/\bhref=["\']([^"\']+)["\']/i', $attrs, $href ) ) {
+					return '<a href="' . esc_url( $this->make_url_absolute( $href[1], $url ) ) . '">';
+				}
+
+				return '<' . $tag . '>';
+			},
+			$html
+		);
+
+		$allowed_html = array(
+			'p'      => array(),
+			'h1'     => array(),
+			'h2'     => array(),
+			'h3'     => array(),
+			'h4'     => array(),
+			'h5'     => array(),
+			'h6'     => array(),
+			'strong' => array(),
+			'em'     => array(),
+			'ul'     => array(),
+			'ol'     => array(),
+			'li'     => array(),
+			'br'     => array(),
+			'a'      => array(
+				'href' => true,
+			),
+			'img'    => array(
+				'src' => true,
+				'alt' => true,
+			),
+		);
+
+		$html = wp_kses( $html, $allowed_html );
+		$html = $this->trim_local_content_before_title( $html );
+		$html = $this->remove_local_noise_fragments( $html );
+
+		return trim( $html );
+	}
+
+	/**
+	 * Remove obvious non-article blocks before stripping attributes.
+	 *
+	 * @param string $html Content HTML.
+	 * @return string Cleaned HTML.
+	 */
+	private function remove_local_noise_blocks( $html ) {
+		$noise_pattern = 'breadcrumb|breadcrumbs|byline|author|meta|post-meta|article-meta|share|sharing|social|summarize|summary-tools|related|recommend|newsletter|toc|table-of-contents|rating|comments';
+
+		for ( $i = 0; $i < 3; $i++ ) {
+			$updated = preg_replace(
+				'/<([a-z0-9]+)\b(?=[^>]*(?:class|id|aria-label)=["\'][^"\']*(?:' . $noise_pattern . ')[^"\']*["\'])[^>]*>.*?<\/\1>/is',
+				'',
+				$html
+			);
+
+			if ( $updated === $html ) {
+				break;
+			}
+
+			$html = $updated;
+		}
+
+		return $html;
+	}
+
+	/**
+	 * Remove inline fragments that commonly leak from article chrome.
+	 *
+	 * @param string $html Sanitized HTML.
+	 * @return string Cleaned HTML.
+	 */
+	private function remove_local_noise_fragments( $html ) {
+		$patterns = array(
+			'/<(p|div|section|ul|ol)\b[^>]*>[^<]*(?:Summarize with|Share:|Copy link Copied|ChatGPT|Claude\.ai|Google AI|Grok|Perplexity)[\s\S]*?<\/\1>/i',
+			'/<p\b[^>]*>[^<]*(?:[A-Z][a-z]+\s+\d{1,2},\s+\d{4}|[A-Z][a-z]+\s+[A-Z]\.|[0-9]+\s+min\s+Read|Share:|Copy link Copied!)[^<]*<\/p>/i',
+			'/<p\b[^>]*>\s*\/\s*<\/p>/i',
+			'/<p\b[^>]*>\s*(?:Copied!?|Copy link)\s*<\/p>/i',
+			'/<p\b[^>]*>\s*(?:<a\b[^>]*>[^<]*<\/a>\s*){2,}\s*<\/p>/i',
+		);
+
+		foreach ( $patterns as $pattern ) {
+			$html = preg_replace( $pattern, '', $html );
+		}
+
+		$html = preg_replace( '/\s+\/\s+/', ' ', $html );
+		$html = preg_replace( '/\s*(?:Copied!?|Copy link)\s*<\/a>/i', '', $html );
+		$html = preg_replace( '/<\/a>\s*(?=<p>|<h[1-6]|<img|$)/i', '', $html );
+		$html = preg_replace( '/<(p|div|section)\b[^>]*>\s*<\/\1>/i', '', $html );
+		$html = preg_replace( '/>\s+</', ">\n<", $html );
+		$html = preg_replace( '/[ \t]{2,}/', ' ', $html );
+
+		return $html;
+	}
+
+	/**
+	 * Drop breadcrumb/byline markup before the first meaningful article heading.
+	 *
+	 * @param string $html Sanitized HTML.
+	 * @return string Trimmed HTML.
+	 */
+	private function trim_local_content_before_title( $html ) {
+		if ( preg_match( '/<h1\b[^>]*>.*?<\/h1>/is', $html, $matches, PREG_OFFSET_CAPTURE ) ) {
+			return substr( $html, $matches[0][1] );
+		}
+
+		if ( preg_match( '/<h2\b[^>]*>.*?<\/h2>/is', $html, $matches, PREG_OFFSET_CAPTURE ) ) {
+			return substr( $html, $matches[0][1] );
+		}
+
+		return $html;
+	}
+
+	/**
+	 * Get meta tag content from HTML.
+	 *
+	 * @param string $html      Raw HTML.
+	 * @param string $attribute Attribute name.
+	 * @param string $value     Attribute value.
+	 * @return string
+	 */
+	private function get_meta_content_from_html( $html, $attribute, $value ) {
+		$pattern = '/<meta\b(?=[^>]*\b' . preg_quote( $attribute, '/' ) . '=["\']' . preg_quote( $value, '/' ) . '["\'])(?=[^>]*\bcontent=["\']([^"\']*)["\'])[^>]*>/i';
+		if ( preg_match( $pattern, $html, $matches ) ) {
+			return sanitize_text_field( html_entity_decode( $matches[1], ENT_QUOTES, 'UTF-8' ) );
+		}
+
+		return '';
+	}
+
+	/**
+	 * Get title from HTML.
+	 *
+	 * @param string $html Raw HTML.
+	 * @return string
+	 */
+	private function get_title_from_html( $html ) {
+		if ( preg_match( '/<title\b[^>]*>(.*?)<\/title>/is', $html, $matches ) ) {
+			return sanitize_text_field( html_entity_decode( wp_strip_all_tags( $matches[1] ), ENT_QUOTES, 'UTF-8' ) );
+		}
+
+		return '';
+	}
+
+	/**
 	 * Extract content using AI
 	 *
-	 * @param string $html Raw HTML content
-	 * @param string $url Original URL
+	 * @param string $html Raw HTML content.
+	 * @param string $url  Original URL.
 	 * @return array|\\WP_Error Extracted content or error
 	 */
 	private function extract_content_with_ai( $html, $url ) {
-		// Clean HTML to reduce tokens
+		// Clean HTML to reduce tokens.
 		$cleaned_html = $this->clean_html( $html );
 
-		// Prepare prompt for GPT
+		// Prepare prompt for GPT.
 		$prompt = $this->build_extraction_prompt( $cleaned_html, $url );
 
-		// Call OpenAI API
+		// Call OpenAI API.
 		$response = wp_remote_post(
 			$this->api_endpoint,
 			array(
@@ -271,7 +778,7 @@ class AI_Content_Extractor {
 		$finish_reason = $body['choices'][0]['finish_reason'] ?? 'stop';
 		$was_truncated = ( 'length' === $finish_reason );
 
-		// Parse JSON response
+		// Parse JSON response.
 		$content_json = json_decode( $body['choices'][0]['message']['content'], true );
 
 		if ( ! $content_json ) {
@@ -281,15 +788,59 @@ class AI_Content_Extractor {
 			);
 		}
 
-		// Extract images from content
-		$images = $this->extract_images_from_content( $content_json['content'] ?? '', $url );
+		return $this->normalize_extraction_result( $content_json, $url, $was_truncated );
+	}
+
+	/**
+	 * Normalize AI extraction output into the plugin's expected data shape.
+	 *
+	 * @param array  $content_json  Decoded AI response.
+	 * @param string $url           Source URL.
+	 * @param bool   $was_truncated Whether the AI response was truncated.
+	 * @return array
+	 */
+	private function normalize_extraction_result( $content_json, $url, $was_truncated ) {
+		$content = (string) ( $content_json['content'] ?? '' );
+		$images  = array();
+
+		if ( ! empty( $content_json['images'] ) && is_array( $content_json['images'] ) ) {
+			foreach ( $content_json['images'] as $image ) {
+				if ( is_string( $image ) ) {
+					$image = array( 'url' => $image );
+				}
+
+				if ( ! is_array( $image ) || empty( $image['url'] ) ) {
+					continue;
+				}
+
+				$images[] = array(
+					'url'    => $this->make_url_absolute( esc_url_raw( $image['url'] ), $url ),
+					'alt'    => sanitize_text_field( $image['alt'] ?? '' ),
+					'width'  => absint( $image['width'] ?? 0 ),
+					'height' => absint( $image['height'] ?? 0 ),
+				);
+			}
+		}
+
+		if ( empty( $images ) ) {
+			$images = $this->extract_images_from_content( $content, $url );
+		}
+
+		$featured_image = '';
+		if ( ! empty( $content_json['featured_image'] ) ) {
+			$featured_image = $this->make_url_absolute( esc_url_raw( $content_json['featured_image'] ), $url );
+		}
+
+		if ( empty( $featured_image ) ) {
+			$featured_image = $this->get_featured_image( $images );
+		}
 
 		return array(
-			'title'          => $content_json['title'] ?? '',
-			'content'        => $content_json['content'] ?? '',
-			'excerpt'        => $content_json['excerpt'] ?? '',
+			'title'          => sanitize_text_field( $content_json['title'] ?? '' ),
+			'content'        => $content,
+			'excerpt'        => sanitize_textarea_field( $content_json['excerpt'] ?? '' ),
 			'images'         => $images,
-			'featured_image' => $this->get_featured_image( $images ),
+			'featured_image' => $featured_image,
 			'source_url'     => $url,
 			'truncated'      => $was_truncated,
 		);
@@ -479,6 +1030,9 @@ class AI_Content_Extractor {
 		}
 
 		$base_parts = wp_parse_url( $base_url );
+		if ( empty( $base_parts['scheme'] ) || empty( $base_parts['host'] ) ) {
+			return $url;
+		}
 
 		// Protocol-relative URL
 		if ( substr( $url, 0, 2 ) === '//' ) {

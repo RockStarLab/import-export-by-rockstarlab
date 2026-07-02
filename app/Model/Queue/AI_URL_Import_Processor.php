@@ -84,7 +84,7 @@ class AI_URL_Import_Processor {
 			$content_field  = $parameters['content_field'] ?? 'post_content';
 			$import_images  = $parameters['import_images'] ?? true;
 			$import_excerpt = $parameters['import_excerpt'] ?? true;
-			$timeout        = $parameters['timeout'] ?? 60;
+			$request_delay  = $parameters['request_delay'] ?? ( $parameters['timeout'] ?? 0 );
 
 			// Get current index
 			$current_index = (int) ( $job->processed_items ?? 0 );
@@ -118,7 +118,7 @@ class AI_URL_Import_Processor {
 
 			try {
 				// Extract content using AI
-				$extracted_data = $this->ai_extractor->extract_from_url( $url, $timeout );
+				$extracted_data = $this->ai_extractor->extract_from_url( $url, $request_delay );
 
 				if ( is_wp_error( $extracted_data ) ) {
 					throw new \Exception( $extracted_data->get_error_message() );
@@ -164,7 +164,6 @@ class AI_URL_Import_Processor {
 				if ( $import_images && ! empty( $extracted_data['featured_image'] ) ) {
 					$image_id = $this->ai_extractor->import_image(
 						$extracted_data['featured_image'],
-						$post_id,
 						$extracted_data['title'] ?? 'Featured Image'
 					);
 
@@ -176,13 +175,20 @@ class AI_URL_Import_Processor {
 				// Handle additional images
 				if ( $import_images && ! empty( $extracted_data['images'] ) ) {
 					$imported_images = [];
-					foreach ( $extracted_data['images'] as $image_url ) {
+					foreach ( $extracted_data['images'] as $image ) {
+						$image_url = is_array( $image ) ? ( $image['url'] ?? '' ) : $image;
+						$alt_text  = is_array( $image ) ? ( $image['alt'] ?? '' ) : '';
+
+						if ( empty( $image_url ) ) {
+							continue;
+						}
+
 						// Skip if it's the featured image
 						if ( $image_url === $extracted_data['featured_image'] ) {
 							continue;
 						}
 
-						$image_id = $this->ai_extractor->import_image( $image_url, $post_id );
+						$image_id = $this->ai_extractor->import_image( $image_url, $alt_text );
 
 						if ( ! is_wp_error( $image_id ) ) {
 							$imported_images[] = $image_id;

@@ -94,7 +94,7 @@ $rsl_ie_is_wp7_plus = \RockStarLab\ImportExport\Helper\OpenAI_API_Key::is_wp7_pl
 					<div class="rsl-ie-input-method">
 						<h3><?php esc_html_e( 'Upload TXT File', 'import-export-by-rockstarlab' ); ?></h3>
 						<div class="rsl-ie-file-upload-area" id="rsl-ie-csv-upload-area">
-							<input type="file" id="rsl-ie-csv-file-input" accept=".txt" style="display: none;" <?php echo ! $feature_ready ? 'disabled' : ''; ?>>
+							<input type="file" id="rsl-ie-csv-file-input" accept=".txt" style="display: none;" <?php echo ! $rsl_ie_feature_ready ? 'disabled' : ''; ?>>
 							<div class="rsl-ie-upload-placeholder">
 								<span class="dashicons dashicons-media-text"></span>
 								<p><?php esc_html_e( 'Click to upload or drag & drop TXT file', 'import-export-by-rockstarlab' ); ?></p>
@@ -197,7 +197,7 @@ $rsl_ie_is_wp7_plus = \RockStarLab\ImportExport\Helper\OpenAI_API_Key::is_wp7_pl
 						</td>
 					</tr>						<tr>
 							<th scope="row">
-								<label for="rsl-ie-request-timeout"><?php esc_html_e( 'Request Timeout', 'import-export-by-rockstarlab' ); ?></label>
+								<label for="rsl-ie-request-timeout"><?php esc_html_e( 'Delay Between Requests', 'import-export-by-rockstarlab' ); ?></label>
 							</th>
 							<td>
 								<input type="number" id="rsl-ie-request-timeout" class="small-text" value="2" min="0" max="60" step="1">

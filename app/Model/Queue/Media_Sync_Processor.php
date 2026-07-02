@@ -70,6 +70,14 @@ class Media_Sync_Processor {
 				);
 			}
 
+			if ( 'cancelled' === $job->status ) {
+				return array(
+					'completed' => true,
+					'status'    => 'cancelled',
+					'message'   => 'Job is cancelled',
+				);
+			}
+
 			// Update status to processing
 			$this->job_model->update(
 				$job_id,
