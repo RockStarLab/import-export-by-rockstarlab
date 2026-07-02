@@ -101,10 +101,10 @@ const AIURLImporter = {
 			self.testConnection()
 		);
 		jQuery( '#rsl-ie-preview-btn' ).on( 'click', () =>
-			self.generatePreview()
+			self.generatePreview( 'auto' )
 		);
 		jQuery( '#rsl-ie-regenerate-preview-btn' ).on( 'click', () =>
-			self.generatePreview()
+			self.generatePreview( 'alternate' )
 		);
 		jQuery( '#rsl-ie-start-import-btn' ).on( 'click', () =>
 			self.startImport()
@@ -509,7 +509,7 @@ const AIURLImporter = {
 	/**
 	 * Generate preview
 	 */
-	async generatePreview() {
+	async generatePreview( extractionMode = 'auto' ) {
 		const $btn = jQuery( '#rsl-ie-preview-btn' );
 		const $regenerateBtn = jQuery( '#rsl-ie-regenerate-preview-btn' );
 		const $result = jQuery( '.rsl-ie-preview-result' );
@@ -524,6 +524,7 @@ const AIURLImporter = {
 		try {
 			const response = await Utils.ajax( 'rsl_ie_ai_url_preview', {
 				url: this.urls[ 0 ],
+				extraction_mode: extractionMode,
 			} );
 
 			this.previewData = response;
@@ -659,7 +660,8 @@ const AIURLImporter = {
 			content_field: jQuery( '#rsl-ie-content-field' ).val(),
 			acf_field: jQuery( '#rsl-ie-acf-field-select' ).val(),
 			custom_field_name: jQuery( '#rsl-ie-custom-field-name' ).val(),
-			timeout: parseInt( jQuery( '#rsl-ie-request-timeout' ).val() ) || 2,
+			request_delay:
+				parseInt( jQuery( '#rsl-ie-request-timeout' ).val() ) || 0,
 		};
 
 		try {

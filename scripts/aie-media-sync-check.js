@@ -1,8 +1,8 @@
 /**
- * Manual E2E (Playwright): Media Sync checks (aie2.local only)
+ * Manual E2E (Playwright): Media Sync checks
  *
  * What it covers (per user request):
- * - Download 20 random internet images into wp-content/uploads/test (+ random subfolders)
+ * - Download 10 random internet images into wp-content/uploads/test (+ random subfolders)
  * - Use Media Sync UI (/wp-admin/admin.php?page=rsl-ie-media-sync):
  *   - Click Browse and choose the folder
  *   - Scan Folder
@@ -14,17 +14,19 @@
  *     - file_operation: keep / copy / move
  *     - batch_size: varied
  *     - rml_integration: on/off (requires Real Media Library)
- * - Verify expected results via WP-CLI (attachments count, original files kept/moved, RML folders created)
- * - After each test case: re-import db2.sql to reset DB
+ * - Verify expected results via WP-CLI and Media Library in the browser
+ * - After each test case: re-import db.sql (configurable) to reset DB
  * - End: remove temporary files (uploads/test + uploads/YYYY/MM/test + Playwright artifacts)
  *
  * Usage:
  *   PLAYWRIGHT_BROWSERS_PATH=./e2e/.playwright-browsers node scripts/aie-media-sync-check.js
  *
  * Env (defaults read from .env.e2e if present):
- *   AIE_TARGET_URL, AIE_TARGET_ADMIN_USER, AIE_TARGET_ADMIN_PASSWORD
+ *   AIE_MEDIA_SYNC_URL, AIE_MEDIA_SYNC_ADMIN_USER, AIE_MEDIA_SYNC_ADMIN_PASSWORD
+ *   (falls back to AIE_SOURCE_URL/admin/admin and then http://aie.local)
  *   AIE_HEADLESS=true|false
- *   AIE_TARGET_WP_PATH=/path/to/target/wp/root
+ *   AIE_MEDIA_SYNC_WP_PATH=/path/to/wp/root
+ *   AIE_MEDIA_SYNC_DB_SQL=db.sql
  *   AIE_LOCAL_PHP=/path/to/php (Local.app bundled PHP works well)
  *   AIE_WP_BIN=/path/to/wp (wp-cli wrapper)
  *   AIE_LOCAL_MYSQL=/path/to/mysql (Local.app bundled mysql works well)
@@ -63,16 +65,6 @@ function loadEnv() {
 		headlessRaw === '1' || headlessRaw === 'true' || headlessRaw === 'yes';
 
 	const wpPathDefault = path.resolve( process.cwd(), '../../..' );
-	const targetWpPathGuess = ( () => {
-		const marker = `${ path.sep }Local Sites${ path.sep }aie${ path.sep }`;
-		if ( wpPathDefault.includes( marker ) ) {
-			return wpPathDefault.replace(
-				marker,
-				`${ path.sep }Local Sites${ path.sep }aie2${ path.sep }`
-			);
-		}
-		return wpPathDefault;
-	} )();
 
 	const localPhpCandidates = [
 		'/Applications/Local.app/Contents/Resources/extraResources/lightning-services/php-8.2.29+0/bin/darwin-arm64/bin/php',
@@ -82,6 +74,7 @@ function loadEnv() {
 		localPhpCandidates.find( ( p ) => fs.existsSync( p ) ) || 'php';
 
 	const localMysqlCandidates = [
+		'/Applications/Local.app/Contents/Resources/extraResources/lightning-services/mysql-8.4.0/bin/darwin-arm64/bin/mysql',
 		'/Applications/Local.app/Contents/Resources/extraResources/lightning-services/mysql-8.0.35+4/bin/darwin-arm64/bin/mysql',
 	];
 	const localMysqlDefault =
@@ -90,11 +83,21 @@ function loadEnv() {
 	return {
 		headless,
 		target: {
-			baseUrl: get( 'AIE_TARGET_URL', 'http://aie2.local' ),
-			username: get( 'AIE_TARGET_ADMIN_USER', 'admin' ),
-			password: get( 'AIE_TARGET_ADMIN_PASSWORD', 'admin' ),
-			wpPath: String( get( 'AIE_TARGET_WP_PATH', targetWpPathGuess ) ),
+			baseUrl: get(
+				'AIE_MEDIA_SYNC_URL',
+				get( 'AIE_SOURCE_URL', 'http://aie.local' )
+			),
+			username: get(
+				'AIE_MEDIA_SYNC_ADMIN_USER',
+				get( 'AIE_SOURCE_ADMIN_USER', 'admin' )
+			),
+			password: get(
+				'AIE_MEDIA_SYNC_ADMIN_PASSWORD',
+				get( 'AIE_SOURCE_ADMIN_PASSWORD', 'admin' )
+			),
+			wpPath: String( get( 'AIE_MEDIA_SYNC_WP_PATH', wpPathDefault ) ),
 		},
+		dbSqlFile: String( get( 'AIE_MEDIA_SYNC_DB_SQL', 'db.sql' ) ),
 		localPhp: String( get( 'AIE_LOCAL_PHP', localPhpDefault ) ),
 		wpBin: String( get( 'AIE_WP_BIN', '/opt/homebrew/bin/wp' ) ),
 		mysqlBin: String( get( 'AIE_LOCAL_MYSQL', localMysqlDefault ) ),
@@ -109,6 +112,8 @@ function wp( env, wpPath, args, { trim = true } = {} ) {
 		'error_reporting=0',
 		'-d',
 		'html_errors=0',
+		'-d',
+		'memory_limit=512M',
 	];
 	const out = execFileSync(
 		env.localPhp,
@@ -176,7 +181,7 @@ echo wp_json_encode(['basedir' => $u['basedir'], 'path' => $u['path']], JSON_UNE
 	return out;
 }
 
-function prepareTwentyInternetImages( uploadsBaseDir, stamp ) {
+function prepareTenInternetImages( uploadsBaseDir, stamp ) {
 	const base = path.join( uploadsBaseDir, 'test' );
 	rmrf( base );
 
@@ -186,26 +191,16 @@ function prepareTwentyInternetImages( uploadsBaseDir, stamp ) {
 		'',
 		'',
 		'',
-		'',
-		'',
-		'',
-		'',
-		'',
-		'',
-		'',
 		'sub-a',
 		'sub-a',
-		'sub-a',
-		'sub-b/nested',
 		'sub-b/nested',
 		'rand-1',
-		'rand-2/nest',
 		'rand-2/nest',
 	];
 
 	const files = [];
 	let overwritePath = '';
-	for ( let i = 1; i <= 20; i++ ) {
+	for ( let i = 1; i <= 10; i++ ) {
 		const folder = folders[ i - 1 ] || '';
 		const filename =
 			i === 1
@@ -237,11 +232,11 @@ function countFilesByRecursion( baseDir, files, recursive ) {
 	return files.filter( ( f ) => path.dirname( f ) === base ).length;
 }
 
-function importDb2Sql( env ) {
+function importBaselineSql( env ) {
 	const wpPath = env.target.wpPath;
-	const db2Sql = path.join( wpPath, 'db2.sql' );
-	if ( ! fs.existsSync( db2Sql ) )
-		throw new Error( `db2.sql not found at: ${ db2Sql }` );
+	const dbSql = path.join( wpPath, env.dbSqlFile );
+	if ( ! fs.existsSync( dbSql ) )
+		throw new Error( `${ env.dbSqlFile } not found at: ${ dbSql }` );
 
 	const dbName = wp( env, wpPath, [ 'config', 'get', 'DB_NAME' ] );
 	const dbUser = wp( env, wpPath, [ 'config', 'get', 'DB_USER' ] );
@@ -255,7 +250,7 @@ function importDb2Sql( env ) {
 			`Unsupported DB_HOST (expected :/path.sock): ${ dbHost }`
 		);
 
-	const sql = fs.readFileSync( db2Sql );
+	const sql = fs.readFileSync( dbSql );
 	execFileSync(
 		env.mysqlBin,
 		[
@@ -407,6 +402,12 @@ async function gotoAdminPage( page, site, adminPathWithQuery ) {
 
 async function chooseFolderViaBrowseModal( page, absoluteFolderPath ) {
 	await page.locator( '#rsl-ie-browse-folders-btn' ).click();
+	const firstModal = page.locator( '#rsl-ie-folder-browser-modal' );
+	await firstModal.waitFor( { state: 'visible', timeout: 60_000 } );
+	await page.locator( '.rsl-ie-modal-close' ).first().click();
+	await firstModal.waitFor( { state: 'hidden', timeout: 60_000 } );
+
+	await page.locator( '#rsl-ie-browse-folders-btn' ).click();
 	const modal = page.locator( '#rsl-ie-folder-browser-modal' );
 	await modal.waitFor( { state: 'visible', timeout: 60_000 } );
 
@@ -451,10 +452,38 @@ async function chooseFolderViaBrowseModal( page, absoluteFolderPath ) {
 	}
 }
 
-async function scanFolder( page, { recursive, fileTypes = 'images' } ) {
+async function scanFolder(
+	page,
+	{ recursive, fileTypes = 'images', customExtensions = '' }
+) {
 	await page.locator( '#rsl-ie-scan-recursive' ).setChecked( !! recursive );
+	await page.evaluate( ( checked ) => {
+		const el = document.querySelector( '#rsl-ie-scan-recursive' );
+		if ( el ) {
+			el.checked = !! checked;
+			el.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+		}
+	}, !! recursive );
 	await page.locator( '#rsl-ie-file-types' ).selectOption( fileTypes );
+	if ( fileTypes === 'custom' ) {
+		await page
+			.locator( '#rsl-ie-custom-extensions' )
+			.waitFor( { state: 'visible', timeout: 10_000 } );
+		await page
+			.locator( '#rsl-ie-custom-extensions-input' )
+			.fill( customExtensions );
+		await page.waitForTimeout( 650 );
+	}
+	const scanResponsePromise = page.waitForResponse(
+		( response ) =>
+			response.url().includes( 'admin-ajax.php' ) &&
+			( response.request().postData() || '' ).includes(
+				'action=rsl_ie_scan_folder'
+			),
+		{ timeout: 60_000 }
+	);
 	await page.locator( '#rsl-ie-scan-folder-btn' ).click();
+	await scanResponsePromise;
 
 	const results = page.locator( '#rsl-ie-scan-results' );
 	await results.waitFor( { state: 'visible', timeout: 60_000 } );
@@ -462,6 +491,39 @@ async function scanFolder( page, { recursive, fileTypes = 'images' } ) {
 	const totalText = await page.locator( '#rsl-ie-total-files' ).innerText();
 	const total = Number( String( totalText ).replace( /[^0-9]/g, '' ) );
 	return Number.isFinite( total ) ? total : 0;
+}
+
+async function exerciseScanFilters( page, expectedAllCount ) {
+	const videos = await scanFolder( page, {
+		recursive: true,
+		fileTypes: 'videos',
+	} );
+	if ( videos !== 0 ) {
+		throw new Error(
+			`Expected videos filter to find 0 files, got ${ videos }`
+		);
+	}
+
+	const custom = await scanFolder( page, {
+		recursive: true,
+		fileTypes: 'custom',
+		customExtensions: 'jpg',
+	} );
+	if ( custom !== expectedAllCount ) {
+		throw new Error(
+			`Expected custom jpg filter to find ${ expectedAllCount }, got ${ custom }`
+		);
+	}
+
+	const all = await scanFolder( page, {
+		recursive: true,
+		fileTypes: 'all',
+	} );
+	if ( all !== expectedAllCount ) {
+		throw new Error(
+			`Expected all media filter to find ${ expectedAllCount }, got ${ all }`
+		);
+	}
 }
 
 async function setSelectionMode( page, mode, { count = 3 } = {} ) {
@@ -591,6 +653,33 @@ async function startSyncAndWait( page, env, { minUpdatedAt } ) {
 	return { row: jobRow, uiDone, pseudoCompleted };
 }
 
+async function openMediaLibraryAndVerifyFiles( page, site, filenames ) {
+	const checked = [];
+	for ( const filename of filenames ) {
+		// eslint-disable-next-line no-await-in-loop
+		await gotoAdminPage(
+			page,
+			site,
+			`/wp-admin/upload.php?mode=list&s=${ encodeURIComponent(
+				path.basename( filename, path.extname( filename ) )
+			) }`
+		);
+		// eslint-disable-next-line no-await-in-loop
+		await page.waitForSelector( '#wpbody-content', { timeout: 60_000 } );
+		// eslint-disable-next-line no-await-in-loop
+		const body = await page.locator( 'body' ).innerText();
+		if ( ! body.includes( path.basename( filename ) ) ) {
+			throw new Error(
+				`Media Library list does not show imported file: ${ path.basename(
+					filename
+				) }`
+			);
+		}
+		checked.push( path.basename( filename ) );
+	}
+	return checked;
+}
+
 function getAttachmentMeta( env, attachId, metaKey ) {
 	const php = `
 $id = (int) ${ JSON.stringify( Number( attachId || 0 ) ) };
@@ -616,6 +705,7 @@ async function run() {
 		cases: [],
 		issues: [],
 		finishedAt: null,
+		dbSqlFile: env.dbSqlFile,
 	};
 
 	const userDataDir = path.join( artifactsRoot, 'playwright-profile' );
@@ -660,7 +750,7 @@ async function run() {
 					batch_size: 2,
 					rml_integration: true,
 				},
-				expect: { importedCount: 5 },
+				expect: { importedCount: 5, verifyMediaLibrary: true },
 				verify: {
 					rmlFolders: [
 						'test',
@@ -680,6 +770,42 @@ async function run() {
 				],
 			},
 			{
+				name: 'duplicate-skip-rerun',
+				recursive: true,
+				selection: { mode: 'all' },
+				options: {
+					duplicate_check: 'hash',
+					duplicate_handling: 'skip',
+					file_operation: 'copy',
+					batch_size: 1,
+					rml_integration: false,
+				},
+				expect: {
+					importedCount: 10,
+					duplicateRerun: 'skip',
+					verifyMediaLibrary: true,
+				},
+				verify: { rmlFolders: [] },
+			},
+			{
+				name: 'duplicate-rename-rerun',
+				recursive: true,
+				selection: { mode: 'all' },
+				options: {
+					duplicate_check: 'filename',
+					duplicate_handling: 'rename',
+					file_operation: 'copy',
+					batch_size: 2,
+					rml_integration: false,
+				},
+				expect: {
+					importedCount: 20,
+					duplicateRerun: 'rename',
+					verifyMediaLibrary: true,
+				},
+				verify: { rmlFolders: [] },
+			},
+			{
 				name: 'move-selectmultiple-hash-skip-rml',
 				recursive: false,
 				selection: { mode: 'multiple', count: 4 },
@@ -690,7 +816,7 @@ async function run() {
 					batch_size: 3,
 					rml_integration: true,
 				},
-				expect: { importedCount: 4 },
+				expect: { importedCount: 4, verifyMediaLibrary: true },
 				verify: { rmlFolders: [ 'test' ] },
 			},
 			{
@@ -704,17 +830,21 @@ async function run() {
 					batch_size: 1,
 					rml_integration: false,
 				},
-				expect: { importedCount: 1, overwrite: true },
+				expect: {
+					importedCount: 1,
+					overwrite: true,
+					verifyMediaLibrary: true,
+				},
 				verify: { rmlFolders: [] },
 			},
 		];
 
 		for ( const tc of cases ) {
 			// Per-case: reset DB first (ensures a stable baseline even if prior run failed).
-			importDb2Sql( env );
+			importBaselineSql( env );
 
 			// Create fresh internet images into uploads/test for this test case.
-			const prepared = prepareTwentyInternetImages(
+			const prepared = prepareTenInternetImages(
 				uploadsBaseDir,
 				nowStamp()
 			);
@@ -738,6 +868,19 @@ async function run() {
 			// Step 1: Browse and choose folder.
 			// eslint-disable-next-line no-await-in-loop
 			await chooseFolderViaBrowseModal( page, testFolderAbs );
+
+			if ( tc.name === 'scan-nonrecursive-selectall-keep-no-rml' ) {
+				await exerciseScanFilters( page, prepared.files.length );
+				await gotoAdminPage(
+					page,
+					env.target,
+					'/wp-admin/admin.php?page=rsl-ie-media-sync'
+				);
+				await page.waitForSelector( '#rsl-ie-media-sync', {
+					timeout: 60_000,
+				} );
+				await chooseFolderViaBrowseModal( page, testFolderAbs );
+			}
 
 			// Step 1: Scan (exercise recursive toggle).
 			// eslint-disable-next-line no-await-in-loop
@@ -799,6 +942,9 @@ async function run() {
 			}
 
 			const selectedPaths = await getSelectedFilePaths( page );
+			const selectedBasenames = selectedPaths.map( ( f ) =>
+				path.basename( f )
+			);
 
 			// Step 2: set options.
 			// eslint-disable-next-line no-await-in-loop
@@ -814,6 +960,54 @@ async function run() {
 				minUpdatedAt,
 			} );
 			const jobRow = jobInfo.row;
+
+			if ( tc.expect && tc.expect.duplicateRerun ) {
+				await page.locator( '#rsl-ie-sync-another-btn' ).click();
+				await page
+					.locator( '#rsl-ie-sync-options' )
+					.waitFor( { state: 'hidden', timeout: 60_000 } )
+					.catch( () => null );
+				await chooseFolderViaBrowseModal( page, testFolderAbs );
+				await scanFolder( page, {
+					recursive: tc.recursive,
+					fileTypes: 'images',
+				} );
+				await setSelectionMode( page, tc.selection.mode, {
+					count: tc.selection.count,
+				} );
+				await setSyncOptions( page, tc.options );
+				const minUpdatedAtRerun = wp( env, env.target.wpPath, [
+					'eval',
+					'echo current_time("mysql");',
+				] );
+				const rerunInfo = await startSyncAndWait( page, env, {
+					minUpdatedAt: minUpdatedAtRerun,
+				} );
+				const rerunRow = rerunInfo.row;
+				const rerunResult = rerunRow.result
+					? JSON.parse( rerunRow.result )
+					: {};
+				if (
+					tc.expect.duplicateRerun === 'skip' &&
+					Number( rerunResult.skipped || 0 ) !== selectedPaths.length
+				) {
+					throw new Error(
+						`${ tc.name }: expected rerun to skip ${
+							selectedPaths.length
+						} files, got ${ rerunResult.skipped || 0 }`
+					);
+				}
+				if (
+					tc.expect.duplicateRerun === 'rename' &&
+					Number( rerunResult.success || 0 ) !== selectedPaths.length
+				) {
+					throw new Error(
+						`${ tc.name }: expected rerun rename to import ${
+							selectedPaths.length
+						} files, got ${ rerunResult.success || 0 }`
+					);
+				}
+			}
 
 			// For overwrite: run a second sync where the source file changes but filename stays.
 			let overwriteMetaBefore = null;
@@ -941,6 +1135,15 @@ async function run() {
 				);
 			}
 
+			let mediaLibraryChecked = [];
+			if ( tc.expect && tc.expect.verifyMediaLibrary ) {
+				mediaLibraryChecked = await openMediaLibraryAndVerifyFiles(
+					page,
+					env.target,
+					selectedBasenames
+				);
+			}
+
 			// Verify file_operation semantics for move (source files in uploads/test should be removed).
 			if ( tc.options.file_operation === 'move' ) {
 				const stillExists = selectedPaths.some( ( f ) =>
@@ -994,6 +1197,7 @@ async function run() {
 					pseudoCompleted: !! jobInfo.pseudoCompleted,
 				},
 				rml,
+				mediaLibraryChecked,
 				overwriteHashBefore: overwriteMetaBefore,
 				overwriteHashAfter: overwriteMetaAfter,
 			} );
@@ -1002,8 +1206,8 @@ async function run() {
 			rmrf( prepared.baseDir );
 			rmrf( path.join( uploadsYmDir, 'test' ) );
 
-			// Reset DB to db2.sql after each case, as requested.
-			importDb2Sql( env );
+			// Reset DB to configured SQL baseline after each case.
+			importBaselineSql( env );
 		}
 
 		summary.finishedAt = new Date().toISOString();

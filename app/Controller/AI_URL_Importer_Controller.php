@@ -123,7 +123,11 @@ class AI_URL_Importer_Controller extends Base_Controller {
 			$this->send_error( $availability, null, 403 );
 		}
 
-		$url = esc_url_raw( $this->get_request_param( 'url', '', 'post' ) );
+		$url             = esc_url_raw( $this->get_request_param( 'url', '', 'post' ) );
+		$extraction_mode = sanitize_key( $this->get_request_param( 'extraction_mode', 'auto', 'post' ) );
+		if ( ! in_array( $extraction_mode, array( 'auto', 'alternate' ), true ) ) {
+			$extraction_mode = 'auto';
+		}
 
 		if ( empty( $url ) || ! wp_http_validate_url( $url ) ) {
 			$this->send_error(
@@ -132,7 +136,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 		}
 
 		// Extract content using AI
-		$result = $this->extractor->extract_from_url( $url );
+		$result = $this->extractor->extract_from_url( $url, 0, $extraction_mode );
 
 		if ( is_wp_error( $result ) ) {
 			$this->send_error( $result );
@@ -303,7 +307,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 		);
 		$post_type         = sanitize_key( $this->get_request_param( 'post_type', 'post', 'post' ) );
 		$content_field     = sanitize_key( $this->get_request_param( 'content_field', 'post_content', 'post' ) );
-		$timeout           = max( 1, min( 60, absint( $this->get_request_param( 'timeout', 2, 'post' ) ) ) );
+		$request_delay     = max( 0, min( 60, absint( $this->get_request_param( 'request_delay', 2, 'post' ) ) ) );
 		$acf_field         = sanitize_key( $this->get_request_param( 'acf_field', '', 'post' ) );
 		$custom_field_name = sanitize_key( $this->get_request_param( 'custom_field_name', '', 'post' ) );
 
@@ -344,7 +348,7 @@ class AI_URL_Importer_Controller extends Base_Controller {
 						'urls'          => $urls,
 						'post_type'     => $post_type,
 						'content_field' => $field_name,
-						'timeout'       => $timeout,
+						'request_delay' => $request_delay,
 						'offset'        => 0,
 					)
 				),
