@@ -24,71 +24,73 @@ class Database_Migration {
 	private static function run_alter_table( $table_name, $operation ) {
 		global $wpdb;
 
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.SchemaChange -- Allowlisted schema migrations for plugin-owned custom tables.
 		switch ( $operation ) {
 			case 'add_progress_column':
-				return $wpdb->query(
+				return $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema migration for the plugin's custom jobs table.
 					$wpdb->prepare(
 						"ALTER TABLE %i ADD COLUMN progress DECIMAL(5,2) DEFAULT 0 COMMENT 'Progress percentage (0-100)' AFTER failed_items",
 						$table_name
 					)
 				);
 			case 'add_result_column':
-				return $wpdb->query(
+				return $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema migration for the plugin's custom jobs table.
 					$wpdb->prepare(
 						"ALTER TABLE %i ADD COLUMN result TEXT NULL COMMENT 'JSON result data (processed, success, failed counts)' AFTER settings",
 						$table_name
 					)
 				);
 			case 'add_parameters_column':
-				return $wpdb->query(
+				return $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema migration for the plugin's custom jobs table.
 					$wpdb->prepare(
 						"ALTER TABLE %i ADD COLUMN parameters LONGTEXT NULL COMMENT 'JSON job parameters' AFTER settings",
 						$table_name
 					)
 				);
 			case 'add_started_at_column':
-				return $wpdb->query(
+				return $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema migration for the plugin's custom jobs table.
 					$wpdb->prepare(
 						"ALTER TABLE %i ADD COLUMN started_at DATETIME NULL COMMENT 'When job processing started' AFTER updated_at",
 						$table_name
 					)
 				);
 			case 'add_retries_column':
-				return $wpdb->query(
+				return $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema migration for the plugin's custom jobs table.
 					$wpdb->prepare(
 						"ALTER TABLE %i ADD COLUMN retries INT DEFAULT 0 COMMENT 'Number of retry attempts' AFTER status",
 						$table_name
 					)
 				);
 			case 'update_type_enum':
-				return $wpdb->query(
+				return $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema migration for the plugin's custom jobs table.
 					$wpdb->prepare(
 						"ALTER TABLE %i MODIFY COLUMN type ENUM('import', 'export', 'media_sync', 'update') NOT NULL",
 						$table_name
 					)
 				);
 			case 'add_imported_items_column':
-				return $wpdb->query(
+				return $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema migration for the plugin's custom jobs table.
 					$wpdb->prepare(
 						"ALTER TABLE %i ADD COLUMN imported_items INT DEFAULT 0 COMMENT 'Number of items imported/updated' AFTER processed_items",
 						$table_name
 					)
 				);
 			case 'add_skipped_items_column':
-				return $wpdb->query(
+				return $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema migration for the plugin's custom jobs table.
 					$wpdb->prepare(
 						"ALTER TABLE %i ADD COLUMN skipped_items INT DEFAULT 0 COMMENT 'Number of items skipped' AFTER imported_items",
 						$table_name
 					)
 				);
 			case 'add_error_items_column':
-				return $wpdb->query(
+				return $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema migration for the plugin's custom jobs table.
 					$wpdb->prepare(
 						"ALTER TABLE %i ADD COLUMN error_items INT DEFAULT 0 COMMENT 'Number of items with errors' AFTER skipped_items",
 						$table_name
 					)
 				);
 		}
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.SchemaChange
 
 		return false;
 	}
@@ -542,7 +544,7 @@ class Database_Migration {
 		];
 
 		foreach ( $tables as $table ) {
-			$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table ) );
+			$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Dropping plugin-owned custom tables during cleanup.
 		}
 
 		// Delete DB version option

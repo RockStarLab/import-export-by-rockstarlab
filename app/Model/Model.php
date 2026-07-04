@@ -119,7 +119,7 @@ abstract class Model {
 		global $wpdb;
 		$table = $this->get_table_name();
 
-		return $wpdb->get_row(
+		return $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Querying the plugin's custom table by primary key.
 			$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $table, $id )
 		);
 	}
@@ -147,7 +147,7 @@ abstract class Model {
 		$remaining    = $conditions;
 		unset( $remaining[ $first_column ] );
 
-		$rows = $wpdb->get_results(
+		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Querying the plugin's custom table with allowlisted columns.
 			$wpdb->prepare(
 				'SELECT * FROM %i WHERE %i = %s',
 				$table,
@@ -194,7 +194,7 @@ abstract class Model {
 			? strtoupper( $args['order'] )
 			: 'DESC';
 		if ( 'ASC' === $order ) {
-			return $wpdb->get_results(
+			return $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Querying the plugin's custom table with allowlisted ordering.
 				$wpdb->prepare(
 					'SELECT * FROM %i ORDER BY %i ASC LIMIT %d OFFSET %d',
 					$table,
@@ -205,7 +205,7 @@ abstract class Model {
 			);
 		}
 
-		return $wpdb->get_results(
+		return $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Querying the plugin's custom table with allowlisted ordering.
 			$wpdb->prepare(
 				'SELECT * FROM %i ORDER BY %i DESC LIMIT %d OFFSET %d',
 				$table,
@@ -228,7 +228,7 @@ abstract class Model {
 
 		$formats = $this->get_formats( $data );
 
-		$result = $wpdb->insert( $table, $data, $formats );
+		$result = $wpdb->insert( $table, $data, $formats ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Writing to the plugin's custom table.
 
 		if ( false === $result ) {
 			return new \WP_Error( 'db_insert_error', $wpdb->last_error );
@@ -250,7 +250,7 @@ abstract class Model {
 
 		$formats = $this->get_formats( $data );
 
-		$result = $wpdb->update(
+		$result = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Updating the plugin's custom table.
 			$table,
 			$data,
 			[ 'id' => $id ],
@@ -275,7 +275,7 @@ abstract class Model {
 		global $wpdb;
 		$table = $this->get_table_name();
 
-		return $wpdb->delete(
+		return $wpdb->delete( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Deleting from the plugin's custom table.
 			$table,
 			[ 'id' => $id ],
 			[ '%d' ]
@@ -293,7 +293,7 @@ abstract class Model {
 		$table = $this->get_table_name();
 
 		if ( empty( $where ) ) {
-			return (int) $wpdb->get_var(
+			return (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Counting rows in the plugin's custom table.
 				$wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table )
 			);
 		}

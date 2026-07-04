@@ -67,6 +67,9 @@ function loadEnv() {
 	const expectedValueOverride = String(
 		get( 'AIE_UPDATER_EXPECT_VALUE', '' )
 	);
+	const objectIdOverride = Number(
+		String( get( 'AIE_UPDATER_OBJECT_ID', '0' ) ).trim()
+	);
 
 	const wpPathDefault = path.resolve( process.cwd(), '../../..' );
 	const targetWpPathGuess = ( () => {
@@ -94,6 +97,9 @@ function loadEnv() {
 		functionIdOverride,
 		expectedMode,
 		expectedValueOverride,
+		objectIdOverride: Number.isFinite( objectIdOverride )
+			? objectIdOverride
+			: 0,
 		target: {
 			baseUrl: get( 'AIE_TARGET_URL', 'http://aie2.local' ),
 			username: get( 'AIE_TARGET_ADMIN_USER', 'admin' ),
@@ -107,6 +113,8 @@ function loadEnv() {
 
 function wp( env, wpPath, args, { trim = true } = {} ) {
 	const phpArgs = [
+		'-d',
+		'memory_limit=512M',
 		'-d',
 		'display_errors=0',
 		'-d',
@@ -284,7 +292,7 @@ async function setStep2IdEqualsFilter(
 	await addBtn.click();
 
 	const row = page
-		.locator( '.rsl-ie-updater-step-2.active .rsl-ie-filter-row' )
+		.locator( '#rsl-ie-updater-filters-list .rsl-ie-filter-row' )
 		.last();
 	await row.waitFor( { state: 'visible', timeout: 30_000 } );
 
@@ -321,7 +329,18 @@ async function setStep2IdEqualsFilter(
 	)
 		picked = 'comment_ID';
 	if ( picked ) {
-		await fieldSel.selectOption( { value: picked } );
+		await row.evaluate( ( el, v ) => {
+			const $ = window.jQuery;
+			const field = el.querySelector(
+				'select.rsl-ie-updater-filter-field'
+			);
+			if ( $ && field ) {
+				$( field ).val( v ).trigger( 'change' );
+			} else if ( field ) {
+				field.value = v;
+				field.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+			}
+		}, picked );
 	} else {
 		// fallback: pick first non-empty option
 		const first = await fieldSel
@@ -329,14 +348,29 @@ async function setStep2IdEqualsFilter(
 			.nth( 1 )
 			.getAttribute( 'value' )
 			.catch( () => '' );
-		if ( first ) await fieldSel.selectOption( { value: first } );
+		if ( first ) {
+			await row.evaluate( ( el, v ) => {
+				const $ = window.jQuery;
+				const field = el.querySelector(
+					'select.rsl-ie-updater-filter-field'
+				);
+				if ( $ && field ) {
+					$( field ).val( v ).trigger( 'change' );
+				} else if ( field ) {
+					field.value = v;
+					field.dispatchEvent(
+						new Event( 'change', { bubbles: true } )
+					);
+				}
+			}, first );
+		}
 	}
 
 	// Wait for dependent UI to refresh after field change (conditions + value input may be re-rendered).
 	await page
 		.waitForFunction( () => {
 			const sel = document.querySelector(
-				'.rsl-ie-updater-step-2.active .rsl-ie-filter-row:last-child select.rsl-ie-updater-filter-condition'
+				'#rsl-ie-updater-filters-list .rsl-ie-filter-row:last-child select.rsl-ie-updater-filter-condition'
 			);
 			return sel && sel.querySelectorAll( 'option' ).length > 1;
 		} )
@@ -348,7 +382,18 @@ async function setStep2IdEqualsFilter(
 	await condSel.waitFor( { state: 'visible', timeout: 30_000 } );
 	await page.waitForTimeout( 50 );
 	if ( await condSel.locator( 'option[value="equals"]' ).count() ) {
-		await condSel.selectOption( { value: 'equals' } );
+		await row.evaluate( ( el ) => {
+			const $ = window.jQuery;
+			const cond = el.querySelector(
+				'select.rsl-ie-updater-filter-condition'
+			);
+			if ( $ && cond ) {
+				$( cond ).val( 'equals' ).trigger( 'change' );
+			} else if ( cond ) {
+				cond.value = 'equals';
+				cond.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+			}
+		} );
 	} else {
 		await condSel.selectOption( { index: 1 } ).catch( () => null );
 	}
@@ -356,6 +401,13 @@ async function setStep2IdEqualsFilter(
 	const val = row.locator( 'input.rsl-ie-updater-filter-value' ).first();
 	await val.waitFor( { state: 'visible', timeout: 30_000 } );
 	await val.fill( String( idValue ) );
+	await row.evaluate( ( el ) => {
+		const input = el.querySelector( 'input.rsl-ie-updater-filter-value' );
+		if ( input ) {
+			input.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+			input.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+		}
+	} );
 
 	const refresh = page.locator( '.rsl-ie-updater-refresh-count' ).first();
 	if ( await refresh.count().catch( () => 0 ) ) {
@@ -429,7 +481,9 @@ async function setStep2IdEqualsFilter(
 			.evaluate(
 				( want ) => {
 					const rows = Array.from(
-						document.querySelectorAll( '.rsl-ie-filter-row' )
+						document.querySelectorAll(
+							'#rsl-ie-updater-filters-list .rsl-ie-filter-row'
+						)
 					);
 					const hasIdFilter = rows.some( ( r ) => {
 						const f =
@@ -456,10 +510,40 @@ async function setStep2IdEqualsFilter(
 			)
 			.catch( () => false );
 		if ( ! previewOk ) {
+			const rowsDebug = await page
+				.evaluate( () =>
+					Array.from(
+						document.querySelectorAll(
+							'#rsl-ie-updater-filters-list .rsl-ie-filter-row'
+						)
+					).map( ( r ) => ( {
+						field:
+							r.querySelector(
+								'select.rsl-ie-updater-filter-field'
+							)?.value || '',
+						condition:
+							r.querySelector(
+								'select.rsl-ie-updater-filter-condition'
+							)?.value || '',
+						inputValue:
+							r.querySelector(
+								'input.rsl-ie-updater-filter-value'
+							)?.value || '',
+						selectValue:
+							r.querySelector(
+								'select.rsl-ie-updater-filter-value'
+							)?.value || '',
+						text: String( r.textContent || '' )
+							.replace( /\s+/g, ' ' )
+							.trim()
+							.slice( 0, 300 ),
+					} ) )
+				)
+				.catch( () => [] );
 			throw new Error(
 				`Updater Step 2 ID filter did not stick (expected ${
 					picked || 'ID'
-				}=${ expectedId })`
+				}=${ expectedId }; rows=${ JSON.stringify( rowsDebug ) })`
 			);
 		}
 	}
@@ -473,7 +557,7 @@ async function addStep2PostTypeSelectorFilter( page, postTypeValue ) {
 	await addBtn.click();
 
 	const row = page
-		.locator( '.rsl-ie-updater-step-2.active .rsl-ie-filter-row' )
+		.locator( '#rsl-ie-updater-filters-list .rsl-ie-filter-row' )
 		.last();
 	await row.waitFor( { state: 'visible', timeout: 30_000 } );
 
@@ -536,7 +620,7 @@ async function addStep2TaxonomySelectorFilter( page, taxonomySlug ) {
 	await addBtn.click();
 
 	const row = page
-		.locator( '.rsl-ie-updater-step-2.active .rsl-ie-filter-row' )
+		.locator( '#rsl-ie-updater-filters-list .rsl-ie-filter-row' )
 		.last();
 	await row.waitFor( { state: 'visible', timeout: 30_000 } );
 
@@ -1233,6 +1317,19 @@ echo wp_json_encode([ 'value' => $value ], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED
 			: '';
 	}
 
+	if ( key.startsWith( 'meta_' ) ) {
+		const metaKey = key.slice( 5 );
+		const php = `
+$id = (int) ${ JSON.stringify( postId ) };
+$meta = ${ JSON.stringify( metaKey ) };
+echo wp_json_encode([ 'value' => (string) get_post_meta( $id, $meta, true ) ], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+`;
+		const out = wpEvalJson( env, wpPath, php );
+		return out && Object.prototype.hasOwnProperty.call( out, 'value' )
+			? out.value
+			: '';
+	}
+
 	if ( key.startsWith( 'yoast_' ) || key.startsWith( '_yoast_wpseo' ) ) {
 		const metaKey = key.startsWith( 'yoast_' ) ? key.slice( 6 ) : key;
 		const php = `
@@ -1483,7 +1580,9 @@ async function run() {
 			needsCptSelector = true;
 		} else {
 			postType = ct === 'page' ? 'page' : 'post';
-			objectId = pickOneIdByPostType( env, env.target.wpPath, postType );
+			objectId =
+				env.objectIdOverride ||
+				pickOneIdByPostType( env, env.target.wpPath, postType );
 			if ( ! objectId )
 				throw new Error(
 					`No content found for post_type=${ postType }`

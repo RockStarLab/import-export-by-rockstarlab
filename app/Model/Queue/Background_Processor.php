@@ -85,7 +85,7 @@ class Background_Processor {
 		$table = $wpdb->prefix . 'rsl_ie_jobs';
 
 		// Get oldest pending or processing job
-		$job = $wpdb->get_row(
+		$job = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Polling the plugin's custom jobs table.
 			$wpdb->prepare( "SELECT * FROM %i WHERE status IN ('pending', 'processing') ORDER BY created_at ASC LIMIT 1", $table ),
 			ARRAY_A
 		);
