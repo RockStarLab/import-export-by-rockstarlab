@@ -295,7 +295,7 @@ class Job_Controller extends Base_Controller {
 		$table_name = $wpdb->prefix . 'rsl_ie_jobs';
 
 		// Delete old completed jobs
-		$deleted = $wpdb->query(
+		$deleted = $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Cleaning expired rows from the plugin's custom jobs table.
 			$wpdb->prepare(
 				"DELETE FROM %i WHERE status IN ('completed', 'failed', 'cancelled') AND created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
 				$table_name,

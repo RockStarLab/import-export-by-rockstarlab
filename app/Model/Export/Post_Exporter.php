@@ -1974,15 +1974,27 @@ class Post_Exporter extends Abstract_Exporter {
 			return '';
 		}
 
-		$operator = $negated ? ' AND ' : ' OR ';
-		$parts    = array_map(
-			function ( $part ) {
-				return preg_replace( '/^\s+AND\s+/', '', $part );
-			},
-			$parts
+		$operator = $negated ? 'AND' : 'OR';
+		$parts    = array_filter(
+			array_map(
+				function ( $part ) {
+					return preg_replace( '/^\s+AND\s+/', '', $part );
+				},
+				$parts
+			)
 		);
 
-		return ' AND (' . implode( $operator, $parts ) . ')';
+		$combined = '';
+		foreach ( $parts as $part ) {
+			if ( '' === $combined ) {
+				$combined = $part;
+				continue;
+			}
+
+			$combined .= ' ' . $operator . ' ' . $part;
+		}
+
+		return '' === $combined ? '' : ' AND (' . $combined . ')';
 	}
 
 	/**

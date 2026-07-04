@@ -241,7 +241,7 @@ class Job extends Model {
 		$limit  = isset( $args['limit'] ) ? intval( $args['limit'] ) : 20;
 		$offset = isset( $args['offset'] ) ? intval( $args['offset'] ) : 0;
 
-		return $wpdb->get_results(
+		return $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Querying the plugin's custom jobs table.
 			$wpdb->prepare(
 				'SELECT * FROM %i WHERE user_id = %d ORDER BY created_at DESC LIMIT %d OFFSET %d',
 				$table,
@@ -265,7 +265,7 @@ class Job extends Model {
 
 		$limit = isset( $args['limit'] ) ? intval( $args['limit'] ) : 100;
 
-		return $wpdb->get_results(
+		return $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Querying the plugin's custom jobs table.
 			$wpdb->prepare(
 				'SELECT * FROM %i WHERE status = %s ORDER BY created_at DESC LIMIT %d',
 				$table,
@@ -290,7 +290,7 @@ class Job extends Model {
 		$days = apply_filters( 'rsl_ie_cleanup_old_jobs_days', $days );
 
 		// Delete old jobs
-		$deleted = $wpdb->query(
+		$deleted = $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Deleting expired rows from the plugin's custom jobs table.
 			$wpdb->prepare(
 				"DELETE FROM %i
 				WHERE status IN ('completed', 'failed', 'cancelled')
@@ -319,7 +319,7 @@ class Job extends Model {
 		$days = apply_filters( 'rsl_ie_cleanup_old_files_days', $days );
 
 		// Get old export jobs with file paths
-		$results = $wpdb->get_results(
+		$results = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Querying expired export rows in the plugin's custom jobs table.
 			$wpdb->prepare(
 				"SELECT id, file_path FROM %i
 				WHERE type = 'export'
@@ -519,7 +519,7 @@ class Job extends Model {
 			return (int) $cached;
 		}
 
-		$count = (int) $wpdb->get_var(
+		$count = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Counting rows in the plugin's custom jobs table.
 			$wpdb->prepare(
 				'SELECT COUNT(*) FROM %i WHERE 1=%d
 					AND ( %d = 0 OR user_id = %d )

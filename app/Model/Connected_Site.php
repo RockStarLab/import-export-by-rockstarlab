@@ -30,7 +30,7 @@ class Connected_Site {
 		global $wpdb;
 		$table = $wpdb->prefix . self::$table_name;
 
-		$results = $wpdb->get_results(
+		$results = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Querying the plugin's custom site-connections table.
 			$wpdb->prepare( 'SELECT * FROM %i ORDER BY created_at DESC', $table ),
 			ARRAY_A
 		);
@@ -48,7 +48,7 @@ class Connected_Site {
 		global $wpdb;
 		$table = $wpdb->prefix . self::$table_name;
 
-		return $wpdb->get_row(
+		return $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Querying the plugin's custom site-connections table.
 			$wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $table, $id ),
 			ARRAY_A
 		);
@@ -64,7 +64,7 @@ class Connected_Site {
 		global $wpdb;
 		$table = $wpdb->prefix . self::$table_name;
 
-		return $wpdb->get_row(
+		return $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Querying the plugin's custom site-connections table.
 			$wpdb->prepare( 'SELECT * FROM %i WHERE api_key = %s', $table, $api_key ),
 			ARRAY_A
 		);
@@ -235,7 +235,7 @@ class Connected_Site {
 			'error'  => 0,
 		);
 
-		$results = $wpdb->get_results(
+		$results = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Aggregating the plugin's custom site-connections table.
 			$wpdb->prepare( 'SELECT status, COUNT(*) as count FROM %i GROUP BY status', $table ),
 			ARRAY_A
 		);
@@ -260,7 +260,7 @@ class Connected_Site {
 		$table = $wpdb->prefix . self::$table_name;
 
 		if ( $exclude_id ) {
-			$count = $wpdb->get_var(
+			$count = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Checking uniqueness in the plugin's custom site-connections table.
 				$wpdb->prepare(
 					'SELECT COUNT(*) FROM %i WHERE remote_url = %s AND id != %d',
 					$table,
@@ -269,7 +269,7 @@ class Connected_Site {
 				)
 			);
 		} else {
-			$count = $wpdb->get_var(
+			$count = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Checking uniqueness in the plugin's custom site-connections table.
 				$wpdb->prepare(
 					'SELECT COUNT(*) FROM %i WHERE remote_url = %s',
 					$table,

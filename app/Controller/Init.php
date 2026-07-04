@@ -117,17 +117,25 @@ class Init {
 		// Initialize cron manager
 		add_action( 'init', array( $this, 'init_cron_manager' ) );
 
+		// Initialize helpers that may read translated settings.
+		add_action( 'init', array( $this, 'init_helpers' ) );
+
 		// Handle welcome page redirect
 		add_action( 'admin_init', array( $this, 'welcome_redirect' ) );
 
-		// Show 5-star review request notice (plugin pages only, after 1 week)
+		// Fix attachment URLs for "keep in current directory" mode files outside uploads.
+		add_filter( 'wp_get_attachment_url', array( $this, 'fix_keep_mode_attachment_url' ), 10, 2 );
+	}
+
+	/**
+	 * Initialize helper hooks after WordPress is ready for translations.
+	 */
+	function init_helpers() {
+		// Show 5-star review request notice (plugin pages only, after 1 week).
 		\RockStarLab\ImportExport\Helper\Review_Notice::init();
 
 		// Optional hierarchical post-list tree filter.
 		\RockStarLab\ImportExport\Helper\Post_Tree_Filter::init();
-
-		// Fix attachment URLs for "keep in current directory" mode files outside uploads.
-		add_filter( 'wp_get_attachment_url', array( $this, 'fix_keep_mode_attachment_url' ), 10, 2 );
 	}
 
 	/**
