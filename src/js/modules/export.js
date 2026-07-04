@@ -2443,6 +2443,13 @@ const ExportModule = {
 						type: 'string',
 					},
 					{
+						value: 'post_password',
+						label:
+							window.rslIeData.i18n.fieldPostPassword ||
+							'Post Password',
+						type: 'string',
+					},
+					{
 						value: 'post_modified',
 						label: window.rslIeData.i18n.fieldModifiedDate,
 						type: 'date',

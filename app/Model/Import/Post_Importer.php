@@ -527,7 +527,9 @@ class Post_Importer extends Abstract_Importer {
 
 		// wp_insert_post() expects slashed data; without this, backslashes can be
 		// stripped from content (e.g. ASCII art like "(\_/)" in markup pages).
-		$post_id = wp_insert_post( wp_slash( $post_data ), true );
+		$post_id = $this->without_post_kses(
+			fn() => wp_insert_post( wp_slash( $post_data ), true )
+		);
 
 		if ( is_wp_error( $post_id ) ) {
 			return $post_id;
@@ -586,7 +588,9 @@ class Post_Importer extends Abstract_Importer {
 		$post_data['ID'] = $post_id;
 
 		// wp_update_post() expects slashed data; keep backslashes intact.
-		$result = wp_update_post( wp_slash( $post_data ), true );
+		$result = $this->without_post_kses(
+			fn() => wp_update_post( wp_slash( $post_data ), true )
+		);
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
@@ -665,6 +669,10 @@ class Post_Importer extends Abstract_Importer {
 				$post_data[ $field ] = $item[ $field ];
 			}
 		}
+		if ( isset( $post_data['post_content'] ) && is_string( $post_data['post_content'] ) ) {
+			$post_data['post_content'] = $this->resolve_gallery_shortcode_tokens( $post_data['post_content'], 0 );
+			$post_data['post_content'] = $this->resolve_content_media_shortcodes( $post_data['post_content'], 0 );
+		}
 
 		// Resolve author by email/login when provided (author IDs are not portable between sites).
 		$user = null;
@@ -732,6 +740,32 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 			return array_merge( $defaults, $post_data );
+	}
+
+	/**
+	 * Run a trusted import write without WordPress post KSES filters.
+	 *
+	 * WordPress may strip valid source markup attributes during AJAX/CLI imports
+	 * depending on the current user context. Import files are the source of truth,
+	 * so preserve post_content exactly and restore filters immediately after.
+	 *
+	 * @param callable $callback Write callback.
+	 * @return mixed
+	 */
+	private function without_post_kses( callable $callback ) {
+		$removed = false;
+		if ( function_exists( 'kses_remove_filters' ) && has_filter( 'content_save_pre', 'wp_filter_post_kses' ) ) {
+			kses_remove_filters();
+			$removed = true;
+		}
+
+		try {
+			return $callback();
+		} finally {
+			if ( $removed && function_exists( 'kses_init_filters' ) ) {
+				kses_init_filters();
+			}
+		}
 	}
 
 		/**
@@ -1127,6 +1161,17 @@ class Post_Importer extends Abstract_Importer {
 				? update_field( $acf_field_key, $value, $post_id )
 				: update_field( $key, $value, $post_id );
 
+				// Some ACF field types (notably page_link on certain versions/settings)
+				// can report success while leaving our portable JSON payload in postmeta.
+				// If that happens, force the already-resolved native value into storage.
+				$stored_after_update = get_post_meta( $post_id, (string) $key, true );
+				if ( is_string( $stored_after_update ) && $this->is_portable_acf_json( $stored_after_update ) ) {
+					update_post_meta( $post_id, (string) $key, $value );
+					if ( '' !== $acf_field_key && 0 === strpos( $acf_field_key, 'field_' ) ) {
+						update_post_meta( $post_id, '_' . (string) $key, $acf_field_key );
+					}
+				}
+
 				// If the field group doesn't exist on the target site (or ACF can't
 				// resolve the field by name), update_field() can fail and write nothing.
 				// Fall back to raw meta so the data isn't silently lost.
@@ -1179,9 +1224,9 @@ class Post_Importer extends Abstract_Importer {
 				}
 			} else {
 				if ( is_array( $raw_meta_backup ) && array_key_exists( $key, $raw_meta_backup ) ) {
-					update_post_meta( $post_id, $key, $raw_meta_backup[ $key ] );
+					$this->update_imported_post_meta( $post_id, (string) $key, $raw_meta_backup[ $key ] );
 				} else {
-					update_post_meta( $post_id, $key, $value );
+					$this->update_imported_post_meta( $post_id, (string) $key, $value );
 				}
 
 				// If this looks like an ACF nested meta key (repeater/flexible row meta),
@@ -1202,6 +1247,85 @@ class Post_Importer extends Abstract_Importer {
 				}
 			}
 		}
+
+		$this->normalize_single_value_import_meta( (int) $post_id );
+	}
+
+	/**
+	 * Update imported post meta while keeping known scalar SEO/template keys single-valued.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $key     Meta key.
+	 * @param mixed  $value   Meta value.
+	 * @return void
+	 */
+	private function update_imported_post_meta( int $post_id, string $key, $value ): void {
+		if ( $this->is_single_value_import_meta_key( $key ) ) {
+			delete_post_meta( $post_id, $key );
+		}
+
+		update_post_meta( $post_id, $key, $value );
+	}
+
+	/**
+	 * Meta keys that should never accumulate duplicate rows during import updates.
+	 *
+	 * @param string $key Meta key.
+	 * @return bool
+	 */
+	private function is_single_value_import_meta_key( string $key ): bool {
+		if ( '_wp_page_template' === $key ) {
+			return true;
+		}
+
+		if ( 0 === strpos( $key, '_yoast_wpseo_' ) ) {
+			return true;
+		}
+
+		if ( 0 === strpos( $key, 'rank_math_' ) ) {
+			return 0 !== strpos( $key, 'rank_math_schema_' ) && 0 !== strpos( $key, 'rank_math_shortcode_schema_' );
+		}
+
+		return false;
+	}
+
+	/**
+	 * Collapse duplicate rows for scalar SEO/template meta after all import hooks ran.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return void
+	 */
+	private function normalize_single_value_import_meta( int $post_id ): void {
+		$all_meta = get_post_meta( $post_id );
+		if ( ! is_array( $all_meta ) ) {
+			return;
+		}
+
+		foreach ( $all_meta as $key => $values ) {
+			if ( ! is_string( $key ) || ! $this->is_single_value_import_meta_key( $key ) || ! is_array( $values ) || count( $values ) <= 1 ) {
+				continue;
+			}
+
+			$value = reset( $values );
+			delete_post_meta( $post_id, $key );
+			update_post_meta( $post_id, $key, maybe_unserialize( $value ) );
+		}
+	}
+
+	/**
+	 * Detect the portable ACF JSON wrapper used by exports.
+	 *
+	 * @param string $value Meta value.
+	 * @return bool
+	 */
+	private function is_portable_acf_json( $value ) {
+		$trimmed = ltrim( (string) $value );
+		if ( '' === $trimmed || '{' !== $trimmed[0] ) {
+			return false;
+		}
+
+		$decoded = json_decode( $trimmed, true );
+		return is_array( $decoded ) && isset( $decoded['acf_type'] );
 	}
 
 	/**
@@ -1283,7 +1407,7 @@ class Post_Importer extends Abstract_Importer {
 		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
 		$ext  = strtolower( (string) pathinfo( $path, PATHINFO_EXTENSION ) );
 
-		return in_array( $ext, [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'pdf', 'mp4', 'webm' ], true );
+		return in_array( $ext, [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp3', 'm4a', 'ogg', 'wav', 'mp4', 'm4v', 'webm', 'ogv', 'flv', 'mov', 'avi', 'wmv', 'zip' ], true );
 	}
 
 	/**
@@ -1406,19 +1530,50 @@ class Post_Importer extends Abstract_Importer {
 					return $ids;
 
 				case 'taxonomy':
-					// Array of term names → find or create terms, return IDs.
+					// Array of term names/descriptors → find or create terms, return IDs.
 					$taxonomy = $value['taxonomy'] ?? '';
 					$ids      = [];
-					foreach ( $values as $name ) {
-						$name = trim( (string) $name );
+					foreach ( $values as $entry ) {
+						$name           = '';
+						$slug           = '';
+						$entry_taxonomy = $taxonomy;
+						$parent_id      = 0;
+						if ( is_array( $entry ) ) {
+							$name           = trim( (string) ( $entry['name'] ?? '' ) );
+							$slug           = sanitize_title( (string) ( $entry['slug'] ?? '' ) );
+							$entry_taxonomy = ! empty( $entry['taxonomy'] ) ? (string) $entry['taxonomy'] : $entry_taxonomy;
+							if ( $entry_taxonomy && ( ! empty( $entry['parent_slug'] ) || ! empty( $entry['parent_name'] ) ) ) {
+								$parent = ! empty( $entry['parent_slug'] ) ? get_term_by( 'slug', sanitize_title( (string) $entry['parent_slug'] ), $entry_taxonomy ) : false;
+								if ( ! $parent && ! empty( $entry['parent_name'] ) ) {
+									$parent = get_term_by( 'name', (string) $entry['parent_name'], $entry_taxonomy );
+								}
+								if ( ! $parent && ! empty( $entry['parent_name'] ) ) {
+									$parent_args = ! empty( $entry['parent_slug'] ) ? [ 'slug' => sanitize_title( (string) $entry['parent_slug'] ) ] : [];
+									$result      = wp_insert_term( (string) $entry['parent_name'], $entry_taxonomy, $parent_args );
+									$parent      = ! is_wp_error( $result ) ? get_term( $result['term_id'] ) : null;
+								}
+								if ( $parent && ! is_wp_error( $parent ) ) {
+									$parent_id = (int) $parent->term_id;
+								}
+							}
+						} else {
+							$name = trim( (string) $entry );
+						}
 						if ( '' === $name ) {
 							continue;
 						}
 						// Search across all taxonomies if none specified
-						if ( $taxonomy ) {
-							$term = get_term_by( 'name', $name, $taxonomy );
+						if ( $entry_taxonomy ) {
+							$term = $slug ? get_term_by( 'slug', $slug, $entry_taxonomy ) : false;
+							if ( ! $term && '' === $slug ) {
+								$term = get_term_by( 'name', $name, $entry_taxonomy );
+							}
 							if ( ! $term ) {
-								$result = wp_insert_term( $name, $taxonomy );
+								$args = $slug ? [ 'slug' => $slug ] : [];
+								if ( $parent_id > 0 ) {
+									$args['parent'] = $parent_id;
+								}
+								$result = wp_insert_term( $name, $entry_taxonomy, $args );
 								$term   = ! is_wp_error( $result ) ? get_term( $result['term_id'] ) : null;
 							}
 						} else {
@@ -1578,8 +1733,17 @@ class Post_Importer extends Abstract_Importer {
 				}
 
 				$shortcode = (string) ( $payload['shortcode'] ?? '' );
+				$items     = $payload['items'] ?? [];
 				$urls      = $payload['urls'] ?? [];
-				if ( '' === $shortcode || ! is_array( $urls ) ) {
+				if ( empty( $items ) && is_array( $urls ) ) {
+					$items = array_map(
+						static function ( $url ) {
+							return [ 'url' => $url ];
+						},
+						$urls
+					);
+				}
+				if ( '' === $shortcode || ! is_array( $items ) ) {
 					return $m[0] ?? '';
 				}
 
@@ -1589,13 +1753,18 @@ class Post_Importer extends Abstract_Importer {
 				}
 
 				$new_ids = [];
-				foreach ( $urls as $url ) {
+				foreach ( $items as $item ) {
+					$url = is_array( $item ) ? ( $item['url'] ?? '' ) : $item;
 					if ( ! is_string( $url ) || ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
 						continue;
 					}
 					$id = $this->import_media_for_acf( $url, $post_id, $media_duplicate_mode );
 					if ( $id ) {
-						$new_ids[] = (int) $id;
+						$attachment_id = (int) $id;
+						$new_ids[]     = $attachment_id;
+						if ( is_array( $item ) ) {
+							$this->maybe_update_attachment_metadata( $attachment_id, $item );
+						}
 					}
 				}
 
@@ -1611,11 +1780,111 @@ class Post_Importer extends Abstract_Importer {
 					'ids=${1}' . $ids_str . '${1}',
 					$shortcode
 				);
+				if ( is_string( $updated ) && $updated === $shortcode && false === stripos( $shortcode, 'ids=' ) ) {
+					$updated = preg_replace( '/\\]$/', ' ids="' . $ids_str . '"]', $shortcode );
+				}
 
 				return is_string( $updated ) && '' !== $updated ? $updated : $shortcode;
 			},
 			$value
 		);
+	}
+
+	/**
+	 * Import URLs used by audio/video shortcodes and rewrite them to local media URLs.
+	 *
+	 * WordPress supports both `[audio URL]` and `[audio src="URL"]` forms. Raw source-site
+	 * or remote URLs are not portable when media import is enabled, so rewrite them after
+	 * sideloading the file.
+	 *
+	 * @param string $value   Post content.
+	 * @param int    $post_id Attachment parent.
+	 * @return string
+	 */
+	private function resolve_content_media_shortcodes( string $value, int $post_id ): string {
+		if ( ! $this->get_option( 'auto_import_media', false ) || ! preg_match( '/\\[(audio|video)\\b/i', $value ) ) {
+			return $value;
+		}
+
+		$media_duplicate_mode = (string) $this->get_option( 'media_duplicate_mode', 'skip' );
+
+		return preg_replace_callback(
+			'/\\[(audio|video)\\b([^\\]]*)\\]/i',
+			function ( array $m ) use ( $post_id, $media_duplicate_mode ) {
+				$tag   = strtolower( (string) ( $m[1] ?? '' ) );
+				$attrs = (string) ( $m[2] ?? '' );
+				if ( '' === $tag || '' === $attrs ) {
+					return $m[0] ?? '';
+				}
+
+				$replace_url = function ( string $url ) use ( $post_id, $media_duplicate_mode ) {
+					if ( ! filter_var( $url, FILTER_VALIDATE_URL ) || ! $this->looks_like_downloadable_media_url( $url ) ) {
+						return $url;
+					}
+					$attachment_id = $this->import_media_for_acf( $url, $post_id, $media_duplicate_mode );
+					if ( ! $attachment_id ) {
+						return $url;
+					}
+					$local_url = wp_get_attachment_url( (int) $attachment_id );
+					return $local_url ? $local_url : $url;
+				};
+
+				$updated = preg_replace_callback(
+					"/\\b(src|mp3|m4a|ogg|wav|mp4|m4v|webm|ogv|flv)=([\"'])(https?:\\/\\/[^\"']+)\\2/i",
+					function ( array $attr ) use ( $replace_url ) {
+						return $attr[1] . '=' . $attr[2] . esc_url_raw( $replace_url( (string) $attr[3] ) ) . $attr[2];
+					},
+					$attrs
+				);
+
+				if ( is_string( $updated ) && $updated === $attrs && preg_match( '/^\\s+(https?:\\/\\/\\S+)\\s*$/', $attrs, $url_match ) ) {
+					$updated = ' src="' . esc_url_raw( $replace_url( (string) $url_match[1] ) ) . '"';
+				}
+
+				return '[' . $tag . ( is_string( $updated ) ? $updated : $attrs ) . ']';
+			},
+			$value
+		);
+	}
+
+	/**
+	 * Update imported attachment display metadata when portable media data includes it.
+	 *
+	 * @param int   $attachment_id Attachment ID.
+	 * @param array $item          Portable attachment metadata.
+	 * @return void
+	 */
+	private function maybe_update_attachment_metadata( int $attachment_id, array $item ): void {
+		$update = [ 'ID' => $attachment_id ];
+		$dirty  = false;
+
+		if ( array_key_exists( 'title', $item ) ) {
+			$update['post_title'] = (string) $item['title'];
+			$dirty                = true;
+		}
+
+		if ( array_key_exists( 'caption', $item ) ) {
+			$update['post_excerpt'] = (string) $item['caption'];
+			$dirty                  = true;
+		}
+
+		if ( array_key_exists( 'description', $item ) ) {
+			$update['post_content'] = (string) $item['description'];
+			$dirty                  = true;
+		}
+
+		if ( array_key_exists( 'menu_order', $item ) ) {
+			$update['menu_order'] = (int) $item['menu_order'];
+			$dirty                = true;
+		}
+
+		if ( $dirty ) {
+			wp_update_post( wp_slash( $update ) );
+		}
+
+		if ( array_key_exists( 'alt', $item ) ) {
+			update_post_meta( $attachment_id, '_wp_attachment_image_alt', sanitize_text_field( (string) $item['alt'] ) );
+		}
 	}
 
 		/**
@@ -2024,7 +2293,7 @@ class Post_Importer extends Abstract_Importer {
 			//
 			// This is especially important for fields like post_object/user where the
 			// importer must look up local IDs by slug/login.
-			if ( is_string( $meta_value ) && '' !== $meta_value && in_array( $field_type, [ 'post_object', 'relationship', 'taxonomy', 'user', 'checkbox', 'google_map', 'gallery' ], true ) ) {
+			if ( is_string( $meta_value ) && '' !== $meta_value && in_array( $field_type, [ 'post_object', 'page_link', 'relationship', 'taxonomy', 'user', 'checkbox', 'google_map', 'gallery' ], true ) ) {
 				$resolved = $this->resolve_acf_meta_value( $meta_value, $post_id );
 				if ( $resolved !== $meta_value ) {
 					$acf_key = is_array( $field_object ) && ! empty( $field_object['key'] ) ? (string) $field_object['key'] : '';
@@ -2525,6 +2794,39 @@ class Post_Importer extends Abstract_Importer {
 		foreach ( $url_mapping as $old_url => $new_data ) {
 			$new_url = $new_data['url'];
 			$new_id  = $new_data['id'];
+
+			if ( is_numeric( $new_id ) && (int) $new_id > 0 ) {
+				$new_id             = (int) $new_id;
+					$attachment_url = wp_get_attachment_url( $new_id );
+					$quoted_old     = preg_quote( (string) $old_url, '/' );
+
+				// Gutenberg image blocks store the attachment ID in the block comment
+				// and the same ID again in `wp-image-*` classes. The URL lives in the
+				// rendered HTML portion of the block, so replace IDs in the block segment
+				// that contains the source URL before doing the global URL swap below.
+				$content = preg_replace_callback(
+					'/<!-- wp:(image|media-text|cover)\\b[\\s\\S]*?<!-- \\/wp:\\1 -->/i',
+					function ( array $m ) use ( $old_url, $new_id ) {
+						$block = $m[0];
+						if ( false === strpos( $block, (string) $old_url ) ) {
+							return $block;
+						}
+						$block = preg_replace( '/"id"\\s*:\\s*\\d+/', '"id":' . $new_id, $block );
+						$block = preg_replace( '/"mediaId"\\s*:\\s*\\d+/', '"mediaId":' . $new_id, $block );
+						$block = preg_replace( '/wp-image-\\d+/', 'wp-image-' . $new_id, $block );
+						return $block;
+					},
+					$content
+				);
+
+				// Older gallery markup may not wrap each image in a full block segment.
+				// When the img src is present, still update the adjacent wp-image class.
+				$content = preg_replace(
+					'/(<img\\b(?=[^>]*' . $quoted_old . ')[^>]*class=(["\'])(?:(?!\\2).)*?)wp-image-\\d+/i',
+					'${1}wp-image-' . $new_id,
+					$content
+				);
+			}
 
 			// Replace direct URL occurrences
 			$content = str_replace( $old_url, $new_url, $content );

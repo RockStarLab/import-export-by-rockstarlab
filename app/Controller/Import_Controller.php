@@ -128,7 +128,7 @@ class Import_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		$validation = $this->validate_required_params( [ 'file_path', 'import_type', 'mapping' ] );
+		$validation = $this->validate_required_params( [ 'file_path', 'import_type' ] );
 		if ( is_wp_error( $validation ) ) {
 			$this->send_error( $validation, null, 400 );
 		}
@@ -136,9 +136,19 @@ class Import_Controller extends Base_Controller {
 		$file_path   = $this->get_request_param( 'file_path' );
 		$import_type = $this->get_request_param( 'import_type' );
 		$mapping     = $this->get_request_array( 'mapping' );
-		$format      = $this->get_request_param( 'format', 'csv' );
-		$delimiter   = $this->get_request_param( 'delimiter', ',' );
-		$file_path   = $this->validate_import_file_path( $file_path, $format );
+		if ( empty( $mapping ) ) {
+			$this->send_error(
+				new \WP_Error(
+					'missing_parameters',
+					__( 'Missing required parameters: mapping', 'import-export-by-rockstarlab' )
+				),
+				null,
+				400
+			);
+		}
+		$format    = $this->get_request_param( 'format', 'csv' );
+		$delimiter = $this->get_request_param( 'delimiter', ',' );
+		$file_path = $this->validate_import_file_path( $file_path, $format );
 		if ( is_wp_error( $file_path ) ) {
 			$this->send_error( $file_path, null, 400 );
 		}
@@ -187,7 +197,7 @@ class Import_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		$validation = $this->validate_required_params( [ 'file_path', 'import_type', 'mapping' ] );
+		$validation = $this->validate_required_params( [ 'file_path', 'import_type' ] );
 		if ( is_wp_error( $validation ) ) {
 			$this->send_error( $validation, null, 400 );
 		}
@@ -195,10 +205,20 @@ class Import_Controller extends Base_Controller {
 		$file_path   = $this->get_request_param( 'file_path' );
 		$import_type = $this->get_request_param( 'import_type' );
 		$mapping     = $this->get_request_array( 'mapping' );
-		$options     = $this->normalize_post_options( $import_type, $this->get_request_array( 'options' ) );
-		$format      = $this->get_request_param( 'format', 'csv' );
-		$delimiter   = $this->get_request_param( 'delimiter', ',' );
-		$file_path   = $this->validate_import_file_path( $file_path, $format );
+		if ( empty( $mapping ) ) {
+			$this->send_error(
+				new \WP_Error(
+					'missing_parameters',
+					__( 'Missing required parameters: mapping', 'import-export-by-rockstarlab' )
+				),
+				null,
+				400
+			);
+		}
+		$options   = $this->normalize_post_options( $import_type, $this->get_request_array( 'options' ) );
+		$format    = $this->get_request_param( 'format', 'csv' );
+		$delimiter = $this->get_request_param( 'delimiter', ',' );
+		$file_path = $this->validate_import_file_path( $file_path, $format );
 		if ( is_wp_error( $file_path ) ) {
 			$this->send_error( $file_path, null, 400 );
 		}
