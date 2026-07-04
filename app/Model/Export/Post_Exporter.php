@@ -2041,6 +2041,9 @@ class Post_Exporter extends Abstract_Exporter {
 				$data[ $field ] = $post->$field;
 			}
 		}
+		if ( isset( $data['post_content'] ) && is_string( $data['post_content'] ) ) {
+			$data['post_content'] = $this->acf_export_string_with_gallery_tokens( $data['post_content'], (int) $post->ID );
+		}
 
 		// Author fields
 		if ( in_array( 'author_name', $fields, true ) ) {
@@ -3309,21 +3312,25 @@ class Post_Exporter extends Abstract_Exporter {
 	 *  - acf_type: "gallery_shortcode"
 	 *  - shortcode: original matched shortcode string
 	 *  - urls: list of attachment URLs
+	 *  - items: list of attachment URLs and display metadata
 	 *
 	 * @param string $value String that may contain gallery shortcodes.
 	 * @return string
 	 */
-	private function acf_export_string_with_gallery_tokens( string $value ): string {
+	private function acf_export_string_with_gallery_tokens( string $value, int $post_id = 0 ): string {
 		if ( false === stripos( $value, '[gallery' ) ) {
 			return $value;
 		}
 
-		$pattern = '/\\[gallery\\b[^\\]]*\\bids=(["\'])([^"\']+)\\1[^\\]]*\\]/i';
+		$pattern = '/\\[gallery\\b[^\\]]*\\]/i';
 		return preg_replace_callback(
 			$pattern,
-			function ( array $m ) {
+			function ( array $m ) use ( $post_id ) {
 				$shortcode = $m[0] ?? '';
-				$ids_raw   = $m[2] ?? '';
+				$ids_raw   = '';
+				if ( preg_match( '/\\bids=(["\'])([^"\']+)\\1/i', $shortcode, $ids_match ) ) {
+					$ids_raw = $ids_match[2] ?? '';
+				}
 
 				$ids = array_filter(
 					array_map(
@@ -3332,15 +3339,37 @@ class Post_Exporter extends Abstract_Exporter {
 					),
 					fn( $x ) => '' !== $x
 				);
+				if ( empty( $ids ) && $post_id > 0 ) {
+					$ids = get_children(
+						[
+							'post_parent'    => $post_id,
+							'post_type'      => 'attachment',
+							'post_mime_type' => 'image',
+							'fields'         => 'ids',
+							'orderby'        => 'menu_order ID',
+							'order'          => 'ASC',
+						]
+					);
+				}
 
-				$urls = [];
+				$urls  = [];
+				$items = [];
 				foreach ( $ids as $id ) {
 					if ( ! is_numeric( $id ) ) {
 						continue;
 					}
-					$url = wp_get_attachment_url( (int) $id );
+					$attachment_id = (int) $id;
+					$url           = wp_get_attachment_url( $attachment_id );
 					if ( $url ) {
-						$urls[] = $url;
+						$urls[]  = $url;
+						$items[] = [
+							'url'         => $url,
+							'title'       => get_the_title( $attachment_id ),
+							'caption'     => (string) wp_get_attachment_caption( $attachment_id ),
+							'description' => (string) get_post_field( 'post_content', $attachment_id ),
+							'alt'         => (string) get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ),
+							'menu_order'  => (int) get_post_field( 'menu_order', $attachment_id ),
+						];
 					}
 				}
 
@@ -3352,6 +3381,7 @@ class Post_Exporter extends Abstract_Exporter {
 					'acf_type'  => 'gallery_shortcode',
 					'shortcode' => $shortcode,
 					'urls'      => array_values( $urls ),
+					'items'     => array_values( $items ),
 				];
 
 				$json  = wp_json_encode( $payload );
@@ -3412,24 +3442,36 @@ class Post_Exporter extends Abstract_Exporter {
 	}
 
 	/**
-	 * Convert term IDs into term names.
+	 * Convert term IDs into portable term descriptors.
 	 *
 	 * @param array  $ids      Term IDs (may be numeric strings).
 	 * @param string $taxonomy Optional taxonomy hint.
-	 * @return array Term names.
+	 * @return array Term descriptors.
 	 */
 	private function acf_export_term_names_from_ids( array $ids, string $taxonomy = '' ): array {
-		$names = [];
+		$terms = [];
 		foreach ( $ids as $id ) {
 			if ( ! is_numeric( $id ) ) {
 				continue;
 			}
 			$term = $taxonomy ? get_term( (int) $id, $taxonomy ) : get_term( (int) $id );
 			if ( $term && ! is_wp_error( $term ) && ! empty( $term->name ) ) {
-				$names[] = $term->name;
+				$entry = [
+					'name'     => $term->name,
+					'slug'     => $term->slug,
+					'taxonomy' => $term->taxonomy,
+				];
+				if ( ! empty( $term->parent ) ) {
+					$parent = get_term( (int) $term->parent, $term->taxonomy );
+					if ( $parent && ! is_wp_error( $parent ) ) {
+						$entry['parent_name'] = $parent->name;
+						$entry['parent_slug'] = $parent->slug;
+					}
+				}
+				$terms[] = $entry;
 			}
 		}
-		return array_values( array_filter( array_map( 'trim', $names ) ) );
+		return $terms;
 	}
 
 	/**

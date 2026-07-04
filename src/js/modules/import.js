@@ -1726,6 +1726,11 @@ const ImportModule = {
 						type: 'string',
 					},
 					{
+						value: 'post_password',
+						label: 'Post Password',
+						type: 'string',
+					},
+					{
 						value: 'post_modified',
 						label: 'Modified Date',
 						type: 'date',
@@ -2944,6 +2949,11 @@ const ImportModule = {
 						{
 							value: 'ping_status',
 							label: 'Ping Status',
+							type: 'string',
+						},
+						{
+							value: 'post_password',
+							label: 'Post Password',
 							type: 'string',
 						},
 					],

@@ -85,6 +85,41 @@ class Elementor_Fields {
 				'type'  => 'string',
 			],
 			[
+				'name'  => '_elementor_version',
+				'label' => __( 'Elementor Version', 'import-export-by-rockstarlab' ),
+				'type'  => 'string',
+			],
+			[
+				'name'  => '_elementor_pro_version',
+				'label' => __( 'Elementor Pro Version', 'import-export-by-rockstarlab' ),
+				'type'  => 'string',
+			],
+			[
+				'name'  => '_elementor_migrations_state_d2a1',
+				'label' => __( 'Elementor Migrations State', 'import-export-by-rockstarlab' ),
+				'type'  => 'json',
+			],
+			[
+				'name'  => '_elementor_global_class_usage_indexed',
+				'label' => __( 'Elementor Global Class Usage Index', 'import-export-by-rockstarlab' ),
+				'type'  => 'json',
+			],
+			[
+				'name'  => '_elementor_global_class_usage_indexed_preview',
+				'label' => __( 'Elementor Global Class Usage Preview Index', 'import-export-by-rockstarlab' ),
+				'type'  => 'json',
+			],
+			[
+				'name'  => '_elementor_used_global_class',
+				'label' => __( 'Elementor Used Global Classes', 'import-export-by-rockstarlab' ),
+				'type'  => 'json',
+			],
+			[
+				'name'  => '_elementor_used_global_class_preview',
+				'label' => __( 'Elementor Used Global Classes Preview', 'import-export-by-rockstarlab' ),
+				'type'  => 'json',
+			],
+			[
 				'name'  => '_wp_page_template',
 				'label' => __( 'Page Template', 'import-export-by-rockstarlab' ),
 				'type'  => 'string',
@@ -109,7 +144,16 @@ class Elementor_Fields {
 	 * @return bool
 	 */
 	public static function is_generated_cache_key( $key ) {
-		return in_array( (string) $key, [ '_elementor_css' ], true );
+		return in_array(
+			(string) $key,
+			[
+				'_elementor_css',
+				'_elementor_element_cache',
+				'_elementor_page_assets',
+				'_elementor_controls_usage',
+			],
+			true
+		);
 	}
 
 	/**
@@ -280,6 +324,9 @@ class Elementor_Fields {
 	private static function prepare_nested_value_for_import( $post_id, $value ) {
 		if ( is_string( $value ) ) {
 			$trimmed = trim( $value );
+			if ( self::is_local_wp_asset_url( $trimmed ) ) {
+				return self::replace_local_url_host( $trimmed );
+			}
 			if ( self::looks_like_media_url( $trimmed ) ) {
 				$attachment_id = self::import_media_from_url( $trimmed, $post_id );
 				if ( $attachment_id > 0 ) {
@@ -295,6 +342,10 @@ class Elementor_Fields {
 		}
 
 		if ( isset( $value['url'] ) && is_string( $value['url'] ) && self::looks_like_media_url( $value['url'] ) ) {
+			if ( self::is_local_wp_asset_url( $value['url'] ) ) {
+				$value['url'] = self::replace_local_url_host( $value['url'] );
+				return $value;
+			}
 			$attachment_id = self::import_media_from_url( $value['url'], $post_id );
 			if ( $attachment_id > 0 ) {
 				$url = wp_get_attachment_url( $attachment_id );
@@ -304,6 +355,27 @@ class Elementor_Fields {
 				if ( isset( $value['id'] ) ) {
 					$value['id'] = $attachment_id;
 				}
+			}
+		}
+
+		if (
+			isset( $value['id'], $value['url'] ) &&
+			is_array( $value['url'] ) &&
+			isset( $value['url']['value'] ) &&
+			is_string( $value['url']['value'] ) &&
+			self::looks_like_media_url( $value['url']['value'] )
+		) {
+			if ( self::is_local_wp_asset_url( $value['url']['value'] ) ) {
+				$value['url']['value'] = self::replace_local_url_host( $value['url']['value'] );
+				return $value;
+			}
+			$attachment_id = self::import_media_from_url( $value['url']['value'], $post_id );
+			if ( $attachment_id > 0 ) {
+				$url = wp_get_attachment_url( $attachment_id );
+				if ( $url ) {
+					$value['url']['value'] = $url;
+				}
+				$value['id'] = $attachment_id;
 			}
 		}
 
@@ -332,6 +404,11 @@ class Elementor_Fields {
 			return (int) $existing_id;
 		}
 
+		$existing_by_source = self::find_attachment_by_source_url( $url );
+		if ( $existing_by_source > 0 ) {
+			return $existing_by_source;
+		}
+
 		$filename = wp_basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
 		if ( '' !== $filename ) {
 			$existing_by_name = self::find_attachment_by_filename( $filename );
@@ -344,7 +421,7 @@ class Elementor_Fields {
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 
-		$tmp = download_url( $url );
+		$tmp = self::download_media_url_to_temp_file( $url );
 		if ( is_wp_error( $tmp ) ) {
 			return 0;
 		}
@@ -371,6 +448,52 @@ class Elementor_Fields {
 	}
 
 	/**
+	 * Download a media URL to a temporary file.
+	 *
+	 * WordPress' download_url() uses safe HTTP validation and can reject local
+	 * development hosts such as *.local even when wp_remote_get() can fetch them.
+	 *
+	 * @param string $url Media URL.
+	 * @return string|\WP_Error Temporary filename or error.
+	 */
+	private static function download_media_url_to_temp_file( $url ) {
+		$tmp = download_url( $url );
+		if ( ! is_wp_error( $tmp ) ) {
+			return $tmp;
+		}
+
+		$response = wp_remote_get(
+			$url,
+			[
+				'timeout'            => 30,
+				'redirection'        => 5,
+				'reject_unsafe_urls' => false,
+			]
+		);
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		$body = wp_remote_retrieve_body( $response );
+		if ( $code < 200 || $code >= 300 || '' === $body ) {
+			return new \WP_Error( 'rsl_ie_media_download_failed', __( 'Could not download media URL.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$tmp = wp_tempnam( $url );
+		if ( ! $tmp ) {
+			return new \WP_Error( 'rsl_ie_media_temp_failed', __( 'Could not create temporary media file.', 'import-export-by-rockstarlab' ) );
+		}
+
+		if ( false === file_put_contents( $tmp, $body ) ) {
+			wp_delete_file( $tmp );
+			return new \WP_Error( 'rsl_ie_media_temp_write_failed', __( 'Could not write temporary media file.', 'import-export-by-rockstarlab' ) );
+		}
+
+		return $tmp;
+	}
+
+	/**
 	 * Find an existing attachment by filename.
 	 *
 	 * @param string $filename Filename.
@@ -386,8 +509,33 @@ class Elementor_Fields {
 
 		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Attachment lookup by stored file path is needed for media reuse.
 			$wpdb->prepare(
-				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND meta_value LIKE %s LIMIT 1",
-				'%' . $wpdb->esc_like( $filename )
+				"SELECT post_id
+				 FROM {$wpdb->postmeta}
+				 WHERE meta_key = '_wp_attached_file'
+				   AND (meta_value = %s OR meta_value LIKE %s)
+				 LIMIT 1",
+				$filename,
+				'%/' . $wpdb->esc_like( $filename )
+			)
+		);
+
+		return $attachment_id ? absint( $attachment_id ) : 0;
+	}
+
+	/**
+	 * Find an attachment previously imported from the same source URL.
+	 *
+	 * @param string $url Source URL.
+	 * @return int
+	 */
+	private static function find_attachment_by_source_url( $url ) {
+		global $wpdb;
+
+		$hash          = md5( esc_url_raw( (string) $url ) );
+		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Exact source URL hash lookup avoids duplicate sideloads.
+			$wpdb->prepare(
+				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = 'rsl_ie_source_url_hash' AND meta_value = %s LIMIT 1",
+				$hash
 			)
 		);
 
@@ -409,6 +557,19 @@ class Elementor_Fields {
 		$ext  = strtolower( (string) pathinfo( $path, PATHINFO_EXTENSION ) );
 
 		return in_array( $ext, [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'pdf', 'mp4', 'webm' ], true );
+	}
+
+	private static function is_local_wp_asset_url( $url ) {
+		$path = (string) wp_parse_url( (string) $url, PHP_URL_PATH );
+		return false !== strpos( $path, '/wp-content/plugins/' ) || false !== strpos( $path, '/wp-content/themes/' );
+	}
+
+	private static function replace_local_url_host( $url ) {
+		$path = (string) wp_parse_url( (string) $url, PHP_URL_PATH );
+		if ( '' === $path ) {
+			return $url;
+		}
+		return home_url( $path );
 	}
 
 	/**
