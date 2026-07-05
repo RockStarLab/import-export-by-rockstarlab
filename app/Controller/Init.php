@@ -564,6 +564,7 @@ class Init {
 
 					// Export Step 3
 					'assignFunctionsTitle'              => __( 'Assign transformations', 'import-export-by-rockstarlab' ),
+					'addFunction'                       => __( 'Assign function', 'import-export-by-rockstarlab' ),
 					'remove'                            => __( 'Remove', 'import-export-by-rockstarlab' ),
 					'functions'                         => __( 'transformation(s)', 'import-export-by-rockstarlab' ),
 					'enterColumnName'                   => __( 'Enter column name:', 'import-export-by-rockstarlab' ),

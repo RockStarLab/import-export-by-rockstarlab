@@ -2064,11 +2064,13 @@ export default class ExportStep3 {
 					<span class="rsl-ie-function-list-desc">${ this.escapeHtml(
 						func.description || ''
 					) }</span>
-				</div>
-				<button type="button" class="button button-small">${
-					window.rslIeData.i18n.add
-				}</button>
-			`;
+					</div>
+					<button type="button" class="button button-small">${
+						window.rslIeData.i18n.addFunction ||
+						window.rslIeData.i18n.add ||
+						'Assign function'
+					}</button>
+				`;
 
 			item.querySelector( 'button' ).addEventListener( 'click', () => {
 				this.addFunctionToPipeline( func );
