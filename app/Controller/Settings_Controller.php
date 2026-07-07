@@ -51,11 +51,15 @@ class Settings_Controller extends Base_Controller {
 		$submitted_key = trim( (string) $this->get_request_param( 'api_key', '' ) );
 		$api_key       = false === strpos( $submitted_key, '...' ) ? $submitted_key : '';
 		if ( '' === $api_key ) {
-			$api_key = \RockStarLab\ImportExport\Helper\OpenAI_API_Key::get_api_key();
-		}
+			$extractor = new \RockStarLab\ImportExport\Helper\AI_Content_Extractor();
+			$result    = $extractor->test_connection();
 
-		if ( '' === $api_key ) {
-			$this->send_error( __( 'No OpenAI API key is configured.', 'import-export-by-rockstarlab' ), null, 400 );
+			if ( is_wp_error( $result ) ) {
+				$this->send_error( $result->get_error_message(), null, 400 );
+			}
+
+			$this->send_success( [ 'message' => __( 'Connection successful', 'import-export-by-rockstarlab' ) ] );
+			return;
 		}
 
 		$response = wp_remote_get(
@@ -97,6 +101,16 @@ class Settings_Controller extends Base_Controller {
 		// Check permissions
 		if ( ! current_user_can( 'manage_options' ) ) {
 			$this->send_error( __( 'You do not have permission to manage settings', 'import-export-by-rockstarlab' ) );
+		}
+
+		if ( \RockStarLab\ImportExport\Helper\OpenAI_API_Key::is_wp7_plus() ) {
+			delete_option( 'rsl_ie_openai_api_key' );
+			$this->send_success(
+				[
+					'message' => __( 'WordPress AI Client is used on WordPress 7.0 and newer.', 'import-export-by-rockstarlab' ),
+				]
+			);
+			return;
 		}
 
 		$openai_api_key = $this->get_request_param( 'openai_api_key', '' );

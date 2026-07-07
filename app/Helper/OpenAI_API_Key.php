@@ -2,13 +2,11 @@
 /**
  * OpenAI API Key resolver
  *
- * WordPress 7+ provides a Connectors API and a central place to manage AI provider
- * credentials (Settings > Connectors).
+ * WordPress 7+ provides an AI Client and a central place to manage AI provider
+ * credentials. This plugin must not read those connector credentials directly.
  *
- * This helper resolves the OpenAI API key with this priority:
- *  1) WordPress Connectors (WP 7+): env/const/db (OPENAI_API_KEY / connectors_ai_openai_api_key)
- *  2) Plugin option: rsl_ie_openai_api_key
- *  3) Plugin constant: RSL_IE_OPENAI_API_KEY
+ * On WordPress 7.0+, AI requests go through the WordPress AI Client. On older
+ * WordPress versions, this helper may return the plugin-owned API key option.
  *
  * @package RockStarLab\ImportExport\Helper
  */
@@ -31,50 +29,36 @@ class OpenAI_API_Key {
 	}
 
 	/**
-	 * Get OpenAI API key from WordPress Connectors (WP 7+), if configured.
-	 *
-	 * @return string
-	 */
-	public static function get_wp_connector_api_key() {
-		if ( ! self::is_wp7_plus() ) {
-			return '';
-		}
-
-		$env_key = getenv( 'OPENAI_API_KEY' );
-		if ( is_string( $env_key ) && $env_key !== '' ) {
-			return $env_key;
-		}
-
-		if ( defined( 'OPENAI_API_KEY' ) && is_string( OPENAI_API_KEY ) && OPENAI_API_KEY !== '' ) {
-			return OPENAI_API_KEY;
-		}
-
-		$db_key = get_option( 'connectors_ai_openai_api_key', '' );
-		if ( is_string( $db_key ) && $db_key !== '' ) {
-			return $db_key;
-		}
-
-		return '';
-	}
-
-	/**
-	 * Check if WordPress Connectors have an OpenAI key configured.
+	 * Check whether the WordPress AI Client can generate text.
 	 *
 	 * @return bool
 	 */
-	public static function has_wp_connector_api_key() {
-		return self::get_wp_connector_api_key() !== '';
+	public static function has_wp_ai_client() {
+		if ( ! function_exists( 'wp_ai_client_prompt' ) ) {
+			return false;
+		}
+
+		$builder = call_user_func( 'wp_ai_client_prompt', 'test' );
+
+		if ( method_exists( $builder, 'using_model_preference' ) ) {
+			$builder = $builder->using_model_preference( 'gpt-4.1-mini', 'gpt-4o-mini', 'gpt-4o' );
+		}
+
+		if ( method_exists( $builder, 'is_supported_for_text_generation' ) ) {
+			return (bool) $builder->is_supported_for_text_generation();
+		}
+
+		return true;
 	}
 
 	/**
-	 * Get OpenAI API key for this plugin.
+	 * Get an OpenAI API key explicitly configured for this plugin.
 	 *
 	 * @return string
 	 */
 	public static function get_api_key() {
-		$connector_key = self::get_wp_connector_api_key();
-		if ( $connector_key !== '' ) {
-			return $connector_key;
+		if ( self::is_wp7_plus() ) {
+			return '';
 		}
 
 		$plugin_key = get_option( 'rsl_ie_openai_api_key', '' );
@@ -82,19 +66,19 @@ class OpenAI_API_Key {
 			return $plugin_key;
 		}
 
-		if ( defined( 'RSL_IE_OPENAI_API_KEY' ) && is_string( RSL_IE_OPENAI_API_KEY ) && RSL_IE_OPENAI_API_KEY !== '' ) {
-			return RSL_IE_OPENAI_API_KEY;
-		}
-
 		return '';
 	}
 
 	/**
-	 * Check if any OpenAI API key is available to the plugin.
+	 * Check if AI is available through this plugin's key or WordPress AI Client.
 	 *
 	 * @return bool
 	 */
 	public static function has_api_key() {
+		if ( self::is_wp7_plus() ) {
+			return self::has_wp_ai_client();
+		}
+
 		return self::get_api_key() !== '';
 	}
 }

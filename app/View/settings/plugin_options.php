@@ -12,16 +12,10 @@ use RockStarLab\ImportExport\Helper\OpenAI_API_Key;
 // Get current settings
 $rsl_ie_openai_api_key = get_option( 'rsl_ie_openai_api_key', '' );
 
-$rsl_ie_constant_key_value = '';
-if ( defined( 'RSL_IE_OPENAI_API_KEY' ) && ! empty( RSL_IE_OPENAI_API_KEY ) ) {
-	$rsl_ie_constant_key_value = RSL_IE_OPENAI_API_KEY;
-}
-
-$rsl_ie_has_constant_key = ! empty( $rsl_ie_constant_key_value );
-
-// WP 7+ Connectors API: OpenAI connector configured.
-$rsl_ie_has_wp_connector_key = OpenAI_API_Key::has_wp_connector_api_key();
-$rsl_ie_has_any_openai_key   = OpenAI_API_Key::has_api_key();
+// WP 7+ AI Client: text generation provider configured.
+$rsl_ie_is_wp7_plus        = OpenAI_API_Key::is_wp7_plus();
+$rsl_ie_has_wp_ai_client   = OpenAI_API_Key::has_wp_ai_client();
+$rsl_ie_has_any_openai_key = OpenAI_API_Key::has_api_key();
 
 // Mask the API key for display
 $rsl_ie_masked_api_key = '';
@@ -53,18 +47,19 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 				</p>
 			</div>
 
-			<div class="rsl-ie-settings-section-body">
-				<?php if ( $rsl_ie_has_wp_connector_key ) : ?>
+				<div class="rsl-ie-settings-section-body">
+				<?php if ( $rsl_ie_is_wp7_plus ) : ?>
+					<?php if ( $rsl_ie_has_wp_ai_client ) : ?>
 					<div class="rsl-ie-info-box rsl-ie-success">
 						<span class="dashicons dashicons-yes-alt"></span>
 						<div>
-							<strong><?php esc_html_e( 'This site is already integrated with OpenAI', 'import-export-by-rockstarlab' ); ?></strong>
+							<strong><?php esc_html_e( 'This site is already integrated with WordPress AI Client', 'import-export-by-rockstarlab' ); ?></strong>
 							<p>
 								<?php
 								echo wp_kses_post(
 									sprintf(
 										/* translators: %s: URL to WordPress Connectors screen */
-										__( 'OpenAI is configured via WordPress Connectors. Manage the connection in <a href="%s">Settings → Connectors</a>.', 'import-export-by-rockstarlab' ),
+										__( 'AI generation is available through WordPress AI Client. Manage providers in <a href="%s">Settings → Connectors</a>.', 'import-export-by-rockstarlab' ),
 										esc_url( admin_url( 'options-connectors.php' ) )
 									)
 								);
@@ -72,6 +67,28 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 							</p>
 						</div>
 					</div>
+					<?php else : ?>
+					<div class="rsl-ie-info-box rsl-ie-warning">
+						<span class="dashicons dashicons-info"></span>
+						<div>
+							<strong><?php esc_html_e( 'Configure WordPress AI Client', 'import-export-by-rockstarlab' ); ?></strong>
+							<p>
+								<?php
+								echo wp_kses_post(
+									sprintf(
+										/* translators: %s: URL to WordPress Connectors screen */
+										__( 'AI generation on WordPress 7.0+ uses WordPress AI Client. Configure a text-generation provider in <a href="%s">Settings → Connectors</a>.', 'import-export-by-rockstarlab' ),
+										esc_url( admin_url( 'options-connectors.php' ) )
+									)
+								);
+								?>
+							</p>
+							<a href="<?php echo esc_url( admin_url( 'options-connectors.php' ) ); ?>" class="button button-primary">
+								<?php esc_html_e( 'Open Settings → Connectors', 'import-export-by-rockstarlab' ); ?>
+							</a>
+						</div>
+					</div>
+					<?php endif; ?>
 				<?php else : ?>
 				<form id="rsl-ie-settings-form" class="rsl-ie-settings-form">
 					<table class="form-table">
@@ -82,60 +99,41 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 								</label>
 							</th>
 							<td>
-								<?php if ( $rsl_ie_has_constant_key ) : ?>
-									<div class="rsl-ie-info-box rsl-ie-warning">
-										<span class="dashicons dashicons-info"></span>
-										<div>
-											<strong><?php esc_html_e( 'API Key is defined in wp-config.php', 'import-export-by-rockstarlab' ); ?></strong>
-											<p><?php esc_html_e( 'The API key is set via the RSL_IE_OPENAI_API_KEY constant and cannot be changed here. Remove the constant from wp-config.php to manage it through this interface.', 'import-export-by-rockstarlab' ); ?></p>
-										</div>
-									</div>
-									<input 
-										type="text" 
-										id="rsl-ie-openai-api-key" 
-										name="openai_api_key"
-										class="regular-text" 
-										value="<?php echo esc_attr( substr( $rsl_ie_constant_key_value, 0, 7 ) . '...' . substr( $rsl_ie_constant_key_value, -4 ) ); ?>"
-										disabled
-										readonly
-									>
-								<?php else : ?>
-									<input 
-										type="password" 
-										id="rsl-ie-openai-api-key" 
-										name="openai_api_key"
-										class="regular-text" 
-										value="<?php echo esc_attr( $rsl_ie_openai_api_key ); ?>"
-										placeholder="sk-proj-..."
-									>
-									<button type="button" class="button rsl-ie-toggle-password" data-target="rsl-ie-openai-api-key">
-										<span class="dashicons dashicons-visibility"></span>
-									</button>
-									<?php if ( ! empty( $rsl_ie_openai_api_key ) ) : ?>
-										<p class="description">
-											<?php
-											echo esc_html(
-												sprintf(
-													/* translators: %s: masked API key */
-													__( 'Current key: %s', 'import-export-by-rockstarlab' ),
-													$rsl_ie_masked_api_key
-												)
-											);
-											?>
-										</p>
-									<?php endif; ?>
+								<input 
+									type="password" 
+									id="rsl-ie-openai-api-key" 
+									name="openai_api_key"
+									class="regular-text" 
+									value="<?php echo esc_attr( $rsl_ie_openai_api_key ); ?>"
+									placeholder="sk-proj-..."
+								>
+								<button type="button" class="button rsl-ie-toggle-password" data-target="rsl-ie-openai-api-key">
+									<span class="dashicons dashicons-visibility"></span>
+								</button>
+								<?php if ( ! empty( $rsl_ie_openai_api_key ) ) : ?>
 									<p class="description">
 										<?php
-										echo wp_kses_post(
+										echo esc_html(
 											sprintf(
-												/* translators: %s: OpenAI platform URL */
-												__( 'Get your API key from <a href="%s" target="_blank">OpenAI Platform</a>. Required for the AI URL Importer.', 'import-export-by-rockstarlab' ),
-												'https://platform.openai.com/api-keys'
+												/* translators: %s: masked API key */
+												__( 'Current key: %s', 'import-export-by-rockstarlab' ),
+												$rsl_ie_masked_api_key
 											)
 										);
 										?>
 									</p>
 								<?php endif; ?>
+								<p class="description">
+									<?php
+									echo wp_kses_post(
+										sprintf(
+											/* translators: %s: OpenAI platform URL */
+											__( 'Get your API key from <a href="%s" target="_blank">OpenAI Platform</a>. Required for the AI URL Importer on WordPress versions below 7.0.', 'import-export-by-rockstarlab' ),
+											'https://platform.openai.com/api-keys'
+										)
+									);
+									?>
+								</p>
 							</td>
 						</tr>
 
@@ -175,15 +173,13 @@ if ( ! empty( $rsl_ie_openai_api_key ) ) {
 						</tr>
 					</table>
 
-					<?php if ( ! $rsl_ie_has_constant_key ) : ?>
-						<div class="rsl-ie-settings-footer">
-							<button type="submit" class="button button-primary rsl-ie-save-settings">
-								<span class="dashicons dashicons-yes"></span>
-								<?php esc_html_e( 'Save Settings', 'import-export-by-rockstarlab' ); ?>
-							</button>
-							<span class="rsl-ie-settings-status"></span>
-						</div>
-					<?php endif; ?>
+					<div class="rsl-ie-settings-footer">
+						<button type="submit" class="button button-primary rsl-ie-save-settings">
+							<span class="dashicons dashicons-yes"></span>
+							<?php esc_html_e( 'Save Settings', 'import-export-by-rockstarlab' ); ?>
+						</button>
+						<span class="rsl-ie-settings-status"></span>
+					</div>
 				</form>
 				<?php endif; ?>
 			</div>
