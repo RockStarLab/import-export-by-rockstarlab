@@ -659,57 +659,8 @@ class Import_Controller extends Base_Controller {
 			return;
 		}
 
-		// Standard Yoast SEO meta fields
-		$fields = [
-			[
-				'name'  => '_yoast_wpseo_title',
-				'label' => 'SEO Title',
-			],
-			[
-				'name'  => '_yoast_wpseo_metadesc',
-				'label' => 'Meta Description',
-			],
-			[
-				'name'  => '_yoast_wpseo_focuskw',
-				'label' => 'Focus Keyword',
-			],
-			[
-				'name'  => '_yoast_wpseo_canonical',
-				'label' => 'Canonical URL',
-			],
-			[
-				'name'  => '_yoast_wpseo_meta-robots-noindex',
-				'label' => 'Meta Robots (Index)',
-			],
-			[
-				'name'  => '_yoast_wpseo_meta-robots-nofollow',
-				'label' => 'Meta Robots (Follow)',
-			],
-			[
-				'name'  => '_yoast_wpseo_opengraph-title',
-				'label' => 'Social Title',
-			],
-			[
-				'name'  => '_yoast_wpseo_opengraph-description',
-				'label' => 'Social Description',
-			],
-			[
-				'name'  => '_yoast_wpseo_opengraph-image',
-				'label' => 'Social Image',
-			],
-			[
-				'name'  => '_yoast_wpseo_twitter-title',
-				'label' => 'X (Twitter) Title',
-			],
-			[
-				'name'  => '_yoast_wpseo_twitter-description',
-				'label' => 'X (Twitter) Description',
-			],
-			[
-				'name'  => '_yoast_wpseo_twitter-image',
-				'label' => 'X (Twitter) Image',
-			],
-		];
+		$post_type = sanitize_key( (string) $this->get_request_param( 'post_type', '', 'post' ) );
+		$fields    = \RockStarLab\ImportExport\Helper\Seo_Fields::get_yoast_fields( $post_type );
 
 		$this->send_success( [ 'fields' => $fields ] );
 	}

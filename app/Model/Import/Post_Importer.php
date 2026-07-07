@@ -271,7 +271,9 @@ class Post_Importer extends Abstract_Importer {
 
 			$value = $item[ $key ] ?? '';
 			if ( '' === $value || null === $value ) {
-				continue;
+				if ( 0 !== strpos( $key, '_yoast_wpseo_' ) ) {
+					continue;
+				}
 			}
 
 			if ( ! isset( $item['post_meta'][ $key ] ) ) {

@@ -12,6 +12,118 @@ defined( 'ABSPATH' ) || exit;
 class Seo_Fields {
 
 	/**
+	 * Get standard Yoast SEO post meta fields.
+	 *
+	 * @param string $post_type Optional post type used to add primary taxonomy fields.
+	 * @return array<int,array{name:string,label:string,type:string}>
+	 */
+	public static function get_yoast_fields( $post_type = '' ) {
+		$fields = [
+			[
+				'name'  => '_yoast_wpseo_title',
+				'label' => __( 'SEO Title', 'import-export-by-rockstarlab' ),
+				'type'  => 'string',
+			],
+			[
+				'name'  => '_yoast_wpseo_metadesc',
+				'label' => __( 'Meta Description', 'import-export-by-rockstarlab' ),
+				'type'  => 'string',
+			],
+			[
+				'name'  => '_yoast_wpseo_focuskw',
+				'label' => __( 'Focus Keyword', 'import-export-by-rockstarlab' ),
+				'type'  => 'string',
+			],
+			[
+				'name'  => '_yoast_wpseo_canonical',
+				'label' => __( 'Canonical URL', 'import-export-by-rockstarlab' ),
+				'type'  => 'url',
+			],
+			[
+				'name'  => '_yoast_wpseo_meta-robots-noindex',
+				'label' => __( 'Meta Robots (Index)', 'import-export-by-rockstarlab' ),
+				'type'  => 'string',
+			],
+			[
+				'name'  => '_yoast_wpseo_meta-robots-nofollow',
+				'label' => __( 'Meta Robots (Follow)', 'import-export-by-rockstarlab' ),
+				'type'  => 'string',
+			],
+			[
+				'name'  => '_yoast_wpseo_opengraph-title',
+				'label' => __( 'Social Title', 'import-export-by-rockstarlab' ),
+				'type'  => 'string',
+			],
+			[
+				'name'  => '_yoast_wpseo_opengraph-description',
+				'label' => __( 'Social Description', 'import-export-by-rockstarlab' ),
+				'type'  => 'string',
+			],
+			[
+				'name'  => '_yoast_wpseo_opengraph-image',
+				'label' => __( 'Social Image', 'import-export-by-rockstarlab' ),
+				'type'  => 'url',
+			],
+			[
+				'name'  => '_yoast_wpseo_twitter-title',
+				'label' => __( 'X (Twitter) Title', 'import-export-by-rockstarlab' ),
+				'type'  => 'string',
+			],
+			[
+				'name'  => '_yoast_wpseo_twitter-description',
+				'label' => __( 'X (Twitter) Description', 'import-export-by-rockstarlab' ),
+				'type'  => 'string',
+			],
+			[
+				'name'  => '_yoast_wpseo_twitter-image',
+				'label' => __( 'X (Twitter) Image', 'import-export-by-rockstarlab' ),
+				'type'  => 'url',
+			],
+		];
+
+		return array_merge( $fields, self::get_yoast_primary_taxonomy_fields( $post_type ) );
+	}
+
+	/**
+	 * Get Yoast primary term fields for taxonomies attached to a post type.
+	 *
+	 * Yoast stores primary terms as _yoast_wpseo_primary_{taxonomy}.
+	 *
+	 * @param string $post_type Post type.
+	 * @return array<int,array{name:string,label:string,type:string}>
+	 */
+	protected static function get_yoast_primary_taxonomy_fields( $post_type ) {
+		$post_type = sanitize_key( $post_type );
+		if ( '' === $post_type || ! post_type_exists( $post_type ) ) {
+			return [];
+		}
+
+		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
+		if ( empty( $taxonomies ) || ! is_array( $taxonomies ) ) {
+			return [];
+		}
+
+		$fields = [];
+		foreach ( $taxonomies as $taxonomy ) {
+			if ( empty( $taxonomy->name ) || empty( $taxonomy->hierarchical ) ) {
+				continue;
+			}
+
+			$fields[] = [
+				'name'  => '_yoast_wpseo_primary_' . sanitize_key( $taxonomy->name ),
+				'label' => sprintf(
+					/* translators: %s: taxonomy label. */
+					__( 'Primary %s', 'import-export-by-rockstarlab' ),
+					$taxonomy->labels->singular_name ?? $taxonomy->label
+				),
+				'type'  => 'number',
+			];
+		}
+
+		return $fields;
+	}
+
+	/**
 	 * Check whether Rank Math SEO is active.
 	 *
 	 * @return bool

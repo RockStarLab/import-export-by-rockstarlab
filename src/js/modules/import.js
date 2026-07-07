@@ -1079,16 +1079,20 @@ const ImportModule = {
 
 					$select.html( options );
 					$select
-						.off( 'change.rslIeRankMath change.rslIeElementor' )
+						.off(
+							'change.rslIeYoast change.rslIeRankMath change.rslIeElementor'
+						)
 						.on(
-							'change.rslIeRankMath change.rslIeElementor',
+							'change.rslIeYoast change.rslIeRankMath change.rslIeElementor',
 							() => {
+								jQuery( '.rsl-ie-yoast-fields-group' ).remove();
 								jQuery(
 									'.rsl-ie-rank-math-fields-group'
 								).remove();
 								jQuery(
 									'.rsl-ie-elementor-fields-group'
 								).remove();
+								this.loadYoastFields( 'custom_post_types' );
 								this.loadRankMathFields( 'custom_post_types' );
 								this.loadElementorFields( 'custom_post_types' );
 							}
@@ -5232,7 +5236,10 @@ const ImportModule = {
 			data: {
 				action: 'rsl_ie_get_yoast_fields',
 				nonce: rslIeData.nonce,
-				post_type: contentType,
+				post_type:
+					contentType === 'custom_post_types'
+						? jQuery( '#rsl-ie-custom-post-type' ).val() || ''
+						: contentType,
 			},
 			success: ( response ) => {
 				if (

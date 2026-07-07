@@ -3667,6 +3667,10 @@ class Post_Exporter extends Abstract_Exporter {
 
 			if ( ! empty( $menu_items ) ) {
 				foreach ( $menu_items as $item ) {
+					if ( ! $this->is_valid_menu_item_for_export( $item ) ) {
+						continue;
+					}
+
 					$item_data = [
 						'ID'               => $item->ID,
 						'title'            => $item->title,
@@ -3715,6 +3719,37 @@ class Post_Exporter extends Abstract_Exporter {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Check whether a menu item still points to a valid object.
+	 *
+	 * WordPress can leave orphaned nav menu items behind after posts or terms are
+	 * deleted. Those entries are not visible as real menu choices, so exporting
+	 * them creates extra broken links on import.
+	 *
+	 * @param object $item Menu item object.
+	 * @return bool
+	 */
+	protected function is_valid_menu_item_for_export( $item ) {
+		if ( empty( $item ) || empty( $item->type ) ) {
+			return false;
+		}
+
+		if ( 'post_type' === $item->type ) {
+			return ! empty( $item->object_id ) && null !== get_post( (int) $item->object_id );
+		}
+
+		if ( 'taxonomy' === $item->type ) {
+			if ( empty( $item->object_id ) || empty( $item->object ) ) {
+				return false;
+			}
+
+			$term = get_term( (int) $item->object_id, $item->object );
+			return $term && ! is_wp_error( $term );
+		}
+
+		return true;
 	}
 
 	/**
