@@ -66,12 +66,46 @@ class AI_Content_Extractor {
 	 */
 	public function test_connection() {
 		if ( empty( $this->api_key ) ) {
+			return $this->test_wp_ai_client_connection();
+		}
+
+		return $this->test_direct_openai_connection();
+	}
+
+	/**
+	 * Test the WordPress AI Client without reading provider credentials.
+	 *
+	 * @return string|\WP_Error Model/client label or error.
+	 */
+	private function test_wp_ai_client_connection() {
+		if ( ! OpenAI_API_Key::has_wp_ai_client() ) {
 			return new \WP_Error(
 				'no_api_key',
-				__( 'OpenAI API key is not set', 'import-export-by-rockstarlab' )
+				__( 'No AI provider is configured. Configure WordPress AI Client or add a plugin API key.', 'import-export-by-rockstarlab' )
 			);
 		}
 
+		$result = $this->generate_text_with_wp_ai_client(
+			'Reply with OK.',
+			'You are testing an AI connection. Return only OK.',
+			null,
+			20,
+			0
+		);
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return __( 'WordPress AI Client', 'import-export-by-rockstarlab' );
+	}
+
+	/**
+	 * Test the plugin-owned OpenAI API key.
+	 *
+	 * @return string|\WP_Error Model name or error.
+	 */
+	private function test_direct_openai_connection() {
 		$response = wp_remote_post(
 			$this->api_endpoint,
 			array(
@@ -120,10 +154,10 @@ class AI_Content_Extractor {
 	 * @return array|\\WP_Error Array with title, content, images, or error
 	 */
 	public function extract_from_url( $url, $delay = 0, $mode = 'auto' ) {
-		if ( empty( $this->api_key ) ) {
+		if ( empty( $this->api_key ) && ! OpenAI_API_Key::has_wp_ai_client() ) {
 			return new \WP_Error(
 				'no_api_key',
-				__( 'OpenAI API key is not set', 'import-export-by-rockstarlab' )
+				__( 'No AI provider is configured. Configure WordPress AI Client or add a plugin API key.', 'import-export-by-rockstarlab' )
 			);
 		}
 
@@ -133,7 +167,7 @@ class AI_Content_Extractor {
 		}
 
 		$mode = sanitize_key( $mode );
-		if ( 'alternate' !== $mode ) {
+		if ( 'alternate' !== $mode && ! empty( $this->api_key ) ) {
 			$result = $this->extract_content_from_url_with_ai( $url );
 			if ( ! is_wp_error( $result ) && ! empty( $result['content'] ) ) {
 				return $result;
@@ -724,6 +758,10 @@ class AI_Content_Extractor {
 		// Prepare prompt for GPT.
 		$prompt = $this->build_extraction_prompt( $cleaned_html, $url );
 
+		if ( empty( $this->api_key ) ) {
+			return $this->extract_content_with_wp_ai_client( $prompt, $url );
+		}
+
 		// Call OpenAI API.
 		$response = wp_remote_post(
 			$this->api_endpoint,
@@ -789,6 +827,117 @@ class AI_Content_Extractor {
 		}
 
 		return $this->normalize_extraction_result( $content_json, $url, $was_truncated );
+	}
+
+	/**
+	 * Extract content through the WordPress AI Client.
+	 *
+	 * @param string $prompt Prompt text.
+	 * @param string $url    Original URL.
+	 * @return array|\WP_Error Extracted content or error.
+	 */
+	private function extract_content_with_wp_ai_client( $prompt, $url ) {
+		$content = $this->generate_text_with_wp_ai_client(
+			$prompt,
+			'You are a content extraction assistant. Extract article title and COMPLETE main content from HTML, removing sidebars, comments, ads, and navigation. NEVER truncate or shorten the article text. Return valid JSON only.',
+			$this->get_extraction_json_schema(),
+			16000,
+			0.3
+		);
+
+		if ( is_wp_error( $content ) ) {
+			return $content;
+		}
+
+		$content_json = json_decode( $content, true );
+		if ( ! is_array( $content_json ) ) {
+			return new \WP_Error(
+				'invalid_json',
+				__( 'Failed to parse AI response', 'import-export-by-rockstarlab' )
+			);
+		}
+
+		return $this->normalize_extraction_result( $content_json, $url, false );
+	}
+
+	/**
+	 * Generate text through WordPress AI Client without handling provider credentials.
+	 *
+	 * @param string     $prompt             Prompt text.
+	 * @param string     $system_instruction System instruction.
+	 * @param array|null $json_schema        Optional JSON schema.
+	 * @param int|null   $max_tokens         Optional max token count.
+	 * @param float|null $temperature        Optional temperature.
+	 * @return string|\WP_Error Generated text or error.
+	 */
+	private function generate_text_with_wp_ai_client( $prompt, $system_instruction = '', $json_schema = null, $max_tokens = null, $temperature = null ) {
+		if ( ! function_exists( 'wp_ai_client_prompt' ) ) {
+			return new \WP_Error(
+				'ai_client_unavailable',
+				__( 'WordPress AI Client is not available.', 'import-export-by-rockstarlab' )
+			);
+		}
+
+		$builder = call_user_func( 'wp_ai_client_prompt', $prompt );
+
+		if ( '' !== $system_instruction && method_exists( $builder, 'using_system_instruction' ) ) {
+			$builder = $builder->using_system_instruction( $system_instruction );
+		}
+
+		if ( null !== $temperature && method_exists( $builder, 'using_temperature' ) ) {
+			$builder = $builder->using_temperature( $temperature );
+		}
+
+		if ( null !== $max_tokens && method_exists( $builder, 'using_max_tokens' ) ) {
+			$builder = $builder->using_max_tokens( $max_tokens );
+		}
+
+		if ( is_array( $json_schema ) && method_exists( $builder, 'as_json_response' ) ) {
+			$builder = $builder->as_json_response( $json_schema );
+		}
+
+		if ( method_exists( $builder, 'using_model_preference' ) ) {
+			$builder = $builder->using_model_preference( 'gpt-4.1-mini', 'gpt-4o-mini', 'gpt-4o' );
+		}
+
+		if ( method_exists( $builder, 'is_supported_for_text_generation' ) && ! $builder->is_supported_for_text_generation() ) {
+			return new \WP_Error(
+				'ai_client_unsupported',
+				__( 'No configured WordPress AI provider supports text generation.', 'import-export-by-rockstarlab' )
+			);
+		}
+
+		return $builder->generate_text();
+	}
+
+	/**
+	 * JSON schema for AI extraction responses.
+	 *
+	 * @return array
+	 */
+	private function get_extraction_json_schema() {
+		return array(
+			'type'       => 'object',
+			'properties' => array(
+				'title'          => array( 'type' => 'string' ),
+				'content'        => array( 'type' => 'string' ),
+				'excerpt'        => array( 'type' => 'string' ),
+				'images'         => array(
+					'type'  => 'array',
+					'items' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'url'    => array( 'type' => 'string' ),
+							'alt'    => array( 'type' => 'string' ),
+							'width'  => array( 'type' => 'integer' ),
+							'height' => array( 'type' => 'integer' ),
+						),
+					),
+				),
+				'featured_image' => array( 'type' => 'string' ),
+			),
+			'required'   => array( 'title', 'content', 'excerpt' ),
+		);
 	}
 
 	/**
