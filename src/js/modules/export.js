@@ -2846,6 +2846,11 @@ const ExportModule = {
 							type: 'string',
 						},
 						{
+							value: 'roles',
+							label: window.rslIeData.i18n.fieldRoles || 'Roles',
+							type: 'array',
+						},
+						{
 							value: 'capabilities',
 							label: window.rslIeData.i18n.fieldCapabilitiesArray,
 							type: 'array',
@@ -2893,6 +2898,13 @@ const ExportModule = {
 					label: window.rslIeData.i18n.fieldGroupCustomFilters,
 					options: [
 						{
+							value: 'user_meta',
+							label:
+								window.rslIeData.i18n.fieldUserMeta ||
+								'User meta',
+							type: 'object',
+						},
+						{
 							value: '_custom_field',
 							label: window.rslIeData.i18n.fieldCustomFieldMeta,
 							type: 'custom_field',
@@ -2917,6 +2929,26 @@ const ExportModule = {
 							value: 'comment_post_ID',
 							label: window.rslIeData.i18n.fieldPostId,
 							type: 'number',
+						},
+						{
+							value: 'post_permalink',
+							label:
+								window.rslIeData.i18n.fieldPermalink ||
+								'Post permalink',
+							type: 'string',
+						},
+						{
+							value: 'post_type',
+							label:
+								window.rslIeData.i18n.fieldPostType ||
+								'Post type',
+							type: 'string',
+						},
+						{
+							value: 'post_slug',
+							label:
+								window.rslIeData.i18n.fieldSlug || 'Post slug',
+							type: 'string',
 						},
 						{
 							value: 'comment_content',
@@ -2958,6 +2990,19 @@ const ExportModule = {
 							label: window.rslIeData.i18n.fieldAuthorIp,
 							type: 'string',
 						},
+						{
+							value: 'user_id',
+							label:
+								window.rslIeData.i18n.fieldUserId || 'User ID',
+							type: 'number',
+						},
+						{
+							value: 'comment_agent',
+							label:
+								window.rslIeData.i18n.fieldUserAgent ||
+								'User agent',
+							type: 'string',
+						},
 					],
 				},
 				{
@@ -2997,6 +3042,23 @@ const ExportModule = {
 							value: 'comment_karma',
 							label: window.rslIeData.i18n.fieldKarma,
 							type: 'number',
+						},
+					],
+				},
+				{
+					label: window.rslIeData.i18n.fieldGroupCustomFilters,
+					options: [
+						{
+							value: 'comment_meta',
+							label:
+								window.rslIeData.i18n.fieldCommentMeta ||
+								'Comment meta',
+							type: 'object',
+						},
+						{
+							value: '_custom_field',
+							label: window.rslIeData.i18n.fieldCustomFieldMeta,
+							type: 'custom_field',
 						},
 					],
 				},

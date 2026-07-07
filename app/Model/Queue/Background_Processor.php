@@ -194,8 +194,34 @@ class Background_Processor {
 				throw new \Exception( 'Failed to parse import file: unexpected format.' );
 			}
 
-			$parameters['prepared_data']     = $importer->prepare( $data, $mapping );
-			$parameters['total_items']       = count( $parameters['prepared_data'] );
+				$parameters['prepared_data'] = $importer->prepare( $data, $mapping );
+			if ( class_exists( \RockStarLab\ImportExport\Model\Import\Comment_Importer::class ) && $importer instanceof \RockStarLab\ImportExport\Model\Import\Comment_Importer ) {
+				foreach ( $parameters['prepared_data'] as $row_index => &$prepared_row ) {
+					if ( isset( $data[ $row_index ]['comment_date'] ) ) {
+						$prepared_row['comment_date'] = (string) $data[ $row_index ]['comment_date'];
+					}
+					if ( isset( $data[ $row_index ]['comment_date_gmt'] ) ) {
+						$prepared_row['comment_date_gmt'] = (string) $data[ $row_index ]['comment_date_gmt'];
+					}
+					if ( isset( $data[ $row_index ]['comment_ID'] ) ) {
+						$prepared_row['_rsl_ie_source_comment_id'] = absint( $data[ $row_index ]['comment_ID'] );
+					}
+					if ( isset( $data[ $row_index ]['comment_parent'] ) ) {
+						$prepared_row['_rsl_ie_source_comment_parent_id'] = absint( $data[ $row_index ]['comment_parent'] );
+					}
+					if ( isset( $data[ $row_index ]['post_permalink'] ) ) {
+						$prepared_row['_rsl_ie_source_post_permalink'] = (string) $data[ $row_index ]['post_permalink'];
+					}
+					if ( isset( $data[ $row_index ]['post_slug'] ) ) {
+						$prepared_row['_rsl_ie_source_post_slug'] = (string) $data[ $row_index ]['post_slug'];
+					}
+					if ( isset( $data[ $row_index ]['post_type'] ) ) {
+						$prepared_row['_rsl_ie_source_post_type'] = (string) $data[ $row_index ]['post_type'];
+					}
+				}
+				unset( $prepared_row );
+			}
+				$parameters['total_items']   = count( $parameters['prepared_data'] );
 			$parameters['offset']            = 0;
 			$parameters['cumulative_result'] = [
 				'total'   => $parameters['total_items'],
@@ -222,7 +248,7 @@ class Background_Processor {
 			];
 		}
 
-		$importer->set_options( $options );
+			$importer->set_options( $options );
 		foreach ( $chunk as $index => $item ) {
 			$item_result = $importer->import_item( $item, $offset + $index );
 			if ( is_wp_error( $item_result ) ) {
@@ -239,6 +265,10 @@ class Background_Processor {
 			} else {
 				++$cumulative['created'];
 				++$cumulative['success'];
+			}
+
+			if ( ! is_wp_error( $item_result ) && 'skipped' !== $item_result && class_exists( \RockStarLab\ImportExport\Model\Import\Comment_Importer::class ) && $importer instanceof \RockStarLab\ImportExport\Model\Import\Comment_Importer ) {
+				$this->preserve_imported_comment_dates( $item_result, $item );
 			}
 		}
 
@@ -260,20 +290,66 @@ class Background_Processor {
 			]
 		);
 
-		return [
-			'completed' => $completed,
-			'processed' => $new_offset,
-			'total'     => $total,
-		];
+			return [
+				'completed' => $completed,
+				'processed' => $new_offset,
+				'total'     => $total,
+			];
 	}
 
-	/**
-	 * Process export job
-	 *
-	 * @param int   $job_id Job ID
-	 * @param array $parameters Job parameters
-	 * @return array Processing result
-	 */
+		/**
+		 * Preserve source comment dates after WordPress insert/update filters run.
+		 *
+		 * @param int|string $item_result Import result.
+		 * @param array      $item        Prepared import item.
+		 * @return void
+		 */
+	private function preserve_imported_comment_dates( $item_result, $item ) {
+		global $wpdb;
+
+		$comment_id = is_numeric( $item_result ) ? absint( $item_result ) : 0;
+		if ( $comment_id <= 0 && ! empty( $item['_rsl_ie_source_comment_id'] ) ) {
+			$comment_id = (int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT comment_id FROM {$wpdb->commentmeta} WHERE meta_key = %s AND meta_value = %s ORDER BY comment_id DESC LIMIT 1",
+					'_aie_source_comment_id',
+					(string) absint( $item['_rsl_ie_source_comment_id'] )
+				)
+			);
+		}
+
+		if ( $comment_id <= 0 ) {
+			return;
+		}
+
+		$update = [];
+		if ( isset( $item['comment_date'] ) && '' !== (string) $item['comment_date'] ) {
+			$update['comment_date'] = (string) $item['comment_date'];
+		}
+		if ( isset( $item['comment_date_gmt'] ) && '' !== (string) $item['comment_date_gmt'] ) {
+			$update['comment_date_gmt'] = (string) $item['comment_date_gmt'];
+		}
+		if ( empty( $update ) ) {
+			return;
+		}
+
+		$wpdb->update(
+			$wpdb->comments,
+			$update,
+			[ 'comment_ID' => $comment_id ],
+			array_fill( 0, count( $update ), '%s' ),
+			[ '%d' ]
+		);
+		clean_comment_cache( $comment_id );
+	}
+
+		/**
+		 * Process export job
+		 *
+		 * @param int   $job_id Job ID
+		 * @param array $parameters Job parameters
+		 * @return array Processing result
+		 */
 	protected function process_export_job( $job_id, $parameters ) {
 		unset( $parameters );
 		$processor = new Export_Processor();
