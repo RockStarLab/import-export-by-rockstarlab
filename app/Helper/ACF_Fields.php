@@ -34,8 +34,14 @@ class ACF_Fields {
 		}
 
 		$field_groups = self::get_field_groups_for_location( $location );
-		$fields       = [];
-		$seen         = [];
+		if ( in_array( $content_type, [ 'menu', 'menus', 'nav_menu', 'nav_menu_item' ], true ) ) {
+			$field_groups = array_merge(
+				$field_groups,
+				self::get_field_groups_for_location( [ 'nav_menu_item' => 'all' ] )
+			);
+		}
+		$fields = [];
+		$seen   = [];
 
 		foreach ( $field_groups as $group ) {
 			$group_fields = acf_get_fields( $group['key'] ?? $group );
