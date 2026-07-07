@@ -448,10 +448,10 @@ class Import_Controller extends Base_Controller {
 			if ( class_exists( \RockStarLab\ImportExport\Model\Import\Comment_Importer::class ) && $importer instanceof \RockStarLab\ImportExport\Model\Import\Comment_Importer ) {
 				foreach ( $prepared_data as $row_index => &$prepared_row ) {
 					// Ensure core date fields are available even if the UI mapping omits them.
-					if ( isset( $data[ $row_index ]['comment_date'] ) && ( ! isset( $prepared_row['comment_date'] ) || '' === $prepared_row['comment_date'] ) ) {
+					if ( isset( $data[ $row_index ]['comment_date'] ) ) {
 						$prepared_row['comment_date'] = (string) $data[ $row_index ]['comment_date'];
 					}
-					if ( isset( $data[ $row_index ]['comment_date_gmt'] ) && ( ! isset( $prepared_row['comment_date_gmt'] ) || '' === $prepared_row['comment_date_gmt'] ) ) {
+					if ( isset( $data[ $row_index ]['comment_date_gmt'] ) ) {
 						$prepared_row['comment_date_gmt'] = (string) $data[ $row_index ]['comment_date_gmt'];
 					}
 					if ( isset( $data[ $row_index ]['comment_ID'] ) ) {
@@ -577,6 +577,10 @@ class Import_Controller extends Base_Controller {
 			} else {
 				++$cumulative_result['created'];
 				++$cumulative_result['success'];
+			}
+
+			if ( ! is_wp_error( $result ) && 'skipped' !== $result && class_exists( \RockStarLab\ImportExport\Model\Import\Comment_Importer::class ) && $importer instanceof \RockStarLab\ImportExport\Model\Import\Comment_Importer ) {
+				$this->preserve_imported_comment_dates( $result, $item );
 			}
 		}
 
@@ -875,6 +879,52 @@ class Import_Controller extends Base_Controller {
 	}
 
 	/**
+	 * Preserve source comment dates after WordPress insert/update filters run.
+	 *
+	 * @param int|string $item_result Import result.
+	 * @param array      $item        Prepared import item.
+	 * @return void
+	 */
+	private function preserve_imported_comment_dates( $item_result, $item ) {
+		global $wpdb;
+
+		$comment_id = is_numeric( $item_result ) ? absint( $item_result ) : 0;
+		if ( $comment_id <= 0 && ! empty( $item['_rsl_ie_source_comment_id'] ) ) {
+			$comment_id = (int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT comment_id FROM {$wpdb->commentmeta} WHERE meta_key = %s AND meta_value = %s ORDER BY comment_id DESC LIMIT 1",
+					'_aie_source_comment_id',
+					(string) absint( $item['_rsl_ie_source_comment_id'] )
+				)
+			);
+		}
+
+		if ( $comment_id <= 0 ) {
+			return;
+		}
+
+		$update = [];
+		if ( isset( $item['comment_date'] ) && '' !== (string) $item['comment_date'] ) {
+			$update['comment_date'] = (string) $item['comment_date'];
+		}
+		if ( isset( $item['comment_date_gmt'] ) && '' !== (string) $item['comment_date_gmt'] ) {
+			$update['comment_date_gmt'] = (string) $item['comment_date_gmt'];
+		}
+		if ( empty( $update ) ) {
+			return;
+		}
+
+		$wpdb->update(
+			$wpdb->comments,
+			$update,
+			[ 'comment_ID' => $comment_id ],
+			array_fill( 0, count( $update ), '%s' ),
+			[ '%d' ]
+		);
+		clean_comment_cache( $comment_id );
+	}
+
+	/**
 	 * Best-effort fix for cross-site comment_parent relationships after a Comment_Importer job.
 	 *
 	 * The CSV stores source-site comment IDs in `comment_parent`. We import comments with
@@ -886,6 +936,8 @@ class Import_Controller extends Base_Controller {
 	 * @return void
 	 */
 	private function fix_comment_parent_relationships( $job_id, $prepared_data ) {
+		global $wpdb;
+
 		$job_id = absint( $job_id );
 		if ( $job_id <= 0 || ! is_array( $prepared_data ) || empty( $prepared_data ) ) {
 			return;
@@ -917,16 +969,12 @@ class Import_Controller extends Base_Controller {
 				continue;
 			}
 
-			// Preserve existing dates when updating parent relationship.
-			wp_update_comment(
-				wp_slash(
-					[
-						'comment_ID'       => $target_id,
-						'comment_parent'   => $target_parent,
-						'comment_date'     => (string) $comment->comment_date,
-						'comment_date_gmt' => (string) $comment->comment_date_gmt,
-					]
-				)
+			$wpdb->update(
+				$wpdb->comments,
+				[ 'comment_parent' => $target_parent ],
+				[ 'comment_ID' => $target_id ],
+				[ '%d' ],
+				[ '%d' ]
 			);
 
 			clean_comment_cache( $target_id );

@@ -2154,6 +2154,21 @@ const ImportModule = {
 					label: 'Related Post',
 					options: [
 						{
+							value: 'post_permalink',
+							label: 'Post Permalink',
+							type: 'url',
+						},
+						{
+							value: 'post_type',
+							label: 'Post Type',
+							type: 'string',
+						},
+						{
+							value: 'post_slug',
+							label: 'Post Slug',
+							type: 'string',
+						},
+						{
 							value: 'post_title',
 							label: 'Post Title',
 							type: 'string',
@@ -2198,6 +2213,11 @@ const ImportModule = {
 				{
 					label: 'Custom Fields (Meta)',
 					options: [
+						{
+							value: 'comment_meta',
+							label: 'Comment Meta (JSON)',
+							type: 'json',
+						},
 						{
 							value: 'meta',
 							label: 'Custom Field',
