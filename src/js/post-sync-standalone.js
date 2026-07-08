@@ -443,11 +443,12 @@ const getActionNonce = ( action ) =>
 		 * Load mapping data
 		 */
 		loadMappingData( direction, siteId, postIds ) {
-			const nonce =
-				typeof rslIePostSyncData !== 'undefined' &&
-				rslIePostSyncData.nonce
-					? rslIePostSyncData.nonce
-					: '';
+			const localPostsNonce = getActionNonce(
+				'rsl_ie_content_sync_get_local_posts_info'
+			);
+			const remotePostsNonce = getActionNonce(
+				'rsl_ie_content_sync_get_remote_posts'
+			);
 			const ajaxUrl =
 				typeof rslIePostSyncData !== 'undefined' &&
 				rslIePostSyncData.ajaxurl
@@ -460,7 +461,7 @@ const getActionNonce = ( action ) =>
 				type: 'POST',
 				data: {
 					action: 'rsl_ie_content_sync_get_local_posts_info',
-					nonce: nonce,
+					nonce: localPostsNonce,
 					post_ids: postIds,
 				},
 				success: ( localResponse ) => {
@@ -477,7 +478,7 @@ const getActionNonce = ( action ) =>
 							type: 'POST',
 							data: {
 								action: 'rsl_ie_content_sync_get_remote_posts',
-								nonce: nonce,
+								nonce: remotePostsNonce,
 								site_id: siteId,
 								post_type: 'any',
 							},
@@ -671,11 +672,9 @@ const getActionNonce = ( action ) =>
 				rslIePostSyncData.ajaxurl
 					? rslIePostSyncData.ajaxurl
 					: ajaxurl;
-			const nonce =
-				typeof rslIePostSyncData !== 'undefined' &&
-				rslIePostSyncData.nonce
-					? rslIePostSyncData.nonce
-					: '';
+			const nonce = getActionNonce(
+				'rsl_ie_content_sync_search_remote_posts'
+			);
 
 			// Get human-readable post type label
 			const postTypeLabel =
@@ -863,11 +862,9 @@ const getActionNonce = ( action ) =>
 				rslIePostSyncData.ajaxurl
 					? rslIePostSyncData.ajaxurl
 					: ajaxurl;
-			const nonce =
-				typeof rslIePostSyncData !== 'undefined' &&
-				rslIePostSyncData.nonce
-					? rslIePostSyncData.nonce
-					: '';
+			const nonce = getActionNonce(
+				'rsl_ie_content_sync_search_remote_posts'
+			);
 
 			// Process each select
 			$( '.rsl-ie-remote-select' ).each( ( i, select ) => {
@@ -1033,11 +1030,8 @@ const getActionNonce = ( action ) =>
 			).prop( 'disabled', true );
 
 			// Make AJAX request
-			const nonce =
-				typeof rslIePostSyncData !== 'undefined' &&
-				rslIePostSyncData.nonce
-					? rslIePostSyncData.nonce
-					: '';
+			const action = `rsl_ie_content_sync_${ direction }`;
+			const nonce = getActionNonce( action );
 			const ajaxUrl =
 				typeof rslIePostSyncData !== 'undefined' &&
 				rslIePostSyncData.ajaxurl
@@ -1048,7 +1042,7 @@ const getActionNonce = ( action ) =>
 				url: ajaxUrl,
 				type: 'POST',
 				data: {
-					action: `rsl_ie_content_sync_${ direction }`,
+					action: action,
 					nonce: nonce,
 					site_id: siteId,
 					post_ids: postIds,
@@ -1216,7 +1210,9 @@ const getActionNonce = ( action ) =>
 			}
 
 			const ajaxUrl = rslIePostSyncData.ajaxurl; // lowercase 'ajaxurl' to match PHP localization
-			const nonce = rslIePostSyncData.nonce;
+			const nonce = getActionNonce(
+				'rsl_ie_content_sync_get_remote_posts'
+			);
 
 			$( '#rsl-ie-browse-loading' ).show();
 			$( '#rsl-ie-browse-posts-tree' ).hide();
@@ -1437,7 +1433,9 @@ const getActionNonce = ( action ) =>
 			}
 
 			const ajaxUrl = rslIePostSyncData.ajaxurl; // lowercase 'ajaxurl' to match PHP localization
-			const nonce = rslIePostSyncData.nonce;
+			const nonce = getActionNonce(
+				'rsl_ie_content_sync_get_children_posts'
+			);
 
 			// Show loading
 			$childrenContainer

@@ -106,7 +106,13 @@ function loadEnv() {
 function wp( env, args, { trim = true } = {} ) {
 	const out = execFileSync(
 		env.localPhp,
-		[ env.wpBin, `--path=${ env.wpPath }`, ...args ],
+		[
+			'-d',
+			'memory_limit=512M',
+			env.wpBin,
+			`--path=${ env.wpPath }`,
+			...args,
+		],
 		{
 			encoding: 'utf8',
 			stdio: [ 'ignore', 'pipe', 'pipe' ],
@@ -211,6 +217,23 @@ echo wp_json_encode(array_map('intval', $ids ?: []));
 	return Array.isArray( ids )
 		? ids.map( ( x ) => String( x ) ).filter( Boolean )
 		: [];
+}
+
+function ensurePostIds( env, postType, count, { titlePrefix } = {} ) {
+	const desired = Math.max( 1, Number( count ) || 1 );
+	let ids = pickPostIds( env, postType, desired );
+	if ( ids.length >= desired ) return ids.slice( 0, desired );
+
+	const created = createTestPosts( env, postType, desired - ids.length, {
+		titlePrefix:
+			titlePrefix ||
+			`AIE_SYNC_${ String( postType || 'post' ).toUpperCase() }`,
+		contentPrefix: `AIE_SYNC_${ String(
+			postType || 'post'
+		).toUpperCase() }_CONTENT`,
+	} );
+	ids = [ ...ids, ...created ];
+	return ids.slice( 0, desired );
 }
 
 function updatePostCoreFields( env, postId, { title, content } = {} ) {
@@ -2089,6 +2112,10 @@ async function main() {
 			targetApiKey
 		);
 		console.log( `[content-sync] connected site_id=${ siteId }` );
+		const hardOnly =
+			String( process.env.AIE_CONTENT_SYNC_HARD_ONLY || '' )
+				.toLowerCase()
+				.trim() === 'true';
 
 		// Prepare IDs per post type (source side).
 		const ids = {
@@ -2098,113 +2125,136 @@ async function main() {
 			product: pickOnePostId( env.source, 'product' ) || '',
 		};
 
-		// Media baseline (source featured image for post=1).
-		const featuredAtt = ensureFeaturedImage( env.source, ids.post );
-		const imgHash = getAttachmentMd5( env.source, featuredAtt );
-		const targetAttBefore = countAttachments( env.target );
-		const sourceAttBefore = countAttachments( env.source );
-		const targetHashBefore = countAttachmentsByFileHash(
-			env.target,
-			imgHash
-		);
-		const sourceHashBefore = countAttachmentsByFileHash(
-			env.source,
-			imgHash
-		);
-
-		// Single post push+pull (post=1)
-		const single = await runSinglePostPushPull(
-			sourcePage,
-			env,
-			siteId,
-			ids.post,
-			'post'
-		);
-		const targetAttAfterPushPull = countAttachments( env.target );
-		const sourceAttAfterPull = countAttachments( env.source );
-		const targetHashAfterPushPull = countAttachmentsByFileHash(
-			env.target,
-			imgHash
-		);
-		const sourceHashAfterPull = countAttachmentsByFileHash(
-			env.source,
-			imgHash
-		);
-
-		// Repeat push (update mapping) to ensure media doesn't duplicate on target.
-		await gotoAdmin(
-			sourcePage,
-			env.source,
-			`/wp-admin/post.php?post=${ ids.post }&action=edit`
-		);
-		await openSyncModal( sourcePage );
-		await selectSiteInSyncModal( sourcePage, siteId );
-		await sourcePage.locator( '#rsl-ie-sync-push-btn' ).click();
-		await waitForMappingModalReady( sourcePage );
-		await setMappingSelection( sourcePage, ids.post, single.remoteId );
-		await confirmMappingAndWaitSuccess( sourcePage );
-		const targetAttAfterRepeatPush = countAttachments( env.target );
-		const targetHashAfterRepeatPush = countAttachmentsByFileHash(
-			env.target,
-			imgHash
-		);
-
-		// Bulk sync (no selection -> browse modal)
-		await runBulkNoSelectionBrowseFlow( sourcePage, env, siteId );
-
-		// Bulk push update for post=1 with explicit mapping
-		await runBulkSyncPushUpdate(
-			sourcePage,
-			env,
-			siteId,
-			ids.post,
-			single.remoteId
-		);
-
-		// Push other post types (ACF fill on source; verify exists remotely)
-		const extraTypes = [
-			{ type: 'page', id: ids.page },
-			{ type: 'portfolio', id: ids.portfolio },
-			{ type: 'product', id: ids.product },
-		].filter( ( x ) => x.id );
-
+		let imgHash = '';
+		let targetAttBefore = 0;
+		let sourceAttBefore = 0;
+		let targetHashBefore = 0;
+		let sourceHashBefore = 0;
+		let targetAttAfterPushPull = 0;
+		let sourceAttAfterPull = 0;
+		let targetHashAfterPushPull = 0;
+		let sourceHashAfterPull = 0;
+		let targetAttAfterRepeatPush = 0;
+		let targetHashAfterRepeatPush = 0;
+		let single = { remoteId: '', mismatches: [] };
 		const extraIssues = [];
-		for ( const t of extraTypes ) {
-			// Ensure featured image too (helps exercise media sync paths for CPTs).
-			ensureFeaturedImage( env.source, t.id );
-			const r = await runSinglePostPushOnly(
+
+		if ( ! hardOnly ) {
+			// Media baseline (source featured image for post=1).
+			const featuredAtt = ensureFeaturedImage( env.source, ids.post );
+			imgHash = getAttachmentMd5( env.source, featuredAtt );
+			targetAttBefore = countAttachments( env.target );
+			sourceAttBefore = countAttachments( env.source );
+			targetHashBefore = countAttachmentsByFileHash(
+				env.target,
+				imgHash
+			);
+			sourceHashBefore = countAttachmentsByFileHash(
+				env.source,
+				imgHash
+			);
+
+			// Single post push+pull (post=1)
+			single = await runSinglePostPushPull(
 				sourcePage,
 				env,
 				siteId,
-				t.id,
-				t.type
+				ids.post,
+				'post'
 			);
-			if ( r.mismatches.length ) {
-				console.log(
-					`[${ t.type }] mismatches:\n${ JSON.stringify(
-						r.mismatches,
-						null,
-						2
-					) }`
+			targetAttAfterPushPull = countAttachments( env.target );
+			sourceAttAfterPull = countAttachments( env.source );
+			targetHashAfterPushPull = countAttachmentsByFileHash(
+				env.target,
+				imgHash
+			);
+			sourceHashAfterPull = countAttachmentsByFileHash(
+				env.source,
+				imgHash
+			);
+
+			// Repeat push (update mapping) to ensure media doesn't duplicate on target.
+			await gotoAdmin(
+				sourcePage,
+				env.source,
+				`/wp-admin/post.php?post=${ ids.post }&action=edit`
+			);
+			await openSyncModal( sourcePage );
+			await selectSiteInSyncModal( sourcePage, siteId );
+			await sourcePage.locator( '#rsl-ie-sync-push-btn' ).click();
+			await waitForMappingModalReady( sourcePage );
+			await setMappingSelection( sourcePage, ids.post, single.remoteId );
+			await confirmMappingAndWaitSuccess( sourcePage );
+			targetAttAfterRepeatPush = countAttachments( env.target );
+			targetHashAfterRepeatPush = countAttachmentsByFileHash(
+				env.target,
+				imgHash
+			);
+
+			// Bulk sync (no selection -> browse modal)
+			await runBulkNoSelectionBrowseFlow( sourcePage, env, siteId );
+
+			// Bulk push update for post=1 with explicit mapping
+			await runBulkSyncPushUpdate(
+				sourcePage,
+				env,
+				siteId,
+				ids.post,
+				single.remoteId
+			);
+
+			// Push other post types (ACF fill on source; verify exists remotely)
+			const extraTypes = [
+				{ type: 'page', id: ids.page },
+				{ type: 'portfolio', id: ids.portfolio },
+				{ type: 'product', id: ids.product },
+			].filter( ( x ) => x.id );
+
+			for ( const t of extraTypes ) {
+				// Ensure featured image too (helps exercise media sync paths for CPTs).
+				ensureFeaturedImage( env.source, t.id );
+				const r = await runSinglePostPushOnly(
+					sourcePage,
+					env,
+					siteId,
+					t.id,
+					t.type
 				);
-				extraIssues.push( {
-					area: `${ t.type }=${ t.id }`,
-					mismatches: r.mismatches,
-				} );
-			} else {
-				console.log( `[${ t.type }] ok (remoteId=${ r.remoteId })` );
+				if ( r.mismatches.length ) {
+					console.log(
+						`[${ t.type }] mismatches:\n${ JSON.stringify(
+							r.mismatches,
+							null,
+							2
+						) }`
+					);
+					extraIssues.push( {
+						area: `${ t.type }=${ t.id }`,
+						mismatches: r.mismatches,
+					} );
+				} else {
+					console.log(
+						`[${ t.type }] ok (remoteId=${ r.remoteId })`
+					);
+				}
 			}
 		}
 
-		// Hard checks: bulk list Pull (Browse) + bulk list Push (selection) for pages/portfolio/products.
-		const hardTypes = [ 'page', 'portfolio', 'product' ].filter(
-			( t ) => ids[ t ]
-		);
-		for ( const pt of hardTypes ) {
+		// Hard checks: bulk list Pull (Browse) + bulk list Push (selection) for requested content counts.
+		const hardTypes = [
+			{ type: 'page', count: 15 },
+			{ type: 'post', count: 5 },
+			{ type: 'portfolio', count: 5 },
+		];
+		for ( const { type: pt, count } of hardTypes ) {
 			const stamp = `AIE_SYNC_HARD_${ pt }_${ Date.now() }`;
 
 			// Bulk Push from list with selection should show Push button and sync selected items.
-			const localIds = pickPostIds( env.source, pt, 2 );
+			const localIds = createTestPosts( env.source, pt, count, {
+				titlePrefix: `${ stamp }_SOURCE_SEED`,
+				contentPrefix: `${ stamp }_SOURCE_SEED_CONTENT`,
+			} );
+			const createdLocalIds = [ ...localIds ];
 			const localBackups = {};
 			for ( const lid of localIds ) {
 				localBackups[ lid ] = getPostCoreFields( env.source, lid );
@@ -2284,15 +2334,11 @@ async function main() {
 			}
 
 			// Bulk Pull (Browse) from list should open browse modal and sync remote items into local.
-			let remoteIds = pickPostIds( env.target, pt, 2 );
-			const createdRemoteIds = [];
-			if ( ! remoteIds.length ) {
-				remoteIds = createTestPosts( env.target, pt, 2, {
-					titlePrefix: `${ stamp }_REMOTE_SEED`,
-					contentPrefix: `${ stamp }_REMOTE_SEED_CONTENT`,
-				} );
-				createdRemoteIds.push( ...remoteIds );
-			}
+			let remoteIds = createTestPosts( env.target, pt, count, {
+				titlePrefix: `${ stamp }_REMOTE_SEED`,
+				contentPrefix: `${ stamp }_REMOTE_SEED_CONTENT`,
+			} );
+			const createdRemoteIds = [ ...remoteIds ];
 			const remoteBackups = {};
 			for ( const rid of remoteIds ) {
 				remoteBackups[ rid ] = getPostCoreFields( env.target, rid );
@@ -2304,7 +2350,7 @@ async function main() {
 
 			await runBulkPullFromListWithBrowse( sourcePage, env, siteId, pt, {
 				searchText: stamp,
-				expectCount: 2,
+				expectCount: count,
 			} );
 
 			for ( const rid of remoteIds ) {
@@ -2372,6 +2418,11 @@ async function main() {
 			// Cleanup any seed posts we created on the remote side.
 			for ( const rid of createdRemoteIds ) {
 				deletePost( env.target, rid );
+			}
+
+			// Cleanup source-side seed posts created for the bulk push.
+			for ( const lid of createdLocalIds ) {
+				deletePost( env.source, lid );
 			}
 		}
 

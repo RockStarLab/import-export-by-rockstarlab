@@ -1421,7 +1421,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$site['remote_url'],
 			'receive-content',
 			array(
-				'timeout' => 60,
+				'timeout' => 180,
 				'headers' => array(
 					'Authorization' => 'Bearer ' . $site['api_key'],
 					'Content-Type'  => 'application/json',
@@ -1538,7 +1538,7 @@ class Content_Sync_Controller extends Base_Controller {
 				$site['remote_url'],
 				'upload-media',
 				array(
-					'timeout' => 60,
+					'timeout' => 180,
 					'headers' => array(
 						'Authorization' => 'Bearer ' . $site['api_key'],
 						'Content-Type'  => 'application/json',
@@ -1605,7 +1605,7 @@ class Content_Sync_Controller extends Base_Controller {
 				$site['remote_url'],
 				'send-content',
 				array(
-					'timeout' => 60,
+					'timeout' => 180,
 					'headers' => array(
 						'Authorization' => 'Bearer ' . $site['api_key'],
 						'Content-Type'  => 'application/json',
