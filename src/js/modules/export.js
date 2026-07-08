@@ -4503,6 +4503,11 @@ const ExportModule = {
 
 				// Update column count
 				$columnCount.text( columns.length );
+				$rowCount.text(
+					Number.isFinite( Number( response.row_count ) )
+						? response.row_count
+						: '-'
+				);
 
 				// Display columns with types
 				$columnsList.empty();

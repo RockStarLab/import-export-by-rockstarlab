@@ -960,11 +960,19 @@ class Export_Controller extends Base_Controller {
 		$exporter = new \RockStarLab\ImportExport\Model\Export\Database_Table_Exporter();
 		$columns  = $exporter->get_table_columns( $table_name );
 
+		global $wpdb;
+		$row_count = $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Counting rows in a user-selected table for export preview.
+
 		if ( empty( $columns ) ) {
 			$this->send_error( __( 'Could not retrieve table columns', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
-		$this->send_success( [ 'columns' => $columns ] );
+		$this->send_success(
+			[
+				'columns'   => $columns,
+				'row_count' => (int) $row_count,
+			]
+		);
 	}
 
 	/**
