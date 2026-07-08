@@ -2397,6 +2397,11 @@ const ImportModule = {
 							label: 'Variations (JSON)',
 							type: 'json',
 						},
+						{
+							value: 'grouped_products',
+							label: 'Grouped Products (JSON)',
+							type: 'json',
+						},
 					],
 				},
 				{
@@ -2905,6 +2910,11 @@ const ImportModule = {
 				{
 					label: 'Custom Fields (Term Meta)',
 					options: [
+						{
+							value: 'term_meta',
+							label: 'Term Meta (JSON)',
+							type: 'json',
+						},
 						{
 							value: 'meta',
 							label: 'Custom Field',

@@ -96,6 +96,8 @@ class Post_Exporter extends Abstract_Exporter {
 			'author_email',
 			// WooCommerce: variable product variations (JSON)
 			'variations',
+			// WooCommerce: grouped product child references (JSON)
+			'grouped_products',
 			// WooCommerce Product fields (with underscore prefix)
 			'_sku',
 			'_regular_price',
@@ -2448,6 +2450,29 @@ class Post_Exporter extends Abstract_Exporter {
 						// Handle _product_type field
 						if ( $field === '_product_type' || $meta_key === '_product_type' ) {
 							$data[ $field ] = $wc_product->get_type();
+							continue;
+						}
+
+						// Handle grouped product children using portable SKU/title references.
+						if ( 'grouped_products' === $field ) {
+							if ( ! method_exists( $wc_product, 'is_type' ) || ! $wc_product->is_type( 'grouped' ) ) {
+								$data[ $field ] = '';
+								continue;
+							}
+							$children = method_exists( $wc_product, 'get_children' ) ? (array) $wc_product->get_children() : [];
+							$refs     = [];
+							foreach ( $children as $child_id ) {
+								$child = function_exists( 'wc_get_product' ) ? wc_get_product( (int) $child_id ) : null;
+								if ( ! $child ) {
+									continue;
+								}
+								$refs[] = [
+									'ID'    => (int) $child_id,
+									'sku'   => method_exists( $child, 'get_sku' ) ? (string) $child->get_sku() : '',
+									'title' => get_the_title( (int) $child_id ),
+								];
+							}
+							$data[ $field ] = empty( $refs ) ? '' : wp_json_encode( $refs );
 							continue;
 						}
 

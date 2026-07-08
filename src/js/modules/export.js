@@ -3249,6 +3249,21 @@ const ExportModule = {
 							type: 'string',
 						},
 						{
+							value: 'taxonomy',
+							label: 'Taxonomy',
+							type: 'string',
+						},
+						{
+							value: 'term_taxonomy_id',
+							label: 'Term Taxonomy ID',
+							type: 'number',
+						},
+						{
+							value: 'term_group',
+							label: 'Term Group',
+							type: 'number',
+						},
+						{
 							value: 'description',
 							label: window.rslIeData.i18n.fieldDescription,
 							type: 'string',
@@ -3264,9 +3279,24 @@ const ExportModule = {
 							type: 'number',
 						},
 						{
+							value: 'parent_slug',
+							label: 'Parent Slug',
+							type: 'string',
+						},
+						{
 							value: 'count',
 							label: window.rslIeData.i18n.fieldPostsCount,
 							type: 'number',
+						},
+					],
+				},
+				{
+					label: 'Custom Fields (Term Meta)',
+					options: [
+						{
+							value: 'term_meta',
+							label: 'Term Meta (JSON)',
+							type: 'object',
 						},
 					],
 				},
@@ -3475,6 +3505,11 @@ const ExportModule = {
 							label:
 								window.rslIeData.i18n.fieldVariations ||
 								'Variations (JSON)',
+							type: 'json',
+						},
+						{
+							value: 'grouped_products',
+							label: 'Grouped Products (JSON)',
 							type: 'json',
 						},
 					],

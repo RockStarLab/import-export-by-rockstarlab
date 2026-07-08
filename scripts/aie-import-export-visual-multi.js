@@ -162,10 +162,22 @@ async function ensureLoggedIn( page, { baseUrl, username, password } ) {
 	await page.fill( '#user_login', username );
 	await page.fill( '#user_pass', password );
 	await Promise.all( [
-		page.waitForNavigation( { waitUntil: 'domcontentloaded' } ),
+		page
+			.waitForNavigation( { waitUntil: 'domcontentloaded' } )
+			.catch( () => {} ),
 		page.click( '#wp-submit' ),
 	] );
-	await page.waitForSelector( '#wpadminbar', { timeout: 30_000 } );
+	await page
+		.waitForSelector( '#wpadminbar', { timeout: 10_000 } )
+		.catch( async () => {
+			await page.goto( `${ baseUrl }/wp-admin/`, {
+				waitUntil: 'domcontentloaded',
+			} );
+			if ( await page.locator( 'form#loginform' ).count() ) {
+				throw new Error( `Login failed for ${ baseUrl }` );
+			}
+			await page.waitForSelector( '#wpadminbar', { timeout: 30_000 } );
+		} );
 }
 
 async function gotoAdminPage( page, opts, adminPathWithQuery ) {
@@ -1098,6 +1110,8 @@ function runWpEvalJson( { wpPath, url }, phpCode ) {
 		'error_reporting=0',
 		'-d',
 		'html_errors=0',
+		'-d',
+		'memory_limit=512M',
 	];
 	const out = execFileSync(
 		runtimeLocalPhp,
@@ -2018,12 +2032,19 @@ $arrPortable = function($ids, $fn) {
   return $out;
 };
 
+$decimal = function($v) {
+  if ($v === null || $v === '') return '';
+  if (!is_numeric($v)) return (string) $v;
+  $v = rtrim(rtrim((string) $v, '0'), '.');
+  return $v === '' ? '0' : $v;
+};
+
 $out = [
   'code' => (string) $c->get_code(),
   'description' => (string) $c->get_description(),
   'status' => (string) $c->get_status(),
   'discount_type' => (string) $c->get_discount_type(),
-  'amount' => (string) $c->get_amount(),
+  'amount' => $decimal($c->get_amount()),
   'date_expires' => $dt($c->get_date_expires()),
   'usage_count' => (string) $c->get_usage_count(),
   'usage_limit' => (string) $c->get_usage_limit(),
@@ -2032,8 +2053,8 @@ $out = [
   'individual_use' => (bool) $c->get_individual_use(),
   'free_shipping' => (bool) $c->get_free_shipping(),
   'exclude_sale_items' => (bool) $c->get_exclude_sale_items(),
-  'minimum_amount' => (string) $c->get_minimum_amount(),
-  'maximum_amount' => (string) $c->get_maximum_amount(),
+  'minimum_amount' => $decimal($c->get_minimum_amount()),
+  'maximum_amount' => $decimal($c->get_maximum_amount()),
   'allowed_emails' => $arr($c->get_email_restrictions()),
   'product_ids' => $arrPortable($c->get_product_ids(), $productRef),
   'excluded_product_ids' => $arrPortable($c->get_excluded_product_ids(), $productRef),
@@ -3130,11 +3151,9 @@ async function main() {
 					'No WooCommerce attributes found on source site'
 				);
 
-			const picked = [ ...attrs ]
-				.sort(
-					( a, b ) => ( b.term_count || 0 ) - ( a.term_count || 0 )
-				)
-				.slice( 0, Math.min( 3, attrs.length ) );
+			const picked = [ ...attrs ].sort(
+				( a, b ) => ( b.term_count || 0 ) - ( a.term_count || 0 )
+			);
 
 			for ( const a of picked ) {
 				const name = String( a.attribute_name || '' ).trim();
