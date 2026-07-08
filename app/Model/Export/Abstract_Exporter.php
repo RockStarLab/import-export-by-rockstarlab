@@ -370,7 +370,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 		$selected = [];
 
 		foreach ( $fields as $field ) {
-			if ( isset( $item[ $field ] ) ) {
+			if ( array_key_exists( $field, $item ) ) {
 				$selected[ $field ] = $item[ $field ];
 			}
 		}

@@ -2561,6 +2561,8 @@ async function main() {
 		customPostType: env.customPostType,
 		taxonomy: env.taxonomy,
 		taxonomyPostType: env.taxonomyPostType,
+		dbTable: env.dbTable,
+		dbTablePatterns: env.dbTablePatterns,
 	};
 	const target = {
 		baseUrl: env.targetUrl,
@@ -2569,6 +2571,8 @@ async function main() {
 		customPostType: env.customPostType,
 		taxonomy: env.taxonomy,
 		taxonomyPostType: env.taxonomyPostType,
+		dbTable: env.dbTable,
+		dbTablePatterns: env.dbTablePatterns,
 	};
 
 	try {
