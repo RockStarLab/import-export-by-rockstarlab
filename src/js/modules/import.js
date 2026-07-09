@@ -72,30 +72,6 @@ const ImportModule = {
 			this.onContentTypeChange( e )
 		);
 
-		// Prevent selection of premium locked content types
-		$wizard.on(
-			'click',
-			'.rsl-ie-content-type.rsl-ie-premium-locked',
-			( e ) => {
-				e.preventDefault();
-				e.stopPropagation();
-
-				// Show upgrade message
-				const message =
-					rslIeData.i18n.premiumOnlyFeature ||
-					'This content type is only available in the Premium version. Upgrade to unlock this feature.';
-				Utils.showNotice( message, 'warning' );
-
-				// Prevent the radio button from being checked
-				const $input = jQuery( e.currentTarget ).find(
-					'input[type="radio"]'
-				);
-				$input.prop( 'checked', false );
-
-				return false;
-			}
-		);
-
 		// File upload (delegated so it keeps working after wizard resets / partial re-renders).
 		$wizard.on( 'click', '#rsl-ie-select-file', () => {
 			$wizard.find( '#rsl-ie-file-input' ).trigger( 'click' );

@@ -376,12 +376,6 @@ class Import_Controller extends Base_Controller {
 		$offset      = $parameters['offset'] ?? 0;
 		$batch_size  = isset( $options['batch_size'] ) ? (int) $options['batch_size'] : 50;
 
-		// Verify PRO addon + license for premium content types.
-		$license_check = $this->verify_premium_for_type_in_context( $import_type, 'import' );
-		if ( is_wp_error( $license_check ) ) {
-			$this->send_error( $license_check, null, 403 );
-		}
-
 		// On first batch, parse file and prepare data
 		if ( ! isset( $parameters['prepared_data'] ) ) {
 			// Set started_at
@@ -722,17 +716,6 @@ class Import_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		if ( ! \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ) {
-			$this->send_error(
-				new \WP_Error(
-					'pro_required',
-					__( 'This feature requires the PRO addon.', 'import-export-by-rockstarlab' )
-				),
-				null,
-				403
-			);
-		}
-
 		// Use Database_Table_Exporter to get tables with row counts
 		$exporter = new \RockStarLab\ImportExport\Model\Export\Database_Table_Exporter();
 		$tables   = $exporter->get_available_tables();
@@ -747,17 +730,6 @@ class Import_Controller extends Base_Controller {
 		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
-		}
-
-		if ( ! \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ) {
-			$this->send_error(
-				new \WP_Error(
-					'pro_required',
-					__( 'This feature requires the PRO addon.', 'import-export-by-rockstarlab' )
-				),
-				null,
-				403
-			);
 		}
 
 		$validation = $this->validate_required_params( [ 'table_name' ] );

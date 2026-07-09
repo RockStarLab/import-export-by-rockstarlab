@@ -268,35 +268,6 @@ class Init {
 				'isPremium'                   => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active(),
 				'isProAddonActive'            => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active(),
 				'isProEnabled'                => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_enabled(),
-				'premiumDataTypes'            => array(
-					'custom_post_types',
-					'custom_post_type',
-					'media',
-					'menu',
-					'menus',
-					'nav_menu',
-					'user',
-					'users',
-					'comment',
-					'comments',
-					'taxonomy',
-					'taxonomy_term',
-					'taxonomy_terms',
-					'term',
-					'terms',
-					'category',
-					'categories',
-					'tag',
-					'tags',
-					'woo_product',
-					'product',
-					'products',
-					'woo_order',
-					'woo_orders',
-					'woo_coupon',
-					'woo_attribute',
-					'database_table',
-				),
 				'i18n'                        => array(
 					// General
 					'skip'                              => __( 'Skip', 'import-export-by-rockstarlab' ),
@@ -997,7 +968,6 @@ class Init {
 					'noJobsFound'                       => __( 'No jobs found.', 'import-export-by-rockstarlab' ),
 					// translators: %1$s is a dynamic value, %2$s is a dynamic value, %3$s is a dynamic value.
 					'showingJobs'                       => __( 'Showing %1$s-%2$s of %3$s jobs', 'import-export-by-rockstarlab' ),
-					'retryRequiresPremium'              => __( 'The PRO addon is required to retry this job.', 'import-export-by-rockstarlab' ),
 				),
 			)
 		);

@@ -178,52 +178,6 @@
 			}
 		}
 
-		&.rsl-ie-premium-locked {
-			cursor: not-allowed !important;
-			opacity: 0.5 !important;
-			position: relative;
-
-			.rsl-ie-content-type-card {
-				pointer-events: none !important;
-				background: #f6f7f7 !important;
-				border-color: #c3c4c7 !important;
-				cursor: not-allowed !important;
-
-				&:hover {
-					border-color: #c3c4c7 !important;
-					box-shadow: none !important;
-					transform: none !important;
-				}
-
-				.dashicons {
-					color: #8c8f94 !important;
-				}
-
-				h3 {
-					color: #8c8f94 !important;
-				}
-
-				p {
-					color: #a0a5aa !important;
-				}
-			}
-
-			// Keep premium badge bright even when locked
-			.rsl-ie-premium-badge {
-				opacity: 1;
-				filter: brightness(1);
-			}
-
-			input[type="radio"]:disabled + .rsl-ie-content-type-card {
-				cursor: not-allowed !important;
-			}
-
-			&:hover {
-				opacity: 0.5 !important;
-				transform: none !important;
-			}
-		}
-
 		&.rsl-ie-pro-addon-card {
 			cursor: default;
 			grid-column: 1 / -1;
@@ -289,77 +243,6 @@
 					font-size: 13px;
 					line-height: 1.5;
 				}
-			}
-
-			.rsl-ie-pro-addon-trial {
-				margin: 12px 0 14px;
-				display: flex;
-				flex-wrap: wrap;
-				align-items: center;
-				gap: 8px;
-				padding: 8px 10px;
-				border-radius: 12px;
-				background: #f0f6fc;
-				color: #1d2327;
-				font-size: 12px;
-				font-weight: 600;
-
-				.dashicons {
-					color: #f97316;
-				}
-			}
-
-			.rsl-ie-pro-addon-trial-text {
-				font-weight: 700;
-			}
-
-			.rsl-ie-pro-addon-trial-hint {
-				font-weight: 600;
-				color: #50575e;
-			}
-
-			button.rsl-ie-pro-addon-trial-code {
-				border: 0;
-				cursor: pointer;
-				display: inline-flex;
-				align-items: center;
-				gap: 6px;
-				padding: 4px 8px;
-				border-radius: 999px;
-				background: #1d2327;
-				color: #fff;
-				transition:
-					transform 0.15s ease,
-					box-shadow 0.15s ease,
-					background-color 0.15s ease;
-				box-shadow: 0 3px 10px rgba(0, 0, 0, 0.14);
-				line-height: 1;
-
-				&:hover {
-					transform: translateY(-1px);
-					box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
-				}
-
-				&:active {
-					transform: translateY(0);
-				}
-
-				.rsl-ie-pro-addon-trial-code-text {
-					font-family: ui-monospace, SFMono-Regular, Menlo, Monaco,
-						Consolas, "Liberation Mono", "Courier New", monospace;
-					font-size: 11px;
-				}
-
-				.dashicons {
-					color: #fff;
-					font-size: 14px;
-					width: 14px;
-					height: 14px;
-				}
-			}
-
-			button.rsl-ie-pro-addon-trial-code.rsl-ie-pro-addon-trial-copied {
-				background: #00a32a;
 			}
 
 			.rsl-ie-pro-addon-features {

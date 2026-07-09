@@ -14,6 +14,42 @@ defined( 'ABSPATH' ) || exit;
 class Media_Sync {
 
 	/**
+	 * Resolve and validate a media-sync source file.
+	 *
+	 * Both the file and its allowed root must already exist. Using real paths
+	 * prevents traversal and symlink escapes before a copy, move, or delete.
+	 *
+	 * @param string $file_path    Source file path.
+	 * @param string $allowed_root Selected media-sync folder.
+	 * @return string|\WP_Error Canonical file path or an error.
+	 */
+	public static function validate_source_file( $file_path, $allowed_root ) {
+		$file_path    = wp_normalize_path( (string) $file_path );
+		$allowed_root = wp_normalize_path( (string) $allowed_root );
+		$real_file    = realpath( $file_path );
+		$real_root    = realpath( $allowed_root );
+
+		if ( false === $real_file || false === $real_root || ! is_file( $real_file ) || ! is_dir( $real_root ) ) {
+			return new \WP_Error( 'invalid_source_file', __( 'The selected media file is invalid or no longer exists.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$real_file = wp_normalize_path( $real_file );
+		$real_root = untrailingslashit( wp_normalize_path( $real_root ) );
+
+		if ( 0 !== strpos( $real_file, trailingslashit( $real_root ) ) ) {
+			return new \WP_Error( 'invalid_source_file', __( 'The selected media file is outside the scanned folder.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$uploads      = wp_upload_dir();
+		$uploads_root = realpath( $uploads['basedir'] );
+		if ( false === $uploads_root || 0 !== strpos( $real_file, trailingslashit( wp_normalize_path( $uploads_root ) ) ) ) {
+			return new \WP_Error( 'invalid_source_file', __( 'The selected media file must be inside the WordPress uploads directory.', 'import-export-by-rockstarlab' ) );
+		}
+
+		return $real_file;
+	}
+
+	/**
 	 * Scan folder and return list of files matching options
 	 *
 	 * @param string $folder_path Absolute path to folder.
@@ -216,8 +252,10 @@ class Media_Sync {
 	 * @return int|\WP_Error Attachment ID on success, WP_Error on failure.
 	 */
 	public static function import_file( $file_path, $options = [] ) {
-		if ( ! file_exists( $file_path ) ) {
-			return new \WP_Error( 'file_not_found', __( 'File not found', 'import-export-by-rockstarlab' ) );
+		$base_folder = $options['base_folder'] ?? '';
+		$file_path   = self::validate_source_file( $file_path, $base_folder );
+		if ( is_wp_error( $file_path ) ) {
+			return $file_path;
 		}
 
 		// Get allowed mime types (this will include SVG if SVG Support plugin is active)

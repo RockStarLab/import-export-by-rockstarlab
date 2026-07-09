@@ -22,25 +22,6 @@ defined( 'ABSPATH' ) || exit;
 class Export_Controller extends Base_Controller {
 
 	/**
-	 * Check whether an export type is allowed in the current setup.
-	 *
-	 * Free plugin supports only basic types; PRO addon unlocks more.
-	 *
-	 * @param string $export_type Export type.
-	 * @return bool
-	 */
-	private function is_export_type_allowed( $export_type ) {
-		$export_type = strtolower( trim( (string) $export_type ) );
-
-		$free_types = [ 'post', 'page', 'urls' ];
-		if ( in_array( $export_type, $free_types, true ) ) {
-			return true;
-		}
-
-		return \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active();
-	}
-
-	/**
 	 * Get AJAX actions
 	 *
 	 * @return array
@@ -86,17 +67,6 @@ class Export_Controller extends Base_Controller {
 		$export_type = $this->get_request_param( 'export_type' );
 		$options     = $this->get_request_array( 'options' );
 
-		if ( ! $this->is_export_type_allowed( $export_type ) ) {
-			$this->send_error(
-				new \WP_Error(
-					'pro_required',
-					__( 'This export type requires the PRO addon.', 'import-export-by-rockstarlab' )
-				),
-				null,
-				403
-			);
-		}
-
 		$count = Exporter_Factory::get_count( $export_type, $options );
 
 		if ( is_wp_error( $count ) ) {
@@ -122,17 +92,6 @@ class Export_Controller extends Base_Controller {
 
 		$export_type = $this->get_request_param( 'export_type' );
 		$options     = $this->get_request_array( 'options' );
-
-		if ( ! $this->is_export_type_allowed( $export_type ) ) {
-			$this->send_error(
-				new \WP_Error(
-					'pro_required',
-					__( 'This export type requires the PRO addon.', 'import-export-by-rockstarlab' )
-				),
-				null,
-				403
-			);
-		}
 
 		// Limit preview to 10 items
 		$preview_options = array_merge( $options, [ 'limit' => 10 ] );
@@ -172,17 +131,6 @@ class Export_Controller extends Base_Controller {
 		$export_type = $this->get_request_param( 'export_type' );
 		$format      = $this->get_request_param( 'format' );
 		$options     = $this->get_request_array( 'options' );
-
-		if ( ! $this->is_export_type_allowed( $export_type ) ) {
-			$this->send_error(
-				new \WP_Error(
-					'pro_required',
-					__( 'This export type requires the PRO addon.', 'import-export-by-rockstarlab' )
-				),
-				null,
-				403
-			);
-		}
 
 		// Get all export parameters
 		$filters         = $this->get_request_array( 'filters' );
@@ -502,17 +450,11 @@ class Export_Controller extends Base_Controller {
 
 		$job_id = (int) $this->get_request_param( 'job_id' );
 
-		// Load job to verify the premium license before doing any processing.
 		$job_model = rsl_ie()->Model->job;
 		$job_data  = $job_model->find( $job_id );
 
 		if ( ! $job_data ) {
 			$this->send_error( __( 'Job not found', 'import-export-by-rockstarlab' ), null, 404 );
-		}
-
-		$license_check = $this->verify_premium_for_type_in_context( $job_data->data_type ?? '', 'export' );
-		if ( is_wp_error( $license_check ) ) {
-			$this->send_error( $license_check, null, 403 );
 		}
 
 		// Process the job using Export_Processor
@@ -911,17 +853,6 @@ class Export_Controller extends Base_Controller {
 			$this->send_error( $verification, null, 403 );
 		}
 
-		if ( ! \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ) {
-			$this->send_error(
-				new \WP_Error(
-					'pro_required',
-					__( 'This feature requires the PRO addon.', 'import-export-by-rockstarlab' )
-				),
-				null,
-				403
-			);
-		}
-
 		// Use Database_Table_Exporter to get tables with row counts
 		$exporter = new \RockStarLab\ImportExport\Model\Export\Database_Table_Exporter();
 		$tables   = $exporter->get_available_tables();
@@ -936,17 +867,6 @@ class Export_Controller extends Base_Controller {
 		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
 			$this->send_error( $verification, null, 403 );
-		}
-
-		if ( ! \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ) {
-			$this->send_error(
-				new \WP_Error(
-					'pro_required',
-					__( 'This feature requires the PRO addon.', 'import-export-by-rockstarlab' )
-				),
-				null,
-				403
-			);
 		}
 
 		$validation = $this->validate_required_params( [ 'table_name' ] );
