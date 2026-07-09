@@ -116,3 +116,26 @@ if [ -d "$AIE2_PLUGINS_DIR" ]; then
 else
   echo "WARNING: aie2 plugins directory not found: $AIE2_PLUGINS_DIR" >&2
 fi
+
+# Deploy both plugins to aie3 local site by unzipping release archives.
+AIE3_PLUGINS_DIR="/Users/shaggywizard/Local Sites/aie3/app/public/wp-content/plugins"
+
+if [ -d "$AIE3_PLUGINS_DIR" ]; then
+  echo "Removing old FREE plugin from aie3..."
+  rm -rf "$AIE3_PLUGINS_DIR/$FREE_SLUG"
+
+  echo "Removing old PRO plugin from aie3..."
+  rm -rf "$AIE3_PLUGINS_DIR/$PRO_SLUG"
+
+  echo "Deploying FREE plugin to aie3..."
+  unzip -q "$FREE_ZIP" -d "$AIE3_PLUGINS_DIR"
+
+  echo "Deploying PRO plugin to aie3..."
+  unzip -q "$PRO_ZIP" -d "$AIE3_PLUGINS_DIR"
+
+  echo "Deployed to aie3:"
+  echo " - $AIE3_PLUGINS_DIR/$FREE_SLUG"
+  echo " - $AIE3_PLUGINS_DIR/$PRO_SLUG"
+else
+  echo "WARNING: aie3 plugins directory not found: $AIE3_PLUGINS_DIR" >&2
+fi
