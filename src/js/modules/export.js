@@ -74,28 +74,6 @@ const ExportModule = {
 			this.onContentTypeChange( e )
 		);
 
-		// Prevent selection of premium locked content types
-		$wizard.on(
-			'click',
-			'.rsl-ie-content-type.rsl-ie-premium-locked',
-			( e ) => {
-				e.preventDefault();
-				e.stopPropagation();
-
-				// Show upgrade message
-				const message = window.rslIeData.i18n.premiumOnlyFeature;
-				Utils.showNotice( message, 'warning' );
-
-				// Prevent the radio button from being checked
-				const $input = jQuery( e.currentTarget ).find(
-					'input[type="radio"]'
-				);
-				$input.prop( 'checked', false );
-
-				return false;
-			}
-		);
-
 		// Filters
 		$wizard.on(
 			'change',

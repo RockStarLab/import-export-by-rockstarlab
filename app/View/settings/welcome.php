@@ -139,7 +139,7 @@ $rsl_ie_pro_active     = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_acti
 									</div>
 							<?php else : ?>
 							<p class="rsl-ie-promo-intro">
-								<?php echo wp_kses_post( __( 'All new users get <strong>PRO addon for free for 1 month</strong>. Try the full power of this addon, starting your free 30-days trial.', 'import-export-by-rockstarlab' ) ); ?>
+								<?php esc_html_e( 'Extend the plugin with additional workflows and integrations from the separate PRO addon.', 'import-export-by-rockstarlab' ); ?>
 							</p>
 							<a href="<?php echo esc_url( admin_url( 'admin.php?page=import-export-by-rockstarlab-addons' ) ); ?>" class="button button-primary rsl-ie-promo-cta">
 								<?php esc_html_e( 'Get PRO Addon →', 'import-export-by-rockstarlab' ); ?>

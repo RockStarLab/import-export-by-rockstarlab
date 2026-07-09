@@ -401,19 +401,6 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( __( 'Job not found', 'import-export-by-rockstarlab' ), null, 404 );
 		}
 
-		// Verify premium license for premium content types.
-		// Import jobs store the type in parameters, export jobs in data_type.
-		$data_type = $job_data->data_type ?? '';
-		if ( empty( $data_type ) ) {
-			$params    = json_decode( $job_data->parameters, true );
-			$data_type = $params['import_type'] ?? $params['export_type'] ?? '';
-		}
-
-		$license_check = $this->verify_premium_for_type_in_context( $data_type, $job_data->type ?? '' );
-		if ( is_wp_error( $license_check ) ) {
-			$this->send_error( $license_check, null, 403 );
-		}
-
 		// Prepare settings - reset progress for media_sync jobs
 		$settings_to_use = $job_data->settings;
 		if ( 'media_sync' === $job_data->type && ! empty( $job_data->settings ) ) {
@@ -503,19 +490,6 @@ class Job_Controller extends Base_Controller {
 
 		if ( ! $job_data ) {
 			$this->send_error( __( 'Job not found', 'import-export-by-rockstarlab' ), null, 404 );
-		}
-
-		// Verify premium license for premium content types.
-		// Import jobs store the type in parameters, export jobs in data_type.
-		$data_type = $job_data->data_type ?? '';
-		if ( empty( $data_type ) ) {
-			$params    = json_decode( $job_data->parameters, true );
-			$data_type = $params['import_type'] ?? $params['export_type'] ?? '';
-		}
-
-		$license_check = $this->verify_premium_for_type_in_context( $data_type, $job_data->type ?? '' );
-		if ( is_wp_error( $license_check ) ) {
-			$this->send_error( $license_check, null, 403 );
 		}
 
 		// Prepare settings - reset progress for media_sync jobs

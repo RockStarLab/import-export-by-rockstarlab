@@ -99,6 +99,24 @@ class Media_Sync_Controller extends Base_Controller {
 			);
 		}
 
+		$validated_files = [];
+		foreach ( $selected_files as $selected_file ) {
+			$selected_path  = is_array( $selected_file ) ? ( $selected_file['path'] ?? '' ) : $selected_file;
+			$validated_path = Media_Sync::validate_source_file( $selected_path, $absolute_path );
+
+			if ( is_wp_error( $validated_path ) ) {
+				$this->send_error( $validated_path, null, 400 );
+			}
+
+			if ( is_array( $selected_file ) ) {
+				$selected_file['path'] = $validated_path;
+				$validated_files[]     = $selected_file;
+			} else {
+				$validated_files[] = $validated_path;
+			}
+		}
+		$selected_files = $validated_files;
+
 		// Create job record with folder path, selected files and options
 		$job_model = rsl_ie()->Model->job;
 		$job_data  = [

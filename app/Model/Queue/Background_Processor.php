@@ -507,7 +507,7 @@ class Background_Processor {
 			return $result;
 		}
 
-		throw new \Exception( 'Content Updater requires the PRO addon.' );
+		throw new \RuntimeException( 'No Content Updater processor is registered.' );
 	}
 
 	/**

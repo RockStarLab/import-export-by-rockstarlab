@@ -25,7 +25,6 @@ defined( 'ABSPATH' ) || exit;
 		$rsl_ie_promo_desc  = __( 'Get additional import content types by installing the PRO addon.', 'import-export-by-rockstarlab' );
 
 			$rsl_ie_promo_features = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_features( 'import' );
-			$rsl_ie_trial_note     = __( 'Free 30-day PRO Addon trial is available for all new users.', 'import-export-by-rockstarlab' );
 		?>
 
 			<?php if ( $rsl_ie_pro_active ) : ?>
@@ -76,13 +75,12 @@ defined( 'ABSPATH' ) || exit;
 
 			<?php if ( $rsl_ie_pro_active ) : ?>
 				<?php
-				$rsl_ie_pro_types  = \RockStarLab\ImportExport\Helper\Pro_Addon::get_pro_content_type_cards( 'import' );
-				$rsl_ie_pro_types  = apply_filters( 'rsl_ie_pro_import_content_types', $rsl_ie_pro_types );
-				$rsl_ie_pro_locked = false;
+				$rsl_ie_pro_types = \RockStarLab\ImportExport\Helper\Pro_Addon::get_pro_content_type_cards( 'import' );
+				$rsl_ie_pro_types = apply_filters( 'rsl_ie_pro_import_content_types', $rsl_ie_pro_types );
 				foreach ( $rsl_ie_pro_types as $rsl_ie_type ) :
 					?>
-					<label class="rsl-ie-content-type <?php echo $rsl_ie_pro_locked ? 'rsl-ie-premium-locked' : ''; ?>">
-						<input type="radio" name="content_type" value="<?php echo esc_attr( $rsl_ie_type['value'] ); ?>" <?php echo $rsl_ie_pro_locked ? 'disabled' : ''; ?>>
+					<label class="rsl-ie-content-type">
+						<input type="radio" name="content_type" value="<?php echo esc_attr( $rsl_ie_type['value'] ); ?>">
 						<div class="rsl-ie-content-type-card">
 							<span class="dashicons <?php echo esc_attr( $rsl_ie_type['icon'] ?? 'dashicons-star-filled' ); ?>"></span>
 							<h3><?php echo esc_html( $rsl_ie_type['title'] ?? '' ); ?></h3>
@@ -102,13 +100,6 @@ defined( 'ABSPATH' ) || exit;
 								<p><?php echo esc_html( $rsl_ie_promo_desc ); ?></p>
 							</div>
 						</div>
-
-						<?php if ( ! $rsl_ie_pro_active ) : ?>
-							<div class="rsl-ie-pro-addon-trial">
-								<span class="dashicons dashicons-calendar-alt"></span>
-								<span class="rsl-ie-pro-addon-trial-text"><?php echo esc_html( $rsl_ie_trial_note ); ?></span>
-							</div>
-						<?php endif; ?>
 
 						<?php if ( ! $rsl_ie_pro_active && ! empty( $rsl_ie_promo_features ) ) : ?>
 							<ul class="rsl-ie-pro-addon-features">

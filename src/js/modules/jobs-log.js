@@ -223,9 +223,6 @@ const JobsLogModule = {
 	 */
 	renderActions( job ) {
 		let actions = [];
-		const jobType = ( job.type || '' ).toLowerCase();
-		let dataType = ( job.data_type || '' ).toLowerCase();
-		const proEnabled = !! window.rslIeData.isProEnabled;
 
 		// View details
 		actions.push(
@@ -243,98 +240,21 @@ const JobsLogModule = {
 			);
 		}
 
-		// Determine premium gating for rerun actions (restart/retry).
-		// Keep client-side gating aligned with server-side `verify_premium_for_type_in_context()`.
-		const premiumDataTypes = [
-			'custom_post_types',
-			'custom_post_type',
-			'media',
-			'menu',
-			'menus',
-			'nav_menu',
-			'user',
-			'users',
-			'comment',
-			'comments',
-			'taxonomy',
-			'taxonomy_term',
-			'taxonomy_terms',
-			'term',
-			'terms',
-			'category',
-			'categories',
-			'tag',
-			'tags',
-			'woo_product',
-			'product',
-			'products',
-			'woo_order',
-			'woo_orders',
-			'woo_coupon',
-			'woo_attribute',
-			'database_table',
-		];
-
-		const freeByContext = {
-			import: [ 'post', 'posts', 'page', 'pages' ],
-			export: [ 'post', 'page', 'urls' ],
-			update: [ 'post', 'page', 'pages', 'comment', 'comments' ],
-		};
-
-		// Import jobs store the data type in `parameters` JSON (data_type DB column can be empty).
-		if ( ! dataType && typeof job.parameters === 'string' ) {
-			try {
-				const params = JSON.parse( job.parameters );
-				dataType = String(
-					params?.import_type || params?.export_type || ''
-				).toLowerCase();
-			} catch ( e ) {
-				// ignore malformed JSON
-			}
-		}
-
-		const isPremiumType =
-			!! dataType && premiumDataTypes.includes( dataType );
-		const isFreeInContext =
-			!! dataType &&
-			Array.isArray( freeByContext[ jobType ] ) &&
-			freeByContext[ jobType ].includes( dataType );
-
-		const proRequired = isPremiumType && ! isFreeInContext;
-
 		// Restart (create a new job with same settings)
-		if ( proRequired && ! proEnabled ) {
-			actions.push(
-				`<button class="button button-small" disabled title="${
-					window.rslIeData.i18n.retryRequiresPremium ||
-					'The PRO addon is required to retry this job'
-				}"><span class="dashicons dashicons-lock"></span></button>`
-			);
-		} else {
-			actions.push(
-				`<button class="button button-small job-action-restart" title="${
-					window.rslIeData.i18n.restart || 'Restart'
-				}"><span class="dashicons dashicons-controls-repeat"></span></button>`
-			);
-		}
+		actions.push(
+			`<button class="button button-small job-action-restart" title="${
+				window.rslIeData.i18n.restart || 'Restart'
+			}"><span class="dashicons dashicons-controls-repeat"></span></button>`
+		);
 
 		// Retry - not available for media_sync jobs (files may have been moved)
 		if ( job.type !== 'media_sync' ) {
-			if ( proRequired && ! proEnabled ) {
-				actions.push(
-					`<button class="button button-small" disabled title="${
-						window.rslIeData.i18n.retryRequiresPremium ||
-						'The PRO addon is required to retry this job'
-					}"><span class="dashicons dashicons-lock"></span></button>`
-				);
-			} else {
-				actions.push(
-					`<button class="button button-small job-action-retry" title="${
-						window.rslIeData.i18n.retry ||
-						'Retry (Create new job with same parameters)'
-					}"><span class="dashicons dashicons-update"></span></button>`
-				);
-			}
+			actions.push(
+				`<button class="button button-small job-action-retry" title="${
+					window.rslIeData.i18n.retry ||
+					'Retry (Create new job with same parameters)'
+				}"><span class="dashicons dashicons-update"></span></button>`
+			);
 		}
 
 		// Download (for exports)

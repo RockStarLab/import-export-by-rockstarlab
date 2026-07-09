@@ -138,41 +138,47 @@ class Pro_Addon {
 		$cards = [];
 
 		if ( in_array( $context, [ 'import', 'export' ], true ) ) {
+			$is_import = 'import' === $context;
+
 			$cards[] = [
 				'value'       => 'custom_post_types',
 				'icon'        => 'dashicons-admin-generic',
 				'title'       => __( 'Custom Post Types', 'import-export-by-rockstarlab' ),
-				'description' => __( 'Import/export custom post types', 'import-export-by-rockstarlab' ),
+				'description' => $is_import
+					? __( 'Import any custom post types', 'import-export-by-rockstarlab' )
+					: __( 'Export any custom post types', 'import-export-by-rockstarlab' ),
 			];
 			$cards[] = [
 				'value'       => 'media',
 				'icon'        => 'dashicons-admin-media',
 				'title'       => __( 'Media', 'import-export-by-rockstarlab' ),
-				'description' => __( 'Import/export media files data', 'import-export-by-rockstarlab' ),
+				'description' => $is_import
+					? __( 'Import media files data', 'import-export-by-rockstarlab' )
+					: __( 'Export media files data', 'import-export-by-rockstarlab' ),
 			];
 			$cards[] = [
 				'value'       => 'menu',
 				'icon'        => 'dashicons-menu',
 				'title'       => __( 'Menus', 'import-export-by-rockstarlab' ),
-				'description' => __( 'Import/export navigation menus', 'import-export-by-rockstarlab' ),
+				'description' => $is_import
+					? __( 'Import navigation menus', 'import-export-by-rockstarlab' )
+					: __( 'Export navigation menus', 'import-export-by-rockstarlab' ),
 			];
 			$cards[] = [
 				'value'       => 'user',
 				'icon'        => 'dashicons-admin-users',
 				'title'       => __( 'Users', 'import-export-by-rockstarlab' ),
-				'description' => __( 'Import/export user accounts', 'import-export-by-rockstarlab' ),
-			];
-			$cards[] = [
-				'value'       => 'comment',
-				'icon'        => 'dashicons-admin-comments',
-				'title'       => __( 'Comments', 'import-export-by-rockstarlab' ),
-				'description' => __( 'Import/export comments and reviews', 'import-export-by-rockstarlab' ),
+				'description' => $is_import
+					? __( 'Import user accounts', 'import-export-by-rockstarlab' )
+					: __( 'Export user accounts', 'import-export-by-rockstarlab' ),
 			];
 			$cards[] = [
 				'value'       => 'taxonomy',
 				'icon'        => 'dashicons-category',
 				'title'       => __( 'Taxonomy Terms', 'import-export-by-rockstarlab' ),
-				'description' => __( 'Import/export categories, tags, and custom taxonomies', 'import-export-by-rockstarlab' ),
+				'description' => $is_import
+					? __( 'Import categories, tags, and custom taxonomies', 'import-export-by-rockstarlab' )
+					: __( 'Export categories, tags, and custom taxonomies', 'import-export-by-rockstarlab' ),
 			];
 
 			if ( class_exists( 'WooCommerce' ) ) {
@@ -180,25 +186,33 @@ class Pro_Addon {
 					'value'       => 'woo_product',
 					'icon'        => 'dashicons-products',
 					'title'       => __( 'WooCommerce Products', 'import-export-by-rockstarlab' ),
-					'description' => __( 'Import/export WooCommerce products', 'import-export-by-rockstarlab' ),
+					'description' => $is_import
+						? __( 'Import WooCommerce products', 'import-export-by-rockstarlab' )
+						: __( 'Export WooCommerce products', 'import-export-by-rockstarlab' ),
 				];
 				$cards[] = [
 					'value'       => 'woo_order',
 					'icon'        => 'dashicons-cart',
 					'title'       => __( 'WooCommerce Orders (8.0+)', 'import-export-by-rockstarlab' ),
-					'description' => __( 'Import/export WooCommerce orders', 'import-export-by-rockstarlab' ),
+					'description' => $is_import
+						? __( 'Import WooCommerce orders', 'import-export-by-rockstarlab' )
+						: __( 'Export WooCommerce orders', 'import-export-by-rockstarlab' ),
 				];
 				$cards[] = [
 					'value'       => 'woo_coupon',
 					'icon'        => 'dashicons-tickets-alt',
 					'title'       => __( 'WooCommerce Coupons', 'import-export-by-rockstarlab' ),
-					'description' => __( 'Import/export WooCommerce coupons', 'import-export-by-rockstarlab' ),
+					'description' => $is_import
+						? __( 'Import WooCommerce coupons', 'import-export-by-rockstarlab' )
+						: __( 'Export WooCommerce coupons', 'import-export-by-rockstarlab' ),
 				];
 				$cards[] = [
 					'value'       => 'woo_attribute',
 					'icon'        => 'dashicons-tag',
 					'title'       => __( 'WooCommerce Attributes', 'import-export-by-rockstarlab' ),
-					'description' => __( 'Import/export WooCommerce attributes', 'import-export-by-rockstarlab' ),
+					'description' => $is_import
+						? __( 'Import WooCommerce attributes', 'import-export-by-rockstarlab' )
+						: __( 'Export WooCommerce attributes', 'import-export-by-rockstarlab' ),
 				];
 			}
 
@@ -206,7 +220,9 @@ class Pro_Addon {
 				'value'       => 'database_table',
 				'icon'        => 'dashicons-database-view',
 				'title'       => __( 'MySQL Database Table', 'import-export-by-rockstarlab' ),
-				'description' => __( 'Import/export any MySQL table fields', 'import-export-by-rockstarlab' ),
+				'description' => $is_import
+					? __( 'Import any MySQL table fields', 'import-export-by-rockstarlab' )
+					: __( 'Export any MySQL table fields', 'import-export-by-rockstarlab' ),
 			];
 		}
 

@@ -263,12 +263,14 @@ class Media_Sync_Processor {
 				// Get file path from array
 				$file_path = is_array( $file ) ? $file['path'] : $file;
 
-				// Check if file still exists
-				if ( ! file_exists( $file_path ) ) {
+				// Revalidate persisted job data at execution time. Jobs can run
+				// later via AJAX, cron, or WP-CLI, so their payload is not trusted.
+				$file_path = Media_Sync::validate_source_file( $file_path, $options['base_folder'] ?? '' );
+				if ( is_wp_error( $file_path ) ) {
 					++$results['failed'];
 					$results['errors'][] = sprintf(
-						'File not found: %s',
-						basename( $file_path )
+						'Invalid source file: %s',
+						$file_path->get_error_message()
 					);
 					continue;
 				}

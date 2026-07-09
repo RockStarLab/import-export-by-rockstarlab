@@ -26,21 +26,14 @@ class Exporter_Factory {
 		$exporter_map = self::get_exporter_map();
 
 		if ( ! isset( $exporter_map[ $type ] ) ) {
-			// Fallback: if the type matches a registered WordPress post type, use Post_Exporter.
-			// This covers all custom post types (e.g. "portfolio", "product", etc.)
-			// without needing each one explicitly listed in the exporter map.
-			if ( post_type_exists( $type ) ) {
-				$class = Post_Exporter::class;
-			} else {
-				return new \WP_Error(
-					'unknown_exporter',
-					sprintf(
-						/* translators: %s: exporter type */
-						__( 'Unknown exporter type: %s', 'import-export-by-rockstarlab' ),
-						$type
-					)
-				);
-			}
+			return new \WP_Error(
+				'unknown_exporter',
+				sprintf(
+					/* translators: %s: exporter type */
+					__( 'Unknown exporter type: %s', 'import-export-by-rockstarlab' ),
+					$type
+				)
+			);
 		} else {
 			$class = $exporter_map[ $type ];
 		}
