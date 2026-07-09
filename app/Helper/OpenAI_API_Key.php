@@ -40,15 +40,15 @@ class OpenAI_API_Key {
 
 		$builder = call_user_func( 'wp_ai_client_prompt', 'test' );
 
-		if ( method_exists( $builder, 'using_model_preference' ) ) {
+		if ( is_callable( [ $builder, 'using_model_preference' ] ) ) {
 			$builder = $builder->using_model_preference( 'gpt-4.1-mini', 'gpt-4o-mini', 'gpt-4o' );
 		}
 
-		if ( method_exists( $builder, 'is_supported_for_text_generation' ) ) {
+		if ( is_callable( [ $builder, 'is_supported_for_text_generation' ] ) ) {
 			return (bool) $builder->is_supported_for_text_generation();
 		}
 
-		return true;
+		return false;
 	}
 
 	/**

@@ -218,7 +218,7 @@
 		}
 
 		.rsl-ie-filter-actions {
-			margin-top: 24px; // Align delete button with inputs (label height + margin)
+			margin-top: 15px; // Align delete button with inputs (label height + margin)
 
 			.rsl-ie-remove-filter {
 				background: transparent;
@@ -617,4 +617,18 @@
 			box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.25);
 		}
 	}
+}
+
+.rsl-ie-add-custom-column,
+.rsl-ie-clear-all-fields {
+	padding-top: 4px !important;
+	padding-bottom: 4px !important;
+}
+
+.rsl-ie-remove-file .dashicons {
+	line-height: 1 !important;
+}
+
+.rsl-ie-upload-status-text {
+	margin-bottom: 5px !important;
 }
