@@ -858,17 +858,9 @@ class Import_Controller extends Base_Controller {
 	 * @return void
 	 */
 	private function preserve_imported_comment_dates( $item_result, $item ) {
-		global $wpdb;
-
 		$comment_id = is_numeric( $item_result ) ? absint( $item_result ) : 0;
 		if ( $comment_id <= 0 && ! empty( $item['_rsl_ie_source_comment_id'] ) ) {
-			$comment_id = (int) $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT comment_id FROM {$wpdb->commentmeta} WHERE meta_key = %s AND meta_value = %s ORDER BY comment_id DESC LIMIT 1",
-					'_aie_source_comment_id',
-					(string) absint( $item['_rsl_ie_source_comment_id'] )
-				)
-			);
+			$comment_id = $this->find_imported_comment_id( $item['_rsl_ie_source_comment_id'] );
 		}
 
 		if ( $comment_id <= 0 ) {
@@ -886,14 +878,46 @@ class Import_Controller extends Base_Controller {
 			return;
 		}
 
-		$wpdb->update(
-			$wpdb->comments,
-			$update,
-			[ 'comment_ID' => $comment_id ],
-			array_fill( 0, count( $update ), '%s' ),
-			[ '%d' ]
-		);
-		clean_comment_cache( $comment_id );
+		$update['comment_ID'] = $comment_id;
+		wp_update_comment( $update );
+	}
+
+	/**
+	 * Find an imported comment by its source ID without a direct or meta query.
+	 *
+	 * This is only a fallback when an importer does not return the new comment
+	 * ID. IDs are read in bounded pages and metadata uses WordPress caches.
+	 *
+	 * @param int|string $source_id Source-site comment ID.
+	 * @return int Local comment ID, or zero when not found.
+	 */
+	private function find_imported_comment_id( $source_id ) {
+		$source_id = (string) absint( $source_id );
+		$offset    = 0;
+		$page_size = 200;
+
+		do {
+			$comment_ids = get_comments(
+				[
+					'fields'  => 'ids',
+					'number'  => $page_size,
+					'offset'  => $offset,
+					'orderby' => 'comment_ID',
+					'order'   => 'DESC',
+					'status'  => 'all',
+				]
+			);
+
+			foreach ( $comment_ids as $comment_id ) {
+				if ( $source_id === (string) get_comment_meta( $comment_id, '_aie_source_comment_id', true ) ) {
+					return absint( $comment_id );
+				}
+			}
+
+			$offset += $page_size;
+		} while ( count( $comment_ids ) === $page_size );
+
+		return 0;
 	}
 
 	/**
@@ -908,8 +932,6 @@ class Import_Controller extends Base_Controller {
 	 * @return void
 	 */
 	private function fix_comment_parent_relationships( $job_id, $prepared_data ) {
-		global $wpdb;
-
 		$job_id = absint( $job_id );
 		if ( $job_id <= 0 || ! is_array( $prepared_data ) || empty( $prepared_data ) ) {
 			return;
@@ -941,15 +963,12 @@ class Import_Controller extends Base_Controller {
 				continue;
 			}
 
-			$wpdb->update(
-				$wpdb->comments,
-				[ 'comment_parent' => $target_parent ],
-				[ 'comment_ID' => $target_id ],
-				[ '%d' ],
-				[ '%d' ]
+			wp_update_comment(
+				[
+					'comment_ID'     => $target_id,
+					'comment_parent' => $target_parent,
+				]
 			);
-
-			clean_comment_cache( $target_id );
 		}
 
 		delete_transient( $key );

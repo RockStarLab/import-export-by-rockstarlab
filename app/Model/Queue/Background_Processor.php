@@ -305,17 +305,9 @@ class Background_Processor {
 		 * @return void
 		 */
 	private function preserve_imported_comment_dates( $item_result, $item ) {
-		global $wpdb;
-
 		$comment_id = is_numeric( $item_result ) ? absint( $item_result ) : 0;
 		if ( $comment_id <= 0 && ! empty( $item['_rsl_ie_source_comment_id'] ) ) {
-			$comment_id = (int) $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT comment_id FROM {$wpdb->commentmeta} WHERE meta_key = %s AND meta_value = %s ORDER BY comment_id DESC LIMIT 1",
-					'_aie_source_comment_id',
-					(string) absint( $item['_rsl_ie_source_comment_id'] )
-				)
-			);
+			$comment_id = $this->find_imported_comment_id( $item['_rsl_ie_source_comment_id'] );
 		}
 
 		if ( $comment_id <= 0 ) {
@@ -333,23 +325,52 @@ class Background_Processor {
 			return;
 		}
 
-		$wpdb->update(
-			$wpdb->comments,
-			$update,
-			[ 'comment_ID' => $comment_id ],
-			array_fill( 0, count( $update ), '%s' ),
-			[ '%d' ]
-		);
-		clean_comment_cache( $comment_id );
+		$update['comment_ID'] = $comment_id;
+		wp_update_comment( $update );
 	}
 
-		/**
-		 * Process export job
-		 *
-		 * @param int   $job_id Job ID
-		 * @param array $parameters Job parameters
-		 * @return array Processing result
-		 */
+	/**
+	 * Find an imported comment by its source ID without a direct or meta query.
+	 *
+	 * @param int|string $source_id Source-site comment ID.
+	 * @return int Local comment ID, or zero when not found.
+	 */
+	private function find_imported_comment_id( $source_id ) {
+		$source_id = (string) absint( $source_id );
+		$offset    = 0;
+		$page_size = 200;
+
+		do {
+			$comment_ids = get_comments(
+				[
+					'fields'  => 'ids',
+					'number'  => $page_size,
+					'offset'  => $offset,
+					'orderby' => 'comment_ID',
+					'order'   => 'DESC',
+					'status'  => 'all',
+				]
+			);
+
+			foreach ( $comment_ids as $comment_id ) {
+				if ( $source_id === (string) get_comment_meta( $comment_id, '_aie_source_comment_id', true ) ) {
+					return absint( $comment_id );
+				}
+			}
+
+			$offset += $page_size;
+		} while ( count( $comment_ids ) === $page_size );
+
+		return 0;
+	}
+
+			/**
+			 * Process export job
+			 *
+			 * @param int   $job_id Job ID
+			 * @param array $parameters Job parameters
+			 * @return array Processing result
+			 */
 	protected function process_export_job( $job_id, $parameters ) {
 		unset( $parameters );
 		$processor = new Export_Processor();
