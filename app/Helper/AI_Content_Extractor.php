@@ -880,27 +880,27 @@ class AI_Content_Extractor {
 
 		$builder = call_user_func( 'wp_ai_client_prompt', $prompt );
 
-		if ( '' !== $system_instruction && method_exists( $builder, 'using_system_instruction' ) ) {
+		if ( '' !== $system_instruction && is_callable( [ $builder, 'using_system_instruction' ] ) ) {
 			$builder = $builder->using_system_instruction( $system_instruction );
 		}
 
-		if ( null !== $temperature && method_exists( $builder, 'using_temperature' ) ) {
+		if ( null !== $temperature && is_callable( [ $builder, 'using_temperature' ] ) ) {
 			$builder = $builder->using_temperature( $temperature );
 		}
 
-		if ( null !== $max_tokens && method_exists( $builder, 'using_max_tokens' ) ) {
+		if ( null !== $max_tokens && is_callable( [ $builder, 'using_max_tokens' ] ) ) {
 			$builder = $builder->using_max_tokens( $max_tokens );
 		}
 
-		if ( is_array( $json_schema ) && method_exists( $builder, 'as_json_response' ) ) {
+		if ( is_array( $json_schema ) && is_callable( [ $builder, 'as_json_response' ] ) ) {
 			$builder = $builder->as_json_response( $json_schema );
 		}
 
-		if ( method_exists( $builder, 'using_model_preference' ) ) {
+		if ( is_callable( [ $builder, 'using_model_preference' ] ) ) {
 			$builder = $builder->using_model_preference( 'gpt-4.1-mini', 'gpt-4o-mini', 'gpt-4o' );
 		}
 
-		if ( method_exists( $builder, 'is_supported_for_text_generation' ) && ! $builder->is_supported_for_text_generation() ) {
+		if ( ! is_callable( [ $builder, 'is_supported_for_text_generation' ] ) || ! $builder->is_supported_for_text_generation() ) {
 			return new \WP_Error(
 				'ai_client_unsupported',
 				__( 'No configured WordPress AI provider supports text generation.', 'import-export-by-rockstarlab' )

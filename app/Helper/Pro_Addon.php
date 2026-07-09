@@ -173,6 +173,14 @@ class Pro_Addon {
 					: __( 'Export user accounts', 'import-export-by-rockstarlab' ),
 			];
 			$cards[] = [
+				'value'       => 'comment',
+				'icon'        => 'dashicons-admin-comments',
+				'title'       => __( 'Comments', 'import-export-by-rockstarlab' ),
+				'description' => $is_import
+					? __( 'Import comments and reviews', 'import-export-by-rockstarlab' )
+					: __( 'Export comments and reviews', 'import-export-by-rockstarlab' ),
+			];
+			$cards[] = [
 				'value'       => 'taxonomy',
 				'icon'        => 'dashicons-category',
 				'title'       => __( 'Taxonomy Terms', 'import-export-by-rockstarlab' ),

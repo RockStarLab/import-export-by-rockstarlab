@@ -95,6 +95,12 @@ defined( 'ABSPATH' ) || exit;
 				<?php
 				$rsl_ie_pro_types = \RockStarLab\ImportExport\Helper\Pro_Addon::get_pro_content_type_cards( 'export' );
 				$rsl_ie_pro_types = apply_filters( 'rsl_ie_pro_export_content_types', $rsl_ie_pro_types );
+				$rsl_ie_pro_types = array_filter(
+					$rsl_ie_pro_types,
+					static function ( $rsl_ie_type ) {
+						return 'comment' !== ( $rsl_ie_type['value'] ?? '' );
+					}
+				);
 				foreach ( $rsl_ie_pro_types as $rsl_ie_type ) :
 					?>
 					<label class="rsl-ie-content-type">
