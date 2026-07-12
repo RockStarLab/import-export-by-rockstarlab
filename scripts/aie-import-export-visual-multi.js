@@ -209,12 +209,31 @@ async function handleBackupModalIfPresent( page ) {
 async function clickNextStep( page ) {
 	const next = page.locator( '.rsl-ie-step.active .rsl-ie-next-step' );
 	await next.waitFor( { state: 'visible', timeout: 30_000 } );
-	await page.waitForFunction( () => {
-		const btn = document.querySelector(
-			'.rsl-ie-step.active .rsl-ie-next-step'
+	try {
+		await page.waitForFunction(
+			() => {
+				const btn = document.querySelector(
+					'.rsl-ie-step.active .rsl-ie-next-step'
+				);
+				return btn && ! btn.disabled;
+			},
+			null,
+			{ timeout: 30_000 }
 		);
-		return btn && ! btn.disabled;
-	} );
+	} catch ( error ) {
+		const state = await page.evaluate( () => {
+			const step = document.querySelector( '.rsl-ie-step.active' );
+			const button = step?.querySelector( '.rsl-ie-next-step' );
+			return {
+				step: step?.className || '',
+				disabled: Boolean( button?.disabled ),
+				text: String( step?.innerText || '' ).slice( 0, 1000 ),
+			};
+		} );
+		throw new Error(
+			`Next step did not become enabled: ${ JSON.stringify( state ) }`
+		);
+	}
 	await next.click();
 }
 
@@ -582,6 +601,7 @@ async function ensureImportDatabaseTableSelected(
 }
 
 async function exportAllItems( page, source, contentType ) {
+	console.log( `[export] ${ contentType }: open step 1` );
 	await gotoAdminPage(
 		page,
 		source,
@@ -592,6 +612,7 @@ async function exportAllItems( page, source, contentType ) {
 	await page.waitForSelector( '.rsl-ie-step-1.active', { timeout: 30_000 } );
 	await selectContentTypeOnStep1( page, contentType );
 	await clickNextStep( page );
+	console.log( `[export] ${ contentType }: step 2` );
 
 	// Step 2
 	await page.waitForSelector( '.rsl-ie-step-2.active', { timeout: 30_000 } );
@@ -608,6 +629,7 @@ async function exportAllItems( page, source, contentType ) {
 		} );
 	}
 	await clickNextStep( page );
+	console.log( `[export] ${ contentType }: step 3` );
 
 	// Step 3: add all fields in all visible categories
 	await page.waitForSelector( '.rsl-ie-step-3.active', { timeout: 30_000 } );
@@ -633,6 +655,7 @@ async function exportAllItems( page, source, contentType ) {
 				} catch {}
 			} );
 	} );
+	console.log( `[export] ${ contentType }: all visible fields selected` );
 
 	// Wait until at least one column is added.
 	await page.waitForFunction( () => {
@@ -651,15 +674,18 @@ async function exportAllItems( page, source, contentType ) {
 		return btn && ! btn.disabled;
 	} );
 	await step3Next.click();
+	console.log( `[export] ${ contentType }: step 4` );
 
 	// Step 4: start export
 	await page.waitForSelector( '.rsl-ie-step-4.active', { timeout: 30_000 } );
 	await page.locator( '.rsl-ie-start-export' ).click();
+	console.log( `[export] ${ contentType }: export started` );
 
 	// Step 5: download
 	await page.waitForSelector( '.rsl-ie-step-5.active', { timeout: 30_000 } );
 	const completeCard = page.locator( '.rsl-ie-export-complete-card' );
 	await completeCard.waitFor( { state: 'visible', timeout: 5 * 60_000 } );
+	console.log( `[export] ${ contentType }: export complete` );
 
 	const [ download ] = await Promise.all( [
 		page.waitForEvent( 'download', { timeout: 60_000 } ),
@@ -722,6 +748,7 @@ async function importItems(
 	contentType,
 	importMeta = {}
 ) {
+	console.log( `[import] ${ contentType }: open step 1` );
 	await gotoAdminPage(
 		page,
 		target,
@@ -733,6 +760,7 @@ async function importItems(
 	await selectContentTypeOnStep1( page, contentType );
 	await page.locator( '.rsl-ie-step-1.active .rsl-ie-next-step' ).click();
 	await handleBackupModalIfPresent( page );
+	console.log( `[import] ${ contentType }: step 2` );
 
 	// Step 2 upload
 	await page.waitForSelector( '.rsl-ie-step-2.active', { timeout: 30_000 } );
@@ -744,10 +772,12 @@ async function importItems(
 		return btn && ! btn.disabled;
 	} );
 	await page.locator( '.rsl-ie-step-2.active .rsl-ie-next-step' ).click();
+	console.log( `[import] ${ contentType }: step 3` );
 
 	// Step 3 preview
 	await page.waitForSelector( '.rsl-ie-step-3.active', { timeout: 30_000 } );
 	await clickNextStep( page );
+	console.log( `[import] ${ contentType }: step 4` );
 
 	// Step 4 mapping: auto map
 	await page.waitForSelector( '.rsl-ie-step-4.active', { timeout: 30_000 } );
@@ -783,6 +813,7 @@ async function importItems(
 	await page.locator( '.rsl-ie-auto-map' ).click();
 	await page.waitForTimeout( 250 );
 	await clickNextStep( page );
+	console.log( `[import] ${ contentType }: step 5` );
 
 	// Step 5 options
 	await page.waitForSelector( '.rsl-ie-step-5.active', { timeout: 30_000 } );
@@ -878,6 +909,7 @@ async function importItems(
 	}
 
 	await page.locator( '.rsl-ie-start-import' ).click();
+	console.log( `[import] ${ contentType }: import started` );
 	await handleBackupModalIfPresent( page );
 
 	// Step 6 complete
@@ -885,6 +917,7 @@ async function importItems(
 	await page
 		.locator( '.rsl-ie-import-complete-card' )
 		.waitFor( { state: 'visible', timeout: 10 * 60_000 } );
+	console.log( `[import] ${ contentType }: import complete` );
 }
 
 async function getPostTitleFromEdit( page ) {
@@ -2553,6 +2586,13 @@ async function main() {
 	} );
 	const page = await context.newPage();
 	const frontPage = await context.newPage();
+	page.on( 'requestfailed', ( request ) => {
+		console.error(
+			`[browser] request failed: ${ request.method() } ${ request.url() } ${
+				request.failure()?.errorText || 'unknown error'
+			}`
+		);
+	} );
 
 	const source = {
 		baseUrl: env.sourceUrl,

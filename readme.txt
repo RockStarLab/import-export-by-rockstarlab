@@ -11,11 +11,25 @@ Advanced import/export for WordPress: CSV workflows, media sync, and site-to-sit
 
 == Description ==
 
-Import Export by RockStarLab helps you move WordPress data between sites and environments. It supports CSV-based import/export workflows, frontend URLs export, custom field mapping, and background jobs for large datasets.
+🌐 Website: https://wpimportexport.com/
+📖 Documentation: https://wpimportexport.com/docs/
+📰 Blog & Tutorials: https://wpimportexport.com/blog/
 
-Import and export WordPress content with a flexible workflow that scales to large datasets. Use mapping and background jobs to move data reliably. 📂
+Import Export by RockStarLab is a powerful WordPress import and export plugin for CSV import, CSV export, content migration, site migration, data migration, site synchronization, frontend URL export, media synchronization, background processing, and bulk WordPress content management.
 
-It also includes an optional AI URL Importer (when configured) to help extract content from URLs.
+Move WordPress content between development, staging, and production environments using flexible field mapping, background jobs, and scalable import/export workflows designed for large datasets. Export posts, pages, frontend URLs, and synchronize content between websites reliably. 📂
+
+It also includes an optional AI URL Importer (when configured) to extract structured content from public URLs using your own OpenAI API key.
+
+== Common Use Cases ==
+
+* WordPress site migration
+* CSV import and CSV export
+* Bulk content updates
+* Site-to-site content synchronization
+* Export all public site URLs for SEO audits
+* Media Library synchronization
+* AI-assisted content import
 
 == Features ==
 
@@ -41,11 +55,9 @@ This plugin has an optional PRO addon plugin that adds additional Import/Export 
 
 When searching for a reliable WordPress import/export plugin, reliability and flexibility are key. Here is why RockstarLab built this:
 
-Developer Friendly: Built-in hooks and filters let developers integrate the free plugin with separate addons and site-specific workflows.
-
 AI Integration: Import content from URLs using your own OpenAI API key. 🧠
 
-Speed & Performance: Optimized to handle large XML, CSV, and JSON files without crashing your server or hitting timeout limits.
+Speed & Performance: Optimized to handle large CSV / JSON files without crashing your server or hitting timeout limits.
 
 Data Integrity: Handles metadata and custom fields during import/export workflows.
 
@@ -84,7 +96,6 @@ Synchronize content between two WordPress sites with secure API-based connection
 * **Selective Sync**: Filter by ID, date, author, status, taxonomy
 * **Conflict Resolution**: Skip, Update, or Duplicate strategies
 * **Media Sync**: Automatically download and sync media files
-* **Security**: Rate limiting, IP whitelisting, API key validation
 
 = Media Folder Sync =
 
@@ -96,7 +107,7 @@ Easily synchronize files from server folders (uploaded via FTP/SFTP) to your Wor
 * **Preserve Structure**: Maintain original folder hierarchy
 * **Batch Processing**: Handle large numbers of files efficiently
 * **Auto Alt Text**: Generate alt text from filenames
-* **PRO Addon: Real Media Library**: Automatically create folder structure in Real Media Library
+* **Real Media Library**: Automatically create folder structure in Real Media Library plugin (the plugin is not included)
 
 = What the PRO Addon adds =
 
@@ -111,6 +122,17 @@ The PRO addon extends Import and Export with additional content types (for examp
 * **Content Management**: Exporting for backup or analysis
 * **Media Organization**: Organizing FTP-uploaded files into Media Library
 * **WooCommerce**: Product catalog management (via the optional PRO addon)
+
+== Works With ==
+
+* WordPress
+* ACF (Advanced Custom Fields) and ACF Pro (Flexible content, repeaters)
+* WooCommerce (PRO addon)
+* Elementor
+* Yoast SEO
+* RankMath SEO
+* Real Media Library
+* OpenAI
 
 == External services ==
 
@@ -132,10 +154,6 @@ Service provider:
 
 == Frequently Asked Questions ==
 
-= Where is plugin documentation? =
-
-Fresh and actual documentation located here: https://wpimportexport.com/docs/
-
 = Can I import large files without timeout issues? =
 
 Yes! The plugin uses background processing to handle large files without memory or timeout issues.
@@ -147,10 +165,6 @@ Advanced field transformation workflows are available through optional addon int
 = How do I avoid importing duplicate media files? =
 
 Use the Media Folder Sync feature with duplicate detection. Choose from three methods: Hash (most accurate), Filename (fastest), or Filesize (balanced).
-
-= Is Real Media Library integration included? =
-
-Real Media Library integration is available via the optional PRO addon.
 
 = Can I sync content between two WordPress sites? =
 
