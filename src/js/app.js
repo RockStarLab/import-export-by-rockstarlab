@@ -9,6 +9,7 @@ import PluginOptionsModule from './modules/plugin-options';
 import WelcomeModule from './modules/welcome';
 import ProPromoModule from './modules/pro-promo';
 import MediaHashModule from './modules/media-hash';
+import SchedulesModule from './modules/schedules';
 
 // Initialize modules when DOM is ready
 jQuery( document ).ready( function ( $ ) {
@@ -49,4 +50,7 @@ jQuery( document ).ready( function ( $ ) {
 
 	// Initialize the media hash maintenance tool and recommendation notice.
 	MediaHashModule.init();
+
+	// Initialize schedules page controls.
+	SchedulesModule.init();
 } );

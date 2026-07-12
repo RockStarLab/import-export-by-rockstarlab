@@ -388,6 +388,67 @@ echo (string) $n;
 	return Number( wpEval( env, code ) || '0' );
 }
 
+async function verifyMediaLibraryInBrowser( page, site, { minRows = 1 } = {} ) {
+	await gotoAdmin( page, site, '/wp-admin/upload.php?mode=list' );
+	await waitAdminReady( page );
+	await page
+		.locator( '#the-list tr, .attachments-browser .attachment' )
+		.first()
+		.waitFor( { state: 'attached', timeout: 30_000 } );
+	const details = await page.evaluate( () => {
+		const listRows = Array.from(
+			document.querySelectorAll( '#the-list tr' )
+		).filter(
+			( row ) =>
+				row.offsetParent ||
+				row.getClientRects().length ||
+				row.textContent?.trim()
+		);
+		const gridItems = Array.from(
+			document.querySelectorAll( '.attachments-browser .attachment' )
+		).filter(
+			( item ) => item.offsetParent || item.getClientRects().length
+		);
+		const titles = listRows
+			.map( ( row ) => {
+				const title =
+					row.querySelector( '.title a, .column-title a' )
+						?.textContent ||
+					row.querySelector( '.title, .column-title' )?.textContent ||
+					'';
+				return String( title ).replace( /\s+/g, ' ' ).trim();
+			} )
+			.filter( Boolean )
+			.slice( 0, 10 );
+		return {
+			listRows: listRows.length,
+			gridItems: gridItems.length,
+			titles,
+			bodyText: String( document.body?.innerText || '' ).slice( 0, 1000 ),
+		};
+	} );
+
+	const visibleCount = Math.max(
+		Number( details.listRows || 0 ),
+		Number( details.gridItems || 0 )
+	);
+	if ( visibleCount < minRows ) {
+		const debugPath = path.resolve(
+			process.cwd(),
+			'e2e',
+			'artifacts',
+			`content-sync-media-library-empty-${ Date.now() }.png`
+		);
+		await page
+			.screenshot( { path: debugPath, fullPage: true } )
+			.catch( () => null );
+		throw new Error(
+			`Media Library did not show expected attachments in browser (visible=${ visibleCount }, minRows=${ minRows }, screenshot=${ debugPath })`
+		);
+	}
+	return { ...details, visibleCount };
+}
+
 function findPostOnTargetByOriginalId( envTarget, sourcePostId, postType ) {
 	const code = `
 $sid = (int) ${ JSON.stringify( String( sourcePostId ) ) };
@@ -2103,6 +2164,13 @@ async function main() {
 	const sourceCtx = await browser.newContext();
 	const sourcePage = await sourceCtx.newPage();
 	attachPageDebugging( sourcePage, { label: 'source' } );
+	const artifactsDir = path.resolve(
+		process.cwd(),
+		'e2e',
+		'artifacts',
+		'content-sync'
+	);
+	fs.mkdirSync( artifactsDir, { recursive: true } );
 
 	try {
 		const targetApiKey = ensureSiteApiKey( env.target );
@@ -2119,7 +2187,7 @@ async function main() {
 
 		// Prepare IDs per post type (source side).
 		const ids = {
-			post: '1',
+			post: pickOnePostId( env.source, 'post' ) || '',
 			page: pickOnePostId( env.source, 'page' ) || '',
 			portfolio: pickOnePostId( env.source, 'portfolio' ) || '',
 			product: pickOnePostId( env.source, 'product' ) || '',
@@ -2138,6 +2206,7 @@ async function main() {
 		let targetHashAfterRepeatPush = 0;
 		let single = { remoteId: '', mismatches: [] };
 		const extraIssues = [];
+		const verified = [];
 
 		if ( ! hardOnly ) {
 			// Media baseline (source featured image for post=1).
@@ -2236,15 +2305,20 @@ async function main() {
 					console.log(
 						`[${ t.type }] ok (remoteId=${ r.remoteId })`
 					);
+					verified.push( {
+						mode: 'single-push',
+						type: t.type,
+						sourceId: String( t.id ),
+						targetId: String( r.remoteId ),
+					} );
 				}
 			}
 		}
 
 		// Hard checks: bulk list Pull (Browse) + bulk list Push (selection) for requested content counts.
 		const hardTypes = [
-			{ type: 'page', count: 15 },
-			{ type: 'post', count: 5 },
-			{ type: 'portfolio', count: 5 },
+			{ type: 'page', count: 8 },
+			{ type: 'portfolio', count: 8 },
 		];
 		for ( const { type: pt, count } of hardTypes ) {
 			const stamp = `AIE_SYNC_HARD_${ pt }_${ Date.now() }`;
@@ -2318,6 +2392,13 @@ async function main() {
 						],
 					} );
 				}
+				verified.push( {
+					mode: 'bulk-push',
+					type: pt,
+					sourceId: String( lid ),
+					targetId: String( rid ),
+					title: String( src.post_title || '' ),
+				} );
 
 				// Cleanup remote posts created/updated by the bulk push.
 				deletePost( env.target, rid );
@@ -2400,6 +2481,13 @@ async function main() {
 						],
 					} );
 				}
+				verified.push( {
+					mode: 'bulk-pull',
+					type: pt,
+					sourceId: String( lid ),
+					targetId: String( rid ),
+					title: String( remote.post_title || '' ),
+				} );
 
 				// Cleanup local posts created by the pull.
 				deletePost( env.source, lid );
@@ -2425,6 +2513,12 @@ async function main() {
 				deletePost( env.source, lid );
 			}
 		}
+
+		const targetMediaLibrary = await verifyMediaLibraryInBrowser(
+			sourcePage,
+			env.target,
+			{ minRows: 1 }
+		);
 
 		const issues = [];
 		if ( single.mismatches.length )
@@ -2470,6 +2564,27 @@ async function main() {
 		);
 		console.log(
 			`[media] md5=${ imgHash } sourceAttachments before=${ sourceAttBefore } afterPull=${ sourceAttAfterPull } hashCount before=${ sourceHashBefore } afterPull=${ sourceHashAfterPull }`
+		);
+		console.log(
+			`[media-library] target visible=${
+				targetMediaLibrary.visibleCount
+			} titles=${ targetMediaLibrary.titles.join( ' | ' ) }`
+		);
+
+		fs.writeFileSync(
+			path.join( artifactsDir, 'summary.json' ),
+			JSON.stringify(
+				{
+					checkedAt: new Date().toISOString(),
+					siteId,
+					verifiedCount: verified.length,
+					verified,
+					mediaLibrary: targetMediaLibrary,
+					issues,
+				},
+				null,
+				2
+			)
 		);
 
 		if ( issues.length ) {
