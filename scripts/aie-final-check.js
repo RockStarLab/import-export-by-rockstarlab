@@ -16,6 +16,8 @@
  *   AIE_IF_NOT_EXISTS=create|skip
  *   AIE_AUTO_IMPORT_MEDIA=true|false
  *   AIE_MEDIA_DUPLICATE_MODE=skip|create|replace
+ *   AIE_COMPARE_LIMIT=5
+ *   AIE_TARGET_DB_SQL=db.sql
  */
 
 const fs = require( 'fs' );
@@ -62,6 +64,10 @@ function loadEnv() {
 	const tag =
 		String( get( 'AIE_FINAL_TAG', '' ) ).trim() ||
 		new Date().toISOString().replace( /[:.]/g, '-' );
+	const compareLimit = Math.max(
+		1,
+		Number.parseInt( get( 'AIE_COMPARE_LIMIT', '5' ), 10 ) || 5
+	);
 
 	const sourceWpPathDefault = path.resolve( process.cwd(), '../../..' );
 	const targetWpPathGuess = ( () => {
@@ -83,6 +89,10 @@ function loadEnv() {
 		localPhpCandidates.find( ( p ) => fs.existsSync( p ) ) || 'php';
 	runtimeLocalPhp = String( get( 'AIE_LOCAL_PHP', localPhpDefault ) );
 	runtimeWpBin = String( get( 'AIE_WP_BIN', '/opt/homebrew/bin/wp' ) );
+	const mysqlCandidates = [
+		'/Applications/Local.app/Contents/Resources/extraResources/lightning-services/mysql-8.4.0/bin/darwin-arm64/bin/mysql',
+		'/Applications/Local.app/Contents/Resources/extraResources/lightning-services/mysql-8.0.35+4/bin/darwin-arm64/bin/mysql',
+	];
 
 	return {
 		types,
@@ -104,6 +114,14 @@ function loadEnv() {
 		),
 		localPhp: runtimeLocalPhp,
 		wpBin: runtimeWpBin,
+		mysqlBin:
+			String( get( 'AIE_LOCAL_MYSQL', '' ) ) ||
+			mysqlCandidates.find( ( candidate ) =>
+				fs.existsSync( candidate )
+			) ||
+			'mysql',
+		targetDbSql: String( get( 'AIE_TARGET_DB_SQL', 'db.sql' ) ),
+		compareLimit,
 	};
 }
 
@@ -137,6 +155,39 @@ function safe( fn ) {
 	} catch ( e ) {
 		return { ok: false, error: e };
 	}
+}
+
+function restoreTargetDb( env ) {
+	const sqlPath = path.join( env.targetWpPath, env.targetDbSql );
+	if ( ! fs.existsSync( sqlPath ) ) {
+		throw new Error( `Target DB baseline not found: ${ sqlPath }` );
+	}
+	const config = ( key ) =>
+		wp( { wpPath: env.targetWpPath, args: [ 'config', 'get', key ] } );
+	const dbName = config( 'DB_NAME' );
+	const dbUser = config( 'DB_USER' );
+	const dbPass = config( 'DB_PASSWORD' );
+	const dbHost = config( 'DB_HOST' );
+	const socket = String( dbHost || '' ).startsWith( ':' )
+		? String( dbHost ).slice( 1 )
+		: '';
+	if ( ! socket ) throw new Error( `Unsupported DB_HOST: ${ dbHost }` );
+
+	execFileSync(
+		env.mysqlBin,
+		[
+			'--protocol=socket',
+			`--socket=${ socket }`,
+			`-u${ dbUser }`,
+			`-p${ dbPass }`,
+			dbName,
+		],
+		{ input: fs.readFileSync( sqlPath ) }
+	);
+	wp( {
+		wpPath: env.targetWpPath,
+		args: [ 'core', 'update-db', '--quiet' ],
+	} );
 }
 
 function appendPostContent( { wpPath, postId, marker } ) {
@@ -883,6 +934,7 @@ async function main() {
 
 	console.log( `[final] Types: ${ env.types.join( ', ' ) }` );
 	console.log( `[final] Tag: ${ env.tag }` );
+	console.log( `[final] Browser comparison limit: ${ env.compareLimit }` );
 	console.log( `[final] Source WP path: ${ env.sourceWpPath }` );
 	console.log( `[final] Target WP path: ${ env.targetWpPath }` );
 
@@ -950,7 +1002,8 @@ async function main() {
 						'list',
 						`--post_type=${ comparePostType }`,
 						'--post_status=any',
-						'--posts_per_page=3',
+						`--posts_per_page=${ env.compareLimit }`,
+						'--orderby=rand',
 						'--format=ids',
 					],
 				} )
@@ -959,7 +1012,7 @@ async function main() {
 				extraEnv.AIE_SOURCE_POST_IDS = String( idsRaw.value )
 					.trim()
 					.split( /\s+/ )
-					.slice( 0, 1 )
+					.slice( 0, env.compareLimit )
 					.join( ',' );
 				console.log(
 					`[final] compare IDs (${ type }): ${ extraEnv.AIE_SOURCE_POST_IDS }`
@@ -972,7 +1025,9 @@ async function main() {
 				mutateResult: mut.ok ? mut.value : null,
 			} );
 			if ( ids.length ) {
-				extraEnv.AIE_SOURCE_POST_IDS = ids.slice( 0, 1 ).join( ',' );
+				extraEnv.AIE_SOURCE_POST_IDS = ids
+					.slice( 0, env.compareLimit )
+					.join( ',' );
 				console.log(
 					`[final] compare IDs (${ type }): ${ extraEnv.AIE_SOURCE_POST_IDS }`
 				);
@@ -980,6 +1035,10 @@ async function main() {
 		}
 
 		for ( const variant of getVisualVariants( type ) ) {
+			console.log(
+				`[final] restore target DB before ${ type }/${ variant.name }`
+			);
+			restoreTargetDb( env );
 			const mergedEnv = { ...extraEnv, ...variant.extraEnv };
 			console.log(
 				`[final] visual variant (${ type }/${
