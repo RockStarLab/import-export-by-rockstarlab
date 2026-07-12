@@ -7,6 +7,7 @@
 
 namespace RockStarLab\ImportExport\Controller;
 
+use RockStarLab\ImportExport\Helper\Ajax_Security;
 use RockStarLab\ImportExport\Helper\Job_Scheduler;
 
 defined( 'ABSPATH' ) || exit;
@@ -22,8 +23,105 @@ class Schedule_Controller {
 	 * @return void
 	 */
 	public function init() {
+		Ajax_Security::register_action( 'rsl_ie_schedule_search_source_jobs' );
+
 		add_action( 'admin_post_rsl_ie_save_schedule', [ $this, 'save_schedule' ] );
 		add_action( 'admin_post_rsl_ie_delete_schedule', [ $this, 'delete_schedule' ] );
+		add_action( 'wp_ajax_rsl_ie_schedule_search_source_jobs', [ $this, 'search_source_jobs' ] );
+	}
+
+	/**
+	 * Search schedulable source jobs for the Source Job Select2 field.
+	 *
+	 * @return void
+	 */
+	public function search_source_jobs() {
+		global $wpdb;
+
+		$this->verify_capability();
+
+		if ( ! Ajax_Security::verify_nonce( 'rsl_ie_schedule_search_source_jobs' ) ) {
+			wp_send_json_error( [ 'message' => __( 'Security check failed', 'import-export-by-rockstarlab' ) ], 403 );
+		}
+
+		$search_raw = filter_has_var( INPUT_GET, 'q' ) ? filter_input( INPUT_GET, 'q', FILTER_UNSAFE_RAW ) : '';
+		if ( null === $search_raw || false === $search_raw ) {
+			$search_raw = filter_has_var( INPUT_POST, 'q' ) ? filter_input( INPUT_POST, 'q', FILTER_UNSAFE_RAW ) : '';
+		}
+
+		$page_raw = filter_has_var( INPUT_GET, 'page' ) ? filter_input( INPUT_GET, 'page', FILTER_UNSAFE_RAW ) : 1;
+		if ( null === $page_raw || false === $page_raw ) {
+			$page_raw = filter_has_var( INPUT_POST, 'page' ) ? filter_input( INPUT_POST, 'page', FILTER_UNSAFE_RAW ) : 1;
+		}
+
+		$search   = sanitize_text_field( wp_unslash( (string) $search_raw ) );
+		$page     = max( 1, absint( $page_raw ) );
+		$per_page = 10;
+		$offset   = ( $page - 1 ) * $per_page;
+		$table    = $wpdb->prefix . 'rsl_ie_jobs';
+		$like     = '%' . $wpdb->esc_like( $search ) . '%';
+		$job_id   = absint( $search );
+
+		if ( '' === $search ) {
+			$jobs = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Select2 source search for plugin jobs table.
+				$wpdb->prepare(
+					"SELECT id, type, data_type, status, created_at
+					FROM %i
+					WHERE type IN ('import', 'export', 'media_sync', 'update')
+						AND status NOT IN ('pending', 'processing')
+					ORDER BY id DESC
+					LIMIT %d OFFSET %d",
+					$table,
+					$per_page + 1,
+					$offset
+				)
+			);
+		} else {
+			$jobs = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Select2 source search for plugin jobs table.
+				$wpdb->prepare(
+					"SELECT id, type, data_type, status, created_at
+					FROM %i
+					WHERE type IN ('import', 'export', 'media_sync', 'update')
+						AND status NOT IN ('pending', 'processing')
+						AND (
+							id = %d
+							OR type LIKE %s
+							OR data_type LIKE %s
+							OR status LIKE %s
+						)
+					ORDER BY id DESC
+					LIMIT %d OFFSET %d",
+					$table,
+					$job_id,
+					$like,
+					$like,
+					$like,
+					$per_page + 1,
+					$offset
+				)
+			);
+		}
+
+		$has_more = count( $jobs ) > $per_page;
+		$jobs     = array_slice( $jobs, 0, $per_page );
+		$results  = array_map(
+			function ( $job ) {
+				return [
+					'id'   => (int) $job->id,
+					'text' => $this->format_source_job_label( $job ),
+				];
+			},
+			$jobs
+		);
+
+		wp_send_json(
+			[
+				'results'    => $results,
+				'pagination' => [
+					'more' => $has_more,
+				],
+			]
+		);
 	}
 
 	/**
@@ -190,5 +288,21 @@ class Schedule_Controller {
 	private function redirect_with_error( $message ) {
 		wp_safe_redirect( $this->get_schedules_url( [ 'schedule_error' => $message ] ) );
 		exit;
+	}
+
+	/**
+	 * Format a Source Job option label.
+	 *
+	 * @param object $job Job row.
+	 * @return string
+	 */
+	private function format_source_job_label( $job ) {
+		return sprintf(
+			'#%1$d — %2$s / %3$s (%4$s)',
+			(int) $job->id,
+			(string) $job->type,
+			(string) $job->data_type,
+			(string) $job->status
+		);
 	}
 }

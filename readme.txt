@@ -7,7 +7,7 @@ Stable tag: 1.0.0
 Requires PHP: 7.4
 License: GPL v2 or later
 
-Advanced import/export for WordPress: CSV workflows, media sync, and site-to-site content sync.
+Import, export, sync, and update WordPress content with CSV workflows, media sync, AI URL import, and PRO migration tools.
 
 == Description ==
 
@@ -15,58 +15,71 @@ Advanced import/export for WordPress: CSV workflows, media sync, and site-to-sit
 📖 Documentation: https://wpimportexport.com/docs/
 📰 Blog & Tutorials: https://wpimportexport.com/blog/
 
-Import Export by RockStarLab is a powerful WordPress import and export plugin for CSV import, CSV export, content migration, site migration, data migration, site synchronization, frontend URL export, media synchronization, background processing, and bulk WordPress content management.
+Import Export by RockStarLab helps you move real WordPress content without fragile copy-paste work: export clean CSV/JSON files, import with field mapping, sync selected content between sites, scan server folders into the Media Library, and keep a Jobs Log so repeat work can be re-run instead of rebuilt.
 
-Move WordPress content between development, staging, and production environments using flexible field mapping, background jobs, and scalable import/export workflows designed for large datasets. Export posts, pages, frontend URLs, and synchronize content between websites reliably. 📂
+Use it for everyday migrations between local, staging, and production sites; bulk content operations; SEO URL audits; media cleanup; and content workflows where posts, pages, custom fields, SEO data, Elementor layouts, and media relationships need to stay intact.
 
-It also includes an optional AI URL Importer (when configured) to extract structured content from public URLs using your own OpenAI API key.
+The free plugin gives you strong post/page import-export, URL export, media folder sync, site-to-site sync for core content, background jobs, and AI URL Importer support when configured with your own OpenAI API key. The optional PRO addon unlocks advanced content types, Content Updater, transformations, WooCommerce workflows, and deeper migration tooling for teams that need more control.
 
 == Common Use Cases ==
 
-* WordPress site migration
-* CSV import and CSV export
-* Bulk content updates
-* Site-to-site content synchronization
-* Export all public site URLs for SEO audits
-* Media Library synchronization
-* AI-assisted content import
+* Move posts and pages between local, staging, and production
+* Import and export CSV files with field mapping
+* Sync selected content from one WordPress site to another
+* Build a full public URL inventory for SEO audits
+* Add FTP/SFTP uploaded files into the Media Library
+* Re-run imports, exports, and sync jobs from history
+* Convert public URLs into draft WordPress content with AI
+* Use PRO for custom post types, users, comments, taxonomy terms, WooCommerce data, transformations, and bulk content updates
 
 == Features ==
 
-Our plugin is packed with tools to make data management seamless:
+Built for practical WordPress operations:
 
-Core Data Support: Import and Export Posts and Pages with field mapping and background processing. 📝
-
-All Site URLs: Export a clean CSV or JSON list of public frontend URLs from posts, pages, custom post types, taxonomies, archives, feeds, and REST API endpoints. 🔗
-
-Intelligent Sync: Easily sync selected content between sites. Keep your Production and Staging environments in perfect harmony. 🔄
-
-SFTP Media Sync: Automatically detect and add media files uploaded via SFTP directly into the WordPress Media Library. 🖼️
-
-AI-Powered URL Importer: Give the plugin a URL, and our AI will parse the remote website to import content directly as any Post Type. 🤖
-
-Smart Jobs Log: Every action is saved. Re-run any import or export job with a single click without re-configuring parameters. 📜
+* **CSV Import and Export**: Move posts and pages with flexible field mapping, previews, validation, and background processing.
+* **All Site URLs Export**: Export a clean CSV or JSON list of public frontend URLs from posts, pages, custom post types, taxonomies, archives, feeds, and REST API endpoints.
+* **Site-to-Site Content Sync**: Connect WordPress sites with API keys, then push or pull selected content between environments.
+* **Media Folder Sync**: Scan server folders and register uploaded files in the WordPress Media Library with duplicate detection.
+* **AI URL Importer**: Extract structured content from public URLs using your own OpenAI API key.
+* **Jobs Log**: Re-run previous imports, exports, and sync jobs without rebuilding the whole setup.
+* **Metadata-Aware Workflows**: Designed for custom fields, SEO metadata, media references, and builder-heavy sites.
 
 == PRO Addon ==
 
-This plugin has an optional PRO addon plugin that adds additional Import/Export content types, the Content Updater, and data transformation tools.
+Free is great for posts, pages, URLs, media folder sync, and basic site-to-site content workflows. PRO is for serious migration and content operations where you need more data types, more control, and faster bulk changes.
+
+PRO adds:
+
+* Import/export for Custom Post Types, Taxonomy Terms, Users, Comments, Media, WooCommerce Products, Orders, Coupons, and Attributes
+* Content Updater for changing existing content in bulk without doing a full import cycle
+* Transformation functions for cleaning, combining, changing, or normalizing values during workflows
+* Advanced custom-field and metadata workflows for ACF, SEO plugins, builders, and WooCommerce stores
+* More site-to-site sync coverage for custom content models
+* Workflow tools built for agencies, WooCommerce teams, content teams, and developers managing staging-to-production releases
+
+== Affiliate Program ==
+
+Love Import Export by RockStarLab? Join our affiliate program and earn commissions by recommending the plugin to WordPress agencies, WooCommerce stores, content teams, and site owners who need reliable import, export, migration, and sync workflows.
+
+Affiliate details are available on our website: https://wpimportexport.com/
 
 == Why Choose Our Import / Export Plugin? ==
 
-When searching for a reliable WordPress import/export plugin, reliability and flexibility are key. Here is why RockstarLab built this:
+Many import/export plugins are good for simple rows. Import Export by RockStarLab is built for full WordPress workflows: content, metadata, media, sync, jobs, URL audits, AI-assisted creation, and optional PRO tools when your data model gets more complex.
 
-AI Integration: Import content from URLs using your own OpenAI API key. 🧠
-
-Speed & Performance: Optimized to handle large CSV / JSON files without crashing your server or hitting timeout limits.
-
-Data Integrity: Handles metadata and custom fields during import/export workflows.
+* **Built for Real WordPress Sites**: Works with posts, pages, media, metadata, ACF, Elementor, Yoast SEO, Rank Math SEO, and WooCommerce workflows.
+* **Background Processing**: Large jobs run in batches, with progress tracking and logs.
+* **Repeatable Operations**: Save time by re-running jobs from history.
+* **Human-Friendly Mapping**: Preview source data and map it to WordPress fields before the job runs.
+* **AI When You Need It**: Import structured content from URLs using your own OpenAI API key.
+* **Free to Start, PRO When You Grow**: Start with core migration and sync tools, then upgrade when you need custom content types, transformations, WooCommerce data, or Content Updater.
 
 = Core Features =
 
-* **Multiple Data Types**: Posts and Pages (additional content types via the optional PRO addon)
+* **Multiple Data Types**: Posts and Pages in free; many additional content types via the optional PRO addon
 * **All Site URLs**: Export public site URLs from posts, pages, custom post types, taxonomies, post type archives, author/date/search archives, RSS/Atom/comments feeds, and REST API endpoints
 * **File Formats**: CSV with streaming support for large files and JSON for developer workflows
-* **Background Processing**: Handle large datasets without memory limits
+* **Background Processing**: Handle large datasets in batches to reduce timeout and memory-limit problems
 * **Field Mapping**: Intuitive field mapping interface with preview
 * **Validation System**: Comprehensive data validation before import
 * **Media Folder Sync**: Synchronize FTP-uploaded files with WordPress Media Library
@@ -109,9 +122,9 @@ Easily synchronize files from server folders (uploaded via FTP/SFTP) to your Wor
 * **Auto Alt Text**: Generate alt text from filenames
 * **Real Media Library**: Automatically create folder structure in Real Media Library plugin (the plugin is not included)
 
-= What the PRO Addon adds =
+= PRO Content Types and Tools =
 
-The PRO addon extends Import and Export with additional content types (for example: Custom Post Types, Taxonomy Terms, Users, Comments, Media, and more), adds the Content Updater, and enables field transformation integrations.
+The PRO addon extends Import and Export with additional content types, adds the Content Updater, and enables field transformation integrations.
 
 = Perfect For =
 
@@ -121,6 +134,8 @@ The PRO addon extends Import and Export with additional content types (for examp
 * **Data Integration**: Importing data from external systems
 * **Content Management**: Exporting for backup or analysis
 * **Media Organization**: Organizing FTP-uploaded files into Media Library
+* **Agency Workflows**: Moving content from staging to production without manual rebuilding
+* **SEO Workflows**: Exporting URLs and preserving SEO metadata during migrations
 * **WooCommerce**: Product catalog management (via the optional PRO addon)
 
 == Works With ==
@@ -168,7 +183,7 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 
 = Can I sync content between two WordPress sites? =
 
-Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync posts or custom post types. Choose between Pull (import from remote) or Push (send to remote) operations.
+Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync posts and pages in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 
 == Screenshots ==

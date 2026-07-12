@@ -91,6 +91,9 @@ function loadEnv() {
 		'false';
 	const mediaDuplicateMode =
 		String( get( 'AIE_MEDIA_DUPLICATE_MODE', 'skip' ) ).trim() || 'skip';
+	const debugAjax =
+		String( get( 'AIE_DEBUG_AJAX', 'false' ) ).toLowerCase() === 'true' ||
+		String( get( 'AIE_DEBUG_AJAX', 'false' ) ) === '1';
 
 	const sourceWpPathDefault = path.resolve( process.cwd(), '../../..' );
 	const targetWpPathGuess = ( () => {
@@ -140,6 +143,7 @@ function loadEnv() {
 		ifNotExists,
 		autoImportMedia,
 		mediaDuplicateMode,
+		debugAjax,
 	};
 }
 
@@ -2603,15 +2607,17 @@ async function main() {
 			}`
 		);
 	} );
-	page.on( 'response', ( response ) => {
-		const url = response.url();
-		if ( ! url.includes( 'admin-ajax.php' ) ) return;
-		console.log(
-			`[browser] response: ${ response
-				.request()
-				.method() } ${ response.status() } ${ url }`
-		);
-	} );
+	if ( env.debugAjax ) {
+		page.on( 'response', ( response ) => {
+			const url = response.url();
+			if ( ! url.includes( 'admin-ajax.php' ) ) return;
+			console.log(
+				`[browser] response: ${ response
+					.request()
+					.method() } ${ response.status() } ${ url }`
+			);
+		} );
+	}
 
 	const source = {
 		baseUrl: env.sourceUrl,

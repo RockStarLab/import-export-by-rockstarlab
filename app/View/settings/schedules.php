@@ -9,19 +9,12 @@ defined( 'ABSPATH' ) || exit;
 
 $rsl_ie_schedule_model = rsl_ie()->Model->job_schedule;
 $rsl_ie_schedules      = $rsl_ie_schedule_model->get_with_jobs();
-$rsl_ie_jobs           = rsl_ie()->Model->job->all(
+$rsl_ie_source_jobs    = rsl_ie()->Model->job->all(
 	[
-		'limit'    => 500,
+		'limit'    => 1,
 		'order_by' => 'id',
 		'order'    => 'DESC',
 	]
-);
-$rsl_ie_source_jobs    = array_filter(
-	$rsl_ie_jobs,
-	static function ( $job ) {
-		return in_array( $job->type, [ 'import', 'export', 'media_sync', 'update' ], true )
-			&& ! in_array( $job->status, [ 'pending', 'processing' ], true );
-	}
 );
 
 $rsl_ie_schedule_screen_nonce = wp_create_nonce( 'rsl_ie_schedules_screen' );
@@ -49,6 +42,7 @@ $rsl_ie_mode               = null !== $rsl_ie_mode_raw && false !== $rsl_ie_mode
 $rsl_ie_schedule_error     = null !== $rsl_ie_schedule_error_raw && false !== $rsl_ie_schedule_error_raw ? sanitize_text_field( $rsl_ie_schedule_error_raw ) : '';
 $rsl_ie_selected           = $rsl_ie_schedule_id ? $rsl_ie_schedule_model->find( $rsl_ie_schedule_id ) : null;
 $rsl_ie_readonly           = $rsl_ie_selected && 'view' === $rsl_ie_mode;
+$rsl_ie_selected_job       = $rsl_ie_selected ? rsl_ie()->Model->job->find( (int) $rsl_ie_selected->source_job_id ) : null;
 
 $rsl_ie_default_timestamp = time() + HOUR_IN_SECONDS;
 $rsl_ie_start_timestamp   = $rsl_ie_selected ? strtotime( $rsl_ie_selected->start_at_gmt . ' UTC' ) : $rsl_ie_default_timestamp;
@@ -92,13 +86,13 @@ $rsl_ie_form_title        = $rsl_ie_readonly
 					<tr>
 						<th scope="row"><label for="source-job-id"><?php esc_html_e( 'Source Job', 'import-export-by-rockstarlab' ); ?></label></th>
 						<td>
-							<select id="source-job-id" name="source_job_id" required <?php disabled( $rsl_ie_readonly ); ?>>
+							<select id="source-job-id" class="rsl-ie-source-job-select" name="source_job_id" required <?php disabled( $rsl_ie_readonly ); ?> data-placeholder="<?php esc_attr_e( 'Search Jobs...', 'import-export-by-rockstarlab' ); ?>">
 								<option value=""><?php esc_html_e( 'Select a Job', 'import-export-by-rockstarlab' ); ?></option>
-								<?php foreach ( $rsl_ie_source_jobs as $rsl_ie_job ) : ?>
-									<option value="<?php echo esc_attr( $rsl_ie_job->id ); ?>" <?php selected( $rsl_ie_selected ? $rsl_ie_selected->source_job_id : 0, $rsl_ie_job->id ); ?>>
-										<?php echo esc_html( sprintf( '#%1$d — %2$s / %3$s (%4$s)', $rsl_ie_job->id, $rsl_ie_job->type, $rsl_ie_job->data_type, $rsl_ie_job->status ) ); ?>
+								<?php if ( $rsl_ie_selected_job ) : ?>
+									<option value="<?php echo esc_attr( $rsl_ie_selected_job->id ); ?>" selected>
+										<?php echo esc_html( sprintf( '#%1$d — %2$s / %3$s (%4$s)', $rsl_ie_selected_job->id, $rsl_ie_selected_job->type, $rsl_ie_selected_job->data_type, $rsl_ie_selected_job->status ) ); ?>
 									</option>
-								<?php endforeach; ?>
+								<?php endif; ?>
 							</select>
 							<p class="description"><?php esc_html_e( 'Each occurrence creates a new Job with the same configuration; the source log entry is never modified.', 'import-export-by-rockstarlab' ); ?></p>
 						</td>
