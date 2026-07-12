@@ -186,6 +186,5 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 11. Page content sync with remote website
 12. Sync files from any folder with Media Library
 13. AI URL Importer
-14. AI URL Importer Options
-15. Jobs log
-16. Plugin options page
+14. Jobs log
+15. Plugin options page

@@ -974,6 +974,16 @@ async function getPermalinkFromEditorStore( page ) {
 async function openEditByTitle( page, site, postType, title ) {
 	const isMedia = postType === 'media' || postType === 'attachment';
 	const tries = [ title ];
+	const compactTitle = String( title || '' )
+		.replace( /\s+/g, ' ' )
+		.trim();
+	const beforeParen = compactTitle.replace( /\s*\(.+$/, '' ).trim();
+	const beforeQuote = compactTitle.replace( /\s+[“"].+$/, '' ).trim();
+	for ( const candidate of [ compactTitle, beforeParen, beforeQuote ] ) {
+		if ( candidate && ! tries.includes( candidate ) ) {
+			tries.push( candidate );
+		}
+	}
 	if ( isMedia && title.includes( '.' ) ) {
 		const base = title.replace( /\.[^/.]+$/, '' );
 		if ( base && base !== title ) tries.push( base );
@@ -2591,6 +2601,15 @@ async function main() {
 			`[browser] request failed: ${ request.method() } ${ request.url() } ${
 				request.failure()?.errorText || 'unknown error'
 			}`
+		);
+	} );
+	page.on( 'response', ( response ) => {
+		const url = response.url();
+		if ( ! url.includes( 'admin-ajax.php' ) ) return;
+		console.log(
+			`[browser] response: ${ response
+				.request()
+				.method() } ${ response.status() } ${ url }`
 		);
 	} );
 
