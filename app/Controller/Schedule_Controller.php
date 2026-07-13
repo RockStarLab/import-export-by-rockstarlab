@@ -38,10 +38,12 @@ class Schedule_Controller {
 	public function search_source_jobs() {
 		global $wpdb;
 
-		$this->verify_capability();
-
-		if ( ! Ajax_Security::verify_nonce( 'rsl_ie_schedule_search_source_jobs' ) ) {
+		if ( ! check_ajax_referer( Ajax_Security::nonce_action( 'rsl_ie_schedule_search_source_jobs' ), 'nonce', false ) ) {
 			wp_send_json_error( [ 'message' => __( 'Security check failed', 'import-export-by-rockstarlab' ) ], 403 );
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [ 'message' => __( 'You do not have permission to manage schedules.', 'import-export-by-rockstarlab' ) ], 403 );
 		}
 
 		$search_raw = filter_has_var( INPUT_GET, 'q' ) ? filter_input( INPUT_GET, 'q', FILTER_UNSAFE_RAW ) : '';
@@ -55,7 +57,7 @@ class Schedule_Controller {
 		}
 
 		$search   = sanitize_text_field( wp_unslash( (string) $search_raw ) );
-		$page     = max( 1, absint( $page_raw ) );
+		$page     = max( 1, absint( wp_unslash( (string) $page_raw ) ) );
 		$per_page = 10;
 		$offset   = ( $page - 1 ) * $per_page;
 		$table    = $wpdb->prefix . 'rsl_ie_jobs';
@@ -141,7 +143,11 @@ class Schedule_Controller {
 		$start_at      = isset( $_POST['start_at'] ) ? sanitize_text_field( wp_unslash( $_POST['start_at'] ) ) : '';
 
 		$source_job = rsl_ie()->Model->job->find( $source_job_id );
-		if ( ! $source_job || ! in_array( $source_job->type, [ 'import', 'export', 'media_sync', 'update' ], true ) ) {
+		if (
+			! $source_job ||
+			! in_array( $source_job->type, [ 'import', 'export', 'media_sync', 'update' ], true ) ||
+			in_array( $source_job->status, [ 'pending', 'processing' ], true )
+		) {
 			$this->redirect_with_error( __( 'Select a supported source Job.', 'import-export-by-rockstarlab' ) );
 		}
 
