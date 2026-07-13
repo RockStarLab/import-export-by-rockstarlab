@@ -203,6 +203,69 @@
 	}
 
 	// Enhanced download button
+	.rsl-ie-download-options {
+		align-items: center;
+		display: flex;
+		flex-direction: column;
+		margin: 26px auto 0;
+		max-width: 460px;
+		text-align: center;
+
+		.rsl-ie-download-zip-option {
+			align-items: center;
+			background: #fff;
+			border: 1px solid #dcdcde;
+			border-radius: 999px;
+			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+			color: #1d2327;
+			cursor: pointer;
+			display: flex;
+			font-weight: 600;
+			gap: 10px;
+			justify-content: center;
+			margin: 0;
+			min-height: 42px;
+			padding: 10px 18px;
+			transition: all 0.2s ease;
+
+			input[type="checkbox"] {
+				accent-color: #2271b1;
+				cursor: pointer;
+				height: 18px;
+				margin: 0;
+				width: 18px;
+			}
+
+			&:hover {
+				border-color: #2271b1;
+				box-shadow: 0 4px 12px rgba(34, 113, 177, 0.12);
+			}
+
+			&.is-disabled {
+				background: #f6f7f7;
+				color: #8c8f94;
+				cursor: not-allowed;
+
+				input[type="checkbox"] {
+					cursor: not-allowed;
+				}
+
+				&:hover {
+					border-color: #dcdcde;
+					box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+				}
+			}
+		}
+
+		.description {
+			color: #646970;
+			font-size: 13px;
+			line-height: 1.45;
+			margin: 10px auto 0;
+			max-width: 380px;
+		}
+	}
+
 	.rsl-ie-download-action {
 		margin-top: 30px;
 		text-align: center;

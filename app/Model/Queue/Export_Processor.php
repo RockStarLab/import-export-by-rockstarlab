@@ -75,12 +75,12 @@ class Export_Processor {
 			$export_type = $parameters['export_type'];
 			$options     = $parameters['options'] ?? [];
 			$fields      = $parameters['fields'] ?? [];
-		// Get batch size (default to 100 for better performance)
-		$batch_size = isset( $options['items_per_iteration'] ) ? (int) $options['items_per_iteration'] : 100;
-		// Get current offset
-		$current_offset = (int) ( $job->processed_items ?? 0 );
+			// Get batch size (default to 100 for better performance)
+			$batch_size = isset( $options['items_per_iteration'] ) ? (int) $options['items_per_iteration'] : 100;
+			// Get current offset
+			$current_offset = (int) ( $job->processed_items ?? 0 );
 
-		// Get exporter
+			// Get exporter
 			$exporter = Exporter_Factory::get_exporter( $export_type, $job_id );
 			if ( is_wp_error( $exporter ) ) {
 				throw new \Exception( $exporter->get_error_message() );
@@ -110,46 +110,46 @@ class Export_Processor {
 					}
 				}
 			}
-		if ( 'taxonomy' === $export_type ) {
-			// Look for taxonomy in dynamic_filters
-			$dynamic_filters = $parameters['dynamic_filters'] ?? [];
-			foreach ( $dynamic_filters as $filter ) {
-				if ( isset( $filter['field'] ) && $filter['field'] === 'taxonomy' && ! empty( $filter['value'] ) ) {
-					$mapped_post_type = $filter['value'];
-					break;
+			if ( 'taxonomy' === $export_type ) {
+				// Look for taxonomy in dynamic_filters
+				$dynamic_filters = $parameters['dynamic_filters'] ?? [];
+				foreach ( $dynamic_filters as $filter ) {
+					if ( isset( $filter['field'] ) && $filter['field'] === 'taxonomy' && ! empty( $filter['value'] ) ) {
+						$mapped_post_type = $filter['value'];
+						break;
+					}
 				}
 			}
-		}
 
-		// Build export options
-		// Note: dynamic_filters from Step 2 should be passed as 'filters' to the exporter
-		$export_options = array_merge(
-			$options,
-			[
-				'filters'         => $parameters['dynamic_filters'] ?? [],  // Use dynamic_filters from Step 2
-				'fields'          => $fields,
-				'custom_fields'   => $parameters['custom_fields'] ?? [],
-				'taxonomy'        => $parameters['taxonomy'] ?? [],
-				'field_functions' => $parameters['field_functions'] ?? [],
-				'limit'           => $batch_size,
-				'offset'          => $current_offset,
-			]
-		);
+			// Build export options
+			// Note: dynamic_filters from Step 2 should be passed as 'filters' to the exporter
+			$export_options = array_merge(
+				$options,
+				[
+					'filters'         => $parameters['dynamic_filters'] ?? [],  // Use dynamic_filters from Step 2
+					'fields'          => $fields,
+					'custom_fields'   => $parameters['custom_fields'] ?? [],
+					'taxonomy'        => $parameters['taxonomy'] ?? [],
+					'field_functions' => $parameters['field_functions'] ?? [],
+					'limit'           => $batch_size,
+					'offset'          => $current_offset,
+				]
+			);
 
-		// For taxonomy export, add taxonomy name to export_options
-		if ( 'taxonomy' === $export_type && ! empty( $mapped_post_type ) ) {
-			$export_options['taxonomy'] = $mapped_post_type;
-		} else {
-			// For other types, use post_type
-			$export_options['post_type'] = $mapped_post_type;
-		}
-		
-		// For database_table, add table_name to export_options
-		if ( 'database_table' === $export_type && ! empty( $parameters['table_name'] ) ) {
-			$export_options['table_name'] = $parameters['table_name'];
-		}
+			// For taxonomy export, add taxonomy name to export_options
+			if ( 'taxonomy' === $export_type && ! empty( $mapped_post_type ) ) {
+				$export_options['taxonomy'] = $mapped_post_type;
+			} else {
+				// For other types, use post_type
+				$export_options['post_type'] = $mapped_post_type;
+			}
 
-		// Get total count on first batch
+			// For database_table, add table_name to export_options
+			if ( 'database_table' === $export_type && ! empty( $parameters['table_name'] ) ) {
+				$export_options['table_name'] = $parameters['table_name'];
+			}
+
+			// Get total count on first batch
 			if ( 0 === $current_offset ) {
 				$total_count = Exporter_Factory::get_count( $export_type, $export_options );
 
@@ -165,19 +165,19 @@ class Export_Processor {
 
 			// Export batch
 			$export_result = $exporter->export( $export_options );
-		if ( is_wp_error( $export_result ) ) {
-			throw new \Exception( $export_result->get_error_message() );
-		}
+			if ( is_wp_error( $export_result ) ) {
+				throw new \Exception( $export_result->get_error_message() );
+			}
 
-		$batch_data  = $export_result['data'] ?? [];
-		$batch_count = count( $batch_data );
+			$batch_data  = $export_result['data'] ?? [];
+			$batch_count = count( $batch_data );
 
-		// Append batch data to temp file
-		if ( ! empty( $batch_data ) ) {
-			$this->append_batch_data( $job_id, $batch_data );
-		}
+			// Append batch data to temp file
+			if ( ! empty( $batch_data ) ) {
+				$this->append_batch_data( $job_id, $batch_data );
+			}
 
-		// Update progress
+			// Update progress
 			$new_processed = $current_offset + $batch_count;
 			$progress      = $total_count > 0 ? ( $new_processed / $total_count ) * 100 : 0;
 
@@ -341,7 +341,7 @@ class Export_Processor {
 		// Map format_options
 		$formatter_options = [];
 		if ( 'csv' === $format ) {
-			$include_header = ! empty( $format_options['csv_include_header'] );
+			$include_header    = ! empty( $format_options['csv_include_header'] );
 			$formatter_options = [
 				'delimiter' => $format_options['csv_delimiter'] ?? ',',
 				'headers'   => $include_header ? null : false,
@@ -365,6 +365,17 @@ class Export_Processor {
 			$formatter_options = [
 				'pretty_print' => ! empty( $format_options['json_pretty_print'] ),
 			];
+		} elseif ( in_array( $format, array( 'xlsx', 'ods' ), true ) ) {
+			$formatter_options = [
+				'headers' => ! empty( $format_options['spreadsheet_include_header'] ) ? null : false,
+			];
+
+			if ( ! empty( $format_options['spreadsheet_include_header'] ) && empty( $data ) ) {
+				$fields = $parameters['fields'] ?? [];
+				if ( ! empty( $fields ) && is_array( $fields ) ) {
+					$formatter_options['headers'] = $fields;
+				}
+			}
 		}
 
 		// Generate file

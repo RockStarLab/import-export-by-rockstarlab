@@ -460,13 +460,13 @@ const ImportModule = {
 	 */
 	handleFile( file ) {
 		// Validate file extension only (no size limit with chunked upload)
-		const allowedExtensions = [ '.csv' ];
+		const allowedExtensions = [ '.csv', '.xlsx', '.ods', '.zip' ];
 		const fileExt = '.' + file.name.split( '.' ).pop().toLowerCase();
 
 		if ( ! allowedExtensions.includes( fileExt ) ) {
 			Utils.showNotice(
 				rslIeData.i18n.invalidFileTypeCsv ||
-					'Invalid file type. Please upload CSV files only.',
+					'Invalid file type. Please upload CSV, XLSX, ODS, or ZIP files only.',
 				'error'
 			);
 			return;
@@ -488,6 +488,9 @@ const ImportModule = {
 		if ( format === 'csv' ) {
 			jQuery( '.rsl-ie-format-options' ).show();
 			jQuery( '.rsl-ie-csv-options' ).show();
+		} else {
+			jQuery( '.rsl-ie-format-options' ).hide();
+			jQuery( '.rsl-ie-csv-options' ).hide();
 		}
 
 		// Start chunked upload
@@ -694,7 +697,10 @@ const ImportModule = {
 	 * Detect file format from filename
 	 */
 	detectFormat( filename ) {
-		return 'csv';
+		const extension = filename.split( '.' ).pop().toLowerCase();
+		const supported = [ 'csv', 'xlsx', 'ods', 'zip' ];
+
+		return supported.includes( extension ) ? extension : 'csv';
 	},
 
 	/**
@@ -4831,7 +4837,18 @@ const ImportModule = {
 				};
 
 				if ( ImportModule.areFieldTransformationsEnabled() ) {
-					entry.function_id = $row.data( 'function-id' ) || null;
+					const mappingKey = `${ sourceIndex }-${ targetField }`;
+					const functions =
+						ImportModule.mappingFunctions?.[ mappingKey ] || [];
+					const functionIds = functions
+						.map( ( func ) =>
+							typeof func === 'object' ? func.id : func
+						)
+						.filter( Boolean );
+
+					if ( functionIds.length > 0 ) {
+						entry.function_ids = functionIds;
+					}
 				}
 
 				// Include taxonomy format when the target is a taxonomy field

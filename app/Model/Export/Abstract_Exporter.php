@@ -200,6 +200,10 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 			return $item;
 		}
 
+		if ( ! \RockStarLab\ImportExport\Helper\Field_Transformation_Bridge::is_enabled() ) {
+			return $item;
+		}
+
 		foreach ( $field_functions as $field_key => $function_ids ) {
 			// Skip if field doesn't exist in item or no transformations assigned.
 			if ( ! isset( $item[ $field_key ] ) || empty( $function_ids ) || ! is_array( $function_ids ) ) {

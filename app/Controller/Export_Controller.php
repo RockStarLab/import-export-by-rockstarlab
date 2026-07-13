@@ -326,21 +326,40 @@ class Export_Controller extends Base_Controller {
 			$this->send_error( __( 'Export file does not exist', 'import-export-by-rockstarlab' ), null, 404 );
 		}
 
-		// Generate download URL with nonce for security
+		// Generate download URL with nonce for security.
 		$parameters = json_decode( $job_data->parameters, true );
 		$format     = $parameters['format'] ?? 'csv';
 		$filename   = sprintf( 'export-%s.%s', gmdate( 'Y-m-d-His' ), $format );
+		$file_size  = filesize( $file_path );
 
-		// Generate secure download nonce
+		$download_zip = (bool) $this->get_request_param( 'download_zip', false );
+		if ( $download_zip ) {
+			$zip_result = $this->prepare_zip_download( $file_path, $filename, $job_id );
+
+			if ( is_wp_error( $zip_result ) ) {
+				$this->send_error( $zip_result, null, 400 );
+			}
+
+			$filename  = $zip_result['filename'];
+			$file_size = filesize( $zip_result['path'] );
+		}
+
+		// Generate secure download nonce.
 		$download_nonce = wp_create_nonce( 'rsl_ie_download_' . $job_id );
 
+		$download_args = [
+			'action'   => 'rsl_ie_secure_download',
+			'job_id'   => $job_id,
+			'_wpnonce' => $download_nonce,
+			'nonce'    => Ajax_Security::create_nonce( 'rsl_ie_secure_download' ),
+		];
+
+		if ( $download_zip ) {
+			$download_args['download_zip'] = 1;
+		}
+
 		$download_url = add_query_arg(
-			[
-				'action'   => 'rsl_ie_secure_download',
-				'job_id'   => $job_id,
-				'_wpnonce' => $download_nonce,
-				'nonce'    => Ajax_Security::create_nonce( 'rsl_ie_secure_download' ),
-			],
+			$download_args,
 			admin_url( 'admin-ajax.php' )
 		);
 
@@ -348,7 +367,7 @@ class Export_Controller extends Base_Controller {
 			[
 				'download_url' => $download_url,
 				'filename'     => $filename,
-				'file_size'    => filesize( $file_path ),
+				'file_size'    => $file_size,
 			]
 		);
 	}
@@ -370,12 +389,12 @@ class Export_Controller extends Base_Controller {
 			wp_die( esc_html__( 'Security check failed', 'import-export-by-rockstarlab' ), 403 );
 		}
 
-		// Check permissions
+		// Check permissions.
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Insufficient permissions', 'import-export-by-rockstarlab' ), 403 );
 		}
 
-		// Get job
+		// Get job.
 		$job_model = rsl_ie()->Model->job;
 		$job_data  = $job_model->find( $job_id );
 
@@ -389,14 +408,29 @@ class Export_Controller extends Base_Controller {
 			wp_die( esc_html__( 'Export file does not exist', 'import-export-by-rockstarlab' ), 404 );
 		}
 
-		// Send file for download
-		$parameters = json_decode( $job_data->parameters, true );
-		$format     = $parameters['format'] ?? 'csv';
-		$filename   = sprintf( 'export-%s.%s', gmdate( 'Y-m-d-His' ), $format );
+		// Send file for download.
+		$parameters   = json_decode( $job_data->parameters, true );
+		$format       = $parameters['format'] ?? 'csv';
+		$filename     = sprintf( 'export-%s.%s', gmdate( 'Y-m-d-His' ), $format );
+		$content_type = 'application/octet-stream';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Download nonce was verified above.
+		$download_zip = isset( $_GET['download_zip'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['download_zip'] ) );
 
-		// Set headers for download
-		header( 'Content-Type: application/octet-stream' );
-		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+		if ( $download_zip ) {
+			$zip_result = $this->prepare_zip_download( $file_path, $filename, $job_id );
+
+			if ( is_wp_error( $zip_result ) ) {
+				wp_die( esc_html( $zip_result->get_error_message() ), 400 );
+			}
+
+			$file_path    = $zip_result['path'];
+			$filename     = $zip_result['filename'];
+			$content_type = 'application/zip';
+		}
+
+		// Set headers for download.
+		header( 'Content-Type: ' . $content_type );
+		header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( $filename ) . '"' );
 		header( 'Content-Length: ' . filesize( $file_path ) );
 		header( 'Pragma: no-cache' );
 		header( 'Expires: 0' );
@@ -406,6 +440,62 @@ class Export_Controller extends Base_Controller {
 		readfile( $file_path );
 
 		exit;
+	}
+
+	/**
+	 * Prepare a ZIP archive for an export download.
+	 *
+	 * @param string $file_path Source export file path.
+	 * @param string $filename  Download filename for the source file.
+	 * @param int    $job_id    Job ID.
+	 * @return array|WP_Error {
+	 *     ZIP file data on success, or WP_Error on failure.
+	 *
+	 *     @type string $path     Absolute ZIP file path.
+	 *     @type string $filename Download ZIP filename.
+	 * }
+	 */
+	private function prepare_zip_download( $file_path, $filename, $job_id ) {
+		if ( ! class_exists( 'ZipArchive' ) ) {
+			return new \WP_Error( 'rsl_ie_zip_unavailable', __( 'ZIP downloads are not available on this server.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$real_file_path = realpath( $file_path );
+		if ( false === $real_file_path || ! is_file( $real_file_path ) || ! is_readable( $real_file_path ) ) {
+			return new \WP_Error( 'rsl_ie_zip_source_unreadable', __( 'Export file cannot be read.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$export_dir = dirname( $real_file_path );
+
+		$source_filename = sanitize_file_name( basename( $filename ) );
+		if ( '' === $source_filename ) {
+			$source_filename = sanitize_file_name( basename( $real_file_path ) );
+		}
+
+		$zip_filename = sanitize_file_name( sprintf( 'export-%d.zip', absint( $job_id ) ) );
+		$zip_path     = $export_dir . '/' . $zip_filename;
+
+		$zip = new \ZipArchive();
+		if ( true !== $zip->open( $zip_path, \ZipArchive::CREATE | \ZipArchive::OVERWRITE ) ) {
+			return new \WP_Error( 'rsl_ie_zip_create_failed', __( 'Could not create ZIP archive.', 'import-export-by-rockstarlab' ) );
+		}
+
+		if ( ! $zip->addFile( $real_file_path, $source_filename ) ) {
+			$zip->close();
+			wp_delete_file( $zip_path );
+			return new \WP_Error( 'rsl_ie_zip_add_failed', __( 'Could not add export file to ZIP archive.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$zip->close();
+
+		if ( ! file_exists( $zip_path ) ) {
+			return new \WP_Error( 'rsl_ie_zip_missing', __( 'ZIP archive was not created.', 'import-export-by-rockstarlab' ) );
+		}
+
+		return [
+			'path'     => $zip_path,
+			'filename' => $zip_filename,
+		];
 	}
 
 	/**
@@ -575,6 +665,14 @@ class Export_Controller extends Base_Controller {
 			$formatter_options = [
 				'pretty_print' => ! empty( $format_options['json_pretty_print'] ),
 			];
+		} elseif ( in_array( $format, array( 'xlsx', 'ods' ), true ) ) {
+			$formatter_options = [
+				'headers' => ! empty( $format_options['spreadsheet_include_header'] ) ? null : false,
+			];
+
+			if ( ! empty( $format_options['spreadsheet_include_header'] ) && empty( $data ) && ! empty( $fields ) && is_array( $fields ) ) {
+				$formatter_options['headers'] = $fields;
+			}
 		}
 
 		// Generate file with format options

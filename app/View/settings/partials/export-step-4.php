@@ -34,6 +34,24 @@ defined( 'ABSPATH' ) || exit;
 					<p><?php esc_html_e( 'JavaScript Object Notation, best for APIs', 'import-export-by-rockstarlab' ); ?></p>
 				</div>
 			</label>
+
+			<label class="rsl-ie-format-option">
+				<input type="radio" name="format" value="xlsx">
+				<div class="rsl-ie-format-card">
+					<span class="dashicons dashicons-media-spreadsheet"></span>
+					<h3>XLSX</h3>
+					<p><?php esc_html_e( 'Excel workbook format for spreadsheet applications', 'import-export-by-rockstarlab' ); ?></p>
+				</div>
+			</label>
+
+			<label class="rsl-ie-format-option">
+				<input type="radio" name="format" value="ods">
+				<div class="rsl-ie-format-card">
+					<span class="dashicons dashicons-media-spreadsheet"></span>
+					<h3>ODS</h3>
+					<p><?php esc_html_e( 'OpenDocument spreadsheet format for LibreOffice and OpenOffice', 'import-export-by-rockstarlab' ); ?></p>
+				</div>
+			</label>
 		</div>
 
 		<div class="rsl-ie-format-options">
@@ -80,6 +98,21 @@ defined( 'ABSPATH' ) || exit;
 							<label>
 								<input type="checkbox" name="json_pretty_print" checked>
 								<?php esc_html_e( 'Format with indentation for readability', 'import-export-by-rockstarlab' ); ?>
+							</label>
+						</td>
+					</tr>
+				</table>
+			</div>
+
+			<div class="rsl-ie-xlsx-options rsl-ie-ods-options" style="display:none;">
+				<h3><?php esc_html_e( 'Spreadsheet Options', 'import-export-by-rockstarlab' ); ?></h3>
+				<table class="form-table">
+					<tr>
+						<th><?php esc_html_e( 'Include Header Row', 'import-export-by-rockstarlab' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="spreadsheet_include_header" checked>
+								<?php esc_html_e( 'First row contains column names', 'import-export-by-rockstarlab' ); ?>
 							</label>
 						</td>
 					</tr>

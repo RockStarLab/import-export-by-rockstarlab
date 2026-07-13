@@ -23,6 +23,12 @@
  *   AIE_IF_NOT_EXISTS=create|skip
  *   AIE_AUTO_IMPORT_MEDIA=true|false
  *   AIE_MEDIA_DUPLICATE_MODE=skip|create|replace
+ *   AIE_EXPORT_FORMAT=csv|xlsx|ods
+ *   AIE_DOWNLOAD_ZIP=true|false
+ *   AIE_CSV_DELIMITER=,|;|tab|||custom
+ *   AIE_CSV_CUSTOM_DELIMITER=^
+ *   AIE_CSV_INCLUDE_HEADER=true|false
+ *   AIE_SPREADSHEET_INCLUDE_HEADER=true|false
  */
 
 const fs = require( 'fs' );
@@ -94,6 +100,23 @@ function loadEnv() {
 	const debugAjax =
 		String( get( 'AIE_DEBUG_AJAX', 'false' ) ).toLowerCase() === 'true' ||
 		String( get( 'AIE_DEBUG_AJAX', 'false' ) ) === '1';
+	const boolFromEnv = ( key, fallback ) => {
+		const raw = String(
+			get( key, fallback ? 'true' : 'false' )
+		).toLowerCase();
+		return raw === '1' || raw === 'true' || raw === 'yes' || raw === 'on';
+	};
+	const exportFormat = String( get( 'AIE_EXPORT_FORMAT', 'csv' ) )
+		.trim()
+		.toLowerCase();
+	const supportedImportFormats = [ 'csv', 'xlsx', 'ods' ];
+	if ( ! supportedImportFormats.includes( exportFormat ) ) {
+		throw new Error(
+			`AIE_EXPORT_FORMAT must be one of ${ supportedImportFormats.join(
+				', '
+			) }; got "${ exportFormat }"`
+		);
+	}
 
 	const sourceWpPathDefault = path.resolve( process.cwd(), '../../..' );
 	const targetWpPathGuess = ( () => {
@@ -144,6 +167,15 @@ function loadEnv() {
 		autoImportMedia,
 		mediaDuplicateMode,
 		debugAjax,
+		exportFormat,
+		downloadZip: boolFromEnv( 'AIE_DOWNLOAD_ZIP', false ),
+		csvDelimiter: String( get( 'AIE_CSV_DELIMITER', ',' ) ),
+		csvCustomDelimiter: String( get( 'AIE_CSV_CUSTOM_DELIMITER', '^' ) ),
+		csvIncludeHeader: boolFromEnv( 'AIE_CSV_INCLUDE_HEADER', true ),
+		spreadsheetIncludeHeader: boolFromEnv(
+			'AIE_SPREADSHEET_INCLUDE_HEADER',
+			true
+		),
 	};
 }
 
@@ -604,7 +636,109 @@ async function ensureImportDatabaseTableSelected(
 	return await selector.inputValue();
 }
 
-async function exportAllItems( page, source, contentType ) {
+async function selectExportFormatOnStep4( page, options ) {
+	const format = options.exportFormat || 'csv';
+	const radio = page
+		.locator(
+			`.rsl-ie-step-4.active input[name="format"][value="${ format }"]`
+		)
+		.first();
+	await radio.waitFor( { state: 'attached', timeout: 30_000 } );
+	if ( await radio.isDisabled() ) {
+		throw new Error( `Export format "${ format }" is disabled in the UI` );
+	}
+
+	const card = page
+		.locator( '.rsl-ie-step-4.active label.rsl-ie-format-option', {
+			has: radio,
+		} )
+		.first();
+	if ( await card.count() ) {
+		await card.click( { force: true } );
+	} else {
+		await page.evaluate( ( selectedFormat ) => {
+			const input = document.querySelector(
+				`.rsl-ie-step-4.active input[name="format"][value="${ selectedFormat }"]`
+			);
+			if ( ! input ) return;
+			input.checked = true;
+			input.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+			input.dispatchEvent( new Event( 'click', { bubbles: true } ) );
+		}, format );
+	}
+
+	await page.waitForFunction(
+		( selectedFormat ) => {
+			const input = document.querySelector(
+				`.rsl-ie-step-4.active input[name="format"][value="${ selectedFormat }"]`
+			);
+			return Boolean( input && input.checked );
+		},
+		format,
+		{ timeout: 10_000 }
+	);
+
+	if ( format === 'csv' ) {
+		const delimiter = String( options.csvDelimiter || ',' );
+		const delimiterSelect = page
+			.locator( '.rsl-ie-step-4.active select[name="csv_delimiter"]' )
+			.first();
+		await delimiterSelect.waitFor( { state: 'visible', timeout: 10_000 } );
+		await delimiterSelect.selectOption( { value: delimiter } );
+
+		if ( delimiter === 'custom' ) {
+			const customInput = page
+				.locator(
+					'.rsl-ie-step-4.active input[name="csv_custom_delimiter"]'
+				)
+				.first();
+			await customInput.fill(
+				String( options.csvCustomDelimiter || '^' )
+			);
+		}
+
+		const header = page
+			.locator( '.rsl-ie-step-4.active input[name="csv_include_header"]' )
+			.first();
+		if ( await header.count() ) {
+			await header.setChecked( Boolean( options.csvIncludeHeader ), {
+				force: true,
+			} );
+		}
+	} else if ( format === 'xlsx' || format === 'ods' ) {
+		const header = page
+			.locator(
+				'.rsl-ie-step-4.active input[name="spreadsheet_include_header"]'
+			)
+			.first();
+		await header.waitFor( { state: 'attached', timeout: 10_000 } );
+		await header.setChecked( Boolean( options.spreadsheetIncludeHeader ), {
+			force: true,
+		} );
+	}
+
+	const state = await page.evaluate( () => {
+		const selected = document.querySelector(
+			'input[name="format"]:checked'
+		);
+		return {
+			format: selected ? selected.value : '',
+			csvDelimiter:
+				document.querySelector( '[name="csv_delimiter"]' )?.value || '',
+			csvIncludeHeader: Boolean(
+				document.querySelector( '[name="csv_include_header"]' )?.checked
+			),
+			spreadsheetIncludeHeader: Boolean(
+				document.querySelector( '[name="spreadsheet_include_header"]' )
+					?.checked
+			),
+		};
+	} );
+	console.log( `[export] format options: ${ JSON.stringify( state ) }` );
+	return state;
+}
+
+async function exportAllItems( page, source, contentType, options = {} ) {
 	console.log( `[export] ${ contentType }: open step 1` );
 	await gotoAdminPage(
 		page,
@@ -682,6 +816,7 @@ async function exportAllItems( page, source, contentType ) {
 
 	// Step 4: start export
 	await page.waitForSelector( '.rsl-ie-step-4.active', { timeout: 30_000 } );
+	meta.formatOptions = await selectExportFormatOnStep4( page, options );
 	await page.locator( '.rsl-ie-start-export' ).click();
 	console.log( `[export] ${ contentType }: export started` );
 
@@ -690,6 +825,24 @@ async function exportAllItems( page, source, contentType ) {
 	const completeCard = page.locator( '.rsl-ie-export-complete-card' );
 	await completeCard.waitFor( { state: 'visible', timeout: 5 * 60_000 } );
 	console.log( `[export] ${ contentType }: export complete` );
+
+	const zipCheckbox = page.locator( 'input[name="download_zip"]' ).first();
+	if ( await zipCheckbox.count() ) {
+		if ( await zipCheckbox.isEnabled() ) {
+			await zipCheckbox.setChecked( Boolean( options.downloadZip ), {
+				force: true,
+			} );
+			console.log(
+				`[export] download as zip: ${ Boolean( options.downloadZip ) }`
+			);
+		} else if ( options.downloadZip ) {
+			throw new Error(
+				'Download as ZIP is visible but disabled in the UI'
+			);
+		}
+	} else if ( options.downloadZip ) {
+		throw new Error( 'Download as ZIP option is not present in the UI' );
+	}
 
 	const [ download ] = await Promise.all( [
 		page.waitForEvent( 'download', { timeout: 60_000 } ),
@@ -2641,13 +2794,23 @@ async function main() {
 	};
 
 	try {
-		const exported = await exportAllItems( page, source, env.contentType );
+		const exported = await exportAllItems( page, source, env.contentType, {
+			exportFormat: env.exportFormat,
+			downloadZip: env.downloadZip,
+			csvDelimiter: env.csvDelimiter,
+			csvCustomDelimiter: env.csvCustomDelimiter,
+			csvIncludeHeader: env.csvIncludeHeader,
+			spreadsheetIncludeHeader: env.spreadsheetIncludeHeader,
+		} );
 		const download = exported.download;
 		const exportMeta = exported.meta || {};
 
 		const exportPath = path.join(
 			artifactsDir,
-			download.suggestedFilename() || `export-${ Date.now() }.csv`
+			download.suggestedFilename() ||
+				`export-${ Date.now() }.${
+					env.downloadZip ? 'zip' : env.exportFormat
+				}`
 		);
 		await download.saveAs( exportPath );
 		console.log( `[export] Saved: ${ exportPath }` );

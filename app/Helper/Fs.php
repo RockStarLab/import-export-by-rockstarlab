@@ -124,20 +124,29 @@ class FS {
 		$upload        = wp_upload_dir();
 		$upload_subdir = '/rsl-ie-uploads';
 
-		$upload_dir_filter = static function ( $dirs ) use ( $upload, $upload_subdir ) {
+		$upload_dir_filter   = static function ( $dirs ) use ( $upload, $upload_subdir ) {
 			$dirs['subdir'] = $upload_subdir;
 			$dirs['path']   = $upload['basedir'] . $upload_subdir;
 			$dirs['url']    = $upload['baseurl'] . $upload_subdir;
 			return $dirs;
 		};
+		$upload_mimes_filter = static function ( $mimes ) {
+			$mimes['csv']  = 'text/csv';
+			$mimes['xlsx'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+			$mimes['ods']  = 'application/vnd.oasis.opendocument.spreadsheet';
+			$mimes['zip']  = 'application/zip';
+			return $mimes;
+		};
 
 		add_filter( 'upload_dir', $upload_dir_filter );
+		add_filter( 'upload_mimes', $upload_mimes_filter );
 		$result = wp_handle_upload(
 			$file,
 			array(
 				'test_form' => false,
 			)
 		);
+		remove_filter( 'upload_mimes', $upload_mimes_filter );
 		remove_filter( 'upload_dir', $upload_dir_filter );
 
 		if ( isset( $result['error'] ) ) {
@@ -177,6 +186,131 @@ class FS {
 	}
 
 	/**
+	 * Extract a single supported import file from a ZIP archive.
+	 *
+	 * @param string $zip_path        ZIP archive path.
+	 * @param string $destination_dir Destination directory.
+	 * @return array|\WP_Error {
+	 *     Extracted file data on success.
+	 *
+	 *     @type string $file   Extracted filename.
+	 *     @type string $path   Extracted absolute file path.
+	 *     @type string $format Extracted file format.
+	 * }
+	 */
+	public static function extract_import_file_from_zip( $zip_path, $destination_dir ) {
+		if ( ! class_exists( 'ZipArchive' ) ) {
+			return new \WP_Error( 'rsl_ie_zip_unavailable', __( 'ZIP imports are not available because the ZipArchive PHP extension is not enabled on this server.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$real_zip_path = realpath( $zip_path );
+		if ( false === $real_zip_path || ! is_file( $real_zip_path ) || ! is_readable( $real_zip_path ) ) {
+			return new \WP_Error( 'rsl_ie_zip_unreadable', __( 'ZIP file cannot be read.', 'import-export-by-rockstarlab' ) );
+		}
+
+		if ( ! file_exists( $destination_dir ) ) {
+			wp_mkdir_p( $destination_dir );
+		}
+
+		$real_destination = realpath( $destination_dir );
+		if ( false === $real_destination || ! is_dir( $real_destination ) ) {
+			return new \WP_Error( 'rsl_ie_zip_destination_invalid', __( 'Import upload directory is not available.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$zip = new \ZipArchive();
+		if ( true !== $zip->open( $real_zip_path ) ) {
+			return new \WP_Error( 'rsl_ie_zip_open_failed', __( 'Could not open ZIP archive.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$allowed_extensions = array( 'csv', 'xlsx', 'ods' );
+		$candidates         = array();
+
+		for ( $i = 0; $i < $zip->numFiles; $i++ ) {
+			$name = (string) $zip->getNameIndex( $i );
+			$name = str_replace( '\\', '/', $name );
+
+			if ( '' === $name || '/' === substr( $name, -1 ) || false !== strpos( $name, '__MACOSX/' ) ) {
+				continue;
+			}
+
+			$basename = basename( $name );
+			if ( '' === $basename || '.' === $basename[0] ) {
+				continue;
+			}
+
+			$extension = strtolower( pathinfo( $basename, PATHINFO_EXTENSION ) );
+			if ( in_array( $extension, $allowed_extensions, true ) ) {
+				$candidates[] = array(
+					'index'     => $i,
+					'name'      => $name,
+					'basename'  => $basename,
+					'extension' => $extension,
+				);
+			}
+		}
+
+		if ( 0 === count( $candidates ) ) {
+			$zip->close();
+			return new \WP_Error( 'rsl_ie_zip_no_supported_file', __( 'The ZIP archive does not contain a supported import file. Please include one CSV, XLSX, or ODS file.', 'import-export-by-rockstarlab' ) );
+		}
+
+		if ( count( $candidates ) > 1 ) {
+			$zip->close();
+			return new \WP_Error( 'rsl_ie_zip_multiple_supported_files', __( 'The ZIP archive contains more than one supported import file. Please upload a ZIP with exactly one CSV, XLSX, or ODS file.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$candidate = $candidates[0];
+		$filename  = sanitize_file_name( $candidate['basename'] );
+		if ( '' === $filename ) {
+			$zip->close();
+			return new \WP_Error( 'rsl_ie_zip_invalid_filename', __( 'The import file inside the ZIP archive has an invalid filename.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$target_path = trailingslashit( $real_destination ) . $filename;
+		if ( file_exists( $target_path ) ) {
+			$file_info   = pathinfo( $filename );
+			$filename    = sanitize_file_name( $file_info['filename'] . '_' . time() . '.' . $file_info['extension'] );
+			$target_path = trailingslashit( $real_destination ) . $filename;
+		}
+
+		$source = $zip->getStream( $candidate['name'] );
+		if ( false === $source ) {
+			$zip->close();
+			return new \WP_Error( 'rsl_ie_zip_read_failed', __( 'Could not read the import file inside the ZIP archive.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$target = fopen( $target_path, 'wb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Stream copy from ZipArchive is required here.
+		if ( false === $target ) {
+			fclose( $source ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing stream opened above.
+			$zip->close();
+			return new \WP_Error( 'rsl_ie_zip_write_failed', __( 'Could not write the extracted import file.', 'import-export-by-rockstarlab' ) );
+		}
+
+		while ( ! feof( $source ) ) {
+			$chunk = fread( $source, 1048576 ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- Stream copy from ZipArchive is required here.
+			if ( false === $chunk ) {
+				fclose( $source ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing stream opened above.
+				fclose( $target ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing stream opened above.
+				$zip->close();
+				wp_delete_file( $target_path );
+				return new \WP_Error( 'rsl_ie_zip_copy_failed', __( 'Could not extract the import file from the ZIP archive.', 'import-export-by-rockstarlab' ) );
+			}
+
+			fwrite( $target, $chunk ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- Stream copy from ZipArchive is required here.
+		}
+
+		fclose( $source ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing stream opened above.
+		fclose( $target ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing stream opened above.
+		$zip->close();
+
+		return array(
+			'file'   => $filename,
+			'path'   => $target_path,
+			'format' => $candidate['extension'],
+		);
+	}
+
+	/**
 	 * Get export file path
 	 * Prepares path for export file in a secure subdirectory
 	 * Path: WordPress uploads directory/import-export-by-rockstarlab-files/{secure_hash}/
@@ -200,7 +334,7 @@ class FS {
 			wp_mkdir_p( $base_dir );
 
 			// Add .htaccess to prevent directory listing
-			$htaccess_content = "Options -Indexes\n<FilesMatch \"\\.(csv|json|xml)$\">\n  Order Deny,Allow\n  Deny from all\n</FilesMatch>";
+			$htaccess_content = "Options -Indexes\n<FilesMatch \"\\.(csv|json|xml|xlsx|ods)$\">\n  Order Deny,Allow\n  Deny from all\n</FilesMatch>";
 			file_put_contents( $base_dir . '/.htaccess', $htaccess_content );
 		}
 

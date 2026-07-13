@@ -23,7 +23,7 @@ class Format_Factory {
 	/**
 	 * Get format handler by file extension
 	 *
-	 * @param string $extension File extension (csv, json, xml)
+	 * @param string $extension File extension (csv, json, xlsx, ods, xml)
 	 * @return File_Format_Interface|WP_Error Handler instance or WP_Error
 	 */
 	public static function get_handler_by_extension( $extension ) {
@@ -95,7 +95,7 @@ class Format_Factory {
 	/**
 	 * Get format handler by format name
 	 *
-	 * @param string $format Format name (csv, json, xml)
+	 * @param string $format Format name (csv, json, xlsx, ods, xml)
 	 * @return File_Format_Interface|WP_Error Handler instance or WP_Error
 	 */
 	public static function get_handler( $format ) {
@@ -104,6 +104,8 @@ class Format_Factory {
 		$class_map = [
 			'csv'  => CSV_Format::class,
 			'json' => JSON_Format::class,
+			'xlsx' => Spreadsheet_Format::class,
+			'ods'  => Spreadsheet_Format::class,
 			'xml'  => XML_Format::class,
 		];
 
@@ -120,17 +122,19 @@ class Format_Factory {
 
 		$class = $class_map[ $format ];
 
-		if ( ! isset( self::$handlers[ $format ] ) ) {
-			self::$handlers[ $format ] = new $class();
+		$handler_key = Spreadsheet_Format::class === $class ? 'spreadsheet' : $format;
+
+		if ( ! isset( self::$handlers[ $handler_key ] ) ) {
+			self::$handlers[ $handler_key ] = new $class();
 		}
 
-		return self::$handlers[ $format ];
+		return self::$handlers[ $handler_key ];
 	}
 
 	/**
 	 * Create format handler by format name (alias for get_handler)
 	 *
-	 * @param string $format Format name (csv, json, xml)
+	 * @param string $format Format name (csv, json, xlsx, ods, xml)
 	 * @return File_Format_Interface|WP_Error Handler instance or WP_Error
 	 */
 	public static function create( $format ) {
@@ -146,6 +150,7 @@ class Format_Factory {
 		return [
 			self::get_handler( 'csv' ),
 			self::get_handler( 'json' ),
+			self::get_handler( 'xlsx' ),
 			self::get_handler( 'xml' ),
 		];
 	}
@@ -156,7 +161,7 @@ class Format_Factory {
 	 * @return array Array of format names
 	 */
 	public static function get_supported_formats() {
-		return [ 'csv', 'json', 'xml' ];
+		return [ 'csv', 'json', 'xlsx', 'ods', 'xml' ];
 	}
 
 	/**

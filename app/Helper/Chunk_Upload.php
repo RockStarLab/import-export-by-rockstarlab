@@ -93,12 +93,12 @@ class Chunk_Upload {
 			wp_send_json_error( __( 'Invalid parameters', 'import-export-by-rockstarlab' ) );
 		}
 
-		// Validate file extension
-		$allowed_extensions = array( 'csv' );
+		// Validate file extension.
+		$allowed_extensions = $this->get_allowed_import_extensions();
 		$file_extension     = strtolower( pathinfo( $file_name, PATHINFO_EXTENSION ) );
 
 		if ( ! in_array( $file_extension, $allowed_extensions, true ) ) {
-			wp_send_json_error( __( 'Invalid file type. Only CSV files are allowed.', 'import-export-by-rockstarlab' ) );
+			wp_send_json_error( __( 'Invalid file type. Supported formats: CSV, XLSX, ODS, and ZIP archives containing one supported import file.', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if chunk file was uploaded.
@@ -125,7 +125,7 @@ class Chunk_Upload {
 		}
 
 		// Save chunk
-		$chunk_filename = 'chunk_' . str_pad( $chunk_index, 6, '0', STR_PAD_LEFT ) . '.csv';
+		$chunk_filename = 'chunk_' . str_pad( $chunk_index, 6, '0', STR_PAD_LEFT ) . '.part';
 		$chunk_file     = $upload_path . $chunk_filename;
 
 		if ( ! isset( $chunk_upload['tmp_name'] ) || ! is_string( $chunk_upload['tmp_name'] ) || ! is_uploaded_file( $chunk_upload['tmp_name'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Uploaded file path cannot be sanitized; validated by is_uploaded_file().
@@ -209,8 +209,8 @@ class Chunk_Upload {
 				wp_send_json_error( __( 'Invalid parameters', 'import-export-by-rockstarlab' ) );
 			}
 
-			if ( 'csv' !== strtolower( pathinfo( $file_name, PATHINFO_EXTENSION ) ) ) {
-				wp_send_json_error( __( 'Invalid file type. Only CSV files are allowed.', 'import-export-by-rockstarlab' ) );
+			if ( ! in_array( strtolower( pathinfo( $file_name, PATHINFO_EXTENSION ) ), $this->get_allowed_import_extensions(), true ) ) {
+				wp_send_json_error( __( 'Invalid file type. Supported formats: CSV, XLSX, ODS, and ZIP archives containing one supported import file.', 'import-export-by-rockstarlab' ) );
 			}
 
 			$upload_path = $this->chunks_dir . $upload_id . '/';
@@ -232,7 +232,7 @@ class Chunk_Upload {
 
 			// Verify all chunks are present
 			for ( $i = 0; $i < $total_chunks; $i++ ) {
-				$chunk_file = $upload_path . 'chunk_' . str_pad( $i, 6, '0', STR_PAD_LEFT ) . '.csv';
+				$chunk_file = $upload_path . 'chunk_' . str_pad( $i, 6, '0', STR_PAD_LEFT ) . '.part';
 				if ( ! file_exists( $chunk_file ) ) {
 					// translators: %d is the missing chunk number.
 					wp_send_json_error( sprintf( __( 'Chunk %d is missing', 'import-export-by-rockstarlab' ), $i ) );
@@ -257,7 +257,7 @@ class Chunk_Upload {
 
 			// Merge all chunks
 			for ( $i = 0; $i < $total_chunks; $i++ ) {
-				$chunk_file = $upload_path . 'chunk_' . str_pad( $i, 6, '0', STR_PAD_LEFT ) . '.csv';
+				$chunk_file = $upload_path . 'chunk_' . str_pad( $i, 6, '0', STR_PAD_LEFT ) . '.part';
 				$chunk_data = file_get_contents( $chunk_file );
 
 				if ( $chunk_data === false ) {
@@ -277,9 +277,23 @@ class Chunk_Upload {
 			$this->cleanup_upload( $upload_id );
 
 			// Get file info
-			$file_size      = filesize( $final_file );
-			$file_url       = str_replace( wp_upload_dir()['basedir'], wp_upload_dir()['baseurl'], $final_file );
 			$file_extension = strtolower( pathinfo( $file_name, PATHINFO_EXTENSION ) );
+
+			if ( 'zip' === $file_extension ) {
+				$zip_result = Fs::extract_import_file_from_zip( $final_file, $this->upload_dir );
+				wp_delete_file( $final_file );
+
+				if ( is_wp_error( $zip_result ) ) {
+					wp_send_json_error( $zip_result->get_error_message() );
+				}
+
+				$file_name      = $zip_result['file'];
+				$final_file     = $zip_result['path'];
+				$file_extension = $zip_result['format'];
+			}
+
+			$file_size = filesize( $final_file );
+			$file_url  = str_replace( wp_upload_dir()['basedir'], wp_upload_dir()['baseurl'], $final_file );
 
 			// Generate preview with CSV options
 			$preview_data = $this->generate_preview( $final_file, $file_extension, $csv_options );
@@ -417,6 +431,15 @@ class Chunk_Upload {
 	}
 
 	/**
+	 * Get import file extensions accepted by the chunk uploader.
+	 *
+	 * @return array
+	 */
+	private function get_allowed_import_extensions() {
+		return array( 'csv', 'xlsx', 'ods', 'zip' );
+	}
+
+	/**
 	 * Cleanup upload chunks
 	 *
 	 * @param string $upload_id Upload ID.
@@ -459,7 +482,7 @@ class Chunk_Upload {
 	 * Generate preview data from uploaded file
 	 *
 	 * @param string $file_path   File path.
-	 * @param string $format      File format (csv, json).
+	 * @param string $format      File format (csv, json, xlsx, ods).
 	 * @param array  $csv_options CSV options.
 	 * @return array Preview data with headers and rows.
 	 */
@@ -472,7 +495,51 @@ class Chunk_Upload {
 		$total_rows   = 0;
 		$columns      = array();
 
-		if ( 'csv' === $format ) {
+		if ( in_array( $format, array( 'xlsx', 'ods' ), true ) ) {
+			$handler = \RockStarLab\ImportExport\Model\Format\Format_Factory::create( $format );
+			if ( is_wp_error( $handler ) ) {
+				return array(
+					'error'      => $handler->get_error_message(),
+					'preview'    => $preview,
+					'total_rows' => 0,
+					'columns'    => array(),
+				);
+			}
+
+			$columns = $handler->get_headers( $file_path );
+			if ( is_wp_error( $columns ) ) {
+				return array(
+					'error'      => $columns->get_error_message(),
+					'preview'    => $preview,
+					'total_rows' => 0,
+					'columns'    => array(),
+				);
+			}
+
+			$rows = $handler->parse_chunk( $file_path, 0, $preview_rows );
+			if ( is_wp_error( $rows ) ) {
+				return array(
+					'error'      => $rows->get_error_message(),
+					'preview'    => $preview,
+					'total_rows' => 0,
+					'columns'    => array(),
+				);
+			}
+
+			$total_rows = $handler->count_rows( $file_path );
+			if ( is_wp_error( $total_rows ) ) {
+				$total_rows = count( $rows );
+			}
+
+			$preview['headers'] = $columns;
+			foreach ( $rows as $row ) {
+				$row_data = array();
+				foreach ( $columns as $column ) {
+					$row_data[] = isset( $row[ $column ] ) ? $row[ $column ] : '';
+				}
+				$preview['data'][] = $row_data;
+			}
+		} elseif ( 'csv' === $format ) {
 			// Parse CSV with specified delimiter
 			$delimiter  = isset( $csv_options['delimiter'] ) ? $csv_options['delimiter'] : ',';
 			$has_header = isset( $csv_options['has_header'] ) ? $csv_options['has_header'] : true;
