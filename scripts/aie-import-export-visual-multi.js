@@ -29,6 +29,7 @@
  *   AIE_CSV_CUSTOM_DELIMITER=^
  *   AIE_CSV_INCLUDE_HEADER=true|false
  *   AIE_SPREADSHEET_INCLUDE_HEADER=true|false
+ *   AIE_EXERCISE_FULL_UI=true|false
  */
 
 const fs = require( 'fs' );
@@ -176,6 +177,7 @@ function loadEnv() {
 			'AIE_SPREADSHEET_INCLUDE_HEADER',
 			true
 		),
+		exerciseFullUi: boolFromEnv( 'AIE_EXERCISE_FULL_UI', true ),
 	};
 }
 
@@ -636,6 +638,335 @@ async function ensureImportDatabaseTableSelected(
 	return await selector.inputValue();
 }
 
+async function clearSearchInput( page, selector ) {
+	const input = page.locator( selector ).first();
+	if ( ! ( await input.count().catch( () => 0 ) ) ) return;
+	await input.fill( 'acf' ).catch( () => null );
+	await page.waitForTimeout( 150 );
+	const clearButton = input
+		.locator( 'xpath=..' )
+		.locator( '.rsl-ie-clear-search' )
+		.first();
+	if ( await clearButton.count().catch( () => 0 ) ) {
+		await clearButton.click( { force: true } ).catch( () => null );
+	} else {
+		await input.fill( '' ).catch( () => null );
+	}
+}
+
+async function exerciseContentTypeSearch( page, contentType ) {
+	const search = page
+		.locator( '.rsl-ie-step-1.active #rsl-ie-content-type-search' )
+		.first();
+	if ( ! ( await search.count().catch( () => 0 ) ) ) return;
+	await search.fill( contentType || 'page' );
+	await page.waitForTimeout( 200 );
+	await search.fill( '' );
+	await page.waitForTimeout( 100 );
+}
+
+async function exerciseExportStep2Controls( page ) {
+	await page
+		.locator( '.rsl-ie-step-2.active .rsl-ie-refresh-count' )
+		.click()
+		.catch( () => null );
+	await page.waitForTimeout( 600 );
+
+	const addFilter = page
+		.locator( '.rsl-ie-step-2.active .rsl-ie-add-filter' )
+		.first();
+	if ( await addFilter.count().catch( () => 0 ) ) {
+		await addFilter.click();
+		await page.waitForTimeout( 300 );
+		const row = page
+			.locator( '.rsl-ie-step-2.active .rsl-ie-filter-row' )
+			.last();
+		const field = row.locator( 'select.rsl-ie-filter-field' ).first();
+		if ( await field.count().catch( () => 0 ) ) {
+			await field
+				.selectOption( { value: 'post_status' } )
+				.catch( () => null );
+			await page.waitForTimeout( 300 );
+		}
+		const condition = row
+			.locator( 'select.rsl-ie-filter-condition' )
+			.first();
+		if ( await condition.count().catch( () => 0 ) ) {
+			const firstValue = await condition
+				.evaluate( ( el ) => {
+					const option = Array.from( el.options ).find(
+						( o ) => o.value
+					);
+					return option ? option.value : '';
+				} )
+				.catch( () => '' );
+			if ( firstValue ) {
+				await condition
+					.selectOption( { value: firstValue } )
+					.catch( () => null );
+			}
+		}
+		await row
+			.locator( '.rsl-ie-filter-value' )
+			.fill( 'publish' )
+			.catch( () => null );
+		await row
+			.locator( '.rsl-ie-remove-filter' )
+			.click()
+			.catch( () => null );
+	}
+}
+
+async function exerciseFunctionModal( page, openerSelector, mode ) {
+	const opener = page.locator( openerSelector ).first();
+	if ( ! ( await opener.count().catch( () => 0 ) ) ) {
+		return { available: false, reason: 'no opener' };
+	}
+
+	await opener.click( { force: true } );
+	const modal = page.locator( '#rsl-ie-field-functions-modal' ).first();
+	await modal.waitFor( { state: 'visible', timeout: 30_000 } );
+
+	await page
+		.locator( '#rsl-ie-functions-search' )
+		.fill( 'trim' )
+		.catch( () => null );
+	await page.waitForTimeout( 250 );
+	await page
+		.locator( 'input[name="functions-filter"][value="library"]' )
+		.check( { force: true } )
+		.catch( () => null );
+	await page.waitForTimeout( 150 );
+	await page
+		.locator( 'input[name="functions-filter"][value="custom"]' )
+		.check( { force: true } )
+		.catch( () => null );
+	await page.waitForTimeout( 150 );
+	await page
+		.locator( 'input[name="functions-filter"][value="all"]' )
+		.check( { force: true } )
+		.catch( () => null );
+	await page
+		.locator( '#rsl-ie-functions-search' )
+		.fill( '' )
+		.catch( () => null );
+	await page.waitForTimeout( 250 );
+
+	const addButtonSelector =
+		mode === 'import'
+			? '#rsl-ie-field-functions-modal .rsl-ie-function-list-item:visible .rsl-ie-add-function-btn'
+			: '#rsl-ie-field-functions-modal .rsl-ie-function-list-item:visible button';
+	const addButton = page.locator( addButtonSelector ).first();
+	const hasFunction = await addButton.count().catch( () => 0 );
+	if ( hasFunction ) {
+		await addButton.click();
+		await page
+			.waitForFunction(
+				() =>
+					document.querySelectorAll(
+						'#rsl-ie-function-items .rsl-ie-function-item'
+					).length > 0,
+				null,
+				{ timeout: 10_000 }
+			)
+			.catch( () => null );
+		await page
+			.locator( '#rsl-ie-preview-input' )
+			.fill( '  Codex Trim Test  ' )
+			.catch( () => null );
+		await page
+			.locator( '.rsl-ie-test-pipeline' )
+			.click()
+			.catch( () => null );
+		await page.waitForTimeout( 800 );
+		await page.locator( '.rsl-ie-save-field-functions' ).click();
+		await modal
+			.waitFor( { state: 'detached', timeout: 30_000 } )
+			.catch( async () => {
+				await modal
+					.waitFor( { state: 'hidden', timeout: 30_000 } )
+					.catch( () => null );
+			} );
+		return { available: true, applied: true };
+	}
+
+	await page
+		.locator( '.rsl-ie-modal-close, .rsl-ie-modal-cancel' )
+		.first()
+		.click()
+		.catch( () => null );
+	await modal
+		.waitFor( { state: 'detached', timeout: 30_000 } )
+		.catch( () => null );
+	return { available: true, applied: false, reason: 'no functions listed' };
+}
+
+async function exerciseExportStep3Controls( page ) {
+	await clearSearchInput(
+		page,
+		'.rsl-ie-step-3.active #rsl-ie-fields-search'
+	);
+
+	if (
+		await page
+			.locator( '.rsl-ie-step-3.active .rsl-ie-add-custom-column' )
+			.count()
+			.catch( () => 0 )
+	) {
+		page.once( 'dialog', async ( dialog ) => {
+			await dialog.accept( 'Codex Custom Column' );
+		} );
+		await page
+			.locator( '.rsl-ie-step-3.active .rsl-ie-add-custom-column' )
+			.click()
+			.catch( () => null );
+		await page.waitForTimeout( 300 );
+		await page
+			.locator( '.rsl-ie-step-3.active .rsl-ie-remove-column' )
+			.last()
+			.click()
+			.catch( () => null );
+	}
+}
+
+async function exerciseExportSelectedColumnControls( page ) {
+	const clearAll = page
+		.locator( '.rsl-ie-step-3.active .rsl-ie-clear-all-fields' )
+		.first();
+	if ( await clearAll.count().catch( () => 0 ) ) {
+		page.once( 'dialog', async ( dialog ) => {
+			await dialog.accept();
+		} );
+		await clearAll.click().catch( () => null );
+		await page.waitForTimeout( 500 );
+		await page.evaluate( () => {
+			document
+				.querySelectorAll(
+					'.rsl-ie-step-3.active .rsl-ie-add-all-fields'
+				)
+				.forEach( ( btn ) => btn.click() );
+		} );
+		await page.waitForTimeout( 500 );
+	}
+
+	const removeColumn = page
+		.locator( '.rsl-ie-step-3.active .rsl-ie-remove-column' )
+		.first();
+	if ( await removeColumn.count().catch( () => 0 ) ) {
+		await removeColumn.click().catch( () => null );
+		await page.waitForTimeout( 300 );
+		await page.evaluate( () => {
+			const btn = document.querySelector(
+				'.rsl-ie-step-3.active .rsl-ie-add-all-fields'
+			);
+			if ( btn ) btn.click();
+		} );
+		await page.waitForTimeout( 300 );
+	}
+
+	return await exerciseFunctionModal(
+		page,
+		'.rsl-ie-step-3.active .rsl-ie-edit-column-functions',
+		'export'
+	);
+}
+
+async function exerciseImportStep2Controls( page, filePath ) {
+	const remove = page
+		.locator( '.rsl-ie-step-2.active .rsl-ie-remove-file' )
+		.first();
+	if ( await remove.count().catch( () => 0 ) ) {
+		await remove.click().catch( () => null );
+		await page.waitForTimeout( 400 );
+		await page.setInputFiles( '#rsl-ie-file-input', filePath );
+		await page.waitForFunction(
+			() => {
+				const btn = document.querySelector(
+					'.rsl-ie-step-2.active .rsl-ie-next-step'
+				);
+				return btn && ! btn.disabled;
+			},
+			null,
+			{ timeout: 90_000 }
+		);
+	}
+
+	const delimiter = page
+		.locator( '.rsl-ie-step-2.active #csv_delimiter' )
+		.first();
+	if ( await delimiter.isVisible().catch( () => false ) ) {
+		await delimiter.selectOption( { value: 'custom' } ).catch( () => null );
+		await page
+			.locator( '.rsl-ie-step-2.active #csv_custom_delimiter' )
+			.fill( '^' )
+			.catch( () => null );
+		await page.waitForTimeout( 300 );
+		await delimiter.selectOption( { value: ',' } ).catch( () => null );
+		await page
+			.locator( '.rsl-ie-step-2.active input[name="csv_has_header"]' )
+			.setChecked( true, { force: true } )
+			.catch( () => null );
+	}
+}
+
+async function exerciseImportStep4Controls( page ) {
+	await clearSearchInput(
+		page,
+		'.rsl-ie-step-4.active .rsl-ie-search-source'
+	);
+	await clearSearchInput(
+		page,
+		'.rsl-ie-step-4.active .rsl-ie-search-target'
+	);
+
+	const addCustom = page
+		.locator( '.rsl-ie-step-4.active .rsl-ie-add-custom-field' )
+		.first();
+	if ( await addCustom.count().catch( () => 0 ) ) {
+		await addCustom.click().catch( () => null );
+		const modal = page.locator( '#rsl-ie-custom-field-modal' ).first();
+		if ( await modal.count().catch( () => 0 ) ) {
+			await modal
+				.waitFor( { state: 'visible', timeout: 10_000 } )
+				.catch( () => null );
+			await page
+				.locator(
+					'#rsl-ie-custom-field-modal .rsl-ie-custom-field-input'
+				)
+				.fill( '_codex_custom_meta' )
+				.catch( () => null );
+			await page
+				.locator( '#rsl-ie-custom-field-modal .rsl-ie-modal-add' )
+				.click()
+				.catch( () => null );
+			await modal
+				.waitFor( { state: 'detached', timeout: 10_000 } )
+				.catch( () => null );
+			await page
+				.locator( '.rsl-ie-step-4.active .rsl-ie-remove-custom-field' )
+				.last()
+				.click()
+				.catch( () => null );
+		}
+	}
+
+	const removeMapping = page
+		.locator( '.rsl-ie-step-4.active .rsl-ie-remove-row-mapping' )
+		.first();
+	if ( await removeMapping.count().catch( () => 0 ) ) {
+		await removeMapping.click().catch( () => null );
+		await page.waitForTimeout( 300 );
+		await page.locator( '.rsl-ie-step-4.active .rsl-ie-auto-map' ).click();
+		await page.waitForTimeout( 800 );
+	}
+
+	return await exerciseFunctionModal(
+		page,
+		'.rsl-ie-step-4.active .rsl-ie-add-function',
+		'import'
+	);
+}
+
 async function selectExportFormatOnStep4( page, options ) {
 	const format = options.exportFormat || 'csv';
 	const radio = page
@@ -748,6 +1079,9 @@ async function exportAllItems( page, source, contentType, options = {} ) {
 
 	// Step 1
 	await page.waitForSelector( '.rsl-ie-step-1.active', { timeout: 30_000 } );
+	if ( options.exerciseFullUi ) {
+		await exerciseContentTypeSearch( page, contentType );
+	}
 	await selectContentTypeOnStep1( page, contentType );
 	await clickNextStep( page );
 	console.log( `[export] ${ contentType }: step 2` );
@@ -755,6 +1089,9 @@ async function exportAllItems( page, source, contentType, options = {} ) {
 	// Step 2
 	await page.waitForSelector( '.rsl-ie-step-2.active', { timeout: 30_000 } );
 	const meta = {};
+	if ( options.exerciseFullUi ) {
+		await exerciseExportStep2Controls( page );
+	}
 	if ( contentType === 'custom_post_types' ) {
 		// Note: selector is required; it enables Next step.
 		await ensureExportPostTypeSelected( page, source.customPostType );
@@ -783,6 +1120,10 @@ async function exportAllItems( page, source, contentType, options = {} ) {
 		}
 	);
 
+	if ( options.exerciseFullUi ) {
+		await exerciseExportStep3Controls( page );
+	}
+
 	// Click "Add all" for every category (even if collapsed/hidden).
 	await page.evaluate( () => {
 		document
@@ -803,6 +1144,10 @@ async function exportAllItems( page, source, contentType, options = {} ) {
 		const n = el ? Number( String( el.textContent || '' ).trim() ) : 0;
 		return Number.isFinite( n ) && n > 0;
 	} );
+	if ( options.exerciseFullUi ) {
+		meta.exportTransformation =
+			await exerciseExportSelectedColumnControls( page );
+	}
 
 	const step3Next = page.locator( '.rsl-ie-step-3.active .rsl-ie-next-step' );
 	await page.waitForFunction( () => {
@@ -914,6 +1259,9 @@ async function importItems(
 
 	// Step 1
 	await page.waitForSelector( '.rsl-ie-step-1.active', { timeout: 30_000 } );
+	if ( target.exerciseFullUi ) {
+		await exerciseContentTypeSearch( page, contentType );
+	}
 	await selectContentTypeOnStep1( page, contentType );
 	await page.locator( '.rsl-ie-step-1.active .rsl-ie-next-step' ).click();
 	await handleBackupModalIfPresent( page );
@@ -928,6 +1276,9 @@ async function importItems(
 		);
 		return btn && ! btn.disabled;
 	} );
+	if ( target.exerciseFullUi ) {
+		await exerciseImportStep2Controls( page, csvPath );
+	}
 	await page.locator( '.rsl-ie-step-2.active .rsl-ie-next-step' ).click();
 	console.log( `[import] ${ contentType }: step 3` );
 
@@ -969,6 +1320,10 @@ async function importItems(
 
 	await page.locator( '.rsl-ie-auto-map' ).click();
 	await page.waitForTimeout( 250 );
+	if ( target.exerciseFullUi ) {
+		importMeta.importTransformation =
+			await exerciseImportStep4Controls( page );
+	}
 	await clickNextStep( page );
 	console.log( `[import] ${ contentType }: step 5` );
 
@@ -986,6 +1341,22 @@ async function importItems(
 			await ifExistsRadio.check( { force: true } );
 		}
 	}
+	if ( target.exerciseFullUi ) {
+		for ( const value of [
+			'skip',
+			'create',
+			target.ifExists || 'update',
+		] ) {
+			const radio = page
+				.locator(
+					`.rsl-ie-step-5.active input[name="if_exists"][value="${ value }"]`
+				)
+				.first();
+			if ( await radio.count() ) {
+				await radio.check( { force: true } ).catch( () => null );
+			}
+		}
+	}
 
 	// If No Match Found
 	if ( target.ifNotExists ) {
@@ -996,6 +1367,49 @@ async function importItems(
 			.first();
 		if ( await ifNotExistsRadio.count() ) {
 			await ifNotExistsRadio.check( { force: true } );
+		}
+	}
+	if ( target.exerciseFullUi ) {
+		for ( const value of [ 'skip', target.ifNotExists || 'create' ] ) {
+			const radio = page
+				.locator(
+					`.rsl-ie-step-5.active input[name="if_not_exists"][value="${ value }"]`
+				)
+				.first();
+			if ( await radio.count() ) {
+				await radio.check( { force: true } ).catch( () => null );
+			}
+		}
+		await page
+			.locator( '.rsl-ie-step-5.active input[name="batch_size"]' )
+			.fill( '2' )
+			.catch( () => null );
+		const autoMedia = page
+			.locator( '.rsl-ie-step-5.active input[name="auto_import_media"]' )
+			.first();
+		if ( await autoMedia.count().catch( () => 0 ) ) {
+			await autoMedia
+				.setChecked( true, { force: true } )
+				.catch( () => null );
+			for ( const value of [
+				'create',
+				'replace',
+				target.mediaDuplicateMode || 'skip',
+			] ) {
+				const radio = page
+					.locator(
+						`.rsl-ie-step-5.active input[name="media_duplicate_mode"][value="${ value }"]`
+					)
+					.first();
+				if ( await radio.count() ) {
+					await radio.check( { force: true } ).catch( () => null );
+				}
+			}
+			await autoMedia
+				.setChecked( Boolean( target.autoImportMedia ), {
+					force: true,
+				} )
+				.catch( () => null );
 		}
 	}
 
@@ -2781,6 +3195,7 @@ async function main() {
 		taxonomyPostType: env.taxonomyPostType,
 		dbTable: env.dbTable,
 		dbTablePatterns: env.dbTablePatterns,
+		exerciseFullUi: env.exerciseFullUi,
 	};
 	const target = {
 		baseUrl: env.targetUrl,
@@ -2791,6 +3206,7 @@ async function main() {
 		taxonomyPostType: env.taxonomyPostType,
 		dbTable: env.dbTable,
 		dbTablePatterns: env.dbTablePatterns,
+		exerciseFullUi: env.exerciseFullUi,
 	};
 
 	try {
@@ -2801,6 +3217,7 @@ async function main() {
 			csvCustomDelimiter: env.csvCustomDelimiter,
 			csvIncludeHeader: env.csvIncludeHeader,
 			spreadsheetIncludeHeader: env.spreadsheetIncludeHeader,
+			exerciseFullUi: env.exerciseFullUi,
 		} );
 		const download = exported.download;
 		const exportMeta = exported.meta || {};
@@ -4220,7 +4637,21 @@ async function main() {
 
 		fs.writeFileSync(
 			path.join( artifactsDir, 'summary.json' ),
-			JSON.stringify( { contentType: env.contentType, results }, null, 2 )
+			JSON.stringify(
+				{
+					contentType: env.contentType,
+					format: env.exportFormat,
+					downloadZip: env.downloadZip,
+					exerciseFullUi: env.exerciseFullUi,
+					exportTransformation:
+						exportMeta.exportTransformation || null,
+					importTransformation:
+						importMeta.importTransformation || null,
+					results,
+				},
+				null,
+				2
+			)
 		);
 		console.log(
 			`[done] Summary: ${ path.join( artifactsDir, 'summary.json' ) }`

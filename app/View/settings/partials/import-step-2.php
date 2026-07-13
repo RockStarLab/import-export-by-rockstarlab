@@ -79,6 +79,7 @@ defined( 'ABSPATH' ) || exit;
 				<label class="rsl-ie-custom-delimiter-wrapper" style="display:none;">
 					<?php esc_html_e( 'Custom Delimiter', 'import-export-by-rockstarlab' ); ?>
 						<input type="text" name="csv_custom_delimiter" id="csv_custom_delimiter" class="regular-text" placeholder="<?php esc_attr_e( 'Enter custom delimiter (any string)', 'import-export-by-rockstarlab' ); ?>">
+				</label>
 				<label>
 					<input type="checkbox" name="csv_has_header" checked>
 					<?php esc_html_e( 'First row contains column names', 'import-export-by-rockstarlab' ); ?>
