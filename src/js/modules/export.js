@@ -1373,6 +1373,9 @@ const ExportModule = {
 					json_pretty_print: jQuery(
 						'[name="json_pretty_print"]'
 					).is( ':checked' ),
+					spreadsheet_include_header: jQuery(
+						'[name="spreadsheet_include_header"]'
+					).is( ':checked' ),
 				},
 				options: {
 					items_per_iteration:
@@ -1681,8 +1684,13 @@ const ExportModule = {
 		this.setDownloadButtonLoading( $button, true );
 
 		try {
+			const downloadAsZip = jQuery( '[name="download_zip"]' ).is(
+				':checked:not(:disabled)'
+			);
+
 			const response = await Utils.ajax( 'rsl_ie_export_download', {
 				job_id: this.jobId,
+				download_zip: downloadAsZip ? 1 : 0,
 			} );
 
 			if ( response.download_url ) {

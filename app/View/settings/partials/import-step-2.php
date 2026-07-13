@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 <div class="rsl-ie-step rsl-ie-step-2" data-step="2">
 	<div class="rsl-ie-step-header">
 		<h2><?php esc_html_e( 'Step 2: Upload File', 'import-export-by-rockstarlab' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Upload your data file (CSV)', 'import-export-by-rockstarlab' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Upload your data file (CSV, XLSX, or ODS)', 'import-export-by-rockstarlab' ); ?></p>
 	</div>
 
 	<div class="rsl-ie-step-content">
@@ -24,9 +24,9 @@ defined( 'ABSPATH' ) || exit;
 				<button type="button" class="button button-secondary" id="rsl-ie-select-file">
 					<?php esc_html_e( 'Select File', 'import-export-by-rockstarlab' ); ?>
 				</button>
-				<input type="file" id="rsl-ie-file-input" accept=".csv" style="display:none;">
+				<input type="file" id="rsl-ie-file-input" accept=".csv,.xlsx,.ods,.zip" style="display:none;">
 				<p class="description">
-					<?php esc_html_e( 'Supported formats: CSV', 'import-export-by-rockstarlab' ); ?><br>
+					<?php esc_html_e( 'Supported formats: CSV, XLSX, ODS, or ZIP containing one supported import file', 'import-export-by-rockstarlab' ); ?><br>
 					<?php esc_html_e( 'No file size limit - large files supported via chunked upload', 'import-export-by-rockstarlab' ); ?>
 				</p>
 			</div>

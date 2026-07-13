@@ -2,12 +2,15 @@
 .rsl-ie-format-selection {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	align-items: stretch;
 	gap: 20px;
 	margin: 20px 0;
 }
 
 .rsl-ie-format-option {
 	cursor: pointer;
+	display: block;
+	height: 100%;
 
 	input[type="radio"] {
 		display: none;
@@ -16,15 +19,25 @@
 	.rsl-ie-format-card {
 		border: 2px solid #dcdcde;
 		border-radius: 4px;
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		justify-content: center;
+		min-height: 190px;
 		padding: 30px 20px;
 		text-align: center;
 		transition: all 0.2s;
 
 		.dashicons {
-			font-size: 48px;
-			width: 48px;
-			height: 48px;
 			color: #646970;
+			display: block;
+			font-size: 48px;
+			height: 48px;
+			line-height: 48px;
+			margin: 0 auto;
+			text-align: center;
+			width: 48px;
 		}
 
 		h3 {

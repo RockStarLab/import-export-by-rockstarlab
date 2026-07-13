@@ -6,6 +6,8 @@
  */
 
 defined( 'ABSPATH' ) || exit;
+
+$rsl_ie_zip_supported = class_exists( 'ZipArchive' );
 ?>
 
 <!-- Step 5: Export Progress -->
@@ -82,6 +84,27 @@ defined( 'ABSPATH' ) || exit;
 					</div>
 				</div>
 				
+				<div class="rsl-ie-download-options">
+					<label class="rsl-ie-download-zip-option<?php echo $rsl_ie_zip_supported ? '' : ' is-disabled'; ?>">
+						<input
+							type="checkbox"
+							name="download_zip"
+							value="1"
+							<?php disabled( ! $rsl_ie_zip_supported ); ?>
+						/>
+						<span><?php esc_html_e( 'Download as ZIP', 'import-export-by-rockstarlab' ); ?></span>
+					</label>
+					<p class="description">
+						<?php
+						if ( $rsl_ie_zip_supported ) {
+							esc_html_e( 'Package the export file into a ZIP archive before downloading.', 'import-export-by-rockstarlab' );
+						} else {
+							esc_html_e( 'ZIP downloads are not available because the ZipArchive PHP extension is not enabled on this server.', 'import-export-by-rockstarlab' );
+						}
+						?>
+					</p>
+				</div>
+
 				<p class="rsl-ie-download-action">
 					<button type="button" class="button button-primary button-hero rsl-ie-download-file">
 						<span class="dashicons dashicons-download"></span>
