@@ -1,6 +1,6 @@
 === Import Export by RockStarLab ===
 Contributors: RockstarLab
-Tags: import, export, csv, xml, data migration
+Tags: export, export woocommerce, import, wordpress csv import
 Requires at least: 6.2
 Tested up to: 7.0
 Stable tag: 1.1.0
@@ -20,6 +20,8 @@ Import Export by RockStarLab helps you move real WordPress content without fragi
 Use it for everyday migrations between local, staging, and production sites; bulk content operations; SEO URL audits; media cleanup; and content workflows where posts, pages, custom fields, SEO data, Elementor layouts, and media relationships need to stay intact.
 
 The free plugin gives you strong post/page import-export, URL export, media folder sync, site-to-site sync for core content, background jobs, and AI URL Importer support when configured with your own OpenAI API key. The optional PRO addon unlocks advanced content types, Content Updater, transformations, WooCommerce workflows, and deeper migration tooling for teams that need more control.
+
+Want to try it before installing? The plugin includes a WordPress Playground blueprint for the Live Plugin Preview on WordPress.org, so you can open a temporary demo site with sample content and test the import, export, URL inventory, media sync, and jobs screens directly in your browser.
 
 == Common Use Cases ==
 
@@ -42,6 +44,7 @@ Built for practical WordPress operations:
 * 🖼️ **Media Folder Sync**: Scan server folders and register uploaded files in the WordPress Media Library with duplicate detection.
 * 🤖 **AI URL Importer**: Extract structured content from public URLs using your own OpenAI API key.
 * 🧾 **Jobs Log**: Re-run previous imports, exports, and sync jobs without rebuilding the whole setup.
+* 🧪 **Live Plugin Preview**: Try the plugin in a temporary WordPress Playground demo powered by the included blueprint.
 * 🧩 **Metadata-Aware Workflows**: Designed for custom fields, SEO metadata, media references, and builder-heavy sites.
 
 == PRO Addon ==
@@ -86,6 +89,7 @@ Many import/export plugins are good for simple rows. Import Export by RockStarLa
 * **Site-to-Site Sync**: Connect and sync content between two WordPress sites
 * **Progress Tracking**: Real-time progress bars and detailed logs
 * **History & Logs**: Complete history of all import/export operations
+* **Live Preview Blueprint**: WordPress Playground blueprint support for the Live Plugin Preview on WordPress.org
 
 = All Site URLs =
 
@@ -166,6 +170,20 @@ What data is sent and when:
 Service provider:
 
 * OpenAI ([terms](https://openai.com/policies/terms-of-use), [privacy](https://openai.com/policies/privacy-policy))
+
+== Tutorials ==
+
+Learn how to use Import Export by RockStarLab in real WordPress workflows:
+
+* [How to export all WordPress URLs to CSV or JSON](https://wpimportexport.com/how-to-export-all-wordpress-urls-to-csv-or-json/)
+* [How to use Jobs Log and schedule WP import and export jobs](https://wpimportexport.com/how-to-use-jobs-log-and-schedule-wp-import-and-export-jobs/)
+* [How to export and import WordPress media files without duplicates](https://wpimportexport.com/how-to-export-and-import-wordpress-media-files-without-duplicates/)
+* [How to import posts, pages, and custom post types with ACF Pro fields](https://wpimportexport.com/how-to-import-posts-pages-custom-post-types-with-acf-pro-fields/)
+* [How to export WordPress posts, pages, and custom post types with ACF Pro fields](https://wpimportexport.com/how-to-export-wordpress-posts-pages-custom-post-types-with-acf-pro-fields/)
+* [How to sync content between two WordPress websites without export files](https://wpimportexport.com/how-to-sync-content-between-two-wordpress-websites-without-export-files/)
+* [How to import content from a URL into WordPress with AI](https://wpimportexport.com/how-to-import-content-from-a-url-into-wordpress-with-ai/)
+* [What are transformation functions and how to use them during import or export](https://wpimportexport.com/what-are-transformation-functions-and-how-to-use-them-during-import-or-export/)
+* [How to register FTP/SFTP uploaded files in the WordPress Media Library](https://wpimportexport.com/how-to-register-ftp-sftp-uploaded-files-in-the-wordpress-media-library/)
 
 == Frequently Asked Questions ==
 
