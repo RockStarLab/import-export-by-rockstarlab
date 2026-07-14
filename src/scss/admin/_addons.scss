@@ -1,0 +1,13 @@
+/**
+ * Add-Ons page styles
+ */
+
+// Hide Freemius price only in addon cards.
+.import-export-by-rockstarlab_page_import-export-by-rockstarlab-addons {
+	.fs-card .fs-offer {
+		text-indent: -5555em !important;
+	}
+	#fs_addons .fs-cards-list .fs-card .fs-inner .fs-title {
+		margin-top: 17px !important;
+	}
+}

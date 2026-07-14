@@ -1,0 +1,873 @@
+/**
+ * WordPress 7+ admin tweaks
+ *
+ * This file is compiled to `assets/css/admin-wp7.css` and enqueued only for WP >= 7.0.
+ */
+
+/*
+ * Match dashicons to the active WP admin theme accent color (WP 7+).
+ *
+ * Use :where() (0 specificity) so component-level icon colors (e.g. white icons on
+ * colored backgrounds) keep taking precedence.
+ */
+:where(
+		body.toplevel_page_import-export-by-rockstarlab .dashicons,
+		body[class*="import-export-by-rockstarlab_page_rsl-ie-"] .dashicons
+	) {
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+/* Keep icons inside WP buttons aligned with the button text color (e.g. white on primary). */
+:where(
+		body.toplevel_page_import-export-by-rockstarlab .button .dashicons,
+		body[class*="import-export-by-rockstarlab_page_rsl-ie-"]
+			.button
+			.dashicons
+	) {
+	color: inherit;
+}
+
+[class*="branch-7"].wp-core-ui.toplevel_page_import-export-by-rockstarlab
+	.button-primary
+	.dashicons,
+[class*="branch-7"].wp-core-ui[class*="import-export-by-rockstarlab_page_rsl-ie-"]
+	.button-primary
+	.dashicons,
+body.toplevel_page_import-export-by-rockstarlab.wp-core-ui
+	.button-primary
+	.dashicons,
+body[class*="import-export-by-rockstarlab_page_rsl-ie-"].wp-core-ui
+	.button-primary
+	.dashicons {
+	color: #fff;
+}
+
+body.toplevel_page_import-export-by-rockstarlab.wp-core-ui .button .dashicons,
+body.toplevel_page_import-export-by-rockstarlab.wp-core-ui
+	.button-primary
+	.dashicons,
+body.toplevel_page_import-export-by-rockstarlab.wp-core-ui
+	.button-secondary
+	.dashicons,
+body[class*="import-export-by-rockstarlab_page_rsl-ie-"].wp-core-ui
+	.button
+	.dashicons,
+body[class*="import-export-by-rockstarlab_page_rsl-ie-"].wp-core-ui
+	.button-primary
+	.dashicons,
+body[class*="import-export-by-rockstarlab_page_rsl-ie-"].wp-core-ui
+	.button-secondary
+	.dashicons {
+	vertical-align: middle;
+	line-height: normal;
+}
+
+/*
+ * Embedded UI (post.php / edit.php) does not have plugin body classes.
+ * Match dashicons inside plugin components by their `rsl-ie-` class prefix.
+ */
+:where([class^="rsl-ie-"] .dashicons, [class*=" rsl-ie-"] .dashicons) {
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+:where(
+		[class^="rsl-ie-"] .button .dashicons,
+		[class*=" rsl-ie-"] .button .dashicons
+	) {
+	color: inherit;
+}
+
+.wp-core-ui [class^="rsl-ie-"] .button .dashicons,
+.wp-core-ui [class*=" rsl-ie-"] .button .dashicons,
+.wp-core-ui [class^="rsl-ie-"] .button-primary .dashicons,
+.wp-core-ui [class*=" rsl-ie-"] .button-primary .dashicons,
+.wp-core-ui [class^="rsl-ie-"] .button-secondary .dashicons,
+.wp-core-ui [class*=" rsl-ie-"] .button-secondary .dashicons {
+	line-height: 1;
+	vertical-align: middle;
+}
+
+.wp-core-ui [class^="rsl-ie-"] .button-primary .dashicons,
+.wp-core-ui [class*=" rsl-ie-"] .button-primary .dashicons,
+.wp-core-ui .button-primary[class^="rsl-ie-"] .dashicons,
+.wp-core-ui .button-primary[class*=" rsl-ie-"] .dashicons,
+.wp-core-ui
+	:is(.rsl-ie-complete-icon, .rsl-ie-result-icon, .rsl-ie-download-file)
+	.dashicons {
+	color: #fff;
+}
+
+/* Fix: eye icon in the "show" (password toggle) button is off-center on WP7+. */
+#rsl-ie-plugin-options .rsl-ie-toggle-password {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#rsl-ie-plugin-options .rsl-ie-toggle-password .dashicons {
+	display: block;
+	line-height: 1;
+}
+
+/* Plugin Options: "Need Help?" links should use global admin theme colors on WP7+. */
+body.import-export-by-rockstarlab_page_rsl-ie-plugin-options
+	.rsl-ie-help-section
+	a {
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-plugin-options
+	.rsl-ie-help-section
+	a:hover {
+	color: var(--wp-admin-theme-color-darker-10, #135e96);
+}
+
+/* Plugin Options: About AI Features cards should follow WP7 admin theme colors. */
+body.import-export-by-rockstarlab_page_rsl-ie-plugin-options
+	.rsl-ie-info-card
+	.dashicons,
+body.import-export-by-rockstarlab_page_rsl-ie-plugin-options
+	.rsl-ie-help-section
+	h3
+	.dashicons,
+body.import-export-by-rockstarlab_page_rsl-ie-plugin-options
+	.rsl-ie-settings-section-header
+	h2
+	.dashicons {
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+/* AI URL Importer: keep the "Plugin Options" fallback link readable on the green notice. */
+body.import-export-by-rockstarlab_page_rsl-ie-ai-url-importer
+	#rsl-ie-ai-url-importer
+	.rsl-ie-premium-notice.rsl-ie-api-key-notice
+	.rsl-ie-premium-notice-content
+	p.description
+	a {
+	color: #fff;
+	text-decoration: underline;
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-ai-url-importer
+	#rsl-ie-ai-url-importer
+	.rsl-ie-premium-notice.rsl-ie-api-key-notice
+	.rsl-ie-premium-notice-content
+	p.description
+	a:hover {
+	color: #fff;
+	opacity: 0.9;
+}
+
+/* Jobs Log: align filter dropdown text vertically on WP7+. */
+body.import-export-by-rockstarlab_page_rsl-ie-jobs-log
+	.rsl-ie-jobs-log
+	.rsl-ie-jobs-filters
+	.rsl-ie-filter-group
+	select {
+	height: 34px;
+	padding: 0 8px;
+	line-height: 34px;
+	box-sizing: border-box;
+}
+
+/* Jobs Log: "Apply Filters" button should match global admin theme colors on WP7+. */
+body.import-export-by-rockstarlab_page_rsl-ie-jobs-log
+	.rsl-ie-jobs-log
+	.rsl-ie-jobs-filters
+	.button.rsl-ie-filter-apply {
+	background: var(--wp-admin-theme-color, #2271b1);
+	border-color: var(--wp-admin-theme-color, #2271b1);
+	color: #fff;
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-jobs-log
+	.rsl-ie-jobs-log
+	.rsl-ie-jobs-filters
+	.button.rsl-ie-filter-apply:hover {
+	background: var(--wp-admin-theme-color-darker-10, #135e96);
+	border-color: var(--wp-admin-theme-color-darker-10, #135e96);
+}
+
+/* Jobs Log: ID column should use the active admin theme color on WP7+. */
+body.import-export-by-rockstarlab_page_rsl-ie-jobs-log
+	.rsl-ie-jobs-log
+	.rsl-ie-jobs-table
+	.column-id {
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+/* Jobs Log: Actions buttons/icons should match the active admin theme color on WP7+. */
+body.import-export-by-rockstarlab_page_rsl-ie-jobs-log
+	.rsl-ie-jobs-log
+	.rsl-ie-jobs-table
+	.job-actions
+	.button-small {
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-jobs-log
+	.rsl-ie-jobs-log
+	.rsl-ie-jobs-table
+	.job-actions
+	.button-small
+	.dashicons {
+	color: inherit;
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-jobs-log
+	.rsl-ie-jobs-log
+	.rsl-ie-jobs-table
+	.job-actions
+	.button-small:hover:not(.job-action-delete):not(.job-action-resume):not(
+		.job-action-restart
+	):not(.job-action-retry) {
+	background: var(--wp-admin-theme-color, #2271b1);
+	border-color: var(--wp-admin-theme-color, #2271b1);
+}
+
+/* Functions: Browse Library modal should use WP7 admin theme colors. */
+body.import-export-by-rockstarlab_page_rsl-ie-functions
+	#rsl-ie-snippets-library-modal
+	.rsl-ie-library-search
+	input:focus {
+	border-color: var(--wp-admin-theme-color, #2271b1);
+	box-shadow: 0 0 0 1px var(--wp-admin-theme-color, #2271b1);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-functions
+	#rsl-ie-snippets-library-modal
+	.rsl-ie-category-item:hover
+	.dashicons {
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-functions
+	#rsl-ie-snippets-library-modal
+	.rsl-ie-category-item.active {
+	background: color-mix(
+		in srgb,
+		var(--wp-admin-theme-color, #2271b1) 12%,
+		#fff
+	);
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-functions
+	#rsl-ie-snippets-library-modal
+	.rsl-ie-category-item.active
+	.dashicons {
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-functions
+	#rsl-ie-snippets-library-modal
+	.rsl-ie-category-item.active
+	.rsl-ie-category-count {
+	background: var(--wp-admin-theme-color, #2271b1);
+	color: #fff;
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-functions
+	#rsl-ie-snippets-library-modal
+	.rsl-ie-snippet-card:hover {
+	border-color: var(--wp-admin-theme-color, #2271b1);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-functions
+	#rsl-ie-snippet-preview-modal
+	.rsl-ie-example-io
+	.dashicons {
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+/* Import/Export/Content Updater: align highlights with WP7 admin theme colors. */
+body.import-export-by-rockstarlab_page_rsl-ie-import,
+body.import-export-by-rockstarlab_page_rsl-ie-export,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater {
+	--rsl-ie-admin-theme-color: var(--wp-admin-theme-color, #2271b1);
+	--rsl-ie-admin-theme-color-dark: var(
+		--wp-admin-theme-color-darker-10,
+		#135e96
+	);
+	--rsl-ie-admin-theme-color-rgb: var(
+		--wp-admin-theme-color--rgb,
+		34,
+		113,
+		177
+	);
+	--rsl-ie-admin-theme-tint: color-mix(
+		in srgb,
+		var(--rsl-ie-admin-theme-color) 10%,
+		#fff
+	);
+	--rsl-ie-complete-color: var(--rsl-ie-admin-theme-color);
+	--rsl-ie-complete-color-dark: var(--rsl-ie-admin-theme-color-dark);
+	--rsl-ie-complete-shadow: rgba(var(--rsl-ie-admin-theme-color-rgb), 0.12);
+	--rsl-ie-complete-icon-shadow: rgba(
+		var(--rsl-ie-admin-theme-color-rgb),
+		0.28
+	);
+	--rsl-ie-result-default-color: var(--rsl-ie-admin-theme-color);
+	--rsl-ie-result-default-color-dark: var(--rsl-ie-admin-theme-color-dark);
+	--rsl-ie-result-updated-color: var(--rsl-ie-admin-theme-color);
+	--rsl-ie-result-updated-color-dark: var(--rsl-ie-admin-theme-color-dark);
+	--rsl-ie-download-color: var(--rsl-ie-admin-theme-color);
+	--rsl-ie-download-color-dark: var(--rsl-ie-admin-theme-color-dark);
+	--rsl-ie-download-color-darker: var(--rsl-ie-admin-theme-color-dark);
+	--rsl-ie-download-shadow: rgba(var(--rsl-ie-admin-theme-color-rgb), 0.3);
+	--rsl-ie-download-hover-shadow: rgba(
+		var(--rsl-ie-admin-theme-color-rgb),
+		0.4
+	);
+	--rsl-ie-download-disabled-shadow: rgba(
+		var(--rsl-ie-admin-theme-color-rgb),
+		0.26
+	);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-import
+	.import-export-by-rockstarlab
+	:is(input, select, textarea):focus,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.import-export-by-rockstarlab
+	:is(input, select, textarea):focus,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.import-export-by-rockstarlab
+	:is(input, select, textarea):focus {
+	border-color: var(--rsl-ie-admin-theme-color);
+	box-shadow: 0 0 0 1px var(--rsl-ie-admin-theme-color);
+}
+
+/* Steps Indicator */
+body.import-export-by-rockstarlab_page_rsl-ie-import
+	.rsl-ie-steps-indicator
+	.rsl-ie-step-indicator.active
+	.rsl-ie-step-number,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-steps-indicator
+	.rsl-ie-step-indicator.active
+	.rsl-ie-step-number,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-steps-indicator
+	.rsl-ie-step-indicator.active
+	.rsl-ie-step-number {
+	background: var(--rsl-ie-admin-theme-color);
+	box-shadow: 0 0 0 4px rgba(var(--rsl-ie-admin-theme-color-rgb), 0.2);
+}
+
+/* Progress bars */
+body.import-export-by-rockstarlab_page_rsl-ie-import
+	.rsl-ie-progress-container
+	.rsl-ie-progress-bar
+	.rsl-ie-progress-bar-fill,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-progress-container
+	.rsl-ie-progress-bar
+	.rsl-ie-progress-bar-fill,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-progress-container
+	.rsl-ie-progress-bar
+	.rsl-ie-progress-bar-fill,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-updater-progress
+	.rsl-ie-progress-bar-fill {
+	background: linear-gradient(
+		90deg,
+		var(--rsl-ie-admin-theme-color) 0%,
+		var(--rsl-ie-admin-theme-color-dark) 100%
+	);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-import
+	.rsl-ie-progress-container
+	.rsl-ie-progress-percentage,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-progress-container
+	.rsl-ie-progress-percentage,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-progress-container
+	.rsl-ie-progress-percentage,
+body.import-export-by-rockstarlab_page_rsl-ie-import
+	.rsl-ie-progress-container
+	.rsl-ie-progress-estimates
+	.value,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-progress-container
+	.rsl-ie-progress-estimates
+	.value,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-progress-container
+	.rsl-ie-progress-estimates
+	.value {
+	color: var(--rsl-ie-admin-theme-color);
+}
+
+/* Content type selection highlight */
+body.import-export-by-rockstarlab_page_rsl-ie-import
+	.import-export-by-rockstarlab
+	.rsl-ie-content-type-filter
+	.rsl-ie-filter-count-value,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.import-export-by-rockstarlab
+	.rsl-ie-content-type-filter
+	.rsl-ie-filter-count-value,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.import-export-by-rockstarlab
+	.rsl-ie-content-type-filter
+	.rsl-ie-filter-count-value {
+	color: var(--rsl-ie-admin-theme-color);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-import
+	.import-export-by-rockstarlab
+	.rsl-ie-content-type
+	.rsl-ie-content-type-card:hover,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.import-export-by-rockstarlab
+	.rsl-ie-content-type
+	.rsl-ie-content-type-card:hover,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.import-export-by-rockstarlab
+	.rsl-ie-content-type
+	.rsl-ie-content-type-card:hover {
+	border-color: var(--rsl-ie-admin-theme-color);
+	box-shadow: 0 2px 8px rgba(var(--rsl-ie-admin-theme-color-rgb), 0.1);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-import
+	.import-export-by-rockstarlab
+	.rsl-ie-content-type
+	input:checked
+	+ .rsl-ie-content-type-card,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.import-export-by-rockstarlab
+	.rsl-ie-content-type
+	input:checked
+	+ .rsl-ie-content-type-card,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.import-export-by-rockstarlab
+	.rsl-ie-content-type
+	input:checked
+	+ .rsl-ie-content-type-card {
+	border-color: var(--rsl-ie-admin-theme-color);
+	background: var(--rsl-ie-admin-theme-tint);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-import
+	.import-export-by-rockstarlab
+	.rsl-ie-content-type
+	input:checked
+	+ .rsl-ie-content-type-card
+	.dashicons,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.import-export-by-rockstarlab
+	.rsl-ie-content-type
+	input:checked
+	+ .rsl-ie-content-type-card
+	.dashicons,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.import-export-by-rockstarlab
+	.rsl-ie-content-type
+	input:checked
+	+ .rsl-ie-content-type-card
+	.dashicons {
+	color: var(--rsl-ie-admin-theme-color);
+}
+
+/* Filters summary gradient + icon accent */
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card {
+	background: linear-gradient(
+		135deg,
+		var(--rsl-ie-admin-theme-color) 0%,
+		var(--rsl-ie-admin-theme-color-dark) 100%
+	);
+	box-shadow: 0 2px 8px rgba(var(--rsl-ie-admin-theme-color-rgb), 0.15);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button {
+	background: rgba(255, 255, 255, 0.2);
+	border-color: rgba(255, 255, 255, 0.3);
+	color: #fff;
+	box-shadow: none;
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button:hover,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button:focus,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button:hover,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button:focus {
+	background: rgba(255, 255, 255, 0.3);
+	border-color: rgba(255, 255, 255, 0.5);
+	color: #fff;
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button:disabled,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button:disabled {
+	background: rgba(255, 255, 255, 0.14);
+	border-color: rgba(255, 255, 255, 0.22);
+	color: rgba(255, 255, 255, 0.72);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button
+	.dashicons,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button
+	.dashicons {
+	color: currentColor;
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-custom-filters-section
+	.rsl-ie-section-header
+	h3
+	.dashicons,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-custom-filters-section
+	.rsl-ie-section-header
+	h3
+	.dashicons {
+	color: var(--rsl-ie-admin-theme-color);
+}
+
+/* Format selection highlight */
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-format-selection
+	input:checked
+	+ .rsl-ie-format-card {
+	border-color: var(--rsl-ie-admin-theme-color);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-format-selection
+	input:checked
+	+ .rsl-ie-format-card
+	.dashicons {
+	color: var(--rsl-ie-admin-theme-color);
+}
+
+/* Export: Step 3 (Fields) accent colors */
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-wizard
+	.rsl-ie-column-badge,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-wizard
+	.rsl-ie-column-badge
+	.dashicons,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-wizard
+	.rsl-ie-preview-step-number {
+	background: var(--rsl-ie-admin-theme-color);
+	color: #fff;
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-wizard
+	.rsl-ie-column-badge,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-wizard
+	.rsl-ie-preview-step-number {
+	color: #fff;
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-wizard
+	.rsl-ie-csv-stats
+	.rsl-ie-count-value,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-wizard
+	.rsl-ie-fields-library-header
+	h3
+	.dashicons,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-wizard
+	.rsl-ie-field-item
+	.rsl-ie-field-icon {
+	color: var(--rsl-ie-admin-theme-color);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-wizard
+	.rsl-ie-field-item:hover {
+	border-color: var(--rsl-ie-admin-theme-color);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-wizard
+	.rsl-ie-fields-library
+	.rsl-ie-add-all-fields:hover {
+	background: var(--rsl-ie-admin-theme-color);
+	border-color: var(--rsl-ie-admin-theme-color);
+}
+
+/* Content Updater: library/list accents */
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-updater-wizard
+	.rsl-ie-fields-library
+	.rsl-ie-add-all-fields:hover {
+	background: var(--rsl-ie-admin-theme-color);
+	border-color: var(--rsl-ie-admin-theme-color);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-updater-wizard
+	.rsl-ie-field-item:hover {
+	border-color: var(--rsl-ie-admin-theme-color);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-updater-progress
+	.rsl-ie-progress-status {
+	background: var(--rsl-ie-admin-theme-tint);
+}
+
+/* Content Sync: center the icon inside "Show/Hide Details" button (This Site Configuration). */
+body.import-export-by-rockstarlab_page_rsl-ie-content-sync
+	#rsl-ie-toggle-my-site {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-content-sync
+	#rsl-ie-toggle-my-site
+	.dashicons {
+	display: block;
+	line-height: 1;
+	margin: 0;
+}
+
+/* Content Sync: Total Sites stat icon should match the active admin theme color. */
+body.import-export-by-rockstarlab_page_rsl-ie-content-sync
+	.rsl-ie-content-sync-stats
+	.rsl-ie-stat-card
+	.rsl-ie-stat-icon:not(.rsl-ie-stat-active):not(.rsl-ie-stat-inactive):not(
+		.rsl-ie-stat-error
+	)
+	.dashicons {
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+/* Export/Updater: Customize Filters (step 2) controls should have equal heights on WP7+. */
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-custom-filters-section
+	.rsl-ie-filter-row-inner
+	:is(select, input[type="text"], input[type="number"], input[type="date"]),
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-custom-filters-section
+	.rsl-ie-filter-row-inner
+	:is(select, input[type="text"], input[type="number"], input[type="date"]) {
+	height: 40px;
+	box-sizing: border-box;
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-custom-filters-section
+	.rsl-ie-filter-row-inner
+	select,
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-custom-filters-section
+	.rsl-ie-filter-row-inner
+	select {
+	padding: 0 12px;
+	line-height: 38px;
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-custom-filters-section
+	.rsl-ie-filter-row-inner
+	input[type="text"],
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-custom-filters-section
+	.rsl-ie-filter-row-inner
+	input[type="number"],
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-custom-filters-section
+	.rsl-ie-filter-row-inner
+	input[type="date"],
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-custom-filters-section
+	.rsl-ie-filter-row-inner
+	input[type="text"],
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-custom-filters-section
+	.rsl-ie-filter-row-inner
+	input[type="number"],
+body.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-custom-filters-section
+	.rsl-ie-filter-row-inner
+	input[type="date"] {
+	padding: 0 12px;
+	line-height: 38px;
+}
+
+/* Export final step: align Download button to WP7 theme colors + center the icon. */
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-results
+	.rsl-ie-download-action
+	.rsl-ie-download-file {
+	background: linear-gradient(
+		135deg,
+		var(--rsl-ie-admin-theme-color),
+		var(--rsl-ie-admin-theme-color-dark)
+	);
+	box-shadow: 0 4px 12px rgba(var(--rsl-ie-admin-theme-color-rgb), 0.3);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-results
+	.rsl-ie-download-action
+	.rsl-ie-download-file:hover {
+	background: linear-gradient(
+		135deg,
+		var(--rsl-ie-admin-theme-color-dark),
+		var(--rsl-ie-admin-theme-color-dark)
+	);
+	box-shadow: 0 6px 16px rgba(var(--rsl-ie-admin-theme-color-rgb), 0.4);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-results
+	.rsl-ie-download-action
+	.rsl-ie-download-file.is-downloading,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-results
+	.rsl-ie-download-action
+	.rsl-ie-download-file.is-downloading:hover,
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-results
+	.rsl-ie-download-action
+	.rsl-ie-download-file:disabled {
+	opacity: 0.86;
+	cursor: wait;
+	transform: none;
+	box-shadow: 0 3px 10px rgba(var(--rsl-ie-admin-theme-color-rgb), 0.26);
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-export-results
+	.rsl-ie-download-action
+	.rsl-ie-download-file
+	.dashicons {
+	margin-right: 0;
+	vertical-align: baseline;
+	display: block;
+	line-height: 1;
+}
+
+/* Welcome page: "Next Steps" links should use WP7 admin theme colors. */
+body.toplevel_page_import-export-by-rockstarlab
+	.rsl-ie-welcome-panel-column
+	ul
+	li
+	a,
+body.toplevel_page_import-export-by-rockstarlab
+	.rsl-ie-welcome-panel-column
+	p
+	a {
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+body.toplevel_page_import-export-by-rockstarlab
+	.rsl-ie-welcome-panel-column
+	ul
+	li
+	a:hover,
+body.toplevel_page_import-export-by-rockstarlab
+	.rsl-ie-welcome-panel-column
+	p
+	a:hover {
+	color: var(--wp-admin-theme-color-darker-10, #135e96);
+}
+
+/* Welcome page: ensure remaining "old blue" accents follow the WP7 admin theme color. */
+body.toplevel_page_import-export-by-rockstarlab
+	.rsl-ie-welcome-title
+	.dashicons {
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+body.toplevel_page_import-export-by-rockstarlab .rsl-ie-welcome-panel {
+	border-top-color: var(--wp-admin-theme-color, #2271b1);
+}
+
+body.toplevel_page_import-export-by-rockstarlab
+	.rsl-ie-welcome-panel-column
+	ul
+	li
+	.dashicons {
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+body.toplevel_page_import-export-by-rockstarlab
+	.rsl-ie-card:not(.rsl-ie-card--promo):not(.rsl-ie-card--notice) {
+	border-top-color: var(--wp-admin-theme-color, #2271b1);
+}
+
+body.toplevel_page_import-export-by-rockstarlab
+	.rsl-ie-card:not(.rsl-ie-card--promo):not(.rsl-ie-card--notice)
+	.rsl-ie-card__title
+	.dashicons {
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+body.toplevel_page_import-export-by-rockstarlab
+	.rsl-ie-support-icon
+	.dashicons {
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+body.toplevel_page_import-export-by-rockstarlab .rsl-ie-support-text a {
+	color: var(--wp-admin-theme-color, #2271b1);
+}
+
+body.toplevel_page_import-export-by-rockstarlab .rsl-ie-support-text a:hover {
+	color: var(--wp-admin-theme-color-darker-10, #135e96);
+}
+
+/* Add-Ons page: fix "View details" button height on WP 7+. */
+body[class*="import-export-by-rockstarlab"]
+	.plugin-card
+	.open-plugin-details-modal,
+body[class*="import-export-by-rockstarlab"] .fs-cta .button {
+	line-height: 2;
+	min-height: 30px;
+}

@@ -1,0 +1,62 @@
+// Steps Indicator
+.rsl-ie-steps-indicator {
+	display: flex;
+	justify-content: space-between;
+	margin: 30px 0 0 0;
+	padding: 30px 0 0;
+	border-top: 2px solid #dcdcde;
+	order: 999; // Place it at the end
+
+	.rsl-ie-step-indicator {
+		flex: 1;
+		text-align: center;
+		position: relative;
+
+		&:not(:last-child)::after {
+			content: "";
+			position: absolute;
+			top: 18px;
+			left: 50%;
+			right: -50%;
+			height: 2px;
+			background: #dcdcde;
+			z-index: -1;
+		}
+
+		&.completed {
+			.rsl-ie-step-number {
+				background: #00a32a;
+				color: #fff;
+			}
+
+			&::after {
+				background: #00a32a;
+			}
+		}
+
+		&.active {
+			.rsl-ie-step-number {
+				background: #2271b1;
+				color: #fff;
+				box-shadow: 0 0 0 4px rgba(34, 113, 177, 0.2);
+			}
+		}
+
+		.rsl-ie-step-number {
+			width: 36px;
+			height: 36px;
+			line-height: 36px;
+			border-radius: 50%;
+			background: #f6f7f7;
+			color: #646970;
+			font-weight: 600;
+			margin: 0 auto 10px;
+			transition: all 0.3s;
+		}
+
+		.rsl-ie-step-label {
+			font-size: 12px;
+			color: #646970;
+		}
+	}
+}

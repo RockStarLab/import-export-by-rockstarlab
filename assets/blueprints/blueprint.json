@@ -1,0 +1,34 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"landingPage": "/wp-admin/admin.php?page=import-export-by-rockstarlab",
+	"preferredVersions": {
+		"php": "8.3",
+		"wp": "latest"
+	},
+	"phpExtensionBundles": [
+		"kitchen-sink"
+	],
+	"features": {
+		"networking": true
+	},
+	"steps": [
+		{
+			"step": "login",
+			"username": "admin"
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "wordpress.org/plugins",
+				"slug": "import-export-by-rockstarlab"
+			},
+			"options": {
+				"activate": true
+			}
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require_once '/wordpress/wp-load.php'; update_option( 'blogname', 'Import Export Preview' ); update_option( 'blogdescription', 'A temporary WordPress Playground demo for Import Export by RockStarLab.' ); update_option( 'permalink_structure', '/%postname%/' ); flush_rewrite_rules(); $term = term_exists( 'Migration Demo', 'category' ); if ( ! $term ) { $term = wp_insert_term( 'Migration Demo', 'category' ); } $category_id = ( is_array( $term ) && isset( $term['term_id'] ) ) ? (int) $term['term_id'] : 0; $demo_posts = array( array( 'post_title' => 'Migration checklist for a staging site', 'post_name' => 'migration-checklist-staging-site', 'post_type' => 'post', 'post_excerpt' => 'A sample post with metadata for testing export workflows.', 'post_content' => '<!-- wp:paragraph --><p>This demo post gives the export and URL inventory screens some real content to work with.</p><!-- /wp:paragraph -->' ), array( 'post_title' => 'Content audit notes before launch', 'post_name' => 'content-audit-notes-before-launch', 'post_type' => 'post', 'post_excerpt' => 'A second sample post for filters, exports, and URL lists.', 'post_content' => '<!-- wp:paragraph --><p>Use this post to test CSV and JSON export formats in the live preview.</p><!-- /wp:paragraph -->' ), array( 'post_title' => 'About the Demo Import Workflow', 'post_name' => 'about-demo-import-workflow', 'post_type' => 'page', 'post_excerpt' => 'A sample page available in the export wizard.', 'post_content' => '<!-- wp:paragraph --><p>This page is here so the plugin preview includes both posts and pages.</p><!-- /wp:paragraph -->' ) ); foreach ( $demo_posts as $demo_post ) { if ( get_page_by_path( $demo_post['post_name'], OBJECT, $demo_post['post_type'] ) ) { continue; } $post_id = wp_insert_post( array_merge( $demo_post, array( 'post_status' => 'publish', 'post_author' => 1 ) ) ); if ( $post_id && ! is_wp_error( $post_id ) ) { update_post_meta( $post_id, '_rsl_ie_preview_note', 'Created by the WordPress.org live preview blueprint.' ); if ( 'post' === $demo_post['post_type'] && $category_id ) { wp_set_post_categories( $post_id, array( $category_id ) ); } } }"
+		}
+	]
+}

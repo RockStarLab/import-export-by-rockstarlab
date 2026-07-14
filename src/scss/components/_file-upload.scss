@@ -1,0 +1,84 @@
+/**
+ * File Upload Component
+ */
+
+.import-export-by-rockstarlab {
+	// File Upload
+	.rsl-ie-upload-area {
+		border: 2px dashed #c3c4c7;
+		border-radius: 4px;
+		padding: 60px 20px;
+		text-align: center;
+		transition: all 0.2s;
+
+		&.rsl-ie-dragover {
+			border-color: #2271b1;
+			background: #f0f6fc;
+		}
+
+		.rsl-ie-upload-placeholder {
+			.dashicons {
+				font-size: 64px;
+				width: 64px;
+				height: 64px;
+				color: #c3c4c7;
+				margin-bottom: 20px;
+			}
+
+			h3 {
+				margin: 0 0 10px;
+				font-size: 18px;
+			}
+
+			p {
+				margin: 10px 0;
+				color: #646970;
+			}
+
+			.button {
+				margin-top: 15px;
+			}
+
+			.description {
+				margin-top: 20px;
+				font-size: 12px;
+			}
+		}
+	}
+
+	.rsl-ie-file-info {
+		border: 1px solid #c3c4c7;
+		border-radius: 4px;
+		padding: 20px;
+		margin: 20px 0;
+
+		.rsl-ie-file-details {
+			display: flex;
+			align-items: center;
+			gap: 15px;
+
+			.dashicons {
+				font-size: 32px;
+				width: 32px;
+				height: 32px;
+				color: #2271b1;
+			}
+
+			.rsl-ie-file-meta {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				gap: 5px;
+
+				strong {
+					font-size: 14px;
+				}
+
+				span {
+					font-size: 12px;
+					color: #646970;
+				}
+			}
+		}
+	}
+}

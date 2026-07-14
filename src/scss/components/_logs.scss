@@ -1,0 +1,51 @@
+// Logs
+.rsl-ie-import-logs {
+	margin: 30px 0;
+
+	h3 {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin: 0 0 15px;
+	}
+
+	.rsl-ie-logs-container {
+		border: 1px solid #c3c4c7;
+		border-radius: 4px;
+		max-height: 300px;
+		overflow-y: auto;
+		background: #f6f7f7;
+
+		.rsl-ie-logs-list {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+
+			li {
+				padding: 10px 15px;
+				border-bottom: 1px solid #dcdcde;
+				font-size: 13px;
+				font-family: monospace;
+
+				&:last-child {
+					border-bottom: none;
+				}
+
+				&.log-error {
+					background: #fcf0f1;
+					color: #d63638;
+				}
+
+				&.log-warning {
+					background: #fcf9e8;
+					color: #996800;
+				}
+
+				&.log-success {
+					background: #edfaef;
+					color: #00a32a;
+				}
+			}
+		}
+	}
+}

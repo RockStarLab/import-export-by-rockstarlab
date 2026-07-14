@@ -1,0 +1,94 @@
+// Format Selection
+.rsl-ie-format-selection {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+	align-items: stretch;
+	gap: 12px;
+	margin: 20px 0;
+}
+
+.rsl-ie-format-option {
+	cursor: pointer;
+	display: block;
+	height: 100%;
+
+	input[type="radio"] {
+		display: none;
+	}
+
+	.rsl-ie-format-card {
+		border: 2px solid #dcdcde;
+		border-radius: 4px;
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		justify-content: center;
+		min-height: 132px;
+		padding: 18px 14px;
+		text-align: center;
+		transition: all 0.2s;
+
+		.dashicons {
+			color: #646970;
+			display: block;
+			font-size: 34px;
+			height: 34px;
+			line-height: 34px;
+			margin: 0 auto;
+			text-align: center;
+			width: 34px;
+		}
+
+		h3 {
+			margin: 10px 0 6px;
+			font-size: 16px;
+		}
+
+		p {
+			margin: 0;
+			font-size: 12px;
+			color: #646970;
+			line-height: 1.35;
+		}
+
+		&:hover {
+			border-color: #2271b1;
+			box-shadow: 0 2px 8px rgba(34, 113, 177, 0.1);
+		}
+	}
+
+	input:checked + .rsl-ie-format-card {
+		border-color: #2271b1;
+		background: #f0f6fc;
+
+		.dashicons {
+			color: #2271b1;
+		}
+	}
+}
+
+// Format options sections
+.rsl-ie-format-options {
+	.rsl-ie-csv-options,
+	.rsl-ie-json-options,
+	.rsl-ie-common-options {
+		background: #fff;
+		border: 1px solid #dcdcde;
+		border-radius: 4px;
+		padding: 20px;
+		margin-top: 20px;
+
+		h3 {
+			margin-top: 0;
+			margin-bottom: 15px;
+			font-size: 16px;
+			color: #1d2327;
+		}
+	}
+
+	.rsl-ie-common-options {
+		border-left: 3px solid #2271b1;
+		background: #f9fafb;
+	}
+}

@@ -1,0 +1,394 @@
+/**
+ * Plugin Options Page Styles
+ */
+
+#rsl-ie-plugin-options {
+	h1 {
+		display: inline-flex;
+		align-items: center;
+
+		.dashicons {
+			margin-right: 8px;
+			vertical-align: middle;
+		}
+	}
+
+	.description {
+		margin-bottom: 20px;
+	}
+}
+
+// Settings Container
+.rsl-ie-settings-container {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	max-width: 1200px;
+	.dashicons {
+		width: auto;
+		height: auto;
+	}
+}
+
+// Settings Section
+.rsl-ie-settings-section {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.rsl-ie-settings-section-header {
+	padding: 20px 24px;
+	border-bottom: 1px solid #c3c4c7;
+	background: #f6f7f7;
+
+	h2 {
+		margin: 0 0 8px 0;
+		font-size: 18px;
+		font-weight: 600;
+
+		.dashicons {
+			margin-right: 6px;
+			vertical-align: middle;
+		}
+	}
+
+	.description {
+		margin: 0;
+		color: #666;
+	}
+}
+
+.rsl-ie-settings-section-body {
+	padding: 24px;
+}
+
+// Settings Form
+.rsl-ie-settings-form {
+	.form-table {
+		th {
+			width: 200px;
+			padding: 20px 10px 20px 0;
+		}
+
+		td {
+			padding: 20px 10px;
+		}
+
+		.regular-text {
+			width: 400px;
+			max-width: 100%;
+		}
+
+		.description {
+			margin-top: 8px;
+			color: #666;
+			font-size: 13px;
+
+			a {
+				color: #667eea;
+				text-decoration: none;
+
+				&:hover {
+					text-decoration: underline;
+				}
+			}
+		}
+	}
+}
+
+// Password Toggle Button
+.rsl-ie-toggle-password {
+	margin-left: 5px;
+	padding: 4px 8px;
+	min-height: 30px;
+	display: inline-flex;
+	align-items: center;
+
+	.dashicons {
+		font-size: 16px;
+		line-height: 28px;
+	}
+}
+
+// API Status
+.rsl-ie-api-status {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.rsl-ie-status-badge {
+	display: inline-block;
+	padding: 3px 8px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+
+	.dashicons {
+		vertical-align: middle;
+		margin-right: 3px;
+		width: 16px;
+		height: 16px;
+		font-size: 16px;
+	}
+
+	&.rsl-ie-status-configured {
+		background: #dcfce7;
+		color: #166534;
+	}
+
+	&.rsl-ie-status-not-configured {
+		background: #fef3c7;
+		color: #92400e;
+	}
+}
+
+.rsl-ie-test-api-key {
+	.dashicons {
+		vertical-align: middle;
+		margin-right: 4px;
+	}
+}
+
+// Info Badge
+.rsl-ie-info-badge {
+	display: inline-block;
+	padding: 4px 12px;
+	background: #e0f2fe;
+	color: #0369a1;
+	border-radius: 4px;
+	font-size: 13px;
+	font-weight: 600;
+	font-family: Consolas, Monaco, monospace;
+}
+
+// Info Boxes
+.rsl-ie-info-box {
+	padding: 12px 15px;
+	border-radius: 4px;
+	margin: 10px 0;
+
+	.dashicons {
+		vertical-align: middle;
+		margin-right: 6px;
+		width: 18px;
+		height: 18px;
+		font-size: 18px;
+	}
+
+	strong {
+		display: block;
+		margin-bottom: 5px;
+	}
+
+	p {
+		margin: 5px 0;
+	}
+
+	&.rsl-ie-warning {
+		background: #fef3c7;
+		border-left: 4px solid #fde047;
+		color: #92400e;
+	}
+
+	&.rsl-ie-info {
+		background: #dbeafe;
+		border-left: 4px solid #60a5fa;
+		color: #1e40af;
+
+		.dashicons {
+			color: #2563eb;
+		}
+	}
+
+	&.rsl-ie-success {
+		background: #dcfce7;
+		border-left: 4px solid #86efac;
+		color: #166534;
+	}
+
+	&.rsl-ie-error {
+		background: #fee2e2;
+		border-left: 4px solid #fca5a5;
+		color: #991b1b;
+	}
+}
+
+// Settings Footer
+.rsl-ie-settings-footer {
+	margin-top: 20px;
+	padding-top: 20px;
+	border-top: 1px solid #c3c4c7;
+	display: flex;
+	align-items: center;
+	gap: 15px;
+
+	.rsl-ie-save-settings {
+		.dashicons {
+			vertical-align: middle;
+			margin-right: 4px;
+		}
+	}
+}
+
+.rsl-ie-settings-status {
+	.spinner {
+		float: none;
+		margin: 0;
+		vertical-align: middle;
+	}
+
+	.rsl-ie-success-message,
+	.rsl-ie-error-message {
+		display: inline-block;
+		padding: 5px 10px;
+		border-radius: 3px;
+		font-size: 13px;
+		font-weight: 500;
+
+		.dashicons {
+			vertical-align: middle;
+			margin-right: 3px;
+			width: 16px;
+			height: 16px;
+			font-size: 16px;
+		}
+	}
+
+	.rsl-ie-success-message {
+		background: #dcfce7;
+		color: #166534;
+	}
+
+	.rsl-ie-error-message {
+		background: #fee2e2;
+		color: #991b1b;
+	}
+}
+
+// Info Cards
+.rsl-ie-info-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	gap: 15px;
+	margin-bottom: 20px;
+}
+
+.rsl-ie-info-card {
+	padding: 15px;
+	background: #f9fafb;
+	border: 1px solid #e5e7eb;
+	border-radius: 4px;
+
+	.dashicons {
+		font-size: 32px;
+		color: #2271b1;
+		vertical-align: middle;
+		margin-bottom: 8px;
+		width: auto;
+		height: auto;
+	}
+
+	h3 {
+		margin: 0 0 8px 0;
+		font-size: 14px;
+		font-weight: 600;
+		color: #333;
+	}
+
+	p {
+		margin: 0;
+		font-size: 13px;
+		color: #666;
+		line-height: 1.5;
+	}
+
+	.rsl-ie-upgrade-link {
+		display: inline-block;
+		margin-top: 8px;
+		color: #2271b1;
+		text-decoration: none;
+		font-weight: 500;
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+}
+
+// Help Section
+.rsl-ie-help-section {
+	background: #f9fafb;
+	padding: 15px;
+	border-radius: 4px;
+	border: 1px solid #e5e7eb;
+
+	h3 {
+		margin: 0 0 12px 0;
+		font-size: 14px;
+		font-weight: 600;
+
+		.dashicons {
+			vertical-align: middle;
+			margin-right: 4px;
+			width: auto;
+			height: auto;
+		}
+	}
+
+	ul {
+		margin: 0;
+		padding: 0 0 0 20px;
+		list-style: disc;
+
+		li {
+			margin: 0 0 8px 0;
+
+			&:last-child {
+				margin-bottom: 0;
+			}
+
+			a {
+				color: #2271b1;
+				text-decoration: none;
+
+				&:hover {
+					text-decoration: underline;
+				}
+			}
+		}
+	}
+}
+
+// Responsive
+@media (max-width: 768px) {
+	.rsl-ie-settings-form .form-table {
+		th,
+		td {
+			display: block;
+			width: 100%;
+			padding: 10px 0;
+		}
+
+		th {
+			padding-bottom: 5px;
+		}
+
+		.regular-text {
+			width: 100%;
+		}
+	}
+
+	.rsl-ie-info-cards {
+		grid-template-columns: 1fr;
+	}
+
+	.rsl-ie-settings-footer {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}
