@@ -365,6 +365,10 @@ class Export_Processor {
 			$formatter_options = [
 				'pretty_print' => ! empty( $format_options['json_pretty_print'] ),
 			];
+		} elseif ( 'xml' === $format ) {
+			$formatter_options = [
+				'pretty_print' => ! empty( $format_options['xml_pretty_print'] ),
+			];
 		} elseif ( in_array( $format, array( 'xlsx', 'ods' ), true ) ) {
 			$formatter_options = [
 				'headers' => ! empty( $format_options['spreadsheet_include_header'] ) ? null : false,

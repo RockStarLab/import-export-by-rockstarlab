@@ -222,7 +222,7 @@ class FS {
 			return new \WP_Error( 'rsl_ie_zip_open_failed', __( 'Could not open ZIP archive.', 'import-export-by-rockstarlab' ) );
 		}
 
-		$allowed_extensions = array( 'csv', 'xlsx', 'ods' );
+		$allowed_extensions = array( 'csv', 'xml', 'xlsx', 'ods' );
 		$candidates         = array();
 
 		for ( $i = 0; $i < $zip->numFiles; $i++ ) {
@@ -251,12 +251,12 @@ class FS {
 
 		if ( 0 === count( $candidates ) ) {
 			$zip->close();
-			return new \WP_Error( 'rsl_ie_zip_no_supported_file', __( 'The ZIP archive does not contain a supported import file. Please include one CSV, XLSX, or ODS file.', 'import-export-by-rockstarlab' ) );
+			return new \WP_Error( 'rsl_ie_zip_no_supported_file', __( 'The ZIP archive does not contain a supported import file. Please include one CSV, XML, XLSX, or ODS file.', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( count( $candidates ) > 1 ) {
 			$zip->close();
-			return new \WP_Error( 'rsl_ie_zip_multiple_supported_files', __( 'The ZIP archive contains more than one supported import file. Please upload a ZIP with exactly one CSV, XLSX, or ODS file.', 'import-export-by-rockstarlab' ) );
+			return new \WP_Error( 'rsl_ie_zip_multiple_supported_files', __( 'The ZIP archive contains more than one supported import file. Please upload a ZIP with exactly one CSV, XML, XLSX, or ODS file.', 'import-export-by-rockstarlab' ) );
 		}
 
 		$candidate = $candidates[0];

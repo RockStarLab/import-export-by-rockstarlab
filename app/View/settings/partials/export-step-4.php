@@ -52,6 +52,15 @@ defined( 'ABSPATH' ) || exit;
 					<p><?php esc_html_e( 'OpenDocument spreadsheet format for LibreOffice and OpenOffice', 'import-export-by-rockstarlab' ); ?></p>
 				</div>
 			</label>
+
+			<label class="rsl-ie-format-option">
+				<input type="radio" name="format" value="xml">
+				<div class="rsl-ie-format-card">
+					<span class="dashicons dashicons-media-code"></span>
+					<h3>XML</h3>
+					<p><?php esc_html_e( 'Structured XML format for portable data exchange', 'import-export-by-rockstarlab' ); ?></p>
+				</div>
+			</label>
 		</div>
 
 		<div class="rsl-ie-format-options">
@@ -97,6 +106,21 @@ defined( 'ABSPATH' ) || exit;
 						<td>
 							<label>
 								<input type="checkbox" name="json_pretty_print" checked>
+								<?php esc_html_e( 'Format with indentation for readability', 'import-export-by-rockstarlab' ); ?>
+							</label>
+						</td>
+					</tr>
+				</table>
+			</div>
+
+			<div class="rsl-ie-xml-options" style="display:none;">
+				<h3><?php esc_html_e( 'XML Options', 'import-export-by-rockstarlab' ); ?></h3>
+				<table class="form-table">
+					<tr>
+						<th><?php esc_html_e( 'Pretty Print', 'import-export-by-rockstarlab' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="xml_pretty_print" checked>
 								<?php esc_html_e( 'Format with indentation for readability', 'import-export-by-rockstarlab' ); ?>
 							</label>
 						</td>

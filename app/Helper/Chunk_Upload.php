@@ -98,7 +98,7 @@ class Chunk_Upload {
 		$file_extension     = strtolower( pathinfo( $file_name, PATHINFO_EXTENSION ) );
 
 		if ( ! in_array( $file_extension, $allowed_extensions, true ) ) {
-			wp_send_json_error( __( 'Invalid file type. Supported formats: CSV, XLSX, ODS, and ZIP archives containing one supported import file.', 'import-export-by-rockstarlab' ) );
+			wp_send_json_error( __( 'Invalid file type. Supported formats: CSV, XML, XLSX, ODS, and ZIP archives containing one supported import file.', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if chunk file was uploaded.
@@ -210,7 +210,7 @@ class Chunk_Upload {
 			}
 
 			if ( ! in_array( strtolower( pathinfo( $file_name, PATHINFO_EXTENSION ) ), $this->get_allowed_import_extensions(), true ) ) {
-				wp_send_json_error( __( 'Invalid file type. Supported formats: CSV, XLSX, ODS, and ZIP archives containing one supported import file.', 'import-export-by-rockstarlab' ) );
+				wp_send_json_error( __( 'Invalid file type. Supported formats: CSV, XML, XLSX, ODS, and ZIP archives containing one supported import file.', 'import-export-by-rockstarlab' ) );
 			}
 
 			$upload_path = $this->chunks_dir . $upload_id . '/';
@@ -436,7 +436,7 @@ class Chunk_Upload {
 	 * @return array
 	 */
 	private function get_allowed_import_extensions() {
-		return array( 'csv', 'xlsx', 'ods', 'zip' );
+		return array( 'csv', 'xml', 'xlsx', 'ods', 'zip' );
 	}
 
 	/**
@@ -482,7 +482,7 @@ class Chunk_Upload {
 	 * Generate preview data from uploaded file
 	 *
 	 * @param string $file_path   File path.
-	 * @param string $format      File format (csv, json, xlsx, ods).
+	 * @param string $format      File format (csv, json, xml, xlsx, ods).
 	 * @param array  $csv_options CSV options.
 	 * @return array Preview data with headers and rows.
 	 */
@@ -495,7 +495,7 @@ class Chunk_Upload {
 		$total_rows   = 0;
 		$columns      = array();
 
-		if ( in_array( $format, array( 'xlsx', 'ods' ), true ) ) {
+		if ( in_array( $format, array( 'xlsx', 'ods', 'xml' ), true ) ) {
 			$handler = \RockStarLab\ImportExport\Model\Format\Format_Factory::create( $format );
 			if ( is_wp_error( $handler ) ) {
 				return array(

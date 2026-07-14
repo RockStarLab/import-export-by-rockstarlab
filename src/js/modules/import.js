@@ -460,13 +460,13 @@ const ImportModule = {
 	 */
 	handleFile( file ) {
 		// Validate file extension only (no size limit with chunked upload)
-		const allowedExtensions = [ '.csv', '.xlsx', '.ods', '.zip' ];
+		const allowedExtensions = [ '.csv', '.xml', '.xlsx', '.ods', '.zip' ];
 		const fileExt = '.' + file.name.split( '.' ).pop().toLowerCase();
 
 		if ( ! allowedExtensions.includes( fileExt ) ) {
 			Utils.showNotice(
 				rslIeData.i18n.invalidFileTypeCsv ||
-					'Invalid file type. Please upload CSV, XLSX, ODS, or ZIP files only.',
+					'Invalid file type. Please upload CSV, XML, XLSX, ODS, or ZIP files only.',
 				'error'
 			);
 			return;
@@ -698,7 +698,7 @@ const ImportModule = {
 	 */
 	detectFormat( filename ) {
 		const extension = filename.split( '.' ).pop().toLowerCase();
-		const supported = [ 'csv', 'xlsx', 'ods', 'zip' ];
+		const supported = [ 'csv', 'xml', 'xlsx', 'ods', 'zip' ];
 
 		return supported.includes( extension ) ? extension : 'csv';
 	},

@@ -1373,6 +1373,9 @@ const ExportModule = {
 					json_pretty_print: jQuery(
 						'[name="json_pretty_print"]'
 					).is( ':checked' ),
+					xml_pretty_print: jQuery( '[name="xml_pretty_print"]' ).is(
+						':checked'
+					),
 					spreadsheet_include_header: jQuery(
 						'[name="spreadsheet_include_header"]'
 					).is( ':checked' ),

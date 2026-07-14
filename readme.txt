@@ -1,13 +1,13 @@
 === Import Export by RockStarLab ===
 Contributors: RockstarLab
-Tags: import, export, csv, site sync, data migration
+Tags: import, export, csv, xml, data migration
 Requires at least: 6.2
 Tested up to: 7.0
 Stable tag: 1.1.0
 Requires PHP: 7.4
 License: GPL v2 or later
 
-Import, export, sync, and update WordPress content with CSV, XLSX, ODS, JSON, media sync, AI URL import, and PRO migration tools.
+Import, export, sync, and update WordPress content with CSV, XML, XLSX, ODS, JSON, media sync, AI URL import, and PRO migration tools.
 
 == Description ==
 
@@ -15,7 +15,7 @@ Import, export, sync, and update WordPress content with CSV, XLSX, ODS, JSON, me
 📖 Documentation: [wpimportexport.com/docs](https://wpimportexport.com/docs/)
 📰 Blog & Tutorials: [wpimportexport.com/blog](https://wpimportexport.com/blog/)
 
-Import Export by RockStarLab helps you move real WordPress content without fragile copy-paste work: export clean CSV, JSON, XLSX, and ODS files, import CSV, XLSX, and ODS files with field mapping, sync selected content between sites, scan server folders into the Media Library, and keep a Jobs Log so repeat work can be re-run instead of rebuilt.
+Import Export by RockStarLab helps you move real WordPress content without fragile copy-paste work: export clean CSV, XML, JSON, XLSX, and ODS files, import CSV, XML, XLSX, and ODS files with field mapping, sync selected content between sites, scan server folders into the Media Library, and keep a Jobs Log so repeat work can be re-run instead of rebuilt.
 
 Use it for everyday migrations between local, staging, and production sites; bulk content operations; SEO URL audits; media cleanup; and content workflows where posts, pages, custom fields, SEO data, Elementor layouts, and media relationships need to stay intact.
 
@@ -24,7 +24,7 @@ The free plugin gives you strong post/page import-export, URL export, media fold
 == Common Use Cases ==
 
 * 🚚 Move posts and pages between local, staging, and production
-* 📄 Import and export CSV, XLSX, and ODS files with field mapping
+* 📄 Import and export CSV, XML, XLSX, and ODS files with field mapping
 * 🔄 Sync selected content from one WordPress site to another
 * 🔎 Build a full public URL inventory for SEO audits
 * 🖼️ Add FTP/SFTP uploaded files into the Media Library
@@ -36,7 +36,7 @@ The free plugin gives you strong post/page import-export, URL export, media fold
 
 Built for practical WordPress operations:
 
-* 📥 **CSV, XLSX, and ODS Import/Export**: Move posts and pages with flexible field mapping, previews, validation, and background processing.
+* 📥 **CSV, XML, XLSX, and ODS Import/Export**: Move posts and pages with flexible field mapping, previews, validation, and background processing.
 * 🌍 **All Site URLs Export**: Export a clean CSV or JSON list of public frontend URLs from posts, pages, custom post types, taxonomies, archives, feeds, and REST API endpoints.
 * 🔗 **Site-to-Site Content Sync**: Connect WordPress sites with API keys, then push or pull selected content between environments.
 * 🖼️ **Media Folder Sync**: Scan server folders and register uploaded files in the WordPress Media Library with duplicate detection.
@@ -78,7 +78,7 @@ Many import/export plugins are good for simple rows. Import Export by RockStarLa
 
 * **Multiple Data Types**: Posts and Pages in free; many additional content types via the optional PRO addon
 * **All Site URLs**: Export public site URLs from posts, pages, custom post types, taxonomies, post type archives, author/date/search archives, RSS/Atom/comments feeds, and REST API endpoints
-* **File Formats**: Import CSV, XLSX, and ODS files; export CSV, JSON, XLSX, and ODS files
+* **File Formats**: Import CSV, XML, XLSX, and ODS files; export CSV, XML, JSON, XLSX, and ODS files
 * **Background Processing**: Handle large datasets in batches to reduce timeout and memory-limit problems
 * **Field Mapping**: Intuitive field mapping interface with preview
 * **Validation System**: Comprehensive data validation before import
@@ -191,7 +191,8 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 * Added XLSX and ODS support for import workflows.
 * Added XLSX and ODS support for export workflows.
-* Added ZIP upload support for imports when the archive contains exactly one supported CSV, XLSX, or ODS file.
+* Added XML support for import and export workflows.
+* Added ZIP upload support for imports when the archive contains exactly one supported CSV, XML, XLSX, or ODS file.
 * Added an optional ZIP download for completed export files when ZIP support is available on the server.
 * Improved format-selection cards so available formats display with consistent card heights.
 
