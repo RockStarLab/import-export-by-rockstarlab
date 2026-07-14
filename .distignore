@@ -21,6 +21,8 @@ documentation
 landing
 dist
 scripts
+.wordpress-org
+assets/blueprints
 
 # Dev-only vendor packages (built via composer require-dev)
 vendor/dealerdirect

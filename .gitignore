@@ -10,3 +10,4 @@ temp
 e2e
 *.e2e
 dist
+.wordpress-org/blueprint.json
