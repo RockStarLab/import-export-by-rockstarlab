@@ -43,7 +43,7 @@ class XML_Format implements File_Format_Interface {
 
 		// Use XMLReader for memory efficiency
 		$reader = new \XMLReader();
-		$result = $reader->open( $file_path );
+		$result = $reader->open( $file_path, null, LIBXML_NONET | LIBXML_COMPACT );
 
 		if ( ! $result ) {
 			return new \WP_Error( 'file_open_error', __( 'Cannot open XML file', 'import-export-by-rockstarlab' ) );
@@ -55,6 +55,10 @@ class XML_Format implements File_Format_Interface {
 		while ( $reader->read() ) {
 			if ( $reader->nodeType === \XMLReader::ELEMENT && $reader->name === $item_tag ) {
 				$item = $this->parse_xml_element( $reader );
+				if ( is_wp_error( $item ) ) {
+					$reader->close();
+					return $item;
+				}
 				if ( ! empty( $item ) ) {
 					$data[] = $item;
 				}
@@ -83,7 +87,7 @@ class XML_Format implements File_Format_Interface {
 		$item_tag = $options['item_tag'] ?? self::DEFAULT_ITEM;
 
 		$reader = new \XMLReader();
-		$result = $reader->open( $file_path );
+		$result = $reader->open( $file_path, null, LIBXML_NONET | LIBXML_COMPACT );
 
 		if ( ! $result ) {
 			return new \WP_Error( 'file_open_error', __( 'Cannot open XML file', 'import-export-by-rockstarlab' ) );
@@ -108,6 +112,10 @@ class XML_Format implements File_Format_Interface {
 				}
 
 				$item = $this->parse_xml_element( $reader );
+				if ( is_wp_error( $item ) ) {
+					$reader->close();
+					return $item;
+				}
 				if ( ! empty( $item ) ) {
 					$data[] = $item;
 				}
@@ -126,11 +134,24 @@ class XML_Format implements File_Format_Interface {
 	 * Parse single XML element into array
 	 *
 	 * @param \XMLReader $reader XMLReader instance
-	 * @return array Parsed element data
+	 * @return array|\WP_Error Parsed element data or WP_Error on failure.
 	 */
 	private function parse_xml_element( $reader ) {
-		$element = new \SimpleXMLElement( $reader->readOuterXml() );
-		return json_decode( json_encode( $element ), true );
+		$outer_xml = $reader->readOuterXml();
+		if ( false === $outer_xml || '' === $outer_xml ) {
+			return new \WP_Error( 'xml_parse_error', __( 'Cannot read XML item.', 'import-export-by-rockstarlab' ) );
+		}
+
+		libxml_use_internal_errors( true );
+		$element = simplexml_load_string( $outer_xml, 'SimpleXMLElement', LIBXML_NONET | LIBXML_COMPACT );
+
+		if ( false === $element ) {
+			libxml_clear_errors();
+			return new \WP_Error( 'xml_parse_error', __( 'Cannot parse XML item.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$data = json_decode( wp_json_encode( $element ), true );
+		return is_array( $data ) ? $data : array();
 	}
 
 	/**
@@ -251,7 +272,7 @@ class XML_Format implements File_Format_Interface {
 		// Try to parse with error handling
 		libxml_use_internal_errors( true );
 
-		$xml = simplexml_load_file( $file_path );
+		$xml = simplexml_load_file( $file_path, 'SimpleXMLElement', LIBXML_NONET | LIBXML_COMPACT );
 
 		if ( false === $xml ) {
 			$errors         = libxml_get_errors();
@@ -317,7 +338,7 @@ class XML_Format implements File_Format_Interface {
 		$item_tag = self::DEFAULT_ITEM;
 
 		$reader = new \XMLReader();
-		$result = $reader->open( $file_path );
+		$result = $reader->open( $file_path, null, LIBXML_NONET | LIBXML_COMPACT );
 
 		if ( ! $result ) {
 			return new \WP_Error( 'file_open_error', __( 'Cannot open XML file', 'import-export-by-rockstarlab' ) );

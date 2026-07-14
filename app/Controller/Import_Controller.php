@@ -61,8 +61,8 @@ class Import_Controller extends Base_Controller {
 			$this->send_error( $file, null, 400 );
 		}
 		$file_extension = strtolower( pathinfo( $file['name'], PATHINFO_EXTENSION ) );
-		if ( ! in_array( $file_extension, array( 'csv', 'xlsx', 'ods', 'zip' ), true ) ) {
-			$this->send_error( __( 'Invalid file type. Supported formats: CSV, XLSX, ODS, and ZIP archives containing one supported import file.', 'import-export-by-rockstarlab' ), null, 400 );
+		if ( ! in_array( $file_extension, array( 'csv', 'xml', 'xlsx', 'ods', 'zip' ), true ) ) {
+			$this->send_error( __( 'Invalid file type. Supported formats: CSV, XML, XLSX, ODS, and ZIP archives containing one supported import file.', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
 		$format = 'zip' === $file_extension ? 'zip' : $file_extension;
@@ -74,7 +74,7 @@ class Import_Controller extends Base_Controller {
 
 		// JSON is not supported for import
 		if ( 'json' === $format ) {
-			$this->send_error( __( 'JSON format is not supported for import. Please use CSV, XLSX, or ODS.', 'import-export-by-rockstarlab' ), null, 400 );
+			$this->send_error( __( 'JSON format is not supported for import. Please use CSV, XML, XLSX, or ODS.', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
 		// Move file to upload directory
@@ -1071,10 +1071,10 @@ class Import_Controller extends Base_Controller {
 	 */
 	private function validate_import_file_path( $file_path, $format ) {
 		$format          = strtolower( (string) $format );
-		$allowed_formats = array( 'csv', 'xlsx', 'ods' );
+		$allowed_formats = array( 'csv', 'xml', 'xlsx', 'ods' );
 
 		if ( ! in_array( $format, $allowed_formats, true ) ) {
-			return new \WP_Error( 'invalid_format', __( 'Only CSV, XLSX, and ODS import files are supported.', 'import-export-by-rockstarlab' ) );
+			return new \WP_Error( 'invalid_format', __( 'Only CSV, XML, XLSX, and ODS import files are supported.', 'import-export-by-rockstarlab' ) );
 		}
 
 		$real_path = realpath( (string) $file_path );
