@@ -73,6 +73,7 @@ rsync -a --delete \
   --exclude='/.husky' \
   --exclude='/.env*' \
   --exclude='/.gitignore' \
+  --exclude='/README.md' \
 	--exclude='/.DS_Store' \
   --exclude='/node_modules' \
   --exclude='/documentation' \

@@ -7,6 +7,7 @@
 .env*
 .gitignore
 .distignore
+README.md
 copilot-instructions.md
 .huskyrc.js
 .env.e2e
