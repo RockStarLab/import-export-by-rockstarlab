@@ -643,3 +643,13 @@
 		}
 	}
 }
+
+#rsl-ie-copy-my-key,
+#rsl-ie-regenerate-my-key,
+#rsl-ie-add-site-btn {
+	display: inline-flex;
+	align-items: center;
+	.dashicons {
+		margin-right: 5px;
+	}
+}
