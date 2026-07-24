@@ -159,10 +159,15 @@ export default class ExportStep3 {
 				e.preventDefault();
 				const afterElement = this.getDragAfterElement(
 					columnsContainer,
-					e.clientX
+					e.clientX,
+					e.clientY
 				);
 
-				if ( afterElement == null ) {
+				if ( afterElement === dragging ) {
+					return;
+				}
+
+				if ( afterElement === null ) {
 					columnsContainer.appendChild( dragging );
 				} else {
 					columnsContainer.insertBefore( dragging, afterElement );
@@ -185,26 +190,36 @@ export default class ExportStep3 {
 	/**
 	 * Get element after drag position
 	 */
-	getDragAfterElement( container, x ) {
+	getDragAfterElement( container, x, y ) {
 		const draggableElements = [
 			...container.querySelectorAll(
 				'.rsl-ie-csv-column:not(.dragging)'
 			),
 		];
 
-		return draggableElements.reduce(
-			( closest, child ) => {
-				const box = child.getBoundingClientRect();
-				const offset = x - box.left - box.width / 2;
+		for ( const child of draggableElements ) {
+			const box = child.getBoundingClientRect();
+			const midpointX = box.left + box.width / 2;
+			const midpointY = box.top + box.height / 2;
 
-				if ( offset < 0 && offset > closest.offset ) {
-					return { offset: offset, element: child };
-				} else {
-					return closest;
+			if ( y < box.top ) {
+				return child;
+			}
+
+			if ( y >= box.top && y <= box.bottom ) {
+				if ( x < midpointX ) {
+					return child;
 				}
-			},
-			{ offset: Number.NEGATIVE_INFINITY }
-		).element;
+
+				continue;
+			}
+
+			if ( y < midpointY ) {
+				return child;
+			}
+		}
+
+		return null;
 	}
 
 	/**

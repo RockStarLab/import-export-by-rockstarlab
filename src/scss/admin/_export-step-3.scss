@@ -143,7 +143,6 @@ body.rsl-ie-dragging {
 .rsl-ie-csv-columns {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
-	grid-template-rows: 1fr;
 	grid-column-gap: 12px;
 	grid-row-gap: 12px;
 	padding: 10px 0;
@@ -262,6 +261,12 @@ body.rsl-ie-dragging {
 			width: 14px;
 			height: 14px;
 		}
+	}
+}
+
+body.rsl-ie-dragging {
+	.rsl-ie-csv-column {
+		transition: none;
 	}
 }
 
