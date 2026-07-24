@@ -203,24 +203,10 @@ class Init {
 	 * Load admin scripts
 	 */
 	function load_admin_assets( $admin_page ) {
+		$current_page = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$current_page = is_string( $current_page ) ? sanitize_key( wp_unslash( $current_page ) ) : '';
 
-		if ( ! in_array(
-			$admin_page,
-			array(
-				'toplevel_page_import-export-by-rockstarlab',
-				'import-export-by-rockstarlab_page_rsl-ie-import',
-				'import-export-by-rockstarlab_page_rsl-ie-export',
-				'import-export-by-rockstarlab_page_rsl-ie-content-sync',
-				'import-export-by-rockstarlab_page_rsl-ie-jobs-log',
-				'import-export-by-rockstarlab_page_rsl-ie-schedules',
-				'import-export-by-rockstarlab_page_rsl-ie-media-sync',
-				'import-export-by-rockstarlab_page_rsl-ie-ai-url-importer',
-				'import-export-by-rockstarlab_page_rsl-ie-plugin-options',
-				'admin_page_rsl-ie-plugin-settings',
-				'import-export-by-rockstarlab_page_rsl-ie-tools',
-				'import-export-by-rockstarlab_page_import-export-by-rockstarlab-addons',
-			)
-		) ) {
+		if ( ! $this->is_plugin_admin_page( $admin_page, $current_page ) ) {
 			return;
 		}
 
@@ -254,7 +240,7 @@ class Init {
 				'functionsUrl'                => \RockStarLab\ImportExport\Helper\Field_Transformation_Bridge::get_management_url(),
 				'optionsUrl'                  => admin_url( 'admin.php?page=rsl-ie-plugin-options' ),
 				'exportUrl'                   => admin_url( 'admin.php?page=rsl-ie-export' ),
-				'currentPage'                 => sanitize_key( $admin_page ),
+				'currentPage'                 => '' !== $current_page ? $current_page : sanitize_key( $admin_page ),
 				'fieldTransformationsEnabled' => \RockStarLab\ImportExport\Helper\Field_Transformation_Bridge::is_enabled(),
 				'fieldTransformationActions'  => apply_filters(
 					'rsl_ie_field_transformation_ajax_actions',
@@ -973,7 +959,7 @@ class Init {
 		);
 
 		// Localize script for Content Sync page
-		if ( 'import-export-by-rockstarlab_page_rsl-ie-content-sync' === $admin_page ) {
+		if ( 'rsl-ie-content-sync' === $current_page || 'import-export-by-rockstarlab_page_rsl-ie-content-sync' === $admin_page ) {
 			wp_localize_script(
 				'import-export-by-rockstarlab-scripts',
 				'rslIeContentSync',
@@ -1001,6 +987,56 @@ class Init {
 				filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/css/admin-wp7.css' )
 			);
 		}
+	}
+
+	/**
+	 * Check whether the current admin screen belongs to this plugin.
+	 *
+	 * Hidden submenu items can receive a generic `admin_page_*` hook suffix when
+	 * opened directly, so page slug detection is the reliable source.
+	 *
+	 * @param string $admin_page   Current admin hook suffix.
+	 * @param string $current_page Current sanitized `page` query value.
+	 * @return bool
+	 */
+	private function is_plugin_admin_page( $admin_page, $current_page ) {
+		$plugin_pages = array(
+			'import-export-by-rockstarlab',
+			'rsl-ie-import',
+			'rsl-ie-export',
+			'rsl-ie-content-sync',
+			'rsl-ie-jobs-log',
+			'rsl-ie-schedules',
+			'rsl-ie-media-sync',
+			'rsl-ie-ai-url-importer',
+			'rsl-ie-plugin-options',
+			'rsl-ie-plugin-settings',
+			'rsl-ie-tools',
+			'import-export-by-rockstarlab-addons',
+		);
+
+		if ( in_array( $current_page, $plugin_pages, true ) ) {
+			return true;
+		}
+
+		return in_array(
+			$admin_page,
+			array(
+				'toplevel_page_import-export-by-rockstarlab',
+				'import-export-by-rockstarlab_page_rsl-ie-import',
+				'import-export-by-rockstarlab_page_rsl-ie-export',
+				'import-export-by-rockstarlab_page_rsl-ie-content-sync',
+				'import-export-by-rockstarlab_page_rsl-ie-jobs-log',
+				'import-export-by-rockstarlab_page_rsl-ie-schedules',
+				'import-export-by-rockstarlab_page_rsl-ie-media-sync',
+				'import-export-by-rockstarlab_page_rsl-ie-ai-url-importer',
+				'import-export-by-rockstarlab_page_rsl-ie-plugin-options',
+				'admin_page_rsl-ie-plugin-settings',
+				'import-export-by-rockstarlab_page_rsl-ie-tools',
+				'import-export-by-rockstarlab_page_import-export-by-rockstarlab-addons',
+			),
+			true
+		);
 	}
 
 	/**
