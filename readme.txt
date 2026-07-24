@@ -15,6 +15,9 @@ Import, export, sync, and update WordPress content with CSV, XML, XLSX, ODS, JSO
 📖 Documentation: [wpimportexport.com/docs](https://wpimportexport.com/docs/)
 📰 Blog & Tutorials: [wpimportexport.com/blog](https://wpimportexport.com/blog/)
 
+Watch the plugin overview video:
+https://www.youtube.com/watch?v=W_Xgu_qDN2Q
+
 Import Export by RockStarLab helps you move real WordPress content without fragile copy-paste work: export clean CSV, XML, JSON, XLSX, and ODS files, import CSV, XML, XLSX, and ODS files with field mapping, sync selected content between sites, scan server folders into the Media Library, and keep a Jobs Log so repeat work can be re-run instead of rebuilt.
 
 Use it for everyday migrations between local, staging, and production sites; bulk content operations; SEO URL audits; media cleanup; and content workflows where posts, pages, custom fields, SEO data, Elementor layouts, and media relationships need to stay intact.
