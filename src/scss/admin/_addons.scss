@@ -2,12 +2,14 @@
  * Add-Ons page styles
  */
 
-// Hide Freemius price only in addon cards.
-.import-export-by-rockstarlab_page_import-export-by-rockstarlab-addons {
+// Hide Freemius price only in addon cards. The body class can differ when the
+// PRO addon is active/inactive, so target the Freemius add-ons container itself.
+#fs_addons {
 	.fs-card .fs-offer {
 		text-indent: -5555em !important;
 	}
-	#fs_addons .fs-cards-list .fs-card .fs-inner .fs-title {
+
+	.fs-cards-list .fs-card .fs-inner .fs-title {
 		margin-top: 17px !important;
 	}
 }
