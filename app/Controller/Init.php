@@ -1063,7 +1063,7 @@ class Init {
 		add_submenu_page(
 			'import-export-by-rockstarlab',
 			__( 'Welcome', 'import-export-by-rockstarlab' ),
-			__( 'Welcome', 'import-export-by-rockstarlab' ) . ' 🎉',
+			__( 'Welcome', 'import-export-by-rockstarlab' ),
 			'manage_options',
 			'import-export-by-rockstarlab',
 			array( $this, 'display_welcome_page' )
@@ -1108,7 +1108,7 @@ class Init {
 		add_submenu_page(
 			'import-export-by-rockstarlab',
 			__( 'AI URL Importer', 'import-export-by-rockstarlab' ),
-			__( 'AI URL Importer', 'import-export-by-rockstarlab' ) . ' 🤖',
+			__( 'AI URL Importer', 'import-export-by-rockstarlab' ),
 			'manage_options',
 			'rsl-ie-ai-url-importer',
 			array( $this, 'display_ai_url_importer_page' )
