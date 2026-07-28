@@ -571,16 +571,15 @@ class Media_Sync {
 			return [ 'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'odt', 'txt', 'rtf' ];
 		}
 
-		// For "all" - only media types (images, videos, audio)
+		// For "all" use the WordPress media-library allowlist. This includes
+		// documents such as PDFs in addition to image/video/audio files, while
+		// still respecting site-level MIME restrictions.
 		$mime_types = get_allowed_mime_types();
 		$extensions = [];
 
 		foreach ( $mime_types as $ext => $mime ) {
-			// Only include media mime types (image/, video/, audio/)
-			if ( preg_match( '/^(image|video|audio)\//', $mime ) ) {
-				$ext_array  = explode( '|', $ext );
-				$extensions = array_merge( $extensions, $ext_array );
-			}
+			$ext_array  = explode( '|', $ext );
+			$extensions = array_merge( $extensions, $ext_array );
 		}
 
 		return array_unique( $extensions );
