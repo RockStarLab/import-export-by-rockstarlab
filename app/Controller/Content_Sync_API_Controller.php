@@ -168,9 +168,10 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response Response object.
 	 */
 	public function receive_content( $request ) {
-		$posts_data   = $request->get_param( 'posts' );
-		$image_map    = $request->get_param( 'image_map' );
-		$post_mapping = $request->get_param( 'post_mapping' );
+		$posts_data    = $request->get_param( 'posts' );
+		$image_map     = $request->get_param( 'image_map' );
+		$image_sources = $request->get_param( 'image_sources' );
+		$post_mapping  = $request->get_param( 'post_mapping' );
 
 		if ( empty( $posts_data ) || ! is_array( $posts_data ) ) {
 			return new \WP_REST_Response(
@@ -185,6 +186,9 @@ class Content_Sync_API_Controller {
 		// Parse post_mapping
 		if ( ! is_array( $post_mapping ) ) {
 			$post_mapping = array();
+		}
+		if ( ! is_array( $image_sources ) ) {
+			$image_sources = array();
 		}
 
 		$imported_count      = 0;
@@ -290,31 +294,15 @@ class Content_Sync_API_Controller {
 
 			// Fix image URLs in content after import (replace with correct attachment URLs)
 			if ( ! empty( $image_map ) ) {
-				$post_content    = get_post_field( 'post_content', $post_id );
-				$content_updated = false;
-
-				foreach ( $image_map as $old_id => $new_id ) {
-					$new_url = wp_get_attachment_url( $new_id );
-					if ( $new_url ) {
-						// Find and replace old image URLs with new ones
-						// This handles the case where upload date folder changed
-						$pattern     = '/(<img[^>]+src=")([^"]*\/)[^"\/]+(\.(?:jpg|jpeg|png|gif|webp|svg))("[^>]*class="[^"]*wp-image-' . $new_id . '[^"]*"[^>]*>)/i';
-						$replacement = '$1' . $new_url . '$4';
-						$new_content = preg_replace( $pattern, $replacement, $post_content );
-
-						if ( $new_content && $new_content !== $post_content ) {
-							$post_content    = $new_content;
-							$content_updated = true;
-						}
-					}
-				}
+				$post_content = get_post_field( 'post_content', $post_id );
+				$new_content  = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content( $post_content, (array) $image_map, (array) $image_sources );
 
 				// Update post content if URLs were fixed
-				if ( $content_updated ) {
+				if ( $new_content !== $post_content ) {
 					wp_update_post(
 						array(
 							'ID'           => $post_id,
-							'post_content' => $post_content,
+							'post_content' => $new_content,
 						)
 					);
 				}

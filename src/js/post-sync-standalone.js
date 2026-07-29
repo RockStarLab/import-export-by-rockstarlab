@@ -863,94 +863,75 @@ const getActionNonce = ( action ) =>
 					? rslIePostSyncData.ajaxurl
 					: ajaxurl;
 			const nonce = getActionNonce(
-				'rsl_ie_content_sync_search_remote_posts'
+				'rsl_ie_content_sync_auto_map_by_title'
 			);
+			const $button = $( '#rsl-ie-auto-match-btn' );
+			const originalText = $button.text();
+			const matchingText =
+				rslIePostSyncData?.i18n?.matchingByTitle || 'Matching...';
 
-			// Process each select
-			$( '.rsl-ie-remote-select' ).each( ( i, select ) => {
-				const $select = $( select );
-				const localId = $select.data( 'local-id' );
-				const $row = $( `tr[data-local-id="${ localId }"]` );
-				const localTitle = $row
-					.find( '.rsl-ie-local-post-info h4' )
-					.text()
-					.trim();
-				const localType = $row
-					.find( '.rsl-ie-post-type' )
-					.text()
-					.trim();
+			$button.prop( 'disabled', true ).text( matchingText );
 
-				// Search for remote post with exact title
-				$.ajax( {
-					url: ajaxUrl,
-					type: 'POST',
-					data: {
-						action: 'rsl_ie_content_sync_search_remote_posts',
-						nonce: nonce,
-						site_id: siteId,
-						search: localTitle,
-						page: 1,
-						per_page: 5,
-						post_type: localType || 'post',
-					},
-					success: ( response ) => {
-						if (
-							response.success &&
-							response.data &&
-							response.data.posts
-						) {
-							const posts = response.data.posts;
-							let matchFound = false;
+			$.ajax( {
+				url: ajaxUrl,
+				type: 'POST',
+				data: {
+					action: 'rsl_ie_content_sync_auto_map_by_title',
+					nonce: nonce,
+					site_id: siteId,
+					post_ids: this.currentPostIds,
+				},
+				success: ( response ) => {
+					if ( ! response.success || ! response.data ) {
+						return;
+					}
 
-							// Try to find exact title match
-							for ( const post of posts ) {
-								if (
-									post.post_title.toLowerCase() ===
-									localTitle.toLowerCase()
-								) {
-									// Create new option if it doesn't exist
-									const optionExists =
-										$select.find(
-											`option[value="${ post.ID }"]`
-										).length > 0;
-									if ( ! optionExists ) {
-										const updateTemplate =
-											rslIePostSyncData?.i18n
-												?.updatePost ||
-											'🔄 Update: %1$s (ID: %2$s)';
-										const optionText = updateTemplate
-											.replace( '%1$s', post.post_title )
-											.replace( '%2$s', post.ID );
-										const newOption = new Option(
-											optionText,
-											post.ID,
-											false,
-											true
-										);
-										$select.append( newOption );
-									}
+					const mapping = response.data.mapping || {};
+					const matches = response.data.matches || {};
 
-									// Set value and trigger change
-									$select.val( post.ID ).trigger( 'change' );
-									matchFound = true;
-									break;
-								}
+					$( '.rsl-ie-remote-select' ).each( ( i, select ) => {
+						const $select = $( select );
+						const localId = String( $select.data( 'local-id' ) );
+						const remoteId = mapping[ localId ];
+						const post = matches[ localId ];
+
+						if ( remoteId && post ) {
+							const optionExists =
+								$select.find( `option[value="${ remoteId }"]` )
+									.length > 0;
+
+							if ( ! optionExists ) {
+								const updateTemplate =
+									rslIePostSyncData?.i18n?.updatePost ||
+									'🔄 Update: %1$s (ID: %2$s)';
+								const optionText = updateTemplate
+									.replace( '%1$s', post.post_title || '' )
+									.replace( '%2$s', remoteId );
+								const newOption = new Option(
+									optionText,
+									remoteId,
+									false,
+									true
+								);
+								$select.append( newOption );
 							}
 
-							// If no exact match found, keep "Create New"
-							if ( ! matchFound ) {
-								$select.val( 'new' ).trigger( 'change' );
-							}
+							$select
+								.val( String( remoteId ) )
+								.trigger( 'change' );
 						} else {
-							// No results, keep "Create New"
 							$select.val( 'new' ).trigger( 'change' );
 						}
-					},
-					error: () => {
-						// On error, keep "Create New"
-						$select.val( 'new' ).trigger( 'change' );
-					},
-				} );
+					} );
+				},
+				error: () => {
+					$( '.rsl-ie-remote-select' )
+						.val( 'new' )
+						.trigger( 'change' );
+				},
+				complete: () => {
+					$button.prop( 'disabled', false ).text( originalText );
+				},
 			} );
 		},
 
@@ -988,8 +969,13 @@ const getActionNonce = ( action ) =>
 					}
 				} );
 
-				// If no valid remote IDs found (all are "new"), that's fine
-				// The backend will create new posts
+				if ( postIdsToSync.length === 0 ) {
+					alert(
+						rslIePostSyncData?.i18n?.selectRemotePostForPull ||
+							'Please select at least one remote post to pull.'
+					);
+					return;
+				}
 			}
 
 			// Start actual sync with mapping

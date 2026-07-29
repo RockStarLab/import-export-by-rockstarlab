@@ -100,6 +100,7 @@ class Content_Sync_Controller extends Base_Controller {
 			'content_sync_regenerate_my_key'    => array( 'callback' => 'regenerate_my_site_key' ),
 			'content_sync_get_remote_posts'     => array( 'callback' => 'get_remote_posts' ),
 			'content_sync_search_remote_posts'  => array( 'callback' => 'search_remote_posts' ),
+			'content_sync_auto_map_by_title'    => array( 'callback' => 'auto_map_by_title' ),
 			'content_sync_get_children_posts'   => array( 'callback' => 'get_children_posts' ),
 			'content_sync_get_local_posts_info' => array( 'callback' => 'get_local_posts_info' ),
 			'content_sync_push'                 => array( 'callback' => 'push_content' ),
@@ -682,53 +683,55 @@ class Content_Sync_Controller extends Base_Controller {
 				'connectedSites'              => $sites_map,
 				'i18n'                        => array(
 					// Alerts & Messages
-					'pleaseSavePost'        => __( 'Please save the post first', 'import-export-by-rockstarlab' ),
-					'pleaseSelectSite'      => __( 'Please select a site', 'import-export-by-rockstarlab' ),
-					'noPostsSelected'       => __( 'No posts selected', 'import-export-by-rockstarlab' ),
-					'failedLoadRemotePosts' => __( 'Failed to load remote posts', 'import-export-by-rockstarlab' ),
-					'unknownError'          => __( 'Unknown error', 'import-export-by-rockstarlab' ),
-					'failedConnectRemote'   => __( 'Failed to connect to remote site', 'import-export-by-rockstarlab' ),
-					'failedLoadLocalPosts'  => __( 'Failed to load local posts info', 'import-export-by-rockstarlab' ),
-					'pleaseSelectOnePost'   => __( 'Please select at least one post', 'import-export-by-rockstarlab' ),
+					'pleaseSavePost'          => __( 'Please save the post first', 'import-export-by-rockstarlab' ),
+					'pleaseSelectSite'        => __( 'Please select a site', 'import-export-by-rockstarlab' ),
+					'noPostsSelected'         => __( 'No posts selected', 'import-export-by-rockstarlab' ),
+					'failedLoadRemotePosts'   => __( 'Failed to load remote posts', 'import-export-by-rockstarlab' ),
+					'unknownError'            => __( 'Unknown error', 'import-export-by-rockstarlab' ),
+					'failedConnectRemote'     => __( 'Failed to connect to remote site', 'import-export-by-rockstarlab' ),
+					'failedLoadLocalPosts'    => __( 'Failed to load local posts info', 'import-export-by-rockstarlab' ),
+					'pleaseSelectOnePost'     => __( 'Please select at least one post', 'import-export-by-rockstarlab' ),
 
 					// translators: %s = content placeholder.
 					// Count Text
-					'onePost'               => __( '1 post', 'import-export-by-rockstarlab' ),
+					'onePost'                 => __( '1 post', 'import-export-by-rockstarlab' ),
 					// translators: %s is a dynamic value.
-					'postsCount'            => __( '%s posts', 'import-export-by-rockstarlab' ),
+					'postsCount'              => __( '%s posts', 'import-export-by-rockstarlab' ),
 
 					// Post Info
 					// translators: %s is a dynamic value.
-					'postHash'              => __( 'Post #%s', 'import-export-by-rockstarlab' ),
+					'postHash'                => __( 'Post #%s', 'import-export-by-rockstarlab' ),
 					// translators: %s = content placeholder.
-					'idLabel'               => __( 'ID:', 'import-export-by-rockstarlab' ),
-					'noTitle'               => __( '(No title)', 'import-export-by-rockstarlab' ),
+					'idLabel'                 => __( 'ID:', 'import-export-by-rockstarlab' ),
+					'noTitle'                 => __( '(No title)', 'import-export-by-rockstarlab' ),
 
 					// translators: %s = content placeholder.
 					// Actions
-					'createNewPost'         => __( '➕ Create New Post', 'import-export-by-rockstarlab' ),
+					'createNewPost'           => __( '➕ Create New Post', 'import-export-by-rockstarlab' ),
 					// translators: 1: post title or name, 2: post ID.
-					'updatePost'            => __( '🔄 Update: %1$s (ID: %2$s)', 'import-export-by-rockstarlab' ),
+					'updatePost'              => __( '🔄 Update: %1$s (ID: %2$s)', 'import-export-by-rockstarlab' ),
 					// translators: %s is a dynamic value.
-					'searchForUpdate'       => __( 'Search for a %s to update...', 'import-export-by-rockstarlab' ),
+					'searchForUpdate'         => __( 'Search for a %s to update...', 'import-export-by-rockstarlab' ),
 
 					// Progress
 					// translators: %s is a dynamic value.
-					'starting'              => __( 'Starting %s...', 'import-export-by-rockstarlab' ),
-					'completed'             => __( 'Completed!', 'import-export-by-rockstarlab' ),
-					'syncCompletedSuccess'  => __( 'Sync completed successfully', 'import-export-by-rockstarlab' ),
-					'pullingPosts'          => __( 'Pulling posts...', 'import-export-by-rockstarlab' ),
-					'syncFailed'            => __( 'Sync failed', 'import-export-by-rockstarlab' ),
-					'errorDuringSync'       => __( 'An error occurred during sync', 'import-export-by-rockstarlab' ),
+					'starting'                => __( 'Starting %s...', 'import-export-by-rockstarlab' ),
+					'completed'               => __( 'Completed!', 'import-export-by-rockstarlab' ),
+					'syncCompletedSuccess'    => __( 'Sync completed successfully', 'import-export-by-rockstarlab' ),
+					'pullingPosts'            => __( 'Pulling posts...', 'import-export-by-rockstarlab' ),
+					'syncFailed'              => __( 'Sync failed', 'import-export-by-rockstarlab' ),
+					'errorDuringSync'         => __( 'An error occurred during sync', 'import-export-by-rockstarlab' ),
+					'matchingByTitle'         => __( 'Matching...', 'import-export-by-rockstarlab' ),
+					'selectRemotePostForPull' => __( 'Please select at least one remote post to pull.', 'import-export-by-rockstarlab' ),
 
 					// Browse
-					'noPostsFound'          => __( 'No posts found', 'import-export-by-rockstarlab' ),
-					'child'                 => __( 'child', 'import-export-by-rockstarlab' ),
-					'children'              => __( 'children', 'import-export-by-rockstarlab' ),
-					'pluginDataNotLoaded'   => __( 'Plugin data not loaded. Please refresh the page.', 'import-export-by-rockstarlab' ),
-					'errorLoadingPosts'     => __( 'An error occurred while loading posts', 'import-export-by-rockstarlab' ),
-					'failedLoadChildren'    => __( 'Failed to load children', 'import-export-by-rockstarlab' ),
-					'errorLoadingChildren'  => __( 'Error loading children', 'import-export-by-rockstarlab' ),
+					'noPostsFound'            => __( 'No posts found', 'import-export-by-rockstarlab' ),
+					'child'                   => __( 'child', 'import-export-by-rockstarlab' ),
+					'children'                => __( 'children', 'import-export-by-rockstarlab' ),
+					'pluginDataNotLoaded'     => __( 'Plugin data not loaded. Please refresh the page.', 'import-export-by-rockstarlab' ),
+					'errorLoadingPosts'       => __( 'An error occurred while loading posts', 'import-export-by-rockstarlab' ),
+					'failedLoadChildren'      => __( 'Failed to load children', 'import-export-by-rockstarlab' ),
+					'errorLoadingChildren'    => __( 'Error loading children', 'import-export-by-rockstarlab' ),
 				),
 			)
 		);
@@ -960,6 +963,144 @@ class Content_Sync_Controller extends Base_Controller {
 	public function search_remote_posts() {
 		// This is just an alias for get_remote_posts with a different action name
 		return $this->get_remote_posts();
+	}
+
+	/**
+	 * Build a local-to-remote post map by exact title and post type.
+	 */
+	public function auto_map_by_title() {
+		$verify = $this->verify_request();
+		if ( is_wp_error( $verify ) ) {
+			$this->send_error( $verify->get_error_message() );
+		}
+
+		$site_id  = $this->get_request_param( 'site_id', 0 );
+		$post_ids = $this->get_request_array( 'post_ids', array() );
+
+		if ( empty( $site_id ) ) {
+			$this->send_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
+		}
+
+		if ( empty( $post_ids ) || ! is_array( $post_ids ) ) {
+			$this->send_error( __( 'No posts selected', 'import-export-by-rockstarlab' ) );
+		}
+
+		$site = Connected_Site::get_by_id( $site_id );
+		if ( ! $site ) {
+			$this->send_error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
+		}
+
+		$mapping = array();
+		$matches = array();
+
+		foreach ( $post_ids as $post_id ) {
+			$post_id = absint( $post_id );
+			if ( ! $post_id ) {
+				continue;
+			}
+
+			$post = get_post( $post_id );
+			if ( ! $post ) {
+				continue;
+			}
+
+			$remote_post = $this->find_remote_post_by_exact_title( $site, $post );
+			if ( ! $remote_post ) {
+				$mapping[ $post_id ] = null;
+				continue;
+			}
+
+			$remote_id = isset( $remote_post['ID'] ) ? absint( $remote_post['ID'] ) : 0;
+			if ( ! $remote_id ) {
+				$mapping[ $post_id ] = null;
+				continue;
+			}
+
+			$mapping[ $post_id ] = $remote_id;
+			$matches[ $post_id ] = array(
+				'ID'            => $remote_id,
+				'post_title'    => isset( $remote_post['post_title'] ) ? sanitize_text_field( $remote_post['post_title'] ) : '',
+				'post_type'     => isset( $remote_post['post_type'] ) ? sanitize_key( $remote_post['post_type'] ) : '',
+				'post_date'     => isset( $remote_post['post_date'] ) ? sanitize_text_field( $remote_post['post_date'] ) : '',
+				'post_modified' => isset( $remote_post['post_modified'] ) ? sanitize_text_field( $remote_post['post_modified'] ) : '',
+			);
+		}
+
+		$this->send_success(
+			array(
+				'mapping' => $mapping,
+				'matches' => $matches,
+			)
+		);
+	}
+
+	/**
+	 * Find a matching remote post by exact normalized title and post type.
+	 *
+	 * @param array    $site Connected site data.
+	 * @param \WP_Post $post Local post object.
+	 * @return array|null Matching remote post data, or null.
+	 */
+	private function find_remote_post_by_exact_title( $site, $post ) {
+		$response = \RockStarLab\ImportExport\Helper\Remote_API::post(
+			$site['remote_url'],
+			'list-posts',
+			array(
+				'timeout' => 30,
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $site['api_key'],
+					'Content-Type'  => 'application/json',
+				),
+				'body'    => wp_json_encode(
+					array(
+						'post_type' => $post->post_type,
+						'search'    => $post->post_title,
+						'status'    => '',
+						'page'      => 1,
+						'per_page'  => 50,
+					)
+				),
+			)
+		);
+
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			return null;
+		}
+
+		$data = json_decode( wp_remote_retrieve_body( $response ), true );
+		if ( ! is_array( $data ) || empty( $data['success'] ) || empty( $data['posts'] ) || ! is_array( $data['posts'] ) ) {
+			return null;
+		}
+
+		$local_title = $this->normalize_post_title_for_mapping( $post->post_title );
+
+		foreach ( $data['posts'] as $remote_post ) {
+			if ( ! is_array( $remote_post ) ) {
+				continue;
+			}
+
+			$remote_type  = isset( $remote_post['post_type'] ) ? sanitize_key( $remote_post['post_type'] ) : '';
+			$remote_title = isset( $remote_post['post_title'] ) ? $this->normalize_post_title_for_mapping( $remote_post['post_title'] ) : '';
+
+			if ( $remote_type === $post->post_type && $remote_title === $local_title ) {
+				return $remote_post;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Normalize titles before exact matching.
+	 *
+	 * @param string $title Post title.
+	 * @return string Normalized title.
+	 */
+	private function normalize_post_title_for_mapping( $title ) {
+		$title = html_entity_decode( wp_strip_all_tags( (string) $title ), ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$title = preg_replace( '/\s+/u', ' ', trim( $title ) );
+
+		return function_exists( 'mb_strtolower' ) ? mb_strtolower( $title, get_bloginfo( 'charset' ) ) : strtolower( $title );
 	}
 
 	/**
@@ -1404,7 +1545,8 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		// Upload images to remote site first
-		$image_map = $this->upload_images_to_remote( array_values( $all_images ), $site );
+		$image_sources = $all_images;
+		$image_map     = $this->upload_images_to_remote( array_values( $all_images ), $site );
 
 		// Replace domains in post data
 		foreach ( $posts_data as &$post_data ) {
@@ -1428,9 +1570,10 @@ class Content_Sync_Controller extends Base_Controller {
 				),
 				'body'    => wp_json_encode(
 					array(
-						'posts'        => $posts_data,
-						'image_map'    => $image_map,
-						'post_mapping' => $post_mapping,
+						'posts'         => $posts_data,
+						'image_map'     => $image_map,
+						'image_sources' => $image_sources,
+						'post_mapping'  => $post_mapping,
 					// translators: %s = content placeholder.
 					)
 				),
@@ -1588,6 +1731,19 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 		if ( ! is_array( $post_mapping ) ) {
 			$post_mapping = array();
+		}
+
+		if ( ! empty( $post_mapping ) ) {
+			$mapped_remote_ids = array();
+			foreach ( $post_mapping as $remote_id ) {
+				if ( is_numeric( $remote_id ) && (int) $remote_id > 0 ) {
+					$mapped_remote_ids[] = (int) $remote_id;
+				}
+			}
+
+			if ( ! empty( $mapped_remote_ids ) ) {
+				$post_ids = array_values( array_unique( $mapped_remote_ids ) );
+			}
 		}
 
 		// Get site details
@@ -1831,22 +1987,16 @@ class Content_Sync_Controller extends Base_Controller {
 				);
 			}
 
-			// Fix image URLs in content after import
-			$updated_content = $post_data['post_content'];
+			// Fix image URLs in content after import.
+			$updated_content = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
+				$post_data['post_content'],
+				$image_map,
+				$remote_images
+			);
 
 			foreach ( $image_map as $old_id => $new_id ) {
-				$new_url = wp_get_attachment_url( $new_id );
-				if ( $new_url ) {
-
-					// Replace old image URL with new one
-					$pattern         = '/(<img[^>]+src=")https?:\/\/[^"]*\/' . preg_quote( basename( $new_url ), '/' ) . '(?:\?[^"]*)?(")/i';
-					$replacement     = '${1}' . $new_url . '${2}';
-					$updated_content = preg_replace( $pattern, $replacement, $updated_content );
-
-					// Also update wp:image block ID
-					$updated_content = str_replace( '"id":' . $old_id, '"id":' . $new_id, $updated_content );
-					$updated_content = str_replace( 'wp-image-' . $old_id, 'wp-image-' . $new_id, $updated_content );
-				}
+				// Also update wp:image block ID.
+				$updated_content = str_replace( '"id":' . (int) $old_id, '"id":' . (int) $new_id, $updated_content );
 			}
 
 			if ( $updated_content !== $post_data['post_content'] ) {

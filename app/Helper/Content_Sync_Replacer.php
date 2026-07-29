@@ -247,7 +247,7 @@ class Content_Sync_Replacer {
 					if ( is_string( $value ) ) {
 						$value = self::replace_in_text( $value, $source_domain, $target_domain );
 					} elseif ( is_array( $value ) ) {
-						$value = self::replace_in_array( $value, $source_domain, $target_domain );
+						$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map );
 					}
 				}
 			}
@@ -286,6 +286,39 @@ class Content_Sync_Replacer {
 	 */
 	public static function replace_in_meta_public( $meta, $source_domain, $target_domain, $image_map = array() ) {
 		return self::replace_in_meta( $meta, $source_domain, $target_domain, $image_map );
+	}
+
+	/**
+	 * Fix <img> src/srcset attributes after media has been imported locally.
+	 *
+	 * During Content Sync the post HTML may still contain source-site intermediate
+	 * image URLs (for example image-300x200.jpg) even after attachment IDs/classes
+	 * have been remapped. Browsers often prefer srcset candidates over src, so both
+	 * attributes must point to URLs that really exist on the receiving site.
+	 *
+	 * @param string $content   Post content.
+	 * @param array  $image_map Source attachment ID => local attachment ID.
+	 * @return string Updated content.
+	 */
+	public static function fix_local_image_urls_in_content( $content, $image_map = array(), $image_sources = array() ) {
+		if ( empty( $content ) || ! is_string( $content ) || empty( $image_map ) ) {
+			return $content;
+		}
+
+		foreach ( $image_map as $old_id => $new_id ) {
+			$old_id = (int) $old_id;
+			$new_id = (int) $new_id;
+
+			if ( $old_id <= 0 || $new_id <= 0 ) {
+				continue;
+			}
+
+			$content     = preg_replace( '/\bwp-image-' . $old_id . '\b/', 'wp-image-' . $new_id, $content );
+			$source_data = self::get_image_source_data( $old_id, $image_sources );
+			$content     = self::fix_local_image_tag_urls( $content, $new_id, $source_data );
+		}
+
+		return $content;
 	}
 
 	/**
@@ -491,6 +524,229 @@ class Content_Sync_Replacer {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Fix local URLs for img tags that reference a specific attachment class.
+	 *
+	 * @param string $content       HTML content.
+	 * @param int    $attachment_id Local attachment ID.
+	 * @return string Updated content.
+	 */
+	private static function fix_local_image_tag_urls( $content, $attachment_id, $source_data = array() ) {
+		$full_url = wp_get_attachment_url( $attachment_id );
+		if ( ! $full_url ) {
+			return $content;
+		}
+
+		$size_urls   = self::get_attachment_size_urls_by_dimensions( $attachment_id );
+		$srcset      = wp_get_attachment_image_srcset( $attachment_id, 'full' );
+		$source_urls = self::normalize_source_image_urls( $source_data );
+
+		return preg_replace_callback(
+			'/<img\b[^>]*>/i',
+			function ( $matches ) use ( $attachment_id, $full_url, $size_urls, $srcset, $source_urls ) {
+				$img_tag   = $matches[0];
+				$local_url = $full_url;
+				$has_class = (bool) preg_match( '/\bwp-image-' . (int) $attachment_id . '\b/i', $img_tag );
+
+				if ( preg_match( '/\bsrc=(["\'])([^"\']+)\1/i', $img_tag, $src_match ) ) {
+					$dimension = self::get_source_image_dimension( $src_match[2], $source_urls );
+					if ( ! $dimension && $has_class ) {
+						$dimension = self::extract_image_dimensions_from_url( $src_match[2] );
+					}
+					if ( ! $has_class && ! $dimension && ! self::source_image_url_matches( $src_match[2], $source_urls ) ) {
+						return $img_tag;
+					}
+					if ( $dimension && isset( $size_urls[ $dimension ] ) ) {
+						$local_url = $size_urls[ $dimension ];
+					}
+					$img_tag = preg_replace(
+						'/\bsrc=(["\'])[^"\']+\1/i',
+						'src=' . $src_match[1] . esc_url_raw( $local_url ) . $src_match[1],
+						$img_tag,
+						1
+					);
+				}
+
+				if ( preg_match( '/\bsrcset=(["\'])[^"\']+\1/i', $img_tag, $srcset_match ) ) {
+					if ( $srcset ) {
+						$img_tag = preg_replace(
+							'/\bsrcset=(["\'])[^"\']+\1/i',
+							'srcset=' . $srcset_match[1] . esc_attr( $srcset ) . $srcset_match[1],
+							$img_tag,
+							1
+						);
+					} else {
+						$img_tag = preg_replace( '/\s+\bsrcset=(["\'])[^"\']+\1/i', '', $img_tag, 1 );
+					}
+				}
+
+				return $img_tag;
+			},
+			$content
+		);
+	}
+
+	/**
+	 * Normalize source image URLs for matching during remote imports.
+	 *
+	 * @param array $source_data Source image payload.
+	 * @return array Normalized source URL data.
+	 */
+	private static function normalize_source_image_urls( $source_data ) {
+		$normalized = array(
+			'urls'        => array(),
+			'by_basename' => array(),
+		);
+
+		if ( empty( $source_data ) || ! is_array( $source_data ) ) {
+			return $normalized;
+		}
+
+		if ( ! empty( $source_data['url'] ) && is_string( $source_data['url'] ) ) {
+			$normalized['urls'][] = $source_data['url'];
+		}
+
+		if ( ! empty( $source_data['source_urls']['full'] ) && is_string( $source_data['source_urls']['full'] ) ) {
+			$normalized['urls'][] = $source_data['source_urls']['full'];
+		}
+
+		if ( ! empty( $source_data['source_urls']['by_size'] ) && is_array( $source_data['source_urls']['by_size'] ) ) {
+			foreach ( $source_data['source_urls']['by_size'] as $dimension => $url ) {
+				if ( is_string( $url ) ) {
+					$normalized['urls'][] = $url;
+					$basename             = basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+					if ( '' !== $basename ) {
+						$normalized['by_basename'][ $basename ] = sanitize_text_field( $dimension );
+					}
+				}
+			}
+		}
+
+		if ( ! empty( $source_data['source_urls']['by_basename'] ) && is_array( $source_data['source_urls']['by_basename'] ) ) {
+			foreach ( $source_data['source_urls']['by_basename'] as $basename => $data ) {
+				if ( is_array( $data ) && ! empty( $data['dimension'] ) ) {
+					$normalized['by_basename'][ sanitize_file_name( $basename ) ] = sanitize_text_field( $data['dimension'] );
+				}
+			}
+		}
+
+		$normalized['urls'] = array_values( array_unique( array_filter( $normalized['urls'] ) ) );
+
+		return $normalized;
+	}
+
+	/**
+	 * Get source image data from either keyed or sequential image arrays.
+	 *
+	 * @param int   $old_id Source attachment ID.
+	 * @param array $image_sources Source image data.
+	 * @return array Source data.
+	 */
+	private static function get_image_source_data( $old_id, $image_sources ) {
+		if ( isset( $image_sources[ $old_id ] ) && is_array( $image_sources[ $old_id ] ) ) {
+			return $image_sources[ $old_id ];
+		}
+
+		foreach ( $image_sources as $source ) {
+			if ( is_array( $source ) && isset( $source['attachment_id'] ) && (int) $source['attachment_id'] === (int) $old_id ) {
+				return $source;
+			}
+		}
+
+		return array();
+	}
+
+	/**
+	 * Check whether an image URL belongs to the source attachment.
+	 *
+	 * @param string $url Source URL from HTML.
+	 * @param array  $source_urls Normalized source URLs.
+	 * @return bool True when URL matches.
+	 */
+	private static function source_image_url_matches( $url, $source_urls ) {
+		$basename = basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+		if ( '' !== $basename && isset( $source_urls['by_basename'][ $basename ] ) ) {
+			return true;
+		}
+
+		return in_array( $url, $source_urls['urls'], true );
+	}
+
+	/**
+	 * Get source image dimensions from the source URL payload.
+	 *
+	 * @param string $url Source URL from HTML.
+	 * @param array  $source_urls Normalized source URLs.
+	 * @return string Dimension key or empty string.
+	 */
+	private static function get_source_image_dimension( $url, $source_urls ) {
+		$basename = basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+		if ( '' !== $basename && isset( $source_urls['by_basename'][ $basename ] ) ) {
+			return $source_urls['by_basename'][ $basename ];
+		}
+
+		return '';
+	}
+
+	/**
+	 * Build a widthxheight => URL map for an attachment's generated sizes.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @return array Dimension map.
+	 */
+	private static function get_attachment_size_urls_by_dimensions( $attachment_id ) {
+		$map      = array();
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		if ( ! is_array( $metadata ) || empty( $metadata['file'] ) ) {
+			return $map;
+		}
+
+		$upload_dir = wp_upload_dir();
+		$directory  = trailingslashit( dirname( $metadata['file'] ) );
+		if ( './' === $directory ) {
+			$directory = '';
+		}
+
+		if ( ! empty( $metadata['width'] ) && ! empty( $metadata['height'] ) ) {
+			$map[ (int) $metadata['width'] . 'x' . (int) $metadata['height'] ] = trailingslashit( $upload_dir['baseurl'] ) . ltrim( $metadata['file'], '/' );
+		}
+
+		if ( empty( $metadata['sizes'] ) || ! is_array( $metadata['sizes'] ) ) {
+			return $map;
+		}
+
+		foreach ( $metadata['sizes'] as $size ) {
+			if ( empty( $size['file'] ) || empty( $size['width'] ) || empty( $size['height'] ) ) {
+				continue;
+			}
+
+			$map[ (int) $size['width'] . 'x' . (int) $size['height'] ] = trailingslashit( $upload_dir['baseurl'] ) . $directory . $size['file'];
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Extract the "-WIDTHxHEIGHT" suffix from an image URL.
+	 *
+	 * @param string $url Image URL.
+	 * @return string Dimension key or empty string.
+	 */
+	private static function extract_image_dimensions_from_url( $url ) {
+		$path = wp_parse_url( $url, PHP_URL_PATH );
+		if ( ! is_string( $path ) || '' === $path ) {
+			return '';
+		}
+
+		$basename = basename( $path );
+		if ( preg_match( '/-(\d+x\d+)\.[^.]+$/i', $basename, $matches ) ) {
+			return $matches[1];
+		}
+
+		return '';
 	}
 
 	/**
