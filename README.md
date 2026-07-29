@@ -145,6 +145,29 @@ Yes. Use Site-to-Site Content Sync to connect two sites with API keys and sync p
 
 ## Changelog
 
+### 1.1.5
+
+- Fixed Content Sync media URL replacement during Push and Pull so synced image HTML points to real local attachment URLs instead of missing intermediate-size files.
+- Improved Content Sync media handling by carrying source attachment size URLs and matching them to generated local image sizes when available.
+- Fixed Content Sync auto-match by title so selected posts are mapped reliably by exact title and post type before syncing.
+
+### 1.1.4
+
+- Fixed Media Sync "All Media Types" scanning so PDF and other WordPress-supported document files are included without requiring custom extensions.
+
+### 1.1.3
+
+- Fixed CSS and JavaScript loading for hidden Content Updater and Functions admin pages when opened directly.
+- Fixed Add-Ons card offer styling when the PRO addon is inactive.
+
+### 1.1.2
+
+- Fixed admin CSS and JavaScript loading for plugin pages that are opened directly after their submenu links are hidden in Plugin Options.
+
+### 1.1.1
+
+- Fixed drag-and-drop field reordering in the free Export Step 3 screen so selected fields can be rearranged smoothly in the grid layout.
+
 ### 1.1.0
 
 - Added XLSX and ODS support for import workflows.
