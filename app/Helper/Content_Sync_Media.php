@@ -665,10 +665,12 @@ class Content_Sync_Media {
 
 		$file_hash = Media_Hash::get_or_create_hash( $attachment_id );
 		$file_url  = wp_get_attachment_url( $attachment_id );
+		$metadata  = wp_get_attachment_metadata( $attachment_id );
 
 		return array(
 			'attachment_id' => $attachment_id,
 			'url'           => $file_url,
+			'source_urls'   => self::get_attachment_source_urls( $attachment_id, $metadata ),
 			'file_path'     => $file_path,
 			'file_name'     => basename( $file_path ),
 			'file_hash'     => $file_hash,
@@ -679,8 +681,65 @@ class Content_Sync_Media {
 			'caption'       => $attachment->post_excerpt,
 			'description'   => $attachment->post_content,
 			'context'       => $context,
-			'metadata'      => wp_get_attachment_metadata( $attachment_id ),
+			'metadata'      => $metadata,
 		);
+	}
+
+	/**
+	 * Get all known URLs for an attachment, grouped by dimensions.
+	 *
+	 * @param int   $attachment_id Attachment ID.
+	 * @param array $metadata Attachment metadata.
+	 * @return array URL data.
+	 */
+	private static function get_attachment_source_urls( $attachment_id, $metadata ) {
+		$urls = array(
+			'full'        => wp_get_attachment_url( $attachment_id ),
+			'by_size'     => array(),
+			'by_basename' => array(),
+		);
+
+		if ( ! is_array( $metadata ) || empty( $metadata['file'] ) ) {
+			return $urls;
+		}
+
+		$upload_dir = wp_upload_dir();
+		$directory  = trailingslashit( dirname( $metadata['file'] ) );
+		if ( './' === $directory ) {
+			$directory = '';
+		}
+
+		$full_url = trailingslashit( $upload_dir['baseurl'] ) . ltrim( $metadata['file'], '/' );
+		if ( ! empty( $metadata['width'] ) && ! empty( $metadata['height'] ) ) {
+			$dimension                        = (int) $metadata['width'] . 'x' . (int) $metadata['height'];
+			$basename                         = basename( $metadata['file'] );
+			$urls['by_size'][ $dimension ]    = $full_url;
+			$urls['by_basename'][ $basename ] = array(
+				'url'       => $full_url,
+				'dimension' => $dimension,
+			);
+		}
+
+		if ( empty( $metadata['sizes'] ) || ! is_array( $metadata['sizes'] ) ) {
+			return $urls;
+		}
+
+		foreach ( $metadata['sizes'] as $size ) {
+			if ( empty( $size['file'] ) || empty( $size['width'] ) || empty( $size['height'] ) ) {
+				continue;
+			}
+
+			$dimension = (int) $size['width'] . 'x' . (int) $size['height'];
+			$url       = trailingslashit( $upload_dir['baseurl'] ) . $directory . $size['file'];
+
+			$urls['by_size'][ $dimension ]        = $url;
+			$urls['by_basename'][ $size['file'] ] = array(
+				'url'       => $url,
+				'dimension' => $dimension,
+			);
+		}
+
+		return $urls;
 	}
 
 	/**
