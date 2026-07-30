@@ -85,6 +85,7 @@ class AI_URL_Import_Processor {
 			$import_images  = $parameters['import_images'] ?? true;
 			$import_excerpt = $parameters['import_excerpt'] ?? true;
 			$request_delay  = $parameters['request_delay'] ?? ( $parameters['timeout'] ?? 0 );
+			$saved_log      = isset( $parameters['import_log'] ) && is_array( $parameters['import_log'] ) ? $parameters['import_log'] : [];
 
 			// Get current index
 			$current_index = (int) ( $job->processed_items ?? 0 );
@@ -236,6 +237,11 @@ class AI_URL_Import_Processor {
 				}
 			}
 
+			$parameters['import_log'] = array_slice(
+				array_merge( $saved_log, $import_log ),
+				-500
+			);
+
 			$this->job_model->update(
 				$job_id,
 				[
@@ -243,6 +249,7 @@ class AI_URL_Import_Processor {
 					'success_items'   => ( $job->success_items ?? 0 ) + $success_increment,
 					'failed_items'    => ( $job->failed_items ?? 0 ) + $failed_increment,
 					'progress'        => $progress,
+					'parameters'      => wp_json_encode( $parameters ),
 				]
 			);
 
