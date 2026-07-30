@@ -95,48 +95,33 @@ echo "Built:"
 echo " - $FREE_ZIP"
 echo " - $PRO_ZIP"
 
-# Deploy both plugins to aie2 local site by unzipping release archives.
-AIE2_PLUGINS_DIR="/Users/shaggywizard/Local Sites/aie2/app/public/wp-content/plugins"
+deploy_to_local_site() {
+  local site_slug="$1"
+  local plugins_dir="/Users/shaggywizard/Local Sites/${site_slug}/app/public/wp-content/plugins"
 
-if [ -d "$AIE2_PLUGINS_DIR" ]; then
-  echo "Removing old FREE plugin from aie2..."
-  rm -rf "$AIE2_PLUGINS_DIR/$FREE_SLUG"
+  if [ ! -d "$plugins_dir" ]; then
+    echo "WARNING: ${site_slug} plugins directory not found: $plugins_dir" >&2
+    return
+  fi
 
-  echo "Removing old PRO plugin from aie2..."
-  rm -rf "$AIE2_PLUGINS_DIR/$PRO_SLUG"
+  echo "Removing old FREE plugin from ${site_slug}..."
+  rm -rf "$plugins_dir/$FREE_SLUG"
 
-  echo "Deploying FREE plugin to aie2..."
-  unzip -q "$FREE_ZIP" -d "$AIE2_PLUGINS_DIR"
+  echo "Removing old PRO plugin from ${site_slug}..."
+  rm -rf "$plugins_dir/$PRO_SLUG"
 
-  echo "Deploying PRO plugin to aie2..."
-  unzip -q "$PRO_ZIP" -d "$AIE2_PLUGINS_DIR"
+  echo "Deploying FREE plugin to ${site_slug}..."
+  unzip -q "$FREE_ZIP" -d "$plugins_dir"
 
-  echo "Deployed to aie2:"
-  echo " - $AIE2_PLUGINS_DIR/$FREE_SLUG"
-  echo " - $AIE2_PLUGINS_DIR/$PRO_SLUG"
-else
-  echo "WARNING: aie2 plugins directory not found: $AIE2_PLUGINS_DIR" >&2
-fi
+  echo "Deploying PRO plugin to ${site_slug}..."
+  unzip -q "$PRO_ZIP" -d "$plugins_dir"
 
-# Deploy both plugins to aie3 local site by unzipping release archives.
-AIE3_PLUGINS_DIR="/Users/shaggywizard/Local Sites/aie3/app/public/wp-content/plugins"
+  echo "Deployed to ${site_slug}:"
+  echo " - $plugins_dir/$FREE_SLUG"
+  echo " - $plugins_dir/$PRO_SLUG"
+}
 
-if [ -d "$AIE3_PLUGINS_DIR" ]; then
-  echo "Removing old FREE plugin from aie3..."
-  rm -rf "$AIE3_PLUGINS_DIR/$FREE_SLUG"
-
-  echo "Removing old PRO plugin from aie3..."
-  rm -rf "$AIE3_PLUGINS_DIR/$PRO_SLUG"
-
-  echo "Deploying FREE plugin to aie3..."
-  unzip -q "$FREE_ZIP" -d "$AIE3_PLUGINS_DIR"
-
-  echo "Deploying PRO plugin to aie3..."
-  unzip -q "$PRO_ZIP" -d "$AIE3_PLUGINS_DIR"
-
-  echo "Deployed to aie3:"
-  echo " - $AIE3_PLUGINS_DIR/$FREE_SLUG"
-  echo " - $AIE3_PLUGINS_DIR/$PRO_SLUG"
-else
-  echo "WARNING: aie3 plugins directory not found: $AIE3_PLUGINS_DIR" >&2
-fi
+# Deploy both plugins to local test sites by unzipping release archives.
+for site_slug in aie2 aie3 aie4; do
+  deploy_to_local_site "$site_slug"
+done

@@ -145,6 +145,40 @@ Yes. Use Site-to-Site Content Sync to connect two sites with API keys and sync p
 
 ## Changelog
 
+### 1.1.6
+
+- Fixed AI URL Importer structured response schema compatibility with strict OpenAI/WordPress AI Client responses.
+- Improved AI URL Importer import logs so entries persist, update during processing, stay scrollable, and show newest results first.
+- Fixed AI URL Importer cancel handling for active import jobs.
+- Improved AI URL Importer start button feedback with a loading state while the import job is being created.
+- Increased AI URL Importer OpenAI request timeouts for slower long-form article extraction.
+- Updated release build deployment script to copy release packages to the aie2, aie3, and aie4 local test sites.
+
+### 1.1.5
+
+- Fixed Content Sync media URL replacement during Push and Pull so synced image HTML points to real local attachment URLs instead of missing intermediate-size files.
+- Improved Content Sync media handling by carrying source attachment size URLs and matching them to generated local image sizes when available.
+- Fixed Content Sync auto-match by title so selected posts are mapped reliably by exact title and post type before syncing.
+
+### 1.1.4
+
+- Fixed Media Sync "All Media Types" scanning so PDF and other WordPress-supported document files are included without requiring custom extensions.
+
+### 1.1.3
+
+- Fixed CSS and JavaScript loading for hidden Content Updater and Functions admin pages when opened directly.
+
+### 1.1.2
+
+- Added a plugin overview video to the WordPress.org readme.
+- Improved admin Add-Ons screen styling in the free plugin.
+
+### 1.1.1
+
+- Fixed AI function generation connection handling.
+- Improved drag-and-drop behavior for field ordering.
+- Fixed admin asset loading when selected plugin menu items are hidden.
+
 ### 1.1.0
 
 - Added XLSX and ODS support for import workflows.
