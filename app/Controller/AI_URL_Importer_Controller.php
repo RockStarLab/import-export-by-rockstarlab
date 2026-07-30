@@ -60,6 +60,9 @@ class AI_URL_Importer_Controller extends Base_Controller {
 			'ai_url_get_progress'    => array(
 				'callback' => 'get_progress',
 			),
+			'ai_url_cancel_import'   => array(
+				'callback' => 'cancel_import',
+			),
 		);
 	}
 
@@ -430,6 +433,12 @@ class AI_URL_Importer_Controller extends Base_Controller {
 			);
 		}
 
+		$parameters = json_decode( $job->parameters, true );
+		if ( ! is_array( $parameters ) ) {
+			$parameters = array();
+		}
+		$import_log = isset( $parameters['import_log'] ) && is_array( $parameters['import_log'] ) ? $parameters['import_log'] : array();
+
 		$this->send_success(
 			array(
 				'status'        => $job->status,
@@ -439,6 +448,59 @@ class AI_URL_Importer_Controller extends Base_Controller {
 				'success_count' => intval( $job->success_items ?? 0 ),
 				'failed_count'  => intval( $job->failed_items ?? 0 ),
 				'error'         => $job->error ?? '',
+				'import_log'    => $import_log,
+			)
+		);
+	}
+
+	/**
+	 * Cancel an AI URL import job.
+	 */
+	public function cancel_import() {
+		$verification = $this->verify_request();
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		$job_id = absint( $this->get_request_param( 'job_id', 0, 'post' ) );
+		if ( ! $job_id ) {
+			$this->send_error(
+				new \WP_Error( 'missing_job_id', __( 'Job ID is required', 'import-export-by-rockstarlab' ) )
+			);
+		}
+
+		$job_model = new Job();
+		$job       = $job_model->find( $job_id );
+		if ( ! $job ) {
+			$this->send_error(
+				new \WP_Error( 'job_not_found', __( 'Job not found', 'import-export-by-rockstarlab' ) )
+			);
+		}
+
+		if ( 'import' !== $job->type || 'ai_url' !== $job->data_type ) {
+			$this->send_error(
+				new \WP_Error( 'invalid_job_type', __( 'This job is not an AI URL import job.', 'import-export-by-rockstarlab' ) )
+			);
+		}
+
+		if ( in_array( $job->status, array( 'completed', 'failed', 'cancelled' ), true ) ) {
+			$this->send_success(
+				array(
+					'status'  => $job->status,
+					'message' => __( 'Import is no longer running.', 'import-export-by-rockstarlab' ),
+				)
+			);
+		}
+
+		$result = $job_model->update_status( $job_id, 'cancelled' );
+		if ( is_wp_error( $result ) ) {
+			$this->send_error( $result );
+		}
+
+		$this->send_success(
+			array(
+				'status'  => 'cancelled',
+				'message' => __( 'Import cancelled.', 'import-export-by-rockstarlab' ),
 			)
 		);
 	}

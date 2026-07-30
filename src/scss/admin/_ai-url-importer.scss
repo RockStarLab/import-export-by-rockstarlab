@@ -265,6 +265,20 @@
 		}
 	}
 
+	#rsl-ie-start-import-btn.rsl-ie-button-loading {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		pointer-events: none;
+
+		.spinner {
+			float: none;
+			margin: 0;
+			visibility: visible;
+		}
+	}
+
 	// Step 1: URL Input
 	.rsl-ie-url-input-methods {
 		display: grid;
@@ -736,10 +750,11 @@
 		border: 1px solid #c3c4c7;
 		border-radius: 4px;
 		padding: 15px;
-		max-height: 400px;
+		max-height: 260px;
 		overflow-y: auto;
 		font-family: monospace;
 		font-size: 13px;
+		scroll-behavior: smooth;
 
 		.log-entry {
 			padding: 5px 0;
