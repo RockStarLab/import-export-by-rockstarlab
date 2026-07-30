@@ -253,6 +253,7 @@ const AIURLImporter = {
 				.prop( 'disabled', false )
 				.text( window.rslIeData.i18n.generatePreview );
 			jQuery( '#rsl-ie-regenerate-preview-btn' ).hide();
+			this.setStartImportLoading( false );
 			jQuery( '#rsl-ie-start-import-btn' ).prop( 'disabled', true );
 			jQuery( '#rsl-ie-preview-url' ).text( this.urls[ 0 ] );
 		}
@@ -534,6 +535,7 @@ const AIURLImporter = {
 			// After success: replace Generate with Regenerate
 			$btn.hide();
 			$regenerateBtn.show();
+			this.setStartImportLoading( false );
 			jQuery( '#rsl-ie-start-import-btn' ).prop( 'disabled', false );
 		} catch ( error ) {
 			this.showError( error, '.rsl-ie-preview-section' );
@@ -654,6 +656,12 @@ const AIURLImporter = {
 	 * Start import
 	 */
 	async startImport() {
+		if ( jQuery( '#rsl-ie-start-import-btn' ).prop( 'disabled' ) ) {
+			return;
+		}
+
+		this.setStartImportLoading( true );
+
 		this.settings = {
 			urls: this.urls,
 			post_type: jQuery( '#rsl-ie-post-type' ).val(),
@@ -671,6 +679,7 @@ const AIURLImporter = {
 			);
 
 			this.jobId = response.job_id;
+			jQuery( '.rsl-ie-log-entries' ).empty();
 			this.goToStep( 4 );
 
 			// Start progress monitoring
@@ -680,8 +689,49 @@ const AIURLImporter = {
 			this.processNextBatch();
 		} catch ( error ) {
 			console.error( 'Error starting import:', error );
+			this.setStartImportLoading( false );
 			this.showError( error, '.rsl-ie-step-3 .rsl-ie-step-content' );
 		}
+	},
+
+	/**
+	 * Toggle the Start Import button loading state.
+	 *
+	 * @param {boolean} isLoading Whether the import creation request is running.
+	 */
+	setStartImportLoading( isLoading ) {
+		const $button = jQuery( '#rsl-ie-start-import-btn' );
+
+		if ( $button.length === 0 ) {
+			return;
+		}
+
+		if ( ! $button.data( 'default-text' ) ) {
+			$button.data(
+				'default-text',
+				$button.text().trim() ||
+					window.rslIeData.i18n.startImport ||
+					'Start Import'
+			);
+		}
+
+		if ( isLoading ) {
+			$button
+				.prop( 'disabled', true )
+				.addClass( 'rsl-ie-button-loading' )
+				.html(
+					`<span class="spinner is-active" aria-hidden="true"></span><span>${ Utils.escapeHtml(
+						window.rslIeData.i18n.startingImport ||
+							'Starting import...'
+					) }</span>`
+				);
+			return;
+		}
+
+		$button
+			.prop( 'disabled', ! this.previewData )
+			.removeClass( 'rsl-ie-button-loading' )
+			.html( Utils.escapeHtml( $button.data( 'default-text' ) ) );
 	},
 
 	/**
@@ -748,6 +798,7 @@ const AIURLImporter = {
 			jQuery( '.success-count' ).text( response.success_count );
 			jQuery( '.failed-count' ).text( response.failed_count );
 			jQuery( '.import-status-text' ).text( response.status );
+			this.renderImportLog( response.import_log || [] );
 
 			// Check if completed or failed
 			if (
@@ -785,6 +836,53 @@ const AIURLImporter = {
 	},
 
 	/**
+	 * Render import log entries
+	 *
+	 * @param {Array} entries Import log entries.
+	 */
+	renderImportLog( entries ) {
+		const $entries = jQuery( '.rsl-ie-log-entries' );
+
+		if ( ! Array.isArray( entries ) || entries.length === 0 ) {
+			$entries.empty();
+			return;
+		}
+
+		const rows = entries
+			.slice()
+			.reverse()
+			.map( ( entry ) => {
+				const status = entry.status === 'success' ? 'success' : 'error';
+				const statusLabel =
+					status === 'success'
+						? window.rslIeData.i18n.success || 'Success'
+						: window.rslIeData.i18n.failed || 'Failed';
+				const url = Utils.escapeHtml( entry.url || '' );
+				const message = Utils.escapeHtml( entry.message || '' );
+				const timestamp = Utils.escapeHtml( entry.timestamp || '' );
+				const postId = parseInt( entry.post_id, 10 );
+				const postLink =
+					status === 'success' && postId
+						? `<a href="post.php?post=${ postId }&action=edit" target="_blank" rel="noopener noreferrer">#${ postId }</a>`
+						: '';
+
+				return `
+					<div class="log-entry ${ status }">
+						<span class="log-time">${ timestamp }</span>
+						<span class="log-status">${ statusLabel }</span>
+						<span class="log-url">${ url }</span>
+						<span class="log-message">${ message }</span>
+						${ postLink }
+					</div>
+				`;
+			} )
+			.join( '' );
+
+		$entries.html( rows );
+		$entries.scrollTop( 0 );
+	},
+
+	/**
 	 * Stop progress tracking
 	 */
 	stopProgressTracking() {
@@ -804,9 +902,11 @@ const AIURLImporter = {
 
 		try {
 			// Update job status to cancelled
-			await Utils.ajax( 'cancel_job', {
+			await Utils.ajax( 'rsl_ie_ai_url_cancel_import', {
 				job_id: this.jobId,
 			} );
+
+			this.stopProgressTracking();
 
 			// Reset and go back to step 1
 			this.jobId = null;

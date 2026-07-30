@@ -482,6 +482,8 @@ class Init {
 					'testConnection'                    => __( 'Test Connection', 'import-export-by-rockstarlab' ),
 					'generatingPreview'                 => __( 'Generating Preview...', 'import-export-by-rockstarlab' ),
 					'generatePreview'                   => __( 'Generate Preview', 'import-export-by-rockstarlab' ),
+					'startImport'                       => __( 'Start Import', 'import-export-by-rockstarlab' ),
+					'startingImport'                    => __( 'Starting import...', 'import-export-by-rockstarlab' ),
 					'failedLoadAcfFields'               => __( 'Failed to load ACF fields. Please try again.', 'import-export-by-rockstarlab' ),
 					'noAcfFields'                       => __( 'No ACF fields found for this post type.', 'import-export-by-rockstarlab' ),
 					'noImagesFound'                     => __( 'No images found', 'import-export-by-rockstarlab' ),

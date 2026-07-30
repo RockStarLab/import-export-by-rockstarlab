@@ -226,7 +226,7 @@ class AI_Content_Extractor {
 						),
 					)
 				),
-				'timeout' => 25,
+				'timeout' => 60,
 			)
 		);
 
@@ -907,7 +907,21 @@ class AI_Content_Extractor {
 			);
 		}
 
-		return $builder->generate_text();
+		$timeout_filter = static function ( $timeout, $url ) {
+			if ( is_string( $url ) && false !== strpos( $url, 'api.openai.com/' ) ) {
+				return max( (int) $timeout, 90 );
+			}
+
+			return $timeout;
+		};
+
+		add_filter( 'http_request_timeout', $timeout_filter, 10, 2 );
+
+		try {
+			return $builder->generate_text();
+		} finally {
+			remove_filter( 'http_request_timeout', $timeout_filter, 10 );
+		}
 	}
 
 	/**
@@ -917,26 +931,29 @@ class AI_Content_Extractor {
 	 */
 	private function get_extraction_json_schema() {
 		return array(
-			'type'       => 'object',
-			'properties' => array(
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'properties'           => array(
 				'title'          => array( 'type' => 'string' ),
 				'content'        => array( 'type' => 'string' ),
 				'excerpt'        => array( 'type' => 'string' ),
 				'images'         => array(
 					'type'  => 'array',
 					'items' => array(
-						'type'       => 'object',
-						'properties' => array(
+						'type'                 => 'object',
+						'additionalProperties' => false,
+						'properties'           => array(
 							'url'    => array( 'type' => 'string' ),
 							'alt'    => array( 'type' => 'string' ),
 							'width'  => array( 'type' => 'integer' ),
 							'height' => array( 'type' => 'integer' ),
 						),
+						'required'             => array( 'url', 'alt', 'width', 'height' ),
 					),
 				),
 				'featured_image' => array( 'type' => 'string' ),
 			),
-			'required'   => array( 'title', 'content', 'excerpt' ),
+			'required'             => array( 'title', 'content', 'excerpt', 'images', 'featured_image' ),
 		);
 	}
 
