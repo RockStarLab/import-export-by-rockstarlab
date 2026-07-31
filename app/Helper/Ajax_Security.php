@@ -60,7 +60,15 @@ class Ajax_Security {
 	 */
 	public static function get_nonces() {
 		$nonces = array();
-		foreach ( array_keys( self::$actions ) as $action ) {
+		$actions = array_keys( self::$actions );
+		$actions = apply_filters( 'rsl_ie_ajax_nonce_actions', $actions );
+		$actions = is_array( $actions ) ? array_unique( array_map( 'sanitize_key', $actions ) ) : array_keys( self::$actions );
+
+		foreach ( $actions as $action ) {
+			if ( '' === $action ) {
+				continue;
+			}
+
 			$nonces[ $action ] = self::create_nonce( $action );
 		}
 
