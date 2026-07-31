@@ -145,6 +145,10 @@ Yes. Use Site-to-Site Content Sync to connect two sites with API keys and sync p
 
 ## Changelog
 
+### 1.1.7
+
+- Fixed shared admin AJAX nonce registration so PRO addon screens can reliably load their AJAX endpoints when the free plugin rebuilds admin script data.
+
 ### 1.1.6
 
 - Fixed AI URL Importer structured response schema compatibility with strict OpenAI/WordPress AI Client responses.
