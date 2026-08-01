@@ -692,6 +692,8 @@ body.import-export-by-rockstarlab_page_rsl-ie-content-updater
 	.rsl-ie-filter-row-inner
 	:is(select, input[type="text"], input[type="number"], input[type="date"]) {
 	height: 40px;
+	padding-top: 0;
+	padding-bottom: 0;
 	box-sizing: border-box;
 }
 
