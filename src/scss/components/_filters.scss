@@ -218,13 +218,15 @@
 		}
 
 		.rsl-ie-filter-actions {
-			margin-top: 15px; // Align delete button with inputs (label height + margin)
+			margin-top: 24px; // Align delete button with inputs (label height + margin)
 
-			.rsl-ie-remove-filter {
+			.rsl-ie-remove-filter,
+			.rsl-ie-updater-remove-filter {
 				background: transparent;
 				border: none;
 				color: #b32d2e;
 				padding: 8px;
+				line-height: normal !important;
 				cursor: pointer;
 				border-radius: 4px;
 				transition: all 0.2s;
