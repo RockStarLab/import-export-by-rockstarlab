@@ -26,6 +26,7 @@ scripts
 assets/blueprints
 
 # Dev-only vendor packages (built via composer require-dev)
+vendor/bin
 vendor/dealerdirect
 vendor/phpcompatibility
 vendor/phpcsstandards
