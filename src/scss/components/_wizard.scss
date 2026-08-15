@@ -944,6 +944,27 @@
 		.rsl-ie-mapped-fields {
 			padding: 15px;
 			min-height: 150px;
+			max-height: min(460px, 55vh);
+			overflow-y: auto;
+			overscroll-behavior: contain;
+
+			&::-webkit-scrollbar {
+				width: 8px;
+			}
+
+			&::-webkit-scrollbar-track {
+				background: #f0f0f1;
+				border-radius: 999px;
+			}
+
+			&::-webkit-scrollbar-thumb {
+				background: #c3c4c7;
+				border-radius: 999px;
+			}
+
+			&::-webkit-scrollbar-thumb:hover {
+				background: #8c8f94;
+			}
 		}
 
 		.rsl-ie-empty-state {

@@ -151,6 +151,12 @@ class Export_Processor {
 
 			// Get total count on first batch
 			if ( 0 === $current_offset ) {
+				// A queued export may be restarted from the beginning after an
+				// interrupted request or a repeated start action. Since batch data is
+				// accumulated in append-only JSONL, always clear any stale data before
+				// writing the first batch for this run.
+				$this->cleanup_temp_file( $job_id );
+
 				$total_count = Exporter_Factory::get_count( $export_type, $export_options );
 
 				$this->job_model->update(
@@ -179,6 +185,7 @@ class Export_Processor {
 
 			// Update progress
 			$new_processed = $current_offset + $batch_count;
+			$total_count   = max( $total_count, $new_processed );
 			$progress      = $total_count > 0 ? ( $new_processed / $total_count ) * 100 : 0;
 
 			$this->job_model->update(
@@ -398,18 +405,21 @@ class Export_Processor {
 		}
 
 		// Get file size
-		$file_size = file_exists( $file_info['path'] ) ? filesize( $file_info['path'] ) : 0;
+		$file_size      = file_exists( $file_info['path'] ) ? filesize( $file_info['path'] ) : 0;
+		$exported_count = count( $data );
 
 		// Update job as completed
 		$this->job_model->update(
 			$job_id,
 			[
-				'status'        => 'completed',
-				'progress'      => 100,
-				'file_path'     => $file_info['path'],
-				'file_size'     => $file_size,
-				'success_items' => count( $data ),
-				'completed_at'  => current_time( 'mysql' ),
+				'status'          => 'completed',
+				'progress'        => 100,
+				'total_items'     => $exported_count,
+				'processed_items' => $exported_count,
+				'file_path'       => $file_info['path'],
+				'file_size'       => $file_size,
+				'success_items'   => $exported_count,
+				'completed_at'    => current_time( 'mysql' ),
 			]
 		);
 	}

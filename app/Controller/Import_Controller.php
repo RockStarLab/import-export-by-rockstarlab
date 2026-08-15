@@ -383,6 +383,34 @@ class Import_Controller extends Base_Controller {
 			return;
 		}
 
+		$lock_key = 'rsl_ie_import_job_lock_' . $job_id;
+		if ( get_transient( $lock_key ) ) {
+			$locked_parameters = json_decode( $job_data->parameters, true );
+			$locked_result     = isset( $locked_parameters['cumulative_result'] ) && is_array( $locked_parameters['cumulative_result'] )
+				? $locked_parameters['cumulative_result']
+				: ( json_decode( (string) $job_data->result, true ) ?: [] );
+			$locked_offset     = isset( $locked_parameters['offset'] ) ? (int) $locked_parameters['offset'] : (int) $job_data->processed_items;
+			$locked_total      = isset( $locked_parameters['total_items'] ) ? (int) $locked_parameters['total_items'] : (int) $job_data->total_items;
+			$locked_progress   = $locked_total > 0 ? round( ( $locked_offset / $locked_total ) * 100 ) : (int) $job_data->progress;
+
+			$this->send_success(
+				[
+					'completed' => false,
+					'locked'    => true,
+					'offset'    => $locked_offset,
+					'progress'  => $locked_progress,
+					'result'    => $locked_result,
+				]
+			);
+			return;
+		}
+		set_transient( $lock_key, 1, MINUTE_IN_SECONDS );
+		register_shutdown_function(
+			static function () use ( $lock_key ) {
+				delete_transient( $lock_key );
+			}
+		);
+
 		$parameters  = json_decode( $job_data->parameters, true );
 		$import_type = $parameters['import_type'];
 		$format      = $parameters['format'];
@@ -571,6 +599,18 @@ class Import_Controller extends Base_Controller {
 
 		// Process each item in batch
 		foreach ( $batch as $index => $item ) {
+			$current_job_status = $job_model->find( $job_id );
+			if ( $current_job_status && in_array( $current_job_status->status, [ 'paused', 'cancelled' ], true ) ) {
+				$this->send_success(
+					[
+						'completed' => true,
+						'status'    => $current_job_status->status,
+						'result'    => $cumulative_result,
+					]
+				);
+				return;
+			}
+
 			$result = $importer->import_item( $item, $offset + $index );
 
 			if ( is_wp_error( $result ) ) {
