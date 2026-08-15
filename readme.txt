@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: export, export woocommerce, import, wordpress csv import
 Requires at least: 6.2
 Tested up to: 7.1
-Stable tag: 1.1.7
+Stable tag: 1.1.8
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -206,6 +206,11 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync posts and pages in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 1.1.8 =
+
+* Added an "Add all" button to the export field selection step so all currently available fields can be selected at once.
+* Fixed release ZIP packaging so spreadsheet runtime dependencies are included for XLSX and ODS import/export support.
 
 = 1.1.7 =
 

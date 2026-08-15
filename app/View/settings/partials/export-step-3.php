@@ -80,6 +80,9 @@ $rsl_ie_field_transformations_enabled = isset( $rsl_ie_field_transformations_ena
 					<span class="dashicons dashicons-list-view"></span>
 					<?php esc_html_e( 'Available Fields', 'import-export-by-rockstarlab' ); ?>
 				</h3>
+				<button type="button" class="rsl-ie-add-all-available-fields" title="<?php esc_attr_e( 'Add all available fields', 'import-export-by-rockstarlab' ); ?>">
+					<?php esc_html_e( 'Add all', 'import-export-by-rockstarlab' ); ?>
+				</button>
 			</div>
 			
 			<!-- Search/Filter -->
