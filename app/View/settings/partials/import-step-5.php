@@ -149,7 +149,7 @@ defined( 'ABSPATH' ) || exit;
 			</button>
 			<button type="button" class="button button-primary button-large rsl-ie-start-import">
 				<span class="dashicons dashicons-download"></span>
-				<?php esc_html_e( 'Start Import', 'import-export-by-rockstarlab' ); ?>
+				<span class="rsl-ie-start-import-text"><?php esc_html_e( 'Start Import', 'import-export-by-rockstarlab' ); ?></span>
 			</button>
 		</div>
 	</div>
