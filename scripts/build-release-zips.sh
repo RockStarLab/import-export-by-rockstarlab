@@ -51,15 +51,21 @@ rsync -a --delete \
 
 pushd "$TMP_DIR/$FREE_SLUG" >/dev/null
 
-# Keep only Freemius in vendor for release ZIPs.
-rm -rf vendor
-if [ -d "$FREE_DIR/vendor/freemius" ]; then
-  mkdir -p vendor
-  rsync -a "$FREE_DIR/vendor/freemius" vendor/
-else
-  echo "Missing Freemius SDK folder: $FREE_DIR/vendor/freemius" >&2
-  exit 1
-fi
+# The release package must keep runtime Composer dependencies.
+# .distignore excludes only development tooling packages, while Freemius,
+# Composer autoload files, and PhpSpreadsheet are required at runtime.
+required_free_files=(
+  "vendor/autoload.php"
+  "vendor/freemius/start.php"
+  "vendor/phpoffice/phpspreadsheet/src/PhpSpreadsheet/IOFactory.php"
+)
+
+for required_free_file in "${required_free_files[@]}"; do
+  if [ ! -f "$required_free_file" ]; then
+    echo "Missing required FREE runtime file in release package: $required_free_file" >&2
+    exit 1
+  fi
+done
 
 rm -f "$FREE_ZIP"
 popd >/dev/null
