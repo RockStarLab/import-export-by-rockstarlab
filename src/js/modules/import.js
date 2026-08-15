@@ -16,9 +16,11 @@ const ImportModule = {
 	fileData: null,
 	jobId: null,
 	progressInterval: null,
+	batchTimeout: null,
 	fileUploader: null,
 	mappingFunctions: {},
 	importStartTime: null,
+	isCancellingImport: false,
 
 	/**
 	 * Initialize module
@@ -4874,6 +4876,12 @@ const ImportModule = {
 	 * Start import
 	 */
 	async startImport() {
+		const $startButton = jQuery( '.rsl-ie-start-import' );
+
+		if ( $startButton.prop( 'disabled' ) ) {
+			return;
+		}
+
 		try {
 			const contentType = jQuery(
 				'input[name="content_type"]:checked'
@@ -4889,6 +4897,8 @@ const ImportModule = {
 				);
 				return;
 			}
+
+			this.setStartImportLoading( true );
 
 			const data = {
 				file_path: this.fileData.file_path,
@@ -4942,6 +4952,7 @@ const ImportModule = {
 
 			this.jobId = response.job_id;
 			this.importStartTime = Date.now();
+			this.isCancellingImport = false;
 			this.showStep( 6 );
 			this.startBatchProcessing();
 
@@ -4951,18 +4962,66 @@ const ImportModule = {
 				'success'
 			);
 		} catch ( error ) {
+			this.setStartImportLoading( false );
 			Utils.handleError( error, 'Start import' );
 		}
+	},
+
+	/**
+	 * Toggle Start Import button loading state
+	 *
+	 * @param {boolean} isLoading Whether the import start request is running.
+	 */
+	setStartImportLoading( isLoading ) {
+		const $button = jQuery( '.rsl-ie-start-import' );
+		const $icon = $button.find( '.dashicons' );
+		const $text = $button.find( '.rsl-ie-start-import-text' );
+
+		if ( isLoading ) {
+			if ( ! $button.data( 'original-text' ) ) {
+				$button.data( 'original-text', $text.text() );
+			}
+			if ( ! $button.data( 'original-icon' ) ) {
+				$button.data( 'original-icon', $icon.attr( 'class' ) );
+			}
+
+			$button.prop( 'disabled', true ).addClass( 'disabled is-starting' );
+			$icon.attr(
+				'class',
+				'dashicons dashicons-update rsl-ie-button-spinner'
+			);
+			$text.text(
+				window.rslIeData.i18n.startingImport || 'Starting import...'
+			);
+			return;
+		}
+
+		const originalText = $button.data( 'original-text' ) || 'Start Import';
+		const originalIcon =
+			$button.data( 'original-icon' ) || 'dashicons dashicons-download';
+
+		$button.removeClass( 'is-starting' );
+		$icon.attr( 'class', originalIcon );
+		$text.text( originalText );
+		this.toggleStartImportButton();
 	},
 
 	/**
 	 * Start batch processing
 	 */
 	async startBatchProcessing() {
+		if ( this.isCancellingImport || ! this.jobId ) {
+			return;
+		}
+
 		try {
 			const response = await Utils.ajax( 'rsl_ie_import_process_batch', {
 				job_id: this.jobId,
 			} );
+
+			if ( this.isCancellingImport || ! this.jobId ) {
+				return;
+			}
 
 			// Transform batch response to progress bar format
 			const elapsedSec = this.importStartTime
@@ -5018,11 +5077,15 @@ const ImportModule = {
 				}
 			} else {
 				// Process next batch
-				setTimeout( () => {
+				this.batchTimeout = setTimeout( () => {
+					this.batchTimeout = null;
 					this.startBatchProcessing();
 				}, 100 );
 			}
 		} catch ( error ) {
+			if ( this.isCancellingImport || ! this.jobId ) {
+				return;
+			}
 			clearInterval( this.progressInterval );
 			Utils.handleError( error, 'Process batch' );
 		}
@@ -5118,6 +5181,13 @@ const ImportModule = {
 			return;
 		}
 
+		this.isCancellingImport = true;
+		this.setCancelImportLoading( true );
+		if ( this.batchTimeout ) {
+			clearTimeout( this.batchTimeout );
+			this.batchTimeout = null;
+		}
+
 		try {
 			await Utils.ajax( 'rsl_ie_import_cancel', { job_id: this.jobId } );
 			Utils.showNotice(
@@ -5126,8 +5196,65 @@ const ImportModule = {
 			);
 			this.resetWizard();
 		} catch ( error ) {
+			this.isCancellingImport = false;
+			this.setCancelImportLoading( false );
 			Utils.handleError( error, 'Cancel import' );
 		}
+	},
+
+	/**
+	 * Toggle Cancel Import button loading state.
+	 *
+	 * @param {boolean} isLoading Whether the cancel request is running.
+	 */
+	setCancelImportLoading( isLoading ) {
+		const $button = jQuery( '.rsl-ie-cancel-import' );
+		const $icon = $button.find( '.dashicons' );
+
+		if ( isLoading ) {
+			if ( ! $button.data( 'original-text' ) ) {
+				$button.data( 'original-text', $button.text().trim() );
+			}
+			if ( ! $button.data( 'original-icon' ) ) {
+				$button.data( 'original-icon', $icon.attr( 'class' ) );
+			}
+
+			$button
+				.prop( 'disabled', true )
+				.addClass( 'disabled is-cancelling' );
+			$icon.attr(
+				'class',
+				'dashicons dashicons-update rsl-ie-button-spinner'
+			);
+			$button
+				.contents()
+				.filter( function () {
+					return this.nodeType === 3;
+				} )
+				.remove();
+			$button.append(
+				' ' +
+					( window.rslIeData.i18n.cancellingImport ||
+						'Cancelling...' )
+			);
+			return;
+		}
+
+		const originalText = $button.data( 'original-text' ) || 'Cancel Import';
+		const originalIcon =
+			$button.data( 'original-icon' ) || 'dashicons dashicons-no';
+
+		$button
+			.prop( 'disabled', false )
+			.removeClass( 'disabled is-cancelling' );
+		$icon.attr( 'class', originalIcon );
+		$button
+			.contents()
+			.filter( function () {
+				return this.nodeType === 3;
+			} )
+			.remove();
+		$button.append( ' ' + originalText );
 	},
 
 	/**
@@ -5149,6 +5276,13 @@ const ImportModule = {
 		this.fileData = null;
 		this.jobId = null;
 		this.importStartTime = null;
+		this.isCancellingImport = false;
+		if ( this.batchTimeout ) {
+			clearTimeout( this.batchTimeout );
+			this.batchTimeout = null;
+		}
+		this.setStartImportLoading( false );
+		this.setCancelImportLoading( false );
 
 		jQuery(
 			'#rsl-ie-import input[type="text"], #rsl-ie-import input[type="file"]'

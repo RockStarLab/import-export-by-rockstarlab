@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: export, export woocommerce, import, wordpress csv import
 Requires at least: 6.2
 Tested up to: 7.1
-Stable tag: 1.1.8
+Stable tag: 1.1.9
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -206,6 +206,14 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync posts and pages in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 1.1.9 =
+
+* Fixed import batch processing races that could double-process rows and report created posts as updated.
+* Improved import cancellation so cancelled jobs stop cleanly without late failed notices.
+* Added loading feedback to the Start Import and Cancel Import buttons.
+* Fixed export job batching so restarted exports do not append duplicate first-batch rows and final counts match the generated file.
+* Improved the import field mapping screen with a scrollable Mapped Fields panel for large files.
 
 = 1.1.8 =
 
