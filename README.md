@@ -1,6 +1,6 @@
 # Import Export by RockStarLab
 
-[![WordPress tested](https://img.shields.io/badge/WordPress-tested%20up%20to%207.0-3858e9.svg)](https://wordpress.org/)
+[![WordPress tested](https://img.shields.io/badge/WordPress-tested%20up%20to%207.1-3858e9.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-777bb4.svg)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-GPL--2.0%2B-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 [![Version](https://img.shields.io/badge/version-1.1.0-informational.svg)](readme.txt)
