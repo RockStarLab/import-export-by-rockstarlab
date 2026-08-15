@@ -20,6 +20,20 @@ class Post_Importer extends Abstract_Importer {
 	const SOURCE_ID_META_KEY = '_rsl_ie_source_post_id';
 
 	/**
+	 * Meta key used to store the import job that created or updated the post.
+	 *
+	 * @var string
+	 */
+	const IMPORT_JOB_META_KEY = '_rsl_ie_import_job_id';
+
+	/**
+	 * Meta key used to store the action performed by the import job.
+	 *
+	 * @var string
+	 */
+	const IMPORT_JOB_ACTION_META_KEY = '_rsl_ie_import_job_action';
+
+	/**
 	 * Get importer name
 	 *
 	 * @return string
@@ -345,6 +359,11 @@ class Post_Importer extends Abstract_Importer {
 			}
 
 			if ( 'update' === $duplicate_mode ) {
+				if ( $this->is_post_created_by_current_job( (int) $existing_post->ID, $source_id ) ) {
+					$this->record_source_id_map( $source_id, $existing_post->ID );
+					return (int) $existing_post->ID;
+				}
+
 				$result = $this->update_post( $existing_post->ID, $item );
 				if ( ! is_wp_error( $result ) ) {
 					$this->record_source_id_map( $source_id, $existing_post->ID );
@@ -537,6 +556,8 @@ class Post_Importer extends Abstract_Importer {
 			return $post_id;
 		}
 
+		$this->mark_post_import_job_action( (int) $post_id, 'created' );
+
 		// Persist the source-site ID for safe reruns.
 		if ( ! empty( $item['_rsl_ie_source_id'] ) ) {
 			update_post_meta( $post_id, self::SOURCE_ID_META_KEY, absint( $item['_rsl_ie_source_id'] ) );
@@ -598,6 +619,8 @@ class Post_Importer extends Abstract_Importer {
 			return $result;
 		}
 
+		$this->mark_post_import_job_action( (int) $post_id, 'updated' );
+
 		// Persist the source-site ID for safe reruns.
 		if ( ! empty( $item['_rsl_ie_source_id'] ) ) {
 			update_post_meta( $post_id, self::SOURCE_ID_META_KEY, absint( $item['_rsl_ie_source_id'] ) );
@@ -630,6 +653,57 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		return 'updated';
+	}
+
+	/**
+	 * Check whether an existing post was already created by this import job.
+	 *
+	 * This protects batch processing from double AJAX/retry races. If the same row is
+	 * processed twice by the same job, the second pass should not be counted as a
+	 * user-visible update.
+	 *
+	 * @param int $post_id   Target post ID.
+	 * @param int $source_id Source post ID from the import file.
+	 * @return bool Whether this is a retry of a post created by the same job.
+	 */
+	private function is_post_created_by_current_job( $post_id, $source_id ) {
+		$post_id = absint( $post_id );
+		$job_id  = absint( $this->job_id );
+		if ( $post_id <= 0 || $job_id <= 0 ) {
+			return false;
+		}
+
+		if ( absint( get_post_meta( $post_id, self::IMPORT_JOB_META_KEY, true ) ) !== $job_id ) {
+			return false;
+		}
+
+		if ( 'created' !== get_post_meta( $post_id, self::IMPORT_JOB_ACTION_META_KEY, true ) ) {
+			return false;
+		}
+
+		if ( $source_id > 0 ) {
+			return absint( get_post_meta( $post_id, self::SOURCE_ID_META_KEY, true ) ) === $source_id;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Mark the action performed by the current import job.
+	 *
+	 * @param int    $post_id Target post ID.
+	 * @param string $action  Import action: created or updated.
+	 * @return void
+	 */
+	private function mark_post_import_job_action( $post_id, $action ) {
+		$post_id = absint( $post_id );
+		$job_id  = absint( $this->job_id );
+		if ( $post_id <= 0 || $job_id <= 0 || ! in_array( $action, [ 'created', 'updated' ], true ) ) {
+			return;
+		}
+
+		update_post_meta( $post_id, self::IMPORT_JOB_META_KEY, $job_id );
+		update_post_meta( $post_id, self::IMPORT_JOB_ACTION_META_KEY, $action );
 	}
 
 	/**
