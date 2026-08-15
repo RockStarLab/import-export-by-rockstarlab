@@ -1,0 +1,41 @@
+# Files and folders that should not be shipped to WordPress.org.
+# Use this list when building the release ZIP.
+
+.git
+.github
+.husky
+.env*
+.gitignore
+.distignore
+README.md
+copilot-instructions.md
+.huskyrc.js
+.env.e2e
+.nvmrc
+.phpcs.xml.dist
+letter.txt
+
+node_modules
+e2e
+temp
+documentation
+landing
+dist
+scripts
+.wordpress-org
+assets/blueprints
+
+# Dev-only vendor packages (built via composer require-dev)
+vendor/bin
+vendor/dealerdirect
+vendor/phpcompatibility
+vendor/phpcsstandards
+vendor/squizlabs
+vendor/wp-coding-standards
+
+# Local build/tooling configs (optional to ship)
+.phpcs.readme.md
+.phpcs.xml.dist
+.prettierrc
+.stylelintrc.js
+webpack.mix.js
