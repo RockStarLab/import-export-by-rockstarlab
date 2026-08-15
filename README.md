@@ -3,7 +3,7 @@
 [![WordPress tested](https://img.shields.io/badge/WordPress-tested%20up%20to%207.1-3858e9.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-777bb4.svg)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-GPL--2.0%2B-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
-[![Version](https://img.shields.io/badge/version-1.1.0-informational.svg)](readme.txt)
+[![Version](https://img.shields.io/badge/version-1.1.8-informational.svg)](readme.txt)
 
 Import, export, sync, and update WordPress content with CSV, XML, XLSX, ODS, JSON, media sync, AI URL import, and PRO migration workflows.
 
@@ -144,6 +144,11 @@ Use Media Folder Sync with duplicate detection. You can choose hash, filename, o
 Yes. Use Site-to-Site Content Sync to connect two sites with API keys and sync posts and pages in the free plugin. Expanded custom content workflows are available through the optional PRO addon.
 
 ## Changelog
+
+### 1.1.8
+
+- Added an "Add all" button to the export field selection step so all currently available fields can be selected at once.
+- Fixed release ZIP packaging so spreadsheet runtime dependencies are included for XLSX and ODS import/export support.
 
 ### 1.1.7
 

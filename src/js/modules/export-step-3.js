@@ -602,6 +602,16 @@ export default class ExportStep3 {
 	 */
 	initCategoryToggle() {
 		document.addEventListener( 'click', ( e ) => {
+			// Handle global "Add all" button in Available Fields header
+			if (
+				e.target.classList.contains( 'rsl-ie-add-all-available-fields' )
+			) {
+				e.preventDefault();
+				e.stopPropagation();
+				this.addAllAvailableFields();
+				return;
+			}
+
 			// Handle "Add all" button
 			if ( e.target.classList.contains( 'rsl-ie-add-all-fields' ) ) {
 				e.stopPropagation();
@@ -622,6 +632,26 @@ export default class ExportStep3 {
 			const category = categoryTitle.closest( '.rsl-ie-field-category' );
 			if ( category ) {
 				category.classList.toggle( 'rsl-ie-collapsed' );
+			}
+		} );
+	}
+
+	/**
+	 * Add all visible fields from the Available Fields library
+	 */
+	addAllAvailableFields() {
+		const categories = document.querySelectorAll(
+			'.rsl-ie-fields-library-body .rsl-ie-field-category'
+		);
+
+		categories.forEach( ( category ) => {
+			if ( category.style.display === 'none' ) {
+				return;
+			}
+
+			const button = category.querySelector( '.rsl-ie-add-all-fields' );
+			if ( button ) {
+				this.addAllFieldsFromCategory( button );
 			}
 		} );
 	}
