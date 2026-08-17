@@ -96,6 +96,8 @@ class Post_Exporter extends Abstract_Exporter {
 			'author_email',
 			// WooCommerce: variable product variations (JSON)
 			'variations',
+			// WooCommerce: product attribute configuration and assigned terms (JSON)
+			'product_attributes',
 			// WooCommerce: grouped product child references (JSON)
 			'grouped_products',
 			// WooCommerce Product fields (with underscore prefix)
@@ -109,6 +111,8 @@ class Post_Exporter extends Abstract_Exporter {
 			'_manage_stock',
 			'_backorders',
 			'_product_type',
+			'_product_url',
+			'_button_text',
 			'_downloadable',
 			'_virtual',
 			'_weight',
@@ -132,6 +136,8 @@ class Post_Exporter extends Abstract_Exporter {
 			'stock_status',
 			'manage_stock',
 			'backorders',
+			'product_url',
+			'button_text',
 			'downloadable',
 			'virtual',
 			'weight',
@@ -147,6 +153,7 @@ class Post_Exporter extends Abstract_Exporter {
 			// WooCommerce taxonomies
 			'product_cat',
 			'product_tag',
+			'product_brand',
 			// Yoast SEO fields
 			'_yoast_wpseo_title',
 			'_yoast_wpseo_metadesc',
@@ -2132,6 +2139,11 @@ class Post_Exporter extends Abstract_Exporter {
 			$data['variations'] = $this->get_product_variations_json( (int) $post->ID );
 		}
 
+		// WooCommerce product attributes (portable JSON).
+		if ( 'product' === $post->post_type && in_array( 'product_attributes', $fields, true ) ) {
+			$data['product_attributes'] = $this->get_product_attributes_json( (int) $post->ID );
+		}
+
 		// Process individual taxonomy fields (taxonomy_category, taxonomy_post_tag, product_cat, product_tag, etc.)
 		foreach ( $fields as $field ) {
 			if ( strpos( $field, 'taxonomy_' ) === 0 ) {
@@ -2146,12 +2158,16 @@ class Post_Exporter extends Abstract_Exporter {
 			}
 			// Handle direct taxonomy names (product_cat, product_tag, etc.)
 			elseif ( taxonomy_exists( $field ) ) {
-				$terms = wp_get_object_terms( $post->ID, $field, [ 'fields' => 'names' ] );
-
-				if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
-					$data[ $field ] = implode( ', ', $terms );
+				if ( 'product' === $post->post_type && in_array( $field, [ 'product_cat', 'product_brand' ], true ) ) {
+					$data[ $field ] = $this->get_portable_product_terms_json( (int) $post->ID, $field );
 				} else {
-					$data[ $field ] = '';
+					$terms = wp_get_object_terms( $post->ID, $field, [ 'fields' => 'names' ] );
+
+					if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+						$data[ $field ] = implode( ', ', $terms );
+					} else {
+						$data[ $field ] = '';
+					}
 				}
 			}
 		}       // Process individual meta fields
@@ -2362,6 +2378,8 @@ class Post_Exporter extends Abstract_Exporter {
 							'_stock_status'          => 'get_stock_status',
 							'_manage_stock'          => 'get_manage_stock',
 							'_backorders'            => 'get_backorders',
+							'_product_url'           => 'get_product_url',
+							'_button_text'           => 'get_button_text',
 							'_downloadable'          => 'get_downloadable',
 							'_virtual'               => 'get_virtual',
 							'_weight'                => 'get_weight',
@@ -2382,6 +2400,8 @@ class Post_Exporter extends Abstract_Exporter {
 							'stock_status'           => 'get_stock_status',
 							'manage_stock'           => 'get_manage_stock',
 							'backorders'             => 'get_backorders',
+							'product_url'            => 'get_product_url',
+							'button_text'            => 'get_button_text',
 							'downloadable'           => 'get_downloadable',
 							'virtual'                => 'get_virtual',
 							'weight'                 => 'get_weight',
@@ -2447,8 +2467,9 @@ class Post_Exporter extends Abstract_Exporter {
 							continue;
 						}
 
-						// Handle _product_type field
-						if ( $field === '_product_type' || $meta_key === '_product_type' ) {
+						// Handle product type field. WooCommerce stores this as the
+						// product_type taxonomy, not regular post meta.
+						if ( 'product_type' === $field || 'product_type' === $meta_key || '_product_type' === $field || '_product_type' === $meta_key ) {
 							$data[ $field ] = $wc_product->get_type();
 							continue;
 						}
@@ -3981,6 +4002,141 @@ class Post_Exporter extends Abstract_Exporter {
 
 		$json = wp_json_encode( $variations_data );
 		return $json ? $json : '';
+	}
+
+	/**
+	 * Export WooCommerce product attributes as portable JSON.
+	 *
+	 * The raw `_product_attributes` value contains a mix of taxonomy references
+	 * and custom product-level attribute values. This method keeps the product
+	 * configuration and adds selected taxonomy terms by slug/name so imports can
+	 * restore relationships on another site where term IDs differ.
+	 *
+	 * @param int $product_id Product ID.
+	 * @return string JSON string or empty string.
+	 */
+	private function get_product_attributes_json( int $product_id ): string {
+		if ( $product_id <= 0 || ! function_exists( 'wc_get_product' ) ) {
+			return '';
+		}
+
+		$product_attributes = get_post_meta( $product_id, '_product_attributes', true );
+		if ( empty( $product_attributes ) || ! is_array( $product_attributes ) ) {
+			return '';
+		}
+
+		$exported = [];
+
+		foreach ( $product_attributes as $key => $attribute ) {
+			if ( ! is_array( $attribute ) ) {
+				continue;
+			}
+
+			$name        = isset( $attribute['name'] ) ? (string) $attribute['name'] : (string) $key;
+			$is_taxonomy = ! empty( $attribute['is_taxonomy'] );
+			$terms       = [];
+
+			if ( $is_taxonomy && taxonomy_exists( $name ) ) {
+				$object_terms = wp_get_object_terms(
+					$product_id,
+					$name,
+					[
+						'hide_empty' => false,
+					]
+				);
+
+				if ( ! is_wp_error( $object_terms ) ) {
+					foreach ( $object_terms as $term ) {
+						$terms[] = [
+							'name' => (string) $term->name,
+							'slug' => (string) $term->slug,
+						];
+					}
+				}
+			}
+
+			$exported[] = [
+				'name'         => $name,
+				'value'        => isset( $attribute['value'] ) ? (string) $attribute['value'] : '',
+				'position'     => isset( $attribute['position'] ) ? (int) $attribute['position'] : 0,
+				'is_visible'   => ! empty( $attribute['is_visible'] ) ? 1 : 0,
+				'is_variation' => ! empty( $attribute['is_variation'] ) ? 1 : 0,
+				'is_taxonomy'  => $is_taxonomy ? 1 : 0,
+				'terms'        => $terms,
+			];
+		}
+
+		if ( empty( $exported ) ) {
+			return '';
+		}
+
+		$json = wp_json_encode( $exported );
+		return $json ? $json : '';
+	}
+
+	/**
+	 * Export product taxonomy terms as portable JSON with hierarchy.
+	 *
+	 * @param int    $product_id Product ID.
+	 * @param string $taxonomy   Taxonomy name.
+	 * @return string JSON string or empty string.
+	 */
+	private function get_portable_product_terms_json( int $product_id, string $taxonomy ): string {
+		if ( $product_id <= 0 || ! taxonomy_exists( $taxonomy ) ) {
+			return '';
+		}
+
+		$terms = wp_get_object_terms(
+			$product_id,
+			$taxonomy,
+			[
+				'orderby' => 'parent',
+				'order'   => 'ASC',
+			]
+		);
+
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			return '';
+		}
+
+		$out = [];
+		foreach ( $terms as $term ) {
+			$out[] = [
+				'name'        => (string) $term->name,
+				'slug'        => (string) $term->slug,
+				'description' => (string) $term->description,
+				'parent_path' => $this->get_term_parent_path( (int) $term->parent, $taxonomy ),
+			];
+		}
+
+		$json = wp_json_encode( $out );
+		return $json ? $json : '';
+	}
+
+	/**
+	 * Get a portable slash-separated parent slug path for a term.
+	 *
+	 * @param int    $parent_id Parent term ID.
+	 * @param string $taxonomy  Taxonomy name.
+	 * @return string Parent path.
+	 */
+	private function get_term_parent_path( int $parent_id, string $taxonomy ): string {
+		if ( $parent_id <= 0 || ! taxonomy_exists( $taxonomy ) ) {
+			return '';
+		}
+
+		$ancestors   = array_reverse( get_ancestors( $parent_id, $taxonomy, 'taxonomy' ) );
+		$ancestors[] = $parent_id;
+
+		$slugs = [];
+		foreach ( $ancestors as $ancestor_id ) {
+			$term = get_term( (int) $ancestor_id, $taxonomy );
+			if ( $term && ! is_wp_error( $term ) ) {
+				$slugs[] = (string) $term->slug;
+			}
+		}
+
+		return implode( '/', array_filter( $slugs ) );
 	}
 
 	/**
