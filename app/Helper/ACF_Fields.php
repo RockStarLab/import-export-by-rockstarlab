@@ -464,6 +464,10 @@ class ACF_Fields {
 			return $ids;
 		}
 
+		if ( is_string( $value ) && '' !== $value && ( 'wysiwyg' === $type || false !== stripos( $value, '<img' ) || false !== stripos( $value, 'srcset=' ) || false !== stripos( $value, '<a' ) ) ) {
+			return self::replace_media_urls_in_html( $value, $parent_id );
+		}
+
 		return $value;
 	}
 
@@ -548,6 +552,8 @@ class ACF_Fields {
 	}
 
 	private static function attachment_id_from_value( $value, $parent_id = 0 ) {
+		static $url_to_attachment_cache = [];
+
 		$value = self::maybe_decode( $value );
 		if ( is_numeric( $value ) ) {
 			return absint( $value );
@@ -572,12 +578,33 @@ class ACF_Fields {
 		if ( ! filter_var( $value, FILTER_VALIDATE_URL ) ) {
 			return 0;
 		}
+		$source_url  = esc_url_raw( $value );
+		$source_hash = md5( $source_url );
+		if ( isset( $url_to_attachment_cache[ $source_hash ] ) ) {
+			return (int) $url_to_attachment_cache[ $source_hash ];
+		}
+		$existing_by_source = self::attachment_id_from_source_hash( $source_hash );
+		if ( $existing_by_source > 0 ) {
+			$url_to_attachment_cache[ $source_hash ] = $existing_by_source;
+			return $existing_by_source;
+		}
 
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 
-		$tmp = download_url( $value );
+		$tmp = download_url( $source_url, 30 );
+		if ( is_wp_error( $tmp ) ) {
+			$host        = wp_parse_url( $source_url, PHP_URL_HOST );
+			$is_dev_host = is_string( $host ) && preg_match( '/(\.local|\.test|localhost)$/i', $host );
+
+			if ( $is_dev_host && 'http_request_failed' === $tmp->get_error_code() ) {
+				$retry = self::download_url_unrestricted( $source_url, 30 );
+				if ( ! is_wp_error( $retry ) ) {
+					$tmp = $retry;
+				}
+			}
+		}
 		if ( is_wp_error( $tmp ) ) {
 			return 0;
 		}
@@ -592,14 +619,103 @@ class ACF_Fields {
 			return 0;
 		}
 
-		update_post_meta( (int) $id, 'rsl_ie_source_url', esc_url_raw( $value ) );
-		update_post_meta( (int) $id, 'rsl_ie_source_url_hash', md5( esc_url_raw( $value ) ) );
+		update_post_meta( (int) $id, 'rsl_ie_source_url', $source_url );
+		update_post_meta( (int) $id, 'rsl_ie_source_url_hash', $source_hash );
 		if ( class_exists( '\RockStarLab\ImportExport\Helper\Media_Hash' ) ) {
 			Media_Hash::get_or_create_hash( (int) $id );
 		}
 
+		$url_to_attachment_cache[ $source_hash ] = (int) $id;
+
 		return (int) $id;
 	}
+
+	/**
+	 * Find an attachment previously imported from the same source URL hash.
+	 *
+	 * @param string $source_hash Source URL hash.
+	 * @return int Attachment ID or 0.
+	 */
+	private static function attachment_id_from_source_hash( $source_hash ) {
+		global $wpdb;
+
+		if ( '' === $source_hash ) {
+			return 0;
+		}
+
+		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value = %s LIMIT 1",
+				'rsl_ie_source_url_hash',
+				$source_hash
+			)
+		);
+
+		return $attachment_id ? absint( $attachment_id ) : 0;
+	}
+
+		/**
+		 * Replace media URLs in HTML/WYSIWYG values with local media library URLs.
+		 *
+		 * @param string $html      HTML value.
+		 * @param int    $parent_id Parent object ID.
+		 * @return string
+		 */
+		private static function replace_media_urls_in_html( $html, $parent_id = 0 ) {
+			return preg_replace_callback(
+				'~https?://[^\s\'"]+\.(?:jpe?g|png|gif|webp|avif|svg|pdf|mp3|m4a|ogg|wav|mp4|m4v|mov|webm)(?:\?[^\s\'"]*)?~i',
+				static function ( $matches ) use ( $parent_id ) {
+					$url = html_entity_decode( $matches[0], ENT_QUOTES, get_bloginfo( 'charset' ) );
+					$id  = self::attachment_id_from_value( $url, $parent_id );
+					if ( $id <= 0 ) {
+						return $matches[0];
+					}
+
+					$local_url = wp_get_attachment_url( $id );
+					return $local_url ? esc_url_raw( $local_url ) : $matches[0];
+				},
+				$html
+			);
+		}
+
+		/**
+		 * Download a URL without WordPress unsafe URL rejection.
+		 *
+		 * This is only used as a fallback for local/dev hosts.
+		 *
+		 * @param string $url     URL.
+		 * @param int    $timeout Timeout in seconds.
+		 * @return string|\WP_Error
+		 */
+		private static function download_url_unrestricted( $url, $timeout ) {
+			$tmp = wp_tempnam( $url );
+			if ( ! $tmp ) {
+				return new \WP_Error( 'rsl_ie_temp_file_failed', __( 'Could not create a temporary file for download.', 'import-export-by-rockstarlab' ) );
+			}
+
+			$response = wp_remote_get(
+				$url,
+				[
+					'timeout'            => absint( $timeout ),
+					'stream'             => true,
+					'filename'           => $tmp,
+					'reject_unsafe_urls' => false,
+				]
+			);
+
+			if ( is_wp_error( $response ) ) {
+				wp_delete_file( $tmp );
+				return $response;
+			}
+
+			$code = (int) wp_remote_retrieve_response_code( $response );
+			if ( $code < 200 || $code >= 300 ) {
+				wp_delete_file( $tmp );
+				return new \WP_Error( 'rsl_ie_download_failed', sprintf( 'Download failed with HTTP %d', $code ) );
+			}
+
+			return $tmp;
+		}
 
 	private static function term_id_from_name( $name, $taxonomy ) {
 		$name     = trim( $name );
