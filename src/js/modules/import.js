@@ -2415,6 +2415,16 @@ const ImportModule = {
 							type: 'string',
 						},
 						{
+							value: 'product_url',
+							label: 'External Product URL',
+							type: 'url',
+						},
+						{
+							value: 'button_text',
+							label: 'External Button Text',
+							type: 'string',
+						},
+						{
 							value: 'downloadable',
 							label: 'Downloadable (yes, no)',
 							type: 'string',
@@ -2524,6 +2534,11 @@ const ImportModule = {
 							type: 'json',
 						},
 						{
+							value: 'product_attributes',
+							label: 'Product Attributes (JSON)',
+							type: 'json',
+						},
+						{
 							value: 'grouped_products',
 							label: 'Grouped Products (JSON)',
 							type: 'json',
@@ -2542,6 +2557,11 @@ const ImportModule = {
 							value: 'product_tag',
 							label: 'Tags (comma-separated)',
 							type: 'string',
+						},
+						{
+							value: 'product_brand',
+							label: 'Brands (JSON or comma-separated)',
+							type: 'json',
 						},
 					],
 				},

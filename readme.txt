@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: export, export woocommerce, import, wordpress csv import
 Requires at least: 6.2
 Tested up to: 7.1
-Stable tag: 1.1.10
+Stable tag: 1.1.11
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -206,6 +206,12 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync posts and pages in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 1.1.11 =
+
+* Fixed WooCommerce product exports so grouped, external / affiliate, brands, hierarchical product categories, and product attributes are exported in portable formats.
+* Added WooCommerce Product Attributes, Product Brands, External Product URL, and External Button Text fields to product import/export field selection.
+* Improved WooCommerce product type export so `product_type` and `_product_type` preserve the real WooCommerce type.
 
 = 1.1.10 =
 
