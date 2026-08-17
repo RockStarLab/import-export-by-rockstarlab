@@ -1096,8 +1096,63 @@ const ImportModule = {
 		if ( contentType === 'database_table' ) {
 			$selector.show();
 			this.loadDatabaseTables();
+			this.initializeCreateTableMode();
 		} else {
 			$selector.hide();
+		}
+	},
+
+	/**
+	 * Initialize create-table controls for database table imports.
+	 */
+	initializeCreateTableMode() {
+		const $toggle = jQuery( '#rsl-ie-create-table-if-missing' );
+		const $newTableWrap = jQuery( '.rsl-ie-create-table-name-wrap' );
+		const $newTableName = jQuery( '#rsl-ie-new-table-name' );
+		const $select = jQuery( '#rsl-ie-import-table-name' );
+
+		$toggle
+			.off( 'change.rslIeCreateTable' )
+			.on( 'change.rslIeCreateTable', () => {
+				const createMode = $toggle.is( ':checked' );
+				$newTableWrap.toggle( createMode );
+				$select.prop( 'disabled', createMode );
+				jQuery( '.rsl-ie-table-info' ).toggle(
+					! createMode && !! this.selectedTableName
+				);
+
+				if ( createMode ) {
+					this.selectedTableName = '';
+					$select.val( '' );
+					this.buildNewTableTargetFields();
+				} else {
+					if ( $select.val() ) {
+						this.selectedTableName = $select.val();
+						this.loadTableInfo( this.selectedTableName );
+						this.loadTableColumnsForMapping();
+					} else {
+						jQuery( '#rsl-ie-target-fields' ).html(
+							'<div class="rsl-ie-info">' +
+								( window.rslIeData.i18n.pleaseSelectTable ||
+									'Please select a database table above to see available columns' ) +
+								'</div>'
+						);
+					}
+				}
+			} );
+
+		$newTableName
+			.off( 'input.rslIeCreateTable' )
+			.on( 'input.rslIeCreateTable', () => {
+				if ( $toggle.is( ':checked' ) ) {
+					this.buildNewTableTargetFields();
+				}
+			} );
+
+		if ( $toggle.is( ':checked' ) ) {
+			$newTableWrap.show();
+			$select.prop( 'disabled', true );
+			this.buildNewTableTargetFields();
 		}
 	},
 
@@ -1158,16 +1213,30 @@ const ImportModule = {
 						);
 					} );
 
-					$select.prop( 'disabled', false );
+					$select.prop(
+						'disabled',
+						jQuery( '#rsl-ie-create-table-if-missing' ).is(
+							':checked'
+						)
+					);
 
 					// Handle table selection
 					$select.off( 'change' ).on( 'change', () => {
+						if (
+							jQuery( '#rsl-ie-create-table-if-missing' ).is(
+								':checked'
+							)
+						) {
+							return;
+						}
+
 						const tableName = $select.val();
 						if ( tableName ) {
 							this.selectedTableName = tableName;
 							this.loadTableInfo( tableName );
 							this.loadTableColumnsForMapping();
 						} else {
+							this.selectedTableName = '';
 							jQuery( '.rsl-ie-table-info' ).html( '' ).hide();
 							jQuery( '#rsl-ie-target-fields' ).html(
 								'<div class="rsl-ie-info">' +
@@ -1190,6 +1259,74 @@ const ImportModule = {
 				);
 			},
 		} );
+	},
+
+	/**
+	 * Build target fields from uploaded file columns for a table that will be created.
+	 */
+	buildNewTableTargetFields() {
+		const $container = jQuery( '#rsl-ie-target-fields' );
+
+		if ( ! this.fileData || ! Array.isArray( this.fileData.columns ) ) {
+			$container.html(
+				'<div class="rsl-ie-info">Upload a file first to create table columns from its headers.</div>'
+			);
+			return;
+		}
+
+		let html = '<div class="rsl-ie-field-group">';
+		html +=
+			'<div class="rsl-ie-field-group-label">' +
+			( window.rslIeData.i18n.fieldGroupTableColumns ||
+				'Table Columns' ) +
+			'</div>';
+		html +=
+			'<div class="rsl-ie-info rsl-ie-create-table-info">New table columns will be created from the mapped file columns below. All columns are created as LONGTEXT for safe import of text, HTML, JSON, and serialized values.</div>';
+
+		this.fileData.columns.forEach( ( column ) => {
+			const columnName = this.normalizeDatabaseIdentifier( column );
+			if ( ! columnName ) {
+				return;
+			}
+
+			html += `
+				<div class="rsl-ie-target-field" data-target-field="${ Utils.escapeHtml(
+					columnName
+				) }" data-field-type="longtext">
+					<div class="rsl-ie-field-icon">
+						<span class="dashicons dashicons-database-add"></span>
+					</div>
+					<div class="rsl-ie-field-info">
+						<div class="rsl-ie-field-label">${ Utils.escapeHtml( columnName ) }</div>
+						<span class="rsl-ie-field-type-badge">LONGTEXT</span>
+					</div>
+				</div>
+			`;
+		} );
+
+		html += '</div>';
+		$container.html( html );
+		this.initializeDragDrop();
+	},
+
+	/**
+	 * Normalize file headers to safe MySQL identifiers.
+	 *
+	 * @param {string} value Raw value.
+	 * @return {string} Safe identifier.
+	 */
+	normalizeDatabaseIdentifier( value ) {
+		let identifier = String( value || '' )
+			.trim()
+			.replace( /[^A-Za-z0-9_]/g, '_' )
+			.replace( /_+/g, '_' )
+			.replace( /^_+|_+$/g, '' );
+
+		if ( identifier && ! /^[A-Za-z_]/.test( identifier ) ) {
+			identifier = `column_${ identifier }`;
+		}
+
+		return identifier.substring( 0, 64 );
 	},
 
 	/**
@@ -1868,6 +2005,11 @@ const ImportModule = {
 						{
 							value: 'description',
 							label: 'Description',
+							type: 'string',
+						},
+						{
+							value: 'locations',
+							label: 'Menu Locations',
 							type: 'string',
 						},
 						{ value: 'count', label: 'Item Count', type: 'number' },
@@ -4943,9 +5085,33 @@ const ImportModule = {
 
 			// Add table name for database_table import
 			if ( contentType === 'database_table' ) {
-				data.options.table_name =
-					this.selectedTableName ||
-					jQuery( '#rsl-ie-import-table-name' ).val();
+				const createTableIfMissing = jQuery(
+					'#rsl-ie-create-table-if-missing'
+				).is( ':checked' );
+				const tableName = createTableIfMissing
+					? jQuery( '#rsl-ie-new-table-name' ).val()
+					: this.selectedTableName ||
+					  jQuery( '#rsl-ie-import-table-name' ).val();
+
+				if ( ! tableName ) {
+					throw new Error(
+						createTableIfMissing
+							? 'Please enter a new database table name.'
+							: window.rslIeData.i18n.pleaseSelectTable ||
+							  'Please select a database table from the dropdown to continue.'
+					);
+				}
+
+				if ( ! /^[A-Za-z0-9_]+$/.test( tableName ) ) {
+					throw new Error(
+						'Database table names can contain letters, numbers, and underscores only.'
+					);
+				}
+
+				data.options.table_name = tableName;
+				data.options.create_table_if_missing = createTableIfMissing
+					? 1
+					: 0;
 			}
 
 			const response = await Utils.ajax( 'rsl_ie_import_start', data );
@@ -5693,6 +5859,9 @@ const ImportModule = {
 			'custom_post_types',
 			'product',
 			'woo_product',
+			'user',
+			'taxonomy',
+			'taxonomy_terms',
 		];
 
 		// Show media options ONLY if contentType is in the supported list
