@@ -45,6 +45,18 @@ defined( 'ABSPATH' ) || exit;
 				<span class="spinner" style="float:none;margin:0 10px;"></span>
 			</div>
 
+			<div class="rsl-ie-create-table-option">
+				<label class="rsl-ie-create-table-toggle" for="rsl-ie-create-table-if-missing">
+					<input type="checkbox" id="rsl-ie-create-table-if-missing" name="create_table_if_missing" value="1">
+					<span><?php esc_html_e( 'Create a new table if it does not exist', 'import-export-by-rockstarlab' ); ?></span>
+				</label>
+				<div class="rsl-ie-create-table-name-wrap" style="display:none;">
+					<label for="rsl-ie-new-table-name"><?php esc_html_e( 'New table name:', 'import-export-by-rockstarlab' ); ?></label>
+					<input type="text" id="rsl-ie-new-table-name" class="regular-text" placeholder="<?php esc_attr_e( 'example_custom_import', 'import-export-by-rockstarlab' ); ?>">
+					<p class="description"><?php esc_html_e( 'Use letters, numbers, and underscores only. If no WordPress table prefix is included, the importer will add it automatically.', 'import-export-by-rockstarlab' ); ?></p>
+				</div>
+			</div>
+
 			<div class="rsl-ie-table-info" style="display:none;">
 				<div class="rsl-ie-info-card">
 					<h4><?php esc_html_e( 'Table Information', 'import-export-by-rockstarlab' ); ?></h4>
@@ -64,7 +76,7 @@ defined( 'ABSPATH' ) || exit;
 					</div>
 				</div>
 			</div>
-		</div>
+			</div>
 
 		<!-- Mapping Controls -->
 		<div class="rsl-ie-mapping-controls">

@@ -532,6 +532,22 @@ class Import_Controller extends Base_Controller {
 			$parameters['total_items']   = $total_items;
 			$parameters['offset']        = 0;
 
+			if ( 'database_table' === $import_type && method_exists( $importer, 'set_options' ) && method_exists( $importer, 'ensure_target_table' ) ) {
+				$importer->set_options( $options );
+				$table_result = $importer->ensure_target_table( $prepared_data );
+				if ( is_wp_error( $table_result ) ) {
+					$job_model->update(
+						$job_id,
+						[
+							'status' => 'failed',
+							'result' => wp_json_encode( [ 'error' => $table_result->get_error_message() ] ),
+						]
+					);
+					$this->send_error( $table_result, null, 400 );
+					return;
+				}
+			}
+
 			// Initialize cumulative result
 			$parameters['cumulative_result'] = [
 				'total'   => $total_items,
@@ -543,12 +559,12 @@ class Import_Controller extends Base_Controller {
 				'errors'  => [],
 			];
 
-			$job_model->update(
-				$job_id,
-				[
-					'parameters' => wp_json_encode( $parameters ),
-				]
-			);
+				$job_model->update(
+					$job_id,
+					[
+						'parameters' => wp_json_encode( $parameters ),
+					]
+				);
 
 			// Initialize progress
 			\RockStarLab\ImportExport\Helper\Progress_Tracker::update_progress( $job_id, $total_items, 0, 0, 0 );
