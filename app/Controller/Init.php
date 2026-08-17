@@ -123,6 +123,9 @@ class Init {
 		// Handle welcome page redirect
 		add_action( 'admin_init', array( $this, 'welcome_redirect' ) );
 
+		// Add contextual Help tab to plugin admin pages except Welcome.
+		add_action( 'current_screen', array( $this, 'add_plugin_help_tab' ) );
+
 		// Fix attachment URLs for "keep in current directory" mode files outside uploads.
 		add_filter( 'wp_get_attachment_url', array( $this, 'fix_keep_mode_attachment_url' ), 10, 2 );
 	}
@@ -1042,6 +1045,42 @@ class Init {
 				'import-export-by-rockstarlab_page_import-export-by-rockstarlab-addons',
 			),
 			true
+		);
+	}
+
+	/**
+	 * Add a contextual Help tab to plugin admin pages.
+	 *
+	 * @param \WP_Screen|null $screen Current admin screen.
+	 * @return void
+	 */
+	function add_plugin_help_tab( $screen ) {
+		if ( ! $screen || empty( $screen->id ) || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$current_page = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$current_page = is_string( $current_page ) ? sanitize_key( wp_unslash( $current_page ) ) : '';
+
+		if ( 'import-export-by-rockstarlab' === $current_page || 'toplevel_page_import-export-by-rockstarlab' === $screen->id ) {
+			return;
+		}
+
+		if ( ! $this->is_plugin_admin_page( $screen->id, $current_page ) ) {
+			return;
+		}
+
+		$screen->add_help_tab(
+			array(
+				'id'      => 'rsl-ie-help',
+				'title'   => __( 'Help', 'import-export-by-rockstarlab' ),
+				'content' =>
+					'<p>' . esc_html__( 'Need help with Import Export by RockStarLab? These resources can help you get started and learn common workflows.', 'import-export-by-rockstarlab' ) . '</p>' .
+					'<ul>' .
+						'<li><a href="https://wpimportexport.com/import-export-video-tutorials-for-wordpress/" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Video Tutorials', 'import-export-by-rockstarlab' ) . '</a></li>' .
+						'<li><a href="https://wpimportexport.com/docs/" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Documentation', 'import-export-by-rockstarlab' ) . '</a></li>' .
+					'</ul>',
+			)
 		);
 	}
 

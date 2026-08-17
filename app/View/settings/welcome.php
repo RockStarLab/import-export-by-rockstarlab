@@ -195,40 +195,54 @@ $rsl_ie_pro_active     = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_acti
 							<span class="dashicons dashicons-editor-help"></span>
 							<?php echo wp_kses_post( __( 'Help &amp; Support', 'import-export-by-rockstarlab' ) ); ?>
 						</h2>
+						</div>
+						<div class="rsl-ie-card__body">
+							<ul class="rsl-ie-support-list">
+								<li>
+									<span class="rsl-ie-support-icon"><span class="dashicons dashicons-video-alt3"></span></span>
+									<span class="rsl-ie-support-text">
+										<a href="https://wpimportexport.com/import-export-video-tutorials-for-wordpress/" target="_blank"><?php esc_html_e( 'Video Tutorials', 'import-export-by-rockstarlab' ); ?></a>
+										<span class="rsl-ie-support-desc"><?php esc_html_e( 'Step-by-step video guides', 'import-export-by-rockstarlab' ); ?></span>
+									</span>
+								</li>
+								<li>
+									<span class="rsl-ie-support-icon"><span class="dashicons dashicons-book-alt"></span></span>
+									<span class="rsl-ie-support-text">
+										<a href="https://wpimportexport.com/docs/" target="_blank"><?php esc_html_e( 'Documentation', 'import-export-by-rockstarlab' ); ?></a>
+										<span class="rsl-ie-support-desc"><?php esc_html_e( 'Guides and tutorials', 'import-export-by-rockstarlab' ); ?></span>
+									</span>
+								</li>
+								<li>
+									<span class="rsl-ie-support-icon"><span class="dashicons dashicons-wordpress"></span></span>
+									<span class="rsl-ie-support-text">
+										<a href="https://wordpress.org/support/plugin/import-export-by-rockstarlab/" target="_blank"><?php esc_html_e( 'Support Forum', 'import-export-by-rockstarlab' ); ?></a>
+										<span class="rsl-ie-support-desc"><?php esc_html_e( 'Community help on WP.org', 'import-export-by-rockstarlab' ); ?></span>
+									</span>
+								</li>
+								<li>
+									<span class="rsl-ie-support-icon"><span class="dashicons dashicons-email-alt"></span></span>
+									<span class="rsl-ie-support-text">
+										<a href="<?php echo esc_url( admin_url( 'admin.php?page=import-export-by-rockstarlab-contact' ) ); ?>"><?php esc_html_e( 'Email Support', 'import-export-by-rockstarlab' ); ?></a>
+										<span class="rsl-ie-support-desc"><?php esc_html_e( 'Direct help from the team', 'import-export-by-rockstarlab' ); ?></span>
+									</span>
+								</li>
+								<li>
+									<span class="rsl-ie-support-icon"><span class="dashicons dashicons-star-half"></span></span>
+									<span class="rsl-ie-support-text">
+										<a href="https://wordpress.org/support/plugin/import-export-by-rockstarlab/reviews/#new-post" target="_blank"><?php esc_html_e( 'Leave a Review', 'import-export-by-rockstarlab' ); ?></a>
+										<span class="rsl-ie-support-desc"><?php esc_html_e( 'Rate us on WordPress.org', 'import-export-by-rockstarlab' ); ?></span>
+									</span>
+								</li>
+								<li>
+									<span class="rsl-ie-support-icon"><span class="dashicons dashicons-lightbulb"></span></span>
+									<span class="rsl-ie-support-text">
+										<a href="<?php echo esc_url( admin_url( 'admin.php?page=import-export-by-rockstarlab-contact' ) ); ?>"><?php esc_html_e( 'Propose New Feature', 'import-export-by-rockstarlab' ); ?></a>
+										<span class="rsl-ie-support-desc"><?php esc_html_e( 'Tell us what to build next', 'import-export-by-rockstarlab' ); ?></span>
+									</span>
+								</li>
+							</ul>
+						</div>
 					</div>
-					<div class="rsl-ie-card__body">
-						<ul class="rsl-ie-support-list">
-							<li>
-								<span class="rsl-ie-support-icon"><span class="dashicons dashicons-book-alt"></span></span>
-								<span class="rsl-ie-support-text">
-									<a href="https://wpimportexport.com/docs/" target="_blank"><?php esc_html_e( 'Documentation', 'import-export-by-rockstarlab' ); ?></a>
-									<span class="rsl-ie-support-desc"><?php esc_html_e( 'Guides and tutorials', 'import-export-by-rockstarlab' ); ?></span>
-								</span>
-							</li>
-							<li>
-								<span class="rsl-ie-support-icon"><span class="dashicons dashicons-wordpress"></span></span>
-								<span class="rsl-ie-support-text">
-									<a href="https://wordpress.org/support/plugin/import-export-by-rockstarlab/" target="_blank"><?php esc_html_e( 'Support Forum', 'import-export-by-rockstarlab' ); ?></a>
-									<span class="rsl-ie-support-desc"><?php esc_html_e( 'Community help on WP.org', 'import-export-by-rockstarlab' ); ?></span>
-								</span>
-							</li>
-							<li>
-								<span class="rsl-ie-support-icon"><span class="dashicons dashicons-email-alt"></span></span>
-								<span class="rsl-ie-support-text">
-									<a href="<?php echo esc_url( admin_url( 'admin.php?page=import-export-by-rockstarlab-contact' ) ); ?>"><?php esc_html_e( 'Email Support', 'import-export-by-rockstarlab' ); ?></a>
-									<span class="rsl-ie-support-desc"><?php esc_html_e( 'Direct help from the team', 'import-export-by-rockstarlab' ); ?></span>
-								</span>
-							</li>
-							<li>
-								<span class="rsl-ie-support-icon"><span class="dashicons dashicons-star-half"></span></span>
-								<span class="rsl-ie-support-text">
-									<a href="https://wordpress.org/support/plugin/import-export-by-rockstarlab/reviews/#new-post" target="_blank"><?php esc_html_e( 'Leave a Review', 'import-export-by-rockstarlab' ); ?></a>
-									<span class="rsl-ie-support-desc"><?php esc_html_e( 'Rate us on WordPress.org', 'import-export-by-rockstarlab' ); ?></span>
-								</span>
-							</li>
-						</ul>
-					</div>
-				</div>
 
 			</div><!-- .rsl-ie-postbox-container-right -->
 

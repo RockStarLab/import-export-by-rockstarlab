@@ -30,6 +30,42 @@
 	}
 }
 
+.rsl-ie-create-table-option {
+	margin-top: 14px;
+	padding: 16px;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+
+	.rsl-ie-create-table-toggle {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-weight: 600;
+		color: #1d2327;
+		margin: 0;
+	}
+
+	.rsl-ie-create-table-name-wrap {
+		margin-top: 14px;
+
+		label {
+			display: block;
+			font-weight: 600;
+			margin-bottom: 6px;
+		}
+
+		input {
+			width: 100%;
+			max-width: 420px;
+		}
+	}
+}
+
+.rsl-ie-create-table-info {
+	margin: 10px 0 12px;
+}
+
 .rsl-ie-table-stats {
 	display: flex;
 	gap: 20px;
