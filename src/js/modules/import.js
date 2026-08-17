@@ -1111,31 +1111,35 @@ const ImportModule = {
 		const $newTableName = jQuery( '#rsl-ie-new-table-name' );
 		const $select = jQuery( '#rsl-ie-import-table-name' );
 
-		$toggle.off( 'change.rslIeCreateTable' ).on( 'change.rslIeCreateTable', () => {
-			const createMode = $toggle.is( ':checked' );
-			$newTableWrap.toggle( createMode );
-			$select.prop( 'disabled', createMode );
-			jQuery( '.rsl-ie-table-info' ).toggle( ! createMode && !! this.selectedTableName );
+		$toggle
+			.off( 'change.rslIeCreateTable' )
+			.on( 'change.rslIeCreateTable', () => {
+				const createMode = $toggle.is( ':checked' );
+				$newTableWrap.toggle( createMode );
+				$select.prop( 'disabled', createMode );
+				jQuery( '.rsl-ie-table-info' ).toggle(
+					! createMode && !! this.selectedTableName
+				);
 
-			if ( createMode ) {
-				this.selectedTableName = '';
-				$select.val( '' );
-				this.buildNewTableTargetFields();
-			} else {
-				if ( $select.val() ) {
-					this.selectedTableName = $select.val();
-					this.loadTableInfo( this.selectedTableName );
-					this.loadTableColumnsForMapping();
+				if ( createMode ) {
+					this.selectedTableName = '';
+					$select.val( '' );
+					this.buildNewTableTargetFields();
 				} else {
-					jQuery( '#rsl-ie-target-fields' ).html(
-						'<div class="rsl-ie-info">' +
-							( window.rslIeData.i18n.pleaseSelectTable ||
-								'Please select a database table above to see available columns' ) +
-							'</div>'
-					);
+					if ( $select.val() ) {
+						this.selectedTableName = $select.val();
+						this.loadTableInfo( this.selectedTableName );
+						this.loadTableColumnsForMapping();
+					} else {
+						jQuery( '#rsl-ie-target-fields' ).html(
+							'<div class="rsl-ie-info">' +
+								( window.rslIeData.i18n.pleaseSelectTable ||
+									'Please select a database table above to see available columns' ) +
+								'</div>'
+						);
+					}
 				}
-			}
-		} );
+			} );
 
 		$newTableName
 			.off( 'input.rslIeCreateTable' )
@@ -1156,67 +1160,73 @@ const ImportModule = {
 	 * Load database tables on Step 4
 	 */
 	loadDatabaseTables() {
-	const $select = jQuery( '#rsl-ie-import-table-name' );
-	const $spinner = jQuery( '.rsl-ie-table-selector .spinner' );
-	const $section = jQuery( '.rsl-ie-table-selection-section' );
+		const $select = jQuery( '#rsl-ie-import-table-name' );
+		const $spinner = jQuery( '.rsl-ie-table-selector .spinner' );
+		const $section = jQuery( '.rsl-ie-table-selection-section' );
 
-	// If already loaded, skip
-	if ( $select.find( 'option' ).length > 1 ) {
-		return;
-	}
+		// If already loaded, skip
+		if ( $select.find( 'option' ).length > 1 ) {
+			return;
+		}
 
-	// Show section
-	$section.show();
+		// Show section
+		$section.show();
 
-	// Show loading
-	$select.prop( 'disabled', true );
-	$spinner.addClass( 'is-active' );
+		// Show loading
+		$select.prop( 'disabled', true );
+		$spinner.addClass( 'is-active' );
 
-	jQuery.ajax( {
-		url: window.rslIeData.ajaxUrl,
-		type: 'POST',
-		data: {
-			action: 'rsl_ie_get_database_tables',
-			nonce: window.rslIeData.nonce,
-		},
-		success: ( response ) => {
-			$spinner.removeClass( 'is-active' );
+		jQuery.ajax( {
+			url: window.rslIeData.ajaxUrl,
+			type: 'POST',
+			data: {
+				action: 'rsl_ie_get_database_tables',
+				nonce: window.rslIeData.nonce,
+			},
+			success: ( response ) => {
+				$spinner.removeClass( 'is-active' );
 
-			if ( response.success && response.data ) {
-				const tables = response.data.tables || response.data || [];
+				if ( response.success && response.data ) {
+					const tables = response.data.tables || response.data || [];
 
-				$select.empty();
-				$select.append(
-					jQuery( '<option>' )
-						.val( '' )
-						.text( window.rslIeData.i18n.selectTable )
-				);
-
-				if ( ! Array.isArray( tables ) || tables.length === 0 ) {
+					$select.empty();
 					$select.append(
 						jQuery( '<option>' )
 							.val( '' )
-							.text( window.rslIeData.i18n.noTablesFound )
+							.text( window.rslIeData.i18n.selectTable )
 					);
-					$select.prop( 'disabled', true );
-					return;
-				}
-				tables.forEach( ( table ) => {
-					$select.append(
-						jQuery( '<option>' )
-							.val( table.table_name )
-							.text( table.label )
-					);
-				} );
+
+					if ( ! Array.isArray( tables ) || tables.length === 0 ) {
+						$select.append(
+							jQuery( '<option>' )
+								.val( '' )
+								.text( window.rslIeData.i18n.noTablesFound )
+						);
+						$select.prop( 'disabled', true );
+						return;
+					}
+					tables.forEach( ( table ) => {
+						$select.append(
+							jQuery( '<option>' )
+								.val( table.table_name )
+								.text( table.label )
+						);
+					} );
 
 					$select.prop(
 						'disabled',
-						jQuery( '#rsl-ie-create-table-if-missing' ).is( ':checked' )
+						jQuery( '#rsl-ie-create-table-if-missing' ).is(
+							':checked'
+						)
 					);
 
 					// Handle table selection
 					$select.off( 'change' ).on( 'change', () => {
-						if ( jQuery( '#rsl-ie-create-table-if-missing' ).is( ':checked' ) ) {
+						if (
+							jQuery( '#rsl-ie-create-table-if-missing' ).is(
+								':checked'
+							)
+						) {
 							return;
 						}
 
@@ -1229,25 +1239,25 @@ const ImportModule = {
 							this.selectedTableName = '';
 							jQuery( '.rsl-ie-table-info' ).html( '' ).hide();
 							jQuery( '#rsl-ie-target-fields' ).html(
-							'<div class="rsl-ie-info">' +
-								( window.rslIeData.i18n.pleaseSelectTable ||
-									'Please select a database table above to see available columns' ) +
-								'</div>'
-						);
-					}
-				} );
-			} else {
+								'<div class="rsl-ie-info">' +
+									( window.rslIeData.i18n.pleaseSelectTable ||
+										'Please select a database table above to see available columns' ) +
+									'</div>'
+							);
+						}
+					} );
+				} else {
+					$select.html(
+						`<option value="">${ window.rslIeData.i18n.noTablesFound }</option>`
+					);
+				}
+			},
+			error: ( xhr, status, error ) => {
+				$spinner.removeClass( 'is-active' );
 				$select.html(
-					`<option value="">${ window.rslIeData.i18n.noTablesFound }</option>`
+					`<option value="">${ window.rslIeData.i18n.errorLoadingTables }</option>`
 				);
-			}
-		},
-		error: ( xhr, status, error ) => {
-			$spinner.removeClass( 'is-active' );
-			$select.html(
-				`<option value="">${ window.rslIeData.i18n.errorLoadingTables }</option>`
-			);
-		},
+			},
 		} );
 	},
 
@@ -1308,16 +1318,16 @@ const ImportModule = {
 	normalizeDatabaseIdentifier( value ) {
 		let identifier = String( value || '' )
 			.trim()
-				.replace( /[^A-Za-z0-9_]/g, '_' )
-				.replace( /_+/g, '_' )
-				.replace( /^_+|_+$/g, '' );
+			.replace( /[^A-Za-z0-9_]/g, '_' )
+			.replace( /_+/g, '_' )
+			.replace( /^_+|_+$/g, '' );
 
-			if ( identifier && ! /^[A-Za-z_]/.test( identifier ) ) {
-				identifier = `column_${ identifier }`;
-			}
+		if ( identifier && ! /^[A-Za-z_]/.test( identifier ) ) {
+			identifier = `column_${ identifier }`;
+		}
 
-			return identifier.substring( 0, 64 );
-		},
+		return identifier.substring( 0, 64 );
+	},
 
 	/**
 	 * Load table info on Step 2
@@ -1992,19 +2002,19 @@ const ImportModule = {
 					options: [
 						{ value: 'name', label: 'Menu Name', type: 'string' },
 						{ value: 'slug', label: 'Menu Slug', type: 'string' },
-							{
-								value: 'description',
-								label: 'Description',
-								type: 'string',
-							},
-							{
-								value: 'locations',
-								label: 'Menu Locations',
-								type: 'string',
-							},
-							{ value: 'count', label: 'Item Count', type: 'number' },
-						],
-					},
+						{
+							value: 'description',
+							label: 'Description',
+							type: 'string',
+						},
+						{
+							value: 'locations',
+							label: 'Menu Locations',
+							type: 'string',
+						},
+						{ value: 'count', label: 'Item Count', type: 'number' },
+					],
+				},
 				{
 					label: 'Items',
 					options: [
@@ -2405,6 +2415,16 @@ const ImportModule = {
 							type: 'string',
 						},
 						{
+							value: 'product_url',
+							label: 'External Product URL',
+							type: 'url',
+						},
+						{
+							value: 'button_text',
+							label: 'External Button Text',
+							type: 'string',
+						},
+						{
 							value: 'downloadable',
 							label: 'Downloadable (yes, no)',
 							type: 'string',
@@ -2514,6 +2534,11 @@ const ImportModule = {
 							type: 'json',
 						},
 						{
+							value: 'product_attributes',
+							label: 'Product Attributes (JSON)',
+							type: 'json',
+						},
+						{
 							value: 'grouped_products',
 							label: 'Grouped Products (JSON)',
 							type: 'json',
@@ -2532,6 +2557,11 @@ const ImportModule = {
 							value: 'product_tag',
 							label: 'Tags (comma-separated)',
 							type: 'string',
+						},
+						{
+							value: 'product_brand',
+							label: 'Brands (JSON or comma-separated)',
+							type: 'json',
 						},
 					],
 				},
@@ -4956,32 +4986,32 @@ const ImportModule = {
 		const mapping = [];
 
 		jQuery( '.rsl-ie-mapping-row' ).each( function () {
-		const $row = jQuery( this );
-		const sourceIndex = $row.data( 'source-index' );
-		const targetField = $row.data( 'target-field' );
-		const sourceField = jQuery(
-			`.rsl-ie-field-card[data-source-index="${ sourceIndex }"]`
-		).data( 'source-field' );
+			const $row = jQuery( this );
+			const sourceIndex = $row.data( 'source-index' );
+			const targetField = $row.data( 'target-field' );
+			const sourceField = jQuery(
+				`.rsl-ie-field-card[data-source-index="${ sourceIndex }"]`
+			).data( 'source-field' );
 
-		if ( sourceField && targetField ) {
-			const entry = {
-				source_index: sourceIndex,
-				source_field: sourceField,
-				target_field: targetField,
-			};
+			if ( sourceField && targetField ) {
+				const entry = {
+					source_index: sourceIndex,
+					source_field: sourceField,
+					target_field: targetField,
+				};
 
-			if ( ImportModule.areFieldTransformationsEnabled() ) {
-				const mappingKey = `${ sourceIndex }-${ targetField }`;
-				const functions =
-					ImportModule.mappingFunctions?.[ mappingKey ] || [];
-				const functionIds = functions
-					.map( ( func ) =>
-						typeof func === 'object' ? func.id : func
-					)
-					.filter( Boolean );
+				if ( ImportModule.areFieldTransformationsEnabled() ) {
+					const mappingKey = `${ sourceIndex }-${ targetField }`;
+					const functions =
+						ImportModule.mappingFunctions?.[ mappingKey ] || [];
+					const functionIds = functions
+						.map( ( func ) =>
+							typeof func === 'object' ? func.id : func
+						)
+						.filter( Boolean );
 
-				if ( functionIds.length > 0 ) {
-					entry.function_ids = functionIds;
+					if ( functionIds.length > 0 ) {
+						entry.function_ids = functionIds;
 					}
 				}
 
@@ -5073,34 +5103,36 @@ const ImportModule = {
 				).val();
 			}
 
-				// Add table name for database_table import
-				if ( contentType === 'database_table' ) {
-					const createTableIfMissing = jQuery(
-						'#rsl-ie-create-table-if-missing'
-					).is( ':checked' );
-					const tableName = createTableIfMissing
-						? jQuery( '#rsl-ie-new-table-name' ).val()
-						: this.selectedTableName ||
-						  jQuery( '#rsl-ie-import-table-name' ).val();
+			// Add table name for database_table import
+			if ( contentType === 'database_table' ) {
+				const createTableIfMissing = jQuery(
+					'#rsl-ie-create-table-if-missing'
+				).is( ':checked' );
+				const tableName = createTableIfMissing
+					? jQuery( '#rsl-ie-new-table-name' ).val()
+					: this.selectedTableName ||
+					  jQuery( '#rsl-ie-import-table-name' ).val();
 
-					if ( ! tableName ) {
-						throw new Error(
-							createTableIfMissing
-								? 'Please enter a new database table name.'
-								: window.rslIeData.i18n.pleaseSelectTable ||
-										'Please select a database table from the dropdown to continue.'
-						);
-					}
-
-					if ( ! /^[A-Za-z0-9_]+$/.test( tableName ) ) {
-						throw new Error(
-							'Database table names can contain letters, numbers, and underscores only.'
-						);
-					}
-
-					data.options.table_name = tableName;
-					data.options.create_table_if_missing = createTableIfMissing ? 1 : 0;
+				if ( ! tableName ) {
+					throw new Error(
+						createTableIfMissing
+							? 'Please enter a new database table name.'
+							: window.rslIeData.i18n.pleaseSelectTable ||
+							  'Please select a database table from the dropdown to continue.'
+					);
 				}
+
+				if ( ! /^[A-Za-z0-9_]+$/.test( tableName ) ) {
+					throw new Error(
+						'Database table names can contain letters, numbers, and underscores only.'
+					);
+				}
+
+				data.options.table_name = tableName;
+				data.options.create_table_if_missing = createTableIfMissing
+					? 1
+					: 0;
+			}
 
 			const response = await Utils.ajax( 'rsl_ie_import_start', data );
 

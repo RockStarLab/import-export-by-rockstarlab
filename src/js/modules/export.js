@@ -3404,6 +3404,16 @@ const ExportModule = {
 							type: 'string',
 						},
 						{
+							value: 'product_url',
+							label: 'External Product URL',
+							type: 'url',
+						},
+						{
+							value: 'button_text',
+							label: 'External Button Text',
+							type: 'string',
+						},
+						{
 							value: 'downloadable',
 							label: window.rslIeData.i18n.fieldDownloadable,
 							type: 'boolean',
@@ -3497,6 +3507,11 @@ const ExportModule = {
 							type: 'json',
 						},
 						{
+							value: 'product_attributes',
+							label: 'Product Attributes (JSON)',
+							type: 'json',
+						},
+						{
 							value: 'grouped_products',
 							label: 'Grouped Products (JSON)',
 							type: 'json',
@@ -3515,6 +3530,11 @@ const ExportModule = {
 							value: 'product_tag',
 							label: window.rslIeData.i18n.fieldTags,
 							type: 'string',
+						},
+						{
+							value: 'product_brand',
+							label: 'Brands',
+							type: 'json',
 						},
 					],
 				},
