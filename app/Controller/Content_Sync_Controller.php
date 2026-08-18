@@ -1406,7 +1406,7 @@ class Content_Sync_Controller extends Base_Controller {
 									'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $acf_taxonomy ),
 									'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $acf_taxonomy ),
 								);
-						$known_ids[]                   = $raw_id;
+								$known_ids[]                   = $raw_id;
 					}
 				}
 			}
@@ -1518,12 +1518,12 @@ class Content_Sync_Controller extends Base_Controller {
 								if ( ! is_wp_error( $c_terms ) ) {
 									foreach ( $c_terms as $c_term ) {
 										$child_terms[ $child_tax ][] = array(
-											'term_id'        => $c_term->term_id,
-											'name'           => $c_term->name,
-											'slug'           => $c_term->slug,
+											'term_id'     => $c_term->term_id,
+											'name'        => $c_term->name,
+											'slug'        => $c_term->slug,
 											'parent_term_id' => (int) $c_term->parent,
-											'parent_slug'    => $this->get_term_slug_by_id( (int) $c_term->parent, $child_tax ),
-											'parent_path'    => $this->get_term_parent_path( (int) $c_term->parent, $child_tax ),
+											'parent_slug' => $this->get_term_slug_by_id( (int) $c_term->parent, $child_tax ),
+											'parent_path' => $this->get_term_parent_path( (int) $c_term->parent, $child_tax ),
 										);
 									}
 								}
@@ -1668,7 +1668,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 			// Upload new image
 			$image['force_unique'] = $force_unique;
-			$new_id = $this->upload_single_image_to_remote( $image, $site );
+			$new_id                = $this->upload_single_image_to_remote( $image, $site );
 			if ( $new_id ) {
 				$image_map[ $image['attachment_id'] ] = $new_id;
 			}
@@ -1872,6 +1872,7 @@ class Content_Sync_Controller extends Base_Controller {
 		$imported_remote_to_local = array();
 		$imported_remote_parent   = array();
 		$imported_remote_type     = array();
+		$product_post_ids         = array();
 
 		// JS sends post_mapping as { local_id: remote_id }, but here we need
 		// to look up by REMOTE id (the ID coming from the remote post data).
@@ -1938,6 +1939,9 @@ class Content_Sync_Controller extends Base_Controller {
 			$imported_remote_to_local[ (int) $remote_post_id ] = (int) $post_id;
 			$imported_remote_parent[ (int) $remote_post_id ]   = $remote_parent;
 			$imported_remote_type[ (int) $remote_post_id ]     = isset( $post_data['post_type'] ) ? (string) $post_data['post_type'] : '';
+			if ( isset( $post_data['post_type'] ) && 'product' === $post_data['post_type'] ) {
+				$product_post_ids[] = (int) $post_id;
+			}
 
 			// Store original post ID for future reference
 			update_post_meta( $post_id, '_rsl_ie_original_post_id', $remote_post_id );
@@ -2059,6 +2063,10 @@ class Content_Sync_Controller extends Base_Controller {
 				$this->import_synced_comments( $post_id, $post_data['comments'] );
 			}
 
+			if ( 'product' === $post_data['post_type'] ) {
+				$this->refresh_woocommerce_product_after_sync( $post_id );
+			}
+
 			// Fix image URLs in content after import.
 			$updated_content = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
 				$post_data['post_content'],
@@ -2137,6 +2145,10 @@ class Content_Sync_Controller extends Base_Controller {
 				),
 				true
 			);
+		}
+
+		foreach ( array_unique( $product_post_ids ) as $product_post_id ) {
+			$this->refresh_woocommerce_product_after_sync( $product_post_id );
 		}
 
 		$total_processed = $imported_count + $updated_count;
@@ -3026,6 +3038,43 @@ class Content_Sync_Controller extends Base_Controller {
 		);
 
 		return taxonomy_exists( $taxonomy );
+	}
+
+	/**
+	 * Refresh WooCommerce product caches and lookup tables after direct meta sync.
+	 *
+	 * @param int $post_id Product post ID.
+	 * @return void
+	 */
+	private function refresh_woocommerce_product_after_sync( $post_id ) {
+		if ( ! function_exists( 'wc_get_product' ) ) {
+			return;
+		}
+
+		clean_post_cache( $post_id );
+
+		if ( function_exists( 'wc_delete_product_transients' ) ) {
+			wc_delete_product_transients( $post_id );
+		}
+
+		$product = wc_get_product( $post_id );
+		if ( ! $product ) {
+			return;
+		}
+
+		if ( $product->is_type( 'variable' ) && class_exists( 'WC_Product_Variable' ) ) {
+			\WC_Product_Variable::sync( $product );
+		}
+
+		$product->save();
+
+		if ( function_exists( 'wc_update_product_lookup_tables' ) ) {
+			wc_update_product_lookup_tables( $post_id );
+		}
+
+		if ( function_exists( 'wc_delete_product_transients' ) ) {
+			wc_delete_product_transients( $post_id );
+		}
 	}
 
 	/**
