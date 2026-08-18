@@ -66,6 +66,7 @@ class Export_Controller extends Base_Controller {
 
 		$export_type = $this->get_request_param( 'export_type' );
 		$options     = $this->get_request_array( 'options' );
+		$options     = $this->apply_media_library_selected_ids_filter_to_options( $export_type, $options );
 
 		$count = Exporter_Factory::get_count( $export_type, $options );
 
@@ -74,6 +75,54 @@ class Export_Controller extends Base_Controller {
 		}
 
 		$this->send_success( [ 'count' => $count ] );
+	}
+
+	/**
+	 * Apply locked Media Library selected IDs to count/export options.
+	 *
+	 * @param string $export_type Export type.
+	 * @param array  $options Export options.
+	 * @return array
+	 */
+	private function apply_media_library_selected_ids_filter_to_options( $export_type, $options ) {
+		if ( 'media' !== $export_type || empty( $options['media_library_selected_ids'] ) ) {
+			return $options;
+		}
+
+		$raw_ids = is_array( $options['media_library_selected_ids'] )
+			? $options['media_library_selected_ids']
+			: explode( ',', (string) $options['media_library_selected_ids'] );
+		$ids     = array_values(
+			array_unique(
+				array_filter(
+					array_map( 'absint', $raw_ids )
+				)
+			)
+		);
+
+		if ( empty( $ids ) ) {
+			return $options;
+		}
+
+		$filters = isset( $options['filters'] ) && is_array( $options['filters'] ) ? $options['filters'] : [];
+		$filters = array_values(
+			array_filter(
+				$filters,
+				static function ( $filter ) {
+					return ! is_array( $filter ) || 'ID' !== ( $filter['field'] ?? '' );
+				}
+			)
+		);
+
+		$filters[] = [
+			'field'     => 'ID',
+			'condition' => 'in',
+			'value'     => implode( ',', $ids ),
+		];
+
+		$options['filters'] = $filters;
+
+		return $options;
 	}
 
 	/**
