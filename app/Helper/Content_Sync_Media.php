@@ -53,6 +53,10 @@ class Content_Sync_Media {
 		$rank_math_images = self::get_rank_math_images( $post_id );
 		$images           = array_merge( $images, $rank_math_images );
 
+		// 7. WooCommerce product gallery images.
+		$woocommerce_gallery_images = self::get_woocommerce_product_gallery_images( $post_id );
+		$images                     = array_merge( $images, $woocommerce_gallery_images );
+
 		// Remove duplicates based on attachment ID
 		$images = self::remove_duplicate_images( $images );
 
@@ -73,6 +77,39 @@ class Content_Sync_Media {
 		}
 
 		return self::prepare_image_data( $thumbnail_id, 'featured' );
+	}
+
+	/**
+	 * Get WooCommerce product gallery image data.
+	 *
+	 * WooCommerce stores product gallery attachment IDs in the
+	 * `_product_image_gallery` meta key as a comma-separated list.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return array Array of image data.
+	 */
+	private static function get_woocommerce_product_gallery_images( $post_id ) {
+		$images = array();
+		$post   = get_post( $post_id );
+
+		if ( ! $post || 'product' !== $post->post_type ) {
+			return $images;
+		}
+
+		$gallery = get_post_meta( $post_id, '_product_image_gallery', true );
+		if ( empty( $gallery ) || ! is_string( $gallery ) ) {
+			return $images;
+		}
+
+		$attachment_ids = array_filter( array_map( 'absint', explode( ',', $gallery ) ) );
+		foreach ( $attachment_ids as $attachment_id ) {
+			$image_data = self::prepare_image_data( $attachment_id, 'woocommerce_product_gallery' );
+			if ( $image_data ) {
+				$images[] = $image_data;
+			}
+		}
+
+		return $images;
 	}
 
 	/**
@@ -827,7 +864,7 @@ class Content_Sync_Media {
 	 * @param string $api_key API key.
 	 * @return int|false Attachment ID if exists, false otherwise
 	 */
-	public static function check_remote_image_exists( $file_hash, $remote_url, $api_key ) {
+	public static function check_remote_image_exists( $file_hash, $remote_url, $api_key, $source_attachment_id = 0 ) {
 		$response = \RockStarLab\ImportExport\Helper\Remote_API::post(
 			$remote_url,
 			'check-media',
@@ -839,7 +876,8 @@ class Content_Sync_Media {
 				),
 				'body'    => wp_json_encode(
 					array(
-						'file_hash' => $file_hash,
+						'file_hash'            => $file_hash,
+						'source_attachment_id' => absint( $source_attachment_id ),
 					)
 				),
 			)

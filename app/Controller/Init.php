@@ -209,6 +209,11 @@ class Init {
 		$current_page = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		$current_page = is_string( $current_page ) ? sanitize_key( wp_unslash( $current_page ) ) : '';
 
+		if ( 'upload.php' === $admin_page ) {
+			$this->load_media_library_export_assets();
+			return;
+		}
+
 		if ( ! $this->is_plugin_admin_page( $admin_page, $current_page ) ) {
 			return;
 		}
@@ -992,6 +997,36 @@ class Init {
 				filemtime( plugin_dir_path( RSL_IE_FILE ) . 'assets/css/admin-wp7.css' )
 			);
 		}
+	}
+
+	/**
+	 * Load the Media Library bulk export shortcut.
+	 *
+	 * @return void
+	 */
+	private function load_media_library_export_assets() {
+		$script_path = plugin_dir_path( RSL_IE_FILE ) . 'assets/js/media-library-export.js';
+		$version     = file_exists( $script_path ) ? filemtime( $script_path ) : ( defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '1.0.0' );
+
+		wp_enqueue_script(
+			'rsl-ie-media-library-export',
+			plugins_url( 'assets/js/media-library-export.js', RSL_IE_FILE ),
+			array( 'jquery' ),
+			$version,
+			array(
+				'in_footer' => true,
+			)
+		);
+
+		wp_localize_script(
+			'rsl-ie-media-library-export',
+			'rslIeMediaLibraryExport',
+			array(
+				'exportUrl'     => admin_url( 'admin.php?page=rsl-ie-export' ),
+				'exportLabel'   => __( 'Export', 'import-export-by-rockstarlab' ),
+				'disabledTitle' => __( 'Select one or more media files to enable export.', 'import-export-by-rockstarlab' ),
+			)
+		);
 	}
 
 	/**
