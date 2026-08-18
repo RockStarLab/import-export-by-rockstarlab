@@ -57,6 +57,22 @@ const getActionNonce = ( action ) =>
 		},
 
 		/**
+		 * Format remote post option labels. Keep direction-specific action labels
+		 * clear in the mapping dropdown.
+		 */
+		getRemotePostOptionText( postTitle, remoteId ) {
+			const template =
+				this.currentSyncDirection === 'pull'
+					? 'Pull: %1$s (ID: %2$s)'
+					: rslIePostSyncData?.i18n?.updatePost ||
+					  '🔄 Update: %1$s (ID: %2$s)';
+
+			return template
+				.replace( '%1$s', postTitle || '' )
+				.replace( '%2$s', remoteId );
+		},
+
+		/**
 		 * Bind event handlers
 		 */
 		bindEvents() {
@@ -640,15 +656,29 @@ const getActionNonce = ( action ) =>
 				$select.attr( 'data-original-remote-id', originalRemoteId );
 			}
 
-			// Add "Create New" option
-			const createNewText =
-				rslIePostSyncData?.i18n?.createNewPost || '➕ Create New Post';
-			$select.append(
-				`<option value="new" selected class="rsl-ie-option-new">${ createNewText }</option>`
-			);
+			const isPull = this.currentSyncDirection === 'pull';
+
+			if ( isPull ) {
+				const selectRemoteText =
+					rslIePostSyncData?.i18n?.selectRemotePostForPull ||
+					'Please select a remote post to pull.';
+				$select.append(
+					`<option value="" selected>${ selectRemoteText }</option>`
+				);
+			} else {
+				// Add "Create New" option for push only.
+				const createNewText =
+					rslIePostSyncData?.i18n?.createNewPost ||
+					'➕ Create New Post';
+				$select.append(
+					`<option value="new" selected class="rsl-ie-option-new">${ createNewText }</option>`
+				);
+			}
 
 			const $wrapper = $( '<div>' ).addClass(
-				'rsl-ie-remote-select-wrapper rsl-ie-action-new'
+				`rsl-ie-remote-select-wrapper ${
+					isPull ? '' : 'rsl-ie-action-new'
+				}`
 			);
 			$wrapper.append( $select );
 			$remoteCol.append( $wrapper );
@@ -726,21 +756,22 @@ const getActionNonce = ( action ) =>
 						}
 
 						const results = response.data.posts || [];
-						const updateTemplate =
-							rslIePostSyncData?.i18n?.updatePost ||
-							'🔄 Update: %1$s (ID: %2$s)';
 						const formattedResults = results.map( ( post ) => ( {
 							id: post.ID,
-							text: updateTemplate
-								.replace( '%1$s', post.post_title )
-								.replace( '%2$s', post.ID ),
+							text: this.getRemotePostOptionText(
+								post.post_title,
+								post.ID
+							),
 							title: post.post_title,
 							post_type: post.post_type,
 							post_date: post.post_date,
 						} ) );
 
-						// Add "Create New" option at the beginning if it's the first page
-						if ( params.page === 1 ) {
+						// Add "Create New" option at the beginning for push only.
+						if (
+							params.page === 1 &&
+							this.currentSyncDirection !== 'pull'
+						) {
 							const createNewText =
 								rslIePostSyncData?.i18n?.createNewPost ||
 								'➕ Create New Post';
@@ -790,12 +821,10 @@ const getActionNonce = ( action ) =>
 				10
 			);
 			if ( originalRemoteId ) {
-				const updateTemplate =
-					rslIePostSyncData?.i18n?.updatePost ||
-					'🔄 Update: %1$s (ID: %2$s)';
-				const optionText = updateTemplate
-					.replace( '%1$s', localPostTitle || '' )
-					.replace( '%2$s', originalRemoteId );
+				const optionText = this.getRemotePostOptionText(
+					localPostTitle,
+					originalRemoteId
+				);
 				const opt = new Option(
 					optionText,
 					String( originalRemoteId ),
@@ -912,12 +941,11 @@ const getActionNonce = ( action ) =>
 									.length > 0;
 
 							if ( ! optionExists ) {
-								const updateTemplate =
-									rslIePostSyncData?.i18n?.updatePost ||
-									'🔄 Update: %1$s (ID: %2$s)';
-								const optionText = updateTemplate
-									.replace( '%1$s', post.post_title || '' )
-									.replace( '%2$s', remoteId );
+								const optionText =
+									this.getRemotePostOptionText(
+										post.post_title,
+										remoteId
+									);
 								const newOption = new Option(
 									optionText,
 									remoteId,
@@ -931,13 +959,19 @@ const getActionNonce = ( action ) =>
 								.val( String( remoteId ) )
 								.trigger( 'change' );
 						} else {
-							$select.val( 'new' ).trigger( 'change' );
+							$select
+								.val(
+									this.currentSyncDirection === 'pull'
+										? ''
+										: 'new'
+								)
+								.trigger( 'change' );
 						}
 					} );
 				},
 				error: () => {
 					$( '.rsl-ie-remote-select' )
-						.val( 'new' )
+						.val( this.currentSyncDirection === 'pull' ? '' : 'new' )
 						.trigger( 'change' );
 				},
 				complete: () => {
