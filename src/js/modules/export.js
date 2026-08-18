@@ -15,6 +15,7 @@ const ExportModule = {
 	exportStartTime: null,
 	step3Instance: null,
 	urlTypesLoaded: false,
+	mediaLibraryPrefillIds: [],
 
 	/**
 	 * Initialize module
@@ -101,6 +102,8 @@ const ExportModule = {
 			this.showStep( 1 );
 			return;
 		}
+
+		this.mediaLibraryPrefillIds = ids;
 
 		$mediaContentType.prop( 'checked', true ).trigger( 'change' );
 		this.showStep( 2 );
@@ -533,6 +536,8 @@ const ExportModule = {
 					options.taxonomy = dynamicFiltersData.taxonomy;
 				}
 			}
+
+			this.applyMediaLibraryPrefillToOptions( options, contentType );
 
 			const response = await Utils.ajax( 'rsl_ie_export_get_count', {
 				export_type: contentType,
@@ -1269,9 +1274,63 @@ const ExportModule = {
 		} );
 
 		return {
-			filters: filters,
+			filters: this.getFiltersWithMediaLibraryPrefill( filters ),
 			custom_fields: customFields,
 			taxonomy: taxonomyFilters,
+		};
+	},
+
+	/**
+	 * Keep Media Library bulk-export IDs locked into export requests.
+	 *
+	 * The visible Step 2 filter row is useful for the user, but WordPress/admin UI
+	 * transitions can rebuild wizard state. This keeps the actual count/start
+	 * payload constrained to the original selected attachment IDs.
+	 *
+	 * @param {Array<Object>} filters Dynamic filters collected from the UI.
+	 * @return {Array<Object>} Dynamic filters with the selected media IDs applied.
+	 */
+	getFiltersWithMediaLibraryPrefill( filters ) {
+		const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
+
+		if ( contentType !== 'media' || ! this.mediaLibraryPrefillIds.length ) {
+			return filters;
+		}
+
+		const nonPrefillFilters = filters.filter(
+			( filter ) => ! ( filter && filter.field === 'ID' )
+		);
+
+		return [
+			...nonPrefillFilters,
+			this.getMediaLibraryPrefillFilter(),
+		];
+	},
+
+	/**
+	 * Add selected Media Library IDs to export options for backend persistence.
+	 *
+	 * @param {Object} options Export options.
+	 * @param {string} contentType Selected export content type.
+	 */
+	applyMediaLibraryPrefillToOptions( options, contentType ) {
+		if ( contentType !== 'media' || ! this.mediaLibraryPrefillIds.length ) {
+			return;
+		}
+
+		options.media_library_selected_ids = [ ...this.mediaLibraryPrefillIds ];
+	},
+
+	/**
+	 * Get the locked Media Library selected-ID filter.
+	 *
+	 * @return {Object} Dynamic filter object.
+	 */
+	getMediaLibraryPrefillFilter() {
+		return {
+			field: 'ID',
+			condition: 'in',
+			value: this.mediaLibraryPrefillIds.join( ',' ),
 		};
 	},
 
@@ -1454,6 +1513,8 @@ const ExportModule = {
 						) || 3,
 				},
 			};
+
+			this.applyMediaLibraryPrefillToOptions( data.options, contentType );
 
 			if ( contentType === 'urls' ) {
 				const contentTypes = this.getSelectedUrlContentTypes();
