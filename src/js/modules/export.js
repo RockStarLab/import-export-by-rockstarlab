@@ -15,6 +15,7 @@ const ExportModule = {
 	exportStartTime: null,
 	step3Instance: null,
 	urlTypesLoaded: false,
+	mediaLibraryPrefillIds: [],
 
 	/**
 	 * Initialize module
@@ -29,6 +30,7 @@ const ExportModule = {
 		const resumeJobId = urlParams.get( 'resume_job' );
 
 		this.bindEvents();
+		this.step3Instance = new ExportStep3();
 
 		if ( resumeJobId ) {
 			// Resume job - go directly to step 5 and start processing
@@ -46,12 +48,82 @@ const ExportModule = {
 				this.startProgressTracking();
 				this.processNextBatch();
 			} );
-		} else {
+		} else if ( ! this.applyUrlPrefill( urlParams ) ) {
 			this.showStep( 1 );
 		}
+	},
 
-		// Initialize Step 3 drag and drop
-		this.step3Instance = new ExportStep3();
+	/**
+	 * Apply pre-filled export settings from safe admin URL parameters.
+	 *
+	 * @param {URLSearchParams} urlParams Current URL parameters.
+	 * @return {boolean} Whether a prefill flow was started.
+	 */
+	applyUrlPrefill( urlParams ) {
+		if ( urlParams.get( 'rsl_ie_prefill' ) !== 'media_library' ) {
+			return false;
+		}
+
+		const ids = this.getValidPrefillIds( urlParams.get( 'media_ids' ) );
+
+		if ( ! ids.length ) {
+			return false;
+		}
+
+		this.applyMediaLibraryPrefill( ids );
+		return true;
+	},
+
+	/**
+	 * Sanitize comma-separated IDs from the Media Library bulk export shortcut.
+	 *
+	 * @param {string|null} rawIds Raw comma-separated IDs.
+	 * @return {Array<string>} Valid positive integer IDs as strings.
+	 */
+	getValidPrefillIds( rawIds ) {
+		return String( rawIds || '' )
+			.split( ',' )
+			.map( ( id ) => id.trim() )
+			.filter( ( id ) => /^\d+$/.test( id ) && parseInt( id, 10 ) > 0 )
+			.filter( ( id, index, ids ) => ids.indexOf( id ) === index );
+	},
+
+	/**
+	 * Jump from Media Library selection into a media export with an ID filter.
+	 *
+	 * @param {Array<string>} ids Selected attachment IDs.
+	 */
+	applyMediaLibraryPrefill( ids ) {
+		const $mediaContentType = jQuery(
+			'input[name="content_type"][value="media"]'
+		);
+
+		if ( ! $mediaContentType.length ) {
+			this.showStep( 1 );
+			return;
+		}
+
+		this.mediaLibraryPrefillIds = ids;
+
+		$mediaContentType.prop( 'checked', true ).trigger( 'change' );
+		this.showStep( 2 );
+
+		jQuery( '#rsl-ie-filters-list' ).empty();
+		this.addFilterRow();
+
+		const $row = jQuery( '#rsl-ie-filters-list .rsl-ie-filter-row' ).last();
+		const $field = $row.find( '.rsl-ie-filter-field' );
+		const $condition = $row.find( '.rsl-ie-filter-condition' );
+
+		$field.val( 'ID' ).trigger( 'change' );
+		$condition.val( 'in' ).trigger( 'change' );
+		$row.find( '.rsl-ie-filter-value' )
+			.val( ids.join( ',' ) )
+			.trigger( 'change' );
+
+		this.refreshCount( false ).finally( () => {
+			this.showStep( 3 );
+		} );
 	},
 
 	/**
@@ -466,6 +538,8 @@ const ExportModule = {
 					options.taxonomy = dynamicFiltersData.taxonomy;
 				}
 			}
+
+			this.applyMediaLibraryPrefillToOptions( options, contentType );
 
 			const response = await Utils.ajax( 'rsl_ie_export_get_count', {
 				export_type: contentType,
@@ -1202,9 +1276,62 @@ const ExportModule = {
 		} );
 
 		return {
-			filters: filters,
+			filters: this.getFiltersWithMediaLibraryPrefill( filters ),
 			custom_fields: customFields,
 			taxonomy: taxonomyFilters,
+		};
+	},
+
+	/**
+	 * Keep Media Library bulk-export IDs locked into export requests.
+	 *
+	 * The visible Step 2 filter row is useful for the user, but WordPress/admin UI
+	 * transitions can rebuild wizard state. This keeps the actual count/start
+	 * payload constrained to the original selected attachment IDs.
+	 *
+	 * @param {Array<Object>} filters Dynamic filters collected from the UI.
+	 * @return {Array<Object>} Dynamic filters with the selected media IDs applied.
+	 */
+	getFiltersWithMediaLibraryPrefill( filters ) {
+		const contentType = jQuery(
+			'input[name="content_type"]:checked'
+		).val();
+
+		if ( contentType !== 'media' || ! this.mediaLibraryPrefillIds.length ) {
+			return filters;
+		}
+
+		const nonPrefillFilters = filters.filter(
+			( filter ) => ! ( filter && filter.field === 'ID' )
+		);
+
+		return [ ...nonPrefillFilters, this.getMediaLibraryPrefillFilter() ];
+	},
+
+	/**
+	 * Add selected Media Library IDs to export options for backend persistence.
+	 *
+	 * @param {Object} options Export options.
+	 * @param {string} contentType Selected export content type.
+	 */
+	applyMediaLibraryPrefillToOptions( options, contentType ) {
+		if ( contentType !== 'media' || ! this.mediaLibraryPrefillIds.length ) {
+			return;
+		}
+
+		options.media_library_selected_ids = [ ...this.mediaLibraryPrefillIds ];
+	},
+
+	/**
+	 * Get the locked Media Library selected-ID filter.
+	 *
+	 * @return {Object} Dynamic filter object.
+	 */
+	getMediaLibraryPrefillFilter() {
+		return {
+			field: 'ID',
+			condition: 'in',
+			value: this.mediaLibraryPrefillIds.join( ',' ),
 		};
 	},
 
@@ -1387,6 +1514,8 @@ const ExportModule = {
 						) || 3,
 				},
 			};
+
+			this.applyMediaLibraryPrefillToOptions( data.options, contentType );
 
 			if ( contentType === 'urls' ) {
 				const contentTypes = this.getSelectedUrlContentTypes();

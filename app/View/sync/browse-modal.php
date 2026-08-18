@@ -62,6 +62,21 @@ defined( 'ABSPATH' ) || exit;
 
 			<!-- Main content area with posts tree -->
 			<div class="rsl-ie-browse-main">
+				<div id="rsl-ie-browse-bulk-actions" class="rsl-ie-browse-bulk-actions" style="display: none;">
+					<div class="rsl-ie-browse-bulk-info">
+						<span class="dashicons dashicons-list-view"></span>
+						<span><?php esc_html_e( 'Bulk actions for visible posts', 'import-export-by-rockstarlab' ); ?></span>
+					</div>
+					<div class="rsl-ie-browse-bulk-buttons">
+						<button type="button" id="rsl-ie-browse-select-all" class="button button-small">
+							<?php esc_html_e( 'Select all', 'import-export-by-rockstarlab' ); ?>
+						</button>
+						<button type="button" id="rsl-ie-browse-deselect-all" class="button button-small">
+							<?php esc_html_e( 'Deselect all', 'import-export-by-rockstarlab' ); ?>
+						</button>
+					</div>
+				</div>
+
 				<div id="rsl-ie-browse-loading" class="rsl-ie-loading-posts">
 					<span class="spinner is-active"></span>
 					<p><?php esc_html_e( 'Loading posts from remote site...', 'import-export-by-rockstarlab' ); ?></p>
