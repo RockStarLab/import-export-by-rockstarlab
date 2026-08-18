@@ -121,12 +121,18 @@ class Export_Processor {
 				}
 			}
 
+			$dynamic_filters = $this->apply_media_library_selected_ids_filter(
+				$export_type,
+				$options,
+				$parameters['dynamic_filters'] ?? []
+			);
+
 			// Build export options
 			// Note: dynamic_filters from Step 2 should be passed as 'filters' to the exporter
 			$export_options = array_merge(
 				$options,
 				[
-					'filters'         => $parameters['dynamic_filters'] ?? [],  // Use dynamic_filters from Step 2
+					'filters'         => $dynamic_filters,  // Use dynamic_filters from Step 2
 					'fields'          => $fields,
 					'custom_fields'   => $parameters['custom_fields'] ?? [],
 					'taxonomy'        => $parameters['taxonomy'] ?? [],
@@ -422,5 +428,52 @@ class Export_Processor {
 				'completed_at'    => current_time( 'mysql' ),
 			]
 		);
+	}
+
+	/**
+	 * Apply locked Media Library selected IDs to media export filters.
+	 *
+	 * @param string $export_type Export type.
+	 * @param array  $options Export options.
+	 * @param array  $filters Dynamic filters.
+	 * @return array
+	 */
+	private function apply_media_library_selected_ids_filter( $export_type, $options, $filters ) {
+		if ( 'media' !== $export_type || empty( $options['media_library_selected_ids'] ) ) {
+			return is_array( $filters ) ? $filters : [];
+		}
+
+		$raw_ids = is_array( $options['media_library_selected_ids'] )
+			? $options['media_library_selected_ids']
+			: explode( ',', (string) $options['media_library_selected_ids'] );
+		$ids     = array_values(
+			array_unique(
+				array_filter(
+					array_map( 'absint', $raw_ids )
+				)
+			)
+		);
+
+		if ( empty( $ids ) ) {
+			return is_array( $filters ) ? $filters : [];
+		}
+
+		$filters = is_array( $filters ) ? $filters : [];
+		$filters = array_values(
+			array_filter(
+				$filters,
+				static function ( $filter ) {
+					return ! is_array( $filter ) || 'ID' !== ( $filter['field'] ?? '' );
+				}
+			)
+		);
+
+		$filters[] = [
+			'field'     => 'ID',
+			'condition' => 'in',
+			'value'     => implode( ',', $ids ),
+		];
+
+		return $filters;
 	}
 }

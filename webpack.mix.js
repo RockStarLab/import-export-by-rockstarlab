@@ -19,5 +19,6 @@ mix.webpackConfig({
 mix.sass(`${resources}/scss/app.scss`, `${projectPath}/assets/css`).sourceMaps(true, 'source-map');
 mix.sass(`${resources}/scss/admin-wp7.scss`, `${projectPath}/assets/css`).sourceMaps(true, 'source-map');
 mix.js(`${resources}/js/app.js`, `${projectPath}/assets/js`);
+mix.js(`${resources}/js/media-library-export.js`, `${projectPath}/assets/js`);
 mix.js(`${resources}/js/post-sync-standalone.js`, `${projectPath}/assets/js`);
 mix.js(`${resources}/js/modules/gutenberg-sync.js`, `${projectPath}/assets/js`);

@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: export, export woocommerce, import, wordpress csv import
 Requires at least: 6.2
 Tested up to: 7.1
-Stable tag: 1.1.11
+Stable tag: 1.1.13
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -206,6 +206,18 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync posts and pages in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 1.1.13 =
+
+* Fixed Media Library Bulk Select exports so selected media IDs remain locked into count, job creation, batch processing, and restarted exports.
+* Improved Media Library export shortcut reliability when navigating through the export wizard.
+
+= 1.1.12 =
+
+* Added a Media Library Bulk Select export shortcut that opens the export wizard with selected media files pre-filtered.
+* Improved Content Sync selection controls for browsing remote posts.
+* Improved WooCommerce Content Sync support for product galleries, attributes, variations, product taxonomies, brands, tags, reviews, and regular post comments.
+* Improved Content Sync created/updated result reporting for newly synced content.
 
 = 1.1.11 =
 
