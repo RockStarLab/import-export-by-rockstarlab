@@ -196,6 +196,17 @@ const getActionNonce = ( action ) =>
 				this.updateBrowseSelection();
 			} );
 
+			// Browse modal - Bulk selection for currently visible posts
+			$( document ).on( 'click', '#rsl-ie-browse-select-all', ( e ) => {
+				e.preventDefault();
+				this.setVisibleBrowsePostsSelected( true );
+			} );
+
+			$( document ).on( 'click', '#rsl-ie-browse-deselect-all', ( e ) => {
+				e.preventDefault();
+				this.setVisibleBrowsePostsSelected( false );
+			} );
+
 			// Browse modal - Pagination
 			$( document ).on( 'click', '#rsl-ie-browse-prev-page', () => {
 				if ( this.browseState.currentPage > 1 ) {
@@ -1123,6 +1134,7 @@ const getActionNonce = ( action ) =>
 			$( '#rsl-ie-browse-posts-tree' ).empty().hide();
 			$( '#rsl-ie-browse-loading' ).show();
 			$( '#rsl-ie-browse-pagination' ).hide();
+			$( '#rsl-ie-browse-bulk-actions' ).hide();
 			$( '#rsl-ie-browse-pull-btn' ).prop( 'disabled', true );
 			$( '#rsl-ie-browse-selected-count' ).text( '0' );
 
@@ -1266,6 +1278,7 @@ const getActionNonce = ( action ) =>
 				`
 					)
 					.show();
+				$( '#rsl-ie-browse-bulk-actions' ).hide();
 				return;
 			}
 
@@ -1278,6 +1291,7 @@ const getActionNonce = ( action ) =>
 			} );
 
 			$tree.show();
+			$( '#rsl-ie-browse-bulk-actions' ).show();
 			this.updateBrowseSelection();
 		},
 
@@ -1495,6 +1509,45 @@ const getActionNonce = ( action ) =>
 
 			// Enable/disable pull button
 			$( '#rsl-ie-browse-pull-btn' ).prop( 'disabled', count === 0 );
+		},
+
+		/**
+		 * Select or deselect all currently visible posts in the browse modal.
+		 *
+		 * This intentionally works on posts currently rendered in the modal,
+		 * including expanded children, so paginated remote lists do not
+		 * unexpectedly select records the user has not reviewed yet.
+		 *
+		 * @param {boolean} selected Whether visible posts should be selected.
+		 */
+		setVisibleBrowsePostsSelected( selected ) {
+			if ( ! this.browseState || ! this.browseState.selectedPosts ) {
+				return;
+			}
+
+			$( '#rsl-ie-browse-posts-tree .rsl-ie-post-checkbox:visible' ).each(
+				( index, checkbox ) => {
+					const $checkbox = $( checkbox );
+					const postId = parseInt( $checkbox.val(), 10 );
+					const $item = $checkbox.closest( '.rsl-ie-post-item' );
+
+					if ( Number.isNaN( postId ) ) {
+						return;
+					}
+
+					$checkbox.prop( 'checked', selected );
+
+					if ( selected ) {
+						this.browseState.selectedPosts.add( postId );
+						$item.addClass( 'selected' );
+					} else {
+						this.browseState.selectedPosts.delete( postId );
+						$item.removeClass( 'selected' );
+					}
+				}
+			);
+
+			this.updateBrowseSelection();
 		},
 
 		/**

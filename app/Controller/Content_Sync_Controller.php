@@ -1308,9 +1308,12 @@ class Content_Sync_Controller extends Base_Controller {
 				if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
 					foreach ( $terms as $term ) {
 						$term_info = array(
-							'term_id' => $term->term_id,
-							'name'    => $term->name,
-							'slug'    => $term->slug,
+							'term_id'        => $term->term_id,
+							'name'           => $term->name,
+							'slug'           => $term->slug,
+							'parent_term_id' => (int) $term->parent,
+							'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $taxonomy ),
+							'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $taxonomy ),
 						);
 
 						// Get ACF fields for this term
@@ -1395,11 +1398,14 @@ class Content_Sync_Controller extends Base_Controller {
 						if ( ! $term || is_wp_error( $term ) ) {
 							continue;
 						}
-						$terms_data[ $acf_taxonomy ][] = array(
-							'term_id' => $term->term_id,
-							'name'    => $term->name,
-							'slug'    => $term->slug,
-						);
+								$terms_data[ $acf_taxonomy ][] = array(
+									'term_id'        => $term->term_id,
+									'name'           => $term->name,
+									'slug'           => $term->slug,
+									'parent_term_id' => (int) $term->parent,
+									'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $acf_taxonomy ),
+									'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $acf_taxonomy ),
+								);
 						$known_ids[]                   = $raw_id;
 					}
 				}
@@ -1420,6 +1426,7 @@ class Content_Sync_Controller extends Base_Controller {
 					'meta'          => $prepared_meta,
 					'post_refs'     => \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::collect_acf_post_reference_map_from_meta( $prepared_meta ),
 					'terms'         => $terms_data,
+					'comments'      => $this->collect_post_comments_for_sync( $post->ID ),
 				);
 
 				if ( isset( $prepared_meta['repeater'] ) ) {
@@ -1511,9 +1518,12 @@ class Content_Sync_Controller extends Base_Controller {
 								if ( ! is_wp_error( $c_terms ) ) {
 									foreach ( $c_terms as $c_term ) {
 										$child_terms[ $child_tax ][] = array(
-											'term_id' => $c_term->term_id,
-											'name'    => $c_term->name,
-											'slug'    => $c_term->slug,
+											'term_id'        => $c_term->term_id,
+											'name'           => $c_term->name,
+											'slug'           => $c_term->slug,
+											'parent_term_id' => (int) $c_term->parent,
+											'parent_slug'    => $this->get_term_slug_by_id( (int) $c_term->parent, $child_tax ),
+											'parent_path'    => $this->get_term_parent_path( (int) $c_term->parent, $child_tax ),
 										);
 									}
 								}
@@ -1625,21 +1635,39 @@ class Content_Sync_Controller extends Base_Controller {
 			return $image_map;
 		}
 
+		$hash_sources = array();
 		foreach ( $images as $image ) {
-			// Check if image already exists on remote
-			$existing_id = \RockStarLab\ImportExport\Helper\Content_Sync_Media::check_remote_image_exists(
-				$image['file_hash'],
-				$site['remote_url'],
-				$site['api_key']
-			);
+			$source_attachment_id = isset( $image['attachment_id'] ) ? (int) $image['attachment_id'] : 0;
+			$file_hash            = isset( $image['file_hash'] ) ? (string) $image['file_hash'] : '';
+			$force_unique         = false;
 
-			if ( $existing_id ) {
-				// Image already exists, map old ID to existing ID
-				$image_map[ $image['attachment_id'] ] = $existing_id;
-				continue;
+			if ( $source_attachment_id > 0 && '' !== $file_hash ) {
+				if ( isset( $hash_sources[ $file_hash ] ) && (int) $hash_sources[ $file_hash ] !== $source_attachment_id ) {
+					$force_unique = true;
+				} else {
+					$hash_sources[ $file_hash ] = $source_attachment_id;
+				}
+			}
+
+			if ( ! $force_unique ) {
+				// Check if this exact source attachment, or a matching file hash,
+				// already exists on the remote site.
+				$existing_id = \RockStarLab\ImportExport\Helper\Content_Sync_Media::check_remote_image_exists(
+					$file_hash,
+					$site['remote_url'],
+					$site['api_key'],
+					$source_attachment_id
+				);
+
+				if ( $existing_id ) {
+					// Image already exists, map old ID to existing ID
+					$image_map[ $image['attachment_id'] ] = $existing_id;
+					continue;
+				}
 			}
 
 			// Upload new image
+			$image['force_unique'] = $force_unique;
 			$new_id = $this->upload_single_image_to_remote( $image, $site );
 			if ( $new_id ) {
 				$image_map[ $image['attachment_id'] ] = $new_id;
@@ -1666,14 +1694,16 @@ class Content_Sync_Controller extends Base_Controller {
 
 		// Prepare image data for upload
 		$upload_data = array(
-			'file_name'   => $image['file_name'],
-			'file_data'   => base64_encode( $file_contents ),
-			'file_hash'   => $image['file_hash'],
-			'mime_type'   => $image['mime_type'],
-			'alt_text'    => $image['alt_text'],
-			'title'       => $image['title'],
-			'caption'     => $image['caption'],
-			'description' => $image['description'],
+			'file_name'            => $image['file_name'],
+			'file_data'            => base64_encode( $file_contents ),
+			'file_hash'            => $image['file_hash'],
+			'mime_type'            => $image['mime_type'],
+			'alt_text'             => $image['alt_text'],
+			'title'                => $image['title'],
+			'caption'              => $image['caption'],
+			'description'          => $image['description'],
+			'source_attachment_id' => isset( $image['attachment_id'] ) ? (int) $image['attachment_id'] : 0,
+			'force_unique'         => ! empty( $image['force_unique'] ) ? 1 : 0,
 		);
 
 			// Upload to remote
@@ -1805,7 +1835,18 @@ class Content_Sync_Controller extends Base_Controller {
 		// Download images from remote site
 		$image_map = array();
 		if ( ! empty( $remote_images ) ) {
+			$hash_sources = array();
 			foreach ( $remote_images as $image ) {
+				$source_attachment_id = isset( $image['attachment_id'] ) ? (int) $image['attachment_id'] : 0;
+				$file_hash            = isset( $image['file_hash'] ) ? (string) $image['file_hash'] : '';
+				if ( $source_attachment_id > 0 && '' !== $file_hash ) {
+					if ( isset( $hash_sources[ $file_hash ] ) && (int) $hash_sources[ $file_hash ] !== $source_attachment_id ) {
+						$image['force_unique'] = true;
+					} else {
+						$hash_sources[ $file_hash ] = $source_attachment_id;
+					}
+				}
+
 				$new_attachment_id = $this->download_image_from_remote( $image, $site );
 				if ( $new_attachment_id ) {
 					$image_map[ $image['attachment_id'] ] = $new_attachment_id;
@@ -1901,8 +1942,19 @@ class Content_Sync_Controller extends Base_Controller {
 			// Store original post ID for future reference
 			update_post_meta( $post_id, '_rsl_ie_original_post_id', $remote_post_id );
 
-			// Import meta - simple approach: save all fields as-is, ACF will handle them
+			// Import meta. Replace synced media IDs before saving so WooCommerce
+			// galleries, featured images, ACF media fields, Elementor data, etc.
+			// point at local attachments instead of source-site attachment IDs.
 			if ( ! empty( $post_data['meta'] ) ) {
+				if ( ! empty( $image_map ) ) {
+					$post_data['meta'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_in_meta_public(
+						$post_data['meta'],
+						'',
+						'',
+						$image_map
+					);
+				}
+
 				foreach ( $post_data['meta'] as $key => $value ) {
 					update_post_meta( $post_id, $key, $value );
 				}
@@ -1916,12 +1968,14 @@ class Content_Sync_Controller extends Base_Controller {
 				// Clear ALL existing term assignments for every taxonomy the source
 				// sent (including empty ones) so stale local terms are removed.
 				foreach ( array_keys( $post_data['terms'] ) as $taxonomy_to_clear ) {
+					$this->ensure_woocommerce_attribute_taxonomy( $taxonomy_to_clear );
 					if ( taxonomy_exists( $taxonomy_to_clear ) ) {
 						wp_set_object_terms( $post_id, array(), $taxonomy_to_clear );
 					}
 				}
 
 				foreach ( $post_data['terms'] as $taxonomy => $terms_info ) {
+					$this->ensure_woocommerce_attribute_taxonomy( $taxonomy );
 					if ( ! taxonomy_exists( $taxonomy ) ) {
 						continue;
 					}
@@ -1933,17 +1987,9 @@ class Content_Sync_Controller extends Base_Controller {
 							continue;
 						}
 
-						// Find by slug and update name, or create if not found.
-						$existing_term = get_term_by( 'slug', $term_info['slug'], $taxonomy );
-						if ( $existing_term ) {
-							wp_update_term( $existing_term->term_id, $taxonomy, array( 'name' => $term_info['name'] ) );
-							$term_id = $existing_term->term_id;
-						} else {
-							$new_term = wp_insert_term( $term_info['name'], $taxonomy, array( 'slug' => $term_info['slug'] ) );
-							if ( is_wp_error( $new_term ) ) {
-								continue;
-							}
-							$term_id = $new_term['term_id'];
+						$term_id = $this->resolve_synced_term( $taxonomy, $term_info );
+						if ( $term_id <= 0 ) {
+							continue;
 						}
 
 						$term_ids[] = (int) $term_id;
@@ -1985,6 +2031,32 @@ class Content_Sync_Controller extends Base_Controller {
 					$remote_post_id,
 					isset( $post_data['post_refs'] ) ? $post_data['post_refs'] : array()
 				);
+			}
+
+			// Import WooCommerce product variations and recalculate the variable
+			// product price range so the local site shows the correct prices.
+			if ( 'product' === $post_data['post_type']
+				&& ! empty( $post_data['variations'] )
+				&& class_exists( 'WC_Product' )
+				&& function_exists( 'wc_get_product' )
+			) {
+				$this->import_product_variations( $post_id, $post_data['variations'], (array) $image_map );
+			}
+
+			// Import WooCommerce grouped product children and remap _children meta.
+			if ( 'product' === $post_data['post_type']
+				&& ! empty( $post_data['grouped_children'] )
+				&& class_exists( 'WC_Product' )
+				&& function_exists( 'wc_get_product' )
+			) {
+				$local_child_ids = $this->import_grouped_children( $post_id, $post_data['grouped_children'], (array) $image_map );
+				if ( ! empty( $local_child_ids ) ) {
+					update_post_meta( $post_id, '_children', $local_child_ids );
+				}
+			}
+
+			if ( ! empty( $post_data['comments'] ) ) {
+				$this->import_synced_comments( $post_id, $post_data['comments'] );
 			}
 
 			// Fix image URLs in content after import.
@@ -2101,8 +2173,19 @@ class Content_Sync_Controller extends Base_Controller {
 	 * @return int|false New attachment ID or false on failure
 	 */
 	private function download_image_from_remote( $image, $site ) {
+		$source_attachment_id = isset( $image['attachment_id'] ) ? (int) $image['attachment_id'] : 0;
+		$force_unique         = ! empty( $image['force_unique'] );
+
+		if ( $source_attachment_id > 0 ) {
+			$existing_id = $this->find_attachment_by_original_attachment_id( $source_attachment_id );
+			if ( $existing_id ) {
+				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
+				return $existing_id;
+			}
+		}
+
 		// Check if image already exists by hash (fast path using stored meta).
-		if ( ! empty( $image['file_hash'] ) ) {
+		if ( ! $force_unique && ! empty( $image['file_hash'] ) ) {
 			$existing_id = $this->find_attachment_by_hash( $image['file_hash'] );
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
@@ -2131,10 +2214,12 @@ class Content_Sync_Controller extends Base_Controller {
 		// download gives the second request a chance to detect the attachment created
 		// by the first one and reuse it instead of creating a duplicate.
 		$actual_hash = md5( $file_contents );
-		$existing_id = $this->find_attachment_by_hash( $actual_hash );
-		if ( $existing_id ) {
-			\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
-			return $existing_id;
+		if ( ! $force_unique ) {
+			$existing_id = $this->find_attachment_by_hash( $actual_hash );
+			if ( $existing_id ) {
+				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
+				return $existing_id;
+			}
 		}
 
 		// Get filename
@@ -2172,6 +2257,9 @@ class Content_Sync_Controller extends Base_Controller {
 
 		// Always store the actual hash (covers missing file_hash in request).
 		\RockStarLab\ImportExport\Helper\Media_Hash::store_attachment_hash( $attachment_id, $actual_hash, $upload['file'] );
+		if ( $source_attachment_id > 0 ) {
+			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
+		}
 
 		return $attachment_id;
 	}
@@ -2189,6 +2277,32 @@ class Content_Sync_Controller extends Base_Controller {
 	 */
 	private function find_attachment_by_hash( $file_hash ) {
 		return \RockStarLab\ImportExport\Helper\Media_Hash::get_attachment_by_hash( $file_hash, true );
+	}
+
+	/**
+	 * Find an attachment previously synced from a specific source attachment ID.
+	 *
+	 * @param int $source_attachment_id Source attachment ID.
+	 * @return int|false Attachment ID or false.
+	 */
+	private function find_attachment_by_original_attachment_id( $source_attachment_id ) {
+		$source_attachment_id = absint( $source_attachment_id );
+		if ( $source_attachment_id <= 0 ) {
+			return false;
+		}
+
+		$attachments = get_posts(
+			array(
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				'meta_key'       => '_rsl_ie_original_attachment_id', // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source attachment lookup for sync mapping.
+				'meta_value'     => $source_attachment_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source attachment lookup for sync mapping.
+			)
+		);
+
+		return ! empty( $attachments ) ? (int) $attachments[0] : false;
 	}
 
 	/**
@@ -2213,6 +2327,345 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Collect comments/reviews for a synced post.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return array
+	 */
+	private function collect_post_comments_for_sync( $post_id ) {
+		$comments = get_comments(
+			array(
+				'post_id' => (int) $post_id,
+				'status'  => 'all',
+				'orderby' => 'comment_ID',
+				'order'   => 'ASC',
+			)
+		);
+
+		$data = array();
+		foreach ( $comments as $comment ) {
+			$meta          = get_comment_meta( $comment->comment_ID );
+			$prepared_meta = array();
+			foreach ( $meta as $key => $values ) {
+				if ( '_rsl_ie_original_comment_id' === $key ) {
+					continue;
+				}
+				$prepared_meta[ $key ] = maybe_unserialize( $values[0] );
+			}
+
+			$data[] = array(
+				'comment_ID'           => (int) $comment->comment_ID,
+				'comment_parent'       => (int) $comment->comment_parent,
+				'comment_author'       => $comment->comment_author,
+				'comment_author_email' => $comment->comment_author_email,
+				'comment_author_url'   => $comment->comment_author_url,
+				'comment_author_IP'    => $comment->comment_author_IP,
+				'comment_date'         => $comment->comment_date,
+				'comment_date_gmt'     => $comment->comment_date_gmt,
+				'comment_content'      => $comment->comment_content,
+				'comment_karma'        => (int) $comment->comment_karma,
+				'comment_approved'     => $comment->comment_approved,
+				'comment_agent'        => $comment->comment_agent,
+				'comment_type'         => $comment->comment_type,
+				'user_id'              => (int) $comment->user_id,
+				'meta'                 => $prepared_meta,
+			);
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Import synced comments/reviews for a local post.
+	 *
+	 * @param int   $post_id  Local post ID.
+	 * @param array $comments Synced comments payload.
+	 * @return void
+	 */
+	private function import_synced_comments( $post_id, $comments ) {
+		$source_to_local = array();
+
+		foreach ( (array) $comments as $comment_data ) {
+			$source_comment_id = isset( $comment_data['comment_ID'] ) ? (int) $comment_data['comment_ID'] : 0;
+			if ( $source_comment_id <= 0 ) {
+				continue;
+			}
+
+			$existing_id = $this->find_existing_comment_by_original_id( $post_id, $source_comment_id );
+			$parent_id   = 0;
+			if ( ! empty( $comment_data['comment_parent'] ) ) {
+				$source_parent = (int) $comment_data['comment_parent'];
+				$parent_id     = isset( $source_to_local[ $source_parent ] ) ? (int) $source_to_local[ $source_parent ] : 0;
+			}
+
+			$args = array(
+				'comment_post_ID'      => (int) $post_id,
+				'comment_author'       => isset( $comment_data['comment_author'] ) ? sanitize_text_field( $comment_data['comment_author'] ) : '',
+				'comment_author_email' => isset( $comment_data['comment_author_email'] ) ? sanitize_email( $comment_data['comment_author_email'] ) : '',
+				'comment_author_url'   => isset( $comment_data['comment_author_url'] ) ? esc_url_raw( $comment_data['comment_author_url'] ) : '',
+				'comment_author_IP'    => isset( $comment_data['comment_author_IP'] ) ? sanitize_text_field( $comment_data['comment_author_IP'] ) : '',
+				'comment_date'         => isset( $comment_data['comment_date'] ) ? sanitize_text_field( $comment_data['comment_date'] ) : current_time( 'mysql' ),
+				'comment_date_gmt'     => isset( $comment_data['comment_date_gmt'] ) ? sanitize_text_field( $comment_data['comment_date_gmt'] ) : current_time( 'mysql', true ),
+				'comment_content'      => isset( $comment_data['comment_content'] ) ? wp_kses_post( $comment_data['comment_content'] ) : '',
+				'comment_karma'        => isset( $comment_data['comment_karma'] ) ? (int) $comment_data['comment_karma'] : 0,
+				'comment_approved'     => isset( $comment_data['comment_approved'] ) ? sanitize_text_field( $comment_data['comment_approved'] ) : '1',
+				'comment_agent'        => isset( $comment_data['comment_agent'] ) ? sanitize_text_field( $comment_data['comment_agent'] ) : '',
+				'comment_type'         => isset( $comment_data['comment_type'] ) ? sanitize_key( $comment_data['comment_type'] ) : '',
+				'comment_parent'       => $parent_id,
+				'user_id'              => isset( $comment_data['user_id'] ) ? (int) $comment_data['user_id'] : 0,
+			);
+
+			if ( $existing_id ) {
+				$args['comment_ID'] = $existing_id;
+				$result_id          = wp_update_comment( $args ) ? $existing_id : 0;
+			} else {
+				$result_id = wp_insert_comment( $args );
+			}
+
+			if ( ! $result_id || is_wp_error( $result_id ) ) {
+				continue;
+			}
+
+			$source_to_local[ $source_comment_id ] = (int) $result_id;
+			update_comment_meta( $result_id, '_rsl_ie_original_comment_id', $source_comment_id );
+
+			if ( ! empty( $comment_data['meta'] ) && is_array( $comment_data['meta'] ) ) {
+				foreach ( $comment_data['meta'] as $key => $value ) {
+					if ( '_rsl_ie_original_comment_id' === $key ) {
+						continue;
+					}
+					update_comment_meta( $result_id, sanitize_key( $key ), $value );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Find an existing synced comment on a local post.
+	 *
+	 * @param int $post_id            Local post ID.
+	 * @param int $source_comment_id  Source comment ID.
+	 * @return int
+	 */
+	private function find_existing_comment_by_original_id( $post_id, $source_comment_id ) {
+		$comments = get_comments(
+			array(
+				'post_id'    => (int) $post_id,
+				'status'     => 'all',
+				'number'     => 1,
+				'meta_key'   => '_rsl_ie_original_comment_id', // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source comment lookup for sync mapping.
+				'meta_value' => (int) $source_comment_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source comment lookup for sync mapping.
+				'fields'     => 'ids',
+			)
+		);
+
+		return ! empty( $comments ) ? (int) $comments[0] : 0;
+	}
+
+	/**
+	 * Import WooCommerce product variations and recalculate the variable product.
+	 *
+	 * @param int   $parent_post_id Local product post ID.
+	 * @param array $variations     Variation data from the source site.
+	 * @param array $image_map      Source attachment ID => local attachment ID map.
+	 * @return void
+	 */
+	private function import_product_variations( $parent_post_id, $variations, $image_map ) {
+		if ( empty( $variations ) ) {
+			return;
+		}
+
+		$source_to_local        = array();
+		$existing_local_var_ids = get_posts(
+			array(
+				'post_type'      => 'product_variation',
+				'post_parent'    => $parent_post_id,
+				'post_status'    => 'any',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+			)
+		);
+
+		foreach ( $existing_local_var_ids as $local_var_id ) {
+			$orig_id = (int) get_post_meta( $local_var_id, '_rsl_ie_original_post_id', true );
+			if ( $orig_id ) {
+				$source_to_local[ $orig_id ] = (int) $local_var_id;
+			}
+		}
+
+		$processed_source_ids = array();
+
+		foreach ( $variations as $variation_data ) {
+			$source_var_id = (int) ( isset( $variation_data['ID'] ) ? $variation_data['ID'] : 0 );
+
+			$variation_args = array(
+				'post_title'  => isset( $variation_data['post_title'] ) ? $variation_data['post_title'] : '',
+				'post_name'   => isset( $variation_data['post_name'] ) ? $variation_data['post_name'] : '',
+				'post_status' => isset( $variation_data['post_status'] ) ? $variation_data['post_status'] : 'publish',
+				'post_type'   => 'product_variation',
+				'post_parent' => $parent_post_id,
+				'menu_order'  => isset( $variation_data['menu_order'] ) ? (int) $variation_data['menu_order'] : 0,
+			);
+
+			if ( $source_var_id && isset( $source_to_local[ $source_var_id ] ) ) {
+				$variation_args['ID'] = $source_to_local[ $source_var_id ];
+				$local_var_id         = wp_update_post( $variation_args );
+			} else {
+				$local_var_id = wp_insert_post( $variation_args );
+				if ( $local_var_id && ! is_wp_error( $local_var_id ) && $source_var_id ) {
+					update_post_meta( $local_var_id, '_rsl_ie_original_post_id', $source_var_id );
+				}
+			}
+
+			if ( is_wp_error( $local_var_id ) || ! $local_var_id ) {
+				continue;
+			}
+
+			if ( $source_var_id ) {
+				$processed_source_ids[] = $source_var_id;
+			}
+
+			if ( ! empty( $variation_data['meta'] ) ) {
+				$var_meta = $variation_data['meta'];
+				if ( ! empty( $image_map ) ) {
+					$var_meta = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_in_meta_public(
+						$var_meta,
+						'',
+						'',
+						$image_map
+					);
+				}
+
+				foreach ( $var_meta as $key => $value ) {
+					if ( in_array( $key, array( '_edit_lock', '_edit_last' ), true ) ) {
+						continue;
+					}
+					update_post_meta( $local_var_id, $key, $value );
+				}
+			}
+		}
+
+		foreach ( $existing_local_var_ids as $local_var_id ) {
+			$orig_id = (int) get_post_meta( $local_var_id, '_rsl_ie_original_post_id', true );
+			if ( $orig_id && ! in_array( $orig_id, $processed_source_ids, true ) ) {
+				wp_delete_post( (int) $local_var_id, true );
+			}
+		}
+
+		if ( function_exists( 'wc_get_product' ) && class_exists( 'WC_Product_Variable' ) ) {
+			$wc_product = wc_get_product( $parent_post_id );
+			if ( $wc_product && $wc_product->is_type( 'variable' ) ) {
+				\WC_Product_Variable::sync( $wc_product );
+			}
+		}
+	}
+
+	/**
+	 * Import WooCommerce grouped product children and return local child IDs.
+	 *
+	 * @param int   $parent_post_id Local grouped product post ID.
+	 * @param array $children       Child product data from the source site.
+	 * @param array $image_map      Source attachment ID => local attachment ID map.
+	 * @return int[]
+	 */
+	private function import_grouped_children( $parent_post_id, $children, $image_map ) {
+		$local_child_ids = array();
+
+		foreach ( $children as $child_data ) {
+			$source_child_id = (int) ( isset( $child_data['ID'] ) ? $child_data['ID'] : 0 );
+			$local_child_id  = null;
+
+			if ( $source_child_id ) {
+				$existing = get_posts(
+					array(
+						'post_type'      => 'product',
+						'posts_per_page' => 1,
+						'post_status'    => 'any',
+						'fields'         => 'ids',
+						'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source product lookup for grouped child mapping.
+							array(
+								'key'   => '_rsl_ie_original_post_id',
+								'value' => $source_child_id,
+							),
+						),
+					)
+				);
+				if ( ! empty( $existing ) ) {
+					$local_child_id = (int) $existing[0];
+				}
+			}
+
+			$child_args = array(
+				'post_title'   => isset( $child_data['post_title'] ) ? $child_data['post_title'] : '',
+				'post_name'    => isset( $child_data['post_name'] ) ? $child_data['post_name'] : '',
+				'post_content' => isset( $child_data['post_content'] ) ? $child_data['post_content'] : '',
+				'post_excerpt' => isset( $child_data['post_excerpt'] ) ? $child_data['post_excerpt'] : '',
+				'post_status'  => isset( $child_data['post_status'] ) ? $child_data['post_status'] : 'publish',
+				'post_type'    => 'product',
+				'menu_order'   => isset( $child_data['menu_order'] ) ? (int) $child_data['menu_order'] : 0,
+			);
+
+			if ( $local_child_id ) {
+				$child_args['ID'] = $local_child_id;
+				$result           = wp_update_post( $child_args );
+			} else {
+				$result = wp_insert_post( $child_args );
+				if ( $result && ! is_wp_error( $result ) && $source_child_id ) {
+					update_post_meta( $result, '_rsl_ie_original_post_id', $source_child_id );
+				}
+				$local_child_id = $result;
+			}
+
+			if ( is_wp_error( $result ) || ! $result ) {
+				continue;
+			}
+
+			if ( ! empty( $child_data['meta'] ) ) {
+				$child_meta = $child_data['meta'];
+				if ( ! empty( $image_map ) ) {
+					$child_meta = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_in_meta_public(
+						$child_meta,
+						'',
+						'',
+						$image_map
+					);
+				}
+				foreach ( $child_meta as $key => $value ) {
+					if ( in_array( $key, array( '_edit_lock', '_edit_last' ), true ) ) {
+						continue;
+					}
+					update_post_meta( $local_child_id, $key, $value );
+				}
+			}
+
+			if ( ! empty( $child_data['terms'] ) ) {
+				foreach ( $child_data['terms'] as $taxonomy => $terms_info ) {
+					$this->ensure_woocommerce_attribute_taxonomy( $taxonomy );
+					if ( ! taxonomy_exists( $taxonomy ) ) {
+						continue;
+					}
+
+					$term_ids = array();
+					foreach ( $terms_info as $term_info ) {
+						if ( empty( $term_info['name'] ) || empty( $term_info['slug'] ) ) {
+							continue;
+						}
+						$term_id = $this->resolve_synced_term( $taxonomy, $term_info );
+						if ( $term_id > 0 ) {
+							$term_ids[] = (int) $term_id;
+						}
+					}
+					wp_set_object_terms( $local_child_id, $term_ids, $taxonomy );
+				}
+			}
+
+			$local_child_ids[] = (int) $local_child_id;
+		}
+
+		return $local_child_ids;
 	}
 
 	/**
@@ -2368,14 +2821,10 @@ class Content_Sync_Controller extends Base_Controller {
 	 * @return int|false Post ID or false if not found
 	 */
 	private function find_existing_post_by_original_id( $original_post_id ) {
-
-		// First priority: check if post with same ID exists locally
-		$post = get_post( $original_post_id );
-		if ( $post && $post->ID == $original_post_id ) {
-			return $post->ID; // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-		} // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-
-		// Second priority: try to find by meta (if post was previously synced to different ID)
+		// Only update posts that were previously synced by this plugin. A plain
+		// numeric ID match is not safe because a fresh target site may already
+		// have an unrelated wp_posts row with the same ID (attachment, page,
+		// revision, product variation, etc.).
 		$posts = get_posts(
 			array(
 				'post_type'      => 'any',
@@ -2392,6 +2841,191 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Resolve or create a synced taxonomy term, preserving hierarchy when present.
+	 *
+	 * @param string $taxonomy  Taxonomy name.
+	 * @param array  $term_info Synced term payload.
+	 * @return int Local term ID, or 0 on failure.
+	 */
+	private function resolve_synced_term( $taxonomy, $term_info ) {
+		if ( ! taxonomy_exists( $taxonomy ) || empty( $term_info['name'] ) || empty( $term_info['slug'] ) ) {
+			return 0;
+		}
+
+		$parent_id = 0;
+		if ( is_taxonomy_hierarchical( $taxonomy ) ) {
+			if ( ! empty( $term_info['parent_path'] ) ) {
+				$parent_id = $this->resolve_synced_term_parent_path( $taxonomy, (string) $term_info['parent_path'] );
+			} elseif ( ! empty( $term_info['parent_slug'] ) ) {
+				$parent_id = $this->resolve_synced_term_parent_path( $taxonomy, (string) $term_info['parent_slug'] );
+			}
+		}
+
+		$args = array(
+			'name' => sanitize_text_field( (string) $term_info['name'] ),
+		);
+		if ( is_taxonomy_hierarchical( $taxonomy ) ) {
+			$args['parent'] = $parent_id;
+		}
+
+		$existing_term = get_term_by( 'slug', sanitize_title( (string) $term_info['slug'] ), $taxonomy );
+		if ( $existing_term ) {
+			wp_update_term( (int) $existing_term->term_id, $taxonomy, $args );
+			return (int) $existing_term->term_id;
+		}
+
+		$args['slug'] = sanitize_title( (string) $term_info['slug'] );
+		$new_term     = wp_insert_term( sanitize_text_field( (string) $term_info['name'] ), $taxonomy, $args );
+		if ( is_wp_error( $new_term ) || empty( $new_term['term_id'] ) ) {
+			return 0;
+		}
+
+		return (int) $new_term['term_id'];
+	}
+
+	/**
+	 * Resolve or create parent terms from a slash-separated slug path.
+	 *
+	 * @param string $taxonomy Taxonomy name.
+	 * @param string $path     Parent slug path.
+	 * @return int Final parent term ID.
+	 */
+	private function resolve_synced_term_parent_path( $taxonomy, $path ) {
+		$slugs     = array_filter( array_map( 'sanitize_title', explode( '/', (string) $path ) ) );
+		$parent_id = 0;
+
+		foreach ( $slugs as $slug ) {
+			$term = get_term_by( 'slug', $slug, $taxonomy );
+			if ( $term && ! is_wp_error( $term ) ) {
+				if ( (int) $term->parent !== $parent_id ) {
+					wp_update_term( (int) $term->term_id, $taxonomy, array( 'parent' => $parent_id ) );
+				}
+				$parent_id = (int) $term->term_id;
+				continue;
+			}
+
+			$new_term = wp_insert_term(
+				ucwords( str_replace( array( '-', '_' ), ' ', $slug ) ),
+				$taxonomy,
+				array(
+					'slug'   => $slug,
+					'parent' => $parent_id,
+				)
+			);
+			if ( is_wp_error( $new_term ) || empty( $new_term['term_id'] ) ) {
+				return $parent_id;
+			}
+			$parent_id = (int) $new_term['term_id'];
+		}
+
+		return $parent_id;
+	}
+
+	/**
+	 * Get term slug by ID.
+	 *
+	 * @param int    $term_id  Term ID.
+	 * @param string $taxonomy Taxonomy name.
+	 * @return string Term slug.
+	 */
+	private function get_term_slug_by_id( $term_id, $taxonomy ) {
+		if ( $term_id <= 0 ) {
+			return '';
+		}
+		$term = get_term( (int) $term_id, $taxonomy );
+		return ( $term && ! is_wp_error( $term ) ) ? (string) $term->slug : '';
+	}
+
+	/**
+	 * Get a slash-separated parent slug path for a term parent.
+	 *
+	 * @param int    $parent_id Parent term ID.
+	 * @param string $taxonomy  Taxonomy name.
+	 * @return string Parent path.
+	 */
+	private function get_term_parent_path( $parent_id, $taxonomy ) {
+		if ( $parent_id <= 0 || ! taxonomy_exists( $taxonomy ) ) {
+			return '';
+		}
+
+		$ancestors   = array_reverse( get_ancestors( (int) $parent_id, $taxonomy, 'taxonomy' ) );
+		$ancestors[] = (int) $parent_id;
+
+		$slugs = array();
+		foreach ( $ancestors as $ancestor_id ) {
+			$slug = $this->get_term_slug_by_id( (int) $ancestor_id, $taxonomy );
+			if ( '' !== $slug ) {
+				$slugs[] = $slug;
+			}
+		}
+
+		return implode( '/', $slugs );
+	}
+
+	/**
+	 * Ensure a WooCommerce global product attribute taxonomy exists in this request.
+	 *
+	 * @param string $taxonomy Taxonomy name.
+	 * @return bool Whether the taxonomy is available.
+	 */
+	private function ensure_woocommerce_attribute_taxonomy( $taxonomy ) {
+		if ( ! is_string( $taxonomy ) || 0 !== strpos( $taxonomy, 'pa_' ) ) {
+			return taxonomy_exists( $taxonomy );
+		}
+
+		if ( taxonomy_exists( $taxonomy ) ) {
+			return true;
+		}
+
+		if ( ! function_exists( 'wc_create_attribute' ) || ! function_exists( 'wc_sanitize_taxonomy_name' ) ) {
+			return false;
+		}
+
+		$attribute_name = wc_sanitize_taxonomy_name( substr( $taxonomy, 3 ) );
+		if ( '' === $attribute_name ) {
+			return false;
+		}
+
+		$attribute_id = function_exists( 'wc_attribute_taxonomy_id_by_name' ) ? wc_attribute_taxonomy_id_by_name( $attribute_name ) : 0;
+		if ( ! $attribute_id ) {
+			$attribute_id = wc_create_attribute(
+				array(
+					'name'         => ucwords( str_replace( array( '-', '_' ), ' ', $attribute_name ) ),
+					'slug'         => $attribute_name,
+					'type'         => 'select',
+					'order_by'     => 'menu_order',
+					'has_archives' => false,
+				)
+			);
+
+			if ( is_wp_error( $attribute_id ) ) {
+				return false;
+			}
+
+			delete_transient( 'wc_attribute_taxonomies' );
+		}
+
+		register_taxonomy(
+			$taxonomy,
+			apply_filters( 'woocommerce_taxonomy_objects_' . $taxonomy, array( 'product' ) ),
+			apply_filters(
+				'woocommerce_taxonomy_args_' . $taxonomy,
+				array(
+					'labels'       => array(
+						'name' => ucwords( str_replace( array( '-', '_' ), ' ', $attribute_name ) ),
+					),
+					'hierarchical' => true,
+					'show_ui'      => false,
+					'query_var'    => true,
+					'rewrite'      => false,
+				)
+			)
+		);
+
+		return taxonomy_exists( $taxonomy );
 	}
 
 	/**

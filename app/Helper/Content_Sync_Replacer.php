@@ -343,6 +343,20 @@ class Content_Sync_Replacer {
 				continue;
 			}
 
+			// Replace WooCommerce product gallery IDs. WooCommerce stores the
+			// gallery as a comma-separated string of attachment IDs.
+			if ( '_product_image_gallery' === $key && ! empty( $image_map ) && is_string( $value ) ) {
+				$gallery_ids = array_filter( array_map( 'absint', explode( ',', $value ) ) );
+				if ( ! empty( $gallery_ids ) ) {
+					$mapped_gallery_ids = array();
+					foreach ( $gallery_ids as $gallery_id ) {
+						$mapped_gallery_ids[] = isset( $image_map[ $gallery_id ] ) ? (int) $image_map[ $gallery_id ] : (int) $gallery_id;
+					}
+					$value = implode( ',', array_filter( $mapped_gallery_ids ) );
+				}
+				continue;
+			}
+
 			if ( ! empty( $image_map ) && in_array( $key, array( 'rank_math_facebook_image_id', 'rank_math_twitter_image_id' ), true ) && isset( $image_map[ (int) $value ] ) ) {
 				$value = $image_map[ (int) $value ];
 				continue;
