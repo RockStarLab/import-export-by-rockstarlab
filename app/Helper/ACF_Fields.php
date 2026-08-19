@@ -100,7 +100,7 @@ class ACF_Fields {
 			}
 		}
 
-		$field_object = self::get_field_object( $field_name, $acf_id );
+		$field_object = self::get_field_object( $field_name, $acf_id, $object_type, $taxonomy );
 		$portable     = self::to_portable_value( $value, is_array( $field_object ) ? $field_object : [] );
 
 		return is_array( $portable ) || is_object( $portable ) ? wp_json_encode( $portable ) : $portable;
@@ -124,8 +124,9 @@ class ACF_Fields {
 		}
 
 		$acf_id       = self::get_acf_object_id( $object_type, $object_id, $taxonomy );
-		$field_object = self::get_field_object( $field_name, $acf_id );
-		$prepared     = self::from_portable_value( $value, is_array( $field_object ) ? $field_object : [], $object_id );
+		$field_object = self::get_field_object( $field_name, $acf_id, $object_type, $taxonomy );
+		$media_parent = self::get_media_parent_id( $object_type, $object_id );
+		$prepared     = self::from_portable_value( $value, is_array( $field_object ) ? $field_object : [], $media_parent );
 		$selector     = is_array( $field_object ) && ! empty( $field_object['key'] ) ? (string) $field_object['key'] : $field_name;
 
 		if ( function_exists( 'update_field' ) ) {
@@ -282,7 +283,7 @@ class ACF_Fields {
 	 * @param string|int $acf_id     ACF object id.
 	 * @return array|null
 	 */
-	private static function get_field_object( $field_name, $acf_id ) {
+	private static function get_field_object( $field_name, $acf_id, $object_type = '', $taxonomy = '' ) {
 		if ( function_exists( 'get_field_object' ) ) {
 			$field_object = get_field_object( $field_name, $acf_id, false, false );
 			if ( is_array( $field_object ) ) {
@@ -290,7 +291,107 @@ class ACF_Fields {
 			}
 		}
 
+		if ( function_exists( 'acf_get_field' ) ) {
+			$field_object = acf_get_field( $field_name );
+			if ( is_array( $field_object ) ) {
+				return $field_object;
+			}
+		}
+
+		if ( function_exists( 'acf_get_fields' ) && '' !== (string) $object_type ) {
+			foreach ( self::get_field_groups_for_location( self::get_location_args( (string) $object_type, (string) $taxonomy ) ) as $group ) {
+				$field_object = self::find_field_object_in_group( $field_name, $group );
+				if ( is_array( $field_object ) ) {
+					return $field_object;
+				}
+			}
+		}
+
 		return null;
+	}
+
+	/**
+	 * Find an ACF field object by name/key inside a field group, including nested fields.
+	 *
+	 * @param string $field_name Field name or field key.
+	 * @param array  $group      ACF field group.
+	 * @return array|null
+	 */
+	private static function find_field_object_in_group( $field_name, array $group ) {
+		if ( ! function_exists( 'acf_get_fields' ) ) {
+			return null;
+		}
+
+		$fields = acf_get_fields( $group['key'] ?? $group );
+		return self::find_field_object_in_fields( $field_name, is_array( $fields ) ? $fields : [] );
+	}
+
+	/**
+	 * Find an ACF field object recursively in a fields array.
+	 *
+	 * @param string $field_name Field name or field key.
+	 * @param array  $fields     ACF fields.
+	 * @return array|null
+	 */
+	private static function find_field_object_in_fields( $field_name, array $fields ) {
+		$field_name = (string) $field_name;
+
+		foreach ( $fields as $field ) {
+			if ( ! is_array( $field ) ) {
+				continue;
+			}
+
+			if ( $field_name === (string) ( $field['name'] ?? '' ) || $field_name === (string) ( $field['key'] ?? '' ) ) {
+				return $field;
+			}
+
+			foreach ( [ 'sub_fields', 'layouts' ] as $children_key ) {
+				if ( empty( $field[ $children_key ] ) || ! is_array( $field[ $children_key ] ) ) {
+					continue;
+				}
+
+				if ( 'layouts' === $children_key ) {
+					foreach ( $field[ $children_key ] as $layout ) {
+						if ( empty( $layout['sub_fields'] ) || ! is_array( $layout['sub_fields'] ) ) {
+							continue;
+						}
+						$found = self::find_field_object_in_fields( $field_name, $layout['sub_fields'] );
+						if ( is_array( $found ) ) {
+							return $found;
+						}
+					}
+					continue;
+				}
+
+				$found = self::find_field_object_in_fields( $field_name, $field[ $children_key ] );
+				if ( is_array( $found ) ) {
+					return $found;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Get a valid attachment parent ID for media sideloads.
+	 *
+	 * Users, comments, terms, and menus are not posts, so using their object ID as
+	 * media parent can incorrectly attach media to an unrelated post with the same ID.
+	 *
+	 * @param string $object_type Object type.
+	 * @param int    $object_id   Object ID.
+	 * @return int
+	 */
+	private static function get_media_parent_id( $object_type, $object_id ) {
+		$object_type = sanitize_key( (string) $object_type );
+		$object_id   = absint( $object_id );
+
+		if ( in_array( $object_type, [ 'post', 'media', 'attachment' ], true ) ) {
+			return $object_id;
+		}
+
+		return 0;
 	}
 
 	/**
