@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: export, export woocommerce, import, wordpress csv import
 Requires at least: 6.2
 Tested up to: 7.1
-Stable tag: 1.1.16
+Stable tag: 1.1.17
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -206,6 +206,11 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync posts and pages in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 1.1.17 =
+
+* Fixed ACF image/file/gallery imports for user fields and other non-post objects so media URLs are converted to local attachment IDs correctly.
+* Improved ACF field detection for users, comments, terms, and menus by resolving field definitions from matching ACF field groups when direct lookup is unavailable.
 
 = 1.1.16 =
 
