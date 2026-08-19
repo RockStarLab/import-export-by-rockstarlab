@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: export, export woocommerce, import, wordpress csv import
 Requires at least: 6.2
 Tested up to: 7.1
-Stable tag: 1.1.13
+Stable tag: 1.1.15
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -206,6 +206,17 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync posts and pages in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 1.1.15 =
+
+* Maintenance release for Content Sync and WooCommerce import compatibility with the PRO addon.
+* Improved release metadata after Content Sync product mapping and stock refresh fixes.
+
+= 1.1.14 =
+
+* Fixed Content Sync push mapping so choosing "Create New Post" creates a new remote post even when a matching post already exists.
+* Fixed WooCommerce Content Sync stock status recalculation for variable products after push and pull sync operations.
+* Improved Content Sync post mapping labels so pull actions are clearly shown as "Pull" and push updates remain shown as "Update".
 
 = 1.1.13 =
 
