@@ -197,13 +197,14 @@ class Content_Sync_API_Controller {
 		$source_to_local_map = array();
 		$source_parent_map   = array();
 		$source_type_map     = array();
+		$product_post_ids    = array();
 
 		foreach ( $posts_data as $post_data ) {
 			$source_post_id = $post_data['ID'];
 			$target_post_id = null;
 
 			// Check post mapping
-			if ( isset( $post_mapping[ $source_post_id ] ) ) {
+			if ( array_key_exists( $source_post_id, $post_mapping ) ) {
 				$mapped_value = $post_mapping[ $source_post_id ];
 
 				// If mapped to specific ID, use it
@@ -283,6 +284,9 @@ class Content_Sync_API_Controller {
 			$source_type_map[ (int) $source_post_id ]     = isset( $post_data['post_type'] ) ? (string) $post_data['post_type'] : '';
 			if ( array_key_exists( 'post_parent', $post_data ) ) {
 				$source_parent_map[ (int) $source_post_id ] = (int) $post_data['post_parent'];
+			}
+			if ( isset( $post_data['post_type'] ) && 'product' === $post_data['post_type'] ) {
+				$product_post_ids[] = (int) $post_id;
 			}
 
 			// Count created vs updated
@@ -444,6 +448,10 @@ class Content_Sync_API_Controller {
 			if ( ! empty( $post_data['comments'] ) ) {
 				$this->import_synced_comments( $post_id, $post_data['comments'] );
 			}
+
+			if ( 'product' === $post_data['post_type'] ) {
+				$this->refresh_woocommerce_product_after_sync( $post_id );
+			}
 		}
 
 		// Fix hierarchical relationships (e.g. pages) after import so we can resolve
@@ -494,6 +502,10 @@ class Content_Sync_API_Controller {
 					'post_parent' => $local_parent_id,
 				)
 			);
+		}
+
+		foreach ( array_unique( $product_post_ids ) as $product_post_id ) {
+			$this->refresh_woocommerce_product_after_sync( $product_post_id );
 		}
 
 		$total_processed = $imported_count + $updated_count;
@@ -1964,6 +1976,43 @@ class Content_Sync_API_Controller {
 		);
 
 		return taxonomy_exists( $taxonomy );
+	}
+
+	/**
+	 * Refresh WooCommerce product caches and lookup tables after direct meta sync.
+	 *
+	 * @param int $post_id Product post ID.
+	 * @return void
+	 */
+	private function refresh_woocommerce_product_after_sync( $post_id ) {
+		if ( ! function_exists( 'wc_get_product' ) ) {
+			return;
+		}
+
+		clean_post_cache( $post_id );
+
+		if ( function_exists( 'wc_delete_product_transients' ) ) {
+			wc_delete_product_transients( $post_id );
+		}
+
+		$product = wc_get_product( $post_id );
+		if ( ! $product ) {
+			return;
+		}
+
+		if ( $product->is_type( 'variable' ) && class_exists( 'WC_Product_Variable' ) ) {
+			\WC_Product_Variable::sync( $product );
+		}
+
+		$product->save();
+
+		if ( function_exists( 'wc_update_product_lookup_tables' ) ) {
+			wc_update_product_lookup_tables( $post_id );
+		}
+
+		if ( function_exists( 'wc_delete_product_transients' ) ) {
+			wc_delete_product_transients( $post_id );
+		}
 	}
 
 	/**
