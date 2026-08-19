@@ -1049,12 +1049,8 @@ const getActionNonce = ( action ) =>
 			).css( 'display', 'none' );
 			$( '#rsl-ie-sync-progress' ).show();
 			$( '#rsl-ie-sync-result' ).hide();
-			$( '.rsl-ie-progress-fill' ).css( 'width', '0%' );
-			const startingText =
-				rslIePostSyncData?.i18n?.starting || 'Starting %s...';
-			$( '.rsl-ie-progress-text' ).text(
-				startingText.replace( '%s', direction )
-			);
+			const progressInterval =
+				this.startOptimisticSyncProgress( direction );
 
 			// Disable buttons
 			$(
@@ -1081,6 +1077,8 @@ const getActionNonce = ( action ) =>
 					post_mapping: JSON.stringify( postMapping ),
 				},
 				success: ( response ) => {
+					clearInterval( progressInterval );
+
 					if ( response.success ) {
 						$( '.rsl-ie-progress-fill' ).css( 'width', '100%' );
 						const completedText =
@@ -1105,6 +1103,7 @@ const getActionNonce = ( action ) =>
 					}
 				},
 				error: ( xhr ) => {
+					clearInterval( progressInterval );
 					$( '#rsl-ie-sync-progress' ).hide();
 
 					let errorMessage =
@@ -1121,6 +1120,8 @@ const getActionNonce = ( action ) =>
 					this.showResult( 'error', errorMessage );
 				},
 				complete: () => {
+					clearInterval( progressInterval );
+
 					// Re-enable buttons
 					$(
 						'#rsl-ie-sync-push-btn, #rsl-ie-sync-pull-btn, #rsl-ie-sync-site-select'
@@ -1128,6 +1129,54 @@ const getActionNonce = ( action ) =>
 					this.updateSyncButtons();
 				},
 			} );
+		},
+
+		/**
+		 * Show optimistic progress while a sync AJAX request is running.
+		 *
+		 * Content Sync currently performs one long request, so there is no server-side
+		 * per-item progress stream. This keeps the UI alive without claiming completion.
+		 *
+		 * @param {string} direction Sync direction: push or pull.
+		 * @return {number} Interval ID.
+		 */
+		startOptimisticSyncProgress( direction ) {
+			let progress = 8;
+			const isPush = direction === 'push';
+			const preparingText = isPush
+				? rslIePostSyncData?.i18n?.preparingToPush ||
+				  'Preparing to push content...'
+				: rslIePostSyncData?.i18n?.preparingToPull ||
+				  'Preparing to pull content...';
+			const activeText = isPush
+				? rslIePostSyncData?.i18n?.uploadingContent ||
+				  'Uploading content...'
+				: rslIePostSyncData?.i18n?.downloadingContent ||
+				  'Downloading content...';
+
+			$( '.rsl-ie-progress-fill' ).css( 'width', `${ progress }%` );
+			$( '.rsl-ie-progress-text' ).text( preparingText );
+
+			window.setTimeout( () => {
+				if ( progress < 18 ) {
+					progress = 18;
+					$( '.rsl-ie-progress-fill' ).css(
+						'width',
+						`${ progress }%`
+					);
+					$( '.rsl-ie-progress-text' ).text( activeText );
+				}
+			}, 250 );
+
+			return window.setInterval( () => {
+				if ( progress >= 50 ) {
+					return;
+				}
+
+				progress = Math.min( 50, progress + ( progress < 30 ? 4 : 2 ) );
+				$( '.rsl-ie-progress-fill' ).css( 'width', `${ progress }%` );
+				$( '.rsl-ie-progress-text' ).text( activeText );
+			}, 900 );
 		},
 
 		/**
@@ -1627,11 +1676,6 @@ const getActionNonce = ( action ) =>
 			$(
 				'#rsl-ie-sync-push-btn, #rsl-ie-sync-pull-btn, #rsl-ie-sync-site-select'
 			).prop( 'disabled', true );
-
-			// Animate progress
-			setTimeout( () => {
-				$( '.rsl-ie-progress-fill' ).css( 'width', '50%' );
-			}, 100 );
 
 			// Perform pull with mapping
 			this.performSync( 'pull', siteId, remoteIds, postMapping );

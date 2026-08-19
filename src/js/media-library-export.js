@@ -89,21 +89,25 @@
 
 		const $button = $( '<button>', {
 			type: 'button',
-			class: `button button-primary media-button button-large ${ buttonClass }`,
-			text: config.exportLabel || 'Export',
+			class: `button button-primary media-button ${ buttonClass }`,
+			text: getButtonLabel(),
 			disabled: true,
 			'aria-disabled': 'true',
 			title:
 				config.disabledTitle ||
 				'Select one or more media files to enable export.',
-		} ).css( {
-			marginLeft: '8px',
-			minHeight: '40px',
-			lineHeight: '38px',
-			padding: '0 18px',
 		} );
 
 		insertButton( $toolbar, $button );
+	}
+
+	function getButtonLabel( count = 0 ) {
+		const label =
+			count > 0
+				? `${ config.exportLabel || 'Export' } (${ count })`
+				: config.exportLabel || 'Export';
+
+		return label;
 	}
 
 	function getToolbarTarget() {
@@ -154,11 +158,7 @@
 		$button
 			.prop( 'disabled', ! hasSelection )
 			.attr( 'aria-disabled', hasSelection ? 'false' : 'true' )
-			.text(
-				hasSelection
-					? `${ config.exportLabel || 'Export' } (${ ids.length })`
-					: config.exportLabel || 'Export'
-			);
+			.text( getButtonLabel( hasSelection ? ids.length : 0 ) );
 	}
 
 	function bindMediaSelectionEvents() {
