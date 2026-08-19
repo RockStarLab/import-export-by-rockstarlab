@@ -1,0 +1,168 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+	<title id="title">Animated Show Post Three icon</title>
+	<desc id="desc">An animated flat gradient icon showing a selected parent post revealing its child posts.</desc>
+	<defs>
+		<linearGradient id="buttonGradient" x1="74" y1="74" x2="438" y2="438" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#a855f7"/>
+			<stop offset="0.5" stop-color="#6366f1"/>
+			<stop offset="1" stop-color="#06b6d4"/>
+		</linearGradient>
+		<linearGradient id="panelGradient" x1="132" y1="108" x2="382" y2="380" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#111827"/>
+			<stop offset="1" stop-color="#07131a"/>
+		</linearGradient>
+		<linearGradient id="cardGradient" x1="96" y1="278" x2="420" y2="398" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#ffffff"/>
+			<stop offset="1" stop-color="#dffbff"/>
+		</linearGradient>
+		<filter id="softShadow" x="-22%" y="-22%" width="150%" height="155%">
+			<feDropShadow dx="0" dy="18" stdDeviation="15" flood-color="#111827" flood-opacity="0.3"/>
+		</filter>
+		<style>
+			.background-line {
+				animation: lineDrift 4.6s ease-in-out infinite;
+			}
+
+			.parent-post {
+				transform-origin: 256px 167px;
+				animation: parentPulse 3.2s cubic-bezier(.23, 1, .32, 1) infinite;
+			}
+
+			.tree-light {
+				stroke-dasharray: 500;
+				animation: treeDraw 3.2s cubic-bezier(.23, 1, .32, 1) infinite;
+			}
+
+			.child-card {
+				transform-origin: center;
+				animation: childReveal 3.2s cubic-bezier(.23, 1, .32, 1) infinite;
+			}
+
+			.child-card.two {
+				animation-delay: .14s;
+			}
+
+			.child-card.three {
+				animation-delay: .28s;
+			}
+
+			.node-dot {
+				animation: nodePulse 3.2s ease-in-out infinite;
+			}
+
+			.node-dot.two {
+				animation-delay: .14s;
+			}
+
+			.node-dot.three {
+				animation-delay: .28s;
+			}
+
+			@keyframes lineDrift {
+				0%, 100% {
+					transform: translateX(0);
+					opacity: .2;
+				}
+
+				50% {
+					transform: translateX(14px);
+					opacity: .28;
+				}
+			}
+
+			@keyframes parentPulse {
+				0%, 100% {
+					transform: scale(1);
+				}
+
+				24% {
+					transform: scale(1.035);
+				}
+			}
+
+			@keyframes treeDraw {
+				0% {
+					stroke-dashoffset: 500;
+					opacity: .25;
+				}
+
+				38%, 78% {
+					stroke-dashoffset: 0;
+					opacity: .86;
+				}
+
+				100% {
+					stroke-dashoffset: -90;
+					opacity: .45;
+				}
+			}
+
+			@keyframes childReveal {
+				0%, 20% {
+					transform: translateY(12px) scale(.92);
+					opacity: .55;
+				}
+
+				44%, 100% {
+					transform: translateY(0) scale(1);
+					opacity: 1;
+				}
+			}
+
+			@keyframes nodePulse {
+				0%, 100% {
+					transform: scale(1);
+					opacity: .95;
+				}
+
+				48% {
+					transform: scale(1.18);
+					opacity: 1;
+				}
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				.background-line,
+				.parent-post,
+				.tree-light,
+				.child-card,
+				.node-dot {
+					animation: none;
+				}
+			}
+		</style>
+	</defs>
+	<rect width="512" height="512" rx="92" fill="url(#buttonGradient)"/>
+	<g class="background-line" opacity="0.2" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round">
+		<path d="M104 142h58"/>
+		<path d="M350 366h58"/>
+		<path d="M112 384h34"/>
+		<path d="M370 132h32"/>
+	</g>
+	<g filter="url(#softShadow)">
+		<path d="M256 214v54M133 268h246M133 268v38M256 268v38M379 268v38" fill="none" stroke="#10131f" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+		<path class="tree-light" d="M256 214v54M133 268h246M133 268v38M256 268v38M379 268v38" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="0.86"/>
+		<g class="parent-post">
+			<rect x="142" y="108" width="228" height="118" rx="28" fill="url(#panelGradient)" opacity="0.96"/>
+			<rect x="174" y="139" width="164" height="22" rx="11" fill="#ffffff" opacity="0.9"/>
+			<rect x="174" y="178" width="118" height="18" rx="9" fill="#ffffff" opacity="0.5"/>
+			<circle cx="329" cy="187" r="12" fill="#06b6d4"/>
+		</g>
+		<g class="child-card">
+			<rect x="75" y="306" width="116" height="98" rx="22" fill="url(#cardGradient)"/>
+			<path d="M104 337h58M104 369h42" stroke="#10131f" stroke-width="14" stroke-linecap="round" opacity="0.92"/>
+			<circle class="node-dot" cx="164" cy="368" r="10" fill="#6366f1"/>
+		</g>
+		<g class="child-card two">
+			<rect x="198" y="306" width="116" height="98" rx="22" fill="url(#cardGradient)"/>
+			<path d="M227 337h58M227 369h42" stroke="#10131f" stroke-width="14" stroke-linecap="round" opacity="0.92"/>
+			<circle class="node-dot two" cx="287" cy="368" r="10" fill="#6366f1"/>
+		</g>
+		<g class="child-card three">
+			<rect x="321" y="306" width="116" height="98" rx="22" fill="url(#cardGradient)"/>
+			<path d="M350 337h58M350 369h42" stroke="#10131f" stroke-width="14" stroke-linecap="round" opacity="0.92"/>
+			<circle class="node-dot three" cx="410" cy="368" r="10" fill="#06b6d4"/>
+		</g>
+	</g>
+	<path d="M76 135c57-27 119-40 186-40 69 0 129 13 178 38" fill="none" stroke="#fff" stroke-width="4" opacity="0.13"/>
+</svg>

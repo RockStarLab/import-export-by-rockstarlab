@@ -327,16 +327,13 @@ class Content_Sync_API_Controller {
 					);
 				}
 
-				// Simplified approach: Import all meta fields directly with update_post_meta()
-				// ACF will automatically handle the processing of its fields
 				foreach ( $post_data['meta'] as $key => $value ) {
 					// Skip some internal WordPress meta
 					if ( in_array( $key, array( '_edit_lock', '_edit_last', '_rsl_ie_original_post_id' ), true ) ) {
 						continue;
 					}
 
-					// Import all fields directly - ACF handles its own fields automatically
-					update_post_meta( $post_id, $key, $value );
+					$this->save_synced_post_meta( (int) $post_id, (string) $key, $value );
 				}
 			}
 
@@ -969,6 +966,42 @@ class Content_Sync_API_Controller {
 	}
 
 	/**
+	 * Check whether a post meta key should be excluded from Content Sync payloads.
+	 *
+	 * @param string $key Meta key.
+	 * @return bool Whether the key should be skipped.
+	 */
+	private function should_skip_synced_meta_key( $key ) {
+		$key = (string) $key;
+
+		return class_exists( '\RockStarLab\ImportExport\Helper\Elementor_Fields' )
+			&& \RockStarLab\ImportExport\Helper\Elementor_Fields::is_generated_cache_key( $key );
+	}
+
+	/**
+	 * Save synced post meta with special handling for generated/builder metadata.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $key     Meta key.
+	 * @param mixed  $value   Meta value.
+	 * @return void
+	 */
+	private function save_synced_post_meta( $post_id, $key, $value ) {
+		if ( $this->should_skip_synced_meta_key( $key ) ) {
+			delete_post_meta( $post_id, $key );
+			return;
+		}
+
+		if ( class_exists( '\RockStarLab\ImportExport\Helper\Elementor_Fields' )
+			&& \RockStarLab\ImportExport\Helper\Elementor_Fields::is_elementor_meta_key( $key ) ) {
+			\RockStarLab\ImportExport\Helper\Elementor_Fields::import_meta_value( (int) $post_id, $key, $value, true, false );
+			return;
+		}
+
+		update_post_meta( $post_id, $key, $value );
+	}
+
+	/**
 	 * Collect comments/reviews for a synced post.
 	 *
 	 * @param int $post_id Post ID.
@@ -1158,7 +1191,7 @@ class Content_Sync_API_Controller {
 
 			foreach ( $meta as $key => $values ) {
 				// Skip protected keys and certain internal WordPress keys
-				if ( in_array( $key, $skip_keys, true ) ) {
+				if ( in_array( $key, $skip_keys, true ) || $this->should_skip_synced_meta_key( (string) $key ) ) {
 					continue;
 				}
 

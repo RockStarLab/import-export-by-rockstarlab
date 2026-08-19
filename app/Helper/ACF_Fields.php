@@ -661,22 +661,22 @@ class ACF_Fields {
 		 * @param int    $parent_id Parent object ID.
 		 * @return string
 		 */
-		private static function replace_media_urls_in_html( $html, $parent_id = 0 ) {
-			return preg_replace_callback(
-				'~https?://[^\s\'"]+\.(?:jpe?g|png|gif|webp|avif|svg|pdf|mp3|m4a|ogg|wav|mp4|m4v|mov|webm)(?:\?[^\s\'"]*)?~i',
-				static function ( $matches ) use ( $parent_id ) {
-					$url = html_entity_decode( $matches[0], ENT_QUOTES, get_bloginfo( 'charset' ) );
-					$id  = self::attachment_id_from_value( $url, $parent_id );
-					if ( $id <= 0 ) {
-						return $matches[0];
-					}
+	private static function replace_media_urls_in_html( $html, $parent_id = 0 ) {
+		return preg_replace_callback(
+			'~https?://[^\s\'"]+\.(?:jpe?g|png|gif|webp|avif|svg|pdf|mp3|m4a|ogg|wav|mp4|m4v|mov|webm)(?:\?[^\s\'"]*)?~i',
+			static function ( $matches ) use ( $parent_id ) {
+				$url = html_entity_decode( $matches[0], ENT_QUOTES, get_bloginfo( 'charset' ) );
+				$id  = self::attachment_id_from_value( $url, $parent_id );
+				if ( $id <= 0 ) {
+					return $matches[0];
+				}
 
-					$local_url = wp_get_attachment_url( $id );
-					return $local_url ? esc_url_raw( $local_url ) : $matches[0];
-				},
-				$html
-			);
-		}
+				$local_url = wp_get_attachment_url( $id );
+				return $local_url ? esc_url_raw( $local_url ) : $matches[0];
+			},
+			$html
+		);
+	}
 
 		/**
 		 * Download a URL without WordPress unsafe URL rejection.
@@ -687,35 +687,35 @@ class ACF_Fields {
 		 * @param int    $timeout Timeout in seconds.
 		 * @return string|\WP_Error
 		 */
-		private static function download_url_unrestricted( $url, $timeout ) {
-			$tmp = wp_tempnam( $url );
-			if ( ! $tmp ) {
-				return new \WP_Error( 'rsl_ie_temp_file_failed', __( 'Could not create a temporary file for download.', 'import-export-by-rockstarlab' ) );
-			}
-
-			$response = wp_remote_get(
-				$url,
-				[
-					'timeout'            => absint( $timeout ),
-					'stream'             => true,
-					'filename'           => $tmp,
-					'reject_unsafe_urls' => false,
-				]
-			);
-
-			if ( is_wp_error( $response ) ) {
-				wp_delete_file( $tmp );
-				return $response;
-			}
-
-			$code = (int) wp_remote_retrieve_response_code( $response );
-			if ( $code < 200 || $code >= 300 ) {
-				wp_delete_file( $tmp );
-				return new \WP_Error( 'rsl_ie_download_failed', sprintf( 'Download failed with HTTP %d', $code ) );
-			}
-
-			return $tmp;
+	private static function download_url_unrestricted( $url, $timeout ) {
+		$tmp = wp_tempnam( $url );
+		if ( ! $tmp ) {
+			return new \WP_Error( 'rsl_ie_temp_file_failed', __( 'Could not create a temporary file for download.', 'import-export-by-rockstarlab' ) );
 		}
+
+		$response = wp_remote_get(
+			$url,
+			[
+				'timeout'            => absint( $timeout ),
+				'stream'             => true,
+				'filename'           => $tmp,
+				'reject_unsafe_urls' => false,
+			]
+		);
+
+		if ( is_wp_error( $response ) ) {
+			wp_delete_file( $tmp );
+			return $response;
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		if ( $code < 200 || $code >= 300 ) {
+			wp_delete_file( $tmp );
+			return new \WP_Error( 'rsl_ie_download_failed', sprintf( 'Download failed with HTTP %d', $code ) );
+		}
+
+		return $tmp;
+	}
 
 	private static function term_id_from_name( $name, $taxonomy ) {
 		$name     = trim( $name );

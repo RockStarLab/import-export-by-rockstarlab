@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Importing Data — WP Import Export by RockStarLab Docs</title>
+  <link rel="stylesheet" href="style.css" />
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PSP040Y5E9"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PSP040Y5E9');
+</script>
+
+</head>
+<body>
+
+<button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <a href="https://wordpress.org/plugins/import-export-by-rockstarlab/" target="_blank" class="sidebar-logo-link">
+      <img src="images/logo.png" alt="WP Import Export by RockStarLab" />
+      <div class="sidebar-logo-name">WP Import Export&nbsp;by&nbsp;RockStarLab</div>
+    </a>
+    <div class="sidebar-logo-sub">Documentation</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Getting Started</div>
+    <a href="index.html"><span class="nav-icon">👋</span> Welcome</a>
+    <a href="installation.html"><span class="nav-icon">📦</span> Installation</a>
+    <a href="pro-addon.html"><span class="nav-icon">🧩</span> PRO Addon</a>
+    <div class="nav-section-label">Core Features</div>
+    <a href="import.html" class="active"><span class="nav-icon">📥</span> Importing Data</a>
+    <a href="export.html"><span class="nav-icon">📤</span> Exporting Data</a>
+    <a href="content-sync.html"><span class="nav-icon">🔄</span> Content Sync</a>
+    <a href="media-sync.html"><span class="nav-icon">🖼️</span> Media Library Sync</a>
+    <a href="ai-url-importer.html"><span class="nav-icon">🤖</span> AI URL Importer</a>
+    <a href="jobs-log.html"><span class="nav-icon">📋</span> Jobs Log</a>
+    <a href="plugin-options.html"><span class="nav-icon">🛠️</span> Plugin Options</a>
+  </nav>
+  <div class="sidebar-footer">
+    &copy; 2026 <a href="https://profiles.wordpress.org/rockstarlab/" target="_blank">RockstarLab</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="main-inner">
+
+    <div class="page-header">
+      <div class="breadcrumb">
+        <a href="index.html">Docs</a> <span>›</span> Core Features
+      </div>
+      <h1>📥 Importing Data</h1>
+      <p>Import posts, pages, custom post types, users, WooCommerce products, and any MySQL table data from CSV files.</p>
+    </div>
+
+    <h2>Supported Content Types</h2>
+    <ul>
+      <li>Posts, Pages, and Custom Post Types (CPTs)</li>
+      <li>Taxonomies and Terms</li>
+      <li>Users and User Meta</li>
+      <li>Comments</li>
+      <li>Navigation Menus</li>
+      <li>Raw MySQL Tables</li>
+      <li>WooCommerce Products, Orders, Coupons</li>
+      <li>Advanced Custom Fields (ACF)</li>
+      <li>Yoast SEO Meta</li>
+    </ul>
+
+    <h2>Supported File Formats</h2>
+    <ul>
+      <li><strong>CSV</strong> — Standard comma-separated values with streaming support for large files</li>
+    </ul>
+
+    <div class="callout callout-note">
+      <div class="callout-title">ℹ️ JSON Format</div>
+      JSON is currently supported for <strong>export only</strong>. 
+    </div>
+
+    <div class="callout callout-warn">
+      <div class="callout-title">⚠️ Always Back Up Before Making Changes</div>
+      The Importer directly modifies database records in bulk — these changes <strong>cannot be undone</strong> from within the plugin.
+      Before running any update, make sure you have a full site backup.
+      Here are several popular WordPress backup plugins:<br><br>
+      <ul>
+        <li><a href="https://wordpress.org/plugins/updraftplus/" target="_blank">UpdraftPlus</a> — most widely used; supports cloud storage (Google Drive, Dropbox, S3)</li>
+        <li><a href="https://wordpress.org/plugins/all-in-one-wp-migration/" target="_blank">All-in-One WP Migration</a> — simple one-click backup &amp; restore</li>
+        <li><a href="https://wordpress.org/plugins/backwpup/" target="_blank">BackWPup</a> — scheduled backups to cloud or local storage</li>
+        <li><a href="https://wordpress.org/plugins/duplicator/" target="_blank">Duplicator</a> — backup, migrate, and clone your site</li>
+        <li><a href="https://wordpress.org/plugins/jetpack/" target="_blank">Jetpack (VaultPress Backup)</a> — real-time cloud backups by Automattic</li>
+      </ul>
+    </div>
+
+    <hr class="divider" />
+
+    <h2>Import Workflow</h2>
+
+    <h3>Step 1 — Select Content Type</h3>
+    <p>
+      Navigate to <strong>WP Import Export by RockStarLab → Import</strong> in the WordPress admin sidebar.
+      Select the content type you want to import — for example, <strong>Pages</strong>.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/import-choose-content-type.png" target="_blank"><img src="images/import-choose-content-type.png" alt="Choose content type" /></a>
+      <figcaption>Select the content type you want to import</figcaption>
+    </figure>
+
+    <p>Once you have selected the content type, click <strong>Next Step</strong> to proceed.</p>
+
+    <figure class="screenshot">
+      <a href="images/import-next-step.png" target="_blank"><img src="images/import-next-step.png" alt="Next Step button" /></a>
+      <figcaption>Click Next Step to continue to the next stage</figcaption>
+    </figure>
+
+
+
+    <hr class="divider" />
+
+    <h3>Step 2 — Upload Import File</h3>
+    <p>
+      Select the file that contains the data you want to import. Click the upload area or drag and drop
+      your CSV file onto it.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/import-choose-file.png" target="_blank"><img src="images/import-choose-file.png" alt="Choose import file" /></a>
+      <figcaption>Select the CSV file with your import data</figcaption>
+    </figure>
+
+    <p>
+      If needed, configure the <strong>delimiter</strong> used in your file — for example, a comma
+      <code>,</code>, semicolon <code>;</code>, or tab. This should match the separator used in your CSV file.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/import-choose-file-2.png" target="_blank"><img src="images/import-choose-file-2.png" alt="Choose file delimiter" /></a>
+      <figcaption>Select the delimiter that matches your CSV file format</figcaption>
+    </figure>
+
+    <p>Once the file is uploaded and the delimiter is set, click <strong>Next Step</strong> to proceed.</p>
+
+    <hr class="divider" />
+
+    <h3>Step 3 — Preview Data</h3>
+    <p>
+      This screen displays a preview of the data parsed from your file. Only the <strong>first 5 rows</strong>
+      of the import file are shown, so you can quickly verify that the data was read correctly before
+      proceeding with the full import.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/import-preview.png" target="_blank"><img src="images/import-preview.png" alt="Data preview" /></a>
+      <figcaption>Preview of the first 5 rows parsed from your import file</figcaption>
+    </figure>
+
+    <p>If the data looks correct, click <strong>Next Step</strong> to continue.</p>
+
+    <hr class="divider" />
+
+    <h3>Step 4 — Field Mapping</h3>
+    <p>
+      On this step you map the columns from your CSV file to the corresponding WordPress content fields.
+      Click <strong>Auto Map</strong> and the plugin will automatically match column names to the available fields.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/import-map-fields.png" target="_blank"><img src="images/import-map-fields.png" alt="Auto map fields" /></a>
+      <figcaption>Click Auto Map to automatically match CSV columns to WordPress fields</figcaption>
+    </figure>
+
+    <p>
+      Review the mapped fields and make any corrections if needed. To map a field manually, drag it
+      from the <strong>left panel</strong> (CSV columns) and drop it onto the corresponding field in the
+      <strong>right panel</strong> (WordPress fields).
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/import-map-1.png" target="_blank"><img src="images/import-map-1.png" alt="Manual field mapping" /></a>
+      <figcaption>Drag a CSV column from the left and drop it onto the target WordPress field on the right</figcaption>
+    </figure>
+
+    <p>At the bottom of the screen you will see a summary list of all currently mapped fields.</p>
+
+    <figure class="screenshot">
+      <a href="images/import-map-2.png" target="_blank"><img src="images/import-map-2.png" alt="Mapped fields summary" /></a>
+      <figcaption>The mapped fields summary at the bottom of the Field Mapping screen</figcaption>
+    </figure>
+
+	    <h4>Transformation Functions</h4>
+	    <p>
+	      With the <strong>PRO addon</strong>, you can assign a <strong>transformation function</strong> to any mapped field.
+	      The function will be applied to each value during import — for example, converting all post titles
+	      to uppercase before they are saved to WordPress.
+	    </p>
+    <p>
+      To assign a function, click the <strong>wrench icon</strong> next to a field and select the desired
+      functions from the list.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/import-transform-1.png" target="_blank"><img src="images/import-transform-1.png" alt="Open field transformations" /></a>
+      <figcaption>Click the wrench icon to open the transformation selector for a field</figcaption>
+    </figure>
+
+    <figure class="screenshot">
+      <a href="images/import-transform-2.png" target="_blank"><img src="images/import-transform-2.png" alt="Select field transformation" /></a>
+      <figcaption>Select one or more transformations to apply during import</figcaption>
+    </figure>
+
+    <figure class="screenshot">
+      <a href="images/import-transform-3.png" target="_blank"><img src="images/import-transform-3.png" alt="Transformation function applied" /></a>
+      <figcaption>The assigned function will be applied to the field value during import</figcaption>
+    </figure>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">💡 PRO Transformations</div>
+      Advanced reusable field transformations can be supplied by the optional PRO addon. The free
+      plugin does not include a custom scripting editor.
+    </div>
+
+    <p>When you are done mapping fields, click <strong>Next Step</strong> to proceed.</p>
+
+    <hr class="divider" />
+
+    <h3>Step 5 — Import Options</h3>
+    <p>
+      This screen lets you configure additional options that control how the import behaves when
+      processing your data.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/import-options.png" target="_blank"><img src="images/import-options.png" alt="Import options" /></a>
+      <figcaption>Configure import behavior options before starting the import</figcaption>
+    </figure>
+
+    <table class="options-table">
+      <thead>
+        <tr><th>Option</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="opt-name">Check for Existing Items by Field</td>
+          <td class="opt-desc">
+            Select which field to use when checking whether an item already exists in WordPress —
+            for example, <code>post_title</code>, <code>sku</code>, or <code>user_email</code>.
+            This prevents duplicate records from being created.
+          </td>
+        </tr>
+        <tr>
+          <td class="opt-name">If Match Found</td>
+          <td class="opt-desc">
+            Defines what to do when an existing item is found that matches the check field:
+            <ul>
+              <li><strong>Update</strong> — overwrite the existing item with the imported data</li>
+              <li><strong>Skip</strong> — leave the existing item unchanged and move on</li>
+              <li><strong>Ignore</strong> — treat the record as new and import it without modifying the existing one</li>
+              <li><strong>Create</strong> — always create a new item regardless of the match</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td class="opt-name">If No Match Found</td>
+          <td class="opt-desc">
+            Defines what to do when no existing item matches the check field:
+            <ul>
+              <li><strong>Create</strong> — insert the record as a new item</li>
+              <li><strong>Skip</strong> — do not import the record if no match is found</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td class="opt-name">Batch Size</td>
+          <td class="opt-desc">
+            The number of records processed per batch. Lowering this value can help avoid timeouts
+            or memory issues on servers with limited resources.
+          </td>
+        </tr>
+        <tr>
+          <td class="opt-name">Automatically Import Media Files</td>
+          <td class="opt-desc">
+            When enabled, the plugin will automatically download and import all media files found
+            in the content (images, attachments, etc.) directly into your WordPress Media Library
+            during the import process.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+      Once you have configured the options, click <strong>Start Import</strong> to begin the import process.
+      The plugin will process your records in batches and display real-time progress.
+    </p>
+
+    <hr class="divider" />
+
+    <h3>Step 6 — Import Results</h3>
+    <p>
+      Once the import is complete, you will see a results summary showing how many records were
+      created, updated, skipped, and whether any errors occurred during the process.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/import-done.png" target="_blank"><img src="images/import-done.png" alt="Import results" /></a>
+      <figcaption>The import results screen displayed after the process is complete</figcaption>
+    </figure>
+
+    <div class="doc-nav">
+      <a href="pro-addon.html" class="nav-prev">
+        ← <span>
+          <span class="nav-label">Previous</span>
+          🧩 PRO Addon
+        </span>
+      </a>
+      <a href="export.html" class="nav-next">
+        <span>
+          <span class="nav-label">Next</span>
+          📤 Exporting Data
+        </span>
+        →
+      </a>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  document.addEventListener('click', function(e) {
+    const sidebar = document.querySelector('.sidebar');
+    const btn = document.querySelector('.mobile-menu-btn');
+    if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== btn) {
+      sidebar.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>

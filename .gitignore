@@ -1,0 +1,13 @@
+node_modules
+.idea
+*.log
+*.sql
+npm-debug.log*
+*.DS_Store
+.AppleDouble
+.LSOverride
+temp
+e2e
+*.e2e
+dist
+.wordpress-org/blueprint.json

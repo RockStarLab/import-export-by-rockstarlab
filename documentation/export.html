@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exporting Data — WP Import Export by RockStarLab Docs</title>
+  <link rel="stylesheet" href="style.css" />
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PSP040Y5E9"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PSP040Y5E9');
+</script>
+
+</head>
+<body>
+
+<button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <a href="https://wordpress.org/plugins/import-export-by-rockstarlab/" target="_blank" class="sidebar-logo-link">
+      <img src="images/logo.png" alt="WP Import Export by RockStarLab" />
+      <div class="sidebar-logo-name">WP Import Export&nbsp;by&nbsp;RockStarLab</div>
+    </a>
+    <div class="sidebar-logo-sub">Documentation</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Getting Started</div>
+    <a href="index.html"><span class="nav-icon">👋</span> Welcome</a>
+    <a href="installation.html"><span class="nav-icon">📦</span> Installation</a>
+    <a href="pro-addon.html"><span class="nav-icon">🧩</span> PRO Addon</a>
+    <div class="nav-section-label">Core Features</div>
+    <a href="import.html"><span class="nav-icon">📥</span> Importing Data</a>
+    <a href="export.html" class="active"><span class="nav-icon">📤</span> Exporting Data</a>
+    <a href="content-sync.html"><span class="nav-icon">🔄</span> Content Sync</a>
+    <a href="media-sync.html"><span class="nav-icon">🖼️</span> Media Library Sync</a>
+    <a href="ai-url-importer.html"><span class="nav-icon">🤖</span> AI URL Importer</a>
+    <a href="jobs-log.html"><span class="nav-icon">📋</span> Jobs Log</a>
+    <a href="plugin-options.html"><span class="nav-icon">🛠️</span> Plugin Options</a>
+  </nav>
+  <div class="sidebar-footer">
+    &copy; 2026 <a href="https://profiles.wordpress.org/rockstarlab/" target="_blank">RockstarLab</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="main-inner">
+
+    <div class="page-header">
+      <div class="breadcrumb">
+        <a href="index.html">Docs</a> <span>›</span> Core Features
+      </div>
+      <h1>📤 Exporting Data</h1>
+      <p>Export any WordPress content type, custom fields, or raw database table to CSV or JSON — with powerful filters and field selection.</p>
+    </div>
+
+    <h2>Supported Export Types</h2>
+    <ul>
+      <li>Posts, Pages, and any Custom Post Type</li>
+      <li>Taxonomies and Terms</li>
+      <li>Users and User Meta</li>
+      <li>Comments</li>
+      <li>Navigation Menus</li>
+      <li>Raw MySQL Tables</li>
+      <li>WooCommerce Products, Orders, Coupons, Attributes</li>
+    </ul>
+
+    <h2>Output Formats</h2>
+    <ul>
+      <li><strong>CSV</strong> — Compatible with Excel, Google Sheets, and other import tools</li>
+      <li><strong>JSON</strong> — Suitable for developer workflows and API integrations</li>
+    </ul>
+
+    <hr class="divider" />
+
+    <h2>Export Workflow</h2>
+
+    <h3>Step 1 — Open the Export Screen</h3>
+    <p>Navigate to <strong>Import Export → Export</strong> in the WordPress admin sidebar.</p>
+
+    <h4>1. Select Content Type</h4>
+    <p>
+      Choose the type of content you want to export from the available options —
+      for example, Posts, Pages, Users, WooCommerce Products, or a raw MySQL Table.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-select-content-type.png" target="_blank"><img src="images/export-select-content-type.png" alt="Select export content type" /></a>
+      <figcaption>Selecting the content type to export</figcaption>
+    </figure>
+
+    <h4>2. Proceed to the Next Step</h4>
+    <p>
+      Once a content type is selected, click the <strong>Next Step</strong> button to continue
+      configuring the export.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-next-step.png" target="_blank"><img src="images/export-next-step.png" alt="Next Step button" /></a>
+      <figcaption>Clicking Next Step to proceed</figcaption>
+    </figure>
+
+    <h3>Step 2 — Filter Export Data</h3>
+    <p>
+      On the next screen you can optionally narrow down which records get exported by adding filters.
+      If no filters are added, <strong>all content</strong> of the selected type will be exported.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-filter-data.png" target="_blank"><img src="images/export-filter-data.png" alt="Export filters screen" /></a>
+      <figcaption>The filter screen — leave empty to export all records</figcaption>
+    </figure>
+
+    <p>
+      Filters let you export only the records that match specific criteria — for example,
+      only posts with a <strong>Publish</strong> status, or only records created within a certain date range.
+      You can add an <strong>unlimited number of filters</strong> to fine-tune your export.
+    </p>
+
+    <h4>Adding a Filter</h4>
+    <p>Click the <strong>Add Filter</strong> button to add a new filter row.</p>
+
+    <figure class="screenshot">
+      <a href="images/export-add-filter.png" target="_blank"><img src="images/export-add-filter.png" alt="Add Filter button" /></a>
+      <figcaption>Clicking Add Filter to create a new filter condition</figcaption>
+    </figure>
+
+    <p>
+      For each filter, select the <strong>field</strong> you want to filter by and the
+      <strong>condition</strong> it must meet (e.g., equals, contains, greater than, etc.).
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-select-contidion.png" target="_blank"><img src="images/export-select-contidion.png" alt="Selecting filter field and condition" /></a>
+      <figcaption>Selecting the field and condition for the filter</figcaption>
+    </figure>
+
+    <p>
+      Once all filters are configured, click the <strong>Next Step</strong> button to continue.
+    </p>
+
+    <h3>Step 3 — Configure Export Fields</h3>
+    <p>
+      In this step you choose exactly which fields will be included in the exported file and how they are structured.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-choose-fields.png" target="_blank"><img src="images/export-choose-fields.png" alt="Choose export fields" /></a>
+      <figcaption>Choosing which fields to include in the export</figcaption>
+    </figure>
+
+    <h4>Building the Export File Structure</h4>
+    <p>
+      Drag the fields you need from the right-hand sidebar — which lists all available WordPress fields —
+      into the <strong>Export File Structure</strong> area. You can reorder the columns at any time
+      by dragging them into the desired position.
+    </p>
+
+    <h4>Adding a Custom Column</h4>
+    <p>
+      If you need to include data that is not directly tied to a WordPress field, you can add a
+      <strong>custom column</strong> with any arbitrary value.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-add-custom-column.png" target="_blank"><img src="images/export-add-custom-column.png" alt="Add custom column" /></a>
+      <figcaption>Adding a custom column to the export structure</figcaption>
+    </figure>
+
+    <h4>Field Transformations</h4>
+    <p>
+      The free plugin focuses this step on choosing and ordering exported fields. Advanced
+      per-field transformations can be enabled by the optional PRO addon.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-assign-functions.png" target="_blank"><img src="images/export-assign-functions.png" alt="Assign functions to a field" /></a>
+      <figcaption>Transformation assignment panel for an export field</figcaption>
+    </figure>
+
+    <p>
+      When the PRO addon enables transformations, click the field action icon to open the transformation picker,
+      then select one or more transformations to apply during export.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-assign-fn.png" target="_blank"><img src="images/export-assign-fn.png" alt="Selecting functions for a field" /></a>
+      <figcaption>Selecting the transformations to apply to the field</figcaption>
+    </figure>
+
+    <p>
+      After selecting the transformations, click <strong>Apply Transformations</strong> to confirm.
+      The field will then display an indicator showing that transformations have been assigned.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-apply-functions.png" target="_blank"><img src="images/export-apply-functions.png" alt="Apply Transformations button" /></a>
+      <figcaption>Clicking Apply Transformations to confirm the selection</figcaption>
+    </figure>
+
+    <figure class="screenshot">
+      <a href="images/export-functions-applied.png" target="_blank"><img src="images/export-functions-applied.png" alt="Transformations applied to field" /></a>
+      <figcaption>The field now shows the assigned transformations</figcaption>
+    </figure>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">💡 PRO Transformations</div>
+      The free plugin exposes a safe integration point for the optional PRO addon to provide reusable
+      field transformations outside the WordPress.org package.
+    </div>
+
+    <p>
+      When all fields are configured, click <strong>Next Step</strong> to proceed.
+    </p>
+
+    <h3>Step 4 — Choose Export Format</h3>
+    <p>
+      Select the format in which you want to export your data:
+    </p>
+    <ul>
+      <li><strong>CSV</strong> — Compatible with Excel, Google Sheets, and other spreadsheet tools</li>
+      <li><strong>JSON</strong> — Suitable for developer workflows and API integrations</li>
+    </ul>
+    <p>
+      When <strong>CSV</strong> is selected, additional options are available to customize the
+      <strong>delimiter</strong> character used to separate values in the file (e.g., comma, semicolon, tab).
+      This is useful when your data contains commas or when the target application expects a specific separator.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-choose-format.png" target="_blank"><img src="images/export-choose-format.png" alt="Choose export format" /></a>
+      <figcaption>Selecting the export format and delimiter options</figcaption>
+    </figure>
+
+    <p>
+      Once the format is configured, click <strong>Start Export</strong> to begin the export process.
+    </p>
+
+    <p>
+      The export will run in the background. Once completed, you will see a success message confirming
+      that the export file has been generated — you can then download it directly from that screen.
+    </p>
+
+    <figure class="screenshot">
+      <a href="images/export-done.png" target="_blank"><img src="images/export-done.png" alt="Export completed" /></a>
+      <figcaption>Export completed — download the generated file</figcaption>
+    </figure>
+
+    <div class="doc-nav">
+      <a href="import.html" class="nav-prev">
+        ← <span>
+          <span class="nav-label">Previous</span>
+          📥 Importing Data
+        </span>
+      </a>
+      <a href="content-sync.html" class="nav-next">
+        <span>
+          <span class="nav-label">Next</span>
+          🔄 Content Sync
+        </span>
+        →
+      </a>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  document.addEventListener('click', function(e) {
+    const sidebar = document.querySelector('.sidebar');
+    const btn = document.querySelector('.mobile-menu-btn');
+    if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== btn) {
+      sidebar.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>

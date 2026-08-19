@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: export, export woocommerce, import, wordpress csv import
 Requires at least: 6.2
 Tested up to: 7.1
-Stable tag: 1.1.15
+Stable tag: 1.1.16
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -206,6 +206,14 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync posts and pages in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 1.1.16 =
+
+* Fixed Content Sync for Elementor pages by excluding generated Elementor CSS/cache metadata and forcing Elementor to regenerate local page CSS after sync.
+* Improved Content Sync media handling for Elementor external image and SVG icon references during push and pull operations.
+* Improved Content Sync progress feedback so push and pull operations show optimistic progress while long requests are running.
+* Fixed page imports with duplicate titles from the same source file so distinct source pages are created instead of being collapsed into one update.
+* Improved the Media Library bulk export shortcut button so it follows native WordPress admin button sizing.
 
 = 1.1.15 =
 

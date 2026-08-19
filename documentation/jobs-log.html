@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jobs Log — WP Import Export by RockStarLab Docs</title>
+  <link rel="stylesheet" href="style.css" />
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PSP040Y5E9"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PSP040Y5E9');
+</script>
+
+</head>
+<body>
+
+<button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <a href="https://wordpress.org/plugins/import-export-by-rockstarlab/" target="_blank" class="sidebar-logo-link">
+      <img src="images/logo.png" alt="WP Import Export by RockStarLab" />
+      <div class="sidebar-logo-name">WP Import Export&nbsp;by&nbsp;RockStarLab</div>
+    </a>
+    <div class="sidebar-logo-sub">Documentation</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Getting Started</div>
+    <a href="index.html"><span class="nav-icon">👋</span> Welcome</a>
+    <a href="installation.html"><span class="nav-icon">📦</span> Installation</a>
+    <a href="pro-addon.html"><span class="nav-icon">🧩</span> PRO Addon</a>
+    <div class="nav-section-label">Core Features</div>
+    <a href="import.html"><span class="nav-icon">📥</span> Importing Data</a>
+    <a href="export.html"><span class="nav-icon">📤</span> Exporting Data</a>
+    <a href="content-sync.html"><span class="nav-icon">🔄</span> Content Sync</a>
+    <a href="media-sync.html"><span class="nav-icon">🖼️</span> Media Library Sync</a>
+    <a href="ai-url-importer.html"><span class="nav-icon">🤖</span> AI URL Importer</a>
+    <a href="jobs-log.html" class="active"><span class="nav-icon">📋</span> Jobs Log</a>
+    <a href="plugin-options.html"><span class="nav-icon">🛠️</span> Plugin Options</a>
+  </nav>
+  <div class="sidebar-footer">
+    &copy; 2026 <a href="https://profiles.wordpress.org/rockstarlab/" target="_blank">RockstarLab</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="main-inner">
+
+    <div class="page-header">
+      <div class="breadcrumb">
+        <a href="index.html">Docs</a> <span>›</span> Advanced
+      </div>
+      <h1>📋 Jobs Log</h1>
+      <p>Every import, export, sync, and update operation is automatically saved as a Job. Re-run any job with a single click or review detailed logs.</p>
+    </div>
+
+    <h2>What Is a Job?</h2>
+    <p>
+      Whenever you run an import, export, content sync, bulk update, or media sync, the plugin creates a
+      <strong>Job</strong> — a complete record of that operation including all its parameters, progress,
+      results, and any errors encountered.
+    </p>
+    <p>
+      Jobs allow you to:
+    </p>
+    <ul>
+      <li>Review the outcome of any past operation (rows imported, errors, duration)</li>
+      <li>Re-run an identical operation with a single click — no reconfiguration needed</li>
+      <li>Download the output file of a completed export job</li>
+      <li>Cancel a running job</li>
+    </ul>
+
+    <hr class="divider" />
+
+    <h2>Jobs Log Screen</h2>
+    <p>Navigate to <strong>Import Export → Jobs Log</strong> to view all jobs.</p>
+
+    <figure class="screenshot">
+      <a href="images/admin-jobs-log.png" target="_blank"><img src="images/admin-jobs-log.png" alt="Jobs Log screen" /></a>
+      <figcaption>The Jobs Log showing completed and running jobs</figcaption>
+    </figure>
+
+    <h3>Column Reference</h3>
+    <table class="options-table">
+      <thead>
+        <tr><th>Column</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="opt-name">ID</td>
+          <td class="opt-desc">Unique numeric identifier for the job.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Type</td>
+          <td class="opt-desc">Operation type — Import, Export, Sync, Update, or Media Sync.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Data Type</td>
+          <td class="opt-desc">The content type being processed (e.g. Posts, Products, Users, Media).</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Status</td>
+          <td class="opt-desc">Current state of the job — Processing, Completed, Completed with Errors, Failed, or Cancelled.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Progress</td>
+          <td class="opt-desc">Real-time progress bar showing how many items have been processed so far.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Items</td>
+          <td class="opt-desc">Total number of records processed during the job.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Created</td>
+          <td class="opt-desc">Date and time when the job was started.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Elapsed</td>
+          <td class="opt-desc">Total processing time from start to finish.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">Actions</td>
+          <td class="opt-desc">Available actions for the job — View details, Re-run, Cancel, or Delete.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Job Status Reference</h2>
+    <table class="options-table">
+      <thead>
+        <tr><th>Status</th><th>Meaning</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="opt-name">🔄 Processing</td>
+          <td class="opt-desc">The job is currently running. A progress bar shows real-time status.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">✅ Completed</td>
+          <td class="opt-desc">The job finished successfully. All rows were processed.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">⚠️ Completed with Errors</td>
+          <td class="opt-desc">The job finished but one or more rows encountered errors. Review the error log for details.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">❌ Failed</td>
+          <td class="opt-desc">The job encountered a fatal error and could not complete. Check the error log and the server error log.</td>
+        </tr>
+        <tr>
+          <td class="opt-name">🚫 Cancelled</td>
+          <td class="opt-desc">The job was manually cancelled by the user.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <hr class="divider" />
+
+    <h2>Job Details</h2>
+    <p>Click on the <strong>View</strong> button on any job in the list to open the <strong>Job Details</strong> screen.</p>
+
+    <figure class="screenshot">
+      <a href="images/job-view.png" target="_blank"><img src="images/job-view.png" alt="Job detail view" /></a>
+      <figcaption>Detailed view of a completed import job</figcaption>
+    </figure>
+
+    <hr class="divider" />
+
+    <h2>Re-running a Job</h2>
+    <p>
+      To repeat an operation with exactly the same settings, click the <strong>Re-run</strong> button on
+      any completed or failed job. The plugin creates a new job with identical configuration. This is
+      especially useful for:
+    </p>
+    <ul>
+      <li>Recurring exports (e.g., weekly product catalogue exports)</li>
+      <li>Re-importing a file after fixing data issues</li>
+      <li>Re-running a failed job after resolving the underlying error</li>
+    </ul>
+
+    <figure class="screenshot">
+      <a href="images/job-re-run.png" target="_blank"><img src="images/job-re-run.png" alt="Re-running a Job" /></a>
+      <figcaption>Re-running a Job</figcaption>
+    </figure>
+
+    <hr class="divider" />
+
+    <h2>Downloading an Export File</h2>
+    <p>
+      For completed <strong>Export</strong> jobs, a <strong>Download</strong> button appears in the Actions column.
+      Clicking it immediately downloads the export file that was generated by that job — a CSV file
+      containing all the records that matched the export settings (content type, filters, selected fields,
+      and any other options configured at the time the job was run).
+    </p>
+    <div class="callout callout-tip">
+      <strong>Tip:</strong> Each download is tied to the exact configuration of its job. If you need an
+      export with different filters or fields, create a new export — the existing file will remain available
+      until the job is deleted.
+    </div>
+
+    <figure class="screenshot">
+      <a href="images/job-download.png" target="_blank"><img src="images/job-download.png" alt="Downloading an Export File" /></a>
+      <figcaption>Downloading an Export File</figcaption>
+    </figure>
+
+    <hr class="divider" />
+
+    <h2>Cleaning Up Old Jobs</h2>
+    <p>
+      Jobs and their associated log data are stored in the WordPress database. To keep the database lean,
+      you can delete old jobs from the Jobs Log screen by selecting them and clicking <strong>Delete Selected</strong>.
+      Deleting a job also removes its associated error logs and (for export jobs) the generated file.
+    </p>
+
+    <div class="doc-nav">
+      <a href="ai-url-importer.html" class="nav-prev">
+        ← <span>
+          <span class="nav-label">Previous</span>
+          🤖 AI URL Importer
+        </span>
+      </a>
+      <a href="plugin-options.html" class="nav-next">
+        <span>
+          <span class="nav-label">Next</span>
+          🛠️ Plugin Options
+        </span>
+        →
+      </a>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  document.addEventListener('click', function(e) {
+    const sidebar = document.querySelector('.sidebar');
+    const btn = document.querySelector('.mobile-menu-btn');
+    if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== btn) {
+      sidebar.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>
