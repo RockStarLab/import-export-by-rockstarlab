@@ -33,9 +33,13 @@ const MediaHash = {
 
 		const activateTab = ( tab ) => {
 			$tabs.removeClass( 'nav-tab-active' );
-			$tabs.filter( `[data-rsl-ie-tools-tab="${ tab }"]` ).addClass( 'nav-tab-active' );
+			$tabs
+				.filter( `[data-rsl-ie-tools-tab="${ tab }"]` )
+				.addClass( 'nav-tab-active' );
 			$panels.prop( 'hidden', true );
-			$panels.filter( `[data-rsl-ie-tools-panel="${ tab }"]` ).prop( 'hidden', false );
+			$panels
+				.filter( `[data-rsl-ie-tools-panel="${ tab }"]` )
+				.prop( 'hidden', false );
 
 			if ( window.history && window.history.replaceState ) {
 				const url = new URL( window.location.href );
@@ -50,11 +54,18 @@ const MediaHash = {
 
 		$tabs.on( 'click', ( event ) => {
 			event.preventDefault();
-			activateTab( jQuery( event.currentTarget ).data( 'rsl-ie-tools-tab' ) );
+			activateTab(
+				jQuery( event.currentTarget ).data( 'rsl-ie-tools-tab' )
+			);
 		} );
 
-		const requestedTab = new URLSearchParams( window.location.search ).get( 'tab' );
-		if ( requestedTab && $tabs.filter( `[data-rsl-ie-tools-tab="${ requestedTab }"]` ).length ) {
+		const requestedTab = new URLSearchParams( window.location.search ).get(
+			'tab'
+		);
+		if (
+			requestedTab &&
+			$tabs.filter( `[data-rsl-ie-tools-tab="${ requestedTab }"]` ).length
+		) {
 			activateTab( requestedTab );
 		}
 	},
@@ -83,7 +94,9 @@ const MediaHash = {
 
 		Utils.ajax( 'get_debug_site_info' )
 			.then( ( response ) => {
-				this.$debugTextarea.val( response.info || '' ).prop( 'hidden', false );
+				this.$debugTextarea
+					.val( response.info || '' )
+					.prop( 'hidden', false );
 				this.$debugCopyButton.show();
 				this.$debugResult
 					.addClass( 'notice-success' )
@@ -117,9 +130,12 @@ const MediaHash = {
 		};
 
 		if ( navigator.clipboard && window.isSecureContext ) {
-			navigator.clipboard.writeText( text ).then( showCopied ).catch( () => {
-				this.fallbackCopyDebugInfo( text, showCopied );
-			} );
+			navigator.clipboard
+				.writeText( text )
+				.then( showCopied )
+				.catch( () => {
+					this.fallbackCopyDebugInfo( text, showCopied );
+				} );
 			return;
 		}
 

@@ -30,7 +30,7 @@ class Media_Hash_Controller extends Base_Controller {
 				'check_duplicate_hash' => [ 'callback' => 'check_duplicate_hash' ],
 				'get_debug_site_info'  => [ 'callback' => 'get_debug_site_info' ],
 			];
-		}
+	}
 
 	/**
 	 * Get statistics about hashed media files
@@ -154,20 +154,20 @@ class Media_Hash_Controller extends Base_Controller {
 			$lines,
 			'WordPress',
 			[
-				'Site URL'              => site_url(),
-				'Home URL'              => home_url(),
-				'WordPress Version'     => $wp_version,
-				'Multisite'             => is_multisite() ? 'Yes' : 'No',
-				'Environment Type'      => function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'unknown',
-				'Language'              => get_locale(),
-				'Timezone'              => wp_timezone_string(),
-				'Permalink Structure'   => get_option( 'permalink_structure' ) ?: 'Plain',
-				'Debug Mode'            => defined( 'WP_DEBUG' ) && WP_DEBUG ? 'Enabled' : 'Disabled',
-				'Script Debug'          => defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? 'Enabled' : 'Disabled',
-				'Memory Limit'          => defined( 'WP_MEMORY_LIMIT' ) ? WP_MEMORY_LIMIT : 'Not set',
-				'Max Memory Limit'      => defined( 'WP_MAX_MEMORY_LIMIT' ) ? WP_MAX_MEMORY_LIMIT : 'Not set',
-				'Cron Disabled'         => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ? 'Yes' : 'No',
-				'Alternate Cron'        => defined( 'ALTERNATE_WP_CRON' ) && ALTERNATE_WP_CRON ? 'Yes' : 'No',
+				'Site URL'            => site_url(),
+				'Home URL'            => home_url(),
+				'WordPress Version'   => $wp_version,
+				'Multisite'           => is_multisite() ? 'Yes' : 'No',
+				'Environment Type'    => function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'unknown',
+				'Language'            => get_locale(),
+				'Timezone'            => wp_timezone_string(),
+				'Permalink Structure' => get_option( 'permalink_structure' ) ?: 'Plain',
+				'Debug Mode'          => defined( 'WP_DEBUG' ) && WP_DEBUG ? 'Enabled' : 'Disabled',
+				'Script Debug'        => defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? 'Enabled' : 'Disabled',
+				'Memory Limit'        => defined( 'WP_MEMORY_LIMIT' ) ? WP_MEMORY_LIMIT : 'Not set',
+				'Max Memory Limit'    => defined( 'WP_MAX_MEMORY_LIMIT' ) ? WP_MAX_MEMORY_LIMIT : 'Not set',
+				'Cron Disabled'       => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ? 'Yes' : 'No',
+				'Alternate Cron'      => defined( 'ALTERNATE_WP_CRON' ) && ALTERNATE_WP_CRON ? 'Yes' : 'No',
 			]
 		);
 
@@ -175,14 +175,14 @@ class Media_Hash_Controller extends Base_Controller {
 			$lines,
 			'Import Export by RockStarLab',
 			[
-				'Free Version'       => defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : 'Unknown',
-				'Free Plugin Path'   => defined( 'RSL_IE_PATH' ) ? RSL_IE_PATH : 'Unknown',
-				'PRO Addon Active'   => class_exists( '\RockStarLab\ImportExport\Helper\Pro_Addon' ) && \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ? 'Yes' : 'No',
-				'PRO Addon Enabled'  => class_exists( '\RockStarLab\ImportExport\Helper\Pro_Addon' ) && \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_enabled() ? 'Yes' : 'No',
-				'Uploads Writable'   => wp_is_writable( $upload_dir['basedir'] ) ? 'Yes' : 'No',
-				'Upload Base Dir'    => $upload_dir['basedir'],
-				'Upload Base URL'    => $upload_dir['baseurl'],
-				'Upload Error'       => $upload_dir['error'] ?: 'None',
+				'Free Version'      => defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : 'Unknown',
+				'Free Plugin Path'  => defined( 'RSL_IE_PATH' ) ? RSL_IE_PATH : 'Unknown',
+				'PRO Addon Active'  => class_exists( '\RockStarLab\ImportExport\Helper\Pro_Addon' ) && \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ? 'Yes' : 'No',
+				'PRO Addon Enabled' => class_exists( '\RockStarLab\ImportExport\Helper\Pro_Addon' ) && \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_enabled() ? 'Yes' : 'No',
+				'Uploads Writable'  => wp_is_writable( $upload_dir['basedir'] ) ? 'Yes' : 'No',
+				'Upload Base Dir'   => $upload_dir['basedir'],
+				'Upload Base URL'   => $upload_dir['baseurl'],
+				'Upload Error'      => $upload_dir['error'] ?: 'None',
 			]
 		);
 
@@ -202,16 +202,16 @@ class Media_Hash_Controller extends Base_Controller {
 			$lines,
 			'Server',
 			[
-				'PHP Version'           => PHP_VERSION,
-				'PHP SAPI'              => PHP_SAPI,
-				'Server Software'       => $server_software ? sanitize_text_field( wp_unslash( $server_software ) ) : 'Unknown',
-				'Operating System'      => PHP_OS_FAMILY . ' (' . PHP_OS . ')',
-				'MySQL Version'         => $wpdb->db_version(),
-				'Database Charset'      => $wpdb->charset,
-				'Database Collate'      => $wpdb->collate ?: 'Not set',
-				'Table Prefix Length'   => strlen( $wpdb->prefix ),
-				'ABSPATH Writable'      => wp_is_writable( ABSPATH ) ? 'Yes' : 'No',
-				'Filesystem Method'     => get_filesystem_method(),
+				'PHP Version'         => PHP_VERSION,
+				'PHP SAPI'            => PHP_SAPI,
+				'Server Software'     => $server_software ? sanitize_text_field( wp_unslash( $server_software ) ) : 'Unknown',
+				'Operating System'    => PHP_OS_FAMILY . ' (' . PHP_OS . ')',
+				'MySQL Version'       => $wpdb->db_version(),
+				'Database Charset'    => $wpdb->charset,
+				'Database Collate'    => $wpdb->collate ?: 'Not set',
+				'Table Prefix Length' => strlen( $wpdb->prefix ),
+				'ABSPATH Writable'    => wp_is_writable( ABSPATH ) ? 'Yes' : 'No',
+				'Filesystem Method'   => get_filesystem_method(),
 			]
 		);
 
@@ -233,20 +233,20 @@ class Media_Hash_Controller extends Base_Controller {
 			$lines,
 			'PHP Extensions',
 			[
-				'curl'         => extension_loaded( 'curl' ) ? 'Loaded' : 'Missing',
-				'dom'          => extension_loaded( 'dom' ) ? 'Loaded' : 'Missing',
-				'fileinfo'     => extension_loaded( 'fileinfo' ) ? 'Loaded' : 'Missing',
-				'gd'           => extension_loaded( 'gd' ) ? 'Loaded' : 'Missing',
-				'imagick'      => extension_loaded( 'imagick' ) ? 'Loaded' : 'Missing',
-				'json'         => extension_loaded( 'json' ) ? 'Loaded' : 'Missing',
-				'mbstring'     => extension_loaded( 'mbstring' ) ? 'Loaded' : 'Missing',
-				'mysqli'       => extension_loaded( 'mysqli' ) ? 'Loaded' : 'Missing',
-				'openssl'      => extension_loaded( 'openssl' ) ? 'Loaded' : 'Missing',
-				'simplexml'    => extension_loaded( 'simplexml' ) ? 'Loaded' : 'Missing',
-				'xml'          => extension_loaded( 'xml' ) ? 'Loaded' : 'Missing',
-				'xmlreader'    => extension_loaded( 'xmlreader' ) ? 'Loaded' : 'Missing',
-				'xmlwriter'    => extension_loaded( 'xmlwriter' ) ? 'Loaded' : 'Missing',
-				'zip'          => extension_loaded( 'zip' ) ? 'Loaded' : 'Missing',
+				'curl'      => extension_loaded( 'curl' ) ? 'Loaded' : 'Missing',
+				'dom'       => extension_loaded( 'dom' ) ? 'Loaded' : 'Missing',
+				'fileinfo'  => extension_loaded( 'fileinfo' ) ? 'Loaded' : 'Missing',
+				'gd'        => extension_loaded( 'gd' ) ? 'Loaded' : 'Missing',
+				'imagick'   => extension_loaded( 'imagick' ) ? 'Loaded' : 'Missing',
+				'json'      => extension_loaded( 'json' ) ? 'Loaded' : 'Missing',
+				'mbstring'  => extension_loaded( 'mbstring' ) ? 'Loaded' : 'Missing',
+				'mysqli'    => extension_loaded( 'mysqli' ) ? 'Loaded' : 'Missing',
+				'openssl'   => extension_loaded( 'openssl' ) ? 'Loaded' : 'Missing',
+				'simplexml' => extension_loaded( 'simplexml' ) ? 'Loaded' : 'Missing',
+				'xml'       => extension_loaded( 'xml' ) ? 'Loaded' : 'Missing',
+				'xmlreader' => extension_loaded( 'xmlreader' ) ? 'Loaded' : 'Missing',
+				'xmlwriter' => extension_loaded( 'xmlwriter' ) ? 'Loaded' : 'Missing',
+				'zip'       => extension_loaded( 'zip' ) ? 'Loaded' : 'Missing',
 			]
 		);
 

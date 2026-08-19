@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRO Addon — WP Import Export by RockStarLab Docs</title>
+  <link rel="stylesheet" href="style.css" />
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PSP040Y5E9"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PSP040Y5E9');
+</script>
+
+</head>
+<body>
+
+<button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <a href="https://wordpress.org/plugins/import-export-by-rockstarlab/" target="_blank" class="sidebar-logo-link">
+      <img src="images/logo.png" alt="WP Import Export by RockStarLab" />
+      <div class="sidebar-logo-name">WP Import Export&nbsp;by&nbsp;RockStarLab</div>
+    </a>
+    <div class="sidebar-logo-sub">Documentation</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Getting Started</div>
+    <a href="index.html"><span class="nav-icon">👋</span> Welcome</a>
+    <a href="installation.html"><span class="nav-icon">📦</span> Installation</a>
+    <a href="pro-addon.html" class="active"><span class="nav-icon">🧩</span> PRO Addon</a>
+    <div class="nav-section-label">Core Features</div>
+    <a href="import.html"><span class="nav-icon">📥</span> Importing Data</a>
+    <a href="export.html"><span class="nav-icon">📤</span> Exporting Data</a>
+    <a href="content-sync.html"><span class="nav-icon">🔄</span> Content Sync</a>
+    <a href="media-sync.html"><span class="nav-icon">🖼️</span> Media Library Sync</a>
+    <a href="ai-url-importer.html"><span class="nav-icon">🤖</span> AI URL Importer</a>
+    <a href="jobs-log.html"><span class="nav-icon">📋</span> Jobs Log</a>
+    <a href="plugin-options.html"><span class="nav-icon">🛠️</span> Plugin Options</a>
+  </nav>
+  <div class="sidebar-footer">
+    &copy; 2026 <a href="https://profiles.wordpress.org/rockstarlab/" target="_blank">RockstarLab</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="main-inner">
+
+    <div class="page-header">
+      <div class="breadcrumb">
+        <a href="index.html">Docs</a> <span>›</span> Getting Started
+      </div>
+      <h1>🧩 PRO Addon</h1>
+      <p>This page was renamed. Please use the new PRO Addon documentation page.</p>
+    </div>
+
+    <p><a href="pro-addon.html"><strong>Go to PRO Addon documentation →</strong></a></p>
+
+    <div class="doc-nav">
+      <a href="installation.html" class="nav-prev">
+        ← <span>
+          <span class="nav-label">Previous</span>
+          📦 Installation
+        </span>
+      </a>
+      <a href="pro-addon.html" class="nav-next">
+        <span>
+          <span class="nav-label">Next</span>
+          🧩 PRO Addon
+        </span>
+        →
+      </a>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  document.addEventListener('click', function(e) {
+    const sidebar = document.querySelector('.sidebar');
+    const btn = document.querySelector('.mobile-menu-btn');
+    if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== btn) {
+      sidebar.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>
+

@@ -117,7 +117,9 @@ const ExportModule = {
 
 		$field.val( 'ID' ).trigger( 'change' );
 		$condition.val( 'in' ).trigger( 'change' );
-		$row.find( '.rsl-ie-filter-value' ).val( ids.join( ',' ) ).trigger( 'change' );
+		$row.find( '.rsl-ie-filter-value' )
+			.val( ids.join( ',' ) )
+			.trigger( 'change' );
 
 		this.refreshCount( false ).finally( () => {
 			this.showStep( 3 );
@@ -1291,7 +1293,9 @@ const ExportModule = {
 	 * @return {Array<Object>} Dynamic filters with the selected media IDs applied.
 	 */
 	getFiltersWithMediaLibraryPrefill( filters ) {
-		const contentType = jQuery( 'input[name="content_type"]:checked' ).val();
+		const contentType = jQuery(
+			'input[name="content_type"]:checked'
+		).val();
 
 		if ( contentType !== 'media' || ! this.mediaLibraryPrefillIds.length ) {
 			return filters;
@@ -1301,10 +1305,7 @@ const ExportModule = {
 			( filter ) => ! ( filter && filter.field === 'ID' )
 		);
 
-		return [
-			...nonPrefillFilters,
-			this.getMediaLibraryPrefillFilter(),
-		];
+		return [ ...nonPrefillFilters, this.getMediaLibraryPrefillFilter() ];
 	},
 
 	/**

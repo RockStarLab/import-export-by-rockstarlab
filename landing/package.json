@@ -1,0 +1,16 @@
+{
+  "name": "aie-landing",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:css && npm run build:js",
+    "build:css": "npx clean-css-cli assets/css/style.css -o assets/css/style.min.css",
+    "build:js": "npx terser assets/js/main.js -o assets/js/main.min.js --compress --mangle --ecma 2020",
+    "watch:css": "npx chokidar-cli \"assets/css/style.css\" -c \"npm run build:css\"",
+    "watch:js": "npx chokidar-cli \"assets/js/main.js\" -c \"npm run build:js\""
+  },
+  "devDependencies": {
+    "clean-css-cli": "^5.6.3",
+    "terser": "^5.46.1"
+  }
+}

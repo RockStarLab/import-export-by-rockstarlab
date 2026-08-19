@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>WP Import Export by RockStarLab — WordPress CSV Import, Export & Content Sync Plugin</title>
+    <meta
+      name="description"
+      content="The most powerful WordPress import export plugin. Import large CSV files, export to CSV/JSON, sync content between sites, bulk update posts, and sync media folders. Supports WooCommerce, ACF, custom post types."
+    />
+    <link rel="canonical" href="https://wpimportexport.com/" />
+
+    <!-- Open Graph / Social sharing -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://wpimportexport.com/" />
+    <meta property="og:title" content="WP Import Export by RockStarLab — WordPress CSV Import, Export & Content Sync Plugin" />
+    <meta property="og:description" content="Import large CSV files, export to CSV/JSON, sync content between WordPress sites, bulk update posts, and sync media folders. WooCommerce & ACF ready." />
+    <meta property="og:image" content="assets/screens/import-map-fields.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="WP Import Export by RockStarLab — WordPress Import Export Plugin" />
+    <meta name="twitter:description" content="Import CSV, export to JSON, sync between WordPress sites, bulk update posts. WooCommerce & ACF ready." />
+    <meta name="twitter:image" content="assets/screens/import-map-fields.png" />
+
+    <!-- Structured data: SoftwareApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "WP Import Export by RockStarLab",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "WordPress",
+      "url": "https://wordpress.org/plugins/import-export-by-rockstarlab/",
+      "description": "Advanced WordPress import export plugin. Import large CSV files, export to CSV or JSON, sync content between sites, bulk update posts, and sync media folders. Supports WooCommerce, ACF, custom post types.",
+      "offers": [
+        {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Free version on WordPress.org"
+        },
+        {
+          "@type": "Offer",
+          "price": "9.99",
+          "priceCurrency": "USD",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "billingDuration": "P1M"
+          },
+          "description": "Premium — 2 sites"
+        }
+      ]
+    }
+    </script>
+    <link rel="icon" href="favicon.png" type="image/png" />
+    <link rel="stylesheet" href="assets/css/style.min.css?v=1.0.4" />
+
+		<!-- Google tag (gtag.js) -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=G-PSP040Y5E9"></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+
+			gtag('config', 'G-PSP040Y5E9');
+		</script>
+
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="topbar" data-topbar>
+      <div class="container topbar-inner">
+        <a class="brand" href="#top" aria-label="WP Import Export by RockStarLab">
+          <img class="brand-logo" src="assets/img/logo.png" alt="WP Import Export by RockStarLab plugin for WordPress" width="32" height="32" />
+          <span class="brand-name">WP Import Export by RockStarLab</span>
+        </a>
+
+        <button class="nav-toggle" type="button" aria-controls="nav" aria-expanded="false" data-nav-toggle>
+          <span class="nav-toggle-lines" aria-hidden="true"></span>
+          <span class="nav-toggle-label">Menu</span>
+        </button>
+
+        <nav class="nav" id="nav" data-nav>
+          <a class="nav-link" href="#features">Features</a>
+					<a class="nav-link" href="#use-cases">Use&nbsp;Cases</a>
+          <a class="nav-link" href="#workflows">Workflows</a>
+          <a class="nav-link" href="#screens">Screens</a>
+          <a class="nav-link" href="#pricing">Pricing</a>
+          <a class="nav-link" href="#affiliate">Affiliates</a>
+          <a class="nav-link" href="#faq">FAQ</a>
+          <a
+            class="btn btn-sm btn-primary"
+            href="https://wordpress.org/plugins/import-export-by-rockstarlab/"
+            target="_blank"
+            rel="noreferrer" 
+						id="header-download-button"
+            >Download</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top">
+        <div class="container hero-grid">
+          <div class="hero-copy reveal">
+            <!-- <div class="pill">
+              <span class="pill-dot" aria-hidden="true"></span>
+              <span>Import. Export. Sync.</span>
+            </div> -->
+
+            <h1 class="hero-title">
+              <span class="hero-title-static">Advanced</span>
+              <span class="hero-title-accent hero-title-flipper" aria-live="polite" data-flipper='["Import, Export &amp; Sync","Site-to-Site Sync","Bulk Content Updates","Media Folder Sync","AI URL Importing"]'>
+                <span class="flipper-track">
+                  <span class="flipper-word">Import, Export &amp; Sync</span>
+                  <span class="flipper-word">Site-to-Site Sync</span>
+                  <span class="flipper-word">Bulk Content Updates</span>
+                  <span class="flipper-word">Media Folder Sync</span>
+                  <span class="flipper-word">AI URL Importing</span>
+                </span>
+              </span>
+              <span class="hero-title-static">WordPress Plugin</span>
+            </h1>
+            <p class="hero-subtitle">
+              The most complete WordPress import export plugin — import large CSV files, export data to CSV or JSON, and bulk update thousands of posts with optional field transformations.<br>
+              Need more? Connect WordPress sites and sync content in both directions, or scan server folders into the Media Library. Full WooCommerce, ACF, and custom post type support included.
+            </p>
+
+            <div class="cta">
+              <a class="btn btn-primary" href="https://wordpress.org/plugins/import-export-by-rockstarlab/">Get it now</a>
+              <a class="btn btn-ghost" href="https://wpimportexport.com/docs/" target="_blank" rel="noreferrer"
+                >Read Docs</a
+              >
+       
+            </div>
+
+ 
+          </div>
+
+          <div class="hero-visual reveal" aria-hidden="true">
+            <div class="hero-card">
+              <svg class="hero-illustration" viewBox="0 0 640 520" role="img" aria-label="">
+                <defs>
+                  <linearGradient id="flow" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#00b896" />
+                    <stop offset="1" stop-color="#00d4aa" />
+                  </linearGradient>
+                  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="5" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+
+                <g opacity="0.92">
+                  <path
+                    class="flow-line"
+                    d="M130 145 C 220 145, 260 120, 305 120 C 380 120, 418 165, 505 165"
+                    fill="none"
+                    stroke="url(#flow)"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    filter="url(#glow)"
+                  />
+                  <path
+                    class="flow-line flow-line-2"
+                    d="M130 300 C 230 300, 255 340, 330 340 C 400 340, 430 292, 505 292"
+                    fill="none"
+                    stroke="url(#flow)"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    filter="url(#glow)"
+                  />
+                  <path
+                    class="flow-line flow-line-3"
+                    d="M330 340 C 350 420, 390 455, 505 455"
+                    fill="none"
+                    stroke="url(#flow)"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    filter="url(#glow)"
+                  />
+                </g>
+
+                <g class="node node-file">
+                  <rect x="70" y="105" rx="14" ry="14" width="120" height="84" />
+                  <text x="130" y="143" text-anchor="middle">WP</text>
+                  <text class="node-sub" x="130" y="165" text-anchor="middle">website</text>
+                </g>
+
+                <g class="node node-wp">
+                  <rect x="250" y="78" rx="14" ry="14" width="160" height="92" />
+                  <text x="330" y="120" text-anchor="middle">Choose</text>
+                  <text class="node-sub" x="330" y="145" text-anchor="middle">Fields</text>
+                </g>
+
+                <g class="node node-tools">
+                  <rect x="250" y="295" rx="14" ry="14" width="160" height="92" />
+                  <text x="330" y="338" text-anchor="middle">Production</text>
+                  <text class="node-sub" x="330" y="363" text-anchor="middle">website</text>
+                </g>
+
+                <g class="node node-out">
+                  <rect x="470" y="130" rx="14" ry="14" width="140" height="78" />
+                  <text x="540" y="165" text-anchor="middle">Import, Export,</text>
+                  <text class="node-sub" x="540" y="188" text-anchor="middle">Sync</text>
+                </g>
+
+                <g class="node node-sync">
+                  <rect x="470" y="255" rx="14" ry="14" width="140" height="78" />
+                  <text x="540" y="290" text-anchor="middle">Staging</text>
+                  <text class="node-sub" x="540" y="313" text-anchor="middle">website</text>
+                </g>
+
+                <g class="node node-media">
+                  <rect x="470" y="418" rx="14" ry="14" width="140" height="78" />
+                  <text x="540" y="453" text-anchor="middle">Development</text>
+                  <text class="node-sub" x="540" y="476" text-anchor="middle">website</text>
+                </g>
+
+                <g class="sparkles">
+                  <circle class="spark s1" cx="210" cy="84" r="5" />
+                  <circle class="spark s2" cx="420" cy="220" r="4" />
+                  <circle class="spark s3" cx="210" cy="410" r="4" />
+                  <circle class="spark s4" cx="585" cy="105" r="5" />
+                </g>
+              </svg>
+
+              <div class="hero-card-bottom">
+                <div class="hero-stat">
+                  <div class="hero-stat-k">Built for complex data</div>
+                  <div class="hero-stat-v">Custom Fields & Custom Post Types</div>
+                </div>
+                <div class="hero-stat">
+                  <div class="hero-stat-k">Integrations</div>
+                  <div class="hero-stat-v">ACF · YOAST · WooCommerce</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-bg" aria-hidden="true"></div>
+      </section>
+
+      <section class="section section-muted" id="wordpress-bits">
+        <div class="container reveal">
+          <div class="bar">
+            <div class="bar-item">
+              <div class="bar-emoji" aria-hidden="true">🧩</div>
+              <div class="bar-text">
+                <strong>All the WordPress bits</strong>
+                <span>Posts, Pages, Custom Post Types, Users, Comments, Taxonomies, Menus</span>
+              </div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-emoji" aria-hidden="true">🛒</div>
+              <div class="bar-text">
+                <strong>WooCommerce ready</strong>
+                <span>Products, variations, orders, coupons</span>
+              </div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-emoji" aria-hidden="true">🗄️</div>
+              <div class="bar-text">
+                <strong>Raw MySQL tables</strong>
+                <span>Import/export any MySQL table</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>Everything you need to import, export & sync WordPress data</h2>
+            <p>Designed for migrations, staging ⇄ production sync, bulk updates, and content operations at scale.</p>
+          </div>
+
+          <div class="grid features">
+            <a class="card reveal" href="/docs/import.html">
+              <div class="card-icon">📥</div>
+              <h3>CSV Import</h3>
+              <p>Stream large files, preview rows, map fields, validate data, and run in the background.</p>
+              <span class="card-link">Read import docs</span>
+            </a>
+
+            <a class="card reveal" href="/docs/export.html">
+              <div class="card-icon">📤</div>
+              <h3>Export to CSV / JSON</h3>
+              <p>Filter by IDs, date, status, taxonomy; choose fields; generate datasets you can trust.</p>
+              <span class="card-link">Read export docs</span>
+            </a>
+
+            <a class="card reveal" href="/docs/content-sync.html">
+              <div class="card-icon">🔄</div>
+              <h3>Site‑to‑Site Sync</h3>
+              <p>Connect two sites with API keys and push/pull content with conflict strategies and media sync.</p>
+              <span class="card-link">Read sync docs</span>
+            </a>
+
+            <a class="card reveal" href="/docs/pro-addon.html">
+              <div class="card-icon">✏️</div>
+              <h3>PRO Content Updater</h3>
+              <p>Apply transformations to thousands of records using filters with the optional PRO addon.</p>
+              <span class="card-link">Read PRO docs</span>
+            </a>
+
+            <a class="card reveal" href="/docs/media-sync.html">
+              <div class="card-icon">🖼️</div>
+              <h3>Media Folder Sync</h3>
+              <p>Scan server folders (FTP/SFTP uploads) and register files into Media Library with duplicate detection.</p>
+              <span class="card-link">Read media sync docs</span>
+            </a>
+
+            <a class="card reveal" href="/docs/ai-url-importer.html">
+              <div class="card-icon">🤖</div>
+              <h3>AI URL Importer</h3>
+              <p>Give a URL, let AI parse the page, and import content as any post type — fast and flexible.</p>
+              <span class="card-link">Read AI importer docs</span>
+            </a>
+
+            <a class="card reveal" href="/docs/jobs-log.html">
+              <div class="card-icon">📋</div>
+              <h3>Jobs Log</h3>
+              <p>Every run is saved — review results, rerun jobs, or use history as a safety net.</p>
+              <span class="card-link">Read jobs log docs</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <div class="wave" aria-hidden="true">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <path
+            class="wave-path wave-1"
+            d="M0,32 C120,52 240,72 360,64 C480,56 600,20 720,24 C840,28 960,68 1080,76 C1140,80 1170,76 1200,72 L1200,120 L0,120 Z"
+          ></path>
+          <path
+            class="wave-path wave-2"
+            d="M0,44 C140,64 280,84 400,74 C520,64 600,22 720,28 C840,34 980,86 1100,92 C1156,95 1178,92 1200,88 L1200,120 L0,120 Z"
+          ></path>
+        </svg>
+      </div>
+
+     <!-- ══ Use Cases ══════════════════════════════════════════ -->
+      <section class="section section-muted" id="use-cases">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>Who uses WP Import Export by RockStarLab?</h2>
+            <p>Real workflows for agencies, developers, store owners, and content teams.</p>
+          </div>
+
+          <div class="use-cases reveal">
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">🏗️</div>
+              <div class="uc-body">
+                <h3>Agency site migrations</h3>
+                <p>Moving a client from one host to another? Export all posts, pages, custom fields, and media from the old site and import everything cleanly into the new WordPress install — no manual copy-pasting.</p>
+              </div>
+            </div>
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">🔁</div>
+              <div class="uc-body">
+                <h3>Staging → Production sync</h3>
+                <p>Built new landing pages on staging? Use Site-to-Site Sync to push only the changed content to production — without overwriting posts that already exist there.</p>
+              </div>
+            </div>
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">🛒</div>
+              <div class="uc-body">
+                <h3>WooCommerce product imports</h3>
+                <p>Got a 50,000-row supplier CSV? Map product title, SKU, price, stock, and attributes in minutes. Run in the background and check results in the Jobs Log when it's done.</p>
+              </div>
+            </div>
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">✏️</div>
+              <div class="uc-body">
+                <h3>Bulk price or content updates</h3>
+                <p>Need to apply a 10% price increase across all products, or update hundreds of post excerpts? The optional PRO addon includes the Bulk Content Updater with field transformations.</p>
+              </div>
+            </div>
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">🖼️</div>
+              <div class="uc-body">
+                <h3>FTP folder → Media Library</h3>
+                <p>Uploaded thousands of images via FTP? Media Folder Sync scans your server directories and registers every file into the WordPress Media Library with duplicate detection.</p>
+              </div>
+            </div>
+            <div class="uc-item">
+              <div class="uc-icon" aria-hidden="true">🤖</div>
+              <div class="uc-body">
+                <h3>AI-powered content import</h3>
+                <p>Paste any public URL and the AI importer extracts the content, maps it to your post type fields, and creates a draft — great for migrating content from legacy CMSes or competitor sites.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-muted" id="workflows">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>Workflows that match real projects</h2>
+            <p>From “move content once” to “keep sites in sync” — choose the path that fits.</p>
+          </div>
+
+          <div class="tabs reveal" data-tabs>
+            <div class="tablist" role="tablist" aria-label="Workflows">
+              <button class="tab" type="button" role="tab" aria-selected="true" data-tab="import">Import</button>
+              <button class="tab" type="button" role="tab" aria-selected="false" data-tab="export">Export</button>
+              <button class="tab" type="button" role="tab" aria-selected="false" data-tab="sync">Sync</button>
+              <button class="tab" type="button" role="tab" aria-selected="false" data-tab="update">Bulk update</button>
+            </div>
+
+            <div class="panels">
+              <div class="panel" role="tabpanel" data-panel="import">
+                <ol class="steps">
+                  <li><strong>Select content type</strong> (posts, CPT, users, WooCommerce, or raw tables).</li>
+                  <li><strong>Upload CSV</strong> (delimiter support + streaming for large files).</li>
+                  <li><strong>Preview & map</strong> fields with validation.</li>
+                  <li><strong>Transform</strong> values using PHP functions when needed.</li>
+                  <li><strong>Run in background</strong> and review results in Jobs Log.</li>
+                </ol>
+                <div class="panel-cta">
+                  <a class="btn btn-sm btn-primary" href="/docs/import.html">Import documentation</a>
+                </div>
+              </div>
+
+              <div class="panel" role="tabpanel" hidden data-panel="export">
+                <ol class="steps">
+                  <li><strong>Pick a dataset</strong> (content types or raw MySQL tables).</li>
+                  <li><strong>Filter precisely</strong> by IDs, date ranges, authors, taxonomies, statuses.</li>
+                  <li><strong>Select fields</strong> to keep exports lean and useful.</li>
+                  <li><strong>Export</strong> to CSV (or JSON) for backups, analysis, or migrations.</li>
+                  <li><strong>Rerun anytime</strong> from Jobs Log with one click.</li>
+                </ol>
+                <div class="panel-cta">
+                  <a class="btn btn-sm btn-primary" href="/docs/export.html">Export documentation</a>
+                </div>
+              </div>
+
+              <div class="panel" role="tabpanel" hidden data-panel="sync">
+                <ol class="steps">
+                  <li><strong>Connect sites</strong> using secure API keys.</li>
+                  <li><strong>Choose direction</strong>: pull from remote or push to it.</li>
+                  <li><strong>Sync selectively</strong> by filters — not everything, only what you need.</li>
+                  <li><strong>Resolve conflicts</strong> with skip/update/duplicate strategies.</li>
+                  <li><strong>Include media</strong> so attachments arrive with content.</li>
+                </ol>
+                <div class="panel-cta">
+                  <a class="btn btn-sm btn-primary" href="/docs/content-sync.html">Sync documentation</a>
+                </div>
+              </div>
+
+              <div class="panel" role="tabpanel" hidden data-panel="update">
+                <ol class="steps">
+                  <li><strong>Filter records</strong> (date, status, taxonomy, author, IDs).</li>
+                  <li><strong>Select fields</strong> you want to change.</li>
+                  <li><strong>Apply functions</strong> to transform values (string, HTML, date, WP helpers).</li>
+                  <li><strong>Preview</strong> changes before executing.</li>
+                  <li><strong>Execute</strong> and track everything in Jobs Log.</li>
+                </ol>
+                <div class="panel-cta">
+                  <a class="btn btn-sm btn-primary" href="/docs/pro-addon.html">PRO addon documentation</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout reveal">
+            <div class="callout-icon" aria-hidden="true">🛡️</div>
+            <div class="callout-body">
+              <p class="callout-text">
+                <strong>Pro tip:</strong> these workflows can modify lots of records quickly. Always take a full backup
+                before big imports or bulk updates.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="screens">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>UI snapshots</h2>
+            <p>Clean steps, live progress, and reusable jobs — built for daily use.</p>
+          </div>
+
+          <div class="gallery">
+            <button
+              class="shot reveal"
+              type="button"
+              data-lightbox
+              data-src="assets/screens/import-map-fields.png"
+              data-alt="WordPress CSV import: map fields to post meta"
+            >
+              <img src="assets/screens/import-map-fields.png" alt="WordPress CSV import plugin — field mapping screen" loading="lazy" />
+              <span class="shot-cap">Import · Field mapping</span>
+            </button>
+            <button
+              class="shot reveal"
+              type="button"
+              data-lightbox
+              data-src="assets/screens/export-choose-fields.png"
+              data-alt="WordPress export plugin: choose fields to export to CSV or JSON"
+            >
+              <img src="assets/screens/export-choose-fields.png" alt="WordPress export plugin — choose fields for CSV or JSON export" loading="lazy" />
+              <span class="shot-cap">Export · Choose fields</span>
+            </button>
+            <button
+              class="shot reveal"
+              type="button"
+              data-lightbox
+              data-src="assets/screens/sync-dialog.png"
+              data-alt="WordPress site-to-site content sync: push or pull dialog"
+            >
+              <img src="assets/screens/sync-dialog.png" alt="WordPress content sync plugin — push/pull direction dialog between sites" loading="lazy" />
+              <span class="shot-cap">Sync · Push / Pull dialog</span>
+            </button>
+            <button
+              class="shot reveal"
+              type="button"
+              data-lightbox
+              data-src="assets/screens/updater-preview.png"
+              data-alt="WordPress bulk content updater: preview changes before executing"
+            >
+              <img src="assets/screens/updater-preview.png" alt="WordPress bulk post updater — preview changes across thousands of records" loading="lazy" />
+              <span class="shot-cap">Updater · Preview</span>
+            </button>
+            <button
+              class="shot reveal"
+              type="button"
+              data-lightbox
+              data-src="assets/screens/media-sync-page.png"
+              data-alt="WordPress media folder sync: register server files into Media Library"
+            >
+              <img src="assets/screens/media-sync-page.png" alt="WordPress media folder sync — scan server folders and import files into Media Library" loading="lazy" />
+              <span class="shot-cap">Media · Folder sync</span>
+            </button>
+            <button
+              class="shot reveal"
+              type="button"
+              data-lightbox
+              data-src="assets/screens/ai-importer-preview.png"
+              data-alt="AI URL importer for WordPress: paste a URL and import content automatically"
+            >
+              <img src="assets/screens/ai-importer-preview.png" alt="WordPress AI URL importer — paste a URL and import content as any post type" loading="lazy" />
+              <span class="shot-cap">AI · URL import preview</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-muted" id="pricing">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>Simple, transparent pricing</h2>
+            <p>Three plans for running premium features across your sites.</p>
+            <p class="subnote"><strong>Try it for free!</strong> New users get <strong>1 month</strong> with access to all premium features.</p>
+          </div>
+
+          <!-- <div class="social-proof reveal">
+            <div class="sp-item">
+              <span class="sp-num">10,000+</span>
+              <span class="sp-label">Active installs</span>
+            </div>
+            <div class="sp-item">
+              <span class="sp-num">★ 4.8</span>
+              <span class="sp-label">WordPress.org rating</span>
+            </div>
+            <div class="sp-item">
+              <span class="sp-num">Free</span>
+              <span class="sp-label">Core version available</span>
+            </div>
+          </div> -->
+
+          <div class="grid pricing">
+            <div class="card price-card reveal">
+              <div class="price-top">
+                <h3 class="price-title">2 sites</h3>
+                <div class="price">
+                  <span class="price-currency">$</span><span class="price-value">9.99</span>
+									<span class="price-period">/ month</span>
+                </div>
+              </div>
+              <ul class="checklist" aria-label="Plan features">
+                <li>All Data Types</li>
+                <li>Sync Content Between Sites</li>
+                <li>AI Tools</li>
+              </ul>
+              <a class="btn btn-sm btn-primary price-btn" href="https://wordpress.org/plugins/import-export-by-rockstarlab/" target="_blank" rel="noreferrer">Get started</a>
+            </div>
+
+            <div class="card price-card price-card-popular reveal">
+              <div class="price-top">
+                <h3 class="price-title">10 sites</h3>
+                <div class="price">
+                  <span class="price-currency">$</span><span class="price-value">29.99</span>
+									<span class="price-period">/ month</span>
+                </div>
+              </div>
+              <ul class="checklist" aria-label="Plan features">
+                <li>All Data Types</li>
+                <li>Sync Content Between Sites</li>
+                <li>AI Tools</li>
+              </ul>
+              <a class="btn btn-sm btn-primary price-btn" href="https://wordpress.org/plugins/import-export-by-rockstarlab/" target="_blank" rel="noreferrer">Get started</a>
+            </div>
+
+            <div class="card price-card reveal">
+              <div class="price-top">
+                <h3 class="price-title">100 sites</h3>
+                <div class="price">
+                  <span class="price-currency">$</span><span class="price-value">99.99</span>
+                  <span class="price-period">/ month</span>
+                </div>
+              </div>
+              <ul class="checklist" aria-label="Plan features">
+                <li>All Data Types</li>
+                <li>Sync Content Between Sites</li>
+                <li>AI Tools</li>
+              </ul>
+              <a class="btn btn-sm btn-primary price-btn" href="https://wordpress.org/plugins/import-export-by-rockstarlab/" target="_blank" rel="noreferrer">Get started</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-muted" id="get-started">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>Get started in minutes</h2>
+            <p>Install, activate, and choose your workflow — import/export/sync/update.</p>
+          </div>
+
+          <div class="grid start">
+            <div class="card reveal">
+              <div class="card-icon">📦</div>
+              <h3>Install</h3>
+              <p>Upload the plugin in WordPress Admin → Plugins, then activate it.</p>
+              <a class="card-link" href="/docs/installation.html">Installation docs</a>
+            </div>
+            <div class="card reveal">
+              <div class="card-icon">🔑</div>
+              <h3>Activate license</h3>
+              <p>Enable premium features and manage activation in the License screen.</p>
+              <a class="card-link" href="/docs/license.html">License docs</a>
+            </div>
+            <div class="card reveal">
+              <div class="card-icon">🚀</div>
+              <h3>Run your first job</h3>
+              <p>Import a CSV, export a dataset, or connect a remote site — then review the Jobs Log.</p>
+              <a class="card-link" href="/docs/jobs-log.html">Jobs log docs</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ Affiliate Program ═══════════════════════════════════ -->
+      <section class="section section-muted" id="affiliate">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>Earn with our Affiliate Program</h2>
+            <p>Recommend WP Import Export by RockStarLab to your audience and earn a commission on every sale you refer.</p>
+          </div>
+
+          <div class="aff-grid reveal">
+            <div class="aff-highlight">
+              <div class="aff-highlight-inner">
+                <div class="aff-stat">
+                  <span class="aff-stat-num">20%</span>
+                  <span class="aff-stat-label">Commission per sale</span>
+                </div>
+                <div class="aff-stat">
+                  <span class="aff-stat-num">30 days</span>
+                  <span class="aff-stat-label">Cookie duration</span>
+                </div>
+                <div class="aff-stat">
+                  <span class="aff-stat-num">Monthly</span>
+                  <span class="aff-stat-label">Payouts via PayPal</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="aff-steps">
+              <div class="aff-step">
+                <div class="aff-step-num" aria-hidden="true">1</div>
+                <div class="aff-step-body">
+                  <strong>Apply for free</strong>
+                  <span>Sign up with your email directly in WP Admin Panel &rarr; WP Import Export by RockStarLab &rarr; Affiliation</span>
+                </div>
+              </div>
+              <div class="aff-step">
+                <div class="aff-step-num" aria-hidden="true">2</div>
+                <div class="aff-step-body">
+                  <strong>Get your unique link</strong>
+                  <span>Share it in blog posts, YouTube videos, tutorials, or social media networks.</span>
+                </div>
+              </div>
+              <div class="aff-step">
+                <div class="aff-step-num" aria-hidden="true">3</div>
+                <div class="aff-step-body">
+                  <strong>Earn on every referral</strong>
+                  <span>Get 20% commission on each new premium subscription you refer.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="aff-cta reveal">
+            <a class="btn btn-primary" id="referral-download-button" href="https://wordpress.org/plugins/import-export-by-rockstarlab/">Download to become an affiliate</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="faq">
+        <div class="container">
+          <div class="section-head reveal">
+            <h2>Frequently asked questions</h2>
+            <p>Quick answers to common questions from users and developers.</p>
+          </div>
+
+          <div class="faq reveal">
+            <details class="faq-item">
+              <summary>Where is the plugin documentation?</summary>
+              <div class="faq-body">
+                The online docs live at
+                <a href="https://wpimportexport.com/docs/" target="_blank" rel="noreferrer">wpimportexport.com/docs</a>.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Can I import large CSV files into WordPress without timeout issues?</summary>
+              <div class="faq-body">
+                Yes — the plugin uses background processing and CSV streaming to handle files with hundreds of thousands of rows without hitting PHP timeout limits.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Does it support WooCommerce import and export?</summary>
+              <div class="faq-body">
+                Yes. You can import and export WooCommerce products, product variations, orders, and coupons — including all custom meta and attributes.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Can I import and export ACF (Advanced Custom Fields) data?</summary>
+              <div class="faq-body">
+                Yes. ACF fields are fully supported for both import and export across all field types, including repeaters and flexible content.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Can I transform data during import?</summary>
+              <div class="faq-body">
+                The free plugin keeps import and export workflows focused on mapping and background jobs. Advanced field transformations are available through the optional PRO addon.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>How do I migrate content between two WordPress sites?</summary>
+              <div class="faq-body">
+                Use the Site-to-Site Sync feature. Connect sites with secure API keys, choose Push or Pull direction, filter what to sync, and optionally include media attachments.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Can I export WordPress posts to CSV or JSON?</summary>
+              <div class="faq-body">
+                Yes. Export any content type — posts, pages, custom post types, users, or raw MySQL tables — to CSV or JSON. Filter by date, status, author, taxonomy, or IDs.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>How do I avoid importing duplicate media files?</summary>
+              <div class="faq-body">
+                Use Media Folder Sync with duplicate detection. Choose Hash (most accurate), Filename (fastest), or Filesize (balanced) as the detection strategy.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Is there a free version available?</summary>
+              <div class="faq-body">
+                Yes — the core plugin is free on <a href="https://wordpress.org/plugins/import-export-by-rockstarlab/" target="_blank" rel="noreferrer">WordPress.org</a>. Premium plans unlock Content Sync, AI tools, and advanced features. New users get 1 free month of premium.
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-gradient">
+        <div class="container reveal">
+          <div class="final-cta">
+            <h2>Ready to ship migrations and syncs with confidence?</h2>
+            <p>Start with docs, run a job, and keep every run in history for reruns and audits.</p>
+            <div class="cta">
+              <a
+                class="btn btn-primary"
+                href="https://wordpress.org/plugins/import-export-by-rockstarlab/"
+                target="_blank"
+                rel="noreferrer" 
+								id="footer-cta-download-button"
+                >Download</a
+              >
+              <a
+                class="btn btn-ghost"
+                href="https://wpimportexport.com/docs/"
+                target="_blank"
+                rel="noreferrer"
+                >Documentation</a
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-inner">
+        <div class="footer-left">
+          <div class="footer-brand">
+            <span>WP Import Export by RockStarLab</span>
+          </div>
+          <div class="footer-meta">
+            &copy; <span data-year></span> RockstarLab 
+          </div>
+        </div>
+        <div class="footer-right">
+          <a class="footer-link" href="#top">Back to top</a>
+        </div>
+      </div>
+    </footer>
+
+    <div class="lightbox" hidden data-lightbox-root aria-modal="true" role="dialog" aria-label="Screenshot viewer">
+      <button class="lightbox-close" type="button" aria-label="Close" data-lightbox-close>×</button>
+      <figure class="lightbox-figure">
+        <img data-lightbox-img alt="" />
+        <figcaption class="lightbox-cap" data-lightbox-cap></figcaption>
+      </figure>
+    </div>
+
+    <script src="assets/js/main.min.js?v=1.0.2" defer></script>
+  </body>
+</html>

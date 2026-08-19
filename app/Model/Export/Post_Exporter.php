@@ -4125,7 +4125,7 @@ class Post_Exporter extends Abstract_Exporter {
 			return '';
 		}
 
-		$ancestors = array_reverse( get_ancestors( $parent_id, $taxonomy, 'taxonomy' ) );
+		$ancestors   = array_reverse( get_ancestors( $parent_id, $taxonomy, 'taxonomy' ) );
 		$ancestors[] = $parent_id;
 
 		$slugs = [];

@@ -776,9 +776,16 @@ class Content_Sync_Replacer {
 		// Keys whose numeric values are definitely attachment IDs.
 		$attachment_id_keys = array( 'id', 'ID', 'attachment_id', 'image_id', 'media_id', 'image', 'thumbnail_id', 'file' );
 
+		if ( isset( $array['id'], $array['url'] ) && is_numeric( $array['id'] ) ) {
+			$local_url = self::get_local_attachment_url( (int) $array['id'] );
+			if ( $local_url ) {
+				$array['url'] = $local_url;
+			}
+		}
+
 		if ( ! empty( $image_map ) && isset( $array['id'], $array['url'] ) && is_numeric( $array['id'] ) && isset( $image_map[ (int) $array['id'] ] ) ) {
 			$new_attachment_id = (int) $image_map[ (int) $array['id'] ];
-			$new_url           = wp_get_attachment_url( $new_attachment_id );
+			$new_url           = self::get_local_attachment_url( $new_attachment_id );
 			if ( $new_url ) {
 				$array['id']  = $new_attachment_id;
 				$array['url'] = $new_url;
@@ -875,6 +882,28 @@ class Content_Sync_Replacer {
 	}
 
 	/**
+	 * Get the local URL for a confirmed target-site attachment ID.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @return string Local attachment URL, or empty string when the ID is not an attachment.
+	 */
+	private static function get_local_attachment_url( $attachment_id ) {
+		$attachment_id = absint( $attachment_id );
+		if ( $attachment_id <= 0 ) {
+			return '';
+		}
+
+		$attachment = get_post( $attachment_id );
+		if ( ! $attachment || 'attachment' !== $attachment->post_type ) {
+			return '';
+		}
+
+		$url = wp_get_attachment_url( $attachment_id );
+
+		return $url ? (string) $url : '';
+	}
+
+	/**
 	 * Replace domain in text
 	 *
 	 * @param string $text Text to process.
@@ -890,6 +919,9 @@ class Content_Sync_Replacer {
 		// Normalize domains
 		$source_domain = self::normalize_domain( $source_domain );
 		$target_domain = self::normalize_domain( $target_domain );
+		if ( '' === $source_domain || '' === $target_domain ) {
+			return $text;
+		}
 
 		// Replace with different protocols
 		$replacements = array(

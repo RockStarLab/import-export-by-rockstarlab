@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+	<title id="title">Animated Stop Search Spam logo concept</title>
+	<desc id="desc">An animated flat gradient icon with a search magnifier scanning and blocking spam results.</desc>
+	<defs>
+		<linearGradient id="buttonGradient" x1="74" y1="74" x2="438" y2="438" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#a855f7"/>
+			<stop offset="0.5" stop-color="#6366f1"/>
+			<stop offset="1" stop-color="#06b6d4"/>
+		</linearGradient>
+		<linearGradient id="lensGradient" x1="154" y1="144" x2="314" y2="314" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#ffffff"/>
+			<stop offset="1" stop-color="#dffbff"/>
+		</linearGradient>
+		<filter id="softShadow" x="-22%" y="-22%" width="150%" height="155%">
+			<feDropShadow dx="0" dy="18" stdDeviation="15" flood-color="#111827" flood-opacity="0.3"/>
+		</filter>
+		<style>
+			.search-sweep {
+				transform-origin: 230px 230px;
+				animation: searchSweep 2.8s cubic-bezier(.23, 1, .32, 1) infinite;
+			}
+
+			.block-bar {
+				transform-origin: 230px 230px;
+				animation: blockPulse 2.8s cubic-bezier(.23, 1, .32, 1) infinite;
+			}
+
+			.spam-dot {
+				animation: spamBlink 2.8s ease-in-out infinite;
+			}
+
+			.spam-dot.two {
+				animation-delay: .35s;
+			}
+
+			.spam-dot.three {
+				animation-delay: .7s;
+			}
+
+			.background-line {
+				animation: lineDrift 4.6s ease-in-out infinite;
+			}
+
+			@keyframes searchSweep {
+				0%, 18% {
+					transform: rotate(-34deg);
+					opacity: .08;
+				}
+
+				45% {
+					opacity: .42;
+				}
+
+				58%, 100% {
+					transform: rotate(34deg);
+					opacity: .08;
+				}
+			}
+
+			@keyframes blockPulse {
+				0%, 42%, 100% {
+					transform: scale(1);
+					opacity: 1;
+				}
+
+				52% {
+					transform: scale(1.08);
+					opacity: 1;
+				}
+
+				63% {
+					transform: scale(.98);
+					opacity: .95;
+				}
+			}
+
+			@keyframes spamBlink {
+				0%, 30%, 100% {
+					transform: translateY(0) scale(1);
+					opacity: .5;
+				}
+
+				45% {
+					transform: translateY(-8px) scale(1.16);
+					opacity: .95;
+				}
+
+				62% {
+					transform: translateY(3px) scale(.75);
+					opacity: .18;
+				}
+			}
+
+			@keyframes lineDrift {
+				0%, 100% {
+					transform: translateX(0);
+					opacity: .18;
+				}
+
+				50% {
+					transform: translateX(14px);
+					opacity: .26;
+				}
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				.search-sweep,
+				.block-bar,
+				.spam-dot,
+				.background-line {
+					animation: none;
+				}
+			}
+		</style>
+	</defs>
+	<rect width="512" height="512" rx="92" fill="url(#buttonGradient)"/>
+	<g class="background-line" opacity="0.2" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round">
+		<path d="M104 141h58"/>
+		<path d="M350 364h58"/>
+		<path d="M112 382h34"/>
+		<path d="M370 132h32"/>
+	</g>
+	<g filter="url(#softShadow)">
+		<circle cx="230" cy="230" r="112" fill="#10131f" opacity="0.94"/>
+		<circle cx="230" cy="230" r="76" fill="url(#lensGradient)"/>
+		<path d="M307 307l88 88" fill="none" stroke="#10131f" stroke-width="48" stroke-linecap="round"/>
+		<path d="M306 306l88 88" fill="none" stroke="#fff" stroke-width="26" stroke-linecap="round" opacity="0.94"/>
+		<g class="search-sweep">
+			<path d="M230 153c-43 0-77 34-77 77s34 77 77 77" fill="none" stroke="#06b6d4" stroke-width="12" stroke-linecap="round"/>
+			<path d="M230 153c43 0 77 34 77 77" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.85"/>
+		</g>
+		<g class="block-bar">
+			<path d="M185 230h90" fill="none" stroke="#10131f" stroke-width="24" stroke-linecap="round"/>
+			<path d="M198 230h64" fill="none" stroke="#111827" stroke-width="10" stroke-linecap="round" opacity="0.24"/>
+		</g>
+		<path d="M230 164c36 0 66 30 66 66s-30 66-66 66-66-30-66-66 30-66 66-66Z" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.28"/>
+		<circle class="spam-dot" cx="148" cy="137" r="15" fill="#fff" opacity="0.78"/>
+		<circle class="spam-dot two" cx="339" cy="164" r="13" fill="#fff" opacity="0.68"/>
+		<circle class="spam-dot three" cx="351" cy="275" r="12" fill="#fff" opacity="0.58"/>
+		<path d="M130 304h47" stroke="#fff" stroke-width="14" stroke-linecap="round" opacity="0.5"/>
+		<path d="M331 215h50" stroke="#fff" stroke-width="14" stroke-linecap="round" opacity="0.42"/>
+	</g>
+	<path d="M76 135c57-27 119-40 186-40 69 0 129 13 178 38" fill="none" stroke="#fff" stroke-width="4" opacity="0.13"/>
+</svg>
