@@ -1291,7 +1291,7 @@ class Content_Sync_Controller extends Base_Controller {
 				'_rsl_ie_original_post_id',
 			);
 			foreach ( $meta as $key => $values ) {
-				if ( in_array( $key, $skip_meta_keys, true ) ) {
+				if ( in_array( $key, $skip_meta_keys, true ) || $this->should_skip_synced_meta_key( (string) $key ) ) {
 					continue;
 				}
 				$prepared_meta[ $key ] = maybe_unserialize( $values[0] );
@@ -1686,7 +1686,15 @@ class Content_Sync_Controller extends Base_Controller {
 	 */
 	private function upload_single_image_to_remote( $image, $site ) {
 		// Read file contents
-		$file_contents = @file_get_contents( $image['file_path'] );
+		$file_contents = false;
+		if ( ! empty( $image['file_path'] ) ) {
+			$file_contents = @file_get_contents( $image['file_path'] );
+		} elseif ( ! empty( $image['url'] ) && wp_http_validate_url( $image['url'] ) ) {
+			$response = wp_remote_get( $image['url'], array( 'timeout' => 30 ) );
+			if ( ! is_wp_error( $response ) ) {
+				$file_contents = wp_remote_retrieve_body( $response );
+			}
+		}
 
 		if ( false === $file_contents ) {
 			return false;
@@ -1731,6 +1739,150 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Extract external Elementor media references from pulled post payloads.
+	 *
+	 * This is a target-side fallback for older/source sites that do not include
+	 * Elementor template media (notably SVG icon controls) in the normal images
+	 * payload. The returned attachment_id is the source/builder ID so the regular
+	 * image map can rewrite Elementor `{id,url}` controls after download.
+	 *
+	 * @param array $posts_data Remote post payloads.
+	 * @return array Media items keyed by source/builder attachment ID or URL hash.
+	 */
+	private function extract_elementor_external_media_from_posts( $posts_data ) {
+		$images = array();
+
+		if ( empty( $posts_data ) || ! is_array( $posts_data ) ) {
+			return $images;
+		}
+
+		foreach ( $posts_data as $post_data ) {
+			if ( empty( $post_data['meta']['_elementor_data'] ) || ! is_string( $post_data['meta']['_elementor_data'] ) ) {
+				continue;
+			}
+
+			$elementor_data = json_decode( $post_data['meta']['_elementor_data'], true );
+			if ( ! is_array( $elementor_data ) ) {
+				continue;
+			}
+
+			$this->collect_elementor_external_media( $elementor_data, $images );
+		}
+
+		return $images;
+	}
+
+	/**
+	 * Recursively collect Elementor media URL controls.
+	 *
+	 * @param mixed $value  Elementor data node.
+	 * @param array $images Collected media items.
+	 * @return void
+	 */
+	private function collect_elementor_external_media( $value, &$images ) {
+		if ( ! is_array( $value ) ) {
+			return;
+		}
+
+		if ( isset( $value['url'] ) && is_string( $value['url'] ) && $this->is_supported_sync_media_url( $value['url'] ) ) {
+			$source_attachment_id = isset( $value['id'] ) && is_numeric( $value['id'] ) ? absint( $value['id'] ) : 0;
+			$key                  = $source_attachment_id > 0 ? (string) $source_attachment_id : md5( $value['url'] );
+
+			if ( ! isset( $images[ $key ] ) ) {
+				$url      = esc_url_raw( $value['url'] );
+				$path     = (string) wp_parse_url( $url, PHP_URL_PATH );
+				$filename = sanitize_file_name( wp_basename( $path ) );
+				$ext      = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
+				$filetype = wp_check_filetype( $filename );
+				$mime     = ! empty( $filetype['type'] ) ? $filetype['type'] : '';
+				if ( '' === $mime && 'svg' === $ext ) {
+					$mime = 'image/svg+xml';
+				}
+
+				$images[ $key ] = array(
+					'attachment_id' => $source_attachment_id,
+					'url'           => $url,
+					'source_urls'   => array(
+						'full'    => $url,
+						'by_size' => array(),
+					),
+					'file_path'     => '',
+					'file_name'     => '' !== $filename ? $filename : 'elementor-media.' . ( '' !== $ext ? $ext : 'bin' ),
+					'file_hash'     => '',
+					'file_size'     => 0,
+					'mime_type'     => $mime,
+					'alt_text'      => '',
+					'title'         => '' !== $filename ? preg_replace( '/\.[^.]+$/', '', $filename ) : '',
+					'caption'       => '',
+					'description'   => '',
+					'context'       => 'elementor_external_url',
+					'metadata'      => array(),
+				);
+			}
+		}
+
+		foreach ( $value as $child ) {
+			if ( is_array( $child ) ) {
+				$this->collect_elementor_external_media( $child, $images );
+			}
+		}
+	}
+
+	/**
+	 * Check whether a URL points to a media file Content Sync can import.
+	 *
+	 * @param string $url Media URL.
+	 * @return bool Whether the URL is supported.
+	 */
+	private function is_supported_sync_media_url( $url ) {
+		$url = esc_url_raw( $url );
+		if ( '' === $url || ! wp_http_validate_url( $url ) ) {
+			return false;
+		}
+
+		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		$ext  = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
+
+		return in_array( $ext, array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg' ), true );
+	}
+
+	/**
+	 * Check whether a post meta key should be excluded from Content Sync payloads.
+	 *
+	 * @param string $key Meta key.
+	 * @return bool Whether the key should be skipped.
+	 */
+	private function should_skip_synced_meta_key( $key ) {
+		$key = (string) $key;
+
+		return class_exists( '\RockStarLab\ImportExport\Helper\Elementor_Fields' )
+			&& \RockStarLab\ImportExport\Helper\Elementor_Fields::is_generated_cache_key( $key );
+	}
+
+	/**
+	 * Save synced post meta with special handling for generated/builder metadata.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $key     Meta key.
+	 * @param mixed  $value   Meta value.
+	 * @return void
+	 */
+	private function save_synced_post_meta( $post_id, $key, $value ) {
+		if ( $this->should_skip_synced_meta_key( $key ) ) {
+			delete_post_meta( $post_id, $key );
+			return;
+		}
+
+		if ( class_exists( '\RockStarLab\ImportExport\Helper\Elementor_Fields' )
+			&& \RockStarLab\ImportExport\Helper\Elementor_Fields::is_elementor_meta_key( $key ) ) {
+			\RockStarLab\ImportExport\Helper\Elementor_Fields::import_meta_value( (int) $post_id, $key, $value, true, false );
+			return;
+		}
+
+		update_post_meta( $post_id, $key, $value );
 	}
 
 	/**
@@ -1855,6 +2007,21 @@ class Content_Sync_Controller extends Base_Controller {
 			}
 		}
 
+		$elementor_fallback_images = $this->extract_elementor_external_media_from_posts( $posts_data );
+		if ( ! empty( $elementor_fallback_images ) ) {
+			foreach ( $elementor_fallback_images as $image ) {
+				$source_attachment_id = isset( $image['attachment_id'] ) ? (int) $image['attachment_id'] : 0;
+				if ( $source_attachment_id > 0 && isset( $image_map[ $source_attachment_id ] ) ) {
+					continue;
+				}
+
+				$new_attachment_id = $this->download_image_from_remote( $image, $site );
+				if ( $new_attachment_id && $source_attachment_id > 0 ) {
+					$image_map[ $source_attachment_id ] = $new_attachment_id;
+				}
+			}
+		}
+
 		// Replace domains and image IDs in post data
 		foreach ( $posts_data as &$post_data ) {
 			$post_data = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_post_domains(
@@ -1960,7 +2127,7 @@ class Content_Sync_Controller extends Base_Controller {
 				}
 
 				foreach ( $post_data['meta'] as $key => $value ) {
-					update_post_meta( $post_id, $key, $value );
+					$this->save_synced_post_meta( (int) $post_id, (string) $key, $value );
 				}
 			}
 

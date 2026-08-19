@@ -346,9 +346,9 @@ class Post_Importer extends Abstract_Importer {
 			$item['post_name'] = (string) $item['_rsl_ie_source_post_name'];
 		}
 
-			// Check for duplicates
-			$existing_post = $this->find_existing_post( $item );
-			$source_id     = isset( $item['_rsl_ie_source_id'] ) ? absint( $item['_rsl_ie_source_id'] ) : 0;
+		// Check for duplicates
+		$existing_post = $this->find_existing_post( $item );
+		$source_id     = isset( $item['_rsl_ie_source_id'] ) ? absint( $item['_rsl_ie_source_id'] ) : 0;
 
 		if ( $existing_post ) {
 			$duplicate_mode = $this->get_option( 'duplicate_mode', 'skip' );
@@ -364,6 +364,14 @@ class Post_Importer extends Abstract_Importer {
 					return (int) $existing_post->ID;
 				}
 
+				if ( $this->is_post_created_by_current_job_with_different_source( (int) $existing_post->ID, $source_id ) ) {
+					$created = $this->create_post( $item );
+					if ( is_int( $created ) && $created > 0 ) {
+						$this->record_source_id_map( $source_id, $created );
+					}
+					return $created;
+				}
+
 				$result = $this->update_post( $existing_post->ID, $item );
 				if ( ! is_wp_error( $result ) ) {
 					$this->record_source_id_map( $source_id, $existing_post->ID );
@@ -374,14 +382,14 @@ class Post_Importer extends Abstract_Importer {
 			// 'create' mode - fall through to create new post
 		}
 
-			// No existing item found — honor "If No Match Found" option.
-			$if_not_exists = $this->get_option( 'if_not_exists', 'create' );
+		// No existing item found — honor "If No Match Found" option.
+		$if_not_exists = $this->get_option( 'if_not_exists', 'create' );
 		if ( 'skip' === $if_not_exists ) {
 			return 'skipped';
 		}
 
-			// Create new post
-			$created = $this->create_post( $item );
+		// Create new post
+		$created = $this->create_post( $item );
 		if ( is_int( $created ) && $created > 0 ) {
 			$this->record_source_id_map( $source_id, $created );
 		}
@@ -686,6 +694,39 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Check whether a duplicate-field match points to another row created by this job.
+	 *
+	 * For example, an export file may legitimately contain two pages with the same
+	 * title/slug from the source site. If the second row falls back to duplicate
+	 * matching by title, it must not update the first row created by the same import.
+	 *
+	 * @param int $post_id   Target post ID.
+	 * @param int $source_id Source post ID from the import file.
+	 * @return bool Whether the matched post belongs to a different source row in this job.
+	 */
+	private function is_post_created_by_current_job_with_different_source( $post_id, $source_id ) {
+		$post_id   = absint( $post_id );
+		$source_id = absint( $source_id );
+		$job_id    = absint( $this->job_id );
+
+		if ( $post_id <= 0 || $source_id <= 0 || $job_id <= 0 ) {
+			return false;
+		}
+
+		if ( absint( get_post_meta( $post_id, self::IMPORT_JOB_META_KEY, true ) ) !== $job_id ) {
+			return false;
+		}
+
+		if ( 'created' !== get_post_meta( $post_id, self::IMPORT_JOB_ACTION_META_KEY, true ) ) {
+			return false;
+		}
+
+		$matched_source_id = absint( get_post_meta( $post_id, self::SOURCE_ID_META_KEY, true ) );
+
+		return $matched_source_id > 0 && $matched_source_id !== $source_id;
 	}
 
 	/**

@@ -651,6 +651,9 @@ class Content_Sync_Media {
 					// Look for image array fields
 					if ( is_array( $value ) && isset( $value['id'] ) && is_numeric( $value['id'] ) ) {
 						$image_data = self::prepare_image_data( $value['id'], 'elementor_' . $key );
+						if ( ! $image_data && ! empty( $value['url'] ) ) {
+							$image_data = self::prepare_external_media_data( (string) $value['url'], (int) $value['id'], 'elementor_' . $key );
+						}
 						if ( $image_data ) {
 							$images[] = $image_data;
 						}
@@ -661,6 +664,9 @@ class Content_Sync_Media {
 						foreach ( $value as $gallery_item ) {
 							if ( is_array( $gallery_item ) && isset( $gallery_item['id'] ) ) {
 								$image_data = self::prepare_image_data( $gallery_item['id'], 'elementor_gallery' );
+								if ( ! $image_data && ! empty( $gallery_item['url'] ) ) {
+									$image_data = self::prepare_external_media_data( (string) $gallery_item['url'], (int) $gallery_item['id'], 'elementor_gallery' );
+								}
 								if ( $image_data ) {
 									$images[] = $image_data;
 								}
@@ -719,6 +725,63 @@ class Content_Sync_Media {
 			'description'   => $attachment->post_content,
 			'context'       => $context,
 			'metadata'      => $metadata,
+		);
+	}
+
+	/**
+	 * Prepare sync data for a media URL stored in builder data without a local source attachment.
+	 *
+	 * Elementor templates can keep external media URLs (including SVG icons) with an
+	 * ID that does not exist in the source site's media library. Keeping the original
+	 * ID as the mapping key lets Content Sync rewrite the builder JSON after the URL
+	 * is downloaded on the receiving site.
+	 *
+	 * @param string $url           Media URL.
+	 * @param int    $attachment_id Source-side ID from builder data, when present.
+	 * @param string $context       Context where media was found.
+	 * @return array|null Image data or null.
+	 */
+	private static function prepare_external_media_data( $url, $attachment_id = 0, $context = '' ) {
+		$url = esc_url_raw( $url );
+		if ( '' === $url || ! wp_http_validate_url( $url ) ) {
+			return null;
+		}
+
+		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		$ext  = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
+		if ( ! in_array( $ext, array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg' ), true ) ) {
+			return null;
+		}
+
+		$filename = sanitize_file_name( wp_basename( $path ) );
+		if ( '' === $filename ) {
+			$filename = 'content-sync-media.' . $ext;
+		}
+
+		$filetype = wp_check_filetype( $filename );
+		$mime     = ! empty( $filetype['type'] ) ? $filetype['type'] : '';
+		if ( '' === $mime && 'svg' === $ext ) {
+			$mime = 'image/svg+xml';
+		}
+
+		return array(
+			'attachment_id' => absint( $attachment_id ) > 0 ? absint( $attachment_id ) : absint( crc32( $url ) ),
+			'url'           => $url,
+			'source_urls'   => array(
+				'full'    => $url,
+				'by_size' => array(),
+			),
+			'file_path'     => '',
+			'file_name'     => $filename,
+			'file_hash'     => '',
+			'file_size'     => 0,
+			'mime_type'     => $mime,
+			'alt_text'      => '',
+			'title'         => preg_replace( '/\.[^.]+$/', '', $filename ),
+			'caption'       => '',
+			'description'   => '',
+			'context'       => $context,
+			'metadata'      => array(),
 		);
 	}
 
