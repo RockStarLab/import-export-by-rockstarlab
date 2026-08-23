@@ -92,6 +92,7 @@ class Job_Controller extends Base_Controller {
 			'job_resume'       => [ 'callback' => 'resume_job' ],
 			'job_restart'      => [ 'callback' => 'restart_job' ],
 			'job_retry'        => [ 'callback' => 'retry_job' ],
+			'job_rename'       => [ 'callback' => 'rename_job' ],
 			'job_download_url' => [ 'callback' => 'get_download_url' ],
 		];
 	}
@@ -134,6 +135,8 @@ class Job_Controller extends Base_Controller {
 
 			// Can retry: any job
 			$job->can_retry = true;
+
+			$job->job_name = isset( $job->job_name ) ? (string) $job->job_name : '';
 
 			// Aliases for JS layer (DB uses imported_items / error_items)
 			$job->success_items = (int) ( $job->imported_items ?? 0 );
@@ -209,8 +212,56 @@ class Job_Controller extends Base_Controller {
 		// Aliases for JS layer (DB uses imported_items / error_items)
 		$job_data->success_items = (int) ( $job_data->imported_items ?? 0 );
 		$job_data->failed_items  = (int) ( $job_data->error_items ?? 0 );
+		$job_data->job_name      = isset( $job_data->job_name ) ? (string) $job_data->job_name : '';
 
 		$this->send_success( $job_data );
+	}
+
+	/**
+	 * Rename a job from Jobs Log.
+	 */
+	public function rename_job() {
+		$verification = $this->verify_request();
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		$validation = $this->validate_required_params( [ 'job_id' ] );
+		if ( is_wp_error( $validation ) ) {
+			$this->send_error( $validation, null, 400 );
+		}
+
+		$job_id   = (int) $this->get_request_param( 'job_id' );
+		$job_name = $this->get_request_param( 'job_name', '' );
+		$job_name = sanitize_text_field( wp_unslash( (string) $job_name ) );
+		$job_name = function_exists( 'mb_substr' ) ? mb_substr( $job_name, 0, 255 ) : substr( $job_name, 0, 255 );
+
+		$job_model = rsl_ie()->Model->job;
+		$job_data  = $job_model->find( $job_id );
+
+		if ( ! $job_data ) {
+			$this->send_error( __( 'Job not found', 'import-export-by-rockstarlab' ), null, 404 );
+		}
+
+		$result = $job_model->update(
+			$job_id,
+			[
+				'job_name'   => '' === $job_name ? null : $job_name,
+				'updated_at' => current_time( 'mysql' ),
+			]
+		);
+
+		if ( is_wp_error( $result ) ) {
+			$this->send_error( $result, null, 500 );
+		}
+
+		$this->send_success(
+			[
+				'job_id'   => $job_id,
+				'job_name' => $job_name,
+			],
+			__( 'Job name updated successfully', 'import-export-by-rockstarlab' )
+		);
 	}
 
 	/**
@@ -435,6 +486,7 @@ class Job_Controller extends Base_Controller {
 			'type'        => $job_data->type,
 			'data_type'   => $job_data->data_type,
 			'file_format' => $job_data->file_format,
+			'job_name'    => isset( $job_data->job_name ) ? $job_data->job_name : null,
 			'parameters'  => $this->normalize_rerun_parameters( $job_data->type, $job_data->parameters ),
 			'settings'    => $settings_to_use,
 		];
@@ -526,6 +578,7 @@ class Job_Controller extends Base_Controller {
 			'type'        => $job_data->type,
 			'data_type'   => $job_data->data_type,
 			'file_format' => $job_data->file_format,
+			'job_name'    => isset( $job_data->job_name ) ? $job_data->job_name : null,
 			'parameters'  => $this->normalize_rerun_parameters( $job_data->type, $job_data->parameters ),
 			'settings'    => $settings_to_use,
 			'status'      => 'processing', // Set to processing immediately

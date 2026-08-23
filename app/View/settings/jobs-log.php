@@ -60,6 +60,7 @@ defined( 'ABSPATH' ) || exit;
 				<thead>
 					<tr>
 						<th class="column-id"><?php esc_html_e( 'ID', 'import-export-by-rockstarlab' ); ?></th>
+						<th class="column-job-name"><?php esc_html_e( 'Job Name', 'import-export-by-rockstarlab' ); ?></th>
 						<th class="column-type"><?php esc_html_e( 'Type', 'import-export-by-rockstarlab' ); ?></th>
 						<th class="column-data-type"><?php esc_html_e( 'Data Type', 'import-export-by-rockstarlab' ); ?></th>
 						<th class="column-status"><?php esc_html_e( 'Status', 'import-export-by-rockstarlab' ); ?></th>
@@ -72,7 +73,7 @@ defined( 'ABSPATH' ) || exit;
 				</thead>
 				<tbody id="jobs-table-body">
 					<tr class="no-items">
-						<td colspan="9"><?php esc_html_e( 'No jobs found.', 'import-export-by-rockstarlab' ); ?></td>
+						<td colspan="10"><?php esc_html_e( 'No jobs found.', 'import-export-by-rockstarlab' ); ?></td>
 					</tr>
 				</tbody>
 			</table>

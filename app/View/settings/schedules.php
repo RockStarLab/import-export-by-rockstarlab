@@ -50,6 +50,22 @@ $rsl_ie_start_value       = wp_date( 'Y-m-d\TH:i', $rsl_ie_start_timestamp, wp_t
 $rsl_ie_form_title        = $rsl_ie_readonly
 	? __( 'Schedule details', 'import-export-by-rockstarlab' )
 	: ( $rsl_ie_selected ? __( 'Edit schedule', 'import-export-by-rockstarlab' ) : __( 'Add schedule', 'import-export-by-rockstarlab' ) );
+$rsl_ie_format_job_label  = static function ( $job ) {
+	$base_label = sprintf(
+		'#%1$d — %2$s / %3$s (%4$s)',
+		(int) $job->id,
+		(string) $job->type,
+		(string) $job->data_type,
+		(string) $job->status
+	);
+
+	$job_name = isset( $job->job_name ) ? trim( (string) $job->job_name ) : '';
+	if ( '' === $job_name ) {
+		return $base_label;
+	}
+
+	return sprintf( '%1$s — %2$s', $job_name, $base_label );
+};
 ?>
 
 <div id="rsl-ie-schedules" class="import-export-by-rockstarlab wrap">
@@ -90,7 +106,7 @@ $rsl_ie_form_title        = $rsl_ie_readonly
 								<option value=""><?php esc_html_e( 'Select a Job', 'import-export-by-rockstarlab' ); ?></option>
 								<?php if ( $rsl_ie_selected_job ) : ?>
 									<option value="<?php echo esc_attr( $rsl_ie_selected_job->id ); ?>" selected>
-										<?php echo esc_html( sprintf( '#%1$d — %2$s / %3$s (%4$s)', $rsl_ie_selected_job->id, $rsl_ie_selected_job->type, $rsl_ie_selected_job->data_type, $rsl_ie_selected_job->status ) ); ?>
+										<?php echo esc_html( $rsl_ie_format_job_label( $rsl_ie_selected_job ) ); ?>
 									</option>
 								<?php endif; ?>
 							</select>
@@ -171,7 +187,18 @@ $rsl_ie_form_title        = $rsl_ie_readonly
 				?>
 				<tr>
 					<td><strong><?php echo esc_html( $rsl_ie_schedule->name ); ?></strong></td>
-					<td><?php echo esc_html( sprintf( '#%1$d — %2$s / %3$s', $rsl_ie_schedule->source_job_id, $rsl_ie_schedule->source_type ? $rsl_ie_schedule->source_type : '—', $rsl_ie_schedule->source_data_type ? $rsl_ie_schedule->source_data_type : '—' ) ); ?></td>
+					<td>
+						<?php
+						$rsl_ie_source_base = sprintf(
+							'#%1$d — %2$s / %3$s',
+							$rsl_ie_schedule->source_job_id,
+							$rsl_ie_schedule->source_type ? $rsl_ie_schedule->source_type : '—',
+							$rsl_ie_schedule->source_data_type ? $rsl_ie_schedule->source_data_type : '—'
+						);
+						$rsl_ie_source_name = isset( $rsl_ie_schedule->source_job_name ) ? trim( (string) $rsl_ie_schedule->source_job_name ) : '';
+						echo esc_html( '' === $rsl_ie_source_name ? $rsl_ie_source_base : sprintf( '%1$s — %2$s', $rsl_ie_source_name, $rsl_ie_source_base ) );
+						?>
+					</td>
 					<td><?php echo esc_html( 'recurring' === $rsl_ie_schedule->schedule_type ? ucfirst( $rsl_ie_schedule->recurrence ) : __( 'One time', 'import-export-by-rockstarlab' ) ); ?></td>
 					<td><?php echo $rsl_ie_next ? esc_html( wp_date( 'Y-m-d H:i', $rsl_ie_next, wp_timezone() ) ) : '—'; ?></td>
 					<td>

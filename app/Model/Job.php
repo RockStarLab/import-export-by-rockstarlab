@@ -31,6 +31,7 @@ class Job extends Model {
 	protected function get_allowed_columns() {
 		return [
 			'id',
+			'job_name',
 			'user_id',
 			'type',
 			'data_type',

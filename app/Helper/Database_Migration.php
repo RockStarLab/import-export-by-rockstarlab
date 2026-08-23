@@ -33,6 +33,13 @@ class Database_Migration {
 						$table_name
 					)
 				);
+			case 'add_job_name_column':
+				return $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema migration for the plugin's custom jobs table.
+					$wpdb->prepare(
+						"ALTER TABLE %i ADD COLUMN job_name VARCHAR(255) NULL COMMENT 'Optional custom Job display name' AFTER id",
+						$table_name
+					)
+				);
 			case 'add_result_column':
 				return $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema migration for the plugin's custom jobs table.
 					$wpdb->prepare(
@@ -99,7 +106,7 @@ class Database_Migration {
 	 * Database version
 	 * Update this when schema changes
 	 */
-	const DB_VERSION = '1.4.0';
+	const DB_VERSION = '1.4.1';
 
 	/**
 	 * Database version option name
@@ -120,6 +127,7 @@ class Database_Migration {
 		// 1. Jobs table - import/export history
 		$sql_jobs = "CREATE TABLE {$prefix}rsl_ie_jobs (
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            job_name VARCHAR(255),
             user_id BIGINT(20) UNSIGNED NOT NULL,
             type ENUM('import', 'export', 'media_sync', 'update') NOT NULL,
             data_type VARCHAR(50) NOT NULL,
@@ -270,6 +278,7 @@ class Database_Migration {
 		do_action( 'rsl_ie_tables_created' );
 
 		// Run migrations for existing tables
+		self::maybe_add_job_name_column();
 		self::maybe_add_progress_column();
 		self::maybe_add_result_column();
 		self::maybe_add_parameters_column();
@@ -277,6 +286,33 @@ class Database_Migration {
 		self::maybe_add_retries_column();
 		self::maybe_update_type_enum();
 		self::maybe_add_update_columns();
+	}
+
+	/**
+	 * Add custom Job name column to jobs table if it doesn't exist.
+	 */
+	private static function maybe_add_job_name_column() {
+		global $wpdb;
+
+		$table_name = esc_sql( $wpdb->prefix . 'rsl_ie_jobs' );
+
+		$column_exists = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required for schema migration.
+			$wpdb->prepare(
+				"SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+				WHERE TABLE_SCHEMA = %s
+				AND TABLE_NAME = %s
+				AND COLUMN_NAME = 'job_name'",
+				DB_NAME,
+				$table_name
+			)
+		);
+
+		if ( empty( $column_exists ) ) {
+			self::run_alter_table(
+				$table_name,
+				'add_job_name_column'
+			);
+		}
 	}
 
 	/**

@@ -362,6 +362,10 @@ class Init {
 
 					// Jobs Log
 					'viewDetails'                       => __( 'View Details', 'import-export-by-rockstarlab' ),
+					'jobName'                           => __( 'Job Name', 'import-export-by-rockstarlab' ),
+					'clickToRenameJob'                  => __( 'Click to rename this job', 'import-export-by-rockstarlab' ),
+					'customJobNamePlaceholder'          => __( 'Custom job name...', 'import-export-by-rockstarlab' ),
+					'save'                              => __( 'Save', 'import-export-by-rockstarlab' ),
 					'resume'                            => __( 'Resume', 'import-export-by-rockstarlab' ),
 					'restart'                           => __( 'Restart', 'import-export-by-rockstarlab' ),
 					'retry'                             => __( 'Retry (Create new job with same parameters)', 'import-export-by-rockstarlab' ),
@@ -377,6 +381,8 @@ class Init {
 					'confirmRetryJob'                   => __( 'Retry this job with the same settings?', 'import-export-by-rockstarlab' ),
 					'jobCreatedStarting'                => __( 'Job created, starting process...', 'import-export-by-rockstarlab' ),
 					'errorRetryingJob'                  => __( 'Error retrying job: ', 'import-export-by-rockstarlab' ),
+					'jobNameUpdatedSuccess'             => __( 'Job name updated successfully', 'import-export-by-rockstarlab' ),
+					'errorRenamingJob'                  => __( 'Error renaming job: ', 'import-export-by-rockstarlab' ),
 					'jobDeletedSuccess'                 => __( 'Job deleted successfully', 'import-export-by-rockstarlab' ),
 					'errorDeletingJob'                  => __( 'Error deleting job: ', 'import-export-by-rockstarlab' ),
 					'downloadFailed'                    => __( 'Download failed', 'import-export-by-rockstarlab' ),
