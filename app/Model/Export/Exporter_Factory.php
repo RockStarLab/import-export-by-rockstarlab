@@ -50,10 +50,12 @@ class Exporter_Factory {
 	private static function get_exporter_map() {
 		$default_map = [
 			// Free plugin content types.
-			'post'    => Post_Exporter::class,
-			'page'    => Post_Exporter::class,
-			'urls'    => Urls_Exporter::class,
-			'comment' => Comment_Exporter::class,
+			'post'          => Post_Exporter::class,
+			'page'          => Post_Exporter::class,
+			'wp_block'      => Post_Exporter::class,
+			'wp_navigation' => Post_Exporter::class,
+			'urls'          => Urls_Exporter::class,
+			'comment'       => Comment_Exporter::class,
 		];
 
 		/**

@@ -351,8 +351,18 @@
 // Browse Remote Posts Modal (Library Style)
 .rsl-ie-browse-library-modal {
 	.rsl-ie-modal-content {
+		display: flex;
+		flex-direction: column;
 		max-width: 1200px;
 		height: 90vh;
+		max-height: 90vh;
+		overflow: hidden;
+	}
+
+	.rsl-ie-modal-header,
+	.rsl-ie-browse-search-bar,
+	.rsl-ie-browse-footer {
+		flex: 0 0 auto;
 	}
 }
 
@@ -379,7 +389,8 @@
 	display: flex;
 	padding: 0;
 	overflow: hidden;
-	flex: 1;
+	flex: 1 1 auto;
+	min-height: 0;
 }
 
 .rsl-ie-browse-sidebar {
@@ -387,6 +398,7 @@
 	padding: 20px;
 	border-right: 1px solid #ddd;
 	overflow-y: auto;
+	min-height: 0;
 
 	h3 {
 		margin: 0 0 15px;
@@ -485,11 +497,12 @@
 }
 
 .rsl-ie-browse-main {
-	flex: 1;
+	flex: 1 1 auto;
 	overflow-y: auto;
 	padding: 20px;
 	display: flex;
 	flex-direction: column;
+	min-height: 0;
 }
 
 .rsl-ie-browse-bulk-actions {

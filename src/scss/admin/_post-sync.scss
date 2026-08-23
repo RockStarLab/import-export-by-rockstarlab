@@ -96,10 +96,14 @@
 #rsl-ie-sync-modal {
 	.rsl-ie-form-group {
 		display: flex;
+		flex-direction: column;
 		justify-content: center;
-		align-items: center;
+		align-items: stretch;
+		max-width: 360px;
+		margin: 0 auto;
+
 		label {
-			margin-right: 10px;
+			margin: 0 0 6px;
 		}
 	}
 	.rsl-ie-sync-info {

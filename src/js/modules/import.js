@@ -43,6 +43,7 @@ const ImportModule = {
 		const resumeJobId = urlParams.get( 'resume_job' );
 
 		this.bindEvents();
+		this.updateReplaceLinksRemoveButtons();
 
 		if ( resumeJobId ) {
 			// Resume job – go directly to step 6 (progress) and start batch processing.
@@ -133,6 +134,15 @@ const ImportModule = {
 
 		// Import actions
 		$wizard.on( 'click', '.rsl-ie-start-import', () => this.startImport() );
+		$wizard.on( 'change', '#rsl-ie-enable-replace-links', ( e ) =>
+			this.toggleReplaceLinksRepeater( e )
+		);
+		$wizard.on( 'click', '.rsl-ie-add-replace-link', () =>
+			this.addReplaceLinksRow()
+		);
+		$wizard.on( 'click', '.rsl-ie-remove-replace-link', ( e ) =>
+			this.removeReplaceLinksRow( e )
+		);
 		$wizard.on( 'click', '.rsl-ie-cancel-import', () =>
 			this.cancelImport()
 		);
@@ -2029,7 +2039,7 @@ const ImportModule = {
 		}
 
 		// Pages (no taxonomies, only custom fields)
-		if ( contentType === 'page' ) {
+		if ( [ 'page', 'wp_block', 'wp_navigation' ].includes( contentType ) ) {
 			return translateGroups( [
 				...baseFields,
 				{
@@ -3280,6 +3290,233 @@ const ImportModule = {
 							value: 'term_count',
 							label: 'Term Count',
 							type: 'number',
+						},
+					],
+				},
+			];
+		}
+
+		if ( contentType === 'woo_review' ) {
+			return [
+				{
+					label: 'Review',
+					options: [
+						{
+							value: 'comment_ID',
+							label: 'Review ID',
+							type: 'number',
+						},
+						{
+							value: 'product_id',
+							label: 'Product ID',
+							type: 'number',
+						},
+						{
+							value: 'product_title',
+							label: 'Product Title',
+							type: 'string',
+						},
+						{
+							value: 'product_sku',
+							label: 'Product SKU',
+							type: 'string',
+						},
+						{
+							value: 'comment_author',
+							label: 'Author',
+							type: 'string',
+						},
+						{
+							value: 'comment_author_email',
+							label: 'Author Email',
+							type: 'email',
+						},
+						{
+							value: 'comment_author_url',
+							label: 'Author URL',
+							type: 'url',
+						},
+						{
+							value: 'comment_author_IP',
+							label: 'Author IP',
+							type: 'string',
+						},
+						{
+							value: 'comment_date',
+							label: 'Review Date',
+							type: 'datetime',
+						},
+						{
+							value: 'comment_content',
+							label: 'Content',
+							type: 'string',
+						},
+						{
+							value: 'comment_approved',
+							label: 'Status',
+							type: 'string',
+						},
+						{
+							value: 'comment_agent',
+							label: 'User Agent',
+							type: 'string',
+						},
+						{
+							value: 'comment_parent',
+							label: 'Parent Review ID',
+							type: 'number',
+						},
+						{ value: 'user_id', label: 'User ID', type: 'number' },
+						{ value: 'rating', label: 'Rating', type: 'number' },
+						{
+							value: 'verified',
+							label: 'Verified Owner',
+							type: 'boolean',
+						},
+						{
+							value: 'comment_meta',
+							label: 'Review Meta JSON',
+							type: 'json',
+						},
+					],
+				},
+			];
+		}
+
+		if ( contentType === 'woo_refund' ) {
+			return [
+				{
+					label: 'Refund',
+					options: [
+						{
+							value: 'refund_id',
+							label: 'Refund ID',
+							type: 'number',
+						},
+						{
+							value: 'parent_order_id',
+							label: 'Parent Order ID',
+							type: 'number',
+						},
+						{
+							value: 'parent_order_number',
+							label: 'Parent Order Number',
+							type: 'string',
+						},
+						{ value: 'status', label: 'Status', type: 'string' },
+						{
+							value: 'date_created',
+							label: 'Date Created',
+							type: 'datetime',
+						},
+						{
+							value: 'date_modified',
+							label: 'Date Modified',
+							type: 'datetime',
+						},
+						{ value: 'amount', label: 'Amount', type: 'number' },
+						{ value: 'reason', label: 'Reason', type: 'string' },
+						{
+							value: 'refunded_by',
+							label: 'Refunded By User ID',
+							type: 'number',
+						},
+						{
+							value: 'currency',
+							label: 'Currency',
+							type: 'string',
+						},
+						{
+							value: 'line_items',
+							label: 'Line Items JSON',
+							type: 'json',
+						},
+						{ value: 'meta', label: 'Meta JSON', type: 'json' },
+					],
+				},
+			];
+		}
+
+		if ( contentType === 'woo_customer' ) {
+			return [
+				{
+					label: 'Customer',
+					options: [
+						{
+							value: 'customer_id',
+							label: 'Customer ID',
+							type: 'number',
+						},
+						{ value: 'user_id', label: 'User ID', type: 'number' },
+						{ value: 'email', label: 'Email', type: 'email' },
+						{
+							value: 'username',
+							label: 'Username',
+							type: 'string',
+						},
+						{
+							value: 'first_name',
+							label: 'First Name',
+							type: 'string',
+						},
+						{
+							value: 'last_name',
+							label: 'Last Name',
+							type: 'string',
+						},
+						{
+							value: 'display_name',
+							label: 'Display Name',
+							type: 'string',
+						},
+					],
+				},
+				{
+					label: 'Billing',
+					options: [
+						'billing_first_name',
+						'billing_last_name',
+						'billing_company',
+						'billing_email',
+						'billing_phone',
+						'billing_address_1',
+						'billing_address_2',
+						'billing_city',
+						'billing_state',
+						'billing_postcode',
+						'billing_country',
+					].map( ( value ) => ( {
+						value,
+						label: value.replace( /_/g, ' ' ),
+						type: 'string',
+					} ) ),
+				},
+				{
+					label: 'Shipping',
+					options: [
+						'shipping_first_name',
+						'shipping_last_name',
+						'shipping_company',
+						'shipping_phone',
+						'shipping_address_1',
+						'shipping_address_2',
+						'shipping_city',
+						'shipping_state',
+						'shipping_postcode',
+						'shipping_country',
+					].map( ( value ) => ( {
+						value,
+						label: value.replace( /_/g, ' ' ),
+						type: 'string',
+					} ) ),
+				},
+				{
+					label: 'Meta',
+					options: [
+						{
+							value: 'meta',
+							label: 'Customer Meta JSON',
+							type: 'json',
 						},
 					],
 				},
@@ -5035,6 +5272,102 @@ const ImportModule = {
 	},
 
 	/**
+	 * Toggle the import search/replace repeater.
+	 *
+	 * @param {Object} event Change event.
+	 */
+	toggleReplaceLinksRepeater( event ) {
+		const $checkbox = jQuery( event.currentTarget );
+		jQuery( '#rsl-ie-replace-links-repeater' ).toggle(
+			$checkbox.is( ':checked' )
+		);
+	},
+
+	/**
+	 * Add another import search/replace rule row.
+	 */
+	addReplaceLinksRow() {
+		const $repeater = jQuery( '#rsl-ie-replace-links-repeater' );
+		const currentSiteUrl = $repeater.data( 'currentSiteUrl' ) || '';
+		const $row = $repeater.find( '.rsl-ie-replace-links-row' ).first();
+		const $clone = $row.clone();
+
+		$clone.find( '.rsl-ie-replace-what' ).val( '' );
+		$clone.find( '.rsl-ie-replace-to' ).val( currentSiteUrl );
+
+		$repeater.find( '.rsl-ie-replace-links-rows' ).append( $clone );
+		this.updateReplaceLinksRemoveButtons();
+	},
+
+	/**
+	 * Remove one import search/replace rule row.
+	 *
+	 * @param {Object} event Click event.
+	 */
+	removeReplaceLinksRow( event ) {
+		const $rows = jQuery( '.rsl-ie-replace-links-row' );
+
+		if ( $rows.length <= 1 ) {
+			const $row = jQuery( event.currentTarget ).closest(
+				'.rsl-ie-replace-links-row'
+			);
+			$row.find( '.rsl-ie-replace-what' ).val( '' );
+			$row.find( '.rsl-ie-replace-to' ).val(
+				jQuery( '#rsl-ie-replace-links-repeater' ).data(
+					'currentSiteUrl'
+				) || ''
+			);
+			return;
+		}
+
+		jQuery( event.currentTarget )
+			.closest( '.rsl-ie-replace-links-row' )
+			.remove();
+		this.updateReplaceLinksRemoveButtons();
+	},
+
+	/**
+	 * Keep remove buttons sensible when only one replacement row remains.
+	 */
+	updateReplaceLinksRemoveButtons() {
+		const $rows = jQuery( '.rsl-ie-replace-links-row' );
+		$rows
+			.find( '.rsl-ie-remove-replace-link' )
+			.prop( 'disabled', $rows.length <= 1 );
+	},
+
+	/**
+	 * Collect import search/replace rules.
+	 *
+	 * @return {Array} Replacement rules.
+	 */
+	getReplaceLinksRules() {
+		if ( ! jQuery( '#rsl-ie-enable-replace-links' ).is( ':checked' ) ) {
+			return [];
+		}
+
+		const rules = [];
+		jQuery( '.rsl-ie-replace-links-row' ).each( function () {
+			const $row = jQuery( this );
+			const search = ( $row.find( '.rsl-ie-replace-what' ).val() || '' )
+				.toString()
+				.trim();
+			const replace = ( $row.find( '.rsl-ie-replace-to' ).val() || '' )
+				.toString()
+				.trim();
+
+			if ( search !== '' ) {
+				rules.push( {
+					search,
+					replace,
+				} );
+			}
+		} );
+
+		return rules;
+	},
+
+	/**
 	 * Start import
 	 */
 	async startImport() {
@@ -5093,6 +5426,10 @@ const ImportModule = {
 						jQuery(
 							'input[name="media_duplicate_mode"]:checked'
 						).val() || 'skip',
+					replace_links: jQuery( '#rsl-ie-enable-replace-links' ).is(
+						':checked'
+					),
+					replace_links_rules: this.getReplaceLinksRules(),
 				},
 			};
 
@@ -5567,6 +5904,9 @@ const ImportModule = {
 			'woo_attribute',
 			'woo_coupon',
 			'woo_order',
+			'woo_review',
+			'woo_refund',
+			'woo_customer',
 		];
 
 		if ( excludedTypes.includes( contentType ) ) {
@@ -5648,6 +5988,9 @@ const ImportModule = {
 			'woo_attribute',
 			'woo_coupon',
 			'woo_order',
+			'woo_review',
+			'woo_refund',
+			'woo_customer',
 		];
 
 		if ( excludedTypes.includes( contentType ) ) {
@@ -5730,6 +6073,9 @@ const ImportModule = {
 			'woo_attribute',
 			'woo_coupon',
 			'woo_order',
+			'woo_review',
+			'woo_refund',
+			'woo_customer',
 		];
 
 		if ( excludedTypes.includes( contentType ) ) {
@@ -5876,6 +6222,8 @@ const ImportModule = {
 		const supportedTypes = [
 			'post',
 			'page',
+			'wp_block',
+			'wp_navigation',
 			'custom_post_types',
 			'product',
 			'woo_product',

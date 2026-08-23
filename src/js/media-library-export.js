@@ -74,7 +74,8 @@
 		const $existingButton = $( `.${ buttonClass }` );
 		const $toolbar = getToolbarTarget();
 
-		if ( ! $toolbar.length ) {
+		if ( ! isBulkSelectMode() || ! $toolbar.length ) {
+			$existingButton.remove();
 			return;
 		}
 
@@ -114,12 +115,8 @@
 		const selectors = [
 			'.media-toolbar-primary:visible',
 			'.media-toolbar-secondary:visible',
-			'.wp-filter .actions:visible',
-			'.wp-filter:visible',
 			'.media-toolbar-primary',
 			'.media-toolbar-secondary',
-			'.wp-filter .actions',
-			'.wp-filter',
 		];
 
 		for ( let index = 0; index < selectors.length; index++ ) {
@@ -131,6 +128,16 @@
 		}
 
 		return $();
+	}
+
+	function isBulkSelectMode() {
+		return (
+			$( 'body' ).hasClass( 'mode-select' ) ||
+			$( '.media-frame' ).hasClass( 'mode-select' ) ||
+			$(
+				'.delete-selected-button:visible, .media-button-delete-selected:visible'
+			).length > 0
+		);
 	}
 
 	function insertButton( $toolbar, $button ) {
@@ -153,6 +160,11 @@
 
 		const ids = getSelectedAttachmentIds();
 		const $button = $( `.${ buttonClass }` );
+
+		if ( ! $button.length ) {
+			return;
+		}
+
 		const hasSelection = ids.length > 0;
 
 		$button
@@ -207,18 +219,5 @@
 		ensureButton();
 		bindMediaSelectionEvents();
 		updateButtonState();
-
-		const target =
-			document.querySelector( '.media-frame' ) || document.body;
-		const observer = new window.MutationObserver( () => {
-			window.requestAnimationFrame( updateButtonState );
-		} );
-
-		observer.observe( target, {
-			attributes: true,
-			attributeFilter: [ 'class', 'aria-checked' ],
-			childList: true,
-			subtree: true,
-		} );
 	} );
 } )( jQuery );

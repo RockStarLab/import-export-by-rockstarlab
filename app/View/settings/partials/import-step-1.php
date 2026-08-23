@@ -73,6 +73,24 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 			</label>
 
+			<label class="rsl-ie-content-type">
+				<input type="radio" name="content_type" value="wp_block">
+				<div class="rsl-ie-content-type-card">
+					<span class="dashicons dashicons-block-default"></span>
+					<h3><?php esc_html_e( 'Patterns', 'import-export-by-rockstarlab' ); ?></h3>
+					<p><?php esc_html_e( 'Import synced block patterns', 'import-export-by-rockstarlab' ); ?></p>
+				</div>
+			</label>
+
+			<label class="rsl-ie-content-type">
+				<input type="radio" name="content_type" value="wp_navigation">
+				<div class="rsl-ie-content-type-card">
+					<span class="dashicons dashicons-menu-alt3"></span>
+					<h3><?php esc_html_e( 'WP Navigation', 'import-export-by-rockstarlab' ); ?></h3>
+					<p><?php esc_html_e( 'Import block theme navigation menus', 'import-export-by-rockstarlab' ); ?></p>
+				</div>
+			</label>
+
 			<?php if ( $rsl_ie_pro_active ) : ?>
 				<?php
 				$rsl_ie_pro_types = \RockStarLab\ImportExport\Helper\Pro_Addon::get_pro_content_type_cards( 'import' );

@@ -57,10 +57,12 @@ class Importer_Factory {
 	private static function get_importer_map() {
 		$default_map = [
 			// Free plugin content types.
-			'post'  => Post_Importer::class,
-			'posts' => Post_Importer::class,
-			'page'  => Post_Importer::class,
-			'pages' => Post_Importer::class,
+			'post'          => Post_Importer::class,
+			'posts'         => Post_Importer::class,
+			'page'          => Post_Importer::class,
+			'pages'         => Post_Importer::class,
+			'wp_block'      => Post_Importer::class,
+			'wp_navigation' => Post_Importer::class,
 		];
 
 		/**

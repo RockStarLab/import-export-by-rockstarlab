@@ -16,6 +16,8 @@ const ExportModule = {
 	step3Instance: null,
 	urlTypesLoaded: false,
 	mediaLibraryPrefillIds: [],
+	postListPrefillIds: [],
+	taxonomyTermPrefillIds: [],
 
 	/**
 	 * Initialize module
@@ -60,18 +62,48 @@ const ExportModule = {
 	 * @return {boolean} Whether a prefill flow was started.
 	 */
 	applyUrlPrefill( urlParams ) {
-		if ( urlParams.get( 'rsl_ie_prefill' ) !== 'media_library' ) {
-			return false;
+		const prefillType = urlParams.get( 'rsl_ie_prefill' );
+
+		if ( prefillType === 'media_library' ) {
+			const ids = this.getValidPrefillIds( urlParams.get( 'media_ids' ) );
+
+			if ( ! ids.length ) {
+				return false;
+			}
+
+			this.applyMediaLibraryPrefill( ids );
+			return true;
 		}
 
-		const ids = this.getValidPrefillIds( urlParams.get( 'media_ids' ) );
+		if ( prefillType === 'post_list' ) {
+			const ids = this.getValidPrefillIds( urlParams.get( 'post_ids' ) );
+			const postType = String( urlParams.get( 'post_type' ) || '' )
+				.trim()
+				.replace( /[^a-zA-Z0-9_-]/g, '' );
 
-		if ( ! ids.length ) {
-			return false;
+			if ( ! ids.length || ! postType ) {
+				return false;
+			}
+
+			this.applyPostListPrefill( postType, ids );
+			return true;
 		}
 
-		this.applyMediaLibraryPrefill( ids );
-		return true;
+		if ( prefillType === 'taxonomy_terms' ) {
+			const ids = this.getValidPrefillIds( urlParams.get( 'term_ids' ) );
+			const taxonomy = String( urlParams.get( 'taxonomy' ) || '' )
+				.trim()
+				.replace( /[^a-zA-Z0-9_-]/g, '' );
+
+			if ( ! ids.length || ! taxonomy ) {
+				return false;
+			}
+
+			this.applyTaxonomyTermsPrefill( taxonomy, ids );
+			return true;
+		}
+
+		return false;
 	},
 
 	/**
@@ -116,6 +148,196 @@ const ExportModule = {
 		const $condition = $row.find( '.rsl-ie-filter-condition' );
 
 		$field.val( 'ID' ).trigger( 'change' );
+		$condition.val( 'in' ).trigger( 'change' );
+		$row.find( '.rsl-ie-filter-value' )
+			.val( ids.join( ',' ) )
+			.trigger( 'change' );
+
+		this.refreshCount( false ).finally( () => {
+			this.showStep( 3 );
+		} );
+	},
+
+	/**
+	 * Jump from a post list selection into an export with an ID filter.
+	 *
+	 * @param {string} postType Selected WordPress post type.
+	 * @param {Array<string>} ids Selected post IDs.
+	 */
+	applyPostListPrefill( postType, ids ) {
+		const contentType = this.getContentTypeForPostTypePrefill( postType );
+		const $contentType = jQuery(
+			`input[name="content_type"][value="${ contentType }"]`
+		);
+
+		if ( ! $contentType.length ) {
+			this.showStep( 1 );
+			return;
+		}
+
+		this.postListPrefillIds = ids;
+
+		$contentType.prop( 'checked', true ).trigger( 'change' );
+		this.showStep( 2 );
+
+		jQuery( '#rsl-ie-filters-list' ).empty();
+
+		if ( contentType === 'custom_post_types' ) {
+			this.addFilterRow();
+			const $postTypeRow = jQuery(
+				'#rsl-ie-filters-list .rsl-ie-filter-row'
+			).last();
+			$postTypeRow
+				.find( '.rsl-ie-filter-field' )
+				.val( '_post_type' )
+				.trigger( 'change' );
+
+			this.waitForFilterValueOption( $postTypeRow, postType )
+				.then( ( $select ) => {
+					$select.val( postType ).trigger( 'change' );
+					this.addPostListIdFilterAndShowStep3( ids );
+				} )
+				.catch( () => {
+					this.showStep( 2 );
+				} );
+			return;
+		}
+
+		this.addPostListIdFilterAndShowStep3( ids );
+	},
+
+	/**
+	 * Map WordPress post type to export wizard content type.
+	 *
+	 * @param {string} postType WordPress post type.
+	 * @return {string} Export wizard content type.
+	 */
+	getContentTypeForPostTypePrefill( postType ) {
+		const map = {
+			post: 'post',
+			page: 'page',
+			product: 'woo_product',
+			shop_order: 'woo_order',
+			shop_coupon: 'woo_coupon',
+		};
+
+		return map[ postType ] || 'custom_post_types';
+	},
+
+	/**
+	 * Add selected post IDs filter and move to field selection.
+	 *
+	 * @param {Array<string>} ids Selected post IDs.
+	 */
+	addPostListIdFilterAndShowStep3( ids ) {
+		this.addFilterRow();
+
+		const $row = jQuery( '#rsl-ie-filters-list .rsl-ie-filter-row' ).last();
+		const $field = $row.find( '.rsl-ie-filter-field' );
+		const $condition = $row.find( '.rsl-ie-filter-condition' );
+
+		$field.val( 'ID' ).trigger( 'change' );
+		$condition.val( 'in' ).trigger( 'change' );
+		$row.find( '.rsl-ie-filter-value' )
+			.val( ids.join( ',' ) )
+			.trigger( 'change' );
+
+		this.refreshCount( false ).finally( () => {
+			this.showStep( 3 );
+		} );
+	},
+
+	/**
+	 * Jump from a taxonomy term list selection into term export with filters.
+	 *
+	 * @param {string} taxonomy Selected taxonomy.
+	 * @param {Array<string>} ids Selected term IDs.
+	 */
+	applyTaxonomyTermsPrefill( taxonomy, ids ) {
+		const $contentType = jQuery(
+			'input[name="content_type"][value="taxonomy"]'
+		);
+
+		if ( ! $contentType.length ) {
+			this.showStep( 1 );
+			return;
+		}
+
+		this.taxonomyTermPrefillIds = ids;
+
+		$contentType.prop( 'checked', true ).trigger( 'change' );
+		this.showStep( 2 );
+
+		jQuery( '#rsl-ie-filters-list' ).empty();
+		this.addFilterRow();
+
+		const $taxonomyRow = jQuery(
+			'#rsl-ie-filters-list .rsl-ie-filter-row'
+		).last();
+		$taxonomyRow
+			.find( '.rsl-ie-filter-field' )
+			.val( '_taxonomy' )
+			.trigger( 'change' );
+
+		this.waitForFilterValueOption( $taxonomyRow, taxonomy )
+			.then( ( $select ) => {
+				$select.val( taxonomy ).trigger( 'change' );
+				this.addTaxonomyTermIdFilterAndShowStep3( ids );
+			} )
+			.catch( () => {
+				this.showStep( 2 );
+			} );
+	},
+
+	/**
+	 * Wait until an AJAX-backed filter select contains a specific option.
+	 *
+	 * @param {jQuery} $row Filter row.
+	 * @param {string} value Expected option value.
+	 * @param {number} timeout Timeout in milliseconds.
+	 * @return {Promise<jQuery>} Resolved select element.
+	 */
+	waitForFilterValueOption( $row, value, timeout = 5000 ) {
+		const started = Date.now();
+
+		return new Promise( ( resolve, reject ) => {
+			const check = () => {
+				const $select = $row.find( '.rsl-ie-filter-value' );
+
+				if (
+					$select.length &&
+					$select.is( 'select' ) &&
+					$select.find( `option[value="${ value }"]` ).length
+				) {
+					resolve( $select );
+					return;
+				}
+
+				if ( Date.now() - started >= timeout ) {
+					reject();
+					return;
+				}
+
+				window.setTimeout( check, 50 );
+			};
+
+			check();
+		} );
+	},
+
+	/**
+	 * Add selected term IDs filter and move to field selection.
+	 *
+	 * @param {Array<string>} ids Selected term IDs.
+	 */
+	addTaxonomyTermIdFilterAndShowStep3( ids ) {
+		this.addFilterRow();
+
+		const $row = jQuery( '#rsl-ie-filters-list .rsl-ie-filter-row' ).last();
+		const $field = $row.find( '.rsl-ie-filter-field' );
+		const $condition = $row.find( '.rsl-ie-filter-condition' );
+
+		$field.val( 'term_id' ).trigger( 'change' );
 		$condition.val( 'in' ).trigger( 'change' );
 		$row.find( '.rsl-ie-filter-value' )
 			.val( ids.join( ',' ) )
@@ -393,6 +615,8 @@ const ExportModule = {
 		const filterableTypes = [
 			'post',
 			'page',
+			'wp_block',
+			'wp_navigation',
 			'media',
 			'menu',
 			'user',
@@ -403,6 +627,9 @@ const ExportModule = {
 			'woo_order',
 			'woo_coupon',
 			'woo_attribute',
+			'woo_review',
+			'woo_refund',
+			'woo_customer',
 			'database_table',
 		];
 		if (
@@ -539,7 +766,7 @@ const ExportModule = {
 				}
 			}
 
-			this.applyMediaLibraryPrefillToOptions( options, contentType );
+			this.applySelectionPrefillToOptions( options, contentType );
 
 			const response = await Utils.ajax( 'rsl_ie_export_get_count', {
 				export_type: contentType,
@@ -1103,6 +1330,8 @@ const ExportModule = {
 		const postTypeMap = {
 			post: 'post',
 			page: 'page',
+			wp_block: 'wp_block',
+			wp_navigation: 'wp_navigation',
 			media: 'attachment',
 			menu: 'nav_menu_item',
 			comment: null, // Comments are not post type
@@ -1113,6 +1342,9 @@ const ExportModule = {
 			woo_order: 'shop_order',
 			woo_coupon: 'shop_coupon',
 			woo_attribute: null, // Attributes are taxonomy-based
+			woo_review: null,
+			woo_refund: null,
+			woo_customer: null,
 			custom_table: null, // Not a post type
 		};
 
@@ -1276,50 +1508,129 @@ const ExportModule = {
 		} );
 
 		return {
-			filters: this.getFiltersWithMediaLibraryPrefill( filters ),
+			filters: this.getFiltersWithSelectionPrefill( filters ),
 			custom_fields: customFields,
 			taxonomy: taxonomyFilters,
 		};
 	},
 
 	/**
-	 * Keep Media Library bulk-export IDs locked into export requests.
+	 * Keep bulk-export selected IDs locked into export requests.
 	 *
 	 * The visible Step 2 filter row is useful for the user, but WordPress/admin UI
 	 * transitions can rebuild wizard state. This keeps the actual count/start
-	 * payload constrained to the original selected attachment IDs.
+	 * payload constrained to the original selected object IDs.
 	 *
 	 * @param {Array<Object>} filters Dynamic filters collected from the UI.
-	 * @return {Array<Object>} Dynamic filters with the selected media IDs applied.
+	 * @return {Array<Object>} Dynamic filters with selected IDs applied.
 	 */
-	getFiltersWithMediaLibraryPrefill( filters ) {
+	getFiltersWithSelectionPrefill( filters ) {
 		const contentType = jQuery(
 			'input[name="content_type"]:checked'
 		).val();
 
-		if ( contentType !== 'media' || ! this.mediaLibraryPrefillIds.length ) {
+		const prefillFilter = this.getSelectionPrefillFilter( contentType );
+
+		if ( ! prefillFilter ) {
 			return filters;
 		}
 
 		const nonPrefillFilters = filters.filter(
-			( filter ) => ! ( filter && filter.field === 'ID' )
+			( filter ) =>
+				! (
+					filter &&
+					( filter.field === 'ID' || filter.field === 'term_id' )
+				)
 		);
 
-		return [ ...nonPrefillFilters, this.getMediaLibraryPrefillFilter() ];
+		return [ ...nonPrefillFilters, prefillFilter ];
 	},
 
 	/**
-	 * Add selected Media Library IDs to export options for backend persistence.
+	 * Add selected object IDs to export options for backend persistence.
 	 *
 	 * @param {Object} options Export options.
 	 * @param {string} contentType Selected export content type.
 	 */
-	applyMediaLibraryPrefillToOptions( options, contentType ) {
-		if ( contentType !== 'media' || ! this.mediaLibraryPrefillIds.length ) {
-			return;
+	applySelectionPrefillToOptions( options, contentType ) {
+		if ( contentType === 'media' && this.mediaLibraryPrefillIds.length ) {
+			options.media_library_selected_ids = [
+				...this.mediaLibraryPrefillIds,
+			];
 		}
 
-		options.media_library_selected_ids = [ ...this.mediaLibraryPrefillIds ];
+		if (
+			this.isPostListPrefillContentType( contentType ) &&
+			this.postListPrefillIds.length
+		) {
+			options.post_list_selected_ids = [ ...this.postListPrefillIds ];
+		}
+
+		if (
+			contentType === 'taxonomy' &&
+			this.taxonomyTermPrefillIds.length
+		) {
+			options.taxonomy_term_selected_ids = [
+				...this.taxonomyTermPrefillIds,
+			];
+		}
+	},
+
+	/**
+	 * Check whether the current content type is backed by a WP post table.
+	 *
+	 * @param {string} contentType Selected export content type.
+	 * @return {boolean} Whether selected post IDs can be locked for this type.
+	 */
+	isPostListPrefillContentType( contentType ) {
+		return [
+			'post',
+			'page',
+			'custom_post_types',
+			'woo_product',
+			'woo_order',
+			'woo_coupon',
+		].includes( contentType );
+	},
+
+	/**
+	 * Get the locked selected-ID filter.
+	 *
+	 * @param {string} contentType Selected export content type.
+	 * @return {Object} Dynamic filter object.
+	 */
+	getSelectionPrefillFilter( contentType ) {
+		if ( contentType === 'media' && this.mediaLibraryPrefillIds.length ) {
+			return {
+				field: 'ID',
+				condition: 'in',
+				value: this.mediaLibraryPrefillIds.join( ',' ),
+			};
+		}
+
+		if (
+			this.isPostListPrefillContentType( contentType ) &&
+			this.postListPrefillIds.length
+		) {
+			return {
+				field: 'ID',
+				condition: 'in',
+				value: this.postListPrefillIds.join( ',' ),
+			};
+		}
+
+		if (
+			contentType === 'taxonomy' &&
+			this.taxonomyTermPrefillIds.length
+		) {
+			return {
+				field: 'term_id',
+				condition: 'in',
+				value: this.taxonomyTermPrefillIds.join( ',' ),
+			};
+		}
+
+		return null;
 	},
 
 	/**
@@ -1515,7 +1826,7 @@ const ExportModule = {
 				},
 			};
 
-			this.applyMediaLibraryPrefillToOptions( data.options, contentType );
+			this.applySelectionPrefillToOptions( data.options, contentType );
 
 			if ( contentType === 'urls' ) {
 				const contentTypes = this.getSelectedUrlContentTypes();
@@ -2748,7 +3059,7 @@ const ExportModule = {
 		}
 
 		// Pages don't have taxonomy section (but taxonomy_filter is still available in Custom Filters)
-		if ( contentType === 'page' ) {
+		if ( [ 'page', 'wp_block', 'wp_navigation' ].includes( contentType ) ) {
 			return baseFields.filter(
 				( group ) =>
 					group.label !== window.rslIeData.i18n.fieldGroupTaxonomy
@@ -4296,6 +4607,238 @@ const ExportModule = {
 							value: 'attribute_terms',
 							label: window.rslIeData.i18n.fieldAllTermsArray,
 							type: 'array',
+						},
+					],
+				},
+			];
+		}
+
+		if ( contentType === 'woo_review' ) {
+			return [
+				{
+					label: 'Review',
+					options: [
+						{
+							value: 'comment_ID',
+							label: 'Review ID',
+							type: 'number',
+						},
+						{
+							value: 'product_id',
+							label: 'Product ID',
+							type: 'number',
+						},
+						{
+							value: 'product_title',
+							label: 'Product Title',
+							type: 'string',
+						},
+						{
+							value: 'product_sku',
+							label: 'Product SKU',
+							type: 'string',
+						},
+						{
+							value: 'comment_author',
+							label: 'Author',
+							type: 'string',
+						},
+						{
+							value: 'comment_author_email',
+							label: 'Author Email',
+							type: 'string',
+						},
+						{
+							value: 'comment_content',
+							label: 'Content',
+							type: 'string',
+						},
+						{
+							value: 'comment_approved',
+							label: 'Status',
+							type: 'string',
+						},
+						{ value: 'rating', label: 'Rating', type: 'number' },
+						{
+							value: 'verified',
+							label: 'Verified Owner',
+							type: 'boolean',
+						},
+						{ value: 'comment_date', label: 'Date', type: 'date' },
+						{
+							value: 'comment_meta',
+							label: 'Review Meta',
+							type: 'array',
+						},
+					],
+				},
+			];
+		}
+
+		if ( contentType === 'woo_refund' ) {
+			return [
+				{
+					label: 'Refund',
+					options: [
+						{
+							value: 'refund_id',
+							label: 'Refund ID',
+							type: 'number',
+						},
+						{
+							value: 'parent_order_id',
+							label: 'Parent Order ID',
+							type: 'number',
+						},
+						{
+							value: 'parent_order_number',
+							label: 'Parent Order Number',
+							type: 'string',
+						},
+						{ value: 'status', label: 'Status', type: 'string' },
+						{
+							value: 'date_created',
+							label: 'Date Created',
+							type: 'date',
+						},
+						{
+							value: 'date_modified',
+							label: 'Date Modified',
+							type: 'date',
+						},
+						{ value: 'amount', label: 'Amount', type: 'number' },
+						{ value: 'reason', label: 'Reason', type: 'string' },
+						{
+							value: 'refunded_by',
+							label: 'Refunded By User ID',
+							type: 'number',
+						},
+						{
+							value: 'currency',
+							label: 'Currency',
+							type: 'string',
+						},
+						{
+							value: 'line_items',
+							label: 'Line Items JSON',
+							type: 'json',
+						},
+						{ value: 'meta', label: 'Meta JSON', type: 'json' },
+					],
+				},
+			];
+		}
+
+		if ( contentType === 'woo_customer' ) {
+			return [
+				{
+					label: 'Customer',
+					options: [
+						{
+							value: 'customer_id',
+							label: 'Customer ID',
+							type: 'number',
+						},
+						{ value: 'user_id', label: 'User ID', type: 'number' },
+						{ value: 'email', label: 'Email', type: 'string' },
+						{
+							value: 'username',
+							label: 'Username',
+							type: 'string',
+						},
+						{
+							value: 'first_name',
+							label: 'First Name',
+							type: 'string',
+						},
+						{
+							value: 'last_name',
+							label: 'Last Name',
+							type: 'string',
+						},
+						{
+							value: 'display_name',
+							label: 'Display Name',
+							type: 'string',
+						},
+						{
+							value: 'date_created',
+							label: 'Date Created',
+							type: 'date',
+						},
+						{
+							value: 'date_modified',
+							label: 'Date Modified',
+							type: 'date',
+						},
+						{
+							value: 'is_paying_customer',
+							label: 'Paying Customer',
+							type: 'boolean',
+						},
+						{
+							value: 'order_count',
+							label: 'Order Count',
+							type: 'number',
+						},
+						{
+							value: 'total_spent',
+							label: 'Total Spent',
+							type: 'number',
+						},
+						{
+							value: 'last_order_id',
+							label: 'Last Order ID',
+							type: 'number',
+						},
+					],
+				},
+				{
+					label: 'Billing',
+					options: [
+						'billing_first_name',
+						'billing_last_name',
+						'billing_company',
+						'billing_email',
+						'billing_phone',
+						'billing_address_1',
+						'billing_address_2',
+						'billing_city',
+						'billing_state',
+						'billing_postcode',
+						'billing_country',
+					].map( ( value ) => ( {
+						value,
+						label: value.replace( /_/g, ' ' ),
+						type: 'string',
+					} ) ),
+				},
+				{
+					label: 'Shipping',
+					options: [
+						'shipping_first_name',
+						'shipping_last_name',
+						'shipping_company',
+						'shipping_phone',
+						'shipping_address_1',
+						'shipping_address_2',
+						'shipping_city',
+						'shipping_state',
+						'shipping_postcode',
+						'shipping_country',
+					].map( ( value ) => ( {
+						value,
+						label: value.replace( /_/g, ' ' ),
+						type: 'string',
+					} ) ),
+				},
+				{
+					label: 'Meta',
+					options: [
+						{
+							value: 'meta',
+							label: 'Customer Meta JSON',
+							type: 'json',
 						},
 					],
 				},

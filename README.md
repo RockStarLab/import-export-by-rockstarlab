@@ -7,7 +7,7 @@
 
 Import, export, sync, and update WordPress content with CSV, XML, XLSX, ODS, JSON, media sync, AI URL import, and PRO migration workflows.
 
-[Website](https://wpimportexport.com/) · [Documentation](https://wpimportexport.com/docs/) · [Blog & Tutorials](https://wpimportexport.com/blog/)
+[Website](https://wpimportexport.com/) · [Video Tutorials](https://wpimportexport.com/import-export-video-tutorials-for-wordpress/) · [Blog](https://wpimportexport.com/blog/)
 
 ## Overview
 
