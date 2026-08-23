@@ -7,7 +7,7 @@ Stable tag: 1.2.0
 Requires PHP: 7.4
 License: GPL v2 or later
 
-Import, export, and sync WordPress content between sites: posts, pages, custom post types, menus, users, taxonomies, products, comments, media, URLs, and more.
+Import, export, and sync WordPress posts, pages, media, users, comments, taxonomies, WooCommerce data, URLs, and more.
 
 == Description ==
 
