@@ -14,6 +14,7 @@ Import, export, and sync WordPress content between sites: posts, pages, custom p
 🌐 Website: [wpimportexport.com](https://wpimportexport.com/)
 📖 Video Tutorials: [wpimportexport.com/import-export-video-tutorials-for-wordpress](https://wpimportexport.com/import-export-video-tutorials-for-wordpress/)
 📰 Blog: [wpimportexport.com/blog](https://wpimportexport.com/blog/)
+🚀 PRO offer: New users can try PRO free for 1 month, no credit card required. **LIMITED OFFER** [Get free PRO for lifetime here.](https://wpimportexport.com/get-pro-for-free/)
 
 https://www.youtube.com/watch?v=W_Xgu_qDN2Q
 
@@ -68,6 +69,8 @@ Built for practical WordPress operations:
 == PRO Addon ==
 
 Free is great for posts, pages, URLs, media folder sync, and basic site-to-site content workflows. PRO is for serious migration and content operations where you need more data types, more control, and faster bulk changes.
+
+New users can try the PRO version free for 1 month, no credit card required. Want PRO for lifetime? See how to get it for free here: [wpimportexport.com/get-pro-for-free](https://wpimportexport.com/get-pro-for-free/)
 
 PRO adds:
 
