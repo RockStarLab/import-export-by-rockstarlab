@@ -3718,34 +3718,41 @@ class Post_Exporter extends Abstract_Exporter {
 					}
 
 					$item_data = [
-						'ID'               => $item->ID,
-						'title'            => $item->title,
-						'url'              => $item->url,
-						'menu_order'       => $item->menu_order,
-						'menu_item_parent' => $item->menu_item_parent,
-						'object'           => $item->object,
-						'object_id'        => $item->object_id,
-						'type'             => $item->type,
-						'type_label'       => $item->type_label,
-						'target'           => $item->target,
-						'attr_title'       => $item->attr_title,
-						'classes'          => $item->classes,
-						'xfn'              => $item->xfn,
-						'description'      => $item->description,
+						'ID'                         => $item->ID,
+						'source_menu_item_id'        => $item->ID,
+						'title'                      => $item->title,
+						'url'                        => $item->url,
+						'menu_order'                 => $item->menu_order,
+						'menu_item_parent'           => $item->menu_item_parent,
+						'source_menu_item_parent_id' => $item->menu_item_parent,
+						'object'                     => $item->object,
+						'object_id'                  => $item->object_id,
+						'source_object_id'           => $item->object_id,
+						'type'                       => $item->type,
+						'type_label'                 => $item->type_label,
+						'target'                     => $item->target,
+						'attr_title'                 => $item->attr_title,
+						'classes'                    => $item->classes,
+						'xfn'                        => $item->xfn,
+						'description'                => $item->description,
 					];
 
 					// Extra hints to allow cross-site ID mapping on import.
 					if ( $item->type === 'post_type' && ! empty( $item->object ) && ! empty( $item->object_id ) ) {
 						$post = get_post( (int) $item->object_id );
 						if ( $post ) {
-							$item_data['object_name'] = $post->post_name;
-							$item_data['object_path'] = get_page_uri( (int) $item->object_id );
+							$item_data['object_name']      = $post->post_name;
+							$item_data['object_path']      = get_page_uri( (int) $item->object_id );
+							$item_data['object_title']     = $post->post_title;
+							$item_data['object_post_type'] = $post->post_type;
 						}
 					} elseif ( $item->type === 'taxonomy' && ! empty( $item->object ) && ! empty( $item->object_id ) ) {
 						$term = get_term( (int) $item->object_id, $item->object );
 						if ( $term && ! is_wp_error( $term ) ) {
-							$item_data['term_slug'] = $term->slug;
-							$item_data['term_name'] = $term->name;
+							$item_data['source_term_id'] = (int) $term->term_id;
+							$item_data['term_slug']      = $term->slug;
+							$item_data['term_name']      = $term->name;
+							$item_data['term_taxonomy']  = $term->taxonomy;
 						}
 					}
 
