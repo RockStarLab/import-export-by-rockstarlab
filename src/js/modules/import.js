@@ -6410,6 +6410,13 @@ const ImportModule = {
 			'product',
 			'woo_product',
 			'user',
+			'menu',
+			'menus',
+			'nav_menu',
+			'comment',
+			'comments',
+			'woo_review',
+			'woo_reviews',
 			'taxonomy',
 			'taxonomy_terms',
 		];
