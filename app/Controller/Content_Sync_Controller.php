@@ -687,6 +687,7 @@ class Content_Sync_Controller extends Base_Controller {
 				'functionsUrl'                => Field_Transformation_Bridge::get_management_url(),
 				'fieldTransformationsEnabled' => Field_Transformation_Bridge::is_enabled(),
 				'exportUrl'                   => admin_url( 'admin.php?page=rsl-ie-export' ),
+				'contentSyncUrl'              => admin_url( 'admin.php?page=rsl-ie-content-sync' ),
 				'connectedSites'              => $sites_map,
 				'i18n'                        => array(
 					// Alerts & Messages

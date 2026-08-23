@@ -2,8 +2,8 @@
 /*
 	Plugin Name:                Import Export by RockStarLab
 	Plugin URI:                 https://profiles.wordpress.org/rockstarlab/
-	Description:                A powerful advanced plugin for importing and exporting WordPress content.
-	Version:                    1.1.17
+	Description:                Import, export, and sync WordPress content between sites with CSV, XML, XLSX, ODS, JSON, jobs, media tools, and AI URL import.
+	Version:                    1.2.0
 	Requires at least:          6.2
 	Author:                     RockstarLab
 	Author URI:                 https://profiles.wordpress.org/rockstarlab/profile/
@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) or exit;
 define( 'RSL_IE_FILE', __FILE__ );
 define( 'RSL_IE_PATH', trailingslashit( plugin_dir_path( RSL_IE_FILE ) ) );
 define( 'RSL_IE_URL', plugins_url( '/', RSL_IE_FILE ) );
-define( 'RSL_IE_VERSION', '1.1.17' );
+define( 'RSL_IE_VERSION', '1.2.0' );
 
 // Composer autoloader (required for bundled third-party libraries).
 if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {

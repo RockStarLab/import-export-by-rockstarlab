@@ -293,6 +293,10 @@ const getActionNonce = ( action ) =>
 		 * Open sync modal
 		 */
 		openSyncModal() {
+			if ( this.redirectToContentSyncIfNoSites() ) {
+				return;
+			}
+
 			const selectedIds = this.getSelectedPostIds();
 
 			if ( selectedIds.length === 0 ) {
@@ -329,6 +333,76 @@ const getActionNonce = ( action ) =>
 
 			// Show modal
 			$( '#rsl-ie-sync-modal' ).fadeIn( 200 );
+		},
+
+		/**
+		 * Redirect to Content Sync settings when no remote sites are configured.
+		 *
+		 * @return {boolean} True when a redirect was started.
+		 */
+		redirectToContentSyncIfNoSites() {
+			const config =
+				typeof window.rslIePostSyncData === 'object'
+					? window.rslIePostSyncData
+					: {};
+			const sites =
+				config.connectedSites &&
+				typeof config.connectedSites === 'object'
+					? config.connectedSites
+					: {};
+
+			if ( Object.keys( sites ).length > 0 ) {
+				return false;
+			}
+
+			window.location.href = this.getContentSyncUrl();
+			return true;
+		},
+
+		/**
+		 * Build a safe admin.php URL for Content Sync settings.
+		 *
+		 * @return {string} Content Sync admin URL.
+		 */
+		getContentSyncUrl() {
+			const config =
+				typeof window.rslIePostSyncData === 'object'
+					? window.rslIePostSyncData
+					: {};
+
+			if (
+				typeof config.contentSyncUrl === 'string' &&
+				config.contentSyncUrl
+			) {
+				return config.contentSyncUrl;
+			}
+
+			if ( typeof window.ajaxurl === 'string' && window.ajaxurl ) {
+				return (
+					window.ajaxurl.replace(
+						/admin-ajax\.php.*$/,
+						'admin.php'
+					) + '?page=rsl-ie-content-sync'
+				);
+			}
+
+			if ( typeof config.ajaxurl === 'string' && config.ajaxurl ) {
+				return (
+					config.ajaxurl.replace(
+						/admin-ajax\.php.*$/,
+						'admin.php'
+					) + '?page=rsl-ie-content-sync'
+				);
+			}
+
+			if ( typeof config.adminUrl === 'string' && config.adminUrl ) {
+				return `${ config.adminUrl.replace(
+					/\/?$/,
+					'/'
+				) }admin.php?page=rsl-ie-content-sync`;
+			}
+
+			return 'admin.php?page=rsl-ie-content-sync';
 		},
 
 		/**
