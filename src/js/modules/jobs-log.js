@@ -63,6 +63,18 @@ const JobsLogModule = {
 		$page.on( 'click', '.job-action-view', ( e ) =>
 			this.viewJobDetails( e )
 		);
+		$page.on( 'click', '.rsl-ie-job-name-edit', ( e ) =>
+			this.startRenameJob( e )
+		);
+		$page.on( 'click', '.rsl-ie-job-name-save', ( e ) =>
+			this.saveRenameJob( e )
+		);
+		$page.on( 'click', '.rsl-ie-job-name-cancel', ( e ) =>
+			this.cancelRenameJob( e )
+		);
+		$page.on( 'keydown', '.rsl-ie-job-name-input', ( e ) =>
+			this.handleRenameKeydown( e )
+		);
 
 		// Modal close - bind to document for modals outside page container
 		jQuery( document ).on( 'click', '.rsl-ie-modal-close', () =>
@@ -147,7 +159,7 @@ const JobsLogModule = {
 
 		if ( ! jobs || jobs.length === 0 ) {
 			$tbody.html(
-				`<tr class="no-items"><td colspan="9">${ window.rslIeData.i18n.noJobsFound }</td></tr>`
+				`<tr class="no-items"><td colspan="10">${ window.rslIeData.i18n.noJobsFound }</td></tr>`
 			);
 			return;
 		}
@@ -170,10 +182,25 @@ const JobsLogModule = {
 		const statusLabel = this.getStatusLabel( job.status );
 		const progressBar = this.renderProgressBar( job );
 		const actions = this.renderActions( job );
+		const jobName = this.getJobDisplayName( job, typeLabel, dataTypeLabel );
+		const customJobName = job.job_name || '';
 
 		return `
 			<tr class="job-row ${ statusClass }" data-job-id="${ job.id }">
 				<td class="column-id">${ job.id }</td>
+				<td class="column-job-name">
+					<button
+						type="button"
+						class="rsl-ie-job-name-edit"
+						data-job-name="${ this.escapeAttr( customJobName ) }"
+						title="${ this.escapeAttr(
+							window.rslIeData.i18n.clickToRenameJob ||
+								'Click to rename this job'
+						) }"
+					>
+						<span class="rsl-ie-job-name-text">${ this.escapeHtml( jobName ) }</span>
+					</button>
+				</td>
 				<td class="column-type">
 					<span class="job-type-badge job-type-${ job.type }">${ typeLabel }</span>
 				</td>
@@ -201,6 +228,125 @@ const JobsLogModule = {
 				<td class="column-actions">${ actions }</td>
 			</tr>
 		`;
+	},
+
+	/**
+	 * Get display label for a Job.
+	 */
+	getJobDisplayName( job, typeLabel, dataTypeLabel ) {
+		if ( job.job_name && String( job.job_name ).trim() !== '' ) {
+			return String( job.job_name ).trim();
+		}
+
+		return `#${ job.id } ${ typeLabel } ${ dataTypeLabel }`;
+	},
+
+	/**
+	 * Start inline job rename.
+	 */
+	startRenameJob( e ) {
+		e.preventDefault();
+
+		const $button = jQuery( e.currentTarget );
+		const $cell = $button.closest( '.column-job-name' );
+		const currentName = $button.attr( 'data-job-name' ) || '';
+
+		if ( $cell.find( '.rsl-ie-job-name-form' ).length ) {
+			return;
+		}
+
+		$cell.data( 'rename-original-html', $cell.html() );
+		$cell.html( `
+			<div class="rsl-ie-job-name-form">
+				<input
+					type="text"
+					class="regular-text rsl-ie-job-name-input"
+					value="${ this.escapeAttr( currentName ) }"
+					maxlength="255"
+					placeholder="${ this.escapeAttr(
+						window.rslIeData.i18n.customJobNamePlaceholder ||
+							'Custom job name...'
+					) }"
+				>
+				<button type="button" class="button button-small rsl-ie-job-name-save">${
+					window.rslIeData.i18n.save || 'Save'
+				}</button>
+				<button type="button" class="button button-small rsl-ie-job-name-cancel">${
+					window.rslIeData.i18n.cancel || 'Cancel'
+				}</button>
+			</div>
+		` );
+
+		$cell.find( '.rsl-ie-job-name-input' ).trigger( 'focus' ).select();
+	},
+
+	/**
+	 * Save inline job rename.
+	 */
+	async saveRenameJob( e ) {
+		e.preventDefault();
+
+		const $button = jQuery( e.currentTarget );
+		const $cell = $button.closest( '.column-job-name' );
+		const $row = $button.closest( 'tr' );
+		const jobId = $row.data( 'job-id' );
+		const jobName = $cell.find( '.rsl-ie-job-name-input' ).val() || '';
+
+		$cell.find( 'input, button' ).prop( 'disabled', true );
+
+		try {
+			await Utils.ajax( 'rsl_ie_job_rename', {
+				job_id: jobId,
+				job_name: jobName,
+			} );
+
+			Utils.showNotice(
+				window.rslIeData.i18n.jobNameUpdatedSuccess ||
+					'Job name updated successfully',
+				'success'
+			);
+			this.loadJobs();
+		} catch ( error ) {
+			const message =
+				typeof error === 'string' ? error : error?.message || '';
+			Utils.showNotice(
+				( window.rslIeData.i18n.errorRenamingJob ||
+					'Error renaming job: ' ) + message,
+				'error'
+			);
+			$cell.find( 'input, button' ).prop( 'disabled', false );
+		}
+	},
+
+	/**
+	 * Cancel inline job rename.
+	 */
+	cancelRenameJob( e ) {
+		e.preventDefault();
+
+		const $cell = jQuery( e.currentTarget ).closest( '.column-job-name' );
+		$cell.html( $cell.data( 'rename-original-html' ) || '' );
+	},
+
+	/**
+	 * Keyboard controls for inline rename.
+	 */
+	handleRenameKeydown( e ) {
+		if ( e.key === 'Enter' ) {
+			e.preventDefault();
+			jQuery( e.currentTarget )
+				.closest( '.rsl-ie-job-name-form' )
+				.find( '.rsl-ie-job-name-save' )
+				.trigger( 'click' );
+		}
+
+		if ( e.key === 'Escape' ) {
+			e.preventDefault();
+			jQuery( e.currentTarget )
+				.closest( '.rsl-ie-job-name-form' )
+				.find( '.rsl-ie-job-name-cancel' )
+				.trigger( 'click' );
+		}
 	},
 
 	/**
@@ -565,6 +711,14 @@ const JobsLogModule = {
 						<th>${ window.rslIeData.i18n.jobId || 'ID' }:</th>
 						<td>${ job.id }</td>
 					</tr>
+					${
+						job.job_name
+							? `<tr>
+						<th>${ window.rslIeData.i18n.jobName || 'Job Name' }:</th>
+						<td>${ this.escapeHtml( job.job_name ) }</td>
+					</tr>`
+							: ''
+					}
 					<tr>
 						<th>${ window.rslIeData.i18n.jobType || 'Type' }:</th>
 						<td>${ this.getTypeLabel( job.type ) }</td>
@@ -764,6 +918,12 @@ const JobsLogModule = {
 		const div = document.createElement( 'div' );
 		div.textContent = text == null ? '' : String( text );
 		return div.innerHTML;
+	},
+
+	escapeAttr( text ) {
+		return this.escapeHtml( text )
+			.replace( /"/g, '&quot;' )
+			.replace( /'/g, '&#039;' );
 	},
 };
 

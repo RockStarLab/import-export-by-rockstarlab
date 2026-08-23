@@ -133,7 +133,11 @@ class ACF_Fields {
 			update_field( $selector, $prepared, $acf_id );
 		}
 
-		self::update_raw_meta_value( $object_type, $object_id, $field_name, $prepared );
+		$field_type     = is_array( $field_object ) ? (string) ( $field_object['type'] ?? '' ) : '';
+		$is_complex_acf = in_array( $field_type, [ 'repeater', 'group', 'flexible_content' ], true );
+		if ( ! $is_complex_acf ) {
+			self::update_raw_meta_value( $object_type, $object_id, $field_name, $prepared );
+		}
 		if ( is_array( $field_object ) && ! empty( $field_object['key'] ) ) {
 			self::update_raw_meta_value( $object_type, $object_id, '_' . $field_name, (string) $field_object['key'] );
 		}
@@ -177,14 +181,16 @@ class ACF_Fields {
 	 */
 	private static function get_location_args( $content_type, $taxonomy = '' ) {
 		$type_map = [
-			'woo_product' => 'product',
-			'woo_order'   => 'shop_order',
-			'woo_coupon'  => 'shop_coupon',
-			'media'       => 'attachment',
-			'comment'     => 'comment',
-			'menu'        => 'nav_menu',
-			'menus'       => 'nav_menu',
-			'taxonomy'    => 'taxonomy',
+			'woo_product'   => 'product',
+			'woo_order'     => 'shop_order',
+			'woo_coupon'    => 'shop_coupon',
+			'media'         => 'attachment',
+			'comment'       => 'comment',
+			'menu'          => 'nav_menu',
+			'menus'         => 'nav_menu',
+			'nav_menu_item' => 'nav_menu_item',
+			'term'          => 'taxonomy',
+			'taxonomy'      => 'taxonomy',
 		];
 
 		$content_type = $type_map[ $content_type ] ?? $content_type;
@@ -203,6 +209,10 @@ class ACF_Fields {
 
 		if ( 'nav_menu' === $content_type ) {
 			return [ 'nav_menu' => 'all' ];
+		}
+
+		if ( 'nav_menu_item' === $content_type ) {
+			return [ 'nav_menu_item' => 'all' ];
 		}
 
 		if ( 'taxonomy' === $content_type ) {
@@ -422,6 +432,25 @@ class ACF_Fields {
 			];
 		}
 
+		if ( 'repeater' === $type ) {
+			$rows = [];
+			foreach ( is_array( $value ) ? $value : [] as $row ) {
+				$rows[] = self::portable_row_value( is_array( $row ) ? $row : [], (array) ( $field_object['sub_fields'] ?? [] ) );
+			}
+
+			return [
+				'acf_type' => 'repeater',
+				'rows'     => $rows,
+			];
+		}
+
+		if ( 'group' === $type ) {
+			return [
+				'acf_type' => 'group',
+				'value'    => self::portable_row_value( is_array( $value ) ? $value : [], (array) ( $field_object['sub_fields'] ?? [] ) ),
+			];
+		}
+
 		if ( in_array( $type, [ 'relationship', 'post_object', 'page_link' ], true ) ) {
 			$single = ! is_array( $value );
 			$items  = $single ? [ $value ] : $value;
@@ -492,6 +521,49 @@ class ACF_Fields {
 	}
 
 	/**
+	 * Convert a nested ACF row/group value to portable values using sub-field definitions.
+	 *
+	 * @param array $row        Native row value.
+	 * @param array $sub_fields ACF sub-field definitions.
+	 * @return array
+	 */
+	private static function portable_row_value( array $row, array $sub_fields ) {
+		$out = [];
+
+		foreach ( $row as $key => $value ) {
+			$field       = self::find_field_object_in_fields( (string) $key, $sub_fields );
+			$out[ $key ] = is_array( $field )
+				? self::to_portable_value( $value, $field )
+				: self::portable_unknown_nested_value( $value );
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Best-effort portable conversion for nested values without field definitions.
+	 *
+	 * @param mixed $value Value.
+	 * @return mixed
+	 */
+	private static function portable_unknown_nested_value( $value ) {
+		$url = self::media_url_from_value( $value );
+		if ( is_string( $url ) && filter_var( $url, FILTER_VALIDATE_URL ) ) {
+			return $url;
+		}
+
+		if ( is_array( $value ) ) {
+			$out = [];
+			foreach ( $value as $key => $child ) {
+				$out[ $key ] = self::portable_unknown_nested_value( $child );
+			}
+			return $out;
+		}
+
+		return $value;
+	}
+
+	/**
 	 * Convert portable ACF value to native value.
 	 *
 	 * @param mixed $value        Exported value.
@@ -545,6 +617,14 @@ class ACF_Fields {
 						}
 					}
 					return ! empty( $value['single'] ) ? ( $ids[0] ?? 0 ) : $ids;
+				case 'repeater':
+					$rows = [];
+					foreach ( (array) ( $value['rows'] ?? [] ) as $row ) {
+						$rows[] = self::native_row_value( is_array( $row ) ? $row : [], (array) ( $field_object['sub_fields'] ?? [] ), $parent_id );
+					}
+					return $rows;
+				case 'group':
+					return self::native_row_value( is_array( $value['value'] ?? null ) ? $value['value'] : [], (array) ( $field_object['sub_fields'] ?? [] ), $parent_id );
 			}
 		}
 
@@ -567,6 +647,62 @@ class ACF_Fields {
 
 		if ( is_string( $value ) && '' !== $value && ( 'wysiwyg' === $type || false !== stripos( $value, '<img' ) || false !== stripos( $value, 'srcset=' ) || false !== stripos( $value, '<a' ) ) ) {
 			return self::replace_media_urls_in_html( $value, $parent_id );
+		}
+
+		if ( is_array( $value ) ) {
+			return self::native_unknown_nested_value( $value, $parent_id );
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Convert nested portable row/group values back to native values.
+	 *
+	 * @param array $row        Portable row value.
+	 * @param array $sub_fields ACF sub-field definitions.
+	 * @param int   $parent_id  Media parent ID.
+	 * @return array
+	 */
+	private static function native_row_value( array $row, array $sub_fields, $parent_id = 0 ) {
+		$out = [];
+
+		foreach ( $row as $key => $value ) {
+			$field       = self::find_field_object_in_fields( (string) $key, $sub_fields );
+			$out[ $key ] = is_array( $field )
+				? self::from_portable_value( $value, $field, $parent_id )
+				: self::native_unknown_nested_value( $value, $parent_id );
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Best-effort nested media import for values without field definitions.
+	 *
+	 * @param mixed $value     Value.
+	 * @param int   $parent_id Media parent ID.
+	 * @return mixed
+	 */
+	private static function native_unknown_nested_value( $value, $parent_id = 0 ) {
+		$value = self::maybe_decode( $value );
+
+		if ( is_string( $value ) && filter_var( $value, FILTER_VALIDATE_URL ) ) {
+			$id = self::attachment_id_from_value( $value, $parent_id );
+			return $id > 0 ? $id : $value;
+		}
+
+		if ( is_array( $value ) ) {
+			if ( isset( $value['url'] ) && is_string( $value['url'] ) ) {
+				$id = self::attachment_id_from_value( $value['url'], $parent_id );
+				return $id > 0 ? $id : $value;
+			}
+
+			$out = [];
+			foreach ( $value as $key => $child ) {
+				$out[ $key ] = self::native_unknown_nested_value( $child, $parent_id );
+			}
+			return $out;
 		}
 
 		return $value;
@@ -714,7 +850,19 @@ class ACF_Fields {
 			'name'     => wp_basename( (string) wp_parse_url( $value, PHP_URL_PATH ) ),
 			'tmp_name' => $tmp,
 		];
-		$id   = media_handle_sideload( $file, absint( $parent_id ) );
+
+		$extension           = strtolower( pathinfo( (string) $file['name'], PATHINFO_EXTENSION ) );
+		$upload_mimes_filter = self::get_sideload_mimes_filter( $extension );
+		if ( is_callable( $upload_mimes_filter ) ) {
+			add_filter( 'upload_mimes', $upload_mimes_filter );
+		}
+
+		$id = media_handle_sideload( $file, absint( $parent_id ) );
+
+		if ( is_callable( $upload_mimes_filter ) ) {
+			remove_filter( 'upload_mimes', $upload_mimes_filter );
+		}
+
 		if ( is_wp_error( $id ) ) {
 			wp_delete_file( $tmp );
 			return 0;
@@ -729,6 +877,30 @@ class ACF_Fields {
 		$url_to_attachment_cache[ $source_hash ] = (int) $id;
 
 		return (int) $id;
+	}
+
+	/**
+	 * Return a narrowly scoped mime allow-list callback for media sideloads.
+	 *
+	 * @param string $extension File extension.
+	 * @return callable|null
+	 */
+	private static function get_sideload_mimes_filter( $extension ) {
+		$extension = strtolower( sanitize_key( (string) $extension ) );
+		$mimes     = array(
+			'svg'  => 'image/svg+xml',
+			'avif' => 'image/avif',
+			'webp' => 'image/webp',
+		);
+
+		if ( ! isset( $mimes[ $extension ] ) ) {
+			return null;
+		}
+
+		return static function ( $allowed_mimes ) use ( $extension, $mimes ) {
+			$allowed_mimes[ $extension ] = $mimes[ $extension ];
+			return $allowed_mimes;
+		};
 	}
 
 	/**

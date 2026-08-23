@@ -3,25 +3,42 @@ Contributors: RockstarLab
 Tags: export, export woocommerce, import, wordpress csv import
 Requires at least: 6.2
 Tested up to: 7.1
-Stable tag: 1.1.17
+Stable tag: 1.2.0
 Requires PHP: 7.4
 License: GPL v2 or later
 
-Import, export, sync, and update WordPress content with CSV, XML, XLSX, ODS, JSON, media sync, AI URL import, and PRO migration tools.
+Import, export, and sync WordPress content between sites: posts, pages, custom post types, menus, users, taxonomies, products, comments, media, URLs, and more.
 
 == Description ==
 
 🌐 Website: [wpimportexport.com](https://wpimportexport.com/)
-📖 Documentation: [wpimportexport.com/docs](https://wpimportexport.com/docs/)
-📰 Blog & Tutorials: [wpimportexport.com/blog](https://wpimportexport.com/blog/)
+📖 Video Tutorials: [wpimportexport.com/import-export-video-tutorials-for-wordpress](https://wpimportexport.com/import-export-video-tutorials-for-wordpress/)
+📰 Blog: [wpimportexport.com/blog](https://wpimportexport.com/blog/)
+🚀 PRO offer: New users can try PRO free for 1 month, no credit card required. **LIMITED OFFER** [Get free PRO for lifetime here.](https://wpimportexport.com/get-pro-for-free/)
 
 https://www.youtube.com/watch?v=W_Xgu_qDN2Q
 
-Import Export by RockStarLab helps you move real WordPress content without fragile copy-paste work: export clean CSV, XML, JSON, XLSX, and ODS files, import CSV, XML, XLSX, and ODS files with field mapping, sync selected content between sites, scan server folders into the Media Library, and keep a Jobs Log so repeat work can be re-run instead of rebuilt.
+Import Export by RockStarLab is not just another import/export plugin. It is a WordPress content operations toolkit for moving data, syncing content between sites, building URL inventories, importing media safely, and keeping repeatable jobs under control.
+
+Use it to import and export clean CSV, XML, JSON, XLSX, and ODS files, map fields visually, sync selected content between connected WordPress sites, scan server folders into the Media Library, and keep a Jobs Log so repeat work can be re-run instead of rebuilt.
 
 Use it for everyday migrations between local, staging, and production sites; bulk content operations; SEO URL audits; media cleanup; and content workflows where posts, pages, custom fields, SEO data, Elementor layouts, and media relationships need to stay intact.
 
-The free plugin gives you strong post/page import-export, URL export, media folder sync, site-to-site sync for core content, background jobs, and AI URL Importer support when configured with your own OpenAI API key. The optional PRO addon unlocks advanced content types, Content Updater, transformations, WooCommerce workflows, and deeper migration tooling for teams that need more control.
+The free plugin gives you strong post/page import-export, All Site URLs export, media folder sync, site-to-site sync for core WordPress content, background jobs, and AI URL Importer support when configured with your own OpenAI API key. The optional PRO addon expands the same workflows to custom post types, menus, users, taxonomy terms, comments, WooCommerce products, orders, coupons, refunds, customers, reviews, attributes, Content Updater, transformations, and deeper migration tooling for teams that need more control.
+
+= Huge update in 1.2.0 =
+
+Version 1.2.0 is a major workflow update focused on making Import Export by RockStarLab feel less like a file-only tool and more like a full migration and sync console for WordPress.
+
+Highlights include:
+
+* **Content Sync button controls**: Choose where quick Export and Sync buttons appear in WordPress admin screens.
+* **Smarter site-to-site sync flow**: Sync buttons now guide users to the Content Sync setup page when no connected site is configured, instead of opening an empty modal.
+* **Expanded PRO sync coverage**: The PRO addon extends sync workflows to more real-world entities such as media, menus, users, comments, reviews, taxonomies, WooCommerce data, and custom content models.
+* **More portable imports**: Export/import data now includes better source IDs and matching hints for comments, menus, WooCommerce reviews, refunds, and customers, so records can be mapped correctly across different sites.
+* **Better media handling**: Improved image/file/gallery handling for ACF fields, Elementor content, WooCommerce product galleries, and cross-site media references.
+* **Reliable import search/replace**: Replace links now works across post content, mapped fields, nested arrays, JSON strings, serialized meta, and ACF-style values.
+* **Improved admin workflow**: Bulk Export and Sync actions are easier to control, Jobs can be given custom names for easier scheduling and reruns, the Content Sync setup flow is clearer, and the plugin settings are organized into cleaner tabs.
 
 Want to try it before installing? The plugin includes a WordPress Playground blueprint for the Live Plugin Preview on WordPress.org, so you can open a temporary demo site with sample content and test the import, export, URL inventory, media sync, and jobs screens directly in your browser.
 
@@ -52,6 +69,8 @@ Built for practical WordPress operations:
 == PRO Addon ==
 
 Free is great for posts, pages, URLs, media folder sync, and basic site-to-site content workflows. PRO is for serious migration and content operations where you need more data types, more control, and faster bulk changes.
+
+New users can try the PRO version free for 1 month, no credit card required. Want PRO for lifetime? See how to get it for free here: [wpimportexport.com/get-pro-for-free](https://wpimportexport.com/get-pro-for-free/)
 
 PRO adds:
 
@@ -206,6 +225,18 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync posts and pages in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 1.2.0 =
+
+* Huge update: positioned the plugin as a full Import, Export, and Content Sync toolkit for moving WordPress content between sites.
+* Added Export / Sync Button settings so quick action buttons can be enabled or disabled per supported admin screen.
+* Improved Sync button behavior: when no connected site is configured, users are sent directly to the Content Sync setup page instead of seeing an empty sync modal.
+* Improved site-to-site sync workflows for posts, pages, taxonomy terms, media, menus, users, comments, reviews, and WooCommerce-related content when used with the PRO addon.
+* Fixed import search/replace so replacement rules are applied reliably to post content, mapped fields, nested arrays, JSON-escaped URLs, serialized meta, and ACF-style values.
+* Added custom Job names in Jobs Log, with editable labels that also appear when choosing jobs for schedules.
+* Improved portable export/import data for comments, menus, WooCommerce reviews, refunds, and customers with source IDs and matching hints for safer cross-site imports.
+* Improved ACF media handling for non-post objects including users, comments, taxonomy terms, and menus.
+* Improved Elementor and WooCommerce media handling during import and sync workflows.
 
 = 1.1.17 =
 

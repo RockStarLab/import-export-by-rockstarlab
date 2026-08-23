@@ -60,7 +60,10 @@ class Comment_Exporter extends Abstract_Exporter {
 	public function get_available_fields() {
 		return [
 			'comment_ID',
+			'source_comment_id',
+			'source_comment_parent_id',
 			'comment_post_ID',
+			'source_post_id',
 			'post_permalink',
 			'post_type',
 			'post_slug',
@@ -91,7 +94,10 @@ class Comment_Exporter extends Abstract_Exporter {
 	public function get_default_fields() {
 		return [
 			'comment_ID',
+			'source_comment_id',
+			'source_comment_parent_id',
 			'comment_post_ID',
+			'source_post_id',
 			'comment_author',
 			'comment_author_email',
 			'comment_date',
@@ -176,8 +182,8 @@ class Comment_Exporter extends Abstract_Exporter {
 		// Check if ID should be forced by the caller.
 		$force_include_id = $options['force_include_id'] ?? false;
 
-		// Ensure portable post hints are always exported when comment_post_ID is present.
-		if ( is_array( $fields ) && in_array( 'comment_post_ID', $fields, true ) ) {
+		// Ensure portable post hints are always exported when a source post ID is present.
+		if ( is_array( $fields ) && ( in_array( 'comment_post_ID', $fields, true ) || in_array( 'source_post_id', $fields, true ) ) ) {
 			foreach ( [ 'post_permalink', 'post_type', 'post_slug' ] as $hint_field ) {
 				if ( ! in_array( $hint_field, $fields, true ) ) {
 					$fields[] = $hint_field;
@@ -186,8 +192,12 @@ class Comment_Exporter extends Abstract_Exporter {
 		}
 
 		// Parent relationships require a stable per-row source identifier.
-		if ( is_array( $fields ) && in_array( 'comment_parent', $fields, true ) && ! in_array( 'comment_ID', $fields, true ) ) {
-			$fields[] = 'comment_ID';
+		if ( is_array( $fields ) && ( in_array( 'comment_parent', $fields, true ) || in_array( 'source_comment_parent_id', $fields, true ) ) ) {
+			foreach ( [ 'comment_ID', 'source_comment_id' ] as $source_field ) {
+				if ( ! in_array( $source_field, $fields, true ) ) {
+					$fields[] = $source_field;
+				}
+			}
 		}
 
 		// IMPORTANT: also update exporter options so Abstract_Exporter::select_fields() doesn't drop auto-added fields.
@@ -206,8 +216,20 @@ class Comment_Exporter extends Abstract_Exporter {
 					// Already handled above, skip
 					break;
 
+				case 'source_comment_id':
+					$data['source_comment_id'] = $comment->comment_ID;
+					break;
+
+				case 'source_comment_parent_id':
+					$data['source_comment_parent_id'] = $comment->comment_parent;
+					break;
+
 				case 'comment_post_ID':
 					$data['comment_post_ID'] = $comment->comment_post_ID;
+					break;
+
+				case 'source_post_id':
+					$data['source_post_id'] = $comment->comment_post_ID;
 					break;
 
 				case 'post_permalink':

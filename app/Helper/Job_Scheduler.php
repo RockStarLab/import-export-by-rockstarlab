@@ -151,6 +151,7 @@ class Job_Scheduler {
 			'type'        => $source->type,
 			'data_type'   => $source->data_type,
 			'file_format' => $source->file_format,
+			'job_name'    => isset( $source->job_name ) ? $source->job_name : null,
 			'status'      => 'pending',
 			'parameters'  => $parameters,
 			'settings'    => $settings,
