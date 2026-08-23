@@ -36,7 +36,8 @@ Highlights include:
 * **Expanded PRO sync coverage**: The PRO addon extends sync workflows to more real-world entities such as media, menus, users, comments, reviews, taxonomies, WooCommerce data, and custom content models.
 * **More portable imports**: Export/import data now includes better source IDs and matching hints for comments, menus, WooCommerce reviews, refunds, and customers, so records can be mapped correctly across different sites.
 * **Better media handling**: Improved image/file/gallery handling for ACF fields, Elementor content, WooCommerce product galleries, and cross-site media references.
-* **Improved admin workflow**: Bulk Export and Sync actions are easier to control, the Content Sync setup flow is clearer, and the plugin settings are organized into cleaner tabs.
+* **Reliable import search/replace**: Replace links now works across post content, mapped fields, nested arrays, JSON strings, serialized meta, and ACF-style values.
+* **Improved admin workflow**: Bulk Export and Sync actions are easier to control, Jobs can be given custom names for easier scheduling and reruns, the Content Sync setup flow is clearer, and the plugin settings are organized into cleaner tabs.
 
 Want to try it before installing? The plugin includes a WordPress Playground blueprint for the Live Plugin Preview on WordPress.org, so you can open a temporary demo site with sample content and test the import, export, URL inventory, media sync, and jobs screens directly in your browser.
 
@@ -228,6 +229,8 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 * Added Export / Sync Button settings so quick action buttons can be enabled or disabled per supported admin screen.
 * Improved Sync button behavior: when no connected site is configured, users are sent directly to the Content Sync setup page instead of seeing an empty sync modal.
 * Improved site-to-site sync workflows for posts, pages, taxonomy terms, media, menus, users, comments, reviews, and WooCommerce-related content when used with the PRO addon.
+* Fixed import search/replace so replacement rules are applied reliably to post content, mapped fields, nested arrays, JSON-escaped URLs, serialized meta, and ACF-style values.
+* Added custom Job names in Jobs Log, with editable labels that also appear when choosing jobs for schedules.
 * Improved portable export/import data for comments, menus, WooCommerce reviews, refunds, and customers with source IDs and matching hints for safer cross-site imports.
 * Improved ACF media handling for non-post objects including users, comments, taxonomy terms, and menus.
 * Improved Elementor and WooCommerce media handling during import and sync workflows.

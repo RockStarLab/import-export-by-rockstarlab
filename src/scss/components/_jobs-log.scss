@@ -150,6 +150,11 @@
 				color: #2271b1;
 			}
 
+			.column-job-name {
+				width: 220px;
+				white-space: normal;
+			}
+
 			.column-type {
 				width: 110px;
 			}
@@ -180,6 +185,43 @@
 
 			.column-actions {
 				width: 220px;
+			}
+
+			.rsl-ie-job-name-edit {
+				display: inline-flex;
+				align-items: center;
+				max-width: 100%;
+				padding: 0;
+				border: 0;
+				background: transparent;
+				color: #2271b1;
+				font-weight: 600;
+				text-align: left;
+				cursor: pointer;
+
+				&:hover,
+				&:focus {
+					color: #135e96;
+					text-decoration: underline;
+					outline: none;
+				}
+			}
+
+			.rsl-ie-job-name-text {
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.rsl-ie-job-name-form {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+
+				.rsl-ie-job-name-input {
+					width: 180px;
+					min-height: 30px;
+				}
 			}
 
 			.job-type-badge,

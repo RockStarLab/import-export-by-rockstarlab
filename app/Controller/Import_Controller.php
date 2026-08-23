@@ -616,6 +616,8 @@ class Import_Controller extends Base_Controller {
 		// Set importer options (CRITICAL for Database_Table_Importer)
 		$importer->set_options( $options );
 
+		$replace_links_rules = $this->get_replace_links_rules( $options );
+
 		// Process each item in batch
 		foreach ( $batch as $index => $item ) {
 			$current_job_status = $job_model->find( $job_id );
@@ -630,6 +632,7 @@ class Import_Controller extends Base_Controller {
 				return;
 			}
 
+			$item   = $this->apply_replace_links_rules_to_value( $item, $replace_links_rules );
 			$result = $importer->import_item( $item, $offset + $index );
 
 			if ( is_wp_error( $result ) ) {
@@ -900,7 +903,11 @@ class Import_Controller extends Base_Controller {
 	 * @return array Normalized rules.
 	 */
 	private function get_replace_links_rules( $options ) {
-		if ( empty( $options['replace_links'] ) || empty( $options['replace_links_rules'] ) || ! is_array( $options['replace_links_rules'] ) ) {
+		if ( empty( $options['replace_links_rules'] ) || ! is_array( $options['replace_links_rules'] ) ) {
+			return [];
+		}
+
+		if ( isset( $options['replace_links'] ) && ! filter_var( $options['replace_links'], FILTER_VALIDATE_BOOLEAN ) ) {
 			return [];
 		}
 
@@ -947,8 +954,18 @@ class Import_Controller extends Base_Controller {
 		}
 
 		if ( is_string( $value ) && '' !== $value ) {
+			if ( is_serialized( $value ) ) {
+				$unserialized = maybe_unserialize( $value );
+				if ( false !== $unserialized || 'b:0;' === $value ) {
+					return maybe_serialize( $this->apply_replace_links_rules_to_value( $unserialized, $rules ) );
+				}
+			}
+
 			foreach ( $rules as $rule ) {
 				$value = str_replace( $rule['search'], $rule['replace'], $value );
+				$value = str_replace( wp_json_encode( $rule['search'] ), wp_json_encode( $rule['replace'] ), $value );
+				$value = str_replace( str_replace( '/', '\\/', $rule['search'] ), str_replace( '/', '\\/', $rule['replace'] ), $value );
+				$value = str_replace( rawurlencode( $rule['search'] ), rawurlencode( $rule['replace'] ), $value );
 			}
 		}
 
