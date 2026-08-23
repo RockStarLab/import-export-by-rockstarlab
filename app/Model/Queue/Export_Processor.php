@@ -335,6 +335,7 @@ class Export_Processor {
 		$format         = $parameters['format'] ?? 'csv';
 		$format_options = $parameters['format_options'] ?? [];
 		$export_type    = $parameters['export_type'];
+		$data           = $this->dedupe_export_rows( $export_type, $data );
 
 		// Prepare file path
 		$filename  = sprintf( 'export-%s-%d.%s', $export_type, $job_id, $format );
@@ -427,6 +428,50 @@ class Export_Processor {
 				'success_items'   => $exported_count,
 				'completed_at'    => current_time( 'mysql' ),
 			]
+		);
+	}
+
+	/**
+	 * Remove duplicate entity rows that can appear after a repeated batch request.
+	 *
+	 * @param string $export_type Export type.
+	 * @param array  $data        Export rows.
+	 * @return array
+	 */
+	private function dedupe_export_rows( $export_type, $data ) {
+		$id_based_exports = [
+			'post',
+			'page',
+			'media',
+			'menu',
+			'custom_post_types',
+			'woo_product',
+			'woo_coupon',
+		];
+
+		if ( ! in_array( $export_type, $id_based_exports, true ) || empty( $data ) || ! is_array( $data ) ) {
+			return $data;
+		}
+
+		$seen = [];
+
+		return array_values(
+			array_filter(
+				$data,
+				function ( $row ) use ( &$seen ) {
+					if ( ! is_array( $row ) || ! isset( $row['ID'] ) ) {
+						return true;
+					}
+
+					$id = (string) $row['ID'];
+					if ( isset( $seen[ $id ] ) ) {
+						return false;
+					}
+
+					$seen[ $id ] = true;
+					return true;
+				}
+			)
 		);
 	}
 
