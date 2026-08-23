@@ -6237,8 +6237,14 @@ const ImportModule = {
 			$select.append( `<option value="${ field }">${ label }</option>` );
 		} );
 
-		// Select first field by default if only one
-		if ( uniqueFields.size === 1 ) {
+		const defaultUniqueField = this.getDefaultUniqueField(
+			jQuery( 'input[name="content_type"]:checked' ).val(),
+			uniqueFields
+		);
+
+		if ( defaultUniqueField ) {
+			$select.val( defaultUniqueField );
+		} else if ( uniqueFields.size === 1 ) {
 			$select.find( 'option:eq(1)' ).prop( 'selected', true );
 		}
 
@@ -6249,6 +6255,117 @@ const ImportModule = {
 		$select.off( 'change.uniquefield' ).on( 'change.uniquefield', () => {
 			this.toggleStartImportButton();
 		} );
+	},
+
+	/**
+	 * Pick the safest default field for detecting existing items.
+	 *
+	 * The UI only offers fields that are actually mapped, so every preferred
+	 * candidate is checked against mapped target fields before it is selected.
+	 *
+	 * @param {string} contentType  Selected import content type.
+	 * @param {Set}    uniqueFields Mapped target fields.
+	 *
+	 * @return {string} Field name or empty string.
+	 */
+	getDefaultUniqueField( contentType, uniqueFields ) {
+		const normalizedType = this.normalizeImportContentType( contentType );
+		const preferredFields = {
+			post: [ 'post_name', 'post_title', 'ID' ],
+			page: [ 'post_name', 'post_title', 'ID' ],
+			custom_post_types: [ 'post_name', 'post_title', 'ID' ],
+			media: [ 'file_url', 'guid', 'file_name', 'post_title', 'ID' ],
+			menu: [ 'name', 'slug' ],
+			user: [ 'user_email', 'user_login', 'ID' ],
+			comment: [
+				'source_comment_id',
+				'comment_ID',
+				'comment_author_email',
+				'comment_content',
+			],
+			taxonomy: [ 'term_id', 'slug', 'name' ],
+			woo_product: [ 'sku', 'post_name', 'post_title', 'ID' ],
+			woo_order: [ 'order_key', 'order_number', 'ID' ],
+			woo_coupon: [ 'post_title', 'ID' ],
+			woo_attribute: [ 'attribute_name', 'attribute_id' ],
+			woo_review: [
+				'source_comment_id',
+				'comment_ID',
+				'product_sku',
+				'comment_author_email',
+				'comment_content',
+			],
+			woo_refund: [
+				'source_refund_id',
+				'refund_id',
+				'parent_order_key',
+				'parent_order_number',
+			],
+			woo_customer: [ 'email', 'username', 'customer_id', 'user_id' ],
+			database_table: [ 'ID', 'id', 'uuid', 'slug', 'name', 'email' ],
+		};
+
+		const candidates = preferredFields[ normalizedType ] || [
+			'ID',
+			'id',
+			'slug',
+			'name',
+			'title',
+		];
+		const fields = Array.from( uniqueFields );
+
+		for ( const candidate of candidates ) {
+			if ( uniqueFields.has( candidate ) ) {
+				return candidate;
+			}
+		}
+
+		if ( normalizedType === 'database_table' ) {
+			const idLikeField = fields.find( ( field ) =>
+				/(^id$|_id$|uuid$|guid$|key$)/i.test( field )
+			);
+
+			if ( idLikeField ) {
+				return idLikeField;
+			}
+		}
+
+		return '';
+	},
+
+	/**
+	 * Normalize import content type aliases used by free and PRO cards.
+	 *
+	 * @param {string} contentType Selected content type.
+	 *
+	 * @return {string} Normalized content type.
+	 */
+	normalizeImportContentType( contentType ) {
+		const aliases = {
+			posts: 'post',
+			pages: 'page',
+			attachment: 'media',
+			attachments: 'media',
+			menus: 'menu',
+			nav_menu: 'menu',
+			users: 'user',
+			comments: 'comment',
+			taxonomy_term: 'taxonomy',
+			term: 'taxonomy',
+			product: 'woo_product',
+			order: 'woo_order',
+			orders: 'woo_order',
+			coupon: 'woo_coupon',
+			coupons: 'woo_coupon',
+			review: 'woo_review',
+			reviews: 'woo_review',
+			refund: 'woo_refund',
+			refunds: 'woo_refund',
+			customer: 'woo_customer',
+			customers: 'woo_customer',
+		};
+
+		return aliases[ contentType ] || contentType || '';
 	},
 
 	/**
