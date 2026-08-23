@@ -1108,6 +1108,7 @@ class Init {
 				'nonces'         => Ajax_Security::get_nonces(),
 				'ajaxurl'        => admin_url( 'admin-ajax.php' ),
 				'exportUrl'      => admin_url( 'admin.php?page=rsl-ie-export' ),
+				'contentSyncUrl' => admin_url( 'admin.php?page=rsl-ie-content-sync' ),
 				'taxonomy'       => $taxonomy,
 				'exportEnabled'  => $export_enabled,
 				'syncEnabled'    => $sync_enabled,

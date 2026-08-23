@@ -187,6 +187,49 @@
 		return options.join( '' );
 	}
 
+	function hasConnectedSites() {
+		const sites =
+			config.connectedSites && typeof config.connectedSites === 'object'
+				? config.connectedSites
+				: {};
+
+		return Object.keys( sites ).length > 0;
+	}
+
+	function getContentSyncUrl() {
+		if (
+			typeof config.contentSyncUrl === 'string' &&
+			config.contentSyncUrl
+		) {
+			return config.contentSyncUrl;
+		}
+
+		if ( typeof window.ajaxurl === 'string' && window.ajaxurl ) {
+			return (
+				window.ajaxurl.replace( /admin-ajax\.php.*$/, 'admin.php' ) +
+				'?page=rsl-ie-content-sync'
+			);
+		}
+
+		if ( typeof config.ajaxurl === 'string' && config.ajaxurl ) {
+			return (
+				config.ajaxurl.replace( /admin-ajax\.php.*$/, 'admin.php' ) +
+				'?page=rsl-ie-content-sync'
+			);
+		}
+
+		return 'admin.php?page=rsl-ie-content-sync';
+	}
+
+	function redirectToContentSyncIfNoSites() {
+		if ( hasConnectedSites() ) {
+			return false;
+		}
+
+		window.location.href = getContentSyncUrl();
+		return true;
+	}
+
 	function escapeHtml( value ) {
 		return String( getScalarValue( value, '' ) || '' )
 			.replace( /&/g, '&amp;' )
@@ -534,6 +577,10 @@
 	}
 
 	function openSyncModal() {
+		if ( redirectToContentSyncIfNoSites() ) {
+			return;
+		}
+
 		ensureSyncModal();
 		const selectedCount = getSelectedTermIds().length;
 		const hasSelection = selectedCount > 0;
