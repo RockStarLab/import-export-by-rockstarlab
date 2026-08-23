@@ -152,6 +152,7 @@ class Import_Controller extends Base_Controller {
 		$file_path   = $this->get_request_param( 'file_path' );
 		$import_type = $this->get_request_param( 'import_type' );
 		$mapping     = $this->get_request_array( 'mapping' );
+		$options     = $this->normalize_post_options( $import_type, $this->get_request_array( 'options' ) );
 		if ( empty( $mapping ) ) {
 			$this->send_error(
 				new \WP_Error(
@@ -188,6 +189,7 @@ class Import_Controller extends Base_Controller {
 
 		// Prepare data with mapping
 		$prepared_data = $importer->prepare( $data, $mapping );
+		$prepared_data = $this->apply_replace_links_rules_to_data( $prepared_data, $options );
 
 		// Validate
 		$validation_result = $importer->validate( $prepared_data );
@@ -464,6 +466,7 @@ class Import_Controller extends Base_Controller {
 
 			// Prepare data
 			$prepared_data = $importer->prepare( $data, $mapping );
+			$prepared_data = $this->apply_replace_links_rules_to_data( $prepared_data, $options );
 			$total_items   = count( $prepared_data );
 
 			// Preserve source IDs for cross-site relationship fixups (e.g. post_parent).
@@ -613,6 +616,8 @@ class Import_Controller extends Base_Controller {
 		// Set importer options (CRITICAL for Database_Table_Importer)
 		$importer->set_options( $options );
 
+		$replace_links_rules = $this->get_replace_links_rules( $options );
+
 		// Process each item in batch
 		foreach ( $batch as $index => $item ) {
 			$current_job_status = $job_model->find( $job_id );
@@ -627,6 +632,7 @@ class Import_Controller extends Base_Controller {
 				return;
 			}
 
+			$item   = $this->apply_replace_links_rules_to_value( $item, $replace_links_rules );
 			$result = $importer->import_item( $item, $offset + $index );
 
 			if ( is_wp_error( $result ) ) {
@@ -864,6 +870,106 @@ class Import_Controller extends Base_Controller {
 		}
 
 		return $options;
+	}
+
+	/**
+	 * Apply import search/replace rules to prepared import data.
+	 *
+	 * @param array $data    Prepared import rows.
+	 * @param array $options Import options.
+	 * @return array Prepared data with replacements applied.
+	 */
+	private function apply_replace_links_rules_to_data( $data, $options ) {
+		if ( ! is_array( $data ) ) {
+			return $data;
+		}
+
+		$rules = $this->get_replace_links_rules( $options );
+		if ( empty( $rules ) ) {
+			return $data;
+		}
+
+		foreach ( $data as $index => $row ) {
+			$data[ $index ] = $this->apply_replace_links_rules_to_value( $row, $rules );
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Normalize import search/replace rules.
+	 *
+	 * @param array $options Import options.
+	 * @return array Normalized rules.
+	 */
+	private function get_replace_links_rules( $options ) {
+		if ( empty( $options['replace_links_rules'] ) || ! is_array( $options['replace_links_rules'] ) ) {
+			return [];
+		}
+
+		if ( isset( $options['replace_links'] ) && ! filter_var( $options['replace_links'], FILTER_VALIDATE_BOOLEAN ) ) {
+			return [];
+		}
+
+		$rules = [];
+		foreach ( $options['replace_links_rules'] as $rule ) {
+			if ( ! is_array( $rule ) ) {
+				continue;
+			}
+
+			$search  = isset( $rule['search'] ) && is_scalar( $rule['search'] ) ? sanitize_text_field( (string) $rule['search'] ) : '';
+			$replace = isset( $rule['replace'] ) && is_scalar( $rule['replace'] ) ? sanitize_text_field( (string) $rule['replace'] ) : '';
+
+			if ( '' === $search || $search === $replace ) {
+				continue;
+			}
+
+			$rules[] = [
+				'search'  => $search,
+				'replace' => $replace,
+			];
+		}
+
+		return $rules;
+	}
+
+	/**
+	 * Recursively apply import search/replace rules to strings and nested arrays.
+	 *
+	 * JSON strings are intentionally handled as plain strings so URLs inside
+	 * encoded Elementor/SEO/ACF payloads can be rewritten without changing the
+	 * original structure.
+	 *
+	 * @param mixed $value Value to update.
+	 * @param array $rules Normalized replacement rules.
+	 * @return mixed Updated value.
+	 */
+	private function apply_replace_links_rules_to_value( $value, $rules ) {
+		if ( is_array( $value ) ) {
+			foreach ( $value as $key => $child_value ) {
+				$value[ $key ] = $this->apply_replace_links_rules_to_value( $child_value, $rules );
+			}
+
+			return $value;
+		}
+
+		if ( is_string( $value ) && '' !== $value ) {
+			if ( is_serialized( $value ) ) {
+				$unserialized = maybe_unserialize( $value );
+				if ( false !== $unserialized || 'b:0;' === $value ) {
+					return maybe_serialize( $this->apply_replace_links_rules_to_value( $unserialized, $rules ) );
+				}
+			}
+
+			foreach ( $rules as $rule ) {
+				$value = str_replace( $rule['search'], $rule['replace'], $value );
+				$value = str_replace( wp_json_encode( $rule['search'] ), wp_json_encode( $rule['replace'] ), $value );
+				$value = str_replace( str_replace( '/', '\\/', $rule['search'] ), str_replace( '/', '\\/', $rule['replace'] ), $value );
+				$value = str_replace( rawurlencode( $rule['search'] ), rawurlencode( $rule['replace'] ), $value );
+			}
+		}
+
+		return $value;
 	}
 
 	/**

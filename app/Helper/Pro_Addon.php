@@ -222,6 +222,30 @@ class Pro_Addon {
 						? __( 'Import WooCommerce attributes', 'import-export-by-rockstarlab' )
 						: __( 'Export WooCommerce attributes', 'import-export-by-rockstarlab' ),
 				];
+				$cards[] = [
+					'value'       => 'woo_review',
+					'icon'        => 'dashicons-star-filled',
+					'title'       => __( 'WooCommerce Reviews', 'import-export-by-rockstarlab' ),
+					'description' => $is_import
+						? __( 'Import WooCommerce product reviews', 'import-export-by-rockstarlab' )
+						: __( 'Export WooCommerce product reviews', 'import-export-by-rockstarlab' ),
+				];
+				$cards[] = [
+					'value'       => 'woo_refund',
+					'icon'        => 'dashicons-undo',
+					'title'       => __( 'WooCommerce Refunds', 'import-export-by-rockstarlab' ),
+					'description' => $is_import
+						? __( 'Import WooCommerce refunds', 'import-export-by-rockstarlab' )
+						: __( 'Export WooCommerce refunds', 'import-export-by-rockstarlab' ),
+				];
+				$cards[] = [
+					'value'       => 'woo_customer',
+					'icon'        => 'dashicons-groups',
+					'title'       => __( 'WooCommerce Customers', 'import-export-by-rockstarlab' ),
+					'description' => $is_import
+						? __( 'Import WooCommerce customers', 'import-export-by-rockstarlab' )
+						: __( 'Export WooCommerce customers', 'import-export-by-rockstarlab' ),
+				];
 			}
 
 			$cards[] = [

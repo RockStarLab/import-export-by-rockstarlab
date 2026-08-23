@@ -67,7 +67,7 @@ class Schedule_Controller {
 		if ( '' === $search ) {
 			$jobs = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Select2 source search for plugin jobs table.
 				$wpdb->prepare(
-					"SELECT id, type, data_type, status, created_at
+					"SELECT id, job_name, type, data_type, status, created_at
 					FROM %i
 					WHERE type IN ('import', 'export', 'media_sync', 'update')
 						AND status NOT IN ('pending', 'processing')
@@ -81,12 +81,13 @@ class Schedule_Controller {
 		} else {
 			$jobs = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Select2 source search for plugin jobs table.
 				$wpdb->prepare(
-					"SELECT id, type, data_type, status, created_at
+					"SELECT id, job_name, type, data_type, status, created_at
 					FROM %i
 					WHERE type IN ('import', 'export', 'media_sync', 'update')
 						AND status NOT IN ('pending', 'processing')
 						AND (
 							id = %d
+							OR job_name LIKE %s
 							OR type LIKE %s
 							OR data_type LIKE %s
 							OR status LIKE %s
@@ -95,6 +96,7 @@ class Schedule_Controller {
 					LIMIT %d OFFSET %d",
 					$table,
 					$job_id,
+					$like,
 					$like,
 					$like,
 					$like,
@@ -303,12 +305,23 @@ class Schedule_Controller {
 	 * @return string
 	 */
 	private function format_source_job_label( $job ) {
-		return sprintf(
+		$base_label = sprintf(
 			'#%1$d — %2$s / %3$s (%4$s)',
 			(int) $job->id,
 			(string) $job->type,
 			(string) $job->data_type,
 			(string) $job->status
+		);
+
+		$job_name = isset( $job->job_name ) ? trim( (string) $job->job_name ) : '';
+		if ( '' === $job_name ) {
+			return $base_label;
+		}
+
+		return sprintf(
+			'%1$s — %2$s',
+			$job_name,
+			$base_label
 		);
 	}
 }

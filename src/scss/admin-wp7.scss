@@ -27,6 +27,23 @@
 	color: inherit;
 }
 
+body[class*="branch-7"].wp-core-ui
+	.import-export-by-rockstarlab
+	.button
+	.dashicons,
+body[class*="branch-7"].wp-core-ui
+	.import-export-by-rockstarlab
+	.button[class^="rsl-ie-"]
+	.dashicons,
+body[class*="branch-7"].wp-core-ui
+	.import-export-by-rockstarlab
+	.button[class*=" rsl-ie-"]
+	.dashicons,
+body[class*="branch-7"].wp-core-ui .button[class^="rsl-ie-"] .dashicons,
+body[class*="branch-7"].wp-core-ui .button[class*=" rsl-ie-"] .dashicons {
+	color: inherit !important;
+}
+
 [class*="branch-7"].wp-core-ui.toplevel_page_import-export-by-rockstarlab
 	.button-primary
 	.dashicons,
@@ -79,6 +96,8 @@ body[class*="import-export-by-rockstarlab_page_rsl-ie-"].wp-core-ui
 
 .wp-core-ui [class^="rsl-ie-"] .button .dashicons,
 .wp-core-ui [class*=" rsl-ie-"] .button .dashicons,
+.wp-core-ui .button[class^="rsl-ie-"] .dashicons,
+.wp-core-ui .button[class*=" rsl-ie-"] .dashicons,
 .wp-core-ui [class^="rsl-ie-"] .button-primary .dashicons,
 .wp-core-ui [class*=" rsl-ie-"] .button-primary .dashicons,
 .wp-core-ui [class^="rsl-ie-"] .button-secondary .dashicons,
@@ -95,6 +114,26 @@ body[class*="import-export-by-rockstarlab_page_rsl-ie-"].wp-core-ui
 	:is(.rsl-ie-complete-icon, .rsl-ie-result-icon, .rsl-ie-download-file)
 	.dashicons {
 	color: #fff;
+}
+
+body[class*="branch-7"].wp-core-ui
+	.import-export-by-rockstarlab
+	.rsl-ie-step-actions
+	.button-primary
+	.dashicons,
+body[class*="branch-7"].wp-core-ui
+	.import-export-by-rockstarlab
+	.button-primary.rsl-ie-next-step
+	.dashicons,
+body[class*="branch-7"].wp-core-ui
+	.import-export-by-rockstarlab
+	.button-primary.rsl-ie-start-export
+	.dashicons,
+body[class*="branch-7"].wp-core-ui
+	.import-export-by-rockstarlab
+	.button-primary.rsl-ie-start-import
+	.dashicons {
+	color: #fff !important;
 }
 
 /* Fix: eye icon in the "show" (password toggle) button is off-center on WP7+. */
@@ -123,6 +162,15 @@ body.import-export-by-rockstarlab_page_rsl-ie-plugin-options
 }
 
 /* Plugin Options: About AI Features cards should follow WP7 admin theme colors. */
+body.import-export-by-rockstarlab_page_rsl-ie-plugin-options
+	#rsl-ie-plugin-options
+	> h1
+	.dashicons,
+body.admin_page_rsl-ie-plugin-settings #rsl-ie-plugin-settings > h1 .dashicons,
+body.admin_page_rsl-ie-button-settings #rsl-ie-button-settings > h1 .dashicons {
+	color: #646970;
+}
+
 body.import-export-by-rockstarlab_page_rsl-ie-plugin-options
 	.rsl-ie-info-card
 	.dashicons,
@@ -547,7 +595,20 @@ body.import-export-by-rockstarlab_page_rsl-ie-content-updater
 	.rsl-ie-summary-card
 	.rsl-ie-refresh-count.button
 	.dashicons {
-	color: currentColor;
+	color: #fff !important;
+}
+
+body[class*="branch-7"].wp-core-ui.import-export-by-rockstarlab_page_rsl-ie-export
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button
+	.dashicons,
+body[class*="branch-7"].wp-core-ui.import-export-by-rockstarlab_page_rsl-ie-content-updater
+	.rsl-ie-filter-summary-top
+	.rsl-ie-summary-card
+	.rsl-ie-refresh-count.button
+	.dashicons {
+	color: #fff !important;
 }
 
 body.import-export-by-rockstarlab_page_rsl-ie-export

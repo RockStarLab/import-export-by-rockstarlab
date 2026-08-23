@@ -194,7 +194,10 @@ class Background_Processor {
 				throw new \Exception( 'Failed to parse import file: unexpected format.' );
 			}
 
-				$parameters['prepared_data'] = $importer->prepare( $data, $mapping );
+				$parameters['prepared_data'] = $this->apply_replace_links_rules_to_value(
+					$importer->prepare( $data, $mapping ),
+					$this->get_replace_links_rules( $options )
+				);
 			if ( class_exists( \RockStarLab\ImportExport\Model\Import\Comment_Importer::class ) && $importer instanceof \RockStarLab\ImportExport\Model\Import\Comment_Importer ) {
 				foreach ( $parameters['prepared_data'] as $row_index => &$prepared_row ) {
 					if ( isset( $data[ $row_index ]['comment_date'] ) ) {
@@ -249,7 +252,9 @@ class Background_Processor {
 		}
 
 			$importer->set_options( $options );
+		$replace_links_rules = $this->get_replace_links_rules( $options );
 		foreach ( $chunk as $index => $item ) {
+			$item        = $this->apply_replace_links_rules_to_value( $item, $replace_links_rules );
 			$item_result = $importer->import_item( $item, $offset + $index );
 			if ( is_wp_error( $item_result ) ) {
 				++$cumulative['failed'];
@@ -295,6 +300,82 @@ class Background_Processor {
 				'processed' => $new_offset,
 				'total'     => $total,
 			];
+	}
+
+	/**
+	 * Normalize import search/replace rules saved with an import job.
+	 *
+	 * @param array $options Import options.
+	 * @return array Normalized rules.
+	 */
+	private function get_replace_links_rules( $options ) {
+		if ( empty( $options['replace_links_rules'] ) || ! is_array( $options['replace_links_rules'] ) ) {
+			return [];
+		}
+
+		if ( isset( $options['replace_links'] ) && ! filter_var( $options['replace_links'], FILTER_VALIDATE_BOOLEAN ) ) {
+			return [];
+		}
+
+		$rules = [];
+		foreach ( $options['replace_links_rules'] as $rule ) {
+			if ( ! is_array( $rule ) ) {
+				continue;
+			}
+
+			$search  = isset( $rule['search'] ) && is_scalar( $rule['search'] ) ? sanitize_text_field( (string) $rule['search'] ) : '';
+			$replace = isset( $rule['replace'] ) && is_scalar( $rule['replace'] ) ? sanitize_text_field( (string) $rule['replace'] ) : '';
+
+			if ( '' === $search || $search === $replace ) {
+				continue;
+			}
+
+			$rules[] = [
+				'search'  => $search,
+				'replace' => $replace,
+			];
+		}
+
+		return $rules;
+	}
+
+	/**
+	 * Recursively apply import search/replace rules to a prepared item.
+	 *
+	 * @param mixed $value Value to update.
+	 * @param array $rules Normalized replacement rules.
+	 * @return mixed Updated value.
+	 */
+	private function apply_replace_links_rules_to_value( $value, $rules ) {
+		if ( empty( $rules ) ) {
+			return $value;
+		}
+
+		if ( is_array( $value ) ) {
+			foreach ( $value as $key => $child_value ) {
+				$value[ $key ] = $this->apply_replace_links_rules_to_value( $child_value, $rules );
+			}
+
+			return $value;
+		}
+
+		if ( is_string( $value ) && '' !== $value ) {
+			if ( is_serialized( $value ) ) {
+				$unserialized = maybe_unserialize( $value );
+				if ( false !== $unserialized || 'b:0;' === $value ) {
+					return maybe_serialize( $this->apply_replace_links_rules_to_value( $unserialized, $rules ) );
+				}
+			}
+
+			foreach ( $rules as $rule ) {
+				$value = str_replace( $rule['search'], $rule['replace'], $value );
+				$value = str_replace( wp_json_encode( $rule['search'] ), wp_json_encode( $rule['replace'] ), $value );
+				$value = str_replace( str_replace( '/', '\\/', $rule['search'] ), str_replace( '/', '\\/', $rule['replace'] ), $value );
+				$value = str_replace( rawurlencode( $rule['search'] ), rawurlencode( $rule['replace'] ), $value );
+			}
+		}
+
+		return $value;
 	}
 
 		/**

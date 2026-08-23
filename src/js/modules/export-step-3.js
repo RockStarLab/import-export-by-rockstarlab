@@ -927,6 +927,9 @@ export default class ExportStep3 {
 			'woo_attribute',
 			'woo_coupon',
 			'woo_order',
+			'woo_review',
+			'woo_refund',
+			'woo_customer',
 		];
 		if ( ! excludedTypes.includes( contentType ) ) {
 			this.prepareDynamicCategory(

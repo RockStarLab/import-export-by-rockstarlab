@@ -66,7 +66,7 @@ class Export_Controller extends Base_Controller {
 
 		$export_type = $this->get_request_param( 'export_type' );
 		$options     = $this->get_request_array( 'options' );
-		$options     = $this->apply_media_library_selected_ids_filter_to_options( $export_type, $options );
+		$options     = $this->apply_selected_ids_filter_to_options( $export_type, $options );
 
 		$count = Exporter_Factory::get_count( $export_type, $options );
 
@@ -78,20 +78,34 @@ class Export_Controller extends Base_Controller {
 	}
 
 	/**
-	 * Apply locked Media Library selected IDs to count/export options.
+	 * Apply locked selected IDs to count/export options.
 	 *
 	 * @param string $export_type Export type.
 	 * @param array  $options Export options.
 	 * @return array
 	 */
-	private function apply_media_library_selected_ids_filter_to_options( $export_type, $options ) {
-		if ( 'media' !== $export_type || empty( $options['media_library_selected_ids'] ) ) {
+	private function apply_selected_ids_filter_to_options( $export_type, $options ) {
+		$option_key = '';
+
+		if ( 'media' === $export_type && ! empty( $options['media_library_selected_ids'] ) ) {
+			$option_key = 'media_library_selected_ids';
+		}
+
+		if ( $this->is_post_list_selected_ids_export_type( $export_type ) && ! empty( $options['post_list_selected_ids'] ) ) {
+			$option_key = 'post_list_selected_ids';
+		}
+
+		if ( 'taxonomy' === $export_type && ! empty( $options['taxonomy_term_selected_ids'] ) ) {
+			$option_key = 'taxonomy_term_selected_ids';
+		}
+
+		if ( '' === $option_key ) {
 			return $options;
 		}
 
-		$raw_ids = is_array( $options['media_library_selected_ids'] )
-			? $options['media_library_selected_ids']
-			: explode( ',', (string) $options['media_library_selected_ids'] );
+		$raw_ids = is_array( $options[ $option_key ] )
+			? $options[ $option_key ]
+			: explode( ',', (string) $options[ $option_key ] );
 		$ids     = array_values(
 			array_unique(
 				array_filter(
@@ -115,7 +129,7 @@ class Export_Controller extends Base_Controller {
 		);
 
 		$filters[] = [
-			'field'     => 'ID',
+			'field'     => 'taxonomy_term_selected_ids' === $option_key ? 'term_id' : 'ID',
 			'condition' => 'in',
 			'value'     => implode( ',', $ids ),
 		];
@@ -123,6 +137,27 @@ class Export_Controller extends Base_Controller {
 		$options['filters'] = $filters;
 
 		return $options;
+	}
+
+	/**
+	 * Check whether selected post-list IDs can be applied to this export type.
+	 *
+	 * @param string $export_type Export type.
+	 * @return bool
+	 */
+	private function is_post_list_selected_ids_export_type( $export_type ) {
+		return in_array(
+			$export_type,
+			array(
+				'post',
+				'page',
+				'custom_post_types',
+				'woo_product',
+				'woo_order',
+				'woo_coupon',
+			),
+			true
+		);
 	}
 
 	/**
@@ -180,6 +215,7 @@ class Export_Controller extends Base_Controller {
 		$export_type = $this->get_request_param( 'export_type' );
 		$format      = $this->get_request_param( 'format' );
 		$options     = $this->get_request_array( 'options' );
+		$options     = $this->apply_selected_ids_filter_to_options( $export_type, $options );
 
 		// Get all export parameters
 		$filters         = $this->get_request_array( 'filters' );
@@ -643,9 +679,10 @@ class Export_Controller extends Base_Controller {
 				'field_functions' => $field_functions,
 			]
 		);
+		$export_options = $this->apply_selected_ids_filter_to_options( $export_type, $export_options );
 
 		// Add post_type only for actual post types (not for menu, user, taxonomy, etc.)
-		$non_post_types = [ 'menu', 'user', 'taxonomy', 'comment', 'database_table', 'woo_attribute' ];
+		$non_post_types = [ 'menu', 'user', 'taxonomy', 'comment', 'database_table', 'woo_attribute', 'woo_review', 'woo_refund', 'woo_customer' ];
 		if ( ! in_array( $export_type, $non_post_types, true ) ) {
 			$export_options['post_type'] = $export_type;
 		}

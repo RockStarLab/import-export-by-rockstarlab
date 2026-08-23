@@ -11,11 +11,15 @@ const PluginOptionsModule = {
 	 * Initialize module.
 	 */
 	init() {
-		if ( ! jQuery( '#rsl-ie-plugin-options' ).length ) {
+		if (
+			! jQuery( '#rsl-ie-plugin-options' ).length &&
+			! jQuery( '#rsl-ie-button-settings' ).length
+		) {
 			return;
 		}
 
 		this.bindEvents();
+		this.initButtonLocationToggles();
 	},
 
 	/**
@@ -141,6 +145,80 @@ const PluginOptionsModule = {
 					$btn.prop( 'disabled', false );
 				} );
 		} );
+	},
+
+	/**
+	 * Initialize group-level toggle controls for the button settings page.
+	 */
+	initButtonLocationToggles() {
+		const $ = jQuery;
+		const $page = $( '#rsl-ie-button-settings' );
+
+		if ( ! $page.length ) {
+			return;
+		}
+
+		const updateToggleState = function ( $group, inputName ) {
+			const $items = $group.find(
+				`input[type="checkbox"][name="${ inputName }"]`
+			);
+			const $toggle = $group.find(
+				`input[type="checkbox"][data-rsl-ie-toggle-group="${ inputName }"]`
+			);
+
+			if ( ! $items.length || ! $toggle.length ) {
+				return;
+			}
+
+			const checkedCount = $items.filter( ':checked' ).length;
+
+			$toggle
+				.prop( 'checked', checkedCount === $items.length )
+				.prop(
+					'indeterminate',
+					checkedCount > 0 && checkedCount < $items.length
+				);
+		};
+
+		const updateAllToggleStates = function () {
+			$page.find( '.rsl-ie-button-location-group' ).each( function () {
+				const $group = $( this );
+				updateToggleState( $group, 'export_button_locations[]' );
+				updateToggleState( $group, 'sync_button_locations[]' );
+			} );
+		};
+
+		updateAllToggleStates();
+
+		$( document ).on(
+			'change',
+			'#rsl-ie-button-settings [data-rsl-ie-toggle-group]',
+			function () {
+				const $toggle = $( this );
+				const inputName = $toggle.attr( 'data-rsl-ie-toggle-group' );
+				const $group = $toggle.closest(
+					'.rsl-ie-button-location-group'
+				);
+
+				$group
+					.find( `input[type="checkbox"][name="${ inputName }"]` )
+					.prop( 'checked', $toggle.prop( 'checked' ) );
+
+				updateToggleState( $group, inputName );
+			}
+		);
+
+		$( document ).on(
+			'change',
+			'#rsl-ie-button-settings input[name="export_button_locations[]"], #rsl-ie-button-settings input[name="sync_button_locations[]"]',
+			function () {
+				const $item = $( this );
+				updateToggleState(
+					$item.closest( '.rsl-ie-button-location-group' ),
+					$item.attr( 'name' )
+				);
+			}
+		);
 	},
 };
 

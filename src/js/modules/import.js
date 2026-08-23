@@ -43,6 +43,7 @@ const ImportModule = {
 		const resumeJobId = urlParams.get( 'resume_job' );
 
 		this.bindEvents();
+		this.updateReplaceLinksRemoveButtons();
 
 		if ( resumeJobId ) {
 			// Resume job – go directly to step 6 (progress) and start batch processing.
@@ -133,6 +134,15 @@ const ImportModule = {
 
 		// Import actions
 		$wizard.on( 'click', '.rsl-ie-start-import', () => this.startImport() );
+		$wizard.on( 'change', '#rsl-ie-enable-replace-links', ( e ) =>
+			this.toggleReplaceLinksRepeater( e )
+		);
+		$wizard.on( 'click', '.rsl-ie-add-replace-link', () =>
+			this.addReplaceLinksRow()
+		);
+		$wizard.on( 'click', '.rsl-ie-remove-replace-link', ( e ) =>
+			this.removeReplaceLinksRow( e )
+		);
 		$wizard.on( 'click', '.rsl-ie-cancel-import', () =>
 			this.cancelImport()
 		);
@@ -2020,7 +2030,7 @@ const ImportModule = {
 					options: [
 						{
 							value: 'menu_items',
-							label: 'Menu Items (JSON)',
+							label: 'Menu Items Portable JSON (includes source IDs and object hints)',
 							type: 'json',
 						},
 					],
@@ -2220,12 +2230,22 @@ const ImportModule = {
 					options: [
 						{
 							value: 'comment_ID',
-							label: 'Comment ID',
+							label: 'Comment ID (local/source reference)',
+							type: 'number',
+						},
+						{
+							value: 'source_comment_id',
+							label: 'Source Comment ID (for updates)',
 							type: 'number',
 						},
 						{
 							value: 'comment_post_ID',
-							label: 'Post ID',
+							label: 'Post ID (source/local fallback)',
+							type: 'number',
+						},
+						{
+							value: 'source_post_id',
+							label: 'Source Post ID (matches imported posts)',
 							type: 'number',
 						},
 						{
@@ -2268,7 +2288,11 @@ const ImportModule = {
 							label: 'Author IP',
 							type: 'string',
 						},
-						{ value: 'user_id', label: 'User ID', type: 'number' },
+						{
+							value: 'user_id',
+							label: 'User ID (local fallback; email is preferred)',
+							type: 'number',
+						},
 						{
 							value: 'comment_agent',
 							label: 'User Agent',
@@ -2281,7 +2305,7 @@ const ImportModule = {
 					options: [
 						{
 							value: 'post_permalink',
-							label: 'Post Permalink',
+							label: 'Post Permalink (matching hint)',
 							type: 'url',
 						},
 						{
@@ -2291,12 +2315,12 @@ const ImportModule = {
 						},
 						{
 							value: 'post_slug',
-							label: 'Post Slug',
+							label: 'Post Slug (recommended matching)',
 							type: 'string',
 						},
 						{
 							value: 'post_title',
-							label: 'Post Title',
+							label: 'Post Title (fallback matching)',
 							type: 'string',
 						},
 						{
@@ -2326,7 +2350,12 @@ const ImportModule = {
 					options: [
 						{
 							value: 'comment_parent',
-							label: 'Parent Comment ID',
+							label: 'Parent Comment ID (source reference)',
+							type: 'number',
+						},
+						{
+							value: 'source_comment_parent_id',
+							label: 'Source Parent Comment ID (for threaded comments)',
 							type: 'number',
 						},
 						{
@@ -3280,6 +3309,281 @@ const ImportModule = {
 							value: 'term_count',
 							label: 'Term Count',
 							type: 'number',
+						},
+					],
+				},
+			];
+		}
+
+		if ( contentType === 'woo_review' ) {
+			return [
+				{
+					label: 'Review',
+					options: [
+						{
+							value: 'comment_ID',
+							label: 'Review ID (local/source reference)',
+							type: 'number',
+						},
+						{
+							value: 'source_comment_id',
+							label: 'Source Review ID (for updates)',
+							type: 'number',
+						},
+						{
+							value: 'product_id',
+							label: 'Product ID (source/local fallback)',
+							type: 'number',
+						},
+						{
+							value: 'source_product_id',
+							label: 'Source Product ID (matches imported products)',
+							type: 'number',
+						},
+						{
+							value: 'product_title',
+							label: 'Product Title (fallback matching)',
+							type: 'string',
+						},
+						{
+							value: 'product_slug',
+							label: 'Product Slug (recommended matching)',
+							type: 'string',
+						},
+						{
+							value: 'product_sku',
+							label: 'Product SKU (best matching)',
+							type: 'string',
+						},
+						{
+							value: 'comment_author',
+							label: 'Author',
+							type: 'string',
+						},
+						{
+							value: 'comment_author_email',
+							label: 'Author Email',
+							type: 'email',
+						},
+						{
+							value: 'comment_author_url',
+							label: 'Author URL',
+							type: 'url',
+						},
+						{
+							value: 'comment_author_IP',
+							label: 'Author IP',
+							type: 'string',
+						},
+						{
+							value: 'comment_date',
+							label: 'Review Date',
+							type: 'datetime',
+						},
+						{
+							value: 'comment_content',
+							label: 'Content',
+							type: 'string',
+						},
+						{
+							value: 'comment_approved',
+							label: 'Status',
+							type: 'string',
+						},
+						{
+							value: 'comment_agent',
+							label: 'User Agent',
+							type: 'string',
+						},
+						{
+							value: 'comment_parent',
+							label: 'Parent Review ID',
+							type: 'number',
+						},
+						{ value: 'user_id', label: 'User ID', type: 'number' },
+						{ value: 'rating', label: 'Rating', type: 'number' },
+						{
+							value: 'verified',
+							label: 'Verified Owner',
+							type: 'boolean',
+						},
+						{
+							value: 'comment_meta',
+							label: 'Review Meta JSON',
+							type: 'json',
+						},
+					],
+				},
+			];
+		}
+
+		if ( contentType === 'woo_refund' ) {
+			return [
+				{
+					label: 'Refund',
+					options: [
+						{
+							value: 'refund_id',
+							label: 'Refund ID (local/source reference)',
+							type: 'number',
+						},
+						{
+							value: 'source_refund_id',
+							label: 'Source Refund ID (for updates)',
+							type: 'number',
+						},
+						{
+							value: 'parent_order_id',
+							label: 'Parent Order ID (source/local fallback)',
+							type: 'number',
+						},
+						{
+							value: 'source_parent_order_id',
+							label: 'Source Parent Order ID (matches imported orders)',
+							type: 'number',
+						},
+						{
+							value: 'parent_order_key',
+							label: 'Parent Order Key (best matching)',
+							type: 'string',
+						},
+						{
+							value: 'parent_order_number',
+							label: 'Parent Order Number',
+							type: 'string',
+						},
+						{ value: 'status', label: 'Status', type: 'string' },
+						{
+							value: 'date_created',
+							label: 'Date Created',
+							type: 'datetime',
+						},
+						{
+							value: 'date_modified',
+							label: 'Date Modified',
+							type: 'datetime',
+						},
+						{ value: 'amount', label: 'Amount', type: 'number' },
+						{ value: 'reason', label: 'Reason', type: 'string' },
+						{
+							value: 'refunded_by',
+							label: 'Refunded By User ID',
+							type: 'number',
+						},
+						{
+							value: 'currency',
+							label: 'Currency',
+							type: 'string',
+						},
+						{
+							value: 'line_items',
+							label: 'Line Items JSON',
+							type: 'json',
+						},
+						{ value: 'meta', label: 'Meta JSON', type: 'json' },
+					],
+				},
+			];
+		}
+
+		if ( contentType === 'woo_customer' ) {
+			return [
+				{
+					label: 'Customer',
+					options: [
+						{
+							value: 'customer_id',
+							label: 'Customer ID (reference)',
+							type: 'number',
+						},
+						{
+							value: 'source_customer_id',
+							label: 'Source Customer ID (reference)',
+							type: 'number',
+						},
+						{
+							value: 'user_id',
+							label: 'User ID (reference)',
+							type: 'number',
+						},
+						{
+							value: 'source_user_id',
+							label: 'Source User ID (reference)',
+							type: 'number',
+						},
+						{
+							value: 'email',
+							label: 'Email (required, matches existing customers)',
+							type: 'email',
+						},
+						{
+							value: 'username',
+							label: 'Username',
+							type: 'string',
+						},
+						{
+							value: 'first_name',
+							label: 'First Name',
+							type: 'string',
+						},
+						{
+							value: 'last_name',
+							label: 'Last Name',
+							type: 'string',
+						},
+						{
+							value: 'display_name',
+							label: 'Display Name',
+							type: 'string',
+						},
+					],
+				},
+				{
+					label: 'Billing',
+					options: [
+						'billing_first_name',
+						'billing_last_name',
+						'billing_company',
+						'billing_email',
+						'billing_phone',
+						'billing_address_1',
+						'billing_address_2',
+						'billing_city',
+						'billing_state',
+						'billing_postcode',
+						'billing_country',
+					].map( ( value ) => ( {
+						value,
+						label: value.replace( /_/g, ' ' ),
+						type: 'string',
+					} ) ),
+				},
+				{
+					label: 'Shipping',
+					options: [
+						'shipping_first_name',
+						'shipping_last_name',
+						'shipping_company',
+						'shipping_phone',
+						'shipping_address_1',
+						'shipping_address_2',
+						'shipping_city',
+						'shipping_state',
+						'shipping_postcode',
+						'shipping_country',
+					].map( ( value ) => ( {
+						value,
+						label: value.replace( /_/g, ' ' ),
+						type: 'string',
+					} ) ),
+				},
+				{
+					label: 'Meta',
+					options: [
+						{
+							value: 'meta',
+							label: 'Customer Meta JSON',
+							type: 'json',
 						},
 					],
 				},
@@ -5035,6 +5339,102 @@ const ImportModule = {
 	},
 
 	/**
+	 * Toggle the import search/replace repeater.
+	 *
+	 * @param {Object} event Change event.
+	 */
+	toggleReplaceLinksRepeater( event ) {
+		const $checkbox = jQuery( event.currentTarget );
+		jQuery( '#rsl-ie-replace-links-repeater' ).toggle(
+			$checkbox.is( ':checked' )
+		);
+	},
+
+	/**
+	 * Add another import search/replace rule row.
+	 */
+	addReplaceLinksRow() {
+		const $repeater = jQuery( '#rsl-ie-replace-links-repeater' );
+		const currentSiteUrl = $repeater.data( 'currentSiteUrl' ) || '';
+		const $row = $repeater.find( '.rsl-ie-replace-links-row' ).first();
+		const $clone = $row.clone();
+
+		$clone.find( '.rsl-ie-replace-what' ).val( '' );
+		$clone.find( '.rsl-ie-replace-to' ).val( currentSiteUrl );
+
+		$repeater.find( '.rsl-ie-replace-links-rows' ).append( $clone );
+		this.updateReplaceLinksRemoveButtons();
+	},
+
+	/**
+	 * Remove one import search/replace rule row.
+	 *
+	 * @param {Object} event Click event.
+	 */
+	removeReplaceLinksRow( event ) {
+		const $rows = jQuery( '.rsl-ie-replace-links-row' );
+
+		if ( $rows.length <= 1 ) {
+			const $row = jQuery( event.currentTarget ).closest(
+				'.rsl-ie-replace-links-row'
+			);
+			$row.find( '.rsl-ie-replace-what' ).val( '' );
+			$row.find( '.rsl-ie-replace-to' ).val(
+				jQuery( '#rsl-ie-replace-links-repeater' ).data(
+					'currentSiteUrl'
+				) || ''
+			);
+			return;
+		}
+
+		jQuery( event.currentTarget )
+			.closest( '.rsl-ie-replace-links-row' )
+			.remove();
+		this.updateReplaceLinksRemoveButtons();
+	},
+
+	/**
+	 * Keep remove buttons sensible when only one replacement row remains.
+	 */
+	updateReplaceLinksRemoveButtons() {
+		const $rows = jQuery( '.rsl-ie-replace-links-row' );
+		$rows
+			.find( '.rsl-ie-remove-replace-link' )
+			.prop( 'disabled', $rows.length <= 1 );
+	},
+
+	/**
+	 * Collect import search/replace rules.
+	 *
+	 * @return {Array} Replacement rules.
+	 */
+	getReplaceLinksRules() {
+		if ( ! jQuery( '#rsl-ie-enable-replace-links' ).is( ':checked' ) ) {
+			return [];
+		}
+
+		const rules = [];
+		jQuery( '.rsl-ie-replace-links-row' ).each( function () {
+			const $row = jQuery( this );
+			const search = ( $row.find( '.rsl-ie-replace-what' ).val() || '' )
+				.toString()
+				.trim();
+			const replace = ( $row.find( '.rsl-ie-replace-to' ).val() || '' )
+				.toString()
+				.trim();
+
+			if ( search !== '' ) {
+				rules.push( {
+					search,
+					replace,
+				} );
+			}
+		} );
+
+		return rules;
+	},
+
+	/**
 	 * Start import
 	 */
 	async startImport() {
@@ -5093,6 +5493,10 @@ const ImportModule = {
 						jQuery(
 							'input[name="media_duplicate_mode"]:checked'
 						).val() || 'skip',
+					replace_links: jQuery( '#rsl-ie-enable-replace-links' ).is(
+						':checked'
+					),
+					replace_links_rules: this.getReplaceLinksRules(),
 				},
 			};
 
@@ -5567,6 +5971,9 @@ const ImportModule = {
 			'woo_attribute',
 			'woo_coupon',
 			'woo_order',
+			'woo_review',
+			'woo_refund',
+			'woo_customer',
 		];
 
 		if ( excludedTypes.includes( contentType ) ) {
@@ -5648,6 +6055,9 @@ const ImportModule = {
 			'woo_attribute',
 			'woo_coupon',
 			'woo_order',
+			'woo_review',
+			'woo_refund',
+			'woo_customer',
 		];
 
 		if ( excludedTypes.includes( contentType ) ) {
@@ -5730,6 +6140,9 @@ const ImportModule = {
 			'woo_attribute',
 			'woo_coupon',
 			'woo_order',
+			'woo_review',
+			'woo_refund',
+			'woo_customer',
 		];
 
 		if ( excludedTypes.includes( contentType ) ) {
@@ -5824,8 +6237,14 @@ const ImportModule = {
 			$select.append( `<option value="${ field }">${ label }</option>` );
 		} );
 
-		// Select first field by default if only one
-		if ( uniqueFields.size === 1 ) {
+		const defaultUniqueField = this.getDefaultUniqueField(
+			jQuery( 'input[name="content_type"]:checked' ).val(),
+			uniqueFields
+		);
+
+		if ( defaultUniqueField ) {
+			$select.val( defaultUniqueField );
+		} else if ( uniqueFields.size === 1 ) {
 			$select.find( 'option:eq(1)' ).prop( 'selected', true );
 		}
 
@@ -5836,6 +6255,117 @@ const ImportModule = {
 		$select.off( 'change.uniquefield' ).on( 'change.uniquefield', () => {
 			this.toggleStartImportButton();
 		} );
+	},
+
+	/**
+	 * Pick the safest default field for detecting existing items.
+	 *
+	 * The UI only offers fields that are actually mapped, so every preferred
+	 * candidate is checked against mapped target fields before it is selected.
+	 *
+	 * @param {string} contentType  Selected import content type.
+	 * @param {Set}    uniqueFields Mapped target fields.
+	 *
+	 * @return {string} Field name or empty string.
+	 */
+	getDefaultUniqueField( contentType, uniqueFields ) {
+		const normalizedType = this.normalizeImportContentType( contentType );
+		const preferredFields = {
+			post: [ 'post_name', 'post_title', 'ID' ],
+			page: [ 'post_name', 'post_title', 'ID' ],
+			custom_post_types: [ 'post_name', 'post_title', 'ID' ],
+			media: [ 'file_url', 'guid', 'file_name', 'post_title', 'ID' ],
+			menu: [ 'name', 'slug' ],
+			user: [ 'user_email', 'user_login', 'ID' ],
+			comment: [
+				'source_comment_id',
+				'comment_ID',
+				'comment_author_email',
+				'comment_content',
+			],
+			taxonomy: [ 'term_id', 'slug', 'name' ],
+			woo_product: [ 'sku', 'post_name', 'post_title', 'ID' ],
+			woo_order: [ 'order_key', 'order_number', 'ID' ],
+			woo_coupon: [ 'post_title', 'ID' ],
+			woo_attribute: [ 'attribute_name', 'attribute_id' ],
+			woo_review: [
+				'source_comment_id',
+				'comment_ID',
+				'product_sku',
+				'comment_author_email',
+				'comment_content',
+			],
+			woo_refund: [
+				'source_refund_id',
+				'refund_id',
+				'parent_order_key',
+				'parent_order_number',
+			],
+			woo_customer: [ 'email', 'username', 'customer_id', 'user_id' ],
+			database_table: [ 'ID', 'id', 'uuid', 'slug', 'name', 'email' ],
+		};
+
+		const candidates = preferredFields[ normalizedType ] || [
+			'ID',
+			'id',
+			'slug',
+			'name',
+			'title',
+		];
+		const fields = Array.from( uniqueFields );
+
+		for ( const candidate of candidates ) {
+			if ( uniqueFields.has( candidate ) ) {
+				return candidate;
+			}
+		}
+
+		if ( normalizedType === 'database_table' ) {
+			const idLikeField = fields.find( ( field ) =>
+				/(^id$|_id$|uuid$|guid$|key$)/i.test( field )
+			);
+
+			if ( idLikeField ) {
+				return idLikeField;
+			}
+		}
+
+		return '';
+	},
+
+	/**
+	 * Normalize import content type aliases used by free and PRO cards.
+	 *
+	 * @param {string} contentType Selected content type.
+	 *
+	 * @return {string} Normalized content type.
+	 */
+	normalizeImportContentType( contentType ) {
+		const aliases = {
+			posts: 'post',
+			pages: 'page',
+			attachment: 'media',
+			attachments: 'media',
+			menus: 'menu',
+			nav_menu: 'menu',
+			users: 'user',
+			comments: 'comment',
+			taxonomy_term: 'taxonomy',
+			term: 'taxonomy',
+			product: 'woo_product',
+			order: 'woo_order',
+			orders: 'woo_order',
+			coupon: 'woo_coupon',
+			coupons: 'woo_coupon',
+			review: 'woo_review',
+			reviews: 'woo_review',
+			refund: 'woo_refund',
+			refunds: 'woo_refund',
+			customer: 'woo_customer',
+			customers: 'woo_customer',
+		};
+
+		return aliases[ contentType ] || contentType || '';
 	},
 
 	/**
@@ -5880,6 +6410,13 @@ const ImportModule = {
 			'product',
 			'woo_product',
 			'user',
+			'menu',
+			'menus',
+			'nav_menu',
+			'comment',
+			'comments',
+			'woo_review',
+			'woo_reviews',
 			'taxonomy',
 			'taxonomy_terms',
 		];

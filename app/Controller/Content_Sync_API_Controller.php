@@ -9,6 +9,8 @@
 
 namespace RockStarLab\ImportExport\Controller;
 
+use RockStarLab\ImportExport\Helper\ACF_Fields;
+
 defined( 'ABSPATH' ) || exit;
 
 class Content_Sync_API_Controller {
@@ -62,6 +64,30 @@ class Content_Sync_API_Controller {
 				'/get-children-posts' => array(
 					'methods'  => 'POST',
 					'callback' => array( $this, 'get_children_posts' ),
+				),
+				'/list-terms'         => array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'list_terms' ),
+				),
+				'/send-terms'         => array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'send_terms' ),
+				),
+				'/receive-terms'      => array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'receive_terms' ),
+				),
+				'/list-comments'      => array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'list_comments' ),
+				),
+				'/send-comments'      => array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'send_comments' ),
+				),
+				'/receive-comments'   => array(
+					'methods'  => 'POST',
+					'callback' => array( $this, 'receive_comments' ),
 				),
 			);
 
@@ -389,7 +415,7 @@ class Content_Sync_API_Controller {
 							);
 
 							foreach ( $term_acf as $field_key => $field_value ) {
-								update_field( $field_key, $field_value, $taxonomy . '_' . $term_id );
+								ACF_Fields::import_value( 'term', $term_id, sanitize_text_field( (string) $field_key ), $field_value, $taxonomy );
 							}
 						}
 					}
@@ -1221,7 +1247,8 @@ class Content_Sync_API_Controller {
 							if ( $acf_fields ) {
 								$term_info['acf'] = array();
 								foreach ( $acf_fields as $field_key => $field ) {
-									$term_info['acf'][ $field_key ] = $field['value'];
+									$field_name                      = ! empty( $field['name'] ) ? (string) $field['name'] : (string) $field_key;
+									$term_info['acf'][ $field_name ] = ACF_Fields::export_value( 'term', (int) $term->term_id, $field_name, $taxonomy );
 								}
 							}
 						}
@@ -1692,11 +1719,12 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function list_posts( $request ) {
-		$post_type = $request->get_param( 'post_type' );
-		$search    = $request->get_param( 'search' );
-		$status    = $request->get_param( 'status' );
-		$page      = absint( $request->get_param( 'page' ) ?: 1 );
-		$per_page  = absint( $request->get_param( 'per_page' ) ?: 20 );
+			$post_type        = $request->get_param( 'post_type' );
+			$search           = $request->get_param( 'search' );
+			$status           = $request->get_param( 'status' );
+			$commentable_only = filter_var( $request->get_param( 'commentable_only' ), FILTER_VALIDATE_BOOLEAN );
+		$page                 = absint( $request->get_param( 'page' ) ?: 1 );
+		$per_page             = absint( $request->get_param( 'per_page' ) ?: 20 );
 
 		// When searching, include all posts (parent and children)
 		// When not searching, show only parent posts (to maintain hierarchy)
@@ -1705,62 +1733,806 @@ class Content_Sync_API_Controller {
 			$post_parent_filter = ''; // Empty string means no parent filter - include all posts
 		}
 
-		$args = array(
-			'post_type'           => $post_type ?: 'any',
-			'post_status'         => ! empty( $status ) ? $status : 'any',
-			'posts_per_page'      => $per_page,
-			'paged'               => $page,
-			'orderby'             => 'date',
-			'order'               => 'DESC',
-			'post_parent'         => $post_parent_filter,
-			'ignore_sticky_posts' => true, // Exclude sticky posts from results
-			'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required to exclude sticky posts.
-		);
-
-		if ( ! empty( $search ) ) {
-			$args['s'] = $search;
-		}
-
-		$query      = new \WP_Query( $args );
-		$posts_list = array();
-		$total      = $query->found_posts;
-
-		foreach ( $query->posts as $post ) {
-			$post_data = array(
-				'ID'            => $post->ID,
-				'post_title'    => $post->post_title,
-				'post_type'     => $post->post_type,
-				'post_status'   => $post->post_status,
-				'post_date'     => $post->post_date,
-				'post_modified' => $post->post_modified,
-				'post_parent'   => $post->post_parent,
+			$args = array(
+				'post_type'           => $commentable_only ? $this->get_commentable_sync_post_types() : ( $post_type ?: 'any' ),
+				'post_status'         => ! empty( $status ) ? $status : 'any',
+				'posts_per_page'      => $per_page,
+				'paged'               => $page,
+				'orderby'             => 'date',
+				'order'               => 'DESC',
+				'post_parent'         => $post_parent_filter,
+				'ignore_sticky_posts' => true, // Exclude sticky posts from results
+				'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required to exclude sticky posts.
 			);
 
-			// Get children count (same post type only, excluding attachments)
-			$children_count = 0;
-			if ( empty( $search ) ) {
-				$children_count = $this->count_children( $post->ID, $post->post_type );
+			if ( ! empty( $search ) ) {
+				$args['s'] = $search;
 			}
-			$post_data['children_count'] = $children_count;
 
-			$posts_list[] = $post_data;
+			$query      = new \WP_Query( $args );
+			$posts_list = array();
+			$total      = $query->found_posts;
+
+			foreach ( $query->posts as $post ) {
+				$post_data = array(
+					'ID'            => $post->ID,
+					'post_title'    => $post->post_title,
+					'post_type'     => $post->post_type,
+					'post_status'   => $post->post_status,
+					'post_date'     => $post->post_date,
+					'post_modified' => $post->post_modified,
+					'post_parent'   => $post->post_parent,
+				);
+
+				// Get children count (same post type only, excluding attachments)
+				$children_count = 0;
+				if ( empty( $search ) ) {
+					$children_count = $this->count_children( $post->ID, $post->post_type );
+				}
+				$post_data['children_count'] = $children_count;
+
+				$posts_list[] = $post_data;
+			}
+
+			// Get status counts for filters
+			$status_counts = $this->get_status_counts( $post_type );
+
+			return new \WP_REST_Response(
+				array(
+					'success'       => true,
+					'posts'         => $posts_list,
+					'total'         => $total,
+					'pages'         => ceil( $total / $per_page ),
+					'current_page'  => $page,
+					'per_page'      => $per_page,
+					'status_counts' => $status_counts,
+				),
+				200
+			);
+	}
+
+	/**
+	 * Get public post types that support comments.
+	 *
+	 * @return string[]
+	 */
+	private function get_commentable_sync_post_types() {
+		$post_types = get_post_types(
+			array(
+				'public' => true,
+			),
+			'names'
+		);
+
+		$post_types = array_values(
+			array_filter(
+				(array) $post_types,
+				static function ( $post_type ) {
+					return 'attachment' !== $post_type && post_type_supports( $post_type, 'comments' );
+				}
+			)
+		);
+
+		return ! empty( $post_types ) ? $post_types : array( 'post', 'page' );
+	}
+
+	/**
+	 * List taxonomy terms for remote Browse dialogs.
+	 *
+	 * @param \WP_REST_Request $request Request object.
+	 * @return \WP_REST_Response
+	 */
+	public function list_terms( $request ) {
+		$taxonomy = sanitize_key( (string) $request->get_param( 'taxonomy' ) );
+		$search   = sanitize_text_field( (string) $request->get_param( 'search' ) );
+		$page     = absint( $request->get_param( 'page' ) ?: 1 );
+		$per_page = absint( $request->get_param( 'per_page' ) ?: 20 );
+
+		if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Invalid taxonomy.', 'import-export-by-rockstarlab' ),
+				),
+				400
+			);
 		}
 
-		// Get status counts for filters
-		$status_counts = $this->get_status_counts( $post_type );
+		$per_page = min( max( $per_page, 1 ), 100 );
+		$offset   = ( max( $page, 1 ) - 1 ) * $per_page;
+		$args     = array(
+			'taxonomy'   => $taxonomy,
+			'hide_empty' => false,
+			'number'     => $per_page,
+			'offset'     => $offset,
+			'orderby'    => 'name',
+			'order'      => 'ASC',
+		);
+
+		if ( '' !== $search ) {
+			$args['search'] = $search;
+		}
+
+		$terms = get_terms( $args );
+		$total = wp_count_terms(
+			array(
+				'taxonomy'   => $taxonomy,
+				'hide_empty' => false,
+				'search'     => $search,
+			)
+		);
+
+		if ( is_wp_error( $terms ) || is_wp_error( $total ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Failed to load terms.', 'import-export-by-rockstarlab' ),
+				),
+				500
+			);
+		}
+
+		$list = array();
+		foreach ( $terms as $term ) {
+			$list[] = $this->prepare_term_for_sync( $term, $taxonomy, false );
+		}
 
 		return new \WP_REST_Response(
 			array(
-				'success'       => true,
-				'posts'         => $posts_list,
-				'total'         => $total,
-				'pages'         => ceil( $total / $per_page ),
-				'current_page'  => $page,
-				'per_page'      => $per_page,
-				'status_counts' => $status_counts,
+				'success'      => true,
+				'terms'        => $list,
+				'total'        => (int) $total,
+				'pages'        => max( 1, (int) ceil( (int) $total / $per_page ) ),
+				'current_page' => $page,
+				'per_page'     => $per_page,
 			),
 			200
 		);
+	}
+
+	/**
+	 * Send selected taxonomy terms to a connected site.
+	 *
+	 * @param \WP_REST_Request $request Request object.
+	 * @return \WP_REST_Response
+	 */
+	public function send_terms( $request ) {
+		$taxonomy = sanitize_key( (string) $request->get_param( 'taxonomy' ) );
+		$term_ids = $request->get_param( 'term_ids' );
+
+		if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Invalid taxonomy.', 'import-export-by-rockstarlab' ),
+				),
+				400
+			);
+		}
+
+		$term_ids = is_array( $term_ids ) ? array_map( 'absint', $term_ids ) : array();
+		$term_ids = array_values( array_filter( array_unique( $term_ids ) ) );
+		if ( empty( $term_ids ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'No terms selected.', 'import-export-by-rockstarlab' ),
+				),
+				400
+			);
+		}
+
+		$terms = array();
+		foreach ( $term_ids as $term_id ) {
+			$term = get_term( $term_id, $taxonomy );
+			if ( $term && ! is_wp_error( $term ) ) {
+				$terms[] = $this->prepare_term_for_sync( $term, $taxonomy, true );
+			}
+		}
+
+		return new \WP_REST_Response(
+			array(
+				'success' => true,
+				'terms'   => $terms,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Receive taxonomy terms from a connected site.
+	 *
+	 * @param \WP_REST_Request $request Request object.
+	 * @return \WP_REST_Response
+	 */
+	public function receive_terms( $request ) {
+		$taxonomy = sanitize_key( (string) $request->get_param( 'taxonomy' ) );
+		$terms    = $request->get_param( 'terms' );
+
+		if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Invalid taxonomy.', 'import-export-by-rockstarlab' ),
+				),
+				400
+			);
+		}
+
+		if ( empty( $terms ) || ! is_array( $terms ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'No terms data provided.', 'import-export-by-rockstarlab' ),
+				),
+				400
+			);
+		}
+
+		$created = 0;
+		$updated = 0;
+		$errors  = array();
+
+		foreach ( $terms as $term_info ) {
+			if ( ! is_array( $term_info ) ) {
+				continue;
+			}
+
+			$existing = ! empty( $term_info['slug'] ) ? get_term_by( 'slug', sanitize_title( (string) $term_info['slug'] ), $taxonomy ) : false;
+			$term_id  = $this->resolve_synced_term( $taxonomy, $term_info );
+
+			if ( $term_id <= 0 ) {
+				$errors[] = isset( $term_info['name'] ) ? sanitize_text_field( (string) $term_info['name'] ) : __( 'Unknown term', 'import-export-by-rockstarlab' );
+				continue;
+			}
+
+			$args = array();
+			if ( isset( $term_info['description'] ) ) {
+				$args['description'] = wp_kses_post( (string) $term_info['description'] );
+			}
+			if ( ! empty( $args ) ) {
+				wp_update_term( $term_id, $taxonomy, $args );
+			}
+
+			if ( ! empty( $term_info['meta'] ) && is_array( $term_info['meta'] ) ) {
+				foreach ( $term_info['meta'] as $meta_key => $meta_value ) {
+					update_term_meta( $term_id, sanitize_key( (string) $meta_key ), $meta_value );
+				}
+			}
+
+			if ( ! empty( $term_info['acf'] ) && is_array( $term_info['acf'] ) && function_exists( 'update_field' ) ) {
+				foreach ( $term_info['acf'] as $field_key => $field_value ) {
+					ACF_Fields::import_value( 'term', $term_id, sanitize_text_field( (string) $field_key ), $field_value, $taxonomy );
+				}
+			}
+
+			if ( $existing ) {
+				++$updated;
+			} else {
+				++$created;
+			}
+		}
+
+		return new \WP_REST_Response(
+			array(
+				'success' => true,
+				'created' => $created,
+				'updated' => $updated,
+				'failed'  => count( $errors ),
+				'errors'  => $errors,
+				'message' => sprintf(
+					/* translators: 1: created terms, 2: updated terms. */
+					__( 'Terms synced. Created: %1$d, Updated: %2$d', 'import-export-by-rockstarlab' ),
+					$created,
+					$updated
+				),
+			),
+			200
+		);
+	}
+
+	/**
+	 * Prepare a taxonomy term payload for sync.
+	 *
+	 * @param \WP_Term $term         Term object.
+	 * @param string   $taxonomy     Taxonomy name.
+	 * @param bool     $include_meta Include meta/ACF data.
+	 * @return array
+	 */
+	private function prepare_term_for_sync( $term, $taxonomy, $include_meta ) {
+		$data = array(
+			'term_id'        => (int) $term->term_id,
+			'name'           => (string) $term->name,
+			'slug'           => (string) $term->slug,
+			'taxonomy'       => $taxonomy,
+			'description'    => (string) $term->description,
+			'count'          => (int) $term->count,
+			'parent_term_id' => (int) $term->parent,
+			'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $taxonomy ),
+			'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $taxonomy ),
+		);
+
+		if ( $include_meta ) {
+			$meta         = get_term_meta( (int) $term->term_id );
+			$data['meta'] = array();
+			foreach ( $meta as $key => $values ) {
+				$data['meta'][ $key ] = isset( $values[0] ) ? maybe_unserialize( $values[0] ) : '';
+			}
+
+			if ( function_exists( 'get_field_objects' ) ) {
+				$acf_fields = get_field_objects( $taxonomy . '_' . $term->term_id );
+				if ( $acf_fields ) {
+					$data['acf'] = array();
+					foreach ( $acf_fields as $field_key => $field ) {
+						$field_name                 = ! empty( $field['name'] ) ? (string) $field['name'] : (string) $field_key;
+						$data['acf'][ $field_name ] = ACF_Fields::export_value( 'term', (int) $term->term_id, $field_name, $taxonomy );
+					}
+				}
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * List comments for remote Browse dialogs.
+	 *
+	 * @param \WP_REST_Request $request Request object.
+	 * @return \WP_REST_Response
+	 */
+	public function list_comments( $request ) {
+		$comment_type = sanitize_key( (string) $request->get_param( 'comment_type' ) );
+		$search       = sanitize_text_field( (string) $request->get_param( 'search' ) );
+		$post_id      = absint( $request->get_param( 'post_id' ) );
+		$page         = absint( $request->get_param( 'page' ) ?: 1 );
+		$per_page     = min( max( absint( $request->get_param( 'per_page' ) ?: 20 ), 1 ), 100 );
+		$offset       = ( max( $page, 1 ) - 1 ) * $per_page;
+
+		$args = array(
+			'number'  => $per_page,
+			'offset'  => $offset,
+			'orderby' => 'comment_date_gmt',
+			'order'   => 'DESC',
+			'status'  => 'all',
+		);
+
+		if ( '' !== $comment_type ) {
+			$args['type'] = $comment_type;
+		}
+
+		if ( '' !== $search ) {
+			$args['search'] = $search;
+		}
+
+		if ( $post_id > 0 ) {
+			$args['post_id'] = $post_id;
+		}
+
+		$query    = new \WP_Comment_Query();
+		$comments = $query->query( $args );
+		$total    = get_comments(
+			array_merge(
+				$args,
+				array(
+					'count'  => true,
+					'number' => 0,
+					'offset' => 0,
+				)
+			)
+		);
+
+		$list = array();
+		foreach ( $comments as $comment ) {
+			$list[] = $this->prepare_comment_for_sync( $comment, false );
+		}
+
+		return new \WP_REST_Response(
+			array(
+				'success'      => true,
+				'comments'     => $list,
+				'total'        => (int) $total,
+				'pages'        => max( 1, (int) ceil( (int) $total / $per_page ) ),
+				'current_page' => $page,
+				'per_page'     => $per_page,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Send selected comments to a connected site.
+	 *
+	 * @param \WP_REST_Request $request Request object.
+	 * @return \WP_REST_Response
+	 */
+	public function send_comments( $request ) {
+		$comment_ids = $request->get_param( 'comment_ids' );
+		$comment_ids = is_array( $comment_ids ) ? array_values( array_filter( array_unique( array_map( 'absint', $comment_ids ) ) ) ) : array();
+
+		if ( empty( $comment_ids ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'No comments selected.', 'import-export-by-rockstarlab' ),
+				),
+				400
+			);
+		}
+
+		$comments = array();
+		foreach ( $comment_ids as $comment_id ) {
+			$comment = get_comment( $comment_id );
+			if ( $comment ) {
+				$comments[] = $this->prepare_comment_for_sync( $comment, true );
+			}
+		}
+
+		return new \WP_REST_Response(
+			array(
+				'success'  => true,
+				'comments' => $comments,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Receive comments from a connected site.
+	 *
+	 * @param \WP_REST_Request $request Request object.
+	 * @return \WP_REST_Response
+	 */
+	public function receive_comments( $request ) {
+		$comments       = $request->get_param( 'comments' );
+		$target_post_id = absint( $request->get_param( 'target_post_id' ) );
+		$post_mapping   = $request->get_param( 'post_mapping' );
+
+		if ( is_string( $post_mapping ) ) {
+			$post_mapping = json_decode( $post_mapping, true );
+		}
+		if ( ! is_array( $post_mapping ) ) {
+			$post_mapping = array();
+		}
+
+		if ( empty( $comments ) || ! is_array( $comments ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'No comments data provided.', 'import-export-by-rockstarlab' ),
+				),
+				400
+			);
+		}
+
+		$result = $this->import_synced_standalone_comments( $comments, $post_mapping, $target_post_id );
+
+		$message = sprintf(
+			/* translators: 1: created comments, 2: updated comments, 3: failed comments. */
+			__( 'Comments synced. Created: %1$d, Updated: %2$d, Failed: %3$d', 'import-export-by-rockstarlab' ),
+			$result['created'],
+			$result['updated'],
+			$result['failed']
+		);
+
+		if ( ! empty( $result['errors'] ) ) {
+			$message .= ' ' . reset( $result['errors'] );
+		}
+
+		return new \WP_REST_Response(
+			array(
+				'success' => true,
+				'created' => $result['created'],
+				'updated' => $result['updated'],
+				'failed'  => $result['failed'],
+				'errors'  => $result['errors'],
+				'message' => $message,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Prepare a comment payload for standalone sync.
+	 *
+	 * @param \WP_Comment $comment      Comment object.
+	 * @param bool        $include_meta Include comment meta.
+	 * @return array
+	 */
+	private function prepare_comment_for_sync( $comment, $include_meta ) {
+		$post = get_post( (int) $comment->comment_post_ID );
+		$data = array(
+			'comment_ID'           => (int) $comment->comment_ID,
+			'comment_post_ID'      => (int) $comment->comment_post_ID,
+			'comment_author'       => (string) $comment->comment_author,
+			'comment_author_email' => (string) $comment->comment_author_email,
+			'comment_author_url'   => (string) $comment->comment_author_url,
+			'comment_author_IP'    => (string) $comment->comment_author_IP,
+			'comment_date'         => (string) $comment->comment_date,
+			'comment_date_gmt'     => (string) $comment->comment_date_gmt,
+			'comment_content'      => (string) $comment->comment_content,
+			'comment_karma'        => (int) $comment->comment_karma,
+			'comment_approved'     => (string) $comment->comment_approved,
+			'comment_agent'        => (string) $comment->comment_agent,
+			'comment_type'         => (string) $comment->comment_type,
+			'comment_parent'       => (int) $comment->comment_parent,
+			'user_id'              => (int) $comment->user_id,
+			'post'                 => $post ? array(
+				'ID'        => (int) $post->ID,
+				'post_type' => (string) $post->post_type,
+				'post_name' => (string) $post->post_name,
+				'title'     => (string) get_the_title( $post ),
+			) : array(),
+		);
+
+		if ( $include_meta ) {
+			$data['meta'] = array();
+			$meta         = get_comment_meta( (int) $comment->comment_ID );
+			foreach ( $meta as $key => $values ) {
+				$data['meta'][ $key ] = isset( $values[0] ) ? maybe_unserialize( $values[0] ) : '';
+			}
+
+			$data['acf'] = $this->export_comment_acf_for_sync( (int) $comment->comment_ID );
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Import standalone synced comments.
+	 *
+	 * @param array $comments Comment payloads.
+	 * @return array Counts.
+	 */
+	private function import_synced_standalone_comments( $comments, $post_mapping = array(), $target_post_id = 0 ) {
+		$result = array(
+			'created' => 0,
+			'updated' => 0,
+			'failed'  => 0,
+			'errors'  => array(),
+		);
+
+		foreach ( $comments as $comment_data ) {
+			if ( ! is_array( $comment_data ) ) {
+				++$result['failed'];
+				$result['errors'][] = __( 'A remote comment had an invalid payload and was skipped.', 'import-export-by-rockstarlab' );
+				continue;
+			}
+
+			$source_comment_id = isset( $comment_data['comment_ID'] ) ? absint( $comment_data['comment_ID'] ) : 0;
+			$post_id           = $target_post_id > 0 ? $target_post_id : $this->resolve_synced_comment_post_id( $comment_data, $post_mapping );
+			if ( $post_id <= 0 ) {
+				++$result['failed'];
+				$result['errors'][] = sprintf(
+					/* translators: %d: source comment ID. */
+					__( 'Comment #%d was skipped because no destination post was selected or matched.', 'import-export-by-rockstarlab' ),
+					$source_comment_id
+				);
+				continue;
+			}
+
+			if ( ! get_post( $post_id ) ) {
+				++$result['failed'];
+				$result['errors'][] = sprintf(
+					/* translators: 1: source comment ID, 2: destination post ID. */
+					__( 'Comment #%1$d was skipped because destination post #%2$d does not exist.', 'import-export-by-rockstarlab' ),
+					$source_comment_id,
+					$post_id
+				);
+				continue;
+			}
+
+			$existing_id = $this->find_comment_by_original_id( $source_comment_id );
+
+			$args = array(
+				'comment_post_ID'      => $post_id,
+				'comment_author'       => isset( $comment_data['comment_author'] ) ? sanitize_text_field( (string) $comment_data['comment_author'] ) : '',
+				'comment_author_email' => isset( $comment_data['comment_author_email'] ) ? sanitize_email( (string) $comment_data['comment_author_email'] ) : '',
+				'comment_author_url'   => isset( $comment_data['comment_author_url'] ) ? esc_url_raw( (string) $comment_data['comment_author_url'] ) : '',
+				'comment_author_IP'    => isset( $comment_data['comment_author_IP'] ) ? sanitize_text_field( (string) $comment_data['comment_author_IP'] ) : '',
+				'comment_date'         => isset( $comment_data['comment_date'] ) ? sanitize_text_field( (string) $comment_data['comment_date'] ) : current_time( 'mysql' ),
+				'comment_date_gmt'     => isset( $comment_data['comment_date_gmt'] ) ? sanitize_text_field( (string) $comment_data['comment_date_gmt'] ) : current_time( 'mysql', true ),
+				'comment_content'      => isset( $comment_data['comment_content'] ) ? wp_kses_post( (string) $comment_data['comment_content'] ) : '',
+				'comment_karma'        => isset( $comment_data['comment_karma'] ) ? (int) $comment_data['comment_karma'] : 0,
+				'comment_approved'     => isset( $comment_data['comment_approved'] ) ? sanitize_text_field( (string) $comment_data['comment_approved'] ) : '1',
+				'comment_agent'        => isset( $comment_data['comment_agent'] ) ? sanitize_text_field( (string) $comment_data['comment_agent'] ) : '',
+				'comment_type'         => isset( $comment_data['comment_type'] ) ? sanitize_key( (string) $comment_data['comment_type'] ) : '',
+				'comment_parent'       => 0,
+				'user_id'              => 0,
+			);
+
+			if ( $existing_id > 0 ) {
+				$args['comment_ID'] = $existing_id;
+				$comment_id         = wp_update_comment( $args );
+				++$result['updated'];
+			} else {
+				$comment_id = wp_insert_comment( $args );
+				if ( $comment_id && $source_comment_id > 0 ) {
+					update_comment_meta( (int) $comment_id, '_rsl_ie_original_comment_id', $source_comment_id );
+				}
+				++$result['created'];
+			}
+
+			if ( ! $comment_id ) {
+				++$result['failed'];
+				$result['errors'][] = sprintf(
+					/* translators: %d: source comment ID. */
+					__( 'Comment #%d could not be saved.', 'import-export-by-rockstarlab' ),
+					$source_comment_id
+				);
+				continue;
+			}
+
+			$this->import_comment_acf_for_sync( (int) $comment_id, $comment_data );
+
+			if ( ! empty( $comment_data['meta'] ) && is_array( $comment_data['meta'] ) ) {
+				foreach ( $comment_data['meta'] as $meta_key => $meta_value ) {
+					if ( '_rsl_ie_original_comment_id' === $meta_key || $this->is_acf_comment_sync_meta_key( (string) $meta_key, $comment_data ) ) {
+						continue;
+					}
+					update_comment_meta( (int) $comment_id, sanitize_key( (string) $meta_key ), $meta_value );
+				}
+			}
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Resolve the target post for a synced standalone comment.
+	 *
+	 * @param array $comment_data Comment payload.
+	 * @return int Post ID or 0.
+	 */
+	private function resolve_synced_comment_post_id( $comment_data, $post_mapping = array() ) {
+		$post_info      = isset( $comment_data['post'] ) && is_array( $comment_data['post'] ) ? $comment_data['post'] : array();
+		$source_post_id = isset( $post_info['ID'] ) ? absint( $post_info['ID'] ) : absint( $comment_data['comment_post_ID'] ?? 0 );
+		$post_type      = isset( $post_info['post_type'] ) ? sanitize_key( (string) $post_info['post_type'] ) : '';
+		$post_name      = isset( $post_info['post_name'] ) ? sanitize_title( (string) $post_info['post_name'] ) : '';
+
+		if ( $source_post_id > 0 && isset( $post_mapping[ $source_post_id ] ) ) {
+			$mapped_post_id = absint( $post_mapping[ $source_post_id ] );
+			if ( $mapped_post_id > 0 && get_post( $mapped_post_id ) ) {
+				return $mapped_post_id;
+			}
+		}
+
+		if ( $source_post_id > 0 ) {
+			$matched = $this->find_existing_post_by_original_id( $source_post_id, '' !== $post_type ? $post_type : 'any' );
+			if ( $matched > 0 ) {
+				return (int) $matched;
+			}
+		}
+
+		if ( '' !== $post_name && '' !== $post_type ) {
+			$post = get_page_by_path( $post_name, OBJECT, $post_type );
+			if ( $post ) {
+				return (int) $post->ID;
+			}
+		}
+
+		if ( ! empty( $post_info['title'] ) && '' !== $post_type ) {
+			$matched_posts = get_posts(
+				array(
+					'post_type'              => $post_type,
+					'post_status'            => 'any',
+					'title'                  => sanitize_text_field( (string) $post_info['title'] ),
+					'posts_per_page'         => 1,
+					'fields'                 => 'ids',
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+				)
+			);
+			if ( ! empty( $matched_posts ) ) {
+				return (int) $matched_posts[0];
+			}
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Export ACF fields attached to a comment.
+	 *
+	 * @param int $comment_id Comment ID.
+	 * @return array
+	 */
+	private function export_comment_acf_for_sync( $comment_id ) {
+		$acf = array();
+
+		if ( ! class_exists( ACF_Fields::class ) ) {
+			return $acf;
+		}
+
+		foreach ( ACF_Fields::get_fields_for_content_type( 'comment' ) as $field ) {
+			if ( empty( $field['name'] ) ) {
+				continue;
+			}
+
+			$name         = (string) $field['name'];
+			$acf[ $name ] = ACF_Fields::export_value( 'comment', (int) $comment_id, $name );
+		}
+
+		return $acf;
+	}
+
+	/**
+	 * Import synced ACF fields into a comment.
+	 *
+	 * @param int   $comment_id    Comment ID.
+	 * @param array $comment_data Comment sync payload.
+	 * @return void
+	 */
+	private function import_comment_acf_for_sync( $comment_id, $comment_data ) {
+		if ( $comment_id <= 0 || empty( $comment_data['acf'] ) || ! is_array( $comment_data['acf'] ) || ! class_exists( ACF_Fields::class ) ) {
+			return;
+		}
+
+		foreach ( $comment_data['acf'] as $field_name => $value ) {
+			$field_name = sanitize_text_field( (string) $field_name );
+			if ( '' === $field_name ) {
+				continue;
+			}
+
+			ACF_Fields::import_value( 'comment', (int) $comment_id, $field_name, $value );
+		}
+	}
+
+	/**
+	 * Determine whether a raw comment meta key belongs to ACF.
+	 *
+	 * @param string $meta_key Meta key.
+	 * @return bool
+	 */
+	private function is_acf_comment_sync_meta_key( $meta_key, $comment_data ) {
+		if ( '' === $meta_key ) {
+			return false;
+		}
+
+		if ( empty( $comment_data['acf'] ) || ! is_array( $comment_data['acf'] ) ) {
+			return false;
+		}
+
+		$acf_names = array_map( 'strval', array_keys( $comment_data['acf'] ) );
+		foreach ( $acf_names as $acf_name ) {
+			if ( '' === $acf_name ) {
+				continue;
+			}
+			if (
+				$meta_key === $acf_name
+				|| $meta_key === '_' . $acf_name
+				|| 0 === strpos( $meta_key, $acf_name . '_' )
+				|| 0 === strpos( $meta_key, '_' . $acf_name . '_' )
+			) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Find a local comment by original source comment ID.
+	 *
+	 * @param int $source_comment_id Source comment ID.
+	 * @return int Comment ID or 0.
+	 */
+	private function find_comment_by_original_id( $source_comment_id ) {
+		$source_comment_id = absint( $source_comment_id );
+		if ( $source_comment_id <= 0 ) {
+			return 0;
+		}
+
+		$comments = get_comments(
+			array(
+				'number'     => 1,
+				'fields'     => 'ids',
+				'meta_key'   => '_rsl_ie_original_comment_id', // phpcs:ignore WordPress.DB.SlowDBQuery -- Sync mapping lookup.
+				'meta_value' => $source_comment_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- Sync mapping lookup.
+			)
+		);
+
+		return ! empty( $comments ) ? (int) $comments[0] : 0;
 	}
 
 	/**

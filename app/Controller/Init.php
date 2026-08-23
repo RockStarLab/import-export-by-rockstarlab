@@ -10,6 +10,7 @@
 namespace RockStarLab\ImportExport\Controller;
 
 use RockStarLab\ImportExport\Helper\Ajax_Security;
+use RockStarLab\ImportExport\Model\Connected_Site;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -210,7 +211,14 @@ class Init {
 		$current_page = is_string( $current_page ) ? sanitize_key( wp_unslash( $current_page ) ) : '';
 
 		if ( 'upload.php' === $admin_page ) {
-			$this->load_media_library_export_assets();
+			if ( apply_filters( 'rsl_ie_enable_media_library_export_button', false ) ) {
+				$this->load_media_library_export_assets();
+			}
+			return;
+		}
+
+		if ( 'edit-tags.php' === $admin_page ) {
+			$this->load_taxonomy_quick_action_assets();
 			return;
 		}
 
@@ -354,6 +362,10 @@ class Init {
 
 					// Jobs Log
 					'viewDetails'                       => __( 'View Details', 'import-export-by-rockstarlab' ),
+					'jobName'                           => __( 'Job Name', 'import-export-by-rockstarlab' ),
+					'clickToRenameJob'                  => __( 'Click to rename this job', 'import-export-by-rockstarlab' ),
+					'customJobNamePlaceholder'          => __( 'Custom job name...', 'import-export-by-rockstarlab' ),
+					'save'                              => __( 'Save', 'import-export-by-rockstarlab' ),
 					'resume'                            => __( 'Resume', 'import-export-by-rockstarlab' ),
 					'restart'                           => __( 'Restart', 'import-export-by-rockstarlab' ),
 					'retry'                             => __( 'Retry (Create new job with same parameters)', 'import-export-by-rockstarlab' ),
@@ -369,6 +381,8 @@ class Init {
 					'confirmRetryJob'                   => __( 'Retry this job with the same settings?', 'import-export-by-rockstarlab' ),
 					'jobCreatedStarting'                => __( 'Job created, starting process...', 'import-export-by-rockstarlab' ),
 					'errorRetryingJob'                  => __( 'Error retrying job: ', 'import-export-by-rockstarlab' ),
+					'jobNameUpdatedSuccess'             => __( 'Job name updated successfully', 'import-export-by-rockstarlab' ),
+					'errorRenamingJob'                  => __( 'Error renaming job: ', 'import-export-by-rockstarlab' ),
 					'jobDeletedSuccess'                 => __( 'Job deleted successfully', 'import-export-by-rockstarlab' ),
 					'errorDeletingJob'                  => __( 'Error deleting job: ', 'import-export-by-rockstarlab' ),
 					'downloadFailed'                    => __( 'Download failed', 'import-export-by-rockstarlab' ),
@@ -1030,6 +1044,112 @@ class Init {
 	}
 
 	/**
+	 * Load quick Export action for taxonomy term list screens.
+	 *
+	 * @return void
+	 */
+	private function load_taxonomy_quick_action_assets() {
+		$taxonomy = filter_input( INPUT_GET, 'taxonomy', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$taxonomy = is_string( $taxonomy ) ? sanitize_key( wp_unslash( $taxonomy ) ) : '';
+
+		if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
+			return;
+		}
+
+		$location_id    = 'taxonomy:' . $taxonomy;
+		$export_enabled = \RockStarLab\ImportExport\Helper\Button_Location_Settings::is_export_enabled( $location_id );
+		$sync_enabled   = \RockStarLab\ImportExport\Helper\Button_Location_Settings::is_sync_enabled( $location_id );
+
+		if ( ! $export_enabled && ! $sync_enabled ) {
+			return;
+		}
+
+		$script_path = plugin_dir_path( RSL_IE_FILE ) . 'assets/js/taxonomy-quick-actions.js';
+		$version     = file_exists( $script_path ) ? filemtime( $script_path ) : ( defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '1.0.0' );
+
+		wp_enqueue_script(
+			'rsl-ie-taxonomy-quick-actions',
+			plugins_url( 'assets/js/taxonomy-quick-actions.js', RSL_IE_FILE ),
+			array( 'jquery' ),
+			$version,
+			array(
+				'in_footer' => true,
+			)
+		);
+
+		$style_path = plugin_dir_path( RSL_IE_FILE ) . 'assets/css/app.css';
+		if ( file_exists( $style_path ) ) {
+			wp_enqueue_style(
+				'import-export-by-rockstarlab-styles',
+				plugins_url( 'assets/css/app.css', RSL_IE_FILE ),
+				array(),
+				filemtime( $style_path )
+			);
+		}
+
+		$sites     = Connected_Site::get_all();
+		$sites_map = array();
+		foreach ( $sites as $site ) {
+			$sites_map[ $site['id'] ] = array(
+				'id'         => $site['id'],
+				'name'       => $site['name'],
+				'remote_url' => $site['remote_url'],
+			);
+		}
+
+		foreach (
+			array(
+				'rsl_ie_content_sync_get_remote_terms',
+				'rsl_ie_content_sync_push_terms',
+				'rsl_ie_content_sync_pull_terms',
+			) as $rsl_ie_taxonomy_sync_action
+		) {
+			Ajax_Security::register_action( $rsl_ie_taxonomy_sync_action );
+		}
+
+		wp_localize_script(
+			'rsl-ie-taxonomy-quick-actions',
+			'rslIeTaxonomyQuickActions',
+			array(
+				'nonces'         => Ajax_Security::get_nonces(),
+				'ajaxurl'        => admin_url( 'admin-ajax.php' ),
+				'exportUrl'      => admin_url( 'admin.php?page=rsl-ie-export' ),
+				'contentSyncUrl' => admin_url( 'admin.php?page=rsl-ie-content-sync' ),
+				'taxonomy'       => $taxonomy,
+				'exportEnabled'  => $export_enabled,
+				'syncEnabled'    => $sync_enabled,
+				'connectedSites' => $sites_map,
+				'exportLabel'    => __( 'Export', 'import-export-by-rockstarlab' ),
+				'syncLabel'      => __( 'Sync', 'import-export-by-rockstarlab' ),
+				'disabledTitle'  => __( 'Select one or more terms to enable export.', 'import-export-by-rockstarlab' ),
+				'i18n'           => array(
+					'selectSite'       => __( 'Please select a site.', 'import-export-by-rockstarlab' ),
+					'selectSiteLabel'  => __( 'Select Site', 'import-export-by-rockstarlab' ),
+					'selectTerms'      => __( 'Please select one or more terms.', 'import-export-by-rockstarlab' ),
+					'selectedTerms'    => __( 'Selected terms:', 'import-export-by-rockstarlab' ),
+					'syncTerms'        => __( 'Sync Terms', 'import-export-by-rockstarlab' ),
+					'pushTerms'        => __( 'Push selected terms', 'import-export-by-rockstarlab' ),
+					'pullTerms'        => __( 'Browse remote terms', 'import-export-by-rockstarlab' ),
+					'pullUpdateTerms'  => __( 'Pull / update selected terms', 'import-export-by-rockstarlab' ),
+					'remoteTerms'      => __( 'Remote Terms', 'import-export-by-rockstarlab' ),
+					'searchTerms'      => __( 'Search terms...', 'import-export-by-rockstarlab' ),
+					'loading'          => __( 'Loading...', 'import-export-by-rockstarlab' ),
+					'noTermsFound'     => __( 'No terms found.', 'import-export-by-rockstarlab' ),
+					'termsSynced'      => __( 'Terms synced successfully.', 'import-export-by-rockstarlab' ),
+					'syncFailed'       => __( 'Sync failed.', 'import-export-by-rockstarlab' ),
+					'close'            => __( 'Close', 'import-export-by-rockstarlab' ),
+					'cancel'           => __( 'Cancel', 'import-export-by-rockstarlab' ),
+					'pullSelected'     => __( 'Pull selected terms', 'import-export-by-rockstarlab' ),
+					'selectRemoteTerm' => __( 'Please select one or more remote terms.', 'import-export-by-rockstarlab' ),
+					'localTerm'        => __( 'Local term', 'import-export-by-rockstarlab' ),
+					'remoteTerm'       => __( 'Remote term to pull', 'import-export-by-rockstarlab' ),
+					'mappingHelp'      => __( 'Choose which remote term should update each selected local term.', 'import-export-by-rockstarlab' ),
+				),
+			)
+		);
+	}
+
+	/**
 	 * Check whether the current admin screen belongs to this plugin.
 	 *
 	 * Hidden submenu items can receive a generic `admin_page_*` hook suffix when
@@ -1053,6 +1173,7 @@ class Init {
 			'rsl-ie-functions',
 			'rsl-ie-plugin-options',
 			'rsl-ie-plugin-settings',
+			'rsl-ie-button-settings',
 			'rsl-ie-tools',
 			'import-export-by-rockstarlab-addons',
 		);
@@ -1067,6 +1188,7 @@ class Init {
 				'toplevel_page_import-export-by-rockstarlab',
 				'import-export-by-rockstarlab_page_rsl-ie-import',
 				'import-export-by-rockstarlab_page_rsl-ie-export',
+				'admin_page_rsl-ie-export',
 				'import-export-by-rockstarlab_page_rsl-ie-content-sync',
 				'import-export-by-rockstarlab_page_rsl-ie-content-updater',
 				'import-export-by-rockstarlab_page_rsl-ie-jobs-log',
@@ -1076,6 +1198,7 @@ class Init {
 				'import-export-by-rockstarlab_page_rsl-ie-functions',
 				'import-export-by-rockstarlab_page_rsl-ie-plugin-options',
 				'admin_page_rsl-ie-plugin-settings',
+				'admin_page_rsl-ie-button-settings',
 				'import-export-by-rockstarlab_page_rsl-ie-tools',
 				'import-export-by-rockstarlab_page_import-export-by-rockstarlab-addons',
 			),
@@ -1163,6 +1286,21 @@ class Init {
 			array( $this, 'display_settings_export_page' )
 		);
 
+		/*
+		 * Keep direct export wizard links available from other admin screens.
+		 * Some list-table quick actions open admin.php?page=rsl-ie-export from a
+		 * different parent screen, where WordPress may resolve the page hook as
+		 * admin_page_rsl-ie-export instead of the visible submenu hook.
+		 */
+		add_submenu_page(
+			null,
+			__( 'Export', 'import-export-by-rockstarlab' ),
+			__( 'Export', 'import-export-by-rockstarlab' ),
+			'manage_options',
+			'rsl-ie-export',
+			array( $this, 'display_settings_export_page' )
+		);
+
 		add_submenu_page(
 			'import-export-by-rockstarlab',
 			__( 'Content Sync', 'import-export-by-rockstarlab' ),
@@ -1222,6 +1360,16 @@ class Init {
 			__( 'Plugin Options', 'import-export-by-rockstarlab' ),
 			__( 'Plugin Options', 'import-export-by-rockstarlab' ),
 			'manage_options',
+			'rsl-ie-plugin-settings',
+			array( $this, 'display_plugin_settings_page' )
+		);
+
+		// Hidden page: available from the Plugin Options tabs, but not in the menu.
+		add_submenu_page(
+			null,
+			__( 'AI Integration', 'import-export-by-rockstarlab' ),
+			__( 'AI Integration', 'import-export-by-rockstarlab' ),
+			'manage_options',
 			'rsl-ie-plugin-options',
 			array( $this, 'display_plugin_options_page' )
 		);
@@ -1229,11 +1377,11 @@ class Init {
 		// Hidden page: available from the Plugin Options tabs, but not in the menu.
 		add_submenu_page(
 			null,
-			__( 'Settings', 'import-export-by-rockstarlab' ),
-			__( 'Settings', 'import-export-by-rockstarlab' ),
+			__( 'Export / Sync Buttons', 'import-export-by-rockstarlab' ),
+			__( 'Export / Sync Buttons', 'import-export-by-rockstarlab' ),
 			'manage_options',
-			'rsl-ie-plugin-settings',
-			array( $this, 'display_plugin_settings_page' )
+			'rsl-ie-button-settings',
+			array( $this, 'display_button_settings_page' )
 		);
 	}
 
@@ -1375,6 +1523,13 @@ class Init {
 	 */
 	function display_plugin_settings_page() {
 		rsl_ie()->View->load( 'settings/plugin_settings' );
+	}
+
+	/**
+	 * Display hidden export and sync button settings page.
+	 */
+	public function display_button_settings_page() {
+		rsl_ie()->View->load( 'settings/button_settings' );
 	}
 
 	/**

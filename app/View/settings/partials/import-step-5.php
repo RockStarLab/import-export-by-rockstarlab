@@ -6,6 +6,8 @@
  */
 
 defined( 'ABSPATH' ) || exit;
+
+$rsl_ie_current_site_url = home_url();
 ?>
 
 <!-- Step 5: Import Options -->
@@ -103,7 +105,7 @@ defined( 'ABSPATH' ) || exit;
 				</th>
 				<td>
 					<label>
-						<input type="checkbox" id="rsl-ie-auto-import-media" name="auto_import_media" value="1">
+						<input type="checkbox" id="rsl-ie-auto-import-media" name="auto_import_media" value="1" checked>
 						<?php esc_html_e( 'Automatically download and import all media files from content to the media library', 'import-export-by-rockstarlab' ); ?>
 					</label>
 					<p class="description">
@@ -138,6 +140,43 @@ defined( 'ABSPATH' ) || exit;
 					<p class="description">
 						<?php esc_html_e( 'Duplicates are detected by comparing filename, file size, and MD5 hash for maximum accuracy', 'import-export-by-rockstarlab' ); ?>
 					</p>
+				</td>
+			</tr>
+
+			<!-- Replace Links / Strings -->
+			<tr>
+				<th scope="row">
+					<label for="rsl-ie-enable-replace-links"><?php esc_html_e( 'Replace links', 'import-export-by-rockstarlab' ); ?></label>
+				</th>
+				<td>
+					<label>
+						<input type="checkbox" id="rsl-ie-enable-replace-links" name="replace_links" value="1">
+						<?php esc_html_e( 'Find and replace links or other text values during import', 'import-export-by-rockstarlab' ); ?>
+					</label>
+					<p class="description">
+						<?php esc_html_e( 'Use this when importing content from another domain or when values need to be rewritten before they are saved.', 'import-export-by-rockstarlab' ); ?>
+					</p>
+
+					<div id="rsl-ie-replace-links-repeater" class="rsl-ie-replace-links-repeater" style="display: none;" data-current-site-url="<?php echo esc_attr( $rsl_ie_current_site_url ); ?>">
+						<div class="rsl-ie-replace-links-header">
+							<span><?php esc_html_e( 'Replace what', 'import-export-by-rockstarlab' ); ?></span>
+							<span><?php esc_html_e( 'Replace to', 'import-export-by-rockstarlab' ); ?></span>
+							<span class="screen-reader-text"><?php esc_html_e( 'Actions', 'import-export-by-rockstarlab' ); ?></span>
+						</div>
+						<div class="rsl-ie-replace-links-rows">
+							<div class="rsl-ie-replace-links-row">
+								<input type="text" class="regular-text rsl-ie-replace-what" name="replace_links_from[]" placeholder="<?php esc_attr_e( 'https://old-site.com', 'import-export-by-rockstarlab' ); ?>">
+								<input type="text" class="regular-text rsl-ie-replace-to" name="replace_links_to[]" value="<?php echo esc_attr( $rsl_ie_current_site_url ); ?>">
+								<button type="button" class="button button-secondary rsl-ie-remove-replace-link" aria-label="<?php esc_attr_e( 'Remove replacement row', 'import-export-by-rockstarlab' ); ?>">
+									<span class="dashicons dashicons-no-alt"></span>
+								</button>
+							</div>
+						</div>
+						<button type="button" class="button button-secondary rsl-ie-add-replace-link">
+							<span class="dashicons dashicons-plus-alt2"></span>
+							<?php esc_html_e( 'Add More', 'import-export-by-rockstarlab' ); ?>
+						</button>
+					</div>
 				</td>
 			</tr>
 		</table>

@@ -80,7 +80,7 @@ class JobSchedule extends Model {
 
 		return $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin schedule list requires joined custom-table data.
 			$wpdb->prepare(
-				'SELECT schedules.*, source_job.type AS source_type, source_job.data_type AS source_data_type,
+				'SELECT schedules.*, source_job.job_name AS source_job_name, source_job.type AS source_type, source_job.data_type AS source_data_type,
 					source_job.status AS source_status, last_job.status AS last_job_status
 				FROM %i AS schedules
 				LEFT JOIN %i AS source_job ON source_job.id = schedules.source_job_id
