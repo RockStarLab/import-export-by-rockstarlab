@@ -615,8 +615,6 @@ const ExportModule = {
 		const filterableTypes = [
 			'post',
 			'page',
-			'wp_block',
-			'wp_navigation',
 			'media',
 			'menu',
 			'user',
@@ -1330,8 +1328,6 @@ const ExportModule = {
 		const postTypeMap = {
 			post: 'post',
 			page: 'page',
-			wp_block: 'wp_block',
-			wp_navigation: 'wp_navigation',
 			media: 'attachment',
 			menu: 'nav_menu_item',
 			comment: null, // Comments are not post type
@@ -3059,7 +3055,7 @@ const ExportModule = {
 		}
 
 		// Pages don't have taxonomy section (but taxonomy_filter is still available in Custom Filters)
-		if ( [ 'page', 'wp_block', 'wp_navigation' ].includes( contentType ) ) {
+		if ( contentType === 'page' ) {
 			return baseFields.filter(
 				( group ) =>
 					group.label !== window.rslIeData.i18n.fieldGroupTaxonomy
@@ -3080,8 +3076,7 @@ const ExportModule = {
 						{
 							value: 'menu_items',
 							label:
-								window.rslIeData.i18n.fieldMenuItemsArray +
-								' ' +
+								'Menu Items Portable JSON ' +
 								( window.rslIeData.i18n.includesAcfFields ||
 									'(includes ACF fields)' ),
 							type: 'array',
@@ -3351,19 +3346,29 @@ const ExportModule = {
 					options: [
 						{
 							value: 'comment_ID',
-							label: window.rslIeData.i18n.fieldCommentId,
+							label: 'Comment ID (local/source reference)',
+							type: 'number',
+						},
+						{
+							value: 'source_comment_id',
+							label: 'Source Comment ID (for updates)',
 							type: 'number',
 						},
 						{
 							value: 'comment_post_ID',
-							label: window.rslIeData.i18n.fieldPostId,
+							label: 'Post ID (source/local fallback)',
+							type: 'number',
+						},
+						{
+							value: 'source_post_id',
+							label: 'Source Post ID (matches imported posts)',
 							type: 'number',
 						},
 						{
 							value: 'post_permalink',
 							label:
 								window.rslIeData.i18n.fieldPermalink ||
-								'Post permalink',
+								'Post Permalink (matching hint)',
 							type: 'string',
 						},
 						{
@@ -3375,8 +3380,7 @@ const ExportModule = {
 						},
 						{
 							value: 'post_slug',
-							label:
-								window.rslIeData.i18n.fieldSlug || 'Post slug',
+							label: 'Post Slug (recommended matching)',
 							type: 'string',
 						},
 						{
@@ -3464,7 +3468,12 @@ const ExportModule = {
 					options: [
 						{
 							value: 'comment_parent',
-							label: window.rslIeData.i18n.fieldParentCommentId,
+							label: 'Parent Comment ID (source reference)',
+							type: 'number',
+						},
+						{
+							value: 'source_comment_parent_id',
+							label: 'Source Parent Comment ID (for threaded comments)',
 							type: 'number',
 						},
 						{
@@ -4620,22 +4629,37 @@ const ExportModule = {
 					options: [
 						{
 							value: 'comment_ID',
-							label: 'Review ID',
+							label: 'Review ID (local/source reference)',
+							type: 'number',
+						},
+						{
+							value: 'source_comment_id',
+							label: 'Source Review ID (for updates)',
 							type: 'number',
 						},
 						{
 							value: 'product_id',
-							label: 'Product ID',
+							label: 'Product ID (source/local fallback)',
+							type: 'number',
+						},
+						{
+							value: 'source_product_id',
+							label: 'Source Product ID (matches imported products)',
 							type: 'number',
 						},
 						{
 							value: 'product_title',
-							label: 'Product Title',
+							label: 'Product Title (fallback matching)',
+							type: 'string',
+						},
+						{
+							value: 'product_slug',
+							label: 'Product Slug (recommended matching)',
 							type: 'string',
 						},
 						{
 							value: 'product_sku',
-							label: 'Product SKU',
+							label: 'Product SKU (best matching)',
 							type: 'string',
 						},
 						{
@@ -4682,13 +4706,28 @@ const ExportModule = {
 					options: [
 						{
 							value: 'refund_id',
-							label: 'Refund ID',
+							label: 'Refund ID (local/source reference)',
+							type: 'number',
+						},
+						{
+							value: 'source_refund_id',
+							label: 'Source Refund ID (for updates)',
 							type: 'number',
 						},
 						{
 							value: 'parent_order_id',
-							label: 'Parent Order ID',
+							label: 'Parent Order ID (source/local fallback)',
 							type: 'number',
+						},
+						{
+							value: 'source_parent_order_id',
+							label: 'Source Parent Order ID (matches imported orders)',
+							type: 'number',
+						},
+						{
+							value: 'parent_order_key',
+							label: 'Parent Order Key (best matching)',
+							type: 'string',
 						},
 						{
 							value: 'parent_order_number',
@@ -4736,11 +4775,29 @@ const ExportModule = {
 					options: [
 						{
 							value: 'customer_id',
-							label: 'Customer ID',
+							label: 'Customer ID (reference)',
 							type: 'number',
 						},
-						{ value: 'user_id', label: 'User ID', type: 'number' },
-						{ value: 'email', label: 'Email', type: 'string' },
+						{
+							value: 'source_customer_id',
+							label: 'Source Customer ID (reference)',
+							type: 'number',
+						},
+						{
+							value: 'user_id',
+							label: 'User ID (reference)',
+							type: 'number',
+						},
+						{
+							value: 'source_user_id',
+							label: 'Source User ID (reference)',
+							type: 'number',
+						},
+						{
+							value: 'email',
+							label: 'Email (matches customers on import)',
+							type: 'string',
+						},
 						{
 							value: 'username',
 							label: 'Username',

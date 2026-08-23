@@ -856,12 +856,10 @@ class Import_Controller extends Base_Controller {
 		$import_type = strtolower( trim( (string) $import_type ) );
 
 		$map = [
-			'post'          => 'post',
-			'posts'         => 'post',
-			'page'          => 'page',
-			'pages'         => 'page',
-			'wp_block'      => 'wp_block',
-			'wp_navigation' => 'wp_navigation',
+			'post'  => 'post',
+			'posts' => 'post',
+			'page'  => 'page',
+			'pages' => 'page',
 		];
 
 		if ( empty( $options['post_type'] ) && isset( $map[ $import_type ] ) ) {
