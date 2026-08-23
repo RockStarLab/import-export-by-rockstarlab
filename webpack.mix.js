@@ -21,4 +21,5 @@ mix.sass(`${resources}/scss/admin-wp7.scss`, `${projectPath}/assets/css`).source
 mix.js(`${resources}/js/app.js`, `${projectPath}/assets/js`);
 mix.js(`${resources}/js/media-library-export.js`, `${projectPath}/assets/js`);
 mix.js(`${resources}/js/post-sync-standalone.js`, `${projectPath}/assets/js`);
+mix.js(`${resources}/js/taxonomy-quick-actions.js`, `${projectPath}/assets/js`);
 mix.js(`${resources}/js/modules/gutenberg-sync.js`, `${projectPath}/assets/js`);

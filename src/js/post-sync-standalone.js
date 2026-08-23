@@ -40,19 +40,22 @@ const getActionNonce = ( action ) =>
 		 * Initialize the module
 		 */
 		init() {
-			this.positionSyncButton();
+			this.positionQuickActionButtons();
 			this.bindEvents();
+			this.updateExportButtonState();
 		},
 
 		/**
-		 * Ensure the Sync button sits next to the Filter button.
+		 * Ensure quick action buttons sit next to the Filter button.
 		 */
-		positionSyncButton() {
-			const $btn = $( '#rsl-ie-sync-content-btn' );
+		positionQuickActionButtons() {
+			const $buttons = $(
+				'#rsl-ie-export-selected-btn, #rsl-ie-sync-content-btn'
+			);
 			const $filterBtn = $( '#post-query-submit' );
 
-			if ( $btn.length && $filterBtn.length ) {
-				$btn.insertAfter( $filterBtn );
+			if ( $buttons.length && $filterBtn.length ) {
+				$buttons.insertAfter( $filterBtn );
 			}
 		},
 
@@ -76,6 +79,23 @@ const getActionNonce = ( action ) =>
 		 * Bind event handlers
 		 */
 		bindEvents() {
+			$( document ).on(
+				'change',
+				'tbody .check-column input[type="checkbox"], thead .check-column input[type="checkbox"], tfoot .check-column input[type="checkbox"]',
+				() => {
+					window.setTimeout(
+						() => this.updateExportButtonState(),
+						0
+					);
+				}
+			);
+
+			$( document ).on( 'click', '#rsl-ie-export-selected-btn', ( e ) => {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				this.openSelectedPostsExport();
+			} );
+
 			// Open modal when sync button is clicked
 			$( document ).on( 'click', '#rsl-ie-sync-content-btn', ( e ) => {
 				e.preventDefault();
@@ -364,6 +384,112 @@ const getActionNonce = ( action ) =>
 			}
 
 			return ids;
+		},
+
+		/**
+		 * Enable the Export button only when one or more rows are selected.
+		 */
+		updateExportButtonState() {
+			const ids = this.getSelectedPostIds();
+			const $button = $( '#rsl-ie-export-selected-btn' );
+
+			if ( ! $button.length ) {
+				return;
+			}
+
+			$button
+				.prop( 'disabled', ids.length === 0 )
+				.attr( 'aria-disabled', ids.length === 0 ? 'true' : 'false' )
+				.text( ids.length > 0 ? `Export (${ ids.length })` : 'Export' );
+		},
+
+		/**
+		 * Open the export wizard prefilled with selected post IDs.
+		 */
+		openSelectedPostsExport() {
+			const ids = this.getSelectedPostIds();
+			const $button = $( '#rsl-ie-export-selected-btn' );
+			const postType =
+				$button.data( 'postType' ) || this.getCurrentPostType();
+
+			if ( ids.length === 0 || ! postType ) {
+				this.updateExportButtonState();
+				return;
+			}
+
+			const exportUrl = this.getExportWizardUrl();
+			const separator = exportUrl.indexOf( '?' ) === -1 ? '?' : '&';
+			const params = new URLSearchParams( {
+				rsl_ie_prefill: 'post_list',
+				post_type: postType,
+				post_ids: ids.join( ',' ),
+			} );
+
+			window.open(
+				`${ exportUrl }${ separator }${ params.toString() }`,
+				'_blank',
+				'noopener'
+			);
+		},
+
+		/**
+		 * Build a safe admin.php URL for the export wizard.
+		 */
+		getExportWizardUrl() {
+			const config =
+				typeof window.rslIePostSyncData === 'object'
+					? window.rslIePostSyncData
+					: {};
+			const currentAdminUrl = window.location.href.replace(
+				/\/wp-admin\/.*$/,
+				'/wp-admin/admin.php?page=rsl-ie-export'
+			);
+
+			if ( currentAdminUrl.indexOf( '/wp-admin/admin.php' ) !== -1 ) {
+				return currentAdminUrl;
+			}
+
+			if (
+				typeof config.exportUrl === 'string' &&
+				config.exportUrl.indexOf( 'admin.php' ) !== -1
+			) {
+				return config.exportUrl;
+			}
+
+			if ( typeof window.ajaxurl === 'string' && window.ajaxurl ) {
+				return (
+					window.ajaxurl.replace(
+						/admin-ajax\.php.*$/,
+						'admin.php'
+					) + '?page=rsl-ie-export'
+				);
+			}
+
+			if ( typeof config.ajaxurl === 'string' && config.ajaxurl ) {
+				return (
+					config.ajaxurl.replace(
+						/admin-ajax\.php.*$/,
+						'admin.php'
+					) + '?page=rsl-ie-export'
+				);
+			}
+
+			if ( typeof config.adminUrl === 'string' && config.adminUrl ) {
+				return `${ config.adminUrl.replace(
+					/\/?$/,
+					'/'
+				) }admin.php?page=rsl-ie-export`;
+			}
+
+			return 'admin.php?page=rsl-ie-export';
+		},
+
+		/**
+		 * Read current post type from the list table URL.
+		 */
+		getCurrentPostType() {
+			const params = new URLSearchParams( window.location.search );
+			return params.get( 'post_type' ) || 'post';
 		},
 
 		/**

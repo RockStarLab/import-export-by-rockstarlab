@@ -2,13 +2,23 @@
  * Plugin Options Page Styles
  */
 
-#rsl-ie-plugin-options {
+#rsl-ie-plugin-options,
+#rsl-ie-plugin-settings,
+#rsl-ie-button-settings {
 	h1 {
 		display: inline-flex;
 		align-items: center;
 
 		.dashicons {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 24px;
+			height: 24px;
+			font-size: 24px;
+			line-height: 24px;
 			margin-right: 8px;
+			color: #646970;
 			vertical-align: middle;
 		}
 	}
@@ -364,6 +374,110 @@
 	}
 }
 
+.rsl-ie-button-location-settings {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+}
+
+.rsl-ie-button-location-group {
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	background: #fff;
+	margin-bottom: 16px;
+	overflow: hidden;
+}
+
+.rsl-ie-button-location-group-header {
+	padding: 14px 16px;
+	background: #f6f7f7;
+	border-bottom: 1px solid #dcdcde;
+
+	strong {
+		display: block;
+		margin-bottom: 4px;
+	}
+
+	.description {
+		margin: 0;
+	}
+}
+
+.rsl-ie-button-location-table {
+	display: flex;
+	flex-direction: column;
+}
+
+.rsl-ie-button-location-table-head,
+.rsl-ie-button-location-row {
+	display: grid;
+	grid-template-columns: minmax(240px, 1fr) 120px 120px;
+	align-items: center;
+	gap: 12px;
+}
+
+.rsl-ie-button-location-table-head {
+	padding: 10px 16px;
+	background: #fbfbfc;
+	border-bottom: 1px solid #dcdcde;
+	color: #50575e;
+	font-size: 12px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.rsl-ie-button-location-toggle-all {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	margin: 0;
+	color: #50575e;
+	cursor: pointer;
+	white-space: nowrap;
+
+	input {
+		margin: 0;
+	}
+}
+
+.rsl-ie-button-location-row {
+	padding: 12px 16px;
+	border-bottom: 1px solid #f0f0f1;
+
+	&:last-child {
+		border-bottom: 0;
+	}
+
+	&:hover {
+		background: #fbfbfc;
+	}
+}
+
+.rsl-ie-button-location-label {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	min-width: 0;
+
+	strong {
+		color: #1d2327;
+	}
+
+	small {
+		color: #646970;
+		line-height: 1.35;
+	}
+}
+
+.rsl-ie-button-location-check {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 32px;
+}
+
 // Responsive
 @media (max-width: 768px) {
 	.rsl-ie-settings-form .form-table {
@@ -390,5 +504,14 @@
 	.rsl-ie-settings-footer {
 		flex-direction: column;
 		align-items: flex-start;
+	}
+
+	.rsl-ie-button-location-table-head {
+		display: none;
+	}
+
+	.rsl-ie-button-location-row {
+		grid-template-columns: 1fr auto auto;
+		gap: 14px;
 	}
 }

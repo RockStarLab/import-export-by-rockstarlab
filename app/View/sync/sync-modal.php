@@ -23,10 +23,10 @@ defined( 'ABSPATH' ) || exit;
 			</div>
 			
 			<div class="rsl-ie-form-group">
-				<label for="rsl-ie-sync-site-select">
+				<label for="rsl-ie-sync-site-select" style="display:block;margin-bottom:6px;">
 					<?php esc_html_e( 'Select Site', 'import-export-by-rockstarlab' ); ?>
 				</label>
-				<select id="rsl-ie-sync-site-select" class="rsl-ie-form-control">
+				<select id="rsl-ie-sync-site-select" class="rsl-ie-form-control" style="display:block;width:100%;">
 					<option value=""><?php esc_html_e( '-- Select Site --', 'import-export-by-rockstarlab' ); ?></option>
 					<?php foreach ( $sites as $rsl_ie_site ) : ?>
 						<option value="<?php echo esc_attr( $rsl_ie_site['id'] ); ?>" data-site-name="<?php echo esc_attr( $rsl_ie_site['name'] ); ?>">

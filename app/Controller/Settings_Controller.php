@@ -9,8 +9,11 @@
 
 namespace RockStarLab\ImportExport\Controller;
 
-defined( 'ABSPATH' ) or exit;
+defined( 'ABSPATH' ) || exit;
 
+/**
+ * Handles plugin settings operations.
+ */
 class Settings_Controller extends Base_Controller {
 
 	/**
@@ -22,6 +25,7 @@ class Settings_Controller extends Base_Controller {
 		parent::init();
 		add_action( 'admin_post_rsl_ie_save_admin_menu_settings', [ $this, 'save_admin_menu_settings' ] );
 		add_action( 'admin_post_rsl_ie_save_content_list_settings', [ $this, 'save_content_list_settings' ] );
+		add_action( 'admin_post_rsl_ie_save_button_location_settings', [ $this, 'save_button_location_settings' ] );
 	}
 
 	/**
@@ -90,7 +94,7 @@ class Settings_Controller extends Base_Controller {
 	}
 
 	/**
-	 * Save plugin settings
+	 * Save plugin settings.
 	 */
 	public function save_settings() {
 		$verify = $this->verify_request();
@@ -98,7 +102,7 @@ class Settings_Controller extends Base_Controller {
 			$this->send_error( $verify->get_error_message() );
 		}
 
-		// Check permissions
+		// Check permissions.
 		if ( ! current_user_can( 'manage_options' ) ) {
 			$this->send_error( __( 'You do not have permission to manage settings', 'import-export-by-rockstarlab' ) );
 		}
@@ -115,16 +119,16 @@ class Settings_Controller extends Base_Controller {
 
 		$openai_api_key = $this->get_request_param( 'openai_api_key', '' );
 
-		// Save OpenAI API Key
+		// Save OpenAI API key.
 		if ( ! empty( $openai_api_key ) ) {
-			// Validate API key format
+			// Validate API key format.
 			if ( ! $this->validate_openai_api_key( $openai_api_key ) ) {
 				$this->send_error( __( 'Invalid OpenAI API key format. Key should start with "sk-"', 'import-export-by-rockstarlab' ) );
 			}
 
 			update_option( 'rsl_ie_openai_api_key', sanitize_text_field( $openai_api_key ) );
 		} else {
-			// Remove API key if empty
+			// Remove API key if empty.
 			delete_option( 'rsl_ie_openai_api_key' );
 		}
 
@@ -166,7 +170,7 @@ class Settings_Controller extends Base_Controller {
 					'settings-updated' => 'true',
 					'_wpnonce'         => wp_create_nonce( 'rsl_ie_plugin_settings_notice' ),
 				],
-				admin_url( 'admin.php?page=rsl-ie-plugin-settings' )
+				admin_url( 'admin.php?page=rsl-ie-button-settings' )
 			)
 		);
 		exit;
@@ -190,6 +194,43 @@ class Settings_Controller extends Base_Controller {
 
 		$enabled = isset( $_POST['show_tree_action'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['show_tree_action'] ) );
 		\RockStarLab\ImportExport\Helper\Admin_Menu_Settings::save_show_tree_action( $enabled );
+
+		wp_safe_redirect(
+			add_query_arg(
+				[
+					'settings-updated' => 'true',
+					'_wpnonce'         => wp_create_nonce( 'rsl_ie_plugin_settings_notice' ),
+				],
+				admin_url( 'admin.php?page=rsl-ie-button-settings' )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * Save export and sync quick-action button location settings.
+	 *
+	 * @return void
+	 */
+	public function save_button_location_settings() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die(
+				esc_html__( 'You do not have permission to manage settings.', 'import-export-by-rockstarlab' ),
+				'',
+				[ 'response' => 403 ]
+			);
+		}
+
+		check_admin_referer( 'rsl_ie_save_button_location_settings' );
+
+		$export_locations = isset( $_POST['export_button_locations'] ) && is_array( $_POST['export_button_locations'] )
+			? wp_unslash( $_POST['export_button_locations'] )
+			: [];
+		$sync_locations   = isset( $_POST['sync_button_locations'] ) && is_array( $_POST['sync_button_locations'] )
+			? wp_unslash( $_POST['sync_button_locations'] )
+			: [];
+
+		\RockStarLab\ImportExport\Helper\Button_Location_Settings::save( $export_locations, $sync_locations );
 
 		wp_safe_redirect(
 			add_query_arg(
@@ -237,13 +278,13 @@ class Settings_Controller extends Base_Controller {
 	}
 
 	/**
-	 * Validate OpenAI API key format
+	 * Validate OpenAI API key format.
 	 *
 	 * @param string $api_key API key to validate.
 	 * @return bool
 	 */
 	private function validate_openai_api_key( $api_key ) {
-		// OpenAI API keys typically start with 'sk-'
+		// OpenAI API keys typically start with 'sk-'.
 		return strpos( $api_key, 'sk-' ) === 0 && strlen( $api_key ) > 10;
 	}
 }

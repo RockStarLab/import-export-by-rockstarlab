@@ -12,8 +12,8 @@ Import, export, sync, and update WordPress content with CSV, XML, XLSX, ODS, JSO
 == Description ==
 
 🌐 Website: [wpimportexport.com](https://wpimportexport.com/)
-📖 Documentation: [wpimportexport.com/docs](https://wpimportexport.com/docs/)
-📰 Blog & Tutorials: [wpimportexport.com/blog](https://wpimportexport.com/blog/)
+📖 Video Tutorials: [wpimportexport.com/import-export-video-tutorials-for-wordpress](https://wpimportexport.com/import-export-video-tutorials-for-wordpress/)
+📰 Blog: [wpimportexport.com/blog](https://wpimportexport.com/blog/)
 
 https://www.youtube.com/watch?v=W_Xgu_qDN2Q
 
