@@ -14,6 +14,7 @@ use RockStarLab\ImportExport\Model\Import\Importer_Factory;
 use RockStarLab\ImportExport\Model\Format\Format_Factory;
 use RockStarLab\ImportExport\Helper\Fs;
 use RockStarLab\ImportExport\Helper\ACF_Fields;
+use RockStarLab\ImportExport\Helper\WPML_Compatibility;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -470,7 +471,7 @@ class Import_Controller extends Base_Controller {
 			$total_items   = count( $prepared_data );
 
 			// Preserve source IDs for cross-site relationship fixups (e.g. post_parent).
-			if ( $importer instanceof \RockStarLab\ImportExport\Model\Import\Post_Importer ) {
+			if ( $this->is_wpml_post_based_importer( $importer ) ) {
 				foreach ( $prepared_data as $row_index => &$prepared_row ) {
 					if ( isset( $data[ $row_index ]['ID'] ) ) {
 						$prepared_row['_rsl_ie_source_id'] = absint( $data[ $row_index ]['ID'] );
@@ -577,13 +578,27 @@ class Import_Controller extends Base_Controller {
 		$total_items       = $parameters['total_items'];
 		$cumulative_result = $parameters['cumulative_result'];
 
+		// Recreate importer before completion/fixup checks. Each AJAX batch is a
+		// separate request, so the importer from the first batch is not available
+		// when the final empty-batch request runs.
+		$importer = Importer_Factory::get_importer( $import_type, $job_id );
+		if ( is_wp_error( $importer ) ) {
+			$this->send_error( $importer, null, 500 );
+			return;
+		}
+		$importer->set_options( $options );
+
 		// Get batch
 		$batch = array_slice( $prepared_data, $offset, $batch_size );
 
 		if ( empty( $batch ) ) {
 			// Post-import fixups for relationship fields (best-effort).
+			if ( $this->is_wpml_post_based_importer( $importer ) ) {
+				$this->fix_wpml_post_relationships( $job_id, $prepared_data );
+			}
 			$this->fix_post_parent_relationships( $job_id, $prepared_data );
 			$this->fix_comment_parent_relationships( $job_id, $prepared_data );
+			$this->fix_wpml_term_relationships( $job_id, $prepared_data );
 			$this->fix_term_parent_relationships( $job_id, $prepared_data );
 
 			// All items processed - complete job
@@ -605,16 +620,6 @@ class Import_Controller extends Base_Controller {
 			);
 			return;
 		}
-
-		// Process batch
-		$importer = Importer_Factory::get_importer( $import_type, $job_id );
-		if ( is_wp_error( $importer ) ) {
-			$this->send_error( $importer, null, 500 );
-			return;
-		}
-
-		// Set importer options (CRITICAL for Database_Table_Importer)
-		$importer->set_options( $options );
 
 		$replace_links_rules = $this->get_replace_links_rules( $options );
 
@@ -653,6 +658,27 @@ class Import_Controller extends Base_Controller {
 
 			if ( ! is_wp_error( $result ) && 'skipped' !== $result && class_exists( \RockStarLab\ImportExport\Model\Import\Comment_Importer::class ) && $importer instanceof \RockStarLab\ImportExport\Model\Import\Comment_Importer ) {
 				$this->preserve_imported_comment_dates( $result, $item );
+			}
+
+			$current_job_status = $job_model->find( $job_id );
+			if ( $current_job_status && in_array( $current_job_status->status, [ 'paused', 'cancelled' ], true ) ) {
+				$processed = $cumulative_result['success'] + $cumulative_result['failed'] + $cumulative_result['skipped'];
+				\RockStarLab\ImportExport\Helper\Progress_Tracker::update_progress(
+					$job_id,
+					$total_items,
+					$processed,
+					$cumulative_result['success'],
+					$cumulative_result['failed']
+				);
+
+				$this->send_success(
+					[
+						'completed' => true,
+						'status'    => $current_job_status->status,
+						'result'    => $cumulative_result,
+					]
+				);
+				return;
 			}
 		}
 
@@ -994,10 +1020,14 @@ class Import_Controller extends Base_Controller {
 		$key = 'rsl_ie_import_post_id_map_' . $job_id;
 		$map = get_transient( $key );
 		if ( ! is_array( $map ) || empty( $map ) ) {
-			return;
+			$map = $this->build_post_source_id_map_from_meta( $prepared_data );
+			if ( empty( $map ) ) {
+				return;
+			}
 		}
 
-		foreach ( $prepared_data as $row ) {
+		$rows = $this->sort_wpml_rows_sources_first( $prepared_data );
+		foreach ( $rows as $row ) {
 			$source_id     = isset( $row['_rsl_ie_source_id'] ) ? absint( $row['_rsl_ie_source_id'] ) : 0;
 			$source_parent = isset( $row['_rsl_ie_source_parent_id'] ) ? absint( $row['_rsl_ie_source_parent_id'] ) : 0;
 			$target_id     = $source_id ? absint( $map[ (string) $source_id ] ?? 0 ) : 0;
@@ -1026,6 +1056,144 @@ class Import_Controller extends Base_Controller {
 
 		// Prevent stale maps affecting future jobs.
 		delete_transient( $key );
+	}
+
+	/**
+	 * Rebuild source post ID => target post ID map from stored import meta.
+	 *
+	 * @param array $prepared_data Prepared rows.
+	 * @return array
+	 */
+	private function build_post_source_id_map_from_meta( array $prepared_data ) {
+		$map = [];
+		foreach ( $prepared_data as $row ) {
+			$source_id = isset( $row['_rsl_ie_source_id'] ) ? absint( $row['_rsl_ie_source_id'] ) : absint( $row['ID'] ?? 0 );
+			if ( $source_id <= 0 ) {
+				continue;
+			}
+
+			$target_id = $this->find_imported_post_by_source_id( $source_id );
+			if ( $target_id > 0 ) {
+				$map[ (string) $source_id ] = $target_id;
+			}
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Find imported post by any source ID meta key used by free/PRO importers.
+	 *
+	 * @param int $source_id Source-site post ID.
+	 * @return int
+	 */
+	private function find_imported_post_by_source_id( $source_id ) {
+		$source_id = absint( $source_id );
+		if ( $source_id <= 0 ) {
+			return 0;
+		}
+
+		$posts = get_posts(
+			[
+				'post_type'              => 'any',
+				'post_status'            => 'any',
+				'posts_per_page'         => 1,
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'meta_query'             => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Source ID repair lookup after import jobs.
+					'relation' => 'OR',
+					[
+						'key'   => '_rsl_ie_source_post_id',
+						'value' => (string) $source_id,
+					],
+					[
+						'key'   => '_rsl_ie_source_id',
+						'value' => (string) $source_id,
+					],
+					[
+						'key'   => '_rsl_ie_original_post_id',
+						'value' => (string) $source_id,
+					],
+				],
+			]
+		);
+
+		return ! empty( $posts[0] ) ? absint( $posts[0] ) : 0;
+	}
+
+	/**
+	 * Assign WPML languages and link imported post translations after all rows are processed.
+	 *
+	 * @param int   $job_id        Import job ID.
+	 * @param array $prepared_data Prepared rows.
+	 * @return void
+	 */
+	private function fix_wpml_post_relationships( $job_id, $prepared_data ) {
+		$job_id = absint( $job_id );
+		if ( $job_id <= 0 || ! WPML_Compatibility::is_active() || ! is_array( $prepared_data ) || empty( $prepared_data ) ) {
+			return;
+		}
+
+		$key = 'rsl_ie_import_post_id_map_' . $job_id;
+		$map = get_transient( $key );
+		if ( ! is_array( $map ) || empty( $map ) ) {
+			$map = $this->build_post_source_id_map_from_meta( $prepared_data );
+			if ( empty( $map ) ) {
+				return;
+			}
+		}
+
+		$rows = $this->sort_wpml_rows_sources_first( $prepared_data );
+		foreach ( $rows as $row ) {
+			if ( empty( $row['wpml_language_code'] ) ) {
+				continue;
+			}
+
+			$source_id = isset( $row['_rsl_ie_source_id'] ) ? absint( $row['_rsl_ie_source_id'] ) : 0;
+			$target_id = $source_id > 0 ? absint( $map[ (string) $source_id ] ?? 0 ) : 0;
+			if ( $target_id <= 0 ) {
+				continue;
+			}
+
+			$wpml_data_raw = get_post_meta( $target_id, '_rsl_ie_wpml_import_data', true );
+			$wpml_data     = is_string( $wpml_data_raw ) && '' !== $wpml_data_raw ? json_decode( $wpml_data_raw, true ) : [];
+			if ( ! is_array( $wpml_data ) || empty( $wpml_data ) ) {
+				$wpml_data = [
+					'language_code'        => sanitize_key( (string) $row['wpml_language_code'] ),
+					'source_language_code' => ! empty( $row['wpml_source_language_code'] ) ? sanitize_key( (string) $row['wpml_source_language_code'] ) : '',
+					'translation_group'    => absint( $row['wpml_translation_group'] ?? 0 ),
+					'translation_role'     => sanitize_key( (string) ( $row['wpml_translation_role'] ?? '' ) ),
+					'translations'         => [],
+				];
+			}
+
+			WPML_Compatibility::apply_post_language_details( $target_id, $wpml_data, $map );
+		}
+	}
+
+	/**
+	 * Whether an importer creates WordPress posts and can use WPML post linking.
+	 *
+	 * @param object $importer Importer instance.
+	 * @return bool
+	 */
+	private function is_wpml_post_based_importer( $importer ) {
+		if ( $importer instanceof \RockStarLab\ImportExport\Model\Import\Post_Importer ) {
+			return true;
+		}
+
+		if ( class_exists( \RockStarLab\ImportExport\Model\Import\Media_Importer::class ) && $importer instanceof \RockStarLab\ImportExport\Model\Import\Media_Importer ) {
+			return true;
+		}
+
+		if ( class_exists( \RockStarLab\ImportExport\Model\Import\Woo_Coupon_Importer::class ) && $importer instanceof \RockStarLab\ImportExport\Model\Import\Woo_Coupon_Importer ) {
+			return true;
+		}
+
+		return class_exists( \RockStarLab\ImportExport\Model\Import\Product_Importer::class )
+			&& $importer instanceof \RockStarLab\ImportExport\Model\Import\Product_Importer;
 	}
 
 	/**
@@ -1222,6 +1390,76 @@ class Import_Controller extends Base_Controller {
 		}
 
 		delete_transient( $key );
+	}
+
+	/**
+	 * Assign WPML languages and link imported term translations after all rows are processed.
+	 *
+	 * @param int   $job_id        Import job ID.
+	 * @param array $prepared_data Prepared rows.
+	 * @return void
+	 */
+	private function fix_wpml_term_relationships( $job_id, $prepared_data ) {
+		$job_id = absint( $job_id );
+		if ( $job_id <= 0 || ! WPML_Compatibility::is_active() || ! is_array( $prepared_data ) || empty( $prepared_data ) ) {
+			return;
+		}
+
+		$map = get_transient( 'rsl_ie_import_term_id_map_' . $job_id );
+		if ( ! is_array( $map ) || empty( $map ) ) {
+			return;
+		}
+
+		foreach ( $prepared_data as $row ) {
+			$taxonomy = isset( $row['taxonomy'] ) ? sanitize_key( (string) $row['taxonomy'] ) : '';
+			if ( '' === $taxonomy || empty( $row['wpml_language_code'] ) || empty( $map[ $taxonomy ] ) || ! is_array( $map[ $taxonomy ] ) ) {
+				continue;
+			}
+
+			$source_id = isset( $row['_rsl_ie_source_term_id'] ) ? absint( $row['_rsl_ie_source_term_id'] ) : absint( $row['term_id'] ?? 0 );
+			$target_id = $source_id > 0 ? absint( $map[ $taxonomy ][ (string) $source_id ] ?? 0 ) : 0;
+			if ( $target_id <= 0 ) {
+				continue;
+			}
+
+			$wpml_data_raw = get_term_meta( $target_id, '_rsl_ie_wpml_import_data', true );
+			$wpml_data     = is_string( $wpml_data_raw ) && '' !== $wpml_data_raw ? json_decode( $wpml_data_raw, true ) : [];
+			if ( ! is_array( $wpml_data ) || empty( $wpml_data ) ) {
+				$wpml_data = [
+					'language_code'        => sanitize_key( (string) $row['wpml_language_code'] ),
+					'source_language_code' => ! empty( $row['wpml_source_language_code'] ) ? sanitize_key( (string) $row['wpml_source_language_code'] ) : '',
+					'translation_group'    => absint( $row['wpml_translation_group'] ?? 0 ),
+					'translation_role'     => sanitize_key( (string) ( $row['wpml_translation_role'] ?? '' ) ),
+					'translations'         => [],
+				];
+			}
+
+			WPML_Compatibility::apply_term_language_details( $target_id, $taxonomy, $wpml_data, $map[ $taxonomy ] );
+		}
+	}
+
+	/**
+	 * Process WPML source-language items before their translations.
+	 *
+	 * @param array $rows Prepared import rows.
+	 * @return array
+	 */
+	private function sort_wpml_rows_sources_first( array $rows ) {
+		usort(
+			$rows,
+			static function ( $left, $right ) {
+				$left_is_source  = empty( $left['wpml_source_language_code'] ) || 'source' === ( $left['wpml_translation_role'] ?? '' );
+				$right_is_source = empty( $right['wpml_source_language_code'] ) || 'source' === ( $right['wpml_translation_role'] ?? '' );
+
+				if ( $left_is_source === $right_is_source ) {
+					return 0;
+				}
+
+				return $left_is_source ? -1 : 1;
+			}
+		);
+
+		return $rows;
 	}
 
 	/**

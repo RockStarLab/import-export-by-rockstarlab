@@ -10,6 +10,7 @@
 namespace RockStarLab\ImportExport\Controller;
 
 use RockStarLab\ImportExport\Helper\ACF_Fields;
+use RockStarLab\ImportExport\Helper\WPML_Compatibility;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -314,6 +315,7 @@ class Content_Sync_API_Controller {
 			if ( isset( $post_data['post_type'] ) && 'product' === $post_data['post_type'] ) {
 				$product_post_ids[] = (int) $post_id;
 			}
+			$this->apply_synced_post_wpml_data( (int) $post_id, (array) $post_data, $source_to_local_map );
 
 			// Count created vs updated
 			if ( $is_update ) {
@@ -349,7 +351,8 @@ class Content_Sync_API_Controller {
 						$post_data['meta'],
 						'', // No domain replacement needed for push (already replaced on sender)
 						'',
-						$image_map
+						$image_map,
+						$image_sources
 					);
 				}
 
@@ -411,7 +414,8 @@ class Content_Sync_API_Controller {
 								$term_info['acf'],
 								'', // No domain replacement needed for term meta
 								'',
-								$image_map
+								$image_map,
+								$image_sources
 							);
 
 							foreach ( $term_acf as $field_key => $field_value ) {
@@ -451,7 +455,7 @@ class Content_Sync_API_Controller {
 				&& class_exists( 'WC_Product' )
 				&& function_exists( 'wc_get_product' )
 			) {
-				$this->import_product_variations( $post_id, $post_data['variations'], (array) $image_map );
+				$this->import_product_variations( $post_id, $post_data['variations'], (array) $image_map, (array) $image_sources );
 			}
 
 			// Import WooCommerce grouped product children and remap _children meta.
@@ -459,10 +463,10 @@ class Content_Sync_API_Controller {
 			// must import them and rewrite the _children meta with local IDs.
 			if ( 'product' === $post_data['post_type']
 				&& ! empty( $post_data['grouped_children'] )
-				&& class_exists( 'WC_Product' )
-				&& function_exists( 'wc_get_product' )
+			&& class_exists( 'WC_Product' )
+			&& function_exists( 'wc_get_product' )
 			) {
-				$local_child_ids = $this->import_grouped_children( $post_id, $post_data['grouped_children'], (array) $image_map );
+				$local_child_ids = $this->import_grouped_children( $post_id, $post_data['grouped_children'], (array) $image_map, (array) $image_sources );
 				if ( ! empty( $local_child_ids ) ) {
 					update_post_meta( $post_id, '_children', $local_child_ids );
 				}
@@ -476,6 +480,8 @@ class Content_Sync_API_Controller {
 				$this->refresh_woocommerce_product_after_sync( $post_id );
 			}
 		}
+
+		$this->apply_synced_posts_wpml_data( $posts_data, $source_to_local_map );
 
 		// Fix hierarchical relationships (e.g. pages) after import so we can resolve
 		// parent IDs created in the same request.
@@ -720,7 +726,7 @@ class Content_Sync_API_Controller {
 	 * @param array $image_map      Source attachment ID → local attachment ID map.
 	 * @return void
 	 */
-	private function import_product_variations( $parent_post_id, $variations, $image_map ) {
+	private function import_product_variations( $parent_post_id, $variations, $image_map, $image_sources = array() ) {
 		if ( empty( $variations ) ) {
 			return;
 		}
@@ -790,7 +796,8 @@ class Content_Sync_API_Controller {
 						$var_meta,
 						'', // Domain replacement already done on the sender side.
 						'',
-						$image_map
+						$image_map,
+						$image_sources
 					);
 				}
 
@@ -830,7 +837,7 @@ class Content_Sync_API_Controller {
 	 * @param array $image_map      Source attachment ID → local attachment ID map.
 	 * @return int[] Array of local child product post IDs.
 	 */
-	private function import_grouped_children( $parent_post_id, $children, $image_map ) {
+	private function import_grouped_children( $parent_post_id, $children, $image_map, $image_sources = array() ) {
 		$local_child_ids = array();
 
 		foreach ( $children as $child_data ) {
@@ -891,7 +898,8 @@ class Content_Sync_API_Controller {
 						$child_meta,
 						'',
 						'',
-						$image_map
+						$image_map,
+						$image_sources
 					);
 				}
 				foreach ( $child_meta as $key => $value ) {
@@ -999,6 +1007,10 @@ class Content_Sync_API_Controller {
 	 */
 	private function should_skip_synced_meta_key( $key ) {
 		$key = (string) $key;
+
+		if ( 0 === strpos( $key, '_icl_' ) || 0 === strpos( $key, '_wpml_' ) ) {
+			return true;
+		}
 
 		return class_exists( '\RockStarLab\ImportExport\Helper\Elementor_Fields' )
 			&& \RockStarLab\ImportExport\Helper\Elementor_Fields::is_generated_cache_key( $key );
@@ -1240,10 +1252,11 @@ class Content_Sync_API_Controller {
 							'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $taxonomy ),
 							'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $taxonomy ),
 						);
+						$this->append_wpml_term_sync_data( $term_info, (int) $term->term_id, $taxonomy );
 
 						// Get ACF fields for this term
 						if ( function_exists( 'get_field_objects' ) ) {
-							$acf_fields = get_field_objects( $taxonomy . '_' . $term->term_id );
+							$acf_fields = $this->get_term_acf_field_objects( (int) $term->term_id, $taxonomy );
 							if ( $acf_fields ) {
 								$term_info['acf'] = array();
 								foreach ( $acf_fields as $field_key => $field ) {
@@ -1321,15 +1334,19 @@ class Content_Sync_API_Controller {
 						if ( ! $term || is_wp_error( $term ) ) {
 							continue;
 						}
-							$terms_data[ $acf_taxonomy ][] = array(
-								'term_id'        => $term->term_id,
-								'name'           => $term->name,
-								'slug'           => $term->slug,
-								'parent_term_id' => (int) $term->parent,
-								'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $acf_taxonomy ),
-								'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $acf_taxonomy ),
-							);
-							$known_ids[]                   = $raw_id;
+						$terms_data[ $acf_taxonomy ][] = array(
+							'term_id'        => $term->term_id,
+							'name'           => $term->name,
+							'slug'           => $term->slug,
+							'parent_term_id' => (int) $term->parent,
+							'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $acf_taxonomy ),
+							'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $acf_taxonomy ),
+						);
+						$last_index                    = array_key_last( $terms_data[ $acf_taxonomy ] );
+						if ( null !== $last_index ) {
+							$this->append_wpml_term_sync_data( $terms_data[ $acf_taxonomy ][ $last_index ], (int) $term->term_id, $acf_taxonomy );
+						}
+						$known_ids[] = $raw_id;
 					}
 				}
 			}
@@ -1351,6 +1368,7 @@ class Content_Sync_API_Controller {
 					'terms'         => $terms_data,
 					'comments'      => $this->collect_post_comments_for_sync( $post->ID ),
 				);
+				$this->append_wpml_post_sync_data( $post_data, (int) $post->ID, (string) $post->post_type );
 
 				// Collect WooCommerce product variations for variable products.
 				if ( 'product' === $post->post_type
@@ -1507,6 +1525,10 @@ class Content_Sync_API_Controller {
 		$description          = $request->get_param( 'description' );
 		$source_attachment_id = absint( $request->get_param( 'source_attachment_id' ) );
 		$force_unique         = (bool) $request->get_param( 'force_unique' );
+		$wpml_data            = $request->get_param( 'wpml' );
+		if ( ! is_array( $wpml_data ) ) {
+			$wpml_data = array();
+		}
 
 		if ( empty( $file_name ) || empty( $file_data ) || empty( $file_hash ) ) {
 			return new \WP_REST_Response(
@@ -1522,6 +1544,7 @@ class Content_Sync_API_Controller {
 			$existing_attachment = $this->find_attachment_by_original_attachment_id( $source_attachment_id );
 			if ( $existing_attachment ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
+				$this->apply_synced_attachment_wpml_data( (int) $existing_attachment, $wpml_data );
 				return new \WP_REST_Response(
 					array(
 						'success'       => true,
@@ -1538,6 +1561,7 @@ class Content_Sync_API_Controller {
 			$existing_attachment = $this->find_attachment_by_hash( $file_hash );
 			if ( $existing_attachment ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
+				$this->apply_synced_attachment_wpml_data( (int) $existing_attachment, $wpml_data );
 				return new \WP_REST_Response(
 					array(
 						'success'       => true,
@@ -1626,6 +1650,7 @@ class Content_Sync_API_Controller {
 		if ( $source_attachment_id > 0 ) {
 			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
 		}
+		$this->apply_synced_attachment_wpml_data( (int) $attachment_id, $wpml_data );
 
 		return new \WP_REST_Response(
 			array(
@@ -1674,6 +1699,14 @@ class Content_Sync_API_Controller {
 		return ! empty( $attachments ) ? (int) $attachments[0] : false;
 	}
 
+	private function apply_synced_attachment_wpml_data( $attachment_id, array $wpml_data ) {
+		if ( empty( $wpml_data ) || ! WPML_Compatibility::is_active() ) {
+			return;
+		}
+
+		WPML_Compatibility::apply_post_language_details( (int) $attachment_id, $wpml_data, array() );
+	}
+
 	/**
 	 * Extract image IDs from term ACF fields
 	 *
@@ -1684,6 +1717,52 @@ class Content_Sync_API_Controller {
 		$image_ids = array();
 
 		foreach ( $acf_data as $key => $value ) {
+			if ( is_string( $value ) && '' !== $value ) {
+				$decoded = json_decode( $value, true );
+				if ( is_array( $decoded ) ) {
+					$image_ids = array_merge( $image_ids, $this->extract_term_acf_images( $decoded ) );
+				}
+
+				if ( preg_match_all( '/\bwp-image-(\d+)\b/', $value, $matches ) ) {
+					foreach ( $matches[1] as $image_id ) {
+						$image_ids[] = (int) $image_id;
+					}
+				}
+
+				foreach ( $this->extract_image_urls_from_term_acf_html( $value ) as $url ) {
+					$image_id = attachment_url_to_postid( $url );
+					if ( $image_id > 0 ) {
+						$image_ids[] = (int) $image_id;
+					}
+				}
+
+				if ( filter_var( $value, FILTER_VALIDATE_URL ) && $this->is_term_acf_image_url( $value ) ) {
+					$image_id = attachment_url_to_postid( $value );
+					if ( $image_id > 0 ) {
+						$image_ids[] = (int) $image_id;
+					}
+				}
+			}
+
+			if ( is_array( $value ) ) {
+				foreach ( array( 'ID', 'id', 'attachment_id' ) as $id_key ) {
+					if ( isset( $value[ $id_key ] ) && is_numeric( $value[ $id_key ] ) ) {
+						$image_id   = (int) $value[ $id_key ];
+						$attachment = get_post( $image_id );
+						if ( $attachment && 'attachment' === $attachment->post_type ) {
+							$image_ids[] = $image_id;
+						}
+					}
+				}
+
+				if ( isset( $value['url'] ) && is_string( $value['url'] ) && $this->is_term_acf_image_url( $value['url'] ) ) {
+					$image_id = attachment_url_to_postid( $value['url'] );
+					if ( $image_id > 0 ) {
+						$image_ids[] = (int) $image_id;
+					}
+				}
+			}
+
 			// Single image field (numeric ID)
 			if ( is_numeric( $value ) && $value > 0 ) {
 				$attachment = get_post( $value );
@@ -1712,6 +1791,55 @@ class Content_Sync_API_Controller {
 		return array_unique( $image_ids );
 	}
 
+	private function extract_image_urls_from_term_acf_html( $content ) {
+		$urls = array();
+
+		if ( false === stripos( $content, '<img' ) && false === stripos( $content, 'srcset=' ) ) {
+			return $urls;
+		}
+
+		if ( preg_match_all( '/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $matches ) ) {
+			foreach ( $matches[1] as $url ) {
+				$url = html_entity_decode( $url, ENT_QUOTES, get_bloginfo( 'charset' ) );
+				if ( $this->is_term_acf_image_url( $url ) ) {
+					$urls[] = $url;
+				}
+			}
+		}
+
+		if ( preg_match_all( '/srcset=["\']([^"\']+)["\']/i', $content, $matches ) ) {
+			foreach ( $matches[1] as $srcset ) {
+				foreach ( array_map( 'trim', explode( ',', $srcset ) ) as $candidate ) {
+					$parts = preg_split( '/\s+/', $candidate );
+					$url   = isset( $parts[0] ) ? html_entity_decode( $parts[0], ENT_QUOTES, get_bloginfo( 'charset' ) ) : '';
+					if ( $this->is_term_acf_image_url( $url ) ) {
+						$urls[] = $url;
+					}
+				}
+			}
+		}
+
+		return array_values( array_unique( $urls ) );
+	}
+
+	private function is_term_acf_image_url( $url ) {
+		$path = (string) wp_parse_url( html_entity_decode( (string) $url, ENT_QUOTES, get_bloginfo( 'charset' ) ), PHP_URL_PATH );
+		return '' !== $path && (bool) preg_match( '~\.(?:jpe?g|png|gif|webp|avif|svg)$~i', $path );
+	}
+
+	private function get_term_acf_field_objects( $term_id, $taxonomy ) {
+		if ( ! function_exists( 'get_field_objects' ) ) {
+			return false;
+		}
+
+		$fields = get_field_objects( 'term_' . (int) $term_id );
+		if ( ! empty( $fields ) ) {
+			return $fields;
+		}
+
+		return get_field_objects( sanitize_key( (string) $taxonomy ) . '_' . (int) $term_id );
+	}
+
 	/**
 	 * List posts for mapping
 	 *
@@ -1725,34 +1853,62 @@ class Content_Sync_API_Controller {
 			$commentable_only = filter_var( $request->get_param( 'commentable_only' ), FILTER_VALIDATE_BOOLEAN );
 		$page                 = absint( $request->get_param( 'page' ) ?: 1 );
 		$per_page             = absint( $request->get_param( 'per_page' ) ?: 20 );
+		$language             = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
+		if ( ! WPML_Compatibility::is_active() ) {
+			$language = '';
+		}
+		$is_wpml_language_browse = '' !== $language;
 
 		// When searching, include all posts (parent and children)
 		// When not searching, show only parent posts (to maintain hierarchy)
 		$post_parent_filter = 0; // Default: only top-level posts
-		if ( ! empty( $search ) ) {
+		if ( ! empty( $search ) || $is_wpml_language_browse ) {
 			$post_parent_filter = ''; // Empty string means no parent filter - include all posts
 		}
 
 			$args = array(
 				'post_type'           => $commentable_only ? $this->get_commentable_sync_post_types() : ( $post_type ?: 'any' ),
-				'post_status'         => ! empty( $status ) ? $status : 'any',
+				'post_status'         => ! empty( $status ) ? $status : ( 'attachment' === sanitize_key( (string) $post_type ) ? 'inherit' : 'any' ),
 				'posts_per_page'      => $per_page,
+				'suppress_filters'    => false,
 				'paged'               => $page,
 				'orderby'             => 'date',
 				'order'               => 'DESC',
-				'post_parent'         => $post_parent_filter,
 				'ignore_sticky_posts' => true, // Exclude sticky posts from results
 				'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required to exclude sticky posts.
 			);
+			if ( '' !== $post_parent_filter ) {
+				$args['post_parent'] = $post_parent_filter;
+			}
+			$is_attachment_browse = 'attachment' === sanitize_key( (string) $args['post_type'] );
+			if ( '' !== $language && 'all' !== $language && $is_attachment_browse && WPML_Compatibility::is_media_active() ) {
+				$args['post__in'] = $this->get_post_ids_for_wpml_language( $language, 'attachment' );
+				unset( $args['lang'] );
+			} elseif ( '' !== $language && 'all' !== $language && $is_attachment_browse ) {
+				$args['suppress_filters'] = true;
+				unset( $args['lang'] );
+			} elseif ( '' !== $language && 'all' !== $language ) {
+				$args['lang'] = $language;
+			}
+			if ( 'all' === $language ) {
+				// WPML keeps the current language filter active in REST/admin-ajax
+				// contexts even when lang=all is passed. Suppress filters only for
+				// the "all languages" view so WP_Query behaves like the WP admin list.
+				$args['suppress_filters'] = true;
+				unset( $args['lang'] );
+				if ( empty( $search ) ) {
+					unset( $args['post_parent'] );
+				}
+			}
 
 			if ( ! empty( $search ) ) {
 				$args['s'] = $search;
 			}
 
-			$query      = new \WP_Query( $args );
-			$posts_list = array();
-			$total      = $query->found_posts;
-
+			$previous_wpml_language = $this->switch_wpml_query_language( $language );
+			$query                  = new \WP_Query( $args );
+			$posts_list             = array();
+			$total                  = $query->found_posts;
 			foreach ( $query->posts as $post ) {
 				$post_data = array(
 					'ID'            => $post->ID,
@@ -1766,16 +1922,28 @@ class Content_Sync_API_Controller {
 
 				// Get children count (same post type only, excluding attachments)
 				$children_count = 0;
-				if ( empty( $search ) ) {
+				if ( empty( $search ) && ! $is_wpml_language_browse ) {
 					$children_count = $this->count_children( $post->ID, $post->post_type );
 				}
 				$post_data['children_count'] = $children_count;
+
+				if ( WPML_Compatibility::is_active() ) {
+					$wpml_data = WPML_Compatibility::export_post_data( (int) $post->ID, (string) $post->post_type );
+					if ( ! empty( $wpml_data['language_code'] ) ) {
+						$post_data['wpml_language'] = sanitize_key( (string) $wpml_data['language_code'] );
+						$post_data['wpml']          = $wpml_data;
+					}
+				}
 
 				$posts_list[] = $post_data;
 			}
 
 			// Get status counts for filters
-			$status_counts = $this->get_status_counts( $post_type );
+			$status_counts = $this->get_status_counts( $post_type, $language );
+
+			if ( '' !== $previous_wpml_language ) {
+				$this->switch_wpml_query_language( $previous_wpml_language );
+			}
 
 			return new \WP_REST_Response(
 				array(
@@ -1827,6 +1995,10 @@ class Content_Sync_API_Controller {
 		$search   = sanitize_text_field( (string) $request->get_param( 'search' ) );
 		$page     = absint( $request->get_param( 'page' ) ?: 1 );
 		$per_page = absint( $request->get_param( 'per_page' ) ?: 20 );
+		$language = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
+		if ( ! WPML_Compatibility::is_active() ) {
+			$language = '';
+		}
 
 		if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
 			return new \WP_REST_Response(
@@ -1849,18 +2021,35 @@ class Content_Sync_API_Controller {
 			'order'      => 'ASC',
 		);
 
+		if ( 'all' === $language ) {
+			$args['suppress_filter']  = true;
+			$args['suppress_filters'] = true;
+		} elseif ( '' !== $language ) {
+			$args['lang'] = $language;
+		}
+
 		if ( '' !== $search ) {
 			$args['search'] = $search;
 		}
 
-		$terms = get_terms( $args );
-		$total = wp_count_terms(
-			array(
-				'taxonomy'   => $taxonomy,
-				'hide_empty' => false,
-				'search'     => $search,
-			)
+		$previous_wpml_language = $this->switch_wpml_query_language( $language );
+		$terms                  = get_terms( $args );
+		$count_args             = array(
+			'taxonomy'   => $taxonomy,
+			'hide_empty' => false,
+			'search'     => $search,
 		);
+		if ( 'all' === $language ) {
+			$count_args['suppress_filter']  = true;
+			$count_args['suppress_filters'] = true;
+		} elseif ( '' !== $language ) {
+			$count_args['lang'] = $language;
+		}
+		$total = wp_count_terms( $count_args );
+
+		if ( '' !== $previous_wpml_language ) {
+			$this->switch_wpml_query_language( $previous_wpml_language );
+		}
 
 		if ( is_wp_error( $terms ) || is_wp_error( $total ) ) {
 			return new \WP_REST_Response(
@@ -1922,11 +2111,39 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-		$terms = array();
+		$terms      = array();
+		$all_images = array();
 		foreach ( $term_ids as $term_id ) {
 			$term = get_term( $term_id, $taxonomy );
 			if ( $term && ! is_wp_error( $term ) ) {
-				$terms[] = $this->prepare_term_for_sync( $term, $taxonomy, true );
+				$term_info = $this->prepare_term_for_sync( $term, $taxonomy, true );
+				$terms[]   = $term_info;
+
+				$term_image_ids = array();
+				if ( ! empty( $term_info['description'] ) && is_string( $term_info['description'] ) ) {
+					$term_image_ids = array_merge( $term_image_ids, $this->extract_term_acf_images( array( 'description' => $term_info['description'] ) ) );
+				}
+				if ( ! empty( $term_info['acf'] ) && is_array( $term_info['acf'] ) ) {
+					$term_image_ids = array_merge( $term_image_ids, $this->extract_term_acf_images( $term_info['acf'] ) );
+				}
+
+				foreach ( array_values( array_unique( array_filter( array_map( 'absint', $term_image_ids ) ) ) ) as $image_id ) {
+					if ( isset( $all_images[ $image_id ] ) ) {
+						continue;
+					}
+
+					$image_data = \RockStarLab\ImportExport\Helper\Content_Sync_Media::prepare_image_data( $image_id, 'term_acf' );
+					if ( ! $image_data ) {
+						$image_data = array(
+							'attachment_id' => $image_id,
+							'url'           => wp_get_attachment_url( $image_id ),
+							'type'          => 'term_acf',
+						);
+					}
+					$image_data['term_id']   = (int) $term->term_id;
+					$image_data['taxonomy']  = $taxonomy;
+					$all_images[ $image_id ] = $image_data;
+				}
 			}
 		}
 
@@ -1934,6 +2151,7 @@ class Content_Sync_API_Controller {
 			array(
 				'success' => true,
 				'terms'   => $terms,
+				'images'  => array_values( $all_images ),
 			),
 			200
 		);
@@ -1946,8 +2164,17 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function receive_terms( $request ) {
-		$taxonomy = sanitize_key( (string) $request->get_param( 'taxonomy' ) );
-		$terms    = $request->get_param( 'terms' );
+		$taxonomy      = sanitize_key( (string) $request->get_param( 'taxonomy' ) );
+		$terms         = $request->get_param( 'terms' );
+		$image_map     = $request->get_param( 'image_map' );
+		$image_sources = $request->get_param( 'image_sources' );
+
+		if ( ! is_array( $image_map ) ) {
+			$image_map = array();
+		}
+		if ( ! is_array( $image_sources ) ) {
+			$image_sources = array();
+		}
 
 		if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
 			return new \WP_REST_Response(
@@ -1969,9 +2196,10 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-		$created = 0;
-		$updated = 0;
-		$errors  = array();
+		$created               = 0;
+		$updated               = 0;
+		$errors                = array();
+		$source_to_local_terms = array();
 
 		foreach ( $terms as $term_info ) {
 			if ( ! is_array( $term_info ) ) {
@@ -1985,10 +2213,21 @@ class Content_Sync_API_Controller {
 				$errors[] = isset( $term_info['name'] ) ? sanitize_text_field( (string) $term_info['name'] ) : __( 'Unknown term', 'import-export-by-rockstarlab' );
 				continue;
 			}
+			if ( ! empty( $term_info['term_id'] ) ) {
+				$source_to_local_terms[ (int) $term_info['term_id'] ] = (int) $term_id;
+			}
 
 			$args = array();
 			if ( isset( $term_info['description'] ) ) {
-				$args['description'] = wp_kses_post( (string) $term_info['description'] );
+				$description = (string) $term_info['description'];
+				if ( ! empty( $image_map ) ) {
+					$description = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
+						$description,
+						$image_map,
+						$image_sources
+					);
+				}
+				$args['description'] = wp_kses_post( $description );
 			}
 			if ( ! empty( $args ) ) {
 				wp_update_term( $term_id, $taxonomy, $args );
@@ -2001,6 +2240,16 @@ class Content_Sync_API_Controller {
 			}
 
 			if ( ! empty( $term_info['acf'] ) && is_array( $term_info['acf'] ) && function_exists( 'update_field' ) ) {
+				if ( ! empty( $image_map ) ) {
+					$term_info['acf'] = $this->replace_term_acf_value_media_references(
+						$term_info['acf'],
+						'',
+						'',
+						$image_map,
+						$image_sources
+					);
+				}
+
 				foreach ( $term_info['acf'] as $field_key => $field_value ) {
 					ACF_Fields::import_value( 'term', $term_id, sanitize_text_field( (string) $field_key ), $field_value, $taxonomy );
 				}
@@ -2012,6 +2261,8 @@ class Content_Sync_API_Controller {
 				++$created;
 			}
 		}
+
+		$this->apply_synced_terms_wpml_data( $taxonomy, $terms, $source_to_local_terms );
 
 		return new \WP_REST_Response(
 			array(
@@ -2060,7 +2311,7 @@ class Content_Sync_API_Controller {
 			}
 
 			if ( function_exists( 'get_field_objects' ) ) {
-				$acf_fields = get_field_objects( $taxonomy . '_' . $term->term_id );
+				$acf_fields = $this->get_term_acf_field_objects( (int) $term->term_id, $taxonomy );
 				if ( $acf_fields ) {
 					$data['acf'] = array();
 					foreach ( $acf_fields as $field_key => $field ) {
@@ -2071,7 +2322,134 @@ class Content_Sync_API_Controller {
 			}
 		}
 
+		$this->append_wpml_term_sync_data( $data, (int) $term->term_id, $taxonomy );
+
 		return $data;
+	}
+
+	/**
+	 * Replace media references inside one ACF value.
+	 *
+	 * @param mixed  $value         ACF value.
+	 * @param string $source_domain Source site URL.
+	 * @param string $target_domain Target site URL.
+	 * @param array  $image_map     Source attachment ID => target attachment ID.
+	 * @param array  $image_sources Source image metadata.
+	 * @return mixed
+	 */
+	private function replace_term_acf_value_media_references( $value, $source_domain, $target_domain, array $image_map, array $image_sources ) {
+		if ( is_array( $value ) ) {
+			$out = array();
+			foreach ( $value as $key => $child ) {
+				if ( is_numeric( $child ) && isset( $image_map[ (int) $child ] ) && $this->looks_like_term_acf_media_key( $key ) ) {
+					$out[ $key ] = (int) $image_map[ (int) $child ];
+					continue;
+				}
+
+				$out[ $key ] = $this->replace_term_acf_value_media_references(
+					$child,
+					$source_domain,
+					$target_domain,
+					$image_map,
+					$image_sources
+				);
+			}
+
+			if ( isset( $out['id'] ) && is_numeric( $out['id'] ) && isset( $image_map[ (int) $out['id'] ] ) ) {
+				$mapped_id = (int) $image_map[ (int) $out['id'] ];
+				$out['id'] = $mapped_id;
+				$url       = wp_get_attachment_url( $mapped_id );
+				if ( $url && isset( $out['url'] ) ) {
+					$out['url'] = $url;
+				}
+			}
+
+			return $out;
+		}
+
+		if ( is_string( $value ) && '' !== $value ) {
+			$decoded = json_decode( $value, true );
+			if ( is_array( $decoded ) ) {
+				return wp_json_encode(
+					$this->replace_term_acf_value_media_references(
+						$decoded,
+						$source_domain,
+						$target_domain,
+						$image_map,
+						$image_sources
+					)
+				);
+			}
+
+			$mapped_url = $this->get_mapped_acf_media_url( $value, $image_map, $image_sources );
+			if ( '' !== $mapped_url ) {
+				return $mapped_url;
+			}
+
+			return \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
+				$value,
+				$image_map,
+				$image_sources
+			);
+		}
+
+		return $value;
+	}
+
+	private function looks_like_term_acf_media_key( $key ) {
+		if ( is_int( $key ) ) {
+			return true;
+		}
+
+		return in_array(
+			(string) $key,
+			array( 'id', 'ID', 'attachment_id', 'image_id', 'media_id', 'file_id' ),
+			true
+		);
+	}
+
+	/**
+	 * Return the target attachment URL for a source media URL when it is mapped.
+	 *
+	 * @param string $url           Source URL.
+	 * @param array  $image_map     Source attachment ID => target attachment ID.
+	 * @param array  $image_sources Source image metadata.
+	 * @return string
+	 */
+	private function get_mapped_acf_media_url( $url, array $image_map, array $image_sources ) {
+		$url = trim( html_entity_decode( (string) $url, ENT_QUOTES, get_bloginfo( 'charset' ) ) );
+		if ( '' === $url || empty( $image_map ) || empty( $image_sources ) ) {
+			return '';
+		}
+
+		foreach ( $image_sources as $source_id => $source ) {
+			if ( ! is_array( $source ) ) {
+				continue;
+			}
+
+			$attachment_id = isset( $source['attachment_id'] ) ? (int) $source['attachment_id'] : (int) $source_id;
+			if ( $attachment_id <= 0 || empty( $image_map[ $attachment_id ] ) ) {
+				continue;
+			}
+
+			$source_urls = array_filter(
+				array(
+					isset( $source['url'] ) ? (string) $source['url'] : '',
+					isset( $source['full_url'] ) ? (string) $source['full_url'] : '',
+				)
+			);
+
+			foreach ( $source_urls as $source_url ) {
+				if ( $url !== html_entity_decode( $source_url, ENT_QUOTES, get_bloginfo( 'charset' ) ) ) {
+					continue;
+				}
+
+				$target_url = wp_get_attachment_url( (int) $image_map[ $attachment_id ] );
+				return $target_url ? (string) $target_url : '';
+			}
+		}
+
+		return '';
 	}
 
 	/**
@@ -2086,7 +2464,11 @@ class Content_Sync_API_Controller {
 		$post_id      = absint( $request->get_param( 'post_id' ) );
 		$page         = absint( $request->get_param( 'page' ) ?: 1 );
 		$per_page     = min( max( absint( $request->get_param( 'per_page' ) ?: 20 ), 1 ), 100 );
-		$offset       = ( max( $page, 1 ) - 1 ) * $per_page;
+		$language     = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
+		if ( ! WPML_Compatibility::is_active() ) {
+			$language = '';
+		}
+		$offset = ( max( $page, 1 ) - 1 ) * $per_page;
 
 		$args = array(
 			'number'  => $per_page,
@@ -2108,6 +2490,11 @@ class Content_Sync_API_Controller {
 			$args['post_id'] = $post_id;
 		}
 
+		$previous_wpml_language = $this->switch_wpml_query_language( $language );
+		if ( '' !== $language && 'all' !== $language && $post_id <= 0 ) {
+			$args['post__in'] = $this->get_post_ids_for_wpml_language( $language );
+		}
+
 		$query    = new \WP_Comment_Query();
 		$comments = $query->query( $args );
 		$total    = get_comments(
@@ -2120,6 +2507,10 @@ class Content_Sync_API_Controller {
 				)
 			)
 		);
+
+		if ( '' !== $previous_wpml_language ) {
+			$this->switch_wpml_query_language( $previous_wpml_language );
+		}
 
 		$list = array();
 		foreach ( $comments as $comment ) {
@@ -2562,7 +2953,11 @@ class Content_Sync_API_Controller {
 	 * @param string $post_type Post type.
 	 * @return array Status counts.
 	 */
-	private function get_status_counts( $post_type ) {
+	private function get_status_counts( $post_type, $language = '' ) {
+		if ( ! WPML_Compatibility::is_active() ) {
+			$language = '';
+		}
+
 		$counts = array(
 			'all'     => 0,
 			'publish' => 0,
@@ -2570,19 +2965,26 @@ class Content_Sync_API_Controller {
 			'pending' => 0,
 		);
 
-		$statuses = array( 'publish', 'draft', 'pending', 'private', 'future' );
+		$statuses               = array( 'publish', 'draft', 'pending', 'private', 'future' );
+		$previous_wpml_language = $this->switch_wpml_query_language( $language );
 
 		foreach ( $statuses as $status ) {
-			$count_query = new \WP_Query(
-				array(
-					'post_type'           => $post_type ?: 'any',
-					'post_status'         => $status,
-					'posts_per_page'      => 1,
-					'fields'              => 'ids',
-					'ignore_sticky_posts' => true,
-					'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
-				)
+			$count_args = array(
+				'post_type'           => $post_type ?: 'any',
+				'post_status'         => $status,
+				'posts_per_page'      => 1,
+				'fields'              => 'ids',
+				'ignore_sticky_posts' => true,
+				'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 			);
+			if ( 'all' === $language ) {
+				$count_args['suppress_filters'] = true;
+				unset( $count_args['lang'] );
+			} elseif ( '' !== $language ) {
+				$count_args['suppress_filters'] = false;
+				$count_args['lang']             = sanitize_key( $language );
+			}
+			$count_query = new \WP_Query( $count_args );
 
 			$count = $count_query->found_posts;
 
@@ -2595,7 +2997,100 @@ class Content_Sync_API_Controller {
 			$counts['all'] += $count;
 		}
 
+		if ( '' !== $previous_wpml_language ) {
+			$this->switch_wpml_query_language( $previous_wpml_language );
+		}
+
 		return $counts;
+	}
+
+	/**
+	 * Switch WPML language for internal sync queries and return previous language.
+	 *
+	 * @param string $language Language code or all.
+	 * @return string Previous language code.
+	 */
+	private function switch_wpml_query_language( $language ) {
+		$language = sanitize_key( (string) $language );
+		if ( '' === $language || ! WPML_Compatibility::is_active() || ! function_exists( 'apply_filters' ) ) {
+			return '';
+		}
+
+		$previous_language = sanitize_key( (string) apply_filters( 'wpml_current_language', '' ) );
+
+		global $sitepress;
+		if ( is_object( $sitepress ) && method_exists( $sitepress, 'switch_lang' ) ) {
+			$sitepress->switch_lang( $language, true );
+		} elseif ( function_exists( 'do_action' ) ) {
+			do_action( 'wpml_switch_language', $language );
+		}
+
+		return $previous_language;
+	}
+
+	/**
+	 * Get object IDs that belong to a WPML language for comment filtering.
+	 *
+	 * @param string $language Language code.
+	 * @return int[]
+	 */
+	private function get_post_ids_for_wpml_language( $language, $post_type = 'any' ) {
+		$language = sanitize_key( (string) $language );
+		if ( '' === $language || 'all' === $language || ! WPML_Compatibility::is_active() ) {
+			return array();
+		}
+		$post_type = sanitize_key( (string) $post_type );
+		if ( '' === $post_type ) {
+			$post_type = 'any';
+		}
+
+		if ( 'attachment' === $post_type ) {
+			if ( ! WPML_Compatibility::is_media_active() ) {
+				return array();
+			}
+
+			$attachment_ids = get_posts(
+				array(
+					'post_type'              => 'attachment',
+					'post_status'            => 'inherit',
+					'posts_per_page'         => -1,
+					'fields'                 => 'ids',
+					'suppress_filters'       => true,
+					'ignore_sticky_posts'    => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+				)
+			);
+
+			$attachment_ids = array_values(
+				array_filter(
+					array_map( 'absint', (array) $attachment_ids ),
+					static function ( $attachment_id ) use ( $language ) {
+						return $language === WPML_Compatibility::get_post_language_code( $attachment_id, 'attachment' );
+					}
+				)
+			);
+
+			return ! empty( $attachment_ids ) ? $attachment_ids : array( 0 );
+		}
+
+		$post_ids = get_posts(
+			array(
+				'post_type'              => $post_type,
+				'post_status'            => 'any',
+				'posts_per_page'         => -1,
+				'fields'                 => 'ids',
+				'suppress_filters'       => false,
+				'lang'                   => $language,
+				'ignore_sticky_posts'    => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		$post_ids = array_values( array_filter( array_map( 'absint', (array) $post_ids ) ) );
+
+		return ! empty( $post_ids ) ? $post_ids : array( 0 );
 	}
 
 	/**
@@ -2629,6 +3124,7 @@ class Content_Sync_API_Controller {
 		$existing_term = get_term_by( 'slug', sanitize_title( (string) $term_info['slug'] ), $taxonomy );
 		if ( $existing_term ) {
 			wp_update_term( (int) $existing_term->term_id, $taxonomy, $args );
+			$this->apply_synced_term_wpml_data( (int) $existing_term->term_id, $taxonomy, (array) $term_info, [] );
 			return (int) $existing_term->term_id;
 		}
 
@@ -2638,7 +3134,10 @@ class Content_Sync_API_Controller {
 			return 0;
 		}
 
-		return (int) $new_term['term_id'];
+		$term_id = (int) $new_term['term_id'];
+		$this->apply_synced_term_wpml_data( $term_id, $taxonomy, (array) $term_info, [] );
+
+		return $term_id;
 	}
 
 	/**
@@ -2829,6 +3328,10 @@ class Content_Sync_API_Controller {
 	public function get_children_posts( $request ) {
 		$parent_id = absint( $request->get_param( 'parent_id' ) );
 		$post_type = sanitize_text_field( $request->get_param( 'post_type' ) ?: '' );
+		$language  = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
+		if ( ! WPML_Compatibility::is_active() ) {
+			$language = '';
+		}
 
 		// If no post_type provided, derive it from the parent post type.
 		if ( empty( $post_type ) ) {
@@ -2846,18 +3349,38 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-		$children = get_posts(
-			array(
-				'post_parent'         => $parent_id,
-				'post_type'           => ! empty( $post_type ) ? $post_type : 'any',
-				'post_status'         => array( 'publish', 'draft', 'pending', 'private', 'future' ),
-				'posts_per_page'      => -1,
-				'orderby'             => 'date',
-				'order'               => 'DESC',
-				'ignore_sticky_posts' => true,
-				'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
-			)
+		$args = array(
+			'post_parent'         => $parent_id,
+			'post_type'           => ! empty( $post_type ) ? $post_type : 'any',
+			'post_status'         => array( 'publish', 'draft', 'pending', 'private', 'future' ),
+			'posts_per_page'      => -1,
+			'suppress_filters'    => false,
+			'orderby'             => 'date',
+			'order'               => 'DESC',
+			'ignore_sticky_posts' => true,
+			'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 		);
+
+		if ( '' !== $language ) {
+			$args['lang'] = $language;
+		}
+
+		if ( 'all' === $language ) {
+			$args['suppress_filters'] = true;
+			unset( $args['lang'] );
+		}
+
+		$previous_wpml_language = '';
+		if ( '' !== $language && function_exists( 'apply_filters' ) && function_exists( 'do_action' ) ) {
+			$previous_wpml_language = sanitize_key( (string) apply_filters( 'wpml_current_language', '' ) );
+			do_action( 'wpml_switch_language', $language );
+		}
+
+		$children = get_posts( $args );
+
+		if ( '' !== $previous_wpml_language && function_exists( 'do_action' ) ) {
+			do_action( 'wpml_switch_language', $previous_wpml_language );
+		}
 
 		$children_list = array();
 
@@ -2885,5 +3408,155 @@ class Content_Sync_API_Controller {
 			),
 			200
 		);
+	}
+
+	/**
+	 * Append WPML language data to a post sync payload.
+	 *
+	 * @param array  $post_data Post sync payload, passed by reference.
+	 * @param int    $post_id   Source post ID.
+	 * @param string $post_type Source post type.
+	 * @return void
+	 */
+	private function append_wpml_post_sync_data( array &$post_data, $post_id, $post_type ) {
+		if ( ! WPML_Compatibility::is_active() ) {
+			return;
+		}
+
+		$wpml_data = WPML_Compatibility::export_post_data( (int) $post_id, (string) $post_type );
+		if ( ! empty( $wpml_data ) ) {
+			$post_data['wpml'] = $wpml_data;
+		}
+	}
+
+	/**
+	 * Append WPML language data to a term sync payload.
+	 *
+	 * @param array  $term_info Term sync payload, passed by reference.
+	 * @param int    $term_id   Source term ID.
+	 * @param string $taxonomy  Taxonomy name.
+	 * @return void
+	 */
+	private function append_wpml_term_sync_data( array &$term_info, $term_id, $taxonomy ) {
+		if ( ! WPML_Compatibility::is_active() ) {
+			return;
+		}
+
+		$wpml_data = WPML_Compatibility::export_term_data( (int) $term_id, (string) $taxonomy );
+		if ( ! empty( $wpml_data ) ) {
+			$term_info['wpml'] = $wpml_data;
+		}
+	}
+
+	/**
+	 * Apply WPML language data received through content sync.
+	 *
+	 * @param int   $post_id       Target post ID.
+	 * @param array $post_data     Incoming post payload.
+	 * @param array $source_id_map Source post ID => target post ID.
+	 * @return void
+	 */
+	private function apply_synced_post_wpml_data( $post_id, array $post_data, array $source_id_map ) {
+		if ( ! WPML_Compatibility::is_active() || empty( $post_data['wpml'] ) || ! is_array( $post_data['wpml'] ) ) {
+			return;
+		}
+
+		WPML_Compatibility::apply_post_language_details( (int) $post_id, $post_data['wpml'], $source_id_map );
+	}
+
+	/**
+	 * Apply WPML data for a set of synced posts after the full ID map is known.
+	 *
+	 * @param array $posts_data    Incoming posts payload.
+	 * @param array $source_id_map Source post ID => target post ID.
+	 * @return void
+	 */
+	private function apply_synced_posts_wpml_data( array $posts_data, array $source_id_map ) {
+		if ( ! WPML_Compatibility::is_active() || empty( $source_id_map ) ) {
+			return;
+		}
+
+		usort(
+			$posts_data,
+			static function ( $left, $right ) {
+				$left_wpml       = isset( $left['wpml'] ) && is_array( $left['wpml'] ) ? $left['wpml'] : [];
+				$right_wpml      = isset( $right['wpml'] ) && is_array( $right['wpml'] ) ? $right['wpml'] : [];
+				$left_is_source  = empty( $left_wpml['source_language_code'] ) || 'source' === ( $left_wpml['translation_role'] ?? '' );
+				$right_is_source = empty( $right_wpml['source_language_code'] ) || 'source' === ( $right_wpml['translation_role'] ?? '' );
+
+				if ( $left_is_source === $right_is_source ) {
+					return 0;
+				}
+
+				return $left_is_source ? -1 : 1;
+			}
+		);
+
+		foreach ( $posts_data as $post_data ) {
+			$source_id = absint( $post_data['ID'] ?? 0 );
+			$target_id = $source_id > 0 ? absint( $source_id_map[ $source_id ] ?? 0 ) : 0;
+			if ( $target_id <= 0 ) {
+				continue;
+			}
+
+			$this->apply_synced_post_wpml_data( $target_id, (array) $post_data, $source_id_map );
+		}
+	}
+
+	/**
+	 * Apply WPML language data received for a synced term.
+	 *
+	 * @param int    $term_id       Target term ID.
+	 * @param string $taxonomy      Taxonomy name.
+	 * @param array  $term_info     Incoming term payload.
+	 * @param array  $source_id_map Source term ID => target term ID.
+	 * @return void
+	 */
+	private function apply_synced_term_wpml_data( $term_id, $taxonomy, array $term_info, array $source_id_map ) {
+		if ( ! WPML_Compatibility::is_active() || empty( $term_info['wpml'] ) || ! is_array( $term_info['wpml'] ) ) {
+			return;
+		}
+
+		WPML_Compatibility::apply_term_language_details( (int) $term_id, (string) $taxonomy, $term_info['wpml'], $source_id_map );
+	}
+
+	/**
+	 * Apply WPML data for synced terms once all target term IDs are known.
+	 *
+	 * @param string $taxonomy      Taxonomy name.
+	 * @param array  $terms         Incoming term payloads.
+	 * @param array  $source_id_map Source term ID => target term ID.
+	 * @return void
+	 */
+	private function apply_synced_terms_wpml_data( $taxonomy, array $terms, array $source_id_map ) {
+		if ( ! WPML_Compatibility::is_active() || empty( $source_id_map ) ) {
+			return;
+		}
+
+		usort(
+			$terms,
+			static function ( $left, $right ) {
+				$left_wpml       = isset( $left['wpml'] ) && is_array( $left['wpml'] ) ? $left['wpml'] : [];
+				$right_wpml      = isset( $right['wpml'] ) && is_array( $right['wpml'] ) ? $right['wpml'] : [];
+				$left_is_source  = empty( $left_wpml['source_language_code'] ) || 'source' === ( $left_wpml['translation_role'] ?? '' );
+				$right_is_source = empty( $right_wpml['source_language_code'] ) || 'source' === ( $right_wpml['translation_role'] ?? '' );
+
+				if ( $left_is_source === $right_is_source ) {
+					return 0;
+				}
+
+				return $left_is_source ? -1 : 1;
+			}
+		);
+
+		foreach ( $terms as $term_info ) {
+			$source_id = absint( $term_info['term_id'] ?? 0 );
+			$target_id = $source_id > 0 ? absint( $source_id_map[ $source_id ] ?? 0 ) : 0;
+			if ( $target_id <= 0 ) {
+				continue;
+			}
+
+			$this->apply_synced_term_wpml_data( $target_id, $taxonomy, (array) $term_info, $source_id_map );
+		}
 	}
 }

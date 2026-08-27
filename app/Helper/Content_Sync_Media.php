@@ -275,16 +275,55 @@ class Content_Sync_Media {
 		}
 
 		// Also try to match image URLs
-		preg_match_all( '/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $url_matches );
+		$images = array_merge( $images, self::extract_images_from_html_urls( $content, 'content_html' ) );
 
-		if ( ! empty( $url_matches[1] ) ) {
-			foreach ( $url_matches[1] as $url ) {
-				$attachment_id = attachment_url_to_postid( $url );
-				if ( $attachment_id ) {
-					$image_data = self::prepare_image_data( $attachment_id, 'content_html' );
-					if ( $image_data ) {
-						$images[] = $image_data;
+		return $images;
+	}
+
+	/**
+	 * Extract source-site attachments referenced by img src and srcset URLs.
+	 *
+	 * @param string $content HTML content.
+	 * @param string $context Context where the image was found.
+	 * @return array Array of image data.
+	 */
+	private static function extract_images_from_html_urls( $content, $context ) {
+		$images = array();
+
+		if ( empty( $content ) || ! is_string( $content ) ) {
+			return $images;
+		}
+
+		$urls = array();
+		if ( preg_match_all( '/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $url_matches ) ) {
+			$urls = array_merge( $urls, $url_matches[1] );
+		}
+
+		if ( preg_match_all( '/\bsrcset=["\']([^"\']+)["\']/i', $content, $srcset_matches ) ) {
+			foreach ( $srcset_matches[1] as $srcset ) {
+				foreach ( array_map( 'trim', explode( ',', (string) $srcset ) ) as $candidate ) {
+					if ( '' === $candidate ) {
+						continue;
 					}
+					$parts = preg_split( '/\s+/', $candidate );
+					if ( ! empty( $parts[0] ) ) {
+						$urls[] = $parts[0];
+					}
+				}
+			}
+		}
+
+		$urls = array_values( array_unique( array_filter( array_map( 'esc_url_raw', $urls ) ) ) );
+		foreach ( $urls as $url ) {
+			if ( '' === $url ) {
+				continue;
+			}
+
+			$attachment_id = attachment_url_to_postid( $url );
+			if ( $attachment_id ) {
+				$image_data = self::prepare_image_data( $attachment_id, $context );
+				if ( $image_data ) {
+					$images[] = $image_data;
 				}
 			}
 		}
@@ -386,18 +425,10 @@ class Content_Sync_Media {
 					}
 				}
 			}
-			// Also collect by src URL (covers cases without wp-image class)
-			if ( preg_match_all( '/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $field['value'], $url_matches ) ) {
-				foreach ( $url_matches[1] as $url ) {
-					$attachment_id = attachment_url_to_postid( $url );
-					if ( $attachment_id ) {
-						$image_data = self::prepare_image_data( $attachment_id, 'acf_wysiwyg_src_' . $field['name'] );
-						if ( $image_data ) {
-							$images[] = $image_data;
-						}
-					}
-				}
-			}
+
+			// Also collect images by src/srcset URLs and classic gallery shortcode IDs.
+			$images = array_merge( $images, self::extract_images_from_html_urls( $field['value'], 'acf_wysiwyg_src_' . $field['name'] ) );
+			$images = array_merge( $images, self::extract_images_from_shortcodes( $field['value'] ) );
 		}
 
 		// Handle gallery field
@@ -710,7 +741,7 @@ class Content_Sync_Media {
 		$file_url  = wp_get_attachment_url( $attachment_id );
 		$metadata  = wp_get_attachment_metadata( $attachment_id );
 
-		return array(
+		$image_data = array(
 			'attachment_id' => $attachment_id,
 			'url'           => $file_url,
 			'source_urls'   => self::get_attachment_source_urls( $attachment_id, $metadata ),
@@ -726,6 +757,15 @@ class Content_Sync_Media {
 			'context'       => $context,
 			'metadata'      => $metadata,
 		);
+
+		if ( class_exists( __NAMESPACE__ . '\WPML_Compatibility' ) && WPML_Compatibility::is_active() ) {
+			$wpml_data = WPML_Compatibility::export_post_data( $attachment_id, 'attachment' );
+			if ( ! empty( $wpml_data ) ) {
+				$image_data['wpml'] = $wpml_data;
+			}
+		}
+
+		return $image_data;
 	}
 
 	/**
