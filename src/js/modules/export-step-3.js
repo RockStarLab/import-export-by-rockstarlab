@@ -793,7 +793,7 @@ export default class ExportStep3 {
 			item.dataset.label = field.label;
 			item.dataset.type = field.type || 'text';
 
-			const iconClass = this.getFieldIcon( field.type );
+			const iconClass = this.getFieldIcon( field.type, field.key );
 
 			item.innerHTML = `
 				<span class="rsl-ie-field-icon dashicons ${ iconClass }"></span>
@@ -1187,9 +1187,13 @@ export default class ExportStep3 {
 
 		const title = document.createElement( 'h4' );
 		title.className = 'rsl-ie-field-category-title';
+		const categoryIcon =
+			group.label === 'WPML'
+				? 'dashicons-translation'
+				: 'dashicons-admin-post';
 		title.innerHTML = `
 			<span class="dashicons dashicons-arrow-down-alt2 rsl-ie-category-toggle"></span>
-			<span class="dashicons dashicons-admin-post"></span>
+			<span class="dashicons ${ categoryIcon }"></span>
 			${ this.escapeHtml( group.label ) }
 			<button type="button" class="rsl-ie-add-all-fields" title="${
 				window.rslIeData.i18n.addAllFieldsTitle
@@ -1237,7 +1241,7 @@ export default class ExportStep3 {
 		item.dataset.label = option.label;
 		item.dataset.type = option.type || 'text';
 
-		const iconClass = this.getFieldIcon( option.type );
+		const iconClass = this.getFieldIcon( option.type, option.value );
 
 		item.innerHTML = `
 			<span class="rsl-ie-field-icon dashicons ${ iconClass }"></span>
@@ -2345,7 +2349,15 @@ export default class ExportStep3 {
 	/**
 	 * Get field icon class
 	 */
-	getFieldIcon( type ) {
+	getFieldIcon( type, fieldKey = '' ) {
+		if (
+			type === 'wpml' ||
+			( typeof fieldKey === 'string' &&
+				fieldKey.indexOf( 'wpml_' ) === 0 )
+		) {
+			return 'dashicons-translation';
+		}
+
 		const icons = {
 			post: 'dashicons-admin-post',
 			text: 'dashicons-editor-textcolor',
@@ -2357,6 +2369,7 @@ export default class ExportStep3 {
 			taxonomy: 'dashicons-category',
 			array: 'dashicons-list-view',
 			custom: 'dashicons-admin-generic',
+			wpml: 'dashicons-translation',
 		};
 
 		return icons[ type ] || 'dashicons-admin-generic';

@@ -575,6 +575,20 @@ class ACF_Fields {
 		$value = self::maybe_decode( $value );
 		$type  = (string) ( $field_object['type'] ?? '' );
 
+		if ( 'icon_picker' === $type ) {
+			if ( is_array( $value ) ) {
+				return [
+					'type'  => (string) ( $value['type'] ?? '' ),
+					'value' => (string) ( $value['value'] ?? '' ),
+				];
+			}
+
+			return [
+				'type'  => '' === (string) $value ? '' : 'dashicons',
+				'value' => (string) $value,
+			];
+		}
+
 		if ( is_array( $value ) && isset( $value['acf_type'] ) ) {
 			switch ( $value['acf_type'] ) {
 				case 'gallery':
@@ -935,20 +949,70 @@ class ACF_Fields {
 		 * @return string
 		 */
 	private static function replace_media_urls_in_html( $html, $parent_id = 0 ) {
-		return preg_replace_callback(
-			'~https?://[^\s\'"]+\.(?:jpe?g|png|gif|webp|avif|svg|pdf|mp3|m4a|ogg|wav|mp4|m4v|mov|webm)(?:\?[^\s\'"]*)?~i',
+		$html = preg_replace_callback(
+			'/<img\b[^>]*>/i',
 			static function ( $matches ) use ( $parent_id ) {
-				$url = html_entity_decode( $matches[0], ENT_QUOTES, get_bloginfo( 'charset' ) );
-				$id  = self::attachment_id_from_value( $url, $parent_id );
+				$tag = self::replace_media_url_attribute( $matches[0], 'src', $parent_id );
+
+				return preg_replace_callback(
+					'/\bsrcset=(["\'])([^"\']+)\1/i',
+					static function ( $srcset_match ) use ( $parent_id ) {
+						$candidates = array_map( 'trim', explode( ',', $srcset_match[2] ) );
+						foreach ( $candidates as &$candidate ) {
+							$parts = preg_split( '/\s+/', $candidate, 2 );
+							$url   = isset( $parts[0] ) ? html_entity_decode( $parts[0], ENT_QUOTES, get_bloginfo( 'charset' ) ) : '';
+							$id    = '' !== $url ? self::attachment_id_from_value( $url, $parent_id ) : 0;
+							if ( $id > 0 ) {
+								$local_url = wp_get_attachment_url( $id );
+								if ( $local_url ) {
+									$candidate = esc_url_raw( $local_url ) . ( isset( $parts[1] ) ? ' ' . $parts[1] : '' );
+								}
+							}
+						}
+						unset( $candidate );
+
+						return 'srcset=' . $srcset_match[1] . esc_attr( implode( ', ', $candidates ) ) . $srcset_match[1];
+					},
+					$tag
+				);
+			},
+			$html
+		);
+
+		return preg_replace_callback(
+			'/<a\b[^>]*>/i',
+			static function ( $matches ) use ( $parent_id ) {
+				return self::replace_media_url_attribute( $matches[0], 'href', $parent_id );
+			},
+			$html
+		);
+	}
+
+	private static function replace_media_url_attribute( $tag, $attribute, $parent_id = 0 ) {
+		return preg_replace_callback(
+			'/\b' . preg_quote( $attribute, '/' ) . '=(["\'])([^"\']+)\1/i',
+			static function ( $matches ) use ( $attribute, $parent_id ) {
+				$url = html_entity_decode( $matches[2], ENT_QUOTES, get_bloginfo( 'charset' ) );
+				if ( ! self::is_media_url( $url ) ) {
+					return $matches[0];
+				}
+
+				$id = self::attachment_id_from_value( $url, $parent_id );
 				if ( $id <= 0 ) {
 					return $matches[0];
 				}
 
 				$local_url = wp_get_attachment_url( $id );
-				return $local_url ? esc_url_raw( $local_url ) : $matches[0];
+				return $local_url ? $attribute . '=' . $matches[1] . esc_url_raw( $local_url ) . $matches[1] : $matches[0];
 			},
-			$html
+			$tag
 		);
+	}
+
+	private static function is_media_url( $url ) {
+		return is_string( $url )
+			&& filter_var( $url, FILTER_VALIDATE_URL )
+			&& (bool) preg_match( '~\.(?:jpe?g|png|gif|webp|avif|svg|pdf|mp3|m4a|ogg|wav|mp4|m4v|mov|webm)(?:\?.*)?$~i', (string) wp_parse_url( $url, PHP_URL_PATH ) );
 	}
 
 		/**

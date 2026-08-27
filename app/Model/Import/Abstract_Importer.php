@@ -11,6 +11,7 @@ namespace RockStarLab\ImportExport\Model\Import;
 
 use RockStarLab\ImportExport\Helper\Data_Transformer;
 use RockStarLab\ImportExport\Helper\Field_Transformation_Bridge;
+use RockStarLab\ImportExport\Model\Job;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -22,6 +23,16 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 * @var int
 	 */
 	protected $job_id;
+
+	/**
+	 * Cached cancellation check for the current request.
+	 *
+	 * @var array
+	 */
+	private $cancel_check_cache = [
+		'time'      => 0.0,
+		'cancelled' => false,
+	];
 
 	/**
 	 * Import options
@@ -55,6 +66,36 @@ abstract class Abstract_Importer implements Importer_Interface {
 	}
 
 	/**
+	 * Check whether the current job has been cancelled.
+	 *
+	 * The result is cached briefly so heavy media/import loops can react quickly
+	 * without querying the jobs table before every tiny operation.
+	 *
+	 * @return bool
+	 */
+	protected function is_job_cancelled() {
+		$job_id = absint( $this->job_id );
+		if ( $job_id <= 0 ) {
+			return false;
+		}
+
+		$now = microtime( true );
+		if ( ( $now - (float) $this->cancel_check_cache['time'] ) < 1.0 ) {
+			return (bool) $this->cancel_check_cache['cancelled'];
+		}
+
+		$job       = ( new Job() )->find( $job_id );
+		$cancelled = $job && in_array( (string) $job->status, [ 'cancelled', 'paused' ], true );
+
+		$this->cancel_check_cache = [
+			'time'      => $now,
+			'cancelled' => (bool) $cancelled,
+		];
+
+		return (bool) $cancelled;
+	}
+
+	/**
 	 * Import data
 	 *
 	 * @param array $data    Data to import
@@ -77,6 +118,11 @@ abstract class Abstract_Importer implements Importer_Interface {
 
 		// Import each item
 		foreach ( $data as $index => $item ) {
+			if ( $this->is_job_cancelled() ) {
+				$this->log_info( __( 'Import cancelled.', 'import-export-by-rockstarlab' ) );
+				break;
+			}
+
 			$result = $this->import_item( $item, $index );
 
 			if ( is_wp_error( $result ) ) {

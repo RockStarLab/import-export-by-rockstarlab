@@ -221,6 +221,22 @@
 		return 'admin.php?page=rsl-ie-content-sync';
 	}
 
+	function getCurrentWpmlLanguage() {
+		const urlParams = new URLSearchParams( window.location.search );
+		if ( urlParams.has( 'lang' ) ) {
+			return urlParams.get( 'lang' ) || '';
+		}
+
+		const cookieMatch = document.cookie.match(
+			/(?:^|;\s*)(?:_icl_current_language|wpml_current_language|wpml_admin_language)=([^;]+)/
+		);
+		if ( cookieMatch && cookieMatch[ 1 ] ) {
+			return decodeURIComponent( cookieMatch[ 1 ] );
+		}
+
+		return config.wpmlLanguage || '';
+	}
+
 	function redirectToContentSyncIfNoSites() {
 		if ( hasConnectedSites() ) {
 			return false;
@@ -668,6 +684,7 @@
 			search,
 			page: 1,
 			per_page: 100,
+			language: getCurrentWpmlLanguage(),
 		} )
 			.done( ( data ) => {
 				const terms = extractTerms( data );

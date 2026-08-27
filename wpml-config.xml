@@ -1,0 +1,27 @@
+<wpml-config>
+	<custom-fields>
+		<custom-field action="ignore">_rsl_ie_source_post_id</custom-field>
+		<custom-field action="ignore">_rsl_ie_source_id</custom-field>
+		<custom-field action="ignore">_rsl_ie_source_url</custom-field>
+		<custom-field action="ignore">_rsl_ie_import_job_id</custom-field>
+		<custom-field action="ignore">_rsl_ie_import_job_action</custom-field>
+		<custom-field action="ignore">_rsl_ie_imported_images</custom-field>
+		<custom-field action="ignore">_rsl_ie_original_post_id</custom-field>
+		<custom-field action="ignore">_rsl_ie_original_attachment_id</custom-field>
+		<custom-field action="ignore">_rsl_ie_wpml_import_data</custom-field>
+		<custom-field action="ignore">_rsl_ie_wpml_source_trid</custom-field>
+		<custom-field action="ignore">_rsl_ie_file_hash</custom-field>
+		<custom-field action="ignore">_rsl_ie_image_hash</custom-field>
+		<custom-field action="ignore">rsl_ie_file_hash</custom-field>
+		<custom-field action="ignore">rsl_ie_file_size</custom-field>
+		<custom-field action="ignore">rsl_ie_hash_added</custom-field>
+		<custom-field action="ignore">rsl_ie_file_url</custom-field>
+		<custom-field action="ignore">rsl_ie_original_path</custom-field>
+		<custom-field action="ignore">rsl_ie_source_url</custom-field>
+		<custom-field action="ignore">rsl_ie_source_url_hash</custom-field>
+	</custom-fields>
+	<custom-term-fields>
+		<custom-term-field action="ignore">_rsl_ie_wpml_import_data</custom-term-field>
+		<custom-term-field action="ignore">_rsl_ie_wpml_source_trid</custom-term-field>
+	</custom-term-fields>
+</wpml-config>

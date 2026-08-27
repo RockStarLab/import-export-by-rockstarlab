@@ -10,6 +10,7 @@
 namespace RockStarLab\ImportExport\Model\Export;
 
 use RockStarLab\ImportExport\Helper\ACF_Fields;
+use RockStarLab\ImportExport\Helper\WPML_Compatibility;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -46,17 +47,18 @@ class Post_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'post_type'     => __( 'Post type (post, page, or custom post type)', 'import-export-by-rockstarlab' ),
-			'post_status'   => __( 'Post status (publish, draft, pending, etc.)', 'import-export-by-rockstarlab' ),
-			'author'        => __( 'Author ID or array of IDs', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-			'date_query'    => __( 'Date query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-			'tax_query'     => __( 'Taxonomy query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- tax_query required for filtering.
-			'meta_query'    => __( 'Meta query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
-			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'import-export-by-rockstarlab' ),
-			'taxonomy'      => __( 'Taxonomy filters: array of [taxonomy, terms, condition]', 'import-export-by-rockstarlab' ),
-			's'             => __( 'Search query', 'import-export-by-rockstarlab' ),
-			'orderby'       => __( 'Order by field', 'import-export-by-rockstarlab' ),
-			'order'         => __( 'Order direction (ASC or DESC)', 'import-export-by-rockstarlab' ),
+			'post_type'          => __( 'Post type (post, page, or custom post type)', 'import-export-by-rockstarlab' ),
+			'post_status'        => __( 'Post status (publish, draft, pending, etc.)', 'import-export-by-rockstarlab' ),
+			'author'             => __( 'Author ID or array of IDs', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+			'date_query'         => __( 'Date query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+			'tax_query'          => __( 'Taxonomy query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- tax_query required for filtering.
+			'meta_query'         => __( 'Meta query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
+			'custom_fields'      => __( 'Custom field filters: array of [name, value, condition]', 'import-export-by-rockstarlab' ),
+			'taxonomy'           => __( 'Taxonomy filters: array of [taxonomy, terms, condition]', 'import-export-by-rockstarlab' ),
+			's'                  => __( 'Search query', 'import-export-by-rockstarlab' ),
+			'orderby'            => __( 'Order by field', 'import-export-by-rockstarlab' ),
+			'order'              => __( 'Order direction (ASC or DESC)', 'import-export-by-rockstarlab' ),
+			'wpml_language_code' => __( 'WPML language code (en, ru, etc.)', 'import-export-by-rockstarlab' ),
 		];
 	}
 
@@ -66,7 +68,7 @@ class Post_Exporter extends Abstract_Exporter {
 	 * @return array
 	 */
 	public function get_available_fields() {
-		return [
+		$fields = [
 			'ID',
 			'post_title',
 			'post_content',
@@ -199,6 +201,21 @@ class Post_Exporter extends Abstract_Exporter {
 			'rank_math_twitter_enable_image_overlay',
 			'rank_math_twitter_image_overlay',
 		];
+
+		if ( WPML_Compatibility::is_active() ) {
+			$fields = array_merge(
+				$fields,
+				[
+					'wpml_language_code',
+					'wpml_source_language_code',
+					'wpml_translation_group',
+					'wpml_translation_role',
+					'wpml_translations',
+				]
+			);
+		}
+
+		return $fields;
 	}
 
 	/**
@@ -263,8 +280,9 @@ class Post_Exporter extends Abstract_Exporter {
 		unset( $query_args['offset'] );
 		unset( $query_args['paged'] );
 
-		$query_args['fields']         = 'ids';
-		$query_args['posts_per_page'] = -1;
+		$query_args['fields']           = 'ids';
+		$query_args['posts_per_page']   = -1;
+		$query_args['suppress_filters'] = true;
 
 		// Combine custom filters
 		$custom_id_filters     = $query_args['_custom_id_filters'] ?? [];
@@ -502,6 +520,7 @@ class Post_Exporter extends Abstract_Exporter {
 			'orderby'             => $options['orderby'] ?? 'date',
 			'order'               => $options['order'] ?? 'DESC',
 			'ignore_sticky_posts' => true,
+			'suppress_filters'    => true,
 		];
 
 		// When querying products, exclude variations (child post_type = product_variation)
@@ -1607,6 +1626,10 @@ class Post_Exporter extends Abstract_Exporter {
 			case 'attached_post_title':
 				$parent = $attachment->post_parent ? get_post( $attachment->post_parent ) : null;
 				return $parent ? $parent->post_title : '';
+			case 'wpml_language_code':
+				return WPML_Compatibility::is_active()
+					? WPML_Compatibility::get_post_language_code( $attachment_id, (string) $attachment->post_type )
+					: '';
 			default:
 				return isset( $attachment->$field ) ? $attachment->$field : get_post_meta( $attachment_id, $field, true );
 		}
@@ -2075,6 +2098,36 @@ class Post_Exporter extends Abstract_Exporter {
 		if ( in_array( 'author_email', $fields, true ) ) {
 			$author               = get_userdata( $post->post_author );
 			$data['author_email'] = $author ? $author->user_email : '';
+		}
+
+		// WPML language and translation relationship fields.
+		$wpml_fields = [
+			'wpml_language_code',
+			'wpml_source_language_code',
+			'wpml_translation_group',
+			'wpml_translation_role',
+			'wpml_translations',
+		];
+		if ( array_intersect( $wpml_fields, $fields ) && WPML_Compatibility::is_active() ) {
+			$wpml_data = WPML_Compatibility::export_post_data( (int) $post->ID, (string) $post->post_type );
+			if ( ! empty( $wpml_data ) ) {
+				if ( in_array( 'wpml_language_code', $fields, true ) ) {
+					$data['wpml_language_code'] = $wpml_data['language_code'] ?? '';
+				}
+				if ( in_array( 'wpml_source_language_code', $fields, true ) ) {
+					$data['wpml_source_language_code'] = $wpml_data['source_language_code'] ?? '';
+				}
+				if ( in_array( 'wpml_translation_group', $fields, true ) ) {
+					$data['wpml_translation_group'] = $wpml_data['translation_group'] ?? '';
+				}
+				if ( in_array( 'wpml_translation_role', $fields, true ) ) {
+					$data['wpml_translation_role'] = $wpml_data['translation_role'] ?? '';
+				}
+				if ( in_array( 'wpml_translations', $fields, true ) ) {
+					$translations              = $wpml_data['translations'] ?? [];
+					$data['wpml_translations'] = ! empty( $translations ) ? wp_json_encode( $translations ) : '';
+				}
+			}
 		}
 
 		// Post meta
@@ -2625,12 +2678,12 @@ class Post_Exporter extends Abstract_Exporter {
 			}
 		}
 
-		// ── Relationship / Post Object ────────────────────────────────────────
+		// ── Relationship / Post Object / Page Link ────────────────────────────
 		// Trigger ONLY when ACF confirms type OR first item IS a WP_Post object.
 		// Do NOT trigger on plain integer arrays without a confirmed type —
 		// integer IDs that happen to match posts are indistinguishable from
 		// term IDs or ACF field-config post IDs.
-		$is_relation = in_array( $field_type, [ 'relationship', 'post_object' ], true )
+		$is_relation = in_array( $field_type, [ 'relationship', 'post_object', 'page_link' ], true )
 			|| ( '' === $field_type && $first instanceof \WP_Post );
 
 		if ( $is_relation ) {
@@ -2655,6 +2708,8 @@ class Post_Exporter extends Abstract_Exporter {
 						}
 					}
 					$slugs[] = $item['post_name'];
+				} elseif ( is_string( $item ) && filter_var( $item, FILTER_VALIDATE_URL ) ) {
+					$slugs[] = $item;
 				} elseif ( is_numeric( $item ) && '' !== $field_type ) {
 					// Only resolve IDs to slugs when the type is confirmed by ACF.
 					$p = get_post( (int) $item );
@@ -2675,6 +2730,7 @@ class Post_Exporter extends Abstract_Exporter {
 					[
 						'acf_type' => 'relation',
 						'values'   => $slugs,
+						'single'   => ! is_array( $value ),
 					]
 				);
 			}
@@ -2768,6 +2824,11 @@ class Post_Exporter extends Abstract_Exporter {
 		$type = $field_obj['type'] ?? '';
 
 		switch ( $type ) {
+			case 'text':
+			case 'textarea':
+			case 'wysiwyg':
+				return is_string( $value ) ? $this->acf_export_string_with_gallery_tokens( $value, $post_id ) : $value;
+
 			case 'image':
 			case 'file':
 				return $this->acf_export_media_url( $value, $post_id );
@@ -2789,6 +2850,7 @@ class Post_Exporter extends Abstract_Exporter {
 
 			case 'relationship':
 			case 'post_object':
+			case 'page_link':
 				$items = is_array( $value ) ? $value : [ $value ];
 				$slugs = [];
 				foreach ( $items as $item ) {
@@ -2796,6 +2858,8 @@ class Post_Exporter extends Abstract_Exporter {
 						$slugs[] = $item->post_name;
 					} elseif ( is_array( $item ) && isset( $item['post_name'] ) ) {
 						$slugs[] = $item['post_name'];
+					} elseif ( is_string( $item ) && filter_var( $item, FILTER_VALIDATE_URL ) ) {
+						$slugs[] = $item;
 					} elseif ( is_numeric( $item ) ) {
 						$p = get_post( (int) $item );
 						if ( $p ) {
@@ -2803,13 +2867,23 @@ class Post_Exporter extends Abstract_Exporter {
 						}
 					}
 				}
-				$slugs   = array_values( array_filter( array_map( 'sanitize_title', $slugs ) ) );
+				$slugs   = array_values(
+					array_filter(
+						array_map(
+							static function ( $ref ) {
+								$ref = (string) $ref;
+								return filter_var( $ref, FILTER_VALIDATE_URL ) ? $ref : sanitize_title( $ref );
+							},
+							$slugs
+						)
+					)
+				);
 				$payload = [
 					'acf_type' => 'relation',
 					'values'   => $slugs,
 				];
 				// post_object can be single or multiple; relationship is always multiple.
-				if ( 'post_object' === $type && empty( $field_obj['multiple'] ) ) {
+				if ( in_array( $type, [ 'post_object', 'page_link' ], true ) && empty( $field_obj['multiple'] ) ) {
 					$payload['single'] = true;
 				}
 				return $payload;
@@ -2851,11 +2925,13 @@ class Post_Exporter extends Abstract_Exporter {
 				$out = [];
 				foreach ( ( $field_obj['sub_fields'] ?? [] ) as $sub ) {
 					$name = $sub['name'] ?? '';
-					if ( '' === $name ) {
+					$key  = $sub['key'] ?? '';
+					if ( '' === $name && '' === $key ) {
 						continue;
 					}
-					$sub_value    = array_key_exists( $name, $value ) ? $value[ $name ] : null;
-					$out[ $name ] = $this->export_acf_portable_nested_value( $sub_value, $sub, $post_id );
+					$out_key         = '' !== $name ? $name : $key;
+					$sub_value       = $this->acf_get_nested_value_by_name_or_key( $value, (string) $name, (string) $key );
+					$out[ $out_key ] = $this->export_acf_portable_nested_value( $sub_value, $sub, $post_id );
 				}
 				return $out;
 
@@ -2879,7 +2955,7 @@ class Post_Exporter extends Abstract_Exporter {
 					}
 					$row_out = [];
 					foreach ( $sub_by_name as $name => $sub ) {
-						$sub_value        = array_key_exists( $name, $row ) ? $row[ $name ] : null;
+						$sub_value        = $this->acf_get_nested_value_by_name_or_key( $row, (string) $name, (string) ( $sub['key'] ?? '' ) );
 						$row_out[ $name ] = $this->export_acf_portable_nested_value( $sub_value, $sub, $post_id );
 					}
 					$rows[] = $row_out;
@@ -2913,7 +2989,7 @@ class Post_Exporter extends Abstract_Exporter {
 						if ( '' === $name ) {
 							continue;
 						}
-						$sub_value        = array_key_exists( $name, $row ) ? $row[ $name ] : null;
+						$sub_value        = $this->acf_get_nested_value_by_name_or_key( $row, (string) $name, (string) ( $sub['key'] ?? '' ) );
 						$row_out[ $name ] = $this->export_acf_portable_nested_value( $sub_value, $sub, $post_id );
 					}
 
@@ -2950,6 +3026,30 @@ class Post_Exporter extends Abstract_Exporter {
 		}
 
 		return '';
+	}
+
+	/**
+	 * Read a nested ACF value using either the field name or the field key.
+	 *
+	 * ACF can return repeater/group/flexible rows keyed by field keys
+	 * (`field_xxx`) even when the field definition exposes a human name.
+	 * Exporters must support both shapes or nested media fields become empty.
+	 *
+	 * @param array  $row        ACF row/group data.
+	 * @param string $field_name Field name.
+	 * @param string $field_key  Field key.
+	 * @return mixed|null
+	 */
+	private function acf_get_nested_value_by_name_or_key( array $row, string $field_name, string $field_key ) {
+		if ( '' !== $field_name && array_key_exists( $field_name, $row ) ) {
+			return $row[ $field_name ];
+		}
+
+		if ( '' !== $field_key && array_key_exists( $field_key, $row ) ) {
+			return $row[ $field_key ];
+		}
+
+		return null;
 	}
 
 	/**
@@ -3126,7 +3226,7 @@ class Post_Exporter extends Abstract_Exporter {
 			case 'text':
 				$raw = get_post_meta( $post_id, $base_meta_key, true );
 				if ( is_string( $raw ) && '' !== $raw ) {
-					return $this->acf_export_string_with_gallery_tokens( $raw );
+					return $this->acf_export_string_with_gallery_tokens( $raw, $post_id );
 				}
 				return $raw;
 
@@ -3421,6 +3521,7 @@ class Post_Exporter extends Abstract_Exporter {
 					if ( $url ) {
 						$urls[]  = $url;
 						$items[] = [
+							'source_id'   => $attachment_id,
 							'url'         => $url,
 							'title'       => get_the_title( $attachment_id ),
 							'caption'     => (string) wp_get_attachment_caption( $attachment_id ),
@@ -3703,6 +3804,24 @@ class Post_Exporter extends Abstract_Exporter {
 				'menu_items'  => [],
 			];
 
+			$wpml_fields = [
+				'wpml_language_code',
+				'wpml_source_language_code',
+				'wpml_translation_group',
+				'wpml_translation_role',
+				'wpml_translations',
+			];
+			if ( array_intersect( $wpml_fields, $fields ) && WPML_Compatibility::is_active() ) {
+				$wpml_data = WPML_Compatibility::export_term_data( (int) $term->term_id, 'nav_menu' );
+				if ( ! empty( $wpml_data ) ) {
+					$menu_data['wpml_language_code']        = $wpml_data['language_code'] ?? '';
+					$menu_data['wpml_source_language_code'] = $wpml_data['source_language_code'] ?? '';
+					$menu_data['wpml_translation_group']    = $wpml_data['translation_group'] ?? '';
+					$menu_data['wpml_translation_role']     = $wpml_data['translation_role'] ?? '';
+					$menu_data['wpml_translations']         = ! empty( $wpml_data['translations'] ) ? wp_json_encode( $wpml_data['translations'] ) : '';
+				}
+			}
+
 			// Process each field
 			foreach ( $fields as $field ) {
 				// Handle ACF fields (with acf_ prefix) for menu term
@@ -3877,6 +3996,10 @@ class Post_Exporter extends Abstract_Exporter {
 					},
 					$items
 				);
+			case 'wpml_language_code':
+				return WPML_Compatibility::is_active()
+					? WPML_Compatibility::get_term_language_code( (int) $term->term_id, 'nav_menu' )
+					: '';
 			default:
 				return isset( $term->$field ) ? $term->$field : get_term_meta( $term->term_id, $field, true );
 		}

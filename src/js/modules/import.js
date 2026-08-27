@@ -1469,7 +1469,11 @@ const ImportModule = {
 
 		fieldGroups.forEach( ( group ) => {
 			html += `<div class="rsl-ie-field-group">`;
-			html += `<div class="rsl-ie-field-group-label">${ group.label }</div>`;
+			const groupIcon =
+				group.label === 'WPML'
+					? '<span class="dashicons dashicons-translation"></span> '
+					: '';
+			html += `<div class="rsl-ie-field-group-label">${ groupIcon }${ group.label }</div>`;
 
 			group.options.forEach( ( field ) => {
 				// Skip special fields (except template field)
@@ -1498,6 +1502,10 @@ const ImportModule = {
 					</div>
 				`;
 				} else {
+					const iconClass = this.getTargetFieldIcon(
+						field.type,
+						field.value
+					);
 					html += `
 					<div class="rsl-ie-target-field" data-target-field="${
 						field.value
@@ -1505,7 +1513,7 @@ const ImportModule = {
 						field.type || 'string'
 					}" data-multiple="${ field.multiple || false }">
 						<div class="rsl-ie-field-icon">
-							<span class="dashicons dashicons-wordpress"></span>
+							<span class="dashicons ${ iconClass }"></span>
 						</div>
 						<div class="rsl-ie-field-info">
 							<div class="rsl-ie-field-label">${ field.label }</div>
@@ -1523,6 +1531,18 @@ const ImportModule = {
 
 		// Initialize custom field add buttons
 		this.initCustomFieldButtons();
+	},
+
+	getTargetFieldIcon( type, fieldValue = '' ) {
+		if (
+			type === 'wpml' ||
+			( typeof fieldValue === 'string' &&
+				fieldValue.indexOf( 'wpml_' ) === 0 )
+		) {
+			return 'dashicons-translation';
+		}
+
+		return 'dashicons-wordpress';
 	},
 
 	/**
@@ -1884,6 +1904,39 @@ const ImportModule = {
 			},
 		];
 
+		if ( window.rslIeData?.isWPMLActive ) {
+			baseFields.splice( baseFields.length - 1, 0, {
+				label: 'WPML',
+				options: [
+					{
+						value: 'wpml_language_code',
+						label: 'Language Code',
+						type: 'wpml',
+					},
+					{
+						value: 'wpml_source_language_code',
+						label: 'Source Language Code',
+						type: 'wpml',
+					},
+					{
+						value: 'wpml_translation_group',
+						label: 'Translation Group',
+						type: 'wpml',
+					},
+					{
+						value: 'wpml_translation_role',
+						label: 'Translation Role',
+						type: 'wpml',
+					},
+					{
+						value: 'wpml_translations',
+						label: 'Translations Map',
+						type: 'wpml',
+					},
+				],
+			} );
+		}
+
 		// Media
 		if ( contentType === 'media' ) {
 			return translateGroups( [
@@ -1997,6 +2050,40 @@ const ImportModule = {
 						},
 					],
 				},
+				...( window.rslIeData?.isWPMLActive
+					? [
+							{
+								label: 'WPML',
+								options: [
+									{
+										value: 'wpml_language_code',
+										label: 'Language Code',
+										type: 'wpml',
+									},
+									{
+										value: 'wpml_source_language_code',
+										label: 'Source Language Code',
+										type: 'wpml',
+									},
+									{
+										value: 'wpml_translation_group',
+										label: 'Translation Group',
+										type: 'wpml',
+									},
+									{
+										value: 'wpml_translation_role',
+										label: 'Translation Role',
+										type: 'wpml',
+									},
+									{
+										value: 'wpml_translations',
+										label: 'Translations Map',
+										type: 'wpml',
+									},
+								],
+							},
+					  ]
+					: [] ),
 			] );
 		}
 
@@ -2010,6 +2097,11 @@ const ImportModule = {
 				{
 					label: 'Basic',
 					options: [
+						{
+							value: 'term_id',
+							label: 'Source Menu ID',
+							type: 'number',
+						},
 						{ value: 'name', label: 'Menu Name', type: 'string' },
 						{ value: 'slug', label: 'Menu Slug', type: 'string' },
 						{
@@ -2035,6 +2127,40 @@ const ImportModule = {
 						},
 					],
 				},
+				...( window.rslIeData?.isWPMLActive
+					? [
+							{
+								label: 'WPML',
+								options: [
+									{
+										value: 'wpml_language_code',
+										label: 'Language Code',
+										type: 'wpml',
+									},
+									{
+										value: 'wpml_source_language_code',
+										label: 'Source Language Code',
+										type: 'wpml',
+									},
+									{
+										value: 'wpml_translation_group',
+										label: 'Translation Group',
+										type: 'wpml',
+									},
+									{
+										value: 'wpml_translation_role',
+										label: 'Translation Role',
+										type: 'wpml',
+									},
+									{
+										value: 'wpml_translations',
+										label: 'Translations Map',
+										type: 'wpml',
+									},
+								],
+							},
+					  ]
+					: [] ),
 			] );
 		}
 
@@ -2424,6 +2550,40 @@ const ImportModule = {
 						},
 					],
 				},
+				...( window.rslIeData?.isWPMLActive
+					? [
+							{
+								label: 'WPML',
+								options: [
+									{
+										value: 'wpml_language_code',
+										label: 'Language Code',
+										type: 'wpml',
+									},
+									{
+										value: 'wpml_source_language_code',
+										label: 'Source Language Code',
+										type: 'wpml',
+									},
+									{
+										value: 'wpml_translation_group',
+										label: 'Translation Group',
+										type: 'wpml',
+									},
+									{
+										value: 'wpml_translation_role',
+										label: 'Translation Role',
+										type: 'wpml',
+									},
+									{
+										value: 'wpml_translations',
+										label: 'Translations Map',
+										type: 'wpml',
+									},
+								],
+							},
+					  ]
+					: [] ),
 				{
 					label: 'Product Data',
 					options: [
@@ -3082,6 +3242,40 @@ const ImportModule = {
 						{ value: 'count', label: 'Count', type: 'number' },
 					],
 				},
+				...( window.rslIeData?.isWPMLActive
+					? [
+							{
+								label: 'WPML',
+								options: [
+									{
+										value: 'wpml_language_code',
+										label: 'Language Code',
+										type: 'wpml',
+									},
+									{
+										value: 'wpml_source_language_code',
+										label: 'Source Language Code',
+										type: 'wpml',
+									},
+									{
+										value: 'wpml_translation_group',
+										label: 'Translation Group',
+										type: 'wpml',
+									},
+									{
+										value: 'wpml_translation_role',
+										label: 'Translation Role',
+										type: 'wpml',
+									},
+									{
+										value: 'wpml_translations',
+										label: 'Translations Map',
+										type: 'wpml',
+									},
+								],
+							},
+					  ]
+					: [] ),
 				{
 					label: 'Custom Fields (Term Meta)',
 					options: [

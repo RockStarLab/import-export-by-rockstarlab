@@ -144,6 +144,18 @@ $rsl_ie_pro_active     = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_acti
 							<a href="<?php echo esc_url( admin_url( 'admin.php?page=import-export-by-rockstarlab-addons' ) ); ?>" class="button button-primary rsl-ie-promo-cta">
 								<?php esc_html_e( 'Get PRO Addon →', 'import-export-by-rockstarlab' ); ?>
 							</a>
+							<div class="rsl-ie-card__header rsl-ie-promo-offer-header">
+								<h2 class="rsl-ie-card__title">
+									<span class="dashicons dashicons-clock" aria-hidden="true"></span>
+									<?php esc_html_e( 'Limited Time Offer', 'import-export-by-rockstarlab' ); ?>
+								</h2>
+							</div>
+							<p class="rsl-ie-promo-intro rsl-ie-promo-launch-copy">
+								<?php esc_html_e( 'A special launch offer for the first users of the plugin — available for a limited time only.', 'import-export-by-rockstarlab' ); ?>
+							</p>
+							<a href="https://checkout.freemius.com/plugin/28907/plan/47555/licenses/4/" target="_blank" rel="noopener noreferrer" class="button button-primary rsl-ie-promo-cta rsl-ie-promo-lifetime-cta">
+								<?php esc_html_e( 'Get Lifetime License →', 'import-export-by-rockstarlab' ); ?>
+							</a>
 						<?php endif; ?>
 					</div>
 				</div>
