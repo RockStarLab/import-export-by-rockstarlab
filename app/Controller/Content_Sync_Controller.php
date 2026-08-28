@@ -3727,11 +3727,17 @@ class Content_Sync_Controller extends Base_Controller {
 	 * @return void
 	 */
 	private function collect_comment_acf_images_for_sync( array $comment_data, array &$all_images ) {
-		if ( empty( $comment_data['acf'] ) || ! is_array( $comment_data['acf'] ) ) {
-			return;
+		$image_ids = array();
+		if ( ! empty( $comment_data['comment_content'] ) && is_string( $comment_data['comment_content'] ) ) {
+			$image_ids = array_merge( $image_ids, $this->extract_term_acf_images( array( 'comment_content' => $comment_data['comment_content'] ) ) );
 		}
 
-		$image_ids = array_values( array_unique( array_filter( array_map( 'absint', $this->extract_term_acf_images( $comment_data['acf'] ) ) ) ) );
+		if ( empty( $comment_data['acf'] ) || ! is_array( $comment_data['acf'] ) ) {
+			$comment_data['acf'] = array();
+		}
+
+		$image_ids = array_merge( $image_ids, $this->extract_term_acf_images( $comment_data['acf'] ) );
+		$image_ids = array_values( array_unique( array_filter( array_map( 'absint', $image_ids ) ) ) );
 		foreach ( $image_ids as $image_id ) {
 			if ( isset( $all_images[ $image_id ] ) ) {
 				continue;
@@ -3767,6 +3773,14 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		foreach ( $comments as &$comment_data ) {
+			if ( isset( $comment_data['comment_content'] ) && is_string( $comment_data['comment_content'] ) ) {
+				$comment_data['comment_content'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
+					$comment_data['comment_content'],
+					$image_map,
+					$image_sources
+				);
+			}
+
 			if ( empty( $comment_data['acf'] ) || ! is_array( $comment_data['acf'] ) ) {
 				continue;
 			}
@@ -4816,6 +4830,14 @@ class Content_Sync_Controller extends Base_Controller {
 				if ( preg_match_all( '/\bwp-image-(\d+)\b/', $value, $matches ) ) {
 					foreach ( $matches[1] as $image_id ) {
 						$image_ids[] = (int) $image_id;
+					}
+				}
+
+				if ( preg_match_all( '/\[(gallery|playlist)\b[^\]]*\bids=["\']([\d,\s]+)["\'][^\]]*\]/i', $value, $matches ) ) {
+					foreach ( $matches[2] as $ids_string ) {
+						foreach ( array_filter( array_map( 'absint', preg_split( '/\s*,\s*/', (string) $ids_string ) ?: array() ) ) as $attachment_id ) {
+							$image_ids[] = (int) $attachment_id;
+						}
 					}
 				}
 

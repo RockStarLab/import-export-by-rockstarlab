@@ -24,4 +24,9 @@
 		<custom-term-field action="ignore">_rsl_ie_wpml_import_data</custom-term-field>
 		<custom-term-field action="ignore">_rsl_ie_wpml_source_trid</custom-term-field>
 	</custom-term-fields>
+	<admin-texts>
+		<key name="rsl_ie_admin_menu_settings">
+			<key name="menu_title" />
+		</key>
+	</admin-texts>
 </wpml-config>

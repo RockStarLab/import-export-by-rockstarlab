@@ -62,8 +62,8 @@ class Import_Controller extends Base_Controller {
 			$this->send_error( $file, null, 400 );
 		}
 		$file_extension = strtolower( pathinfo( $file['name'], PATHINFO_EXTENSION ) );
-		if ( ! in_array( $file_extension, array( 'csv', 'xml', 'xlsx', 'ods', 'zip' ), true ) ) {
-			$this->send_error( __( 'Invalid file type. Supported formats: CSV, XML, XLSX, ODS, and ZIP archives containing one supported import file.', 'import-export-by-rockstarlab' ), null, 400 );
+		if ( ! in_array( $file_extension, array( 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ), true ) ) {
+			$this->send_error( __( 'Invalid file type. Supported formats: CSV, JSON, XML, XLSX, ODS, and ZIP archives containing one supported import file.', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
 		$format = 'zip' === $file_extension ? 'zip' : $file_extension;
@@ -71,11 +71,6 @@ class Import_Controller extends Base_Controller {
 		// Validate parser format. ZIP is only an upload container and is parsed after extraction.
 		if ( 'zip' !== $format && ! Format_Factory::is_supported( $format ) ) {
 			$this->send_error( __( 'Unsupported file format', 'import-export-by-rockstarlab' ), null, 400 );
-		}
-
-		// JSON is not supported for import
-		if ( 'json' === $format ) {
-			$this->send_error( __( 'JSON format is not supported for import. Please use CSV, XML, XLSX, or ODS.', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
 		// Move file to upload directory
@@ -387,7 +382,7 @@ class Import_Controller extends Base_Controller {
 		}
 
 		$lock_key = 'rsl_ie_import_job_lock_' . $job_id;
-		if ( get_transient( $lock_key ) ) {
+		if ( ! $this->acquire_import_job_lock( $lock_key ) ) {
 			$locked_parameters = json_decode( $job_data->parameters, true );
 			$locked_result     = isset( $locked_parameters['cumulative_result'] ) && is_array( $locked_parameters['cumulative_result'] )
 				? $locked_parameters['cumulative_result']
@@ -407,10 +402,9 @@ class Import_Controller extends Base_Controller {
 			);
 			return;
 		}
-		set_transient( $lock_key, 1, MINUTE_IN_SECONDS );
 		register_shutdown_function(
 			static function () use ( $lock_key ) {
-				delete_transient( $lock_key );
+				delete_option( $lock_key );
 			}
 		);
 
@@ -719,6 +713,34 @@ class Import_Controller extends Base_Controller {
 				'result'    => $cumulative_result,
 			]
 		);
+	}
+
+	/**
+	 * Acquire an atomic import job lock.
+	 *
+	 * Transient writes are not atomic enough for duplicate AJAX requests: two
+	 * requests can both miss the transient and process offset 0. add_option()
+	 * uses a unique option name, so only one request wins.
+	 *
+	 * @param string $lock_key Lock option name.
+	 * @return bool True when the lock was acquired.
+	 */
+	private function acquire_import_job_lock( $lock_key ) {
+		$lock_key = sanitize_key( (string) $lock_key );
+		$now      = time();
+		$ttl      = MINUTE_IN_SECONDS;
+
+		if ( add_option( $lock_key, (string) $now, '', 'no' ) ) {
+			return true;
+		}
+
+		$locked_at = absint( get_option( $lock_key, 0 ) );
+		if ( $locked_at > 0 && ( $now - $locked_at ) > $ttl ) {
+			delete_option( $lock_key );
+			return add_option( $lock_key, (string) $now, '', 'no' );
+		}
+
+		return false;
 	}
 
 	/**
@@ -1471,10 +1493,10 @@ class Import_Controller extends Base_Controller {
 	 */
 	private function validate_import_file_path( $file_path, $format ) {
 		$format          = strtolower( (string) $format );
-		$allowed_formats = array( 'csv', 'xml', 'xlsx', 'ods' );
+		$allowed_formats = array( 'csv', 'json', 'xml', 'xlsx', 'ods' );
 
 		if ( ! in_array( $format, $allowed_formats, true ) ) {
-			return new \WP_Error( 'invalid_format', __( 'Only CSV, XML, XLSX, and ODS import files are supported.', 'import-export-by-rockstarlab' ) );
+			return new \WP_Error( 'invalid_format', __( 'Only CSV, JSON, XML, XLSX, and ODS import files are supported.', 'import-export-by-rockstarlab' ) );
 		}
 
 		$real_path = realpath( (string) $file_path );

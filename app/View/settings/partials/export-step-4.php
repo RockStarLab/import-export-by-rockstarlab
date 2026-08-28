@@ -155,7 +155,7 @@ defined( 'ABSPATH' ) || exit;
 							</th>
 							<td>
 								<input type="text" name="custom_export_file_name" id="rsl-ie-custom-export-file-name" value="" required class="regular-text">
-								<p class="description"><?php esc_html_e( 'Use {job_id} to keep the current automatic export ID in the filename.', 'import-export-by-rockstarlab' ); ?></p>
+								<p class="description"><?php esc_html_e( 'Enter the file name without extension. The extension is added automatically from the selected file format. Use {job_id} to keep the current automatic export ID in the filename.', 'import-export-by-rockstarlab' ); ?></p>
 							</td>
 						</tr>
 						<tr>

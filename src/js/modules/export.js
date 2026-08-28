@@ -1706,7 +1706,7 @@ const ExportModule = {
 		jQuery( '.rsl-ie-format-options > div' ).hide();
 		jQuery( `.rsl-ie-${ format }-options` ).show();
 		jQuery( '.rsl-ie-common-options' ).show();
-		this.ensureCustomExportFileName( true );
+		this.ensureCustomExportFileName();
 	},
 
 	/**
@@ -1717,17 +1717,14 @@ const ExportModule = {
 	getDefaultExportFileName() {
 		const contentType =
 			jQuery( 'input[name="content_type"]:checked' ).val() || 'export';
-		const format = jQuery( 'input[name="format"]:checked' ).val() || 'csv';
 
-		return `export-${ contentType }-{job_id}.${ format }`;
+		return `export-${ contentType }-{job_id}`;
 	},
 
 	/**
 	 * Ensure the custom export filename field has a useful default.
-	 *
-	 * @param {boolean} updateExtension Whether to update the extension for an untouched default.
 	 */
-	ensureCustomExportFileName( updateExtension = false ) {
+	ensureCustomExportFileName() {
 		const $field = jQuery( '[name="custom_export_file_name"]' );
 		if ( ! $field.length ) {
 			return;
@@ -1737,7 +1734,7 @@ const ExportModule = {
 		const previousDefault = $field.data( 'defaultValue' ) || '';
 		const nextDefault = this.getDefaultExportFileName();
 
-		if ( ! current || ( updateExtension && current === previousDefault ) ) {
+		if ( ! current || current === previousDefault ) {
 			$field.val( nextDefault );
 		}
 

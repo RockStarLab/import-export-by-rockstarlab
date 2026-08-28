@@ -9,6 +9,7 @@
 
 namespace RockStarLab\ImportExport\Model\Import;
 
+use RockStarLab\ImportExport\Helper\ACF_Fields;
 use RockStarLab\ImportExport\Helper\WPML_Compatibility;
 
 defined( 'ABSPATH' ) || exit;
@@ -207,7 +208,8 @@ class Post_Importer extends Abstract_Importer {
 			$item['post_meta'] = [];
 		}
 		if ( ! isset( $item['taxonomies'] ) || ! is_array( $item['taxonomies'] ) ) {
-			$item['taxonomies'] = [];
+			$decoded_taxonomies = is_string( $item['taxonomies'] ?? null ) ? json_decode( (string) $item['taxonomies'], true ) : null;
+			$item['taxonomies'] = is_array( $decoded_taxonomies ) ? $decoded_taxonomies : [];
 		}
 		// Track which post_meta keys came from acf_* columns so the importer
 		// can use update_field() for them (stores the ACF reference key _field_name).
@@ -235,6 +237,28 @@ class Post_Importer extends Abstract_Importer {
 				$taxonomy = substr( $key, strlen( 'taxonomy_' ) );
 				if ( '' !== $taxonomy && ! isset( $item['taxonomies'][ $taxonomy ] ) ) {
 					$item['taxonomies'][ $taxonomy ] = [
+						'terms'  => $value,
+						'format' => $taxonomy_formats[ $key ] ?? 'name',
+					];
+				}
+				unset( $item[ $key ] );
+				continue;
+			}
+
+			if ( 'categories' === $key ) {
+				if ( ! isset( $item['taxonomies']['category'] ) ) {
+					$item['taxonomies']['category'] = [
+						'terms'  => $value,
+						'format' => $taxonomy_formats[ $key ] ?? 'name',
+					];
+				}
+				unset( $item[ $key ] );
+				continue;
+			}
+
+			if ( 'tags' === $key ) {
+				if ( ! isset( $item['taxonomies']['post_tag'] ) ) {
+					$item['taxonomies']['post_tag'] = [
 						'terms'  => $value,
 						'format' => $taxonomy_formats[ $key ] ?? 'name',
 					];
@@ -867,6 +891,7 @@ class Post_Importer extends Abstract_Importer {
 		}
 		if ( isset( $post_data['post_content'] ) && is_string( $post_data['post_content'] ) ) {
 			$post_data['post_content'] = $this->resolve_gallery_shortcode_tokens( $post_data['post_content'], 0 );
+			$post_data['post_content'] = $this->remap_media_shortcode_source_ids( $post_data['post_content'] );
 			$post_data['post_content'] = $this->resolve_content_media_shortcodes( $post_data['post_content'], 0 );
 		}
 
@@ -1651,8 +1676,8 @@ class Post_Importer extends Abstract_Importer {
 		$auto_import_media    = (bool) $this->get_option( 'auto_import_media', false );
 		$media_duplicate_mode = (string) $this->get_option( 'media_duplicate_mode', 'skip' );
 
-		if ( $auto_import_media && is_string( $value ) && '' !== $value && false !== stripos( $value, '[gallery' ) ) {
-			$value = $this->remap_gallery_shortcode_source_ids( $value );
+		if ( $auto_import_media && is_string( $value ) && '' !== $value && $this->contains_media_ids_shortcode( $value ) ) {
+			$value = $this->remap_media_shortcode_source_ids( $value );
 		}
 
 		// ── 1. Typed JSON from our improved exporter ──────────────────────────
@@ -1973,12 +1998,12 @@ class Post_Importer extends Abstract_Importer {
 	}
 
 	/**
-	 * Resolve exported gallery shortcode tokens back into `[gallery ids="..."]`.
+	 * Resolve exported media shortcode tokens back into `[gallery/playlist ids="..."]`.
 	 *
 	 * Tokens are produced by the exporter for WYSIWYG/text fields and look like:
 	 *   [[RSL_IE:<base64(json)>]]
 	 * with JSON payload:
-	 *   { "acf_type":"gallery_shortcode", "shortcode":"[gallery ids=\"1,2\"]", "urls":[...] }
+	 *   { "acf_type":"media_shortcode", "shortcode":"[playlist ids=\"1,2\"]", "urls":[...] }
 	 *
 	 * When auto_import_media is enabled, the URLs are downloaded and the shortcode
 	 * is reconstructed with the new attachment IDs.
@@ -2005,8 +2030,9 @@ class Post_Importer extends Abstract_Importer {
 					return $m[0] ?? '';
 				}
 
-				$payload = json_decode( $json, true );
-				if ( ! is_array( $payload ) || ( $payload['acf_type'] ?? '' ) !== 'gallery_shortcode' ) {
+					$payload  = json_decode( $json, true );
+					$acf_type = is_array( $payload ) ? (string) ( $payload['acf_type'] ?? '' ) : '';
+				if ( ! is_array( $payload ) || ! in_array( $acf_type, [ 'gallery_shortcode', 'media_shortcode' ], true ) ) {
 					return $m[0] ?? '';
 				}
 
@@ -2074,19 +2100,19 @@ class Post_Importer extends Abstract_Importer {
 	}
 
 	/**
-	 * Remap raw source-site gallery shortcode IDs to local attachment IDs when
+	 * Remap raw source-site media shortcode IDs to local attachment IDs when
 	 * the media was previously imported with source attachment metadata.
 	 *
-	 * @param string $value String that may contain [gallery ids="..."] shortcodes.
+	 * @param string $value String that may contain [gallery] or [playlist] shortcodes.
 	 * @return string
 	 */
-	private function remap_gallery_shortcode_source_ids( string $value ): string {
-		if ( false === stripos( $value, '[gallery' ) ) {
+	private function remap_media_shortcode_source_ids( string $value ): string {
+		if ( ! $this->contains_media_ids_shortcode( $value ) ) {
 			return $value;
 		}
 
 		return preg_replace_callback(
-			'/\\[gallery\\b[^\\]]*\\]/i',
+			'/\\[(gallery|playlist)\\b[^\\]]*\\]/i',
 			function ( array $matches ) {
 				$shortcode = (string) ( $matches[0] ?? '' );
 				if ( '' === $shortcode || ! preg_match( '/\\bids=(["\'])([^"\']+)\\1/i', $shortcode, $ids_match ) ) {
@@ -2129,6 +2155,17 @@ class Post_Importer extends Abstract_Importer {
 			},
 			$value
 		);
+	}
+
+	/**
+	 * Check if content contains a WordPress media shortcode with attachment IDs.
+	 *
+	 * @param string $value Content to inspect.
+	 * @return bool
+	 */
+	private function contains_media_ids_shortcode( string $value ): bool {
+		return ( false !== stripos( $value, '[gallery' ) || false !== stripos( $value, '[playlist' ) )
+			&& preg_match( '/\\[(gallery|playlist)\\b[^\\]]*\\bids=["\'][\\d,\\s]+["\']/i', $value );
 	}
 
 	/**
@@ -2436,13 +2473,13 @@ class Post_Importer extends Abstract_Importer {
 				$terms_data = $terms_data['terms'];
 			}
 
-			// Terms can be array of IDs, names, or slugs
-			if ( is_string( $terms_data ) ) {
-				$terms_data = array_map( 'trim', explode( ',', $terms_data ) );
-			}
+			$terms_data = $this->normalize_import_taxonomy_terms_payload( $terms_data );
 
 			// Remove empty values that come from empty CSV cells
-			$terms_data = array_filter( $terms_data, fn( $t ) => '' !== (string) $t );
+			$terms_data = array_filter(
+				$terms_data,
+				fn( $t ) => is_array( $t ) ? ! empty( $t['name'] ) || ! empty( $t['slug'] ) : '' !== (string) $t
+			);
 
 			if ( empty( $terms_data ) ) {
 				continue;
@@ -2452,41 +2489,12 @@ class Post_Importer extends Abstract_Importer {
 			// wp_set_object_terms (most reliable approach).
 			$term_ids = [];
 			foreach ( $terms_data as $term_value ) {
-				$term_value = trim( (string) $term_value );
-				if ( '' === $term_value ) {
-					continue;
-				}
+				$term_id = is_array( $term_value )
+					? $this->import_portable_taxonomy_term( $taxonomy, $term_value )
+					: $this->import_legacy_taxonomy_term( $taxonomy, trim( (string) $term_value ), $format );
 
-				switch ( $format ) {
-					case 'id':
-						$term_ids[] = (int) $term_value;
-						break;
-
-					case 'slug':
-						$term = get_term_by( 'slug', $term_value, $taxonomy );
-						if ( $term ) {
-							$term_ids[] = $term->term_id;
-						} else {
-							// Create term with this slug
-							$result = wp_insert_term( $term_value, $taxonomy, [ 'slug' => $term_value ] );
-							if ( ! is_wp_error( $result ) ) {
-								$term_ids[] = $result['term_id'];
-							}
-						}
-						break;
-
-					default: // 'name' and fallback
-						$term = get_term_by( 'name', $term_value, $taxonomy );
-						if ( $term ) {
-							$term_ids[] = $term->term_id;
-						} else {
-							// Create term with this name
-							$result = wp_insert_term( $term_value, $taxonomy );
-							if ( ! is_wp_error( $result ) ) {
-								$term_ids[] = $result['term_id'];
-							}
-						}
-						break;
+				if ( $term_id > 0 ) {
+					$term_ids[] = $term_id;
 				}
 			}
 
@@ -2494,6 +2502,167 @@ class Post_Importer extends Abstract_Importer {
 				wp_set_object_terms( $post_id, $term_ids, $taxonomy );
 			}
 		}
+	}
+
+	/**
+	 * Normalize taxonomy values from legacy comma strings or portable JSON.
+	 *
+	 * @param mixed $terms_data Raw taxonomy import value.
+	 * @return array
+	 */
+	private function normalize_import_taxonomy_terms_payload( $terms_data ): array {
+		if ( is_string( $terms_data ) ) {
+			$trimmed = trim( $terms_data );
+			if ( '' === $trimmed ) {
+				return [];
+			}
+
+			if ( '[' === $trimmed[0] ) {
+				$decoded = json_decode( $trimmed, true );
+				if ( is_array( $decoded ) ) {
+					return $decoded;
+				}
+			}
+
+			return array_map( 'trim', explode( ',', $terms_data ) );
+		}
+
+		return is_array( $terms_data ) ? $terms_data : [];
+	}
+
+	/**
+	 * Import a portable taxonomy term payload and its term ACF fields.
+	 *
+	 * @param string $taxonomy Taxonomy name.
+	 * @param array  $term_data Portable term data.
+	 * @return int Local term ID.
+	 */
+	private function import_portable_taxonomy_term( string $taxonomy, array $term_data ): int {
+		$name = isset( $term_data['name'] ) ? trim( (string) $term_data['name'] ) : '';
+		$slug = isset( $term_data['slug'] ) ? sanitize_title( (string) $term_data['slug'] ) : '';
+
+		if ( '' === $name && '' === $slug ) {
+			return 0;
+		}
+
+		$term = '' !== $slug ? get_term_by( 'slug', $slug, $taxonomy ) : false;
+		if ( ! $term && '' !== $name ) {
+			$term = get_term_by( 'name', $name, $taxonomy );
+		}
+
+		$parent_id = $this->ensure_taxonomy_parent_path( $taxonomy, (string) ( $term_data['parent_path'] ?? '' ) );
+		if ( $term && ! is_wp_error( $term ) ) {
+			$term_id = (int) $term->term_id;
+			$updates = [];
+			if ( isset( $term_data['description'] ) ) {
+				$updates['description'] = (string) $term_data['description'];
+			}
+			if ( $parent_id > 0 && is_taxonomy_hierarchical( $taxonomy ) ) {
+				$updates['parent'] = $parent_id;
+			}
+			if ( ! empty( $updates ) ) {
+				wp_update_term( $term_id, $taxonomy, $updates );
+			}
+		} else {
+			$args = [];
+			if ( '' !== $slug ) {
+				$args['slug'] = $slug;
+			}
+			if ( isset( $term_data['description'] ) ) {
+				$args['description'] = (string) $term_data['description'];
+			}
+			if ( $parent_id > 0 && is_taxonomy_hierarchical( $taxonomy ) ) {
+				$args['parent'] = $parent_id;
+			}
+
+			$result = wp_insert_term( '' !== $name ? $name : $slug, $taxonomy, $args );
+			if ( is_wp_error( $result ) ) {
+				return 0;
+			}
+			$term_id = (int) $result['term_id'];
+		}
+
+		if ( $term_id > 0 && ! empty( $term_data['acf'] ) && is_array( $term_data['acf'] ) ) {
+			foreach ( $term_data['acf'] as $field_name => $field_value ) {
+				ACF_Fields::import_value( 'term', $term_id, sanitize_text_field( (string) $field_name ), $field_value, $taxonomy );
+			}
+		}
+
+		return $term_id;
+	}
+
+	/**
+	 * Import a legacy taxonomy value.
+	 *
+	 * @param string $taxonomy   Taxonomy name.
+	 * @param string $term_value Term ID, slug, or name.
+	 * @param string $format     Value format.
+	 * @return int Local term ID.
+	 */
+	private function import_legacy_taxonomy_term( string $taxonomy, string $term_value, string $format ): int {
+		if ( '' === $term_value ) {
+			return 0;
+		}
+
+		switch ( $format ) {
+			case 'id':
+				return (int) $term_value;
+
+			case 'slug':
+				$term = get_term_by( 'slug', $term_value, $taxonomy );
+				if ( $term ) {
+					return (int) $term->term_id;
+				}
+				$result = wp_insert_term( $term_value, $taxonomy, [ 'slug' => $term_value ] );
+				return is_wp_error( $result ) ? 0 : (int) $result['term_id'];
+
+			default:
+				$term = get_term_by( 'name', $term_value, $taxonomy );
+				if ( $term ) {
+					return (int) $term->term_id;
+				}
+				$result = wp_insert_term( $term_value, $taxonomy );
+				return is_wp_error( $result ) ? 0 : (int) $result['term_id'];
+		}
+	}
+
+	/**
+	 * Ensure a slash-separated parent slug path exists.
+	 *
+	 * @param string $taxonomy    Taxonomy name.
+	 * @param string $parent_path Slash-separated parent slugs.
+	 * @return int Last parent term ID.
+	 */
+	private function ensure_taxonomy_parent_path( string $taxonomy, string $parent_path ): int {
+		if ( '' === trim( $parent_path ) || ! is_taxonomy_hierarchical( $taxonomy ) ) {
+			return 0;
+		}
+
+		$parent_id = 0;
+		foreach ( array_filter( array_map( 'sanitize_title', explode( '/', $parent_path ) ) ) as $slug ) {
+			$term = get_term_by( 'slug', $slug, $taxonomy );
+			if ( $term && ! is_wp_error( $term ) ) {
+				$parent_id = (int) $term->term_id;
+				continue;
+			}
+
+			$result = wp_insert_term(
+				$slug,
+				$taxonomy,
+				array_filter(
+					[
+						'slug'   => $slug,
+						'parent' => $parent_id,
+					]
+				)
+			);
+			if ( is_wp_error( $result ) ) {
+				return $parent_id;
+			}
+			$parent_id = (int) $result['term_id'];
+		}
+
+		return $parent_id;
 	}
 
 	/**
@@ -3210,6 +3379,8 @@ class Post_Importer extends Abstract_Importer {
 		return false !== stripos( $value, '<img' )
 			|| false !== stripos( $value, 'srcset=' )
 			|| false !== stripos( $value, 'background-image' )
+			|| false !== stripos( $value, '[gallery' )
+			|| false !== stripos( $value, '[playlist' )
 			|| false !== stripos( $value, '<!-- wp:image' )
 			|| false !== stripos( $value, '<!-- wp:gallery' )
 			|| false !== stripos( $value, '<!-- wp:cover' )

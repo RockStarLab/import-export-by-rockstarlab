@@ -24,9 +24,9 @@ defined( 'ABSPATH' ) || exit;
 				<button type="button" class="button button-secondary" id="rsl-ie-select-file">
 					<?php esc_html_e( 'Select File', 'import-export-by-rockstarlab' ); ?>
 				</button>
-				<input type="file" id="rsl-ie-file-input" accept=".csv,.xml,.xlsx,.ods,.zip" style="display:none;">
+				<input type="file" id="rsl-ie-file-input" accept=".csv,.json,.xml,.xlsx,.ods,.zip" style="display:none;">
 				<p class="description">
-					<?php esc_html_e( 'Supported formats: CSV, XML, XLSX, ODS, or ZIP containing one supported import file', 'import-export-by-rockstarlab' ); ?><br>
+					<?php esc_html_e( 'Supported formats: CSV, JSON, XML, XLSX, ODS, or ZIP containing one supported import file', 'import-export-by-rockstarlab' ); ?><br>
 					<?php esc_html_e( 'No file size limit - large files supported via chunked upload', 'import-export-by-rockstarlab' ); ?>
 				</p>
 			</div>
