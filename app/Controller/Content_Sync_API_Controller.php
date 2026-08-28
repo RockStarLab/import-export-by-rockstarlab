@@ -1851,6 +1851,7 @@ class Content_Sync_API_Controller {
 			$search           = $request->get_param( 'search' );
 			$status           = $request->get_param( 'status' );
 			$commentable_only = filter_var( $request->get_param( 'commentable_only' ), FILTER_VALIDATE_BOOLEAN );
+			$comment_type     = sanitize_key( (string) ( $request->get_param( 'comment_type' ) ?: '' ) );
 		$page                 = absint( $request->get_param( 'page' ) ?: 1 );
 		$per_page             = absint( $request->get_param( 'per_page' ) ?: 20 );
 		$language             = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
@@ -1867,7 +1868,7 @@ class Content_Sync_API_Controller {
 		}
 
 			$args = array(
-				'post_type'           => $commentable_only ? $this->get_commentable_sync_post_types() : ( $post_type ?: 'any' ),
+				'post_type'           => $commentable_only ? $this->get_commentable_sync_post_types_for_context( $comment_type, $post_type ) : ( $post_type ?: 'any' ),
 				'post_status'         => ! empty( $status ) ? $status : ( 'attachment' === sanitize_key( (string) $post_type ) ? 'inherit' : 'any' ),
 				'posts_per_page'      => $per_page,
 				'suppress_filters'    => false,
@@ -1880,7 +1881,7 @@ class Content_Sync_API_Controller {
 			if ( '' !== $post_parent_filter ) {
 				$args['post_parent'] = $post_parent_filter;
 			}
-			$is_attachment_browse = 'attachment' === sanitize_key( (string) $args['post_type'] );
+			$is_attachment_browse = 'attachment' === $post_type;
 			if ( '' !== $language && 'all' !== $language && $is_attachment_browse && WPML_Compatibility::is_media_active() ) {
 				$args['post__in'] = $this->get_post_ids_for_wpml_language( $language, 'attachment' );
 				unset( $args['lang'] );
@@ -1982,6 +1983,91 @@ class Content_Sync_API_Controller {
 		);
 
 		return ! empty( $post_types ) ? $post_types : array( 'post', 'page' );
+	}
+
+	/**
+	 * Return commentable post types for comments vs WooCommerce reviews.
+	 *
+	 * @param string $comment_type Comment subtype.
+	 * @param string $requested_post_type Requested post type.
+	 * @return string|array
+	 */
+	private function get_commentable_sync_post_types_for_context( $comment_type, $requested_post_type = 'any' ) {
+		if ( 'review' === sanitize_key( (string) $comment_type ) ) {
+			return post_type_exists( 'product' ) ? 'product' : '__rsl_ie_no_post_type';
+		}
+
+		$requested_post_type = sanitize_key( (string) $requested_post_type );
+		if ( 'product' === $requested_post_type ) {
+			return '__rsl_ie_no_post_type';
+		}
+		if ( '' !== $requested_post_type && 'any' !== $requested_post_type ) {
+			return $requested_post_type;
+		}
+
+		return array_values( array_diff( $this->get_commentable_sync_post_types(), array( 'product' ) ) );
+	}
+
+	/**
+	 * Get product IDs for separating normal comments from WooCommerce reviews.
+	 *
+	 * @param string $language WPML language code.
+	 * @return int[]
+	 */
+	private function get_product_post_ids_for_comment_filter( $language = '' ) {
+		if ( ! post_type_exists( 'product' ) ) {
+			return array();
+		}
+
+		$args = array(
+			'post_type'              => 'product',
+			'post_status'            => 'any',
+			'posts_per_page'         => -1,
+			'fields'                 => 'ids',
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'suppress_filters'       => false,
+		);
+
+		$language = sanitize_key( (string) $language );
+		if ( '' !== $language && 'all' !== $language && WPML_Compatibility::is_active() ) {
+			$args['lang'] = $language;
+		} elseif ( 'all' === $language ) {
+			$args['suppress_filters'] = true;
+		}
+
+		return array_values( array_map( 'absint', get_posts( $args ) ) );
+	}
+
+	/**
+	 * Check whether a comment belongs to the requested sync entity.
+	 *
+	 * @param \WP_Comment $comment      Comment object.
+	 * @param string      $comment_type Requested comment subtype.
+	 * @param string      $language     WPML language code.
+	 * @return bool
+	 */
+	private function is_comment_in_sync_context( $comment, $comment_type = '', $language = '' ) {
+		$post      = get_post( (int) $comment->comment_post_ID );
+		$post_type = $post ? (string) $post->post_type : '';
+
+		if ( 'review' === sanitize_key( (string) $comment_type ) ) {
+			$matches_context = 'review' === (string) $comment->comment_type && 'product' === $post_type;
+		} else {
+			$matches_context = 'review' !== (string) $comment->comment_type && 'product' !== $post_type;
+		}
+
+		if ( ! $matches_context ) {
+			return false;
+		}
+
+		$language = sanitize_key( (string) $language );
+		if ( '' === $language || 'all' === $language || ! WPML_Compatibility::is_active() || ! $post ) {
+			return true;
+		}
+
+		return $language === WPML_Compatibility::get_post_language_code( (int) $post->ID, $post_type );
 	}
 
 	/**
@@ -2478,8 +2564,12 @@ class Content_Sync_API_Controller {
 			'status'  => 'all',
 		);
 
-		if ( '' !== $comment_type ) {
+		if ( 'review' === $comment_type ) {
+			$args['type'] = 'review';
+		} elseif ( '' !== $comment_type ) {
 			$args['type'] = $comment_type;
+		} else {
+			$args['type__not_in'] = array( 'review' );
 		}
 
 		if ( '' !== $search ) {
@@ -2493,6 +2583,20 @@ class Content_Sync_API_Controller {
 		$previous_wpml_language = $this->switch_wpml_query_language( $language );
 		if ( '' !== $language && 'all' !== $language && $post_id <= 0 ) {
 			$args['post__in'] = $this->get_post_ids_for_wpml_language( $language );
+		}
+		if ( $post_id <= 0 ) {
+			$product_ids = $this->get_product_post_ids_for_comment_filter( $language );
+			if ( 'review' === $comment_type ) {
+				if ( empty( $product_ids ) ) {
+					$product_ids = array( 0 );
+				}
+				$args['post__in'] = isset( $args['post__in'] ) ? array_values( array_intersect( $args['post__in'], $product_ids ) ) : $product_ids;
+				if ( empty( $args['post__in'] ) ) {
+					$args['post__in'] = array( 0 );
+				}
+			} elseif ( ! empty( $product_ids ) ) {
+				$args['post__not_in'] = $product_ids;
+			}
 		}
 
 		$query    = new \WP_Comment_Query();
@@ -2537,8 +2641,13 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function send_comments( $request ) {
-		$comment_ids = $request->get_param( 'comment_ids' );
-		$comment_ids = is_array( $comment_ids ) ? array_values( array_filter( array_unique( array_map( 'absint', $comment_ids ) ) ) ) : array();
+		$comment_ids  = $request->get_param( 'comment_ids' );
+		$comment_ids  = is_array( $comment_ids ) ? array_values( array_filter( array_unique( array_map( 'absint', $comment_ids ) ) ) ) : array();
+		$comment_type = sanitize_key( (string) ( $request->get_param( 'comment_type' ) ?: '' ) );
+		$language     = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
+		if ( ! WPML_Compatibility::is_active() ) {
+			$language = '';
+		}
 
 		if ( empty( $comment_ids ) ) {
 			return new \WP_REST_Response(
@@ -2551,10 +2660,17 @@ class Content_Sync_API_Controller {
 		}
 
 		$comments = array();
+		$images   = array();
 		foreach ( $comment_ids as $comment_id ) {
 			$comment = get_comment( $comment_id );
 			if ( $comment ) {
-				$comments[] = $this->prepare_comment_for_sync( $comment, true );
+				if ( ! $this->is_comment_in_sync_context( $comment, $comment_type, $language ) ) {
+					continue;
+				}
+
+				$comment_data = $this->prepare_comment_for_sync( $comment, true );
+				$comments[]   = $comment_data;
+				$this->collect_comment_acf_images_for_sync( $comment_data, $images );
 			}
 		}
 
@@ -2562,6 +2678,7 @@ class Content_Sync_API_Controller {
 			array(
 				'success'  => true,
 				'comments' => $comments,
+				'images'   => array_values( $images ),
 			),
 			200
 		);
@@ -2577,6 +2694,15 @@ class Content_Sync_API_Controller {
 		$comments       = $request->get_param( 'comments' );
 		$target_post_id = absint( $request->get_param( 'target_post_id' ) );
 		$post_mapping   = $request->get_param( 'post_mapping' );
+		$image_map      = $request->get_param( 'image_map' );
+		$image_sources  = $request->get_param( 'image_sources' );
+
+		if ( ! is_array( $image_map ) ) {
+			$image_map = array();
+		}
+		if ( ! is_array( $image_sources ) ) {
+			$image_sources = array();
+		}
 
 		if ( is_string( $post_mapping ) ) {
 			$post_mapping = json_decode( $post_mapping, true );
@@ -2595,7 +2721,8 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-		$result = $this->import_synced_standalone_comments( $comments, $post_mapping, $target_post_id );
+		$comments = $this->replace_comment_acf_media_references( $comments, '', '', $image_map, $image_sources );
+		$result   = $this->import_synced_standalone_comments( $comments, $post_mapping, $target_post_id );
 
 		$message = sprintf(
 			/* translators: 1: created comments, 2: updated comments, 3: failed comments. */
@@ -2867,6 +2994,71 @@ class Content_Sync_API_Controller {
 
 			ACF_Fields::import_value( 'comment', (int) $comment_id, $field_name, $value );
 		}
+	}
+
+	/**
+	 * Collect media referenced by a comment's ACF payload.
+	 *
+	 * @param array $comment_data Prepared comment payload.
+	 * @param array $all_images   Accumulator keyed by attachment ID.
+	 * @return void
+	 */
+	private function collect_comment_acf_images_for_sync( array $comment_data, array &$all_images ) {
+		if ( empty( $comment_data['acf'] ) || ! is_array( $comment_data['acf'] ) ) {
+			return;
+		}
+
+		$image_ids = array_values( array_unique( array_filter( array_map( 'absint', $this->extract_term_acf_images( $comment_data['acf'] ) ) ) ) );
+		foreach ( $image_ids as $image_id ) {
+			if ( isset( $all_images[ $image_id ] ) ) {
+				continue;
+			}
+
+			$image_data = \RockStarLab\ImportExport\Helper\Content_Sync_Media::prepare_image_data( $image_id, 'comment_acf' );
+			if ( ! $image_data ) {
+				$image_data = array(
+					'attachment_id' => $image_id,
+					'url'           => wp_get_attachment_url( $image_id ),
+					'type'          => 'comment_acf',
+				);
+			}
+
+			$image_data['comment_id'] = isset( $comment_data['comment_ID'] ) ? (int) $comment_data['comment_ID'] : 0;
+			$all_images[ $image_id ]  = $image_data;
+		}
+	}
+
+	/**
+	 * Replace media references inside comment ACF payloads.
+	 *
+	 * @param array  $comments      Comment payloads.
+	 * @param string $source_domain Source site URL.
+	 * @param string $target_domain Target site URL.
+	 * @param array  $image_map     Source attachment ID => target attachment ID.
+	 * @param array  $image_sources Source image metadata.
+	 * @return array
+	 */
+	private function replace_comment_acf_media_references( array $comments, $source_domain, $target_domain, array $image_map, array $image_sources ) {
+		if ( empty( $image_map ) ) {
+			return $comments;
+		}
+
+		foreach ( $comments as &$comment_data ) {
+			if ( empty( $comment_data['acf'] ) || ! is_array( $comment_data['acf'] ) ) {
+				continue;
+			}
+
+			$comment_data['acf'] = $this->replace_term_acf_value_media_references(
+				$comment_data['acf'],
+				$source_domain,
+				$target_domain,
+				$image_map,
+				$image_sources
+			);
+		}
+		unset( $comment_data );
+
+		return $comments;
 	}
 
 	/**

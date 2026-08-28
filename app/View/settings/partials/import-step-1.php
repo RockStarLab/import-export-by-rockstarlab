@@ -64,21 +64,36 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 			</label>
 
-			<label class="rsl-ie-content-type">
-				<input type="radio" name="content_type" value="page">
-				<div class="rsl-ie-content-type-card">
-					<span class="dashicons dashicons-admin-page"></span>
-					<h3><?php esc_html_e( 'Pages', 'import-export-by-rockstarlab' ); ?></h3>
-					<p><?php esc_html_e( 'Import pages', 'import-export-by-rockstarlab' ); ?></p>
-				</div>
-			</label>
+				<label class="rsl-ie-content-type">
+					<input type="radio" name="content_type" value="page">
+					<div class="rsl-ie-content-type-card">
+						<span class="dashicons dashicons-admin-page"></span>
+						<h3><?php esc_html_e( 'Pages', 'import-export-by-rockstarlab' ); ?></h3>
+						<p><?php esc_html_e( 'Import pages', 'import-export-by-rockstarlab' ); ?></p>
+					</div>
+				</label>
 
-			<?php if ( $rsl_ie_pro_active ) : ?>
-				<?php
-				$rsl_ie_pro_types = \RockStarLab\ImportExport\Helper\Pro_Addon::get_pro_content_type_cards( 'import' );
-				$rsl_ie_pro_types = apply_filters( 'rsl_ie_pro_import_content_types', $rsl_ie_pro_types );
-				foreach ( $rsl_ie_pro_types as $rsl_ie_type ) :
-					?>
+				<label class="rsl-ie-content-type">
+					<input type="radio" name="content_type" value="comment">
+					<div class="rsl-ie-content-type-card">
+						<span class="dashicons dashicons-admin-comments"></span>
+						<h3><?php esc_html_e( 'Comments', 'import-export-by-rockstarlab' ); ?></h3>
+						<p><?php esc_html_e( 'Import comments', 'import-export-by-rockstarlab' ); ?></p>
+					</div>
+				</label>
+
+				<?php if ( $rsl_ie_pro_active ) : ?>
+					<?php
+					$rsl_ie_pro_types = \RockStarLab\ImportExport\Helper\Pro_Addon::get_pro_content_type_cards( 'import' );
+					$rsl_ie_pro_types = apply_filters( 'rsl_ie_pro_import_content_types', $rsl_ie_pro_types );
+					$rsl_ie_pro_types = array_filter(
+						$rsl_ie_pro_types,
+						static function ( $rsl_ie_type ) {
+							return 'comment' !== ( $rsl_ie_type['value'] ?? '' );
+						}
+					);
+					foreach ( $rsl_ie_pro_types as $rsl_ie_type ) :
+						?>
 					<label class="rsl-ie-content-type">
 						<input type="radio" name="content_type" value="<?php echo esc_attr( $rsl_ie_type['value'] ); ?>">
 						<div class="rsl-ie-content-type-card">

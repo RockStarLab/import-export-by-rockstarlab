@@ -463,6 +463,7 @@ const ExportModule = {
 	 */
 	showStep( step ) {
 		const $wizard = jQuery( '#rsl-ie-export' );
+		const previousStep = this.currentStep;
 
 		$wizard.find( '.rsl-ie-step' ).removeClass( 'active' );
 		$wizard.find( `.rsl-ie-step-${ step }` ).addClass( 'active' );
@@ -482,7 +483,9 @@ const ExportModule = {
 
 		this.currentStep = step;
 
-		const previousStep = this.currentStep;
+		if ( step === 4 ) {
+			this.ensureCustomExportFileName();
+		}
 
 		if ( step === 1 ) {
 			// Hide database table selection and info when returning to step 1
@@ -1702,6 +1705,43 @@ const ExportModule = {
 
 		jQuery( '.rsl-ie-format-options > div' ).hide();
 		jQuery( `.rsl-ie-${ format }-options` ).show();
+		jQuery( '.rsl-ie-common-options' ).show();
+		this.ensureCustomExportFileName( true );
+	},
+
+	/**
+	 * Build the default export filename template.
+	 *
+	 * @return {string} Default export filename.
+	 */
+	getDefaultExportFileName() {
+		const contentType =
+			jQuery( 'input[name="content_type"]:checked' ).val() || 'export';
+		const format = jQuery( 'input[name="format"]:checked' ).val() || 'csv';
+
+		return `export-${ contentType }-{job_id}.${ format }`;
+	},
+
+	/**
+	 * Ensure the custom export filename field has a useful default.
+	 *
+	 * @param {boolean} updateExtension Whether to update the extension for an untouched default.
+	 */
+	ensureCustomExportFileName( updateExtension = false ) {
+		const $field = jQuery( '[name="custom_export_file_name"]' );
+		if ( ! $field.length ) {
+			return;
+		}
+
+		const current = String( $field.val() || '' ).trim();
+		const previousDefault = $field.data( 'defaultValue' ) || '';
+		const nextDefault = this.getDefaultExportFileName();
+
+		if ( ! current || ( updateExtension && current === previousDefault ) ) {
+			$field.val( nextDefault );
+		}
+
+		$field.data( 'defaultValue', nextDefault );
 	},
 
 	/**
@@ -1794,6 +1834,19 @@ const ExportModule = {
 				csvDelimiter = customDelimiter;
 			}
 
+			const customExportFileName = String(
+				jQuery( '[name="custom_export_file_name"]' ).val() || ''
+			).trim();
+			if ( ! customExportFileName ) {
+				Utils.showNotice(
+					'Please enter a custom export file name.',
+					'error'
+				);
+				jQuery( '[name="custom_export_file_name"]' ).focus();
+				this.setStartExportButtonLoading( $button, false );
+				return;
+			}
+
 			const data = {
 				export_type: contentType,
 				filters: this.getFilters(),
@@ -1815,6 +1868,7 @@ const ExportModule = {
 					).is( ':checked' ),
 				},
 				options: {
+					custom_export_file_name: customExportFileName,
 					items_per_iteration:
 						parseInt(
 							jQuery( '[name="items_per_iteration"]' ).val()
