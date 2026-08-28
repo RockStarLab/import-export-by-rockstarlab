@@ -2076,7 +2076,7 @@ class Content_Sync_Controller extends Base_Controller {
 								$term_info['acf'] = array();
 								foreach ( $acf_fields as $field_key => $field ) {
 									$field_name                      = ! empty( $field['name'] ) ? (string) $field['name'] : (string) $field_key;
-									$term_info['acf'][ $field_name ] = ACF_Fields::export_value( 'term', (int) $term->term_id, $field_name, $taxonomy );
+									$term_info['acf'][ $field_name ] = $this->export_term_acf_sync_value( (int) $term->term_id, $field_name, $field );
 								}
 							}
 						}
@@ -4333,7 +4333,7 @@ class Content_Sync_Controller extends Base_Controller {
 				$data['acf'] = array();
 				foreach ( $acf_fields as $field_key => $field ) {
 					$field_name                 = ! empty( $field['name'] ) ? (string) $field['name'] : (string) $field_key;
-					$data['acf'][ $field_name ] = ACF_Fields::export_value( 'term', (int) $term->term_id, $field_name, $taxonomy );
+					$data['acf'][ $field_name ] = $this->export_term_acf_sync_value( (int) $term->term_id, $field_name, $field );
 				}
 			}
 		}
@@ -4341,6 +4341,19 @@ class Content_Sync_Controller extends Base_Controller {
 		$this->append_wpml_term_sync_data( $data, (int) $term->term_id, $taxonomy );
 
 		return $data;
+	}
+
+	/** Preserve taxonomy WYSIWYG shortcodes in sync payloads. */
+	private function export_term_acf_sync_value( $term_id, $field_name, $field ) {
+		$type = is_array( $field ) ? (string) ( $field['type'] ?? '' ) : '';
+		if ( 'wysiwyg' === $type ) {
+			$raw = get_term_meta( (int) $term_id, (string) $field_name, true );
+			return class_exists( ACF_Fields::class )
+				? ACF_Fields::export_string_with_media_shortcode_tokens( (string) $raw )
+				: (string) $raw;
+		}
+
+		return ACF_Fields::export_value( 'term', (int) $term_id, (string) $field_name, '' );
 	}
 
 	/**
@@ -4564,6 +4577,12 @@ class Content_Sync_Controller extends Base_Controller {
 			$mapped_url = $this->get_mapped_acf_media_url( $value, $image_map, $image_sources );
 			if ( '' !== $mapped_url ) {
 				return $mapped_url;
+			}
+
+			// Resolve portable gallery/playlist tokens back to shortcodes and
+			// replace their source IDs with the downloaded local attachment IDs.
+			if ( class_exists( ACF_Fields::class ) && false !== strpos( $value, '[[RSL_IE:' ) ) {
+				return ACF_Fields::replace_media_urls_in_html( $value );
 			}
 
 			return \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
