@@ -212,10 +212,19 @@ class Export_Controller extends Base_Controller {
 			$this->send_error( $validation, null, 400 );
 		}
 
-		$export_type = $this->get_request_param( 'export_type' );
-		$format      = $this->get_request_param( 'format' );
-		$options     = $this->get_request_array( 'options' );
-		$options     = $this->apply_selected_ids_filter_to_options( $export_type, $options );
+			$export_type             = $this->get_request_param( 'export_type' );
+			$format                  = $this->get_request_param( 'format' );
+			$options                 = $this->get_request_array( 'options' );
+			$options                 = $this->apply_selected_ids_filter_to_options( $export_type, $options );
+			$custom_export_file_name = isset( $options['custom_export_file_name'] )
+				? sanitize_text_field( wp_unslash( (string) $options['custom_export_file_name'] ) )
+				: '';
+
+		if ( '' === trim( $custom_export_file_name ) ) {
+			$this->send_error( __( 'Custom export file name is required', 'import-export-by-rockstarlab' ), null, 400 );
+		}
+
+			$options['custom_export_file_name'] = $custom_export_file_name;
 
 		// Get all export parameters
 		$filters         = $this->get_request_array( 'filters' );
@@ -412,10 +421,13 @@ class Export_Controller extends Base_Controller {
 		}
 
 		// Generate download URL with nonce for security.
-		$parameters = json_decode( $job_data->parameters, true );
-		$format     = $parameters['format'] ?? 'csv';
-		$filename   = sprintf( 'export-%s.%s', gmdate( 'Y-m-d-His' ), $format );
-		$file_size  = filesize( $file_path );
+			$parameters = json_decode( $job_data->parameters, true );
+			$filename   = sanitize_file_name( basename( (string) $file_path ) );
+		if ( '' === $filename ) {
+			$format   = $parameters['format'] ?? 'csv';
+			$filename = sprintf( 'export-%s.%s', gmdate( 'Y-m-d-His' ), $format );
+		}
+			$file_size = filesize( $file_path );
 
 		$download_zip = (bool) $this->get_request_param( 'download_zip', false );
 		if ( $download_zip ) {
@@ -493,11 +505,14 @@ class Export_Controller extends Base_Controller {
 			wp_die( esc_html__( 'Export file does not exist', 'import-export-by-rockstarlab' ), 404 );
 		}
 
-		// Send file for download.
-		$parameters   = json_decode( $job_data->parameters, true );
-		$format       = $parameters['format'] ?? 'csv';
-		$filename     = sprintf( 'export-%s.%s', gmdate( 'Y-m-d-His' ), $format );
-		$content_type = 'application/octet-stream';
+			// Send file for download.
+			$parameters = json_decode( $job_data->parameters, true );
+			$filename   = sanitize_file_name( basename( (string) $file_path ) );
+		if ( '' === $filename ) {
+			$format   = $parameters['format'] ?? 'csv';
+			$filename = sprintf( 'export-%s.%s', gmdate( 'Y-m-d-His' ), $format );
+		}
+			$content_type = 'application/octet-stream';
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Download nonce was verified above.
 		$download_zip = isset( $_GET['download_zip'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['download_zip'] ) );
 
@@ -557,7 +572,8 @@ class Export_Controller extends Base_Controller {
 			$source_filename = sanitize_file_name( basename( $real_file_path ) );
 		}
 
-		$zip_filename = sanitize_file_name( sprintf( 'export-%d.zip', absint( $job_id ) ) );
+		$zip_basename = preg_replace( '/\.[^.]+$/', '', $source_filename );
+		$zip_filename = sanitize_file_name( sprintf( '%s.zip', '' !== $zip_basename ? $zip_basename : 'export-' . absint( $job_id ) ) );
 		$zip_path     = $export_dir . '/' . $zip_filename;
 
 		$zip = new \ZipArchive();

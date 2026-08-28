@@ -223,8 +223,17 @@ class Init {
 			return;
 		}
 
+		if ( 'edit-comments.php' === $admin_page ) {
+			$this->load_comment_quick_action_assets();
+			return;
+		}
+
 		if ( ! $this->is_plugin_admin_page( $admin_page, $current_page ) ) {
 			return;
+		}
+
+		if ( 'rsl-ie-export' === $current_page && ! \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ) {
+			$this->load_admin_object_export_prefill();
 		}
 
 		wp_enqueue_script(
@@ -1100,11 +1109,11 @@ class Init {
 		}
 
 		foreach (
-			array(
-				'rsl_ie_content_sync_get_remote_terms',
-				'rsl_ie_content_sync_push_terms',
-				'rsl_ie_content_sync_pull_terms',
-			) as $rsl_ie_taxonomy_sync_action
+		array(
+			'rsl_ie_content_sync_get_remote_terms',
+			'rsl_ie_content_sync_push_terms',
+			'rsl_ie_content_sync_pull_terms',
+		) as $rsl_ie_taxonomy_sync_action
 		) {
 			Ajax_Security::register_action( $rsl_ie_taxonomy_sync_action );
 		}
@@ -1152,11 +1161,161 @@ class Init {
 		);
 	}
 
-	/**
-	 * Resolve the language selected in the current WPML admin screen.
-	 *
-	 * @return string
-	 */
+		/**
+		 * Load quick Export/Sync actions for the regular comments list screen.
+		 *
+		 * @return void
+		 */
+	private function load_comment_quick_action_assets() {
+		$comment_type = isset( $_GET['comment_type'] ) ? sanitize_key( wp_unslash( $_GET['comment_type'] ) ) : '';
+		if ( 'review' === $comment_type ) {
+			return;
+		}
+
+		$location_id    = 'admin:comments';
+		$export_enabled = \RockStarLab\ImportExport\Helper\Button_Location_Settings::is_export_enabled( $location_id );
+		$sync_enabled   = \RockStarLab\ImportExport\Helper\Button_Location_Settings::is_sync_enabled( $location_id );
+		if ( ! $export_enabled && ! $sync_enabled ) {
+			return;
+		}
+
+		$script_path = plugin_dir_path( RSL_IE_FILE ) . 'assets/js/admin-object-quick-actions.js';
+		$version     = file_exists( $script_path ) ? filemtime( $script_path ) : ( defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '1.0.0' );
+
+		wp_enqueue_script(
+			'rsl-ie-admin-object-quick-actions',
+			plugins_url( 'assets/js/admin-object-quick-actions.js', RSL_IE_FILE ),
+			array( 'jquery' ),
+			$version,
+			array(
+				'in_footer' => true,
+			)
+		);
+
+		$style_path = plugin_dir_path( RSL_IE_FILE ) . 'assets/css/app.css';
+		if ( file_exists( $style_path ) ) {
+			wp_enqueue_style(
+				'import-export-by-rockstarlab-styles',
+				plugins_url( 'assets/css/app.css', RSL_IE_FILE ),
+				array(),
+				filemtime( $style_path )
+			);
+		}
+
+		foreach (
+			array(
+				'rsl_ie_content_sync_get_remote_posts',
+				'rsl_ie_content_sync_search_local_posts',
+				'rsl_ie_content_sync_get_remote_comments',
+				'rsl_ie_content_sync_push_comments',
+				'rsl_ie_content_sync_pull_comments',
+			) as $rsl_ie_comment_sync_action
+		) {
+			Ajax_Security::register_action( $rsl_ie_comment_sync_action );
+		}
+
+		wp_add_inline_script(
+			'rsl-ie-admin-object-quick-actions',
+			'window.rslIeProAdminObjectQuickActions = ' . wp_json_encode(
+				array(
+					'nonces'          => Ajax_Security::get_nonces(),
+					'ajaxurl'         => admin_url( 'admin-ajax.php' ),
+					'exportUrl'       => admin_url( 'admin.php?page=rsl-ie-export' ),
+					'contentSyncUrl'  => admin_url( 'admin.php?page=rsl-ie-content-sync' ),
+					'exportLabel'     => __( 'Export', 'import-export-by-rockstarlab' ),
+					'syncLabel'       => __( 'Sync', 'import-export-by-rockstarlab' ),
+					'connectedSites'  => $this->get_connected_sites_for_quick_actions(),
+					'wpmlLanguage'    => $this->get_admin_wpml_language(),
+					'objectType'      => 'comment',
+					'objectSubtype'   => '',
+					'exportEnabled'   => $export_enabled,
+					'syncEnabled'     => $sync_enabled,
+					'selectionMode'   => 'checkboxes',
+					'idParam'         => 'object_ids',
+					'toolbarSelector' => '.tablenav.top .alignleft.actions.bulkactions',
+					'i18n'            => array(
+						'selectItems'      => __( 'Select one or more comments.', 'import-export-by-rockstarlab' ),
+						'selectSite'       => __( 'Please select a site.', 'import-export-by-rockstarlab' ),
+						'syncItems'        => __( 'Sync Comments', 'import-export-by-rockstarlab' ),
+						'pushComments'     => __( 'Push selected comments', 'import-export-by-rockstarlab' ),
+						'browseComments'   => __( 'Browse remote comments', 'import-export-by-rockstarlab' ),
+						'remoteComments'   => __( 'Remote Comments', 'import-export-by-rockstarlab' ),
+						'searchComments'   => __( 'Search comments...', 'import-export-by-rockstarlab' ),
+						'pullSelected'     => __( 'Pull selected comments', 'import-export-by-rockstarlab' ),
+						'loading'          => __( 'Loading...', 'import-export-by-rockstarlab' ),
+						'noItemsFound'     => __( 'No comments found.', 'import-export-by-rockstarlab' ),
+						'syncComplete'     => __( 'Sync completed successfully.', 'import-export-by-rockstarlab' ),
+						'syncFailed'       => __( 'Sync failed.', 'import-export-by-rockstarlab' ),
+						'close'            => __( 'Close', 'import-export-by-rockstarlab' ),
+						'cancel'           => __( 'Cancel', 'import-export-by-rockstarlab' ),
+						'selectRemoteItem' => __( 'Please select one or more remote comments.', 'import-export-by-rockstarlab' ),
+					),
+				)
+			) . ';',
+			'before'
+		);
+	}
+
+		/**
+		 * Load admin object export prefill support for free quick actions.
+		 *
+		 * @return void
+		 */
+	private function load_admin_object_export_prefill() {
+		$script_path = plugin_dir_path( RSL_IE_FILE ) . 'assets/js/admin-object-quick-actions.js';
+		$version     = file_exists( $script_path ) ? filemtime( $script_path ) : ( defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : '1.0.0' );
+
+		wp_enqueue_script(
+			'rsl-ie-admin-object-quick-actions',
+			plugins_url( 'assets/js/admin-object-quick-actions.js', RSL_IE_FILE ),
+			array( 'jquery' ),
+			$version,
+			array(
+				'in_footer' => true,
+			)
+		);
+
+		wp_add_inline_script(
+			'rsl-ie-admin-object-quick-actions',
+			'window.rslIeProAdminObjectQuickActions = ' . wp_json_encode(
+				array(
+					'mode' => 'export_prefill',
+				)
+			) . ';',
+			'before'
+		);
+	}
+
+		/**
+		 * Get connected sites in the compact format expected by quick actions.
+		 *
+		 * @return array
+		 */
+	private function get_connected_sites_for_quick_actions() {
+		$sites     = Connected_Site::get_all();
+		$sites_map = array();
+
+		foreach ( $sites as $site ) {
+			$site_id = isset( $site['id'] ) ? (string) $site['id'] : '';
+			if ( '' === $site_id ) {
+				continue;
+			}
+
+			$sites_map[ $site_id ] = array(
+				'id'         => $site_id,
+				'name'       => isset( $site['name'] ) ? (string) $site['name'] : '',
+				'remote_url' => isset( $site['remote_url'] ) ? (string) $site['remote_url'] : '',
+			);
+		}
+
+		return $sites_map;
+	}
+
+		/**
+		 * Resolve the language selected in the current WPML admin screen.
+		 *
+		 * @return string
+		 */
 	private function get_admin_wpml_language() {
 		if ( ! WPML_Compatibility::is_active() ) {
 			return '';
