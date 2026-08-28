@@ -21,6 +21,7 @@ const ImportModule = {
 	mappingFunctions: {},
 	importStartTime: null,
 	isCancellingImport: false,
+	isBatchProcessing: false,
 
 	/**
 	 * Initialize module
@@ -472,13 +473,20 @@ const ImportModule = {
 	 */
 	handleFile( file ) {
 		// Validate file extension only (no size limit with chunked upload)
-		const allowedExtensions = [ '.csv', '.xml', '.xlsx', '.ods', '.zip' ];
+		const allowedExtensions = [
+			'.csv',
+			'.json',
+			'.xml',
+			'.xlsx',
+			'.ods',
+			'.zip',
+		];
 		const fileExt = '.' + file.name.split( '.' ).pop().toLowerCase();
 
 		if ( ! allowedExtensions.includes( fileExt ) ) {
 			Utils.showNotice(
 				rslIeData.i18n.invalidFileTypeCsv ||
-					'Invalid file type. Please upload CSV, XML, XLSX, ODS, or ZIP files only.',
+					'Invalid file type. Please upload CSV, JSON, XML, XLSX, ODS, or ZIP files only.',
 				'error'
 			);
 			return;
@@ -710,7 +718,7 @@ const ImportModule = {
 	 */
 	detectFormat( filename ) {
 		const extension = filename.split( '.' ).pop().toLowerCase();
-		const supported = [ 'csv', 'xml', 'xlsx', 'ods', 'zip' ];
+		const supported = [ 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ];
 
 		return supported.includes( extension ) ? extension : 'csv';
 	},
@@ -5794,9 +5802,15 @@ const ImportModule = {
 	 * Start batch processing
 	 */
 	async startBatchProcessing() {
-		if ( this.isCancellingImport || ! this.jobId ) {
+		if (
+			this.isCancellingImport ||
+			! this.jobId ||
+			this.isBatchProcessing
+		) {
 			return;
 		}
+
+		this.isBatchProcessing = true;
 
 		try {
 			const response = await Utils.ajax( 'rsl_ie_import_process_batch', {
@@ -5872,6 +5886,8 @@ const ImportModule = {
 			}
 			clearInterval( this.progressInterval );
 			Utils.handleError( error, 'Process batch' );
+		} finally {
+			this.isBatchProcessing = false;
 		}
 	},
 
@@ -6061,6 +6077,7 @@ const ImportModule = {
 		this.jobId = null;
 		this.importStartTime = null;
 		this.isCancellingImport = false;
+		this.isBatchProcessing = false;
 		if ( this.batchTimeout ) {
 			clearTimeout( this.batchTimeout );
 			this.batchTimeout = null;

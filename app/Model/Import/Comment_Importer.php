@@ -701,6 +701,9 @@ class Comment_Importer extends Abstract_Importer {
 		}
 
 		$content = isset( $item['comment_content'] ) ? (string) $item['comment_content'] : '';
+		if ( $this->get_option( 'auto_import_media', false ) && '' !== $content && class_exists( ACF_Fields::class ) ) {
+			$content = ACF_Fields::replace_media_urls_in_html( $content, 0 );
+		}
 		if ( $content === '' ) {
 			return;
 		}
@@ -859,9 +862,14 @@ class Comment_Importer extends Abstract_Importer {
 	 * @return array Prepared comment data
 	 */
 	private function prepare_comment_data( $item ) {
+		$comment_content = isset( $item['comment_content'] ) ? (string) $item['comment_content'] : '';
+		if ( $this->get_option( 'auto_import_media', false ) && '' !== $comment_content && class_exists( ACF_Fields::class ) ) {
+			$comment_content = ACF_Fields::replace_media_urls_in_html( $comment_content, 0 );
+		}
+
 		$comment_data = [
 			'comment_post_ID'      => absint( $item['comment_post_ID'] ?? 0 ),
-			'comment_content'      => $item['comment_content'] ?? '',
+			'comment_content'      => $comment_content,
 			'comment_approved'     => $item['comment_approved'] ?? $this->get_option( 'default_status', '1' ),
 			'comment_type'         => $item['comment_type'] ?? $this->get_option( 'default_type', 'comment' ),
 			'comment_author'       => $item['comment_author'] ?? '',

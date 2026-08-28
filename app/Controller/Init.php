@@ -297,7 +297,7 @@ class Init {
 					'noApiKeyDesc'                      => __( 'Please enter your OpenAI API key and save settings.', 'import-export-by-rockstarlab' ),
 					'fileTooLarge'                      => __( 'File size exceeds maximum allowed', 'import-export-by-rockstarlab' ),
 					'invalidFileType'                   => __( 'Invalid file type', 'import-export-by-rockstarlab' ),
-					'invalidFileTypeCsv'                => __( 'Invalid file type. Please upload CSV, XML, XLSX, ODS, or ZIP files only.', 'import-export-by-rockstarlab' ),
+					'invalidFileTypeCsv'                => __( 'Invalid file type. Please upload CSV, JSON, XML, XLSX, ODS, or ZIP files only.', 'import-export-by-rockstarlab' ),
 					'fileUploadedSuccessfully'          => __( 'File uploaded successfully', 'import-export-by-rockstarlab' ),
 					'uploadFailed'                      => __( 'Upload failed', 'import-export-by-rockstarlab' ),
 					'noFileDataAvailable'               => __( 'No file data available', 'import-export-by-rockstarlab' ),

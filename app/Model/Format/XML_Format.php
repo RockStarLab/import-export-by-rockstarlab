@@ -151,7 +151,32 @@ class XML_Format implements File_Format_Interface {
 		}
 
 		$data = json_decode( wp_json_encode( $element ), true );
-		return is_array( $data ) ? $data : array();
+		return is_array( $data ) ? $this->normalize_xml_values( $data ) : array();
+	}
+
+	/**
+	 * Normalize SimpleXML's decoded values.
+	 *
+	 * SimpleXML represents empty leaf tags as empty arrays after JSON decoding,
+	 * but importers expect scalar fields like post_excerpt to be strings.
+	 *
+	 * @param mixed $value Parsed XML value.
+	 * @return mixed Normalized value.
+	 */
+	private function normalize_xml_values( $value ) {
+		if ( ! is_array( $value ) ) {
+			return $value;
+		}
+
+		if ( empty( $value ) ) {
+			return '';
+		}
+
+		foreach ( $value as $key => $child_value ) {
+			$value[ $key ] = $this->normalize_xml_values( $child_value );
+		}
+
+		return $value;
 	}
 
 	/**

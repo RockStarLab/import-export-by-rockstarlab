@@ -301,6 +301,19 @@ class ACF_Fields {
 			}
 		}
 
+		if ( function_exists( 'acf_get_field' ) && '' !== (string) $object_type ) {
+			$object_id = self::object_id_from_acf_id( $acf_id );
+			if ( $object_id > 0 ) {
+				$field_key = self::get_raw_meta_value( $object_type, $object_id, '_' . (string) $field_name );
+				if ( is_string( $field_key ) && 0 === strpos( $field_key, 'field_' ) ) {
+					$field_object = acf_get_field( $field_key );
+					if ( is_array( $field_object ) ) {
+						return $field_object;
+					}
+				}
+			}
+		}
+
 		if ( function_exists( 'acf_get_field' ) ) {
 			$field_object = acf_get_field( $field_name );
 			if ( is_array( $field_object ) ) {
@@ -318,6 +331,24 @@ class ACF_Fields {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Extract a numeric object ID from an ACF object selector.
+	 *
+	 * @param string|int $acf_id ACF object ID.
+	 * @return int
+	 */
+	private static function object_id_from_acf_id( $acf_id ) {
+		if ( is_numeric( $acf_id ) ) {
+			return absint( $acf_id );
+		}
+
+		if ( is_string( $acf_id ) && preg_match( '/_(\d+)$/', $acf_id, $matches ) ) {
+			return absint( $matches[1] );
+		}
+
+		return 0;
 	}
 
 	/**
@@ -517,6 +548,10 @@ class ACF_Fields {
 			];
 		}
 
+		if ( 'wysiwyg' === $type && is_string( $value ) ) {
+			return self::export_string_with_media_shortcode_tokens( $value );
+		}
+
 		return $value;
 	}
 
@@ -591,6 +626,9 @@ class ACF_Fields {
 
 		if ( is_array( $value ) && isset( $value['acf_type'] ) ) {
 			switch ( $value['acf_type'] ) {
+				case 'media_shortcode':
+				case 'gallery_shortcode':
+					return self::resolve_media_shortcode_token_value( $value, $parent_id );
 				case 'gallery':
 					$ids = [];
 					foreach ( (array) ( $value['values'] ?? [] ) as $url ) {
@@ -659,7 +697,7 @@ class ACF_Fields {
 			return $ids;
 		}
 
-		if ( is_string( $value ) && '' !== $value && ( 'wysiwyg' === $type || false !== stripos( $value, '<img' ) || false !== stripos( $value, 'srcset=' ) || false !== stripos( $value, '<a' ) ) ) {
+		if ( is_string( $value ) && '' !== $value && ( 'wysiwyg' === $type || false !== stripos( $value, '<img' ) || false !== stripos( $value, 'srcset=' ) || false !== stripos( $value, '<a' ) || false !== stripos( $value, '[[RSL_IE:' ) || false !== stripos( $value, '[gallery' ) || false !== stripos( $value, '[playlist' ) ) ) {
 			return self::replace_media_urls_in_html( $value, $parent_id );
 		}
 
@@ -802,21 +840,28 @@ class ACF_Fields {
 		return 0;
 	}
 
-	private static function attachment_id_from_value( $value, $parent_id = 0 ) {
+	private static function attachment_id_from_value( $value, $parent_id = 0, $source_attachment_id = 0 ) {
 		static $url_to_attachment_cache = [];
 
 		$value = self::maybe_decode( $value );
 		if ( is_numeric( $value ) ) {
-			return absint( $value );
+			$attachment_id = absint( $value );
+			if ( $attachment_id > 0 && 'attachment' === get_post_type( $attachment_id ) ) {
+				return $attachment_id;
+			}
+
+			$mapped_id = self::attachment_id_from_source_attachment_id( $attachment_id );
+			return $mapped_id > 0 ? $mapped_id : 0;
 		}
 		if ( is_array( $value ) ) {
 			foreach ( [ 'ID', 'id' ] as $key ) {
 				if ( isset( $value[ $key ] ) && is_numeric( $value[ $key ] ) ) {
-					return absint( $value[ $key ] );
+					return self::attachment_id_from_value( $value[ $key ], $parent_id, $source_attachment_id );
 				}
 			}
 			if ( isset( $value['url'] ) ) {
-				return self::attachment_id_from_value( $value['url'], $parent_id );
+				$source_id = isset( $value['source_id'] ) ? absint( $value['source_id'] ) : absint( $source_attachment_id );
+				return self::attachment_id_from_value( $value['url'], $parent_id, $source_id );
 			}
 		}
 		if ( ! is_string( $value ) || '' === $value ) {
@@ -882,8 +927,11 @@ class ACF_Fields {
 			return 0;
 		}
 
-		update_post_meta( (int) $id, 'rsl_ie_source_url', $source_url );
-		update_post_meta( (int) $id, 'rsl_ie_source_url_hash', $source_hash );
+			update_post_meta( (int) $id, 'rsl_ie_source_url', $source_url );
+			update_post_meta( (int) $id, 'rsl_ie_source_url_hash', $source_hash );
+		if ( absint( $source_attachment_id ) > 0 ) {
+			update_post_meta( (int) $id, '_rsl_ie_source_attachment_id', absint( $source_attachment_id ) );
+		}
 		if ( class_exists( '\RockStarLab\ImportExport\Helper\Media_Hash' ) ) {
 			Media_Hash::get_or_create_hash( (int) $id );
 		}
@@ -941,6 +989,31 @@ class ACF_Fields {
 		return $attachment_id ? absint( $attachment_id ) : 0;
 	}
 
+	/**
+	 * Find an attachment previously imported from a source attachment ID.
+	 *
+	 * @param int $source_attachment_id Source-site attachment ID.
+	 * @return int Local attachment ID or 0.
+	 */
+	private static function attachment_id_from_source_attachment_id( $source_attachment_id ) {
+		global $wpdb;
+
+		$source_attachment_id = absint( $source_attachment_id );
+		if ( $source_attachment_id <= 0 ) {
+			return 0;
+		}
+
+		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value = %s LIMIT 1",
+				'_rsl_ie_source_attachment_id',
+				$source_attachment_id
+			)
+		);
+
+		return $attachment_id && 'attachment' === get_post_type( (int) $attachment_id ) ? absint( $attachment_id ) : 0;
+	}
+
 		/**
 		 * Replace media URLs in HTML/WYSIWYG values with local media library URLs.
 		 *
@@ -948,7 +1021,10 @@ class ACF_Fields {
 		 * @param int    $parent_id Parent object ID.
 		 * @return string
 		 */
-	private static function replace_media_urls_in_html( $html, $parent_id = 0 ) {
+	public static function replace_media_urls_in_html( $html, $parent_id = 0 ) {
+		$html = self::resolve_media_shortcode_tokens_in_string( $html, $parent_id );
+		$html = self::remap_media_shortcode_source_ids( $html );
+
 		$html = preg_replace_callback(
 			'/<img\b[^>]*>/i',
 			static function ( $matches ) use ( $parent_id ) {
@@ -986,6 +1062,234 @@ class ACF_Fields {
 			},
 			$html
 		);
+	}
+
+	/**
+	 * Replace media shortcode IDs with portable attachment payloads.
+	 *
+	 * @param string $value Value that may contain gallery/playlist shortcodes.
+	 * @return string
+	 */
+	public static function export_string_with_media_shortcode_tokens( string $value ): string {
+		if ( false === stripos( $value, '[gallery' ) && false === stripos( $value, '[playlist' ) ) {
+			return $value;
+		}
+
+		return preg_replace_callback(
+			'/\\[(gallery|playlist)\\b[^\\]]*\\]/i',
+			static function ( array $matches ) {
+				$shortcode = (string) ( $matches[0] ?? '' );
+				$tag       = strtolower( (string) ( $matches[1] ?? '' ) );
+				if ( '' === $shortcode || ! preg_match( '/\\bids=(["\'])([^"\']+)\\1/i', $shortcode, $ids_match ) ) {
+					return $shortcode;
+				}
+
+				$ids = array_filter( array_map( 'absint', preg_split( '/\\s*,\\s*/', (string) ( $ids_match[2] ?? '' ) ) ?: [] ) );
+				if ( empty( $ids ) ) {
+					return $shortcode;
+				}
+
+				$items = [];
+				foreach ( $ids as $attachment_id ) {
+					$url = wp_get_attachment_url( (int) $attachment_id );
+					if ( ! $url ) {
+						continue;
+					}
+
+					$items[] = [
+						'source_id'   => (int) $attachment_id,
+						'url'         => $url,
+						'title'       => get_the_title( (int) $attachment_id ),
+						'caption'     => (string) wp_get_attachment_caption( (int) $attachment_id ),
+						'description' => (string) get_post_field( 'post_content', (int) $attachment_id ),
+						'alt'         => (string) get_post_meta( (int) $attachment_id, '_wp_attachment_image_alt', true ),
+						'menu_order'  => (int) get_post_field( 'menu_order', (int) $attachment_id ),
+					];
+				}
+
+				if ( empty( $items ) ) {
+					return $shortcode;
+				}
+
+				$payload = [
+					'acf_type'  => 'media_shortcode',
+					'shortcode' => $shortcode,
+					'tag'       => $tag,
+					'items'     => array_values( $items ),
+				];
+				$json    = wp_json_encode( $payload );
+				$token   = base64_encode( $json ? $json : '' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+
+				return '' !== $token ? '[[RSL_IE:' . $token . ']]' : $shortcode;
+			},
+			$value
+		);
+	}
+
+	/**
+	 * Resolve a decoded media shortcode payload to a local shortcode.
+	 *
+	 * @param array $payload   Decoded payload.
+	 * @param int   $parent_id Attachment parent.
+	 * @return string
+	 */
+	private static function resolve_media_shortcode_token_value( array $payload, $parent_id = 0 ): string {
+		$shortcode = (string) ( $payload['shortcode'] ?? '' );
+		$items     = $payload['items'] ?? [];
+		$urls      = $payload['urls'] ?? [];
+		if ( empty( $items ) && is_array( $urls ) ) {
+			$items = array_map(
+				static function ( $url ) {
+					return [ 'url' => $url ];
+				},
+				$urls
+			);
+		}
+
+		if ( '' === $shortcode || ! is_array( $items ) ) {
+			return $shortcode;
+		}
+
+		$new_ids = [];
+		foreach ( $items as $item ) {
+			$url = is_array( $item ) ? (string) ( $item['url'] ?? '' ) : (string) $item;
+			$id  = self::attachment_id_from_value( $url, $parent_id, is_array( $item ) ? absint( $item['source_id'] ?? 0 ) : 0 );
+			if ( $id > 0 ) {
+				$new_ids[] = $id;
+			}
+		}
+
+		if ( empty( $new_ids ) ) {
+			return $shortcode;
+		}
+
+		return self::replace_shortcode_ids_attribute( $shortcode, $new_ids );
+	}
+
+	/**
+	 * Resolve media shortcode tokens embedded in an HTML/WYSIWYG string.
+	 *
+	 * @param string $value     String value.
+	 * @param int    $parent_id Attachment parent.
+	 * @return string
+	 */
+	private static function resolve_media_shortcode_tokens_in_string( string $value, $parent_id = 0 ): string {
+		if ( false === strpos( $value, '[[RSL_IE:' ) ) {
+			return $value;
+		}
+
+		return preg_replace_callback(
+			'/\\[\\[RSL_IE:([A-Za-z0-9+\\/=]+)\\]\\]/',
+			static function ( array $matches ) use ( $parent_id ) {
+				$json = base64_decode( (string) ( $matches[1] ?? '' ), true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+				if ( false === $json || '' === $json ) {
+					return $matches[0] ?? '';
+				}
+
+				$payload  = json_decode( $json, true );
+				$acf_type = is_array( $payload ) ? (string) ( $payload['acf_type'] ?? '' ) : '';
+				if ( ! is_array( $payload ) || ! in_array( $acf_type, [ 'gallery_shortcode', 'media_shortcode' ], true ) ) {
+					return $matches[0] ?? '';
+				}
+
+				$resolved = self::resolve_media_shortcode_token_value( $payload, $parent_id );
+				return '' !== $resolved ? $resolved : ( $matches[0] ?? '' );
+			},
+			$value
+		);
+	}
+
+	/**
+	 * Best-effort remap for raw source-site media shortcode IDs.
+	 *
+	 * @param string $value Value that may contain gallery/playlist shortcodes.
+	 * @return string
+	 */
+	private static function remap_media_shortcode_source_ids( string $value ): string {
+		if ( false === stripos( $value, '[gallery' ) && false === stripos( $value, '[playlist' ) ) {
+			return $value;
+		}
+
+		return preg_replace_callback(
+			'/\\[(gallery|playlist)\\b[^\\]]*\\]/i',
+			static function ( array $matches ) {
+				$shortcode = (string) ( $matches[0] ?? '' );
+				if ( '' === $shortcode || ! preg_match( '/\\bids=(["\'])([^"\']+)\\1/i', $shortcode, $ids_match ) ) {
+					return $shortcode;
+				}
+
+				$source_ids = array_filter( array_map( 'absint', preg_split( '/\\s*,\\s*/', (string) ( $ids_match[2] ?? '' ) ) ?: [] ) );
+				if ( empty( $source_ids ) ) {
+					return $shortcode;
+				}
+
+				$mapped_ids = [];
+				$has_mapped = false;
+				foreach ( $source_ids as $source_id ) {
+					$local_id = self::find_attachment_by_source_attachment_id( $source_id );
+					if ( $local_id > 0 ) {
+						$mapped_ids[] = $local_id;
+						$has_mapped   = true;
+					} else {
+						$mapped_ids[] = $source_id;
+					}
+				}
+
+				return $has_mapped ? self::replace_shortcode_ids_attribute( $shortcode, $mapped_ids ) : $shortcode;
+			},
+			$value
+		);
+	}
+
+	/**
+	 * Replace a shortcode ids attribute while preserving the original shortcode tag/options.
+	 *
+	 * @param string $shortcode Shortcode text.
+	 * @param array  $ids       Attachment IDs.
+	 * @return string
+	 */
+	private static function replace_shortcode_ids_attribute( string $shortcode, array $ids ): string {
+		$ids = array_filter( array_map( 'absint', $ids ) );
+		if ( empty( $ids ) ) {
+			return $shortcode;
+		}
+
+		$ids_string = implode( ',', $ids );
+		$updated    = preg_replace( '/\\bids=(["\'])([^"\']*)\\1/i', 'ids=${1}' . $ids_string . '${1}', $shortcode, 1 );
+		if ( is_string( $updated ) && '' !== $updated ) {
+			return $updated;
+		}
+
+		return $shortcode;
+	}
+
+	/**
+	 * Find a local attachment imported from a source attachment ID.
+	 *
+	 * @param int $source_attachment_id Source attachment ID.
+	 * @return int
+	 */
+	private static function find_attachment_by_source_attachment_id( $source_attachment_id ): int {
+		$source_attachment_id = absint( $source_attachment_id );
+		if ( $source_attachment_id <= 0 ) {
+			return 0;
+		}
+
+		$attachments = get_posts(
+			[
+				'post_type'              => 'attachment',
+				'post_status'            => 'inherit',
+				'posts_per_page'         => 1,
+				'fields'                 => 'ids',
+				'meta_key'               => '_rsl_ie_source_attachment_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_value'             => $source_attachment_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			]
+		);
+
+		return ! empty( $attachments[0] ) ? absint( $attachments[0] ) : 0;
 	}
 
 	private static function replace_media_url_attribute( $tag, $attribute, $parent_id = 0 ) {

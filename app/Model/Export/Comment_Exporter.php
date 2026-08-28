@@ -280,7 +280,7 @@ class Comment_Exporter extends Abstract_Exporter {
 					break;
 
 				case 'comment_content':
-					$data['comment_content'] = $comment->comment_content;
+					$data['comment_content'] = ACF_Fields::export_string_with_media_shortcode_tokens( (string) $comment->comment_content );
 					break;
 
 				case 'comment_karma':

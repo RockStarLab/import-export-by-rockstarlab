@@ -98,7 +98,7 @@ class Chunk_Upload {
 		$file_extension     = strtolower( pathinfo( $file_name, PATHINFO_EXTENSION ) );
 
 		if ( ! in_array( $file_extension, $allowed_extensions, true ) ) {
-			wp_send_json_error( __( 'Invalid file type. Supported formats: CSV, XML, XLSX, ODS, and ZIP archives containing one supported import file.', 'import-export-by-rockstarlab' ) );
+			wp_send_json_error( __( 'Invalid file type. Supported formats: CSV, JSON, XML, XLSX, ODS, and ZIP archives containing one supported import file.', 'import-export-by-rockstarlab' ) );
 		}
 
 		// Check if chunk file was uploaded.
@@ -210,7 +210,7 @@ class Chunk_Upload {
 			}
 
 			if ( ! in_array( strtolower( pathinfo( $file_name, PATHINFO_EXTENSION ) ), $this->get_allowed_import_extensions(), true ) ) {
-				wp_send_json_error( __( 'Invalid file type. Supported formats: CSV, XML, XLSX, ODS, and ZIP archives containing one supported import file.', 'import-export-by-rockstarlab' ) );
+				wp_send_json_error( __( 'Invalid file type. Supported formats: CSV, JSON, XML, XLSX, ODS, and ZIP archives containing one supported import file.', 'import-export-by-rockstarlab' ) );
 			}
 
 			$upload_path = $this->chunks_dir . $upload_id . '/';
@@ -436,7 +436,7 @@ class Chunk_Upload {
 	 * @return array
 	 */
 	private function get_allowed_import_extensions() {
-		return array( 'csv', 'xml', 'xlsx', 'ods', 'zip' );
+		return array( 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' );
 	}
 
 	/**
@@ -721,23 +721,6 @@ class Chunk_Upload {
 			return array(
 				'valid' => false,
 				'error' => __( 'JSON objects must have named fields (keys). Numeric arrays are not supported.', 'import-export-by-rockstarlab' ),
-			);
-		}
-
-		// Check maximum nesting depth
-		// Level 1: Array of objects [{}, {}]
-		// Level 2: Object fields {"key": "value", "meta": {...}}
-		// Level 3: Nested values (will be serialized) {"meta": {"views": 100}}
-		// Maximum allowed: 2 levels (object fields can have nested objects/arrays as values)
-		$max_depth = $this->get_array_depth( $first_item );
-		if ( $max_depth > 2 ) {
-			return array(
-				'valid' => false,
-				'error' => sprintf(
-				/* translators: %d: current nesting depth */
-					__( 'JSON structure is too deeply nested (depth: %d). Maximum allowed: array of flat objects with values. Nested values (objects/arrays) will be imported as serialized data. Example: [{"id": 1, "meta": {"key": "value"}}]', 'import-export-by-rockstarlab' ),
-					$max_depth
-				),
 			);
 		}
 

@@ -495,13 +495,14 @@ class Export_Processor {
 			return $default_filename;
 		}
 
-		$extension = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
-		if ( strtolower( (string) $format ) !== $extension ) {
-			$filename = preg_replace( '/\.[^.]+$/', '', $filename );
-			$filename = sprintf( '%s.%s', $filename, $format );
+		$basename = preg_replace( '/\.[^.]+$/', '', $filename );
+		$basename = sanitize_file_name( $basename );
+
+		if ( '' === $basename ) {
+			return $default_filename;
 		}
 
-		return sanitize_file_name( $filename );
+		return sanitize_file_name( sprintf( '%s.%s', $basename, $format ) );
 	}
 
 	/**
