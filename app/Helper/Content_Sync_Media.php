@@ -761,6 +761,11 @@ class Content_Sync_Media {
 		$file_url  = wp_get_attachment_url( $attachment_id );
 		$metadata  = wp_get_attachment_metadata( $attachment_id );
 
+		$description = (string) $attachment->post_content;
+		if ( class_exists( ACF_Fields::class ) ) {
+			$description = ACF_Fields::export_string_with_media_shortcode_tokens( $description );
+		}
+
 		$image_data = array(
 			'attachment_id' => $attachment_id,
 			'url'           => $file_url,
@@ -773,10 +778,24 @@ class Content_Sync_Media {
 			'alt_text'      => get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ),
 			'title'         => $attachment->post_title,
 			'caption'       => $attachment->post_excerpt,
-			'description'   => $attachment->post_content,
+			'description'   => $description,
 			'context'       => $context,
 			'metadata'      => $metadata,
 		);
+
+		if ( class_exists( ACF_Fields::class ) ) {
+			$acf = array();
+			foreach ( ACF_Fields::get_fields_for_content_type( 'media' ) as $field ) {
+				$field_name = isset( $field['name'] ) ? (string) $field['name'] : '';
+				if ( '' === $field_name ) {
+					continue;
+				}
+				$acf[ $field_name ] = ACF_Fields::export_value( 'media', (int) $attachment_id, $field_name );
+			}
+			if ( ! empty( $acf ) ) {
+				$image_data['acf'] = $acf;
+			}
+		}
 
 		if ( class_exists( __NAMESPACE__ . '\WPML_Compatibility' ) && WPML_Compatibility::is_active() ) {
 			$wpml_data = WPML_Compatibility::export_post_data( $attachment_id, 'attachment' );
