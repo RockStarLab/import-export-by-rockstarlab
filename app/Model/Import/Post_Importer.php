@@ -3216,6 +3216,19 @@ class Post_Importer extends Abstract_Importer {
 	 * @param string $post_content Post content with media URLs
 	 */
 	private function auto_import_content_media( $post_id, $post_content ) {
+		if ( class_exists( ACF_Fields::class ) ) {
+			$resolved_content = ACF_Fields::replace_media_urls_in_html( (string) $post_content, (int) $post_id );
+			if ( is_string( $resolved_content ) && $resolved_content !== $post_content ) {
+				$post_content = $resolved_content;
+				wp_update_post(
+					[
+						'ID'           => $post_id,
+						'post_content' => $post_content,
+					]
+				);
+			}
+		}
+
 		$media_urls = [];
 
 		// 1. Find traditional <img> tags
