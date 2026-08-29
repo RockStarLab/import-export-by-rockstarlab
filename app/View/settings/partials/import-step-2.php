@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 <div class="rsl-ie-step rsl-ie-step-2" data-step="2">
 	<div class="rsl-ie-step-header">
 		<h2><?php esc_html_e( 'Step 2: Upload File', 'import-export-by-rockstarlab' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Upload your data file (CSV, XML, XLSX, or ODS)', 'import-export-by-rockstarlab' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Upload your data file (CSV, XML, JSON, ZIP, XLSX, or ODS)', 'import-export-by-rockstarlab' ); ?></p>
 	</div>
 
 	<div class="rsl-ie-step-content">

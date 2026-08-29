@@ -1636,7 +1636,7 @@ class Content_Sync_API_Controller {
 		}
 
 			// Generate and update attachment metadata
-			\RockStarLab\ImportExport\Helper\Fs::load_image_core();
+			\RockStarLab\ImportExport\Helper\Fs::load_attachment_metadata_core();
 			$attach_data = wp_generate_attachment_metadata( $attachment_id, $file_path );
 			wp_update_attachment_metadata( $attachment_id, $attach_data );
 
