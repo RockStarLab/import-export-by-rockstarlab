@@ -2740,6 +2740,11 @@ const ImportModule = {
 							label: 'Grouped Products (JSON)',
 							type: 'json',
 						},
+						{
+							value: '_children',
+							label: 'Grouped Product Children (raw _children)',
+							type: 'string',
+						},
 					],
 				},
 				{
