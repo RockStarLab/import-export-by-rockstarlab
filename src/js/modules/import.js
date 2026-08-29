@@ -3738,6 +3738,36 @@ const ImportModule = {
 							label: 'Display Name',
 							type: 'string',
 						},
+						{
+							value: 'date_created',
+							label: 'Date Created',
+							type: 'datetime',
+						},
+						{
+							value: 'date_modified',
+							label: 'Date Modified',
+							type: 'datetime',
+						},
+						{
+							value: 'is_paying_customer',
+							label: 'Is Paying Customer',
+							type: 'boolean',
+						},
+						{
+							value: 'order_count',
+							label: 'Order Count',
+							type: 'number',
+						},
+						{
+							value: 'total_spent',
+							label: 'Total Spent',
+							type: 'number',
+						},
+						{
+							value: 'last_order_id',
+							label: 'Last Order ID',
+							type: 'number',
+						},
 					],
 				},
 				{
@@ -5174,6 +5204,32 @@ const ImportModule = {
 	 * Auto-map fields
 	 */
 	autoMapFields() {
+		const contentType = jQuery(
+			'input[name="content_type"]:checked'
+		).val();
+		const hasAcfSourceFields = jQuery( '.rsl-ie-field-card' )
+			.toArray()
+			.some( ( sourceCard ) =>
+				String(
+					jQuery( sourceCard ).data( 'source-field' ) || ''
+				).startsWith( 'acf_' )
+			);
+		const hasAcfTargetFields =
+			jQuery( '.rsl-ie-target-field[data-target-field^="acf_"]' ).length >
+			0;
+
+		if ( hasAcfSourceFields && ! hasAcfTargetFields ) {
+			const request = this.loadACFFields( contentType );
+			if ( request && typeof request.always === 'function' ) {
+				request.always( () => this.runAutoMapFields() );
+				return;
+			}
+		}
+
+		this.runAutoMapFields();
+	},
+
+	runAutoMapFields() {
 		// Clear existing mappings
 		this.clearFieldMapping();
 
@@ -6110,7 +6166,7 @@ const ImportModule = {
 			return;
 		}
 
-		jQuery.ajax( {
+		return jQuery.ajax( {
 			url: rslIeData.ajaxUrl,
 			method: 'POST',
 			data: {

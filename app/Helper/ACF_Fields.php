@@ -91,7 +91,7 @@ class ACF_Fields {
 		$field_object = self::get_field_object( $field_name, $acf_id, $object_type, $taxonomy );
 		$field_type   = is_array( $field_object ) ? (string) ( $field_object['type'] ?? '' ) : '';
 
-		if ( 'wysiwyg' === $field_type && in_array( sanitize_key( (string) $object_type ), [ 'comment', 'term', 'taxonomy', 'menu' ], true ) ) {
+		if ( 'wysiwyg' === $field_type && in_array( sanitize_key( (string) $object_type ), [ 'comment', 'term', 'taxonomy', 'menu', 'user' ], true ) ) {
 			$value = self::get_raw_meta_value( $object_type, $object_id, $field_name );
 			if ( is_string( $value ) && is_serialized( $value ) ) {
 				$value = maybe_unserialize( $value );
@@ -102,7 +102,11 @@ class ACF_Fields {
 		}
 
 		$value = false;
-		if ( function_exists( 'get_field' ) ) {
+		if ( self::should_export_raw_nested_acf_value( $object_type, $field_type ) ) {
+			$value = self::get_raw_nested_acf_value( $object_type, $object_id, is_array( $field_object ) ? $field_object : [] );
+		}
+
+		if ( false === $value && function_exists( 'get_field' ) ) {
 			$value = get_field( $field_name, $acf_id );
 		}
 
@@ -196,6 +200,7 @@ class ACF_Fields {
 			'woo_product'   => 'product',
 			'woo_order'     => 'shop_order',
 			'woo_coupon'    => 'shop_coupon',
+			'woo_customer'  => 'user',
 			'media'         => 'attachment',
 			'comment'       => 'comment',
 			'menu'          => 'nav_menu',
@@ -494,6 +499,30 @@ class ACF_Fields {
 			];
 		}
 
+		if ( 'flexible_content' === $type ) {
+			$layout_map = [];
+			foreach ( (array) ( $field_object['layouts'] ?? [] ) as $layout ) {
+				if ( is_array( $layout ) && ! empty( $layout['name'] ) ) {
+					$layout_map[ (string) $layout['name'] ] = (array) ( $layout['sub_fields'] ?? [] );
+				}
+			}
+
+			$rows = [];
+			foreach ( is_array( $value ) ? $value : [] as $row ) {
+				$row         = is_array( $row ) ? $row : [];
+				$layout_name = (string) ( $row['acf_fc_layout'] ?? '' );
+				$rows[]      = [
+					'layout' => $layout_name,
+					'value'  => self::portable_row_value( $row, $layout_map[ $layout_name ] ?? [] ),
+				];
+			}
+
+			return [
+				'acf_type' => 'flexible_content',
+				'rows'     => $rows,
+			];
+		}
+
 		if ( in_array( $type, [ 'relationship', 'post_object', 'page_link' ], true ) ) {
 			$single = ! is_array( $value );
 			$items  = $single ? [ $value ] : $value;
@@ -585,6 +614,144 @@ class ACF_Fields {
 		}
 
 		return $out;
+	}
+
+	/**
+	 * ACF formats nested WYSIWYG sub-fields when get_field() loads a repeater/group.
+	 * For non-post objects we need raw meta, like the taxonomy exporter path.
+	 *
+	 * @param string $object_type Object type.
+	 * @param string $field_type  ACF field type.
+	 * @return bool
+	 */
+	private static function should_export_raw_nested_acf_value( $object_type, $field_type ) {
+		return in_array( sanitize_key( (string) $object_type ), [ 'comment', 'term', 'taxonomy', 'menu', 'user' ], true )
+			&& in_array( (string) $field_type, [ 'repeater', 'group', 'flexible_content' ], true );
+	}
+
+	/**
+	 * Build a native ACF value from raw meta for complex non-post fields.
+	 *
+	 * @param string $object_type  Object type.
+	 * @param int    $object_id    Object ID.
+	 * @param array  $field_object ACF field object.
+	 * @return mixed
+	 */
+	private static function get_raw_nested_acf_value( $object_type, $object_id, array $field_object ) {
+		$field_name = (string) ( $field_object['name'] ?? '' );
+		$field_type = (string) ( $field_object['type'] ?? '' );
+		if ( '' === $field_name ) {
+			return false;
+		}
+
+		if ( 'group' === $field_type ) {
+			return self::get_raw_acf_group_value( $object_type, $object_id, $field_name, (array) ( $field_object['sub_fields'] ?? [] ) );
+		}
+
+		if ( 'repeater' === $field_type ) {
+			$count = absint( self::get_raw_meta_value( $object_type, $object_id, $field_name ) );
+			if ( $count <= 0 ) {
+				return false;
+			}
+
+			$rows = [];
+			for ( $index = 0; $index < $count; $index++ ) {
+				$rows[] = self::get_raw_acf_group_value( $object_type, $object_id, $field_name . '_' . $index, (array) ( $field_object['sub_fields'] ?? [] ) );
+			}
+			return $rows;
+		}
+
+		if ( 'flexible_content' === $field_type ) {
+			$layouts = self::get_raw_meta_value( $object_type, $object_id, $field_name );
+			$layouts = is_string( $layouts ) && is_serialized( $layouts ) ? maybe_unserialize( $layouts ) : $layouts;
+			if ( ! is_array( $layouts ) ) {
+				return false;
+			}
+
+			$layout_map = [];
+			foreach ( (array) ( $field_object['layouts'] ?? [] ) as $layout ) {
+				if ( is_array( $layout ) && ! empty( $layout['name'] ) ) {
+					$layout_map[ (string) $layout['name'] ] = (array) ( $layout['sub_fields'] ?? [] );
+				}
+			}
+
+			$rows = [];
+			foreach ( array_values( $layouts ) as $index => $layout_name ) {
+				$layout_name          = (string) $layout_name;
+				$row                  = self::get_raw_acf_group_value( $object_type, $object_id, $field_name . '_' . $index, $layout_map[ $layout_name ] ?? [] );
+				$row['acf_fc_layout'] = $layout_name;
+				$rows[]               = $row;
+			}
+			return $rows;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Read raw values for sub-fields stored under a common ACF meta prefix.
+	 *
+	 * @param string $object_type Object type.
+	 * @param int    $object_id   Object ID.
+	 * @param string $meta_prefix Meta key prefix.
+	 * @param array  $sub_fields  ACF sub-fields.
+	 * @return array
+	 */
+	private static function get_raw_acf_group_value( $object_type, $object_id, $meta_prefix, array $sub_fields ) {
+		$row = [];
+
+		foreach ( $sub_fields as $field ) {
+			if ( ! is_array( $field ) ) {
+				continue;
+			}
+
+			$name = (string) ( $field['name'] ?? '' );
+			$type = (string) ( $field['type'] ?? '' );
+			if ( in_array( $type, [ 'accordion', 'tab', 'message' ], true ) ) {
+				foreach ( self::get_raw_acf_group_value( $object_type, $object_id, $meta_prefix, (array) ( $field['sub_fields'] ?? [] ) ) as $child_name => $child_value ) {
+					$row[ $child_name ] = $child_value;
+				}
+				continue;
+			}
+
+			if ( '' === $name ) {
+				continue;
+			}
+
+			$key = $meta_prefix . '_' . $name;
+			if ( 'group' === $type ) {
+				$row[ $name ] = self::get_raw_acf_group_value( $object_type, $object_id, $key, (array) ( $field['sub_fields'] ?? [] ) );
+				continue;
+			}
+
+			if ( 'repeater' === $type ) {
+				$count = absint( self::get_raw_meta_value( $object_type, $object_id, $key ) );
+				$rows  = [];
+				for ( $index = 0; $index < $count; $index++ ) {
+					$rows[] = self::get_raw_acf_group_value( $object_type, $object_id, $key . '_' . $index, (array) ( $field['sub_fields'] ?? [] ) );
+				}
+				$row[ $name ] = $rows;
+				continue;
+			}
+
+			if ( 'flexible_content' === $type ) {
+				$row[ $name ] = self::get_raw_nested_acf_value(
+					$object_type,
+					$object_id,
+					array_merge( $field, [ 'name' => $key ] )
+				);
+				continue;
+			}
+
+			$value = self::get_raw_meta_value( $object_type, $object_id, $key );
+			if ( is_string( $value ) && is_serialized( $value ) ) {
+				$value = maybe_unserialize( $value );
+			}
+
+			$row[ $name ] = $value;
+		}
+
+		return $row;
 	}
 
 	/**
@@ -689,6 +856,22 @@ class ACF_Fields {
 					return $rows;
 				case 'group':
 					return self::native_row_value( is_array( $value['value'] ?? null ) ? $value['value'] : [], (array) ( $field_object['sub_fields'] ?? [] ), $parent_id );
+				case 'flexible_content':
+					$layout_map = [];
+					foreach ( (array) ( $field_object['layouts'] ?? [] ) as $layout ) {
+						if ( is_array( $layout ) && ! empty( $layout['name'] ) ) {
+							$layout_map[ (string) $layout['name'] ] = (array) ( $layout['sub_fields'] ?? [] );
+						}
+					}
+
+					$rows = [];
+					foreach ( (array) ( $value['rows'] ?? [] ) as $row ) {
+						$layout_name                 = is_array( $row ) ? (string) ( $row['layout'] ?? '' ) : '';
+						$native_row                  = self::native_row_value( is_array( $row['value'] ?? null ) ? $row['value'] : [], $layout_map[ $layout_name ] ?? [], $parent_id );
+						$native_row['acf_fc_layout'] = $layout_name;
+						$rows[]                      = $native_row;
+					}
+					return $rows;
 			}
 		}
 
