@@ -103,7 +103,7 @@ class Comment_Importer extends Abstract_Importer {
 			'default_type'         => 'Default comment type: comment, pingback, trackback',
 			'update_existing'      => 'Update existing comments: true, false',
 			'import_acf'           => 'Import ACF fields: true, false',
-			'auto_import_media'    => 'Automatically download media URLs from ACF fields: true, false',
+			'auto_import_media'    => 'Automatically download media URLs from comment content and ACF fields: true, false',
 			'validate_post_exists' => 'Validate that post exists: true, false',
 			'skip_missing_posts'   => 'Skip comments if post does not exist: true, false',
 			'create_missing_posts' => 'Create missing posts: true, false (requires validate_post_exists=true or skip_missing_posts=false)',
@@ -700,10 +700,7 @@ class Comment_Importer extends Abstract_Importer {
 			return;
 		}
 
-		$content = isset( $item['comment_content'] ) ? (string) $item['comment_content'] : '';
-		if ( $this->get_option( 'auto_import_media', false ) && '' !== $content && class_exists( ACF_Fields::class ) ) {
-			$content = ACF_Fields::replace_media_urls_in_html( $content, 0 );
-		}
+		$content = $this->prepare_comment_content( $item );
 		if ( $content === '' ) {
 			return;
 		}
@@ -862,10 +859,7 @@ class Comment_Importer extends Abstract_Importer {
 	 * @return array Prepared comment data
 	 */
 	private function prepare_comment_data( $item ) {
-		$comment_content = isset( $item['comment_content'] ) ? (string) $item['comment_content'] : '';
-		if ( $this->get_option( 'auto_import_media', false ) && '' !== $comment_content && class_exists( ACF_Fields::class ) ) {
-			$comment_content = ACF_Fields::replace_media_urls_in_html( $comment_content, 0 );
-		}
+		$comment_content = $this->prepare_comment_content( $item );
 
 		$comment_data = [
 			'comment_post_ID'      => absint( $item['comment_post_ID'] ?? 0 ),
@@ -904,6 +898,21 @@ class Comment_Importer extends Abstract_Importer {
 		}
 
 		return $comment_data;
+	}
+
+	/**
+	 * Prepare comment_content for exact storage.
+	 *
+	 * @param array $item Comment data.
+	 * @return string
+	 */
+	private function prepare_comment_content( $item ) {
+		$comment_content = isset( $item['comment_content'] ) ? (string) $item['comment_content'] : '';
+		if ( '' !== $comment_content && class_exists( ACF_Fields::class ) ) {
+			$comment_content = ACF_Fields::replace_media_urls_in_html( $comment_content, 0 );
+		}
+
+		return $comment_content;
 	}
 
 	/**
@@ -977,7 +986,7 @@ class Comment_Importer extends Abstract_Importer {
 			return;
 		}
 
-		if ( $this->get_option( 'auto_import_media', false ) ) {
+		if ( class_exists( ACF_Fields::class ) ) {
 			ACF_Fields::import_value( 'comment', $comment_id, $field_name, $field_value );
 			return;
 		}
