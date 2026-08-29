@@ -2874,7 +2874,11 @@ class Content_Sync_Controller extends Base_Controller {
 				if ( $mapped_value > 0 ) {
 					$local_post_id = $mapped_value;
 				}
-				// null / 0 means "create new post", local_post_id stays null
+				// null / 0 means "new", but a grouped child may already have
+				// been created earlier in this same sync.
+				if ( ! $local_post_id ) {
+					$local_post_id = $this->find_existing_post_by_original_id( $remote_post_id );
+				}
 			} else {
 				// No mapping provided, use default logic (find by meta)
 				$local_post_id = $this->find_existing_post_by_original_id( $remote_post_id );
@@ -3043,6 +3047,7 @@ class Content_Sync_Controller extends Base_Controller {
 			}
 
 			if ( 'product' === $post_data['post_type'] ) {
+				$this->sync_woocommerce_product_type( (int) $post_id, (array) $post_data );
 				$this->refresh_woocommerce_product_after_sync( $post_id );
 			}
 
@@ -4060,7 +4065,9 @@ class Content_Sync_Controller extends Base_Controller {
 				}
 			}
 
-			$local_child_ids[] = (int) $local_child_id;
+				$this->sync_woocommerce_product_type( (int) $local_child_id, (array) $child_data );
+
+				$local_child_ids[] = (int) $local_child_id;
 		}
 
 		return $local_child_ids;
@@ -4239,6 +4246,38 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		return false;
+	}
+
+	private function sync_woocommerce_product_type( $post_id, array $post_data ) {
+		if ( ! taxonomy_exists( 'product_type' ) || 'product' !== get_post_type( $post_id ) ) {
+			return;
+		}
+
+		$type = '';
+		if ( ! empty( $post_data['terms']['product_type'][0]['slug'] ) ) {
+			$type = sanitize_key( (string) $post_data['terms']['product_type'][0]['slug'] );
+		} elseif ( ! empty( $post_data['meta']['_product_type'] ) ) {
+			$type = sanitize_key( (string) $post_data['meta']['_product_type'] );
+		}
+
+		if ( '' === $type ) {
+			return;
+		}
+
+		$allowed = array( 'simple', 'grouped', 'external', 'variable' );
+		if ( function_exists( 'wc_get_product_types' ) ) {
+			$allowed = array_keys( wc_get_product_types() );
+		}
+		if ( ! in_array( $type, $allowed, true ) ) {
+			return;
+		}
+
+		if ( ! term_exists( $type, 'product_type' ) ) {
+			wp_insert_term( ucfirst( $type ), 'product_type', array( 'slug' => $type ) );
+		}
+
+		wp_set_object_terms( (int) $post_id, $type, 'product_type', false );
+		delete_transient( 'wc_product_children_' . (int) $post_id );
 	}
 
 	/**
