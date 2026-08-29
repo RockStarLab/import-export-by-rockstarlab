@@ -91,7 +91,7 @@ class ACF_Fields {
 		$field_object = self::get_field_object( $field_name, $acf_id, $object_type, $taxonomy );
 		$field_type   = is_array( $field_object ) ? (string) ( $field_object['type'] ?? '' ) : '';
 
-		if ( 'wysiwyg' === $field_type && in_array( sanitize_key( (string) $object_type ), [ 'comment', 'term', 'taxonomy', 'menu', 'user' ], true ) ) {
+		if ( 'wysiwyg' === $field_type && self::uses_raw_acf_export( $object_type ) ) {
 			$value = self::get_raw_meta_value( $object_type, $object_id, $field_name );
 			if ( is_string( $value ) && is_serialized( $value ) ) {
 				$value = maybe_unserialize( $value );
@@ -625,8 +625,18 @@ class ACF_Fields {
 	 * @return bool
 	 */
 	private static function should_export_raw_nested_acf_value( $object_type, $field_type ) {
-		return in_array( sanitize_key( (string) $object_type ), [ 'comment', 'term', 'taxonomy', 'menu', 'user' ], true )
+		return self::uses_raw_acf_export( $object_type )
 			&& in_array( (string) $field_type, [ 'repeater', 'group', 'flexible_content' ], true );
+	}
+
+	/**
+	 * Object types whose ACF rich text must be exported from raw meta.
+	 *
+	 * @param string $object_type Object type.
+	 * @return bool
+	 */
+	private static function uses_raw_acf_export( $object_type ) {
+		return in_array( sanitize_key( (string) $object_type ), [ 'comment', 'term', 'taxonomy', 'menu', 'nav_menu_item', 'user' ], true );
 	}
 
 	/**

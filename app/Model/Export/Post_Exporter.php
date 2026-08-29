@@ -4007,10 +4007,17 @@ class Post_Exporter extends Abstract_Exporter {
 						}
 					}
 
-					// Add ACF fields for the menu item as a nested array
-					if ( function_exists( 'get_fields' ) ) {
-						$item_acf_fields = get_fields( $item->ID );
-						if ( ! empty( $item_acf_fields ) && is_array( $item_acf_fields ) ) {
+					// Add ACF fields for the menu item as portable raw values.
+					if ( class_exists( ACF_Fields::class ) ) {
+						$item_acf_fields = [];
+						foreach ( ACF_Fields::get_fields_for_content_type( 'nav_menu_item' ) as $acf_field ) {
+							$acf_field_name = (string) ( $acf_field['name'] ?? '' );
+							if ( '' === $acf_field_name ) {
+								continue;
+							}
+							$item_acf_fields[ $acf_field_name ] = ACF_Fields::export_value( 'nav_menu_item', (int) $item->ID, $acf_field_name );
+						}
+						if ( ! empty( $item_acf_fields ) ) {
 							$item_data['acf_fields'] = $item_acf_fields;
 						}
 					}

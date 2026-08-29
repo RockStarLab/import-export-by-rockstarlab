@@ -1226,6 +1226,8 @@ class Import_Controller extends Base_Controller {
 	 * @return void
 	 */
 	private function preserve_imported_comment_dates( $item_result, $item ) {
+		global $wpdb;
+
 		$comment_id = is_numeric( $item_result ) ? absint( $item_result ) : 0;
 		if ( $comment_id <= 0 && ! empty( $item['_rsl_ie_source_comment_id'] ) ) {
 			$comment_id = $this->find_imported_comment_id( $item['_rsl_ie_source_comment_id'] );
@@ -1235,19 +1237,29 @@ class Import_Controller extends Base_Controller {
 			return;
 		}
 
-		$update = [];
+		$update  = [];
+		$formats = [];
 		if ( isset( $item['comment_date'] ) && '' !== (string) $item['comment_date'] ) {
 			$update['comment_date'] = (string) $item['comment_date'];
+			$formats[]              = '%s';
 		}
 		if ( isset( $item['comment_date_gmt'] ) && '' !== (string) $item['comment_date_gmt'] ) {
 			$update['comment_date_gmt'] = (string) $item['comment_date_gmt'];
+			$formats[]                  = '%s';
 		}
 		if ( empty( $update ) ) {
 			return;
 		}
 
-		$update['comment_ID'] = $comment_id;
-		wp_update_comment( $update );
+		$wpdb->update(
+			$wpdb->comments,
+			$update,
+			[ 'comment_ID' => $comment_id ],
+			$formats,
+			[ '%d' ]
+		);
+
+		clean_comment_cache( $comment_id );
 	}
 
 	/**
