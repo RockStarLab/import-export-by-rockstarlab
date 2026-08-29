@@ -2883,6 +2883,9 @@ class Content_Sync_Controller extends Base_Controller {
 				// No mapping provided, use default logic (find by meta)
 				$local_post_id = $this->find_existing_post_by_original_id( $remote_post_id );
 			}
+			if ( ! $local_post_id ) {
+				$local_post_id = $this->find_existing_product_by_sku( (array) $post_data );
+			}
 
 			// Prepare post data
 			$post_args = array(
@@ -2927,6 +2930,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 			// Store original post ID for future reference
 			update_post_meta( $post_id, '_rsl_ie_original_post_id', $remote_post_id );
+			update_post_meta( $post_id, '_rsl_ie_source_id', $remote_post_id );
 
 			// Import meta. Replace synced media IDs before saving so WooCommerce
 			// galleries, featured images, ACF media fields, Elementor data, etc.
@@ -3892,6 +3896,12 @@ class Content_Sync_Controller extends Base_Controller {
 
 		foreach ( $existing_local_var_ids as $local_var_id ) {
 			$orig_id = (int) get_post_meta( $local_var_id, '_rsl_ie_original_post_id', true );
+			if ( ! $orig_id ) {
+				$orig_id = (int) get_post_meta( $local_var_id, '_rsl_ie_source_id', true );
+			}
+			if ( ! $orig_id ) {
+				$orig_id = (int) get_post_meta( $local_var_id, '_aie_original_post_id', true );
+			}
 			if ( $orig_id ) {
 				$source_to_local[ $orig_id ] = (int) $local_var_id;
 			}
@@ -3918,6 +3928,7 @@ class Content_Sync_Controller extends Base_Controller {
 				$local_var_id = wp_insert_post( $variation_args );
 				if ( $local_var_id && ! is_wp_error( $local_var_id ) && $source_var_id ) {
 					update_post_meta( $local_var_id, '_rsl_ie_original_post_id', $source_var_id );
+					update_post_meta( $local_var_id, '_rsl_ie_source_id', $source_var_id );
 				}
 			}
 
@@ -3927,6 +3938,8 @@ class Content_Sync_Controller extends Base_Controller {
 
 			if ( $source_var_id ) {
 				$processed_source_ids[] = $source_var_id;
+				update_post_meta( $local_var_id, '_rsl_ie_original_post_id', $source_var_id );
+				update_post_meta( $local_var_id, '_rsl_ie_source_id', $source_var_id );
 			}
 
 			if ( ! empty( $variation_data['meta'] ) ) {
@@ -3952,6 +3965,12 @@ class Content_Sync_Controller extends Base_Controller {
 
 		foreach ( $existing_local_var_ids as $local_var_id ) {
 			$orig_id = (int) get_post_meta( $local_var_id, '_rsl_ie_original_post_id', true );
+			if ( ! $orig_id ) {
+				$orig_id = (int) get_post_meta( $local_var_id, '_rsl_ie_source_id', true );
+			}
+			if ( ! $orig_id ) {
+				$orig_id = (int) get_post_meta( $local_var_id, '_aie_original_post_id', true );
+			}
 			if ( $orig_id && ! in_array( $orig_id, $processed_source_ids, true ) ) {
 				wp_delete_post( (int) $local_var_id, true );
 			}
@@ -3981,23 +4000,11 @@ class Content_Sync_Controller extends Base_Controller {
 			$local_child_id  = null;
 
 			if ( $source_child_id ) {
-				$existing = get_posts(
-					array(
-						'post_type'      => 'product',
-						'posts_per_page' => 1,
-						'post_status'    => 'any',
-						'fields'         => 'ids',
-						'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source product lookup for grouped child mapping.
-							array(
-								'key'   => '_rsl_ie_original_post_id',
-								'value' => $source_child_id,
-							),
-						),
-					)
-				);
-				if ( ! empty( $existing ) ) {
-					$local_child_id = (int) $existing[0];
-				}
+				$local_child_id = $this->find_existing_post_by_source_meta( $source_child_id, 'product' );
+			}
+
+			if ( ! $local_child_id ) {
+				$local_child_id = $this->find_existing_product_by_sku( (array) $child_data );
 			}
 
 			$child_args = array(
@@ -4023,6 +4030,11 @@ class Content_Sync_Controller extends Base_Controller {
 
 			if ( is_wp_error( $result ) || ! $result ) {
 				continue;
+			}
+
+			if ( $source_child_id ) {
+				update_post_meta( $local_child_id, '_rsl_ie_original_post_id', $source_child_id );
+				update_post_meta( $local_child_id, '_rsl_ie_source_id', $source_child_id );
 			}
 
 			if ( ! empty( $child_data['meta'] ) ) {
@@ -4230,22 +4242,91 @@ class Content_Sync_Controller extends Base_Controller {
 		// numeric ID match is not safe because a fresh target site may already
 		// have an unrelated wp_posts row with the same ID (attachment, page,
 		// revision, product variation, etc.).
+		$original_post_id = absint( $original_post_id );
+		if ( $original_post_id <= 0 ) {
+			return false;
+		}
+
+		return $this->find_existing_post_by_source_meta( $original_post_id );
+	}
+
+	/**
+	 * Find an existing post by any source-id meta key used by import/sync flows.
+	 *
+	 * @param int    $source_post_id Source-site post ID.
+	 * @param string $post_type      Optional post type.
+	 * @return int|false
+	 */
+	private function find_existing_post_by_source_meta( $source_post_id, $post_type = 'any' ) {
+		$source_post_id = absint( $source_post_id );
+		if ( $source_post_id <= 0 ) {
+			return false;
+		}
+
 		$posts = get_posts(
 			array(
-				'post_type'      => 'any',
+				'post_type'      => $post_type ?: 'any',
 				'post_status'    => 'any',
 				'posts_per_page' => 1,
-				'meta_key'       => '_rsl_ie_original_post_id', // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_key required for filtering.
-				'meta_value'     => $original_post_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_value required for filtering.
 				'fields'         => 'ids',
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source-id lookup is required for sync mapping.
+					'relation' => 'OR',
+					array(
+						'key'   => '_rsl_ie_original_post_id',
+						'value' => $source_post_id,
+					),
+					array(
+						'key'   => '_rsl_ie_source_id',
+						'value' => $source_post_id,
+					),
+					array(
+						'key'   => '_aie_original_post_id',
+						'value' => $source_post_id,
+					),
+				),
 			)
 		);
 
-		if ( ! empty( $posts ) ) {
-			return $posts[0];
+		return ! empty( $posts ) ? (int) $posts[0] : false;
+	}
+
+	/**
+	 * Find an existing product by source SKU.
+	 *
+	 * @param array $post_data Remote post data.
+	 * @return int|false
+	 */
+	private function find_existing_product_by_sku( array $post_data ) {
+		if ( 'product' !== ( $post_data['post_type'] ?? '' ) || ! function_exists( 'wc_get_product_id_by_sku' ) ) {
+			return false;
 		}
 
-		return false;
+		$sku = '';
+		if ( isset( $post_data['meta']['_sku'] ) ) {
+			$sku = trim( (string) $post_data['meta']['_sku'] );
+		}
+
+		if ( '' === $sku ) {
+			return false;
+		}
+
+		$product_id = (int) wc_get_product_id_by_sku( $sku );
+		if ( $product_id > 0 && 'product' === get_post_type( $product_id ) ) {
+			return $product_id;
+		}
+
+		$posts = get_posts(
+			array(
+				'post_type'      => 'product',
+				'post_status'    => 'any',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				'meta_key'       => '_sku', // phpcs:ignore WordPress.DB.SlowDBQuery -- SKU fallback for stale Woo lookup table.
+				'meta_value'     => $sku, // phpcs:ignore WordPress.DB.SlowDBQuery -- SKU fallback for stale Woo lookup table.
+			)
+		);
+
+		return ! empty( $posts ) ? (int) $posts[0] : false;
 	}
 
 	private function sync_woocommerce_product_type( $post_id, array $post_data ) {
