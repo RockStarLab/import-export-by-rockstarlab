@@ -1723,6 +1723,12 @@ class Content_Sync_API_Controller {
 					$image_ids = array_merge( $image_ids, $this->extract_term_acf_images( $decoded ) );
 				}
 
+				if ( class_exists( ACF_Fields::class ) ) {
+					foreach ( ACF_Fields::extract_media_shortcode_token_source_ids( $value ) as $image_id ) {
+						$image_ids[] = (int) $image_id;
+					}
+				}
+
 				if ( preg_match_all( '/\bwp-image-(\d+)\b/', $value, $matches ) ) {
 					foreach ( $matches[1] as $image_id ) {
 						$image_ids[] = (int) $image_id;
@@ -1883,8 +1889,7 @@ class Content_Sync_API_Controller {
 				'paged'               => $page,
 				'orderby'             => 'date',
 				'order'               => 'DESC',
-				'ignore_sticky_posts' => true, // Exclude sticky posts from results
-				'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required to exclude sticky posts.
+				'ignore_sticky_posts' => true,
 			);
 			if ( '' !== $post_parent_filter ) {
 				$args['post_parent'] = $post_parent_filter;
@@ -3189,7 +3194,6 @@ class Content_Sync_API_Controller {
 				'posts_per_page'      => 1,
 				'fields'              => 'ids',
 				'ignore_sticky_posts' => true,
-				'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 			);
 			if ( 'all' === $language ) {
 				$count_args['suppress_filters'] = true;

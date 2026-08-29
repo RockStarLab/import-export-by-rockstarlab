@@ -87,8 +87,21 @@ class ACF_Fields {
 			return '';
 		}
 
-		$acf_id = self::get_acf_object_id( $object_type, $object_id, $taxonomy );
-		$value  = false;
+		$acf_id       = self::get_acf_object_id( $object_type, $object_id, $taxonomy );
+		$field_object = self::get_field_object( $field_name, $acf_id, $object_type, $taxonomy );
+		$field_type   = is_array( $field_object ) ? (string) ( $field_object['type'] ?? '' ) : '';
+
+		if ( 'wysiwyg' === $field_type && in_array( sanitize_key( (string) $object_type ), [ 'comment', 'term', 'taxonomy', 'menu' ], true ) ) {
+			$value = self::get_raw_meta_value( $object_type, $object_id, $field_name );
+			if ( is_string( $value ) && is_serialized( $value ) ) {
+				$value = maybe_unserialize( $value );
+			}
+			if ( is_string( $value ) ) {
+				return self::export_string_with_media_shortcode_tokens( $value );
+			}
+		}
+
+		$value = false;
 		if ( function_exists( 'get_field' ) ) {
 			$value = get_field( $field_name, $acf_id );
 		}
@@ -100,8 +113,7 @@ class ACF_Fields {
 			}
 		}
 
-		$field_object = self::get_field_object( $field_name, $acf_id, $object_type, $taxonomy );
-		$portable     = self::to_portable_value( $value, is_array( $field_object ) ? $field_object : [] );
+		$portable = self::to_portable_value( $value, is_array( $field_object ) ? $field_object : [] );
 
 		return is_array( $portable ) || is_object( $portable ) ? wp_json_encode( $portable ) : $portable;
 	}
@@ -1124,6 +1136,45 @@ class ACF_Fields {
 			},
 			$value
 		);
+	}
+
+	/**
+	 * Extract source attachment IDs from portable media shortcode tokens.
+	 *
+	 * @param string $value Value that may contain media shortcode tokens.
+	 * @return array
+	 */
+	public static function extract_media_shortcode_token_source_ids( string $value ): array {
+		$ids = [];
+
+		if ( false === strpos( $value, '[[RSL_IE:' ) ) {
+			return $ids;
+		}
+
+		if ( ! preg_match_all( '/\[\[RSL_IE:([A-Za-z0-9+\/=]+)\]\]/', $value, $matches ) ) {
+			return $ids;
+		}
+
+		foreach ( $matches[1] as $encoded ) {
+			$json = base64_decode( (string) $encoded, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+			if ( false === $json || '' === $json ) {
+				continue;
+			}
+
+			$payload  = json_decode( $json, true );
+			$acf_type = is_array( $payload ) ? (string) ( $payload['acf_type'] ?? '' ) : '';
+			if ( ! is_array( $payload ) || ! in_array( $acf_type, [ 'gallery_shortcode', 'media_shortcode' ], true ) ) {
+				continue;
+			}
+
+			foreach ( (array) ( $payload['items'] ?? [] ) as $item ) {
+				if ( is_array( $item ) && ! empty( $item['source_id'] ) ) {
+					$ids[] = absint( $item['source_id'] );
+				}
+			}
+		}
+
+		return array_values( array_filter( array_unique( $ids ) ) );
 	}
 
 	/**

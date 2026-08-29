@@ -77,8 +77,40 @@
 		);
 	}
 
+	function hasTermRows() {
+		return $( '.wp-list-table tbody tr[id^="tag-"]' ).length > 0;
+	}
+
 	function getToolbarTarget() {
-		return $( '.tablenav.top .alignleft.actions.bulkactions' ).first();
+		if ( ! hasTermRows() ) {
+			return $( '.wrap .wp-heading-inline' ).first();
+		}
+
+		const $bulkActions = $(
+			'.tablenav.top .alignleft.actions.bulkactions'
+		).first();
+		if ( $bulkActions.length ) {
+			return $bulkActions;
+		}
+
+		return $();
+	}
+
+	function appendButtonToToolbar( $toolbar, $button ) {
+		if ( $toolbar.hasClass( 'wp-heading-inline' ) ) {
+			$button
+				.addClass( 'rsl-ie-taxonomy-heading-action' )
+				.css( {
+					display: 'inline-flex',
+					alignItems: 'center',
+					marginLeft: '12px',
+					verticalAlign: 'middle',
+				} )
+				.insertAfter( $toolbar );
+			return;
+		}
+
+		$toolbar.append( $button.css( 'margin-left', '5px' ) );
 	}
 
 	function ensureButtons() {
@@ -89,7 +121,8 @@
 		}
 
 		if ( config.exportEnabled && ! $( `#${ exportButtonId }` ).length ) {
-			$toolbar.append(
+			appendButtonToToolbar(
+				$toolbar,
 				$( '<button>', {
 					type: 'button',
 					id: exportButtonId,
@@ -100,12 +133,13 @@
 					title:
 						config.disabledTitle ||
 						'Select one or more terms to enable export.',
-				} ).css( 'margin-left', '5px' )
+				} )
 			);
 		}
 
 		if ( config.syncEnabled && ! $( `#${ syncButtonId }` ).length ) {
-			$toolbar.append(
+			appendButtonToToolbar(
+				$toolbar,
 				$( '<button>', {
 					type: 'button',
 					id: syncButtonId,
@@ -116,7 +150,7 @@
 					title:
 						config.i18n?.syncTerms ||
 						'Sync terms. Select terms first to push, or browse remote terms to pull.',
-				} ).css( 'margin-left', '5px' )
+				} )
 			);
 		}
 	}

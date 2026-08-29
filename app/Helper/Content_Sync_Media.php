@@ -414,21 +414,41 @@ class Content_Sync_Media {
 			}
 		}
 
-		// Handle WYSIWYG field - extract images embedded in the HTML content
+		// Handle WYSIWYG field - extract media from both formatted ACF output and
+		// the raw DB value. The raw value is where classic [gallery]/[playlist]
+		// shortcode IDs still exist before ACF/the_content expands them to HTML.
 		if ( 'wysiwyg' === $field['type'] && ! empty( $field['value'] ) && is_string( $field['value'] ) ) {
-			// Collect by wp-image-ID class
-			if ( preg_match_all( '/wp-image-(\d+)/i', $field['value'], $matches ) ) {
-				foreach ( $matches[1] as $image_id ) {
-					$image_data = self::prepare_image_data( (int) $image_id, 'acf_wysiwyg_' . $field['name'] );
-					if ( $image_data ) {
-						$images[] = $image_data;
-					}
+			$wysiwyg_values = array( $field['value'] );
+			if ( ! empty( $field['name'] ) ) {
+				$raw_value = get_post_meta( (int) $post_id, (string) $field['name'], true );
+				if ( is_string( $raw_value ) && '' !== $raw_value && ! in_array( $raw_value, $wysiwyg_values, true ) ) {
+					$wysiwyg_values[] = $raw_value;
 				}
 			}
 
-			// Also collect images by src/srcset URLs and classic gallery shortcode IDs.
-			$images = array_merge( $images, self::extract_images_from_html_urls( $field['value'], 'acf_wysiwyg_src_' . $field['name'] ) );
-			$images = array_merge( $images, self::extract_images_from_shortcodes( $field['value'] ) );
+			foreach ( $wysiwyg_values as $wysiwyg_value ) {
+				// Collect by wp-image-ID class.
+				if ( preg_match_all( '/wp-image-(\d+)/i', $wysiwyg_value, $matches ) ) {
+					foreach ( $matches[1] as $image_id ) {
+						$image_data = self::prepare_image_data( (int) $image_id, 'acf_wysiwyg_' . $field['name'] );
+						if ( $image_data ) {
+							$images[] = $image_data;
+						}
+					}
+				}
+
+				// Also collect images by src/srcset URLs and classic media shortcode IDs.
+				$images = array_merge( $images, self::extract_images_from_html_urls( $wysiwyg_value, 'acf_wysiwyg_src_' . $field['name'] ) );
+				$images = array_merge( $images, self::extract_images_from_shortcodes( $wysiwyg_value ) );
+				if ( class_exists( ACF_Fields::class ) ) {
+					foreach ( ACF_Fields::extract_media_shortcode_token_source_ids( $wysiwyg_value ) as $attachment_id ) {
+						$image_data = self::prepare_image_data( (int) $attachment_id, 'acf_wysiwyg_shortcode_' . $field['name'] );
+						if ( $image_data ) {
+							$images[] = $image_data;
+						}
+					}
+				}
+			}
 		}
 
 		// Handle gallery field
