@@ -3242,7 +3242,7 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 			// Generate metadata
-			\RockStarLab\ImportExport\Helper\Fs::load_image_core();
+			\RockStarLab\ImportExport\Helper\Fs::load_attachment_metadata_core();
 			$attach_data = wp_generate_attachment_metadata( $attachment_id, $upload['file'] );
 			wp_update_attachment_metadata( $attachment_id, $attach_data );
 

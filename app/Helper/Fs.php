@@ -46,11 +46,29 @@ class FS {
 			self::require_admin_include( 'file.php' );
 		}
 
+		self::load_attachment_metadata_core();
+
+		if ( ! function_exists( 'media_handle_sideload' )
+			|| ! function_exists( 'wp_read_audio_metadata' )
+			|| ! function_exists( 'wp_read_video_metadata' )
+		) {
+			self::require_admin_include( 'media.php' );
+		}
+	}
+
+	/**
+	 * Load WordPress helpers required by wp_generate_attachment_metadata().
+	 *
+	 * @return void
+	 */
+	public static function load_attachment_metadata_core() {
 		if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
 			self::require_admin_include( 'image.php' );
 		}
 
-		if ( ! function_exists( 'media_handle_sideload' ) ) {
+		if ( ! function_exists( 'wp_read_audio_metadata' )
+			|| ! function_exists( 'wp_read_video_metadata' )
+		) {
 			self::require_admin_include( 'media.php' );
 		}
 	}

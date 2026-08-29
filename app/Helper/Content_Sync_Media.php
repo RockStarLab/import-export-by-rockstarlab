@@ -345,7 +345,7 @@ class Content_Sync_Media {
 			return $images;
 		}
 
-		$fields = get_field_objects( $post_id );
+		$fields = get_field_objects( $post_id, false, true, false );
 
 		if ( ! $fields ) {
 			return $images;
