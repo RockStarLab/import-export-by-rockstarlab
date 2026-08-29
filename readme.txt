@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: export, export woocommerce, import, wordpress csv import
 Requires at least: 6.2
 Tested up to: 7.1
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -22,6 +22,8 @@ https://www.youtube.com/watch?v=W_Xgu_qDN2Q
 Import Export by RockStarLab is not just another import/export plugin. It is a WordPress content operations toolkit for moving data, syncing content between sites, building URL inventories, importing media safely, and keeping repeatable jobs under control.
 
 Use it to import and export clean CSV, XML, JSON, XLSX, and ODS files, map fields visually, sync selected content between connected WordPress sites, scan server folders into the Media Library, and keep a Jobs Log so repeat work can be re-run instead of rebuilt.
+
+Import Export by RockStarLab now supports WPML sites: import, export, and content sync workflows can preserve language metadata and translation relationships for multilingual content.
 
 Use it for everyday migrations between local, staging, and production sites; bulk content operations; SEO URL audits; media cleanup; and content workflows where posts, pages, custom fields, SEO data, Elementor layouts, and media relationships need to stay intact.
 
@@ -212,6 +214,12 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync posts and pages in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 1.3.0 =
+
+* Added WPML support for import, export, and content sync workflows.
+* Fixed content and sync bugs across media, ACF, menus, comments, users, customers, WooCommerce, and taxonomy workflows.
+* Added a feature to set a custom file export name.
 
 = 1.2.0 =
 
