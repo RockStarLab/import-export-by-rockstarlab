@@ -4846,6 +4846,12 @@ class Content_Sync_Controller extends Base_Controller {
 					$image_ids = array_merge( $image_ids, $this->extract_term_acf_images( $decoded ) );
 				}
 
+				if ( class_exists( ACF_Fields::class ) ) {
+					foreach ( ACF_Fields::extract_media_shortcode_token_source_ids( $value ) as $image_id ) {
+						$image_ids[] = (int) $image_id;
+					}
+				}
+
 				if ( preg_match_all( '/\bwp-image-(\d+)\b/', $value, $matches ) ) {
 					foreach ( $matches[1] as $image_id ) {
 						$image_ids[] = (int) $image_id;

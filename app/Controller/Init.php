@@ -128,6 +128,9 @@ class Init {
 		// Add contextual Help tab to plugin admin pages except Welcome.
 		add_action( 'current_screen', array( $this, 'add_plugin_help_tab' ) );
 
+		// Keep taxonomy quick actions visible even when WordPress omits the list table toolbar.
+		add_action( 'admin_footer-edit-tags.php', array( $this, 'print_taxonomy_quick_action_heading_fallback' ) );
+
 		// Fix attachment URLs for "keep in current directory" mode files outside uploads.
 		add_filter( 'wp_get_attachment_url', array( $this, 'fix_keep_mode_attachment_url' ), 10, 2 );
 	}
@@ -1060,8 +1063,7 @@ class Init {
 	 * @return void
 	 */
 	private function load_taxonomy_quick_action_assets() {
-		$taxonomy = filter_input( INPUT_GET, 'taxonomy', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$taxonomy = is_string( $taxonomy ) ? sanitize_key( wp_unslash( $taxonomy ) ) : '';
+		$taxonomy = $this->get_current_taxonomy_from_request();
 
 		if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
 			return;
@@ -1159,6 +1161,148 @@ class Init {
 				),
 			)
 		);
+	}
+
+	/**
+	 * Print a standalone heading fallback for taxonomy quick action buttons.
+	 *
+	 * WordPress does not render the top list-table toolbar on some empty taxonomy
+	 * screens, so the regular JS has nowhere to append buttons.
+	 *
+	 * @return void
+	 */
+	public function print_taxonomy_quick_action_heading_fallback() {
+		$taxonomy = $this->get_current_taxonomy_from_request();
+
+		if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
+			return;
+		}
+
+		$location_id    = 'taxonomy:' . $taxonomy;
+		$export_enabled = \RockStarLab\ImportExport\Helper\Button_Location_Settings::is_export_enabled( $location_id );
+		$sync_enabled   = \RockStarLab\ImportExport\Helper\Button_Location_Settings::is_sync_enabled( $location_id );
+
+		if ( ! $export_enabled && ! $sync_enabled ) {
+			return;
+		}
+
+		$config = array(
+			'exportEnabled' => $export_enabled,
+			'syncEnabled'   => $sync_enabled,
+			'exportLabel'   => __( 'Export', 'import-export-by-rockstarlab' ),
+			'syncLabel'     => __( 'Sync', 'import-export-by-rockstarlab' ),
+			'disabledTitle' => __( 'Select one or more terms to enable export.', 'import-export-by-rockstarlab' ),
+			'syncTitle'     => __( 'Sync terms. Select terms first to push, or browse remote terms to pull.', 'import-export-by-rockstarlab' ),
+		);
+		?>
+		<script>
+			( function() {
+				var config = <?php echo wp_json_encode( $config ); ?>;
+				var exportButtonId = 'rsl-ie-export-selected-terms-btn';
+				var syncButtonId = 'rsl-ie-sync-selected-terms-btn';
+
+				function ready( callback ) {
+					if ( document.readyState === 'loading' ) {
+						document.addEventListener( 'DOMContentLoaded', callback );
+					} else {
+						callback();
+					}
+				}
+
+				function getSelectedIds() {
+					var checkboxes = document.querySelectorAll( 'tbody .check-column input[type="checkbox"]:checked' );
+					var ids = [];
+
+					checkboxes.forEach( function( checkbox ) {
+						var id = checkbox.value;
+						if ( id && /^\d+$/.test( String( id ) ) && parseInt( id, 10 ) > 0 && ids.indexOf( String( id ) ) === -1 ) {
+							ids.push( String( id ) );
+						}
+					} );
+
+					return ids;
+				}
+
+				function updateButtons() {
+					var ids = getSelectedIds();
+					var hasSelection = ids.length > 0;
+					var exportButton = document.getElementById( exportButtonId );
+					var syncButton = document.getElementById( syncButtonId );
+
+					if ( exportButton ) {
+						exportButton.disabled = ! hasSelection;
+						exportButton.setAttribute( 'aria-disabled', hasSelection ? 'false' : 'true' );
+						exportButton.textContent = hasSelection ? config.exportLabel + ' (' + ids.length + ')' : config.exportLabel;
+					}
+
+					if ( syncButton ) {
+						syncButton.disabled = false;
+						syncButton.setAttribute( 'aria-disabled', 'false' );
+						syncButton.textContent = hasSelection ? config.syncLabel + ' (' + ids.length + ')' : config.syncLabel;
+					}
+				}
+
+				function createButton( id, label, disabled, title ) {
+					var button = document.createElement( 'button' );
+					button.type = 'button';
+					button.id = id;
+					button.className = 'button action rsl-ie-taxonomy-heading-action';
+					button.textContent = label;
+					button.disabled = disabled;
+					button.setAttribute( 'aria-disabled', disabled ? 'true' : 'false' );
+					button.title = title;
+					button.style.display = 'inline-flex';
+					button.style.alignItems = 'center';
+					button.style.marginLeft = '12px';
+					button.style.verticalAlign = 'middle';
+					return button;
+				}
+
+				ready( function() {
+					var heading = document.querySelector( '.wrap .wp-heading-inline' );
+					var hasTermRows = document.querySelectorAll( '.wp-list-table tbody tr[id^="tag-"]' ).length > 0;
+					var hasButtons = document.getElementById( exportButtonId ) || document.getElementById( syncButtonId );
+
+					if ( ! heading || hasButtons || hasTermRows ) {
+						return;
+					}
+
+					var lastButton = heading;
+					if ( config.exportEnabled ) {
+						lastButton = createButton( exportButtonId, config.exportLabel, true, config.disabledTitle );
+						heading.insertAdjacentElement( 'afterend', lastButton );
+					}
+
+					if ( config.syncEnabled ) {
+						var syncButton = createButton( syncButtonId, config.syncLabel, false, config.syncTitle );
+						lastButton.insertAdjacentElement( 'afterend', syncButton );
+					}
+
+					updateButtons();
+					document.addEventListener( 'change', function( event ) {
+						if ( event.target && event.target.matches( 'tbody .check-column input[type="checkbox"], thead .check-column input[type="checkbox"], tfoot .check-column input[type="checkbox"]' ) ) {
+							window.setTimeout( updateButtons, 0 );
+						}
+					} );
+				} );
+			} )();
+		</script>
+		<?php
+	}
+
+	/**
+	 * Read the current taxonomy from the admin request.
+	 *
+	 * @return string
+	 */
+	private function get_current_taxonomy_from_request() {
+		$taxonomy = filter_input( INPUT_GET, 'taxonomy', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+
+		if ( ! is_string( $taxonomy ) && isset( $_GET['taxonomy'] ) ) {
+			$taxonomy = sanitize_text_field( wp_unslash( $_GET['taxonomy'] ) );
+		}
+
+		return is_string( $taxonomy ) ? sanitize_key( wp_unslash( $taxonomy ) ) : '';
 	}
 
 		/**
