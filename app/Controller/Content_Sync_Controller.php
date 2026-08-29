@@ -3173,6 +3173,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$existing_id = $this->find_attachment_by_original_attachment_id( $source_attachment_id );
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
+				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
 				$this->apply_synced_attachment_wpml_data( (int) $existing_id, $image );
 				return $existing_id;
 			}
@@ -3183,6 +3184,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$existing_id = $this->find_attachment_by_hash( $image['file_hash'] );
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
+				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
 				$this->apply_synced_attachment_wpml_data( (int) $existing_id, $image );
 				return $existing_id;
 			}
@@ -3213,6 +3215,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$existing_id = $this->find_attachment_by_hash( $actual_hash );
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
+				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
 				$this->apply_synced_attachment_wpml_data( (int) $existing_id, $image );
 				return $existing_id;
 			}
@@ -3255,7 +3258,9 @@ class Content_Sync_Controller extends Base_Controller {
 		\RockStarLab\ImportExport\Helper\Media_Hash::store_attachment_hash( $attachment_id, $actual_hash, $upload['file'] );
 		if ( $source_attachment_id > 0 ) {
 			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
+			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
 		}
+		$this->apply_synced_attachment_content_fields( (int) $attachment_id, $image );
 		$this->apply_synced_attachment_wpml_data( (int) $attachment_id, $image );
 
 		return $attachment_id;
@@ -3300,6 +3305,34 @@ class Content_Sync_Controller extends Base_Controller {
 		);
 
 		return ! empty( $attachments ) ? (int) $attachments[0] : false;
+	}
+
+	private function apply_synced_attachment_content_fields( $attachment_id, array $image ) {
+		$attachment_id = absint( $attachment_id );
+		if ( $attachment_id <= 0 || 'attachment' !== get_post_type( $attachment_id ) ) {
+			return;
+		}
+
+		$update = array( 'ID' => $attachment_id );
+		if ( array_key_exists( 'description', $image ) ) {
+			$description            = (string) $image['description'];
+			$update['post_content'] = class_exists( ACF_Fields::class )
+				? ACF_Fields::replace_media_urls_in_html( $description, $attachment_id )
+				: $description;
+		}
+		if ( ! empty( $image['caption'] ) ) {
+			$update['post_excerpt'] = (string) $image['caption'];
+		}
+		if ( ! empty( $image['title'] ) ) {
+			$update['post_title'] = (string) $image['title'];
+		}
+		wp_update_post( wp_slash( $update ) );
+
+		if ( class_exists( ACF_Fields::class ) && ! empty( $image['acf'] ) && is_array( $image['acf'] ) ) {
+			foreach ( $image['acf'] as $field_name => $value ) {
+				ACF_Fields::import_value( 'media', $attachment_id, sanitize_text_field( (string) $field_name ), $value );
+			}
+		}
 	}
 
 	private function apply_synced_attachment_wpml_data( $attachment_id, array $image_data ) {

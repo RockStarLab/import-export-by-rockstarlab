@@ -879,20 +879,24 @@ class ACF_Fields {
 		if ( ! is_string( $value ) || '' === $value ) {
 			return 0;
 		}
-		$existing = attachment_url_to_postid( $value );
-		if ( $existing > 0 ) {
-			return (int) $existing;
-		}
 		if ( ! filter_var( $value, FILTER_VALIDATE_URL ) ) {
 			return 0;
 		}
 		$source_url  = esc_url_raw( $value );
 		$source_hash = md5( $source_url );
+		$existing    = attachment_url_to_postid( $source_url );
+		if ( $existing > 0 ) {
+			self::store_imported_media_identity( (int) $existing, $source_url, $source_attachment_id );
+			return (int) $existing;
+		}
 		if ( isset( $url_to_attachment_cache[ $source_hash ] ) ) {
-			return (int) $url_to_attachment_cache[ $source_hash ];
+			$cached_id = (int) $url_to_attachment_cache[ $source_hash ];
+			self::store_imported_media_identity( $cached_id, $source_url, $source_attachment_id );
+			return $cached_id;
 		}
 		$existing_by_source = self::attachment_id_from_source_hash( $source_hash );
 		if ( $existing_by_source > 0 ) {
+			self::store_imported_media_identity( $existing_by_source, $source_url, $source_attachment_id );
 			$url_to_attachment_cache[ $source_hash ] = $existing_by_source;
 			return $existing_by_source;
 		}
@@ -939,11 +943,7 @@ class ACF_Fields {
 			return 0;
 		}
 
-			update_post_meta( (int) $id, 'rsl_ie_source_url', $source_url );
-			update_post_meta( (int) $id, 'rsl_ie_source_url_hash', $source_hash );
-		if ( absint( $source_attachment_id ) > 0 ) {
-			update_post_meta( (int) $id, '_rsl_ie_source_attachment_id', absint( $source_attachment_id ) );
-		}
+			self::store_imported_media_identity( (int) $id, $source_url, $source_attachment_id );
 		if ( class_exists( '\RockStarLab\ImportExport\Helper\Media_Hash' ) ) {
 			Media_Hash::get_or_create_hash( (int) $id );
 		}
@@ -999,6 +999,23 @@ class ACF_Fields {
 		);
 
 		return $attachment_id ? absint( $attachment_id ) : 0;
+	}
+
+	private static function store_imported_media_identity( int $attachment_id, string $source_url = '', int $source_attachment_id = 0 ): void {
+		if ( $attachment_id <= 0 ) {
+			return;
+		}
+
+		$source_url = esc_url_raw( $source_url );
+		if ( '' !== $source_url ) {
+			update_post_meta( $attachment_id, 'rsl_ie_source_url', $source_url );
+			update_post_meta( $attachment_id, 'rsl_ie_source_url_hash', md5( $source_url ) );
+		}
+
+		if ( $source_attachment_id > 0 ) {
+			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', absint( $source_attachment_id ) );
+			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', absint( $source_attachment_id ) );
+		}
 	}
 
 	/**

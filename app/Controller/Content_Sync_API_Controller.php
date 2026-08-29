@@ -1544,6 +1544,7 @@ class Content_Sync_API_Controller {
 			$existing_attachment = $this->find_attachment_by_original_attachment_id( $source_attachment_id );
 			if ( $existing_attachment ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
+				$this->apply_synced_attachment_content_fields( (int) $existing_attachment, $description, $caption, $title, $wpml_data, $request->get_param( 'acf' ) );
 				$this->apply_synced_attachment_wpml_data( (int) $existing_attachment, $wpml_data );
 				return new \WP_REST_Response(
 					array(
@@ -1561,6 +1562,7 @@ class Content_Sync_API_Controller {
 			$existing_attachment = $this->find_attachment_by_hash( $file_hash );
 			if ( $existing_attachment ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
+				$this->apply_synced_attachment_content_fields( (int) $existing_attachment, $description, $caption, $title, $wpml_data, $request->get_param( 'acf' ) );
 				$this->apply_synced_attachment_wpml_data( (int) $existing_attachment, $wpml_data );
 				return new \WP_REST_Response(
 					array(
@@ -1649,7 +1651,9 @@ class Content_Sync_API_Controller {
 		\RockStarLab\ImportExport\Helper\Media_Hash::store_attachment_hash( $attachment_id, $file_hash, $file_path );
 		if ( $source_attachment_id > 0 ) {
 			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
+			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
 		}
+		$this->apply_synced_attachment_content_fields( (int) $attachment_id, $description, $caption, $title, $wpml_data, $request->get_param( 'acf' ) );
 		$this->apply_synced_attachment_wpml_data( (int) $attachment_id, $wpml_data );
 
 		return new \WP_REST_Response(
@@ -1697,6 +1701,33 @@ class Content_Sync_API_Controller {
 		);
 
 		return ! empty( $attachments ) ? (int) $attachments[0] : false;
+	}
+
+	private function apply_synced_attachment_content_fields( $attachment_id, $description, $caption = '', $title = '', array $wpml_data = array(), $acf_data = array() ) {
+		$attachment_id = absint( $attachment_id );
+		if ( $attachment_id <= 0 || 'attachment' !== get_post_type( $attachment_id ) ) {
+			return;
+		}
+
+		$update = array( 'ID' => $attachment_id );
+		if ( is_string( $description ) ) {
+			$update['post_content'] = class_exists( ACF_Fields::class )
+				? ACF_Fields::replace_media_urls_in_html( $description, $attachment_id )
+				: $description;
+		}
+		if ( is_string( $caption ) && '' !== $caption ) {
+			$update['post_excerpt'] = $caption;
+		}
+		if ( is_string( $title ) && '' !== $title ) {
+			$update['post_title'] = $title;
+		}
+		wp_update_post( wp_slash( $update ) );
+
+		if ( class_exists( ACF_Fields::class ) && is_array( $acf_data ) ) {
+			foreach ( $acf_data as $field_name => $value ) {
+				ACF_Fields::import_value( 'media', $attachment_id, sanitize_text_field( (string) $field_name ), $value );
+			}
+		}
 	}
 
 	private function apply_synced_attachment_wpml_data( $attachment_id, array $wpml_data ) {
