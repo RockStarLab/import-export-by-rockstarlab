@@ -116,6 +116,38 @@ class Pro_Addon {
 			];
 		}
 
+		// Advertise WooCommerce PRO features even when WooCommerce is not active.
+		if ( in_array( $context, [ 'import', 'export' ], true ) && ! class_exists( 'WooCommerce' ) ) {
+			$is_import = 'import' === $context;
+			$woo_cards = [
+				[
+					'title'       => __( 'WooCommerce Products', 'import-export-by-rockstarlab' ),
+					'description' => $is_import ? __( 'Import WooCommerce products', 'import-export-by-rockstarlab' ) : __( 'Export WooCommerce products', 'import-export-by-rockstarlab' ),
+				],
+				[
+					'title'       => __( 'WooCommerce Orders', 'import-export-by-rockstarlab' ),
+					'description' => $is_import ? __( 'Import WooCommerce orders', 'import-export-by-rockstarlab' ) : __( 'Export WooCommerce orders', 'import-export-by-rockstarlab' ),
+				],
+				[
+					'title'       => __( 'WooCommerce Refunds', 'import-export-by-rockstarlab' ),
+					'description' => $is_import ? __( 'Import WooCommerce refunds', 'import-export-by-rockstarlab' ) : __( 'Export WooCommerce refunds', 'import-export-by-rockstarlab' ),
+				],
+				[
+					'title'       => __( 'WooCommerce Customers', 'import-export-by-rockstarlab' ),
+					'description' => $is_import ? __( 'Import WooCommerce customers', 'import-export-by-rockstarlab' ) : __( 'Export WooCommerce customers', 'import-export-by-rockstarlab' ),
+				],
+				[
+					'title'       => __( 'WooCommerce Coupons', 'import-export-by-rockstarlab' ),
+					'description' => $is_import ? __( 'Import WooCommerce coupons', 'import-export-by-rockstarlab' ) : __( 'Export WooCommerce coupons', 'import-export-by-rockstarlab' ),
+				],
+				[
+					'title'       => __( 'WooCommerce Attributes', 'import-export-by-rockstarlab' ),
+					'description' => $is_import ? __( 'Import WooCommerce attributes', 'import-export-by-rockstarlab' ) : __( 'Export WooCommerce attributes', 'import-export-by-rockstarlab' ),
+				],
+			];
+			$features  = array_merge( $features, $woo_cards );
+		}
+
 		$features[] = [
 			'title'       => __( 'Data Transformation Tool', 'import-export-by-rockstarlab' ),
 			'description' => __( 'Transform data during import or export process', 'import-export-by-rockstarlab' ),
@@ -147,14 +179,6 @@ class Pro_Addon {
 				'description' => $is_import
 					? __( 'Import any custom post types', 'import-export-by-rockstarlab' )
 					: __( 'Export any custom post types', 'import-export-by-rockstarlab' ),
-			];
-			$cards[]     = [
-				'value'       => 'media',
-				'icon'        => 'dashicons-admin-media',
-				'title'       => __( 'Media', 'import-export-by-rockstarlab' ),
-				'description' => $is_import
-					? __( 'Import media files data', 'import-export-by-rockstarlab' )
-					: __( 'Export media files data', 'import-export-by-rockstarlab' ),
 			];
 			$cards[]     = [
 				'value'       => 'menu',
