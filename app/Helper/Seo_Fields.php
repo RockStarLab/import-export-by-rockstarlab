@@ -594,10 +594,19 @@ class Seo_Fields {
 			return $existing_by_source;
 		}
 
+		$original_attachment_id = Content_Sync_Media::attachment_url_to_original_postid( $url );
+		if ( $original_attachment_id > 0 ) {
+			update_post_meta( $original_attachment_id, 'rsl_ie_source_url', $url );
+			update_post_meta( $original_attachment_id, 'rsl_ie_source_url_hash', md5( $url ) );
+			return $original_attachment_id;
+		}
+
 		$filename = wp_basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
 		if ( '' !== $filename ) {
 			$existing_by_name = self::find_attachment_by_filename( $filename );
 			if ( $existing_by_name > 0 ) {
+				update_post_meta( $existing_by_name, 'rsl_ie_source_url', $url );
+				update_post_meta( $existing_by_name, 'rsl_ie_source_url_hash', md5( $url ) );
 				return $existing_by_name;
 			}
 		}

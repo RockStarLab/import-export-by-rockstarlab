@@ -115,7 +115,9 @@ class Background_Processor {
 			$parameters = ! empty( $job['parameters'] ) ? json_decode( $job['parameters'], true ) : [];
 
 			// Process based on job type
-			if ( 'import' === $job['type'] ) {
+			if ( 'import' === $job['type'] && 'media_sync' === (string) ( $job['data_type'] ?? '' ) ) {
+				$result = $this->process_media_sync_job( $job_id, $parameters );
+			} elseif ( 'import' === $job['type'] ) {
 				$result = $this->process_import_job( $job_id, $parameters );
 			} elseif ( 'export' === $job['type'] ) {
 				// Export_Processor is also used by the AJAX batch endpoint. Delegate
@@ -260,6 +262,7 @@ class Background_Processor {
 				'updated' => 0,
 				'created' => 0,
 				'errors'  => [],
+				'items'   => [],
 			];
 			$offset                          = 0;
 		}
@@ -293,14 +296,41 @@ class Background_Processor {
 					'row'     => $offset + $index + 1,
 					'message' => $item_result->get_error_message(),
 				];
+				$cumulative['items'][]  = [
+					'row'       => $offset + $index + 1,
+					'action'    => 'failed',
+					'source_id' => isset( $item['_rsl_ie_source_id'] ) ? absint( $item['_rsl_ie_source_id'] ) : 0,
+					'title'     => isset( $item['post_title'] ) ? (string) $item['post_title'] : '',
+					'message'   => $item_result->get_error_message(),
+				];
 			} elseif ( 'skipped' === $item_result ) {
 				++$cumulative['skipped'];
+				$cumulative['items'][] = [
+					'row'       => $offset + $index + 1,
+					'action'    => 'skipped',
+					'source_id' => isset( $item['_rsl_ie_source_id'] ) ? absint( $item['_rsl_ie_source_id'] ) : 0,
+					'title'     => isset( $item['post_title'] ) ? (string) $item['post_title'] : '',
+				];
 			} elseif ( 'updated' === $item_result ) {
 				++$cumulative['updated'];
 				++$cumulative['success'];
+				$cumulative['items'][] = [
+					'row'       => $offset + $index + 1,
+					'action'    => 'updated',
+					'source_id' => isset( $item['_rsl_ie_source_id'] ) ? absint( $item['_rsl_ie_source_id'] ) : 0,
+					'target_id' => 0,
+					'title'     => isset( $item['post_title'] ) ? (string) $item['post_title'] : '',
+				];
 			} else {
 				++$cumulative['created'];
 				++$cumulative['success'];
+				$cumulative['items'][] = [
+					'row'       => $offset + $index + 1,
+					'action'    => 'created',
+					'source_id' => isset( $item['_rsl_ie_source_id'] ) ? absint( $item['_rsl_ie_source_id'] ) : 0,
+					'target_id' => is_numeric( $item_result ) ? absint( $item_result ) : 0,
+					'title'     => isset( $item['post_title'] ) ? (string) $item['post_title'] : '',
+				];
 			}
 
 			if ( ! is_wp_error( $item_result ) && 'skipped' !== $item_result && class_exists( \RockStarLab\ImportExport\Model\Import\Comment_Importer::class ) && $importer instanceof \RockStarLab\ImportExport\Model\Import\Comment_Importer ) {
@@ -738,9 +768,9 @@ class Background_Processor {
 	 * @param int $job_id Job ID
 	 */
 	protected function trigger_ajax_processing( $job_id ) {
-		// Only trigger for media_sync jobs (they have dedicated AJAX endpoint)
+		// Only trigger for media sync jobs (they have dedicated AJAX endpoint)
 		$job = $this->job_model->find( $job_id );
-		if ( ! $job || $job->type !== 'media_sync' ) {
+		if ( ! $job || ( $job->type !== 'media_sync' && 'media_sync' !== (string) $job->data_type ) ) {
 			return;
 		}
 

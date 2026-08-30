@@ -138,9 +138,9 @@ class Job_Controller extends Base_Controller {
 
 			$job->job_name = isset( $job->job_name ) ? (string) $job->job_name : '';
 
-			// Aliases for JS layer (DB uses imported_items / error_items)
-			$job->success_items = (int) ( $job->imported_items ?? 0 );
-			$job->failed_items  = (int) ( $job->error_items ?? 0 );
+			// Aliases for JS layer; prefer the canonical counters when present.
+			$job->success_items = (int) ( $job->success_items ?? $job->imported_items ?? 0 );
+			$job->failed_items  = (int) ( $job->failed_items ?? $job->error_items ?? 0 );
 
 			// Provide real elapsed time for Jobs Log table.
 			// Prefer started_at/completed_at; fall back to created_at for jobs that
@@ -209,9 +209,9 @@ class Job_Controller extends Base_Controller {
 		$job_data->parameters = json_decode( $job_data->parameters, true );
 		$job_data->result     = json_decode( $job_data->result, true );
 
-		// Aliases for JS layer (DB uses imported_items / error_items)
-		$job_data->success_items = (int) ( $job_data->imported_items ?? 0 );
-		$job_data->failed_items  = (int) ( $job_data->error_items ?? 0 );
+		// Aliases for JS layer; prefer the canonical counters when present.
+		$job_data->success_items = (int) ( $job_data->success_items ?? $job_data->imported_items ?? 0 );
+		$job_data->failed_items  = (int) ( $job_data->failed_items ?? $job_data->error_items ?? 0 );
 		$job_data->job_name      = isset( $job_data->job_name ) ? (string) $job_data->job_name : '';
 
 		$this->send_success( $job_data );
@@ -452,9 +452,9 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( __( 'Job not found', 'import-export-by-rockstarlab' ), null, 404 );
 		}
 
-		// Prepare settings - reset progress for media_sync jobs
+		// Prepare settings - reset progress for media sync jobs
 		$settings_to_use = $job_data->settings;
-		if ( 'media_sync' === $job_data->type && ! empty( $job_data->settings ) ) {
+		if ( 'media_sync' === $job_data->data_type && ! empty( $job_data->settings ) ) {
 			$settings = json_decode( $job_data->settings, true );
 			if ( is_array( $settings ) ) {
 				// Reset progress tracking fields but keep the original configuration
@@ -471,8 +471,8 @@ class Job_Controller extends Base_Controller {
 		// Get job parameters for response
 		$parameters = maybe_unserialize( $job_data->parameters );
 
-		// For media_sync, parameters might be empty but settings should contain all info
-		if ( empty( $parameters ) && 'media_sync' === $job_data->type ) {
+		// For media sync, parameters might be empty but settings should contain all info
+		if ( empty( $parameters ) && 'media_sync' === $job_data->data_type ) {
 			$parameters = json_decode( $job_data->settings, true );
 		}
 
@@ -493,14 +493,14 @@ class Job_Controller extends Base_Controller {
 
 		// Import/update jobs depend on the source file path for processing. When
 		// restarting from Jobs Log, keep the same file reference when available.
-		if ( in_array( $job_data->type, [ 'import', 'update' ], true ) ) {
+		if ( 'import' === $job_data->type ) {
 			$new_job_payload['file_path'] = $job_data->file_path ?? null;
 			$new_job_payload['file_size'] = $job_data->file_size ?? null;
 		}
 
-		// Preserve total_items for update jobs so the Jobs Log shows the expected
+		// Preserve total_items for content update jobs so the Jobs Log shows the expected
 		// denominator immediately after rerun.
-		if ( 'update' === $job_data->type && ! empty( $job_data->total_items ) ) {
+		if ( 'content_update' === (string) $job_data->data_type && ! empty( $job_data->total_items ) ) {
 			$new_job_payload['total_items'] = (int) $job_data->total_items;
 		}
 
@@ -544,9 +544,9 @@ class Job_Controller extends Base_Controller {
 			$this->send_error( __( 'Job not found', 'import-export-by-rockstarlab' ), null, 404 );
 		}
 
-		// Prepare settings - reset progress for media_sync jobs
+		// Prepare settings - reset progress for media sync jobs
 		$settings_to_use = $job_data->settings;
-		if ( 'media_sync' === $job_data->type && ! empty( $job_data->settings ) ) {
+		if ( 'media_sync' === $job_data->data_type && ! empty( $job_data->settings ) ) {
 			$settings = json_decode( $job_data->settings, true );
 			if ( is_array( $settings ) ) {
 				// Reset progress tracking fields but keep the original configuration
@@ -563,8 +563,8 @@ class Job_Controller extends Base_Controller {
 		// Get job parameters for response
 		$parameters = maybe_unserialize( $job_data->parameters );
 
-		// For media_sync, parameters might be empty but settings should contain all info
-		if ( empty( $parameters ) && 'media_sync' === $job_data->type ) {
+		// For media sync, parameters might be empty but settings should contain all info
+		if ( empty( $parameters ) && 'media_sync' === $job_data->data_type ) {
 			$parameters = json_decode( $job_data->settings, true );
 		}
 
@@ -586,14 +586,14 @@ class Job_Controller extends Base_Controller {
 
 		// Import/update jobs depend on the source file path for processing. When
 		// retrying from Jobs Log, keep the same file reference when available.
-		if ( in_array( $job_data->type, [ 'import', 'update' ], true ) ) {
+		if ( 'import' === $job_data->type ) {
 			$new_job_payload['file_path'] = $job_data->file_path ?? null;
 			$new_job_payload['file_size'] = $job_data->file_size ?? null;
 		}
 
-		// Preserve total_items for update jobs so the Jobs Log shows the expected
+		// Preserve total_items for content update jobs so the Jobs Log shows the expected
 		// denominator immediately after rerun.
-		if ( 'update' === $job_data->type && ! empty( $job_data->total_items ) ) {
+		if ( 'content_update' === (string) $job_data->data_type && ! empty( $job_data->total_items ) ) {
 			$new_job_payload['total_items'] = (int) $job_data->total_items;
 		}
 

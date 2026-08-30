@@ -10,6 +10,7 @@
 namespace RockStarLab\ImportExport\Model\Import;
 
 use RockStarLab\ImportExport\Helper\ACF_Fields;
+use RockStarLab\ImportExport\Helper\Content_Sync_Media;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -81,6 +82,7 @@ class Post_Importer extends Abstract_Importer {
 			'post_name',
 			'post_parent',
 			'menu_order',
+			'is_sticky',
 			'comment_status',
 			'ping_status',
 			'post_password',
@@ -549,12 +551,14 @@ class Post_Importer extends Abstract_Importer {
 				)
 			);
 
-			return $post_id ? get_post( (int) $post_id ) : null;
+			if ( $post_id ) {
+				return get_post( (int) $post_id );
+			}
 		}
 
-		// Fallback: if we were asked to match by title but the title is missing
-		// (or was normalized differently), try matching by slug when available.
-		if ( 'post_title' === $check_field && empty( $item['post_title'] ) && ! empty( $item['post_name'] ) ) {
+		// Fallback: when title matching misses because content was edited or normalized
+		// differently, use the exported slug before creating another item.
+		if ( 'post_title' === $check_field && ! empty( $item['post_name'] ) ) {
 			$args = [
 				'name'           => $item['post_name'],
 				'post_type'      => $this->get_option( 'post_type', 'post' ),
@@ -635,6 +639,8 @@ class Post_Importer extends Abstract_Importer {
 			return $post_id;
 		}
 
+		$this->maybe_apply_sticky_state( $post_id, $item );
+
 		// Auto-import media from content if enabled
 		if ( $this->get_option( 'auto_import_media', false ) && ! empty( $item['post_content'] ) ) {
 			$this->auto_import_content_media( $post_id, $item['post_content'] );
@@ -706,6 +712,8 @@ class Post_Importer extends Abstract_Importer {
 		if ( $this->is_job_cancelled() ) {
 			return 'updated';
 		}
+
+		$this->maybe_apply_sticky_state( $post_id, $item );
 
 		// Auto-import media from content if enabled
 		if ( $this->get_option( 'auto_import_media', false ) && ! empty( $item['post_content'] ) ) {
@@ -797,6 +805,33 @@ class Post_Importer extends Abstract_Importer {
 
 		update_post_meta( $post_id, self::IMPORT_JOB_META_KEY, $job_id );
 		update_post_meta( $post_id, self::IMPORT_JOB_ACTION_META_KEY, $action );
+	}
+
+	/**
+	 * Apply WordPress sticky state from portable export field.
+	 *
+	 * @param int   $post_id Target post ID.
+	 * @param array $item Imported row.
+	 * @return void
+	 */
+	private function maybe_apply_sticky_state( $post_id, array $item ) {
+		if ( ! array_key_exists( 'is_sticky', $item ) ) {
+			return;
+		}
+
+		$post = get_post( $post_id );
+		if ( ! $post || 'post' !== $post->post_type ) {
+			return;
+		}
+
+		$value     = is_string( $item['is_sticky'] ) ? strtolower( trim( $item['is_sticky'] ) ) : $item['is_sticky'];
+		$is_sticky = in_array( $value, [ 1, '1', true, 'true', 'yes', 'y', 'on', 'sticky' ], true );
+
+		if ( $is_sticky ) {
+			stick_post( (int) $post_id );
+		} else {
+			unstick_post( (int) $post_id );
+		}
 	}
 	/**
 	 * Prepare post data for wp_insert_post/wp_update_post
@@ -3198,21 +3233,6 @@ class Post_Importer extends Abstract_Importer {
 			$media_urls = array_merge( $media_urls, $bg_matches[1] );
 		}
 
-		// 4. Find srcset URLs (responsive images)
-		preg_match_all( '/srcset=[\'"]([^\'"]+)[\'"]/i', $post_content, $srcset_matches );
-		if ( ! empty( $srcset_matches[1] ) ) {
-			foreach ( $srcset_matches[1] as $srcset ) {
-				// Split by comma and extract URLs
-				$srcset_parts = explode( ',', $srcset );
-				foreach ( $srcset_parts as $part ) {
-					// Extract URL (before the width descriptor)
-					if ( preg_match( '/^\s*([^\s]+)/', trim( $part ), $url_match ) ) {
-						$media_urls[] = $url_match[1];
-					}
-				}
-			}
-		}
-
 		// Remove duplicates and empty values
 		$media_urls = array_unique( array_filter( $media_urls ) );
 
@@ -3263,6 +3283,10 @@ class Post_Importer extends Abstract_Importer {
 				continue;
 			}
 
+			if ( ! $this->is_wordpress_uploads_media_url( $url ) ) {
+				continue;
+			}
+
 			// Check for existing media by filename, size and hash
 			$filename            = basename( wp_parse_url( $url, PHP_URL_PATH ) );
 			$existing_attachment = $this->find_existing_media( $filename, $url );
@@ -3309,6 +3333,7 @@ class Post_Importer extends Abstract_Importer {
 		// Update post content with new media URLs and IDs
 		if ( ! empty( $url_mapping ) ) {
 			$post_content = $this->replace_media_urls_in_content( $post_content, $url_mapping );
+			$post_content = $this->remove_stale_srcset_attributes( $post_content );
 
 			wp_update_post(
 				[
@@ -3394,6 +3419,10 @@ class Post_Importer extends Abstract_Importer {
 			}
 
 			if ( ! $this->looks_like_downloadable_media_url( $url ) ) {
+				continue;
+			}
+
+			if ( ! $this->is_wordpress_uploads_media_url( $url ) ) {
 				continue;
 			}
 
@@ -3552,6 +3581,17 @@ class Post_Importer extends Abstract_Importer {
 	}
 
 	/**
+	 * Check whether a URL points at a WordPress uploads directory.
+	 *
+	 * @param string $url URL.
+	 * @return bool
+	 */
+	private function is_wordpress_uploads_media_url( string $url ): bool {
+		$path = wp_parse_url( $url, PHP_URL_PATH );
+		return is_string( $path ) && false !== strpos( $path, '/wp-content/uploads/' );
+	}
+
+	/**
 	 * Find existing media by filename, size and hash
 	 *
 	 * @param string $filename  Media filename
@@ -3566,6 +3606,11 @@ class Post_Importer extends Abstract_Importer {
 			$source_attachment_id = $this->find_existing_media_by_source_url( (string) $url );
 			if ( $source_attachment_id ) {
 				return $source_attachment_id;
+			}
+
+			$original_attachment_id = Content_Sync_Media::attachment_url_to_original_postid( (string) $url );
+			if ( $original_attachment_id > 0 ) {
+				return $original_attachment_id;
 			}
 
 			// Prefer hash-based duplicate detection (works even when WP renames files
