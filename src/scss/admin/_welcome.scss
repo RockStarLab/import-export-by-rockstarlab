@@ -543,6 +543,42 @@
 	}
 }
 
+.rsl-ie-card__header.rsl-ie-promo-offer-header {
+	margin: 30px -15px 10px -15px;
+	border-top: 4px solid #f59e0b;
+}
+
+.rsl-ie-promo-launch-copy {
+	margin-bottom: 16px;
+}
+
+.rsl-ie-promo-lifetime-cta {
+	margin-top: 10px !important;
+}
+
+.rsl-ie-promo-monthly-link {
+	display: block;
+	margin: 16px 0 4px;
+	padding: 9px 14px;
+	text-align: center;
+	font-size: 13px;
+	text-decoration: none;
+	font-weight: 600;
+	width: 100%;
+	box-sizing: border-box;
+	border-radius: 4px;
+	background: #fffaf0 !important;
+	border: 1px solid #d97706 !important;
+	color: #92400e !important;
+
+	&:hover,
+	&:focus {
+		background: #fef3c7 !important;
+		border-color: #b45309 !important;
+		color: #78350f !important;
+	}
+}
+
 .rsl-ie-pro-active-message {
 	font-size: 15px;
 	line-height: 1.55;

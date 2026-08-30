@@ -100,10 +100,10 @@ class Content_Sync_Replacer {
 	 * @param array  $image_map Mapping of old attachment IDs to new ones.
 	 * @return array Modified post data
 	 */
-	public static function replace_post_domains( $post_data, $source_domain, $target_domain, $image_map = array() ) {
+	public static function replace_post_domains( $post_data, $source_domain, $target_domain, $image_map = array(), $image_sources = array() ) {
 		// Replace in content
 		if ( isset( $post_data['post_content'] ) ) {
-			$post_data['post_content'] = self::replace_in_content( $post_data['post_content'], $source_domain, $target_domain, $image_map );
+			$post_data['post_content'] = self::replace_in_content( $post_data['post_content'], $source_domain, $target_domain, $image_map, $image_sources );
 		}
 
 		// Replace in excerpt
@@ -113,14 +113,14 @@ class Content_Sync_Replacer {
 
 		// Replace in meta
 		if ( isset( $post_data['meta'] ) && is_array( $post_data['meta'] ) ) {
-			$post_data['meta'] = self::replace_in_meta( $post_data['meta'], $source_domain, $target_domain, $image_map );
+			$post_data['meta'] = self::replace_in_meta( $post_data['meta'], $source_domain, $target_domain, $image_map, $image_sources );
 		}
 
 		// Replace domain and image IDs in variation meta (variable products).
 		if ( ! empty( $post_data['variations'] ) && is_array( $post_data['variations'] ) ) {
 			foreach ( $post_data['variations'] as &$variation ) {
 				if ( ! empty( $variation['meta'] ) && is_array( $variation['meta'] ) ) {
-					$variation['meta'] = self::replace_in_meta( $variation['meta'], $source_domain, $target_domain, $image_map );
+					$variation['meta'] = self::replace_in_meta( $variation['meta'], $source_domain, $target_domain, $image_map, $image_sources );
 				}
 			}
 			unset( $variation );
@@ -130,10 +130,10 @@ class Content_Sync_Replacer {
 		if ( ! empty( $post_data['grouped_children'] ) && is_array( $post_data['grouped_children'] ) ) {
 			foreach ( $post_data['grouped_children'] as &$grouped_child ) {
 				if ( ! empty( $grouped_child['meta'] ) && is_array( $grouped_child['meta'] ) ) {
-					$grouped_child['meta'] = self::replace_in_meta( $grouped_child['meta'], $source_domain, $target_domain, $image_map );
+					$grouped_child['meta'] = self::replace_in_meta( $grouped_child['meta'], $source_domain, $target_domain, $image_map, $image_sources );
 				}
 				if ( ! empty( $grouped_child['post_content'] ) ) {
-					$grouped_child['post_content'] = self::replace_in_content( $grouped_child['post_content'], $source_domain, $target_domain, $image_map );
+					$grouped_child['post_content'] = self::replace_in_content( $grouped_child['post_content'], $source_domain, $target_domain, $image_map, $image_sources );
 				}
 				if ( ! empty( $grouped_child['post_excerpt'] ) ) {
 					$grouped_child['post_excerpt'] = self::replace_in_text( $grouped_child['post_excerpt'], $source_domain, $target_domain );
@@ -154,7 +154,7 @@ class Content_Sync_Replacer {
 	 * @param array  $image_map Image ID mapping.
 	 * @return string Modified content
 	 */
-	private static function replace_in_content( $content, $source_domain, $target_domain, $image_map = array() ) {
+	private static function replace_in_content( $content, $source_domain, $target_domain, $image_map = array(), $image_sources = array() ) {
 		// Replace URLs in content
 		$content = self::replace_in_text( $content, $source_domain, $target_domain );
 
@@ -172,24 +172,9 @@ class Content_Sync_Replacer {
 					$content
 				);
 			}
-
-			// Replace attachment IDs inside shortcode `ids` attributes.
-			// Handles classic [gallery ids="90,89"] and similar shortcodes.
-			$content = preg_replace_callback(
-				'/\b(ids=["\'])([\d,\s]+)(["\'])/i',
-				function ( $m ) use ( $image_map ) {
-					$ids = array_map( 'intval', explode( ',', $m[2] ) );
-					$ids = array_map(
-						function ( $id ) use ( $image_map ) {
-							return isset( $image_map[ $id ] ) ? (int) $image_map[ $id ] : $id;
-						},
-						$ids
-					);
-					return $m[1] . implode( ',', $ids ) . $m[3];
-				},
-				$content
-			);
 		}
+
+		$content = self::fix_local_image_urls_in_content( $content, $image_map, $image_sources );
 
 		return $content;
 	}
@@ -284,8 +269,8 @@ class Content_Sync_Replacer {
 	 * @param array  $image_map Image ID mapping.
 	 * @return array Modified meta
 	 */
-	public static function replace_in_meta_public( $meta, $source_domain, $target_domain, $image_map = array() ) {
-		return self::replace_in_meta( $meta, $source_domain, $target_domain, $image_map );
+	public static function replace_in_meta_public( $meta, $source_domain, $target_domain, $image_map = array(), $image_sources = array() ) {
+		return self::replace_in_meta( $meta, $source_domain, $target_domain, $image_map, $image_sources );
 	}
 
 	/**
@@ -305,6 +290,8 @@ class Content_Sync_Replacer {
 			return $content;
 		}
 
+		$content = self::replace_shortcode_attachment_ids( $content, $image_map );
+
 		foreach ( $image_map as $old_id => $new_id ) {
 			$old_id = (int) $old_id;
 			$new_id = (int) $new_id;
@@ -322,6 +309,35 @@ class Content_Sync_Replacer {
 	}
 
 	/**
+	 * Replace attachment IDs inside shortcode ids attributes.
+	 *
+	 * @param string $content   Content that may contain shortcodes.
+	 * @param array  $image_map Source attachment ID => local attachment ID.
+	 * @return string Updated content.
+	 */
+	private static function replace_shortcode_attachment_ids( $content, $image_map ) {
+		if ( empty( $content ) || ! is_string( $content ) || empty( $image_map ) ) {
+			return $content;
+		}
+
+		return preg_replace_callback(
+			'/\b(ids=["\'])([\d,\s]+)(["\'])/i',
+			function ( $m ) use ( $image_map ) {
+				$ids = array_filter( array_map( 'absint', explode( ',', $m[2] ) ) );
+				$ids = array_map(
+					function ( $id ) use ( $image_map ) {
+						return isset( $image_map[ $id ] ) ? (int) $image_map[ $id ] : (int) $id;
+					},
+					$ids
+				);
+
+				return $m[1] . implode( ',', $ids ) . $m[3];
+			},
+			$content
+		);
+	}
+
+	/**
 	 * Replace domain in post meta
 	 *
 	 * @param array  $meta Post meta array.
@@ -330,7 +346,7 @@ class Content_Sync_Replacer {
 	 * @param array  $image_map Image ID mapping.
 	 * @return array Modified meta
 	 */
-	private static function replace_in_meta( $meta, $source_domain, $target_domain, $image_map = array() ) {
+	private static function replace_in_meta( $meta, $source_domain, $target_domain, $image_map = array(), $image_sources = array() ) {
 		foreach ( $meta as $key => &$value ) {
 			// Skip internal WordPress meta that shouldn't be replaced
 			if ( in_array( $key, array( '_edit_lock', '_edit_last', '_wp_old_slug' ), true ) ) {
@@ -411,11 +427,12 @@ class Content_Sync_Replacer {
 				if ( self::is_serialized( $value ) ) {
 					$unserialized = @unserialize( $value );
 					if ( false !== $unserialized ) {
-						$unserialized = self::replace_in_serialized( $unserialized, $source_domain, $target_domain, $image_map );
+						$unserialized = self::replace_in_serialized( $unserialized, $source_domain, $target_domain, $image_map, $image_sources );
 						$value        = serialize( $unserialized );
 					}
 				} else {
 					$value = self::replace_in_text( $value, $source_domain, $target_domain );
+					$value = self::fix_local_image_urls_in_content( $value, $image_map, $image_sources );
 					// Replace wp-image-X attachment IDs and src URLs in HTML values (e.g. ACF WYSIWYG).
 					//
 					// Strategy: match <img> tags by their wp-image-{new_id} class (set in step 1
@@ -497,7 +514,7 @@ class Content_Sync_Replacer {
 					}
 				}
 			} elseif ( is_array( $value ) ) {
-				$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map, 0 );
+				$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map, $image_sources, 0 );
 			}
 
 			// Handle Elementor data
@@ -522,18 +539,19 @@ class Content_Sync_Replacer {
 	 * @param array  $image_map Image ID mapping.
 	 * @return mixed Modified data
 	 */
-	private static function replace_in_serialized( $data, $source_domain, $target_domain, $image_map = array() ) {
+	private static function replace_in_serialized( $data, $source_domain, $target_domain, $image_map = array(), $image_sources = array() ) {
 		if ( is_string( $data ) ) {
-			return self::replace_in_text( $data, $source_domain, $target_domain );
+			$data = self::replace_in_text( $data, $source_domain, $target_domain );
+			return self::fix_local_image_urls_in_content( $data, $image_map, $image_sources );
 		}
 
 		if ( is_array( $data ) ) {
-			return self::replace_in_array( $data, $source_domain, $target_domain, $image_map );
+			return self::replace_in_array( $data, $source_domain, $target_domain, $image_map, $image_sources );
 		}
 
 		if ( is_object( $data ) ) {
 			foreach ( $data as $key => &$value ) {
-				$value = self::replace_in_serialized( $value, $source_domain, $target_domain, $image_map );
+				$value = self::replace_in_serialized( $value, $source_domain, $target_domain, $image_map, $image_sources );
 			}
 		}
 
@@ -772,7 +790,7 @@ class Content_Sync_Replacer {
 	 * @param array  $image_map Image ID mapping.
 	 * @return array Modified array
 	 */
-	public static function replace_in_array( $array, $source_domain, $target_domain, $image_map = array(), $depth = 0 ) {
+	public static function replace_in_array( $array, $source_domain, $target_domain, $image_map = array(), $image_sources = array(), $depth = 0 ) {
 		// Keys whose numeric values are definitely attachment IDs.
 		$attachment_id_keys = array( 'id', 'ID', 'attachment_id', 'image_id', 'media_id', 'image', 'thumbnail_id', 'file' );
 
@@ -828,9 +846,10 @@ class Content_Sync_Replacer {
 
 			if ( is_string( $value ) ) {
 				$value = self::replace_in_text( $value, $source_domain, $target_domain );
+				$value = self::fix_local_image_urls_in_content( $value, $image_map, $image_sources );
 			} elseif ( is_array( $value ) ) {
 				// Recursively process nested arrays
-				$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map, $depth + 1 );
+				$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map, $image_sources, $depth + 1 );
 			}
 		}
 
@@ -867,7 +886,7 @@ class Content_Sync_Replacer {
 					if ( is_string( $value ) ) {
 						$value = self::replace_in_text( $value, $source_domain, $target_domain );
 					} elseif ( is_array( $value ) ) {
-						$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map );
+						$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map, array() );
 					}
 				}
 			}

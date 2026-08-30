@@ -25,6 +25,7 @@ defined( 'ABSPATH' ) || exit;
  */
 class Content_Sync_Controller extends Base_Controller {
 
+
 	/**
 	 * Return the current admin screen post status without reading query params.
 	 *
@@ -921,6 +922,10 @@ class Content_Sync_Controller extends Base_Controller {
 		$page             = $this->get_request_param( 'page', 1 );
 		$per_page         = $this->get_request_param( 'per_page', 20 );
 		$commentable_only = filter_var( $this->get_request_param( 'commentable_only', false ), FILTER_VALIDATE_BOOLEAN );
+		$comment_type     = sanitize_key( (string) $this->get_request_param( 'comment_type', '' ) );
+		$language         = sanitize_key( (string) $this->get_request_param( 'language', '' ) );
+		if ( '' === $language ) {
+		}
 
 		// Validate input
 		if ( empty( $site_id ) ) {
@@ -951,6 +956,8 @@ class Content_Sync_Controller extends Base_Controller {
 						'page'             => $page,
 						'per_page'         => $per_page,
 						'commentable_only' => $commentable_only,
+						'comment_type'     => $comment_type,
+						'language'         => $language,
 					)
 				),
 			)
@@ -1006,12 +1013,12 @@ class Content_Sync_Controller extends Base_Controller {
 
 		$post_type        = sanitize_key( (string) $this->get_request_param( 'post_type', 'any' ) );
 		$commentable_only = filter_var( $this->get_request_param( 'commentable_only', false ), FILTER_VALIDATE_BOOLEAN );
+		$comment_type     = sanitize_key( (string) $this->get_request_param( 'comment_type', '' ) );
 		$search           = sanitize_text_field( (string) $this->get_request_param( 'search', '' ) );
 		$page             = max( 1, absint( $this->get_request_param( 'page', 1 ) ) );
 		$per_page         = min( max( 1, absint( $this->get_request_param( 'per_page', 20 ) ) ), 50 );
-
-		$args = array(
-			'post_type'              => $commentable_only ? $this->get_commentable_sync_post_types() : ( '' !== $post_type ? $post_type : 'any' ),
+		$args             = array(
+			'post_type'              => $commentable_only ? $this->get_commentable_sync_post_types_for_context( $comment_type, $post_type ) : ( '' !== $post_type ? $post_type : 'any' ),
 			'post_status'            => 'any',
 			'posts_per_page'         => $per_page,
 			'paged'                  => $page,
@@ -1075,6 +1082,78 @@ class Content_Sync_Controller extends Base_Controller {
 	}
 
 	/**
+	 * Return commentable post types for comments vs WooCommerce reviews.
+	 *
+	 * @param string $comment_type Comment subtype.
+	 * @param string $requested_post_type Requested post type.
+	 * @return string|array
+	 */
+	private function get_commentable_sync_post_types_for_context( $comment_type, $requested_post_type = 'any' ) {
+		if ( 'review' === sanitize_key( (string) $comment_type ) ) {
+			return post_type_exists( 'product' ) ? 'product' : '__rsl_ie_no_post_type';
+		}
+
+		$requested_post_type = sanitize_key( (string) $requested_post_type );
+		if ( 'product' === $requested_post_type ) {
+			return '__rsl_ie_no_post_type';
+		}
+		if ( '' !== $requested_post_type && 'any' !== $requested_post_type ) {
+			return $requested_post_type;
+		}
+
+		return array_values( array_diff( $this->get_commentable_sync_post_types(), array( 'product' ) ) );
+	}
+
+	/**
+	 * Get product IDs for separating normal comments from WooCommerce reviews.
+	 *
+	 * @return int[]
+	 */
+	private function get_product_post_ids_for_comment_filter( $language = '' ) {
+		if ( ! post_type_exists( 'product' ) ) {
+			return array();
+		}
+
+		$args = array(
+			'post_type'              => 'product',
+			'post_status'            => 'any',
+			'posts_per_page'         => -1,
+			'fields'                 => 'ids',
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'suppress_filters'       => false,
+		);
+
+		$language = sanitize_key( (string) $language );
+		if ( '' !== $language && 'all' !== $language ) {
+			$args['lang'] = $language;
+		} elseif ( 'all' === $language ) {
+			$args['suppress_filters'] = true;
+		}
+
+		return array_values( array_map( 'absint', get_posts( $args ) ) );
+	}
+
+	/**
+	 * Check whether a comment belongs to the requested sync entity.
+	 *
+	 * @param \WP_Comment $comment      Comment object.
+	 * @param string      $comment_type Requested comment subtype.
+	 * @return bool
+	 */
+	private function is_comment_in_sync_context( $comment, $comment_type = '' ) {
+		$post      = get_post( (int) $comment->comment_post_ID );
+		$post_type = $post ? (string) $post->post_type : '';
+
+		if ( 'review' === sanitize_key( (string) $comment_type ) ) {
+			return 'review' === (string) $comment->comment_type && 'product' === $post_type;
+		}
+
+		return 'review' !== (string) $comment->comment_type && 'product' !== $post_type;
+	}
+
+	/**
 	 * Get taxonomy terms from a remote site for Browse dialogs.
 	 */
 	public function get_remote_terms() {
@@ -1088,6 +1167,7 @@ class Content_Sync_Controller extends Base_Controller {
 		$search   = sanitize_text_field( (string) $this->get_request_param( 'search', '' ) );
 		$page     = absint( $this->get_request_param( 'page', 1 ) );
 		$per_page = absint( $this->get_request_param( 'per_page', 20 ) );
+		$language = sanitize_key( (string) $this->get_request_param( 'language', '' ) );
 
 		if ( empty( $site_id ) ) {
 			$this->send_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
@@ -1110,6 +1190,7 @@ class Content_Sync_Controller extends Base_Controller {
 				'search'   => $search,
 				'page'     => max( 1, $page ),
 				'per_page' => min( max( 1, $per_page ), 100 ),
+				'language' => $language,
 			),
 			30
 		);
@@ -1152,11 +1233,14 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
 
-		$terms = array();
+		$terms      = array();
+		$all_images = array();
 		foreach ( $term_ids as $term_id ) {
 			$term = get_term( $term_id, $taxonomy );
 			if ( $term && ! is_wp_error( $term ) ) {
-				$terms[] = $this->prepare_term_for_sync( $term, $taxonomy );
+				$term_info = $this->prepare_term_for_sync( $term, $taxonomy );
+				$terms[]   = $term_info;
+				$this->collect_term_acf_images_for_sync( $term_info, $term, $taxonomy, $all_images );
 			}
 		}
 
@@ -1164,12 +1248,17 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( __( 'No valid terms selected.', 'import-export-by-rockstarlab' ) );
 		}
 
+		$image_sources = $all_images;
+		$image_map     = $this->upload_images_to_remote( array_values( $all_images ), $site );
+
 		$response = $this->remote_post(
 			$site,
 			'receive-terms',
 			array(
-				'taxonomy' => $taxonomy,
-				'terms'    => $terms,
+				'taxonomy'      => $taxonomy,
+				'terms'         => $terms,
+				'image_map'     => $image_map,
+				'image_sources' => $image_sources,
 			),
 			60
 		);
@@ -1248,6 +1337,10 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( __( 'Remote site returned no terms.', 'import-export-by-rockstarlab' ) );
 		}
 
+		$remote_images = isset( $response['images'] ) && is_array( $response['images'] ) ? $response['images'] : array();
+		$image_map     = $this->download_remote_images_for_sync( $remote_images, $site );
+		$terms         = $this->replace_term_acf_media_references( $terms, $site['remote_url'], get_site_url(), $image_map, $remote_images );
+
 		$result = $this->import_synced_terms( $taxonomy, $terms, $term_mapping );
 		$this->send_success(
 			array(
@@ -1279,6 +1372,9 @@ class Content_Sync_Controller extends Base_Controller {
 		$post_id      = absint( $this->get_request_param( 'post_id', 0 ) );
 		$page         = absint( $this->get_request_param( 'page', 1 ) );
 		$per_page     = absint( $this->get_request_param( 'per_page', 20 ) );
+		$language     = sanitize_key( (string) $this->get_request_param( 'language', '' ) );
+		if ( '' === $language ) {
+		}
 
 		if ( empty( $site_id ) ) {
 			$this->send_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
@@ -1298,6 +1394,7 @@ class Content_Sync_Controller extends Base_Controller {
 				'post_id'      => $post_id,
 				'page'         => max( 1, $page ),
 				'per_page'     => min( max( 1, $per_page ), 100 ),
+				'language'     => $language,
 			),
 			30
 		);
@@ -1321,6 +1418,7 @@ class Content_Sync_Controller extends Base_Controller {
 		$site_id        = $this->get_request_param( 'site_id', 0 );
 		$comment_ids    = array_values( array_filter( array_unique( array_map( 'absint', $this->get_request_array( 'comment_ids', array() ) ) ) ) );
 		$target_post_id = absint( $this->get_request_param( 'target_post_id', 0 ) );
+		$comment_type   = sanitize_key( (string) $this->get_request_param( 'comment_type', '' ) );
 
 		if ( empty( $site_id ) ) {
 			$this->send_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
@@ -1340,10 +1438,17 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		$comments = array();
+		$images   = array();
 		foreach ( $comment_ids as $comment_id ) {
 			$comment = get_comment( $comment_id );
 			if ( $comment instanceof \WP_Comment ) {
-				$comments[] = $this->prepare_standalone_comment_for_sync( $comment );
+				if ( ! $this->is_comment_in_sync_context( $comment, $comment_type ) ) {
+					continue;
+				}
+
+				$comment_data = $this->prepare_standalone_comment_for_sync( $comment );
+				$comments[]   = $comment_data;
+				$this->collect_comment_acf_images_for_sync( $comment_data, $images );
 			}
 		}
 
@@ -1351,11 +1456,17 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( __( 'No valid comments selected.', 'import-export-by-rockstarlab' ) );
 		}
 
+		$image_sources = $images;
+		$image_map     = $this->upload_images_to_remote( array_values( $images ), $site );
+		$comments      = $this->replace_comment_acf_media_references( $comments, get_site_url(), $site['remote_url'], $image_map, $image_sources );
+
 		$result = $this->remote_post(
 			$site,
 			'receive-comments',
 			array(
 				'comments'       => $comments,
+				'image_map'      => $image_map,
+				'image_sources'  => $image_sources,
 				'target_post_id' => $target_post_id,
 			),
 			60
@@ -1388,6 +1499,10 @@ class Content_Sync_Controller extends Base_Controller {
 		$comment_ids    = array_values( array_filter( array_unique( array_map( 'absint', $this->get_request_array( 'comment_ids', array() ) ) ) ) );
 		$target_post_id = absint( $this->get_request_param( 'target_post_id', 0 ) );
 		$post_mapping   = $this->get_request_param( 'post_mapping', array() );
+		$comment_type   = sanitize_key( (string) $this->get_request_param( 'comment_type', '' ) );
+		$language       = sanitize_key( (string) $this->get_request_param( 'language', '' ) );
+		if ( '' === $language ) {
+		}
 
 		if ( is_string( $post_mapping ) ) {
 			$post_mapping = json_decode( $post_mapping, true );
@@ -1413,7 +1528,9 @@ class Content_Sync_Controller extends Base_Controller {
 			$site,
 			'send-comments',
 			array(
-				'comment_ids' => $comment_ids,
+				'comment_ids'  => $comment_ids,
+				'comment_type' => $comment_type,
+				'language'     => $language,
 			),
 			60
 		);
@@ -1422,7 +1539,11 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( $response->get_error_message() );
 		}
 
-		$result = $this->import_standalone_synced_comments( isset( $response['comments'] ) && is_array( $response['comments'] ) ? $response['comments'] : array(), $post_mapping, $target_post_id );
+		$comments      = isset( $response['comments'] ) && is_array( $response['comments'] ) ? $response['comments'] : array();
+		$remote_images = isset( $response['images'] ) && is_array( $response['images'] ) ? $response['images'] : array();
+		$image_map     = $this->download_remote_images_for_sync( $remote_images, $site );
+		$comments      = $this->replace_comment_acf_media_references( $comments, $site['remote_url'], get_site_url(), $image_map, $remote_images );
+		$result        = $this->import_standalone_synced_comments( $comments, $post_mapping, $target_post_id );
 
 		$message = sprintf(
 			/* translators: 1: created comments, 2: updated comments, 3: failed comments. */
@@ -1669,6 +1790,7 @@ class Content_Sync_Controller extends Base_Controller {
 		$site_id   = $this->get_request_param( 'site_id', 0 );
 		$parent_id = $this->get_request_param( 'parent_id', 0 );
 		$post_type = $this->get_request_param( 'post_type', '' );
+		$language  = sanitize_key( (string) $this->get_request_param( 'language', '' ) );
 
 		// Validate input
 		if ( empty( $site_id ) ) {
@@ -1699,6 +1821,7 @@ class Content_Sync_Controller extends Base_Controller {
 						array(
 							'parent_id' => $parent_id,
 							'post_type' => $post_type,
+							'language'  => $language,
 						)
 					),
 				// translators: %s = content placeholder.
@@ -1872,12 +1995,12 @@ class Content_Sync_Controller extends Base_Controller {
 
 						// Get ACF fields for this term
 						if ( function_exists( 'get_field_objects' ) ) {
-							$acf_fields = get_field_objects( $taxonomy . '_' . $term->term_id );
+							$acf_fields = $this->get_term_acf_field_objects( (int) $term->term_id, $taxonomy );
 							if ( $acf_fields ) {
 								$term_info['acf'] = array();
 								foreach ( $acf_fields as $field_key => $field ) {
 									$field_name                      = ! empty( $field['name'] ) ? (string) $field['name'] : (string) $field_key;
-									$term_info['acf'][ $field_name ] = ACF_Fields::export_value( 'term', (int) $term->term_id, $field_name, $taxonomy );
+									$term_info['acf'][ $field_name ] = $this->export_term_acf_sync_value( (int) $term->term_id, $field_name, $field );
 								}
 							}
 						}
@@ -1961,7 +2084,10 @@ class Content_Sync_Controller extends Base_Controller {
 									'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $acf_taxonomy ),
 									'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $acf_taxonomy ),
 								);
-								$known_ids[]                   = $raw_id;
+								$last_index                    = array_key_last( $terms_data[ $acf_taxonomy ] );
+								if ( null !== $last_index ) {
+								}
+								$known_ids[] = $raw_id;
 					}
 				}
 			}
@@ -2119,7 +2245,8 @@ class Content_Sync_Controller extends Base_Controller {
 				$post_data,
 				$source_domain,
 				$target_domain,
-				$image_map
+				$image_map,
+				$image_sources
 			);
 		}
 
@@ -2215,7 +2342,7 @@ class Content_Sync_Controller extends Base_Controller {
 				);
 
 				if ( $existing_id ) {
-					// Image already exists, map old ID to existing ID
+					$this->sync_existing_remote_image_language( $image, $site, $force_unique );
 					$image_map[ $image['attachment_id'] ] = $existing_id;
 					continue;
 				}
@@ -2226,6 +2353,33 @@ class Content_Sync_Controller extends Base_Controller {
 			$new_id                = $this->upload_single_image_to_remote( $image, $site );
 			if ( $new_id ) {
 				$image_map[ $image['attachment_id'] ] = $new_id;
+			}
+		}
+
+		return $image_map;
+	}
+
+	/**
+	 * Download remote image payloads and return source attachment ID => local ID map.
+	 *
+	 * @param array $remote_images Remote image payloads.
+	 * @param array $site Connected site.
+	 * @return array<int,int>
+	 */
+	private function download_remote_images_for_sync( $remote_images, $site ) {
+		$image_map = array();
+		if ( empty( $remote_images ) || ! is_array( $remote_images ) ) {
+			return $image_map;
+		}
+
+		foreach ( $remote_images as $image ) {
+			if ( ! is_array( $image ) || empty( $image['attachment_id'] ) ) {
+				continue;
+			}
+
+			$new_attachment_id = $this->download_image_from_remote( $image, $site );
+			if ( $new_attachment_id ) {
+				$image_map[ (int) $image['attachment_id'] ] = (int) $new_attachment_id;
 			}
 		}
 
@@ -2269,19 +2423,19 @@ class Content_Sync_Controller extends Base_Controller {
 			'force_unique'         => ! empty( $image['force_unique'] ) ? 1 : 0,
 		);
 
-			// Upload to remote
-			$response = \RockStarLab\ImportExport\Helper\Remote_API::post(
-				$site['remote_url'],
-				'upload-media',
-				array(
-					'timeout' => 180,
-					'headers' => array(
-						'Authorization' => 'Bearer ' . $site['api_key'],
-						'Content-Type'  => 'application/json',
-					),
-					'body'    => wp_json_encode( $upload_data ),
-				)
-			);
+		// Upload to remote
+		$response = \RockStarLab\ImportExport\Helper\Remote_API::post(
+			$site['remote_url'],
+			'upload-media',
+			array(
+				'timeout' => 180,
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $site['api_key'],
+					'Content-Type'  => 'application/json',
+				),
+				'body'    => wp_json_encode( $upload_data ),
+			)
+		);
 
 		if ( is_wp_error( $response ) ) {
 			return false;
@@ -2357,25 +2511,25 @@ class Content_Sync_Controller extends Base_Controller {
 					$mime = 'image/svg+xml';
 				}
 
-				$images[ $key ] = array(
-					'attachment_id' => $source_attachment_id,
-					'url'           => $url,
-					'source_urls'   => array(
-						'full'    => $url,
-						'by_size' => array(),
-					),
-					'file_path'     => '',
-					'file_name'     => '' !== $filename ? $filename : 'elementor-media.' . ( '' !== $ext ? $ext : 'bin' ),
-					'file_hash'     => '',
-					'file_size'     => 0,
-					'mime_type'     => $mime,
-					'alt_text'      => '',
-					'title'         => '' !== $filename ? preg_replace( '/\.[^.]+$/', '', $filename ) : '',
-					'caption'       => '',
-					'description'   => '',
-					'context'       => 'elementor_external_url',
-					'metadata'      => array(),
-				);
+					$images[ $key ] = array(
+						'attachment_id' => $source_attachment_id,
+						'url'           => $url,
+						'source_urls'   => array(
+							'full'    => $url,
+							'by_size' => array(),
+						),
+						'file_path'     => '',
+						'file_name'     => '' !== $filename ? $filename : 'elementor-media.' . ( '' !== $ext ? $ext : 'bin' ),
+						'file_hash'     => '',
+						'file_size'     => 0,
+						'mime_type'     => $mime,
+						'alt_text'      => '',
+						'title'         => '' !== $filename ? preg_replace( '/\.[^.]+$/', '', $filename ) : '',
+						'caption'       => '',
+						'description'   => '',
+						'context'       => 'elementor_external_url',
+						'metadata'      => array(),
+					);
 			}
 		}
 
@@ -2386,12 +2540,12 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 	}
 
-	/**
-	 * Check whether a URL points to a media file Content Sync can import.
-	 *
-	 * @param string $url Media URL.
-	 * @return bool Whether the URL is supported.
-	 */
+		/**
+		 * Check whether a URL points to a media file Content Sync can import.
+		 *
+		 * @param string $url Media URL.
+		 * @return bool Whether the URL is supported.
+		 */
 	private function is_supported_sync_media_url( $url ) {
 		$url = esc_url_raw( $url );
 		if ( '' === $url || ! wp_http_validate_url( $url ) ) {
@@ -2583,7 +2737,8 @@ class Content_Sync_Controller extends Base_Controller {
 				$post_data,
 				$source_domain,
 				$target_domain,
-				$image_map
+				$image_map,
+				$remote_images
 			);
 		}
 		unset( $post_data ); // Break the reference to avoid bugs in the next foreach loop
@@ -2619,10 +2774,17 @@ class Content_Sync_Controller extends Base_Controller {
 				if ( $mapped_value > 0 ) {
 					$local_post_id = $mapped_value;
 				}
-				// null / 0 means "create new post", local_post_id stays null
+				// null / 0 means "new", but a grouped child may already have
+				// been created earlier in this same sync.
+				if ( ! $local_post_id ) {
+					$local_post_id = $this->find_existing_post_by_original_id( $remote_post_id );
+				}
 			} else {
 				// No mapping provided, use default logic (find by meta)
 				$local_post_id = $this->find_existing_post_by_original_id( $remote_post_id );
+			}
+			if ( ! $local_post_id ) {
+				$local_post_id = $this->find_existing_product_by_sku( (array) $post_data );
 			}
 
 			// Prepare post data
@@ -2667,6 +2829,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 			// Store original post ID for future reference
 			update_post_meta( $post_id, '_rsl_ie_original_post_id', $remote_post_id );
+			update_post_meta( $post_id, '_rsl_ie_source_id', $remote_post_id );
 
 			// Import meta. Replace synced media IDs before saving so WooCommerce
 			// galleries, featured images, ACF media fields, Elementor data, etc.
@@ -2677,7 +2840,8 @@ class Content_Sync_Controller extends Base_Controller {
 						$post_data['meta'],
 						'',
 						'',
-						$image_map
+						$image_map,
+						$remote_images
 					);
 				}
 
@@ -2766,7 +2930,7 @@ class Content_Sync_Controller extends Base_Controller {
 				&& class_exists( 'WC_Product' )
 				&& function_exists( 'wc_get_product' )
 			) {
-				$this->import_product_variations( $post_id, $post_data['variations'], (array) $image_map );
+					$this->import_product_variations( $post_id, $post_data['variations'], (array) $image_map, (array) $remote_images );
 			}
 
 			// Import WooCommerce grouped product children and remap _children meta.
@@ -2775,7 +2939,7 @@ class Content_Sync_Controller extends Base_Controller {
 				&& class_exists( 'WC_Product' )
 				&& function_exists( 'wc_get_product' )
 			) {
-				$local_child_ids = $this->import_grouped_children( $post_id, $post_data['grouped_children'], (array) $image_map );
+					$local_child_ids = $this->import_grouped_children( $post_id, $post_data['grouped_children'], (array) $image_map, (array) $remote_images );
 				if ( ! empty( $local_child_ids ) ) {
 					update_post_meta( $post_id, '_children', $local_child_ids );
 				}
@@ -2786,6 +2950,7 @@ class Content_Sync_Controller extends Base_Controller {
 			}
 
 			if ( 'product' === $post_data['post_type'] ) {
+				$this->sync_woocommerce_product_type( (int) $post_id, (array) $post_data );
 				$this->refresh_woocommerce_product_after_sync( $post_id );
 			}
 
@@ -2914,6 +3079,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$existing_id = $this->find_attachment_by_original_attachment_id( $source_attachment_id );
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
+				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
 				return $existing_id;
 			}
 		}
@@ -2923,6 +3089,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$existing_id = $this->find_attachment_by_hash( $image['file_hash'] );
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
+				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
 				return $existing_id;
 			}
 		}
@@ -2952,6 +3119,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$existing_id = $this->find_attachment_by_hash( $actual_hash );
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
+				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
 				return $existing_id;
 			}
 		}
@@ -2980,7 +3148,7 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 			// Generate metadata
-			\RockStarLab\ImportExport\Helper\Fs::load_image_core();
+			\RockStarLab\ImportExport\Helper\Fs::load_attachment_metadata_core();
 			$attach_data = wp_generate_attachment_metadata( $attachment_id, $upload['file'] );
 			wp_update_attachment_metadata( $attachment_id, $attach_data );
 
@@ -2993,7 +3161,9 @@ class Content_Sync_Controller extends Base_Controller {
 		\RockStarLab\ImportExport\Helper\Media_Hash::store_attachment_hash( $attachment_id, $actual_hash, $upload['file'] );
 		if ( $source_attachment_id > 0 ) {
 			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
+			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
 		}
+		$this->apply_synced_attachment_content_fields( (int) $attachment_id, $image );
 
 		return $attachment_id;
 	}
@@ -3038,6 +3208,35 @@ class Content_Sync_Controller extends Base_Controller {
 
 		return ! empty( $attachments ) ? (int) $attachments[0] : false;
 	}
+
+	private function apply_synced_attachment_content_fields( $attachment_id, array $image ) {
+		$attachment_id = absint( $attachment_id );
+		if ( $attachment_id <= 0 || 'attachment' !== get_post_type( $attachment_id ) ) {
+			return;
+		}
+
+		$update = array( 'ID' => $attachment_id );
+		if ( array_key_exists( 'description', $image ) ) {
+			$description            = (string) $image['description'];
+			$update['post_content'] = class_exists( ACF_Fields::class )
+				? ACF_Fields::replace_media_urls_in_html( $description, $attachment_id )
+				: $description;
+		}
+		if ( ! empty( $image['caption'] ) ) {
+			$update['post_excerpt'] = (string) $image['caption'];
+		}
+		if ( ! empty( $image['title'] ) ) {
+			$update['post_title'] = (string) $image['title'];
+		}
+		wp_update_post( wp_slash( $update ) );
+
+		if ( class_exists( ACF_Fields::class ) && ! empty( $image['acf'] ) && is_array( $image['acf'] ) ) {
+			foreach ( $image['acf'] as $field_name => $value ) {
+				ACF_Fields::import_value( 'media', $attachment_id, sanitize_text_field( (string) $field_name ), $value );
+			}
+		}
+	}
+
 
 	/**
 	 * Prepare ACF value - ensure numeric IDs are integers, not strings
@@ -3449,6 +3648,85 @@ class Content_Sync_Controller extends Base_Controller {
 	}
 
 	/**
+	 * Collect media referenced by a comment's ACF payload.
+	 *
+	 * @param array $comment_data Prepared comment payload.
+	 * @param array $all_images   Accumulator keyed by attachment ID.
+	 * @return void
+	 */
+	private function collect_comment_acf_images_for_sync( array $comment_data, array &$all_images ) {
+		$image_ids = array();
+		if ( ! empty( $comment_data['comment_content'] ) && is_string( $comment_data['comment_content'] ) ) {
+			$image_ids = array_merge( $image_ids, $this->extract_term_acf_images( array( 'comment_content' => $comment_data['comment_content'] ) ) );
+		}
+
+		if ( empty( $comment_data['acf'] ) || ! is_array( $comment_data['acf'] ) ) {
+			$comment_data['acf'] = array();
+		}
+
+		$image_ids = array_merge( $image_ids, $this->extract_term_acf_images( $comment_data['acf'] ) );
+		$image_ids = array_values( array_unique( array_filter( array_map( 'absint', $image_ids ) ) ) );
+		foreach ( $image_ids as $image_id ) {
+			if ( isset( $all_images[ $image_id ] ) ) {
+				continue;
+			}
+
+			$image_data = \RockStarLab\ImportExport\Helper\Content_Sync_Media::prepare_image_data( $image_id, 'comment_acf' );
+			if ( ! $image_data ) {
+				$image_data = array(
+					'attachment_id' => $image_id,
+					'url'           => wp_get_attachment_url( $image_id ),
+					'type'          => 'comment_acf',
+				);
+			}
+
+			$image_data['comment_id'] = isset( $comment_data['comment_ID'] ) ? (int) $comment_data['comment_ID'] : 0;
+			$all_images[ $image_id ]  = $image_data;
+		}
+	}
+
+	/**
+	 * Replace media references inside comment ACF payloads.
+	 *
+	 * @param array  $comments      Comment payloads.
+	 * @param string $source_domain Source site URL.
+	 * @param string $target_domain Target site URL.
+	 * @param array  $image_map     Source attachment ID => target attachment ID.
+	 * @param array  $image_sources Source image metadata.
+	 * @return array
+	 */
+	private function replace_comment_acf_media_references( array $comments, $source_domain, $target_domain, array $image_map, array $image_sources ) {
+		if ( empty( $image_map ) ) {
+			return $comments;
+		}
+
+		foreach ( $comments as &$comment_data ) {
+			if ( isset( $comment_data['comment_content'] ) && is_string( $comment_data['comment_content'] ) ) {
+				$comment_data['comment_content'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
+					$comment_data['comment_content'],
+					$image_map,
+					$image_sources
+				);
+			}
+
+			if ( empty( $comment_data['acf'] ) || ! is_array( $comment_data['acf'] ) ) {
+				continue;
+			}
+
+			$comment_data['acf'] = $this->replace_term_acf_value_media_references(
+				$comment_data['acf'],
+				$source_domain,
+				$target_domain,
+				$image_map,
+				$image_sources
+			);
+		}
+		unset( $comment_data );
+
+		return $comments;
+	}
+
+	/**
 	 * Determine whether a raw comment meta key belongs to synced ACF data.
 	 *
 	 * @param string $meta_key     Meta key.
@@ -3486,7 +3764,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * @param array $image_map      Source attachment ID => local attachment ID map.
 	 * @return void
 	 */
-	private function import_product_variations( $parent_post_id, $variations, $image_map ) {
+	private function import_product_variations( $parent_post_id, $variations, $image_map, $image_sources = array() ) {
 		if ( empty( $variations ) ) {
 			return;
 		}
@@ -3504,6 +3782,12 @@ class Content_Sync_Controller extends Base_Controller {
 
 		foreach ( $existing_local_var_ids as $local_var_id ) {
 			$orig_id = (int) get_post_meta( $local_var_id, '_rsl_ie_original_post_id', true );
+			if ( ! $orig_id ) {
+				$orig_id = (int) get_post_meta( $local_var_id, '_rsl_ie_source_id', true );
+			}
+			if ( ! $orig_id ) {
+				$orig_id = (int) get_post_meta( $local_var_id, '_aie_original_post_id', true );
+			}
 			if ( $orig_id ) {
 				$source_to_local[ $orig_id ] = (int) $local_var_id;
 			}
@@ -3530,6 +3814,7 @@ class Content_Sync_Controller extends Base_Controller {
 				$local_var_id = wp_insert_post( $variation_args );
 				if ( $local_var_id && ! is_wp_error( $local_var_id ) && $source_var_id ) {
 					update_post_meta( $local_var_id, '_rsl_ie_original_post_id', $source_var_id );
+					update_post_meta( $local_var_id, '_rsl_ie_source_id', $source_var_id );
 				}
 			}
 
@@ -3539,6 +3824,8 @@ class Content_Sync_Controller extends Base_Controller {
 
 			if ( $source_var_id ) {
 				$processed_source_ids[] = $source_var_id;
+				update_post_meta( $local_var_id, '_rsl_ie_original_post_id', $source_var_id );
+				update_post_meta( $local_var_id, '_rsl_ie_source_id', $source_var_id );
 			}
 
 			if ( ! empty( $variation_data['meta'] ) ) {
@@ -3548,7 +3835,8 @@ class Content_Sync_Controller extends Base_Controller {
 						$var_meta,
 						'',
 						'',
-						$image_map
+						$image_map,
+						$image_sources
 					);
 				}
 
@@ -3563,6 +3851,12 @@ class Content_Sync_Controller extends Base_Controller {
 
 		foreach ( $existing_local_var_ids as $local_var_id ) {
 			$orig_id = (int) get_post_meta( $local_var_id, '_rsl_ie_original_post_id', true );
+			if ( ! $orig_id ) {
+				$orig_id = (int) get_post_meta( $local_var_id, '_rsl_ie_source_id', true );
+			}
+			if ( ! $orig_id ) {
+				$orig_id = (int) get_post_meta( $local_var_id, '_aie_original_post_id', true );
+			}
 			if ( $orig_id && ! in_array( $orig_id, $processed_source_ids, true ) ) {
 				wp_delete_post( (int) $local_var_id, true );
 			}
@@ -3584,7 +3878,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * @param array $image_map      Source attachment ID => local attachment ID map.
 	 * @return int[]
 	 */
-	private function import_grouped_children( $parent_post_id, $children, $image_map ) {
+	private function import_grouped_children( $parent_post_id, $children, $image_map, $image_sources = array() ) {
 		$local_child_ids = array();
 
 		foreach ( $children as $child_data ) {
@@ -3592,23 +3886,11 @@ class Content_Sync_Controller extends Base_Controller {
 			$local_child_id  = null;
 
 			if ( $source_child_id ) {
-				$existing = get_posts(
-					array(
-						'post_type'      => 'product',
-						'posts_per_page' => 1,
-						'post_status'    => 'any',
-						'fields'         => 'ids',
-						'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source product lookup for grouped child mapping.
-							array(
-								'key'   => '_rsl_ie_original_post_id',
-								'value' => $source_child_id,
-							),
-						),
-					)
-				);
-				if ( ! empty( $existing ) ) {
-					$local_child_id = (int) $existing[0];
-				}
+				$local_child_id = $this->find_existing_post_by_source_meta( $source_child_id, 'product' );
+			}
+
+			if ( ! $local_child_id ) {
+				$local_child_id = $this->find_existing_product_by_sku( (array) $child_data );
 			}
 
 			$child_args = array(
@@ -3636,6 +3918,11 @@ class Content_Sync_Controller extends Base_Controller {
 				continue;
 			}
 
+			if ( $source_child_id ) {
+				update_post_meta( $local_child_id, '_rsl_ie_original_post_id', $source_child_id );
+				update_post_meta( $local_child_id, '_rsl_ie_source_id', $source_child_id );
+			}
+
 			if ( ! empty( $child_data['meta'] ) ) {
 				$child_meta = $child_data['meta'];
 				if ( ! empty( $image_map ) ) {
@@ -3643,7 +3930,8 @@ class Content_Sync_Controller extends Base_Controller {
 						$child_meta,
 						'',
 						'',
-						$image_map
+						$image_map,
+						$image_sources
 					);
 				}
 				foreach ( $child_meta as $key => $value ) {
@@ -3675,7 +3963,9 @@ class Content_Sync_Controller extends Base_Controller {
 				}
 			}
 
-			$local_child_ids[] = (int) $local_child_id;
+				$this->sync_woocommerce_product_type( (int) $local_child_id, (array) $child_data );
+
+				$local_child_ids[] = (int) $local_child_id;
 		}
 
 		return $local_child_ids;
@@ -3838,22 +4128,123 @@ class Content_Sync_Controller extends Base_Controller {
 		// numeric ID match is not safe because a fresh target site may already
 		// have an unrelated wp_posts row with the same ID (attachment, page,
 		// revision, product variation, etc.).
+		$original_post_id = absint( $original_post_id );
+		if ( $original_post_id <= 0 ) {
+			return false;
+		}
+
+		return $this->find_existing_post_by_source_meta( $original_post_id );
+	}
+
+	/**
+	 * Find an existing post by any source-id meta key used by import/sync flows.
+	 *
+	 * @param int    $source_post_id Source-site post ID.
+	 * @param string $post_type      Optional post type.
+	 * @return int|false
+	 */
+	private function find_existing_post_by_source_meta( $source_post_id, $post_type = 'any' ) {
+		$source_post_id = absint( $source_post_id );
+		if ( $source_post_id <= 0 ) {
+			return false;
+		}
+
 		$posts = get_posts(
 			array(
-				'post_type'      => 'any',
+				'post_type'      => $post_type ?: 'any',
 				'post_status'    => 'any',
 				'posts_per_page' => 1,
-				'meta_key'       => '_rsl_ie_original_post_id', // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_key required for filtering.
-				'meta_value'     => $original_post_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_value required for filtering.
 				'fields'         => 'ids',
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source-id lookup is required for sync mapping.
+					'relation' => 'OR',
+					array(
+						'key'   => '_rsl_ie_original_post_id',
+						'value' => $source_post_id,
+					),
+					array(
+						'key'   => '_rsl_ie_source_id',
+						'value' => $source_post_id,
+					),
+					array(
+						'key'   => '_aie_original_post_id',
+						'value' => $source_post_id,
+					),
+				),
 			)
 		);
 
-		if ( ! empty( $posts ) ) {
-			return $posts[0];
+		return ! empty( $posts ) ? (int) $posts[0] : false;
+	}
+
+	/**
+	 * Find an existing product by source SKU.
+	 *
+	 * @param array $post_data Remote post data.
+	 * @return int|false
+	 */
+	private function find_existing_product_by_sku( array $post_data ) {
+		if ( 'product' !== ( $post_data['post_type'] ?? '' ) || ! function_exists( 'wc_get_product_id_by_sku' ) ) {
+			return false;
 		}
 
-		return false;
+		$sku = '';
+		if ( isset( $post_data['meta']['_sku'] ) ) {
+			$sku = trim( (string) $post_data['meta']['_sku'] );
+		}
+
+		if ( '' === $sku ) {
+			return false;
+		}
+
+		$product_id = (int) wc_get_product_id_by_sku( $sku );
+		if ( $product_id > 0 && 'product' === get_post_type( $product_id ) ) {
+			return $product_id;
+		}
+
+		$posts = get_posts(
+			array(
+				'post_type'      => 'product',
+				'post_status'    => 'any',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				'meta_key'       => '_sku', // phpcs:ignore WordPress.DB.SlowDBQuery -- SKU fallback for stale Woo lookup table.
+				'meta_value'     => $sku, // phpcs:ignore WordPress.DB.SlowDBQuery -- SKU fallback for stale Woo lookup table.
+			)
+		);
+
+		return ! empty( $posts ) ? (int) $posts[0] : false;
+	}
+
+	private function sync_woocommerce_product_type( $post_id, array $post_data ) {
+		if ( ! taxonomy_exists( 'product_type' ) || 'product' !== get_post_type( $post_id ) ) {
+			return;
+		}
+
+		$type = '';
+		if ( ! empty( $post_data['terms']['product_type'][0]['slug'] ) ) {
+			$type = sanitize_key( (string) $post_data['terms']['product_type'][0]['slug'] );
+		} elseif ( ! empty( $post_data['meta']['_product_type'] ) ) {
+			$type = sanitize_key( (string) $post_data['meta']['_product_type'] );
+		}
+
+		if ( '' === $type ) {
+			return;
+		}
+
+		$allowed = array( 'simple', 'grouped', 'external', 'variable' );
+		if ( function_exists( 'wc_get_product_types' ) ) {
+			$allowed = array_keys( wc_get_product_types() );
+		}
+		if ( ! in_array( $type, $allowed, true ) ) {
+			return;
+		}
+
+		if ( ! term_exists( $type, 'product_type' ) ) {
+			wp_insert_term( ucfirst( $type ), 'product_type', array( 'slug' => $type ) );
+		}
+
+		wp_set_object_terms( (int) $post_id, $type, 'product_type', false );
+		delete_transient( 'wc_product_children_' . (int) $post_id );
 	}
 
 	/**
@@ -3896,7 +4287,9 @@ class Content_Sync_Controller extends Base_Controller {
 			return 0;
 		}
 
-		return (int) $new_term['term_id'];
+		$term_id = (int) $new_term['term_id'];
+
+		return $term_id;
 	}
 
 	/**
@@ -3972,17 +4365,30 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		if ( function_exists( 'get_field_objects' ) ) {
-			$acf_fields = get_field_objects( $taxonomy . '_' . $term->term_id );
+			$acf_fields = $this->get_term_acf_field_objects( (int) $term->term_id, $taxonomy );
 			if ( $acf_fields ) {
 				$data['acf'] = array();
 				foreach ( $acf_fields as $field_key => $field ) {
 					$field_name                 = ! empty( $field['name'] ) ? (string) $field['name'] : (string) $field_key;
-					$data['acf'][ $field_name ] = ACF_Fields::export_value( 'term', (int) $term->term_id, $field_name, $taxonomy );
+					$data['acf'][ $field_name ] = $this->export_term_acf_sync_value( (int) $term->term_id, $field_name, $field );
 				}
 			}
 		}
 
 		return $data;
+	}
+
+	/** Preserve taxonomy WYSIWYG shortcodes in sync payloads. */
+	private function export_term_acf_sync_value( $term_id, $field_name, $field ) {
+		$type = is_array( $field ) ? (string) ( $field['type'] ?? '' ) : '';
+		if ( 'wysiwyg' === $type ) {
+			$raw = get_term_meta( (int) $term_id, (string) $field_name, true );
+			return class_exists( ACF_Fields::class )
+				? ACF_Fields::export_string_with_media_shortcode_tokens( (string) $raw )
+				: (string) $raw;
+		}
+
+		return ACF_Fields::export_value( 'term', (int) $term_id, (string) $field_name, '' );
 	}
 
 	/**
@@ -3994,11 +4400,12 @@ class Content_Sync_Controller extends Base_Controller {
 	 * @return array Counts.
 	 */
 	private function import_synced_terms( $taxonomy, $terms, $term_mapping = array() ) {
-		$result = array(
+		$result                = array(
 			'created' => 0,
 			'updated' => 0,
 			'failed'  => 0,
 		);
+		$source_to_local_terms = array();
 
 		foreach ( $terms as $term_info ) {
 			if ( ! is_array( $term_info ) ) {
@@ -4019,6 +4426,9 @@ class Content_Sync_Controller extends Base_Controller {
 			if ( $term_id <= 0 ) {
 				++$result['failed'];
 				continue;
+			}
+			if ( $source_term_id > 0 ) {
+				$source_to_local_terms[ $source_term_id ] = (int) $term_id;
 			}
 
 			$args = array();
@@ -4049,6 +4459,229 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Collect media referenced by a term's ACF payload.
+	 *
+	 * @param array    $term_info  Prepared term payload.
+	 * @param \WP_Term $term       Term object.
+	 * @param string   $taxonomy   Taxonomy.
+	 * @param array    $all_images Accumulator keyed by attachment ID.
+	 * @return void
+	 */
+	private function collect_term_acf_images_for_sync( array $term_info, $term, $taxonomy, array &$all_images ) {
+		$image_ids = array();
+		if ( ! empty( $term_info['description'] ) && is_string( $term_info['description'] ) ) {
+			$image_ids = array_merge( $image_ids, $this->extract_term_acf_images( array( 'description' => $term_info['description'] ) ) );
+		}
+		if ( ! empty( $term_info['acf'] ) && is_array( $term_info['acf'] ) ) {
+			$image_ids = array_merge( $image_ids, $this->extract_term_acf_images( $term_info['acf'] ) );
+		}
+		$image_ids = array_values( array_unique( array_filter( array_map( 'absint', $image_ids ) ) ) );
+		if ( empty( $image_ids ) ) {
+			return;
+		}
+
+		foreach ( $image_ids as $image_id ) {
+			if ( isset( $all_images[ $image_id ] ) ) {
+				continue;
+			}
+
+			$image_data = \RockStarLab\ImportExport\Helper\Content_Sync_Media::prepare_image_data( $image_id, 'term_acf' );
+			if ( ! $image_data ) {
+				$image_data = array(
+					'attachment_id' => $image_id,
+					'url'           => wp_get_attachment_url( $image_id ),
+					'type'          => 'term_acf',
+				);
+			}
+
+			$image_data['term_id']   = (int) $term->term_id;
+			$image_data['taxonomy']  = $taxonomy;
+			$all_images[ $image_id ] = $image_data;
+		}
+	}
+
+	private function get_term_acf_field_objects( $term_id, $taxonomy ) {
+		if ( ! function_exists( 'get_field_objects' ) ) {
+			return false;
+		}
+
+		$fields = get_field_objects( 'term_' . (int) $term_id );
+		if ( ! empty( $fields ) ) {
+			return $fields;
+		}
+
+		return get_field_objects( sanitize_key( (string) $taxonomy ) . '_' . (int) $term_id );
+	}
+
+	/**
+	 * Replace media URLs and attachment IDs inside term ACF payloads.
+	 *
+	 * @param array  $terms         Term payloads.
+	 * @param string $source_domain Source site URL.
+	 * @param string $target_domain Target site URL.
+	 * @param array  $image_map     Source attachment ID => target attachment ID.
+	 * @param array  $image_sources Source image metadata.
+	 * @return array
+	 */
+	private function replace_term_acf_media_references( array $terms, $source_domain, $target_domain, array $image_map, array $image_sources ) {
+		foreach ( $terms as &$term_info ) {
+			if ( isset( $term_info['description'] ) && is_string( $term_info['description'] ) && ! empty( $image_map ) ) {
+				$term_info['description'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
+					$term_info['description'],
+					$image_map,
+					$image_sources
+				);
+			}
+
+			if ( empty( $term_info['acf'] ) || ! is_array( $term_info['acf'] ) ) {
+				continue;
+			}
+
+			$term_info['acf'] = $this->replace_term_acf_value_media_references(
+				$term_info['acf'],
+				$source_domain,
+				$target_domain,
+				$image_map,
+				$image_sources
+			);
+		}
+		unset( $term_info );
+
+		return $terms;
+	}
+
+	/**
+	 * Replace media references inside one ACF value.
+	 *
+	 * @param mixed  $value         ACF value.
+	 * @param string $source_domain Source site URL.
+	 * @param string $target_domain Target site URL.
+	 * @param array  $image_map     Source attachment ID => target attachment ID.
+	 * @param array  $image_sources Source image metadata.
+	 * @return mixed
+	 */
+	private function replace_term_acf_value_media_references( $value, $source_domain, $target_domain, array $image_map, array $image_sources ) {
+		if ( is_array( $value ) ) {
+			$out = array();
+			foreach ( $value as $key => $child ) {
+				if ( is_numeric( $child ) && isset( $image_map[ (int) $child ] ) && $this->looks_like_term_acf_media_key( $key ) ) {
+					$out[ $key ] = (int) $image_map[ (int) $child ];
+					continue;
+				}
+
+				$out[ $key ] = $this->replace_term_acf_value_media_references(
+					$child,
+					$source_domain,
+					$target_domain,
+					$image_map,
+					$image_sources
+				);
+			}
+
+			if ( isset( $out['id'] ) && is_numeric( $out['id'] ) && isset( $image_map[ (int) $out['id'] ] ) ) {
+				$mapped_id = (int) $image_map[ (int) $out['id'] ];
+				$out['id'] = $mapped_id;
+				$url       = wp_get_attachment_url( $mapped_id );
+				if ( $url && isset( $out['url'] ) ) {
+					$out['url'] = $url;
+				}
+			}
+
+			return $out;
+		}
+
+		if ( is_string( $value ) && '' !== $value ) {
+			$decoded = json_decode( $value, true );
+			if ( is_array( $decoded ) ) {
+				return wp_json_encode(
+					$this->replace_term_acf_value_media_references(
+						$decoded,
+						$source_domain,
+						$target_domain,
+						$image_map,
+						$image_sources
+					)
+				);
+			}
+
+			$mapped_url = $this->get_mapped_acf_media_url( $value, $image_map, $image_sources );
+			if ( '' !== $mapped_url ) {
+				return $mapped_url;
+			}
+
+			// Resolve portable gallery/playlist tokens back to shortcodes and
+			// replace their source IDs with the downloaded local attachment IDs.
+			if ( class_exists( ACF_Fields::class ) !== strpos( $value, '[[RSL_IE:' ) ) {
+				return ACF_Fields::replace_media_urls_in_html( $value );
+			}
+
+			return \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
+				$value,
+				$image_map,
+				$image_sources
+			);
+		}
+
+		return $value;
+	}
+
+	private function looks_like_term_acf_media_key( $key ) {
+		if ( is_int( $key ) ) {
+			return true;
+		}
+
+		return in_array(
+			(string) $key,
+			array( 'id', 'ID', 'attachment_id', 'image_id', 'media_id', 'file_id' ),
+			true
+		);
+	}
+
+	/**
+	 * Return the target attachment URL for a source media URL when it is mapped.
+	 *
+	 * @param string $url           Source URL.
+	 * @param array  $image_map     Source attachment ID => target attachment ID.
+	 * @param array  $image_sources Source image metadata.
+	 * @return string
+	 */
+	private function get_mapped_acf_media_url( $url, array $image_map, array $image_sources ) {
+		$url = trim( html_entity_decode( (string) $url, ENT_QUOTES, get_bloginfo( 'charset' ) ) );
+		if ( '' === $url || empty( $image_map ) || empty( $image_sources ) ) {
+			return '';
+		}
+
+		foreach ( $image_sources as $source_id => $source ) {
+			if ( ! is_array( $source ) ) {
+				continue;
+			}
+
+			$attachment_id = isset( $source['attachment_id'] ) ? (int) $source['attachment_id'] : (int) $source_id;
+			if ( $attachment_id <= 0 || empty( $image_map[ $attachment_id ] ) ) {
+				continue;
+			}
+
+			$source_urls = array_filter(
+				array(
+					isset( $source['url'] ) ? (string) $source['url'] : '',
+					isset( $source['full_url'] ) ? (string) $source['full_url'] : '',
+				)
+			);
+
+			foreach ( $source_urls as $source_url ) {
+				if ( $url !== html_entity_decode( $source_url, ENT_QUOTES, get_bloginfo( 'charset' ) ) ) {
+					continue;
+				}
+
+				$target_url = wp_get_attachment_url( (int) $image_map[ $attachment_id ] );
+				return $target_url ? (string) $target_url : '';
+			}
+		}
+
+		return '';
 	}
 
 	/**
@@ -4240,6 +4873,66 @@ class Content_Sync_Controller extends Base_Controller {
 		$image_ids = array();
 
 		foreach ( $acf_data as $key => $value ) {
+			if ( is_string( $value ) && '' !== $value ) {
+				$decoded = json_decode( $value, true );
+				if ( is_array( $decoded ) ) {
+					$image_ids = array_merge( $image_ids, $this->extract_term_acf_images( $decoded ) );
+				}
+
+				if ( class_exists( ACF_Fields::class ) ) {
+					foreach ( ACF_Fields::extract_media_shortcode_token_source_ids( $value ) as $image_id ) {
+						$image_ids[] = (int) $image_id;
+					}
+				}
+
+				if ( preg_match_all( '/\bwp-image-(\d+)\b/', $value, $matches ) ) {
+					foreach ( $matches[1] as $image_id ) {
+						$image_ids[] = (int) $image_id;
+					}
+				}
+
+				if ( preg_match_all( '/\[(gallery|playlist)\b[^\]]*\bids=["\']([\d,\s]+)["\'][^\]]*\]/i', $value, $matches ) ) {
+					foreach ( $matches[2] as $ids_string ) {
+						foreach ( array_filter( array_map( 'absint', preg_split( '/\s*,\s*/', (string) $ids_string ) ?: array() ) ) as $attachment_id ) {
+							$image_ids[] = (int) $attachment_id;
+						}
+					}
+				}
+
+				foreach ( $this->extract_image_urls_from_term_acf_html( $value ) as $url ) {
+					$image_id = attachment_url_to_postid( $url );
+					if ( $image_id > 0 ) {
+						$image_ids[] = (int) $image_id;
+					}
+				}
+
+				if ( filter_var( $value, FILTER_VALIDATE_URL ) && $this->is_term_acf_image_url( $value ) ) {
+					$image_id = attachment_url_to_postid( $value );
+					if ( $image_id > 0 ) {
+						$image_ids[] = (int) $image_id;
+					}
+				}
+			}
+
+			if ( is_array( $value ) ) {
+				foreach ( array( 'ID', 'id', 'attachment_id' ) as $id_key ) {
+					if ( isset( $value[ $id_key ] ) && is_numeric( $value[ $id_key ] ) ) {
+						$image_id   = (int) $value[ $id_key ];
+						$attachment = get_post( $image_id );
+						if ( $attachment && 'attachment' === $attachment->post_type ) {
+							$image_ids[] = $image_id;
+						}
+					}
+				}
+
+				if ( isset( $value['url'] ) && is_string( $value['url'] ) && $this->is_term_acf_image_url( $value['url'] ) ) {
+					$image_id = attachment_url_to_postid( $value['url'] );
+					if ( $image_id > 0 ) {
+						$image_ids[] = (int) $image_id;
+					}
+				}
+			}
+
 			// Single image field (numeric ID)
 			if ( is_numeric( $value ) && $value > 0 ) {
 				$attachment = get_post( $value );
@@ -4266,5 +4959,41 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		return array_unique( $image_ids );
+	}
+
+	private function extract_image_urls_from_term_acf_html( $content ) {
+		$urls = array();
+
+		if ( false === stripos( $content, '<img' ) && false === stripos( $content, 'srcset=' ) ) {
+			return $urls;
+		}
+
+		if ( preg_match_all( '/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $matches ) ) {
+			foreach ( $matches[1] as $url ) {
+				$url = html_entity_decode( $url, ENT_QUOTES, get_bloginfo( 'charset' ) );
+				if ( $this->is_term_acf_image_url( $url ) ) {
+					$urls[] = $url;
+				}
+			}
+		}
+
+		if ( preg_match_all( '/srcset=["\']([^"\']+)["\']/i', $content, $matches ) ) {
+			foreach ( $matches[1] as $srcset ) {
+				foreach ( array_map( 'trim', explode( ',', $srcset ) ) as $candidate ) {
+					$parts = preg_split( '/\s+/', $candidate );
+					$url   = isset( $parts[0] ) ? html_entity_decode( $parts[0], ENT_QUOTES, get_bloginfo( 'charset' ) ) : '';
+					if ( $this->is_term_acf_image_url( $url ) ) {
+						$urls[] = $url;
+					}
+				}
+			}
+		}
+
+		return array_values( array_unique( $urls ) );
+	}
+
+	private function is_term_acf_image_url( $url ) {
+		$path = (string) wp_parse_url( html_entity_decode( (string) $url, ENT_QUOTES, get_bloginfo( 'charset' ) ), PHP_URL_PATH );
+		return '' !== $path && (bool) preg_match( '~\.(?:jpe?g|png|gif|webp|avif|svg)$~i', $path );
 	}
 }

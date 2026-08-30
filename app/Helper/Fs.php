@@ -46,11 +46,29 @@ class FS {
 			self::require_admin_include( 'file.php' );
 		}
 
+		self::load_attachment_metadata_core();
+
+		if ( ! function_exists( 'media_handle_sideload' )
+			|| ! function_exists( 'wp_read_audio_metadata' )
+			|| ! function_exists( 'wp_read_video_metadata' )
+		) {
+			self::require_admin_include( 'media.php' );
+		}
+	}
+
+	/**
+	 * Load WordPress helpers required by wp_generate_attachment_metadata().
+	 *
+	 * @return void
+	 */
+	public static function load_attachment_metadata_core() {
 		if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
 			self::require_admin_include( 'image.php' );
 		}
 
-		if ( ! function_exists( 'media_handle_sideload' ) ) {
+		if ( ! function_exists( 'wp_read_audio_metadata' )
+			|| ! function_exists( 'wp_read_video_metadata' )
+		) {
 			self::require_admin_include( 'media.php' );
 		}
 	}
@@ -222,7 +240,7 @@ class FS {
 			return new \WP_Error( 'rsl_ie_zip_open_failed', __( 'Could not open ZIP archive.', 'import-export-by-rockstarlab' ) );
 		}
 
-		$allowed_extensions = array( 'csv', 'xml', 'xlsx', 'ods' );
+		$allowed_extensions = array( 'csv', 'json', 'xml', 'xlsx', 'ods' );
 		$candidates         = array();
 
 		for ( $i = 0; $i < $zip->numFiles; $i++ ) {
@@ -251,12 +269,12 @@ class FS {
 
 		if ( 0 === count( $candidates ) ) {
 			$zip->close();
-			return new \WP_Error( 'rsl_ie_zip_no_supported_file', __( 'The ZIP archive does not contain a supported import file. Please include one CSV, XML, XLSX, or ODS file.', 'import-export-by-rockstarlab' ) );
+			return new \WP_Error( 'rsl_ie_zip_no_supported_file', __( 'The ZIP archive does not contain a supported import file. Please include one CSV, JSON, XML, XLSX, or ODS file.', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( count( $candidates ) > 1 ) {
 			$zip->close();
-			return new \WP_Error( 'rsl_ie_zip_multiple_supported_files', __( 'The ZIP archive contains more than one supported import file. Please upload a ZIP with exactly one CSV, XML, XLSX, or ODS file.', 'import-export-by-rockstarlab' ) );
+			return new \WP_Error( 'rsl_ie_zip_multiple_supported_files', __( 'The ZIP archive contains more than one supported import file. Please upload a ZIP with exactly one CSV, JSON, XML, XLSX, or ODS file.', 'import-export-by-rockstarlab' ) );
 		}
 
 		$candidate = $candidates[0];

@@ -34,6 +34,11 @@ class Button_Location_Settings {
 				'description' => __( 'Free taxonomy term screens.', 'import-export-by-rockstarlab' ),
 				'items'       => self::get_taxonomy_locations(),
 			],
+			'other'         => [
+				'label'       => __( 'Other admin screens', 'import-export-by-rockstarlab' ),
+				'description' => __( 'Free object list screens that are not post types or taxonomy terms.', 'import-export-by-rockstarlab' ),
+				'items'       => self::get_other_locations(),
+			],
 		];
 
 		/**
@@ -255,5 +260,19 @@ class Button_Location_Settings {
 		}
 
 		return $locations;
+	}
+
+	/**
+	 * Return other free admin object locations.
+	 *
+	 * @return array
+	 */
+	private static function get_other_locations() {
+		return [
+			'admin:comments' => [
+				'label'       => __( 'Comments', 'import-export-by-rockstarlab' ),
+				'description' => __( 'WordPress comments list screen.', 'import-export-by-rockstarlab' ),
+			],
+		];
 	}
 }

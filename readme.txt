@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: export, export woocommerce, import, wordpress csv import
 Requires at least: 6.2
 Tested up to: 7.1
-Stable tag: 1.2.0
+Stable tag: 1.3.2
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -14,7 +14,8 @@ Import, export, and sync WordPress posts, pages, media, users, comments, taxonom
 🌐 Website: [wpimportexport.com](https://wpimportexport.com/)
 📖 Video Tutorials: [wpimportexport.com/import-export-video-tutorials-for-wordpress](https://wpimportexport.com/import-export-video-tutorials-for-wordpress/)
 📰 Blog: [wpimportexport.com/blog](https://wpimportexport.com/blog/)
-🚀 PRO offer: New users can try PRO free for 1 month, no credit card required. **LIMITED OFFER** [Get free PRO for lifetime here.](https://wpimportexport.com/get-pro-for-free/)
+🚀 PRO version: New users can try PRO free for 1 month, no credit card required. 
+⏳ **LIMITED OFFERS:** [Lifetime license for the first users](https://checkout.freemius.com/plugin/28907/plan/47555/licenses/4/) | [Get PRO For Free](https://wpimportexport.com/get-pro-for-free/)
 
 https://www.youtube.com/watch?v=W_Xgu_qDN2Q
 
@@ -25,20 +26,6 @@ Use it to import and export clean CSV, XML, JSON, XLSX, and ODS files, map field
 Use it for everyday migrations between local, staging, and production sites; bulk content operations; SEO URL audits; media cleanup; and content workflows where posts, pages, custom fields, SEO data, Elementor layouts, and media relationships need to stay intact.
 
 The free plugin gives you strong post/page import-export, All Site URLs export, media folder sync, site-to-site sync for core WordPress content, background jobs, and AI URL Importer support when configured with your own OpenAI API key. The optional PRO addon expands the same workflows to custom post types, menus, users, taxonomy terms, comments, WooCommerce products, orders, coupons, refunds, customers, reviews, attributes, Content Updater, transformations, and deeper migration tooling for teams that need more control.
-
-= Huge update in 1.2.0 =
-
-Version 1.2.0 is a major workflow update focused on making Import Export by RockStarLab feel less like a file-only tool and more like a full migration and sync console for WordPress.
-
-Highlights include:
-
-* **Content Sync button controls**: Choose where quick Export and Sync buttons appear in WordPress admin screens.
-* **Smarter site-to-site sync flow**: Sync buttons now guide users to the Content Sync setup page when no connected site is configured, instead of opening an empty modal.
-* **Expanded PRO sync coverage**: The PRO addon extends sync workflows to more real-world entities such as media, menus, users, comments, reviews, taxonomies, WooCommerce data, and custom content models.
-* **More portable imports**: Export/import data now includes better source IDs and matching hints for comments, menus, WooCommerce reviews, refunds, and customers, so records can be mapped correctly across different sites.
-* **Better media handling**: Improved image/file/gallery handling for ACF fields, Elementor content, WooCommerce product galleries, and cross-site media references.
-* **Reliable import search/replace**: Replace links now works across post content, mapped fields, nested arrays, JSON strings, serialized meta, and ACF-style values.
-* **Improved admin workflow**: Bulk Export and Sync actions are easier to control, Jobs can be given custom names for easier scheduling and reruns, the Content Sync setup flow is clearer, and the plugin settings are organized into cleaner tabs.
 
 Want to try it before installing? The plugin includes a WordPress Playground blueprint for the Live Plugin Preview on WordPress.org, so you can open a temporary demo site with sample content and test the import, export, URL inventory, media sync, and jobs screens directly in your browser.
 
@@ -225,6 +212,18 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync posts and pages in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 1.3.2 =
+
+* Maintenance release.
+
+= 1.3.1 =
+
+* Fixed auto-match button loading feedback during title matching.
+
+= 1.3.0 =
+
+* Fixed bugs across media, ACF, menus, comments, users, customers, WooCommerce, and taxonomy workflows.
 
 = 1.2.0 =
 

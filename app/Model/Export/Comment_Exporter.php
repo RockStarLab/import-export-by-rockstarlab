@@ -58,7 +58,7 @@ class Comment_Exporter extends Abstract_Exporter {
 	 * @return array
 	 */
 	public function get_available_fields() {
-		return [
+		$fields = [
 			'comment_ID',
 			'source_comment_id',
 			'source_comment_parent_id',
@@ -84,6 +84,11 @@ class Comment_Exporter extends Abstract_Exporter {
 			'post_author',
 			'comment_meta',
 		];
+
+		if ( false ) {
+		}
+
+		return $fields;
 	}
 
 	/**
@@ -272,7 +277,7 @@ class Comment_Exporter extends Abstract_Exporter {
 					break;
 
 				case 'comment_content':
-					$data['comment_content'] = $comment->comment_content;
+					$data['comment_content'] = ACF_Fields::export_string_with_media_shortcode_tokens( (string) $comment->comment_content );
 					break;
 
 				case 'comment_karma':
