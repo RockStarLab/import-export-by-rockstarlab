@@ -797,13 +797,6 @@ class Content_Sync_Media {
 			}
 		}
 
-		if ( class_exists( __NAMESPACE__ . '\WPML_Compatibility' ) && WPML_Compatibility::is_active() ) {
-			$wpml_data = WPML_Compatibility::export_post_data( $attachment_id, 'attachment' );
-			if ( ! empty( $wpml_data ) ) {
-				$image_data['wpml'] = $wpml_data;
-			}
-		}
-
 		return $image_data;
 	}
 

@@ -10,7 +10,6 @@
 namespace RockStarLab\ImportExport\Model\Export;
 
 use RockStarLab\ImportExport\Helper\ACF_Fields;
-use RockStarLab\ImportExport\Helper\WPML_Compatibility;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -81,18 +80,17 @@ class Post_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'post_type'          => __( 'Post type (post, page, or custom post type)', 'import-export-by-rockstarlab' ),
-			'post_status'        => __( 'Post status (publish, draft, pending, etc.)', 'import-export-by-rockstarlab' ),
-			'author'             => __( 'Author ID or array of IDs', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-			'date_query'         => __( 'Date query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-			'tax_query'          => __( 'Taxonomy query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- tax_query required for filtering.
-			'meta_query'         => __( 'Meta query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
-			'custom_fields'      => __( 'Custom field filters: array of [name, value, condition]', 'import-export-by-rockstarlab' ),
-			'taxonomy'           => __( 'Taxonomy filters: array of [taxonomy, terms, condition]', 'import-export-by-rockstarlab' ),
-			's'                  => __( 'Search query', 'import-export-by-rockstarlab' ),
-			'orderby'            => __( 'Order by field', 'import-export-by-rockstarlab' ),
-			'order'              => __( 'Order direction (ASC or DESC)', 'import-export-by-rockstarlab' ),
-			'wpml_language_code' => __( 'WPML language code (en, ru, etc.)', 'import-export-by-rockstarlab' ),
+			'post_type'     => __( 'Post type (post, page, or custom post type)', 'import-export-by-rockstarlab' ),
+			'post_status'   => __( 'Post status (publish, draft, pending, etc.)', 'import-export-by-rockstarlab' ),
+			'author'        => __( 'Author ID or array of IDs', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+			'date_query'    => __( 'Date query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+			'tax_query'     => __( 'Taxonomy query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- tax_query required for filtering.
+			'meta_query'    => __( 'Meta query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
+			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'import-export-by-rockstarlab' ),
+			'taxonomy'      => __( 'Taxonomy filters: array of [taxonomy, terms, condition]', 'import-export-by-rockstarlab' ),
+			's'             => __( 'Search query', 'import-export-by-rockstarlab' ),
+			'orderby'       => __( 'Order by field', 'import-export-by-rockstarlab' ),
+			'order'         => __( 'Order direction (ASC or DESC)', 'import-export-by-rockstarlab' ),
 		];
 	}
 
@@ -235,19 +233,6 @@ class Post_Exporter extends Abstract_Exporter {
 			'rank_math_twitter_enable_image_overlay',
 			'rank_math_twitter_image_overlay',
 		];
-
-		if ( WPML_Compatibility::is_active() ) {
-			$fields = array_merge(
-				$fields,
-				[
-					'wpml_language_code',
-					'wpml_source_language_code',
-					'wpml_translation_group',
-					'wpml_translation_role',
-					'wpml_translations',
-				]
-			);
-		}
 
 		return $fields;
 	}
@@ -1680,10 +1665,6 @@ class Post_Exporter extends Abstract_Exporter {
 			case 'attached_post_title':
 				$parent = $attachment->post_parent ? get_post( $attachment->post_parent ) : null;
 				return $parent ? $parent->post_title : '';
-			case 'wpml_language_code':
-				return WPML_Compatibility::is_active()
-					? WPML_Compatibility::get_post_language_code( $attachment_id, (string) $attachment->post_type )
-					: '';
 			default:
 				return isset( $attachment->$field ) ? $attachment->$field : get_post_meta( $attachment_id, $field, true );
 		}
@@ -2152,36 +2133,6 @@ class Post_Exporter extends Abstract_Exporter {
 		if ( in_array( 'author_email', $fields, true ) ) {
 			$author               = get_userdata( $post->post_author );
 			$data['author_email'] = $author ? $author->user_email : '';
-		}
-
-		// WPML language and translation relationship fields.
-		$wpml_fields = [
-			'wpml_language_code',
-			'wpml_source_language_code',
-			'wpml_translation_group',
-			'wpml_translation_role',
-			'wpml_translations',
-		];
-		if ( array_intersect( $wpml_fields, $fields ) && WPML_Compatibility::is_active() ) {
-			$wpml_data = WPML_Compatibility::export_post_data( (int) $post->ID, (string) $post->post_type );
-			if ( ! empty( $wpml_data ) ) {
-				if ( in_array( 'wpml_language_code', $fields, true ) ) {
-					$data['wpml_language_code'] = $wpml_data['language_code'] ?? '';
-				}
-				if ( in_array( 'wpml_source_language_code', $fields, true ) ) {
-					$data['wpml_source_language_code'] = $wpml_data['source_language_code'] ?? '';
-				}
-				if ( in_array( 'wpml_translation_group', $fields, true ) ) {
-					$data['wpml_translation_group'] = $wpml_data['translation_group'] ?? '';
-				}
-				if ( in_array( 'wpml_translation_role', $fields, true ) ) {
-					$data['wpml_translation_role'] = $wpml_data['translation_role'] ?? '';
-				}
-				if ( in_array( 'wpml_translations', $fields, true ) ) {
-					$translations              = $wpml_data['translations'] ?? [];
-					$data['wpml_translations'] = ! empty( $translations ) ? wp_json_encode( $translations ) : '';
-				}
-			}
 		}
 
 		// Post meta
@@ -3936,24 +3887,6 @@ class Post_Exporter extends Abstract_Exporter {
 				'menu_items'  => [],
 			];
 
-			$wpml_fields = [
-				'wpml_language_code',
-				'wpml_source_language_code',
-				'wpml_translation_group',
-				'wpml_translation_role',
-				'wpml_translations',
-			];
-			if ( array_intersect( $wpml_fields, $fields ) && WPML_Compatibility::is_active() ) {
-				$wpml_data = WPML_Compatibility::export_term_data( (int) $term->term_id, 'nav_menu' );
-				if ( ! empty( $wpml_data ) ) {
-					$menu_data['wpml_language_code']        = $wpml_data['language_code'] ?? '';
-					$menu_data['wpml_source_language_code'] = $wpml_data['source_language_code'] ?? '';
-					$menu_data['wpml_translation_group']    = $wpml_data['translation_group'] ?? '';
-					$menu_data['wpml_translation_role']     = $wpml_data['translation_role'] ?? '';
-					$menu_data['wpml_translations']         = ! empty( $wpml_data['translations'] ) ? wp_json_encode( $wpml_data['translations'] ) : '';
-				}
-			}
-
 			// Process each field
 			foreach ( $fields as $field ) {
 				// Handle ACF fields (with acf_ prefix) for menu term
@@ -4135,9 +4068,8 @@ class Post_Exporter extends Abstract_Exporter {
 					},
 					$items
 				);
-			case 'wpml_language_code':
-				return WPML_Compatibility::is_active()
-					? WPML_Compatibility::get_term_language_code( (int) $term->term_id, 'nav_menu' )
+				return false
+					? ''
 					: '';
 			default:
 				return isset( $term->$field ) ? $term->$field : get_term_meta( $term->term_id, $field, true );

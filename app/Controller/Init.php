@@ -10,7 +10,6 @@
 namespace RockStarLab\ImportExport\Controller;
 
 use RockStarLab\ImportExport\Helper\Ajax_Security;
-use RockStarLab\ImportExport\Helper\WPML_Compatibility;
 use RockStarLab\ImportExport\Model\Connected_Site;
 
 defined( 'ABSPATH' ) or exit;
@@ -271,7 +270,6 @@ class Init {
 				'exportUrl'                   => admin_url( 'admin.php?page=rsl-ie-export' ),
 				'currentPage'                 => '' !== $current_page ? $current_page : sanitize_key( $admin_page ),
 				'fieldTransformationsEnabled' => \RockStarLab\ImportExport\Helper\Field_Transformation_Bridge::is_enabled(),
-				'isWPMLActive'                => \RockStarLab\ImportExport\Helper\WPML_Compatibility::is_active(),
 				'fieldTransformationActions'  => apply_filters(
 					'rsl_ie_field_transformation_ajax_actions',
 					array(
@@ -1129,7 +1127,6 @@ class Init {
 				'exportUrl'      => admin_url( 'admin.php?page=rsl-ie-export' ),
 				'contentSyncUrl' => admin_url( 'admin.php?page=rsl-ie-content-sync' ),
 				'taxonomy'       => $taxonomy,
-				'wpmlLanguage'   => $this->get_admin_wpml_language(),
 				'exportEnabled'  => $export_enabled,
 				'syncEnabled'    => $sync_enabled,
 				'connectedSites' => $sites_map,
@@ -1369,7 +1366,6 @@ class Init {
 					'exportLabel'     => __( 'Export', 'import-export-by-rockstarlab' ),
 					'syncLabel'       => __( 'Sync', 'import-export-by-rockstarlab' ),
 					'connectedSites'  => $this->get_connected_sites_for_quick_actions(),
-					'wpmlLanguage'    => $this->get_admin_wpml_language(),
 					'objectType'      => 'comment',
 					'objectSubtype'   => '',
 					'exportEnabled'   => $export_enabled,
@@ -1455,35 +1451,6 @@ class Init {
 		return $sites_map;
 	}
 
-		/**
-		 * Resolve the language selected in the current WPML admin screen.
-		 *
-		 * @return string
-		 */
-	private function get_admin_wpml_language() {
-		if ( ! WPML_Compatibility::is_active() ) {
-			return '';
-		}
-
-		$language = isset( $_GET['lang'] ) ? sanitize_key( wp_unslash( $_GET['lang'] ) ) : '';
-		if ( 'all' === $language ) {
-			return 'all';
-		}
-		if ( '' !== $language ) {
-			return $language;
-		}
-
-		foreach ( array( '_icl_current_language', 'wpml_current_language', 'wpml_admin_language' ) as $cookie_name ) {
-			if ( ! empty( $_COOKIE[ $cookie_name ] ) ) {
-				$language = sanitize_key( wp_unslash( $_COOKIE[ $cookie_name ] ) );
-				if ( '' !== $language ) {
-					return $language;
-				}
-			}
-		}
-
-		return function_exists( 'apply_filters' ) ? sanitize_key( (string) apply_filters( 'wpml_current_language', '' ) ) : '';
-	}
 
 	/**
 	 * Check whether the current admin screen belongs to this plugin.

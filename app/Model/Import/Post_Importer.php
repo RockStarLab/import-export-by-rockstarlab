@@ -10,7 +10,6 @@
 namespace RockStarLab\ImportExport\Model\Import;
 
 use RockStarLab\ImportExport\Helper\ACF_Fields;
-use RockStarLab\ImportExport\Helper\WPML_Compatibility;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -22,13 +21,6 @@ class Post_Importer extends Abstract_Importer {
 	 */
 	const SOURCE_ID_META_KEY            = '_rsl_ie_source_post_id';
 	const SOURCE_ATTACHMENT_ID_META_KEY = '_rsl_ie_source_attachment_id';
-
-	/**
-	 * WPML language code for the item currently being imported.
-	 *
-	 * @var string
-	 */
-	private $current_import_wpml_language_code = '';
 
 	/**
 	 * Meta key used to store the import job that created or updated the post.
@@ -99,11 +91,6 @@ class Post_Importer extends Abstract_Importer {
 			'featured_image_url',
 			'featured_image_title',
 			'featured_image_caption',
-			'wpml_language_code',
-			'wpml_source_language_code',
-			'wpml_translation_group',
-			'wpml_translation_role',
-			'wpml_translations',
 		];
 	}
 
@@ -377,8 +364,7 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		// Sanitize data
-		$item                                    = $this->sanitize_item( $item );
-		$this->current_import_wpml_language_code = ! empty( $item['wpml_language_code'] ) ? sanitize_key( (string) $item['wpml_language_code'] ) : '';
+		$item = $this->sanitize_item( $item );
 
 		// Normalize flat prefixed columns produced by the auto-mapper
 		// (e.g. taxonomy_category, meta_*, acf_*) into nested structures.
@@ -614,9 +600,6 @@ class Post_Importer extends Abstract_Importer {
 		if ( ! empty( $item['_rsl_ie_source_id'] ) ) {
 			update_post_meta( $post_id, self::SOURCE_ID_META_KEY, absint( $item['_rsl_ie_source_id'] ) );
 		}
-
-		$this->store_wpml_import_data( (int) $post_id, $item );
-
 		// Import post meta
 		if ( ! empty( $item['post_meta'] ) ) {
 			$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? [], $item['_rsl_ie_raw_post_meta'] ?? [] );
@@ -691,9 +674,6 @@ class Post_Importer extends Abstract_Importer {
 		if ( ! empty( $item['_rsl_ie_source_id'] ) ) {
 			update_post_meta( $post_id, self::SOURCE_ID_META_KEY, absint( $item['_rsl_ie_source_id'] ) );
 		}
-
-		$this->store_wpml_import_data( (int) $post_id, $item );
-
 		// Update post meta
 		if ( ! empty( $item['post_meta'] ) ) {
 			$this->import_post_meta( $post_id, $item['post_meta'], $item['_acf_field_names'] ?? [], $item['_rsl_ie_raw_post_meta'] ?? [] );
@@ -818,38 +798,6 @@ class Post_Importer extends Abstract_Importer {
 		update_post_meta( $post_id, self::IMPORT_JOB_META_KEY, $job_id );
 		update_post_meta( $post_id, self::IMPORT_JOB_ACTION_META_KEY, $action );
 	}
-
-	/**
-	 * Store WPML import data for the import controller's second-pass linker.
-	 *
-	 * @param int   $post_id Post ID.
-	 * @param array $item    Prepared import row.
-	 * @return void
-	 */
-	private function store_wpml_import_data( $post_id, array $item ) {
-		if ( ! WPML_Compatibility::is_active() || empty( $item['wpml_language_code'] ) ) {
-			return;
-		}
-
-		$translations = $item['wpml_translations'] ?? [];
-		if ( is_string( $translations ) && '' !== $translations ) {
-			$decoded = json_decode( $translations, true );
-			if ( is_array( $decoded ) ) {
-				$translations = $decoded;
-			}
-		}
-
-		$wpml_data = [
-			'language_code'        => sanitize_key( (string) $item['wpml_language_code'] ),
-			'source_language_code' => ! empty( $item['wpml_source_language_code'] ) ? sanitize_key( (string) $item['wpml_source_language_code'] ) : '',
-			'translation_group'    => absint( $item['wpml_translation_group'] ?? 0 ),
-			'translation_role'     => sanitize_key( (string) ( $item['wpml_translation_role'] ?? '' ) ),
-			'translations'         => is_array( $translations ) ? $translations : [],
-		];
-
-		update_post_meta( $post_id, '_rsl_ie_wpml_import_data', wp_json_encode( $wpml_data ) );
-	}
-
 	/**
 	 * Prepare post data for wp_insert_post/wp_update_post
 	 *
@@ -3152,7 +3100,7 @@ class Post_Importer extends Abstract_Importer {
 		if ( isset( $url_to_attachment_cache[ $url ] ) ) {
 			$cached_attachment_id = (int) $url_to_attachment_cache[ $url ];
 			$this->store_imported_media_source( $cached_attachment_id, $url, $source_attachment_id );
-			return $this->ensure_attachment_language_for_parent( $cached_attachment_id, $post_id, $url, $source_attachment_id );
+				return $cached_attachment_id;
 		}
 
 		// If it's already a local media URL, try to map it back to an attachment ID
@@ -3162,7 +3110,7 @@ class Post_Importer extends Abstract_Importer {
 			$existing = attachment_url_to_postid( $url );
 			if ( $existing ) {
 				$this->store_imported_media_source( (int) $existing, $url, $source_attachment_id );
-				$existing_for_language           = $this->ensure_attachment_language_for_parent( (int) $existing, $post_id, $url, $source_attachment_id );
+					$existing_for_language       = (int) $existing;
 				$url_to_attachment_cache[ $url ] = $existing_for_language;
 				return $existing_for_language;
 			}
@@ -3182,7 +3130,7 @@ class Post_Importer extends Abstract_Importer {
 			if ( 'skip' === $media_duplicate_mode ) {
 				$this->log_info( sprintf( 'Skipped duplicate ACF media: %s (using existing ID: %d)', $filename, $existing_attachment ) );
 				$this->store_imported_media_source( (int) $existing_attachment, $url, $source_attachment_id );
-				$existing_for_language           = $this->ensure_attachment_language_for_parent( (int) $existing_attachment, $post_id, $url, $source_attachment_id );
+					$existing_for_language       = (int) $existing_attachment;
 				$url_to_attachment_cache[ $url ] = $existing_for_language;
 				return $existing_for_language;
 			} elseif ( 'replace' === $media_duplicate_mode ) {
@@ -3201,7 +3149,7 @@ class Post_Importer extends Abstract_Importer {
 		if ( ! is_wp_error( $attachment_id ) && $attachment_id ) {
 			$this->store_imported_media_source( (int) $attachment_id, $url, $source_attachment_id );
 			$this->log_info( sprintf( 'Imported ACF media: %s (new ID: %d)', $filename, $attachment_id ) );
-			$attachment_for_language         = $this->ensure_attachment_language_for_parent( (int) $attachment_id, $post_id, $url, $source_attachment_id );
+			$attachment_for_language         = (int) $attachment_id;
 			$url_to_attachment_cache[ $url ] = $attachment_for_language;
 			return $attachment_for_language;
 		}
@@ -3830,14 +3778,9 @@ class Post_Importer extends Abstract_Importer {
 		];
 
 		// Import the file
-		$attachment_id = media_handle_sideload( $file, $post_id );
+			$attachment_id = media_handle_sideload( $file, $post_id );
 		if ( ! is_wp_error( $attachment_id ) && $attachment_id ) {
 			$this->store_imported_media_source( (int) $attachment_id, (string) $url );
-			if ( '' !== $this->current_import_wpml_language_code ) {
-				WPML_Compatibility::apply_attachment_language( (int) $attachment_id, $this->current_import_wpml_language_code );
-			} else {
-				WPML_Compatibility::apply_attachment_language_from_parent( (int) $attachment_id, (int) $post_id );
-			}
 		}
 
 		// Clean up temp file
@@ -3846,152 +3789,6 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		return $attachment_id;
-	}
-
-	/**
-	 * Ensure an imported/reused attachment is visible in the parent post language.
-	 *
-	 * @param int    $attachment_id        Attachment ID.
-	 * @param int    $post_id              Parent post ID.
-	 * @param string $url                  Source media URL.
-	 * @param int    $source_attachment_id Source attachment ID from export payload.
-	 * @return int Attachment ID suitable for the parent language.
-	 */
-	private function ensure_attachment_language_for_parent( int $attachment_id, int $post_id, string $url = '', int $source_attachment_id = 0 ): int {
-		$attachment_id = absint( $attachment_id );
-		$post_id       = absint( $post_id );
-		if ( $attachment_id <= 0 || $post_id <= 0 || ! WPML_Compatibility::is_active() ) {
-			return $attachment_id;
-		}
-
-		$post = get_post( $post_id );
-		if ( ! $post ) {
-			return $attachment_id;
-		}
-
-		$target_language     = '' !== $this->current_import_wpml_language_code
-			? $this->current_import_wpml_language_code
-			: WPML_Compatibility::get_post_language_code( $post_id, $post->post_type );
-		$attachment_language = WPML_Compatibility::get_post_language_code( $attachment_id, 'attachment' );
-		if ( '' === $target_language || $attachment_language === $target_language ) {
-			if ( '' !== $target_language ) {
-				WPML_Compatibility::apply_attachment_language( $attachment_id, $target_language );
-			} else {
-				WPML_Compatibility::apply_attachment_language_from_parent( $attachment_id, $post_id );
-			}
-			return $attachment_id;
-		}
-
-		$existing_translation_id = $this->find_existing_attachment_for_source_and_language( $url, $source_attachment_id, $target_language );
-		if ( $existing_translation_id > 0 ) {
-			return $existing_translation_id;
-		}
-
-		$source = get_post( $attachment_id );
-		if ( ! $source || 'attachment' !== $source->post_type ) {
-			return $attachment_id;
-		}
-
-		$clone_id = wp_insert_attachment(
-			[
-				'post_author'    => (int) $source->post_author,
-				'post_date'      => current_time( 'mysql' ),
-				'post_date_gmt'  => current_time( 'mysql', true ),
-				'post_content'   => $source->post_content,
-				'post_excerpt'   => $source->post_excerpt,
-				'post_mime_type' => $source->post_mime_type,
-				'post_name'      => wp_unique_post_slug( $source->post_name, 0, 'inherit', 'attachment', $post_id ),
-				'post_parent'    => $post_id,
-				'post_status'    => 'inherit',
-				'post_title'     => $source->post_title,
-				'guid'           => $source->guid,
-				'comment_status' => 'closed',
-				'ping_status'    => 'closed',
-				'menu_order'     => (int) $source->menu_order,
-			],
-			get_attached_file( $attachment_id )
-		);
-
-		if ( is_wp_error( $clone_id ) || ! $clone_id ) {
-			return $attachment_id;
-		}
-
-		$clone_id = (int) $clone_id;
-		foreach ( [ '_wp_attached_file', '_wp_attachment_metadata', '_wp_attachment_image_alt' ] as $meta_key ) {
-			$meta_value = get_post_meta( $attachment_id, $meta_key, true );
-			if ( '' !== $meta_value && null !== $meta_value ) {
-				update_post_meta( $clone_id, $meta_key, $meta_value );
-			}
-		}
-
-		$this->store_imported_media_source( $clone_id, $url, $source_attachment_id );
-		WPML_Compatibility::apply_attachment_language( $clone_id, $target_language );
-
-		return $clone_id;
-	}
-
-	/**
-	 * Find an imported attachment for a source URL/source ID in a specific language.
-	 *
-	 * @param string $url                  Source media URL.
-	 * @param int    $source_attachment_id Source attachment ID.
-	 * @param string $language_code        WPML language code.
-	 * @return int Attachment ID, or 0.
-	 */
-	private function find_existing_attachment_for_source_and_language( string $url, int $source_attachment_id, string $language_code ): int {
-		$language_code = sanitize_key( $language_code );
-		if ( '' === $language_code ) {
-			return 0;
-		}
-
-		$candidates      = [];
-		$source_url_hash = $this->get_media_source_url_hash( $url );
-		if ( '' !== $source_url_hash ) {
-			$candidates = array_merge(
-				$candidates,
-				get_posts(
-					[
-						'post_type'              => 'attachment',
-						'post_status'            => 'inherit',
-						'posts_per_page'         => 20,
-						'fields'                 => 'ids',
-						'meta_key'               => 'rsl_ie_source_url_hash', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- required for imported media lookup.
-						'meta_value'             => $source_url_hash, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- required for imported media lookup.
-						'no_found_rows'          => true,
-						'update_post_meta_cache' => false,
-						'update_post_term_cache' => false,
-					]
-				)
-			);
-		}
-
-		$source_attachment_id = absint( $source_attachment_id );
-		if ( $source_attachment_id > 0 ) {
-			$candidates = array_merge(
-				$candidates,
-				get_posts(
-					[
-						'post_type'              => 'attachment',
-						'post_status'            => 'inherit',
-						'posts_per_page'         => 20,
-						'fields'                 => 'ids',
-						'meta_key'               => self::SOURCE_ATTACHMENT_ID_META_KEY, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- required for source attachment lookup.
-						'meta_value'             => $source_attachment_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- required for source attachment lookup.
-						'no_found_rows'          => true,
-						'update_post_meta_cache' => false,
-						'update_post_term_cache' => false,
-					]
-				)
-			);
-		}
-
-		foreach ( array_unique( array_map( 'absint', $candidates ) ) as $attachment_id ) {
-			if ( $attachment_id > 0 && WPML_Compatibility::get_post_language_code( $attachment_id, 'attachment' ) === $language_code ) {
-				return $attachment_id;
-			}
-		}
-
-		return 0;
 	}
 
 	/**

@@ -621,11 +621,6 @@ import 'select2/dist/css/select2.min.css';
 		return 'dashicons-admin-comments';
 	}
 
-	function getWpmlLanguagePayload() {
-		const language = String( config.wpmlLanguage || '' );
-		return language ? { language } : {};
-	}
-
 	function getCommentPostTypeFilter() {
 		return config.objectSubtype === 'review' ? 'product' : 'any';
 	}
@@ -653,7 +648,6 @@ import 'select2/dist/css/select2.min.css';
 			site_id: siteId,
 			comment_ids: ids,
 			comment_type: config.objectSubtype || '',
-			...getWpmlLanguagePayload(),
 		};
 	}
 
@@ -718,7 +712,6 @@ import 'select2/dist/css/select2.min.css';
 			post_id: $( '#rsl-ie-pro-object-post-filter' ).val() || '',
 			page: 1,
 			per_page: 100,
-			...getWpmlLanguagePayload(),
 		};
 	}
 
@@ -744,7 +737,6 @@ import 'select2/dist/css/select2.min.css';
 			site_id: siteId,
 			comment_ids: ids,
 			comment_type: config.objectSubtype || '',
-			...getWpmlLanguagePayload(),
 		};
 	}
 
@@ -1093,7 +1085,6 @@ import 'select2/dist/css/select2.min.css';
 			status: 'any',
 			page: 1,
 			per_page: 50,
-			...getWpmlLanguagePayload(),
 		} ).done( ( data ) => {
 			const current = String( $select.val() || '' );
 			const options = [
@@ -1154,7 +1145,6 @@ import 'select2/dist/css/select2.min.css';
 					search: params.term || '',
 					page: params.page || 1,
 					per_page: 20,
-					...getWpmlLanguagePayload(),
 				} ),
 				processResults: ( response, params ) => {
 					params.page = params.page || 1;
@@ -1237,7 +1227,6 @@ import 'select2/dist/css/select2.min.css';
 					search: params.term || '',
 					page: params.page || 1,
 					per_page: 20,
-					...getWpmlLanguagePayload(),
 				} ),
 				processResults: ( response, params ) => {
 					params.page = params.page || 1;
@@ -1798,7 +1787,6 @@ import 'select2/dist/css/select2.min.css';
 					search: params.term || '',
 					page: params.page || 1,
 					per_page: 20,
-					...getWpmlLanguagePayload(),
 				} ),
 				processResults: ( response, params ) => {
 					params.page = params.page || 1;
@@ -1883,7 +1871,6 @@ import 'select2/dist/css/select2.min.css';
 			search: remotePost.title,
 			page: 1,
 			per_page: 10,
-			...getWpmlLanguagePayload(),
 		} )
 			.done( ( data ) => {
 				const remoteTitle = String( remotePost.title || '' )
@@ -2003,7 +1990,6 @@ import 'select2/dist/css/select2.min.css';
 					search: params.term || remotePost.title || '',
 					page: params.page || 1,
 					per_page: 20,
-					...getWpmlLanguagePayload(),
 				} ),
 				processResults: ( response, params ) => {
 					params.page = params.page || 1;

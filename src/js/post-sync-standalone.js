@@ -714,7 +714,6 @@ const getActionNonce = ( action ) =>
 								nonce: remotePostsNonce,
 								site_id: siteId,
 								post_type: 'any',
-								language: this.getCurrentWpmlLanguage(),
 							},
 							success: ( response ) => {
 								if ( response.success && response.data.posts ) {
@@ -953,7 +952,6 @@ const getActionNonce = ( action ) =>
 							page: params.page || 1,
 							per_page: 10,
 							post_type: localPostType || 'post',
-							language: this.getCurrentWpmlLanguage(),
 						};
 					},
 					processResults: ( response, params ) => {
@@ -1114,11 +1112,17 @@ const getActionNonce = ( action ) =>
 				'rsl_ie_content_sync_auto_map_by_title'
 			);
 			const $button = $( '#rsl-ie-auto-match-btn' );
-			const originalText = $button.text();
+			const originalHtml = $button.html();
 			const matchingText =
 				rslIePostSyncData?.i18n?.matchingByTitle || 'Matching...';
 
-			$button.prop( 'disabled', true ).text( matchingText );
+			$button
+				.prop( 'disabled', true )
+				.html(
+					`<span class="spinner is-active" aria-hidden="true"></span><span>${ this.escapeHtml(
+						matchingText
+					) }</span>`
+				);
 
 			$.ajax( {
 				url: ajaxUrl,
@@ -1184,7 +1188,7 @@ const getActionNonce = ( action ) =>
 						.trigger( 'change' );
 				},
 				complete: () => {
-					$button.prop( 'disabled', false ).text( originalText );
+					$button.prop( 'disabled', false ).html( originalHtml );
 				},
 			} );
 		},
@@ -1492,23 +1496,7 @@ const getActionNonce = ( action ) =>
 		},
 
 		/**
-		 * Get current WPML admin language from the list-table URL first.
 		 */
-		getCurrentWpmlLanguage() {
-			const urlParams = new URLSearchParams( window.location.search );
-			if ( urlParams.has( 'lang' ) ) {
-				return urlParams.get( 'lang' ) || '';
-			}
-
-			const cookieMatch = document.cookie.match(
-				/(?:^|;\s*)(?:_icl_current_language|wpml_current_language|wpml_admin_language)=([^;]+)/
-			);
-			if ( cookieMatch && cookieMatch[ 1 ] ) {
-				return decodeURIComponent( cookieMatch[ 1 ] );
-			}
-
-			return rslIePostSyncData.wpmlLanguage || '';
-		},
 
 		/**
 		 * Load remote posts with pagination and filters
@@ -1542,7 +1530,6 @@ const getActionNonce = ( action ) =>
 					status: this.browseState.currentFilter,
 					page: this.browseState.currentPage,
 					per_page: 20,
-					language: this.getCurrentWpmlLanguage(),
 				},
 				success: ( response ) => {
 					if (
@@ -1621,16 +1608,6 @@ const getActionNonce = ( action ) =>
 
 			const date = new Date( post.post_modified );
 			const formattedDate = date.toLocaleDateString();
-			const wpmlLanguage =
-				post.wpml_language ||
-				( post.wpml && post.wpml.language_code
-					? post.wpml.language_code
-					: '' );
-			const wpmlLanguageBadge = wpmlLanguage
-				? `<span class="rsl-ie-post-language-badge">${ this.escapeHtml(
-						wpmlLanguage.toUpperCase()
-				  ) }</span>`
-				: '';
 
 			const $wrapper = $( '<div class="rsl-ie-post-wrapper"></div>' );
 
@@ -1660,7 +1637,6 @@ const getActionNonce = ( action ) =>
 								'(No title)'
 						) }</div>
 						<div class="rsl-ie-post-meta">
-							${ wpmlLanguageBadge }
 							<span class="rsl-ie-post-status ${ post.post_status }">${
 								post.post_status
 							}</span>
@@ -1791,7 +1767,6 @@ const getActionNonce = ( action ) =>
 					site_id: this.browseState.siteId,
 					parent_id: parentId,
 					post_type: this.browseState.postType,
-					language: this.getCurrentWpmlLanguage(),
 				},
 				success: ( response ) => {
 					if ( response.success && response.data.children ) {
