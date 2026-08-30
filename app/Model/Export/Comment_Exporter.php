@@ -85,9 +85,6 @@ class Comment_Exporter extends Abstract_Exporter {
 			'comment_meta',
 		];
 
-		if ( false ) {
-		}
-
 		return $fields;
 	}
 

@@ -2342,7 +2342,6 @@ class Content_Sync_Controller extends Base_Controller {
 				);
 
 				if ( $existing_id ) {
-					$this->sync_existing_remote_image_language( $image, $site, $force_unique );
 					$image_map[ $image['attachment_id'] ] = $existing_id;
 					continue;
 				}
@@ -3076,7 +3075,10 @@ class Content_Sync_Controller extends Base_Controller {
 		$force_unique         = ! empty( $image['force_unique'] );
 
 		if ( $source_attachment_id > 0 ) {
-			$existing_id = $this->find_attachment_by_original_attachment_id( $source_attachment_id );
+			$existing_id = $this->find_attachment_by_original_attachment_id(
+				$source_attachment_id,
+				isset( $image['file_hash'] ) ? (string) $image['file_hash'] : ''
+			);
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
 				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
@@ -3189,7 +3191,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * @param int $source_attachment_id Source attachment ID.
 	 * @return int|false Attachment ID or false.
 	 */
-	private function find_attachment_by_original_attachment_id( $source_attachment_id ) {
+	private function find_attachment_by_original_attachment_id( $source_attachment_id, $file_hash = '' ) {
 		$source_attachment_id = absint( $source_attachment_id );
 		if ( $source_attachment_id <= 0 ) {
 			return false;
@@ -3206,7 +3208,17 @@ class Content_Sync_Controller extends Base_Controller {
 			)
 		);
 
-		return ! empty( $attachments ) ? (int) $attachments[0] : false;
+		if ( empty( $attachments ) ) {
+			return false;
+		}
+
+		$attachment_id = (int) $attachments[0];
+		$file_hash     = strtolower( trim( (string) $file_hash ) );
+		if ( '' !== $file_hash && \RockStarLab\ImportExport\Helper\Media_Hash::get_or_create_hash( $attachment_id ) !== $file_hash ) {
+			return false;
+		}
+
+		return $attachment_id;
 	}
 
 	private function apply_synced_attachment_content_fields( $attachment_id, array $image ) {
@@ -4900,14 +4912,14 @@ class Content_Sync_Controller extends Base_Controller {
 				}
 
 				foreach ( $this->extract_image_urls_from_term_acf_html( $value ) as $url ) {
-					$image_id = attachment_url_to_postid( $url );
+					$image_id = \RockStarLab\ImportExport\Helper\Content_Sync_Media::attachment_url_to_original_postid( $url );
 					if ( $image_id > 0 ) {
 						$image_ids[] = (int) $image_id;
 					}
 				}
 
 				if ( filter_var( $value, FILTER_VALIDATE_URL ) && $this->is_term_acf_image_url( $value ) ) {
-					$image_id = attachment_url_to_postid( $value );
+					$image_id = \RockStarLab\ImportExport\Helper\Content_Sync_Media::attachment_url_to_original_postid( $value );
 					if ( $image_id > 0 ) {
 						$image_ids[] = (int) $image_id;
 					}
@@ -4926,7 +4938,7 @@ class Content_Sync_Controller extends Base_Controller {
 				}
 
 				if ( isset( $value['url'] ) && is_string( $value['url'] ) && $this->is_term_acf_image_url( $value['url'] ) ) {
-					$image_id = attachment_url_to_postid( $value['url'] );
+					$image_id = \RockStarLab\ImportExport\Helper\Content_Sync_Media::attachment_url_to_original_postid( $value['url'] );
 					if ( $image_id > 0 ) {
 						$image_ids[] = (int) $image_id;
 					}
