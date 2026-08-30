@@ -269,6 +269,10 @@ class Button_Location_Settings {
 	 */
 	private static function get_other_locations() {
 		return [
+			'admin:media'    => [
+				'label'       => __( 'Media Library', 'import-export-by-rockstarlab' ),
+				'description' => __( 'WordPress Media Library screen.', 'import-export-by-rockstarlab' ),
+			],
 			'admin:comments' => [
 				'label'       => __( 'Comments', 'import-export-by-rockstarlab' ),
 				'description' => __( 'WordPress comments list screen.', 'import-export-by-rockstarlab' ),

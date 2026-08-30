@@ -319,7 +319,7 @@ class Content_Sync_Media {
 				continue;
 			}
 
-			$attachment_id = attachment_url_to_postid( $url );
+			$attachment_id = self::attachment_url_to_original_postid( $url );
 			if ( $attachment_id ) {
 				$image_data = self::prepare_image_data( $attachment_id, $context );
 				if ( $image_data ) {
@@ -329,6 +329,220 @@ class Content_Sync_Media {
 		}
 
 		return $images;
+	}
+
+	/**
+	 * Resolve an attachment URL to the canonical source attachment.
+	 *
+	 * WordPress can sometimes resolve an intermediate-size URL to an attachment
+	 * that was previously imported as its own media item. For sync payloads we
+	 * need the original attachment so srcset sizes do not become standalone
+	 * attachments on the receiving site.
+	 *
+	 * @param string $url Attachment or intermediate-size URL.
+	 * @return int Attachment ID or 0.
+	 */
+	public static function attachment_url_to_original_postid( $url ) {
+		$attachment_id = (int) attachment_url_to_postid( $url );
+		$parent_id     = self::find_parent_attachment_id_for_size_url( $url );
+
+		if ( $parent_id > 0 ) {
+			return $parent_id;
+		}
+
+		return $attachment_id;
+	}
+
+	/**
+	 * Find the original attachment whose metadata owns an intermediate-size URL.
+	 *
+	 * @param string $url Attachment URL.
+	 * @return int Attachment ID or 0.
+	 */
+	private static function find_parent_attachment_id_for_size_url( $url ) {
+		$path      = (string) wp_parse_url( (string) $url, PHP_URL_PATH );
+		$basename  = wp_basename( $path );
+		$basenames = self::get_intermediate_size_basename_candidates( $basename );
+		if ( empty( $basenames ) ) {
+			return 0;
+		}
+
+		global $wpdb;
+
+		foreach ( $basenames as $candidate ) {
+			$attachment_id = self::find_parent_attachment_id_for_size_basename( $candidate, $wpdb );
+			if ( $attachment_id > 0 ) {
+				return $attachment_id;
+			}
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Build possible metadata filenames for an intermediate-size URL.
+	 *
+	 * @param string $basename URL basename.
+	 * @return array Candidate basenames.
+	 */
+	private static function get_intermediate_size_basename_candidates( $basename ) {
+		$basename = (string) $basename;
+		if ( '' === $basename ) {
+			return array();
+		}
+
+		$basenames = array();
+		if ( preg_match( '/-\d+x\d+\.[^.]+$/i', $basename ) ) {
+			$basenames[] = $basename;
+		}
+
+		$without_unique_suffix = preg_replace( '/(-\d+x\d+)-\d+(\.[^.]+)$/i', '$1$2', $basename );
+		if ( is_string( $without_unique_suffix ) && $without_unique_suffix !== $basename && preg_match( '/-\d+x\d+\.[^.]+$/i', $without_unique_suffix ) ) {
+			$basenames[] = $without_unique_suffix;
+		}
+
+		return array_values( array_unique( $basenames ) );
+	}
+
+	/**
+	 * Find a parent attachment whose metadata contains a size basename.
+	 *
+	 * @param string $basename Intermediate-size file basename.
+	 * @param \wpdb  $wpdb     WordPress database object.
+	 * @return int Attachment ID or 0.
+	 */
+	private static function find_parent_attachment_id_for_size_basename( $basename, $wpdb ) {
+		$attachment_id = self::find_parent_attachment_id_by_exact_size_basename( $basename, $wpdb );
+		if ( $attachment_id > 0 ) {
+			return $attachment_id;
+		}
+
+		if ( ! preg_match( '/-(\d+)x(\d+)(?:-\d+)?\.[^.]+$/i', $basename, $matches ) ) {
+			return 0;
+		}
+
+		$normalized_basename = self::normalize_intermediate_size_basename( $basename );
+		$dimension           = $matches[1] . 'x' . $matches[2];
+		$attachment_ids      = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attachment_metadata' AND meta_value LIKE %s LIMIT 20",
+				'%' . $wpdb->esc_like( $dimension ) . '%'
+			)
+		);
+
+		foreach ( $attachment_ids as $attachment_id ) {
+			$metadata = wp_get_attachment_metadata( (int) $attachment_id );
+			if ( empty( $metadata['sizes'] ) || ! is_array( $metadata['sizes'] ) ) {
+				continue;
+			}
+
+			foreach ( $metadata['sizes'] as $size ) {
+				if (
+					isset( $size['file'] )
+					&& $normalized_basename === self::normalize_intermediate_size_basename( (string) $size['file'] )
+				) {
+					return (int) $attachment_id;
+				}
+			}
+		}
+
+		return self::find_parent_attachment_id_by_intermediate_stem( $basename, $wpdb );
+	}
+
+	/**
+	 * Find a parent attachment whose metadata contains an exact size basename.
+	 *
+	 * @param string $basename Intermediate-size file basename.
+	 * @param \wpdb  $wpdb     WordPress database object.
+	 * @return int Attachment ID or 0.
+	 */
+	private static function find_parent_attachment_id_by_exact_size_basename( $basename, $wpdb ) {
+		$attachment_ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attachment_metadata' AND meta_value LIKE %s LIMIT 20",
+				'%' . $wpdb->esc_like( $basename ) . '%'
+			)
+		);
+
+		foreach ( $attachment_ids as $attachment_id ) {
+			$metadata = wp_get_attachment_metadata( (int) $attachment_id );
+			if ( empty( $metadata['sizes'] ) || ! is_array( $metadata['sizes'] ) ) {
+				continue;
+			}
+
+			foreach ( $metadata['sizes'] as $size ) {
+				if ( isset( $size['file'] ) && $basename === (string) $size['file'] ) {
+					return (int) $attachment_id;
+				}
+			}
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Normalize intermediate-size basenames across imported/scaled variants.
+	 *
+	 * @param string $basename Intermediate-size file basename.
+	 * @return string Normalized basename.
+	 */
+	private static function normalize_intermediate_size_basename( $basename ) {
+		$basename = strtolower( (string) $basename );
+		$basename = preg_replace( '/(-\d+x\d+)-\d+(\.[^.]+)$/i', '$1$2', $basename );
+		$basename = preg_replace( '/-scaled(?:-\d+)?(-\d+x\d+\.[^.]+)$/i', '$1', (string) $basename );
+
+		return (string) $basename;
+	}
+
+	/**
+	 * Find a parent attachment by source stem when generated dimensions drift by 1px.
+	 *
+	 * @param string $basename Intermediate-size file basename.
+	 * @param \wpdb  $wpdb     WordPress database object.
+	 * @return int Attachment ID or 0.
+	 */
+	private static function find_parent_attachment_id_by_intermediate_stem( $basename, $wpdb ) {
+		$stem = self::normalize_intermediate_size_stem( $basename );
+		if ( '' === $stem ) {
+			return 0;
+		}
+
+		$attachment_ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attachment_metadata' AND meta_value LIKE %s LIMIT 50",
+				'%' . $wpdb->esc_like( $stem ) . '%'
+			)
+		);
+
+		foreach ( $attachment_ids as $attachment_id ) {
+			$metadata = wp_get_attachment_metadata( (int) $attachment_id );
+			if ( empty( $metadata['sizes'] ) || ! is_array( $metadata['sizes'] ) ) {
+				continue;
+			}
+
+			foreach ( $metadata['sizes'] as $size ) {
+				if ( isset( $size['file'] ) && $stem === self::normalize_intermediate_size_stem( (string) $size['file'] ) ) {
+					return (int) $attachment_id;
+				}
+			}
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Normalize an intermediate-size basename to its original source stem.
+	 *
+	 * @param string $basename Intermediate-size file basename.
+	 * @return string Normalized stem.
+	 */
+	private static function normalize_intermediate_size_stem( $basename ) {
+		$basename = strtolower( (string) $basename );
+		$basename = preg_replace( '/\.[^.]+$/', '', $basename );
+		$basename = preg_replace( '/-\d+x\d+(?:-\d+)?$/', '', (string) $basename );
+		$basename = preg_replace( '/-scaled(?:-\d+)?$/', '', (string) $basename );
+
+		return (string) $basename;
 	}
 
 	/**
@@ -604,7 +818,7 @@ class Content_Sync_Media {
 				continue;
 			}
 
-			$attachment_id = attachment_url_to_postid( $url );
+			$attachment_id = self::attachment_url_to_original_postid( $url );
 			if ( $attachment_id <= 0 ) {
 				continue;
 			}
@@ -646,7 +860,7 @@ class Content_Sync_Media {
 		$ids = array();
 
 		if ( is_string( $value ) ) {
-			$attachment_id = attachment_url_to_postid( $value );
+			$attachment_id = self::attachment_url_to_original_postid( $value );
 			if ( $attachment_id > 0 ) {
 				$ids[] = (int) $attachment_id;
 			}
@@ -665,7 +879,7 @@ class Content_Sync_Media {
 		}
 
 		if ( isset( $value['url'] ) && is_string( $value['url'] ) ) {
-			$attachment_id = attachment_url_to_postid( $value['url'] );
+			$attachment_id = self::attachment_url_to_original_postid( $value['url'] );
 			if ( $attachment_id > 0 ) {
 				$ids[] = (int) $attachment_id;
 			}
