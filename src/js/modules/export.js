@@ -2954,39 +2954,6 @@ const ExportModule = {
 			},
 		];
 
-		if ( window.rslIeData?.isWPMLActive ) {
-			baseFields.splice( baseFields.length - 1, 0, {
-				label: 'WPML',
-				options: [
-					{
-						value: 'wpml_language_code',
-						label: 'Language Code',
-						type: 'wpml',
-					},
-					{
-						value: 'wpml_source_language_code',
-						label: 'Source Language Code',
-						type: 'wpml',
-					},
-					{
-						value: 'wpml_translation_group',
-						label: 'Translation Group',
-						type: 'wpml',
-					},
-					{
-						value: 'wpml_translation_role',
-						label: 'Translation Role',
-						type: 'wpml',
-					},
-					{
-						value: 'wpml_translations',
-						label: 'Translations Map',
-						type: 'wpml',
-					},
-				],
-			} );
-		}
-
 		// Customize based on content type
 		if ( contentType === 'media' ) {
 			return [
@@ -3125,40 +3092,6 @@ const ExportModule = {
 						},
 					],
 				},
-				...( window.rslIeData?.isWPMLActive
-					? [
-							{
-								label: 'WPML',
-								options: [
-									{
-										value: 'wpml_language_code',
-										label: 'Language Code',
-										type: 'wpml',
-									},
-									{
-										value: 'wpml_source_language_code',
-										label: 'Source Language Code',
-										type: 'wpml',
-									},
-									{
-										value: 'wpml_translation_group',
-										label: 'Translation Group',
-										type: 'wpml',
-									},
-									{
-										value: 'wpml_translation_role',
-										label: 'Translation Role',
-										type: 'wpml',
-									},
-									{
-										value: 'wpml_translations',
-										label: 'Translations Map',
-										type: 'wpml',
-									},
-								],
-							},
-					  ]
-					: [] ),
 				{
 					label: window.rslIeData.i18n.fieldGroupCustomFilters,
 					options: [
@@ -3221,40 +3154,6 @@ const ExportModule = {
 						},
 					],
 				},
-				...( window.rslIeData?.isWPMLActive
-					? [
-							{
-								label: 'WPML',
-								options: [
-									{
-										value: 'wpml_language_code',
-										label: 'Language Code',
-										type: 'wpml',
-									},
-									{
-										value: 'wpml_source_language_code',
-										label: 'Source Language Code',
-										type: 'wpml',
-									},
-									{
-										value: 'wpml_translation_group',
-										label: 'Translation Group',
-										type: 'wpml',
-									},
-									{
-										value: 'wpml_translation_role',
-										label: 'Translation Role',
-										type: 'wpml',
-									},
-									{
-										value: 'wpml_translations',
-										label: 'Translations Map',
-										type: 'wpml',
-									},
-								],
-							},
-					  ]
-					: [] ),
 				{
 					label: window.rslIeData.i18n.fieldGroupCustomFilters,
 					options: [
@@ -3605,20 +3504,6 @@ const ExportModule = {
 						},
 					],
 				},
-				...( window.rslIeData?.isWPMLActive
-					? [
-							{
-								label: 'WPML',
-								options: [
-									{
-										value: 'wpml_language_code',
-										label: 'Language Code',
-										type: 'wpml',
-									},
-								],
-							},
-					  ]
-					: [] ),
 				{
 					label: window.rslIeData.i18n.fieldGroupDates,
 					options: [
@@ -3899,40 +3784,6 @@ const ExportModule = {
 						},
 					],
 				},
-				...( window.rslIeData?.isWPMLActive
-					? [
-							{
-								label: 'WPML',
-								options: [
-									{
-										value: 'wpml_language_code',
-										label: 'Language Code',
-										type: 'wpml',
-									},
-									{
-										value: 'wpml_source_language_code',
-										label: 'Source Language Code',
-										type: 'wpml',
-									},
-									{
-										value: 'wpml_translation_group',
-										label: 'Translation Group',
-										type: 'wpml',
-									},
-									{
-										value: 'wpml_translation_role',
-										label: 'Translation Role',
-										type: 'wpml',
-									},
-									{
-										value: 'wpml_translations',
-										label: 'Translations Map',
-										type: 'wpml',
-									},
-								],
-							},
-					  ]
-					: [] ),
 				{
 					label: 'Custom Fields (Term Meta)',
 					options: [
@@ -3984,40 +3835,6 @@ const ExportModule = {
 						},
 					],
 				},
-				...( window.rslIeData?.isWPMLActive
-					? [
-							{
-								label: 'WPML',
-								options: [
-									{
-										value: 'wpml_language_code',
-										label: 'Language Code',
-										type: 'wpml',
-									},
-									{
-										value: 'wpml_source_language_code',
-										label: 'Source Language Code',
-										type: 'wpml',
-									},
-									{
-										value: 'wpml_translation_group',
-										label: 'Translation Group',
-										type: 'wpml',
-									},
-									{
-										value: 'wpml_translation_role',
-										label: 'Translation Role',
-										type: 'wpml',
-									},
-									{
-										value: 'wpml_translations',
-										label: 'Translations Map',
-										type: 'wpml',
-									},
-								],
-							},
-					  ]
-					: [] ),
 				{
 					label: window.rslIeData.i18n.fieldGroupContent,
 					options: [
@@ -5215,16 +5032,7 @@ const ExportModule = {
 		return allFields
 			.filter( ( group ) => ! excludedLabels.includes( group.label ) )
 			.map( ( group ) => {
-				if ( group.label !== 'WPML' ) {
-					return group;
-				}
-
-				return {
-					...group,
-					options: group.options.filter(
-						( option ) => option.value === 'wpml_language_code'
-					),
-				};
+				return group;
 			} )
 			.filter( ( group ) => group.options.length > 0 );
 	},

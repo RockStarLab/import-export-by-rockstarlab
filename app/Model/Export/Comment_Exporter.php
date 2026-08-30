@@ -10,7 +10,6 @@
 namespace RockStarLab\ImportExport\Model\Export;
 
 use RockStarLab\ImportExport\Helper\ACF_Fields;
-use RockStarLab\ImportExport\Helper\WPML_Compatibility;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -41,16 +40,15 @@ class Comment_Exporter extends Abstract_Exporter {
 	 */
 	public function get_supported_filters() {
 		return [
-			'status'             => __( 'Comment status', 'import-export-by-rockstarlab' ),
-			'type'               => __( 'Comment type', 'import-export-by-rockstarlab' ),
-			'post_id'            => __( 'Post ID', 'import-export-by-rockstarlab' ),
-			'author'             => __( 'Author name or email', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-			'date_query'         => __( 'Date query parameters', 'import-export-by-rockstarlab' ),
-			'meta_query'         => __( 'Meta query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
-			'custom_fields'      => __( 'Custom field filters: array of [name, value, condition]', 'import-export-by-rockstarlab' ),
-			'orderby'            => __( 'Order by field', 'import-export-by-rockstarlab' ),
-			'order'              => __( 'Order direction (ASC or DESC)', 'import-export-by-rockstarlab' ),
-			'wpml_language_code' => __( 'WPML parent post language code (en, ru, etc.)', 'import-export-by-rockstarlab' ),
+			'status'        => __( 'Comment status', 'import-export-by-rockstarlab' ),
+			'type'          => __( 'Comment type', 'import-export-by-rockstarlab' ),
+			'post_id'       => __( 'Post ID', 'import-export-by-rockstarlab' ),
+			'author'        => __( 'Author name or email', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
+			'date_query'    => __( 'Date query parameters', 'import-export-by-rockstarlab' ),
+			'meta_query'    => __( 'Meta query parameters', 'import-export-by-rockstarlab' ), // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
+			'custom_fields' => __( 'Custom field filters: array of [name, value, condition]', 'import-export-by-rockstarlab' ),
+			'orderby'       => __( 'Order by field', 'import-export-by-rockstarlab' ),
+			'order'         => __( 'Order direction (ASC or DESC)', 'import-export-by-rockstarlab' ),
 		];
 	}
 
@@ -87,8 +85,7 @@ class Comment_Exporter extends Abstract_Exporter {
 			'comment_meta',
 		];
 
-		if ( WPML_Compatibility::is_active() ) {
-			$fields[] = 'wpml_language_code';
+		if ( false ) {
 		}
 
 		return $fields;
@@ -315,13 +312,6 @@ class Comment_Exporter extends Abstract_Exporter {
 				case 'post_author':
 					$post                = get_post( $comment->comment_post_ID );
 					$data['post_author'] = $post ? $post->post_author : '';
-					break;
-
-				case 'wpml_language_code':
-					$post                       = get_post( $comment->comment_post_ID );
-					$data['wpml_language_code'] = $post && WPML_Compatibility::is_active()
-						? WPML_Compatibility::get_post_language_code( (int) $post->ID, (string) $post->post_type )
-						: '';
 					break;
 
 				case 'comment_meta':
@@ -1081,13 +1071,6 @@ class Comment_Exporter extends Abstract_Exporter {
 				return '';
 			}
 			return 'post_title' === $field_name ? $post->post_title : $post->post_author;
-		}
-
-		if ( 'wpml_language_code' === $field_name ) {
-			$post = get_post( $comment->comment_post_ID );
-			return $post && WPML_Compatibility::is_active()
-				? WPML_Compatibility::get_post_language_code( (int) $post->ID, (string) $post->post_type )
-				: '';
 		}
 
 		// Check if it is a meta field.

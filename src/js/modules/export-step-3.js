@@ -1187,10 +1187,7 @@ export default class ExportStep3 {
 
 		const title = document.createElement( 'h4' );
 		title.className = 'rsl-ie-field-category-title';
-		const categoryIcon =
-			group.label === 'WPML'
-				? 'dashicons-translation'
-				: 'dashicons-admin-post';
+		const categoryIcon = 'dashicons-admin-post';
 		title.innerHTML = `
 			<span class="dashicons dashicons-arrow-down-alt2 rsl-ie-category-toggle"></span>
 			<span class="dashicons ${ categoryIcon }"></span>
@@ -2350,14 +2347,6 @@ export default class ExportStep3 {
 	 * Get field icon class
 	 */
 	getFieldIcon( type, fieldKey = '' ) {
-		if (
-			type === 'wpml' ||
-			( typeof fieldKey === 'string' &&
-				fieldKey.indexOf( 'wpml_' ) === 0 )
-		) {
-			return 'dashicons-translation';
-		}
-
 		const icons = {
 			post: 'dashicons-admin-post',
 			text: 'dashicons-editor-textcolor',
@@ -2369,7 +2358,6 @@ export default class ExportStep3 {
 			taxonomy: 'dashicons-category',
 			array: 'dashicons-list-view',
 			custom: 'dashicons-admin-generic',
-			wpml: 'dashicons-translation',
 		};
 
 		return icons[ type ] || 'dashicons-admin-generic';

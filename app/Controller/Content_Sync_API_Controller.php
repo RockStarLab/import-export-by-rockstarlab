@@ -10,7 +10,6 @@
 namespace RockStarLab\ImportExport\Controller;
 
 use RockStarLab\ImportExport\Helper\ACF_Fields;
-use RockStarLab\ImportExport\Helper\WPML_Compatibility;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -321,7 +320,6 @@ class Content_Sync_API_Controller {
 			if ( isset( $post_data['post_type'] ) && 'product' === $post_data['post_type'] ) {
 				$product_post_ids[] = (int) $post_id;
 			}
-			$this->apply_synced_post_wpml_data( (int) $post_id, (array) $post_data, $source_to_local_map );
 			update_post_meta( $post_id, '_rsl_ie_original_post_id', $source_post_id );
 			update_post_meta( $post_id, '_rsl_ie_source_id', $source_post_id );
 
@@ -489,8 +487,6 @@ class Content_Sync_API_Controller {
 				$this->refresh_woocommerce_product_after_sync( $post_id );
 			}
 		}
-
-		$this->apply_synced_posts_wpml_data( $posts_data, $source_to_local_map );
 
 		// Fix hierarchical relationships (e.g. pages) after import so we can resolve
 		// parent IDs created in the same request.
@@ -1109,10 +1105,6 @@ class Content_Sync_API_Controller {
 	private function should_skip_synced_meta_key( $key ) {
 		$key = (string) $key;
 
-		if ( 0 === strpos( $key, '_icl_' ) || 0 === strpos( $key, '_wpml_' ) ) {
-			return true;
-		}
-
 		return class_exists( '\RockStarLab\ImportExport\Helper\Elementor_Fields' )
 			&& \RockStarLab\ImportExport\Helper\Elementor_Fields::is_generated_cache_key( $key );
 	}
@@ -1353,7 +1345,6 @@ class Content_Sync_API_Controller {
 							'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $taxonomy ),
 							'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $taxonomy ),
 						);
-						$this->append_wpml_term_sync_data( $term_info, (int) $term->term_id, $taxonomy );
 
 						// Get ACF fields for this term
 						if ( function_exists( 'get_field_objects' ) ) {
@@ -1445,7 +1436,6 @@ class Content_Sync_API_Controller {
 						);
 						$last_index                    = array_key_last( $terms_data[ $acf_taxonomy ] );
 						if ( null !== $last_index ) {
-							$this->append_wpml_term_sync_data( $terms_data[ $acf_taxonomy ][ $last_index ], (int) $term->term_id, $acf_taxonomy );
 						}
 						$known_ids[] = $raw_id;
 					}
@@ -1469,7 +1459,6 @@ class Content_Sync_API_Controller {
 					'terms'         => $terms_data,
 					'comments'      => $this->collect_post_comments_for_sync( $post->ID ),
 				);
-				$this->append_wpml_post_sync_data( $post_data, (int) $post->ID, (string) $post->post_type );
 
 				// Collect WooCommerce product variations for variable products.
 				if ( 'product' === $post->post_type
@@ -1626,10 +1615,6 @@ class Content_Sync_API_Controller {
 		$description          = $request->get_param( 'description' );
 		$source_attachment_id = absint( $request->get_param( 'source_attachment_id' ) );
 		$force_unique         = (bool) $request->get_param( 'force_unique' );
-		$wpml_data            = $request->get_param( 'wpml' );
-		if ( ! is_array( $wpml_data ) ) {
-			$wpml_data = array();
-		}
 
 		if ( empty( $file_name ) || empty( $file_data ) || empty( $file_hash ) ) {
 			return new \WP_REST_Response(
@@ -1645,8 +1630,6 @@ class Content_Sync_API_Controller {
 			$existing_attachment = $this->find_attachment_by_original_attachment_id( $source_attachment_id );
 			if ( $existing_attachment ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
-				$this->apply_synced_attachment_content_fields( (int) $existing_attachment, $description, $caption, $title, $wpml_data, $request->get_param( 'acf' ) );
-				$this->apply_synced_attachment_wpml_data( (int) $existing_attachment, $wpml_data );
 				return new \WP_REST_Response(
 					array(
 						'success'       => true,
@@ -1663,8 +1646,6 @@ class Content_Sync_API_Controller {
 			$existing_attachment = $this->find_attachment_by_hash( $file_hash );
 			if ( $existing_attachment ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
-				$this->apply_synced_attachment_content_fields( (int) $existing_attachment, $description, $caption, $title, $wpml_data, $request->get_param( 'acf' ) );
-				$this->apply_synced_attachment_wpml_data( (int) $existing_attachment, $wpml_data );
 				return new \WP_REST_Response(
 					array(
 						'success'       => true,
@@ -1754,8 +1735,6 @@ class Content_Sync_API_Controller {
 			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
 			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
 		}
-		$this->apply_synced_attachment_content_fields( (int) $attachment_id, $description, $caption, $title, $wpml_data, $request->get_param( 'acf' ) );
-		$this->apply_synced_attachment_wpml_data( (int) $attachment_id, $wpml_data );
 
 		return new \WP_REST_Response(
 			array(
@@ -1804,40 +1783,7 @@ class Content_Sync_API_Controller {
 		return ! empty( $attachments ) ? (int) $attachments[0] : false;
 	}
 
-	private function apply_synced_attachment_content_fields( $attachment_id, $description, $caption = '', $title = '', array $wpml_data = array(), $acf_data = array() ) {
-		$attachment_id = absint( $attachment_id );
-		if ( $attachment_id <= 0 || 'attachment' !== get_post_type( $attachment_id ) ) {
-			return;
-		}
 
-		$update = array( 'ID' => $attachment_id );
-		if ( is_string( $description ) ) {
-			$update['post_content'] = class_exists( ACF_Fields::class )
-				? ACF_Fields::replace_media_urls_in_html( $description, $attachment_id )
-				: $description;
-		}
-		if ( is_string( $caption ) && '' !== $caption ) {
-			$update['post_excerpt'] = $caption;
-		}
-		if ( is_string( $title ) && '' !== $title ) {
-			$update['post_title'] = $title;
-		}
-		wp_update_post( wp_slash( $update ) );
-
-		if ( class_exists( ACF_Fields::class ) && is_array( $acf_data ) ) {
-			foreach ( $acf_data as $field_name => $value ) {
-				ACF_Fields::import_value( 'media', $attachment_id, sanitize_text_field( (string) $field_name ), $value );
-			}
-		}
-	}
-
-	private function apply_synced_attachment_wpml_data( $attachment_id, array $wpml_data ) {
-		if ( empty( $wpml_data ) || ! WPML_Compatibility::is_active() ) {
-			return;
-		}
-
-		WPML_Compatibility::apply_post_language_details( (int) $attachment_id, $wpml_data, array() );
-	}
 
 	/**
 	 * Extract image IDs from term ACF fields
@@ -1993,116 +1939,66 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function list_posts( $request ) {
-			$post_type        = $request->get_param( 'post_type' );
-			$search           = $request->get_param( 'search' );
-			$status           = $request->get_param( 'status' );
-			$commentable_only = filter_var( $request->get_param( 'commentable_only' ), FILTER_VALIDATE_BOOLEAN );
-			$comment_type     = sanitize_key( (string) ( $request->get_param( 'comment_type' ) ?: '' ) );
-		$page                 = absint( $request->get_param( 'page' ) ?: 1 );
-		$per_page             = absint( $request->get_param( 'per_page' ) ?: 20 );
-		$language             = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
-		if ( ! WPML_Compatibility::is_active() ) {
-			$language = '';
-		}
-		$is_wpml_language_browse = '' !== $language;
+		$post_type        = sanitize_key( (string) $request->get_param( 'post_type' ) );
+		$search           = sanitize_text_field( (string) $request->get_param( 'search' ) );
+		$status           = sanitize_key( (string) $request->get_param( 'status' ) );
+		$commentable_only = filter_var( $request->get_param( 'commentable_only' ), FILTER_VALIDATE_BOOLEAN );
+		$comment_type     = sanitize_key( (string) ( $request->get_param( 'comment_type' ) ?: '' ) );
+		$page             = absint( $request->get_param( 'page' ) ?: 1 );
+		$per_page         = absint( $request->get_param( 'per_page' ) ?: 20 );
 
 		// When searching, include all posts (parent and children)
 		// When not searching, show only parent posts (to maintain hierarchy)
 		$post_parent_filter = 0; // Default: only top-level posts
-		if ( ! empty( $search ) || $is_wpml_language_browse ) {
+		if ( ! empty( $search ) ) {
 			$post_parent_filter = ''; // Empty string means no parent filter - include all posts
 		}
 
-			$args = array(
-				'post_type'           => $commentable_only ? $this->get_commentable_sync_post_types_for_context( $comment_type, $post_type ) : ( $post_type ?: 'any' ),
-				'post_status'         => ! empty( $status ) ? $status : ( 'attachment' === sanitize_key( (string) $post_type ) ? 'inherit' : 'any' ),
-				'posts_per_page'      => $per_page,
-				'suppress_filters'    => false,
-				'paged'               => $page,
-				'orderby'             => 'date',
-				'order'               => 'DESC',
-				'ignore_sticky_posts' => true,
+		$args = array(
+			'post_type'           => $commentable_only ? $this->get_commentable_sync_post_types_for_context( $comment_type, $post_type ) : ( $post_type ?: 'any' ),
+			'post_status'         => ! empty( $status ) ? $status : ( 'attachment' === $post_type ? 'inherit' : 'any' ),
+			'posts_per_page'      => $per_page,
+			'paged'               => $page,
+			'orderby'             => 'date',
+			'order'               => 'DESC',
+			'ignore_sticky_posts' => true,
+		);
+		if ( '' !== $post_parent_filter ) {
+			$args['post_parent'] = $post_parent_filter;
+		}
+		if ( ! empty( $search ) ) {
+			$args['s'] = $search;
+		}
+
+		$query      = new \WP_Query( $args );
+		$posts_list = array();
+		foreach ( $query->posts as $post ) {
+			$post_data = array(
+				'ID'             => $post->ID,
+				'post_title'     => $post->post_title,
+				'post_type'      => $post->post_type,
+				'post_status'    => $post->post_status,
+				'post_date'      => $post->post_date,
+				'post_modified'  => $post->post_modified,
+				'post_parent'    => $post->post_parent,
+				'children_count' => $this->count_children( $post->ID, $post->post_type ),
 			);
-			if ( '' !== $post_parent_filter ) {
-				$args['post_parent'] = $post_parent_filter;
-			}
-			$is_attachment_browse = 'attachment' === $post_type;
-			if ( '' !== $language && 'all' !== $language && $is_attachment_browse && WPML_Compatibility::is_media_active() ) {
-				$args['post__in'] = $this->get_post_ids_for_wpml_language( $language, 'attachment' );
-				unset( $args['lang'] );
-			} elseif ( '' !== $language && 'all' !== $language && $is_attachment_browse ) {
-				$args['suppress_filters'] = true;
-				unset( $args['lang'] );
-			} elseif ( '' !== $language && 'all' !== $language ) {
-				$args['lang'] = $language;
-			}
-			if ( 'all' === $language ) {
-				// WPML keeps the current language filter active in REST/admin-ajax
-				// contexts even when lang=all is passed. Suppress filters only for
-				// the "all languages" view so WP_Query behaves like the WP admin list.
-				$args['suppress_filters'] = true;
-				unset( $args['lang'] );
-				if ( empty( $search ) ) {
-					unset( $args['post_parent'] );
-				}
-			}
 
-			if ( ! empty( $search ) ) {
-				$args['s'] = $search;
-			}
+			$posts_list[] = $post_data;
+		}
 
-			$previous_wpml_language = $this->switch_wpml_query_language( $language );
-			$query                  = new \WP_Query( $args );
-			$posts_list             = array();
-			$total                  = $query->found_posts;
-			foreach ( $query->posts as $post ) {
-				$post_data = array(
-					'ID'            => $post->ID,
-					'post_title'    => $post->post_title,
-					'post_type'     => $post->post_type,
-					'post_status'   => $post->post_status,
-					'post_date'     => $post->post_date,
-					'post_modified' => $post->post_modified,
-					'post_parent'   => $post->post_parent,
-				);
-
-				// Get children count (same post type only, excluding attachments)
-				$children_count = 0;
-				if ( empty( $search ) && ! $is_wpml_language_browse ) {
-					$children_count = $this->count_children( $post->ID, $post->post_type );
-				}
-				$post_data['children_count'] = $children_count;
-
-				if ( WPML_Compatibility::is_active() ) {
-					$wpml_data = WPML_Compatibility::export_post_data( (int) $post->ID, (string) $post->post_type );
-					if ( ! empty( $wpml_data['language_code'] ) ) {
-						$post_data['wpml_language'] = sanitize_key( (string) $wpml_data['language_code'] );
-						$post_data['wpml']          = $wpml_data;
-					}
-				}
-
-				$posts_list[] = $post_data;
-			}
-
-			// Get status counts for filters
-			$status_counts = $this->get_status_counts( $post_type, $language );
-
-			if ( '' !== $previous_wpml_language ) {
-				$this->switch_wpml_query_language( $previous_wpml_language );
-			}
-
-			return new \WP_REST_Response(
-				array(
-					'success'       => true,
-					'posts'         => $posts_list,
-					'total'         => $total,
-					'pages'         => ceil( $total / $per_page ),
-					'current_page'  => $page,
-					'per_page'      => $per_page,
-					'status_counts' => $status_counts,
-				),
-				200
-			);
+		return new \WP_REST_Response(
+			array(
+				'success'       => true,
+				'posts'         => $posts_list,
+				'total'         => (int) $query->found_posts,
+				'pages'         => ceil( (int) $query->found_posts / $per_page ),
+				'current_page'  => $page,
+				'per_page'      => $per_page,
+				'status_counts' => $this->get_status_counts( $post_type ),
+			),
+			200
+		);
 	}
 
 	/**
@@ -2156,7 +2052,6 @@ class Content_Sync_API_Controller {
 	/**
 	 * Get product IDs for separating normal comments from WooCommerce reviews.
 	 *
-	 * @param string $language WPML language code.
 	 * @return int[]
 	 */
 	private function get_product_post_ids_for_comment_filter( $language = '' ) {
@@ -2176,7 +2071,7 @@ class Content_Sync_API_Controller {
 		);
 
 		$language = sanitize_key( (string) $language );
-		if ( '' !== $language && 'all' !== $language && WPML_Compatibility::is_active() ) {
+		if ( '' !== $language && 'all' !== $language ) {
 			$args['lang'] = $language;
 		} elseif ( 'all' === $language ) {
 			$args['suppress_filters'] = true;
@@ -2190,7 +2085,6 @@ class Content_Sync_API_Controller {
 	 *
 	 * @param \WP_Comment $comment      Comment object.
 	 * @param string      $comment_type Requested comment subtype.
-	 * @param string      $language     WPML language code.
 	 * @return bool
 	 */
 	private function is_comment_in_sync_context( $comment, $comment_type = '', $language = '' ) {
@@ -2207,12 +2101,7 @@ class Content_Sync_API_Controller {
 			return false;
 		}
 
-		$language = sanitize_key( (string) $language );
-		if ( '' === $language || 'all' === $language || ! WPML_Compatibility::is_active() || ! $post ) {
-			return true;
-		}
-
-		return $language === WPML_Compatibility::get_post_language_code( (int) $post->ID, $post_type );
+		return true;
 	}
 
 	/**
@@ -2226,11 +2115,6 @@ class Content_Sync_API_Controller {
 		$search   = sanitize_text_field( (string) $request->get_param( 'search' ) );
 		$page     = absint( $request->get_param( 'page' ) ?: 1 );
 		$per_page = absint( $request->get_param( 'per_page' ) ?: 20 );
-		$language = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
-		if ( ! WPML_Compatibility::is_active() ) {
-			$language = '';
-		}
-
 		if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
 			return new \WP_REST_Response(
 				array(
@@ -2252,35 +2136,17 @@ class Content_Sync_API_Controller {
 			'order'      => 'ASC',
 		);
 
-		if ( 'all' === $language ) {
-			$args['suppress_filter']  = true;
-			$args['suppress_filters'] = true;
-		} elseif ( '' !== $language ) {
-			$args['lang'] = $language;
-		}
-
 		if ( '' !== $search ) {
 			$args['search'] = $search;
 		}
 
-		$previous_wpml_language = $this->switch_wpml_query_language( $language );
-		$terms                  = get_terms( $args );
-		$count_args             = array(
+		$terms      = get_terms( $args );
+		$count_args = array(
 			'taxonomy'   => $taxonomy,
 			'hide_empty' => false,
 			'search'     => $search,
 		);
-		if ( 'all' === $language ) {
-			$count_args['suppress_filter']  = true;
-			$count_args['suppress_filters'] = true;
-		} elseif ( '' !== $language ) {
-			$count_args['lang'] = $language;
-		}
-		$total = wp_count_terms( $count_args );
-
-		if ( '' !== $previous_wpml_language ) {
-			$this->switch_wpml_query_language( $previous_wpml_language );
-		}
+		$total      = wp_count_terms( $count_args );
 
 		if ( is_wp_error( $terms ) || is_wp_error( $total ) ) {
 			return new \WP_REST_Response(
@@ -2493,8 +2359,6 @@ class Content_Sync_API_Controller {
 			}
 		}
 
-		$this->apply_synced_terms_wpml_data( $taxonomy, $terms, $source_to_local_terms );
-
 		return new \WP_REST_Response(
 			array(
 				'success' => true,
@@ -2552,8 +2416,6 @@ class Content_Sync_API_Controller {
 				}
 			}
 		}
-
-		$this->append_wpml_term_sync_data( $data, (int) $term->term_id, $taxonomy );
 
 		return $data;
 	}
@@ -2696,7 +2558,7 @@ class Content_Sync_API_Controller {
 		$page         = absint( $request->get_param( 'page' ) ?: 1 );
 		$per_page     = min( max( absint( $request->get_param( 'per_page' ) ?: 20 ), 1 ), 100 );
 		$language     = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
-		if ( ! WPML_Compatibility::is_active() ) {
+		if ( ! false ) {
 			$language = '';
 		}
 		$offset = ( max( $page, 1 ) - 1 ) * $per_page;
@@ -2725,10 +2587,6 @@ class Content_Sync_API_Controller {
 			$args['post_id'] = $post_id;
 		}
 
-		$previous_wpml_language = $this->switch_wpml_query_language( $language );
-		if ( '' !== $language && 'all' !== $language && $post_id <= 0 ) {
-			$args['post__in'] = $this->get_post_ids_for_wpml_language( $language );
-		}
 		if ( $post_id <= 0 ) {
 			$product_ids = $this->get_product_post_ids_for_comment_filter( $language );
 			if ( 'review' === $comment_type ) {
@@ -2756,10 +2614,6 @@ class Content_Sync_API_Controller {
 				)
 			)
 		);
-
-		if ( '' !== $previous_wpml_language ) {
-			$this->switch_wpml_query_language( $previous_wpml_language );
-		}
 
 		$list = array();
 		foreach ( $comments as $comment ) {
@@ -2790,7 +2644,7 @@ class Content_Sync_API_Controller {
 		$comment_ids  = is_array( $comment_ids ) ? array_values( array_filter( array_unique( array_map( 'absint', $comment_ids ) ) ) ) : array();
 		$comment_type = sanitize_key( (string) ( $request->get_param( 'comment_type' ) ?: '' ) );
 		$language     = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
-		if ( ! WPML_Compatibility::is_active() ) {
+		if ( ! false ) {
 			$language = '';
 		}
 
@@ -3304,11 +3158,7 @@ class Content_Sync_API_Controller {
 	 * @param string $post_type Post type.
 	 * @return array Status counts.
 	 */
-	private function get_status_counts( $post_type, $language = '' ) {
-		if ( ! WPML_Compatibility::is_active() ) {
-			$language = '';
-		}
-
+	private function get_status_counts( $post_type ) {
 		$counts = array(
 			'all'     => 0,
 			'publish' => 0,
@@ -3316,24 +3166,16 @@ class Content_Sync_API_Controller {
 			'pending' => 0,
 		);
 
-		$statuses               = array( 'publish', 'draft', 'pending', 'private', 'future' );
-		$previous_wpml_language = $this->switch_wpml_query_language( $language );
+		$statuses = array( 'publish', 'draft', 'pending', 'private', 'future' );
 
 		foreach ( $statuses as $status ) {
-			$count_args = array(
+			$count_args  = array(
 				'post_type'           => $post_type ?: 'any',
 				'post_status'         => $status,
 				'posts_per_page'      => 1,
 				'fields'              => 'ids',
 				'ignore_sticky_posts' => true,
 			);
-			if ( 'all' === $language ) {
-				$count_args['suppress_filters'] = true;
-				unset( $count_args['lang'] );
-			} elseif ( '' !== $language ) {
-				$count_args['suppress_filters'] = false;
-				$count_args['lang']             = sanitize_key( $language );
-			}
 			$count_query = new \WP_Query( $count_args );
 
 			$count = $count_query->found_posts;
@@ -3347,101 +3189,10 @@ class Content_Sync_API_Controller {
 			$counts['all'] += $count;
 		}
 
-		if ( '' !== $previous_wpml_language ) {
-			$this->switch_wpml_query_language( $previous_wpml_language );
-		}
-
 		return $counts;
 	}
 
-	/**
-	 * Switch WPML language for internal sync queries and return previous language.
-	 *
-	 * @param string $language Language code or all.
-	 * @return string Previous language code.
-	 */
-	private function switch_wpml_query_language( $language ) {
-		$language = sanitize_key( (string) $language );
-		if ( '' === $language || ! WPML_Compatibility::is_active() || ! function_exists( 'apply_filters' ) ) {
-			return '';
-		}
 
-		$previous_language = sanitize_key( (string) apply_filters( 'wpml_current_language', '' ) );
-
-		global $sitepress;
-		if ( is_object( $sitepress ) && method_exists( $sitepress, 'switch_lang' ) ) {
-			$sitepress->switch_lang( $language, true );
-		} elseif ( function_exists( 'do_action' ) ) {
-			do_action( 'wpml_switch_language', $language );
-		}
-
-		return $previous_language;
-	}
-
-	/**
-	 * Get object IDs that belong to a WPML language for comment filtering.
-	 *
-	 * @param string $language Language code.
-	 * @return int[]
-	 */
-	private function get_post_ids_for_wpml_language( $language, $post_type = 'any' ) {
-		$language = sanitize_key( (string) $language );
-		if ( '' === $language || 'all' === $language || ! WPML_Compatibility::is_active() ) {
-			return array();
-		}
-		$post_type = sanitize_key( (string) $post_type );
-		if ( '' === $post_type ) {
-			$post_type = 'any';
-		}
-
-		if ( 'attachment' === $post_type ) {
-			if ( ! WPML_Compatibility::is_media_active() ) {
-				return array();
-			}
-
-			$attachment_ids = get_posts(
-				array(
-					'post_type'              => 'attachment',
-					'post_status'            => 'inherit',
-					'posts_per_page'         => -1,
-					'fields'                 => 'ids',
-					'suppress_filters'       => true,
-					'ignore_sticky_posts'    => true,
-					'update_post_meta_cache' => false,
-					'update_post_term_cache' => false,
-				)
-			);
-
-			$attachment_ids = array_values(
-				array_filter(
-					array_map( 'absint', (array) $attachment_ids ),
-					static function ( $attachment_id ) use ( $language ) {
-						return $language === WPML_Compatibility::get_post_language_code( $attachment_id, 'attachment' );
-					}
-				)
-			);
-
-			return ! empty( $attachment_ids ) ? $attachment_ids : array( 0 );
-		}
-
-		$post_ids = get_posts(
-			array(
-				'post_type'              => $post_type,
-				'post_status'            => 'any',
-				'posts_per_page'         => -1,
-				'fields'                 => 'ids',
-				'suppress_filters'       => false,
-				'lang'                   => $language,
-				'ignore_sticky_posts'    => true,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-			)
-		);
-
-		$post_ids = array_values( array_filter( array_map( 'absint', (array) $post_ids ) ) );
-
-		return ! empty( $post_ids ) ? $post_ids : array( 0 );
-	}
 
 	/**
 	 * Resolve or create a synced taxonomy term, preserving hierarchy when present.
@@ -3474,7 +3225,6 @@ class Content_Sync_API_Controller {
 		$existing_term = get_term_by( 'slug', sanitize_title( (string) $term_info['slug'] ), $taxonomy );
 		if ( $existing_term ) {
 			wp_update_term( (int) $existing_term->term_id, $taxonomy, $args );
-			$this->apply_synced_term_wpml_data( (int) $existing_term->term_id, $taxonomy, (array) $term_info, [] );
 			return (int) $existing_term->term_id;
 		}
 
@@ -3485,7 +3235,6 @@ class Content_Sync_API_Controller {
 		}
 
 		$term_id = (int) $new_term['term_id'];
-		$this->apply_synced_term_wpml_data( $term_id, $taxonomy, (array) $term_info, [] );
 
 		return $term_id;
 	}
@@ -3679,7 +3428,7 @@ class Content_Sync_API_Controller {
 		$parent_id = absint( $request->get_param( 'parent_id' ) );
 		$post_type = sanitize_text_field( $request->get_param( 'post_type' ) ?: '' );
 		$language  = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
-		if ( ! WPML_Compatibility::is_active() ) {
+		if ( ! false ) {
 			$language = '';
 		}
 
@@ -3704,33 +3453,13 @@ class Content_Sync_API_Controller {
 			'post_type'           => ! empty( $post_type ) ? $post_type : 'any',
 			'post_status'         => array( 'publish', 'draft', 'pending', 'private', 'future' ),
 			'posts_per_page'      => -1,
-			'suppress_filters'    => false,
 			'orderby'             => 'date',
 			'order'               => 'DESC',
 			'ignore_sticky_posts' => true,
 			'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 		);
 
-		if ( '' !== $language ) {
-			$args['lang'] = $language;
-		}
-
-		if ( 'all' === $language ) {
-			$args['suppress_filters'] = true;
-			unset( $args['lang'] );
-		}
-
-		$previous_wpml_language = '';
-		if ( '' !== $language && function_exists( 'apply_filters' ) && function_exists( 'do_action' ) ) {
-			$previous_wpml_language = sanitize_key( (string) apply_filters( 'wpml_current_language', '' ) );
-			do_action( 'wpml_switch_language', $language );
-		}
-
 		$children = get_posts( $args );
-
-		if ( '' !== $previous_wpml_language && function_exists( 'do_action' ) ) {
-			do_action( 'wpml_switch_language', $previous_wpml_language );
-		}
 
 		$children_list = array();
 
@@ -3758,155 +3487,5 @@ class Content_Sync_API_Controller {
 			),
 			200
 		);
-	}
-
-	/**
-	 * Append WPML language data to a post sync payload.
-	 *
-	 * @param array  $post_data Post sync payload, passed by reference.
-	 * @param int    $post_id   Source post ID.
-	 * @param string $post_type Source post type.
-	 * @return void
-	 */
-	private function append_wpml_post_sync_data( array &$post_data, $post_id, $post_type ) {
-		if ( ! WPML_Compatibility::is_active() ) {
-			return;
-		}
-
-		$wpml_data = WPML_Compatibility::export_post_data( (int) $post_id, (string) $post_type );
-		if ( ! empty( $wpml_data ) ) {
-			$post_data['wpml'] = $wpml_data;
-		}
-	}
-
-	/**
-	 * Append WPML language data to a term sync payload.
-	 *
-	 * @param array  $term_info Term sync payload, passed by reference.
-	 * @param int    $term_id   Source term ID.
-	 * @param string $taxonomy  Taxonomy name.
-	 * @return void
-	 */
-	private function append_wpml_term_sync_data( array &$term_info, $term_id, $taxonomy ) {
-		if ( ! WPML_Compatibility::is_active() ) {
-			return;
-		}
-
-		$wpml_data = WPML_Compatibility::export_term_data( (int) $term_id, (string) $taxonomy );
-		if ( ! empty( $wpml_data ) ) {
-			$term_info['wpml'] = $wpml_data;
-		}
-	}
-
-	/**
-	 * Apply WPML language data received through content sync.
-	 *
-	 * @param int   $post_id       Target post ID.
-	 * @param array $post_data     Incoming post payload.
-	 * @param array $source_id_map Source post ID => target post ID.
-	 * @return void
-	 */
-	private function apply_synced_post_wpml_data( $post_id, array $post_data, array $source_id_map ) {
-		if ( ! WPML_Compatibility::is_active() || empty( $post_data['wpml'] ) || ! is_array( $post_data['wpml'] ) ) {
-			return;
-		}
-
-		WPML_Compatibility::apply_post_language_details( (int) $post_id, $post_data['wpml'], $source_id_map );
-	}
-
-	/**
-	 * Apply WPML data for a set of synced posts after the full ID map is known.
-	 *
-	 * @param array $posts_data    Incoming posts payload.
-	 * @param array $source_id_map Source post ID => target post ID.
-	 * @return void
-	 */
-	private function apply_synced_posts_wpml_data( array $posts_data, array $source_id_map ) {
-		if ( ! WPML_Compatibility::is_active() || empty( $source_id_map ) ) {
-			return;
-		}
-
-		usort(
-			$posts_data,
-			static function ( $left, $right ) {
-				$left_wpml       = isset( $left['wpml'] ) && is_array( $left['wpml'] ) ? $left['wpml'] : [];
-				$right_wpml      = isset( $right['wpml'] ) && is_array( $right['wpml'] ) ? $right['wpml'] : [];
-				$left_is_source  = empty( $left_wpml['source_language_code'] ) || 'source' === ( $left_wpml['translation_role'] ?? '' );
-				$right_is_source = empty( $right_wpml['source_language_code'] ) || 'source' === ( $right_wpml['translation_role'] ?? '' );
-
-				if ( $left_is_source === $right_is_source ) {
-					return 0;
-				}
-
-				return $left_is_source ? -1 : 1;
-			}
-		);
-
-		foreach ( $posts_data as $post_data ) {
-			$source_id = absint( $post_data['ID'] ?? 0 );
-			$target_id = $source_id > 0 ? absint( $source_id_map[ $source_id ] ?? 0 ) : 0;
-			if ( $target_id <= 0 ) {
-				continue;
-			}
-
-			$this->apply_synced_post_wpml_data( $target_id, (array) $post_data, $source_id_map );
-		}
-	}
-
-	/**
-	 * Apply WPML language data received for a synced term.
-	 *
-	 * @param int    $term_id       Target term ID.
-	 * @param string $taxonomy      Taxonomy name.
-	 * @param array  $term_info     Incoming term payload.
-	 * @param array  $source_id_map Source term ID => target term ID.
-	 * @return void
-	 */
-	private function apply_synced_term_wpml_data( $term_id, $taxonomy, array $term_info, array $source_id_map ) {
-		if ( ! WPML_Compatibility::is_active() || empty( $term_info['wpml'] ) || ! is_array( $term_info['wpml'] ) ) {
-			return;
-		}
-
-		WPML_Compatibility::apply_term_language_details( (int) $term_id, (string) $taxonomy, $term_info['wpml'], $source_id_map );
-	}
-
-	/**
-	 * Apply WPML data for synced terms once all target term IDs are known.
-	 *
-	 * @param string $taxonomy      Taxonomy name.
-	 * @param array  $terms         Incoming term payloads.
-	 * @param array  $source_id_map Source term ID => target term ID.
-	 * @return void
-	 */
-	private function apply_synced_terms_wpml_data( $taxonomy, array $terms, array $source_id_map ) {
-		if ( ! WPML_Compatibility::is_active() || empty( $source_id_map ) ) {
-			return;
-		}
-
-		usort(
-			$terms,
-			static function ( $left, $right ) {
-				$left_wpml       = isset( $left['wpml'] ) && is_array( $left['wpml'] ) ? $left['wpml'] : [];
-				$right_wpml      = isset( $right['wpml'] ) && is_array( $right['wpml'] ) ? $right['wpml'] : [];
-				$left_is_source  = empty( $left_wpml['source_language_code'] ) || 'source' === ( $left_wpml['translation_role'] ?? '' );
-				$right_is_source = empty( $right_wpml['source_language_code'] ) || 'source' === ( $right_wpml['translation_role'] ?? '' );
-
-				if ( $left_is_source === $right_is_source ) {
-					return 0;
-				}
-
-				return $left_is_source ? -1 : 1;
-			}
-		);
-
-		foreach ( $terms as $term_info ) {
-			$source_id = absint( $term_info['term_id'] ?? 0 );
-			$target_id = $source_id > 0 ? absint( $source_id_map[ $source_id ] ?? 0 ) : 0;
-			if ( $target_id <= 0 ) {
-				continue;
-			}
-
-			$this->apply_synced_term_wpml_data( $target_id, $taxonomy, (array) $term_info, $source_id_map );
-		}
 	}
 }

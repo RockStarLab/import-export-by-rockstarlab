@@ -12,7 +12,6 @@ namespace RockStarLab\ImportExport\Controller;
 use RockStarLab\ImportExport\Helper\Ajax_Security;
 use RockStarLab\ImportExport\Helper\ACF_Fields;
 use RockStarLab\ImportExport\Helper\Field_Transformation_Bridge;
-use RockStarLab\ImportExport\Helper\WPML_Compatibility;
 use RockStarLab\ImportExport\Model\Connected_Site;
 
 defined( 'ABSPATH' ) || exit;
@@ -25,59 +24,7 @@ defined( 'ABSPATH' ) || exit;
  * @package RockStarLab\ImportExport\Controller
  */
 class Content_Sync_Controller extends Base_Controller {
-	/**
-	 * Resolve the language selected in the current WPML admin screen.
-	 *
-	 * @return string
-	 */
-	private function get_admin_wpml_language() {
-		if ( ! WPML_Compatibility::is_active() ) {
-			return '';
-		}
 
-		$language = isset( $_GET['lang'] ) ? sanitize_key( wp_unslash( $_GET['lang'] ) ) : '';
-		if ( 'all' === $language ) {
-			return 'all';
-		}
-		if ( '' !== $language ) {
-			return $language;
-		}
-
-		foreach ( array( '_icl_current_language', 'wpml_current_language', 'wpml_admin_language' ) as $cookie_name ) {
-			if ( ! empty( $_COOKIE[ $cookie_name ] ) ) {
-				$language = sanitize_key( wp_unslash( $_COOKIE[ $cookie_name ] ) );
-				if ( '' !== $language ) {
-					return $language;
-				}
-			}
-		}
-
-		return function_exists( 'apply_filters' ) ? sanitize_key( (string) apply_filters( 'wpml_current_language', '' ) ) : '';
-	}
-
-	/**
-	 * Switch WPML language for internal sync queries and return previous language.
-	 *
-	 * @param string $language Language code or all.
-	 * @return string Previous language code.
-	 */
-	private function switch_wpml_query_language( $language ) {
-		$language = sanitize_key( (string) $language );
-		if ( '' === $language || ! WPML_Compatibility::is_active() || ! function_exists( 'apply_filters' ) ) {
-			return '';
-		}
-
-		$previous_language = sanitize_key( (string) apply_filters( 'wpml_current_language', '' ) );
-
-		global $sitepress;
-		if ( is_object( $sitepress ) && method_exists( $sitepress, 'switch_lang' ) ) {
-			$sitepress->switch_lang( $language, true );
-		} elseif ( function_exists( 'do_action' ) ) {
-			do_action( 'wpml_switch_language', $language );
-		}
-
-		return $previous_language;
-	}
 
 	/**
 	 * Return the current admin screen post status without reading query params.
@@ -743,7 +690,6 @@ class Content_Sync_Controller extends Base_Controller {
 				'exportUrl'                   => admin_url( 'admin.php?page=rsl-ie-export' ),
 				'contentSyncUrl'              => admin_url( 'admin.php?page=rsl-ie-content-sync' ),
 				'connectedSites'              => $sites_map,
-				'wpmlLanguage'                => $this->get_admin_wpml_language(),
 				'i18n'                        => array(
 					// Alerts & Messages
 					'pleaseSavePost'          => __( 'Please save the post first', 'import-export-by-rockstarlab' ),
@@ -979,7 +925,6 @@ class Content_Sync_Controller extends Base_Controller {
 		$comment_type     = sanitize_key( (string) $this->get_request_param( 'comment_type', '' ) );
 		$language         = sanitize_key( (string) $this->get_request_param( 'language', '' ) );
 		if ( '' === $language ) {
-			$language = $this->get_admin_wpml_language();
 		}
 
 		// Validate input
@@ -1072,12 +1017,7 @@ class Content_Sync_Controller extends Base_Controller {
 		$search           = sanitize_text_field( (string) $this->get_request_param( 'search', '' ) );
 		$page             = max( 1, absint( $this->get_request_param( 'page', 1 ) ) );
 		$per_page         = min( max( 1, absint( $this->get_request_param( 'per_page', 20 ) ) ), 50 );
-		$language         = sanitize_key( (string) $this->get_request_param( 'language', '' ) );
-		if ( '' === $language ) {
-			$language = $this->get_admin_wpml_language();
-		}
-
-		$args = array(
+		$args             = array(
 			'post_type'              => $commentable_only ? $this->get_commentable_sync_post_types_for_context( $comment_type, $post_type ) : ( '' !== $post_type ? $post_type : 'any' ),
 			'post_status'            => 'any',
 			'posts_per_page'         => $per_page,
@@ -1093,19 +1033,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$args['s'] = $search;
 		}
 
-		if ( '' !== $language && 'all' !== $language && WPML_Compatibility::is_active() ) {
-			$args['lang']             = $language;
-			$args['suppress_filters'] = false;
-		} elseif ( 'all' === $language ) {
-			$args['suppress_filters'] = true;
-			unset( $args['lang'] );
-		}
-
-		$previous_wpml_language = $this->switch_wpml_query_language( $language );
-		$query                  = new \WP_Query( $args );
-		if ( '' !== $previous_wpml_language ) {
-			$this->switch_wpml_query_language( $previous_wpml_language );
-		}
+		$query = new \WP_Query( $args );
 		$posts = array();
 		foreach ( $query->posts as $post ) {
 			$posts[] = array(
@@ -1179,7 +1107,6 @@ class Content_Sync_Controller extends Base_Controller {
 	/**
 	 * Get product IDs for separating normal comments from WooCommerce reviews.
 	 *
-	 * @param string $language WPML language code.
 	 * @return int[]
 	 */
 	private function get_product_post_ids_for_comment_filter( $language = '' ) {
@@ -1199,7 +1126,7 @@ class Content_Sync_Controller extends Base_Controller {
 		);
 
 		$language = sanitize_key( (string) $language );
-		if ( '' !== $language && 'all' !== $language && WPML_Compatibility::is_active() ) {
+		if ( '' !== $language && 'all' !== $language ) {
 			$args['lang'] = $language;
 		} elseif ( 'all' === $language ) {
 			$args['suppress_filters'] = true;
@@ -1447,7 +1374,6 @@ class Content_Sync_Controller extends Base_Controller {
 		$per_page     = absint( $this->get_request_param( 'per_page', 20 ) );
 		$language     = sanitize_key( (string) $this->get_request_param( 'language', '' ) );
 		if ( '' === $language ) {
-			$language = $this->get_admin_wpml_language();
 		}
 
 		if ( empty( $site_id ) ) {
@@ -1576,7 +1502,6 @@ class Content_Sync_Controller extends Base_Controller {
 		$comment_type   = sanitize_key( (string) $this->get_request_param( 'comment_type', '' ) );
 		$language       = sanitize_key( (string) $this->get_request_param( 'language', '' ) );
 		if ( '' === $language ) {
-			$language = $this->get_admin_wpml_language();
 		}
 
 		if ( is_string( $post_mapping ) ) {
@@ -2067,7 +1992,6 @@ class Content_Sync_Controller extends Base_Controller {
 							'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $taxonomy ),
 							'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $taxonomy ),
 						);
-						$this->append_wpml_term_sync_data( $term_info, (int) $term->term_id, $taxonomy );
 
 						// Get ACF fields for this term
 						if ( function_exists( 'get_field_objects' ) ) {
@@ -2162,7 +2086,6 @@ class Content_Sync_Controller extends Base_Controller {
 								);
 								$last_index                    = array_key_last( $terms_data[ $acf_taxonomy ] );
 								if ( null !== $last_index ) {
-									$this->append_wpml_term_sync_data( $terms_data[ $acf_taxonomy ][ $last_index ], (int) $term->term_id, $acf_taxonomy );
 								}
 								$known_ids[] = $raw_id;
 					}
@@ -2186,7 +2109,6 @@ class Content_Sync_Controller extends Base_Controller {
 					'terms'         => $terms_data,
 					'comments'      => $this->collect_post_comments_for_sync( $post->ID ),
 				);
-				$this->append_wpml_post_sync_data( $post_data, (int) $post->ID, (string) $post->post_type );
 
 				if ( isset( $prepared_meta['repeater'] ) ) {
 				}
@@ -2499,7 +2421,6 @@ class Content_Sync_Controller extends Base_Controller {
 			'description'          => $image['description'],
 			'source_attachment_id' => isset( $image['attachment_id'] ) ? (int) $image['attachment_id'] : 0,
 			'force_unique'         => ! empty( $image['force_unique'] ) ? 1 : 0,
-			'wpml'                 => isset( $image['wpml'] ) && is_array( $image['wpml'] ) ? $image['wpml'] : array(),
 		);
 
 		// Upload to remote
@@ -2620,23 +2541,6 @@ class Content_Sync_Controller extends Base_Controller {
 	}
 
 		/**
-		 * Re-apply WPML language metadata to an already-existing remote media item.
-		 *
-		 * @param array $image        Image data.
-		 * @param array $site         Site connection data.
-		 * @param bool  $force_unique Whether force-unique mode is enabled.
-		 * @return void
-		 */
-	private function sync_existing_remote_image_language( array $image, array $site, $force_unique = false ) {
-		if ( empty( $image['wpml'] ) || empty( $image['file_path'] ) ) {
-			return;
-		}
-
-		$image['force_unique'] = $force_unique;
-		$this->upload_single_image_to_remote( $image, $site );
-	}
-
-		/**
 		 * Check whether a URL points to a media file Content Sync can import.
 		 *
 		 * @param string $url Media URL.
@@ -2662,10 +2566,6 @@ class Content_Sync_Controller extends Base_Controller {
 	 */
 	private function should_skip_synced_meta_key( $key ) {
 		$key = (string) $key;
-
-		if ( 0 === strpos( $key, '_icl_' ) || 0 === strpos( $key, '_wpml_' ) ) {
-			return true;
-		}
 
 		return class_exists( '\RockStarLab\ImportExport\Helper\Elementor_Fields' )
 			&& \RockStarLab\ImportExport\Helper\Elementor_Fields::is_generated_cache_key( $key );
@@ -2926,7 +2826,6 @@ class Content_Sync_Controller extends Base_Controller {
 			if ( isset( $post_data['post_type'] ) && 'product' === $post_data['post_type'] ) {
 				$product_post_ids[] = (int) $post_id;
 			}
-			$this->apply_synced_post_wpml_data( (int) $post_id, (array) $post_data, $imported_remote_to_local );
 
 			// Store original post ID for future reference
 			update_post_meta( $post_id, '_rsl_ie_original_post_id', $remote_post_id );
@@ -3081,8 +2980,6 @@ class Content_Sync_Controller extends Base_Controller {
 			}
 		}
 
-		$this->apply_synced_posts_wpml_data( $posts_data, $imported_remote_to_local );
-
 		// Fix hierarchical relationships (e.g. pages) after all imports so we can
 		// resolve parent IDs that were created in the same pull batch.
 		foreach ( $imported_remote_to_local as $remote_id => $local_id ) {
@@ -3183,7 +3080,6 @@ class Content_Sync_Controller extends Base_Controller {
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
 				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
-				$this->apply_synced_attachment_wpml_data( (int) $existing_id, $image );
 				return $existing_id;
 			}
 		}
@@ -3194,7 +3090,6 @@ class Content_Sync_Controller extends Base_Controller {
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
 				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
-				$this->apply_synced_attachment_wpml_data( (int) $existing_id, $image );
 				return $existing_id;
 			}
 		}
@@ -3225,7 +3120,6 @@ class Content_Sync_Controller extends Base_Controller {
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
 				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
-				$this->apply_synced_attachment_wpml_data( (int) $existing_id, $image );
 				return $existing_id;
 			}
 		}
@@ -3270,7 +3164,6 @@ class Content_Sync_Controller extends Base_Controller {
 			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
 		}
 		$this->apply_synced_attachment_content_fields( (int) $attachment_id, $image );
-		$this->apply_synced_attachment_wpml_data( (int) $attachment_id, $image );
 
 		return $attachment_id;
 	}
@@ -3344,13 +3237,6 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 	}
 
-	private function apply_synced_attachment_wpml_data( $attachment_id, array $image_data ) {
-		if ( empty( $image_data['wpml'] ) || ! is_array( $image_data['wpml'] ) || ! WPML_Compatibility::is_active() ) {
-			return;
-		}
-
-		WPML_Compatibility::apply_post_language_details( (int) $attachment_id, $image_data['wpml'], array() );
-	}
 
 	/**
 	 * Prepare ACF value - ensure numeric IDs are integers, not strings
@@ -4392,7 +4278,6 @@ class Content_Sync_Controller extends Base_Controller {
 		$existing_term = get_term_by( 'slug', sanitize_title( (string) $term_info['slug'] ), $taxonomy );
 		if ( $existing_term ) {
 			wp_update_term( (int) $existing_term->term_id, $taxonomy, $args );
-			$this->apply_synced_term_wpml_data( (int) $existing_term->term_id, $taxonomy, (array) $term_info, [] );
 			return (int) $existing_term->term_id;
 		}
 
@@ -4403,7 +4288,6 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		$term_id = (int) $new_term['term_id'];
-		$this->apply_synced_term_wpml_data( $term_id, $taxonomy, (array) $term_info, [] );
 
 		return $term_id;
 	}
@@ -4491,8 +4375,6 @@ class Content_Sync_Controller extends Base_Controller {
 			}
 		}
 
-		$this->append_wpml_term_sync_data( $data, (int) $term->term_id, $taxonomy );
-
 		return $data;
 	}
 
@@ -4575,8 +4457,6 @@ class Content_Sync_Controller extends Base_Controller {
 				++$result['created'];
 			}
 		}
-
-		$this->apply_synced_terms_wpml_data( $taxonomy, $terms, $source_to_local_terms );
 
 		return $result;
 	}
@@ -4734,7 +4614,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 			// Resolve portable gallery/playlist tokens back to shortcodes and
 			// replace their source IDs with the downloaded local attachment IDs.
-			if ( class_exists( ACF_Fields::class ) && false !== strpos( $value, '[[RSL_IE:' ) ) {
+			if ( class_exists( ACF_Fields::class ) !== strpos( $value, '[[RSL_IE:' ) ) {
 				return ACF_Fields::replace_media_urls_in_html( $value );
 			}
 
@@ -5115,155 +4995,5 @@ class Content_Sync_Controller extends Base_Controller {
 	private function is_term_acf_image_url( $url ) {
 		$path = (string) wp_parse_url( html_entity_decode( (string) $url, ENT_QUOTES, get_bloginfo( 'charset' ) ), PHP_URL_PATH );
 		return '' !== $path && (bool) preg_match( '~\.(?:jpe?g|png|gif|webp|avif|svg)$~i', $path );
-	}
-
-	/**
-	 * Append WPML language data to a post sync payload.
-	 *
-	 * @param array  $post_data Post sync payload, passed by reference.
-	 * @param int    $post_id   Source post ID.
-	 * @param string $post_type Source post type.
-	 * @return void
-	 */
-	private function append_wpml_post_sync_data( array &$post_data, $post_id, $post_type ) {
-		if ( ! WPML_Compatibility::is_active() ) {
-			return;
-		}
-
-		$wpml_data = WPML_Compatibility::export_post_data( (int) $post_id, (string) $post_type );
-		if ( ! empty( $wpml_data ) ) {
-			$post_data['wpml'] = $wpml_data;
-		}
-	}
-
-	/**
-	 * Append WPML language data to a term sync payload.
-	 *
-	 * @param array  $term_info Term sync payload, passed by reference.
-	 * @param int    $term_id   Source term ID.
-	 * @param string $taxonomy  Taxonomy name.
-	 * @return void
-	 */
-	private function append_wpml_term_sync_data( array &$term_info, $term_id, $taxonomy ) {
-		if ( ! WPML_Compatibility::is_active() ) {
-			return;
-		}
-
-		$wpml_data = WPML_Compatibility::export_term_data( (int) $term_id, (string) $taxonomy );
-		if ( ! empty( $wpml_data ) ) {
-			$term_info['wpml'] = $wpml_data;
-		}
-	}
-
-	/**
-	 * Apply WPML language data received through content sync.
-	 *
-	 * @param int   $post_id       Target post ID.
-	 * @param array $post_data     Incoming post payload.
-	 * @param array $source_id_map Source post ID => target post ID.
-	 * @return void
-	 */
-	private function apply_synced_post_wpml_data( $post_id, array $post_data, array $source_id_map ) {
-		if ( ! WPML_Compatibility::is_active() || empty( $post_data['wpml'] ) || ! is_array( $post_data['wpml'] ) ) {
-			return;
-		}
-
-		WPML_Compatibility::apply_post_language_details( (int) $post_id, $post_data['wpml'], $source_id_map );
-	}
-
-	/**
-	 * Apply WPML data for a set of synced posts after the full ID map is known.
-	 *
-	 * @param array $posts_data    Incoming posts payload.
-	 * @param array $source_id_map Source post ID => target post ID.
-	 * @return void
-	 */
-	private function apply_synced_posts_wpml_data( array $posts_data, array $source_id_map ) {
-		if ( ! WPML_Compatibility::is_active() || empty( $source_id_map ) ) {
-			return;
-		}
-
-		usort(
-			$posts_data,
-			static function ( $left, $right ) {
-				$left_wpml       = isset( $left['wpml'] ) && is_array( $left['wpml'] ) ? $left['wpml'] : [];
-				$right_wpml      = isset( $right['wpml'] ) && is_array( $right['wpml'] ) ? $right['wpml'] : [];
-				$left_is_source  = empty( $left_wpml['source_language_code'] ) || 'source' === ( $left_wpml['translation_role'] ?? '' );
-				$right_is_source = empty( $right_wpml['source_language_code'] ) || 'source' === ( $right_wpml['translation_role'] ?? '' );
-
-				if ( $left_is_source === $right_is_source ) {
-					return 0;
-				}
-
-				return $left_is_source ? -1 : 1;
-			}
-		);
-
-		foreach ( $posts_data as $post_data ) {
-			$source_id = absint( $post_data['ID'] ?? 0 );
-			$target_id = $source_id > 0 ? absint( $source_id_map[ $source_id ] ?? 0 ) : 0;
-			if ( $target_id <= 0 ) {
-				continue;
-			}
-
-			$this->apply_synced_post_wpml_data( $target_id, (array) $post_data, $source_id_map );
-		}
-	}
-
-	/**
-	 * Apply WPML language data received for a synced term.
-	 *
-	 * @param int    $term_id       Target term ID.
-	 * @param string $taxonomy      Taxonomy name.
-	 * @param array  $term_info     Incoming term payload.
-	 * @param array  $source_id_map Source term ID => target term ID.
-	 * @return void
-	 */
-	private function apply_synced_term_wpml_data( $term_id, $taxonomy, array $term_info, array $source_id_map ) {
-		if ( ! WPML_Compatibility::is_active() || empty( $term_info['wpml'] ) || ! is_array( $term_info['wpml'] ) ) {
-			return;
-		}
-
-		WPML_Compatibility::apply_term_language_details( (int) $term_id, (string) $taxonomy, $term_info['wpml'], $source_id_map );
-	}
-
-	/**
-	 * Apply WPML data for synced terms once all target term IDs are known.
-	 *
-	 * @param string $taxonomy      Taxonomy name.
-	 * @param array  $terms         Incoming term payloads.
-	 * @param array  $source_id_map Source term ID => target term ID.
-	 * @return void
-	 */
-	private function apply_synced_terms_wpml_data( $taxonomy, array $terms, array $source_id_map ) {
-		if ( ! WPML_Compatibility::is_active() || empty( $source_id_map ) ) {
-			return;
-		}
-
-		usort(
-			$terms,
-			static function ( $left, $right ) {
-				$left_wpml       = isset( $left['wpml'] ) && is_array( $left['wpml'] ) ? $left['wpml'] : [];
-				$right_wpml      = isset( $right['wpml'] ) && is_array( $right['wpml'] ) ? $right['wpml'] : [];
-				$left_is_source  = empty( $left_wpml['source_language_code'] ) || 'source' === ( $left_wpml['translation_role'] ?? '' );
-				$right_is_source = empty( $right_wpml['source_language_code'] ) || 'source' === ( $right_wpml['translation_role'] ?? '' );
-
-				if ( $left_is_source === $right_is_source ) {
-					return 0;
-				}
-
-				return $left_is_source ? -1 : 1;
-			}
-		);
-
-		foreach ( $terms as $term_info ) {
-			$source_id = absint( $term_info['term_id'] ?? 0 );
-			$target_id = $source_id > 0 ? absint( $source_id_map[ $source_id ] ?? 0 ) : 0;
-			if ( $target_id <= 0 ) {
-				continue;
-			}
-
-			$this->apply_synced_term_wpml_data( $target_id, $taxonomy, (array) $term_info, $source_id_map );
-		}
 	}
 }
