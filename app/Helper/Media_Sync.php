@@ -410,7 +410,7 @@ class Media_Sync {
 
 			// Generate metadata (thumbnails) if requested.
 		if ( empty( $options['skip_thumbnails'] ) && wp_attachment_is_image( $attach_id ) ) {
-			Fs::load_image_core();
+			Fs::load_attachment_metadata_core();
 			$meta = wp_generate_attachment_metadata( $attach_id, $dest_path );
 			wp_update_attachment_metadata( $attach_id, $meta );
 		}

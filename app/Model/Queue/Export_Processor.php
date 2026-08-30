@@ -338,7 +338,7 @@ class Export_Processor {
 		$data           = $this->dedupe_export_rows( $export_type, $data );
 
 		// Prepare file path
-		$filename  = sprintf( 'export-%s-%d.%s', $export_type, $job_id, $format );
+		$filename  = $this->get_export_filename( $job_id, $export_type, $format, $parameters );
 		$file_info = Fs::get_export_file_path( $filename );
 
 		if ( is_wp_error( $file_info ) ) {
@@ -473,6 +473,36 @@ class Export_Processor {
 				}
 			)
 		);
+	}
+
+	/**
+	 * Get the final export filename.
+	 *
+	 * @param int    $job_id      Job ID.
+	 * @param string $export_type Export type.
+	 * @param string $format      Export format.
+	 * @param array  $parameters  Job parameters.
+	 * @return string Export filename.
+	 */
+	private function get_export_filename( $job_id, $export_type, $format, $parameters ) {
+		$default_filename = sprintf( 'export-%s-%d.%s', $export_type, $job_id, $format );
+		$options          = isset( $parameters['options'] ) && is_array( $parameters['options'] ) ? $parameters['options'] : [];
+		$filename         = isset( $options['custom_export_file_name'] ) ? (string) $options['custom_export_file_name'] : '';
+		$filename         = str_replace( '{job_id}', (string) absint( $job_id ), $filename );
+		$filename         = sanitize_file_name( wp_basename( $filename ) );
+
+		if ( '' === $filename ) {
+			return $default_filename;
+		}
+
+		$basename = preg_replace( '/\.[^.]+$/', '', $filename );
+		$basename = sanitize_file_name( $basename );
+
+		if ( '' === $basename ) {
+			return $default_filename;
+		}
+
+		return sanitize_file_name( sprintf( '%s.%s', $basename, $format ) );
 	}
 
 	/**

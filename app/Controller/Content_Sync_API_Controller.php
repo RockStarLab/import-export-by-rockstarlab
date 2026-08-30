@@ -237,7 +237,11 @@ class Content_Sync_API_Controller {
 				if ( is_numeric( $mapped_value ) && $mapped_value > 0 ) {
 					$target_post_id = (int) $mapped_value;
 				}
-				// If mapped to "new" or null, create new post (target_post_id stays null)
+				// If mapped to "new" or null, still reuse a post created earlier
+				// in this same sync (e.g. WooCommerce grouped children).
+				if ( ! $target_post_id ) {
+					$target_post_id = $this->find_existing_post( $post_data );
+				}
 			} else {
 				// No mapping provided, use default logic (find by original ID)
 				$target_post_id = $this->find_existing_post( $post_data );
@@ -285,6 +289,7 @@ class Content_Sync_API_Controller {
 					// Store original ID for future sync operations
 					if ( ! is_wp_error( $post_id ) && $post_id ) {
 						update_post_meta( $post_id, '_rsl_ie_original_post_id', $source_post_id );
+						update_post_meta( $post_id, '_rsl_ie_source_id', $source_post_id );
 					}
 				}
 			} else {
@@ -294,6 +299,7 @@ class Content_Sync_API_Controller {
 				// Store original ID for future sync operations
 				if ( ! is_wp_error( $post_id ) && $post_id ) {
 					update_post_meta( $post_id, '_rsl_ie_original_post_id', $source_post_id );
+					update_post_meta( $post_id, '_rsl_ie_source_id', $source_post_id );
 				}
 			}
 
@@ -314,6 +320,8 @@ class Content_Sync_API_Controller {
 			if ( isset( $post_data['post_type'] ) && 'product' === $post_data['post_type'] ) {
 				$product_post_ids[] = (int) $post_id;
 			}
+			update_post_meta( $post_id, '_rsl_ie_original_post_id', $source_post_id );
+			update_post_meta( $post_id, '_rsl_ie_source_id', $source_post_id );
 
 			// Count created vs updated
 			if ( $is_update ) {
@@ -349,7 +357,8 @@ class Content_Sync_API_Controller {
 						$post_data['meta'],
 						'', // No domain replacement needed for push (already replaced on sender)
 						'',
-						$image_map
+						$image_map,
+						$image_sources
 					);
 				}
 
@@ -411,7 +420,8 @@ class Content_Sync_API_Controller {
 								$term_info['acf'],
 								'', // No domain replacement needed for term meta
 								'',
-								$image_map
+								$image_map,
+								$image_sources
 							);
 
 							foreach ( $term_acf as $field_key => $field_value ) {
@@ -451,7 +461,7 @@ class Content_Sync_API_Controller {
 				&& class_exists( 'WC_Product' )
 				&& function_exists( 'wc_get_product' )
 			) {
-				$this->import_product_variations( $post_id, $post_data['variations'], (array) $image_map );
+				$this->import_product_variations( $post_id, $post_data['variations'], (array) $image_map, (array) $image_sources );
 			}
 
 			// Import WooCommerce grouped product children and remap _children meta.
@@ -459,10 +469,10 @@ class Content_Sync_API_Controller {
 			// must import them and rewrite the _children meta with local IDs.
 			if ( 'product' === $post_data['post_type']
 				&& ! empty( $post_data['grouped_children'] )
-				&& class_exists( 'WC_Product' )
-				&& function_exists( 'wc_get_product' )
+			&& class_exists( 'WC_Product' )
+			&& function_exists( 'wc_get_product' )
 			) {
-				$local_child_ids = $this->import_grouped_children( $post_id, $post_data['grouped_children'], (array) $image_map );
+				$local_child_ids = $this->import_grouped_children( $post_id, $post_data['grouped_children'], (array) $image_map, (array) $image_sources );
 				if ( ! empty( $local_child_ids ) ) {
 					update_post_meta( $post_id, '_children', $local_child_ids );
 				}
@@ -473,6 +483,7 @@ class Content_Sync_API_Controller {
 			}
 
 			if ( 'product' === $post_data['post_type'] ) {
+				$this->sync_woocommerce_product_type( (int) $post_id, (array) $post_data );
 				$this->refresh_woocommerce_product_after_sync( $post_id );
 			}
 		}
@@ -720,7 +731,7 @@ class Content_Sync_API_Controller {
 	 * @param array $image_map      Source attachment ID → local attachment ID map.
 	 * @return void
 	 */
-	private function import_product_variations( $parent_post_id, $variations, $image_map ) {
+	private function import_product_variations( $parent_post_id, $variations, $image_map, $image_sources = array() ) {
 		if ( empty( $variations ) ) {
 			return;
 		}
@@ -740,6 +751,12 @@ class Content_Sync_API_Controller {
 
 		foreach ( $existing_local_var_ids as $local_var_id ) {
 			$orig_id = (int) get_post_meta( $local_var_id, '_rsl_ie_original_post_id', true );
+			if ( ! $orig_id ) {
+				$orig_id = (int) get_post_meta( $local_var_id, '_rsl_ie_source_id', true );
+			}
+			if ( ! $orig_id ) {
+				$orig_id = (int) get_post_meta( $local_var_id, '_aie_original_post_id', true );
+			}
 			if ( $orig_id ) {
 				$source_to_local[ $orig_id ] = (int) $local_var_id;
 			}
@@ -769,6 +786,7 @@ class Content_Sync_API_Controller {
 				$local_var_id = wp_insert_post( $variation_args );
 				if ( $local_var_id && ! is_wp_error( $local_var_id ) && $source_var_id ) {
 					update_post_meta( $local_var_id, '_rsl_ie_original_post_id', $source_var_id );
+					update_post_meta( $local_var_id, '_rsl_ie_source_id', $source_var_id );
 				}
 			}
 
@@ -778,6 +796,8 @@ class Content_Sync_API_Controller {
 
 			if ( $source_var_id ) {
 				$processed_source_ids[] = $source_var_id;
+				update_post_meta( $local_var_id, '_rsl_ie_original_post_id', $source_var_id );
+				update_post_meta( $local_var_id, '_rsl_ie_source_id', $source_var_id );
 			}
 
 			// Import variation meta.
@@ -790,7 +810,8 @@ class Content_Sync_API_Controller {
 						$var_meta,
 						'', // Domain replacement already done on the sender side.
 						'',
-						$image_map
+						$image_map,
+						$image_sources
 					);
 				}
 
@@ -806,6 +827,12 @@ class Content_Sync_API_Controller {
 		// Delete stale local variations that no longer exist on the source site.
 		foreach ( $existing_local_var_ids as $local_var_id ) {
 			$orig_id = (int) get_post_meta( $local_var_id, '_rsl_ie_original_post_id', true );
+			if ( ! $orig_id ) {
+				$orig_id = (int) get_post_meta( $local_var_id, '_rsl_ie_source_id', true );
+			}
+			if ( ! $orig_id ) {
+				$orig_id = (int) get_post_meta( $local_var_id, '_aie_original_post_id', true );
+			}
 			if ( $orig_id && ! in_array( $orig_id, $processed_source_ids, true ) ) {
 				wp_delete_post( (int) $local_var_id, true );
 			}
@@ -830,7 +857,7 @@ class Content_Sync_API_Controller {
 	 * @param array $image_map      Source attachment ID → local attachment ID map.
 	 * @return int[] Array of local child product post IDs.
 	 */
-	private function import_grouped_children( $parent_post_id, $children, $image_map ) {
+	private function import_grouped_children( $parent_post_id, $children, $image_map, $image_sources = array() ) {
 		$local_child_ids = array();
 
 		foreach ( $children as $child_data ) {
@@ -840,22 +867,10 @@ class Content_Sync_API_Controller {
 			// from this source child.
 			$local_child_id = null;
 			if ( $source_child_id ) {
-				$existing = get_posts(
-					array(
-						'post_type'      => 'product',
-						'posts_per_page' => 1,
-						'post_status'    => 'any',
-						'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery
-							array(
-								'key'   => '_rsl_ie_original_post_id',
-								'value' => $source_child_id,
-							),
-						),
-					)
-				);
-				if ( ! empty( $existing ) ) {
-					$local_child_id = (int) $existing[0]->ID;
-				}
+				$local_child_id = $this->find_existing_post_by_source_meta( $source_child_id, 'product' );
+			}
+			if ( ! $local_child_id ) {
+				$local_child_id = $this->find_existing_product_by_sku( (array) $child_data );
 			}
 
 			$child_args = array(
@@ -875,12 +890,17 @@ class Content_Sync_API_Controller {
 				$result = wp_insert_post( $child_args );
 				if ( $result && ! is_wp_error( $result ) && $source_child_id ) {
 					update_post_meta( $result, '_rsl_ie_original_post_id', $source_child_id );
+					update_post_meta( $result, '_rsl_ie_source_id', $source_child_id );
 				}
 				$local_child_id = $result;
 			}
 
 			if ( is_wp_error( $result ) || ! $result ) {
 				continue;
+			}
+			if ( $source_child_id ) {
+				update_post_meta( $local_child_id, '_rsl_ie_original_post_id', $source_child_id );
+				update_post_meta( $local_child_id, '_rsl_ie_source_id', $source_child_id );
 			}
 
 			// Import child meta.
@@ -891,7 +911,8 @@ class Content_Sync_API_Controller {
 						$child_meta,
 						'',
 						'',
-						$image_map
+						$image_map,
+						$image_sources
 					);
 				}
 				foreach ( $child_meta as $key => $value ) {
@@ -923,7 +944,9 @@ class Content_Sync_API_Controller {
 				}
 			}
 
-			$local_child_ids[] = (int) $local_child_id;
+				$this->sync_woocommerce_product_type( (int) $local_child_id, (array) $child_data );
+
+				$local_child_ids[] = (int) $local_child_id;
 		}
 
 		return $local_child_ids;
@@ -941,25 +964,13 @@ class Content_Sync_API_Controller {
 			return null;
 		}
 
-		$posts = get_posts(
-			array(
-				'post_type'      => $post_data['post_type'],
-				'posts_per_page' => 1,
-				'post_status'    => 'any',
-				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Direct DB query required here.
-					array(
-						'key'   => '_rsl_ie_original_post_id',
-						'value' => $post_data['ID'],
-					),
-				),
-			)
-		);
-
-		if ( ! empty( $posts ) ) {
-			return (int) $posts[0]->ID;
+		$found = $this->find_existing_post_by_source_meta( (int) $post_data['ID'], (string) $post_data['post_type'] );
+		if ( $found ) {
+			return (int) $found;
 		}
 
-		return null;
+		$found = $this->find_existing_product_by_sku( (array) $post_data );
+		return $found ? (int) $found : null;
 	}
 
 	/**
@@ -970,25 +981,119 @@ class Content_Sync_API_Controller {
 	 * @return int|null Local post ID if found, null otherwise.
 	 */
 	private function find_existing_post_by_original_id( $original_post_id, $post_type = 'any' ) {
-		$args = array(
-			'post_type'      => $post_type ?: 'any',
-			'posts_per_page' => 1,
-			'post_status'    => 'any',
-			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- meta_query required for filtering.
-				array(
-					'key'   => '_rsl_ie_original_post_id',
-					'value' => (int) $original_post_id,
-				),
-			),
-			'fields'         => 'ids',
-		);
+		$found = $this->find_existing_post_by_source_meta( (int) $original_post_id, $post_type );
+		return $found ? (int) $found : null;
+	}
 
-		$posts = get_posts( $args );
-		if ( ! empty( $posts ) ) {
-			return (int) $posts[0];
+	/**
+	 * Find an existing post by any source-id meta key used by import/sync flows.
+	 *
+	 * @param int    $source_post_id Source-site post ID.
+	 * @param string $post_type      Optional post type.
+	 * @return int|false
+	 */
+	private function find_existing_post_by_source_meta( $source_post_id, $post_type = 'any' ) {
+		$source_post_id = absint( $source_post_id );
+		if ( $source_post_id <= 0 ) {
+			return false;
 		}
 
-		return null;
+		$posts = get_posts(
+			array(
+				'post_type'      => $post_type ?: 'any',
+				'post_status'    => 'any',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source-id lookup is required for sync mapping.
+					'relation' => 'OR',
+					array(
+						'key'   => '_rsl_ie_original_post_id',
+						'value' => $source_post_id,
+					),
+					array(
+						'key'   => '_rsl_ie_source_id',
+						'value' => $source_post_id,
+					),
+					array(
+						'key'   => '_aie_original_post_id',
+						'value' => $source_post_id,
+					),
+				),
+			)
+		);
+
+		return ! empty( $posts ) ? (int) $posts[0] : false;
+	}
+
+	/**
+	 * Find an existing product by source SKU.
+	 *
+	 * @param array $post_data Remote post data.
+	 * @return int|false
+	 */
+	private function find_existing_product_by_sku( array $post_data ) {
+		if ( 'product' !== ( $post_data['post_type'] ?? '' ) || ! function_exists( 'wc_get_product_id_by_sku' ) ) {
+			return false;
+		}
+
+		$sku = '';
+		if ( isset( $post_data['meta']['_sku'] ) ) {
+			$sku = trim( (string) $post_data['meta']['_sku'] );
+		}
+
+		if ( '' === $sku ) {
+			return false;
+		}
+
+		$product_id = (int) wc_get_product_id_by_sku( $sku );
+		if ( $product_id > 0 && 'product' === get_post_type( $product_id ) ) {
+			return $product_id;
+		}
+
+		$posts = get_posts(
+			array(
+				'post_type'      => 'product',
+				'post_status'    => 'any',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				'meta_key'       => '_sku', // phpcs:ignore WordPress.DB.SlowDBQuery -- SKU fallback for stale Woo lookup table.
+				'meta_value'     => $sku, // phpcs:ignore WordPress.DB.SlowDBQuery -- SKU fallback for stale Woo lookup table.
+			)
+		);
+
+		return ! empty( $posts ) ? (int) $posts[0] : false;
+	}
+
+	private function sync_woocommerce_product_type( $post_id, array $post_data ) {
+		if ( ! taxonomy_exists( 'product_type' ) || 'product' !== get_post_type( $post_id ) ) {
+			return;
+		}
+
+		$type = '';
+		if ( ! empty( $post_data['terms']['product_type'][0]['slug'] ) ) {
+			$type = sanitize_key( (string) $post_data['terms']['product_type'][0]['slug'] );
+		} elseif ( ! empty( $post_data['meta']['_product_type'] ) ) {
+			$type = sanitize_key( (string) $post_data['meta']['_product_type'] );
+		}
+
+		if ( '' === $type ) {
+			return;
+		}
+
+		$allowed = array( 'simple', 'grouped', 'external', 'variable' );
+		if ( function_exists( 'wc_get_product_types' ) ) {
+			$allowed = array_keys( wc_get_product_types() );
+		}
+		if ( ! in_array( $type, $allowed, true ) ) {
+			return;
+		}
+
+		if ( ! term_exists( $type, 'product_type' ) ) {
+			wp_insert_term( ucfirst( $type ), 'product_type', array( 'slug' => $type ) );
+		}
+
+		wp_set_object_terms( (int) $post_id, $type, 'product_type', false );
+		delete_transient( 'wc_product_children_' . (int) $post_id );
 	}
 
 	/**
@@ -1243,7 +1348,7 @@ class Content_Sync_API_Controller {
 
 						// Get ACF fields for this term
 						if ( function_exists( 'get_field_objects' ) ) {
-							$acf_fields = get_field_objects( $taxonomy . '_' . $term->term_id );
+							$acf_fields = $this->get_term_acf_field_objects( (int) $term->term_id, $taxonomy );
 							if ( $acf_fields ) {
 								$term_info['acf'] = array();
 								foreach ( $acf_fields as $field_key => $field ) {
@@ -1321,15 +1426,18 @@ class Content_Sync_API_Controller {
 						if ( ! $term || is_wp_error( $term ) ) {
 							continue;
 						}
-							$terms_data[ $acf_taxonomy ][] = array(
-								'term_id'        => $term->term_id,
-								'name'           => $term->name,
-								'slug'           => $term->slug,
-								'parent_term_id' => (int) $term->parent,
-								'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $acf_taxonomy ),
-								'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $acf_taxonomy ),
-							);
-							$known_ids[]                   = $raw_id;
+						$terms_data[ $acf_taxonomy ][] = array(
+							'term_id'        => $term->term_id,
+							'name'           => $term->name,
+							'slug'           => $term->slug,
+							'parent_term_id' => (int) $term->parent,
+							'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $acf_taxonomy ),
+							'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $acf_taxonomy ),
+						);
+						$last_index                    = array_key_last( $terms_data[ $acf_taxonomy ] );
+						if ( null !== $last_index ) {
+						}
+						$known_ids[] = $raw_id;
 					}
 				}
 			}
@@ -1612,7 +1720,7 @@ class Content_Sync_API_Controller {
 		}
 
 			// Generate and update attachment metadata
-			\RockStarLab\ImportExport\Helper\Fs::load_image_core();
+			\RockStarLab\ImportExport\Helper\Fs::load_attachment_metadata_core();
 			$attach_data = wp_generate_attachment_metadata( $attachment_id, $file_path );
 			wp_update_attachment_metadata( $attachment_id, $attach_data );
 
@@ -1625,6 +1733,7 @@ class Content_Sync_API_Controller {
 		\RockStarLab\ImportExport\Helper\Media_Hash::store_attachment_hash( $attachment_id, $file_hash, $file_path );
 		if ( $source_attachment_id > 0 ) {
 			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
+			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
 		}
 
 		return new \WP_REST_Response(
@@ -1674,6 +1783,8 @@ class Content_Sync_API_Controller {
 		return ! empty( $attachments ) ? (int) $attachments[0] : false;
 	}
 
+
+
 	/**
 	 * Extract image IDs from term ACF fields
 	 *
@@ -1684,6 +1795,66 @@ class Content_Sync_API_Controller {
 		$image_ids = array();
 
 		foreach ( $acf_data as $key => $value ) {
+			if ( is_string( $value ) && '' !== $value ) {
+				$decoded = json_decode( $value, true );
+				if ( is_array( $decoded ) ) {
+					$image_ids = array_merge( $image_ids, $this->extract_term_acf_images( $decoded ) );
+				}
+
+				if ( class_exists( ACF_Fields::class ) ) {
+					foreach ( ACF_Fields::extract_media_shortcode_token_source_ids( $value ) as $image_id ) {
+						$image_ids[] = (int) $image_id;
+					}
+				}
+
+				if ( preg_match_all( '/\bwp-image-(\d+)\b/', $value, $matches ) ) {
+					foreach ( $matches[1] as $image_id ) {
+						$image_ids[] = (int) $image_id;
+					}
+				}
+
+				if ( preg_match_all( '/\[(gallery|playlist)\b[^\]]*\bids=["\']([\d,\s]+)["\'][^\]]*\]/i', $value, $matches ) ) {
+					foreach ( $matches[2] as $ids_string ) {
+						foreach ( array_filter( array_map( 'absint', preg_split( '/\s*,\s*/', (string) $ids_string ) ?: array() ) ) as $attachment_id ) {
+							$image_ids[] = (int) $attachment_id;
+						}
+					}
+				}
+
+				foreach ( $this->extract_image_urls_from_term_acf_html( $value ) as $url ) {
+					$image_id = attachment_url_to_postid( $url );
+					if ( $image_id > 0 ) {
+						$image_ids[] = (int) $image_id;
+					}
+				}
+
+				if ( filter_var( $value, FILTER_VALIDATE_URL ) && $this->is_term_acf_image_url( $value ) ) {
+					$image_id = attachment_url_to_postid( $value );
+					if ( $image_id > 0 ) {
+						$image_ids[] = (int) $image_id;
+					}
+				}
+			}
+
+			if ( is_array( $value ) ) {
+				foreach ( array( 'ID', 'id', 'attachment_id' ) as $id_key ) {
+					if ( isset( $value[ $id_key ] ) && is_numeric( $value[ $id_key ] ) ) {
+						$image_id   = (int) $value[ $id_key ];
+						$attachment = get_post( $image_id );
+						if ( $attachment && 'attachment' === $attachment->post_type ) {
+							$image_ids[] = $image_id;
+						}
+					}
+				}
+
+				if ( isset( $value['url'] ) && is_string( $value['url'] ) && $this->is_term_acf_image_url( $value['url'] ) ) {
+					$image_id = attachment_url_to_postid( $value['url'] );
+					if ( $image_id > 0 ) {
+						$image_ids[] = (int) $image_id;
+					}
+				}
+			}
+
 			// Single image field (numeric ID)
 			if ( is_numeric( $value ) && $value > 0 ) {
 				$attachment = get_post( $value );
@@ -1712,6 +1883,55 @@ class Content_Sync_API_Controller {
 		return array_unique( $image_ids );
 	}
 
+	private function extract_image_urls_from_term_acf_html( $content ) {
+		$urls = array();
+
+		if ( false === stripos( $content, '<img' ) && false === stripos( $content, 'srcset=' ) ) {
+			return $urls;
+		}
+
+		if ( preg_match_all( '/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $matches ) ) {
+			foreach ( $matches[1] as $url ) {
+				$url = html_entity_decode( $url, ENT_QUOTES, get_bloginfo( 'charset' ) );
+				if ( $this->is_term_acf_image_url( $url ) ) {
+					$urls[] = $url;
+				}
+			}
+		}
+
+		if ( preg_match_all( '/srcset=["\']([^"\']+)["\']/i', $content, $matches ) ) {
+			foreach ( $matches[1] as $srcset ) {
+				foreach ( array_map( 'trim', explode( ',', $srcset ) ) as $candidate ) {
+					$parts = preg_split( '/\s+/', $candidate );
+					$url   = isset( $parts[0] ) ? html_entity_decode( $parts[0], ENT_QUOTES, get_bloginfo( 'charset' ) ) : '';
+					if ( $this->is_term_acf_image_url( $url ) ) {
+						$urls[] = $url;
+					}
+				}
+			}
+		}
+
+		return array_values( array_unique( $urls ) );
+	}
+
+	private function is_term_acf_image_url( $url ) {
+		$path = (string) wp_parse_url( html_entity_decode( (string) $url, ENT_QUOTES, get_bloginfo( 'charset' ) ), PHP_URL_PATH );
+		return '' !== $path && (bool) preg_match( '~\.(?:jpe?g|png|gif|webp|avif|svg)$~i', $path );
+	}
+
+	private function get_term_acf_field_objects( $term_id, $taxonomy ) {
+		if ( ! function_exists( 'get_field_objects' ) ) {
+			return false;
+		}
+
+		$fields = get_field_objects( 'term_' . (int) $term_id );
+		if ( ! empty( $fields ) ) {
+			return $fields;
+		}
+
+		return get_field_objects( sanitize_key( (string) $taxonomy ) . '_' . (int) $term_id );
+	}
+
 	/**
 	 * List posts for mapping
 	 *
@@ -1719,12 +1939,13 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function list_posts( $request ) {
-			$post_type        = $request->get_param( 'post_type' );
-			$search           = $request->get_param( 'search' );
-			$status           = $request->get_param( 'status' );
-			$commentable_only = filter_var( $request->get_param( 'commentable_only' ), FILTER_VALIDATE_BOOLEAN );
-		$page                 = absint( $request->get_param( 'page' ) ?: 1 );
-		$per_page             = absint( $request->get_param( 'per_page' ) ?: 20 );
+		$post_type        = sanitize_key( (string) $request->get_param( 'post_type' ) );
+		$search           = sanitize_text_field( (string) $request->get_param( 'search' ) );
+		$status           = sanitize_key( (string) $request->get_param( 'status' ) );
+		$commentable_only = filter_var( $request->get_param( 'commentable_only' ), FILTER_VALIDATE_BOOLEAN );
+		$comment_type     = sanitize_key( (string) ( $request->get_param( 'comment_type' ) ?: '' ) );
+		$page             = absint( $request->get_param( 'page' ) ?: 1 );
+		$per_page         = absint( $request->get_param( 'per_page' ) ?: 20 );
 
 		// When searching, include all posts (parent and children)
 		// When not searching, show only parent posts (to maintain hierarchy)
@@ -1733,62 +1954,51 @@ class Content_Sync_API_Controller {
 			$post_parent_filter = ''; // Empty string means no parent filter - include all posts
 		}
 
-			$args = array(
-				'post_type'           => $commentable_only ? $this->get_commentable_sync_post_types() : ( $post_type ?: 'any' ),
-				'post_status'         => ! empty( $status ) ? $status : 'any',
-				'posts_per_page'      => $per_page,
-				'paged'               => $page,
-				'orderby'             => 'date',
-				'order'               => 'DESC',
-				'post_parent'         => $post_parent_filter,
-				'ignore_sticky_posts' => true, // Exclude sticky posts from results
-				'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required to exclude sticky posts.
+		$args = array(
+			'post_type'           => $commentable_only ? $this->get_commentable_sync_post_types_for_context( $comment_type, $post_type ) : ( $post_type ?: 'any' ),
+			'post_status'         => ! empty( $status ) ? $status : ( 'attachment' === $post_type ? 'inherit' : 'any' ),
+			'posts_per_page'      => $per_page,
+			'paged'               => $page,
+			'orderby'             => 'date',
+			'order'               => 'DESC',
+			'ignore_sticky_posts' => true,
+		);
+		if ( '' !== $post_parent_filter ) {
+			$args['post_parent'] = $post_parent_filter;
+		}
+		if ( ! empty( $search ) ) {
+			$args['s'] = $search;
+		}
+
+		$query      = new \WP_Query( $args );
+		$posts_list = array();
+		foreach ( $query->posts as $post ) {
+			$post_data = array(
+				'ID'             => $post->ID,
+				'post_title'     => $post->post_title,
+				'post_type'      => $post->post_type,
+				'post_status'    => $post->post_status,
+				'post_date'      => $post->post_date,
+				'post_modified'  => $post->post_modified,
+				'post_parent'    => $post->post_parent,
+				'children_count' => $this->count_children( $post->ID, $post->post_type ),
 			);
 
-			if ( ! empty( $search ) ) {
-				$args['s'] = $search;
-			}
+			$posts_list[] = $post_data;
+		}
 
-			$query      = new \WP_Query( $args );
-			$posts_list = array();
-			$total      = $query->found_posts;
-
-			foreach ( $query->posts as $post ) {
-				$post_data = array(
-					'ID'            => $post->ID,
-					'post_title'    => $post->post_title,
-					'post_type'     => $post->post_type,
-					'post_status'   => $post->post_status,
-					'post_date'     => $post->post_date,
-					'post_modified' => $post->post_modified,
-					'post_parent'   => $post->post_parent,
-				);
-
-				// Get children count (same post type only, excluding attachments)
-				$children_count = 0;
-				if ( empty( $search ) ) {
-					$children_count = $this->count_children( $post->ID, $post->post_type );
-				}
-				$post_data['children_count'] = $children_count;
-
-				$posts_list[] = $post_data;
-			}
-
-			// Get status counts for filters
-			$status_counts = $this->get_status_counts( $post_type );
-
-			return new \WP_REST_Response(
-				array(
-					'success'       => true,
-					'posts'         => $posts_list,
-					'total'         => $total,
-					'pages'         => ceil( $total / $per_page ),
-					'current_page'  => $page,
-					'per_page'      => $per_page,
-					'status_counts' => $status_counts,
-				),
-				200
-			);
+		return new \WP_REST_Response(
+			array(
+				'success'       => true,
+				'posts'         => $posts_list,
+				'total'         => (int) $query->found_posts,
+				'pages'         => ceil( (int) $query->found_posts / $per_page ),
+				'current_page'  => $page,
+				'per_page'      => $per_page,
+				'status_counts' => $this->get_status_counts( $post_type ),
+			),
+			200
+		);
 	}
 
 	/**
@@ -1817,6 +2027,84 @@ class Content_Sync_API_Controller {
 	}
 
 	/**
+	 * Return commentable post types for comments vs WooCommerce reviews.
+	 *
+	 * @param string $comment_type Comment subtype.
+	 * @param string $requested_post_type Requested post type.
+	 * @return string|array
+	 */
+	private function get_commentable_sync_post_types_for_context( $comment_type, $requested_post_type = 'any' ) {
+		if ( 'review' === sanitize_key( (string) $comment_type ) ) {
+			return post_type_exists( 'product' ) ? 'product' : '__rsl_ie_no_post_type';
+		}
+
+		$requested_post_type = sanitize_key( (string) $requested_post_type );
+		if ( 'product' === $requested_post_type ) {
+			return '__rsl_ie_no_post_type';
+		}
+		if ( '' !== $requested_post_type && 'any' !== $requested_post_type ) {
+			return $requested_post_type;
+		}
+
+		return array_values( array_diff( $this->get_commentable_sync_post_types(), array( 'product' ) ) );
+	}
+
+	/**
+	 * Get product IDs for separating normal comments from WooCommerce reviews.
+	 *
+	 * @return int[]
+	 */
+	private function get_product_post_ids_for_comment_filter( $language = '' ) {
+		if ( ! post_type_exists( 'product' ) ) {
+			return array();
+		}
+
+		$args = array(
+			'post_type'              => 'product',
+			'post_status'            => 'any',
+			'posts_per_page'         => -1,
+			'fields'                 => 'ids',
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'suppress_filters'       => false,
+		);
+
+		$language = sanitize_key( (string) $language );
+		if ( '' !== $language && 'all' !== $language ) {
+			$args['lang'] = $language;
+		} elseif ( 'all' === $language ) {
+			$args['suppress_filters'] = true;
+		}
+
+		return array_values( array_map( 'absint', get_posts( $args ) ) );
+	}
+
+	/**
+	 * Check whether a comment belongs to the requested sync entity.
+	 *
+	 * @param \WP_Comment $comment      Comment object.
+	 * @param string      $comment_type Requested comment subtype.
+	 * @return bool
+	 */
+	private function is_comment_in_sync_context( $comment, $comment_type = '', $language = '' ) {
+		$post      = get_post( (int) $comment->comment_post_ID );
+		$post_type = $post ? (string) $post->post_type : '';
+
+		if ( 'review' === sanitize_key( (string) $comment_type ) ) {
+			$matches_context = 'review' === (string) $comment->comment_type && 'product' === $post_type;
+		} else {
+			$matches_context = 'review' !== (string) $comment->comment_type && 'product' !== $post_type;
+		}
+
+		if ( ! $matches_context ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * List taxonomy terms for remote Browse dialogs.
 	 *
 	 * @param \WP_REST_Request $request Request object.
@@ -1827,7 +2115,6 @@ class Content_Sync_API_Controller {
 		$search   = sanitize_text_field( (string) $request->get_param( 'search' ) );
 		$page     = absint( $request->get_param( 'page' ) ?: 1 );
 		$per_page = absint( $request->get_param( 'per_page' ) ?: 20 );
-
 		if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
 			return new \WP_REST_Response(
 				array(
@@ -1853,14 +2140,13 @@ class Content_Sync_API_Controller {
 			$args['search'] = $search;
 		}
 
-		$terms = get_terms( $args );
-		$total = wp_count_terms(
-			array(
-				'taxonomy'   => $taxonomy,
-				'hide_empty' => false,
-				'search'     => $search,
-			)
+		$terms      = get_terms( $args );
+		$count_args = array(
+			'taxonomy'   => $taxonomy,
+			'hide_empty' => false,
+			'search'     => $search,
 		);
+		$total      = wp_count_terms( $count_args );
 
 		if ( is_wp_error( $terms ) || is_wp_error( $total ) ) {
 			return new \WP_REST_Response(
@@ -1922,11 +2208,39 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-		$terms = array();
+		$terms      = array();
+		$all_images = array();
 		foreach ( $term_ids as $term_id ) {
 			$term = get_term( $term_id, $taxonomy );
 			if ( $term && ! is_wp_error( $term ) ) {
-				$terms[] = $this->prepare_term_for_sync( $term, $taxonomy, true );
+				$term_info = $this->prepare_term_for_sync( $term, $taxonomy, true );
+				$terms[]   = $term_info;
+
+				$term_image_ids = array();
+				if ( ! empty( $term_info['description'] ) && is_string( $term_info['description'] ) ) {
+					$term_image_ids = array_merge( $term_image_ids, $this->extract_term_acf_images( array( 'description' => $term_info['description'] ) ) );
+				}
+				if ( ! empty( $term_info['acf'] ) && is_array( $term_info['acf'] ) ) {
+					$term_image_ids = array_merge( $term_image_ids, $this->extract_term_acf_images( $term_info['acf'] ) );
+				}
+
+				foreach ( array_values( array_unique( array_filter( array_map( 'absint', $term_image_ids ) ) ) ) as $image_id ) {
+					if ( isset( $all_images[ $image_id ] ) ) {
+						continue;
+					}
+
+					$image_data = \RockStarLab\ImportExport\Helper\Content_Sync_Media::prepare_image_data( $image_id, 'term_acf' );
+					if ( ! $image_data ) {
+						$image_data = array(
+							'attachment_id' => $image_id,
+							'url'           => wp_get_attachment_url( $image_id ),
+							'type'          => 'term_acf',
+						);
+					}
+					$image_data['term_id']   = (int) $term->term_id;
+					$image_data['taxonomy']  = $taxonomy;
+					$all_images[ $image_id ] = $image_data;
+				}
 			}
 		}
 
@@ -1934,6 +2248,7 @@ class Content_Sync_API_Controller {
 			array(
 				'success' => true,
 				'terms'   => $terms,
+				'images'  => array_values( $all_images ),
 			),
 			200
 		);
@@ -1946,8 +2261,17 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function receive_terms( $request ) {
-		$taxonomy = sanitize_key( (string) $request->get_param( 'taxonomy' ) );
-		$terms    = $request->get_param( 'terms' );
+		$taxonomy      = sanitize_key( (string) $request->get_param( 'taxonomy' ) );
+		$terms         = $request->get_param( 'terms' );
+		$image_map     = $request->get_param( 'image_map' );
+		$image_sources = $request->get_param( 'image_sources' );
+
+		if ( ! is_array( $image_map ) ) {
+			$image_map = array();
+		}
+		if ( ! is_array( $image_sources ) ) {
+			$image_sources = array();
+		}
 
 		if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
 			return new \WP_REST_Response(
@@ -1969,9 +2293,10 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-		$created = 0;
-		$updated = 0;
-		$errors  = array();
+		$created               = 0;
+		$updated               = 0;
+		$errors                = array();
+		$source_to_local_terms = array();
 
 		foreach ( $terms as $term_info ) {
 			if ( ! is_array( $term_info ) ) {
@@ -1985,10 +2310,21 @@ class Content_Sync_API_Controller {
 				$errors[] = isset( $term_info['name'] ) ? sanitize_text_field( (string) $term_info['name'] ) : __( 'Unknown term', 'import-export-by-rockstarlab' );
 				continue;
 			}
+			if ( ! empty( $term_info['term_id'] ) ) {
+				$source_to_local_terms[ (int) $term_info['term_id'] ] = (int) $term_id;
+			}
 
 			$args = array();
 			if ( isset( $term_info['description'] ) ) {
-				$args['description'] = wp_kses_post( (string) $term_info['description'] );
+				$description = (string) $term_info['description'];
+				if ( ! empty( $image_map ) ) {
+					$description = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
+						$description,
+						$image_map,
+						$image_sources
+					);
+				}
+				$args['description'] = wp_kses_post( $description );
 			}
 			if ( ! empty( $args ) ) {
 				wp_update_term( $term_id, $taxonomy, $args );
@@ -2001,6 +2337,16 @@ class Content_Sync_API_Controller {
 			}
 
 			if ( ! empty( $term_info['acf'] ) && is_array( $term_info['acf'] ) && function_exists( 'update_field' ) ) {
+				if ( ! empty( $image_map ) ) {
+					$term_info['acf'] = $this->replace_term_acf_value_media_references(
+						$term_info['acf'],
+						'',
+						'',
+						$image_map,
+						$image_sources
+					);
+				}
+
 				foreach ( $term_info['acf'] as $field_key => $field_value ) {
 					ACF_Fields::import_value( 'term', $term_id, sanitize_text_field( (string) $field_key ), $field_value, $taxonomy );
 				}
@@ -2060,7 +2406,7 @@ class Content_Sync_API_Controller {
 			}
 
 			if ( function_exists( 'get_field_objects' ) ) {
-				$acf_fields = get_field_objects( $taxonomy . '_' . $term->term_id );
+				$acf_fields = $this->get_term_acf_field_objects( (int) $term->term_id, $taxonomy );
 				if ( $acf_fields ) {
 					$data['acf'] = array();
 					foreach ( $acf_fields as $field_key => $field ) {
@@ -2075,6 +2421,131 @@ class Content_Sync_API_Controller {
 	}
 
 	/**
+	 * Replace media references inside one ACF value.
+	 *
+	 * @param mixed  $value         ACF value.
+	 * @param string $source_domain Source site URL.
+	 * @param string $target_domain Target site URL.
+	 * @param array  $image_map     Source attachment ID => target attachment ID.
+	 * @param array  $image_sources Source image metadata.
+	 * @return mixed
+	 */
+	private function replace_term_acf_value_media_references( $value, $source_domain, $target_domain, array $image_map, array $image_sources ) {
+		if ( is_array( $value ) ) {
+			$out = array();
+			foreach ( $value as $key => $child ) {
+				if ( is_numeric( $child ) && isset( $image_map[ (int) $child ] ) && $this->looks_like_term_acf_media_key( $key ) ) {
+					$out[ $key ] = (int) $image_map[ (int) $child ];
+					continue;
+				}
+
+				$out[ $key ] = $this->replace_term_acf_value_media_references(
+					$child,
+					$source_domain,
+					$target_domain,
+					$image_map,
+					$image_sources
+				);
+			}
+
+			if ( isset( $out['id'] ) && is_numeric( $out['id'] ) && isset( $image_map[ (int) $out['id'] ] ) ) {
+				$mapped_id = (int) $image_map[ (int) $out['id'] ];
+				$out['id'] = $mapped_id;
+				$url       = wp_get_attachment_url( $mapped_id );
+				if ( $url && isset( $out['url'] ) ) {
+					$out['url'] = $url;
+				}
+			}
+
+			return $out;
+		}
+
+		if ( is_string( $value ) && '' !== $value ) {
+			$decoded = json_decode( $value, true );
+			if ( is_array( $decoded ) ) {
+				return wp_json_encode(
+					$this->replace_term_acf_value_media_references(
+						$decoded,
+						$source_domain,
+						$target_domain,
+						$image_map,
+						$image_sources
+					)
+				);
+			}
+
+			$mapped_url = $this->get_mapped_acf_media_url( $value, $image_map, $image_sources );
+			if ( '' !== $mapped_url ) {
+				return $mapped_url;
+			}
+
+			return \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
+				$value,
+				$image_map,
+				$image_sources
+			);
+		}
+
+		return $value;
+	}
+
+	private function looks_like_term_acf_media_key( $key ) {
+		if ( is_int( $key ) ) {
+			return true;
+		}
+
+		return in_array(
+			(string) $key,
+			array( 'id', 'ID', 'attachment_id', 'image_id', 'media_id', 'file_id' ),
+			true
+		);
+	}
+
+	/**
+	 * Return the target attachment URL for a source media URL when it is mapped.
+	 *
+	 * @param string $url           Source URL.
+	 * @param array  $image_map     Source attachment ID => target attachment ID.
+	 * @param array  $image_sources Source image metadata.
+	 * @return string
+	 */
+	private function get_mapped_acf_media_url( $url, array $image_map, array $image_sources ) {
+		$url = trim( html_entity_decode( (string) $url, ENT_QUOTES, get_bloginfo( 'charset' ) ) );
+		if ( '' === $url || empty( $image_map ) || empty( $image_sources ) ) {
+			return '';
+		}
+
+		foreach ( $image_sources as $source_id => $source ) {
+			if ( ! is_array( $source ) ) {
+				continue;
+			}
+
+			$attachment_id = isset( $source['attachment_id'] ) ? (int) $source['attachment_id'] : (int) $source_id;
+			if ( $attachment_id <= 0 || empty( $image_map[ $attachment_id ] ) ) {
+				continue;
+			}
+
+			$source_urls = array_filter(
+				array(
+					isset( $source['url'] ) ? (string) $source['url'] : '',
+					isset( $source['full_url'] ) ? (string) $source['full_url'] : '',
+				)
+			);
+
+			foreach ( $source_urls as $source_url ) {
+				if ( $url !== html_entity_decode( $source_url, ENT_QUOTES, get_bloginfo( 'charset' ) ) ) {
+					continue;
+				}
+
+				$target_url = wp_get_attachment_url( (int) $image_map[ $attachment_id ] );
+				return $target_url ? (string) $target_url : '';
+			}
+		}
+
+		return '';
+	}
+
+	/**
 	 * List comments for remote Browse dialogs.
 	 *
 	 * @param \WP_REST_Request $request Request object.
@@ -2086,7 +2557,11 @@ class Content_Sync_API_Controller {
 		$post_id      = absint( $request->get_param( 'post_id' ) );
 		$page         = absint( $request->get_param( 'page' ) ?: 1 );
 		$per_page     = min( max( absint( $request->get_param( 'per_page' ) ?: 20 ), 1 ), 100 );
-		$offset       = ( max( $page, 1 ) - 1 ) * $per_page;
+		$language     = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
+		if ( ! false ) {
+			$language = '';
+		}
+		$offset = ( max( $page, 1 ) - 1 ) * $per_page;
 
 		$args = array(
 			'number'  => $per_page,
@@ -2096,8 +2571,12 @@ class Content_Sync_API_Controller {
 			'status'  => 'all',
 		);
 
-		if ( '' !== $comment_type ) {
+		if ( 'review' === $comment_type ) {
+			$args['type'] = 'review';
+		} elseif ( '' !== $comment_type ) {
 			$args['type'] = $comment_type;
+		} else {
+			$args['type__not_in'] = array( 'review' );
 		}
 
 		if ( '' !== $search ) {
@@ -2106,6 +2585,21 @@ class Content_Sync_API_Controller {
 
 		if ( $post_id > 0 ) {
 			$args['post_id'] = $post_id;
+		}
+
+		if ( $post_id <= 0 ) {
+			$product_ids = $this->get_product_post_ids_for_comment_filter( $language );
+			if ( 'review' === $comment_type ) {
+				if ( empty( $product_ids ) ) {
+					$product_ids = array( 0 );
+				}
+				$args['post__in'] = isset( $args['post__in'] ) ? array_values( array_intersect( $args['post__in'], $product_ids ) ) : $product_ids;
+				if ( empty( $args['post__in'] ) ) {
+					$args['post__in'] = array( 0 );
+				}
+			} elseif ( ! empty( $product_ids ) ) {
+				$args['post__not_in'] = $product_ids;
+			}
 		}
 
 		$query    = new \WP_Comment_Query();
@@ -2146,8 +2640,13 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function send_comments( $request ) {
-		$comment_ids = $request->get_param( 'comment_ids' );
-		$comment_ids = is_array( $comment_ids ) ? array_values( array_filter( array_unique( array_map( 'absint', $comment_ids ) ) ) ) : array();
+		$comment_ids  = $request->get_param( 'comment_ids' );
+		$comment_ids  = is_array( $comment_ids ) ? array_values( array_filter( array_unique( array_map( 'absint', $comment_ids ) ) ) ) : array();
+		$comment_type = sanitize_key( (string) ( $request->get_param( 'comment_type' ) ?: '' ) );
+		$language     = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
+		if ( ! false ) {
+			$language = '';
+		}
 
 		if ( empty( $comment_ids ) ) {
 			return new \WP_REST_Response(
@@ -2160,10 +2659,17 @@ class Content_Sync_API_Controller {
 		}
 
 		$comments = array();
+		$images   = array();
 		foreach ( $comment_ids as $comment_id ) {
 			$comment = get_comment( $comment_id );
 			if ( $comment ) {
-				$comments[] = $this->prepare_comment_for_sync( $comment, true );
+				if ( ! $this->is_comment_in_sync_context( $comment, $comment_type, $language ) ) {
+					continue;
+				}
+
+				$comment_data = $this->prepare_comment_for_sync( $comment, true );
+				$comments[]   = $comment_data;
+				$this->collect_comment_acf_images_for_sync( $comment_data, $images );
 			}
 		}
 
@@ -2171,6 +2677,7 @@ class Content_Sync_API_Controller {
 			array(
 				'success'  => true,
 				'comments' => $comments,
+				'images'   => array_values( $images ),
 			),
 			200
 		);
@@ -2186,6 +2693,15 @@ class Content_Sync_API_Controller {
 		$comments       = $request->get_param( 'comments' );
 		$target_post_id = absint( $request->get_param( 'target_post_id' ) );
 		$post_mapping   = $request->get_param( 'post_mapping' );
+		$image_map      = $request->get_param( 'image_map' );
+		$image_sources  = $request->get_param( 'image_sources' );
+
+		if ( ! is_array( $image_map ) ) {
+			$image_map = array();
+		}
+		if ( ! is_array( $image_sources ) ) {
+			$image_sources = array();
+		}
 
 		if ( is_string( $post_mapping ) ) {
 			$post_mapping = json_decode( $post_mapping, true );
@@ -2204,7 +2720,8 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-		$result = $this->import_synced_standalone_comments( $comments, $post_mapping, $target_post_id );
+		$comments = $this->replace_comment_acf_media_references( $comments, '', '', $image_map, $image_sources );
+		$result   = $this->import_synced_standalone_comments( $comments, $post_mapping, $target_post_id );
 
 		$message = sprintf(
 			/* translators: 1: created comments, 2: updated comments, 3: failed comments. */
@@ -2479,6 +2996,85 @@ class Content_Sync_API_Controller {
 	}
 
 	/**
+	 * Collect media referenced by a comment's ACF payload.
+	 *
+	 * @param array $comment_data Prepared comment payload.
+	 * @param array $all_images   Accumulator keyed by attachment ID.
+	 * @return void
+	 */
+	private function collect_comment_acf_images_for_sync( array $comment_data, array &$all_images ) {
+		$image_ids = array();
+		if ( ! empty( $comment_data['comment_content'] ) && is_string( $comment_data['comment_content'] ) ) {
+			$image_ids = array_merge( $image_ids, $this->extract_term_acf_images( array( 'comment_content' => $comment_data['comment_content'] ) ) );
+		}
+
+		if ( empty( $comment_data['acf'] ) || ! is_array( $comment_data['acf'] ) ) {
+			$comment_data['acf'] = array();
+		}
+
+		$image_ids = array_merge( $image_ids, $this->extract_term_acf_images( $comment_data['acf'] ) );
+		$image_ids = array_values( array_unique( array_filter( array_map( 'absint', $image_ids ) ) ) );
+		foreach ( $image_ids as $image_id ) {
+			if ( isset( $all_images[ $image_id ] ) ) {
+				continue;
+			}
+
+			$image_data = \RockStarLab\ImportExport\Helper\Content_Sync_Media::prepare_image_data( $image_id, 'comment_acf' );
+			if ( ! $image_data ) {
+				$image_data = array(
+					'attachment_id' => $image_id,
+					'url'           => wp_get_attachment_url( $image_id ),
+					'type'          => 'comment_acf',
+				);
+			}
+
+			$image_data['comment_id'] = isset( $comment_data['comment_ID'] ) ? (int) $comment_data['comment_ID'] : 0;
+			$all_images[ $image_id ]  = $image_data;
+		}
+	}
+
+	/**
+	 * Replace media references inside comment ACF payloads.
+	 *
+	 * @param array  $comments      Comment payloads.
+	 * @param string $source_domain Source site URL.
+	 * @param string $target_domain Target site URL.
+	 * @param array  $image_map     Source attachment ID => target attachment ID.
+	 * @param array  $image_sources Source image metadata.
+	 * @return array
+	 */
+	private function replace_comment_acf_media_references( array $comments, $source_domain, $target_domain, array $image_map, array $image_sources ) {
+		if ( empty( $image_map ) ) {
+			return $comments;
+		}
+
+		foreach ( $comments as &$comment_data ) {
+			if ( isset( $comment_data['comment_content'] ) && is_string( $comment_data['comment_content'] ) ) {
+				$comment_data['comment_content'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
+					$comment_data['comment_content'],
+					$image_map,
+					$image_sources
+				);
+			}
+
+			if ( empty( $comment_data['acf'] ) || ! is_array( $comment_data['acf'] ) ) {
+				continue;
+			}
+
+			$comment_data['acf'] = $this->replace_term_acf_value_media_references(
+				$comment_data['acf'],
+				$source_domain,
+				$target_domain,
+				$image_map,
+				$image_sources
+			);
+		}
+		unset( $comment_data );
+
+		return $comments;
+	}
+
+	/**
 	 * Determine whether a raw comment meta key belongs to ACF.
 	 *
 	 * @param string $meta_key Meta key.
@@ -2573,16 +3169,14 @@ class Content_Sync_API_Controller {
 		$statuses = array( 'publish', 'draft', 'pending', 'private', 'future' );
 
 		foreach ( $statuses as $status ) {
-			$count_query = new \WP_Query(
-				array(
-					'post_type'           => $post_type ?: 'any',
-					'post_status'         => $status,
-					'posts_per_page'      => 1,
-					'fields'              => 'ids',
-					'ignore_sticky_posts' => true,
-					'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
-				)
+			$count_args  = array(
+				'post_type'           => $post_type ?: 'any',
+				'post_status'         => $status,
+				'posts_per_page'      => 1,
+				'fields'              => 'ids',
+				'ignore_sticky_posts' => true,
 			);
+			$count_query = new \WP_Query( $count_args );
 
 			$count = $count_query->found_posts;
 
@@ -2597,6 +3191,8 @@ class Content_Sync_API_Controller {
 
 		return $counts;
 	}
+
+
 
 	/**
 	 * Resolve or create a synced taxonomy term, preserving hierarchy when present.
@@ -2638,7 +3234,9 @@ class Content_Sync_API_Controller {
 			return 0;
 		}
 
-		return (int) $new_term['term_id'];
+		$term_id = (int) $new_term['term_id'];
+
+		return $term_id;
 	}
 
 	/**
@@ -2829,6 +3427,10 @@ class Content_Sync_API_Controller {
 	public function get_children_posts( $request ) {
 		$parent_id = absint( $request->get_param( 'parent_id' ) );
 		$post_type = sanitize_text_field( $request->get_param( 'post_type' ) ?: '' );
+		$language  = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
+		if ( ! false ) {
+			$language = '';
+		}
 
 		// If no post_type provided, derive it from the parent post type.
 		if ( empty( $post_type ) ) {
@@ -2846,18 +3448,18 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-		$children = get_posts(
-			array(
-				'post_parent'         => $parent_id,
-				'post_type'           => ! empty( $post_type ) ? $post_type : 'any',
-				'post_status'         => array( 'publish', 'draft', 'pending', 'private', 'future' ),
-				'posts_per_page'      => -1,
-				'orderby'             => 'date',
-				'order'               => 'DESC',
-				'ignore_sticky_posts' => true,
-				'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
-			)
+		$args = array(
+			'post_parent'         => $parent_id,
+			'post_type'           => ! empty( $post_type ) ? $post_type : 'any',
+			'post_status'         => array( 'publish', 'draft', 'pending', 'private', 'future' ),
+			'posts_per_page'      => -1,
+			'orderby'             => 'date',
+			'order'               => 'DESC',
+			'ignore_sticky_posts' => true,
+			'post__not_in'        => get_option( 'sticky_posts', array() ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- post__not_in required for correct filtering.
 		);
+
+		$children = get_posts( $args );
 
 		$children_list = array();
 

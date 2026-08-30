@@ -21,6 +21,7 @@ const ImportModule = {
 	mappingFunctions: {},
 	importStartTime: null,
 	isCancellingImport: false,
+	isBatchProcessing: false,
 
 	/**
 	 * Initialize module
@@ -472,13 +473,20 @@ const ImportModule = {
 	 */
 	handleFile( file ) {
 		// Validate file extension only (no size limit with chunked upload)
-		const allowedExtensions = [ '.csv', '.xml', '.xlsx', '.ods', '.zip' ];
+		const allowedExtensions = [
+			'.csv',
+			'.json',
+			'.xml',
+			'.xlsx',
+			'.ods',
+			'.zip',
+		];
 		const fileExt = '.' + file.name.split( '.' ).pop().toLowerCase();
 
 		if ( ! allowedExtensions.includes( fileExt ) ) {
 			Utils.showNotice(
 				rslIeData.i18n.invalidFileTypeCsv ||
-					'Invalid file type. Please upload CSV, XML, XLSX, ODS, or ZIP files only.',
+					'Invalid file type. Please upload CSV, JSON, XML, XLSX, ODS, or ZIP files only.',
 				'error'
 			);
 			return;
@@ -710,7 +718,7 @@ const ImportModule = {
 	 */
 	detectFormat( filename ) {
 		const extension = filename.split( '.' ).pop().toLowerCase();
-		const supported = [ 'csv', 'xml', 'xlsx', 'ods', 'zip' ];
+		const supported = [ 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ];
 
 		return supported.includes( extension ) ? extension : 'csv';
 	},
@@ -1498,6 +1506,10 @@ const ImportModule = {
 					</div>
 				`;
 				} else {
+					const iconClass = this.getTargetFieldIcon(
+						field.type,
+						field.value
+					);
 					html += `
 					<div class="rsl-ie-target-field" data-target-field="${
 						field.value
@@ -1505,7 +1517,7 @@ const ImportModule = {
 						field.type || 'string'
 					}" data-multiple="${ field.multiple || false }">
 						<div class="rsl-ie-field-icon">
-							<span class="dashicons dashicons-wordpress"></span>
+							<span class="dashicons ${ iconClass }"></span>
 						</div>
 						<div class="rsl-ie-field-info">
 							<div class="rsl-ie-field-label">${ field.label }</div>
@@ -1523,6 +1535,10 @@ const ImportModule = {
 
 		// Initialize custom field add buttons
 		this.initCustomFieldButtons();
+	},
+
+	getTargetFieldIcon( type, fieldValue = '' ) {
+		return 'dashicons-wordpress';
 	},
 
 	/**
@@ -2010,6 +2026,11 @@ const ImportModule = {
 				{
 					label: 'Basic',
 					options: [
+						{
+							value: 'term_id',
+							label: 'Source Menu ID',
+							type: 'number',
+						},
 						{ value: 'name', label: 'Menu Name', type: 'string' },
 						{ value: 'slug', label: 'Menu Slug', type: 'string' },
 						{
@@ -2571,6 +2592,11 @@ const ImportModule = {
 							value: 'grouped_products',
 							label: 'Grouped Products (JSON)',
 							type: 'json',
+						},
+						{
+							value: '_children',
+							label: 'Grouped Product Children (raw _children)',
+							type: 'string',
 						},
 					],
 				},
@@ -3535,6 +3561,36 @@ const ImportModule = {
 							value: 'display_name',
 							label: 'Display Name',
 							type: 'string',
+						},
+						{
+							value: 'date_created',
+							label: 'Date Created',
+							type: 'datetime',
+						},
+						{
+							value: 'date_modified',
+							label: 'Date Modified',
+							type: 'datetime',
+						},
+						{
+							value: 'is_paying_customer',
+							label: 'Is Paying Customer',
+							type: 'boolean',
+						},
+						{
+							value: 'order_count',
+							label: 'Order Count',
+							type: 'number',
+						},
+						{
+							value: 'total_spent',
+							label: 'Total Spent',
+							type: 'number',
+						},
+						{
+							value: 'last_order_id',
+							label: 'Last Order ID',
+							type: 'number',
 						},
 					],
 				},
@@ -4972,6 +5028,32 @@ const ImportModule = {
 	 * Auto-map fields
 	 */
 	autoMapFields() {
+		const contentType = jQuery(
+			'input[name="content_type"]:checked'
+		).val();
+		const hasAcfSourceFields = jQuery( '.rsl-ie-field-card' )
+			.toArray()
+			.some( ( sourceCard ) =>
+				String(
+					jQuery( sourceCard ).data( 'source-field' ) || ''
+				).startsWith( 'acf_' )
+			);
+		const hasAcfTargetFields =
+			jQuery( '.rsl-ie-target-field[data-target-field^="acf_"]' ).length >
+			0;
+
+		if ( hasAcfSourceFields && ! hasAcfTargetFields ) {
+			const request = this.loadACFFields( contentType );
+			if ( request && typeof request.always === 'function' ) {
+				request.always( () => this.runAutoMapFields() );
+				return;
+			}
+		}
+
+		this.runAutoMapFields();
+	},
+
+	runAutoMapFields() {
 		// Clear existing mappings
 		this.clearFieldMapping();
 
@@ -5600,9 +5682,15 @@ const ImportModule = {
 	 * Start batch processing
 	 */
 	async startBatchProcessing() {
-		if ( this.isCancellingImport || ! this.jobId ) {
+		if (
+			this.isCancellingImport ||
+			! this.jobId ||
+			this.isBatchProcessing
+		) {
 			return;
 		}
+
+		this.isBatchProcessing = true;
 
 		try {
 			const response = await Utils.ajax( 'rsl_ie_import_process_batch', {
@@ -5678,6 +5766,8 @@ const ImportModule = {
 			}
 			clearInterval( this.progressInterval );
 			Utils.handleError( error, 'Process batch' );
+		} finally {
+			this.isBatchProcessing = false;
 		}
 	},
 
@@ -5867,6 +5957,7 @@ const ImportModule = {
 		this.jobId = null;
 		this.importStartTime = null;
 		this.isCancellingImport = false;
+		this.isBatchProcessing = false;
 		if ( this.batchTimeout ) {
 			clearTimeout( this.batchTimeout );
 			this.batchTimeout = null;
@@ -5899,7 +5990,7 @@ const ImportModule = {
 			return;
 		}
 
-		jQuery.ajax( {
+		return jQuery.ajax( {
 			url: rslIeData.ajaxUrl,
 			method: 'POST',
 			data: {

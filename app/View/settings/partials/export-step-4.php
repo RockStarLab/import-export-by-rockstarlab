@@ -143,12 +143,24 @@ defined( 'ABSPATH' ) || exit;
 				</table>
 			</div>
 
-			<div class="rsl-ie-common-options">
-				<h3><?php esc_html_e( 'Processing Options', 'import-export-by-rockstarlab' ); ?></h3>
-				<table class="form-table">
-					<tr>
-						<th><?php esc_html_e( 'Batch size', 'import-export-by-rockstarlab' ); ?></th>
-						<td>
+				<div class="rsl-ie-common-options">
+					<h3><?php esc_html_e( 'Processing Options', 'import-export-by-rockstarlab' ); ?></h3>
+					<table class="form-table">
+						<tr>
+							<th>
+								<label for="rsl-ie-custom-export-file-name">
+									<?php esc_html_e( 'Custom export file name', 'import-export-by-rockstarlab' ); ?>
+									<span class="required">*</span>
+								</label>
+							</th>
+							<td>
+								<input type="text" name="custom_export_file_name" id="rsl-ie-custom-export-file-name" value="" required class="regular-text">
+								<p class="description"><?php esc_html_e( 'Enter the file name without extension. The extension is added automatically from the selected file format. Use {job_id} to keep the current automatic export ID in the filename.', 'import-export-by-rockstarlab' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th><?php esc_html_e( 'Batch size', 'import-export-by-rockstarlab' ); ?></th>
+							<td>
 							<input type="number" name="items_per_iteration" value="3" min="1" max="1000" class="small-text">
 							<p class="description"><?php esc_html_e( 'Number of items to process in each batch. Lower values are safer for large exports.', 'import-export-by-rockstarlab' ); ?></p>
 						</td>

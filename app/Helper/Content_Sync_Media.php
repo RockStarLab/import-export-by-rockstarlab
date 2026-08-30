@@ -275,16 +275,55 @@ class Content_Sync_Media {
 		}
 
 		// Also try to match image URLs
-		preg_match_all( '/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $url_matches );
+		$images = array_merge( $images, self::extract_images_from_html_urls( $content, 'content_html' ) );
 
-		if ( ! empty( $url_matches[1] ) ) {
-			foreach ( $url_matches[1] as $url ) {
-				$attachment_id = attachment_url_to_postid( $url );
-				if ( $attachment_id ) {
-					$image_data = self::prepare_image_data( $attachment_id, 'content_html' );
-					if ( $image_data ) {
-						$images[] = $image_data;
+		return $images;
+	}
+
+	/**
+	 * Extract source-site attachments referenced by img src and srcset URLs.
+	 *
+	 * @param string $content HTML content.
+	 * @param string $context Context where the image was found.
+	 * @return array Array of image data.
+	 */
+	private static function extract_images_from_html_urls( $content, $context ) {
+		$images = array();
+
+		if ( empty( $content ) || ! is_string( $content ) ) {
+			return $images;
+		}
+
+		$urls = array();
+		if ( preg_match_all( '/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $url_matches ) ) {
+			$urls = array_merge( $urls, $url_matches[1] );
+		}
+
+		if ( preg_match_all( '/\bsrcset=["\']([^"\']+)["\']/i', $content, $srcset_matches ) ) {
+			foreach ( $srcset_matches[1] as $srcset ) {
+				foreach ( array_map( 'trim', explode( ',', (string) $srcset ) ) as $candidate ) {
+					if ( '' === $candidate ) {
+						continue;
 					}
+					$parts = preg_split( '/\s+/', $candidate );
+					if ( ! empty( $parts[0] ) ) {
+						$urls[] = $parts[0];
+					}
+				}
+			}
+		}
+
+		$urls = array_values( array_unique( array_filter( array_map( 'esc_url_raw', $urls ) ) ) );
+		foreach ( $urls as $url ) {
+			if ( '' === $url ) {
+				continue;
+			}
+
+			$attachment_id = attachment_url_to_postid( $url );
+			if ( $attachment_id ) {
+				$image_data = self::prepare_image_data( $attachment_id, $context );
+				if ( $image_data ) {
+					$images[] = $image_data;
 				}
 			}
 		}
@@ -306,7 +345,7 @@ class Content_Sync_Media {
 			return $images;
 		}
 
-		$fields = get_field_objects( $post_id );
+		$fields = get_field_objects( $post_id, false, true, false );
 
 		if ( ! $fields ) {
 			return $images;
@@ -375,23 +414,35 @@ class Content_Sync_Media {
 			}
 		}
 
-		// Handle WYSIWYG field - extract images embedded in the HTML content
+		// Handle WYSIWYG field - extract media from both formatted ACF output and
+		// the raw DB value. The raw value is where classic [gallery]/[playlist]
+		// shortcode IDs still exist before ACF/the_content expands them to HTML.
 		if ( 'wysiwyg' === $field['type'] && ! empty( $field['value'] ) && is_string( $field['value'] ) ) {
-			// Collect by wp-image-ID class
-			if ( preg_match_all( '/wp-image-(\d+)/i', $field['value'], $matches ) ) {
-				foreach ( $matches[1] as $image_id ) {
-					$image_data = self::prepare_image_data( (int) $image_id, 'acf_wysiwyg_' . $field['name'] );
-					if ( $image_data ) {
-						$images[] = $image_data;
-					}
+			$wysiwyg_values = array( $field['value'] );
+			if ( ! empty( $field['name'] ) ) {
+				$raw_value = get_post_meta( (int) $post_id, (string) $field['name'], true );
+				if ( is_string( $raw_value ) && '' !== $raw_value && ! in_array( $raw_value, $wysiwyg_values, true ) ) {
+					$wysiwyg_values[] = $raw_value;
 				}
 			}
-			// Also collect by src URL (covers cases without wp-image class)
-			if ( preg_match_all( '/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $field['value'], $url_matches ) ) {
-				foreach ( $url_matches[1] as $url ) {
-					$attachment_id = attachment_url_to_postid( $url );
-					if ( $attachment_id ) {
-						$image_data = self::prepare_image_data( $attachment_id, 'acf_wysiwyg_src_' . $field['name'] );
+
+			foreach ( $wysiwyg_values as $wysiwyg_value ) {
+				// Collect by wp-image-ID class.
+				if ( preg_match_all( '/wp-image-(\d+)/i', $wysiwyg_value, $matches ) ) {
+					foreach ( $matches[1] as $image_id ) {
+						$image_data = self::prepare_image_data( (int) $image_id, 'acf_wysiwyg_' . $field['name'] );
+						if ( $image_data ) {
+							$images[] = $image_data;
+						}
+					}
+				}
+
+				// Also collect images by src/srcset URLs and classic media shortcode IDs.
+				$images = array_merge( $images, self::extract_images_from_html_urls( $wysiwyg_value, 'acf_wysiwyg_src_' . $field['name'] ) );
+				$images = array_merge( $images, self::extract_images_from_shortcodes( $wysiwyg_value ) );
+				if ( class_exists( ACF_Fields::class ) ) {
+					foreach ( ACF_Fields::extract_media_shortcode_token_source_ids( $wysiwyg_value ) as $attachment_id ) {
+						$image_data = self::prepare_image_data( (int) $attachment_id, 'acf_wysiwyg_shortcode_' . $field['name'] );
 						if ( $image_data ) {
 							$images[] = $image_data;
 						}
@@ -710,7 +761,12 @@ class Content_Sync_Media {
 		$file_url  = wp_get_attachment_url( $attachment_id );
 		$metadata  = wp_get_attachment_metadata( $attachment_id );
 
-		return array(
+		$description = (string) $attachment->post_content;
+		if ( class_exists( ACF_Fields::class ) ) {
+			$description = ACF_Fields::export_string_with_media_shortcode_tokens( $description );
+		}
+
+		$image_data = array(
 			'attachment_id' => $attachment_id,
 			'url'           => $file_url,
 			'source_urls'   => self::get_attachment_source_urls( $attachment_id, $metadata ),
@@ -722,10 +778,26 @@ class Content_Sync_Media {
 			'alt_text'      => get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ),
 			'title'         => $attachment->post_title,
 			'caption'       => $attachment->post_excerpt,
-			'description'   => $attachment->post_content,
+			'description'   => $description,
 			'context'       => $context,
 			'metadata'      => $metadata,
 		);
+
+		if ( class_exists( ACF_Fields::class ) ) {
+			$acf = array();
+			foreach ( ACF_Fields::get_fields_for_content_type( 'media' ) as $field ) {
+				$field_name = isset( $field['name'] ) ? (string) $field['name'] : '';
+				if ( '' === $field_name ) {
+					continue;
+				}
+				$acf[ $field_name ] = ACF_Fields::export_value( 'media', (int) $attachment_id, $field_name );
+			}
+			if ( ! empty( $acf ) ) {
+				$image_data['acf'] = $acf;
+			}
+		}
+
+		return $image_data;
 	}
 
 	/**

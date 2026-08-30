@@ -244,14 +244,16 @@ const getActionNonce = ( action ) =>
 			} );
 
 			// Browse modal - Pagination
-			$( document ).on( 'click', '#rsl-ie-browse-prev-page', () => {
+			$( document ).on( 'click', '#rsl-ie-browse-prev-page', ( e ) => {
+				e.preventDefault();
 				if ( this.browseState.currentPage > 1 ) {
 					this.browseState.currentPage--;
 					this.loadRemotePosts();
 				}
 			} );
 
-			$( document ).on( 'click', '#rsl-ie-browse-next-page', () => {
+			$( document ).on( 'click', '#rsl-ie-browse-next-page', ( e ) => {
+				e.preventDefault();
 				if (
 					this.browseState.currentPage < this.browseState.totalPages
 				) {
@@ -563,6 +565,10 @@ const getActionNonce = ( action ) =>
 		 */
 		getCurrentPostType() {
 			const params = new URLSearchParams( window.location.search );
+			if ( window.location.pathname.indexOf( '/upload.php' ) !== -1 ) {
+				return 'attachment';
+			}
+
 			return params.get( 'post_type' ) || 'post';
 		},
 
@@ -1106,11 +1112,17 @@ const getActionNonce = ( action ) =>
 				'rsl_ie_content_sync_auto_map_by_title'
 			);
 			const $button = $( '#rsl-ie-auto-match-btn' );
-			const originalText = $button.text();
+			const originalHtml = $button.html();
 			const matchingText =
 				rslIePostSyncData?.i18n?.matchingByTitle || 'Matching...';
 
-			$button.prop( 'disabled', true ).text( matchingText );
+			$button
+				.prop( 'disabled', true )
+				.html(
+					`<span class="spinner is-active" aria-hidden="true"></span><span>${ this.escapeHtml(
+						matchingText
+					) }</span>`
+				);
 
 			$.ajax( {
 				url: ajaxUrl,
@@ -1176,7 +1188,7 @@ const getActionNonce = ( action ) =>
 						.trigger( 'change' );
 				},
 				complete: () => {
-					$button.prop( 'disabled', false ).text( originalText );
+					$button.prop( 'disabled', false ).html( originalHtml );
 				},
 			} );
 		},
@@ -1459,6 +1471,10 @@ const getActionNonce = ( action ) =>
 		 * Get current post type from screen
 		 */
 		getCurrentPostType() {
+			if ( window.location.pathname.indexOf( '/upload.php' ) !== -1 ) {
+				return 'attachment';
+			}
+
 			// Try to get from post edit screen
 			if ( $( '#post_type' ).length ) {
 				return $( '#post_type' ).val();
@@ -1478,6 +1494,9 @@ const getActionNonce = ( action ) =>
 			// Default to post
 			return 'post';
 		},
+
+		/**
+		 */
 
 		/**
 		 * Load remote posts with pagination and filters
@@ -1659,24 +1678,35 @@ const getActionNonce = ( action ) =>
 		 * Update pagination controls
 		 */
 		updatePagination( data ) {
-			if ( ! data.pages || data.pages <= 1 ) {
+			const currentPage = parseInt( data.current_page || 1, 10 );
+			const totalPages = parseInt( data.pages || 1, 10 );
+
+			this.browseState.currentPage = Number.isNaN( currentPage )
+				? 1
+				: currentPage;
+			this.browseState.totalPages = Number.isNaN( totalPages )
+				? 1
+				: totalPages;
+
+			$( '#rsl-ie-browse-current-page' ).text(
+				this.browseState.currentPage
+			);
+			$( '#rsl-ie-browse-total-pages' ).text(
+				this.browseState.totalPages
+			);
+
+			if ( this.browseState.totalPages <= 1 ) {
 				$( '#rsl-ie-browse-pagination' ).hide();
 				return;
 			}
 
-			this.browseState.currentPage = data.current_page;
-			this.browseState.totalPages = data.pages;
-
-			$( '#rsl-ie-browse-current-page' ).text( data.current_page );
-			$( '#rsl-ie-browse-total-pages' ).text( data.pages );
-
 			$( '#rsl-ie-browse-prev-page' ).prop(
 				'disabled',
-				data.current_page <= 1
+				this.browseState.currentPage <= 1
 			);
 			$( '#rsl-ie-browse-next-page' ).prop(
 				'disabled',
-				data.current_page >= data.pages
+				this.browseState.currentPage >= this.browseState.totalPages
 			);
 
 			$( '#rsl-ie-browse-pagination' ).show();

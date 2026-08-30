@@ -14,6 +14,40 @@ use RockStarLab\ImportExport\Helper\ACF_Fields;
 defined( 'ABSPATH' ) || exit;
 
 class Post_Exporter extends Abstract_Exporter {
+	/** Rebuild taxonomy fields before batch serialization. */
+	public function normalize_taxonomy_media_for_export( array $item, array $fields ): array {
+		foreach ( $fields as $field ) {
+			$taxonomy = '';
+			if ( 'categories' === $field ) {
+				$taxonomy = 'category';
+			} elseif ( 'tags' === $field ) {
+				$taxonomy = 'post_tag';
+			} elseif ( strpos( (string) $field, 'taxonomy_' ) === 0 ) {
+				$taxonomy = substr( (string) $field, 9 );
+			} elseif ( taxonomy_exists( (string) $field ) ) {
+				$taxonomy = (string) $field;
+			}
+			if ( '' !== $taxonomy && taxonomy_exists( $taxonomy ) && array_key_exists( $field, $item ) ) {
+				$item[ $field ] = $this->get_portable_terms_json( (int) ( $item['ID'] ?? 0 ), $taxonomy );
+			}
+		}
+		return $item;
+	}
+	/**
+	 * Normalize taxonomy ACF media after the common exporter applies field
+	 * selection and field functions.
+	 *
+	 * @param array $item  Prepared export item.
+	 * @param int   $index Item index.
+	 * @return array|string|\WP_Error
+	 */
+	protected function process_item( $item, $index ) {
+		if ( is_array( $item ) ) {
+			$item = $this->normalize_taxonomy_media_for_export( $item, (array) ( $this->options['fields'] ?? [] ) );
+		}
+
+		return parent::process_item( $item, $index );
+	}
 	/**
 	 * Cache of ACF field configs loaded from DB (field_key => config|null).
 	 *
@@ -66,7 +100,7 @@ class Post_Exporter extends Abstract_Exporter {
 	 * @return array
 	 */
 	public function get_available_fields() {
-		return [
+		$fields = [
 			'ID',
 			'post_title',
 			'post_content',
@@ -199,6 +233,8 @@ class Post_Exporter extends Abstract_Exporter {
 			'rank_math_twitter_enable_image_overlay',
 			'rank_math_twitter_image_overlay',
 		];
+
+		return $fields;
 	}
 
 	/**
@@ -263,8 +299,9 @@ class Post_Exporter extends Abstract_Exporter {
 		unset( $query_args['offset'] );
 		unset( $query_args['paged'] );
 
-		$query_args['fields']         = 'ids';
-		$query_args['posts_per_page'] = -1;
+		$query_args['fields']           = 'ids';
+		$query_args['posts_per_page']   = -1;
+		$query_args['suppress_filters'] = true;
 
 		// Combine custom filters
 		$custom_id_filters     = $query_args['_custom_id_filters'] ?? [];
@@ -434,7 +471,7 @@ class Post_Exporter extends Abstract_Exporter {
 		}
 
 		$data   = [];
-		$fields = $this->get_option( 'fields', $this->get_default_fields() );
+		$fields = $options['fields'] ?? $this->get_option( 'fields', $this->get_default_fields() );
 
 		// If fields is empty array, use default fields
 		if ( empty( $fields ) ) {
@@ -455,7 +492,27 @@ class Post_Exporter extends Abstract_Exporter {
 			$query->the_post();
 			$post = get_post();
 
-			$item   = $this->prepare_post_data( $post, $fields );
+			$item = $this->prepare_post_data( $post, $fields );
+			// Rebuild selected taxonomy columns from the portable exporter at the
+			// final boundary so raw term meta IDs cannot leak into the file.
+			foreach ( $fields as $field ) {
+				$taxonomy = '';
+				if ( 'categories' === $field ) {
+					$taxonomy = 'category';
+				} elseif ( 'tags' === $field ) {
+					$taxonomy = 'post_tag';
+				} elseif ( strpos( (string) $field, 'taxonomy_' ) === 0 ) {
+					$taxonomy = substr( (string) $field, 9 );
+				} elseif ( taxonomy_exists( (string) $field ) ) {
+					$taxonomy = (string) $field;
+				}
+				if ( '' !== $taxonomy && taxonomy_exists( $taxonomy ) ) {
+					$item[ $field ] = $this->get_portable_terms_json( (int) $post->ID, $taxonomy );
+				}
+			}
+			// Re-apply this at the collection boundary because some export paths
+			// can rebuild taxonomy values after post preparation.
+			$item   = $this->normalize_portable_taxonomy_acf_media_fields( $item, $fields );
 			$data[] = $item;
 		}
 
@@ -502,6 +559,7 @@ class Post_Exporter extends Abstract_Exporter {
 			'orderby'             => $options['orderby'] ?? 'date',
 			'order'               => $options['order'] ?? 'DESC',
 			'ignore_sticky_posts' => true,
+			'suppress_filters'    => true,
 		];
 
 		// When querying products, exclude variations (child post_type = product_variation)
@@ -2063,7 +2121,7 @@ class Post_Exporter extends Abstract_Exporter {
 			}
 		}
 		if ( isset( $data['post_content'] ) && is_string( $data['post_content'] ) ) {
-			$data['post_content'] = $this->acf_export_string_with_gallery_tokens( $data['post_content'], (int) $post->ID );
+			$data['post_content'] = $this->acf_export_string_with_media_shortcode_tokens( $data['post_content'], (int) $post->ID );
 		}
 
 		// Author fields
@@ -2146,29 +2204,17 @@ class Post_Exporter extends Abstract_Exporter {
 
 		// Process individual taxonomy fields (taxonomy_category, taxonomy_post_tag, product_cat, product_tag, etc.)
 		foreach ( $fields as $field ) {
-			if ( strpos( $field, 'taxonomy_' ) === 0 ) {
-				$taxonomy_name = substr( $field, 9 ); // Remove 'taxonomy_' prefix
-				$terms         = wp_get_object_terms( $post->ID, $taxonomy_name, [ 'fields' => 'names' ] );
-
-				if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
-					$data[ $field ] = implode( ', ', $terms );
-				} else {
-					$data[ $field ] = '';
-				}
+			if ( 'categories' === $field ) {
+				$data[ $field ] = $this->get_portable_terms_json( (int) $post->ID, 'category' );
+			} elseif ( 'tags' === $field ) {
+				$data[ $field ] = $this->get_portable_terms_json( (int) $post->ID, 'post_tag' );
+			} elseif ( strpos( $field, 'taxonomy_' ) === 0 ) {
+				$taxonomy_name  = substr( $field, 9 ); // Remove 'taxonomy_' prefix
+				$data[ $field ] = $this->get_portable_terms_json( (int) $post->ID, $taxonomy_name );
 			}
 			// Handle direct taxonomy names (product_cat, product_tag, etc.)
 			elseif ( taxonomy_exists( $field ) ) {
-				if ( 'product' === $post->post_type && in_array( $field, [ 'product_cat', 'product_brand' ], true ) ) {
-					$data[ $field ] = $this->get_portable_product_terms_json( (int) $post->ID, $field );
-				} else {
-					$terms = wp_get_object_terms( $post->ID, $field, [ 'fields' => 'names' ] );
-
-					if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
-						$data[ $field ] = implode( ', ', $terms );
-					} else {
-						$data[ $field ] = '';
-					}
-				}
+				$data[ $field ] = $this->get_portable_terms_json( (int) $post->ID, $field );
 			}
 		}       // Process individual meta fields
 		foreach ( $fields as $field ) {
@@ -2181,6 +2227,7 @@ class Post_Exporter extends Abstract_Exporter {
 			// Skip if already processed as taxonomy
 			if ( ! in_array( $field, $basic_fields, true ) &&
 				! in_array( $field, [ 'author_name', 'author_email', 'post_meta', 'taxonomies', 'featured_image', 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption' ], true ) &&
+				! in_array( $field, [ 'categories', 'tags' ], true ) &&
 				strpos( $field, 'taxonomy_' ) !== 0 &&
 				! taxonomy_exists( $field ) ) {
 				if ( 'elementor_document' === $field ) {
@@ -2513,7 +2560,90 @@ class Post_Exporter extends Abstract_Exporter {
 			}
 		}
 
+			return $this->normalize_portable_taxonomy_acf_media_fields( $data, $fields );
+	}
+
+		/**
+		 * Ensure portable taxonomy payloads do not leak source attachment IDs in term ACF media fields.
+		 *
+		 * @param array $data   Prepared export row.
+		 * @param array $fields Selected export fields.
+		 * @return array
+		 */
+	private function normalize_portable_taxonomy_acf_media_fields( array $data, array $fields ): array {
+		foreach ( $fields as $field ) {
+			$taxonomy = '';
+			if ( 'categories' === $field ) {
+				$taxonomy = 'category';
+			} elseif ( 'tags' === $field ) {
+				$taxonomy = 'post_tag';
+			} elseif ( strpos( (string) $field, 'taxonomy_' ) === 0 ) {
+				$taxonomy = substr( (string) $field, 9 );
+			} elseif ( taxonomy_exists( (string) $field ) ) {
+				$taxonomy = (string) $field;
+			}
+
+			if ( '' === $taxonomy || empty( $data[ $field ] ) || ! taxonomy_exists( $taxonomy ) ) {
+				continue;
+			}
+
+			$terms = is_string( $data[ $field ] ) ? json_decode( $data[ $field ], true ) : $data[ $field ];
+			if ( empty( $terms ) || ! is_array( $terms ) ) {
+				continue;
+			}
+
+			foreach ( $terms as &$term_data ) {
+				if ( empty( $term_data['acf'] ) || ! is_array( $term_data['acf'] ) ) {
+					continue;
+				}
+
+				$term_id = $this->get_term_id_from_portable_payload( $term_data, $taxonomy );
+				if ( $term_id <= 0 ) {
+					continue;
+				}
+
+				foreach ( array_keys( $term_data['acf'] ) as $field_name ) {
+					$field_object = $this->get_term_acf_field_object_from_meta( $term_id, (string) $field_name );
+					$field_type   = is_array( $field_object ) ? (string) ( $field_object['type'] ?? '' ) : '';
+					if ( in_array( $field_type, [ 'image', 'file', 'gallery' ], true ) ) {
+						$term_data['acf'][ $field_name ] = $this->get_term_acf_field_export_value( $term_id, $taxonomy, (string) $field_name );
+					}
+				}
+			}
+			unset( $term_data );
+
+			$encoded = wp_json_encode( $terms );
+			if ( $encoded ) {
+				$data[ $field ] = $encoded;
+			}
+		}
+
 		return $data;
+	}
+
+		/**
+		 * Resolve a source term ID from portable term payload.
+		 *
+		 * @param array  $term_data Portable term payload.
+		 * @param string $taxonomy  Taxonomy name.
+		 * @return int
+		 */
+	private function get_term_id_from_portable_payload( array $term_data, string $taxonomy ): int {
+		$slug = isset( $term_data['slug'] ) ? sanitize_title( (string) $term_data['slug'] ) : '';
+		if ( '' !== $slug ) {
+			$term = get_term_by( 'slug', $slug, $taxonomy );
+			if ( $term && ! is_wp_error( $term ) ) {
+				return (int) $term->term_id;
+			}
+		}
+
+		$name = isset( $term_data['name'] ) ? trim( (string) $term_data['name'] ) : '';
+		if ( '' === $name ) {
+			return 0;
+		}
+
+		$term = get_term_by( 'name', $name, $taxonomy );
+		return $term && ! is_wp_error( $term ) ? (int) $term->term_id : 0;
 	}
 
 	/**
@@ -2625,12 +2755,12 @@ class Post_Exporter extends Abstract_Exporter {
 			}
 		}
 
-		// ── Relationship / Post Object ────────────────────────────────────────
+		// ── Relationship / Post Object / Page Link ────────────────────────────
 		// Trigger ONLY when ACF confirms type OR first item IS a WP_Post object.
 		// Do NOT trigger on plain integer arrays without a confirmed type —
 		// integer IDs that happen to match posts are indistinguishable from
 		// term IDs or ACF field-config post IDs.
-		$is_relation = in_array( $field_type, [ 'relationship', 'post_object' ], true )
+		$is_relation = in_array( $field_type, [ 'relationship', 'post_object', 'page_link' ], true )
 			|| ( '' === $field_type && $first instanceof \WP_Post );
 
 		if ( $is_relation ) {
@@ -2655,6 +2785,8 @@ class Post_Exporter extends Abstract_Exporter {
 						}
 					}
 					$slugs[] = $item['post_name'];
+				} elseif ( is_string( $item ) && filter_var( $item, FILTER_VALIDATE_URL ) ) {
+					$slugs[] = $item;
 				} elseif ( is_numeric( $item ) && '' !== $field_type ) {
 					// Only resolve IDs to slugs when the type is confirmed by ACF.
 					$p = get_post( (int) $item );
@@ -2675,6 +2807,7 @@ class Post_Exporter extends Abstract_Exporter {
 					[
 						'acf_type' => 'relation',
 						'values'   => $slugs,
+						'single'   => ! is_array( $value ),
 					]
 				);
 			}
@@ -2768,6 +2901,11 @@ class Post_Exporter extends Abstract_Exporter {
 		$type = $field_obj['type'] ?? '';
 
 		switch ( $type ) {
+			case 'text':
+			case 'textarea':
+			case 'wysiwyg':
+				return is_string( $value ) ? $this->acf_export_string_with_media_shortcode_tokens( $value, $post_id ) : $value;
+
 			case 'image':
 			case 'file':
 				return $this->acf_export_media_url( $value, $post_id );
@@ -2789,6 +2927,7 @@ class Post_Exporter extends Abstract_Exporter {
 
 			case 'relationship':
 			case 'post_object':
+			case 'page_link':
 				$items = is_array( $value ) ? $value : [ $value ];
 				$slugs = [];
 				foreach ( $items as $item ) {
@@ -2796,6 +2935,8 @@ class Post_Exporter extends Abstract_Exporter {
 						$slugs[] = $item->post_name;
 					} elseif ( is_array( $item ) && isset( $item['post_name'] ) ) {
 						$slugs[] = $item['post_name'];
+					} elseif ( is_string( $item ) && filter_var( $item, FILTER_VALIDATE_URL ) ) {
+						$slugs[] = $item;
 					} elseif ( is_numeric( $item ) ) {
 						$p = get_post( (int) $item );
 						if ( $p ) {
@@ -2803,13 +2944,23 @@ class Post_Exporter extends Abstract_Exporter {
 						}
 					}
 				}
-				$slugs   = array_values( array_filter( array_map( 'sanitize_title', $slugs ) ) );
+				$slugs   = array_values(
+					array_filter(
+						array_map(
+							static function ( $ref ) {
+								$ref = (string) $ref;
+								return filter_var( $ref, FILTER_VALIDATE_URL ) ? $ref : sanitize_title( $ref );
+							},
+							$slugs
+						)
+					)
+				);
 				$payload = [
 					'acf_type' => 'relation',
 					'values'   => $slugs,
 				];
 				// post_object can be single or multiple; relationship is always multiple.
-				if ( 'post_object' === $type && empty( $field_obj['multiple'] ) ) {
+				if ( in_array( $type, [ 'post_object', 'page_link' ], true ) && empty( $field_obj['multiple'] ) ) {
 					$payload['single'] = true;
 				}
 				return $payload;
@@ -2851,11 +3002,13 @@ class Post_Exporter extends Abstract_Exporter {
 				$out = [];
 				foreach ( ( $field_obj['sub_fields'] ?? [] ) as $sub ) {
 					$name = $sub['name'] ?? '';
-					if ( '' === $name ) {
+					$key  = $sub['key'] ?? '';
+					if ( '' === $name && '' === $key ) {
 						continue;
 					}
-					$sub_value    = array_key_exists( $name, $value ) ? $value[ $name ] : null;
-					$out[ $name ] = $this->export_acf_portable_nested_value( $sub_value, $sub, $post_id );
+					$out_key         = '' !== $name ? $name : $key;
+					$sub_value       = $this->acf_get_nested_value_by_name_or_key( $value, (string) $name, (string) $key );
+					$out[ $out_key ] = $this->export_acf_portable_nested_value( $sub_value, $sub, $post_id );
 				}
 				return $out;
 
@@ -2879,7 +3032,7 @@ class Post_Exporter extends Abstract_Exporter {
 					}
 					$row_out = [];
 					foreach ( $sub_by_name as $name => $sub ) {
-						$sub_value        = array_key_exists( $name, $row ) ? $row[ $name ] : null;
+						$sub_value        = $this->acf_get_nested_value_by_name_or_key( $row, (string) $name, (string) ( $sub['key'] ?? '' ) );
 						$row_out[ $name ] = $this->export_acf_portable_nested_value( $sub_value, $sub, $post_id );
 					}
 					$rows[] = $row_out;
@@ -2913,7 +3066,7 @@ class Post_Exporter extends Abstract_Exporter {
 						if ( '' === $name ) {
 							continue;
 						}
-						$sub_value        = array_key_exists( $name, $row ) ? $row[ $name ] : null;
+						$sub_value        = $this->acf_get_nested_value_by_name_or_key( $row, (string) $name, (string) ( $sub['key'] ?? '' ) );
 						$row_out[ $name ] = $this->export_acf_portable_nested_value( $sub_value, $sub, $post_id );
 					}
 
@@ -2950,6 +3103,30 @@ class Post_Exporter extends Abstract_Exporter {
 		}
 
 		return '';
+	}
+
+	/**
+	 * Read a nested ACF value using either the field name or the field key.
+	 *
+	 * ACF can return repeater/group/flexible rows keyed by field keys
+	 * (`field_xxx`) even when the field definition exposes a human name.
+	 * Exporters must support both shapes or nested media fields become empty.
+	 *
+	 * @param array  $row        ACF row/group data.
+	 * @param string $field_name Field name.
+	 * @param string $field_key  Field key.
+	 * @return mixed|null
+	 */
+	private function acf_get_nested_value_by_name_or_key( array $row, string $field_name, string $field_key ) {
+		if ( '' !== $field_name && array_key_exists( $field_name, $row ) ) {
+			return $row[ $field_name ];
+		}
+
+		if ( '' !== $field_key && array_key_exists( $field_key, $row ) ) {
+			return $row[ $field_key ];
+		}
+
+		return null;
 	}
 
 	/**
@@ -3126,7 +3303,7 @@ class Post_Exporter extends Abstract_Exporter {
 			case 'text':
 				$raw = get_post_meta( $post_id, $base_meta_key, true );
 				if ( is_string( $raw ) && '' !== $raw ) {
-					return $this->acf_export_string_with_gallery_tokens( $raw );
+					return $this->acf_export_string_with_media_shortcode_tokens( $raw, $post_id );
 				}
 				return $raw;
 
@@ -3360,31 +3537,33 @@ class Post_Exporter extends Abstract_Exporter {
 	}
 
 	/**
-	 * Replace `[gallery ids="1,2,3"]` shortcodes inside a string with portable tokens.
+	 * Replace `[gallery ids="1,2,3"]` and `[playlist ids="1,2,3"]`
+	 * shortcodes inside a string with portable tokens.
 	 *
 	 * The importer will download the referenced media (via URLs) and reconstruct
 	 * the shortcode with the target-site attachment IDs.
 	 *
 	 * Token format: [[RSL_IE:<base64(json)>]]
 	 * JSON payload:
-	 *  - acf_type: "gallery_shortcode"
+	 *  - acf_type: "media_shortcode"
 	 *  - shortcode: original matched shortcode string
 	 *  - urls: list of attachment URLs
 	 *  - items: list of attachment URLs and display metadata
 	 *
-	 * @param string $value String that may contain gallery shortcodes.
+	 * @param string $value String that may contain media shortcodes.
 	 * @return string
 	 */
-	private function acf_export_string_with_gallery_tokens( string $value, int $post_id = 0 ): string {
-		if ( false === stripos( $value, '[gallery' ) ) {
+	private function acf_export_string_with_media_shortcode_tokens( string $value, int $post_id = 0 ): string {
+		if ( false === stripos( $value, '[gallery' ) && false === stripos( $value, '[playlist' ) ) {
 			return $value;
 		}
 
-		$pattern = '/\\[gallery\\b[^\\]]*\\]/i';
+		$pattern = '/\\[(gallery|playlist)\\b[^\\]]*\\]/i';
 		return preg_replace_callback(
 			$pattern,
 			function ( array $m ) use ( $post_id ) {
 				$shortcode = $m[0] ?? '';
+				$tag       = strtolower( (string) ( $m[1] ?? '' ) );
 				$ids_raw   = '';
 				if ( preg_match( '/\\bids=(["\'])([^"\']+)\\1/i', $shortcode, $ids_match ) ) {
 					$ids_raw = $ids_match[2] ?? '';
@@ -3397,7 +3576,7 @@ class Post_Exporter extends Abstract_Exporter {
 					),
 					fn( $x ) => '' !== $x
 				);
-				if ( empty( $ids ) && $post_id > 0 ) {
+				if ( empty( $ids ) && 'gallery' === $tag && $post_id > 0 ) {
 					$ids = get_children(
 						[
 							'post_parent'    => $post_id,
@@ -3421,6 +3600,7 @@ class Post_Exporter extends Abstract_Exporter {
 					if ( $url ) {
 						$urls[]  = $url;
 						$items[] = [
+							'source_id'   => $attachment_id,
 							'url'         => $url,
 							'title'       => get_the_title( $attachment_id ),
 							'caption'     => (string) wp_get_attachment_caption( $attachment_id ),
@@ -3435,20 +3615,21 @@ class Post_Exporter extends Abstract_Exporter {
 					return $shortcode;
 				}
 
-				$payload = [
-					'acf_type'  => 'gallery_shortcode',
-					'shortcode' => $shortcode,
-					'urls'      => array_values( $urls ),
-					'items'     => array_values( $items ),
-				];
+					$payload = [
+						'acf_type'  => 'media_shortcode',
+						'shortcode' => $shortcode,
+						'tag'       => $tag,
+						'urls'      => array_values( $urls ),
+						'items'     => array_values( $items ),
+					];
 
-				$json  = wp_json_encode( $payload );
-				$token = base64_encode( $json ? $json : '' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-				if ( '' === $token ) {
-					return $shortcode;
-				}
+					$json  = wp_json_encode( $payload );
+					$token = base64_encode( $json ? $json : '' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+					if ( '' === $token ) {
+						return $shortcode;
+					}
 
-				return '[[RSL_IE:' . $token . ']]';
+					return '[[RSL_IE:' . $token . ']]';
 			},
 			$value
 		);
@@ -3606,10 +3787,13 @@ class Post_Exporter extends Abstract_Exporter {
 		$data       = [];
 
 		foreach ( $taxonomies as $taxonomy ) {
-			$terms = wp_get_object_terms( $post_id, $taxonomy, [ 'fields' => 'names' ] );
+			$terms_json = $this->get_portable_terms_json( (int) $post_id, $taxonomy );
 
-			if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
-				$data[ $taxonomy ] = $terms;
+			if ( '' !== $terms_json ) {
+				$terms = json_decode( $terms_json, true );
+				if ( is_array( $terms ) && ! empty( $terms ) ) {
+					$data[ $taxonomy ] = $terms;
+				}
 			}
 		}
 
@@ -3756,10 +3940,17 @@ class Post_Exporter extends Abstract_Exporter {
 						}
 					}
 
-					// Add ACF fields for the menu item as a nested array
-					if ( function_exists( 'get_fields' ) ) {
-						$item_acf_fields = get_fields( $item->ID );
-						if ( ! empty( $item_acf_fields ) && is_array( $item_acf_fields ) ) {
+					// Add ACF fields for the menu item as portable raw values.
+					if ( class_exists( ACF_Fields::class ) ) {
+						$item_acf_fields = [];
+						foreach ( ACF_Fields::get_fields_for_content_type( 'nav_menu_item' ) as $acf_field ) {
+							$acf_field_name = (string) ( $acf_field['name'] ?? '' );
+							if ( '' === $acf_field_name ) {
+								continue;
+							}
+							$item_acf_fields[ $acf_field_name ] = ACF_Fields::export_value( 'nav_menu_item', (int) $item->ID, $acf_field_name );
+						}
+						if ( ! empty( $item_acf_fields ) ) {
 							$item_data['acf_fields'] = $item_acf_fields;
 						}
 					}
@@ -3877,6 +4068,9 @@ class Post_Exporter extends Abstract_Exporter {
 					},
 					$items
 				);
+				return false
+					? ''
+					: '';
 			default:
 				return isset( $term->$field ) ? $term->$field : get_term_meta( $term->term_id, $field, true );
 		}
@@ -4088,13 +4282,13 @@ class Post_Exporter extends Abstract_Exporter {
 	 * @param string $taxonomy   Taxonomy name.
 	 * @return string JSON string or empty string.
 	 */
-	private function get_portable_product_terms_json( int $product_id, string $taxonomy ): string {
-		if ( $product_id <= 0 || ! taxonomy_exists( $taxonomy ) ) {
+	private function get_portable_terms_json( int $post_id, string $taxonomy ): string {
+		if ( $post_id <= 0 || ! taxonomy_exists( $taxonomy ) ) {
 			return '';
 		}
 
 		$terms = wp_get_object_terms(
-			$product_id,
+			$post_id,
 			$taxonomy,
 			[
 				'orderby' => 'parent',
@@ -4108,16 +4302,208 @@ class Post_Exporter extends Abstract_Exporter {
 
 		$out = [];
 		foreach ( $terms as $term ) {
-			$out[] = [
+			$item = [
 				'name'        => (string) $term->name,
 				'slug'        => (string) $term->slug,
 				'description' => (string) $term->description,
 				'parent_path' => $this->get_term_parent_path( (int) $term->parent, $taxonomy ),
 			];
+
+			$acf = $this->get_term_acf_export_data( (int) $term->term_id, $taxonomy );
+			if ( ! empty( $acf ) ) {
+				$item['acf'] = $acf;
+			}
+
+			$out[] = $item;
 		}
 
 		$json = wp_json_encode( $out );
 		return $json ? $json : '';
+	}
+
+	/**
+	 * Export ACF fields attached to a taxonomy term.
+	 *
+	 * @param int    $term_id  Term ID.
+	 * @param string $taxonomy Taxonomy name.
+	 * @return array<string,mixed>
+	 */
+	private function get_term_acf_export_data( int $term_id, string $taxonomy ): array {
+		if ( $term_id <= 0 ) {
+			return [];
+		}
+
+		// Keep taxonomy ACF serialization identical to the working Pro taxonomy
+		// exporter and taxonomy sync path.
+		$acf = [];
+		if ( class_exists( ACF_Fields::class ) ) {
+			foreach ( ACF_Fields::get_fields_for_content_type( 'taxonomy', $taxonomy ) as $field ) {
+				$field_name = is_array( $field ) ? ( $field['name'] ?? '' ) : '';
+				if ( '' !== (string) $field_name ) {
+					$acf[ (string) $field_name ] = ACF_Fields::export_value( 'term', $term_id, (string) $field_name, $taxonomy );
+				}
+			}
+		}
+
+		$field_names = $this->get_term_acf_field_names_from_objects( $term_id, $taxonomy );
+		$field_names = array_merge( $field_names, $this->get_term_acf_field_names_from_meta( $term_id ) );
+		$field_names = array_values( array_unique( array_filter( $field_names ) ) );
+		if ( empty( $field_names ) ) {
+			return $acf;
+		}
+
+		foreach ( $field_names as $field_name ) {
+			$field_object = $this->get_term_acf_field_object_from_meta( $term_id, (string) $field_name );
+			$field_type   = is_array( $field_object ) ? (string) ( $field_object['type'] ?? '' ) : '';
+			// ACF formats WYSIWYG values through the_content, expanding gallery
+			// and playlist shortcodes into CSS/HTML. Taxonomy export must preserve
+			// the original shortcode source.
+			if ( 'wysiwyg' === $field_type ) {
+				$raw_value = get_term_meta( $term_id, (string) $field_name, true );
+				if ( false !== $raw_value ) {
+					$acf[ $field_name ] = class_exists( ACF_Fields::class )
+						? ACF_Fields::export_string_with_media_shortcode_tokens( (string) $raw_value )
+						: (string) $raw_value;
+					continue;
+				}
+			}
+			// Always override media fields with the portable raw-meta value. The
+			// regular ACF exporter may return source-site IDs for term fields.
+			if ( in_array( $field_type, [ 'image', 'file', 'gallery' ], true ) || ! array_key_exists( $field_name, $acf ) ) {
+				$acf[ $field_name ] = $this->get_term_acf_field_export_value( $term_id, $taxonomy, $field_name );
+			}
+		}
+
+		return $acf;
+	}
+
+	/**
+	 * Export a single term ACF field with a raw-meta media fallback.
+	 *
+	 * @param int    $term_id    Term ID.
+	 * @param string $taxonomy   Taxonomy name.
+	 * @param string $field_name ACF field name.
+	 * @return mixed
+	 */
+	private function get_term_acf_field_export_value( int $term_id, string $taxonomy, string $field_name ) {
+		$field_object = $this->get_term_acf_field_object_from_meta( $term_id, $field_name );
+		$field_type   = is_array( $field_object ) ? (string) ( $field_object['type'] ?? '' ) : '';
+		$raw_value    = get_term_meta( $term_id, $field_name, true );
+
+		if ( in_array( $field_type, [ 'image', 'file' ], true ) ) {
+			$url = is_numeric( $raw_value ) ? wp_get_attachment_url( (int) $raw_value ) : '';
+			return $url ? $url : ACF_Fields::export_value( 'term', $term_id, $field_name, $taxonomy );
+		}
+
+		if ( 'gallery' === $field_type ) {
+			$ids  = maybe_unserialize( $raw_value );
+			$urls = [];
+			foreach ( is_array( $ids ) ? $ids : [] as $attachment_id ) {
+				$url = is_numeric( $attachment_id ) ? wp_get_attachment_url( (int) $attachment_id ) : '';
+				if ( $url ) {
+					$urls[] = $url;
+				}
+			}
+
+			$json = wp_json_encode(
+				[
+					'acf_type' => 'gallery',
+					'values'   => $urls,
+				]
+			);
+			return $json ? $json : '';
+		}
+
+		return ACF_Fields::export_value( 'term', $term_id, $field_name, $taxonomy );
+	}
+
+	/**
+	 * Load a term ACF field object from its raw field-key reference.
+	 *
+	 * @param int    $term_id    Term ID.
+	 * @param string $field_name ACF field name.
+	 * @return array|null
+	 */
+	private function get_term_acf_field_object_from_meta( int $term_id, string $field_name ) {
+		if ( ! function_exists( 'acf_get_field' ) ) {
+			return null;
+		}
+
+		$field_key = get_term_meta( $term_id, '_' . $field_name, true );
+		if ( ! is_string( $field_key ) || 0 !== strpos( $field_key, 'field_' ) ) {
+			return null;
+		}
+
+		$field_object = acf_get_field( $field_key );
+		return is_array( $field_object ) ? $field_object : null;
+	}
+
+	/**
+	 * Get taxonomy term ACF field names from ACF runtime objects.
+	 *
+	 * @param int    $term_id  Term ID.
+	 * @param string $taxonomy Taxonomy name.
+	 * @return array<int,string>
+	 */
+	private function get_term_acf_field_names_from_objects( int $term_id, string $taxonomy ): array {
+		if ( ! function_exists( 'get_field_objects' ) ) {
+			return [];
+		}
+
+		$fields = get_field_objects( 'term_' . $term_id );
+		if ( empty( $fields ) ) {
+			$fields = get_field_objects( sanitize_key( $taxonomy ) . '_' . $term_id );
+		}
+		if ( empty( $fields ) || ! is_array( $fields ) ) {
+			return [];
+		}
+
+		$field_names = [];
+		foreach ( $fields as $field_name => $field ) {
+			$name = is_array( $field ) && ! empty( $field['name'] ) ? (string) $field['name'] : (string) $field_name;
+			if ( '' !== $name ) {
+				$field_names[] = $name;
+			}
+		}
+
+		return $field_names;
+	}
+
+	/**
+	 * Get taxonomy term ACF field names from raw reference meta.
+	 *
+	 * ACF stores a companion meta value like `_gallery = field_xxx`.
+	 * The runtime API can miss term fields in background exports, so this
+	 * fallback keeps taxonomy ACF portable data available for import/sync.
+	 *
+	 * @param int $term_id Term ID.
+	 * @return array<int,string>
+	 */
+	private function get_term_acf_field_names_from_meta( int $term_id ): array {
+		$meta = get_term_meta( $term_id );
+		if ( empty( $meta ) || ! is_array( $meta ) ) {
+			return [];
+		}
+
+		$field_names = [];
+		foreach ( $meta as $meta_key => $values ) {
+			$meta_key = (string) $meta_key;
+			if ( '_' !== substr( $meta_key, 0, 1 ) || '_' === $meta_key || '__' === substr( $meta_key, 0, 2 ) ) {
+				continue;
+			}
+
+			$field_name = substr( $meta_key, 1 );
+			if ( '' === $field_name ) {
+				continue;
+			}
+
+			$reference = is_array( $values ) ? reset( $values ) : $values;
+			if ( is_string( $reference ) && 0 === strpos( $reference, 'field_' ) ) {
+				$field_names[] = $field_name;
+			}
+		}
+
+		return $field_names;
 	}
 
 	/**

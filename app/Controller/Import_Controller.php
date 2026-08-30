@@ -61,8 +61,8 @@ class Import_Controller extends Base_Controller {
 			$this->send_error( $file, null, 400 );
 		}
 		$file_extension = strtolower( pathinfo( $file['name'], PATHINFO_EXTENSION ) );
-		if ( ! in_array( $file_extension, array( 'csv', 'xml', 'xlsx', 'ods', 'zip' ), true ) ) {
-			$this->send_error( __( 'Invalid file type. Supported formats: CSV, XML, XLSX, ODS, and ZIP archives containing one supported import file.', 'import-export-by-rockstarlab' ), null, 400 );
+		if ( ! in_array( $file_extension, array( 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ), true ) ) {
+			$this->send_error( __( 'Invalid file type. Supported formats: CSV, JSON, XML, XLSX, ODS, and ZIP archives containing one supported import file.', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
 		$format = 'zip' === $file_extension ? 'zip' : $file_extension;
@@ -70,11 +70,6 @@ class Import_Controller extends Base_Controller {
 		// Validate parser format. ZIP is only an upload container and is parsed after extraction.
 		if ( 'zip' !== $format && ! Format_Factory::is_supported( $format ) ) {
 			$this->send_error( __( 'Unsupported file format', 'import-export-by-rockstarlab' ), null, 400 );
-		}
-
-		// JSON is not supported for import
-		if ( 'json' === $format ) {
-			$this->send_error( __( 'JSON format is not supported for import. Please use CSV, XML, XLSX, or ODS.', 'import-export-by-rockstarlab' ), null, 400 );
 		}
 
 		// Move file to upload directory
@@ -386,7 +381,7 @@ class Import_Controller extends Base_Controller {
 		}
 
 		$lock_key = 'rsl_ie_import_job_lock_' . $job_id;
-		if ( get_transient( $lock_key ) ) {
+		if ( ! $this->acquire_import_job_lock( $lock_key ) ) {
 			$locked_parameters = json_decode( $job_data->parameters, true );
 			$locked_result     = isset( $locked_parameters['cumulative_result'] ) && is_array( $locked_parameters['cumulative_result'] )
 				? $locked_parameters['cumulative_result']
@@ -406,10 +401,9 @@ class Import_Controller extends Base_Controller {
 			);
 			return;
 		}
-		set_transient( $lock_key, 1, MINUTE_IN_SECONDS );
 		register_shutdown_function(
 			static function () use ( $lock_key ) {
-				delete_transient( $lock_key );
+				delete_option( $lock_key );
 			}
 		);
 
@@ -469,21 +463,19 @@ class Import_Controller extends Base_Controller {
 			$prepared_data = $this->apply_replace_links_rules_to_data( $prepared_data, $options );
 			$total_items   = count( $prepared_data );
 
-			// Preserve source IDs for cross-site relationship fixups (e.g. post_parent).
-			if ( $importer instanceof \RockStarLab\ImportExport\Model\Import\Post_Importer ) {
-				foreach ( $prepared_data as $row_index => &$prepared_row ) {
-					if ( isset( $data[ $row_index ]['ID'] ) ) {
-						$prepared_row['_rsl_ie_source_id'] = absint( $data[ $row_index ]['ID'] );
-					}
-					if ( isset( $data[ $row_index ]['post_parent'] ) ) {
-						$prepared_row['_rsl_ie_source_parent_id'] = absint( $data[ $row_index ]['post_parent'] );
-					}
-					if ( isset( $data[ $row_index ]['post_name'] ) && '' !== (string) $data[ $row_index ]['post_name'] ) {
-						$prepared_row['_rsl_ie_source_post_name'] = (string) $data[ $row_index ]['post_name'];
-					}
+				// Preserve source IDs for cross-site relationship fixups (e.g. post_parent).
+			foreach ( $prepared_data as $row_index => &$prepared_row ) {
+				if ( isset( $data[ $row_index ]['ID'] ) ) {
+					$prepared_row['_rsl_ie_source_id'] = absint( $data[ $row_index ]['ID'] );
 				}
-				unset( $prepared_row );
+				if ( isset( $data[ $row_index ]['post_parent'] ) ) {
+					$prepared_row['_rsl_ie_source_parent_id'] = absint( $data[ $row_index ]['post_parent'] );
+				}
+				if ( isset( $data[ $row_index ]['post_name'] ) && '' !== (string) $data[ $row_index ]['post_name'] ) {
+					$prepared_row['_rsl_ie_source_post_name'] = (string) $data[ $row_index ]['post_name'];
+				}
 			}
+				unset( $prepared_row );
 
 			// Preserve source IDs + portable post hints for cross-site comment relationships.
 			if ( class_exists( \RockStarLab\ImportExport\Model\Import\Comment_Importer::class ) && $importer instanceof \RockStarLab\ImportExport\Model\Import\Comment_Importer ) {
@@ -577,6 +569,16 @@ class Import_Controller extends Base_Controller {
 		$total_items       = $parameters['total_items'];
 		$cumulative_result = $parameters['cumulative_result'];
 
+		// Recreate importer before completion/fixup checks. Each AJAX batch is a
+		// separate request, so the importer from the first batch is not available
+		// when the final empty-batch request runs.
+		$importer = Importer_Factory::get_importer( $import_type, $job_id );
+		if ( is_wp_error( $importer ) ) {
+			$this->send_error( $importer, null, 500 );
+			return;
+		}
+		$importer->set_options( $options );
+
 		// Get batch
 		$batch = array_slice( $prepared_data, $offset, $batch_size );
 
@@ -605,16 +607,6 @@ class Import_Controller extends Base_Controller {
 			);
 			return;
 		}
-
-		// Process batch
-		$importer = Importer_Factory::get_importer( $import_type, $job_id );
-		if ( is_wp_error( $importer ) ) {
-			$this->send_error( $importer, null, 500 );
-			return;
-		}
-
-		// Set importer options (CRITICAL for Database_Table_Importer)
-		$importer->set_options( $options );
 
 		$replace_links_rules = $this->get_replace_links_rules( $options );
 
@@ -653,6 +645,27 @@ class Import_Controller extends Base_Controller {
 
 			if ( ! is_wp_error( $result ) && 'skipped' !== $result && class_exists( \RockStarLab\ImportExport\Model\Import\Comment_Importer::class ) && $importer instanceof \RockStarLab\ImportExport\Model\Import\Comment_Importer ) {
 				$this->preserve_imported_comment_dates( $result, $item );
+			}
+
+			$current_job_status = $job_model->find( $job_id );
+			if ( $current_job_status && in_array( $current_job_status->status, [ 'paused', 'cancelled' ], true ) ) {
+				$processed = $cumulative_result['success'] + $cumulative_result['failed'] + $cumulative_result['skipped'];
+				\RockStarLab\ImportExport\Helper\Progress_Tracker::update_progress(
+					$job_id,
+					$total_items,
+					$processed,
+					$cumulative_result['success'],
+					$cumulative_result['failed']
+				);
+
+				$this->send_success(
+					[
+						'completed' => true,
+						'status'    => $current_job_status->status,
+						'result'    => $cumulative_result,
+					]
+				);
+				return;
 			}
 		}
 
@@ -693,6 +706,34 @@ class Import_Controller extends Base_Controller {
 				'result'    => $cumulative_result,
 			]
 		);
+	}
+
+	/**
+	 * Acquire an atomic import job lock.
+	 *
+	 * Transient writes are not atomic enough for duplicate AJAX requests: two
+	 * requests can both miss the transient and process offset 0. add_option()
+	 * uses a unique option name, so only one request wins.
+	 *
+	 * @param string $lock_key Lock option name.
+	 * @return bool True when the lock was acquired.
+	 */
+	private function acquire_import_job_lock( $lock_key ) {
+		$lock_key = sanitize_key( (string) $lock_key );
+		$now      = time();
+		$ttl      = MINUTE_IN_SECONDS;
+
+		if ( add_option( $lock_key, (string) $now, '', 'no' ) ) {
+			return true;
+		}
+
+		$locked_at = absint( get_option( $lock_key, 0 ) );
+		if ( $locked_at > 0 && ( $now - $locked_at ) > $ttl ) {
+			delete_option( $lock_key );
+			return add_option( $lock_key, (string) $now, '', 'no' );
+		}
+
+		return false;
 	}
 
 	/**
@@ -994,10 +1035,13 @@ class Import_Controller extends Base_Controller {
 		$key = 'rsl_ie_import_post_id_map_' . $job_id;
 		$map = get_transient( $key );
 		if ( ! is_array( $map ) || empty( $map ) ) {
-			return;
+			$map = $this->build_post_source_id_map_from_meta( $prepared_data );
+			if ( empty( $map ) ) {
+				return;
+			}
 		}
 
-		foreach ( $prepared_data as $row ) {
+		foreach ( $rows as $row ) {
 			$source_id     = isset( $row['_rsl_ie_source_id'] ) ? absint( $row['_rsl_ie_source_id'] ) : 0;
 			$source_parent = isset( $row['_rsl_ie_source_parent_id'] ) ? absint( $row['_rsl_ie_source_parent_id'] ) : 0;
 			$target_id     = $source_id ? absint( $map[ (string) $source_id ] ?? 0 ) : 0;
@@ -1029,6 +1073,73 @@ class Import_Controller extends Base_Controller {
 	}
 
 	/**
+	 * Rebuild source post ID => target post ID map from stored import meta.
+	 *
+	 * @param array $prepared_data Prepared rows.
+	 * @return array
+	 */
+	private function build_post_source_id_map_from_meta( array $prepared_data ) {
+		$map = [];
+		foreach ( $prepared_data as $row ) {
+			$source_id = isset( $row['_rsl_ie_source_id'] ) ? absint( $row['_rsl_ie_source_id'] ) : absint( $row['ID'] ?? 0 );
+			if ( $source_id <= 0 ) {
+				continue;
+			}
+
+			$target_id = $this->find_imported_post_by_source_id( $source_id );
+			if ( $target_id > 0 ) {
+				$map[ (string) $source_id ] = $target_id;
+			}
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Find imported post by any source ID meta key used by free/PRO importers.
+	 *
+	 * @param int $source_id Source-site post ID.
+	 * @return int
+	 */
+	private function find_imported_post_by_source_id( $source_id ) {
+		$source_id = absint( $source_id );
+		if ( $source_id <= 0 ) {
+			return 0;
+		}
+
+		$posts = get_posts(
+			[
+				'post_type'              => 'any',
+				'post_status'            => 'any',
+				'posts_per_page'         => 1,
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'meta_query'             => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Source ID repair lookup after import jobs.
+					'relation' => 'OR',
+					[
+						'key'   => '_rsl_ie_source_post_id',
+						'value' => (string) $source_id,
+					],
+					[
+						'key'   => '_rsl_ie_source_id',
+						'value' => (string) $source_id,
+					],
+					[
+						'key'   => '_rsl_ie_original_post_id',
+						'value' => (string) $source_id,
+					],
+				],
+			]
+		);
+
+		return ! empty( $posts[0] ) ? absint( $posts[0] ) : 0;
+	}
+
+
+
+	/**
 	 * Preserve source comment dates after WordPress insert/update filters run.
 	 *
 	 * @param int|string $item_result Import result.
@@ -1036,6 +1147,8 @@ class Import_Controller extends Base_Controller {
 	 * @return void
 	 */
 	private function preserve_imported_comment_dates( $item_result, $item ) {
+		global $wpdb;
+
 		$comment_id = is_numeric( $item_result ) ? absint( $item_result ) : 0;
 		if ( $comment_id <= 0 && ! empty( $item['_rsl_ie_source_comment_id'] ) ) {
 			$comment_id = $this->find_imported_comment_id( $item['_rsl_ie_source_comment_id'] );
@@ -1045,19 +1158,29 @@ class Import_Controller extends Base_Controller {
 			return;
 		}
 
-		$update = [];
+		$update  = [];
+		$formats = [];
 		if ( isset( $item['comment_date'] ) && '' !== (string) $item['comment_date'] ) {
 			$update['comment_date'] = (string) $item['comment_date'];
+			$formats[]              = '%s';
 		}
 		if ( isset( $item['comment_date_gmt'] ) && '' !== (string) $item['comment_date_gmt'] ) {
 			$update['comment_date_gmt'] = (string) $item['comment_date_gmt'];
+			$formats[]                  = '%s';
 		}
 		if ( empty( $update ) ) {
 			return;
 		}
 
-		$update['comment_ID'] = $comment_id;
-		wp_update_comment( $update );
+		$wpdb->update(
+			$wpdb->comments,
+			$update,
+			[ 'comment_ID' => $comment_id ],
+			$formats,
+			[ '%d' ]
+		);
+
+		clean_comment_cache( $comment_id );
 	}
 
 	/**
@@ -1224,6 +1347,8 @@ class Import_Controller extends Base_Controller {
 		delete_transient( $key );
 	}
 
+
+
 	/**
 	 * Resolve an import file only from plugin-managed upload directories.
 	 *
@@ -1233,10 +1358,10 @@ class Import_Controller extends Base_Controller {
 	 */
 	private function validate_import_file_path( $file_path, $format ) {
 		$format          = strtolower( (string) $format );
-		$allowed_formats = array( 'csv', 'xml', 'xlsx', 'ods' );
+		$allowed_formats = array( 'csv', 'json', 'xml', 'xlsx', 'ods' );
 
 		if ( ! in_array( $format, $allowed_formats, true ) ) {
-			return new \WP_Error( 'invalid_format', __( 'Only CSV, XML, XLSX, and ODS import files are supported.', 'import-export-by-rockstarlab' ) );
+			return new \WP_Error( 'invalid_format', __( 'Only CSV, JSON, XML, XLSX, and ODS import files are supported.', 'import-export-by-rockstarlab' ) );
 		}
 
 		$real_path = realpath( (string) $file_path );
