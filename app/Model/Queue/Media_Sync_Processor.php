@@ -164,6 +164,10 @@ class Media_Sync_Processor {
 				$cumulative_result['errors'],
 				array_slice( $result['errors'], 0, 20 ) // Keep only last 20 errors
 			);
+			$cumulative_result['items']      = array_slice(
+				array_merge( $cumulative_result['items'] ?? array(), $result['items'] ?? array() ),
+				-200
+			);
 
 			// Calculate progress
 			$new_offset = $offset + count( $chunk );
@@ -254,6 +258,7 @@ class Media_Sync_Processor {
 			'skipped'   => 0,
 			'failed'    => 0,
 			'errors'    => array(),
+			'items'     => array(),
 		);
 
 		foreach ( $files as $file ) {
@@ -272,6 +277,11 @@ class Media_Sync_Processor {
 						'Invalid source file: %s',
 						$file_path->get_error_message()
 					);
+					$results['items'][]  = array(
+						'action'  => 'failed',
+						'file'    => is_array( $file ) ? (string) ( $file['path'] ?? '' ) : (string) $file,
+						'message' => $file_path->get_error_message(),
+					);
 					continue;
 				}
 
@@ -286,6 +296,11 @@ class Media_Sync_Processor {
 
 					if ( $is_duplicate ) {
 						++$results['skipped'];
+						$results['items'][] = array(
+							'action' => 'skipped',
+							'file'   => $file_path,
+							'reason' => 'duplicate_' . $duplicate_check,
+						);
 						continue;
 					}
 				}               // Import file
@@ -316,6 +331,11 @@ class Media_Sync_Processor {
 
 				} else {
 					++$results['success'];
+					$results['items'][] = array(
+						'action'        => 'created',
+						'file'          => $file_path,
+						'attachment_id' => absint( $import_result ),
+					);
 				}
 			} catch ( \Exception $e ) {
 				++$results['failed'];
@@ -323,6 +343,11 @@ class Media_Sync_Processor {
 					'%s: %s',
 					basename( $file_path ),
 					$e->getMessage()
+				);
+				$results['items'][]  = array(
+					'action'  => 'failed',
+					'file'    => isset( $file_path ) ? (string) $file_path : '',
+					'message' => $e->getMessage(),
 				);
 
 			}

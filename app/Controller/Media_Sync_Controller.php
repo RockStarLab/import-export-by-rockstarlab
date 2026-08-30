@@ -120,10 +120,12 @@ class Media_Sync_Controller extends Base_Controller {
 		// Create job record with folder path, selected files and options
 		$job_model = rsl_ie()->Model->job;
 		$job_data  = [
-			'type'     => 'media_sync',
-			'status'   => 'pending',
-			'user_id'  => $this->get_current_user_id(),
-			'settings' => wp_json_encode(
+			'type'        => 'import',
+			'data_type'   => 'media_sync',
+			'file_format' => 'folder',
+			'status'      => 'pending',
+			'user_id'     => $this->get_current_user_id(),
+			'settings'    => wp_json_encode(
 				[
 					'folder_path'  => $absolute_path,
 					'all_files'    => $selected_files, // Store selected files

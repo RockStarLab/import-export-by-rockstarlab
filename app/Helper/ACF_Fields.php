@@ -1094,6 +1094,20 @@ class ACF_Fields {
 			return $existing_by_source;
 		}
 
+		$original_attachment_id = Content_Sync_Media::attachment_url_to_original_postid( $source_url );
+		if ( $original_attachment_id > 0 ) {
+			self::store_imported_media_identity( $original_attachment_id, $source_url, $source_attachment_id );
+			$url_to_attachment_cache[ $source_hash ] = $original_attachment_id;
+			return $original_attachment_id;
+		}
+
+		$existing_by_upload_basename = self::attachment_id_from_upload_basename( $source_url );
+		if ( $existing_by_upload_basename > 0 ) {
+			self::store_imported_media_identity( $existing_by_upload_basename, $source_url, $source_attachment_id );
+			$url_to_attachment_cache[ $source_hash ] = $existing_by_upload_basename;
+			return $existing_by_upload_basename;
+		}
+
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
@@ -1236,6 +1250,39 @@ class ACF_Fields {
 		return $attachment_id && 'attachment' === get_post_type( (int) $attachment_id ) ? absint( $attachment_id ) : 0;
 	}
 
+	/**
+	 * Find a local attachment by uploads URL basename before downloading.
+	 *
+	 * @param string $url Source URL.
+	 * @return int Attachment ID or 0.
+	 */
+	private static function attachment_id_from_upload_basename( string $url ): int {
+		if ( ! self::is_wordpress_upload_url( $url ) ) {
+			return 0;
+		}
+
+		$filename = wp_basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+		if ( '' === $filename ) {
+			return 0;
+		}
+
+		global $wpdb;
+
+		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"SELECT post_id
+				 FROM {$wpdb->postmeta}
+				 WHERE meta_key = '_wp_attached_file'
+				   AND (meta_value = %s OR meta_value LIKE %s)
+				 LIMIT 1",
+				$filename,
+				'%/' . $wpdb->esc_like( $filename )
+			)
+		);
+
+		return $attachment_id && 'attachment' === get_post_type( (int) $attachment_id ) ? absint( $attachment_id ) : 0;
+	}
+
 		/**
 		 * Replace media URLs in HTML/WYSIWYG values with local media library URLs.
 		 *
@@ -1252,27 +1299,8 @@ class ACF_Fields {
 			static function ( $matches ) use ( $parent_id ) {
 				$tag = self::replace_media_url_attribute( $matches[0], 'src', $parent_id );
 
-				return preg_replace_callback(
-					'/\bsrcset=(["\'])([^"\']+)\1/i',
-					static function ( $srcset_match ) use ( $parent_id ) {
-						$candidates = array_map( 'trim', explode( ',', $srcset_match[2] ) );
-						foreach ( $candidates as &$candidate ) {
-							$parts = preg_split( '/\s+/', $candidate, 2 );
-							$url   = isset( $parts[0] ) ? html_entity_decode( $parts[0], ENT_QUOTES, get_bloginfo( 'charset' ) ) : '';
-							$id    = '' !== $url ? self::attachment_id_from_value( $url, $parent_id ) : 0;
-							if ( $id > 0 ) {
-								$local_url = wp_get_attachment_url( $id );
-								if ( $local_url ) {
-									$candidate = esc_url_raw( $local_url ) . ( isset( $parts[1] ) ? ' ' . $parts[1] : '' );
-								}
-							}
-						}
-						unset( $candidate );
-
-						return 'srcset=' . $srcset_match[1] . esc_attr( implode( ', ', $candidates ) ) . $srcset_match[1];
-					},
-					$tag
-				);
+				$tag = (string) preg_replace( '/\s+srcset=(["\'])(?:(?!\\1).)*\\1/i', '', $tag );
+				return (string) preg_replace( '/\s+sizes=(["\'])(?:(?!\\1).)*\\1/i', '', $tag );
 			},
 			$html
 		);
@@ -1577,7 +1605,19 @@ class ACF_Fields {
 	private static function is_media_url( $url ) {
 		return is_string( $url )
 			&& filter_var( $url, FILTER_VALIDATE_URL )
+			&& self::is_wordpress_upload_url( $url )
 			&& (bool) preg_match( '~\.(?:jpe?g|png|gif|webp|avif|svg|pdf|mp3|m4a|ogg|wav|mp4|m4v|mov|webm)(?:\?.*)?$~i', (string) wp_parse_url( $url, PHP_URL_PATH ) );
+	}
+
+	/**
+	 * Check whether a media URL points at a WordPress uploads directory.
+	 *
+	 * @param string $url URL.
+	 * @return bool
+	 */
+	private static function is_wordpress_upload_url( $url ) {
+		$path = wp_parse_url( (string) $url, PHP_URL_PATH );
+		return is_string( $path ) && false !== strpos( $path, '/wp-content/uploads/' );
 	}
 
 		/**

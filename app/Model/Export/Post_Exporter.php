@@ -253,6 +253,7 @@ class Post_Exporter extends Abstract_Exporter {
 			'post_author',
 			'post_date',
 			'post_name',
+			'is_sticky',
 			'post_meta',
 			'taxonomies',
 			'featured_image',
@@ -1952,6 +1953,7 @@ class Post_Exporter extends Abstract_Exporter {
 			'post_name',
 			'post_parent',
 			'menu_order',
+			'is_sticky',
 			'comment_status',
 			'ping_status',
 			'post_password',
@@ -2120,6 +2122,9 @@ class Post_Exporter extends Abstract_Exporter {
 				$data[ $field ] = $post->$field;
 			}
 		}
+		if ( in_array( 'is_sticky', $fields, true ) ) {
+			$data['is_sticky'] = is_sticky( (int) $post->ID ) ? 1 : 0;
+		}
 		if ( isset( $data['post_content'] ) && is_string( $data['post_content'] ) ) {
 			$data['post_content'] = $this->acf_export_string_with_media_shortcode_tokens( $data['post_content'], (int) $post->ID );
 		}
@@ -2226,7 +2231,7 @@ class Post_Exporter extends Abstract_Exporter {
 			// Check if it's a meta field (starts with _ or not in basic/special fields)
 			// Skip if already processed as taxonomy
 			if ( ! in_array( $field, $basic_fields, true ) &&
-				! in_array( $field, [ 'author_name', 'author_email', 'post_meta', 'taxonomies', 'featured_image', 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption' ], true ) &&
+				! in_array( $field, [ 'author_name', 'author_email', 'post_meta', 'taxonomies', 'featured_image', 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption', 'is_sticky' ], true ) &&
 				! in_array( $field, [ 'categories', 'tags' ], true ) &&
 				strpos( $field, 'taxonomy_' ) !== 0 &&
 				! taxonomy_exists( $field ) ) {

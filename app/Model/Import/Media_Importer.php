@@ -236,6 +236,16 @@ class Media_Importer extends Abstract_Importer {
 	 * @return int|WP_Error Attachment ID or WP_Error
 	 */
 	private function import_from_url( $url, $item ) {
+		$source_match = $this->find_existing_by_source_id( $item );
+		if ( ! $source_match ) {
+			$source_match = $this->find_existing_by_source_url( (string) $url );
+		}
+		if ( $source_match ) {
+			$this->set_attachment_metadata( (int) $source_match, $item );
+			$this->record_source_id_map( $item, (int) $source_match );
+			return 'updated';
+		}
+
 		// Check for an exact existing attachment first.
 		$existing = $this->find_existing_attachment( $item, $url, false );
 		if ( $existing ) {
@@ -564,6 +574,13 @@ class Media_Importer extends Abstract_Importer {
 			update_post_meta( $attachment_id, '_wp_attachment_image_alt', $item['alt_text'] );
 		}
 
+		$source_url = $item['file'] ?? $item['file_url'] ?? $item['url'] ?? '';
+		if ( is_string( $source_url ) && filter_var( $source_url, FILTER_VALIDATE_URL ) ) {
+			$source_url = esc_url_raw( $source_url );
+			update_post_meta( $attachment_id, 'rsl_ie_source_url', $source_url );
+			update_post_meta( $attachment_id, 'rsl_ie_source_url_hash', md5( $source_url ) );
+		}
+
 		// Handle ACF fields (with acf_ prefix)
 		foreach ( $item as $field_key => $field_value ) {
 			if ( strpos( $field_key, 'acf_' ) === 0 ) {
@@ -611,6 +628,7 @@ class Media_Importer extends Abstract_Importer {
 		// Keep the mapping on the attachment as well. Content/ACF updates may
 		// run in a different job, so a job-scoped transient is not sufficient.
 		update_post_meta( $attachment_id, '_rsl_ie_source_id', $source_id );
+		update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_id );
 	}
 
 	/**
@@ -645,6 +663,18 @@ class Media_Importer extends Abstract_Importer {
 	 * @return int|null Attachment ID or null
 	 */
 	private function find_existing_attachment( $item, $url = '', $allow_hash = true ) {
+		$by_source_id = $this->find_existing_by_source_id( $item );
+		if ( $by_source_id ) {
+			return $by_source_id;
+		}
+
+		if ( ! empty( $url ) ) {
+			$by_source_url = $this->find_existing_by_source_url( (string) $url );
+			if ( $by_source_url ) {
+				return $by_source_url;
+			}
+		}
+
 		$check_field = $this->get_option( 'duplicate_check', 'file_url' );
 
 		// Check by title
@@ -691,6 +721,60 @@ class Media_Importer extends Abstract_Importer {
 	}
 
 	/**
+	 * Find an existing attachment imported from the same source attachment ID.
+	 *
+	 * @param array $item Media row.
+	 * @return int|null Attachment ID or null.
+	 */
+	private function find_existing_by_source_id( array $item ) {
+		$source_id = absint( $item['_rsl_ie_source_id'] ?? ( $item['ID'] ?? 0 ) );
+		if ( $source_id <= 0 ) {
+			return null;
+		}
+
+		global $wpdb;
+
+		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"SELECT post_id FROM {$wpdb->postmeta}
+				 WHERE meta_key IN ('_rsl_ie_source_id', '_rsl_ie_source_attachment_id')
+				   AND meta_value = %s
+				 LIMIT 1",
+				(string) $source_id
+			)
+		);
+
+		return $attachment_id && 'attachment' === get_post_type( (int) $attachment_id ) ? (int) $attachment_id : null;
+	}
+
+	/**
+	 * Find an existing attachment imported from the same source URL.
+	 *
+	 * @param string $url Source URL.
+	 * @return int|null Attachment ID or null.
+	 */
+	private function find_existing_by_source_url( string $url ) {
+		$source_url = esc_url_raw( $url );
+		if ( '' === $source_url ) {
+			return null;
+		}
+
+		global $wpdb;
+
+		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"SELECT post_id FROM {$wpdb->postmeta}
+				 WHERE meta_key = 'rsl_ie_source_url_hash'
+				   AND meta_value = %s
+				 LIMIT 1",
+				md5( $source_url )
+			)
+		);
+
+		return $attachment_id && 'attachment' === get_post_type( (int) $attachment_id ) ? (int) $attachment_id : null;
+	}
+
+	/**
 	 * Attach an existing local uploads file referenced by a source URL.
 	 *
 	 * @param string $url  Source attachment URL.
@@ -726,12 +810,41 @@ class Media_Importer extends Abstract_Importer {
 			return 0;
 		}
 
+		if ( ! $this->local_file_matches_remote_url( $file_path, $url ) ) {
+			return 0;
+		}
+
 		$attachment_id = $this->create_attachment_for_file( $file_path, $relative_path, $item );
 		if ( is_wp_error( $attachment_id ) || ! $attachment_id ) {
 			return 0;
 		}
 
 		return (int) $attachment_id;
+	}
+
+	/**
+	 * Check that an unregistered uploads file is the same file as the source URL.
+	 *
+	 * @param string $file_path Local file path.
+	 * @param string $url       Source URL.
+	 * @return bool
+	 */
+	private function local_file_matches_remote_url( $file_path, $url ) {
+		if ( ! is_string( $file_path ) || ! file_exists( $file_path ) || ! is_file( $file_path ) ) {
+			return false;
+		}
+
+		$tmp_file = $this->download_file( $url );
+		if ( is_wp_error( $tmp_file ) || ! $tmp_file || ! file_exists( $tmp_file ) ) {
+			return false;
+		}
+
+		$matches = filesize( $file_path ) === filesize( $tmp_file )
+			&& md5_file( $file_path ) === md5_file( $tmp_file );
+
+		@wp_delete_file( $tmp_file );
+
+		return $matches;
 	}
 
 	/**

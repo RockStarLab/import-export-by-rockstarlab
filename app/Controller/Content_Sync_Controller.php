@@ -1569,6 +1569,102 @@ class Content_Sync_Controller extends Base_Controller {
 	}
 
 	/**
+	 * Create a Jobs Log row for immediate content sync actions.
+	 *
+	 * @param string $direction push|pull.
+	 * @param array  $site Connected site.
+	 * @param array  $post_ids Selected post IDs.
+	 * @param array  $post_mapping Explicit source/target mapping.
+	 * @return int
+	 */
+	private function create_content_sync_job( $direction, $site, $post_ids, $post_mapping ) {
+		$direction = 'pull' === $direction ? 'pull' : 'push';
+		$job_id    = rsl_ie()->Model->job->create(
+			array(
+				'type'            => 'push' === $direction ? 'content_sync_push' : 'content_sync_pull',
+				'data_type'       => 'post',
+				'file_format'     => 'json',
+				'status'          => 'processing',
+				'user_id'         => $this->get_current_user_id(),
+				'total_items'     => count( $post_ids ),
+				'processed_items' => 0,
+				'started_at'      => current_time( 'mysql' ),
+				'parameters'      => wp_json_encode(
+					array(
+						'direction'    => $direction,
+						'site_id'      => isset( $site['id'] ) ? (int) $site['id'] : 0,
+						'remote_url'   => isset( $site['remote_url'] ) ? (string) $site['remote_url'] : '',
+						'post_ids'     => array_values( array_map( 'absint', $post_ids ) ),
+						'post_mapping' => $post_mapping,
+					)
+				),
+			)
+		);
+
+		return is_wp_error( $job_id ) ? 0 : (int) $job_id;
+	}
+
+	/**
+	 * Mark a content sync job complete with debug details.
+	 *
+	 * @param int   $job_id Job ID.
+	 * @param int   $processed Processed count.
+	 * @param array $result Debug result.
+	 * @return void
+	 */
+	private function complete_content_sync_job( $job_id, $processed, $result ) {
+		$job_id = absint( $job_id );
+		if ( $job_id <= 0 ) {
+			return;
+		}
+
+		rsl_ie()->Model->job->update(
+			$job_id,
+			array(
+				'status'          => 'completed',
+				'progress'        => 100,
+				'total_items'     => (int) $processed,
+				'processed_items' => (int) $processed,
+				'success_items'   => (int) $processed,
+				'imported_items'  => isset( $result['created'] ) ? (int) $result['created'] : (int) $processed,
+				'completed_at'    => current_time( 'mysql' ),
+				'updated_at'      => current_time( 'mysql' ),
+				'result'          => wp_json_encode( $result ),
+			)
+		);
+	}
+
+	/**
+	 * Mark a content sync job failed.
+	 *
+	 * @param int    $job_id Job ID.
+	 * @param string $message Error message.
+	 * @return void
+	 */
+	private function fail_content_sync_job( $job_id, $message ) {
+		$job_id = absint( $job_id );
+		if ( $job_id <= 0 ) {
+			return;
+		}
+
+		rsl_ie()->Model->job->update(
+			$job_id,
+			array(
+				'status'       => 'failed',
+				'failed_items' => 1,
+				'error_items'  => 1,
+				'completed_at' => current_time( 'mysql' ),
+				'updated_at'   => current_time( 'mysql' ),
+				'result'       => wp_json_encode(
+					array(
+						'error' => (string) $message,
+					)
+				),
+			)
+		);
+	}
+
+	/**
 	 * POST to a connected site's Content Sync REST API and decode response.
 	 *
 	 * @param array  $site Connected site record.
@@ -1929,6 +2025,7 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( ! $site ) {
 			$this->send_error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
+		$job_id = $this->create_content_sync_job( 'push', $site, $post_ids, $post_mapping );
 
 		// Get source and target domains
 		$source_domain = get_site_url();
@@ -2273,6 +2370,7 @@ class Content_Sync_Controller extends Base_Controller {
 		);
 
 		if ( is_wp_error( $response ) ) {
+			$this->fail_content_sync_job( $job_id, $response->get_error_message() );
 			$this->send_error( __( 'Failed to connect to remote site: ', 'import-export-by-rockstarlab' ) . $response->get_error_message() );
 		}
 
@@ -2283,13 +2381,40 @@ class Content_Sync_Controller extends Base_Controller {
 			$error_data = json_decode( $body, true );
 			// translators: %d is a dynamic value.
 			$error_msg = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Push failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
+			$this->fail_content_sync_job( $job_id, $error_msg );
 			$this->send_error( $error_msg );
 		}
 
 		$data = json_decode( $body, true );
 		if ( ! isset( $data['success'] ) || ! $data['success'] ) {
+			$this->fail_content_sync_job( $job_id, __( 'Remote site rejected the content', 'import-export-by-rockstarlab' ) );
 			$this->send_error( __( 'Remote site rejected the content', 'import-export-by-rockstarlab' ) );
 		}
+		$this->complete_content_sync_job(
+			$job_id,
+			count( $posts_data ),
+			array(
+				'direction'     => 'push',
+				'site_id'       => (int) $site_id,
+				'remote_url'    => isset( $site['remote_url'] ) ? (string) $site['remote_url'] : '',
+				'selected_ids'  => array_values( array_map( 'absint', $post_ids ) ),
+				'post_mapping'  => $post_mapping,
+				'images_synced' => count( $image_map ),
+				'image_map'     => $image_map,
+				'posts'         => array_map(
+					static function ( $post_data ) {
+						return array(
+							'source_id' => isset( $post_data['ID'] ) ? absint( $post_data['ID'] ) : 0,
+							'title'     => isset( $post_data['post_title'] ) ? (string) $post_data['post_title'] : '',
+							'type'      => isset( $post_data['post_type'] ) ? (string) $post_data['post_type'] : '',
+							'slug'      => isset( $post_data['post_name'] ) ? (string) $post_data['post_name'] : '',
+						);
+					},
+					$posts_data
+				),
+				'remote_result' => isset( $data['data'] ) ? $data['data'] : array(),
+			)
+		);
 
 		$this->send_success(
 			array(
@@ -2641,6 +2766,7 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( ! $site ) {
 			$this->send_error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
+		$job_id = $this->create_content_sync_job( 'pull', $site, $post_ids, $post_mapping );
 
 		// Get domains for replacement
 		$source_domain = wp_parse_url( $site['remote_url'], PHP_URL_HOST );
@@ -2666,6 +2792,7 @@ class Content_Sync_Controller extends Base_Controller {
 			);
 
 		if ( is_wp_error( $response ) ) {
+			$this->fail_content_sync_job( $job_id, $response->get_error_message() );
 			$this->send_error( __( 'Failed to connect to remote site: ', 'import-export-by-rockstarlab' ) . $response->get_error_message() );
 		}
 
@@ -2676,16 +2803,19 @@ class Content_Sync_Controller extends Base_Controller {
 			$error_data = json_decode( $body, true );
 			// translators: %d is a dynamic value.
 			$error_msg = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Pull failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
+			$this->fail_content_sync_job( $job_id, $error_msg );
 			$this->send_error( $error_msg );
 		}
 
 		$data = json_decode( $body, true );
 		if ( ! isset( $data['success'] ) || ! $data['success'] || ! isset( $data['data']['posts'] ) ) {
+			$this->fail_content_sync_job( $job_id, __( 'Remote site returned invalid data', 'import-export-by-rockstarlab' ) );
 			$this->send_error( __( 'Remote site returned invalid data', 'import-export-by-rockstarlab' ) );
 		}
 
 		$posts_data = $data['data']['posts'];
 		if ( empty( $posts_data ) ) {
+			$this->fail_content_sync_job( $job_id, __( 'No posts found on remote site', 'import-export-by-rockstarlab' ) );
 			$this->send_error( __( 'No posts found on remote site', 'import-export-by-rockstarlab' ) );
 		}
 
@@ -3038,7 +3168,43 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		$total_processed = $imported_count + $updated_count;
-		$message         = array();
+		$this->complete_content_sync_job(
+			$job_id,
+			$total_processed,
+			array(
+				'direction'     => 'pull',
+				'site_id'       => (int) $site_id,
+				'remote_url'    => isset( $site['remote_url'] ) ? (string) $site['remote_url'] : '',
+				'selected_ids'  => array_values( array_map( 'absint', $post_ids ) ),
+				'post_mapping'  => $post_mapping,
+				'created'       => $imported_count,
+				'updated'       => $updated_count,
+				'images_synced' => count( $image_map ),
+				'image_map'     => $image_map,
+				'posts'         => array_map(
+					static function ( $remote_id, $local_id ) use ( $posts_data ) {
+						$title = '';
+						$type  = '';
+						foreach ( $posts_data as $post_data ) {
+							if ( isset( $post_data['ID'] ) && (int) $post_data['ID'] === (int) $remote_id ) {
+								$title = isset( $post_data['post_title'] ) ? (string) $post_data['post_title'] : '';
+								$type  = isset( $post_data['post_type'] ) ? (string) $post_data['post_type'] : '';
+								break;
+							}
+						}
+						return array(
+							'source_id' => (int) $remote_id,
+							'target_id' => (int) $local_id,
+							'title'     => $title,
+							'type'      => $type,
+						);
+					},
+					array_keys( $imported_remote_to_local ),
+					array_values( $imported_remote_to_local )
+				),
+			)
+		);
+		$message = array();
 
 		if ( $imported_count > 0 ) {
 			$message[] = sprintf(

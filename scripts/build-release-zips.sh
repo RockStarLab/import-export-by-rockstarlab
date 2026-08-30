@@ -26,6 +26,7 @@ need_cmd rsync
 need_cmd zip
 need_cmd php
 need_cmd corepack
+need_cmd cmp
 
 YARN_CMD=(corepack yarn@1.22.22)
 
@@ -104,6 +105,8 @@ echo " - $PRO_ZIP"
 deploy_to_local_site() {
   local site_slug="$1"
   local plugins_dir="/Users/shaggywizard/Local Sites/${site_slug}/app/public/wp-content/plugins"
+  local deployed_free_dir="$plugins_dir/$FREE_SLUG"
+  local deployed_pro_dir="$plugins_dir/$PRO_SLUG"
 
   if [ ! -d "$plugins_dir" ]; then
     echo "WARNING: ${site_slug} plugins directory not found: $plugins_dir" >&2
@@ -111,10 +114,10 @@ deploy_to_local_site() {
   fi
 
   echo "Removing old FREE plugin from ${site_slug}..."
-  rm -rf "$plugins_dir/$FREE_SLUG"
+  rm -rf "$deployed_free_dir"
 
   echo "Removing old PRO plugin from ${site_slug}..."
-  rm -rf "$plugins_dir/$PRO_SLUG"
+  rm -rf "$deployed_pro_dir"
 
   echo "Deploying FREE plugin to ${site_slug}..."
   unzip -q "$FREE_ZIP" -d "$plugins_dir"
@@ -122,9 +125,21 @@ deploy_to_local_site() {
   echo "Deploying PRO plugin to ${site_slug}..."
   unzip -q "$PRO_ZIP" -d "$plugins_dir"
 
+  echo "Verifying FREE deployment on ${site_slug}..."
+  (
+    cd "$FREE_DIR"
+    while IFS= read -r -d '' source_file; do
+      local relative_path="${source_file#./}"
+      if ! cmp -s "$source_file" "$deployed_free_dir/$relative_path"; then
+        echo "FREE deployment verification failed on ${site_slug}: $relative_path" >&2
+        exit 1
+      fi
+    done < <(find app assets -type f -print0)
+  )
+
   echo "Deployed to ${site_slug}:"
-  echo " - $plugins_dir/$FREE_SLUG"
-  echo " - $plugins_dir/$PRO_SLUG"
+  echo " - $deployed_free_dir"
+  echo " - $deployed_pro_dir"
 }
 
 # Deploy both plugins to local test sites by unzipping release archives.
