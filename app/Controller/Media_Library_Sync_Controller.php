@@ -561,7 +561,9 @@ class Media_Library_Sync_Controller {
 			return 0;
 		}
 
-		$temp_file = wp_tempnam( $filename );
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+
+		$temp_file = \wp_tempnam( $filename );
 		if ( ! $temp_file || false === file_put_contents( $temp_file, $decoded ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Temporary upload payload write.
 			if ( $temp_file ) {
 				wp_delete_file( $temp_file );
@@ -575,7 +577,6 @@ class Media_Library_Sync_Controller {
 			return 0;
 		}
 
-		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 
@@ -614,6 +615,7 @@ class Media_Library_Sync_Controller {
 
 		if ( ! empty( $item['attachment_id'] ) ) {
 			update_post_meta( (int) $attachment_id, '_rsl_ie_original_attachment_id', absint( $item['attachment_id'] ) );
+			update_post_meta( (int) $attachment_id, '_rsl_ie_source_attachment_id', absint( $item['attachment_id'] ) );
 		}
 		if ( ! empty( $item['source_origin_attachment_id'] ) ) {
 			update_post_meta( (int) $attachment_id, '_rsl_ie_source_origin_attachment_id', absint( $item['source_origin_attachment_id'] ) );

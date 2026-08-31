@@ -1136,6 +1136,19 @@ class ACF_Fields {
 			return 0;
 		}
 
+		if ( class_exists( Media_Hash::class ) ) {
+			$file_hash = md5_file( $tmp );
+			if ( is_string( $file_hash ) && '' !== $file_hash ) {
+				$existing_by_hash = Media_Hash::get_attachment_by_hash( $file_hash, true );
+				if ( $existing_by_hash > 0 ) {
+					wp_delete_file( $tmp );
+					self::store_imported_media_identity( (int) $existing_by_hash, $source_url, $source_attachment_id );
+					$url_to_attachment_cache[ $source_hash ] = (int) $existing_by_hash;
+					return (int) $existing_by_hash;
+				}
+			}
+		}
+
 		$file = [
 			'name'     => wp_basename( (string) wp_parse_url( $source_url, PHP_URL_PATH ) ),
 			'tmp_name' => $tmp,
