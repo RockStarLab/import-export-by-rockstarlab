@@ -2156,7 +2156,8 @@ class Content_Sync_Controller extends Base_Controller {
 					if ( ! $acf_taxonomy || ! taxonomy_exists( $acf_taxonomy ) ) {
 						continue;
 					}
-					$raw_ids = is_array( $meta_value ) ? $meta_value : array( $meta_value );
+					$assign_to_post = ! empty( $field_obj['save_terms'] );
+					$raw_ids        = is_array( $meta_value ) ? $meta_value : array( $meta_value );
 					if ( ! isset( $terms_data[ $acf_taxonomy ] ) ) {
 						$terms_data[ $acf_taxonomy ] = array();
 					}
@@ -2167,24 +2168,31 @@ class Content_Sync_Controller extends Base_Controller {
 						}
 						$raw_id = (int) $raw_id;
 						if ( in_array( $raw_id, $known_ids, true ) ) {
+							if ( ! $assign_to_post ) {
+								foreach ( $terms_data[ $acf_taxonomy ] as &$existing_term_info ) {
+									if ( isset( $existing_term_info['term_id'] ) && (int) $existing_term_info['term_id'] === $raw_id ) {
+										$existing_term_info['assign_to_post'] = false;
+									}
+								}
+								unset( $existing_term_info );
+							}
 							continue;
 						}
 						$term = get_term( $raw_id, $acf_taxonomy );
 						if ( ! $term || is_wp_error( $term ) ) {
 							continue;
 						}
-								$terms_data[ $acf_taxonomy ][] = array(
-									'term_id'        => $term->term_id,
-									'name'           => $term->name,
-									'slug'           => $term->slug,
-									'parent_term_id' => (int) $term->parent,
-									'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $acf_taxonomy ),
-									'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $acf_taxonomy ),
-								);
-								$last_index                    = array_key_last( $terms_data[ $acf_taxonomy ] );
-								if ( null !== $last_index ) {
-								}
-								$known_ids[] = $raw_id;
+						$terms_data[ $acf_taxonomy ][] = array(
+							'term_id'        => $term->term_id,
+							'name'           => $term->name,
+							'slug'           => $term->slug,
+							'parent_term_id' => (int) $term->parent,
+							'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $acf_taxonomy ),
+							'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $acf_taxonomy ),
+							'assign_to_post' => $assign_to_post,
+						);
+
+						$known_ids[] = $raw_id;
 					}
 				}
 			}
@@ -2207,10 +2215,7 @@ class Content_Sync_Controller extends Base_Controller {
 					'comments'      => $this->collect_post_comments_for_sync( $post->ID ),
 				);
 
-				if ( isset( $prepared_meta['repeater'] ) ) {
-				}
-
-				// Collect WooCommerce product variations for variable products.
+					// Collect WooCommerce product variations for variable products.
 				// Variations are separate posts (post_type=product_variation) and must be
 				// synced together with their parent so the remote site can show the correct
 				// price range.
@@ -2442,38 +2447,28 @@ class Content_Sync_Controller extends Base_Controller {
 			return $image_map;
 		}
 
-		$hash_sources = array();
 		foreach ( $images as $image ) {
 			$source_attachment_id = isset( $image['attachment_id'] ) ? (int) $image['attachment_id'] : 0;
 			$file_hash            = isset( $image['file_hash'] ) ? (string) $image['file_hash'] : '';
-			$force_unique         = false;
+			$source_origin_id     = isset( $image['source_origin_attachment_id'] ) ? (int) $image['source_origin_attachment_id'] : 0;
 
-			if ( $source_attachment_id > 0 && '' !== $file_hash ) {
-				if ( isset( $hash_sources[ $file_hash ] ) && (int) $hash_sources[ $file_hash ] !== $source_attachment_id ) {
-					$force_unique = true;
-				} else {
-					$hash_sources[ $file_hash ] = $source_attachment_id;
-				}
-			}
+			// Check if this exact source attachment, its original remote ancestor,
+			// or a matching file hash already exists on the remote site.
+			$existing_id = \RockStarLab\ImportExport\Helper\Content_Sync_Media::check_remote_image_exists(
+				$file_hash,
+				$site['remote_url'],
+				$site['api_key'],
+				$source_attachment_id,
+				$source_origin_id
+			);
 
-			if ( ! $force_unique ) {
-				// Check if this exact source attachment, or a matching file hash,
-				// already exists on the remote site.
-				$existing_id = \RockStarLab\ImportExport\Helper\Content_Sync_Media::check_remote_image_exists(
-					$file_hash,
-					$site['remote_url'],
-					$site['api_key'],
-					$source_attachment_id
-				);
-
-				if ( $existing_id ) {
-					$image_map[ $image['attachment_id'] ] = $existing_id;
-					continue;
-				}
+			if ( $existing_id ) {
+				$image_map[ $image['attachment_id'] ] = $existing_id;
+				continue;
 			}
 
 			// Upload new image
-			$image['force_unique'] = $force_unique;
+			$image['force_unique'] = false;
 			$new_id                = $this->upload_single_image_to_remote( $image, $site );
 			if ( $new_id ) {
 				$image_map[ $image['attachment_id'] ] = $new_id;
@@ -2540,16 +2535,17 @@ class Content_Sync_Controller extends Base_Controller {
 
 		// Prepare image data for upload
 		$upload_data = array(
-			'file_name'            => $image['file_name'],
-			'file_data'            => base64_encode( $file_contents ),
-			'file_hash'            => $image['file_hash'],
-			'mime_type'            => $image['mime_type'],
-			'alt_text'             => $image['alt_text'],
-			'title'                => $image['title'],
-			'caption'              => $image['caption'],
-			'description'          => $image['description'],
-			'source_attachment_id' => isset( $image['attachment_id'] ) ? (int) $image['attachment_id'] : 0,
-			'force_unique'         => ! empty( $image['force_unique'] ) ? 1 : 0,
+			'file_name'                   => $image['file_name'],
+			'file_data'                   => base64_encode( $file_contents ),
+			'file_hash'                   => $image['file_hash'],
+			'mime_type'                   => $image['mime_type'],
+			'alt_text'                    => $image['alt_text'],
+			'title'                       => $image['title'],
+			'caption'                     => $image['caption'],
+			'description'                 => $image['description'],
+			'source_attachment_id'        => isset( $image['attachment_id'] ) ? (int) $image['attachment_id'] : 0,
+			'source_origin_attachment_id' => isset( $image['source_origin_attachment_id'] ) ? (int) $image['source_origin_attachment_id'] : 0,
+			'force_unique'                => ! empty( $image['force_unique'] ) ? 1 : 0,
 		);
 
 		// Upload to remote
@@ -2885,22 +2881,11 @@ class Content_Sync_Controller extends Base_Controller {
 		// Download images from remote site
 		$image_map = array();
 		if ( ! empty( $remote_images ) ) {
-			$hash_sources = array();
 			foreach ( $remote_images as $image ) {
-				$source_attachment_id = isset( $image['attachment_id'] ) ? (int) $image['attachment_id'] : 0;
-				$file_hash            = isset( $image['file_hash'] ) ? (string) $image['file_hash'] : '';
-				if ( $source_attachment_id > 0 && '' !== $file_hash ) {
-					if ( isset( $hash_sources[ $file_hash ] ) && (int) $hash_sources[ $file_hash ] !== $source_attachment_id ) {
-						$image['force_unique'] = true;
-					} else {
-						$hash_sources[ $file_hash ] = $source_attachment_id;
-					}
-				}
-
-				$new_attachment_id = $this->download_image_from_remote( $image, $site );
+				$image['force_unique'] = false;
+				$new_attachment_id     = $this->download_image_from_remote( $image, $site );
 				if ( $new_attachment_id ) {
 					$image_map[ $image['attachment_id'] ] = $new_attachment_id;
-				} else {
 				}
 			}
 		}
@@ -3071,7 +3056,9 @@ class Content_Sync_Controller extends Base_Controller {
 							continue;
 						}
 
-						$term_ids[] = (int) $term_id;
+						if ( ! array_key_exists( 'assign_to_post', $term_info ) || (bool) $term_info['assign_to_post'] ) {
+							$term_ids[] = (int) $term_id;
+						}
 
 						// Record source → local term ID mapping.
 						if ( ! empty( $term_info['term_id'] ) ) {
@@ -3298,7 +3285,20 @@ class Content_Sync_Controller extends Base_Controller {
 	 */
 	private function download_image_from_remote( $image, $site ) {
 		$source_attachment_id = isset( $image['attachment_id'] ) ? (int) $image['attachment_id'] : 0;
+		$source_origin_id     = isset( $image['source_origin_attachment_id'] ) ? (int) $image['source_origin_attachment_id'] : 0;
 		$force_unique         = ! empty( $image['force_unique'] );
+
+		if ( $source_origin_id > 0 ) {
+			$existing_id = $this->find_attachment_by_id_and_hash(
+				$source_origin_id,
+				isset( $image['file_hash'] ) ? (string) $image['file_hash'] : ''
+			);
+			if ( $existing_id ) {
+				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
+				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
+				return $existing_id;
+			}
+		}
 
 		if ( $source_attachment_id > 0 ) {
 			$existing_id = $this->find_attachment_by_original_attachment_id(
@@ -3385,10 +3385,10 @@ class Content_Sync_Controller extends Base_Controller {
 			return false;
 		}
 
-			// Generate metadata
-			\RockStarLab\ImportExport\Helper\Fs::load_attachment_metadata_core();
-			$attach_data = wp_generate_attachment_metadata( $attachment_id, $upload['file'] );
-			wp_update_attachment_metadata( $attachment_id, $attach_data );
+		// Generate metadata
+		\RockStarLab\ImportExport\Helper\Fs::load_attachment_metadata_core();
+		$attach_data = wp_generate_attachment_metadata( $attachment_id, $upload['file'] );
+		wp_update_attachment_metadata( $attachment_id, $attach_data );
 
 		// Set alt text
 		if ( ! empty( $image['alt_text'] ) ) {
@@ -3400,6 +3400,9 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( $source_attachment_id > 0 ) {
 			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
 			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
+		}
+		if ( $source_origin_id > 0 ) {
+			update_post_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
 		}
 		$this->apply_synced_attachment_content_fields( (int) $attachment_id, $image );
 
@@ -3422,9 +3425,31 @@ class Content_Sync_Controller extends Base_Controller {
 	}
 
 	/**
+	 * Find an existing local attachment by its own ID and optional file hash.
+	 *
+	 * @param int    $attachment_id Attachment ID on this site.
+	 * @param string $file_hash     Expected file hash.
+	 * @return int|false Attachment ID or false.
+	 */
+	private function find_attachment_by_id_and_hash( $attachment_id, $file_hash = '' ) {
+		$attachment_id = absint( $attachment_id );
+		if ( $attachment_id <= 0 || 'attachment' !== get_post_type( $attachment_id ) ) {
+			return false;
+		}
+
+		$file_hash = strtolower( trim( (string) $file_hash ) );
+		if ( '' !== $file_hash && \RockStarLab\ImportExport\Helper\Media_Hash::get_or_create_hash( $attachment_id ) !== $file_hash ) {
+			return false;
+		}
+
+		return $attachment_id;
+	}
+
+	/**
 	 * Find an attachment previously synced from a specific source attachment ID.
 	 *
-	 * @param int $source_attachment_id Source attachment ID.
+	 * @param int    $source_attachment_id Source attachment ID.
+	 * @param string $file_hash            Expected file hash.
 	 * @return int|false Attachment ID or false.
 	 */
 	private function find_attachment_by_original_attachment_id( $source_attachment_id, $file_hash = '' ) {

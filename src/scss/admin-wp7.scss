@@ -244,6 +244,25 @@ body.import-export-by-rockstarlab_page_rsl-ie-jobs-log
 	color: var(--wp-admin-theme-color, #2271b1);
 }
 
+/* Jobs Log: Content Sync type badges should be visually distinct. */
+body.import-export-by-rockstarlab_page_rsl-ie-jobs-log
+	.rsl-ie-jobs-log
+	.rsl-ie-jobs-table
+	.job-type-content_sync_push {
+	background: #ede9fe;
+	color: #5b21b6;
+	border-color: #ddd6fe;
+}
+
+body.import-export-by-rockstarlab_page_rsl-ie-jobs-log
+	.rsl-ie-jobs-log
+	.rsl-ie-jobs-table
+	.job-type-content_sync_pull {
+	background: #cffafe;
+	color: #155e75;
+	border-color: #a5f3fc;
+}
+
 /* Jobs Log: Actions buttons/icons should match the active admin theme color on WP7+. */
 body.import-export-by-rockstarlab_page_rsl-ie-jobs-log
 	.rsl-ie-jobs-log

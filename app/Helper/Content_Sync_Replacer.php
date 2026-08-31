@@ -1135,6 +1135,29 @@ class Content_Sync_Replacer {
 			);
 			// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 
+			if ( ! empty( $found ) ) {
+				return (int) $found[0];
+			}
+
+			// ACF relationship/page_link fields can reference attachments. Media
+			// sync stores those source IDs under attachment-specific meta keys.
+			// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Indexed meta_key lookup, hard-limited to 1 ID.
+			$found = get_posts(
+				array(
+					'post_type'              => 'attachment',
+					'post_status'            => 'inherit',
+					'posts_per_page'         => 1,
+					'fields'                 => 'ids',
+					'no_found_rows'          => true,
+					'cache_results'          => false,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+					'meta_key'               => '_rsl_ie_original_attachment_id',
+					'meta_value'             => $maybe_source_id,
+				)
+			);
+			// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+
 			return ! empty( $found ) ? (int) $found[0] : 0;
 		};
 
