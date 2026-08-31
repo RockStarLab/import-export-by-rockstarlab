@@ -384,7 +384,7 @@ class Post_Importer extends Abstract_Importer {
 			$locked_existing = $this->wait_for_existing_post_by_source_id( $source_id );
 			if ( $locked_existing ) {
 				$this->record_source_id_map( $source_id, $locked_existing->ID );
-				return (int) $locked_existing->ID;
+				return 'updated';
 			}
 		}
 
@@ -402,7 +402,7 @@ class Post_Importer extends Abstract_Importer {
 			if ( 'update' === $duplicate_mode ) {
 				if ( $this->is_post_created_by_current_job( (int) $existing_post->ID, $source_id ) ) {
 					$this->record_source_id_map( $source_id, $existing_post->ID );
-					return (int) $existing_post->ID;
+					return 'updated';
 				}
 
 				if ( $this->is_post_created_by_current_job_with_different_source( (int) $existing_post->ID, $source_id ) ) {
