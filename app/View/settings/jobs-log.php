@@ -24,8 +24,8 @@ defined( 'ABSPATH' ) || exit;
 					<option value=""><?php esc_html_e( 'All Types', 'import-export-by-rockstarlab' ); ?></option>
 					<option value="import"><?php esc_html_e( 'Import', 'import-export-by-rockstarlab' ); ?></option>
 					<option value="export"><?php esc_html_e( 'Export', 'import-export-by-rockstarlab' ); ?></option>
-					<option value="update"><?php esc_html_e( 'Update', 'import-export-by-rockstarlab' ); ?></option>
-					<option value="media_sync"><?php esc_html_e( 'Media Sync', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="content_sync_push"><?php esc_html_e( 'Content Sync - Push', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="content_sync_pull"><?php esc_html_e( 'Content Sync - Pull', 'import-export-by-rockstarlab' ); ?></option>
 				</select>
 			</div>
 
@@ -62,7 +62,6 @@ defined( 'ABSPATH' ) || exit;
 						<th class="column-id"><?php esc_html_e( 'ID', 'import-export-by-rockstarlab' ); ?></th>
 						<th class="column-job-name"><?php esc_html_e( 'Job Name', 'import-export-by-rockstarlab' ); ?></th>
 						<th class="column-type"><?php esc_html_e( 'Type', 'import-export-by-rockstarlab' ); ?></th>
-						<th class="column-data-type"><?php esc_html_e( 'Data Type', 'import-export-by-rockstarlab' ); ?></th>
 						<th class="column-status"><?php esc_html_e( 'Status', 'import-export-by-rockstarlab' ); ?></th>
 						<th class="column-progress"><?php esc_html_e( 'Progress', 'import-export-by-rockstarlab' ); ?></th>
 						<th class="column-items"><?php esc_html_e( 'Items', 'import-export-by-rockstarlab' ); ?></th>
@@ -73,7 +72,7 @@ defined( 'ABSPATH' ) || exit;
 				</thead>
 				<tbody id="jobs-table-body">
 					<tr class="no-items">
-						<td colspan="10"><?php esc_html_e( 'No jobs found.', 'import-export-by-rockstarlab' ); ?></td>
+						<td colspan="9"><?php esc_html_e( 'No jobs found.', 'import-export-by-rockstarlab' ); ?></td>
 					</tr>
 				</tbody>
 			</table>

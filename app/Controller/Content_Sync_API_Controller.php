@@ -347,10 +347,10 @@ class Content_Sync_API_Controller {
 			}
 
 			// Import meta
-			if ( ! empty( $post_data['meta'] ) ) {
+			if ( isset( $post_data['meta'] ) && is_array( $post_data['meta'] ) ) {
 
 				// Replace image IDs and domain in meta using the proper meta-aware replacer.
-				// replace_in_meta correctly handles _thumbnail_id, ACF image/file fields
+				// replace_in_meta correctly handles _thumbnail_id, ACF media fields
 				// (using field-type introspection), flat ACF repeater keys, etc.
 				if ( ! empty( $image_map ) ) {
 					$post_data['meta'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_in_meta_public(
@@ -361,6 +361,8 @@ class Content_Sync_API_Controller {
 						$image_sources
 					);
 				}
+
+				$this->delete_stale_synced_post_meta( (int) $post_id, $post_data['meta'] );
 
 				foreach ( $post_data['meta'] as $key => $value ) {
 					// Skip some internal WordPress meta
@@ -406,7 +408,9 @@ class Content_Sync_API_Controller {
 							continue;
 						}
 
-						$term_ids[] = (int) $term_id;
+						if ( ! array_key_exists( 'assign_to_post', $term_info ) || (bool) $term_info['assign_to_post'] ) {
+							$term_ids[] = (int) $term_id;
+						}
 
 						// Record source → local term ID mapping.
 						if ( ! empty( $term_info['term_id'] ) ) {
@@ -819,7 +823,7 @@ class Content_Sync_API_Controller {
 					if ( in_array( $key, array( '_edit_lock', '_edit_last' ), true ) ) {
 						continue;
 					}
-					update_post_meta( $local_var_id, $key, $value );
+					$this->save_synced_post_meta( (int) $local_var_id, (string) $key, $value );
 				}
 			}
 		}
@@ -919,7 +923,7 @@ class Content_Sync_API_Controller {
 					if ( in_array( $key, array( '_edit_lock', '_edit_last' ), true ) ) {
 						continue;
 					}
-					update_post_meta( $local_child_id, $key, $value );
+					$this->save_synced_post_meta( (int) $local_child_id, (string) $key, $value );
 				}
 			}
 
@@ -1110,6 +1114,41 @@ class Content_Sync_API_Controller {
 	}
 
 	/**
+	 * Remove target post meta that no longer exists in the source payload.
+	 *
+	 * @param int   $post_id       Target post ID.
+	 * @param array $incoming_meta Source meta payload.
+	 * @return void
+	 */
+	private function delete_stale_synced_post_meta( $post_id, array $incoming_meta ) {
+		$existing_meta = get_post_meta( (int) $post_id );
+		if ( empty( $existing_meta ) ) {
+			return;
+		}
+
+		$preserved_keys = array(
+			'_edit_lock',
+			'_edit_last',
+			'_wp_old_slug',
+			'_wp_old_date',
+		);
+
+		foreach ( $existing_meta as $key => $values ) {
+			$key = (string) $key;
+
+			if ( array_key_exists( $key, $incoming_meta ) || in_array( $key, $preserved_keys, true ) ) {
+				continue;
+			}
+
+			if ( 0 === strpos( $key, '_rsl_ie_' ) ) {
+				continue;
+			}
+
+			delete_post_meta( (int) $post_id, $key );
+		}
+	}
+
+	/**
 	 * Save synced post meta with special handling for generated/builder metadata.
 	 *
 	 * @param int    $post_id Post ID.
@@ -1129,7 +1168,67 @@ class Content_Sync_API_Controller {
 			return;
 		}
 
+		$value = $this->resolve_synced_media_references( $value, (int) $post_id );
+
 		update_post_meta( $post_id, $key, $value );
+	}
+
+	/**
+	 * Convert synced raw meta values to a portable representation before sending.
+	 *
+	 * @param mixed $value Meta value.
+	 * @return mixed
+	 */
+	private function portable_synced_meta_value( $value ) {
+		if ( is_array( $value ) ) {
+			foreach ( $value as $key => $item ) {
+				$value[ $key ] = $this->portable_synced_meta_value( $item );
+			}
+
+			return $value;
+		}
+
+		if ( is_string( $value )
+			&& '' !== $value
+			&& ( false !== stripos( $value, '[gallery' ) || false !== stripos( $value, '[playlist' ) )
+		) {
+			return ACF_Fields::export_string_with_media_shortcode_tokens( $value );
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Resolve portable media references before saving synced text/meta values.
+	 *
+	 * @param mixed $value     Meta/content value.
+	 * @param int   $parent_id Optional parent post ID.
+	 * @return mixed
+	 */
+	private function resolve_synced_media_references( $value, $parent_id = 0 ) {
+		if ( is_array( $value ) ) {
+			foreach ( $value as $key => $item ) {
+				$value[ $key ] = $this->resolve_synced_media_references( $item, $parent_id );
+			}
+
+			return $value;
+		}
+
+		if ( is_string( $value )
+			&& '' !== $value
+			&& (
+				false !== strpos( $value, '[[RSL_IE:' )
+				|| false !== stripos( $value, '[gallery' )
+				|| false !== stripos( $value, '[playlist' )
+				|| false !== stripos( $value, '<img' )
+				|| false !== stripos( $value, 'srcset=' )
+				|| false !== stripos( $value, '<a' )
+			)
+		) {
+			return ACF_Fields::replace_media_urls_in_html( $value, (int) $parent_id );
+		}
+
+		return $value;
 	}
 
 	/**
@@ -1156,7 +1255,7 @@ class Content_Sync_API_Controller {
 				if ( '_rsl_ie_original_comment_id' === $key ) {
 					continue;
 				}
-				$prepared_meta[ $key ] = maybe_unserialize( $values[0] );
+				$prepared_meta[ $key ] = $this->portable_synced_meta_value( maybe_unserialize( $values[0] ) );
 			}
 
 			$data[] = array(
@@ -1168,7 +1267,7 @@ class Content_Sync_API_Controller {
 				'comment_author_IP'    => $comment->comment_author_IP,
 				'comment_date'         => $comment->comment_date,
 				'comment_date_gmt'     => $comment->comment_date_gmt,
-				'comment_content'      => $comment->comment_content,
+				'comment_content'      => $this->portable_synced_meta_value( $comment->comment_content ),
 				'comment_karma'        => (int) $comment->comment_karma,
 				'comment_approved'     => $comment->comment_approved,
 				'comment_agent'        => $comment->comment_agent,
@@ -1212,7 +1311,7 @@ class Content_Sync_API_Controller {
 				'comment_author_IP'    => isset( $comment_data['comment_author_IP'] ) ? sanitize_text_field( $comment_data['comment_author_IP'] ) : '',
 				'comment_date'         => isset( $comment_data['comment_date'] ) ? sanitize_text_field( $comment_data['comment_date'] ) : current_time( 'mysql' ),
 				'comment_date_gmt'     => isset( $comment_data['comment_date_gmt'] ) ? sanitize_text_field( $comment_data['comment_date_gmt'] ) : current_time( 'mysql', true ),
-				'comment_content'      => isset( $comment_data['comment_content'] ) ? wp_kses_post( $comment_data['comment_content'] ) : '',
+				'comment_content'      => isset( $comment_data['comment_content'] ) ? wp_kses_post( $this->resolve_synced_media_references( $comment_data['comment_content'], 0 ) ) : '',
 				'comment_karma'        => isset( $comment_data['comment_karma'] ) ? (int) $comment_data['comment_karma'] : 0,
 				'comment_approved'     => isset( $comment_data['comment_approved'] ) ? sanitize_text_field( $comment_data['comment_approved'] ) : '1',
 				'comment_agent'        => isset( $comment_data['comment_agent'] ) ? sanitize_text_field( $comment_data['comment_agent'] ) : '',
@@ -1240,7 +1339,7 @@ class Content_Sync_API_Controller {
 					if ( '_rsl_ie_original_comment_id' === $key ) {
 						continue;
 					}
-					update_comment_meta( $result_id, sanitize_key( $key ), $value );
+					update_comment_meta( $result_id, sanitize_key( $key ), $this->resolve_synced_media_references( $value, 0 ) );
 				}
 			}
 		}
@@ -1326,7 +1425,7 @@ class Content_Sync_API_Controller {
 					continue;
 				}
 
-				$prepared_meta[ $key ] = maybe_unserialize( $values[0] );
+				$prepared_meta[ $key ] = $this->portable_synced_meta_value( maybe_unserialize( $values[0] ) );
 			}
 
 			// Get post terms with ACF fields
@@ -1409,7 +1508,8 @@ class Content_Sync_API_Controller {
 					if ( ! $acf_taxonomy || ! taxonomy_exists( $acf_taxonomy ) ) {
 						continue;
 					}
-					$raw_ids = is_array( $meta_value ) ? $meta_value : array( $meta_value );
+					$assign_to_post = ! empty( $field_obj['save_terms'] );
+					$raw_ids        = is_array( $meta_value ) ? $meta_value : array( $meta_value );
 					if ( ! isset( $terms_data[ $acf_taxonomy ] ) ) {
 						$terms_data[ $acf_taxonomy ] = array();
 					}
@@ -1420,6 +1520,14 @@ class Content_Sync_API_Controller {
 						}
 						$raw_id = (int) $raw_id;
 						if ( in_array( $raw_id, $known_ids, true ) ) {
+							if ( ! $assign_to_post ) {
+								foreach ( $terms_data[ $acf_taxonomy ] as &$existing_term_info ) {
+									if ( isset( $existing_term_info['term_id'] ) && (int) $existing_term_info['term_id'] === $raw_id ) {
+										$existing_term_info['assign_to_post'] = false;
+									}
+								}
+								unset( $existing_term_info );
+							}
 							continue;
 						}
 						$term = get_term( $raw_id, $acf_taxonomy );
@@ -1433,10 +1541,9 @@ class Content_Sync_API_Controller {
 							'parent_term_id' => (int) $term->parent,
 							'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $acf_taxonomy ),
 							'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $acf_taxonomy ),
+							'assign_to_post' => $assign_to_post,
 						);
-						$last_index                    = array_key_last( $terms_data[ $acf_taxonomy ] );
-						if ( null !== $last_index ) {
-						}
+
 						$known_ids[] = $raw_id;
 					}
 				}
@@ -1485,7 +1592,7 @@ class Content_Sync_API_Controller {
 							$var_raw_meta  = get_post_meta( $variation_id );
 							$var_prep_meta = array();
 							foreach ( $var_raw_meta as $vk => $vv ) {
-								$var_prep_meta[ $vk ] = maybe_unserialize( $vv[0] );
+								$var_prep_meta[ $vk ] = $this->portable_synced_meta_value( maybe_unserialize( $vv[0] ) );
 							}
 
 							$variations_data[] = array(
@@ -1550,9 +1657,24 @@ class Content_Sync_API_Controller {
 	public function check_media( $request ) {
 		$file_hash            = $request->get_param( 'file_hash' );
 		$source_attachment_id = absint( $request->get_param( 'source_attachment_id' ) );
+		$source_origin_id     = absint( $request->get_param( 'source_origin_attachment_id' ) );
+
+		if ( $source_origin_id > 0 ) {
+			$existing_attachment = $this->find_attachment_by_id_and_hash( $source_origin_id, $file_hash );
+			if ( $existing_attachment ) {
+				return new \WP_REST_Response(
+					array(
+						'success'       => true,
+						'exists'        => true,
+						'attachment_id' => $existing_attachment,
+					),
+					200
+				);
+			}
+		}
 
 		if ( $source_attachment_id > 0 ) {
-			$existing_attachment = $this->find_attachment_by_original_attachment_id( $source_attachment_id );
+			$existing_attachment = $this->find_attachment_by_original_attachment_id( $source_attachment_id, $file_hash );
 			if ( $existing_attachment ) {
 				return new \WP_REST_Response(
 					array(
@@ -1614,6 +1736,7 @@ class Content_Sync_API_Controller {
 		$caption              = $request->get_param( 'caption' );
 		$description          = $request->get_param( 'description' );
 		$source_attachment_id = absint( $request->get_param( 'source_attachment_id' ) );
+		$source_origin_id     = absint( $request->get_param( 'source_origin_attachment_id' ) );
 		$force_unique         = (bool) $request->get_param( 'force_unique' );
 
 		if ( empty( $file_name ) || empty( $file_data ) || empty( $file_hash ) ) {
@@ -1626,10 +1749,27 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-		if ( $source_attachment_id > 0 ) {
-			$existing_attachment = $this->find_attachment_by_original_attachment_id( $source_attachment_id );
+		if ( $source_origin_id > 0 ) {
+			$existing_attachment = $this->find_attachment_by_id_and_hash( $source_origin_id, $file_hash );
 			if ( $existing_attachment ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
+				$this->record_synced_attachment_source_ids( (int) $existing_attachment, $source_attachment_id, $source_origin_id );
+				return new \WP_REST_Response(
+					array(
+						'success'       => true,
+						'attachment_id' => $existing_attachment,
+						'message'       => __( 'Media already exists', 'import-export-by-rockstarlab' ),
+					),
+					200
+				);
+			}
+		}
+
+		if ( $source_attachment_id > 0 ) {
+			$existing_attachment = $this->find_attachment_by_original_attachment_id( $source_attachment_id, $file_hash );
+			if ( $existing_attachment ) {
+				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
+				$this->record_synced_attachment_source_ids( (int) $existing_attachment, $source_attachment_id, $source_origin_id );
 				return new \WP_REST_Response(
 					array(
 						'success'       => true,
@@ -1646,6 +1786,7 @@ class Content_Sync_API_Controller {
 			$existing_attachment = $this->find_attachment_by_hash( $file_hash );
 			if ( $existing_attachment ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
+				$this->record_synced_attachment_source_ids( (int) $existing_attachment, $source_attachment_id, $source_origin_id );
 				return new \WP_REST_Response(
 					array(
 						'success'       => true,
@@ -1681,8 +1822,24 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-			$upload_dir = wp_upload_dir();
-			$file_path  = $upload_dir['path'] . '/' . wp_unique_filename( $upload_dir['path'], $file_name );
+		if ( ! $force_unique ) {
+			$existing_attachment = $this->find_attachment_by_hash( $file_hash );
+			if ( $existing_attachment ) {
+				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
+				$this->record_synced_attachment_source_ids( (int) $existing_attachment, $source_attachment_id, $source_origin_id );
+				return new \WP_REST_Response(
+					array(
+						'success'       => true,
+						'attachment_id' => $existing_attachment,
+						'message'       => __( 'Media already exists', 'import-export-by-rockstarlab' ),
+					),
+					200
+				);
+			}
+		}
+
+		$upload_dir = wp_upload_dir();
+		$file_path  = $upload_dir['path'] . '/' . wp_unique_filename( $upload_dir['path'], $file_name );
 
 		// Write file
 		$saved = @file_put_contents( $file_path, $file_contents );
@@ -1719,10 +1876,10 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-			// Generate and update attachment metadata
-			\RockStarLab\ImportExport\Helper\Fs::load_attachment_metadata_core();
-			$attach_data = wp_generate_attachment_metadata( $attachment_id, $file_path );
-			wp_update_attachment_metadata( $attachment_id, $attach_data );
+		// Generate and update attachment metadata
+		\RockStarLab\ImportExport\Helper\Fs::load_attachment_metadata_core();
+		$attach_data = wp_generate_attachment_metadata( $attachment_id, $file_path );
+		wp_update_attachment_metadata( $attachment_id, $attach_data );
 
 		// Set alt text
 		if ( ! empty( $alt_text ) ) {
@@ -1734,6 +1891,9 @@ class Content_Sync_API_Controller {
 		if ( $source_attachment_id > 0 ) {
 			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
 			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
+		}
+		if ( $source_origin_id > 0 ) {
+			update_post_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
 		}
 
 		return new \WP_REST_Response(
@@ -1748,6 +1908,33 @@ class Content_Sync_API_Controller {
 	}
 
 	/**
+	 * Persist source attachment IDs when reusing an existing synced media item.
+	 *
+	 * @param int $attachment_id        Local attachment ID.
+	 * @param int $source_attachment_id Source attachment ID from the sender.
+	 * @param int $source_origin_id     Original ancestor attachment ID, if any.
+	 * @return void
+	 */
+	private function record_synced_attachment_source_ids( $attachment_id, $source_attachment_id, $source_origin_id ) {
+		$attachment_id        = absint( $attachment_id );
+		$source_attachment_id = absint( $source_attachment_id );
+		$source_origin_id     = absint( $source_origin_id );
+
+		if ( $attachment_id <= 0 ) {
+			return;
+		}
+
+		if ( $source_attachment_id > 0 ) {
+			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
+			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
+		}
+
+		if ( $source_origin_id > 0 ) {
+			update_post_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
+		}
+	}
+
+	/**
 	 * Find attachment by file hash
 	 *
 	 * @param string $file_hash File MD5 hash.
@@ -1758,29 +1945,69 @@ class Content_Sync_API_Controller {
 	}
 
 	/**
-	 * Find an attachment previously synced from a specific source attachment ID.
+	 * Find an existing local attachment by its own ID and optional file hash.
 	 *
-	 * @param int $source_attachment_id Source attachment ID.
+	 * @param int    $attachment_id Attachment ID on this site.
+	 * @param string $file_hash     Expected file hash.
 	 * @return int|false Attachment ID or false.
 	 */
-	private function find_attachment_by_original_attachment_id( $source_attachment_id ) {
+	private function find_attachment_by_id_and_hash( $attachment_id, $file_hash = '' ) {
+		$attachment_id = absint( $attachment_id );
+		if ( $attachment_id <= 0 || 'attachment' !== get_post_type( $attachment_id ) ) {
+			return false;
+		}
+
+		$file_hash = strtolower( trim( (string) $file_hash ) );
+		if ( '' !== $file_hash && \RockStarLab\ImportExport\Helper\Media_Hash::get_or_create_hash( $attachment_id ) !== $file_hash ) {
+			return false;
+		}
+
+		return $attachment_id;
+	}
+
+	/**
+	 * Find an attachment previously synced from a specific source attachment ID.
+	 *
+	 * @param int    $source_attachment_id Source attachment ID.
+	 * @param string $file_hash            Expected file hash.
+	 * @return int|false Attachment ID or false.
+	 */
+	private function find_attachment_by_original_attachment_id( $source_attachment_id, $file_hash = '' ) {
 		$source_attachment_id = absint( $source_attachment_id );
 		if ( $source_attachment_id <= 0 ) {
 			return false;
 		}
 
-		$attachments = get_posts(
-			array(
-				'post_type'      => 'attachment',
-				'post_status'    => 'inherit',
-				'posts_per_page' => 1,
-				'fields'         => 'ids',
-				'meta_key'       => '_rsl_ie_original_attachment_id', // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source attachment lookup for sync mapping.
-				'meta_value'     => $source_attachment_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source attachment lookup for sync mapping.
-			)
-		);
+		$file_hash   = strtolower( trim( (string) $file_hash ) );
+		$source_keys = array( '_rsl_ie_original_attachment_id', '_rsl_ie_source_attachment_id' );
 
-		return ! empty( $attachments ) ? (int) $attachments[0] : false;
+		foreach ( $source_keys as $source_key ) {
+			$attachments = get_posts(
+				array(
+					'post_type'      => 'attachment',
+					'post_status'    => 'inherit',
+					'posts_per_page' => 1,
+					'fields'         => 'ids',
+					'meta_key'       => $source_key, // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source attachment lookup for sync mapping.
+					'meta_value'     => $source_attachment_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source attachment lookup for sync mapping.
+					'orderby'        => 'ID',
+					'order'          => 'ASC',
+				)
+			);
+
+			if ( empty( $attachments ) ) {
+				continue;
+			}
+
+			$attachment_id = (int) $attachments[0];
+			if ( '' !== $file_hash && \RockStarLab\ImportExport\Helper\Media_Hash::get_or_create_hash( $attachment_id ) !== $file_hash ) {
+				continue;
+			}
+
+			return $attachment_id;
+		}
+
+		return false;
 	}
 
 
@@ -1822,14 +2049,14 @@ class Content_Sync_API_Controller {
 				}
 
 				foreach ( $this->extract_image_urls_from_term_acf_html( $value ) as $url ) {
-					$image_id = attachment_url_to_postid( $url );
+					$image_id = \RockStarLab\ImportExport\Helper\Content_Sync_Media::attachment_url_to_original_postid( $url );
 					if ( $image_id > 0 ) {
 						$image_ids[] = (int) $image_id;
 					}
 				}
 
 				if ( filter_var( $value, FILTER_VALIDATE_URL ) && $this->is_term_acf_image_url( $value ) ) {
-					$image_id = attachment_url_to_postid( $value );
+					$image_id = \RockStarLab\ImportExport\Helper\Content_Sync_Media::attachment_url_to_original_postid( $value );
 					if ( $image_id > 0 ) {
 						$image_ids[] = (int) $image_id;
 					}
@@ -1848,7 +2075,7 @@ class Content_Sync_API_Controller {
 				}
 
 				if ( isset( $value['url'] ) && is_string( $value['url'] ) && $this->is_term_acf_image_url( $value['url'] ) ) {
-					$image_id = attachment_url_to_postid( $value['url'] );
+					$image_id = \RockStarLab\ImportExport\Helper\Content_Sync_Media::attachment_url_to_original_postid( $value['url'] );
 					if ( $image_id > 0 ) {
 						$image_ids[] = (int) $image_id;
 					}
@@ -1946,11 +2173,12 @@ class Content_Sync_API_Controller {
 		$comment_type     = sanitize_key( (string) ( $request->get_param( 'comment_type' ) ?: '' ) );
 		$page             = absint( $request->get_param( 'page' ) ?: 1 );
 		$per_page         = absint( $request->get_param( 'per_page' ) ?: 20 );
+		$include_children = filter_var( $request->get_param( 'include_children' ), FILTER_VALIDATE_BOOLEAN );
 
 		// When searching, include all posts (parent and children)
 		// When not searching, show only parent posts (to maintain hierarchy)
 		$post_parent_filter = 0; // Default: only top-level posts
-		if ( ! empty( $search ) ) {
+		if ( ! empty( $search ) || $include_children ) {
 			$post_parent_filter = ''; // Empty string means no parent filter - include all posts
 		}
 
@@ -1959,7 +2187,10 @@ class Content_Sync_API_Controller {
 			'post_status'         => ! empty( $status ) ? $status : ( 'attachment' === $post_type ? 'inherit' : 'any' ),
 			'posts_per_page'      => $per_page,
 			'paged'               => $page,
-			'orderby'             => 'date',
+			'orderby'             => is_post_type_hierarchical( $post_type ) ? array(
+				'menu_order' => 'ASC',
+				'title'      => 'ASC',
+			) : 'date',
 			'order'               => 'DESC',
 			'ignore_sticky_posts' => true,
 		);
@@ -2324,7 +2555,7 @@ class Content_Sync_API_Controller {
 						$image_sources
 					);
 				}
-				$args['description'] = wp_kses_post( $description );
+				$args['description'] = wp_kses_post( $this->resolve_synced_media_references( $description, 0 ) );
 			}
 			if ( ! empty( $args ) ) {
 				wp_update_term( $term_id, $taxonomy, $args );
@@ -2332,7 +2563,7 @@ class Content_Sync_API_Controller {
 
 			if ( ! empty( $term_info['meta'] ) && is_array( $term_info['meta'] ) ) {
 				foreach ( $term_info['meta'] as $meta_key => $meta_value ) {
-					update_term_meta( $term_id, sanitize_key( (string) $meta_key ), $meta_value );
+					update_term_meta( $term_id, sanitize_key( (string) $meta_key ), $this->resolve_synced_media_references( $meta_value, 0 ) );
 				}
 			}
 
@@ -2391,7 +2622,7 @@ class Content_Sync_API_Controller {
 			'name'           => (string) $term->name,
 			'slug'           => (string) $term->slug,
 			'taxonomy'       => $taxonomy,
-			'description'    => (string) $term->description,
+			'description'    => $this->portable_synced_meta_value( (string) $term->description ),
 			'count'          => (int) $term->count,
 			'parent_term_id' => (int) $term->parent,
 			'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $taxonomy ),
@@ -2558,10 +2789,7 @@ class Content_Sync_API_Controller {
 		$page         = absint( $request->get_param( 'page' ) ?: 1 );
 		$per_page     = min( max( absint( $request->get_param( 'per_page' ) ?: 20 ), 1 ), 100 );
 		$language     = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
-		if ( ! false ) {
-			$language = '';
-		}
-		$offset = ( max( $page, 1 ) - 1 ) * $per_page;
+		$offset       = ( max( $page, 1 ) - 1 ) * $per_page;
 
 		$args = array(
 			'number'  => $per_page,
@@ -2644,9 +2872,6 @@ class Content_Sync_API_Controller {
 		$comment_ids  = is_array( $comment_ids ) ? array_values( array_filter( array_unique( array_map( 'absint', $comment_ids ) ) ) ) : array();
 		$comment_type = sanitize_key( (string) ( $request->get_param( 'comment_type' ) ?: '' ) );
 		$language     = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
-		if ( ! false ) {
-			$language = '';
-		}
 
 		if ( empty( $comment_ids ) ) {
 			return new \WP_REST_Response(
@@ -2766,7 +2991,7 @@ class Content_Sync_API_Controller {
 			'comment_author_IP'    => (string) $comment->comment_author_IP,
 			'comment_date'         => (string) $comment->comment_date,
 			'comment_date_gmt'     => (string) $comment->comment_date_gmt,
-			'comment_content'      => (string) $comment->comment_content,
+			'comment_content'      => $this->portable_synced_meta_value( (string) $comment->comment_content ),
 			'comment_karma'        => (int) $comment->comment_karma,
 			'comment_approved'     => (string) $comment->comment_approved,
 			'comment_agent'        => (string) $comment->comment_agent,
@@ -2848,7 +3073,7 @@ class Content_Sync_API_Controller {
 				'comment_author_IP'    => isset( $comment_data['comment_author_IP'] ) ? sanitize_text_field( (string) $comment_data['comment_author_IP'] ) : '',
 				'comment_date'         => isset( $comment_data['comment_date'] ) ? sanitize_text_field( (string) $comment_data['comment_date'] ) : current_time( 'mysql' ),
 				'comment_date_gmt'     => isset( $comment_data['comment_date_gmt'] ) ? sanitize_text_field( (string) $comment_data['comment_date_gmt'] ) : current_time( 'mysql', true ),
-				'comment_content'      => isset( $comment_data['comment_content'] ) ? wp_kses_post( (string) $comment_data['comment_content'] ) : '',
+				'comment_content'      => isset( $comment_data['comment_content'] ) ? wp_kses_post( $this->resolve_synced_media_references( (string) $comment_data['comment_content'], 0 ) ) : '',
 				'comment_karma'        => isset( $comment_data['comment_karma'] ) ? (int) $comment_data['comment_karma'] : 0,
 				'comment_approved'     => isset( $comment_data['comment_approved'] ) ? sanitize_text_field( (string) $comment_data['comment_approved'] ) : '1',
 				'comment_agent'        => isset( $comment_data['comment_agent'] ) ? sanitize_text_field( (string) $comment_data['comment_agent'] ) : '',
@@ -2886,7 +3111,7 @@ class Content_Sync_API_Controller {
 					if ( '_rsl_ie_original_comment_id' === $meta_key || $this->is_acf_comment_sync_meta_key( (string) $meta_key, $comment_data ) ) {
 						continue;
 					}
-					update_comment_meta( (int) $comment_id, sanitize_key( (string) $meta_key ), $meta_value );
+					update_comment_meta( (int) $comment_id, sanitize_key( (string) $meta_key ), $this->resolve_synced_media_references( $meta_value, 0 ) );
 				}
 			}
 		}
@@ -3428,9 +3653,6 @@ class Content_Sync_API_Controller {
 		$parent_id = absint( $request->get_param( 'parent_id' ) );
 		$post_type = sanitize_text_field( $request->get_param( 'post_type' ) ?: '' );
 		$language  = sanitize_key( (string) ( $request->get_param( 'language' ) ?: '' ) );
-		if ( ! false ) {
-			$language = '';
-		}
 
 		// If no post_type provided, derive it from the parent post type.
 		if ( empty( $post_type ) ) {

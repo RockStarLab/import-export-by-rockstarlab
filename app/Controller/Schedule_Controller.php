@@ -69,7 +69,7 @@ class Schedule_Controller {
 				$wpdb->prepare(
 					"SELECT id, job_name, type, data_type, status, created_at
 					FROM %i
-					WHERE type IN ('import', 'export', 'media_sync', 'update')
+					WHERE type IN ('import', 'export', 'content_sync_push', 'content_sync_pull')
 						AND status NOT IN ('pending', 'processing')
 					ORDER BY id DESC
 					LIMIT %d OFFSET %d",
@@ -83,7 +83,7 @@ class Schedule_Controller {
 				$wpdb->prepare(
 					"SELECT id, job_name, type, data_type, status, created_at
 					FROM %i
-					WHERE type IN ('import', 'export', 'media_sync', 'update')
+					WHERE type IN ('import', 'export', 'content_sync_push', 'content_sync_pull')
 						AND status NOT IN ('pending', 'processing')
 						AND (
 							id = %d
@@ -147,7 +147,7 @@ class Schedule_Controller {
 		$source_job = rsl_ie()->Model->job->find( $source_job_id );
 		if (
 			! $source_job ||
-			! in_array( $source_job->type, [ 'import', 'export', 'media_sync', 'update' ], true ) ||
+			! in_array( $source_job->type, [ 'import', 'export', 'content_sync_push', 'content_sync_pull' ], true ) ||
 			in_array( $source_job->status, [ 'pending', 'processing' ], true )
 		) {
 			$this->redirect_with_error( __( 'Select a supported source Job.', 'import-export-by-rockstarlab' ) );

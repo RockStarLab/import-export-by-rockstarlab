@@ -140,7 +140,7 @@ class Job_Scheduler {
 			return new \WP_Error( 'source_job_not_found', __( 'The source Job no longer exists.', 'import-export-by-rockstarlab' ) );
 		}
 
-		if ( ! in_array( $source->type, [ 'import', 'export', 'media_sync', 'update' ], true ) ) {
+		if ( ! in_array( $source->type, [ 'import', 'export', 'content_sync_push', 'content_sync_pull' ], true ) ) {
 			return new \WP_Error( 'unsupported_job_type', __( 'This Job type cannot be scheduled.', 'import-export-by-rockstarlab' ) );
 		}
 
@@ -157,12 +157,12 @@ class Job_Scheduler {
 			'settings'    => $settings,
 		];
 
-		if ( in_array( $source->type, [ 'import', 'update' ], true ) ) {
+		if ( 'import' === $source->type ) {
 			$payload['file_path'] = $source->file_path;
 			$payload['file_size'] = $source->file_size;
 		}
 
-		if ( 'update' === $source->type ) {
+		if ( 'content_update' === (string) $source->data_type ) {
 			$payload['total_items'] = (int) $source->total_items;
 		}
 

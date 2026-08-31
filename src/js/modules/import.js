@@ -1892,6 +1892,11 @@ const ImportModule = {
 						type: 'number',
 					},
 					{
+						value: 'is_sticky',
+						label: 'Sticky',
+						type: 'boolean',
+					},
+					{
 						value: 'post_parent',
 						label: 'Parent ID',
 						type: 'number',
@@ -3169,6 +3174,11 @@ const ImportModule = {
 							value: 'menu_order',
 							label: 'Menu Order',
 							type: 'number',
+						},
+						{
+							value: 'is_sticky',
+							label: 'Sticky',
+							type: 'boolean',
 						},
 						{ value: 'post_name', label: 'Slug', type: 'string' },
 						{
@@ -4982,6 +4992,10 @@ const ImportModule = {
 				{
 					value: 'post_name',
 					label: window.rslIeData.i18n.fieldSlug || 'Slug',
+				},
+				{
+					value: 'is_sticky',
+					label: window.rslIeData.i18n.fieldSticky || 'Sticky',
 				},
 				{
 					value: 'categories',

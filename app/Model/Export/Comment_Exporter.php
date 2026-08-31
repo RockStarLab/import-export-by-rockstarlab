@@ -85,9 +85,6 @@ class Comment_Exporter extends Abstract_Exporter {
 			'comment_meta',
 		];
 
-		if ( false ) {
-		}
-
 		return $fields;
 	}
 
@@ -354,10 +351,35 @@ class Comment_Exporter extends Abstract_Exporter {
 				continue;
 			}
 
-			$formatted_meta[ $key ] = maybe_unserialize( $values[0] );
+			$formatted_meta[ $key ] = $this->portable_comment_meta_value( maybe_unserialize( $values[0] ) );
 		}
 
 		return $formatted_meta;
+	}
+
+	/**
+	 * Convert comment meta values to portable media references.
+	 *
+	 * @param mixed $value Meta value.
+	 * @return mixed
+	 */
+	private function portable_comment_meta_value( $value ) {
+		if ( is_array( $value ) ) {
+			foreach ( $value as $key => $item ) {
+				$value[ $key ] = $this->portable_comment_meta_value( $item );
+			}
+
+			return $value;
+		}
+
+		if ( is_string( $value )
+			&& '' !== $value
+			&& ( false !== stripos( $value, '[gallery' ) || false !== stripos( $value, '[playlist' ) )
+		) {
+			return ACF_Fields::export_string_with_media_shortcode_tokens( $value );
+		}
+
+		return $value;
 	}
 
 	/**

@@ -2914,6 +2914,11 @@ const ExportModule = {
 						type: 'number',
 					},
 					{
+						value: 'is_sticky',
+						label: window.rslIeData.i18n.fieldSticky || 'Sticky',
+						type: 'boolean',
+					},
+					{
 						value: 'comment_status',
 						label: window.rslIeData.i18n.fieldCommentStatus,
 						type: 'string',
@@ -3645,6 +3650,12 @@ const ExportModule = {
 							value: 'post_modified',
 							label: window.rslIeData.i18n.fieldModifiedDate,
 							type: 'date',
+						},
+						{
+							value: 'is_sticky',
+							label:
+								window.rslIeData.i18n.fieldSticky || 'Sticky',
+							type: 'boolean',
 						},
 						{
 							value: '_wp_page_template',
