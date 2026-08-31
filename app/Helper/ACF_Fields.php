@@ -139,19 +139,23 @@ class ACF_Fields {
 			return false;
 		}
 
-		$acf_id       = self::get_acf_object_id( $object_type, $object_id, $taxonomy );
-		$field_object = self::get_field_object( $field_name, $acf_id, $object_type, $taxonomy );
-		$media_parent = self::get_media_parent_id( $object_type, $object_id );
-		$prepared     = self::from_portable_value( $value, is_array( $field_object ) ? $field_object : [], $media_parent );
-		$selector     = is_array( $field_object ) && ! empty( $field_object['key'] ) ? (string) $field_object['key'] : $field_name;
+		$acf_id                      = self::get_acf_object_id( $object_type, $object_id, $taxonomy );
+		$field_object                = self::get_field_object( $field_name, $acf_id, $object_type, $taxonomy );
+		$media_parent                = self::get_media_parent_id( $object_type, $object_id );
+		$raw_value                   = self::maybe_decode( $value );
+		$prepared                    = self::from_portable_value( $value, is_array( $field_object ) ? $field_object : [], $media_parent );
+		$selector                    = is_array( $field_object ) && ! empty( $field_object['key'] ) ? (string) $field_object['key'] : $field_name;
+		$field_type                  = is_array( $field_object ) ? (string) ( $field_object['type'] ?? '' ) : '';
+		$is_raw_flexible_layout_list = 'flexible_content' === $field_type && self::is_raw_flexible_layout_list( $raw_value );
 
-		if ( function_exists( 'update_field' ) ) {
+		if ( function_exists( 'update_field' ) && ! $is_raw_flexible_layout_list ) {
 			update_field( $selector, $prepared, $acf_id );
 		}
 
-		$field_type     = is_array( $field_object ) ? (string) ( $field_object['type'] ?? '' ) : '';
 		$is_complex_acf = in_array( $field_type, [ 'repeater', 'group', 'flexible_content' ], true );
-		if ( ! $is_complex_acf ) {
+		if ( $is_raw_flexible_layout_list ) {
+			self::update_raw_meta_value( $object_type, $object_id, $field_name, array_values( $raw_value ) );
+		} elseif ( ! $is_complex_acf ) {
 			self::update_raw_meta_value( $object_type, $object_id, $field_name, $prepared );
 		}
 		if ( is_array( $field_object ) && ! empty( $field_object['key'] ) ) {
@@ -159,6 +163,22 @@ class ACF_Fields {
 		}
 
 		return true;
+	}
+
+	private static function is_raw_flexible_layout_list( $value ) {
+		if ( ! is_array( $value ) || isset( $value['acf_type'] ) ) {
+			return false;
+		}
+
+		$index = 0;
+		foreach ( $value as $key => $layout ) {
+			if ( (int) $key !== $index || (string) $key !== (string) $index || ! is_scalar( $layout ) ) {
+				return false;
+			}
+			++$index;
+		}
+
+		return $index > 0;
 	}
 
 	/**

@@ -61,7 +61,15 @@
 
 		.rsl-ie-progress-bar-fill {
 			height: 100%;
-			background: linear-gradient(90deg, #2271b1 0%, #135e96 100%);
+			background: linear-gradient(
+				100deg,
+				#135e96 0%,
+				#2271b1 35%,
+				#72aee6 50%,
+				#2271b1 65%,
+				#135e96 100%
+			);
+			background-size: 220% 100%;
 			transition: width 0.3s;
 			display: flex;
 			align-items: center;
@@ -69,6 +77,27 @@
 			padding-right: 10px;
 			color: #fff;
 			font-weight: 600;
+			position: relative;
+			overflow: hidden;
+			animation: rsl-ie-progress-gradient 2.4s linear infinite;
+
+			&::after {
+				content: "";
+				position: absolute;
+				inset: 0;
+				background: linear-gradient(
+					110deg,
+					rgba(255, 255, 255, 0) 0%,
+					rgba(255, 255, 255, 0) 34%,
+					rgba(255, 255, 255, 0.55) 48%,
+					rgba(255, 255, 255, 0.18) 54%,
+					rgba(255, 255, 255, 0) 68%,
+					rgba(255, 255, 255, 0) 100%
+				);
+				transform: translateX(-100%);
+				animation: rsl-ie-progress-shimmer 1.35s ease-in-out infinite;
+				pointer-events: none;
+			}
 		}
 	}
 
@@ -117,6 +146,16 @@
 				font-weight: 600;
 			}
 		}
+	}
+}
+
+@keyframes rsl-ie-progress-gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+
+	100% {
+		background-position: 220% 50%;
 	}
 }
 
