@@ -3770,14 +3770,45 @@ class Post_Exporter extends Abstract_Exporter {
 
 			// Single value meta
 			if ( 1 === count( $values ) ) {
-				$meta[ $key ] = maybe_unserialize( $values[0] );
+				$value        = maybe_unserialize( $values[0] );
+				$meta[ $key ] = $this->portable_post_meta_value( $value, (int) $post_id );
 			} else {
 				// Multiple values
-				$meta[ $key ] = array_map( 'maybe_unserialize', $values );
+				$meta[ $key ] = array_map(
+					function ( $value ) use ( $post_id ) {
+						return $this->portable_post_meta_value( maybe_unserialize( $value ), (int) $post_id );
+					},
+					$values
+				);
 			}
 		}
 
 		return $meta;
+	}
+
+	/**
+	 * Convert a raw post meta value to a portable form when it embeds media IDs.
+	 *
+	 * Full post_meta exports can include ACF WYSIWYG/raw HTML fields. If a value
+	 * contains [gallery] or [playlist] IDs, source-site IDs are not valid on the
+	 * destination unless we include the attachment URLs in a portable token.
+	 *
+	 * @param mixed $value   Meta value.
+	 * @param int   $post_id Post ID.
+	 * @return mixed
+	 */
+	private function portable_post_meta_value( $value, int $post_id ) {
+		if ( is_string( $value ) && '' !== $value && ( false !== stripos( $value, '[gallery' ) || false !== stripos( $value, '[playlist' ) ) ) {
+			return $this->acf_export_string_with_media_shortcode_tokens( $value, $post_id );
+		}
+
+		if ( is_array( $value ) ) {
+			foreach ( $value as $key => $child ) {
+				$value[ $key ] = $this->portable_post_meta_value( $child, $post_id );
+			}
+		}
+
+		return $value;
 	}
 
 	/**
@@ -3886,7 +3917,7 @@ class Post_Exporter extends Abstract_Exporter {
 				'term_id'     => $term->term_id,
 				'name'        => $term->name,
 				'slug'        => $term->slug,
-				'description' => $term->description,
+				'description' => $this->portable_post_meta_value( (string) $term->description, 0 ),
 				'count'       => $term->count,
 				'locations'   => implode( ', ', $locations ),
 				'menu_items'  => [],
@@ -3923,7 +3954,7 @@ class Post_Exporter extends Abstract_Exporter {
 						'attr_title'                 => $item->attr_title,
 						'classes'                    => $item->classes,
 						'xfn'                        => $item->xfn,
-						'description'                => $item->description,
+						'description'                => $this->portable_post_meta_value( (string) $item->description, (int) $item->ID ),
 					];
 
 					// Extra hints to allow cross-site ID mapping on import.
@@ -4181,7 +4212,7 @@ class Post_Exporter extends Abstract_Exporter {
 				if ( ! isset( $vv[0] ) ) {
 					continue;
 				}
-				$meta[ $vk ] = maybe_unserialize( $vv[0] );
+				$meta[ $vk ] = $this->portable_post_meta_value( maybe_unserialize( $vv[0] ), (int) $variation_id );
 			}
 
 			// Add portable URL for the variation thumbnail when present.
@@ -4310,7 +4341,7 @@ class Post_Exporter extends Abstract_Exporter {
 			$item = [
 				'name'        => (string) $term->name,
 				'slug'        => (string) $term->slug,
-				'description' => (string) $term->description,
+				'description' => $this->portable_post_meta_value( (string) $term->description, (int) $post_id ),
 				'parent_path' => $this->get_term_parent_path( (int) $term->parent, $taxonomy ),
 			];
 

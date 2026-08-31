@@ -395,9 +395,10 @@ class Elementor_Fields {
 	 */
 	private static function import_media_from_url( $url, $post_id ) {
 		$url = esc_url_raw( (string) $url );
-		if ( '' === $url || ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+		if ( '' === $url || ! filter_var( $url, FILTER_VALIDATE_URL ) || ! self::looks_like_media_url( $url ) ) {
 			return 0;
 		}
+		$url = Content_Sync_Media::canonicalize_import_media_url( $url );
 
 		$existing_id = attachment_url_to_postid( $url );
 		if ( $existing_id > 0 ) {
@@ -409,10 +410,24 @@ class Elementor_Fields {
 			return $existing_by_source;
 		}
 
+		$original_attachment_id = Content_Sync_Media::attachment_url_to_original_postid( $url );
+		if ( $original_attachment_id > 0 ) {
+			update_post_meta( $original_attachment_id, 'rsl_ie_source_url', $url );
+			update_post_meta( $original_attachment_id, 'rsl_ie_source_url_hash', self::get_source_url_hash( $url ) );
+			return $original_attachment_id;
+		}
+
 		$filename = wp_basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
 		if ( '' !== $filename ) {
 			$existing_by_name = self::find_attachment_by_filename( $filename );
 			if ( $existing_by_name > 0 ) {
+				if ( ! self::attachment_source_url_matches( $existing_by_name, $url ) ) {
+					$existing_by_name = 0;
+				}
+			}
+			if ( $existing_by_name > 0 ) {
+				update_post_meta( $existing_by_name, 'rsl_ie_source_url', $url );
+				update_post_meta( $existing_by_name, 'rsl_ie_source_url_hash', self::get_source_url_hash( $url ) );
 				return $existing_by_name;
 			}
 		}
@@ -438,7 +453,7 @@ class Elementor_Fields {
 		}
 
 		update_post_meta( (int) $attachment_id, 'rsl_ie_source_url', $url );
-		update_post_meta( (int) $attachment_id, 'rsl_ie_source_url_hash', md5( $url ) );
+		update_post_meta( (int) $attachment_id, 'rsl_ie_source_url_hash', self::get_source_url_hash( $url ) );
 
 		if ( class_exists( '\RockStarLab\ImportExport\Helper\Media_Hash' ) ) {
 			Media_Hash::get_or_create_hash( (int) $attachment_id );
@@ -523,6 +538,22 @@ class Elementor_Fields {
 	}
 
 	/**
+	 * Check whether an existing attachment belongs to the same source URL.
+	 *
+	 * @param int    $attachment_id Existing attachment ID.
+	 * @param string $source_url    Source URL.
+	 * @return bool
+	 */
+	private static function attachment_source_url_matches( int $attachment_id, string $source_url ): bool {
+		$existing_source_url = get_post_meta( $attachment_id, 'rsl_ie_source_url', true );
+		if ( ! is_string( $existing_source_url ) || '' === $existing_source_url ) {
+			return true;
+		}
+
+		return self::get_source_url_hash( $existing_source_url ) === self::get_source_url_hash( $source_url );
+	}
+
+	/**
 	 * Find an attachment previously imported from the same source URL.
 	 *
 	 * @param string $url Source URL.
@@ -531,7 +562,10 @@ class Elementor_Fields {
 	private static function find_attachment_by_source_url( $url ) {
 		global $wpdb;
 
-		$hash          = md5( esc_url_raw( (string) $url ) );
+		$hash = self::get_source_url_hash( (string) $url );
+		if ( '' === $hash ) {
+			return 0;
+		}
 		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Exact source URL hash lookup avoids duplicate sideloads.
 			$wpdb->prepare(
 				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = 'rsl_ie_source_url_hash' AND meta_value = %s LIMIT 1",
@@ -543,6 +577,17 @@ class Elementor_Fields {
 	}
 
 	/**
+	 * Build a stable hash for a source media URL.
+	 *
+	 * @param string $url Media URL.
+	 * @return string URL hash.
+	 */
+	private static function get_source_url_hash( string $url ): string {
+		$source_url = Content_Sync_Media::canonicalize_import_media_url( $url );
+		return '' === $source_url ? '' : md5( $source_url );
+	}
+
+	/**
 	 * Determine whether a string looks like an importable media URL.
 	 *
 	 * @param string $url URL.
@@ -550,6 +595,9 @@ class Elementor_Fields {
 	 */
 	private static function looks_like_media_url( $url ) {
 		if ( '' === $url || ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+			return false;
+		}
+		if ( ! Content_Sync_Media::is_wordpress_uploads_url( $url ) ) {
 			return false;
 		}
 

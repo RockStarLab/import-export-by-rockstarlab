@@ -354,6 +354,180 @@ class Content_Sync_Media {
 	}
 
 	/**
+	 * Check whether a URL points at a WordPress uploads directory.
+	 *
+	 * @param string $url URL.
+	 * @return bool
+	 */
+	public static function is_wordpress_uploads_url( $url ) {
+		$path = wp_parse_url( (string) $url, PHP_URL_PATH );
+		return is_string( $path ) && false !== strpos( $path, '/wp-content/uploads/' );
+	}
+
+	/**
+	 * Convert an intermediate-size media URL to the source attachment URL when possible.
+	 *
+	 * HTML, srcset, Elementor, and SEO payloads may reference generated files such
+	 * as image-300x200.jpg. Those files must not become standalone attachments on
+	 * the destination site; import the canonical attachment file instead.
+	 *
+	 * @param string $url Media URL.
+	 * @return string Canonical URL when resolved, otherwise the original URL.
+	 */
+	public static function canonicalize_import_media_url( $url ) {
+		$url = esc_url_raw( (string) $url );
+		if ( '' === $url || ! self::is_wordpress_uploads_url( $url ) ) {
+			return $url;
+		}
+
+		$url           = self::normalize_media_source_url( $url );
+		$canonical_url = self::canonicalize_intermediate_size_url( $url );
+		return '' !== $canonical_url ? $canonical_url : $url;
+	}
+
+	/**
+	 * Normalize a WordPress uploads media URL for stable source identity.
+	 *
+	 * WordPress.com and some imported HTML may append image sizing parameters such
+	 * as ?w=604 to the original attachment URL. Those variants should point to the
+	 * same media record, not create separate destination attachments.
+	 *
+	 * @param string $url Media URL.
+	 * @return string Normalized URL.
+	 */
+	public static function normalize_media_source_url( $url ) {
+		$url = esc_url_raw( (string) $url );
+		if ( '' === $url || ! self::is_wordpress_uploads_url( $url ) ) {
+			return $url;
+		}
+
+		return self::remove_url_query_and_fragment( $url );
+	}
+
+	/**
+	 * Resolve a generated intermediate-size image URL to a canonical source URL.
+	 *
+	 * @param string $url Media URL.
+	 * @return string Canonical URL or empty string.
+	 */
+	private static function canonicalize_intermediate_size_url( $url ) {
+		$path     = (string) wp_parse_url( (string) $url, PHP_URL_PATH );
+		$basename = wp_basename( $path );
+		if ( '' === $basename || ! preg_match( '/^(.+)-\d+x\d+(?:-\d+)?(\.[^.]+)$/i', $basename, $matches ) ) {
+			return '';
+		}
+
+		$base = preg_replace( '/-scaled(?:-\d+)?$/i', '', (string) $matches[1] );
+		$ext  = (string) $matches[2];
+		if ( '' === $base || '' === $ext ) {
+			return '';
+		}
+
+		$candidates = array(
+			$base . '-scaled' . $ext,
+			$base . $ext,
+		);
+
+		foreach ( array_unique( $candidates ) as $candidate_basename ) {
+			$candidate_url = self::replace_url_basename( $url, $candidate_basename );
+			if ( '' !== $candidate_url && self::remote_media_url_exists( $candidate_url ) ) {
+				return $candidate_url;
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Replace the basename inside a URL path.
+	 *
+	 * @param string $url      URL.
+	 * @param string $basename New basename.
+	 * @return string Updated URL.
+	 */
+	private static function replace_url_basename( $url, $basename ) {
+		$parts = wp_parse_url( (string) $url );
+		if ( empty( $parts['scheme'] ) || empty( $parts['host'] ) || empty( $parts['path'] ) ) {
+			return '';
+		}
+
+		$dir           = rtrim( str_replace( '\\', '/', dirname( (string) $parts['path'] ) ), '/' );
+		$parts['path'] = ( '' === $dir ? '' : $dir ) . '/' . ltrim( (string) $basename, '/' );
+		unset( $parts['query'], $parts['fragment'] );
+
+		$rebuilt = $parts['scheme'] . '://' . $parts['host'];
+		if ( ! empty( $parts['port'] ) ) {
+			$rebuilt .= ':' . (int) $parts['port'];
+		}
+
+		return $rebuilt . $parts['path'];
+	}
+
+	/**
+	 * Remove query and fragment from a URL while preserving its path.
+	 *
+	 * @param string $url URL.
+	 * @return string URL without query/fragment, or empty string.
+	 */
+	private static function remove_url_query_and_fragment( $url ) {
+		$parts = wp_parse_url( (string) $url );
+		if ( empty( $parts['scheme'] ) || empty( $parts['host'] ) || empty( $parts['path'] ) ) {
+			return '';
+		}
+
+		$rebuilt = $parts['scheme'] . '://' . $parts['host'];
+		if ( ! empty( $parts['port'] ) ) {
+			$rebuilt .= ':' . (int) $parts['port'];
+		}
+
+		return $rebuilt . $parts['path'];
+	}
+
+	/**
+	 * Check whether a remote media URL is accessible.
+	 *
+	 * @param string $url URL.
+	 * @return bool
+	 */
+	private static function remote_media_url_exists( $url ) {
+		$response = wp_remote_head(
+			$url,
+			array(
+				'timeout'            => 10,
+				'redirection'        => 3,
+				'reject_unsafe_urls' => false,
+			)
+		);
+
+		if ( ! is_wp_error( $response ) ) {
+			$code = (int) wp_remote_retrieve_response_code( $response );
+			if ( $code >= 200 && $code < 300 ) {
+				return true;
+			}
+			if ( 405 !== $code ) {
+				return false;
+			}
+		}
+
+		$response = wp_remote_get(
+			$url,
+			array(
+				'timeout'            => 10,
+				'redirection'        => 3,
+				'headers'            => array( 'Range' => 'bytes=0-0' ),
+				'reject_unsafe_urls' => false,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return false;
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		return $code >= 200 && $code < 300;
+	}
+
+	/**
 	 * Find the original attachment whose metadata owns an intermediate-size URL.
 	 *
 	 * @param string $url Attachment URL.
@@ -1028,7 +1202,7 @@ class Content_Sync_Media {
 	 * @return array|null Image data or null.
 	 */
 	private static function prepare_external_media_data( $url, $attachment_id = 0, $context = '' ) {
-		$url = esc_url_raw( $url );
+		$url = self::canonicalize_import_media_url( $url );
 		if ( '' === $url || ! wp_http_validate_url( $url ) ) {
 			return null;
 		}

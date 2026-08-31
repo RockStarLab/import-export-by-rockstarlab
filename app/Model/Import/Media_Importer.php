@@ -11,6 +11,7 @@ namespace RockStarLab\ImportExport\Model\Import;
 
 use RockStarLab\ImportExport\Helper\FS;
 use RockStarLab\ImportExport\Helper\ACF_Fields;
+use RockStarLab\ImportExport\Helper\Content_Sync_Media;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -236,6 +237,20 @@ class Media_Importer extends Abstract_Importer {
 	 * @return int|WP_Error Attachment ID or WP_Error
 	 */
 	private function import_from_url( $url, $item ) {
+		$canonical_url = $this->normalize_source_url( (string) $url );
+		if ( '' !== $canonical_url ) {
+			$url         = $canonical_url;
+			$source_path = wp_parse_url( $url, PHP_URL_PATH );
+			$source_name = is_string( $source_path ) ? sanitize_file_name( wp_basename( $source_path ) ) : '';
+			if ( '' !== $source_name ) {
+				$item['filename']  = $source_name;
+				$item['file_name'] = $source_name;
+			}
+			$item['url']      = $url;
+			$item['file_url'] = $url;
+			$item['file']     = $url;
+		}
+
 		$source_match = $this->find_existing_by_source_id( $item );
 		if ( ! $source_match ) {
 			$source_match = $this->find_existing_by_source_url( (string) $url );
@@ -576,9 +591,9 @@ class Media_Importer extends Abstract_Importer {
 
 		$source_url = $item['file'] ?? $item['file_url'] ?? $item['url'] ?? '';
 		if ( is_string( $source_url ) && filter_var( $source_url, FILTER_VALIDATE_URL ) ) {
-			$source_url = esc_url_raw( $source_url );
+			$source_url = $this->normalize_source_url( $source_url );
 			update_post_meta( $attachment_id, 'rsl_ie_source_url', $source_url );
-			update_post_meta( $attachment_id, 'rsl_ie_source_url_hash', md5( $source_url ) );
+			update_post_meta( $attachment_id, 'rsl_ie_source_url_hash', $this->get_source_url_hash( $source_url ) );
 		}
 
 		// Handle ACF fields (with acf_ prefix)
@@ -754,7 +769,7 @@ class Media_Importer extends Abstract_Importer {
 	 * @return int|null Attachment ID or null.
 	 */
 	private function find_existing_by_source_url( string $url ) {
-		$source_url = esc_url_raw( $url );
+		$source_url = $this->normalize_source_url( $url );
 		if ( '' === $source_url ) {
 			return null;
 		}
@@ -767,11 +782,32 @@ class Media_Importer extends Abstract_Importer {
 				 WHERE meta_key = 'rsl_ie_source_url_hash'
 				   AND meta_value = %s
 				 LIMIT 1",
-				md5( $source_url )
+				$this->get_source_url_hash( $source_url )
 			)
 		);
 
 		return $attachment_id && 'attachment' === get_post_type( (int) $attachment_id ) ? (int) $attachment_id : null;
+	}
+
+	/**
+	 * Normalize a source media URL for storage and dedupe.
+	 *
+	 * @param string $url Media URL.
+	 * @return string Normalized URL.
+	 */
+	private function normalize_source_url( string $url ): string {
+		return Content_Sync_Media::canonicalize_import_media_url( $url );
+	}
+
+	/**
+	 * Build a stable hash for a source media URL.
+	 *
+	 * @param string $url Media URL.
+	 * @return string URL hash.
+	 */
+	private function get_source_url_hash( string $url ): string {
+		$source_url = $this->normalize_source_url( $url );
+		return '' === $source_url ? '' : md5( $source_url );
 	}
 
 	/**
