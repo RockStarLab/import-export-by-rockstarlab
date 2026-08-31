@@ -368,6 +368,20 @@ class Content_Sync_API_Controller {
 						continue;
 					}
 
+					// ACF reference keys (_field_name = field_xxx) are site-specific.
+					// Importing the source site's key can make a local ACF field appear
+					// empty after ACF definitions were pulled/recreated with different keys.
+					if ( is_string( $key ) && '' !== $key && '_' === $key[0] ) {
+						$plain_key = substr( $key, 1 );
+						if ( '' !== $plain_key && array_key_exists( $plain_key, $post_data['meta'] ) && is_string( $value ) && 0 === strpos( $value, 'field_' ) ) {
+							continue;
+						}
+					}
+
+					if ( is_string( $key ) && '' !== $key && '_' !== $key[0] && $this->maybe_save_synced_acf_post_field( (int) $post_id, (string) $key, $value, $post_data['meta'] ) ) {
+						continue;
+					}
+
 					$this->save_synced_post_meta( (int) $post_id, (string) $key, $value );
 				}
 			}
@@ -1137,6 +1151,36 @@ class Content_Sync_API_Controller {
 	}
 
 	/**
+	 * Save a synced post meta value through ACF when the payload identifies it as an ACF field.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $key     Meta key / ACF field name.
+	 * @param mixed  $value   Field value.
+	 * @param array  $meta    Full synced meta payload.
+	 * @return bool Whether the value was handled.
+	 */
+	private function maybe_save_synced_acf_post_field( $post_id, $key, $value, array $meta ) {
+		if ( ! class_exists( ACF_Fields::class ) || ! function_exists( 'update_field' ) ) {
+			return false;
+		}
+
+		$field_ref_key = '_' . $key;
+		$has_acf_ref   = isset( $meta[ $field_ref_key ] ) && is_string( $meta[ $field_ref_key ] ) && 0 === strpos( $meta[ $field_ref_key ], 'field_' );
+
+		$field_object = null;
+		if ( function_exists( 'get_field_object' ) ) {
+			$field_object = get_field_object( $key, $post_id, false, false );
+		}
+
+		if ( ! $has_acf_ref && ! is_array( $field_object ) ) {
+			return false;
+		}
+
+		ACF_Fields::import_value( 'post', (int) $post_id, $key, $this->resolve_synced_media_references( $value, (int) $post_id ) );
+		return true;
+	}
+
+	/**
 	 * Convert synced raw meta values to a portable representation before sending.
 	 *
 	 * @param mixed $value Meta value.
@@ -1716,6 +1760,7 @@ class Content_Sync_API_Controller {
 			$existing_attachment = $this->find_attachment_by_id_and_hash( $source_origin_id, $file_hash );
 			if ( $existing_attachment ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
+				$this->record_synced_attachment_source_ids( (int) $existing_attachment, $source_attachment_id, $source_origin_id );
 				return new \WP_REST_Response(
 					array(
 						'success'       => true,
@@ -1731,6 +1776,7 @@ class Content_Sync_API_Controller {
 			$existing_attachment = $this->find_attachment_by_original_attachment_id( $source_attachment_id, $file_hash );
 			if ( $existing_attachment ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
+				$this->record_synced_attachment_source_ids( (int) $existing_attachment, $source_attachment_id, $source_origin_id );
 				return new \WP_REST_Response(
 					array(
 						'success'       => true,
@@ -1747,6 +1793,7 @@ class Content_Sync_API_Controller {
 			$existing_attachment = $this->find_attachment_by_hash( $file_hash );
 			if ( $existing_attachment ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
+				$this->record_synced_attachment_source_ids( (int) $existing_attachment, $source_attachment_id, $source_origin_id );
 				return new \WP_REST_Response(
 					array(
 						'success'       => true,
@@ -1864,6 +1911,33 @@ class Content_Sync_API_Controller {
 			),
 			200
 		);
+	}
+
+	/**
+	 * Persist source attachment IDs when reusing an existing synced media item.
+	 *
+	 * @param int $attachment_id        Local attachment ID.
+	 * @param int $source_attachment_id Source attachment ID from the sender.
+	 * @param int $source_origin_id     Original ancestor attachment ID, if any.
+	 * @return void
+	 */
+	private function record_synced_attachment_source_ids( $attachment_id, $source_attachment_id, $source_origin_id ) {
+		$attachment_id        = absint( $attachment_id );
+		$source_attachment_id = absint( $source_attachment_id );
+		$source_origin_id     = absint( $source_origin_id );
+
+		if ( $attachment_id <= 0 ) {
+			return;
+		}
+
+		if ( $source_attachment_id > 0 ) {
+			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
+			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
+		}
+
+		if ( $source_origin_id > 0 ) {
+			update_post_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
+		}
 	}
 
 	/**
@@ -2096,11 +2170,12 @@ class Content_Sync_API_Controller {
 		$comment_type     = sanitize_key( (string) ( $request->get_param( 'comment_type' ) ?: '' ) );
 		$page             = absint( $request->get_param( 'page' ) ?: 1 );
 		$per_page         = absint( $request->get_param( 'per_page' ) ?: 20 );
+		$include_children = filter_var( $request->get_param( 'include_children' ), FILTER_VALIDATE_BOOLEAN );
 
 		// When searching, include all posts (parent and children)
 		// When not searching, show only parent posts (to maintain hierarchy)
 		$post_parent_filter = 0; // Default: only top-level posts
-		if ( ! empty( $search ) ) {
+		if ( ! empty( $search ) || $include_children ) {
 			$post_parent_filter = ''; // Empty string means no parent filter - include all posts
 		}
 
@@ -2109,7 +2184,10 @@ class Content_Sync_API_Controller {
 			'post_status'         => ! empty( $status ) ? $status : ( 'attachment' === $post_type ? 'inherit' : 'any' ),
 			'posts_per_page'      => $per_page,
 			'paged'               => $page,
-			'orderby'             => 'date',
+			'orderby'             => is_post_type_hierarchical( $post_type ) ? array(
+				'menu_order' => 'ASC',
+				'title'      => 'ASC',
+			) : 'date',
 			'order'               => 'DESC',
 			'ignore_sticky_posts' => true,
 		);

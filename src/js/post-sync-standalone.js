@@ -714,6 +714,8 @@ const getActionNonce = ( action ) =>
 								nonce: remotePostsNonce,
 								site_id: siteId,
 								post_type: 'any',
+								include_children: 1,
+								per_page: 100,
 							},
 							success: ( response ) => {
 								if ( response.success && response.data.posts ) {
@@ -950,8 +952,9 @@ const getActionNonce = ( action ) =>
 							site_id: siteId,
 							search: params.term || '',
 							page: params.page || 1,
-							per_page: 10,
+							per_page: 20,
 							post_type: localPostType || 'post',
+							include_children: 1,
 						};
 					},
 					processResults: ( response, params ) => {
@@ -991,7 +994,7 @@ const getActionNonce = ( action ) =>
 							results: formattedResults,
 							pagination: {
 								more:
-									params.page * 10 <
+									params.page * 20 <
 									( response.data.total || 0 ),
 							},
 						};

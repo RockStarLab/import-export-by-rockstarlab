@@ -211,19 +211,44 @@ class Media_Library_Sync_Controller {
 			wp_send_json_error( array( 'message' => __( 'No media selected.', 'import-export-by-rockstarlab' ) ), 400 );
 		}
 
-		$request = new \WP_REST_Request( 'POST', '/rsl-ie/v1/send-media' );
-		$request->set_param( 'media_ids', $media_ids );
-		$payload = $this->rest_send_media( $request )->get_data();
-		if ( empty( $payload['success'] ) || empty( $payload['media'] ) ) {
-			wp_send_json_error( array( 'message' => __( 'No valid media selected.', 'import-export-by-rockstarlab' ) ), 400 );
+		$result = array(
+			'created' => 0,
+			'skipped' => 0,
+			'failed'  => 0,
+		);
+
+		foreach ( $media_ids as $attachment_id ) {
+			$item = $this->prepare_media_payload_for_sync( $attachment_id );
+			if ( ! $item ) {
+				++$result['failed'];
+				continue;
+			}
+
+			$response = $this->remote_post( $site, 'receive-media', array( 'media' => array( $item ) ), 180 );
+			if ( is_wp_error( $response ) ) {
+				++$result['failed'];
+				continue;
+			}
+
+			$result['created'] += absint( $response['created'] ?? 0 );
+			$result['skipped'] += absint( $response['skipped'] ?? 0 );
+			$result['failed']  += absint( $response['failed'] ?? 0 );
 		}
 
-		$response = $this->remote_post( $site, 'receive-media', array( 'media' => $payload['media'] ), 180 );
-		if ( is_wp_error( $response ) ) {
-			wp_send_json_error( array( 'message' => $response->get_error_message() ), 400 );
-		}
-
-		wp_send_json_success( $response );
+		wp_send_json_success(
+			array_merge(
+				array(
+					'message' => sprintf(
+						/* translators: 1: created attachments, 2: skipped attachments, 3: failed attachments. */
+						__( 'Media pushed. Created: %1$d, Skipped: %2$d, Failed: %3$d', 'import-export-by-rockstarlab' ),
+						$result['created'],
+						$result['skipped'],
+						$result['failed']
+					),
+				),
+				$result
+			)
+		);
 	}
 
 	/**
@@ -454,6 +479,7 @@ class Media_Library_Sync_Controller {
 			if ( '' !== $file_hash && class_exists( Media_Hash::class ) ) {
 				$existing = Media_Hash::get_attachment_by_hash( $file_hash, true );
 				if ( $existing ) {
+					$this->record_synced_attachment_source_ids( (int) $existing, absint( $item['attachment_id'] ?? 0 ), absint( $item['source_origin_attachment_id'] ?? 0 ) );
 					$this->import_media_acf_for_sync( (int) $existing, $item );
 					++$result['skipped'];
 					continue;
@@ -589,8 +615,38 @@ class Media_Library_Sync_Controller {
 		if ( ! empty( $item['attachment_id'] ) ) {
 			update_post_meta( (int) $attachment_id, '_rsl_ie_original_attachment_id', absint( $item['attachment_id'] ) );
 		}
+		if ( ! empty( $item['source_origin_attachment_id'] ) ) {
+			update_post_meta( (int) $attachment_id, '_rsl_ie_source_origin_attachment_id', absint( $item['source_origin_attachment_id'] ) );
+		}
 
 		return (int) $attachment_id;
+	}
+
+	/**
+	 * Persist source attachment IDs when reusing an existing synced media item.
+	 *
+	 * @param int $attachment_id        Local attachment ID.
+	 * @param int $source_attachment_id Source attachment ID from the sender.
+	 * @param int $source_origin_id     Original ancestor attachment ID, if any.
+	 * @return void
+	 */
+	private function record_synced_attachment_source_ids( $attachment_id, $source_attachment_id, $source_origin_id ) {
+		$attachment_id        = absint( $attachment_id );
+		$source_attachment_id = absint( $source_attachment_id );
+		$source_origin_id     = absint( $source_origin_id );
+
+		if ( $attachment_id <= 0 ) {
+			return;
+		}
+
+		if ( $source_attachment_id > 0 ) {
+			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
+			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
+		}
+
+		if ( $source_origin_id > 0 ) {
+			update_post_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
+		}
 	}
 
 	/**

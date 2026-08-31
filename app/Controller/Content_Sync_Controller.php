@@ -924,6 +924,7 @@ class Content_Sync_Controller extends Base_Controller {
 		$commentable_only = filter_var( $this->get_request_param( 'commentable_only', false ), FILTER_VALIDATE_BOOLEAN );
 		$comment_type     = sanitize_key( (string) $this->get_request_param( 'comment_type', '' ) );
 		$language         = sanitize_key( (string) $this->get_request_param( 'language', '' ) );
+		$include_children = filter_var( $this->get_request_param( 'include_children', false ), FILTER_VALIDATE_BOOLEAN );
 		if ( '' === $language ) {
 		}
 
@@ -958,6 +959,7 @@ class Content_Sync_Controller extends Base_Controller {
 						'commentable_only' => $commentable_only,
 						'comment_type'     => $comment_type,
 						'language'         => $language,
+						'include_children' => $include_children,
 					)
 				),
 			)
@@ -2722,6 +2724,36 @@ class Content_Sync_Controller extends Base_Controller {
 	}
 
 	/**
+	 * Save a synced post meta value through ACF when the payload identifies it as an ACF field.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $key     Meta key / ACF field name.
+	 * @param mixed  $value   Field value.
+	 * @param array  $meta    Full synced meta payload.
+	 * @return bool Whether the value was handled.
+	 */
+	private function maybe_save_synced_acf_post_field( $post_id, $key, $value, array $meta ) {
+		if ( ! class_exists( ACF_Fields::class ) || ! function_exists( 'update_field' ) ) {
+			return false;
+		}
+
+		$field_ref_key = '_' . $key;
+		$has_acf_ref   = isset( $meta[ $field_ref_key ] ) && is_string( $meta[ $field_ref_key ] ) && 0 === strpos( $meta[ $field_ref_key ], 'field_' );
+
+		$field_object = null;
+		if ( function_exists( 'get_field_object' ) ) {
+			$field_object = get_field_object( $key, $post_id, false, false );
+		}
+
+		if ( ! $has_acf_ref && ! is_array( $field_object ) ) {
+			return false;
+		}
+
+		ACF_Fields::import_value( 'post', (int) $post_id, $key, $this->resolve_synced_media_references( $value, (int) $post_id ) );
+		return true;
+	}
+
+	/**
 	 * Convert synced meta values to portable form before sending them to another site.
 	 *
 	 * @param mixed $value Meta value.
@@ -3020,6 +3052,17 @@ class Content_Sync_Controller extends Base_Controller {
 				}
 
 				foreach ( $post_data['meta'] as $key => $value ) {
+					if ( is_string( $key ) && '' !== $key && '_' === $key[0] ) {
+						$plain_key = substr( $key, 1 );
+						if ( '' !== $plain_key && array_key_exists( $plain_key, $post_data['meta'] ) && is_string( $value ) && 0 === strpos( $value, 'field_' ) ) {
+							continue;
+						}
+					}
+
+					if ( is_string( $key ) && '' !== $key && '_' !== $key[0] && $this->maybe_save_synced_acf_post_field( (int) $post_id, (string) $key, $value, $post_data['meta'] ) ) {
+						continue;
+					}
+
 					$this->save_synced_post_meta( (int) $post_id, (string) $key, $value );
 				}
 			}
@@ -3295,6 +3338,7 @@ class Content_Sync_Controller extends Base_Controller {
 			);
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
+				$this->record_synced_attachment_source_ids( (int) $existing_id, $source_attachment_id, $source_origin_id );
 				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
 				return $existing_id;
 			}
@@ -3307,6 +3351,7 @@ class Content_Sync_Controller extends Base_Controller {
 			);
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
+				$this->record_synced_attachment_source_ids( (int) $existing_id, $source_attachment_id, $source_origin_id );
 				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
 				return $existing_id;
 			}
@@ -3317,6 +3362,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$existing_id = $this->find_attachment_by_hash( $image['file_hash'] );
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
+				$this->record_synced_attachment_source_ids( (int) $existing_id, $source_attachment_id, $source_origin_id );
 				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
 				return $existing_id;
 			}
@@ -3357,6 +3403,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$existing_id = $this->find_attachment_by_hash( $actual_hash );
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
+				$this->record_synced_attachment_source_ids( (int) $existing_id, $source_attachment_id, $source_origin_id );
 				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
 				return $existing_id;
 			}
@@ -3407,6 +3454,33 @@ class Content_Sync_Controller extends Base_Controller {
 		$this->apply_synced_attachment_content_fields( (int) $attachment_id, $image );
 
 		return $attachment_id;
+	}
+
+	/**
+	 * Persist source attachment IDs when reusing an existing synced media item.
+	 *
+	 * @param int $attachment_id        Local attachment ID.
+	 * @param int $source_attachment_id Source attachment ID from the sender.
+	 * @param int $source_origin_id     Original ancestor attachment ID, if any.
+	 * @return void
+	 */
+	private function record_synced_attachment_source_ids( $attachment_id, $source_attachment_id, $source_origin_id ) {
+		$attachment_id        = absint( $attachment_id );
+		$source_attachment_id = absint( $source_attachment_id );
+		$source_origin_id     = absint( $source_origin_id );
+
+		if ( $attachment_id <= 0 ) {
+			return;
+		}
+
+		if ( $source_attachment_id > 0 ) {
+			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
+			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
+		}
+
+		if ( $source_origin_id > 0 ) {
+			update_post_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
+		}
 	}
 
 	/**
