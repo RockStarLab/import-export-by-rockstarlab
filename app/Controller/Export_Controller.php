@@ -67,6 +67,7 @@ class Export_Controller extends Base_Controller {
 		$export_type = $this->get_request_param( 'export_type' );
 		$options     = $this->get_request_array( 'options' );
 		$options     = $this->apply_selected_ids_filter_to_options( $export_type, $options );
+		$options     = $this->normalize_custom_post_type_export_options( $export_type, $options );
 
 		$count = Exporter_Factory::get_count( $export_type, $options );
 
@@ -161,6 +162,41 @@ class Export_Controller extends Base_Controller {
 	}
 
 	/**
+	 * Resolve the selected CPT slug for the virtual custom_post_types export type.
+	 *
+	 * @param string $export_type Export type.
+	 * @param array  $options Export options.
+	 * @return array Export options.
+	 */
+	private function normalize_custom_post_type_export_options( $export_type, $options ) {
+		if ( 'custom_post_types' !== $export_type ) {
+			return $options;
+		}
+
+		if ( ! empty( $options['post_type'] ) && 'custom_post_types' !== $options['post_type'] ) {
+			$options['post_type'] = sanitize_key( (string) $options['post_type'] );
+			return $options;
+		}
+
+		foreach ( [ 'filters', 'dynamic_filters' ] as $filter_key ) {
+			if ( empty( $options[ $filter_key ] ) || ! is_array( $options[ $filter_key ] ) ) {
+				continue;
+			}
+
+			foreach ( $options[ $filter_key ] as $filter ) {
+				if ( ! is_array( $filter ) || 'post_type' !== ( $filter['field'] ?? '' ) || empty( $filter['value'] ) ) {
+					continue;
+				}
+
+				$options['post_type'] = sanitize_key( (string) $filter['value'] );
+				return $options;
+			}
+		}
+
+		return $options;
+	}
+
+	/**
 	 * Get preview of export data
 	 */
 	public function get_preview() {
@@ -176,6 +212,7 @@ class Export_Controller extends Base_Controller {
 
 		$export_type = $this->get_request_param( 'export_type' );
 		$options     = $this->get_request_array( 'options' );
+		$options     = $this->normalize_custom_post_type_export_options( $export_type, $options );
 
 		// Limit preview to 10 items
 		$preview_options = array_merge( $options, [ 'limit' => 10 ] );
@@ -235,6 +272,16 @@ class Export_Controller extends Base_Controller {
 		$taxonomy        = $this->get_request_array( 'taxonomy' );
 		$field_functions = $this->get_request_array( 'field_functions' );
 		$table_name      = $this->get_request_param( 'table_name' );
+		$options         = $this->normalize_custom_post_type_export_options(
+			$export_type,
+			array_merge(
+				$options,
+				[
+					'filters'         => $filters,
+					'dynamic_filters' => $dynamic_filters,
+				]
+			)
+		);
 
 		// Validate format
 		if ( ! Format_Factory::is_supported( $format ) ) {
@@ -684,10 +731,15 @@ class Export_Controller extends Base_Controller {
 		$field_functions = $parameters['field_functions'] ?? [];
 
 		// Merge all options for export
+		$combined_filters = array_merge(
+			is_array( $filters ) ? $filters : [],
+			is_array( $dynamic_filters ) ? $dynamic_filters : []
+		);
+
 		$export_options = array_merge(
 			$options,
 			[
-				'filters'         => $filters,
+				'filters'         => $combined_filters,
 				'fields'          => $fields,
 				'dynamic_filters' => $dynamic_filters,
 				'custom_fields'   => $custom_fields,
@@ -696,10 +748,13 @@ class Export_Controller extends Base_Controller {
 			]
 		);
 		$export_options = $this->apply_selected_ids_filter_to_options( $export_type, $export_options );
+		$export_options = $this->normalize_custom_post_type_export_options( $export_type, $export_options );
 
 		// Add post_type only for actual post types (not for menu, user, taxonomy, etc.)
 		$non_post_types = [ 'menu', 'user', 'taxonomy', 'comment', 'database_table', 'woo_attribute', 'woo_review', 'woo_refund', 'woo_customer' ];
-		if ( ! in_array( $export_type, $non_post_types, true ) ) {
+		if ( 'custom_post_types' === $export_type ) {
+			$export_options['post_type'] = ! empty( $export_options['post_type'] ) ? $export_options['post_type'] : 'any';
+		} elseif ( ! in_array( $export_type, $non_post_types, true ) ) {
 			$export_options['post_type'] = $export_type;
 		}
 

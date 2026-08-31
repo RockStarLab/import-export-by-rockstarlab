@@ -128,7 +128,9 @@ const ImportModule = {
 		} );
 
 		// Field mapping
-		$wizard.on( 'click', '.rsl-ie-auto-map', () => this.autoMapFields() );
+		$wizard.on( 'click', '.rsl-ie-auto-map', ( e ) =>
+			this.autoMapFields( e )
+		);
 		$wizard.on( 'click', '.rsl-ie-clear-map', () =>
 			this.clearFieldMapping()
 		);
@@ -5041,7 +5043,16 @@ const ImportModule = {
 	/**
 	 * Auto-map fields
 	 */
-	autoMapFields() {
+	autoMapFields( event ) {
+		const $button = event
+			? jQuery( event.currentTarget )
+			: jQuery( '.rsl-ie-auto-map' );
+		if ( $button.prop( 'disabled' ) ) {
+			return;
+		}
+
+		this.setAutoMapLoading( true, $button );
+
 		const contentType = jQuery(
 			'input[name="content_type"]:checked'
 		).val();
@@ -5065,6 +5076,35 @@ const ImportModule = {
 		}
 
 		this.runAutoMapFields();
+	},
+
+	setAutoMapLoading( isLoading, $button = jQuery( '.rsl-ie-auto-map' ) ) {
+		if ( ! $button.length ) {
+			return;
+		}
+
+		if ( isLoading ) {
+			if ( ! $button.data( 'original-html' ) ) {
+				$button.data( 'original-html', $button.html() );
+			}
+
+			$button
+				.prop( 'disabled', true )
+				.addClass( 'disabled is-loading' )
+				.html(
+					'<span class="dashicons dashicons-update rsl-ie-button-spinner"></span> ' +
+						( window.rslIeData.i18n.mappingFields || 'Mapping...' )
+				);
+			return;
+		}
+
+		const originalHtml =
+			$button.data( 'original-html' ) ||
+			'<span class="dashicons dashicons-admin-generic"></span> Auto Map';
+		$button
+			.prop( 'disabled', false )
+			.removeClass( 'disabled is-loading' )
+			.html( originalHtml );
 	},
 
 	runAutoMapFields() {
@@ -5344,6 +5384,7 @@ const ImportModule = {
 				'Auto-mapped %d fields'
 			).replace( '%d', mappedCount );
 			Utils.showNotice( message, 'success' );
+			this.setAutoMapLoading( false );
 		}, 150 );
 	},
 
@@ -5640,6 +5681,7 @@ const ImportModule = {
 			this.importStartTime = Date.now();
 			this.isCancellingImport = false;
 			this.showStep( 6 );
+			this.setImportPreparingState( true );
 			this.startBatchProcessing();
 
 			Utils.showNotice(
@@ -5722,6 +5764,7 @@ const ImportModule = {
 			const percentage = response.progress || 0;
 			const processed = response.offset || 0;
 			const total = response.result?.total || 0;
+			this.setImportPreparingState( percentage <= 0 && processed <= 0 );
 
 			// items/sec based on elapsed time
 			const itemsPerSec = elapsedSec > 0 ? processed / elapsedSec : 0;
@@ -5804,6 +5847,7 @@ const ImportModule = {
 	 */
 	onImportComplete( response ) {
 		const result = response.result || {};
+		this.setImportPreparingState( false );
 
 		// Hide progress, show results
 		jQuery( '.rsl-ie-progress-container' ).hide();
@@ -5859,6 +5903,7 @@ const ImportModule = {
 	 * Handle import failure
 	 */
 	onImportFailed( response ) {
+		this.setImportPreparingState( false );
 		Utils.showNotice(
 			( rslIeData.i18n.importFailed || 'Import failed' ) +
 				': ' +
@@ -5876,6 +5921,7 @@ const ImportModule = {
 		}
 
 		this.isCancellingImport = true;
+		this.setImportPreparingState( false );
 		this.setCancelImportLoading( true );
 		if ( this.batchTimeout ) {
 			clearTimeout( this.batchTimeout );
@@ -5958,6 +6004,17 @@ const ImportModule = {
 		jQuery( '.rsl-ie-logs-container' ).slideToggle();
 	},
 
+	setImportPreparingState( isPreparing ) {
+		const $container = jQuery(
+			'.rsl-ie-step-6 .rsl-ie-progress-container'
+		);
+		if ( ! $container.length ) {
+			return;
+		}
+
+		$container.toggleClass( 'is-preparing', !! isPreparing );
+	},
+
 	/**
 	 * Reset wizard
 	 */
@@ -5978,6 +6035,8 @@ const ImportModule = {
 		}
 		this.setStartImportLoading( false );
 		this.setCancelImportLoading( false );
+		this.setAutoMapLoading( false );
+		this.setImportPreparingState( false );
 
 		jQuery(
 			'#rsl-ie-import input[type="text"], #rsl-ie-import input[type="file"]'

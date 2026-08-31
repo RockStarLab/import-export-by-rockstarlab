@@ -15,11 +15,15 @@ defined( 'ABSPATH' ) || exit;
 		<p class="description"><?php esc_html_e( 'Please wait while your data is being imported', 'import-export-by-rockstarlab' ); ?></p>
 	</div>
 
-	<div class="rsl-ie-step-content">
-		<div class="rsl-ie-progress-container">
-			<div class="rsl-ie-progress-bar">
-				<div class="rsl-ie-progress-bar-fill" style="width: 0%;"></div>
-			</div>
+		<div class="rsl-ie-step-content">
+			<div class="rsl-ie-progress-container">
+				<div class="rsl-ie-import-preparing" role="status" aria-live="polite">
+					<span class="rsl-ie-import-preparing-spinner" aria-hidden="true"></span>
+					<span class="rsl-ie-import-preparing-text"><?php esc_html_e( 'Preparing import...', 'import-export-by-rockstarlab' ); ?></span>
+				</div>
+				<div class="rsl-ie-progress-bar">
+					<div class="rsl-ie-progress-bar-fill" style="width: 0%;"></div>
+				</div>
 			<div class="rsl-ie-progress-stats">
 				<div class="rsl-ie-progress-percentage">0%</div>
 				<div class="rsl-ie-progress-details">
