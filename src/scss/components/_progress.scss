@@ -2,6 +2,56 @@
 .rsl-ie-progress-container {
 	margin: 30px 0;
 
+	.rsl-ie-import-preparing {
+		display: none;
+		align-items: center;
+		gap: 12px;
+		margin-bottom: 18px;
+		padding: 14px 16px;
+		background: #f0f6fc;
+		border: 1px solid #c5d9ed;
+		border-radius: 4px;
+		color: #1d4f7a;
+		font-weight: 600;
+	}
+
+	.rsl-ie-import-preparing-spinner {
+		width: 20px;
+		height: 20px;
+		border: 3px solid rgba(34, 113, 177, 0.2);
+		border-top-color: #2271b1;
+		border-radius: 50%;
+		animation: rsl-ie-spin 0.75s linear infinite;
+		flex: 0 0 auto;
+	}
+
+	&.is-preparing {
+		.rsl-ie-import-preparing {
+			display: flex;
+		}
+
+		.rsl-ie-progress-bar-fill {
+			position: relative;
+			width: 8% !important;
+			min-width: 46px;
+			overflow: hidden;
+
+			&::after {
+				content: "";
+				position: absolute;
+				inset: 0;
+				background: linear-gradient(
+					90deg,
+					rgba(255, 255, 255, 0),
+					rgba(255, 255, 255, 0.45),
+					rgba(255, 255, 255, 0)
+				);
+				transform: translateX(-100%);
+				animation: rsl-ie-progress-shimmer 1.15s ease-in-out infinite;
+			}
+		}
+	}
+
 	.rsl-ie-progress-bar {
 		height: 30px;
 		background: #f6f7f7;
@@ -67,5 +117,15 @@
 				font-weight: 600;
 			}
 		}
+	}
+}
+
+.rsl-ie-button-spinner {
+	animation: rsl-ie-spin 0.75s linear infinite;
+}
+
+@keyframes rsl-ie-progress-shimmer {
+	to {
+		transform: translateX(100%);
 	}
 }

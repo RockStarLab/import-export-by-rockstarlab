@@ -378,9 +378,18 @@ class Post_Importer extends Abstract_Importer {
 			$item['post_name'] = (string) $item['_rsl_ie_source_post_name'];
 		}
 
+		$source_id            = isset( $item['_rsl_ie_source_id'] ) ? absint( $item['_rsl_ie_source_id'] ) : 0;
+		$source_lock_acquired = $this->acquire_source_import_lock( $source_id );
+		if ( ! $source_lock_acquired && $source_id > 0 ) {
+			$locked_existing = $this->wait_for_existing_post_by_source_id( $source_id );
+			if ( $locked_existing ) {
+				$this->record_source_id_map( $source_id, $locked_existing->ID );
+				return (int) $locked_existing->ID;
+			}
+		}
+
 		// Check for duplicates
 		$existing_post = $this->find_existing_post( $item );
-		$source_id     = isset( $item['_rsl_ie_source_id'] ) ? absint( $item['_rsl_ie_source_id'] ) : 0;
 
 		if ( $existing_post ) {
 			$duplicate_mode = $this->get_option( 'duplicate_mode', 'skip' );
@@ -426,6 +435,67 @@ class Post_Importer extends Abstract_Importer {
 			$this->record_source_id_map( $source_id, $created );
 		}
 		return $created;
+	}
+
+	/**
+	 * Acquire a short source-row lock so duplicate AJAX retries cannot create the same source post twice.
+	 *
+	 * @param int $source_id Source-site post ID.
+	 * @return bool Whether the lock was acquired.
+	 */
+	private function acquire_source_import_lock( $source_id ) {
+		$source_id = absint( $source_id );
+		if ( $source_id <= 0 ) {
+			return false;
+		}
+
+		$post_type = sanitize_key( (string) $this->get_option( 'post_type', 'post' ) );
+		$job_id    = absint( $this->job_id );
+		$lock_key  = 'rsl_ie_import_source_lock_' . md5( $post_type . ':' . $job_id . ':' . $source_id );
+		$now       = time();
+		$ttl       = 5 * MINUTE_IN_SECONDS;
+
+		if ( add_option( $lock_key, (string) $now, '', 'no' ) ) {
+			register_shutdown_function(
+				static function () use ( $lock_key ) {
+					delete_option( $lock_key );
+				}
+			);
+			return true;
+		}
+
+		$locked_at = absint( get_option( $lock_key, 0 ) );
+		if ( $locked_at > 0 && ( $now - $locked_at ) > $ttl ) {
+			delete_option( $lock_key );
+			if ( add_option( $lock_key, (string) $now, '', 'no' ) ) {
+				register_shutdown_function(
+					static function () use ( $lock_key ) {
+						delete_option( $lock_key );
+					}
+				);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Wait briefly for a concurrent request to finish creating a source-mapped post.
+	 *
+	 * @param int $source_id Source-site post ID.
+	 * @return \WP_Post|null Existing post.
+	 */
+	private function wait_for_existing_post_by_source_id( $source_id ) {
+		for ( $attempt = 0; $attempt < 20; $attempt++ ) {
+			$existing = $this->find_existing_post_by_source_id( $source_id );
+			if ( $existing ) {
+				return $existing;
+			}
+			usleep( 250000 );
+		}
+
+		return null;
 	}
 
 	/**
@@ -485,17 +555,9 @@ class Post_Importer extends Abstract_Importer {
 		// functions, editor adjustments, etc.).
 		$source_id = isset( $item['_rsl_ie_source_id'] ) ? absint( $item['_rsl_ie_source_id'] ) : 0;
 		if ( $source_id > 0 ) {
-			$args  = [
-				'post_type'      => $this->get_option( 'post_type', 'post' ),
-				'post_status'    => 'any',
-				'posts_per_page' => 1,
-				'fields'         => 'ids',
-				'meta_key'       => self::SOURCE_ID_META_KEY, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- required for source-ID lookup.
-				'meta_value'     => $source_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- required for source-ID lookup.
-			];
-			$posts = get_posts( $args );
-			if ( ! empty( $posts ) ) {
-				return get_post( (int) $posts[0] );
+			$existing = $this->find_existing_post_by_source_id( $source_id );
+			if ( $existing ) {
+				return $existing;
 			}
 		}
 
@@ -569,6 +631,39 @@ class Post_Importer extends Abstract_Importer {
 
 			$posts = get_posts( $args );
 			return ! empty( $posts ) ? get_post( $posts[0] ) : null;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Find an already imported post by source-site ID.
+	 *
+	 * @param int $source_id Source-site post ID.
+	 * @return \WP_Post|null Existing post.
+	 */
+	private function find_existing_post_by_source_id( $source_id ) {
+		$source_id = absint( $source_id );
+		if ( $source_id <= 0 ) {
+			return null;
+		}
+
+		$args  = [
+			'post_type'              => $this->get_option( 'post_type', 'post' ),
+			'post_status'            => 'any',
+			'posts_per_page'         => 1,
+			'fields'                 => 'ids',
+			'orderby'                => 'ID',
+			'order'                  => 'ASC',
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'meta_key'               => self::SOURCE_ID_META_KEY, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- required for source-ID lookup.
+			'meta_value'             => $source_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- required for source-ID lookup.
+		];
+		$posts = get_posts( $args );
+		if ( ! empty( $posts ) ) {
+			return get_post( (int) $posts[0] );
 		}
 
 		return null;
