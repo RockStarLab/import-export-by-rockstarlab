@@ -91,6 +91,15 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 			</label>
 
+			<label class="rsl-ie-content-type">
+				<input type="radio" name="content_type" value="media">
+				<div class="rsl-ie-content-type-card">
+					<span class="dashicons dashicons-admin-media"></span>
+					<h3><?php esc_html_e( 'Media', 'import-export-by-rockstarlab' ); ?></h3>
+					<p><?php esc_html_e( 'Export media attachments', 'import-export-by-rockstarlab' ); ?></p>
+				</div>
+			</label>
+
 			<?php if ( $rsl_ie_pro_active ) : ?>
 				<?php
 				$rsl_ie_pro_types = \RockStarLab\ImportExport\Helper\Pro_Addon::get_pro_content_type_cards( 'export' );
@@ -98,7 +107,7 @@ defined( 'ABSPATH' ) || exit;
 				$rsl_ie_pro_types = array_filter(
 					$rsl_ie_pro_types,
 					static function ( $rsl_ie_type ) {
-						return 'comment' !== ( $rsl_ie_type['value'] ?? '' );
+						return ! in_array( $rsl_ie_type['value'] ?? '', array( 'comment', 'media' ), true );
 					}
 				);
 				foreach ( $rsl_ie_pro_types as $rsl_ie_type ) :

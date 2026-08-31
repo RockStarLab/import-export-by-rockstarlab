@@ -159,7 +159,7 @@ const JobsLogModule = {
 
 		if ( ! jobs || jobs.length === 0 ) {
 			$tbody.html(
-				`<tr class="no-items"><td colspan="10">${ window.rslIeData.i18n.noJobsFound }</td></tr>`
+				`<tr class="no-items"><td colspan="9">${ window.rslIeData.i18n.noJobsFound }</td></tr>`
 			);
 			return;
 		}
@@ -180,7 +180,7 @@ const JobsLogModule = {
 		const typeLabel = this.getTypeLabel( job.type );
 		const dataTypeLabel = this.getDataTypeLabel( job.data_type );
 		const statusLabel = this.getStatusLabel( job.status );
-		const progressBar = this.renderProgressBar( job );
+		const progress = this.renderProgress( job );
 		const actions = this.renderActions( job );
 		const jobName = this.getJobDisplayName( job, typeLabel, dataTypeLabel );
 		const customJobName = job.job_name || '';
@@ -204,13 +204,12 @@ const JobsLogModule = {
 				<td class="column-type">
 					<span class="job-type-badge job-type-${ job.type }">${ typeLabel }</span>
 				</td>
-				<td class="column-data-type">${ this.escapeHtml( dataTypeLabel ) }</td>
 				<td class="column-status">
 					<span class="job-status-badge job-status-${
 						job.status
 					}">${ statusLabel }</span>
 				</td>
-				<td class="column-progress">${ progressBar }</td>
+				<td class="column-progress">${ progress }</td>
 				<td class="column-items">
 					<div class="items-info">
 						<div><strong>${ job.processed_items }</strong> / ${ job.total_items }</div>
@@ -350,18 +349,11 @@ const JobsLogModule = {
 	},
 
 	/**
-	 * Render progress bar
+	 * Render progress value.
 	 */
-	renderProgressBar( job ) {
+	renderProgress( job ) {
 		const progress = job.progress || 0;
-		return `
-			<div class="progress-bar-wrapper">
-				<div class="progress-bar">
-					<div class="progress-bar-fill" style="width: ${ progress }%"></div>
-				</div>
-				<span class="progress-text">${ progress }%</span>
-			</div>
-		`;
+		return `<span class="progress-text">${ progress }%</span>`;
 	},
 
 	/**
@@ -393,8 +385,8 @@ const JobsLogModule = {
 			}"><span class="dashicons dashicons-controls-repeat"></span></button>`
 		);
 
-		// Retry - not available for media_sync jobs (files may have been moved)
-		if ( job.type !== 'media_sync' ) {
+		// Retry - not available for folder media imports (files may have been moved)
+		if ( job.data_type !== 'media_sync' ) {
 			actions.push(
 				`<button class="button button-small job-action-retry" title="${
 					window.rslIeData.i18n.retry ||
@@ -803,7 +795,19 @@ const JobsLogModule = {
 					job.parameters
 						? `
 					<h3>${ window.rslIeData.i18n.jobParameters || 'Parameters' }</h3>
-					<pre class="job-parameters">${ JSON.stringify( job.parameters, null, 2 ) }</pre>
+					<textarea class="job-parameters job-parameters-textarea" disabled readonly>${ this.escapeHtml(
+						this.formatJobDetailValue( job.parameters )
+					) }</textarea>
+				`
+						: ''
+				}
+				${
+					job.result
+						? `
+					<h3>${ window.rslIeData.i18n.jobResult || 'Result' }</h3>
+					<pre class="job-parameters">${ this.escapeHtml(
+						JSON.stringify( job.result, null, 2 )
+					) }</pre>
 				`
 						: ''
 				}
@@ -812,6 +816,21 @@ const JobsLogModule = {
 
 		jQuery( '#job-details-content' ).html( html );
 		jQuery( '#job-details-modal' ).show();
+	},
+
+	/**
+	 * Format a job detail value for read-only display.
+	 */
+	formatJobDetailValue( value ) {
+		if ( typeof value === 'string' ) {
+			try {
+				return JSON.stringify( JSON.parse( value ), null, 2 );
+			} catch ( e ) {
+				return value;
+			}
+		}
+
+		return JSON.stringify( value, null, 2 );
 	},
 
 	/**
@@ -844,9 +863,13 @@ const JobsLogModule = {
 						page = 'rsl-ie-content-updater';
 					}
 					break;
-				case 'media_sync':
-					page = 'rsl-ie-media-sync';
+				case 'content_sync_push':
+				case 'content_sync_pull':
+					page = 'rsl-ie-content-sync';
 					break;
+			}
+			if ( type === 'import' && dataType === 'media_sync' ) {
+				page = 'rsl-ie-media-sync';
 			}
 		}
 
@@ -863,8 +886,12 @@ const JobsLogModule = {
 		const labels = {
 			import: window.rslIeData.i18n.typeImport || 'Import',
 			export: window.rslIeData.i18n.typeExport || 'Export',
-			update: window.rslIeData.i18n.typeUpdate || 'Update',
-			media_sync: window.rslIeData.i18n.typeMediaSync || 'Media Sync',
+			content_sync_push:
+				window.rslIeData.i18n.typeContentSyncPush ||
+				'Content Sync - Push',
+			content_sync_pull:
+				window.rslIeData.i18n.typeContentSyncPull ||
+				'Content Sync - Pull',
 		};
 		return labels[ type ] || type;
 	},
@@ -875,6 +902,7 @@ const JobsLogModule = {
 			post: 'Blog Posts',
 			page: 'Pages',
 			media: 'Media',
+			media_sync: 'Media Sync',
 			menu: 'Menus',
 			user: 'Users',
 			comment: 'Comments',

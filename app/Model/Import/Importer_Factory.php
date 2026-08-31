@@ -63,6 +63,7 @@ class Importer_Factory {
 			'pages'    => Post_Importer::class,
 			'comment'  => Comment_Importer::class,
 			'comments' => Comment_Importer::class,
+			'media'    => Media_Importer::class,
 		];
 
 		/**

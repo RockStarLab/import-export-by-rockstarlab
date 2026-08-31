@@ -59,6 +59,13 @@ class Init {
 	private $media_hash_controller;
 
 	/**
+	 * Media Library Sync Controller
+	 *
+	 * @var Media_Library_Sync_Controller
+	 */
+	private $media_library_sync_controller;
+
+	/**
 	 * Content Sync Controller
 	 *
 	 * @var Content_Sync_Controller
@@ -167,6 +174,9 @@ class Init {
 		$this->media_hash_controller = new Media_Hash_Controller();
 		$this->media_hash_controller->init();
 
+		$this->media_library_sync_controller = new Media_Library_Sync_Controller();
+		$this->media_library_sync_controller->init();
+
 		$this->content_sync_controller = new Content_Sync_Controller();
 		$this->content_sync_controller->init();
 		$this->content_sync_controller->register_post_list_hooks();
@@ -214,7 +224,7 @@ class Init {
 		$current_page = is_string( $current_page ) ? sanitize_key( wp_unslash( $current_page ) ) : '';
 
 		if ( 'upload.php' === $admin_page ) {
-			if ( apply_filters( 'rsl_ie_enable_media_library_export_button', false ) ) {
+			if ( \RockStarLab\ImportExport\Helper\Button_Location_Settings::is_export_enabled( 'admin:media' ) ) {
 				$this->load_media_library_export_assets();
 			}
 			return;
@@ -416,8 +426,8 @@ class Init {
 					'jobParameters'                     => __( 'Parameters', 'import-export-by-rockstarlab' ),
 					'typeImport'                        => __( 'Import', 'import-export-by-rockstarlab' ),
 					'typeExport'                        => __( 'Export', 'import-export-by-rockstarlab' ),
-					'typeUpdate'                        => __( 'Update', 'import-export-by-rockstarlab' ),
-					'typeMediaSync'                     => __( 'Media Sync', 'import-export-by-rockstarlab' ),
+					'typeContentSyncPush'               => __( 'Content Sync - Push', 'import-export-by-rockstarlab' ),
+					'typeContentSyncPull'               => __( 'Content Sync - Pull', 'import-export-by-rockstarlab' ),
 					'statusPending'                     => __( 'Pending', 'import-export-by-rockstarlab' ),
 					'statusProcessing'                  => __( 'Processing', 'import-export-by-rockstarlab' ),
 					'statusCompleted'                   => __( 'Completed', 'import-export-by-rockstarlab' ),

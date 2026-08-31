@@ -1041,13 +1041,13 @@ class Import_Controller extends Base_Controller {
 			}
 		}
 
-		foreach ( $rows as $row ) {
+		foreach ( $prepared_data as $row ) {
 			$source_id     = isset( $row['_rsl_ie_source_id'] ) ? absint( $row['_rsl_ie_source_id'] ) : 0;
 			$source_parent = isset( $row['_rsl_ie_source_parent_id'] ) ? absint( $row['_rsl_ie_source_parent_id'] ) : 0;
 			$target_id     = $source_id ? absint( $map[ (string) $source_id ] ?? 0 ) : 0;
 			$target_parent = $source_parent ? absint( $map[ (string) $source_parent ] ?? 0 ) : 0;
 
-			if ( $target_id <= 0 || $source_parent <= 0 || $target_parent <= 0 ) {
+			if ( $target_id <= 0 || ( $source_parent > 0 && $target_parent <= 0 ) ) {
 				continue;
 			}
 

@@ -135,6 +135,8 @@ class Media_Hash {
 			],
 			'fields'         => 'ids',
 			'posts_per_page' => 1,
+			'orderby'        => 'ID',
+			'order'          => 'ASC',
 		];
 
 		$query = new \WP_Query( $args );
@@ -151,6 +153,8 @@ class Media_Hash {
 					'post_status'    => 'inherit',
 					'posts_per_page' => -1,
 					'fields'         => 'ids',
+					'orderby'        => 'ID',
+					'order'          => 'ASC',
 				]
 			);
 			foreach ( $attachment_ids as $attachment_id ) {
