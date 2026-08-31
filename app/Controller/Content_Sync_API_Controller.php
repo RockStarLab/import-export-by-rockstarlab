@@ -819,7 +819,7 @@ class Content_Sync_API_Controller {
 					if ( in_array( $key, array( '_edit_lock', '_edit_last' ), true ) ) {
 						continue;
 					}
-					update_post_meta( $local_var_id, $key, $value );
+					$this->save_synced_post_meta( (int) $local_var_id, (string) $key, $value );
 				}
 			}
 		}
@@ -919,7 +919,7 @@ class Content_Sync_API_Controller {
 					if ( in_array( $key, array( '_edit_lock', '_edit_last' ), true ) ) {
 						continue;
 					}
-					update_post_meta( $local_child_id, $key, $value );
+					$this->save_synced_post_meta( (int) $local_child_id, (string) $key, $value );
 				}
 			}
 
@@ -1129,7 +1129,67 @@ class Content_Sync_API_Controller {
 			return;
 		}
 
+		$value = $this->resolve_synced_media_references( $value, (int) $post_id );
+
 		update_post_meta( $post_id, $key, $value );
+	}
+
+	/**
+	 * Convert synced raw meta values to a portable representation before sending.
+	 *
+	 * @param mixed $value Meta value.
+	 * @return mixed
+	 */
+	private function portable_synced_meta_value( $value ) {
+		if ( is_array( $value ) ) {
+			foreach ( $value as $key => $item ) {
+				$value[ $key ] = $this->portable_synced_meta_value( $item );
+			}
+
+			return $value;
+		}
+
+		if ( is_string( $value )
+			&& '' !== $value
+			&& ( false !== stripos( $value, '[gallery' ) || false !== stripos( $value, '[playlist' ) )
+		) {
+			return ACF_Fields::export_string_with_media_shortcode_tokens( $value );
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Resolve portable media references before saving synced text/meta values.
+	 *
+	 * @param mixed $value     Meta/content value.
+	 * @param int   $parent_id Optional parent post ID.
+	 * @return mixed
+	 */
+	private function resolve_synced_media_references( $value, $parent_id = 0 ) {
+		if ( is_array( $value ) ) {
+			foreach ( $value as $key => $item ) {
+				$value[ $key ] = $this->resolve_synced_media_references( $item, $parent_id );
+			}
+
+			return $value;
+		}
+
+		if ( is_string( $value )
+			&& '' !== $value
+			&& (
+				false !== strpos( $value, '[[RSL_IE:' )
+				|| false !== stripos( $value, '[gallery' )
+				|| false !== stripos( $value, '[playlist' )
+				|| false !== stripos( $value, '<img' )
+				|| false !== stripos( $value, 'srcset=' )
+				|| false !== stripos( $value, '<a' )
+			)
+		) {
+			return ACF_Fields::replace_media_urls_in_html( $value, (int) $parent_id );
+		}
+
+		return $value;
 	}
 
 	/**
@@ -1156,7 +1216,7 @@ class Content_Sync_API_Controller {
 				if ( '_rsl_ie_original_comment_id' === $key ) {
 					continue;
 				}
-				$prepared_meta[ $key ] = maybe_unserialize( $values[0] );
+				$prepared_meta[ $key ] = $this->portable_synced_meta_value( maybe_unserialize( $values[0] ) );
 			}
 
 			$data[] = array(
@@ -1168,7 +1228,7 @@ class Content_Sync_API_Controller {
 				'comment_author_IP'    => $comment->comment_author_IP,
 				'comment_date'         => $comment->comment_date,
 				'comment_date_gmt'     => $comment->comment_date_gmt,
-				'comment_content'      => $comment->comment_content,
+				'comment_content'      => $this->portable_synced_meta_value( $comment->comment_content ),
 				'comment_karma'        => (int) $comment->comment_karma,
 				'comment_approved'     => $comment->comment_approved,
 				'comment_agent'        => $comment->comment_agent,
@@ -1212,7 +1272,7 @@ class Content_Sync_API_Controller {
 				'comment_author_IP'    => isset( $comment_data['comment_author_IP'] ) ? sanitize_text_field( $comment_data['comment_author_IP'] ) : '',
 				'comment_date'         => isset( $comment_data['comment_date'] ) ? sanitize_text_field( $comment_data['comment_date'] ) : current_time( 'mysql' ),
 				'comment_date_gmt'     => isset( $comment_data['comment_date_gmt'] ) ? sanitize_text_field( $comment_data['comment_date_gmt'] ) : current_time( 'mysql', true ),
-				'comment_content'      => isset( $comment_data['comment_content'] ) ? wp_kses_post( $comment_data['comment_content'] ) : '',
+				'comment_content'      => isset( $comment_data['comment_content'] ) ? wp_kses_post( $this->resolve_synced_media_references( $comment_data['comment_content'], 0 ) ) : '',
 				'comment_karma'        => isset( $comment_data['comment_karma'] ) ? (int) $comment_data['comment_karma'] : 0,
 				'comment_approved'     => isset( $comment_data['comment_approved'] ) ? sanitize_text_field( $comment_data['comment_approved'] ) : '1',
 				'comment_agent'        => isset( $comment_data['comment_agent'] ) ? sanitize_text_field( $comment_data['comment_agent'] ) : '',
@@ -1240,7 +1300,7 @@ class Content_Sync_API_Controller {
 					if ( '_rsl_ie_original_comment_id' === $key ) {
 						continue;
 					}
-					update_comment_meta( $result_id, sanitize_key( $key ), $value );
+					update_comment_meta( $result_id, sanitize_key( $key ), $this->resolve_synced_media_references( $value, 0 ) );
 				}
 			}
 		}
@@ -1326,7 +1386,7 @@ class Content_Sync_API_Controller {
 					continue;
 				}
 
-				$prepared_meta[ $key ] = maybe_unserialize( $values[0] );
+				$prepared_meta[ $key ] = $this->portable_synced_meta_value( maybe_unserialize( $values[0] ) );
 			}
 
 			// Get post terms with ACF fields
@@ -1485,7 +1545,7 @@ class Content_Sync_API_Controller {
 							$var_raw_meta  = get_post_meta( $variation_id );
 							$var_prep_meta = array();
 							foreach ( $var_raw_meta as $vk => $vv ) {
-								$var_prep_meta[ $vk ] = maybe_unserialize( $vv[0] );
+								$var_prep_meta[ $vk ] = $this->portable_synced_meta_value( maybe_unserialize( $vv[0] ) );
 							}
 
 							$variations_data[] = array(
@@ -1679,6 +1739,21 @@ class Content_Sync_API_Controller {
 				),
 				400
 			);
+		}
+
+		if ( ! $force_unique ) {
+			$existing_attachment = $this->find_attachment_by_hash( $file_hash );
+			if ( $existing_attachment ) {
+				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
+				return new \WP_REST_Response(
+					array(
+						'success'       => true,
+						'attachment_id' => $existing_attachment,
+						'message'       => __( 'Media already exists', 'import-export-by-rockstarlab' ),
+					),
+					200
+				);
+			}
 		}
 
 			$upload_dir = wp_upload_dir();
@@ -2334,7 +2409,7 @@ class Content_Sync_API_Controller {
 						$image_sources
 					);
 				}
-				$args['description'] = wp_kses_post( $description );
+				$args['description'] = wp_kses_post( $this->resolve_synced_media_references( $description, 0 ) );
 			}
 			if ( ! empty( $args ) ) {
 				wp_update_term( $term_id, $taxonomy, $args );
@@ -2342,7 +2417,7 @@ class Content_Sync_API_Controller {
 
 			if ( ! empty( $term_info['meta'] ) && is_array( $term_info['meta'] ) ) {
 				foreach ( $term_info['meta'] as $meta_key => $meta_value ) {
-					update_term_meta( $term_id, sanitize_key( (string) $meta_key ), $meta_value );
+					update_term_meta( $term_id, sanitize_key( (string) $meta_key ), $this->resolve_synced_media_references( $meta_value, 0 ) );
 				}
 			}
 
@@ -2401,7 +2476,7 @@ class Content_Sync_API_Controller {
 			'name'           => (string) $term->name,
 			'slug'           => (string) $term->slug,
 			'taxonomy'       => $taxonomy,
-			'description'    => (string) $term->description,
+			'description'    => $this->portable_synced_meta_value( (string) $term->description ),
 			'count'          => (int) $term->count,
 			'parent_term_id' => (int) $term->parent,
 			'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $taxonomy ),
@@ -2770,7 +2845,7 @@ class Content_Sync_API_Controller {
 			'comment_author_IP'    => (string) $comment->comment_author_IP,
 			'comment_date'         => (string) $comment->comment_date,
 			'comment_date_gmt'     => (string) $comment->comment_date_gmt,
-			'comment_content'      => (string) $comment->comment_content,
+			'comment_content'      => $this->portable_synced_meta_value( (string) $comment->comment_content ),
 			'comment_karma'        => (int) $comment->comment_karma,
 			'comment_approved'     => (string) $comment->comment_approved,
 			'comment_agent'        => (string) $comment->comment_agent,
@@ -2852,7 +2927,7 @@ class Content_Sync_API_Controller {
 				'comment_author_IP'    => isset( $comment_data['comment_author_IP'] ) ? sanitize_text_field( (string) $comment_data['comment_author_IP'] ) : '',
 				'comment_date'         => isset( $comment_data['comment_date'] ) ? sanitize_text_field( (string) $comment_data['comment_date'] ) : current_time( 'mysql' ),
 				'comment_date_gmt'     => isset( $comment_data['comment_date_gmt'] ) ? sanitize_text_field( (string) $comment_data['comment_date_gmt'] ) : current_time( 'mysql', true ),
-				'comment_content'      => isset( $comment_data['comment_content'] ) ? wp_kses_post( (string) $comment_data['comment_content'] ) : '',
+				'comment_content'      => isset( $comment_data['comment_content'] ) ? wp_kses_post( $this->resolve_synced_media_references( (string) $comment_data['comment_content'], 0 ) ) : '',
 				'comment_karma'        => isset( $comment_data['comment_karma'] ) ? (int) $comment_data['comment_karma'] : 0,
 				'comment_approved'     => isset( $comment_data['comment_approved'] ) ? sanitize_text_field( (string) $comment_data['comment_approved'] ) : '1',
 				'comment_agent'        => isset( $comment_data['comment_agent'] ) ? sanitize_text_field( (string) $comment_data['comment_agent'] ) : '',
@@ -2890,7 +2965,7 @@ class Content_Sync_API_Controller {
 					if ( '_rsl_ie_original_comment_id' === $meta_key || $this->is_acf_comment_sync_meta_key( (string) $meta_key, $comment_data ) ) {
 						continue;
 					}
-					update_comment_meta( (int) $comment_id, sanitize_key( (string) $meta_key ), $meta_value );
+					update_comment_meta( (int) $comment_id, sanitize_key( (string) $meta_key ), $this->resolve_synced_media_references( $meta_value, 0 ) );
 				}
 			}
 		}

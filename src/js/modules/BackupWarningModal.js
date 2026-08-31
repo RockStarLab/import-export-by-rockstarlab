@@ -180,29 +180,7 @@ const BackupWarningModal = {
 										i18n.backupUpdraftPlus ||
 										'Popular backup plugin with cloud storage support'
 									}</p>
-									<a href="https://wordpress.org/plugins/updraftplus/" target="_blank" class="rsl-ie-backup-link">
-										${ i18n.viewPlugin || 'View plugin' }
-									</a>
-								</div>
-
-								<div class="rsl-ie-backup-option">
-									<h4>
-										<span>BackWPup</span>
-										<span class="rsl-ie-badge rsl-ie-badge-free">FREE</span>
-									</h4>
-									<p>${ i18n.backupBackWPup || 'Automatic database and file backups' }</p>
-									<a href="https://wordpress.org/plugins/backwpup/" target="_blank" class="rsl-ie-backup-link">
-										${ i18n.viewPlugin || 'View plugin' }
-									</a>
-								</div>
-
-								<div class="rsl-ie-backup-option">
-									<h4>
-										<span>All-in-One WP Migration</span>
-										<span class="rsl-ie-badge rsl-ie-badge-free">FREE</span>
-									</h4>
-									<p>${ i18n.backupAllInOne || 'Complete site export in a single file' }</p>
-									<a href="https://wordpress.org/plugins/all-in-one-wp-migration/" target="_blank" class="rsl-ie-backup-link">
+									<a href="https://teamupdraft.com/ref/3832/" target="_blank" class="rsl-ie-backup-link">
 										${ i18n.viewPlugin || 'View plugin' }
 									</a>
 								</div>

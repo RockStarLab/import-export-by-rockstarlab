@@ -934,7 +934,7 @@ class Comment_Importer extends Abstract_Importer {
 
 			if ( is_array( $meta_data ) ) {
 				foreach ( $meta_data as $meta_key => $meta_value ) {
-					update_comment_meta( $comment_id, $meta_key, $meta_value );
+					update_comment_meta( $comment_id, $meta_key, $this->resolve_comment_media_references( $meta_value ) );
 				}
 			}
 		}
@@ -969,6 +969,38 @@ class Comment_Importer extends Abstract_Importer {
 				$this->import_acf_value( $comment_id, $field_name, $item[ $field_name ] );
 			}
 		}
+	}
+
+	/**
+	 * Resolve portable media references before saving comment meta.
+	 *
+	 * @param mixed $value Meta value.
+	 * @return mixed
+	 */
+	private function resolve_comment_media_references( $value ) {
+		if ( is_array( $value ) ) {
+			foreach ( $value as $key => $item ) {
+				$value[ $key ] = $this->resolve_comment_media_references( $item );
+			}
+
+			return $value;
+		}
+
+		if ( is_string( $value )
+			&& '' !== $value
+			&& (
+				false !== strpos( $value, '[[RSL_IE:' )
+				|| false !== stripos( $value, '[gallery' )
+				|| false !== stripos( $value, '[playlist' )
+				|| false !== stripos( $value, '<img' )
+				|| false !== stripos( $value, 'srcset=' )
+				|| false !== stripos( $value, '<a' )
+			)
+		) {
+			return ACF_Fields::replace_media_urls_in_html( $value, 0 );
+		}
+
+		return $value;
 	}
 
 	/**

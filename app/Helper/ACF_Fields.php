@@ -1075,7 +1075,10 @@ class ACF_Fields {
 		if ( ! filter_var( $value, FILTER_VALIDATE_URL ) ) {
 			return 0;
 		}
-		$source_url  = esc_url_raw( $value );
+		$source_url = Content_Sync_Media::canonicalize_import_media_url( $value );
+		if ( '' === $source_url || ! Content_Sync_Media::is_wordpress_uploads_url( $source_url ) ) {
+			return 0;
+		}
 		$source_hash = md5( $source_url );
 		$existing    = attachment_url_to_postid( $source_url );
 		if ( $existing > 0 ) {
@@ -1103,6 +1106,11 @@ class ACF_Fields {
 
 		$existing_by_upload_basename = self::attachment_id_from_upload_basename( $source_url );
 		if ( $existing_by_upload_basename > 0 ) {
+			if ( ! self::attachment_source_url_matches( $existing_by_upload_basename, $source_url ) ) {
+				$existing_by_upload_basename = 0;
+			}
+		}
+		if ( $existing_by_upload_basename > 0 ) {
 			self::store_imported_media_identity( $existing_by_upload_basename, $source_url, $source_attachment_id );
 			$url_to_attachment_cache[ $source_hash ] = $existing_by_upload_basename;
 			return $existing_by_upload_basename;
@@ -1129,7 +1137,7 @@ class ACF_Fields {
 		}
 
 		$file = [
-			'name'     => wp_basename( (string) wp_parse_url( $value, PHP_URL_PATH ) ),
+			'name'     => wp_basename( (string) wp_parse_url( $source_url, PHP_URL_PATH ) ),
 			'tmp_name' => $tmp,
 		];
 
@@ -1213,7 +1221,7 @@ class ACF_Fields {
 			return;
 		}
 
-		$source_url = esc_url_raw( $source_url );
+		$source_url = Content_Sync_Media::canonicalize_import_media_url( $source_url );
 		if ( '' !== $source_url ) {
 			update_post_meta( $attachment_id, 'rsl_ie_source_url', $source_url );
 			update_post_meta( $attachment_id, 'rsl_ie_source_url_hash', md5( $source_url ) );
@@ -1281,6 +1289,25 @@ class ACF_Fields {
 		);
 
 		return $attachment_id && 'attachment' === get_post_type( (int) $attachment_id ) ? absint( $attachment_id ) : 0;
+	}
+
+	/**
+	 * Check whether an existing attachment belongs to the same source URL.
+	 *
+	 * @param int    $attachment_id Existing attachment ID.
+	 * @param string $source_url    Source URL.
+	 * @return bool
+	 */
+	private static function attachment_source_url_matches( int $attachment_id, string $source_url ): bool {
+		$existing_source_url = get_post_meta( $attachment_id, 'rsl_ie_source_url', true );
+		if ( ! is_string( $existing_source_url ) || '' === $existing_source_url ) {
+			return true;
+		}
+
+		$existing_source_url = Content_Sync_Media::canonicalize_import_media_url( $existing_source_url );
+		$source_url          = Content_Sync_Media::canonicalize_import_media_url( $source_url );
+
+		return '' !== $existing_source_url && $existing_source_url === $source_url;
 	}
 
 		/**
@@ -1616,8 +1643,7 @@ class ACF_Fields {
 	 * @return bool
 	 */
 	private static function is_wordpress_upload_url( $url ) {
-		$path = wp_parse_url( (string) $url, PHP_URL_PATH );
-		return is_string( $path ) && false !== strpos( $path, '/wp-content/uploads/' );
+		return Content_Sync_Media::is_wordpress_uploads_url( $url );
 	}
 
 		/**
