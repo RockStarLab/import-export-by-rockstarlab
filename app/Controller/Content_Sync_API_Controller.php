@@ -406,7 +406,9 @@ class Content_Sync_API_Controller {
 							continue;
 						}
 
-						$term_ids[] = (int) $term_id;
+						if ( ! array_key_exists( 'assign_to_post', $term_info ) || (bool) $term_info['assign_to_post'] ) {
+							$term_ids[] = (int) $term_id;
+						}
 
 						// Record source → local term ID mapping.
 						if ( ! empty( $term_info['term_id'] ) ) {
@@ -1469,7 +1471,8 @@ class Content_Sync_API_Controller {
 					if ( ! $acf_taxonomy || ! taxonomy_exists( $acf_taxonomy ) ) {
 						continue;
 					}
-					$raw_ids = is_array( $meta_value ) ? $meta_value : array( $meta_value );
+					$assign_to_post = ! empty( $field_obj['save_terms'] );
+					$raw_ids        = is_array( $meta_value ) ? $meta_value : array( $meta_value );
 					if ( ! isset( $terms_data[ $acf_taxonomy ] ) ) {
 						$terms_data[ $acf_taxonomy ] = array();
 					}
@@ -1480,6 +1483,14 @@ class Content_Sync_API_Controller {
 						}
 						$raw_id = (int) $raw_id;
 						if ( in_array( $raw_id, $known_ids, true ) ) {
+							if ( ! $assign_to_post ) {
+								foreach ( $terms_data[ $acf_taxonomy ] as &$existing_term_info ) {
+									if ( isset( $existing_term_info['term_id'] ) && (int) $existing_term_info['term_id'] === $raw_id ) {
+										$existing_term_info['assign_to_post'] = false;
+									}
+								}
+								unset( $existing_term_info );
+							}
 							continue;
 						}
 						$term = get_term( $raw_id, $acf_taxonomy );
@@ -1493,10 +1504,9 @@ class Content_Sync_API_Controller {
 							'parent_term_id' => (int) $term->parent,
 							'parent_slug'    => $this->get_term_slug_by_id( (int) $term->parent, $acf_taxonomy ),
 							'parent_path'    => $this->get_term_parent_path( (int) $term->parent, $acf_taxonomy ),
+							'assign_to_post' => $assign_to_post,
 						);
-						$last_index                    = array_key_last( $terms_data[ $acf_taxonomy ] );
-						if ( null !== $last_index ) {
-						}
+
 						$known_ids[] = $raw_id;
 					}
 				}
@@ -1610,6 +1620,21 @@ class Content_Sync_API_Controller {
 	public function check_media( $request ) {
 		$file_hash            = $request->get_param( 'file_hash' );
 		$source_attachment_id = absint( $request->get_param( 'source_attachment_id' ) );
+		$source_origin_id     = absint( $request->get_param( 'source_origin_attachment_id' ) );
+
+		if ( $source_origin_id > 0 ) {
+			$existing_attachment = $this->find_attachment_by_id_and_hash( $source_origin_id, $file_hash );
+			if ( $existing_attachment ) {
+				return new \WP_REST_Response(
+					array(
+						'success'       => true,
+						'exists'        => true,
+						'attachment_id' => $existing_attachment,
+					),
+					200
+				);
+			}
+		}
 
 		if ( $source_attachment_id > 0 ) {
 			$existing_attachment = $this->find_attachment_by_original_attachment_id( $source_attachment_id, $file_hash );
@@ -1674,6 +1699,7 @@ class Content_Sync_API_Controller {
 		$caption              = $request->get_param( 'caption' );
 		$description          = $request->get_param( 'description' );
 		$source_attachment_id = absint( $request->get_param( 'source_attachment_id' ) );
+		$source_origin_id     = absint( $request->get_param( 'source_origin_attachment_id' ) );
 		$force_unique         = (bool) $request->get_param( 'force_unique' );
 
 		if ( empty( $file_name ) || empty( $file_data ) || empty( $file_hash ) ) {
@@ -1684,6 +1710,21 @@ class Content_Sync_API_Controller {
 				),
 				400
 			);
+		}
+
+		if ( $source_origin_id > 0 ) {
+			$existing_attachment = $this->find_attachment_by_id_and_hash( $source_origin_id, $file_hash );
+			if ( $existing_attachment ) {
+				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
+				return new \WP_REST_Response(
+					array(
+						'success'       => true,
+						'attachment_id' => $existing_attachment,
+						'message'       => __( 'Media already exists', 'import-export-by-rockstarlab' ),
+					),
+					200
+				);
+			}
 		}
 
 		if ( $source_attachment_id > 0 ) {
@@ -1756,8 +1797,8 @@ class Content_Sync_API_Controller {
 			}
 		}
 
-			$upload_dir = wp_upload_dir();
-			$file_path  = $upload_dir['path'] . '/' . wp_unique_filename( $upload_dir['path'], $file_name );
+		$upload_dir = wp_upload_dir();
+		$file_path  = $upload_dir['path'] . '/' . wp_unique_filename( $upload_dir['path'], $file_name );
 
 		// Write file
 		$saved = @file_put_contents( $file_path, $file_contents );
@@ -1794,10 +1835,10 @@ class Content_Sync_API_Controller {
 			);
 		}
 
-			// Generate and update attachment metadata
-			\RockStarLab\ImportExport\Helper\Fs::load_attachment_metadata_core();
-			$attach_data = wp_generate_attachment_metadata( $attachment_id, $file_path );
-			wp_update_attachment_metadata( $attachment_id, $attach_data );
+		// Generate and update attachment metadata
+		\RockStarLab\ImportExport\Helper\Fs::load_attachment_metadata_core();
+		$attach_data = wp_generate_attachment_metadata( $attachment_id, $file_path );
+		wp_update_attachment_metadata( $attachment_id, $attach_data );
 
 		// Set alt text
 		if ( ! empty( $alt_text ) ) {
@@ -1809,6 +1850,9 @@ class Content_Sync_API_Controller {
 		if ( $source_attachment_id > 0 ) {
 			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
 			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
+		}
+		if ( $source_origin_id > 0 ) {
+			update_post_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
 		}
 
 		return new \WP_REST_Response(
@@ -1830,6 +1874,27 @@ class Content_Sync_API_Controller {
 	 */
 	private function find_attachment_by_hash( $file_hash ) {
 		return \RockStarLab\ImportExport\Helper\Media_Hash::get_attachment_by_hash( $file_hash, true );
+	}
+
+	/**
+	 * Find an existing local attachment by its own ID and optional file hash.
+	 *
+	 * @param int    $attachment_id Attachment ID on this site.
+	 * @param string $file_hash     Expected file hash.
+	 * @return int|false Attachment ID or false.
+	 */
+	private function find_attachment_by_id_and_hash( $attachment_id, $file_hash = '' ) {
+		$attachment_id = absint( $attachment_id );
+		if ( $attachment_id <= 0 || 'attachment' !== get_post_type( $attachment_id ) ) {
+			return false;
+		}
+
+		$file_hash = strtolower( trim( (string) $file_hash ) );
+		if ( '' !== $file_hash && \RockStarLab\ImportExport\Helper\Media_Hash::get_or_create_hash( $attachment_id ) !== $file_hash ) {
+			return false;
+		}
+
+		return $attachment_id;
 	}
 
 	/**

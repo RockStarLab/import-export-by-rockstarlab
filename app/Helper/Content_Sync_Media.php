@@ -743,7 +743,100 @@ class Content_Sync_Media {
 			$images = array_merge( $images, self::extract_acf_field_images( $field, $post_id ) );
 		}
 
+		$images = array_merge( $images, self::get_acf_post_reference_attachment_images_from_meta( $post_id ) );
+
 		return $images;
+	}
+
+	/**
+	 * Extract attachment IDs from raw ACF post-reference meta.
+	 *
+	 * Nested flexible content/repeater sub fields are stored as flat post meta
+	 * pairs like "flexible_content_0_choose_relation" and
+	 * "_flexible_content_0_choose_relation" = "field_xxx". They may not be
+	 * present in get_field_objects(), so scan the raw meta references too.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return array Array of media data.
+	 */
+	private static function get_acf_post_reference_attachment_images_from_meta( $post_id ) {
+		$images = array();
+
+		if ( ! function_exists( 'acf_get_field' ) ) {
+			return $images;
+		}
+
+		$meta = get_post_meta( (int) $post_id );
+		if ( empty( $meta ) || ! is_array( $meta ) ) {
+			return $images;
+		}
+
+		foreach ( $meta as $meta_key => $meta_values ) {
+			if ( ! is_string( $meta_key ) || 0 !== strpos( $meta_key, '_' ) || empty( $meta_values[0] ) || ! is_string( $meta_values[0] ) ) {
+				continue;
+			}
+
+			$field_ref = $meta_values[0];
+			if ( 0 !== strpos( $field_ref, 'field_' ) ) {
+				continue;
+			}
+
+			$value_key = substr( $meta_key, 1 );
+			if ( '' === $value_key || ! array_key_exists( $value_key, $meta ) ) {
+				continue;
+			}
+
+			$field_obj = acf_get_field( $field_ref );
+			if ( ! $field_obj || empty( $field_obj['type'] ) || ! in_array( $field_obj['type'], array( 'relationship', 'post_object', 'page_link' ), true ) ) {
+				continue;
+			}
+
+			$value = maybe_unserialize( $meta[ $value_key ][0] ?? null );
+			foreach ( self::extract_post_reference_ids( $value ) as $related_id ) {
+				if ( 'attachment' !== get_post_type( $related_id ) ) {
+					continue;
+				}
+
+				$image_data = self::prepare_image_data( $related_id, 'acf_relation_' . $value_key );
+				if ( $image_data ) {
+					$images[] = $image_data;
+				}
+			}
+		}
+
+		return $images;
+	}
+
+	/**
+	 * Normalize ACF post-reference values into numeric IDs.
+	 *
+	 * @param mixed $value ACF field value.
+	 * @return array Numeric IDs.
+	 */
+	private static function extract_post_reference_ids( $value ) {
+		$ids = array();
+
+		if ( is_numeric( $value ) ) {
+			return array( (int) $value );
+		}
+
+		if ( is_object( $value ) && isset( $value->ID ) && is_numeric( $value->ID ) ) {
+			return array( (int) $value->ID );
+		}
+
+		if ( ! is_array( $value ) ) {
+			return $ids;
+		}
+
+		if ( isset( $value['ID'] ) && is_numeric( $value['ID'] ) ) {
+			return array( (int) $value['ID'] );
+		}
+
+		foreach ( $value as $item ) {
+			$ids = array_merge( $ids, self::extract_post_reference_ids( $item ) );
+		}
+
+		return array_values( array_unique( array_filter( array_map( 'intval', $ids ) ) ) );
 	}
 
 	/**
@@ -852,6 +945,30 @@ class Content_Sync_Media {
 			}
 		}
 
+		// ACF relationship/post_object/page_link fields can point at attachments
+		// when the field has no strict post_type limit. Those attachment IDs must
+		// be synced as media, not left as source-site IDs in the relationship meta.
+		if ( in_array( $field['type'], array( 'relationship', 'post_object', 'page_link' ), true ) && ! empty( $field['value'] ) ) {
+			$related_values = is_array( $field['value'] ) ? $field['value'] : array( $field['value'] );
+			foreach ( $related_values as $related_value ) {
+				$related_id = 0;
+				if ( is_numeric( $related_value ) ) {
+					$related_id = (int) $related_value;
+				} elseif ( is_object( $related_value ) && isset( $related_value->ID ) ) {
+					$related_id = (int) $related_value->ID;
+				} elseif ( is_array( $related_value ) && isset( $related_value['ID'] ) ) {
+					$related_id = (int) $related_value['ID'];
+				}
+
+				if ( $related_id > 0 && 'attachment' === get_post_type( $related_id ) ) {
+					$image_data = self::prepare_image_data( $related_id, 'acf_relation_' . $field['name'] );
+					if ( $image_data ) {
+						$images[] = $image_data;
+					}
+				}
+			}
+		}
+
 		// Handle repeater and flexible content
 		if ( in_array( $field['type'], array( 'repeater', 'flexible_content' ), true ) && ! empty( $field['value'] ) && is_array( $field['value'] ) ) {
 			foreach ( $field['value'] as $row ) {
@@ -883,9 +1000,6 @@ class Content_Sync_Media {
 									break;
 								}
 							}
-
-							if ( ! $sub_field ) {
-							}
 						}
 
 						// For repeater, check sub_fields
@@ -901,9 +1015,7 @@ class Content_Sync_Media {
 
 						if ( $sub_field ) {
 							$sub_images = self::extract_acf_field_images( $sub_field, $post_id );
-							if ( ! empty( $sub_images ) ) {
-							}
-							$images = array_merge( $images, $sub_images );
+							$images     = array_merge( $images, $sub_images );
 						}
 					}
 				}
@@ -1148,6 +1260,7 @@ class Content_Sync_Media {
 		$file_hash = Media_Hash::get_or_create_hash( $attachment_id );
 		$file_url  = wp_get_attachment_url( $attachment_id );
 		$metadata  = wp_get_attachment_metadata( $attachment_id );
+		$origin_id = absint( get_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', true ) );
 
 		$description = (string) $attachment->post_content;
 		if ( class_exists( ACF_Fields::class ) ) {
@@ -1155,20 +1268,21 @@ class Content_Sync_Media {
 		}
 
 		$image_data = array(
-			'attachment_id' => $attachment_id,
-			'url'           => $file_url,
-			'source_urls'   => self::get_attachment_source_urls( $attachment_id, $metadata ),
-			'file_path'     => $file_path,
-			'file_name'     => basename( $file_path ),
-			'file_hash'     => $file_hash,
-			'file_size'     => filesize( $file_path ),
-			'mime_type'     => get_post_mime_type( $attachment_id ),
-			'alt_text'      => get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ),
-			'title'         => $attachment->post_title,
-			'caption'       => $attachment->post_excerpt,
-			'description'   => $description,
-			'context'       => $context,
-			'metadata'      => $metadata,
+			'attachment_id'               => $attachment_id,
+			'url'                         => $file_url,
+			'source_urls'                 => self::get_attachment_source_urls( $attachment_id, $metadata ),
+			'file_path'                   => $file_path,
+			'file_name'                   => basename( $file_path ),
+			'file_hash'                   => $file_hash,
+			'source_origin_attachment_id' => $origin_id,
+			'file_size'                   => filesize( $file_path ),
+			'mime_type'                   => get_post_mime_type( $attachment_id ),
+			'alt_text'                    => get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ),
+			'title'                       => $attachment->post_title,
+			'caption'                     => $attachment->post_excerpt,
+			'description'                 => $description,
+			'context'                     => $context,
+			'metadata'                    => $metadata,
 		);
 
 		if ( class_exists( ACF_Fields::class ) ) {
@@ -1385,9 +1499,11 @@ class Content_Sync_Media {
 	 * @param string $file_hash File MD5 hash.
 	 * @param string $remote_url Remote site URL.
 	 * @param string $api_key API key.
+	 * @param int    $source_attachment_id Source attachment ID.
+	 * @param int    $source_origin_attachment_id Original source attachment ID, when this media was already synced from the remote site.
 	 * @return int|false Attachment ID if exists, false otherwise
 	 */
-	public static function check_remote_image_exists( $file_hash, $remote_url, $api_key, $source_attachment_id = 0 ) {
+	public static function check_remote_image_exists( $file_hash, $remote_url, $api_key, $source_attachment_id = 0, $source_origin_attachment_id = 0 ) {
 		$response = \RockStarLab\ImportExport\Helper\Remote_API::post(
 			$remote_url,
 			'check-media',
@@ -1399,8 +1515,9 @@ class Content_Sync_Media {
 				),
 				'body'    => wp_json_encode(
 					array(
-						'file_hash'            => $file_hash,
-						'source_attachment_id' => absint( $source_attachment_id ),
+						'file_hash'                   => $file_hash,
+						'source_attachment_id'        => absint( $source_attachment_id ),
+						'source_origin_attachment_id' => absint( $source_origin_attachment_id ),
 					)
 				),
 			)
