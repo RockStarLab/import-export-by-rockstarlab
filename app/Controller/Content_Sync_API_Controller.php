@@ -1826,6 +1826,7 @@ class Content_Sync_API_Controller {
 			$existing_attachment = $this->find_attachment_by_hash( $file_hash );
 			if ( $existing_attachment ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_attachment );
+				$this->record_synced_attachment_source_ids( (int) $existing_attachment, $source_attachment_id, $source_origin_id );
 				return new \WP_REST_Response(
 					array(
 						'success'       => true,
@@ -1967,7 +1968,8 @@ class Content_Sync_API_Controller {
 	/**
 	 * Find an attachment previously synced from a specific source attachment ID.
 	 *
-	 * @param int $source_attachment_id Source attachment ID.
+	 * @param int    $source_attachment_id Source attachment ID.
+	 * @param string $file_hash            Expected file hash.
 	 * @return int|false Attachment ID or false.
 	 */
 	private function find_attachment_by_original_attachment_id( $source_attachment_id, $file_hash = '' ) {
@@ -1976,28 +1978,36 @@ class Content_Sync_API_Controller {
 			return false;
 		}
 
-		$attachments = get_posts(
-			array(
-				'post_type'      => 'attachment',
-				'post_status'    => 'inherit',
-				'posts_per_page' => 1,
-				'fields'         => 'ids',
-				'meta_key'       => '_rsl_ie_original_attachment_id', // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source attachment lookup for sync mapping.
-				'meta_value'     => $source_attachment_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source attachment lookup for sync mapping.
-			)
-		);
+		$file_hash   = strtolower( trim( (string) $file_hash ) );
+		$source_keys = array( '_rsl_ie_original_attachment_id', '_rsl_ie_source_attachment_id' );
 
-		if ( empty( $attachments ) ) {
-			return false;
+		foreach ( $source_keys as $source_key ) {
+			$attachments = get_posts(
+				array(
+					'post_type'      => 'attachment',
+					'post_status'    => 'inherit',
+					'posts_per_page' => 1,
+					'fields'         => 'ids',
+					'meta_key'       => $source_key, // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source attachment lookup for sync mapping.
+					'meta_value'     => $source_attachment_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source attachment lookup for sync mapping.
+					'orderby'        => 'ID',
+					'order'          => 'ASC',
+				)
+			);
+
+			if ( empty( $attachments ) ) {
+				continue;
+			}
+
+			$attachment_id = (int) $attachments[0];
+			if ( '' !== $file_hash && \RockStarLab\ImportExport\Helper\Media_Hash::get_or_create_hash( $attachment_id ) !== $file_hash ) {
+				continue;
+			}
+
+			return $attachment_id;
 		}
 
-		$attachment_id = (int) $attachments[0];
-		$file_hash     = strtolower( trim( (string) $file_hash ) );
-		if ( '' !== $file_hash && \RockStarLab\ImportExport\Helper\Media_Hash::get_or_create_hash( $attachment_id ) !== $file_hash ) {
-			return false;
-		}
-
-		return $attachment_id;
+		return false;
 	}
 
 

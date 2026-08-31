@@ -3528,28 +3528,36 @@ class Content_Sync_Controller extends Base_Controller {
 			return false;
 		}
 
-		$attachments = get_posts(
-			array(
-				'post_type'      => 'attachment',
-				'post_status'    => 'inherit',
-				'posts_per_page' => 1,
-				'fields'         => 'ids',
-				'meta_key'       => '_rsl_ie_original_attachment_id', // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source attachment lookup for sync mapping.
-				'meta_value'     => $source_attachment_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source attachment lookup for sync mapping.
-			)
-		);
+		$file_hash   = strtolower( trim( (string) $file_hash ) );
+		$source_keys = array( '_rsl_ie_original_attachment_id', '_rsl_ie_source_attachment_id' );
 
-		if ( empty( $attachments ) ) {
-			return false;
+		foreach ( $source_keys as $source_key ) {
+			$attachments = get_posts(
+				array(
+					'post_type'      => 'attachment',
+					'post_status'    => 'inherit',
+					'posts_per_page' => 1,
+					'fields'         => 'ids',
+					'meta_key'       => $source_key, // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source attachment lookup for sync mapping.
+					'meta_value'     => $source_attachment_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source attachment lookup for sync mapping.
+					'orderby'        => 'ID',
+					'order'          => 'ASC',
+				)
+			);
+
+			if ( empty( $attachments ) ) {
+				continue;
+			}
+
+			$attachment_id = (int) $attachments[0];
+			if ( '' !== $file_hash && \RockStarLab\ImportExport\Helper\Media_Hash::get_or_create_hash( $attachment_id ) !== $file_hash ) {
+				continue;
+			}
+
+			return $attachment_id;
 		}
 
-		$attachment_id = (int) $attachments[0];
-		$file_hash     = strtolower( trim( (string) $file_hash ) );
-		if ( '' !== $file_hash && \RockStarLab\ImportExport\Helper\Media_Hash::get_or_create_hash( $attachment_id ) !== $file_hash ) {
-			return false;
-		}
-
-		return $attachment_id;
+		return false;
 	}
 
 	private function apply_synced_attachment_content_fields( $attachment_id, array $image ) {

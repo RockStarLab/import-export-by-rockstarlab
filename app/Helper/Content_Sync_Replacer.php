@@ -394,10 +394,10 @@ class Content_Sync_Replacer {
 			// We MUST check the ACF field type first to avoid corrupting ACF repeater row
 			// counts: during Pull, $image_map keys are remote attachment IDs which can be
 			// small numbers (1, 2, 3…) that accidentally match a repeater's row count value.
-			if ( ! empty( $image_map ) && is_numeric( $value ) && $value > 0 && isset( $image_map[ $value ] ) ) {
+			if ( ! empty( $image_map ) && is_numeric( $value ) && $value > 0 ) {
 				$acf_field_type  = self::get_acf_field_type( $key, $meta );
 				$confirmed_image = is_string( $acf_field_type ) && self::is_acf_media_field_type( $acf_field_type );
-				if ( null === $acf_field_type && ! $confirmed_image ) {
+				if ( null === $acf_field_type && ! $confirmed_image && isset( $image_map[ $value ] ) ) {
 					// ACF couldn't confirm the field type (field group may not exist on this
 					// site). Fall back to verifying the MAPPED value is really an attachment.
 					// We still require the meta key to have an ACF field-key reference so we
@@ -414,9 +414,13 @@ class Content_Sync_Replacer {
 					}
 				}
 				if ( $confirmed_image ) {
-					$attachment = get_post( $image_map[ $value ] );
-					if ( $attachment && 'attachment' === $attachment->post_type ) {
+					if ( isset( $image_map[ $value ] ) ) {
 						$value = $image_map[ $value ];
+						continue;
+					} elseif ( self::is_local_attachment_acceptable_for_acf_media_field( (int) $value, $acf_field_type ) ) {
+						continue;
+					} elseif ( in_array( $acf_field_type, array( 'image', 'file' ), true ) ) {
+						$value = '';
 						continue;
 					}
 				}
@@ -426,14 +430,14 @@ class Content_Sync_Replacer {
 			if ( is_string( $value ) ) {
 				// Check if it's serialized data
 				if ( self::is_serialized( $value ) ) {
-					$unserialized = @unserialize( $value );
+						$unserialized = @unserialize( $value );
 					if ( false !== $unserialized ) {
 						$acf_field_type     = self::get_acf_field_type( $key, $meta );
 						$is_acf_media_field = self::is_acf_media_field_type( $acf_field_type );
 						$serialized_id_map  = is_string( $acf_field_type ) && ! $is_acf_media_field ? array() : $image_map;
 						$unserialized       = self::replace_in_serialized( $unserialized, $source_domain, $target_domain, $serialized_id_map, $image_sources );
 						if ( ! empty( $image_map ) && is_array( $unserialized ) && $is_acf_media_field ) {
-							$unserialized = self::replace_attachment_ids_in_value( $unserialized, $image_map );
+							$unserialized = self::replace_attachment_ids_in_value( $unserialized, $image_map, true );
 						}
 						$value = serialize( $unserialized );
 					}
@@ -521,7 +525,12 @@ class Content_Sync_Replacer {
 					}
 				}
 			} elseif ( is_array( $value ) ) {
-				$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map, $image_sources, 0 );
+				$acf_field_type = self::get_acf_field_type( $key, $meta );
+				if ( ! empty( $image_map ) && self::is_acf_media_field_type( $acf_field_type ) ) {
+					$value = self::replace_attachment_ids_in_value( $value, $image_map, true );
+				} else {
+					$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map, $image_sources, 0 );
+				}
 			}
 
 			// Handle Elementor data
@@ -1029,25 +1038,59 @@ class Content_Sync_Replacer {
 	 *
 	 * @param mixed $value     Field value.
 	 * @param array $image_map Source attachment ID => local attachment ID.
+	 * @param bool  $strict    Whether unmapped numeric IDs should be removed.
 	 * @return mixed Updated value.
 	 */
-	private static function replace_attachment_ids_in_value( $value, $image_map ) {
+	private static function replace_attachment_ids_in_value( $value, $image_map, $strict = false ) {
 		if ( is_array( $value ) ) {
+			$updated = array();
 			foreach ( $value as $key => $item ) {
-				$value[ $key ] = self::replace_attachment_ids_in_value( $item, $image_map );
+				$mapped = self::replace_attachment_ids_in_value( $item, $image_map, $strict );
+				if ( $strict && null === $mapped ) {
+					continue;
+				}
+				$updated[ $key ] = $mapped;
 			}
 
-			return $value;
+			if ( array_keys( $value ) === range( 0, count( $value ) - 1 ) ) {
+				return array_values( $updated );
+			}
+
+			return $updated;
 		}
 
 		if ( is_numeric( $value ) && isset( $image_map[ (int) $value ] ) ) {
-			$attachment = get_post( $image_map[ (int) $value ] );
-			if ( $attachment && 'attachment' === $attachment->post_type ) {
-				return is_int( $value ) ? (int) $image_map[ (int) $value ] : (string) $image_map[ (int) $value ];
+			return is_int( $value ) ? (int) $image_map[ (int) $value ] : (string) $image_map[ (int) $value ];
+		}
+
+		if ( $strict && is_numeric( $value ) && (int) $value > 0 ) {
+			if ( self::is_local_attachment_acceptable_for_acf_media_field( (int) $value, 'gallery' ) ) {
+				return $value;
 			}
+			return null;
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Check whether an already-local attachment value is safe to preserve.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $field_type    ACF media field type.
+	 * @return bool Whether the ID can be kept as-is.
+	 */
+	private static function is_local_attachment_acceptable_for_acf_media_field( $attachment_id, $field_type ) {
+		$attachment_id = absint( $attachment_id );
+		if ( $attachment_id <= 0 || 'attachment' !== get_post_type( $attachment_id ) ) {
+			return false;
+		}
+
+		if ( 'image' === $field_type || 'gallery' === $field_type ) {
+			return 0 === strpos( (string) get_post_mime_type( $attachment_id ), 'image/' );
+		}
+
+		return 'file' === $field_type;
 	}
 
 	/**
