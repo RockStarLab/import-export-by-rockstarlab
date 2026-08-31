@@ -729,23 +729,112 @@ class Content_Sync_Media {
 		$images = array();
 
 		// Check if ACF is active
-		if ( ! function_exists( 'get_field_objects' ) ) {
+		if ( ! function_exists( 'get_field_objects' ) && ! function_exists( 'acf_get_field' ) ) {
 			return $images;
 		}
 
-		$fields = get_field_objects( $post_id, false, true, false );
-
-		if ( ! $fields ) {
-			return $images;
+		if ( function_exists( 'get_field_objects' ) ) {
+			$fields = get_field_objects( $post_id, false, true, false );
+			if ( $fields ) {
+				foreach ( $fields as $field ) {
+					$images = array_merge( $images, self::extract_acf_field_images( $field, $post_id ) );
+				}
+			}
 		}
 
-		foreach ( $fields as $field ) {
-			$images = array_merge( $images, self::extract_acf_field_images( $field, $post_id ) );
-		}
-
+		$images = array_merge( $images, self::get_acf_media_images_from_meta( $post_id ) );
 		$images = array_merge( $images, self::get_acf_post_reference_attachment_images_from_meta( $post_id ) );
 
 		return $images;
+	}
+
+	/**
+	 * Extract raw ACF image/file/gallery values from post meta.
+	 *
+	 * Flexible content and repeater sub fields are saved as flat meta pairs, for
+	 * example "flexible_content_0_gallery" plus "_flexible_content_0_gallery".
+	 * Those sub fields are not always present in get_field_objects(), so the sync
+	 * media queue must also inspect raw ACF field references.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return array Array of media data.
+	 */
+	private static function get_acf_media_images_from_meta( $post_id ) {
+		$images = array();
+
+		if ( ! function_exists( 'acf_get_field' ) ) {
+			return $images;
+		}
+
+		$meta = get_post_meta( (int) $post_id );
+		if ( empty( $meta ) || ! is_array( $meta ) ) {
+			return $images;
+		}
+
+		foreach ( $meta as $meta_key => $meta_values ) {
+			if ( ! is_string( $meta_key ) || 0 !== strpos( $meta_key, '_' ) || empty( $meta_values[0] ) || ! is_string( $meta_values[0] ) ) {
+				continue;
+			}
+
+			$field_ref = $meta_values[0];
+			if ( 0 !== strpos( $field_ref, 'field_' ) ) {
+				continue;
+			}
+
+			$value_key = substr( $meta_key, 1 );
+			if ( '' === $value_key || ! array_key_exists( $value_key, $meta ) ) {
+				continue;
+			}
+
+			$field_obj = acf_get_field( $field_ref );
+			if ( ! $field_obj || empty( $field_obj['type'] ) || ! in_array( $field_obj['type'], array( 'image', 'file', 'gallery' ), true ) ) {
+				continue;
+			}
+
+			$value = maybe_unserialize( $meta[ $value_key ][0] ?? null );
+			foreach ( self::extract_acf_media_attachment_ids( $value ) as $attachment_id ) {
+				$image_data = self::prepare_image_data( $attachment_id, 'acf_raw_' . $value_key );
+				if ( $image_data ) {
+					$images[] = $image_data;
+				}
+			}
+		}
+
+		return $images;
+	}
+
+	/**
+	 * Normalize raw ACF media values into attachment IDs.
+	 *
+	 * @param mixed $value ACF media value.
+	 * @return array Attachment IDs.
+	 */
+	private static function extract_acf_media_attachment_ids( $value ) {
+		$ids = array();
+
+		if ( is_numeric( $value ) ) {
+			$ids[] = (int) $value;
+		} elseif ( is_object( $value ) && isset( $value->ID ) && is_numeric( $value->ID ) ) {
+			$ids[] = (int) $value->ID;
+		} elseif ( is_array( $value ) ) {
+			if ( isset( $value['ID'] ) && is_numeric( $value['ID'] ) ) {
+				$ids[] = (int) $value['ID'];
+			}
+
+			foreach ( $value as $item ) {
+				$ids = array_merge( $ids, self::extract_acf_media_attachment_ids( $item ) );
+			}
+		}
+
+		$ids = array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) );
+		return array_values(
+			array_filter(
+				$ids,
+				static function ( $id ) {
+					return $id > 0 && 'attachment' === get_post_type( $id );
+				}
+			)
+		);
 	}
 
 	/**

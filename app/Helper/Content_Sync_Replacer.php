@@ -390,13 +390,14 @@ class Content_Sync_Replacer {
 				}
 			}
 
-			// Replace ACF image/file fields (numeric attachment IDs).
+			// Replace ACF image/file/gallery fields (numeric attachment IDs).
 			// We MUST check the ACF field type first to avoid corrupting ACF repeater row
 			// counts: during Pull, $image_map keys are remote attachment IDs which can be
 			// small numbers (1, 2, 3…) that accidentally match a repeater's row count value.
 			if ( ! empty( $image_map ) && is_numeric( $value ) && $value > 0 && isset( $image_map[ $value ] ) ) {
-				$confirmed_image = self::is_acf_image_or_file_field( $key, $meta );
-				if ( ! $confirmed_image ) {
+				$acf_field_type  = self::get_acf_field_type( $key, $meta );
+				$confirmed_image = is_string( $acf_field_type ) && self::is_acf_media_field_type( $acf_field_type );
+				if ( null === $acf_field_type && ! $confirmed_image ) {
 					// ACF couldn't confirm the field type (field group may not exist on this
 					// site). Fall back to verifying the MAPPED value is really an attachment.
 					// We still require the meta key to have an ACF field-key reference so we
@@ -427,8 +428,14 @@ class Content_Sync_Replacer {
 				if ( self::is_serialized( $value ) ) {
 					$unserialized = @unserialize( $value );
 					if ( false !== $unserialized ) {
-						$unserialized = self::replace_in_serialized( $unserialized, $source_domain, $target_domain, $image_map, $image_sources );
-						$value        = serialize( $unserialized );
+						$acf_field_type     = self::get_acf_field_type( $key, $meta );
+						$is_acf_media_field = self::is_acf_media_field_type( $acf_field_type );
+						$serialized_id_map  = is_string( $acf_field_type ) && ! $is_acf_media_field ? array() : $image_map;
+						$unserialized       = self::replace_in_serialized( $unserialized, $source_domain, $target_domain, $serialized_id_map, $image_sources );
+						if ( ! empty( $image_map ) && is_array( $unserialized ) && $is_acf_media_field ) {
+							$unserialized = self::replace_attachment_ids_in_value( $unserialized, $image_map );
+						}
+						$value = serialize( $unserialized );
 					}
 				} else {
 					$value = self::replace_in_text( $value, $source_domain, $target_domain );
@@ -971,40 +978,76 @@ class Content_Sync_Replacer {
 	}
 
 	/**
-	 * Check if a meta key corresponds to an ACF image or file field.
+	 * Check if a meta key corresponds to an ACF media field.
 	 *
 	 * ACF stores a field-key reference in the "_fieldname" meta entry.
 	 * We use that reference to look up the field type and confirm it is
-	 * an 'image' or 'file' type before replacing a numeric meta value
+	 * an 'image', 'file', or 'gallery' type before replacing attachment IDs
 	 * with an attachment ID.  This prevents repeater row-count values
 	 * (e.g. my_repeater = 3) from being wrongly replaced with an
 	 * attachment ID that happens to share the same number.
 	 *
 	 * @param string $key  Meta key being evaluated.
 	 * @param array  $meta Full meta array (used to look up the ACF field reference).
-	 * @return bool True only when ACF confirms this is an image or file field.
+	 * @return bool True only when ACF confirms this is a media field.
 	 */
-	private static function is_acf_image_or_file_field( $key, $meta ) {
+	private static function get_acf_field_type( $key, $meta ) {
 		if ( ! function_exists( 'acf_get_field' ) ) {
-			return false;
+			return null;
 		}
 
 		$field_ref_key = '_' . $key;
 		if ( ! isset( $meta[ $field_ref_key ] ) ) {
-			return false;
+			return null;
 		}
 
 		$field_ref = $meta[ $field_ref_key ];
 		if ( ! is_string( $field_ref ) || 0 !== strpos( $field_ref, 'field_' ) ) {
-			return false;
+			return null;
 		}
 
 		$field_obj = acf_get_field( $field_ref );
 		if ( ! $field_obj || ! isset( $field_obj['type'] ) ) {
-			return false;
+			return null;
 		}
 
-		return in_array( $field_obj['type'], array( 'image', 'file' ), true );
+		return (string) $field_obj['type'];
+	}
+
+	/**
+	 * Check whether an ACF field type stores attachment IDs.
+	 *
+	 * @param string|null $field_type ACF field type.
+	 * @return bool Whether the type is a media field.
+	 */
+	private static function is_acf_media_field_type( $field_type ) {
+		return is_string( $field_type ) && in_array( $field_type, array( 'image', 'file', 'gallery' ), true );
+	}
+
+	/**
+	 * Replace attachment IDs inside a value already confirmed as an ACF media field.
+	 *
+	 * @param mixed $value     Field value.
+	 * @param array $image_map Source attachment ID => local attachment ID.
+	 * @return mixed Updated value.
+	 */
+	private static function replace_attachment_ids_in_value( $value, $image_map ) {
+		if ( is_array( $value ) ) {
+			foreach ( $value as $key => $item ) {
+				$value[ $key ] = self::replace_attachment_ids_in_value( $item, $image_map );
+			}
+
+			return $value;
+		}
+
+		if ( is_numeric( $value ) && isset( $image_map[ (int) $value ] ) ) {
+			$attachment = get_post( $image_map[ (int) $value ] );
+			if ( $attachment && 'attachment' === $attachment->post_type ) {
+				return is_int( $value ) ? (int) $image_map[ (int) $value ] : (string) $image_map[ (int) $value ];
+			}
+		}
+
+		return $value;
 	}
 
 	/**
@@ -1107,59 +1150,67 @@ class Content_Sync_Replacer {
 		$source_post_id = (int) $source_post_id;
 		$post_ref_map   = is_array( $post_ref_map ) ? $post_ref_map : array();
 
-		$map_id = static function ( $maybe_source_id ) use ( $post_id, $source_post_id ) {
-			$maybe_source_id = (int) $maybe_source_id;
-			if ( $maybe_source_id <= 0 ) {
+			$map_id = static function ( $maybe_source_id ) use ( $post_id, $source_post_id ) {
+				$maybe_source_id = (int) $maybe_source_id;
+				if ( $maybe_source_id <= 0 ) {
+					return 0;
+				}
+
+				// Self-reference: this post is guaranteed to exist locally now.
+				if ( $source_post_id > 0 && $maybe_source_id === $source_post_id ) {
+					return $post_id;
+				}
+
+				foreach ( array( '_rsl_ie_original_post_id', '_rsl_ie_source_id', '_rsl_ie_source_post_id' ) as $meta_key ) {
+					// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Exact source ID lookup for sync mapping, hard-limited to 1 ID.
+					$found = get_posts(
+						array(
+							'post_type'              => 'any',
+							'post_status'            => 'any',
+							'posts_per_page'         => 1,
+							'fields'                 => 'ids',
+							'no_found_rows'          => true,
+							'cache_results'          => false,
+							'update_post_meta_cache' => false,
+							'update_post_term_cache' => false,
+							'meta_key'               => $meta_key,
+							'meta_value'             => $maybe_source_id,
+						)
+					);
+					// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+
+					if ( ! empty( $found ) ) {
+						return (int) $found[0];
+					}
+				}
+
+				// ACF relationship/page_link fields can reference attachments. Media
+				// sync stores those source IDs under attachment-specific meta keys.
+				foreach ( array( '_rsl_ie_original_attachment_id', '_rsl_ie_source_attachment_id', '_rsl_ie_source_id' ) as $meta_key ) {
+					// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Exact source attachment lookup for sync mapping, hard-limited to 1 ID.
+					$found = get_posts(
+						array(
+							'post_type'              => 'attachment',
+							'post_status'            => 'inherit',
+							'posts_per_page'         => 1,
+							'fields'                 => 'ids',
+							'no_found_rows'          => true,
+							'cache_results'          => false,
+							'update_post_meta_cache' => false,
+							'update_post_term_cache' => false,
+							'meta_key'               => $meta_key,
+							'meta_value'             => $maybe_source_id,
+						)
+					);
+					// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+
+					if ( ! empty( $found ) ) {
+						return (int) $found[0];
+					}
+				}
+
 				return 0;
-			}
-
-			// Self-reference: this post is guaranteed to exist locally now.
-			if ( $source_post_id > 0 && $maybe_source_id === $source_post_id ) {
-				return $post_id;
-			}
-
-			// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Indexed meta_key lookup, hard-limited to 1 ID.
-			$found = get_posts(
-				array(
-					'post_type'              => 'any',
-					'post_status'            => 'any',
-					'posts_per_page'         => 1,
-					'fields'                 => 'ids',
-					'no_found_rows'          => true,
-					'cache_results'          => false,
-					'update_post_meta_cache' => false,
-					'update_post_term_cache' => false,
-					'meta_key'               => '_rsl_ie_original_post_id',
-					'meta_value'             => $maybe_source_id,
-				)
-			);
-			// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-
-			if ( ! empty( $found ) ) {
-				return (int) $found[0];
-			}
-
-			// ACF relationship/page_link fields can reference attachments. Media
-			// sync stores those source IDs under attachment-specific meta keys.
-			// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Indexed meta_key lookup, hard-limited to 1 ID.
-			$found = get_posts(
-				array(
-					'post_type'              => 'attachment',
-					'post_status'            => 'inherit',
-					'posts_per_page'         => 1,
-					'fields'                 => 'ids',
-					'no_found_rows'          => true,
-					'cache_results'          => false,
-					'update_post_meta_cache' => false,
-					'update_post_term_cache' => false,
-					'meta_key'               => '_rsl_ie_original_attachment_id',
-					'meta_value'             => $maybe_source_id,
-				)
-			);
-			// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-
-			return ! empty( $found ) ? (int) $found[0] : 0;
-		};
+			};
 
 		foreach ( $meta as $key => $value ) {
 			// Only process non-underscore-prefixed keys (skip ACF reference entries).

@@ -347,10 +347,10 @@ class Content_Sync_API_Controller {
 			}
 
 			// Import meta
-			if ( ! empty( $post_data['meta'] ) ) {
+			if ( isset( $post_data['meta'] ) && is_array( $post_data['meta'] ) ) {
 
 				// Replace image IDs and domain in meta using the proper meta-aware replacer.
-				// replace_in_meta correctly handles _thumbnail_id, ACF image/file fields
+				// replace_in_meta correctly handles _thumbnail_id, ACF media fields
 				// (using field-type introspection), flat ACF repeater keys, etc.
 				if ( ! empty( $image_map ) ) {
 					$post_data['meta'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_in_meta_public(
@@ -362,23 +362,11 @@ class Content_Sync_API_Controller {
 					);
 				}
 
+				$this->delete_stale_synced_post_meta( (int) $post_id, $post_data['meta'] );
+
 				foreach ( $post_data['meta'] as $key => $value ) {
 					// Skip some internal WordPress meta
 					if ( in_array( $key, array( '_edit_lock', '_edit_last', '_rsl_ie_original_post_id' ), true ) ) {
-						continue;
-					}
-
-					// ACF reference keys (_field_name = field_xxx) are site-specific.
-					// Importing the source site's key can make a local ACF field appear
-					// empty after ACF definitions were pulled/recreated with different keys.
-					if ( is_string( $key ) && '' !== $key && '_' === $key[0] ) {
-						$plain_key = substr( $key, 1 );
-						if ( '' !== $plain_key && array_key_exists( $plain_key, $post_data['meta'] ) && is_string( $value ) && 0 === strpos( $value, 'field_' ) ) {
-							continue;
-						}
-					}
-
-					if ( is_string( $key ) && '' !== $key && '_' !== $key[0] && $this->maybe_save_synced_acf_post_field( (int) $post_id, (string) $key, $value, $post_data['meta'] ) ) {
 						continue;
 					}
 
@@ -1126,6 +1114,41 @@ class Content_Sync_API_Controller {
 	}
 
 	/**
+	 * Remove target post meta that no longer exists in the source payload.
+	 *
+	 * @param int   $post_id       Target post ID.
+	 * @param array $incoming_meta Source meta payload.
+	 * @return void
+	 */
+	private function delete_stale_synced_post_meta( $post_id, array $incoming_meta ) {
+		$existing_meta = get_post_meta( (int) $post_id );
+		if ( empty( $existing_meta ) ) {
+			return;
+		}
+
+		$preserved_keys = array(
+			'_edit_lock',
+			'_edit_last',
+			'_wp_old_slug',
+			'_wp_old_date',
+		);
+
+		foreach ( $existing_meta as $key => $values ) {
+			$key = (string) $key;
+
+			if ( array_key_exists( $key, $incoming_meta ) || in_array( $key, $preserved_keys, true ) ) {
+				continue;
+			}
+
+			if ( 0 === strpos( $key, '_rsl_ie_' ) ) {
+				continue;
+			}
+
+			delete_post_meta( (int) $post_id, $key );
+		}
+	}
+
+	/**
 	 * Save synced post meta with special handling for generated/builder metadata.
 	 *
 	 * @param int    $post_id Post ID.
@@ -1148,36 +1171,6 @@ class Content_Sync_API_Controller {
 		$value = $this->resolve_synced_media_references( $value, (int) $post_id );
 
 		update_post_meta( $post_id, $key, $value );
-	}
-
-	/**
-	 * Save a synced post meta value through ACF when the payload identifies it as an ACF field.
-	 *
-	 * @param int    $post_id Post ID.
-	 * @param string $key     Meta key / ACF field name.
-	 * @param mixed  $value   Field value.
-	 * @param array  $meta    Full synced meta payload.
-	 * @return bool Whether the value was handled.
-	 */
-	private function maybe_save_synced_acf_post_field( $post_id, $key, $value, array $meta ) {
-		if ( ! class_exists( ACF_Fields::class ) || ! function_exists( 'update_field' ) ) {
-			return false;
-		}
-
-		$field_ref_key = '_' . $key;
-		$has_acf_ref   = isset( $meta[ $field_ref_key ] ) && is_string( $meta[ $field_ref_key ] ) && 0 === strpos( $meta[ $field_ref_key ], 'field_' );
-
-		$field_object = null;
-		if ( function_exists( 'get_field_object' ) ) {
-			$field_object = get_field_object( $key, $post_id, false, false );
-		}
-
-		if ( ! $has_acf_ref && ! is_array( $field_object ) ) {
-			return false;
-		}
-
-		ACF_Fields::import_value( 'post', (int) $post_id, $key, $this->resolve_synced_media_references( $value, (int) $post_id ) );
-		return true;
 	}
 
 	/**
