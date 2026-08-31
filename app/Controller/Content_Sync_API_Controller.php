@@ -2567,7 +2567,7 @@ class Content_Sync_API_Controller {
 				}
 			}
 
-			if ( ! empty( $term_info['acf'] ) && is_array( $term_info['acf'] ) && function_exists( 'update_field' ) ) {
+			if ( ! empty( $term_info['acf'] ) && is_array( $term_info['acf'] ) && class_exists( ACF_Fields::class ) ) {
 				if ( ! empty( $image_map ) ) {
 					$term_info['acf'] = $this->replace_term_acf_value_media_references(
 						$term_info['acf'],
@@ -2636,12 +2636,11 @@ class Content_Sync_API_Controller {
 				$data['meta'][ $key ] = isset( $values[0] ) ? maybe_unserialize( $values[0] ) : '';
 			}
 
-			if ( function_exists( 'get_field_objects' ) ) {
-				$acf_fields = $this->get_term_acf_field_objects( (int) $term->term_id, $taxonomy );
-				if ( $acf_fields ) {
+			if ( class_exists( ACF_Fields::class ) ) {
+				$acf_fields = $this->get_term_acf_fields_for_sync( (int) $term->term_id, $taxonomy );
+				if ( ! empty( $acf_fields ) ) {
 					$data['acf'] = array();
-					foreach ( $acf_fields as $field_key => $field ) {
-						$field_name                 = ! empty( $field['name'] ) ? (string) $field['name'] : (string) $field_key;
+					foreach ( $acf_fields as $field_name ) {
 						$data['acf'][ $field_name ] = ACF_Fields::export_value( 'term', (int) $term->term_id, $field_name, $taxonomy );
 					}
 				}
@@ -2649,6 +2648,30 @@ class Content_Sync_API_Controller {
 		}
 
 		return $data;
+	}
+
+	private function get_term_acf_fields_for_sync( $term_id, $taxonomy ) {
+		$fields = array();
+
+		if ( class_exists( ACF_Fields::class ) ) {
+			foreach ( ACF_Fields::get_fields_for_content_type( 'taxonomy', $taxonomy ) as $field ) {
+				if ( ! empty( $field['name'] ) ) {
+					$fields[ (string) $field['name'] ] = true;
+				}
+			}
+		}
+
+		$field_objects = $this->get_term_acf_field_objects( (int) $term_id, $taxonomy );
+		if ( is_array( $field_objects ) ) {
+			foreach ( $field_objects as $field_key => $field ) {
+				$field_name = is_array( $field ) && ! empty( $field['name'] ) ? (string) $field['name'] : (string) $field_key;
+				if ( '' !== $field_name ) {
+					$fields[ $field_name ] = true;
+				}
+			}
+		}
+
+		return array_keys( $fields );
 	}
 
 	/**
