@@ -2498,7 +2498,7 @@ class Content_Sync_Controller extends Base_Controller {
 				continue;
 			}
 
-			$new_attachment_id = $this->download_image_from_remote( $image, $site );
+			$new_attachment_id = $this->download_image_from_remote( $image, $site, $image_map, $remote_images );
 			if ( $new_attachment_id ) {
 				$image_map[ (int) $image['attachment_id'] ] = (int) $new_attachment_id;
 			}
@@ -2920,7 +2920,7 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( ! empty( $remote_images ) ) {
 			foreach ( $remote_images as $image ) {
 				$image['force_unique'] = false;
-				$new_attachment_id     = $this->download_image_from_remote( $image, $site );
+				$new_attachment_id     = $this->download_image_from_remote( $image, $site, $image_map, $remote_images );
 				if ( $new_attachment_id ) {
 					$image_map[ $image['attachment_id'] ] = $new_attachment_id;
 				}
@@ -2935,7 +2935,7 @@ class Content_Sync_Controller extends Base_Controller {
 					continue;
 				}
 
-				$new_attachment_id = $this->download_image_from_remote( $image, $site );
+				$new_attachment_id = $this->download_image_from_remote( $image, $site, $image_map, $remote_images );
 				if ( $new_attachment_id && $source_attachment_id > 0 ) {
 					$image_map[ $source_attachment_id ] = $new_attachment_id;
 				}
@@ -3322,7 +3322,7 @@ class Content_Sync_Controller extends Base_Controller {
 	 * @param array $site Site connection data.
 	 * @return int|false New attachment ID or false on failure
 	 */
-	private function download_image_from_remote( $image, $site ) {
+	private function download_image_from_remote( $image, $site, $image_map = array(), $image_sources = array() ) {
 		$source_attachment_id = isset( $image['attachment_id'] ) ? (int) $image['attachment_id'] : 0;
 		$source_origin_id     = isset( $image['source_origin_attachment_id'] ) ? (int) $image['source_origin_attachment_id'] : 0;
 		$force_unique         = ! empty( $image['force_unique'] );
@@ -3335,7 +3335,7 @@ class Content_Sync_Controller extends Base_Controller {
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
 				$this->record_synced_attachment_source_ids( (int) $existing_id, $source_attachment_id, $source_origin_id );
-				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
+				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image, $image_map, $image_sources );
 				return $existing_id;
 			}
 		}
@@ -3348,7 +3348,7 @@ class Content_Sync_Controller extends Base_Controller {
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
 				$this->record_synced_attachment_source_ids( (int) $existing_id, $source_attachment_id, $source_origin_id );
-				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
+				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image, $image_map, $image_sources );
 				return $existing_id;
 			}
 		}
@@ -3359,7 +3359,7 @@ class Content_Sync_Controller extends Base_Controller {
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
 				$this->record_synced_attachment_source_ids( (int) $existing_id, $source_attachment_id, $source_origin_id );
-				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
+				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image, $image_map, $image_sources );
 				return $existing_id;
 			}
 		}
@@ -3400,7 +3400,7 @@ class Content_Sync_Controller extends Base_Controller {
 			if ( $existing_id ) {
 				\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $existing_id );
 				$this->record_synced_attachment_source_ids( (int) $existing_id, $source_attachment_id, $source_origin_id );
-				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image );
+				$this->apply_synced_attachment_content_fields( (int) $existing_id, $image, $image_map, $image_sources );
 				return $existing_id;
 			}
 		}
@@ -3447,7 +3447,7 @@ class Content_Sync_Controller extends Base_Controller {
 		if ( $source_origin_id > 0 ) {
 			update_post_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
 		}
-		$this->apply_synced_attachment_content_fields( (int) $attachment_id, $image );
+		$this->apply_synced_attachment_content_fields( (int) $attachment_id, $image, $image_map, $image_sources );
 
 		return $attachment_id;
 	}
@@ -3560,7 +3560,7 @@ class Content_Sync_Controller extends Base_Controller {
 		return false;
 	}
 
-	private function apply_synced_attachment_content_fields( $attachment_id, array $image ) {
+	private function apply_synced_attachment_content_fields( $attachment_id, array $image, $image_map = array(), $image_sources = array() ) {
 		$attachment_id = absint( $attachment_id );
 		if ( $attachment_id <= 0 || 'attachment' !== get_post_type( $attachment_id ) ) {
 			return;
@@ -3582,10 +3582,32 @@ class Content_Sync_Controller extends Base_Controller {
 		wp_update_post( wp_slash( $update ) );
 
 		if ( class_exists( ACF_Fields::class ) && ! empty( $image['acf'] ) && is_array( $image['acf'] ) ) {
+			$attachment_image_map = $this->build_attachment_import_image_map( $image_map, $image, $attachment_id );
 			foreach ( $image['acf'] as $field_name => $value ) {
+				if ( is_string( $value ) && ! empty( $attachment_image_map ) ) {
+					$value = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content( $value, $attachment_image_map, $image_sources );
+				}
 				ACF_Fields::import_value( 'media', $attachment_id, sanitize_text_field( (string) $field_name ), $value );
 			}
 		}
+	}
+
+	private function build_attachment_import_image_map( $image_map, array $image, $attachment_id ) {
+		$image_map            = is_array( $image_map ) ? $image_map : array();
+		$source_attachment_id = isset( $image['attachment_id'] ) ? absint( $image['attachment_id'] ) : 0;
+		$source_origin_id     = isset( $image['source_origin_attachment_id'] ) ? absint( $image['source_origin_attachment_id'] ) : 0;
+		$attachment_id        = absint( $attachment_id );
+
+		if ( $attachment_id > 0 ) {
+			if ( $source_attachment_id > 0 ) {
+				$image_map[ $source_attachment_id ] = $attachment_id;
+			}
+			if ( $source_origin_id > 0 ) {
+				$image_map[ $source_origin_id ] = $attachment_id;
+			}
+		}
+
+		return $image_map;
 	}
 
 
