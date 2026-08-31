@@ -1599,7 +1599,7 @@ import 'select2/dist/css/select2.min.css';
 		if ( objectKind === 'taxonomy' ) {
 			return remote
 				? 'content_sync_get_remote_terms'
-				: 'pro_sync_search_local_terms';
+				: 'content_sync_search_local_terms';
 		}
 		return remote
 			? 'content_sync_get_remote_posts'

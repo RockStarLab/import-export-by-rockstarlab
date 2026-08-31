@@ -1357,6 +1357,8 @@ class Init {
 			array(
 				'rsl_ie_content_sync_get_remote_posts',
 				'rsl_ie_content_sync_search_local_posts',
+				'rsl_ie_content_sync_get_remote_terms',
+				'rsl_ie_content_sync_search_local_terms',
 				'rsl_ie_content_sync_get_remote_comments',
 				'rsl_ie_content_sync_push_comments',
 				'rsl_ie_content_sync_pull_comments',

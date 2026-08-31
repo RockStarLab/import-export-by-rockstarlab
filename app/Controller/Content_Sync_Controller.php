@@ -103,6 +103,7 @@ class Content_Sync_Controller extends Base_Controller {
 			'content_sync_get_remote_posts'     => array( 'callback' => 'get_remote_posts' ),
 			'content_sync_search_remote_posts'  => array( 'callback' => 'search_remote_posts' ),
 			'content_sync_search_local_posts'   => array( 'callback' => 'search_local_posts' ),
+			'content_sync_search_local_terms'   => array( 'callback' => 'search_local_terms' ),
 			'content_sync_auto_map_by_title'    => array( 'callback' => 'auto_map_by_title' ),
 			'content_sync_get_children_posts'   => array( 'callback' => 'get_children_posts' ),
 			'content_sync_get_local_posts_info' => array( 'callback' => 'get_local_posts_info' ),
@@ -1053,6 +1054,69 @@ class Content_Sync_Controller extends Base_Controller {
 				'posts'        => $posts,
 				'total'        => (int) $query->found_posts,
 				'pages'        => max( 1, (int) $query->max_num_pages ),
+				'current_page' => $page,
+			)
+		);
+	}
+
+	/**
+	 * Search local taxonomy terms with pagination for Select2 mapping fields.
+	 */
+	public function search_local_terms() {
+		$verify = $this->verify_request();
+		if ( is_wp_error( $verify ) ) {
+			$this->send_error( $verify->get_error_message() );
+		}
+
+		$taxonomy = sanitize_key( (string) $this->get_request_param( 'taxonomy', '' ) );
+		$search   = sanitize_text_field( (string) $this->get_request_param( 'search', '' ) );
+		$page     = max( 1, absint( $this->get_request_param( 'page', 1 ) ) );
+		$per_page = min( max( 1, absint( $this->get_request_param( 'per_page', 20 ) ) ), 50 );
+
+		if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
+			$this->send_error( __( 'Invalid taxonomy.', 'import-export-by-rockstarlab' ) );
+		}
+
+		$args = array(
+			'taxonomy'   => $taxonomy,
+			'hide_empty' => false,
+			'number'     => $per_page,
+			'offset'     => ( $page - 1 ) * $per_page,
+			'orderby'    => 'name',
+			'order'      => 'ASC',
+		);
+
+		if ( '' !== $search ) {
+			$args['search'] = $search;
+		}
+
+		$terms                = get_terms( $args );
+		$count_args           = $args;
+		$count_args['fields'] = 'count';
+		unset( $count_args['number'], $count_args['offset'] );
+		$total      = get_terms( $count_args );
+		$total      = is_wp_error( $total ) ? 0 : (int) $total;
+		$terms_data = array();
+
+		if ( is_wp_error( $terms ) ) {
+			$this->send_error( $terms->get_error_message() );
+		}
+
+		foreach ( $terms as $term ) {
+			$terms_data[] = array(
+				'term_id'  => (int) $term->term_id,
+				'name'     => (string) $term->name,
+				'slug'     => (string) $term->slug,
+				'taxonomy' => (string) $term->taxonomy,
+				'count'    => (int) $term->count,
+			);
+		}
+
+		$this->send_success(
+			array(
+				'terms'        => $terms_data,
+				'total'        => $total,
+				'pages'        => max( 1, (int) ceil( $total / $per_page ) ),
 				'current_page' => $page,
 			)
 		);
