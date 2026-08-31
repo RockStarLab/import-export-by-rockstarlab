@@ -666,12 +666,13 @@ import 'select2/dist/css/select2.min.css';
 						) }">&times;</button>
 					</div>
 					<div class="rsl-ie-modal-body" style="padding-top:18px;">
-						<div class="rsl-ie-pro-menu-push-wrap" style="max-width:360px;margin:0 auto 16px;text-align:center;">
-							<label for="rsl-ie-pro-menu-push-remote-menu" style="display:block;margin-bottom:6px;">${ escapeHtml(
-								config.i18n?.remoteMenuLabel || 'Remote menu'
-							) }</label>
-							<select id="rsl-ie-pro-menu-push-remote-menu" class="regular-text rsl-ie-pro-object-select2" style="display:block;width:100%;"></select>
-						</div>
+							<div class="rsl-ie-pro-menu-push-wrap" style="max-width:360px;margin:0 auto 16px;text-align:center;">
+								<label for="rsl-ie-pro-menu-push-remote-menu" style="display:flex;margin-bottom:6px;align-items:center;justify-content:center;gap:8px;">${ escapeHtml(
+									config.i18n?.remoteMenuLabel ||
+										'Remote menu'
+								) }<span class="spinner rsl-ie-pro-remote-menu-spinner" style="float:none;margin:0;display:none;"></span></label>
+								<select id="rsl-ie-pro-menu-push-remote-menu" class="regular-text rsl-ie-pro-object-select2" style="display:block;width:100%;"></select>
+							</div>
 						<div class="rsl-ie-pro-comment-push-map-wrap" style="max-width:420px;margin:0 auto 16px;text-align:center;display:none;">
 							<label for="rsl-ie-pro-comment-push-map-post" style="display:block;margin-bottom:6px;">${ escapeHtml(
 								config.i18n?.mapToRemotePostLabel ||
@@ -738,6 +739,24 @@ import 'select2/dist/css/select2.min.css';
 			comment_ids: ids,
 			comment_type: config.objectSubtype || '',
 		};
+	}
+
+	function getRemoteMenuLoadingElement( $select ) {
+		let $loading = $select.siblings( '.rsl-ie-pro-remote-menu-loading' );
+		if ( $loading.length ) {
+			return $loading;
+		}
+
+		$loading = $( `
+			<div class="rsl-ie-pro-remote-menu-loading" style="display:none;margin-top:10px;padding:12px 14px;border:1px solid #dcdcde;background:#f6f7f7;border-radius:6px;color:#3c434a;align-items:center;justify-content:center;gap:10px;">
+				<span class="spinner is-active" style="float:none;margin:0;"></span>
+				<span>${ escapeHtml(
+					config.i18n?.loadingRemoteMenus || 'Loading remote menus...'
+				) }</span>
+			</div>
+		` );
+		$select.after( $loading );
+		return $loading;
 	}
 
 	function openSyncModal() {
@@ -1000,10 +1019,11 @@ import 'select2/dist/css/select2.min.css';
 						</div>
 					<div id="rsl-ie-pro-menu-pull-controls" class="rsl-ie-browse-search-bar" style="display:none;">
 						<div style="max-width:360px;margin:0 auto;text-align:center;">
-							<label for="rsl-ie-pro-menu-pull-remote-menu" style="display:block;margin-bottom:6px;text-align:center;">${ escapeHtml(
-								config.i18n?.remoteMenuLabel || 'Remote menu'
-							) }</label>
-							<select id="rsl-ie-pro-menu-pull-remote-menu" class="regular-text rsl-ie-pro-object-select2" style="width:100%;"></select>
+								<label for="rsl-ie-pro-menu-pull-remote-menu" style="display:flex;margin-bottom:6px;align-items:center;justify-content:center;gap:8px;">${ escapeHtml(
+									config.i18n?.remoteMenuLabel ||
+										'Remote menu'
+								) }<span class="spinner rsl-ie-pro-remote-menu-spinner" style="float:none;margin:0;display:none;"></span></label>
+								<select id="rsl-ie-pro-menu-pull-remote-menu" class="regular-text rsl-ie-pro-object-select2" style="width:100%;"></select>
 						</div>
 					</div>
 					<div class="rsl-ie-browse-search-bar" style="padding-top:12px;display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;">
@@ -1300,6 +1320,14 @@ import 'select2/dist/css/select2.min.css';
 			$select.select2( 'destroy' );
 		}
 
+		const $loading = getRemoteMenuLoadingElement( $select );
+		$select
+			.closest( 'div' )
+			.find( '.rsl-ie-pro-remote-menu-spinner' )
+			.addClass( 'is-active' )
+			.show();
+		$loading.css( 'display', 'flex' );
+
 		$select
 			.html(
 				`<option value="">${ escapeHtml(
@@ -1338,6 +1366,12 @@ import 'select2/dist/css/select2.min.css';
 				}
 
 				$select.html( options.join( '' ) ).prop( 'disabled', false );
+				$loading.hide();
+				$select
+					.closest( 'div' )
+					.find( '.rsl-ie-pro-remote-menu-spinner' )
+					.removeClass( 'is-active' )
+					.hide();
 				if ( typeof $select.select2 === 'function' ) {
 					if ( $select.data( 'select2' ) ) {
 						$select.select2( 'destroy' );
@@ -1364,6 +1398,12 @@ import 'select2/dist/css/select2.min.css';
 						) }</option>`
 					)
 					.prop( 'disabled', true );
+				$loading.hide();
+				$select
+					.closest( 'div' )
+					.find( '.rsl-ie-pro-remote-menu-spinner' )
+					.removeClass( 'is-active' )
+					.hide();
 			} );
 
 		if ( typeof $select.select2 !== 'function' ) {
