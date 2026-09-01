@@ -218,13 +218,6 @@ $rsl_ie_pro_active     = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_acti
 									</span>
 								</li>
 								<li>
-									<span class="rsl-ie-support-icon"><span class="dashicons dashicons-book-alt"></span></span>
-									<span class="rsl-ie-support-text">
-										<a href="https://wpimportexport.com/docs/" target="_blank"><?php esc_html_e( 'Documentation', 'import-export-by-rockstarlab' ); ?></a>
-										<span class="rsl-ie-support-desc"><?php esc_html_e( 'Guides and tutorials', 'import-export-by-rockstarlab' ); ?></span>
-									</span>
-								</li>
-								<li>
 									<span class="rsl-ie-support-icon"><span class="dashicons dashicons-wordpress"></span></span>
 									<span class="rsl-ie-support-text">
 										<a href="https://wordpress.org/support/plugin/import-export-by-rockstarlab/" target="_blank"><?php esc_html_e( 'Support Forum', 'import-export-by-rockstarlab' ); ?></a>
