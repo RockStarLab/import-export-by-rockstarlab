@@ -31,7 +31,7 @@ class Admin_Menu_Settings {
 			'import'          => __( 'Import', 'import-export-by-rockstarlab' ),
 			'export'          => __( 'Export', 'import-export-by-rockstarlab' ),
 			'content_sync'    => __( 'Content Sync', 'import-export-by-rockstarlab' ),
-			'site_migration'  => __( 'Site Migration', 'import-export-by-rockstarlab' ),
+			'site_migration'  => __( 'Content Migration', 'import-export-by-rockstarlab' ),
 			'media_sync'      => __( 'Media Sync', 'import-export-by-rockstarlab' ),
 			'ai_url_importer' => __( 'AI URL Importer', 'import-export-by-rockstarlab' ),
 			'functions'       => __( 'Functions', 'import-export-by-rockstarlab' ),
