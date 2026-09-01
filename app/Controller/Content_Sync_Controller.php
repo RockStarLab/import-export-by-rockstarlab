@@ -1485,6 +1485,7 @@ class Content_Sync_Controller extends Base_Controller {
 		$comment_ids    = array_values( array_filter( array_unique( array_map( 'absint', $this->get_request_array( 'comment_ids', array() ) ) ) ) );
 		$target_post_id = absint( $this->get_request_param( 'target_post_id', 0 ) );
 		$comment_type   = sanitize_key( (string) $this->get_request_param( 'comment_type', '' ) );
+		$is_migration   = filter_var( $this->get_request_param( 'migration', false ), FILTER_VALIDATE_BOOLEAN );
 
 		if ( empty( $site_id ) ) {
 			$this->send_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
@@ -1494,7 +1495,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( __( 'No comments selected.', 'import-export-by-rockstarlab' ) );
 		}
 
-		if ( $target_post_id <= 0 ) {
+		if ( $target_post_id <= 0 && ! $is_migration ) {
 			$this->send_error( __( 'Please select a destination post on the remote site before pushing comments.', 'import-export-by-rockstarlab' ) );
 		}
 
@@ -1534,6 +1535,7 @@ class Content_Sync_Controller extends Base_Controller {
 				'image_map'      => $image_map,
 				'image_sources'  => $image_sources,
 				'target_post_id' => $target_post_id,
+				'post_mapping'   => array(),
 			),
 			60
 		);

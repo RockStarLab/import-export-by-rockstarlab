@@ -73,7 +73,7 @@ class Init {
 	private $content_sync_controller;
 
 	/**
-	 * Site Migration Controller
+	 * Content Migration Controller
 	 *
 	 * @var Site_Migration_Controller
 	 */
@@ -1639,8 +1639,8 @@ class Init {
 
 		add_submenu_page(
 			'import-export-by-rockstarlab',
-			__( 'Site Migration', 'import-export-by-rockstarlab' ),
-			__( 'Site migration', 'import-export-by-rockstarlab' ),
+			__( 'Content Migration', 'import-export-by-rockstarlab' ),
+			__( 'Content Migration', 'import-export-by-rockstarlab' ),
 			'manage_options',
 			'rsl-ie-site-migration',
 			array( $this, 'display_site_migration_page' )
@@ -1736,7 +1736,7 @@ class Init {
 	}
 
 	/**
-	 * Display Site Migration page.
+	 * Display Content Migration page.
 	 */
 	function display_site_migration_page() {
 		rsl_ie()->View->load( 'settings/site_migration' );

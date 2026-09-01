@@ -1,5 +1,5 @@
 /**
- * Site Migration wizard.
+ * Content Migration wizard.
  */
 
 import Utils from './utils';
@@ -49,6 +49,15 @@ const SiteMigration = {
 		$page.on( 'click', '.rsl-ie-migration-remove-replace-link', ( e ) =>
 			this.removeReplaceLinksRow( e )
 		);
+		$page.on( 'click', '.rsl-ie-migration-intro-hide', ( e ) => {
+			e.preventDefault();
+			jQuery( e.currentTarget )
+				.closest( '.rsl-ie-migration-intro-notice' )
+				.hide();
+		} );
+		$page.on( 'click', '.rsl-ie-migration-intro-dismiss-forever', ( e ) =>
+			this.dismissIntroNotice( e )
+		);
 		$page.on( 'dragover', '#rsl-ie-migration-upload-area', ( e ) => {
 			e.preventDefault();
 			jQuery( e.currentTarget ).addClass( 'rsl-ie-dragover' );
@@ -62,6 +71,21 @@ const SiteMigration = {
 			const files = e.originalEvent.dataTransfer.files;
 			this.setSelectedFile( files.length ? files[ 0 ] : null );
 		} );
+	},
+
+	async dismissIntroNotice( event ) {
+		event.preventDefault();
+		const $button = jQuery( event.currentTarget );
+		const $notice = $button.closest( '.rsl-ie-migration-intro-notice' );
+
+		$button.prop( 'disabled', true );
+		try {
+			await Utils.ajax( 'migration_dismiss_intro_notice' );
+			$notice.hide();
+		} catch ( error ) {
+			$button.prop( 'disabled', false );
+			Utils.handleError( error, 'Content migration notice' );
+		}
 	},
 
 	async loadPlan() {
@@ -211,7 +235,7 @@ const SiteMigration = {
 			const message = this.getErrorMessage( error );
 			this.log( `Migration failed: ${ message }`, 'error' );
 			await this.updateParent( 1, 1, 'failed', { error: message } );
-			Utils.handleError( error, 'Site migration' );
+			Utils.handleError( error, 'Content migration' );
 		}
 	},
 
@@ -376,7 +400,6 @@ const SiteMigration = {
 			emptyFiles: 0,
 			replaceLinks,
 			replacedUrls: 0,
-			repairedReferences: 0,
 		};
 		const formData = new FormData();
 		formData.append( 'action', 'rsl_ie_migration_upload_package' );
@@ -446,8 +469,6 @@ const SiteMigration = {
 			this.addImportStats( stats, response.result || {} );
 			await this.updateParent( i + 1, steps.length, 'processing' );
 		}
-		const finalize = await Utils.ajax( 'migration_finalize_import' );
-		stats.repairedReferences = parseInt( finalize.repaired || 0, 10 );
 		await this.updateParent( steps.length, steps.length, 'completed' );
 		this.completeImport( stats );
 	},
@@ -564,8 +585,11 @@ const SiteMigration = {
 
 	async runSync( steps, direction ) {
 		const siteId = jQuery( '#rsl-ie-migration-site' ).val();
+		const syncSteps = this.expandSteps( steps ).filter( ( step ) => {
+			return step.type !== 'taxonomy' || !! step.taxonomy;
+		} );
 		const stats = {
-			typesCount: steps.length,
+			typesCount: syncSteps.length,
 			syncedItems: 0,
 			created: 0,
 			updated: 0,
@@ -573,28 +597,87 @@ const SiteMigration = {
 			failed: 0,
 			direction,
 		};
-		for ( let i = 0; i < steps.length; i++ ) {
-			const step = steps[ i ];
+		for ( let i = 0; i < syncSteps.length; i++ ) {
+			const step = syncSteps[ i ];
 			this.log(
 				`${ direction === 'pull' ? 'Pulling' : 'Pushing' } ${
 					step.label
 				}...`
 			);
-			if ( step.type === 'taxonomy' ) {
+			if ( step.type === 'user' ) {
+				const userIds =
+					direction === 'pull'
+						? await this.getRemoteUserIds( siteId )
+						: await this.getLocalUserIds();
+				if ( ! userIds.length ) {
+					this.log( `No ${ step.label } found, skipping.` );
+					await this.updateParent(
+						i + 1,
+						syncSteps.length,
+						'processing'
+					);
+					continue;
+				}
+				const response = await Utils.ajax(
+					`pro_sync_${ direction }_users`,
+					{
+						site_id: siteId,
+						user_ids: userIds,
+					}
+				);
+				this.addSyncStats( stats, response, userIds.length );
+			} else if ( step.type === 'taxonomy' ) {
+				const termIds =
+					direction === 'pull'
+						? await this.getRemoteTermIds( siteId, step.taxonomy )
+						: await this.getLocalTermIds( step.taxonomy );
+				if ( ! termIds.length ) {
+					this.log( `No ${ step.label } found, skipping.` );
+					await this.updateParent(
+						i + 1,
+						syncSteps.length,
+						'processing'
+					);
+					continue;
+				}
 				const response = await Utils.ajax(
 					`content_sync_${ direction }_terms`,
-					{ site_id: siteId }
+					{
+						site_id: siteId,
+						taxonomy: step.taxonomy,
+						term_ids: termIds,
+					}
 				);
-				this.addSyncStats( stats, response );
+				this.addSyncStats( stats, response, termIds.length );
 			} else if (
 				step.type === 'comment' ||
 				step.type === 'woo_review'
 			) {
+				const commentType = step.type === 'woo_review' ? 'review' : '';
+				const commentIds =
+					direction === 'pull'
+						? await this.getRemoteCommentIds( siteId, commentType )
+						: await this.getLocalCommentIds( commentType );
+				if ( ! commentIds.length ) {
+					this.log( `No ${ step.label } found, skipping.` );
+					await this.updateParent(
+						i + 1,
+						syncSteps.length,
+						'processing'
+					);
+					continue;
+				}
 				const response = await Utils.ajax(
 					`content_sync_${ direction }_comments`,
-					{ site_id: siteId }
+					{
+						site_id: siteId,
+						comment_ids: commentIds,
+						comment_type: commentType,
+						migration: true,
+						post_mapping: '{}',
+					}
 				);
-				this.addSyncStats( stats, response );
+				this.addSyncStats( stats, response, commentIds.length );
 			} else if (
 				[ 'post', 'page', 'custom_post_types', 'woo_product' ].includes(
 					step.type
@@ -611,7 +694,7 @@ const SiteMigration = {
 					this.log( `No ${ step.label } found, skipping.` );
 					await this.updateParent(
 						i + 1,
-						steps.length,
+						syncSteps.length,
 						'processing'
 					);
 					continue;
@@ -626,10 +709,18 @@ const SiteMigration = {
 					}
 				);
 				this.addSyncStats( stats, response, postIds.length );
+			} else if ( step.type === 'media' ) {
+				this.log(
+					'Media files will be synced by the existing content jobs when referenced.'
+				);
 			}
-			await this.updateParent( i + 1, steps.length, 'processing' );
+			await this.updateParent( i + 1, syncSteps.length, 'processing' );
 		}
-		await this.updateParent( steps.length, steps.length, 'completed' );
+		await this.updateParent(
+			syncSteps.length,
+			syncSteps.length,
+			'completed'
+		);
 		this.completeSync( stats );
 	},
 
@@ -640,15 +731,140 @@ const SiteMigration = {
 		return response.ids || [];
 	},
 
-	async getRemotePostIds( siteId, postType ) {
-		const response = await Utils.ajax( 'content_sync_get_remote_posts', {
-			site_id: siteId,
-			post_type: postType,
-			per_page: 500,
+	async getLocalTermIds( taxonomy ) {
+		const response = await Utils.ajax( 'migration_get_local_term_ids', {
+			taxonomy,
 		} );
-		return ( response.posts || [] )
-			.map( ( post ) => post.ID || post.id )
-			.filter( Boolean );
+		return response.ids || [];
+	},
+
+	async getLocalCommentIds( commentType = '' ) {
+		const response = await Utils.ajax( 'migration_get_local_comment_ids', {
+			comment_type: commentType,
+		} );
+		return response.ids || [];
+	},
+
+	async getLocalUserIds() {
+		const response = await Utils.ajax( 'migration_get_local_user_ids' );
+		return response.ids || [];
+	},
+
+	async getRemotePostIds( siteId, postType ) {
+		const ids = [];
+		let page = 1;
+		let pages = 1;
+		do {
+			const response = await Utils.ajax(
+				'content_sync_get_remote_posts',
+				{
+					site_id: siteId,
+					post_type: postType,
+					page,
+					per_page: 100,
+				}
+			);
+			ids.push(
+				...( response.posts || [] )
+					.map( ( post ) => post.ID || post.id )
+					.filter( Boolean )
+			);
+			pages = parseInt( response.pages || page, 10 );
+			page++;
+		} while ( page <= pages );
+
+		return ids;
+	},
+
+	async getRemoteTermIds( siteId, taxonomy ) {
+		const ids = [];
+		let page = 1;
+		let pages = 1;
+		do {
+			const response = await Utils.ajax(
+				'content_sync_get_remote_terms',
+				{
+					site_id: siteId,
+					taxonomy,
+					page,
+					per_page: 100,
+				}
+			);
+			const terms = response.terms || [];
+			ids.push(
+				...terms
+					.map( ( term ) => term.term_id || term.id )
+					.filter( Boolean )
+			);
+			pages = parseInt(
+				response.pages || response.total_pages || page,
+				10
+			);
+			if (
+				! response.pages &&
+				! response.total_pages &&
+				terms.length >= 100
+			) {
+				pages = page + 1;
+			}
+			page++;
+		} while ( page <= pages );
+
+		return ids;
+	},
+
+	async getRemoteCommentIds( siteId, commentType = '' ) {
+		const ids = [];
+		let page = 1;
+		let pages = 1;
+		do {
+			const response = await Utils.ajax(
+				'content_sync_get_remote_comments',
+				{
+					site_id: siteId,
+					comment_type: commentType,
+					page,
+					per_page: 100,
+				}
+			);
+			ids.push(
+				...( response.comments || [] )
+					.map( ( comment ) => comment.comment_ID || comment.id )
+					.filter( Boolean )
+			);
+			pages = parseInt(
+				response.pages || response.total_pages || page,
+				10
+			);
+			page++;
+		} while ( page <= pages );
+
+		return ids;
+	},
+
+	async getRemoteUserIds( siteId ) {
+		const ids = [];
+		let page = 1;
+		let pages = 1;
+		do {
+			const response = await Utils.ajax( 'pro_sync_get_remote_users', {
+				site_id: siteId,
+				page,
+				per_page: 100,
+			} );
+			ids.push(
+				...( response.users || [] )
+					.map( ( user ) => user.ID || user.id )
+					.filter( Boolean )
+			);
+			pages = parseInt(
+				response.pages || response.total_pages || page,
+				10
+			);
+			page++;
+		} while ( page <= pages );
+
+		return ids;
 	},
 
 	getUniqueField( type, headers ) {
@@ -725,12 +941,8 @@ const SiteMigration = {
 			filesValue: stats.filesCount || 0,
 			itemsLabel: 'Imported Items',
 			itemsValue: stats.success || 0,
-			extraLabel: stats.replaceLinks
-				? 'URLs Replaced'
-				: 'ACF References Fixed',
-			extraValue: stats.replaceLinks
-				? stats.replacedUrls || 0
-				: stats.repairedReferences || 0,
+			extraLabel: 'URLs Replaced',
+			extraValue: stats.replaceLinks ? stats.replacedUrls || 0 : 0,
 			logMessage: 'Migration import completed.',
 			showDownload: false,
 		} );
@@ -740,7 +952,7 @@ const SiteMigration = {
 		this.completeMigrationResult( {
 			title: 'Migration Sync Completed Successfully!',
 			subtitle:
-				'Your full-site migration data has been synced through the connected site.',
+				'Your content migration data has been synced through the connected site.',
 			filesLabel: 'Synced Types',
 			filesValue: stats.typesCount || 0,
 			itemsLabel: 'Synced Items',
@@ -788,7 +1000,7 @@ const SiteMigration = {
 		this.completeMigrationResult( {
 			title: 'Migration Package Ready!',
 			subtitle:
-				'Your full-site migration export has been packaged and is ready to download.',
+				'Your content migration export has been packaged and is ready to download.',
 			filesLabel: 'Export Files',
 			filesValue: stats.filesCount || 0,
 			itemsLabel: 'Exported Items',
