@@ -55,6 +55,6 @@ jQuery( document ).ready( function ( $ ) {
 	// Initialize schedules page controls.
 	SchedulesModule.init();
 
-	// Initialize full site migration wizard.
+	// Initialize content migration wizard.
 	SiteMigrationModule.init();
 } );
