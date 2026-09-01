@@ -1563,7 +1563,6 @@ class Init {
 					'<p>' . esc_html__( 'Need help with Import Export by RockStarLab? These resources can help you get started and learn common workflows.', 'import-export-by-rockstarlab' ) . '</p>' .
 					'<ul>' .
 						'<li><a href="https://wpimportexport.com/import-export-video-tutorials-for-wordpress/" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Video Tutorials', 'import-export-by-rockstarlab' ) . '</a></li>' .
-						'<li><a href="https://wpimportexport.com/docs/" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Documentation', 'import-export-by-rockstarlab' ) . '</a></li>' .
 					'</ul>',
 			)
 		);
