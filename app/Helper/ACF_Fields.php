@@ -1261,9 +1261,33 @@ class ACF_Fields {
 		}
 
 		if ( $source_attachment_id > 0 ) {
-			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', absint( $source_attachment_id ) );
-			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', absint( $source_attachment_id ) );
+			self::add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_source_attachment_id', absint( $source_attachment_id ) );
+			self::add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_original_attachment_id', absint( $source_attachment_id ) );
 		}
+	}
+
+	/**
+	 * Store an attachment source mapping without overwriting existing mappings.
+	 *
+	 * @param int    $attachment_id Local attachment ID.
+	 * @param string $meta_key      Source mapping meta key.
+	 * @param int    $source_id     Source attachment ID.
+	 * @return void
+	 */
+	private static function add_unique_attachment_source_meta( int $attachment_id, string $meta_key, int $source_id ): void {
+		$attachment_id = absint( $attachment_id );
+		$source_id     = absint( $source_id );
+
+		if ( $attachment_id <= 0 || $source_id <= 0 ) {
+			return;
+		}
+
+		$existing_values = array_map( 'absint', (array) get_post_meta( $attachment_id, $meta_key, false ) );
+		if ( in_array( $source_id, $existing_values, true ) ) {
+			return;
+		}
+
+		add_post_meta( $attachment_id, $meta_key, $source_id, false );
 	}
 
 	/**

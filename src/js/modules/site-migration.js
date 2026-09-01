@@ -710,9 +710,45 @@ const SiteMigration = {
 				);
 				this.addSyncStats( stats, response, postIds.length );
 			} else if ( step.type === 'media' ) {
-				this.log(
-					'Media files will be synced by the existing content jobs when referenced.'
-				);
+				const mediaIds =
+					direction === 'pull'
+						? await this.getRemoteMediaIds( siteId )
+						: await this.getLocalMediaIds();
+				if ( ! mediaIds.length ) {
+					this.log( `No ${ step.label } found, skipping.` );
+					await this.updateParent(
+						i + 1,
+						syncSteps.length,
+						'processing'
+					);
+					continue;
+				}
+				const chunks = this.chunkArray( mediaIds, 10 );
+				for (
+					let chunkIndex = 0;
+					chunkIndex < chunks.length;
+					chunkIndex++
+				) {
+					const currentChunk = chunks[ chunkIndex ];
+					const from = chunkIndex * 10 + 1;
+					const to = Math.min(
+						from + currentChunk.length - 1,
+						mediaIds.length
+					);
+					this.log(
+						`${ direction === 'pull' ? 'Pulling' : 'Pushing' } ${
+							step.label
+						}: ${ from }-${ to } of ${ mediaIds.length }...`
+					);
+					const response = await Utils.ajax(
+						`pro_sync_${ direction }_media`,
+						{
+							site_id: siteId,
+							media_ids: currentChunk,
+						}
+					);
+					this.addSyncStats( stats, response, currentChunk.length );
+				}
 			}
 			await this.updateParent( i + 1, syncSteps.length, 'processing' );
 		}
@@ -729,6 +765,10 @@ const SiteMigration = {
 			post_type: postType,
 		} );
 		return response.ids || [];
+	},
+
+	async getLocalMediaIds() {
+		return this.getLocalPostIds( 'attachment' );
 	},
 
 	async getLocalTermIds( taxonomy ) {
@@ -774,6 +814,37 @@ const SiteMigration = {
 		} while ( page <= pages );
 
 		return ids;
+	},
+
+	async getRemoteMediaIds( siteId ) {
+		const ids = [];
+		let page = 1;
+		let pages = 1;
+		do {
+			const response = await Utils.ajax( 'pro_sync_get_remote_media', {
+				site_id: siteId,
+				page,
+			} );
+			const media = response.media || [];
+			ids.push(
+				...media.map( ( item ) => item.ID || item.id ).filter( Boolean )
+			);
+			pages = parseInt(
+				response.pages || response.total_pages || page,
+				10
+			);
+			page++;
+		} while ( page <= pages );
+
+		return ids;
+	},
+
+	chunkArray( items, size ) {
+		const chunks = [];
+		for ( let i = 0; i < items.length; i += size ) {
+			chunks.push( items.slice( i, i + size ) );
+		}
+		return chunks;
 	},
 
 	async getRemoteTermIds( siteId, taxonomy ) {

@@ -1889,11 +1889,11 @@ class Content_Sync_API_Controller {
 		// Store file hash for future lookups
 		\RockStarLab\ImportExport\Helper\Media_Hash::store_attachment_hash( $attachment_id, $file_hash, $file_path );
 		if ( $source_attachment_id > 0 ) {
-			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
-			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
 		}
 		if ( $source_origin_id > 0 ) {
-			update_post_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
 		}
 
 		return new \WP_REST_Response(
@@ -1925,13 +1925,37 @@ class Content_Sync_API_Controller {
 		}
 
 		if ( $source_attachment_id > 0 ) {
-			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
-			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
 		}
 
 		if ( $source_origin_id > 0 ) {
-			update_post_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
 		}
+	}
+
+	/**
+	 * Store an attachment source mapping without overwriting existing mappings.
+	 *
+	 * @param int    $attachment_id Local attachment ID.
+	 * @param string $meta_key      Source mapping meta key.
+	 * @param int    $source_id     Source attachment ID.
+	 * @return void
+	 */
+	private function add_unique_attachment_source_meta( $attachment_id, $meta_key, $source_id ) {
+		$attachment_id = absint( $attachment_id );
+		$source_id     = absint( $source_id );
+
+		if ( $attachment_id <= 0 || $source_id <= 0 ) {
+			return;
+		}
+
+		$existing_values = array_map( 'absint', (array) get_post_meta( $attachment_id, $meta_key, false ) );
+		if ( in_array( $source_id, $existing_values, true ) ) {
+			return;
+		}
+
+		add_post_meta( $attachment_id, $meta_key, $source_id, false );
 	}
 
 	/**
