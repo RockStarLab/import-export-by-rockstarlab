@@ -73,7 +73,7 @@ class Init {
 	private $content_sync_controller;
 
 	/**
-	 * Content Migration Controller
+	 * Site Migration Controller
 	 *
 	 * @var Site_Migration_Controller
 	 */
@@ -1563,6 +1563,7 @@ class Init {
 					'<p>' . esc_html__( 'Need help with Import Export by RockStarLab? These resources can help you get started and learn common workflows.', 'import-export-by-rockstarlab' ) . '</p>' .
 					'<ul>' .
 						'<li><a href="https://wpimportexport.com/import-export-video-tutorials-for-wordpress/" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Video Tutorials', 'import-export-by-rockstarlab' ) . '</a></li>' .
+						'<li><a href="https://wpimportexport.com/docs/" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Documentation', 'import-export-by-rockstarlab' ) . '</a></li>' .
 					'</ul>',
 			)
 		);
@@ -1638,8 +1639,8 @@ class Init {
 
 		add_submenu_page(
 			'import-export-by-rockstarlab',
-			__( 'Content Migration', 'import-export-by-rockstarlab' ),
-			__( 'Content Migration', 'import-export-by-rockstarlab' ),
+			__( 'Site Migration', 'import-export-by-rockstarlab' ),
+			__( 'Site migration', 'import-export-by-rockstarlab' ),
 			'manage_options',
 			'rsl-ie-site-migration',
 			array( $this, 'display_site_migration_page' )
@@ -1735,7 +1736,7 @@ class Init {
 	}
 
 	/**
-	 * Display Content Migration page.
+	 * Display Site Migration page.
 	 */
 	function display_site_migration_page() {
 		rsl_ie()->View->load( 'settings/site_migration' );

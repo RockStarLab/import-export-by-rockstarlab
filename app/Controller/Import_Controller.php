@@ -589,6 +589,7 @@ class Import_Controller extends Base_Controller {
 			// Post-import fixups for relationship fields (best-effort).
 			$this->fix_post_parent_relationships( $job_id, $prepared_data );
 			$this->fix_acf_media_relationships( $prepared_data );
+			$this->fix_acf_taxonomy_relationships( $prepared_data );
 			$this->fix_acf_post_reference_relationships( $prepared_data );
 			$this->fix_comment_parent_relationships( $job_id, $prepared_data );
 			$this->fix_term_parent_relationships( $job_id, $prepared_data );
@@ -1215,6 +1216,90 @@ class Import_Controller extends Base_Controller {
 				$source_id
 			);
 		}
+	}
+
+	/**
+	 * Re-save ACF taxonomy fields with local term IDs after a file import.
+	 *
+	 * @param array $prepared_data Prepared imported rows.
+	 * @return void
+	 */
+	private function fix_acf_taxonomy_relationships( $prepared_data ) {
+		if ( empty( $prepared_data ) || ! is_array( $prepared_data ) || ! class_exists( '\RockStarLab\ImportExport\Helper\Content_Sync_Replacer' ) ) {
+			return;
+		}
+
+		$term_id_map = $this->build_imported_term_id_map();
+		if ( empty( $term_id_map ) ) {
+			return;
+		}
+
+		foreach ( $prepared_data as $row ) {
+			$source_id = isset( $row['_rsl_ie_source_id'] ) ? absint( $row['_rsl_ie_source_id'] ) : absint( $row['ID'] ?? 0 );
+			if ( $source_id <= 0 ) {
+				continue;
+			}
+
+			$post_id = $this->find_imported_post_by_source_id( $source_id );
+			if ( $post_id <= 0 ) {
+				continue;
+			}
+
+			$raw_meta = get_post_meta( $post_id );
+			if ( empty( $raw_meta ) || ! is_array( $raw_meta ) ) {
+				continue;
+			}
+
+			$meta = [];
+			foreach ( $raw_meta as $key => $values ) {
+				if ( ! is_array( $values ) || ! array_key_exists( 0, $values ) ) {
+					continue;
+				}
+				$meta[ $key ] = maybe_unserialize( $values[0] );
+			}
+
+			\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::translate_acf_taxonomy_fields_in_meta(
+				$meta,
+				$post_id,
+				$term_id_map
+			);
+		}
+	}
+
+	/**
+	 * Build a source-site term ID => local term ID map from imported term metadata.
+	 *
+	 * @return array<int,int>
+	 */
+	private function build_imported_term_id_map() {
+		global $wpdb;
+
+		$keys         = array( '_aie_source_term_id', '_rsl_ie_source_term_id', '_rsl_ie_original_term_id', '_rsl_ie_source_id' );
+		$placeholders = implode( ', ', array_fill( 0, count( $keys ), '%s' ) );
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Placeholder list is generated from a fixed local array.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT term_id, meta_value FROM {$wpdb->termmeta} WHERE meta_key IN ({$placeholders})",
+				$keys
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		if ( empty( $rows ) ) {
+			return [];
+		}
+
+		$map = [];
+		foreach ( $rows as $row ) {
+			$source_id = absint( $row->meta_value ?? 0 );
+			$target_id = absint( $row->term_id ?? 0 );
+			if ( $source_id > 0 && $target_id > 0 && get_term( $target_id ) ) {
+				$map[ $source_id ] = $target_id;
+			}
+		}
+
+		return $map;
 	}
 
 	/**

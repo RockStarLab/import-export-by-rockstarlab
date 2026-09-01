@@ -1,8 +1,8 @@
 <?php
 /**
- * Content Migration Controller
+ * Site Migration Controller
  *
- * Orchestrates content migration jobs while reusing existing import/export/sync jobs.
+ * Orchestrates full-site migration jobs while reusing existing import/export/sync jobs.
  *
  * @package RockStarLab\ImportExport\Controller
  */
@@ -21,34 +21,17 @@ class Site_Migration_Controller extends Base_Controller {
 
 	protected function get_ajax_actions() {
 		return array(
-			'migration_get_plan'              => array( 'callback' => 'get_plan' ),
-			'migration_dismiss_intro_notice'  => array( 'callback' => 'dismiss_intro_notice' ),
-			'migration_start'                 => array( 'callback' => 'start_migration' ),
-			'migration_update'                => array( 'callback' => 'update_migration' ),
-			'migration_package_exports'       => array( 'callback' => 'package_exports' ),
-			'migration_upload_package'        => array( 'callback' => 'upload_package' ),
-			'migration_get_file_headers'      => array( 'callback' => 'get_file_headers' ),
-			'migration_get_local_post_ids'    => array( 'callback' => 'get_local_post_ids' ),
-			'migration_get_local_term_ids'    => array( 'callback' => 'get_local_term_ids' ),
-			'migration_get_local_comment_ids' => array( 'callback' => 'get_local_comment_ids' ),
-			'migration_get_local_user_ids'    => array( 'callback' => 'get_local_user_ids' ),
-			'migration_get_download_url'      => array( 'callback' => 'get_download_url' ),
-			'migration_secure_download'       => array( 'callback' => 'secure_download' ),
+			'migration_get_plan'           => array( 'callback' => 'get_plan' ),
+			'migration_start'              => array( 'callback' => 'start_migration' ),
+			'migration_update'             => array( 'callback' => 'update_migration' ),
+			'migration_package_exports'    => array( 'callback' => 'package_exports' ),
+			'migration_upload_package'     => array( 'callback' => 'upload_package' ),
+			'migration_finalize_import'    => array( 'callback' => 'finalize_import' ),
+			'migration_get_file_headers'   => array( 'callback' => 'get_file_headers' ),
+			'migration_get_local_post_ids' => array( 'callback' => 'get_local_post_ids' ),
+			'migration_get_download_url'   => array( 'callback' => 'get_download_url' ),
+			'migration_secure_download'    => array( 'callback' => 'secure_download' ),
 		);
-	}
-
-	public function dismiss_intro_notice() {
-		$verification = $this->verify_request();
-		if ( is_wp_error( $verification ) ) {
-			$this->send_error( $verification, null, 403 );
-		}
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			$this->send_error( __( 'You do not have permission to perform this action', 'import-export-by-rockstarlab' ), null, 403 );
-		}
-
-		update_user_meta( get_current_user_id(), 'rsl_ie_dismiss_content_migration_intro', 1 );
-		$this->send_success( array( 'dismissed' => true ) );
 	}
 
 	public function get_plan() {
@@ -96,7 +79,7 @@ class Site_Migration_Controller extends Base_Controller {
 
 		$job_id = rsl_ie()->Model->job->create(
 			array(
-				'job_name'    => __( 'Content Migration', 'import-export-by-rockstarlab' ),
+				'job_name'    => __( 'Full site migration', 'import-export-by-rockstarlab' ),
 				'type'        => $type,
 				'data_type'   => 'site_migration',
 				'file_format' => 'zip',
@@ -325,6 +308,136 @@ class Site_Migration_Controller extends Base_Controller {
 		$this->send_success( array( 'steps' => $steps ) );
 	}
 
+	public function finalize_import() {
+		$verification = $this->verify_request();
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+		}
+
+		if ( ! function_exists( 'acf_get_field' ) || ! class_exists( '\RockStarLab\ImportExport\Helper\Content_Sync_Replacer' ) ) {
+			$this->send_success( array( 'repaired' => 0 ) );
+		}
+
+		$post_ids = get_posts(
+			array(
+				'post_type'              => 'any',
+				'post_status'            => 'any',
+				'posts_per_page'         => -1,
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'cache_results'          => false,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'meta_query'             => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Migration final repair needs exact source-id lookup.
+					'relation' => 'OR',
+					array(
+						'key'     => '_rsl_ie_source_post_id',
+						'compare' => 'EXISTS',
+					),
+					array(
+						'key'     => '_rsl_ie_source_id',
+						'compare' => 'EXISTS',
+					),
+					array(
+						'key'     => '_rsl_ie_original_post_id',
+						'compare' => 'EXISTS',
+					),
+				),
+			)
+		);
+
+		$term_id_map = $this->build_imported_term_id_map();
+		$repaired    = 0;
+		foreach ( $post_ids as $post_id ) {
+			$post_id   = absint( $post_id );
+			$source_id = absint( get_post_meta( $post_id, '_rsl_ie_source_post_id', true ) );
+			if ( $source_id <= 0 ) {
+				$source_id = absint( get_post_meta( $post_id, '_rsl_ie_source_id', true ) );
+			}
+			if ( $source_id <= 0 ) {
+				$source_id = absint( get_post_meta( $post_id, '_rsl_ie_original_post_id', true ) );
+			}
+			if ( $source_id <= 0 ) {
+				continue;
+			}
+
+			$raw_meta = get_post_meta( $post_id );
+			if ( empty( $raw_meta ) || ! is_array( $raw_meta ) ) {
+				continue;
+			}
+
+			$before = wp_json_encode( $raw_meta );
+			$meta   = array();
+			foreach ( $raw_meta as $key => $values ) {
+				if ( ! is_array( $values ) || ! array_key_exists( 0, $values ) ) {
+					continue;
+				}
+				$meta[ $key ] = maybe_unserialize( $values[0] );
+			}
+
+			\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::translate_acf_post_reference_fields_in_meta(
+				$meta,
+				$post_id,
+				$source_id
+			);
+
+			if ( ! empty( $term_id_map ) ) {
+				\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::translate_acf_taxonomy_fields_in_meta(
+					$meta,
+					$post_id,
+					$term_id_map
+				);
+			}
+
+			if ( wp_json_encode( get_post_meta( $post_id ) ) !== $before ) {
+				++$repaired;
+			}
+		}
+
+		$this->send_success( array( 'repaired' => $repaired ) );
+	}
+
+	/**
+	 * Build a source-site term ID => local term ID map from imported term metadata.
+	 *
+	 * @return array<int,int>
+	 */
+	private function build_imported_term_id_map() {
+		global $wpdb;
+
+		$keys = array(
+			'_aie_source_term_id',
+			'_rsl_ie_source_term_id',
+			'_rsl_ie_original_term_id',
+			'_rsl_ie_source_id',
+		);
+
+		$placeholders = implode( ', ', array_fill( 0, count( $keys ), '%s' ) );
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Placeholder list is generated from a fixed local array.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT term_id, meta_value FROM {$wpdb->termmeta} WHERE meta_key IN ({$placeholders})",
+				$keys
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		if ( empty( $rows ) ) {
+			return array();
+		}
+
+		$map = array();
+		foreach ( $rows as $row ) {
+			$source_id = absint( $row->meta_value ?? 0 );
+			$target_id = absint( $row->term_id ?? 0 );
+			if ( $source_id > 0 && $target_id > 0 && get_term( $target_id ) ) {
+				$map[ $source_id ] = $target_id;
+			}
+		}
+
+		return $map;
+	}
+
 	public function get_download_url() {
 		$verification = $this->verify_request();
 		if ( is_wp_error( $verification ) ) {
@@ -402,78 +515,6 @@ class Site_Migration_Controller extends Base_Controller {
 		$this->send_success( array( 'ids' => array_values( array_map( 'absint', $ids ) ) ) );
 	}
 
-	public function get_local_term_ids() {
-		$verification = $this->verify_request();
-		if ( is_wp_error( $verification ) ) {
-			$this->send_error( $verification, null, 403 );
-		}
-
-		$taxonomy = sanitize_key( (string) $this->get_request_param( 'taxonomy', '' ) );
-		if ( '' === $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
-			$this->send_error( __( 'Invalid taxonomy.', 'import-export-by-rockstarlab' ), null, 400 );
-		}
-
-		$terms = get_terms(
-			array(
-				'taxonomy'   => $taxonomy,
-				'hide_empty' => false,
-				'fields'     => 'ids',
-				'orderby'    => 'id',
-				'order'      => 'ASC',
-			)
-		);
-
-		if ( is_wp_error( $terms ) ) {
-			$this->send_error( $terms, null, 400 );
-		}
-
-		$this->send_success( array( 'ids' => array_values( array_map( 'absint', $terms ) ) ) );
-	}
-
-	public function get_local_comment_ids() {
-		$verification = $this->verify_request();
-		if ( is_wp_error( $verification ) ) {
-			$this->send_error( $verification, null, 403 );
-		}
-
-		$comment_type = sanitize_key( (string) $this->get_request_param( 'comment_type', '' ) );
-		$args         = array(
-			'status'  => 'all',
-			'orderby' => 'comment_ID',
-			'order'   => 'ASC',
-			'number'  => 0,
-			'fields'  => 'ids',
-		);
-
-		if ( 'review' === $comment_type ) {
-			$args['type'] = 'review';
-		} elseif ( '' !== $comment_type ) {
-			$args['type'] = $comment_type;
-		} else {
-			$args['type__not_in'] = array( 'review' );
-		}
-
-		$ids = get_comments( $args );
-		$this->send_success( array( 'ids' => array_values( array_map( 'absint', is_array( $ids ) ? $ids : array() ) ) ) );
-	}
-
-	public function get_local_user_ids() {
-		$verification = $this->verify_request();
-		if ( is_wp_error( $verification ) ) {
-			$this->send_error( $verification, null, 403 );
-		}
-
-		$ids = get_users(
-			array(
-				'fields'  => 'ID',
-				'orderby' => 'ID',
-				'order'   => 'ASC',
-			)
-		);
-
-		$this->send_success( array( 'ids' => array_values( array_map( 'absint', is_array( $ids ) ? $ids : array() ) ) ) );
-	}
-
 	public function secure_download() {
 		$job_id = isset( $_GET['job_id'] ) ? absint( wp_unslash( $_GET['job_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$nonce  = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -501,12 +542,12 @@ class Site_Migration_Controller extends Base_Controller {
 	private function get_available_steps() {
 		$order  = array(
 			'user'              => '01-users',
-			'woo_attribute'     => '02-woo-attributes',
+			'media'             => '02-media',
 			'taxonomy'          => '03-taxonomies',
-			'media'             => '04-media',
-			'post'              => '05-posts',
-			'page'              => '06-pages',
-			'custom_post_types' => '07-custom-post-types',
+			'post'              => '04-posts',
+			'page'              => '05-pages',
+			'custom_post_types' => '06-custom-post-types',
+			'woo_attribute'     => '07-woo-attributes',
 			'woo_product'       => '08-woo-products',
 			'woo_coupon'        => '09-woo-coupons',
 			'woo_customer'      => '10-woo-customers',
