@@ -1184,6 +1184,7 @@ class Post_Importer extends Abstract_Importer {
 		$skip_meta_key_patterns  = [];
 		$skip_meta_keys          = [];
 		$do_not_skip_nested_keys = [];
+		$preserve_acf_ref_keys   = [];
 		if ( $has_acf && is_array( $acf_keys ) ) {
 			foreach ( array_keys( $acf_keys ) as $acf_field_name ) {
 				// If ACF can't resolve the field on this site, don't skip anything:
@@ -1241,6 +1242,27 @@ class Post_Importer extends Abstract_Importer {
 						$sub_fields = array_map( fn( $n ) => [ 'name' => $n ], (array) $db_field['sub_field_names'] );
 					}
 
+					$group_value = array_key_exists( $acf_field_name, $meta ) ? $meta[ $acf_field_name ] : null;
+					if ( is_string( $group_value ) && is_serialized( $group_value ) ) {
+						$group_value = maybe_unserialize( $group_value );
+					}
+
+					// ACF stores many group fields as an empty parent meta value plus
+					// separate {group}_{subfield} rows. In that native storage shape,
+					// update_field() on the empty parent cannot recreate the subfields.
+					$group_has_structured_value = is_array( $group_value ) && ! empty( $group_value );
+					if ( ! $group_has_structured_value ) {
+						if ( is_array( $sub_fields ) ) {
+							foreach ( $sub_fields as $sub ) {
+								if ( empty( $sub['name'] ) ) {
+									continue;
+								}
+								$preserve_acf_ref_keys[ $acf_field_name . '_' . $sub['name'] ] = true;
+							}
+						}
+						continue;
+					}
+
 					if ( is_array( $sub_fields ) ) {
 						foreach ( $sub_fields as $sub ) {
 							if ( empty( $sub['name'] ) ) {
@@ -1291,6 +1313,10 @@ class Post_Importer extends Abstract_Importer {
 			if ( $has_acf && is_string( $key ) && '' !== $key && '_' === $key[0] ) {
 				$plain = substr( $key, 1 );
 				if ( '' !== $plain && array_key_exists( $plain, $meta ) ) {
+					if ( ! empty( $preserve_acf_ref_keys[ $plain ] ) ) {
+						$this->update_imported_post_meta( $post_id, (string) $key, $value );
+						continue;
+					}
 					continue;
 				}
 			}

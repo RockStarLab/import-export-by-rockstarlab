@@ -14,7 +14,12 @@ const ProPromoModule = {
 			function ( e ) {
 				e.preventDefault();
 
-				jQuery( this ).closest( '.rsl-ie-pro-addon-card' ).hide();
+				jQuery( this )
+					.closest(
+						'.rsl-ie-pro-addon-card, .rsl-ie-pro-migration-note'
+					)
+					.data( 'hidden', true )
+					.hide();
 			}
 		);
 
@@ -31,7 +36,11 @@ const ProPromoModule = {
 
 				Utils.ajax( 'dismiss_pro_promo', { context } )
 					.then( function () {
-						$btn.closest( '.rsl-ie-pro-addon-card' ).hide();
+						$btn.closest(
+							'.rsl-ie-pro-addon-card, .rsl-ie-pro-migration-note'
+						)
+							.data( 'hidden', true )
+							.hide();
 					} )
 					.catch( function () {
 						$btn.prop( 'disabled', false );

@@ -4133,12 +4133,13 @@ class Content_Sync_Controller extends Base_Controller {
 	 * @return array
 	 */
 	private function replace_comment_acf_media_references( array $comments, $source_domain, $target_domain, array $image_map, array $image_sources ) {
-		if ( empty( $image_map ) ) {
-			return $comments;
-		}
-
 		foreach ( $comments as &$comment_data ) {
 			if ( isset( $comment_data['comment_content'] ) && is_string( $comment_data['comment_content'] ) ) {
+				$comment_data['comment_content'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_text_public(
+					$comment_data['comment_content'],
+					$source_domain,
+					$target_domain
+				);
 				$comment_data['comment_content'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
 					$comment_data['comment_content'],
 					$image_map,
@@ -4965,7 +4966,12 @@ class Content_Sync_Controller extends Base_Controller {
 	 */
 	private function replace_term_acf_media_references( array $terms, $source_domain, $target_domain, array $image_map, array $image_sources ) {
 		foreach ( $terms as &$term_info ) {
-			if ( isset( $term_info['description'] ) && is_string( $term_info['description'] ) && ! empty( $image_map ) ) {
+			if ( isset( $term_info['description'] ) && is_string( $term_info['description'] ) ) {
+				$term_info['description'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_text_public(
+					$term_info['description'],
+					$source_domain,
+					$target_domain
+				);
 				$term_info['description'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
 					$term_info['description'],
 					$image_map,
@@ -5054,6 +5060,12 @@ class Content_Sync_Controller extends Base_Controller {
 			if ( class_exists( ACF_Fields::class ) !== strpos( $value, '[[RSL_IE:' ) ) {
 				return ACF_Fields::replace_media_urls_in_html( $value );
 			}
+
+			$value = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_text_public(
+				$value,
+				$source_domain,
+				$target_domain
+			);
 
 			return \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
 				$value,
