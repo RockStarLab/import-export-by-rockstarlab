@@ -898,10 +898,10 @@ const JobsLogModule = {
 			content_sync_pull:
 				window.rslIeData.i18n.typeContentSyncPull ||
 				'Content Sync - Pull',
-			migration_export: 'Content Migration - Export File',
-			migration_import: 'Content Migration - Import File',
-			migration_sync_push: 'Content Migration - Sync Push',
-			migration_sync_pull: 'Content Migration - Sync Pull',
+			migration_export: 'Migration - Export File',
+			migration_import: 'Migration - Import File',
+			migration_sync_push: 'Migration - Sync Push',
+			migration_sync_pull: 'Migration - Sync Pull',
 		};
 		return labels[ type ] || type;
 	},
@@ -913,7 +913,7 @@ const JobsLogModule = {
 			page: 'Pages',
 			media: 'Media',
 			media_sync: 'Media Sync',
-			site_migration: 'Content Migration',
+			site_migration: 'Site Migration',
 			menu: 'Menus',
 			user: 'Users',
 			comment: 'Comments',

@@ -26,10 +26,10 @@ defined( 'ABSPATH' ) || exit;
 					<option value="export"><?php esc_html_e( 'Export', 'import-export-by-rockstarlab' ); ?></option>
 					<option value="content_sync_push"><?php esc_html_e( 'Content Sync - Push', 'import-export-by-rockstarlab' ); ?></option>
 					<option value="content_sync_pull"><?php esc_html_e( 'Content Sync - Pull', 'import-export-by-rockstarlab' ); ?></option>
-					<option value="migration_export"><?php esc_html_e( 'Content Migration - Export File', 'import-export-by-rockstarlab' ); ?></option>
-					<option value="migration_import"><?php esc_html_e( 'Content Migration - Import File', 'import-export-by-rockstarlab' ); ?></option>
-					<option value="migration_sync_push"><?php esc_html_e( 'Content Migration - Sync Push', 'import-export-by-rockstarlab' ); ?></option>
-					<option value="migration_sync_pull"><?php esc_html_e( 'Content Migration - Sync Pull', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="migration_export"><?php esc_html_e( 'Migration - Export File', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="migration_import"><?php esc_html_e( 'Migration - Import File', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="migration_sync_push"><?php esc_html_e( 'Migration - Sync Push', 'import-export-by-rockstarlab' ); ?></option>
+					<option value="migration_sync_pull"><?php esc_html_e( 'Migration - Sync Pull', 'import-export-by-rockstarlab' ); ?></option>
 				</select>
 			</div>
 

@@ -1,51 +1,22 @@
 <?php
 /**
- * Content Migration page.
+ * Site Migration page.
  *
  * @package RockStarLab\ImportExport\View
  */
 
 defined( 'ABSPATH' ) || exit;
-
-$rsl_ie_migration_pro_active      = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active();
-$rsl_ie_migration_promo_cta       = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_cta();
-$rsl_ie_migration_promo_dismissed = (bool) get_user_meta( get_current_user_id(), 'rsl_ie_dismiss_pro_promo_migration', true );
-$rsl_ie_migration_promo_features  = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_features( 'export' );
-$rsl_ie_migration_intro_dismissed = (bool) get_user_meta( get_current_user_id(), 'rsl_ie_dismiss_content_migration_intro', true );
 ?>
 
 <div id="rsl-ie-site-migration" class="import-export-by-rockstarlab wrap">
-	<h1><?php esc_html_e( 'Content Migration', 'import-export-by-rockstarlab' ); ?></h1>
+	<h1><?php esc_html_e( 'Site Migration', 'import-export-by-rockstarlab' ); ?></h1>
 
 	<div class="rsl-ie-migration-wizard">
 		<section class="rsl-ie-migration-step active" data-step="1">
 			<div class="rsl-ie-step-header">
 				<h2><?php esc_html_e( 'Choose migration method', 'import-export-by-rockstarlab' ); ?></h2>
+				<p><?php esc_html_e( 'Move the whole site through one export package or sync the data through a connected site. Attachments are referenced in the data package and can be pulled from the source site automatically, so you do not have to download gigabytes of media up front.', 'import-export-by-rockstarlab' ); ?></p>
 			</div>
-
-			<?php if ( ! $rsl_ie_migration_intro_dismissed ) : ?>
-				<div class="rsl-ie-migration-intro-notice">
-					<div class="rsl-ie-migration-intro-icon">
-						<span class="dashicons dashicons-info"></span>
-					</div>
-					<div class="rsl-ie-migration-intro-copy">
-						<?php if ( $rsl_ie_migration_pro_active ) : ?>
-							<p><?php esc_html_e( 'Move site content through one export package or sync the data through a connected site. This migrates content data such as users, posts, pages, custom post types, terms, comments, WooCommerce records, and media references. Site options, theme settings, Customizer values, widgets, templates, and other theme territory are not migrated.', 'import-export-by-rockstarlab' ); ?></p>
-						<?php else : ?>
-							<p><?php esc_html_e( 'Move site content through one export package or sync the data through a connected site. Without PRO, Content Migration migrates only posts, pages, and media. Site options, theme settings, Customizer values, widgets, templates, and other theme territory are not migrated.', 'import-export-by-rockstarlab' ); ?></p>
-						<?php endif; ?>
-						<div class="rsl-ie-migration-intro-actions">
-							<button type="button" class="button-link rsl-ie-migration-intro-hide">
-								<?php esc_html_e( 'Hide', 'import-export-by-rockstarlab' ); ?>
-							</button>
-							<span class="rsl-ie-migration-intro-dismiss-sep">·</span>
-							<button type="button" class="button-link rsl-ie-migration-intro-dismiss-forever">
-								<?php esc_html_e( "Don't show again", 'import-export-by-rockstarlab' ); ?>
-							</button>
-						</div>
-					</div>
-				</div>
-			<?php endif; ?>
 
 			<div class="rsl-ie-migration-choice-grid rsl-ie-migration-method-grid">
 				<label class="rsl-ie-migration-choice rsl-ie-migration-method-card">
@@ -67,49 +38,6 @@ $rsl_ie_migration_intro_dismissed = (bool) get_user_meta( get_current_user_id(),
 					<span class="rsl-ie-migration-card-check"><span class="dashicons dashicons-yes"></span></span>
 				</label>
 			</div>
-
-			<?php if ( ! $rsl_ie_migration_pro_active && ! $rsl_ie_migration_promo_dismissed ) : ?>
-				<div class="rsl-ie-pro-migration-note">
-					<div class="rsl-ie-pro-addon-header">
-						<div class="rsl-ie-pro-addon-icon">
-							<span class="dashicons dashicons-star-filled"></span>
-						</div>
-						<div class="rsl-ie-pro-addon-copy">
-							<h3><?php esc_html_e( 'Need more migration types? Buy PRO addon', 'import-export-by-rockstarlab' ); ?></h3>
-							<p><?php esc_html_e( 'Without PRO, Content Migration includes only posts, pages, and media. PRO adds more content types, including custom post types, users, taxonomy terms, and WooCommerce data when available.', 'import-export-by-rockstarlab' ); ?></p>
-						</div>
-					</div>
-
-					<?php if ( ! empty( $rsl_ie_migration_promo_features ) ) : ?>
-						<ul class="rsl-ie-pro-addon-features">
-							<?php foreach ( $rsl_ie_migration_promo_features as $rsl_ie_feature ) : ?>
-								<li>
-									<span class="dashicons dashicons-yes-alt"></span>
-									<div class="rsl-ie-pro-addon-feature-text">
-										<strong><?php echo esc_html( $rsl_ie_feature['title'] ?? '' ); ?></strong>
-										<span><?php echo esc_html( $rsl_ie_feature['description'] ?? '' ); ?></span>
-									</div>
-								</li>
-							<?php endforeach; ?>
-						</ul>
-					<?php endif; ?>
-
-					<div class="rsl-ie-pro-addon-actions">
-						<a href="<?php echo esc_url( $rsl_ie_migration_promo_cta['url'] ); ?>" class="button button-primary rsl-ie-pro-addon-cta">
-							<?php echo esc_html( $rsl_ie_migration_promo_cta['label'] ); ?>
-						</a>
-						<div class="rsl-ie-pro-addon-dismiss">
-							<button type="button" class="button-link rsl-ie-pro-addon-hide" data-context="migration">
-								<?php esc_html_e( 'Hide', 'import-export-by-rockstarlab' ); ?>
-							</button>
-							<span class="rsl-ie-pro-addon-dismiss-sep">·</span>
-							<button type="button" class="button-link rsl-ie-pro-addon-dismiss-forever" data-context="migration">
-								<?php esc_html_e( "Don't show again", 'import-export-by-rockstarlab' ); ?>
-							</button>
-						</div>
-					</div>
-				</div>
-			<?php endif; ?>
 
 			<div class="rsl-ie-sync-unavailable notice notice-warning" style="display:none;">
 				<p><?php esc_html_e( 'Content Sync is not configured yet. Add and test a remote site before using sync migration.', 'import-export-by-rockstarlab' ); ?></p>
@@ -144,7 +72,7 @@ $rsl_ie_migration_intro_dismissed = (bool) get_user_meta( get_current_user_id(),
 							<span class="dashicons dashicons-upload"></span>
 							<span>
 								<strong><?php esc_html_e( 'Upload export file', 'import-export-by-rockstarlab' ); ?></strong>
-								<small><?php esc_html_e( 'Import an existing content migration ZIP package.', 'import-export-by-rockstarlab' ); ?></small>
+								<small><?php esc_html_e( 'Import an existing site migration ZIP package.', 'import-export-by-rockstarlab' ); ?></small>
 							</span>
 						</span>
 						<span class="rsl-ie-migration-card-check"><span class="dashicons dashicons-yes"></span></span>
@@ -159,7 +87,7 @@ $rsl_ie_migration_intro_dismissed = (bool) get_user_meta( get_current_user_id(),
 							<?php esc_html_e( 'Select ZIP File', 'import-export-by-rockstarlab' ); ?>
 						</button>
 						<input type="file" id="rsl-ie-migration-file" accept=".zip" style="display:none;">
-						<p class="description"><?php esc_html_e( 'Upload a ZIP created by Content Migration export.', 'import-export-by-rockstarlab' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Upload a ZIP created by Site Migration export.', 'import-export-by-rockstarlab' ); ?></p>
 					</div>
 				</div>
 				<div class="rsl-ie-migration-file-info rsl-ie-file-info" style="display:none;">
@@ -217,7 +145,7 @@ $rsl_ie_migration_intro_dismissed = (bool) get_user_meta( get_current_user_id(),
 							<span class="dashicons dashicons-download"></span>
 							<span>
 								<strong><?php esc_html_e( 'Pull from remote site', 'import-export-by-rockstarlab' ); ?></strong>
-								<small><?php esc_html_e( 'Bring content migration data into this site.', 'import-export-by-rockstarlab' ); ?></small>
+								<small><?php esc_html_e( 'Bring full-site migration data into this site.', 'import-export-by-rockstarlab' ); ?></small>
 							</span>
 						</span>
 						<span class="rsl-ie-migration-card-check"><span class="dashicons dashicons-yes"></span></span>
@@ -228,7 +156,7 @@ $rsl_ie_migration_intro_dismissed = (bool) get_user_meta( get_current_user_id(),
 							<span class="dashicons dashicons-upload"></span>
 							<span>
 								<strong><?php esc_html_e( 'Push to remote site', 'import-export-by-rockstarlab' ); ?></strong>
-								<small><?php esc_html_e( 'Send content migration data to the connected site.', 'import-export-by-rockstarlab' ); ?></small>
+								<small><?php esc_html_e( 'Send full-site migration data to the connected site.', 'import-export-by-rockstarlab' ); ?></small>
 							</span>
 						</span>
 						<span class="rsl-ie-migration-card-check"><span class="dashicons dashicons-yes"></span></span>
@@ -270,7 +198,7 @@ $rsl_ie_migration_intro_dismissed = (bool) get_user_meta( get_current_user_id(),
 						<span class="dashicons dashicons-yes-alt"></span>
 					</div>
 					<h3 class="rsl-ie-complete-title rsl-ie-migration-complete-title"><?php esc_html_e( 'Migration Package Ready!', 'import-export-by-rockstarlab' ); ?></h3>
-					<p class="rsl-ie-complete-subtitle rsl-ie-migration-complete-subtitle"><?php esc_html_e( 'Your content migration export has been packaged and is ready to download.', 'import-export-by-rockstarlab' ); ?></p>
+					<p class="rsl-ie-complete-subtitle rsl-ie-migration-complete-subtitle"><?php esc_html_e( 'Your full-site migration export has been packaged and is ready to download.', 'import-export-by-rockstarlab' ); ?></p>
 
 					<div class="rsl-ie-results-grid">
 						<div class="rsl-ie-result-item">
