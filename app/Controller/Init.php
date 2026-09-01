@@ -73,6 +73,13 @@ class Init {
 	private $content_sync_controller;
 
 	/**
+	 * Site Migration Controller
+	 *
+	 * @var Site_Migration_Controller
+	 */
+	private $site_migration_controller;
+
+	/**
 	 * Content Sync API Controller
 	 *
 	 * @var Content_Sync_API_Controller
@@ -180,6 +187,9 @@ class Init {
 		$this->content_sync_controller = new Content_Sync_Controller();
 		$this->content_sync_controller->init();
 		$this->content_sync_controller->register_post_list_hooks();
+
+		$this->site_migration_controller = new Site_Migration_Controller();
+		$this->site_migration_controller->init();
 
 		// Initialize REST API controller (safe initialization)
 		try {
@@ -1480,6 +1490,7 @@ class Init {
 			'rsl-ie-import',
 			'rsl-ie-export',
 			'rsl-ie-content-sync',
+			'rsl-ie-site-migration',
 			'rsl-ie-content-updater',
 			'rsl-ie-jobs-log',
 			'rsl-ie-schedules',
@@ -1504,6 +1515,7 @@ class Init {
 				'import-export-by-rockstarlab_page_rsl-ie-import',
 				'import-export-by-rockstarlab_page_rsl-ie-export',
 				'admin_page_rsl-ie-export',
+				'import-export-by-rockstarlab_page_rsl-ie-site-migration',
 				'import-export-by-rockstarlab_page_rsl-ie-content-sync',
 				'import-export-by-rockstarlab_page_rsl-ie-content-updater',
 				'import-export-by-rockstarlab_page_rsl-ie-jobs-log',
@@ -1627,6 +1639,15 @@ class Init {
 
 		add_submenu_page(
 			'import-export-by-rockstarlab',
+			__( 'Site Migration', 'import-export-by-rockstarlab' ),
+			__( 'Site migration', 'import-export-by-rockstarlab' ),
+			'manage_options',
+			'rsl-ie-site-migration',
+			array( $this, 'display_site_migration_page' )
+		);
+
+		add_submenu_page(
+			'import-export-by-rockstarlab',
 			__( 'Media Sync', 'import-export-by-rockstarlab' ),
 			__( 'Media Sync', 'import-export-by-rockstarlab' ),
 			'manage_options',
@@ -1712,6 +1733,13 @@ class Init {
 	 */
 	function display_settings_export_page() {
 		rsl_ie()->View->load( 'settings/export' );
+	}
+
+	/**
+	 * Display Site Migration page.
+	 */
+	function display_site_migration_page() {
+		rsl_ie()->View->load( 'settings/site_migration' );
 	}
 
 	/**

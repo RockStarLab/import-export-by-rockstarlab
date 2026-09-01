@@ -71,7 +71,7 @@ class Database_Migration {
 			case 'update_type_enum':
 				return $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema migration for the plugin's custom jobs table.
 					$wpdb->prepare(
-						"ALTER TABLE %i MODIFY COLUMN type ENUM('import', 'export', 'content_sync_push', 'content_sync_pull') NOT NULL",
+						"ALTER TABLE %i MODIFY COLUMN type ENUM('import', 'export', 'content_sync_push', 'content_sync_pull', 'migration_export', 'migration_import', 'migration_sync_push', 'migration_sync_pull') NOT NULL",
 						$table_name
 					)
 				);
@@ -106,7 +106,7 @@ class Database_Migration {
 	 * Database version
 	 * Update this when schema changes
 	 */
-	const DB_VERSION = '1.4.2';
+	const DB_VERSION = '1.4.3';
 
 	/**
 	 * Database version option name
@@ -129,7 +129,7 @@ class Database_Migration {
             id BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             job_name VARCHAR(255),
             user_id BIGINT(20) UNSIGNED NOT NULL,
-            type ENUM('import', 'export', 'content_sync_push', 'content_sync_pull') NOT NULL,
+            type ENUM('import', 'export', 'content_sync_push', 'content_sync_pull', 'migration_export', 'migration_import', 'migration_sync_push', 'migration_sync_pull') NOT NULL,
             data_type VARCHAR(50) NOT NULL,
             file_format VARCHAR(10) NOT NULL,
             status ENUM('pending', 'processing', 'completed', 'failed', 'paused', 'cancelled') DEFAULT 'pending',
@@ -482,7 +482,7 @@ class Database_Migration {
 
 		if ( ! empty( $column_info ) ) {
 			$column_type = $column_info[0]->COLUMN_TYPE;
-			if ( strpos( $column_type, "'content_sync_push'" ) === false || strpos( $column_type, "'media_sync'" ) !== false || strpos( $column_type, "'update'" ) !== false ) {
+			if ( strpos( $column_type, "'migration_export'" ) === false || strpos( $column_type, "'content_sync_push'" ) === false || strpos( $column_type, "'media_sync'" ) !== false || strpos( $column_type, "'update'" ) !== false ) {
 				$wpdb->query( $wpdb->prepare( "UPDATE %i SET data_type = 'media_sync', type = 'import' WHERE type = 'media_sync'", $table_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Schema/data migration for plugin-owned jobs table.
 				$wpdb->query( $wpdb->prepare( "UPDATE %i SET data_type = 'content_update', type = 'import' WHERE type = 'update'", $table_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Schema/data migration for plugin-owned jobs table.
 				self::run_alter_table(

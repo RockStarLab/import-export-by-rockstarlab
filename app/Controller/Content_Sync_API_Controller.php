@@ -2548,6 +2548,11 @@ class Content_Sync_API_Controller {
 			$args = array();
 			if ( isset( $term_info['description'] ) ) {
 				$description = (string) $term_info['description'];
+				$description = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_text_public(
+					$description,
+					$source_domain,
+					$target_domain
+				);
 				if ( ! empty( $image_map ) ) {
 					$description = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
 						$description,
@@ -2732,6 +2737,12 @@ class Content_Sync_API_Controller {
 			if ( '' !== $mapped_url ) {
 				return $mapped_url;
 			}
+
+			$value = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_text_public(
+				$value,
+				$source_domain,
+				$target_domain
+			);
 
 			return \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
 				$value,
@@ -3292,12 +3303,13 @@ class Content_Sync_API_Controller {
 	 * @return array
 	 */
 	private function replace_comment_acf_media_references( array $comments, $source_domain, $target_domain, array $image_map, array $image_sources ) {
-		if ( empty( $image_map ) ) {
-			return $comments;
-		}
-
 		foreach ( $comments as &$comment_data ) {
 			if ( isset( $comment_data['comment_content'] ) && is_string( $comment_data['comment_content'] ) ) {
+				$comment_data['comment_content'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_text_public(
+					$comment_data['comment_content'],
+					$source_domain,
+					$target_domain
+				);
 				$comment_data['comment_content'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
 					$comment_data['comment_content'],
 					$image_map,
