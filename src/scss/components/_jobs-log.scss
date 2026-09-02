@@ -262,6 +262,15 @@
 				border: 1px solid #a5f3fc;
 			}
 
+			.job-type-migration_export,
+			.job-type-migration_import,
+			.job-type-migration_sync_push,
+			.job-type-migration_sync_pull {
+				background: #fce7f3;
+				color: #9d174d;
+				border: 1px solid #fbcfe8;
+			}
+
 			.job-status-pending {
 				background: #f3f4f6;
 				color: #4b5563;

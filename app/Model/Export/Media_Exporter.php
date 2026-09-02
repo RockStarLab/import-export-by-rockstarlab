@@ -10,6 +10,7 @@
 namespace RockStarLab\ImportExport\Model\Export;
 
 use RockStarLab\ImportExport\Helper\ACF_Fields;
+use RockStarLab\ImportExport\Helper\Media_Hash;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -75,6 +76,7 @@ class Media_Exporter extends Abstract_Exporter {
 			'path',
 			'filename',
 			'mime_type',
+			'file_hash',
 			'file_size',
 			'alt_text',
 			'caption',
@@ -109,6 +111,7 @@ class Media_Exporter extends Abstract_Exporter {
 			'url',
 			'filename',
 			'mime_type',
+			'file_hash',
 			'alt_text',
 			'caption',
 			'description',
@@ -1054,6 +1057,10 @@ class Media_Exporter extends Abstract_Exporter {
 
 		if ( in_array( 'mime_type', $fields, true ) ) {
 			$data['mime_type'] = get_post_mime_type( $attachment->ID );
+		}
+
+		if ( in_array( 'file_hash', $fields, true ) ) {
+			$data['file_hash'] = Media_Hash::get_or_create_hash( (int) $attachment->ID );
 		}
 
 		if ( in_array( 'file_size', $fields, true ) ) {

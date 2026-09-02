@@ -356,6 +356,7 @@ abstract class Base_Controller {
 			'name'     => sanitize_file_name( $file['name'] ),
 			'type'     => $file['type'],
 			'tmp_name' => $file['tmp_name'],
+			'error'    => (int) $file['error'],
 			'size'     => (int) $file['size'],
 		];
 	}

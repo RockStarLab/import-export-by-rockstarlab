@@ -1485,6 +1485,7 @@ class Content_Sync_Controller extends Base_Controller {
 		$comment_ids    = array_values( array_filter( array_unique( array_map( 'absint', $this->get_request_array( 'comment_ids', array() ) ) ) ) );
 		$target_post_id = absint( $this->get_request_param( 'target_post_id', 0 ) );
 		$comment_type   = sanitize_key( (string) $this->get_request_param( 'comment_type', '' ) );
+		$is_migration   = filter_var( $this->get_request_param( 'migration', false ), FILTER_VALIDATE_BOOLEAN );
 
 		if ( empty( $site_id ) ) {
 			$this->send_error( __( 'Site ID is required', 'import-export-by-rockstarlab' ) );
@@ -1494,7 +1495,7 @@ class Content_Sync_Controller extends Base_Controller {
 			$this->send_error( __( 'No comments selected.', 'import-export-by-rockstarlab' ) );
 		}
 
-		if ( $target_post_id <= 0 ) {
+		if ( $target_post_id <= 0 && ! $is_migration ) {
 			$this->send_error( __( 'Please select a destination post on the remote site before pushing comments.', 'import-export-by-rockstarlab' ) );
 		}
 
@@ -1534,6 +1535,7 @@ class Content_Sync_Controller extends Base_Controller {
 				'image_map'      => $image_map,
 				'image_sources'  => $image_sources,
 				'target_post_id' => $target_post_id,
+				'post_mapping'   => array(),
 			),
 			60
 		);
@@ -3505,11 +3507,11 @@ class Content_Sync_Controller extends Base_Controller {
 		// Always store the actual hash (covers missing file_hash in request).
 		\RockStarLab\ImportExport\Helper\Media_Hash::store_attachment_hash( $attachment_id, $actual_hash, $upload['file'] );
 		if ( $source_attachment_id > 0 ) {
-			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
-			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
 		}
 		if ( $source_origin_id > 0 ) {
-			update_post_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
 		}
 		$this->apply_synced_attachment_content_fields( (int) $attachment_id, $image, $image_map, $image_sources );
 
@@ -3534,13 +3536,37 @@ class Content_Sync_Controller extends Base_Controller {
 		}
 
 		if ( $source_attachment_id > 0 ) {
-			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
-			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
 		}
 
 		if ( $source_origin_id > 0 ) {
-			update_post_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
 		}
+	}
+
+	/**
+	 * Store an attachment source mapping without overwriting existing mappings.
+	 *
+	 * @param int    $attachment_id Local attachment ID.
+	 * @param string $meta_key      Source mapping meta key.
+	 * @param int    $source_id     Source attachment ID.
+	 * @return void
+	 */
+	private function add_unique_attachment_source_meta( $attachment_id, $meta_key, $source_id ) {
+		$attachment_id = absint( $attachment_id );
+		$source_id     = absint( $source_id );
+
+		if ( $attachment_id <= 0 || $source_id <= 0 ) {
+			return;
+		}
+
+		$existing_values = array_map( 'absint', (array) get_post_meta( $attachment_id, $meta_key, false ) );
+		if ( in_array( $source_id, $existing_values, true ) ) {
+			return;
+		}
+
+		add_post_meta( $attachment_id, $meta_key, $source_id, false );
 	}
 
 	/**
@@ -4133,12 +4159,13 @@ class Content_Sync_Controller extends Base_Controller {
 	 * @return array
 	 */
 	private function replace_comment_acf_media_references( array $comments, $source_domain, $target_domain, array $image_map, array $image_sources ) {
-		if ( empty( $image_map ) ) {
-			return $comments;
-		}
-
 		foreach ( $comments as &$comment_data ) {
 			if ( isset( $comment_data['comment_content'] ) && is_string( $comment_data['comment_content'] ) ) {
+				$comment_data['comment_content'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_text_public(
+					$comment_data['comment_content'],
+					$source_domain,
+					$target_domain
+				);
 				$comment_data['comment_content'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
 					$comment_data['comment_content'],
 					$image_map,
@@ -4965,7 +4992,12 @@ class Content_Sync_Controller extends Base_Controller {
 	 */
 	private function replace_term_acf_media_references( array $terms, $source_domain, $target_domain, array $image_map, array $image_sources ) {
 		foreach ( $terms as &$term_info ) {
-			if ( isset( $term_info['description'] ) && is_string( $term_info['description'] ) && ! empty( $image_map ) ) {
+			if ( isset( $term_info['description'] ) && is_string( $term_info['description'] ) ) {
+				$term_info['description'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_text_public(
+					$term_info['description'],
+					$source_domain,
+					$target_domain
+				);
 				$term_info['description'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
 					$term_info['description'],
 					$image_map,
@@ -5054,6 +5086,12 @@ class Content_Sync_Controller extends Base_Controller {
 			if ( class_exists( ACF_Fields::class ) !== strpos( $value, '[[RSL_IE:' ) ) {
 				return ACF_Fields::replace_media_urls_in_html( $value );
 			}
+
+			$value = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_text_public(
+				$value,
+				$source_domain,
+				$target_domain
+			);
 
 			return \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
 				$value,

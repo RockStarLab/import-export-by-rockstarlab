@@ -258,7 +258,7 @@ class Settings_Controller extends Base_Controller {
 		}
 
 		$context = strtolower( trim( (string) $this->get_request_param( 'context', '' ) ) );
-		$allowed = [ 'import', 'export', 'updater' ];
+		$allowed = [ 'import', 'export', 'updater', 'migration' ];
 		if ( ! in_array( $context, $allowed, true ) ) {
 			$this->send_error( __( 'Invalid context', 'import-export-by-rockstarlab' ), null, 400 );
 		}
