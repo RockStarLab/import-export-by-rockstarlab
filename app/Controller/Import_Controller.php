@@ -459,9 +459,11 @@ class Import_Controller extends Base_Controller {
 			}
 
 			// Prepare data
-			$prepared_data = $importer->prepare( $data, $mapping );
-			$prepared_data = $this->apply_replace_links_rules_to_data( $prepared_data, $options );
-			$total_items   = count( $prepared_data );
+			$replacement_count = 0;
+			$prepared_data     = $importer->prepare( $data, $mapping );
+			$prepared_data     = $this->sanitize_user_preference_meta_for_import( $import_type, $prepared_data );
+			$prepared_data     = $this->apply_replace_links_rules_to_data( $prepared_data, $options, $replacement_count );
+			$total_items       = count( $prepared_data );
 
 				// Preserve source IDs for cross-site relationship fixups (e.g. post_parent).
 			foreach ( $prepared_data as $row_index => &$prepared_row ) {
@@ -545,13 +547,14 @@ class Import_Controller extends Base_Controller {
 
 			// Initialize cumulative result
 			$parameters['cumulative_result'] = [
-				'total'   => $total_items,
-				'success' => 0,
-				'skipped' => 0,
-				'failed'  => 0,
-				'updated' => 0,
-				'created' => 0,
-				'errors'  => [],
+				'total'         => $total_items,
+				'success'       => 0,
+				'skipped'       => 0,
+				'failed'        => 0,
+				'updated'       => 0,
+				'created'       => 0,
+				'replaced_urls' => $replacement_count,
+				'errors'        => [],
 			];
 
 				$job_model->update(
@@ -585,6 +588,8 @@ class Import_Controller extends Base_Controller {
 		if ( empty( $batch ) ) {
 			// Post-import fixups for relationship fields (best-effort).
 			$this->fix_post_parent_relationships( $job_id, $prepared_data );
+			$this->fix_acf_media_relationships( $prepared_data );
+			$this->fix_acf_post_reference_relationships( $prepared_data );
 			$this->fix_comment_parent_relationships( $job_id, $prepared_data );
 			$this->fix_term_parent_relationships( $job_id, $prepared_data );
 
@@ -920,7 +925,7 @@ class Import_Controller extends Base_Controller {
 	 * @param array $options Import options.
 	 * @return array Prepared data with replacements applied.
 	 */
-	private function apply_replace_links_rules_to_data( $data, $options ) {
+	private function apply_replace_links_rules_to_data( $data, $options, &$replacement_count = 0 ) {
 		if ( ! is_array( $data ) ) {
 			return $data;
 		}
@@ -931,10 +936,99 @@ class Import_Controller extends Base_Controller {
 		}
 
 		foreach ( $data as $index => $row ) {
-			$data[ $index ] = $this->apply_replace_links_rules_to_value( $row, $rules );
+			$data[ $index ] = $this->apply_replace_links_rules_to_value( $row, $rules, $replacement_count );
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Keep per-user editor/admin preferences from overwriting the destination admin UI.
+	 *
+	 * @param string $import_type Import type.
+	 * @param array  $data        Prepared import rows.
+	 * @return array Prepared data.
+	 */
+	private function sanitize_user_preference_meta_for_import( $import_type, $data ) {
+		if ( ! in_array( strtolower( (string) $import_type ), [ 'user', 'users' ], true ) || empty( $data ) || ! is_array( $data ) ) {
+			return $data;
+		}
+
+		foreach ( $data as &$row ) {
+			if ( is_array( $row ) ) {
+				$row = $this->remove_user_preference_meta_keys( $row );
+			}
+		}
+		unset( $row );
+
+		return $data;
+	}
+
+	/**
+	 * Remove volatile WordPress/admin user preference keys from nested user payloads.
+	 *
+	 * @param array $value User import row or nested user meta.
+	 * @return array Filtered payload.
+	 */
+	private function remove_user_preference_meta_keys( array $value ) {
+		foreach ( array_keys( $value ) as $key ) {
+			$normalized_key = is_string( $key ) ? ltrim( $key, '_' ) : '';
+			if ( $this->is_user_preference_meta_key( $normalized_key ) ) {
+				unset( $value[ $key ] );
+				continue;
+			}
+
+			if ( is_array( $value[ $key ] ) ) {
+				$value[ $key ] = $this->remove_user_preference_meta_keys( $value[ $key ] );
+			}
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Check whether a user meta key is a volatile editor/admin preference.
+	 *
+	 * @param string $key User meta key.
+	 * @return bool
+	 */
+	private function is_user_preference_meta_key( $key ) {
+		$key = (string) $key;
+		if ( '' === $key ) {
+			return false;
+		}
+
+		$exact = [
+			'rich_editing',
+			'syntax_highlighting',
+			'infinite_scrolling',
+			'comment_shortcuts',
+			'admin_color',
+			'use_ssl',
+			'show_admin_bar_front',
+			'locale',
+			'session_tokens',
+			'dismissed_wp_pointers',
+			'show_welcome_panel',
+			'wp_user-settings',
+			'wp_user-settings-time',
+			'wp_persisted_preferences',
+			'wp_media_library_mode',
+			'wp_dashboard_quick_press_last_post_id',
+			'wp_product_import_error_log',
+		];
+
+		if ( in_array( $key, $exact, true ) ) {
+			return true;
+		}
+
+		foreach ( [ 'metaboxhidden_', 'closedpostboxes_', 'meta-box-order_', 'manageedit-', 'edit_', 'screen_layout_' ] as $prefix ) {
+			if ( 0 === strpos( $key, $prefix ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -985,10 +1079,10 @@ class Import_Controller extends Base_Controller {
 	 * @param array $rules Normalized replacement rules.
 	 * @return mixed Updated value.
 	 */
-	private function apply_replace_links_rules_to_value( $value, $rules ) {
+	private function apply_replace_links_rules_to_value( $value, $rules, &$replacement_count = 0 ) {
 		if ( is_array( $value ) ) {
 			foreach ( $value as $key => $child_value ) {
-				$value[ $key ] = $this->apply_replace_links_rules_to_value( $child_value, $rules );
+				$value[ $key ] = $this->apply_replace_links_rules_to_value( $child_value, $rules, $replacement_count );
 			}
 
 			return $value;
@@ -998,15 +1092,23 @@ class Import_Controller extends Base_Controller {
 			if ( is_serialized( $value ) ) {
 				$unserialized = maybe_unserialize( $value );
 				if ( false !== $unserialized || 'b:0;' === $value ) {
-					return maybe_serialize( $this->apply_replace_links_rules_to_value( $unserialized, $rules ) );
+					return maybe_serialize( $this->apply_replace_links_rules_to_value( $unserialized, $rules, $replacement_count ) );
 				}
 			}
 
 			foreach ( $rules as $rule ) {
-				$value = str_replace( $rule['search'], $rule['replace'], $value );
-				$value = str_replace( wp_json_encode( $rule['search'] ), wp_json_encode( $rule['replace'] ), $value );
-				$value = str_replace( str_replace( '/', '\\/', $rule['search'] ), str_replace( '/', '\\/', $rule['replace'] ), $value );
-				$value = str_replace( rawurlencode( $rule['search'] ), rawurlencode( $rule['replace'] ), $value );
+				$variants = array(
+					$rule['search']                 => $rule['replace'],
+					trim( wp_json_encode( $rule['search'] ), '"' ) => trim( wp_json_encode( $rule['replace'] ), '"' ),
+					str_replace( '/', '\\/', $rule['search'] ) => str_replace( '/', '\\/', $rule['replace'] ),
+					rawurlencode( $rule['search'] ) => rawurlencode( $rule['replace'] ),
+				);
+
+				foreach ( $variants as $search => $replace ) {
+					$count              = 0;
+					$value              = str_replace( $search, $replace, $value, $count );
+					$replacement_count += $count;
+				}
 			}
 		}
 
@@ -1070,6 +1172,139 @@ class Import_Controller extends Base_Controller {
 
 		// Prevent stale maps affecting future jobs.
 		delete_transient( $key );
+	}
+
+	/**
+	 * Re-save ACF post-reference fields with local IDs after a file import.
+	 *
+	 * @param array $prepared_data Prepared imported rows.
+	 * @return void
+	 */
+	private function fix_acf_post_reference_relationships( $prepared_data ) {
+		if ( empty( $prepared_data ) || ! is_array( $prepared_data ) || ! class_exists( '\RockStarLab\ImportExport\Helper\Content_Sync_Replacer' ) ) {
+			return;
+		}
+
+		foreach ( $prepared_data as $row ) {
+			$source_id = isset( $row['_rsl_ie_source_id'] ) ? absint( $row['_rsl_ie_source_id'] ) : absint( $row['ID'] ?? 0 );
+			if ( $source_id <= 0 ) {
+				continue;
+			}
+
+			$post_id = $this->find_imported_post_by_source_id( $source_id );
+			if ( $post_id <= 0 ) {
+				continue;
+			}
+
+			$raw_meta = get_post_meta( $post_id );
+			if ( empty( $raw_meta ) || ! is_array( $raw_meta ) ) {
+				continue;
+			}
+
+			$meta = [];
+			foreach ( $raw_meta as $key => $values ) {
+				if ( ! is_array( $values ) || ! array_key_exists( 0, $values ) ) {
+					continue;
+				}
+				$meta[ $key ] = maybe_unserialize( $values[0] );
+			}
+
+			\RockStarLab\ImportExport\Helper\Content_Sync_Replacer::translate_acf_post_reference_fields_in_meta(
+				$meta,
+				$post_id,
+				$source_id
+			);
+		}
+	}
+
+	/**
+	 * Re-save ACF media fields with local attachment IDs after a file import.
+	 *
+	 * @param array $prepared_data Prepared imported rows.
+	 * @return void
+	 */
+	private function fix_acf_media_relationships( $prepared_data ) {
+		if ( empty( $prepared_data ) || ! is_array( $prepared_data ) || ! class_exists( '\RockStarLab\ImportExport\Helper\Content_Sync_Replacer' ) ) {
+			return;
+		}
+
+		$image_map = $this->build_attachment_source_id_map_from_meta();
+		if ( empty( $image_map ) ) {
+			return;
+		}
+
+		foreach ( $prepared_data as $row ) {
+			$source_id = isset( $row['_rsl_ie_source_id'] ) ? absint( $row['_rsl_ie_source_id'] ) : absint( $row['ID'] ?? 0 );
+			if ( $source_id <= 0 ) {
+				continue;
+			}
+
+			$post_id = $this->find_imported_post_by_source_id( $source_id );
+			if ( $post_id <= 0 ) {
+				continue;
+			}
+
+			$raw_meta = get_post_meta( $post_id );
+			if ( empty( $raw_meta ) || ! is_array( $raw_meta ) ) {
+				continue;
+			}
+
+			$meta = [];
+			foreach ( $raw_meta as $key => $values ) {
+				if ( ! is_array( $values ) || ! array_key_exists( 0, $values ) ) {
+					continue;
+				}
+				$meta[ $key ] = maybe_unserialize( $values[0] );
+			}
+
+			$updated_meta = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_in_meta_public(
+				$meta,
+				'',
+				'',
+				$image_map,
+				[]
+			);
+
+			foreach ( $updated_meta as $key => $value ) {
+				if ( ! array_key_exists( $key, $meta ) || $value === $meta[ $key ] ) {
+					continue;
+				}
+				update_post_meta( $post_id, $key, $value );
+			}
+		}
+	}
+
+	/**
+	 * Build source attachment ID => local attachment ID map from stored media import meta.
+	 *
+	 * @return array
+	 */
+	private function build_attachment_source_id_map_from_meta() {
+		global $wpdb;
+
+		$rows = $wpdb->get_results(
+			"SELECT post_id, meta_value
+			FROM {$wpdb->postmeta}
+			WHERE meta_key IN ('_rsl_ie_original_attachment_id', '_rsl_ie_source_attachment_id', '_rsl_ie_source_id')
+			AND meta_value REGEXP '^[0-9]+$'",
+			ARRAY_A
+		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Exact attachment source map is needed for post-import ACF media repair.
+
+		if ( empty( $rows ) ) {
+			return [];
+		}
+
+		$map = [];
+		foreach ( $rows as $row ) {
+			$attachment_id = absint( $row['post_id'] ?? 0 );
+			$source_id     = absint( $row['meta_value'] ?? 0 );
+			if ( $attachment_id <= 0 || $source_id <= 0 || 'attachment' !== get_post_type( $attachment_id ) ) {
+				continue;
+			}
+			$map[ $source_id ] = $attachment_id;
+		}
+
+		return $map;
 	}
 
 	/**

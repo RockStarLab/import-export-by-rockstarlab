@@ -162,6 +162,9 @@ class Post_Importer extends Abstract_Importer {
 		if ( isset( $options['unique_field'] ) && ! isset( $options['duplicate_check'] ) ) {
 			$options['duplicate_check'] = $options['unique_field'];
 		}
+		if ( isset( $options['duplicate_mode'] ) && ! isset( $options['media_duplicate_mode'] ) && in_array( $options['duplicate_mode'], [ 'skip', 'update', 'create' ], true ) ) {
+			$options['media_duplicate_mode'] = $options['duplicate_mode'];
+		}
 
 		// Back-compat: UI previously supported 'ignore'. That mode caused duplicate
 		// rows by always creating new items; treat it as 'update'.
@@ -3351,12 +3354,18 @@ class Post_Importer extends Abstract_Importer {
 			if ( 'skip' === $media_duplicate_mode ) {
 				$this->log_info( sprintf( 'Skipped duplicate ACF media: %s (using existing ID: %d)', $filename, $existing_attachment ) );
 				$this->store_imported_media_source( (int) $existing_attachment, $url, $source_attachment_id );
-					$existing_for_language       = (int) $existing_attachment;
+				$existing_for_language           = (int) $existing_attachment;
 				$url_to_attachment_cache[ $url ] = $existing_for_language;
 				return $existing_for_language;
 			} elseif ( 'replace' === $media_duplicate_mode ) {
 				wp_delete_attachment( $existing_attachment, true );
 				$this->log_info( sprintf( 'Deleted existing ACF media for replacement: %s (ID: %d)', $filename, $existing_attachment ) );
+			} else {
+				$this->log_info( sprintf( 'Updated duplicate ACF media: %s (using existing ID: %d)', $filename, $existing_attachment ) );
+				$this->store_imported_media_source( (int) $existing_attachment, $url, $source_attachment_id );
+				$existing_for_language           = (int) $existing_attachment;
+				$url_to_attachment_cache[ $url ] = $existing_for_language;
+				return $existing_for_language;
 			}
 		}
 
@@ -3495,6 +3504,15 @@ class Post_Importer extends Abstract_Importer {
 					// Delete existing and import new
 					wp_delete_attachment( $existing_attachment, true );
 					$this->log_info( sprintf( 'Deleted existing media for replacement: %s (ID: %d)', $filename, $existing_attachment ) );
+				} elseif ( 'update' === $media_duplicate_mode ) {
+					$new_url                    = wp_get_attachment_url( $existing_attachment );
+					$url_mapping[ $source_url ] = [
+						'url' => $new_url,
+						'id'  => $existing_attachment,
+					];
+					++$skipped_count;
+					$this->log_info( sprintf( 'Updated duplicate media: %s (using existing ID: %d)', $filename, $existing_attachment ) );
+					continue;
 				}
 				// 'create' mode - fall through to import as new
 			}
@@ -3832,12 +3850,7 @@ class Post_Importer extends Abstract_Importer {
 			// to "-1", "-2", etc. and the filename no longer matches the source).
 			$remote_data = $this->get_remote_file_data( $url );
 			if ( $remote_data && ! empty( $remote_data['hash'] ) && class_exists( '\\RockStarLab\ImportExport\\Helper\\Media_Hash' ) ) {
-				$by_hash = \RockStarLab\ImportExport\Helper\Media_Hash::get_attachment_by_hash( (string) $remote_data['hash'] );
-				if ( $by_hash ) {
-					if ( ! $this->attachment_source_url_matches( (int) $by_hash, (string) $url ) ) {
-						$by_hash = 0;
-					}
-				}
+				$by_hash = \RockStarLab\ImportExport\Helper\Media_Hash::get_attachment_by_hash( (string) $remote_data['hash'], true );
 				if ( $by_hash ) {
 					// Do not collapse distinct source files that happen to share identical
 					// contents (same hash) but different filenames. This can break field
@@ -3903,9 +3916,7 @@ class Post_Importer extends Abstract_Importer {
 						$local_hash = md5_file( $local_file );
 
 						if ( $local_hash === $remote_data['hash'] ) {
-							if ( ! $this->attachment_source_url_matches( (int) $attachment_id, (string) $url ) ) {
-								continue;
-							}
+							\RockStarLab\ImportExport\Helper\Media_Hash::store_attachment_hash( (int) $attachment_id, (string) $remote_data['hash'], $local_file );
 							return (int) $attachment_id;
 						}
 					}

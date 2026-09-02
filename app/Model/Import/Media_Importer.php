@@ -12,6 +12,7 @@ namespace RockStarLab\ImportExport\Model\Import;
 use RockStarLab\ImportExport\Helper\FS;
 use RockStarLab\ImportExport\Helper\ACF_Fields;
 use RockStarLab\ImportExport\Helper\Content_Sync_Media;
+use RockStarLab\ImportExport\Helper\Media_Hash;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -86,6 +87,7 @@ class Media_Importer extends Abstract_Importer {
 			// Mime type
 			'post_mime_type',  // MIME type (read-only, auto-detected)
 			'mime_type',       // MIME type alias
+			'file_hash',       // MD5 file hash for duplicate detection
 
 			// Image metadata
 			'width',           // Image width (read-only, auto-detected)
@@ -321,6 +323,22 @@ class Media_Importer extends Abstract_Importer {
 			return $tmp_file;
 		}
 
+		$existing = $this->find_existing_by_downloaded_file( $tmp_file, $item );
+		if ( $existing ) {
+			@wp_delete_file( $tmp_file );
+			$duplicate_mode = $this->get_option( 'duplicate_mode', 'skip' );
+
+			if ( 'skip' === $duplicate_mode ) {
+				return 'skipped';
+			}
+
+			if ( 'update' === $duplicate_mode ) {
+				$this->set_attachment_metadata( (int) $existing, $item );
+				$this->record_source_id_map( $item, (int) $existing );
+				return 'updated';
+			}
+		}
+
 		// Get filename
 		$filename = $item['filename'] ?? basename( wp_parse_url( $url, PHP_URL_PATH ) );
 
@@ -410,6 +428,9 @@ class Media_Importer extends Abstract_Importer {
 
 		// Local path imports should still honor skip/create based on duplicate checks.
 		$existing = $this->find_existing_attachment( $item );
+		if ( ! $existing ) {
+			$existing = $this->find_existing_by_downloaded_file( $file_path, $item );
+		}
 		if ( $existing ) {
 			$duplicate_mode = $this->get_option( 'duplicate_mode', 'skip' );
 
@@ -690,6 +711,11 @@ class Media_Importer extends Abstract_Importer {
 			}
 		}
 
+		$by_hash = $this->find_existing_by_item_hash( $item );
+		if ( $by_hash ) {
+			return $by_hash;
+		}
+
 		$check_field = $this->get_option( 'duplicate_check', 'file_url' );
 
 		// Check by title
@@ -760,6 +786,47 @@ class Media_Importer extends Abstract_Importer {
 		);
 
 		return $attachment_id && 'attachment' === get_post_type( (int) $attachment_id ) ? (int) $attachment_id : null;
+	}
+
+	/**
+	 * Find an existing attachment by a hash supplied in the imported row.
+	 *
+	 * @param array $item Media row.
+	 * @return int|null Attachment ID or null.
+	 */
+	private function find_existing_by_item_hash( array $item ) {
+		$file_hash = isset( $item['file_hash'] ) ? strtolower( trim( (string) $item['file_hash'] ) ) : '';
+		if ( '' === $file_hash ) {
+			return null;
+		}
+
+		$attachment_id = Media_Hash::get_attachment_by_hash( $file_hash, true );
+		return $attachment_id ? (int) $attachment_id : null;
+	}
+
+	/**
+	 * Find an existing attachment by hashing a downloaded/local file.
+	 *
+	 * @param string $file_path Downloaded temporary file path or local source path.
+	 * @param array  $item      Media row.
+	 * @return int|null Attachment ID or null.
+	 */
+	private function find_existing_by_downloaded_file( $file_path, array $item = [] ) {
+		if ( ! is_string( $file_path ) || ! is_file( $file_path ) || ! is_readable( $file_path ) ) {
+			return null;
+		}
+
+		$file_hash = md5_file( $file_path );
+		if ( ! is_string( $file_hash ) || '' === $file_hash ) {
+			return null;
+		}
+
+		if ( ! empty( $item['file_hash'] ) && strtolower( trim( (string) $item['file_hash'] ) ) !== strtolower( $file_hash ) ) {
+			return null;
+		}
+
+		$attachment_id = Media_Hash::get_attachment_by_hash( strtolower( $file_hash ), true );
+		return $attachment_id ? (int) $attachment_id : null;
 	}
 
 	/**

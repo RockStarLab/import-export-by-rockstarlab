@@ -10,6 +10,7 @@ import WelcomeModule from './modules/welcome';
 import ProPromoModule from './modules/pro-promo';
 import MediaHashModule from './modules/media-hash';
 import SchedulesModule from './modules/schedules';
+import SiteMigrationModule from './modules/site-migration';
 
 // Initialize modules when DOM is ready
 jQuery( document ).ready( function ( $ ) {
@@ -53,4 +54,7 @@ jQuery( document ).ready( function ( $ ) {
 
 	// Initialize schedules page controls.
 	SchedulesModule.init();
+
+	// Initialize content migration wizard.
+	SiteMigrationModule.init();
 } );

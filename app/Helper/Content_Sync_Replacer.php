@@ -274,6 +274,18 @@ class Content_Sync_Replacer {
 	}
 
 	/**
+	 * Public wrapper for plain URL/domain replacement in synced text values.
+	 *
+	 * @param string $text          Text to process.
+	 * @param string $source_domain Source domain.
+	 * @param string $target_domain Target domain.
+	 * @return string Modified text.
+	 */
+	public static function replace_text_public( $text, $source_domain, $target_domain ) {
+		return self::replace_in_text( $text, $source_domain, $target_domain );
+	}
+
+	/**
 	 * Fix <img> src/srcset attributes after media has been imported locally.
 	 *
 	 * During Content Sync the post HTML may still contain source-site intermediate

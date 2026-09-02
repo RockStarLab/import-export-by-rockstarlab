@@ -1889,11 +1889,11 @@ class Content_Sync_API_Controller {
 		// Store file hash for future lookups
 		\RockStarLab\ImportExport\Helper\Media_Hash::store_attachment_hash( $attachment_id, $file_hash, $file_path );
 		if ( $source_attachment_id > 0 ) {
-			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
-			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
 		}
 		if ( $source_origin_id > 0 ) {
-			update_post_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
 		}
 
 		return new \WP_REST_Response(
@@ -1925,13 +1925,37 @@ class Content_Sync_API_Controller {
 		}
 
 		if ( $source_attachment_id > 0 ) {
-			update_post_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
-			update_post_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_original_attachment_id', $source_attachment_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_source_attachment_id', $source_attachment_id );
 		}
 
 		if ( $source_origin_id > 0 ) {
-			update_post_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
+			$this->add_unique_attachment_source_meta( $attachment_id, '_rsl_ie_source_origin_attachment_id', $source_origin_id );
 		}
+	}
+
+	/**
+	 * Store an attachment source mapping without overwriting existing mappings.
+	 *
+	 * @param int    $attachment_id Local attachment ID.
+	 * @param string $meta_key      Source mapping meta key.
+	 * @param int    $source_id     Source attachment ID.
+	 * @return void
+	 */
+	private function add_unique_attachment_source_meta( $attachment_id, $meta_key, $source_id ) {
+		$attachment_id = absint( $attachment_id );
+		$source_id     = absint( $source_id );
+
+		if ( $attachment_id <= 0 || $source_id <= 0 ) {
+			return;
+		}
+
+		$existing_values = array_map( 'absint', (array) get_post_meta( $attachment_id, $meta_key, false ) );
+		if ( in_array( $source_id, $existing_values, true ) ) {
+			return;
+		}
+
+		add_post_meta( $attachment_id, $meta_key, $source_id, false );
 	}
 
 	/**
@@ -2548,6 +2572,11 @@ class Content_Sync_API_Controller {
 			$args = array();
 			if ( isset( $term_info['description'] ) ) {
 				$description = (string) $term_info['description'];
+				$description = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_text_public(
+					$description,
+					$source_domain,
+					$target_domain
+				);
 				if ( ! empty( $image_map ) ) {
 					$description = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
 						$description,
@@ -2732,6 +2761,12 @@ class Content_Sync_API_Controller {
 			if ( '' !== $mapped_url ) {
 				return $mapped_url;
 			}
+
+			$value = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_text_public(
+				$value,
+				$source_domain,
+				$target_domain
+			);
 
 			return \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
 				$value,
@@ -3292,12 +3327,13 @@ class Content_Sync_API_Controller {
 	 * @return array
 	 */
 	private function replace_comment_acf_media_references( array $comments, $source_domain, $target_domain, array $image_map, array $image_sources ) {
-		if ( empty( $image_map ) ) {
-			return $comments;
-		}
-
 		foreach ( $comments as &$comment_data ) {
 			if ( isset( $comment_data['comment_content'] ) && is_string( $comment_data['comment_content'] ) ) {
+				$comment_data['comment_content'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_text_public(
+					$comment_data['comment_content'],
+					$source_domain,
+					$target_domain
+				);
 				$comment_data['comment_content'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content(
 					$comment_data['comment_content'],
 					$image_map,
