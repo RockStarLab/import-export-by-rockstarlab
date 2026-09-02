@@ -441,6 +441,19 @@ class Elementor_Fields {
 			return 0;
 		}
 
+		if ( class_exists( Media_Hash::class ) ) {
+			$file_hash = md5_file( $tmp );
+			if ( is_string( $file_hash ) && '' !== $file_hash ) {
+				$existing_by_hash = Media_Hash::get_attachment_by_hash( $file_hash, true );
+				if ( $existing_by_hash > 0 ) {
+					wp_delete_file( $tmp );
+					update_post_meta( (int) $existing_by_hash, 'rsl_ie_source_url', $url );
+					update_post_meta( (int) $existing_by_hash, 'rsl_ie_source_url_hash', self::get_source_url_hash( $url ) );
+					return (int) $existing_by_hash;
+				}
+			}
+		}
+
 		$file_array = [
 			'name'     => '' !== $filename ? $filename : wp_basename( $tmp ),
 			'tmp_name' => $tmp,
