@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$rsl_ie_current_site_url = home_url();
+$rsl_ie_current_site_url = \RockStarLab\ImportExport\Helper\Site_URL::current_request_site_url();
 ?>
 
 <!-- Step 5: Import Options -->

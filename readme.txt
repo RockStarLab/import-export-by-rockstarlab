@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: export, export woocommerce, import, wordpress csv import
 Requires at least: 6.2
 Tested up to: 7.1
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -212,6 +212,14 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync posts and pages in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 1.4.1 =
+
+* Fixed admin AJAX requests in local/proxied environments by using same-origin admin-ajax URLs.
+* Fixed comment imports using source_comment_id duplicate matching so existing comments are updated instead of duplicated.
+* Fixed page ordering and modified date preservation during content migration and post imports.
+* Fixed first-run content migrations so existing local pages with matching slugs are updated instead of duplicated.
+* Fixed export-file migrations so existing local posts/pages with matching slugs are updated before falling back to source-id metadata.
 
 = 1.4.0 =
 

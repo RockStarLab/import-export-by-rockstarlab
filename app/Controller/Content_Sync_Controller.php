@@ -12,6 +12,7 @@ namespace RockStarLab\ImportExport\Controller;
 use RockStarLab\ImportExport\Helper\Ajax_Security;
 use RockStarLab\ImportExport\Helper\ACF_Fields;
 use RockStarLab\ImportExport\Helper\Field_Transformation_Bridge;
+use RockStarLab\ImportExport\Helper\Site_URL;
 use RockStarLab\ImportExport\Model\Connected_Site;
 
 defined( 'ABSPATH' ) || exit;
@@ -459,7 +460,7 @@ class Content_Sync_Controller extends Base_Controller {
 			update_option( 'rsl_ie_site_api_key', $site_key );
 		}
 
-		$site_url  = get_site_url();
+		$site_url  = Site_URL::current_request_site_url();
 		$site_name = get_bloginfo( 'name' );
 
 		$this->send_success(
@@ -683,13 +684,13 @@ class Content_Sync_Controller extends Base_Controller {
 			'rslIePostSyncData',
 			array(
 				'nonces'                      => Ajax_Security::get_nonces(),
-				'ajaxurl'                     => admin_url( 'admin-ajax.php' ),
-				'ajaxUrl'                     => admin_url( 'admin-ajax.php' ),
-				'adminUrl'                    => admin_url(),
+				'ajaxurl'                     => Ajax_Security::ajax_url(),
+				'ajaxUrl'                     => Ajax_Security::ajax_url(),
+				'adminUrl'                    => Site_URL::admin_url(),
 				'functionsUrl'                => Field_Transformation_Bridge::get_management_url(),
 				'fieldTransformationsEnabled' => Field_Transformation_Bridge::is_enabled(),
-				'exportUrl'                   => admin_url( 'admin.php?page=rsl-ie-export' ),
-				'contentSyncUrl'              => admin_url( 'admin.php?page=rsl-ie-content-sync' ),
+				'exportUrl'                   => Site_URL::admin_url( 'admin.php?page=rsl-ie-export' ),
+				'contentSyncUrl'              => Site_URL::admin_url( 'admin.php?page=rsl-ie-content-sync' ),
 				'connectedSites'              => $sites_map,
 				'i18n'                        => array(
 					// Alerts & Messages
@@ -785,12 +786,12 @@ class Content_Sync_Controller extends Base_Controller {
 					'rslIeData',
 					array(
 						'nonces'                      => Ajax_Security::get_nonces(),
-						'ajaxurl'                     => admin_url( 'admin-ajax.php' ),
-						'ajaxUrl'                     => admin_url( 'admin-ajax.php' ),
-						'adminUrl'                    => admin_url(),
+						'ajaxurl'                     => Ajax_Security::ajax_url(),
+						'ajaxUrl'                     => Ajax_Security::ajax_url(),
+						'adminUrl'                    => Site_URL::admin_url(),
 						'functionsUrl'                => Field_Transformation_Bridge::get_management_url(),
 						'fieldTransformationsEnabled' => Field_Transformation_Bridge::is_enabled(),
-						'exportUrl'                   => admin_url( 'admin.php?page=rsl-ie-export' ),
+						'exportUrl'                   => Site_URL::admin_url( 'admin.php?page=rsl-ie-export' ),
 						'i18n'                        => array(
 							'syncContent'  => __( 'Sync Content', 'import-export-by-rockstarlab' ),
 							'syncThisPost' => __( 'Sync This Post', 'import-export-by-rockstarlab' ),
@@ -1405,7 +1406,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 		$remote_images = isset( $response['images'] ) && is_array( $response['images'] ) ? $response['images'] : array();
 		$image_map     = $this->download_remote_images_for_sync( $remote_images, $site );
-		$terms         = $this->replace_term_acf_media_references( $terms, $site['remote_url'], get_site_url(), $image_map, $remote_images );
+		$terms         = $this->replace_term_acf_media_references( $terms, $site['remote_url'], Site_URL::current_request_site_url(), $image_map, $remote_images );
 
 		$result = $this->import_synced_terms( $taxonomy, $terms, $term_mapping );
 		$this->send_success(
@@ -1525,7 +1526,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 		$image_sources = $images;
 		$image_map     = $this->upload_images_to_remote( array_values( $images ), $site );
-		$comments      = $this->replace_comment_acf_media_references( $comments, get_site_url(), $site['remote_url'], $image_map, $image_sources );
+		$comments      = $this->replace_comment_acf_media_references( $comments, Site_URL::current_request_site_url(), $site['remote_url'], $image_map, $image_sources );
 
 		$result = $this->remote_post(
 			$site,
@@ -1610,7 +1611,7 @@ class Content_Sync_Controller extends Base_Controller {
 		$comments      = isset( $response['comments'] ) && is_array( $response['comments'] ) ? $response['comments'] : array();
 		$remote_images = isset( $response['images'] ) && is_array( $response['images'] ) ? $response['images'] : array();
 		$image_map     = $this->download_remote_images_for_sync( $remote_images, $site );
-		$comments      = $this->replace_comment_acf_media_references( $comments, $site['remote_url'], get_site_url(), $image_map, $remote_images );
+		$comments      = $this->replace_comment_acf_media_references( $comments, $site['remote_url'], Site_URL::current_request_site_url(), $image_map, $remote_images );
 		$result        = $this->import_standalone_synced_comments( $comments, $post_mapping, $target_post_id );
 
 		$message = sprintf(
@@ -2096,7 +2097,7 @@ class Content_Sync_Controller extends Base_Controller {
 		$job_id = $this->create_content_sync_job( 'push', $site, $post_ids, $post_mapping );
 
 		// Get source and target domains
-		$source_domain = get_site_url();
+		$source_domain = Site_URL::current_request_site_url();
 		$target_domain = $site['remote_url'];
 
 		// Prepare posts data with images
@@ -2266,21 +2267,24 @@ class Content_Sync_Controller extends Base_Controller {
 			}
 
 				$post_data = array(
-					'ID'            => $post->ID,
-					'post_title'    => $post->post_title,
-					'post_content'  => $post->post_content,
-					'post_excerpt'  => $post->post_excerpt,
-					'post_status'   => $post->post_status,
-					'post_type'     => $post->post_type,
-					'post_parent'   => $post->post_parent,
-					'post_name'     => $post->post_name,
-					'post_date'     => $post->post_date,
-					'post_modified' => $post->post_modified,
-					'post_author'   => $post->post_author,
-					'meta'          => $prepared_meta,
-					'post_refs'     => \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::collect_acf_post_reference_map_from_meta( $prepared_meta ),
-					'terms'         => $terms_data,
-					'comments'      => $this->collect_post_comments_for_sync( $post->ID ),
+					'ID'                => $post->ID,
+					'post_title'        => $post->post_title,
+					'post_content'      => $post->post_content,
+					'post_excerpt'      => $post->post_excerpt,
+					'post_status'       => $post->post_status,
+					'post_type'         => $post->post_type,
+					'post_parent'       => $post->post_parent,
+					'menu_order'        => $post->menu_order,
+					'post_name'         => $post->post_name,
+					'post_date'         => $post->post_date,
+					'post_date_gmt'     => $post->post_date_gmt,
+					'post_modified'     => $post->post_modified,
+					'post_modified_gmt' => $post->post_modified_gmt,
+					'post_author'       => $post->post_author,
+					'meta'              => $prepared_meta,
+					'post_refs'         => \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::collect_acf_post_reference_map_from_meta( $prepared_meta ),
+					'terms'             => $terms_data,
+					'comments'          => $this->collect_post_comments_for_sync( $post->ID ),
 				);
 
 					// Collect WooCommerce product variations for variable products.
@@ -2929,7 +2933,7 @@ class Content_Sync_Controller extends Base_Controller {
 
 		// Get domains for replacement
 		$source_domain = wp_parse_url( $site['remote_url'], PHP_URL_HOST );
-		$target_domain = wp_parse_url( home_url(), PHP_URL_HOST );
+		$target_domain = wp_parse_url( Site_URL::current_request_site_url(), PHP_URL_HOST );
 
 			// Request content from remote site
 			$response = \RockStarLab\ImportExport\Helper\Remote_API::post(
@@ -3057,8 +3061,11 @@ class Content_Sync_Controller extends Base_Controller {
 					$local_post_id = $this->find_existing_post_by_original_id( $remote_post_id );
 				}
 			} else {
-				// No mapping provided, use default logic (find by meta)
-				$local_post_id = $this->find_existing_post_by_original_id( $remote_post_id );
+				// No mapping provided, use default logic.
+				$local_post_id = $this->find_existing_post_by_slug( (array) $post_data );
+				if ( ! $local_post_id ) {
+					$local_post_id = $this->find_existing_post_by_original_id( $remote_post_id );
+				}
 			}
 			if ( ! $local_post_id ) {
 				$local_post_id = $this->find_existing_product_by_sku( (array) $post_data );
@@ -3066,14 +3073,19 @@ class Content_Sync_Controller extends Base_Controller {
 
 			// Prepare post data
 			$post_args = array(
-				'post_title'   => $post_data['post_title'],
-				'post_content' => $post_data['post_content'],
-				'post_excerpt' => $post_data['post_excerpt'],
-				'post_status'  => $post_data['post_status'],
-				'post_type'    => $post_data['post_type'],
-				'post_name'    => $post_data['post_name'],
-				'post_date'    => $post_data['post_date'],
-				'post_author'  => get_current_user_id(),
+				'post_title'        => $post_data['post_title'],
+				'post_content'      => $post_data['post_content'],
+				'post_excerpt'      => $post_data['post_excerpt'],
+				'post_status'       => $post_data['post_status'],
+				'post_type'         => $post_data['post_type'],
+				'post_name'         => $post_data['post_name'],
+				'post_date'         => $post_data['post_date'],
+				'post_date_gmt'     => isset( $post_data['post_date_gmt'] ) ? $post_data['post_date_gmt'] : '',
+				'post_modified'     => isset( $post_data['post_modified'] ) ? $post_data['post_modified'] : '',
+				'post_modified_gmt' => isset( $post_data['post_modified_gmt'] ) ? $post_data['post_modified_gmt'] : '',
+				'menu_order'        => isset( $post_data['menu_order'] ) ? (int) $post_data['menu_order'] : 0,
+				'post_author'       => get_current_user_id(),
+				'edit_date'         => true,
 			);
 
 			if ( $local_post_id ) {
@@ -3259,6 +3271,8 @@ class Content_Sync_Controller extends Base_Controller {
 
 			} else {
 			}
+
+			$this->restore_synced_post_modified_dates( (int) $post_id, (array) $post_data );
 		}
 
 		// Fix hierarchical relationships (e.g. pages) after all imports so we can
@@ -3313,6 +3327,15 @@ class Content_Sync_Controller extends Base_Controller {
 				),
 				true
 			);
+
+			if ( isset( $posts_data[0] ) ) {
+				foreach ( $posts_data as $post_data ) {
+					if ( (int) ( $post_data['ID'] ?? 0 ) === (int) $remote_id ) {
+						$this->restore_synced_post_modified_dates( (int) $local_id, (array) $post_data );
+						break;
+					}
+				}
+			}
 		}
 
 		foreach ( array_unique( $product_post_ids ) as $product_post_id ) {
@@ -4641,6 +4664,54 @@ class Content_Sync_Controller extends Base_Controller {
 	}
 
 	/**
+	 * Find a single existing local post by post type and slug.
+	 *
+	 * This lets first-run migrations update default WordPress content such as
+	 * Sample Page and Privacy Policy before source-id meta exists locally.
+	 *
+	 * @param array $post_data Remote post data.
+	 * @return int|false
+	 */
+	private function find_existing_post_by_slug( array $post_data ) {
+		$post_type = isset( $post_data['post_type'] ) ? sanitize_key( (string) $post_data['post_type'] ) : '';
+		$post_name = isset( $post_data['post_name'] ) ? sanitize_title( (string) $post_data['post_name'] ) : '';
+
+		if ( '' === $post_type || '' === $post_name ) {
+			return false;
+		}
+
+		$posts = get_posts(
+			array(
+				'name'                   => $post_name,
+				'post_type'              => $post_type,
+				'post_status'            => 'any',
+				'posts_per_page'         => 2,
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		if ( 1 === count( $posts ) ) {
+			return (int) $posts[0];
+		}
+
+		$unmapped_posts = array_values(
+			array_filter(
+				$posts,
+				function ( $post_id ) {
+					return '' === (string) get_post_meta( (int) $post_id, '_rsl_ie_original_post_id', true )
+						&& '' === (string) get_post_meta( (int) $post_id, '_rsl_ie_source_id', true )
+						&& '' === (string) get_post_meta( (int) $post_id, '_aie_original_post_id', true );
+				}
+			)
+		);
+
+		return 1 === count( $unmapped_posts ) ? (int) $unmapped_posts[0] : false;
+	}
+
+	/**
 	 * Find an existing product by source SKU.
 	 *
 	 * @param array $post_data Remote post data.
@@ -4709,6 +4780,38 @@ class Content_Sync_Controller extends Base_Controller {
 
 		wp_set_object_terms( (int) $post_id, $type, 'product_type', false );
 		delete_transient( 'wc_product_children_' . (int) $post_id );
+	}
+
+	/**
+	 * Restore source modified timestamps after sync follow-up updates.
+	 *
+	 * @param int   $post_id   Local post ID.
+	 * @param array $post_data Source post payload.
+	 * @return void
+	 */
+	private function restore_synced_post_modified_dates( $post_id, array $post_data ) {
+		$post_id = absint( $post_id );
+		if ( $post_id <= 0 || ( empty( $post_data['post_modified'] ) && empty( $post_data['post_modified_gmt'] ) ) ) {
+			return;
+		}
+
+		global $wpdb;
+
+		$update = [];
+		$format = [];
+
+		if ( ! empty( $post_data['post_modified'] ) ) {
+			$update['post_modified'] = (string) $post_data['post_modified'];
+			$format[]                = '%s';
+		}
+
+		if ( ! empty( $post_data['post_modified_gmt'] ) ) {
+			$update['post_modified_gmt'] = (string) $post_data['post_modified_gmt'];
+			$format[]                    = '%s';
+		}
+
+		$wpdb->update( $wpdb->posts, $update, [ 'ID' => $post_id ], $format, [ '%d' ] );
+		clean_post_cache( $post_id );
 	}
 
 	/**

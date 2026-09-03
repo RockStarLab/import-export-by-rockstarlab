@@ -7,11 +7,12 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$rsl_ie_migration_pro_active      = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active();
-$rsl_ie_migration_promo_cta       = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_cta();
-$rsl_ie_migration_promo_dismissed = (bool) get_user_meta( get_current_user_id(), 'rsl_ie_dismiss_pro_promo_migration', true );
-$rsl_ie_migration_promo_features  = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_features( 'export' );
-$rsl_ie_migration_intro_dismissed = (bool) get_user_meta( get_current_user_id(), 'rsl_ie_dismiss_content_migration_intro', true );
+$rsl_ie_migration_pro_active       = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active();
+$rsl_ie_migration_promo_cta        = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_cta();
+$rsl_ie_migration_promo_dismissed  = (bool) get_user_meta( get_current_user_id(), 'rsl_ie_dismiss_pro_promo_migration', true );
+$rsl_ie_migration_promo_features   = \RockStarLab\ImportExport\Helper\Pro_Addon::get_promo_features( 'export' );
+$rsl_ie_migration_intro_dismissed  = (bool) get_user_meta( get_current_user_id(), 'rsl_ie_dismiss_content_migration_intro', true );
+$rsl_ie_migration_current_site_url = \RockStarLab\ImportExport\Helper\Site_URL::current_request_site_url();
 ?>
 
 <div id="rsl-ie-site-migration" class="import-export-by-rockstarlab wrap">
@@ -183,7 +184,7 @@ $rsl_ie_migration_intro_dismissed = (bool) get_user_meta( get_current_user_id(),
 						<?php esc_html_e( 'Find and replace links or other text values across all imported migration files before data is saved.', 'import-export-by-rockstarlab' ); ?>
 					</p>
 
-					<div id="rsl-ie-migration-replace-links-repeater" class="rsl-ie-replace-links-repeater" style="display: none;" data-current-site-url="<?php echo esc_attr( get_site_url() ); ?>">
+					<div id="rsl-ie-migration-replace-links-repeater" class="rsl-ie-replace-links-repeater" style="display: none;" data-current-site-url="<?php echo esc_attr( $rsl_ie_migration_current_site_url ); ?>">
 						<div class="rsl-ie-replace-links-header">
 							<span><?php esc_html_e( 'Replace what', 'import-export-by-rockstarlab' ); ?></span>
 							<span><?php esc_html_e( 'Replace to', 'import-export-by-rockstarlab' ); ?></span>
@@ -192,7 +193,7 @@ $rsl_ie_migration_intro_dismissed = (bool) get_user_meta( get_current_user_id(),
 						<div class="rsl-ie-replace-links-rows">
 							<div class="rsl-ie-replace-links-row">
 								<input type="text" class="regular-text rsl-ie-migration-replace-what" name="migration_replace_links_from[]" placeholder="<?php esc_attr_e( 'https://old-site.com', 'import-export-by-rockstarlab' ); ?>">
-								<input type="text" class="regular-text rsl-ie-migration-replace-to" name="migration_replace_links_to[]" value="<?php echo esc_attr( get_site_url() ); ?>">
+								<input type="text" class="regular-text rsl-ie-migration-replace-to" name="migration_replace_links_to[]" value="<?php echo esc_attr( $rsl_ie_migration_current_site_url ); ?>">
 								<button type="button" class="button button-secondary rsl-ie-migration-remove-replace-link" aria-label="<?php esc_attr_e( 'Remove replacement row', 'import-export-by-rockstarlab' ); ?>">
 									<span class="dashicons dashicons-no-alt"></span>
 								</button>

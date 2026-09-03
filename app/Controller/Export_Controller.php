@@ -889,7 +889,7 @@ class Export_Controller extends Base_Controller {
 				'kind'        => 'standard',
 				'value'       => 'standard:homepage',
 				'name'        => 'homepage',
-				'slug'        => home_url( '/' ),
+				'slug'        => \RockStarLab\ImportExport\Helper\Site_URL::current_request_site_url() . '/',
 				'label'       => __( 'Homepage / Front page', 'import-export-by-rockstarlab' ),
 				'description' => __( 'The public site home URL.', 'import-export-by-rockstarlab' ),
 				'count'       => $exporter_class::count_for_generated_source( 'standard', 'homepage' ),

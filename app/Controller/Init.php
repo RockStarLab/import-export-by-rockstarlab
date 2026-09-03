@@ -10,6 +10,7 @@
 namespace RockStarLab\ImportExport\Controller;
 
 use RockStarLab\ImportExport\Helper\Ajax_Security;
+use RockStarLab\ImportExport\Helper\Site_URL;
 use RockStarLab\ImportExport\Model\Connected_Site;
 
 defined( 'ABSPATH' ) or exit;
@@ -281,13 +282,13 @@ class Init {
 			'import-export-by-rockstarlab-scripts',
 			'rslIeData',
 			array(
-				'ajaxUrl'                     => admin_url( 'admin-ajax.php' ),
+				'ajaxUrl'                     => Ajax_Security::ajax_url(),
 				'nonces'                      => Ajax_Security::get_nonces(),
 				'pluginUrl'                   => plugins_url( '', RSL_IE_FILE ),
-				'adminUrl'                    => admin_url(),
+				'adminUrl'                    => Site_URL::admin_url(),
 				'functionsUrl'                => \RockStarLab\ImportExport\Helper\Field_Transformation_Bridge::get_management_url(),
-				'optionsUrl'                  => admin_url( 'admin.php?page=rsl-ie-plugin-options' ),
-				'exportUrl'                   => admin_url( 'admin.php?page=rsl-ie-export' ),
+				'optionsUrl'                  => Site_URL::admin_url( 'admin.php?page=rsl-ie-plugin-options' ),
+				'exportUrl'                   => Site_URL::admin_url( 'admin.php?page=rsl-ie-export' ),
 				'currentPage'                 => '' !== $current_page ? $current_page : sanitize_key( $admin_page ),
 				'fieldTransformationsEnabled' => \RockStarLab\ImportExport\Helper\Field_Transformation_Bridge::is_enabled(),
 				'fieldTransformationActions'  => apply_filters(
@@ -1068,7 +1069,7 @@ class Init {
 			'rsl-ie-media-library-export',
 			'rslIeMediaLibraryExport',
 			array(
-				'exportUrl'     => admin_url( 'admin.php?page=rsl-ie-export' ),
+				'exportUrl'     => Site_URL::admin_url( 'admin.php?page=rsl-ie-export' ),
 				'exportLabel'   => __( 'Export', 'import-export-by-rockstarlab' ),
 				'disabledTitle' => __( 'Select one or more media files to enable export.', 'import-export-by-rockstarlab' ),
 			)
@@ -1143,9 +1144,9 @@ class Init {
 			'rslIeTaxonomyQuickActions',
 			array(
 				'nonces'         => Ajax_Security::get_nonces(),
-				'ajaxurl'        => admin_url( 'admin-ajax.php' ),
-				'exportUrl'      => admin_url( 'admin.php?page=rsl-ie-export' ),
-				'contentSyncUrl' => admin_url( 'admin.php?page=rsl-ie-content-sync' ),
+				'ajaxurl'        => Ajax_Security::ajax_url(),
+				'exportUrl'      => Site_URL::admin_url( 'admin.php?page=rsl-ie-export' ),
+				'contentSyncUrl' => Site_URL::admin_url( 'admin.php?page=rsl-ie-content-sync' ),
 				'taxonomy'       => $taxonomy,
 				'exportEnabled'  => $export_enabled,
 				'syncEnabled'    => $sync_enabled,
@@ -1382,9 +1383,9 @@ class Init {
 			'window.rslIeProAdminObjectQuickActions = ' . wp_json_encode(
 				array(
 					'nonces'          => Ajax_Security::get_nonces(),
-					'ajaxurl'         => admin_url( 'admin-ajax.php' ),
-					'exportUrl'       => admin_url( 'admin.php?page=rsl-ie-export' ),
-					'contentSyncUrl'  => admin_url( 'admin.php?page=rsl-ie-content-sync' ),
+					'ajaxurl'         => Ajax_Security::ajax_url(),
+					'exportUrl'       => Site_URL::admin_url( 'admin.php?page=rsl-ie-export' ),
+					'contentSyncUrl'  => Site_URL::admin_url( 'admin.php?page=rsl-ie-content-sync' ),
 					'exportLabel'     => __( 'Export', 'import-export-by-rockstarlab' ),
 					'syncLabel'       => __( 'Sync', 'import-export-by-rockstarlab' ),
 					'connectedSites'  => $this->get_connected_sites_for_quick_actions(),
