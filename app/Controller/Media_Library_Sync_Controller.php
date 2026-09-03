@@ -131,8 +131,8 @@ class Media_Library_Sync_Controller {
 			'window.rslIeProMediaLibrarySync = ' . wp_json_encode(
 				array(
 					'nonces'         => Ajax_Security::get_nonces(),
-					'ajaxurl'        => admin_url( 'admin-ajax.php' ),
-					'contentSyncUrl' => admin_url( 'admin.php?page=rsl-ie-content-sync' ),
+					'ajaxurl'        => Ajax_Security::ajax_url(),
+					'contentSyncUrl' => \RockStarLab\ImportExport\Helper\Site_URL::admin_url( 'admin.php?page=rsl-ie-content-sync' ),
 					'connectedSites' => $this->get_connected_sites_for_quick_actions(),
 					'i18n'           => array(
 						'sync'             => __( 'Sync', 'import-export-by-rockstarlab' ),

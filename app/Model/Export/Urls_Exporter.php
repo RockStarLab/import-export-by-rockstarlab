@@ -563,7 +563,7 @@ class Urls_Exporter extends Abstract_Exporter {
 	private static function get_generated_urls_for_source( $kind, $name ) {
 		if ( 'standard' === $kind ) {
 			if ( 'homepage' === $name ) {
-				return [ home_url( '/' ) ];
+				return [ trailingslashit( \RockStarLab\ImportExport\Helper\Site_URL::current_request_site_url() ) ];
 			}
 
 			if ( 'authors' === $name ) {
@@ -594,7 +594,7 @@ class Urls_Exporter extends Abstract_Exporter {
 		}
 
 		if ( 'rest' === $kind && 'root' === $name ) {
-			return [ rest_url() ];
+				return [ trailingslashit( \RockStarLab\ImportExport\Helper\Site_URL::current_request_site_url() . '/wp-json' ) ];
 		}
 
 		if ( 'post_type_archive' === $kind ) {
@@ -703,7 +703,7 @@ class Urls_Exporter extends Abstract_Exporter {
 
 		$rest_base = $post_type_object->rest_base ? $post_type_object->rest_base : $post_type;
 
-		return rest_url( 'wp/v2/' . $rest_base );
+		return trailingslashit( \RockStarLab\ImportExport\Helper\Site_URL::current_request_site_url() . '/wp-json/wp/v2/' . $rest_base );
 	}
 
 	/**

@@ -318,9 +318,11 @@ class Comment_Importer extends Abstract_Importer {
 		$existing_comment_id = null;
 		$duplicate_check     = $this->get_option( 'duplicate_check', 'comment_ID' );
 
-		if ( 'comment_ID' === $duplicate_check ) {
-			// Interpret comment_ID as the SOURCE site ID; we de-dupe by comment meta.
-			$existing_comment_id = $this->find_existing_comment_by_source_id( $source_comment_id );
+		if ( in_array( $duplicate_check, [ 'comment_ID', 'source_comment_id', '_aie_source_comment_id' ], true ) ) {
+			$existing_comment_id = $this->find_existing_comment_by_local_id( $source_comment_id, $post_id );
+			if ( ! $existing_comment_id ) {
+				$existing_comment_id = $this->find_existing_comment_by_source_id( $source_comment_id );
+			}
 		} elseif ( 'comment_content' === $duplicate_check ) {
 			$existing_comment_id = $this->find_comment_by_content(
 				$item['comment_content'] ?? '',
@@ -480,17 +482,43 @@ class Comment_Importer extends Abstract_Importer {
 
 		$comment_ids = get_comments( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Targeted lookup by importer-specific meta key.
 			[
-				'number'         => 1,
-				'orderby'        => 'comment_ID',
-				'order'          => 'DESC',
-				'fields'         => 'ids',
-				'status'         => 'all',
-				'meta_key'       => self::SOURCE_ID_META_KEY, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Targeted lookup by importer-specific meta key.
-					'meta_value' => (string) $source_comment_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Targeted lookup by importer-specific meta key.
+				'number'     => 1,
+				'orderby'    => 'comment_ID',
+				'order'      => 'ASC',
+				'fields'     => 'ids',
+				'status'     => 'all',
+				'meta_key'   => self::SOURCE_ID_META_KEY, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Targeted lookup by importer-specific meta key.
+				'meta_value' => (string) $source_comment_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Targeted lookup by importer-specific meta key.
 			]
 		);
 
 		return ! empty( $comment_ids[0] ) ? absint( $comment_ids[0] ) : null;
+	}
+
+	/**
+	 * Find an existing target comment by raw comment_ID when importing into a fresh clone.
+	 *
+	 * @param int $comment_id Source comment_ID that may still exist locally.
+	 * @param int $post_id    Resolved local post ID.
+	 * @return int|null Target comment ID or null.
+	 */
+	private function find_existing_comment_by_local_id( $comment_id, $post_id = 0 ) {
+		$comment_id = absint( $comment_id );
+		if ( $comment_id <= 0 ) {
+			return null;
+		}
+
+		$comment = get_comment( $comment_id );
+		if ( ! $comment ) {
+			return null;
+		}
+
+		$post_id = absint( $post_id );
+		if ( $post_id > 0 && absint( $comment->comment_post_ID ) !== $post_id ) {
+			return null;
+		}
+
+		return $comment_id;
 	}
 
 	/**
@@ -797,7 +825,7 @@ class Comment_Importer extends Abstract_Importer {
 			return esc_url_raw( $url );
 		}
 
-		$home        = home_url();
+		$home        = \RockStarLab\ImportExport\Helper\Site_URL::current_request_site_url();
 		$home_parsed = wp_parse_url( $home );
 		if ( empty( $home_parsed['host'] ) ) {
 			return esc_url_raw( $url );

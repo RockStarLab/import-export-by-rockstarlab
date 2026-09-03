@@ -22,6 +22,19 @@ class Ajax_Security {
 	private static $actions = array();
 
 	/**
+	 * Return an admin-ajax URL that follows the current browser origin.
+	 *
+	 * Local development proxies can serve wp-admin through a different visible
+	 * host/port than WordPress stores in siteurl. A root-relative endpoint keeps
+	 * browser AJAX requests on the same origin as the loaded admin page.
+	 *
+	 * @return string
+	 */
+	public static function ajax_url() {
+		return admin_url( 'admin-ajax.php', 'relative' );
+	}
+
+	/**
 	 * Register an AJAX action that needs a browser nonce.
 	 *
 	 * @param string $action Full admin-ajax action name.

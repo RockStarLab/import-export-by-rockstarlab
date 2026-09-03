@@ -145,6 +145,14 @@ Yes. Use Site-to-Site Content Sync to connect two sites with API keys and sync p
 
 ## Changelog
 
+### 1.4.1
+
+- Fixed admin AJAX requests in local/proxied environments by using same-origin admin-ajax URLs.
+- Fixed comment imports using source_comment_id duplicate matching so existing comments are updated instead of duplicated.
+- Fixed page ordering and modified date preservation during content migration and post imports.
+- Fixed first-run content migrations so existing local pages with matching slugs are updated instead of duplicated.
+- Fixed export-file migrations so existing local posts/pages with matching slugs are updated before falling back to source-id metadata.
+
 ### 1.1.8
 
 - Added an "Add all" button to the export field selection step so all currently available fields can be selected at once.

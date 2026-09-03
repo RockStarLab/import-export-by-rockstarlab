@@ -156,6 +156,7 @@ class Media_Hash_Controller extends Base_Controller {
 			[
 				'Site URL'            => site_url(),
 				'Home URL'            => home_url(),
+				'Current Request URL' => \RockStarLab\ImportExport\Helper\Site_URL::current_request_site_url(),
 				'WordPress Version'   => $wp_version,
 				'Multisite'           => is_multisite() ? 'Yes' : 'No',
 				'Environment Type'    => function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'unknown',

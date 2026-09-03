@@ -79,6 +79,9 @@ class Post_Importer extends Abstract_Importer {
 			'author_name',
 			'author_email',
 			'post_date',
+			'post_date_gmt',
+			'post_modified',
+			'post_modified_gmt',
 			'post_name',
 			'post_parent',
 			'menu_order',
@@ -558,6 +561,11 @@ class Post_Importer extends Abstract_Importer {
 		// functions, editor adjustments, etc.).
 		$source_id = isset( $item['_rsl_ie_source_id'] ) ? absint( $item['_rsl_ie_source_id'] ) : 0;
 		if ( $source_id > 0 ) {
+			$existing = $this->find_existing_post_by_slug( $item );
+			if ( $existing ) {
+				return $existing;
+			}
+
 			$existing = $this->find_existing_post_by_source_id( $source_id );
 			if ( $existing ) {
 				return $existing;
@@ -637,6 +645,51 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Find a single existing local post by post type and slug.
+	 *
+	 * This lets first-run file migrations update default WordPress content before
+	 * source-id meta exists locally.
+	 *
+	 * @param array $item Import row.
+	 * @return \WP_Post|null Existing post.
+	 */
+	private function find_existing_post_by_slug( $item ) {
+		if ( empty( $item['post_name'] ) ) {
+			return null;
+		}
+
+		$args = [
+			'name'                   => (string) $item['post_name'],
+			'post_type'              => $this->get_option( 'post_type', $item['post_type'] ?? 'post' ),
+			'post_status'            => 'any',
+			'posts_per_page'         => 2,
+			'fields'                 => 'ids',
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+		];
+
+		$posts = get_posts( $args );
+		if ( 1 === count( $posts ) ) {
+			return get_post( (int) $posts[0] );
+		}
+
+		$unmapped_posts = array_values(
+			array_filter(
+				$posts,
+				function ( $post_id ) {
+					return '' === (string) get_post_meta( (int) $post_id, self::SOURCE_ID_META_KEY, true )
+						&& '' === (string) get_post_meta( (int) $post_id, '_rsl_ie_original_post_id', true )
+						&& '' === (string) get_post_meta( (int) $post_id, '_rsl_ie_source_id', true )
+						&& '' === (string) get_post_meta( (int) $post_id, '_aie_original_post_id', true );
+				}
+			)
+		);
+
+		return 1 === count( $unmapped_posts ) ? get_post( (int) $unmapped_posts[0] ) : null;
 	}
 
 	/**
@@ -744,6 +797,8 @@ class Post_Importer extends Abstract_Importer {
 			$this->auto_import_content_media( $post_id, $item['post_content'] );
 		}
 
+		$this->restore_imported_post_modified_dates( (int) $post_id, $item );
+
 		return $post_id;
 	}
 
@@ -818,7 +873,41 @@ class Post_Importer extends Abstract_Importer {
 			$this->auto_import_content_media( $post_id, $item['post_content'] );
 		}
 
+		$this->restore_imported_post_modified_dates( (int) $post_id, $item );
+
 		return 'updated';
+	}
+
+	/**
+	 * Restore source modified timestamps after follow-up import updates.
+	 *
+	 * @param int   $post_id Post ID.
+	 * @param array $item    Import row.
+	 * @return void
+	 */
+	private function restore_imported_post_modified_dates( $post_id, $item ) {
+		$post_id = absint( $post_id );
+		if ( $post_id <= 0 || ( empty( $item['post_modified'] ) && empty( $item['post_modified_gmt'] ) ) ) {
+			return;
+		}
+
+		global $wpdb;
+
+		$update = [];
+		$format = [];
+
+		if ( ! empty( $item['post_modified'] ) ) {
+			$update['post_modified'] = (string) $item['post_modified'];
+			$format[]                = '%s';
+		}
+
+		if ( ! empty( $item['post_modified_gmt'] ) ) {
+			$update['post_modified_gmt'] = (string) $item['post_modified_gmt'];
+			$format[]                    = '%s';
+		}
+
+		$wpdb->update( $wpdb->posts, $update, [ 'ID' => $post_id ], $format, [ '%d' ] );
+		clean_post_cache( $post_id );
 	}
 
 	/**
@@ -955,6 +1044,8 @@ class Post_Importer extends Abstract_Importer {
 			'post_author',
 			'post_date',
 			'post_date_gmt',
+			'post_modified',
+			'post_modified_gmt',
 			'post_name',
 			'post_parent',
 			'menu_order',
