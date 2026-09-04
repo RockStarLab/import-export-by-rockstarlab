@@ -218,6 +218,14 @@
 					outline: none;
 				}
 			}
+
+			select.rsl-ie-filter-value.is-loading {
+				background-image: var(--rsl-ie-loading-spinner-url);
+				background-position: right 5px center;
+				background-repeat: no-repeat;
+				background-size: 20px 20px;
+				padding-right: 32px;
+			}
 		}
 
 		.rsl-ie-filter-actions {

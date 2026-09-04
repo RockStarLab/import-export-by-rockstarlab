@@ -25,6 +25,16 @@ export default class ExportStep3 {
 		return window.rslIeData?.fieldTransformationActions?.[ key ] || '';
 	}
 
+	isIntegrationActive( key ) {
+		const integrations = window.rslIeData?.activeIntegrations;
+
+		if ( ! integrations || typeof integrations[ key ] === 'undefined' ) {
+			return true;
+		}
+
+		return !! integrations[ key ];
+	}
+
 	init() {
 		// Check dependencies
 		if ( typeof jQuery === 'undefined' ) {
@@ -903,7 +913,10 @@ export default class ExportStep3 {
 			'woo_coupon',
 			'woo_order',
 		];
-		if ( ! acfExcludedTypes.includes( contentType ) ) {
+		if (
+			this.isIntegrationActive( 'acf' ) &&
+			! acfExcludedTypes.includes( contentType )
+		) {
 			this.prepareDynamicCategory(
 				'.rsl-ie-acf-fields-category',
 				'.rsl-ie-acf-fields-grid',
@@ -931,34 +944,30 @@ export default class ExportStep3 {
 			'woo_refund',
 			'woo_customer',
 		];
-		if ( ! excludedTypes.includes( contentType ) ) {
-			this.prepareDynamicCategory(
-				'.rsl-ie-yoast-fields-category',
-				'.rsl-ie-yoast-fields-grid',
-				'rsl-ie-yoast-loading',
-				window.rslIeData.i18n.loadingYoastFields ||
-					'Loading Yoast SEO fields...'
-			);
+		if (
+			this.isIntegrationActive( 'yoast' ) &&
+			! excludedTypes.includes( contentType )
+		) {
 			trackRequest( this.checkAndLoadYoast() );
 		} else {
 			this.hideDynamicCategory( '.rsl-ie-yoast-fields-category' );
 		}
 
 		// Check if Rank Math is active and load Rank Math fields (skip for non-content types)
-		if ( ! excludedTypes.includes( contentType ) ) {
-			this.prepareDynamicCategory(
-				'.rsl-ie-rank-math-fields-category',
-				'.rsl-ie-rank-math-fields-grid',
-				'rsl-ie-rank-math-loading',
-				'Loading Rank Math SEO fields...'
-			);
+		if (
+			this.isIntegrationActive( 'rankMath' ) &&
+			! excludedTypes.includes( contentType )
+		) {
 			trackRequest( this.checkAndLoadRankMath() );
 		} else {
 			this.hideDynamicCategory( '.rsl-ie-rank-math-fields-category' );
 		}
 
 		// Check if Elementor is active and load Elementor fields (skip for non-content types)
-		if ( ! excludedTypes.includes( contentType ) ) {
+		if (
+			this.isIntegrationActive( 'elementor' ) &&
+			! excludedTypes.includes( contentType )
+		) {
 			this.prepareDynamicCategory(
 				'.rsl-ie-elementor-fields-category',
 				'.rsl-ie-elementor-fields-grid',

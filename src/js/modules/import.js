@@ -34,6 +34,16 @@ const ImportModule = {
 		return window.rslIeData?.fieldTransformationActions?.[ key ] || '';
 	},
 
+	isIntegrationActive( key ) {
+		const integrations = window.rslIeData?.activeIntegrations;
+
+		if ( ! integrations || typeof integrations[ key ] === 'undefined' ) {
+			return true;
+		}
+
+		return !! integrations[ key ];
+	},
+
 	init() {
 		if ( ! jQuery( '#rsl-ie-import' ).length ) {
 			return;
@@ -2664,71 +2674,6 @@ const ImportModule = {
 							value: 'post_modified',
 							label: 'Modified Date',
 							type: 'date',
-						},
-					],
-				},
-				{
-					label: 'SEO (Yoast)',
-					options: [
-						{
-							value: '_yoast_wpseo_title',
-							label: 'SEO Title',
-							type: 'string',
-						},
-						{
-							value: '_yoast_wpseo_metadesc',
-							label: 'Meta Description',
-							type: 'string',
-						},
-						{
-							value: '_yoast_wpseo_focuskw',
-							label: 'Focus Keyword',
-							type: 'string',
-						},
-						{
-							value: '_yoast_wpseo_canonical',
-							label: 'Canonical URL',
-							type: 'url',
-						},
-						{
-							value: '_yoast_wpseo_meta-robots-noindex',
-							label: 'Meta Robots No Index',
-							type: 'string',
-						},
-						{
-							value: '_yoast_wpseo_meta-robots-nofollow',
-							label: 'Meta Robots No Follow',
-							type: 'string',
-						},
-						{
-							value: '_yoast_wpseo_opengraph-title',
-							label: 'OpenGraph Title',
-							type: 'string',
-						},
-						{
-							value: '_yoast_wpseo_opengraph-description',
-							label: 'OpenGraph Description',
-							type: 'string',
-						},
-						{
-							value: '_yoast_wpseo_opengraph-image',
-							label: 'OpenGraph Image',
-							type: 'url',
-						},
-						{
-							value: '_yoast_wpseo_twitter-title',
-							label: 'Twitter Title',
-							type: 'string',
-						},
-						{
-							value: '_yoast_wpseo_twitter-description',
-							label: 'Twitter Description',
-							type: 'string',
-						},
-						{
-							value: '_yoast_wpseo_twitter-image',
-							label: 'Twitter Image',
-							type: 'url',
 						},
 					],
 				},
@@ -6063,6 +6008,10 @@ const ImportModule = {
 			return;
 		}
 
+		if ( ! this.isIntegrationActive( 'acf' ) ) {
+			return;
+		}
+
 		return jQuery.ajax( {
 			url: rslIeData.ajaxUrl,
 			method: 'POST',
@@ -6140,7 +6089,10 @@ const ImportModule = {
 			'woo_customer',
 		];
 
-		if ( excludedTypes.includes( contentType ) ) {
+		if (
+			! this.isIntegrationActive( 'yoast' ) ||
+			excludedTypes.includes( contentType )
+		) {
 			return;
 		}
 
@@ -6224,7 +6176,10 @@ const ImportModule = {
 			'woo_customer',
 		];
 
-		if ( excludedTypes.includes( contentType ) ) {
+		if (
+			! this.isIntegrationActive( 'rankMath' ) ||
+			excludedTypes.includes( contentType )
+		) {
 			return;
 		}
 
@@ -6309,7 +6264,10 @@ const ImportModule = {
 			'woo_customer',
 		];
 
-		if ( excludedTypes.includes( contentType ) ) {
+		if (
+			! this.isIntegrationActive( 'elementor' ) ||
+			excludedTypes.includes( contentType )
+		) {
 			return;
 		}
 

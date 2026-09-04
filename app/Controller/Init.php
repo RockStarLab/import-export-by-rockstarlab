@@ -303,6 +303,13 @@ class Init {
 				'isPremium'                   => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active(),
 				'isProAddonActive'            => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active(),
 				'isProEnabled'                => \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_enabled(),
+				'activeIntegrations'          => array(
+					'acf'         => function_exists( 'acf_get_field_groups' ) && function_exists( 'acf_get_fields' ),
+					'yoast'       => defined( 'WPSEO_VERSION' ),
+					'rankMath'    => \RockStarLab\ImportExport\Helper\Seo_Fields::is_rank_math_active(),
+					'elementor'   => \RockStarLab\ImportExport\Helper\Elementor_Fields::is_active(),
+					'woocommerce' => class_exists( 'WooCommerce' ),
+				),
 				'i18n'                        => array(
 					// General
 					'skip'                              => __( 'Skip', 'import-export-by-rockstarlab' ),
