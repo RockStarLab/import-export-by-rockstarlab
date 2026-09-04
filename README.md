@@ -145,6 +145,10 @@ Yes. Use Site-to-Site Content Sync to connect two sites with API keys and sync p
 
 ## Changelog
 
+### 1.4.2
+
+- UI Improvements.
+
 ### 1.4.1
 
 - Fixed admin AJAX requests in local/proxied environments by using same-origin admin-ajax URLs.
