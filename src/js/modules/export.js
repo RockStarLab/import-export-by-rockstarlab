@@ -81,8 +81,13 @@ const ExportModule = {
 				.trim()
 				.replace( /[^a-zA-Z0-9_-]/g, '' );
 
-			if ( ! ids.length || ! postType ) {
+			if ( ! postType ) {
 				return false;
+			}
+
+			if ( ! ids.length ) {
+				this.applyPostTypeFilterPrefill( postType );
+				return true;
 			}
 
 			this.applyPostListPrefill( postType, ids );
@@ -95,8 +100,13 @@ const ExportModule = {
 				.trim()
 				.replace( /[^a-zA-Z0-9_-]/g, '' );
 
-			if ( ! ids.length || ! taxonomy ) {
+			if ( ! taxonomy ) {
 				return false;
+			}
+
+			if ( ! ids.length ) {
+				this.applyTaxonomyFilterPrefill( taxonomy );
+				return true;
 			}
 
 			this.applyTaxonomyTermsPrefill( taxonomy, ids );
@@ -207,6 +217,45 @@ const ExportModule = {
 	},
 
 	/**
+	 * Open Step 2 with the custom post type selector ready when no IDs were sent.
+	 *
+	 * @param {string} postType Selected WordPress post type.
+	 */
+	applyPostTypeFilterPrefill( postType ) {
+		const contentType = this.getContentTypeForPostTypePrefill( postType );
+		const $contentType = jQuery(
+			`input[name="content_type"][value="${ contentType }"]`
+		);
+
+		if ( ! $contentType.length ) {
+			this.showStep( 1 );
+			return;
+		}
+
+		$contentType.prop( 'checked', true ).trigger( 'change' );
+		this.showStep( 2 );
+
+		if ( contentType !== 'custom_post_types' ) {
+			return;
+		}
+
+		jQuery( '#rsl-ie-filters-list' ).empty();
+		this.addFilterRow( '_post_type' );
+
+		const $postTypeRow = jQuery(
+			'#rsl-ie-filters-list .rsl-ie-filter-row'
+		).last();
+
+		this.waitForFilterValueOption( $postTypeRow, postType )
+			.then( ( $select ) => {
+				$select.val( postType ).trigger( 'change' );
+			} )
+			.catch( () => {
+				this.updateStep2NextButton();
+			} );
+	},
+
+	/**
 	 * Map WordPress post type to export wizard content type.
 	 *
 	 * @param {string} postType WordPress post type.
@@ -286,6 +335,40 @@ const ExportModule = {
 			} )
 			.catch( () => {
 				this.showStep( 2 );
+			} );
+	},
+
+	/**
+	 * Open Step 2 with the taxonomy selector ready when no term IDs were sent.
+	 *
+	 * @param {string} taxonomy Selected taxonomy.
+	 */
+	applyTaxonomyFilterPrefill( taxonomy ) {
+		const $contentType = jQuery(
+			'input[name="content_type"][value="taxonomy"]'
+		);
+
+		if ( ! $contentType.length ) {
+			this.showStep( 1 );
+			return;
+		}
+
+		$contentType.prop( 'checked', true ).trigger( 'change' );
+		this.showStep( 2 );
+
+		jQuery( '#rsl-ie-filters-list' ).empty();
+		this.addFilterRow( '_taxonomy' );
+
+		const $taxonomyRow = jQuery(
+			'#rsl-ie-filters-list .rsl-ie-filter-row'
+		).last();
+
+		this.waitForFilterValueOption( $taxonomyRow, taxonomy )
+			.then( ( $select ) => {
+				$select.val( taxonomy ).trigger( 'change' );
+			} )
+			.catch( () => {
+				this.updateStep2NextButton();
 			} );
 	},
 
@@ -517,6 +600,7 @@ const ExportModule = {
 				jQuery( '.rsl-ie-url-export-section' ).hide();
 			}
 
+			this.ensureDefaultSpecificFilter( contentType );
 			this.refreshCount( false ); // Don't show spinner on auto-refresh
 		} else if ( step === 3 ) {
 			// Load dynamic fields when entering step 3
@@ -587,6 +671,25 @@ const ExportModule = {
 
 	isUrlsExport() {
 		return jQuery( 'input[name="content_type"]:checked' ).val() === 'urls';
+	},
+
+	/**
+	 * Open the selector filter immediately for content types that need a specific subtype.
+	 *
+	 * @param {string} contentType Selected export content type.
+	 */
+	ensureDefaultSpecificFilter( contentType ) {
+		if ( jQuery( '#rsl-ie-filters-list .rsl-ie-filter-row' ).length ) {
+			return;
+		}
+
+		if ( contentType === 'custom_post_types' ) {
+			this.addFilterRow( '_post_type' );
+		}
+
+		if ( contentType === 'taxonomy' ) {
+			this.addFilterRow( '_taxonomy' );
+		}
 	},
 
 	/**
@@ -2279,7 +2382,7 @@ const ExportModule = {
 	/**
 	 * Add new filter row
 	 */
-	addFilterRow() {
+	addFilterRow( selectedField = '' ) {
 		const template = document.getElementById(
 			'rsl-ie-filter-row-template'
 		);
@@ -2309,6 +2412,15 @@ const ExportModule = {
 		} );
 
 		jQuery( '#rsl-ie-filters-list' ).append( clone );
+
+		if ( selectedField ) {
+			const $row = jQuery(
+				'#rsl-ie-filters-list .rsl-ie-filter-row'
+			).last();
+			$row.find( '.rsl-ie-filter-field' )
+				.val( selectedField )
+				.trigger( 'change' );
+		}
 
 		// Trigger count refresh (without spinner)
 		Utils.debounce( () => this.refreshCount( false ), 500 )();
@@ -2508,14 +2620,24 @@ const ExportModule = {
 
 			// Create a select dropdown for post types
 			const $select = jQuery( '<select>' )
-				.addClass( 'rsl-ie-filter-value rsl-ie-post-type-selector' )
-				.attr( 'name', 'filter_value[]' );
+				.addClass(
+					'rsl-ie-filter-value rsl-ie-post-type-selector is-loading'
+				)
+				.attr( 'name', 'filter_value[]' )
+				.prop( 'disabled', true )
+				.append(
+					jQuery( '<option>' )
+						.val( '' )
+						.text( window.rslIeData.i18n.loading )
+				);
+			this.setLoadingSelectSpinner( $select );
 
 			// Fetch post types via AJAX
 			Utils.ajax( 'rsl_ie_get_post_types', {
 				include_hidden: true,
 			} )
 				.then( ( postTypes ) => {
+					$select.empty().prop( 'disabled', false );
 					$select.append(
 						jQuery( '<option>' )
 							.val( '' )
@@ -2559,11 +2681,15 @@ const ExportModule = {
 					}
 				} )
 				.catch( ( error ) => {
+					$select.empty().prop( 'disabled', false );
 					$select.append(
 						jQuery( '<option>' )
 							.val( '' )
 							.text( window.rslIeData.i18n.errorLoadingPostTypes )
 					);
+				} )
+				.finally( () => {
+					$select.removeClass( 'is-loading' );
 				} );
 
 			$value.replaceWith( $select );
@@ -2582,12 +2708,22 @@ const ExportModule = {
 
 			// Create a select dropdown for taxonomies
 			const $select = jQuery( '<select>' )
-				.addClass( 'rsl-ie-filter-value rsl-ie-taxonomy-selector' )
-				.attr( 'name', 'filter_value[]' );
+				.addClass(
+					'rsl-ie-filter-value rsl-ie-taxonomy-selector is-loading'
+				)
+				.attr( 'name', 'filter_value[]' )
+				.prop( 'disabled', true )
+				.append(
+					jQuery( '<option>' )
+						.val( '' )
+						.text( window.rslIeData.i18n.loading )
+				);
+			this.setLoadingSelectSpinner( $select );
 
 			// Fetch taxonomies via AJAX
 			Utils.ajax( 'rsl_ie_get_all_taxonomies', {} )
 				.then( ( taxonomies ) => {
+					$select.empty().prop( 'disabled', false );
 					$select.append(
 						jQuery( '<option>' )
 							.val( '' )
@@ -2631,6 +2767,7 @@ const ExportModule = {
 					}
 				} )
 				.catch( ( error ) => {
+					$select.empty().prop( 'disabled', false );
 					$select.append(
 						jQuery( '<option>' )
 							.val( '' )
@@ -2638,6 +2775,9 @@ const ExportModule = {
 								window.rslIeData.i18n.errorLoadingTaxonomies
 							)
 					);
+				} )
+				.finally( () => {
+					$select.removeClass( 'is-loading' );
 				} );
 
 			$value.replaceWith( $select );
@@ -2744,6 +2884,20 @@ const ExportModule = {
 
 		// Trigger count refresh (without spinner)
 		Utils.debounce( () => this.refreshCount( false ), 500 )();
+	},
+
+	/**
+	 * Use the WordPress admin spinner as a select background while options load.
+	 *
+	 * @param {jQuery} $select Loading select.
+	 */
+	setLoadingSelectSpinner( $select ) {
+		const adminUrl = String( window.rslIeData?.adminUrl || '' );
+		const spinnerUrl = adminUrl
+			? `${ adminUrl.replace( /\/?$/, '/' ) }images/spinner.gif`
+			: '/wp-admin/images/spinner.gif';
+
+		$select.css( '--rsl-ie-loading-spinner-url', `url("${ spinnerUrl }")` );
 	},
 
 	/**
