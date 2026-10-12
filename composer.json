@@ -31,7 +31,8 @@
 		"preferred-install": "dist",
 		"optimize-autoloader": true,
 		"sort-packages": true,
-		"platform-check": false
+		"platform-check": false,
+		"autoloader-suffix": "RslImportExport143"
 	},
 	"require": {
 		"phpoffice/phpspreadsheet": "^1.30.6"
