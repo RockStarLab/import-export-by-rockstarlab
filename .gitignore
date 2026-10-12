@@ -11,3 +11,11 @@ e2e
 *.e2e
 dist
 .wordpress-org/blueprint.json
+
+# Keep the repository focused on distributable code and public documentation.
+*.md
+*.MD
+!/README.md
+!/.phpcs.readme.md
+!vendor/**/*.md
+!vendor/**/*.MD
