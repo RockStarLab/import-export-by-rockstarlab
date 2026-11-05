@@ -1,0 +1,195 @@
+/** Shared brand tokens, scoped to plugin screens (including hidden settings pages).
+ * Keep the WordPress sidebar, toolbar, and other plugins on their chosen theme.
+ * Component fallbacks retain their original palette when embedded elsewhere.
+ */
+body:is([class*="import-export-by-rockstarlab"], [class*="admin_page_rsl-ie-"])
+	:is(#wpbody-content, .rsl-ie-backup-warning-modal) {
+	--rsl-brand-accent: #7352c7;
+	--rsl-brand-success: #168b9a;
+	--rsl-brand-success-hover: #106d79;
+	--rsl-brand-success-bg: #e5f5f7;
+	--rsl-brand-success-border: #b8dfe4;
+	--rsl-brand-success-rgb: 22, 139, 154;
+	--rsl-ie-result-success-color: var(--rsl-brand-success);
+	--rsl-ie-result-success-color-dark: var(--rsl-brand-success-hover);
+	--rsl-brand-accent-hover: #57399e;
+	--rsl-brand-accent-deep: #442982;
+	--rsl-brand-teal: #4da5ae;
+	--rsl-brand-gradient-start: #9656e3;
+	--rsl-brand-accent-rgb: 115, 82, 199;
+	--rsl-brand-tint: #f1ecfa;
+	--rsl-brand-border: #ded9e8;
+	--rsl-brand-surface: #faf8fd;
+	--rsl-brand-heading: #352b47;
+	--rsl-brand-muted: #635a70;
+	--wp-admin-theme-color: var(--rsl-brand-accent);
+	--wp-admin-theme-color-darker-10: var(--rsl-brand-accent-hover);
+	--wp-admin-theme-color-darker-20: var(--rsl-brand-accent-deep);
+	--wp-admin-theme-color--rgb: var(--rsl-brand-accent-rgb);
+
+	// Keep completed wizard steps teal even when an add-on loads legacy styles later.
+	.rsl-ie-steps-indicator .rsl-ie-step-indicator.completed {
+		.rsl-ie-step-number {
+			background: var(--rsl-brand-success);
+			color: #fff;
+		}
+		&::after {
+			background: var(--rsl-brand-success);
+		}
+		&.active .rsl-ie-step-number {
+			background: var(--rsl-brand-accent);
+		}
+	}
+
+	.rsl-ie-backup-warning-footer {
+		.rsl-ie-button:focus {
+			box-shadow: 0 0 0 3px rgba(var(--rsl-brand-accent-rgb), 0.2);
+		}
+		.rsl-ie-button-primary {
+			background: linear-gradient(
+				135deg,
+				var(--rsl-brand-accent),
+				var(--rsl-brand-accent-hover)
+			);
+			color: #fff;
+			&:hover:not(:disabled) {
+				box-shadow: 0 6px 20px rgba(var(--rsl-brand-accent-rgb), 0.3);
+			}
+		}
+		.rsl-ie-button-secondary {
+			background: #fff;
+			color: var(--rsl-brand-muted);
+			border-color: var(--rsl-brand-border);
+			&:hover {
+				background: var(--rsl-brand-surface);
+				border-color: var(--rsl-brand-accent);
+			}
+		}
+	}
+
+	// Native WP controls are also used by schedules, jobs, and Freemius screens.
+	a:where(
+			:not(.button):not(.submitdelete):not(.delete):not(
+					[class*="rsl-ie-"]
+				):not([class*="rsl-agent-"])
+		) {
+		color: var(--rsl-brand-accent);
+	}
+	a:where(
+			:not(.button):not(.submitdelete):not(.delete):not(
+					[class*="rsl-ie-"]
+				):not([class*="rsl-agent-"])
+		):hover {
+		color: var(--rsl-brand-accent-hover);
+	}
+	.button:not(.button-hero):not(.button-primary):not(.button-link-delete):not(
+			[class*="rsl-ie-"]
+		) {
+		color: var(--rsl-brand-accent-hover);
+		border-color: var(--rsl-brand-border);
+		background: #fff;
+		border-radius: 6px;
+		&:hover {
+			background: var(--rsl-brand-tint);
+			border-color: #b8a2d9;
+		}
+	}
+	.button.button-primary:not(.button-hero):not([class*="rsl-ie-"]) {
+		background: var(--rsl-brand-accent);
+		border-color: var(--rsl-brand-accent);
+		color: #fff;
+		border-radius: 6px;
+		&:hover,
+		&:focus {
+			background: var(--rsl-brand-accent-hover);
+			border-color: var(--rsl-brand-accent-hover);
+		}
+		&:disabled,
+		&.disabled,
+		&[aria-disabled="true"] {
+			background: #ede9f3 !important;
+			border-color: #ddd5e8 !important;
+			color: #83778f !important;
+			box-shadow: none;
+		}
+	}
+	input:where(
+			[type="text"],
+			[type="search"],
+			[type="number"],
+			[type="url"],
+			[type="password"],
+			[type="email"]
+		),
+	select,
+	textarea {
+		border-color: var(--rsl-brand-border);
+		&:focus {
+			border-color: var(--rsl-brand-accent);
+			box-shadow: 0 0 0 1px var(--rsl-brand-accent);
+		}
+	}
+	input[type="checkbox"],
+	input[type="radio"] {
+		accent-color: var(--rsl-brand-accent);
+	}
+	input[type="radio"]:checked {
+		position: relative;
+		background: var(--rsl-brand-accent);
+		border-color: var(--rsl-brand-accent);
+		&::before {
+			content: "";
+			display: block;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 50%;
+			height: 50%;
+			margin: 0;
+			border-radius: 50%;
+			background: #fff;
+			transform: translate(-50%, -50%);
+		}
+	}
+	.nav-tab {
+		background: var(--rsl-brand-surface);
+		border-color: var(--rsl-brand-border);
+		color: var(--rsl-brand-muted);
+	}
+	.nav-tab-active,
+	.nav-tab:hover {
+		background: var(--rsl-brand-tint);
+		color: var(--rsl-brand-accent-hover);
+	}
+	.nav-tab-wrapper {
+		border-color: var(--rsl-brand-border);
+	}
+	.widefat,
+	.postbox {
+		border-color: var(--rsl-brand-border);
+	}
+	.widefat thead,
+	.widefat tfoot,
+	.postbox-header {
+		background: var(--rsl-brand-surface);
+	}
+	.striped > tbody > :nth-child(odd) {
+		background: var(--rsl-brand-surface);
+	}
+	.subsubsub a.current {
+		color: var(--rsl-brand-heading);
+	}
+	// Informational notices only; error/warning/success colors keep their meaning.
+	.notice-success {
+		border-left-color: var(--rsl-brand-success);
+	}
+	.notice-info {
+		border-left-color: var(--rsl-brand-accent);
+	}
+	.rsl-ie-premium-notice {
+		background: linear-gradient(115deg, #352347, #584094 65%, #31545b);
+	}
+	.rsl-ie-content-type-card.is-selected {
+		border-color: var(--rsl-brand-accent);
+	}
+}

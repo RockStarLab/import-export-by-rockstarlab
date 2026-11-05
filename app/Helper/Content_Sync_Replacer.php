@@ -1,0 +1,1451 @@
+<?php
+/**
+ * Content Sync Replacer Helper
+ *
+ * Handles domain replacement in content and custom fields during content sync
+ *
+ * @package RockStarLab\ImportExport\Helper
+ */
+
+namespace RockStarLab\ImportExport\Helper;
+
+defined( 'ABSPATH' ) || exit;
+
+class Content_Sync_Replacer {
+
+	/**
+	 * Collect a map of post IDs referenced by ACF post-reference fields in meta.
+	 *
+	 * This is used during Content Sync to resolve ACF post_object / relationship values
+	 * across sites without requiring the referenced posts to have been synced already.
+	 *
+	 * Output format:
+	 * - [ source_id => [ 'post_type' => 'post', 'post_name' => 'hello-world', 'post_title' => 'Hello world!' ] ]
+	 *
+	 * @param array $meta Post meta array (already deserialized).
+	 * @return array Map of referenced post IDs to portable descriptors.
+	 */
+	public static function collect_acf_post_reference_map_from_meta( $meta ) {
+		$map = array();
+
+		if ( empty( $meta ) || ! is_array( $meta ) || ! function_exists( 'acf_get_field' ) ) {
+			return $map;
+		}
+
+		foreach ( $meta as $key => $value ) {
+			if ( ! is_string( $key ) || strpos( $key, '_' ) === 0 ) {
+				continue;
+			}
+
+			$field_obj     = null;
+			$field_ref_key = '_' . $key;
+			if ( isset( $meta[ $field_ref_key ] ) && is_string( $meta[ $field_ref_key ] ) ) {
+				$field_ref = $meta[ $field_ref_key ];
+				if ( strpos( $field_ref, 'field_' ) === 0 ) {
+					$field_obj = acf_get_field( $field_ref );
+				}
+			}
+			if ( ! $field_obj ) {
+				// Fallback: ACF can resolve fields by name on the current site.
+				$field_obj = acf_get_field( $key );
+			}
+
+			if ( ! $field_obj || empty( $field_obj['type'] ) ) {
+				continue;
+			}
+
+			if ( ! in_array( $field_obj['type'], array( 'post_object', 'relationship', 'page_link' ), true ) ) {
+				continue;
+			}
+
+			$ids = is_array( $value ) ? $value : array( $value );
+			foreach ( $ids as $id ) {
+				if ( is_object( $id ) && isset( $id->ID ) ) {
+					$id = $id->ID;
+				} elseif ( is_array( $id ) && isset( $id['ID'] ) ) {
+					$id = $id['ID'];
+				}
+
+				if ( ! is_numeric( $id ) || (int) $id <= 0 ) {
+					continue;
+				}
+
+				$id = (int) $id;
+				if ( isset( $map[ $id ] ) ) {
+					continue;
+				}
+
+				$p = get_post( $id );
+				if ( ! $p ) {
+					continue;
+				}
+
+				$map[ $id ] = array(
+					'post_type'  => (string) $p->post_type,
+					'post_name'  => (string) $p->post_name,
+					'post_title' => (string) $p->post_title,
+				);
+			}
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Replace domain in post data
+	 *
+	 * @param array  $post_data Post data array.
+	 * @param string $source_domain Source domain to replace.
+	 * @param string $target_domain Target domain to replace with.
+	 * @param array  $image_map Mapping of old attachment IDs to new ones.
+	 * @return array Modified post data
+	 */
+	public static function replace_post_domains( $post_data, $source_domain, $target_domain, $image_map = array(), $image_sources = array() ) {
+		// Replace in content
+		if ( isset( $post_data['post_content'] ) ) {
+			$post_data['post_content'] = self::replace_in_content( $post_data['post_content'], $source_domain, $target_domain, $image_map, $image_sources );
+		}
+
+		// Replace in excerpt
+		if ( isset( $post_data['post_excerpt'] ) ) {
+			$post_data['post_excerpt'] = self::replace_in_text( $post_data['post_excerpt'], $source_domain, $target_domain );
+		}
+
+		// Replace in meta
+		if ( isset( $post_data['meta'] ) && is_array( $post_data['meta'] ) ) {
+			$post_data['meta'] = self::replace_in_meta( $post_data['meta'], $source_domain, $target_domain, $image_map, $image_sources );
+		}
+
+		// Replace domain and image IDs in variation meta (variable products).
+		if ( ! empty( $post_data['variations'] ) && is_array( $post_data['variations'] ) ) {
+			foreach ( $post_data['variations'] as &$variation ) {
+				if ( isset( $variation['post_excerpt'] ) ) {
+					$variation['post_excerpt'] = self::replace_in_text( $variation['post_excerpt'], $source_domain, $target_domain );
+				}
+				if ( ! empty( $variation['meta'] ) && is_array( $variation['meta'] ) ) {
+					$variation['meta'] = self::replace_in_meta( $variation['meta'], $source_domain, $target_domain, $image_map, $image_sources );
+				}
+			}
+			unset( $variation );
+		}
+
+		// Replace domain and image IDs in grouped product children meta.
+		if ( ! empty( $post_data['grouped_children'] ) && is_array( $post_data['grouped_children'] ) ) {
+			foreach ( $post_data['grouped_children'] as &$grouped_child ) {
+				if ( ! empty( $grouped_child['meta'] ) && is_array( $grouped_child['meta'] ) ) {
+					$grouped_child['meta'] = self::replace_in_meta( $grouped_child['meta'], $source_domain, $target_domain, $image_map, $image_sources );
+				}
+				if ( ! empty( $grouped_child['post_content'] ) ) {
+					$grouped_child['post_content'] = self::replace_in_content( $grouped_child['post_content'], $source_domain, $target_domain, $image_map, $image_sources );
+				}
+				if ( ! empty( $grouped_child['post_excerpt'] ) ) {
+					$grouped_child['post_excerpt'] = self::replace_in_text( $grouped_child['post_excerpt'], $source_domain, $target_domain );
+				}
+			}
+			unset( $grouped_child );
+		}
+
+		return $post_data;
+	}
+
+	/**
+	 * Replace domain in content (handles Gutenberg blocks)
+	 *
+	 * @param string $content Post content.
+	 * @param string $source_domain Source domain.
+	 * @param string $target_domain Target domain.
+	 * @param array  $image_map Image ID mapping.
+	 * @return string Modified content
+	 */
+	private static function replace_in_content( $content, $source_domain, $target_domain, $image_map = array(), $image_sources = array() ) {
+		// Replace URLs in content
+		$content = self::replace_in_text( $content, $source_domain, $target_domain );
+
+		// If content has blocks, update block attributes
+		if ( has_blocks( $content ) ) {
+			$content = self::replace_in_blocks( $content, $source_domain, $target_domain, $image_map );
+		}
+
+		// Replace attachment IDs in wp-image classes
+		if ( ! empty( $image_map ) ) {
+			foreach ( $image_map as $old_id => $new_id ) {
+				$content = preg_replace(
+					'/wp-image-' . $old_id . '\b/',
+					'wp-image-' . $new_id,
+					$content
+				);
+			}
+		}
+
+		$content = self::fix_local_image_urls_in_content( $content, $image_map, $image_sources );
+
+		return $content;
+	}
+
+	/**
+	 * Replace domain in Gutenberg blocks
+	 *
+	 * @param string $content Content with blocks.
+	 * @param string $source_domain Source domain.
+	 * @param string $target_domain Target domain.
+	 * @param array  $image_map Image ID mapping.
+	 * @return string Modified content
+	 */
+	private static function replace_in_blocks( $content, $source_domain, $target_domain, $image_map = array() ) {
+		$blocks = parse_blocks( $content );
+		$blocks = self::replace_in_blocks_recursive( $blocks, $source_domain, $target_domain, $image_map );
+		return serialize_blocks( $blocks );
+	}
+
+	/**
+	 * Replace domain in blocks recursively
+	 *
+	 * @param array  $blocks Parsed blocks.
+	 * @param string $source_domain Source domain.
+	 * @param string $target_domain Target domain.
+	 * @param array  $image_map Image ID mapping.
+	 * @return array Modified blocks
+	 */
+	private static function replace_in_blocks_recursive( $blocks, $source_domain, $target_domain, $image_map = array() ) {
+		foreach ( $blocks as &$block ) {
+			// Replace in block attributes
+			if ( ! empty( $block['attrs'] ) ) {
+				// Replace image IDs
+				if ( ! empty( $image_map ) ) {
+					if ( isset( $block['attrs']['id'] ) && isset( $image_map[ $block['attrs']['id'] ] ) ) {
+						$block['attrs']['id'] = $image_map[ $block['attrs']['id'] ];
+					}
+
+					if ( isset( $block['attrs']['mediaId'] ) && isset( $image_map[ $block['attrs']['mediaId'] ] ) ) {
+						$block['attrs']['mediaId'] = $image_map[ $block['attrs']['mediaId'] ];
+					}
+
+					// Gallery IDs
+					if ( isset( $block['attrs']['ids'] ) && is_array( $block['attrs']['ids'] ) ) {
+						foreach ( $block['attrs']['ids'] as &$id ) {
+							if ( isset( $image_map[ $id ] ) ) {
+								$id = $image_map[ $id ];
+							}
+						}
+					}
+				}
+
+				// Replace URLs in attributes
+				foreach ( $block['attrs'] as $key => &$value ) {
+					if ( is_string( $value ) ) {
+						$value = self::replace_in_text( $value, $source_domain, $target_domain );
+					} elseif ( is_array( $value ) ) {
+						$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map );
+					}
+				}
+			}
+
+			// Replace in block innerHTML
+			if ( isset( $block['innerHTML'] ) ) {
+				$block['innerHTML'] = self::replace_in_text( $block['innerHTML'], $source_domain, $target_domain );
+			}
+
+			// Replace in inner content
+			if ( ! empty( $block['innerContent'] ) ) {
+				foreach ( $block['innerContent'] as &$inner ) {
+					if ( is_string( $inner ) ) {
+						$inner = self::replace_in_text( $inner, $source_domain, $target_domain );
+					}
+				}
+			}
+
+			// Recursively process inner blocks
+			if ( ! empty( $block['innerBlocks'] ) ) {
+				$block['innerBlocks'] = self::replace_in_blocks_recursive( $block['innerBlocks'], $source_domain, $target_domain, $image_map );
+			}
+		}
+
+		return $blocks;
+	}
+
+	/**
+	 * Public wrapper for replace_in_meta, used by receive_content on push path.
+	 *
+	 * @param array  $meta Post meta array.
+	 * @param string $source_domain Source domain.
+	 * @param string $target_domain Target domain.
+	 * @param array  $image_map Image ID mapping.
+	 * @return array Modified meta
+	 */
+	public static function replace_in_meta_public( $meta, $source_domain, $target_domain, $image_map = array(), $image_sources = array() ) {
+		return self::replace_in_meta( $meta, $source_domain, $target_domain, $image_map, $image_sources );
+	}
+
+	/**
+	 * List a transferred featured image as uploaded to the post it belongs to.
+	 *
+	 * Only attachments that arrived in this sync (present in the image map) and are
+	 * not attached to anything yet are changed, so existing library files keep
+	 * their current parent.
+	 *
+	 * @param int   $post_id   Target post ID.
+	 * @param array $image_map Source attachment ID => local attachment ID.
+	 * @return void
+	 */
+	public static function attach_transferred_featured_image( $post_id, $image_map ) {
+		$post_id   = (int) $post_id;
+		$thumb_id  = (int) get_post_meta( $post_id, '_thumbnail_id', true );
+		$image_map = is_array( $image_map ) ? array_map( 'intval', array_values( $image_map ) ) : array();
+		if ( $post_id <= 0 || $thumb_id <= 0 || ! in_array( $thumb_id, $image_map, true ) ) {
+			return;
+		}
+		if ( 'attachment' !== get_post_type( $thumb_id ) || 0 !== (int) wp_get_post_parent_id( $thumb_id ) ) {
+			return;
+		}
+		wp_update_post(
+			array(
+				'ID'          => $thumb_id,
+				'post_parent' => $post_id,
+			)
+		);
+	}
+
+	/**
+	 * Public wrapper for plain URL/domain replacement in synced text values.
+	 *
+	 * @param string $text          Text to process.
+	 * @param string $source_domain Source domain.
+	 * @param string $target_domain Target domain.
+	 * @return string Modified text.
+	 */
+	public static function replace_text_public( $text, $source_domain, $target_domain ) {
+		return self::replace_in_text( $text, $source_domain, $target_domain );
+	}
+
+	/**
+	 * Fix <img> src/srcset attributes after media has been imported locally.
+	 *
+	 * During Content Sync the post HTML may still contain source-site intermediate
+	 * image URLs (for example image-300x200.jpg) even after attachment IDs/classes
+	 * have been remapped. Browsers often prefer srcset candidates over src, so both
+	 * attributes must point to URLs that really exist on the receiving site.
+	 *
+	 * @param string $content   Post content.
+	 * @param array  $image_map Source attachment ID => local attachment ID.
+	 * @return string Updated content.
+	 */
+	public static function fix_local_image_urls_in_content( $content, $image_map = array(), $image_sources = array() ) {
+		if ( empty( $content ) || ! is_string( $content ) || empty( $image_map ) ) {
+			return $content;
+		}
+
+		$content = self::replace_shortcode_attachment_ids( $content, $image_map );
+
+		foreach ( $image_map as $old_id => $new_id ) {
+			$old_id = (int) $old_id;
+			$new_id = (int) $new_id;
+
+			if ( $old_id <= 0 || $new_id <= 0 ) {
+				continue;
+			}
+
+			$content     = preg_replace( '/\bwp-image-' . $old_id . '\b/', 'wp-image-' . $new_id, $content );
+			$source_data = self::get_image_source_data( $old_id, $image_sources );
+			$content     = self::fix_local_image_tag_urls( $content, $new_id, $source_data );
+		}
+
+		return $content;
+	}
+
+	/**
+	 * Replace attachment IDs inside shortcode ids attributes.
+	 *
+	 * @param string $content   Content that may contain shortcodes.
+	 * @param array  $image_map Source attachment ID => local attachment ID.
+	 * @return string Updated content.
+	 */
+	private static function replace_shortcode_attachment_ids( $content, $image_map ) {
+		if ( empty( $content ) || ! is_string( $content ) || empty( $image_map ) ) {
+			return $content;
+		}
+
+		return preg_replace_callback(
+			'/\b(ids=["\'])([\d,\s]+)(["\'])/i',
+			function ( $m ) use ( $image_map ) {
+				$ids = array_filter( array_map( 'absint', explode( ',', $m[2] ) ) );
+				$ids = array_map(
+					function ( $id ) use ( $image_map ) {
+						return isset( $image_map[ $id ] ) ? (int) $image_map[ $id ] : (int) $id;
+					},
+					$ids
+				);
+
+				return $m[1] . implode( ',', $ids ) . $m[3];
+			},
+			$content
+		);
+	}
+
+	/**
+	 * Replace domain in post meta
+	 *
+	 * @param array  $meta Post meta array.
+	 * @param string $source_domain Source domain.
+	 * @param string $target_domain Target domain.
+	 * @param array  $image_map Image ID mapping.
+	 * @return array Modified meta
+	 */
+	private static function replace_in_meta( $meta, $source_domain, $target_domain, $image_map = array(), $image_sources = array() ) {
+		foreach ( $meta as $key => &$value ) {
+			// Skip internal WordPress meta that shouldn't be replaced
+			if ( in_array( $key, array( '_edit_lock', '_edit_last', '_wp_old_slug' ), true ) ) {
+				continue;
+			}
+
+			// WooCommerce product relationships are resolved by the product importer.
+			// Their local product IDs may collide with source attachment IDs.
+			if ( in_array( $key, array( '_children', '_upsell_ids', '_crosssell_ids' ), true ) ) {
+				continue;
+			}
+
+			// Replace thumbnail ID
+			if ( '_thumbnail_id' === $key && ! empty( $image_map ) && isset( $image_map[ $value ] ) ) {
+				$value = $image_map[ $value ];
+				continue;
+			}
+
+			// Replace WooCommerce product gallery IDs. WooCommerce stores the
+			// gallery as a comma-separated string of attachment IDs.
+			if ( '_product_image_gallery' === $key && ! empty( $image_map ) && is_string( $value ) ) {
+				$gallery_ids = array_filter( array_map( 'absint', explode( ',', $value ) ) );
+				if ( ! empty( $gallery_ids ) ) {
+					$mapped_gallery_ids = array();
+					foreach ( $gallery_ids as $gallery_id ) {
+						$mapped_gallery_ids[] = isset( $image_map[ $gallery_id ] ) ? (int) $image_map[ $gallery_id ] : (int) $gallery_id;
+					}
+					$value = implode( ',', array_filter( $mapped_gallery_ids ) );
+				}
+				continue;
+			}
+
+			if ( ! empty( $image_map ) && in_array( $key, array( 'rank_math_facebook_image_id', 'rank_math_twitter_image_id' ), true ) && isset( $image_map[ (int) $value ] ) ) {
+				$value = $image_map[ (int) $value ];
+				continue;
+			}
+
+			if ( ! empty( $image_map ) && in_array( $key, array( 'rank_math_facebook_image', 'rank_math_twitter_image' ), true ) ) {
+				$companion_id_key = $key . '_id';
+				$source_id        = isset( $meta[ $companion_id_key ] ) ? (int) $meta[ $companion_id_key ] : 0;
+				if ( $source_id > 0 && isset( $image_map[ $source_id ] ) ) {
+					$new_url = wp_get_attachment_url( (int) $image_map[ $source_id ] );
+					if ( $new_url ) {
+						$value = $new_url;
+						continue;
+					}
+				}
+			}
+
+			// Replace ACF image/file/gallery fields (numeric attachment IDs).
+			// We MUST check the ACF field type first to avoid corrupting ACF repeater row
+			// counts: during Pull, $image_map keys are remote attachment IDs which can be
+			// small numbers (1, 2, 3…) that accidentally match a repeater's row count value.
+			if ( ! empty( $image_map ) && is_numeric( $value ) && $value > 0 ) {
+				$acf_field_type  = self::get_acf_field_type( $key, $meta );
+				$confirmed_image = is_string( $acf_field_type ) && self::is_acf_media_field_type( $acf_field_type );
+				if ( null === $acf_field_type && ! $confirmed_image && isset( $image_map[ $value ] ) ) {
+					// ACF couldn't confirm the field type (field group may not exist on this
+					// site). Fall back to verifying the MAPPED value is really an attachment.
+					// We still require the meta key to have an ACF field-key reference so we
+					// do not accidentally remap unrelated numeric meta like post_views_count.
+					$field_ref_key = '_' . $key;
+					$has_acf_ref   = isset( $meta[ $field_ref_key ] )
+						&& is_string( $meta[ $field_ref_key ] )
+						&& strpos( $meta[ $field_ref_key ], 'field_' ) === 0;
+					if ( $has_acf_ref ) {
+						$attachment = get_post( $image_map[ $value ] );
+						if ( $attachment && 'attachment' === $attachment->post_type ) {
+							$confirmed_image = true;
+						}
+					}
+				}
+				if ( $confirmed_image ) {
+					if ( isset( $image_map[ $value ] ) ) {
+						$value = $image_map[ $value ];
+						continue;
+					} elseif ( self::is_local_attachment_acceptable_for_acf_media_field( (int) $value, $acf_field_type ) ) {
+						continue;
+					} elseif ( in_array( $acf_field_type, array( 'image', 'file' ), true ) ) {
+						$value = '';
+						continue;
+					}
+				}
+			}
+
+			// Handle different value types
+			if ( is_string( $value ) ) {
+				// Check if it's serialized data
+				if ( self::is_serialized( $value ) ) {
+						$unserialized = @unserialize( $value );
+					if ( false !== $unserialized ) {
+						$acf_field_type     = self::get_acf_field_type( $key, $meta );
+						$is_acf_media_field = self::is_acf_media_field_type( $acf_field_type );
+						$serialized_id_map  = is_string( $acf_field_type ) && ! $is_acf_media_field ? array() : $image_map;
+						$unserialized       = self::replace_in_serialized( $unserialized, $source_domain, $target_domain, $serialized_id_map, $image_sources );
+						if ( ! empty( $image_map ) && is_array( $unserialized ) && $is_acf_media_field ) {
+							$unserialized = self::replace_attachment_ids_in_value( $unserialized, $image_map, true );
+						}
+						$value = serialize( $unserialized );
+					}
+				} else {
+					$value = self::replace_in_text( $value, $source_domain, $target_domain );
+					$value = self::fix_local_image_urls_in_content( $value, $image_map, $image_sources );
+					// Replace wp-image-X attachment IDs and src URLs in HTML values (e.g. ACF WYSIWYG).
+					//
+					// Strategy: match <img> tags by their wp-image-{new_id} class (set in step 1
+					// below), then look up the correct local URL by matching the WxH dimensions
+					// extracted from the current src against the local attachment metadata sizes.
+					//
+					// We deliberately do NOT match by filename because WordPress may rename the
+					// file when it re-scales an already-scaled image on import (e.g. remote has
+					// "image-scaled.jpg" which locally becomes "image-scaled-1.jpg"), so the
+					// basenames between remote and local can differ completely.
+					if ( ! empty( $image_map ) && false !== strpos( $value, '<img' ) ) {
+						foreach ( $image_map as $old_id => $new_id ) {
+							// Step 1: Replace wp-image-{old_id} class reference.
+							$value = preg_replace( '/\bwp-image-' . $old_id . '\b/', 'wp-image-' . $new_id, $value );
+
+							$new_url = wp_get_attachment_url( $new_id );
+							if ( ! $new_url ) {
+								continue;
+							}
+
+							// Build a "WxH" → local URL map from the local attachment metadata.
+							// NOTE: must NOT use $meta here — that variable is the outer function
+							// parameter (post meta array) being iterated; shadowing it would
+							// corrupt the loop and cause replace_in_meta to return garbage.
+							$size_dim_map = array();
+							$att_meta     = wp_get_attachment_metadata( $new_id );
+							if ( is_array( $att_meta ) && ! empty( $att_meta['sizes'] ) && ! empty( $att_meta['file'] ) ) {
+								$upload_dir = wp_upload_dir();
+								$dir_prefix = trailingslashit( $upload_dir['baseurl'] )
+									. ltrim( dirname( $att_meta['file'] ), '/' ) . '/';
+								foreach ( $att_meta['sizes'] as $size_data ) {
+									if ( ! empty( $size_data['file'] )
+										&& isset( $size_data['width'], $size_data['height'] ) ) {
+										$dim_key                  = $size_data['width'] . 'x' . $size_data['height'];
+										$size_dim_map[ $dim_key ] = $dir_prefix . $size_data['file'];
+									}
+								}
+							}
+
+							// Step 2: For every <img> whose class now contains wp-image-{new_id},
+							// replace its src with the correct local URL.
+							// We match by class (not by filename) so the replacement works even
+							// when local and remote filenames differ after WP re-scaling.
+							$value = preg_replace_callback(
+								'/<img\b[^>]*\bwp-image-' . $new_id . '\b[^>]*>/i',
+								function ( $img_match ) use ( $new_id, $new_url, $size_dim_map ) {
+									$img_tag = $img_match[0];
+
+									// Extract current src attribute.
+									if ( ! preg_match( '/\bsrc=(["\'])([^"\']+)\1/i', $img_tag, $src_m ) ) {
+										return $img_tag;
+									}
+									$quote = $src_m[1];
+									$src   = $src_m[2];
+
+									// Determine which local URL to use.
+									// Try to extract WxH dimensions from the src filename
+									// (e.g. "image-200x300.jpg" → "200x300") and look up the
+									// corresponding local size. Fall back to full-size URL.
+									$local_url = $new_url;
+									$basename  = basename( wp_parse_url( $src, PHP_URL_PATH ) );
+									if ( preg_match( '/-(\d+x\d+)\.[^.]+$/i', $basename, $dim_m ) ) {
+										$dim_key = $dim_m[1];
+										if ( isset( $size_dim_map[ $dim_key ] ) ) {
+											$local_url = $size_dim_map[ $dim_key ];
+										}
+									}
+
+									// Replace src attribute value in the img tag.
+									return preg_replace(
+										'/\bsrc=(["\'])[^"\']+\1/i',
+										'src=' . $quote . $local_url . $quote,
+										$img_tag
+									);
+								},
+								$value
+							);
+						}
+					}
+				}
+			} elseif ( is_array( $value ) ) {
+				$acf_field_type = self::get_acf_field_type( $key, $meta );
+				if ( ! empty( $image_map ) && self::is_acf_media_field_type( $acf_field_type ) ) {
+					$value = self::replace_attachment_ids_in_value( $value, $image_map, true );
+				} else {
+					$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map, $image_sources, 0 );
+				}
+			}
+
+			// Handle Elementor data
+			if ( '_elementor_data' === $key && is_string( $value ) ) {
+				$elementor_data = json_decode( $value, true );
+				if ( is_array( $elementor_data ) ) {
+					$elementor_data = self::replace_in_elementor( $elementor_data, $source_domain, $target_domain, $image_map );
+					$value          = wp_json_encode( $elementor_data );
+				}
+			}
+		}
+
+		return $meta;
+	}
+
+	/**
+	 * Replace domain in serialized data
+	 *
+	 * @param mixed  $data Unserialized data.
+	 * @param string $source_domain Source domain.
+	 * @param string $target_domain Target domain.
+	 * @param array  $image_map Image ID mapping.
+	 * @return mixed Modified data
+	 */
+	private static function replace_in_serialized( $data, $source_domain, $target_domain, $image_map = array(), $image_sources = array() ) {
+		if ( is_string( $data ) ) {
+			$data = self::replace_in_text( $data, $source_domain, $target_domain );
+			return self::fix_local_image_urls_in_content( $data, $image_map, $image_sources );
+		}
+
+		if ( is_array( $data ) ) {
+			return self::replace_in_array( $data, $source_domain, $target_domain, $image_map, $image_sources );
+		}
+
+		if ( is_object( $data ) ) {
+			foreach ( $data as $key => &$value ) {
+				$value = self::replace_in_serialized( $value, $source_domain, $target_domain, $image_map, $image_sources );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Fix local URLs for img tags that reference a specific attachment class.
+	 *
+	 * @param string $content       HTML content.
+	 * @param int    $attachment_id Local attachment ID.
+	 * @return string Updated content.
+	 */
+	private static function fix_local_image_tag_urls( $content, $attachment_id, $source_data = array() ) {
+		$full_url = wp_get_attachment_url( $attachment_id );
+		if ( ! $full_url ) {
+			return $content;
+		}
+
+		$size_urls   = self::get_attachment_size_urls_by_dimensions( $attachment_id );
+		$srcset      = wp_get_attachment_image_srcset( $attachment_id, 'full' );
+		$source_urls = self::normalize_source_image_urls( $source_data );
+
+		return preg_replace_callback(
+			'/<img\b[^>]*>/i',
+			function ( $matches ) use ( $attachment_id, $full_url, $size_urls, $srcset, $source_urls ) {
+				$img_tag   = $matches[0];
+				$local_url = $full_url;
+				$has_class = (bool) preg_match( '/\bwp-image-' . (int) $attachment_id . '\b/i', $img_tag );
+
+				if ( preg_match( '/\bsrc=(["\'])([^"\']+)\1/i', $img_tag, $src_match ) ) {
+					$dimension = self::get_source_image_dimension( $src_match[2], $source_urls );
+					if ( ! $dimension && $has_class ) {
+						$dimension = self::extract_image_dimensions_from_url( $src_match[2] );
+					}
+					if ( ! $has_class && ! $dimension && ! self::source_image_url_matches( $src_match[2], $source_urls ) ) {
+						return $img_tag;
+					}
+					if ( $dimension && isset( $size_urls[ $dimension ] ) ) {
+						$local_url = $size_urls[ $dimension ];
+					}
+					$img_tag = preg_replace(
+						'/\bsrc=(["\'])[^"\']+\1/i',
+						'src=' . $src_match[1] . esc_url_raw( $local_url ) . $src_match[1],
+						$img_tag,
+						1
+					);
+				}
+
+				if ( preg_match( '/\bsrcset=(["\'])[^"\']+\1/i', $img_tag, $srcset_match ) ) {
+					if ( $srcset ) {
+						$img_tag = preg_replace(
+							'/\bsrcset=(["\'])[^"\']+\1/i',
+							'srcset=' . $srcset_match[1] . esc_attr( $srcset ) . $srcset_match[1],
+							$img_tag,
+							1
+						);
+					} else {
+						$img_tag = preg_replace( '/\s+\bsrcset=(["\'])[^"\']+\1/i', '', $img_tag, 1 );
+					}
+				}
+
+				return $img_tag;
+			},
+			$content
+		);
+	}
+
+	/**
+	 * Normalize source image URLs for matching during remote imports.
+	 *
+	 * @param array $source_data Source image payload.
+	 * @return array Normalized source URL data.
+	 */
+	private static function normalize_source_image_urls( $source_data ) {
+		$normalized = array(
+			'urls'        => array(),
+			'by_basename' => array(),
+		);
+
+		if ( empty( $source_data ) || ! is_array( $source_data ) ) {
+			return $normalized;
+		}
+
+		if ( ! empty( $source_data['url'] ) && is_string( $source_data['url'] ) ) {
+			$normalized['urls'][] = $source_data['url'];
+		}
+
+		if ( ! empty( $source_data['source_urls']['full'] ) && is_string( $source_data['source_urls']['full'] ) ) {
+			$normalized['urls'][] = $source_data['source_urls']['full'];
+		}
+
+		if ( ! empty( $source_data['source_urls']['by_size'] ) && is_array( $source_data['source_urls']['by_size'] ) ) {
+			foreach ( $source_data['source_urls']['by_size'] as $dimension => $url ) {
+				if ( is_string( $url ) ) {
+					$normalized['urls'][] = $url;
+					$basename             = basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+					if ( '' !== $basename ) {
+						$normalized['by_basename'][ $basename ] = sanitize_text_field( $dimension );
+					}
+				}
+			}
+		}
+
+		if ( ! empty( $source_data['source_urls']['by_basename'] ) && is_array( $source_data['source_urls']['by_basename'] ) ) {
+			foreach ( $source_data['source_urls']['by_basename'] as $basename => $data ) {
+				if ( is_array( $data ) && ! empty( $data['dimension'] ) ) {
+					$normalized['by_basename'][ sanitize_file_name( $basename ) ] = sanitize_text_field( $data['dimension'] );
+				}
+			}
+		}
+
+		$normalized['urls'] = array_values( array_unique( array_filter( $normalized['urls'] ) ) );
+
+		return $normalized;
+	}
+
+	/**
+	 * Get source image data from either keyed or sequential image arrays.
+	 *
+	 * @param int   $old_id Source attachment ID.
+	 * @param array $image_sources Source image data.
+	 * @return array Source data.
+	 */
+	private static function get_image_source_data( $old_id, $image_sources ) {
+		if ( isset( $image_sources[ $old_id ] ) && is_array( $image_sources[ $old_id ] ) ) {
+			return $image_sources[ $old_id ];
+		}
+
+		foreach ( $image_sources as $source ) {
+			if ( is_array( $source ) && isset( $source['attachment_id'] ) && (int) $source['attachment_id'] === (int) $old_id ) {
+				return $source;
+			}
+		}
+
+		return array();
+	}
+
+	/**
+	 * Check whether an image URL belongs to the source attachment.
+	 *
+	 * @param string $url Source URL from HTML.
+	 * @param array  $source_urls Normalized source URLs.
+	 * @return bool True when URL matches.
+	 */
+	private static function source_image_url_matches( $url, $source_urls ) {
+		$basename = basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+		if ( '' !== $basename && isset( $source_urls['by_basename'][ $basename ] ) ) {
+			return true;
+		}
+
+		return in_array( $url, $source_urls['urls'], true );
+	}
+
+	/**
+	 * Get source image dimensions from the source URL payload.
+	 *
+	 * @param string $url Source URL from HTML.
+	 * @param array  $source_urls Normalized source URLs.
+	 * @return string Dimension key or empty string.
+	 */
+	private static function get_source_image_dimension( $url, $source_urls ) {
+		$basename = basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+		if ( '' !== $basename && isset( $source_urls['by_basename'][ $basename ] ) ) {
+			return $source_urls['by_basename'][ $basename ];
+		}
+
+		return '';
+	}
+
+	/**
+	 * Build a widthxheight => URL map for an attachment's generated sizes.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @return array Dimension map.
+	 */
+	private static function get_attachment_size_urls_by_dimensions( $attachment_id ) {
+		$map      = array();
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		if ( ! is_array( $metadata ) || empty( $metadata['file'] ) ) {
+			return $map;
+		}
+
+		$upload_dir = wp_upload_dir();
+		$directory  = trailingslashit( dirname( $metadata['file'] ) );
+		if ( './' === $directory ) {
+			$directory = '';
+		}
+
+		if ( ! empty( $metadata['width'] ) && ! empty( $metadata['height'] ) ) {
+			$map[ (int) $metadata['width'] . 'x' . (int) $metadata['height'] ] = trailingslashit( $upload_dir['baseurl'] ) . ltrim( $metadata['file'], '/' );
+		}
+
+		if ( empty( $metadata['sizes'] ) || ! is_array( $metadata['sizes'] ) ) {
+			return $map;
+		}
+
+		foreach ( $metadata['sizes'] as $size ) {
+			if ( empty( $size['file'] ) || empty( $size['width'] ) || empty( $size['height'] ) ) {
+				continue;
+			}
+
+			$map[ (int) $size['width'] . 'x' . (int) $size['height'] ] = trailingslashit( $upload_dir['baseurl'] ) . $directory . $size['file'];
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Extract the "-WIDTHxHEIGHT" suffix from an image URL.
+	 *
+	 * @param string $url Image URL.
+	 * @return string Dimension key or empty string.
+	 */
+	private static function extract_image_dimensions_from_url( $url ) {
+		$path = wp_parse_url( $url, PHP_URL_PATH );
+		if ( ! is_string( $path ) || '' === $path ) {
+			return '';
+		}
+
+		$basename = basename( $path );
+		if ( preg_match( '/-(\d+x\d+)\.[^.]+$/i', $basename, $matches ) ) {
+			return $matches[1];
+		}
+
+		return '';
+	}
+
+	/**
+	 * Replace domain in array
+	 *
+	 * @param array  $array Array to process.
+	 * @param string $source_domain Source domain.
+	 * @param string $target_domain Target domain.
+	 * @param array  $image_map Image ID mapping.
+	 * @return array Modified array
+	 */
+	public static function replace_in_array( $array, $source_domain, $target_domain, $image_map = array(), $image_sources = array(), $depth = 0 ) {
+		// Keys whose numeric values are definitely attachment IDs.
+		$attachment_id_keys = array( 'id', 'ID', 'attachment_id', 'image_id', 'media_id', 'image', 'thumbnail_id', 'file' );
+
+		// Translate an ID/URL pair as one unit; never feed its target ID back
+		// through the source map in the loop below.
+		$mapped_pair = false;
+		if ( isset( $array['id'], $array['url'] ) && is_numeric( $array['id'] ) && isset( $image_map[ (int) $array['id'] ] ) ) {
+			$new_attachment_id = (int) $image_map[ (int) $array['id'] ];
+			$new_url = self::get_local_attachment_url( $new_attachment_id );
+			if ( $new_url ) {
+				$array['id'] = $new_attachment_id;
+				$array['url'] = $new_url;
+				$mapped_pair = true;
+			}
+		}
+
+		// Detect if this looks like a flat gallery-style array: a sequential list where
+		// every element is a positive integer (e.g. ACF gallery stored as [123, 456, 789]).
+		// In that case ALL values are treated as potential attachment IDs.
+		$is_flat_id_list = ! empty( $image_map ) && ! empty( $array ) && array_keys( $array ) === range( 0, count( $array ) - 1 );
+		if ( $is_flat_id_list ) {
+			foreach ( $array as $v ) {
+				if ( ! is_int( $v ) && ! ( is_string( $v ) && ctype_digit( $v ) ) ) {
+					$is_flat_id_list = false;
+					break;
+				}
+			}
+		}
+
+		foreach ( $array as $key => &$value ) {
+			if ( $mapped_pair && in_array( $key, array( 'id', 'url' ), true ) ) {
+				continue;
+			}
+
+			// Replace attachment IDs for well-known attachment-ID keys.
+			if ( ! empty( $image_map ) && in_array( $key, $attachment_id_keys, true ) ) {
+				if ( is_numeric( $value ) && isset( $image_map[ (int) $value ] ) ) {
+					$attachment = get_post( $image_map[ (int) $value ] );
+					if ( $attachment && 'attachment' === $attachment->post_type ) {
+						$value = $image_map[ (int) $value ];
+						continue;
+					}
+				}
+			}
+
+			// Replace IDs in flat sequential lists of integers (ACF gallery fields etc.)
+			if ( $is_flat_id_list && is_numeric( $value ) && isset( $image_map[ (int) $value ] ) ) {
+				$attachment = get_post( $image_map[ (int) $value ] );
+				if ( $attachment && 'attachment' === $attachment->post_type ) {
+					$value = $image_map[ (int) $value ];
+					continue;
+				}
+			}
+
+			if ( is_string( $value ) ) {
+				$value = self::replace_in_text( $value, $source_domain, $target_domain );
+				$value = self::fix_local_image_urls_in_content( $value, $image_map, $image_sources );
+			} elseif ( is_array( $value ) ) {
+				// Recursively process nested arrays
+				$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map, $image_sources, $depth + 1 );
+			}
+		}
+
+		return $array;
+	}
+
+	/**
+	 * Replace domain in Elementor data
+	 *
+	 * @param array  $elements Elementor elements.
+	 * @param string $source_domain Source domain.
+	 * @param string $target_domain Target domain.
+	 * @param array  $image_map Image ID mapping.
+	 * @return array Modified elements
+	 */
+	private static function replace_in_elementor( $elements, $source_domain, $target_domain, $image_map = array() ) {
+		foreach ( $elements as &$element ) {
+			// Replace in settings
+			if ( isset( $element['settings'] ) && is_array( $element['settings'] ) ) {
+				foreach ( $element['settings'] as $key => &$value ) {
+					// Replace image IDs
+					if ( ! empty( $image_map ) ) {
+						if ( is_numeric( $value ) && strpos( $key, 'image' ) !== false && isset( $image_map[ $value ] ) ) {
+							$value = $image_map[ $value ];
+							continue;
+						}
+
+					}
+
+					// Replace URLs
+					if ( is_string( $value ) ) {
+						$value = self::replace_in_text( $value, $source_domain, $target_domain );
+					} elseif ( is_array( $value ) ) {
+						$value = self::replace_in_array( $value, $source_domain, $target_domain, $image_map, array() );
+					}
+				}
+			}
+
+			// Recursively process child elements
+			if ( isset( $element['elements'] ) && is_array( $element['elements'] ) ) {
+				$element['elements'] = self::replace_in_elementor( $element['elements'], $source_domain, $target_domain, $image_map );
+			}
+		}
+
+		return $elements;
+	}
+
+	/**
+	 * Get the local URL for a confirmed target-site attachment ID.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @return string Local attachment URL, or empty string when the ID is not an attachment.
+	 */
+	private static function get_local_attachment_url( $attachment_id ) {
+		$attachment_id = absint( $attachment_id );
+		if ( $attachment_id <= 0 ) {
+			return '';
+		}
+
+		$attachment = get_post( $attachment_id );
+		if ( ! $attachment || 'attachment' !== $attachment->post_type ) {
+			return '';
+		}
+
+		$url = wp_get_attachment_url( $attachment_id );
+
+		return $url ? (string) $url : '';
+	}
+
+	/**
+	 * Replace domain in text
+	 *
+	 * @param string $text Text to process.
+	 * @param string $source_domain Source domain.
+	 * @param string $target_domain Target domain.
+	 * @return string Modified text
+	 */
+	private static function replace_in_text( $text, $source_domain, $target_domain ) {
+		if ( empty( $text ) || ! is_string( $text ) ) {
+			return $text;
+		}
+
+		// Normalize domains
+		$source_domain = self::normalize_domain( $source_domain );
+		$target_domain = self::normalize_domain( $target_domain );
+		if ( '' === $source_domain || '' === $target_domain ) {
+			return $text;
+		}
+
+		// Replace with different protocols
+		$replacements = array(
+			'https://' . $source_domain => 'https://' . $target_domain,
+			'http://' . $source_domain  => 'http://' . $target_domain,
+			'//' . $source_domain       => '//' . $target_domain,
+		);
+
+		$text = str_replace( array_keys( $replacements ), array_values( $replacements ), $text );
+
+		return $text;
+	}
+
+	/**
+	 * Normalize domain (remove protocol and trailing slash)
+	 *
+	 * @param string $domain Domain to normalize.
+	 * @return string Normalized domain
+	 */
+	private static function normalize_domain( $domain ) {
+		// Remove protocol
+		$domain = preg_replace( '#^https?://#i', '', $domain );
+
+		// Remove trailing slash
+		$domain = rtrim( $domain, '/' );
+
+		return $domain;
+	}
+
+	/**
+	 * Check if a meta key corresponds to an ACF media field.
+	 *
+	 * ACF stores a field-key reference in the "_fieldname" meta entry.
+	 * We use that reference to look up the field type and confirm it is
+	 * an 'image', 'file', or 'gallery' type before replacing attachment IDs
+	 * with an attachment ID.  This prevents repeater row-count values
+	 * (e.g. my_repeater = 3) from being wrongly replaced with an
+	 * attachment ID that happens to share the same number.
+	 *
+	 * @param string $key  Meta key being evaluated.
+	 * @param array  $meta Full meta array (used to look up the ACF field reference).
+	 * @return bool True only when ACF confirms this is a media field.
+	 */
+	private static function get_acf_field_type( $key, $meta ) {
+		if ( ! function_exists( 'acf_get_field' ) ) {
+			return null;
+		}
+
+		$field_ref_key = '_' . $key;
+		if ( ! isset( $meta[ $field_ref_key ] ) ) {
+			return null;
+		}
+
+		$field_ref = $meta[ $field_ref_key ];
+		if ( ! is_string( $field_ref ) || 0 !== strpos( $field_ref, 'field_' ) ) {
+			return null;
+		}
+
+		$field_obj = acf_get_field( $field_ref );
+		if ( ! $field_obj || ! isset( $field_obj['type'] ) ) {
+			return null;
+		}
+
+		return (string) $field_obj['type'];
+	}
+
+	/**
+	 * Check whether an ACF field type stores attachment IDs.
+	 *
+	 * @param string|null $field_type ACF field type.
+	 * @return bool Whether the type is a media field.
+	 */
+	private static function is_acf_media_field_type( $field_type ) {
+		return is_string( $field_type ) && in_array( $field_type, array( 'image', 'file', 'gallery' ), true );
+	}
+
+	/**
+	 * Replace attachment IDs inside a value already confirmed as an ACF media field.
+	 *
+	 * @param mixed $value     Field value.
+	 * @param array $image_map Source attachment ID => local attachment ID.
+	 * @param bool  $strict    Whether unmapped numeric IDs should be removed.
+	 * @return mixed Updated value.
+	 */
+	private static function replace_attachment_ids_in_value( $value, $image_map, $strict = false ) {
+		if ( is_array( $value ) ) {
+			$updated = array();
+			foreach ( $value as $key => $item ) {
+				$mapped = self::replace_attachment_ids_in_value( $item, $image_map, $strict );
+				if ( $strict && null === $mapped ) {
+					continue;
+				}
+				$updated[ $key ] = $mapped;
+			}
+
+			if ( array_keys( $value ) === range( 0, count( $value ) - 1 ) ) {
+				return array_values( $updated );
+			}
+
+			return $updated;
+		}
+
+		if ( is_numeric( $value ) && isset( $image_map[ (int) $value ] ) ) {
+			return is_int( $value ) ? (int) $image_map[ (int) $value ] : (string) $image_map[ (int) $value ];
+		}
+
+		if ( $strict && is_numeric( $value ) && (int) $value > 0 ) {
+			if ( self::is_local_attachment_acceptable_for_acf_media_field( (int) $value, 'gallery' ) ) {
+				return $value;
+			}
+			return null;
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Check whether an already-local attachment value is safe to preserve.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $field_type    ACF media field type.
+	 * @return bool Whether the ID can be kept as-is.
+	 */
+	private static function is_local_attachment_acceptable_for_acf_media_field( $attachment_id, $field_type ) {
+		$attachment_id = absint( $attachment_id );
+		if ( $attachment_id <= 0 || 'attachment' !== get_post_type( $attachment_id ) ) {
+			return false;
+		}
+
+		if ( 'image' === $field_type || 'gallery' === $field_type ) {
+			return 0 === strpos( (string) get_post_mime_type( $attachment_id ), 'image/' );
+		}
+
+		return 'file' === $field_type;
+	}
+
+	/**
+	 * After importing terms, re-save any ACF taxonomy fields in post meta so they
+	 * reference the correct local term IDs instead of the source-site term IDs.
+	 *
+	 * Strategy: any ACF field (identified by a companion "_fieldname" = "field_xxx"
+	 * meta entry) whose value is a term ID — or an array of term IDs — that exists
+	 * in $term_id_map gets its value rewritten to the corresponding local term ID.
+	 *
+	 * acf_get_field() is used opportunistically: if it can resolve the field object
+	 * we use the type to SKIP known non-taxonomy fields (images, repeater counts…).
+	 * If it cannot resolve the field (field group not imported on target site) we
+	 * still proceed with the heuristic translation, which is safe because
+	 * $term_id_map only contains the specific source term IDs being synced.
+	 *
+	 * @param array $meta        Full post meta array (key → value, already deserialized).
+	 * @param int   $post_id     Target post ID.
+	 * @param array $term_id_map Map of source_term_id => local_term_id.
+	 */
+	public static function translate_acf_taxonomy_fields_in_meta( $meta, $post_id, $term_id_map ) {
+		if ( empty( $term_id_map ) ) {
+			return;
+		}
+
+		foreach ( $meta as $key => $value ) {
+			// Only process non-underscore-prefixed keys (skip ACF reference entries).
+			if ( strpos( $key, '_' ) === 0 ) {
+				continue;
+			}
+
+			// Must have an ACF field-key reference to be an ACF field at all.
+			$field_ref_key = '_' . $key;
+			if ( ! isset( $meta[ $field_ref_key ] ) ) {
+				continue;
+			}
+			$field_ref = $meta[ $field_ref_key ];
+			if ( ! is_string( $field_ref ) || strpos( $field_ref, 'field_' ) !== 0 ) {
+				continue;
+			}
+
+			// If ACF is available and the field definition exists on this site,
+			// skip any field type that is definitely NOT a taxonomy field.
+			if ( function_exists( 'acf_get_field' ) ) {
+				$field_obj = acf_get_field( $field_ref );
+				if ( $field_obj && isset( $field_obj['type'] ) && $field_obj['type'] !== 'taxonomy' ) {
+					continue;
+				}
+				// $field_obj === false → field not registered here → fall through and translate.
+			}
+
+			// Translate single term ID.
+			if ( is_numeric( $value ) && (int) $value > 0 && isset( $term_id_map[ (int) $value ] ) ) {
+				update_post_meta( $post_id, $key, $term_id_map[ (int) $value ] );
+				continue;
+			}
+
+			// Translate array of term IDs (multi-select taxonomy field).
+			if ( is_array( $value ) ) {
+				$changed    = false;
+				$translated = array();
+				foreach ( $value as $item ) {
+					$int_item = (int) $item;
+					if ( is_numeric( $item ) && $int_item > 0 && isset( $term_id_map[ $int_item ] ) ) {
+						$translated[] = $term_id_map[ $int_item ];
+						$changed      = true;
+					} else {
+						$translated[] = $item;
+					}
+				}
+				if ( $changed ) {
+					update_post_meta( $post_id, $key, $translated );
+				}
+			}
+		}
+	}
+
+	/**
+	 * After importing posts, re-save any ACF post-reference fields (post_object / relationship)
+	 * so they reference the correct local post IDs instead of the source-site IDs.
+	 *
+	 * Strategy: identify ACF fields via the companion "_fieldname" = "field_xxx" meta entry,
+	 * resolve the field definition with acf_get_field(), and only translate known reference
+	 * field types. Each numeric ID is translated via:
+	 * - self-reference: if it equals $source_post_id, rewrite to $post_id
+	 * - otherwise: find a local post with meta "_rsl_ie_original_post_id" = source_id
+	 *
+	 * If a referenced post has not been synced (no mapping exists), the value is left intact.
+	 *
+	 * @param array $meta           Full post meta array (key → value, already deserialized).
+	 * @param int   $post_id        Target post ID.
+	 * @param int   $source_post_id Source-site post ID for this post.
+	 */
+	public static function translate_acf_post_reference_fields_in_meta( $meta, $post_id, $source_post_id, $post_ref_map = array() ) {
+		if ( empty( $meta ) || ! function_exists( 'acf_get_field' ) ) {
+			return;
+		}
+
+		$post_id        = (int) $post_id;
+		$source_post_id = (int) $source_post_id;
+		$post_ref_map   = is_array( $post_ref_map ) ? $post_ref_map : array();
+
+			$map_id = static function ( $maybe_source_id ) use ( $post_id, $source_post_id ) {
+				$maybe_source_id = (int) $maybe_source_id;
+				if ( $maybe_source_id <= 0 ) {
+					return 0;
+				}
+
+				// Self-reference: this post is guaranteed to exist locally now.
+				if ( $source_post_id > 0 && $maybe_source_id === $source_post_id ) {
+					return $post_id;
+				}
+
+				foreach ( array( '_rsl_ie_original_post_id', '_rsl_ie_source_id', '_rsl_ie_source_post_id' ) as $meta_key ) {
+					// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Exact source ID lookup for sync mapping, hard-limited to 1 ID.
+					$found = get_posts(
+						array(
+							'post_type'              => 'any',
+							'post_status'            => 'any',
+							'posts_per_page'         => 1,
+							'fields'                 => 'ids',
+							'no_found_rows'          => true,
+							'cache_results'          => false,
+							'update_post_meta_cache' => false,
+							'update_post_term_cache' => false,
+							'meta_key'               => $meta_key,
+							'meta_value'             => $maybe_source_id,
+						)
+					);
+					// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+
+					if ( ! empty( $found ) ) {
+						return (int) $found[0];
+					}
+				}
+
+				// ACF relationship/page_link fields can reference attachments. Media
+				// sync stores those source IDs under attachment-specific meta keys.
+				foreach ( array( '_rsl_ie_original_attachment_id', '_rsl_ie_source_attachment_id', '_rsl_ie_source_id' ) as $meta_key ) {
+					// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Exact source attachment lookup for sync mapping, hard-limited to 1 ID.
+					$found = get_posts(
+						array(
+							'post_type'              => 'attachment',
+							'post_status'            => 'inherit',
+							'posts_per_page'         => 1,
+							'fields'                 => 'ids',
+							'no_found_rows'          => true,
+							'cache_results'          => false,
+							'update_post_meta_cache' => false,
+							'update_post_term_cache' => false,
+							'meta_key'               => $meta_key,
+							'meta_value'             => $maybe_source_id,
+						)
+					);
+					// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+
+					if ( ! empty( $found ) ) {
+						return (int) $found[0];
+					}
+				}
+
+				return 0;
+			};
+
+		foreach ( $meta as $key => $value ) {
+			// Only process non-underscore-prefixed keys (skip ACF reference entries).
+			if ( strpos( $key, '_' ) === 0 ) {
+				continue;
+			}
+
+			$field_obj     = null;
+			$field_ref_key = '_' . $key;
+			if ( isset( $meta[ $field_ref_key ] ) && is_string( $meta[ $field_ref_key ] ) ) {
+				$field_ref = $meta[ $field_ref_key ];
+				if ( strpos( $field_ref, 'field_' ) === 0 ) {
+					$field_obj = acf_get_field( $field_ref );
+				}
+			}
+			if ( ! $field_obj ) {
+				// Fallback: resolve by field name on the receiving site (field keys differ across sites).
+				$field_obj = acf_get_field( $key );
+			}
+			if ( ! $field_obj || empty( $field_obj['type'] ) ) {
+				continue;
+			}
+
+			if ( ! in_array( $field_obj['type'], array( 'post_object', 'relationship', 'page_link' ), true ) ) {
+				continue;
+			}
+
+			// Ensure the ACF field-key reference meta matches THIS site (field keys differ across sites).
+			if ( ! empty( $field_obj['key'] ) && is_string( $field_obj['key'] ) ) {
+				$existing_ref = get_post_meta( $post_id, '_' . $key, true );
+				if ( $existing_ref !== $field_obj['key'] ) {
+					update_post_meta( $post_id, '_' . $key, $field_obj['key'] );
+				}
+			}
+
+			$map_id_with_fallbacks = static function ( $maybe_source_id ) use ( $map_id, $post_ref_map ) {
+				$maybe_source_id = (int) $maybe_source_id;
+				if ( $maybe_source_id <= 0 ) {
+					return 0;
+				}
+
+				$mapped = $map_id( $maybe_source_id );
+				if ( $mapped > 0 ) {
+					return $mapped;
+				}
+
+				// Fallback: resolve by slug when sender provided a portable reference.
+				if ( isset( $post_ref_map[ $maybe_source_id ] ) && is_array( $post_ref_map[ $maybe_source_id ] ) ) {
+					$ref  = $post_ref_map[ $maybe_source_id ];
+					$pt   = isset( $ref['post_type'] ) ? (string) $ref['post_type'] : '';
+					$slug = isset( $ref['post_name'] ) ? (string) $ref['post_name'] : '';
+
+					if ( $pt && $slug ) {
+						$by_path = get_page_by_path( $slug, OBJECT, $pt );
+						if ( $by_path && ! empty( $by_path->ID ) ) {
+							return (int) $by_path->ID;
+						}
+
+						$found = get_posts(
+							array(
+								'post_type'      => $pt,
+								'post_status'    => 'any',
+								'posts_per_page' => 1,
+								'fields'         => 'ids',
+								'name'           => $slug,
+							)
+						);
+						if ( ! empty( $found ) ) {
+							return (int) $found[0];
+						}
+					}
+				}
+
+				return 0;
+			};
+
+				// Translate single post ID.
+			if ( is_numeric( $value ) && (int) $value > 0 ) {
+				$mapped = $map_id_with_fallbacks( $value );
+				if ( $mapped > 0 && $mapped !== (int) $value ) {
+					update_post_meta( $post_id, $key, $mapped );
+				}
+				continue;
+			}
+
+				// Translate array of post IDs.
+			if ( is_array( $value ) ) {
+				$changed    = false;
+				$translated = array();
+				foreach ( $value as $item ) {
+					if ( is_numeric( $item ) && (int) $item > 0 ) {
+						$mapped = $map_id_with_fallbacks( $item );
+						if ( $mapped > 0 ) {
+							$translated[] = $mapped;
+							$changed      = $changed || ( $mapped !== (int) $item );
+							continue;
+						}
+					}
+					$translated[] = $item;
+				}
+				if ( $changed ) {
+					update_post_meta( $post_id, $key, $translated );
+				}
+			}
+		}
+	}
+	/**
+	 * Check if string is serialized
+	 *
+	 * @param string $data Data to check.
+	 * @return bool True if serialized
+	 */
+	private static function is_serialized( $data ) {
+		if ( ! is_string( $data ) ) {
+			return false;
+		}
+
+		$data = trim( $data );
+
+		if ( 'N;' === $data ) {
+			return true;
+		}
+
+		if ( ! preg_match( '/^([adObis]):/', $data, $matches ) ) {
+			return false;
+		}
+
+		switch ( $matches[1] ) {
+			case 'a':
+			case 'O':
+			case 's':
+				if ( preg_match( "/^{$matches[1]}:[0-9]+:.*[;}]\$/s", $data ) ) {
+					return true;
+				}
+				break;
+			case 'b':
+			case 'i':
+			case 'd':
+				if ( preg_match( "/^{$matches[1]}:[0-9.E-]+;\$/", $data ) ) {
+					return true;
+				}
+				break;
+		}
+
+		return false;
+	}
+}
