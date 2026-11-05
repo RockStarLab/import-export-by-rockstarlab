@@ -1,0 +1,135 @@
+// Progress Bar
+.rsl-ie-progress-container {
+	margin: 30px 0;
+
+	.rsl-ie-import-preparing {
+		display: none;
+		align-items: center;
+		gap: 12px;
+		margin-bottom: 18px;
+		padding: 14px 16px;
+		background: var(--rsl-brand-tint, #f0f6fc);
+		border: 1px solid #c5d9ed;
+		border-radius: 4px;
+		color: #1d4f7a;
+		font-weight: 600;
+	}
+
+	.rsl-ie-import-preparing-spinner {
+		width: 20px;
+		height: 20px;
+		border: 3px solid rgba(var(--rsl-brand-accent-rgb, 34, 113, 177), 0.2);
+		border-top-color: var(--rsl-brand-accent, #2271b1);
+		border-radius: 50%;
+		animation: rsl-ie-spin 0.75s linear infinite;
+		flex: 0 0 auto;
+	}
+
+	&.is-preparing {
+		.rsl-ie-import-preparing {
+			display: flex;
+		}
+
+		.rsl-ie-progress-bar-fill {
+			position: relative;
+			width: 8% !important;
+			min-width: 46px;
+			overflow: hidden;
+
+			&::after {
+				content: "";
+				position: absolute;
+				inset: 0;
+				background: linear-gradient(
+					90deg,
+					rgba(255, 255, 255, 0),
+					rgba(255, 255, 255, 0.45),
+					rgba(255, 255, 255, 0)
+				);
+				transform: translateX(-100%);
+				animation: rsl-ie-progress-shimmer 1.15s ease-in-out infinite;
+			}
+		}
+	}
+
+	.rsl-ie-progress-bar {
+		height: 30px;
+		background: var(--rsl-brand-surface, #f6f7f7);
+		border-radius: 4px;
+		overflow: hidden;
+		margin-bottom: 15px;
+
+		.rsl-ie-progress-bar-fill {
+			height: 100%;
+			background: linear-gradient(
+				90deg,
+				var(--rsl-brand-accent, #2271b1) 0%,
+				var(--rsl-brand-accent-hover, #135e96) 100%
+			);
+			transition: width 0.3s;
+			display: flex;
+			align-items: center;
+			justify-content: flex-end;
+			padding-right: 10px;
+			color: #fff;
+			font-weight: 600;
+		}
+	}
+
+	.rsl-ie-progress-stats {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 20px;
+
+		.rsl-ie-progress-percentage {
+			font-size: 24px;
+			font-weight: 600;
+			color: var(--rsl-brand-accent, #2271b1);
+		}
+
+		.rsl-ie-progress-details {
+			font-size: 14px;
+			color: var(--rsl-brand-muted, #646970);
+		}
+	}
+
+	.rsl-ie-progress-estimates {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 15px;
+		margin-top: 20px;
+		padding-top: 20px;
+		border-top: 1px solid var(--rsl-brand-border, #dcdcde);
+
+		.rsl-ie-estimate {
+			display: flex;
+			flex-direction: column;
+			gap: 5px;
+
+			.label {
+				font-size: 12px;
+				color: var(--rsl-brand-muted, #646970);
+				text-transform: uppercase;
+				font-weight: 600;
+				letter-spacing: 0.5px;
+			}
+
+			.value {
+				font-size: 18px;
+				color: var(--rsl-brand-accent, #2271b1);
+				font-weight: 600;
+			}
+		}
+	}
+}
+
+.rsl-ie-button-spinner {
+	animation: rsl-ie-spin 0.75s linear infinite;
+}
+
+@keyframes rsl-ie-progress-shimmer {
+	to {
+		transform: translateX(100%);
+	}
+}

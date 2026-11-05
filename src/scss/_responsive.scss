@@ -1,0 +1,49 @@
+// Responsive Styles
+@media (max-width: 768px) {
+	.import-export-by-rockstarlab {
+		.rsl-ie-content-types {
+			grid-template-columns: 1fr;
+		}
+
+		.rsl-ie-format-selection {
+			grid-template-columns: 1fr;
+		}
+
+		.rsl-ie-field-groups .rsl-ie-fields-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.rsl-ie-progress-estimates {
+			grid-template-columns: 1fr;
+		}
+
+		.rsl-ie-steps-indicator {
+			flex-wrap: wrap;
+			gap: 15px;
+
+			.rsl-ie-step-indicator {
+				flex: 0 0 calc(33.333% - 10px);
+
+				&::after {
+					display: none;
+				}
+			}
+		}
+
+		// Filter rows responsive
+		.rsl-ie-filter-row .rsl-ie-filter-row-inner {
+			grid-template-columns: 1fr;
+			gap: 12px;
+		}
+
+		.rsl-ie-filter-summary-top .rsl-ie-summary-card {
+			flex-direction: column;
+			text-align: center;
+		}
+	}
+}
+
+// Utility Classes
+.rsl-ie-table-selection-section + .rsl-ie-filter-summary-top {
+	margin-top: 20px;
+}

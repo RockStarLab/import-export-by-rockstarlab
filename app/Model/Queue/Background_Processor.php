@@ -1,0 +1,444 @@
+<?php
+/**
+ * Background Processor
+ *
+ * Processes jobs in the background using WP Cron
+ *
+ * @package RockStarLab\ImportExport\Model\Queue
+ */
+
+namespace RockStarLab\ImportExport\Model\Queue;
+
+use RockStarLab\ImportExport\Helper\Ajax_Security;
+
+use RockStarLab\ImportExport\Model\Job;
+use RockStarLab\ImportExport\Helper\Progress_Tracker;
+
+defined( 'ABSPATH' ) || exit;
+
+class Background_Processor {
+
+	/**
+	 * Job model instance
+	 *
+	 * @var Job
+	 */
+	protected $job_model;
+
+	/**
+	 * Batch processor
+	 *
+	 * @var Batch_Processor
+	 */
+	protected $batch_processor;
+
+	/**
+	 * Progress tracker
+	 *
+	 * @var Progress_Tracker
+	 */
+	protected $progress_tracker;
+
+	/**
+	 * Max retries for failed jobs
+	 *
+	 * @var int
+	 */
+	protected $max_retries = 3;
+
+	/**
+	 * Constructor
+	 */
+	public function __construct() {
+		$this->job_model        = rsl_ie()->Model->job;
+		$this->batch_processor  = new Batch_Processor();
+		$this->progress_tracker = new Progress_Tracker();
+	}
+
+	/**
+	 * Process next job in queue
+	 *
+	 * @return bool True if job was processed
+	 */
+	public function process_next_job() {
+		// Get next pending job
+		$job = $this->get_next_job();
+
+		if ( ! $job ) {
+			return false;
+		}
+
+		// Process the job
+		$this->process_job( $job );
+
+		return true;
+	}
+
+	/**
+	 * Get next pending job
+	 *
+	 * @return array|null Job data or null
+	 */
+	protected function get_next_job() {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'rsl_ie_jobs';
+
+		// Get oldest pending or processing job
+		$job = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Polling the plugin's custom jobs table.
+			$wpdb->prepare( "SELECT * FROM %i WHERE status IN ('pending', 'processing') ORDER BY created_at ASC LIMIT 1", $table ),
+			ARRAY_A
+		);
+
+		return $job ? $job : null;
+	}
+
+	/**
+	 * Process a job
+	 *
+	 * @param array $job Job data
+	 */
+	protected function process_job( $job ) {
+		$job_id = $job['id'];
+
+		if ( 'content_update' === ( $job['data_type'] ?? '' ) && 1 === ( json_decode( (string) $job['parameters'], true )['updater_version'] ?? null ) ) {
+			do_action( 'rsl_ie_run_job', (int) $job_id );
+			return;
+		}
+
+		if ( \RockStarLab\ImportExport\Service\AI_URL_Service::supports( (object) $job ) || 'sync_background' === $job['type'] || \RockStarLab\ImportExport\Service\Migration_Service::supports( (object) $job ) || ! empty( json_decode( $job['parameters'], true )['migration_parent_id'] ) ) {
+			\RockStarLab\ImportExport\Service\Job_Runner::run( (int) $job_id );
+			return;
+		}
+
+		if ( 'media_sync' === ( $job['data_type'] ?? '' ) || 'media_sync' === $job['type'] ) {
+			( new \RockStarLab\ImportExport\Service\Media_Folder_Service() )->process_background_batch( (int) $job_id );
+			return;
+		}
+
+		if ( 'export' === $job['type'] ) {
+			$result = ( new \RockStarLab\ImportExport\Service\Export_Service() )->process_background_batch( (int) $job_id );
+			if ( ! is_wp_error( $result ) && empty( $result['completed'] ) ) {
+				$this->schedule_next_run( empty( $result['locked'] ) ? 0 : 5 );
+			}
+			return;
+		}
+
+		if ( 'import' === $job['type'] && ! in_array( (string) ( $job['data_type'] ?? '' ), [ 'media_sync', 'content_update' ], true ) ) {
+			$result = ( new \RockStarLab\ImportExport\Service\Import_Service() )->process_background_batch( (int) $job_id );
+			if ( ! is_wp_error( $result ) && empty( $result['completed'] ) ) {
+				$this->schedule_next_run( empty( $result['locked'] ) ? 0 : 5 );
+			}
+			return;
+		}
+
+		try {
+			// Update status to processing
+			$this->job_model->update(
+				$job_id,
+				array(
+					'status'     => 'processing',
+					'started_at' => current_time( 'mysql' ),
+				)
+			);
+
+			// Parse parameters
+			$parameters = ! empty( $job['parameters'] ) ? json_decode( $job['parameters'], true ) : [];
+
+			// Process based on job type
+			if ( 'import' === $job['type'] && 'media_sync' === (string) ( $job['data_type'] ?? '' ) ) {
+				$result = $this->process_media_sync_job( $job_id, $parameters );
+			} elseif ( 'media_sync' === $job['type'] ) {
+				$result = $this->process_media_sync_job( $job_id, $parameters );
+			} elseif ( 'update' === $job['type'] ) {
+				$result = $this->process_update_job( $job_id );
+			} else {
+				throw new \Exception( 'Invalid job type: ' . $job['type'] );
+			}           // Check if completed or needs to continue
+			if ( ! empty( $result['error'] ) ) {
+				return;
+			}
+
+			if ( isset( $result['completed'] ) && $result['completed'] ) {
+				$this->complete_job( $job_id, $result );
+			} else {
+				// Job still processing - schedule next batch immediately
+
+				// Schedule immediate next run for continued processing
+				$this->schedule_next_run( 0 );
+
+				// For local development: spawn immediate cron check
+				// This ensures processing continues even if WP-Cron is not triggered by page load
+				if ( defined( 'DOING_CRON' ) && ! DOING_CRON ) {
+					spawn_cron();
+				}
+
+				// Fallback: trigger via AJAX for reliability (non-blocking)
+				$this->trigger_ajax_processing( $job_id );
+			}
+		} catch ( \Exception $e ) {
+			$this->handle_job_error( $job_id, $e );
+		}
+	}
+
+			/**
+			 * Process export job
+			 *
+			 * @param int   $job_id Job ID
+			 * @param array $parameters Job parameters
+			 * @return array Processing result
+			 */
+	protected function process_export_job( $job_id, $parameters ) {
+		unset( $parameters );
+		$processor = new Export_Processor();
+		return $processor->process( $job_id );
+	}
+
+	/**
+	 * Append data to export file
+	 *
+	 * @param int    $job_id Job ID
+	 * @param string $format File format
+	 * @param array  $data Export data
+	 * @param bool   $first_batch Is first batch
+	 */
+	protected function append_export_data( $job_id, $format, $data, $first_batch = false ) {
+		$upload_dir = wp_upload_dir();
+		$file_path  = $upload_dir['basedir'] . '/rsl-ie-exports/job-' . $job_id . '.' . $format;
+
+		// Create directory if needed
+		wp_mkdir_p( dirname( $file_path ) );
+
+		// Get format handler
+		$format_handler = \RockStarLab\ImportExport\Model\Format\Format_Factory::create( $format );
+
+		// Generate content (note: this is legacy code, new exports use Export_Processor)
+		$result = $format_handler->generate( $data, $file_path );
+
+		if ( is_wp_error( $result ) ) {
+			return;
+		}
+
+		// File is already written by generate(), no need to append
+	}
+
+	/**
+	 * Finalize export file
+	 *
+	 * @param int    $job_id Job ID
+	 * @param string $format File format
+	 * @param array  $parameters Job parameters
+	 */
+	protected function finalize_export( $job_id, $format, $parameters ) {
+		// Format-specific finalization (e.g., close XML root tag)
+		// This would be handled by format handlers in a real implementation
+	}
+
+	/**
+	 * Complete job
+	 *
+	 * @param int   $job_id Job ID
+	 * @param array $result Processing result
+	 */
+	protected function complete_job( $job_id, $result ) {
+		$job  = $this->job_model->find( $job_id );
+		$data = array(
+			'status'       => 'completed',
+			'progress'     => 100,
+			'completed_at' => current_time( 'mysql' ),
+		);
+
+		// Import/update/media processors may already have stored richer result
+		// details. Keep them rather than replacing them with batch metadata.
+		if ( ! $job || empty( $job->result ) ) {
+			$data['result'] = wp_json_encode( $result );
+		}
+
+		$this->job_model->update( $job_id, $data );
+	}
+
+	/**
+	 * Update job progress
+	 *
+	 * @param int   $job_id Job ID
+	 * @param array $result Processing result
+	 */
+	protected function update_job_progress( $job_id, $result ) {
+		// Update job parameters with new offset
+		$job        = $this->job_model->find( $job_id );
+		$parameters = json_decode( $job->parameters, true );
+
+		$parameters['offset'] = $result['offset'] ?? 0;
+
+		$this->job_model->update(
+			$job_id,
+			array(
+				'parameters' => wp_json_encode( $parameters ),
+			)
+		);
+	}
+
+	/**
+	 * Handle job error
+	 *
+	 * @param int        $job_id Job ID
+	 * @param \Exception $e Exception
+	 */
+	protected function handle_job_error( $job_id, $e ) {
+		// Get current retry count
+		$job     = $this->job_model->find( $job_id );
+		$retries = isset( $job->retries ) ? (int) $job->retries : 0;
+
+		// Check if should retry
+		if ( $retries < $this->max_retries ) {
+			// Increment retry count and reset to pending
+			$this->job_model->update(
+				$job_id,
+				array(
+					'status'  => 'pending',
+					'retries' => $retries + 1,
+				)
+			);
+
+			// Schedule retry
+			$this->schedule_next_run( 60 ); // Retry after 1 minute
+
+		} else {
+			// Max retries reached, mark as failed
+			$this->job_model->update(
+				$job_id,
+				array(
+					'status'       => 'failed',
+					'completed_at' => current_time( 'mysql' ),
+					'result'       => wp_json_encode(
+						array(
+							'error' => $e->getMessage(),
+						)
+					),
+				)
+			);
+		}
+	}
+
+	/**
+	 * Process media sync job
+	 *
+	 * @param int   $job_id Job ID
+	 * @param array $parameters Job parameters
+	 * @return array Processing result
+	 */
+	protected function process_media_sync_job( $job_id, $parameters ) {
+		$processor = new Media_Sync_Processor();
+		return $processor->process( $job_id );
+	}
+
+	/**
+	 * Process a content update batch.
+	 *
+	 * @param int $job_id Job ID.
+	 * @return array
+	 */
+	protected function process_update_job( $job_id ) {
+		$result = apply_filters( 'rsl_ie_process_update_job', null, $job_id );
+
+		if ( null !== $result ) {
+			return $result;
+		}
+
+		throw new \RuntimeException( 'No Content Updater processor is registered.' );
+	}
+
+	/**
+	 * Schedule next run
+	 *
+	 * @param int $delay Optional. Delay in seconds (default: 0)
+	 */
+	protected function schedule_next_run( $delay = 0 ) {
+		// Always schedule immediate processing for continued jobs
+		// Don't check for existing scheduled events - we want to trigger NOW
+		wp_schedule_single_event(
+			time() + $delay,
+			'rsl_ie_process_queue'
+		);
+	}
+
+	/**
+	 * Trigger next batch via AJAX (non-blocking)
+	 *
+	 * @param int $job_id Job ID
+	 */
+	protected function trigger_ajax_processing( $job_id ) {
+		// Only trigger for media sync jobs (they have dedicated AJAX endpoint)
+		$job = $this->job_model->find( $job_id );
+		if ( ! $job || ( $job->type !== 'media_sync' && 'media_sync' !== (string) $job->data_type ) ) {
+			return;
+		}
+
+		// Trigger via non-blocking HTTP request
+		wp_remote_post(
+			admin_url( 'admin-ajax.php' ),
+			array(
+				'timeout'  => 0.01,
+				'blocking' => false,
+				'body'     => array(
+					'action' => 'rsl_ie_process_media_sync_batch',
+					'nonce'  => Ajax_Security::create_nonce( 'rsl_ie_process_media_sync_batch' ),
+					'job_id' => $job_id,
+				),
+				'cookies'  => $this->get_auth_cookies_for_request(),
+			)
+		);
+	}
+
+	/**
+	 * Get sanitized WordPress auth cookies for the internal AJAX request.
+	 *
+	 * @return \WP_Http_Cookie[] Cookies for wp_remote_post().
+	 */
+	protected function get_auth_cookies_for_request() {
+		$cookie_names = array_filter(
+			array(
+				defined( 'LOGGED_IN_COOKIE' ) ? LOGGED_IN_COOKIE : '',
+				defined( 'AUTH_COOKIE' ) ? AUTH_COOKIE : '',
+				defined( 'SECURE_AUTH_COOKIE' ) ? SECURE_AUTH_COOKIE : '',
+			)
+		);
+
+		$cookies = array();
+
+		foreach ( $cookie_names as $cookie_name ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Cookie value is unslashed and sanitized before use.
+			$raw_value = isset( $_COOKIE[ $cookie_name ] ) ? wp_unslash( $_COOKIE[ $cookie_name ] ) : '';
+			if ( ! is_scalar( $raw_value ) || '' === $raw_value ) {
+				continue;
+			}
+
+			$cookies[] = new \WP_Http_Cookie(
+				array(
+					'name'  => sanitize_text_field( $cookie_name ),
+					'value' => sanitize_text_field( $raw_value ),
+				)
+			);
+		}
+
+		return $cookies;
+	}
+
+	/**
+	 * Set batch size
+	 *
+	 * @param int $size Batch size
+	 */
+	public function set_batch_size( $size ) {
+		$this->batch_processor->set_batch_size( $size );
+	}
+
+	/**
+	 * Set max retries
+	 *
+	 * @param int $retries Max retries
+	 */
+	public function set_max_retries( $retries ) {
+		$this->max_retries = max( 0, (int) $retries );
+	}
+}

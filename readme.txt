@@ -1,0 +1,618 @@
+=== Import Export by RockStarLab ===
+Contributors: RockstarLab
+Tags: ai, export, import, abilities, mcp
+Requires at least: 6.2
+Tested up to: 7.1.3
+Stable tag: 2.1.20
+Requires PHP: 7.4
+License: GPL v2 or later
+
+Built for humans and AI agents. Import, export, and sync WordPress data from WP Admin or your connected AI assistant.
+
+== Description ==
+
+**Built for humans and AI agents.**
+
+Import Export by RockStarLab helps you import, export, and sync WordPress data. Work visually in WP Admin, or connect an AI agent such as Claude Code, Cursor, or Codex to run supported workflows from your assistant's interface.
+
+https://www.youtube.com/watch?v=9bfc7yu6nyU
+
+**New in 2.0: AI agent access.** Ask your connected agent to prepare an import, export selected content, sync pages between connected sites, or check a job's progress. The plugin exposes these operations through the WordPress Abilities API and the official WordPress MCP Adapter.
+
+Read [what’s new in Import Export by RockStarLab 2.0.0](https://wpimportexport.com/whats-new-in-import-export-by-rockstarlab-2-0-0/) for the full release overview and [how to use the plugin with AI Agents like Claude, CodexGPT, Cursor and others](https://wpimportexport.com/how-to-use-the-wordpress-abilities-api-with-ai-agents-exports-imports-content-sync-and-backups/).
+
+Prefer working in WordPress? Use the familiar admin screens for file uploads, field mapping, previews, imports, exports, content sync, and job history. AI is optional: everyday import, export, and sync workflows need no AI account or API key.
+
+The free plugin includes import/export for posts, pages, comments, and media; All Site URLs export; Media Folder Sync; site-to-site sync for supported core content; and background jobs. Import and export CSV, XML, JSON, XLSX, and ODS files, or use the AI URL Importer to turn public web pages into WordPress content with a configured AI provider.
+
+The optional PRO addon adds custom post types, menus, users, taxonomy terms, WooCommerce data, database table workflows, Content Updater, and field transformations. PRO extends both the admin tools and the operations available to connected agents.
+
+Use it for content migrations between local, staging, and production; recurring data transfers; SEO URL audits; and workflows involving custom fields, SEO metadata, Elementor layouts, and media relationships.
+
+🌐 Website: [wpimportexport.com](https://wpimportexport.com/)
+📖 Video Tutorials: [wpimportexport.com/import-export-video-tutorials-for-wordpress](https://wpimportexport.com/import-export-video-tutorials-for-wordpress/)
+📰 Blog: [wpimportexport.com/blog](https://wpimportexport.com/blog/)
+🚀 PRO version: New users can try PRO free for 1 month, no credit card required.
+⏳ **LIMITED OFFERS:** [Lifetime license for the first users](https://checkout.freemius.com/plugin/28907/plan/47555/licenses/4/) | [Get PRO For Free](https://wpimportexport.com/get-pro-for-free/)
+
+Want to try it before installing? Open the Live Plugin Preview on WordPress.org to explore the admin screens in a temporary WordPress Playground site with sample content.
+
+== Work with AI Agents ==
+
+Describe the task in your connected AI assistant and let it use the plugin's available actions. For example:
+
+* "Export my published posts to CSV, including titles, URLs, and SEO metadata."
+* "Preview this CSV and suggest a field mapping before importing it as draft pages."
+* "Sync these selected pages from staging to my connected production site."
+* "Show the progress and errors for my latest import job."
+
+Send requests like these from your connected agent's interface. Available actions depend on your plugin edition, installed integrations, and WordPress permissions.
+
+= Connect your agent =
+
+1. Open **Plugin Options → AI Agent Connection** in WP Admin and turn on **Enable Abilities API**.
+2. Follow the setup wizard to check your site and enable the official WordPress MCP Adapter.
+3. Create a WordPress Application Password for an account with administrator permissions.
+4. Add the displayed MCP endpoint and credentials to your compatible agent or MCP bridge, then ask it to list the plugin's available actions.
+
+For step-by-step instructions and workflow examples, read the [WordPress Abilities API guide for AI agents: exports, imports, content sync, and backups](https://wpimportexport.com/how-to-use-the-wordpress-abilities-api-with-ai-agents-exports-imports-content-sync-and-backups/).
+
+Agent access requires the WordPress Abilities API and a client that can reach your site and authenticate with its MCP endpoint. The connection screen checks the site's requirements. Client setup varies; some assistants need an MCP bridge for the supported authentication method. Developers can also use the Abilities REST API directly.
+
+**You choose when to enable agent access.** It is off by default and can be turned off independently of the admin tools. Agent operations check WordPress permissions, and premium operations require an active PRO license.
+
+**AI agent access and AI URL Importer are separate features.** Connecting an agent does not require an OpenAI API key in this plugin. The AI URL Importer uses a configured AI provider to extract content from public URLs; your external AI assistant uses its own account and service settings.
+
+== Common Use Cases ==
+
+* 🚚 Move posts and pages between local, staging, and production
+* 📄 Import and export CSV, XML, JSON, XLSX, and ODS files with field mapping
+* 💬 Run supported import, export, and sync tasks through a connected AI agent
+* 🔄 Sync selected content from one WordPress site to another
+* 🔎 Build a full public URL inventory for SEO audits
+* 🖼️ Add FTP/SFTP uploaded files into the Media Library
+* 🧾 Re-run imports, exports, and sync jobs from history
+* 🤖 Convert public URLs into draft WordPress content with AI
+* 🚀 Use PRO for custom post types, users, menus, taxonomy terms, WooCommerce data, transformations, and bulk content updates
+
+== Features ==
+
+Choose the WordPress admin interface or a connected AI agent for your data workflows:
+
+* 💬 **AI Agent Access (New in 2.0)**: Connect compatible agents through MCP to discover and run supported plugin operations.
+* 🖱️ **Visual Admin Tools**: Upload files, map fields, preview data, and manage jobs directly in WordPress.
+* 📥 **CSV, XML, JSON, XLSX, and ODS Import/Export**: Move posts, pages, comments, and media with flexible field mapping, previews, validation, and background processing.
+* 🌍 **All Site URLs Export**: Export a clean CSV or JSON list of public frontend URLs from posts, pages, custom post types, taxonomies, archives, feeds, and REST API endpoints.
+* 🔗 **Site-to-Site Content Sync**: Connect WordPress sites with API keys, then push or pull selected content between environments.
+* 🖼️ **Media Folder Sync**: Scan server folders and register uploaded files in the WordPress Media Library with duplicate detection.
+* 🤖 **AI URL Importer**: Extract structured content from public URLs with a configured AI provider, including OpenAI.
+* 🧾 **Jobs Log**: Re-run previous imports, exports, and sync jobs without rebuilding the whole setup.
+* 🧪 **Live Plugin Preview**: Try the plugin in a temporary WordPress Playground demo powered by the included blueprint.
+* 🧩 **Metadata-Aware Workflows**: Designed for custom fields, SEO metadata, media references, and builder-heavy sites.
+
+== PRO Addon ==
+
+Start free with posts, pages, comments, media, URLs, and core content sync workflows, using WP Admin or a connected AI agent. Choose PRO when you need custom content types, WooCommerce data, bulk updates, or transformations. AI agent access is included in free; PRO expands what your agent can work with.
+
+New users can try the PRO version free for 1 month, no credit card required. Want PRO for lifetime? See how to get it for free here: [wpimportexport.com/get-pro-for-free](https://wpimportexport.com/get-pro-for-free/)
+
+PRO adds:
+
+* 🧱 Import/export for Custom Post Types, Menus, Taxonomy Terms, Users, Database Tables, and WooCommerce Products, Orders, Coupons, Refunds, Customers, Reviews, and Attributes
+* ✏️ Content Updater for changing existing content in bulk without doing a full import cycle
+* 🪄 Transformation functions for cleaning, combining, changing, or normalizing values during workflows
+* 🧬 Advanced custom-field and metadata workflows for ACF, SEO plugins, builders, and WooCommerce stores
+* 🔄 More site-to-site sync coverage for custom content models
+* 💬 Premium agent operations for supported PRO import, export, sync, Content Updater, and transformation workflows
+* 🏢 Workflow tools built for agencies, WooCommerce teams, content teams, and developers managing staging-to-production releases
+
+== Affiliate Program ==
+
+Love Import Export by RockStarLab? Join our affiliate program and earn commissions by recommending the plugin to WordPress agencies, WooCommerce stores, content teams, and site owners who need reliable import, export, migration, and sync workflows.
+
+Affiliate details are available on our website: [wpimportexport.com](https://wpimportexport.com/)
+
+== Why Choose Our Import / Export Plugin? ==
+
+Manage content, metadata, media, sync, jobs, and URL audits in one plugin. Start with visual admin tools, connect an AI agent when it suits your workflow, and add PRO when you need more data types or bulk editing tools.
+
+* **Built for Real WordPress Sites**: Works with posts, pages, media, metadata, ACF, Elementor, Yoast SEO, Rank Math SEO, and WooCommerce workflows.
+* **Background Processing**: Large jobs run in batches, with progress tracking and logs.
+* **Repeatable Operations**: Save time by re-running jobs from history.
+* **Human-Friendly Mapping**: Preview source data and map it to WordPress fields before the job runs.
+* **Built for Humans and AI Agents**: Work in WP Admin or use a connected assistant to run supported data operations.
+* **Optional AI Content Extraction**: Turn public URLs into WordPress content with the separate AI URL Importer.
+* **Free to Start, PRO When You Grow**: Start with core migration and sync tools, then upgrade when you need custom content types, transformations, WooCommerce data, or Content Updater.
+
+= Core Features =
+
+* **Multiple Data Types**: Posts, Pages, Comments, and Media in free; additional content types via the optional PRO addon
+* **All Site URLs**: Export public site URLs from posts, pages, custom post types, taxonomies, post type archives, author/date/search archives, RSS/Atom/comments feeds, and REST API endpoints
+* **File Formats**: Import and export CSV, XML, JSON, XLSX, and ODS files
+* **Background Processing**: Handle large datasets in batches to reduce timeout and memory-limit problems
+* **Field Mapping**: Intuitive field mapping interface with preview
+* **Validation System**: Comprehensive data validation before import
+* **Media Folder Sync**: Synchronize FTP-uploaded files with WordPress Media Library
+* **Site-to-Site Sync**: Connect and sync content between two WordPress sites
+* **Progress Tracking**: Real-time progress bars and detailed logs
+* **History & Logs**: Complete history of all import/export operations
+* **Live Preview Blueprint**: WordPress Playground blueprint support for the Live Plugin Preview on WordPress.org
+
+= All Site URLs =
+
+Create a clean inventory of public frontend URLs from your WordPress site:
+
+* **Content URLs**: Posts, Pages, Media, and public Custom Post Types
+* **Taxonomy URLs**: Categories, Tags, WooCommerce taxonomies, and other public term archives
+* **Archive URLs**: Post type archives, author archives, date archives, homepage/front page, and search results URL
+* **Technical URLs**: Optional RSS feeds, Atom feeds, comments feed, post type feeds, REST API root, and REST post type endpoints
+* **Simple Output**: CSV or JSON file with a single URL column
+* **Bulk Selection**: Quickly select or deselect Posts, Taxonomies, REST endpoints, RSS feeds, Atom feeds, and Comments feeds
+* **Jobs Log Support**: Re-run URL export jobs or download completed files from the Jobs Log
+
+= Site-to-Site Content Sync =
+
+Synchronize content between two WordPress sites with secure API-based connection:
+
+* **API Key Connection**: Connect sites with secure 64-character API keys
+* **Bidirectional Sync**: Pull from remote site or push to it
+* **Content Types**: Posts and Pages (additional content types via the optional PRO addon)
+* **Selective Sync**: Filter by ID, date, author, status, taxonomy
+* **Conflict Resolution**: Skip, Update, or Duplicate strategies
+* **Media Sync**: Automatically download and sync media files
+
+= Media Folder Sync =
+
+Easily synchronize files from server folders (uploaded via FTP/SFTP) to your WordPress Media Library:
+
+* **Scan Server Folders**: Browse and select folders with recursive scanning
+* **File Type Filters**: Choose specific file types or all WordPress-allowed types
+* **Duplicate Detection**: Three methods (Hash, Filename, Filesize) to skip duplicates
+* **Preserve Structure**: Maintain original folder hierarchy
+* **Batch Processing**: Handle large numbers of files efficiently
+* **Auto Alt Text**: Generate alt text from filenames
+* **Real Media Library**: Automatically create folder structure in Real Media Library plugin (the plugin is not included)
+
+= PRO Content Types and Tools =
+
+The PRO addon extends Import and Export with additional content types, adds the Content Updater, and enables field transformation integrations.
+
+= Perfect For =
+
+* 🚚 **Site Migration**: Moving content between WordPress sites
+* 🌐 **Multi-Site Management**: Sync content across multiple WordPress installations
+* ⚡ **Bulk Operations**: Updating hundreds or thousands of posts at once
+* 🔌 **Data Integration**: Importing data from external systems
+* 📝 **Content Management**: Exporting for backup or analysis
+* 🖼️ **Media Organization**: Organizing FTP-uploaded files into Media Library
+* 🏢 **Agency Workflows**: Moving content from staging to production without manual rebuilding
+* 🔎 **SEO Workflows**: Exporting URLs and preserving SEO metadata during migrations
+* 🛒 **WooCommerce**: Product catalog management (via the optional PRO addon)
+
+== Works With ==
+
+* 🧱 WordPress
+* 🧩 ACF (Advanced Custom Fields) and ACF Pro (Flexible content, repeaters)
+* 🛒 WooCommerce (PRO addon)
+* 🎨 Elementor
+* 🔎 Yoast SEO
+* 📈 RankMath SEO
+* 🗂️ Real Media Library
+* 🤖 OpenAI (AI URL Importer)
+* 💬 Compatible MCP clients, including Claude Code, Cursor, and Codex (connection setup required)
+
+== External services ==
+
+This plugin connects to the following external services:
+
+= OpenAI API =
+
+Used for AI-powered features:
+
+* AI URL Importer (extracts clean content from a URL)
+
+What data is sent and when:
+
+* When you use the AI URL Importer, the plugin fetches the target URL content and sends the cleaned page content and the URL to OpenAI for extraction.
+
+Service provider:
+
+* OpenAI ([terms](https://openai.com/policies/terms-of-use), [privacy](https://openai.com/policies/privacy-policy))
+
+== Tutorials ==
+
+Learn how to use Import Export by RockStarLab in real WordPress workflows:
+
+* [How to use the WordPress Abilities API with AI agents: exports, imports, content sync, and backups](https://wpimportexport.com/how-to-use-the-wordpress-abilities-api-with-ai-agents-exports-imports-content-sync-and-backups/)
+* [How to export all WordPress URLs to CSV or JSON](https://wpimportexport.com/how-to-export-all-wordpress-urls-to-csv-or-json/)
+* [How to use Jobs Log and schedule WP import and export jobs](https://wpimportexport.com/how-to-use-jobs-log-and-schedule-wp-import-and-export-jobs/)
+* [How to export and import WordPress media files without duplicates](https://wpimportexport.com/how-to-export-and-import-wordpress-media-files-without-duplicates/)
+* [How to import posts, pages, and custom post types with ACF Pro fields](https://wpimportexport.com/how-to-import-posts-pages-custom-post-types-with-acf-pro-fields/)
+* [How to export WordPress posts, pages, and custom post types with ACF Pro fields](https://wpimportexport.com/how-to-export-wordpress-posts-pages-custom-post-types-with-acf-pro-fields/)
+* [How to sync content between two WordPress websites without export files](https://wpimportexport.com/how-to-sync-content-between-two-wordpress-websites-without-export-files/)
+* [How to import content from a URL into WordPress with AI](https://wpimportexport.com/how-to-import-content-from-a-url-into-wordpress-with-ai/)
+* [What are transformation functions and how to use them during import or export](https://wpimportexport.com/what-are-transformation-functions-and-how-to-use-them-during-import-or-export/)
+* [How to register FTP/SFTP uploaded files in the WordPress Media Library](https://wpimportexport.com/how-to-register-ftp-sftp-uploaded-files-in-the-wordpress-media-library/)
+
+== Frequently Asked Questions ==
+
+= Do I need an AI agent to use this plugin? =
+
+No. You can import, export, map fields, sync content, and manage jobs in WP Admin as before. Agent access is optional and disabled by default.
+
+= Can I use Claude, Cursor, or Codex to manage my WordPress data? =
+
+Yes, with a compatible MCP connection. Open Plugin Options → AI Agent Connection and follow the setup wizard. Your client must support the site's MCP transport and authentication, directly or through a bridge. The agent can discover and run the operations available to your account and plugin edition.
+
+= Is AI agent access included in the free version? =
+
+Yes. The free plugin exposes supported free workflows to connected agents. An active licensed PRO addon adds premium content types and tools, including Content Updater and transformations.
+
+= Do I need an OpenAI API key? =
+
+Not for ordinary imports, exports, sync, or connecting an external agent. Your agent uses its own service setup. The separate AI URL Importer requires a configured AI provider; using OpenAI for extraction requires OpenAI credentials.
+
+= Can I disable AI agent access and keep using WP Admin? =
+
+Yes. Turn off Enable Abilities API on the AI Agent Connection screen. The plugin's agent operations become unavailable, while the admin tools remain usable. Turning it off does not cancel background jobs that have already started.
+
+= Can I import large files without timeout issues? =
+
+The plugin processes large jobs in background batches to reduce timeout and memory-limit problems. Practical limits depend on your hosting resources, file contents, and server configuration.
+
+= Can I transform data during import? =
+
+Yes. The optional PRO addon includes field transformations for import, export, and Content Updater workflows.
+
+= How do I avoid importing duplicate media files? =
+
+Use the Media Folder Sync feature with duplicate detection. Choose from three methods: Hash (most accurate), Filename (fastest), or Filesize (balanced).
+
+= Can I sync content between two WordPress sites? =
+
+Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
+
+== Changelog ==
+
+= 2.1.20 =
+* Fixed: in Export > Filter Data, a Custom Field (Meta) filter now labels its first input "Custom field name" instead of "Select Field...".
+
+= 2.1.19 =
+* Fixed: importing posts or pages in update mode now changes only the columns in the file. Status, author, comment status and other fields that are not mapped keep their current values instead of being reset to the import defaults. New posts created by the import still use the defaults.
+* Improved: in update mode matched by ID or slug, the file no longer needs a title column, so a file with only ID and one meta field (for example a Yoast meta description) can be imported.
+
+= 2.1.18 =
+* Fixed: GitHub Copilot in VS Code can connect to the site through MCP Adapter. VS Code does not send the MCP-Protocol-Version header after the first request, and MCP Adapter rejected the session with "MCP-Protocol-Version header is required". When the header is missing, the plugin now fills in the protocol version already negotiated for that session. A header the client sends is never changed, and requests without a valid session are still rejected.
+
+= 2.1.17 =
+* Fixed: the one-command setup for Claude Code and Gemini CLI in Plugin Options > AI Agent Connection now puts the server name and address before the authorization header, so the generated command is accepted by current versions of both tools.
+* Improved: export Abilities accept common spellings of filter conditions (greater_than, less_than, gte, lte, not_equal and similar) and reject an unknown condition with a list of the supported ones, instead of ignoring the filter.
+* Improved: file-preview explains that export files cannot be previewed and points to file-get and export-preview.
+
+= 2.1.16 =
+* Added: Permalink and Word Count columns for post and page exports (Standard group), for content inventories and audits. Word Count counts the words of the content without HTML tags and shortcodes.
+
+= 2.1.15 =
+* Fixed: an ACF image or file field filled from a spreadsheet cell with one address now imports the file when the address has no file extension (image.php?id=42), contains spaces, or points to a PDF or another document on a different host.
+
+= 2.1.14 =
+* Improved: imports with many images stay fast as the Media Library grows. The duplicate check for each downloaded image now uses an exact lookup of the stored file hash, and images without a stored hash are indexed once per request instead of on every check. 10,000 posts with featured images and ACF fields imported in about 27 minutes on a local test site.
+* Fixed: ACF post object, relationship and page link values that point to a post further down the same file were left empty. They are now resolved when the import finishes, including values inside repeaters and flexible content.
+* Improved: the transformation preview on the export screen labels the original value.
+
+= 2.1.13 =
+* Improved: large imports keep a steady speed from the first row to the last. A 100,000-row CSV with categories and tags imported in about 80 minutes on a local test site, with about 20 MB of memory per request.
+* Improved: preparation of large files reads up to 1,000 rows per request, and the per-request check for source file changes uses a much faster checksum. The full file is still verified before the first row is imported.
+* Improved: duplicate checks by title run once per batch, and category and tag counts are updated once per batch instead of after every post.
+* Improved: a batch stops after about 20 seconds and continues in the next request, and does not start a row that is unlikely to finish in time, so a large Batch Size no longer risks request timeouts. The default Batch Size is now 50 (5 for media library files).
+* Improved: with the browser tab closed, each background (WP-Cron) run keeps importing for up to about 20 seconds instead of a single batch.
+* Improved: the job result keeps exact counters, the latest 200 rows and up to 500 error messages, so its size no longer grows with the number of rows.
+* Added: ACF gallery cells can list image URLs separated by commas or "|", and IDs of existing Media Library images.
+* Added: spreadsheet-friendly values for ACF fields: lists for multi-select and checkbox, choice labels, yes/no for true/false, dates in common formats or the field's own format, terms by name, slug or ID, users by login, email or ID, posts by ID, slug, title or URL, a plain URL for link fields and a Dashicons name for icon picker fields.
+* Fixed: ACF fields registered in PHP or acf-json were exported as display values (formatted dates, oEmbed HTML, link URL only), which did not import back. They are now exported like fields stored in the database.
+* Fixed: flexible content sub-fields were missing from exports when the layout array keys differed from the layout keys.
+
+= 2.1.12 =
+* Fixed: taxonomy fields added with "+ Add" on the import mapping step (for example category or post_tag) were ignored during the import, so posts kept only the default category while the import reported success. Mappings saved this way earlier work again.
+* Fixed: Auto Map did not map "categories", "category", "tags" and "tag" columns when importing blog posts. They are now mapped to the category and tag taxonomies.
+* Added: "Parent > Child" values create or reuse nested terms in hierarchical taxonomies, such as categories, with any number of levels.
+* Added: terms in one cell can be separated with "|" as well as with commas.
+* Fixed: when several columns were mapped to the same taxonomy, only the last column was imported. Their terms are now combined.
+
+= 2.1.11 =
+* Fixed: featured images given by URL in an import file were only downloaded when they came from another WordPress site's uploads folder. Images from any http(s) address (a CDN, an image service, a shop) are now imported, including addresses with a query string, without a file extension or behind a redirect.
+* Fixed: image addresses with spaces or accented characters in the file name, as they are often typed in spreadsheets, were skipped. They are now encoded and imported.
+* Fixed: a featured image that could not be downloaded was only noted in the Jobs Log while the import reported success. It is now listed on the result screen with the row and the reason, such as "Download failed with HTTP 404" or "The address did not return an image file".
+* Improved: with Automatically Import Media Files on, images inside the post text are also downloaded from other hosts when their address ends in an image extension. Gravatar avatars and WordPress emoji images are left alone.
+* Added: a Featured Image Alt Text field (featured_image_alt) for import and export, so alt text can be set from a spreadsheet column.
+* Added: Excel =HYPERLINK("url", "label") formulas in an image column are read as the link address.
+
+= 2.1.10 =
+* Fixed: CSV files saved in a regional code page, such as Excel's "CSV (Comma delimited)" on Windows, lost their accented, Cyrillic and other non-Latin characters during import; they were replaced with question marks while the import reported success. The importer now detects UTF-8, UTF-16, Windows-1251 and Windows-1252 files and converts them before reading.
+* Fixed: CSV files saved by Excel as "Unicode Text" (UTF-16) were not recognised and showed no columns.
+* Fixed: a semicolon, tab or pipe separated CSV imported as a single column when the delimiter was left at the default comma. The separator of the header row is now used in that case; a delimiter chosen explicitly is kept.
+* Added: a "File encoding" choice on the upload step (Detect automatically, UTF-8, UTF-16, Windows-1250, Windows-1251, Windows-1252, ISO-8859-1, ISO-8859-2, ISO-8859-15) for files that detection cannot tell apart.
+* Added: encoding and delimiter options in the Abilities API (parser_options in upload-complete, file-preview and import-prepare; encoding and delimiter in import-validate and import-start), so AI agents can import such files too.
+* Fixed: when importing media, a file from another site with the same file name as an existing attachment could be treated as that attachment. Files from other sites are now compared by their content.
+
+= 2.1.9 =
+* Fixed: Elementor and Rank Math fields could fail to appear in the admin import mapping screen.
+
+= 2.1.8 =
+* Fixed: AI import preparation now automatically maps the Elementor Document Data column for posts and pages, including when Elementor is not active yet.
+
+= 2.1.7 =
+* Fixed: importing a post with a Cover block could corrupt the block's attributes, so the editor reported the block as invalid. The attachment ID in the block is now written correctly.
+* Fixed: when an image in the content was already downloaded by an earlier step of the import, the Image block and its wp-image class kept the attachment ID from the source site. They now point to the attachment on this site, so WordPress can build responsive image sizes again.
+* Fixed: imports wrote post content (after media processing) and custom fields without slashing them, so WordPress removed backslashes. Escaped quotes and \u sequences in JSON values or block attributes and Windows paths in text were damaged. Backslashes are now kept.
+* Fixed: when importing a JSON or XML file, custom field values that are JSON strings (as stored by many page builders) were turned into arrays. They now stay strings. CSV and spreadsheet imports still restore arrays exported as JSON text.
+
+= 2.1.6 =
+* Fixed: in the Content Sync mapping dialog, clicking "Auto-match by Title" while the remote list was still loading could leave the button stuck on "Matching..." without matching anything. The button now stays disabled until the list has loaded, and only one match runs at a time.
+* Fixed: the "Published" count in Browse Remote Posts included scheduled and private posts, so it did not match the list. Scheduled posts now have their own "Scheduled" filter and count.
+
+= 2.1.5 =
+* Fixed: AI agents could not finish preparing a Content Migration package through the Abilities API. The last response of rsl-ie/migration-prepare contained a field that was missing from the ability's output schema, so it was rejected. The admin screen was not affected.
+* Fixed: a file uploaded in chunks over REST could not be completed with rsl-ie/upload-complete from a long-running process such as the WP-CLI MCP server (wp mcp-adapter serve). The process kept an old copy of the upload record and reported the upload as incomplete.
+
+= 2.1.4 =
+* Preserve taxonomy terms when the post ID column is omitted from an export.
+* Export portable media URLs for locally registered ACF image, file and gallery fields.
+
+= 2.1.3 =
+* New: Content Migration import now asks what to do with items that already exist on this site: skip them (default) or update them. Before, the migration screen always updated them, so pages with the same slug on the new site (for example shop or policy pages) were replaced with the version from the package.
+* Improved: the migration result shows how many items were created, updated and skipped.
+* Fixed: imports no longer request this site's own uploads over HTTP. With Replace URLs enabled and media not migrated in a separate step, these requests could wait for a free PHP worker and hold the import queue for minutes on hosts with few PHP workers, such as LocalWP. Files that exist on disk are now read directly.
+
+= 2.1.2 =
+* Fixed: with "Replace links" and "Automatically Import Media Files" both enabled, images inside post content were not downloaded. The link replacement already pointed them to this site, so they were treated as local files and left as broken images. They are now downloaded from their original address.
+* Fixed: media files that could not be downloaded during an import (for example from a local development site the server cannot reach) were only written to the Jobs Log. The result screen now reports "Import Completed with Warnings" and lists the affected addresses with the reason.
+* Fixed: the media summary in the Jobs Log counted 0 imported files when images in the content were downloaded.
+* Improved: the last import step shows "Import Finished" instead of "Import in Progress" once the import is done.
+
+= 2.1.1 =
+* Fixed: Content Sync replaced the author of every pushed or pulled post with the account the connection runs as, including posts that were only updated. Authors are now matched on the receiving site by email address, then by username. Updated posts keep their current author when no matching account is found, and accounts without permission to write posts (for example customers) are never used as authors. No user accounts are created.
+* Fixed: a featured image transferred with Content Sync is now attached to its post in the Media Library instead of being listed as unattached.
+* Improved: Jobs Log labels Content Sync jobs for pages as "Pages" (and "Blog Posts + Pages" for mixed jobs) instead of "Blog Posts".
+
+= 2.1.0 =
+* Improved: Auto Map in Import now recognizes common column headers (Name, Title, Categories, Tags, Images, Parent, Attribute N and more), so a "Name" column is no longer mapped to the slug field.
+* Improved: Auto Map and the field list support the standard WooCommerce product CSV columns (Parent, Images, Attribute N, Upsells, Cross-sells, Download N, "Meta: key"). The import itself is handled by the PRO addon.
+* Fixed: CSV files saved with a UTF-8 byte order mark (BOM) lost the name of their first column (for example "ID") during mapping.
+* Fixed: the import result screen reported "Import Completed Successfully" even when rows failed. It now shows "Import Completed with Errors" or "Import Failed" together with the first error messages.
+* Fixed: importing posts merged terms that share a name but have different slugs (for example two tags named "content" with the slugs content and content-2) into one term.
+* Fixed: the Content Sync Pull mapping window now shows pull-specific instructions instead of the push text.
+* Improved: Jobs Log lists Content Updater jobs as "Content Update", shows their successful item counts and offers a "Content Update" type filter when the PRO addon is active.
+
+= 2.0.9 =
+* Fixed comment synchronization losing literal backslashes in imported content.
+* Fixed repeated comment synchronization stripping supported HTML such as tables, headings and lists while retaining unsafe HTML filtering.
+
+= 2.0.8 =
+* Fixed background AI URL jobs being incorrectly processed as file imports.
+* Fixed AI URL imports losing tables, introductory paragraphs, nested content, closing links and slash characters.
+* Improved article body selection to exclude navigation, metadata and sidebar content.
+* Fixed imported inline images continuing to use remote URLs after their files were downloaded to the Media Library.
+
+= 2.0.7 =
+* Improvement: Media Sync scans omit registered generated image sizes while retaining originals and unrelated files.
+* Fixed the Media Sync folder instruction to correctly describe paths relative to the uploads directory.
+
+= 2.0.6 =
+* Fixed duplicate ACF field groups when Auto Map runs while import fields are still loading.
+
+= 2.0.5 =
+
+* Fixed skipped-row counts in AI-agent import job status, including previously completed imports.
+
+
+= 2.0.4 =
+* Fixed: AI-agent UpdraftPlus restoration now accepts version 1.26.8 and later instead of requiring an exact version match.
+* Verified: native database backup and restoration through MCP with UpdraftPlus Free 1.26.13. Existing archive validation and confirmation requirements remain in place.
+
+= 2.0.3 =
+
+* Fixed media ID replacement corrupting WooCommerce grouped product links when product IDs overlap with source attachment IDs.
+* Protected grouped product, upsell, and cross-sell references from media ID replacement during content imports and synchronization.
+
+= 2.0.2 =
+
+* Fixed the file size displaying as undefined in Jobs Log details.
+* Improved readability of long file paths in job details and escaped file paths before displaying them.
+* Made Custom config the default AI agent connection method.
+* Added a clear Python 3.11+ requirement check to the Codex one-command setup, with guidance to use Custom config on older Python versions.
+
+= 2.0.1 =
+
+* Fixed Abilities API export requests rejecting valid single post status values, such as publish, with a schema validation error.
+* Fixed the same scalar-or-list validation ambiguity for export author and taxonomy term filters. Shared export schemas also cover PRO export workflows.
+
+= 2.0.0 =
+
+* Added optional AI agent access through the WordPress Abilities API and official MCP Adapter for compatible clients such as Claude Code, Cursor, and Codex.
+* Added the AI Agent Connection setup wizard. Existing WP Admin workflows remain available without AI.
+* Moved AI URL Importer to the Import screen.
+* Moved Media Sync to the Import screen.
+* Improved Content Migration functionality.
+
+= 1.4.3 =
+
+* Freemius SDK updated.
+
+= 1.4.2 =
+
+* UI Improvements.
+
+= 1.4.1 =
+
+* Fixed admin AJAX requests in local/proxied environments by using same-origin admin-ajax URLs.
+* Fixed comment imports using source_comment_id duplicate matching so existing comments are updated instead of duplicated.
+* Fixed page ordering and modified date preservation during content migration and post imports.
+* Fixed first-run content migrations so existing local pages with matching slugs are updated instead of duplicated.
+* Fixed export-file migrations so existing local posts/pages with matching slugs are updated before falling back to source-id metadata.
+
+= 1.4.0 =
+
+* Added Full content migration mode.
+
+= 1.3.4 =
+
+* UI improvements.
+* Improved ACF fields importing and mapping.
+
+= 1.3.3 =
+
+* Improved media duplicate handling.
+* Improved ACF fields sync.
+* Improved Content sync mechanism.
+* Media Sync is now in FREE plugin.
+
+= 1.3.2 =
+
+* Maintenance release.
+
+= 1.3.1 =
+
+* Fixed auto-match button loading feedback during title matching.
+
+= 1.3.0 =
+
+* Fixed bugs across media, ACF, menus, comments, users, customers, WooCommerce, and taxonomy workflows.
+
+= 1.2.0 =
+
+* Huge update: positioned the plugin as a full Import, Export, and Content Sync toolkit for moving WordPress content between sites.
+* Added Export / Sync Button settings so quick action buttons can be enabled or disabled per supported admin screen.
+* Improved Sync button behavior: when no connected site is configured, users are sent directly to the Content Sync setup page instead of seeing an empty sync modal.
+* Improved site-to-site sync workflows for posts, pages, taxonomy terms, media, menus, users, comments, reviews, and WooCommerce-related content when used with the PRO addon.
+* Fixed import search/replace so replacement rules are applied reliably to post content, mapped fields, nested arrays, JSON-escaped URLs, serialized meta, and ACF-style values.
+* Added custom Job names in Jobs Log, with editable labels that also appear when choosing jobs for schedules.
+* Improved portable export/import data for comments, menus, WooCommerce reviews, refunds, and customers with source IDs and matching hints for safer cross-site imports.
+* Improved ACF media handling for non-post objects including users, comments, taxonomy terms, and menus.
+* Improved Elementor and WooCommerce media handling during import and sync workflows.
+
+= 1.1.17 =
+
+* Fixed ACF image/file/gallery imports for user fields and other non-post objects so media URLs are converted to local attachment IDs correctly.
+* Improved ACF field detection for users, comments, terms, and menus by resolving field definitions from matching ACF field groups when direct lookup is unavailable.
+
+= 1.1.16 =
+
+* Fixed Content Sync for Elementor pages by excluding generated Elementor CSS/cache metadata and forcing Elementor to regenerate local page CSS after sync.
+* Improved Content Sync media handling for Elementor external image and SVG icon references during push and pull operations.
+* Improved Content Sync progress feedback so push and pull operations show optimistic progress while long requests are running.
+* Fixed page imports with duplicate titles from the same source file so distinct source pages are created instead of being collapsed into one update.
+* Improved the Media Library bulk export shortcut button so it follows native WordPress admin button sizing.
+
+= 1.1.15 =
+
+* Maintenance release for Content Sync and WooCommerce import compatibility with the PRO addon.
+* Improved release metadata after Content Sync product mapping and stock refresh fixes.
+
+= 1.1.14 =
+
+* Fixed Content Sync push mapping so choosing "Create New Post" creates a new remote post even when a matching post already exists.
+* Fixed WooCommerce Content Sync stock status recalculation for variable products after push and pull sync operations.
+* Improved Content Sync post mapping labels so pull actions are clearly shown as "Pull" and push updates remain shown as "Update".
+
+= 1.1.13 =
+
+* Fixed Media Library Bulk Select exports so selected media IDs remain locked into count, job creation, batch processing, and restarted exports.
+* Improved Media Library export shortcut reliability when navigating through the export wizard.
+
+= 1.1.12 =
+
+* Added a Media Library Bulk Select export shortcut that opens the export wizard with selected media files pre-filtered.
+* Improved Content Sync selection controls for browsing remote posts.
+* Improved WooCommerce Content Sync support for product galleries, attributes, variations, product taxonomies, brands, tags, reviews, and regular post comments.
+* Improved Content Sync created/updated result reporting for newly synced content.
+
+= 1.1.11 =
+
+* Fixed WooCommerce product exports so grouped, external / affiliate, brands, hierarchical product categories, and product attributes are exported in portable formats.
+* Added WooCommerce Product Attributes, Product Brands, External Product URL, and External Button Text fields to product import/export field selection.
+* Improved WooCommerce product type export so `product_type` and `_product_type` preserve the real WooCommerce type.
+
+= 1.1.10 =
+
+* Added a Debug tab under Tools with a safe copyable site info report for support troubleshooting.
+* Added Video Tutorials and Documentation links to plugin admin Help tabs and the Welcome screen support area.
+* Improved Database Table imports so a missing target table can be created from mapped import columns.
+* Improved ACF media and rich text handling for non-post import workflows.
+
+= 1.1.9 =
+
+* Fixed import batch processing races that could double-process rows and report created posts as updated.
+* Improved import cancellation so cancelled jobs stop cleanly without late failed notices.
+* Added loading feedback to the Start Import and Cancel Import buttons.
+* Fixed export job batching so restarted exports do not append duplicate first-batch rows and final counts match the generated file.
+* Improved the import field mapping screen with a scrollable Mapped Fields panel for large files.
+
+= 1.1.8 =
+
+* Added an "Add all" button to the export field selection step so all currently available fields can be selected at once.
+* Fixed release ZIP packaging so spreadsheet runtime dependencies are included for XLSX and ODS import/export support.
+
+= 1.1.7 =
+
+* Fixed shared admin AJAX nonce registration so PRO addon screens can reliably load their AJAX endpoints when the free plugin rebuilds admin script data.
+
+= 1.1.6 =
+
+* Fixed AI URL Importer structured response schema compatibility with strict OpenAI/WordPress AI Client responses.
+* Improved AI URL Importer import logs so entries persist, update during processing, stay scrollable, and show newest results first.
+* Fixed AI URL Importer cancel handling for active import jobs.
+* Improved AI URL Importer start button feedback with a loading state while the import job is being created.
+* Increased AI URL Importer OpenAI request timeouts for slower long-form article extraction.
+* Updated release build deployment script to copy release packages to the aie2, aie3, and aie4 local test sites.
+
+= 1.1.5 =
+
+* Fixed Content Sync media URL replacement during Push and Pull so synced image HTML points to real local attachment URLs instead of missing intermediate-size files.
+* Improved Content Sync media handling by carrying source attachment size URLs and matching them to generated local image sizes when available.
+* Fixed Content Sync auto-match by title so selected posts are mapped reliably by exact title and post type before syncing.
+
+= 1.1.4 =
+
+* Fixed Media Sync "All Media Types" scanning so PDF and other WordPress-supported document files are included without requiring custom extensions.
+
+= 1.1.3 =
+
+* Fixed CSS and JavaScript loading for hidden Content Updater and Functions admin pages when opened directly.
+* Fixed Add-Ons card offer styling when the PRO addon is inactive.
+
+= 1.1.2 =
+
+* Fixed admin CSS and JavaScript loading for plugin pages that are opened directly after their submenu links are hidden in Plugin Options.
+
+= 1.1.1 =
+
+* Fixed drag-and-drop field reordering in the free Export Step 3 screen so selected fields can be rearranged smoothly in the grid layout.
+
+= 1.1.0 =
+
+* Added XLSX and ODS support for import workflows.
+* Added XLSX and ODS support for export workflows.
+* Added XML support for import and export workflows.
+* Added ZIP upload support for imports when the archive contains exactly one supported CSV, XML, XLSX, or ODS file.
+* Added an optional ZIP download for completed export files when ZIP support is available on the server.
+* Improved format-selection cards so available formats display with consistent card heights.
+
+
+== Screenshots ==
+
+1. Import page 
+2. File upload
+3. Preview data
+4. Fields mapping
+5. Additional import options
+6. Export page
+7. Filter posts for export
+8. Select fields to export
+9. Additional export options
+10. Content sync options page
+11. Page content sync with remote website
+12. Sync files from any folder with Media Library
+13. AI URL Importer
+14. Jobs log
+15. Plugin options page

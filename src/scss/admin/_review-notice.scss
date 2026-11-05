@@ -1,0 +1,221 @@
+/**
+ * Review Notice
+ *
+ * Clean dark-slate banner with amber accent.
+ * Only visible on plugin admin pages, 1 week after installation.
+ */
+
+.rsl-ie-review-notice {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	background: linear-gradient(135deg, #111827 0%, #1e293b 100%);
+	border-left: 4px solid #f59e0b;
+	border-radius: 12px;
+	padding: 22px 48px 22px 24px;
+	margin: 0;
+
+	// Fixed floating — bottom-right corner
+	position: fixed;
+	bottom: 32px;
+	right: 32px;
+	z-index: 99999;
+	width: 380px;
+	max-width: calc(100vw - 64px);
+
+	box-shadow:
+		0 8px 32px rgba(0, 0, 0, 0.5),
+		0 2px 8px rgba(0, 0, 0, 0.3),
+		0 0 0 1px rgba(255, 255, 255, 0.05);
+	border-top: none;
+	border-right: none;
+	border-bottom: none;
+	color: #fff;
+	overflow: hidden;
+
+	// Slide-in from the right on appear
+	animation: rsl-ie-notice-slidein 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+	// Subtle amber glow in the top-left corner (behind the border)
+	&::before {
+		content: "";
+		position: absolute;
+		top: -40px;
+		left: -40px;
+		width: 140px;
+		height: 140px;
+		border-radius: 50%;
+		background: radial-gradient(
+			circle,
+			rgba(245, 158, 11, 0.12) 0%,
+			transparent 70%
+		);
+		pointer-events: none;
+	}
+
+	&::after {
+		content: none;
+	}
+
+	// ── Star row (top of body) ───────────────────────────────────────────────
+	&__rating-stars {
+		display: block;
+		font-size: 22px;
+		letter-spacing: 4px;
+		line-height: 1;
+		color: #f59e0b;
+		text-shadow:
+			0 0 8px rgba(245, 158, 11, 0.5),
+			0 2px 6px rgba(0, 0, 0, 0.4);
+		animation: rsl-ie-stars-glow 2.2s ease-in-out infinite;
+		margin-bottom: 10px;
+	}
+
+	// ── Text body ─────────────────────────────────────────────────────────────
+	&__body {
+		position: relative;
+		z-index: 1;
+	}
+
+	&__title {
+		color: #f1f5f9;
+		font-size: 15px;
+		font-weight: 600;
+		margin: 0 0 5px;
+		padding: 0;
+		border: none;
+	}
+
+	&__text {
+		color: #94a3b8;
+		font-size: 13px;
+		margin: 0 0 14px;
+		line-height: 1.6;
+	}
+
+	// ── Action buttons ────────────────────────────────────────────────────────
+	&__actions {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		flex-wrap: wrap;
+	}
+
+	&__btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		padding: 7px 16px;
+		border-radius: 5px;
+		font-size: 13px;
+		font-weight: 500;
+		cursor: pointer;
+		border: none;
+		text-decoration: none !important;
+		transition: all 0.2s ease;
+		line-height: 1.4;
+		font-family: inherit;
+
+		.dashicons {
+			font-size: 14px;
+			width: 14px;
+			height: 14px;
+		}
+
+		&--primary {
+			background: #f59e0b;
+			color: #111827 !important;
+			box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4);
+
+			&:hover {
+				background: #fbbf24;
+				color: #111827 !important;
+				transform: translateY(-1px);
+				box-shadow: 0 4px 16px rgba(245, 158, 11, 0.55);
+			}
+		}
+
+		&--secondary {
+			background: rgba(255, 255, 255, 0.07);
+			color: #cbd5e1 !important;
+			border: 1px solid rgba(255, 255, 255, 0.15);
+
+			&:hover {
+				background: rgba(255, 255, 255, 0.13);
+				color: #fff !important;
+			}
+		}
+
+		&--link {
+			background: transparent;
+			color: #475569 !important;
+			font-size: 12px;
+			padding: 4px 8px;
+
+			&:hover {
+				color: #94a3b8 !important;
+			}
+		}
+	}
+
+	// ── Close button ──────────────────────────────────────────────────────────
+	&__close {
+		position: absolute;
+		top: 12px;
+		right: 12px;
+		background: rgba(255, 255, 255, 0.06);
+		border: none;
+		border-radius: 50%;
+		width: 28px;
+		height: 28px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		color: #475569;
+		transition: all 0.2s ease;
+		padding: 0;
+		z-index: 2;
+		font-family: inherit;
+
+		.dashicons {
+			font-size: 16px;
+			width: 16px;
+			height: 16px;
+		}
+
+		&:hover {
+			background: rgba(255, 255, 255, 0.12);
+			color: #cbd5e1;
+			transform: scale(1.1);
+		}
+	}
+}
+
+// ── Star glow pulse ───────────────────────────────────────────────────────────
+@keyframes rsl-ie-stars-glow {
+	0%,
+	100% {
+		text-shadow:
+			0 0 6px rgba(245, 158, 11, 0.4),
+			0 2px 6px rgba(0, 0, 0, 0.4);
+	}
+	50% {
+		text-shadow:
+			0 0 16px rgba(245, 158, 11, 0.75),
+			0 0 30px rgba(245, 158, 11, 0.3),
+			0 2px 6px rgba(0, 0, 0, 0.4);
+	}
+}
+
+// ── Slide-in from bottom-right ────────────────────────────────────────────────
+@keyframes rsl-ie-notice-slidein {
+	from {
+		opacity: 0;
+		transform: translateY(24px) scale(0.97);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}

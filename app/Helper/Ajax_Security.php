@@ -1,0 +1,104 @@
+<?php
+/**
+ * Action-specific AJAX nonce registry.
+ *
+ * @package RockStarLab\ImportExport\Helper
+ */
+
+namespace RockStarLab\ImportExport\Helper;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Registers and verifies nonces scoped to individual admin-ajax actions.
+ */
+class Ajax_Security {
+
+	/**
+	 * Registered AJAX action names.
+	 *
+	 * @var array<string, bool>
+	 */
+	private static $actions = array();
+
+	/**
+	 * Return an admin-ajax URL that follows the current browser origin.
+	 *
+	 * Local development proxies can serve wp-admin through a different visible
+	 * host/port than WordPress stores in siteurl. A root-relative endpoint keeps
+	 * browser AJAX requests on the same origin as the loaded admin page.
+	 *
+	 * @return string
+	 */
+	public static function ajax_url() {
+		return admin_url( 'admin-ajax.php', 'relative' );
+	}
+
+	/**
+	 * Register an AJAX action that needs a browser nonce.
+	 *
+	 * @param string $action Full admin-ajax action name.
+	 */
+	public static function register_action( $action ) {
+		$action = sanitize_key( $action );
+		if ( '' !== $action ) {
+			self::$actions[ $action ] = true;
+		}
+	}
+
+	/**
+	 * Return the nonce action for one AJAX endpoint.
+	 *
+	 * @param string $action Full admin-ajax action name.
+	 * @return string
+	 */
+	public static function nonce_action( $action ) {
+		return 'rsl_ie_ajax_' . sanitize_key( $action );
+	}
+
+	/**
+	 * Create a nonce for one AJAX endpoint.
+	 *
+	 * @param string $action Full admin-ajax action name.
+	 * @return string
+	 */
+	public static function create_nonce( $action ) {
+		return wp_create_nonce( self::nonce_action( $action ) );
+	}
+
+	/**
+	 * Create the action => nonce map exposed to plugin scripts.
+	 *
+	 * @return array<string, string>
+	 */
+	public static function get_nonces() {
+		$nonces  = array();
+		$actions = array_keys( self::$actions );
+		$actions = apply_filters( 'rsl_ie_ajax_nonce_actions', $actions );
+		$actions = is_array( $actions ) ? array_unique( array_map( 'sanitize_key', $actions ) ) : array_keys( self::$actions );
+
+		foreach ( $actions as $action ) {
+			if ( '' === $action ) {
+				continue;
+			}
+
+			$nonces[ $action ] = self::create_nonce( $action );
+		}
+
+		return $nonces;
+	}
+
+	/**
+	 * Verify the nonce for a known server-side AJAX action.
+	 *
+	 * @param string $action Full admin-ajax action name.
+	 * @return bool
+	 */
+	public static function verify_nonce( $action ) {
+		if ( empty( $action ) ) {
+			return false;
+		}
+
+		return false !== check_ajax_referer( self::nonce_action( $action ), 'nonce', false );
+	}
+}
