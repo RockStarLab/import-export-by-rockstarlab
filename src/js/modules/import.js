@@ -6231,10 +6231,9 @@ const ImportModule = {
 			if ( this.isCancellingImport || ! this.jobId ) {
 				return;
 			}
-			clearInterval( this.progressInterval );
-			this.progressInterval = null;
-			TabProgress.finish( 'import', 'failed' );
-			Utils.handleError( error, 'Process batch' );
+			this.onImportFailed( {
+				error: error?.message || String( error ),
+			} );
 		} finally {
 			this.isBatchProcessing = false;
 		}
@@ -6531,15 +6530,43 @@ const ImportModule = {
 		this.progressInterval = null;
 		TabProgress.finish( 'import', 'failed' );
 		this.setImportPreparingState( false );
+		const message =
+			response?.result?.error ||
+			response?.error ||
+			response?.status ||
+			'Unknown error';
 		Utils.showNotice(
-			( rslIeData.i18n.importFailed || 'Import failed' ) +
-				': ' +
-				( response.result?.error ||
-					response.error ||
-					response.status ||
-					'Unknown error' ),
+			( rslIeData.i18n.importFailed || 'Import failed' ) + ': ' + message,
 			'error'
 		);
+
+		// Replace the running state with a failed result card, so the step never
+		// keeps showing "Preparing import..." after the job has stopped.
+		const i18n = window.rslIeData?.i18n || {};
+		const result = response?.result || {};
+		jQuery( '.rsl-ie-progress-container' ).hide();
+		jQuery( '.rsl-ie-import-results' ).show();
+		jQuery( '.rsl-ie-import-complete-card' ).fadeIn();
+		jQuery( '.rsl-ie-result-success' ).text( result.success || 0 );
+		jQuery( '.rsl-ie-result-updated' ).text( result.updated || 0 );
+		jQuery( '.rsl-ie-result-created' ).text( result.created || 0 );
+		jQuery( '.rsl-ie-result-skipped' ).text( result.skipped || 0 );
+		jQuery( '.rsl-ie-result-failed' ).text( result.failed || 0 );
+		this.renderImportOutcome( { failed: 0 } );
+		const $card = jQuery( '.rsl-ie-import-complete-card' );
+		$card
+			.removeClass( 'rsl-ie-complete-warning' )
+			.addClass( 'rsl-ie-complete-error' );
+		$card
+			.find( '.rsl-ie-complete-icon .dashicons' )
+			.removeClass( 'dashicons-yes-alt dashicons-warning' )
+			.addClass( 'dashicons-dismiss' );
+		$card
+			.find( '.rsl-ie-complete-title' )
+			.text( i18n.importFailedTitle || 'Import Failed' );
+		$card.find( '.rsl-ie-complete-subtitle' ).text( message );
+		jQuery( '.rsl-ie-cancel-import' ).hide();
+		jQuery( '.rsl-ie-new-import' ).show();
 	},
 
 	/**
