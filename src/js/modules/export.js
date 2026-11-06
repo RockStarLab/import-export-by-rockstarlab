@@ -2476,7 +2476,9 @@ const ExportModule = {
 				<div class="rsl-ie-custom-field-inputs">
 					<div class="rsl-ie-input-group">
 						<label>${ window.rslIeData.i18n.customFieldName || 'Custom field name' }</label>
-						<input type="text" class="rsl-ie-custom-field-name" placeholder="${ window.rslIeData.i18n.enterCustomFieldName }" />
+						<input type="text" class="rsl-ie-custom-field-name" placeholder="${
+							window.rslIeData.i18n.enterCustomFieldName
+						}" />
 					</div>
 					<div class="rsl-ie-input-group">
 						<label>${ window.rslIeData.i18n.condition }</label>
@@ -2487,7 +2489,9 @@ const ExportModule = {
 							<option value="not_contains">${ window.rslIeData.i18n.notContains }</option>
 							<option value="greater">${ window.rslIeData.i18n.greaterThan }</option>
 							<option value="less">${ window.rslIeData.i18n.lessThan }</option>
-							<option value="equals_or_greater">${ window.rslIeData.i18n.greaterOrEqual }</option>
+							<option value="equals_or_greater">${
+								window.rslIeData.i18n.greaterOrEqual
+							}</option>
 							<option value="equals_or_less">${ window.rslIeData.i18n.lessOrEqual }</option>
 							<option value="in">${ window.rslIeData.i18n.inComma }</option>
 							<option value="not_in">${ window.rslIeData.i18n.notInComma }</option>
@@ -2497,7 +2501,9 @@ const ExportModule = {
 					</div>
 					<div class="rsl-ie-input-group rsl-ie-custom-field-value-group">
 						<label>${ window.rslIeData.i18n.value }</label>
-						<input type="text" class="rsl-ie-custom-field-value rsl-ie-filter-value" placeholder="${ window.rslIeData.i18n.enterFilterValue }" />
+						<input type="text" class="rsl-ie-custom-field-value rsl-ie-filter-value" placeholder="${
+							window.rslIeData.i18n.enterFilterValue
+						}" />
 					</div>
 				</div>
 			` );
