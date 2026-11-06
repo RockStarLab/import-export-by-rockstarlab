@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.20
+Stable tag: 2.1.21
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -273,6 +273,10 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.21 =
+* Fixed: an import that stops before processing any row (for example, because the file matches by ID and an ID belongs to another content type) now shows an "Import Failed" result with the reason instead of staying on "Preparing import...".
+* Improved: when matching by ID, the error for an ID that belongs to another content type now explains what to change.
 
 = 2.1.20 =
 * Fixed: in Export > Filter Data, a Custom Field (Meta) filter now labels its first input "Custom field name" instead of "Select Field...".
