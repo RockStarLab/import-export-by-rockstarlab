@@ -15,7 +15,7 @@ Built for humans and AI agents. Import, export, and sync WordPress data from WP 
 
 Import Export by RockStarLab helps you import, export, and sync WordPress data. Work visually in WP Admin, or connect an AI agent such as Claude Code, Cursor, or Codex to run supported workflows from your assistant's interface.
 
-https://www.youtube.com/watch?v=9bfc7yu6nyU
+https://www.youtube.com/watch?v=3flWPACMyuU
 
 **New in 2.0: AI agent access.** Ask your connected agent to prepare an import, export selected content, sync pages between connected sites, or check a job's progress. The plugin exposes these operations through the WordPress Abilities API and the official WordPress MCP Adapter.
 
