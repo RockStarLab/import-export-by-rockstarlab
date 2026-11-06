@@ -85,7 +85,7 @@ class Free_Content_Provider {
 			if ( 'import' === $operation && in_array( $type, [ 'post', 'page' ], true ) && 'ID' === ( $options['duplicate_check'] ?? $options['unique_field'] ?? '' ) && ! empty( $record['ID'] ) ) {
 				$existing = get_post( (int) $record['ID'] );
 				if ( $existing && ( $type !== $existing->post_type || ! current_user_can( 'edit_post', $existing->ID ) ) ) {
-					return $this->error( 'rsl_ie_content_type_forbidden' );
+					return $this->error( 'rsl_ie_content_type_forbidden', __( 'An ID in the file belongs to another content type. When matching by ID, every ID must be an item of the content type you are importing. Nothing was imported.', 'import-export-by-rockstarlab' ) );
 				}
 			}
 			foreach ( [ 'post_type', 'custom_post_type' ] as $key ) {
@@ -122,10 +122,11 @@ class Free_Content_Provider {
 	/**
 	 * Return a stable policy failure without leaking object data.
 	 *
-	 * @param string $code Error code.
+	 * @param string $code    Error code.
+	 * @param string $message Optional message for a specific failure.
 	 * @return \WP_Error
 	 */
-	private function error( $code ) {
-		return new \WP_Error( $code, __( 'The requested operation contains a content type outside its allowed scope.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
+	private function error( $code, $message = '' ) {
+		return new \WP_Error( $code, '' !== $message ? $message : __( 'The requested operation contains a content type outside its allowed scope.', 'import-export-by-rockstarlab' ), [ 'status' => 403 ] );
 	}
 }
