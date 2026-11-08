@@ -1090,6 +1090,10 @@ class Content_Sync_Service {
 
 		$mapping = array();
 		$matches = array();
+		$index   = $this->remote_title_index( $site, $post_ids );
+		if ( is_wp_error( $index ) ) {
+			return $index;
+		}
 
 		foreach ( $post_ids as $post_id ) {
 			$post_id = absint( $post_id );
@@ -1102,7 +1106,9 @@ class Content_Sync_Service {
 				continue;
 			}
 
-			$remote_post = $this->find_remote_post_by_exact_title( $site, $post );
+			$remote_post = isset( $index[ $post->post_type ] )
+				? $this->match_from_title_index( $index[ $post->post_type ], $post )
+				: $this->find_remote_post_by_exact_title( $site, $post );
 			if ( is_wp_error( $remote_post ) ) {
 				return $remote_post;
 			}
@@ -1136,6 +1142,83 @@ class Content_Sync_Service {
 	}
 
 	/**
+	 * List remote posts once per post type when that costs fewer requests than one title search per post.
+	 *
+	 * Large selections otherwise send one remote search per post and keep the connection busy for minutes.
+	 *
+	 * @param array $site     Connected site data.
+	 * @param array $post_ids Selected local post IDs.
+	 * @return array|\WP_Error Post type => normalized title => remote candidates.
+	 */
+	private function remote_title_index( $site, array $post_ids ) {
+		$counts = array();
+		foreach ( $post_ids as $post_id ) {
+			$type = get_post_type( absint( $post_id ) );
+			if ( $type ) {
+				$counts[ $type ] = ( $counts[ $type ] ?? 0 ) + 1;
+			}
+		}
+		$index    = array();
+		$per_page = 100;
+		foreach ( $counts as $type => $count ) {
+			if ( $count < 5 ) {
+				continue;
+			}
+			$titles = array();
+			$page   = 1;
+			do {
+				$data = $this->remote_post(
+					$site,
+					'list-posts',
+					[
+						'post_type'        => $type,
+						'status'           => '',
+						'include_children' => 1,
+						'page'             => $page,
+						'per_page'         => $per_page,
+					],
+					60
+				);
+				if ( is_wp_error( $data ) ) {
+					return $data;
+				}
+				if ( ! isset( $data['posts'] ) || ! is_array( $data['posts'] ) ) {
+					return $this->error( __( 'Remote search returned invalid data.', 'import-export-by-rockstarlab' ) );
+				}
+				$pages = isset( $data['pages'] ) ? (int) $data['pages'] : ( count( $data['posts'] ) < $per_page ? $page : $page + 1 );
+				// Listing must stay cheaper than searching each selected post.
+				if ( 1 === $page && $pages >= $count ) {
+					continue 2;
+				}
+				foreach ( $data['posts'] as $candidate ) {
+					if ( is_array( $candidate ) && ( $candidate['post_type'] ?? '' ) === $type ) {
+						$titles[ $this->normalize_post_title_for_mapping( $candidate['post_title'] ?? '' ) ][] = $candidate;
+					}
+				}
+				++$page;
+			} while ( $page <= $pages && $data['posts'] );
+			$index[ $type ] = $titles;
+		}
+		return $index;
+	}
+
+	/**
+	 * Match one local post against a prebuilt remote title index.
+	 *
+	 * @param array    $titles Normalized title => remote candidates.
+	 * @param \WP_Post $post   Local post object.
+	 * @return array|null|\WP_Error Matching remote post data, or null.
+	 */
+	private function match_from_title_index( array $titles, $post ) {
+		$candidates = $titles[ $this->normalize_post_title_for_mapping( $post->post_title ) ] ?? array();
+		$ids        = array_unique( array_map( 'intval', wp_list_pluck( $candidates, 'ID' ) ) );
+		if ( count( $ids ) > 1 ) {
+			return new \WP_Error( 'rsl_ie_sync_ambiguous_title', sprintf( /* translators: %s: post title. */ __( 'Several posts on the remote site are titled "%s". Choose the right one in the list for this post.', 'import-export-by-rockstarlab' ), wp_strip_all_tags( $post->post_title ) ), [ 'status' => 409 ] );
+		}
+		return $candidates ? $candidates[0] : null;
+	}
+
+	/**
 	 * Find a matching remote post by exact normalized title and post type.
 	 *
 	 * @param array    $site Connected site data.
@@ -1166,7 +1249,7 @@ class Content_Sync_Service {
 			foreach ( $data['posts'] as $candidate ) {
 				if ( is_array( $candidate ) && ( $candidate['post_type'] ?? '' ) === $post->post_type && $this->normalize_post_title_for_mapping( $candidate['post_title'] ?? '' ) === $local_title ) {
 					if ( $match && (int) $match['ID'] !== (int) $candidate['ID'] ) {
-						return new \WP_Error( 'rsl_ie_sync_ambiguous_title', __( 'Multiple remote posts have this title. Choose an explicit mapping.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+						return new \WP_Error( 'rsl_ie_sync_ambiguous_title', sprintf( /* translators: %s: post title. */ __( 'Several posts on the remote site are titled "%s". Choose the right one in the list for this post.', 'import-export-by-rockstarlab' ), wp_strip_all_tags( $post->post_title ) ), [ 'status' => 409 ] );
 					}
 					$match = $candidate;
 				}

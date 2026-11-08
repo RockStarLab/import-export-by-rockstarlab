@@ -84,9 +84,21 @@ class Background_Processor {
 
 		$table = $wpdb->prefix . 'rsl_ie_jobs';
 
-		// Get oldest pending or processing job
+		// A Content Sync request that stopped mid-way (server timeout, closed tab) never writes its result.
+		$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Bounded cleanup of the plugin's custom jobs table.
+			$wpdb->prepare(
+				"UPDATE %i SET status = 'failed', completed_at = %s, result = %s WHERE type IN ('content_sync_push', 'content_sync_pull') AND status IN ('pending', 'processing') AND created_at < %s",
+				$table,
+				current_time( 'mysql' ),
+				wp_json_encode( [ 'error' => __( 'The sync request stopped before it finished, for example because of a server time limit. Check the remote site and sync the remaining posts again in smaller batches.', 'import-export-by-rockstarlab' ) ] ),
+				wp_date( 'Y-m-d H:i:s', time() - 2 * HOUR_IN_SECONDS )
+			)
+		);
+
+		// Get oldest pending or processing job. Content Sync push/pull rows record a sync that runs
+		// inside the user's own request; the queue must not claim them while that request works.
 		$job = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Polling the plugin's custom jobs table.
-			$wpdb->prepare( "SELECT * FROM %i WHERE status IN ('pending', 'processing') ORDER BY created_at ASC LIMIT 1", $table ),
+			$wpdb->prepare( "SELECT * FROM %i WHERE status IN ('pending', 'processing') AND type NOT IN ('content_sync_push', 'content_sync_pull') ORDER BY created_at ASC LIMIT 1", $table ),
 			ARRAY_A
 		);
 

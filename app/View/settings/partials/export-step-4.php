@@ -82,8 +82,8 @@ defined( 'ABSPATH' ) || exit;
 					<tr class="rsl-ie-custom-delimiter-row" style="display:none;">
 						<th><?php esc_html_e( 'Custom Delimiter', 'import-export-by-rockstarlab' ); ?></th>
 						<td>
-						<input type="text" name="csv_custom_delimiter" class="regular-text" placeholder="<?php esc_attr_e( 'Enter a delimiter (any string)', 'import-export-by-rockstarlab' ); ?>">
-						<p class="description"><?php esc_html_e( 'No length limit; you can use multi-character delimiters like *****', 'import-export-by-rockstarlab' ); ?></p>
+						<input type="text" name="csv_custom_delimiter" class="regular-text" maxlength="10" placeholder="<?php esc_attr_e( 'Enter a delimiter (any string)', 'import-export-by-rockstarlab' ); ?>">
+						<p class="description"><?php esc_html_e( 'Up to 10 characters, for example ;; or |~|', 'import-export-by-rockstarlab' ); ?></p>
 						</td>
 					</tr>
 					<tr>
@@ -92,6 +92,15 @@ defined( 'ABSPATH' ) || exit;
 							<label>
 								<input type="checkbox" name="csv_include_header" checked>
 								<?php esc_html_e( 'First row contains column names', 'import-export-by-rockstarlab' ); ?>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<th><?php esc_html_e( 'UTF-8 BOM', 'import-export-by-rockstarlab' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="csv_use_bom">
+								<?php esc_html_e( 'Add a byte order mark so Excel shows accented letters and emojis correctly', 'import-export-by-rockstarlab' ); ?>
 							</label>
 						</td>
 					</tr>

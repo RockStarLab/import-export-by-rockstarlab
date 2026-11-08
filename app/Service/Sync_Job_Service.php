@@ -794,6 +794,9 @@ class Sync_Job_Service {
 	 * @return \WP_Error
 	 */
 	private function error( $code, $status ) {
+		if ( 'connection_busy' === $code || 'busy' === $code ) {
+			return new \WP_Error( 'rsl_ie_sync_job_' . $code, __( 'This connection is busy with another sync transfer. Wait until it finishes (check rsl-ie/sync-job-status), then try again.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
+		}
 		return new \WP_Error( 'rsl_ie_sync_job_' . $code, __( 'The background sync cannot continue. Check its status, provider, connection and permissions before retrying.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
 	}
 }

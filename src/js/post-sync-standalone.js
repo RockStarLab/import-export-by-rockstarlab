@@ -1140,6 +1140,9 @@ const getActionNonce = ( action ) =>
 				return;
 			}
 			this.autoMatchRunning = true;
+			// Matching holds the connection; a sync started now would be rejected as busy.
+			const $confirm = $( '#rsl-ie-mapping-confirm-btn' );
+			$confirm.prop( 'disabled', true );
 			if ( undefined === $button.data( 'rsl-ie-original-html' ) ) {
 				$button.data( 'rsl-ie-original-html', $button.html() );
 			}
@@ -1166,6 +1169,12 @@ const getActionNonce = ( action ) =>
 				},
 				success: ( response ) => {
 					if ( ! response.success || ! response.data ) {
+						// Leave the rows as they are and say why nothing was matched.
+						const message =
+							response.data?.message || response.message;
+						if ( message ) {
+							window.alert( message );
+						}
 						return;
 					}
 
@@ -1211,16 +1220,20 @@ const getActionNonce = ( action ) =>
 						}
 					} );
 				},
-				error: () => {
-					$( '.rsl-ie-remote-select' )
-						.val(
-							this.currentSyncDirection === 'pull' ? '' : 'new'
-						)
-						.trigger( 'change' );
+				error: ( xhr ) => {
+					// Keep the rows unchanged: switching every row to "Create New Post"
+					// after a failed match would duplicate posts that already exist.
+					const message =
+						xhr.responseJSON?.message ||
+						xhr.responseJSON?.data?.message;
+					if ( message ) {
+						window.alert( message );
+					}
 				},
 				complete: () => {
 					this.autoMatchRunning = false;
 					$button.prop( 'disabled', false ).html( originalHtml );
+					$confirm.prop( 'disabled', false );
 				},
 			} );
 		},

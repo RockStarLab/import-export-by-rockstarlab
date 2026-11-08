@@ -92,7 +92,7 @@ class Connection_Service {
 		}
 
 		// Validate URL.
-		$remote_url = esc_url_raw( $remote_url );
+		$remote_url = self::site_address( esc_url_raw( $remote_url ) );
 		if ( ! filter_var( $remote_url, FILTER_VALIDATE_URL ) ) {
 			return $this->error( __( 'Invalid URL format', 'import-export-by-rockstarlab' ) );
 		}
@@ -104,7 +104,7 @@ class Connection_Service {
 
 		$validation_result = $this->validate_remote_site( $remote_url, $api_key );
 		if ( is_wp_error( $validation_result ) ) {
-			return $this->error( $validation_result->get_error_message() );
+			return $this->check_error( $validation_result );
 		}
 
 		// Validate direction.
@@ -167,10 +167,10 @@ class Connection_Service {
 		}
 
 		// Determine which URL to use for validation.
-		$url_to_validate = ! empty( $remote_url ) ? esc_url_raw( $remote_url ) : $site['remote_url'];
+		$url_to_validate = ! empty( $remote_url ) ? self::site_address( esc_url_raw( $remote_url ) ) : $site['remote_url'];
 
 		if ( ! empty( $remote_url ) ) {
-			$remote_url = esc_url_raw( $remote_url );
+			$remote_url = self::site_address( esc_url_raw( $remote_url ) );
 			if ( ! filter_var( $remote_url, FILTER_VALIDATE_URL ) ) {
 				return $this->error( __( 'Invalid URL format', 'import-export-by-rockstarlab' ) );
 			}
@@ -187,8 +187,10 @@ class Connection_Service {
 		if ( ! empty( $api_key ) || ! empty( $remote_url ) ) {
 			$validation_result = $this->validate_remote_site( $url_to_validate, ! empty( $api_key ) ? $api_key : $site['api_key'] );
 			if ( is_wp_error( $validation_result ) ) {
-				return $this->error( $validation_result->get_error_message() );
+				return $this->check_error( $validation_result );
 			}
+			// The new address or key works, so the connection is no longer in error.
+			$data['status'] = 'active';
 			if ( ! empty( $api_key ) ) {
 				$data['api_key'] = sanitize_text_field( $api_key );
 			}
@@ -323,6 +325,32 @@ class Connection_Service {
 	}
 
 	/**
+	 * Strip admin and API paths from an address people often paste ("/wp-admin/", "/wp-login.php").
+	 *
+	 * @param string $url Address.
+	 * @return string
+	 */
+	public static function site_address( $url ) {
+		$url = (string) preg_replace( '#[?\#].*$#', '', (string) $url );
+		$url = (string) preg_replace( '#/(wp-admin|wp-login\.php|wp-json|index\.php)(/.*)?$#i', '', $url );
+		return untrailingslashit( $url );
+	}
+
+	/**
+	 * Connection check failures are written by this plugin, so callers may show them.
+	 *
+	 * @param \WP_Error $error Check result.
+	 * @return \WP_Error
+	 */
+	private function check_error( \WP_Error $error ) {
+		$safe = [ 'connection_failed', 'remote_redirect', 'plugin_not_installed', 'rest_not_found', 'invalid_api_key', 'password_protected', 'rest_blocked', 'firewall_blocked', 'connection_error', 'invalid_response' ];
+		if ( in_array( $error->get_error_code(), $safe, true ) ) {
+			return new \WP_Error( 'rsl_ie_connection_check', $error->get_error_message(), [ 'status' => 400, 'reason' => $error->get_error_code() ] );
+		}
+		return $this->error( $error->get_error_message() );
+	}
+
+	/**
 	 * Test connection to remote site
 	 *
 	 * @param array $input Parsed operation input.
@@ -347,7 +375,7 @@ class Connection_Service {
 			Connected_Site::update_last_sync( $site_id, $validation_result->get_error_message() );
 			// Update status to error.
 			Connected_Site::update( $site_id, array( 'status' => 'error' ) );
-			return $this->error( $validation_result->get_error_message() );
+			return $this->check_error( $validation_result );
 		}
 
 		// Connection successful - update last sync and status.
@@ -422,28 +450,67 @@ class Connection_Service {
 		$status_code = wp_remote_retrieve_response_code( $response );
 		$body        = wp_remote_retrieve_body( $response );
 
+		$is_json = \RockStarLab\ImportExport\Helper\Remote_API::is_json( $body );
+		$data    = $is_json ? json_decode( $body, true ) : null;
+		$code    = is_array( $data ) && isset( $data['code'] ) ? sanitize_key( (string) $data['code'] ) : '';
+
+		// The bearer key never follows a redirect, so the connection has to use the final address.
+		if ( $status_code >= 300 && $status_code < 400 ) {
+			$location = esc_url_raw( (string) wp_remote_retrieve_header( $response, 'location' ) );
+			return new \WP_Error(
+				'remote_redirect',
+				$location
+					/* translators: %s: address the remote site redirects to */
+					? sprintf( __( 'The remote site redirects to %s. Enter the address it redirects to (for example with https:// or www) as the site URL.', 'import-export-by-rockstarlab' ), self::site_address( $location ) )
+					: __( 'The remote site answered with a redirect. Enter its final address (for example with https:// or www) as the site URL.', 'import-export-by-rockstarlab' )
+			);
+		}
+
 		// Check status code.
-		if ( 404 === $status_code ) {
+		if ( 404 === $status_code || ( $status_code >= 200 && $status_code < 300 && ! $is_json ) ) {
+			if ( 'rest_no_route' === $code ) {
+				return new \WP_Error(
+					'plugin_not_installed',
+					__( 'Import Export by RockStarLab plugin is not installed or activated on the remote site.', 'import-export-by-rockstarlab' )
+				);
+			}
 			return new \WP_Error(
-				'plugin_not_installed',
-				__( 'Import Export by RockStarLab plugin is not installed or activated on the remote site.', 'import-export-by-rockstarlab' )
+				'rest_not_found',
+				__( 'No WordPress REST API answered at this address. Check the site URL: use the home address of the site, without /wp-admin or other paths.', 'import-export-by-rockstarlab' )
 			);
 		}
 
-		// Try to parse JSON response.
-		$data = json_decode( $body, true );
-
-		if ( 403 === $status_code ) {
+		if ( 401 === $status_code || 403 === $status_code ) {
+			if ( 'rsl_ie_sync_key_setup_required' === $code ) {
+				return new \WP_Error(
+					'invalid_api_key',
+					__( 'The key is right, but the remote site has not activated it yet: an administrator there must open Import Export > Content Sync once. The key does not change.', 'import-export-by-rockstarlab' )
+				);
+			}
+			// Our own endpoint rejected the key.
+			if ( 0 === strpos( $code, 'rsl_ie_' ) ) {
+				return new \WP_Error(
+					'invalid_api_key',
+					__( 'Invalid API key. Copy the key again from Import Export > Content Sync on the remote site.', 'import-export-by-rockstarlab' )
+				);
+			}
+			if ( '' !== (string) wp_remote_retrieve_header( $response, 'www-authenticate' ) ) {
+				return new \WP_Error(
+					'password_protected',
+					__( 'The remote site asks for a username and password before WordPress loads (HTTP authentication, common on staging sites). Allow requests to /wp-json/rsl-ie/v1/ without the password, or turn the protection off while you sync.', 'import-export-by-rockstarlab' )
+				);
+			}
+			if ( '' !== $code ) {
+				return new \WP_Error(
+					'rest_blocked',
+					/* translators: 1: HTTP status code, 2: REST error code from the remote site */
+					sprintf( __( 'The remote site blocks REST API requests (HTTP %1$d, %2$s). A security plugin or setting that limits the REST API must allow /wp-json/rsl-ie/v1/.', 'import-export-by-rockstarlab' ), $status_code, $code )
+				);
+			}
 			return new \WP_Error(
-				'invalid_api_key',
-				__( 'Access forbidden. Please check the API key and try again.', 'import-export-by-rockstarlab' )
-			);
-		}
-
-		if ( 401 === $status_code ) {
-			return new \WP_Error(
-				'invalid_api_key',
-				__( 'Invalid API key. Please check the API key and try again.', 'import-export-by-rockstarlab' )
+				'firewall_blocked',
+				/* translators: %d: HTTP status code */
+				sprintf( __( 'A firewall or security service on the remote site refused the request (HTTP %d). Allow requests to /wp-json/rsl-ie/v1/ from this site.', 'import-export-by-rockstarlab' ), $status_code )
 			);
 		}
 
@@ -458,7 +525,7 @@ class Connection_Service {
 			);
 		}
 
-		if ( json_last_error() !== JSON_ERROR_NONE ) {
+		if ( ! $is_json ) {
 			return new \WP_Error(
 				'invalid_response',
 				__( 'Remote site returned invalid response format.', 'import-export-by-rockstarlab' )
