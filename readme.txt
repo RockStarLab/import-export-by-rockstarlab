@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.22
+Stable tag: 2.1.23
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -273,6 +273,12 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.23 =
+* Fixed: pushing a WooCommerce product with Content Sync no longer replaces the receiving store's stock quantity, stock status, sales count or ratings. These values belong to the store that takes the orders. A product created by the push still gets the stock from the sending site.
+* Fixed: pushing to a site that was cloned from the sending site no longer duplicates comments and reviews that both sites already have.
+* Fixed: importing a file with a Permalink column (for example a file exported by this plugin) no longer changes post slugs. Auto Map maps Permalink to Slug; the importer now takes the slug from the end of the URL.
+* Fixed: an update import that only changes custom fields (for example SEO titles and meta descriptions) no longer sets the post's "Last modified" date to the import time.
 
 = 2.1.22 =
 * Fixed: in Export > Export Format, clearing "Pretty Print" (JSON, XML) or "Include Header Row" (CSV, XLSX, ODS) now takes effect. Before, the file was always indented and always had a header row.
