@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.23
+Stable tag: 2.1.24
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -273,6 +273,11 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.24 =
+* Improved: Auto Map maps a "Status" column to Status and "Type" to Product Type. Before, "Status" could land in Comment Status, and a "Weight Unit" column in Weight.
+* Fixed: importing posts and pages with Status values such as TRUE, FALSE, active or archived now sets a real WordPress status (published or draft). Values WordPress does not know are ignored, so the default status is used and an update keeps the current one. The same applies to Comment Status and Ping Status (yes/no, 1/0, open/closed).
+* Developer: new filter rsl_ie_import_file_prepared lets an add-on convert an uploaded file into the native column layout before preview and mapping. The upload step shows what was converted (used by PRO for Shopify product and customer exports).
 
 = 2.1.23 =
 * Fixed: pushing a WooCommerce product with Content Sync no longer replaces the receiving store's stock quantity, stock status, sales count or ratings. These values belong to the store that takes the orders. A product created by the push still gets the stock from the sending site.

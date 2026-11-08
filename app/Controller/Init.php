@@ -346,6 +346,10 @@ class Init {
 					'invalidFileType'                   => __( 'Invalid file type', 'import-export-by-rockstarlab' ),
 					'invalidFileTypeCsv'                => __( 'Invalid file type. Please upload CSV, JSON, XML, XLSX, ODS, or ZIP files only.', 'import-export-by-rockstarlab' ),
 					'fileUploadedSuccessfully'          => __( 'File uploaded successfully', 'import-export-by-rockstarlab' ),
+					/* translators: 1: Shopify CSV rows, 2: products, 3: variations. */
+					'shopifyExportConverted'            => __( 'Shopify product export detected: %1$s rows were combined into %2$s products with %3$s variations. Import it as WooCommerce Products and Auto Map will match every column.', 'import-export-by-rockstarlab' ),
+					/* translators: 1: customers in the Shopify CSV, 2: customers without an email address. */
+					'shopifyCustomersConverted'         => __( 'Shopify customer export detected: %1$s customers, %2$s without an email address. Import it as WooCommerce Customers and Auto Map will match every column.', 'import-export-by-rockstarlab' ),
 					'uploadFailed'                      => __( 'Upload failed', 'import-export-by-rockstarlab' ),
 					'noFileDataAvailable'               => __( 'No file data available', 'import-export-by-rockstarlab' ),
 					'noPreviewDataAvailable'            => __( 'No preview data available', 'import-export-by-rockstarlab' ),

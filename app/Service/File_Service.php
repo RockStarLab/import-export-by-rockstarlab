@@ -364,6 +364,16 @@ class File_Service {
 					$record['format']    = $extracted['format'];
 					$path                = $extracted['path'];
 				}
+				$prepared = $this->prepare_source( $path, $dir, $record );
+				if ( is_wp_error( $prepared ) ) {
+					return $prepared;
+				}
+				if ( $prepared ) {
+					$path                     = $prepared['path'];
+					$record['format']         = $prepared['format'];
+					$record['converted_from'] = $prepared['source'];
+					$record['conversion']     = $prepared['counts'];
+				}
 				$record['path']       = $path;
 				$record['file_size']  = filesize( $path );
 				$record['status']     = 'ready';
@@ -371,6 +381,44 @@ class File_Service {
 				return $this->preview_record( $record, $options );
 			}
 		);
+	}
+
+	/**
+	 * Let extensions convert a known third-party export into the native layout.
+	 *
+	 * Filter `rsl_ie_import_file_prepared` receives null, the assembled source
+	 * path, its format and the file record. A handler returns null to keep the
+	 * file, a WP_Error to reject it, or an array with `path` (a regular file it
+	 * wrote inside the same private directory), `format`, `source` and `counts`.
+	 *
+	 * @param string $path Assembled source file.
+	 * @param string $dir Private file directory.
+	 * @param array  $record File record.
+	 * @return array|null|\WP_Error
+	 */
+	private function prepare_source( $path, $dir, array $record ) {
+		$prepared = apply_filters( 'rsl_ie_import_file_prepared', null, $path, $record['format'], $record );
+		if ( null === $prepared || false === $prepared ) {
+			return null;
+		}
+		if ( is_wp_error( $prepared ) ) {
+			return $prepared;
+		}
+		$target = is_array( $prepared ) && isset( $prepared['path'] ) && is_string( $prepared['path'] ) ? realpath( $prepared['path'] ) : false;
+		$format = is_array( $prepared ) && isset( $prepared['format'] ) ? strtolower( (string) $prepared['format'] ) : $record['format'];
+		if ( ! $target || dirname( $target ) !== realpath( $dir ) || is_link( $prepared['path'] ) || ! is_file( $target ) || ! in_array( $format, [ 'csv', 'json', 'xml', 'xlsx', 'ods' ], true ) ) {
+			return File_Store::error( 'file_write', 500 );
+		}
+		$counts = [];
+		foreach ( (array) ( $prepared['counts'] ?? [] ) as $key => $value ) {
+			$counts[ sanitize_key( $key ) ] = (int) $value;
+		}
+		return [
+			'path'   => $target,
+			'format' => $format,
+			'source' => sanitize_key( $prepared['source'] ?? 'custom' ),
+			'counts' => $counts,
+		];
 	}
 
 	/**
@@ -906,7 +954,7 @@ class File_Service {
 	 * @return array
 	 */
 	private function describe( array $record ) {
-		$result = array_intersect_key( $record, array_flip( [ 'file_id', 'file_name', 'format', 'purpose', 'status', 'file_size', 'expected_bytes', 'total_chunks' ] ) ) + [ 'received_chunks' => $record['received_chunks'] ?? count( $record['chunks'] ?? [] ) ];
+		$result = array_intersect_key( $record, array_flip( [ 'file_id', 'file_name', 'format', 'purpose', 'status', 'file_size', 'expected_bytes', 'total_chunks', 'converted_from', 'conversion' ] ) ) + [ 'received_chunks' => $record['received_chunks'] ?? count( $record['chunks'] ?? [] ) ];
 		if ( 'export' === $record['purpose'] && 'ready' === $record['status'] ) {
 			$result['download_url']         = rest_url( 'rsl-ie/v1/files/' . $record['file_id'] . '/download' );
 			$result['browser_download_url'] = add_query_arg(

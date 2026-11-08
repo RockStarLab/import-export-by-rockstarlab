@@ -416,6 +416,60 @@ class Post_Importer extends Abstract_Importer {
 	}
 
 	/**
+	 * Turn a Status cell into a registered post status.
+	 *
+	 * Accepts registered statuses and common spreadsheet values
+	 * (TRUE/FALSE, yes/no, 1/0, active, published, archived).
+	 *
+	 * @param mixed $value Status cell.
+	 * @return string|null Null when the value is not a known status.
+	 */
+	public static function normalize_post_status( $value ) {
+		if ( ! is_scalar( $value ) ) {
+			return null;
+		}
+		$status  = strtolower( trim( (string) $value ) );
+		$aliases = [
+			'1'           => 'publish',
+			'true'        => 'publish',
+			'yes'         => 'publish',
+			'active'      => 'publish',
+			'published'   => 'publish',
+			'public'      => 'publish',
+			'0'           => 'draft',
+			'false'       => 'draft',
+			'no'          => 'draft',
+			'inactive'    => 'draft',
+			'archived'    => 'draft',
+			'unpublished' => 'draft',
+		];
+		if ( isset( $aliases[ $status ] ) ) {
+			return $aliases[ $status ];
+		}
+		return '' !== $status && in_array( $status, get_post_stati(), true ) && 'auto-draft' !== $status ? $status : null;
+	}
+
+	/**
+	 * Turn a comment/ping status cell into open or closed.
+	 *
+	 * @param mixed $value Status cell.
+	 * @return string|null Null when the value is not open/closed or a yes/no flag.
+	 */
+	public static function normalize_discussion_status( $value ) {
+		if ( ! is_scalar( $value ) ) {
+			return null;
+		}
+		$status = strtolower( trim( (string) $value ) );
+		if ( in_array( $status, [ 'open', '1', 'true', 'yes', 'on' ], true ) ) {
+			return 'open';
+		}
+		if ( in_array( $status, [ 'closed', '0', 'false', 'no', 'off' ], true ) ) {
+			return 'closed';
+		}
+		return null;
+	}
+
+	/**
 	 * A slug never contains "/". When the Slug column holds a full permalink or a
 	 * path (for example the Permalink column of an export), use its last segment.
 	 *
@@ -1168,6 +1222,18 @@ class Post_Importer extends Abstract_Importer {
 		foreach ( $allowed_fields as $field ) {
 			if ( isset( $item[ $field ] ) ) {
 				$post_data[ $field ] = $item[ $field ];
+			}
+		}
+		foreach ( [ 'post_status', 'comment_status', 'ping_status' ] as $field ) {
+			if ( ! array_key_exists( $field, $post_data ) ) {
+				continue;
+			}
+			$value = 'post_status' === $field ? self::normalize_post_status( $post_data[ $field ] ) : self::normalize_discussion_status( $post_data[ $field ] );
+			if ( null === $value ) {
+				// A value WordPress does not know (e.g. "true" or "active") keeps the default/current one.
+				unset( $post_data[ $field ] );
+			} else {
+				$post_data[ $field ] = $value;
 			}
 		}
 		if ( isset( $post_data['post_content'] ) && is_string( $post_data['post_content'] ) ) {
