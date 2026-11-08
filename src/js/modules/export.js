@@ -3985,6 +3985,16 @@ const ExportModule = {
 					],
 				},
 				{
+					label: 'Image',
+					options: [
+						{
+							value: 'image_url',
+							label: 'Image URL',
+							type: 'string',
+						},
+					],
+				},
+				{
 					label: 'Custom Fields (Term Meta)',
 					options: [
 						{

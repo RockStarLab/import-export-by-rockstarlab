@@ -312,6 +312,7 @@ class Import_Service {
 			}
 			$format                = $file['format'];
 			$file_path             = $file['path'];
+			$source_url            = (string) ( $file['source_url'] ?? '' );
 			$input['delimiter']    = $input['delimiter'] ?? $file['parser_options']['delimiter'];
 			$input['encoding']     = $input['encoding'] ?? ( $file['parser_options']['encoding'] ?? 'auto' );
 			$options['has_header'] = $options['has_header'] ?? $file['parser_options']['has_header'];
@@ -331,6 +332,8 @@ class Import_Service {
 		}
 		$options['batch_size'] = max( 1, min( 500, (int) ( $options['batch_size'] ?? 50 ) ) );
 		return [
+			// A file downloaded from a URL is downloaded again when a schedule repeats the import.
+			'source_url'  => $source_url ?? '',
 			'import_type' => $type,
 			'file_path'   => $file_path,
 			'file_id'     => $file_id,
@@ -1984,9 +1987,7 @@ class Import_Service {
 
 		$key = 'rsl_ie_import_term_id_map_' . $job_id;
 		$map = get_transient( $key );
-		if ( ! is_array( $map ) || empty( $map ) ) {
-			return;
-		}
+		$map = is_array( $map ) ? $map : [];
 
 		foreach ( $prepared_data as $row ) {
 			$taxonomy = isset( $row['taxonomy'] ) ? sanitize_key( (string) $row['taxonomy'] ) : '';
@@ -1995,9 +1996,6 @@ class Import_Service {
 			}
 
 			$tax_map = isset( $map[ $taxonomy ] ) && is_array( $map[ $taxonomy ] ) ? $map[ $taxonomy ] : [];
-			if ( empty( $tax_map ) ) {
-				continue;
-			}
 
 			$source_id     = isset( $row['_rsl_ie_source_term_id'] ) ? absint( $row['_rsl_ie_source_term_id'] ) : absint( $row['term_id'] ?? 0 );
 			$source_parent = isset( $row['_rsl_ie_source_parent_term_id'] ) ? absint( $row['_rsl_ie_source_parent_term_id'] ) : absint( $row['parent'] ?? 0 );
@@ -2006,17 +2004,30 @@ class Import_Service {
 			$target_parent = $source_parent ? absint( $tax_map[ (string) $source_parent ] ?? 0 ) : 0;
 
 			// Fallback: resolve parent by exported parent_slug when ID mapping is missing.
-			if ( $target_parent <= 0 && ! empty( $row['_rsl_ie_source_parent_slug'] ) ) {
-				$parent_slug = sanitize_title( (string) $row['_rsl_ie_source_parent_slug'] );
+			$row_parent_slug = (string) ( $row['_rsl_ie_source_parent_slug'] ?? ( $row['parent_slug'] ?? '' ) );
+			if ( $target_parent <= 0 && '' !== $row_parent_slug ) {
+				$parent_slug = sanitize_title( $row_parent_slug );
 				if ( '' !== $parent_slug ) {
 					$parent_term = get_term_by( 'slug', $parent_slug, $taxonomy );
+					if ( ! $parent_term || is_wp_error( $parent_term ) ) {
+						$parent_term = get_term_by( 'name', $row_parent_slug, $taxonomy );
+					}
 					if ( $parent_term && ! is_wp_error( $parent_term ) ) {
 						$target_parent = (int) $parent_term->term_id;
 					}
 				}
 			}
 
-			if ( $target_id <= 0 || $source_parent <= 0 || $target_parent <= 0 ) {
+			// Rows without a term ID (a spreadsheet) are found by their slug or name.
+			if ( $target_id <= 0 && $target_parent > 0 && ( ! empty( $row['slug'] ) || ! empty( $row['name'] ) ) ) {
+				$own = ! empty( $row['slug'] ) ? get_term_by( 'slug', sanitize_title( (string) $row['slug'] ), $taxonomy ) : false;
+				if ( ( ! $own || is_wp_error( $own ) ) && ! empty( $row['name'] ) ) {
+					$own = get_term_by( 'name', (string) $row['name'], $taxonomy );
+				}
+				$target_id = ( $own && ! is_wp_error( $own ) ) ? (int) $own->term_id : 0;
+			}
+
+			if ( $target_id <= 0 || $target_parent <= 0 || ( $source_parent <= 0 && '' === $row_parent_slug ) || $target_id === $target_parent ) {
 				continue;
 			}
 

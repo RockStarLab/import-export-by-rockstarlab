@@ -25,7 +25,8 @@ class Chunk_Upload {
 		add_action( 'wp_ajax_rsl_ie_abort_upload', [ $this, 'handle_abort_upload' ] );
 		add_action( 'wp_ajax_rsl_ie_reload_preview', [ $this, 'handle_reload_preview' ] );
 		add_action( 'wp_ajax_rsl_ie_get_custom_post_types', [ $this, 'handle_get_custom_post_types' ] );
-		foreach ( [ 'rsl_ie_upload_chunk', 'rsl_ie_finalize_upload', 'rsl_ie_abort_upload', 'rsl_ie_reload_preview', 'rsl_ie_get_custom_post_types' ] as $action ) {
+		add_action( 'wp_ajax_rsl_ie_upload_from_url', [ $this, 'handle_upload_from_url' ] );
+		foreach ( [ 'rsl_ie_upload_chunk', 'rsl_ie_finalize_upload', 'rsl_ie_abort_upload', 'rsl_ie_reload_preview', 'rsl_ie_get_custom_post_types', 'rsl_ie_upload_from_url' ] as $action ) {
 			Ajax_Security::register_action( $action );
 		}
 		if ( ! wp_next_scheduled( 'rsl_ie_cleanup_old_chunks' ) ) {
@@ -58,6 +59,12 @@ class Chunk_Upload {
 			return;
 		}
 		$this->respond( $service->finalize( $record['file_id'], $this->parser_options() ), true );
+	}
+
+	/** Download the import file from a URL instead of an upload. */
+	public function handle_upload_from_url() {
+		$this->verify( 'rsl_ie_upload_from_url' );
+		$this->respond( ( new File_Service() )->from_url( $this->param( 'url' ), $this->parser_options() ), true );
 	}
 
 	/** Cancel only the current administrator's upload session. */

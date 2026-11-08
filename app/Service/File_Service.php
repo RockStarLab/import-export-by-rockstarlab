@@ -111,6 +111,108 @@ class File_Service {
 	}
 
 	/**
+	 * Download an import file from a URL, such as a supplier's price list or feed.
+	 *
+	 * The file goes through the same checks as an upload. The URL is kept on the
+	 * file record, so a scheduled import downloads the current version each time.
+	 *
+	 * @param string $url     http(s) URL of a CSV, XML, JSON, XLSX, ODS or ZIP file.
+	 * @param array  $options Parser options.
+	 * @return array|\WP_Error
+	 */
+	public function from_url( $url, array $options = [] ) {
+		$permission = Access_Policy::check_management();
+		if ( is_wp_error( $permission ) ) {
+			return $permission;
+		}
+		$url    = esc_url_raw( trim( (string) $url ), [ 'http', 'https' ] );
+		$host   = (string) wp_parse_url( $url, PHP_URL_HOST );
+		$is_dev = (bool) preg_match( '/\.(local|test|localhost)$/i', $host );
+		if ( '' === $url || '' === $host || ( ! $is_dev && ! wp_http_validate_url( $url ) ) ) {
+			return new \WP_Error( 'rsl_ie_invalid_url', __( 'Enter a full http:// or https:// address of the file.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+		}
+		$tmp = wp_tempnam( 'rsl-ie-url' );
+		if ( ! $tmp ) {
+			return File_Store::error( 'file_write', 500 );
+		}
+		$args = [
+			'timeout'             => 120,
+			'stream'              => true,
+			'filename'            => $tmp,
+			'limit_response_size' => self::max_bytes(),
+		];
+		// Development hosts (*.local, *.test) are refused by the safe HTTP API.
+		$response = $is_dev ? wp_remote_get( $url, $args + [ 'reject_unsafe_urls' => false ] ) : wp_safe_remote_get( $url, $args );
+		$code     = is_wp_error( $response ) ? 0 : (int) wp_remote_retrieve_response_code( $response );
+		if ( is_wp_error( $response ) || $code < 200 || $code >= 300 ) {
+			wp_delete_file( $tmp );
+			$reason = is_wp_error( $response ) ? $response->get_error_message() : 'HTTP ' . $code;
+			/* translators: %s: error message or HTTP status. */
+			return new \WP_Error( 'rsl_ie_url_download_failed', sprintf( __( 'The file could not be downloaded (%s).', 'import-export-by-rockstarlab' ), $reason ), [ 'status' => 400 ] );
+		}
+		$name = '';
+		if ( preg_match( '/filename\*?=(?:UTF-8\'\')?"?([^";]+)"?/i', (string) wp_remote_retrieve_header( $response, 'content-disposition' ), $match ) ) {
+			$name = rawurldecode( $match[1] );
+		}
+		if ( '' === $name ) {
+			$name = rawurldecode( wp_basename( (string) wp_parse_url( $url, PHP_URL_PATH ) ) );
+		}
+		$name      = sanitize_file_name( '' === $name ? 'import' : $name );
+		$extension = strtolower( pathinfo( $name, PATHINFO_EXTENSION ) );
+		if ( ! in_array( $extension, [ 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ], true ) ) {
+			$type = strtolower( (string) wp_remote_retrieve_header( $response, 'content-type' ) );
+			foreach ( [ 'csv' => 'csv', 'comma-separated' => 'csv', 'xml' => 'xml', 'rss' => 'xml', 'json' => 'json', 'spreadsheetml' => 'xlsx', 'opendocument.spreadsheet' => 'ods', 'zip' => 'zip' ] as $needle => $guess ) {
+				if ( false !== strpos( $type, $needle ) ) {
+					$name     .= '.' . $guess;
+					$extension = $guess;
+					break;
+				}
+			}
+		}
+		$size = (int) filesize( $tmp );
+		if ( ! in_array( $extension, [ 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ], true ) || $size < 1 ) {
+			wp_delete_file( $tmp );
+			return new \WP_Error( 'rsl_ie_url_not_a_file', __( 'The address does not return a CSV, XML, JSON, XLSX, ODS or ZIP file.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
+		}
+		$record = $this->begin(
+			[
+				'file_name'    => $name,
+				'file_size'    => $size,
+				'total_chunks' => 1,
+			]
+		);
+		if ( is_wp_error( $record ) ) {
+			wp_delete_file( $tmp );
+			return $record;
+		}
+		$stream = fopen( $tmp, 'rb' );
+		$result = $stream ? $this->write_chunk( $record['file_id'], 0, $stream ) : File_Store::error( 'file_read', 500 );
+		if ( $stream ) {
+			fclose( $stream );
+		}
+		wp_delete_file( $tmp );
+		if ( ! is_wp_error( $result ) ) {
+			$result = $this->finalize( $record['file_id'], $options );
+		}
+		if ( is_wp_error( $result ) ) {
+			$this->abort( $record['file_id'] );
+			return $result;
+		}
+		$this->locked(
+			$record['file_id'],
+			function () use ( $record, $url ) {
+				$stored = File_Store::get( $record['file_id'] );
+				if ( ! is_wp_error( $stored ) ) {
+					$stored['source_url'] = $url;
+					File_Store::save( $stored );
+				}
+			}
+		);
+		$result['source_url'] = $url;
+		return $result;
+	}
+
+	/**
 	 * Receive a real PHP multipart upload; no caller-provided filesystem sources.
 	 *
 	 * @param array $file PHP uploaded-file entry.

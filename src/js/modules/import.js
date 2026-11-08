@@ -89,6 +89,13 @@ const ImportModule = {
 		);
 
 		// File upload (delegated so it keeps working after wizard resets / partial re-renders).
+		$wizard.on( 'click', '#rsl-ie-fetch-url', () => this.fetchFromUrl() );
+		$wizard.on( 'keydown', '#rsl-ie-file-url', ( e ) => {
+			if ( 'Enter' === e.key ) {
+				e.preventDefault();
+				this.fetchFromUrl();
+			}
+		} );
 		$wizard.on( 'click', '#rsl-ie-select-file', () => {
 			$wizard.find( '#rsl-ie-file-input' ).trigger( 'click' );
 		} );
@@ -737,6 +744,94 @@ const ImportModule = {
 
 		// Start upload
 		this.fileUploader.upload( file );
+	},
+
+	/**
+	 * Download the import file from a URL on the server.
+	 */
+	async fetchFromUrl() {
+		const url = String( jQuery( '#rsl-ie-file-url' ).val() || '' ).trim();
+		if ( ! /^https?:\/\//i.test( url ) ) {
+			Utils.showNotice(
+				rslIeData.i18n.fileUrlInvalid ||
+					'Enter a full http:// or https:// address of the file.',
+				'error'
+			);
+			return;
+		}
+		const clientData = window.rslIeData || {};
+		const $button = jQuery( '#rsl-ie-fetch-url' );
+		$button.prop( 'disabled', true );
+		jQuery( '.rsl-ie-upload-placeholder' ).hide();
+		jQuery( '.rsl-ie-upload-progress' ).show();
+		jQuery( '.rsl-ie-upload-status-text' ).text(
+			rslIeData.i18n.fileUrlDownloading || 'Downloading the file...'
+		);
+		const body = new FormData();
+		body.append( 'action', 'rsl_ie_upload_from_url' );
+		body.append( 'nonce', clientData.nonce || '' );
+		body.append( 'url', url );
+		try {
+			const response = await fetch(
+				clientData.ajaxUrl || window.ajaxurl || '',
+				{ method: 'POST', body, credentials: 'same-origin' }
+			);
+			const data = await response.json();
+			if ( ! data.success ) {
+				throw new Error(
+					'string' === typeof data.data ? data.data : 'Download failed'
+				);
+			}
+			const result = data.data;
+			// The file is on the server already; keep what step validation needs.
+			this.uploadedFile = {
+				name: result.file_name || url,
+				size:
+					parseInt( result.file_size || result.expected_bytes, 10 ) ||
+					0,
+				sourceUrl: url,
+			};
+			this.fileData = result;
+			this.fileData.delimiter = ',';
+			this.fileData.encoding = 'auto';
+			const format = String( result.format || '' ).toLowerCase();
+			jQuery( '.rsl-ie-file-name' ).text( result.file_name || url );
+			jQuery( '.rsl-ie-file-size' ).text(
+				Utils.formatFileSize(
+					parseInt( result.file_size || result.expected_bytes, 10 ) ||
+						0
+				)
+			);
+			jQuery( '.rsl-ie-file-format' ).text( format.toUpperCase() );
+			jQuery( '.rsl-ie-file-conversion' )
+				.text(
+					( rslIeData.i18n.fileUrlSource || 'Downloaded from %s' ).replace(
+						'%s',
+						url
+					)
+				)
+				.show();
+			jQuery( '.rsl-ie-upload-progress' ).hide();
+			jQuery( '.rsl-ie-upload-area' ).hide();
+			jQuery( '.rsl-ie-file-info' ).show();
+			jQuery( '.rsl-ie-step-2 .rsl-ie-next-step' ).prop(
+				'disabled',
+				false
+			);
+			Utils.showNotice(
+				rslIeData.i18n.fileUrlDownloaded || 'File downloaded',
+				'success'
+			);
+		} catch ( error ) {
+			jQuery( '.rsl-ie-upload-progress' ).hide();
+			jQuery( '.rsl-ie-upload-placeholder' ).show();
+			Utils.showNotice( Utils.escapeHtml( error.message ), 'error' );
+		} finally {
+			$button.prop( 'disabled', false );
+			jQuery( '.rsl-ie-upload-status-text' ).text(
+				rslIeData.i18n.uploading || 'Uploading...'
+			);
+		}
 	},
 
 	/**
@@ -3386,6 +3481,21 @@ const ImportModule = {
 							label: 'Parent Term ID',
 							type: 'number',
 						},
+						{
+							value: 'parent_slug',
+							label: 'Parent Slug or Name',
+							type: 'string',
+						},
+					],
+				},
+				{
+					label: 'Image',
+					options: [
+						{
+							value: 'image_url',
+							label: 'Image URL',
+							type: 'string',
+						},
 					],
 				},
 				{
@@ -5603,6 +5713,13 @@ const ImportModule = {
 					'date registered',
 					'registration date',
 				],
+				// Category and term spreadsheets.
+				parent_slug: [
+					'parent slug',
+					'parent category',
+					'parent name',
+				],
+				image_url: [ 'image', 'thumbnail', 'category image' ],
 			};
 			const aliasLookup = new Map();
 			Object.keys( headerAliases ).forEach( ( targetKey ) => {
@@ -5645,6 +5762,13 @@ const ImportModule = {
 					if ( ! aliasTarget ) return;
 
 					let $targetField = targetByName.get( aliasTarget );
+					// Terms have one image field: "Image URL" columns go there.
+					if (
+						( ! $targetField || ! $targetField.length ) &&
+						'featured_image_url' === aliasTarget
+					) {
+						$targetField = targetByName.get( 'image_url' );
+					}
 					// Blog posts have no product taxonomies: send "Categories" / "Tags"
 					// columns to the post category and tag taxonomies instead.
 					if (
