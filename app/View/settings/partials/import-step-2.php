@@ -54,6 +54,7 @@ defined( 'ABSPATH' ) || exit;
 					<strong class="rsl-ie-file-name"></strong>
 					<span class="rsl-ie-file-size"></span>
 					<span class="rsl-ie-file-format"></span>
+					<span class="rsl-ie-file-conversion" style="display:none;"></span>
 				</div>
 				<button type="button" class="button button-link-delete rsl-ie-remove-file">
 					<span class="dashicons dashicons-no"></span>

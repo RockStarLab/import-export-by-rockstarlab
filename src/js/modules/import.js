@@ -674,6 +674,51 @@ const ImportModule = {
 				if ( result.warning ) {
 					Utils.showNotice( result.warning, 'warning' );
 				}
+
+				// A known third-party export was rewritten into native columns.
+				if (
+					[ 'shopify', 'shopify_customers' ].includes(
+						result.converted_from
+					) &&
+					result.conversion
+				) {
+					const counts = result.conversion;
+					const conversionText =
+						result.converted_from === 'shopify'
+							? (
+									rslIeData.i18n.shopifyExportConverted ||
+									'Shopify product export detected: %1$s rows were combined into %2$s products with %3$s variations. Import it as WooCommerce Products and Auto Map will match every column.'
+							  )
+									.replace(
+										'%1$s',
+										parseInt( counts.source_rows, 10 ) || 0
+									)
+									.replace(
+										'%2$s',
+										parseInt( counts.products, 10 ) || 0
+									)
+									.replace(
+										'%3$s',
+										parseInt( counts.variations, 10 ) || 0
+									)
+							: (
+									rslIeData.i18n.shopifyCustomersConverted ||
+									'Shopify customer export detected: %1$s customers, %2$s without an email address. Import it as WooCommerce Customers and Auto Map will match every column.'
+							  )
+									.replace(
+										'%1$s',
+										parseInt( counts.customers, 10 ) || 0
+									)
+									.replace(
+										'%2$s',
+										parseInt( counts.no_email, 10 ) || 0
+									);
+					Utils.showNotice( Utils.escapeHtml( conversionText ), 'info' );
+					// Keep the explanation next to the file after the notice fades.
+					jQuery( '.rsl-ie-file-conversion' )
+						.text( conversionText )
+						.show();
+				}
 			},
 			onError: ( error ) => {
 				// Upload failed
@@ -705,6 +750,7 @@ const ImportModule = {
 		this.fileData = null;
 
 		jQuery( '.rsl-ie-file-info' ).hide();
+		jQuery( '.rsl-ie-file-conversion' ).hide().text( '' );
 		jQuery( '.rsl-ie-upload-area' ).show();
 		jQuery( '.rsl-ie-upload-placeholder' ).show();
 		jQuery( '.rsl-ie-upload-progress' ).hide();
@@ -5502,7 +5548,8 @@ const ImportModule = {
 				download_limit: [ 'download limit' ],
 				download_expiry: [ 'download expiry days' ],
 				parent_sku: [ 'parent' ],
-				post_status: [ 'published' ],
+				post_status: [ 'published', 'status', 'post status' ],
+				product_type: [ 'type', 'product type' ],
 				stock_status: [ 'in stock?' ],
 				comment_status: [ 'allow customer reviews?' ],
 				sold_individually: [ 'sold individually?' ],
@@ -5621,6 +5668,14 @@ const ImportModule = {
 			);
 
 			// PASS 2: Map remaining fields with fuzzy matching
+			const genericHeaders = [
+				'status',
+				'type',
+				'unit',
+				'value',
+				'code',
+				'count',
+			];
 			jQuery( '.rsl-ie-field-card:not(.used)' ).each(
 				( index, sourceCard ) => {
 					const $sourceCard = jQuery( sourceCard );
@@ -5664,12 +5719,17 @@ const ImportModule = {
 							matchType = 'normalized';
 						} else if (
 							sourceFieldLower.includes( targetFieldValue ) &&
-							targetFieldValue.length > 2
+							targetFieldValue.length > 2 &&
+							// "Weight Unit" names the unit, not the weight.
+							! /\bunits?$/.test( sourceFieldLower )
 						) {
 							matchType = 'partial';
 						} else if (
 							targetFieldValue.includes( sourceFieldLower ) &&
-							sourceFieldLower.length > 2
+							sourceFieldLower.length > 2 &&
+							// A bare generic word ("Status", "Type") is too vague to
+							// pick a field such as comment_status or product_type.
+							! genericHeaders.includes( sourceFieldLower )
 						) {
 							matchType = 'partial';
 						}
@@ -6706,6 +6766,7 @@ const ImportModule = {
 			true
 		);
 		jQuery( '.rsl-ie-file-info' ).hide();
+		jQuery( '.rsl-ie-file-conversion' ).hide().text( '' );
 		jQuery( '.rsl-ie-upload-area' ).show();
 		jQuery( '.rsl-ie-upload-placeholder' ).show();
 		jQuery( '.rsl-ie-upload-progress' ).hide();
