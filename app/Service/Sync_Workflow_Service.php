@@ -50,6 +50,10 @@ class Sync_Workflow_Service {
 		$is_connection = 0 === strpos( $name, 'connection-' );
 		$service       = $is_connection ? new Connection_Service() : $this->content_service();
 		$result        = 'sync-result' === $name ? $this->sync_result( $input['job_id'] ) : $service->execute( $definition['action'], $input );
+		if ( is_wp_error( $result ) && 'rsl_ie_connection_check' === $result->get_error_code() ) {
+			// Connection checks explain the cause in text this plugin writes (never remote text or the key).
+			return $result;
+		}
 		if ( is_wp_error( $result ) ) {
 			// Remote error text is untrusted and may echo a bearer key or payload.
 			return new \WP_Error( $result->get_error_code(), __( 'The sync operation failed. Check connection status, selection and job history.', 'import-export-by-rockstarlab' ), [ 'status' => $result->get_error_data()['status'] ?? 400 ] + array_intersect_key( (array) $result->get_error_data(), [ 'job_id' => true ] ) );

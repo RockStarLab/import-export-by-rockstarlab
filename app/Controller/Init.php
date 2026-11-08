@@ -473,6 +473,7 @@ class Init {
 					'typeExport'                        => __( 'Export', 'import-export-by-rockstarlab' ),
 					'typeContentSyncPush'               => __( 'Content Sync - Push', 'import-export-by-rockstarlab' ),
 					'typeContentSyncPull'               => __( 'Content Sync - Pull', 'import-export-by-rockstarlab' ),
+					'typeContentSyncBackground'         => __( 'Content Sync - Background', 'import-export-by-rockstarlab' ),
 					'statusPending'                     => __( 'Pending', 'import-export-by-rockstarlab' ),
 					'statusProcessing'                  => __( 'Processing', 'import-export-by-rockstarlab' ),
 					'statusCompleted'                   => __( 'Completed', 'import-export-by-rockstarlab' ),

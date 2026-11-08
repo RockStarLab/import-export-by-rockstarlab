@@ -398,6 +398,8 @@ class Export_Service {
 				}
 				if ( 'csv' === $format ) {
 					$formatter_options['delimiter'] = $options['csv_delimiter'] ?? ',';
+					// A byte order mark lets Excel recognise UTF-8 (accents, emojis) when it opens the file.
+					$formatter_options['use_bom'] = ! empty( $options['csv_use_bom'] );
 				}
 			} else {
 				$formatter_options['pretty_print'] = ! empty( $options[ $format . '_pretty_print' ] );

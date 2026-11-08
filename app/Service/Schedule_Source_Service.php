@@ -65,6 +65,28 @@ class Schedule_Source_Service {
 			$service = new Sync_Job_Service();
 			if ( is_array( $params['schedule_replay'] ?? null ) ) {
 				$params = $params['schedule_replay'];
+				// Pushes started from the admin screens stored their input as form values
+				// (string IDs, mapping as a JSON string, no post type); normalize them for the schema.
+				if ( is_array( $params['input'] ?? null ) ) {
+					$in = $params['input'];
+					if ( isset( $in['site_id'] ) ) {
+						$in['site_id'] = (int) $in['site_id'];
+					}
+					if ( isset( $in['post_ids'] ) && is_array( $in['post_ids'] ) ) {
+						$in['post_ids'] = array_values( array_map( 'intval', $in['post_ids'] ) );
+					}
+					if ( isset( $in['post_mapping'] ) && is_string( $in['post_mapping'] ) ) {
+						$decoded            = json_decode( $in['post_mapping'], true );
+						$in['post_mapping'] = is_array( $decoded ) ? $decoded : [];
+					}
+					if ( isset( $in['post_mapping'] ) && [] === $in['post_mapping'] ) {
+						unset( $in['post_mapping'] );
+					}
+					if ( empty( $in['post_type'] ) && in_array( $job->data_type, [ 'post', 'page' ], true ) ) {
+						$in['post_type'] = $job->data_type;
+					}
+					$params['input'] = $in;
+				}
 			} elseif ( ! Sync_Job_Service::supports( $job ) ) {
 				$site = Connected_Site::get_by_id( $params['site_id'] ?? 0 );
 				if ( ! $site ) {

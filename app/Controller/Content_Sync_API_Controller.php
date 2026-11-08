@@ -34,6 +34,27 @@ class Content_Sync_API_Controller {
 			return;
 		}
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
+		add_filter( 'rest_authentication_errors', array( $this, 'allow_sync_bearer' ), 999 );
+	}
+
+	/**
+	 * Plugins that limit the REST API to logged-in users would block Content Sync, whose requests
+	 * carry a site key instead of a login. Requests to this namespace with a site key skip that
+	 * login requirement; every sync route still checks the key in its permission callback.
+	 *
+	 * @param mixed $result Earlier authentication result.
+	 * @return mixed
+	 */
+	public function allow_sync_bearer( $result ) {
+		if ( ! is_wp_error( $result ) || ! in_array( $result->get_error_code(), [ 'rest_login_required', 'rest_not_logged_in', 'rest_cannot_access', 'rest_forbidden' ], true ) ) {
+			return $result;
+		}
+		$auth  = isset( $_SERVER['HTTP_AUTHORIZATION'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_AUTHORIZATION'] ) ) : ( isset( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ) ) : '' );
+		$route = isset( $_GET['rest_route'] ) ? sanitize_text_field( wp_unslash( $_GET['rest_route'] ) ) : ( isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only route check; the key is verified by the route.
+		if ( 0 === stripos( $auth, 'Bearer rsl_ie_' ) && false !== strpos( $route, '/' . self::REST_NAMESPACE . '/' ) ) {
+			return null;
+		}
+		return $result;
 	}
 
 	/**

@@ -97,15 +97,20 @@ const ContentSyncModule = {
 				} else {
 					this.showNotice(
 						'error',
-						response.data.message ||
+						( response.message ||
+							( response.data && response.data.message ) ) ||
 							window.rslIeData.i18n.failedLoadSites
 					);
 				}
 			},
-			error: () => {
+			error: ( xhr ) => {
 				this.showNotice(
 					'error',
-					window.rslIeData.i18n.failedLoadSites
+					( xhr.responseJSON &&
+						( xhr.responseJSON.message ||
+							( xhr.responseJSON.data &&
+								xhr.responseJSON.data.message ) ) ) ||
+						window.rslIeData.i18n.failedLoadSites
 				);
 			},
 		} );
@@ -342,7 +347,8 @@ const ContentSyncModule = {
 			success: ( response ) => {
 				if ( response.success ) {
 					const message =
-						response.data.message ||
+						( response.message ||
+							( response.data && response.data.message ) ) ||
 						window.rslIeData.i18n.operationCompleted ||
 						'Operation completed successfully';
 
@@ -375,7 +381,8 @@ const ContentSyncModule = {
 						'error',
 						window.rslIeData.i18n.validationFailed ||
 							'Validation Failed',
-						response.data.message ||
+						( response.message ||
+							( response.data && response.data.message ) ) ||
 							window.rslIeData.i18n.failedSaveSiteConnection ||
 							'Failed to save site connection'
 					);
@@ -531,15 +538,20 @@ const ContentSyncModule = {
 				} else {
 					this.showNotice(
 						'error',
-						response.data.message ||
+						( response.message ||
+							( response.data && response.data.message ) ) ||
 							window.rslIeData.i18n.failedDeleteSite
 					);
 				}
 			},
-			error: () => {
+			error: ( xhr ) => {
 				this.showNotice(
 					'error',
-					window.rslIeData.i18n.failedDeleteSite
+					( xhr.responseJSON &&
+						( xhr.responseJSON.message ||
+							( xhr.responseJSON.data &&
+								xhr.responseJSON.data.message ) ) ) ||
+						window.rslIeData.i18n.failedDeleteSite
 				);
 			},
 		} );
@@ -567,17 +579,22 @@ const ContentSyncModule = {
 				} else {
 					this.showNotice(
 						'error',
-						response.data.message ||
+						( response.message ||
+							( response.data && response.data.message ) ) ||
 							window.rslIeData.i18n.connectionTestFailed
 					);
 				}
 				// Always reload sites to update stats
 				this.loadSites();
 			},
-			error: () => {
+			error: ( xhr ) => {
 				this.showNotice(
 					'error',
-					window.rslIeData.i18n.connectionTestFailed
+					( xhr.responseJSON &&
+						( xhr.responseJSON.message ||
+							( xhr.responseJSON.data &&
+								xhr.responseJSON.data.message ) ) ) ||
+						window.rslIeData.i18n.connectionTestFailed
 				);
 				this.loadSites();
 			},
@@ -612,15 +629,20 @@ const ContentSyncModule = {
 				} else {
 					this.showNotice(
 						'error',
-						response.data.message ||
+						( response.message ||
+							( response.data && response.data.message ) ) ||
 							window.rslIeData.i18n.failedRegenerateKey
 					);
 				}
 			},
-			error: () => {
+			error: ( xhr ) => {
 				this.showNotice(
 					'error',
-					window.rslIeData.i18n.failedRegenerateKey
+					( xhr.responseJSON &&
+						( xhr.responseJSON.message ||
+							( xhr.responseJSON.data &&
+								xhr.responseJSON.data.message ) ) ) ||
+						window.rslIeData.i18n.failedRegenerateKey
 				);
 			},
 		} );
@@ -722,16 +744,21 @@ const ContentSyncModule = {
 				} else {
 					this.showNotice(
 						'error',
-						response.data.message ||
+						( response.message ||
+							( response.data && response.data.message ) ) ||
 							window.rslIeData.i18n.failedRegenerateApiKey
 					);
 					$btn.html( originalText );
 				}
 			},
-			error: () => {
+			error: ( xhr ) => {
 				this.showNotice(
 					'error',
-					window.rslIeData.i18n.failedRegenerateApiKey
+					( xhr.responseJSON &&
+						( xhr.responseJSON.message ||
+							( xhr.responseJSON.data &&
+								xhr.responseJSON.data.message ) ) ) ||
+						window.rslIeData.i18n.failedRegenerateApiKey
 				);
 				$btn.html( originalText );
 			},

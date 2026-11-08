@@ -369,6 +369,7 @@ class Workflow_Schemas {
 				[
 					'csv_delimiter'              => self::parser()['properties']['delimiter'],
 					'csv_include_header'         => $b,
+					'csv_use_bom'                => $b,
 					'spreadsheet_include_header' => $b,
 					'json_pretty_print'          => $b,
 					'xml_pretty_print'           => $b,

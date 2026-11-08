@@ -909,6 +909,9 @@ const JobsLogModule = {
 			content_sync_pull:
 				window.rslIeData.i18n.typeContentSyncPull ||
 				'Content Sync - Pull',
+			sync_background:
+				window.rslIeData.i18n.typeContentSyncBackground ||
+				'Content Sync - Background',
 			migration_export: 'Content Migration - Export File',
 			migration_import: 'Content Migration - Import File',
 			migration_sync_push: 'Content Migration - Sync Push',

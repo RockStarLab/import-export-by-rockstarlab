@@ -1969,6 +1969,9 @@ const ExportModule = {
 					csv_include_header: jQuery(
 						'[name="csv_include_header"]'
 					).is( ':checked' ),
+					csv_use_bom: jQuery( '[name="csv_use_bom"]' ).is(
+						':checked'
+					),
 					json_pretty_print: jQuery(
 						'[name="json_pretty_print"]'
 					).is( ':checked' ),

@@ -236,7 +236,7 @@ class Export_Request {
 		}
 		$format_options = is_array( $input['format_options'] ?? null ) ? $input['format_options'] : [];
 		// Form posts send checkbox states as the strings "true"/"false"; store real booleans.
-		foreach ( [ 'csv_include_header', 'json_pretty_print', 'xml_pretty_print', 'spreadsheet_include_header' ] as $flag ) {
+		foreach ( [ 'csv_include_header', 'csv_use_bom', 'json_pretty_print', 'xml_pretty_print', 'spreadsheet_include_header' ] as $flag ) {
 			if ( array_key_exists( $flag, $format_options ) ) {
 				$format_options[ $flag ] = rest_sanitize_boolean( $format_options[ $flag ] );
 			}
@@ -246,7 +246,8 @@ class Export_Request {
 			if ( in_array( $delimiter, [ 'tab', '\\t' ], true ) ) {
 				$delimiter = "\t";
 			}
-			if ( ! is_string( $delimiter ) || 1 !== strlen( $delimiter ) ) {
+			// The Custom option allows short multi-character separators such as ;; or |~|.
+			if ( ! is_string( $delimiter ) || '' === $delimiter || strlen( $delimiter ) > 10 || preg_match( '/[\r\n"]/', $delimiter ) ) {
 				return self::error();
 			}
 			$format_options['csv_delimiter'] = $delimiter;
