@@ -4397,6 +4397,11 @@ const ExportModule = {
 							label: 'Total Tax',
 							type: 'number',
 						},
+						{
+							value: 'tax_lines',
+							label: 'Tax Lines (Array)',
+							type: 'string',
+						},
 					],
 				},
 				{
