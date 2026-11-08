@@ -416,6 +416,23 @@ class Post_Importer extends Abstract_Importer {
 	}
 
 	/**
+	 * A slug never contains "/". When the Slug column holds a full permalink or a
+	 * path (for example the Permalink column of an export), use its last segment.
+	 *
+	 * @param string $value Slug cell.
+	 * @return string
+	 */
+	public static function slug_from_url( $value ) {
+		$value = trim( $value );
+		if ( false === strpos( $value, '/' ) ) {
+			return $value;
+		}
+		$path  = (string) wp_parse_url( $value, PHP_URL_PATH );
+		$parts = array_values( array_filter( explode( '/', $path ), 'strlen' ) );
+		return $parts ? rawurldecode( end( $parts ) ) : '';
+	}
+
+	/**
 	 * Import single post
 	 *
 	 * @param array $item  Post data
@@ -438,6 +455,12 @@ class Post_Importer extends Abstract_Importer {
 		// even when the UI mapping didn't include it.
 		if ( ( empty( $item['post_name'] ) || '' === (string) $item['post_name'] ) && ! empty( $item['_rsl_ie_source_post_name'] ) ) {
 			$item['post_name'] = (string) $item['_rsl_ie_source_post_name'];
+		}
+		if ( isset( $item['post_name'] ) && is_string( $item['post_name'] ) ) {
+			$item['post_name'] = self::slug_from_url( $item['post_name'] );
+			if ( '' === $item['post_name'] ) {
+				unset( $item['post_name'] );
+			}
 		}
 
 		$source_id            = isset( $item['_rsl_ie_source_id'] ) ? absint( $item['_rsl_ie_source_id'] ) : 0;
@@ -875,6 +898,8 @@ class Post_Importer extends Abstract_Importer {
 		// defaults (status, author, comment/ping status, post type) are not applied.
 		$post_data       = $this->prepare_post_data( $item, true );
 		$post_data['ID'] = $post_id;
+		$before          = get_post( $post_id );
+		$fields_changed  = ! $before instanceof \WP_Post || $this->post_fields_differ( $before, $post_data );
 
 		// wp_update_post() expects slashed data; keep backslashes intact.
 		$result = $this->without_post_kses(
@@ -932,8 +957,33 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		$this->restore_imported_post_modified_dates( (int) $post_id, $item );
+		if ( ! $fields_changed && empty( $item['post_modified'] ) && empty( $item['post_modified_gmt'] ) ) {
+			// Only custom fields, terms or images changed: keep the post's "Last modified" date, as WordPress does.
+			global $wpdb;
+			$wpdb->update( $wpdb->posts, [ 'post_modified' => $before->post_modified, 'post_modified_gmt' => $before->post_modified_gmt ], [ 'ID' => (int) $post_id ], [ '%s', '%s' ], [ '%d' ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			clean_post_cache( (int) $post_id );
+		}
 
 		return 'updated';
+	}
+
+	/**
+	 * Whether an update changes any column of the posts table.
+	 *
+	 * @param \WP_Post $before    Post before the update.
+	 * @param array    $post_data Data passed to wp_update_post().
+	 * @return bool
+	 */
+	private function post_fields_differ( \WP_Post $before, array $post_data ) {
+		foreach ( $post_data as $key => $value ) {
+			if ( 'ID' === $key || ! property_exists( $before, $key ) || is_array( $value ) || is_object( $value ) ) {
+				continue;
+			}
+			if ( (string) $before->$key !== (string) $value ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

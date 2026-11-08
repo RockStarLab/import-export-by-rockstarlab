@@ -1156,8 +1156,38 @@ class Content_Sync_API_Controller {
 				continue;
 			}
 
+			if ( $this->is_target_owned_product_meta( (int) $post_id, $key ) ) {
+				continue;
+			}
+
 			delete_post_meta( (int) $post_id, $key );
 		}
+	}
+
+	/**
+	 * Whether a WooCommerce product meta key belongs to the receiving store.
+	 *
+	 * Sales counts and ratings come from the receiving store's own orders and
+	 * reviews. Stock already tracked on the receiving store is its live
+	 * inventory, so a push never replaces it with the sender's stale value.
+	 *
+	 * @param int    $post_id Target post ID.
+	 * @param string $key     Meta key.
+	 * @return bool
+	 */
+	private function is_target_owned_product_meta( $post_id, $key ) {
+		if ( ! in_array( $key, array( 'total_sales', '_wc_average_rating', '_wc_review_count', '_wc_rating_count', '_stock', '_stock_status' ), true )
+			|| ! in_array( get_post_type( $post_id ), array( 'product', 'product_variation' ), true ) ) {
+			return false;
+		}
+		if ( '_stock' === $key ) {
+			$current = get_post_meta( $post_id, '_stock', true );
+			return 'yes' === get_post_meta( $post_id, '_manage_stock', true ) && '' !== (string) $current;
+		}
+		if ( '_stock_status' === $key ) {
+			return metadata_exists( 'post', $post_id, '_stock_status' );
+		}
+		return true;
 	}
 
 	/**
@@ -1169,6 +1199,10 @@ class Content_Sync_API_Controller {
 	 * @return void
 	 */
 	private function save_synced_post_meta( $post_id, $key, $value ) {
+		if ( $this->is_target_owned_product_meta( (int) $post_id, (string) $key ) ) {
+			return;
+		}
+
 		if ( $this->should_skip_synced_meta_key( $key ) ) {
 			delete_post_meta( $post_id, $key );
 			return;
@@ -1333,6 +1367,10 @@ class Content_Sync_API_Controller {
 				'user_id'              => $users[ $source_comment_id ] ?? 0,
 			);
 
+			if ( ! $existing_id ) {
+				$existing_id = $this->find_identical_unsynced_comment( (int) $post_id, $args );
+			}
+
 			if ( $existing_id ) {
 				$args['comment_ID'] = $existing_id;
 				$result_id          = wp_update_comment( $args ) ? $existing_id : 0;
@@ -1363,6 +1401,36 @@ class Content_Sync_API_Controller {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Find the same comment already present on a cloned site (same author email,
+	 * date and text) that no earlier sync has claimed.
+	 *
+	 * @param int   $post_id Local post ID.
+	 * @param array $args    Sanitized incoming comment fields.
+	 * @return int
+	 */
+	private function find_identical_unsynced_comment( $post_id, array $args ) {
+		if ( '' === $args['comment_author_email'] || '' === $args['comment_date_gmt'] ) {
+			return 0;
+		}
+		$candidates = get_comments(
+			array(
+				'post_id'      => $post_id,
+				'status'       => 'all',
+				'type'         => '' !== $args['comment_type'] ? $args['comment_type'] : 'comment',
+				'author_email' => $args['comment_author_email'],
+			)
+		);
+		foreach ( $candidates as $candidate ) {
+			if ( $candidate->comment_date_gmt === $args['comment_date_gmt']
+				&& $candidate->comment_content === $args['comment_content']
+				&& '' === (string) get_comment_meta( (int) $candidate->comment_ID, '_rsl_ie_original_comment_id', true ) ) {
+				return (int) $candidate->comment_ID;
+			}
+		}
+		return 0;
 	}
 
 	/**
