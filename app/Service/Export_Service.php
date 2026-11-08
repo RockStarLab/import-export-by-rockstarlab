@@ -369,7 +369,9 @@ class Export_Service {
 		$name    = sanitize_file_name( wp_basename( str_replace( '{job_id}', (string) $job_id, $name ) ) );
 		$name    = preg_replace( '/\.[^.]+$/', '', $name );
 		$name    = $name ? $name : 'export-' . $job_id;
-		$info    = File_Service::export_target( $job_id, $name . '.' . $format );
+		// Tab-separated files get .tsv, the extension Google Merchant Center and spreadsheet apps expect.
+		$extension = ( 'csv' === $format && "\t" === ( $options['csv_delimiter'] ?? ',' ) ) ? 'tsv' : $format;
+		$info      = File_Service::export_target( $job_id, $name . '.' . $extension );
 		if ( is_wp_error( $info ) ) {
 			return $info;
 		}
@@ -399,6 +401,18 @@ class Export_Service {
 				}
 			} else {
 				$formatter_options['pretty_print'] = ! empty( $options[ $format . '_pretty_print' ] );
+			}
+			$headers = self::column_headers( $request['options']['column_headers'] ?? [] );
+			if ( $headers ) {
+				$data = self::rename_columns( $data, $headers );
+				if ( is_array( $formatter_options['headers'] ?? null ) ) {
+					$formatter_options['headers'] = array_map(
+						static function ( $field ) use ( $headers ) {
+							return $headers[ $field ] ?? $field;
+						},
+						$formatter_options['headers']
+					);
+				}
 			}
 			$result = $formatter->generate( $data, $info['path'], $formatter_options );
 			if ( is_wp_error( $result ) ) {
@@ -430,6 +444,52 @@ class Export_Service {
 	 * @param object $job Job record.
 	 * @return array
 	 */
+	/**
+	 * Clean the column names chosen on the Fields step: field => name in the file.
+	 *
+	 * @param mixed $headers Requested names.
+	 * @return array
+	 */
+	public static function column_headers( $headers ) {
+		$clean = [];
+		if ( ! is_array( $headers ) ) {
+			return $clean;
+		}
+		foreach ( $headers as $field => $name ) {
+			if ( ! is_string( $field ) || ! is_scalar( $name ) ) {
+				continue;
+			}
+			$name = trim( wp_strip_all_tags( (string) $name ) );
+			if ( '' !== $name && $name !== $field ) {
+				$clean[ $field ] = $name;
+			}
+		}
+		return $clean;
+	}
+
+	/**
+	 * Rename row keys, keeping the column order.
+	 *
+	 * @param array $rows Exported rows.
+	 * @param array $headers Field => column name.
+	 * @return array
+	 */
+	public static function rename_columns( array $rows, array $headers ) {
+		foreach ( $rows as $i => $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			$renamed = [];
+			foreach ( $row as $key => $value ) {
+				$name = $headers[ $key ] ?? $key;
+				// Two columns renamed to the same name would overwrite each other; keep the field name for the second one.
+				$renamed[ array_key_exists( $name, $renamed ) ? $key : $name ] = $value;
+			}
+			$rows[ $i ] = $renamed;
+		}
+		return $rows;
+	}
+
 	private function snapshot( $job ) {
 		return [
 			'completed' => ! in_array( $job->status, [ 'pending', 'processing' ], true ),

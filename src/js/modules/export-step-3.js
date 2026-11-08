@@ -236,7 +236,7 @@ export default class ExportStep3 {
 	 * Add field to CSV structure
 	 */
 	addFieldToCSV( fieldData ) {
-		const { field, label, type } = fieldData;
+		const { field, label, type, header, value } = fieldData;
 		const fieldKey = `${ field }_${ Date.now() }`;
 
 		// Check if field already exists (prevent duplicates for unique fields)
@@ -257,10 +257,12 @@ export default class ExportStep3 {
 			field,
 			label,
 			type,
+			header: header || '',
+			value: value || '',
 		} );
 
 		// Render column
-		this.renderColumn( fieldKey, field, label, type );
+		this.renderColumn( fieldKey, field, header || label, type );
 
 		// Update UI
 		this.updateCSVStats();
@@ -303,6 +305,11 @@ export default class ExportStep3 {
 			<div class="rsl-ie-column-header">
 				<span class="rsl-ie-column-icon dashicons ${ iconClass }"></span>
 				<div class="rsl-ie-column-actions">
+					<button type="button" class="rsl-ie-rename-column" title="${ this.escapeHtml(
+						window.rslIeData.i18n.renameColumn || 'Rename column'
+					) }" data-field-key="${ fieldKey }">
+						<span class="dashicons dashicons-edit"></span>
+					</button>
 					${ transformationButton }
 					<button type="button" class="rsl-ie-remove-column" title="${
 						window.rslIeData.i18n.remove
@@ -363,6 +370,12 @@ export default class ExportStep3 {
 				const btn = e.target.closest( '.rsl-ie-remove-column' );
 				const fieldKey = btn.dataset.fieldKey;
 				this.removeColumn( fieldKey );
+			}
+
+			// Rename the column header in the exported file.
+			if ( e.target.closest( '.rsl-ie-rename-column' ) ) {
+				const btn = e.target.closest( '.rsl-ie-rename-column' );
+				this.renameColumn( btn.dataset.fieldKey );
 			}
 
 			// Edit column functions
@@ -426,16 +439,68 @@ export default class ExportStep3 {
 	 */
 	addCustomColumn() {
 		const label = prompt( window.rslIeData.i18n.enterColumnName );
-		if ( ! label ) return;
+		if ( ! label || ! label.trim() ) return;
+		const value = prompt(
+			window.rslIeData.i18n.enterColumnValue ||
+				'Value for every row (optional):',
+			''
+		);
 
 		const field =
 			'custom_' + label.toLowerCase().replace( /[^a-z0-9]/g, '_' );
 
 		this.addFieldToCSV( {
 			field,
-			label,
+			label: label.trim(),
 			type: 'custom',
+			header: label.trim(),
+			value: null === value ? '' : value,
 		} );
+	}
+
+	/**
+	 * Rename a column header in the exported file.
+	 *
+	 * @param {string} fieldKey Column key.
+	 */
+	renameColumn( fieldKey ) {
+		const column = this.selectedFields.find( ( f ) => f.key === fieldKey );
+		if ( ! column ) return;
+		const current = column.header || column.field;
+		const header = prompt(
+			window.rslIeData.i18n.renameColumnPrompt ||
+				'Column name in the exported file:',
+			current
+		);
+		if ( null === header ) return;
+		const name = header.trim();
+		column.header = name === column.field ? '' : name;
+		const label = document.querySelector(
+			`.rsl-ie-csv-column[data-field-key="${ fieldKey }"] .rsl-ie-column-label`
+		);
+		if ( label ) {
+			// Show the name the file will use; an empty answer restores the field label.
+			label.textContent = name || column.label;
+		}
+	}
+
+	/**
+	 * Column names and fixed values chosen on this step, keyed by field.
+	 *
+	 * @return {{headers: Object, values: Object}} Headers and custom values.
+	 */
+	getColumnSettings() {
+		const headers = {};
+		const values = {};
+		this.selectedFields.forEach( ( column ) => {
+			if ( column.header && column.header !== column.field ) {
+				headers[ column.field ] = column.header;
+			}
+			if ( 'custom' === column.type && column.value ) {
+				values[ column.field ] = column.value;
+			}
+		} );
+		return { headers, values };
 	}
 
 	/**

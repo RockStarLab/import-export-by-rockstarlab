@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.27
+Stable tag: 2.1.28
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -273,6 +273,16 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.28 =
+* New: rename any export column with the pencil icon, so the file uses the column names another system expects, for example Google Merchant Center attributes (id, title, price, availability).
+* New: custom export columns ("Add Custom") can hold a fixed value for every row, for example condition = new. Before, a custom column was left out of the file.
+* New: the WooCommerce product export has the option "One row per variation" for product feeds. Each variable product is replaced by its enabled variations with their own SKU, price, stock, image and link, and the new Parent SKU column groups them.
+* New: exports with the Tab delimiter are saved as .tsv files.
+* Improved: Auto Map recognizes common review export headers (Review ID, Reviewer Name, Reviewer Email, Rating, Review Date, Verified Buyer, Reply To and others), more product export columns (children, sale price dates), and no longer maps gallery video columns to the image gallery.
+* Improved: a reviews export can include the Parent Review ID, so replies stay under their reviews on another store.
+* Fixed: the import result no longer says "Import Failed" when rows were skipped on purpose.
+* Fixed: the Tab option in the CSV delimiter list showed a double backslash.
 
 = 2.1.27 =
 * New: import a file from a URL. Paste the address of a CSV, XML, JSON, XLSX or ODS file below the upload area and click Fetch File; the server downloads and checks it like an upload. When the import is repeated by a schedule, the file is downloaded again on every run, so supplier price lists and feeds stay current.

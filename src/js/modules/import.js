@@ -779,7 +779,9 @@ const ImportModule = {
 			const data = await response.json();
 			if ( ! data.success ) {
 				throw new Error(
-					'string' === typeof data.data ? data.data : 'Download failed'
+					'string' === typeof data.data
+						? data.data
+						: 'Download failed'
 				);
 			}
 			const result = data.data;
@@ -805,10 +807,9 @@ const ImportModule = {
 			jQuery( '.rsl-ie-file-format' ).text( format.toUpperCase() );
 			jQuery( '.rsl-ie-file-conversion' )
 				.text(
-					( rslIeData.i18n.fileUrlSource || 'Downloaded from %s' ).replace(
-						'%s',
-						url
-					)
+					(
+						rslIeData.i18n.fileUrlSource || 'Downloaded from %s'
+					).replace( '%s', url )
 				)
 				.show();
 			jQuery( '.rsl-ie-upload-progress' ).hide();
@@ -3760,7 +3761,7 @@ const ImportModule = {
 						{
 							value: 'source_comment_id',
 							label: 'Source Review ID (for updates)',
-							type: 'number',
+							type: 'string',
 						},
 						{
 							value: 'product_id',
@@ -5664,7 +5665,8 @@ const ImportModule = {
 				sku: [ 'sku', 'variant sku' ],
 				regular_price: [ 'variant price', 'price' ],
 				product_images: [ 'images' ],
-				grouped_products: [ 'grouped products' ],
+				// "children" is how WebToffee's export lists grouped products.
+				grouped_products: [ 'grouped products', 'children' ],
 				upsell_skus: [ 'upsells' ],
 				crosssell_skus: [ 'cross-sells' ],
 				download_limit: [ 'download limit' ],
@@ -5678,8 +5680,14 @@ const ImportModule = {
 				purchase_note: [ 'purchase note' ],
 				menu_order: [ 'position' ],
 				low_stock_amount: [ 'low stock amount' ],
-				date_on_sale_from: [ 'date sale price starts' ],
-				date_on_sale_to: [ 'date sale price ends' ],
+				date_on_sale_from: [
+					'date sale price starts',
+					'sale_price_dates_from',
+				],
+				date_on_sale_to: [
+					'date sale price ends',
+					'sale_price_dates_to',
+				],
 				// Customer spreadsheets (CRM, mailing tools, other shops).
 				billing_address_1: [
 					'address',
@@ -5721,6 +5729,81 @@ const ImportModule = {
 				],
 				image_url: [ 'image', 'thumbnail', 'category image' ],
 			};
+			const reviewAliases = {};
+			Object.entries( {
+				source_comment_id: [
+					'review id',
+					'review_id',
+					'id',
+					'source review id',
+				],
+				product_sku: [ 'product sku', 'sku', 'variant sku' ],
+				product_slug: [
+					'product handle',
+					'handle',
+					'product slug',
+					'slug',
+				],
+				product_title: [ 'product name', 'product title', 'product' ],
+				product_id: [ 'product id', 'product_id' ],
+				comment_author: [
+					'reviewer name',
+					'reviewer',
+					'author',
+					'author name',
+					'name',
+					'customer name',
+					'display name',
+				],
+				comment_author_email: [
+					'reviewer email',
+					'email',
+					'author email',
+					'customer email',
+				],
+				comment_content: [
+					'review',
+					'review text',
+					'review body',
+					'body',
+					'content',
+					'comment',
+					'message',
+				],
+				comment_date: [
+					'review date',
+					'date',
+					'created at',
+					'submitted at',
+					'date created',
+				],
+				rating: [ 'rating', 'stars', 'score', 'star rating' ],
+				verified: [
+					'verified',
+					'verified buyer',
+					'verified purchase',
+					'verified owner',
+				],
+				comment_approved: [
+					'status',
+					'approved',
+					'published',
+					'review status',
+				],
+				comment_parent: [
+					'reply to',
+					'parent',
+					'parent id',
+					'parent review id',
+					'in reply to',
+					'source_comment_parent_id',
+				],
+				comment_author_IP: [ 'ip', 'ip address' ],
+			} ).forEach( ( [ targetKey, aliases ] ) =>
+				aliases.forEach(
+					( alias ) => ( reviewAliases[ alias ] = targetKey )
+				)
+			);
 			const aliasLookup = new Map();
 			Object.keys( headerAliases ).forEach( ( targetKey ) => {
 				headerAliases[ targetKey ].forEach( ( alias ) => {
@@ -5740,7 +5823,13 @@ const ImportModule = {
 						.replace( /^\uFEFF/, '' )
 						.trim()
 						.toLowerCase();
-					let aliasTarget = aliasLookup.get( normalizedSource );
+					// Review exports from other stores and review apps use their own headers.
+					let aliasTarget =
+						( 'woo_review' ===
+						jQuery( 'input[name="content_type"]:checked' ).val()
+							? reviewAliases[ normalizedSource ]
+							: undefined ) ||
+						aliasLookup.get( normalizedSource );
 					if ( ! aliasTarget ) {
 						const attributeMatch = normalizedSource.match(
 							/^attribute (\d+) (name|value\(s\)|visible|global)$/
@@ -5890,7 +5979,9 @@ const ImportModule = {
 							sourceFieldLower.includes( targetFieldValue ) &&
 							targetFieldValue.length > 2 &&
 							// "Weight Unit" names the unit, not the weight.
-							! /\bunits?$/.test( sourceFieldLower )
+							! /\bunits?$/.test( sourceFieldLower ) &&
+							// Gallery videos are not gallery images.
+							! /video/.test( sourceFieldLower )
 						) {
 							matchType = 'partial';
 						} else if (
@@ -6626,7 +6717,9 @@ const ImportModule = {
 			( parseInt( result.success, 10 ) || 0 ) +
 			( parseInt( result.updated, 10 ) || 0 ) +
 			( parseInt( result.created, 10 ) || 0 );
-		const allFailed = 0 === done;
+		// Rows skipped on purpose (If Match Found = Skip) are not failures.
+		const allFailed =
+			0 === done && ! ( parseInt( result.skipped, 10 ) > 0 );
 
 		$card.addClass(
 			allFailed ? 'rsl-ie-complete-error' : 'rsl-ie-complete-warning'
@@ -7361,13 +7454,8 @@ const ImportModule = {
 			woo_order: [ 'order_key', 'order_number', 'ID' ],
 			woo_coupon: [ 'post_title', 'ID' ],
 			woo_attribute: [ 'attribute_name', 'attribute_id' ],
-			woo_review: [
-				'source_comment_id',
-				'comment_ID',
-				'product_sku',
-				'comment_author_email',
-				'comment_content',
-			],
+			// Reviews match by the review ID, or by product + reviewer email + date.
+			woo_review: [ 'source_comment_id', 'comment_author_email' ],
 			woo_refund: [
 				'source_refund_id',
 				'refund_id',

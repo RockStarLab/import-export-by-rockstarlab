@@ -138,6 +138,8 @@ class Post_Exporter extends Abstract_Exporter {
 			'word_count',
 			// WooCommerce: variable product variations (JSON)
 			'variations',
+			// WooCommerce: parent SKU of a variation row (empty for other products)
+			'parent_sku',
 			// WooCommerce: product attribute configuration and assigned terms (JSON)
 			'product_attributes',
 			// WooCommerce: grouped product child references (JSON)
@@ -525,13 +527,116 @@ class Post_Exporter extends Abstract_Exporter {
 			}
 			// Re-apply this at the collection boundary because some export paths
 			// can rebuild taxonomy values after post preparation.
-			$item   = $this->normalize_portable_taxonomy_acf_media_fields( $item, $fields );
+			$item = $this->normalize_portable_taxonomy_acf_media_fields( $item, $fields );
+			if ( in_array( 'parent_sku', $fields, true ) ) {
+				$item['parent_sku'] = '';
+			}
+			// Product feeds (Google Merchant Center, catalogs) list each variation as its own item.
+			if ( ! empty( $options['variation_rows'] ) && 'product' === $post->post_type && function_exists( 'wc_get_product' ) ) {
+				$wc_product = wc_get_product( $post->ID );
+				if ( $wc_product && $wc_product->is_type( 'variable' ) ) {
+					$rows = $this->variation_rows( $wc_product, $item );
+					if ( $rows ) {
+						array_push( $data, ...$rows );
+						continue;
+					}
+				}
+			}
 			$data[] = $item;
 		}
+		$this->source_row_count = (int) $query->post_count;
 
 		wp_reset_postdata();
 
 		return $data;
+	}
+
+	/**
+	 * One row per published variation, filled from the parent row where the variation has no value of its own.
+	 *
+	 * @param \WC_Product $parent      Variable product.
+	 * @param array       $parent_item Exported parent row.
+	 * @return array
+	 */
+	private function variation_rows( $parent, array $parent_item ) {
+		$getters = [
+			'sku'            => 'sku',
+			'_sku'           => 'sku',
+			'regular_price'  => 'regular_price',
+			'_regular_price' => 'regular_price',
+			'sale_price'     => 'sale_price',
+			'_sale_price'    => 'sale_price',
+			'stock_quantity' => 'stock_quantity',
+			'_stock'         => 'stock_quantity',
+			'stock_status'   => 'stock_status',
+			'_stock_status'  => 'stock_status',
+			'manage_stock'   => 'manage_stock',
+			'_manage_stock'  => 'manage_stock',
+			'backorders'     => 'backorders',
+			'_backorders'    => 'backorders',
+			'tax_class'      => 'tax_class',
+			'_tax_class'     => 'tax_class',
+			'downloadable'   => 'downloadable',
+			'_downloadable'  => 'downloadable',
+			'virtual'        => 'virtual',
+			'_virtual'       => 'virtual',
+			'weight'         => 'weight',
+			'_weight'        => 'weight',
+			'length'         => 'length',
+			'_length'        => 'length',
+			'width'          => 'width',
+			'_width'         => 'width',
+			'height'         => 'height',
+			'_height'        => 'height',
+			'shipping_class' => 'shipping_class',
+			'total_sales'    => 'total_sales',
+		];
+		$rows    = [];
+		foreach ( $parent->get_children() as $variation_id ) {
+			$variation = wc_get_product( $variation_id );
+			// Disabled variations are saved as private posts.
+			if ( ! $variation || 'publish' !== get_post_status( $variation_id ) ) {
+				continue;
+			}
+			$row = $parent_item;
+			foreach ( $getters as $field => $prop ) {
+				if ( ! array_key_exists( $field, $row ) || ! is_callable( [ $variation, 'get_' . $prop ] ) ) {
+					continue;
+				}
+				// Edit context for the SKU: an empty variation SKU must not repeat the parent's.
+				$value = 'sku' === $prop ? $variation->get_sku( 'edit' ) : $variation->{'get_' . $prop}();
+				if ( is_bool( $value ) ) {
+					$value = $value ? 'yes' : 'no';
+				} elseif ( null === $value || false === $value ) {
+					$value = '';
+				}
+				$row[ $field ] = $value;
+			}
+			$image_id = (int) $variation->get_image_id( 'edit' );
+			$own      = [
+				'ID'                 => $variation->get_id(),
+				'post_title'         => $variation->get_name(),
+				'post_name'          => (string) get_post_field( 'post_name', $variation_id ),
+				'post_status'        => (string) get_post_status( $variation_id ),
+				'permalink'          => $variation->get_permalink(),
+				'product_type'       => 'variation',
+				'_product_type'      => 'variation',
+				'parent_sku'         => $parent->get_sku( 'edit' ),
+				'variations'         => '',
+				'featured_image_id'  => $image_id ? $image_id : ( $parent_item['featured_image_id'] ?? '' ),
+				'featured_image_url' => $image_id ? (string) wp_get_attachment_url( $image_id ) : ( $parent_item['featured_image_url'] ?? '' ),
+			];
+			if ( '' !== trim( (string) $variation->get_description( 'edit' ) ) ) {
+				$own['post_content'] = $variation->get_description( 'edit' );
+			}
+			foreach ( $own as $field => $value ) {
+				if ( array_key_exists( $field, $row ) ) {
+					$row[ $field ] = $value;
+				}
+			}
+			$rows[] = $row;
+		}
+		return $rows;
 	}
 
 	/**
