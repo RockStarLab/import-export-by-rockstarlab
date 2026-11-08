@@ -73,7 +73,7 @@ defined( 'ABSPATH' ) || exit;
 							<select name="csv_delimiter" class="regular-text">
 								<option value=",">,<?php esc_html_e( ' (Comma)', 'import-export-by-rockstarlab' ); ?></option>
 								<option value=";">; <?php esc_html_e( ' (Semicolon)', 'import-export-by-rockstarlab' ); ?></option>
-								<option value="tab">\\t <?php esc_html_e( ' (Tab)', 'import-export-by-rockstarlab' ); ?></option>
+								<option value="tab">\t <?php esc_html_e( ' (Tab)', 'import-export-by-rockstarlab' ); ?></option>
 								<option value="|">| <?php esc_html_e( ' (Pipe)', 'import-export-by-rockstarlab' ); ?></option>
 								<option value="custom"><?php esc_html_e( 'Custom', 'import-export-by-rockstarlab' ); ?></option>
 							</select>
@@ -156,6 +156,16 @@ defined( 'ABSPATH' ) || exit;
 							<td>
 								<input type="text" name="custom_export_file_name" id="rsl-ie-custom-export-file-name" value="" required class="regular-text">
 								<p class="description"><?php esc_html_e( 'Enter the file name without extension. The extension is added automatically from the selected file format. Use {job_id} to keep the current automatic export ID in the filename.', 'import-export-by-rockstarlab' ); ?></p>
+							</td>
+						</tr>
+						<tr class="rsl-ie-variation-rows-option">
+							<th><?php esc_html_e( 'Variations', 'import-export-by-rockstarlab' ); ?></th>
+							<td>
+								<label>
+									<input type="checkbox" name="variation_rows" value="1">
+									<?php esc_html_e( 'One row per variation', 'import-export-by-rockstarlab' ); ?>
+								</label>
+								<p class="description"><?php esc_html_e( 'Variable products are replaced by their enabled variations, each with its own SKU, price, stock, image and link. Use this for Google Merchant Center and other product feeds.', 'import-export-by-rockstarlab' ); ?></p>
 							</td>
 						</tr>
 						<tr>

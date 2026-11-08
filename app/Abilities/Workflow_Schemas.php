@@ -313,6 +313,18 @@ class Workflow_Schemas {
 			100
 		);
 		$p['content_types']       = self::items( $s, 100 );
+		// Column names in the file (field => name) and fixed values for custom_* columns.
+		foreach ( [ 'column_headers', 'custom_values' ] as $map ) {
+			$p[ $map ] = [
+				'type'                 => 'object',
+				'additionalProperties' => [ 'type' => 'string', 'maxLength' => 500 ],
+				'maxProperties'        => 200,
+			];
+		}
+		$p['variation_rows'] = [
+			'type'        => 'boolean',
+			'description' => 'WooCommerce products: one row per enabled variation instead of the variable product.',
+		];
 		foreach ( [ 'date', 'meta', 'tax' ] as $kind ) {
 			$p[ $kind . '_query' ] = self::query( $kind ); }
 		return self::object( $p );

@@ -575,6 +575,11 @@ const ExportModule = {
 
 		if ( step === 4 ) {
 			this.ensureCustomExportFileName();
+			// The variation option only applies to WooCommerce products.
+			jQuery( '.rsl-ie-variation-rows-option' ).toggle(
+				'woo_product' ===
+					jQuery( 'input[name="content_type"]:checked' ).val()
+			);
 		}
 
 		if ( step === 1 ) {
@@ -1984,6 +1989,28 @@ const ExportModule = {
 			};
 
 			this.applySelectionPrefillToOptions( data.options, contentType );
+
+			// Product feeds: one row per variation instead of the variable product.
+			if (
+				'woo_product' === contentType &&
+				jQuery( '[name="variation_rows"]' ).is( ':checked' )
+			) {
+				data.options.variation_rows = true;
+			}
+
+			// Renamed columns and fixed values for custom columns.
+			if (
+				this.step3Instance &&
+				'function' === typeof this.step3Instance.getColumnSettings
+			) {
+				const columns = this.step3Instance.getColumnSettings();
+				if ( Object.keys( columns.headers ).length ) {
+					data.options.column_headers = columns.headers;
+				}
+				if ( Object.keys( columns.values ).length ) {
+					data.options.custom_values = columns.values;
+				}
+			}
 
 			if ( contentType === 'urls' ) {
 				const contentTypes = this.getSelectedUrlContentTypes();
@@ -4119,6 +4146,13 @@ const ExportModule = {
 							type: 'string',
 						},
 						{
+							value: 'parent_sku',
+							label:
+								window.rslIeData.i18n.fieldParentSku ||
+								'Parent SKU',
+							type: 'string',
+						},
+						{
 							value: 'product_url',
 							label: 'External Product URL',
 							type: 'url',
@@ -4957,6 +4991,11 @@ const ExportModule = {
 							value: 'comment_approved',
 							label: 'Status',
 							type: 'string',
+						},
+						{
+							value: 'comment_parent',
+							label: 'Parent Review ID',
+							type: 'number',
 						},
 						{ value: 'rating', label: 'Rating', type: 'number' },
 						{

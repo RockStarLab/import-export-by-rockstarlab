@@ -30,6 +30,13 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	protected $options = [];
 
 	/**
+	 * Number of source items behind the last get_data() call when it differs from the row count.
+	 *
+	 * @var int|null
+	 */
+	protected $source_row_count = null;
+
+	/**
 	 * Export statistics
 	 *
 	 * @var array
@@ -62,6 +69,7 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	public function export( $options = [] ) {
 		$this->stats['start_time'] = microtime( true );
 		$this->options             = wp_parse_args( $options, $this->get_default_options() );
+		$this->source_row_count    = null;
 		$this->reset_stats();
 
 		// Validate options first
@@ -96,7 +104,8 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 			return $data;
 		}
 
-		$this->stats['processed'] = count( $data );
+		// Some exporters write several rows for one source item (variation rows); the batch offset counts source items.
+		$this->stats['processed'] = null !== $this->source_row_count ? $this->source_row_count : count( $data );
 		$exported_data            = [];
 
 		// Process each item
@@ -179,6 +188,21 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	 * @return mixed|string|WP_Error Processed item, 'skipped', or WP_Error
 	 */
 	protected function process_item( $item, $index ) {
+		// Custom columns added on the Fields step hold a fixed value (or stay empty for transformations to fill).
+		if ( is_array( $item ) && ! empty( $this->options['fields'] ) && is_array( $this->options['fields'] ) ) {
+			$custom_values = is_array( $this->options['custom_values'] ?? null ) ? $this->options['custom_values'] : [];
+			foreach ( $this->options['fields'] as $field ) {
+				if ( ! is_string( $field ) || 0 !== strpos( $field, 'custom_' ) ) {
+					continue;
+				}
+				if ( isset( $custom_values[ $field ] ) && is_scalar( $custom_values[ $field ] ) ) {
+					$item[ $field ] = (string) $custom_values[ $field ];
+				} elseif ( ! array_key_exists( $field, $item ) ) {
+					$item[ $field ] = '';
+				}
+			}
+		}
+
 		// Apply field functions if they exist
 		if ( ! empty( $this->options['field_functions'] ) && is_array( $item ) ) {
 			$item = $this->apply_field_functions( $item, $this->options['field_functions'] );
