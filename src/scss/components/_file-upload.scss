@@ -91,3 +91,27 @@
 		}
 	}
 }
+
+.rsl-ie-url-import {
+	margin-top: 20px;
+	padding-top: 16px;
+	border-top: 1px solid #e4e3df;
+	text-align: left;
+
+	label {
+		display: block;
+		font-weight: 600;
+		margin-bottom: 8px;
+	}
+
+	.rsl-ie-url-import-row {
+		display: flex;
+		gap: 8px;
+		flex-wrap: wrap;
+
+		input[type="url"] {
+			flex: 1 1 320px;
+			max-width: 100%;
+		}
+	}
+}

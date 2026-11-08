@@ -49,13 +49,17 @@ class XML_Format implements File_Format_Interface {
 
 	/** Stream records while validating the complete document before publication. */
 	public function rows( $file_path, $options = array(), &$cursor = null ) {
+		// Cursor and spool identities stay keyed by the caller's options; the
+		// detected record element depends only on the (fingerprinted) file.
+		$requested = $options;
+		$options   = $this->resolve_record_options( $file_path, (array) $options );
 		if ( func_num_args() < 3 ) {
 			yield from $this->document_rows( $file_path, $options );
 			return; }
 		clearstatcache( true, $file_path );
 		$stat     = stat( $file_path );
 		$identity = array_intersect_key( $stat ?: array(), array_flip( array( 'dev', 'ino', 'size', 'mtime', 'ctime' ) ) );
-		$settings = hash( 'sha256', serialize( $options ) );
+		$settings = hash( 'sha256', serialize( $requested ) );
 		if ( null !== $cursor && ( ! is_array( $cursor ) || ( $cursor['identity'] ?? null ) !== $identity || ( $cursor['settings'] ?? null ) !== $settings || ! isset( $cursor['count'] ) || ! is_int( $cursor['count'] ) || $cursor['count'] < 0 ) ) {
 			throw new \RuntimeException( 'Invalid XML cursor.' );
 		}
@@ -211,7 +215,7 @@ class XML_Format implements File_Format_Interface {
 				if ( \XMLReader::DOC_TYPE === $reader->nodeType ) {
 					throw new \RuntimeException( 'XML document types are unsupported.' ); }
 				if ( \XMLReader::ELEMENT === $reader->nodeType && $reader->name === $item_tag ) {
-					$item = $this->parse_xml_element( $reader );
+					$item = $this->parse_xml_element( $reader, ! empty( $options['xml_flat'] ) );
 					if ( is_wp_error( $item ) ) {
 						throw new \RuntimeException( 'Invalid XML record.' ); }
 					if ( ! empty( $item ) ) {
@@ -263,7 +267,7 @@ class XML_Format implements File_Format_Interface {
 	 * @param \XMLReader $reader XMLReader instance
 	 * @return array|\WP_Error Parsed element data or WP_Error on failure.
 	 */
-	private function parse_xml_element( $reader ) {
+	private function parse_xml_element( $reader, $flat = false ) {
 		$outer_xml = $reader->readOuterXml();
 		if ( false === $outer_xml || '' === $outer_xml ) {
 			return new \WP_Error( 'xml_parse_error', __( 'Cannot read XML item.', 'import-export-by-rockstarlab' ) );
@@ -277,8 +281,244 @@ class XML_Format implements File_Format_Interface {
 			return new \WP_Error( 'xml_parse_error', __( 'Cannot parse XML item.', 'import-export-by-rockstarlab' ) );
 		}
 
+		if ( $flat ) {
+			return $this->flatten_element( $element );
+		}
+
 		$data = json_decode( wp_json_encode( $element ), true );
 		return is_array( $data ) ? $this->normalize_xml_values( $data ) : array();
+	}
+
+	/**
+	 * Work out which element is one record.
+	 *
+	 * The plugin's own files use <items><item>. Feeds from suppliers and shops use
+	 * other names (<catalog><product>, <rss><channel><item>, <offers><offer>): the
+	 * record is the element that repeats under the root, or under a single wrapper.
+	 * Feeds are read as flat rows (see flatten_element()).
+	 *
+	 * @param string $file_path File path or, for fragments, XML text.
+	 * @param array  $options   Parser options.
+	 * @return array Options with item_tag and xml_flat set.
+	 */
+	private function resolve_record_options( $file_path, array $options ) {
+		if ( ! empty( $options['item_tag'] ) && isset( $options['xml_flat'] ) ) {
+			return $options;
+		}
+		static $cache = array();
+		$key = '';
+		if ( is_string( $file_path ) && strlen( $file_path ) < 4096 && is_file( $file_path ) ) {
+			clearstatcache( true, $file_path );
+			$head = (string) file_get_contents( $file_path, false, null, 0, 65536 );
+			$key  = $file_path . '|' . filesize( $file_path ) . '|' . md5( $head );
+		}
+		if ( '' === $key ) {
+			$options['item_tag'] = $options['item_tag'] ?? self::DEFAULT_ITEM;
+			$options['xml_flat'] = $options['xml_flat'] ?? false;
+			return $options;
+		}
+		if ( ! isset( $cache[ $key ] ) ) {
+			$cache[ $key ] = $this->detect_record( $file_path );
+		}
+		list( $root, $tag ) = $cache[ $key ];
+		if ( ! empty( $options['item_tag'] ) ) {
+			$tag = (string) $options['item_tag'];
+		}
+		$options['item_tag'] = $tag;
+		// An unreadable start (the parser reports the error later) keeps the classic reading.
+		$options['xml_flat'] = '' !== $root && ! ( self::DEFAULT_ROOT === $root && self::DEFAULT_ITEM === $tag );
+		return $options;
+	}
+
+	/**
+	 * Scan the start of a file for the record element.
+	 *
+	 * @param string $file_path File path.
+	 * @return array{0:string,1:string} Root element name and record element name.
+	 */
+	private function detect_record( $file_path ) {
+		$reader   = new \XMLReader();
+		$previous = libxml_use_internal_errors( true );
+		$root     = '';
+		$level1   = array();
+		$level2   = array();
+		$parents  = array();
+		$seen     = 0;
+		try {
+			if ( ! $reader->open( $file_path, null, LIBXML_NONET | LIBXML_COMPACT | LIBXML_PARSEHUGE ) ) {
+				return array( '', self::DEFAULT_ITEM );
+			}
+			while ( $reader->read() && $seen < 20000 ) {
+				if ( \XMLReader::ELEMENT !== $reader->nodeType ) {
+					continue;
+				}
+				++$seen;
+				if ( 0 === $reader->depth ) {
+					$root = $reader->name;
+				} elseif ( 1 === $reader->depth ) {
+					$level1[ $reader->name ] = ( $level1[ $reader->name ] ?? 0 ) + 1;
+					$parents[1]              = $reader->name;
+					// Two records under the root, or the plugin's own <item>, are enough to decide.
+					if ( $level1[ $reader->name ] >= 2 || self::DEFAULT_ITEM === $reader->name ) {
+						break;
+					}
+				} elseif ( 2 === $reader->depth ) {
+					$name            = $parents[1] . '>' . $reader->name;
+					$level2[ $name ] = ( $level2[ $name ] ?? 0 ) + 1;
+				}
+			}
+		} finally {
+			$reader->close();
+			libxml_clear_errors();
+			libxml_use_internal_errors( $previous );
+		}
+		// A lone <item> document is read the classic way.
+		if ( self::DEFAULT_ITEM === $root ) {
+			return array( self::DEFAULT_ROOT, self::DEFAULT_ITEM );
+		}
+		if ( isset( $level1[ self::DEFAULT_ITEM ] ) || empty( $level1 ) ) {
+			return array( $root, self::DEFAULT_ITEM );
+		}
+		arsort( $level1 );
+		$best = (string) key( $level1 );
+		if ( $level1[ $best ] >= 2 ) {
+			return array( $root, $best );
+		}
+		// One wrapper under the root (<channel>, <products>): look one level deeper.
+		$inside = array();
+		foreach ( $level2 as $path => $count ) {
+			if ( 0 === strpos( $path, $best . '>' ) ) {
+				$inside[ substr( $path, strlen( $best ) + 1 ) ] = $count;
+			}
+		}
+		arsort( $inside );
+		$deeper = (string) key( $inside );
+		if ( '' !== $deeper && ( $inside[ $deeper ] >= 2 || in_array( $deeper, array( 'item', 'product', 'offer', 'entry', 'record', 'row' ), true ) ) ) {
+			return array( $root, $deeper );
+		}
+		return array( $root, $best );
+	}
+
+	/**
+	 * Turn one feed record into a flat row.
+	 *
+	 * <sku>A1</sku> becomes sku => A1; attributes become name@attribute
+	 * (<price currency="USD">9</price> gives price => 9 and price@currency => USD);
+	 * repeated values and lists such as <images><image>..</image></images> become
+	 * one comma-separated value; other nested elements get path names (shipping/weight).
+	 *
+	 * @param \SimpleXMLElement $element Record element.
+	 * @param string            $prefix  Name prefix for nested elements.
+	 * @return array<string,string>
+	 */
+	private function flatten_element( \SimpleXMLElement $element, $prefix = '' ) {
+		$row = array();
+		foreach ( $this->element_attributes( $element ) as $name => $value ) {
+			$row[ ( '' === $prefix ? '' : rtrim( $prefix, '/' ) ) . '@' . $name ] = $value;
+		}
+		$groups = array();
+		foreach ( $this->element_children( $element ) as $child ) {
+			$groups[ $child[0] ][] = $child[1];
+		}
+		foreach ( $groups as $name => $children ) {
+			$key    = $prefix . $name;
+			$leaves = true;
+			foreach ( $children as $child ) {
+				if ( $this->element_children( $child ) ) {
+					$leaves = false;
+					break;
+				}
+			}
+			if ( $leaves ) {
+				$values = array();
+				foreach ( $children as $child ) {
+					$values[] = trim( (string) $child );
+					foreach ( $this->element_attributes( $child ) as $attribute => $value ) {
+						$row[ $key . '@' . $attribute ] = isset( $row[ $key . '@' . $attribute ] ) ? $row[ $key . '@' . $attribute ] . ', ' . $value : $value;
+					}
+				}
+				$row[ $key ] = implode( ', ', array_filter( $values, 'strlen' ) );
+				continue;
+			}
+			if ( 1 === count( $children ) ) {
+				$inner = $this->element_children( $children[0] );
+				$names = array_values( array_unique( array_column( $inner, 0 ) ) );
+				$plain = 1 === count( $names ) && ( count( $inner ) > 1 || $this->is_plural_of( $name, $names[0] ) );
+				foreach ( $inner as $item ) {
+					if ( $this->element_children( $item[1] ) ) {
+						$plain = false;
+						break;
+					}
+				}
+				if ( $plain ) {
+					// A list wrapper: <images><image>a</image><image>b</image></images>.
+					$values = array();
+					foreach ( $inner as $item ) {
+						$values[] = trim( (string) $item[1] );
+					}
+					$row[ $key ] = implode( ', ', array_filter( $values, 'strlen' ) );
+					continue;
+				}
+				$row += $this->flatten_element( $children[0], $key . '/' );
+				continue;
+			}
+			// Repeated complex elements (variants, attributes) stay together as JSON.
+			$list = array();
+			foreach ( $children as $child ) {
+				$list[] = $this->flatten_element( $child );
+			}
+			$row[ $key ] = wp_json_encode( $list );
+		}
+		return $row;
+	}
+
+	/**
+	 * Whether a wrapper name is the plural of its child (images/image, categories/category).
+	 *
+	 * @param string $wrapper Wrapper element name.
+	 * @param string $child   Child element name.
+	 * @return bool
+	 */
+	private function is_plural_of( $wrapper, $child ) {
+		$wrapper = strtolower( $wrapper );
+		$child   = strtolower( $child );
+		return in_array( $wrapper, array( $child . 's', $child . 'es', substr( $child, 0, -1 ) . 'ies' ), true ) || 'list' === substr( $wrapper, -4 );
+	}
+
+	/**
+	 * Child elements of an element in every namespace, as [name, element] pairs.
+	 *
+	 * @param \SimpleXMLElement $element Element.
+	 * @return array<int,array{0:string,1:\SimpleXMLElement}>
+	 */
+	private function element_children( \SimpleXMLElement $element ) {
+		$out = array();
+		foreach ( $element->children() as $name => $child ) {
+			$out[] = array( (string) $name, $child );
+		}
+		foreach ( $element->getDocNamespaces( true ) as $ns_prefix => $uri ) {
+			if ( '' === $ns_prefix ) {
+				continue;
+			}
+			foreach ( $element->children( $uri ) as $name => $child ) {
+				$out[] = array( $ns_prefix . ':' . $name, $child );
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Attributes of an element as name => value.
+	 *
+	 * @param \SimpleXMLElement $element Element.
+	 * @return array<string,string>
+	 */
+	private function element_attributes( \SimpleXMLElement $element ) {
+		$out = array();
+		foreach ( $element->attributes() as $name => $value ) {
+			$out[ (string) $name ] = (string) $value;
+		}
+		return $out;
 	}
 
 	/**

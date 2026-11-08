@@ -92,6 +92,15 @@ class Schedule_Source_Service {
 			$input['request_id'] = $request_id;
 			if ( 'import' === $job->type ) {
 				$input['file_path'] = $job->file_path;
+				// Imports from a URL fetch the current file on every scheduled run.
+				if ( $start && ! empty( $params['source_url'] ) ) {
+					$fresh = ( new File_Service() )->from_url( (string) $params['source_url'], $params['parser_options'] ?? [ 'delimiter' => $params['delimiter'] ?? ',', 'has_header' => $params['options']['has_header'] ?? true, 'encoding' => $params['encoding'] ?? 'auto' ] );
+					if ( is_wp_error( $fresh ) ) {
+						return $fresh;
+					}
+					$input['file_id']   = $fresh['file_id'];
+					$input['file_path'] = 'rsl-ie-file:' . $fresh['file_id'];
+				}
 				$service            = new Import_Service();
 				return $start ? $service->start( $input ) : $service->check_request( $input );
 			}

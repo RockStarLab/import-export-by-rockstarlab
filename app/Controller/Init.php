@@ -349,6 +349,11 @@ class Init {
 					/* translators: 1: Shopify CSV rows, 2: products, 3: variations. */
 					'shopifyExportConverted'            => __( 'Shopify product export detected: %1$s rows were combined into %2$s products with %3$s variations. Import it as WooCommerce Products and Auto Map will match every column.', 'import-export-by-rockstarlab' ),
 					/* translators: 1: customers in the Shopify CSV, 2: customers without an email address. */
+					'fileUrlInvalid'                    => __( 'Enter a full http:// or https:// address of the file.', 'import-export-by-rockstarlab' ),
+					'fileUrlDownloading'                => __( 'Downloading the file...', 'import-export-by-rockstarlab' ),
+					/* translators: %s: file URL. */
+					'fileUrlSource'                     => __( 'Downloaded from %s', 'import-export-by-rockstarlab' ),
+					'fileUrlDownloaded'                 => __( 'File downloaded', 'import-export-by-rockstarlab' ),
 					'shopifyCustomersConverted'         => __( 'Shopify customer export detected: %1$s customers, %2$s without an email address. Import it as WooCommerce Customers and Auto Map will match every column.', 'import-export-by-rockstarlab' ),
 					'uploadFailed'                      => __( 'Upload failed', 'import-export-by-rockstarlab' ),
 					'noFileDataAvailable'               => __( 'No file data available', 'import-export-by-rockstarlab' ),

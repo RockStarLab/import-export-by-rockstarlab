@@ -31,6 +31,16 @@ defined( 'ABSPATH' ) || exit;
 				</p>
 			</div>
 
+			<!-- Import from a URL -->
+			<div class="rsl-ie-url-import">
+				<label for="rsl-ie-file-url"><?php esc_html_e( 'Or import a file from a URL', 'import-export-by-rockstarlab' ); ?></label>
+				<div class="rsl-ie-url-import-row">
+					<input type="url" id="rsl-ie-file-url" class="regular-text" placeholder="https://example.com/products.csv">
+					<button type="button" class="button button-secondary" id="rsl-ie-fetch-url"><?php esc_html_e( 'Fetch File', 'import-export-by-rockstarlab' ); ?></button>
+				</div>
+				<p class="description"><?php esc_html_e( 'A direct link to a CSV, XML, JSON, XLSX or ODS file, such as a supplier price list or product feed. When you schedule this import, the file is downloaded again on every run.', 'import-export-by-rockstarlab' ); ?></p>
+			</div>
+
 			<!-- Upload Progress Bar -->
 			<div class="rsl-ie-upload-progress" style="display:none;">
 				<div class="rsl-ie-upload-status">

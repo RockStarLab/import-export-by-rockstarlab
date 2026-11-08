@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.26
+Stable tag: 2.1.27
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -273,6 +273,12 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.27 =
+* New: import a file from a URL. Paste the address of a CSV, XML, JSON, XLSX or ODS file below the upload area and click Fetch File; the server downloads and checks it like an upload. When the import is repeated by a schedule, the file is downloaded again on every run, so supplier price lists and feeds stay current.
+* New: XML imports read product and data feeds from other systems, not only the plugin's own files. The repeating element is found automatically (<product>, <item> in RSS and Google Merchant feeds, <offer>, and so on). Attributes become their own columns (price@currency), lists such as <images><image> become one comma-separated column, nested elements get path names (shipping/weight) and namespaced fields keep their prefix (g:price).
+* Improved: the Taxonomy Terms export and import screens have an "Image URL" field for term images such as WooCommerce category thumbnails, and the import screen has "Parent Slug or Name". Auto Map recognizes Image, Thumbnail, Parent Category and Parent Name columns.
+* Fixed: a term import from a spreadsheet without term IDs now sets the parent of a category even when the parent comes later in the file. The parent can be given as a slug or as a name.
 
 = 2.1.26 =
 * Improved: WooCommerce order export and import screens offer a "Tax Lines (Array)" field. It holds each tax rate of the order with its label, rate and amounts, so the PRO order import can rebuild the same tax lines on another store.
