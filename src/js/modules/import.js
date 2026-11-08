@@ -713,7 +713,10 @@ const ImportModule = {
 										'%2$s',
 										parseInt( counts.no_email, 10 ) || 0
 									);
-					Utils.showNotice( Utils.escapeHtml( conversionText ), 'info' );
+					Utils.showNotice(
+						Utils.escapeHtml( conversionText ),
+						'info'
+					);
 					// Keep the explanation next to the file after the notice fades.
 					jQuery( '.rsl-ie-file-conversion' )
 						.text( conversionText )
@@ -3898,7 +3901,9 @@ const ImportModule = {
 						'billing_country',
 					].map( ( value ) => ( {
 						value,
-						label: value.replace( /_/g, ' ' ),
+						label: value
+							.replace( /_/g, ' ' )
+							.replace( /\b\w/g, ( c ) => c.toUpperCase() ),
 						type: 'string',
 					} ) ),
 				},
@@ -3917,7 +3922,9 @@ const ImportModule = {
 						'shipping_country',
 					].map( ( value ) => ( {
 						value,
-						label: value.replace( /_/g, ' ' ),
+						label: value
+							.replace( /_/g, ' ' )
+							.replace( /\b\w/g, ( c ) => c.toUpperCase() ),
 						type: 'string',
 					} ) ),
 				},
@@ -5558,6 +5565,39 @@ const ImportModule = {
 				low_stock_amount: [ 'low stock amount' ],
 				date_on_sale_from: [ 'date sale price starts' ],
 				date_on_sale_to: [ 'date sale price ends' ],
+				// Customer spreadsheets (CRM, mailing tools, other shops).
+				billing_address_1: [
+					'address',
+					'address 1',
+					'address1',
+					'address line 1',
+					'street',
+					'street address',
+				],
+				billing_address_2: [
+					'address 2',
+					'address2',
+					'address line 2',
+					'apartment',
+					'suite',
+				],
+				billing_city: [ 'city', 'town' ],
+				billing_state: [ 'state', 'province', 'region', 'county' ],
+				billing_postcode: [
+					'zip',
+					'zip code',
+					'postcode',
+					'postal code',
+				],
+				billing_country: [ 'country' ],
+				billing_phone: [ 'phone', 'phone number', 'telephone' ],
+				billing_company: [ 'company' ],
+				date_created: [
+					'customer since',
+					'registered',
+					'date registered',
+					'registration date',
+				],
 			};
 			const aliasLookup = new Map();
 			Object.keys( headerAliases ).forEach( ( targetKey ) => {
