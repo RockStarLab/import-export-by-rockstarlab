@@ -5127,7 +5127,9 @@ const ExportModule = {
 						'billing_country',
 					].map( ( value ) => ( {
 						value,
-						label: value.replace( /_/g, ' ' ),
+						label: value
+							.replace( /_/g, ' ' )
+							.replace( /\b\w/g, ( c ) => c.toUpperCase() ),
 						type: 'string',
 					} ) ),
 				},
@@ -5146,7 +5148,9 @@ const ExportModule = {
 						'shipping_country',
 					].map( ( value ) => ( {
 						value,
-						label: value.replace( /_/g, ' ' ),
+						label: value
+							.replace( /_/g, ' ' )
+							.replace( /\b\w/g, ( c ) => c.toUpperCase() ),
 						type: 'string',
 					} ) ),
 				},

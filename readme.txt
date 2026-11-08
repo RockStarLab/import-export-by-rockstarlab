@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.24
+Stable tag: 2.1.25
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -273,6 +273,10 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.25 =
+* Improved: Auto Map recognizes common customer spreadsheet columns: Address, Address 2, City, State or Province, Zip or Postcode, Country, Phone, Company and Customer Since.
+* Improved: WooCommerce customer billing and shipping fields have capitalized names on the export and import screens ("Billing City" instead of "billing city").
 
 = 2.1.24 =
 * Improved: Auto Map maps a "Status" column to Status and "Type" to Product Type. Before, "Status" could land in Comment Status, and a "Weight Unit" column in Weight.
