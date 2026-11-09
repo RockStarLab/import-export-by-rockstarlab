@@ -378,19 +378,24 @@ class Trigger_Service {
 			if ( ! isset( $all[ $t['trigger_id'] ] ) ) {
 				continue;
 			}
-			$before                                    = $all[ $t['trigger_id'] ]['file_state'];
-			$all[ $t['trigger_id'] ]['file_state'] = $state;
-			$this->store( self::OPTION, $all );
-			if ( ! $before ) {
-				$out[ $t['trigger_id'] ] = 'baseline';
-				continue;
-			}
+			$before = $all[ $t['trigger_id'] ]['file_state'];
 			if ( $before === $state ) {
 				$out[ $t['trigger_id'] ] = 'unchanged';
 				continue;
 			}
-			$result                  = $this->run( $t['trigger_id'], 'file' );
-			$out[ $t['trigger_id'] ] = is_wp_error( $result ) ? $result->get_error_code() : 'changed';
+			if ( ! $before ) {
+				$this->save_file_state( $t['trigger_id'], $state );
+				$out[ $t['trigger_id'] ] = 'baseline';
+				continue;
+			}
+			$result = $this->run( $t['trigger_id'], 'file' );
+			if ( is_wp_error( $result ) ) {
+				// Keep the old fingerprint so the next check tries again (e.g. the previous job was still running).
+				$out[ $t['trigger_id'] ] = $result->get_error_code();
+				continue;
+			}
+			$this->save_file_state( $t['trigger_id'], $state );
+			$out[ $t['trigger_id'] ] = 'changed';
 		}
 		return $out;
 	}
@@ -402,6 +407,20 @@ class Trigger_Service {
 	 */
 	public static function inside_job() {
 		return Import_Service::is_processing() || Job_Lock::holds_any_job();
+	}
+
+	/**
+	 * Remember the fingerprint of a trigger's file.
+	 *
+	 * @param string $id    Trigger ID.
+	 * @param array  $state Fingerprint.
+	 */
+	private function save_file_state( $id, array $state ) {
+		$all = $this->all();
+		if ( isset( $all[ $id ] ) ) {
+			$all[ $id ]['file_state'] = $state;
+			$this->store( self::OPTION, $all );
+		}
 	}
 
 	/** REST route for webhook triggers. */
