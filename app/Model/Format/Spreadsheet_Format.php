@@ -411,6 +411,25 @@ class Spreadsheet_Format implements File_Format_Interface {
 	}
 
 	/**
+	 * A plain number that reads back as exactly the same text, or null.
+	 *
+	 * Quantities, IDs and prices become real numbers so spreadsheets can sum and sort them.
+	 * Codes such as 00123 or +4930123, numbers longer than 11 digits (barcodes, tracking
+	 * numbers, which Excel would show as 1.2E+12) and decimals with trailing zeros (1.10)
+	 * stay text, so a re-import reads exactly what was exported.
+	 *
+	 * @param string $text Cell text.
+	 * @return int|float|null
+	 */
+	private function exact_number( $text ) {
+		if ( ! is_string( $text ) || ! preg_match( '/^-?(?:0|[1-9]\d{0,10})(?:\.\d{1,10})?$/', $text ) ) {
+			return null;
+		}
+		$number = false === strpos( $text, '.' ) ? (int) $text : (float) $text;
+		return (string) $number === $text ? $number : null;
+	}
+
+	/**
 	 * Write one row using explicit strings to avoid formula execution.
 	 *
 	 * @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet     Worksheet.
@@ -422,10 +441,12 @@ class Spreadsheet_Format implements File_Format_Interface {
 
 		foreach ( $values as $value ) {
 			$coordinate = Coordinate::stringFromColumnIndex( $column_index ) . $row_index;
+			$text       = $this->normalize_cell_value( $value );
+			$number     = $this->exact_number( $text );
 			$sheet->setCellValueExplicit(
 				$coordinate,
-				$this->normalize_cell_value( $value ),
-				DataType::TYPE_STRING
+				null === $number ? $text : $number,
+				null === $number ? DataType::TYPE_STRING : DataType::TYPE_NUMERIC
 			);
 			++$column_index;
 		}
