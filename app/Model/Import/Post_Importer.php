@@ -762,6 +762,35 @@ class Post_Importer extends Abstract_Importer {
 			}
 		}
 
+		// Check by a custom field (meta_<key>, or acf_<name> stored under the field name),
+		// as offered by "Check for Existing Items by Field" for mapped custom fields.
+		$meta_key = $this->match_meta_key( $check_field );
+		if ( '' !== $meta_key ) {
+			// Prefixed columns are moved into post_meta before matching (see normalize_prefixed_columns()).
+			$match_value = $item[ $check_field ] ?? ( is_array( $item['post_meta'] ?? null ) ? ( $item['post_meta'][ $meta_key ] ?? null ) : null );
+			if ( ! is_scalar( $match_value ) || '' === trim( (string) $match_value ) ) {
+				return null;
+			}
+			global $wpdb;
+			$post_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Exact match on the chosen key; meta_query would add a JOIN per row anyway.
+				$wpdb->prepare(
+					"SELECT p.ID
+						 FROM {$wpdb->posts} p
+						 INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID
+						 WHERE p.post_type = %s
+						   AND p.post_status <> 'trash'
+						   AND m.meta_key = %s
+						   AND m.meta_value = %s
+						 ORDER BY p.ID DESC
+						 LIMIT 1",
+					(string) $this->get_option( 'post_type', 'post' ),
+					$meta_key,
+					trim( (string) $match_value )
+				)
+			);
+			return $post_id ? get_post( (int) $post_id ) : null;
+		}
+
 		// Fallback: when title matching misses because content was edited or normalized
 		// differently, use the exported slug before creating another item.
 		if ( 'post_title' === $check_field && ! empty( $item['post_name'] ) ) {
@@ -778,6 +807,23 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Meta key behind a custom-field match column, or '' for core columns.
+	 *
+	 * @param string $check_field Match column (meta_<key> or acf_<name>).
+	 * @return string
+	 */
+	private function match_meta_key( $check_field ) {
+		$check_field = (string) $check_field;
+		if ( 0 === strpos( $check_field, 'meta_' ) ) {
+			return (string) substr( $check_field, 5 );
+		}
+		if ( 0 === strpos( $check_field, 'acf_' ) ) {
+			return (string) substr( $check_field, 4 );
+		}
+		return '';
 	}
 
 	/**

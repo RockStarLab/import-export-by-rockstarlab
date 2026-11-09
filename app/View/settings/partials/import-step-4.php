@@ -78,6 +78,29 @@ defined( 'ABSPATH' ) || exit;
 			</div>
 			</div>
 
+		<!-- Mapping Templates -->
+		<div class="rsl-ie-mapping-templates" id="rsl-ie-mapping-templates">
+			<span class="dashicons dashicons-portfolio" aria-hidden="true"></span>
+			<label for="rsl-ie-template-select"><?php esc_html_e( 'Mapping template', 'import-export-by-rockstarlab' ); ?></label>
+			<select id="rsl-ie-template-select" class="rsl-ie-template-select">
+				<option value=""><?php esc_html_e( '— No saved templates —', 'import-export-by-rockstarlab' ); ?></option>
+			</select>
+			<button type="button" class="button rsl-ie-template-apply" disabled>
+				<?php esc_html_e( 'Load Template', 'import-export-by-rockstarlab' ); ?>
+			</button>
+			<button type="button" class="button-link rsl-ie-template-rename" disabled>
+				<?php esc_html_e( 'Rename', 'import-export-by-rockstarlab' ); ?>
+			</button>
+			<button type="button" class="button-link button-link-delete rsl-ie-template-delete" disabled>
+				<?php esc_html_e( 'Delete', 'import-export-by-rockstarlab' ); ?>
+			</button>
+			<button type="button" class="button rsl-ie-template-save">
+				<span class="dashicons dashicons-saved" aria-hidden="true"></span>
+				<?php esc_html_e( 'Save as Template', 'import-export-by-rockstarlab' ); ?>
+			</button>
+		</div>
+		<div class="rsl-ie-template-notice" style="display:none;" role="status" aria-live="polite"></div>
+
 		<!-- Mapping Controls -->
 		<div class="rsl-ie-mapping-controls">
 			<button type="button" class="button rsl-ie-auto-map">

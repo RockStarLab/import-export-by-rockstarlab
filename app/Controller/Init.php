@@ -184,6 +184,10 @@ class Init {
 		$this->schedule_controller = new Schedule_Controller();
 		$this->schedule_controller->init();
 
+		( new Mapping_Template_Controller() )->init();
+
+		( new Notification_Controller() )->init();
+
 		$this->media_sync_controller = new Media_Sync_Controller();
 		$this->media_sync_controller->init();
 
@@ -375,6 +379,37 @@ class Init {
 					'createFunctionsInLibrary'          => __( 'Transformation management is handled by the PRO addon.', 'import-export-by-rockstarlab' ),
 					'errorLoadingFunctions'             => __( 'Error loading transformations', 'import-export-by-rockstarlab' ),
 					'importStartedSuccessfully'         => __( 'Import started successfully', 'import-export-by-rockstarlab' ),
+					'noMappingTemplates' => __( '— No saved templates —', 'import-export-by-rockstarlab' ),
+					'chooseMappingTemplate' => __( '— Choose a template —', 'import-export-by-rockstarlab' ),
+					/* translators: %s: template name or column name. */
+					'templateColumnMissing' => __( 'Column "%s" is not in this file', 'import-export-by-rockstarlab' ),
+					/* translators: 1: template name, 2: number of fields. */
+					'templateApplied' => __( 'Template "%1$s" loaded: %2$d fields mapped.', 'import-export-by-rockstarlab' ),
+					'templateOptionsNext' => __( 'Its import settings are filled in on the next step.', 'import-export-by-rockstarlab' ),
+					'templateMissingColumns' => __( 'These columns of the template are not in this file, so their fields stay empty:', 'import-export-by-rockstarlab' ),
+					'templateMissingFields' => __( 'These fields do not exist on this site and were skipped:', 'import-export-by-rockstarlab' ),
+					'templateNeedsMapping' => __( 'Map at least one column before saving a template.', 'import-export-by-rockstarlab' ),
+					'templateNamePrompt' => __( 'Template name (for example "Supplier price list"):', 'import-export-by-rockstarlab' ),
+					/* translators: %s: template name or column name. */
+					'templateReplaceConfirm' => __( 'A template named "%s" already exists. Replace it?', 'import-export-by-rockstarlab' ),
+					/* translators: %s: template name or column name. */
+					'templateSavedWithSettings' => __( 'Template "%s" saved with the field mapping and import settings.', 'import-export-by-rockstarlab' ),
+					/* translators: %s: template name or column name. */
+					'templateSaved' => __( 'Template "%s" saved. Import settings from the next step are added when you save it there.', 'import-export-by-rockstarlab' ),
+					'templateRenamePrompt' => __( 'New template name:', 'import-export-by-rockstarlab' ),
+					/* translators: %s: template name or column name. */
+					'templateDeleteConfirm' => __( 'Delete the template "%s"? Imports made with it are not affected.', 'import-export-by-rockstarlab' ),
+					'downloadErrorRows' => __( 'Download rows with errors (CSV)', 'import-export-by-rockstarlab' ),
+					'rowErrorsTitle' => __( 'Rows with errors', 'import-export-by-rockstarlab' ),
+					'rowErrorsMore' => __( 'The first 50 rows are shown. The CSV has all of them.', 'import-export-by-rockstarlab' ),
+					'howToFix' => __( 'How to fix', 'import-export-by-rockstarlab' ),
+					'rowHeader' => __( 'Row', 'import-export-by-rockstarlab' ),
+					'rowLabel' => __( 'Row', 'import-export-by-rockstarlab' ),
+					'rowsLabel' => __( 'Rows', 'import-export-by-rockstarlab' ),
+					'importWithErrorsSubtitleOne' => __( 'One row could not be imported. Check the error below and the Jobs Log.', 'import-export-by-rockstarlab' ),
+					'saveAsMappingTemplate' => __( 'Save field mapping as template', 'import-export-by-rockstarlab' ),
+					/* translators: %s: template name or column name. */
+					'templateSavedFromJob' => __( 'Template "%s" saved. Choose it in step 4 of the import wizard.', 'import-export-by-rockstarlab' ),
 					'importCompletedSuccessfully'       => __( 'Import completed successfully!', 'import-export-by-rockstarlab' ),
 					'importCancelled'                   => __( 'Import cancelled', 'import-export-by-rockstarlab' ),
 					'importFailed'                      => __( 'Import failed', 'import-export-by-rockstarlab' ),
@@ -1654,6 +1689,7 @@ class Init {
 			'rsl-ie-content-updater',
 			'rsl-ie-jobs-log',
 			'rsl-ie-schedules',
+			'rsl-ie-notifications',
 			'rsl-ie-media-sync',
 			'rsl-ie-ai-url-importer',
 			'rsl-ie-functions',
@@ -1681,6 +1717,7 @@ class Init {
 				'import-export-by-rockstarlab_page_rsl-ie-content-updater',
 				'import-export-by-rockstarlab_page_rsl-ie-jobs-log',
 				'import-export-by-rockstarlab_page_rsl-ie-schedules',
+				'admin_page_rsl-ie-notifications',
 				'import-export-by-rockstarlab_page_rsl-ie-media-sync',
 				'import-export-by-rockstarlab_page_rsl-ie-ai-url-importer',
 				'import-export-by-rockstarlab_page_rsl-ie-functions',

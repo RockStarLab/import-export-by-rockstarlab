@@ -1273,3 +1273,165 @@
 		line-height: 18px;
 	}
 }
+
+// Saved field mapping templates (import step 4).
+.rsl-ie-mapping-templates {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 10px;
+	align-items: center;
+	margin-top: 20px;
+	padding: 12px 15px;
+	border: 1px solid var(--rsl-brand-border, #dcdcde);
+	border-radius: 4px;
+	background: #fff;
+
+	> .dashicons {
+		color: var(--rsl-brand-accent, #2271b1);
+	}
+
+	label {
+		font-weight: 600;
+	}
+
+	.rsl-ie-template-select {
+		min-width: 240px;
+		max-width: 100%;
+	}
+
+	.rsl-ie-template-save {
+		margin-left: auto;
+		display: flex;
+		align-items: center;
+		gap: 5px;
+	}
+}
+
+.rsl-ie-template-notice {
+	margin: 12px 0 0;
+
+	p {
+		margin: 6px 0;
+	}
+}
+
+.rsl-ie-target-field.rsl-ie-template-missing {
+	border-color: #dba617;
+	background: #fcf9e8;
+}
+
+.rsl-ie-template-missing-note {
+	margin-top: 4px;
+	font-size: 12px;
+	color: #8a6d00;
+}
+
+.rsl-ie-step-5 .rsl-ie-step-actions .rsl-ie-template-save {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	margin-left: auto;
+	margin-right: 10px;
+}
+
+// Readable row errors (import result and Jobs Log details).
+.rsl-ie-complete-errors {
+	max-width: 760px;
+	margin: 14px auto 0;
+	text-align: left;
+
+	.rsl-ie-row-errors {
+		margin: 0;
+		padding: 12px 16px 12px 34px;
+		list-style: disc;
+		color: #3c434a;
+		background: #fcf0f1;
+		border-left: 4px solid #d63638;
+		border-radius: 4px;
+
+		li {
+			margin: 4px 0;
+		}
+
+		strong {
+			color: #b32d2e;
+		}
+	}
+
+	.rsl-ie-row-error-hint {
+		display: block;
+		margin-top: 2px;
+		color: #50575e;
+		font-size: 13px;
+	}
+
+	.rsl-ie-download-errors-wrap {
+		margin: 12px 0 0;
+		text-align: center;
+	}
+
+	.rsl-ie-download-errors .dashicons {
+		vertical-align: text-bottom;
+	}
+}
+
+.rsl-ie-job-row-errors {
+	margin-bottom: 10px;
+
+	td {
+		vertical-align: top;
+	}
+}
+
+#rsl-ie-notifications {
+	.rsl-ie-inline-check {
+		display: inline-block;
+		margin: 6px 16px 0 0;
+	}
+
+	// WordPress core forces margins on labels inside form-table fieldsets; use gap instead.
+	.rsl-ie-check-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px 28px;
+
+		label {
+			margin: 0 !important;
+		}
+	}
+
+	.rsl-ie-notifications-intro {
+		margin: 16px 0 4px;
+	}
+
+	.rsl-ie-inline-field {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px 12px;
+
+		input[type="text"] {
+			margin: 0;
+		}
+	}
+
+	.rsl-ie-notifications-test {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px 14px;
+		margin: 0 0 28px;
+
+		.description {
+			margin: 0;
+		}
+	}
+
+	.rsl-ie-notify-log {
+		max-width: 900px;
+	}
+
+	input[type="url"].large-text {
+		margin-top: 6px;
+	}
+}

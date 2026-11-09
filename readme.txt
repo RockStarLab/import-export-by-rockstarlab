@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.34
+Stable tag: 2.1.35
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -274,6 +274,14 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.1.35 =
+* New: field mapping templates. Save the column mapping and import settings of an import under a name ("Save as Template" in steps 4 and 5) and load it for the next file in step 4. Columns are matched by name, so their order may change; columns missing from the new file are listed and their fields highlighted. Templates can be renamed and deleted, and any earlier import can be saved as a template from the Jobs Log.
+* New: AI agents can list, read, save, delete and apply mapping templates (rsl-ie/mapping-template-list, -get, -save, -delete, -from-job, -apply). mapping-template-apply returns a mapping and options that import-start accepts unchanged.
+* Fixed: an import of posts, pages or custom post types with a custom field as "Check for Existing Items by Field" (for example a supplier code) created a new post every time instead of updating the matching one. Custom fields (meta_ and acf_ columns) now work as the match key, and the list offers only fields an existing post can be found by.
+* New: notifications when a job finishes (Jobs Log → Notifications): email, a Slack channel, or a signed webhook (JSON with HMAC-SHA256 signature) for Zapier, Make, n8n or your own system. Choose after every job or only when something failed, and which jobs (imports, exports, Content Sync, Content Migration); edit the subject and message with placeholders. Failed webhook and Slack deliveries are retried, at most 30 notifications are sent per hour, and the screen lists recent deliveries.
+* New: readable import errors. Each failed row shows the row number in the file, the field, the error and how to fix it, on the import result screen and in the Jobs Log details. "Download rows with errors (CSV)" saves the failed rows with their values, ready to correct and import again.
+* New: AI agents can read and change notification settings, send a test and read the delivery log (rsl-ie/notification-settings-get, -update, notification-test, notification-log), and read the failed rows of an import with fixes and the error CSV (rsl-ie/job-errors).
+
 = 2.1.34 =
 * Fixed: importing a damaged ZIP file no longer writes a "Zip stream error: CRC error" PHP warning to the site's error log; the import reports the file as damaged.
 * Improved: the Taxonomy Filter of the export screen accepts term names, slugs or IDs, and taxonomy names such as "Categories" or "Tags". Before, only slugs worked, so a category whose slug differs from its name (for example "edge-case-2") was not found.
@@ -299,15 +307,6 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 = 2.1.31 =
 * Improved: XLSX and ODS exports write plain numbers (such as 120, 0.5 or -12) as number cells you can sort and sum, and keep codes with leading zeros (00123), numbers longer than 11 digits (barcodes, tracking numbers) and values like 49.90 as text, so spreadsheet apps don't change them.
 * Improved: AI agents can use the same CSV separators as the export screen in rsl-ie/export-start, including multi-character separators of up to 10 characters such as ;; or |~|.
-
-= 2.1.30 =
-* New: "Changes only" for scheduled exports of posts and pages. The first run exports everything the filters select; each later run exports only what was modified since the previous completed run started. Also available to AI agents as changed_only in the schedule abilities.
-* Improved: a Date or Modified Date filter with a time (for example 2026-11-09 08:30) now compares to the minute instead of the whole day.
-* Improved: background exports (scheduled runs and exports started by AI agents) process several batches per cron event. A scheduled export of 74 posts in batches of 3 needed about 25 cron events before; now it finishes in one.
-* Improved: exports with filters are much faster on large sites. The posts that match are found once per export instead of once per batch, and Status and Date filters are applied by the database: on a site with 100,000 posts the item counter with a Status filter takes 0.07 s instead of 5.5 s, and each batch after the first 0.1 s instead of 5 s.
-* Improved: the default export batch size is 50 instead of 3, and the field accepts up to 500 (the largest value the exporter uses). A 100,000-post export in the browser took about 70 minutes with batches of 3 and about 3 minutes with 500.
-* Fixed: a CSV export of a very large site (100,000 posts with content) stopped at the end with a PHP memory error, because the whole file was built in memory. CSV files are now written row by row.
-* Fixed: a Content Sync push started from a long-running process (an AI agent through the stdio MCP server, or WP-CLI) could send an older copy of a post that had been edited in the meantime. The selected posts are now read fresh before every push.
 
 Older versions: see changelog.txt in the plugin folder.
 

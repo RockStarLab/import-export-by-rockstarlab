@@ -1,5 +1,13 @@
 == Import Export by RockStarLab: full changelog ==
 
+= 2.1.35 =
+* New: field mapping templates. Save the column mapping and import settings of an import under a name ("Save as Template" in steps 4 and 5) and load it for the next file in step 4. Columns are matched by name, so their order may change; columns missing from the new file are listed and their fields highlighted. Templates can be renamed and deleted, and any earlier import can be saved as a template from the Jobs Log.
+* New: AI agents can list, read, save, delete and apply mapping templates (rsl-ie/mapping-template-list, -get, -save, -delete, -from-job, -apply). mapping-template-apply returns a mapping and options that import-start accepts unchanged.
+* Fixed: an import of posts, pages or custom post types with a custom field as "Check for Existing Items by Field" (for example a supplier code) created a new post every time instead of updating the matching one. Custom fields (meta_ and acf_ columns) now work as the match key, and the list offers only fields an existing post can be found by.
+* New: notifications when a job finishes (Jobs Log → Notifications): email, a Slack channel, or a signed webhook (JSON with HMAC-SHA256 signature) for Zapier, Make, n8n or your own system. Choose after every job or only when something failed, and which jobs (imports, exports, Content Sync, Content Migration); edit the subject and message with placeholders. Failed webhook and Slack deliveries are retried, at most 30 notifications are sent per hour, and the screen lists recent deliveries.
+* New: readable import errors. Each failed row shows the row number in the file, the field, the error and how to fix it, on the import result screen and in the Jobs Log details. "Download rows with errors (CSV)" saves the failed rows with their values, ready to correct and import again.
+* New: AI agents can read and change notification settings, send a test and read the delivery log (rsl-ie/notification-settings-get, -update, notification-test, notification-log), and read the failed rows of an import with fixes and the error CSV (rsl-ie/job-errors).
+
 = 2.1.34 =
 * Fixed: importing a damaged ZIP file no longer writes a "Zip stream error: CRC error" PHP warning to the site's error log; the import reports the file as damaged.
 * Improved: the Taxonomy Filter of the export screen accepts term names, slugs or IDs, and taxonomy names such as "Categories" or "Tags". Before, only slugs worked, so a category whose slug differs from its name (for example "edge-case-2") was not found.

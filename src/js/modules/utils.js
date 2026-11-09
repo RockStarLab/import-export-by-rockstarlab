@@ -87,6 +87,30 @@ if ( typeof window.fetch === 'function' && ! window.rslIeFetchSecured ) {
 
 const Utils = {
 	/**
+	 * Save the failed rows of an import job as a CSV file.
+	 *
+	 * @param {number} jobId Import job.
+	 * @return {Promise<number>} Number of error rows.
+	 */
+	async downloadJobErrorsCsv( jobId ) {
+		const data = await this.ajax( 'rsl_ie_job_errors_csv', {
+			job_id: jobId,
+		} );
+		const blob = new Blob( [ data.csv ], {
+			type: 'text/csv;charset=utf-8',
+		} );
+		const url = URL.createObjectURL( blob );
+		const link = document.createElement( 'a' );
+		link.href = url;
+		link.download = data.file_name || `import-${ jobId }-errors.csv`;
+		document.body.appendChild( link );
+		link.click();
+		link.remove();
+		setTimeout( () => URL.revokeObjectURL( url ), 1000 );
+		return data.errors_total || 0;
+	},
+
+	/**
 	 * Make AJAX request
 	 *
 	 * @param {string} action AJAX action name

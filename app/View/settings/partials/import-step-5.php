@@ -186,6 +186,10 @@ $rsl_ie_current_site_url = \RockStarLab\ImportExport\Helper\Site_URL::current_re
 				<span class="dashicons dashicons-arrow-left-alt2"></span>
 				<?php esc_html_e( 'Previous', 'import-export-by-rockstarlab' ); ?>
 			</button>
+			<button type="button" class="button button-secondary rsl-ie-template-save" title="<?php esc_attr_e( 'Save the field mapping and these settings to reuse them with the next file', 'import-export-by-rockstarlab' ); ?>">
+				<span class="dashicons dashicons-saved" aria-hidden="true"></span>
+				<?php esc_html_e( 'Save as Template', 'import-export-by-rockstarlab' ); ?>
+			</button>
 			<button type="button" class="button button-primary button-large rsl-ie-start-import">
 				<span class="dashicons dashicons-download"></span>
 				<span class="rsl-ie-start-import-text"><?php esc_html_e( 'Start Import', 'import-export-by-rockstarlab' ); ?></span>

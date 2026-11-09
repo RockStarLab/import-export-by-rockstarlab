@@ -56,6 +56,24 @@ const JobsLogModule = {
 			this.restartJob( e )
 		);
 		$page.on( 'click', '.job-action-retry', ( e ) => this.retryJob( e ) );
+		$page.on( 'click', '.job-action-save-template', ( e ) =>
+			this.saveJobAsTemplate( e )
+		);
+		jQuery( document ).on(
+			'click',
+			'.job-action-download-errors',
+			async ( e ) => {
+				const $button = jQuery( e.currentTarget );
+				$button.prop( 'disabled', true );
+				try {
+					await Utils.downloadJobErrorsCsv( $button.data( 'job-id' ) );
+				} catch ( error ) {
+					Utils.showNotice( String( error ), 'error' );
+				} finally {
+					$button.prop( 'disabled', false );
+				}
+			}
+		);
 		$page.on( 'click', '.job-action-delete', ( e ) => this.deleteJob( e ) );
 		$page.on( 'click', '.job-action-download', ( e ) =>
 			this.downloadFile( e )
@@ -401,6 +419,25 @@ const JobsLogModule = {
 			);
 		}
 
+		// Save the field mapping of a file import as a reusable template.
+		if (
+			job.type === 'import' &&
+			! [
+				'media_sync',
+				'ai_url',
+				'content_update',
+				'migration',
+				'site_migration',
+			].includes( job.data_type )
+		) {
+			actions.push(
+				`<button class="button button-small job-action-save-template" title="${
+					window.rslIeData.i18n.saveAsMappingTemplate ||
+					'Save field mapping as template'
+				}"><span class="dashicons dashicons-portfolio"></span></button>`
+			);
+		}
+
 		// Download (for exports)
 		if (
 			job.type === 'export' &&
@@ -509,6 +546,70 @@ const JobsLogModule = {
 				window.rslIeData.i18n.errorResumingJob + error.message,
 				'error'
 			);
+			$button.prop( 'disabled', false );
+		}
+	},
+
+	/**
+	 * Save the mapping and settings of an import job as a mapping template.
+	 *
+	 * @param {Object} e Click event.
+	 */
+	async saveJobAsTemplate( e ) {
+		const $button = jQuery( e.currentTarget );
+		const $row = $button.closest( 'tr' );
+		const jobId = $row.data( 'job-id' );
+		const i18n = window.rslIeData.i18n || {};
+		const currentName = $row
+			.find( '.rsl-ie-job-name-text, .job-name' )
+			.first()
+			.text()
+			.trim();
+		// eslint-disable-next-line no-alert
+		const name = window.prompt(
+			i18n.templateNamePrompt ||
+				'Template name (for example "Supplier price list"):',
+			currentName
+		);
+		if ( name === null ) {
+			return;
+		}
+		$button.prop( 'disabled', true );
+		const save = ( overwrite ) =>
+			Utils.ajax( 'rsl_ie_mapping_template_from_job', {
+				job_id: jobId,
+				name: name.trim(),
+				overwrite: overwrite ? 1 : 0,
+			} );
+		try {
+			let template;
+			try {
+				template = await save( false );
+			} catch ( error ) {
+				if (
+					! /already exists/i.test( String( error ) ) ||
+					// eslint-disable-next-line no-alert
+					! window.confirm(
+						(
+							i18n.templateReplaceConfirm ||
+							'A template named "%s" already exists. Replace it?'
+						).replace( '%s', name.trim() )
+					)
+				) {
+					throw error;
+				}
+				template = await save( true );
+			}
+			Utils.showNotice(
+				(
+					i18n.templateSavedFromJob ||
+					'Template "%s" saved. Choose it in step 4 of the import wizard.'
+				).replace( '%s', template.name ),
+				'success'
+			);
+		} catch ( error ) {
+			Utils.showNotice( String( error ), 'error' );
+		} finally {
 			$button.prop( 'disabled', false );
 		}
 	},
@@ -797,6 +898,7 @@ const JobsLogModule = {
 					}
 				</table>
 				
+				${ this.renderJobErrors( job ) }
 				${
 					job.parameters
 						? `
@@ -822,6 +924,68 @@ const JobsLogModule = {
 
 		jQuery( '#job-details-content' ).html( html );
 		jQuery( '#job-details-modal' ).show();
+	},
+
+	/**
+	 * Failed rows of a job: row, field, error and how to fix it.
+	 *
+	 * @param {Object} job Job details.
+	 * @return {string} HTML.
+	 */
+	renderJobErrors( job ) {
+		let result = job.result;
+		if ( typeof result === 'string' ) {
+			try {
+				result = JSON.parse( result );
+			} catch ( e ) {
+				result = null;
+			}
+		}
+		const errors =
+			result && Array.isArray( result.errors ) ? result.errors : [];
+		if ( ! errors.length ) {
+			return '';
+		}
+		const i18n = window.rslIeData.i18n || {};
+		const rows = errors
+			.slice( 0, 50 )
+			.map(
+				( error ) => `<tr>
+					<td>${ this.escapeHtml( String( error.row ?? '' ) ) }</td>
+					<td><code>${ this.escapeHtml( error.field || '' ) }</code></td>
+					<td>${ this.escapeHtml( error.message || String( error ) ) }</td>
+					<td>${ this.escapeHtml( error.hint || '' ) }</td>
+				</tr>`
+			)
+			.join( '' );
+		return `
+			<h3>${ this.escapeHtml( i18n.rowErrorsTitle || 'Rows with errors' ) } (${ errors.length })</h3>
+			<table class="widefat striped rsl-ie-job-row-errors">
+				<thead><tr>
+					<th>${ this.escapeHtml( i18n.rowHeader || 'Row' ) }</th>
+					<th>${ this.escapeHtml( i18n.field || 'Field' ) }</th>
+					<th>${ this.escapeHtml( i18n.error || 'Error' ) }</th>
+					<th>${ this.escapeHtml( i18n.howToFix || 'How to fix' ) }</th>
+				</tr></thead>
+				<tbody>${ rows }</tbody>
+			</table>
+			${
+				errors.length > 50
+					? `<p class="description">${ this.escapeHtml(
+							(
+								i18n.rowErrorsMore ||
+								'The first 50 rows are shown. The CSV has all of them.'
+							)
+					  ) }</p>`
+					: ''
+			}
+			<p><button type="button" class="button job-action-download-errors" data-job-id="${ parseInt(
+				job.id,
+				10
+			) }"><span class="dashicons dashicons-download"></span> ${ this.escapeHtml(
+				i18n.downloadErrorRows || 'Download rows with errors (CSV)'
+			) }</button></p>
+		`;
 	},
 
 	/**
