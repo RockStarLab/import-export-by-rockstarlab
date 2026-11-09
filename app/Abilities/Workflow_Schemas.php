@@ -367,7 +367,13 @@ class Workflow_Schemas {
 			],
 			'format_options'  => self::object(
 				[
-					'csv_delimiter'              => self::parser()['properties']['delimiter'],
+					// Export accepts the same separators as the Custom field in the export screen (up to 10 characters).
+					'csv_delimiter'              => [
+						'type'      => 'string',
+						'minLength' => 1,
+						'maxLength' => 10,
+						'pattern'   => '^[^\r\n"]+$',
+					],
 					'csv_include_header'         => $b,
 					'csv_use_bom'                => $b,
 					'spreadsheet_include_header' => $b,
