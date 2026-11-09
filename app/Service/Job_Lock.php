@@ -62,6 +62,20 @@ class Job_Lock {
 		return isset( self::$held[ $name ] );
 	}
 
+	/**
+	 * Whether this process is running any plugin job right now.
+	 *
+	 * @return bool
+	 */
+	public static function holds_any_job() {
+		foreach ( array_keys( self::$held ) as $name ) {
+			if ( 0 === strpos( $name, 'rsl_ie_job_' ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/** Verify an internal continuation is running under its owning queue lock. */
 	public static function holds( $job_id ) {
 		global $wpdb;

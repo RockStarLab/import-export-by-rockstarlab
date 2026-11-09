@@ -188,6 +188,8 @@ class Init {
 
 		( new Notification_Controller() )->init();
 
+		( new Trigger_Controller() )->init();
+
 		$this->media_sync_controller = new Media_Sync_Controller();
 		$this->media_sync_controller->init();
 
@@ -1693,6 +1695,7 @@ class Init {
 			'rsl-ie-jobs-log',
 			'rsl-ie-schedules',
 			'rsl-ie-notifications',
+			'rsl-ie-triggers',
 			'rsl-ie-media-sync',
 			'rsl-ie-ai-url-importer',
 			'rsl-ie-functions',
@@ -1721,6 +1724,7 @@ class Init {
 				'import-export-by-rockstarlab_page_rsl-ie-jobs-log',
 				'import-export-by-rockstarlab_page_rsl-ie-schedules',
 				'admin_page_rsl-ie-notifications',
+				'admin_page_rsl-ie-triggers',
 				'import-export-by-rockstarlab_page_rsl-ie-media-sync',
 				'import-export-by-rockstarlab_page_rsl-ie-ai-url-importer',
 				'import-export-by-rockstarlab_page_rsl-ie-functions',
