@@ -29,6 +29,13 @@ delete_option( 'rsl_ie_openai_api_key' );
 delete_option( 'rsl_ie_review_dismissed' );
 delete_option( 'rsl_ie_agent_pointer_dismissed' );
 delete_option( 'rsl_ie_install_date' );
+// Mapping templates, job notifications and event triggers.
+foreach ( [ 'rsl_ie_mapping_templates', 'rsl_ie_notifications', 'rsl_ie_notifications_state', 'rsl_ie_notifications_log', 'rsl_ie_notifications_retries', 'rsl_ie_notifications_lock', 'rsl_ie_triggers', 'rsl_ie_triggers_log' ] as $rsl_ie_option ) {
+	delete_option( $rsl_ie_option );
+}
+wp_unschedule_hook( 'rsl_ie_send_notifications' );
+wp_unschedule_hook( 'rsl_ie_run_trigger' );
+wp_unschedule_hook( 'rsl_ie_check_trigger_files' );
 
 // Clean up transients
 global $wpdb;

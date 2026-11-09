@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.36
+Stable tag: 2.1.37
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -274,6 +274,13 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.1.37 =
+* New: event triggers (Jobs Log → Triggers). Run a finished import or export again when another system calls a secure webhook URL (Zapier, Make, n8n, a CRM or a script), when a post of chosen types is published, when a WooCommerce order is created, or when the file an import downloads from a URL changes (checked hourly). Each run is a new job with the same file source, mapping and options, started as the administrator who created the trigger.
+* New: webhook triggers use a secret token sent in the X-RSL-Token header or as a Bearer token, never in the URL. The token is shown once, stored only as a hash and can be replaced at any time. Repeated wrong tokens are blocked for an hour.
+* New: triggers never start a second job while the previous one is still running, webhook runs are limited to one a minute, and post and order events within the chosen wait time start a single run. Posts created by the plugin's own imports, syncs and migrations do not start triggers.
+* New: AI agents can list, create, pause, run and delete triggers, replace a webhook token and read the trigger log (rsl-ie/trigger-sources, trigger-list, trigger-get, trigger-create, trigger-update, trigger-run, trigger-rotate-token, trigger-delete, trigger-log).
+* Improved: uninstalling the plugin also removes mapping templates, notification settings and triggers.
+
 = 2.1.36 =
 * Fixed: a custom field added in the Field Mapping step with a plain key such as "event_id" was not saved by the import. Keys without a meta_ or _ prefix now get meta_ automatically, and custom fields stored under an underscore key (for example _event_code) can be used to find existing posts.
 * Improved: the "Or import a file from a URL" box is hidden while a file is uploading and after it is uploaded, and comes back when you remove the file.
@@ -305,11 +312,6 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 * Fixed: Content Sync now sends files that a post links to, such as a PDF in a link, a File block, or a video or audio file, together with the post. Before, the link was changed to the target site but the file was not copied there.
 * Fixed: "Last Sync" on the Content Sync screen now shows the time of the last completed push or pull. Before, it changed only when the connection was tested.
 * Fixed: CSV, XLSX and ODS exports started by AI agents or other API calls without the header option had no header row. The header row is now included unless it is turned off, as in the export screen.
-
-= 2.1.32 =
-* Fixed: pulling a post back to the site it was first pushed from could add a second copy of its comments. Comments that already exist on the post (same author email, date and text) are now matched instead of added again.
-
-Older versions: see changelog.txt in the plugin folder.
 
 == Screenshots ==
 

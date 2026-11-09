@@ -30,6 +30,13 @@ class Import_Service {
 	const RESULT_ERRORS_LIMIT = 500;
 
 	/**
+	 * Depth of running import batches in this request.
+	 *
+	 * @var int
+	 */
+	private static $processing = 0;
+
+	/**
 	 * Maximum rows stored per preparation slice (the 1 MB byte budget applies too).
 	 */
 	const PREPARATION_SLICE_ROWS = 1000;
@@ -161,6 +168,33 @@ class Import_Service {
 	 * @return array|\WP_Error
 	 */
 	public function process_background_batch( $job_id ) {
+		++self::$processing;
+		try {
+			return $this->run_background_batch( $job_id );
+		} finally {
+			--self::$processing;
+		}
+	}
+
+	/**
+	 * Whether an import batch is running in this request.
+	 *
+	 * Triggers use it to ignore posts published by an import, so an import that
+	 * publishes posts cannot start itself again.
+	 *
+	 * @return bool
+	 */
+	public static function is_processing() {
+		return self::$processing > 0;
+	}
+
+	/**
+	 * Batch body of process_background_batch().
+	 *
+	 * @param int $job_id Job ID.
+	 * @return array|\WP_Error
+	 */
+	private function run_background_batch( $job_id ) {
 		$job_model = rsl_ie()->Model->job;
 		$job       = $job_model->find( (int) $job_id );
 		if ( ! $job || 'import' !== $job->type || 'media_sync' === $job->data_type ) {

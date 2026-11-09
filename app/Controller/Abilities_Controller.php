@@ -224,6 +224,16 @@ class Abilities_Controller {
 				}
 			);
 		}
+		$triggers = new \RockStarLab\ImportExport\Service\Trigger_Service();
+		foreach ( \RockStarLab\ImportExport\Abilities\Trigger_Catalog::definitions() as $name => $definition ) {
+			Ability_Registry::register_workflow(
+				'rsl-ie/' . $name,
+				$definition,
+				static function ( $input = [] ) use ( $triggers, $name ) {
+					return $triggers->execute( $name, $input );
+				}
+			);
+		}
 		$ai = new \RockStarLab\ImportExport\Service\AI_URL_Service();
 		foreach ( \RockStarLab\ImportExport\Abilities\AI_URL_Catalog::definitions() as $name => $definition ) {
 			Ability_Registry::register_workflow(

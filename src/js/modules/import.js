@@ -660,7 +660,9 @@ const ImportModule = {
 
 					// Show file info but keep upload area visible
 					jQuery( '.rsl-ie-upload-progress' ).hide();
-					jQuery( '.rsl-ie-upload-placeholder, .rsl-ie-url-import' ).show();
+					jQuery(
+						'.rsl-ie-upload-placeholder, .rsl-ie-url-import'
+					).show();
 
 					// Store error in fileData to show on step 3
 					this.fileData = {
