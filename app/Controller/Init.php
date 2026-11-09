@@ -509,6 +509,11 @@ class Init {
 					'jobFile'                           => __( 'File', 'import-export-by-rockstarlab' ),
 					'jobFileSize'                       => __( 'File Size', 'import-export-by-rockstarlab' ),
 					'jobParameters'                     => __( 'Parameters', 'import-export-by-rockstarlab' ),
+					'jobWarnings'                       => __( 'Warnings', 'import-export-by-rockstarlab' ),
+					'importWithWarningsTitle'           => __( 'Import Completed with Warnings', 'import-export-by-rockstarlab' ),
+					'importWithWarningsSubtitleOne'     => __( 'All rows were imported. One note needs your attention; it is also in the Jobs Log.', 'import-export-by-rockstarlab' ),
+					/* translators: %d: number of warnings */
+					'importWithWarningsSubtitle'        => __( 'All rows were imported. %d notes need your attention; they are also in the Jobs Log.', 'import-export-by-rockstarlab' ),
 					'typeImport'                        => __( 'Import', 'import-export-by-rockstarlab' ),
 					'typeExport'                        => __( 'Export', 'import-export-by-rockstarlab' ),
 					'typeContentSyncPush'               => __( 'Content Sync - Push', 'import-export-by-rockstarlab' ),

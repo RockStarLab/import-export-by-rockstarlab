@@ -845,6 +845,23 @@ class Comment_Importer extends Abstract_Importer {
 			);
 		}
 
+		// Say so: the comment now sits on a new draft instead of the post the file meant.
+		$hint = '';
+		foreach ( [ 'post_slug', 'post_permalink', 'post_title', 'source_post_id', 'comment_post_ID' ] as $field ) {
+			if ( isset( $item[ $field ] ) && '' !== trim( (string) $item[ $field ] ) ) {
+				$hint = trim( (string) $item[ $field ] );
+				break;
+			}
+		}
+		$this->log_warning(
+			sprintf(
+				'No post matched "%1$s", so the draft post "%2$s" (ID %3$d) was created for its comments.',
+				$hint,
+				$post_title,
+				(int) $new_post_id
+			)
+		);
+
 		return absint( $new_post_id );
 	}
 

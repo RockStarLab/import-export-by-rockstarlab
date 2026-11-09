@@ -4264,16 +4264,16 @@ class Post_Importer extends Abstract_Importer {
 		if ( $existing_attachment ) {
 			// Handle duplicate based on mode
 			if ( 'skip' === $media_duplicate_mode ) {
-				$this->log_info( sprintf( 'Skipped duplicate ACF media: %s (using existing ID: %d)', $filename, $existing_attachment ) );
+				$this->log_info( sprintf( 'Skipped duplicate media: %s (using existing ID: %d)', $filename, $existing_attachment ) );
 				$this->store_imported_media_source( (int) $existing_attachment, $url, $source_attachment_id );
 				$existing_for_language           = (int) $existing_attachment;
 				$url_to_attachment_cache[ $url ] = $existing_for_language;
 				return $existing_for_language;
 			} elseif ( 'replace' === $media_duplicate_mode ) {
 				wp_delete_attachment( $existing_attachment, true );
-				$this->log_info( sprintf( 'Deleted existing ACF media for replacement: %s (ID: %d)', $filename, $existing_attachment ) );
+				$this->log_info( sprintf( 'Deleted existing media for replacement: %s (ID: %d)', $filename, $existing_attachment ) );
 			} else {
-				$this->log_info( sprintf( 'Updated duplicate ACF media: %s (using existing ID: %d)', $filename, $existing_attachment ) );
+				$this->log_info( sprintf( 'Using existing media: %s (ID: %d)', $filename, $existing_attachment ) );
 				$this->store_imported_media_source( (int) $existing_attachment, $url, $source_attachment_id );
 				$existing_for_language           = (int) $existing_attachment;
 				$url_to_attachment_cache[ $url ] = $existing_for_language;
@@ -4293,7 +4293,7 @@ class Post_Importer extends Abstract_Importer {
 
 		if ( ! is_wp_error( $attachment_id ) && $attachment_id ) {
 			$this->store_imported_media_source( (int) $attachment_id, $url, $source_attachment_id );
-			$this->log_info( sprintf( 'Imported ACF media: %s (new ID: %d)', $filename, $attachment_id ) );
+			$this->log_info( sprintf( 'Imported media: %s (new ID: %d)', $filename, $attachment_id ) );
 			$attachment_for_language         = (int) $attachment_id;
 			$url_to_attachment_cache[ $url ] = $attachment_for_language;
 			return $attachment_for_language;

@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.39
+Stable tag: 2.1.40
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,14 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.40 =
+* Improved: when every row is imported but some rows have notes, for example an author that wasn't found, the import result says "Import Completed with Warnings" and lists them. Job Details in Jobs Log has a Warnings section.
+* Improved: Auto Map for comments understands common headers such as Comment ID, Parent ID, Post Slug, Author, Email, Date, Comment, Approved and Website.
+* Improved: when a comment's post isn't found and a draft post is created for it, the import result and the job log say so.
+* Improved: the job log says "Imported media" for featured images and images in content.
+* Fixed: replies imported from a spreadsheet with Source Comment ID and Source Parent Comment ID are threaded under their parent comments, also when the parent came in an earlier import.
+* Fixed: a media import from a URL that opens a web page now says "The URL returned a web page, not a file." with a matching hint. Files WordPress refuses by type get their own hint.
 
 = 2.1.39 =
 * New: WP-CLI commands. `wp rsl-ie import <file>` and `wp rsl-ie export` run a job in the same process until it finishes, without WP-Cron (`--no-wait` leaves it to WP-Cron). Columns are matched by name, or use `--template` or `--mapping`; `--dry-run` checks a file without importing; exports are copied to `--output`. Also `wp rsl-ie jobs`, `job get|wait|errors|rerun|cancel`, `schedule list|run`, `trigger list|run|log` and `wp rsl-ie ability <name> '<json>'`. Exit codes for scripts and CI: 0 done, 1 error, 2 finished with failed rows, 3 still running after `--timeout`. The commands work even when AI agent access is off.

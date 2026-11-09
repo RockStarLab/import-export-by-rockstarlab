@@ -1975,11 +1975,39 @@ class Import_Service {
 		}
 
 		foreach ( $prepared_data as $row ) {
-			$source_id     = isset( $row['_rsl_ie_source_comment_id'] ) ? absint( $row['_rsl_ie_source_comment_id'] ) : absint( $row['comment_ID'] ?? 0 );
-			$source_parent = isset( $row['_rsl_ie_source_comment_parent_id'] ) ? absint( $row['_rsl_ie_source_comment_parent_id'] ) : absint( $row['comment_parent'] ?? 0 );
+			// Same precedence as Comment_Importer::import_item(): a file can carry the source IDs
+			// in the Source Comment ID / Source Parent Comment ID fields or in comment_ID / comment_parent.
+			$source_id     = 0;
+			$source_parent = 0;
+			foreach ( [ '_rsl_ie_source_comment_id', '_aie_source_comment_id', 'source_comment_id', 'comment_ID' ] as $field ) {
+				if ( isset( $row[ $field ] ) && '' !== (string) $row[ $field ] ) {
+					$source_id = absint( $row[ $field ] );
+					break;
+				}
+			}
+			foreach ( [ '_rsl_ie_source_comment_parent_id', '_aie_source_comment_parent_id', 'source_comment_parent_id', 'comment_parent' ] as $field ) {
+				if ( isset( $row[ $field ] ) && '' !== (string) $row[ $field ] ) {
+					$source_parent = absint( $row[ $field ] );
+					break;
+				}
+			}
 
 			$target_id     = $source_id ? absint( $map[ (string) $source_id ] ?? 0 ) : 0;
 			$target_parent = $source_parent ? absint( $map[ (string) $source_parent ] ?? 0 ) : 0;
+			// The parent may come from an earlier import: find it by its stored source ID.
+			if ( $target_id > 0 && $source_parent > 0 && $target_parent <= 0 ) {
+				$found         = get_comments( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Targeted lookup by importer meta.
+					[
+						'number'     => 1,
+						'fields'     => 'ids',
+						'status'     => 'all',
+						'meta_key'   => '_aie_source_comment_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Targeted lookup.
+						'meta_value' => (string) $source_parent, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Targeted lookup.
+						'post_id'    => (int) ( get_comment( $target_id )->comment_post_ID ?? 0 ),
+					]
+				);
+				$target_parent = ! empty( $found[0] ) ? absint( $found[0] ) : 0;
+			}
 
 			if ( $target_id <= 0 || $source_parent <= 0 || $target_parent <= 0 ) {
 				continue;

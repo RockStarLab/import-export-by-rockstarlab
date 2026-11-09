@@ -5860,6 +5860,47 @@ const ImportModule = {
 					( alias ) => ( reviewAliases[ alias ] = targetKey )
 				)
 			);
+			// Blog comments exported from another site or a comment service use
+			// similar headers; their targets are the comment fields of this type.
+			const commentAliases = {};
+			Object.entries( reviewAliases ).forEach( ( [ alias, target ] ) => {
+				if (
+					0 !== target.indexOf( 'product_' ) &&
+					'rating' !== target &&
+					'verified' !== target &&
+					'source_comment_id' !== target
+				) {
+					commentAliases[ alias ] = target;
+				}
+			} );
+			Object.entries( {
+				source_comment_id: [
+					'comment id',
+					'comment_id',
+					'id',
+					'source comment id',
+				],
+				source_comment_parent_id: [
+					'parent',
+					'parent id',
+					'parent comment id',
+					'reply to',
+					'in reply to',
+				],
+				post_slug: [ 'post slug', 'slug', 'post name' ],
+				post_title: [ 'post title', 'post' ],
+				post_permalink: [
+					'post url',
+					'post link',
+					'permalink',
+					'url of post',
+				],
+				comment_author_url: [ 'website', 'author url', 'url' ],
+			} ).forEach( ( [ targetKey, aliases ] ) =>
+				aliases.forEach(
+					( alias ) => ( commentAliases[ alias ] = targetKey )
+				)
+			);
 			const aliasLookup = new Map();
 			Object.keys( headerAliases ).forEach( ( targetKey ) => {
 				headerAliases[ targetKey ].forEach( ( alias ) => {
@@ -5880,10 +5921,15 @@ const ImportModule = {
 						.trim()
 						.toLowerCase();
 					// Review exports from other stores and review apps use their own headers.
+					const checkedType = jQuery(
+						'input[name="content_type"]:checked'
+					).val();
 					let aliasTarget =
-						( 'woo_review' ===
-						jQuery( 'input[name="content_type"]:checked' ).val()
+						( 'woo_review' === checkedType
 							? reviewAliases[ normalizedSource ]
+							: undefined ) ||
+						( 'comment' === checkedType
+							? commentAliases[ normalizedSource ]
 							: undefined ) ||
 						aliasLookup.get( normalizedSource );
 					if ( ! aliasTarget ) {
@@ -7453,6 +7499,7 @@ const ImportModule = {
 			return;
 		}
 		if ( failed < 1 ) {
+			this.renderImportWarnings( $card, $title, $subtitle, $icon );
 			return;
 		}
 
@@ -7570,6 +7617,72 @@ const ImportModule = {
 			}
 			$subtitle.after( $box );
 		}
+	},
+
+	/**
+	 * All rows were imported, but the job log may hold notes the user should see
+	 * (for example, an author that was not found). Show them on the card.
+	 *
+	 * @param {Object} $card     Completion card.
+	 * @param {Object} $title    Card title.
+	 * @param {Object} $subtitle Card subtitle.
+	 * @param {Object} $icon     Card icon.
+	 */
+	async renderImportWarnings( $card, $title, $subtitle, $icon ) {
+		const jobId = this.jobId;
+		if ( ! jobId ) {
+			return;
+		}
+		let logs = [];
+		try {
+			const response = await Utils.ajax( 'rsl_ie_job_get_logs', {
+				job_id: jobId,
+				level: 'warning',
+				limit: 100,
+			} );
+			logs = Array.isArray( response?.logs ) ? response.logs : [];
+		} catch ( e ) {
+			return;
+		}
+		if ( ! logs.length || jobId !== this.jobId ) {
+			return;
+		}
+		const i18n = window.rslIeData?.i18n || {};
+		$card.find( '.rsl-ie-complete-errors' ).remove();
+		$card.addClass( 'rsl-ie-complete-warning' );
+		$icon
+			.removeClass( 'dashicons-yes-alt' )
+			.addClass( 'dashicons-warning' );
+		$title.text(
+			i18n.importWithWarningsTitle || 'Import Completed with Warnings'
+		);
+		$subtitle.text(
+			1 === logs.length
+				? i18n.importWithWarningsSubtitleOne ||
+						'All rows were imported. One note needs your attention; it is also in the Jobs Log.'
+				: (
+						i18n.importWithWarningsSubtitle ||
+						'All rows were imported. %d notes need your attention; they are also in the Jobs Log.'
+				  ).replace( '%d', logs.length )
+		);
+		const $list = jQuery( '<ul class="rsl-ie-complete-errors"></ul>' ).css(
+			{
+				textAlign: 'left',
+				maxWidth: '640px',
+				margin: '12px auto 0',
+				color: '#996800',
+				overflowWrap: 'anywhere',
+			}
+		);
+		logs.slice( 0, 5 ).forEach( ( log ) => {
+			$list.append(
+				jQuery( '<li></li>' ).text( String( log.message || '' ) )
+			);
+		} );
+		if ( logs.length > 5 ) {
+			$list.append( jQuery( '<li></li>' ).text( '…' ) );
+		}
+		$subtitle.after( $list );
 	},
 
 	/**

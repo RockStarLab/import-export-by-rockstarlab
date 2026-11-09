@@ -156,6 +156,10 @@ class Import_Row_Error {
 		if ( isset( $hints[ $code ] ) ) {
 			return $hints[ $code ];
 		}
+		// WordPress refuses some file types for everyone ("Sorry, you are not allowed to upload this file type.").
+		if ( false !== stripos( $message, 'file type' ) ) {
+			return __( 'WordPress does not accept this type of file. Check that the URL ends with the file name and returns the file itself, not a page.', 'import-export-by-rockstarlab' );
+		}
 		if ( false !== stripos( $message, 'permission' ) || false !== stripos( $message, 'not allowed' ) ) {
 			return __( 'Your account cannot change this item. Run the import as an administrator.', 'import-export-by-rockstarlab' );
 		}
