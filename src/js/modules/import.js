@@ -578,7 +578,7 @@ const ImportModule = {
 		this.uploadedFile = file;
 
 		// Show file info
-		jQuery( '.rsl-ie-upload-placeholder' ).hide();
+		jQuery( '.rsl-ie-upload-placeholder, .rsl-ie-url-import' ).hide();
 		jQuery( '.rsl-ie-file-info' ).show();
 		jQuery( '.rsl-ie-file-name' ).text( file.name );
 		jQuery( '.rsl-ie-file-size' ).text( Utils.formatFileSize( file.size ) );
@@ -616,7 +616,7 @@ const ImportModule = {
 	 */
 	uploadFileInChunks( file ) {
 		// Show upload progress
-		jQuery( '.rsl-ie-upload-placeholder' ).hide();
+		jQuery( '.rsl-ie-upload-placeholder, .rsl-ie-url-import' ).hide();
 		jQuery( '.rsl-ie-file-info' ).hide();
 		jQuery( '.rsl-ie-upload-progress' ).show();
 
@@ -660,7 +660,7 @@ const ImportModule = {
 
 					// Show file info but keep upload area visible
 					jQuery( '.rsl-ie-upload-progress' ).hide();
-					jQuery( '.rsl-ie-upload-placeholder' ).show();
+					jQuery( '.rsl-ie-upload-placeholder, .rsl-ie-url-import' ).show();
 
 					// Store error in fileData to show on step 3
 					this.fileData = {
@@ -790,7 +790,7 @@ const ImportModule = {
 		const clientData = window.rslIeData || {};
 		const $button = jQuery( '#rsl-ie-fetch-url' );
 		$button.prop( 'disabled', true );
-		jQuery( '.rsl-ie-upload-placeholder' ).hide();
+		jQuery( '.rsl-ie-upload-placeholder, .rsl-ie-url-import' ).hide();
 		jQuery( '.rsl-ie-upload-progress' ).show();
 		jQuery( '.rsl-ie-upload-status-text' ).text(
 			rslIeData.i18n.fileUrlDownloading || 'Downloading the file...'
@@ -853,7 +853,7 @@ const ImportModule = {
 			);
 		} catch ( error ) {
 			jQuery( '.rsl-ie-upload-progress' ).hide();
-			jQuery( '.rsl-ie-upload-placeholder' ).show();
+			jQuery( '.rsl-ie-upload-placeholder, .rsl-ie-url-import' ).show();
 			Utils.showNotice( Utils.escapeHtml( error.message ), 'error' );
 		} finally {
 			$button.prop( 'disabled', false );
@@ -879,7 +879,7 @@ const ImportModule = {
 		jQuery( '.rsl-ie-file-info' ).hide();
 		jQuery( '.rsl-ie-file-conversion' ).hide().text( '' );
 		jQuery( '.rsl-ie-upload-area' ).show();
-		jQuery( '.rsl-ie-upload-placeholder' ).show();
+		jQuery( '.rsl-ie-upload-placeholder, .rsl-ie-url-import' ).show();
 		jQuery( '.rsl-ie-upload-progress' ).hide();
 		jQuery( '.rsl-ie-format-options' ).hide();
 		jQuery( '#rsl-ie-file-input' ).val( '' );
@@ -1963,6 +1963,13 @@ const ImportModule = {
 			fieldValue = slug.startsWith( 'taxonomy_' )
 				? slug
 				: `taxonomy_${ slug }`;
+		}
+
+		// Custom fields are saved from meta_<key> or _<key> columns only; a plain key such as
+		// "event_id" would be ignored by the importer, so give it the meta_ prefix.
+		if ( 'meta' === fieldType ) {
+			const key = String( fieldValue ).trim();
+			fieldValue = /^(meta_|acf_|_)/.test( key ) ? key : `meta_${ key }`;
 		}
 
 		// Create label with format info for taxonomy
@@ -6194,6 +6201,40 @@ const ImportModule = {
 	},
 
 	/**
+	 * Show that a template button is working: disabled, spinner, short label.
+	 *
+	 * @param {Object}  $button Button.
+	 * @param {boolean} busy    Busy state.
+	 * @param {string}  label   Label while busy.
+	 */
+	setTemplateButtonBusy( $button, busy, label = '' ) {
+		if ( ! $button || ! $button.length ) {
+			return;
+		}
+		if ( busy ) {
+			if ( undefined === $button.data( 'idle-html' ) ) {
+				$button.data( 'idle-html', $button.html() );
+			}
+			$button
+				.prop( 'disabled', true )
+				.addClass( 'is-busy' )
+				.attr( 'aria-busy', 'true' )
+				.html(
+					'<span class="dashicons dashicons-update rsl-ie-button-spinner" aria-hidden="true"></span> '
+				)
+				.append( document.createTextNode( label ) );
+			return;
+		}
+		$button
+			.prop( 'disabled', false )
+			.removeClass( 'is-busy' )
+			.removeAttr( 'aria-busy' );
+		if ( undefined !== $button.data( 'idle-html' ) ) {
+			$button.html( $button.data( 'idle-html' ) );
+		}
+	},
+
+	/**
 	 * Load the saved templates of the current import type into the selector.
 	 *
 	 * @param {string} selectId Template to select after loading.
@@ -6203,6 +6244,25 @@ const ImportModule = {
 		if ( ! $select.length ) {
 			return;
 		}
+		const $bar = jQuery( '#rsl-ie-mapping-templates' );
+		const requestId = ( this.templateRequestId || 0 ) + 1;
+		this.templateRequestId = requestId;
+		$bar.addClass( 'is-loading' ).attr( 'aria-busy', 'true' );
+		$select
+			.prop( 'disabled', true )
+			.empty()
+			.append(
+				jQuery( '<option>', {
+					value: '',
+					text: this.templateText(
+						'loadingMappingTemplates',
+						'Loading templates…'
+					),
+				} )
+			);
+		jQuery(
+			'.rsl-ie-template-apply, .rsl-ie-template-rename, .rsl-ie-template-delete'
+		).prop( 'disabled', true );
 		try {
 			const data = await Utils.ajax( 'rsl_ie_mapping_template_list', {
 				import_type: this.getTemplateImportType(),
@@ -6211,7 +6271,11 @@ const ImportModule = {
 		} catch ( error ) {
 			this.mappingTemplates = [];
 		}
-		$select.empty();
+		if ( requestId !== this.templateRequestId ) {
+			return; // A newer request (another post type) is loading.
+		}
+		$bar.removeClass( 'is-loading' ).removeAttr( 'aria-busy' );
+		$select.prop( 'disabled', false ).empty();
 		if ( ! this.mappingTemplates.length ) {
 			$select.append(
 				jQuery( '<option>', {
@@ -6278,6 +6342,20 @@ const ImportModule = {
 		if ( ! templateId || ! this.fileData?.columns ) {
 			return;
 		}
+		const $button = jQuery( '.rsl-ie-template-apply' );
+		this.setTemplateButtonBusy(
+			$button,
+			true,
+			this.templateText( 'loadingTemplate', 'Loading…' )
+		);
+		try {
+			await this.loadAndApplyTemplate( templateId );
+		} finally {
+			this.setTemplateButtonBusy( $button, false );
+		}
+	},
+
+	async loadAndApplyTemplate( templateId ) {
 		let template;
 		try {
 			template = await Utils.ajax( 'rsl_ie_mapping_template_get', {
@@ -6675,7 +6753,11 @@ const ImportModule = {
 			},
 			overwrite: existing ? 1 : 0,
 		};
-		$button.prop( 'disabled', true );
+		this.setTemplateButtonBusy(
+			$button,
+			true,
+			this.templateText( 'savingTemplate', 'Saving…' )
+		);
 		try {
 			const template = await Utils.ajax(
 				'rsl_ie_mapping_template_save',
@@ -6702,7 +6784,7 @@ const ImportModule = {
 		} catch ( error ) {
 			Utils.showNotice( String( error ), 'error' );
 		} finally {
-			$button.prop( 'disabled', false );
+			this.setTemplateButtonBusy( $button, false );
 		}
 	},
 
@@ -7405,8 +7487,9 @@ const ImportModule = {
 				const rows = errors
 					.filter(
 						( e ) =>
-							`${ e.field || '' }|${ String( e.message || e ) }` ===
-							key
+							`${ e.field || '' }|${ String(
+								e.message || e
+							) }` === key
 					)
 					.map( ( e ) => e.row )
 					.filter( ( row ) => undefined !== row );
@@ -7425,15 +7508,15 @@ const ImportModule = {
 					)
 				);
 				$item.append(
-					jQuery( '<span class="rsl-ie-row-error-message"></span>' ).text(
-						( where || error.field ? ': ' : '' ) + message
-					)
+					jQuery(
+						'<span class="rsl-ie-row-error-message"></span>'
+					).text( ( where || error.field ? ': ' : '' ) + message )
 				);
 				if ( error.hint ) {
 					$item.append(
-						jQuery( '<span class="rsl-ie-row-error-hint"></span>' ).text(
-							error.hint
-						)
+						jQuery(
+							'<span class="rsl-ie-row-error-hint"></span>'
+						).text( error.hint )
 					);
 				}
 				$list.append( $item );
@@ -7463,9 +7546,9 @@ const ImportModule = {
 					}
 				} );
 				$box.append(
-					jQuery( '<p class="rsl-ie-download-errors-wrap"></p>' ).append(
-						$download
-					)
+					jQuery(
+						'<p class="rsl-ie-download-errors-wrap"></p>'
+					).append( $download )
 				);
 			}
 			$subtitle.after( $box );
@@ -7725,7 +7808,7 @@ const ImportModule = {
 		jQuery( '.rsl-ie-file-info' ).hide();
 		jQuery( '.rsl-ie-file-conversion' ).hide().text( '' );
 		jQuery( '.rsl-ie-upload-area' ).show();
-		jQuery( '.rsl-ie-upload-placeholder' ).show();
+		jQuery( '.rsl-ie-upload-placeholder, .rsl-ie-url-import' ).show();
 		jQuery( '.rsl-ie-upload-progress' ).hide();
 		jQuery( '.rsl-ie-format-options' ).hide();
 		jQuery( '.rsl-ie-import-results' ).hide();
@@ -8103,7 +8186,7 @@ const ImportModule = {
 			const matchable = [ ...uniqueFields ].filter(
 				( field ) =>
 					[ 'ID', 'post_name', 'post_title' ].includes( field ) ||
-					/^(meta_|acf_)/.test( field )
+					/^(meta_|acf_|_)/.test( field )
 			);
 			if ( matchable.length ) {
 				uniqueFields.clear();

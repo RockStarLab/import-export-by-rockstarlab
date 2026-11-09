@@ -379,6 +379,9 @@ class Init {
 					'createFunctionsInLibrary'          => __( 'Transformation management is handled by the PRO addon.', 'import-export-by-rockstarlab' ),
 					'errorLoadingFunctions'             => __( 'Error loading transformations', 'import-export-by-rockstarlab' ),
 					'importStartedSuccessfully'         => __( 'Import started successfully', 'import-export-by-rockstarlab' ),
+					'loadingTemplate' => __( 'Loading…', 'import-export-by-rockstarlab' ),
+					'savingTemplate' => __( 'Saving…', 'import-export-by-rockstarlab' ),
+					'loadingMappingTemplates' => __( 'Loading templates…', 'import-export-by-rockstarlab' ),
 					'noMappingTemplates' => __( '— No saved templates —', 'import-export-by-rockstarlab' ),
 					'chooseMappingTemplate' => __( '— Choose a template —', 'import-export-by-rockstarlab' ),
 					/* translators: %s: template name or column name. */

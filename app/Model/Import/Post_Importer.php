@@ -812,7 +812,7 @@ class Post_Importer extends Abstract_Importer {
 	/**
 	 * Meta key behind a custom-field match column, or '' for core columns.
 	 *
-	 * @param string $check_field Match column (meta_<key> or acf_<name>).
+	 * @param string $check_field Match column (meta_<key>, acf_<name> or _<key>).
 	 * @return string
 	 */
 	private function match_meta_key( $check_field ) {
@@ -822,6 +822,10 @@ class Post_Importer extends Abstract_Importer {
 		}
 		if ( 0 === strpos( $check_field, 'acf_' ) ) {
 			return (string) substr( $check_field, 4 );
+		}
+		// Underscore keys (_sku, _event_id) are stored as post meta under the same name.
+		if ( '_' === substr( $check_field, 0, 1 ) && ! in_array( $check_field, [ '_wp_page_template', '_thumbnail_id' ], true ) ) {
+			return $check_field;
 		}
 		return '';
 	}

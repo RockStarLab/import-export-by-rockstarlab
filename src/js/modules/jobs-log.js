@@ -66,7 +66,9 @@ const JobsLogModule = {
 				const $button = jQuery( e.currentTarget );
 				$button.prop( 'disabled', true );
 				try {
-					await Utils.downloadJobErrorsCsv( $button.data( 'job-id' ) );
+					await Utils.downloadJobErrorsCsv(
+						$button.data( 'job-id' )
+					);
 				} catch ( error ) {
 					Utils.showNotice( String( error ), 'error' );
 				} finally {
@@ -959,7 +961,9 @@ const JobsLogModule = {
 			)
 			.join( '' );
 		return `
-			<h3>${ this.escapeHtml( i18n.rowErrorsTitle || 'Rows with errors' ) } (${ errors.length })</h3>
+			<h3>${ this.escapeHtml( i18n.rowErrorsTitle || 'Rows with errors' ) } (${
+				errors.length
+			})</h3>
 			<table class="widefat striped rsl-ie-job-row-errors">
 				<thead><tr>
 					<th>${ this.escapeHtml( i18n.rowHeader || 'Row' ) }</th>
@@ -972,10 +976,8 @@ const JobsLogModule = {
 			${
 				errors.length > 50
 					? `<p class="description">${ this.escapeHtml(
-							(
-								i18n.rowErrorsMore ||
+							i18n.rowErrorsMore ||
 								'The first 50 rows are shown. The CSV has all of them.'
-							)
 					  ) }</p>`
 					: ''
 			}
