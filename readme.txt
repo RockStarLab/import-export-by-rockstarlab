@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.35
+Stable tag: 2.1.36
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -274,6 +274,11 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.1.36 =
+* Fixed: a custom field added in the Field Mapping step with a plain key such as "event_id" was not saved by the import. Keys without a meta_ or _ prefix now get meta_ automatically, and custom fields stored under an underscore key (for example _event_code) can be used to find existing posts.
+* Improved: the "Or import a file from a URL" box is hidden while a file is uploading and after it is uploaded, and comes back when you remove the file.
+* Improved: the mapping template list in step 4 shows "Loading templates…" until the saved templates are loaded, and Load Template and Save as Template show that they are working.
+
 = 2.1.35 =
 * New: field mapping templates. Save the column mapping and import settings of an import under a name ("Save as Template" in steps 4 and 5) and load it for the next file in step 4. Columns are matched by name, so their order may change; columns missing from the new file are listed and their fields highlighted. Templates can be renamed and deleted, and any earlier import can be saved as a template from the Jobs Log.
 * New: AI agents can list, read, save, delete and apply mapping templates (rsl-ie/mapping-template-list, -get, -save, -delete, -from-job, -apply). mapping-template-apply returns a mapping and options that import-start accepts unchanged.
@@ -303,10 +308,6 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 = 2.1.32 =
 * Fixed: pulling a post back to the site it was first pushed from could add a second copy of its comments. Comments that already exist on the post (same author email, date and text) are now matched instead of added again.
-
-= 2.1.31 =
-* Improved: XLSX and ODS exports write plain numbers (such as 120, 0.5 or -12) as number cells you can sort and sum, and keep codes with leading zeros (00123), numbers longer than 11 digits (barcodes, tracking numbers) and values like 49.90 as text, so spreadsheet apps don't change them.
-* Improved: AI agents can use the same CSV separators as the export screen in rsl-ie/export-start, including multi-character separators of up to 10 characters such as ;; or |~|.
 
 Older versions: see changelog.txt in the plugin folder.
 

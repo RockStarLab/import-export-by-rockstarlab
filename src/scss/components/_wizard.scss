@@ -1299,6 +1299,24 @@
 		max-width: 100%;
 	}
 
+	.button-link:disabled,
+	.button-link[disabled] {
+		opacity: 0.4;
+		cursor: default;
+		text-decoration: none;
+	}
+
+	.rsl-ie-template-spinner {
+		float: none;
+		margin: 0;
+		display: none;
+	}
+
+	&.is-loading .rsl-ie-template-spinner {
+		display: inline-block;
+		visibility: visible;
+	}
+
 	.rsl-ie-template-save {
 		margin-left: auto;
 		display: flex;

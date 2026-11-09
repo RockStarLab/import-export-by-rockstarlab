@@ -82,9 +82,10 @@ defined( 'ABSPATH' ) || exit;
 		<div class="rsl-ie-mapping-templates" id="rsl-ie-mapping-templates">
 			<span class="dashicons dashicons-portfolio" aria-hidden="true"></span>
 			<label for="rsl-ie-template-select"><?php esc_html_e( 'Mapping template', 'import-export-by-rockstarlab' ); ?></label>
-			<select id="rsl-ie-template-select" class="rsl-ie-template-select">
-				<option value=""><?php esc_html_e( '— No saved templates —', 'import-export-by-rockstarlab' ); ?></option>
+			<select id="rsl-ie-template-select" class="rsl-ie-template-select" disabled>
+				<option value=""><?php esc_html_e( 'Loading templates…', 'import-export-by-rockstarlab' ); ?></option>
 			</select>
+			<span class="spinner rsl-ie-template-spinner" aria-hidden="true"></span>
 			<button type="button" class="button rsl-ie-template-apply" disabled>
 				<?php esc_html_e( 'Load Template', 'import-export-by-rockstarlab' ); ?>
 			</button>
