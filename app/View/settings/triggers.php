@@ -71,13 +71,18 @@ $rsl_ie_has_url = (bool) array_filter( $rsl_ie_srcs, static fn( $s ) => $s['from
 					<td>
 						<?php echo esc_html( $rsl_ie_events[ $rsl_ie_t['event'] ] ?? $rsl_ie_t['event'] ); ?>
 						<?php if ( 'post_published' === $rsl_ie_t['event'] ) : ?>
-							<br><span class="description"><?php echo esc_html( implode( ', ', $rsl_ie_t['post_types'] ) ); ?></span>
+							<br><span class="description"><?php echo esc_html( implode( ', ', array_map( static fn( $pt ) => isset( $rsl_ie_ptypes[ $pt ] ) ? $rsl_ie_ptypes[ $pt ]->labels->name : $pt, $rsl_ie_t['post_types'] ) ) ); ?></span>
 						<?php endif; ?>
 						<?php if ( in_array( $rsl_ie_t['event'], [ 'post_published', 'woo_order_created' ], true ) && $rsl_ie_t['delay'] ) : ?>
 							<br><span class="description">
 							<?php
-							/* translators: %d: seconds. */
-							echo esc_html( sprintf( __( 'waits %d s to group events', 'import-export-by-rockstarlab' ), $rsl_ie_t['delay'] ) );
+							$rsl_ie_wait = $rsl_ie_t['delay'] >= 60 && 0 === $rsl_ie_t['delay'] % 60
+								/* translators: %d: minutes. */
+								? sprintf( _n( '%d minute', '%d minutes', $rsl_ie_t['delay'] / 60, 'import-export-by-rockstarlab' ), $rsl_ie_t['delay'] / 60 )
+								/* translators: %d: seconds. */
+								: sprintf( _n( '%d second', '%d seconds', $rsl_ie_t['delay'], 'import-export-by-rockstarlab' ), $rsl_ie_t['delay'] );
+							/* translators: %s: wait time, such as "5 minutes". */
+							echo esc_html( sprintf( __( 'waits %s to group events', 'import-export-by-rockstarlab' ), $rsl_ie_wait ) );
 							?>
 							</span>
 						<?php endif; ?>
@@ -99,7 +104,7 @@ $rsl_ie_has_url = (bool) array_filter( $rsl_ie_srcs, static fn( $s ) => $s['from
 								<br><span class="description">
 								<?php
 								/* translators: 1: job ID, 2: number of runs. */
-								echo esc_html( sprintf( __( 'job #%1$d · %2$d runs', 'import-export-by-rockstarlab' ), $rsl_ie_t['last_job_id'], $rsl_ie_t['runs'] ) );
+								echo esc_html( sprintf( _n( 'job #%1$d · %2$d run', 'job #%1$d · %2$d runs', $rsl_ie_t['runs'], 'import-export-by-rockstarlab' ), $rsl_ie_t['last_job_id'], $rsl_ie_t['runs'] ) );
 								?>
 								</span>
 							<?php endif; ?>

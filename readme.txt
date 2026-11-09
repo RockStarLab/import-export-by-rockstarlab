@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.37
+Stable tag: 2.1.38
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -274,6 +274,10 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.1.38 =
+* Fixed: when the file of a "file changes" trigger changed again while the trigger's previous job was still running, the change could be skipped. The next hourly check now starts the import.
+* Improved: the Triggers list shows post type names, the wait time in minutes, and the number of runs in correct English.
+
 = 2.1.37 =
 * New: event triggers (Jobs Log → Triggers). Run a finished import or export again when another system calls a secure webhook URL (Zapier, Make, n8n, a CRM or a script), when a post of chosen types is published, when a WooCommerce order is created, or when the file an import downloads from a URL changes (checked hourly). Each run is a new job with the same file source, mapping and options, started as the administrator who created the trigger.
 * New: webhook triggers use a secret token sent in the X-RSL-Token header or as a Bearer token, never in the URL. The token is shown once, stored only as a hash and can be replaced at any time. Repeated wrong tokens are blocked for an hour.
@@ -301,17 +305,6 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 * Fixed: an export or preview requested with the field list "*" (as AI agents often do) produced a single empty "*" column. It now exports the default columns.
 * New: media export columns "Original File Size" and "Size on Disk, All Sizes". WordPress keeps the original of a large upload next to a scaled-down copy and creates several smaller sizes; these columns show how much space each image really takes.
 * Fixed: a Media import set to update existing files stopped with "File source is required" when the file had no file URL column. You can now update alt text, titles, captions and descriptions of existing Media Library items by ID (or another unique field) without the files.
-
-= 2.1.33 =
-* New: "Parent Title" export column for posts and pages: the title of the parent page next to its ID, empty for top-level pages.
-* Improved: Auto-match by Title no longer stops when one title exists on several posts of the remote site. The other posts are matched, and only those rows are left for you to choose, with a message naming the title. AI agents get the same result: the post appears in "ambiguous" with the IDs of the remote posts to choose from.
-* Improved: the remote post list in Map Posts for Sync shows the status and date of each post, so posts with the same title can be told apart.
-* Fixed: searching the remote post list right after opening it could show "The results could not be loaded" while the first search was still running. The search now waits and retries.
-* Fixed: remote post titles in the Map Posts for Sync list are always shown as plain text, and titles with & or other special characters are shown correctly.
-* Fixed: an AI agent that renamed a post and then ran Auto-match in the same session could get a match for the old title. Auto-match and the selected-posts list now read the current titles.
-* Fixed: Content Sync now sends files that a post links to, such as a PDF in a link, a File block, or a video or audio file, together with the post. Before, the link was changed to the target site but the file was not copied there.
-* Fixed: "Last Sync" on the Content Sync screen now shows the time of the last completed push or pull. Before, it changed only when the connection was tested.
-* Fixed: CSV, XLSX and ODS exports started by AI agents or other API calls without the header option had no header row. The header row is now included unless it is turned off, as in the export screen.
 
 == Screenshots ==
 

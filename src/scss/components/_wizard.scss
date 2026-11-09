@@ -1541,11 +1541,22 @@
 }
 
 #rsl-ie-triggers .rsl-ie-trigger-table {
-	th:nth-child(1) { width: 16%; }
-	th:nth-child(2) { width: 30%; }
-	th:nth-child(3) { width: 18%; }
-	th:nth-child(4) { width: 8%; }
-	th:nth-child(5) { width: 11%; white-space: nowrap; }
+	th:nth-child(1) {
+		width: 16%;
+	}
+	th:nth-child(2) {
+		width: 30%;
+	}
+	th:nth-child(3) {
+		width: 18%;
+	}
+	th:nth-child(4) {
+		width: 8%;
+	}
+	th:nth-child(5) {
+		width: 11%;
+		white-space: nowrap;
+	}
 
 	.button.button-link-delete {
 		color: #b32d2e;

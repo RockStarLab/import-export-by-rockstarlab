@@ -1,5 +1,9 @@
 == Import Export by RockStarLab: full changelog ==
 
+= 2.1.38 =
+* Fixed: when the file of a "file changes" trigger changed again while the trigger's previous job was still running, the change could be skipped. The next hourly check now starts the import.
+* Improved: the Triggers list shows post type names, the wait time in minutes, and the number of runs in correct English.
+
 = 2.1.37 =
 * New: event triggers (Jobs Log → Triggers). Run a finished import or export again when another system calls a secure webhook URL (Zapier, Make, n8n, a CRM or a script), when a post of chosen types is published, when a WooCommerce order is created, or when the file an import downloads from a URL changes (checked hourly). Each run is a new job with the same file source, mapping and options, started as the administrator who created the trigger.
 * New: webhook triggers use a secret token sent in the X-RSL-Token header or as a Bearer token, never in the URL. The token is shown once, stored only as a hash and can be replaced at any time. Repeated wrong tokens are blocked for an hour.
