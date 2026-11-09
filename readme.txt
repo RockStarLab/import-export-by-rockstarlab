@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.31
+Stable tag: 2.1.32
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -274,6 +274,9 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.1.32 =
+* Fixed: pulling a post back to the site it was first pushed from could add a second copy of its comments. Comments that already exist on the post (same author email, date and text) are now matched instead of added again.
+
 = 2.1.31 =
 * Improved: XLSX and ODS exports write plain numbers (such as 120, 0.5 or -12) as number cells you can sort and sum, and keep codes with leading zeros (00123), numbers longer than 11 digits (barcodes, tracking numbers) and values like 49.90 as text, so spreadsheet apps don't change them.
 * Improved: AI agents can use the same CSV separators as the export screen in rsl-ie/export-start, including multi-character separators of up to 10 characters such as ;; or |~|.
@@ -313,12 +316,6 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 * Improved: a reviews export can include the Parent Review ID, so replies stay under their reviews on another store.
 * Fixed: the import result no longer says "Import Failed" when rows were skipped on purpose.
 * Fixed: the Tab option in the CSV delimiter list showed a double backslash.
-
-= 2.1.27 =
-* New: import a file from a URL. Paste the address of a CSV, XML, JSON, XLSX or ODS file below the upload area and click Fetch File; the server downloads and checks it like an upload. When the import is repeated by a schedule, the file is downloaded again on every run, so supplier price lists and feeds stay current.
-* New: XML imports read product and data feeds from other systems, not only the plugin's own files. The repeating element is found automatically (<product>, <item> in RSS and Google Merchant feeds, <offer>, and so on). Attributes become their own columns (price@currency), lists such as <images><image> become one comma-separated column, nested elements get path names (shipping/weight) and namespaced fields keep their prefix (g:price).
-* Improved: the Taxonomy Terms export and import screens have an "Image URL" field for term images such as WooCommerce category thumbnails, and the import screen has "Parent Slug or Name". Auto Map recognizes Image, Thumbnail, Parent Category and Parent Name columns.
-* Fixed: a term import from a spreadsheet without term IDs now sets the parent of a category even when the parent comes later in the file. The parent can be given as a slug or as a name.
 
 Older versions: see changelog.txt in the plugin folder.
 
