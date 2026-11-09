@@ -233,6 +233,14 @@ class Content_Sync_Media {
 				}
 			}
 
+			// File, video and audio blocks link to Media Library files (PDFs, videos, audio).
+			if ( in_array( $block['blockName'], array( 'core/file', 'core/video', 'core/audio' ), true ) && ! empty( $block['attrs']['id'] ) ) {
+				$image_data = self::prepare_image_data( (int) $block['attrs']['id'], 'gutenberg_file' );
+				if ( $image_data ) {
+					$images[] = $image_data;
+				}
+			}
+
 			// Handle media-text block
 			if ( 'core/media-text' === $block['blockName'] ) {
 				if ( isset( $block['attrs']['mediaId'] ) ) {
@@ -309,6 +317,16 @@ class Content_Sync_Media {
 					if ( ! empty( $parts[0] ) ) {
 						$urls[] = $parts[0];
 					}
+				}
+			}
+		}
+
+		// Links and players pointing to uploaded files (a PDF price list, a video): the file must
+		// travel with the post, otherwise the rewritten link points to a missing file.
+		if ( preg_match_all( '/<(?:a|video|audio|source)\b[^>]*\b(?:href|src)=["\']([^"\']+)["\']/i', $content, $link_matches ) ) {
+			foreach ( $link_matches[1] as $link ) {
+				if ( self::is_wordpress_uploads_url( $link ) ) {
+					$urls[] = $link;
 				}
 			}
 		}

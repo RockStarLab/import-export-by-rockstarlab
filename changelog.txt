@@ -1,5 +1,16 @@
 == Import Export by RockStarLab: full changelog ==
 
+= 2.1.33 =
+* New: "Parent Title" export column for posts and pages: the title of the parent page next to its ID, empty for top-level pages.
+* Improved: Auto-match by Title no longer stops when one title exists on several posts of the remote site. The other posts are matched, and only those rows are left for you to choose, with a message naming the title. AI agents get the same result: the post appears in "ambiguous" with the IDs of the remote posts to choose from.
+* Improved: the remote post list in Map Posts for Sync shows the status and date of each post, so posts with the same title can be told apart.
+* Fixed: searching the remote post list right after opening it could show "The results could not be loaded" while the first search was still running. The search now waits and retries.
+* Fixed: remote post titles in the Map Posts for Sync list are always shown as plain text, and titles with & or other special characters are shown correctly.
+* Fixed: an AI agent that renamed a post and then ran Auto-match in the same session could get a match for the old title. Auto-match and the selected-posts list now read the current titles.
+* Fixed: Content Sync now sends files that a post links to, such as a PDF in a link, a File block, or a video or audio file, together with the post. Before, the link was changed to the target site but the file was not copied there.
+* Fixed: "Last Sync" on the Content Sync screen now shows the time of the last completed push or pull. Before, it changed only when the connection was tested.
+* Fixed: CSV, XLSX and ODS exports started by AI agents or other API calls without the header option had no header row. The header row is now included unless it is turned off, as in the export screen.
+
 = 2.1.32 =
 * Fixed: pulling a post back to the site it was first pushed from could add a second copy of its comments. Comments that already exist on the post (same author email, date and text) are now matched instead of added again.
 

@@ -1256,7 +1256,7 @@ export default class ExportStep3 {
 
 	/**
 	 * Add columns that can be exported but not filtered (the step 2 filters share the
-	 * same field groups): the full address and the word count of posts and pages.
+	 * same field groups): the full address, the word count and the parent's title of posts and pages.
 	 *
 	 * @param {Object} group Field group.
 	 * @return {Object} Group to render.
@@ -1283,6 +1283,11 @@ export default class ExportStep3 {
 					value: 'word_count',
 					label: i18n.fieldWordCount || 'Word Count',
 					type: 'number',
+				},
+				{
+					value: 'parent_title',
+					label: i18n.fieldParentTitle || 'Parent Title',
+					type: 'string',
 				},
 			],
 		};

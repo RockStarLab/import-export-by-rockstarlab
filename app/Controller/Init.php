@@ -752,6 +752,7 @@ class Init {
 					'fieldModifiedDate'                 => __( 'Modified Date', 'import-export-by-rockstarlab' ),
 					'fieldPermalink'                    => __( 'Permalink', 'import-export-by-rockstarlab' ),
 					'fieldWordCount'                    => __( 'Word Count', 'import-export-by-rockstarlab' ),
+					'fieldParentTitle'                  => __( 'Parent Title', 'import-export-by-rockstarlab' ),
 					'fieldTemplate'                     => __( 'Template', 'import-export-by-rockstarlab' ),
 					'fieldCustomFieldMeta'              => __( '🔧 Custom Field (Meta)', 'import-export-by-rockstarlab' ),
 					'fieldTaxonomyFilter'               => __( '🏷️ Taxonomy Filter', 'import-export-by-rockstarlab' ),

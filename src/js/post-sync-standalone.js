@@ -72,9 +72,19 @@ const getActionNonce = ( action ) =>
 					: rslIePostSyncData?.i18n?.updatePost ||
 					  '🔄 Update: %1$s (ID: %2$s)';
 
+			// Titles arrive HTML-encoded (&amp;); the label is always rendered as text.
 			return template
-				.replace( '%1$s', postTitle || '' )
+				.replace( '%1$s', this.decodeEntities( postTitle ) )
 				.replace( '%2$s', remoteId );
+		},
+
+		/**
+		 * Decode HTML entities in a title to plain text (a textarea never runs markup).
+		 */
+		decodeEntities( text ) {
+			const decoder = document.createElement( 'textarea' );
+			decoder.innerHTML = String( text || '' );
+			return decoder.value;
 		},
 
 		/**
@@ -861,7 +871,7 @@ const getActionNonce = ( action ) =>
 			const $localCol = $( '<td>' ).addClass( 'rsl-ie-local-post' )
 				.html( `
 				<div class="rsl-ie-local-post-info">
-					<h4>${ postTitle }</h4>
+					<h4>${ this.escapeHtml( this.decodeEntities( postTitle ) ) }</h4>
 					<div class="rsl-ie-post-meta">
 						<span class="rsl-ie-post-type">${ postType }</span>
 						<span class="rsl-ie-post-id">${ idLabel } ${ postId }</span>
@@ -964,6 +974,39 @@ const getActionNonce = ( action ) =>
 					url: ajaxUrl,
 					dataType: 'json',
 					delay: 300,
+					// Opening the list and typing right away sends two searches; the second one
+					// finds the connection busy. Retry it for a few seconds instead of showing
+					// "The results could not be loaded".
+					transport: ( params, success, failure ) => {
+						let request = null;
+						let timer = null;
+						let aborted = false;
+						const attempt = ( tries ) => {
+							request = $.ajax( params );
+							request.then( success );
+							request.fail( ( xhr, textStatus ) => {
+								if ( aborted || 'abort' === textStatus ) {
+									return;
+								}
+								const code = xhr.responseJSON?.data?.code || '';
+								if ( 'rsl_ie_connection_busy' === code && tries < 15 ) {
+									timer = setTimeout( () => attempt( tries + 1 ), 400 );
+									return;
+								}
+								failure( xhr, textStatus );
+							} );
+						};
+						attempt( 0 );
+						return {
+							abort: () => {
+								aborted = true;
+								clearTimeout( timer );
+								if ( request ) {
+									request.abort();
+								}
+							},
+						};
+					},
 					data: ( params ) => {
 						return {
 							action: 'rsl_ie_content_sync_search_remote_posts',
@@ -993,6 +1036,7 @@ const getActionNonce = ( action ) =>
 							title: post.post_title,
 							post_type: post.post_type,
 							post_date: post.post_date,
+							post_status: post.post_status,
 						} ) );
 
 						// Add "Create New" option at the beginning for push only.
@@ -1020,10 +1064,22 @@ const getActionNonce = ( action ) =>
 					},
 					cache: true,
 				},
-				escapeMarkup: ( markup ) => markup,
 				templateResult: ( item ) => {
 					if ( ! item.id ) return item.text;
-					return $( '<span>' ).html( item.text );
+					const $result = $( '<span>' ).text( item.text );
+					// Status and date tell apart posts that share a title.
+					const details = [
+						item.post_status || '',
+						( item.post_date || '' ).slice( 0, 10 ),
+					].filter( Boolean );
+					if ( 'new' !== item.id && details.length ) {
+						$result.append(
+							$( '<span class="rsl-ie-remote-option-meta">' )
+								.css( { opacity: 0.7, marginLeft: '8px' } )
+								.text( details.join( ' · ' ) )
+						);
+					}
+					return $result;
 				},
 				templateSelection: ( item ) => {
 					// Update wrapper class based on selection
@@ -1180,12 +1236,24 @@ const getActionNonce = ( action ) =>
 
 					const mapping = response.data.mapping || {};
 					const matches = response.data.matches || {};
+					const ambiguous = Array.isArray( response.data.ambiguous )
+						? response.data.ambiguous
+						: [];
+					const ambiguousIds = ambiguous.map( ( item ) =>
+						String( item.local_id )
+					);
 
 					$( '.rsl-ie-remote-select' ).each( ( i, select ) => {
 						const $select = $( select );
 						const localId = String( $select.data( 'local-id' ) );
 						const remoteId = mapping[ localId ];
 						const post = matches[ localId ];
+
+						// Several remote posts share this title: keep the row as it is
+						// and let the user pick the right post.
+						if ( ambiguousIds.includes( localId ) ) {
+							return;
+						}
 
 						if ( remoteId && post ) {
 							const optionExists =
@@ -1219,6 +1287,15 @@ const getActionNonce = ( action ) =>
 								.trigger( 'change' );
 						}
 					} );
+
+					if ( ambiguous.length ) {
+						window.alert(
+							ambiguous
+								.map( ( item ) => item.message )
+								.filter( Boolean )
+								.join( '\n' )
+						);
+					}
 				},
 				error: ( xhr ) => {
 					// Keep the rows unchanged: switching every row to "Create New Post"

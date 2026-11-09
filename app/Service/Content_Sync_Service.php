@@ -198,6 +198,10 @@ class Content_Sync_Service {
 				$result['job_id'] = $this->job_id;
 				$result['result'] = $this->sync_result;
 			}
+			// "Last Sync" on the Content Sync screen shows the last completed push or pull.
+			if ( ! is_wp_error( $result ) && $site_id && in_array( $direction ?? '', [ 'push', 'pull' ], true ) ) {
+				Connected_Site::update_last_sync( $site_id );
+			}
 			return $result;
 		} catch ( \Throwable $exception ) {
 			$message = __( 'Sync stopped unexpectedly. Inspect its job before repeating the request; some content may already have changed.', 'import-export-by-rockstarlab' );
@@ -1088,9 +1092,10 @@ class Content_Sync_Service {
 			return $this->error( __( 'Site not found', 'import-export-by-rockstarlab' ) );
 		}
 
-		$mapping = array();
-		$matches = array();
-		$index   = $this->remote_title_index( $site, $post_ids );
+		$mapping   = array();
+		$matches   = array();
+		$ambiguous = array();
+		$index     = $this->remote_title_index( $site, $post_ids );
 		if ( is_wp_error( $index ) ) {
 			return $index;
 		}
@@ -1101,6 +1106,8 @@ class Content_Sync_Service {
 				continue;
 			}
 
+			// Long-running callers (an AI agent through the stdio MCP server, WP-CLI) may hold an old copy.
+			clean_post_cache( $post_id );
 			$post = get_post( $post_id );
 			if ( ! $post ) {
 				continue;
@@ -1109,6 +1116,17 @@ class Content_Sync_Service {
 			$remote_post = isset( $index[ $post->post_type ] )
 				? $this->match_from_title_index( $index[ $post->post_type ], $post )
 				: $this->find_remote_post_by_exact_title( $site, $post );
+			// Several remote posts with this title: leave this post for a manual choice, keep matching the rest.
+			if ( is_wp_error( $remote_post ) && 'rsl_ie_sync_ambiguous_title' === $remote_post->get_error_code() ) {
+				$mapping[ $post_id ] = null;
+				$ambiguous[]         = array(
+					'local_id'   => $post_id,
+					'title'      => wp_strip_all_tags( $post->post_title ),
+					'remote_ids' => array_map( 'absint', (array) ( $remote_post->get_error_data()['remote_ids'] ?? array() ) ),
+					'message'    => $remote_post->get_error_message(),
+				);
+				continue;
+			}
 			if ( is_wp_error( $remote_post ) ) {
 				return $remote_post;
 			}
@@ -1135,8 +1153,9 @@ class Content_Sync_Service {
 
 		return $this->success(
 			array(
-				'mapping' => $mapping,
-				'matches' => $matches,
+				'mapping'   => $mapping,
+				'matches'   => $matches,
+				'ambiguous' => $ambiguous,
 			)
 		);
 	}
@@ -1213,7 +1232,7 @@ class Content_Sync_Service {
 		$candidates = $titles[ $this->normalize_post_title_for_mapping( $post->post_title ) ] ?? array();
 		$ids        = array_unique( array_map( 'intval', wp_list_pluck( $candidates, 'ID' ) ) );
 		if ( count( $ids ) > 1 ) {
-			return new \WP_Error( 'rsl_ie_sync_ambiguous_title', sprintf( /* translators: %s: post title. */ __( 'Several posts on the remote site are titled "%s". Choose the right one in the list for this post.', 'import-export-by-rockstarlab' ), wp_strip_all_tags( $post->post_title ) ), [ 'status' => 409 ] );
+			return new \WP_Error( 'rsl_ie_sync_ambiguous_title', sprintf( /* translators: %s: post title. */ __( 'Several posts on the remote site are titled "%s". Choose the right one in the list for this post.', 'import-export-by-rockstarlab' ), wp_strip_all_tags( $post->post_title ) ), [ 'status' => 409, 'remote_ids' => array_values( $ids ) ] );
 		}
 		return $candidates ? $candidates[0] : null;
 	}
@@ -1249,7 +1268,7 @@ class Content_Sync_Service {
 			foreach ( $data['posts'] as $candidate ) {
 				if ( is_array( $candidate ) && ( $candidate['post_type'] ?? '' ) === $post->post_type && $this->normalize_post_title_for_mapping( $candidate['post_title'] ?? '' ) === $local_title ) {
 					if ( $match && (int) $match['ID'] !== (int) $candidate['ID'] ) {
-						return new \WP_Error( 'rsl_ie_sync_ambiguous_title', sprintf( /* translators: %s: post title. */ __( 'Several posts on the remote site are titled "%s". Choose the right one in the list for this post.', 'import-export-by-rockstarlab' ), wp_strip_all_tags( $post->post_title ) ), [ 'status' => 409 ] );
+						return new \WP_Error( 'rsl_ie_sync_ambiguous_title', sprintf( /* translators: %s: post title. */ __( 'Several posts on the remote site are titled "%s". Choose the right one in the list for this post.', 'import-export-by-rockstarlab' ), wp_strip_all_tags( $post->post_title ) ), [ 'status' => 409, 'remote_ids' => [ (int) $match['ID'], (int) $candidate['ID'] ] ] );
 					}
 					$match = $candidate;
 				}
@@ -1366,6 +1385,7 @@ class Content_Sync_Service {
 		$posts_info = array();
 
 		foreach ( $post_ids as $post_id ) {
+			clean_post_cache( (int) $post_id ); // Fresh title and status for long-running callers.
 			$post = get_post( $post_id );
 			if ( $post ) {
 				$orig         = get_post_meta( $post->ID, '_rsl_ie_original_post_id', true );
