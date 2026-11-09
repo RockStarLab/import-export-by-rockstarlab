@@ -528,6 +528,18 @@ class Media_Importer extends Abstract_Importer {
 			);
 		}
 
+		// A URL that opens a web page (a gallery, a login screen) is not the file itself.
+		$type = strtolower( (string) wp_remote_retrieve_header( $response, 'content-type' ) );
+		if ( 0 === strpos( $type, 'text/html' ) && ! preg_match( '/\.html?$/i', (string) wp_parse_url( $url, PHP_URL_PATH ) ) ) {
+			if ( ! empty( $response['filename'] ) && file_exists( $response['filename'] ) ) {
+				wp_delete_file( $response['filename'] );
+			}
+			return new \WP_Error(
+				'download_failed',
+				__( 'The URL returned a web page, not a file.', 'import-export-by-rockstarlab' )
+			);
+		}
+
 		return $response['filename'];
 	}
 

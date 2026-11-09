@@ -791,6 +791,19 @@ const JobsLogModule = {
 			} );
 
 			if ( response ) {
+				// Notes such as "Author not found" are kept in the job log.
+				try {
+					const logs = await Utils.ajax( 'rsl_ie_job_get_logs', {
+						job_id: jobId,
+						level: 'warning',
+						limit: 100,
+					} );
+					response.warnings = Array.isArray( logs?.logs )
+						? logs.logs
+						: [];
+				} catch ( logError ) {
+					response.warnings = [];
+				}
 				this.showJobDetailsModal( response );
 			}
 		} catch ( error ) {
@@ -901,6 +914,7 @@ const JobsLogModule = {
 				</table>
 				
 				${ this.renderJobErrors( job ) }
+				${ this.renderJobWarnings( job ) }
 				${
 					job.parameters
 						? `
@@ -926,6 +940,33 @@ const JobsLogModule = {
 
 		jQuery( '#job-details-content' ).html( html );
 		jQuery( '#job-details-modal' ).show();
+	},
+
+	/**
+	 * Warnings from the job log (rows that were imported with a note).
+	 *
+	 * @param {Object} job Job details with warnings.
+	 * @return {string} HTML.
+	 */
+	renderJobWarnings( job ) {
+		const warnings = Array.isArray( job.warnings ) ? job.warnings : [];
+		if ( ! warnings.length ) {
+			return '';
+		}
+		const items = warnings
+			.map(
+				( log ) =>
+					`<li>${ this.escapeHtml(
+						String( log.message || '' )
+					) }</li>`
+			)
+			.join( '' );
+		return `
+			<h3>${ window.rslIeData.i18n.jobWarnings || 'Warnings' } (${
+				warnings.length
+			})</h3>
+			<ul class="job-warnings">${ items }</ul>
+		`;
 	},
 
 	/**

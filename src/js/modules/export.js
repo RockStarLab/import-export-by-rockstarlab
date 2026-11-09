@@ -1367,9 +1367,13 @@ const ExportModule = {
 			}
 		}
 
-		if ( contentType === 'form_entries' && ! this.getFormEntrySelection() ) {
+		if (
+			contentType === 'form_entries' &&
+			! this.getFormEntrySelection()
+		) {
 			isDisabled = true;
-			tooltipTitle = window.rslIeData.i18n.formRequired || 'Select a form';
+			tooltipTitle =
+				window.rslIeData.i18n.formRequired || 'Select a form';
 			tooltipMessage =
 				window.rslIeData.i18n.pleaseSelectForm ||
 				'Please choose the form whose entries you want to export.';
@@ -2915,9 +2919,21 @@ const ExportModule = {
 		const filteredConditions = conditions.filter( ( condition ) => {
 			// Form entries: the conditions the form plugins can search by.
 			if ( isFormEntries ) {
-				let allowed = [ 'equals', 'not_equals', 'contains', 'not_contains' ];
+				let allowed = [
+					'equals',
+					'not_equals',
+					'contains',
+					'not_contains',
+				];
 				if ( fieldName === 'date_created' ) {
-					allowed = [ 'equals', 'greater', 'less', 'equals_or_greater', 'equals_or_less', 'between' ];
+					allowed = [
+						'equals',
+						'greater',
+						'less',
+						'equals_or_greater',
+						'equals_or_less',
+						'between',
+					];
 				} else if ( fieldName === 'status' ) {
 					allowed = [ 'equals' ];
 				} else if ( fieldName === 'entry_id' ) {
@@ -3134,9 +3150,7 @@ const ExportModule = {
 						$group.append(
 							jQuery( '<option>' )
 								.val( `${ form.source }:${ form.form_id }` )
-								.text(
-									`${ form.title } (${ form.entries })`
-								)
+								.text( `${ form.title } (${ form.entries })` )
 						);
 					} );
 					$select.append( $group );
@@ -3144,13 +3158,11 @@ const ExportModule = {
 				this.formEntryFormsLoaded = true;
 			} )
 			.catch( ( error ) => {
-				$select
-					.empty()
-					.append(
-						jQuery( '<option>' )
-							.val( '' )
-							.text( ( error && error.message ) || 'Error' )
-					);
+				$select.empty().append(
+					jQuery( '<option>' )
+						.val( '' )
+						.text( ( error && error.message ) || 'Error' )
+				);
 			} )
 			.finally( () => {
 				this.formEntryFormsLoading = false;
@@ -3180,7 +3192,8 @@ const ExportModule = {
 					return;
 				}
 				this.formEntryFields = ( response && response.fields ) || [];
-				this.formEntryDefaults = ( response && response.default_fields ) || [];
+				this.formEntryDefaults =
+					( response && response.default_fields ) || [];
 			} )
 			.catch( ( error ) => {
 				jQuery( '.rsl-ie-form-entry-error' )
@@ -3210,7 +3223,9 @@ const ExportModule = {
 					options: [
 						{
 							value: '_select_form',
-							label: i18n.pleaseSelectForm || 'Please choose a form first.',
+							label:
+								i18n.pleaseSelectForm ||
+								'Please choose a form first.',
 							type: 'info',
 						},
 					],
