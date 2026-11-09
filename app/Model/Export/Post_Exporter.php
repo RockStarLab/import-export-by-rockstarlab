@@ -138,6 +138,9 @@ class Post_Exporter extends Abstract_Exporter {
 			'word_count',
 			// Title of the parent page (empty for top-level items).
 			'parent_title',
+			// Readable term lists for spreadsheets ("News, Events"); the taxonomy_* columns keep the portable JSON for imports.
+			'category_names',
+			'tag_names',
 			// WooCommerce: variable product variations (JSON)
 			'variations',
 			// WooCommerce: parent SKU of a variation row (empty for other products)
@@ -854,7 +857,7 @@ class Post_Exporter extends Abstract_Exporter {
 				continue;
 			}
 
-			$taxonomy  = sanitize_text_field( $filter['taxonomy'] );
+			$taxonomy  = $this->resolve_filter_taxonomy( sanitize_text_field( $filter['taxonomy'] ), $args['post_type'] ?? 'post' );
 			$terms     = $filter['terms'];
 			$condition = $filter['condition'] ?? 'in';
 
@@ -879,15 +882,92 @@ class Post_Exporter extends Abstract_Exporter {
 				$operator = 'AND';
 			}
 
+			// Accept slugs, names ("Edge Case") or IDs: the export screen asks people to type terms.
+			$term_ids = $this->resolve_filter_term_ids( $taxonomy, $terms );
+			if ( ! $term_ids ) {
+				if ( 'NOT IN' === $operator ) {
+					continue; // Excluding terms that don't exist changes nothing.
+				}
+				$term_ids = [ 0 ]; // Unknown terms match no posts instead of all posts.
+			}
+
 			$tax_query_item = [
 				'taxonomy' => $taxonomy,
-				'field'    => 'slug',
-				'terms'    => $terms,
+				'field'    => 'term_id',
+				'terms'    => $term_ids,
 				'operator' => $operator,
 			];
 
 			$args['tax_query'][] = $tax_query_item;
 		}
+	}
+
+	/**
+	 * Resolve a taxonomy typed in a filter: its key (category), or a label (Categories, Tag) of a taxonomy of this post type.
+	 *
+	 * @param string       $taxonomy  Typed value.
+	 * @param string|array $post_type Queried post type(s).
+	 * @return string Taxonomy key (the typed value when nothing matches).
+	 */
+	protected function resolve_filter_taxonomy( $taxonomy, $post_type ) {
+		if ( taxonomy_exists( $taxonomy ) ) {
+			return $taxonomy;
+		}
+		$wanted = function_exists( 'mb_strtolower' ) ? mb_strtolower( trim( $taxonomy ) ) : strtolower( trim( $taxonomy ) );
+		foreach ( get_object_taxonomies( is_array( $post_type ) ? $post_type : [ $post_type ], 'objects' ) as $object ) {
+			$labels = [ $object->label, $object->labels->name ?? '', $object->labels->singular_name ?? '' ];
+			foreach ( $labels as $label ) {
+				$label = function_exists( 'mb_strtolower' ) ? mb_strtolower( (string) $label ) : strtolower( (string) $label );
+				if ( '' !== $label && $label === $wanted ) {
+					return $object->name;
+				}
+			}
+		}
+		return $taxonomy;
+	}
+
+	/**
+	 * Slugs of the terms typed in a taxonomy filter (names, slugs or IDs), expanded to child terms except for "all of".
+	 *
+	 * @param string       $taxonomy  Taxonomy key.
+	 * @param string|array $terms     Typed terms.
+	 * @param string       $condition in, not_in, and, or.
+	 * @return string[] Slugs.
+	 */
+	protected function requested_filter_slugs( $taxonomy, $terms, $condition ) {
+		$raw   = array_values( array_filter( array_map( 'trim', is_array( $terms ) ? $terms : explode( ',', (string) $terms ) ), 'strlen' ) );
+		$slugs = [];
+		foreach ( $raw as $term ) {
+			$ids     = $this->resolve_filter_term_ids( $taxonomy, [ $term ] );
+			$found   = $ids ? get_term( $ids[0], $taxonomy ) : null;
+			$slugs[] = $found && ! is_wp_error( $found ) ? $found->slug : sanitize_title( $term );
+		}
+		$slugs = array_values( array_unique( $slugs ) );
+		return 'and' === $condition ? $slugs : $this->expand_product_taxonomy_slugs( $taxonomy, $slugs );
+	}
+
+	/**
+	 * Resolve typed terms by slug, then exact name, then numeric ID.
+	 *
+	 * @param string $taxonomy Taxonomy key.
+	 * @param array  $terms    Typed terms.
+	 * @return int[] Term IDs found.
+	 */
+	protected function resolve_filter_term_ids( $taxonomy, array $terms ) {
+		$ids = [];
+		foreach ( $terms as $term ) {
+			$found = get_term_by( 'slug', sanitize_title( $term ), $taxonomy );
+			if ( ! $found ) {
+				$found = get_term_by( 'name', $term, $taxonomy );
+			}
+			if ( ! $found && ctype_digit( (string) $term ) ) {
+				$found = get_term_by( 'id', (int) $term, $taxonomy );
+			}
+			if ( $found && ! is_wp_error( $found ) ) {
+				$ids[] = (int) $found->term_id;
+			}
+		}
+		return array_values( array_unique( $ids ) );
 	}
 
 	/**
@@ -1509,16 +1589,13 @@ class Post_Exporter extends Abstract_Exporter {
 				continue;
 			}
 
-			$taxonomy = sanitize_text_field( $filter['taxonomy'] );
+			$taxonomy = $this->resolve_filter_taxonomy( sanitize_text_field( $filter['taxonomy'] ), $post->post_type );
 			$assigned = wp_get_object_terms( $post->ID, $taxonomy, [ 'fields' => 'slugs' ] );
 			if ( is_wp_error( $assigned ) ) {
 				return false;
 			}
 			$condition = strtolower( $filter['condition'] ?? 'in' );
-			$requested = is_array( $filter['terms'] ) ? $filter['terms'] : explode( ',', $filter['terms'] );
-			$requested = 'and' === $condition
-				? array_values( array_filter( array_map( 'sanitize_title', array_map( 'trim', $requested ) ) ) )
-				: $this->expand_product_taxonomy_slugs( $taxonomy, $requested );
+			$requested = $this->requested_filter_slugs( $taxonomy, $filter['terms'], $condition );
 			$matches   = array_intersect( $assigned, $requested );
 
 			if ( 'not_in' === $condition && ! empty( $matches ) ) {
@@ -1629,17 +1706,14 @@ class Post_Exporter extends Abstract_Exporter {
 				continue;
 			}
 
-			$taxonomy = sanitize_text_field( $filter['taxonomy'] );
+			$taxonomy = $this->resolve_filter_taxonomy( sanitize_text_field( $filter['taxonomy'] ), $post->post_type );
 			$terms    = wp_get_object_terms( $post->ID, $taxonomy, [ 'fields' => 'slugs' ] );
 			if ( is_wp_error( $terms ) ) {
 				return false;
 			}
 
 			$condition = strtolower( $filter['condition'] ?? 'in' );
-			$requested = is_array( $filter['terms'] ) ? $filter['terms'] : explode( ',', $filter['terms'] );
-			$requested = 'and' === $condition
-				? array_values( array_filter( array_map( 'sanitize_title', array_map( 'trim', $requested ) ) ) )
-				: $this->expand_product_taxonomy_slugs( $taxonomy, $requested );
+			$requested = $this->requested_filter_slugs( $taxonomy, $filter['terms'], $condition );
 			$matches   = array_intersect( $terms, $requested );
 
 			if ( 'not_in' === $condition && ! empty( $matches ) ) {
@@ -2396,6 +2470,12 @@ class Post_Exporter extends Abstract_Exporter {
 		if ( in_array( 'permalink', $fields, true ) ) {
 			$data['permalink'] = (string) get_permalink( $post );
 		}
+		foreach ( [ 'category_names' => 'category', 'tag_names' => 'post_tag' ] as $names_field => $names_taxonomy ) {
+			if ( in_array( $names_field, $fields, true ) ) {
+				$names                 = is_object_in_taxonomy( $post->post_type, $names_taxonomy ) ? wp_get_object_terms( (int) $post->ID, $names_taxonomy, [ 'fields' => 'names' ] ) : [];
+				$data[ $names_field ] = is_wp_error( $names ) ? '' : implode( ', ', array_map( 'html_entity_decode', (array) $names ) );
+			}
+		}
 		if ( in_array( 'parent_title', $fields, true ) ) {
 			$data['parent_title'] = $post->post_parent ? (string) get_post_field( 'post_title', (int) $post->post_parent, 'raw' ) : '';
 		}
@@ -2522,7 +2602,7 @@ class Post_Exporter extends Abstract_Exporter {
 			// Check if it's a meta field (starts with _ or not in basic/special fields)
 			// Skip if already processed as taxonomy
 			if ( ! in_array( $field, $basic_fields, true ) &&
-				! in_array( $field, [ 'author_name', 'author_email', 'author_login', 'author_roles', 'post_meta', 'taxonomies', 'featured_image', 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption', 'is_sticky', 'permalink', 'word_count', 'parent_title' ], true ) &&
+				! in_array( $field, [ 'author_name', 'author_email', 'author_login', 'author_roles', 'post_meta', 'taxonomies', 'featured_image', 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption', 'is_sticky', 'permalink', 'word_count', 'parent_title', 'category_names', 'tag_names' ], true ) &&
 				! in_array( $field, [ 'categories', 'tags' ], true ) &&
 				strpos( $field, 'taxonomy_' ) !== 0 &&
 				! taxonomy_exists( $field ) ) {

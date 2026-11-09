@@ -1263,6 +1263,33 @@ export default class ExportStep3 {
 	 */
 	withExportOnlyFields( group ) {
 		const options = Array.isArray( group.options ) ? group.options : [];
+		const i18nMedia = window.rslIeData.i18n || {};
+		// Media: the original upload and every generated size, next to the main file's size.
+		if (
+			options.some( ( option ) => 'file_size' === option.value ) &&
+			! options.some( ( option ) => 'disk_usage' === option.value )
+		) {
+			return {
+				...group,
+				options: [
+					...options,
+					{
+						value: 'original_file_size',
+						label:
+							i18nMedia.fieldOriginalFileSize ||
+							'Original File Size (bytes)',
+						type: 'number',
+					},
+					{
+						value: 'disk_usage',
+						label:
+							i18nMedia.fieldDiskUsage ||
+							'Size on Disk, All Sizes (bytes)',
+						type: 'number',
+					},
+				],
+			};
+		}
 		if (
 			! options.some( ( option ) => 'post_name' === option.value ) ||
 			options.some( ( option ) => 'permalink' === option.value )
@@ -1287,6 +1314,16 @@ export default class ExportStep3 {
 				{
 					value: 'parent_title',
 					label: i18n.fieldParentTitle || 'Parent Title',
+					type: 'string',
+				},
+				{
+					value: 'category_names',
+					label: i18n.fieldCategoryNames || 'Category Names',
+					type: 'string',
+				},
+				{
+					value: 'tag_names',
+					label: i18n.fieldTagNames || 'Tag Names',
 					type: 'string',
 				},
 			],

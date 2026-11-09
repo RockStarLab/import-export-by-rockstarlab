@@ -175,6 +175,24 @@ class Media_Importer extends Abstract_Importer {
 		$file_source = $item['file'] ?? $item['file_url'] ?? $item['file_path'] ?? $item['url'] ?? $item['path'] ?? '';
 
 		if ( empty( $file_source ) ) {
+			// A file without a file column can still update an existing attachment's
+			// details (alt text, title, caption) when the import is set to update.
+			if ( 'update' === $this->get_option( 'duplicate_mode', 'skip' ) ) {
+				$existing = null;
+				if ( 'ID' === $this->get_option( 'duplicate_check', 'file_url' ) && ! empty( $item['ID'] ) ) {
+					$attachment = get_post( absint( $item['ID'] ) );
+					$existing   = $attachment && 'attachment' === $attachment->post_type ? (int) $attachment->ID : null;
+				} else {
+					$existing = $this->find_existing_attachment( $item, '', false );
+				}
+				if ( $existing ) {
+					$this->set_attachment_metadata( (int) $existing, $item );
+					return 'updated';
+				}
+				if ( 'skip' === (string) $this->get_option( 'if_not_exists', 'create' ) ) {
+					return 'skipped';
+				}
+			}
 			return new \WP_Error( 'missing_file', __( 'File source is required', 'import-export-by-rockstarlab' ) );
 		}
 
