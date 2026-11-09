@@ -610,7 +610,8 @@ class Content_Sync_Controller extends Base_Controller {
 		);
 		$result = ( new \RockStarLab\ImportExport\Service\Content_Sync_Service() )->execute( 'get_remote_posts', $input );
 		if ( is_wp_error( $result ) ) {
-			$this->send_error( $result->get_error_message() );
+			// The code lets the post search retry while another request still uses the connection.
+			$this->send_error( $result->get_error_message(), array( 'code' => $result->get_error_code() ) );
 			return;
 		}
 		$this->send_success( $result );

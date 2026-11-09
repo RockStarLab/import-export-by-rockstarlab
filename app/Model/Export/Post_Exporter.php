@@ -136,6 +136,8 @@ class Post_Exporter extends Abstract_Exporter {
 			'author_roles',
 			'permalink',
 			'word_count',
+			// Title of the parent page (empty for top-level items).
+			'parent_title',
 			// WooCommerce: variable product variations (JSON)
 			'variations',
 			// WooCommerce: parent SKU of a variation row (empty for other products)
@@ -2394,6 +2396,9 @@ class Post_Exporter extends Abstract_Exporter {
 		if ( in_array( 'permalink', $fields, true ) ) {
 			$data['permalink'] = (string) get_permalink( $post );
 		}
+		if ( in_array( 'parent_title', $fields, true ) ) {
+			$data['parent_title'] = $post->post_parent ? (string) get_post_field( 'post_title', (int) $post->post_parent, 'raw' ) : '';
+		}
 		if ( in_array( 'word_count', $fields, true ) ) {
 			$text               = trim( html_entity_decode( wp_strip_all_tags( strip_shortcodes( (string) $post->post_content ) ), ENT_QUOTES, 'UTF-8' ) );
 			$data['word_count'] = '' === $text ? 0 : count( preg_split( '/[\s\x{00A0}]+/u', $text, -1, PREG_SPLIT_NO_EMPTY ) );
@@ -2517,7 +2522,7 @@ class Post_Exporter extends Abstract_Exporter {
 			// Check if it's a meta field (starts with _ or not in basic/special fields)
 			// Skip if already processed as taxonomy
 			if ( ! in_array( $field, $basic_fields, true ) &&
-				! in_array( $field, [ 'author_name', 'author_email', 'author_login', 'author_roles', 'post_meta', 'taxonomies', 'featured_image', 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption', 'is_sticky', 'permalink', 'word_count' ], true ) &&
+				! in_array( $field, [ 'author_name', 'author_email', 'author_login', 'author_roles', 'post_meta', 'taxonomies', 'featured_image', 'featured_image_id', 'featured_image_url', 'featured_image_title', 'featured_image_caption', 'is_sticky', 'permalink', 'word_count', 'parent_title' ], true ) &&
 				! in_array( $field, [ 'categories', 'tags' ], true ) &&
 				strpos( $field, 'taxonomy_' ) !== 0 &&
 				! taxonomy_exists( $field ) ) {

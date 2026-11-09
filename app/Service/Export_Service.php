@@ -423,7 +423,9 @@ class Export_Service {
 			}
 			$formatter_options = [];
 			if ( 'csv' === $format || in_array( $format, [ 'xlsx', 'ods' ], true ) ) {
-				$include                      = ! empty( $options[ 'csv' === $format ? 'csv_include_header' : 'spreadsheet_include_header' ] );
+				// The header row is on unless it is turned off, as in the export screen (AI agents often omit the flag).
+				$header_flag                  = 'csv' === $format ? 'csv_include_header' : 'spreadsheet_include_header';
+				$include                      = ! array_key_exists( $header_flag, $options ) || ! empty( $options[ $header_flag ] );
 				$formatter_options['headers'] = $include ? null : false;
 				if ( $include && is_array( $data ) && ! $data ) {
 					$fields = $request['options']['fields'] ?? [];

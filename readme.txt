@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.32
+Stable tag: 2.1.33
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -274,6 +274,17 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.1.33 =
+* New: "Parent Title" export column for posts and pages: the title of the parent page next to its ID, empty for top-level pages.
+* Improved: Auto-match by Title no longer stops when one title exists on several posts of the remote site. The other posts are matched, and only those rows are left for you to choose, with a message naming the title. AI agents get the same result: the post appears in "ambiguous" with the IDs of the remote posts to choose from.
+* Improved: the remote post list in Map Posts for Sync shows the status and date of each post, so posts with the same title can be told apart.
+* Fixed: searching the remote post list right after opening it could show "The results could not be loaded" while the first search was still running. The search now waits and retries.
+* Fixed: remote post titles in the Map Posts for Sync list are always shown as plain text, and titles with & or other special characters are shown correctly.
+* Fixed: an AI agent that renamed a post and then ran Auto-match in the same session could get a match for the old title. Auto-match and the selected-posts list now read the current titles.
+* Fixed: Content Sync now sends files that a post links to, such as a PDF in a link, a File block, or a video or audio file, together with the post. Before, the link was changed to the target site but the file was not copied there.
+* Fixed: "Last Sync" on the Content Sync screen now shows the time of the last completed push or pull. Before, it changed only when the connection was tested.
+* Fixed: CSV, XLSX and ODS exports started by AI agents or other API calls without the header option had no header row. The header row is now included unless it is turned off, as in the export screen.
+
 = 2.1.32 =
 * Fixed: pulling a post back to the site it was first pushed from could add a second copy of its comments. Comments that already exist on the post (same author email, date and text) are now matched instead of added again.
 
@@ -306,16 +317,6 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 * Fixed: when Auto-match by Title fails (for example, two remote posts with the same title), the reason is shown and the rows keep their choices instead of switching to Create New Post. The message names the title.
 * Fixed: a long Content Sync push or pull was shown as Failed ("Invalid job type") in Jobs Log while it was still running. A sync request that stopped without finishing (server time limit) is now marked Failed after two hours with advice to sync the rest in smaller batches.
 * Fixed: a custom CSV delimiter with more than one character (such as ;; or |~|) stopped the export. Custom delimiters of up to 10 characters work now.
-
-= 2.1.28 =
-* New: rename any export column with the pencil icon, so the file uses the column names another system expects, for example Google Merchant Center attributes (id, title, price, availability).
-* New: custom export columns ("Add Custom") can hold a fixed value for every row, for example condition = new. Before, a custom column was left out of the file.
-* New: the WooCommerce product export has the option "One row per variation" for product feeds. Each variable product is replaced by its enabled variations with their own SKU, price, stock, image and link, and the new Parent SKU column groups them.
-* New: exports with the Tab delimiter are saved as .tsv files.
-* Improved: Auto Map recognizes common review export headers (Review ID, Reviewer Name, Reviewer Email, Rating, Review Date, Verified Buyer, Reply To and others), more product export columns (children, sale price dates), and no longer maps gallery video columns to the image gallery.
-* Improved: a reviews export can include the Parent Review ID, so replies stay under their reviews on another store.
-* Fixed: the import result no longer says "Import Failed" when rows were skipped on purpose.
-* Fixed: the Tab option in the CSV delimiter list showed a double backslash.
 
 Older versions: see changelog.txt in the plugin folder.
 

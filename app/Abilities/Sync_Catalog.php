@@ -199,12 +199,13 @@ class Sync_Catalog {
 		$add(
 			'sync-auto-map',
 			'auto_map_by_title',
-			'Suggest local-ID to remote-ID mappings by exact normalized title and type. Ambiguous matches and incomplete remote searches fail; review suggestions before transferring.',
+			'Suggest local-ID to remote-ID mappings by exact normalized title (case, spacing and HTML entities ignored) and type. A post whose title matches several remote posts gets null in mapping and an entry in ambiguous with the remote IDs: ask the user which one to update. Incomplete remote searches fail; review suggestions before transferring.',
 			Workflow_Schemas::object( $selection, [ 'site_id', 'post_type', 'post_ids' ] ),
 			Workflow_Schemas::object(
 				[
-					'mapping' => $map,
-					'matches' => Workflow_Schemas::value(),
+					'mapping'   => $map,
+					'matches'   => Workflow_Schemas::value(),
+					'ambiguous' => Workflow_Schemas::value(),
 				],
 				[ 'mapping', 'matches' ]
 			),
