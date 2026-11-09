@@ -2904,9 +2904,16 @@ class Content_Sync_Service {
 				'user_id'              => $users[ $source_comment_id ] ?? 0,
 			);
 
+			// A comment that was first pushed from this site comes back without our ID: reuse the original.
+			if ( ! $existing_id ) {
+				$existing_id = $this->find_identical_unsynced_comment( (int) $post_id, $args );
+			}
+
 			if ( $existing_id ) {
 				$args['comment_ID'] = $existing_id;
-				$result_id          = wp_update_comment( $args ) ? $existing_id : 0;
+				// wp_update_comment() returns 0 when nothing changed; that is still a match.
+				$updated   = wp_update_comment( $args, true );
+				$result_id = ( false === $updated || is_wp_error( $updated ) ) ? 0 : $existing_id;
 			} else {
 				$result_id = wp_insert_comment( $args );
 			}
@@ -2934,6 +2941,36 @@ class Content_Sync_Service {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Find the same comment already present on a cloned site (same author email,
+	 * date and text) that no earlier sync has claimed.
+	 *
+	 * @param int   $post_id Local post ID.
+	 * @param array $args    Sanitized incoming comment fields.
+	 * @return int
+	 */
+	private function find_identical_unsynced_comment( $post_id, array $args ) {
+		if ( '' === $args['comment_author_email'] || '' === $args['comment_date_gmt'] ) {
+			return 0;
+		}
+		$candidates = get_comments(
+			array(
+				'post_id'      => $post_id,
+				'status'       => 'all',
+				'type'         => '' !== $args['comment_type'] ? $args['comment_type'] : 'comment',
+				'author_email' => $args['comment_author_email'],
+			)
+		);
+		foreach ( $candidates as $candidate ) {
+			if ( $candidate->comment_date_gmt === $args['comment_date_gmt']
+				&& $candidate->comment_content === $args['comment_content']
+				&& '' === (string) get_comment_meta( (int) $candidate->comment_ID, '_rsl_ie_original_comment_id', true ) ) {
+				return (int) $candidate->comment_ID;
+			}
+		}
+		return 0;
 	}
 
 	/**

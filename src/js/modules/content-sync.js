@@ -97,8 +97,8 @@ const ContentSyncModule = {
 				} else {
 					this.showNotice(
 						'error',
-						( response.message ||
-							( response.data && response.data.message ) ) ||
+						response.message ||
+							( response.data && response.data.message ) ||
 							window.rslIeData.i18n.failedLoadSites
 					);
 				}
@@ -347,8 +347,8 @@ const ContentSyncModule = {
 			success: ( response ) => {
 				if ( response.success ) {
 					const message =
-						( response.message ||
-							( response.data && response.data.message ) ) ||
+						response.message ||
+						( response.data && response.data.message ) ||
 						window.rslIeData.i18n.operationCompleted ||
 						'Operation completed successfully';
 
@@ -381,8 +381,8 @@ const ContentSyncModule = {
 						'error',
 						window.rslIeData.i18n.validationFailed ||
 							'Validation Failed',
-						( response.message ||
-							( response.data && response.data.message ) ) ||
+						response.message ||
+							( response.data && response.data.message ) ||
 							window.rslIeData.i18n.failedSaveSiteConnection ||
 							'Failed to save site connection'
 					);
@@ -538,8 +538,8 @@ const ContentSyncModule = {
 				} else {
 					this.showNotice(
 						'error',
-						( response.message ||
-							( response.data && response.data.message ) ) ||
+						response.message ||
+							( response.data && response.data.message ) ||
 							window.rslIeData.i18n.failedDeleteSite
 					);
 				}
@@ -579,8 +579,8 @@ const ContentSyncModule = {
 				} else {
 					this.showNotice(
 						'error',
-						( response.message ||
-							( response.data && response.data.message ) ) ||
+						response.message ||
+							( response.data && response.data.message ) ||
 							window.rslIeData.i18n.connectionTestFailed
 					);
 				}
@@ -629,8 +629,8 @@ const ContentSyncModule = {
 				} else {
 					this.showNotice(
 						'error',
-						( response.message ||
-							( response.data && response.data.message ) ) ||
+						response.message ||
+							( response.data && response.data.message ) ||
 							window.rslIeData.i18n.failedRegenerateKey
 					);
 				}
@@ -744,8 +744,8 @@ const ContentSyncModule = {
 				} else {
 					this.showNotice(
 						'error',
-						( response.message ||
-							( response.data && response.data.message ) ) ||
+						response.message ||
+							( response.data && response.data.message ) ||
 							window.rslIeData.i18n.failedRegenerateApiKey
 					);
 					$btn.html( originalText );

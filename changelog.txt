@@ -1,5 +1,8 @@
 == Import Export by RockStarLab: full changelog ==
 
+= 2.1.32 =
+* Fixed: pulling a post back to the site it was first pushed from could add a second copy of its comments. Comments that already exist on the post (same author email, date and text) are now matched instead of added again.
+
 = 2.1.31 =
 * Improved: XLSX and ODS exports write plain numbers (such as 120, 0.5 or -12) as number cells you can sort and sum, and keep codes with leading zeros (00123), numbers longer than 11 digits (barcodes, tracking numbers) and values like 49.90 as text, so spreadsheet apps don't change them.
 * Improved: AI agents can use the same CSV separators as the export screen in rsl-ie/export-start, including multi-character separators of up to 10 characters such as ;; or |~|.
