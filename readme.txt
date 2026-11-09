@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.40
+Stable tag: 2.1.41
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,10 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.41 =
+* New: JSON imports with nested objects. Values inside an object get their own columns named by their path, such as author.name, author.email and image.url, so they can be mapped like any other column. The original columns stay.
+* Improved: Auto Map for JSON columns: author.name, author.email, author.login, image.url and image.alt go to the author and featured image fields; a column that holds a whole object is not mapped to a single-value field; a "published" column with a date goes to Date.
 
 = 2.1.40 =
 * Improved: when every row is imported but some rows have notes, for example an author that wasn't found, the import result says "Import Completed with Warnings" and lists them. Job Details in Jobs Log has a Warnings section.

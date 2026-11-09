@@ -5569,6 +5569,13 @@ const ImportModule = {
 		// Wait for DOM to be fully ready before mapping
 		setTimeout( () => {
 			const mappings = [];
+			// First-row value of a column. A whole JSON object (shown as "{...}") can't fill a
+			// single-value field such as Author ID; its "author.name" columns can.
+			const sampleOf = ( index ) =>
+				String( this.fileData?.preview?.data?.[ 0 ]?.[ index ] ?? '' ).trim();
+			const isObjectSample = ( index ) => /^\{/.test( sampleOf( index ) );
+			const isDateSample = ( index ) =>
+				/^\d{4}-\d{2}-\d{2}/.test( sampleOf( index ) );
 
 			// Build a fast lookup for existing target fields (avoids O(N^2) scans).
 			// Keyed by lowercased data-target-field.
@@ -5717,7 +5724,14 @@ const ImportModule = {
 					'image url',
 					'featured image',
 					'featured image url',
+					// Nested JSON objects arrive as "image.url" columns.
+					'image.url',
+					'thumbnail.url',
 				],
+				featured_image_alt: [ 'image.alt', 'thumbnail.alt' ],
+				author_name: [ 'author.name', 'author.display_name' ],
+				author_email: [ 'author.email' ],
+				author_login: [ 'author.login', 'author.username' ],
 				sku: [ 'sku', 'variant sku' ],
 				regular_price: [ 'variant price', 'price' ],
 				product_images: [ 'images' ],
@@ -5951,6 +5965,11 @@ const ImportModule = {
 						}
 					}
 					if ( ! aliasTarget ) return;
+					if ( isObjectSample( sourceIndex ) ) return;
+					// "Published" is a yes/no status in shop exports but a date in many feeds.
+					if ( 'post_status' === aliasTarget && isDateSample( sourceIndex ) ) {
+						aliasTarget = 'post_date';
+					}
 
 					let $targetField = targetByName.get( aliasTarget );
 					// Terms have one image field: "Image URL" columns go there.
@@ -6046,6 +6065,7 @@ const ImportModule = {
 
 					const sourceFieldLower = sourceField.toLowerCase();
 					let matched = false;
+					if ( isObjectSample( sourceIndex ) ) return;
 
 					jQuery(
 						'.rsl-ie-target-field:not(.rsl-ie-custom-field-template)'
