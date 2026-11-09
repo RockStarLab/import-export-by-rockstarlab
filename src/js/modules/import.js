@@ -2071,6 +2071,11 @@ const ImportModule = {
 						type: 'number',
 					},
 					{
+						value: 'author_login',
+						label: 'Author Login',
+						type: 'string',
+					},
+					{
 						value: 'author_name',
 						label: 'Author Name',
 						type: 'string',
@@ -2229,6 +2234,11 @@ const ImportModule = {
 							value: 'post_author',
 							label: 'Author ID',
 							type: 'number',
+						},
+						{
+							value: 'author_login',
+							label: 'Author Login',
+							type: 'string',
 						},
 						{
 							value: 'author_name',
@@ -3643,8 +3653,13 @@ const ImportModule = {
 							type: 'number',
 						},
 						{
-							value: 'author_name',
+							value: 'author_login',
 							label: 'Author Login',
+							type: 'string',
+						},
+						{
+							value: 'author_name',
+							label: 'Author Name',
 							type: 'string',
 						},
 						{

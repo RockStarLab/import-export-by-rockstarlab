@@ -135,6 +135,13 @@ class Notification_Catalog {
 				true,
 				false,
 			],
+			'notification-n8n-workflow'    => [
+				'Return a ready n8n workflow (workflow_json is the exact text to save as a .json file and import in n8n; workflow is the same data as an object) that receives the job-finished webhook at the path rsl-job-finished and checks the X-RSL-Signature header. The user replaces PASTE-THE-SIGNING-SECRET-HERE with the signing secret, sets NODE_FUNCTION_ALLOW_BUILTIN=crypto in n8n, activates the workflow and saves its production webhook URL as the notification webhook.',
+				Schema_Registry::empty_input(),
+				Workflow_Schemas::object( [ 'workflow' => Workflow_Schemas::value(), 'workflow_json' => Workflow_Schemas::string() ], [ 'workflow', 'workflow_json' ] ),
+				true,
+				false,
+			],
 			'job-errors'                   => [
 				'Read the failed rows of an import job: row number in the file, field, error and how to fix it. With csv=true also returns csv: the failed rows with their values under the WordPress field names, ready to correct and import again (Auto Map matches the columns).',
 				Workflow_Schemas::object(

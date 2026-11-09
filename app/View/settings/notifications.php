@@ -99,7 +99,8 @@ $rsl_ie_types = [
 					<?php if ( $rsl_ie_n['webhook']['secret_set'] ) : ?>
 						<label class="rsl-ie-inline-check"><input type="checkbox" name="regenerate_secret" value="1"> <?php esc_html_e( 'Create a new signing secret', 'import-export-by-rockstarlab' ); ?></label>
 					<?php endif; ?>
-					<p class="description"><?php esc_html_e( 'For Zapier, Make, n8n or your own system. The request carries the job, its counts and the first 20 row errors, signed with HMAC-SHA256 in the X-RSL-Signature header. Only public https addresses are allowed.', 'import-export-by-rockstarlab' ); ?></p>
+					<p class="description"><?php esc_html_e( 'For Zapier, Make, n8n or your own system. The request carries the job, its counts and the first 20 row errors, signed with HMAC-SHA256 in the X-RSL-Signature header. Only public https addresses are allowed.', 'import-export-by-rockstarlab' ); ?>
+						<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=rsl_ie_notifications_n8n' ), 'rsl_ie_notifications_n8n' ) ); ?>"><?php esc_html_e( 'Download an n8n workflow that receives it and checks the signature', 'import-export-by-rockstarlab' ); ?></a></p>
 				</td>
 			</tr>
 			<tr>

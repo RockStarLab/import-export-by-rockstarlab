@@ -223,7 +223,29 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 							<br><a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-jobs-log' ) ); ?>"><?php echo esc_html( sprintf( /* translators: %d: last Job ID. */ __( 'Job #%d', 'import-export-by-rockstarlab' ), $rsl_ie_schedule->last_job_id ) ); ?></a>
 						<?php endif; ?>
 					</td>
-					<td><?php echo esc_html( ucfirst( $rsl_ie_schedule->status ) ); ?></td>
+					<td>
+						<?php echo esc_html( ucfirst( $rsl_ie_schedule->status ) ); ?>
+						<?php
+						$rsl_ie_schedule_meta = get_option( 'rsl_ie_schedule_meta_' . $rsl_ie_schedule->id, [] );
+						if ( ! empty( $rsl_ie_schedule_meta['error_message'] ) ) :
+							$rsl_ie_error_time = ! empty( $rsl_ie_schedule_meta['error_gmt'] ) ? strtotime( $rsl_ie_schedule_meta['error_gmt'] . ' UTC' ) : 0;
+							?>
+							<br><span class="rsl-ie-schedule-error" style="color:#b32d2e;">
+							<?php
+							echo esc_html(
+								$rsl_ie_error_time
+									/* translators: 1: date and time, 2: error message. */
+									? sprintf( __( 'Run on %1$s did not start: %2$s', 'import-export-by-rockstarlab' ), wp_date( 'Y-m-d H:i', $rsl_ie_error_time, wp_timezone() ), $rsl_ie_schedule_meta['error_message'] )
+									/* translators: %s: error message. */
+									: sprintf( __( 'Last run did not start: %s', 'import-export-by-rockstarlab' ), $rsl_ie_schedule_meta['error_message'] )
+							);
+							?>
+							</span>
+							<?php if ( 'active' === $rsl_ie_schedule->status ) : ?>
+								<br><span class="description"><?php esc_html_e( 'It will try again at the next run.', 'import-export-by-rockstarlab' ); ?></span>
+							<?php endif; ?>
+						<?php endif; ?>
+					</td>
 					<td>
 						<a href="
 						<?php

@@ -313,6 +313,8 @@ class Workflow_Schemas {
 			100
 		);
 		$p['content_types']       = self::items( $s, 100 );
+		$p['form_source']         = self::string( [ 'gravityforms', 'flamingo' ] );
+		$p['form_id']             = self::integer( 1 );
 		// Column names in the file (field => name) and fixed values for custom_* columns.
 		foreach ( [ 'column_headers', 'custom_values' ] as $map ) {
 			$p[ $map ] = [
@@ -338,7 +340,7 @@ class Workflow_Schemas {
 	public static function export_input( $start = false ) {
 		$b        = [ 'type' => 'boolean' ];
 		$p        = [
-			'export_type'     => self::string( [ 'post', 'page', 'comment', 'media', 'urls' ] ),
+			'export_type'     => self::string( [ 'post', 'page', 'comment', 'media', 'urls', 'form_entries' ] ),
 			'format'          => self::string( [ 'csv', 'json', 'xml', 'xlsx', 'ods' ] ),
 			'fields'          => self::items( self::string() ),
 			'options'         => self::export_options(),

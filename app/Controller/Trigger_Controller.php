@@ -24,6 +24,7 @@ class Trigger_Controller extends Base_Controller {
 		add_filter( 'submenu_file', [ $this, 'submenu_file' ] );
 		add_action( 'admin_post_rsl_ie_create_trigger', [ $this, 'create' ] );
 		add_action( 'admin_post_rsl_ie_trigger_action', [ $this, 'action' ] );
+		add_action( 'admin_post_rsl_ie_trigger_n8n', [ $this, 'n8n' ] );
 	}
 
 	/**
@@ -94,6 +95,9 @@ class Trigger_Controller extends Base_Controller {
 			'post_types'    => isset( $post['post_types'] ) && is_array( $post['post_types'] ) ? array_values( array_map( 'sanitize_key', $post['post_types'] ) ) : [],
 			'delay'         => isset( $post['delay'] ) ? max( 0, min( 3600, (int) $post['delay'] ) ) : 60,
 		];
+		if ( 'webhook' === $input['event'] && ! empty( $post['allow_file_url'] ) ) {
+			$input['allow_file_url'] = true;
+		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		if ( 'post_published' !== $input['event'] ) {
 			unset( $input['post_types'] );
@@ -132,6 +136,11 @@ class Trigger_Controller extends Base_Controller {
 				$result = $service->execute( 'trigger-rotate-token', $input );
 				$done   = __( 'New token created. The old token no longer works.', 'import-export-by-rockstarlab' );
 				break;
+			case 'fileurl_on':
+			case 'fileurl_off':
+				$result = $service->execute( 'trigger-update', $input + [ 'allow_file_url' => 'fileurl_on' === $what ] );
+				$done   = 'fileurl_on' === $what ? __( 'The trigger now accepts a file URL in the request.', 'import-export-by-rockstarlab' ) : __( 'The trigger no longer accepts a file URL.', 'import-export-by-rockstarlab' );
+				break;
 			case 'delete':
 				$result = $service->execute( 'trigger-delete', $input );
 				$done   = __( 'Trigger deleted.', 'import-export-by-rockstarlab' );
@@ -149,6 +158,25 @@ class Trigger_Controller extends Base_Controller {
 		$this->back();
 	}
 
+	/** Download the n8n workflow of a webhook trigger (no token inside). */
+	public function n8n() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You cannot manage triggers on this site.', 'import-export-by-rockstarlab' ), '', [ 'response' => 403 ] );
+		}
+		check_admin_referer( 'rsl_ie_trigger_n8n' );
+		$id       = isset( $_GET['trigger_id'] ) ? sanitize_key( wp_unslash( $_GET['trigger_id'] ) ) : '';
+		$workflow = ( new Trigger_Service() )->n8n_workflow( $id );
+		if ( is_wp_error( $workflow ) ) {
+			$this->notice( 'error', $workflow->get_error_message() );
+			$this->back();
+		}
+		nocache_headers();
+		header( 'Content-Type: application/json; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="n8n-' . $id . '.json"' );
+		echo wp_json_encode( $workflow, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON download.
+		exit;
+	}
+
 	/**
 	 * Keep a new token for one page view, for this administrator only.
 	 *
@@ -162,6 +190,7 @@ class Trigger_Controller extends Base_Controller {
 					'trigger_id' => $result['trigger_id'],
 					'url'        => $result['webhook_url'],
 					'token'      => $result['token'],
+					'file_url'   => ! empty( $result['allow_file_url'] ),
 				],
 				300
 			);

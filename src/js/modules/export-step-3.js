@@ -939,6 +939,7 @@ export default class ExportStep3 {
 			'user',
 			'menu',
 			'comment',
+			'form_entries',
 			'database_table',
 			'woo_attribute',
 		];
@@ -973,6 +974,7 @@ export default class ExportStep3 {
 
 		// Check if ACF is active and load ACF fields (skip for non-supported types)
 		const acfExcludedTypes = [
+			'form_entries',
 			'database_table',
 			'woo_attribute',
 			'woo_coupon',
@@ -996,6 +998,7 @@ export default class ExportStep3 {
 
 		// Check if Yoast is active and load Yoast fields (skip for non-content types)
 		const excludedTypes = [
+			'form_entries',
 			'media',
 			'user',
 			'menu',

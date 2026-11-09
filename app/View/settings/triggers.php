@@ -23,7 +23,8 @@ $rsl_ie_events = [
 	'file_changed'      => __( 'The import file at its URL changes', 'import-export-by-rockstarlab' ),
 ];
 $rsl_ie_reasons = [
-	'webhook' => __( 'Webhook', 'import-export-by-rockstarlab' ),
+	'webhook'      => __( 'Webhook', 'import-export-by-rockstarlab' ),
+	'webhook_file' => __( 'Webhook with a file URL', 'import-export-by-rockstarlab' ),
 	'event'   => __( 'Event', 'import-export-by-rockstarlab' ),
 	'file'    => __( 'File changed', 'import-export-by-rockstarlab' ),
 	'manual'  => __( 'Run now', 'import-export-by-rockstarlab' ),
@@ -45,7 +46,16 @@ $rsl_ie_has_url = (bool) array_filter( $rsl_ie_srcs, static fn( $s ) => $s['from
 			<p><strong><?php esc_html_e( 'Webhook token', 'import-export-by-rockstarlab' ); ?></strong> — <?php esc_html_e( 'copy it now; it is not shown again. Send it in the X-RSL-Token header, never in the URL.', 'import-export-by-rockstarlab' ); ?></p>
 			<p><input type="text" class="large-text code" readonly value="<?php echo esc_attr( $rsl_ie_token['token'] ); ?>" onfocus="this.select()" aria-label="<?php esc_attr_e( 'Webhook token', 'import-export-by-rockstarlab' ); ?>"></p>
 			<p><?php esc_html_e( 'Example:', 'import-export-by-rockstarlab' ); ?></p>
-			<pre class="rsl-ie-trigger-curl"><code><?php echo esc_html( "curl -X POST \\\n  -H \"X-RSL-Token: " . $rsl_ie_token['token'] . "\" \\\n  " . $rsl_ie_token['url'] ); ?></code></pre>
+			<?php
+			$rsl_ie_curl = "curl -X POST \\\n  -H \"X-RSL-Token: " . $rsl_ie_token['token'] . "\" \\\n";
+			if ( ! empty( $rsl_ie_token['file_url'] ) ) {
+				$rsl_ie_curl .= "  -H \"Content-Type: application/json\" \\\n  -d '{\"file_url\": \"https://example.com/files/import.csv\"}' \\\n";
+			}
+			$rsl_ie_curl .= '  ' . $rsl_ie_token['url'];
+			?>
+			<pre class="rsl-ie-trigger-curl"><code><?php echo esc_html( $rsl_ie_curl ); ?></code></pre>
+			<p><?php esc_html_e( 'The answer has the job_id. To check the job, send a GET request with the same header to:', 'import-export-by-rockstarlab' ); ?></p>
+			<pre class="rsl-ie-trigger-curl"><code><?php echo esc_html( preg_replace( '#/run$#', '/jobs/{job_id}', $rsl_ie_token['url'] ) ); ?></code></pre>
 		</div>
 	<?php endif; ?>
 
@@ -88,6 +98,10 @@ $rsl_ie_has_url = (bool) array_filter( $rsl_ie_srcs, static fn( $s ) => $s['from
 						<?php endif; ?>
 						<?php if ( 'webhook' === $rsl_ie_t['event'] ) : ?>
 							<br><code class="rsl-ie-trigger-url"><?php echo esc_html( $rsl_ie_t['webhook_url'] ); ?></code>
+							<?php if ( $rsl_ie_t['allow_file_url'] ) : ?>
+								<br><span class="description"><?php esc_html_e( 'Accepts a file URL in the request (file_url)', 'import-export-by-rockstarlab' ); ?></span>
+							<?php endif; ?>
+							<br><a class="rsl-ie-trigger-n8n" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=rsl_ie_trigger_n8n&trigger_id=' . $rsl_ie_t['trigger_id'] ), 'rsl_ie_trigger_n8n' ) ); ?>"><?php esc_html_e( 'Download n8n workflow', 'import-export-by-rockstarlab' ); ?></a>
 						<?php endif; ?>
 					</td>
 					<td><?php echo esc_html( $rsl_ie_t['source'] ); ?></td>
@@ -120,6 +134,9 @@ $rsl_ie_has_url = (bool) array_filter( $rsl_ie_srcs, static fn( $s ) => $s['from
 						];
 						if ( 'webhook' === $rsl_ie_t['event'] ) {
 							$rsl_ie_buttons['rotate'] = __( 'New Token', 'import-export-by-rockstarlab' );
+							if ( 'import' === $rsl_ie_t['source_type'] ) {
+								$rsl_ie_buttons[ $rsl_ie_t['allow_file_url'] ? 'fileurl_off' : 'fileurl_on' ] = $rsl_ie_t['allow_file_url'] ? __( 'Ignore File URL', 'import-export-by-rockstarlab' ) : __( 'Accept File URL', 'import-export-by-rockstarlab' );
+							}
 						}
 						$rsl_ie_buttons['delete'] = __( 'Delete', 'import-export-by-rockstarlab' );
 						foreach ( $rsl_ie_buttons as $rsl_ie_do => $rsl_ie_label ) :
@@ -152,7 +169,7 @@ $rsl_ie_has_url = (bool) array_filter( $rsl_ie_srcs, static fn( $s ) => $s['from
 				<td>
 					<select id="rsl-ie-trigger-source" name="source_job_id">
 						<?php foreach ( $rsl_ie_srcs as $rsl_ie_s ) : ?>
-							<option value="<?php echo esc_attr( $rsl_ie_s['job_id'] ); ?>" data-from-url="<?php echo $rsl_ie_s['from_url'] ? '1' : '0'; ?>"><?php echo esc_html( $rsl_ie_s['label'] . ( $rsl_ie_s['from_url'] ? ' (URL)' : '' ) ); ?></option>
+							<option value="<?php echo esc_attr( $rsl_ie_s['job_id'] ); ?>" data-from-url="<?php echo $rsl_ie_s['from_url'] ? '1' : '0'; ?>" data-type="<?php echo esc_attr( $rsl_ie_s['type'] ); ?>"><?php echo esc_html( $rsl_ie_s['label'] . ( $rsl_ie_s['from_url'] ? ' (URL)' : '' ) ); ?></option>
 						<?php endforeach; ?>
 					</select>
 					<p class="description"><?php esc_html_e( 'A finished import or export. Each run is a new job with the same settings.', 'import-export-by-rockstarlab' ); ?></p>
@@ -176,6 +193,13 @@ $rsl_ie_has_url = (bool) array_filter( $rsl_ie_srcs, static fn( $s ) => $s['from
 						<?php endforeach; ?>
 					</fieldset>
 					<p class="description"><?php esc_html_e( 'Webhook: for Zapier, Make, n8n, a CRM or a script. The token is shown once after you create the trigger. File changes are checked every hour.', 'import-export-by-rockstarlab' ); ?></p>
+				</td>
+			</tr>
+			<tr class="rsl-ie-trigger-fileurl">
+				<th scope="row"><?php esc_html_e( 'File URL', 'import-export-by-rockstarlab' ); ?></th>
+				<td>
+					<label><input type="checkbox" name="allow_file_url" value="1"> <?php esc_html_e( 'Accept a file URL in the request', 'import-export-by-rockstarlab' ); ?></label>
+					<p class="description"><?php esc_html_e( 'Imports only. The caller can send {"file_url": "https://…"} to import that file once instead of the job\'s own, for example a file just added to Google Drive or Dropbox. The columns are matched by name; a file without a mapped column is refused.', 'import-export-by-rockstarlab' ); ?></p>
 				</td>
 			</tr>
 			<tr class="rsl-ie-trigger-post-types">
@@ -250,6 +274,11 @@ wp_print_inline_script_tag(
 		var ev = ( form.querySelector( 'input[name="event"]:checked' ) || {} ).value;
 		form.querySelector( '.rsl-ie-trigger-post-types' ).style.display = 'post_published' === ev ? '' : 'none';
 		form.querySelector( '.rsl-ie-trigger-delay' ).style.display = ( 'post_published' === ev || 'woo_order_created' === ev ) ? '' : 'none';
+		var src = form.querySelector( '#rsl-ie-trigger-source' );
+		var opt = src.options[ src.selectedIndex ];
+		var imp = opt && 'import' === opt.getAttribute( 'data-type' );
+		form.querySelector( '.rsl-ie-trigger-fileurl' ).style.display = ( 'webhook' === ev && imp ) ? '' : 'none';
+		if ( ! ( 'webhook' === ev && imp ) ) { form.querySelector( 'input[name="allow_file_url"]' ).checked = false; }
 		Array.prototype.forEach.call( form.querySelectorAll( '#rsl-ie-trigger-source option' ), function ( o ) {
 			o.disabled = 'file_changed' === ev && '1' !== o.getAttribute( 'data-from-url' );
 		} );

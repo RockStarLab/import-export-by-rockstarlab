@@ -226,6 +226,27 @@ class Export_Request {
 			}
 			$options['_rsl_ie_free_comment_scope'] = true;
 		}
+		if ( 'form_entries' === $type ) {
+			$options['form_source'] = sanitize_key( (string) ( $options['form_source'] ?? '' ) );
+			$options['form_id']     = absint( $options['form_id'] ?? 0 );
+			$check                  = ( new Form_Entries_Service() )->check_form( $options['form_source'], $options['form_id'] );
+			if ( is_wp_error( $check ) ) {
+				return $check;
+			}
+			// The file uses the labels shown on the Fields step ("Date", not "date_created");
+			// names chosen with the pencil on that step win.
+			$labels = ( new Form_Entries_Service() )->fields( $options['form_source'], $options['form_id'] );
+			if ( ! is_wp_error( $labels ) ) {
+				$chosen                    = is_array( $options['column_headers'] ?? null ) ? $options['column_headers'] : [];
+				$options['column_headers'] = $chosen + array_filter(
+					$labels,
+					static function ( $label, $key ) {
+						return $label !== $key;
+					},
+					ARRAY_FILTER_USE_BOTH
+				);
+			}
+		}
 		if ( 'urls' === $type ) {
 			$sources = self::url_sources( $options['content_types'] ?? [] );
 			if ( is_wp_error( $sources ) ) {
@@ -237,6 +258,10 @@ class Export_Request {
 		$format                         = $input['format'] ?? 'csv';
 		if ( ! is_string( $format ) || ! Format_Factory::is_supported( $format ) ) {
 			return self::error();
+		}
+		if ( 'form_entries' === $type ) {
+			// Visitors type these values: keep spreadsheet apps from running them as formulas.
+			$options['csv_safe'] = 'csv' === $format;
 		}
 		$format_options = is_array( $input['format_options'] ?? null ) ? $input['format_options'] : [];
 		// Form posts send checkbox states as the strings "true"/"false"; store real booleans.

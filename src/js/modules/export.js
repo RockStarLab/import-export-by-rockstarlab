@@ -503,6 +503,11 @@ const ExportModule = {
 		);
 		$wizard.on( 'click', '.rsl-ie-new-export', () => this.newExport() );
 
+		// Form entries: choosing a form loads its columns.
+		$wizard.on( 'change', '#rsl-ie-form-entry-form', () =>
+			this.onFormEntryFormChange()
+		);
+
 		// Dynamic Filters
 		$wizard.on( 'click', '.rsl-ie-add-filter', () => this.addFilterRow() );
 		$wizard.on( 'click', '.rsl-ie-remove-filter', ( e ) =>
@@ -610,6 +615,13 @@ const ExportModule = {
 				this.loadUrlExportTypes();
 			} else {
 				jQuery( '.rsl-ie-url-export-section' ).hide();
+			}
+
+			if ( contentType === 'form_entries' ) {
+				jQuery( '.rsl-ie-form-entry-section' ).show();
+				this.loadFormEntryForms();
+			} else {
+				jQuery( '.rsl-ie-form-entry-section' ).hide();
 			}
 
 			this.ensureDefaultSpecificFilter( contentType );
@@ -747,7 +759,13 @@ const ExportModule = {
 			'woo_refund',
 			'woo_customer',
 			'database_table',
+			'form_entries',
 		];
+		if ( contentType === 'form_entries' ) {
+			jQuery( '.rsl-ie-form-entry-section' ).show();
+		} else {
+			jQuery( '.rsl-ie-form-entry-section' ).hide();
+		}
 		if (
 			contentType !== 'urls' &&
 			filterableTypes.includes( contentType )
@@ -884,6 +902,17 @@ const ExportModule = {
 
 			this.applySelectionPrefillToOptions( options, contentType );
 
+			if ( contentType === 'form_entries' ) {
+				const selection = this.getFormEntrySelection();
+				if ( ! selection ) {
+					$count.text( '-' );
+					this.updateStep2NextButton();
+					return;
+				}
+				Object.assign( options, selection );
+				jQuery( '.rsl-ie-form-entry-error' ).hide().text( '' );
+			}
+
 			const response = await Utils.ajax( 'rsl_ie_export_get_count', {
 				export_type: contentType,
 				options: options,
@@ -901,6 +930,11 @@ const ExportModule = {
 			this.updateStep2NextButton();
 		} catch ( error ) {
 			$count.text( '-' );
+			if ( contentType === 'form_entries' ) {
+				jQuery( '.rsl-ie-form-entry-error' )
+					.text( ( error && error.message ) || '' )
+					.toggle( !! ( error && error.message ) );
+			}
 			if ( contentType === 'database_table' ) {
 				const $tableRowCount = jQuery( '.rsl-ie-table-row-count' );
 				if ( $tableRowCount.length ) {
@@ -1331,6 +1365,14 @@ const ExportModule = {
 				tooltipTitle = window.rslIeData.i18n.tableRequired;
 				tooltipMessage = window.rslIeData.i18n.pleaseSelectTable;
 			}
+		}
+
+		if ( contentType === 'form_entries' && ! this.getFormEntrySelection() ) {
+			isDisabled = true;
+			tooltipTitle = window.rslIeData.i18n.formRequired || 'Select a form';
+			tooltipMessage =
+				window.rslIeData.i18n.pleaseSelectForm ||
+				'Please choose the form whose entries you want to export.';
 		}
 
 		if (
@@ -2013,6 +2055,20 @@ const ExportModule = {
 				if ( Object.keys( columns.values ).length ) {
 					data.options.custom_values = columns.values;
 				}
+			}
+
+			if ( contentType === 'form_entries' ) {
+				const selection = this.getFormEntrySelection();
+				if ( ! selection ) {
+					Utils.showNotice(
+						window.rslIeData.i18n.pleaseSelectForm ||
+							'Please choose a form.',
+						'error'
+					);
+					this.setStartExportButtonLoading( $button, false );
+					return;
+				}
+				Object.assign( data.options, selection );
 			}
 
 			if ( contentType === 'urls' ) {
@@ -2853,7 +2909,22 @@ const ExportModule = {
 		const fieldName = $field.val();
 
 		// Filter conditions based on field
+		const isFormEntries =
+			jQuery( 'input[name="content_type"]:checked' ).val() ===
+			'form_entries';
 		const filteredConditions = conditions.filter( ( condition ) => {
+			// Form entries: the conditions the form plugins can search by.
+			if ( isFormEntries ) {
+				let allowed = [ 'equals', 'not_equals', 'contains', 'not_contains' ];
+				if ( fieldName === 'date_created' ) {
+					allowed = [ 'equals', 'greater', 'less', 'equals_or_greater', 'equals_or_less', 'between' ];
+				} else if ( fieldName === 'status' ) {
+					allowed = [ 'equals' ];
+				} else if ( fieldName === 'entry_id' ) {
+					allowed = [ 'equals', 'in' ];
+				}
+				return allowed.includes( condition.value );
+			}
 			// For ID fields, exclude is_empty and is_not_empty (ID cannot be empty)
 			if (
 				fieldName === 'ID' ||
@@ -3005,6 +3076,183 @@ const ExportModule = {
 				}
 			} )
 			.catch( ( error ) => {} );
+	},
+
+	/**
+	 * Selected form for a form entries export, or null.
+	 *
+	 * @return {Object|null} { form_source, form_id }.
+	 */
+	getFormEntrySelection() {
+		const value = String( jQuery( '#rsl-ie-form-entry-form' ).val() || '' );
+		const match = value.match( /^(gravityforms|flamingo):(\d+)$/ );
+		return match
+			? { form_source: match[ 1 ], form_id: parseInt( match[ 2 ], 10 ) }
+			: null;
+	},
+
+	/**
+	 * Load the forms once.
+	 */
+	loadFormEntryForms() {
+		const $select = jQuery( '#rsl-ie-form-entry-form' );
+		if ( this.formEntryFormsLoaded || this.formEntryFormsLoading ) {
+			return;
+		}
+		this.formEntryFormsLoading = true;
+		$select.prop( 'disabled', true );
+		this.setLoadingSelectSpinner( $select );
+		$select.addClass( 'is-loading' );
+		Utils.ajax( 'rsl_ie_form_entry_forms', {} )
+			.then( ( response ) => {
+				const i18n = window.rslIeData.i18n || {};
+				const forms = ( response && response.forms ) || [];
+				$select.empty();
+				$select.append(
+					jQuery( '<option>' )
+						.val( '' )
+						.text(
+							forms.length
+								? i18n.selectForm || 'Select a form...'
+								: i18n.noForms || 'No forms found'
+						)
+				);
+				const groups = {
+					gravityforms: 'Gravity Forms',
+					flamingo: 'Contact Form 7 (Flamingo)',
+				};
+				Object.keys( groups ).forEach( ( source ) => {
+					const items = forms.filter( ( f ) => f.source === source );
+					if ( ! items.length ) {
+						return;
+					}
+					const $group = jQuery( '<optgroup>' ).attr(
+						'label',
+						groups[ source ]
+					);
+					items.forEach( ( form ) => {
+						$group.append(
+							jQuery( '<option>' )
+								.val( `${ form.source }:${ form.form_id }` )
+								.text(
+									`${ form.title } (${ form.entries })`
+								)
+						);
+					} );
+					$select.append( $group );
+				} );
+				this.formEntryFormsLoaded = true;
+			} )
+			.catch( ( error ) => {
+				$select
+					.empty()
+					.append(
+						jQuery( '<option>' )
+							.val( '' )
+							.text( ( error && error.message ) || 'Error' )
+					);
+			} )
+			.finally( () => {
+				this.formEntryFormsLoading = false;
+				$select.prop( 'disabled', false ).removeClass( 'is-loading' );
+				this.updateStep2NextButton();
+			} );
+	},
+
+	/**
+	 * A form was chosen: load its columns, reset the filters and count.
+	 */
+	onFormEntryFormChange() {
+		const selection = this.getFormEntrySelection();
+		jQuery( '#rsl-ie-filters-list' ).empty();
+		this.formEntryFields = [];
+		jQuery( '.rsl-ie-form-entry-error' ).hide().text( '' );
+		if ( ! selection ) {
+			this.refreshCount( false );
+			return;
+		}
+		const token = ( this.formEntryFieldsToken || 0 ) + 1;
+		this.formEntryFieldsToken = token;
+		jQuery( '.rsl-ie-form-entry-section .spinner' ).addClass( 'is-active' );
+		Utils.ajax( 'rsl_ie_form_entry_fields', selection )
+			.then( ( response ) => {
+				if ( token !== this.formEntryFieldsToken ) {
+					return;
+				}
+				this.formEntryFields = ( response && response.fields ) || [];
+				this.formEntryDefaults = ( response && response.default_fields ) || [];
+			} )
+			.catch( ( error ) => {
+				jQuery( '.rsl-ie-form-entry-error' )
+					.text( ( error && error.message ) || '' )
+					.show();
+			} )
+			.finally( () => {
+				jQuery( '.rsl-ie-form-entry-section .spinner' ).removeClass(
+					'is-active'
+				);
+				this.refreshCount( false );
+			} );
+	},
+
+	/**
+	 * Field groups of the selected form for the filter and field steps.
+	 *
+	 * @return {Array} Groups.
+	 */
+	getFormEntryFieldGroups() {
+		const i18n = window.rslIeData.i18n || {};
+		const fields = this.formEntryFields || [];
+		if ( ! fields.length ) {
+			return [
+				{
+					label: i18n.fieldGroupFormEntry || 'Entry',
+					options: [
+						{
+							value: '_select_form',
+							label: i18n.pleaseSelectForm || 'Please choose a form first.',
+							type: 'info',
+						},
+					],
+				},
+			];
+		}
+		const entry = [ 'entry_id', 'date_created', 'status' ];
+		const visitor = [ 'source_url', 'ip', 'user_agent', 'user' ];
+		const types = {
+			entry_id: 'number',
+			date_created: 'date',
+			source_url: 'url',
+		};
+		const toOption = ( f ) => ( {
+			value: f.name,
+			label: f.label,
+			type: types[ f.name ] || 'string',
+		} );
+		return [
+			{
+				label: i18n.fieldGroupFormEntry || 'Entry',
+				options: fields
+					.filter( ( f ) => entry.includes( f.name ) )
+					.map( toOption ),
+			},
+			{
+				label: i18n.fieldGroupFormFields || 'Form fields',
+				options: fields
+					.filter(
+						( f ) =>
+							! entry.includes( f.name ) &&
+							! visitor.includes( f.name )
+					)
+					.map( toOption ),
+			},
+			{
+				label: i18n.fieldGroupFormVisitor || 'Visitor',
+				options: fields
+					.filter( ( f ) => visitor.includes( f.name ) )
+					.map( toOption ),
+			},
+		];
 	},
 
 	/**
@@ -5222,6 +5470,10 @@ const ExportModule = {
 					],
 				},
 			];
+		}
+
+		if ( contentType === 'form_entries' ) {
+			return this.getFormEntryFieldGroups();
 		}
 
 		// Database Table - use dynamic columns from selected table

@@ -20,6 +20,13 @@ class Schedule_Source_Service {
 	private $changed_since = '';
 
 	/**
+	 * File URL that replaces the import's own file for one run (webhook triggers).
+	 *
+	 * @var string
+	 */
+	private $file_url = '';
+
+	/**
 	 * Whether a source job is an export that "changes only" can narrow.
 	 *
 	 * @param int $id Source job.
@@ -40,10 +47,13 @@ class Schedule_Source_Service {
 	 *
 	 * @param int    $id Source job.
 	 * @param string $request_id Empty for validation, otherwise occurrence identity.
+	 * @param string $changed_since Export only rows changed since (schedules).
+	 * @param string $file_url Import this file instead of the job's own (webhook triggers).
 	 * @return mixed
 	 */
-	public function execute( $id, $request_id = '', $changed_since = '' ) {
+	public function execute( $id, $request_id = '', $changed_since = '', $file_url = '' ) {
 		$this->changed_since = (string) $changed_since;
+		$this->file_url      = (string) $file_url;
 		$result              = $this->replay( $id, $request_id );
 		if ( '' !== $request_id && is_array( $result ) && ! empty( $result['job_id'] ) ) {
 			$source = rsl_ie()->Model->job->find( $id );
@@ -137,11 +147,21 @@ class Schedule_Source_Service {
 			$input['request_id'] = $request_id;
 			if ( 'import' === $job->type ) {
 				$input['file_path'] = $job->file_path;
-				// Imports from a URL fetch the current file on every scheduled run.
-				if ( $start && ! empty( $params['source_url'] ) ) {
-					$fresh = ( new File_Service() )->from_url( (string) $params['source_url'], $params['parser_options'] ?? [ 'delimiter' => $params['delimiter'] ?? ',', 'has_header' => $params['options']['has_header'] ?? true, 'encoding' => $params['encoding'] ?? 'auto' ] );
+				// Imports from a URL fetch the current file on every scheduled run; a webhook
+				// trigger may name another file with the same columns for one run.
+				$url = '' !== $this->file_url ? $this->file_url : (string) ( $params['source_url'] ?? '' );
+				if ( $start && '' !== $url ) {
+					$fresh = ( new File_Service() )->from_url( $url, $params['parser_options'] ?? [ 'delimiter' => $params['delimiter'] ?? ',', 'has_header' => $params['options']['has_header'] ?? true, 'encoding' => $params['encoding'] ?? 'auto' ] );
 					if ( is_wp_error( $fresh ) ) {
 						return $fresh;
+					}
+					if ( '' !== $this->file_url ) {
+						$mapping = $this->map_by_name( (array) ( $input['mapping'] ?? [] ), (array) ( $fresh['headers'] ?? [] ) );
+						if ( is_wp_error( $mapping ) ) {
+							File_Store::remove( $fresh['file_id'] );
+							return $mapping;
+						}
+						$input['mapping'] = $mapping;
 					}
 					$input['file_id']   = $fresh['file_id'];
 					$input['file_path'] = 'rsl-ie-file:' . $fresh['file_id'];
@@ -174,5 +194,45 @@ class Schedule_Source_Service {
 		 */
 		$result = apply_filters( 'rsl_ie_schedule_source', null, $job, $request_id );
 		return null !== $result ? $result : new \WP_Error( 'rsl_ie_schedule_provider_unavailable', 'No available schedule provider supports this source.', [ 'status' => 403 ] );
+	}
+	/**
+	 * Point each mapped column at its position in another file, by column name.
+	 *
+	 * @param array $mapping Stored mapping.
+	 * @param array $headers Header row of the new file.
+	 * @return array|\WP_Error
+	 */
+	private function map_by_name( array $mapping, array $headers ) {
+		$index = [];
+		foreach ( array_values( $headers ) as $i => $column ) {
+			$key = Mapping_Template_Service::column_key( $column );
+			if ( '' !== $key && ! isset( $index[ $key ] ) ) {
+				$index[ $key ] = $i;
+			}
+		}
+		$missing = [];
+		foreach ( $mapping as $n => $entry ) {
+			if ( ! is_array( $entry ) || ! isset( $entry['source_field'] ) || '' === (string) $entry['source_field'] ) {
+				continue;
+			}
+			$key = Mapping_Template_Service::column_key( $entry['source_field'] );
+			if ( ! isset( $index[ $key ] ) ) {
+				$missing[] = (string) $entry['source_field'];
+				continue;
+			}
+			$mapping[ $n ]['source_index'] = (string) $index[ $key ];
+		}
+		if ( $missing ) {
+			return new \WP_Error(
+				'rsl_ie_file_columns_missing',
+				/* translators: %s: column names. */
+				sprintf( __( 'The file is missing columns the import uses: %s.', 'import-export-by-rockstarlab' ), implode( ', ', array_slice( $missing, 0, 20 ) ) ),
+				[
+					'status'  => 422,
+					'missing' => array_values( $missing ),
+				]
+			);
+		}
+		return $mapping;
 	}
 }

@@ -34,6 +34,8 @@ class Schedule_Catalog {
 				'last_run_gmt'  => [ 'type' => [ 'string', 'null' ] ],
 				'timezone'      => $s,
 				'error_code'    => $s,
+				'error_message' => $s,
+				'error_gmt'     => $s,
 				'changed_only'  => [ 'type' => 'boolean' ],
 			],
 			[ 'id', 'source_job_id', 'last_job_id', 'name', 'schedule_type', 'recurrence', 'status', 'start_at_gmt', 'next_run_gmt', 'last_run_gmt', 'timezone', 'error_code', 'changed_only' ]

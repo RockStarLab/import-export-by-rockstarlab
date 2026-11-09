@@ -45,6 +45,7 @@ class Trigger_Catalog {
 				'event'         => $s,
 				'source_job_id' => $n,
 				'source'        => $s,
+				'source_type'   => $s,
 				'post_types'    => Workflow_Schemas::items( $s, 20 ),
 				'delay'         => $n,
 				'status'        => $s,
@@ -54,6 +55,7 @@ class Trigger_Catalog {
 				'last_job_id'   => $n,
 				'last_result'   => $s,
 				'runs'          => $n,
+				'allow_file_url' => $b,
 				'created_at'    => $s,
 				'token'         => $s,
 			],
@@ -82,7 +84,7 @@ class Trigger_Catalog {
 				false,
 			],
 			'trigger-create'  => [
-				'Create a trigger that runs a fresh copy of a finished import or export (source_job_id) when an event happens. Events: webhook (an external system POSTs to webhook_url with the token in the X-RSL-Token header or as "Authorization: Bearer <token>"; the token is returned once, in token), post_published (a post of post_types is published; not fired by the plugin\'s own imports), woo_order_created (a WooCommerce order is created), file_changed (the URL file of the import changed; checked hourly, the first check only records the file). delay (seconds, post and order events, default 60) groups many events into one run. A trigger never starts a job while its previous job still runs, and webhook runs are limited to one a minute. Up to 50 triggers.',
+				'Create a trigger that runs a fresh copy of a finished import or export (source_job_id) when an event happens. Events: webhook (an external system POSTs to webhook_url with the token in the X-RSL-Token header or as "Authorization: Bearer <token>"; the token is returned once, in token), post_published (a post of post_types is published; not fired by the plugin\'s own imports), woo_order_created (a WooCommerce order is created), file_changed (the URL file of the import changed; checked hourly, the first check only records the file). delay (seconds, post and order events, default 60) groups many events into one run. With allow_file_url=true (webhook triggers of imports only) the caller may send a JSON body {"file_url": "https://..."} to import that file once instead of the source job file; columns are matched by name and a file missing a mapped column is refused (422). The webhook answers 202 with job_id; GET <webhook_url without /run>/jobs/<job_id> with the same token returns the status and counts of that job. A trigger never starts a job while its previous job still runs, and webhook runs are limited to one a minute. Up to 50 triggers.',
 				Workflow_Schemas::object(
 					[
 						'name'          => $name,
@@ -90,6 +92,7 @@ class Trigger_Catalog {
 						'event'         => $events,
 						'post_types'    => $types,
 						'delay'         => $delay,
+						'allow_file_url' => $b,
 					],
 					[ 'source_job_id', 'event' ]
 				),
@@ -98,7 +101,7 @@ class Trigger_Catalog {
 				false,
 			],
 			'trigger-update'  => [
-				'Rename a trigger, pause or resume it (status active or paused), or change post_types and delay. The event and the source job cannot be changed: create a new trigger instead.',
+				'Rename a trigger, pause or resume it (status active or paused), change post_types and delay, or let a webhook import trigger accept a file URL in the request (allow_file_url). The event and the source job cannot be changed: create a new trigger instead.',
 				Workflow_Schemas::object(
 					[
 						'trigger_id' => $id,
@@ -106,6 +109,7 @@ class Trigger_Catalog {
 						'status'     => Workflow_Schemas::string( [ 'active', 'paused' ] ),
 						'post_types' => $types,
 						'delay'      => $delay,
+						'allow_file_url' => $b,
 					],
 					[ 'trigger_id' ]
 				),
@@ -127,7 +131,7 @@ class Trigger_Catalog {
 				true,
 			],
 			'trigger-run'     => [
-				'Run a trigger now, as a test, even when it is paused. Returns the new job_id; follow it with job-status. Refused (409) while the previous job of the trigger still runs, and (429) within a minute of the last run.',
+				'Run a trigger now, as a test, even when it is paused. Returns the new job_id; follow it with job-get. Refused (409) while the previous job of the trigger still runs, and (429) within a minute of the last run.',
 				$by_id,
 				Workflow_Schemas::object(
 					[
@@ -144,6 +148,13 @@ class Trigger_Catalog {
 				$by_id,
 				$trigger,
 				false,
+				false,
+			],
+			'trigger-n8n-workflow' => [
+				'Return a ready n8n workflow (workflow_json is the exact text to save as a .json file and import in n8n; workflow is the same data as an object) for a webhook trigger: POST to the trigger URL, wait 30 seconds, read the job status from the trigger jobs URL and repeat until finished. The token is a placeholder (PASTE-THE-TRIGGER-TOKEN-HERE) that the user replaces in both HTTP Request nodes.',
+				$by_id,
+				Workflow_Schemas::object( [ 'workflow' => Workflow_Schemas::value(), 'workflow_json' => Workflow_Schemas::string() ], [ 'workflow', 'workflow_json' ] ),
+				true,
 				false,
 			],
 			'trigger-log'     => [

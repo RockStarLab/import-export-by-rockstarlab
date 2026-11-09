@@ -86,6 +86,9 @@ class Workflow_Service {
 				return $this->chunk( $input );
 			case 'upload-complete':
 				return $files->finalize( $input['file_id'], $input['parser_options'] ?? [], $input['resumable'] ?? false );
+			case 'upload-from-url':
+				$fetched = $files->from_url( (string) $input['url'], $input['parser_options'] ?? [] );
+				return is_wp_error( $fetched ) ? $fetched : array_diff_key( $fetched, [ 'source_url' => true ] );
 			case 'upload-abort':
 				return $files->abort( $input['file_id'] );
 			case 'file-preview':
@@ -136,7 +139,7 @@ class Workflow_Service {
 		if ( is_wp_error( $exporter ) ) {
 			return $exporter; }
 		$import = null;
-		if ( 'urls' !== $type ) {
+		if ( ! in_array( $type, [ 'urls', 'form_entries' ], true ) ) {
 			$importer = Importer_Factory::get_importer( $type );
 			if ( is_wp_error( $importer ) ) {
 				return $importer; }
@@ -174,7 +177,7 @@ class Workflow_Service {
 				'input_schema'   => Workflow_Schemas::export_input( true ),
 			],
 			'integrations' => [
-				'acf'       => 'urls' !== $type ? ACF_Fields::get_fields_for_content_type( $type ) : [],
+				'acf'       => ! in_array( $type, [ 'urls', 'form_entries' ], true ) ? ACF_Fields::get_fields_for_content_type( $type ) : [],
 				'yoast'     => in_array( $type, [ 'post', 'page' ], true ) && defined( 'WPSEO_VERSION' ) ? Seo_Fields::get_yoast_fields( $type ) : [],
 				'rank_math' => in_array( $type, [ 'post', 'page' ], true ) && Seo_Fields::is_rank_math_active() ? Seo_Fields::get_rank_math_fields( $type ) : [],
 				'elementor' => in_array( $type, [ 'post', 'page' ], true ) && Elementor_Fields::is_active() ? Elementor_Fields::get_fields() : [],
@@ -212,7 +215,7 @@ class Workflow_Service {
 	private function meta_fields( $type, $offset ) {
 		global $wpdb;
 		$offset = max( 0, (int) $offset );
-		if ( 'urls' === $type ) {
+		if ( in_array( $type, [ 'urls', 'form_entries' ], true ) ) {
 			return [
 				'fields'      => [],
 				'next_offset' => null,

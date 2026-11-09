@@ -55,6 +55,7 @@ class Exporter_Factory {
 			'urls'    => Urls_Exporter::class,
 			'comment' => Comment_Exporter::class,
 			'media'   => Media_Exporter::class,
+			'form_entries' => Form_Entry_Exporter::class,
 		];
 
 		/**
