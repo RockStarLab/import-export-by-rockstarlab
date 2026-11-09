@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.38
+Stable tag: 2.1.39
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -81,6 +81,7 @@ Choose the WordPress admin interface or a connected AI agent for your data workf
 
 * 💬 **AI Agent Access (New in 2.0)**: Connect compatible agents through MCP to discover and run supported plugin operations.
 * 🖱️ **Visual Admin Tools**: Upload files, map fields, preview data, and manage jobs directly in WordPress.
+* ⌨️ **WP-CLI Commands**: Run imports, exports, schedules and triggers from the command line or CI with `wp rsl-ie import` and `wp rsl-ie export`, without waiting for WP-Cron.
 * 📥 **CSV, XML, JSON, XLSX, and ODS Import/Export**: Move posts, pages, comments, and media with flexible field mapping, previews, validation, and background processing.
 * 🌍 **All Site URLs Export**: Export a clean CSV or JSON list of public frontend URLs from posts, pages, custom post types, taxonomies, archives, feeds, and REST API endpoints.
 * 🔗 **Site-to-Site Content Sync**: Connect WordPress sites with API keys, then push or pull selected content between environments.
@@ -244,6 +245,14 @@ No. You can import, export, map fields, sync content, and manage jobs in WP Admi
 
 Yes, with a compatible MCP connection. Open Plugin Options → AI Agent Connection and follow the setup wizard. Your client must support the site's MCP transport and authentication, directly or through a bridge. The agent can discover and run the operations available to your account and plugin edition.
 
+= Does it work on WordPress Multisite? =
+
+Yes. Activate it for the whole network or for single sites. Each site keeps its own jobs, schedules, settings and files, and Content Sync can copy posts and pages between sites of the network. Site administrators can use it on their own site.
+
+= Can I run imports and exports with WP-CLI? =
+
+Yes. `wp rsl-ie import posts.csv --type=post --user=admin` imports a file and `wp rsl-ie export --type=post --format=xlsx --output=posts.xlsx --user=admin` exports one. The job runs in the same process until it finishes, so WP-Cron is not needed. Run `wp help rsl-ie` for all commands, including jobs, schedules, triggers and calling any ability. Exit codes: 0 done, 1 error, 2 finished with failed rows.
+
 = Is AI agent access included in the free version? =
 
 Yes. The free plugin exposes supported free workflows to connected agents. An active licensed PRO addon adds premium content types and tools, including Content Updater and transformations.
@@ -273,6 +282,21 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.39 =
+* New: WP-CLI commands. `wp rsl-ie import <file>` and `wp rsl-ie export` run a job in the same process until it finishes, without WP-Cron (`--no-wait` leaves it to WP-Cron). Columns are matched by name, or use `--template` or `--mapping`; `--dry-run` checks a file without importing; exports are copied to `--output`. Also `wp rsl-ie jobs`, `job get|wait|errors|rerun|cancel`, `schedule list|run`, `trigger list|run|log` and `wp rsl-ie ability <name> '<json>'`. Exit codes for scripts and CI: 0 done, 1 error, 2 finished with failed rows, 3 still running after `--timeout`. The commands work even when AI agent access is off.
+* New: export form entries. Choose Form Entries in the export wizard, then a Gravity Forms form or a Contact Form 7 form saved by Flamingo. Each field becomes a column under its label; filter by status, date, entry ID or any field. In CSV files, values starting with =, +, - or @ get an apostrophe so spreadsheets don't run them as formulas.
+* New: a webhook trigger of an import can accept a file URL in the request and import that file once; columns are matched by name. A status URL returns the counts of a job the trigger started.
+* New: ready n8n workflows: one starts a trigger and checks the job until it has finished, one receives the job-finished notification and checks its signature.
+* New: WordPress Multisite is tested and supported: network or per-site activation, separate jobs, settings and files for each site, and Content Sync between sites of one network. The Multisite warning is removed.
+* New: AI agents can import a file from a URL (upload-from-url), export form entries, and get the n8n workflows as an exact file (workflow_json).
+* Improved: post authors in imports. New Author Login field; Author Name also finds a user by display name; existing users are no longer renamed; a row whose author isn't found is noted in the job log.
+* Improved: the status "scheduled" in a file is read as a scheduled post.
+* Fixed: a recurring import from a URL no longer stops for good when the file can't be downloaded at one run. It tries again at the next run, and Schedules shows why the run didn't start.
+* Fixed: after network activation, sites other than the main one showed the plugin menu without its pages.
+* Fixed: uninstalling the plugin in a network now cleans every site, and leftover options and scheduled events are removed.
+* Fixed: job notifications no longer show a double space when the job has no name.
+* Security: when the person running an import can't post unfiltered HTML (site administrators in a multisite network, or DISALLOW_UNFILTERED_HTML), imported post content, excerpts and comments are filtered like in the editor.
 
 = 2.1.38 =
 * Fixed: when the file of a "file changes" trigger changed again while the trigger's previous job was still running, the change could be skipped. The next hourly check now starts the import.

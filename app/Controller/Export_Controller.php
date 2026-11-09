@@ -66,6 +66,8 @@ class Export_Controller extends Base_Controller {
 			'export_cancel'        => [ 'callback' => 'cancel_export' ],
 			'export_process_batch' => [ 'callback' => 'process_export_batch' ],
 			'export_get_url_types' => [ 'callback' => 'get_url_types' ],
+			'form_entry_forms'     => [ 'callback' => 'form_entry_forms' ],
+			'form_entry_fields'    => [ 'callback' => 'form_entry_fields' ],
 			'get_post_types'       => [ 'callback' => 'get_post_types' ],
 			'get_database_tables'  => [ 'callback' => 'get_database_tables' ],
 			'get_table_columns'    => [ 'callback' => 'get_table_columns' ],
@@ -317,6 +319,39 @@ class Export_Controller extends Base_Controller {
 
 	/**
 	 * Get all registered post types
+	 */
+	public function form_entry_forms() {
+		$verification = $this->verify_request();
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+			return;
+		}
+		$this->send_success( ( new \RockStarLab\ImportExport\Service\Form_Entries_Service() )->execute( 'form-entry-forms' ) );
+	}
+
+	/** Columns of one form (Form Entries export). */
+	public function form_entry_fields() {
+		$verification = $this->verify_request();
+		if ( is_wp_error( $verification ) ) {
+			$this->send_error( $verification, null, 403 );
+			return;
+		}
+		$result = ( new \RockStarLab\ImportExport\Service\Form_Entries_Service() )->execute(
+			'form-entry-fields',
+			[
+				'form_source' => sanitize_key( (string) $this->get_request_param( 'form_source', '' ) ),
+				'form_id'     => absint( $this->get_request_param( 'form_id', 0 ) ),
+			]
+		);
+		if ( is_wp_error( $result ) ) {
+			$this->send_error( $result, null, (int) ( $result->get_error_data()['status'] ?? 400 ) );
+			return;
+		}
+		$this->send_success( $result );
+	}
+
+	/**
+	 * URL content types for the URLs export.
 	 */
 	public function get_url_types() {
 		$verification = $this->verify_request();

@@ -442,6 +442,7 @@ class Post_Importer extends Abstract_Importer {
 			'inactive'    => 'draft',
 			'archived'    => 'draft',
 			'unpublished' => 'draft',
+			'scheduled'   => 'future',
 		];
 		if ( isset( $aliases[ $status ] ) ) {
 			return $aliases[ $status ];
@@ -1292,11 +1293,15 @@ class Post_Importer extends Abstract_Importer {
 			$post_data['post_content'] = $this->resolve_content_media_shortcodes( $post_data['post_content'], 0 );
 		}
 
-		// Resolve author by email/login when provided (author IDs are not portable between sites).
-		$login = (string) ( $item['author_login'] ?? $item['author_name'] ?? '' );
-		$user = $login !== '' ? get_user_by( 'login', $login ) : false;
-		if ( ! $user && ! empty( $item['author_email'] ) && is_email( $item['author_email'] ) ) {
-			$user = get_user_by( 'email', $item['author_email'] );
+		// Resolve the author (author IDs are not portable between sites): author_login, then
+		// author_email (a new user is created when allowed), then author_name as a login or as
+		// the display name of exactly one user. Existing users are never renamed.
+		$login   = trim( (string) ( $item['author_login'] ?? '' ) );
+		$name    = trim( (string) ( $item['author_name'] ?? '' ) );
+		$email   = trim( (string) ( $item['author_email'] ?? '' ) );
+		$user    = '' !== $login ? get_user_by( 'login', $login ) : false;
+		if ( ! $user && '' !== $email && is_email( $email ) ) {
+			$user = get_user_by( 'email', $email );
 			if ( ! $user && current_user_can( 'create_users' ) ) {
 				$roles = isset( $item['author_roles'] ) ? ( is_array( $item['author_roles'] ) ? $item['author_roles'] : explode( ',', $item['author_roles'] ) ) : [ 'author' ];
 				$roles = array_values( array_filter( array_map( 'sanitize_key', $roles ) ) );
@@ -1304,20 +1309,20 @@ class Post_Importer extends Abstract_Importer {
 				if ( ! current_user_can( 'promote_users' ) || array_diff( $roles, array_keys( $editable ) ) ) {
 					throw new \RuntimeException( 'Cannot assign the imported author roles.' );
 				}
-				$base_login = sanitize_user( current( explode( '@', (string) $item['author_email'] ) ), true );
-				$login      = ! empty( $item['author_login'] ) ? sanitize_user( $item['author_login'], true ) : ( $base_login ? $base_login : 'imported_user' );
-				$try        = $login;
+				$base_login = sanitize_user( current( explode( '@', $email ) ), true );
+				$new_login  = '' !== $login ? sanitize_user( $login, true ) : ( $base_login ? $base_login : 'imported_user' );
+				$try        = $new_login;
 				$suffix     = 1;
 				while ( username_exists( $try ) ) {
-					$try = $login . '_' . $suffix;
+					$try = $new_login . '_' . $suffix;
 					++$suffix;
 				}
 				$user_id = wp_insert_user(
 					[
 						'user_login'   => $try,
 						'user_pass'    => wp_generate_password( 24, true, true ),
-						'user_email'   => (string) $item['author_email'],
-						'display_name' => ! empty( $item['author_name'] ) ? (string) $item['author_name'] : $try,
+						'user_email'   => $email,
+						'display_name' => '' !== $name ? $name : $try,
 						'role'         => $roles[0] ?? '',
 					]
 				);
@@ -1329,9 +1334,27 @@ class Post_Importer extends Abstract_Importer {
 				}
 			}
 		}
-
-		if ( ! $user && ! empty( $item['author_name'] ) ) {
-			$user = get_user_by( 'login', (string) $item['author_name'] );
+		if ( ! $user && '' !== $name ) {
+			$user = get_user_by( 'login', $name );
+			if ( ! $user ) {
+				$matches = get_users(
+					[
+						'search'         => $name,
+						'search_columns' => [ 'display_name' ],
+						'number'         => 2,
+						'fields'         => [ 'ID', 'display_name' ],
+					]
+				);
+				$matches = array_values(
+					array_filter(
+						$matches,
+						static function ( $candidate ) use ( $name ) {
+							return 0 === strcasecmp( (string) $candidate->display_name, $name );
+						}
+					)
+				);
+				$user    = 1 === count( $matches ) ? get_user_by( 'id', (int) $matches[0]->ID ) : false;
+			}
 		}
 
 		// If post_author is invalid and we couldn't resolve a user, clear it so defaults apply.
@@ -1342,21 +1365,17 @@ class Post_Importer extends Abstract_Importer {
 			}
 		}
 
-		// If we resolved a user, use it as the author and ensure display_name matches export.
 		if ( $user ) {
-			if ( ! empty( $item['author_name'] ) ) {
-				$desired_name = (string) $item['author_name'];
-				if ( '' !== $desired_name && (string) $user->display_name !== $desired_name ) {
-					wp_update_user(
-						[
-							'ID'           => $user->ID,
-							'display_name' => $desired_name,
-						]
-					);
-					$user = get_user_by( 'id', $user->ID );
-				}
-			}
 			$post_data['post_author'] = $user->ID;
+		} elseif ( '' !== $login || '' !== $email || '' !== $name ) {
+			// Say so instead of silently giving the post to the importing administrator.
+			$this->log_warning(
+				sprintf(
+					'Author not found for "%1$s" (%2$s); the post was assigned to the default author.',
+					(string) ( $item['post_title'] ?? '' ),
+					implode( ', ', array_filter( [ $login, $email, $name ], 'strlen' ) )
+				)
+			);
 		}
 
 			$post_data = $this->normalize_imported_post_dates( $post_data );
@@ -1381,6 +1400,23 @@ class Post_Importer extends Abstract_Importer {
 	 * @return mixed
 	 */
 	private function without_post_kses( callable $callback ) {
+		if ( ! current_user_can( 'unfiltered_html' ) ) {
+			// The job owner may not post unfiltered HTML (a site administrator in a multisite
+			// network, or DISALLOW_UNFILTERED_HTML): filter the content the same way the editor does,
+			// so an import can't store scripts that run for a network administrator.
+			$added = false;
+			if ( function_exists( 'kses_init_filters' ) && ! has_filter( 'content_save_pre', 'wp_filter_post_kses' ) ) {
+				kses_init_filters();
+				$added = true;
+			}
+			try {
+				return $callback();
+			} finally {
+				if ( $added && function_exists( 'kses_remove_filters' ) ) {
+					kses_remove_filters();
+				}
+			}
+		}
 		$removed = false;
 		if ( function_exists( 'kses_remove_filters' ) && has_filter( 'content_save_pre', 'wp_filter_post_kses' ) ) {
 			kses_remove_filters();

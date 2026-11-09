@@ -211,6 +211,66 @@ class Job_Notification_Service {
 	}
 
 	/**
+	 * Ready n8n workflow that receives the job webhook and checks its signature.
+	 * Needs NODE_FUNCTION_ALLOW_BUILTIN=crypto in n8n. The secret is a placeholder.
+	 *
+	 * @return array
+	 */
+	public static function n8n_workflow() {
+		$code = 'const crypto = require(\'crypto\');
+const secret = \'PASTE-THE-SIGNING-SECRET-HERE\';
+const headers = $input.first().json.headers;
+const raw = (await this.helpers.getBinaryDataBuffer(0, \'data\')).toString(\'utf8\');
+const expected = \'sha256=\' + crypto.createHmac(\'sha256\', secret).update(headers[\'x-rsl-timestamp\'] + \'.\' + raw).digest(\'hex\');
+if (expected !== headers[\'x-rsl-signature\']) {
+  throw new Error(\'Signature does not match: not sent by your WordPress site\');
+}
+const body = JSON.parse(raw);
+return [{ json: { event: body.event, job_id: body.job ? body.job.id : null, status: body.job ? body.job.status : null, failed: body.job ? body.job.failed : 0, errors: body.errors, text: body.text } }];';
+		return [
+			'name'        => __( 'WordPress: job finished', 'import-export-by-rockstarlab' ),
+			'nodes'       => [
+				[
+					'parameters'  => [
+						'httpMethod' => 'POST',
+						'path'       => 'rsl-job-finished',
+						'options'    => [ 'rawBody' => true ],
+					],
+					'id'          => wp_generate_uuid4(),
+					'name'        => 'Job finished',
+					'type'        => 'n8n-nodes-base.webhook',
+					'typeVersion' => 2,
+					'position'    => [ 0, 0 ],
+					'webhookId'   => wp_generate_uuid4(),
+				],
+				[
+					'parameters'  => [ 'jsCode' => $code ],
+					'id'          => wp_generate_uuid4(),
+					'name'        => 'Check signature',
+					'type'        => 'n8n-nodes-base.code',
+					'typeVersion' => 2,
+					'position'    => [ 240, 0 ],
+				],
+			],
+			'connections' => [
+				'Job finished' => [
+					'main' => [
+						[
+							[
+								'node'  => 'Check signature',
+								'type'  => 'main',
+								'index' => 0,
+							],
+						],
+					],
+				],
+			],
+			'settings'    => [ 'executionOrder' => 'v1' ],
+			'pinData'     => new \stdClass(),
+		];
+	}
+
+	/**
 	 * Dispatch an ability after schema validation.
 	 *
 	 * @param string $name  Ability suffix.
@@ -240,6 +300,11 @@ class Job_Notification_Service {
 				return $this->send_test();
 			case 'notification-log':
 				return [ 'entries' => $this->log_entries() ];
+			case 'notification-n8n-workflow':
+				return [
+					'workflow'      => json_decode( wp_json_encode( self::n8n_workflow() ), true ),
+					'workflow_json' => (string) wp_json_encode( self::n8n_workflow(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ),
+				];
 			case 'job-errors':
 				return $this->job_errors( (int) $input['job_id'], (int) ( $input['limit'] ?? 100 ), (int) ( $input['offset'] ?? 0 ), ! empty( $input['csv'] ) );
 		}
@@ -430,12 +495,13 @@ class Job_Notification_Service {
 	 */
 	private function send( $channel, array $s, $job ) {
 		$vars    = $this->placeholders( $job );
-		$subject = strtr( $s['subject'], $vars );
+		// An empty placeholder (a job without a name) must not leave a double space.
+		$subject = trim( preg_replace( '/ {2,}/', ' ', strtr( $s['subject'], $vars ) ) );
 		if ( ! $job ) {
 			/* translators: %s: notification subject. */
 			$subject = sprintf( __( '[Test] %s', 'import-export-by-rockstarlab' ), $subject );
 		}
-		$message = strtr( $s['message'], $vars );
+		$message = preg_replace( '/ {2,}/', ' ', strtr( $s['message'], $vars ) );
 		if ( 'email' === $channel ) {
 			$sent = wp_mail( $s['email']['recipients'], $subject, $message );
 			return [

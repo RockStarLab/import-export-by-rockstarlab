@@ -220,6 +220,8 @@ class Schedule_Service {
 			'last_run_gmt'  => $row->last_run_gmt,
 			'timezone'      => $meta['timezone'] ?? wp_timezone_string(),
 			'error_code'    => $meta['error_code'] ?? '',
+			'error_message' => $meta['error_message'] ?? '',
+			'error_gmt'     => $meta['error_gmt'] ?? '',
 			'changed_only'  => ! empty( $meta['changed_only'] ),
 		];
 	}

@@ -3,7 +3,7 @@
 	Plugin Name:                Import Export by RockStarLab
 	Plugin URI:                 https://profiles.wordpress.org/rockstarlab/
 	Description:                Import, export, and sync WordPress content between sites with CSV, XML, XLSX, ODS, JSON, jobs, media tools, and AI URL import.
-	Version:                    2.1.38
+	Version:                    2.1.39
 	Requires at least:          6.2
 	Requires PHP:               7.4
 	Author:                     RockstarLab
@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) or exit;
 define( 'RSL_IE_FILE', __FILE__ );
 define( 'RSL_IE_PATH', trailingslashit( plugin_dir_path( RSL_IE_FILE ) ) );
 define( 'RSL_IE_URL', plugins_url( '/', RSL_IE_FILE ) );
-define( 'RSL_IE_VERSION', '2.1.38' );
+define( 'RSL_IE_VERSION', '2.1.39' );
 
 // Composer autoloader (required for bundled third-party libraries).
 if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
@@ -107,6 +107,11 @@ if ( ! function_exists( 'rsl_ie_fs' ) ) {
 // Run the plugin
 rsl_ie()->run();
 
+// WP-CLI commands: wp rsl-ie ...
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	\RockStarLab\ImportExport\Cli\Cli_Helper::register();
+}
+
 // Activation hook - create database tables
 register_activation_hook(
 	RSL_IE_FILE,
@@ -123,6 +128,23 @@ register_activation_hook(
 			rsl_ie_fs()->skip_connection();
 		}
 	}
+);
+
+// The same for each site of a network where the plugin is network-activated, including sites
+// created later: the activation hook runs for one site only, and a site still waiting for the
+// opt-in would show the plugin menu without its pages.
+add_action(
+	'init',
+	static function () {
+		if ( ! is_admin() || ! is_multisite() || ! function_exists( 'rsl_ie_fs' ) || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		$fs = rsl_ie_fs();
+		if ( ! $fs->is_registered() && ! $fs->is_anonymous() && ! $fs->is_pending_activation() ) {
+			$fs->skip_connection( [ get_current_blog_id() ] );
+		}
+	},
+	1
 );
 
 // Deactivation hook - cleanup

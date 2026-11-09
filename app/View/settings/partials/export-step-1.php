@@ -91,6 +91,17 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 			</label>
 
+			<?php if ( \RockStarLab\ImportExport\Service\Form_Entries_Service::available_sources() ) : ?>
+			<label class="rsl-ie-content-type">
+				<input type="radio" name="content_type" value="form_entries">
+				<div class="rsl-ie-content-type-card">
+					<span class="dashicons dashicons-feedback"></span>
+					<h3><?php esc_html_e( 'Form Entries', 'import-export-by-rockstarlab' ); ?></h3>
+					<p><?php echo esc_html( implode( ', ', \RockStarLab\ImportExport\Service\Form_Entries_Service::available_sources() ) ); ?></p>
+				</div>
+			</label>
+			<?php endif; ?>
+
 			<label class="rsl-ie-content-type">
 				<input type="radio" name="content_type" value="media">
 				<div class="rsl-ie-content-type-card">

@@ -67,7 +67,7 @@ class Notices_Controller extends Base_Controller {
 	 * @return int
 	 */
 	private function warning_count() {
-		return ( $this->multilingual_plugins() ? 1 : 0 ) + ( is_multisite() ? 1 : 0 );
+		return $this->multilingual_plugins() ? 1 : 0;
 	}
 
 	/**
@@ -100,13 +100,6 @@ class Notices_Controller extends Base_Controller {
 	public function render_notices() {
 		if ( ! current_user_can( 'manage_options' ) || is_network_admin() || ! $this->is_plugin_page() ) {
 			return;
-		}
-		if ( is_multisite() ) {
-			printf(
-				'<div class="notice notice-warning"><p><strong>%s</strong> %s</p></div>',
-				esc_html__( 'Import Export by RockStarLab:', 'import-export-by-rockstarlab' ),
-				esc_html__( 'WordPress Multisite is enabled. This plugin has not yet been tested on Multisite installations.', 'import-export-by-rockstarlab' )
-			);
 		}
 		$plugins = $this->multilingual_plugins();
 		if ( $plugins ) {

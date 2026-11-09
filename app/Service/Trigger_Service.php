@@ -92,6 +92,12 @@ class Trigger_Service {
 				return [ 'entries' => $this->log_entries() ];
 			case 'trigger-sources':
 				return [ 'sources' => $this->sources() ];
+			case 'trigger-n8n-workflow':
+				$workflow = $this->n8n_workflow( $input['trigger_id'] );
+				return is_wp_error( $workflow ) ? $workflow : [
+					'workflow'      => json_decode( wp_json_encode( $workflow ), true ),
+					'workflow_json' => (string) wp_json_encode( $workflow, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ),
+				];
 		}
 		return $this->error( 'operation', __( 'Unknown trigger operation.', 'import-export-by-rockstarlab' ) );
 	}
@@ -133,6 +139,8 @@ class Trigger_Service {
 			'last_job_id'   => 0,
 			'last_result'   => '',
 			'runs'          => 0,
+			'jobs'          => [],
+			'allow_file_url' => false,
 			'created_at'    => $now,
 			'updated_at'    => $now,
 		];
@@ -141,6 +149,12 @@ class Trigger_Service {
 		}
 		if ( 'woo_order_created' === $event && ! class_exists( 'WooCommerce' ) ) {
 			return $this->error( 'trigger_woocommerce', __( 'WooCommerce is not active on this site.', 'import-export-by-rockstarlab' ) );
+		}
+		if ( ! empty( $input['allow_file_url'] ) ) {
+			if ( 'webhook' !== $event || 'import' !== $source->type ) {
+				return $this->error( 'trigger_file_url', __( 'Only webhook triggers of imports can accept a file URL.', 'import-export-by-rockstarlab' ) );
+			}
+			$trigger['allow_file_url'] = true;
 		}
 		$token = '';
 		if ( 'webhook' === $event ) {
@@ -191,6 +205,13 @@ class Trigger_Service {
 				return $this->error( 'trigger_post_types', __( 'Choose at least one post type.', 'import-export-by-rockstarlab' ) );
 			}
 			$t['post_types'] = $types;
+		}
+		if ( isset( $input['allow_file_url'] ) ) {
+			$source = rsl_ie()->Model->job->find( (int) $t['source_job_id'] );
+			if ( $input['allow_file_url'] && ( 'webhook' !== $t['event'] || ! $source || 'import' !== $source->type ) ) {
+				return $this->error( 'trigger_file_url', __( 'Only webhook triggers of imports can accept a file URL.', 'import-export-by-rockstarlab' ) );
+			}
+			$t['allow_file_url'] = (bool) $input['allow_file_url'];
 		}
 		if ( isset( $input['delay'] ) ) {
 			$t['delay'] = $this->clean_delay( $input['delay'], $t['event'] );
@@ -259,9 +280,10 @@ class Trigger_Service {
 	 *
 	 * @param string $id     Trigger ID.
 	 * @param string $reason manual|webhook|event|file.
+	 * @param string $file_url Webhook only: import this file instead of the job's own.
 	 * @return array|\WP_Error job_id on success.
 	 */
-	public function run( $id, $reason ) {
+	public function run( $id, $reason, $file_url = '' ) {
 		$lock = Job_Lock::acquire_resource( 'trigger', $id );
 		if ( ! $lock || is_wp_error( $lock ) ) {
 			return $this->error( 'trigger_busy', __( 'This trigger is starting a job right now. Try again in a moment.', 'import-export-by-rockstarlab' ), 409 );
@@ -279,13 +301,13 @@ class Trigger_Service {
 			if ( $last && in_array( $last->status, [ 'pending', 'processing', 'paused' ], true ) ) {
 				return $this->finish( $t, $reason, $this->error( 'trigger_overlap', __( 'The previous job of this trigger is still running.', 'import-export-by-rockstarlab' ), 409 ) );
 			}
-			if ( in_array( $reason, [ 'webhook', 'manual' ], true ) && $t['last_run_at'] && time() - strtotime( $t['last_run_at'] . ' UTC' ) < self::MIN_INTERVAL ) {
+			if ( in_array( $reason, [ 'webhook', 'webhook_file', 'manual' ], true ) && $t['last_run_at'] && time() - strtotime( $t['last_run_at'] . ' UTC' ) < self::MIN_INTERVAL ) {
 				return $this->finish( $t, $reason, $this->error( 'trigger_too_soon', __( 'This trigger ran less than a minute ago. Try again later.', 'import-export-by-rockstarlab' ), 429 ) );
 			}
 			$context = Execution_Context::from_storage( (int) $t['created_by'], get_current_blog_id() );
 			$result  = is_wp_error( $context ) ? $context : $context->run(
-				static function () use ( $t ) {
-					return ( new Schedule_Source_Service() )->execute( (int) $t['source_job_id'], 'trigger:' . $t['trigger_id'] . ':' . wp_generate_uuid4() );
+				static function () use ( $t, $file_url ) {
+					return ( new Schedule_Source_Service() )->execute( (int) $t['source_job_id'], 'trigger:' . $t['trigger_id'] . ':' . wp_generate_uuid4(), '', (string) $file_url );
 				}
 			);
 			if ( ! is_wp_error( $result ) && empty( $result['job_id'] ) ) {
@@ -440,6 +462,15 @@ class Trigger_Service {
 				],
 			]
 		);
+		register_rest_route(
+			'rsl-ie/v1',
+			'/triggers/(?P<trigger_id>trg_[a-f0-9]{12})/jobs/(?P<job_id>[0-9]{1,12})',
+			[
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'rest_job' ],
+				'permission_callback' => '__return_true', // The secret token is checked in the callback.
+			]
+		);
 	}
 
 	/**
@@ -450,24 +481,23 @@ class Trigger_Service {
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public function rest_run( \WP_REST_Request $request ) {
-		$ip_key = 'rsl_ie_trigger_auth_' . md5( (string) ( $_SERVER['REMOTE_ADDR'] ?? '' ) . gmdate( 'YmdH' ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- Hashed for a counter only.
-		if ( (int) get_transient( $ip_key ) >= self::AUTH_FAIL_LIMIT ) {
-			return $this->error( 'trigger_auth_limit', __( 'Too many failed attempts. Try again later.', 'import-export-by-rockstarlab' ), 429 );
+		$t = $this->authenticate( $request );
+		if ( is_wp_error( $t ) ) {
+			return $t;
 		}
-		$token = (string) $request->get_header( 'x_rsl_token' );
-		if ( '' === $token ) {
-			$auth = (string) $request->get_header( 'authorization' );
-			if ( 0 === stripos( $auth, 'Bearer ' ) ) {
-				$token = trim( substr( $auth, 7 ) );
+		$id       = $t['trigger_id'];
+		$file_url = $request->get_param( 'file_url' );
+		if ( null !== $file_url && '' !== $file_url ) {
+			if ( ! is_string( $file_url ) || strlen( $file_url ) > 2000 || ! preg_match( '#^https?://#i', $file_url ) ) {
+				return $this->error( 'trigger_file_url', __( 'file_url must be a full http:// or https:// address.', 'import-export-by-rockstarlab' ), 400 );
 			}
+			if ( empty( $t['allow_file_url'] ) ) {
+				return $this->error( 'trigger_file_url_off', __( 'This trigger does not accept a file URL. Turn on "Accept a file URL in the request" for it.', 'import-export-by-rockstarlab' ), 400 );
+			}
+		} else {
+			$file_url = '';
 		}
-		$id = (string) $request['trigger_id'];
-		$t  = $this->all()[ $id ] ?? null;
-		if ( ! $t || 'webhook' !== $t['event'] || '' === $token || '' === $t['token_hash'] || ! hash_equals( $t['token_hash'], $this->hash_token( $token ) ) ) {
-			set_transient( $ip_key, (int) get_transient( $ip_key ) + 1, HOUR_IN_SECONDS );
-			return $this->error( 'trigger_unauthorized', __( 'Unknown trigger or wrong token.', 'import-export-by-rockstarlab' ), 401 );
-		}
-		$result = $this->run( $id, 'webhook' );
+		$result = $this->run( $id, '' !== $file_url ? 'webhook_file' : 'webhook', $file_url );
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
@@ -479,6 +509,78 @@ class Trigger_Service {
 			],
 			202
 		);
+	}
+
+	/**
+	 * Status of a job this webhook trigger started, for Zapier, Make, n8n and scripts.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function rest_job( \WP_REST_Request $request ) {
+		$t = $this->authenticate( $request );
+		if ( is_wp_error( $t ) ) {
+			return $t;
+		}
+		$job_id = (int) $request['job_id'];
+		$job    = in_array( $job_id, array_map( 'intval', (array) $t['jobs'] ), true ) ? rsl_ie()->Model->job->find( $job_id ) : null;
+		if ( ! $job ) {
+			return $this->error( 'trigger_job_not_found', __( 'This trigger did not start that job, or it was deleted.', 'import-export-by-rockstarlab' ), 404 );
+		}
+		return new \WP_REST_Response( self::job_summary( $job ), 200 );
+	}
+
+	/**
+	 * Counts of a job, without file paths, settings or row values.
+	 *
+	 * @param object $job Job row.
+	 * @return array
+	 */
+	public static function job_summary( $job ) {
+		$result = json_decode( (string) $job->result, true );
+		$result = is_array( $result ) ? $result : [];
+		$errors = isset( $result['errors'] ) && is_array( $result['errors'] ) ? $result['errors'] : [];
+		return [
+			'job_id'    => (int) $job->id,
+			'type'      => (string) $job->type,
+			'status'    => (string) $job->status,
+			'finished'  => in_array( $job->status, [ 'completed', 'failed', 'cancelled' ], true ),
+			'total'     => (int) $job->total_items,
+			'processed' => (int) $job->processed_items,
+			'created'   => (int) ( $result['created'] ?? 0 ),
+			'updated'   => (int) ( $result['updated'] ?? 0 ),
+			'exported'  => (int) ( $result['exported'] ?? 0 ),
+			'skipped'   => (int) ( $result['skipped'] ?? $job->skipped_items ),
+			'failed'    => (int) ( $result['failed'] ?? $job->failed_items ),
+			'errors'    => count( $errors ),
+		];
+	}
+
+	/**
+	 * Check the token of a webhook trigger request (header only) with a per-address
+	 * limit on failures.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return array|\WP_Error Trigger.
+	 */
+	private function authenticate( \WP_REST_Request $request ) {
+		$ip_key = 'rsl_ie_trigger_auth_' . md5( (string) ( $_SERVER['REMOTE_ADDR'] ?? '' ) . gmdate( 'YmdH' ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- Hashed for a counter only.
+		if ( (int) get_transient( $ip_key ) >= self::AUTH_FAIL_LIMIT ) {
+			return $this->error( 'trigger_auth_limit', __( 'Too many failed attempts. Try again later.', 'import-export-by-rockstarlab' ), 429 );
+		}
+		$token = (string) $request->get_header( 'x_rsl_token' );
+		if ( '' === $token ) {
+			$auth = (string) $request->get_header( 'authorization' );
+			if ( 0 === stripos( $auth, 'Bearer ' ) ) {
+				$token = trim( substr( $auth, 7 ) );
+			}
+		}
+		$t = $this->all()[ (string) $request['trigger_id'] ] ?? null;
+		if ( ! $t || 'webhook' !== $t['event'] || '' === $token || '' === $t['token_hash'] || ! hash_equals( $t['token_hash'], $this->hash_token( $token ) ) ) {
+			set_transient( $ip_key, (int) get_transient( $ip_key ) + 1, HOUR_IN_SECONDS );
+			return $this->error( 'trigger_unauthorized', __( 'Unknown trigger or wrong token.', 'import-export-by-rockstarlab' ), 401 );
+		}
+		return $t;
 	}
 
 	/**
@@ -535,6 +637,124 @@ class Trigger_Service {
 	}
 
 	/**
+	 * Ready-to-import n8n workflow for a webhook trigger: start the job, wait, and
+	 * check the result until it has finished. The token is a placeholder; it is
+	 * never written into the file.
+	 *
+	 * @param string $id Trigger ID.
+	 * @return array|\WP_Error
+	 */
+	public function n8n_workflow( $id ) {
+		$t = $this->get( $id );
+		if ( is_wp_error( $t ) ) {
+			return $t;
+		}
+		if ( 'webhook' !== $t['event'] ) {
+			return $this->error( 'trigger_not_webhook', __( 'Only webhook triggers have a URL to call.', 'import-export-by-rockstarlab' ) );
+		}
+		$run     = rest_url( 'rsl-ie/v1/triggers/' . $t['trigger_id'] . '/run' );
+		$jobs    = rest_url( 'rsl-ie/v1/triggers/' . $t['trigger_id'] . '/jobs/' );
+		$headers = [
+			'parameters' => [
+				[
+					'name'  => 'X-RSL-Token',
+					'value' => 'PASTE-THE-TRIGGER-TOKEN-HERE',
+				],
+			],
+		];
+		$start   = [
+			'method'           => 'POST',
+			'url'              => $run,
+			'sendHeaders'      => true,
+			'headerParameters' => $headers,
+			'options'          => new \stdClass(),
+		];
+		if ( ! empty( $t['allow_file_url'] ) ) {
+			$start['sendBody']    = true;
+			$start['specifyBody'] = 'json';
+			$start['jsonBody']    = '{ "file_url": "https://example.com/files/import.csv" }';
+		}
+		$node = static function ( $name, $type, $version, array $parameters, $x ) {
+			return [
+				'parameters'  => $parameters ? $parameters : new \stdClass(),
+				'id'          => wp_generate_uuid4(),
+				'name'        => $name,
+				'type'        => $type,
+				'typeVersion' => $version,
+				'position'    => [ $x, 0 ],
+			];
+		};
+		$wait            = $node( 'Wait 30 seconds', 'n8n-nodes-base.wait', 1.1, [ 'amount' => 30 ], 440 );
+		$wait['webhookId'] = wp_generate_uuid4();
+		$link            = static function ( $to ) {
+			return [
+				'node'  => $to,
+				'type'  => 'main',
+				'index' => 0,
+			];
+		};
+		return [
+			/* translators: %s: trigger name. */
+			'name'        => sprintf( __( 'WordPress: %s', 'import-export-by-rockstarlab' ), $t['name'] ),
+			'nodes'       => [
+				$node( 'Start', 'n8n-nodes-base.manualTrigger', 1, [], 0 ),
+				$node( 'Start the job', 'n8n-nodes-base.httpRequest', 4.2, $start, 220 ),
+				$wait,
+				$node(
+					'Check the job',
+					'n8n-nodes-base.httpRequest',
+					4.2,
+					[
+						'url'              => '=' . $jobs . "{{ \$('Start the job').item.json.job_id }}",
+						'sendHeaders'      => true,
+						'headerParameters' => $headers,
+						'options'          => new \stdClass(),
+					],
+					660
+				),
+				$node(
+					'Finished?',
+					'n8n-nodes-base.if',
+					2,
+					[
+						'conditions' => [
+							'options'    => [
+								'caseSensitive'  => true,
+								'leftValue'      => '',
+								'typeValidation' => 'strict',
+							],
+							'conditions' => [
+								[
+									'id'         => wp_generate_uuid4(),
+									'leftValue'  => '={{ $json.finished }}',
+									'rightValue' => true,
+									'operator'   => [
+										'type'      => 'boolean',
+										'operation' => 'true',
+										'singleValue' => true,
+									],
+								],
+							],
+							'combinator' => 'and',
+						],
+						'options'    => new \stdClass(),
+					],
+					880
+				),
+			],
+			'connections' => [
+				'Start'         => [ 'main' => [ [ $link( 'Start the job' ) ] ] ],
+				'Start the job' => [ 'main' => [ [ $link( 'Wait 30 seconds' ) ] ] ],
+				'Wait 30 seconds' => [ 'main' => [ [ $link( 'Check the job' ) ] ] ],
+				'Check the job' => [ 'main' => [ [ $link( 'Finished?' ) ] ] ],
+				'Finished?'     => [ 'main' => [ [], [ $link( 'Wait 30 seconds' ) ] ] ],
+			],
+			'settings'    => [ 'executionOrder' => 'v1' ],
+			'pinData'     => new \stdClass(),
+		];
+	}
+
+	/**
 	 * Recent trigger activity, newest first.
 	 *
 	 * @return array
@@ -558,6 +778,7 @@ class Trigger_Service {
 			'event'         => $t['event'],
 			'source_job_id' => (int) $t['source_job_id'],
 			'source'        => $job ? self::source_label( $job ) : '',
+			'source_type'   => $job ? (string) $job->type : '',
 			'post_types'    => array_values( $t['post_types'] ),
 			'delay'         => (int) $t['delay'],
 			'status'        => $t['status'],
@@ -567,6 +788,7 @@ class Trigger_Service {
 			'last_job_id'   => (int) $t['last_job_id'],
 			'last_result'   => $t['last_result'],
 			'runs'          => (int) $t['runs'],
+			'allow_file_url' => ! empty( $t['allow_file_url'] ),
 			'created_at'    => $t['created_at'],
 		];
 	}
@@ -606,6 +828,7 @@ class Trigger_Service {
 				$x['last_run_at'] = gmdate( 'Y-m-d H:i:s' );
 				$x['last_job_id'] = (int) $result['job_id'];
 				$x['runs']        = (int) $x['runs'] + 1;
+				$x['jobs']        = array_slice( array_merge( (array) $x['jobs'], [ (int) $result['job_id'] ] ), -20 );
 			}
 			unset( $x );
 			$this->store( self::OPTION, $all );
@@ -766,6 +989,8 @@ class Trigger_Service {
 					'last_job_id'   => 0,
 					'last_result'   => '',
 					'runs'          => 0,
+					'jobs'          => [],
+					'allow_file_url' => false,
 					'name'          => $id,
 					'created_by'    => 0,
 					'created_at'    => '',

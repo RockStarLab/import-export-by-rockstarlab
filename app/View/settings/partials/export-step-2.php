@@ -75,6 +75,26 @@ defined( 'ABSPATH' ) || exit;
 			</div>
 		</div>
 
+		<!-- Form Entries: choose the form -->
+		<div class="rsl-ie-form-entry-section" style="display:none;">
+			<div class="rsl-ie-section-header">
+				<h3>
+					<span class="dashicons dashicons-feedback"></span>
+					<?php esc_html_e( 'Select Form', 'import-export-by-rockstarlab' ); ?>
+				</h3>
+				<p class="description"><?php esc_html_e( 'Choose the form whose entries you want to export. The number shows its entries that are not spam or in the trash.', 'import-export-by-rockstarlab' ); ?></p>
+			</div>
+			<div class="rsl-ie-table-selector rsl-ie-form-entry-selector">
+				<label for="rsl-ie-form-entry-form"><?php esc_html_e( 'Form:', 'import-export-by-rockstarlab' ); ?></label>
+				<select id="rsl-ie-form-entry-form" class="rsl-ie-table-dropdown">
+					<option value=""><?php esc_html_e( 'Loading forms…', 'import-export-by-rockstarlab' ); ?></option>
+				</select>
+				<span class="spinner" style="float:none;margin:0 10px;"></span>
+			</div>
+			<p class="notice notice-error inline rsl-ie-form-entry-error" style="display:none;"></p>
+			<p class="description rsl-ie-form-entry-help"><?php esc_html_e( 'Only active entries are exported unless you add a Status filter (spam or trash). Dates are in your site\'s time zone.', 'import-export-by-rockstarlab' ); ?></p>
+		</div>
+
 		<!-- URLs Export Selection (shown only for URLs Export type) -->
 		<div class="rsl-ie-url-export-section" style="display:none;">
 			<div class="rsl-ie-section-header">

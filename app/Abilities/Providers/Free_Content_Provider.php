@@ -26,6 +26,7 @@ class Free_Content_Provider {
 			'comment' => [ 'comments' ],
 			'media'   => [ 'attachment', 'attachments' ],
 			'urls'    => [],
+			'form_entries' => [ 'form_entry', 'forms', 'form' ],
 		];
 	}
 
@@ -62,11 +63,15 @@ class Free_Content_Provider {
 		if ( in_array( $type, [ 'post', 'page' ], true ) ) {
 			$operations[] = 'ai_url_import';
 		}
-		if ( 'urls' === $type ) {
+		if ( in_array( $type, [ 'urls', 'form_entries' ], true ) ) {
 			$operations = [ 'export' ];
 		}
 		if ( ! in_array( $operation, $operations, true ) ) {
 			return $this->error( 'rsl_ie_unsupported_operation' );
+		}
+		if ( 'form_entries' === $type ) {
+			// Entries are not posts; the exporter checks the form plugin and the form itself.
+			return true;
 		}
 		$options    = isset( $context['options'] ) && is_array( $context['options'] ) ? $context['options'] : [];
 		$records    = isset( $context['records'] ) && is_array( $context['records'] ) ? $context['records'] : [];

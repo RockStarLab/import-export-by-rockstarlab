@@ -44,10 +44,10 @@ class Workflow_Catalog {
 		};
 		$add(
 			'get-content-schema',
-			'Read Free import/export fields, required mappings, integration fields and typed options. Custom metadata uses meta_ keys; consult the returned field catalogue. Use meta_offset with custom_meta.next_offset to page through custom fields. URLs support export only.',
+			'Read Free import/export fields, required mappings, integration fields and typed options. Custom metadata uses meta_ keys; consult the returned field catalogue. Use meta_offset with custom_meta.next_offset to page through custom fields. URLs support export only. form_entries (Gravity Forms and Contact Form 7/Flamingo entries) is export only; list forms with form-entry-forms and read the columns of one form with form-entry-fields.',
 			Workflow_Schemas::object(
 				[
-					'content_type' => Workflow_Schemas::string( [ 'post', 'page', 'comment', 'media', 'urls' ] ),
+					'content_type' => Workflow_Schemas::string( [ 'post', 'page', 'comment', 'media', 'urls', 'form_entries' ] ),
 					'meta_offset'  => $n,
 				],
 				[ 'content_type' ]
@@ -125,6 +125,23 @@ class Workflow_Catalog {
 					'resumable'      => [ 'type' => 'boolean' ],
 				],
 				[ 'file_id' ]
+			),
+			$file
+		);
+		$add(
+			'upload-from-url',
+			'Download an import file from an http(s) address (CSV, XML, JSON, XLSX, ODS or ZIP; for example a supplier feed or a Google Sheet published as CSV) and return it like upload-complete, ready for import-prepare and import-start. The address is kept with the file and the import job, so a schedule made from that job (schedule-create) downloads the current file at every run. Private network addresses are refused. Nothing is imported.',
+			Workflow_Schemas::object(
+				[
+					'url'            => [
+						'type'      => 'string',
+						'minLength' => 8,
+						'maxLength' => 2000,
+						'pattern'   => '^https?://',
+					],
+					'parser_options' => Workflow_Schemas::parser(),
+				],
+				[ 'url' ]
 			),
 			$file
 		);

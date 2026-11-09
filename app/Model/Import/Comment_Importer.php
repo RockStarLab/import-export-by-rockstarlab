@@ -1002,6 +1002,10 @@ class Comment_Importer extends Abstract_Importer {
 		if ( '' !== $comment_content && class_exists( ACF_Fields::class ) ) {
 			$comment_content = ACF_Fields::replace_media_urls_in_html( $comment_content, 0 );
 		}
+		if ( '' !== $comment_content && ! current_user_can( 'unfiltered_html' ) ) {
+			// Same HTML rules as a comment posted by this user (site administrators in a multisite network).
+			$comment_content = wp_kses_data( $comment_content );
+		}
 
 		return $comment_content;
 	}

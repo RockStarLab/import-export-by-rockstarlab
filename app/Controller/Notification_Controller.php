@@ -24,6 +24,7 @@ class Notification_Controller extends Base_Controller {
 		add_filter( 'submenu_file', [ $this, 'submenu_file' ] );
 		add_action( 'admin_post_rsl_ie_save_notifications', [ $this, 'save' ] );
 		add_action( 'admin_post_rsl_ie_test_notifications', [ $this, 'test' ] );
+		add_action( 'admin_post_rsl_ie_notifications_n8n', [ $this, 'n8n' ] );
 	}
 
 	/**
@@ -166,6 +167,19 @@ class Notification_Controller extends Base_Controller {
 		}
 		set_transient( 'rsl_ie_notify_notice_' . get_current_user_id(), $notice, 120 );
 		wp_safe_redirect( add_query_arg( [ 'page' => self::PAGE ], admin_url( 'admin.php' ) ) );
+		exit;
+	}
+
+	/** Download the n8n workflow that receives job notifications (no secret inside). */
+	public function n8n() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You cannot change notifications on this site.', 'import-export-by-rockstarlab' ), '', [ 'response' => 403 ] );
+		}
+		check_admin_referer( 'rsl_ie_notifications_n8n' );
+		nocache_headers();
+		header( 'Content-Type: application/json; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="n8n-job-finished.json"' );
+		echo wp_json_encode( Job_Notification_Service::n8n_workflow(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON download.
 		exit;
 	}
 

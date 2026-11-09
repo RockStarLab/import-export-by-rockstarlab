@@ -17,6 +17,9 @@ class Job_Scheduler {
 	/** Cron action used for individual schedules. */
 	const CRON_HOOK = 'rsl_ie_run_job_schedule';
 
+	/** Source errors a recurring schedule retries at its next run instead of stopping. */
+	const RETRY_NEXT_RUN = [ 'rsl_ie_url_download_failed', 'rsl_ie_url_not_a_file', 'rsl_ie_file_columns_missing' ];
+
 	/**
 	 * Register the scheduler callback.
 	 *
@@ -131,8 +134,32 @@ class Job_Scheduler {
 				self::sync_event( $schedule_id );
 				return;
 			}
+			if ( is_wp_error( $result ) && 'recurring' === $schedule->schedule_type && in_array( $result->get_error_code(), self::RETRY_NEXT_RUN, true ) ) {
+				// The file at the URL was missing, unreachable or changed shape this time. A feed that is
+				// down for a moment must not stop a daily import for good: keep the schedule, try at the
+				// next run and show the reason in Schedules.
+				$interval              = wp_get_schedules()[ $schedule->recurrence ]['interval'] ?? 0;
+				$meta['error_code']    = $result->get_error_code();
+				$meta['error_message'] = wp_strip_all_tags( $result->get_error_message() );
+				$meta['error_gmt']     = current_time( 'mysql', true );
+				update_option( 'rsl_ie_schedule_meta_' . $schedule_id, $meta, false );
+				if ( $interval ) {
+					$next = $due + ( max( 0, (int) floor( ( time() - $due ) / $interval ) ) + 1 ) * $interval;
+					$model->update(
+						$schedule_id,
+						[
+							'next_run_gmt' => gmdate( 'Y-m-d H:i:s', $next ),
+							'last_run_gmt' => current_time( 'mysql', true ),
+						]
+					);
+					self::sync_event( $schedule_id );
+					return;
+				}
+			}
 			if ( is_wp_error( $result ) ) {
-				$meta['error_code'] = $result->get_error_code();
+				$meta['error_code']    = $result->get_error_code();
+				$meta['error_message'] = wp_strip_all_tags( $result->get_error_message() );
+				$meta['error_gmt']     = current_time( 'mysql', true );
 				update_option( 'rsl_ie_schedule_meta_' . $schedule_id, $meta, false );
 				$model->update(
 					$schedule_id,
@@ -147,6 +174,10 @@ class Job_Scheduler {
 			}
 			if ( empty( $result['job_id'] ) ) {
 				return; }
+			if ( ! empty( $meta['error_code'] ) ) {
+				unset( $meta['error_code'], $meta['error_message'], $meta['error_gmt'] );
+				update_option( 'rsl_ie_schedule_meta_' . $schedule_id, $meta, false );
+			}
 			$data = [
 				'last_job_id'  => (int) $result['job_id'],
 				'last_run_gmt' => current_time( 'mysql', true ),
