@@ -1434,6 +1434,11 @@ class Content_Sync_Service {
 		$source_domain = Site_URL::current_request_site_url();
 		$target_domain = $site['remote_url'];
 
+		// Long-running processes (WP-CLI, the stdio MCP server) keep posts in the object cache;
+		// read the selection fresh so edits made elsewhere since then are sent.
+		foreach ( $post_ids as $cached_id ) {
+			clean_post_cache( absint( $cached_id ) );
+		}
 		$payload       = $this->prepare_posts( $post_ids );
 		$posts_data    = $payload['posts'];
 		$all_images    = $payload['images'];

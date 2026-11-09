@@ -13,6 +13,28 @@ defined( 'ABSPATH' ) || exit;
 
 /** Never copy a completed worker checkpoint into a new queue job. */
 class Schedule_Source_Service {
+	/** Content types whose export can be limited to items modified since a time. */
+	const CHANGED_ONLY_TYPES = [ 'post', 'page' ];
+
+	/** @var string Local MySQL time; empty exports everything. */
+	private $changed_since = '';
+
+	/**
+	 * Whether a source job is an export that "changes only" can narrow.
+	 *
+	 * @param int $id Source job.
+	 * @return bool
+	 */
+	public static function supports_changed_only( $id ) {
+		$job = rsl_ie()->Model->job->find( absint( $id ) );
+		if ( ! $job || 'export' !== $job->type ) {
+			return false;
+		}
+		$input = json_decode( (string) ( $job->request_payload ?? '' ), true );
+		$input = is_array( $input ) ? $input : json_decode( (string) $job->parameters, true );
+		return is_array( $input ) && in_array( $input['export_type'] ?? '', self::CHANGED_ONLY_TYPES, true );
+	}
+
 	/**
 	 * Validate or queue a fresh occurrence under the current identity.
 	 *
@@ -20,8 +42,9 @@ class Schedule_Source_Service {
 	 * @param string $request_id Empty for validation, otherwise occurrence identity.
 	 * @return mixed
 	 */
-	public function execute( $id, $request_id = '' ) {
-		$result = $this->replay( $id, $request_id );
+	public function execute( $id, $request_id = '', $changed_since = '' ) {
+		$this->changed_since = (string) $changed_since;
+		$result              = $this->replay( $id, $request_id );
 		if ( '' !== $request_id && is_array( $result ) && ! empty( $result['job_id'] ) ) {
 			$source = rsl_ie()->Model->job->find( $id );
 			if ( $source ) {
@@ -125,6 +148,20 @@ class Schedule_Source_Service {
 				}
 				$service            = new Import_Service();
 				return $start ? $service->start( $input ) : $service->check_request( $input );
+			}
+			if ( $start && '' !== $this->changed_since && in_array( $input['export_type'] ?? '', self::CHANGED_ONLY_TYPES, true ) ) {
+				// Stored requests keep their filters under options; requests from agents may have them at the top level.
+				$changed = [
+					'field'     => 'post_modified',
+					'condition' => 'equals_or_greater',
+					'value'     => $this->changed_since,
+				];
+				if ( isset( $input['options']['filters'] ) && is_array( $input['options']['filters'] ) ) {
+					$input['options']['filters'][] = $changed;
+				} else {
+					$input['filters']   = is_array( $input['filters'] ?? null ) ? $input['filters'] : [];
+					$input['filters'][] = $changed;
+				}
 			}
 			return $start ? ( new Export_Service() )->start( $input ) : Export_Request::normalize( $input );
 		}

@@ -180,8 +180,8 @@ defined( 'ABSPATH' ) || exit;
 						<tr>
 							<th><?php esc_html_e( 'Batch size', 'import-export-by-rockstarlab' ); ?></th>
 							<td>
-							<input type="number" name="items_per_iteration" value="3" min="1" max="1000" class="small-text">
-							<p class="description"><?php esc_html_e( 'Number of items to process in each batch. Lower values are safer for large exports.', 'import-export-by-rockstarlab' ); ?></p>
+							<input type="number" name="items_per_iteration" value="50" min="1" max="500" class="small-text">
+							<p class="description"><?php esc_html_e( 'Number of items written per request (1–500). Larger batches finish big exports much faster; lower it only if the export stops with a time or memory error.', 'import-export-by-rockstarlab' ); ?></p>
 						</td>
 					</tr>
 				</table>

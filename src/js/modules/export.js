@@ -1987,7 +1987,7 @@ const ExportModule = {
 					items_per_iteration:
 						parseInt(
 							jQuery( '[name="items_per_iteration"]' ).val()
-						) || 3,
+						) || 50,
 				},
 			};
 

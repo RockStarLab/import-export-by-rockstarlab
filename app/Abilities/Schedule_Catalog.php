@@ -34,8 +34,9 @@ class Schedule_Catalog {
 				'last_run_gmt'  => [ 'type' => [ 'string', 'null' ] ],
 				'timezone'      => $s,
 				'error_code'    => $s,
+				'changed_only'  => [ 'type' => 'boolean' ],
 			],
-			[ 'id', 'source_job_id', 'last_job_id', 'name', 'schedule_type', 'recurrence', 'status', 'start_at_gmt', 'next_run_gmt', 'last_run_gmt', 'timezone', 'error_code' ]
+			[ 'id', 'source_job_id', 'last_job_id', 'name', 'schedule_type', 'recurrence', 'status', 'start_at_gmt', 'next_run_gmt', 'last_run_gmt', 'timezone', 'error_code', 'changed_only' ]
 		);
 		$fields      = [
 			'source_job_id' => $id,
@@ -45,6 +46,10 @@ class Schedule_Catalog {
 			'start_at'      => $s + [ 'pattern' => '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$' ],
 			'timezone'      => $s + [ 'maxLength' => 100 ],
 			'status'        => $s + [ 'enum' => [ 'active', 'paused' ] ],
+			'changed_only'  => [
+				'type'        => 'boolean',
+				'description' => 'Export sources only: each run after the first exports only posts or pages modified since the previous completed run started.',
+			],
 		];
 		$page        = [
 			'page'     => Workflow_Schemas::integer( 1, 100000 ),

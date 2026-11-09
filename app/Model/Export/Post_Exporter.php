@@ -308,14 +308,19 @@ class Post_Exporter extends Abstract_Exporter {
 			return count( $terms );
 		}
 
+		// The total ignores the current batch window.
+		unset( $options['limit'], $options['offset'], $options['posts_per_page'] );
 		$query_args = $this->build_query_args( $options );
 
 		// Remove offset and paged for count query - we want total count
 		unset( $query_args['offset'] );
 		unset( $query_args['paged'] );
 
+		// Let MySQL count the matches instead of loading every ID: on a site with 100,000 posts
+		// the counter otherwise fetched all IDs and took seconds.
 		$query_args['fields']           = 'ids';
-		$query_args['posts_per_page']   = -1;
+		$query_args['posts_per_page']   = 1;
+		$query_args['no_found_rows']    = false;
 		$query_args['suppress_filters'] = true;
 
 		// Combine custom filters
@@ -1318,6 +1323,100 @@ class Post_Exporter extends Abstract_Exporter {
 	}
 
 	/**
+	 * Move status and date filters into the query arguments.
+	 *
+	 * A date without a time keeps the whole-day meaning of the filter; a date with a time
+	 * compares exactly.
+	 *
+	 * @param array $args    Query arguments (by reference).
+	 * @param array $filters Dynamic field filters.
+	 * @return array Filters still to check post by post.
+	 */
+	protected function push_down_post_filters( &$args, array $filters ) {
+		$remaining = [];
+		$status    = null;
+		foreach ( $filters as $filter ) {
+			$field     = (string) ( $filter['field'] ?? '' );
+			$condition = (string) ( $filter['condition'] ?? '' );
+			$value     = is_scalar( $filter['value'] ?? null ) ? trim( (string) $filter['value'] ) : '';
+			if ( 'post_status' === $field && 'equals' === $condition && '' !== $value && null === $status && sanitize_key( $value ) === $value ) {
+				$status              = $value;
+				$args['post_status'] = $value;
+				continue;
+			}
+			$range = [
+				'greater'           => [ 'after', false ],
+				'equals_or_greater' => [ 'after', true ],
+				'less'              => [ 'before', false ],
+				'equals_or_less'    => [ 'before', true ],
+			];
+			if ( in_array( $field, [ 'post_date', 'post_modified' ], true ) && isset( $range[ $condition ] ) && preg_match( '/^\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}(?::\d{2})?)?$/', $value ) ) {
+				$args['date_query']   = isset( $args['date_query'] ) && is_array( $args['date_query'] ) ? $args['date_query'] : [];
+				$args['date_query'][] = [
+					'column'              => $field,
+					$range[ $condition ][0] => str_replace( 'T', ' ', $value ),
+					'inclusive'           => $range[ $condition ][1],
+				];
+				continue;
+			}
+			$remaining[] = $filter;
+		}
+		return $remaining;
+	}
+
+	/**
+	 * Cache key for the matching IDs of one export job.
+	 *
+	 * @param array $candidate_args Query arguments without pagination.
+	 * @param array $filters        Filters that decide the match.
+	 * @return string Empty when the exporter is not running a job.
+	 */
+	protected function matching_ids_cache_key( array $candidate_args, array $filters ) {
+		return $this->job_id ? 'rsl_ie_xids_' . (int) $this->job_id . '_' . md5( (string) wp_json_encode( [ $candidate_args, $filters ] ) ) : '';
+	}
+
+	/**
+	 * Matching IDs stored by an earlier batch of the same job.
+	 *
+	 * @param string $key Cache key.
+	 * @return array|null
+	 */
+	protected function cached_matching_ids( $key ) {
+		$ids = '' === $key ? false : get_transient( $key );
+		return is_array( $ids ) ? $ids : null;
+	}
+
+	/**
+	 * Keep matching IDs for the remaining batches of the job.
+	 *
+	 * @param string $key Cache key.
+	 * @param array  $ids Matching IDs in query order.
+	 * @return void
+	 */
+	protected function remember_matching_ids( $key, array $ids ) {
+		if ( '' !== $key ) {
+			set_transient( $key, array_map( 'intval', $ids ), DAY_IN_SECONDS );
+		}
+	}
+
+	/**
+	 * Restrict the query to the matching IDs; a batch query gets only its own page of IDs.
+	 *
+	 * @param array $args Query arguments (by reference).
+	 * @param array $ids  Matching IDs in query order.
+	 * @return void
+	 */
+	protected function set_matching_ids( &$args, array $ids ) {
+		$limit = (int) ( $args['posts_per_page'] ?? -1 );
+		if ( $limit > 0 ) {
+			$ids             = array_slice( $ids, max( 0, (int) ( $args['offset'] ?? 0 ) ), $limit );
+			$args['offset']  = 0;
+			$args['orderby'] = 'post__in';
+		}
+		$args['post__in'] = $ids ? array_values( $ids ) : [ 0 ];
+	}
+
+	/**
 	 * Apply filters for standard posts, pages, and custom post types.
 	 *
 	 * @param array $args             Query arguments (by reference).
@@ -1327,11 +1426,26 @@ class Post_Exporter extends Abstract_Exporter {
 	 * @return void
 	 */
 	protected function apply_post_value_filters( &$args, $filters, $custom_fields, $taxonomy_filters ) {
+		// Status and date filters become query arguments, so MySQL selects the rows; only the
+		// remaining filters are checked post by post. Status and date alone need no scan at all.
+		$filters = $this->push_down_post_filters( $args, (array) $filters );
+		if ( ! $filters && ! $custom_fields && ! $taxonomy_filters ) {
+			return;
+		}
 		$candidate_args = $args;
 		unset( $candidate_args['offset'], $candidate_args['paged'] );
 		$candidate_args['fields']         = 'ids';
 		$candidate_args['posts_per_page'] = -1;
 		$candidate_args['no_found_rows']  = true;
+
+		// Every batch of a job rebuilds these arguments. Matching IDs are computed once per job,
+		// so a 100,000-post export doesn't rescan the whole site for each batch.
+		$cache_key = $this->matching_ids_cache_key( $candidate_args, [ $filters, $custom_fields, $taxonomy_filters ] );
+		$cached    = $this->cached_matching_ids( $cache_key );
+		if ( null !== $cached ) {
+			$this->set_matching_ids( $args, $cached );
+			return;
+		}
 
 		$candidate_ids = get_posts( $candidate_args );
 		$matching_ids  = [];
@@ -1343,7 +1457,8 @@ class Post_Exporter extends Abstract_Exporter {
 			}
 		}
 
-		$args['post__in'] = empty( $matching_ids ) ? [ 0 ] : $matching_ids;
+		$this->remember_matching_ids( $cache_key, $matching_ids );
+		$this->set_matching_ids( $args, $matching_ids );
 	}
 
 	/**
@@ -1435,6 +1550,15 @@ class Post_Exporter extends Abstract_Exporter {
 		$candidate_args['posts_per_page'] = -1;
 		$candidate_args['no_found_rows']  = true;
 
+		// Every batch of a job rebuilds these arguments. Matching IDs are computed once per job,
+		// so a 100,000-post export doesn't rescan the whole site for each batch.
+		$cache_key = $this->matching_ids_cache_key( $candidate_args, [ $filters, $custom_fields, $taxonomy_filters ] );
+		$cached    = $this->cached_matching_ids( $cache_key );
+		if ( null !== $cached ) {
+			$this->set_matching_ids( $args, $cached );
+			return;
+		}
+
 		$candidate_ids = get_posts( $candidate_args );
 		$matching_ids  = [];
 
@@ -1447,7 +1571,8 @@ class Post_Exporter extends Abstract_Exporter {
 			$matching_ids[] = (int) $product_id;
 		}
 
-		$args['post__in'] = empty( $matching_ids ) ? [ 0 ] : $matching_ids;
+		$this->remember_matching_ids( $cache_key, $matching_ids );
+		$this->set_matching_ids( $args, $matching_ids );
 	}
 
 	/**
@@ -1709,6 +1834,15 @@ class Post_Exporter extends Abstract_Exporter {
 		$candidate_args['posts_per_page'] = -1;
 		$candidate_args['no_found_rows']  = true;
 
+		// Every batch of a job rebuilds these arguments. Matching IDs are computed once per job,
+		// so a 100,000-post export doesn't rescan the whole site for each batch.
+		$cache_key = $this->matching_ids_cache_key( $candidate_args, [ $filters ] );
+		$cached    = $this->cached_matching_ids( $cache_key );
+		if ( null !== $cached ) {
+			$this->set_matching_ids( $args, $cached );
+			return;
+		}
+
 		$candidate_ids = get_posts( $candidate_args );
 		$matching_ids  = [];
 
@@ -1738,7 +1872,8 @@ class Post_Exporter extends Abstract_Exporter {
 			}
 		}
 
-		$args['post__in'] = empty( $matching_ids ) ? [ 0 ] : $matching_ids;
+		$this->remember_matching_ids( $cache_key, $matching_ids );
+		$this->set_matching_ids( $args, $matching_ids );
 	}
 
 	/**
@@ -1911,6 +2046,19 @@ class Post_Exporter extends Abstract_Exporter {
 			// Date fields that need special handling
 			$date_fields   = [ 'post_date', 'post_modified', 'post_date_gmt', 'post_modified_gmt' ];
 			$is_date_field = in_array( $field, $date_fields, true );
+
+			// A value with a time (2026-11-09 08:30:00) compares to the minute or second,
+			// so "changed since the previous export" includes changes later that day.
+			$range = [
+				'greater'           => '>',
+				'equals_or_greater' => '>=',
+				'less'              => '<',
+				'equals_or_less'    => '<=',
+			];
+			if ( $is_date_field && isset( $range[ $condition ] ) && is_string( $value ) && preg_match( '/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(?::\d{2})?$/', trim( $value ) ) ) {
+				$where .= $wpdb->prepare( ' AND %i.%i ' . $range[ $condition ] . ' %s', $wpdb->posts, $field, str_replace( 'T', ' ', trim( $value ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Operator comes from the fixed map above.
+				continue;
+			}
 
 			// Normalize date value to YYYY-MM-DD before using in SQL
 			if ( $is_date_field ) {
