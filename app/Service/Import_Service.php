@@ -585,6 +585,10 @@ class Import_Service {
 			foreach ( $reader as $row ) {
 				if ( ! is_array( $row ) ) {
 					return File_Store::error( 'invalid_rows' ); }
+				if ( 'json' === $request['format'] ) {
+					// Same columns as the preview: values inside nested objects as "author.name".
+					$row = \RockStarLab\ImportExport\Model\Format\JSON_Format::with_nested_columns( $row );
+				}
 				if ( null === $state['cursor'] && ! $batch ) {
 					$keys = array_keys( $row );
 					foreach ( $request['mapping'] as &$entry ) {

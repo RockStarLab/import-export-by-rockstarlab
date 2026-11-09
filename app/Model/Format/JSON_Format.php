@@ -106,6 +106,53 @@ class JSON_Format implements File_Format_Interface {
 		yield from ( '{' === $first ? JSON_Object_Stream::rows( $path, $options ) : JSON_Row_Stream::rows( $path, $options ) );
 	}
 
+	/**
+	 * Add a column for every value inside nested objects, named by its path ("author.name",
+	 * "image.url"), after the row's own columns. The original columns stay, so mappings and
+	 * files that use the whole object (post_meta, ACF groups) keep working. Lists stay as they are.
+	 *
+	 * @param array $row   Row from a JSON file.
+	 * @param int   $depth Maximum nesting depth to expand.
+	 * @return array
+	 */
+	public static function with_nested_columns( $row, $depth = 3 ) {
+		if ( ! is_array( $row ) ) {
+			return $row;
+		}
+		$extra = [];
+		$walk  = static function ( $value, $prefix, $level ) use ( &$walk, &$extra, $depth ) {
+			foreach ( $value as $key => $child ) {
+				$path = $prefix . '.' . $key;
+				if ( is_array( $child ) && $child && ! self::is_list( $child ) && $level < $depth ) {
+					$walk( $child, $path, $level + 1 );
+				} else {
+					$extra[ $path ] = $child;
+				}
+			}
+		};
+		foreach ( $row as $key => $value ) {
+			if ( is_string( $key ) && is_array( $value ) && $value && ! self::is_list( $value ) ) {
+				$walk( $value, $key, 1 );
+			}
+		}
+		foreach ( $extra as $key => $value ) {
+			if ( ! array_key_exists( $key, $row ) ) {
+				$row[ $key ] = $value;
+			}
+		}
+		return $row;
+	}
+
+	/**
+	 * Whether an array is a list (0..n-1 keys), like a JSON array.
+	 *
+	 * @param array $value Array.
+	 * @return bool
+	 */
+	private static function is_list( array $value ) {
+		return array_keys( $value ) === range( 0, count( $value ) - 1 );
+	}
+
 	/** Validate every item and derive preview metadata from one container scan. */
 	public function preview( $path, array $options = [] ) {
 		$result = [
@@ -118,6 +165,7 @@ class JSON_Format implements File_Format_Interface {
 				if ( ! is_array( $row ) ) {
 					return new \WP_Error( 'invalid_structure', __( 'JSON items must be objects/arrays', 'import-export-by-rockstarlab' ) );
 				}
+				$row = self::with_nested_columns( $row );
 				if ( 0 === $result['total_rows'] ) {
 					$result['headers'] = array_keys( $row );
 				}
@@ -318,6 +366,7 @@ class JSON_Format implements File_Format_Interface {
 		try {
 			foreach ( ( '{' === $first ? JSON_Object_Stream::rows( $path, $options ) : JSON_Row_Stream::rows( $path, $options ) ) as $key => $row ) {
 				if ( ! $count_only && $count >= $offset && count( $rows ) < $limit ) {
+					$row = self::with_nested_columns( $row );
 					if ( is_string( $key ) ) {
 						$rows[ $key ] = $row;
 					} else {
