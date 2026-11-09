@@ -95,6 +95,9 @@ class Media_Exporter extends Abstract_Exporter {
 			'height',
 			'author_email',
 			'attached_post_title',
+			// The upload before WordPress scaled it down ("-scaled" files), and all files of the attachment together.
+			'original_file_size',
+			'disk_usage',
 		];
 	}
 
@@ -1068,6 +1071,16 @@ class Media_Exporter extends Abstract_Exporter {
 			$data['file_size'] = $file_path && file_exists( $file_path ) ? filesize( $file_path ) : 0;
 		}
 
+		if ( in_array( 'original_file_size', $fields, true ) || in_array( 'disk_usage', $fields, true ) ) {
+			$sizes = $this->attachment_disk_sizes( (int) $attachment->ID );
+			if ( in_array( 'original_file_size', $fields, true ) ) {
+				$data['original_file_size'] = $sizes['original'];
+			}
+			if ( in_array( 'disk_usage', $fields, true ) ) {
+				$data['disk_usage'] = $sizes['total'];
+			}
+		}
+
 		// Attachment metadata
 		if ( in_array( 'alt_text', $fields, true ) ) {
 			$data['alt_text'] = get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true );
@@ -1672,5 +1685,35 @@ class Media_Exporter extends Abstract_Exporter {
 		}
 
 		return $where;
+	}
+
+	/**
+	 * Bytes of the original upload and of all files of an attachment (main file, original before scaling, generated sizes).
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 * @return array{original:int,total:int}
+	 */
+	private function attachment_disk_sizes( $attachment_id ) {
+		$main = get_attached_file( $attachment_id );
+		if ( ! $main || ! file_exists( $main ) ) {
+			return [ 'original' => 0, 'total' => 0 ];
+		}
+		$dir      = trailingslashit( dirname( $main ) );
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+		$original = $main;
+		if ( is_array( $metadata ) && ! empty( $metadata['original_image'] ) && file_exists( $dir . wp_basename( $metadata['original_image'] ) ) ) {
+			$original = $dir . wp_basename( $metadata['original_image'] );
+		}
+		$files = [ $main => true, $original => true ];
+		foreach ( (array) ( $metadata['sizes'] ?? [] ) as $size ) {
+			if ( ! empty( $size['file'] ) && file_exists( $dir . wp_basename( $size['file'] ) ) ) {
+				$files[ $dir . wp_basename( $size['file'] ) ] = true;
+			}
+		}
+		$total = 0;
+		foreach ( array_keys( $files ) as $file ) {
+			$total += (int) filesize( $file );
+		}
+		return [ 'original' => (int) filesize( $original ), 'total' => $total ];
 	}
 }

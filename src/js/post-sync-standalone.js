@@ -989,8 +989,14 @@ const getActionNonce = ( action ) =>
 									return;
 								}
 								const code = xhr.responseJSON?.data?.code || '';
-								if ( 'rsl_ie_connection_busy' === code && tries < 15 ) {
-									timer = setTimeout( () => attempt( tries + 1 ), 400 );
+								if (
+									'rsl_ie_connection_busy' === code &&
+									tries < 15
+								) {
+									timer = setTimeout(
+										() => attempt( tries + 1 ),
+										400
+									);
 									return;
 								}
 								failure( xhr, textStatus );

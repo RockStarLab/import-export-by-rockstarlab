@@ -116,6 +116,10 @@ class Export_Request {
 				return self::error();
 			}
 		}
+		// "*" means the default columns (callers such as AI agents use it); otherwise the file has one empty "*" column.
+		if ( isset( $options['fields'] ) && in_array( '*', $options['fields'], true ) ) {
+			unset( $options['fields'] );
+		}
 		$free = ( new Free_Content_Provider() )->normalize( $type );
 		if ( null !== $free ) {
 			$type = $free;

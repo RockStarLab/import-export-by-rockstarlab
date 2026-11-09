@@ -1,5 +1,13 @@
 == Import Export by RockStarLab: full changelog ==
 
+= 2.1.34 =
+* Fixed: importing a damaged ZIP file no longer writes a "Zip stream error: CRC error" PHP warning to the site's error log; the import reports the file as damaged.
+* Improved: the Taxonomy Filter of the export screen accepts term names, slugs or IDs, and taxonomy names such as "Categories" or "Tags". Before, only slugs worked, so a category whose slug differs from its name (for example "edge-case-2") was not found.
+* New: "Category Names" and "Tag Names" export columns: plain comma-separated names that are easy to read and filter in a spreadsheet. The existing category and tag columns keep the full term data for imports.
+* Fixed: an export or preview requested with the field list "*" (as AI agents often do) produced a single empty "*" column. It now exports the default columns.
+* New: media export columns "Original File Size" and "Size on Disk, All Sizes". WordPress keeps the original of a large upload next to a scaled-down copy and creates several smaller sizes; these columns show how much space each image really takes.
+* Fixed: a Media import set to update existing files stopped with "File source is required" when the file had no file URL column. You can now update alt text, titles, captions and descriptions of existing Media Library items by ID (or another unique field) without the files.
+
 = 2.1.33 =
 * New: "Parent Title" export column for posts and pages: the title of the parent page next to its ID, empty for top-level pages.
 * Improved: Auto-match by Title no longer stops when one title exists on several posts of the remote site. The other posts are matched, and only those rows are left for you to choose, with a message naming the title. AI agents get the same result: the post appears in "ambiguous" with the IDs of the remote posts to choose from.

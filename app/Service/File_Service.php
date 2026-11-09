@@ -674,10 +674,28 @@ class File_Service {
 				wp_delete_file( $output );
 				return File_Store::error( 'zip_read' );
 			}
-			$copied = stream_copy_to_stream( $source, $target, min( $entry['size'], self::max_bytes() ) + 1 );
-			$flush  = fflush( $target );
+			// A damaged archive makes the zip stream raise a PHP warning (CRC error). Report it as a
+			// damaged file instead of writing the warning to the site's error log.
+			$stream_error = false;
+			set_error_handler( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Scoped to one stream copy.
+				static function () use ( &$stream_error ) {
+					$stream_error = true;
+					return true;
+				},
+				E_WARNING
+			);
+			try {
+				$copied = stream_copy_to_stream( $source, $target, min( $entry['size'], self::max_bytes() ) + 1 );
+			} finally {
+				restore_error_handler();
+			}
+			$flush = fflush( $target );
 			fclose( $source );
 			fclose( $target );
+			if ( $stream_error ) {
+				wp_delete_file( $output );
+				return File_Store::error( 'zip_integrity' );
+			}
 			if ( ! $flush || $copied !== $entry['size'] || $copied > self::max_bytes() ) {
 				wp_delete_file( $output );
 				return File_Store::error( 'zip_size_mismatch' );

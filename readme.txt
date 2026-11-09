@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.33
+Stable tag: 2.1.34
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -274,6 +274,14 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.1.34 =
+* Fixed: importing a damaged ZIP file no longer writes a "Zip stream error: CRC error" PHP warning to the site's error log; the import reports the file as damaged.
+* Improved: the Taxonomy Filter of the export screen accepts term names, slugs or IDs, and taxonomy names such as "Categories" or "Tags". Before, only slugs worked, so a category whose slug differs from its name (for example "edge-case-2") was not found.
+* New: "Category Names" and "Tag Names" export columns: plain comma-separated names that are easy to read and filter in a spreadsheet. The existing category and tag columns keep the full term data for imports.
+* Fixed: an export or preview requested with the field list "*" (as AI agents often do) produced a single empty "*" column. It now exports the default columns.
+* New: media export columns "Original File Size" and "Size on Disk, All Sizes". WordPress keeps the original of a large upload next to a scaled-down copy and creates several smaller sizes; these columns show how much space each image really takes.
+* Fixed: a Media import set to update existing files stopped with "File source is required" when the file had no file URL column. You can now update alt text, titles, captions and descriptions of existing Media Library items by ID (or another unique field) without the files.
+
 = 2.1.33 =
 * New: "Parent Title" export column for posts and pages: the title of the parent page next to its ID, empty for top-level pages.
 * Improved: Auto-match by Title no longer stops when one title exists on several posts of the remote site. The other posts are matched, and only those rows are left for you to choose, with a message naming the title. AI agents get the same result: the post appears in "ambiguous" with the IDs of the remote posts to choose from.
@@ -300,23 +308,6 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 * Improved: the default export batch size is 50 instead of 3, and the field accepts up to 500 (the largest value the exporter uses). A 100,000-post export in the browser took about 70 minutes with batches of 3 and about 3 minutes with 500.
 * Fixed: a CSV export of a very large site (100,000 posts with content) stopped at the end with a PHP memory error, because the whole file was built in memory. CSV files are now written row by row.
 * Fixed: a Content Sync push started from a long-running process (an AI agent through the stdio MCP server, or WP-CLI) could send an older copy of a post that had been edited in the meantime. The selected posts are now read fresh before every push.
-
-= 2.1.29 =
-* New: "UTF-8 BOM" option for CSV exports, so Excel shows accented letters and emojis correctly. Also available to AI agents as format_options.csv_use_bom.
-* Improved: the Content Sync connection test explains why a connection fails: a wrong or not yet activated API key, a firewall page (HTTP 403), HTTP authentication on a staging site, a redirect to another address (with the address to use), a REST API blocked by a plugin (with its error code), or no REST API at the address.
-* Improved: a site address pasted with /wp-admin/ or /wp-login.php is saved as the site's home address, and a connection is marked Active again after its key or address is fixed.
-* Improved: the Abilities API connection-test and connection-create abilities return the same explanation instead of a generic failure.
-* Improved: Auto-match by Title for large selections lists the remote posts once per post type instead of searching for every post. 150 posts are matched in seconds instead of minutes.
-* Improved: queuing a background sync while another transfer uses the same connection explains that the connection is busy instead of a generic message.
-* Improved: Jobs Log shows background sync jobs as "Content Sync - Background".
-* Fixed: the Test Connection button showed only "Connection test failed" instead of the reason. Other Content Sync notices also show the server's message now.
-* Fixed: Content Sync works with sites that use plain permalinks (no /wp-json/ path).
-* Fixed: plugins that limit the REST API to logged-in users (such as Disable WP REST API) no longer block Content Sync requests signed with the site key.
-* Fixed: a Content Sync push or pull started from the Posts or Pages screen could not be picked as the source of a schedule (only pushes started by an AI agent could).
-* Fixed: the Confirm & Sync button stays disabled while Auto-match by Title is running, so a push can't start while the connection is still busy.
-* Fixed: when Auto-match by Title fails (for example, two remote posts with the same title), the reason is shown and the rows keep their choices instead of switching to Create New Post. The message names the title.
-* Fixed: a long Content Sync push or pull was shown as Failed ("Invalid job type") in Jobs Log while it was still running. A sync request that stopped without finishing (server time limit) is now marked Failed after two hours with advice to sync the rest in smaller batches.
-* Fixed: a custom CSV delimiter with more than one character (such as ;; or |~|) stopped the export. Custom delimiters of up to 10 characters work now.
 
 Older versions: see changelog.txt in the plugin folder.
 
