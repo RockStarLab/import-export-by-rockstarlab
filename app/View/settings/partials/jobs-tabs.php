@@ -1,6 +1,6 @@
 <?php
 /**
- * Jobs and Schedules navigation tabs.
+ * Jobs, Schedules and Notifications navigation tabs.
  *
  * @package RockStarLab\ImportExport\View
  */
@@ -15,5 +15,8 @@ $rsl_ie_active_tab = isset( $rsl_ie_active_tab ) ? $rsl_ie_active_tab : 'jobs';
 	</a>
 	<a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-schedules' ) ); ?>" class="nav-tab <?php echo 'schedules' === $rsl_ie_active_tab ? 'nav-tab-active' : ''; ?>">
 		<?php esc_html_e( 'Schedules', 'import-export-by-rockstarlab' ); ?>
+	</a>
+	<a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-notifications' ) ); ?>" class="nav-tab <?php echo 'notifications' === $rsl_ie_active_tab ? 'nav-tab-active' : ''; ?>">
+		<?php esc_html_e( 'Notifications', 'import-export-by-rockstarlab' ); ?>
 	</a>
 </nav>

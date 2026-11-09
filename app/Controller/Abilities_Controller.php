@@ -204,6 +204,26 @@ class Abilities_Controller {
 				}
 			);
 		}
+		$templates = new \RockStarLab\ImportExport\Service\Mapping_Template_Service();
+		foreach ( \RockStarLab\ImportExport\Abilities\Mapping_Template_Catalog::definitions() as $name => $definition ) {
+			Ability_Registry::register_workflow(
+				'rsl-ie/' . $name,
+				$definition,
+				static function ( $input = [] ) use ( $templates, $name ) {
+					return $templates->execute( $name, $input );
+				}
+			);
+		}
+		$notifications = new \RockStarLab\ImportExport\Service\Job_Notification_Service();
+		foreach ( \RockStarLab\ImportExport\Abilities\Notification_Catalog::definitions() as $name => $definition ) {
+			Ability_Registry::register_workflow(
+				'rsl-ie/' . $name,
+				$definition,
+				static function ( $input = [] ) use ( $notifications, $name ) {
+					return $notifications->execute( $name, $input );
+				}
+			);
+		}
 		$ai = new \RockStarLab\ImportExport\Service\AI_URL_Service();
 		foreach ( \RockStarLab\ImportExport\Abilities\AI_URL_Catalog::definitions() as $name => $definition ) {
 			Ability_Registry::register_workflow(

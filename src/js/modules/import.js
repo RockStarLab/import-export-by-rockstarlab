@@ -23,6 +23,9 @@ const ImportModule = {
 	importStartTime: null,
 	isCancellingImport: false,
 	isBatchProcessing: false,
+	mappingTemplates: [],
+	activeTemplate: null,
+	pendingTemplateOptions: null,
 
 	/**
 	 * Initialize module
@@ -160,6 +163,28 @@ const ImportModule = {
 			this.clearFieldMapping()
 		);
 
+		// Mapping templates
+		$wizard.on( 'change', '#rsl-ie-template-select', () =>
+			this.updateTemplateButtons()
+		);
+		$wizard.on( 'click', '.rsl-ie-template-apply', () =>
+			this.applySelectedTemplate()
+		);
+		$wizard.on( 'click', '.rsl-ie-template-save', ( e ) =>
+			this.saveMappingTemplate( e )
+		);
+		$wizard.on( 'click', '.rsl-ie-template-rename', () =>
+			this.renameMappingTemplate()
+		);
+		$wizard.on( 'click', '.rsl-ie-template-delete', () =>
+			this.deleteMappingTemplate()
+		);
+		$wizard.on( 'change', '#rsl-ie-custom-post-type', () => {
+			if ( this.currentStep === 4 ) {
+				this.loadMappingTemplates();
+			}
+		} );
+
 		// Import actions
 		$wizard.on( 'click', '.rsl-ie-start-import', () => this.startImport() );
 		$wizard.on( 'change', '#rsl-ie-enable-replace-links', ( e ) =>
@@ -256,9 +281,12 @@ const ImportModule = {
 			// Disable Next button before building mapping
 			jQuery( '.rsl-ie-next-step' ).prop( 'disabled', true );
 			this.buildFieldMapping();
+			this.showTemplateNotice( '' );
+			this.loadMappingTemplates();
 		} else if ( step === 5 ) {
 			this.populateUniqueFieldOptions();
 			this.handleMediaImportOptions();
+			this.applyPendingTemplateOptions();
 		}
 	},
 
@@ -4461,6 +4489,10 @@ const ImportModule = {
 		`;
 		$targetElement.find( '.rsl-ie-field-info' ).append( mappedHtml );
 		$targetElement.addClass( 'has-mapping' );
+		$targetElement
+			.removeClass( 'rsl-ie-template-missing' )
+			.find( '.rsl-ie-template-missing-note' )
+			.remove();
 		$targetElement.data( 'mapped-source-index', sourceIndex );
 		$targetElement.data( 'mapped-source-field', sourceField );
 
@@ -6120,6 +6152,10 @@ const ImportModule = {
 
 		// Unmark all source fields (remove 'used' class)
 		jQuery( '.rsl-ie-field-card' ).removeClass( 'used' );
+		jQuery( '.rsl-ie-target-field' ).removeClass(
+			'rsl-ie-template-missing'
+		);
+		jQuery( '.rsl-ie-template-missing-note' ).remove();
 
 		// Clear mapped fields section
 		jQuery( '.rsl-ie-mapped-fields' ).html( `
@@ -6136,6 +6172,643 @@ const ImportModule = {
 		this.mappingFunctions = {};
 
 		this.updateMappingStats();
+	},
+
+	/**
+	 * Import type key used to group mapping templates.
+	 *
+	 * @return {string} Import type.
+	 */
+	getTemplateImportType() {
+		const contentType =
+			jQuery( 'input[name="content_type"]:checked' ).val() || '';
+		if ( contentType === 'custom_post_types' ) {
+			const postType = jQuery( '#rsl-ie-custom-post-type' ).val();
+			return postType ? `custom_post_types_${ postType }` : contentType;
+		}
+		return contentType;
+	},
+
+	templateText( key, fallback ) {
+		return window.rslIeData?.i18n?.[ key ] || fallback;
+	},
+
+	/**
+	 * Load the saved templates of the current import type into the selector.
+	 *
+	 * @param {string} selectId Template to select after loading.
+	 */
+	async loadMappingTemplates( selectId = '' ) {
+		const $select = jQuery( '#rsl-ie-template-select' );
+		if ( ! $select.length ) {
+			return;
+		}
+		try {
+			const data = await Utils.ajax( 'rsl_ie_mapping_template_list', {
+				import_type: this.getTemplateImportType(),
+			} );
+			this.mappingTemplates = data.templates || [];
+		} catch ( error ) {
+			this.mappingTemplates = [];
+		}
+		$select.empty();
+		if ( ! this.mappingTemplates.length ) {
+			$select.append(
+				jQuery( '<option>', {
+					value: '',
+					text: this.templateText(
+						'noMappingTemplates',
+						'— No saved templates —'
+					),
+				} )
+			);
+		} else {
+			$select.append(
+				jQuery( '<option>', {
+					value: '',
+					text: this.templateText(
+						'chooseMappingTemplate',
+						'— Choose a template —'
+					),
+				} )
+			);
+			this.mappingTemplates.forEach( ( template ) => {
+				$select.append(
+					jQuery( '<option>', {
+						value: template.template_id,
+						text: `${ template.name } (${ template.mapping_count })`,
+					} )
+				);
+			} );
+		}
+		$select.val( selectId || this.activeTemplate?.template_id || '' );
+		this.updateTemplateButtons();
+	},
+
+	updateTemplateButtons() {
+		const hasSelection = !! jQuery( '#rsl-ie-template-select' ).val();
+		jQuery(
+			'.rsl-ie-template-apply, .rsl-ie-template-rename, .rsl-ie-template-delete'
+		).prop( 'disabled', ! hasSelection );
+	},
+
+	/**
+	 * Show the result of loading a template above the mapping.
+	 *
+	 * @param {string} html  Message HTML (already escaped).
+	 * @param {string} level success|warning.
+	 */
+	showTemplateNotice( html, level = 'success' ) {
+		const $notice = jQuery( '.rsl-ie-template-notice' );
+		if ( ! html ) {
+			$notice.hide().empty();
+			return;
+		}
+		$notice
+			.attr( 'class', `rsl-ie-template-notice notice notice-${ level }` )
+			.html( html )
+			.show();
+	},
+
+	/**
+	 * Apply a saved template to the columns of the current file.
+	 */
+	async applySelectedTemplate() {
+		const templateId = jQuery( '#rsl-ie-template-select' ).val();
+		if ( ! templateId || ! this.fileData?.columns ) {
+			return;
+		}
+		let template;
+		try {
+			template = await Utils.ajax( 'rsl_ie_mapping_template_get', {
+				template_id: templateId,
+			} );
+		} catch ( error ) {
+			Utils.showNotice( String( error ), 'error' );
+			return;
+		}
+
+		const needsAcf = ( template.mapping || [] ).some(
+			( entry ) =>
+				String( entry.target_field ).startsWith( 'acf_' ) &&
+				! jQuery(
+					`.rsl-ie-target-field[data-target-field="${ CSS.escape(
+						entry.target_field
+					) }"]`
+				).length
+		);
+		if ( needsAcf ) {
+			const request = this.loadACFFields(
+				jQuery( 'input[name="content_type"]:checked' ).val()
+			);
+			if ( request && typeof request.always === 'function' ) {
+				await new Promise( ( resolve ) => request.always( resolve ) );
+			}
+		}
+
+		this.applyTemplate( template );
+	},
+
+	/**
+	 * Map file columns to fields as the template says, matching columns by name.
+	 *
+	 * @param {Object} template Template from the server.
+	 */
+	applyTemplate( template ) {
+		const columnKey = ( name ) =>
+			String( name ?? '' )
+				.replace( /^﻿/, '' )
+				.trim()
+				.replace( /\s+/g, ' ' )
+				.toLowerCase();
+		const columns = new Map();
+		( this.fileData.columns || [] ).forEach( ( column, index ) => {
+			const key = columnKey( column );
+			if ( key && ! columns.has( key ) ) {
+				columns.set( key, index );
+			}
+		} );
+
+		this.clearFieldMapping();
+		jQuery( '.rsl-ie-target-field' ).removeClass(
+			'rsl-ie-template-missing'
+		);
+		jQuery( '.rsl-ie-template-missing-note' ).remove();
+
+		const missing = [];
+		const noTarget = [];
+		let mapped = 0;
+
+		( template.mapping || [] ).forEach( ( entry ) => {
+			const targetField = String( entry.target_field || '' );
+			let $target = jQuery(
+				`.rsl-ie-target-field:not(.rsl-ie-custom-field-template)[data-target-field="${ CSS.escape(
+					targetField
+				) }"]`
+			).first();
+
+			if ( ! $target.length ) {
+				const fieldType =
+					entry.field_type ||
+					( targetField.startsWith( 'taxonomy_' )
+						? 'taxonomy'
+						: /^(meta_|acf_|_)/.test( targetField )
+						? 'meta'
+						: '' );
+				const $group = jQuery(
+					`.rsl-ie-custom-field-template[data-field-type="${
+						fieldType === 'taxonomy' ? 'taxonomy' : 'meta'
+					}"]`
+				).first();
+				if (
+					[ 'taxonomy', 'meta' ].includes( fieldType ) &&
+					$group.length &&
+					/^[\w\-:. ]{1,191}$/u.test( targetField )
+				) {
+					$target = this.addCustomFieldToGroup(
+						$group,
+						targetField,
+						fieldType,
+						false,
+						entry.taxonomy_format || 'name'
+					);
+				}
+			}
+
+			if ( ! $target || ! $target.length ) {
+				noTarget.push( entry );
+				return;
+			}
+
+			if (
+				entry.taxonomy_format &&
+				$target.is( '[data-taxonomy-format]' )
+			) {
+				$target.attr( 'data-taxonomy-format', entry.taxonomy_format );
+				$target.data( 'taxonomy-format', entry.taxonomy_format );
+			}
+
+			const sourceIndex = columns.get( columnKey( entry.source_field ) );
+			if ( sourceIndex === undefined ) {
+				missing.push( entry );
+				$target.addClass( 'rsl-ie-template-missing' );
+				$target.find( '.rsl-ie-field-info' ).append(
+					jQuery( '<div>', {
+						class: 'rsl-ie-template-missing-note',
+						text: this.templateText(
+							'templateColumnMissing',
+							'Column "%s" is not in this file'
+						).replace( '%s', entry.source_field ),
+					} )
+				);
+				return;
+			}
+
+			const sourceField = this.fileData.columns[ sourceIndex ];
+			const functions = ( entry.functions || entry.function_ids || [] )
+				.map( ( func ) =>
+					typeof func === 'object'
+						? { id: func.id, name: func.name || `#${ func.id }` }
+						: { id: func, name: `#${ func }` }
+				)
+				.filter( ( func ) => func.id );
+			if ( functions.length && this.areFieldTransformationsEnabled() ) {
+				this.mappingFunctions[ `${ sourceIndex }-${ targetField }` ] =
+					functions;
+			}
+
+			this.createMapping(
+				sourceField,
+				sourceIndex,
+				targetField,
+				$target.data( 'field-type' ),
+				$target
+			);
+			jQuery(
+				`.rsl-ie-field-card[data-source-index="${ sourceIndex }"]`
+			).addClass( 'used mapped' );
+			mapped++;
+		} );
+
+		this.activeTemplate = {
+			template_id: template.template_id,
+			name: template.name,
+		};
+		this.pendingTemplateOptions = template.options || {};
+		this.updateMappingStats();
+
+		const esc = ( value ) => Utils.escapeHtml( String( value ) );
+		let html = `<p><strong>${ esc(
+			this.templateText(
+				'templateApplied',
+				'Template "%1$s" loaded: %2$d fields mapped.'
+			)
+				.replace( '%1$s', template.name )
+				.replace( '%2$d', mapped )
+		) }</strong> ${ esc(
+			this.templateText(
+				'templateOptionsNext',
+				'Its import settings are filled in on the next step.'
+			)
+		) }</p>`;
+		if ( missing.length ) {
+			html += `<p>${ esc(
+				this.templateText(
+					'templateMissingColumns',
+					'These columns of the template are not in this file, so their fields stay empty:'
+				)
+			) } ${ missing
+				.map(
+					( entry ) =>
+						`<code>${ esc( entry.source_field ) }</code> → ${ esc(
+							entry.target_field
+						) }`
+				)
+				.join( ', ' ) }</p>`;
+		}
+		if ( noTarget.length ) {
+			html += `<p>${ esc(
+				this.templateText(
+					'templateMissingFields',
+					'These fields do not exist on this site and were skipped:'
+				)
+			) } ${ noTarget
+				.map(
+					( entry ) => `<code>${ esc( entry.target_field ) }</code>`
+				)
+				.join( ', ' ) }</p>`;
+		}
+		this.showTemplateNotice(
+			html,
+			missing.length || noTarget.length ? 'warning' : 'success'
+		);
+	},
+
+	/**
+	 * Fill step 5 with the settings of the loaded template, once.
+	 */
+	applyPendingTemplateOptions() {
+		const options = this.pendingTemplateOptions;
+		if ( ! options || typeof options !== 'object' ) {
+			return;
+		}
+		this.pendingTemplateOptions = null;
+
+		const setRadio = ( name, value ) => {
+			if ( value === undefined || value === null || value === '' ) {
+				return;
+			}
+			const $radio = jQuery(
+				`input[name="${ name }"][value="${ CSS.escape(
+					String( value )
+				) }"]`
+			);
+			if ( $radio.length ) {
+				$radio.prop( 'checked', true ).trigger( 'change' );
+			}
+		};
+		const setChecked = ( selector, value ) => {
+			if ( value === undefined ) {
+				return;
+			}
+			const $box = jQuery( selector );
+			const checked =
+				value === true ||
+				value === 'true' ||
+				value === 1 ||
+				value === '1';
+			if ( $box.length && $box.is( ':checked' ) !== checked ) {
+				$box.prop( 'checked', checked ).trigger( 'change' );
+			}
+		};
+
+		if ( options.unique_field ) {
+			const $unique = jQuery( '#rsl-ie-unique-field' );
+			if (
+				$unique.find(
+					`option[value="${ CSS.escape( options.unique_field ) }"]`
+				).length
+			) {
+				$unique.val( options.unique_field ).trigger( 'change' );
+			}
+		}
+		setRadio(
+			'if_exists',
+			options.if_exists || options.duplicate_handling
+		);
+		setRadio( 'if_not_exists', options.if_not_exists );
+		setRadio( 'media_duplicate_mode', options.media_duplicate_mode );
+		if ( options.post_status ) {
+			const $status = jQuery( '[name="post_status"]' );
+			if (
+				$status.find(
+					`option[value="${ CSS.escape( options.post_status ) }"]`
+				).length
+			) {
+				$status.val( options.post_status );
+			}
+		}
+		if ( options.batch_size ) {
+			jQuery( '[name="batch_size"]' ).val(
+				parseInt( options.batch_size, 10 ) || 50
+			);
+		}
+		setChecked( '[name="download_images"]', options.download_images );
+		setChecked( '#rsl-ie-auto-import-media', options.auto_import_media );
+		setChecked( '#rsl-ie-enable-replace-links', options.replace_links );
+
+		const rules = Array.isArray( options.replace_links_rules )
+			? options.replace_links_rules
+			: [];
+		if ( rules.length ) {
+			const $rows = jQuery( '.rsl-ie-replace-links-row' );
+			$rows.slice( 1 ).remove();
+			rules.forEach( ( rule, index ) => {
+				if ( index > 0 ) {
+					this.addReplaceLinksRow();
+				}
+				const $row = jQuery( '.rsl-ie-replace-links-row' ).eq( index );
+				$row.find( '.rsl-ie-replace-what' ).val( rule.search || '' );
+				$row.find( '.rsl-ie-replace-to' ).val( rule.replace || '' );
+			} );
+			this.updateReplaceLinksRemoveButtons();
+		}
+	},
+
+	/**
+	 * Mapping entries with column names, transformations and field types.
+	 *
+	 * @return {Array} Template mapping.
+	 */
+	getTemplateMapping() {
+		return this.getFieldMapping().map( ( entry ) => {
+			const row = {
+				source_field: entry.source_field,
+				target_field: entry.target_field,
+			};
+			const $target = jQuery(
+				`.rsl-ie-target-field[data-target-field="${ CSS.escape(
+					entry.target_field
+				) }"]`
+			).first();
+			if ( $target.data( 'field-type' ) ) {
+				row.field_type = $target.data( 'field-type' );
+			}
+			if ( entry.taxonomy_format ) {
+				row.taxonomy_format = entry.taxonomy_format;
+			}
+			const functions =
+				this.mappingFunctions?.[
+					`${ entry.source_index }-${ entry.target_field }`
+				] || [];
+			if ( this.areFieldTransformationsEnabled() && functions.length ) {
+				row.functions = functions
+					.map( ( func ) =>
+						typeof func === 'object'
+							? { id: func.id, name: func.name || '' }
+							: { id: func, name: '' }
+					)
+					.filter( ( func ) => func.id );
+			}
+			return row;
+		} );
+	},
+
+	/**
+	 * Save the current mapping (and the step 5 settings) as a template.
+	 *
+	 * @param {Object} event Click event.
+	 */
+	async saveMappingTemplate( event ) {
+		const $button = jQuery( event.currentTarget );
+		const mapping = this.getTemplateMapping();
+		if ( ! mapping.length ) {
+			Utils.showNotice(
+				this.templateText(
+					'templateNeedsMapping',
+					'Map at least one column before saving a template.'
+				),
+				'error'
+			);
+			return;
+		}
+		// eslint-disable-next-line no-alert
+		const name = window.prompt(
+			this.templateText(
+				'templateNamePrompt',
+				'Template name (for example "Supplier price list"):'
+			),
+			this.activeTemplate?.name || ''
+		);
+		if ( name === null || ! name.trim() ) {
+			return;
+		}
+		const existing = ( this.mappingTemplates || [] ).find(
+			( template ) =>
+				template.name.toLowerCase() === name.trim().toLowerCase()
+		);
+		if (
+			existing &&
+			// eslint-disable-next-line no-alert
+			! window.confirm(
+				this.templateText(
+					'templateReplaceConfirm',
+					'A template named "%s" already exists. Replace it?'
+				).replace( '%s', existing.name )
+			)
+		) {
+			return;
+		}
+
+		const onStep5 = this.currentStep === 5;
+		const data = {
+			name: name.trim(),
+			import_type: this.getTemplateImportType(),
+			mapping,
+			options:
+				onStep5 || jQuery( '#rsl-ie-unique-field' ).val()
+					? this.collectImportOptions()
+					: this.pendingTemplateOptions || {},
+			parser: {
+				delimiter: this.fileData?.delimiter || '',
+				encoding: this.fileData?.encoding || '',
+			},
+			overwrite: existing ? 1 : 0,
+		};
+		$button.prop( 'disabled', true );
+		try {
+			const template = await Utils.ajax(
+				'rsl_ie_mapping_template_save',
+				data
+			);
+			this.activeTemplate = {
+				template_id: template.template_id,
+				name: template.name,
+			};
+			await this.loadMappingTemplates( template.template_id );
+			Utils.showNotice(
+				( onStep5
+					? this.templateText(
+							'templateSavedWithSettings',
+							'Template "%s" saved with the field mapping and import settings.'
+					  )
+					: this.templateText(
+							'templateSaved',
+							'Template "%s" saved. Import settings from the next step are added when you save it there.'
+					  )
+				).replace( '%s', template.name ),
+				'success'
+			);
+		} catch ( error ) {
+			Utils.showNotice( String( error ), 'error' );
+		} finally {
+			$button.prop( 'disabled', false );
+		}
+	},
+
+	async renameMappingTemplate() {
+		const templateId = jQuery( '#rsl-ie-template-select' ).val();
+		const template = ( this.mappingTemplates || [] ).find(
+			( item ) => item.template_id === templateId
+		);
+		if ( ! template ) {
+			return;
+		}
+		// eslint-disable-next-line no-alert
+		const name = window.prompt(
+			this.templateText( 'templateRenamePrompt', 'New template name:' ),
+			template.name
+		);
+		if ( name === null || ! name.trim() || name.trim() === template.name ) {
+			return;
+		}
+		try {
+			const saved = await Utils.ajax( 'rsl_ie_mapping_template_rename', {
+				template_id: templateId,
+				name: name.trim(),
+			} );
+			if ( this.activeTemplate?.template_id === templateId ) {
+				this.activeTemplate.name = saved.name;
+			}
+			await this.loadMappingTemplates( templateId );
+		} catch ( error ) {
+			Utils.showNotice( String( error ), 'error' );
+		}
+	},
+
+	async deleteMappingTemplate() {
+		const templateId = jQuery( '#rsl-ie-template-select' ).val();
+		const template = ( this.mappingTemplates || [] ).find(
+			( item ) => item.template_id === templateId
+		);
+		if (
+			! template ||
+			// eslint-disable-next-line no-alert
+			! window.confirm(
+				this.templateText(
+					'templateDeleteConfirm',
+					'Delete the template "%s"? Imports made with it are not affected.'
+				).replace( '%s', template.name )
+			)
+		) {
+			return;
+		}
+		try {
+			await Utils.ajax( 'rsl_ie_mapping_template_delete', {
+				template_id: templateId,
+			} );
+			if ( this.activeTemplate?.template_id === templateId ) {
+				this.activeTemplate = null;
+			}
+			await this.loadMappingTemplates();
+		} catch ( error ) {
+			Utils.showNotice( String( error ), 'error' );
+		}
+	},
+
+	/**
+	 * Import settings from step 5, as sent to the importer.
+	 *
+	 * @param {string} uniqueField Match key; defaults to the selected one.
+	 * @return {Object} Options.
+	 */
+	collectImportOptions( uniqueField = null ) {
+		uniqueField = uniqueField ?? jQuery( '#rsl-ie-unique-field' ).val();
+		const options = {
+			duplicate_handling:
+				jQuery( 'input[name="if_exists"]:checked' ).val() || 'update',
+			unique_field: uniqueField,
+			if_exists:
+				jQuery( 'input[name="if_exists"]:checked' ).val() || 'update',
+			if_not_exists:
+				jQuery( 'input[name="if_not_exists"]:checked' ).val() ||
+				'create',
+			post_status: jQuery( '[name="post_status"]' ).val(),
+			post_type: jQuery( '[name="post_type"]' ).val(),
+			download_images: jQuery( '[name="download_images"]' ).is(
+				':checked'
+			),
+			batch_size: parseInt( jQuery( '[name="batch_size"]' ).val() ) || 1,
+			auto_import_media: jQuery( '#rsl-ie-auto-import-media' ).is(
+				':checked'
+			),
+			media_duplicate_mode:
+				jQuery( 'input[name="media_duplicate_mode"]:checked' ).val() ||
+				'skip',
+			replace_links: jQuery( '#rsl-ie-enable-replace-links' ).is(
+				':checked'
+			),
+			replace_links_rules: this.getReplaceLinksRules(),
+		};
+		const contentType = jQuery(
+			'input[name="content_type"]:checked'
+		).val();
+		if ( contentType === 'custom_post_types' ) {
+			options.custom_post_type = jQuery(
+				'#rsl-ie-custom-post-type'
+			).val();
+		}
+		return options;
 	},
 
 	/**
@@ -6324,36 +6997,7 @@ const ImportModule = {
 				delimiter: this.fileData.delimiter || ',',
 				encoding: this.fileData.encoding || 'auto',
 				mapping: this.getFieldMapping(),
-				options: {
-					duplicate_handling:
-						jQuery( 'input[name="if_exists"]:checked' ).val() ||
-						'update',
-					unique_field: uniqueField,
-					if_exists:
-						jQuery( 'input[name="if_exists"]:checked' ).val() ||
-						'update',
-					if_not_exists:
-						jQuery( 'input[name="if_not_exists"]:checked' ).val() ||
-						'create',
-					post_status: jQuery( '[name="post_status"]' ).val(),
-					post_type: jQuery( '[name="post_type"]' ).val(),
-					download_images: jQuery( '[name="download_images"]' ).is(
-						':checked'
-					),
-					batch_size:
-						parseInt( jQuery( '[name="batch_size"]' ).val() ) || 1,
-					auto_import_media: jQuery( '#rsl-ie-auto-import-media' ).is(
-						':checked'
-					),
-					media_duplicate_mode:
-						jQuery(
-							'input[name="media_duplicate_mode"]:checked'
-						).val() || 'skip',
-					replace_links: jQuery( '#rsl-ie-enable-replace-links' ).is(
-						':checked'
-					),
-					replace_links_rules: this.getReplaceLinksRules(),
-				},
+				options: this.collectImportOptions( uniqueField ),
 			};
 
 			// Add custom post type if selected
@@ -6736,45 +7380,95 @@ const ImportModule = {
 			allFailed
 				? i18n.importFailedSubtitle ||
 						'No rows could be imported. Check the errors below and the Jobs Log.'
+				: 1 === failed
+				? i18n.importWithErrorsSubtitleOne ||
+				  'One row could not be imported. Check the error below and the Jobs Log.'
 				: (
 						i18n.importWithErrorsSubtitle ||
 						'%d rows could not be imported. Check the errors below and the Jobs Log.'
 				  ).replace( '%d', failed )
 		);
 
-		// Show the first few distinct errors so the cause is visible immediately.
+		// Show the first errors with row, field and how to fix them.
 		const errors = Array.isArray( result.errors ) ? result.errors : [];
 		if ( errors.length ) {
-			const $list = jQuery(
-				'<ul class="rsl-ie-complete-errors"></ul>'
-			).css( {
-				textAlign: 'left',
-				maxWidth: '640px',
-				margin: '12px auto 0',
-				color: '#b32d2e',
-			} );
+			const $box = jQuery( '<div class="rsl-ie-complete-errors"></div>' );
+			const $list = jQuery( '<ul class="rsl-ie-row-errors"></ul>' );
 			const seen = new Set();
 			errors.forEach( ( error ) => {
 				const message = String( error.message || error );
-				if ( seen.size >= 5 || seen.has( message ) ) {
+				const key = `${ error.field || '' }|${ message }`;
+				if ( seen.size >= 5 || seen.has( key ) ) {
 					return;
 				}
-				seen.add( message );
+				seen.add( key );
 				const rows = errors
-					.filter( ( e ) => String( e.message || e ) === message )
+					.filter(
+						( e ) =>
+							`${ e.field || '' }|${ String( e.message || e ) }` ===
+							key
+					)
 					.map( ( e ) => e.row )
 					.filter( ( row ) => undefined !== row );
-				const suffix = rows.length
-					? ' (' +
-					  ( i18n.rows || 'rows' ) +
-					  ': ' +
+				const $item = jQuery( '<li></li>' );
+				const where = rows.length
+					? ( 1 === rows.length
+							? i18n.rowLabel || 'Row'
+							: i18n.rowsLabel || 'Rows' ) +
+					  ' ' +
 					  rows.slice( 0, 5 ).join( ', ' ) +
-					  ( rows.length > 5 ? ', …' : '' ) +
-					  ')'
+					  ( rows.length > 5 ? ', …' : '' )
 					: '';
-				$list.append( jQuery( '<li></li>' ).text( message + suffix ) );
+				$item.append(
+					jQuery( '<strong></strong>' ).text(
+						[ where, error.field ].filter( Boolean ).join( ' · ' )
+					)
+				);
+				$item.append(
+					jQuery( '<span class="rsl-ie-row-error-message"></span>' ).text(
+						( where || error.field ? ': ' : '' ) + message
+					)
+				);
+				if ( error.hint ) {
+					$item.append(
+						jQuery( '<span class="rsl-ie-row-error-hint"></span>' ).text(
+							error.hint
+						)
+					);
+				}
+				$list.append( $item );
 			} );
-			$subtitle.after( $list );
+			$box.append( $list );
+			if ( this.jobId ) {
+				const $download = jQuery(
+					'<button type="button" class="button rsl-ie-download-errors"></button>'
+				)
+					.append(
+						'<span class="dashicons dashicons-download" aria-hidden="true"></span> '
+					)
+					.append(
+						document.createTextNode(
+							i18n.downloadErrorRows ||
+								'Download rows with errors (CSV)'
+						)
+					);
+				$download.on( 'click', async () => {
+					$download.prop( 'disabled', true );
+					try {
+						await Utils.downloadJobErrorsCsv( this.jobId );
+					} catch ( e ) {
+						Utils.showNotice( String( e ), 'error' );
+					} finally {
+						$download.prop( 'disabled', false );
+					}
+				} );
+				$box.append(
+					jQuery( '<p class="rsl-ie-download-errors-wrap"></p>' ).append(
+						$download
+					)
+				);
+			}
+			$subtitle.after( $box );
 		}
 	},
 
@@ -7011,6 +7705,7 @@ const ImportModule = {
 		this.importStartTime = null;
 		this.isCancellingImport = false;
 		this.isBatchProcessing = false;
+		this.pendingTemplateOptions = null;
 		if ( this.batchTimeout ) {
 			clearTimeout( this.batchTimeout );
 			this.batchTimeout = null;
@@ -7396,6 +8091,25 @@ const ImportModule = {
 				uniqueFields.add( mapping.target_field );
 			}
 		} );
+
+		// Posts, pages and custom post types are matched by ID, slug, title or a
+		// custom field; other mapped columns (content, dates…) cannot identify a post.
+		const matchContentType = jQuery(
+			'input[name="content_type"]:checked'
+		).val();
+		if (
+			[ 'post', 'page', 'custom_post_types' ].includes( matchContentType )
+		) {
+			const matchable = [ ...uniqueFields ].filter(
+				( field ) =>
+					[ 'ID', 'post_name', 'post_title' ].includes( field ) ||
+					/^(meta_|acf_)/.test( field )
+			);
+			if ( matchable.length ) {
+				uniqueFields.clear();
+				matchable.forEach( ( field ) => uniqueFields.add( field ) );
+			}
+		}
 
 		// Add options for each unique target field
 		uniqueFields.forEach( ( field ) => {

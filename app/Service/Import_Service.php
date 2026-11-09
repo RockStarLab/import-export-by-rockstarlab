@@ -975,10 +975,13 @@ class Import_Service {
 			if ( is_wp_error( $result ) ) {
 				$entry['message']       = $result->get_error_message();
 				if ( count( $cumulative['errors'] ) < self::RESULT_ERRORS_LIMIT ) {
-					$cumulative['errors'][] = [
-						'row'     => $entry['row'],
-						'message' => $entry['message'],
-					];
+					// Row, field, reason and how to fix; the first rows also keep their values for the error CSV.
+					$cumulative['errors'][] = \RockStarLab\ImportExport\Helper\Import_Row_Error::describe(
+						$result,
+						is_array( $item ) ? $item : [],
+						$entry['row'],
+						count( $cumulative['errors'] ) < \RockStarLab\ImportExport\Helper\Import_Row_Error::VALUE_ROWS
+					);
 				}
 			}
 			if ( method_exists( $importer, 'take_media_issues' ) ) {
