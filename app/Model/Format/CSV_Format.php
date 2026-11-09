@@ -375,7 +375,10 @@ class CSV_Format implements File_Format_Interface {
 			fprintf( $handle, chr( 0xEF ) . chr( 0xBB ) . chr( 0xBF ) );
 		}
 
-		if ( empty( $data ) ) {
+		// Rows may also come from a generator, so large exports are written without loading every row.
+		$rows = $data instanceof \Iterator ? $data : new \ArrayIterator( is_array( $data ) ? array_values( $data ) : iterator_to_array( $data, false ) );
+		$rows->rewind();
+		if ( ! $rows->valid() ) {
 			if ( ! empty( $headers ) && is_array( $headers ) ) {
 				$this->write_csv_row( $handle, $headers, $delimiter, $enclosure, $escape );
 			}
@@ -384,15 +387,17 @@ class CSV_Format implements File_Format_Interface {
 			return true;
 		}
 
-		if ( null === $headers && isset( $data[0] ) && is_array( $data[0] ) && ! isset( $data[0][0] ) ) {
-			$headers = array_keys( $data[0] );
+		$first = $rows->current();
+		if ( null === $headers && is_array( $first ) && ! isset( $first[0] ) ) {
+			$headers = array_keys( $first );
 		}
 
 		if ( ! empty( $headers ) ) {
 			$this->write_csv_row( $handle, $headers, $delimiter, $enclosure, $escape );
 		}
 
-		foreach ( $data as $row ) {
+		for ( ; $rows->valid(); $rows->next() ) {
+			$row = $rows->current();
 			if ( ! is_array( $row ) ) {
 				continue;
 			}

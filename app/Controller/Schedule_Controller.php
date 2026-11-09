@@ -77,6 +77,7 @@ class Schedule_Controller {
 			'start_at'      => $start_at,
 			'timezone'      => wp_timezone_string(),
 			'status'        => 'active',
+			'changed_only'  => ! empty( $_POST['changed_only'] ),
 		];
 		if ( $schedule_id ) {
 			$input['schedule_id'] = $schedule_id; }

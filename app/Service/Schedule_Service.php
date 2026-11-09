@@ -142,6 +142,10 @@ class Schedule_Service {
 			return $this->error( 'future_time_required', 400 );
 		}
 		$source_id = $input['source_job_id'] ?? (int) $row->source_job_id;
+		$changed_only = (bool) ( $input['changed_only'] ?? $meta['changed_only'] ?? false );
+		if ( $changed_only && ! Schedule_Source_Service::supports_changed_only( $source_id ) ) {
+			return $this->error( 'changed_only_unsupported', 400 );
+		}
 		$source    = ( ! $row || isset( $input['source_job_id'] ) || 'active' === $status ) ? ( new Schedule_Source_Service() )->execute( $source_id ) : true;
 		if ( is_wp_error( $source ) ) {
 			return $source;
@@ -166,8 +170,9 @@ class Schedule_Service {
 		update_option(
 			'rsl_ie_schedule_meta_' . $id,
 			[
-				'timezone'   => $zone,
-				'error_code' => '',
+				'timezone'     => $zone,
+				'error_code'   => '',
+				'changed_only' => $changed_only,
 			],
 			false
 		);
@@ -183,8 +188,9 @@ class Schedule_Service {
 			update_option(
 				'rsl_ie_schedule_meta_' . $id,
 				[
-					'timezone'   => $zone,
-					'error_code' => $scheduled->get_error_code(),
+					'timezone'     => $zone,
+					'error_code'   => $scheduled->get_error_code(),
+					'changed_only' => $changed_only,
 				],
 				false
 			);
@@ -214,6 +220,7 @@ class Schedule_Service {
 			'last_run_gmt'  => $row->last_run_gmt,
 			'timezone'      => $meta['timezone'] ?? wp_timezone_string(),
 			'error_code'    => $meta['error_code'] ?? '',
+			'changed_only'  => ! empty( $meta['changed_only'] ),
 		];
 	}
 
@@ -252,6 +259,9 @@ class Schedule_Service {
 	 * @return \WP_Error
 	 */
 	private function error( $code, $status ) {
+		if ( 'changed_only_unsupported' === $code ) {
+			return new \WP_Error( 'rsl_ie_schedule_' . $code, __( '"Changes only" works with exports of posts or pages. Turn it off for this source job.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] );
+		}
 		return new \WP_Error( 'rsl_ie_schedule_' . $code, 'Schedule operation failed: ' . $code, [ 'status' => $status ] );
 	}
 }

@@ -256,7 +256,8 @@ class Export_Service {
 			if ( is_wp_error( $request ) ) {
 				return $request;
 			}
-			$all_data = $this->read_spool( $job_id, $bytes );
+			// CSV is written row by row from the spool; other formats still need every row at once.
+			$all_data = 'csv' === $request['format'] && $bytes > 0 ? $this->spool_rows( $job_id, $bytes ) : $this->read_spool( $job_id, $bytes );
 			if ( is_wp_error( $all_data ) ) {
 				return $all_data;
 			}
@@ -337,6 +338,42 @@ class Export_Service {
 	}
 
 	/**
+	 * Stream the committed spool one row at a time.
+	 *
+	 * @param int $job_id Job ID.
+	 * @param int $bytes Committed length.
+	 * @return \Generator|\WP_Error
+	 * @throws \RuntimeException When a spooled row is malformed.
+	 */
+	private function spool_rows( $job_id, $bytes ) {
+		$path = $this->spool_path( $job_id );
+		if ( ! is_file( $path ) || filesize( $path ) !== (int) $bytes ) {
+			return $this->io_error();
+		}
+		return ( static function () use ( $path ) {
+			$handle = fopen( $path, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Local generated spool.
+			if ( ! $handle ) {
+				throw new \RuntimeException( 'Export spool unreadable.' );
+			}
+			try {
+				while ( false !== ( $line = fgets( $handle ) ) ) { // phpcs:ignore WordPress.CodeAnalysis.AssignmentInCondition
+					$line = rtrim( $line, "\n" );
+					if ( '' === $line ) {
+						continue;
+					}
+					$row = json_decode( $line, true );
+					if ( ! is_array( $row ) ) {
+						throw new \RuntimeException( 'Export spool row is malformed.' );
+					}
+					yield $row;
+				}
+			} finally {
+				fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Close the spool.
+			}
+		} )();
+	}
+
+	/**
 	 * Keep existing spools readable; new spools use private storage.
 	 *
 	 * @param int $job_id Job ID.
@@ -362,7 +399,7 @@ class Export_Service {
 	 * @param array $data Exported rows.
 	 * @return true|\WP_Error
 	 */
-	private function finalize( $job_id, array $request, array $data ) {
+	private function finalize( $job_id, array $request, $data ) {
 		$format  = $request['format'];
 		$options = $request['format_options'];
 		$name    = $request['options']['custom_export_file_name'] ?? 'export-{job_id}';
@@ -388,7 +425,7 @@ class Export_Service {
 			if ( 'csv' === $format || in_array( $format, [ 'xlsx', 'ods' ], true ) ) {
 				$include                      = ! empty( $options[ 'csv' === $format ? 'csv_include_header' : 'spreadsheet_include_header' ] );
 				$formatter_options['headers'] = $include ? null : false;
-				if ( $include && ! $data ) {
+				if ( $include && is_array( $data ) && ! $data ) {
 					$fields = $request['options']['fields'] ?? [];
 					if ( ! $fields || in_array( '*', $fields, true ) ) {
 						$exporter = Exporter_Factory::get_exporter( $request['export_type'] );
@@ -406,7 +443,11 @@ class Export_Service {
 			}
 			$headers = self::column_headers( $request['options']['column_headers'] ?? [] );
 			if ( $headers ) {
-				$data = self::rename_columns( $data, $headers );
+				$data = is_array( $data ) ? self::rename_columns( $data, $headers ) : ( static function () use ( $data, $headers ) {
+					foreach ( $data as $row ) {
+						yield self::rename_columns( [ $row ], $headers )[0];
+					}
+				} )();
 				if ( is_array( $formatter_options['headers'] ?? null ) ) {
 					$formatter_options['headers'] = array_map(
 						static function ( $field ) use ( $headers ) {
@@ -416,7 +457,11 @@ class Export_Service {
 					);
 				}
 			}
-			$result = $formatter->generate( $data, $info['path'], $formatter_options );
+			try {
+				$result = $formatter->generate( $data, $info['path'], $formatter_options );
+			} catch ( \RuntimeException $error ) {
+				return $this->io_error();
+			}
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}

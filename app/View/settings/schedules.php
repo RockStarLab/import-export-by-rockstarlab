@@ -141,6 +141,17 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 							<p class="description"><?php echo esc_html( sprintf( /* translators: %s: WordPress timezone name. */ __( 'Timezone: %s', 'import-export-by-rockstarlab' ), wp_timezone_string() ) ); ?></p>
 						</td>
 					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Changes only', 'import-export-by-rockstarlab' ); ?></th>
+						<td>
+							<?php $rsl_ie_changed_only = $rsl_ie_selected ? ! empty( get_option( 'rsl_ie_schedule_meta_' . $rsl_ie_selected->id, [] )['changed_only'] ) : false; ?>
+							<label>
+								<input id="schedule-changed-only" name="changed_only" type="checkbox" value="1" <?php checked( $rsl_ie_changed_only ); ?> <?php disabled( $rsl_ie_readonly ); ?>>
+								<?php esc_html_e( 'Export only posts or pages changed since the previous run', 'import-export-by-rockstarlab' ); ?>
+							</label>
+							<p class="description"><?php esc_html_e( 'For exports of posts and pages. The first run exports everything the filters select; each later run adds a Modified Date filter from the time the previous completed run started.', 'import-export-by-rockstarlab' ); ?></p>
+						</td>
+					</tr>
 				</table>
 				<?php if ( $rsl_ie_readonly ) : ?>
 					<a class="button button-primary" href="
@@ -199,7 +210,12 @@ $rsl_ie_format_job_label  = static function ( $job ) {
 						echo esc_html( '' === $rsl_ie_source_name ? $rsl_ie_source_base : sprintf( '%1$s — %2$s', $rsl_ie_source_name, $rsl_ie_source_base ) );
 						?>
 					</td>
-					<td><?php echo esc_html( 'recurring' === $rsl_ie_schedule->schedule_type ? ucfirst( $rsl_ie_schedule->recurrence ) : __( 'One time', 'import-export-by-rockstarlab' ) ); ?></td>
+					<td>
+						<?php echo esc_html( 'recurring' === $rsl_ie_schedule->schedule_type ? ucfirst( $rsl_ie_schedule->recurrence ) : __( 'One time', 'import-export-by-rockstarlab' ) ); ?>
+						<?php if ( ! empty( get_option( 'rsl_ie_schedule_meta_' . $rsl_ie_schedule->id, [] )['changed_only'] ) ) : ?>
+							<br><span class="description"><?php esc_html_e( 'Changes only', 'import-export-by-rockstarlab' ); ?></span>
+						<?php endif; ?>
+					</td>
 					<td><?php echo $rsl_ie_next ? esc_html( wp_date( 'Y-m-d H:i', $rsl_ie_next, wp_timezone() ) ) : '—'; ?></td>
 					<td>
 						<?php echo $rsl_ie_last ? esc_html( wp_date( 'Y-m-d H:i', $rsl_ie_last, wp_timezone() ) ) : '—'; ?>

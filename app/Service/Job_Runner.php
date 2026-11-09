@@ -104,7 +104,9 @@ class Job_Runner {
 				// each one: WP-Cron only fires on page visits, so one batch per event left a closed
 				// browser tab importing ~50 rows per visitor minute. Each import batch has its own
 				// time budget, and no new batch starts after the deadline.
-				$drains  = Migration_Service::supports( $job ) || $service instanceof Import_Service;
+				// Background exports (schedules, AI agents) drain too: with the default batch of 3 items,
+				// one batch per cron event left a 74-post scheduled export running for many minutes.
+				$drains  = Migration_Service::supports( $job ) || $service instanceof Import_Service || $service instanceof Export_Service;
 				$advance = ! is_wp_error( $outcome ) && empty( $outcome['locked'] ) && $drain_migration && $drains && $current && in_array( $current->status, [ 'pending', 'processing' ], true );
 			} while ( $advance && microtime( true ) < ( $service instanceof Import_Service ? $started + Import_Service::BATCH_TIME_BUDGET / 2 : $deadline ) );
 		}

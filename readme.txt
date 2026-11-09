@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.29
+Stable tag: 2.1.30
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -273,6 +273,15 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.30 =
+* New: "Changes only" for scheduled exports of posts and pages. The first run exports everything the filters select; each later run exports only what was modified since the previous completed run started. Also available to AI agents as changed_only in the schedule abilities.
+* Improved: a Date or Modified Date filter with a time (for example 2026-11-09 08:30) now compares to the minute instead of the whole day.
+* Improved: background exports (scheduled runs and exports started by AI agents) process several batches per cron event. A scheduled export of 74 posts in batches of 3 needed about 25 cron events before; now it finishes in one.
+* Improved: exports with filters are much faster on large sites. The posts that match are found once per export instead of once per batch, and Status and Date filters are applied by the database: on a site with 100,000 posts the item counter with a Status filter takes 0.07 s instead of 5.5 s, and each batch after the first 0.1 s instead of 5 s.
+* Improved: the default export batch size is 50 instead of 3, and the field accepts up to 500 (the largest value the exporter uses). A 100,000-post export in the browser took about 70 minutes with batches of 3 and about 3 minutes with 500.
+* Fixed: a CSV export of a very large site (100,000 posts with content) stopped at the end with a PHP memory error, because the whole file was built in memory. CSV files are now written row by row.
+* Fixed: a Content Sync push started from a long-running process (an AI agent through the stdio MCP server, or WP-CLI) could send an older copy of a post that had been edited in the meantime. The selected posts are now read fresh before every push.
 
 = 2.1.29 =
 * New: "UTF-8 BOM" option for CSV exports, so Excel shows accented letters and emojis correctly. Also available to AI agents as format_options.csv_use_bom.
