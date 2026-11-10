@@ -41,6 +41,31 @@ defined( 'ABSPATH' ) || exit;
 				<p class="description"><?php esc_html_e( 'A direct link to a CSV, XML, JSON, XLSX or ODS file, such as a supplier price list or product feed. When you schedule this import, the file is downloaded again on every run.', 'import-export-by-rockstarlab' ); ?></p>
 			</div>
 
+			<!-- Import from a saved FTP/SFTP server -->
+			<?php $rsl_ie_remote_servers = \RockStarLab\ImportExport\Service\Remote_File_Service::servers(); ?>
+			<div class="rsl-ie-url-import rsl-ie-remote-import">
+				<label for="rsl-ie-remote-server"><?php esc_html_e( 'Or import a file from an FTP or SFTP server', 'import-export-by-rockstarlab' ); ?></label>
+				<?php if ( $rsl_ie_remote_servers ) : ?>
+					<div class="rsl-ie-url-import-row">
+						<select id="rsl-ie-remote-server">
+							<?php foreach ( $rsl_ie_remote_servers as $rsl_ie_remote ) : ?>
+								<option value="<?php echo esc_attr( $rsl_ie_remote['id'] ); ?>"><?php echo esc_html( $rsl_ie_remote['label'] ); ?></option>
+							<?php endforeach; ?>
+						</select>
+						<input type="text" id="rsl-ie-remote-path" class="regular-text code" placeholder="/feeds/products.csv">
+						<button type="button" class="button button-secondary" id="rsl-ie-remote-browse"><?php esc_html_e( 'Browse', 'import-export-by-rockstarlab' ); ?></button>
+						<button type="button" class="button button-secondary" id="rsl-ie-remote-fetch"><?php esc_html_e( 'Fetch File', 'import-export-by-rockstarlab' ); ?></button>
+					</div>
+					<div class="rsl-ie-remote-listing" style="display:none;"></div>
+					<p class="description"><?php esc_html_e( 'When you schedule this import, the current file is downloaded from the server on every run.', 'import-export-by-rockstarlab' ); ?></p>
+				<?php else : ?>
+					<p class="description">
+						<?php esc_html_e( 'Save the server once, then pick files from it here.', 'import-export-by-rockstarlab' ); ?>
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-servers&add=1' ) ); ?>"><?php esc_html_e( 'Add a server', 'import-export-by-rockstarlab' ); ?></a>
+					</p>
+				<?php endif; ?>
+			</div>
+
 			<!-- Upload Progress Bar -->
 			<div class="rsl-ie-upload-progress" style="display:none;">
 				<div class="rsl-ie-upload-status">

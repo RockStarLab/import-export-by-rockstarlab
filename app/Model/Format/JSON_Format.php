@@ -107,6 +107,88 @@ class JSON_Format implements File_Format_Interface {
 	}
 
 	/**
+	 * Records nested deeper in the file, such as a Ghost export ({"db":[{"data":{"posts":[...]}}]}).
+	 * Used only when the file would otherwise give a single row that holds nothing but lists and
+	 * objects: then the list of objects that looks most like records becomes the rows.
+	 *
+	 * @param string $path File path.
+	 * @return array|null [ 'path' => 'db.0.data.posts', 'rows' => [...] ] or null.
+	 */
+	public static function nested_records( $path ) {
+		static $cache = [];
+		$size = @filesize( $path );
+		if ( false === $size || $size > 64 * MB_IN_BYTES ) {
+			return null;
+		}
+		$key = $path . '|' . $size . '|' . @filemtime( $path );
+		if ( array_key_exists( $key, $cache ) ) {
+			return $cache[ $key ];
+		}
+		$cache[ $key ] = null;
+		// Cheap check first: the file holds a single object member or a single array element.
+		try {
+			$probe = 0;
+			$reader = JSON_Row_Stream::rows( $path, [ 'object_members' => true ] );
+			foreach ( $reader as $unused ) {
+				if ( ++$probe > 1 ) {
+					return null;
+				}
+			}
+		} catch ( \Throwable $error ) {
+			return null;
+		}
+		$data          = json_decode( (string) file_get_contents( $path ), true, 512 );
+		if ( ! is_array( $data ) || 1 !== count( $data ) ) {
+			return null;
+		}
+		$top   = reset( $data );
+		$first = (string) key( $data );
+		if ( ! is_array( $top ) ) {
+			return null;
+		}
+		foreach ( $top as $value ) {
+			if ( ! is_array( $value ) ) {
+				return null; // A single real record with its own values.
+			}
+		}
+		$best = null;
+		$walk = static function ( $node, $node_path, $depth ) use ( &$walk, &$best ) {
+			if ( $depth > 6 || ! is_array( $node ) ) {
+				return;
+			}
+			if ( self::is_list( $node ) && count( $node ) >= 2 ) {
+				$records = true;
+				$keys    = 0;
+				foreach ( $node as $item ) {
+					if ( ! is_array( $item ) || ! $item || self::is_list( $item ) ) {
+						$records = false;
+						break;
+					}
+					$keys += count( $item );
+				}
+				if ( $records ) {
+					$name  = strtolower( (string) substr( strrchr( '.' . $node_path, '.' ), 1 ) );
+					$score = $keys * ( in_array( $name, [ 'posts', 'pages', 'items', 'records', 'entries', 'rows', 'products', 'results' ], true ) ? 2 : 1 );
+					if ( null === $best || $score > $best['score'] ) {
+						$best = [ 'path' => $node_path, 'rows' => array_values( $node ), 'score' => $score ];
+					}
+					return;
+				}
+			}
+			foreach ( $node as $child_key => $child ) {
+				$walk( $child, '' === $node_path ? (string) $child_key : $node_path . '.' . $child_key, $depth + 1 );
+			}
+		};
+		$walk( $top, $first, 1 );
+		if ( null === $best ) {
+			return null;
+		}
+		unset( $best['score'] );
+		$cache[ $key ] = $best;
+		return $best;
+	}
+
+	/**
 	 * Add a column for every value inside nested objects, named by its path ("author.name",
 	 * "image.url"), after the row's own columns. The original columns stay, so mappings and
 	 * files that use the whole object (post_meta, ACF groups) keep working. Lists stay as they are.

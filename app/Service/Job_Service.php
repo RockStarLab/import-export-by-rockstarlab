@@ -273,6 +273,9 @@ class Job_Service {
 		if ( null !== $preparation ) {
 			$snapshot['preparation'] = $preparation;
 		}
+		if ( 'export' === $job->type && is_array( $result ) && is_array( $result['remote_upload'] ?? null ) ) {
+			$snapshot['remote_upload'] = array_intersect_key( $result['remote_upload'], array_flip( [ 'status', 'server', 'path', 'size', 'error' ] ) );
+		}
 		return $snapshot;
 	}
 

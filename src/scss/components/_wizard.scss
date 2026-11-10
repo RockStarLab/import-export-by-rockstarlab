@@ -1454,6 +1454,33 @@
 	}
 }
 
+#rsl-ie-servers {
+	.rsl-ie-servers-intro {
+		margin: 16px 0 12px;
+		max-width: 900px;
+	}
+
+	.rsl-ie-servers-table {
+		max-width: 1000px;
+		margin-bottom: 16px;
+	}
+
+	.rsl-ie-server-actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 6px;
+
+		form {
+			margin: 0;
+		}
+	}
+
+	.rsl-ie-inline-check {
+		margin-right: 16px;
+	}
+}
+
 #rsl-ie-triggers {
 	.rsl-ie-notifications-intro {
 		margin: 16px 0 4px;

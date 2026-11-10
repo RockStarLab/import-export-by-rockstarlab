@@ -130,20 +130,73 @@ class Workflow_Catalog {
 		);
 		$add(
 			'upload-from-url',
-			'Download an import file from an http(s) address (CSV, XML, JSON, XLSX, ODS or ZIP; for example a supplier feed or a Google Sheet published as CSV) and return it like upload-complete, ready for import-prepare and import-start. The address is kept with the file and the import job, so a schedule made from that job (schedule-create) downloads the current file at every run. Private network addresses are refused. Nothing is imported.',
+			'Download an import file from an http(s) address (CSV, XML, JSON, XLSX, ODS or ZIP; for example a supplier feed or a Google Sheet published as CSV) and return it like upload-complete, ready for import-prepare and import-start. The address is kept with the file and the import job, so a schedule made from that job (schedule-create) downloads the current file at every run. Private network addresses are refused. A file on a saved FTP, FTPS or SFTP server is addressed as rsl-remote://<server id>/<path> (see remote-servers and remote-browse). Nothing is imported.',
 			Workflow_Schemas::object(
 				[
 					'url'            => [
 						'type'      => 'string',
 						'minLength' => 8,
 						'maxLength' => 2000,
-						'pattern'   => '^https?://',
+						'pattern'   => '^(https?|rsl-remote)://',
 					],
 					'parser_options' => Workflow_Schemas::parser(),
 				],
 				[ 'url' ]
 			),
 			$file
+		);
+		$server = Workflow_Schemas::object(
+			[
+				'id'           => $s,
+				'label'        => $s,
+				'protocol'     => Workflow_Schemas::string( [ 'ftp', 'ftps', 'sftp' ] ),
+				'host'         => $s,
+				'port'         => Workflow_Schemas::integer(),
+				'username'     => $s,
+				'passive'      => $b,
+				'has_password' => $b,
+				'host_key'     => $s,
+				'address'      => $s,
+			],
+			[ 'id', 'label', 'protocol', 'host', 'address' ]
+		);
+		$add(
+			'remote-servers',
+			'List the FTP, FTPS and SFTP servers saved in Import Export > Settings > Servers (no passwords). Use a server address (rsl-remote://<id>/<path>) with upload-from-url to import a file from it, or as export options.remote_destination to upload a finished export to it. Servers are added by an administrator in the settings screen.',
+			Schema_Registry::empty_input(),
+			Workflow_Schemas::object( [ 'servers' => Workflow_Schemas::items( $server ) ], [ 'servers' ] ),
+			true
+		);
+		$add(
+			'remote-browse',
+			'List files and folders in one folder of a saved FTP, FTPS or SFTP server. Connects to the server; nothing is downloaded.',
+			Workflow_Schemas::object(
+				[
+					'server_id' => Workflow_Schemas::string(),
+					'path'      => Workflow_Schemas::string(),
+				],
+				[ 'server_id' ]
+			),
+			Workflow_Schemas::object(
+				[
+					'path'  => $s,
+					'items' => Workflow_Schemas::items(
+						Workflow_Schemas::object(
+							[
+								'name'    => $s,
+								'type'    => Workflow_Schemas::string( [ 'file', 'dir' ] ),
+								'size'    => Workflow_Schemas::integer(),
+								'mtime'   => Workflow_Schemas::integer(),
+								'address' => $s,
+							],
+							[ 'name', 'type' ]
+						),
+						500
+					),
+				],
+				[ 'path', 'items' ]
+			),
+			true
 		);
 		$add( 'upload-abort', 'Abort an unfinished upload and remove its chunks. Ready files cannot be aborted.', $file_input, $file, false, true );
 		$add( 'file-preview', 'Preview a ready import file and save delimiter/header choices for the next import. This updates file metadata, so use POST.', $parser_input, $file );

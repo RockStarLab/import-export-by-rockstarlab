@@ -129,6 +129,37 @@ const ImportModule = {
 				this.fetchFromUrl();
 			}
 		} );
+		// Files on a saved FTP/SFTP server.
+		$wizard.on( 'click', '#rsl-ie-remote-browse', () => {
+			const path = String( jQuery( '#rsl-ie-remote-path' ).val() || '/' );
+			// Browse the folder of a typed file path.
+			this.browseRemote(
+				/\.[a-z0-9]{2,4}$/i.test( path )
+					? path.replace( /\/[^/]*$/, '' ) || '/'
+					: path
+			);
+		} );
+		$wizard.on( 'click', '.rsl-ie-remote-item', ( e ) => {
+			e.preventDefault();
+			const $item = jQuery( e.currentTarget );
+			if ( 'dir' === $item.data( 'type' ) ) {
+				this.browseRemote( String( $item.data( 'path' ) ) );
+				return;
+			}
+			jQuery( '#rsl-ie-remote-path' ).val( String( $item.data( 'path' ) ) );
+			jQuery( '.rsl-ie-remote-listing' ).hide();
+			this.fetchRemote();
+		} );
+		$wizard.on( 'change', '#rsl-ie-remote-server', () => {
+			jQuery( '.rsl-ie-remote-listing' ).hide().empty();
+		} );
+		$wizard.on( 'click', '#rsl-ie-remote-fetch', () => this.fetchRemote() );
+		$wizard.on( 'keydown', '#rsl-ie-remote-path', ( e ) => {
+			if ( 'Enter' === e.key ) {
+				e.preventDefault();
+				this.fetchRemote();
+			}
+		} );
 		$wizard.on( 'click', '#rsl-ie-select-file', () => {
 			$wizard.find( '#rsl-ie-file-input' ).trigger( 'click' );
 		} );
@@ -790,6 +821,26 @@ const ImportModule = {
 						.text( conversionText )
 						.show();
 				}
+
+				// Records found deeper in a JSON file (for example a Ghost export).
+				if (
+					'json_records' === result.converted_from &&
+					result.conversion
+				) {
+					const recordsText = (
+						rslIeData.i18n.jsonRecordsFound ||
+						'The records in this JSON file are inside %1$s: %2$s records found. Each record becomes a row.'
+					)
+						.replace( '%1$s', result.records_path || '' )
+						.replace(
+							'%2$s',
+							parseInt( result.conversion.records, 10 ) || 0
+						);
+					Utils.showNotice( Utils.escapeHtml( recordsText ), 'info' );
+					jQuery( '.rsl-ie-file-conversion' )
+						.text( recordsText )
+						.show();
+				}
 			},
 			onError: ( error ) => {
 				// Upload failed
@@ -808,11 +859,133 @@ const ImportModule = {
 	},
 
 	/**
-	 * Download the import file from a URL on the server.
+	 * List a folder of the chosen FTP/SFTP server under the path field.
+	 *
+	 * @param {string} path Folder on the server.
 	 */
-	async fetchFromUrl() {
-		const url = String( jQuery( '#rsl-ie-file-url' ).val() || '' ).trim();
-		if ( ! /^https?:\/\//i.test( url ) ) {
+	async browseRemote( path ) {
+		const clientData = window.rslIeData || {};
+		const i18n = clientData.i18n || {};
+		const $list = jQuery( '.rsl-ie-remote-listing' );
+		$list
+			.show()
+			.html(
+				'<p class="description">' +
+					Utils.escapeHtml( i18n.remoteLoading || 'Connecting...' ) +
+					'</p>'
+			);
+		const body = new FormData();
+		body.append( 'action', 'rsl_ie_remote_browse' );
+		body.append(
+			'nonce',
+			( clientData.nonces || {} ).rsl_ie_remote_browse || ''
+		);
+		body.append(
+			'server_id',
+			String( jQuery( '#rsl-ie-remote-server' ).val() || '' )
+		);
+		body.append( 'path', path || '/' );
+		try {
+			const response = await fetch(
+				clientData.ajaxUrl || window.ajaxurl || '',
+				{ method: 'POST', body, credentials: 'same-origin' }
+			);
+			const data = await response.json();
+			if ( ! data.success ) {
+				throw new Error(
+					( data.data && data.data.message ) ||
+						( 'string' === typeof data.data ? data.data : '' ) ||
+						'Error'
+				);
+			}
+			const result = data.data;
+			const rows = [];
+			if ( '/' !== result.path ) {
+				const up = result.path.replace( /\/[^/]*$/, '' ) || '/';
+				rows.push(
+					'<li><a href="#" class="rsl-ie-remote-item" data-type="dir" data-path="' +
+						Utils.escapeHtml( up ) +
+						'"><span class="dashicons dashicons-arrow-up-alt2"></span> ..</a></li>'
+				);
+			}
+			( result.items || [] ).forEach( ( item ) => {
+				const isDir = 'dir' === item.type;
+				rows.push(
+					'<li><a href="#" class="rsl-ie-remote-item" data-type="' +
+						( isDir ? 'dir' : 'file' ) +
+						'" data-path="' +
+						Utils.escapeHtml( item.path ) +
+						'"><span class="dashicons ' +
+						( isDir ? 'dashicons-category' : 'dashicons-media-default' ) +
+						'"></span> ' +
+						Utils.escapeHtml( item.name ) +
+						'</a>' +
+						( isDir
+							? ''
+							: ' <span class="description">' +
+							  Utils.escapeHtml(
+									Utils.formatFileSize(
+										parseInt( item.size, 10 ) || 0
+									)
+							  ) +
+							  '</span>' ) +
+						'</li>'
+				);
+			} );
+			$list.html(
+				'<p class="rsl-ie-remote-folder"><code>' +
+					Utils.escapeHtml( result.path ) +
+					'</code></p>' +
+					( rows.length
+						? '<ul>' + rows.join( '' ) + '</ul>'
+						: '<p class="description">' +
+						  Utils.escapeHtml( i18n.remoteEmpty || 'This folder is empty.' ) +
+						  '</p>' )
+			);
+		} catch ( error ) {
+			$list.html(
+				'<p class="rsl-ie-remote-error">' +
+					Utils.escapeHtml( error.message ) +
+					'</p>'
+			);
+		}
+	},
+
+	/**
+	 * Download the import file from the chosen FTP/SFTP server.
+	 */
+	fetchRemote() {
+		const server = String( jQuery( '#rsl-ie-remote-server' ).val() || '' );
+		const path = String( jQuery( '#rsl-ie-remote-path' ).val() || '' ).trim();
+		if ( ! server || ! path || /\/$/.test( path ) ) {
+			Utils.showNotice(
+				( window.rslIeData.i18n || {} ).remotePickFile ||
+					'Enter the path of the file on the server, or click Browse.',
+				'error'
+			);
+			return;
+		}
+		this.fetchFromUrl(
+			'rsl-remote://' + server + '/' + path.replace( /^\/+/, '' ),
+			jQuery( '#rsl-ie-remote-server option:selected' ).text() +
+				': ' +
+				( path.charAt( 0 ) === '/' ? path : '/' + path )
+		);
+	},
+
+	/**
+	 * Download the import file from a URL on the server.
+	 *
+	 * @param {string} address Optional address (saved server file) instead of the URL field.
+	 * @param {string} label   Readable source for the file info line.
+	 */
+	async fetchFromUrl( address = '', label = '' ) {
+		const url =
+			'string' === typeof address && address
+				? address
+				: String( jQuery( '#rsl-ie-file-url' ).val() || '' ).trim();
+		const shown = label || url;
+		if ( ! /^(https?|rsl-remote):\/\//i.test( url ) ) {
 			Utils.showNotice(
 				rslIeData.i18n.fileUrlInvalid ||
 					'Enter a full http:// or https:// address of the file.',
@@ -821,7 +994,7 @@ const ImportModule = {
 			return;
 		}
 		const clientData = window.rslIeData || {};
-		const $button = jQuery( '#rsl-ie-fetch-url' );
+		const $button = jQuery( '#rsl-ie-fetch-url, #rsl-ie-remote-fetch' );
 		$button.prop( 'disabled', true );
 		jQuery( '.rsl-ie-upload-placeholder, .rsl-ie-url-import' ).hide();
 		jQuery( '.rsl-ie-upload-progress' ).show();
@@ -848,7 +1021,7 @@ const ImportModule = {
 			const result = data.data;
 			// The file is on the server already; keep what step validation needs.
 			this.uploadedFile = {
-				name: result.file_name || url,
+				name: result.file_name || shown,
 				size:
 					parseInt( result.file_size || result.expected_bytes, 10 ) ||
 					0,
@@ -859,7 +1032,7 @@ const ImportModule = {
 			this.fileData.encoding = 'auto';
 			this.showDetectedDelimiter( result );
 			const format = String( result.format || '' ).toLowerCase();
-			jQuery( '.rsl-ie-file-name' ).text( result.file_name || url );
+			jQuery( '.rsl-ie-file-name' ).text( result.file_name || shown );
 			jQuery( '.rsl-ie-file-size' ).text(
 				Utils.formatFileSize(
 					parseInt( result.file_size || result.expected_bytes, 10 ) ||
@@ -871,7 +1044,7 @@ const ImportModule = {
 				.text(
 					(
 						rslIeData.i18n.fileUrlSource || 'Downloaded from %s'
-					).replace( '%s', url )
+					).replace( '%s', shown )
 				)
 				.show();
 			jQuery( '.rsl-ie-upload-progress' ).hide();
@@ -5745,7 +5918,10 @@ const ImportModule = {
 					'page title',
 				],
 				post_name: [ 'handle', 'permalink' ],
-				post_content: [ 'body (html)', 'body', 'content' ],
+				// "html" and "published_at" are the column names of Ghost exports.
+				post_content: [ 'body (html)', 'body', 'content', 'html' ],
+				post_date: [ 'published_at', 'published at', 'publish date' ],
+				post_excerpt: [ 'custom_excerpt', 'custom excerpt' ],
 				product_cat: [
 					'categories',
 					'category',
@@ -5765,6 +5941,8 @@ const ImportModule = {
 				product_url: [ 'external url', 'product url' ],
 				button_text: [ 'button text' ],
 				featured_image_url: [
+					'feature_image',
+					'feature image',
 					'image src',
 					'image url',
 					'featured image',

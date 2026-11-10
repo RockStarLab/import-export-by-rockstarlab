@@ -108,6 +108,15 @@ class Export_Request {
 				return self::error();
 			}
 		}
+		if ( isset( $options['remote_destination'] ) && '' !== trim( (string) $options['remote_destination'] ) ) {
+			$destination = Remote_File_Service::parse( (string) $options['remote_destination'] );
+			if ( is_wp_error( $destination ) ) {
+				return $destination;
+			}
+			$options['remote_destination'] = trim( (string) $options['remote_destination'] );
+		} else {
+			unset( $options['remote_destination'] );
+		}
 		$transformations = Access_Policy::check_transformations( $options['field_functions'] ?? [] );
 		if ( is_wp_error( $transformations ) ) {
 			return $transformations; }
