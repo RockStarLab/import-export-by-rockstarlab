@@ -89,7 +89,10 @@ const ImportModule = {
 			return;
 		}
 		const value = '\t' === detected ? 'tab' : detected;
-		if ( ',' === value || ! $select.find( `option[value="${ value }"]` ).length ) {
+		if (
+			',' === value ||
+			! $select.find( `option[value="${ value }"]` ).length
+		) {
 			return;
 		}
 		$select.val( value );
@@ -5601,7 +5604,9 @@ const ImportModule = {
 			// First-row value of a column. A whole JSON object (shown as "{...}") can't fill a
 			// single-value field such as Author ID; its "author.name" columns can.
 			const sampleOf = ( index ) =>
-				String( this.fileData?.preview?.data?.[ 0 ]?.[ index ] ?? '' ).trim();
+				String(
+					this.fileData?.preview?.data?.[ 0 ]?.[ index ] ?? ''
+				).trim();
 			const isObjectSample = ( index ) => /^\{/.test( sampleOf( index ) );
 			const isDateSample = ( index ) =>
 				/^\d{4}-\d{2}-\d{2}/.test( sampleOf( index ) );
@@ -6005,7 +6010,10 @@ const ImportModule = {
 					if ( ! aliasTarget ) return;
 					if ( isObjectSample( sourceIndex ) ) return;
 					// "Published" is a yes/no status in shop exports but a date in many feeds.
-					if ( 'post_status' === aliasTarget && isDateSample( sourceIndex ) ) {
+					if (
+						'post_status' === aliasTarget &&
+						isDateSample( sourceIndex )
+					) {
 						aliasTarget = 'post_date';
 					}
 
