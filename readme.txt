@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.44
+Stable tag: 2.1.45
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,11 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.45 =
+* Fixed: when importing into a custom post type (PRO), ACF fields now appear in the field mapping after you choose the post type, and Auto Map matches them.
+* Fixed: in XLSX exports, prices and totals such as 13.80 or 40.00 are now numbers shown with two decimals, so Excel and Google Sheets can sum them. Importing the file back reads 13.80 exactly.
+* Fixed: when an import matches existing posts by slug, a draft without a slug now matches the post with the same title and date. Importing the same file again, or restoring a Content Migration package, no longer adds a copy of every draft.
 
 = 2.1.44 =
 * Fixed: in a WooCommerce product export (PRO), Stock Quantity filters such as "Less or Equal 5" no longer match products that don't track stock. An empty value is never greater or less than a number.

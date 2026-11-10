@@ -817,6 +817,32 @@ class Post_Importer extends Abstract_Importer {
 			return ! empty( $posts ) ? get_post( $posts[0] ) : null;
 		}
 
+		// Drafts often have no slug yet. When matching by slug, a row without one is the
+		// same post if a post of this type has the same title and the same date, so a
+		// re-import or a restore doesn't create a copy of every draft.
+		if ( 'post_name' === $check_field && empty( $item['post_name'] ) && ! empty( $item['post_title'] ) && ! empty( $item['post_date'] ) ) {
+			global $wpdb;
+			$post_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Exact match on title and date.
+				$wpdb->prepare(
+					"SELECT ID
+						 FROM {$wpdb->posts}
+						 WHERE post_type = %s
+						   AND post_title = %s
+						   AND post_date = %s
+						   AND post_name = ''
+						   AND post_status <> 'trash'
+						 ORDER BY ID ASC
+						 LIMIT 1",
+					(string) $this->get_option( 'post_type', 'post' ),
+					(string) $item['post_title'],
+					(string) $item['post_date']
+				)
+			);
+			if ( $post_id ) {
+				return get_post( (int) $post_id );
+			}
+		}
+
 		return null;
 	}
 

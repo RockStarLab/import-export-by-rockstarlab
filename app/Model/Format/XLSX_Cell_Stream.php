@@ -63,6 +63,9 @@ class XLSX_Cell_Stream {
 				if ( false === $xml ) {
 					throw new \RuntimeException( 'Invalid worksheet cell.' ); }
 				$value = $decoder->decode( $xml, $namespace, $coordinate, $strings, [ $formulas, 'resolve' ] );
+				$style = $node->getAttribute( 's' );
+				if ( ! empty( $map['decimals'] ) && null !== $style && '' !== $style && isset( $map['decimals'][ (int) $style ] ) && in_array( (string) $node->getAttribute( 't' ), [ '', 'n' ], true ) ) {
+					$value = self::pad_decimals( $value, $map['decimals'][ (int) $style ] ); }
 				yield [
 					'row'               => $indices[1],
 					'column'            => $indices[0],
@@ -84,5 +87,22 @@ class XLSX_Cell_Stream {
 			if ( $owns_strings && $strings ) {
 				$strings->close(); }
 		}
+	}
+
+	/**
+	 * Add the trailing zeros a fixed-decimals style shows (13.8 shown as 13.80).
+	 * Never rounds: a value with more decimals than the style keeps all of them.
+	 *
+	 * @param mixed $value    Decoded cell value.
+	 * @param int   $decimals Decimals shown by the cell style.
+	 * @return mixed
+	 */
+	private static function pad_decimals( $value, $decimals ) {
+		if ( ! is_string( $value ) || ! preg_match( '/^-?\d+(?:\.(\d*))?$/', $value, $match ) ) {
+			return $value; }
+		$current = isset( $match[1] ) ? strlen( $match[1] ) : 0;
+		if ( $current >= $decimals ) {
+			return $value; }
+		return ( isset( $match[1] ) ? $value : $value . '.' ) . str_repeat( '0', $decimals - $current );
 	}
 }

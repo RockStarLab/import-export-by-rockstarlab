@@ -36,6 +36,20 @@ class Spreadsheet_Format implements File_Format_Interface {
 	private const EXPORT_EXTENSIONS = array( 'xlsx', 'ods' );
 
 	/**
+	 * Fixed-decimals style indexes of the workbook being written.
+	 *
+	 * @var array<string,int>
+	 */
+	private $decimal_styles = array();
+
+	/**
+	 * Whether the workbook being written keeps fixed-decimals number formats (XLSX).
+	 *
+	 * @var bool
+	 */
+	private $fixed_decimals = false;
+
+	/**
 	 * Parse entire spreadsheet file.
 	 *
 	 * @param string $file_path Absolute path to spreadsheet file.
@@ -190,9 +204,12 @@ class Spreadsheet_Format implements File_Format_Interface {
 			$headers = $this->detect_headers( $data );
 		}
 
-		$spreadsheet = new Spreadsheet();
-		$sheet       = $spreadsheet->getActiveSheet();
-		$row_index   = 1;
+		$spreadsheet          = new Spreadsheet();
+		$sheet                = $spreadsheet->getActiveSheet();
+		$row_index            = 1;
+		$this->decimal_styles = array();
+		// The ODS writer drops number formats, so 13.80 would show and re-import as 13.8 there.
+		$this->fixed_decimals = 'xlsx' === $extension;
 
 		if ( ! empty( $headers ) ) {
 			$this->write_row( $sheet, $row_index, $headers );
@@ -415,8 +432,9 @@ class Spreadsheet_Format implements File_Format_Interface {
 	 *
 	 * Quantities, IDs and prices become real numbers so spreadsheets can sum and sort them.
 	 * Codes such as 00123 or +4930123, numbers longer than 11 digits (barcodes, tracking
-	 * numbers, which Excel would show as 1.2E+12) and decimals with trailing zeros (1.10)
-	 * stay text, so a re-import reads exactly what was exported.
+	 * numbers, which Excel would show as 1.2E+12) stay text, so a re-import reads exactly
+	 * what was exported. Decimals with trailing zeros (13.80) are handled by
+	 * trailing_zero_decimals(): a number with a fixed-decimals format.
 	 *
 	 * @param string $text Cell text.
 	 * @return int|float|null
@@ -443,13 +461,56 @@ class Spreadsheet_Format implements File_Format_Interface {
 			$coordinate = Coordinate::stringFromColumnIndex( $column_index ) . $row_index;
 			$text       = $this->normalize_cell_value( $value );
 			$number     = $this->exact_number( $text );
+			$decimals   = null === $number && $this->fixed_decimals ? $this->trailing_zero_decimals( $text ) : null;
+			if ( null !== $decimals ) {
+				$number = (float) $text;
+			}
 			$sheet->setCellValueExplicit(
 				$coordinate,
 				null === $number ? $text : $number,
 				null === $number ? DataType::TYPE_STRING : DataType::TYPE_NUMERIC
 			);
+			if ( null !== $decimals ) {
+				$sheet->getCell( $coordinate )->setXfIndex( $this->decimals_style( $sheet, $decimals ) );
+			}
 			++$column_index;
 		}
+	}
+
+	/**
+	 * Decimals of a price-like value such as 13.80 or 40.00, or null.
+	 *
+	 * Such a value is written as a number with a 0.00 format: spreadsheets can sum it,
+	 * it shows as 13.80, and the importer reads 13.80 back from the cell format.
+	 *
+	 * @param string $text Cell text.
+	 * @return int|null
+	 */
+	private function trailing_zero_decimals( $text ) {
+		if ( ! is_string( $text ) || ! preg_match( '/^-?(?:0|[1-9]\d{0,10})\.(\d{0,9}0)$/', $text, $match ) ) {
+			return null;
+		}
+		$short = rtrim( rtrim( $text, '0' ), '.' );
+		return (string) (float) $text === $short || ( '-0' === $short && 0.0 === (float) $text ) ? strlen( $match[1] ) : null;
+	}
+
+	/**
+	 * Workbook style index for a fixed number of decimals, created once per workbook.
+	 *
+	 * @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet    Worksheet.
+	 * @param int                                           $decimals Decimals.
+	 * @return int
+	 */
+	private function decimals_style( $sheet, $decimals ) {
+		$book = $sheet->getParent();
+		$key  = spl_object_id( $book ) . ':' . $decimals;
+		if ( ! isset( $this->decimal_styles[ $key ] ) ) {
+			$style = new \PhpOffice\PhpSpreadsheet\Style\Style();
+			$style->getNumberFormat()->setFormatCode( '0.' . str_repeat( '0', $decimals ) );
+			$book->addCellXf( $style );
+			$this->decimal_styles[ $key ] = $style->getIndex();
+		}
+		return $this->decimal_styles[ $key ];
 	}
 
 	/**
