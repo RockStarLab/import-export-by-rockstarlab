@@ -230,7 +230,14 @@ class File_Store {
 	 * @param int    $status HTTP status.
 	 * @return \WP_Error
 	 */
-	public static function error( $reason, $status = 400 ) {
-		return new \WP_Error( 'rsl_ie_' . $reason, sprintf( /* translators: %s: File operation failure code. */ __( 'File operation failed: %s.', 'import-export-by-rockstarlab' ), $reason ), [ 'status' => $status ] );
+	public static function error( $reason, $status = 400, $message = '' ) {
+		// Problems a person can fix themselves get a sentence instead of a code.
+		$readable = [
+			'spreadsheet_invalid' => __( 'The spreadsheet could not be read. Open it in Excel, Google Sheets or LibreOffice and save it again as .xlsx, .ods or .csv.', 'import-export-by-rockstarlab' ),
+		];
+		if ( '' === $message ) {
+			$message = $readable[ $reason ] ?? sprintf( /* translators: %s: File operation failure code. */ __( 'File operation failed: %s.', 'import-export-by-rockstarlab' ), $reason );
+		}
+		return new \WP_Error( 'rsl_ie_' . $reason, $message, [ 'status' => $status ] );
 	}
 }

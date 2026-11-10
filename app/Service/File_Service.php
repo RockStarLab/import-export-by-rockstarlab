@@ -58,7 +58,13 @@ class File_Service {
 		$size   = filter_var( $input['file_size'] ?? null, FILTER_VALIDATE_INT );
 		$chunks = filter_var( $input['total_chunks'] ?? 1, FILTER_VALIDATE_INT );
 		$format = strtolower( pathinfo( $name, PATHINFO_EXTENSION ) );
-		if ( ! in_array( $format, [ 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ], true ) || $size < 1 || $size > self::max_bytes() || $chunks < 1 || ( $chunks > 10000 && ! File_Chunk_Store::supported() ) || $chunks > $size ) {
+		if ( ! in_array( $format, [ 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ], true ) ) {
+			return File_Store::error( 'invalid_upload_manifest', 400, __( 'This type of file cannot be imported. Use a CSV, XLSX, ODS, JSON, XML or ZIP file. A tab-separated .txt file can be renamed to .csv.', 'import-export-by-rockstarlab' ) );
+		}
+		if ( false !== $size && null !== $size && $size < 1 ) {
+			return File_Store::error( 'invalid_upload_manifest', 400, __( 'The file is empty.', 'import-export-by-rockstarlab' ) );
+		}
+		if ( $size < 1 || $size > self::max_bytes() || $chunks < 1 || ( $chunks > 10000 && ! File_Chunk_Store::supported() ) || $chunks > $size ) {
 			return File_Store::error( 'invalid_upload_manifest' );
 		}
 		$id = '' !== $legacy_token ? self::legacy_id( $legacy_token ) : 'file_' . str_replace( '-', '', wp_generate_uuid4() );

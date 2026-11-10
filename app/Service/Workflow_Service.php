@@ -252,18 +252,48 @@ class Workflow_Service {
 			return $file; }
 		$fields  = array_merge( $schema['import']['required_fields'], $schema['import']['optional_fields'] );
 		$mapping = [];
-		foreach ( $file['headers'] as $index => $header ) {
-			if ( in_array( $header, $fields, true ) ) {
-				$mapping[] = [
-					'source_index' => $index,
-					'target_field' => $header,
-				]; }
+		$headers = array_map( 'strval', (array) $file['headers'] );
+		foreach ( $headers as $index => $header ) {
+			$target = in_array( $header, $fields, true ) ? $header : $this->relation_target( $input['import_type'], $header );
+			if ( '' === $target ) {
+				continue; }
+			// A readable copy ("category_names") is used only when the file has no portable column for it.
+			if ( $target !== $header && in_array( $target, $headers, true ) ) {
+				continue; }
+			$mapping[] = [
+				'source_index' => $index,
+				'target_field' => $target,
+			];
 		}
 		return [
 			'file'    => $file,
 			'schema'  => $schema,
 			'mapping' => $mapping,
 		];
+	}
+	/**
+	 * Map term and custom field columns that the post importer reads but the field list does not name.
+	 *
+	 * @param string $type Import type.
+	 * @param string $header File column.
+	 * @return string Target field, or '' when the column is not one of them.
+	 */
+	private function relation_target( $type, $header ) {
+		if ( ! in_array( $type, [ 'post', 'page' ], true ) ) {
+			return ''; }
+		$aliases = [
+			'categories'     => 'categories',
+			'category_names' => 'categories',
+			'tags'           => 'tags',
+			'tag_names'      => 'tags',
+		];
+		if ( 'post' === $type && isset( $aliases[ $header ] ) ) {
+			return $aliases[ $header ]; }
+		if ( 0 === strpos( $header, 'taxonomy_' ) && is_object_in_taxonomy( $type, substr( $header, 9 ) ) ) {
+			return $header; }
+		if ( 0 === strpos( $header, 'meta_' ) && strlen( $header ) > 5 ) {
+			return $header; }
+		return '';
 	}
 	/**
 	 * Decode a bounded JSON chunk into the File Service streaming interface.

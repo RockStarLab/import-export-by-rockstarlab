@@ -847,6 +847,11 @@ const ExportModule = {
 	 * Refresh item count
 	 */
 	async refreshCount( showSpinner = true ) {
+		// Filter changes fire several count requests; only the newest may update the number,
+		// or a slower answer for older filters overwrites the current count.
+		this.countRequest = ( this.countRequest || 0 ) + 1;
+		const request = this.countRequest;
+		const isCurrent = () => request === this.countRequest;
 		const $count = jQuery( '.rsl-ie-step-2 .rsl-ie-count-value' );
 		const $spinner = jQuery( '.rsl-ie-step-2 .rsl-ie-item-count .spinner' );
 		const $refreshBtn = jQuery( '.rsl-ie-step-2 .rsl-ie-refresh-count' );
@@ -917,6 +922,9 @@ const ExportModule = {
 				export_type: contentType,
 				options: options,
 			} );
+			if ( ! isCurrent() ) {
+				return;
+			}
 
 			$count.text( response.count || 0 );
 			// If database table is selected, also update table row count in the info panel
@@ -929,6 +937,9 @@ const ExportModule = {
 			// Update next button state based on count
 			this.updateStep2NextButton();
 		} catch ( error ) {
+			if ( ! isCurrent() ) {
+				return;
+			}
 			$count.text( '-' );
 			if ( contentType === 'form_entries' ) {
 				jQuery( '.rsl-ie-form-entry-error' )
@@ -945,8 +956,10 @@ const ExportModule = {
 			// Disable next button on error
 			this.updateStep2NextButton();
 		} finally {
-			$spinner.removeClass( 'is-active' );
-			$refreshBtn.removeClass( 'is-refreshing' );
+			if ( isCurrent() ) {
+				$spinner.removeClass( 'is-active' );
+				$refreshBtn.removeClass( 'is-refreshing' );
+			}
 		}
 	},
 

@@ -536,6 +536,16 @@ class Post_Importer extends Abstract_Importer {
 
 			if ( 'skip' === $duplicate_mode ) {
 				$this->record_source_id_map( $source_id, $existing_post->ID );
+				// Say which row was skipped: "Skipped 1" alone doesn't tell a merge which post collided.
+				$this->log_info(
+					sprintf(
+						/* translators: 1: title from the file, 2: title of the existing post, 3: its ID */
+						__( 'Skipped "%1$s": "%2$s" (ID %3$d) already exists with the same value in the field used to check for existing items.', 'import-export-by-rockstarlab' ),
+						(string) ( $item['post_title'] ?? $item['post_name'] ?? '' ),
+						get_the_title( $existing_post ),
+						(int) $existing_post->ID
+					)
+				);
 				return 'skipped';
 			}
 
