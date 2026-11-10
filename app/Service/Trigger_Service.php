@@ -911,6 +911,11 @@ class Trigger_Service {
 	 * @return array|\WP_Error
 	 */
 	private function file_state( $url ) {
+		if ( Remote_File_Service::is_remote( $url ) ) {
+			// Files on a saved FTP/SFTP server: size and modification time.
+			$state = ( new Remote_File_Service() )->state( $url );
+			return is_wp_error( $state ) ? $this->error( 'trigger_file_unreachable', $state->get_error_message(), 502 ) : $state;
+		}
 		$args = [
 			'timeout'     => 15,
 			'redirection' => 3,

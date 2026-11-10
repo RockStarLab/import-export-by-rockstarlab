@@ -35,6 +35,8 @@
 		"autoloader-suffix": "RslImportExport143"
 	},
 	"require": {
-		"phpoffice/phpspreadsheet": "^1.30.6"
+		"paragonie/constant_time_encoding": "^2.6",
+		"phpoffice/phpspreadsheet": "^1.30.6",
+		"phpseclib/phpseclib": "^3.0"
 	}
 }

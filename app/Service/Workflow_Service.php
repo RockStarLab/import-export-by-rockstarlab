@@ -89,6 +89,18 @@ class Workflow_Service {
 			case 'upload-from-url':
 				$fetched = $files->from_url( (string) $input['url'], $input['parser_options'] ?? [] );
 				return is_wp_error( $fetched ) ? $fetched : array_diff_key( $fetched, [ 'source_url' => true ] );
+			case 'remote-servers':
+				$permission = Access_Policy::check_management();
+				return is_wp_error( $permission ) ? $permission : [ 'servers' => Remote_File_Service::servers() ];
+			case 'remote-browse':
+				$listing = ( new Remote_File_Service() )->browse( (string) $input['server_id'], (string) ( $input['path'] ?? '/' ) );
+				if ( ! is_wp_error( $listing ) ) {
+					foreach ( $listing['items'] as &$item ) {
+						$item['address'] = Remote_File_Service::address( sanitize_key( (string) $input['server_id'] ), rtrim( $listing['path'], '/' ) . '/' . $item['name'] ) . ( 'dir' === $item['type'] ? '/' : '' );
+					}
+					unset( $item );
+				}
+				return $listing;
 			case 'upload-abort':
 				return $files->abort( $input['file_id'] );
 			case 'file-preview':

@@ -323,6 +323,12 @@ class Workflow_Schemas {
 				'maxProperties'        => 200,
 			];
 		}
+		$p['remote_destination'] = [
+			'type'        => 'string',
+			'pattern'     => '^(rsl-remote://[a-z0-9]{8,32}(/.*)?)?$',
+			'maxLength'   => 1000,
+			'description' => 'Upload the finished file to a saved FTP/FTPS/SFTP server: rsl-remote://<server id>/<folder>/ (keeps the file name) or rsl-remote://<server id>/<path/file.csv>. See rsl-ie/remote-servers.',
+		];
 		$p['variation_rows'] = [
 			'type'        => 'boolean',
 			'description' => 'WooCommerce products: one row per enabled variation instead of the variable product.',
@@ -413,6 +419,17 @@ class Workflow_Schemas {
 			],
 			[ 'format', 'phase', 'prepared_rows' ]
 		);
+		// Exports sent to a saved FTP/FTPS/SFTP server.
+		$p['remote_upload'] = self::object(
+			[
+				'status' => self::string( [ 'uploaded', 'failed' ] ),
+				'server' => self::string(),
+				'path'   => self::string(),
+				'size'   => self::integer(),
+				'error'  => self::string(),
+			],
+			[ 'status' ]
+		);
 		return self::object( $p, $required );
 	}
 	/**
@@ -443,6 +460,13 @@ class Workflow_Schemas {
 		$p['headers']        = self::items( self::value() );
 		$p['preview']        = self::items( self::value(), 5 );
 		$p['parser_options'] = self::parser();
+		// Set when the upload was rewritten into native rows (Shopify exports, JSON records found deeper in the file).
+		$p['converted_from'] = self::string();
+		$p['records_path']   = self::string();
+		$p['conversion']     = [
+			'type'                 => 'object',
+			'additionalProperties' => self::integer(),
+		];
 		return self::object( $p, [ 'file_id', 'status' ] );
 	}
 }

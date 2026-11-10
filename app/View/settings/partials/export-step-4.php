@@ -177,6 +177,37 @@ defined( 'ABSPATH' ) || exit;
 								<p class="description"><?php esc_html_e( 'Variable products are replaced by their enabled variations, each with its own SKU, price, stock, image and link. Use this for Google Merchant Center and other product feeds.', 'import-export-by-rockstarlab' ); ?></p>
 							</td>
 						</tr>
+						<tr class="rsl-ie-line-item-rows-option">
+							<th><?php esc_html_e( 'Order items', 'import-export-by-rockstarlab' ); ?></th>
+							<td>
+								<label>
+									<input type="checkbox" name="line_item_rows" value="1">
+									<?php esc_html_e( 'One row per order item', 'import-export-by-rockstarlab' ); ?>
+								</label>
+								<p class="description"><?php esc_html_e( 'Each product in an order gets its own row with the Item columns (name, SKU, quantity, totals), and the order columns repeat on every row. Without this option, the Item columns list all items of the order in one cell.', 'import-export-by-rockstarlab' ); ?></p>
+							</td>
+						</tr>
+						<?php $rsl_ie_remote_servers = \RockStarLab\ImportExport\Service\Remote_File_Service::servers(); ?>
+						<tr class="rsl-ie-remote-destination-option">
+							<th><label for="rsl-ie-remote-destination-server"><?php esc_html_e( 'Upload to a server', 'import-export-by-rockstarlab' ); ?></label></th>
+							<td>
+								<?php if ( $rsl_ie_remote_servers ) : ?>
+									<select id="rsl-ie-remote-destination-server" name="remote_destination_server">
+										<option value=""><?php esc_html_e( 'No, only keep the file here', 'import-export-by-rockstarlab' ); ?></option>
+										<?php foreach ( $rsl_ie_remote_servers as $rsl_ie_remote ) : ?>
+											<option value="<?php echo esc_attr( $rsl_ie_remote['id'] ); ?>"><?php echo esc_html( $rsl_ie_remote['label'] ); ?></option>
+										<?php endforeach; ?>
+									</select>
+									<input type="text" name="remote_destination_folder" id="rsl-ie-remote-destination-folder" class="regular-text code" value="/" placeholder="/exports/" aria-label="<?php esc_attr_e( 'Folder on the server', 'import-export-by-rockstarlab' ); ?>">
+									<p class="description"><?php esc_html_e( 'The finished file is uploaded to this folder on the FTP or SFTP server, with the file name above. A file with the same name is replaced. Scheduled exports upload a new file on every run.', 'import-export-by-rockstarlab' ); ?></p>
+								<?php else : ?>
+									<p class="description">
+										<?php esc_html_e( 'Upload finished exports to an FTP or SFTP server: save the server once.', 'import-export-by-rockstarlab' ); ?>
+										<a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-servers&add=1' ) ); ?>"><?php esc_html_e( 'Add a server', 'import-export-by-rockstarlab' ); ?></a>
+									</p>
+								<?php endif; ?>
+							</td>
+						</tr>
 						<tr>
 							<th><?php esc_html_e( 'Batch size', 'import-export-by-rockstarlab' ); ?></th>
 							<td>

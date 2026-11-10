@@ -585,6 +585,11 @@ const ExportModule = {
 				'woo_product' ===
 					jQuery( 'input[name="content_type"]:checked' ).val()
 			);
+			// The order item option only applies to WooCommerce orders.
+			jQuery( '.rsl-ie-line-item-rows-option' ).toggle(
+				'woo_order' ===
+					jQuery( 'input[name="content_type"]:checked' ).val()
+			);
 		}
 
 		if ( step === 1 ) {
@@ -2072,6 +2077,31 @@ const ExportModule = {
 				data.options.variation_rows = true;
 			}
 
+			// Order exports: one row per order item.
+			if (
+				'woo_order' === contentType &&
+				jQuery( '[name="line_item_rows"]' ).is( ':checked' )
+			) {
+				data.options.line_item_rows = true;
+			}
+
+			// Upload the finished file to a saved FTP/SFTP server folder.
+			const remoteServer = String(
+				jQuery( '[name="remote_destination_server"]' ).val() || ''
+			);
+			if ( remoteServer ) {
+				const folder = String(
+					jQuery( '[name="remote_destination_folder"]' ).val() || '/'
+				)
+					.trim()
+					.replace( /^\/+|\/+$/g, '' );
+				data.options.remote_destination =
+					'rsl-remote://' +
+					remoteServer +
+					'/' +
+					( folder ? folder + '/' : '' );
+			}
+
 			// Renamed columns and fixed values for custom columns.
 			if (
 				this.step3Instance &&
@@ -2367,6 +2397,26 @@ const ExportModule = {
 				? formatExportDuration( exportDurSec )
 				: result.estimates?.elapsed_formatted || '0s'
 		);
+
+		// Upload to a saved FTP/SFTP server.
+		const upload = result.remote_upload;
+		const $upload = jQuery( '.rsl-ie-remote-upload-result' );
+		$upload.removeClass( 'is-uploaded is-failed' ).hide();
+		if ( upload && upload.status ) {
+			const i18n = window.rslIeData.i18n || {};
+			const ok = 'uploaded' === upload.status;
+			$upload
+				.addClass( ok ? 'is-uploaded' : 'is-failed' )
+				.text(
+					(
+						( ok ? i18n.remoteUploaded : i18n.remoteUploadFailed ) ||
+						( ok ? 'Uploaded to %1$s: %2$s' : 'Upload to %1$s failed: %2$s' )
+					)
+						.replace( '%1$s', upload.server || '' )
+						.replace( '%2$s', ok ? upload.path || '' : upload.error || '' )
+				)
+				.show();
+		}
 
 		jQuery( '.rsl-ie-cancel-export' ).hide();
 		jQuery( '.rsl-ie-new-export' ).show();
@@ -4875,6 +4925,46 @@ const ExportModule = {
 							value: 'order_items',
 							label: window.rslIeData.i18n.fieldOrderItemsArray,
 							type: 'array',
+						},
+						{
+							value: 'item_name',
+							label: 'Item Name',
+							type: 'string',
+						},
+						{
+							value: 'item_sku',
+							label: 'Item SKU',
+							type: 'string',
+						},
+						{
+							value: 'item_quantity',
+							label: 'Item Quantity',
+							type: 'number',
+						},
+						{
+							value: 'item_subtotal',
+							label: 'Item Subtotal',
+							type: 'number',
+						},
+						{
+							value: 'item_total',
+							label: 'Item Total',
+							type: 'number',
+						},
+						{
+							value: 'item_tax',
+							label: 'Item Tax',
+							type: 'number',
+						},
+						{
+							value: 'item_product_id',
+							label: 'Item Product ID',
+							type: 'number',
+						},
+						{
+							value: 'item_variation_id',
+							label: 'Item Variation ID',
+							type: 'number',
 						},
 						{
 							value: 'item_count',

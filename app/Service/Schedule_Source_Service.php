@@ -116,7 +116,9 @@ class Schedule_Source_Service {
 						unset( $in['post_mapping'] );
 					}
 					if ( empty( $in['post_type'] ) && in_array( $job->data_type, [ 'post', 'page' ], true ) ) {
-						$in['post_type'] = $job->data_type;
+						// Pushes from the Pages screen were logged as "post"; use the type of the selected items.
+						$types           = array_unique( array_map( 'get_post_type', (array) ( $in['post_ids'] ?? [] ) ) );
+						$in['post_type'] = 1 === count( $types ) && in_array( reset( $types ), [ 'post', 'page' ], true ) ? reset( $types ) : $job->data_type;
 					}
 					$params['input'] = $in;
 				}

@@ -894,7 +894,7 @@ class Content_Sync_Service {
 		$job_id = rsl_ie()->Model->job->create(
 			array(
 				'type'            => 'push' === $direction ? 'content_sync_push' : 'content_sync_pull',
-				'data_type'       => $this->input['post_type'] ?? 'post',
+				'data_type'       => $this->input['post_type'] ?? ( 1 === count( array_unique( array_map( 'get_post_type', (array) $post_ids ) ) ) && 'page' === get_post_type( (int) reset( $post_ids ) ) && 'push' === $direction ? 'page' : 'post' ),
 				'file_format'     => 'json',
 				'status'          => 'processing',
 				'user_id'         => get_current_user_id(),

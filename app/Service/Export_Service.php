@@ -59,7 +59,8 @@ class Export_Service {
 			)
 		);
 		return is_wp_error( $result ) ? $result : [
-			'preview' => $result['data'],
+			// One order or product can give several rows (items, variations); the preview shows ten rows.
+			'preview' => array_slice( array_values( (array) $result['data'] ), 0, 10 ),
 			'fields'  => $exporter->get_available_fields(),
 		];
 	}
@@ -478,6 +479,9 @@ class Export_Service {
 			$keep = 1 === $saved;
 			if ( $keep ) {
 				wp_delete_file( $this->spool_path( $job_id ) );
+				if ( ! empty( $request['options']['remote_destination'] ) ) {
+					$this->upload_to_server( $job_id, (string) $request['options']['remote_destination'], $info['path'] );
+				}
 			}
 			return true;
 		} finally {
@@ -485,6 +489,30 @@ class Export_Service {
 				wp_delete_file( $info['path'] );
 			}
 		}
+	}
+
+	/**
+	 * Upload a finished export to a saved FTP, FTPS or SFTP server and note the outcome on the job.
+	 * The file stays available for download either way.
+	 *
+	 * @param int    $job_id Job.
+	 * @param string $destination rsl-remote address of a folder (ending with /) or a file.
+	 * @param string $path Local export file.
+	 */
+	private function upload_to_server( $job_id, $destination, $path ) {
+		$sent = ( new Remote_File_Service() )->upload( $destination, $path, wp_basename( $path ) );
+		$job  = rsl_ie()->Model->job->find( $job_id );
+		if ( ! $job ) {
+			return;
+		}
+		$server                  = Remote_File_Service::parse( $destination );
+		$result                  = json_decode( (string) $job->result, true );
+		$result                  = is_array( $result ) ? $result : [];
+		$result['remote_upload'] = [
+			'status' => is_wp_error( $sent ) ? 'failed' : 'uploaded',
+			'server' => is_wp_error( $server ) ? '' : $server[0]['label'],
+		] + ( is_wp_error( $sent ) ? [ 'error' => $sent->get_error_message() ] : $sent );
+		rsl_ie()->Model->job->update( $job_id, [ 'result' => wp_json_encode( $result ) ] );
 	}
 
 	/**

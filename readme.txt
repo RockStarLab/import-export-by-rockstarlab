@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.48
+Stable tag: 2.1.49
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,14 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.49 =
+* New: FTP, FTPS and SFTP servers. Save a server once in Jobs Log > Servers (the password is stored encrypted and never shown again), then import a file from it (Import, step 2: pick the server, Browse and click the file) and upload finished exports to a folder on it (Export, Upload to a server). Scheduled imports download the current file on every run, scheduled exports upload a new file every time, and File changed triggers watch files on the server. SFTP works without PHP extensions.
+* New: AI agents can list saved servers (rsl-ie/remote-servers), list a folder (rsl-ie/remote-browse), import a file from a server with upload-from-url and an rsl-remote:// address, and upload an export with options.remote_destination.
+* New: JSON files whose records are nested deeper, such as a Ghost export, are imported: the plugin finds the list of records, shows where it found it, and each record becomes a row. Auto Map also recognizes the Ghost columns html, published_at, custom_excerpt and feature_image.
+* New: the export screen has the option One row per order item for WooCommerce orders (needs Import Export PRO 2.1.13).
+* Fixed: a Content Sync push of pages started from the Pages screen can now be scheduled in Schedules. Before, the schedule was rejected with "The sync selection or destination is outside the allowed content scope".
+* Fixed: the export preview for AI agents shows at most ten rows when one product or order gives several rows.
 
 = 2.1.48 =
 * Fixed: updating comments from a file now changes only the columns in the file. A sheet with just the Comment ID and Status works for bulk moderation, and replies keep their thread, author email and IP. The status also accepts the words approved and pending.

@@ -53,6 +53,7 @@ $rsl_ie_zip_supported = class_exists( 'ZipArchive' );
 				</div>
 				<h3 class="rsl-ie-complete-title"><?php esc_html_e( 'Export Completed Successfully!', 'import-export-by-rockstarlab' ); ?></h3>
 				<p class="rsl-ie-complete-subtitle"><?php esc_html_e( 'Your data has been exported and is ready to download', 'import-export-by-rockstarlab' ); ?></p>
+				<p class="rsl-ie-remote-upload-result" style="display:none;"></p>
 				
 				<div class="rsl-ie-results-grid">
 					<div class="rsl-ie-result-item">

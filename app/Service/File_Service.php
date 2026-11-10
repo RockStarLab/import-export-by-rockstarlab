@@ -131,6 +131,9 @@ class File_Service {
 		if ( is_wp_error( $permission ) ) {
 			return $permission;
 		}
+		if ( Remote_File_Service::is_remote( $url ) ) {
+			return $this->from_remote( trim( (string) $url ), $options );
+		}
 		$url    = esc_url_raw( trim( (string) $url ), [ 'http', 'https' ] );
 		$host   = (string) wp_parse_url( $url, PHP_URL_HOST );
 		$is_dev = (bool) preg_match( '/\.(local|test|localhost)$/i', $host );
@@ -175,6 +178,42 @@ class File_Service {
 				}
 			}
 		}
+		return $this->adopt_download( $tmp, $name, $extension, $url, $options );
+	}
+
+	/**
+	 * Import a file from a saved FTP, FTPS or SFTP server (rsl-remote://<server>/<path>).
+	 *
+	 * @param string $address Server file address.
+	 * @param array  $options Parser options.
+	 * @return array|\WP_Error
+	 */
+	private function from_remote( $address, array $options ) {
+		$tmp = wp_tempnam( 'rsl-ie-remote' );
+		if ( ! $tmp ) {
+			return File_Store::error( 'file_write', 500 );
+		}
+		$got = ( new Remote_File_Service() )->download( $address, $tmp, self::max_bytes() );
+		if ( is_wp_error( $got ) ) {
+			wp_delete_file( $tmp );
+			return $got;
+		}
+		$name      = sanitize_file_name( '' === $got['name'] ? 'import' : $got['name'] );
+		$extension = strtolower( pathinfo( $name, PATHINFO_EXTENSION ) );
+		return $this->adopt_download( $tmp, $name, $extension, $address, $options );
+	}
+
+	/**
+	 * Turn a downloaded temporary file into an import file that remembers where it came from.
+	 *
+	 * @param string $tmp       Downloaded file (removed afterwards).
+	 * @param string $name      File name.
+	 * @param string $extension Lower-case extension.
+	 * @param string $url       Source address, fetched again by schedules.
+	 * @param array  $options   Parser options.
+	 * @return array|\WP_Error
+	 */
+	private function adopt_download( $tmp, $name, $extension, $url, array $options ) {
 		$size = (int) filesize( $tmp );
 		if ( ! in_array( $extension, [ 'csv', 'json', 'xml', 'xlsx', 'ods', 'zip' ], true ) || $size < 1 ) {
 			wp_delete_file( $tmp );
@@ -481,6 +520,9 @@ class File_Service {
 					$record['format']         = $prepared['format'];
 					$record['converted_from'] = $prepared['source'];
 					$record['conversion']     = $prepared['counts'];
+					if ( isset( $prepared['records_path'] ) ) {
+						$record['records_path'] = (string) $prepared['records_path'];
+					}
 				}
 				$record['path']       = $path;
 				$record['file_size']  = filesize( $path );
@@ -505,6 +547,23 @@ class File_Service {
 	 * @return array|null|\WP_Error
 	 */
 	private function prepare_source( $path, $dir, array $record ) {
+		// Records nested deeper in a JSON file (Ghost and other CMS exports) become the rows.
+		if ( 'json' === $record['format'] ) {
+			$nested = \RockStarLab\ImportExport\Model\Format\JSON_Format::nested_records( $path );
+			if ( $nested ) {
+				$target = $dir . '/records.json';
+				if ( false === file_put_contents( $target, wp_json_encode( $nested['rows'] ) ) ) {
+					return File_Store::error( 'file_write', 500 );
+				}
+				return [
+					'path'         => realpath( $target ),
+					'format'       => 'json',
+					'source'       => 'json_records',
+					'counts'       => [ 'records' => count( $nested['rows'] ) ],
+					'records_path' => $nested['path'],
+				];
+			}
+		}
 		$prepared = apply_filters( 'rsl_ie_import_file_prepared', null, $path, $record['format'], $record );
 		if ( null === $prepared || false === $prepared ) {
 			return null;
@@ -1086,7 +1145,7 @@ class File_Service {
 	 * @return array
 	 */
 	private function describe( array $record ) {
-		$result = array_intersect_key( $record, array_flip( [ 'file_id', 'file_name', 'format', 'purpose', 'status', 'file_size', 'expected_bytes', 'total_chunks', 'converted_from', 'conversion' ] ) ) + [ 'received_chunks' => $record['received_chunks'] ?? count( $record['chunks'] ?? [] ) ];
+		$result = array_intersect_key( $record, array_flip( [ 'file_id', 'file_name', 'format', 'purpose', 'status', 'file_size', 'expected_bytes', 'total_chunks', 'converted_from', 'conversion', 'records_path' ] ) ) + [ 'received_chunks' => $record['received_chunks'] ?? count( $record['chunks'] ?? [] ) ];
 		if ( 'export' === $record['purpose'] && 'ready' === $record['status'] ) {
 			$result['download_url']         = rest_url( 'rsl-ie/v1/files/' . $record['file_id'] . '/download' );
 			$result['browser_download_url'] = add_query_arg(

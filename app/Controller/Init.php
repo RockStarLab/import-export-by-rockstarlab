@@ -190,6 +190,8 @@ class Init {
 
 		( new Trigger_Controller() )->init();
 
+		( new Remote_Server_Controller() )->init();
+
 		$this->media_sync_controller = new Media_Sync_Controller();
 		$this->media_sync_controller->init();
 
@@ -359,8 +361,17 @@ class Init {
 					'fileUrlDownloading'                => __( 'Downloading the file...', 'import-export-by-rockstarlab' ),
 					/* translators: %s: file URL. */
 					'fileUrlSource'                     => __( 'Downloaded from %s', 'import-export-by-rockstarlab' ),
+					'remoteLoading'                     => __( 'Connecting to the server...', 'import-export-by-rockstarlab' ),
+					'remoteEmpty'                       => __( 'This folder is empty.', 'import-export-by-rockstarlab' ),
+					'remotePickFile'                    => __( 'Enter the path of the file on the server, or click Browse and pick it.', 'import-export-by-rockstarlab' ),
+					/* translators: 1: server name, 2: path on the server. */
+					'remoteUploaded'                    => __( 'Uploaded to %1$s: %2$s', 'import-export-by-rockstarlab' ),
+					/* translators: 1: server name, 2: error message. */
+					'remoteUploadFailed'                => __( 'Upload to %1$s failed: %2$s The file is still available for download.', 'import-export-by-rockstarlab' ),
 					'fileUrlDownloaded'                 => __( 'File downloaded', 'import-export-by-rockstarlab' ),
 					'shopifyCustomersConverted'         => __( 'Shopify customer export detected: %1$s customers, %2$s without an email address. Import it as WooCommerce Customers and Auto Map will match every column.', 'import-export-by-rockstarlab' ),
+					/* translators: 1: path to the records inside the JSON file, 2: number of records */
+					'jsonRecordsFound'                  => __( 'The records in this JSON file are inside %1$s: %2$s records found. Each record becomes a row.', 'import-export-by-rockstarlab' ),
 					'uploadFailed'                      => __( 'Upload failed', 'import-export-by-rockstarlab' ),
 					'noFileDataAvailable'               => __( 'No file data available', 'import-export-by-rockstarlab' ),
 					'noPreviewDataAvailable'            => __( 'No preview data available', 'import-export-by-rockstarlab' ),
@@ -1709,6 +1720,7 @@ class Init {
 			'rsl-ie-schedules',
 			'rsl-ie-notifications',
 			'rsl-ie-triggers',
+			'rsl-ie-servers',
 			'rsl-ie-media-sync',
 			'rsl-ie-ai-url-importer',
 			'rsl-ie-functions',
@@ -1738,6 +1750,7 @@ class Init {
 				'import-export-by-rockstarlab_page_rsl-ie-schedules',
 				'admin_page_rsl-ie-notifications',
 				'admin_page_rsl-ie-triggers',
+				'admin_page_rsl-ie-servers',
 				'import-export-by-rockstarlab_page_rsl-ie-media-sync',
 				'import-export-by-rockstarlab_page_rsl-ie-ai-url-importer',
 				'import-export-by-rockstarlab_page_rsl-ie-functions',
