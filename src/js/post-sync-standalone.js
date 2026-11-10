@@ -1111,8 +1111,17 @@ const getActionNonce = ( action ) =>
 				10
 			);
 			if ( originalRemoteId ) {
+				// Name the remote post by its own title when the loaded list has it;
+				// the local title may have changed since the earlier sync.
+				const remotePost = ( this.remotePosts || [] ).find(
+					( post ) =>
+						parseInt( post?.ID ?? post?.id ?? 0, 10 ) ===
+						originalRemoteId
+				);
 				const optionText = this.getRemotePostOptionText(
-					localPostTitle,
+					remotePost?.post_title ||
+						remotePost?.title ||
+						localPostTitle,
 					originalRemoteId
 				);
 				const opt = new Option(
@@ -1258,6 +1267,20 @@ const getActionNonce = ( action ) =>
 						// Several remote posts share this title: keep the row as it is
 						// and let the user pick the right post.
 						if ( ambiguousIds.includes( localId ) ) {
+							return;
+						}
+
+						// A post synced before keeps its remembered remote post: the
+						// earlier sync is stronger evidence than a title, which may have
+						// changed since. A changed title must not turn the row into
+						// "Create New Post" (a duplicate) or an empty pull.
+						if (
+							parseInt(
+								$select.attr( 'data-original-remote-id' ) ||
+									'0',
+								10
+							)
+						) {
 							return;
 						}
 
