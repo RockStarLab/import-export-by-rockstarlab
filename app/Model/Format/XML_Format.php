@@ -385,16 +385,24 @@ class XML_Format implements File_Format_Interface {
 			return array( $root, $best );
 		}
 		// One wrapper under the root (<channel>, <products>): look one level deeper.
-		$inside = array();
-		foreach ( $level2 as $path => $count ) {
-			if ( 0 === strpos( $path, $best . '>' ) ) {
-				$inside[ substr( $path, strlen( $best ) + 1 ) ] = $count;
+		// Header elements may sit next to the wrapper (<feed><updated/><stockists>…),
+		// so check every single element under the root, not only the first one.
+		$known  = array( 'item', 'product', 'offer', 'entry', 'record', 'row' );
+		$choice = array( '', '', 0 );
+		foreach ( array_keys( $level1 ) as $wrapper ) {
+			foreach ( $level2 as $path => $count ) {
+				if ( 0 !== strpos( $path, $wrapper . '>' ) ) {
+					continue;
+				}
+				$child = substr( $path, strlen( $wrapper ) + 1 );
+				$score = $count >= 2 ? $count : ( in_array( $child, $known, true ) ? 1 : 0 );
+				if ( $score > $choice[2] ) {
+					$choice = array( $wrapper, $child, $score );
+				}
 			}
 		}
-		arsort( $inside );
-		$deeper = (string) key( $inside );
-		if ( '' !== $deeper && ( $inside[ $deeper ] >= 2 || in_array( $deeper, array( 'item', 'product', 'offer', 'entry', 'record', 'row' ), true ) ) ) {
-			return array( $root, $deeper );
+		if ( '' !== $choice[1] ) {
+			return array( $root, $choice[1] );
 		}
 		return array( $root, $best );
 	}

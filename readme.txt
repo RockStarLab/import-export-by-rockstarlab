@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.46
+Stable tag: 2.1.47
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,9 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.47 =
+* Fixed: XML feeds with header elements before the list of records (for example `<updated>` or `<source>` next to `<stockists>`) are now imported. The preview showed 0 rows for such files.
 
 = 2.1.46 =
 * Fixed: in Content Sync, a post pushed with "Create New Post" no longer overwrites a different post on the other site that has the same slug. The post is created as a new post with its own slug, and pushing it again updates that copy.
