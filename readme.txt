@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.42
+Stable tag: 2.1.43
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,12 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.43 =
+* Improved: when a CSV file uses a semicolon, tab or pipe instead of a comma, the Delimiter dropdown in the import wizard switches to it after the upload. The upload response for WP-CLI and AI agents includes the detected delimiter.
+* Improved: a broken JSON file gets a message that says what is wrong: the file ends before the JSON is complete, a record is not valid JSON, or there is text after the end of the JSON.
+* Improved: the import wizard's message for a file type it can't read lists the supported types and says that a tab-separated .txt file can be renamed to .csv, the same as for WP-CLI and AI agents.
+* Improved: when several export filters are changed in a row, the item count is requested once after the changes stop, instead of once per change.
 
 = 2.1.42 =
 * Improved: the Jobs log has a Continue button for an import or export that is still running. If a job stopped moving because WP-Cron doesn't run (WP-Cron turned off, or no visitors after you closed the tab), Continue opens its progress page and finishes it from your browser. A continued progress page shows elapsed time, speed and time remaining.

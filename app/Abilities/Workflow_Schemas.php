@@ -438,7 +438,7 @@ class Workflow_Schemas {
 	 * @return array
 	 */
 	public static function file() {
-		$p                   = array_fill_keys( [ 'file_id', 'file_name', 'format', 'purpose', 'status', 'download_url', 'browser_download_url', 'chunk_url' ], self::string() );
+		$p                   = array_fill_keys( [ 'file_id', 'file_name', 'format', 'purpose', 'status', 'download_url', 'browser_download_url', 'chunk_url', 'detected_delimiter' ], self::string() );
 		$p                  += array_fill_keys( [ 'file_size', 'expected_bytes', 'total_chunks', 'received_chunks', 'total_rows', 'columns', 'chunk_index', 'assembled_chunks', 'assembled_bytes' ], self::integer() );
 		$p['headers']        = self::items( self::value() );
 		$p['preview']        = self::items( self::value(), 5 );

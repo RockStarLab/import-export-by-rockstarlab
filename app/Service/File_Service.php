@@ -804,9 +804,10 @@ class File_Service {
 			if ( is_wp_error( $summary ) ) {
 				return $summary;
 			}
-			$rows    = $summary['preview'];
-			$headers = $summary['headers'];
-			$count   = $summary['total_rows'];
+			$rows     = $summary['preview'];
+			$headers  = $summary['headers'];
+			$count    = $summary['total_rows'];
+			$detected = $summary['detected_delimiter'] ?? null;
 		} elseif ( 'xml' === $record['format'] ) {
 			// Derive all preview fields from the same fully validated document pass.
 			$rows    = [];
@@ -854,13 +855,17 @@ class File_Service {
 		if ( 'zip' === strtolower( pathinfo( $record['original_name'], PATHINFO_EXTENSION ) ) ) {
 			wp_delete_file( dirname( $record['path'] ) . '/source.zip' );
 		}
-		return $this->describe( $record ) + [
+		$described = $this->describe( $record ) + [
 			'headers'        => $headers,
 			'preview'        => $rows,
 			'total_rows'     => (int) $count,
 			'columns'        => count( $headers ),
 			'parser_options' => $settings,
 		];
+		if ( isset( $detected ) && is_string( $detected ) && '' !== $detected ) {
+			$described['detected_delimiter'] = $detected;
+		}
+		return $described;
 	}
 
 	/**

@@ -457,7 +457,7 @@ const ExportModule = {
 		$wizard.on(
 			'change',
 			'.rsl-ie-export-filters input, .rsl-ie-export-filters select',
-			Utils.debounce( () => this.refreshCount( false ), 500 )
+			() => this.queueCountRefresh()
 		);
 		$wizard.on( 'click', '.rsl-ie-step-2 .rsl-ie-refresh-count', () =>
 			this.refreshCount( true )
@@ -536,19 +536,19 @@ const ExportModule = {
 			this.updateValueInputType( $row );
 
 			if ( this.isFilterRowComplete( $row ) ) {
-				Utils.debounce( () => this.refreshCount( false ), 500 )();
+				this.queueCountRefresh();
 			}
 		} );
 		$wizard.on( 'input', '.rsl-ie-filter-value', ( e ) => {
 			const $row = jQuery( e.target ).closest( '.rsl-ie-filter-row' );
 			if ( this.isFilterRowComplete( $row ) ) {
-				Utils.debounce( () => this.refreshCount( false ), 1000 )();
+				this.queueCountRefresh();
 			}
 		} );
 		$wizard.on( 'change', '.rsl-ie-filter-value', ( e ) => {
 			const $row = jQuery( e.target ).closest( '.rsl-ie-filter-row' );
 			if ( this.isFilterRowComplete( $row ) ) {
-				Utils.debounce( () => this.refreshCount( false ), 500 )();
+				this.queueCountRefresh();
 			}
 		} );
 	},
@@ -841,6 +841,15 @@ const ExportModule = {
 			// Enable Next button when results are visible
 			$nextStepBtn.prop( 'disabled', false );
 		}
+	},
+
+	/**
+	 * Refresh the count once filters stop changing: one request for a burst of changes
+	 * instead of one per change (a new debounced function per call never debounced).
+	 */
+	queueCountRefresh() {
+		clearTimeout( this.countRefreshTimer );
+		this.countRefreshTimer = setTimeout( () => this.refreshCount( false ), 500 );
 	},
 
 	/**
@@ -2545,7 +2554,7 @@ const ExportModule = {
 		}
 
 		// Trigger count refresh (without spinner)
-		Utils.debounce( () => this.refreshCount( false ), 500 )();
+		this.queueCountRefresh();
 	},
 
 	/**
@@ -2555,7 +2564,7 @@ const ExportModule = {
 		jQuery( e.target ).closest( '.rsl-ie-filter-row' ).remove();
 
 		// Trigger count refresh (without spinner)
-		Utils.debounce( () => this.refreshCount( false ), 500 )();
+		this.queueCountRefresh();
 	},
 
 	/**
@@ -2629,7 +2638,7 @@ const ExportModule = {
 						$valueGroup.show();
 					}
 					// Trigger count refresh on condition change
-					Utils.debounce( () => this.refreshCount( false ), 500 )();
+					this.queueCountRefresh();
 				}.bind( this )
 			);
 
@@ -2637,7 +2646,7 @@ const ExportModule = {
 			$row.find(
 				'.rsl-ie-custom-field-name, .rsl-ie-custom-field-value'
 			).on( 'input change', () => {
-				Utils.debounce( () => this.refreshCount( false ), 500 )();
+				this.queueCountRefresh();
 			} );
 
 			return;
@@ -2674,7 +2683,7 @@ const ExportModule = {
 			$row.find(
 				'.rsl-ie-taxonomy-name, .rsl-ie-taxonomy-condition, .rsl-ie-taxonomy-terms'
 			).on( 'input change', () => {
-				Utils.debounce( () => this.refreshCount( false ), 500 )();
+				this.queueCountRefresh();
 			} );
 
 			return;
@@ -2790,10 +2799,7 @@ const ExportModule = {
 
 						// When post type is selected, refresh count
 						$select.on( 'change', () => {
-							Utils.debounce(
-								() => this.refreshCount( false ),
-								500
-							)();
+							this.queueCountRefresh();
 
 							// Update step 2 next button state
 							this.updateStep2NextButton();
@@ -2876,10 +2882,7 @@ const ExportModule = {
 
 						// When taxonomy is selected, refresh count
 						$select.on( 'change', () => {
-							Utils.debounce(
-								() => this.refreshCount( false ),
-								500
-							)();
+							this.queueCountRefresh();
 
 							// Update step 2 next button state
 							this.updateStep2NextButton();
@@ -3038,7 +3041,7 @@ const ExportModule = {
 		this.updateValueInputType( $row );
 
 		// Trigger count refresh (without spinner)
-		Utils.debounce( () => this.refreshCount( false ), 500 )();
+		this.queueCountRefresh();
 	},
 
 	/**

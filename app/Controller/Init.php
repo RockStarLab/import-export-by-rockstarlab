@@ -350,7 +350,7 @@ class Init {
 					'noApiKeyDesc'                      => __( 'Please enter your OpenAI API key and save settings.', 'import-export-by-rockstarlab' ),
 					'fileTooLarge'                      => __( 'File size exceeds maximum allowed', 'import-export-by-rockstarlab' ),
 					'invalidFileType'                   => __( 'Invalid file type', 'import-export-by-rockstarlab' ),
-					'invalidFileTypeCsv'                => __( 'Invalid file type. Please upload CSV, JSON, XML, XLSX, ODS, or ZIP files only.', 'import-export-by-rockstarlab' ),
+					'invalidFileTypeCsv'                => __( 'This type of file cannot be imported. Use a CSV, XLSX, ODS, JSON, XML or ZIP file. A tab-separated .txt file can be renamed to .csv.', 'import-export-by-rockstarlab' ),
 					'fileUploadedSuccessfully'          => __( 'File uploaded successfully', 'import-export-by-rockstarlab' ),
 					/* translators: 1: Shopify CSV rows, 2: products, 3: variations. */
 					'shopifyExportConverted'            => __( 'Shopify product export detected: %1$s rows were combined into %2$s products with %3$s variations. Import it as WooCommerce Products and Auto Map will match every column.', 'import-export-by-rockstarlab' ),
