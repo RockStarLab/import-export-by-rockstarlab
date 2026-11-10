@@ -21,6 +21,8 @@ const ImportModule = {
 	fileUploader: null,
 	mappingFunctions: {},
 	importStartTime: null,
+	// Rows already processed when this page started timing (a resumed job has earlier rows).
+	importStartProcessed: 0,
 	isCancellingImport: false,
 	isBatchProcessing: false,
 	mappingTemplates: [],
@@ -63,6 +65,8 @@ const ImportModule = {
 		if ( resumeJobId ) {
 			// Resume job – go directly to step 6 (progress) and start batch processing.
 			this.jobId = parseInt( resumeJobId );
+			this.importStartTime = Date.now();
+			this.importStartProcessed = null;
 			this.showStep( 6 );
 			this.startProgressTracking();
 			this.startBatchProcessing();
@@ -5715,8 +5719,17 @@ const ImportModule = {
 					'category',
 					'product categories',
 					'product category',
+					// The readable term columns of this plugin's own post export.
+					'category_names',
+					'category names',
 				],
-				product_tag: [ 'tags', 'tag', 'product tags' ],
+				product_tag: [
+					'tags',
+					'tag',
+					'product tags',
+					'tag_names',
+					'tag names',
+				],
 				product_url: [ 'external url', 'product url' ],
 				button_text: [ 'button text' ],
 				featured_image_url: [
@@ -7207,6 +7220,7 @@ const ImportModule = {
 
 			this.jobId = response.job_id;
 			this.importStartTime = Date.now();
+			this.importStartProcessed = 0;
 			this.isCancellingImport = false;
 			this.showStep( 6 );
 			this.setImportPreparingState( true );
@@ -7302,8 +7316,15 @@ const ImportModule = {
 			const total = response.result?.total || 0;
 			this.setImportPreparingState( percentage <= 0 && processed <= 0 );
 
-			// items/sec based on elapsed time
-			const itemsPerSec = elapsedSec > 0 ? processed / elapsedSec : 0;
+			// items/sec based on elapsed time and the rows processed on this page
+			if ( null === this.importStartProcessed ) {
+				this.importStartProcessed = processed;
+			}
+			const doneHere = Math.max(
+				0,
+				processed - ( this.importStartProcessed || 0 )
+			);
+			const itemsPerSec = elapsedSec > 0 ? doneHere / elapsedSec : 0;
 
 			// Remaining estimate: based on items/sec and remaining items
 			let remainingSec = 0;

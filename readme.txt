@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.41
+Stable tag: 2.1.42
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,14 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.42 =
+* Improved: the Jobs log has a Continue button for an import or export that is still running. If a job stopped moving because WP-Cron doesn't run (WP-Cron turned off, or no visitors after you closed the tab), Continue opens its progress page and finishes it from your browser. A continued progress page shows elapsed time, speed and time remaining.
+* Improved: when an upload is refused, the import wizard says why, for example "The file is empty.", that a spreadsheet could not be read, or which file types can be imported, instead of "HTTP error! status: 400". WP-CLI and AI agents get the same messages.
+* Improved: Auto Map matches the category_names and tag_names columns of a post export to Categories and Tags.
+* Improved: when If Match Found is set to Skip, the job log names each skipped row and the existing post it matched.
+* Fixed: WP-CLI imports and AI agents map the categories, tags, taxonomy_* and meta_* columns of a post file, so posts imported back keep their categories and tags instead of landing in Uncategorized.
+* Fixed: the item count on the export filter step could show the number for earlier filters when several filters were changed quickly.
 
 = 2.1.41 =
 * New: JSON imports with nested objects. Values inside an object get their own columns named by their path, such as author.name, author.email and image.url, so they can be mapped like any other column. The original columns stay.

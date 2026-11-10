@@ -52,6 +52,14 @@ const JobsLogModule = {
 
 		// Job actions
 		$page.on( 'click', '.job-action-resume', ( e ) => this.resumeJob( e ) );
+		$page.on( 'click', '.job-action-continue', ( e ) => {
+			const $button = jQuery( e.currentTarget );
+			this.redirectToJobPage(
+				$button.data( 'type' ),
+				$button.closest( 'tr' ).data( 'job-id' ),
+				$button.data( 'data-type' )
+			);
+		} );
 		$page.on( 'click', '.job-action-restart', ( e ) =>
 			this.restartJob( e )
 		);
@@ -392,6 +400,27 @@ const JobsLogModule = {
 				window.rslIeData.i18n.viewDetails || 'View Details'
 			}"><span class="dashicons dashicons-visibility"></span></button>`
 		);
+
+		// Continue: a running import/export moves on only while WP-Cron fires or a progress
+		// page is open. The progress page runs the next batches from this browser.
+		if (
+			[ 'import', 'export' ].includes( job.type ) &&
+			[ 'pending', 'processing' ].includes( job.status ) &&
+			! [ 'content_update', 'migration', 'site_migration' ].includes(
+				job.data_type
+			)
+		) {
+			actions.push(
+				`<button class="button button-small job-action-continue" data-type="${ Utils.escapeHtml(
+					job.type
+				) }" data-data-type="${ Utils.escapeHtml(
+					job.data_type || ''
+				) }" title="${
+					window.rslIeData.i18n.continueJob ||
+					'Continue in this window'
+				}"><span class="dashicons dashicons-controls-play"></span></button>`
+			);
+		}
 
 		// Resume
 		if ( job.can_resume ) {

@@ -474,6 +474,7 @@ class Init {
 					'customJobNamePlaceholder'          => __( 'Custom job name...', 'import-export-by-rockstarlab' ),
 					'save'                              => __( 'Save', 'import-export-by-rockstarlab' ),
 					'resume'                            => __( 'Resume', 'import-export-by-rockstarlab' ),
+					'continueJob'                       => __( 'Continue in this window', 'import-export-by-rockstarlab' ),
 					'restart'                           => __( 'Restart', 'import-export-by-rockstarlab' ),
 					'retry'                             => __( 'Retry (Create new job with same parameters)', 'import-export-by-rockstarlab' ),
 					'download'                          => __( 'Download', 'import-export-by-rockstarlab' ),

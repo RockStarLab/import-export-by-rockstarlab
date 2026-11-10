@@ -102,7 +102,7 @@ export default class FileUploader {
 		);
 
 		if ( ! response.ok ) {
-			throw new Error( `HTTP error! status: ${ response.status }` );
+			throw new Error( await this.errorMessage( response ) );
 		}
 
 		const data = await response.json();
@@ -166,7 +166,7 @@ export default class FileUploader {
 		);
 
 		if ( ! response.ok ) {
-			throw new Error( `HTTP error! status: ${ response.status }` );
+			throw new Error( await this.errorMessage( response ) );
 		}
 
 		const data = await response.json();
@@ -176,6 +176,26 @@ export default class FileUploader {
 		}
 
 		return data.data;
+	}
+
+	/**
+	 * The server explains a refused upload in JSON ("The file is empty."); show that
+	 * instead of the bare HTTP status.
+	 *
+	 * @param {Response} response Failed response.
+	 * @return {Promise<string>} Message.
+	 */
+	async errorMessage( response ) {
+		try {
+			const body = await response.json();
+			const message =
+				body?.message ||
+				( typeof body?.data === 'string' ? body.data : body?.data?.message );
+			if ( message ) {
+				return String( message );
+			}
+		} catch ( e ) {}
+		return `HTTP error! status: ${ response.status }`;
 	}
 
 	/**
