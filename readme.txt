@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.47
+Stable tag: 2.1.48
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,11 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.48 =
+* Fixed: updating comments from a file now changes only the columns in the file. A sheet with just the Comment ID and Status works for bulk moderation, and replies keep their thread, author email and IP. The status also accepts the words approved and pending.
+* Fixed: uploading a JSON file whose top level is an object through the Abilities API (AI agents) no longer fails with an invalid output error.
+* Fixed: the Sync Content button no longer appears on the WooCommerce Coupons and Orders screens, where it could only fail; these are synced through their own workflows.
 
 = 2.1.47 =
 * Fixed: XML feeds with header elements before the list of records (for example `<updated>` or `<source>` next to `<stockists>`) are now imported. The preview showed 0 rows for such files.

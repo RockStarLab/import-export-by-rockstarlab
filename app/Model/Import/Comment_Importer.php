@@ -214,6 +214,20 @@ class Comment_Importer extends Abstract_Importer {
 	public function import_item( $item, $index ) {
 		// Sanitize data
 		$item = $this->sanitize_item( $item );
+		if ( isset( $item['comment_approved'] ) ) {
+			$item['comment_approved'] = $this->normalize_status( $item['comment_approved'] );
+		}
+
+		// Columns with a value in this row. On update only these are changed,
+		// so a status-only file does not clear the author, email or thread.
+		$provided_fields = array_keys(
+			array_filter(
+				$item,
+				static function ( $value ) {
+					return null !== $value && '' !== $value;
+				}
+			)
+		);
 
 		$source_comment_id     = absint( $item['_aie_source_comment_id'] ?? ( $item['source_comment_id'] ?? ( $item['comment_ID'] ?? 0 ) ) );
 		$source_comment_parent = absint( $item['_aie_source_comment_parent_id'] ?? ( $item['source_comment_parent_id'] ?? ( $item['comment_parent'] ?? 0 ) ) );
@@ -235,6 +249,24 @@ class Comment_Importer extends Abstract_Importer {
 		// Always defer parent mapping to a post-import fixup; source comment IDs
 		// do not exist on the target site.
 		$item['comment_parent'] = 0;
+
+		// Update by Comment ID without content or post columns (e.g. a moderation sheet).
+		$update_mode = 'update' === $this->get_option( 'duplicate_mode', 'skip' ) || $this->get_option( 'update_existing', false );
+		if ( $update_mode && $source_comment_id > 0
+			&& in_array( $this->get_option( 'duplicate_check', 'comment_ID' ), [ 'comment_ID', 'source_comment_id', '_aie_source_comment_id' ], true )
+			&& ( empty( $item['comment_content'] ) || ! absint( $item['comment_post_ID'] ?? 0 ) ) ) {
+			$existing_comment_id = $this->find_existing_comment_by_source_id( $source_comment_id );
+			if ( ! $existing_comment_id ) {
+				$existing_comment_id = $this->find_existing_comment_by_local_id( $source_comment_id, 0, $item );
+			}
+			if ( $existing_comment_id ) {
+				$result = $this->update_comment( $existing_comment_id, $item, $source_comment_id, $provided_fields );
+				if ( ! is_wp_error( $result ) ) {
+					$this->record_source_id_map( $source_comment_id, $existing_comment_id );
+				}
+				return $result;
+			}
+		}
 
 		// Validate required fields
 		if ( empty( $item['comment_content'] ) ) {
@@ -344,7 +376,7 @@ class Comment_Importer extends Abstract_Importer {
 				$this->record_source_id_map( $source_comment_id, $existing_comment_id );
 				return 'skipped';
 			} elseif ( 'update' === $duplicate_mode || $this->get_option( 'update_existing', false ) ) {
-				$result = $this->update_comment( $existing_comment_id, $item, $source_comment_id );
+				$result = $this->update_comment( $existing_comment_id, $item, $source_comment_id, $provided_fields );
 				if ( ! is_wp_error( $result ) ) {
 					$this->record_source_id_map( $source_comment_id, $existing_comment_id );
 				}
@@ -405,8 +437,26 @@ class Comment_Importer extends Abstract_Importer {
 	 * @param array $item       Comment data
 	 * @return string|WP_Error 'updated' or WP_Error
 	 */
-	private function update_comment( $comment_id, $item, $source_comment_id = 0 ) {
-		$comment_data               = $this->prepare_comment_data( $item );
+	private function update_comment( $comment_id, $item, $source_comment_id = 0, $provided_fields = null ) {
+		$comment_data = $this->prepare_comment_data( $item );
+		if ( is_array( $provided_fields ) ) {
+			// Change only the columns that have a value in the file. The thread
+			// (parent) is kept; the post changes only when the file points to one.
+			$keep = array_intersect_key( $comment_data, array_flip( $provided_fields ) );
+			unset( $keep['comment_parent'] );
+			if ( absint( $item['comment_post_ID'] ?? 0 ) > 0 && ( in_array( 'comment_post_ID', $provided_fields, true ) || $this->has_post_hints( $item ) ) ) {
+				$keep['comment_post_ID'] = absint( $item['comment_post_ID'] );
+			} else {
+				unset( $keep['comment_post_ID'] );
+			}
+			if ( ! array_intersect( [ 'user_id', 'comment_author_email' ], $provided_fields ) ) {
+				unset( $keep['user_id'] );
+			}
+			if ( isset( $keep['comment_date'] ) && ! isset( $keep['comment_date_gmt'] ) ) {
+				$keep['comment_date_gmt'] = get_gmt_from_date( $keep['comment_date'] );
+			}
+			$comment_data = $keep;
+		}
 		$comment_data['comment_ID'] = $comment_id;
 
 		// wp_update_comment returns 1 on success, 0 on failure, or WP_Error
@@ -958,6 +1008,23 @@ class Comment_Importer extends Abstract_Importer {
 	 */
 	private function get_job_id_map_key() {
 		return 'rsl_ie_import_comment_id_map_' . absint( $this->job_id );
+	}
+
+	/**
+	 * Accept common words for the comment status.
+	 *
+	 * @param mixed $status Raw status.
+	 * @return mixed
+	 */
+	private function normalize_status( $status ) {
+		$key = strtolower( trim( (string) $status ) );
+		if ( in_array( $key, [ 'approve', 'approved' ], true ) ) {
+			return '1';
+		}
+		if ( in_array( $key, [ 'hold', 'pending', 'unapproved' ], true ) ) {
+			return '0';
+		}
+		return $status;
 	}
 
 	/**
