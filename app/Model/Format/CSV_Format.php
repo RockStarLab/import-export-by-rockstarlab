@@ -250,6 +250,8 @@ class CSV_Format implements File_Format_Interface {
 				return new \WP_Error( 'read_error', __( 'Cannot read CSV headers', 'import-export-by-rockstarlab' ) );
 			}
 			$result['headers'] = $headers;
+			// The delimiter actually used, so the wizard can show what was detected.
+			$result['detected_delimiter'] = (string) $options['delimiter'];
 			return $result;
 		} catch ( \Throwable $error ) {
 			return new \WP_Error( 'csv_parse_error', __( 'Cannot read CSV file', 'import-export-by-rockstarlab' ) );

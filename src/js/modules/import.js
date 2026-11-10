@@ -76,6 +76,29 @@ const ImportModule = {
 	},
 
 	/**
+	 * When the file was read with another delimiter than the default comma
+	 * (semicolon files from Excel, tab-separated exports), show it in the
+	 * Delimiter dropdown and keep it for the import, without reloading the preview.
+	 *
+	 * @param {Object} result Upload or preview response.
+	 */
+	showDetectedDelimiter( result ) {
+		const detected = result && result.detected_delimiter;
+		const $select = jQuery( '#csv_delimiter' );
+		if ( ! detected || ! $select.length || ',' !== $select.val() ) {
+			return;
+		}
+		const value = '\t' === detected ? 'tab' : detected;
+		if ( ',' === value || ! $select.find( `option[value="${ value }"]` ).length ) {
+			return;
+		}
+		$select.val( value );
+		if ( this.fileData ) {
+			this.fileData.delimiter = value;
+		}
+	},
+
+	/**
 	 * Bind event handlers
 	 */
 	bindEvents() {
@@ -573,7 +596,7 @@ const ImportModule = {
 		if ( ! allowedExtensions.includes( fileExt ) ) {
 			Utils.showNotice(
 				rslIeData.i18n.invalidFileTypeCsv ||
-					'Invalid file type. Please upload CSV, JSON, XML, XLSX, ODS, or ZIP files only.',
+					'This type of file cannot be imported. Use a CSV, XLSX, ODS, JSON, XML or ZIP file. A tab-separated .txt file can be renamed to .csv.',
 				'error'
 			);
 			return;
@@ -687,6 +710,7 @@ const ImportModule = {
 				this.fileData = result;
 				// Store delimiter used so it can be passed to the import job
 				this.fileData.delimiter = csvOptions.delimiter || ',';
+				this.showDetectedDelimiter( result );
 				this.fileData.encoding = csvOptions.encoding || 'auto';
 
 				// Hide upload area completely, show file info
@@ -830,6 +854,7 @@ const ImportModule = {
 			this.fileData = result;
 			this.fileData.delimiter = ',';
 			this.fileData.encoding = 'auto';
+			this.showDetectedDelimiter( result );
 			const format = String( result.format || '' ).toLowerCase();
 			jQuery( '.rsl-ie-file-name' ).text( result.file_name || url );
 			jQuery( '.rsl-ie-file-size' ).text(

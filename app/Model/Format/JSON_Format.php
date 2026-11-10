@@ -45,7 +45,7 @@ class JSON_Format implements File_Format_Interface {
 						$data[] = $value; }
 				}
 			} catch ( \Throwable $error ) {
-				return new \WP_Error( 'json_parse_error', __( 'Invalid JSON file', 'import-export-by-rockstarlab' ) );
+				return self::invalid_json_error( 'json_parse_error', $error );
 			}
 			return $data;
 		}
@@ -181,7 +181,7 @@ class JSON_Format implements File_Format_Interface {
 			}
 			return $result;
 		} catch ( \Throwable $error ) {
-			return new \WP_Error( 'json_parse_error', __( 'Invalid JSON file', 'import-export-by-rockstarlab' ) );
+			return self::invalid_json_error( 'json_parse_error', $error );
 		}
 	}
 
@@ -274,7 +274,7 @@ class JSON_Format implements File_Format_Interface {
 				}
 				return true;
 			} catch ( \Throwable $error ) {
-				return new \WP_Error( 'json_invalid', __( 'Invalid JSON file', 'import-export-by-rockstarlab' ) );
+				return self::invalid_json_error( 'json_invalid', $error );
 			}
 		}
 		// Retain validation of scalar documents.
@@ -375,7 +375,7 @@ class JSON_Format implements File_Format_Interface {
 				++$count;
 			}
 		} catch ( \Throwable $error ) {
-			return new \WP_Error( 'json_parse_error', __( 'Invalid JSON file', 'import-export-by-rockstarlab' ) );
+			return self::invalid_json_error( 'json_parse_error', $error );
 		}
 		return $count_only ? $count : $rows;
 	}
@@ -399,5 +399,30 @@ class JSON_Format implements File_Format_Interface {
 			'application/json',
 			'text/json',
 		];
+	}
+
+	/**
+	 * "Invalid JSON file" with a hint people can act on, from the stream reader's exception.
+	 *
+	 * @param string     $code  Error code.
+	 * @param \Throwable $error Parser exception.
+	 * @return \WP_Error
+	 */
+	public static function invalid_json_error( $code, $error ) {
+		$reason = $error instanceof \Throwable ? $error->getMessage() : '';
+		$hints  = [
+			'Incomplete JSON container.' => __( 'The file ends before the JSON is complete: a closing ] or } is missing. Download or export it again.', 'import-export-by-rockstarlab' ),
+			'Unbalanced JSON row.'       => __( 'The file ends before the JSON is complete: a closing ] or } is missing. Download or export it again.', 'import-export-by-rockstarlab' ),
+			'Invalid JSON row.'          => __( 'A record is not valid JSON, for example because of a missing comma or quotation mark. Check the file in a JSON validator.', 'import-export-by-rockstarlab' ),
+			'Missing JSON row.'          => __( 'A record is not valid JSON, for example because of a missing comma or quotation mark. Check the file in a JSON validator.', 'import-export-by-rockstarlab' ),
+			'Expected a JSON container without trailing content.' => __( 'There is text after the end of the JSON. Remove it, or save only the JSON array.', 'import-export-by-rockstarlab' ),
+			'JSON depth exceeded.'       => __( 'The JSON is nested too deeply to import.', 'import-export-by-rockstarlab' ),
+		];
+		$message = __( 'Invalid JSON file', 'import-export-by-rockstarlab' );
+		if ( isset( $hints[ $reason ] ) ) {
+			/* translators: %s: what is wrong with the file */
+			$message = sprintf( __( 'Invalid JSON file: %s', 'import-export-by-rockstarlab' ), $hints[ $reason ] );
+		}
+		return new \WP_Error( $code, $message );
 	}
 }
