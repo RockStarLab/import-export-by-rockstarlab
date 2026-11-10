@@ -1476,8 +1476,10 @@
 		}
 	}
 
-	.rsl-ie-inline-check {
-		margin-right: 16px;
+	.rsl-ie-server-form fieldset {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px 24px;
 	}
 }
 

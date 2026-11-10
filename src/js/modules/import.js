@@ -146,7 +146,9 @@ const ImportModule = {
 				this.browseRemote( String( $item.data( 'path' ) ) );
 				return;
 			}
-			jQuery( '#rsl-ie-remote-path' ).val( String( $item.data( 'path' ) ) );
+			jQuery( '#rsl-ie-remote-path' ).val(
+				String( $item.data( 'path' ) )
+			);
 			jQuery( '.rsl-ie-remote-listing' ).hide();
 			this.fetchRemote();
 		} );
@@ -892,8 +894,10 @@ const ImportModule = {
 			);
 			const data = await response.json();
 			if ( ! data.success ) {
+				// Controller errors carry the reason in data.message.
 				throw new Error(
-					( data.data && data.data.message ) ||
+					data.message ||
+						( data.data && data.data.message ) ||
 						( 'string' === typeof data.data ? data.data : '' ) ||
 						'Error'
 				);
@@ -916,7 +920,9 @@ const ImportModule = {
 						'" data-path="' +
 						Utils.escapeHtml( item.path ) +
 						'"><span class="dashicons ' +
-						( isDir ? 'dashicons-category' : 'dashicons-media-default' ) +
+						( isDir
+							? 'dashicons-category'
+							: 'dashicons-media-default' ) +
 						'"></span> ' +
 						Utils.escapeHtml( item.name ) +
 						'</a>' +
@@ -939,7 +945,9 @@ const ImportModule = {
 					( rows.length
 						? '<ul>' + rows.join( '' ) + '</ul>'
 						: '<p class="description">' +
-						  Utils.escapeHtml( i18n.remoteEmpty || 'This folder is empty.' ) +
+						  Utils.escapeHtml(
+								i18n.remoteEmpty || 'This folder is empty.'
+						  ) +
 						  '</p>' )
 			);
 		} catch ( error ) {
@@ -956,7 +964,9 @@ const ImportModule = {
 	 */
 	fetchRemote() {
 		const server = String( jQuery( '#rsl-ie-remote-server' ).val() || '' );
-		const path = String( jQuery( '#rsl-ie-remote-path' ).val() || '' ).trim();
+		const path = String(
+			jQuery( '#rsl-ie-remote-path' ).val() || ''
+		).trim();
 		if ( ! server || ! path || /\/$/.test( path ) ) {
 			Utils.showNotice(
 				( window.rslIeData.i18n || {} ).remotePickFile ||
