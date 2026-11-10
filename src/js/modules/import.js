@@ -1354,6 +1354,8 @@ const ImportModule = {
 								jQuery(
 									'.rsl-ie-elementor-fields-group'
 								).remove();
+								jQuery( '.rsl-ie-acf-fields-group' ).remove();
+								this.loadACFFields( 'custom_post_types' );
 								this.loadYoastFields( 'custom_post_types' );
 								this.loadRankMathFields( 'custom_post_types' );
 								this.loadElementorFields( 'custom_post_types' );
@@ -8032,13 +8034,23 @@ const ImportModule = {
 			return;
 		}
 
+		// For custom post types, ACF field groups are attached to the
+		// post type chosen on this step, not to "custom_post_types".
+		const postType =
+			contentType === 'custom_post_types'
+				? jQuery( '#rsl-ie-custom-post-type' ).val() || ''
+				: contentType;
+		if ( ! postType ) {
+			return;
+		}
+
 		return jQuery.ajax( {
 			url: rslIeData.ajaxUrl,
 			method: 'POST',
 			data: {
 				action: 'rsl_ie_get_acf_fields',
 				nonce: rslIeData.nonce,
-				post_type: contentType,
+				post_type: postType,
 			},
 			success: ( response ) => {
 				if (

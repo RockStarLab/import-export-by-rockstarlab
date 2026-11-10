@@ -66,6 +66,7 @@ class XLSX_Part_Map {
 		$result    = [
 			'worksheet' => null,
 			'strings'   => null,
+			'styles'    => null,
 		];
 		foreach ( self::relationships( $parts, $rels ) as $rel ) {
 			$key = null;
@@ -74,7 +75,9 @@ class XLSX_Part_Map {
 					throw new \RuntimeException( 'Unsupported spreadsheet sheet type.' ); }
 				$key = 'worksheet';
 			} elseif ( self::type( $rel['type'], 'sharedStrings' ) ) {
-				$key = 'strings'; }
+				$key = 'strings';
+			} elseif ( self::type( $rel['type'], 'styles' ) ) {
+				$key = 'styles'; }
 			if ( null === $key ) {
 				continue; }
 			if ( null !== $result[ $key ] ) {
@@ -85,7 +88,51 @@ class XLSX_Part_Map {
 			throw new \RuntimeException( 'Missing spreadsheet worksheet relationship.' ); }
 		$result['calendar']    = $calendar;
 		$result['sheet_count'] = $sheet_count;
+		$result['decimals']    = null === $result['styles'] ? [] : self::fixed_decimals( $parts, $result['styles'] );
+		unset( $result['styles'] );
 		return $result;
+	}
+
+	/**
+	 * Cell styles that show a plain number with a fixed count of decimals (0.00, #,##0.00).
+	 *
+	 * The worksheet stores 13.80 as 13.8; the style says how many decimals were shown,
+	 * so the importer can read back the same text that was exported.
+	 *
+	 * @return array<int,int> Style index => decimals.
+	 */
+	private static function fixed_decimals( Spreadsheet_XML_Parts $parts, $path ) {
+		$codes    = [ 2 => 2, 4 => 2 ];
+		$decimals = [];
+		$in_xfs   = false;
+		$index    = 0;
+		try {
+			foreach ( $parts->nodes( $path ) as $node ) {
+				if ( \XMLReader::END_ELEMENT === $node->nodeType && 1 === $node->depth ) {
+					$in_xfs = false; }
+				if ( \XMLReader::ELEMENT !== $node->nodeType ) {
+					continue; }
+				if ( 0 === $node->depth && ( 'styleSheet' !== $node->localName || ! in_array( $node->namespaceURI, self::MAIN, true ) ) ) {
+					return []; }
+				if ( 2 === $node->depth && 'numFmt' === $node->localName ) {
+					if ( preg_match( '/^(?:#,##)?0\.(0{1,10})$/', (string) $node->getAttribute( 'formatCode' ), $match ) ) {
+						$codes[ (int) $node->getAttribute( 'numFmtId' ) ] = strlen( $match[1] ); }
+					continue;
+				}
+				if ( 1 === $node->depth ) {
+					$in_xfs = 'cellXfs' === $node->localName && ! $node->isEmptyElement; }
+				if ( $in_xfs && 2 === $node->depth && 'xf' === $node->localName ) {
+					$format = (int) $node->getAttribute( 'numFmtId' );
+					if ( isset( $codes[ $format ] ) && count( $decimals ) < 4096 ) {
+						$decimals[ $index ] = $codes[ $format ]; }
+					++$index;
+				}
+			}
+		} catch ( \RuntimeException $e ) {
+			// Styles are optional for data import; a broken styles part only loses decimals.
+			return [];
+		}
+		return $decimals;
 	}
 
 	/** Yield theme parts without collecting relationship records. */

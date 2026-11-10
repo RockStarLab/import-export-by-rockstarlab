@@ -38,7 +38,11 @@ class ODS_Cell_Decoder extends Ods {
 			case 'percentage':
 			case 'currency':
 			case 'float':
-				return (string) (float) $cell->getAttributeNS( $office, 'value' );
+				$number = (string) (float) $cell->getAttributeNS( $office, 'value' );
+				// Shown as 13.80 but stored as 13.8: keep the shown text when it is the same number with trailing zeros.
+				if ( preg_match( '/^-?\d+\.\d*0$/', $text ) && rtrim( rtrim( $text, '0' ), '.' ) === $number ) {
+					return $text; }
+				return $number;
 			case 'date':
 				return (string) Date::convertIsoDate( $cell->getAttributeNS( $office, 'date-value' ) );
 			case 'time':
