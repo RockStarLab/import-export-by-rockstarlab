@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.49
+Stable tag: 2.1.50
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,9 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.50 =
+* Fixed: the bundled spreadsheet libraries now match the plugin's minimum PHP version 7.4. Two of them needed PHP 8.0 and 8.3, so Excel (XLSX) and ODS exports and imports could fail on older PHP versions.
 
 = 2.1.49 =
 * New: FTP, FTPS and SFTP servers. Save a server once in Jobs Log > Servers (the password is stored encrypted and never shown again), then import a file from it (Import, step 2: pick the server, Browse and click the file) and upload finished exports to a folder on it (Export, Upload to a server). Scheduled imports download the current file on every run, scheduled exports upload a new file every time, and File changed triggers watch files on the server. SFTP works without PHP extensions.
