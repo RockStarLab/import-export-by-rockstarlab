@@ -2409,11 +2409,18 @@ const ExportModule = {
 				.addClass( ok ? 'is-uploaded' : 'is-failed' )
 				.text(
 					(
-						( ok ? i18n.remoteUploaded : i18n.remoteUploadFailed ) ||
-						( ok ? 'Uploaded to %1$s: %2$s' : 'Upload to %1$s failed: %2$s' )
+						( ok
+							? i18n.remoteUploaded
+							: i18n.remoteUploadFailed ) ||
+						( ok
+							? 'Uploaded to %1$s: %2$s'
+							: 'Upload to %1$s failed: %2$s' )
 					)
 						.replace( '%1$s', upload.server || '' )
-						.replace( '%2$s', ok ? upload.path || '' : upload.error || '' )
+						.replace(
+							'%2$s',
+							ok ? upload.path || '' : upload.error || ''
+						)
 				)
 				.show();
 		}

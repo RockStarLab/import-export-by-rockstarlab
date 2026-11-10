@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.50
+Stable tag: 2.1.51
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,10 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.51 =
+* Fixed: when Browse on the import screen cannot reach an FTP or SFTP server, it now shows the reason (for example a wrong host name or password) instead of only "Error".
+* Fixed: the FTP, FTPS and SFTP choices on the Servers screen have space between them.
 
 = 2.1.50 =
 * Fixed: the bundled spreadsheet libraries now match the plugin's minimum PHP version 7.4. Two of them needed PHP 8.0 and 8.3, so Excel (XLSX) and ODS exports and imports could fail on older PHP versions.
