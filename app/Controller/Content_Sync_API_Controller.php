@@ -1191,6 +1191,12 @@ class Content_Sync_API_Controller {
 				continue;
 			}
 
+			// The stock switch goes with the stock the store keeps: without it,
+			// WooCommerce clears the kept quantity on the next product save.
+			if ( '_manage_stock' === $key && $this->is_target_owned_product_meta( (int) $post_id, '_stock' ) ) {
+				continue;
+			}
+
 			$stale[] = $key;
 		}
 		foreach ( $stale as $key ) {

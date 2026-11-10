@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.53
+Stable tag: 2.1.54
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,9 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.54 =
+* Fixed: completes the 2.1.53 fix. When the pushed WooCommerce product has no stock settings saved, the receiving store now also keeps stock management turned on, so its stock quantity stays after the push.
 
 = 2.1.53 =
 * Fixed: when you push a WooCommerce product with Content Sync and the product on the site you push from has no stock settings saved, the receiving store now keeps its own tracked stock quantity. Before, the quantity could be removed.
