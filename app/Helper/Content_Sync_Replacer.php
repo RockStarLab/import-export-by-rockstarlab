@@ -1165,6 +1165,15 @@ class Content_Sync_Replacer {
 		}
 
 		foreach ( $meta as $key => $value ) {
+			// Yoast SEO / Rank Math primary term: stores a source-site term ID.
+			if ( preg_match( '/^(_yoast_wpseo_primary_|rank_math_primary_)/', (string) $key ) ) {
+				$source_term = is_array( $value ) ? reset( $value ) : $value;
+				if ( is_numeric( $source_term ) && isset( $term_id_map[ (int) $source_term ] ) ) {
+					update_post_meta( $post_id, $key, (string) $term_id_map[ (int) $source_term ] );
+				}
+				continue;
+			}
+
 			// Only process non-underscore-prefixed keys (skip ACF reference entries).
 			if ( strpos( $key, '_' ) === 0 ) {
 				continue;

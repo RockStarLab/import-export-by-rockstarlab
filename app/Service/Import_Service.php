@@ -1049,7 +1049,9 @@ class Import_Service {
 			if ( is_wp_error( $saved ) ) {
 				return $saved;
 			}
-			if ( ! empty( $parameters['migration_parent_id'] ) && is_wp_error( $result ) ) {
+			// A migration stops on a failed row, except a media file the source site no longer has:
+			// that row is counted as failed and the rest of the package still imports.
+			if ( ! empty( $parameters['migration_parent_id'] ) && is_wp_error( $result ) && ! self::is_missing_source_media( $request, $result ) ) {
 				return $result; }
 		}
 		$fresh = $job_model->find( $job_id );
@@ -1329,6 +1331,18 @@ class Import_Service {
 			'progress'  => (float) $job->progress,
 			'result'    => is_array( $result ) ? $result : [],
 		];
+	}
+
+	/**
+	 * Whether a failed row is a media file the source site answered with an error page (404 or HTML).
+	 * Network failures are not included: when the source site is down, the migration should stop.
+	 *
+	 * @param array     $request Import request.
+	 * @param \WP_Error $error   Row error.
+	 * @return bool
+	 */
+	public static function is_missing_source_media( array $request, \WP_Error $error ) {
+		return 'media' === ( $request['import_type'] ?? '' ) && 'download_failed' === $error->get_error_code();
 	}
 
 	/**

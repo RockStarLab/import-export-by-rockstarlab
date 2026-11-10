@@ -317,9 +317,15 @@ class Content_Sync_API_Controller {
 					$target_post_id = (int) $mapped_value;
 				}
 				// If mapped to "new" or null, still reuse a post created earlier
-				// in this same sync (e.g. WooCommerce grouped children).
+				// in this same sync (e.g. WooCommerce grouped children), found by its
+				// source ID. A different post that only shares the slug is never
+				// overwritten: "Create New Post" must create a post.
 				if ( ! $target_post_id ) {
-					$target_post_id = $this->find_existing_post( $post_data );
+					$target_post_id = $this->find_existing_post_by_source_meta( (int) $post_data['ID'], (string) $post_data['post_type'] );
+					if ( ! $target_post_id ) {
+						$target_post_id = $this->find_existing_product_by_sku( (array) $post_data );
+					}
+					$target_post_id = $target_post_id ? (int) $target_post_id : null;
 				}
 			} else {
 				// No mapping provided, use default logic (find by original ID)
