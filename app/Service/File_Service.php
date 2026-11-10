@@ -857,7 +857,8 @@ class File_Service {
 		}
 		$described = $this->describe( $record ) + [
 			'headers'        => $headers,
-			'preview'        => $rows,
+			// A JSON object file gives rows keyed by member name; the preview is always a list.
+			'preview'        => array_values( (array) $rows ),
 			'total_rows'     => (int) $count,
 			'columns'        => count( $headers ),
 			'parser_options' => $settings,

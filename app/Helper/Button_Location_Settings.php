@@ -129,6 +129,11 @@ class Button_Location_Settings {
 	 * @return bool
 	 */
 	public static function is_sync_enabled( $location_id ) {
+		// These objects are synced through their own workflows (coupons by code, orders by
+		// order key, menus), not the post Sync Content window, so no button on their screens.
+		if ( in_array( (string) $location_id, [ 'post_type:shop_coupon', 'post_type:shop_order', 'post_type:shop_order_refund', 'post_type:nav_menu_item' ], true ) ) {
+			return false;
+		}
 		$settings = self::get_settings();
 		return ! empty( $settings['sync_button_locations'][ $location_id ] );
 	}
