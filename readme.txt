@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.43
+Stable tag: 2.1.44
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,10 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.44 =
+* Fixed: in a WooCommerce product export (PRO), Stock Quantity filters such as "Less or Equal 5" no longer match products that don't track stock. An empty value is never greater or less than a number.
+* Improved: with "One row per variation", stock and price filters check each variation, so a variation that is out of stock or running low is listed even when its product doesn't track stock. A filter on SKU still selects the product with all its variations.
 
 = 2.1.43 =
 * Improved: when a CSV file uses a semicolon, tab or pipe instead of a comma, the Delimiter dropdown in the import wizard switches to it after the upload. The upload response for WP-CLI and AI agents includes the detected delimiter.

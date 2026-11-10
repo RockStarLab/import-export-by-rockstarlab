@@ -562,14 +562,12 @@ class Post_Exporter extends Abstract_Exporter {
 	}
 
 	/**
-	 * One row per published variation, filled from the parent row where the variation has no value of its own.
+	 * Product fields that a variation row takes from the variation itself, with their WC_Product getter.
 	 *
-	 * @param \WC_Product $parent      Variable product.
-	 * @param array       $parent_item Exported parent row.
 	 * @return array
 	 */
-	private function variation_rows( $parent, array $parent_item ) {
-		$getters = [
+	private static function variation_getters() {
+		return [
 			'sku'            => 'sku',
 			'_sku'           => 'sku',
 			'regular_price'  => 'regular_price',
@@ -601,11 +599,68 @@ class Post_Exporter extends Abstract_Exporter {
 			'shipping_class' => 'shipping_class',
 			'total_sales'    => 'total_sales',
 		];
+	}
+
+	/**
+	 * Whether a variation's own values match the given filters.
+	 *
+	 * @param \WC_Product $variation Variation.
+	 * @param array       $filters   Filters on variation fields.
+	 * @return bool
+	 */
+	private function variation_matches_filters( $variation, array $filters ) {
+		$getters = self::variation_getters();
+		foreach ( $filters as $filter ) {
+			$field = (string) ( $filter['field'] ?? '' );
+			$prop  = $getters[ $field ] ?? '';
+			if ( '' === $prop || ! is_callable( [ $variation, 'get_' . $prop ] ) ) {
+				continue;
+			}
+			$value = 'sku' === $prop ? $variation->get_sku( 'edit' ) : $variation->{'get_' . $prop}();
+			if ( is_bool( $value ) ) {
+				$value = $value ? 'yes' : 'no';
+			} elseif ( null === $value || false === $value ) {
+				$value = '';
+			}
+			if ( ! $this->evaluate_product_condition( $value, (string) ( $filter['condition'] ?? '' ), $filter['value'] ?? '' ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Filters on variation fields when variations are exported as rows.
+	 *
+	 * @var array
+	 */
+	private $variation_filters = [];
+
+	/**
+	 * Whether the current export writes one row per variation.
+	 *
+	 * @var bool
+	 */
+	private $variation_rows_enabled = false;
+
+	/**
+	 * One row per published variation, filled from the parent row where the variation has no value of its own.
+	 *
+	 * @param \WC_Product $parent      Variable product.
+	 * @param array       $parent_item Exported parent row.
+	 * @return array
+	 */
+	private function variation_rows( $parent, array $parent_item ) {
+		$getters = self::variation_getters();
 		$rows    = [];
 		foreach ( $parent->get_children() as $variation_id ) {
 			$variation = wc_get_product( $variation_id );
 			// Disabled variations are saved as private posts.
 			if ( ! $variation || 'publish' !== get_post_status( $variation_id ) ) {
+				continue;
+			}
+			// Stock, price and SKU filters apply to each variation row.
+			if ( $this->variation_filters && ! $this->variation_matches_filters( $variation, $this->variation_filters ) ) {
 				continue;
 			}
 			$row = $parent_item;
@@ -722,6 +777,8 @@ class Post_Exporter extends Abstract_Exporter {
 
 		// Product fields are mostly values derived through WC_Product getters. Resolve
 		// all step-two filters against those exported values before pagination.
+		$this->variation_rows_enabled = 'product' === $post_type && ! empty( $options['variation_rows'] );
+		$this->variation_filters      = [];
 		if ( 'product' === $post_type && ( ! empty( $options['filters'] ) || ! empty( $options['custom_fields'] ) || ! empty( $options['taxonomy'] ) ) ) {
 			$this->apply_product_filters(
 				$args,
@@ -1629,9 +1686,25 @@ class Post_Exporter extends Abstract_Exporter {
 		$candidate_args['posts_per_page'] = -1;
 		$candidate_args['no_found_rows']  = true;
 
+		// With one row per variation, stock, price and SKU filters are checked on each
+		// variation of a variable product rather than on the parent.
+		$parent_filters = $filters;
+		if ( $this->variation_rows_enabled ) {
+			// SKU keeps selecting the product itself, so a parent SKU still picks all its variations.
+			$variation_fields = array_diff_key( self::variation_getters(), [ 'sku' => true, '_sku' => true ] );
+			$parent_filters   = [];
+			foreach ( (array) $filters as $filter ) {
+				if ( isset( $filter['field'] ) && isset( $variation_fields[ (string) $filter['field'] ] ) ) {
+					$this->variation_filters[] = $filter;
+				} else {
+					$parent_filters[] = $filter;
+				}
+			}
+		}
+
 		// Every batch of a job rebuilds these arguments. Matching IDs are computed once per job,
 		// so a 100,000-post export doesn't rescan the whole site for each batch.
-		$cache_key = $this->matching_ids_cache_key( $candidate_args, [ $filters, $custom_fields, $taxonomy_filters ] );
+		$cache_key = $this->matching_ids_cache_key( $candidate_args, [ $filters, $custom_fields, $taxonomy_filters, $this->variation_rows_enabled ] );
 		$cached    = $this->cached_matching_ids( $cache_key );
 		if ( null !== $cached ) {
 			$this->set_matching_ids( $args, $cached );
@@ -1643,7 +1716,15 @@ class Post_Exporter extends Abstract_Exporter {
 
 		foreach ( $candidate_ids as $product_id ) {
 			$post = get_post( $product_id );
-			if ( ! $post || ! $this->product_matches_filters( $post, $filters, $custom_fields, $taxonomy_filters ) ) {
+			if ( ! $post ) {
+				continue;
+			}
+			$wc_product = $this->variation_filters && function_exists( 'wc_get_product' ) ? wc_get_product( $product_id ) : null;
+			if ( $wc_product && $wc_product->is_type( 'variable' ) ) {
+				if ( ! $this->product_matches_filters( $post, $parent_filters, $custom_fields, $taxonomy_filters ) || ! $this->has_matching_variation( $wc_product ) ) {
+					continue;
+				}
+			} elseif ( ! $this->product_matches_filters( $post, $filters, $custom_fields, $taxonomy_filters ) ) {
 				continue;
 			}
 
@@ -1652,6 +1733,22 @@ class Post_Exporter extends Abstract_Exporter {
 
 		$this->remember_matching_ids( $cache_key, $matching_ids );
 		$this->set_matching_ids( $args, $matching_ids );
+	}
+
+	/**
+	 * Whether at least one published variation matches the variation filters.
+	 *
+	 * @param \WC_Product $product Variable product.
+	 * @return bool
+	 */
+	private function has_matching_variation( $product ) {
+		foreach ( $product->get_children() as $variation_id ) {
+			$variation = wc_get_product( $variation_id );
+			if ( $variation && 'publish' === get_post_status( $variation_id ) && $this->variation_matches_filters( $variation, $this->variation_filters ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -1803,6 +1900,12 @@ class Post_Exporter extends Abstract_Exporter {
 		$condition   = strtolower( $condition );
 		if ( is_string( $field_value ) && preg_match( '/^\d{4}-\d{2}-\d{2}/', $field_value ) && is_string( $test_value ) && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $test_value ) ) {
 			$field_value = substr( $field_value, 0, 10 );
+		}
+
+		// An empty value (a product that doesn't track stock, has no sale price, ...) is
+		// neither greater nor less than a number.
+		if ( in_array( $condition, [ 'greater', 'newer_than', 'equals_or_greater', 'less', 'older_than', 'equals_or_less', 'between' ], true ) && ( null === $field_value || '' === trim( (string) $field_value ) ) ) {
+			return false;
 		}
 
 		switch ( $condition ) {

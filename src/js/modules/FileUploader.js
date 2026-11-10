@@ -190,7 +190,9 @@ export default class FileUploader {
 			const body = await response.json();
 			const message =
 				body?.message ||
-				( typeof body?.data === 'string' ? body.data : body?.data?.message );
+				( typeof body?.data === 'string'
+					? body.data
+					: body?.data?.message );
 			if ( message ) {
 				return String( message );
 			}

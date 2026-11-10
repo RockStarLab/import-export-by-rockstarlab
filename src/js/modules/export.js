@@ -849,7 +849,10 @@ const ExportModule = {
 	 */
 	queueCountRefresh() {
 		clearTimeout( this.countRefreshTimer );
-		this.countRefreshTimer = setTimeout( () => this.refreshCount( false ), 500 );
+		this.countRefreshTimer = setTimeout(
+			() => this.refreshCount( false ),
+			500
+		);
 	},
 
 	/**
