@@ -1172,6 +1172,10 @@ class Content_Sync_API_Controller {
 			'_wp_old_date',
 		);
 
+		// Decide every key against the meta as it was before cleanup: whether
+		// _stock belongs to the store depends on _manage_stock, which may itself
+		// be stale and removed in this loop.
+		$stale = array();
 		foreach ( $existing_meta as $key => $values ) {
 			$key = (string) $key;
 
@@ -1187,6 +1191,9 @@ class Content_Sync_API_Controller {
 				continue;
 			}
 
+			$stale[] = $key;
+		}
+		foreach ( $stale as $key ) {
 			delete_post_meta( (int) $post_id, $key );
 		}
 	}
