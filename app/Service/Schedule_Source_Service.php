@@ -116,8 +116,19 @@ class Schedule_Source_Service {
 						unset( $in['post_mapping'] );
 					}
 					if ( empty( $in['post_type'] ) && in_array( $job->data_type, [ 'post', 'page' ], true ) ) {
-						// Pushes from the Pages screen were logged as "post"; use the type of the selected items.
-						$types           = array_unique( array_map( 'get_post_type', (array) ( $in['post_ids'] ?? [] ) ) );
+						// Syncs from the Pages screen were logged as "post"; use the type of the local items.
+						// A push lists local IDs. A pull lists remote IDs and maps local => remote for
+						// updates (remote => "new" for new posts), so read only its updated local posts.
+						$local = (array) ( $in['post_ids'] ?? [] );
+						if ( 'sync-pull' === ( $params['operation'] ?? '' ) ) {
+							$local = [];
+							foreach ( (array) ( $in['post_mapping'] ?? [] ) as $local_id => $remote_id ) {
+								if ( is_numeric( $remote_id ) ) {
+									$local[] = (int) $local_id;
+								}
+							}
+						}
+						$types           = array_unique( array_map( 'get_post_type', $local ) );
 						$in['post_type'] = 1 === count( $types ) && in_array( reset( $types ), [ 'post', 'page' ], true ) ? reset( $types ) : $job->data_type;
 					}
 					$params['input'] = $in;
