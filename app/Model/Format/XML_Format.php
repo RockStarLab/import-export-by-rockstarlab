@@ -396,6 +396,11 @@ class XML_Format implements File_Format_Interface {
 				}
 				$child = substr( $path, strlen( $wrapper ) + 1 );
 				$score = $count >= 2 ? $count : ( in_array( $child, $known, true ) ? 1 : 0 );
+				// RSS and WordPress export (WXR) files list many <wp:tag>/<wp:category>
+				// header elements before the <item> records: a known record name wins.
+				if ( in_array( $child, $known, true ) ) {
+					$score += 1000000;
+				}
 				if ( $score > $choice[2] ) {
 					$choice = array( $wrapper, $child, $score );
 				}
