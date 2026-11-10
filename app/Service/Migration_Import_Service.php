@@ -387,7 +387,9 @@ class Migration_Import_Service extends Migration_Service {
 				$result = ( new Import_Service() )->process_background_batch( $child->id );
 				return is_wp_error( $result ) ? $result : [ 'pending' => true ];
 			}
-			if ( 'completed' !== $child->status || $child->failed_items > 0 ) {
+			// Media rows fail only for files missing on the source site; other failures stop the child.
+			$media_step = 'media' === ( $step['request']['import_type'] ?? '' );
+			if ( 'completed' !== $child->status || ( $child->failed_items > 0 && ! $media_step ) ) {
 				return $this->error( 'child_failed', 409 ); }
 			foreach ( $params['migration_maps'] ?? [] as $domain => $map ) {
 				// Taxonomy maps have a second namespace; all other source IDs share their domain.

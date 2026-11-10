@@ -932,6 +932,12 @@ const SiteMigration = {
 		if ( skipped > 0 ) {
 			text += `, ${ skipped } skipped because they already exist on this site`;
 		}
+		const failed = parseInt( stats.failed, 10 ) || 0;
+		if ( failed > 0 ) {
+			text += `. ${ failed } media ${
+				failed === 1 ? 'file' : 'files'
+			} could not be downloaded from the source site; see Jobs Log`;
+		}
 		return text + '.';
 	},
 

@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.45
+Stable tag: 2.1.46
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,12 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.46 =
+* Fixed: in Content Sync, a post pushed with "Create New Post" no longer overwrites a different post on the other site that has the same slug. The post is created as a new post with its own slug, and pushing it again updates that copy.
+* Fixed: a Content Migration import no longer stops when the source site is missing one media file. That file is counted as failed, the rest of the package is imported, and the summary says how many media files could not be downloaded. If the source site can't be reached at all, the import still stops.
+* Fixed: in Content Sync, the Yoast SEO and Rank Math primary category of a pushed or pulled post now points to the same category on the receiving site.
+* Improved: the WooCommerce Orders export (PRO 2.1.11) lists checkout fields and other order meta as Custom Fields, each in its own column.
 
 = 2.1.45 =
 * Fixed: when importing into a custom post type (PRO), ACF fields now appear in the field mapping after you choose the post type, and Auto Map matches them.

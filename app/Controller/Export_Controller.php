@@ -745,6 +745,12 @@ class Export_Controller extends Base_Controller {
 			$limit = 20000;
 		}
 
+		// WooCommerce orders keep their meta in the orders tables (HPOS) or as shop_order posts.
+		if ( in_array( $post_type, [ 'woo_order', 'shop_order' ], true ) ) {
+			$this->send_success( [ 'fields' => self::order_meta_fields( $limit ) ] );
+			return;
+		}
+
 		// Get unique meta keys for this post type
 		// phpcs:disable WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery -- \\_% is a valid SQL LIKE escape pattern, not a printf-style placeholder.
 		$meta_keys = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct DB query required here.
@@ -772,6 +778,49 @@ class Export_Controller extends Base_Controller {
 		}
 
 		$this->send_success( [ 'fields' => $fields ] );
+	}
+
+	/**
+	 * Visible order meta keys (checkout fields and other plugin data), like custom fields of posts.
+	 *
+	 * @param int $limit Maximum number of keys.
+	 * @return array<int,array{name:string,label:string}>
+	 */
+	public static function order_meta_fields( $limit ) {
+		global $wpdb;
+		$hpos = class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' ) && \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+		// phpcs:disable WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Distinct keys need a direct query; \\_% is a LIKE escape.
+		if ( $hpos ) {
+			$keys = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT DISTINCT m.meta_key FROM %i m INNER JOIN %i o ON m.order_id = o.id
+					WHERE o.type = 'shop_order' AND m.meta_key NOT LIKE '\\_%%' AND m.meta_value <> ''
+					ORDER BY m.meta_key ASC LIMIT %d",
+					$wpdb->prefix . 'wc_orders_meta',
+					$wpdb->prefix . 'wc_orders',
+					$limit
+				)
+			);
+		} else {
+			$keys = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT DISTINCT pm.meta_key FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+					WHERE p.post_type = 'shop_order' AND pm.meta_key NOT LIKE '\\_%%' AND pm.meta_value <> ''
+					ORDER BY pm.meta_key ASC LIMIT %d",
+					$limit
+				)
+			);
+		}
+		// phpcs:enable
+		return array_map(
+			static function ( $key ) {
+				return [
+					'name'  => (string) $key,
+					'label' => (string) $key,
+				];
+			},
+			is_array( $keys ) ? $keys : []
+		);
 	}
 
 	/**
