@@ -38,13 +38,13 @@ class Job_Lock {
 	 * @param string $resource_id Resource identifier.
 	 * @return string|false|\WP_Error
 	 */
-	public static function acquire_resource( $scope, $resource_id ) {
+	public static function acquire_resource( $scope, $resource_id, $wait = 0 ) {
 		global $wpdb;
 		$name = 'rsl_ie_' . $scope . '_' . md5( DB_NAME . ':' . $wpdb->prefix . ':' . $resource_id );
 		if ( isset( self::$held[ $name ] ) ) {
 			return false;
 		}
-		$result = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, 0)', $name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Connection-owned synchronization must bypass caches.
+		$result = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, %d)', $name, max( 0, min( 15, (int) $wait ) ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Connection-owned synchronization must bypass caches.
 		if ( null === $result ) {
 			return new \WP_Error( 'rsl_ie_lock_unavailable', __( 'The database could not acquire a job lock.', 'import-export-by-rockstarlab' ), [ 'status' => 503 ] );
 		}

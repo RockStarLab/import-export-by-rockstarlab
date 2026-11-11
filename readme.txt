@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.55
+Stable tag: 2.1.56
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,10 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.56 =
+* Fixed: WooCommerce reviews synced from the Reviews screen (push or pull) now update the average rating and review count of the product. Before, the product could show the new review with an average rating of 0.
+* Fixed: lists and searches of the other site no longer fail with "This connection is already in use" when a new search starts while the previous one is still running, for example while you type in the "Map to remote post" field.
 
 = 2.1.55 =
 * Fixed: when you pull a post or page that was synced before and its title was changed on this site, the mapping keeps the remote post it came from. Before, the automatic title matching cleared the row and the pull stopped with "Please select at least one remote post to pull". The row now shows the title of the remote post.
