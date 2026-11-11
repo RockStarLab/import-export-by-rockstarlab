@@ -978,6 +978,7 @@ class Init {
 					'fieldExcludedCategories'           => __( 'Excluded Categories', 'import-export-by-rockstarlab' ),
 					'fieldAllowedEmails'                => __( 'Allowed Emails', 'import-export-by-rockstarlab' ),
 					'fieldUsageCount'                   => __( 'Usage Count', 'import-export-by-rockstarlab' ),
+					'fieldUsedBy'                       => __( 'Used By (Array)', 'import-export-by-rockstarlab' ),
 					'fieldUsageLimitTotal'              => __( 'Usage Limit Total', 'import-export-by-rockstarlab' ),
 					'fieldUsageLimitPerUser'            => __( 'Usage Limit Per User', 'import-export-by-rockstarlab' ),
 					'fieldExpiryDate'                   => __( 'Expiry Date', 'import-export-by-rockstarlab' ),

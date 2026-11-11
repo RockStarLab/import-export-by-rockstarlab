@@ -245,7 +245,7 @@ Temporarily hidden: Active Development card.
 							<li><strong><?php esc_html_e( 'Content Migration Tool Improvements', 'import-export-by-rockstarlab' ); ?></strong><span><?php esc_html_e( 'Improved content migration functionality.', 'import-export-by-rockstarlab' ); ?></span></li>
 						</ul>
 						<div class="rsl-ie-notice-links">
-							<a href="https://wpimportexport.com/how-to-use-the-wordpress-abilities-api-with-ai-agents-exports-imports-content-sync-and-backups/" target="_blank" rel="noopener noreferrer" class="rsl-ie-notice-link">
+							<a href="https://wpimportexport.com/import-export-video-tutorials-for-wordpress/ai-agents/" target="_blank" rel="noopener noreferrer" class="rsl-ie-notice-link">
 								<span class="dashicons dashicons-book-alt" aria-hidden="true"></span>
 								<?php esc_html_e( 'Abilities API & AI agents guide', 'import-export-by-rockstarlab' ); ?>
 							</a>

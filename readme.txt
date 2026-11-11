@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.60
+Stable tag: 2.1.61
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,11 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.61 =
+* New: the WooCommerce Coupons export (PRO) offers the "Used By (Array)" column: the billing email or user ID of each customer who used the coupon. You can also filter on it, for example to find the coupons one customer used.
+* Improved: the WooCommerce Coupons export (PRO) can now filter on Discount Type, Coupon Amount, Usage Count, Usage Limit, Minimum and Maximum Spend, Free Shipping and Allowed Emails, for example "Usage Count equals 0" for codes nobody used.
+* Changed: the "Abilities API & AI agents guide" link in the What's new box of the plugin's start screen opens the AI agents video tutorials.
 
 = 2.1.60 =
 * New: the Media export has a "File Hash (MD5)" column. Identical files get the same hash whatever their names, so you can sort the export by this column to find duplicate images and documents in the Media Library. Build the index first in Import Export → Tools → Media Hash Index.
