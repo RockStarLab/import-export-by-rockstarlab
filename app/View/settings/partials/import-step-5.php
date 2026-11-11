@@ -87,6 +87,27 @@ $rsl_ie_current_site_url = \RockStarLab\ImportExport\Helper\Site_URL::current_re
 				</td>
 			</tr>
 
+			<!-- Taxonomy for term imports -->
+			<tr class="rsl-ie-taxonomy-option" style="display: none;">
+				<th scope="row">
+					<label for="rsl-ie-default-taxonomy"><?php esc_html_e( 'Taxonomy', 'import-export-by-rockstarlab' ); ?></label>
+				</th>
+				<td>
+					<select id="rsl-ie-default-taxonomy" name="default_taxonomy">
+						<?php
+						$rsl_ie_taxonomies = get_taxonomies( [ 'show_ui' => true ], 'objects' );
+						$rsl_ie_default    = isset( $rsl_ie_taxonomies['product_cat'] ) ? 'product_cat' : 'category';
+						foreach ( $rsl_ie_taxonomies as $rsl_ie_tax ) {
+							printf( '<option value="%1$s"%3$s>%2$s (%1$s)</option>', esc_attr( $rsl_ie_tax->name ), esc_html( $rsl_ie_tax->labels->name ), selected( $rsl_ie_tax->name, $rsl_ie_default, false ) );
+						}
+						?>
+					</select>
+					<p class="description">
+						<?php esc_html_e( 'Rows without a taxonomy column (or with an empty one) are imported into this taxonomy.', 'import-export-by-rockstarlab' ); ?>
+					</p>
+				</td>
+			</tr>
+
 			<!-- Date Order -->
 			<tr>
 				<th scope="row">
