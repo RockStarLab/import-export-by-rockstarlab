@@ -353,8 +353,11 @@ import syncButtonBusy from './utils/sync-button-busy';
 		$( `#${ modalId }, #${ browseModalId }` ).hide();
 	}
 
-	function trackMediaJob( data, $button ) {
+	function trackMediaJob( data, $button, options = {} ) {
 		const finished = $.Deferred();
+		const batchLabel = options.batchLabel || '';
+		const isLast = options.last !== false;
+		const summary = options.summary || { failed: 0 };
 		closeModals();
 		$( '#rsl-ie-media-progress-modal' ).remove();
 		const $modal =
@@ -416,23 +419,49 @@ import syncButtonBusy from './utils/sync-button-busy';
 						.text( percent + '%' );
 					$progress
 						.find( '.rsl-ie-media-progress-label' )
-						.text( config.i18n?.syncMedia || 'Sync Media' );
+						.text(
+							( config.i18n?.syncMedia || 'Sync Media' ) +
+								( batchLabel ? ' · ' + batchLabel : '' )
+						);
 					$progress
 						.find( '.rsl-ie-media-progress-count' )
 						.text( processed + ' / ' + total );
-					if ( state.status === 'completed' ) {
+					// A batch where some source files were missing still finished:
+					// the other files were copied, so continue with the next batch.
+					const partial =
+						state.status === 'failed' &&
+						state.error_code === 'rsl_ie_sync_job_partial_failure';
+					const done = state.status === 'completed' || partial;
+					if ( done ) {
+						summary.failed += Number( state.result?.failed || 0 );
+					}
+					if ( done && ! isLast ) {
+						finished.resolve( state );
+					} else if ( done ) {
 						$progress.addClass( 'is-complete' );
 						$progress
 							.find( '.rsl-ie-media-progress-label' )
 							.text(
-								config.i18n?.syncComplete ||
-									'Sync completed successfully.'
+								summary.failed
+									? (
+											config.i18n?.syncCompleteMissing ||
+											'Sync completed. %s file(s) could not be copied because the file is missing on the source site.'
+									  ).replace( '%s', summary.failed )
+									: config.i18n?.syncComplete ||
+											'Sync completed successfully.'
 							);
-						window.setTimeout( () => {
-							closeModals();
-							$modal.hide();
-							window.location.reload();
-						}, 900 );
+						if ( summary.failed ) {
+							// Keep the message on screen; closing it reloads the library.
+							$modal.on( 'click', '.rsl-ie-media-progress-close', () =>
+								window.location.reload()
+							);
+						} else {
+							window.setTimeout( () => {
+								closeModals();
+								$modal.hide();
+								window.location.reload();
+							}, 900 );
+						}
 						finished.resolve( state );
 					} else if (
 						[ 'pending', 'processing' ].includes( state.status )
@@ -448,6 +477,38 @@ import syncButtonBusy from './utils/sync-button-busy';
 		};
 		poll();
 		return finished.promise();
+	}
+
+	// The server accepts at most 50 media files per job. Larger selections run
+	// as consecutive batches of 50, one job after the other.
+	const MEDIA_BATCH_SIZE = 50;
+	function runMediaBatches( action, siteId, ids, $button ) {
+		const batches = [];
+		for ( let i = 0; i < ids.length; i += MEDIA_BATCH_SIZE ) {
+			batches.push( ids.slice( i, i + MEDIA_BATCH_SIZE ) );
+		}
+		const batchText =
+			config.i18n?.batchOf || 'batch %1$s of %2$s';
+		const summary = { failed: 0 };
+		let chain = $.Deferred().resolve().promise();
+		batches.forEach( ( batch, index ) => {
+			chain = chain.then( () =>
+				request( action, { site_id: siteId, media_ids: batch } ).then(
+					( data ) =>
+						trackMediaJob( data, $button, {
+							batchLabel:
+								batches.length > 1
+									? batchText
+											.replace( '%1$s', index + 1 )
+											.replace( '%2$s', batches.length )
+									: '',
+							last: index === batches.length - 1,
+							summary,
+						} )
+				)
+			);
+		} );
+		return chain;
 	}
 
 	function pushMedia() {
@@ -473,11 +534,7 @@ import syncButtonBusy from './utils/sync-button-busy';
 			$button,
 			config.i18n?.loading || 'Loading...'
 		);
-		request( 'pro_sync_push_media', {
-			site_id: siteId,
-			media_ids: ids,
-		} )
-			.then( ( data ) => trackMediaJob( data, $button ) )
+		runMediaBatches( 'pro_sync_push_media', siteId, ids, $button )
 			.fail( ( message ) => {
 				showMessage(
 					message || config.i18n?.syncFailed || 'Sync failed.',
@@ -742,11 +799,7 @@ import syncButtonBusy from './utils/sync-button-busy';
 			$button,
 			config.i18n?.loading || 'Loading...'
 		);
-		request( 'pro_sync_pull_media', {
-			site_id: siteId,
-			media_ids: ids,
-		} )
-			.then( ( data ) => trackMediaJob( data, $button ) )
+		runMediaBatches( 'pro_sync_pull_media', siteId, ids, $button )
 			.fail( ( message ) => {
 				if ( ! $( '#rsl-ie-media-progress-modal' ).is( ':visible' ) ) {
 					alert(
@@ -848,6 +901,23 @@ import syncButtonBusy from './utils/sync-button-busy';
 		function () {
 			maybeLoadMoreRemoteMedia( this );
 		}
+	);
+
+	// Scroll events do not bubble, so the delegated handler above never runs for
+	// the list. Listen in the capture phase to load more after scrollbar drags
+	// and keyboard scrolling too, not only after wheel or touch moves.
+	document.addEventListener(
+		'scroll',
+		( event ) => {
+			const target = event.target;
+			if (
+				target instanceof Element &&
+				target.closest( `#${ browseModalId }` )
+			) {
+				maybeLoadMoreRemoteMedia( target );
+			}
+		},
+		true
 	);
 
 	$( document ).on( 'wheel touchmove', `#${ browseModalId }`, function () {
