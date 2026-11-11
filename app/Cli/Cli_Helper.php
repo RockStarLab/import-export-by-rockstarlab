@@ -307,6 +307,10 @@ class Cli_Helper {
 	 * @return array
 	 */
 	public static function result( $job_id ) {
+		$job = rsl_ie()->Model->job->find( (int) $job_id );
+		if ( $job && \RockStarLab\ImportExport\Service\Sync_Job_Service::supports( $job ) ) {
+			return self::sync_result( (int) $job_id );
+		}
 		return self::call(
 			'rsl-ie/job-get-result',
 			[
@@ -314,6 +318,47 @@ class Cli_Helper {
 				'limit'  => 20,
 			]
 		);
+	}
+
+	/**
+	 * Content Sync job summary (push, pull, comments, media) in the same shape as job-get-result.
+	 *
+	 * @param int $job_id Sync job ID.
+	 * @return array
+	 */
+	public static function sync_result( $job_id ) {
+		$status = self::call( 'rsl-ie/sync-job-status', [ 'job_id' => (int) $job_id ] );
+		$result = is_array( $status['result'] ?? null ) ? $status['result'] : [];
+		$counts = is_array( $result['result'] ?? null ) ? $result['result'] : $result;
+		$errors = [];
+		foreach ( (array) ( $counts['items'] ?? [] ) as $item ) {
+			if ( is_array( $item ) && 'failed' === ( $item['status'] ?? '' ) ) {
+				$errors[] = [
+					'row'     => $item['source_id'] ?? '?',
+					'field'   => '',
+					'message' => (string) ( $item['error_code'] ?? 'failed' ),
+				];
+			}
+		}
+		if ( ! empty( $status['error_code'] ) && ! $errors ) {
+			$errors[] = [
+				'row'     => '-',
+				'field'   => '',
+				'message' => (string) $status['error_code'],
+			];
+		}
+		return [
+			'job_id'       => (int) $status['job_id'],
+			'operation'    => (string) ( $status['operation'] ?? '' ),
+			'status'       => (string) ( $status['status'] ?? '' ),
+			'total'        => (int) ( $status['total'] ?? 0 ),
+			'processed'    => (int) ( $status['processed'] ?? 0 ),
+			'success'      => (int) ( $counts['created'] ?? 0 ) + (int) ( $counts['updated'] ?? 0 ),
+			'failed'       => (int) ( $counts['failed'] ?? 0 ),
+			'skipped'      => (int) ( $counts['skipped'] ?? 0 ),
+			'errors'       => $errors,
+			'errors_total' => count( $errors ),
+		];
 	}
 
 	/**
