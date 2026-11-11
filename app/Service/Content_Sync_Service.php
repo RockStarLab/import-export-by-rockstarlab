@@ -144,7 +144,11 @@ class Content_Sync_Service {
 			}
 		}
 		$site_id = absint( $input['site_id'] ?? 0 );
-		$lock    = $site_id ? Job_Lock::acquire_resource( 'connection', $site_id ) : null;
+		// Lists and searches only read the other site. A dropdown sends a new search
+		// while the previous one is still running, so wait briefly for it instead of
+		// failing with "connection busy". Writes still fail fast.
+		$wait    = in_array( $action, [ 'get_remote_posts', 'search_remote_posts', 'get_children_posts', 'get_remote_comments' ], true ) ? 10 : 0;
+		$lock    = $site_id ? Job_Lock::acquire_resource( 'connection', $site_id, $wait ) : null;
 		if ( false === $lock || is_wp_error( $lock ) ) {
 			return new \WP_Error( 'rsl_ie_connection_busy', __( 'This connection is already in use. Try again later.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
 		}

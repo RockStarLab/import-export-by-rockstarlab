@@ -106,6 +106,7 @@ class Comment_Sync_Importer {
 			'errors'  => [],
 			'mapping' => [],
 		];
+		$touched = [];
 		foreach ( $comments as $comment ) {
 			$source        = (int) $comment['comment_ID'];
 			$post          = $comment['_sync_target'];
@@ -162,6 +163,16 @@ class Comment_Sync_Importer {
 						continue; }
 					update_comment_meta( $id, sanitize_key( $key ), ( $this->helpers['media'] )( $value, 0 ) );
 				}
+				$touched[ (int) $post ] = true;
+		}
+		// WooCommerce counts reviews when the comment is saved, before its rating meta
+		// exists; recount so the product shows the right average rating and count.
+		if ( class_exists( '\WC_Comments' ) ) {
+			foreach ( array_keys( $touched ) as $product_id ) {
+				if ( 'product' === get_post_type( $product_id ) ) {
+					\WC_Comments::clear_transients( $product_id );
+				}
+			}
 		}
 		return $result;
 	}
