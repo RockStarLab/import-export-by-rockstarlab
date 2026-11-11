@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.2.0
+Stable tag: 2.2.1
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,13 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.2.1 =
+* New: importing taxonomy terms (PRO) has a Taxonomy option in step 5, for example Product categories. Rows of a file without a taxonomy column are imported into it, so a plain spreadsheet with names, descriptions and images can update WooCommerce product categories. Needs Import Export PRO 2.1.20.
+* Fixed: Auto Map no longer matches the comment columns of a WordPress export (WXR) file, such as wp:comment/wp:comment_author_email, or the feed columns link, guid, pubDate and description, to post fields. Before, the comment author email could be mapped to the post author email and the link column to a custom field named link.
+* Fixed: a term import whose Parent column names the parent category (for example Accessories) instead of giving its ID now sets the parent. Before, the term was created at the top level.
+* Fixed: in a WordPress export (WXR) file, tags are no longer imported as categories. The category column now holds only the categories, tags are in a new tag column (Auto Map sends it to the post tags), and other taxonomies are in category:<taxonomy> columns. The column list also includes columns that only later items of the file have.
+* Fixed: an ACF Relationship or Post Object cell can name a draft by its slug. Drafts have no saved slug, so the slug their title would get is used. Before, the field stayed empty when the referenced post was imported as a draft.
 
 = 2.2.0 =
 * New: the plugin's screens follow your WordPress admin color scheme (Users → Profile → Admin Color Scheme). Buttons, links, tabs, step numbers, badges and highlights use the scheme's colors in all nine built-in schemes; the Default scheme uses WordPress blue. Custom color schemes keep the plugin's purple colors.

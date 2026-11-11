@@ -777,6 +777,17 @@ class Import_Service {
 				if ( isset( $data[ $row_index ]['parent_slug'] ) ) {
 					$prepared_row['_rsl_ie_source_parent_slug'] = (string) $data[ $row_index ]['parent_slug'];
 				}
+				// A spreadsheet names the parent ("Accessories" or "accessories") instead of
+				// giving a source term ID: keep it as the portable parent hint.
+				$parent_cell = isset( $prepared_row['parent'] ) && is_scalar( $prepared_row['parent'] ) ? trim( (string) $prepared_row['parent'] ) : '';
+				if ( '' !== $parent_cell && ! ctype_digit( $parent_cell ) && empty( $prepared_row['_rsl_ie_source_parent_slug'] ) ) {
+					$prepared_row['_rsl_ie_source_parent_slug'] = $parent_cell;
+					$prepared_row['parent_slug']                = $prepared_row['parent_slug'] ?? $parent_cell;
+				}
+				// Rows without a taxonomy column use the taxonomy chosen in the import options.
+				if ( empty( $prepared_row['taxonomy'] ) && ! empty( $options['default_taxonomy'] ) && is_string( $options['default_taxonomy'] ) && taxonomy_exists( $options['default_taxonomy'] ) ) {
+					$prepared_row['taxonomy'] = $options['default_taxonomy'];
+				}
 			}
 			unset( $prepared_row );
 		}

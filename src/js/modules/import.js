@@ -6331,6 +6331,38 @@ const ImportModule = {
 			);
 
 			// PASS 2: Map remaining fields with fuzzy matching
+			// In a WordPress export (WXR) file, the comment columns (wp:comment/...)
+			// describe the post's comments, and link/guid/pubDate/description are
+			// feed values. They must not be fuzzy-matched to post fields such as
+			// the author email or an ACF field named "link".
+			const $wxrCards = jQuery( '.rsl-ie-field-card' );
+			const isWxr = $wxrCards
+				.toArray()
+				.some(
+					( card ) =>
+						String( jQuery( card ).data( 'source-field' ) ) ===
+						'wp:post_type'
+				);
+			if ( isWxr ) {
+				$wxrCards.removeClass( 'rsl-ie-no-auto' );
+				$wxrCards.not( '.used' ).each( ( i, card ) => {
+					const field = String(
+						jQuery( card ).data( 'source-field' ) || ''
+					).toLowerCase();
+					if (
+						field.startsWith( 'wp:comment/' ) ||
+						[
+							'link',
+							'guid',
+							'guid@ispermalink',
+							'pubdate',
+							'description',
+						].includes( field )
+					) {
+						jQuery( card ).addClass( 'rsl-ie-no-auto' );
+					}
+				} );
+			}
 			const genericHeaders = [
 				'status',
 				'type',
@@ -6339,7 +6371,7 @@ const ImportModule = {
 				'code',
 				'count',
 			];
-			jQuery( '.rsl-ie-field-card:not(.used)' ).each(
+			jQuery( '.rsl-ie-field-card:not(.used):not(.rsl-ie-no-auto)' ).each(
 				( index, sourceCard ) => {
 					const $sourceCard = jQuery( sourceCard );
 					const sourceField = $sourceCard.data( 'source-field' );
@@ -7002,6 +7034,9 @@ const ImportModule = {
 		setChecked( '#rsl-ie-auto-import-media', options.auto_import_media );
 		setChecked( '#rsl-ie-enable-replace-links', options.replace_links );
 		this.setRowFilters( options.row_filters, options.row_filters_match );
+		if ( options.default_taxonomy ) {
+			jQuery( '#rsl-ie-default-taxonomy' ).val( options.default_taxonomy );
+		}
 		jQuery( '[name="date_order"]' ).val(
 			[ 'dmy', 'mdy' ].includes( options.date_order ) ? options.date_order : 'auto'
 		);
@@ -7264,6 +7299,10 @@ const ImportModule = {
 			options.custom_post_type = jQuery(
 				'#rsl-ie-custom-post-type'
 			).val();
+		}
+		if ( contentType === 'taxonomy' ) {
+			options.default_taxonomy =
+				jQuery( '#rsl-ie-default-taxonomy' ).val() || '';
 		}
 		return options;
 	},
@@ -8884,6 +8923,9 @@ const ImportModule = {
 			'input[name="content_type"]:checked'
 		).val();
 		const $mediaImportOption = jQuery( '.rsl-ie-media-import-option' );
+		jQuery( '.rsl-ie-taxonomy-option' ).toggle(
+			contentType === 'taxonomy'
+		);
 		const $mediaDuplicateOption = jQuery(
 			'.rsl-ie-media-duplicate-option'
 		);

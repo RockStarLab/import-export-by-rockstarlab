@@ -451,6 +451,29 @@ class XML_Format implements File_Format_Interface {
 					}
 				}
 				$row[ $key ] = implode( ', ', array_filter( $values, 'strlen' ) );
+				// WordPress exports (WXR) list categories, tags and other terms as
+				// <category domain="...">. Keep only real categories in "category"
+				// and put tags in "tag" and other taxonomies in "category:<domain>".
+				if ( 'category' === $name && '' === $prefix ) {
+					$by_domain = array();
+					foreach ( $children as $child ) {
+						$attrs  = $this->element_attributes( $child );
+						$domain = isset( $attrs['domain'] ) ? (string) $attrs['domain'] : '';
+						$text   = trim( (string) $child );
+						if ( '' !== $domain && '' !== $text ) {
+							$by_domain[ $domain ][] = $text;
+						}
+					}
+					if ( $by_domain ) {
+						$row['category'] = implode( ', ', $by_domain['category'] ?? array() );
+						foreach ( $by_domain as $domain => $names ) {
+							if ( 'category' === $domain ) {
+								continue;
+							}
+							$row[ 'post_tag' === $domain ? 'tag' : 'category:' . $domain ] = implode( ', ', $names );
+						}
+					}
+				}
 				continue;
 			}
 			if ( 1 === count( $children ) ) {
@@ -709,23 +732,26 @@ class XML_Format implements File_Format_Interface {
 	 * @return array|WP_Error Array of headers or WP_Error on failure
 	 */
 	public function get_headers( $file_path, $options = [] ) {
-		$chunk = $this->parse_chunk( $file_path, 0, 1, $options );
+		// Items differ (one post has tags, another comments): collect the columns of the first 50.
+		$chunk = $this->parse_chunk( $file_path, 0, 50, $options );
 
 		if ( is_wp_error( $chunk ) ) {
 			return $chunk;
 		}
 
-		if ( empty( $chunk ) ) {
+		if ( empty( $chunk ) || ! is_array( $chunk[0] ) ) {
 			return [];
 		}
 
-		$first_item = $chunk[0];
-
-		if ( ! is_array( $first_item ) ) {
-			return [];
+		$headers = array();
+		foreach ( $chunk as $item ) {
+			if ( is_array( $item ) ) {
+				foreach ( array_keys( $item ) as $key ) {
+					$headers[ $key ] = true;
+				}
+			}
 		}
-
-		return array_keys( $first_item );
+		return array_keys( $headers );
 	}
 
 	/**

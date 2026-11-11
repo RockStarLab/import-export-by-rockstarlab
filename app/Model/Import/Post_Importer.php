@@ -2358,6 +2358,16 @@ class Post_Importer extends Abstract_Importer {
 		}
 		global $wpdb;
 		$placeholders = implode( ',', array_fill( 0, count( $types ), '%s' ) );
+		// Drafts and pending posts have no slug yet; match the slug their title would get.
+		$slug = sanitize_title( $token );
+		if ( '' !== $slug ) {
+			$drafts = $wpdb->get_results( $wpdb->prepare( "SELECT ID, post_title FROM {$wpdb->posts} WHERE post_name = '' AND post_type IN ($placeholders) AND post_status IN ('draft','pending') ORDER BY ID DESC LIMIT 500", $types ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Placeholders generated above.
+			foreach ( (array) $drafts as $draft ) {
+				if ( sanitize_title( $draft->post_title ) === $slug ) {
+					return (int) $draft->ID;
+				}
+			}
+		}
 		$id           = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_title = %s AND post_type IN ($placeholders) AND post_status NOT IN ('trash','auto-draft','inherit') ORDER BY ID ASC LIMIT 1", array_merge( [ $token ], $types ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Placeholders generated above.
 		return (int) $id;
 	}
