@@ -259,6 +259,29 @@ const ImportModule = {
 		$wizard.on( 'click', '.rsl-ie-remove-replace-link', ( e ) =>
 			this.removeReplaceLinksRow( e )
 		);
+		$wizard.on( 'change', '#rsl-ie-enable-row-filter', ( e ) => {
+			this.refreshRowFilterColumns();
+			jQuery( '#rsl-ie-row-filter-repeater' ).toggle(
+				jQuery( e.currentTarget ).is( ':checked' )
+			);
+		} );
+		$wizard.on( 'click', '.rsl-ie-add-row-filter', () =>
+			this.addRowFilterRow()
+		);
+		$wizard.on( 'click', '.rsl-ie-remove-row-filter', ( e ) => {
+			const $rows = jQuery( '.rsl-ie-row-filter-row' );
+			if ( $rows.length > 1 ) {
+				jQuery( e.currentTarget ).closest( '.rsl-ie-row-filter-row' ).remove();
+			} else {
+				$rows.find( '.rsl-ie-row-filter-value' ).val( '' );
+			}
+		} );
+		$wizard.on( 'change', '.rsl-ie-row-filter-operator', ( e ) => {
+			const op = jQuery( e.currentTarget ).val();
+			jQuery( e.currentTarget )
+				.siblings( '.rsl-ie-row-filter-value' )
+				.toggle( op !== 'is_empty' && op !== 'is_not_empty' );
+		} );
 		$wizard.on( 'click', '.rsl-ie-cancel-import', () =>
 			this.cancelImport()
 		);
@@ -6978,6 +7001,10 @@ const ImportModule = {
 		setChecked( '[name="download_images"]', options.download_images );
 		setChecked( '#rsl-ie-auto-import-media', options.auto_import_media );
 		setChecked( '#rsl-ie-enable-replace-links', options.replace_links );
+		this.setRowFilters( options.row_filters, options.row_filters_match );
+		jQuery( '[name="date_order"]' ).val(
+			[ 'dmy', 'mdy' ].includes( options.date_order ) ? options.date_order : 'auto'
+		);
 
 		const rules = Array.isArray( options.replace_links_rules )
 			? options.replace_links_rules
@@ -7225,6 +7252,10 @@ const ImportModule = {
 				':checked'
 			),
 			replace_links_rules: this.getReplaceLinksRules(),
+			date_order: jQuery( '[name="date_order"]' ).val() || 'auto',
+			row_filters: this.getRowFilters(),
+			row_filters_match:
+				jQuery( '[name="row_filters_match"]' ).val() || 'all',
 		};
 		const contentType = jQuery(
 			'input[name="content_type"]:checked'
@@ -7355,6 +7386,82 @@ const ImportModule = {
 		$rows
 			.find( '.rsl-ie-remove-replace-link' )
 			.prop( 'disabled', $rows.length <= 1 );
+	},
+
+	/**
+	 * Fill the row filter column selects with the source file columns.
+	 */
+	refreshRowFilterColumns() {
+		const columns = ( this.fileData && this.fileData.columns ) || [];
+		jQuery( '.rsl-ie-row-filter-field' ).each( function () {
+			const $select = jQuery( this );
+			const current = $select.val() || $select.data( 'pending' ) || '';
+			let html = '';
+			columns.forEach( ( column ) => {
+				const name = String( column );
+				html += `<option value="${ Utils.escapeHtml( name ) }">${ Utils.escapeHtml( name ) }</option>`;
+			} );
+			if ( current && ! columns.map( String ).includes( current ) ) {
+				html += `<option value="${ Utils.escapeHtml( current ) }">${ Utils.escapeHtml( current ) }</option>`;
+			}
+			$select.html( html );
+			if ( current ) {
+				$select.val( current );
+			}
+		} );
+	},
+
+	addRowFilterRow() {
+		const $last = jQuery( '.rsl-ie-row-filter-row' ).last();
+		const $row = $last.clone();
+		$row.find( '.rsl-ie-row-filter-value' ).val( '' ).show();
+		$row.find( '.rsl-ie-row-filter-operator' ).val( 'equals' );
+		$row.find( '.rsl-ie-row-filter-field' ).removeData( 'pending' );
+		$last.after( $row );
+		this.refreshRowFilterColumns();
+		return $row;
+	},
+
+	getRowFilters() {
+		if ( ! jQuery( '#rsl-ie-enable-row-filter' ).is( ':checked' ) ) {
+			return [];
+		}
+		const filters = [];
+		jQuery( '.rsl-ie-row-filter-row' ).each( function () {
+			const $row = jQuery( this );
+			const field = ( $row.find( '.rsl-ie-row-filter-field' ).val() || '' )
+				.toString()
+				.trim();
+			const operator =
+				$row.find( '.rsl-ie-row-filter-operator' ).val() || 'equals';
+			const value = (
+				$row.find( '.rsl-ie-row-filter-value' ).val() || ''
+			).toString();
+			if ( field !== '' ) {
+				filters.push( { field, operator, value } );
+			}
+		} );
+		return filters;
+	},
+
+	setRowFilters( filters, match ) {
+		const list = Array.isArray( filters ) ? filters : [];
+		jQuery( '#rsl-ie-enable-row-filter' ).prop( 'checked', list.length > 0 );
+		jQuery( '#rsl-ie-row-filter-repeater' ).toggle( list.length > 0 );
+		jQuery( '[name="row_filters_match"]' ).val( match === 'any' ? 'any' : 'all' );
+		jQuery( '.rsl-ie-row-filter-row' ).slice( 1 ).remove();
+		list.forEach( ( filter, index ) => {
+			const $row =
+				index === 0
+					? jQuery( '.rsl-ie-row-filter-row' ).first()
+					: this.addRowFilterRow();
+			$row.find( '.rsl-ie-row-filter-field' ).data( 'pending', filter.field || '' );
+			$row.find( '.rsl-ie-row-filter-operator' ).val( filter.operator || 'equals' );
+			$row.find( '.rsl-ie-row-filter-value' )
+				.val( filter.value || '' )
+				.toggle( filter.operator !== 'is_empty' && filter.operator !== 'is_not_empty' );
+		} );
+		this.refreshRowFilterColumns();
 	},
 
 	/**

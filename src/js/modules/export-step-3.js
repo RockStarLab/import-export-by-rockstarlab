@@ -1293,8 +1293,7 @@ export default class ExportStep3 {
 					// Identical files have the same hash, whatever their names (Tools > Media Hash Index).
 					{
 						value: 'file_hash',
-						label:
-							i18nMedia.fieldFileHash || 'File Hash (MD5)',
+						label: i18nMedia.fieldFileHash || 'File Hash (MD5)',
 						type: 'string',
 					},
 				],

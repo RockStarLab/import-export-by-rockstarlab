@@ -173,7 +173,7 @@
 	font-weight: 600;
 
 	&.is-uploaded {
-		color: #00704a;
+		color: var(--rsl-brand-success-hover, #00704a);
 	}
 
 	&.is-failed {

@@ -365,6 +365,12 @@ class Import_Service {
 			return new \WP_Error( 'rsl_ie_invalid_encoding', __( 'Unsupported file encoding.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
 		}
 		$options['batch_size'] = max( 1, min( 500, (int) ( $options['batch_size'] ?? 50 ) ) );
+		$row_filters           = Import_Row_Filter::normalize( $options['row_filters'] ?? [] );
+		if ( is_wp_error( $row_filters ) ) {
+			return $row_filters;
+		}
+		$options['row_filters']       = $row_filters;
+		$options['row_filters_match'] = 'any' === ( $options['row_filters_match'] ?? 'all' ) ? 'any' : 'all';
 		return [
 			// A file downloaded from a URL is downloaded again when a schedule repeats the import.
 			'source_url'  => $source_url ?? '',
@@ -666,6 +672,25 @@ class Import_Service {
 			return $importer;
 		}
 		$importer->set_options( (array) $options + [ 'source_format' => (string) ( $request['format'] ?? '' ) ] );
+		// Row filter: keep only the source rows whose columns meet the conditions.
+		$row_filters   = (array) ( $options['row_filters'] ?? [] );
+		$filtered_rows = 0;
+		if ( $row_filters && $data ) {
+			$kept          = Import_Row_Filter::apply( $data, $row_filters, $options['row_filters_match'] ?? 'all' );
+			$filtered_rows = count( $data ) - count( $kept );
+			$data          = $kept;
+			if ( $filtered_rows && $job_id ) {
+				/* translators: %d: number of rows */
+				Job_Log::write( $job_id, 'info', sprintf( _n( '%d row did not match the row filter and was not imported.', '%d rows did not match the row filter and were not imported.', $filtered_rows, 'import-export-by-rockstarlab' ), $filtered_rows ) );
+			}
+			if ( ! $data ) {
+				return [
+					'data'          => [],
+					'replaced_urls' => 0,
+					'filtered_rows' => $filtered_rows,
+				];
+			}
+		}
 		// Resolve wizard column indices against parsed rows, including headerless CSV.
 		$mapping = $request['mapping'];
 		foreach ( $mapping as &$entry ) {
@@ -758,6 +783,7 @@ class Import_Service {
 		return [
 			'data'          => $prepared_data,
 			'replaced_urls' => $replacement_count,
+			'filtered_rows' => $filtered_rows,
 		];
 	}
 
