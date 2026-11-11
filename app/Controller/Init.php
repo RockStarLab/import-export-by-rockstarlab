@@ -834,6 +834,7 @@ class Init {
 					'fieldFileSizeBytes'                => __( 'File Size (bytes)', 'import-export-by-rockstarlab' ),
 					'fieldOriginalFileSize'             => __( 'Original File Size (bytes)', 'import-export-by-rockstarlab' ),
 					'fieldDiskUsage'                    => __( 'Size on Disk, All Sizes (bytes)', 'import-export-by-rockstarlab' ),
+					'fieldFileHash'                     => __( 'File Hash (MD5)', 'import-export-by-rockstarlab' ),
 					'fieldWidthPx'                      => __( 'Width (px)', 'import-export-by-rockstarlab' ),
 					'fieldHeightPx'                     => __( 'Height (px)', 'import-export-by-rockstarlab' ),
 					'fieldUploadDate'                   => __( 'Upload Date', 'import-export-by-rockstarlab' ),

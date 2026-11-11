@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.59
+Stable tag: 2.1.60
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,9 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.60 =
+* New: the Media export has a "File Hash (MD5)" column. Identical files get the same hash whatever their names, so you can sort the export by this column to find duplicate images and documents in the Media Library. Build the index first in Import Export → Tools → Media Hash Index.
 
 = 2.1.59 =
 * Fixed: `wp rsl-ie job get` and `wp rsl-ie job wait` now work for Content Sync jobs (push, pull, comments and media) started with `wp rsl-ie ability sync-push-start` and the other sync abilities. They print the created, updated, skipped and failed counts and exit with 0, or 1 when the job failed, so a CI script can push content and check the result. Before, both commands stopped with "job_runner_unavailable".
