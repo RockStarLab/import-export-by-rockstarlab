@@ -847,6 +847,22 @@ const getActionNonce = ( action ) =>
 				postType = this.localPostsInfo[ postId ].post_type || postType;
 				originalRemoteId =
 					this.localPostsInfo[ postId ].original_id || 0;
+				// The remembered ID belongs to the site this post came from, which
+				// may not be the site chosen now (dev > staging > production). Keep it
+				// only when that remote post is listed with the same type and slug.
+				const info = this.localPostsInfo[ postId ];
+				const remembered = ( remotePosts || [] ).find(
+					( post ) =>
+						parseInt( post?.ID ?? 0, 10 ) === originalRemoteId
+				);
+				if (
+					! remembered ||
+					remembered.post_type !== info.post_type ||
+					! remembered.post_name ||
+					remembered.post_name !== info.post_name
+				) {
+					originalRemoteId = 0;
+				}
 			} else {
 				// Fallback: Try multiple selectors for different editor contexts
 				postTitle =

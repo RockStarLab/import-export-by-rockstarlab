@@ -1396,6 +1396,7 @@ class Content_Sync_Service {
 				$posts_info[] = array(
 					'ID'          => $post->ID,
 					'post_title'  => $post->post_title,
+					'post_name'   => $post->post_name,
 					'post_type'   => $post->post_type,
 					'post_date'   => $post->post_date,
 					'post_status' => $post->post_status,

@@ -1872,6 +1872,7 @@ class Content_Sync_API_Controller {
 			$post_data = array(
 				'ID'             => $post->ID,
 				'post_title'     => $post->post_title,
+				'post_name'      => $post->post_name,
 				'post_type'      => $post->post_type,
 				'post_status'    => $post->post_status,
 				'post_date'      => $post->post_date,

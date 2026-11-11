@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.56
+Stable tag: 2.1.57
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,9 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.57 =
+* Fixed: when content moves through more than two sites (for example dev > staging > production), the push or pull mapping no longer suggests a post on the chosen site only because it has the same ID as the post on the site the content came from. A remembered post is suggested only when the chosen site lists it with the same type and slug; otherwise the row is matched by title or set to Create New Post.
 
 = 2.1.56 =
 * Fixed: WooCommerce reviews synced from the Reviews screen (push or pull) now update the average rating and review count of the product. Before, the product could show the new review with an average rating of 0.
