@@ -143,6 +143,10 @@ class Media_Library_Sync_Controller {
 						'loading'          => __( 'Loading...', 'import-export-by-rockstarlab' ),
 						'noItemsFound'     => __( 'No media found.', 'import-export-by-rockstarlab' ),
 						'syncComplete'     => __( 'Sync completed successfully.', 'import-export-by-rockstarlab' ),
+						/* translators: %s: number of files. */
+						'syncCompleteMissing' => __( 'Sync completed. %s file(s) could not be copied because the file is missing on the source site.', 'import-export-by-rockstarlab' ),
+						/* translators: 1: batch number, 2: number of batches. */
+						'batchOf'          => __( 'batch %1$s of %2$s', 'import-export-by-rockstarlab' ),
 						'syncFailed'       => __( 'Sync failed.', 'import-export-by-rockstarlab' ),
 						'close'            => __( 'Close', 'import-export-by-rockstarlab' ),
 						'cancel'           => __( 'Cancel', 'import-export-by-rockstarlab' ),

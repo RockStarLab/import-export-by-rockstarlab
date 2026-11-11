@@ -549,9 +549,22 @@ class Sync_Job_Service {
 			$input['media_ids'] = [ $input['media_ids'][ $state['cursor'] ] ];
 			$request            = 'media-job-' . $job->id . '-' . $state['cursor'] . '-' . substr( hash( 'sha256', $job->parameters ), 0, 32 );
 			$next               = $driver->advance( (int) $params['input']['site_id'], $params['connection_fingerprint'], $request, $input, $media );
+			if ( is_wp_error( $next ) && empty( $media ) && 'rsl_ie_media_library_file_unavailable' === $next->get_error_code() ) {
+				// A missing source file fails only this item; the rest of the batch continues.
+				++$state['aggregate']['failed'];
+				$state['aggregate']['items'][] = [
+					'source_id'     => (int) $input['media_ids'][0],
+					'attachment_id' => 0,
+					'status'        => 'failed',
+					'error_code'    => 'file_unavailable',
+				];
+				++$state['cursor'];
+				$next = null;
+			}
 			if ( is_wp_error( $next ) ) {
 				return $next; }
-			$state['media'] = $next;
+			if ( null !== $next ) {
+				$state['media'] = $next; }
 		}
 		$columns = [ 'status' => 'processing' ] + $this->media_result_columns( $job, $state );
 		if ( $state['cursor'] === (int) $job->total_items ) {

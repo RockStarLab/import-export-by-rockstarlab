@@ -1352,6 +1352,9 @@ class Media_Library_Sync_Service {
 			if ( is_wp_error( $response ) ) {
 				return $this->error( 'peer_unavailable', 502 ); }
 			$data = json_decode( wp_remote_retrieve_body( $response ), true );
+			if ( 200 !== (int) wp_remote_retrieve_response_code( $response ) && is_array( $data ) && 'rsl_ie_media_library_file_unavailable' === ( $data['code'] ?? '' ) ) {
+				// The other site has the attachment but not its file: report this one file.
+				return $this->error( 'file_unavailable', 404 ); }
 			if ( 200 !== (int) wp_remote_retrieve_response_code( $response ) || ! is_array( $data ) || true !== ( $data['success'] ?? null ) || 1 !== ( $data['chunk_contract_version'] ?? null ) || ! array_key_exists( 'result', $data ) ) {
 				return $this->error( 'peer_rejected', 502 ); }
 			if ( in_array( $action, [ 'discard', 'discard-snapshot' ], true ) ) {

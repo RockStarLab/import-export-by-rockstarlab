@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.57
+Stable tag: 2.1.58
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,11 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.1.58 =
+* Improved: Media Library sync (Media → Sync) pushes or pulls any number of selected files in batches of 50, one batch after the other, and shows which batch is running. Before, a selection of more than 50 files stopped with an error.
+* Fixed: a media file whose file is missing on the source site no longer stops the whole media sync. The file is reported as not copied and the other files continue.
+* Fixed: the list of remote media now loads more files when you drag the scrollbar or scroll with the keyboard, not only with the mouse wheel.
 
 = 2.1.57 =
 * Fixed: when content moves through more than two sites (for example dev > staging > production), the push or pull mapping no longer suggests a post on the chosen site only because it has the same ID as the post on the site the content came from. A remembered post is suggested only when the chosen site lists it with the same type and slug; otherwise the row is matched by title or set to Create New Post.
