@@ -184,6 +184,23 @@ class Workflow_Schemas {
 			),
 			100
 		);
+		$p['row_filters']          = self::items(
+			self::object(
+				[
+					'field'    => [
+						'type'        => 'string',
+						'minLength'   => 1,
+						'description' => 'Source column name (file header or parsed XML field).',
+					],
+					'operator' => self::string( \RockStarLab\ImportExport\Service\Import_Row_Filter::OPERATORS ),
+					'value'    => $s,
+				],
+				[ 'field', 'operator' ]
+			),
+			20
+		);
+		$p['row_filters_match']    = self::string( [ 'all', 'any' ] );
+		$p['date_order']           = self::string( [ 'auto', 'dmy', 'mdy' ] );
 		return self::object( $p );
 	}
 	/**

@@ -1214,6 +1214,39 @@
 	}
 }
 
+.rsl-ie-row-filter-repeater {
+	margin-top: 14px;
+	max-width: 860px;
+	padding: 16px;
+	border: 1px solid var(--rsl-brand-border, #dcdcde);
+	border-radius: 8px;
+	background: var(--rsl-brand-surface, #fbfbfc);
+
+	> p:first-child {
+		margin-top: 0;
+	}
+}
+
+.rsl-ie-row-filter-rows {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+
+.rsl-ie-row-filter-row {
+	display: grid;
+	grid-template-columns: minmax(160px, 1fr) minmax(170px, auto) minmax(160px, 1fr) auto;
+	gap: 10px;
+	align-items: center;
+
+	select,
+	input.regular-text {
+		width: 100%;
+		max-width: none;
+	}
+}
+
 .rsl-ie-replace-links-repeater {
 	margin-top: 14px;
 	max-width: 760px;

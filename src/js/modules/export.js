@@ -5553,6 +5553,11 @@ const ExportModule = {
 							label: 'Last Order ID',
 							type: 'number',
 						},
+						{
+							value: 'last_order_date',
+							label: 'Last Order Date',
+							type: 'date',
+						},
 					],
 				},
 				{

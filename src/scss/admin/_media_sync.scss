@@ -678,7 +678,7 @@
 			}
 
 			&.selected {
-				background-color: #e5f5fa;
+				background-color: var(--rsl-brand-success-bg, #e5f5fa);
 				border-left: 3px solid var(--rsl-brand-accent, #2271b1);
 			}
 

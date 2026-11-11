@@ -55,6 +55,9 @@ class Mapping_Template_Service {
 		'generate_thumbnails',
 		'replace_links',
 		'replace_links_rules',
+		'row_filters',
+		'row_filters_match',
+		'date_order',
 		'has_header',
 		'batch_size',
 		'download_timeout',
@@ -563,6 +566,28 @@ class Mapping_Template_Service {
 		$out = [];
 		foreach ( is_array( $options ) ? $options : [] as $key => $value ) {
 			if ( ! in_array( $key, self::OPTION_KEYS, true ) ) {
+				continue;
+			}
+			if ( 'row_filters' === $key ) {
+				$filters = Import_Row_Filter::normalize( $value );
+				$out[ $key ] = is_wp_error( $filters ) ? [] : array_map(
+					static function ( $filter ) {
+						return [
+							'field'    => sanitize_text_field( $filter['field'] ),
+							'operator' => $filter['operator'],
+							'value'    => sanitize_text_field( $filter['value'] ),
+						];
+					},
+					$filters
+				);
+				continue;
+			}
+			if ( 'row_filters_match' === $key ) {
+				$out[ $key ] = 'any' === $value ? 'any' : 'all';
+				continue;
+			}
+			if ( 'date_order' === $key ) {
+				$out[ $key ] = in_array( $value, [ 'dmy', 'mdy' ], true ) ? $value : 'auto';
 				continue;
 			}
 			if ( 'replace_links_rules' === $key ) {

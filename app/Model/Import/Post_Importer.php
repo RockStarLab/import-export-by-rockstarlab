@@ -1517,6 +1517,41 @@ class Post_Importer extends Abstract_Importer {
 		return $post_data;
 	}
 
+	/**
+	 * Rewrite NN/NN/YYYY (also with dots or dashes, optional time) as YYYY-MM-DD.
+	 *
+	 * The order comes from the date_order import option: 'dmy' (day first),
+	 * 'mdy' (month first) or 'auto'. Auto reads a first number above 12 as the
+	 * day and a second number above 12 as the day; when both are 12 or less it
+	 * keeps PHP's reading: month first with slashes, day first with dots/dashes.
+	 *
+	 * @param string $value Raw value.
+	 * @param string $order Date order option.
+	 * @return string
+	 */
+	public static function normalize_numeric_date( $value, $order = 'auto' ) {
+		if ( ! preg_match( '#^(\d{1,2})([/.\-])(\d{1,2})\2(\d{4})(\s.*)?$#', (string) $value, $m ) ) {
+			return $value;
+		}
+		$a = (int) $m[1];
+		$b = (int) $m[3];
+		if ( 'dmy' !== $order && 'mdy' !== $order ) {
+			if ( $a > 12 ) {
+				$order = 'dmy';
+			} elseif ( $b > 12 ) {
+				$order = 'mdy';
+			} else {
+				$order = '/' === $m[2] ? 'mdy' : 'dmy';
+			}
+		}
+		$day   = 'dmy' === $order ? $a : $b;
+		$month = 'dmy' === $order ? $b : $a;
+		if ( ! checkdate( $month, $day, (int) $m[4] ) ) {
+			return $value;
+		}
+		return sprintf( '%04d-%02d-%02d', (int) $m[4], $month, $day ) . ( isset( $m[5] ) ? ' ' . trim( $m[5] ) : '' );
+	}
+
 		/**
 		 * Parse common exported/imported date formats in a specific timezone.
 		 *
@@ -1532,6 +1567,7 @@ class Post_Importer extends Abstract_Importer {
 
 		$value = preg_replace( '/\s+at\s+/i', ' ', $value );
 		$value = false === $value ? '' : trim( $value );
+		$value = self::normalize_numeric_date( $value, (string) $this->get_option( 'date_order', 'auto' ) );
 
 		$formats = [
 			'Y-m-d H:i:s',
@@ -2202,6 +2238,12 @@ class Post_Importer extends Abstract_Importer {
 					}
 				}
 				if ( ! $ids ) {
+					// Nothing found yet: store an empty field, not the raw text that ACF
+					// would save as post ID 0. The reference stays pending and is filled
+					// in when the referenced row is imported later.
+					if ( $this->unresolved_post_ref && 'page_link' !== $type ) {
+						return ( 'relationship' === $type || ! empty( $field['multiple'] ) ) ? [] : '';
+					}
 					return $value;
 				}
 				return ( 'relationship' === $type || ! empty( $field['multiple'] ) ) ? array_values( array_unique( $ids ) ) : $ids[0];
@@ -2337,7 +2379,7 @@ class Post_Importer extends Abstract_Importer {
 				return $date->format( $output );
 			}
 		}
-		$ts = strtotime( $value );
+		$ts = strtotime( self::normalize_numeric_date( $value, (string) $this->get_option( 'date_order', 'auto' ) ) );
 		return false !== $ts ? gmdate( $output, $ts ) : $fallback;
 	}
 

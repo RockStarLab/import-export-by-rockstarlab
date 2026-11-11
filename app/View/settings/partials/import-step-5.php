@@ -87,6 +87,76 @@ $rsl_ie_current_site_url = \RockStarLab\ImportExport\Helper\Site_URL::current_re
 				</td>
 			</tr>
 
+			<!-- Date Order -->
+			<tr>
+				<th scope="row">
+					<label for="rsl-ie-date-order"><?php esc_html_e( 'Dates in the File', 'import-export-by-rockstarlab' ); ?></label>
+				</th>
+				<td>
+					<select id="rsl-ie-date-order" name="date_order">
+						<option value="auto"><?php esc_html_e( 'Detect automatically', 'import-export-by-rockstarlab' ); ?></option>
+						<option value="dmy"><?php esc_html_e( 'Day first (DD/MM/YYYY)', 'import-export-by-rockstarlab' ); ?></option>
+						<option value="mdy"><?php esc_html_e( 'Month first (MM/DD/YYYY)', 'import-export-by-rockstarlab' ); ?></option>
+					</select>
+					<p class="description">
+						<?php esc_html_e( 'How to read numeric dates such as 03/04/2024 in date columns. Detect automatically treats 15/03/2024 as 15 March, but reads 03/04/2024 as 4 March; choose Day first for European files.', 'import-export-by-rockstarlab' ); ?>
+					</p>
+				</td>
+			</tr>
+
+			<!-- Row Filter -->
+			<tr>
+				<th scope="row">
+					<label for="rsl-ie-enable-row-filter"><?php esc_html_e( 'Filter Rows', 'import-export-by-rockstarlab' ); ?></label>
+				</th>
+				<td>
+					<label>
+						<input type="checkbox" id="rsl-ie-enable-row-filter" name="row_filter_enabled" value="1">
+						<?php esc_html_e( 'Import only the rows where columns meet these conditions', 'import-export-by-rockstarlab' ); ?>
+					</label>
+					<p class="description">
+						<?php esc_html_e( 'Other rows in the file are not imported. Text comparisons ignore letter case; greater/less than compare numbers and YYYY-MM-DD dates.', 'import-export-by-rockstarlab' ); ?>
+					</p>
+					<div id="rsl-ie-row-filter-repeater" class="rsl-ie-row-filter-repeater" style="display: none;">
+						<p>
+							<label>
+								<?php esc_html_e( 'Rows must match', 'import-export-by-rockstarlab' ); ?>
+								<select name="row_filters_match" class="rsl-ie-row-filter-match">
+									<option value="all"><?php esc_html_e( 'all conditions', 'import-export-by-rockstarlab' ); ?></option>
+									<option value="any"><?php esc_html_e( 'any condition', 'import-export-by-rockstarlab' ); ?></option>
+								</select>
+							</label>
+						</p>
+						<div class="rsl-ie-row-filter-rows">
+							<div class="rsl-ie-row-filter-row">
+								<select class="rsl-ie-row-filter-field" aria-label="<?php esc_attr_e( 'Column', 'import-export-by-rockstarlab' ); ?>"></select>
+								<select class="rsl-ie-row-filter-operator" aria-label="<?php esc_attr_e( 'Condition', 'import-export-by-rockstarlab' ); ?>">
+									<option value="equals"><?php esc_html_e( 'equals', 'import-export-by-rockstarlab' ); ?></option>
+									<option value="not_equals"><?php esc_html_e( 'does not equal', 'import-export-by-rockstarlab' ); ?></option>
+									<option value="contains"><?php esc_html_e( 'contains', 'import-export-by-rockstarlab' ); ?></option>
+									<option value="not_contains"><?php esc_html_e( 'does not contain', 'import-export-by-rockstarlab' ); ?></option>
+									<option value="starts_with"><?php esc_html_e( 'starts with', 'import-export-by-rockstarlab' ); ?></option>
+									<option value="in"><?php esc_html_e( 'is one of (comma-separated)', 'import-export-by-rockstarlab' ); ?></option>
+									<option value="not_in"><?php esc_html_e( 'is none of (comma-separated)', 'import-export-by-rockstarlab' ); ?></option>
+									<option value="greater_than"><?php esc_html_e( 'greater than / after', 'import-export-by-rockstarlab' ); ?></option>
+									<option value="less_than"><?php esc_html_e( 'less than / before', 'import-export-by-rockstarlab' ); ?></option>
+									<option value="is_empty"><?php esc_html_e( 'is empty', 'import-export-by-rockstarlab' ); ?></option>
+									<option value="is_not_empty"><?php esc_html_e( 'is not empty', 'import-export-by-rockstarlab' ); ?></option>
+								</select>
+								<input type="text" class="regular-text rsl-ie-row-filter-value" placeholder="<?php esc_attr_e( 'Value', 'import-export-by-rockstarlab' ); ?>">
+								<button type="button" class="button button-secondary rsl-ie-remove-row-filter" aria-label="<?php esc_attr_e( 'Remove condition', 'import-export-by-rockstarlab' ); ?>">
+									<span class="dashicons dashicons-no-alt"></span>
+								</button>
+							</div>
+						</div>
+						<button type="button" class="button button-secondary rsl-ie-add-row-filter">
+							<span class="dashicons dashicons-plus-alt2"></span>
+							<?php esc_html_e( 'Add Condition', 'import-export-by-rockstarlab' ); ?>
+						</button>
+					</div>
+				</td>
+			</tr>
+
 			<!-- Batch Size -->
 			<tr>
 				<th scope="row">

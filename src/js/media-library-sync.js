@@ -452,8 +452,10 @@ import syncButtonBusy from './utils/sync-button-busy';
 							);
 						if ( summary.failed ) {
 							// Keep the message on screen; closing it reloads the library.
-							$modal.on( 'click', '.rsl-ie-media-progress-close', () =>
-								window.location.reload()
+							$modal.on(
+								'click',
+								'.rsl-ie-media-progress-close',
+								() => window.location.reload()
 							);
 						} else {
 							window.setTimeout( () => {
@@ -487,8 +489,7 @@ import syncButtonBusy from './utils/sync-button-busy';
 		for ( let i = 0; i < ids.length; i += MEDIA_BATCH_SIZE ) {
 			batches.push( ids.slice( i, i + MEDIA_BATCH_SIZE ) );
 		}
-		const batchText =
-			config.i18n?.batchOf || 'batch %1$s of %2$s';
+		const batchText = config.i18n?.batchOf || 'batch %1$s of %2$s';
 		const summary = { failed: 0 };
 		let chain = $.Deferred().resolve().promise();
 		batches.forEach( ( batch, index ) => {

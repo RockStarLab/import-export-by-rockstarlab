@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.1.61
+Stable tag: 2.2.0
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,14 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.2.0 =
+* New: the plugin's screens follow your WordPress admin color scheme (Users → Profile → Admin Color Scheme). Buttons, links, tabs, step numbers, badges and highlights use the scheme's colors in all nine built-in schemes; the Default scheme uses WordPress blue. Custom color schemes keep the plugin's purple colors.
+* New: import only some rows of a file. Import, step 5, Filter Rows: keep the rows where a column equals, contains, starts with, is one of, is greater or less than a value (numbers and YYYY-MM-DD dates), or is empty. Combine conditions with all or any. Works with CSV, Excel, JSON and XML files, including WordPress export (WXR) files, for example only the posts of one category or only the items published after a date. The job log says how many rows were left out. AI agents pass the same conditions as options.row_filters.
+* New: import option "Dates in the File" for numeric dates: Detect automatically, Day first (DD/MM/YYYY) or Month first (MM/DD/YYYY). AI agents use options.date_order.
+* Fixed: a post date such as 15/03/2024 (day first) is now imported as 15 March 2024. Before, the row was not imported.
+* Fixed: an ACF Relationship or Post Object cell whose post is not found (yet) leaves the field empty instead of saving post ID 0. The reference is still filled in when that post is imported later in the file.
+* New: the WooCommerce Customers export (PRO) offers the "Last Order Date" column and filter, for example "Last Order Date less than 2026-05-01" for customers who have not ordered for six months. Needs Import Export PRO 2.1.19.
 
 = 2.1.61 =
 * New: the WooCommerce Coupons export (PRO) offers the "Used By (Array)" column: the billing email or user ID of each customer who used the coupon. You can also filter on it, for example to find the coupons one customer used.
