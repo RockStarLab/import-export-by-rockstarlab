@@ -5218,6 +5218,14 @@ const ExportModule = {
 							label: 'Limit Usage to X Items',
 							type: 'number',
 						},
+						// Customers who used the coupon (billing email or user ID), one entry per use.
+						{
+							value: 'used_by',
+							label:
+								window.rslIeData.i18n.fieldUsedBy ||
+								'Used By (Array)',
+							type: 'array',
+						},
 					],
 				},
 				{
@@ -5667,14 +5675,12 @@ const ExportModule = {
 			window.rslIeData.i18n.fieldGroupFeaturedImage || 'Featured Image',
 		];
 
-		// For woo_coupon, also exclude these groups from filters
+		// For woo_coupon, product restrictions (lists of product references) and custom
+		// filters stay out of the filters. Discount, usage restrictions, allowed emails and
+		// usage limits (Usage Count, Used By) filter on the exported values.
 		if ( contentType === 'woo_coupon' ) {
 			excludedLabels.push(
-				window.rslIeData.i18n.fieldGroupDiscount,
-				window.rslIeData.i18n.fieldGroupUsageRestrictions,
 				window.rslIeData.i18n.fieldGroupProductRestrictions,
-				window.rslIeData.i18n.fieldGroupEmailRestrictions,
-				window.rslIeData.i18n.fieldGroupUsageLimits,
 				window.rslIeData.i18n.fieldGroupCustomFilters
 			);
 		}
