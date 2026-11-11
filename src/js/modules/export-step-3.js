@@ -1267,7 +1267,7 @@ export default class ExportStep3 {
 	withExportOnlyFields( group ) {
 		const options = Array.isArray( group.options ) ? group.options : [];
 		const i18nMedia = window.rslIeData.i18n || {};
-		// Media: the original upload and every generated size, next to the main file's size.
+		// Media: the original upload, every generated size and the file hash, next to the main file's size.
 		if (
 			options.some( ( option ) => 'file_size' === option.value ) &&
 			! options.some( ( option ) => 'disk_usage' === option.value )
@@ -1289,6 +1289,13 @@ export default class ExportStep3 {
 							i18nMedia.fieldDiskUsage ||
 							'Size on Disk, All Sizes (bytes)',
 						type: 'number',
+					},
+					// Identical files have the same hash, whatever their names (Tools > Media Hash Index).
+					{
+						value: 'file_hash',
+						label:
+							i18nMedia.fieldFileHash || 'File Hash (MD5)',
+						type: 'string',
 					},
 				],
 			};
