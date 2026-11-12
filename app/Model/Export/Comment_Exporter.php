@@ -102,11 +102,14 @@ class Comment_Exporter extends Abstract_Exporter {
 			'source_post_id',
 			'comment_author',
 			'comment_author_email',
+			'comment_author_url',
 			'comment_date',
+			'comment_date_gmt',
 			'comment_content',
 			'comment_approved',
 			'comment_type',
 			'post_title',
+			'comment_meta',
 		];
 	}
 
@@ -351,7 +354,7 @@ class Comment_Exporter extends Abstract_Exporter {
 				continue;
 			}
 
-			$formatted_meta[ $key ] = $this->portable_comment_meta_value( maybe_unserialize( $values[0] ) );
+			$formatted_meta[ $key ] = $this->portable_comment_meta_value( ACF_Fields::export_comment_media_meta( (int) $comment_id, (string) $key, maybe_unserialize( $values[0] ) ) );
 		}
 
 		return $formatted_meta;

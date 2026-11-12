@@ -1898,7 +1898,7 @@ class Content_Sync_Service {
 
 			if ( ! isset( $images[ $key ] ) ) {
 				$url      = esc_url_raw( $value['url'] );
-				$path     = (string) wp_parse_url( $url, PHP_URL_PATH );
+				$path     = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
 				$filename = sanitize_file_name( wp_basename( $path ) );
 				$ext      = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
 				$filetype = wp_check_filetype( $filename );
@@ -1948,7 +1948,7 @@ class Content_Sync_Service {
 			return false;
 		}
 
-		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		$path = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
 		$ext  = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
 
 		return in_array( $ext, array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg' ), true );
@@ -4430,7 +4430,7 @@ class Content_Sync_Service {
 	 * @return bool
 	 */
 	private function is_term_acf_image_url( $url ) {
-		$path = (string) wp_parse_url( html_entity_decode( (string) $url, ENT_QUOTES, get_bloginfo( 'charset' ) ), PHP_URL_PATH );
+		$path = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( html_entity_decode( (string) $url, ENT_QUOTES, get_bloginfo( 'charset' ) ) );
 		return '' !== $path && (bool) preg_match( '~\.(?:jpe?g|png|gif|webp|avif|svg)$~i', $path );
 	}
 	/**

@@ -63,6 +63,18 @@ abstract class Abstract_Importer implements Importer_Interface {
 	 */
 	public function __construct( $job_id = 0 ) {
 		$this->job_id = $job_id;
+		self::suppress_publish_side_effects();
+	}
+
+	/**
+	 * Imported posts are not new posts: WordPress would queue pingbacks to every linked site
+	 * and fetch every linked audio/video file to add "enclosure" meta (the WordPress
+	 * importer skips this through WP_IMPORTING). Only for the current request.
+	 *
+	 * @return void
+	 */
+	public static function suppress_publish_side_effects() {
+		remove_action( 'publish_post', '_publish_post_hook', 5 );
 	}
 
 	/**

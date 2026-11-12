@@ -484,7 +484,7 @@ class Post_Importer extends Abstract_Importer {
 		if ( false === strpos( $value, '/' ) ) {
 			return $value;
 		}
-		$path  = (string) wp_parse_url( $value, PHP_URL_PATH );
+		$path  = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $value );
 		$parts = array_values( array_filter( explode( '/', $path ), 'strlen' ) );
 		return $parts ? rawurldecode( end( $parts ) ) : '';
 	}
@@ -913,7 +913,7 @@ class Post_Importer extends Abstract_Importer {
 			return 0;
 		}
 		$post_type = '' !== $post_type ? strtolower( $post_type ) : 'post';
-		$path      = trim( (string) wp_parse_url( $reference, PHP_URL_PATH ), '/' );
+		$path      = trim( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $reference ), '/' );
 		$path      = '' !== $path ? $path : $reference;
 		$found     = get_page_by_path( $path, OBJECT, $post_type );
 		if ( ! $found ) {
@@ -1861,6 +1861,15 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		foreach ( $meta as $key => $value ) {
+			// Several rows of one meta key (see Post_Exporter::META_ROWS_KEY): written back as rows.
+			$rows = is_string( $value ) && '' !== $value && '{' === $value[0] && false !== strpos( $value, '_rsl_ie_meta_rows' ) ? json_decode( $value, true ) : $value;
+			if ( is_array( $rows ) && 1 === count( $rows ) && isset( $rows['_rsl_ie_meta_rows'] ) && is_array( $rows['_rsl_ie_meta_rows'] ) && is_string( $key ) && '' !== $key ) {
+				delete_post_meta( $post_id, $key );
+				foreach ( $rows['_rsl_ie_meta_rows'] as $row ) {
+					add_post_meta( $post_id, $key, wp_slash( is_string( $row ) && is_serialized( $row ) ? \RockStarLab\ImportExport\Helper\Serialized::maybe( $row ) : $row ) );
+				}
+				continue;
+			}
 			if ( $this->is_job_cancelled() ) {
 				return;
 			}
@@ -2435,7 +2444,7 @@ class Post_Importer extends Abstract_Importer {
 
 			case 'link':
 				$url = $this->normalize_media_input_url( $trimmed );
-				return filter_var( $url, FILTER_VALIDATE_URL ) || 0 === strpos( $url, '/' ) || 0 === strpos( $url, '#' ) || 0 === strpos( $url, 'mailto:' ) ? [
+				return Content_Sync_Media::is_valid_url( $url ) || 0 === strpos( $url, '/' ) || 0 === strpos( $url, '#' ) || 0 === strpos( $url, 'mailto:' ) ? [
 					'title'  => '',
 					'url'    => $url,
 					'target' => '',
@@ -2451,7 +2460,7 @@ class Post_Importer extends Abstract_Importer {
 					$id = $this->resolve_acf_post_token( $token, $post_types );
 					if ( $id ) {
 						$ids[] = $id;
-					} elseif ( 'page_link' === $type && filter_var( $token, FILTER_VALIDATE_URL ) ) {
+					} elseif ( 'page_link' === $type && Content_Sync_Media::is_valid_url( $token ) ) {
 						$ids[] = $token; // Archive or custom URL: page_link stores it as is.
 					} elseif ( '' !== trim( $token ) ) {
 						$this->unresolved_post_ref = true; // May be a row further down the file.
@@ -2523,7 +2532,7 @@ class Post_Importer extends Abstract_Importer {
 				if ( ctype_digit( $trimmed ) ) {
 					return [ 'type' => 'media_library', 'value' => (int) $trimmed ];
 				}
-				return filter_var( $trimmed, FILTER_VALIDATE_URL ) ? [ 'type' => 'url', 'value' => $trimmed ] : $value;
+				return Content_Sync_Media::is_valid_url( $trimmed ) ? [ 'type' => 'url', 'value' => $trimmed ] : $value;
 
 			case 'oembed':
 				// Older exports contained the rendered <iframe>; recover the media URL.
@@ -2555,12 +2564,12 @@ class Post_Importer extends Abstract_Importer {
 			$post = get_post( (int) $token );
 			return ( $post && in_array( $post->post_type, $types, true ) ) ? (int) $post->ID : 0;
 		}
-		if ( filter_var( $token, FILTER_VALIDATE_URL ) ) {
+		if ( Content_Sync_Media::is_valid_url( $token ) ) {
 			$id = url_to_postid( $token );
 			if ( $id && in_array( get_post_type( $id ), $types, true ) ) {
 				return (int) $id;
 			}
-			$path  = trim( (string) wp_parse_url( $token, PHP_URL_PATH ), '/' );
+			$path  = trim( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $token ), '/' );
 			$token = '' !== $path ? basename( $path ) : $token;
 		}
 		$found = get_posts(
@@ -2635,7 +2644,7 @@ class Post_Importer extends Abstract_Importer {
 		$parts = preg_split( preg_match( '/[|\n]/', $trimmed ) ? '/\s*[|\n]+\s*/' : '/\s*,\s*/', $trimmed );
 		$parts = array_values( array_filter( array_map( 'trim', (array) $parts ), 'strlen' ) );
 		foreach ( $parts as $part ) {
-			if ( ! ctype_digit( $part ) && ! filter_var( $this->normalize_media_input_url( $part ), FILTER_VALIDATE_URL ) ) {
+			if ( ! ctype_digit( $part ) && ! Content_Sync_Media::is_valid_url( $this->normalize_media_input_url( $part ) ) ) {
 				return null;
 			}
 		}
@@ -2734,7 +2743,7 @@ class Post_Importer extends Abstract_Importer {
 			return null;
 		}
 		$url = $this->normalize_media_input_url( $trimmed );
-		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) || $this->is_job_cancelled() ) {
+		if ( ! Content_Sync_Media::is_valid_url( $url ) || $this->is_job_cancelled() ) {
 			return null;
 		}
 		if ( ! (bool) $this->get_option( 'auto_import_media', false ) ) {
@@ -2898,11 +2907,11 @@ class Post_Importer extends Abstract_Importer {
 	 * @return bool
 	 */
 	private function looks_like_downloadable_media_url( $url ) {
-		if ( '' === $url || ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+		if ( '' === $url || ! Content_Sync_Media::is_valid_url( $url ) ) {
 			return false;
 		}
 
-		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		$path = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
 		$ext  = strtolower( (string) pathinfo( $path, PATHINFO_EXTENSION ) );
 
 		return in_array( $ext, [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp3', 'm4a', 'ogg', 'wav', 'mp4', 'm4v', 'webm', 'ogv', 'flv', 'mov', 'avi', 'wmv', 'zip' ], true );
@@ -2983,12 +2992,12 @@ class Post_Importer extends Abstract_Importer {
 							break;
 						}
 
-						if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+						if ( ! Content_Sync_Media::is_valid_url( $url ) ) {
 							continue;
 						}
 
 						// Avoid downloading non-media URLs (HTML pages, oembed, etc.).
-						$ext        = strtolower( pathinfo( wp_parse_url( $url, PHP_URL_PATH ) ?? '', PATHINFO_EXTENSION ) );
+						$ext        = strtolower( pathinfo( \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ?? '', PATHINFO_EXTENSION ) );
 						$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
 						if ( '' === $ext || ! in_array( $ext, $media_exts, true ) ) {
 							continue;
@@ -3015,8 +3024,8 @@ class Post_Importer extends Abstract_Importer {
 
 						// URL values are assumed to point to media (most commonly when a
 						// relationship/post_object field references an attachment).
-						if ( '' !== $raw && filter_var( $raw, FILTER_VALIDATE_URL ) ) {
-							$ext        = strtolower( pathinfo( wp_parse_url( $raw, PHP_URL_PATH ) ?? '', PATHINFO_EXTENSION ) );
+						if ( '' !== $raw && Content_Sync_Media::is_valid_url( $raw ) ) {
+							$ext        = strtolower( pathinfo( \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $raw ) ?? '', PATHINFO_EXTENSION ) );
 							$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
 							if ( $auto_import_media && '' !== $ext && in_array( $ext, $media_exts, true ) ) {
 								$new_id = $this->import_media_for_acf( $raw, $post_id, $media_duplicate_mode );
@@ -3193,8 +3202,8 @@ class Post_Importer extends Abstract_Importer {
 
 			$url = $value['url'];
 			$id  = $value['ID'] ?? $value['id'];
-			if ( is_string( $url ) && filter_var( $url, FILTER_VALIDATE_URL ) && is_numeric( $id ) ) {
-				$ext        = strtolower( pathinfo( wp_parse_url( $url, PHP_URL_PATH ) ?? '', PATHINFO_EXTENSION ) );
+			if ( is_string( $url ) && Content_Sync_Media::is_valid_url( $url ) && is_numeric( $id ) ) {
+				$ext        = strtolower( pathinfo( \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ?? '', PATHINFO_EXTENSION ) );
 				$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
 				if ( '' !== $ext && in_array( $ext, $media_exts, true ) ) {
 					$new_id = $this->import_media_for_acf( $url, $post_id, $media_duplicate_mode );
@@ -3219,8 +3228,8 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		// Media import off: a URL of this site's own uploads still becomes its attachment ID.
-		if ( ! $auto_import_media && ! $this->keep_plain_media_urls && is_string( $value ) && '' !== $value && false === strpos( $value, '<' ) && filter_var( $value, FILTER_VALIDATE_URL )
-			&& in_array( strtolower( pathinfo( (string) wp_parse_url( $value, PHP_URL_PATH ), PATHINFO_EXTENSION ) ), [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ], true ) ) {
+		if ( ! $auto_import_media && ! $this->keep_plain_media_urls && is_string( $value ) && '' !== $value && false === strpos( $value, '<' ) && Content_Sync_Media::is_valid_url( $value )
+			&& in_array( strtolower( pathinfo( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $value ), PATHINFO_EXTENSION ) ), [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ], true ) ) {
 			$local = $this->local_media_id( $value );
 			if ( $local ) {
 				return $local;
@@ -3231,8 +3240,8 @@ class Post_Importer extends Abstract_Importer {
 		// Applies to ACF image and file fields exported as bare URLs
 		// (e.g. acf_image_field = 'http://source.local/.../photo.jpg').
 		// We detect media by file extension to avoid downloading page/oembed URLs.
-		if ( $auto_import_media && is_string( $value ) && '' !== $value && filter_var( $value, FILTER_VALIDATE_URL ) ) {
-			$ext        = strtolower( pathinfo( wp_parse_url( $value, PHP_URL_PATH ) ?? '', PATHINFO_EXTENSION ) );
+		if ( $auto_import_media && is_string( $value ) && '' !== $value && Content_Sync_Media::is_valid_url( $value ) ) {
+			$ext        = strtolower( pathinfo( \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $value ) ?? '', PATHINFO_EXTENSION ) );
 			$media_exts = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ];
 			if ( in_array( $ext, $media_exts, true ) ) {
 				$id = $this->import_media_for_acf( $value, $post_id, $media_duplicate_mode );
@@ -3259,7 +3268,7 @@ class Post_Importer extends Abstract_Importer {
 	 * @return int
 	 */
 	private function find_post_id_by_imported_url( string $url ): int {
-		$path = wp_parse_url( $url, PHP_URL_PATH );
+		$path = \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
 		if ( ! is_string( $path ) || '' === $path ) {
 			return 0;
 		}
@@ -3363,7 +3372,7 @@ class Post_Importer extends Abstract_Importer {
 					}
 
 					$url = is_array( $item ) ? ( $item['url'] ?? '' ) : $item;
-					if ( ! is_string( $url ) || ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+					if ( ! is_string( $url ) || ! Content_Sync_Media::is_valid_url( $url ) ) {
 						continue;
 					}
 					$source_attachment_id = is_array( $item ) ? absint( $item['source_id'] ?? 0 ) : 0;
@@ -3525,7 +3534,7 @@ class Post_Importer extends Abstract_Importer {
 				}
 
 				$replace_url = function ( string $url ) use ( $post_id, $media_duplicate_mode ) {
-					if ( ! filter_var( $url, FILTER_VALIDATE_URL ) || ! $this->looks_like_downloadable_media_url( $url ) ) {
+					if ( ! Content_Sync_Media::is_valid_url( $url ) || ! $this->looks_like_downloadable_media_url( $url ) ) {
 						return $url;
 					}
 					$attachment_id = $this->import_media_for_acf( $url, $post_id, $media_duplicate_mode );
@@ -4067,7 +4076,7 @@ class Post_Importer extends Abstract_Importer {
 		// Spreadsheet cells often hold URLs with spaces or accented file names, or an
 		// Excel =HYPERLINK() formula; turn them into a downloadable address first.
 		$url = $this->normalize_media_input_url( $image );
-		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+		if ( ! Content_Sync_Media::is_valid_url( $url ) ) {
 			$this->log_warning( sprintf( 'Featured image value is not a valid URL: %s', $image ) );
 			$this->add_media_issue( $image, __( 'The featured image value is not a valid URL.', 'import-export-by-rockstarlab' ) );
 			return;
@@ -4120,7 +4129,7 @@ class Post_Importer extends Abstract_Importer {
 	 * @return bool
 	 */
 	private function is_external_content_image_url( $url ) {
-		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		$path = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
 		if ( ! preg_match( '/\.(jpe?g|png|gif|webp|avif)$/i', $path ) ) {
 			return false;
 		}
@@ -4277,7 +4286,7 @@ class Post_Importer extends Abstract_Importer {
 				case 'image':
 				case 'file':
 					// Check if it's a URL (string) or ID (numeric)
-					if ( is_string( $meta_value ) && filter_var( $meta_value, FILTER_VALIDATE_URL ) ) {
+					if ( is_string( $meta_value ) && Content_Sync_Media::is_valid_url( $meta_value ) ) {
 						// It's a URL - import it
 						$new_id = $this->import_and_replace_acf_media( $meta_value, $post_id, $meta_key, $media_duplicate_mode );
 						if ( $new_id ) {
@@ -4297,7 +4306,7 @@ class Post_Importer extends Abstract_Importer {
 						$changed     = false;
 
 						foreach ( $gallery_value as $item_value ) {
-							if ( is_string( $item_value ) && filter_var( $item_value, FILTER_VALIDATE_URL ) ) {
+							if ( is_string( $item_value ) && Content_Sync_Media::is_valid_url( $item_value ) ) {
 								// It's a URL - import it
 								$new_id = $this->import_media_for_acf( $item_value, $post_id, $media_duplicate_mode );
 								if ( $new_id ) {
@@ -4405,7 +4414,7 @@ class Post_Importer extends Abstract_Importer {
 				switch ( $sub_field_type ) {
 					case 'image':
 					case 'file':
-						if ( is_string( $meta_value ) && filter_var( $meta_value, FILTER_VALIDATE_URL ) ) {
+						if ( is_string( $meta_value ) && Content_Sync_Media::is_valid_url( $meta_value ) ) {
 							$new_id = $this->import_and_replace_acf_media( $meta_value, $post_id, $meta_key, $media_duplicate_mode );
 							if ( $new_id ) {
 								++$imported_count;
@@ -4427,7 +4436,7 @@ class Post_Importer extends Abstract_Importer {
 									break;
 								}
 
-								if ( is_string( $item_value ) && filter_var( $item_value, FILTER_VALIDATE_URL ) ) {
+								if ( is_string( $item_value ) && Content_Sync_Media::is_valid_url( $item_value ) ) {
 									$new_id = $this->import_media_for_acf( $item_value, $post_id, $media_duplicate_mode );
 									if ( $new_id ) {
 										$new_gallery[] = $new_id;
@@ -4475,7 +4484,7 @@ class Post_Importer extends Abstract_Importer {
 								}
 
 								if ( in_array( $group_field_type, [ 'image', 'file' ], true ) ) {
-									if ( is_string( $group_meta_value ) && filter_var( $group_meta_value, FILTER_VALIDATE_URL ) ) {
+									if ( is_string( $group_meta_value ) && Content_Sync_Media::is_valid_url( $group_meta_value ) ) {
 										$new_id = $this->import_and_replace_acf_media( $group_meta_value, $post_id, $group_meta_key, $media_duplicate_mode );
 										if ( $new_id ) {
 											++$imported_count;
@@ -4495,7 +4504,7 @@ class Post_Importer extends Abstract_Importer {
 												break;
 											}
 
-											if ( is_string( $item_value ) && filter_var( $item_value, FILTER_VALIDATE_URL ) ) {
+											if ( is_string( $item_value ) && Content_Sync_Media::is_valid_url( $item_value ) ) {
 												$new_id = $this->import_media_for_acf( $item_value, $post_id, $media_duplicate_mode );
 												if ( $new_id ) {
 													$new_gallery[] = $new_id;
@@ -4567,7 +4576,7 @@ class Post_Importer extends Abstract_Importer {
 
 		$url = $this->normalize_media_input_url( (string) $url );
 		// Skip if not a valid URL
-		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+		if ( ! Content_Sync_Media::is_valid_url( $url ) ) {
 			return false;
 		}
 
@@ -4601,7 +4610,7 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		// Check for existing media
-		$filename            = basename( wp_parse_url( $url, PHP_URL_PATH ) );
+		$filename            = rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ) );
 		$existing_attachment = $this->find_existing_media( $filename, $url );
 
 		if ( $this->is_job_cancelled() ) {
@@ -4699,6 +4708,15 @@ class Post_Importer extends Abstract_Importer {
 			$media_urls = array_merge( $media_urls, $bg_matches[1] );
 		}
 
+		// 4. File blocks keep the file URL in the block attributes too.
+		preg_match_all( '/<!-- wp:file\s+(\{.*?\})\s+\/?-->/s', $post_content, $file_blocks );
+		foreach ( $file_blocks[1] ?? [] as $attrs ) {
+			$attrs = json_decode( $attrs, true );
+			if ( is_array( $attrs ) && ! empty( $attrs['href'] ) && is_string( $attrs['href'] ) ) {
+				$media_urls[] = $attrs['href'];
+			}
+		}
+
 		// Remove duplicates and empty values
 		$media_urls = array_unique( array_filter( $media_urls ) );
 
@@ -4717,8 +4735,8 @@ class Post_Importer extends Abstract_Importer {
 				break;
 			}
 
-			// Skip if not a valid URL
-			if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+			// Skip if not a valid URL (non-Latin file names are valid once percent-encoded).
+			if ( ! Content_Sync_Media::is_valid_url( $url ) ) {
 				continue;
 			}
 
@@ -4760,8 +4778,8 @@ class Post_Importer extends Abstract_Importer {
 
 			// Theme/plugin assets are not attachments and should not be imported into Media Library.
 			// Instead, just rewrite them to this site's domain to preserve content parity.
-				$parsed_path  = wp_parse_url( $url, PHP_URL_PATH );
-				$content_path = wp_parse_url( content_url( '/' ), PHP_URL_PATH );
+				$parsed_path  = \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
+				$content_path = \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( content_url( '/' ) );
 				$content_path = is_string( $content_path ) ? trailingslashit( $content_path ) : '';
 				$themes_path  = $content_path . 'themes/';
 				$plugins_path = $content_path . 'plugins/';
@@ -4782,7 +4800,7 @@ class Post_Importer extends Abstract_Importer {
 			}
 
 			// Check for existing media by filename, size and hash
-			$filename            = basename( wp_parse_url( $url, PHP_URL_PATH ) );
+			$filename            = rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ) );
 			$existing_attachment = $this->find_existing_media( $filename, $url );
 
 			if ( $existing_attachment ) {
@@ -5124,8 +5142,8 @@ class Post_Importer extends Abstract_Importer {
 	 */
 	private function local_upload_file_exists( $url ) {
 		$uploads = wp_upload_dir();
-		$path    = wp_parse_url( (string) $url, PHP_URL_PATH );
-		$base    = wp_parse_url( (string) $uploads['baseurl'], PHP_URL_PATH );
+		$path    = \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( (string) $url );
+		$base    = \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( (string) $uploads['baseurl'] );
 		if ( ! is_string( $path ) || ! is_string( $base ) || 0 !== strpos( $path, $base ) ) {
 			return false;
 		}
@@ -5165,7 +5183,7 @@ class Post_Importer extends Abstract_Importer {
 				continue;
 			}
 			$candidate = substr_replace( (string) $url, $search, $pos, strlen( $replace ) );
-			if ( filter_var( $candidate, FILTER_VALIDATE_URL ) && 0 !== strpos( $candidate, wp_upload_dir()['baseurl'] ) ) {
+			if ( Content_Sync_Media::is_valid_url( $candidate ) && 0 !== strpos( $candidate, wp_upload_dir()['baseurl'] ) ) {
 				return $candidate;
 			}
 		}
@@ -5229,7 +5247,7 @@ class Post_Importer extends Abstract_Importer {
 			}
 			if ( 'A' === $tag ) {
 				$href = $tags->get_attribute( 'href' );
-				if ( is_string( $href ) && preg_match( '/\.(mp3|m4a|ogg|wav|mp4|m4v|webm|ogv|flv|mov|avi|wmv)$/i', (string) wp_parse_url( $href, PHP_URL_PATH ) ) ) {
+				if ( is_string( $href ) && preg_match( '/\.(mp3|m4a|ogg|wav|mp4|m4v|webm|ogv|flv|mov|avi|wmv)$/i', (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $href ) ) ) {
 					$urls[] = $href;
 				}
 			}
@@ -5286,7 +5304,7 @@ class Post_Importer extends Abstract_Importer {
 				break;
 			}
 
-			if ( ! is_string( $url ) || ! filter_var( $url, FILTER_VALIDATE_URL ) || 0 === strpos( $url, 'data:' ) ) {
+			if ( ! is_string( $url ) || ! Content_Sync_Media::is_valid_url( $url ) || 0 === strpos( $url, 'data:' ) ) {
 				continue;
 			}
 
@@ -5360,26 +5378,16 @@ class Post_Importer extends Abstract_Importer {
 					return $tag;
 				}
 
-				$tag = (string) preg_replace_callback(
-					'/\s+srcset=(["\'])(?:(?!\\1).)*\\1/i',
-					static function ( array $srcset_match ) use ( $uploads_base ) {
-						$quote = $srcset_match[1];
-						$raw   = trim( (string) $srcset_match[0] );
-						$raw   = trim( (string) preg_replace( '/^srcset=["\']|["\']$/i', '', $raw ) );
-						$local = [];
-						foreach ( array_filter( array_map( 'trim', explode( ',', $raw ) ) ) as $part ) {
-							$url = preg_split( '/\s+/', $part, 2 )[0] ?? '';
-							if ( '' !== $url && 0 === strpos( $url, $uploads_base . '/' ) ) {
-								$local[] = $part;
-							}
-						}
-						return empty( $local ) ? '' : ' srcset=' . $quote . esc_attr( implode( ', ', $local ) ) . $quote;
-					},
-					$tag
-				);
-
-				if ( false === strpos( $tag, 'srcset=' ) ) {
-					$tag = (string) preg_replace( '/\s+sizes=(["\'])(?:(?!\\1).)*\\1/i', '', $tag );
+				// Any candidate that is not a file of this site: rebuild srcset from the local
+				// attachment (in place), or drop srcset and sizes when there is none.
+				if ( ! preg_match( '/\ssrcset=(["\'])((?:(?!\1).)*)\1/i', $tag, $set ) ) {
+					return $tag;
+				}
+				foreach ( array_filter( array_map( 'trim', explode( ',', html_entity_decode( $set[2] ) ) ) ) as $part ) {
+					$url = preg_split( '/\s+/', $part, 2 )[0] ?? '';
+					if ( '' === $url || 0 !== strpos( $url, $uploads_base . '/' ) ) {
+						return ACF_Fields::add_local_srcset( $tag );
+					}
 				}
 
 				return (string) $tag;
@@ -5397,9 +5405,22 @@ class Post_Importer extends Abstract_Importer {
 	 * @return string Updated content
 	 */
 	private function replace_media_urls_in_content( $content, $url_mapping ) {
+		$content = (string) $content;
 		foreach ( $url_mapping as $old_url => $new_data ) {
 			$new_url = $new_data['url'];
 			$new_id  = $new_data['id'];
+			$old_url = (string) $old_url;
+
+			// Mapping keys and content can spell a non-Latin file name differently
+			// (percent-encoded vs raw UTF-8). Bring the content to the key's spelling
+			// first so the ID and URL rewrites below see the same string.
+			if ( '' !== $old_url && false === strpos( $content, $old_url ) ) {
+				foreach ( array_unique( [ rawurldecode( $old_url ), Media_Importer::encode_url( $old_url ) ] ) as $variant ) {
+					if ( is_string( $variant ) && '' !== $variant && $variant !== $old_url && false !== strpos( $content, $variant ) ) {
+						$content = str_replace( $variant, $old_url, $content );
+					}
+				}
+			}
 
 			if ( is_numeric( $new_id ) && (int) $new_id > 0 ) {
 				$new_id             = (int) $new_id;
@@ -5411,7 +5432,7 @@ class Post_Importer extends Abstract_Importer {
 				// rendered HTML portion of the block, so replace IDs in the block segment
 				// that contains the source URL before doing the global URL swap below.
 				$content = preg_replace_callback(
-					'/<!-- wp:(image|media-text|cover|audio|video)\\b[\\s\\S]*?<!-- \\/wp:\\1 -->/i',
+					'/<!-- wp:(image|media-text|cover|audio|video|file)\\b[\\s\\S]*?<!-- \\/wp:\\1 -->/i',
 					function ( array $m ) use ( $old_url, $new_id ) {
 						$block = $m[0];
 						if ( false === strpos( $block, (string) $old_url ) ) {
@@ -5436,6 +5457,15 @@ class Post_Importer extends Abstract_Importer {
 				$content = preg_replace(
 					'/(<img\\b(?=[^>]*' . $quoted_old . ')[^>]*class=(["\'])(?:(?!\\2).)*?)wp-image-\\d+/i',
 					'${1}wp-image-' . $new_id,
+					$content
+				);
+
+				// Gallery images repeat the attachment ID in data-id.
+				$content = (string) preg_replace_callback(
+					'/<img\\b(?=[^>]*' . $quoted_old . '["\'\\s])[^>]*>/i',
+					static function ( array $m ) use ( $new_id ) {
+						return (string) preg_replace( '/\\bdata-id=(["\'])\\d+\\1/i', 'data-id=${1}' . $new_id . '${1}', $m[0] );
+					},
 					$content
 				);
 			}
@@ -5490,7 +5520,7 @@ class Post_Importer extends Abstract_Importer {
 	 */
 	private function local_media_id( string $url ): int {
 		$url = $this->normalize_media_input_url( $url );
-		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+		if ( ! Content_Sync_Media::is_valid_url( $url ) ) {
 			return 0;
 		}
 		$host = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
@@ -5529,8 +5559,8 @@ class Post_Importer extends Abstract_Importer {
 	 * @return string Canonical import URL or empty string when it should be skipped.
 	 */
 	private function canonicalize_importable_media_url( string $url, bool $explicit = false ): string {
-		$url = esc_url_raw( $this->normalize_media_input_url( $url ) );
-		if ( '' === $url || ! filter_var( $url, FILTER_VALIDATE_URL ) || 0 === strpos( $url, 'data:' ) ) {
+		$url = esc_url_raw( Media_Importer::encode_url( $this->normalize_media_input_url( $url ) ) );
+		if ( '' === $url || ! Content_Sync_Media::is_valid_url( $url ) || 0 === strpos( $url, 'data:' ) ) {
 			return '';
 		}
 		if ( ! in_array( strtolower( (string) wp_parse_url( $url, PHP_URL_SCHEME ) ), [ 'http', 'https' ], true ) ) {
@@ -5550,7 +5580,7 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		// Embedded audio/video may be hosted on a CDN outside wp-content/uploads.
-		$is_av = (bool) preg_match( '/\.(mp3|m4a|ogg|wav|mp4|m4v|webm|ogv|flv|mov|avi|wmv)$/i', (string) wp_parse_url( $url, PHP_URL_PATH ) );
+		$is_av = (bool) preg_match( '/\.(mp3|m4a|ogg|wav|mp4|m4v|webm|ogv|flv|mov|avi|wmv)$/i', (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) );
 		if ( ! $this->looks_like_downloadable_media_url( $url ) ) {
 			return '';
 		}
@@ -5824,7 +5854,7 @@ class Post_Importer extends Abstract_Importer {
 
 		// Prepare file array. Image services often serve files from addresses without a
 		// usable extension (image.php?id=42); name such files after their real type.
-		$name = rawurldecode( basename( (string) wp_parse_url( $url, PHP_URL_PATH ) ) );
+		$name = rawurldecode( basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ) );
 		$type = wp_check_filetype( $name );
 		if ( empty( $type['ext'] ) || ( $explicit && 'file' !== $explicit && 0 !== strpos( (string) $type['type'], 'image/' ) ) ) {
 			$mime = function_exists( 'wp_get_image_mime' ) ? wp_get_image_mime( $temp_file ) : false;

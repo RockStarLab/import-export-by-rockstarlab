@@ -873,6 +873,15 @@ class Import_Service {
 		}
 		unset( $entry );
 		$replacement_count = 0;
+		// Long spreadsheet values come split over "<column>__partN" columns.
+		if ( in_array( $request['format'] ?? '', [ 'xlsx', 'ods', 'xls' ], true ) ) {
+			$data = array_map(
+				static function ( $row ) {
+					return is_array( $row ) ? \RockStarLab\ImportExport\Model\Format\Spreadsheet_Format::join_long_values( $row ) : $row;
+				},
+				$data
+			);
+		}
 		$prepared_data     = $importer->prepare( $data, $mapping );
 		$prepared_data     = $this->sanitize_user_preference_meta_for_import( $import_type, $prepared_data );
 		$prepared_data     = $this->apply_replace_links_rules_to_data( $prepared_data, $options, $replacement_count, $import_type );
@@ -1932,10 +1941,22 @@ class Import_Service {
 		}
 
 		foreach ( $prepared_data as $row ) {
+			// A file without a parent column says nothing about the parent: keep the current one.
+			// Treating it as "top level" detached every page of a re-imported file from its parent.
+			if ( ! is_array( $row ) || ! array_key_exists( '_rsl_ie_source_parent_id', $row ) ) {
+				continue;
+			}
 			$source_id     = isset( $row['_rsl_ie_source_id'] ) ? absint( $row['_rsl_ie_source_id'] ) : 0;
-			$source_parent = isset( $row['_rsl_ie_source_parent_id'] ) ? absint( $row['_rsl_ie_source_parent_id'] ) : 0;
+			$source_parent = absint( $row['_rsl_ie_source_parent_id'] );
 			$target_id     = $source_id ? absint( $map[ (string) $source_id ] ?? 0 ) : 0;
 			$target_parent = $source_parent ? absint( $map[ (string) $source_parent ] ?? 0 ) : 0;
+			// The parent may come from an earlier import (a child imported on its own later).
+			if ( $source_parent > 0 && $target_parent <= 0 ) {
+				$target_parent = $this->find_imported_post_by_source_id( $source_parent );
+				if ( $target_parent > 0 ) {
+					$map[ (string) $source_parent ] = $target_parent;
+				}
+			}
 
 			if ( $target_id <= 0 || ( $source_parent > 0 && $target_parent <= 0 ) ) {
 				continue;

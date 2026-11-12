@@ -1168,7 +1168,8 @@ class Comment_Importer extends Abstract_Importer {
 
 			if ( is_array( $meta_data ) ) {
 				foreach ( $meta_data as $meta_key => $meta_value ) {
-					update_comment_meta( $comment_id, $meta_key, wp_slash( $this->resolve_comment_media_references( $meta_value ) ) );
+					$media = ACF_Fields::import_media_meta( $meta_value, 0 );
+					update_comment_meta( $comment_id, $meta_key, wp_slash( null !== $media ? $media : $this->resolve_comment_media_references( $meta_value ) ) );
 				}
 			}
 		}

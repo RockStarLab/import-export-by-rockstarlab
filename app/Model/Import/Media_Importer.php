@@ -296,7 +296,7 @@ class Media_Importer extends Abstract_Importer {
 		$canonical_url = $this->normalize_source_url( (string) $url );
 		if ( '' !== $canonical_url ) {
 			$url         = $canonical_url;
-			$source_path = wp_parse_url( $url, PHP_URL_PATH );
+			$source_path = \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
 			$source_name = is_string( $source_path ) ? sanitize_file_name( wp_basename( $source_path ) ) : '';
 			if ( '' !== $source_name ) {
 				$item['filename']  = $source_name;
@@ -399,7 +399,7 @@ class Media_Importer extends Abstract_Importer {
 		}
 
 		// Get filename
-		$filename = $item['filename'] ?? basename( wp_parse_url( $url, PHP_URL_PATH ) );
+		$filename = $item['filename'] ?? rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ) );
 
 		$relative_path = $this->get_upload_relative_path_from_url( $url );
 		if ( '' !== $relative_path ) {
@@ -625,7 +625,7 @@ class Media_Importer extends Abstract_Importer {
 
 		// A URL that opens a web page (a gallery, a login screen) is not the file itself.
 		$type = strtolower( (string) wp_remote_retrieve_header( $response, 'content-type' ) );
-		if ( 0 === strpos( $type, 'text/html' ) && ! preg_match( '/\.html?$/i', (string) wp_parse_url( $url, PHP_URL_PATH ) ) ) {
+		if ( 0 === strpos( $type, 'text/html' ) && ! preg_match( '/\.html?$/i', (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ) ) {
 			if ( ! empty( $response['filename'] ) && file_exists( $response['filename'] ) ) {
 				wp_delete_file( $response['filename'] );
 			}
@@ -1148,7 +1148,7 @@ class Media_Importer extends Abstract_Importer {
 	 * @return string Relative uploads path.
 	 */
 	private function get_upload_relative_path_from_url( $url ) {
-		$path = wp_parse_url( (string) $url, PHP_URL_PATH );
+		$path = \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( (string) $url );
 		if ( ! is_string( $path ) || '' === $path ) {
 			return '';
 		}
@@ -1158,7 +1158,7 @@ class Media_Importer extends Abstract_Importer {
 			return '';
 		}
 
-		$uploads_path = wp_parse_url( $uploads['baseurl'], PHP_URL_PATH );
+		$uploads_path = \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $uploads['baseurl'] );
 		$uploads_path = is_string( $uploads_path ) ? untrailingslashit( $uploads_path ) : '';
 		if ( '' === $uploads_path ) {
 			return '';
@@ -1236,7 +1236,7 @@ class Media_Importer extends Abstract_Importer {
 	 * @return int|null Attachment ID or null.
 	 */
 	private function find_existing_by_remote_hash( $url ) {
-		$filename = basename( wp_parse_url( $url, PHP_URL_PATH ) );
+		$filename = rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ) );
 		$base     = pathinfo( $filename, PATHINFO_FILENAME );
 
 		if ( '' === $base ) {

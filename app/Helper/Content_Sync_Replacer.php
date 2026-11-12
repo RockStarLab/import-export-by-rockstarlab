@@ -166,17 +166,8 @@ class Content_Sync_Replacer {
 			$content = self::replace_in_blocks( $content, $source_domain, $target_domain, $image_map );
 		}
 
-		// Replace attachment IDs in wp-image classes
-		if ( ! empty( $image_map ) ) {
-			foreach ( $image_map as $old_id => $new_id ) {
-				$content = preg_replace(
-					'/wp-image-' . $old_id . '\b/',
-					'wp-image-' . $new_id,
-					$content
-				);
-			}
-		}
-
+		// Attachment IDs in wp-image classes and gallery data-id are remapped by
+		// fix_local_image_urls_in_content() in a single pass.
 		$content = self::fix_local_image_urls_in_content( $content, $image_map, $image_sources );
 
 		return $content;
@@ -359,6 +350,68 @@ class Content_Sync_Replacer {
 	}
 
 	/**
+	 * Remap wp-image-N classes and data-id="N" of <img> tags in one pass. Remapping ID by ID
+	 * chained when a new ID equals another source ID (source 5 → local 9 and source 9 → local 12
+	 * turned image 5 into image 12); tags that already name their local file are left alone,
+	 * because this runs again on content that was remapped before.
+	 *
+	 * @param string $content   HTML.
+	 * @param array  $image_map Source attachment ID => local attachment ID.
+	 * @return string
+	 */
+	public static function remap_img_attachment_ids( $content, $image_map ) {
+		if ( ! is_string( $content ) || '' === $content || empty( $image_map ) || false === stripos( $content, '<img' ) ) {
+			return $content;
+		}
+		return (string) preg_replace_callback(
+			'/<img\b[^>]*>/i',
+			static function ( $m ) use ( $image_map ) {
+				if ( self::img_already_local( $m[0] ) ) {
+					return $m[0];
+				}
+				return (string) preg_replace_callback(
+					'/\bwp-image-(\d+)\b|(\sdata-id=)(["\'])(\d+)\3/i',
+					static function ( $x ) use ( $image_map ) {
+						if ( '' !== ( $x[1] ?? '' ) ) {
+							return isset( $image_map[ $x[1] ] ) && (int) $image_map[ $x[1] ] > 0 ? 'wp-image-' . (int) $image_map[ $x[1] ] : $x[0];
+						}
+						return isset( $image_map[ $x[4] ] ) && (int) $image_map[ $x[4] ] > 0 ? $x[2] . $x[3] . (int) $image_map[ $x[4] ] . $x[3] : $x[0];
+					},
+					$m[0]
+				);
+			},
+			$content
+		);
+	}
+
+	/**
+	 * Whether an <img> tag already names a local attachment whose file is its src
+	 * (wp-image-N with src = a file of attachment N on this site).
+	 *
+	 * @param string $tag <img> tag.
+	 * @return bool
+	 */
+	private static function img_already_local( string $tag ): bool {
+		static $cache = array();
+		if ( ! preg_match( '/\bwp-image-(\d+)\b/', $tag, $id ) || ! preg_match( '/\ssrc=(["\'])((?:(?!\1).)+)\1/i', $tag, $src ) ) {
+			return false;
+		}
+		$uploads = untrailingslashit( (string) ( wp_upload_dir()['baseurl'] ?? '' ) );
+		$url     = html_entity_decode( $src[2] );
+		if ( '' === $uploads || 0 !== strpos( set_url_scheme( $url ), set_url_scheme( $uploads ) . '/' ) ) {
+			return false;
+		}
+		if ( ! isset( $cache[ $url ] ) ) {
+			$found = (int) attachment_url_to_postid( $url );
+			if ( ! $found ) {
+				$found = (int) attachment_url_to_postid( (string) preg_replace( '/-(\d+x\d+|scaled)(?=\.[a-z0-9]+$)/i', '', $url ) );
+			}
+			$cache[ $url ] = $found;
+		}
+		return $cache[ $url ] > 0 && $cache[ $url ] === (int) $id[1];
+	}
+
+	/**
 	 * Fix <img> src/srcset attributes after media has been imported locally.
 	 *
 	 * During Content Sync the post HTML may still contain source-site intermediate
@@ -376,6 +429,7 @@ class Content_Sync_Replacer {
 		}
 
 		$content = self::replace_shortcode_attachment_ids( $content, $image_map );
+		$content = self::remap_img_attachment_ids( $content, $image_map );
 		$moved   = array();
 
 		foreach ( $image_map as $old_id => $new_id ) {
@@ -386,7 +440,6 @@ class Content_Sync_Replacer {
 				continue;
 			}
 
-			$content     = preg_replace( '/\bwp-image-' . $old_id . '\b/', 'wp-image-' . $new_id, $content );
 			$source_data = self::get_image_source_data( $old_id, $image_sources );
 			$content     = self::fix_local_image_tag_urls( $content, $new_id, $source_data );
 			$moved      += self::moved_media_urls( $new_id, $source_data );
@@ -423,7 +476,7 @@ class Content_Sync_Replacer {
 		}
 		$out        = array();
 		$local_path = static function ( $url ) {
-			return (string) wp_parse_url( $url, PHP_URL_PATH );
+			return (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
 		};
 		foreach ( $pairs as $from => $to ) {
 			$path = $local_path( $from );
@@ -698,7 +751,7 @@ class Content_Sync_Replacer {
 									// (e.g. "image-200x300.jpg" → "200x300") and look up the
 									// corresponding local size. Fall back to full-size URL.
 									$local_url = $new_url;
-									$basename  = basename( wp_parse_url( $src, PHP_URL_PATH ) );
+									$basename  = rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $src ) ) );
 									if ( preg_match( '/-(\d+x\d+)\.[^.]+$/i', $basename, $dim_m ) ) {
 										$dim_key = $dim_m[1];
 										if ( isset( $size_dim_map[ $dim_key ] ) ) {
@@ -858,7 +911,7 @@ class Content_Sync_Replacer {
 			foreach ( $source_data['source_urls']['by_size'] as $dimension => $url ) {
 				if ( is_string( $url ) ) {
 					$normalized['urls'][] = $url;
-					$basename             = basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+					$basename             = rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ) );
 					if ( '' !== $basename ) {
 						$normalized['by_basename'][ $basename ] = sanitize_text_field( $dimension );
 					}
@@ -908,7 +961,7 @@ class Content_Sync_Replacer {
 	 * @return bool True when URL matches.
 	 */
 	private static function source_image_url_matches( $url, $source_urls ) {
-		$basename = basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+		$basename = rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ) );
 		if ( '' !== $basename && isset( $source_urls['by_basename'][ $basename ] ) ) {
 			return true;
 		}
@@ -924,7 +977,7 @@ class Content_Sync_Replacer {
 	 * @return string Dimension key or empty string.
 	 */
 	private static function get_source_image_dimension( $url, $source_urls ) {
-		$basename = basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+		$basename = rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ) );
 		if ( '' !== $basename && isset( $source_urls['by_basename'][ $basename ] ) ) {
 			return $source_urls['by_basename'][ $basename ];
 		}
@@ -978,7 +1031,7 @@ class Content_Sync_Replacer {
 	 * @return string Dimension key or empty string.
 	 */
 	private static function extract_image_dimensions_from_url( $url ) {
-		$path = wp_parse_url( $url, PHP_URL_PATH );
+		$path = \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
 		if ( ! is_string( $path ) || '' === $path ) {
 			return '';
 		}

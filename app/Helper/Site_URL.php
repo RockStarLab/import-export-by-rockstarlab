@@ -29,7 +29,7 @@ class Site_URL {
 		}
 
 		$scheme = is_ssl() ? 'https' : 'http';
-		$path   = wp_parse_url( $site_url, PHP_URL_PATH );
+		$path   = \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $site_url );
 		$path   = is_string( $path ) ? untrailingslashit( $path ) : '';
 
 		return untrailingslashit( esc_url_raw( $scheme . '://' . $host . $path ) );

@@ -1,9 +1,9 @@
 === Content Sync, Media Sync, Import, Export with AI Agents Support ===
 Contributors: RockstarLab
-Tags: sync, content-sync, ai-agents, abilities, site-migration
+Tags: content-migration, content-sync, ai-agents, abilities, site-migration
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.2.6
+Stable tag: 2.2.7
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -294,6 +294,22 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.2.7 =
+* Fix: Excel (XLSX) and LibreOffice (ODS) exports cut every cell at 32,767 characters, the spreadsheet limit. Elementor pages and other long content lost their design and custom fields when such a file was imported. Longer values now continue in extra "…__part2" columns, which the import joins back.
+* Fix: XML exports of pages built with Elementor stopped with "Export stopped unexpectedly", and keys with characters such as ":" or spaces were changed in XML files. Every key is now written so that it reads back exactly.
+* Fix: re-importing pages from a file without a parent column no longer detaches them from their parent pages.
+* Improved: post and page exports include the parent page and page order by default, so page trees and their order move with the file.
+* Improved: comment exports include the GMT date, the author's website and the comment's custom fields (ACF) by default.
+* Fix: Imported content now points File blocks, gallery images and images with non-Latin file names at the new site's media.
+* Fix: Images in page-builder HTML keep their responsive sizes (srcset) after import.
+* Fix: A child page imported on its own finds its parent from an earlier import.
+* Fix: ACF image, file and gallery fields on comments are exported as files, not as attachment IDs of the old site.
+* Fix: Content Sync could show the wrong image in a post when a new media ID on the receiving site matched another media ID of the sending site. Gallery images now also get the new media IDs.
+* Fix: Images and files with non-Latin names (for example Cyrillic) are imported with their real names and are no longer skipped as invalid links.
+* Fix: Custom fields with several values under one name (for example podcast enclosures) are imported as separate values again; before, they were merged into one value that grew with every export and import.
+* Fix: XML exports keep empty lists inside theme and plugin settings (Blocksy, Stackable) as lists.
+* Fix: imported and synced posts no longer send pingbacks to every site they link to, and WordPress no longer adds extra "enclosure" fields for linked audio and video files after an import (the same as the WordPress importer).
+
 = 2.2.6 =
 * Fix: importing comments from a file exported by this plugin skipped every comment since 2.2.4 (they were taken for WordPress export rows), and site migrations did not bring comments. Comment imports work again; only the post rows of a WordPress export (WXR) file are skipped.
 * Improved: every ability that AI agents see now starts its description with what that ability does. Before, related abilities (schedules, functions, comment, review and term sync, WooCommerce push and pull, Content Updater) shared one text, and the term and review sync texts talked about comments.
@@ -451,15 +467,3 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 * Improved: a broken JSON file gets a message that says what is wrong: the file ends before the JSON is complete, a record is not valid JSON, or there is text after the end of the JSON.
 * Improved: the import wizard's message for a file type it can't read lists the supported types and says that a tab-separated .txt file can be renamed to .csv, the same as for WP-CLI and AI agents.
 * Improved: when several export filters are changed in a row, the item count is requested once after the changes stop, instead of once per change.
-
-= 2.1.42 =
-* Improved: the Jobs log has a Continue button for an import or export that is still running. If a job stopped moving because WP-Cron doesn't run (WP-Cron turned off, or no visitors after you closed the tab), Continue opens its progress page and finishes it from your browser. A continued progress page shows elapsed time, speed and time remaining.
-* Improved: when an upload is refused, the import wizard says why, for example "The file is empty.", that a spreadsheet could not be read, or which file types can be imported, instead of "HTTP error! status: 400". WP-CLI and AI agents get the same messages.
-* Improved: Auto Map matches the category_names and tag_names columns of a post export to Categories and Tags.
-* Improved: when If Match Found is set to Skip, the job log names each skipped row and the existing post it matched.
-* Fixed: WP-CLI imports and AI agents map the categories, tags, taxonomy_* and meta_* columns of a post file, so posts imported back keep their categories and tags instead of landing in Uncategorized.
-* Fixed: the item count on the export filter step could show the number for earlier filters when several filters were changed quickly.
-
-= 2.1.41 =
-* New: JSON imports with nested objects. Values inside an object get their own columns named by their path, such as author.name, author.email and image.url, so they can be mapped like any other column. The original columns stay.
-* Improved: Auto Map for JSON columns: author.name, author.email, author.login, image.url and image.alt go to the author and featured image fields; a column that holds a whole object is not mapped to a single-value field; a "published" column with a date goes to Date.
