@@ -102,7 +102,7 @@ class Settings_Service {
 			if ( 'menu_title' === $key ) {
 				$expected = sanitize_text_field( $expected );
 				if ( '' === $expected ) {
-					$expected = __( 'Import Export by RockStarLab', 'import-export-by-rockstarlab' ); }
+					$expected = \RockStarLab\ImportExport\Helper\Admin_Menu_Settings::default_menu_title(); }
 			}
 			if ( is_array( $expected ) ) {
 				sort( $expected );

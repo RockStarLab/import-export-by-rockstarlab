@@ -49,7 +49,21 @@ class ACF_Fields {
 				continue;
 			}
 
+			// A clone shown as a group keeps its cloned fields under sub_fields, already named
+			// as they are stored (with the clone's prefix when "Prefix field names" is on):
+			// list those fields. Seamless clones arrive expanded.
+			$expanded = [];
 			foreach ( $group_fields as $field ) {
+				if ( 'clone' === ( $field['type'] ?? '' ) && ! empty( $field['sub_fields'] ) && is_array( $field['sub_fields'] ) ) {
+					foreach ( $field['sub_fields'] as $sub_field ) {
+						$expanded[] = $sub_field;
+					}
+					continue;
+				}
+				$expanded[] = $field;
+			}
+
+			foreach ( $expanded as $field ) {
 				if ( empty( $field['name'] ) || empty( $field['type'] ) || in_array( $field['type'], [ 'accordion', 'tab', 'message', 'clone' ], true ) ) {
 					continue;
 				}

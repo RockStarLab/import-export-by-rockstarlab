@@ -427,6 +427,46 @@ class Import_Service {
 		return $this->prepare_rows( $request, $job_id, $data );
 	}
 
+	/**
+	 * The column list wizard positions (source_index) refer to.
+	 *
+	 * For XML that is the upload preview's list (columns of many records, see
+	 * File_Service::xml_columns()); other formats use the first row.
+	 *
+	 * @param array $request Import request.
+	 * @param array $row     First row.
+	 * @return string[]|\WP_Error
+	 */
+	private function mapping_columns( array $request, array $row ) {
+		if ( 'xml' !== ( $request['format'] ?? '' ) || empty( $request['file_path'] ) ) {
+			return array_keys( $row );
+		}
+		$needs = false;
+		foreach ( (array) ( $request['mapping'] ?? [] ) as $entry ) {
+			if ( is_array( $entry ) && isset( $entry['source_index'] ) ) {
+				$needs = true;
+				break;
+			}
+		}
+		if ( ! $needs ) {
+			return array_keys( $row );
+		}
+		try {
+			$columns = File_Service::xml_columns(
+				Format_Factory::create( 'xml' ),
+				$request['file_path'],
+				[
+					'delimiter'  => $request['delimiter'] ?? '',
+					'encoding'   => $request['encoding'] ?? 'auto',
+					'has_header' => $request['options']['has_header'] ?? true,
+				]
+			);
+		} catch ( \Throwable $error ) {
+			return new \WP_Error( 'xml_parse_error', __( 'Invalid XML file', 'import-export-by-rockstarlab' ) );
+		}
+		return is_wp_error( $columns ) ? $columns : $columns[0];
+	}
+
 	/** Prepare supported streamed rows without retaining a complete raw dataset. */
 	private function prepare_streamed_rows( array $request, $job_id, $sample = false ) {
 		$result = [
@@ -460,7 +500,9 @@ class Import_Service {
 					return File_Store::error( 'invalid_rows' ); }
 				if ( $first ) {
 					// Column indices refer to the first row of the file, not each batch.
-					$keys = array_keys( $row );
+					$keys = $this->mapping_columns( $request, $row );
+					if ( is_wp_error( $keys ) ) {
+						return $keys; }
 					foreach ( $request['mapping'] as &$entry ) {
 						if ( isset( $entry['source_index'] ) ) {
 							$index = filter_var( $entry['source_index'], FILTER_VALIDATE_INT );
@@ -596,7 +638,9 @@ class Import_Service {
 					$row = \RockStarLab\ImportExport\Model\Format\JSON_Format::with_nested_columns( $row );
 				}
 				if ( null === $state['cursor'] && ! $batch ) {
-					$keys = array_keys( $row );
+					$keys = $this->mapping_columns( $request, $row );
+					if ( is_wp_error( $keys ) ) {
+						return $keys; }
 					foreach ( $request['mapping'] as &$entry ) {
 						if ( isset( $entry['source_index'] ) ) {
 							$index = filter_var( $entry['source_index'], FILTER_VALIDATE_INT );
@@ -696,7 +740,10 @@ class Import_Service {
 		foreach ( $mapping as &$entry ) {
 			if ( isset( $entry['source_index'] ) && isset( $data[0] ) ) {
 				$index = filter_var( $entry['source_index'], FILTER_VALIDATE_INT );
-				$keys  = array_keys( $data[0] );
+				$keys  = $this->mapping_columns( $request, $data[0] );
+				if ( is_wp_error( $keys ) ) {
+					return $keys;
+				}
 				if ( false === $index || ! isset( $keys[ $index ] ) ) {
 					return new \WP_Error( 'rsl_ie_invalid_mapping', __( 'The source column index is outside the file columns.', 'import-export-by-rockstarlab' ), [ 'status' => 400 ] );
 				}
@@ -723,15 +770,45 @@ class Import_Service {
 			return $permission;
 		}
 			// Preserve source IDs for cross-site relationship fixups (e.g. post_parent).
+			// The columns are the ones mapped to ID / post_parent / post_name, or carry those
+			// names (WordPress exports call them wp:post_id, wp:post_parent and wp:post_name).
+			$source_columns = [
+				'ID'          => [ 'ID', 'wp:post_id' ],
+				'post_parent' => [ 'post_parent', 'wp:post_parent' ],
+				'post_name'   => [ 'post_name', 'wp:post_name' ],
+			];
+			foreach ( (array) $mapping as $entry ) {
+				$target = is_array( $entry ) ? (string) ( $entry['target_field'] ?? '' ) : '';
+				$source = is_array( $entry ) ? (string) ( $entry['source_field'] ?? '' ) : '';
+				if ( '' !== $source && isset( $source_columns[ $target ] ) && ! in_array( $source, $source_columns[ $target ], true ) ) {
+					array_unshift( $source_columns[ $target ], $source );
+				}
+			}
+			$source_value = static function ( array $row, array $columns ) {
+				foreach ( $columns as $column ) {
+					if ( isset( $row[ $column ] ) && is_scalar( $row[ $column ] ) && '' !== trim( (string) $row[ $column ] ) ) {
+						return trim( (string) $row[ $column ] );
+					}
+				}
+				return null;
+			};
 		foreach ( $prepared_data as $row_index => &$prepared_row ) {
-			if ( isset( $data[ $row_index ]['ID'] ) ) {
-				$prepared_row['_rsl_ie_source_id'] = absint( $data[ $row_index ]['ID'] );
+			$raw = isset( $data[ $row_index ] ) && is_array( $data[ $row_index ] ) ? $data[ $row_index ] : [];
+			$id  = $source_value( $raw, $source_columns['ID'] );
+			if ( null !== $id && ctype_digit( $id ) ) {
+				$prepared_row['_rsl_ie_source_id'] = absint( $id );
 			}
-			if ( isset( $data[ $row_index ]['post_parent'] ) ) {
-				$prepared_row['_rsl_ie_source_parent_id'] = absint( $data[ $row_index ]['post_parent'] );
+			$parent = $source_value( $raw, $source_columns['post_parent'] );
+			if ( null !== $parent && ctype_digit( $parent ) ) {
+				$prepared_row['_rsl_ie_source_parent_id'] = absint( $parent );
 			}
-			if ( isset( $data[ $row_index ]['post_name'] ) && '' !== (string) $data[ $row_index ]['post_name'] ) {
-				$prepared_row['_rsl_ie_source_post_name'] = (string) $data[ $row_index ]['post_name'];
+			$name = $source_value( $raw, $source_columns['post_name'] );
+			if ( null !== $name ) {
+				$prepared_row['_rsl_ie_source_post_name'] = $name;
+			}
+			// A WordPress export mixes posts and media items: the importers skip the other kind.
+			if ( isset( $raw['wp:post_type'] ) && is_scalar( $raw['wp:post_type'] ) && '' !== trim( (string) $raw['wp:post_type'] ) ) {
+				$prepared_row['_rsl_ie_source_post_type'] = sanitize_key( (string) $raw['wp:post_type'] );
 			}
 		}
 			unset( $prepared_row );

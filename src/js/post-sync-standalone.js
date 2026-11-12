@@ -2157,7 +2157,9 @@ const getActionNonce = ( action ) =>
 			// only its title. A push from the editor changes nothing here: no reload, the
 			// dialog closes by itself. Lists and pulls reload with the message still visible.
 			if ( type === 'success' ) {
-				const isEditor = /\/post(-new)?\.php/.test( window.location.pathname );
+				const isEditor = /\/post(-new)?\.php/.test(
+					window.location.pathname
+				);
 				if ( 'push' === direction && isEditor ) {
 					setTimeout( () => this.closeSyncModal(), 3000 );
 				} else {

@@ -1,5 +1,15 @@
 == Import Export by RockStarLab: full changelog ==
 
+= 2.2.3 =
+* Changed: the plugin is now called "Content & Media Sync, Import, Export with AI Agents Support" (formerly Import Export by RockStarLab). Same plugin, settings and updates; Content Sync is now first in the admin menu.
+* Fix: Migration through the Abilities API / MCP (migration-prepare) failed with "invalid output" since 2.2.2. The admin wizard was not affected.
+* Fix: Importing a WordPress export (WXR) file now brings featured images (from the image items in the same file) and custom fields ("Meta: …" columns that Auto Map maps), including Elementor designs. WordPress bookkeeping fields are left out.
+* Fix: The XML import wizard listed only the columns of the first record. A WordPress export starts with its images, so categories, tags, featured image and custom fields were missing from Field Mapping. Columns now come from the first 50 records.
+* Fix: Pages from a WordPress export (or any file with wp:post_parent / post_parent IDs) were attached to unrelated pages on the new site. They are now attached to the imported copy of their parent, even when the child comes first in the file.
+* Fix: Posts using synced patterns or a Query Loop filtered by category showed "This block has been deleted or is unavailable" (or the wrong category) after a file import or migration to another site. The file now carries the patterns and terms; the import creates or matches them and re-points the blocks. Images inside the patterns are downloaded too.
+* Fix: ACF Clone fields shown as a group (with or without prefixed names), also inside repeaters and flexible content layouts, are now exported and imported. Before, their values were lost or written over another field.
+* Fix: Media import of a WordPress export: posts and pages in the file are skipped instead of reported as failed rows, Auto Map maps the file address, and each file is attached to the post imported from the same source post (not to an unrelated post with the same ID).
+
 = 2.2.2 =
 * Security: serialized PHP objects in import data are no longer turned into objects (PHP object injection through post meta, ACF, SEO and Elementor values).
 * Security: a media import row with a local file path can only use files from allowed import folders. Before, any readable server file could be copied into the Media Library.

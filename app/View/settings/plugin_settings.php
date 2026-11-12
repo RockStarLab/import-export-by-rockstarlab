@@ -47,7 +47,7 @@ $rsl_ie_notice_verified     = wp_verify_nonce( $rsl_ie_notice_nonce, 'rsl_ie_plu
 							<th scope="row"><label for="rsl-ie-menu-title"><?php esc_html_e( 'Plugin menu title', 'import-export-by-rockstarlab' ); ?></label></th>
 							<td>
 								<input id="rsl-ie-menu-title" name="menu_title" type="text" class="regular-text" maxlength="100" value="<?php echo esc_attr( $rsl_ie_admin_menu_settings['menu_title'] ); ?>">
-								<p class="description"><?php esc_html_e( 'Replaces “Import Export by RockStarLab” in the WordPress admin menu.', 'import-export-by-rockstarlab' ); ?></p>
+								<p class="description"><?php esc_html_e( 'Replaces “Content Sync, Import, Export” in the WordPress admin menu.', 'import-export-by-rockstarlab' ); ?></p>
 							</td>
 						</tr>
 						<tr>

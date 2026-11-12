@@ -5954,6 +5954,8 @@ const ImportModule = {
 				],
 				// "wp:..", "content:encoded" and "dc:creator" come from WordPress export (WXR) files.
 				post_name: [ 'handle', 'permalink', 'wp:post_name' ],
+				// Media import of a WordPress export: the file address of each media item.
+				file_url: [ 'wp:attachment_url' ],
 				// "html" and "published_at" are the column names of Ghost exports.
 				post_content: [
 					'body (html)',

@@ -28,6 +28,13 @@ class XML_Format implements File_Format_Interface {
 	const DEFAULT_ITEM = 'item';
 
 	/**
+	 * Attachment URLs of the WordPress export (WXR) being read, by source post ID.
+	 *
+	 * @var array<string,string>
+	 */
+	private $wxr_attachments = array();
+
+	/**
 	 * Parse entire XML file
 	 *
 	 * @param string $file_path Absolute path to XML file
@@ -323,6 +330,12 @@ class XML_Format implements File_Format_Interface {
 		if ( ! isset( $cache[ $key ] ) ) {
 			$cache[ $key ] = $this->detect_record( $file_path );
 		}
+		// WordPress exports keep each image as its own <item>; posts point at it by ID.
+		static $attachments = array();
+		if ( ! isset( $attachments[ $key ] ) ) {
+			$attachments[ $key ] = false !== strpos( $head, 'wordpress.org/export/' ) ? $this->wxr_attachment_map( $file_path ) : array();
+		}
+		$this->wxr_attachments = $attachments[ $key ];
 		list( $root, $tag ) = $cache[ $key ];
 		if ( ! empty( $options['item_tag'] ) ) {
 			$tag = (string) $options['item_tag'];
@@ -331,6 +344,95 @@ class XML_Format implements File_Format_Interface {
 		// An unreadable start (the parser reports the error later) keeps the classic reading.
 		$options['xml_flat'] = '' !== $root && ! ( self::DEFAULT_ROOT === $root && self::DEFAULT_ITEM === $tag );
 		return $options;
+	}
+
+	/**
+	 * Read the attachment items of a WordPress export as source post ID => file URL.
+	 *
+	 * @param string $file_path File path.
+	 * @return array<string,string>
+	 */
+	private function wxr_attachment_map( $file_path ) {
+		$map      = array();
+		$reader   = new \XMLReader();
+		$previous = libxml_use_internal_errors( true );
+		try {
+			if ( ! $reader->open( $file_path, null, LIBXML_NONET | LIBXML_COMPACT | LIBXML_PARSEHUGE ) ) {
+				return $map;
+			}
+			$depth = -1;
+			$item  = array();
+			while ( @$reader->read() ) {
+				if ( \XMLReader::DOC_TYPE === $reader->nodeType ) {
+					return array();
+				}
+				if ( \XMLReader::ELEMENT === $reader->nodeType && 'item' === $reader->name && ! $reader->isEmptyElement ) {
+					$depth = $reader->depth;
+					$item  = array();
+					continue;
+				}
+				if ( \XMLReader::END_ELEMENT === $reader->nodeType && 'item' === $reader->name && $reader->depth === $depth ) {
+					if ( 'attachment' === ( $item['wp:post_type'] ?? '' ) && '' !== ( $item['wp:post_id'] ?? '' ) && '' !== ( $item['wp:attachment_url'] ?? '' ) ) {
+						$map[ $item['wp:post_id'] ] = $item['wp:attachment_url'];
+					}
+					$depth = -1;
+					continue;
+				}
+				// Only the item's own fields: comments and postmeta nest deeper.
+				if ( $depth >= 0 && \XMLReader::ELEMENT === $reader->nodeType && $reader->depth === $depth + 1 && in_array( $reader->name, array( 'wp:post_id', 'wp:post_type', 'wp:attachment_url' ), true ) ) {
+					$item[ $reader->name ] = trim( (string) $reader->readString() );
+				}
+			}
+		} finally {
+			$reader->close();
+			libxml_clear_errors();
+			libxml_use_internal_errors( $previous );
+		}
+		return $map;
+	}
+
+	/**
+	 * Turn WXR <wp:postmeta> entries into columns.
+	 *
+	 * The featured image becomes a featured_image_url column (the image's own item gives
+	 * its URL), and custom fields become "Meta: key" columns that map to custom fields.
+	 * WordPress bookkeeping and IDs that only mean something on the source site are left out.
+	 *
+	 * @param \SimpleXMLElement[] $entries <wp:postmeta> elements.
+	 * @return array<string,string>
+	 */
+	private function wxr_postmeta_columns( array $entries ) {
+		$row  = array();
+		$skip = array( '_edit_lock', '_edit_last', '_wp_old_slug', '_wp_old_date', '_pingme', '_encloseme', '_wp_attached_file', '_wp_attachment_metadata', '_wp_desired_post_slug' );
+		foreach ( $entries as $entry ) {
+			$fields = array();
+			foreach ( $this->element_children( $entry ) as $child ) {
+				$fields[ $child[0] ] = (string) $child[1];
+			}
+			$key   = trim( $fields['wp:meta_key'] ?? '' );
+			$value = $fields['wp:meta_value'] ?? '';
+			if ( '' === $key ) {
+				continue;
+			}
+			if ( '_thumbnail_id' === $key ) {
+				$id = trim( $value );
+				if ( isset( $this->wxr_attachments[ $id ] ) ) {
+					$row['featured_image_url'] = $this->wxr_attachments[ $id ];
+				}
+				continue;
+			}
+			if ( in_array( $key, $skip, true ) || 0 === strpos( $key, '_wp_trash_' ) || preg_match( '/\s/', $key ) ) {
+				continue;
+			}
+			// Elementor designs (_elementor_data and its settings), not its generated caches.
+			$elementor = 0 === strpos( $key, '_elementor_' ) && class_exists( '\\RockStarLab\\ImportExport\\Helper\\Elementor_Fields' ) && ! \RockStarLab\ImportExport\Helper\Elementor_Fields::is_generated_cache_key( $key );
+			// Other "_" keys are internal, except a few portable ones (page template, SEO).
+			if ( '_' === $key[0] && ! $elementor && '_wp_page_template' !== $key && 0 !== strpos( $key, '_yoast_wpseo_' ) ) {
+				continue;
+			}
+			$row[ 'Meta: ' . $key ] = $value;
+		}
+		return $row;
 	}
 
 	/**
@@ -456,7 +558,10 @@ class XML_Format implements File_Format_Interface {
 			$groups[ $child[0] ][] = $child[1];
 		}
 		foreach ( $groups as $name => $children ) {
-			$key    = $prefix . $name;
+			$key = $prefix . $name;
+			if ( 'wp:postmeta' === $name && '' === $prefix ) {
+				$row += $this->wxr_postmeta_columns( $children );
+			}
 			$leaves = true;
 			foreach ( $children as $child ) {
 				if ( $this->element_children( $child ) ) {
@@ -762,10 +867,24 @@ class XML_Format implements File_Format_Interface {
 	 */
 	public function get_headers( $file_path, $options = [] ) {
 		// Items differ (one post has tags, another comments): collect the columns of the first 50.
-		$chunk = $this->parse_chunk( $file_path, 0, 50, $options );
-
-		if ( is_wp_error( $chunk ) ) {
-			return $chunk;
+		// WordPress exports can open with many image items, which are not imported: they do not count.
+		if ( ! file_exists( $file_path ) ) {
+			return new \WP_Error( 'file_not_found', __( 'XML file not found', 'import-export-by-rockstarlab' ) );
+		}
+		$chunk = array();
+		$seen  = 0;
+		try {
+			foreach ( $this->rows( $file_path, $options ) as $row ) {
+				$chunk[] = $row;
+				if ( ! is_array( $row ) || 'attachment' !== ( $row['wp:post_type'] ?? '' ) ) {
+					++$seen;
+				}
+				if ( $seen >= 50 || count( $chunk ) >= 2000 ) {
+					break;
+				}
+			}
+		} catch ( \Throwable $error ) {
+			return new \WP_Error( 'xml_parse_error', __( 'Invalid XML file', 'import-export-by-rockstarlab' ) );
 		}
 
 		if ( empty( $chunk ) || ! is_array( $chunk[0] ) ) {

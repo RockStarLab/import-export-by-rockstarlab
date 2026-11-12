@@ -3864,6 +3864,30 @@ class Post_Exporter extends Abstract_Exporter {
 				}
 				return $out;
 
+			case 'clone':
+				// A clone shown as a group inside a repeater/layout row stores each cloned field
+				// next to the clone's own (empty) row: {row}_{name}, or {row}_{clone}_{name} with
+				// "Prefix field names". Export it like a group, keyed by the cloned field names.
+				$clone_cfg = $field_cfg;
+				if ( empty( $clone_cfg['sub_fields'] ) && ! empty( $clone_cfg['key'] ) && function_exists( 'acf_get_field' ) ) {
+					$loaded = acf_get_field( (string) $clone_cfg['key'] );
+					if ( is_array( $loaded ) ) {
+						$clone_cfg = $loaded;
+					}
+				}
+				$clone_name  = (string) ( $clone_cfg['name'] ?? '' );
+				$parent_base = ( '' !== $clone_name && substr( $base_meta_key, -strlen( '_' . $clone_name ) ) === '_' . $clone_name ) ? substr( $base_meta_key, 0, -strlen( '_' . $clone_name ) ) : $base_meta_key;
+				$out         = [];
+				foreach ( (array) ( $clone_cfg['sub_fields'] ?? [] ) as $sub ) {
+					$stored = is_array( $sub ) ? (string) ( $sub['name'] ?? '' ) : '';
+					if ( '' === $stored ) {
+						continue;
+					}
+					$short         = (string) ( $sub['_name'] ?? $stored );
+					$out[ $short ] = $this->acf_export_value_from_meta( $post_id, $sub, $parent_base . '_' . $stored );
+				}
+				return $out;
+
 			case 'flexible_content':
 				// Flexible content stores an ordered list of layout names in the base key,
 				// and each row's sub-fields as additional meta keys:
@@ -4297,6 +4321,20 @@ class Post_Exporter extends Abstract_Exporter {
 					},
 					$values
 				);
+			}
+		}
+
+		// Synced patterns and navigation menus are referenced by ID ("ref") and Query Loop /
+		// Latest Posts blocks by term ID: carry them so the import can re-point the blocks.
+		$content = (string) get_post_field( 'post_content', $post_id, 'raw' );
+		if ( '' !== $content && class_exists( '\\RockStarLab\\ImportExport\\Service\\Sync_Synced_Patterns' ) ) {
+			$patterns = \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::collect( [ [ 'post_content' => $content ] ] );
+			if ( $patterns ) {
+				$meta[ \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::FILE_PATTERNS_KEY ] = $patterns;
+			}
+			$terms = \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::collect_terms( [ [ 'post_content' => $content ] ] );
+			if ( $terms ) {
+				$meta[ \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::FILE_TERMS_KEY ] = $terms;
 			}
 		}
 
