@@ -602,7 +602,7 @@ class Seo_Fields {
 			return $original_attachment_id;
 		}
 
-		$filename = wp_basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+		$filename = rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ) );
 		if ( '' !== $filename ) {
 			$existing_by_name = self::find_attachment_by_filename( $filename );
 			if ( $existing_by_name > 0 ) {
@@ -796,7 +796,7 @@ class Seo_Fields {
 			return false;
 		}
 
-		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		$path = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
 		$ext  = strtolower( (string) pathinfo( $path, PATHINFO_EXTENSION ) );
 
 		return in_array( $ext, [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'pdf', 'mp4', 'webm' ], true );

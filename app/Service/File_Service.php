@@ -164,7 +164,7 @@ class File_Service {
 			$name = rawurldecode( $match[1] );
 		}
 		if ( '' === $name ) {
-			$name = rawurldecode( wp_basename( (string) wp_parse_url( $url, PHP_URL_PATH ) ) );
+			$name = rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ) );
 		}
 		$name      = sanitize_file_name( '' === $name ? 'import' : $name );
 		$extension = strtolower( pathinfo( $name, PATHINFO_EXTENSION ) );

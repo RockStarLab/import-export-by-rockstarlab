@@ -411,7 +411,7 @@ class Elementor_Fields {
 	 */
 	private static function import_media_from_url( $url, $post_id ) {
 		$url = esc_url_raw( (string) $url );
-		if ( '' === $url || ! filter_var( $url, FILTER_VALIDATE_URL ) || ! self::looks_like_media_url( $url ) ) {
+		if ( '' === $url || ! \RockStarLab\ImportExport\Helper\Content_Sync_Media::is_valid_url( $url ) || ! self::looks_like_media_url( $url ) ) {
 			return 0;
 		}
 		$url = Content_Sync_Media::canonicalize_import_media_url( $url );
@@ -433,7 +433,7 @@ class Elementor_Fields {
 			return $original_attachment_id;
 		}
 
-		$filename = wp_basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+		$filename = rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ) );
 		if ( '' !== $filename ) {
 			$existing_by_name = self::find_attachment_by_filename( $filename );
 			if ( $existing_by_name > 0 ) {
@@ -634,26 +634,26 @@ class Elementor_Fields {
 	 * @return bool
 	 */
 	private static function looks_like_media_url( $url ) {
-		if ( '' === $url || ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+		if ( '' === $url || ! \RockStarLab\ImportExport\Helper\Content_Sync_Media::is_valid_url( $url ) ) {
 			return false;
 		}
 		if ( ! Content_Sync_Media::is_wordpress_uploads_url( $url ) ) {
 			return false;
 		}
 
-		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		$path = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
 		$ext  = strtolower( (string) pathinfo( $path, PATHINFO_EXTENSION ) );
 
 		return in_array( $ext, [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'pdf', 'mp4', 'webm' ], true );
 	}
 
 	private static function is_local_wp_asset_url( $url ) {
-		$path = (string) wp_parse_url( (string) $url, PHP_URL_PATH );
+		$path = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( (string) $url );
 		return false !== strpos( $path, '/wp-content/plugins/' ) || false !== strpos( $path, '/wp-content/themes/' );
 	}
 
 	private static function replace_local_url_host( $url ) {
-		$path = (string) wp_parse_url( (string) $url, PHP_URL_PATH );
+		$path = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( (string) $url );
 		if ( '' === $path ) {
 			return $url;
 		}

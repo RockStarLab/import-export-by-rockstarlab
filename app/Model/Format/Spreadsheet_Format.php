@@ -204,6 +204,13 @@ class Spreadsheet_Format implements File_Format_Interface {
 			$headers = $this->detect_headers( $data );
 		}
 
+		// A cell holds at most 32,767 characters (Excel, PhpSpreadsheet): longer values, such as the
+		// custom fields of an Elementor page, were cut and their JSON no longer read on import.
+		// They go on in "<column>__part2", "__part3"… columns that the import joins back.
+		if ( ! empty( $headers ) ) {
+			list( $headers, $data ) = $this->split_long_values( $headers, $data );
+		}
+
 		$spreadsheet          = new Spreadsheet();
 		$sheet                = $spreadsheet->getActiveSheet();
 		$row_index            = 1;
@@ -243,6 +250,81 @@ class Spreadsheet_Format implements File_Format_Interface {
 		$spreadsheet->disconnectWorksheets();
 
 		return true;
+	}
+
+	/** Characters per cell when a long value is split over continuation columns. */
+	const CELL_PART_LENGTH = 32000;
+
+	/**
+	 * Split values longer than a cell over "<column>__partN" columns placed after their column.
+	 *
+	 * @param array    $headers Column names.
+	 * @param iterable $data    Rows keyed by column name.
+	 * @return array [ headers, rows ]
+	 */
+	public function split_long_values( array $headers, $data ) {
+		$rows  = [];
+		$parts = [];
+		foreach ( $data as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			foreach ( $row as $key => $value ) {
+				// Measure the text the cell gets (arrays are written as JSON).
+				$value         = is_string( $value ) ? $value : $this->normalize_cell_value( $value );
+				$row[ $key ]   = $value;
+				if ( is_string( $value ) && mb_strlen( $value, 'UTF-8' ) > self::CELL_PART_LENGTH ) {
+					$parts[ $key ] = max( $parts[ $key ] ?? 1, (int) ceil( mb_strlen( $value, 'UTF-8' ) / self::CELL_PART_LENGTH ) );
+				}
+			}
+			$rows[] = $row;
+		}
+		if ( ! $parts ) {
+			return [ $headers, $rows ];
+		}
+		$expanded = [];
+		foreach ( $headers as $header ) {
+			$expanded[] = $header;
+			for ( $n = 2; $n <= ( $parts[ $header ] ?? 1 ); $n++ ) {
+				$expanded[] = $header . '__part' . $n;
+			}
+		}
+		foreach ( $rows as &$row ) {
+			foreach ( $parts as $key => $count ) {
+				$value = isset( $row[ $key ] ) && is_string( $row[ $key ] ) ? $row[ $key ] : null;
+				if ( null === $value ) {
+					continue;
+				}
+				for ( $n = 1; $n <= $count; $n++ ) {
+					$piece = (string) mb_substr( $value, ( $n - 1 ) * self::CELL_PART_LENGTH, self::CELL_PART_LENGTH, 'UTF-8' );
+					$row[ 1 === $n ? $key : $key . '__part' . $n ] = $piece;
+				}
+			}
+		}
+		unset( $row );
+		return [ $expanded, $rows ];
+	}
+
+	/**
+	 * Join "<column>__partN" values back into their column (see split_long_values()).
+	 *
+	 * @param array $row Row keyed by column name.
+	 * @return array
+	 */
+	public static function join_long_values( array $row ) {
+		foreach ( $row as $key => $value ) {
+			if ( ! is_string( $key ) || ! preg_match( '/^(.+)__part(\d+)$/D', $key, $m ) || ! array_key_exists( $m[1], $row ) ) {
+				continue;
+			}
+			$parts = [];
+			for ( $n = 2; array_key_exists( $m[1] . '__part' . $n, $row ); $n++ ) {
+				$parts[] = (string) $row[ $m[1] . '__part' . $n ];
+			}
+			if ( '2' === $m[2] && is_string( $row[ $m[1] ] ) ) {
+				$row[ $m[1] ] .= implode( '', $parts );
+			}
+		}
+		return $row;
 	}
 
 	/**

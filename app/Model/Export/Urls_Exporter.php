@@ -79,8 +79,8 @@ class Urls_Exporter extends Abstract_Exporter {
 	 * @return int Page ID or 0.
 	 */
 	private static function page_with_url( $url ) {
-		$home = (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH );
-		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		$home = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( home_url( '/' ) );
+		$path = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
 		if ( '' !== $home && 0 === strpos( $path, $home ) ) {
 			$path = substr( $path, strlen( $home ) );
 		}

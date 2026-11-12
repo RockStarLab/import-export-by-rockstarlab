@@ -1232,7 +1232,7 @@ class AI_Content_Extractor {
 		}
 
 		// Get filename
-		$file_name = basename( wp_parse_url( $image_url, PHP_URL_PATH ) );
+		$file_name = rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $image_url ) ) );
 
 		// Check for duplicate by file hash
 		$file_hash     = md5_file( $tmp );

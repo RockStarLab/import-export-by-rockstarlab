@@ -157,7 +157,7 @@ class Media_Transport_Service {
 			if ( ! $size || $size > $limit ) {
 				return $this->error( 'size_limit', 413 );
 			}
-			$transfer = $call( [ 'action' => 'begin', 'request_id' => 'external-media-' . wp_generate_uuid4(), 'file_name' => sanitize_file_name( $image['file_name'] ?? wp_basename( wp_parse_url( $image['url'], PHP_URL_PATH ) ) ), 'size' => $size, 'sha256' => hash_file( 'sha256', $temp ) ] );
+			$transfer = $call( [ 'action' => 'begin', 'request_id' => 'external-media-' . wp_generate_uuid4(), 'file_name' => sanitize_file_name( $image['file_name'] ?? rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $image['url'] ) ) ) ), 'size' => $size, 'sha256' => hash_file( 'sha256', $temp ) ] );
 			if ( is_wp_error( $transfer ) ) {
 				return $transfer;
 			}

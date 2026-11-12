@@ -199,6 +199,7 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response Response object.
 	 */
 	public function receive_content( $request ) {
+		\RockStarLab\ImportExport\Model\Import\Abstract_Importer::suppress_publish_side_effects();
 		$access = \RockStarLab\ImportExport\Abilities\Sync_Peer_Policy::check( 'receive_content', $request->get_params() );
 		if ( is_wp_error( $access ) ) {
 			return $access; }
@@ -1832,7 +1833,7 @@ class Content_Sync_API_Controller {
 	}
 
 	private function is_term_acf_image_url( $url ) {
-		$path = (string) wp_parse_url( html_entity_decode( (string) $url, ENT_QUOTES, get_bloginfo( 'charset' ) ), PHP_URL_PATH );
+		$path = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( html_entity_decode( (string) $url, ENT_QUOTES, get_bloginfo( 'charset' ) ) );
 		return '' !== $path && (bool) preg_match( '~\.(?:jpe?g|png|gif|webp|avif|svg)$~i', $path );
 	}
 
@@ -2448,6 +2449,7 @@ class Content_Sync_API_Controller {
 	 * @return \WP_REST_Response
 	 */
 	public function receive_comments( $request ) {
+		\RockStarLab\ImportExport\Model\Import\Abstract_Importer::suppress_publish_side_effects();
 		$access = \RockStarLab\ImportExport\Abilities\Sync_Peer_Policy::check( 'receive_comments', $request->get_params() );
 		if ( is_wp_error( $access ) ) {
 			return $access; }

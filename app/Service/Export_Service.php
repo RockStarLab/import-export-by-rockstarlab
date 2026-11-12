@@ -164,6 +164,8 @@ class Export_Service {
 			);
 			return is_wp_error( $result ) ? $this->fail( $job->id, $result ) : $result;
 		} catch ( \Throwable $error ) {
+			// Keep the cause in the server log; the job shows only the safe message.
+			error_log( sprintf( 'Content Sync, Media Sync, Import, Export: export job %d stopped: %s in %s:%d', (int) $job->id, $error->getMessage(), wp_basename( $error->getFile() ), $error->getLine() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Diagnostic for an unexpected failure.
 			return $this->fail( $job->id, new \WP_Error( 'rsl_ie_export_exception', __( 'Export stopped unexpectedly. Review the job before retrying.', 'import-export-by-rockstarlab' ) ) );
 		} finally {
 			Job_Lock::release( $lock );

@@ -14,6 +14,11 @@ use RockStarLab\ImportExport\Helper\ACF_Fields;
 defined( 'ABSPATH' ) || exit;
 
 class Post_Exporter extends Abstract_Exporter {
+	/**
+	 * Meta key wrapper for several rows of one meta key in exports.
+	 */
+	const META_ROWS_KEY = '_rsl_ie_meta_rows';
+
 	/** Rebuild taxonomy fields before batch serialization. */
 	public function normalize_taxonomy_media_for_export( array $item, array $fields ): array {
 		if ( empty( $item['ID'] ) ) {
@@ -272,6 +277,8 @@ class Post_Exporter extends Abstract_Exporter {
 			'author_roles',
 			'post_date',
 			'post_name',
+			'post_parent',
+			'menu_order',
 			'is_sticky',
 			'post_meta',
 			'taxonomies',
@@ -3306,7 +3313,7 @@ class Post_Exporter extends Abstract_Exporter {
 						}
 					}
 					$slugs[] = $item['post_name'];
-				} elseif ( is_string( $item ) && filter_var( $item, FILTER_VALIDATE_URL ) ) {
+				} elseif ( is_string( $item ) && \RockStarLab\ImportExport\Helper\Content_Sync_Media::is_valid_url( $item ) ) {
 					$slugs[] = $item;
 				} elseif ( is_numeric( $item ) && '' !== $field_type ) {
 					// Only resolve IDs to slugs when the type is confirmed by ACF.
@@ -3456,7 +3463,7 @@ class Post_Exporter extends Abstract_Exporter {
 						$slugs[] = $item->post_name;
 					} elseif ( is_array( $item ) && isset( $item['post_name'] ) ) {
 						$slugs[] = $item['post_name'];
-					} elseif ( is_string( $item ) && filter_var( $item, FILTER_VALIDATE_URL ) ) {
+					} elseif ( is_string( $item ) && \RockStarLab\ImportExport\Helper\Content_Sync_Media::is_valid_url( $item ) ) {
 						$slugs[] = $item;
 					} elseif ( is_numeric( $item ) ) {
 						$p = get_post( (int) $item );
@@ -3470,7 +3477,7 @@ class Post_Exporter extends Abstract_Exporter {
 						array_map(
 							static function ( $ref ) {
 								$ref = (string) $ref;
-								return filter_var( $ref, FILTER_VALIDATE_URL ) ? $ref : sanitize_title( $ref );
+								return \RockStarLab\ImportExport\Helper\Content_Sync_Media::is_valid_url( $ref ) ? $ref : sanitize_title( $ref );
 							},
 							$slugs
 						)
@@ -3610,7 +3617,7 @@ class Post_Exporter extends Abstract_Exporter {
 	private function acf_export_media_url( $value, int $post_id ): string {
 		unset( $post_id );
 
-		if ( is_array( $value ) && isset( $value['url'] ) && filter_var( $value['url'], FILTER_VALIDATE_URL ) ) {
+		if ( is_array( $value ) && isset( $value['url'] ) && \RockStarLab\ImportExport\Helper\Content_Sync_Media::is_valid_url( $value['url'] ) ) {
 			return (string) $value['url'];
 		}
 
@@ -3619,7 +3626,7 @@ class Post_Exporter extends Abstract_Exporter {
 			return $url ? (string) $url : '';
 		}
 
-		if ( is_string( $value ) && '' !== $value && filter_var( $value, FILTER_VALIDATE_URL ) ) {
+		if ( is_string( $value ) && '' !== $value && \RockStarLab\ImportExport\Helper\Content_Sync_Media::is_valid_url( $value ) ) {
 			return $value;
 		}
 
@@ -4045,7 +4052,7 @@ class Post_Exporter extends Abstract_Exporter {
 					foreach ( $val as $v ) {
 						if ( is_numeric( $v ) ) {
 							$ids[] = (int) $v;
-						} elseif ( is_string( $v ) && filter_var( $v, FILTER_VALIDATE_URL ) ) {
+						} elseif ( is_string( $v ) && \RockStarLab\ImportExport\Helper\Content_Sync_Media::is_valid_url( $v ) ) {
 							$maybe_id = url_to_postid( $v );
 							if ( $maybe_id ) {
 								$ids[] = (int) $maybe_id;
@@ -4054,7 +4061,7 @@ class Post_Exporter extends Abstract_Exporter {
 					}
 				} elseif ( is_numeric( $val ) ) {
 					$ids[] = (int) $val;
-				} elseif ( is_string( $val ) && filter_var( $val, FILTER_VALIDATE_URL ) ) {
+				} elseif ( is_string( $val ) && \RockStarLab\ImportExport\Helper\Content_Sync_Media::is_valid_url( $val ) ) {
 					$maybe_id = url_to_postid( $val );
 					if ( $maybe_id ) {
 						$ids[] = (int) $maybe_id;
@@ -4216,7 +4223,7 @@ class Post_Exporter extends Abstract_Exporter {
 
 		$out = [];
 		foreach ( $values as $v ) {
-			if ( is_string( $v ) && filter_var( $v, FILTER_VALIDATE_URL ) ) {
+			if ( is_string( $v ) && \RockStarLab\ImportExport\Helper\Content_Sync_Media::is_valid_url( $v ) ) {
 				$out[] = $v;
 			} else {
 				$out[] = sanitize_title( (string) $v );
@@ -4314,13 +4321,17 @@ class Post_Exporter extends Abstract_Exporter {
 				$value        = maybe_unserialize( $values[0] );
 				$meta[ $key ] = $this->portable_post_meta_value( $value, (int) $post_id );
 			} else {
-				// Multiple values
-				$meta[ $key ] = array_map(
-					function ( $value ) use ( $post_id ) {
-						return $this->portable_post_meta_value( maybe_unserialize( $value ), (int) $post_id );
-					},
-					$values
-				);
+				// Several rows of one key (enclosure, plugin lists). Wrapped so the import can
+				// tell them from one array value: a plain list was written back as a single
+				// serialized row, which nested deeper on every round trip.
+				$meta[ $key ] = [
+					self::META_ROWS_KEY => array_map(
+						function ( $value ) use ( $post_id ) {
+							return $this->portable_post_meta_value( maybe_unserialize( $value ), (int) $post_id );
+						},
+						$values
+					),
+				];
 			}
 		}
 

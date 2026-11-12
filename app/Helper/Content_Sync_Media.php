@@ -387,8 +387,35 @@ class Content_Sync_Media {
 	 * @return bool
 	 */
 	public static function is_wordpress_uploads_url( $url ) {
-		$path = wp_parse_url( (string) $url, PHP_URL_PATH );
+		$path = self::url_path( (string) $url );
 		return is_string( $path ) && false !== strpos( $path, '/wp-content/uploads/' );
+	}
+
+	/**
+	 * filter_var( FILTER_VALIDATE_URL ) that also accepts http(s) URLs with non-Latin letters
+	 * or spaces in the path (WordPress keeps file names such as "Фото.jpg" raw in content).
+	 *
+	 * @param mixed $value Value.
+	 * @return bool
+	 */
+	public static function is_valid_url( $value ): bool {
+		if ( ! is_string( $value ) || '' === $value ) {
+			return false;
+		}
+		if ( false !== filter_var( $value, FILTER_VALIDATE_URL ) ) {
+			return true;
+		}
+		if ( ! preg_match( '#^https?://#i', $value ) ) {
+			return false;
+		}
+		$encoded = preg_replace_callback(
+			'/[^\x21-\x7E]/',
+			static function ( $byte ) {
+				return rawurlencode( $byte[0] );
+			},
+			$value
+		);
+		return false !== filter_var( (string) $encoded, FILTER_VALIDATE_URL );
 	}
 
 	/**
@@ -440,7 +467,7 @@ class Content_Sync_Media {
 	 * @return string Canonical URL or empty string.
 	 */
 	private static function canonicalize_intermediate_size_url( $url, $exists = null ) {
-		$path     = (string) wp_parse_url( (string) $url, PHP_URL_PATH );
+		$path     = (string) self::url_path( (string) $url );
 		$basename = wp_basename( $path );
 		if ( '' === $basename || ! preg_match( '/^(.+)-\d+x\d+(?:-\d+)?(\.[^.]+)$/i', $basename, $matches ) ) {
 			return '';
@@ -514,6 +541,22 @@ class Content_Sync_Media {
 	}
 
 	/**
+	 * Path of a URL. PHP's parse_url() replaces some bytes of raw UTF-8 file names
+	 * ("Фото-тест.jpg" came back as "Фо?_о-?_е?_?_.jpg"), so such URLs are split by hand.
+	 *
+	 * @param mixed $url URL.
+	 * @return string|null Like self::url_path( $url ).
+	 */
+	public static function url_path( $url ) {
+		$url = (string) $url;
+		if ( ! preg_match( '/[\x80-\xff]/', $url ) ) {
+			return wp_parse_url( $url, PHP_URL_PATH );
+		}
+		$path = self::raw_url_path( $url );
+		return '' === $path ? null : $path;
+	}
+
+	/**
 	 * The URL path exactly as written. parse_url() can replace bytes of UTF-8 file names
 	 * with "_" (depending on the PHP locale), which broke matching of such files.
 	 *
@@ -542,8 +585,8 @@ class Content_Sync_Media {
 		// during an import waits for a free PHP worker and can time out.
 		$uploads = wp_upload_dir();
 		if ( 0 === strpos( (string) $url, (string) $uploads['baseurl'] ) ) {
-			$path     = (string) wp_parse_url( (string) $url, PHP_URL_PATH );
-			$base     = (string) wp_parse_url( (string) $uploads['baseurl'], PHP_URL_PATH );
+			$path     = (string) self::url_path( (string) $url );
+			$base     = (string) self::url_path( (string) $uploads['baseurl'] );
 			$relative = ltrim( rawurldecode( (string) substr( $path, strlen( $base ) ) ), '/' );
 			return $results[ $url ] = ( '' !== $relative && false === strpos( $relative, '..' ) && is_file( trailingslashit( $uploads['basedir'] ) . $relative ) );
 		}
@@ -591,7 +634,7 @@ class Content_Sync_Media {
 	 * @return int Attachment ID or 0.
 	 */
 	private static function find_parent_attachment_id_for_size_url( $url ) {
-		$path      = (string) wp_parse_url( (string) $url, PHP_URL_PATH );
+		$path      = (string) self::url_path( (string) $url );
 		$basename  = wp_basename( $path );
 		$basenames = self::get_intermediate_size_basename_candidates( $basename );
 		if ( empty( $basenames ) ) {
@@ -1541,7 +1584,7 @@ class Content_Sync_Media {
 			return null;
 		}
 
-		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		$path = (string) self::url_path( $url );
 		$ext  = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
 		if ( ! in_array( $ext, array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg' ), true ) ) {
 			return null;

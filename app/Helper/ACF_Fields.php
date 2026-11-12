@@ -806,7 +806,7 @@ class ACF_Fields {
 	 */
 	private static function portable_unknown_nested_value( $value ) {
 		$url = self::media_url_from_value( $value );
-		if ( is_string( $url ) && filter_var( $url, FILTER_VALIDATE_URL ) ) {
+		if ( is_string( $url ) && \RockStarLab\ImportExport\Helper\Content_Sync_Media::is_valid_url( $url ) ) {
 			return $url;
 		}
 
@@ -1056,7 +1056,7 @@ class ACF_Fields {
 	private static function native_unknown_nested_value( $value, $parent_id = 0 ) {
 		$value = self::maybe_decode( $value );
 
-		if ( is_string( $value ) && filter_var( $value, FILTER_VALIDATE_URL ) ) {
+		if ( is_string( $value ) && \RockStarLab\ImportExport\Helper\Content_Sync_Media::is_valid_url( $value ) ) {
 			$id = self::attachment_id_from_value( $value, $parent_id );
 			return $id > 0 ? $id : $value;
 		}
@@ -1160,12 +1160,12 @@ class ACF_Fields {
 			$id = (int) $cell;
 			return in_array( get_post_type( $id ), $post_types, true ) ? $id : 0;
 		}
-		if ( filter_var( $cell, FILTER_VALIDATE_URL ) ) {
+		if ( \RockStarLab\ImportExport\Helper\Content_Sync_Media::is_valid_url( $cell ) ) {
 			$id = url_to_postid( $cell );
 			if ( $id > 0 ) {
 				return $id;
 			}
-			$cell = trim( (string) wp_parse_url( $cell, PHP_URL_PATH ), '/' );
+			$cell = trim( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $cell ), '/' );
 		}
 		$post = '' !== $cell ? get_page_by_path( $cell, OBJECT, $post_types ) : null;
 		if ( $post ) {
@@ -1190,7 +1190,7 @@ class ACF_Fields {
 		if ( is_numeric( $ref ) ) {
 			return absint( $ref );
 		}
-		if ( is_string( $ref ) && filter_var( $ref, FILTER_VALIDATE_URL ) ) {
+		if ( is_string( $ref ) && \RockStarLab\ImportExport\Helper\Content_Sync_Media::is_valid_url( $ref ) ) {
 			return self::attachment_id_from_value( $ref, $parent_id );
 		}
 		if ( is_string( $ref ) && '' !== $ref ) {
@@ -1233,7 +1233,7 @@ class ACF_Fields {
 		if ( ! is_string( $value ) || '' === $value ) {
 			return 0;
 		}
-		if ( ! filter_var( $value, FILTER_VALIDATE_URL ) ) {
+		if ( ! \RockStarLab\ImportExport\Helper\Content_Sync_Media::is_valid_url( $value ) ) {
 			return 0;
 		}
 		$source_url = Content_Sync_Media::canonicalize_import_media_url( $value );
@@ -1287,7 +1287,7 @@ class ACF_Fields {
 		// one is left to the content media pass, which resolves it from its original address.
 		$own_uploads = wp_upload_dir();
 		if ( 0 === strpos( $source_url, (string) $own_uploads['baseurl'] ) ) {
-			$relative = ltrim( rawurldecode( (string) substr( (string) wp_parse_url( $source_url, PHP_URL_PATH ), strlen( (string) wp_parse_url( (string) $own_uploads['baseurl'], PHP_URL_PATH ) ) ) ), '/' );
+			$relative = ltrim( rawurldecode( (string) substr( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $source_url ), strlen( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( (string) $own_uploads['baseurl'] ) ) ) ), '/' );
 			$local    = ( '' !== $relative && false === strpos( $relative, '..' ) ) ? trailingslashit( $own_uploads['basedir'] ) . $relative : '';
 			if ( '' === $local || ! is_file( $local ) ) {
 				return 0;
@@ -1328,7 +1328,7 @@ class ACF_Fields {
 		}
 
 		$file = [
-			'name'     => wp_basename( (string) wp_parse_url( $source_url, PHP_URL_PATH ) ),
+			'name'     => rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $source_url ) ) ),
 			'tmp_name' => $tmp,
 		];
 
@@ -1484,7 +1484,7 @@ class ACF_Fields {
 			return 0;
 		}
 
-		$filename = wp_basename( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+		$filename = rawurldecode( wp_basename( (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) ) );
 		if ( '' === $filename ) {
 			return 0;
 		}
@@ -1543,9 +1543,7 @@ class ACF_Fields {
 			'/<img\b[^>]*>/i',
 			static function ( $matches ) use ( $parent_id ) {
 				$tag = self::replace_media_url_attribute( $matches[0], 'src', $parent_id );
-
-				$tag = (string) preg_replace( '/\s+srcset=(["\'])(?:(?!\\1).)*\\1/i', '', $tag );
-				return (string) preg_replace( '/\s+sizes=(["\'])(?:(?!\\1).)*\\1/i', '', $tag );
+				return false === stripos( $tag, 'srcset=' ) ? $tag : self::add_local_srcset( $tag );
 			},
 			$html
 		);
@@ -1557,6 +1555,117 @@ class ACF_Fields {
 			},
 			$html
 		);
+	}
+
+	/**
+	 * Point the srcset of an <img> whose src is a file of this site at that attachment's sizes.
+	 * The source site's srcset is not valid here; without a new one an image that has no
+	 * wp-image-N class (page builder HTML) loses its responsive sizes for good. An existing
+	 * srcset/sizes is rewritten in place; when no local sizes exist both are removed.
+	 *
+	 * @param string $tag <img> tag.
+	 * @return string
+	 */
+	public static function add_local_srcset( string $tag ): string {
+		$strip = static function ( $t ) {
+			$t = (string) preg_replace( '/\s+srcset=(["\'])(?:(?!\1).)*\1/i', '', $t );
+			return (string) preg_replace( '/\s+sizes=(["\'])(?:(?!\1).)*\1/i', '', $t );
+		};
+		if ( ! preg_match( '/\ssrc=(["\'])((?:(?!\1).)+)\1/i', $tag, $src ) ) {
+			return $strip( $tag );
+		}
+		$uploads = untrailingslashit( (string) ( wp_upload_dir()['baseurl'] ?? '' ) );
+		$url     = html_entity_decode( $src[2] );
+		$srcset  = '';
+		$sizes   = '';
+		if ( '' !== $uploads && 0 === strpos( $url, $uploads . '/' ) ) {
+			$attachment_id = (int) attachment_url_to_postid( $url );
+			if ( ! $attachment_id ) {
+				$attachment_id = (int) attachment_url_to_postid( (string) preg_replace( '/-\d+x\d+(?=\.[a-z0-9]+$)/i', '', $url ) );
+			}
+			$width  = preg_match( '/\swidth=["\']?(\d+)/i', $tag, $w ) ? (int) $w[1] : 0;
+			$height = preg_match( '/\sheight=["\']?(\d+)/i', $tag, $h ) ? (int) $h[1] : 0;
+			$meta   = $attachment_id ? wp_get_attachment_metadata( $attachment_id ) : false;
+			if ( is_array( $meta ) && $width > 0 && $height > 0 ) {
+				$srcset = (string) wp_calculate_image_srcset( [ $width, $height ], $url, $meta, $attachment_id );
+				$sizes  = '' !== $srcset ? (string) wp_calculate_image_sizes( [ $width, $height ], $url, $meta, $attachment_id ) : '';
+			}
+		}
+		if ( '' === $srcset ) {
+			return $strip( $tag );
+		}
+		$set = static function ( $t, $name, $value, $after ) {
+			$attr = $name . '="' . esc_attr( $value ) . '"';
+			if ( preg_match( '/\s' . $name . '=(["\'])(?:(?!\1).)*\1/i', $t ) ) {
+				return (string) preg_replace_callback( '/(\s)' . $name . '=(["\'])(?:(?!\2).)*\2/i', static function ( $m ) use ( $attr ) { return $m[1] . $attr; }, $t, 1 );
+			}
+			return (string) preg_replace_callback( '/\s' . $after . '=(["\'])(?:(?!\1).)*\1/i', static function ( $m ) use ( $attr ) { return $m[0] . ' ' . $attr; }, $t, 1 );
+		};
+		$tag = $set( $tag, 'srcset', $srcset, 'src' );
+		if ( '' !== $sizes ) {
+			$tag = $set( $tag, 'sizes', $sizes, 'srcset' );
+		}
+		return $tag;
+	}
+
+	/**
+	 * Portable form of a comment meta value that holds an ACF image, file or gallery field.
+	 * The raw attachment IDs mean nothing on another site; the files' URLs do.
+	 *
+	 * @param int    $comment_id Comment ID.
+	 * @param string $key        Meta key.
+	 * @param mixed  $value      Meta value.
+	 * @return mixed The value itself, or {acf_type: media_meta, type, items: [{source_id, url}]}.
+	 */
+	public static function export_comment_media_meta( int $comment_id, string $key, $value ) {
+		if ( ! function_exists( 'acf_get_field' ) || '' === $key ) {
+			return $value;
+		}
+		$field_key = get_comment_meta( $comment_id, '_' . $key, true );
+		$field     = is_string( $field_key ) && 0 === strpos( $field_key, 'field_' ) ? acf_get_field( $field_key ) : false;
+		$type      = is_array( $field ) ? (string) ( $field['type'] ?? '' ) : '';
+		if ( ! in_array( $type, [ 'image', 'file', 'gallery' ], true ) ) {
+			return $value;
+		}
+		$items = [];
+		foreach ( 'gallery' === $type ? (array) $value : [ $value ] as $id ) {
+			$url = self::media_url_from_value( $id );
+			if ( '' !== $url && is_numeric( $id ) ) {
+				$items[] = [
+					'source_id' => (int) $id,
+					'url'       => $url,
+				];
+			}
+		}
+		if ( empty( $items ) ) {
+			return $value;
+		}
+		return [
+			'acf_type' => 'media_meta',
+			'type'     => $type,
+			'items'    => $items,
+		];
+	}
+
+	/**
+	 * Local attachment ID(s) for a value written by export_comment_media_meta().
+	 *
+	 * @param mixed $value     Imported meta value.
+	 * @param int   $parent_id Parent for downloaded media.
+	 * @return mixed|null Null when the value is not such a payload.
+	 */
+	public static function import_media_meta( $value, $parent_id = 0 ) {
+		if ( ! is_array( $value ) || 'media_meta' !== ( $value['acf_type'] ?? '' ) ) {
+			return null;
+		}
+		$ids = [];
+		foreach ( (array) ( $value['items'] ?? [] ) as $item ) {
+			$id = is_array( $item ) ? self::attachment_id_from_value( $item, $parent_id ) : 0;
+			if ( $id > 0 ) {
+				$ids[] = $id;
+			}
+		}
+		return 'gallery' === ( $value['type'] ?? '' ) ? $ids : (string) ( $ids[0] ?? '' );
 	}
 
 	/**
@@ -1849,9 +1958,9 @@ class ACF_Fields {
 
 	private static function is_media_url( $url ) {
 		return is_string( $url )
-			&& filter_var( $url, FILTER_VALIDATE_URL )
+			&& \RockStarLab\ImportExport\Helper\Content_Sync_Media::is_valid_url( $url )
 			&& self::is_wordpress_upload_url( $url )
-			&& (bool) preg_match( '~\.(?:jpe?g|png|gif|webp|avif|svg|pdf|mp3|m4a|ogg|wav|mp4|m4v|mov|webm)(?:\?.*)?$~i', (string) wp_parse_url( $url, PHP_URL_PATH ) );
+			&& (bool) preg_match( '~\.(?:jpe?g|png|gif|webp|avif|svg|pdf|mp3|m4a|ogg|wav|mp4|m4v|mov|webm)(?:\?.*)?$~i', (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url ) );
 	}
 
 	/**

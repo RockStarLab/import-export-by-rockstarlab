@@ -821,9 +821,15 @@ class XML_Format implements File_Format_Interface {
 			return '';
 		}
 
-		foreach ( $value as $key => $child_value ) {
-			$value[ $key ] = $this->normalize_xml_values( $child_value );
+		if ( array( self::EMPTY_ARRAY_MARKER ) === array_keys( $value ) ) {
+			return array();
 		}
+
+		$decoded = [];
+		foreach ( $value as $key => $child_value ) {
+			$decoded[ self::decode_element_name( (string) $key ) ] = $this->normalize_xml_values( $child_value );
+		}
+		$value = $decoded;
 
 		// generate() writes list items as <field_0>, <field_1>…: read them back as a list,
 		// so ["red","green"] round-trips as a list and not as {"field_0":"red",…}.
@@ -910,25 +916,70 @@ class XML_Format implements File_Format_Interface {
 		return true;
 	}
 
+	/** Prefix of element names that carry an encoded key. */
+	const ENCODED_KEY_PREFIX = '_x_';
+
+	/**
+	 * Child element that marks a nested empty array. Not valid base64url, and real keys that
+	 * start with the prefix are always encoded, so no key can be written with this name.
+	 */
+	const EMPTY_ARRAY_MARKER = '_x_E';
+
+	/**
+	 * XML element name for an array key, reversible by decode_element_name().
+	 *
+	 * Integer keys become field_N (lists and ID maps). Keys that are not valid element names
+	 * (Elementor element IDs such as "2a04a8f", keys with ":", "." or spaces, non-Latin
+	 * letters) are base64url-encoded behind "_x_". They used to be renamed with "_" (changed
+	 * on import) or stopped the whole export ("must be a valid element name").
+	 *
+	 * @param int|string $key Array key.
+	 * @return string
+	 */
+	public static function element_name( $key ) {
+		if ( is_int( $key ) || ctype_digit( (string) $key ) ) {
+			return 'field_' . $key;
+		}
+		$key = (string) $key;
+		if ( preg_match( '/^[A-Za-z_][A-Za-z0-9_-]*$/D', $key ) && 0 !== stripos( $key, 'xml' ) && 0 !== strpos( $key, self::ENCODED_KEY_PREFIX ) ) {
+			return $key;
+		}
+		return self::ENCODED_KEY_PREFIX . rtrim( strtr( base64_encode( $key ), '+/', '-_' ), '=' );
+	}
+
+	/**
+	 * Original key of an element name written by element_name().
+	 *
+	 * @param string $name Element name.
+	 * @return string
+	 */
+	public static function decode_element_name( $name ) {
+		$name = (string) $name;
+		if ( 0 !== strpos( $name, self::ENCODED_KEY_PREFIX ) ) {
+			return $name;
+		}
+		$decoded = base64_decode( strtr( substr( $name, strlen( self::ENCODED_KEY_PREFIX ) ), '-_', '+/' ), true );
+		return false === $decoded || '' === $decoded ? $name : $decoded;
+	}
+
 	/**
 	 * Write array data to XML
 	 *
 	 * @param \XMLWriter $xml  XMLWriter instance
 	 * @param array      $data Data to write
 	 */
-	private function write_xml_array( $xml, $data ) {
+	private function write_xml_array( $xml, $data, $depth = 0 ) {
 		foreach ( $data as $key => $value ) {
-			// Skip numeric keys
-			if ( is_numeric( $key ) ) {
-				$key = 'field_' . $key;
-			}
-
-			// Sanitize key for XML
-			$key = preg_replace( '/[^a-zA-Z0-9_-]/', '_', $key );
+			$key = self::element_name( $key );
 
 			if ( is_array( $value ) ) {
 				$xml->startElement( $key );
-				$this->write_xml_array( $xml, $value );
+				if ( array() === $value && $depth > 0 ) {
+					// An empty element reads back as "", which broke settings that must be lists
+					// (Blocksy "google_fonts": [] became ""). Nested empty arrays get a marker.
+					$xml->writeElement( self::EMPTY_ARRAY_MARKER, '' );
+				}
+				$this->write_xml_array( $xml, $value, $depth + 1 );
 				$xml->endElement();
 			} else {
 				$xml->writeElement( $key, (string) $value );

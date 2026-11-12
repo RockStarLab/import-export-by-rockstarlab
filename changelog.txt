@@ -1,5 +1,21 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.7 =
+* Fix: Excel (XLSX) and LibreOffice (ODS) exports cut every cell at 32,767 characters, the spreadsheet limit. Elementor pages and other long content lost their design and custom fields when such a file was imported. Longer values now continue in extra "…__part2" columns, which the import joins back.
+* Fix: XML exports of pages built with Elementor stopped with "Export stopped unexpectedly", and keys with characters such as ":" or spaces were changed in XML files. Every key is now written so that it reads back exactly.
+* Fix: re-importing pages from a file without a parent column no longer detaches them from their parent pages.
+* Improved: post and page exports include the parent page and page order by default, so page trees and their order move with the file.
+* Improved: comment exports include the GMT date, the author's website and the comment's custom fields (ACF) by default.
+* Fix: Imported content now points File blocks, gallery images and images with non-Latin file names at the new site's media.
+* Fix: Images in page-builder HTML keep their responsive sizes (srcset) after import.
+* Fix: A child page imported on its own finds its parent from an earlier import.
+* Fix: ACF image, file and gallery fields on comments are exported as files, not as attachment IDs of the old site.
+* Fix: Content Sync could show the wrong image in a post when a new media ID on the receiving site matched another media ID of the sending site. Gallery images now also get the new media IDs.
+* Fix: Images and files with non-Latin names (for example Cyrillic) are imported with their real names and are no longer skipped as invalid links.
+* Fix: Custom fields with several values under one name (for example podcast enclosures) are imported as separate values again; before, they were merged into one value that grew with every export and import.
+* Fix: XML exports keep empty lists inside theme and plugin settings (Blocksy, Stackable) as lists.
+* Fix: imported and synced posts no longer send pingbacks to every site they link to, and WordPress no longer adds extra "enclosure" fields for linked audio and video files after an import (the same as the WordPress importer).
+
 = 2.2.6 =
 * Fix: importing comments from a file exported by this plugin skipped every comment since 2.2.4 (they were taken for WordPress export rows), and site migrations did not bring comments. Comment imports work again; only the post rows of a WordPress export (WXR) file are skipped.
 * Improved: every ability that AI agents see now starts its description with what that ability does. Before, related abilities (schedules, functions, comment, review and term sync, WooCommerce push and pull, Content Updater) shared one text, and the term and review sync texts talked about comments.
