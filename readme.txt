@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: sync, content-sync, ai-agents, abilities, site-migration
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.2.4
+Stable tag: 2.2.5
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -294,6 +294,13 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.2.5 =
+* Fix: importing an exported file back into the same site with "Import media" off (the default for WP-CLI and AI agents) emptied every ACF image and file field and broke ACF galleries. Files that are already in this site's Media Library are now found by their URL without downloading anything; URL and text fields keep their URLs.
+* Fix: WP-CLI imports without --mapping and AI agent imports (import-prepare) now map the ACF columns ("acf_…") of the file, like Auto Map in the admin. Before, ACF fields were filled from the raw custom fields of the other site, with its image, post and term IDs.
+* Fix: media files with non-Latin letters in their names (for example Cyrillic) are found in the Media Library during imports instead of being downloaded again.
+* Changed: the plugin name in the WP-CLI help, Site Debug Info and the PRO addon's Freemius screens is now "Content Sync, Media Sync, Import, Export with AI Agents Support".
+* Fix: All Site URLs export listed sticky posts twice and could leave out other posts or terms of the same batch. The Shop page is listed once (WooCommerce's product archive is the same URL), and Elementor site settings records, which have no page, are left out.
+
 = 2.2.4 =
 * New: importing a WordPress export (WXR) file also creates the comments of each post and page, with replies in their threads, their status (approved, pending, spam) and pingbacks/trackbacks. A second import adds no duplicates.
 * Fix: importing a WordPress export now keeps the category tree: the file's categories (and the terms of other mapped taxonomies) are created with their parents before the posts. Before, every category was created at the top level.
@@ -455,18 +462,3 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 * Improved: the job log says "Imported media" for featured images and images in content.
 * Fixed: replies imported from a spreadsheet with Source Comment ID and Source Parent Comment ID are threaded under their parent comments, also when the parent came in an earlier import.
 * Fixed: a media import from a URL that opens a web page now says "The URL returned a web page, not a file." with a matching hint. Files WordPress refuses by type get their own hint.
-
-= 2.1.39 =
-* New: WP-CLI commands. `wp rsl-ie import <file>` and `wp rsl-ie export` run a job in the same process until it finishes, without WP-Cron (`--no-wait` leaves it to WP-Cron). Columns are matched by name, or use `--template` or `--mapping`; `--dry-run` checks a file without importing; exports are copied to `--output`. Also `wp rsl-ie jobs`, `job get|wait|errors|rerun|cancel`, `schedule list|run`, `trigger list|run|log` and `wp rsl-ie ability <name> '<json>'`. Exit codes for scripts and CI: 0 done, 1 error, 2 finished with failed rows, 3 still running after `--timeout`. The commands work even when AI agent access is off.
-* New: export form entries. Choose Form Entries in the export wizard, then a Gravity Forms form or a Contact Form 7 form saved by Flamingo. Each field becomes a column under its label; filter by status, date, entry ID or any field. In CSV files, values starting with =, +, - or @ get an apostrophe so spreadsheets don't run them as formulas.
-* New: a webhook trigger of an import can accept a file URL in the request and import that file once; columns are matched by name. A status URL returns the counts of a job the trigger started.
-* New: ready n8n workflows: one starts a trigger and checks the job until it has finished, one receives the job-finished notification and checks its signature.
-* New: WordPress Multisite is tested and supported: network or per-site activation, separate jobs, settings and files for each site, and Content Sync between sites of one network. The Multisite warning is removed.
-* New: AI agents can import a file from a URL (upload-from-url), export form entries, and get the n8n workflows as an exact file (workflow_json).
-* Improved: post authors in imports. New Author Login field; Author Name also finds a user by display name; existing users are no longer renamed; a row whose author isn't found is noted in the job log.
-* Improved: the status "scheduled" in a file is read as a scheduled post.
-* Fixed: a recurring import from a URL no longer stops for good when the file can't be downloaded at one run. It tries again at the next run, and Schedules shows why the run didn't start.
-* Fixed: after network activation, sites other than the main one showed the plugin menu without its pages.
-* Fixed: uninstalling the plugin in a network now cleans every site, and leftover options and scheduled events are removed.
-* Fixed: job notifications no longer show a double space when the job has no name.
-* Security: when the person running an import can't post unfiltered HTML (site administrators in a multisite network, or DISALLOW_UNFILTERED_HTML), imported post content, excerpts and comments are filtered like in the editor.

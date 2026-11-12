@@ -12,7 +12,7 @@ use WP_CLI;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Import and export WordPress content, and run Import Export by RockStarLab jobs, from WP-CLI.
+ * Import and export WordPress content, and run Content Sync, Media Sync, Import, Export jobs, from WP-CLI.
  *
  * Run the commands as an administrator (--user=<login>). Jobs started here run in the same process until they finish, so WP-Cron is not needed; add --no-wait to leave them to WP-Cron.
  *

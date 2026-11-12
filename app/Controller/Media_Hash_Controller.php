@@ -124,7 +124,7 @@ class Media_Hash_Controller extends Base_Controller {
 		$upload_dir      = wp_upload_dir();
 		$server_software = filter_input( INPUT_SERVER, 'SERVER_SOFTWARE', FILTER_UNSAFE_RAW );
 
-		$lines[] = 'Import Export by RockStarLab - Site Debug Info';
+		$lines[] = 'Content Sync, Media Sync, Import, Export with AI Agents Support - Site Debug Info';
 		$lines[] = 'Generated: ' . gmdate( 'Y-m-d H:i:s' ) . ' UTC';
 		$lines[] = '';
 
@@ -152,7 +152,7 @@ class Media_Hash_Controller extends Base_Controller {
 
 		$this->append_debug_section(
 			$lines,
-			'Import Export by RockStarLab',
+			'Content Sync, Media Sync, Import, Export with AI Agents Support',
 			[
 				'Free Version'      => defined( 'RSL_IE_VERSION' ) ? RSL_IE_VERSION : 'Unknown',
 				'Free Plugin Path'  => defined( 'RSL_IE_PATH' ) ? RSL_IE_PATH : 'Unknown',

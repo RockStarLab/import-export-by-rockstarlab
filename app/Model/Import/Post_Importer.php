@@ -1981,7 +1981,15 @@ class Post_Importer extends Abstract_Importer {
 				}
 			}
 			if ( ! $is_empty_named_nested_key ) {
-				$value = $this->resolve_acf_meta_value( $value, $post_id );
+				// A URL in a text or URL field stays a URL; only media and container fields
+				// (or unknown ones) turn this site's upload URLs into attachment IDs.
+				$top_type                     = ( $has_acf && ! preg_match( '/_\d+_/', (string) $key ) ) ? $this->get_acf_field_type_for_meta_key( $post_id, (string) $key ) : '';
+				$this->keep_plain_media_urls  = '' !== $top_type && ! in_array( $top_type, [ 'image', 'file', 'gallery', 'repeater', 'group', 'flexible_content', 'clone' ], true );
+				try {
+					$value = $this->resolve_acf_meta_value( $value, $post_id );
+				} finally {
+					$this->keep_plain_media_urls = false;
+				}
 			}
 			if ( $this->unresolved_post_ref ) {
 				$this->remember_pending_acf_ref( (int) $post_id, (string) $key, $portable_value );
@@ -2641,7 +2649,14 @@ class Post_Importer extends Abstract_Importer {
 				}
 				continue;
 			}
-			if ( ! $auto_import_media || $this->is_job_cancelled() ) {
+			if ( $this->is_job_cancelled() ) {
+				continue;
+			}
+			if ( ! $auto_import_media ) {
+				$local = $this->local_media_id( $part );
+				if ( $local ) {
+					$ids[] = $local;
+				}
 				continue;
 			}
 			$id = $this->import_media_for_acf( $this->normalize_media_input_url( $part ), $post_id, $media_duplicate_mode, 0, true );
@@ -2719,8 +2734,12 @@ class Post_Importer extends Abstract_Importer {
 			return null;
 		}
 		$url = $this->normalize_media_input_url( $trimmed );
-		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) || ! (bool) $this->get_option( 'auto_import_media', false ) || $this->is_job_cancelled() ) {
+		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) || $this->is_job_cancelled() ) {
 			return null;
+		}
+		if ( ! (bool) $this->get_option( 'auto_import_media', false ) ) {
+			$local = $this->local_media_id( $url );
+			return $local ? $local : null;
 		}
 		$id = $this->import_media_for_acf( $url, $post_id, (string) $this->get_option( 'media_duplicate_mode', 'skip' ), 0, 'image' === $type ? true : 'file' );
 		return $id && ! is_wp_error( $id ) ? (int) $id : null;
@@ -2946,7 +2965,15 @@ class Post_Importer extends Abstract_Importer {
 			switch ( $type ) {
 				case 'gallery':
 					if ( ! $auto_import_media ) {
-						return $value;
+						// Only files already in this Media Library; never store the export wrapper.
+						$ids = [];
+						foreach ( (array) $values as $url ) {
+							$local = is_string( $url ) ? $this->local_media_id( $url ) : ( is_numeric( $url ) && 'attachment' === get_post_type( (int) $url ) ? (int) $url : 0 );
+							if ( $local ) {
+								$ids[] = $local;
+							}
+						}
+						return $ids;
 					}
 
 					// Array of image/file URLs → download each and collect new attachment IDs.
@@ -3189,6 +3216,15 @@ class Post_Importer extends Abstract_Importer {
 				$out[ $k ] = $this->resolve_acf_meta_value( $v, $post_id );
 			}
 			return $out;
+		}
+
+		// Media import off: a URL of this site's own uploads still becomes its attachment ID.
+		if ( ! $auto_import_media && ! $this->keep_plain_media_urls && is_string( $value ) && '' !== $value && false === strpos( $value, '<' ) && filter_var( $value, FILTER_VALIDATE_URL )
+			&& in_array( strtolower( pathinfo( (string) wp_parse_url( $value, PHP_URL_PATH ), PATHINFO_EXTENSION ) ), [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp4', 'mov', 'avi', 'wmv', 'mp3', 'wav', 'ogg', 'zip' ], true ) ) {
+			$local = $this->local_media_id( $value );
+			if ( $local ) {
+				return $local;
+			}
 		}
 
 		// ── 2. Single string that looks like a downloadable media URL ─────────
@@ -4554,7 +4590,7 @@ class Post_Importer extends Abstract_Importer {
 		// without downloading. This keeps ACF fields functional when importing a file
 		// that references media already present on this site.
 		if ( strpos( $url, wp_upload_dir()['baseurl'] ) === 0 ) {
-			$existing = attachment_url_to_postid( $url );
+			$existing = $this->attachment_id_for_local_url( $url );
 			if ( $existing ) {
 				$this->store_imported_media_source( (int) $existing, $url, $source_attachment_id );
 					$existing_for_language       = (int) $existing;
@@ -4862,6 +4898,13 @@ class Post_Importer extends Abstract_Importer {
 	 * @var bool
 	 */
 	private $unresolved_post_ref = false;
+
+	/**
+	 * True while a top-level ACF field that is not a media field is resolved.
+	 *
+	 * @var bool
+	 */
+	private $keep_plain_media_urls = false;
 
 	/**
 	 * Create the comments that a WordPress export (WXR) lists inside the imported item.
@@ -5435,6 +5478,48 @@ class Post_Importer extends Abstract_Importer {
 	 */
 	private function is_wordpress_uploads_media_url( string $url ): bool {
 		return Content_Sync_Media::is_wordpress_uploads_url( $url );
+	}
+
+	/**
+	 * This site's attachment for a media URL that points to this site's own uploads, without
+	 * downloading anything. Used when "Import media" is off: re-importing an exported file on
+	 * the same site used to replace every ACF image, file and gallery with 0.
+	 *
+	 * @param string $url Media URL (any size variant).
+	 * @return int Attachment ID or 0.
+	 */
+	private function local_media_id( string $url ): int {
+		$url = $this->normalize_media_input_url( $url );
+		if ( ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+			return 0;
+		}
+		$host = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
+		$port = (int) wp_parse_url( $url, PHP_URL_PORT );
+		$base = wp_upload_dir()['baseurl'];
+		if ( $host !== strtolower( (string) wp_parse_url( $base, PHP_URL_HOST ) ) || $port !== (int) wp_parse_url( $base, PHP_URL_PORT ) ) {
+			return 0;
+		}
+		return $this->attachment_id_for_local_url( $url );
+	}
+
+	/**
+	 * Attachment for a URL of this site's uploads. WordPress stores file paths unencoded, while
+	 * normalized URLs percent-encode non-Latin file names, so both spellings are tried.
+	 *
+	 * @param string $url URL.
+	 * @return int Attachment ID or 0.
+	 */
+	private function attachment_id_for_local_url( string $url ): int {
+		foreach ( array_unique( [ $url, rawurldecode( $url ) ] ) as $candidate ) {
+			$id = (int) attachment_url_to_postid( $candidate );
+			if ( ! $id ) {
+				$id = (int) Content_Sync_Media::attachment_url_to_original_postid( $candidate );
+			}
+			if ( $id && 'attachment' === get_post_type( $id ) ) {
+				return $id;
+			}
+		}
+		return 0;
 	}
 
 	/**

@@ -263,6 +263,7 @@ class Workflow_Service {
 		if ( is_wp_error( $file ) ) {
 			return $file; }
 		$fields  = array_merge( $schema['import']['required_fields'], $schema['import']['optional_fields'] );
+		$fields  = array_merge( $fields, self::acf_columns( $schema ) );
 		$mapping = [];
 		$headers = array_map( 'strval', (array) $file['headers'] );
 		foreach ( $headers as $index => $header ) {
@@ -283,6 +284,25 @@ class Workflow_Service {
 			'mapping' => $mapping,
 		];
 	}
+	/**
+	 * The "acf_<field>" columns that exports write for the ACF fields of this content type, so
+	 * import-prepare (WP-CLI, AI agents) maps them like Auto Map in the admin does. Without them the
+	 * raw post_meta column brought the other site's attachment, post and term IDs into ACF fields.
+	 *
+	 * @param array $schema Content schema with its "acf" field list.
+	 * @return string[]
+	 */
+	public static function acf_columns( $schema ) {
+		$columns = [];
+		foreach ( (array) ( $schema['integrations']['acf'] ?? $schema['acf'] ?? [] ) as $field ) {
+			$name = is_array( $field ) ? (string) ( $field['name'] ?? '' ) : '';
+			if ( '' !== $name ) {
+				$columns[] = 'acf_' . $name;
+			}
+		}
+		return $columns;
+	}
+
 	/**
 	 * Map term and custom field columns that the post importer reads but the field list does not name.
 	 *
