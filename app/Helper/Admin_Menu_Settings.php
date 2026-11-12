@@ -28,14 +28,14 @@ class Admin_Menu_Settings {
 	public static function get_menu_items() {
 		$items = [
 			'welcome'        => __( 'Welcome', 'import-export-by-rockstarlab' ),
+			'content_sync'   => __( 'Content Sync', 'import-export-by-rockstarlab' ),
 			'import'         => __( 'Import', 'import-export-by-rockstarlab' ),
 			'export'         => __( 'Export', 'import-export-by-rockstarlab' ),
-			'content_sync'   => __( 'Content Sync', 'import-export-by-rockstarlab' ),
 			'site_migration' => __( 'Content Migration', 'import-export-by-rockstarlab' ),
-			'functions'      => __( 'Functions', 'import-export-by-rockstarlab' ),
 			'tools'          => __( 'Tools', 'import-export-by-rockstarlab' ),
 			'jobs_log'       => __( 'Jobs Log', 'import-export-by-rockstarlab' ),
 			'schedules'      => __( 'Schedules', 'import-export-by-rockstarlab' ),
+			'functions'      => __( 'Functions', 'import-export-by-rockstarlab' ),
 			'affiliation'    => __( 'Affiliation', 'import-export-by-rockstarlab' ),
 			'account'        => __( 'Account', 'import-export-by-rockstarlab' ),
 			'contact_us'     => __( 'Contact Us', 'import-export-by-rockstarlab' ),
@@ -44,12 +44,23 @@ class Admin_Menu_Settings {
 		];
 
 		if ( Pro_Addon::is_pro_active() ) {
-			$items = array_slice( $items, 0, 3, true )
+			// Directly after Export, as in the admin menu.
+			$after = array_search( 'export', array_keys( $items ), true ) + 1;
+			$items = array_slice( $items, 0, $after, true )
 				+ [ 'content_updater' => __( 'Content Updater', 'import-export-by-rockstarlab' ) ]
-				+ array_slice( $items, 3, null, true );
+				+ array_slice( $items, $after, null, true );
 		}
 
 		return $items;
+	}
+
+	/**
+	 * Default admin menu title (the plugin's short name).
+	 *
+	 * @return string
+	 */
+	public static function default_menu_title() {
+		return __( 'Content Sync, Import, Export', 'import-export-by-rockstarlab' );
 	}
 
 	/**
@@ -60,7 +71,7 @@ class Admin_Menu_Settings {
 	public static function get_settings() {
 		$items    = self::get_menu_items();
 		$defaults = [
-			'menu_title'       => __( 'Import Export by RockStarLab', 'import-export-by-rockstarlab' ),
+			'menu_title'       => self::default_menu_title(),
 			'visible_items'    => array_fill_keys( array_keys( $items ), true ),
 			'show_tree_action' => false,
 		];
@@ -70,6 +81,10 @@ class Admin_Menu_Settings {
 			return $defaults;
 		}
 
+		// The old default name saved with other menu settings follows the plugin's new name.
+		if ( isset( $saved['menu_title'] ) && in_array( $saved['menu_title'], [ 'Import Export by RockStarLab', __( 'Import Export by RockStarLab', 'import-export-by-rockstarlab' ) ], true ) ) {
+			unset( $saved['menu_title'] );
+		}
 		$settings                  = wp_parse_args( $saved, $defaults );
 		$settings['visible_items'] = wp_parse_args(
 			is_array( $settings['visible_items'] ) ? $settings['visible_items'] : [],
@@ -95,7 +110,7 @@ class Admin_Menu_Settings {
 	public static function save( $menu_title, $visible_items ) {
 		$menu_title = sanitize_text_field( $menu_title );
 		if ( '' === $menu_title ) {
-			$menu_title = __( 'Import Export by RockStarLab', 'import-export-by-rockstarlab' );
+			$menu_title = self::default_menu_title();
 		}
 
 		$allowed = array_keys( self::get_menu_items() );

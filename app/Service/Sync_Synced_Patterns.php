@@ -13,6 +13,49 @@ class Sync_Synced_Patterns {
 	const SOURCE_ID_META   = '_rsl_ie_source_pattern_id';
 	const SOURCE_SITE_META = '_rsl_ie_source_pattern_site';
 	const MAX_PATTERNS     = 100;
+	/** Keys in an export file's post_meta column that carry the patterns and block terms (not stored as meta). */
+	const FILE_PATTERNS_KEY = 'rsl_ie_synced_patterns';
+	const FILE_TERMS_KEY    = 'rsl_ie_block_terms';
+
+	/**
+	 * Re-point a file-imported post's pattern and block-term refs.
+	 *
+	 * @param int   $post_id  Imported post.
+	 * @param mixed $patterns FILE_PATTERNS_KEY value (source ID => pattern data).
+	 * @param mixed $terms    FILE_TERMS_KEY value (source term ID => taxonomy/slug/name).
+	 * @return int[] Local patterns created or updated from the file.
+	 */
+	public static function apply_file_payload( $post_id, $patterns, $terms ) {
+		$post_id = (int) $post_id;
+		$content = (string) get_post_field( 'post_content', $post_id, 'raw' );
+		if ( $post_id <= 0 || '' === $content ) {
+			return array();
+		}
+		$patterns = is_array( $patterns ) ? $patterns : array();
+		$site     = '';
+		foreach ( $patterns as $p ) {
+			$site = is_array( $p ) ? untrailingslashit( (string) ( $p['site'] ?? '' ) ) : '';
+			break;
+		}
+		// A file made on this site already points at the right patterns and terms.
+		if ( '' !== $site && untrailingslashit( home_url() ) === $site ) {
+			return array();
+		}
+		$fixed = $content;
+		$map   = array();
+		if ( $patterns && self::refs( $fixed ) ) {
+			$map   = self::import( $patterns );
+			$fixed = self::apply( $fixed, $map );
+		}
+		// Terms are matched by taxonomy and slug, so a same-site file maps each ID to itself.
+		if ( is_array( $terms ) && $terms ) {
+			$fixed = self::apply_terms( $fixed, self::import_terms( $terms ) );
+		}
+		if ( $fixed !== $content ) {
+			wp_update_post( wp_slash( array( 'ID' => $post_id, 'post_content' => $fixed ) ) );
+		}
+		return array_values( array_unique( array_map( 'intval', $map ) ) );
+	}
 
 	/**
 	 * Pattern IDs referenced by block markup.

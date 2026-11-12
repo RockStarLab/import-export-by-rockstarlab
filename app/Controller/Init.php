@@ -1794,7 +1794,7 @@ class Init {
 				'id'      => 'rsl-ie-help',
 				'title'   => __( 'Help', 'import-export-by-rockstarlab' ),
 				'content' =>
-					'<p>' . esc_html__( 'Need help with Import Export by RockStarLab? These resources can help you get started and learn common workflows.', 'import-export-by-rockstarlab' ) . '</p>' .
+					'<p>' . esc_html__( 'Need help with Content & Media Sync, Import, Export? These resources can help you get started and learn common workflows.', 'import-export-by-rockstarlab' ) . '</p>' .
 					'<ul>' .
 						'<li><a href="https://wpimportexport.com/import-export-video-tutorials-for-wordpress/#written-guides" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Documentation', 'import-export-by-rockstarlab' ) . '</a></li>' .
 						'<li><a href="https://wpimportexport.com/import-export-video-tutorials-for-wordpress/" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Video Tutorials', 'import-export-by-rockstarlab' ) . '</a></li>' .
@@ -1811,7 +1811,7 @@ class Init {
 		$admin_menu_title    = $admin_menu_settings['menu_title'];
 
 		add_menu_page(
-			__( 'Import Export by RockStarLab', 'import-export-by-rockstarlab' ),
+			__( 'Content & Media Sync, Import, Export with AI Agents Support', 'import-export-by-rockstarlab' ),
 			esc_html( $admin_menu_title ),
 			'manage_options',
 			'import-export-by-rockstarlab',
@@ -1827,6 +1827,16 @@ class Init {
 			'manage_options',
 			'import-export-by-rockstarlab',
 			array( $this, 'display_welcome_page' )
+		);
+
+		// Content Sync is the plugin's main feature: first after Welcome.
+		add_submenu_page(
+			'import-export-by-rockstarlab',
+			__( 'Content Sync', 'import-export-by-rockstarlab' ),
+			__( 'Content Sync', 'import-export-by-rockstarlab' ),
+			'manage_options',
+			'rsl-ie-content-sync',
+			array( $this, 'display_content_sync_page' )
 		);
 
 		add_submenu_page(
@@ -1865,15 +1875,6 @@ class Init {
 		// Keep the hidden hook registered without a duplicate empty-parent menu item.
 		// Otherwise core can resolve Export under the empty parent and close our menu.
 		remove_submenu_page( '', 'rsl-ie-export' );
-
-		add_submenu_page(
-			'import-export-by-rockstarlab',
-			__( 'Content Sync', 'import-export-by-rockstarlab' ),
-			__( 'Content Sync', 'import-export-by-rockstarlab' ),
-			'manage_options',
-			'rsl-ie-content-sync',
-			array( $this, 'display_content_sync_page' )
-		);
 
 		add_submenu_page(
 			'import-export-by-rockstarlab',

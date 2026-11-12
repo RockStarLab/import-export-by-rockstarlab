@@ -137,7 +137,7 @@ $rsl_ie_credentials        = $rsl_ie_connected && $data['application_passwords_a
 				<?php require __DIR__ . '/partials/agent-client-settings.php'; ?>
 				<h3><?php esc_html_e( 'Try your first request', 'import-export-by-rockstarlab' ); ?></h3>
 				<p><?php esc_html_e( 'After saving the connection, paste this into your agent’s chat. It only reads the available actions and does not change your site.', 'import-export-by-rockstarlab' ); ?></p>
-				<textarea id="rsl-agent-prompt" rows="4" readonly><?php echo esc_textarea( __( 'Connect to my WordPress MCP server. Discover its abilities, get the input schema for rsl-ie/get-capabilities, then execute it with empty parameters {}. Summarize what Import Export by RockStarLab can do. Do not modify any content or settings.', 'import-export-by-rockstarlab' ) ); ?></textarea>
+				<textarea id="rsl-agent-prompt" rows="4" readonly><?php echo esc_textarea( __( 'Connect to my WordPress MCP server. Discover its abilities, get the input schema for rsl-ie/get-capabilities, then execute it with empty parameters {}. Summarize what the Content & Media Sync, Import, Export plugin can do. Do not modify any content or settings.', 'import-export-by-rockstarlab' ) ); ?></textarea>
 				<button type="button" class="button" data-copied-label="<?php esc_attr_e( 'Copied!', 'import-export-by-rockstarlab' ); ?>" data-agent-copy="rsl-agent-prompt"><?php esc_html_e( 'Copy first request', 'import-export-by-rockstarlab' ); ?></button>
 				<p class="description"><?php esc_html_e( 'A successful reply lists the plugin’s available actions. This page checks site setup; the first request verifies the connection from your agent.', 'import-export-by-rockstarlab' ); ?></p>
 			<?php else : ?>

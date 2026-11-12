@@ -15,7 +15,7 @@ $rsl_ie_pro_active     = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_acti
 
 	<h1 class="rsl-ie-welcome-title">
 		<span class="dashicons dashicons-update-alt"></span>
-		<?php esc_html_e( 'Import Export by RockStarLab', 'import-export-by-rockstarlab' ); ?>
+		<?php esc_html_e( 'Content & Media Sync, Import, Export with AI Agents Support', 'import-export-by-rockstarlab' ); ?>
 		<span class="rsl-ie-version-badge"><?php echo esc_html( $rsl_ie_plugin_version ); ?></span>
 	</h1>
 

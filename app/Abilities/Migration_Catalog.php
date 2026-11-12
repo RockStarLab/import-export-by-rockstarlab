@@ -172,6 +172,8 @@ class Migration_Catalog {
 					'steps'           => Workflow_Schemas::items( $prepared, 100 ),
 					// True when WooCommerce steps in the package were skipped because WooCommerce is not active here.
 					'woocommerce_excluded' => [ 'type' => 'boolean' ],
+					// True when PRO-only steps were skipped because PRO is not active or licensed here.
+					'pro_excluded'         => [ 'type' => 'boolean' ],
 				],
 				[ 'package_file_id', 'sha256', 'steps' ]
 			),

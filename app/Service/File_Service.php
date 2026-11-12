@@ -950,25 +950,15 @@ class File_Service {
 			$detected = $summary['detected_delimiter'] ?? null;
 		} elseif ( 'xml' === $record['format'] ) {
 			// Derive all preview fields from the same fully validated document pass.
-			$rows    = [];
-			$headers = [];
-			$count   = 0;
 			try {
-				foreach ( $parser->rows( $record['path'], $settings ) as $row ) {
-					if ( ! is_array( $row ) ) {
-						return File_Store::error( 'invalid_import_rows' );
-					}
-					if ( 0 === $count ) {
-						$headers = array_keys( $row );
-					}
-					if ( $count < 5 ) {
-						$rows[] = $row;
-					}
-					++$count;
-				}
+				$columns = self::xml_columns( $parser, $record['path'], $settings );
 			} catch ( \Throwable $error ) {
 				return new \WP_Error( 'xml_parse_error', __( 'Invalid XML file', 'import-export-by-rockstarlab' ) );
 			}
+			if ( is_wp_error( $columns ) ) {
+				return $columns;
+			}
+			list( $headers, $rows, $count ) = $columns;
 		} else {
 			$rows = $parser->parse_chunk( $record['path'], 0, 5, $settings );
 			if ( is_wp_error( $rows ) ) {
@@ -1007,6 +997,60 @@ class File_Service {
 			$described['detected_delimiter'] = $detected;
 		}
 		return $described;
+	}
+
+	/**
+	 * Columns, preview rows and record count of an XML file, in one validated pass.
+	 *
+	 * Records differ (one post has a featured image or tags, the next has none, and a
+	 * WordPress export opens with its media items), so the columns are collected from
+	 * the first 50 records that are imported. Media items of a WordPress export, which
+	 * the post importer skips, are left out of the preview when there are other records,
+	 * and their own custom fields are not columns. Import wizards refer to columns by
+	 * their position in this list.
+	 *
+	 * @param object $parser   XML parser.
+	 * @param string $path     File path.
+	 * @param array  $settings Parser options.
+	 * @return array{0:string[],1:array,2:int}|\WP_Error
+	 */
+	public static function xml_columns( $parser, $path, array $settings ) {
+		$rows          = [];
+		$media         = [];
+		$headers       = [];
+		$media_headers = [];
+		$count         = 0;
+		$sampled       = 0;
+		foreach ( $parser->rows( $path, $settings ) as $row ) {
+			if ( ! is_array( $row ) ) {
+				return File_Store::error( 'invalid_import_rows' );
+			}
+			if ( 'attachment' === ( $row['wp:post_type'] ?? '' ) ) {
+				if ( count( $media ) < 5 ) {
+					$media[]        = $row;
+					$media_headers += array_fill_keys( array_keys( $row ), true );
+				}
+			} elseif ( $sampled < 50 ) {
+				++$sampled;
+				$headers += array_fill_keys( array_keys( $row ), true );
+				if ( count( $rows ) < 5 ) {
+					$rows[] = $row;
+				}
+			}
+			++$count;
+		}
+		if ( ! $rows ) {
+			$rows    = $media;
+			$headers = $media_headers;
+		} else {
+			// A Media import reads wp:attachment_url from the media items.
+			foreach ( array_keys( $media_headers ) as $column ) {
+				if ( 0 !== strpos( (string) $column, 'Meta: ' ) ) {
+					$headers += [ $column => true ];
+				}
+			}
+		}
+		return [ array_map( 'strval', array_keys( $headers ) ), $rows, $count ];
 	}
 
 	/**

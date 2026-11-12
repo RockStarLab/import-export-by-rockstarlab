@@ -168,6 +168,24 @@ class Media_Importer extends Abstract_Importer {
 	 * @return int|string|WP_Error Attachment ID, 'skipped', or WP_Error
 	 */
 	public function import_item( $item, $index ) {
+		// A WordPress export (WXR) lists posts and pages next to its media items. In a Media
+		// import they have no file and were reported as failed rows: skip them.
+		$source_type = is_array( $item ) ? (string) ( $item['_rsl_ie_source_post_type'] ?? '' ) : '';
+		if ( is_array( $item ) ) {
+			unset( $item['_rsl_ie_source_post_type'] );
+		}
+		if ( '' !== $source_type && 'attachment' !== $source_type ) {
+			$this->log_warning( sprintf( 'Row %d skipped: it is a %s of the WordPress export, not a media file. Import it with a posts or pages import.', (int) $index + 1, $source_type ) );
+			return 'skipped';
+		}
+		// Its wp:post_parent is a post ID of the other site: attach the file to the post imported
+		// from that ID (one only), or to nothing, never to whatever post has that ID here.
+		if ( 'attachment' === $source_type && isset( $item['post_parent'] ) && is_numeric( $item['post_parent'] ) && (int) $item['post_parent'] > 0 ) {
+			global $wpdb;
+			$local               = $wpdb->get_col( $wpdb->prepare( "SELECT m.post_id FROM {$wpdb->postmeta} m JOIN {$wpdb->posts} p ON p.ID = m.post_id WHERE m.meta_key = '_rsl_ie_source_post_id' AND m.meta_value = %s AND p.post_type NOT IN ('attachment','revision') AND p.post_status <> 'trash' LIMIT 2", (string) absint( $item['post_parent'] ) ) );
+			$item['post_parent'] = 1 === count( $local ) && current_user_can( 'edit_post', (int) $local[0] ) ? (int) $local[0] : 0;
+		}
+
 		// Normalize field aliases
 		$item = $this->normalize_item_fields( $item );
 

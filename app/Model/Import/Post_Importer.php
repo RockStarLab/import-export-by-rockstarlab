@@ -508,7 +508,7 @@ class Post_Importer extends Abstract_Importer {
 		// post type "attachment" in an unmapped column). Imported as posts they became empty
 		// posts named after each image. They belong in a Media import: skip them here.
 		$row_status = strtolower( trim( (string) ( $item['post_status'] ?? '' ) ) );
-		$row_type   = strtolower( trim( (string) ( $item['post_type'] ?? $item['wp:post_type'] ?? '' ) ) );
+		$row_type   = strtolower( trim( (string) ( $item['post_type'] ?? $item['wp:post_type'] ?? $item['_rsl_ie_source_post_type'] ?? '' ) ) );
 		if ( 'inherit' === $row_status || in_array( $row_type, [ 'attachment', 'revision', 'nav_menu_item' ], true ) ) {
 			$this->log_warning( sprintf( 'Row %d skipped: it is a media file or revision of the export, not a post. Import media files with a Media import.', (int) $index + 1 ) );
 			return 'skipped';
@@ -1724,6 +1724,30 @@ class Post_Importer extends Abstract_Importer {
 			return;
 		}
 
+		// Synced patterns and block terms used by the content travel in post_meta; they are
+		// not meta. Create/match them here and re-point the content's refs.
+		$patterns_key = \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::FILE_PATTERNS_KEY;
+		$terms_key    = \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::FILE_TERMS_KEY;
+		if ( array_key_exists( $patterns_key, $meta ) || array_key_exists( $terms_key, $meta ) ) {
+			$decode = static function ( $value ) {
+				if ( is_string( $value ) && '' !== $value && in_array( $value[0], [ '{', '[' ], true ) ) {
+					$decoded = json_decode( $value, true );
+					return is_array( $decoded ) ? $decoded : [];
+				}
+				return is_array( $value ) ? $value : [];
+			};
+			$pattern_ids = \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::apply_file_payload( (int) $post_id, $decode( $meta[ $patterns_key ] ?? [] ), $decode( $meta[ $terms_key ] ?? [] ) );
+			unset( $meta[ $patterns_key ], $meta[ $terms_key ] );
+			// Images inside the patterns are downloaded like the post's own content images.
+			if ( $this->get_option( 'auto_import_media', false ) ) {
+				foreach ( $pattern_ids as $pattern_id ) {
+					if ( current_user_can( 'edit_post', $pattern_id ) ) {
+						$this->auto_import_content_media( (int) $pattern_id, (string) get_post_field( 'post_content', $pattern_id, 'raw' ) );
+					}
+				}
+			}
+		}
+
 		$has_acf = function_exists( 'update_field' );
 
 		// When importing ACF fields via update_field(), ACF will manage its own
@@ -2065,6 +2089,29 @@ class Post_Importer extends Abstract_Importer {
 					}
 					continue;
 				}
+
+				// A clone shown as a group with "Prefix field names" stores the cloned field under
+				// "<clone>_<name>" but keeps the cloned field's own key. update_field() with that key
+				// wrote the value under the plain name, over the source field or another clone.
+				if ( '' !== $acf_field_key && 0 === strpos( $acf_field_key, 'field_' ) && function_exists( 'acf_get_field' ) ) {
+					$own_field = acf_get_field( $acf_field_key );
+					// The clone's own row is only a marker (empty value + reference). update_field()
+					// with an empty value made ACF delete the clone's values that were just written.
+					if ( is_array( $own_field ) && 'clone' === ( $own_field['type'] ?? '' ) && ! is_array( $value ) ) {
+						if ( ! metadata_exists( 'post', $post_id, (string) $key ) ) {
+							update_post_meta( $post_id, (string) $key, '' );
+						}
+						update_post_meta( $post_id, '_' . (string) $key, $acf_field_key );
+						continue;
+					}
+					if ( is_array( $own_field ) && ! empty( $own_field['name'] ) && (string) $own_field['name'] !== (string) $key && ! in_array( (string) ( $own_field['type'] ?? '' ), [ 'repeater', 'group', 'flexible_content', 'clone' ], true ) ) {
+						$this->update_imported_post_meta( $post_id, (string) $key, $value );
+						update_post_meta( $post_id, '_' . (string) $key, $acf_field_key );
+						$this->mark_acf_clone_parent( (int) $post_id, (string) $key );
+						continue;
+					}
+				}
+				$this->mark_acf_clone_parent( (int) $post_id, (string) $key );
 
 				// Fields shown through an ACF Clone field have a composite key (field_clone_field_x)
 				// that acf_get_field() cannot resolve on its own; update_field() then saved the value
@@ -3581,7 +3628,7 @@ class Post_Importer extends Abstract_Importer {
 			if ( function_exists( 'acf_get_field_groups' ) && function_exists( 'acf_get_fields' ) ) {
 				$groups = acf_get_field_groups();
 
-				$walk = function ( $fields ) use ( &$walk, &$index ) {
+				$walk = function ( $fields, $clone = null ) use ( &$walk, &$index ) {
 					if ( ! is_array( $fields ) ) {
 						return;
 					}
@@ -3595,12 +3642,15 @@ class Post_Importer extends Abstract_Importer {
 						if ( '' !== $name && ! isset( $index[ $name ] ) ) {
 							$index[ $name ] = $field;
 						}
+						if ( '' !== $name && null !== $clone && ! isset( self::$acf_clone_parents[ $name ] ) ) {
+							self::$acf_clone_parents[ $name ] = $clone;
+						}
 
 						$type = (string) ( $field['type'] ?? '' );
 						// Clone fields list the cloned fields as sub_fields, named the way they are
 						// stored and exported (prefixed with the clone name when prefix_name is on).
 						if ( in_array( $type, [ 'repeater', 'group', 'clone' ], true ) && ! empty( $field['sub_fields'] ) ) {
-							$walk( $field['sub_fields'] );
+							$walk( $field['sub_fields'], 'clone' === $type && null === $clone && '' !== $name && ! empty( $field['key'] ) ? [ $name, (string) $field['key'] ] : null );
 						}
 
 						if ( 'flexible_content' === $type && ! empty( $field['layouts'] ) && is_array( $field['layouts'] ) ) {
@@ -4551,6 +4601,12 @@ class Post_Importer extends Abstract_Importer {
 	 */
 	private function auto_import_content_media( $post_id, $post_content ) {
 		$children_before = $this->count_post_attachments( $post_id );
+		// Start from the saved content: steps after the insert (synced pattern refs) may have
+		// re-pointed parts of it, and saving the file's text back would undo them.
+		$saved = get_post_field( 'post_content', (int) $post_id, 'raw' );
+		if ( is_string( $saved ) && '' !== $saved ) {
+			$post_content = $saved;
+		}
 		if ( class_exists( ACF_Fields::class ) ) {
 			$resolved_content = ACF_Fields::replace_media_urls_in_html( (string) $post_content, (int) $post_id );
 			if ( is_string( $resolved_content ) && $resolved_content !== $post_content ) {
@@ -4786,6 +4842,37 @@ class Post_Importer extends Abstract_Importer {
 	 * @var bool
 	 */
 	private $unresolved_post_ref = false;
+
+	/**
+	 * Fields shown through an ACF Clone field: stored field name => [clone name, clone key].
+	 *
+	 * @var array<string,array{0:string,1:string}>
+	 */
+	private static $acf_clone_parents = [];
+
+	/**
+	 * Write the reference of the Clone field a value belongs to.
+	 *
+	 * ACF finds a clone's values through the clone's own "_<clone>" reference; without it
+	 * get_field( '<clone>' ) returns null even though the cloned values are stored.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $key     Stored field name.
+	 * @return void
+	 */
+	private function mark_acf_clone_parent( $post_id, $key ) {
+		$this->acf_runtime_find_field_by_name( (string) $key );
+		if ( empty( self::$acf_clone_parents[ $key ] ) ) {
+			return;
+		}
+		list( $clone_name, $clone_key ) = self::$acf_clone_parents[ $key ];
+		if ( get_post_meta( $post_id, '_' . $clone_name, true ) !== $clone_key ) {
+			update_post_meta( $post_id, '_' . $clone_name, $clone_key );
+		}
+		if ( ! metadata_exists( 'post', $post_id, $clone_name ) ) {
+			update_post_meta( $post_id, $clone_name, '' );
+		}
+	}
 
 	/**
 	 * Batch title lookup: one scan per batch instead of one unindexed scan per row.
