@@ -1794,7 +1794,7 @@ class Init {
 				'id'      => 'rsl-ie-help',
 				'title'   => __( 'Help', 'import-export-by-rockstarlab' ),
 				'content' =>
-					'<p>' . esc_html__( 'Need help with Content & Media Sync, Import, Export? These resources can help you get started and learn common workflows.', 'import-export-by-rockstarlab' ) . '</p>' .
+					'<p>' . esc_html__( 'Need help with Content Sync, Media Sync, Import, Export? These resources can help you get started and learn common workflows.', 'import-export-by-rockstarlab' ) . '</p>' .
 					'<ul>' .
 						'<li><a href="https://wpimportexport.com/import-export-video-tutorials-for-wordpress/#written-guides" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Documentation', 'import-export-by-rockstarlab' ) . '</a></li>' .
 						'<li><a href="https://wpimportexport.com/import-export-video-tutorials-for-wordpress/" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Video Tutorials', 'import-export-by-rockstarlab' ) . '</a></li>' .
@@ -1811,7 +1811,7 @@ class Init {
 		$admin_menu_title    = $admin_menu_settings['menu_title'];
 
 		add_menu_page(
-			__( 'Content & Media Sync, Import, Export with AI Agents Support', 'import-export-by-rockstarlab' ),
+			__( 'Content Sync, Media Sync, Import, Export with AI Agents Support', 'import-export-by-rockstarlab' ),
 			esc_html( $admin_menu_title ),
 			'manage_options',
 			'import-export-by-rockstarlab',

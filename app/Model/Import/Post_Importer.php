@@ -509,8 +509,21 @@ class Post_Importer extends Abstract_Importer {
 		// posts named after each image. They belong in a Media import: skip them here.
 		$row_status = strtolower( trim( (string) ( $item['post_status'] ?? '' ) ) );
 		$row_type   = strtolower( trim( (string) ( $item['post_type'] ?? $item['wp:post_type'] ?? $item['_rsl_ie_source_post_type'] ?? '' ) ) );
-		if ( 'inherit' === $row_status || in_array( $row_type, [ 'attachment', 'revision', 'nav_menu_item' ], true ) ) {
-			$this->log_warning( sprintf( 'Row %d skipped: it is a media file or revision of the export, not a post. Import media files with a Media import.', (int) $index + 1 ) );
+		if ( 'nav_menu_item' === $row_type ) {
+			$this->log_skip_once( 'menu', sprintf( 'Menu items of the export are skipped (first: row %d). Import menus with a Menus import.', (int) $index + 1 ) );
+			return 'skipped';
+		}
+		if ( 'inherit' === $row_status || in_array( $row_type, [ 'attachment', 'revision' ], true ) ) {
+			$this->log_skip_once( 'media', sprintf( 'Media files and revisions of the export are skipped (first: row %d). Import media files with a Media import.', (int) $index + 1 ) );
+			return 'skipped';
+		}
+		// A WordPress export mixes posts, pages and custom post types. Without a mapped post type
+		// column, a Posts import created every page as a post (and a Pages import every post as a
+		// page): keep only the items of the type being imported.
+		$wxr_type    = sanitize_key( (string) ( $item['_rsl_ie_source_post_type'] ?? '' ) );
+		$target_type = sanitize_key( (string) $this->get_option( 'post_type', 'post' ) );
+		if ( '' !== $wxr_type && ! isset( $item['post_type'] ) && '' !== $target_type && 'any' !== $target_type && $wxr_type !== $target_type ) {
+			$this->log_skip_once( 'type-' . $wxr_type, sprintf( 'Items of type "%1$s" in the WordPress export are skipped (first: row %2$d): this import creates "%3$s" items. Import them with the matching import type.', $wxr_type, (int) $index + 1, $target_type ) );
 			return 'skipped';
 		}
 
@@ -1088,6 +1101,7 @@ class Post_Importer extends Abstract_Importer {
 			$this->auto_import_content_media( $post_id, $item['post_content'] );
 		}
 
+		$this->import_wxr_comments( (int) $post_id, $item );
 		$this->restore_imported_post_modified_dates( (int) $post_id, $item );
 
 		return $post_id;
@@ -1168,6 +1182,7 @@ class Post_Importer extends Abstract_Importer {
 			$this->auto_import_content_media( $post_id, $item['post_content'] );
 		}
 
+		$this->import_wxr_comments( (int) $post_id, $item );
 		$this->restore_imported_post_modified_dates( (int) $post_id, $item );
 		if ( ! $fields_changed && empty( $item['post_modified'] ) && empty( $item['post_modified_gmt'] ) ) {
 			// Only custom fields, terms or images changed: keep the post's "Last modified" date, as WordPress does.
@@ -1417,6 +1432,11 @@ class Post_Importer extends Abstract_Importer {
 		$name    = trim( (string) ( $item['author_name'] ?? '' ) );
 		$email   = trim( (string) ( $item['author_email'] ?? '' ) );
 		$user    = '' !== $login ? get_user_by( 'login', $login ) : false;
+		// A WordPress export names the author by login; the same person may have another
+		// login here. Match by the export's author email (never creates a user).
+		if ( ! $user && '' === $email && ! empty( $item['_rsl_ie_wxr_author_email'] ) && is_email( (string) $item['_rsl_ie_wxr_author_email'] ) ) {
+			$user = get_user_by( 'email', (string) $item['_rsl_ie_wxr_author_email'] );
+		}
 		if ( ! $user && '' !== $email && is_email( $email ) ) {
 			$user = get_user_by( 'email', $email );
 			if ( ! $user && current_user_can( 'create_users' ) ) {
@@ -4842,6 +4862,77 @@ class Post_Importer extends Abstract_Importer {
 	 * @var bool
 	 */
 	private $unresolved_post_ref = false;
+
+	/**
+	 * Create the comments that a WordPress export (WXR) lists inside the imported item.
+	 *
+	 * Each comment is created once per post (source comment ID kept in comment meta), replies
+	 * keep their thread, and the status (approved, pending, spam, trash) is kept.
+	 *
+	 * @param int   $post_id Imported post.
+	 * @param array $item    Prepared row.
+	 * @return void
+	 */
+	private function import_wxr_comments( $post_id, array $item ) {
+		$comments = $item['_rsl_ie_wxr_comments'] ?? [];
+		if ( $post_id <= 0 || ! is_array( $comments ) || ! $comments || ! $this->get_option( 'import_wxr_comments', true ) || ! current_user_can( 'moderate_comments' ) ) {
+			return;
+		}
+		$existing = [];
+		foreach ( get_comments( [ 'post_id' => $post_id, 'status' => 'all', 'meta_key' => '_rsl_ie_source_comment_id', 'fields' => 'ids', 'number' => 0 ] ) as $comment_id ) { // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Per-post lookup.
+			$existing[ (string) get_comment_meta( (int) $comment_id, '_rsl_ie_source_comment_id', true ) ] = (int) $comment_id;
+		}
+		$map     = $existing;
+		$parents = [];
+		$created = 0;
+		foreach ( $comments as $c ) {
+			$source = (string) ( $c['comment_id'] ?? '' );
+			if ( '' === $source || isset( $map[ $source ] ) ) {
+				continue;
+			}
+			$status   = (string) ( $c['comment_approved'] ?? '1' );
+			$approved = in_array( $status, [ '1', 'approve', 'approved' ], true ) ? 1 : ( in_array( $status, [ 'spam', 'trash' ], true ) ? $status : 0 );
+			$user_id  = 0;
+			if ( ! empty( $c['comment_author_email'] ) ) {
+				$user    = get_user_by( 'email', (string) $c['comment_author_email'] );
+				$user_id = $user ? (int) $user->ID : 0;
+			}
+			$data = [
+				'comment_post_ID'      => $post_id,
+				'comment_author'       => (string) ( $c['comment_author'] ?? '' ),
+				'comment_author_email' => (string) ( $c['comment_author_email'] ?? '' ),
+				'comment_author_url'   => (string) ( $c['comment_author_url'] ?? '' ),
+				'comment_author_IP'    => (string) ( $c['comment_author_IP'] ?? '' ),
+				'comment_date'         => (string) ( $c['comment_date'] ?? current_time( 'mysql' ) ),
+				'comment_date_gmt'     => (string) ( $c['comment_date_gmt'] ?? get_gmt_from_date( (string) ( $c['comment_date'] ?? current_time( 'mysql' ) ) ) ),
+				'comment_content'      => (string) ( $c['comment_content'] ?? '' ),
+				'comment_approved'     => $approved,
+				'comment_type'         => in_array( (string) ( $c['comment_type'] ?? '' ), [ '', 'comment' ], true ) ? 'comment' : sanitize_key( (string) $c['comment_type'] ),
+				'comment_parent'       => 0,
+				'user_id'              => $user_id,
+			];
+			$new = wp_insert_comment( wp_slash( $data ) );
+			if ( ! $new ) {
+				continue;
+			}
+			add_comment_meta( (int) $new, '_rsl_ie_source_comment_id', $source, true );
+			$map[ $source ] = (int) $new;
+			if ( ! empty( $c['comment_parent'] ) && '0' !== (string) $c['comment_parent'] ) {
+				$parents[ (int) $new ] = (string) $c['comment_parent'];
+			}
+			++$created;
+		}
+		// Replies may come before their parent: link them once all comments exist.
+		foreach ( $parents as $comment_id => $source_parent ) {
+			if ( isset( $map[ $source_parent ] ) ) {
+				wp_update_comment( [ 'comment_ID' => $comment_id, 'comment_parent' => $map[ $source_parent ] ] );
+			}
+		}
+		if ( $created ) {
+			wp_update_comment_count( $post_id );
+			$this->log_info( sprintf( '%1$d comments of the WordPress export added to post %2$d.', $created, $post_id ) );
+		}
+	}
 
 	/**
 	 * Fields shown through an ACF Clone field: stored field name => [clone name, clone key].

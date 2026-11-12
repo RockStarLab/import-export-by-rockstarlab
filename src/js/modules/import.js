@@ -5897,22 +5897,63 @@ const ImportModule = {
 				}
 			} );
 
+			// A WordPress REST API response (/wp-json/wp/v2/posts) has title.rendered etc. Its
+			// id, link, guid, author, featured_media and term ID lists belong to the other site:
+			// mapped automatically they updated unrelated posts by ID or set wrong terms.
+			const $allCards = jQuery( '.rsl-ie-field-card' );
+			$allCards.removeClass( 'rsl-ie-rest-skip' );
+			const isRestJson = $allCards
+				.toArray()
+				.some(
+					( card ) =>
+						String( jQuery( card ).data( 'source-field' ) ) ===
+						'title.rendered'
+				);
+			if ( isRestJson ) {
+				const restSkip = [
+					'id',
+					'link',
+					'guid',
+					'guid.rendered',
+					'author',
+					'featured_media',
+					'categories',
+					'tags',
+					'template',
+					'meta',
+					'parent',
+				];
+				$allCards.each( ( i, card ) => {
+					const field = String(
+						jQuery( card ).data( 'source-field' ) || ''
+					).toLowerCase();
+					if (
+						restSkip.includes( field ) ||
+						field.startsWith( '_links' ) ||
+						field.startsWith( 'meta.' )
+					) {
+						jQuery( card ).addClass( 'rsl-ie-rest-skip' );
+					}
+				} );
+			}
+
 			// PASS 1: Map exact matches first (highest priority)
-			jQuery( '.rsl-ie-field-card' ).each( ( index, sourceCard ) => {
-				const $sourceCard = jQuery( sourceCard );
-				const sourceField = $sourceCard.data( 'source-field' );
-				const sourceIndex = $sourceCard.data( 'source-index' );
+			jQuery( '.rsl-ie-field-card:not(.rsl-ie-rest-skip)' ).each(
+				( index, sourceCard ) => {
+					const $sourceCard = jQuery( sourceCard );
+					const sourceField = $sourceCard.data( 'source-field' );
+					const sourceIndex = $sourceCard.data( 'source-index' );
 
-				if ( ! sourceField ) return;
+					if ( ! sourceField ) return;
 
-				const sourceFieldLower = sourceField.toLowerCase();
-				const $targetField = targetByName.get( sourceFieldLower );
-				if ( ! $targetField || ! $targetField.length ) return;
-				if ( $targetField.hasClass( 'has-mapping' ) ) return;
+					const sourceFieldLower = sourceField.toLowerCase();
+					const $targetField = targetByName.get( sourceFieldLower );
+					if ( ! $targetField || ! $targetField.length ) return;
+					if ( $targetField.hasClass( 'has-mapping' ) ) return;
 
-				// Mark mapping on target (UI indicator).
-				$targetField.find( '.rsl-ie-mapped-source' ).remove();
-				const mappedHtml = `
+					// Mark mapping on target (UI indicator).
+					$targetField.find( '.rsl-ie-mapped-source' ).remove();
+					const mappedHtml = `
 					<div class="rsl-ie-mapped-source">
 						<span class="rsl-ie-source-name">${ Utils.escapeHtml(
 							$sourceCard.data( 'source-field' )
@@ -5920,24 +5961,27 @@ const ImportModule = {
 						<span class="dashicons dashicons-no-alt rsl-ie-remove-mapping"></span>
 					</div>
 				`;
-				$targetField.find( '.rsl-ie-field-info' ).append( mappedHtml );
-				$targetField.addClass( 'has-mapping' );
-				$targetField.data( 'mapped-source-index', sourceIndex );
-				$targetField.data(
-					'mapped-source-field',
-					$sourceCard.data( 'source-field' )
-				);
+					$targetField
+						.find( '.rsl-ie-field-info' )
+						.append( mappedHtml );
+					$targetField.addClass( 'has-mapping' );
+					$targetField.data( 'mapped-source-index', sourceIndex );
+					$targetField.data(
+						'mapped-source-field',
+						$sourceCard.data( 'source-field' )
+					);
 
-				// Accumulate mappings for the mapped-fields section (rendered in one pass).
-				mappings.push( {
-					sourceField: $sourceCard.data( 'source-field' ),
-					sourceIndex,
-					targetField: $targetField.data( 'target-field' ),
-					fieldType: $targetField.data( 'field-type' ),
-				} );
+					// Accumulate mappings for the mapped-fields section (rendered in one pass).
+					mappings.push( {
+						sourceField: $sourceCard.data( 'source-field' ),
+						sourceIndex,
+						targetField: $targetField.data( 'target-field' ),
+						fieldType: $targetField.data( 'field-type' ),
+					} );
 
-				$sourceCard.addClass( 'used mapped' );
-			} );
+					$sourceCard.addClass( 'used mapped' );
+				}
+			);
 
 			// PASS 1.5: Map well-known column headers (WooCommerce, Shopify, generic
 			// spreadsheets) to the intended target field. This runs before fuzzy
@@ -5951,6 +5995,8 @@ const ImportModule = {
 					'product title',
 					'post title',
 					'page title',
+					// WordPress REST API responses.
+					'title.rendered',
 				],
 				// "wp:..", "content:encoded" and "dc:creator" come from WordPress export (WXR) files.
 				post_name: [ 'handle', 'permalink', 'wp:post_name' ],
@@ -5963,6 +6009,7 @@ const ImportModule = {
 					'content',
 					'html',
 					'content:encoded',
+					'content.rendered',
 				],
 				post_date: [
 					'published_at',
@@ -5974,6 +6021,7 @@ const ImportModule = {
 					'custom_excerpt',
 					'custom excerpt',
 					'excerpt:encoded',
+					'excerpt.rendered',
 				],
 				product_cat: [
 					'categories',
@@ -6208,106 +6256,104 @@ const ImportModule = {
 					}
 				} );
 			} );
-			jQuery( '.rsl-ie-field-card:not(.used)' ).each(
-				( index, sourceCard ) => {
-					const $sourceCard = jQuery( sourceCard );
-					const sourceField = $sourceCard.data( 'source-field' );
-					const sourceIndex = $sourceCard.data( 'source-index' );
-					if ( ! sourceField ) return;
+			jQuery(
+				'.rsl-ie-field-card:not(.used):not(.rsl-ie-rest-skip)'
+			).each( ( index, sourceCard ) => {
+				const $sourceCard = jQuery( sourceCard );
+				const sourceField = $sourceCard.data( 'source-field' );
+				const sourceIndex = $sourceCard.data( 'source-index' );
+				if ( ! sourceField ) return;
 
-					const normalizedSource = String( sourceField )
-						.replace( /^\uFEFF/, '' )
-						.trim()
-						.toLowerCase();
-					// Review exports from other stores and review apps use their own headers.
-					const checkedType = jQuery(
-						'input[name="content_type"]:checked'
-					).val();
-					let aliasTarget =
-						( 'woo_review' === checkedType
-							? reviewAliases[ normalizedSource ]
-							: undefined ) ||
-						( 'comment' === checkedType
-							? commentAliases[ normalizedSource ]
-							: undefined ) ||
-						aliasLookup.get( normalizedSource );
-					if ( ! aliasTarget ) {
-						const attributeMatch = normalizedSource.match(
-							/^attribute (\d+) (name|value\(s\)|visible|global)$/
-						);
-						const downloadMatch = normalizedSource.match(
-							/^download (\d+) (name|url)$/
-						);
-						if ( downloadMatch ) {
-							aliasTarget = `download_${ downloadMatch[ 1 ] }_${ downloadMatch[ 2 ] }`;
-						}
-						if ( attributeMatch ) {
-							aliasTarget = `attribute_${ attributeMatch[ 1 ] }_${
-								'value(s)' === attributeMatch[ 2 ]
-									? 'values'
-									: attributeMatch[ 2 ]
-							}`;
-						}
+				const normalizedSource = String( sourceField )
+					.replace( /^\uFEFF/, '' )
+					.trim()
+					.toLowerCase();
+				// Review exports from other stores and review apps use their own headers.
+				const checkedType = jQuery(
+					'input[name="content_type"]:checked'
+				).val();
+				let aliasTarget =
+					( 'woo_review' === checkedType
+						? reviewAliases[ normalizedSource ]
+						: undefined ) ||
+					( 'comment' === checkedType
+						? commentAliases[ normalizedSource ]
+						: undefined ) ||
+					aliasLookup.get( normalizedSource );
+				if ( ! aliasTarget ) {
+					const attributeMatch = normalizedSource.match(
+						/^attribute (\d+) (name|value\(s\)|visible|global)$/
+					);
+					const downloadMatch = normalizedSource.match(
+						/^download (\d+) (name|url)$/
+					);
+					if ( downloadMatch ) {
+						aliasTarget = `download_${ downloadMatch[ 1 ] }_${ downloadMatch[ 2 ] }`;
 					}
-					if ( ! aliasTarget ) return;
-					if ( isObjectSample( sourceIndex ) ) return;
-					// "Published" is a yes/no status in shop exports but a date in many feeds.
-					if (
-						'post_status' === aliasTarget &&
-						isDateSample( sourceIndex )
-					) {
-						aliasTarget = 'post_date';
+					if ( attributeMatch ) {
+						aliasTarget = `attribute_${ attributeMatch[ 1 ] }_${
+							'value(s)' === attributeMatch[ 2 ]
+								? 'values'
+								: attributeMatch[ 2 ]
+						}`;
 					}
+				}
+				if ( ! aliasTarget ) return;
+				if ( isObjectSample( sourceIndex ) ) return;
+				// "Published" is a yes/no status in shop exports but a date in many feeds.
+				if (
+					'post_status' === aliasTarget &&
+					isDateSample( sourceIndex )
+				) {
+					aliasTarget = 'post_date';
+				}
 
-					let $targetField = targetByName.get( aliasTarget );
-					// Terms have one image field: "Image URL" columns go there.
-					if (
-						( ! $targetField || ! $targetField.length ) &&
-						'featured_image_url' === aliasTarget
-					) {
-						$targetField = targetByName.get( 'image_url' );
-					}
-					// Blog posts have no product taxonomies: send "Categories" / "Tags"
-					// columns to the post category and tag taxonomies instead.
-					if (
-						( ! $targetField || ! $targetField.length ) &&
-						'post' ===
-							jQuery( 'input[name="content_type"]:checked' ).val()
-					) {
-						const postTaxonomy = {
-							product_cat: 'taxonomy_category',
-							product_tag: 'taxonomy_post_tag',
-						}[ aliasTarget ];
-						if ( postTaxonomy ) {
-							$targetField = targetByName.get( postTaxonomy );
-							const $taxonomyTemplate = jQuery(
-								'.rsl-ie-custom-field-template[data-field-type="taxonomy"]'
-							).first();
-							if (
-								( ! $targetField || ! $targetField.length ) &&
-								$taxonomyTemplate.length
-							) {
-								$targetField = this.addCustomFieldToGroup(
-									$taxonomyTemplate,
-									postTaxonomy,
-									'taxonomy',
-									false,
-									'name'
-								);
-								if ( $targetField && $targetField.length ) {
-									targetByName.set(
-										postTaxonomy,
-										$targetField
-									);
-								}
+				let $targetField = targetByName.get( aliasTarget );
+				// Terms have one image field: "Image URL" columns go there.
+				if (
+					( ! $targetField || ! $targetField.length ) &&
+					'featured_image_url' === aliasTarget
+				) {
+					$targetField = targetByName.get( 'image_url' );
+				}
+				// Blog posts have no product taxonomies: send "Categories" / "Tags"
+				// columns to the post category and tag taxonomies instead.
+				if (
+					( ! $targetField || ! $targetField.length ) &&
+					'post' ===
+						jQuery( 'input[name="content_type"]:checked' ).val()
+				) {
+					const postTaxonomy = {
+						product_cat: 'taxonomy_category',
+						product_tag: 'taxonomy_post_tag',
+					}[ aliasTarget ];
+					if ( postTaxonomy ) {
+						$targetField = targetByName.get( postTaxonomy );
+						const $taxonomyTemplate = jQuery(
+							'.rsl-ie-custom-field-template[data-field-type="taxonomy"]'
+						).first();
+						if (
+							( ! $targetField || ! $targetField.length ) &&
+							$taxonomyTemplate.length
+						) {
+							$targetField = this.addCustomFieldToGroup(
+								$taxonomyTemplate,
+								postTaxonomy,
+								'taxonomy',
+								false,
+								'name'
+							);
+							if ( $targetField && $targetField.length ) {
+								targetByName.set( postTaxonomy, $targetField );
 							}
 						}
 					}
-					if ( ! $targetField || ! $targetField.length ) return;
-					if ( $targetField.hasClass( 'has-mapping' ) ) return;
+				}
+				if ( ! $targetField || ! $targetField.length ) return;
+				if ( $targetField.hasClass( 'has-mapping' ) ) return;
 
-					$targetField.find( '.rsl-ie-mapped-source' ).remove();
-					const aliasMappedHtml = `
+				$targetField.find( '.rsl-ie-mapped-source' ).remove();
+				const aliasMappedHtml = `
 						<div class="rsl-ie-mapped-source">
 							<span class="rsl-ie-source-name">${ Utils.escapeHtml(
 								$sourceCard.data( 'source-field' )
@@ -6315,24 +6361,23 @@ const ImportModule = {
 							<span class="dashicons dashicons-no-alt rsl-ie-remove-mapping"></span>
 						</div>
 					`;
-					$targetField
-						.find( '.rsl-ie-field-info' )
-						.append( aliasMappedHtml );
-					$targetField.addClass( 'has-mapping' );
-					$targetField.data( 'mapped-source-index', sourceIndex );
-					$targetField.data(
-						'mapped-source-field',
-						$sourceCard.data( 'source-field' )
-					);
-					mappings.push( {
-						sourceField: $sourceCard.data( 'source-field' ),
-						sourceIndex,
-						targetField: $targetField.data( 'target-field' ),
-						fieldType: $targetField.data( 'field-type' ),
-					} );
-					$sourceCard.addClass( 'used mapped' );
-				}
-			);
+				$targetField
+					.find( '.rsl-ie-field-info' )
+					.append( aliasMappedHtml );
+				$targetField.addClass( 'has-mapping' );
+				$targetField.data( 'mapped-source-index', sourceIndex );
+				$targetField.data(
+					'mapped-source-field',
+					$sourceCard.data( 'source-field' )
+				);
+				mappings.push( {
+					sourceField: $sourceCard.data( 'source-field' ),
+					sourceIndex,
+					targetField: $targetField.data( 'target-field' ),
+					fieldType: $targetField.data( 'field-type' ),
+				} );
+				$sourceCard.addClass( 'used mapped' );
+			} );
 
 			// PASS 2: Map remaining fields with fuzzy matching
 			// In a WordPress export (WXR) file, the comment columns (wp:comment/...)
@@ -6375,73 +6420,70 @@ const ImportModule = {
 				'code',
 				'count',
 			];
-			jQuery( '.rsl-ie-field-card:not(.used):not(.rsl-ie-no-auto)' ).each(
-				( index, sourceCard ) => {
-					const $sourceCard = jQuery( sourceCard );
-					const sourceField = $sourceCard.data( 'source-field' );
-					const sourceIndex = $sourceCard.data( 'source-index' );
+			jQuery(
+				'.rsl-ie-field-card:not(.used):not(.rsl-ie-no-auto):not(.rsl-ie-rest-skip)'
+			).each( ( index, sourceCard ) => {
+				const $sourceCard = jQuery( sourceCard );
+				const sourceField = $sourceCard.data( 'source-field' );
+				const sourceIndex = $sourceCard.data( 'source-index' );
 
-					if ( ! sourceField ) return;
+				if ( ! sourceField ) return;
 
-					const sourceFieldLower = sourceField.toLowerCase();
-					let matched = false;
-					if ( isObjectSample( sourceIndex ) ) return;
+				const sourceFieldLower = sourceField.toLowerCase();
+				let matched = false;
+				if ( isObjectSample( sourceIndex ) ) return;
 
-					jQuery(
-						'.rsl-ie-target-field:not(.rsl-ie-custom-field-template)'
-					).each( ( i, targetField ) => {
-						if ( matched ) return;
+				jQuery(
+					'.rsl-ie-target-field:not(.rsl-ie-custom-field-template)'
+				).each( ( i, targetField ) => {
+					if ( matched ) return;
 
-						const $targetField = jQuery( targetField );
-						const targetFieldData =
-							$targetField.data( 'target-field' );
+					const $targetField = jQuery( targetField );
+					const targetFieldData = $targetField.data( 'target-field' );
 
-						if ( ! targetFieldData ) return;
+					if ( ! targetFieldData ) return;
 
-						// Skip already mapped target fields
-						if ( $targetField.hasClass( 'has-mapping' ) ) return;
+					// Skip already mapped target fields
+					if ( $targetField.hasClass( 'has-mapping' ) ) return;
 
-						const targetFieldValue = targetFieldData.toLowerCase();
-						const targetLabel = $targetField
-							.find( '.rsl-ie-field-label' )
-							.text()
-							.toLowerCase();
+					const targetFieldValue = targetFieldData.toLowerCase();
+					const targetLabel = $targetField
+						.find( '.rsl-ie-field-label' )
+						.text()
+						.toLowerCase();
 
-						// Fuzzy matching: label match, normalized match, or partial match
-						let matchType = null;
+					// Fuzzy matching: label match, normalized match, or partial match
+					let matchType = null;
 
-						if ( sourceFieldLower === targetLabel ) {
-							matchType = 'label';
-						} else if (
-							sourceFieldLower.replace( /_/g, ' ' ) ===
-							targetLabel
-						) {
-							matchType = 'normalized';
-						} else if (
-							sourceFieldLower.includes( targetFieldValue ) &&
-							targetFieldValue.length > 2 &&
-							// "Weight Unit" names the unit, not the weight.
-							! /\bunits?$/.test( sourceFieldLower ) &&
-							// Gallery videos are not gallery images.
-							! /video/.test( sourceFieldLower )
-						) {
-							matchType = 'partial';
-						} else if (
-							targetFieldValue.includes( sourceFieldLower ) &&
-							sourceFieldLower.length > 2 &&
-							// A bare generic word ("Status", "Type") is too vague to
-							// pick a field such as comment_status or product_type.
-							! genericHeaders.includes( sourceFieldLower )
-						) {
-							matchType = 'partial';
-						}
+					if ( sourceFieldLower === targetLabel ) {
+						matchType = 'label';
+					} else if (
+						sourceFieldLower.replace( /_/g, ' ' ) === targetLabel
+					) {
+						matchType = 'normalized';
+					} else if (
+						sourceFieldLower.includes( targetFieldValue ) &&
+						targetFieldValue.length > 2 &&
+						// "Weight Unit" names the unit, not the weight.
+						! /\bunits?$/.test( sourceFieldLower ) &&
+						// Gallery videos are not gallery images.
+						! /video/.test( sourceFieldLower )
+					) {
+						matchType = 'partial';
+					} else if (
+						targetFieldValue.includes( sourceFieldLower ) &&
+						sourceFieldLower.length > 2 &&
+						// A bare generic word ("Status", "Type") is too vague to
+						// pick a field such as comment_status or product_type.
+						! genericHeaders.includes( sourceFieldLower )
+					) {
+						matchType = 'partial';
+					}
 
-						if ( matchType ) {
-							// Mark mapping on target (UI indicator).
-							$targetField
-								.find( '.rsl-ie-mapped-source' )
-								.remove();
-							const mappedHtml = `
+					if ( matchType ) {
+						// Mark mapping on target (UI indicator).
+						$targetField.find( '.rsl-ie-mapped-source' ).remove();
+						const mappedHtml = `
 								<div class="rsl-ie-mapped-source">
 									<span class="rsl-ie-source-name">${ Utils.escapeHtml(
 										$sourceCard.data( 'source-field' )
@@ -6449,34 +6491,29 @@ const ImportModule = {
 									<span class="dashicons dashicons-no-alt rsl-ie-remove-mapping"></span>
 								</div>
 							`;
-							$targetField
-								.find( '.rsl-ie-field-info' )
-								.append( mappedHtml );
-							$targetField.addClass( 'has-mapping' );
-							$targetField.data(
-								'mapped-source-index',
-								sourceIndex
-							);
-							$targetField.data(
-								'mapped-source-field',
-								$sourceCard.data( 'source-field' )
-							);
+						$targetField
+							.find( '.rsl-ie-field-info' )
+							.append( mappedHtml );
+						$targetField.addClass( 'has-mapping' );
+						$targetField.data( 'mapped-source-index', sourceIndex );
+						$targetField.data(
+							'mapped-source-field',
+							$sourceCard.data( 'source-field' )
+						);
 
-							// Accumulate mappings for the mapped-fields section.
-							mappings.push( {
-								sourceField: $sourceCard.data( 'source-field' ),
-								sourceIndex,
-								targetField:
-									$targetField.data( 'target-field' ),
-								fieldType: $targetField.data( 'field-type' ),
-							} );
+						// Accumulate mappings for the mapped-fields section.
+						mappings.push( {
+							sourceField: $sourceCard.data( 'source-field' ),
+							sourceIndex,
+							targetField: $targetField.data( 'target-field' ),
+							fieldType: $targetField.data( 'field-type' ),
+						} );
 
-							$sourceCard.addClass( 'used mapped' );
-							matched = true;
-						}
-					} );
-				}
-			);
+						$sourceCard.addClass( 'used mapped' );
+						matched = true;
+					}
+				} );
+			} );
 
 			// Render mapped fields section in a single DOM update (much faster than
 			// appending one row per mapping).

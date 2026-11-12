@@ -629,6 +629,11 @@ class Content_Sync_API_Controller {
 			}
 		}
 
+		// Children synced earlier without their parent are attached now that it is here.
+		foreach ( $source_to_local_map as $source_id => $local_id ) {
+			\RockStarLab\ImportExport\Helper\Sync_Pending_Parents::adopt( $source_id, $local_id, $source_type_map[ $source_id ] ?? '' );
+		}
+
 		// Fix hierarchical relationships (e.g. pages) after import so we can resolve
 		// parent IDs created in the same request.
 		foreach ( $source_to_local_map as $source_id => $local_id ) {
@@ -651,8 +656,10 @@ class Content_Sync_API_Controller {
 					$local_parent_id = (int) $this->find_existing_post_by_original_id( $source_parent_id, $post_type );
 				}
 
-				// Parent not available locally - don't force reset the relationship.
+				// Parent not available locally - don't force reset the relationship. Remember it,
+				// so the child is attached when the parent is synced later.
 				if ( empty( $local_parent_id ) ) {
+					\RockStarLab\ImportExport\Helper\Sync_Pending_Parents::remember( $local_id, $source_parent_id );
 					continue;
 				}
 
@@ -666,6 +673,7 @@ class Content_Sync_API_Controller {
 			if ( ! $child_post || $child_post->post_type !== $post_type ) {
 				continue;
 			}
+			\RockStarLab\ImportExport\Helper\Sync_Pending_Parents::clear( $local_id );
 
 			if ( (int) $child_post->post_parent === (int) $local_parent_id ) {
 				continue;

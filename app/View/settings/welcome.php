@@ -15,7 +15,7 @@ $rsl_ie_pro_active     = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_acti
 
 	<h1 class="rsl-ie-welcome-title">
 		<span class="dashicons dashicons-update-alt"></span>
-		<?php esc_html_e( 'Content & Media Sync, Import, Export with AI Agents Support', 'import-export-by-rockstarlab' ); ?>
+		<?php esc_html_e( 'Content Sync, Media Sync, Import, Export with AI Agents Support', 'import-export-by-rockstarlab' ); ?>
 		<span class="rsl-ie-version-badge"><?php echo esc_html( $rsl_ie_plugin_version ); ?></span>
 	</h1>
 
@@ -29,7 +29,7 @@ $rsl_ie_pro_active     = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_acti
 					<g fill="none" stroke="url(#rsl-ie-orbit-gradient)" stroke-width="1"><ellipse cx="930" cy="240" rx="340" ry="190" opacity=".18"/><ellipse cx="930" cy="240" rx="410" ry="260" opacity=".12"/><path class="rsl-ie-agent-signal" d="M480 390C660 390 580 70 860 70S1030 390 1200 200" stroke-dasharray="4 12" opacity=".35"/></g>
 				</svg>
 				<div class="rsl-ie-agent-hero-copy">
-					<span class="rsl-ie-agent-hero-eyebrow"><?php esc_html_e( 'YOUR WORDPRESS. YOUT AI AGENT.', 'import-export-by-rockstarlab' ); ?></span>
+					<span class="rsl-ie-agent-hero-eyebrow"><?php esc_html_e( 'YOUR WORDPRESS. YOUR AI AGENT.', 'import-export-by-rockstarlab' ); ?></span>
 					<h2 id="rsl-ie-agent-hero-title"><?php esc_html_e( 'Powerful data workflows.', 'import-export-by-rockstarlab' ); ?><br><span><?php esc_html_e( 'Just ask.', 'import-export-by-rockstarlab' ); ?></span></h2>
 					<p><?php esc_html_e( 'Bring your AI agent to WordPress. Connect CodexGPT, Claude, Cursor, GitHub Copilot or Gemini CLI to import, export and sync content just by asking.', 'import-export-by-rockstarlab' ); ?></p>
 					<a class="rsl-ie-agent-hero-cta" href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-agent-connection' ) ); ?>"><?php esc_html_e( 'Connect your AI agent', 'import-export-by-rockstarlab' ); ?><span aria-hidden="true">↗</span></a>
@@ -38,7 +38,7 @@ $rsl_ie_pro_active     = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_acti
 				<div class="rsl-ie-agent-demo">
 					<div class="rsl-ie-agent-demo-bar"><span><span class="rsl-ie-agent-spark" aria-hidden="true">✳</span> <?php esc_html_e( 'AI workspace', 'import-export-by-rockstarlab' ); ?></span><span class="rsl-ie-agent-demo-label"><?php esc_html_e( 'Demo', 'import-export-by-rockstarlab' ); ?></span></div>
 					<div class="rsl-ie-agent-demo-body" aria-hidden="true">
-						<div class="rsl-ie-agent-demo-context"><span class="dashicons dashicons-wordpress-alt"></span> WordPress <span>↔</span> Import Export</div>
+						<div class="rsl-ie-agent-demo-context"><span class="dashicons dashicons-wordpress-alt"></span> WordPress <span>↔</span> <?php esc_html_e( 'Content Sync', 'import-export-by-rockstarlab' ); ?></div>
 						<div class="rsl-ie-agent-prompt"><span class="rsl-ie-agent-prompt-text"><?php esc_html_e( 'Make export of WooCommerce orders for last 24 hours into Excel.', 'import-export-by-rockstarlab' ); ?></span><span class="rsl-ie-agent-cursor">▍</span></div>
 						<div class="rsl-ie-agent-demo-reply"><span class="rsl-ie-agent-spark">✳</span><div><strong><?php esc_html_e( 'Let’s make it happen.', 'import-export-by-rockstarlab' ); ?></strong><span><?php esc_html_e( 'Understand the request. Prepare the workflow.', 'import-export-by-rockstarlab' ); ?></span><div class="rsl-ie-agent-demo-steps"><span>✓ <?php esc_html_e( 'Select data', 'import-export-by-rockstarlab' ); ?></span><span>✓ <?php esc_html_e( 'Set up job', 'import-export-by-rockstarlab' ); ?></span></div></div></div>
 						<div class="rsl-ie-agent-demo-input"><span><?php esc_html_e( 'Describe your next workflow…', 'import-export-by-rockstarlab' ); ?></span><span>↑</span></div>
@@ -55,6 +55,9 @@ $rsl_ie_pro_active     = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_acti
 			<div class="rsl-ie-welcome-panel-column-container">
 				<div class="rsl-ie-welcome-panel-column">
 					<h3><?php esc_html_e( 'Get Started', 'import-export-by-rockstarlab' ); ?></h3>
+					<a class="button button-hero button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-content-sync' ) ); ?>">
+						<?php esc_html_e( 'Sync Content Between Sites', 'import-export-by-rockstarlab' ); ?>
+					</a>
 					<a class="button button-hero button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-import' ) ); ?>">
 						<?php esc_html_e( 'Import Content', 'import-export-by-rockstarlab' ); ?>
 					</a>
@@ -67,8 +70,8 @@ $rsl_ie_pro_active     = \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_acti
 					<ul>
 						<li>
 							<span class="dashicons dashicons-networking"></span>
-							<a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-content-sync' ) ); ?>">
-								<?php esc_html_e( 'Content Sync — sync between sites', 'import-export-by-rockstarlab' ); ?>
+							<a href="<?php echo esc_url( admin_url( 'admin.php?page=rsl-ie-site-migration' ) ); ?>">
+								<?php esc_html_e( 'Content Migration — move a whole site', 'import-export-by-rockstarlab' ); ?>
 							</a>
 						</li>
 						<li>

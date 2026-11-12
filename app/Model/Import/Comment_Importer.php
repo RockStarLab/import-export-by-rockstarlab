@@ -212,6 +212,13 @@ class Comment_Importer extends Abstract_Importer {
 	 * @return int|string|WP_Error Comment ID, 'skipped', 'updated', or WP_Error
 	 */
 	public function import_item( $item, $index ) {
+		// A WordPress export (WXR) has one row per post, with that post's comments inside it.
+		// Those comments are created by the Posts/Pages import together with their post.
+		if ( is_array( $item ) && ! empty( $item['_rsl_ie_source_post_type'] ) ) {
+			$this->log_skip_once( 'wxr', 'The rows of a WordPress export are posts, with their comments inside them: they are skipped here. Import the file as Posts or Pages; their comments come along.' );
+			return 'skipped';
+		}
+
 		// Sanitize data
 		$item = $this->sanitize_item( $item );
 		if ( isset( $item['comment_approved'] ) ) {
@@ -1011,11 +1018,11 @@ class Comment_Importer extends Abstract_Importer {
 		$host   = $home_parsed['host'];
 		$port   = isset( $home_parsed['port'] ) ? ':' . (int) $home_parsed['port'] : '';
 
-		$path     = $parsed['path'] ?? '';
-		$query    = isset( $parsed['query'] ) ? '?' . $parsed['query'] : '';
-		$fragment = isset( $parsed['fragment'] ) ? '#' . $parsed['fragment'] : '';
+		// Swap only the origin. Rebuilding the path from parse_url() parts mangled UTF-8 file
+		// names (parse_url replaces some of their bytes with "_"), so such images never matched.
+		$rest = preg_replace( '#^(?:[a-z][a-z0-9+.-]*:)?//[^/?\#]*#i', '', $url );
 
-		return esc_url_raw( $scheme . '://' . $host . $port . $path . $query . $fragment );
+		return esc_url_raw( $scheme . '://' . $host . $port . $rest );
 	}
 
 	/**

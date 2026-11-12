@@ -434,6 +434,27 @@ abstract class Abstract_Importer implements Importer_Interface {
 	}
 
 	/**
+	 * Log a WordPress export skip note once per job and kind, not once per row: a WXR file
+	 * can hold hundreds of media and menu items, and one line per row buried real warnings.
+	 *
+	 * @param string $kind    Kind of skipped rows.
+	 * @param string $message Note.
+	 * @return void
+	 */
+	protected function log_skip_once( $kind, $message ) {
+		static $logged = [];
+		$key = 'rsl_ie_skip_note_' . absint( $this->job_id ) . '_' . md5( (string) $kind );
+		if ( isset( $logged[ $key ] ) || ( $this->job_id && get_transient( $key ) ) ) {
+			return;
+		}
+		$logged[ $key ] = true;
+		if ( $this->job_id ) {
+			set_transient( $key, 1, DAY_IN_SECONDS );
+		}
+		$this->log_warning( $message );
+	}
+
+	/**
 	 * Log warning message
 	 *
 	 * @param string $message Log message

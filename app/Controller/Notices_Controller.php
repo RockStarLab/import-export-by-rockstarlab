@@ -105,7 +105,7 @@ class Notices_Controller extends Base_Controller {
 		if ( $plugins ) {
 			printf(
 				'<div class="notice notice-warning"><p><strong>%s</strong> %s</p></div>',
-				esc_html__( 'Content & Media Sync, Import, Export:', 'import-export-by-rockstarlab' ),
+				esc_html__( 'Content Sync, Media Sync, Import, Export:', 'import-export-by-rockstarlab' ),
 				esc_html(
 					sprintf(
 					/* translators: %s: active multilingual plugin names. */
@@ -115,7 +115,7 @@ class Notices_Controller extends Base_Controller {
 				)
 			);
 		}
-		echo '<div id="rsl-ie-rest-warning" class="notice notice-warning" style="display:none"><p><strong>' . esc_html__( 'Content & Media Sync, Import, Export:', 'import-export-by-rockstarlab' ) . '</strong> ' . esc_html__( 'The plugin REST API is disabled or could not be reached from your browser. Content Sync and AI agent connections may not work. Check security plugins, REST API restrictions and your server configuration.', 'import-export-by-rockstarlab' ) . '</p></div>';
+		echo '<div id="rsl-ie-rest-warning" class="notice notice-warning" style="display:none"><p><strong>' . esc_html__( 'Content Sync, Media Sync, Import, Export:', 'import-export-by-rockstarlab' ) . '</strong> ' . esc_html__( 'The plugin REST API is disabled or could not be reached from your browser. Content Sync and AI agent connections may not work. Check security plugins, REST API restrictions and your server configuration.', 'import-export-by-rockstarlab' ) . '</p></div>';
 	}
 
 	/** Load the lightweight REST check and optional WordPress pointer. */
@@ -142,7 +142,7 @@ class Notices_Controller extends Base_Controller {
 				'pointer'      => $pointer,
 				'ajaxUrl'      => Ajax_Security::ajax_url(),
 				'nonce'        => wp_create_nonce( Ajax_Security::nonce_action( 'rsl_ie_dismiss_agent_pointer' ) ),
-				'content'      => '<h3>' . esc_html__( 'Connect your AI agent', 'import-export-by-rockstarlab' ) . '</h3><p>' . esc_html__( 'You can now use Claude, Codex / ChatGPT or another compatible AI agent with Content & Media Sync, Import, Export. Open Plugin Options to set up the connection.', 'import-export-by-rockstarlab' ) . '</p><p><a href="' . esc_url( admin_url( 'admin.php?page=rsl-ie-agent-connection' ) ) . '">' . esc_html__( 'Open Plugin Options', 'import-export-by-rockstarlab' ) . '</a></p>',
+				'content'      => '<h3>' . esc_html__( 'Connect your AI agent', 'import-export-by-rockstarlab' ) . '</h3><p>' . esc_html__( 'You can now use Claude, Codex / ChatGPT or another compatible AI agent with Content Sync, Media Sync, Import, Export. Open Plugin Options to set up the connection.', 'import-export-by-rockstarlab' ) . '</p><p><a href="' . esc_url( admin_url( 'admin.php?page=rsl-ie-agent-connection' ) ) . '">' . esc_html__( 'Open Plugin Options', 'import-export-by-rockstarlab' ) . '</a></p>',
 				'dismiss'      => __( 'Dismiss', 'import-export-by-rockstarlab' ),
 				'retry'        => __( 'Could not save. Try again.', 'import-export-by-rockstarlab' ),
 			]

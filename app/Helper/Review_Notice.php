@@ -151,7 +151,7 @@ class Review_Notice {
 			<div class="rsl-ie-review-notice__body">
 				<span class="rsl-ie-review-notice__rating-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
 				<h3 class="rsl-ie-review-notice__title">
-					<?php esc_html_e( 'Enjoying Content & Media Sync, Import, Export?', 'import-export-by-rockstarlab' ); ?>
+					<?php esc_html_e( 'Enjoying Content Sync, Media Sync, Import, Export?', 'import-export-by-rockstarlab' ); ?>
 				</h3>
 				<p class="rsl-ie-review-notice__text">
 					<?php esc_html_e( "You've been using the plugin for over a week — awesome! If it's been helpful, would you take 2 minutes to leave a ★★★★★ review on WordPress.org? It keeps us motivated and helps others discover the plugin. 🙏", 'import-export-by-rockstarlab' ); ?>

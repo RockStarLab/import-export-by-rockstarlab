@@ -43,7 +43,7 @@ class Media_Chunk_Store {
 	public static function reuse_attachment( $id, $md5, $scope = 'local' ) {
 		$r = self::record( $id, $scope );
 		if ( is_wp_error( $r ) ) { return $r; }
-		$attachment = ( new Media_Library_Sync_Service() )->check_file( [ 'file_hash' => $md5, 'source_attachment_id' => 0 ] );
+		$attachment = ( new Media_Library_Sync_Service() )->check_file( [ 'file_hash' => $md5, 'source_attachment_id' => 0, 'file_size' => (int) $r['size'] ] );
 		if ( is_wp_error( $attachment ) ) { return $attachment; }
 		if ( ! $attachment || $r['offset'] || $r['ready'] ) { return self::describe( $r ); }
 		$proof = ( new Media_Library_Sync_Service() )->reference_proof( $attachment, true );

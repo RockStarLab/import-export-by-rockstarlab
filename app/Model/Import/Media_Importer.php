@@ -175,7 +175,7 @@ class Media_Importer extends Abstract_Importer {
 			unset( $item['_rsl_ie_source_post_type'] );
 		}
 		if ( '' !== $source_type && 'attachment' !== $source_type ) {
-			$this->log_warning( sprintf( 'Row %d skipped: it is a %s of the WordPress export, not a media file. Import it with a posts or pages import.', (int) $index + 1, $source_type ) );
+			$this->log_skip_once( 'type-' . $source_type, sprintf( 'Items of type "%1$s" in the WordPress export are skipped (first: row %2$d): they are not media files. Import them with the matching import type.', $source_type, (int) $index + 1 ) );
 			return 'skipped';
 		}
 		// Its wp:post_parent is a post ID of the other site: attach the file to the post imported
