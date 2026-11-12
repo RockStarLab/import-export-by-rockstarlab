@@ -58,18 +58,74 @@ class Urls_Exporter extends Abstract_Exporter {
 		}
 
 		$query = new \WP_Query(
-			[
-				'post_type'              => $post_type,
-				'post_status'            => self::get_public_statuses_for_type( $post_type ),
-				'posts_per_page'         => 1,
-				'fields'                 => 'ids',
-				'no_found_rows'          => false,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-			]
+			self::post_query_args(
+				$post_type,
+				[
+					'posts_per_page' => 1,
+					'fields'         => 'ids',
+					'no_found_rows'  => false,
+				]
+			)
 		);
 
 		return (int) $query->found_posts;
+	}
+
+	/**
+	 * A published page whose permalink is this URL (url_to_postid() does not see pages that
+	 * a plugin serves as an archive, such as the WooCommerce Shop page).
+	 *
+	 * @param string $url URL.
+	 * @return int Page ID or 0.
+	 */
+	private static function page_with_url( $url ) {
+		$home = (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		if ( '' !== $home && 0 === strpos( $path, $home ) ) {
+			$path = substr( $path, strlen( $home ) );
+		}
+		$path = trim( $path, '/' );
+		$page = '' !== $path ? get_page_by_path( $path, OBJECT, 'page' ) : null;
+		return $page && 'publish' === $page->post_status && untrailingslashit( (string) get_permalink( $page ) ) === untrailingslashit( $url ) ? (int) $page->ID : 0;
+	}
+
+	/**
+	 * Query arguments shared by the count and the export, so both see the same posts.
+	 *
+	 * Sticky posts are not moved to the front: WordPress added them to every batch of the
+	 * "post" type, which listed them twice and pushed other posts out of the batch.
+	 * Elementor site settings ("kit") records have no page of their own and are left out.
+	 *
+	 * @param string $post_type Post type.
+	 * @param array  $extra     Paging arguments.
+	 * @return array
+	 */
+	private static function post_query_args( $post_type, array $extra ) {
+		$args = array_merge(
+			[
+				'post_type'              => $post_type,
+				'post_status'            => self::get_public_statuses_for_type( $post_type ),
+				'ignore_sticky_posts'    => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			],
+			$extra
+		);
+		if ( 'elementor_library' === $post_type ) {
+			$args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery -- Bounded exclusion of Elementor kits.
+				'relation' => 'OR',
+				[
+					'key'     => '_elementor_template_type',
+					'compare' => 'NOT EXISTS',
+				],
+				[
+					'key'     => '_elementor_template_type',
+					'value'   => 'kit',
+					'compare' => '!=',
+				],
+			];
+		}
+		return $args;
 	}
 
 	/**
@@ -263,17 +319,16 @@ class Urls_Exporter extends Abstract_Exporter {
 				continue;
 			}
 
-			$query_args = [
-				'post_type'              => $post_type,
-				'post_status'            => self::get_public_statuses_for_type( $post_type ),
-				'posts_per_page'         => $remaining > 0 ? $remaining : -1,
-				'offset'                 => $skip,
-				'orderby'                => 'ID',
-				'order'                  => 'ASC',
-				'no_found_rows'          => true,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-			];
+			$query_args = self::post_query_args(
+				$post_type,
+				[
+					'posts_per_page' => $remaining > 0 ? $remaining : -1,
+					'offset'         => $skip,
+					'orderby'        => 'ID',
+					'order'          => 'ASC',
+					'no_found_rows'  => true,
+				]
+			);
 
 			$query = new \WP_Query( $query_args );
 			foreach ( $query->posts as $post ) {
@@ -635,6 +690,11 @@ class Urls_Exporter extends Abstract_Exporter {
 
 		if ( 'post_type_archive' === $kind ) {
 			$url = get_post_type_archive_link( $name );
+			// WooCommerce's product archive is the Shop page, which the pages already list.
+			$page = $url ? self::page_with_url( $url ) : 0;
+			if ( $page && self::is_post_type_name_exportable( 'page' ) ) {
+				return [];
+			}
 			return $url ? [ $url ] : [];
 		}
 

@@ -1,4 +1,11 @@
-== Import Export by RockStarLab: full changelog ==
+== Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
+
+= 2.2.5 =
+* Fix: importing an exported file back into the same site with "Import media" off (the default for WP-CLI and AI agents) emptied every ACF image and file field and broke ACF galleries. Files that are already in this site's Media Library are now found by their URL without downloading anything; URL and text fields keep their URLs.
+* Fix: WP-CLI imports without --mapping and AI agent imports (import-prepare) now map the ACF columns ("acf_…") of the file, like Auto Map in the admin. Before, ACF fields were filled from the raw custom fields of the other site, with its image, post and term IDs.
+* Fix: media files with non-Latin letters in their names (for example Cyrillic) are found in the Media Library during imports instead of being downloaded again.
+* Changed: the plugin name in the WP-CLI help, Site Debug Info and the PRO addon's Freemius screens is now "Content Sync, Media Sync, Import, Export with AI Agents Support".
+* Fix: All Site URLs export listed sticky posts twice and could leave out other posts or terms of the same batch. The Shop page is listed once (WooCommerce's product archive is the same URL), and Elementor site settings records, which have no page, are left out.
 
 = 2.2.4 =
 * New: importing a WordPress export (WXR) file also creates the comments of each post and page, with replies in their threads, their status (approved, pending, spam) and pingbacks/trackbacks. A second import adds no duplicates.
