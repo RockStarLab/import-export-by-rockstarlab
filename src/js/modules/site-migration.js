@@ -508,6 +508,16 @@ const SiteMigration = {
 					)
 				);
 			}
+			if ( prepared.pro_excluded ) {
+				jQuery( '.rsl-ie-migration-file-info' ).append(
+					jQuery( '<div>', {
+						class: 'rsl-ie-package-activity',
+						role: 'status',
+					} ).text(
+						'Some content in this package (for example menus, users, categories or custom post types) needs the PRO addon with an active license. It is skipped; posts, pages, media and comments can be imported.'
+					)
+				);
+			}
 			this.contentContext = null;
 			this.updateMode();
 		} catch ( error ) {
@@ -936,7 +946,7 @@ const SiteMigration = {
 		if ( failed > 0 ) {
 			text += `. ${ failed } media ${
 				failed === 1 ? 'file' : 'files'
-			} could not be downloaded from the source site; see Jobs Log`;
+			} could not be imported (missing on the source site, or a file type this site does not accept, such as SVG); see Jobs Log`;
 		}
 		return text + '.';
 	},

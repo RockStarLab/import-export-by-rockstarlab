@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: ai, export, import, abilities, mcp
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.2.1
+Stable tag: 2.2.2
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -282,6 +282,26 @@ Use the Media Folder Sync feature with duplicate detection. Choose from three me
 Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys and sync supported core content in free, with expanded custom content workflows available through the optional PRO addon. Choose between Pull (import from remote) or Push (send to remote) operations.
 
 == Changelog ==
+
+= 2.2.2 =
+* Security: serialized PHP objects in import data are no longer turned into objects (PHP object injection through post meta, ACF, SEO and Elementor values).
+* Security: a media import row with a local file path can only use files from allowed import folders. Before, any readable server file could be copied into the Media Library.
+* Fixed: PRO Content Updater and ACF: see Import Export PRO 2.1.21; the shared ACF importer now keeps relationship, post object, taxonomy and user values (also from spreadsheet cells: slugs, titles, term names, logins) and ACF Clone fields.
+* Fixed: importing the plugin's own CSV or Excel export kept no custom fields (ACF, Elementor data, SEO meta), because the post_meta column was ignored.
+* Fixed: ACF on import, migration and sync. Re-importing an unchanged ACF value no longer writes the source site's IDs over it. Linked images inside WYSIWYG fields are re-hosted. [gallery] IDs inside ACF HTML point to the right images. A "Replace links" rule no longer empties ACF images. Relationship and Post Object values on users, terms, comments, media, products and menus are kept, also inside repeaters, groups and flexible content.
+* Fixed: an export no longer removes other plugins' database query filters for the rest of the request (ACF's field lookup among them).
+* Fixed: CSV files with Mac line endings, blank lines or a blank line above the header; Excel and LibreOffice dates, formulas, empty top rows and the table on a second sheet; JSON Lines and other JSON shapes; deeply wrapped XML records and XML attributes; files with the wrong extension.
+* Fixed: post import. Authors given by login, email or name; Unix timestamps; update by slug finds drafts; parent given by slug, path or title; untitled posts from a full export; update files with no title column no longer create empty posts.
+* Fixed: WordPress export (WXR) files. Media items, revisions and menu items in the file are skipped with a note instead of becoming empty posts.
+* Fixed: comment import dates, duplicate spam/trash comments on re-import, media "Attached Post Title".
+* Fixed: number filters in Filter Rows compare numbers ("$25.50", "1,234.5", "12,5 €").
+* Fixed: Content Sync. Backslashes and CSS variables in content are kept; empty block attributes stay {}; links keep the other site's port and path on pull; a featured image that could not be sent no longer leaves a foreign ID; SVGs are not duplicated on round trips; images and SVG icons inside Elementor repeaters (Icon List, slides, carousels) are sent; synced patterns, navigation menus and Query Loop / Latest Posts categories are carried and re-pointed, with the images inside patterns.
+* Fixed: Content Sync speed. Media capabilities are negotiated once per sync, and new images no longer cost one request per thumbnail size.
+* Fixed: Content Migration. Site migration carries ACF values portably; a package with PRO content opens on a site without a PRO license (those parts are skipped with a note); a media file the site does not accept (such as SVG) no longer stops the whole migration.
+* Fixed: Media Library sync in list view sends the rows you tick.
+* Fixed: export. Comment type filter, parent page filter, stable order of items with the same date, large JSON/XML/Excel exports no longer run out of memory, the Jobs Log shows the real export duration.
+* Fixed: admin. "[object Object]" error notices; an error on the ACF Categories/Tags screens; empty browser tab titles on some plugin screens; a "-1-day free trial" banner on sites that skipped opt-in.
+* Fixed: Content Sync dialog. The success message stays on screen (no more empty dialog with only its title); a push from the block editor no longer reloads the editor; posts synced before (also drafts) show "Update" instead of "Create New Post".
 
 = 2.2.1 =
 * New: importing taxonomy terms (PRO) has a Taxonomy option in step 5, for example Product categories. Rows of a file without a taxonomy column are imported into it, so a plain spreadsheet with names, descriptions and images can update WooCommerce product categories. Needs Import Export PRO 2.1.20.

@@ -257,8 +257,8 @@ class Export_Service {
 			if ( is_wp_error( $request ) ) {
 				return $request;
 			}
-			// CSV is written row by row from the spool; other formats still need every row at once.
-			$all_data = 'csv' === $request['format'] && $bytes > 0 ? $this->spool_rows( $job_id, $bytes ) : $this->read_spool( $job_id, $bytes );
+			// CSV and JSON are written row by row from the spool; XML and spreadsheets still need every row at once.
+			$all_data = in_array( $request['format'], [ 'csv', 'json' ], true ) && $bytes > 0 ? $this->spool_rows( $job_id, $bytes ) : $this->read_spool( $job_id, $bytes );
 			if ( is_wp_error( $all_data ) ) {
 				return $all_data;
 			}
@@ -320,20 +320,30 @@ class Export_Service {
 	 */
 	private function read_spool( $job_id, $bytes ) {
 		$path = $this->spool_path( $job_id );
-		$raw  = file_get_contents( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Local generated spool, never a caller-supplied path.
-		if ( false === $raw || strlen( $raw ) !== $bytes ) {
+		// Read line by line: loading the whole spool as one string (and then a split copy of
+		// it) needed three times the spool size and ran out of memory on large exports.
+		if ( ! is_file( $path ) || filesize( $path ) !== (int) $bytes ) {
+			return $this->io_error();
+		}
+		$handle = fopen( $path, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Local generated spool, never a caller-supplied path.
+		if ( ! $handle ) {
 			return $this->io_error();
 		}
 		$data = [];
-		foreach ( explode( "\n", rtrim( $raw, "\n" ) ) as $line ) {
-			if ( '' === $line ) {
-				continue;
+		try {
+			while ( false !== ( $line = fgets( $handle ) ) ) { // phpcs:ignore WordPress.CodeAnalysis.AssignmentInCondition
+				$line = rtrim( $line, "\n" );
+				if ( '' === $line ) {
+					continue;
+				}
+				$row = json_decode( $line, true );
+				if ( ! is_array( $row ) || JSON_ERROR_NONE !== json_last_error() ) {
+					return $this->io_error();
+				}
+				$data[] = $row;
 			}
-			$row = json_decode( $line, true );
-			if ( ! is_array( $row ) || JSON_ERROR_NONE !== json_last_error() ) {
-				return $this->io_error();
-			}
-			$data[] = $row;
+		} finally {
+			fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Close the spool.
 		}
 		return $data;
 	}

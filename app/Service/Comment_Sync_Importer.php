@@ -187,7 +187,7 @@ class Comment_Sync_Importer {
 		$ids = get_comments(
 			[
 				'post_id'    => $post,
-				'status'     => 'all',
+				'status'     => 'any',
 				'number'     => 1,
 				'fields'     => 'ids',
 				'meta_key'   => '_rsl_ie_original_comment_id',

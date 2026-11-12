@@ -246,6 +246,22 @@ class Media_Importer extends Abstract_Importer {
 			$item['mime_type'] = $item['post_mime_type'];
 		}
 
+		// "Attached to" given as a post title or slug (Attached Post Title column, or a
+		// non-numeric parent): attach to that post when exactly one post matches.
+		$parent_ref = '';
+		if ( isset( $item['post_parent'] ) && is_scalar( $item['post_parent'] ) && '' !== trim( (string) $item['post_parent'] ) && ! is_numeric( trim( (string) $item['post_parent'] ) ) ) {
+			$parent_ref = trim( (string) $item['post_parent'] );
+		} elseif ( empty( $item['post_parent'] ) && isset( $item['attached_post_title'] ) && is_scalar( $item['attached_post_title'] ) ) {
+			$parent_ref = trim( (string) $item['attached_post_title'] );
+		}
+		if ( '' !== $parent_ref ) {
+			global $wpdb;
+			$ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Exact title/slug match, at most two rows.
+				$wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE ( post_title = %s OR post_name = %s ) AND post_type NOT IN ('attachment','revision','nav_menu_item') AND post_status NOT IN ('trash','auto-draft','inherit') ORDER BY ID ASC LIMIT 2", $parent_ref, sanitize_title( $parent_ref ) )
+			);
+			$item['post_parent'] = ( 1 === count( $ids ) && current_user_can( 'edit_post', (int) $ids[0] ) ) ? (int) $ids[0] : 0;
+		}
+
 		return $item;
 	}
 
@@ -437,6 +453,39 @@ class Media_Importer extends Abstract_Importer {
 	}
 
 	/**
+	 * Whether a local path is inside the uploads folder or the plugin's private storage.
+	 *
+	 * @param string $file_path Path from the import row.
+	 * @return bool
+	 */
+	public static function is_allowed_local_path( $file_path ) {
+		if ( '' === $file_path || false !== strpos( $file_path, "\0" ) || preg_match( '#^[a-z][a-z0-9+.-]*://#i', $file_path ) ) {
+			return false;
+		}
+		$real = realpath( $file_path );
+		if ( ! $real || ! is_file( $real ) ) {
+			return true; // Missing files get the normal "File not found" error.
+		}
+		$real  = wp_normalize_path( $real );
+		$roots = [];
+		$up    = wp_upload_dir( null, false );
+		if ( ! empty( $up['basedir'] ) ) {
+			$roots[] = realpath( $up['basedir'] );
+		}
+		$private = \RockStarLab\ImportExport\Service\File_Store::root();
+		if ( is_string( $private ) ) {
+			$roots[] = realpath( $private );
+		}
+		foreach ( array_filter( $roots ) as $root ) {
+			$root = trailingslashit( wp_normalize_path( $root ) );
+			if ( 0 === strpos( $real, $root ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Import media from local file path
 	 *
 	 * @param string $file_path File path
@@ -444,6 +493,12 @@ class Media_Importer extends Abstract_Importer {
 	 * @return int|WP_Error Attachment ID or WP_Error
 	 */
 	private function import_from_path( $file_path, $item ) {
+		// A row must not pull arbitrary server files (wp-config backups, other sites, /tmp)
+		// into the public Media Library: only files under uploads or the plugin's private storage.
+		if ( ! self::is_allowed_local_path( (string) $file_path ) ) {
+			// translators: %s is a dynamic value.
+			return new \WP_Error( 'file_not_allowed', sprintf( __( 'Local files can be imported only from the uploads folder: %s', 'import-export-by-rockstarlab' ), wp_basename( (string) $file_path ) ) );
+		}
 		if ( ! file_exists( $file_path ) ) {
 			// translators: %s is a dynamic value.
 			return new \WP_Error( 'file_not_found', sprintf( __( 'File not found: %s', 'import-export-by-rockstarlab' ), $file_path ) );
@@ -640,7 +695,7 @@ class Media_Importer extends Abstract_Importer {
 
 		// Update post if we have any fields to update
 		if ( count( $post_data ) > 1 ) {
-			wp_update_post( $post_data );
+			wp_update_post( wp_slash( $post_data ) );
 		}
 
 		// Set alt text

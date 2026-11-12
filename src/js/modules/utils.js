@@ -504,8 +504,49 @@ const Utils = {
 	 * @param {string} context Error context
 	 */
 	handleError( error, context = '' ) {
-		const message = error.message || error.toString();
-		this.showNotice( message, 'error' );
+		this.showNotice( this.errorText( error ), 'error' );
+	},
+
+	/**
+	 * Readable text for an Error, a jQuery XHR failure or a WordPress JSON error.
+	 * (A failed jQuery.ajax() rejects with the XHR object, which used to show "[object Object]".)
+	 *
+	 * @param {*} error Error value.
+	 * @returns {string} Message.
+	 */
+	errorText( error ) {
+		if ( ! error ) {
+			return 'Unknown error';
+		}
+		if ( typeof error === 'string' ) {
+			return error;
+		}
+		const json = error.responseJSON;
+		const candidates = [
+			error instanceof Error ? error.message : '',
+			json && json.data && typeof json.data === 'object'
+				? json.data.message
+				: '',
+			json && typeof json.data === 'string' ? json.data : '',
+			json ? json.message : '',
+			typeof error.message === 'string' ? error.message : '',
+			error.data && typeof error.data === 'object'
+				? error.data.message
+				: '',
+			typeof error.data === 'string' ? error.data : '',
+		];
+		for ( const candidate of candidates ) {
+			if ( typeof candidate === 'string' && candidate.trim() ) {
+				return candidate;
+			}
+		}
+		if ( typeof error.status === 'number' && error.status > 0 ) {
+			return `Request failed (HTTP ${ error.status }${
+				error.statusText ? ' ' + error.statusText : ''
+			}).`;
+		}
+		const text = String( error );
+		return '[object Object]' === text ? 'Unknown error' : text;
 	},
 
 	/**

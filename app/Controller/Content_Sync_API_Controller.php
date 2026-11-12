@@ -304,9 +304,28 @@ class Content_Sync_API_Controller {
 		$source_type_map     = array();
 		$product_post_ids    = array();
 
+		// Synced patterns used by these posts arrive with them (newer senders); create them here
+		// and point the posts' <!-- wp:block {"ref":N} --> at the local copies.
+		$synced_patterns = $request->get_param( 'synced_patterns' );
+		if ( is_array( $synced_patterns ) && ! empty( $image_map ) ) {
+			// Image URLs inside the patterns point at the uploaded copies, like post content below.
+			foreach ( $synced_patterns as &$synced_pattern ) {
+				if ( is_array( $synced_pattern ) && isset( $synced_pattern['content'] ) && is_string( $synced_pattern['content'] ) ) {
+					$synced_pattern['content'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content( $synced_pattern['content'], (array) $image_map, (array) $image_sources );
+				}
+			}
+			unset( $synced_pattern );
+		}
+		$pattern_map = \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::import( $synced_patterns );
+		$block_terms = \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::import_terms( $request->get_param( 'block_terms' ) );
+
 		foreach ( $posts_data as $post_data ) {
 			$source_post_id = $post_data['ID'];
 			$target_post_id = null;
+			if ( ( $pattern_map || $block_terms ) && isset( $post_data['post_content'] ) ) {
+				$post_data['post_content'] = \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::apply( $post_data['post_content'], $pattern_map );
+				$post_data['post_content'] = \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::apply_terms( $post_data['post_content'], $block_terms );
+			}
 
 			// Check post mapping
 			if ( array_key_exists( $source_post_id, $post_mapping ) ) {
@@ -373,11 +392,11 @@ class Content_Sync_API_Controller {
 				$existing_post = get_post( $target_post_id );
 				if ( $existing_post ) {
 					$post_args['ID'] = $target_post_id;
-					$post_id         = wp_update_post( $post_args );
+					$post_id         = wp_update_post( wp_slash( $post_args ) );
 					$is_update       = true;
 				} else {
 					// Mapped ID doesn't exist, create new post
-					$post_id = wp_insert_post( $post_args );
+					$post_id = wp_insert_post( wp_slash( $post_args ) );
 
 					// Store original ID for future sync operations
 					if ( ! is_wp_error( $post_id ) && $post_id ) {
@@ -387,7 +406,7 @@ class Content_Sync_API_Controller {
 				}
 			} else {
 				// Create new post (no mapping or mapped to "new")
-				$post_id = wp_insert_post( $post_args );
+				$post_id = wp_insert_post( wp_slash( $post_args ) );
 
 				// Store original ID for future sync operations
 				if ( ! is_wp_error( $post_id ) && $post_id ) {
@@ -435,9 +454,11 @@ class Content_Sync_API_Controller {
 				// Update post content if URLs were fixed
 				if ( $new_content !== $post_content ) {
 					wp_update_post(
-						array(
-							'ID'           => $post_id,
-							'post_content' => $new_content,
+						wp_slash(
+							array(
+								'ID'           => $post_id,
+								'post_content' => $new_content,
+							)
 						)
 					);
 				}
@@ -1414,10 +1435,10 @@ class Content_Sync_API_Controller {
 			if ( $existing_id ) {
 				$args['comment_ID'] = $existing_id;
 				// wp_update_comment() returns 0 when nothing changed; that is still a match.
-				$updated   = wp_update_comment( $args, true );
+				$updated   = wp_update_comment( wp_slash( $args ), true );
 				$result_id = ( false === $updated || is_wp_error( $updated ) ) ? 0 : $existing_id;
 			} else {
-				$result_id = wp_insert_comment( $args );
+				$result_id = wp_insert_comment( wp_slash( $args ) );
 			}
 
 			if ( ! $result_id || is_wp_error( $result_id ) ) {
@@ -1439,7 +1460,7 @@ class Content_Sync_API_Controller {
 					if ( '_rsl_ie_original_comment_id' === $key ) {
 						continue;
 					}
-					update_comment_meta( $result_id, sanitize_key( $key ), $this->resolve_synced_media_references( $value, 0 ) );
+					update_comment_meta( $result_id, sanitize_key( $key ), wp_slash( $this->resolve_synced_media_references( $value, 0 ) ) );
 				}
 			}
 		}
@@ -1638,8 +1659,10 @@ class Content_Sync_API_Controller {
 					count( $posts_data )
 				),
 				'data'    => array(
-					'posts'  => $posts_data,
-					'images' => array_values( $all_images ),
+					'posts'           => $posts_data,
+					'images'          => array_values( $all_images ),
+					'synced_patterns' => \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::collect( $posts_data ),
+					'block_terms'     => \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::collect_terms( $posts_data ),
 				),
 			),
 			200
@@ -1880,6 +1903,9 @@ class Content_Sync_API_Controller {
 				'post_parent'    => $post->post_parent,
 				'menu_order'     => $post->menu_order,
 				'children_count' => $this->count_children( $post->ID, $post->post_type ),
+				// The post ID on the site it was pushed from: lets that site show "Update"
+				// for its earlier pushes in the mapping dialog.
+				'original_id'    => (int) get_post_meta( $post->ID, '_rsl_ie_original_post_id', true ),
 			);
 
 			$posts_list[] = $post_data;
@@ -2872,12 +2898,12 @@ class Content_Sync_API_Controller {
 
 		$existing_term = get_term_by( 'slug', sanitize_title( (string) $term_info['slug'] ), $taxonomy );
 		if ( $existing_term ) {
-			wp_update_term( (int) $existing_term->term_id, $taxonomy, $args );
+			wp_update_term( (int) $existing_term->term_id, $taxonomy, wp_slash( $args ) );
 			return (int) $existing_term->term_id;
 		}
 
 		$args['slug'] = sanitize_title( (string) $term_info['slug'] );
-		$new_term     = wp_insert_term( sanitize_text_field( (string) $term_info['name'] ), $taxonomy, $args );
+		$new_term     = wp_insert_term( wp_slash( sanitize_text_field( (string) $term_info['name'] ) ), $taxonomy, wp_slash( $args ) );
 		if ( is_wp_error( $new_term ) || empty( $new_term['term_id'] ) ) {
 			return 0;
 		}

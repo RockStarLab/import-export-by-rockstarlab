@@ -282,7 +282,7 @@ class Elementor_Fields {
 			}
 
 			if ( is_serialized( $value ) ) {
-				$value = maybe_unserialize( $value );
+				$value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $value );
 			} elseif ( '{' === $value[0] || '[' === $value[0] ) {
 				$decoded = json_decode( $value, true );
 				if ( JSON_ERROR_NONE === json_last_error() ) {
@@ -332,6 +332,22 @@ class Elementor_Fields {
 				if ( $attachment_id > 0 ) {
 					$url = wp_get_attachment_url( $attachment_id );
 					return $url ? $url : $value;
+				}
+			}
+			// HTML from Text Editor / HTML widgets: <img src> and srcset pointing to the
+			// source site are imported and re-pointed like image widgets (they used to stay
+			// linked to the old site).
+			if ( false !== strpos( $value, '<' ) && preg_match_all( '#(?:src|href)\s*=\s*["\']([^"\']+)["\']#i', $value, $found ) ) {
+				foreach ( array_unique( $found[1] ) as $media_url ) {
+					$plain = html_entity_decode( $media_url );
+					if ( self::is_local_wp_asset_url( $plain ) || ! self::looks_like_media_url( $plain ) ) {
+						continue;
+					}
+					$attachment_id = self::import_media_from_url( $plain, $post_id );
+					$local         = $attachment_id > 0 ? wp_get_attachment_url( $attachment_id ) : '';
+					if ( $local ) {
+						$value = str_replace( $media_url, esc_url( $local ), $value );
+					}
 				}
 			}
 			return $value;

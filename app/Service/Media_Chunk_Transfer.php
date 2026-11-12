@@ -23,6 +23,11 @@ class Media_Chunk_Transfer {
 			$deadline = microtime( true ) + 180;
 			do {
 				$next = $driver->advance( (int) $site['id'], $fingerprint, $request, $selection, $state );
+				if ( is_wp_error( $next ) && 'rsl_ie_media_library_connection_busy' === $next->get_error_code() && microtime( true ) + 2 < $deadline ) {
+					// Another transfer holds the other site's media lock: retry the same step.
+					sleep( 1 );
+					continue;
+				}
 				if ( is_wp_error( $next ) ) {
 					$next->add_data( [ 'status' => $next->get_error_data()['status'] ?? 502, 'result' => $result, 'source_id' => $id ] );
 					return $next;

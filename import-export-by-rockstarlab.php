@@ -3,7 +3,7 @@
 	Plugin Name:                Import Export by RockStarLab
 	Plugin URI:                 https://profiles.wordpress.org/rockstarlab/
 	Description:                Import, export, and sync WordPress content between sites with CSV, XML, XLSX, ODS, JSON, jobs, media tools, and AI URL import.
-	Version:                    2.2.1
+	Version:                    2.2.2
 	Requires at least:          6.2
 	Requires PHP:               7.4
 	Author:                     RockstarLab
@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) or exit;
 define( 'RSL_IE_FILE', __FILE__ );
 define( 'RSL_IE_PATH', trailingslashit( plugin_dir_path( RSL_IE_FILE ) ) );
 define( 'RSL_IE_URL', plugins_url( '/', RSL_IE_FILE ) );
-define( 'RSL_IE_VERSION', '2.2.1' );
+define( 'RSL_IE_VERSION', '2.2.2' );
 
 // Composer autoloader (required for bundled third-party libraries).
 if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
@@ -98,6 +98,27 @@ if ( ! function_exists( 'rsl_ie_fs' ) ) {
 			}
 			return $url;
 		}
+	);
+
+	// The trial banner needs the plan data Freemius loads after opt-in. On a site that
+	// skipped opt-in the SDK can still remember an old "has trial" flag and would print
+	// "a -1-day free trial", so the banner is shown to opted-in sites only.
+	rsl_ie_fs()->add_filter(
+		'show_trial',
+		function ( $show ) {
+			return $show && rsl_ie_fs()->is_registered();
+		}
+	);
+	// A banner saved before this check stays until dismissed: drop it on such sites.
+	add_action(
+		'admin_init',
+		function () {
+			$fs = rsl_ie_fs();
+			if ( ! $fs->is_registered() && $fs->is_in_trial_promotion() ) {
+				$fs->remove_sticky( 'trial_promotion' );
+			}
+		},
+		5
 	);
 
 	// Signal that SDK was initiated.

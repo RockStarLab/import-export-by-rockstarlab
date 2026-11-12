@@ -16,17 +16,41 @@
 		}
 
 		// Use the actual HTTP endpoint: internal REST dispatch misses firewall rules.
-		$.ajax({
-			url: config.restUrl,
-			dataType: 'json',
-			timeout: 10000,
-			headers: { 'X-WP-Nonce': config.restNonce },
-		}).done(function (data) {
-			showRestWarning(!data || data.namespace !== 'rsl-ie/v1' ||
-				!data.routes || !data.routes['/rsl-ie/v1/info']);
-		}).fail(function () {
-			showRestWarning(true);
-		});
+		// A passing check is remembered for 10 minutes in this tab, so not every admin page
+		// load makes an extra request. global:false keeps this request out of jQuery's global
+		// ajax events: other plugins' ajaxComplete handlers (ACF on term screens) expect
+		// settings.data and threw "Cannot read properties of undefined (reading 'indexOf')".
+		const cacheKey = 'rslIeRestOk:' + config.restUrl;
+		let cachedOk = false;
+		try {
+			cachedOk = Date.now() - Number(window.sessionStorage.getItem(cacheKey) || 0) < 600000;
+		} catch (e) {
+			cachedOk = false;
+		}
+		if (cachedOk) {
+			showRestWarning(false);
+		} else {
+			$.ajax({
+				url: config.restUrl,
+				dataType: 'json',
+				timeout: 10000,
+				global: false,
+				headers: { 'X-WP-Nonce': config.restNonce },
+			}).done(function (data) {
+				const failed = !data || data.namespace !== 'rsl-ie/v1' ||
+					!data.routes || !data.routes['/rsl-ie/v1/info'];
+				showRestWarning(failed);
+				if (!failed) {
+					try {
+						window.sessionStorage.setItem(cacheKey, String(Date.now()));
+					} catch (e) {
+						// Storage unavailable: check again on the next page.
+					}
+				}
+			}).fail(function () {
+				showRestWarning(true);
+			});
+		}
 
 		if (!config.pointer || !$.fn.pointer) return;
 		target.pointer({

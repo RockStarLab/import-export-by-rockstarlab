@@ -79,7 +79,7 @@ class Spreadsheet_Spool {
 				$reader        = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile( $request['file_path'] );
 				$build['xlsx'] = $reader instanceof \PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 				if ( $build['xlsx'] ) {
-					$build['map']           = \RockStarLab\ImportExport\Model\Format\XLSX_Part_Map::resolve( $parts );
+					$build['map']           = \RockStarLab\ImportExport\Model\Format\XLSX_Part_Map::resolve( $parts, \RockStarLab\ImportExport\Model\Format\XLSX_Part_Map::data_sheet_index( $parts ) );
 					$build['members']       = array_values( array_filter( [ $build['map']['worksheet'], $build['map']['strings'] ] ) );
 					$build['after_extract'] = null === $build['map']['strings'] ? 'cells' : 'strings';
 				} elseif ( $reader instanceof \PhpOffice\PhpSpreadsheet\Reader\Ods ) {

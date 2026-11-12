@@ -281,7 +281,10 @@ class XML_Format implements File_Format_Interface {
 			return new \WP_Error( 'xml_parse_error', __( 'Cannot parse XML item.', 'import-export-by-rockstarlab' ) );
 		}
 
-		if ( $flat ) {
+		// The plugin's own <items><item> files have no attributes. Other files that use the same
+		// names (<item id="7">, <price currency="USD">9</price>) are read like feeds: a JSON copy
+		// would give an "@attributes" column and drop the text of elements that have attributes.
+		if ( $flat || $element->xpath( 'descendant-or-self::*[@*]' ) ) {
 			return $this->flatten_element( $element );
 		}
 
@@ -343,6 +346,7 @@ class XML_Format implements File_Format_Interface {
 		$level1   = array();
 		$level2   = array();
 		$parents  = array();
+		$deep     = array();
 		$seen     = 0;
 		try {
 			if ( ! $reader->open( $file_path, null, LIBXML_NONET | LIBXML_COMPACT | LIBXML_PARSEHUGE ) ) {
@@ -365,6 +369,12 @@ class XML_Format implements File_Format_Interface {
 				} elseif ( 2 === $reader->depth ) {
 					$name            = $parents[1] . '>' . $reader->name;
 					$level2[ $name ] = ( $level2[ $name ] ?? 0 ) + 1;
+					$parents[2]      = $reader->name;
+				} elseif ( $reader->depth <= 8 ) {
+					// Records wrapped in several single elements (<a><b><c><records><record>).
+					$parents[ $reader->depth ] = $reader->name;
+					$name                      = $parents[ $reader->depth - 1 ] . '>' . $reader->name;
+					$deep[ $reader->depth ][ $name ] = ( $deep[ $reader->depth ][ $name ] ?? 0 ) + 1;
 				}
 			}
 		} finally {
@@ -404,6 +414,18 @@ class XML_Format implements File_Format_Interface {
 				if ( $score > $choice[2] ) {
 					$choice = array( $wrapper, $child, $score );
 				}
+			}
+		}
+		if ( '' !== $choice[1] && $choice[2] >= 2 ) {
+			return array( $root, $choice[1] );
+		}
+		// Nothing repeats in the first two levels: use the shallowest repeated element below.
+		ksort( $deep );
+		foreach ( $deep as $paths ) {
+			arsort( $paths );
+			if ( reset( $paths ) >= 2 ) {
+				$path = (string) key( $paths );
+				return array( $root, substr( $path, strpos( $path, '>' ) + 1 ) );
 			}
 		}
 		if ( '' !== $choice[1] ) {
@@ -577,6 +599,13 @@ class XML_Format implements File_Format_Interface {
 
 		foreach ( $value as $key => $child_value ) {
 			$value[ $key ] = $this->normalize_xml_values( $child_value );
+		}
+
+		// generate() writes list items as <field_0>, <field_1>…: read them back as a list,
+		// so ["red","green"] round-trips as a list and not as {"field_0":"red",…}.
+		$keys = array_keys( $value );
+		if ( $keys && $keys === array_map( static function ( $i ) { return 'field_' . $i; }, range( 0, count( $keys ) - 1 ) ) ) {
+			return array_values( $value );
 		}
 
 		return $value;

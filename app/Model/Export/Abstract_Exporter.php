@@ -67,10 +67,11 @@ abstract class Abstract_Exporter implements Exporter_Interface {
 	 * @return array|WP_Error Export results or WP_Error
 	 */
 	public function export( $options = [] ) {
-		$this->stats['start_time'] = microtime( true );
-		$this->options             = wp_parse_args( $options, $this->get_default_options() );
-		$this->source_row_count    = null;
+		$this->options          = wp_parse_args( $options, $this->get_default_options() );
+		$this->source_row_count = null;
 		$this->reset_stats();
+		// After reset_stats(), which zeroes the clock (the log said "completed in 1794459523 seconds").
+		$this->stats['start_time'] = microtime( true );
 
 		// Validate options first
 		$validation = $this->validate_options( $this->options );

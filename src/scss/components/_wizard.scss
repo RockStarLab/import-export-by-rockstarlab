@@ -1236,7 +1236,10 @@
 
 .rsl-ie-row-filter-row {
 	display: grid;
-	grid-template-columns: minmax(160px, 1fr) minmax(170px, auto) minmax(160px, 1fr) auto;
+	grid-template-columns: minmax(160px, 1fr) minmax(170px, auto) minmax(
+			160px,
+			1fr
+		) auto;
 	gap: 10px;
 	align-items: center;
 

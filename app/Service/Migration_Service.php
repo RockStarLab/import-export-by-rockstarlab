@@ -79,6 +79,30 @@ class Migration_Service {
 	}
 
 	/**
+	 * Add portable acf_<name> columns to post-like steps.
+	 *
+	 * The raw post_meta column carries this site's attachment, post and term IDs. Groups, nested
+	 * taxonomy fields and references were lost or pointed at unrelated objects on the destination;
+	 * the portable columns carry URLs, slugs and term names like a normal export.
+	 *
+	 * @param array $step Plan leaf.
+	 * @return array
+	 */
+	private static function with_portable_acf_fields( array $step ) {
+		$fields = (array) $step['fields'];
+		if ( ! in_array( $step['type'], [ 'post', 'page', 'custom_post_types' ], true ) || ! function_exists( 'acf_get_field_groups' ) || ! class_exists( '\\RockStarLab\\ImportExport\\Helper\\ACF_Fields' ) ) {
+			return $fields;
+		}
+		$post_type = (string) ( $step['post_type'] ?? $step['type'] );
+		foreach ( \RockStarLab\ImportExport\Helper\ACF_Fields::get_fields_for_content_type( $post_type ) as $field ) {
+			if ( ! empty( $field['name'] ) ) {
+				$fields[] = 'acf_' . $field['name'];
+			}
+		}
+		return array_values( array_unique( $fields ) );
+	}
+
+	/**
 	 * Resolve unique selected leaves and freeze their server-owned export requests.
 	 *
 	 * @param array $input Validated start input.
@@ -108,7 +132,7 @@ class Migration_Service {
 				'export_type'    => $step['type'],
 				'format'         => 'json',
 				'options'        => $options,
-				'fields'         => $step['fields'],
+				'fields'         => self::with_portable_acf_fields( $step ),
 				'format_options' => [ 'json_pretty_print' => 1 ],
 			];
 			if ( isset( $step['taxonomy'] ) ) {

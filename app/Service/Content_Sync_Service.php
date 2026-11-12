@@ -1614,6 +1614,20 @@ class Content_Sync_Service {
 			}
 		}
 
+		// Synced patterns travel with the posts. Their images were uploaded with the post images
+		// (Content_Sync_Media::extract_post_images), so links and IDs are translated the same way.
+		$synced_patterns = Sync_Synced_Patterns::collect( $posts_data );
+		foreach ( $synced_patterns as &$synced_pattern ) {
+			$synced_pattern['content'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_post_domains(
+				array( 'post_content' => $synced_pattern['content'] ),
+				$source_domain,
+				$target_domain,
+				$image_map,
+				$image_sources
+			)['post_content'];
+		}
+		unset( $synced_pattern );
+
 		// Send to remote site.
 		$response = \RockStarLab\ImportExport\Helper\Remote_API::post(
 			$site['remote_url'],
@@ -1629,10 +1643,12 @@ class Content_Sync_Service {
 						'post_type',
 						$input['post_type'] ?? '',
 						array(
-							'posts'         => $posts_data,
-							'image_map'     => $image_map,
-							'image_sources' => $image_sources,
-							'post_mapping'  => $post_mapping,
+							'posts'           => $posts_data,
+							'image_map'       => $image_map,
+							'image_sources'   => $image_sources,
+							'post_mapping'    => $post_mapping,
+							'synced_patterns' => $synced_patterns,
+							'block_terms'     => Sync_Synced_Patterns::collect_terms( $posts_data ),
 						// translators: %s = content placeholder.
 						) + ( isset( $input['author_mapping'] ) ? [ 'author_mapping' => $input['author_mapping'] ] : [] ) + ( isset( $input['comment_user_mapping'] ) ? [ 'comment_user_mapping' => $input['comment_user_mapping'] ] : [] ) + ( isset( $input['acf_user_mapping'] ) ? [ 'acf_user_mapping' => $input['acf_user_mapping'] ] : [] ) + ( isset( $input['acf_term_mapping'] ) ? [ 'acf_term_mapping' => $input['acf_term_mapping'] ] : [] ) + ( isset( $input['acf_post_mapping'] ) ? [ 'acf_post_mapping' => $input['acf_post_mapping'] ] : [] ) + ( array_key_exists( 'woo_product_mapping', $input ) ? [ 'woo_product_mapping' => $input['woo_product_mapping'] ] : [] ) + ( ! empty( $input['acf_media_references'] ) ? [ 'acf_media_version' => 1 ] : [] ),
 						$input
@@ -1986,6 +2002,31 @@ class Content_Sync_Service {
 	}
 
 	/**
+	 * Whether a WooCommerce product meta key belongs to the receiving store.
+	 *
+	 * Sales counts, ratings and stock already tracked on the receiving store are
+	 * its own live data, so a sync never replaces them with the sender's values.
+	 *
+	 * @param int    $post_id Target post ID.
+	 * @param string $key     Meta key.
+	 * @return bool
+	 */
+	private function is_target_owned_product_meta( $post_id, $key ) {
+		if ( ! in_array( $key, array( 'total_sales', '_wc_average_rating', '_wc_review_count', '_wc_rating_count', '_stock', '_stock_status' ), true )
+			|| ! in_array( get_post_type( $post_id ), array( 'product', 'product_variation' ), true ) ) {
+			return false;
+		}
+		if ( '_stock' === $key ) {
+			$current = get_post_meta( $post_id, '_stock', true );
+			return 'yes' === get_post_meta( $post_id, '_manage_stock', true ) && '' !== (string) $current;
+		}
+		if ( '_stock_status' === $key ) {
+			return metadata_exists( 'post', $post_id, '_stock_status' );
+		}
+		return true;
+	}
+
+	/**
 	 * Save synced post meta with special handling for generated/builder metadata.
 	 *
 	 * @param int    $post_id Post ID.
@@ -1994,6 +2035,11 @@ class Content_Sync_Service {
 	 * @return void
 	 */
 	public function save_synced_post_meta( $post_id, $key, $value ) {
+		// Live inventory, sales counts and ratings belong to the receiving store.
+		if ( $this->is_target_owned_product_meta( (int) $post_id, (string) $key ) ) {
+			return;
+		}
+
 		if ( $this->should_skip_synced_meta_key( $key ) ) {
 			delete_post_meta( $post_id, $key );
 			return;
@@ -2115,8 +2161,10 @@ class Content_Sync_Service {
 		}
 
 		// Get domains for replacement.
-		$source_domain = wp_parse_url( $site['remote_url'], PHP_URL_HOST );
-		$target_domain = wp_parse_url( Site_URL::current_request_site_url(), PHP_URL_HOST );
+		// Full site URLs like push: host-only replacement kept the remote port and sub-directory
+		// (http://remote:8080/blog/page -> http://local:8080/blog/page).
+		$source_domain = untrailingslashit( (string) $site['remote_url'] );
+		$target_domain = untrailingslashit( (string) Site_URL::current_request_site_url() );
 
 			// Request content from remote site.
 			$response = \RockStarLab\ImportExport\Helper\Remote_API::post(
@@ -2171,7 +2219,6 @@ class Content_Sync_Service {
 			$this->fail_content_sync_job( $job_id, __( 'No posts found on remote site', 'import-export-by-rockstarlab' ) );
 			return $this->error( __( 'No posts found on remote site', 'import-export-by-rockstarlab' ) );
 		}
-
 		if ( $this->free_scope ) {
 			$access = $this->policy_class::remote_posts( $posts_data, array_map( 'intval', $post_ids ), $this->input['post_type'] );
 			if ( is_wp_error( $access ) ) {
@@ -2320,6 +2367,34 @@ class Content_Sync_Service {
 		}
 		unset( $post_data ); // Break the reference to avoid bugs in the next foreach loop.
 
+		// Synced patterns the pulled posts use (newer remote sites send them). Imported after the
+		// images so their links and image IDs are translated like the posts' own content.
+		$synced_patterns = $data['data']['synced_patterns'] ?? null;
+		if ( is_array( $synced_patterns ) ) {
+			foreach ( $synced_patterns as &$synced_pattern ) {
+				if ( is_array( $synced_pattern ) && isset( $synced_pattern['content'] ) && is_string( $synced_pattern['content'] ) ) {
+					$synced_pattern['content'] = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_post_domains(
+						array( 'post_content' => $synced_pattern['content'] ),
+						$source_domain,
+						$target_domain,
+						$image_map,
+						$remote_images
+					)['post_content'];
+				}
+			}
+			unset( $synced_pattern );
+		}
+		$pattern_map = Sync_Synced_Patterns::import( $synced_patterns );
+		$block_terms = Sync_Synced_Patterns::import_terms( $data['data']['block_terms'] ?? null );
+		if ( $pattern_map || $block_terms ) {
+			foreach ( $posts_data as &$pattern_post ) {
+				if ( is_array( $pattern_post ) && isset( $pattern_post['post_content'] ) ) {
+					$pattern_post['post_content'] = Sync_Synced_Patterns::apply_terms( Sync_Synced_Patterns::apply( $pattern_post['post_content'], $pattern_map ), $block_terms );
+				}
+			}
+			unset( $pattern_post );
+		}
+
 		// Import posts.
 		$imported_count           = 0;
 		$updated_count            = 0;
@@ -2396,13 +2471,13 @@ class Content_Sync_Service {
 			if ( $local_post_id ) {
 				// Update existing post.
 				$post_args['ID'] = $local_post_id;
-				$post_id         = wp_update_post( $post_args, true ); // true to get WP_Error on failure.
+				$post_id         = wp_update_post( wp_slash( $post_args ), true ); // Slashed: WordPress strips one level (\_/, \u002d in block attributes).
 				if ( ! is_wp_error( $post_id ) && $post_id ) {
 					++$updated_count;
 				}
 			} else {
 				// Create new post.
-				$post_id = wp_insert_post( $post_args, true ); // true to get WP_Error on failure.
+				$post_id = wp_insert_post( wp_slash( $post_args ), true ); // Slashed: WordPress strips one level.
 				if ( ! is_wp_error( $post_id ) && $post_id ) {
 					++$imported_count;
 				}
@@ -2577,9 +2652,11 @@ class Content_Sync_Service {
 			if ( $updated_content !== $post_data['post_content'] ) {
 
 				$update_result = wp_update_post(
-					array(
-						'ID'           => $post_id,
-						'post_content' => $updated_content,
+					wp_slash(
+						array(
+							'ID'           => $post_id,
+							'post_content' => $updated_content,
+						)
 					),
 					true
 				);
@@ -2937,10 +3014,10 @@ class Content_Sync_Service {
 			if ( $existing_id ) {
 				$args['comment_ID'] = $existing_id;
 				// wp_update_comment() returns 0 when nothing changed; that is still a match.
-				$updated   = wp_update_comment( $args, true );
+				$updated   = wp_update_comment( wp_slash( $args ), true );
 				$result_id = ( false === $updated || is_wp_error( $updated ) ) ? 0 : $existing_id;
 			} else {
-				$result_id = wp_insert_comment( $args );
+				$result_id = wp_insert_comment( wp_slash( $args ) );
 			}
 
 			if ( ! $result_id || is_wp_error( $result_id ) ) {
@@ -2962,7 +3039,7 @@ class Content_Sync_Service {
 					if ( '_rsl_ie_original_comment_id' === $key ) {
 						continue;
 					}
-					update_comment_meta( $result_id, sanitize_key( $key ), $this->resolve_synced_media_references( $value, 0 ) );
+					update_comment_meta( $result_id, sanitize_key( $key ), wp_slash( $this->resolve_synced_media_references( $value, 0 ) ) );
 				}
 			}
 		}
@@ -2983,7 +3060,7 @@ class Content_Sync_Service {
 		$candidates = get_comments(
 			array(
 				'post_id'      => $post_id,
-				'status'       => 'all',
+				'status'       => 'any',
 				'type'         => '' !== $args['comment_type'] ? $args['comment_type'] : 'comment',
 				'author_email' => $args['comment_author_email'],
 			)
@@ -3009,7 +3086,7 @@ class Content_Sync_Service {
 		$comments = get_comments(
 			array(
 				'post_id'    => (int) $post_id,
-				'status'     => 'all',
+				'status'     => 'any',
 				'number'     => 1,
 				'meta_key'   => '_rsl_ie_original_comment_id', // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source comment lookup for sync mapping.
 				'meta_value' => (int) $source_comment_id, // phpcs:ignore WordPress.DB.SlowDBQuery -- Exact source comment lookup for sync mapping.
@@ -3682,12 +3759,12 @@ class Content_Sync_Service {
 
 		$existing_term = get_term_by( 'slug', sanitize_title( (string) $term_info['slug'] ), $taxonomy );
 		if ( $existing_term ) {
-			wp_update_term( (int) $existing_term->term_id, $taxonomy, $args );
+			wp_update_term( (int) $existing_term->term_id, $taxonomy, wp_slash( $args ) );
 			return (int) $existing_term->term_id;
 		}
 
 		$args['slug'] = sanitize_title( (string) $term_info['slug'] );
-		$new_term     = wp_insert_term( sanitize_text_field( (string) $term_info['name'] ), $taxonomy, $args );
+		$new_term     = wp_insert_term( wp_slash( sanitize_text_field( (string) $term_info['name'] ) ), $taxonomy, wp_slash( $args ) );
 		if ( is_wp_error( $new_term ) || empty( $new_term['term_id'] ) ) {
 			return 0;
 		}
@@ -3735,7 +3812,7 @@ class Content_Sync_Service {
 			}
 		}
 
-		$updated = wp_update_term( $local_term_id, $taxonomy, $args );
+		$updated = wp_update_term( $local_term_id, $taxonomy, wp_slash( $args ) );
 		if ( is_wp_error( $updated ) ) {
 			return 0;
 		}

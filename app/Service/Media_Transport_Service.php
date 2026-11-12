@@ -342,8 +342,10 @@ class Media_Transport_Service {
 			return $this->error( 'forbidden', 403 ); }
 		$acf    = $image['acf'] ?? [];
 		$fields = array_column( \RockStarLab\ImportExport\Helper\ACF_Fields::get_fields_for_content_type( 'media' ), 'name' );
-		if ( ! is_array( $acf ) || array_diff( array_keys( $acf ), $fields ) ) {
+		if ( ! is_array( $acf ) || preg_grep( '/^_|[^A-Za-z0-9_-]/', array_map( 'strval', array_keys( $acf ) ) ) ) {
 			return $this->error( 'unknown_acf_fields', 400 ); }
+		// Fields this site does not have for media are skipped instead of failing the pull.
+		$image['acf'] = array_intersect_key( $acf, array_flip( $fields ) );
 		foreach ( [ $image['attachment_id'] ?? 0, $image['source_origin_attachment_id'] ?? 0 ] as $source ) {
 			if ( $source > 0 ) {
 				$map[ $source ] = (int) $id; }

@@ -462,7 +462,12 @@ class Comment_Exporter extends Abstract_Exporter {
 		}
 
 		if ( ! empty( $options['_rsl_ie_free_comment_scope'] ) ) {
-			$args['type__in']  = [ 'comment', 'pingback', 'trackback' ];
+			// WP_Comment_Query merges "type" into "type__in", so a chosen type (only comments,
+			// only pingbacks) was silently widened to all three.
+			$allowed          = [ 'comment', 'pingback', 'trackback' ];
+			$chosen           = array_values( array_intersect( (array) ( $args['type'] ?? [] ), $allowed ) );
+			$args['type__in'] = $chosen ? $chosen : $allowed;
+			unset( $args['type'] );
 			$args['post_type'] = [ 'post', 'page' ];
 		}
 		return $args;

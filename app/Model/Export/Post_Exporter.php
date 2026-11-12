@@ -280,6 +280,26 @@ class Post_Exporter extends Abstract_Exporter {
 	}
 
 	/**
+	 * Default columns plus one acf_<name> column per ACF field of the post type.
+	 *
+	 * @param string $post_type Post type being exported.
+	 * @return string[]
+	 */
+	public function default_fields_with_acf( $post_type ) {
+		$fields = $this->get_default_fields();
+		if ( ! class_exists( '\\RockStarLab\\ImportExport\\Helper\\ACF_Fields' ) || ! function_exists( 'acf_get_field_groups' ) ) {
+			return $fields;
+		}
+		$post_type = '' === $post_type || 'any' === $post_type ? 'post' : $post_type;
+		foreach ( \RockStarLab\ImportExport\Helper\ACF_Fields::get_fields_for_content_type( $post_type ) as $field ) {
+			if ( ! empty( $field['name'] ) ) {
+				$fields[] = 'acf_' . $field['name'];
+			}
+		}
+		return array_values( array_unique( $fields ) );
+	}
+
+	/**
 	 * Get total count of items
 	 *
 	 * @param array $options Optional. Export filters
@@ -397,8 +417,7 @@ class Post_Exporter extends Abstract_Exporter {
 		$query = new \WP_Query( $query_args );
 
 		// Remove the filters after query
-		remove_all_filters( 'posts_join', 10 );
-		remove_all_filters( 'posts_where', 10 );
+		\RockStarLab\ImportExport\Helper\Query_Filter_Cleanup::remove_own_closures( __FILE__ );
 
 		return $query->found_posts;
 	}
@@ -488,19 +507,21 @@ class Post_Exporter extends Abstract_Exporter {
 		$query = new \WP_Query( $query_args );
 
 		// Remove the filters after query
-		remove_all_filters( 'posts_join', 10 );
-		remove_all_filters( 'posts_where', 10 );
+		\RockStarLab\ImportExport\Helper\Query_Filter_Cleanup::remove_own_closures( __FILE__ );
 
 		if ( ! $query->have_posts() ) {
 			return [];
 		}
 
 		$data   = [];
-		$fields = $options['fields'] ?? $this->get_option( 'fields', $this->get_default_fields() );
+		$fields = $options['fields'] ?? $this->get_option( 'fields', [] );
 
-		// If fields is empty array, use default fields
-		if ( empty( $fields ) ) {
-			$fields = $this->get_default_fields();
+		// If fields is empty array, use default fields. ACF fields are added as portable
+		// acf_* columns: inside post_meta they keep this site's media/post/term IDs, which
+		// point to nothing (or to the wrong items) on another site.
+		if ( empty( $fields ) || $fields === $this->get_default_fields() ) {
+			$fields                  = $this->default_fields_with_acf( (string) ( $options['post_type'] ?? $this->get_option( 'post_type', 'post' ) ) );
+			$this->options['fields'] = $fields;
 		}
 
 		// Force include ID when another workflow needs stable item identity.
@@ -745,6 +766,12 @@ class Post_Exporter extends Abstract_Exporter {
 			'suppress_filters'    => true,
 		];
 
+		// Rows with the same date (bulk-created posts, coupons) came back in a different order
+		// in different batches/previews; the ID keeps the order stable.
+		if ( is_string( $args['orderby'] ) && in_array( $args['orderby'], [ 'date', 'modified', 'title', 'menu_order', 'name' ], true ) ) {
+			$args['orderby'] = [ $args['orderby'] => $args['order'], 'ID' => $args['order'] ];
+		}
+
 		// When querying products, exclude variations (child post_type = product_variation)
 		if ( $post_type === 'product' ) {
 			$args['post_parent'] = 0; // Only top-level products, no variations
@@ -758,6 +785,12 @@ class Post_Exporter extends Abstract_Exporter {
 		// Search query
 		if ( ! empty( $options['s'] ) ) {
 			$args['s'] = $options['s'];
+		}
+
+		// Children of one parent (the export schema accepts options.post_parent; it was ignored
+		// and every page was exported). Products keep their own top-level rule above.
+		if ( ! empty( $options['post_parent'] ) && absint( $options['post_parent'] ) > 0 && 'product' !== $post_type ) {
+			$args['post_parent'] = absint( $options['post_parent'] );
 		}
 
 		// Date query

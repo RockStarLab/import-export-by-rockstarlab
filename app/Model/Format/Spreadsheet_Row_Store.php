@@ -89,8 +89,25 @@ class Spreadsheet_Row_Store {
 		return $values;
 	}
 
+	/** @var int|null Number of the header row: the first row with a value (blank rows above it are skipped). */
+	private $header_row = null;
+
+	private function header_row() {
+		if ( null === $this->header_row ) {
+			$this->header_row = 1;
+			foreach ( $this->stored_rows( $this->directory, '', 0 ) as $row ) {
+				foreach ( $this->row( $row ) as $value ) {
+					if ( '' !== trim( (string) $value ) ) {
+						$this->header_row = $row;
+						break 2; }
+				}
+			}
+		}
+		return $this->header_row;
+	}
+
 	public function headers( $has_header = true ) {
-		return $has_header ? $this->row( 1 ) : array_map(
+		return $has_header ? $this->row( $this->header_row() ) : array_map(
 			static function ( $column ) {
 				return 'Column ' . $column;
 			},
@@ -101,7 +118,7 @@ class Spreadsheet_Row_Store {
 	public function rows( $has_header = true, $after = 0, $include_empty = false ) {
 		$headers = $this->headers( $has_header );
 		foreach ( $this->stored_rows( $this->directory, '', $after ) as $row ) {
-			if ( $has_header && 1 === $row ) {
+			if ( $has_header && $row <= $this->header_row() ) {
 				continue; }
 			$values = $this->row( $row );
 			$empty  = true;

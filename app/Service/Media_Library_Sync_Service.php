@@ -767,8 +767,8 @@ class Media_Library_Sync_Service {
 							if ( $existing && $content_sync && ! $recovered ) {
 								$before_metadata = wp_get_attachment_metadata( $id );
 								$size_filter     = $this->image_size_filter();
-								add_filter( 'intermediate_image_sizes_advanced', $size_filter, PHP_INT_MAX );
-								add_filter( 'wp_get_missing_image_subsizes', $size_filter, PHP_INT_MAX );
+								add_filter( 'intermediate_image_sizes_advanced', $size_filter, PHP_INT_MAX, 2 );
+								add_filter( 'wp_get_missing_image_subsizes', $size_filter, PHP_INT_MAX, 2 );
 								try {
 									\RockStarLab\ImportExport\Helper\Content_Sync_Media::ensure_image_sizes( $id );
 								} finally {
@@ -804,7 +804,7 @@ class Media_Library_Sync_Service {
 	}
 
 	/** Shared metadata rules for inline and staged media receivers. */
-	private function validate_received_metadata( array $item, array $fields ) {
+	private function validate_received_metadata( array &$item, array $fields ) {
 		$name = sanitize_file_name( $item['file_name'] );
 		if ( '' === $name || $name !== $item['file_name'] || ! wp_check_filetype( $name, Sync_SVG::mimes() )['type'] ) {
 			return $this->error( 'invalid_file_type', 400 ); }
@@ -815,8 +815,13 @@ class Media_Library_Sync_Service {
 		if ( isset( $item['source_origin_attachment_id'] ) && ( ! is_scalar( $item['source_origin_attachment_id'] ) || ! ctype_digit( (string) $item['source_origin_attachment_id'] ) ) ) {
 			return $this->error( 'invalid_payload', 400 ); }
 		$acf = $item['acf'] ?? [];
-		if ( ! is_array( $acf ) || array_diff( array_keys( $acf ), $fields ) ) {
+		if ( ! is_array( $acf ) || preg_grep( '/^_|[^A-Za-z0-9_-]/', array_map( 'strval', array_keys( $acf ) ) ) ) {
 			return $this->error( 'unknown_acf_fields', 400 ); }
+		// ACF fields that this site does not have for media are left out. Rejecting the
+		// whole file used to fail every content sync that included such an image.
+		if ( isset( $item['acf'] ) ) {
+			$item['acf'] = array_intersect_key( $acf, array_flip( $fields ) );
+		}
 		return true;
 	}
 
@@ -868,6 +873,9 @@ class Media_Library_Sync_Service {
 			}
 			foreach ( array_unique( $candidates ) as $id ) {
 				$match = $this->candidate( (int) $id, $algorithm, $digest, $expected_size );
+				if ( ! is_wp_error( $match ) && ! $match ) {
+					$match = $this->sanitized_svg_candidate( (int) $id, $algorithm, $digest );
+				}
 				if ( is_wp_error( $match ) || $match ) {
 					return $match; }
 				$excluded[] = (int) $id;
@@ -976,6 +984,33 @@ class Media_Library_Sync_Service {
 	}
 
 	/** Reproduce the installed SVG upload filters on a disposable copy. */
+	/**
+	 * The original SVG of a file this site sent earlier, coming back sanitized.
+	 *
+	 * Receivers sanitize SVGs (the XML declaration and unsafe parts are removed), so a pull of
+	 * content that was pushed from here returns different bytes and every icon/logo was added
+	 * to the library again on each round trip. Compare against this file's sanitized form.
+	 *
+	 * @param int    $id        Local attachment that the other site says is the origin.
+	 * @param string $algorithm md5 or sha256.
+	 * @param string $digest    Digest of the incoming bytes.
+	 * @return int|false|\WP_Error
+	 */
+	private function sanitized_svg_candidate( $id, $algorithm, $digest ) {
+		if ( 'attachment' !== get_post_type( $id ) || 'image/svg+xml' !== get_post_mime_type( $id ) ) {
+			return false;
+		}
+		$path = get_attached_file( $id );
+		if ( ! $path || ! is_file( $path ) ) {
+			return false;
+		}
+		$sanitized = $this->sanitized_svg( $path, basename( $path ) );
+		if ( ! is_string( $sanitized ) || ! hash_equals( strtolower( (string) $digest ), hash( 'sha256' === $algorithm ? 'sha256' : 'md5', $sanitized ) ) ) {
+			return false;
+		}
+		return $this->candidate( $id, 'sha256', (string) hash_file( 'sha256', $path ), filesize( $path ) );
+	}
+
 	private function sanitized_svg( $path, $name ) {
 		if ( 'svg' !== strtolower( pathinfo( $name, PATHINFO_EXTENSION ) ) || ! is_file( $path ) ) { return false; }
 		require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -1067,14 +1102,16 @@ class Media_Library_Sync_Service {
 			if ( empty( $type['type'] ) ) {
 				return $this->error( 'invalid_file_type', 400 ); }
 			$id = wp_insert_attachment(
-				[
+				wp_slash(
+					[
 					'post_name'      => 'rsl-ie-' . $transfer_id,
 					'post_title'     => sanitize_text_field( $item['title'] ?? '' ),
 					'post_excerpt'   => wp_kses_post( $item['caption'] ?? '' ),
 					'post_content'   => wp_kses_post( $item['description'] ?? '' ),
 					'post_mime_type' => $type['type'],
 					'guid'           => trailingslashit( $uploads['baseurl'] ) . substr( $path, strlen( trailingslashit( $base ) ) ),
-				],
+					]
+				),
 				$path,
 				0,
 				true
@@ -1108,8 +1145,8 @@ class Media_Library_Sync_Service {
 			require_once ABSPATH . 'wp-admin/includes/image.php';
 			$before_sizes = wp_get_missing_image_subsizes( $id );
 			$size_filter  = $this->image_size_filter();
-			add_filter( 'intermediate_image_sizes_advanced', $size_filter, PHP_INT_MAX );
-			add_filter( 'wp_get_missing_image_subsizes', $size_filter, PHP_INT_MAX );
+			add_filter( 'intermediate_image_sizes_advanced', $size_filter, PHP_INT_MAX, 2 );
+			add_filter( 'wp_get_missing_image_subsizes', $size_filter, PHP_INT_MAX, 2 );
 			try {
 				$saved_metadata = wp_get_attachment_metadata( $id );
 				$metadata       = wp_attachment_is_image( $id ) && is_array( $saved_metadata ) && ! empty( $saved_metadata['file'] )
@@ -1180,8 +1217,8 @@ class Media_Library_Sync_Service {
 		add_filter( 'upload_mimes', $mime_filter );
 		add_filter( 'pre_move_uploaded_file', $journal_move, PHP_INT_MAX, 3 );
 		$size_filter = $this->image_size_filter();
-		add_filter( 'intermediate_image_sizes_advanced', $size_filter, PHP_INT_MAX );
-		add_filter( 'wp_get_missing_image_subsizes', $size_filter, PHP_INT_MAX );
+		add_filter( 'intermediate_image_sizes_advanced', $size_filter, PHP_INT_MAX, 2 );
+		add_filter( 'wp_get_missing_image_subsizes', $size_filter, PHP_INT_MAX, 2 );
 		try {
 			$id = media_handle_sideload(
 				[
@@ -1210,11 +1247,34 @@ class Media_Library_Sync_Service {
 		return (int) $id;
 	}
 
-	/** WordPress persists every generated size; the next request asks for missing sizes. */
+	/**
+	 * WordPress persists every generated size; the next request asks for missing sizes.
+	 *
+	 * Bounded requests used to make exactly one size each: an image with 10 theme sizes needed
+	 * 10 extra round trips (about 1 s each even locally). The batch now scales with the image:
+	 * small images finish in one request, very large ones still make one size per request.
+	 */
 	private function image_size_filter() {
-		return function ( $sizes ) {
-			return $this->bounded_metadata ? array_slice( $sizes, 0, 1, true ) : $sizes;
+		return function ( $sizes, $image_meta = [] ) {
+			if ( ! $this->bounded_metadata || ! is_array( $sizes ) ) {
+				return $sizes;
+			}
+			return array_slice( $sizes, 0, self::sizes_per_request( $image_meta ), true );
 		};
+	}
+
+	/**
+	 * How many sub-sizes one bounded request may generate (about 24 megapixel-resizes).
+	 *
+	 * @param mixed $image_meta Attachment metadata with width/height.
+	 * @return int
+	 */
+	public static function sizes_per_request( $image_meta ) {
+		$pixels = is_array( $image_meta ) ? (int) ( $image_meta['width'] ?? 0 ) * (int) ( $image_meta['height'] ?? 0 ) : 0;
+		if ( $pixels <= 0 ) {
+			return 1;
+		}
+		return max( 1, min( 50, (int) floor( 24000000 / $pixels ) ) );
 	}
 
 	private function pending_image_sizes( $id ) {
@@ -1282,6 +1342,22 @@ class Media_Library_Sync_Service {
 
 	/** Verify the connected peer before starting a resumable media transfer. */
 	public function negotiate_chunks( $site_id, $direction, $fingerprint ) {
+		// One answer per connection and run: asking again before every image added a full
+		// WordPress request (about a second) per file to every content sync.
+		static $negotiated = [];
+		$cache_key = (int) $site_id . '|' . $direction . '|' . $fingerprint;
+		if ( isset( $negotiated[ $cache_key ] ) ) {
+			return $negotiated[ $cache_key ];
+		}
+		$result = $this->negotiate_chunks_uncached( $site_id, $direction, $fingerprint );
+		if ( ! is_wp_error( $result ) ) {
+			$negotiated[ $cache_key ] = $result;
+		}
+		return $result;
+	}
+
+	/** Ask the peer for its chunk contract. */
+	private function negotiate_chunks_uncached( $site_id, $direction, $fingerprint ) {
 		$data = $this->chunk_request( $site_id, $direction, $fingerprint, [ 'action' => 'capabilities' ] );
 		if ( is_wp_error( $data ) ) {
 			return $data; }
@@ -1355,6 +1431,9 @@ class Media_Library_Sync_Service {
 			if ( 200 !== (int) wp_remote_retrieve_response_code( $response ) && is_array( $data ) && 'rsl_ie_media_library_file_unavailable' === ( $data['code'] ?? '' ) ) {
 				// The other site has the attachment but not its file: report this one file.
 				return $this->error( 'file_unavailable', 404 ); }
+			if ( 409 === (int) wp_remote_retrieve_response_code( $response ) && is_array( $data ) && preg_match( '/_busy$/', (string) ( $data['code'] ?? '' ) ) ) {
+				// The other site is finishing another media import: a short wait is enough.
+				return $this->error( 'connection_busy', 409 ); }
 			if ( 200 !== (int) wp_remote_retrieve_response_code( $response ) || ! is_array( $data ) || true !== ( $data['success'] ?? null ) || 1 !== ( $data['chunk_contract_version'] ?? null ) || ! array_key_exists( 'result', $data ) ) {
 				return $this->error( 'peer_rejected', 502 ); }
 			if ( in_array( $action, [ 'discard', 'discard-snapshot' ], true ) ) {

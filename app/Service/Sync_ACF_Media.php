@@ -151,7 +151,7 @@ class Sync_ACF_Media {
 		foreach ( $result as &$post ) {
 			$meta = [];
 			foreach ( $post['acf_media_fields'] as $name => $field ) {
-				$meta[ $name ]       = maybe_unserialize( $post['meta'][ $name ] );
+				$meta[ $name ]       = \RockStarLab\ImportExport\Helper\Serialized::maybe( $post['meta'][ $name ] );
 				$meta[ '_' . $name ] = $field['key'];
 			}
 			$post         = array_intersect_key( $post, array_flip( [ 'ID', 'post_type', 'acf_media_version', 'acf_media_fields', 'acf_media_values', 'acf_media_proofs' ] ) );
@@ -363,7 +363,7 @@ class Sync_ACF_Media {
 	 * @return array|\WP_Error
 	 */
 	public static function ids( $value, $multiple ) {
-		$value = maybe_unserialize( $value );
+		$value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $value );
 		if ( in_array( $value, [ null, false, '', 0, '0', [] ], true ) ) {
 			return [];
 		}
