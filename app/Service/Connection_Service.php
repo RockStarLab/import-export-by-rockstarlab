@@ -471,7 +471,7 @@ class Connection_Service {
 			if ( 'rest_no_route' === $code ) {
 				return new \WP_Error(
 					'plugin_not_installed',
-					__( 'The Content & Media Sync, Import, Export plugin (Import Export by RockStarLab) is not installed or activated on the remote site.', 'import-export-by-rockstarlab' )
+					__( 'The Content Sync, Media Sync, Import, Export plugin (Import Export by RockStarLab) is not installed or activated on the remote site.', 'import-export-by-rockstarlab' )
 				);
 			}
 			return new \WP_Error(

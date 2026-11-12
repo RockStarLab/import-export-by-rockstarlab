@@ -480,6 +480,7 @@ class Content_Sync_Media {
 			return '';
 		}
 
+		$parts['path'] = self::raw_url_path( $url );
 		$dir           = rtrim( str_replace( '\\', '/', dirname( (string) $parts['path'] ) ), '/' );
 		$parts['path'] = ( '' === $dir ? '' : $dir ) . '/' . ltrim( (string) $basename, '/' );
 		unset( $parts['query'], $parts['fragment'] );
@@ -509,7 +510,19 @@ class Content_Sync_Media {
 			$rebuilt .= ':' . (int) $parts['port'];
 		}
 
-		return $rebuilt . $parts['path'];
+		return $rebuilt . self::raw_url_path( $url );
+	}
+
+	/**
+	 * The URL path exactly as written. parse_url() can replace bytes of UTF-8 file names
+	 * with "_" (depending on the PHP locale), which broke matching of such files.
+	 *
+	 * @param string $url URL.
+	 * @return string
+	 */
+	private static function raw_url_path( $url ) {
+		$rest = preg_replace( '#^(?:[a-z][a-z0-9+.-]*:)?//[^/?\#]*#i', '', (string) $url );
+		return (string) preg_replace( '/[?#].*$/s', '', (string) $rest );
 	}
 
 	/**

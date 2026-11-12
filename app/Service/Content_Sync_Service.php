@@ -10,6 +10,7 @@
 namespace RockStarLab\ImportExport\Service;
 
 use RockStarLab\ImportExport\Abilities\Sync_Policy;
+use RockStarLab\ImportExport\Helper\Sync_Pending_Parents;
 use RockStarLab\ImportExport\Helper\ACF_Fields;
 use RockStarLab\ImportExport\Helper\Field_Transformation_Bridge;
 use RockStarLab\ImportExport\Helper\Site_URL;
@@ -2666,6 +2667,11 @@ class Content_Sync_Service {
 			$this->restore_synced_post_modified_dates( (int) $post_id, (array) $post_data );
 		}
 
+		// Children pulled earlier without their parent are attached now that it is here.
+		foreach ( $imported_remote_to_local as $remote_id => $local_id ) {
+			Sync_Pending_Parents::adopt( $remote_id, $local_id, $imported_remote_type[ $remote_id ] ?? '' );
+		}
+
 		// Fix hierarchical relationships (e.g. pages) after all imports so we can
 		// resolve parent IDs that were created in the same pull batch.
 		foreach ( isset( $input['hierarchy'] ) ? [] : $imported_remote_to_local as $remote_id => $local_id ) {
@@ -2691,8 +2697,10 @@ class Content_Sync_Service {
 					$local_parent_id = (int) $this->find_existing_post_by_original_id( $remote_parent_id );
 				}
 
-				// Parent not available locally - don't force reset the relationship.
+				// Parent not available locally - don't force reset the relationship. Remember it,
+				// so the child is attached when the parent is synced later.
 				if ( empty( $local_parent_id ) ) {
+					Sync_Pending_Parents::remember( $local_id, $remote_parent_id );
 					continue;
 				}
 
@@ -2706,6 +2714,7 @@ class Content_Sync_Service {
 			if ( ! $child_post || $child_post->post_type !== $post_type ) {
 				continue;
 			}
+			Sync_Pending_Parents::clear( $local_id );
 
 			if ( (int) $child_post->post_parent === (int) $local_parent_id ) {
 				continue;

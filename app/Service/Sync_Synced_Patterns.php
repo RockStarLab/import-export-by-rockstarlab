@@ -31,7 +31,17 @@ class Sync_Synced_Patterns {
 		if ( $post_id <= 0 || '' === $content ) {
 			return array();
 		}
-		$patterns = is_array( $patterns ) ? $patterns : array();
+		// XML exports write numeric keys as <field_123> elements: restore the source IDs.
+		$unprefix = static function ( $list ) {
+			$out = array();
+			foreach ( is_array( $list ) ? $list : array() as $key => $value ) {
+				$out[ absint( preg_replace( '/^field_/', '', (string) $key ) ) ] = $value;
+			}
+			unset( $out[0] );
+			return $out;
+		};
+		$patterns = $unprefix( $patterns );
+		$terms    = $unprefix( $terms );
 		$site     = '';
 		foreach ( $patterns as $p ) {
 			$site = is_array( $p ) ? untrailingslashit( (string) ( $p['site'] ?? '' ) ) : '';
@@ -105,6 +115,7 @@ class Sync_Synced_Patterns {
 					// Where this pattern came from, so a round trip finds the original again.
 					'origin_id'   => (int) get_post_meta( $id, self::SOURCE_ID_META, true ),
 					'origin_site' => (string) get_post_meta( $id, self::SOURCE_SITE_META, true ),
+					'categories'  => self::categories_of( $id ),
 				);
 				$next = array_merge( $next, self::refs( $block->post_content ) );
 			}
@@ -157,6 +168,11 @@ class Sync_Synced_Patterns {
 			update_post_meta( $id, self::SOURCE_SITE_META, $site );
 			if ( 'unsynced' === ( $p['sync'] ?? '' ) ) {
 				update_post_meta( $id, 'wp_pattern_sync_status', 'unsynced' );
+			} elseif ( 'wp_block' === $type ) {
+				delete_post_meta( $id, 'wp_pattern_sync_status' );
+			}
+			if ( 'wp_block' === $type && isset( $p['categories'] ) && is_array( $p['categories'] ) ) {
+				self::set_categories( $id, $p['categories'] );
 			}
 			$map[ $source_id ] = (int) $id;
 		}
@@ -309,6 +325,50 @@ class Sync_Synced_Patterns {
 			}
 		}
 		return array_values( array_unique( array_filter( $ids ) ) );
+	}
+
+	/**
+	 * Pattern categories of a pattern as slug => name.
+	 *
+	 * @param int $id Pattern ID.
+	 * @return array
+	 */
+	private static function categories_of( $id ) {
+		$out   = array();
+		$terms = taxonomy_exists( 'wp_pattern_category' ) ? wp_get_object_terms( $id, 'wp_pattern_category' ) : array();
+		foreach ( is_wp_error( $terms ) ? array() : $terms as $term ) {
+			$out[ $term->slug ] = $term->name;
+		}
+		return $out;
+	}
+
+	/**
+	 * Give a local pattern the incoming categories (matched by slug, created when allowed).
+	 *
+	 * @param int   $id         Local pattern ID.
+	 * @param array $categories Slug => name.
+	 */
+	private static function set_categories( $id, array $categories ) {
+		if ( ! taxonomy_exists( 'wp_pattern_category' ) ) {
+			return;
+		}
+		$ids = array();
+		foreach ( array_slice( $categories, 0, 50, true ) as $slug => $name ) {
+			$slug = sanitize_title( (string) $slug );
+			$name = sanitize_text_field( (string) $name );
+			if ( '' === $slug ) {
+				continue;
+			}
+			$term = get_term_by( 'slug', $slug, 'wp_pattern_category' );
+			if ( ! $term && current_user_can( get_taxonomy( 'wp_pattern_category' )->cap->manage_terms ) ) {
+				$made = wp_insert_term( '' !== $name ? $name : $slug, 'wp_pattern_category', array( 'slug' => $slug ) );
+				$term = is_wp_error( $made ) ? null : get_term( (int) $made['term_id'], 'wp_pattern_category' );
+			}
+			if ( $term && ! is_wp_error( $term ) ) {
+				$ids[] = (int) $term->term_id;
+			}
+		}
+		wp_set_object_terms( $id, $ids, 'wp_pattern_category' );
 	}
 
 	/**

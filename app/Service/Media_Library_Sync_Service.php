@@ -763,6 +763,13 @@ class Media_Library_Sync_Service {
 							if ( $this->metadata_pending ) {
 								return [ 'pending' => true ];
 							}
+							// The copy made by an earlier sync of this same file follows the source's
+							// title, alt text, caption and description. Other attachments that only
+							// share the bytes are reused as they are. The same goes for the original
+							// attachment when its copy comes back.
+							if ( $existing && ! $recovered && ( (int) ( $item['source_origin_attachment_id'] ?? 0 ) === (int) $id || in_array( (int) $item['attachment_id'], array_map( 'intval', get_post_meta( $id, '_rsl_ie_source_attachment_id', false ) ), true ) ) ) {
+								$this->refresh_fields( $id, $item );
+							}
 							$this->record_source_ids( $id, $item );
 							if ( $existing && $content_sync && ! $recovered ) {
 								$before_metadata = wp_get_attachment_metadata( $id );
@@ -842,6 +849,9 @@ class Media_Library_Sync_Service {
 			$algorithm     = 'sha256';
 			$digest        = $verified_file['sha256'];
 			$expected_size = $verified_file['size'];
+		} elseif ( isset( $item['file_size'] ) && is_int( $item['file_size'] ) && $item['file_size'] > 0 ) {
+			// A resumable transfer knows the exact size, so files above the inline limit can match.
+			$expected_size = $item['file_size'];
 		}
 		if ( $content_sync ) {
 			$candidates = ! empty( $item['source_origin_attachment_id'] ) ? [ (int) $item['source_origin_attachment_id'] ] : [];
@@ -1281,6 +1291,32 @@ class Media_Library_Sync_Service {
 		// SVG metadata can contain dimensions, but WordPress does not generate raster subsizes for it.
 		$this->metadata_pending = $this->bounded_metadata && 'image/svg+xml' !== get_post_mime_type( $id ) && wp_attachment_is_image( $id ) && (bool) wp_get_missing_image_subsizes( $id );
 		return $this->metadata_pending;
+	}
+
+	/**
+	 * Apply the source's title, caption, description and alt text to an earlier synced copy.
+	 *
+	 * @param int   $id   Local attachment ID.
+	 * @param array $item Validated attachment metadata.
+	 * @return void
+	 */
+	private function refresh_fields( $id, array $item ) {
+		$post = [];
+		foreach ( [ 'title' => 'post_title', 'caption' => 'post_excerpt', 'description' => 'post_content' ] as $key => $field ) {
+			if ( ! isset( $item[ $key ] ) ) {
+				continue; }
+			$value = 'title' === $key ? sanitize_text_field( $item[ $key ] ) : wp_kses_post( $item[ $key ] );
+			if ( 'title' === $key && '' === $value ) {
+				continue; }
+			if ( get_post_field( $field, $id, 'raw' ) !== $value ) {
+				$post[ $field ] = $value; }
+		}
+		if ( $post && current_user_can( 'edit_post', $id ) ) {
+			wp_update_post( wp_slash( [ 'ID' => $id ] + $post ) );
+		}
+		if ( isset( $item['alt_text'] ) && current_user_can( 'edit_post', $id ) ) {
+			update_post_meta( $id, '_wp_attachment_image_alt', sanitize_text_field( $item['alt_text'] ) );
+		}
 	}
 
 	/**

@@ -392,6 +392,125 @@ class XML_Format implements File_Format_Interface {
 	}
 
 	/**
+	 * Authors that a WordPress export (WXR) lists before its items: login => email.
+	 *
+	 * @param string $file_path File path.
+	 * @return array<string,string>
+	 */
+	public static function wxr_authors( $file_path ) {
+		static $cache = array();
+		if ( ! is_string( $file_path ) || ! is_file( $file_path ) ) {
+			return array();
+		}
+		$key = $file_path . '|' . filesize( $file_path ) . '|' . filemtime( $file_path );
+		if ( isset( $cache[ $key ] ) ) {
+			return $cache[ $key ];
+		}
+		$out      = array();
+		$reader   = new \XMLReader();
+		$previous = libxml_use_internal_errors( true );
+		try {
+			if ( $reader->open( $file_path, null, LIBXML_NONET | LIBXML_COMPACT | LIBXML_PARSEHUGE ) ) {
+				while ( @$reader->read() ) {
+					if ( \XMLReader::DOC_TYPE === $reader->nodeType ) {
+						return array();
+					}
+					if ( \XMLReader::ELEMENT !== $reader->nodeType ) {
+						continue;
+					}
+					if ( 'item' === $reader->name ) {
+						break;
+					}
+					if ( 'wp:author' !== $reader->name ) {
+						continue;
+					}
+					$xml = $reader->readOuterXml();
+					$el  = $xml ? @simplexml_load_string( '<r xmlns:wp="http://wordpress.org/export/1.2/">' . $xml . '</r>', 'SimpleXMLElement', LIBXML_NONET | LIBXML_NOCDATA ) : false;
+					if ( false === $el ) {
+						continue;
+					}
+					$wp    = $el->children( 'wp', true )->children( 'wp', true );
+					$login = trim( (string) $wp->author_login );
+					$email = trim( (string) $wp->author_email );
+					if ( '' !== $login && is_email( $email ) ) {
+						$out[ $login ] = $email;
+					}
+				}
+			}
+		} finally {
+			$reader->close();
+			libxml_clear_errors();
+			libxml_use_internal_errors( $previous );
+		}
+		$cache[ $key ] = $out;
+		return $out;
+	}
+
+	/**
+	 * Terms that a WordPress export (WXR) lists before its items, with their parents.
+	 *
+	 * @param string $file_path File path.
+	 * @return array<int,array{taxonomy:string,slug:string,name:string,parent:string,description:string}>
+	 */
+	public static function wxr_terms( $file_path ) {
+		$out = array();
+		if ( ! is_string( $file_path ) || ! is_file( $file_path ) ) {
+			return $out;
+		}
+		$reader   = new \XMLReader();
+		$previous = libxml_use_internal_errors( true );
+		try {
+			if ( ! $reader->open( $file_path, null, LIBXML_NONET | LIBXML_COMPACT | LIBXML_PARSEHUGE ) ) {
+				return $out;
+			}
+			while ( @$reader->read() ) {
+				if ( \XMLReader::DOC_TYPE === $reader->nodeType ) {
+					return array();
+				}
+				if ( \XMLReader::ELEMENT !== $reader->nodeType ) {
+					continue;
+				}
+				if ( 'item' === $reader->name ) {
+					break; // Terms come first; items follow.
+				}
+				if ( ! in_array( $reader->name, array( 'wp:category', 'wp:tag', 'wp:term' ), true ) ) {
+					continue;
+				}
+				$xml = $reader->readOuterXml();
+				$el  = $xml ? @simplexml_load_string( '<r xmlns:wp="http://wordpress.org/export/1.2/">' . $xml . '</r>', 'SimpleXMLElement', LIBXML_NONET | LIBXML_NOCDATA ) : false;
+				if ( false === $el ) { // An element with only namespaced children casts to false.
+					continue;
+				}
+				$wp = $el->children( 'wp', true )->children( 'wp', true );
+				if ( 'wp:category' === $reader->name ) {
+					$term = array( 'category', (string) $wp->category_nicename, (string) $wp->cat_name, (string) $wp->category_parent, (string) $wp->category_description );
+				} elseif ( 'wp:tag' === $reader->name ) {
+					$term = array( 'post_tag', (string) $wp->tag_slug, (string) $wp->tag_name, '', (string) $wp->tag_description );
+				} else {
+					$term = array( (string) $wp->term_taxonomy, (string) $wp->term_slug, (string) $wp->term_name, (string) $wp->term_parent, (string) $wp->term_description );
+				}
+				if ( '' !== trim( $term[0] ) && '' !== trim( $term[1] ) ) {
+					$out[] = array(
+						'taxonomy'    => sanitize_key( $term[0] ),
+						'slug'        => sanitize_title( $term[1] ),
+						'name'        => trim( $term[2] ),
+						'parent'      => sanitize_title( $term[3] ),
+						'description' => $term[4],
+					);
+				}
+				if ( count( $out ) >= 20000 ) {
+					break;
+				}
+			}
+		} finally {
+			$reader->close();
+			libxml_clear_errors();
+			libxml_use_internal_errors( $previous );
+		}
+		return $out;
+	}
+
+	/**
 	 * Turn WXR <wp:postmeta> entries into columns.
 	 *
 	 * The featured image becomes a featured_image_url column (the image's own item gives
@@ -712,8 +831,15 @@ class XML_Format implements File_Format_Interface {
 		if ( $keys && $keys === array_map( static function ( $i ) { return 'field_' . $i; }, range( 0, count( $keys ) - 1 ) ) ) {
 			return array_values( $value );
 		}
-
-		return $value;
+		// Other numeric keys (maps keyed by post or term IDs) come back as the same numbers.
+		$numeric = [];
+		foreach ( $value as $key => $child_value ) {
+			if ( ! preg_match( '/^field_(\d+)$/D', (string) $key, $match ) ) {
+				return $value;
+			}
+			$numeric[ (int) $match[1] ] = $child_value;
+		}
+		return $numeric;
 	}
 
 	/**

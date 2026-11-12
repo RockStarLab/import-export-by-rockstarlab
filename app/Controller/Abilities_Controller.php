@@ -103,7 +103,7 @@ class Abilities_Controller {
 		wp_register_ability_category(
 			'rsl-ie',
 			[
-				'label'       => __( 'Content & Media Sync, Import, Export with AI Agents Support', 'import-export-by-rockstarlab' ),
+				'label'       => __( 'Content Sync, Media Sync, Import, Export with AI Agents Support', 'import-export-by-rockstarlab' ),
 				'description' => __( 'Discover and run the available import and export workflows.', 'import-export-by-rockstarlab' ),
 			]
 		);

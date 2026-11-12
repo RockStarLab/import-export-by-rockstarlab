@@ -428,6 +428,127 @@ class Import_Service {
 	}
 
 	/**
+	 * Comments of one WordPress export (WXR) item, as plain field => value lists.
+	 *
+	 * @param array $raw Source row.
+	 * @return array<int,array<string,mixed>>
+	 */
+	public static function wxr_comments( array $raw ) {
+		$list = [];
+		if ( isset( $raw['wp:comment'] ) && is_string( $raw['wp:comment'] ) && '' !== $raw['wp:comment'] && '[' === $raw['wp:comment'][0] ) {
+			$decoded = json_decode( $raw['wp:comment'], true );
+			$list    = is_array( $decoded ) ? $decoded : [];
+		} elseif ( isset( $raw['wp:comment/wp:comment_id'] ) ) {
+			$one = [];
+			foreach ( $raw as $key => $value ) {
+				if ( 0 === strpos( (string) $key, 'wp:comment/' ) ) {
+					$one[ substr( (string) $key, 11 ) ] = $value;
+				}
+			}
+			$list = [ $one ];
+		}
+		$out = [];
+		foreach ( array_slice( $list, 0, 5000 ) as $comment ) {
+			if ( ! is_array( $comment ) || ! isset( $comment['wp:comment_id'] ) ) {
+				continue;
+			}
+			$clean = [];
+			foreach ( $comment as $key => $value ) {
+				$name = 0 === strpos( (string) $key, 'wp:' ) ? substr( (string) $key, 3 ) : (string) $key;
+				if ( 'commentmeta' === $name ) {
+					continue; // Spam-filter and plugin bookkeeping; not carried.
+				}
+				if ( is_scalar( $value ) ) {
+					$clean[ $name ] = (string) $value;
+				}
+			}
+			$out[] = $clean;
+		}
+		return $out;
+	}
+
+	/**
+	 * Create the categories, tags and terms a WordPress export lists, with their parents.
+	 *
+	 * A post row only names its terms, so a Posts import created every category at the top
+	 * level. Once per job, for the taxonomies the mapping imports, missing terms are created
+	 * parents first; existing terms are not changed.
+	 *
+	 * @param array  $request       Import request.
+	 * @param int    $job_id        Job ID.
+	 * @param object $importer      Importer.
+	 * @param array  $prepared_data Prepared rows of this slice.
+	 * @return void
+	 */
+	private function ensure_wxr_terms( array $request, $job_id, $importer, array $prepared_data ) {
+		if ( 'xml' !== ( $request['format'] ?? '' ) || empty( $request['file_path'] ) || ! $importer instanceof \RockStarLab\ImportExport\Model\Import\Post_Importer ) {
+			return;
+		}
+		$wxr = false;
+		foreach ( $prepared_data as $row ) {
+			if ( is_array( $row ) && ! empty( $row['_rsl_ie_source_post_type'] ) ) {
+				$wxr = true;
+				break;
+			}
+		}
+		$key = 'rsl_ie_wxr_terms_' . absint( $job_id );
+		if ( ! $wxr || ( $job_id && get_transient( $key ) ) ) {
+			return;
+		}
+		$taxonomies = [];
+		foreach ( (array) ( $request['mapping'] ?? [] ) as $entry ) {
+			$target = is_array( $entry ) ? (string) ( $entry['target_field'] ?? '' ) : '';
+			if ( 0 === strpos( $target, 'taxonomy_' ) && taxonomy_exists( substr( $target, 9 ) ) ) {
+				$taxonomies[ substr( $target, 9 ) ] = true;
+			}
+		}
+		if ( $job_id ) {
+			set_transient( $key, 1, DAY_IN_SECONDS );
+		}
+		if ( ! $taxonomies ) {
+			return;
+		}
+		$terms = \RockStarLab\ImportExport\Model\Format\XML_Format::wxr_terms( (string) $request['file_path'] );
+		$todo  = [];
+		foreach ( $terms as $term ) {
+			if ( isset( $taxonomies[ $term['taxonomy'] ] ) && current_user_can( get_taxonomy( $term['taxonomy'] )->cap->manage_terms ) ) {
+				$todo[] = $term;
+			}
+		}
+		// Parents first: repeat while a pass creates something.
+		for ( $pass = 0; $todo && $pass < 10; ++$pass ) {
+			$left = [];
+			foreach ( $todo as $term ) {
+				if ( get_term_by( 'slug', $term['slug'], $term['taxonomy'] ) ) {
+					continue;
+				}
+				$parent = 0;
+				if ( '' !== $term['parent'] && is_taxonomy_hierarchical( $term['taxonomy'] ) ) {
+					$found = get_term_by( 'slug', $term['parent'], $term['taxonomy'] );
+					if ( ! $found ) {
+						$left[] = $term;
+						continue;
+					}
+					$parent = (int) $found->term_id;
+				}
+				wp_insert_term(
+					wp_slash( '' !== $term['name'] ? $term['name'] : $term['slug'] ),
+					$term['taxonomy'],
+					[
+						'slug'        => $term['slug'],
+						'parent'      => $parent,
+						'description' => wp_slash( $term['description'] ),
+					]
+				);
+			}
+			if ( count( $left ) === count( $todo ) ) {
+				break; // Parents missing from the file.
+			}
+			$todo = $left;
+		}
+	}
+
+	/**
 	 * The column list wizard positions (source_index) refer to.
 	 *
 	 * For XML that is the upload preview's list (columns of many records, see
@@ -810,8 +931,23 @@ class Import_Service {
 			if ( isset( $raw['wp:post_type'] ) && is_scalar( $raw['wp:post_type'] ) && '' !== trim( (string) $raw['wp:post_type'] ) ) {
 				$prepared_row['_rsl_ie_source_post_type'] = sanitize_key( (string) $raw['wp:post_type'] );
 			}
+			// The item's comments (WordPress export): one entry as wp:comment/... columns, several
+			// as a JSON list in wp:comment. Post imports create them with the post.
+			// The author's email from the export's author list: finds the same person under
+			// another login here (no user is created from it).
+			if ( 'xml' === ( $request['format'] ?? '' ) && ! empty( $raw['dc:creator'] ) && is_scalar( $raw['dc:creator'] ) && ! empty( $request['file_path'] ) ) {
+				$authors = \RockStarLab\ImportExport\Model\Format\XML_Format::wxr_authors( (string) $request['file_path'] );
+				if ( isset( $authors[ trim( (string) $raw['dc:creator'] ) ] ) ) {
+					$prepared_row['_rsl_ie_wxr_author_email'] = $authors[ trim( (string) $raw['dc:creator'] ) ];
+				}
+			}
+			$wxr_comments = self::wxr_comments( $raw );
+			if ( $wxr_comments ) {
+				$prepared_row['_rsl_ie_wxr_comments'] = $wxr_comments;
+			}
 		}
 			unset( $prepared_row );
+		$this->ensure_wxr_terms( $request, $job_id, $importer, $prepared_data );
 
 		// Preserve source IDs + portable post hints for cross-site comment relationships.
 		if ( class_exists( \RockStarLab\ImportExport\Model\Import\Comment_Importer::class ) && $importer instanceof \RockStarLab\ImportExport\Model\Import\Comment_Importer ) {

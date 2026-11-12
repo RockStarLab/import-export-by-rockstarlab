@@ -1,9 +1,9 @@
-=== Content & Media Sync, Import, Export with AI Agents Support ===
+=== Content Sync, Media Sync, Import, Export with AI Agents Support ===
 Contributors: RockstarLab
-Tags: sync, migration, import, export, abilities
+Tags: sync, content-sync, ai-agents, abilities, site-migration
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.2.3
+Stable tag: 2.2.4
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -108,7 +108,7 @@ PRO adds:
 
 == Affiliate Program ==
 
-Love Content & Media Sync, Import, Export? Join our affiliate program and earn commissions by recommending the plugin to WordPress agencies, WooCommerce stores, content teams, and site owners who need reliable import, export, migration, and sync workflows.
+Love Content Sync, Media Sync, Import, Export? Join our affiliate program and earn commissions by recommending the plugin to WordPress agencies, WooCommerce stores, content teams, and site owners who need reliable import, export, migration, and sync workflows.
 
 Affiliate details are available on our website: [wpimportexport.com](https://wpimportexport.com/)
 
@@ -240,6 +240,10 @@ Learn how to use the plugin in real WordPress workflows:
 
 Yes. Connect the two sites once with an API key, then use Sync on the page (in the editor or in the Pages list) and choose Push. Only that page, its images and the fields it uses are sent; the rest of the live site is not touched. Pull works the other way.
 
+= Can I import a WordPress export (WXR) file from Tools → Export? =
+
+Yes. Upload the .xml file in a Posts or Pages import. Posts and pages are imported separately, with their featured images, categories, tags, custom fields, Elementor designs, page hierarchy and comments. A Media import of the same file adds its images to the Media Library and attaches them to the imported posts.
+
 = Is this the plugin formerly called "Import Export by RockStarLab"? =
 
 Yes. Only the name changed. The plugin, its settings, jobs, connections and updates stay the same.
@@ -290,8 +294,24 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.2.4 =
+* New: importing a WordPress export (WXR) file also creates the comments of each post and page, with replies in their threads, their status (approved, pending, spam) and pingbacks/trackbacks. A second import adds no duplicates.
+* Fix: importing a WordPress export now keeps the category tree: the file's categories (and the terms of other mapped taxonomies) are created with their parents before the posts. Before, every category was created at the top level.
+* Improved: posts from a WordPress export whose author login does not exist on this site go to the user with the same email (from the file's author list). No users are created.
+* Fix: a Posts import of a WordPress export created its pages as posts too (and a Pages import the posts as pages). Each import now takes only its own type; skipped items are summarized in one note per kind instead of one per row.
+* Fix: a Comments import of a WordPress export reported every post as a failed row. The rows are skipped with a note: the comments come with the Posts/Pages import.
+* Fix: synced patterns and Query Loop categories in XML export files (new in 2.2.3) were not re-pointed on import. CSV, JSON and Excel files were not affected. Lists keyed by IDs in XML files keep their keys.
+* Fix: importing a WordPress REST API JSON (/wp-json/wp/v2/posts): Auto Map now maps title, content and excerpt (the "rendered" values) and no longer maps the other site's post ID, author, featured media, categories, tags or links.
+* Improved: the plugin name in the admin is now "Content Sync, Media Sync, Import, Export with AI Agents Support"; the Welcome page starts with Content Sync (and a typo in its header is fixed).
+* Fix: Content Sync now carries the categories of synced patterns (created by slug on the other site when missing), and a pattern that is synced again on the source no longer stays "not synced" on the target.
+* Fix: Media Sync and Content Sync now update the title, alt text, caption and description of a file that was synced before, when they change on the source site. Before, only the first sync carried them. Other files on the target that merely have the same bytes keep their own text.
+* Fix: Content Sync: when the other site already had the same file under another name, File block download links, Cover, Media & Text and video URLs still pointed to the source file name (a broken link). They now point to the file actually used, like images already did.
+* Improved: Content Sync no longer uploads large files again (videos and other files over 16 MB) that the other site already has. A page with a 28 MB video re-synced in 30 s instead of 64 s.
+* Fix: images and files whose names contain non-Latin letters (for example Cyrillic) were not matched to the existing Media Library file during imports run from WP-CLI or cron and in some Content Sync URL checks. The URL path is now kept exactly as written.
+* Fix: Content Sync: a child page pushed or pulled before its parent stayed at the top level, even after the parent was synced. It is now attached to the parent when the parent arrives (unless you chose another parent on that site in the meantime).
+
 = 2.2.3 =
-* Changed: the plugin is now called "Content & Media Sync, Import, Export with AI Agents Support" (formerly Import Export by RockStarLab). Same plugin, settings and updates; Content Sync is now first in the admin menu.
+* Changed: the plugin is now called "Content Sync, Media Sync, Import, Export with AI Agents Support" (formerly Import Export by RockStarLab). Same plugin, settings and updates; Content Sync is now first in the admin menu.
 * Fix: Migration through the Abilities API / MCP (migration-prepare) failed with "invalid output" since 2.2.2. The admin wizard was not affected.
 * Fix: Importing a WordPress export (WXR) file now brings featured images (from the image items in the same file) and custom fields ("Meta: …" columns that Auto Map maps), including Elementor designs. WordPress bookkeeping fields are left out.
 * Fix: The XML import wizard listed only the columns of the first record. A WordPress export starts with its images, so categories, tags, featured image and custom fields were missing from Field Mapping. Columns now come from the first 50 records.
@@ -450,34 +470,3 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 * Fixed: uninstalling the plugin in a network now cleans every site, and leftover options and scheduled events are removed.
 * Fixed: job notifications no longer show a double space when the job has no name.
 * Security: when the person running an import can't post unfiltered HTML (site administrators in a multisite network, or DISALLOW_UNFILTERED_HTML), imported post content, excerpts and comments are filtered like in the editor.
-
-= 2.1.38 =
-* Fixed: when the file of a "file changes" trigger changed again while the trigger's previous job was still running, the change could be skipped. The next hourly check now starts the import.
-* Improved: the Triggers list shows post type names, the wait time in minutes, and the number of runs in correct English.
-
-= 2.1.37 =
-* New: event triggers (Jobs Log → Triggers). Run a finished import or export again when another system calls a secure webhook URL (Zapier, Make, n8n, a CRM or a script), when a post of chosen types is published, when a WooCommerce order is created, or when the file an import downloads from a URL changes (checked hourly). Each run is a new job with the same file source, mapping and options, started as the administrator who created the trigger.
-* New: webhook triggers use a secret token sent in the X-RSL-Token header or as a Bearer token, never in the URL. The token is shown once, stored only as a hash and can be replaced at any time. Repeated wrong tokens are blocked for an hour.
-* New: triggers never start a second job while the previous one is still running, webhook runs are limited to one a minute, and post and order events within the chosen wait time start a single run. Posts created by the plugin's own imports, syncs and migrations do not start triggers.
-* New: AI agents can list, create, pause, run and delete triggers, replace a webhook token and read the trigger log (rsl-ie/trigger-sources, trigger-list, trigger-get, trigger-create, trigger-update, trigger-run, trigger-rotate-token, trigger-delete, trigger-log).
-* Improved: uninstalling the plugin also removes mapping templates, notification settings and triggers.
-
-Older versions: see changelog.txt in the plugin folder.
-
-== Screenshots ==
-
-1. Import page 
-2. File upload
-3. Preview data
-4. Fields mapping
-5. Additional import options
-6. Export page
-7. Filter posts for export
-8. Select fields to export
-9. Additional export options
-10. Content sync options page
-11. Page content sync with remote website
-12. Sync files from any folder with Media Library
-13. AI URL Importer
-14. Jobs log
-15. Plugin options page

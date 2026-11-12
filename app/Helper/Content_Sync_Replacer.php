@@ -376,6 +376,7 @@ class Content_Sync_Replacer {
 		}
 
 		$content = self::replace_shortcode_attachment_ids( $content, $image_map );
+		$moved   = array();
 
 		foreach ( $image_map as $old_id => $new_id ) {
 			$old_id = (int) $old_id;
@@ -388,9 +389,102 @@ class Content_Sync_Replacer {
 			$content     = preg_replace( '/\bwp-image-' . $old_id . '\b/', 'wp-image-' . $new_id, $content );
 			$source_data = self::get_image_source_data( $old_id, $image_sources );
 			$content     = self::fix_local_image_tag_urls( $content, $new_id, $source_data );
+			$moved      += self::moved_media_urls( $new_id, $source_data );
 		}
 
-		return $content;
+		return self::replace_moved_media_urls( $content, $moved );
+	}
+
+	/**
+	 * Source file URLs whose local copy lives at a different path (the target reused a file with
+	 * the same bytes, or WordPress renamed the upload), as path => local URL plus the hosts.
+	 *
+	 * @param int   $attachment_id Local attachment ID.
+	 * @param array $source_data   Source media payload.
+	 * @return array
+	 */
+	private static function moved_media_urls( $attachment_id, $source_data ) {
+		$full = wp_get_attachment_url( $attachment_id );
+		if ( ! $full || empty( $source_data ) || ! is_array( $source_data ) ) {
+			return array();
+		}
+		$sizes = self::get_attachment_size_urls_by_dimensions( $attachment_id );
+		$pairs = array();
+		if ( ! empty( $source_data['url'] ) && is_string( $source_data['url'] ) ) {
+			$pairs[ $source_data['url'] ] = $full;
+		}
+		if ( ! empty( $source_data['source_urls']['full'] ) && is_string( $source_data['source_urls']['full'] ) ) {
+			$pairs[ $source_data['source_urls']['full'] ] = $full;
+		}
+		foreach ( (array) ( $source_data['source_urls']['by_size'] ?? array() ) as $dimension => $url ) {
+			if ( is_string( $url ) && ! isset( $pairs[ $url ] ) ) {
+				$pairs[ $url ] = $sizes[ (string) $dimension ] ?? $full;
+			}
+		}
+		$out        = array();
+		$local_path = static function ( $url ) {
+			return (string) wp_parse_url( $url, PHP_URL_PATH );
+		};
+		foreach ( $pairs as $from => $to ) {
+			$path = $local_path( $from );
+			$host = strtolower( (string) wp_parse_url( $from, PHP_URL_HOST ) );
+			$port = wp_parse_url( $from, PHP_URL_PORT );
+			if ( '' === $path || $path === $local_path( $to ) || false === strpos( $path, '.' ) ) {
+				continue;
+			}
+			$out[ $path ] = array(
+				'url'  => $to,
+				'host' => $host . ( $port ? ':' . $port : '' ),
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * Point every remaining source URL of a moved file (block attributes, links, video and
+	 * audio sources) at the local file, in one pass so one rewrite never feeds another.
+	 *
+	 * @param string $content Content.
+	 * @param array  $moved   Path => [url, host] from moved_media_urls().
+	 * @return string
+	 */
+	private static function replace_moved_media_urls( $content, array $moved ) {
+		if ( ! $moved || ! is_string( $content ) || '' === $content ) {
+			return $content;
+		}
+		$local = strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
+		$port  = wp_parse_url( home_url(), PHP_URL_PORT );
+		$local = $local . ( $port ? ':' . $port : '' );
+		$paths = array_keys( $moved );
+		usort(
+			$paths,
+			static function ( $a, $b ) {
+				return strlen( $b ) - strlen( $a );
+			}
+		);
+		$alternation = implode(
+			'|',
+			array_map(
+				static function ( $path ) {
+					return str_replace( '/', '\\\\?/', preg_quote( $path, '#' ) );
+				},
+				$paths
+			)
+		);
+		$result = preg_replace_callback(
+			'#(?:https?:)?\\\\?/\\\\?/([a-z0-9.-]+(?::\d+)?)(' . $alternation . ')(?![\w.-])#i',
+			static function ( $m ) use ( $moved, $local ) {
+				$path = str_replace( '\\/', '/', $m[2] );
+				$host = strtolower( $m[1] );
+				if ( ! isset( $moved[ $path ] ) || ( $host !== $local && $host !== $moved[ $path ]['host'] ) ) {
+					return $m[0];
+				}
+				$url = $moved[ $path ]['url'];
+				return false !== strpos( $m[0], '\\/' ) ? str_replace( '/', '\\/', $url ) : $url;
+			},
+			$content
+		);
+		return is_string( $result ) ? $result : $content;
 	}
 
 	/**
