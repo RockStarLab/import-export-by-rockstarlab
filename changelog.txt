@@ -1,5 +1,14 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.6 =
+* Fix: importing comments from a file exported by this plugin skipped every comment since 2.2.4 (they were taken for WordPress export rows), and site migrations did not bring comments. Comment imports work again; only the post rows of a WordPress export (WXR) file are skipped.
+* Improved: every ability that AI agents see now starts its description with what that ability does. Before, related abilities (schedules, functions, comment, review and term sync, WooCommerce push and pull, Content Updater) shared one text, and the term and review sync texts talked about comments.
+* Fix: the list of jobs a schedule can be made from no longer starts a job's label with a dash when the job has no name.
+* Fix: media files whose names contain non-Latin letters (for example Cyrillic) failed in media imports and migrations with "Local files can be imported only from the uploads folder".
+* Fix: media imports and migrations now bring SVG files (icons and logos of Elementor sites), cleaned of scripts the same way as in Content Sync, when Elementor is active on the site. Before, WordPress refused them and migrated pages lost their icons.
+* Fix: the migration step list no longer offers WooCommerce's internal order placeholders ("shop_order_placehold"); orders move with the order steps.
+* Improved: pausing or cancelling a migration while it works on a batch now says to try again in a few seconds, instead of a generic "cannot continue" message.
+
 = 2.2.5 =
 * Fix: importing an exported file back into the same site with "Import media" off (the default for WP-CLI and AI agents) emptied every ACF image and file field and broke ACF galleries. Files that are already in this site's Media Library are now found by their URL without downloading anything; URL and text fields keep their URLs.
 * Fix: WP-CLI imports without --mapping and AI agent imports (import-prepare) now map the ACF columns ("acf_…") of the file, like Auto Map in the admin. Before, ACF fields were filled from the raw custom fields of the other site, with its image, post and term IDs.

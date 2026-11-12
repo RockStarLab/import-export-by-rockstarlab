@@ -717,5 +717,8 @@ class Migration_Service {
 	 * @return \WP_Error
 	 */
 	protected function error( $code, $status ) {
-		return new \WP_Error( 'rsl_ie_migration_' . $code, __( 'Migration cannot continue. Check its status, selected steps and current permissions.', 'import-export-by-rockstarlab' ), [ 'status' => $status ] ); }
+		$message = 'busy' === $code
+			? __( 'The migration is working on a batch right now. Try again in a few seconds.', 'import-export-by-rockstarlab' )
+			: __( 'Migration cannot continue. Check its status, selected steps and current permissions.', 'import-export-by-rockstarlab' );
+		return new \WP_Error( 'rsl_ie_migration_' . $code, $message, [ 'status' => $status ] ); }
 }

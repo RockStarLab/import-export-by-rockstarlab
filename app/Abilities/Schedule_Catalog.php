@@ -126,9 +126,18 @@ class Schedule_Catalog {
 				true,
 			],
 		] as $name => $contract ) {
+			$lead                 = [
+				'schedule-options'          => 'Read what a schedule accepts: the site timezone, the current local time and the recurrences with their intervals.',
+				'schedule-list'             => 'List the job schedules with their status, next run and last job.',
+				'schedule-get'              => 'Read one job schedule.',
+				'schedule-create'           => 'Create a schedule that runs a finished import or export job again, once or at a fixed interval.',
+				'schedule-update'           => 'Change a schedule (name, timing, recurrence or status).',
+				'schedule-delete'           => 'Delete a schedule. Jobs it already ran stay in Jobs Log.',
+				'schedule-list-source-jobs' => 'List the jobs a schedule can be made from, with whether each one can be scheduled.',
+			];
 			$definitions[ $name ] = [
 				'label'       => ucwords( str_replace( '-', ' ', $name ) ),
-				'description' => 'Manage native job schedules. start_at is a future local minute in timezone (defaults to WordPress). Recurrences are fixed elapsed intervals, not wall-clock DST rules. Updates preserve omitted fields; set a future start_at to reactivate an elapsed schedule. Each occurrence creates a fresh authorized job as the schedule owner, with live provider and transformation checks. Source parameters are read at run time. No credentials or job parameters are returned. Cron requires site traffic or host cron.',
+				'description' => ( $lead[ $name ] ?? '' ) . ' Job schedules: start_at is a future local minute in timezone (defaults to WordPress). Recurrences are fixed elapsed intervals, not wall-clock DST rules. Updates preserve omitted fields; set a future start_at to reactivate an elapsed schedule. Each occurrence creates a fresh authorized job as the schedule owner, with live provider and transformation checks. Source parameters are read at run time. No credentials or job parameters are returned. Cron requires site traffic or host cron.',
 				'input'       => $contract[0],
 				'output'      => $contract[1],
 				'readonly'    => $contract[2],

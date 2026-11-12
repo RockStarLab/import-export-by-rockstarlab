@@ -242,7 +242,7 @@ class Schedule_Service {
 			$valid     = ( new Schedule_Source_Service() )->execute( $row->id );
 			$results[] = [
 				'id'          => (int) $row->id,
-				'text'        => sprintf( '%s — #%d — %s / %s (%s)', $row->job_name ?? '', $row->id, $row->type, $row->data_type, $row->status ),
+				'text'        => ltrim( sprintf( '%s — #%d — %s / %s (%s)', (string) ( $row->job_name ?? '' ), $row->id, $row->type, $row->data_type, $row->status ), ' —' ),
 				'schedulable' => ! is_wp_error( $valid ),
 				'error_code'  => is_wp_error( $valid ) ? $valid->get_error_code() : '',
 			];
