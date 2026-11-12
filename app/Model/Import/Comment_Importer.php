@@ -214,7 +214,9 @@ class Comment_Importer extends Abstract_Importer {
 	public function import_item( $item, $index ) {
 		// A WordPress export (WXR) has one row per post, with that post's comments inside it.
 		// Those comments are created by the Posts/Pages import together with their post.
-		if ( is_array( $item ) && ! empty( $item['_rsl_ie_source_post_type'] ) ) {
+		// Only the WordPress export marker counts: comment rows of this plugin's own exports carry
+		// _rsl_ie_source_post_type too (the type of their post), and were all skipped in 2.2.4-2.2.5.
+		if ( is_array( $item ) && ! empty( $item['_rsl_ie_wxr_item'] ) ) {
 			$this->log_skip_once( 'wxr', 'The rows of a WordPress export are posts, with their comments inside them: they are skipped here. Import the file as Posts or Pages; their comments come along.' );
 			return 'skipped';
 		}

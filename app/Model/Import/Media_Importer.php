@@ -214,9 +214,11 @@ class Media_Importer extends Abstract_Importer {
 			return new \WP_Error( 'missing_file', __( 'File source is required', 'import-export-by-rockstarlab' ) );
 		}
 
-		// Check if file is URL or local path
-		if ( filter_var( $file_source, FILTER_VALIDATE_URL ) ) {
-			return $this->import_from_url( $file_source, $item );
+		// Check if file is URL or local path. PHP's URL filter rejects non-Latin letters, so a
+		// file named in Cyrillic was taken for a server path and refused: encode them first.
+		$encoded_source = self::encode_url( (string) $file_source );
+		if ( filter_var( $encoded_source, FILTER_VALIDATE_URL ) ) {
+			return $this->import_from_url( $encoded_source, $item );
 		}
 
 		return $this->import_from_path( $file_source, $item );
@@ -471,6 +473,26 @@ class Media_Importer extends Abstract_Importer {
 	}
 
 	/**
+	 * Percent-encode spaces and non-ASCII bytes of an http(s) URL; other values are returned as they are.
+	 *
+	 * @param string $value URL or path.
+	 * @return string
+	 */
+	public static function encode_url( $value ) {
+		$value = trim( (string) $value );
+		if ( ! preg_match( '#^https?://#i', $value ) ) {
+			return $value;
+		}
+		return (string) preg_replace_callback(
+			'/[^\x21-\x7E]/',
+			static function ( $byte ) {
+				return rawurlencode( $byte[0] );
+			},
+			$value
+		);
+	}
+
+	/**
 	 * Whether a local path is inside the uploads folder or the plugin's private storage.
 	 *
 	 * @param string $file_path Path from the import row.
@@ -644,12 +666,26 @@ class Media_Importer extends Abstract_Importer {
 		// Get title (support both 'title' and 'post_title')
 		$title = $item['post_title'] ?? $item['title'] ?? null;
 
-		// Upload file
-		$attachment_id = media_handle_sideload(
-			$file_array,
-			$parent_id,
-			$title
-		);
+		// SVG files (icons and logos of Elementor sites) are cleaned and accepted the same way as
+		// in Content Sync; WordPress refuses them otherwise, and migrated pages lost their icons.
+		if ( ! \RockStarLab\ImportExport\Service\Sync_SVG::sanitize( $file_path, $filename ) ) {
+			return new \WP_Error( 'invalid_svg', __( 'The SVG file contains code that is not allowed in images.', 'import-export-by-rockstarlab' ) );
+		}
+		// Read the list before adding the filter: Sync_SVG::mimes() itself runs upload_mimes.
+		$sync_mimes = \RockStarLab\ImportExport\Service\Sync_SVG::mimes();
+		$svg_mimes  = static function ( $mimes ) use ( $sync_mimes ) {
+			return $mimes + $sync_mimes;
+		};
+		add_filter( 'upload_mimes', $svg_mimes );
+		try {
+			$attachment_id = media_handle_sideload(
+				$file_array,
+				$parent_id,
+				$title
+			);
+		} finally {
+			remove_filter( 'upload_mimes', $svg_mimes );
+		}
 
 		if ( is_wp_error( $attachment_id ) ) {
 			return $attachment_id;
@@ -722,7 +758,8 @@ class Media_Importer extends Abstract_Importer {
 		}
 
 		$source_url = $item['file'] ?? $item['file_url'] ?? $item['url'] ?? '';
-		if ( is_string( $source_url ) && filter_var( $source_url, FILTER_VALIDATE_URL ) ) {
+		if ( is_string( $source_url ) && filter_var( self::encode_url( $source_url ), FILTER_VALIDATE_URL ) ) {
+			$source_url = self::encode_url( $source_url );
 			$source_url = $this->normalize_source_url( $source_url );
 			update_post_meta( $attachment_id, 'rsl_ie_source_url', $source_url );
 			update_post_meta( $attachment_id, 'rsl_ie_source_url_hash', $this->get_source_url_hash( $source_url ) );
@@ -974,7 +1011,7 @@ class Media_Importer extends Abstract_Importer {
 	 * @return string Normalized URL.
 	 */
 	private function normalize_source_url( string $url ): string {
-		return Content_Sync_Media::canonicalize_import_media_url( $url );
+		return Content_Sync_Media::canonicalize_import_media_url( self::encode_url( $url ) );
 	}
 
 	/**

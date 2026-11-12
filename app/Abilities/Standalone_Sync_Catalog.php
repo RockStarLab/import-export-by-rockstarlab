@@ -11,6 +11,28 @@ defined( 'ABSPATH' ) || exit;
 /** Shared schema builder; premium registrations are assembled by Pro. */
 class Standalone_Sync_Catalog {
 	/**
+	 * First sentence of an ability description: what this one ability does.
+	 *
+	 * @param string $family    comments, reviews or terms.
+	 * @param string $operation browse, search-local, push or pull.
+	 * @return string
+	 */
+	private static function lead( $family, $operation ) {
+		$what = 'terms' === $family ? 'taxonomy terms' : ( 'reviews' === $family ? 'product reviews' : 'comments' );
+		switch ( $operation ) {
+			case 'browse':
+				return 'terms' === $family ? 'List the taxonomy terms of the connected site, to choose what to pull.' : 'List the ' . $what . ' of one ' . ( 'reviews' === $family ? 'product' : 'post' ) . ' on the connected site (post_id), to choose what to pull.';
+			case 'search-local':
+				return 'Search the taxonomy terms of this site, to choose where pushed or pulled terms go.';
+			case 'push':
+				return 'Send selected ' . $what . ' from this site to the connected site.';
+			case 'pull':
+				return 'Copy selected ' . $what . ' from the connected site to this site.';
+		}
+		return 'Synchronize selected ' . $what . '.';
+	}
+
+	/**
 	 * Build explicit selection and destination contracts.
 	 *
 	 * @param string $family comments, reviews or terms.
@@ -76,7 +98,7 @@ class Standalone_Sync_Catalog {
 				'handler'     => 'standalone',
 				'domain'      => $terms ? 'terms' : ( 'reviews' === $family ? 'reviews' : ( $premium ? 'pro-comments' : 'comments' ) ),
 				'label'       => ucwords( str_replace( '-', ' ', $name ) ),
-				'description' => 'Synchronize selected ' . $family . '. Maximum 50 IDs. Browse comments on an explicit remote post_id. For push, selected IDs and mapping keys are local; mapping values and target_post_id are remote. For pull, selected IDs and mapping keys are remote; mapping values and target_post_id are local. Comment post_mapping maps source parent post IDs to destination post IDs; term_mapping maps source term IDs to destination term IDs. Unmapped terms match slug or are created. Comment destinations must be explicit. Preserves hierarchy, metadata and ACF/media. Synchronous transfer returns counters and source-to-target mapping; inspect destination after timeout before repeating. No background lifecycle or automatic replay. Term pull accepts optional hierarchy with exact source edges and confirmed external local parents; finalization must succeed before the operation reports success.',
+				'description' => self::lead( $family, $operation ) . ' Maximum 50 IDs.' . ( $terms ? '' : ' Browse on an explicit remote post_id.' ) . ' For push, selected IDs and mapping keys are local; mapping values and target_post_id are remote. For pull, selected IDs and mapping keys are remote; mapping values and target_post_id are local. Comment post_mapping maps source parent post IDs to destination post IDs; term_mapping maps source term IDs to destination term IDs. Unmapped terms match slug or are created. Comment destinations must be explicit. Preserves hierarchy, metadata and ACF/media. Synchronous transfer returns counters and source-to-target mapping; inspect destination after timeout before repeating. No background lifecycle or automatic replay. Term pull accepts optional hierarchy with exact source edges and confirmed external local parents; finalization must succeed before the operation reports success.',
 				'input'       => $input,
 				'output'      => Workflow_Schemas::object(
 					[

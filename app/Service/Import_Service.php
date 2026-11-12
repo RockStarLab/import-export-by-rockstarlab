@@ -930,6 +930,7 @@ class Import_Service {
 			// A WordPress export mixes posts and media items: the importers skip the other kind.
 			if ( isset( $raw['wp:post_type'] ) && is_scalar( $raw['wp:post_type'] ) && '' !== trim( (string) $raw['wp:post_type'] ) ) {
 				$prepared_row['_rsl_ie_source_post_type'] = sanitize_key( (string) $raw['wp:post_type'] );
+				$prepared_row['_rsl_ie_wxr_item']         = true;
 			}
 			// The item's comments (WordPress export): one entry as wp:comment/... columns, several
 			// as a JSON list in wp:comment. Post imports create them with the post.

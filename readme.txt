@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: sync, content-sync, ai-agents, abilities, site-migration
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.2.5
+Stable tag: 2.2.6
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -294,6 +294,15 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.2.6 =
+* Fix: importing comments from a file exported by this plugin skipped every comment since 2.2.4 (they were taken for WordPress export rows), and site migrations did not bring comments. Comment imports work again; only the post rows of a WordPress export (WXR) file are skipped.
+* Improved: every ability that AI agents see now starts its description with what that ability does. Before, related abilities (schedules, functions, comment, review and term sync, WooCommerce push and pull, Content Updater) shared one text, and the term and review sync texts talked about comments.
+* Fix: the list of jobs a schedule can be made from no longer starts a job's label with a dash when the job has no name.
+* Fix: media files whose names contain non-Latin letters (for example Cyrillic) failed in media imports and migrations with "Local files can be imported only from the uploads folder".
+* Fix: media imports and migrations now bring SVG files (icons and logos of Elementor sites), cleaned of scripts the same way as in Content Sync, when Elementor is active on the site. Before, WordPress refused them and migrated pages lost their icons.
+* Fix: the migration step list no longer offers WooCommerce's internal order placeholders ("shop_order_placehold"); orders move with the order steps.
+* Improved: pausing or cancelling a migration while it works on a batch now says to try again in a few seconds, instead of a generic "cannot continue" message.
+
 = 2.2.5 =
 * Fix: importing an exported file back into the same site with "Import media" off (the default for WP-CLI and AI agents) emptied every ACF image and file field and broke ACF galleries. Files that are already in this site's Media Library are now found by their URL without downloading anything; URL and text fields keep their URLs.
 * Fix: WP-CLI imports without --mapping and AI agent imports (import-prepare) now map the ACF columns ("acf_…") of the file, like Auto Map in the admin. Before, ACF fields were filled from the raw custom fields of the other site, with its image, post and term IDs.
@@ -454,11 +463,3 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 = 2.1.41 =
 * New: JSON imports with nested objects. Values inside an object get their own columns named by their path, such as author.name, author.email and image.url, so they can be mapped like any other column. The original columns stay.
 * Improved: Auto Map for JSON columns: author.name, author.email, author.login, image.url and image.alt go to the author and featured image fields; a column that holds a whole object is not mapped to a single-value field; a "published" column with a date goes to Date.
-
-= 2.1.40 =
-* Improved: when every row is imported but some rows have notes, for example an author that wasn't found, the import result says "Import Completed with Warnings" and lists them. Job Details in Jobs Log has a Warnings section.
-* Improved: Auto Map for comments understands common headers such as Comment ID, Parent ID, Post Slug, Author, Email, Date, Comment, Approved and Website.
-* Improved: when a comment's post isn't found and a draft post is created for it, the import result and the job log say so.
-* Improved: the job log says "Imported media" for featured images and images in content.
-* Fixed: replies imported from a spreadsheet with Source Comment ID and Source Parent Comment ID are threaded under their parent comments, also when the parent came in an earlier import.
-* Fixed: a media import from a URL that opens a web page now says "The URL returned a web page, not a file." with a matching hint. Files WordPress refuses by type get their own hint.
