@@ -136,6 +136,14 @@ import syncButtonBusy from './utils/sync-button-busy';
 			}
 		} );
 
+		// List mode (upload.php?mode=list): rows are picked with table checkboxes.
+		$( '#the-list input[name="media[]"]:checked' ).each( function () {
+			const id = $( this ).val();
+			if ( id ) {
+				ids.push( String( id ) );
+			}
+		} );
+
 		return ids
 			.filter( ( id ) => /^\d+$/.test( id ) && parseInt( id, 10 ) > 0 )
 			.filter( ( id, index, allIds ) => allIds.indexOf( id ) === index );

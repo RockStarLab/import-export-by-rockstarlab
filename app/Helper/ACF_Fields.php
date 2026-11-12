@@ -94,7 +94,7 @@ class ACF_Fields {
 		if ( 'wysiwyg' === $field_type && self::uses_raw_acf_export( $object_type ) ) {
 			$value = self::get_raw_meta_value( $object_type, $object_id, $field_name );
 			if ( is_string( $value ) && is_serialized( $value ) ) {
-				$value = maybe_unserialize( $value );
+				$value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $value );
 			}
 			if ( is_string( $value ) ) {
 				return self::export_string_with_media_shortcode_tokens( $value );
@@ -113,7 +113,7 @@ class ACF_Fields {
 		if ( false === $value || null === $value ) {
 			$value = self::get_raw_meta_value( $object_type, $object_id, $field_name );
 			if ( is_string( $value ) && is_serialized( $value ) ) {
-				$value = maybe_unserialize( $value );
+				$value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $value );
 			}
 		}
 
@@ -693,7 +693,7 @@ class ACF_Fields {
 
 		if ( 'flexible_content' === $field_type ) {
 			$layouts = self::get_raw_meta_value( $object_type, $object_id, $field_name );
-			$layouts = is_string( $layouts ) && is_serialized( $layouts ) ? maybe_unserialize( $layouts ) : $layouts;
+			$layouts = is_string( $layouts ) && is_serialized( $layouts ) ? \RockStarLab\ImportExport\Helper\Serialized::maybe( $layouts ) : $layouts;
 			if ( ! is_array( $layouts ) ) {
 				return false;
 			}
@@ -775,7 +775,7 @@ class ACF_Fields {
 
 			$value = self::get_raw_meta_value( $object_type, $object_id, $key );
 			if ( is_string( $value ) && is_serialized( $value ) ) {
-				$value = maybe_unserialize( $value );
+				$value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $value );
 			}
 
 			$row[ $name ] = $value;
@@ -850,7 +850,7 @@ class ACF_Fields {
 				case 'relation':
 					$ids = [];
 					foreach ( (array) ( $value['values'] ?? [] ) as $ref ) {
-						$id = self::post_id_from_portable_ref( $ref, $parent_id );
+						$id = self::post_id_from_portable_ref( $ref, $parent_id, (array) ( $field_object['post_type'] ?? [] ) );
 						if ( $id > 0 ) {
 							$ids[] = $id;
 						}
@@ -860,7 +860,14 @@ class ACF_Fields {
 					$ids      = [];
 					$taxonomy = (string) ( $value['taxonomy'] ?? ( $field_object['taxonomy'] ?? '' ) );
 					foreach ( (array) ( $value['values'] ?? [] ) as $term_name ) {
-						$term_id = self::term_id_from_name( (string) $term_name, $taxonomy );
+						// Post exports describe each term as {name, slug, taxonomy}; other exports use the name.
+						if ( is_array( $term_name ) ) {
+							$term_taxonomy = (string) ( $term_name['taxonomy'] ?? $taxonomy );
+							$by_slug       = isset( $term_name['slug'] ) && '' !== (string) $term_name['slug'] && taxonomy_exists( $term_taxonomy ) ? get_term_by( 'slug', (string) $term_name['slug'], $term_taxonomy ) : false;
+							$term_id       = $by_slug && ! is_wp_error( $by_slug ) ? (int) $by_slug->term_id : self::term_id_from_name( (string) ( $term_name['name'] ?? '' ), $term_taxonomy );
+						} else {
+							$term_id = self::term_id_from_name( (string) $term_name, $taxonomy );
+						}
 						if ( $term_id > 0 ) {
 							$ids[] = $term_id;
 						}
@@ -924,6 +931,77 @@ class ACF_Fields {
 
 		if ( is_string( $value ) && '' !== $value && ( 'wysiwyg' === $type || false !== stripos( $value, '<img' ) || false !== stripos( $value, 'srcset=' ) || false !== stripos( $value, '<a' ) || false !== stripos( $value, '[[RSL_IE:' ) || false !== stripos( $value, '[gallery' ) || false !== stripos( $value, '[playlist' ) ) ) {
 			return self::replace_media_urls_in_html( $value, $parent_id );
+		}
+
+		// Spreadsheet cells for users, terms, comments, media and products: a post object or
+		// relationship given as slug/path, title, ID or URL (comma separated for several), a
+		// taxonomy field as term names or slugs, a user field as login, email or ID. Before,
+		// the text itself was saved (a user's "page" field held "news" instead of the page ID).
+		if ( is_string( $value ) && '' !== trim( $value ) && ! is_numeric( trim( $value ) ) && in_array( $type, [ 'post_object', 'relationship', 'page_link', 'taxonomy', 'user' ], true ) ) {
+			$trimmed = trim( $value );
+			if ( '[' !== $trimmed[0] && '{' !== $trimmed[0] ) {
+				$multiple = 'relationship' === $type || ! empty( $field_object['multiple'] ) || ( 'taxonomy' === $type && in_array( (string) ( $field_object['field_type'] ?? '' ), [ 'checkbox', 'multi_select' ], true ) );
+				$parts    = $multiple ? array_values( array_filter( array_map( 'trim', explode( ',', $trimmed ) ), 'strlen' ) ) : [ $trimmed ];
+				$ids      = [];
+				foreach ( $parts as $part ) {
+					if ( 'taxonomy' === $type ) {
+						$tax  = (string) ( $field_object['taxonomy'] ?? '' );
+						$term = taxonomy_exists( $tax ) ? get_term_by( 'slug', sanitize_title( $part ), $tax ) : false;
+						$id   = $term && ! is_wp_error( $term ) ? (int) $term->term_id : self::term_id_from_name( $part, $tax );
+					} elseif ( 'user' === $type ) {
+						$user = get_user_by( 'login', $part );
+						if ( ! $user ) {
+							$user = get_user_by( 'email', $part );
+						}
+						$id = $user ? (int) $user->ID : 0;
+					} else {
+						$id = self::post_id_from_cell( $part, (array) ( $field_object['post_type'] ?? [] ) );
+					}
+					if ( $id > 0 ) {
+						$ids[] = $id;
+					}
+				}
+				if ( ! $ids && 'page_link' === $type ) {
+					return $value; // Page Link can store a URL (archive pages) as it is.
+				}
+				return $multiple ? $ids : ( $ids[0] ?? '' );
+			}
+		}
+
+		// Post exports write repeater/group/flexible values as plain rows keyed by sub-field name
+		// (no acf_type wrapper). Convert them with the sub-field definitions so nested relations,
+		// users and terms become IDs again (without them a post object inside a row became 0).
+		if ( is_array( $value ) && 'repeater' === $type && ( array() === $value || array_keys( $value ) === range( 0, count( $value ) - 1 ) ) ) {
+			$rows = [];
+			foreach ( $value as $row ) {
+				$rows[] = is_array( $row ) ? self::native_row_value( $row, (array) ( $field_object['sub_fields'] ?? [] ), $parent_id ) : $row;
+			}
+			return $rows;
+		}
+		if ( is_array( $value ) && 'group' === $type ) {
+			return self::native_row_value( $value, (array) ( $field_object['sub_fields'] ?? [] ), $parent_id );
+		}
+		if ( is_array( $value ) && 'flexible_content' === $type && array_keys( $value ) === range( 0, count( $value ) - 1 ) ) {
+			$layout_map = [];
+			foreach ( (array) ( $field_object['layouts'] ?? [] ) as $layout ) {
+				if ( is_array( $layout ) && ! empty( $layout['name'] ) ) {
+					$layout_map[ (string) $layout['name'] ] = (array) ( $layout['sub_fields'] ?? [] );
+				}
+			}
+			$rows = [];
+			foreach ( $value as $row ) {
+				if ( ! is_array( $row ) || ! isset( $row['acf_fc_layout'] ) ) {
+					$rows[] = $row;
+					continue;
+				}
+				$layout_name                 = (string) $row['acf_fc_layout'];
+				$fields_only                 = $row;
+				unset( $fields_only['acf_fc_layout'] );
+				$native_row                  = self::native_row_value( $fields_only, $layout_map[ $layout_name ] ?? [], $parent_id );
+				$native_row['acf_fc_layout'] = $layout_name;
+				$rows[]                      = $native_row;
+			}
+			return $rows;
 		}
 
 		if ( is_array( $value ) ) {
@@ -1002,7 +1080,7 @@ class ACF_Fields {
 		}
 
 		if ( is_serialized( $trimmed ) ) {
-			return maybe_unserialize( $trimmed );
+			return \RockStarLab\ImportExport\Helper\Serialized::maybe( $trimmed );
 		}
 
 		if ( in_array( $trimmed[0], [ '{', '[' ], true ) ) {
@@ -1051,7 +1129,50 @@ class ACF_Fields {
 		return 0;
 	}
 
-	private static function post_id_from_portable_ref( $ref, $parent_id = 0 ) {
+	/**
+	 * A post referenced by a spreadsheet cell: ID, URL of this site, slug/path or exact title.
+	 *
+	 * @param string $cell       Cell text.
+	 * @param array  $post_types Field's post types (empty: all public types).
+	 * @return int
+	 */
+	private static function post_id_from_cell( $cell, array $post_types = [] ) {
+		$cell       = trim( (string) $cell );
+		$post_types = array_values( array_filter( array_map( 'strval', $post_types ), 'post_type_exists' ) );
+		if ( ! $post_types ) {
+			$post_types = array_values( get_post_types( [ 'public' => true ] ) );
+		}
+		if ( ctype_digit( $cell ) ) {
+			$id = (int) $cell;
+			return in_array( get_post_type( $id ), $post_types, true ) ? $id : 0;
+		}
+		if ( filter_var( $cell, FILTER_VALIDATE_URL ) ) {
+			$id = url_to_postid( $cell );
+			if ( $id > 0 ) {
+				return $id;
+			}
+			$cell = trim( (string) wp_parse_url( $cell, PHP_URL_PATH ), '/' );
+		}
+		$post = '' !== $cell ? get_page_by_path( $cell, OBJECT, $post_types ) : null;
+		if ( $post ) {
+			return (int) $post->ID;
+		}
+		$ids = get_posts(
+			[
+				'post_type'              => $post_types,
+				'post_status'            => 'any',
+				'title'                  => $cell,
+				'posts_per_page'         => 2,
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			]
+		);
+		return 1 === count( $ids ) ? (int) $ids[0] : 0;
+	}
+
+	private static function post_id_from_portable_ref( $ref, $parent_id = 0, array $post_types = [] ) {
 		if ( is_numeric( $ref ) ) {
 			return absint( $ref );
 		}
@@ -1059,7 +1180,13 @@ class ACF_Fields {
 			return self::attachment_id_from_value( $ref, $parent_id );
 		}
 		if ( is_string( $ref ) && '' !== $ref ) {
-			$post = get_page_by_path( $ref, OBJECT, 'any' );
+			// Exports store the page path (slug). get_page_by_path() needs real post types:
+			// "any" matched nothing, so every relationship/post object value was dropped.
+			$post_types = array_values( array_filter( array_map( 'strval', $post_types ), 'post_type_exists' ) );
+			if ( ! $post_types ) {
+				$post_types = array_values( array_diff( get_post_types(), [ 'revision', 'nav_menu_item', 'customize_changeset', 'oembed_cache', 'user_request', 'wp_global_styles', 'attachment' ] ) );
+			}
+			$post = get_page_by_path( $ref, OBJECT, $post_types );
 			return $post ? (int) $post->ID : 0;
 		}
 		return 0;
@@ -1392,8 +1519,11 @@ class ACF_Fields {
 		 * @return string
 		 */
 	public static function replace_media_urls_in_html( $html, $parent_id = 0 ) {
-		$html = self::resolve_media_shortcode_tokens_in_string( $html, $parent_id );
+		// Raw [gallery ids] from the source are remapped first; shortcodes rebuilt from portable
+		// tokens already hold local IDs and must not be remapped again (a local ID that equals an
+		// old source ID pointed the gallery at an unrelated image).
 		$html = self::remap_media_shortcode_source_ids( $html );
+		$html = self::resolve_media_shortcode_tokens_in_string( $html, $parent_id );
 
 		$html = preg_replace_callback(
 			'/<img\b[^>]*>/i',

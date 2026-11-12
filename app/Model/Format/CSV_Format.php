@@ -185,6 +185,11 @@ class CSV_Format implements File_Format_Interface {
 					);
 				}
 
+				// A blank line (no cells, or only empty cells) is not a record or a header.
+				if ( '' === implode( '', array_map( 'trim', array_map( 'strval', $row ) ) ) ) {
+					continue;
+				}
+
 				if ( 0 === $row_num ) {
 					$preview_headers = $has_header ? $this->strip_header_bom( $row ) : array_map(
 						static function ( $index ) {
@@ -313,6 +318,11 @@ class CSV_Format implements File_Format_Interface {
 					},
 					$row
 				);
+			}
+
+			// A blank line is not a record (same rule as rows()).
+			if ( '' === implode( '', array_map( 'trim', array_map( 'strval', (array) $row ) ) ) ) {
+				continue;
 			}
 
 			if ( 0 === $row_num && $has_header ) {
@@ -483,6 +493,7 @@ class CSV_Format implements File_Format_Interface {
 			$encoding  = 'UTF-8';
 		}
 		$options['encoding']  = $encoding;
+		$file_path            = $this->lf_copy( $file_path );
 		$options['delimiter'] = $this->detect_delimiter( $file_path, $options['delimiter'] ?? self::DEFAULT_DELIMITER, $options['enclosure'] ?? self::DEFAULT_ENCLOSURE );
 		return [ $file_path, $options ];
 	}
@@ -519,6 +530,40 @@ class CSV_Format implements File_Format_Interface {
 		$high  = preg_match_all( '/[\xC0-\xFF]/', $sample );
 		$pairs = preg_match_all( '/[\xC0-\xFF](?=[\xC0-\xFF])/', $sample );
 		return ( $high > 0 && $pairs * 2 >= $high ) ? 'Windows-1251' : 'Windows-1252';
+	}
+
+	/**
+	 * Files saved as "CSV (Macintosh)" end lines with a lone CR, which fgetcsv()
+	 * does not split. Such a file is read from a copy with LF line endings.
+	 * CRs inside quoted cells become LF as well, which is how cells are stored.
+	 *
+	 * @param string $file_path File path.
+	 * @return string The original path or the path of the LF copy.
+	 */
+	protected function lf_copy( $file_path ) {
+		$sample = (string) file_get_contents( $file_path, false, null, 0, 65536 ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		if ( false === strpos( $sample, "\r" ) || false !== strpos( $sample, "\n" ) ) {
+			return $file_path;
+		}
+		$dir = trailingslashit( get_temp_dir() ) . 'rsl-ie-csv';
+		if ( ! wp_mkdir_p( $dir ) ) {
+			return $file_path;
+		}
+		$target = $dir . '/' . md5( $file_path . '|' . filesize( $file_path ) . '|' . filemtime( $file_path ) . '|lf' ) . '.csv';
+		if ( is_readable( $target ) ) {
+			return $target;
+		}
+		$in  = fopen( $file_path, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+		$out = fopen( $target . '.part', 'wb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+		if ( ! $in || ! $out ) {
+			return $file_path;
+		}
+		while ( ! feof( $in ) ) {
+			fwrite( $out, str_replace( "\r", "\n", (string) fread( $in, 262144 ) ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite,WordPress.WP.AlternativeFunctions.file_system_operations_fread
+		}
+		fclose( $in ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+		fclose( $out ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+		return rename( $target . '.part', $target ) ? $target : $file_path;
 	}
 
 	/**
@@ -879,12 +924,15 @@ class CSV_Format implements File_Format_Interface {
 			return new \WP_Error( 'file_open_error', __( 'Cannot open CSV file', 'import-export-by-rockstarlab' ) );
 		}
 
-		if ( strlen( $delimiter ) === 1 ) {
-			$headers = fgetcsv( $handle, 0, $delimiter, $enclosure, $escape );
-		} else {
-			$line    = $this->read_csv_record( $handle, $enclosure, $escape );
-			$headers = false === $line ? false : $this->parse_csv_line( $line, $delimiter, $enclosure, $escape );
-		}
+		do {
+			if ( strlen( $delimiter ) === 1 ) {
+				$headers = fgetcsv( $handle, 0, $delimiter, $enclosure, $escape );
+			} else {
+				$line    = $this->read_csv_record( $handle, $enclosure, $escape );
+				$headers = false === $line ? false : $this->parse_csv_line( $line, $delimiter, $enclosure, $escape );
+			}
+			// Blank lines above the header row are skipped, as in rows().
+		} while ( is_array( $headers ) && '' === implode( '', array_map( 'trim', array_map( 'strval', $headers ) ) ) );
 
 		fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen,WordPress.WP.AlternativeFunctions.file_system_operations_fclose,WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 
@@ -934,8 +982,11 @@ class CSV_Format implements File_Format_Interface {
 		$escape    = $options['escape'] ?? self::DEFAULT_ESCAPE;
 		$count     = 0;
 		try {
-			while ( false !== ( strlen( $delimiter ) > 1 ? $this->read_csv_record( $handle, $enclosure, $escape ) : fgetcsv( $handle, 0, $delimiter, $enclosure, $escape ) ) ) {
-				++$count;
+			while ( false !== ( $record = ( strlen( $delimiter ) > 1 ? $this->read_csv_record( $handle, $enclosure, $escape ) : fgetcsv( $handle, 0, $delimiter, $enclosure, $escape ) ) ) ) {
+				$cells = is_array( $record ) ? $record : [ (string) $record ];
+				if ( '' !== implode( '', array_map( 'trim', array_map( 'strval', $cells ) ) ) ) {
+					++$count;
+				}
 			}
 		} finally {
 			fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Close the counting stream.

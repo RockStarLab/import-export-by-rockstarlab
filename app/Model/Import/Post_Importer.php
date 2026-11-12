@@ -239,7 +239,9 @@ class Post_Importer extends Abstract_Importer {
 		unset( $item['_taxonomy_formats'] );
 
 		if ( ! isset( $item['post_meta'] ) || ! is_array( $item['post_meta'] ) ) {
-			$item['post_meta'] = [];
+			// A CSV/XLSX export holds all custom fields (ACF, Elementor, SEO) as one JSON cell.
+			$decoded_meta      = is_string( $item['post_meta'] ?? null ) && '' !== trim( (string) $item['post_meta'] ) ? json_decode( (string) $item['post_meta'], true ) : null;
+			$item['post_meta'] = is_array( $decoded_meta ) ? $decoded_meta : [];
 		}
 		if ( ! isset( $item['taxonomies'] ) || ! is_array( $item['taxonomies'] ) ) {
 			$decoded_taxonomies = is_string( $item['taxonomies'] ?? null ) ? json_decode( (string) $item['taxonomies'], true ) : null;
@@ -502,6 +504,16 @@ class Post_Importer extends Abstract_Importer {
 		// Sanitize data
 		$item = $this->sanitize_item( $item );
 
+		// A WordPress export (WXR) lists media files as items with status "inherit" (and the
+		// post type "attachment" in an unmapped column). Imported as posts they became empty
+		// posts named after each image. They belong in a Media import: skip them here.
+		$row_status = strtolower( trim( (string) ( $item['post_status'] ?? '' ) ) );
+		$row_type   = strtolower( trim( (string) ( $item['post_type'] ?? $item['wp:post_type'] ?? '' ) ) );
+		if ( 'inherit' === $row_status || in_array( $row_type, [ 'attachment', 'revision', 'nav_menu_item' ], true ) ) {
+			$this->log_warning( sprintf( 'Row %d skipped: it is a media file or revision of the export, not a post. Import media files with a Media import.', (int) $index + 1 ) );
+			return 'skipped';
+		}
+
 		// Normalize flat prefixed columns produced by the auto-mapper
 		// (e.g. taxonomy_category, meta_*, acf_*) into nested structures.
 		$item = $this->normalize_prefixed_columns( $item );
@@ -576,6 +588,15 @@ class Post_Importer extends Abstract_Importer {
 		// No existing item found — honor "If No Match Found" option.
 		$if_not_exists = $this->get_option( 'if_not_exists', 'create' );
 		if ( 'skip' === $if_not_exists ) {
+			return 'skipped';
+		}
+		// An update file keyed by ID or slug often has no title column. A row whose key matched
+		// nothing would otherwise become an untitled, empty post.
+		$mode = $this->get_option( 'duplicate_mode', $this->get_option( 'if_exists', 'skip' ) );
+		if ( 'update' === $mode && in_array( $this->get_option( 'duplicate_check', 'post_title' ), [ 'ID', 'post_name', 'slug' ], true ) && '' === trim( (string) ( $item['post_title'] ?? '' ) ) && ! ( array_key_exists( 'post_title', $item ) && '' !== trim( (string) ( $item['post_content'] ?? '' ) . (string) ( $item['post_excerpt'] ?? '' ) ) ) ) {
+			// A full export row with an empty title column and real content is an untitled post
+			// (WordPress allows it) and is created. A partial update file without a title column is not.
+			$this->log_warning( 'A row was skipped: no existing item matched its ID or slug, and it has no title to create a new one.' );
 			return 'skipped';
 		}
 
@@ -742,7 +763,28 @@ class Post_Importer extends Abstract_Importer {
 			];
 
 			$posts = get_posts( $args );
-			return ! empty( $posts ) ? get_post( $posts[0] ) : null;
+			if ( ! empty( $posts ) ) {
+				return get_post( $posts[0] );
+			}
+			// Drafts and pending posts have no slug until they are published. The slug in
+			// the file is the one WordPress would give them: match it against the title.
+			global $wpdb;
+			$slug       = sanitize_title( (string) $item['post_name'] );
+			$candidates = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Bounded lookup of unpublished posts without a slug.
+				$wpdb->prepare(
+					"SELECT ID, post_title FROM {$wpdb->posts} WHERE post_type = %s AND post_name = '' AND post_status IN ('draft','pending','auto-draft','future') ORDER BY ID ASC LIMIT 500",
+					(string) $this->get_option( 'post_type', 'post' )
+				)
+			);
+			$found = array_values(
+				array_filter(
+					(array) $candidates,
+					static function ( $row ) use ( $slug ) {
+						return '' !== $slug && sanitize_title( (string) $row->post_title ) === $slug;
+					}
+				)
+			);
+			return 1 === count( $found ) ? get_post( (int) $found[0]->ID ) : null;
 		}
 
 		// Check by post_title
@@ -844,6 +886,35 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Local ID of a parent given by slug, path (about/team) or title instead of an ID.
+	 *
+	 * @param string $reference Value from the file.
+	 * @param string $post_type Post type of the imported item.
+	 * @return int 0 when nothing matches (the item is imported at the top level).
+	 */
+	private function resolve_parent_reference( $reference, $post_type ) {
+		if ( '' === $reference ) {
+			return 0;
+		}
+		$post_type = '' !== $post_type ? strtolower( $post_type ) : 'post';
+		$path      = trim( (string) wp_parse_url( $reference, PHP_URL_PATH ), '/' );
+		$path      = '' !== $path ? $path : $reference;
+		$found     = get_page_by_path( $path, OBJECT, $post_type );
+		if ( ! $found ) {
+			global $wpdb;
+			$ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Exact title match, at most two rows.
+				$wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_title = %s AND post_status NOT IN ('trash','auto-draft','inherit') ORDER BY ID ASC LIMIT 2", $post_type, $reference )
+			);
+			$found = 1 === count( $ids ) ? get_post( (int) $ids[0] ) : null;
+		}
+		if ( $found && current_user_can( 'edit_post', $found->ID ) ) {
+			return (int) $found->ID;
+		}
+		$this->log_warning( sprintf( 'Parent "%s" was not found; the item was imported without a parent.', mb_substr( $reference, 0, 80 ) ) );
+		return 0;
 	}
 
 	/**
@@ -1311,6 +1382,15 @@ class Post_Importer extends Abstract_Importer {
 				$post_data[ $field ] = $item[ $field ];
 			}
 		}
+		if ( isset( $post_data['post_parent'] ) && is_scalar( $post_data['post_parent'] ) && ! is_numeric( trim( (string) $post_data['post_parent'] ) ) ) {
+			$post_data['post_parent'] = $this->resolve_parent_reference( trim( (string) $post_data['post_parent'] ), (string) ( $post_data['post_type'] ?? $this->get_option( 'post_type', 'post' ) ) );
+		}
+		if ( isset( $post_data['post_type'] ) ) {
+			// "Post" or " page " in a spreadsheet is the registered post type, not a new one.
+			$post_data['post_type'] = is_scalar( $post_data['post_type'] ) ? strtolower( trim( (string) $post_data['post_type'] ) ) : '';
+			if ( '' === $post_data['post_type'] ) {
+				unset( $post_data['post_type'] ); }
+		}
 		foreach ( [ 'post_status', 'comment_status', 'ping_status' ] as $field ) {
 			if ( ! array_key_exists( $field, $post_data ) ) {
 				continue;
@@ -1324,8 +1404,9 @@ class Post_Importer extends Abstract_Importer {
 			}
 		}
 		if ( isset( $post_data['post_content'] ) && is_string( $post_data['post_content'] ) ) {
-			$post_data['post_content'] = $this->resolve_gallery_shortcode_tokens( $post_data['post_content'], 0 );
+			// Remap raw source IDs before tokens become local IDs (see process_acf_value).
 			$post_data['post_content'] = $this->remap_media_shortcode_source_ids( $post_data['post_content'] );
+			$post_data['post_content'] = $this->resolve_gallery_shortcode_tokens( $post_data['post_content'], 0 );
 			$post_data['post_content'] = $this->resolve_content_media_shortcodes( $post_data['post_content'], 0 );
 		}
 
@@ -1390,6 +1471,27 @@ class Post_Importer extends Abstract_Importer {
 					)
 				);
 				$user    = 1 === count( $matches ) ? get_user_by( 'id', (int) $matches[0]->ID ) : false;
+			}
+		}
+
+		// An "Author" column mapped to post_author often holds a login, an email or a display
+		// name instead of a user ID: resolve it the same way instead of saving author 0.
+		if ( array_key_exists( 'post_author', $post_data ) && ! ( is_numeric( $post_data['post_author'] ) && (int) $post_data['post_author'] > 0 ) ) {
+			$given = trim( (string) ( is_scalar( $post_data['post_author'] ) ? $post_data['post_author'] : '' ) );
+			unset( $post_data['post_author'] );
+			if ( ! $user && '' !== $given ) {
+				$user = get_user_by( 'login', $given );
+				if ( ! $user && is_email( $given ) ) {
+					$user = get_user_by( 'email', $given ); }
+				if ( ! $user ) {
+					$user = get_user_by( 'slug', sanitize_title( $given ) ); }
+				if ( ! $user ) {
+					$matches = get_users( [ 'search' => $given, 'search_columns' => [ 'display_name' ], 'number' => 2, 'fields' => [ 'ID', 'display_name' ] ] );
+					$matches = array_values( array_filter( $matches, static function ( $candidate ) use ( $given ) { return 0 === strcasecmp( (string) $candidate->display_name, $given ); } ) );
+					$user    = 1 === count( $matches ) ? get_user_by( 'id', (int) $matches[0]->ID ) : false;
+				}
+				if ( ! $user ) {
+					$name = '' !== $name ? $name : $given; }
 			}
 		}
 
@@ -1567,6 +1669,11 @@ class Post_Importer extends Abstract_Importer {
 
 		$value = preg_replace( '/\s+at\s+/i', ' ', $value );
 		$value = false === $value ? '' : trim( $value );
+		// Unix timestamps (seconds, or milliseconds from JavaScript systems) are UTC moments.
+		if ( preg_match( '/^\d{9,10}$|^\d{13}$/', $value ) ) {
+			$seconds = 13 === strlen( $value ) ? intdiv( (int) $value, 1000 ) : (int) $value;
+			return ( new \DateTimeImmutable( '@' . $seconds ) )->setTimezone( $timezone );
+		}
 		$value = self::normalize_numeric_date( $value, (string) $this->get_option( 'date_order', 'auto' ) );
 
 		$formats = [
@@ -1583,11 +1690,18 @@ class Post_Importer extends Abstract_Importer {
 		foreach ( $formats as $format ) {
 			$dt = \DateTimeImmutable::createFromFormat( '!' . $format, $value, $timezone );
 			if ( $dt instanceof \DateTimeImmutable ) {
+				$errors = \DateTimeImmutable::getLastErrors();
+				// 2024-02-30 is not a date: PHP would quietly turn it into 1 March.
+				if ( is_array( $errors ) && ! empty( $errors['warning_count'] ) ) {
+					return null; }
 				return $dt;
 			}
 		}
 
 		try {
+			$probe = date_parse( $value );
+			if ( is_array( $probe ) && ! empty( $probe['warning_count'] ) && isset( $probe['warnings'] ) && preg_grep( '/invalid/i', (array) $probe['warnings'] ) ) {
+				return null; }
 			return new \DateTimeImmutable( $value, $timezone );
 		} catch ( \Exception $e ) {
 			return null;
@@ -1654,6 +1768,18 @@ class Post_Importer extends Abstract_Importer {
 					// and update_field() on the parent repeater may not be able to reconstruct
 					// them. Skipping would drop data.
 					$has_nested_meta = false;
+					// A portable acf_ value (all rows, with media URLs and post slugs) wins over
+					// the raw nested keys that a full export also carries in post_meta: those
+					// hold the source site's IDs.
+					$portable_rows = $meta[ $acf_field_name ] ?? null;
+					if ( is_string( $portable_rows ) && '' !== trim( $portable_rows ) && '[' === substr( ltrim( $portable_rows ), 0, 1 ) ) {
+						$portable_rows = json_decode( $portable_rows, true );
+					}
+					if ( is_array( $portable_rows ) && $portable_rows ) {
+						$prefix                   = preg_quote( $acf_field_name, '/' );
+						$skip_meta_key_patterns[] = '/^' . $prefix . '_\\d+_/';
+						continue;
+					}
 					foreach ( array_keys( $meta ) as $mk ) {
 						if ( is_string( $mk ) && 0 === strpos( $mk, $acf_field_name . '_' ) && preg_match( '/^' . preg_quote( $acf_field_name, '/' ) . '_\\d+_/', $mk ) ) {
 							$has_nested_meta = true;
@@ -1776,11 +1902,13 @@ class Post_Importer extends Abstract_Importer {
 			if ( is_string( $value ) && '' !== $value ) {
 				if ( is_serialized( $value ) ) {
 					// PHP serialized → array / scalar
-					$value = maybe_unserialize( $value );
+					$value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $value );
 				} elseif ( ( '{' === $value[0] || '[' === $value[0] ) ) {
 					// Looks like JSON — try to decode.
 					$decoded = json_decode( $value, true );
-					if ( null !== $decoded && $this->should_restore_json_meta( $decoded ) ) {
+					// acf_* columns hold JSON text for lists, repeaters and groups in every export
+					// format (also inside JSON/XML files), so they are always decoded.
+					if ( null !== $decoded && ( $this->should_restore_json_meta( $decoded ) || ( is_array( $decoded ) && isset( $acf_keys[ $key ] ) ) ) ) {
 						$value = $decoded;
 					}
 				}
@@ -1938,6 +2066,16 @@ class Post_Importer extends Abstract_Importer {
 					continue;
 				}
 
+				// Fields shown through an ACF Clone field have a composite key (field_clone_field_x)
+				// that acf_get_field() cannot resolve on its own; update_field() then saved the value
+				// under the key text ("field_clone_field_x") and the cloned field stayed empty. Store
+				// them the way ACF does: the value under the field name plus its reference key.
+				if ( '' !== $acf_field_key && false !== strpos( substr( $acf_field_key, 6 ), '_field_' ) && function_exists( 'acf_get_field' ) && ! acf_get_field( $acf_field_key ) && ! is_array( $value ) ) {
+					$this->update_imported_post_meta( $post_id, (string) $key, $value );
+					update_post_meta( $post_id, '_' . (string) $key, $acf_field_key );
+					continue;
+				}
+
 				// Prefer updating by ACF FIELD KEY (field_abc123) — it is more reliable
 				// than updating by field name, especially for complex/nested fields.
 				$updated = ( '' !== $acf_field_key && 0 === strpos( $acf_field_key, 'field_' ) )
@@ -1953,6 +2091,13 @@ class Post_Importer extends Abstract_Importer {
 					if ( '' !== $acf_field_key && 0 === strpos( $acf_field_key, 'field_' ) ) {
 						update_post_meta( $post_id, '_' . (string) $key, $acf_field_key );
 					}
+				}
+
+				// update_field() also returns false when the stored value is already the same
+				// (update_metadata() reports "no change"). Treating that as a failure wrote the
+				// raw source-site IDs over correct values on every second re-import.
+				if ( false === $updated && function_exists( 'acf_get_field' ) && acf_get_field( '' !== $acf_field_key ? $acf_field_key : (string) $key ) ) {
+					$updated = true;
 				}
 
 				// If the field group doesn't exist on the target site (or ACF can't
@@ -2575,7 +2720,7 @@ class Post_Importer extends Abstract_Importer {
 
 			$value = reset( $values );
 			delete_post_meta( $post_id, $key );
-			update_post_meta( $post_id, $key, maybe_unserialize( $value ) );
+			update_post_meta( $post_id, $key, \RockStarLab\ImportExport\Helper\Serialized::maybe( $value ) );
 		}
 	}
 
@@ -2711,16 +2856,20 @@ class Post_Importer extends Abstract_Importer {
 		}
 
 		// ── 0. Gallery shortcode tokens (portable) ───────────────────────────
+		$auto_import_media    = (bool) $this->get_option( 'auto_import_media', false );
+		$media_duplicate_mode = (string) $this->get_option( 'media_duplicate_mode', 'skip' );
+
+		// Raw source [gallery ids] first: shortcodes rebuilt from portable tokens already hold
+		// local IDs, and remapping them again sent a gallery to an unrelated image whenever a
+		// local ID matched a source ID from an earlier import.
+		if ( $auto_import_media && is_string( $value ) && '' !== $value && $this->contains_media_ids_shortcode( $value ) ) {
+			$value = $this->remap_media_shortcode_source_ids( $value );
+		}
+
 		if ( is_string( $value ) && '' !== $value && false !== strpos( $value, '[[RSL_IE:' ) ) {
 			$value = $this->resolve_gallery_shortcode_tokens( $value, $post_id );
 		}
 
-		$auto_import_media    = (bool) $this->get_option( 'auto_import_media', false );
-		$media_duplicate_mode = (string) $this->get_option( 'media_duplicate_mode', 'skip' );
-
-		if ( $auto_import_media && is_string( $value ) && '' !== $value && $this->contains_media_ids_shortcode( $value ) ) {
-			$value = $this->remap_media_shortcode_source_ids( $value );
-		}
 
 		// ── 1. Typed JSON from our improved exporter ──────────────────────────
 		if ( is_array( $value ) && isset( $value['acf_type'] ) ) {
@@ -3017,7 +3166,9 @@ class Post_Importer extends Abstract_Importer {
 			return 0;
 		}
 
-		$post = get_page_by_path( $path, OBJECT, 'any' );
+		// get_page_by_path() takes real post types ("any" matches nothing); a full path such as
+		// parent/child is found here, a plain slug by the lookup below.
+		$post = get_page_by_path( $path, OBJECT, array_values( get_post_types( [ 'public' => true ] ) ) );
 		if ( $post instanceof \WP_Post ) {
 			return (int) $post->ID;
 		}
@@ -3379,7 +3530,7 @@ class Post_Importer extends Abstract_Importer {
 			return $runtime;
 		}
 
-			$settings = @unserialize( (string) $row['post_content'] );
+			$settings = \RockStarLab\ImportExport\Helper\Serialized::parse( (string) $row['post_content'] );
 		if ( ! is_array( $settings ) ) {
 			$settings = [];
 		}
@@ -3446,7 +3597,9 @@ class Post_Importer extends Abstract_Importer {
 						}
 
 						$type = (string) ( $field['type'] ?? '' );
-						if ( in_array( $type, [ 'repeater', 'group' ], true ) && ! empty( $field['sub_fields'] ) ) {
+						// Clone fields list the cloned fields as sub_fields, named the way they are
+						// stored and exported (prefixed with the clone name when prefix_name is on).
+						if ( in_array( $type, [ 'repeater', 'group', 'clone' ], true ) && ! empty( $field['sub_fields'] ) ) {
 							$walk( $field['sub_fields'] );
 						}
 
@@ -4031,7 +4184,7 @@ class Post_Importer extends Abstract_Importer {
 
 				case 'gallery':
 					// Gallery stores array of IDs or URLs
-					$gallery_value = maybe_unserialize( $meta_value );
+					$gallery_value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $meta_value );
 
 					if ( is_array( $gallery_value ) ) {
 						$new_gallery = [];
@@ -4157,7 +4310,7 @@ class Post_Importer extends Abstract_Importer {
 						break;
 
 					case 'gallery':
-						$gallery_value = maybe_unserialize( $meta_value );
+						$gallery_value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $meta_value );
 
 						if ( is_array( $gallery_value ) ) {
 							$new_gallery = [];
@@ -4225,7 +4378,7 @@ class Post_Importer extends Abstract_Importer {
 										}
 									}
 								} elseif ( 'gallery' === $group_field_type ) {
-									$gallery_value = maybe_unserialize( $group_meta_value );
+									$gallery_value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $group_meta_value );
 
 									if ( is_array( $gallery_value ) ) {
 										$new_gallery = [];
@@ -4883,6 +5036,12 @@ class Post_Importer extends Abstract_Importer {
 		preg_match_all( '/<img[^>]+src=[\'"]([^\'"]+)[\'"][^>]*>/i', $html, $img_matches );
 		if ( ! empty( $img_matches[1] ) ) {
 			$media_urls = array_merge( $media_urls, $img_matches[1] );
+		}
+
+		// "Link to: Media File" wraps the image in <a href="full-size source URL">.
+		preg_match_all( '/<a\b[^>]*\bhref=[\'"]([^\'"]+\.(?:jpe?g|png|gif|webp|svg|avif|pdf))[\'"]/i', $html, $link_matches );
+		if ( ! empty( $link_matches[1] ) ) {
+			$media_urls = array_merge( $media_urls, $link_matches[1] );
 		}
 
 		preg_match_all( '/"url"\s*:\s*"([^"]+\.(jpg|jpeg|png|gif|webp|svg|avif)[^"]*)"/i', $html, $gutenberg_matches );

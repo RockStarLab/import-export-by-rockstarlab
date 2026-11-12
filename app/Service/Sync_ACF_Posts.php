@@ -188,7 +188,7 @@ class Sync_ACF_Posts {
 		foreach ( $posts as $post ) {
 			$meta = [];
 			foreach ( $post['acf_post_fields'] as $name => $field ) {
-				$meta[ $name ]       = maybe_unserialize( $post['meta'][ $name ] );
+				$meta[ $name ]       = \RockStarLab\ImportExport\Helper\Serialized::maybe( $post['meta'][ $name ] );
 				$meta[ '_' . $name ] = $field['key'];
 			}
 			$result[] = [
@@ -298,7 +298,7 @@ class Sync_ACF_Posts {
 	 * @return array|\WP_Error
 	 */
 	public static function ids( $value, $multiple ) {
-		$value = maybe_unserialize( $value );
+		$value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $value );
 		if ( in_array( $value, [ null, false, '', 0, '0', [] ], true ) ) {
 			return [];
 		}

@@ -46,6 +46,15 @@ class XLSX_Cell_Decoder {
 					throw new \RuntimeException( 'Missing shared-string table.' ); }
 				$value = $strings->get( (int) $value );
 				}
+		} elseif ( $formula && null !== $value && '' !== $value && 'e' !== $type ) {
+			// A formula with the result Excel saved: import the result, as the sheet shows it.
+			if ( $shared ) {
+				// Register the shared formula so later cells of the group can still be resolved.
+				$shared_formula( (string) $formula_attributes['si'], $coordinate, '=' . (string) $c->f ); }
+			if ( 'b' === $type ) {
+				$value = '0' === $value ? false : true; } elseif ( 'str' === $type ) {
+				return str_replace( [ "\r\n", "\r" ], "\n", StringHelper::controlCharacterOOXML2PHP( $value ) ); } else {
+				$type = 'n'; }
 		} elseif ( $formula && ( 'str' !== $type || $use_formula ) ) {
 			$value = '=' . (string) $c->f;
 			if ( $shared ) {

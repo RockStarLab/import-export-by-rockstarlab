@@ -337,7 +337,7 @@ class Seo_Fields {
 				continue;
 			}
 
-			$schema = maybe_unserialize( $row['meta_value'] ?? '' );
+			$schema = \RockStarLab\ImportExport\Helper\Serialized::maybe( $row['meta_value'] ?? '' );
 			if ( ! is_array( $schema ) ) {
 				continue;
 			}
@@ -430,7 +430,7 @@ class Seo_Fields {
 			}
 
 			if ( is_serialized( $value ) ) {
-				$value = maybe_unserialize( $value );
+				$value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $value );
 			} else {
 				$decoded = json_decode( $value, true );
 				if ( JSON_ERROR_NONE === json_last_error() ) {

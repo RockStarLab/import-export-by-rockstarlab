@@ -50,7 +50,7 @@ class Sync_Workflow_Service {
 		$is_connection = 0 === strpos( $name, 'connection-' );
 		$service       = $is_connection ? new Connection_Service() : $this->content_service();
 		$result        = 'sync-result' === $name ? $this->sync_result( $input['job_id'] ) : $service->execute( $definition['action'], $input );
-		if ( is_wp_error( $result ) && 'rsl_ie_connection_check' === $result->get_error_code() ) {
+		if ( is_wp_error( $result ) && in_array( $result->get_error_code(), [ 'rsl_ie_connection_check', 'rsl_ie_connection_unavailable' ], true ) ) {
 			// Connection checks explain the cause in text this plugin writes (never remote text or the key).
 			return $result;
 		}

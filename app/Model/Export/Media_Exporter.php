@@ -296,8 +296,7 @@ class Media_Exporter extends Abstract_Exporter {
 		$query = new \WP_Query( $query_args );
 
 		// Remove the filters after query
-		remove_all_filters( 'posts_where', 10 );
-		remove_all_filters( 'posts_join', 10 );
+		\RockStarLab\ImportExport\Helper\Query_Filter_Cleanup::remove_own_closures( __FILE__ );
 		return $query->found_posts;
 	}
 
@@ -470,8 +469,7 @@ class Media_Exporter extends Abstract_Exporter {
 
 		// Remove the filters after query
 		if ( ! empty( $custom_id_filters ) || ! empty( $custom_field_filters ) || ! empty( $custom_media_file_filters ) || ! empty( $custom_author_id_filters ) || ! empty( $custom_author_filters ) || ! empty( $custom_parent_filters ) ) {
-			remove_all_filters( 'posts_where', 10 );
-			remove_all_filters( 'posts_join', 10 );
+			\RockStarLab\ImportExport\Helper\Query_Filter_Cleanup::remove_own_closures( __FILE__ );
 		}       if ( ! $query->have_posts() ) {
 			return [];
 		}

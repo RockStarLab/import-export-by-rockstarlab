@@ -12,7 +12,8 @@ class ODS_Cell_Decoder extends Ods {
 	public function decode( \DOMElement $cell ) {
 		$office = 'urn:oasis:names:tc:opendocument:xmlns:office:1.0';
 		$table  = 'urn:oasis:names:tc:opendocument:xmlns:table:1.0';
-		if ( $cell->hasAttributeNS( $table, 'formula' ) ) {
+		// A formula with a saved result imports the result, as the sheet shows it.
+		if ( $cell->hasAttributeNS( $table, 'formula' ) && ( ! $cell->hasAttributeNS( $office, 'value-type' ) || 0 === $cell->getElementsByTagNameNS( 'urn:oasis:names:tc:opendocument:xmlns:text:1.0', 'p' )->length ) ) {
 			$formula = $cell->getAttributeNS( $table, 'formula' );
 			return FormulaTranslator::convertToExcelFormulaValue( substr( $formula, strpos( $formula, ':=' ) + 1 ) );
 		}
@@ -44,9 +45,16 @@ class ODS_Cell_Decoder extends Ods {
 					return $text; }
 				return $number;
 			case 'date':
-				return (string) Date::convertIsoDate( $cell->getAttributeNS( $office, 'date-value' ) );
+				// Dates import as text (2024-03-15 or 2024-03-15 09:30:00), not as spreadsheet serial numbers.
+				$date = (string) $cell->getAttributeNS( $office, 'date-value' );
+				if ( preg_match( '/^(\d{4}-\d{2}-\d{2})(?:T(\d{2}:\d{2}:\d{2}))?/', $date, $parts ) ) {
+					return empty( $parts[2] ) || '00:00:00' === $parts[2] ? $parts[1] : $parts[1] . ' ' . $parts[2]; }
+				return (string) Date::convertIsoDate( $date );
 			case 'time':
-				return (string) Date::PHPToExcel( strtotime( '01-01-1970 ' . implode( ':', sscanf( $cell->getAttributeNS( $office, 'time-value' ), 'PT%dH%dM%dS' ) ?? [] ) ) );
+				$time = sscanf( $cell->getAttributeNS( $office, 'time-value' ), 'PT%dH%dM%dS' );
+				if ( is_array( $time ) && 3 === count( array_filter( $time, 'is_int' ) ) ) {
+					return sprintf( '%02d:%02d:%02d', $time[0], $time[1], $time[2] ); }
+				return (string) Date::PHPToExcel( strtotime( '01-01-1970 ' . implode( ':', $time ?? [] ) ) );
 			default:
 				return '';
 		}

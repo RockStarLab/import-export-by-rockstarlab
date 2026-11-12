@@ -41,6 +41,15 @@ class Content_Sync_Media {
 		$content_images = self::get_content_images( $post );
 		$images         = array_merge( $images, $content_images );
 
+		// 3b. Images inside the synced patterns the content uses (they travel with the post).
+		if ( class_exists( \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::class ) ) {
+			foreach ( \RockStarLab\ImportExport\Service\Sync_Synced_Patterns::collect( array( array( 'post_content' => $post->post_content ) ) ) as $pattern ) {
+				if ( 'wp_block' === ( $pattern['post_type'] ?? '' ) && is_string( $pattern['content'] ?? null ) ) {
+					$images = array_merge( $images, self::get_content_images( (object) array( 'post_content' => $pattern['content'] ) ) );
+				}
+			}
+		}
+
 		// 4. ACF Images
 		$acf_images = self::get_acf_images( $post_id );
 		$images     = array_merge( $images, $acf_images );
@@ -826,7 +835,7 @@ class Content_Sync_Media {
 				continue;
 			}
 
-			$value = maybe_unserialize( $meta[ $value_key ][0] ?? null );
+			$value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $meta[ $value_key ][0] ?? null );
 			foreach ( self::extract_acf_media_attachment_ids( $value ) as $attachment_id ) {
 				$image_data = self::prepare_image_data( $attachment_id, 'acf_raw_' . $value_key );
 				if ( $image_data ) {
@@ -915,7 +924,7 @@ class Content_Sync_Media {
 				continue;
 			}
 
-			$value = maybe_unserialize( $meta[ $value_key ][0] ?? null );
+			$value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $meta[ $value_key ][0] ?? null );
 			foreach ( self::extract_post_reference_ids( $value ) as $related_id ) {
 				if ( 'attachment' !== get_post_type( $related_id ) ) {
 					continue;
@@ -1246,7 +1255,7 @@ class Content_Sync_Media {
 			}
 
 			foreach ( (array) $values as $raw_value ) {
-				$schema = maybe_unserialize( $raw_value );
+				$schema = \RockStarLab\ImportExport\Helper\Serialized::maybe( $raw_value );
 				$ids    = self::extract_media_ids_from_rank_math_schema( $schema );
 				foreach ( $ids as $attachment_id ) {
 					$image_data = self::prepare_image_data( $attachment_id, $meta_key );
@@ -1347,6 +1356,12 @@ class Content_Sync_Media {
 						}
 					}
 
+					// Repeater controls (icon list, slides, carousels, price lists...) keep
+					// their media and SVG icons one or more levels down.
+					if ( is_array( $value ) && ! isset( $value['id'] ) && ! isset( $value['library'] ) && strpos( $key, 'gallery' ) === false ) {
+						$images = array_merge( $images, self::extract_elementor_nested_media( $value, (string) $key ) );
+					}
+
 					// Look for gallery fields
 					if ( is_array( $value ) && strpos( $key, 'gallery' ) !== false ) {
 						foreach ( $value as $gallery_item ) {
@@ -1371,6 +1386,61 @@ class Content_Sync_Media {
 			}
 		}
 
+		return $images;
+	}
+
+	/**
+	 * Media and SVG icons nested inside an Elementor repeater setting.
+	 *
+	 * A nested media control is an array with a numeric id and a url; an SVG icon
+	 * is library "svg" with value.id. Plain numbers are not treated as media here.
+	 *
+	 * @param array  $value Setting value.
+	 * @param string $key   Top-level setting name (used as context).
+	 * @param int    $depth Current depth.
+	 * @return array Image data list.
+	 */
+	private static function extract_elementor_nested_media( array $value, $key, $depth = 0 ) {
+		$images = array();
+		$seen   = array(); // The same icon is often repeated in every list item: prepare it once.
+		if ( $depth > 6 ) {
+			return $images;
+		}
+		foreach ( $value as $child ) {
+			if ( ! is_array( $child ) ) {
+				continue;
+			}
+			if ( 'svg' === ( $child['library'] ?? '' ) && is_array( $child['value'] ?? null ) && isset( $child['value']['id'] ) && is_numeric( $child['value']['id'] ) ) {
+				$icon = $child['value'];
+				if ( isset( $seen[ (int) $icon['id'] ] ) ) {
+					continue;
+				}
+				$seen[ (int) $icon['id'] ] = true;
+				$image_data = self::prepare_image_data( (int) $icon['id'], 'elementor_svg' );
+				if ( ! $image_data && ! empty( $icon['url'] ) && is_string( $icon['url'] ) ) {
+					$image_data = self::prepare_external_media_data( $icon['url'], (int) $icon['id'], 'elementor_svg' );
+				}
+				if ( $image_data ) {
+					$images[] = $image_data;
+				}
+				continue;
+			}
+			if ( isset( $child['id'], $child['url'] ) && is_numeric( $child['id'] ) && (int) $child['id'] > 0 && is_string( $child['url'] ) ) {
+				if ( isset( $seen[ (int) $child['id'] ] ) ) {
+					continue;
+				}
+				$seen[ (int) $child['id'] ] = true;
+				$image_data = self::prepare_image_data( (int) $child['id'], 'elementor_' . $key );
+				if ( ! $image_data && '' !== $child['url'] ) {
+					$image_data = self::prepare_external_media_data( $child['url'], (int) $child['id'], 'elementor_' . $key );
+				}
+				if ( $image_data ) {
+					$images[] = $image_data;
+				}
+				continue;
+			}
+			$images = array_merge( $images, self::extract_elementor_nested_media( $child, $key, $depth + 1 ) );
+		}
 		return $images;
 	}
 

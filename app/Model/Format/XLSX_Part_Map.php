@@ -89,6 +89,7 @@ class XLSX_Part_Map {
 		$result['calendar']    = $calendar;
 		$result['sheet_count'] = $sheet_count;
 		$result['decimals']    = null === $result['styles'] ? [] : self::fixed_decimals( $parts, $result['styles'] );
+		$result['dates']       = null === $result['styles'] ? [] : self::date_styles( $parts, $result['styles'] );
 		unset( $result['styles'] );
 		return $result;
 	}
@@ -133,6 +134,99 @@ class XLSX_Part_Map {
 			return [];
 		}
 		return $decimals;
+	}
+
+	/**
+	 * Index of the worksheet to import: the first sheet that has a header row and at least
+	 * one row of data. A workbook that starts with a cover or notes sheet is read from the
+	 * sheet that holds the table. Falls back to the first sheet.
+	 *
+	 * @param Spreadsheet_XML_Parts $parts Workbook parts.
+	 * @return int
+	 */
+	public static function data_sheet_index( Spreadsheet_XML_Parts $parts ) {
+		$first = self::resolve( $parts );
+		if ( $first['sheet_count'] < 2 ) {
+			return 0; }
+		$strings = $first['strings'] ? Spreadsheet_String_Store::from_xml( $parts, $first['strings'] ) : null;
+		try {
+			for ( $index = 0; $index < min( $first['sheet_count'], 20 ); ++$index ) {
+				$map  = $index ? self::resolve( $parts, $index ) : $first;
+				$rows = [];
+				try {
+					foreach ( XLSX_Cell_Stream::cells( $parts, $map, $strings ) as $cell ) {
+						if ( '' !== trim( (string) $cell['value'] ) ) {
+							$rows[ $cell['row'] ] = true;
+							if ( count( $rows ) >= 2 ) {
+								return $index; }
+						}
+					}
+				} catch ( \Exception $e ) {
+					// A broken first sheet must still fail validation; later broken sheets are skipped.
+					if ( ! $index ) {
+						return 0; }
+					continue;
+				} finally {
+					$parts->release( $map['worksheet'] ); }
+			}
+		} finally {
+			if ( $strings ) {
+				$strings->close(); }
+		}
+		return 0;
+	}
+
+	/**
+	 * Cell styles that show a number as a date or time. The worksheet stores dates as
+	 * serial numbers (45366.39 = 15 March 2024 09:30), which are useless after import.
+	 *
+	 * @return array<int,string> Style index => 'date', 'datetime' or 'time'.
+	 */
+	private static function date_styles( Spreadsheet_XML_Parts $parts, $path ) {
+		$codes  = [ 14 => 'date', 15 => 'date', 16 => 'date', 17 => 'date', 22 => 'datetime', 18 => 'time', 19 => 'time', 20 => 'time', 21 => 'time', 45 => 'time', 46 => 'time', 47 => 'time' ];
+		$styles = [];
+		$in_xfs = false;
+		$index  = 0;
+		try {
+			foreach ( $parts->nodes( $path ) as $node ) {
+				if ( \XMLReader::END_ELEMENT === $node->nodeType && 1 === $node->depth ) {
+					$in_xfs = false; }
+				if ( \XMLReader::ELEMENT !== $node->nodeType ) {
+					continue; }
+				if ( 0 === $node->depth && ( 'styleSheet' !== $node->localName || ! in_array( $node->namespaceURI, self::MAIN, true ) ) ) {
+					return []; }
+				if ( 2 === $node->depth && 'numFmt' === $node->localName ) {
+					$kind = self::date_kind( (string) $node->getAttribute( 'formatCode' ) );
+					if ( $kind ) {
+						$codes[ (int) $node->getAttribute( 'numFmtId' ) ] = $kind; }
+					continue;
+				}
+				if ( 1 === $node->depth ) {
+					$in_xfs = 'cellXfs' === $node->localName && ! $node->isEmptyElement; }
+				if ( $in_xfs && 2 === $node->depth && 'xf' === $node->localName ) {
+					$format = (int) $node->getAttribute( 'numFmtId' );
+					if ( isset( $codes[ $format ] ) && count( $styles ) < 4096 ) {
+						$styles[ $index ] = $codes[ $format ]; }
+					++$index;
+				}
+			}
+		} catch ( \RuntimeException $e ) {
+			return [];
+		}
+		return $styles;
+	}
+
+	/** Whether a custom number format shows a date, a date and time, or a time. */
+	private static function date_kind( $code ) {
+		// Drop quoted text, escaped characters, colors/conditions and the elapsed-time brackets.
+		$plain = preg_replace( [ '/"[^"]*"/', '/\\\\./', '/\[[^\]]*\]/' ], '', strtolower( explode( ';', $code )[0] ) );
+		$date  = (bool) preg_match( '/[dy]|m{3,}/', $plain );
+		$time  = (bool) preg_match( '/[hs]/', $plain );
+		if ( $date && $time ) {
+			return 'datetime'; }
+		if ( $date ) {
+			return 'date'; }
+		return $time ? 'time' : null;
 	}
 
 	/** Yield theme parts without collecting relationship records. */

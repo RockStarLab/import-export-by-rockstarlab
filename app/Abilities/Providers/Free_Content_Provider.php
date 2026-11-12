@@ -94,14 +94,32 @@ class Free_Content_Provider {
 				}
 			}
 			foreach ( [ 'post_type', 'custom_post_type' ] as $key ) {
-				if ( isset( $record[ $key ] ) && '' !== $record[ $key ] && ! in_array( $record[ $key ], $post_types, true ) ) {
+				if ( isset( $record[ $key ] ) && ! is_scalar( $record[ $key ] ) && [] !== $record[ $key ] ) {
 					return $this->error( 'rsl_ie_content_type_forbidden' );
+				}
+				if ( isset( $record[ $key ] ) && is_scalar( $record[ $key ] ) && '' !== trim( (string) $record[ $key ] ) && ! in_array( strtolower( trim( (string) $record[ $key ] ) ), $post_types, true ) ) {
+					return $this->error(
+						'rsl_ie_content_type_forbidden',
+						sprintf(
+							/* translators: 1: value from the file, 2: content type being imported. */
+							__( 'The file has a row with post type "%1$s", but this import creates %2$s. Unmap the post type column, or import those rows with the matching content type. Nothing was imported.', 'import-export-by-rockstarlab' ),
+							sanitize_text_field( mb_substr( (string) $record[ $key ], 0, 40 ) ),
+							implode( ', ', $post_types )
+						)
+					);
 				}
 			}
 			if ( 'comment' === $type ) {
 				$comment_type = $record['comment_type'] ?? $record['default_type'] ?? '';
 				if ( ! in_array( $comment_type, [ '', 'comment', 'pingback', 'trackback' ], true ) ) {
-					return $this->error( 'rsl_ie_content_type_forbidden' );
+					return $this->error(
+						'rsl_ie_content_type_forbidden',
+						sprintf(
+							/* translators: %s: comment type from the file. */
+							__( 'The file has a row with comment type "%s". Only comments, pingbacks and trackbacks can be imported here (WooCommerce reviews and notes have their own import). Unmap the comment type column or remove those rows. Nothing was imported.', 'import-export-by-rockstarlab' ),
+							sanitize_text_field( mb_substr( is_scalar( $comment_type ) ? (string) $comment_type : '', 0, 40 ) )
+						)
+					);
 				}
 				if ( ! empty( $context['record_ids_are_local'] ) && ! empty( $record['comment_post_ID'] ) && ! in_array( get_post_type( (int) $record['comment_post_ID'] ), $post_types, true ) ) {
 					return $this->error( 'rsl_ie_content_type_forbidden' );

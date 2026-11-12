@@ -481,6 +481,17 @@ class File_Service {
 						}
 					}
 				}
+				// A file saved with the wrong extension (an Excel file named .csv, a CSV named .json)
+				// is read by its content, not as garbage rows.
+				$sniffed = self::sniff_format( $path, $record['format'] );
+				if ( $sniffed !== $record['format'] ) {
+					$renamed = $dir . '/source.' . $sniffed;
+					if ( @rename( $path, $renamed ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.rename_rename -- Private upload directory.
+						$record['detected_from'] = $record['format'];
+						$record['format']        = $sniffed;
+						$path                    = $renamed;
+					}
+				}
 				if ( 'zip' === $record['format'] && class_exists( 'ZipArchive' ) ) {
 					$zip = new \ZipArchive();
 					if ( true === $zip->open( $path ) ) {
@@ -550,6 +561,22 @@ class File_Service {
 		// Records nested deeper in a JSON file (Ghost and other CMS exports) become the rows.
 		if ( 'json' === $record['format'] ) {
 			$nested = \RockStarLab\ImportExport\Model\Format\JSON_Format::nested_records( $path );
+			if ( ! $nested ) {
+				$normal = \RockStarLab\ImportExport\Model\Format\JSON_Format::normalized_records( $path );
+				if ( $normal ) {
+					$target = $dir . '/records.json';
+					if ( false === file_put_contents( $target, wp_json_encode( $normal['rows'] ) ) ) {
+						return File_Store::error( 'file_write', 500 );
+					}
+					return [
+						'path'         => realpath( $target ),
+						'format'       => 'json',
+						'source'       => $normal['source'],
+						'counts'       => [ 'records' => count( $normal['rows'] ) ],
+						'records_path' => $normal['path'],
+					];
+				}
+			}
 			if ( $nested ) {
 				$target = $dir . '/records.json';
 				if ( false === file_put_contents( $target, wp_json_encode( $nested['rows'] ) ) ) {
@@ -682,6 +709,60 @@ class File_Service {
 			return File_Store::error( 'chunk_integrity', 409 );
 		}
 		return $total;
+	}
+
+	/**
+	 * The real format of an uploaded file when its extension is wrong.
+	 *
+	 * Only clear cases change the format: a ZIP container (XLSX, ODS or a ZIP archive)
+	 * named as a text format, valid JSON named .csv, and plain text named .json that
+	 * is not JSON at all. Everything else keeps the extension's format.
+	 *
+	 * @param string $path   Assembled file.
+	 * @param string $format Format from the extension.
+	 * @return string
+	 */
+	public static function sniff_format( $path, $format ) {
+		$head = (string) @file_get_contents( $path, false, null, 0, 4096 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		if ( '' === $head ) {
+			return $format; }
+		$is_zip = "PK\x03\x04" === substr( $head, 0, 4 );
+		if ( $is_zip && in_array( $format, [ 'csv', 'json', 'xml' ], true ) ) {
+			if ( ! class_exists( 'ZipArchive' ) ) {
+				return $format; }
+			$zip = new \ZipArchive();
+			if ( true !== $zip->open( $path ) ) {
+				return $format; }
+			try {
+				if ( false !== $zip->locateName( 'xl/workbook.xml' ) ) {
+					return 'xlsx'; }
+				if ( 0 === strpos( (string) $zip->getFromName( 'mimetype' ), 'application/vnd.oasis.opendocument.spreadsheet' ) ) {
+					return 'ods'; }
+				return 'zip';
+			} finally {
+				$zip->close(); }
+		}
+		$text  = ltrim( 0 === strpos( $head, "\xEF\xBB\xBF" ) ? substr( $head, 3 ) : $head );
+		$first = substr( $text, 0, 1 );
+		if ( 'csv' === $format && ( '[' === $first || '{' === $first ) && filesize( $path ) <= 16 * MB_IN_BYTES ) {
+			$content = (string) file_get_contents( $path );
+			$content = 0 === strpos( $content, "\xEF\xBB\xBF" ) ? substr( $content, 3 ) : $content;
+			$data    = json_decode( $content, true );
+			if ( JSON_ERROR_NONE === json_last_error() && is_array( $data ) && $data ) {
+				return 'json'; }
+		}
+		if ( 'json' === $format && '' !== $first && '[' !== $first && '{' !== $first && '"' !== $first && '<' !== $first ) {
+			$line = strtok( $text, "\r\n" );
+			if ( false !== $line && preg_match( '/[,;\t|]/', $line ) ) {
+				return 'csv'; }
+		}
+		// "Excel" downloads from some systems are CSV text with an .xlsx/.ods name.
+		if ( ! $is_zip && in_array( $format, [ 'xlsx', 'ods' ], true ) && false === strpos( $head, "\0" ) && '<' !== $first ) {
+			$line = strtok( $text, "\r\n" );
+			if ( false !== $line && preg_match( '/[,;\t]/', $line ) && preg_match( '//u', $line ) ) {
+				return 'csv'; }
+		}
+		return $format;
 	}
 
 	/**

@@ -111,15 +111,44 @@ class Import_Row_Filter {
 					return false;
 				}
 				$cmp = self::compare( trim( $actual ), trim( $want ) );
+				if ( null === $cmp ) {
+					return false; }
 				return 'greater_than' === $filter['operator'] ? $cmp > 0 : $cmp < 0;
 		}
 		return false;
 	}
 
-	/** Numbers compare as numbers, dates as dates, everything else as text. */
+	/**
+	 * A number written the way shops and spreadsheets write it: "$25.50", "1,234.5",
+	 * "12,5 €", "1 000". Null when the text is not a number.
+	 *
+	 * @param string $text Cell text.
+	 * @return float|null
+	 */
+	private static function number( $text ) {
+		$text = trim( str_replace( [ "\xC2\xA0", ' ', "'" ], '', (string) $text ) );
+		$text = preg_replace( '/^[^\d\-+.,]+|[^\d.,]+$/u', '', $text );
+		if ( null === $text || '' === $text ) {
+			return null; }
+		if ( is_numeric( $text ) ) {
+			return (float) $text; }
+		if ( preg_match( '/^[-+]?\d{1,3}(,\d{3})+(\.\d+)?$/', $text ) ) {
+			$text = str_replace( ',', '', $text );
+		} elseif ( preg_match( '/^[-+]?\d{1,3}(\.\d{3})+(,\d+)?$/', $text ) ) {
+			$text = str_replace( [ '.', ',' ], [ '', '.' ], $text );
+		} elseif ( preg_match( '/^[-+]?\d+,\d+$/', $text ) ) {
+			$text = str_replace( ',', '.', $text );
+		}
+		return is_numeric( $text ) ? (float) $text : null;
+	}
+
+	/** Numbers compare as numbers, dates as dates, everything else as text; null = not comparable. */
 	private static function compare( $a, $b ) {
-		if ( is_numeric( $a ) && is_numeric( $b ) ) {
-			return (float) $a <=> (float) $b;
+		$wanted = self::number( $b );
+		if ( null !== $wanted && ! preg_match( '/^\d{4}-\d{2}-\d{2}/', $b ) ) {
+			// A number in the filter compares numbers: "abc" is neither above nor below 20.
+			$have = self::number( $a );
+			return null === $have ? null : ( $have <=> $wanted );
 		}
 		$date = '/^\d{4}-\d{2}-\d{2}/';
 		if ( preg_match( $date, $a ) && preg_match( $date, $b ) ) {

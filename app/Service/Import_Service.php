@@ -791,11 +791,14 @@ class Import_Service {
 			}
 			unset( $prepared_row );
 		}
-		return [
+		$result = [
 			'data'          => $prepared_data,
 			'replaced_urls' => $replacement_count,
-			'filtered_rows' => $filtered_rows,
 		];
+		if ( $filtered_rows ) {
+			// Only present when a row filter skipped rows: chunked and full preparation stay identical otherwise.
+			$result['filtered_rows'] = $filtered_rows; }
+		return $result;
 	}
 
 	/**
@@ -1379,7 +1382,9 @@ class Import_Service {
 	 * @return bool
 	 */
 	public static function is_missing_source_media( array $request, \WP_Error $error ) {
-		return 'media' === ( $request['import_type'] ?? '' ) && 'download_failed' === $error->get_error_code();
+		// download_failed: the source site no longer has the file. upload_error: WordPress here
+		// refused this one file (e.g. SVG or another type this site does not allow, size limit).
+		return 'media' === ( $request['import_type'] ?? '' ) && in_array( $error->get_error_code(), array( 'download_failed', 'upload_error' ), true );
 	}
 
 	/**
@@ -1603,6 +1608,20 @@ class Import_Service {
 	 * @param int   $replacement_count Number of replacements applied.
 	 * @return mixed Updated value.
 	 */
+	/**
+	 * Whether a replace-links rule points URLs at this site.
+	 *
+	 * @param string $replace Replacement text.
+	 * @return bool
+	 */
+	private static function replacement_targets_this_site( $replace ) {
+		$host = wp_parse_url( (string) $replace, PHP_URL_HOST );
+		if ( ! $host && preg_match( '~^//?([^/]+)~', (string) $replace, $m ) ) {
+			$host = $m[1];
+		}
+		return $host && strtolower( (string) $host ) === strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
+	}
+
 	private function apply_replace_links_rules_to_value( $value, $rules, &$replacement_count = 0, array $source_fields = [] ) {
 		if ( is_object( $value ) && $value instanceof \stdClass ) {
 			return (object) $this->apply_replace_links_rules_to_value( (array) $value, $rules, $replacement_count, $source_fields );
@@ -1620,7 +1639,7 @@ class Import_Service {
 
 		if ( is_string( $value ) && '' !== $value ) {
 			if ( is_serialized( $value ) ) {
-				$unserialized = maybe_unserialize( $value );
+				$unserialized = \RockStarLab\ImportExport\Helper\Serialized::maybe( $value );
 				if ( false !== $unserialized || 'b:0;' === $value ) {
 					return maybe_serialize( $this->apply_replace_links_rules_to_value( $unserialized, $rules, $replacement_count, $source_fields ) );
 				}
@@ -1640,10 +1659,29 @@ class Import_Service {
 					rawurlencode( $rule['search'] ) => rawurlencode( $rule['replace'] ),
 				);
 
+				$to_this_site = self::replacement_targets_this_site( $rule['replace'] );
 				foreach ( $variants as $search => $replace ) {
-					$count              = 0;
-					$value              = str_replace( $search, $replace, $value, $count );
-					$replacement_count += $count;
+					if ( ! $to_this_site ) {
+						$count              = 0;
+						$value              = str_replace( $search, $replace, $value, $count );
+						$replacement_count += $count;
+						continue;
+					}
+					// Source uploads must keep their source address: the media importer downloads
+					// them from there. Re-pointed to this site before the download they became
+					// URLs of files that do not exist here and ACF images/files/galleries came out empty.
+					$value = (string) preg_replace_callback(
+						'~' . preg_quote( $search, '~' ) . '([^\s"\'<>()\]\[]*)~',
+						static function ( $m ) use ( $replace, &$replacement_count ) {
+							$tail = str_replace( [ '\\/', '%2F', '%2f' ], '/', $m[1] );
+							if ( false !== strpos( $tail, 'wp-content/uploads/' ) ) {
+								return $m[0];
+							}
+							++$replacement_count;
+							return $replace . $m[1];
+						},
+						$value
+					);
 				}
 			}
 		}
@@ -1786,9 +1824,32 @@ class Import_Service {
 				continue;
 			}
 
+			// Fields imported from portable acf_<name> columns already hold this site's IDs. Remapping
+			// them again through the global "source ID => local ID" map turned a correct local ID into
+			// an unrelated attachment whenever it matched a source ID from an earlier import.
+			$portable = [];
+			foreach ( array_keys( $row ) as $column ) {
+				if ( is_string( $column ) && 0 === strpos( $column, 'acf_' ) && strlen( $column ) > 4 ) {
+					$portable[] = substr( $column, 4 );
+				}
+			}
+
 			$meta = [];
 			foreach ( $raw_meta as $key => $values ) {
 				if ( ! is_array( $values ) || ! array_key_exists( 0, $values ) ) {
+					continue;
+				}
+				$plain = ltrim( (string) $key, '_' );
+				foreach ( $portable as $name ) {
+					if ( $plain === $name || 0 === strpos( $plain, $name . '_' ) ) {
+						continue 2;
+					}
+				}
+				// Only ACF fields (their "_name" reference is "field_..."). Elementor, SEO and other
+				// meta have their own importers; this pass re-wrote _elementor_data with IDs from
+				// the global map (a wrong image) and without slashes (broken JSON).
+				$reference = $raw_meta[ '_' . $key ][0] ?? '';
+				if ( '_' === substr( (string) $key, 0, 1 ) || ! is_string( $reference ) || 0 !== strpos( $reference, 'field_' ) ) {
 					continue;
 				}
 				$meta[ $key ] = maybe_unserialize( $values[0] );
@@ -1806,7 +1867,7 @@ class Import_Service {
 				if ( ! array_key_exists( $key, $meta ) || $value === $meta[ $key ] ) {
 					continue;
 				}
-				update_post_meta( $post_id, $key, $value );
+				update_post_meta( $post_id, $key, wp_slash( $value ) );
 			}
 		}
 	}
@@ -1998,7 +2059,7 @@ class Import_Service {
 				'number'     => 1,
 				'orderby'    => 'comment_ID',
 				'order'      => 'DESC',
-				'status'     => 'all',
+				'status'     => 'any',
 				'meta_key'   => '_aie_source_comment_id',
 				'meta_value' => (string) absint( $source_id ),
 			]
@@ -2055,7 +2116,7 @@ class Import_Service {
 					[
 						'number'     => 1,
 						'fields'     => 'ids',
-						'status'     => 'all',
+						'status'     => 'any',
 						'meta_key'   => '_aie_source_comment_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Targeted lookup.
 						'meta_value' => (string) $source_parent, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Targeted lookup.
 						'post_id'    => (int) ( get_comment( $target_id )->comment_post_ID ?? 0 ),

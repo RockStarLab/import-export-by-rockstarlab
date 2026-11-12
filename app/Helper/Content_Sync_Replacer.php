@@ -192,9 +192,48 @@ class Content_Sync_Replacer {
 	 * @return string Modified content
 	 */
 	private static function replace_in_blocks( $content, $source_domain, $target_domain, $image_map = array() ) {
-		$blocks = parse_blocks( $content );
-		$blocks = self::replace_in_blocks_recursive( $blocks, $source_domain, $target_domain, $image_map );
-		return serialize_blocks( $blocks );
+		// Rewrite only the attribute JSON of block comments that actually change. Re-serializing the
+		// whole tree turns every empty object ({}) into an array ([]) and re-encodes escapes such as
+		// \u002d, which breaks block validation in the editor (Stackable, Blocksy, core styles).
+		$pattern = '/<!--\s+wp:([a-z][a-z0-9_-]*\/)?([a-z][a-z0-9_-]*)\s+(\{(?:(?:[^}]+|}+(?=})|(?!}\s+\/?-->).)*+)?}\s+)(\/)?-->/s';
+		$result  = preg_replace_callback(
+			$pattern,
+			static function ( $m ) use ( $source_domain, $target_domain, $image_map ) {
+				$attrs = json_decode( trim( $m[3] ), true );
+				if ( ! is_array( $attrs ) || empty( $attrs ) ) {
+					return $m[0];
+				}
+				$blocks = self::replace_in_blocks_recursive( array( array( 'attrs' => $attrs ) ), $source_domain, $target_domain, $image_map );
+				if ( $blocks[0]['attrs'] === $attrs ) {
+					return $m[0];
+				}
+				$attrs_out = self::restore_empty_objects( $blocks[0]['attrs'], json_decode( trim( $m[3] ) ) );
+				return '<!-- wp:' . $m[1] . $m[2] . ' ' . serialize_block_attributes( $attrs_out ) . ' ' . ( $m[4] ?? '' ) . '-->';
+			},
+			$content
+		);
+		return is_string( $result ) ? $result : $content;
+	}
+
+	/**
+	 * Turn empty arrays back into {} where the original block JSON had an empty object.
+	 *
+	 * @param mixed $value    Changed attribute value (decoded as arrays).
+	 * @param mixed $original Original attribute value (decoded as objects).
+	 * @return mixed
+	 */
+	private static function restore_empty_objects( $value, $original ) {
+		if ( ! is_array( $value ) ) {
+			return $value;
+		}
+		if ( array() === $value ) {
+			return ( $original instanceof \stdClass && array() === get_object_vars( $original ) ) ? new \stdClass() : $value;
+		}
+		foreach ( $value as $key => $item ) {
+			$orig_item     = $original instanceof \stdClass ? ( $original->$key ?? null ) : ( is_array( $original ) ? ( $original[ $key ] ?? null ) : null );
+			$value[ $key ] = self::restore_empty_objects( $item, $orig_item );
+		}
+		return $value;
 	}
 
 	/**
@@ -223,10 +262,12 @@ class Content_Sync_Replacer {
 					// Gallery IDs
 					if ( isset( $block['attrs']['ids'] ) && is_array( $block['attrs']['ids'] ) ) {
 						foreach ( $block['attrs']['ids'] as &$id ) {
-							if ( isset( $image_map[ $id ] ) ) {
-								$id = $image_map[ $id ];
+							if ( ( is_int( $id ) || is_string( $id ) ) && isset( $image_map[ $id ] ) ) {
+								// Keep the stored type ("769" stays a string) so unchanged galleries stay byte-identical.
+								$id = is_string( $id ) ? (string) $image_map[ $id ] : (int) $image_map[ $id ];
 							}
 						}
+						unset( $id );
 					}
 				}
 
@@ -403,9 +444,16 @@ class Content_Sync_Replacer {
 				continue;
 			}
 
-			// Replace thumbnail ID
-			if ( '_thumbnail_id' === $key && ! empty( $image_map ) && isset( $image_map[ $value ] ) ) {
-				$value = $image_map[ $value ];
+			// Replace thumbnail ID. A source attachment that did not arrive (missing file, failed
+			// transfer) must not leave its source ID behind: on the target that number is either
+			// nothing or an unrelated image. Dropping the key keeps the target's current image.
+			if ( '_thumbnail_id' === $key ) {
+				$source_thumb = is_array( $value ) ? (int) reset( $value ) : (int) $value;
+				if ( $source_thumb > 0 && isset( $image_map[ $source_thumb ] ) ) {
+					$value = is_array( $value ) ? array( $image_map[ $source_thumb ] ) : $image_map[ $source_thumb ];
+				} elseif ( $source_thumb > 0 && ! empty( $image_map ) ) {
+					unset( $meta[ $key ] );
+				}
 				continue;
 			}
 
@@ -416,7 +464,9 @@ class Content_Sync_Replacer {
 				if ( ! empty( $gallery_ids ) ) {
 					$mapped_gallery_ids = array();
 					foreach ( $gallery_ids as $gallery_id ) {
-						$mapped_gallery_ids[] = isset( $image_map[ $gallery_id ] ) ? (int) $image_map[ $gallery_id ] : (int) $gallery_id;
+						if ( isset( $image_map[ $gallery_id ] ) ) {
+							$mapped_gallery_ids[] = (int) $image_map[ $gallery_id ];
+						}
 					}
 					$value = implode( ',', array_filter( $mapped_gallery_ids ) );
 				}
@@ -480,7 +530,7 @@ class Content_Sync_Replacer {
 			if ( is_string( $value ) ) {
 				// Check if it's serialized data
 				if ( self::is_serialized( $value ) ) {
-						$unserialized = @unserialize( $value );
+						$unserialized = \RockStarLab\ImportExport\Helper\Serialized::parse( $value );
 					if ( false !== $unserialized ) {
 						$acf_field_type     = self::get_acf_field_type( $key, $meta );
 						$is_acf_media_field = self::is_acf_media_field_type( $acf_field_type );

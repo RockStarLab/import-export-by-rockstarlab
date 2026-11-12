@@ -271,7 +271,9 @@ const ImportModule = {
 		$wizard.on( 'click', '.rsl-ie-remove-row-filter', ( e ) => {
 			const $rows = jQuery( '.rsl-ie-row-filter-row' );
 			if ( $rows.length > 1 ) {
-				jQuery( e.currentTarget ).closest( '.rsl-ie-row-filter-row' ).remove();
+				jQuery( e.currentTarget )
+					.closest( '.rsl-ie-row-filter-row' )
+					.remove();
 			} else {
 				$rows.find( '.rsl-ie-row-filter-value' ).val( '' );
 			}
@@ -7035,10 +7037,14 @@ const ImportModule = {
 		setChecked( '#rsl-ie-enable-replace-links', options.replace_links );
 		this.setRowFilters( options.row_filters, options.row_filters_match );
 		if ( options.default_taxonomy ) {
-			jQuery( '#rsl-ie-default-taxonomy' ).val( options.default_taxonomy );
+			jQuery( '#rsl-ie-default-taxonomy' ).val(
+				options.default_taxonomy
+			);
 		}
 		jQuery( '[name="date_order"]' ).val(
-			[ 'dmy', 'mdy' ].includes( options.date_order ) ? options.date_order : 'auto'
+			[ 'dmy', 'mdy' ].includes( options.date_order )
+				? options.date_order
+				: 'auto'
 		);
 
 		const rules = Array.isArray( options.replace_links_rules )
@@ -7438,10 +7444,14 @@ const ImportModule = {
 			let html = '';
 			columns.forEach( ( column ) => {
 				const name = String( column );
-				html += `<option value="${ Utils.escapeHtml( name ) }">${ Utils.escapeHtml( name ) }</option>`;
+				html += `<option value="${ Utils.escapeHtml(
+					name
+				) }">${ Utils.escapeHtml( name ) }</option>`;
 			} );
 			if ( current && ! columns.map( String ).includes( current ) ) {
-				html += `<option value="${ Utils.escapeHtml( current ) }">${ Utils.escapeHtml( current ) }</option>`;
+				html += `<option value="${ Utils.escapeHtml(
+					current
+				) }">${ Utils.escapeHtml( current ) }</option>`;
 			}
 			$select.html( html );
 			if ( current ) {
@@ -7468,7 +7478,9 @@ const ImportModule = {
 		const filters = [];
 		jQuery( '.rsl-ie-row-filter-row' ).each( function () {
 			const $row = jQuery( this );
-			const field = ( $row.find( '.rsl-ie-row-filter-field' ).val() || '' )
+			const field = (
+				$row.find( '.rsl-ie-row-filter-field' ).val() || ''
+			)
 				.toString()
 				.trim();
 			const operator =
@@ -7485,20 +7497,33 @@ const ImportModule = {
 
 	setRowFilters( filters, match ) {
 		const list = Array.isArray( filters ) ? filters : [];
-		jQuery( '#rsl-ie-enable-row-filter' ).prop( 'checked', list.length > 0 );
+		jQuery( '#rsl-ie-enable-row-filter' ).prop(
+			'checked',
+			list.length > 0
+		);
 		jQuery( '#rsl-ie-row-filter-repeater' ).toggle( list.length > 0 );
-		jQuery( '[name="row_filters_match"]' ).val( match === 'any' ? 'any' : 'all' );
+		jQuery( '[name="row_filters_match"]' ).val(
+			match === 'any' ? 'any' : 'all'
+		);
 		jQuery( '.rsl-ie-row-filter-row' ).slice( 1 ).remove();
 		list.forEach( ( filter, index ) => {
 			const $row =
 				index === 0
 					? jQuery( '.rsl-ie-row-filter-row' ).first()
 					: this.addRowFilterRow();
-			$row.find( '.rsl-ie-row-filter-field' ).data( 'pending', filter.field || '' );
-			$row.find( '.rsl-ie-row-filter-operator' ).val( filter.operator || 'equals' );
+			$row.find( '.rsl-ie-row-filter-field' ).data(
+				'pending',
+				filter.field || ''
+			);
+			$row.find( '.rsl-ie-row-filter-operator' ).val(
+				filter.operator || 'equals'
+			);
 			$row.find( '.rsl-ie-row-filter-value' )
 				.val( filter.value || '' )
-				.toggle( filter.operator !== 'is_empty' && filter.operator !== 'is_not_empty' );
+				.toggle(
+					filter.operator !== 'is_empty' &&
+						filter.operator !== 'is_not_empty'
+				);
 		} );
 		this.refreshRowFilterColumns();
 	},

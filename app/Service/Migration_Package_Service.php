@@ -20,6 +20,8 @@ defined( 'ABSPATH' ) || exit;
 class Migration_Package_Service {
 	/** WooCommerce content excluded during the most recent full manifest inspection. */
 	private $woocommerce_excluded = false;
+	/** Content that needs the PRO addon (missing or unlicensed) skipped during the most recent inspection. */
+	private $pro_excluded = false;
 
 	/** Legacy manifest bound retained for callers; no longer enforced. */
 	const MANIFEST_LIMIT = 1048576;
@@ -37,6 +39,7 @@ class Migration_Package_Service {
 	 */
 	public function inspect( $path, $check_only = false, array $selected_keys = array(), $only_index = null ) {
 		$this->woocommerce_excluded = false;
+		$this->pro_excluded         = false;
 		$access = Access_Policy::check_management();
 		if ( is_wp_error( $access ) ) {
 			return $access; }
@@ -142,6 +145,14 @@ class Migration_Package_Service {
 					continue;
 				}
 				$scope = Migration_Plan::import_scope( $step );
+				if ( is_wp_error( $scope ) && in_array( $scope->get_error_code(), array( 'rsl_ie_license_inactive', 'rsl_ie_migration_provider' ), true ) ) {
+					// Menus, users, taxonomies, custom post types... need the PRO addon with a license.
+					// Skip them like content types this site does not have, and import the rest.
+					$this->pro_excluded = true;
+					$subtype            = $step['taxonomy'] ?? $step['post_type'] ?? '';
+					unset( $remaining_keys[ $step['type'] . ( '' !== $subtype ? ':' . $subtype : '' ) ] );
+					continue;
+				}
 				if ( is_wp_error( $scope ) ) {
 					return $scope; }
 				if ( $scope_index ) {
@@ -765,6 +776,7 @@ class Migration_Package_Service {
 			'total_steps'     => $total,
 			'complete'        => $next === $total,
 			'woocommerce_excluded' => $this->woocommerce_excluded,
+			'pro_excluded'         => $this->pro_excluded,
 		];
 	}
 

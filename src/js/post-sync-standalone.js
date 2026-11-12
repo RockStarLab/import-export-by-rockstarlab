@@ -855,13 +855,38 @@ const getActionNonce = ( action ) =>
 					( post ) =>
 						parseInt( post?.ID ?? 0, 10 ) === originalRemoteId
 				);
+				// Drafts have no slug yet: compare their titles instead (a draft pulled
+				// earlier was shown as "Create New Post" although the sync updated it).
+				const sameIdentity =
+					remembered &&
+					( remembered.post_name || info.post_name
+						? !! remembered.post_name &&
+						  remembered.post_name === info.post_name
+						: !! remembered.post_title &&
+						  remembered.post_title === info.post_title );
 				if (
 					! remembered ||
 					remembered.post_type !== info.post_type ||
-					! remembered.post_name ||
-					remembered.post_name !== info.post_name
+					! sameIdentity
 				) {
 					originalRemoteId = 0;
+				}
+				// A post pushed from here earlier: the remote copy remembers this post's ID.
+				// Same type and the same slug (or title) keep IDs from another site out.
+				if ( ! originalRemoteId ) {
+					const copies = ( remotePosts || [] ).filter(
+						( post ) =>
+							parseInt( post?.original_id ?? 0, 10 ) ===
+								parseInt( postId, 10 ) &&
+							post.post_type === info.post_type &&
+							( ( !! post.post_name &&
+								post.post_name === info.post_name ) ||
+								( !! post.post_title &&
+									post.post_title === info.post_title ) )
+					);
+					if ( 1 === copies.length ) {
+						originalRemoteId = parseInt( copies[ 0 ].ID, 10 );
+					}
 				}
 			} else {
 				// Fallback: Try multiple selectors for different editor contexts
@@ -1476,7 +1501,7 @@ const getActionNonce = ( action ) =>
 								response.data?.message ||
 								rslIePostSyncData?.i18n?.syncCompletedSuccess ||
 								'Sync completed successfully';
-							this.showResult( 'success', successMsg );
+							this.showResult( 'success', successMsg, direction );
 						}, 500 );
 					} else {
 						$( '#rsl-ie-sync-progress' ).hide();
@@ -2106,7 +2131,7 @@ const getActionNonce = ( action ) =>
 		/**
 		 * Show sync result
 		 */
-		showResult( type, message ) {
+		showResult( type, message, direction = '' ) {
 			TabProgress.finish(
 				'sync',
 				type === 'success' ? 'completed' : 'failed'
@@ -2127,14 +2152,17 @@ const getActionNonce = ( action ) =>
 				.html( `<p>${ message }</p>` )
 				.fadeIn( 200 );
 
-			// Auto-hide success messages
+			// Success: the message stays on screen. Before, it faded out after 2 s while the
+			// page reloaded, so a slow reload (the block editor) showed an empty dialog with
+			// only its title. A push from the editor changes nothing here: no reload, the
+			// dialog closes by itself. Lists and pulls reload with the message still visible.
 			if ( type === 'success' ) {
-				setTimeout( () => {
-					$result.fadeOut( 200 );
-					this.closeSyncModal();
-					// Reload page to show updated content
-					location.reload();
-				}, 2000 );
+				const isEditor = /\/post(-new)?\.php/.test( window.location.pathname );
+				if ( 'push' === direction && isEditor ) {
+					setTimeout( () => this.closeSyncModal(), 3000 );
+				} else {
+					setTimeout( () => location.reload(), 1500 );
+				}
 			}
 		},
 	};

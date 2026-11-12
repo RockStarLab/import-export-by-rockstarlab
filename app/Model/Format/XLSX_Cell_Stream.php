@@ -66,6 +66,8 @@ class XLSX_Cell_Stream {
 				$style = $node->getAttribute( 's' );
 				if ( ! empty( $map['decimals'] ) && null !== $style && '' !== $style && isset( $map['decimals'][ (int) $style ] ) && in_array( (string) $node->getAttribute( 't' ), [ '', 'n' ], true ) ) {
 					$value = self::pad_decimals( $value, $map['decimals'][ (int) $style ] ); }
+				if ( ! empty( $map['dates'] ) && null !== $style && '' !== $style && isset( $map['dates'][ (int) $style ] ) && in_array( (string) $node->getAttribute( 't' ), [ '', 'n' ], true ) && is_numeric( $value ) ) {
+					$value = self::serial_date( (float) $value, $map['dates'][ (int) $style ], $map['calendar'] ); }
 				yield [
 					'row'               => $indices[1],
 					'column'            => $indices[0],
@@ -104,5 +106,38 @@ class XLSX_Cell_Stream {
 		if ( $current >= $decimals ) {
 			return $value; }
 		return ( isset( $match[1] ) ? $value : $value . '.' ) . str_repeat( '0', $decimals - $current );
+	}
+
+	/**
+	 * A date cell's serial number as text: 2024-03-15, 2024-03-15 09:30:00 or 09:30:00.
+	 * A date-formatted cell that holds a time of day (no date part) is written as a datetime.
+	 *
+	 * @param float  $serial   Excel serial number.
+	 * @param string $kind     'date', 'datetime' or 'time'.
+	 * @param int    $calendar 1900 or 1904.
+	 * @return string
+	 */
+	private static function serial_date( $serial, $kind, $calendar ) {
+		if ( $serial < 0 || $serial > 2958465 ) {
+			return (string) $serial; }
+		$days    = (int) floor( $serial );
+		$seconds = (int) round( ( $serial - $days ) * 86400 );
+		if ( 86400 === $seconds ) {
+			++$days;
+			$seconds = 0; }
+		if ( 'time' === $kind && 0 === $days ) {
+			return gmdate( 'H:i:s', $seconds ); }
+		// 1900 calendar: day 1 is 1900-01-01 and Excel counts a non-existent 1900-02-29 (day 60).
+		if ( 1904 === (int) $calendar ) {
+			$base = gmmktime( 0, 0, 0, 1, 1, 1904 );
+		} else {
+			$base = gmmktime( 0, 0, 0, 12, 30, 1899 );
+			if ( $days < 61 ) {
+				++$days; }
+		}
+		$time = $base + $days * 86400 + $seconds;
+		if ( 'date' === $kind && 0 === $seconds ) {
+			return gmdate( 'Y-m-d', $time ); }
+		return gmdate( 'Y-m-d H:i:s', $time );
 	}
 }

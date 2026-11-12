@@ -53,7 +53,7 @@ class XLSX_Row_Stream {
 		$store = null;
 		try {
 			$parts = new Spreadsheet_XML_Parts( $path );
-			$map   = XLSX_Part_Map::resolve( $parts );
+			$map   = XLSX_Part_Map::resolve( $parts, XLSX_Part_Map::data_sheet_index( $parts ) );
 			$store = new Spreadsheet_Row_Store();
 			foreach ( XLSX_Cell_Stream::cells( $parts, $map ) as $cell ) {
 				$store->append( $cell ); }

@@ -229,6 +229,15 @@ class Comment_Importer extends Abstract_Importer {
 			)
 		);
 
+		// Dates as people write them (15/02/2024, timestamps, "March 3, 2024") were saved as 0000-00-00.
+		foreach ( [ 'comment_date', 'comment_date_gmt' ] as $date_field ) {
+			if ( isset( $item[ $date_field ] ) && is_scalar( $item[ $date_field ] ) && '' !== trim( (string) $item[ $date_field ] ) ) {
+				$item[ $date_field ] = $this->mysql_date( (string) $item[ $date_field ], 'comment_date_gmt' === $date_field );
+				if ( '' === $item[ $date_field ] ) {
+					unset( $item[ $date_field ] ); }
+			}
+		}
+
 		$source_comment_id     = absint( $item['_aie_source_comment_id'] ?? ( $item['source_comment_id'] ?? ( $item['comment_ID'] ?? 0 ) ) );
 		$source_comment_parent = absint( $item['_aie_source_comment_parent_id'] ?? ( $item['source_comment_parent_id'] ?? ( $item['comment_parent'] ?? 0 ) ) );
 
@@ -310,12 +319,14 @@ class Comment_Importer extends Abstract_Importer {
 				if ( $this->get_option( 'create_missing_posts', false ) ) {
 					// Create placeholder post
 					$new_post_id = wp_insert_post(
-						[
-							// translators: %d is a dynamic value.
-							'post_title'   => $item['post_title'] ?? sprintf( __( 'Imported Post %d', 'import-export-by-rockstarlab' ), $post_id ),
-							'post_status'  => 'draft',
-							'post_content' => '',
-						]
+						wp_slash(
+							[
+								// translators: %d is a dynamic value.
+								'post_title'   => $item['post_title'] ?? sprintf( __( 'Imported Post %d', 'import-export-by-rockstarlab' ), $post_id ),
+								'post_status'  => 'draft',
+								'post_content' => '',
+							]
+						)
 					);
 					if ( is_wp_error( $new_post_id ) ) {
 						return new \WP_Error(
@@ -405,7 +416,7 @@ class Comment_Importer extends Abstract_Importer {
 		// Remove comment_ID if present to force creation
 		unset( $comment_data['comment_ID'] );
 
-		$comment_id = wp_insert_comment( $comment_data );
+		$comment_id = wp_insert_comment( wp_slash( $comment_data ) );
 
 		if ( ! $comment_id ) {
 			return new \WP_Error(
@@ -460,7 +471,7 @@ class Comment_Importer extends Abstract_Importer {
 		$comment_data['comment_ID'] = $comment_id;
 
 		// wp_update_comment returns 1 on success, 0 on failure, or WP_Error
-		$result = wp_update_comment( $comment_data, true );
+		$result = wp_update_comment( wp_slash( $comment_data ), true );
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
@@ -525,6 +536,41 @@ class Comment_Importer extends Abstract_Importer {
 	}
 
 	/**
+	 * A date from the file as Y-m-d H:i:s ('' when it is not a date).
+	 *
+	 * @param string $value Date text.
+	 * @param bool   $gmt   Whether the value is the GMT column.
+	 * @return string
+	 */
+	private function mysql_date( $value, $gmt ) {
+		$value = trim( $value );
+		if ( '' === $value || 0 === strpos( $value, '0000-00-00' ) ) {
+			return '';
+		}
+		if ( preg_match( '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $value ) && checkdate( (int) substr( $value, 5, 2 ), (int) substr( $value, 8, 2 ), (int) substr( $value, 0, 4 ) ) ) {
+			return $value;
+		}
+		if ( preg_match( '/^\d{9,10}$|^\d{13}$/', $value ) ) {
+			$utc = gmdate( 'Y-m-d H:i:s', 13 === strlen( $value ) ? intdiv( (int) $value, 1000 ) : (int) $value );
+			return $gmt ? $utc : get_date_from_gmt( $utc );
+		}
+		$value = Post_Importer::normalize_numeric_date( $value, (string) $this->get_option( 'date_order', 'auto' ) );
+		$probe = date_parse( $value );
+		if ( ! is_array( $probe ) || ! empty( $probe['error_count'] ) || ! empty( $probe['warning_count'] ) || false === $probe['year'] || ! checkdate( (int) $probe['month'], (int) $probe['day'], (int) $probe['year'] ) ) {
+			$this->log_warning( sprintf( 'Comment date "%s" is not a date; the import date was used.', mb_substr( $value, 0, 40 ) ) );
+			return '';
+		}
+		try {
+			$zone = $gmt ? new \DateTimeZone( 'UTC' ) : wp_timezone();
+			$dt   = new \DateTimeImmutable( $value, $zone );
+			$dt   = $dt->setTimezone( $zone );
+			return $dt->format( 'Y-m-d H:i:s' );
+		} catch ( \Exception $e ) {
+			return '';
+		}
+	}
+
+	/**
 	 * Find an existing target comment by stored source ID.
 	 *
 	 * @param int $source_comment_id Source site comment_ID.
@@ -542,7 +588,7 @@ class Comment_Importer extends Abstract_Importer {
 				'orderby'    => 'comment_ID',
 				'order'      => 'ASC',
 				'fields'     => 'ids',
-				'status'     => 'all',
+				'status'     => 'any',
 				'meta_key'   => self::SOURCE_ID_META_KEY, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Targeted lookup by importer-specific meta key.
 				'meta_value' => (string) $source_comment_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Targeted lookup by importer-specific meta key.
 			]
@@ -883,7 +929,7 @@ class Comment_Importer extends Abstract_Importer {
 			$post_data['post_name'] = $post_name;
 		}
 
-		$new_post_id = wp_insert_post( $post_data, true );
+		$new_post_id = wp_insert_post( wp_slash( $post_data ), true );
 		if ( is_wp_error( $new_post_id ) ) {
 			return new \WP_Error(
 				'post_creation_failed',
@@ -1113,7 +1159,7 @@ class Comment_Importer extends Abstract_Importer {
 
 			if ( is_array( $meta_data ) ) {
 				foreach ( $meta_data as $meta_key => $meta_value ) {
-					update_comment_meta( $comment_id, $meta_key, $this->resolve_comment_media_references( $meta_value ) );
+					update_comment_meta( $comment_id, $meta_key, wp_slash( $this->resolve_comment_media_references( $meta_value ) ) );
 				}
 			}
 		}
