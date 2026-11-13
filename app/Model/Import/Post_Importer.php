@@ -1608,8 +1608,14 @@ class Post_Importer extends Abstract_Importer {
 		if ( ! empty( $post_data['post_date_gmt'] ) ) {
 			$gmt_dt = $this->parse_imported_datetime( (string) $post_data['post_date_gmt'], new \DateTimeZone( 'UTC' ) );
 			if ( $gmt_dt ) {
-				$gmt_dt   = $gmt_dt->setTimezone( new \DateTimeZone( 'UTC' ) );
-				$local_dt = $gmt_dt->setTimezone( $timezone );
+				$gmt_dt = $gmt_dt->setTimezone( new \DateTimeZone( 'UTC' ) );
+				// Both dates in the file: keep both, like the WordPress importer. Recomputing the
+				// local date from GMT with this site's time zone changed the date every visitor
+				// sees whenever the sites' time zones (or the source's own pairs) differed.
+				$local_dt = ! empty( $post_data['post_date'] ) ? $this->parse_imported_datetime( (string) $post_data['post_date'], $timezone ) : null;
+				if ( ! $local_dt ) {
+					$local_dt = $gmt_dt->setTimezone( $timezone );
+				}
 			}
 		}
 
@@ -4986,7 +4992,7 @@ class Post_Importer extends Abstract_Importer {
 		// Replies may come before their parent: link them once all comments exist.
 		foreach ( $parents as $comment_id => $source_parent ) {
 			if ( isset( $map[ $source_parent ] ) ) {
-				wp_update_comment( [ 'comment_ID' => $comment_id, 'comment_parent' => $map[ $source_parent ] ] );
+				\RockStarLab\ImportExport\Helper\Comment_Update::update( [ 'comment_ID' => $comment_id, 'comment_parent' => $map[ $source_parent ] ] );
 			}
 		}
 		if ( $created ) {
@@ -5497,7 +5503,56 @@ class Post_Importer extends Abstract_Importer {
 			}
 		}
 
-		return $content;
+
+		return self::sync_gallery_block_ids( (string) $content );
+	}
+
+	/**
+	 * Point a Gallery block's "ids" attribute at the images it holds. The images' wp-image-N
+	 * classes are re-pointed with their URLs; the ids list kept the old site's IDs.
+	 *
+	 * @param string $content Post content.
+	 * @return string
+	 */
+	public static function sync_gallery_block_ids( string $content ): string {
+		if ( false === strpos( $content, '<!-- wp:gallery' ) || false === strpos( $content, '"ids"' ) ) {
+			return $content;
+		}
+		return (string) preg_replace_callback(
+			'/<!-- wp:gallery (\{.*?\}) -->(.*?)<!-- \/wp:gallery -->/s',
+			static function ( $m ) {
+				$attrs = json_decode( $m[1], true );
+				if ( ! is_array( $attrs ) || empty( $attrs['ids'] ) || ! is_array( $attrs['ids'] ) ) {
+					return $m[0];
+				}
+				preg_match_all( '/<img\b[^>]*\bwp-image-(\d+)\b/i', $m[2], $found );
+				$ids = array_map( 'intval', $found[1] );
+				if ( count( $ids ) !== count( $attrs['ids'] ) ) {
+					return $m[0];
+				}
+				$new = [];
+				foreach ( array_values( $attrs['ids'] ) as $i => $old ) {
+					$id = 'attachment' === get_post_type( $ids[ $i ] ) ? $ids[ $i ] : 0;
+					if ( ! $id ) {
+						return $m[0];
+					}
+					$new[] = is_string( $old ) ? (string) $id : $id;
+				}
+				if ( $new === $attrs['ids'] ) {
+					return $m[0];
+				}
+				$json = (string) preg_replace_callback(
+					'/"ids":\[[^\]]*\]/',
+					static function () use ( $new ) {
+						return '"ids":' . wp_json_encode( $new );
+					},
+					$m[1],
+					1
+				);
+				return '<!-- wp:gallery ' . $json . ' -->' . $m[2] . '<!-- /wp:gallery -->';
+			},
+			$content
+		);
 	}
 
 	/**

@@ -360,22 +360,38 @@ class Content_Sync_Replacer {
 	 * @return string
 	 */
 	public static function remap_img_attachment_ids( $content, $image_map ) {
-		if ( ! is_string( $content ) || '' === $content || empty( $image_map ) || false === stripos( $content, '<img' ) ) {
+		if ( ! is_string( $content ) || '' === $content || ( false === stripos( $content, '<img' ) && false === strpos( $content, 'wp-image-' ) ) ) {
 			return $content;
 		}
+		$image_map = is_array( $image_map ) ? $image_map : array();
 		return (string) preg_replace_callback(
-			'/<img\b[^>]*>/i',
+			// <img> tags, and other tags with a wp-image-N class (a parallax/fixed Cover block
+			// uses <div class="wp-block-cover__image-background wp-image-N">).
+			'/<img\b[^>]*>|<[a-z][a-z0-9-]*\b[^>]*\bwp-image-\d+\b[^>]*>/i',
 			static function ( $m ) use ( $image_map ) {
-				if ( self::img_already_local( $m[0] ) ) {
-					return $m[0];
-				}
+				$local = self::img_src_local_id( $m[0] );
+				// IDs the map knows are remapped; a source ID it does not know (media that
+				// travelled outside this map, e.g. inside an ACF WYSIWYG field) takes the ID of
+				// the local file the src already points to.
+				$pick = static function ( $id ) use ( $image_map, $local ) {
+					// Already the local file's ID (content remapped before): never remap again.
+					if ( $local > 0 && (int) $id === $local ) {
+						return $local;
+					}
+					if ( isset( $image_map[ $id ] ) && (int) $image_map[ $id ] > 0 ) {
+						return (int) $image_map[ $id ];
+					}
+					return $local > 0 ? $local : 0;
+				};
 				return (string) preg_replace_callback(
 					'/\bwp-image-(\d+)\b|(\sdata-id=)(["\'])(\d+)\3/i',
-					static function ( $x ) use ( $image_map ) {
+					static function ( $x ) use ( $pick ) {
 						if ( '' !== ( $x[1] ?? '' ) ) {
-							return isset( $image_map[ $x[1] ] ) && (int) $image_map[ $x[1] ] > 0 ? 'wp-image-' . (int) $image_map[ $x[1] ] : $x[0];
+							$id = $pick( $x[1] );
+							return $id > 0 ? 'wp-image-' . $id : $x[0];
 						}
-						return isset( $image_map[ $x[4] ] ) && (int) $image_map[ $x[4] ] > 0 ? $x[2] . $x[3] . (int) $image_map[ $x[4] ] . $x[3] : $x[0];
+						$id = $pick( $x[4] );
+						return $id > 0 ? $x[2] . $x[3] . $id . $x[3] : $x[0];
 					},
 					$m[0]
 				);
@@ -384,22 +400,25 @@ class Content_Sync_Replacer {
 		);
 	}
 
+
 	/**
-	 * Whether an <img> tag already names a local attachment whose file is its src
-	 * (wp-image-N with src = a file of attachment N on this site).
+	 * Attachment of this site whose file (any size) is the src of an <img> tag, or 0.
 	 *
 	 * @param string $tag <img> tag.
-	 * @return bool
+	 * @return int
 	 */
-	private static function img_already_local( string $tag ): bool {
+	private static function img_src_local_id( string $tag ): int {
 		static $cache = array();
-		if ( ! preg_match( '/\bwp-image-(\d+)\b/', $tag, $id ) || ! preg_match( '/\ssrc=(["\'])((?:(?!\1).)+)\1/i', $tag, $src ) ) {
-			return false;
+		if ( preg_match( '/\ssrc=(["\'])((?:(?!\1).)+)\1/i', $tag, $src ) ) {
+			$url = html_entity_decode( $src[2] );
+		} elseif ( preg_match( '/background-image\s*:\s*url\(\s*(?:&quot;|["\'])?([^"\')&]+)/i', $tag, $bg ) ) {
+			$url = html_entity_decode( $bg[1] );
+		} else {
+			return 0;
 		}
 		$uploads = untrailingslashit( (string) ( wp_upload_dir()['baseurl'] ?? '' ) );
-		$url     = html_entity_decode( $src[2] );
 		if ( '' === $uploads || 0 !== strpos( set_url_scheme( $url ), set_url_scheme( $uploads ) . '/' ) ) {
-			return false;
+			return 0;
 		}
 		if ( ! isset( $cache[ $url ] ) ) {
 			$found = (int) attachment_url_to_postid( $url );
@@ -408,8 +427,9 @@ class Content_Sync_Replacer {
 			}
 			$cache[ $url ] = $found;
 		}
-		return $cache[ $url ] > 0 && $cache[ $url ] === (int) $id[1];
+		return $cache[ $url ];
 	}
+
 
 	/**
 	 * Fix <img> src/srcset attributes after media has been imported locally.
@@ -424,8 +444,11 @@ class Content_Sync_Replacer {
 	 * @return string Updated content.
 	 */
 	public static function fix_local_image_urls_in_content( $content, $image_map = array(), $image_sources = array() ) {
-		if ( empty( $content ) || ! is_string( $content ) || empty( $image_map ) ) {
+		if ( empty( $content ) || ! is_string( $content ) ) {
 			return $content;
+		}
+		if ( empty( $image_map ) ) {
+			return self::remap_img_attachment_ids( $content, array() );
 		}
 
 		$content = self::replace_shortcode_attachment_ids( $content, $image_map );
@@ -844,6 +867,13 @@ class Content_Sync_Replacer {
 				$img_tag   = $matches[0];
 				$local_url = $full_url;
 				$has_class = (bool) preg_match( '/\bwp-image-' . (int) $attachment_id . '\b/i', $img_tag );
+				// The src already shows another file of this site: keep what the source showed.
+				if ( $has_class ) {
+					$shown = self::img_src_local_id( $img_tag );
+					if ( $shown > 0 && $shown !== (int) $attachment_id ) {
+						return $img_tag;
+					}
+				}
 
 				if ( preg_match( '/\bsrc=(["\'])([^"\']+)\1/i', $img_tag, $src_match ) ) {
 					$dimension = self::get_source_image_dimension( $src_match[2], $source_urls );

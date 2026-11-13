@@ -141,7 +141,7 @@ class Comment_Sync_Importer {
 				};
 				add_filter( 'wp_kses_allowed_html', $sync_html, 10, 2 );
 				try {
-					$saved = wp_update_comment( wp_slash( $data ), true );
+					$saved = \RockStarLab\ImportExport\Helper\Comment_Update::update( wp_slash( $data ), true );
 				} finally {
 					remove_filter( 'wp_kses_allowed_html', $sync_html, 10 );
 				}

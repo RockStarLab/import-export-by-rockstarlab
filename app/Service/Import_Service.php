@@ -2373,7 +2373,7 @@ class Import_Service {
 				continue;
 			}
 
-			wp_update_comment(
+			\RockStarLab\ImportExport\Helper\Comment_Update::update(
 				[
 					'comment_ID'     => $target_id,
 					'comment_parent' => $target_parent,

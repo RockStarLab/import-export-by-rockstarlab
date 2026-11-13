@@ -3,7 +3,7 @@ Contributors: RockstarLab
 Tags: content-migration, content-sync, ai-agents, abilities, site-migration
 Requires at least: 6.2
 Tested up to: 7.1.3
-Stable tag: 2.2.7
+Stable tag: 2.2.8
 Requires PHP: 7.4
 License: GPL v2 or later
 
@@ -294,6 +294,14 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 
 == Changelog ==
 
+= 2.2.8 =
+* Fix: Content Sync could leave the old site's media ID on Cover blocks with a fixed or repeated background, on images inside ACF WYSIWYG fields and on gallery images. The image the page shows now decides.
+* Fix: repeating a sync or an import moved comment dates by the site's time zone offset every time.
+* Fix: imports and site migrations that carry both the local and the GMT date of a post keep both, like the WordPress importer. Before, posts could show another date and time on the new site.
+* Fix: Gallery blocks keep pointing at their images after a file import or a site migration.
+* Fix: media files with non-Latin names (for example Cyrillic) keep their names in site migrations and media imports.
+* Fix: importing comments after a Content Sync no longer adds the synced comments a second time.
+
 = 2.2.7 =
 * Fix: Excel (XLSX) and LibreOffice (ODS) exports cut every cell at 32,767 characters, the spreadsheet limit. Elementor pages and other long content lost their design and custom fields when such a file was imported. Longer values now continue in extra "…__part2" columns, which the import joins back.
 * Fix: XML exports of pages built with Elementor stopped with "Export stopped unexpectedly", and keys with characters such as ":" or spaces were changed in XML files. Every key is now written so that it reads back exactly.
@@ -461,9 +469,3 @@ Yes! Use the Site-to-Site Content Sync feature. Connect two sites with API keys 
 = 2.1.44 =
 * Fixed: in a WooCommerce product export (PRO), Stock Quantity filters such as "Less or Equal 5" no longer match products that don't track stock. An empty value is never greater or less than a number.
 * Improved: with "One row per variation", stock and price filters check each variation, so a variation that is out of stock or running low is listed even when its product doesn't track stock. A filter on SKU still selects the product with all its variations.
-
-= 2.1.43 =
-* Improved: when a CSV file uses a semicolon, tab or pipe instead of a comma, the Delimiter dropdown in the import wizard switches to it after the upload. The upload response for WP-CLI and AI agents includes the detected delimiter.
-* Improved: a broken JSON file gets a message that says what is wrong: the file ends before the JSON is complete, a record is not valid JSON, or there is text after the end of the JSON.
-* Improved: the import wizard's message for a file type it can't read lists the supported types and says that a tab-separated .txt file can be renamed to .csv, the same as for WP-CLI and AI agents.
-* Improved: when several export filters are changed in a row, the item count is requested once after the changes stop, instead of once per change.

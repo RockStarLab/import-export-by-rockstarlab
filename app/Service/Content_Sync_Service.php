@@ -1899,7 +1899,7 @@ class Content_Sync_Service {
 			if ( ! isset( $images[ $key ] ) ) {
 				$url      = esc_url_raw( $value['url'] );
 				$path     = (string) \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
-				$filename = sanitize_file_name( wp_basename( $path ) );
+				$filename = sanitize_file_name( rawurldecode( wp_basename( $path ) ) );
 				$ext      = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
 				$filetype = wp_check_filetype( $filename );
 				$mime     = ! empty( $filetype['type'] ) ? $filetype['type'] : '';
@@ -3023,7 +3023,7 @@ class Content_Sync_Service {
 			if ( $existing_id ) {
 				$args['comment_ID'] = $existing_id;
 				// wp_update_comment() returns 0 when nothing changed; that is still a match.
-				$updated   = wp_update_comment( wp_slash( $args ), true );
+				$updated   = \RockStarLab\ImportExport\Helper\Comment_Update::update( wp_slash( $args ), true );
 				$result_id = ( false === $updated || is_wp_error( $updated ) ) ? 0 : $existing_id;
 			} else {
 				$result_id = wp_insert_comment( wp_slash( $args ) );

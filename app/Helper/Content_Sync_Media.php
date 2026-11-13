@@ -1590,7 +1590,7 @@ class Content_Sync_Media {
 			return null;
 		}
 
-		$filename = sanitize_file_name( wp_basename( $path ) );
+		$filename = sanitize_file_name( rawurldecode( wp_basename( $path ) ) );
 		if ( '' === $filename ) {
 			$filename = 'content-sync-media.' . $ext;
 		}

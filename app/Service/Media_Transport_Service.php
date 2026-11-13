@@ -288,7 +288,7 @@ class Media_Transport_Service {
 			if ( ! $size || $size > $limit ) {
 				return $this->error( 'size_limit', 413 );
 			}
-			$transfer = Media_Chunk_Store::begin( sanitize_file_name( wp_basename( $parts['path'] ?? '' ) ), $size, hash_file( 'sha256', $temp ) );
+			$transfer = Media_Chunk_Store::begin( sanitize_file_name( rawurldecode( wp_basename( $parts['path'] ?? '' ) ) ), $size, hash_file( 'sha256', $temp ) );
 			if ( is_wp_error( $transfer ) ) {
 				return $transfer;
 			}

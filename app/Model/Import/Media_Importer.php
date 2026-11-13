@@ -297,7 +297,7 @@ class Media_Importer extends Abstract_Importer {
 		if ( '' !== $canonical_url ) {
 			$url         = $canonical_url;
 			$source_path = \RockStarLab\ImportExport\Helper\Content_Sync_Media::url_path( $url );
-			$source_name = is_string( $source_path ) ? sanitize_file_name( wp_basename( $source_path ) ) : '';
+			$source_name = is_string( $source_path ) ? sanitize_file_name( rawurldecode( wp_basename( $source_path ) ) ) : '';
 			if ( '' !== $source_name ) {
 				$item['filename']  = $source_name;
 				$item['file_name'] = $source_name;
