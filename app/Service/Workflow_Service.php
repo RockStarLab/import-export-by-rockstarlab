@@ -266,8 +266,49 @@ class Workflow_Service {
 		$fields  = array_merge( $fields, self::acf_columns( $schema ) );
 		$mapping = [];
 		$headers = array_map( 'strval', (array) $file['headers'] );
+		// Column names of WordPress exports (WXR) and the WordPress REST API, as Auto Map in the
+		// admin reads them: WP-CLI and AI agent imports of such files mapped nothing and failed.
+		$aliases = [
+			'title'            => 'post_title',
+			'title.rendered'   => 'post_title',
+			'content:encoded'  => 'post_content',
+			'content.rendered' => 'post_content',
+			'excerpt:encoded'  => 'post_excerpt',
+			'excerpt.rendered' => 'post_excerpt',
+			'wp:post_name'     => 'post_name',
+			'wp:post_date'     => 'post_date',
+			'wp:post_date_gmt' => 'post_date_gmt',
+			'wp:status'        => 'post_status',
+			'wp:menu_order'    => 'menu_order',
+			'wp:attachment_url' => 'file_url',
+			'dc:creator'       => 'author_login',
+		];
+		$mapped_targets = [];
 		foreach ( $headers as $index => $header ) {
 			$target = in_array( $header, $fields, true ) ? $header : $this->relation_target( $input['import_type'], $header );
+			$alias  = $aliases[ strtolower( $header ) ] ?? '';
+			// WordPress exports: "Meta: key" custom fields, "category"/"tag" and "category:<taxonomy>"
+			// term lists (the same targets Auto Map creates in the admin).
+			$dynamic = '';
+			if ( preg_match( '/^\x{FEFF}?meta:\s*(\S+)$/iu', $header, $meta_match ) ) {
+				$dynamic = 'meta_' . $meta_match[1];
+			} elseif ( in_array( $input['import_type'], [ 'post', 'page' ], true ) && 'category' === $header && taxonomy_exists( 'category' ) && in_array( 'taxonomies', $fields, true ) ) {
+				$dynamic = 'taxonomy_category';
+			} elseif ( in_array( $input['import_type'], [ 'post', 'page' ], true ) && 'tag' === $header && taxonomy_exists( 'post_tag' ) && in_array( 'taxonomies', $fields, true ) ) {
+				$dynamic = 'taxonomy_post_tag';
+			} elseif ( preg_match( '/^category:([a-z0-9_-]+)$/', $header, $tax_match ) && taxonomy_exists( $tax_match[1] ) && in_array( 'taxonomies', $fields, true ) ) {
+				$dynamic = 'taxonomy_' . $tax_match[1];
+			}
+			if ( '' === $alias && '' !== $dynamic && ! in_array( $dynamic, $headers, true ) ) {
+				$alias    = $dynamic;
+				$fields[] = $dynamic;
+			}
+			if ( '' === $target && '' !== $alias && in_array( $alias, $fields, true ) && ! in_array( $alias, $headers, true ) && ! isset( $mapped_targets[ $alias ] ) ) {
+				$target = $alias;
+			}
+			if ( '' !== $target ) {
+				$mapped_targets[ $target ] = true;
+			}
 			if ( '' === $target ) {
 				continue; }
 			// A readable copy ("category_names") is used only when the file has no portable column for it.

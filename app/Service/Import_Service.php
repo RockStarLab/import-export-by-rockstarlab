@@ -468,6 +468,28 @@ class Import_Service {
 	}
 
 	/**
+	 * Whether the mapping takes custom fields from "Meta: key" columns of a WordPress export.
+	 *
+	 * @param array $mapping Column mapping.
+	 * @return bool
+	 */
+	private function wxr_meta_mapped( array $mapping ) {
+		static $cache = [];
+		$key = md5( wp_json_encode( $mapping ) );
+		if ( ! isset( $cache[ $key ] ) ) {
+			$cache[ $key ] = false;
+			foreach ( $mapping as $entry ) {
+				// A mapped custom field (meta_key) taken as a custom field (meta_key) means custom fields are wanted.
+				if ( is_array( $entry ) && 0 === strpos( (string) ( $entry['target_field'] ?? '' ), 'meta_' ) ) {
+					$cache[ $key ] = true;
+					break;
+				}
+			}
+		}
+		return $cache[ $key ];
+	}
+
+	/**
 	 * Create the categories, tags and terms a WordPress export lists, with their parents.
 	 *
 	 * A post row only names its terms, so a Posts import created every category at the top
@@ -940,6 +962,30 @@ class Import_Service {
 			if ( isset( $raw['wp:post_type'] ) && is_scalar( $raw['wp:post_type'] ) && '' !== trim( (string) $raw['wp:post_type'] ) ) {
 				$prepared_row['_rsl_ie_source_post_type'] = sanitize_key( (string) $raw['wp:post_type'] );
 				$prepared_row['_rsl_ie_wxr_item']         = true;
+				// Settings a WordPress export keeps in its own columns and Auto Map does not offer:
+				// without them a password-protected post arrived public, sticky posts lost the
+				// flag and closed comments opened.
+				foreach ( array( 'post_password' => 'wp:post_password', 'comment_status' => 'wp:comment_status', 'ping_status' => 'wp:ping_status', 'is_sticky' => 'wp:is_sticky' ) as $wxr_field => $wxr_column ) {
+					if ( ! array_key_exists( $wxr_field, $prepared_row ) && isset( $raw[ $wxr_column ] ) && is_scalar( $raw[ $wxr_column ] ) ) {
+						$wxr_value = trim( (string) $raw[ $wxr_column ] );
+						if ( 'post_password' === $wxr_field ? '' !== $wxr_value : in_array( $wxr_value, array( 'open', 'closed', '0', '1' ), true ) ) {
+							$prepared_row[ $wxr_field ] = $wxr_value;
+						}
+					}
+				}
+				// Custom fields of the item ("Meta: key" columns). The column mapping only knows the
+				// keys of the first items it previewed; the other posts lost theirs.
+				if ( ! empty( $request['wxr_meta'] ) || $this->wxr_meta_mapped( (array) ( $request['mapping'] ?? [] ) ) ) {
+					foreach ( $raw as $raw_key => $raw_value ) {
+						if ( 0 !== strpos( (string) $raw_key, 'Meta: ' ) || ! is_scalar( $raw_value ) ) {
+							continue;
+						}
+						$meta_key = trim( substr( (string) $raw_key, 6 ) );
+						if ( '' !== $meta_key && ! array_key_exists( 'meta_' . $meta_key, $prepared_row ) ) {
+							$prepared_row[ 'meta_' . $meta_key ] = (string) $raw_value;
+						}
+					}
+				}
 			}
 			// The item's comments (WordPress export): one entry as wp:comment/... columns, several
 			// as a JSON list in wp:comment. Post imports create them with the post.

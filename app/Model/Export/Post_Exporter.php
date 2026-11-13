@@ -263,6 +263,20 @@ class Post_Exporter extends Abstract_Exporter {
 	 * @return array
 	 */
 	public function get_default_fields() {
+		$fields = self::base_default_fields();
+		if ( in_array( $this->get_option( 'post_type', '' ), [ 'product', 'woo_product' ], true ) ) {
+			$fields = array_merge( $fields, self::product_default_fields() );
+		}
+		return $fields;
+	}
+
+	/**
+	 * Default columns of any post type. export() fills options['fields'] with them before the
+	 * post_type option is set, so get_data() must also treat this list as "default fields".
+	 *
+	 * @return string[]
+	 */
+	public static function base_default_fields() {
 		return [
 			'ID',
 			'post_title',
@@ -291,6 +305,17 @@ class Post_Exporter extends Abstract_Exporter {
 	}
 
 	/**
+	 * Default WooCommerce columns of a product export. Product data lives in internal "_" meta
+	 * that the generic columns leave out, so a default product export (WP-CLI, AI agents) was
+	 * re-imported as bare simple products without SKU, prices, categories or variations.
+	 *
+	 * @return string[]
+	 */
+	public static function product_default_fields() {
+		return [ 'product_type', 'sku', 'regular_price', 'sale_price', 'tax_status', 'tax_class', 'manage_stock', 'stock_quantity', 'stock_status', 'backorders', 'weight', 'length', 'width', 'height', 'shipping_class', 'virtual', 'downloadable', 'product_url', 'button_text', 'featured', 'visibility', 'product_gallery', 'product_cat', 'product_tag', 'product_brand', 'product_attributes', 'variations', 'grouped_products', 'parent_sku', '_product_image_gallery', '_sale_price_dates_from', '_sale_price_dates_to', '_downloadable_files', '_download_limit', '_download_expiry', '_purchase_note', '_sold_individually', '_low_stock_amount' ];
+	}
+
+	/**
 	 * Default columns plus one acf_<name> column per ACF field of the post type.
 	 *
 	 * @param string $post_type Post type being exported.
@@ -298,6 +323,9 @@ class Post_Exporter extends Abstract_Exporter {
 	 */
 	public function default_fields_with_acf( $post_type ) {
 		$fields = $this->get_default_fields();
+		if ( in_array( $post_type, [ 'product', 'woo_product' ], true ) ) {
+			$fields = array_values( array_unique( array_merge( $fields, self::product_default_fields() ) ) );
+		}
 		if ( ! class_exists( '\\RockStarLab\\ImportExport\\Helper\\ACF_Fields' ) || ! function_exists( 'acf_get_field_groups' ) ) {
 			return $fields;
 		}
@@ -530,7 +558,7 @@ class Post_Exporter extends Abstract_Exporter {
 		// If fields is empty array, use default fields. ACF fields are added as portable
 		// acf_* columns: inside post_meta they keep this site's media/post/term IDs, which
 		// point to nothing (or to the wrong items) on another site.
-		if ( empty( $fields ) || $fields === $this->get_default_fields() ) {
+		if ( empty( $fields ) || $fields === $this->get_default_fields() || $fields === self::base_default_fields() ) {
 			$fields                  = $this->default_fields_with_acf( (string) ( $options['post_type'] ?? $this->get_option( 'post_type', 'post' ) ) );
 			$this->options['fields'] = $fields;
 		}
