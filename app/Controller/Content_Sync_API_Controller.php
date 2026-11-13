@@ -381,9 +381,18 @@ class Content_Sync_API_Controller {
 				'post_modified'     => isset( $post_data['post_modified'] ) ? $post_data['post_modified'] : '',
 				'post_modified_gmt' => isset( $post_data['post_modified_gmt'] ) ? $post_data['post_modified_gmt'] : '',
 				'menu_order'        => isset( $post_data['menu_order'] ) ? (int) $post_data['menu_order'] : 0,
+				'post_password'     => isset( $post_data['post_password'] ) ? (string) $post_data['post_password'] : '',
 				'post_author'       => $authors[ (int) $post_data['ID'] ] ?? \RockStarLab\ImportExport\Helper\Sync_Post_Author::resolve( $post_data, $target_post_id && get_post( $target_post_id ) ? (int) $target_post_id : 0 ), // PRO mapping, else same user by email/login, else keep current (update) or key owner (new).
 				'edit_date'         => true,
 			);
+			foreach ( array( 'comment_status', 'ping_status' ) as $discussion_key ) {
+				if ( isset( $post_data[ $discussion_key ] ) && in_array( $post_data[ $discussion_key ], array( 'open', 'closed' ), true ) ) {
+					$post_args[ $discussion_key ] = $post_data[ $discussion_key ];
+				}
+			}
+			if ( ! isset( $post_data['post_password'] ) ) {
+				unset( $post_args['post_password'] );
+			}
 
 			$is_update = false;
 
@@ -423,6 +432,14 @@ class Content_Sync_API_Controller {
 					$post_data['post_title']
 				);
 				continue;
+			}
+
+			if ( isset( $post_data['sticky'] ) && 'post' === get_post_type( $post_id ) ) {
+				if ( $post_data['sticky'] ) {
+					stick_post( (int) $post_id );
+				} else {
+					unstick_post( (int) $post_id );
+				}
 			}
 
 			if ( isset( $authors[ (int) $source_post_id ] ) && (int) get_post_field( 'post_author', $post_id ) !== $authors[ (int) $source_post_id ] ) {
@@ -3326,6 +3343,12 @@ class Content_Sync_API_Controller {
 					'post_modified'     => $post->post_modified,
 					'post_modified_gmt' => $post->post_modified_gmt,
 					'post_author'       => $post->post_author,
+					// Password protection, discussion settings and "sticky" are part of the post:
+					// without them a protected post arrived public.
+					'post_password'     => $post->post_password,
+					'comment_status'    => $post->comment_status,
+					'ping_status'       => $post->ping_status,
+					'sticky'            => 'post' === $post->post_type && is_sticky( $post->ID ),
 					'meta'              => $prepared_meta,
 					'post_refs'         => \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::collect_acf_post_reference_map_from_meta( $prepared_meta ),
 					'terms'             => $terms_data,

@@ -1,5 +1,9 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.9 =
+* Fix: Content Sync now carries a post's password, its comment and ping settings and the "sticky" flag, in both directions. Before, a password-protected post arrived public on the other site.
+* Fix: post and page exports include the password and the comment and ping settings by default, so protected posts stay protected after an import on another site.
+
 = 2.2.8 =
 * Fix: Content Sync could leave the old site's media ID on Cover blocks with a fixed or repeated background, on images inside ACF WYSIWYG fields and on gallery images. The image the page shows now decides.
 * Fix: repeating a sync or an import moved comment dates by the site's time zone offset every time.

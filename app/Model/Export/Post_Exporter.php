@@ -280,6 +280,10 @@ class Post_Exporter extends Abstract_Exporter {
 			'post_parent',
 			'menu_order',
 			'is_sticky',
+			// A password-protected post exported without its password became public on import.
+			'post_password',
+			'comment_status',
+			'ping_status',
 			'post_meta',
 			'taxonomies',
 			'featured_image',
