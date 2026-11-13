@@ -1,5 +1,10 @@
 == Content Sync, Media Sync, Import, Export with AI Agents Support: full changelog ==
 
+= 2.2.10 =
+* Fix: WP-CLI and AI agent imports of WordPress export (WXR) files now map titles, content, custom fields and terms. Before, such an import created nothing.
+* Fix: WXR imports keep post passwords, the sticky flag and comment/ping settings, and the custom fields of every item (not only of the first previewed items). Several values of one custom field are all kept.
+* Fix: product exports without chosen columns (WP-CLI, AI agents) now include the WooCommerce data: SKU, prices, stock, categories, attributes, variations and grouped products.
+
 = 2.2.9 =
 * Fix: Content Sync now carries a post's password, its comment and ping settings and the "sticky" flag, in both directions. Before, a password-protected post arrived public on the other site.
 * Fix: post and page exports include the password and the comment and ping settings by default, so protected posts stay protected after an import on another site.

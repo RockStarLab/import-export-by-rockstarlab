@@ -521,7 +521,8 @@ class XML_Format implements File_Format_Interface {
 	 * @return array<string,string>
 	 */
 	private function wxr_postmeta_columns( array $entries ) {
-		$row  = array();
+		$row    = array();
+		$values = array();
 		$skip = array( '_edit_lock', '_edit_last', '_wp_old_slug', '_wp_old_date', '_pingme', '_encloseme', '_wp_attached_file', '_wp_attachment_metadata', '_wp_desired_post_slug' );
 		foreach ( $entries as $entry ) {
 			$fields = array();
@@ -549,7 +550,20 @@ class XML_Format implements File_Format_Interface {
 			if ( '_' === $key[0] && ! $elementor && '_wp_page_template' !== $key && 0 !== strpos( $key, '_yoast_wpseo_' ) ) {
 				continue;
 			}
-			$row[ 'Meta: ' . $key ] = $value;
+			$values[ $key ][] = $value;
+		}
+		// One value per key as text; several rows of one key (enclosure) as the same row list
+		// the plugin's own exports write, so the import keeps every row.
+		foreach ( $values as $key => $list ) {
+			if ( 1 === count( $list ) ) {
+				$row[ 'Meta: ' . $key ] = $list[0];
+				continue;
+			}
+			$rows = array();
+			foreach ( $list as $item ) {
+				$rows[] = is_serialized( $item ) ? maybe_unserialize( $item ) : $item;
+			}
+			$row[ 'Meta: ' . $key ] = (string) wp_json_encode( array( '_rsl_ie_meta_rows' => $rows ) );
 		}
 		return $row;
 	}
