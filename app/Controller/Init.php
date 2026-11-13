@@ -524,6 +524,7 @@ class Init {
 					'jobFileSize'                       => __( 'File Size', 'import-export-by-rockstarlab' ),
 					'jobParameters'                     => __( 'Parameters', 'import-export-by-rockstarlab' ),
 					'jobWarnings'                       => __( 'Warnings', 'import-export-by-rockstarlab' ),
+					'jobErrors'                         => __( 'Why it failed', 'import-export-by-rockstarlab' ),
 					'importWithWarningsTitle'           => __( 'Import Completed with Warnings', 'import-export-by-rockstarlab' ),
 					'importWithWarningsSubtitleOne'     => __( 'All rows were imported. One note needs your attention; it is also in the Jobs Log.', 'import-export-by-rockstarlab' ),
 					/* translators: %d: number of warnings */

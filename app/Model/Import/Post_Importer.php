@@ -1081,6 +1081,7 @@ class Post_Importer extends Abstract_Importer {
 		if ( ! empty( $item['taxonomies'] ) ) {
 			$this->import_taxonomies( $post_id, $item['taxonomies'] );
 		}
+		$this->restore_primary_terms( (int) $post_id, $item['post_meta'] ?? [] );
 
 		// Import featured image — always, when data is present in the export.
 		// The featured_image field is explicitly selected at export time, so it
@@ -1164,6 +1165,7 @@ class Post_Importer extends Abstract_Importer {
 		if ( ! empty( $item['taxonomies'] ) ) {
 			$this->import_taxonomies( $post_id, $item['taxonomies'] );
 		}
+		$this->restore_primary_terms( (int) $post_id, $item['post_meta'] ?? [] );
 
 		// Update featured image — always, when data is present in the export.
 		if ( ! empty( $item['featured_image'] ) ) {
@@ -1735,6 +1737,36 @@ class Post_Importer extends Abstract_Importer {
 	}
 
 	/**
+	 * Point Yoast / Rank Math primary terms at the terms of this site. The export carries
+	 * the term slugs in _rsl_ie_primary_terms because the stored IDs belong to the source.
+	 *
+	 * @param int   $post_id Post ID.
+	 * @param mixed $meta    Imported post meta.
+	 * @return void
+	 */
+	private function restore_primary_terms( int $post_id, $meta ): void {
+		if ( is_string( $meta ) ) {
+			$meta = json_decode( $meta, true );
+		}
+		$map = is_array( $meta ) ? ( $meta['_rsl_ie_primary_terms'] ?? null ) : null;
+		if ( is_string( $map ) ) {
+			$map = json_decode( $map, true );
+		}
+		if ( ! is_array( $map ) || $post_id <= 0 ) {
+			return;
+		}
+		foreach ( $map as $key => $slug ) {
+			if ( ! is_string( $slug ) || ! preg_match( '/^(?:_yoast_wpseo_primary_|rank_math_primary_)(.+)$/', (string) $key, $m ) || ! taxonomy_exists( $m[1] ) ) {
+				continue;
+			}
+			$term = get_term_by( 'slug', $slug, $m[1] );
+			if ( $term && has_term( (int) $term->term_id, $m[1], $post_id ) ) {
+				update_post_meta( $post_id, (string) $key, (string) $term->term_id );
+			}
+		}
+	}
+
+	/**
 	 * Import post meta
 	 *
 	 * @param int   $post_id   Post ID
@@ -1885,6 +1917,11 @@ class Post_Importer extends Abstract_Importer {
 				continue;
 			}
 
+			// Applied after the terms are imported (restore_primary_terms).
+			if ( '_rsl_ie_primary_terms' === $key ) {
+				continue;
+			}
+
 			if ( is_string( $key ) && \RockStarLab\ImportExport\Helper\Elementor_Fields::is_elementor_meta_key( $key ) ) {
 				\RockStarLab\ImportExport\Helper\Elementor_Fields::import_meta_value( (int) $post_id, $key, $value, true, true );
 				continue;
@@ -1899,7 +1936,36 @@ class Post_Importer extends Abstract_Importer {
 				continue;
 			}
 
+			// SEO social image IDs belong to the site that exported them. Without media
+			// download, keep an ID only when the image URL is a file of this site.
+			$social_url_keys = array_flip( \RockStarLab\ImportExport\Helper\Seo_Fields::social_image_pairs() );
+			$social_url      = isset( $social_url_keys[ (string) $key ], $meta[ $social_url_keys[ (string) $key ] ] ) && is_string( $meta[ $social_url_keys[ (string) $key ] ] ) ? $meta[ $social_url_keys[ (string) $key ] ] : '';
+			if ( '' !== $social_url ) {
+				$local = Content_Sync_Media::attachment_url_to_original_postid( $social_url );
+				if ( $local > 0 ) {
+					update_post_meta( $post_id, (string) $key, (string) $local );
+				} else {
+					delete_post_meta( $post_id, (string) $key );
+				}
+				continue;
+			}
+
 			if ( $this->maybe_import_rank_math_media_field( (int) $post_id, (string) $key, $value ) ) {
+				continue;
+			}
+
+			// Yoast SEO / Rank Math settings are plain values. The ACF media heuristics below
+			// turned their image URLs into attachment IDs, which Yoast then dropped as invalid.
+			if ( is_string( $key ) && preg_match( '/^(?:_yoast_wpseo_|rank_math_)/', $key ) && ! preg_match( '/^rank_math_(?:shortcode_)?schema_/', $key ) ) {
+				if ( is_string( $value ) && is_serialized( $value ) ) {
+					$value = \RockStarLab\ImportExport\Helper\Serialized::maybe( $value );
+				} elseif ( is_string( $value ) && '' !== $value && ( '[' === $value[0] || '{' === $value[0] ) ) {
+					$decoded = json_decode( $value, true );
+					if ( is_array( $decoded ) ) {
+						$value = $decoded;
+					}
+				}
+				update_post_meta( $post_id, $key, wp_slash( $value ) );
 				continue;
 			}
 
@@ -2855,10 +2921,7 @@ class Post_Importer extends Abstract_Importer {
 	 * @return bool True when the field was handled.
 	 */
 	private function maybe_import_rank_math_media_field( $post_id, $key, $value ) {
-		$companion_id_keys = [
-			'rank_math_facebook_image' => 'rank_math_facebook_image_id',
-			'rank_math_twitter_image'  => 'rank_math_twitter_image_id',
-		];
+		$companion_id_keys = \RockStarLab\ImportExport\Helper\Seo_Fields::social_image_pairs();
 
 		if ( ! isset( $companion_id_keys[ $key ] ) || ! $this->get_option( 'auto_import_media', false ) || ! is_string( $value ) || '' === $value ) {
 			return false;
@@ -2878,7 +2941,8 @@ class Post_Importer extends Abstract_Importer {
 		if ( $attachment_url ) {
 			update_post_meta( $post_id, $key, $attachment_url );
 		}
-		update_post_meta( $post_id, $companion_id_keys[ $key ], (int) $attachment_id );
+		// A string: Yoast's meta sanitizer turns an integer into an empty value.
+		update_post_meta( $post_id, $companion_id_keys[ $key ], (string) (int) $attachment_id );
 
 		return true;
 	}
@@ -2896,10 +2960,7 @@ class Post_Importer extends Abstract_Importer {
 			return false;
 		}
 
-		$url_keys = [
-			'rank_math_facebook_image_id' => 'rank_math_facebook_image',
-			'rank_math_twitter_image_id'  => 'rank_math_twitter_image',
-		];
+		$url_keys = array_flip( \RockStarLab\ImportExport\Helper\Seo_Fields::social_image_pairs() );
 
 		return isset( $url_keys[ $key ], $meta[ $url_keys[ $key ] ] )
 			&& is_string( $meta[ $url_keys[ $key ] ] )
@@ -5774,7 +5835,7 @@ class Post_Importer extends Abstract_Importer {
 			return true;
 		}
 
-		return $this->get_media_source_url_hash( $existing_source_url ) === $this->get_media_source_url_hash( $url );
+		return Content_Sync_Media::same_source_url( $existing_source_url, $url );
 	}
 
 	/**
@@ -5787,30 +5848,7 @@ class Post_Importer extends Abstract_Importer {
 	 * @return int Attachment ID or 0.
 	 */
 	private function find_existing_media_by_source_url( string $url ): int {
-		$source_url_hash = $this->get_media_source_url_hash( $url );
-		if ( '' === $source_url_hash ) {
-			return 0;
-		}
-
-		$attachments = get_posts(
-			[
-				'post_type'              => 'attachment',
-				'post_status'            => 'inherit',
-				'posts_per_page'         => 1,
-				'fields'                 => 'ids',
-				'no_found_rows'          => true,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-				'meta_query'             => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Source URL hash lookup is required for media deduplication.
-					[
-						'key'   => 'rsl_ie_source_url_hash',
-						'value' => $source_url_hash,
-					],
-				],
-			]
-		);
-
-		return empty( $attachments ) ? 0 : (int) $attachments[0];
+		return Content_Sync_Media::attachment_by_source_url_hash( $url );
 	}
 
 	/**

@@ -199,7 +199,8 @@ const SiteMigration = {
 			: this.expandSteps( this.plan );
 		// Content families had raw names ("media", "post", "Woo Product") next to
 		// "Product Categories (product_cat)"; show the names used in the WordPress admin.
-		const i18n = ( 'undefined' !== typeof window && window.rslIeData?.i18n ) || {};
+		const i18n =
+			( 'undefined' !== typeof window && window.rslIeData?.i18n ) || {};
 		const familyLabels = {
 			media: i18n.migrationMedia || 'Media',
 			post: i18n.migrationPosts || 'Posts',

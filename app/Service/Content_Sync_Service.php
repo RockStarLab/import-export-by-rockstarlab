@@ -20,6 +20,9 @@ defined( 'ABSPATH' ) || exit;
 
 /** Shared content sync business operations. */
 class Content_Sync_Service {
+	/** Exception code of failures whose message is written for the user (see execute()). */
+	const USER_ERROR = 4151;
+
 	use Sync_Service_Input;
 
 	/**
@@ -157,8 +160,14 @@ class Content_Sync_Service {
 			if ( $site_id ) {
 				$site      = Connected_Site::get_by_id( $site_id );
 				$direction = 0 === strpos( $action, 'push_' ) ? 'push' : ( 0 === strpos( $action, 'pull_' ) ? 'pull' : '' );
-				if ( ! $site || 'active' !== $site['status'] || ( $direction && ! in_array( $site['direction'], [ $direction, 'bidirectional' ], true ) ) ) {
-					return new \WP_Error( 'rsl_ie_connection_unavailable', __( 'The connection must be active and allow this direction.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+				if ( ! $site ) {
+					return new \WP_Error( 'rsl_ie_connection_unavailable', __( 'This connection no longer exists. Choose another site.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+				}
+				if ( 'active' !== $site['status'] ) {
+					return new \WP_Error( 'rsl_ie_connection_unavailable', __( 'The last check of this connection failed (for example, the other site changed its API key or could not be reached). Open Content Sync, Import, Export > Content Sync, fix the connection with Edit if needed and click Test Connection.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
+				}
+				if ( $direction && ! in_array( $site['direction'], [ $direction, 'bidirectional' ], true ) ) {
+					return new \WP_Error( 'rsl_ie_connection_unavailable', 'push' === $direction ? __( 'This connection does not allow sending content to the other site. Change its direction with Edit in Content Sync.', 'import-export-by-rockstarlab' ) : __( 'This connection does not allow receiving content from the other site. Change its direction with Edit in Content Sync.', 'import-export-by-rockstarlab' ), [ 'status' => 409 ] );
 				}
 				$guard = apply_filters( 'rsl_ie_sync_connection_guard', true, $site );
 				if ( is_wp_error( $guard ) ) {
@@ -209,7 +218,9 @@ class Content_Sync_Service {
 			}
 			return $result;
 		} catch ( \Throwable $exception ) {
-			$message = __( 'Sync stopped unexpectedly. Inspect its job before repeating the request; some content may already have changed.', 'import-export-by-rockstarlab' );
+			$message = $exception instanceof \RuntimeException && self::USER_ERROR === $exception->getCode()
+				? $exception->getMessage()
+				: __( 'Sync stopped unexpectedly. Inspect its job before repeating the request; some content may already have changed.', 'import-export-by-rockstarlab' );
 			if ( $this->job_id ) {
 				$this->fail_content_sync_job( $this->job_id, $message );
 			}
@@ -285,7 +296,7 @@ class Content_Sync_Service {
 		// translators: %s = content placeholder.
 
 		if ( is_wp_error( $response ) ) {
-			return $this->error( __( 'Failed to connect to remote site: ', 'import-export-by-rockstarlab' ) . $response->get_error_message() );
+			return $this->error( \RockStarLab\ImportExport\Helper\Remote_API::failure_message( $response ) );
 		}
 
 		$status_code = wp_remote_retrieve_response_code( $response );
@@ -294,7 +305,7 @@ class Content_Sync_Service {
 		if ( 200 !== $status_code ) {
 			$error_data = json_decode( $body, true );
 			// translators: %d is a dynamic value.
-			$error_msg = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Request failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
+			$error_msg = is_array( $error_data ) && 'rsl_ie_license_inactive' === ( $error_data['code'] ?? '' ) ? $this->get_remote_error_message( $error_data, $status_code ) : ( isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Request failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code ) );
 			return $this->error( $error_msg );
 		}
 
@@ -1057,7 +1068,7 @@ class Content_Sync_Service {
 		);
 
 		if ( is_wp_error( $response ) ) {
-			return new \WP_Error( 'rsl_ie_remote_error', __( 'Failed to connect to remote site: ', 'import-export-by-rockstarlab' ) . $response->get_error_message() );
+			return new \WP_Error( 'rsl_ie_remote_error', \RockStarLab\ImportExport\Helper\Remote_API::failure_message( $response ) );
 		}
 
 		$status_code = wp_remote_retrieve_response_code( $response );
@@ -1084,6 +1095,10 @@ class Content_Sync_Service {
 	 * @return string
 	 */
 	private function get_remote_error_message( $data, $status_code ) {
+		if ( is_array( $data ) && 'rsl_ie_license_inactive' === ( $data['code'] ?? '' ) ) {
+			// The other site answered: its own PRO is not licensed (the message alone reads as if this site's was not).
+			return __( 'The PRO addon is not active with a license on the other site, so it cannot receive or send this data. Activate the PRO license on that site (on a multisite network: on that subsite), then try again.', 'import-export-by-rockstarlab' );
+		}
 		if ( is_array( $data ) ) {
 			if ( ! empty( $data['message'] ) && is_scalar( $data['message'] ) ) {
 				return (string) $data['message'];
@@ -1379,7 +1394,7 @@ class Content_Sync_Service {
 			);
 
 		if ( is_wp_error( $response ) ) {
-			return $this->error( __( 'Failed to connect to remote site: ', 'import-export-by-rockstarlab' ) . $response->get_error_message() );
+			return $this->error( \RockStarLab\ImportExport\Helper\Remote_API::failure_message( $response ) );
 		}
 
 		$status_code = wp_remote_retrieve_response_code( $response );
@@ -1388,7 +1403,7 @@ class Content_Sync_Service {
 		if ( 200 !== $status_code ) {
 			$error_data = json_decode( $body, true );
 			// translators: %d is a dynamic value.
-			$error_msg = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Request failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
+			$error_msg = is_array( $error_data ) && 'rsl_ie_license_inactive' === ( $error_data['code'] ?? '' ) ? $this->get_remote_error_message( $error_data, $status_code ) : ( isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Request failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code ) );
 			return $this->error( $error_msg );
 		}
 
@@ -1691,7 +1706,7 @@ class Content_Sync_Service {
 
 		if ( is_wp_error( $response ) ) {
 			$this->fail_content_sync_job( $job_id, $response->get_error_message() );
-			return $this->error( __( 'Failed to connect to remote site: ', 'import-export-by-rockstarlab' ) . $response->get_error_message() );
+			return $this->error( \RockStarLab\ImportExport\Helper\Remote_API::failure_message( $response ) );
 		}
 
 		$status_code = wp_remote_retrieve_response_code( $response );
@@ -1700,7 +1715,7 @@ class Content_Sync_Service {
 		if ( 200 !== $status_code ) {
 			$error_data = json_decode( $body, true );
 			// translators: %d is a dynamic value.
-			$error_msg = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Push failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
+			$error_msg = is_array( $error_data ) && 'rsl_ie_license_inactive' === ( $error_data['code'] ?? '' ) ? $this->get_remote_error_message( $error_data, $status_code ) : ( isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Push failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code ) );
 			$this->fail_content_sync_job( $job_id, $error_msg );
 			return $this->error( $error_msg );
 		}
@@ -1872,7 +1887,15 @@ class Content_Sync_Service {
 	private function upload_single_image_to_remote( $image, $site ) {
 		$result = ( new Media_Transport_Service() )->push_image( $image, $site );
 		if ( is_wp_error( $result ) ) {
-			throw new \RuntimeException( 'Content Sync media transfer failed.' );
+			$file = ! empty( $image['file_name'] ) ? (string) $image['file_name'] : wp_basename( (string) ( $image['url'] ?? '' ) );
+			throw new \RuntimeException(
+				sprintf(
+					/* translators: %s: file name. */
+					__( 'The file %s could not be copied to the other site, so the content was not sent. The other site may not accept this file type (for example SVG) or its size. Allow the file there or remove it from the content, then try again.', 'import-export-by-rockstarlab' ),
+					sanitize_file_name( $file )
+				),
+				self::USER_ERROR
+			);
 		}
 		return $result;
 	}
@@ -2222,7 +2245,7 @@ class Content_Sync_Service {
 
 		if ( is_wp_error( $response ) ) {
 			$this->fail_content_sync_job( $job_id, $response->get_error_message() );
-			return $this->error( __( 'Failed to connect to remote site: ', 'import-export-by-rockstarlab' ) . $response->get_error_message() );
+			return $this->error( \RockStarLab\ImportExport\Helper\Remote_API::failure_message( $response ) );
 		}
 
 		$status_code = wp_remote_retrieve_response_code( $response );
@@ -2231,7 +2254,7 @@ class Content_Sync_Service {
 		if ( 200 !== $status_code ) {
 			$error_data = json_decode( $body, true );
 			// translators: %d is a dynamic value.
-			$error_msg = isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Pull failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code );
+			$error_msg = is_array( $error_data ) && 'rsl_ie_license_inactive' === ( $error_data['code'] ?? '' ) ? $this->get_remote_error_message( $error_data, $status_code ) : ( isset( $error_data['message'] ) ? $error_data['message'] : sprintf( __( 'Pull failed with status code: %d', 'import-export-by-rockstarlab' ), $status_code ) );
 			$this->fail_content_sync_job( $job_id, $error_msg );
 			return $this->error( $error_msg );
 		}
@@ -3992,6 +4015,24 @@ class Content_Sync_Service {
 		if ( ! empty( $term_info['acf'] ) && is_array( $term_info['acf'] ) ) {
 			$image_ids = array_merge( $image_ids, $this->extract_term_acf_images( $term_info['acf'] ) );
 		}
+		// Social images of SEO plugins (Yoast keeps a URL, Rank Math a URL and an ID).
+		$social = array();
+		foreach ( (array) ( $term_info['yoast_seo'] ?? array() ) as $key => $value ) {
+			if ( is_string( $key ) && preg_match( '/-image$/', $key ) ) {
+				$social[] = $value;
+			}
+		}
+		foreach ( array_keys( \RockStarLab\ImportExport\Helper\Seo_Fields::social_image_pairs() ) as $key ) {
+			if ( isset( $term_info['meta'][ $key ] ) ) {
+				$social[] = $term_info['meta'][ $key ];
+			}
+		}
+		foreach ( $social as $url ) {
+			$id = is_string( $url ) && '' !== $url ? \RockStarLab\ImportExport\Helper\Content_Sync_Media::attachment_url_to_original_postid( $url ) : 0;
+			if ( $id > 0 ) {
+				$image_ids[] = $id;
+			}
+		}
 		$image_ids = array_values( array_unique( array_filter( array_map( 'absint', $image_ids ) ) ) );
 		if ( empty( $image_ids ) ) {
 			return;
@@ -4061,6 +4102,16 @@ class Content_Sync_Service {
 					$image_sources
 				);
 			}
+
+			// SEO social images and canonical URLs: point them at the copies on the other site.
+			$seo_url = static function ( $value ) use ( $source_domain, $target_domain, $image_map, $image_sources ) {
+				if ( ! is_string( $value ) || '' === $value ) {
+					return $value;
+				}
+				$value = \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::replace_text_public( $value, $source_domain, $target_domain );
+				return \RockStarLab\ImportExport\Helper\Content_Sync_Replacer::fix_local_image_urls_in_content( $value, $image_map, $image_sources );
+			};
+			$term_info = \RockStarLab\ImportExport\Helper\Seo_Fields::remap_term_social( $term_info, $seo_url, $image_map );
 
 			if ( empty( $term_info['acf'] ) || ! is_array( $term_info['acf'] ) ) {
 				continue;

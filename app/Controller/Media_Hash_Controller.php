@@ -158,6 +158,7 @@ class Media_Hash_Controller extends Base_Controller {
 				'Free Plugin Path'  => defined( 'RSL_IE_PATH' ) ? RSL_IE_PATH : 'Unknown',
 				'PRO Addon Active'  => class_exists( '\RockStarLab\ImportExport\Helper\Pro_Addon' ) && \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_active() ? 'Yes' : 'No',
 				'PRO Addon Enabled' => class_exists( '\RockStarLab\ImportExport\Helper\Pro_Addon' ) && \RockStarLab\ImportExport\Helper\Pro_Addon::is_pro_enabled() ? 'Yes' : 'No',
+				'PRO Version'       => defined( 'RSL_IE_PRO_VERSION' ) ? RSL_IE_PRO_VERSION : 'Not installed',
 				'Uploads Writable'  => wp_is_writable( $upload_dir['basedir'] ) ? 'Yes' : 'No',
 				'Upload Base Dir'   => $upload_dir['basedir'],
 				'Upload Base URL'   => $upload_dir['baseurl'],

@@ -12,6 +12,117 @@ defined( 'ABSPATH' ) || exit;
 class Seo_Fields {
 
 	/**
+	 * Social image fields stored as an image URL plus the attachment ID on this site.
+	 * The ID is not portable between sites, so it follows the image of the URL.
+	 *
+	 * @return array<string,string> URL meta key => attachment ID meta key.
+	 */
+	public static function social_image_pairs() {
+		return [
+			'rank_math_facebook_image'     => 'rank_math_facebook_image_id',
+			'rank_math_twitter_image'      => 'rank_math_twitter_image_id',
+			'_yoast_wpseo_opengraph-image' => '_yoast_wpseo_opengraph-image-id',
+			'_yoast_wpseo_twitter-image'   => '_yoast_wpseo_twitter-image-id',
+		];
+	}
+
+	/**
+	 * Point the SEO social images and canonical URL of a synced term payload at this site.
+	 *
+	 * @param array    $term_info Term payload (meta, yoast_seo).
+	 * @param callable $url       Maps a URL of the other site to this site.
+	 * @param array    $image_map Source attachment ID => attachment ID on the receiving site.
+	 * @return array
+	 */
+	public static function remap_term_social( array $term_info, callable $url, array $image_map ) {
+		if ( ! empty( $term_info['yoast_seo'] ) && is_array( $term_info['yoast_seo'] ) ) {
+			foreach ( $term_info['yoast_seo'] as $key => $value ) {
+				if ( is_string( $key ) && is_string( $value ) && '' !== $value && ( preg_match( '/-image$/', $key ) || 'wpseo_canonical' === $key ) ) {
+					$term_info['yoast_seo'][ $key ] = (string) $url( $value );
+				}
+			}
+		}
+		if ( ! empty( $term_info['meta'] ) && is_array( $term_info['meta'] ) ) {
+			foreach ( self::social_image_pairs() as $url_key => $id_key ) {
+				if ( isset( $term_info['meta'][ $url_key ] ) && is_string( $term_info['meta'][ $url_key ] ) && '' !== $term_info['meta'][ $url_key ] ) {
+					$term_info['meta'][ $url_key ] = (string) $url( $term_info['meta'][ $url_key ] );
+				}
+				if ( isset( $term_info['meta'][ $id_key ] ) && is_numeric( $term_info['meta'][ $id_key ] ) ) {
+					$source_id = (int) $term_info['meta'][ $id_key ];
+					if ( isset( $image_map[ $source_id ] ) ) {
+						$term_info['meta'][ $id_key ] = (string) $image_map[ $source_id ];
+					} else {
+						// Another site's attachment ID would name an unrelated image here.
+						unset( $term_info['meta'][ $id_key ] );
+					}
+				}
+			}
+		}
+		return $term_info;
+	}
+
+	/**
+	 * Yoast SEO data of a term. Yoast keeps it in the wpseo_taxonomy_meta option, not in term meta.
+	 *
+	 * @param int    $term_id  Term ID.
+	 * @param string $taxonomy Taxonomy.
+	 * @return array<string,string>
+	 */
+	public static function export_yoast_term( $term_id, $taxonomy ) {
+		$all  = get_option( 'wpseo_taxonomy_meta', [] );
+		$data = is_array( $all ) && isset( $all[ $taxonomy ][ (int) $term_id ] ) && is_array( $all[ $taxonomy ][ (int) $term_id ] ) ? $all[ $taxonomy ][ (int) $term_id ] : [];
+		$out  = [];
+		foreach ( $data as $key => $value ) {
+			if ( is_string( $key ) && 0 === strpos( $key, 'wpseo_' ) && is_scalar( $value ) ) {
+				$out[ $key ] = (string) $value;
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Save Yoast SEO data of a term received from another site.
+	 *
+	 * Image URLs pass through $resolve (domain and media mapping); the attachment IDs
+	 * of the other site are replaced by the IDs of the resolved images on this site.
+	 *
+	 * @param int           $term_id  Local term ID.
+	 * @param string        $taxonomy Taxonomy.
+	 * @param mixed         $data     Payload from export_yoast_term().
+	 * @param callable|null $resolve  Maps a value from the other site to this site.
+	 * @return void
+	 */
+	public static function import_yoast_term( $term_id, $taxonomy, $data, $resolve = null ) {
+		if ( ! is_array( $data ) || ! $data || (int) $term_id <= 0 ) {
+			return;
+		}
+		$clean = [];
+		foreach ( $data as $key => $value ) {
+			if ( ! is_string( $key ) || 0 !== strpos( $key, 'wpseo_' ) || ! is_scalar( $value ) || preg_match( '/-image-id$/', $key ) ) {
+				continue;
+			}
+			$value = (string) $value;
+			if ( preg_match( '/-image$/', $key ) ) {
+				$value = is_callable( $resolve ) ? (string) call_user_func( $resolve, $value ) : $value;
+				$value = esc_url_raw( $value );
+				$id    = '' !== $value ? attachment_url_to_postid( $value ) : 0;
+				if ( $id > 0 ) {
+					$clean[ $key . '-id' ] = (string) $id;
+				}
+			} elseif ( 'wpseo_canonical' === $key && is_callable( $resolve ) ) {
+				$value = esc_url_raw( (string) call_user_func( $resolve, $value ) );
+			} else {
+				$value = sanitize_text_field( $value );
+			}
+			$clean[ $key ] = $value;
+		}
+		$all = get_option( 'wpseo_taxonomy_meta', [] );
+		$all = is_array( $all ) ? $all : [];
+		$all[ $taxonomy ][ (int) $term_id ] = $clean;
+		update_option( 'wpseo_taxonomy_meta', $all );
+	}
+
+	/**
 	 * Get standard Yoast SEO post meta fields.
 	 *
 	 * @param string $post_type Optional post type used to add primary taxonomy fields.
@@ -745,7 +856,7 @@ class Seo_Fields {
 			return true;
 		}
 
-		return self::get_source_url_hash( $existing_source_url ) === self::get_source_url_hash( $source_url );
+		return Content_Sync_Media::same_source_url( $existing_source_url, $source_url );
 	}
 
 	/**
@@ -755,20 +866,7 @@ class Seo_Fields {
 	 * @return int
 	 */
 	private static function find_attachment_by_source_url( $url ) {
-		global $wpdb;
-
-		$hash = self::get_source_url_hash( (string) $url );
-		if ( '' === $hash ) {
-			return 0;
-		}
-		$attachment_id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Exact source URL hash lookup avoids duplicate sideloads.
-			$wpdb->prepare(
-				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = 'rsl_ie_source_url_hash' AND meta_value = %s LIMIT 1",
-				$hash
-			)
-		);
-
-		return $attachment_id ? absint( $attachment_id ) : 0;
+		return Content_Sync_Media::attachment_by_source_url_hash( (string) $url );
 	}
 
 	/**

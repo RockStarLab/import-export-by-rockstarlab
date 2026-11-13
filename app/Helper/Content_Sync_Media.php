@@ -429,6 +429,75 @@ class Content_Sync_Media {
 	 * @param callable|null $exists Optional transport-owned URL probe.
 	 * @return string Canonical URL when resolved, otherwise the original URL.
 	 */
+	/**
+	 * Hashes under which a media source URL may have been stored. The same file URL
+	 * arrives with its non-ASCII name either as is ("Фото.jpg") or percent-encoded
+	 * ("%D0%A4...jpg"), depending on the path (Content Sync, file import, media import).
+	 *
+	 * @param string $url Source media URL.
+	 * @return string[] Unique md5 hashes, empty for an empty URL.
+	 */
+	public static function source_url_hash_variants( $url ) {
+		$url = (string) $url;
+		if ( '' === $url ) {
+			return array();
+		}
+		$decoded = rawurldecode( $url );
+		$encoded = preg_replace_callback(
+			'/[^\x00-\x7F]+/',
+			static function ( $m ) {
+				return rawurlencode( $m[0] );
+			},
+			$decoded
+		);
+		$hashes  = array();
+		foreach ( array( $url, $decoded, $encoded ) as $form ) {
+			$canonical = self::canonicalize_import_media_url( $form );
+			if ( '' !== $canonical ) {
+				$hashes[] = md5( $canonical );
+			}
+		}
+		return array_values( array_unique( $hashes ) );
+	}
+
+	/**
+	 * First attachment stored with any hash of the source URL.
+	 *
+	 * @param string $url Source media URL.
+	 * @return int Attachment ID or 0.
+	 */
+	public static function attachment_by_source_url_hash( $url ) {
+		global $wpdb;
+		$hashes = self::source_url_hash_variants( $url );
+		if ( ! $hashes ) {
+			return 0;
+		}
+		$placeholders = implode( ',', array_fill( 0, count( $hashes ), '%s' ) );
+		$ids          = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Exact hash lookup for media deduplication.
+			$wpdb->prepare(
+				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = 'rsl_ie_source_url_hash' AND meta_value IN ($placeholders) ORDER BY post_id", // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Placeholders built above.
+				...$hashes
+			)
+		);
+		foreach ( $ids as $id ) {
+			if ( 'attachment' === get_post_type( (int) $id ) ) {
+				return (int) $id;
+			}
+		}
+		return 0;
+	}
+
+	/**
+	 * Whether two media source URLs name the same file (encoding aside).
+	 *
+	 * @param string $a URL.
+	 * @param string $b URL.
+	 * @return bool
+	 */
+	public static function same_source_url( $a, $b ) {
+		return (bool) array_intersect( self::source_url_hash_variants( $a ), self::source_url_hash_variants( $b ) );
+	}
+
 	public static function canonicalize_import_media_url( $url, $exists = null ) {
 		$url = esc_url_raw( (string) $url );
 		if ( '' === $url || ! self::is_wordpress_uploads_url( $url ) ) {
@@ -1265,10 +1334,7 @@ class Content_Sync_Media {
 	private static function get_rank_math_images( $post_id ) {
 		$images = array();
 
-		$social_id_keys = array(
-			'rank_math_facebook_image_id',
-			'rank_math_twitter_image_id',
-		);
+		$social_id_keys = array_values( Seo_Fields::social_image_pairs() );
 
 		foreach ( $social_id_keys as $meta_key ) {
 			$attachment_id = absint( get_post_meta( $post_id, $meta_key, true ) );
@@ -1282,10 +1348,7 @@ class Content_Sync_Media {
 			}
 		}
 
-		$social_url_keys = array(
-			'rank_math_facebook_image',
-			'rank_math_twitter_image',
-		);
+		$social_url_keys = array_keys( Seo_Fields::social_image_pairs() );
 
 		foreach ( $social_url_keys as $meta_key ) {
 			$url = get_post_meta( $post_id, $meta_key, true );
